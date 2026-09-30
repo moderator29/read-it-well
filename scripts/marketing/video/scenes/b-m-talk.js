@@ -1,18 +1,20 @@
 /**
  * Mobile rows 14 to 18: talking (30.58 to 40.96), storyboard v3.2.
  * One phone size (h 1400, PHONE_HIGH); pushes go beyond it and come back.
- *   14  the villa card lands on the thread's Maitama card as the phone rises;
- *       the phone dims and "owner", "landlord", "agent" stack in WORDS under
- *       the pill "Talk straight to the lister", which rolled in on the cut.
- *   15  the words go; the phone pushes onto the thread's foot (the thread
- *       above stays softly washed, so only the message area is live); the
- *       composer lifts off its slot; the member's real message types; send
- *       on "app"; the bubble flies into its place with its tick.
+ *   14  the villa card lands on the thread's Maitama card as the phone rises,
+ *       to the right, its thread live; "owner", "landlord", "agent" stack in
+ *       the left column under the pill "Talk straight to the lister", which
+ *       rolled in on the cut. Card 1 (taken over from section a) holds its
+ *       answer to 31.30 and leaves for the top right.
+ *   15  the words go; the phone pushes onto the thread's foot (the pill steps
+ *       aside, v3.3); the composer lifts off its slot; the member's real
+ *       message types; send on "app"; the bubble flies into its place.
  *   16  in the same push the share sheet rises: "Send in a Vallo chat" is
- *       pressed on "chat"; the Maitama villa (what the sheet shares) flies
- *       off; the sheet closes and the phone returns, to the right.
- *   17  the day card swings in beside the thread ("…Saturday morning?"):
- *       blank pages turn to Saturday; on "inspection" 11:00 AM and
+ *       pressed on "chat"; the Maitama villa (what the sheet shares) arcs
+ *       off the row over the open sheet and is gone inside the frame; the
+ *       sheet closes and the phone returns, to the right.
+ *   17  the day card ("Saturday" from its arrival) swings in beside the
+ *       thread ("…Saturday morning?"); on "inspection" 11:00 AM and
  *       "Inspection set" stamp in together; it holds to the row's end.
  *   18  back to the inbox, the phone recentred; the card docks as the unread
  *       dot; the menu opens the drawer; the phone pushes onto FLIP.
@@ -52,6 +54,8 @@ export async function talk(ctx, S, T) {
   const pL = S.pL;
   const thread = ctx.src.display("thread-light");
   const HIGH = { cx: L.PHONE_HIGH.cx, cy: L.PHONE_HIGH.cy, height: L.PHONE_HIGH.height };
+  /* row 14: the phone to the right (it may run off the right edge), its thread live; the words take the left column */
+  const WORDS14 = { cx: 840, cy: L.PHONE_HIGH.cy, height: L.PHONE_HIGH.height };
   /* the push onto the thread's foot (1.5x): the composer sits just above the captions */
   const PUSH15 = { cx: 510, cy: 210, height: 2100 };
   /* the same phone, moved right so the day card has the left side (flat: a turned screen costs 2x) */
@@ -69,11 +73,11 @@ export async function talk(ctx, S, T) {
   const tLandBubble = T.app + 0.4;           // 34.94
   const tSink = tLandBubble - 0.02;
   const tPressRow = T.chat;                  // 36.15: "Send in a Vallo chat"
-  const tFly0 = T.chat + 0.08;               // 36.23
-  const tFly1 = T.chat + 0.55;               // 36.70
-  const tClose0 = T.chat + 0.11;             // 36.26: the sheet closes
-  const tClose1 = T.chat + 0.4;              // 36.55
-  const tSlide = T.chat + 0.25;              // 36.40: the phone returns, to the right
+  const tFly0 = T.chat + 0.06;               // 36.21: the shared card leaves the row, over the open sheet
+  const tFly1 = T.chat + 0.42;               // 36.57: sent, gone inside the frame
+  const tClose0 = T.chat + 0.4;              // 36.55: then the sheet closes
+  const tClose1 = T.chat + 0.69;             // 36.84
+  const tSlide = T.chat + 0.45;              // 36.60: the phone returns, to the right
   const tBack = T.r18 + 0.05;                // 38.70: back to the inbox
   const tDock = ctx.beat(68.3);              // 39.40
   const tMenu = T.place + 0.33;              // 40.45
@@ -85,9 +89,12 @@ export async function talk(ctx, S, T) {
 
   /* ---------- the phone ---------- */
   const pose = track(ctx, pL.pose, { ...A_OUT.phone });
-  pose.to(T.r14, 0.52, { ...HIGH, opacity: 1 }, "glide");        // up to PHONE_HIGH as the card flies in
+  pose.to(T.r14, 0.52, { ...WORDS14, opacity: 1 }, "glide");     // up, to the right, as the card flies in
   pose.to(tWordsOut, 0.46, PUSH15, "power2.inOut");                // the push onto the thread's foot
   pose.to(tSlide, 0.47, RIGHT17, "glide");                        // back to h 1400, to the right
+  /* v3.3: the pill steps aside while a push brings screen text under it */
+  ctx.hidePill(tWordsOut, tSlide + 0.42);
+  ctx.hidePill(tFlipPush, T.r19 + 0.1);
   pose.to(tBack, 0.5, HIGH, "power2.inOut");                       // recentred with the inbox
   pose.to(tFlipPush, 0.6, FLIPPOSE, "power2.inOut");               // the push onto FLIP
   S.pLpose = pose;
@@ -125,22 +132,6 @@ export async function talk(ctx, S, T) {
   /* the composer's own slot, empty while the composer is lifted (never the same UI twice) */
   const slot = box(ctx, th.el, { x: 0, y: BAR.y, w: DW, h: BAR.h, style: { background: "#f3f4f1", zIndex: "5" } });
   showDuring(ctx, slot, [[tLift, tSink + 0.26]]);
-
-  /* Row 14: a white wash dims the thread under the words (0.92); for row 15 it draws back to
-     the thread's foot, so only the message area is live and the pill sits on calm white. */
-  const wash = box(ctx, th.el, { x: 0, y: 0, w: DW, h: DH, style: { zIndex: "60", visibility: "hidden" } });
-  const washOn = [T.owner - 0.2, T.share + 0.45];
-  ctx.onFrame((t) => {
-    const on = t >= washOn[0] && t < washOn[1];
-    wash.style.visibility = on ? "inherit" : "hidden";
-    if (!on) return;
-    const a = 0.92 * ramp(ctx, t, T.owner - 0.2, T.owner + 0.1, "power2.inOut") * (1 - ramp(ctx, t, T.share + 0.2, T.share + 0.42, "power1.inOut"));
-    const k = ramp(ctx, t, tWordsOut, tWordsOut + 0.42, "power2.inOut");
-    const s1 = mix(DH + 40, 2352, k);
-    const s2 = mix(DH + 80, 2394, k);
-    wash.style.background = `linear-gradient(180deg, rgb(255 255 255) 0px, rgb(255 255 255) ${s1.toFixed(1)}px, rgb(255 255 255 / 0) ${s2.toFixed(1)}px)`;
-    wash.style.opacity = a.toFixed(3);
-  });
 
   /* Row 18: back to the inbox (the thread slides off right, the inbox comes in from the left). */
   th.el.style.boxShadow = "-30px 0 60px -20px rgb(16 32 80 / 0.25)";
@@ -189,18 +180,20 @@ export async function talk(ctx, S, T) {
   const card1 = questionCard(ctx, c1Scene, { q: QUESTIONS[0].q, a: QUESTIONS[0].a, box: C1, fontSize: 40 });
   Object.assign(card1.front.style, { justifyContent: "center", textAlign: "center", textWrap: "balance" });
   Object.assign(card1.back.style, { justifyContent: "center", textAlign: "center", fontSize: "33px", lineHeight: "1.22", textWrap: "balance" });
+  /* the answer on two set lines, never ragged */
+  card1.back.querySelector("span").innerHTML = "₦26,100,000 to move in.<br>Seen before a single call.";
   card1.turn(T.r14 - 5, { sound: null }); // already turned at the cut
   const c1c = { x: C1.x + C1.w / 2, y: C1.y + C1.h / 2 };
   ctx.gsap.set(card1.root, { transformOrigin: "50% 50%", rotation: -2 });
   tl.fromTo(card1.root, { x: 0, rotation: -2, scale: 1 }, { x: 1300 - c1c.x, rotation: 24, scale: 0.9, duration: 0.34, ease: "power2.out", immediateRender: false }, card1Out);
   tl.fromTo(card1.root, { y: 0 }, { y: -105 - c1c.y, duration: 0.34, ease: "power3.in", immediateRender: false }, card1Out);
 
-  /* "owner", "landlord", "agent" stack in WORDS, left-aligned at x 120, each entering from the left on its word. */
-  const X0 = 120;
+  /* "owner", "landlord", "agent" stack in the left column (x 60-480), clear of the phone's bezel, each entering on its word. */
+  const X0 = 60;
   const words = [
-    { text: "owner", blue: true, y: 600, t: T.owner, k: 1.04 },
-    { text: "landlord", blue: false, y: 770, t: T.landlord, k: 1 },
-    { text: "agent", blue: false, y: 940, t: T.agent, k: 0.97 },
+    { text: "owner", blue: true, y: 640, t: T.owner, k: 1.04 },
+    { text: "landlord", blue: false, y: 800, t: T.landlord, k: 1 },
+    { text: "agent", blue: false, y: 960, t: T.agent, k: 0.97 },
   ].map((w) => {
     const el = ctx.el("div", { class: "abs", text: w.text, style: { left: "0px", top: "0px", font: "700 150px/1 Poppins, Inter, sans-serif", letterSpacing: "-0.035em", color: w.blue ? ELECTRIC : NAVY, whiteSpace: "nowrap", transformOrigin: "0% 50%", visibility: "hidden" } }, type);
     return { ...w, el };
@@ -212,8 +205,8 @@ export async function talk(ctx, S, T) {
       return;
     }
     if (!wd) {
-      /* one size for all three, "landlord" at most 700 px wide and 140 px tall: air between the stacked lines */
-      const size = Math.min(140, (700 / measure("landlord", "700 100px Poppins")) * 100);
+      /* one size for all three, "landlord" at most 420 px wide (x 60-480, the phone's bezel starts at 501) */
+      const size = Math.min(130, (420 / measure("landlord", "700 100px Poppins")) * 100);
       words.forEach((w) => (w.el.style.fontSize = `${(size * w.k).toFixed(1)}px`));
       wd = words.map((w) => ({ w: w.el.offsetWidth, h: w.el.offsetHeight }));
     }
@@ -305,14 +298,14 @@ export async function talk(ctx, S, T) {
   quadDriver(ctx, flyer, MAITAMA.w, MAITAMA.h, {
     t0: tFly0, t1: tFly1,
     quadAt: (t) => {
-      const k = ramp(ctx, t, tFly0, tFly1, "power2.in");
-      const up = ramp(ctx, t, tFly0, tFly0 + 0.28, "power3.out");
-      const w = mix(170, 440, up);
-      const x = mix(rowAt.x - 90, 1300, k) - w / 2;
-      const y = mix(mix(rowAt.y, rowAt.y - 170, up), -300, k) - (w * 0.72) / 2;
-      return rectQuad({ x, y, w, h: w * (MAITAMA.h / MAITAMA.w), rot: mix(-4, 12, k) });
+      /* up from the pressed row in an arc, over the sheet's blurred backdrop (the list is not on screen), to x <= 940 */
+      const k = ramp(ctx, t, tFly0, tFly1, "power2.inOut");
+      const w = mix(170, 360, Math.sin(Math.PI * Math.min(1, k * 1.4) / 2)) * mix(1, 0.55, ramp(ctx, t, tFly1 - 0.14, tFly1, "power2.in"));
+      const x = mix(rowAt.x - 90, 760, k) - w / 2;
+      const y = mix(rowAt.y, 460, k) - 120 * Math.sin(Math.PI * k) - (w * 0.72) / 2;
+      return rectQuad({ x, y, w, h: w * (MAITAMA.h / MAITAMA.w), rot: mix(-4, 6, k) });
     },
-    opacityAt: (t) => ramp(ctx, t, tFly0, tFly0 + 0.06),
+    opacityAt: (t) => ramp(ctx, t, tFly0, tFly0 + 0.06) * (1 - ramp(ctx, t, tFly1 - 0.12, tFly1, "power1.in")),
   });
   ctx.sfx("card_slide", tFly0, { offset: -2 });
 
@@ -364,7 +357,7 @@ export async function talk(ctx, S, T) {
   orbT.to(T.share + 0.12, 0.43, { x: rowAt.x + 10, y: rowAt.y + 8 }, "glide");
   orbT.to(tPressRow - 0.1, 0.08, { x: rowAt.x, y: rowAt.y }, "power2.out");
   pressAt(ctx, S.orb, tPressRow, { ringParent: S.pointer, x: rowAt.x, y: rowAt.y, sound: "tap" });
-  orbT.to(tPressRow + 0.1, 0.36, { x: 900, y: 1180, opacity: 0 }, "power2.in");
+  orbT.to(tClose0, 0.3, { x: rowAt.x + 60, y: rowAt.y + 180, opacity: 0 }, "power2.in");
   /* Row 18: the menu, which opens the drawer. */
   const menuQ = displayQuad(pL, { x: MENU.x, y: MENU.y, w: 1, h: 1 }, quadAtPose(pL, HIGH));
   const menuAt = { x: menuQ[0].x + 14, y: menuQ[0].y + 12 };

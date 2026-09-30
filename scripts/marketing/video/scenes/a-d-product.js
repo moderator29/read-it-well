@@ -18,7 +18,7 @@
  */
 import { LAYOUT } from "./layout.js";
 import { browserWindow, orb } from "../engine/components.js";
-import { NAVY, ELECTRIC, SHADOW, MIST, nigeriaOutline, CITIES, pressAt, fitSize, measure, rectQuad, placeOnQuad, cropCanvas } from "./a-common.js";
+import { NAVY, ELECTRIC, SHADOW, MIST, nigeriaOutline, CITIES, pressAt, fitSize, measure, rectQuad, placeOnQuad, cropCanvas, stayTabs } from "./a-common.js";
 
 const W = 1920;
 const H = 1080;
@@ -36,8 +36,9 @@ const PARK = { x: RENT_PUSH.x, y: RENT_PUSH.y + 1700, s: 2 };
 const LEFT08 = { x: -282, y: 100, s: HERO.s };
 /* Row 09's push onto the drawer: css scale 2.0; its close button clears the pill. */
 const PUSHF = { x: -1826, y: -40, s: 2 };
-/* Row 10: the hero framing lowered, so the page's total card (css y 710) sits below the frame... */
-export const LOW = { x: HERO.x, y: 238, s: HERO.s };
+/* Row 10 (v3.3): the hero framing raised 140 px, so the six cost lines end above the caption (y 915);
+   the page's own total card (css y 710 on) is held back until the receipt lands it (see below)... */
+export const LOW = { x: HERO.x, y: 98, s: HERO.s };
 /* ...and its slow drift: a 0.8% push about (960, 400), which only takes the card further down. */
 export const LOW_REST = { x: 960 - (960 - LOW.x) * 1.008, y: 400 - (400 - LOW.y) * 1.008, s: 1.12 };
 const Z = { mist: 3, map: 4, window: 5, bodies: 7, words: 8, pointer: 12 };
@@ -105,6 +106,10 @@ export async function buildProductDesktop(ctx, T, open) {
   const search = page("d-search-full-lt");
   const filt = page(null);
   const listing = page("d-listing-cost-lt");
+  /* v3.1: the exact total is never readable before 28.87. At this framing the page's total card
+     ("Total to move in ₦26,100,000", css y 710-800) would sit in the frame, so it is left off the page
+     (the page's own ground) until the receipt lands the same figure; nothing is added. */
+  ctx.el("div", { class: "abs", style: { left: "300px", top: "702px", width: "720px", height: "198px", background: "#f3f4f1", zIndex: "4" } }, listing.el);
   during(home1.el, [[T.riseAt - 0.05, T.hotels + 0.3], [T.dropAt + 1.2, T.toSearch + 0.3]]);
   during(stay.el, [[T.hotels, T.shortlets + 0.3]]);
   during(stays.el, [[T.shortlets, T.restaurants + 0.3]]);
@@ -119,7 +124,7 @@ export async function buildProductDesktop(ctx, T, open) {
   go(listing, T.open, 0.22);
 
   /* ================= row 06: one app, one account ================= */
-  const wordsScene = ctx.scene("a-words", T.dropAt, T.pill1 + 0.3, { z: Z.words });
+  const wordsScene = ctx.scene("a-words", T.dropAt, T.qDone + 0.1, { z: Z.words });
   /* One group, drifting slowly (1.00 -> 1.025) through the row, so the hold never freezes. */
   const ROW6 = { x: 960, y: 480 };
   const group6 = ctx.el("div", { class: "fill", style: { transformOrigin: `${ROW6.x}px ${ROW6.y}px` } }, wordsScene);
@@ -155,11 +160,9 @@ export async function buildProductDesktop(ctx, T, open) {
   /* The one body: the inbox's real Property | Stays tabs (d-messages-lt), two worlds in one app. It
      rises from below once "One app." is still, and leaves with the words. */
   const bodies = ctx.scene("a-bodies", T.dropAt, T.row6Out + 0.4, { z: Z.bodies });
-  const TABS = { x: 820, y: 382, w: 1780, h: 80 }; // capture px
-  const tabs = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${TABS.w}px`, height: `${TABS.h}px`, transformOrigin: "0 0", borderRadius: "40px", overflow: "hidden", visibility: "hidden" } }, bodies);
-  await cropCanvas(ctx, ctx.src.capture("d-messages-lt"), TABS, { parent: tabs });
-  ctx.el("div", { class: "abs", style: { inset: "0px", borderRadius: "40px", boxShadow: SHADOW } }, tabs);
-  const tabsTo = { cx: 960, cy: yB + Math.round(sB * 1.0) + 96, s: 0.75 };
+  const TABS = { w: 820, h: 110 };
+  const tabs = stayTabs(ctx, bodies, { w: TABS.w, h: TABS.h, font: 40 }).el;
+  const tabsTo = { cx: 960, cy: yB + Math.round(sB * 1.0) + 110, s: 1 };
   const tabsT = { up0: T.tabsUp, up1: T.tabsUp + 0.5, down0: T.row6Out, down1: T.row6Out + 0.28 };
   ctx.onFrame((t) => {
     const on = t >= tabsT.up0 && t < tabsT.down1;
@@ -191,8 +194,8 @@ export async function buildProductDesktop(ctx, T, open) {
   qLine.style.transformOrigin = `960px ${sQ * 0.55}px`;
   tl.fromTo(qLine, { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: T.qRest - T.qIn, ease: "land" }, T.qIn);
   /* at rest from T.qRest to T.qShrink, then scaled as one into the pill by 16.21 */
-  tl.fromTo(qLine, { y: 0, scale: 1 }, { y: pillY - qcY, scale: 0.24, duration: T.pill1 - T.qShrink, ease: "power2.inOut", ...ir }, T.qShrink);
-  tl.fromTo(qLine, { opacity: 1 }, { opacity: 0, duration: 0.1, ease: "power1.in", ...ir }, T.pill1 - 0.08);
+  tl.fromTo(qLine, { y: 0, scale: 1 }, { y: pillY - qcY, scale: 0.24, duration: T.qDone - T.qShrink, ease: "power2.inOut", ...ir }, T.qShrink);
+  tl.fromTo(qLine, { opacity: 1 }, { opacity: 0, duration: 0.1, ease: "power1.in", ...ir }, T.qDone - 0.08);
 
   /* ================= the pointer ================= */
   /* It comes in only once the window is at rest, and clicks beside what it names, never on it. */

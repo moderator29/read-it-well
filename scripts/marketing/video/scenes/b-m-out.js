@@ -87,8 +87,8 @@ export function goingTitle(ctx, layer, T, { id, CX, CY, R, maxSize, feather, tPu
     const toW = measure("to", font);
     L = { o: { x: pos[2][0] + tW + (toW - tW) / 2 - size * 0.02, y: base2 - 0.28 * size } };
   };
-  const tPush1 = tPush + 0.46;
-  const tEnd = tPush1 + 0.02;
+  /* no iris (it led nowhere): the title holds, then lifts a little and fades as the device rises under it */
+  const tEnd = tPush + 0.32;
   ctx.onFrame((t) => {
     if (t < T.r23 - 0.05 || t > tEnd + 0.05) return;
     if (!L) doLayout();
@@ -97,11 +97,12 @@ export function goingTitle(ctx, layer, T, { id, CX, CY, R, maxSize, feather, tPu
       w.node.setAttribute("opacity", Math.min(1, k * 1.6).toFixed(3));
       w.node.setAttribute("transform", `translate(0 ${((1 - k) * 50).toFixed(2)})`);
     });
-    const p = ramp(ctx, t, tPush, tPush1, "power3.in");
-    const s = Math.exp(p * Math.log(90));
-    const tr = `translate(${L.o.x.toFixed(2)} ${L.o.y.toFixed(2)}) scale(${s.toFixed(4)}) translate(${(-L.o.x).toFixed(2)} ${(-L.o.y).toFixed(2)})`;
+    const p = ramp(ctx, t, tPush, tEnd, "power2.in");
+    const s = 1 + 0.1 * p;
+    const tr = `translate(${CX} ${CY}) scale(${s.toFixed(4)}) translate(${-CX} ${(-CY + 40 * p).toFixed(2)})`;
     gMask.setAttribute("transform", tr);
     gNavy.setAttribute("transform", tr);
+    svg.style.opacity = (1 - p).toFixed(3);
   });
   showDuring(ctx, svg, [[T.r23 - 0.05, tEnd]]);
   /* the ring: electric, round the words, its particles outside it */
@@ -109,7 +110,7 @@ export function goingTitle(ctx, layer, T, { id, CX, CY, R, maxSize, feather, tPu
   layer.insertBefore(ringWrap, svg);
   ringOut(ctx, ringWrap, { cx: CX, cy: CY, r: R, t: T.going + 0.04, dots: 8, seed: 23, stroke: 4 });
   ringWrap.style.transformOrigin = `${CX}px ${CY}px`;
-  tl.fromTo(ringWrap, { opacity: 1, scale: 1 }, { opacity: 0, scale: 1.4, duration: 0.3, ease: "power2.in", immediateRender: false }, tPush);
+  tl.fromTo(ringWrap, { opacity: 1, scale: 1 }, { opacity: 0, scale: 1.1, duration: 0.3, ease: "power2.in", immediateRender: false }, tPush);
   showDuring(ctx, ringWrap, [[T.going, tPush + 0.3]]);
   return { tEnd };
 }
@@ -120,18 +121,18 @@ export async function goingOut(ctx, S, T) {
   /* ==================== row 23 ==================== */
   const layer = ctx.scene("b-m-going", T.r23 - 0.05, T.r24 + 0.3, { z: 30 });
   ctx.sfx("whoosh_short", T.r23, { offset: -2 });
-  const tPush = ctx.beat(87); // 50.19
+  const tPush = ctx.beat(87.35); // 50.39: the title holds 0.2 s longer
   goingTitle(ctx, layer, T, { id: "b-m-going", CX: ctx.W / 2, CY: 780, R: 400, maxSize: 170, feather: { x: 0, y: 240 }, tPush });
 
   /* ==================== row 24 ==================== */
   const pL = S.pL;
   const HIGH = { cx: L.PHONE_HIGH.cx, cy: L.PHONE_HIGH.cy, height: L.PHONE_HIGH.height };
-  const tRise = T.r24 - 0.12;
+  const tRise = ctx.beat(87.2);    // 50.31: rises under the title as it lifts away
   const tOff = ctx.beat(93.36);    // 53.86
   const tTurn = ctx.beat(93.43);   // 53.90
   const pose = S.pLpose;
   pose.to(tRise - 0.01, 0.001, { ...HIGH, cy: 2600, rx: 0, ry: 0, opacity: 1 }, "none");
-  pose.to(tRise, 0.58, HIGH, "glide");                                             // rises through the "o"
+  pose.to(tRise, 0.58, HIGH, "glide");                                             // rises under the title
   pose.to(tRise + 0.6, tTurn - tRise - 0.6, { cy: HIGH.cy - 12 }, "drift");        // a slow rise while the card holds
   pose.to(tTurn, 0.33, { cx: 330, ry: -64, opacity: 0 }, "power2.in");            // turns away as the chapter ends
   const page = screenPage(ctx, pL, ctx.src.display("restaurant-light"));

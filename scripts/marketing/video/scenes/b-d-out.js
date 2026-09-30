@@ -20,15 +20,15 @@ export async function deskOut(ctx, S, T) {
   /* ==================== D23 ==================== */
   const layer = ctx.scene("b-d-going", T.r23 - 0.05, T.r24 + 0.3, { z: 30 });
   ctx.sfx("whoosh_short", T.r23, { offset: -2 });
-  goingTitle(ctx, layer, T, { id: "b-d-going", CX: 960, CY: 480, R: 360, maxSize: 170, feather: { x: 60, y: 240 }, tPush: ctx.beat(87) });
+  goingTitle(ctx, layer, T, { id: "b-d-going", CX: 960, CY: 480, R: 360, maxSize: 170, feather: { x: 60, y: 240 }, tPush: ctx.beat(87.35) });
 
   /* ==================== D24 ==================== */
   const wvT = S.wvT;
-  const LEFT = S.LEFT;
+  const LEFT = S.HERO; // v3.3: the hero scale; the window's right third softens under the card
   const full = { viewTop: 0, viewH: CH, viewLeft: 0, viewW: CW };
-  S.page("d-restaurant-lt", [[T.r24 - 0.32, T.r25]]);
-  wvT.to(T.r24 - 0.13, 0.001, { cx: LEFT.cx, cy: LEFT.cy + 760, s: LEFT.s, ry: 0, opacity: 1, ...full }, "none");
-  wvT.to(T.r24 - 0.12, 0.6, { cy: LEFT.cy }, "glide");                                   // rises through the "o"
+  S.page("d-restaurant-lt", [[ctx.beat(87.2) - 0.02, T.r25]]);
+  wvT.to(ctx.beat(87.2) - 0.01, 0.001, { cx: LEFT.cx, cy: LEFT.cy + 760, s: LEFT.s, ry: 0, opacity: 1, ...full }, "none");
+  wvT.to(ctx.beat(87.2), 0.6, { cy: LEFT.cy }, "glide");                                 // rises under the title
   const tOff = ctx.beat(93.36);   // 53.86: the card holds, labelled, from its arrival to here
   const tTurn = ctx.beat(93.43);  // 53.90
   wvT.to(T.r24 + 0.5, tTurn - T.r24 - 0.5, { cy: LEFT.cy - 10 }, "drift");              // a slow drift while the card holds
@@ -43,6 +43,7 @@ export async function deskOut(ctx, S, T) {
   ctx.el("div", { html: "Tonight, 8:00 PM<br>Harbour Lights Kitchen", style: { font: "500 28px/1.36 Inter, sans-serif", color: INK2, whiteSpace: "nowrap" } }, card);
   exampleChip(ctx, ctx.el("div", {}, card), { size: 22 }); // labelled from its arrival
   const tIn = T.reserve;
+  S.veilDuring(tIn - 0.1, tOff + 0.3);
   ctx.sfx("pop", tIn);
   showDuring(ctx, card, [[tIn, tOff + 0.4]]);
   const X = RP.x + (RP.w - TW) / 2;

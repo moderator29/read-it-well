@@ -93,6 +93,10 @@ export async function deskTalk(ctx, S, T) {
   tl.fromTo(pListing, { opacity: 0 }, { opacity: 1, duration: 0.26, ease: "power1.inOut", immediateRender: false }, tClose0);
 
   /* ==================== D14 ==================== */
+  /* the window grows from section a's side window to the hero as the villa card lands (v3.3: never a thumbnail) */
+  wvT.to(T.r14, 0.52, { cx: S.HERO.cx, cy: S.HERO.cy, s: S.HERO.s }, "glide");
+  S.veilDuring(T.owner - 0.2, T.share + 0.05);
+  S.veilDuring(T.r17 - 0.15, T.r18 + 0.45);
   const tLand = T.r14 + 0.52;
   const villa = cropBody(ctx, cards, { src: thread, crop: MAITAMA_CROP, iw: 2880, radius: 26, shadow: SHADOW.l, canvas: true });
   quadDriver(ctx, villa, MAITAMA_CROP.w, MAITAMA_CROP.h, {
@@ -113,6 +117,8 @@ export async function deskTalk(ctx, S, T) {
   const card1 = questionCard(ctx, cards, { q: QUESTIONS[0].q, a: QUESTIONS[0].a, box: C1, fontSize: 34 });
   Object.assign(card1.front.style, { justifyContent: "center", textAlign: "center", textWrap: "balance" });
   Object.assign(card1.back.style, { justifyContent: "center", textAlign: "center", fontSize: "28px", lineHeight: "1.22", textWrap: "balance" });
+  /* the answer on two set lines, never ragged */
+  card1.back.querySelector("span").innerHTML = "₦26,100,000 to move in.<br>Seen before a single call.";
   card1.turn(T.r14 - 5, { sound: null }); // already turned at the cut
   const c1c = { x: C1.x + C1.w / 2, y: C1.y + C1.h / 2 };
   ctx.gsap.set(card1.root, { transformOrigin: "50% 50%", rotation: 3 });
@@ -208,22 +214,26 @@ export async function deskTalk(ctx, S, T) {
   ctx.sfx("bubble_send", tSend);
 
   /* ==================== D16: the share ==================== */
-  const rowW = S.toStageAt(S.wv, { s: 1, fx: 960, fy: 540, tx: 960, ty: 540 }, SENDROW.x + SENDROW.w / 2, SENDROW.y + SENDROW.h / 2);
-  const PUSH16 = { s: 2.5, fx: rowW.x, fy: rowW.y, tx: 900, ty: 560 };
+  const heroWv0 = { ...S.wv, cx: S.HERO.cx, cy: S.HERO.cy, s: S.HERO.s };
+  const rowW = S.toStageAt(heroWv0, { s: 1, fx: 960, fy: 540, tx: 960, ty: 540 }, SENDROW.x + SENDROW.w / 2, SENDROW.y + SENDROW.h / 2);
+  /* 1.8 x the hero's 1.111 = 2.0: the capture's own pixels */
+  const PUSH16 = { s: 1.8, fx: rowW.x, fy: rowW.y, tx: 900, ty: 520 };
   cam.to(T.share, 0.5, PUSH16, "power3.inOut"); // after the echo has gone; settled by 35.75
   cam.to(T.chat + 0.15, 0.46, { s: 1, tx: rowW.x, ty: rowW.y }, "power2.inOut");
-  const chev = S.toStageAt(S.wv, PUSH16, SENDCHEV.x, SENDCHEV.y);
+  const chev = S.toStageAt(heroWv0, PUSH16, SENDCHEV.x, SENDCHEV.y);
+  ctx.hidePill(T.share, T.chat + 0.61);
   const flyer = cropBody(ctx, cards, { src: thread, crop: MAITAMA_CROP, iw: 2880, radius: 26, shadow: SHADOW.l });
   const tFly0 = T.chat + 0.08;
   const tFly1 = T.chat + 0.55;
   quadDriver(ctx, flyer, MAITAMA_CROP.w, MAITAMA_CROP.h, {
     t0: tFly0, t1: tFly1,
     quadAt: (t) => {
+      /* after the press, it rises from the top edge of the sheet and arcs away along the top: never over the sheet's text */
       const k = ramp(ctx, t, tFly0, tFly1, "power2.in");
       const up = ramp(ctx, t, tFly0, tFly0 + 0.3, "power3.out");
-      const w = mix(200, 460, up);
-      const x = mix(900, 2150, k) - w / 2;
-      const y = mix(mix(560, 420, up), -380, k) - (w * 0.676) / 2;
+      const w = mix(160, 320, up);
+      const x = mix(chev.x - 260, 2150, k) - w / 2;
+      const y = mix(mix(230, 130, up), -380, k) - (w * 0.676) / 2;
       return rectQuad({ x, y, w, h: w * (MAITAMA_CROP.h / MAITAMA_CROP.w), rot: mix(-3, 10, k) });
     },
     opacityAt: (t) => ramp(ctx, t, tFly0, tFly0 + 0.06),
@@ -268,7 +278,8 @@ export async function deskTalk(ctx, S, T) {
   /* the push toward FLIP: 1.8 x 1.111 = 2.0, the capture's own pixels; FLIP at the right third, above y 1000,
      with the window's edge and the mist on the left (the title lands there), not a slab of empty page */
   const flipW = { x: S.HERO.cx + (FLIP_C.x - CW / 2) * S.HERO.s, y: S.HERO.cy + (56 + FLIP_C.y - (CH + 56) / 2) * S.HERO.s };
-  const PUSH18 = { s: 1.8, fx: flipW.x, fy: flipW.y, tx: 1400, ty: 620 };
+  const PUSH18 = { s: 1.8, fx: flipW.x, fy: flipW.y, tx: 330, ty: 860 };   // the window's lower-left quadrant fills the frame
+  ctx.hidePill(T.place + 0.18, T.r19 + 0.02);
   cam.to(T.place + 0.18, 0.66, PUSH18, "power2.inOut");
 
   /* ==================== D19: the switch ==================== */
@@ -284,8 +295,8 @@ export async function deskTalk(ctx, S, T) {
   wvT.to(tTurn0, 0.26, { ry: 90 }, "power2.in");                                        // the turn, in place, 41.84-42.36
   wvT.to(S.tSwap, 0.001, { ry: -90 }, "none");
   wvT.to(S.tSwap + 0.001, 0.26, { ry: 0 }, "power2.out");
-  const tHold = ctx.beat(74.2);                                                          // 42.81
-  wvT.to(tHold + 0.04, 0.5, { cx: S.HERO.cx, cy: S.HERO.cy, s: S.HERO.s }, "glide");    // rises to the hero at 42.85-43.35
+  const tHold = ctx.beat(74.55);                                                         // 43.01
+  wvT.to(tHold + 0.04, 0.5, { cx: S.HERO.cx, cy: S.HERO.cy, s: S.HERO.s }, "glide");    // rises to the hero at 43.05-43.55
 
   /* "Planning / a trip?" at the left, over the mist, in a ring that circles the words only */
   const TC = { x: 350, y: 560 };
@@ -294,19 +305,19 @@ export async function deskTalk(ctx, S, T) {
   const l1 = ctx.el("div", {}, title);
   const l2 = ctx.el("div", {}, title);
   const wordEl = (parent, text, color, t, gap = false) => {
-    const mask = ctx.el("span", { style: { display: "inline-block", overflow: "hidden", verticalAlign: "top", padding: "0.06em 0.04em 0.14em", margin: "-0.06em -0.04em -0.14em", marginLeft: gap ? "0.22em" : "0" } }, parent);
+    const mask = ctx.el("span", { style: { display: "inline-block", overflow: "hidden", verticalAlign: "top", padding: "0.06em 0.04em 0.39em", margin: "-0.06em -0.04em -0.39em", marginLeft: gap ? "0.22em" : "0" } }, parent);
     const w = ctx.el("span", { text, style: { display: "inline-block", color } }, mask);
     ctx.gsap.set(w, { yPercent: 118 });
     tl.fromTo(w, { yPercent: 118 }, { yPercent: 0, duration: 0.34, ease: "land", immediateRender: false }, t);
   };
-  wordEl(l1, "Planning", NAVY, tTurn0);
-  wordEl(l2, "a", NAVY, Math.max(T.a9, tTurn0 + 0.04));
-  wordEl(l2, "trip?", ELECTRIC, Math.max(T.trip, tTurn0 + 0.08), true);
+  wordEl(l1, "Planning", NAVY, tClick);
+  wordEl(l2, "a", NAVY, T.a9);
+  wordEl(l2, "trip?", ELECTRIC, T.trip, true);
   let tSize = null;
   const tShrink1 = tHold + 0.3;
-  showDuring(ctx, title, [[tTurn0 - 0.02, tShrink1 + 0.04]]);
+  showDuring(ctx, title, [[tClick - 0.02, tShrink1 + 0.04]]);
   ctx.onFrame((t) => {
-    if (t < tTurn0 - 0.02 || t > tShrink1 + 0.05) return;
+    if (t < tClick - 0.02 || t > tShrink1 + 0.05) return;
     if (!tSize) {
       const wP = measure("Planning", "700 100px Poppins") / 100;
       tSize = Math.min(120, 440 / wP);
@@ -321,10 +332,10 @@ export async function deskTalk(ctx, S, T) {
     title.style.opacity = String((1 - ramp(ctx, t, tShrink1 - 0.06, tShrink1 + 0.02)).toFixed(3));
   });
   const ringWrap = ctx.el("div", { class: "fill" }, type);
-  ringOut(ctx, ringWrap, { cx: TC.x, cy: TC.y, r: RR, t: tTurn0 + 0.06, dots: 8, seed: 19, stroke: 4 });
+  ringOut(ctx, ringWrap, { cx: TC.x, cy: TC.y, r: RR, t: tClick + 0.06, dots: 8, seed: 19, stroke: 4 });
   ringWrap.style.transformOrigin = `${TC.x}px ${TC.y}px`;
   tl.fromTo(ringWrap, { opacity: 1, scale: 1 }, { opacity: 0, scale: 0.9, duration: 0.28, ease: "power2.in", immediateRender: false }, tHold - 0.04);
-  showDuring(ctx, ringWrap, [[tTurn0, tHold + 0.26]]);
+  showDuring(ctx, ringWrap, [[tClick, tHold + 0.26]]);
 
   /* ==================== the pointer ==================== */
   const o = S.orbT;

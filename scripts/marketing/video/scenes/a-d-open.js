@@ -78,8 +78,8 @@ export function buildOpenDesktop(ctx, T) {
   /* Each word lands from a little to its right, so it never crosses the word before it. */
   const w1 = mk(line1, [["Finding", s1, 0, T.finding], ["a", Math.round(s1 * 0.94), 6, T.a1], ["place", s1, -4, T.place]], 60, null);
   const w2 = mk(line2, [["in", Math.round(s2 * 0.92), 6, T.in1], ["Nigeria", s2, -2, T.nigeria]], 60, "Nigeria");
-  w1.forEach((s, k) => tl.to(s, { x: -1500, duration: 0.3, ease: "power3.in" }, T.shouldnt - 0.1 + k * 0.03));
-  w2.forEach((s, k) => tl.to(s, { x: 1700, duration: 0.3, ease: "power3.in" }, T.shouldnt - 0.1 + (w2.length - 1 - k) * 0.03));
+  /* they fade in place (0.2 s), never flying past the frame's edge over the cards */
+  [...w1, ...w2].forEach((s) => tl.fromTo(s, { opacity: 1 }, { opacity: 0, duration: 0.2, ease: "power1.in", immediateRender: false }, T.shouldnt - 0.1));
   /* The cards all but vanish behind the words (8%, blurred), so no type sits over their text. */
   const dimIn = { t0: T.finding - 0.1, t1: T.finding + 0.3 };
   const dimOut = { t0: T.shouldnt + 0.02, t1: T.shouldnt + 0.37 };
@@ -93,6 +93,8 @@ export function buildOpenDesktop(ctx, T) {
   });
 
   /* ---------- row 03: the cards gather, then deal a spread across the night (x 140-1100, clear of the art) ---------- */
+  /* the cards become opaque as they gather, so in the spread and the fan only the top card's words show */
+  cards.forEach((c) => tl.fromTo(c.body, { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power1.inOut" }, T.shouldnt - 0.05));
   const C = { x: 620, y: 500 };
   const at = (c, dx = 0, dy = 0) => ({ x: C.x - (c.box.x + c.box.w / 2) + dx, y: C.y - (c.box.y + c.box.h / 2) + dy });
   const stack = [{ dy: -10, r: -2 }, { dy: 0, r: 1.2 }, { dy: 10, r: -0.8 }];
@@ -157,9 +159,14 @@ export function buildOpenDesktop(ctx, T) {
   const RING = { cx: 960, cy: 530, r: 300 };
   const markW = 300;
   const markH = (markW * 587) / 614;
-  const onBack = { w: markW / 1.1, cy: 540 + (RING.cy - 540) / 1.1 };
+  /* the lockup at 85% of its size, well inside the ring */
+  const LOGO_S = 0.85;
+  const onBack = { w: (markW * LOGO_S) / 1.1, cy: 540 + (RING.cy - 540) / 1.1 };
   const backMark = ctx.img(ctx.src.brand("vallo-mark.png"), { class: "abs", style: { left: `${RING.cx - onBack.w / 2}px`, top: `${onBack.cy - (onBack.w * 587) / 614 / 2}px`, width: `${onBack.w}px`, height: `${(onBack.w * 587) / 614}px` } }, back);
-  const logo = ctx.el("div", { class: "fill", style: { transformOrigin: `${RING.cx}px ${RING.cy}px` } }, vallo);
+  /* The mark and wordmark sit above the opening day (their own layer), so the iris opens from behind
+     them as they rush past the camera: no seed of the screen shows before the disc is wide. */
+  const logoScene = ctx.scene("a-logo", T.drop - 0.02, T.widen + 0.45, { z: 15 });
+  const logo = ctx.el("div", { class: "fill", style: { transformOrigin: `${RING.cx}px ${RING.cy}px` } }, logoScene);
   /* The landing moves the mark; the step left moves its holder (the two overlap in time, never on one element). */
   const markWrap = ctx.el("div", { class: "abs", style: { left: `${RING.cx - markW / 2}px`, top: `${RING.cy - markH / 2}px`, width: `${markW}px`, height: `${markH}px` } }, logo);
   const mark = ctx.img(ctx.src.brand("vallo-mark.png"), { class: "abs", style: { left: "0px", top: "0px", width: `${markW}px`, height: `${markH}px`, visibility: "hidden" } }, markWrap);
@@ -181,11 +188,14 @@ export function buildOpenDesktop(ctx, T) {
   const wmH = (LOCK.wm * 167) / 758;
   const wordmark = ctx.img(ctx.src.brand("vallo-wordmark.png"), { class: "abs", style: { left: `${lockX + markW * markS + LOCK.gap}px`, top: `${RING.cy - wmH / 2}px`, width: `${LOCK.wm}px`, height: `${wmH}px` } }, logo);
   tl.fromTo(wordmark, { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "land" }, T.vallo + 0.12);
-  tl.fromTo(logo, { scale: 1 }, { scale: 1.03, duration: T.widen - T.drop, ease: "drift" }, T.drop);
+  tl.fromTo(logo, { scale: LOGO_S }, { scale: LOGO_S * 1.03, duration: T.widen - T.drop, ease: "drift" }, T.drop);
   /* Just before the iris opens, the mark and the wordmark rush past the camera through it. */
-  tl.fromTo(mark, { opacity: 1 }, { opacity: 0, duration: 0.3, ease: "power2.in", immediateRender: false }, T.widen - 0.1);
-  tl.fromTo(markWrap, { scale: markS }, { scale: markS * 1.35, duration: 0.3, ease: "power2.in", immediateRender: false }, T.widen - 0.1);
-  tl.fromTo(wordmark, { scale: 1, opacity: 1 }, { scale: 1.35, opacity: 0, duration: 0.3, ease: "power2.in", immediateRender: false }, T.widen - 0.1);
+  tl.fromTo(mark, { opacity: 1 }, { opacity: 0, duration: 0.45, ease: "power2.in", immediateRender: false }, T.widen - 0.05);
+  /* (the mark swings back to the ring's centre as it rushes, so the iris opens from behind it) */
+  const stepX = lockX + (markW * markS) / 2 - RING.cx;
+  tl.fromTo(markWrap, { scale: markS }, { scale: markS * 1.35, duration: 0.45, ease: "power2.in", immediateRender: false }, T.widen - 0.05);
+  tl.fromTo(markWrap, { x: stepX }, { x: 0, duration: 0.3, ease: "power2.inOut", immediateRender: false }, T.widen - 0.1);
+  tl.fromTo(wordmark, { scale: 1, opacity: 1 }, { scale: 1.35, opacity: 0, duration: 0.45, ease: "power2.in", immediateRender: false }, T.widen - 0.05);
 
   /* ================= the iris opens onto daylight ================= */
   /* From a point at the ring's centre onto the window, already rising in place behind it; the ring

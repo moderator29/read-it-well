@@ -77,6 +77,18 @@ export async function buildDesktop(ctx) {
     win.root.style.visibility = w.opacity > 0.001 ? "inherit" : "hidden";
   });
 
+  /* v3.3: the window stays at the hero scale; when a card or big words sit in RIGHT_PANEL, a 30% white veil
+     softens the window's right third under them (the window's own text never competes with theirs). */
+  const veil = ctx.el("div", { class: "abs", style: { left: "1000px", top: "0px", width: "440px", height: `${CH}px`, zIndex: "30", background: "linear-gradient(90deg, rgb(255 255 255 / 0) 0px, rgb(255 255 255 / 0.3) 90px)", opacity: "0", visibility: "hidden" } }, inner);
+  S.veilRanges = [];
+  S.veilDuring = (t0, t1) => S.veilRanges.push([t0, t1]);
+  ctx.onFrame((t) => {
+    let a = 0;
+    for (const [t0, t1] of S.veilRanges) a = Math.max(a, ramp(ctx, t, t0, t0 + 0.25) * (1 - ramp(ctx, t, t1 - 0.25, t1)));
+    veil.style.visibility = a > 0.001 ? "inherit" : "hidden";
+    veil.style.opacity = a.toFixed(3);
+  });
+
   /** A page in the window: the capture at 1440 x 900 CSS px, hidden outside its ranges. */
   S.page = (id, ranges) => {
     const el = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${CW}px`, height: `${CH}px`, overflow: "hidden", visibility: "hidden" } }, inner);

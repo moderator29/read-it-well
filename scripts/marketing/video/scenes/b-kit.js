@@ -486,7 +486,7 @@ export function camera(ctx, world) {
 /* ---------- the day card and the month calendar (both films) ---------- */
 
 /**
- * The day card: two blank blue pages turn to Saturday (only Saturday
+ * The day card: "Saturday" printed from the moment it arrives (only Saturday
  * 11:00 AM is in FACTS); on "inspection" 11:00 AM and "Inspection set" with
  * the Example chip stamp in together; then it shrinks into a blue calendar
  * chip (for the dock). layout "wide" (470 x 440 at k 1, the chip beside the
@@ -505,14 +505,14 @@ export function dayCard(ctx, parent, T, { X, Y, k = 1, layout = "wide", chipAt, 
     style: { inset: "0px", borderRadius: `${r(36)}px`, background: "#fff", boxShadow: SHADOW.l, overflow: "hidden", transformStyle: "preserve-3d", border: "1px solid rgb(255 255 255 / 0.9)" },
   }, wrap);
   const BAND = r(narrow ? 108 : 124);
-  const pages = [null, null, "Saturday"].map((d, i) => {
+  const pages = ["Saturday"].map((d, i) => {
     const pg = ctx.el("div", { class: "abs", style: { inset: "0px", background: "#fff", transformOrigin: "50% 0%", backfaceVisibility: "hidden", zIndex: String(10 - i) } }, card);
     const band = ctx.el("div", { class: "abs", style: { left: "0px", right: "0px", top: "0px", height: `${BAND}px`, background: `linear-gradient(160deg, #2f83ff, ${ELECTRIC} 55%, #0052d6)`, display: "flex", alignItems: "center", justifyContent: "center" } }, pg);
     if (d) ctx.el("div", { text: d, style: { font: `700 ${r(narrow ? 46 : 52)}px/1 Poppins, Inter, sans-serif`, letterSpacing: "-0.03em", color: "#fff", transform: `translateY(${r(3)}px)` } }, band);
     for (let j = 0; j < 3; j += 1) box(ctx, pg, { x: r(44), y: BAND + r(76) + j * r(narrow ? 84 : 74), w: W - r(88), h: Math.max(1, r(2)), style: { background: "rgb(16 32 80 / 0.07)" } });
     return pg;
   });
-  const sat = pages[2];
+  const sat = pages[0];
   const time = ctx.el("div", { class: "abs", text: "11:00 AM", style: { left: "0px", right: "0px", top: `${BAND + r(narrow ? 44 : 58)}px`, textAlign: "center", font: `700 ${r(narrow ? 76 : 92)}px/1 Poppins, Inter, sans-serif`, letterSpacing: "-0.04em", color: NAVY, opacity: "0", background: "#fff" } }, sat);
   const rows = ctx.el("div", { class: "abs", style: { left: "0px", right: "0px", top: `${BAND + r(narrow ? 150 : 196)}px`, display: "flex", flexDirection: narrow ? "column" : "row", alignItems: "center", justifyContent: "center", gap: `${r(narrow ? 16 : 12)}px`, opacity: "0", background: "#fff", padding: `${r(10)}px 0` } }, sat);
   const row = ctx.el("div", { style: { display: "flex", alignItems: "center", gap: `${r(12)}px` } }, rows);
@@ -523,9 +523,6 @@ export function dayCard(ctx, parent, T, { X, Y, k = 1, layout = "wide", chipAt, 
 
   tl.fromTo(wrap, { x: -W - 60, y: r(60), rotation: -14 }, { x: 0, y: 0, rotation: -2.5, duration: 0.42, ease: "land", immediateRender: false }, tIn);
   tl.fromTo(card, { rotationY: 36 }, { rotationY: 0, duration: 0.42, ease: "power3.out", immediateRender: false }, tIn);
-  [T.r17 + 0.02, T.r17 + 0.12].forEach((tf, i) => {
-    tl.fromTo(pages[i], { rotationX: 0 }, { rotationX: 96, duration: 0.14, ease: "power2.in", immediateRender: false }, tf);
-  });
   /* the time and "Inspection set" stamp in together, on "inspection" */
   tl.fromTo(time, { scale: 1.7, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.2, ease: "power4.out", immediateRender: false }, T.inspection);
   tl.fromTo(rows, { scale: 1.25, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.2, ease: "power4.out", immediateRender: false }, T.inspection);

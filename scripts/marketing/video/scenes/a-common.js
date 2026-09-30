@@ -72,13 +72,15 @@ export function timesPlus(ctx) {
   T.tabsUp = T.oneAppIn + 0.62;
   T.oneAccIn = T.one2 - 0.2;
   T.row6Out = T.rows[6] - 0.56;
-  /* 07: the question lands as one object by 15.16, rests to 15.98, and becomes the pill at 16.21;
-     the device rises only behind it, and Rent is pressed once it is at rest. */
-  T.qIn = T.looking - 0.1;
+  /* 07 (v3.3): the question lands as one object by 15.06 and rests to 16.25 (1.2 s), then becomes the
+     pill by 16.50 (the engine's pill is held off until then); the device rises only behind it, and Rent
+     is pressed once it is at rest. */
+  T.qIn = T.looking - 0.2;
   T.qRest = T.qIn + 0.26;
-  T.qShrink = T.pill1 - 0.23;
+  T.qShrink = T.pill1 + 0.04;
+  T.qDone = T.qShrink + 0.25;
   T.riseB = T.qShrink + 0.02;
-  T.rentPress = T.pill1 + (ctx.isMobile ? 0.2 : 0.34);
+  T.rentPress = T.qDone + (ctx.isMobile ? 0.2 : 0.35);
   T.toSearch = T.rentPress + 0.12;
   /* 09: the push onto the Villas tile starts with the sheet. Mobile pulls back after the press, and
      the count rolls on the phone's own Apply as it comes into view; desktop's echo is in view
@@ -296,6 +298,22 @@ export function rippleAt(ctx, parent, { x, y, t, size = 260 }) {
   }, parent);
   ringHook(ctx, r, t, 0.55, 0.25, 1, 1);
   return r;
+}
+
+/**
+ * The inbox's Property | Stays switch (messages-lt / d-messages-lt), drawn at the product's own style
+ * (white track, electric pill on "Property", grey "Stays") but at a body's proportions: the captured
+ * bar is a full-width strip (10:1 on the phone, 20:1 on the web) that reads as a progress bar when lifted.
+ */
+export function stayTabs(ctx, parent, { w, h, font }) {
+  const inset = Math.round(h * 0.09);
+  const el = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${w}px`, height: `${h}px`, transformOrigin: "0 0", borderRadius: `${h / 2}px`, background: "#fff", boxShadow: SHADOW, border: "1px solid rgb(11 18 48 / 0.06)", visibility: "hidden" } });
+  if (parent) parent.appendChild(el);
+  const pill = ctx.el("div", { class: "abs", style: { left: `${inset}px`, top: `${inset}px`, width: `${w / 2 - inset}px`, height: `${h - 2 * inset}px`, borderRadius: `${(h - 2 * inset) / 2}px`, background: "linear-gradient(180deg, #2a7fff 0%, #0b6cff 45%, #0062f5 100%)", boxShadow: "0 8px 18px -8px rgb(0 105 254 / 0.6)" } }, el);
+  const label = (text, x, color) => ctx.el("div", { class: "abs", text, style: { left: `${x}px`, top: "0px", width: `${w / 2}px`, height: `${h}px`, display: "flex", alignItems: "center", justifyContent: "center", font: `600 ${font}px/1 Inter, sans-serif`, letterSpacing: "-0.01em", color } }, el);
+  label("Property", inset / 2, "#fff");
+  label("Stays", w / 2 - inset / 2, "#5c6270");
+  return { el, pill };
 }
 
 /* ---------- signature 1: the receipt's lines (FACTS.md, the Maitama villa) ---------- */
@@ -528,6 +546,8 @@ export function registerSound(ctx, T) {
   /* Captions: off while the same words are big (02, 04, 06, 07). Each gap starts before its line's
      0.12 s fade-in, and each gap edge sits on a line's own edge, so no caption flashes or snaps. */
   const lineFrom = (t) => t - 0.12;
+  /* row 07: the pill appears only once the question has shrunk into its place */
+  ctx.hidePill(T.pill1 - 0.05, T.qDone);
   ctx.hideCaptions(T.rows[1] - 0.14, lineFrom(T.shouldnt));
   ctx.hideCaptions(T.rows[3] - 0.14, T.we(2, "Vallo") + 0.45);
   /* rows 06-07: mobile's line "restaurants… all in one app," and desktop's "all in one app," start the

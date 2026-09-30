@@ -7,13 +7,16 @@
  *     "when", "time" and "pay", two dots each: the dots are the one moment.
  *     After "pay" the phone (window) drops out.
  * 29  Signature 3: "Vallo never holds your money." lands and holds, still,
- *     over one path that does not move (Your card, Paystack, The owner's
- *     bank) with Vallo's empty tray beside it. The coin arcs in onto Your card.
+ *     over one path (Your card, Paystack, The owner's bank) that drifts
+ *     slowly, 1.02x over the holds. The coin arcs in onto Your card. Nothing
+ *     of Vallo's sits on the path (round 3: the tray is gone).
  * 30  The coin runs the path under the held line: past Paystack on "goes",
  *     into the bank on "owner"; the bank's label rolls Owner, Host, Business.
  * 31  The line leaves; the path folds into a thin line and "Licensed payment
- *     processor" writes in under Paystack. Card 3 swings in and turns; cards 1
- *     and 2 come back answered; the full row holds and cuts to the "?" (72.69).
+ *     processor" writes in under Paystack. Card 3 swings in; cards 1 and 2
+ *     come back answered and land by 70.95 as card 3 turns (70.96); the row
+ *     reads 1 | 2 | 3, holds to 72.60 with a slow drift, then the three fly
+ *     off in three directions (72.60 to 72.85) with the folded path.
  */
 import { QUESTIONS } from "./layout.js";
 import { orb, browserWindow, installFlatTurn, TURN_SWAP } from "../engine/components.js";
@@ -24,11 +27,19 @@ export const COIN_IN = {
   mobile: { x: 330, y: 470, size: 110, spin: 0, vy: 233, vspin: 1400 },
   desktop: { x: 1500, y: 420, size: 88, spin: 0, vy: 200, vspin: 1200 },
 };
-/* Where cards 1 and 2 left (handoffs.md: A's card 1, B's card 2): centre, rotation, scale. */
-const CARD_OUT = {
-  mobile: { c1: { x: 1300, y: -105, r: 24, s: 0.9 }, c2: { x: -575, y: -6, r: -24, s: 0.8 } },
-  desktop: { c1: { x: 2060, y: -180, r: 22, s: 0.9 }, c2: { x: -560, y: -200, r: -22, s: 0.8 } },
+/* Where cards 1 and 2 come back from (round 3: the row reads 1 | 2 | 3, so
+   card 1 comes in from the left and card 2 from above), and where the three
+   fly off to: left, up, right. Centre, rotation, scale. */
+const CARD_IN = {
+  mobile: { c1: { x: -260, y: 380, r: -18, s: 0.9 }, c2: { x: 492, y: -300, r: 8, s: 0.9 } },
+  desktop: { c1: { x: -380, y: 160, r: -16, s: 0.9 }, c2: { x: 960, y: -260, r: 6, s: 0.9 } },
 };
+const CARD_OFF = {
+  mobile: [{ x: -300, y: 470, r: -22 }, { x: 492, y: -330, r: 6 }, { x: 1380, y: 470, r: 22 }],
+  desktop: [{ x: -420, y: 240, r: -20 }, { x: 960, y: -300, r: 6 }, { x: 2340, y: 240, r: 20 }],
+};
+/* the row leaves over 72.60 to 72.85 (power2.in); the "?" drops from 72.80 */
+export const ROW_OFF = [72.6, 72.85];
 
 /* The real lock (`lock`, dark in both themes): its six dots and keys
    (display px on mobile, content px on desktop). */
@@ -182,13 +193,13 @@ export async function buildPay(ctx, S) {
   }
 
   /* ================= the path (rows 29 to 31): one path that does not move ================= */
-  const pathScene = ctx.scene("c29-path", K.r29 - 0.1, K.r32, { z: 6 });
-  const ST = M ? [{ x: 190, y: 720 }, { x: 190, y: 940 }, { x: 190, y: 1160 }] : [{ x: 300, y: 560 }, { x: 960, y: 560 }, { x: 1620, y: 560 }];
+  const pathScene = ctx.scene("c29-path", K.r29 - 0.1, ROW_OFF[1] + 0.02, { z: 6 });
+  /* mobile: the path spans y 720 to 1260 (round 3), its labels large enough to fill the width */
+  const ST = M ? [{ x: 170, y: 720 }, { x: 170, y: 990 }, { x: 170, y: 1260 }] : [{ x: 300, y: 560 }, { x: 960, y: 560 }, { x: 1620, y: 560 }];
   const LINE = M ? [{ x: 200, y: 1120 }, { x: 540, y: 1120 }, { x: 870, y: 1120 }] : [{ x: 300, y: 800 }, { x: 960, y: 800 }, { x: 1620, y: 800 }];
-  const SD = M ? 100 : 112;
+  const SD = M ? 124 : 112;
   const SMALL = 26;
   const COIN_D = M ? 104 : 96;
-  const TRAY = M ? { x: 840, y: 940 } : { x: 960, y: 770 };
   const drawAt = [K.r29 + 0.14, K.r29 + 0.52, K.r29 + 0.9];
   const fold = [ctx.beat(121.25), ctx.beat(121.85)]; // 69.95 to 70.30, after the line has gone
   const lineOut = [K.r31, K.r31 + 0.24];
@@ -201,7 +212,7 @@ export async function buildPay(ctx, S) {
     return { n, ring };
   });
   const flashes = [0, 1, 2].map(() => ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: "100px", height: "100px", borderRadius: "50%", border: "3px solid rgb(0 105 254 / 0.7)", opacity: 0, visibility: "hidden" } }, pathScene));
-  const bigFont = M ? 52 : 46;
+  const bigFont = M ? 64 : 46;
   const labelStyle = { font: `600 ${bigFont}px/1.1 "C Poppins", Inter, sans-serif`, letterSpacing: "-0.025em", color: "#0b1230", whiteSpace: "nowrap", visibility: "hidden" };
   const labels = ["Your card", "Paystack"].map((text) => ctx.el("div", { class: "abs", text, style: { left: "0px", top: "0px", ...labelStyle } }, pathScene));
   /* the bank's label: one line that rolls The owner's bank -> Owner -> Host -> Business */
@@ -216,20 +227,33 @@ export async function buildPay(ctx, S) {
   const smallStyle = { font: "600 26px/1 Inter, sans-serif", letterSpacing: "-0.01em", color: "#0b1230", whiteSpace: "nowrap", visibility: "hidden" };
   const small = ["Your card", "Paystack", "Business"].map((text) => ctx.el("div", { class: "abs", text, style: { left: "0px", top: "0px", ...smallStyle } }, pathScene));
   const licensed = ctx.el("div", { class: "abs", text: "Licensed payment processor", style: { left: "0px", top: "0px", font: "600 30px/1.2 Inter, sans-serif", letterSpacing: "-0.01em", color: "var(--electric-600)", whiteSpace: "nowrap", clipPath: "inset(0 100% 0 0)", visibility: "hidden" } }, pathScene);
-  const trayBox = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: "220px", height: "200px", visibility: "hidden" } }, pathScene);
-  const trayRing = ctx.el("div", { class: "abs", style: { left: "35px", top: "120px", width: "150px", height: "50px", borderRadius: "50%", border: "3px dashed rgb(0 105 254 / 0.45)", background: "radial-gradient(closest-side, rgb(0 105 254 / 0.06), rgb(0 105 254 / 0))" } }, trayBox);
-  /* drawn at 77 to 99 px: a 150 px copy keeps every frame on one decode (scaledSrc) */
-  ctx.img(await scaledSrc(ctx.src.brand("vallo-mark.png"), 150), { class: "abs", style: { left: "56px", top: "8px", width: "108px", height: "103px", objectFit: "contain" } }, trayBox);
-
+  /* the holds are never still: the path group drifts 1.02x about its middle
+     from the first station to the fold, and the node the coin rests on
+     breathes (2 beats a breath) */
+  const GC = M ? { x: 540, y: 990 } : { x: 960, y: 600 };
+  const drift = (tt) => 1 + 0.02 * ramp(ctx, tt, drawAt[0], fold[0], "sine.inOut") * (1 - ramp(ctx, tt, fold[0] - 0.1, fold[0] + 0.2));
+  const restsOn = (tt) => (tt < drawAt[0] + 0.2 ? -1 : tt < K.r30 + 0.4 ? 0 : tt < K.goes ? -1 : tt < K.owner ? 1 : 2);
+  const arrived = [drawAt[0] + 0.2, K.goes, K.owner];
+  const pulse = (i, tt) => {
+    if (restsOn(tt) !== i) return 0;
+    const dt = tt - arrived[i] - 0.3;
+    if (dt < 0) return 0;
+    const env = Math.min(1, dt / 0.3) * (1 - ramp(ctx, tt, fold[0] - 0.25, fold[0]));
+    return env * 0.5 * (1 - Math.cos((2 * Math.PI * dt) / (2 * ctx.beat(1))));
+  };
+  const rowOff = (tt) => ramp(ctx, tt, ROW_OFF[0], ROW_OFF[1], "power2.in");
   const stationAt = (i, tt) => {
     const f = ramp(ctx, tt, fold[0], fold[1], "whip");
-    return { x: mix(ST[i].x, LINE[i].x, f), y: mix(ST[i].y, LINE[i].y, f), d: mix(SD, SMALL, f), u: f };
+    const k = drift(tt);
+    const x = mix(ST[i].x, LINE[i].x, f);
+    const y = mix(ST[i].y, LINE[i].y, f) + rowOff(tt) * (M ? 820 : 360);
+    return { x: GC.x + (x - GC.x) * k, y: GC.y + (y - GC.y) * k, d: mix(SD, SMALL, f) * k, u: f };
   };
   const bankAt = (sp, inU) => (M
     ? { x: sp.x + sp.d / 2 + 30 + bank.width / 2 + (1 - inU) * 26, y: sp.y }
     : { x: sp.x, y: sp.y + sp.d / 2 + 40 + (1 - inU) * 18 });
 
-  during(ctx, K.r29 - 0.1, K.r32, (tt) => {
+  during(ctx, K.r29 - 0.1, ROW_OFF[1] + 0.02, (tt) => {
     const sp = [0, 1, 2].map((i) => stationAt(i, tt));
     sp.forEach((q, i) => {
       const pop = ramp(ctx, tt, drawAt[i], drawAt[i] + 0.34, "back.out(1.8)");
@@ -240,7 +264,7 @@ export async function buildPay(ctx, S) {
       n.style.background = small1 ? "#ffffff" : "radial-gradient(circle at 50% 38%, #ffffff 0%, #f4f8ff 60%, #e6eeff 100%)";
       n.style.border = small1 ? "3px solid rgb(0 105 254 / 0.85)" : "1.5px solid #ffffff";
       stations[i].ring.style.opacity = opa(1 - q.u);
-      place(n, { x: q.x, y: q.y, s: 0.55 + 0.45 * pop, o: Math.min(1, pop * 2) });
+      place(n, { x: q.x, y: q.y, s: (0.55 + 0.45 * pop) * (1 + 0.045 * pulse(i, tt)), o: Math.min(1, pop * 2) * (1 - rowOff(tt)) });
     });
     [0, 1].forEach((i) => {
       const a = sp[i];
@@ -251,7 +275,7 @@ export async function buildPay(ctx, S) {
       seg[i].setAttribute("x2", mix(a.x, b.x, g).toFixed(2));
       seg[i].setAttribute("y2", mix(a.y, b.y, g).toFixed(2));
       seg[i].setAttribute("stroke-width", mix(M ? 6 : 5, 3, a.u).toFixed(2));
-      seg[i].style.opacity = g > 0.001 ? opa(1) : "0";
+      seg[i].style.opacity = g > 0.001 ? opa(1 - rowOff(tt)) : "0";
     });
     [[1, K.goes], [2, K.owner]].forEach(([i, tf]) => {
       const f = ramp(ctx, tt, tf, tf + 0.6, "power2.out");
@@ -273,25 +297,18 @@ export async function buildPay(ctx, S) {
     }
     small.forEach((n, i) => {
       const u = ramp(ctx, tt, fold[1] - 0.1, fold[1] + 0.2, "power2.out");
-      place(n, { x: LINE[i].x, y: LINE[i].y - (M ? 42 : 40) + (1 - u) * 10, o: u });
+      place(n, { x: sp[i].x, y: sp[i].y - (M ? 42 : 40) + (1 - u) * 10, o: u * (1 - rowOff(tt)) });
     });
     {
       const w = ramp(ctx, tt, fold[1] + 0.2, fold[1] + 0.7, "power1.inOut");
       licensed.style.clipPath = `inset(-8px ${(100 - w * 100).toFixed(2)}% -8px 0)`;
-      place(licensed, { x: LINE[1].x, y: LINE[1].y + (M ? 44 : 40), o: w > 0 ? 1 : 0 });
-    }
-    {
-      const inU = ramp(ctx, tt, drawAt[1] + 0.18, drawAt[1] + 0.6, "land");
-      const outU = ramp(ctx, tt, fold[0] - 0.18, fold[0] + 0.1, "power2.in");
-      const breathe = 1 + 0.05 * Math.max(0, spring(tt, K.goes + 0.05, { freq: 1.6, decay: 3.5 }));
-      place(trayBox, { x: TRAY.x, y: TRAY.y, s: (M ? 0.92 : 0.86) * (0.92 + 0.08 * inU) * (1 - 0.1 * outU), o: inU * (1 - outU) });
-      trayRing.style.transform = `scale(${breathe.toFixed(4)})`;
+      place(licensed, { x: sp[1].x, y: sp[1].y + (M ? 44 : 40), o: w > 0 ? 1 - rowOff(tt) : 0 });
     }
   });
   ctx.sfx("ding_pay", K.owner, { offset: 0 });
 
   /* ================= the line (rows 29 and 30): lands, then holds still ================= */
-  const type = ctx.scene("c29-type", K.r29 - 0.05, lineOut[1] + 0.02, { z: 10 });
+  const type = ctx.scene("c29-type", 64.4, lineOut[1] + 0.02, { z: 10 });
   {
     ctx.hideCaptions(64.495, M ? 70.708 : 69.908); // caption span edges: none shows while the line is big
     ctx.sfx("whoosh_short", K.r29, { offset: -2 });
@@ -301,7 +318,7 @@ export async function buildPay(ctx, S) {
       parts.forEach(([text, blue]) => ctx.el("span", { text, style: blue ? { color: "var(--electric)" } : {} }, n));
       return n;
     };
-    const aIn = (tt) => ramp(ctx, tt, K.r29, K.r29 + 0.5, "land");
+    const aIn = (tt) => ramp(ctx, tt, 64.45, 64.95, "land"); // round 3: over the falling phone, not after it
     const bIn = (tt) => ramp(ctx, tt, K.holds - 0.16, K.holds + 0.34, "land");
     const out = (tt) => ramp(ctx, tt, lineOut[0], lineOut[1], "power2.in");
     if (M) {
@@ -315,7 +332,7 @@ export async function buildPay(ctx, S) {
       const l2 = mk([["holds your ", false], ["money.", true]], s2);
       const y1 = 460;
       const y2 = y1 + Math.round(s2 * 1.12);
-      during(ctx, K.r29 - 0.05, lineOut[1] + 0.02, (tt) => {
+      during(ctx, 64.4, lineOut[1] + 0.02, (tt) => {
         const a = aIn(tt);
         const b = bIn(tt);
         const o = out(tt);
@@ -338,7 +355,7 @@ export async function buildPay(ctx, S) {
       const lb = ctx.el("span", { style: { display: "inline-block" } }, line);
       ctx.el("span", { text: "holds your " }, lb);
       ctx.el("span", { text: "money.", style: { color: "var(--electric)" } }, lb);
-      during(ctx, K.r29 - 0.05, lineOut[1] + 0.02, (tt) => {
+      during(ctx, 64.4, lineOut[1] + 0.02, (tt) => {
         const a = aIn(tt);
         const b = bIn(tt);
         const o = out(tt);
@@ -352,18 +369,18 @@ export async function buildPay(ctx, S) {
   }
 
   /* ================= the coin (rows 29 to 31) ================= */
-  const coinScene = ctx.scene("c29-coin", K.r29, K.r32, { z: 9 });
+  const coinScene = ctx.scene("c29-coin", K.r29, ROW_OFF[1] + 0.02, { z: 9 });
   const C = coin(ctx, coinScene, { size: COIN_D });
   {
     const land29 = drawAt[0] + 0.2;
     const from = M ? { x: -90, y: 520 } : { x: -90, y: 380 };
-    during(ctx, K.r29, K.r32, (tt) => {
+    during(ctx, K.r29, ROW_OFF[1] + 0.02, (tt) => {
       let x, y, size = COIN_D, spin, tilt = 0, sy = 1, shadow = 0;
       if (tt < land29) {
         /* in from the left edge in one arc onto Your card */
         const u = ramp(ctx, tt, K.r29, land29, "none");
         const e = ctx.ease("power1.inOut")(u);
-        const s0 = ST[0];
+        const s0 = stationAt(0, tt);
         x = mix(from.x, s0.x, e);
         y = mix(from.y, s0.y, e) - Math.sin(Math.PI * e) * 120;
         spin = 720 * ctx.ease("power2.out")(u);
@@ -379,7 +396,7 @@ export async function buildPay(ctx, S) {
         sy = 1 - 0.12 * spring(tt, land29, { freq: 3, decay: 9 }) - 0.1 * spring(tt, K.owner, { freq: 3, decay: 8 });
         shadow = tt < K.r30 + 0.3 || tt > K.owner - 0.1 ? 1 : 0.4;
       }
-      C.set({ x, y, size, spin, tilt, sy, opacity: 1, shadow: shadow * 0.8 });
+      C.set({ x, y, size, spin, tilt, sy, opacity: 1 - rowOff(tt), shadow: shadow * 0.8 });
     });
   }
 

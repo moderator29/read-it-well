@@ -44,7 +44,8 @@ export async function deskStays(ctx, S, T) {
   /* ---------- the window's pages ---------- */
   const staysSrc = ctx.src.capture("d-stays-lt");
   const staySrc = ctx.src.capture("d-stay-lt");
-  const tHotels = ctx.beat(75.25);           // 43.41, inside "hotels"
+  const tHotels = ctx.beat(75.5);            // 43.56, inside "hotels"
+  const tShortlets = T.shortlets + 0.1;      // 43.84
   const tPop = T.and10;                      // 46.39: "3 nights"
   const tFold0 = tPop + 0.01;                // the window folds into its strip
   const tFold1 = tFold0 + 0.4;
@@ -58,8 +59,8 @@ export async function deskStays(ctx, S, T) {
 
   /* ==================== D20: the tiles lift in place ==================== */
   const tiles = [
-    { r: HOTELS, t: tHotels, back: T.shortlets + 0.02 },
-    { r: SHORTLETS, t: T.shortlets, back: T.resorts - 0.04 },
+    { r: HOTELS, t: tHotels, back: tShortlets + 0.02 },
+    { r: SHORTLETS, t: tShortlets, back: T.resorts - 0.04 },
   ];
   for (const tile of tiles) {
     const crop = { x: tile.r.x * 2, y: tile.r.y * 2, w: tile.r.w * 2, h: tile.r.h * 2 };
@@ -92,12 +93,13 @@ export async function deskStays(ctx, S, T) {
   orbT.to(tHotels - 0.42, 0.4, { x: hAt.x + 14, y: hAt.y + 12 }, "glide");
   pressAt(ctx, S.orb, tHotels, { sound: "tap_soft", offset: -2 });
   orbT.to(tHotels + 0.08, 0.24, { x: sAt.x + 14, y: sAt.y + 12 }, "glide");
-  pressAt(ctx, S.orb, T.shortlets, { sound: "tap_soft", offset: -2 });
-  orbT.to(T.shortlets + 0.16, 0.42, { x: 1990, y: 980 }, "power2.in");
-  orbT.to(T.shortlets + 0.3, 0.2, { opacity: 0 }, "power1.in");
+  pressAt(ctx, S.orb, tShortlets, { sound: "tap_soft", offset: -2 });
+  orbT.to(tShortlets + 0.16, 0.42, { x: 1990, y: 980 }, "power2.in");
+  orbT.to(tShortlets + 0.3, 0.2, { opacity: 0 }, "power1.in");
 
   /* D20 -> D21: to the side as the resort card rises */
-  wvT.to(T.resorts - 0.06, 0.62, { cx: S.LEFT.cx, cy: S.LEFT.cy, s: S.LEFT.s }, "glide");
+  /* the window stays at the hero scale; its right third softens under the card and the calendar */
+  S.veilDuring(T.resorts - 0.1, tPop + 0.2);
 
   /* ==================== the resort card, which turns over into the calendar ==================== */
   const FW = 560;

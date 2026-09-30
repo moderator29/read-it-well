@@ -14,7 +14,7 @@
 import { questionCard } from "../engine/components.js";
 import { LAYOUT, QUESTIONS } from "./layout.js";
 import { coin } from "./c-kit.js";
-import { NAVY, ramp, kf, mix, screenPage, showDuring, glassCard, verifiedMark } from "./b-kit.js";
+import { NAVY, ramp, kf, mix, screenPage, showDuring, glassCard, verifiedMark, measure } from "./b-kit.js";
 
 /** Where the coin is at 62.885 (B -> C in handoffs.md; section c's COIN_IN). */
 export const COIN_OUT = { x: 330, y: 470, size: 110, spin: 0, vy: 233, vspin: 1400 };
@@ -24,14 +24,14 @@ export const COIN_OUT = { x: 330, y: 470, size: 110, spin: 0, vy: 233, vspin: 14
  * films: the mark turns edge-on, the coin carries on from 90 degrees, rises,
  * and falls into `out` exactly at tEnd with c's speeds (vy, vspin).
  */
-export function markToCoin(ctx, parent, { markAt, mark0, tSpin, tEnd, out, badgeHTML }) {
+export function markToCoin(ctx, parent, { markAt, mark0, tSpin, tEnd, out, badgeHTML, flip = 0.16 }) {
   const MPX = mark0.size;
   const m = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${MPX}px`, height: `${MPX}px`, visibility: "hidden", perspective: "600px" } }, parent);
   const mInner = ctx.el("div", { style: { width: `${MPX}px`, height: `${MPX}px` } }, m);
   mInner.innerHTML = badgeHTML;
   const C = coin(ctx, parent, { size: out.size });
   C.set({ opacity: 0 });
-  const tSwap = tSpin + 0.16;
+  const tSwap = tSpin + flip;
   /* the fall's last stretch at c's speed: power2.in over d reaches 2 * drop / d */
   const DROP = 20;
   const tPeak = tEnd - (2 * DROP) / out.vy;
@@ -65,44 +65,65 @@ export const BADGE = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24
 export async function checked(ctx, S, T) {
   const { tl } = ctx;
   const L = LAYOUT.mobile;
-  const W = L.WORDS;
   const layer = ctx.scene("b-m-roles", T.r25 - 0.02, T.r26 + 0.4, { z: 30 });
 
-  /* ==================== row 25: the role chips ==================== */
+  /* ==================== row 25: the role chips, a 2 x 2 cluster centred at y 800 ==================== */
   const roles = [
-    { text: "Owner", t: T.owners, cx: 404 },
-    { text: "Host", t: T.hosts, cx: 612 },
-    { text: "Hotel", t: T.hotels13, cx: 430 },
-    { text: "Restaurant", t: T.restaurants, cx: 566 },
+    { text: "Owner", t: T.owners, row: 0, col: 0 },
+    { text: "Host", t: T.hosts, row: 0, col: 1 },
+    { text: "Hotel", t: T.hotels13, row: 1, col: 0 },
+    { text: "Restaurant", t: T.restaurants, row: 1, col: 1 },
   ];
-  const H = 116;
-  const GAP = 16;
-  const top0 = W.y + (W.h - (H * 4 + GAP * 3)) / 2;
   const markTimes = [T.verified, T.verified + 0.15, T.verified + 0.3, T.verified + 0.45];
   const chips = roles.map((r, i) => {
-    const el = glassCard(ctx, layer, { w: null, radius: 999, shadow: "m", style: { width: "auto", height: `${H}px`, display: "flex", alignItems: "center", padding: "0 64px 0 46px", font: "700 76px/1 Poppins, Inter, sans-serif", letterSpacing: "-0.035em", color: NAVY, whiteSpace: "nowrap", visibility: "hidden" } });
-    ctx.el("span", { text: r.text, style: { transform: "translateY(4px)" } }, el);
-    const mark = verifiedMark(ctx, el, 88, { style: { position: "absolute", right: "-34px", top: `${(H - 88) / 2}px`, opacity: "0" } });
-    const y = top0 + i * (H + GAP);
-    return { ...r, el, mark, y, tm: markTimes[i] };
+    const el = glassCard(ctx, layer, { w: null, radius: 999, shadow: "m", style: { width: "auto", display: "flex", alignItems: "center", font: "700 88px/1 Poppins, Inter, sans-serif", letterSpacing: "-0.035em", color: NAVY, whiteSpace: "nowrap", visibility: "hidden" } });
+    const label = ctx.el("span", { text: r.text, style: { transform: "translateY(4px)" } }, el);
+    const mark = verifiedMark(ctx, el, 88, { style: { position: "absolute", top: "0px", opacity: "0" } });
+    return { ...r, el, label, mark, tm: markTimes[i] };
   });
-  /* they drop away together, just after the last mark, before the phone rises */
+  /* one size, fitted so the wider row is at most 900 px (inside the safe width), 1.3x round 1's chips */
+  let lay = null;
+  const doLayout = () => {
+    const w100 = chips.map((c) => measure(c.text, "700 100px Poppins", "-0.035em"));
+    const GAP = 34;
+    let size = 100;
+    const rowW = (sz) => [0, 1].map((r) => chips.filter((c) => c.row === r).reduce((a, c) => a + (w100[chips.indexOf(c)] * sz) / 100 + sz * 1.3 + sz * 0.4, 0) + GAP);
+    while (Math.max(...rowW(size)) > 900) size -= 1;
+    const H = Math.round(size * 1.5);
+    const markS = Math.round(size * 0.95);
+    chips.forEach((c, i) => {
+      c.el.style.fontSize = `${size}px`;
+      c.el.style.height = `${H}px`;
+      c.el.style.padding = `0 ${Math.round(size * 0.8)}px 0 ${Math.round(size * 0.5)}px`;
+      Object.assign(c.mark.style, { width: `${markS}px`, height: `${markS}px`, right: `${-Math.round(markS * 0.36)}px`, top: `${Math.round((H - markS) / 2)}px` });
+      c.mark.querySelector("svg").setAttribute("width", markS);
+      c.mark.querySelector("svg").setAttribute("height", markS);
+    });
+    const widths = chips.map((c) => c.el.offsetWidth);
+    const rows = [0, 1].map((r) => chips.filter((c) => c.row === r));
+    lay = chips.map((c) => {
+      const row = rows[c.row];
+      const total = row.reduce((a, x) => a + widths[chips.indexOf(x)], 0) + GAP;
+      let x = (ctx.W - total) / 2 + (c.row ? 18 : -18);
+      if (c.col === 1) x += widths[chips.indexOf(row[0])] + GAP;
+      return { x, y: 800 + (c.row ? 24 : -24 - H) + (c.row ? 0 : 0), H };
+    });
+  };
+  /* they drop away together just after the last mark, before the phone rises */
   const tGone = T.mark + 0.01;          // 57.62
   chips.forEach((c, i) => {
     ctx.sfx("pop_low", c.t, { offset: -2 });
     ctx.sfx("stamp", c.tm);
     tl.fromTo(c.mark, { scale: 1.9, opacity: 0, rotation: -24 }, { scale: 1, opacity: 1, rotation: 0, duration: 0.2, ease: "power4.out", immediateRender: false }, c.tm);
     showDuring(ctx, c.el, [[c.t - 0.02, tGone + 0.3]]);
-    let wv = null;
     ctx.onFrame((t) => {
       if (t < c.t - 0.02 || t > tGone + 0.3) return;
-      if (!wv) wv = c.el.offsetWidth;
+      if (!lay) doLayout();
       const k = ramp(ctx, t, c.t - 0.02, c.t + 0.46, "land");
       const gone = ramp(ctx, t, tGone, tGone + 0.3, "power2.in");
-      const x = c.cx - wv / 2;
-      const y = c.y + 90 * (1 - k) + gone * 120;
+      const y = lay[i].y + 90 * (1 - k) + gone * 120;
       const rot = (1 - k) * (i % 2 ? 7 : -7);
-      c.el.style.transform = `translate(${x.toFixed(2)}px, ${y.toFixed(2)}px) rotate(${rot.toFixed(2)}deg)`;
+      c.el.style.transform = `translate(${lay[i].x.toFixed(2)}px, ${y.toFixed(2)}px) rotate(${rot.toFixed(2)}deg)`;
       c.el.style.opacity = String((Math.min(1, k * 2.2) * (1 - gone)).toFixed(3));
     });
   });
@@ -113,36 +134,33 @@ export async function checked(ctx, S, T) {
   const tRise = ctx.beat(99.9);                 // 57.63 -> in place by ~58.2
   const tIn = T.person - 0.02;                  // 59.30: card 2
   const tTurn = ctx.beat(104.7);                // 60.40
-  const tOut = ctx.beat(107.9);                 // 62.25
+  const tOut = ctx.beat(108.42);                // 62.55: the answer holds 1.75 s and more
   const tEnd = T.end;
   const pose = S.pLpose;
   pose.to(tRise + 0.11, 0.001, { ...HIGH, cy: 2600, rx: 0, ry: 0, opacity: 1 }, "none");
   pose.to(tRise + 0.12, 0.5, HIGH, "glide");                                      // 57.75-58.25
-  pose.to(tOut, 0.55, { cy: 2650 }, "power2.in");                                 // leaves as the chapter ends
+  pose.to(tOut, 0.32, { cy: 2650 }, "power2.in");                                 // leaves as the chapter ends
   const page = screenPage(ctx, pL, ctx.src.display("verification-lt"));
   showDuring(ctx, page.el, [[tRise + 0.1, tEnd]]);
-  /* dimmed under card 2, so the card never sits on live screen text */
-  const wash = screenPage(ctx, pL, null, { bg: "#ffffff" });
-  wash.el.style.zIndex = "60";
-  showDuring(ctx, wash.el, [[tIn - 0.25, tEnd]]);
-  ctx.gsap.set(wash.el, { opacity: 0 });
-  tl.fromTo(wash.el, { opacity: 0 }, { opacity: 0.9, duration: 0.3, ease: "power2.inOut", immediateRender: false }, tIn - 0.25);
 
   /* ==================== row 27: card 2 ==================== */
   const q = QUESTIONS[1];
   const cardLayer = ctx.scene("b-m-card2", tIn - 0.05, tEnd, { z: 32 });
-  const BOX = { x: 110, y: 640, w: 830, h: 228 };
-  const card = questionCard(ctx, cardLayer, { q: q.q, a: q.a, box: BOX, mark: true, fontSize: 52 });
+  /* over the live phone's left, on its logo bar and heading: "Your ID" and the ID card stay readable */
+  const BOX = { x: 60, y: 380, w: 640, h: 228 };
+  const card = questionCard(ctx, cardLayer, { q: q.q, a: q.a, box: BOX, mark: true, fontSize: 44 });
   card.front.style.justifyContent = "center";
   card.front.style.textAlign = "center";
-  Object.assign(card.back.style, { justifyContent: "center", fontSize: "44px", lineHeight: "1.22", textWrap: "balance" });
+  Object.assign(card.back.style, { justifyContent: "center", fontSize: "38px", lineHeight: "1.22", textWrap: "balance" });
   ctx.gsap.set(card.root, { transformOrigin: "50% 50%" });
   ctx.gsap.set(card.root, { x: -900, y: -560, rotation: -32 });
   tl.fromTo(card.root, { x: -900, y: -560, rotation: -32 }, { x: 0, y: 0, rotation: -2, duration: 0.52, ease: "back.out(1.2)", immediateRender: false }, tIn);
   ctx.sfx("card_slide", tIn, { offset: -2 });
   card.turn(tTurn);
-  tl.fromTo(card.root, { x: 0, y: 0, rotation: -2, scale: 1 }, { x: -1100, y: -760, rotation: -24, scale: 0.8, duration: 0.4, ease: "power3.in", immediateRender: false }, tOut);
-  showDuring(ctx, card.root, [[tIn, tOut + 0.42]]);
+  /* out to section c's CARD_OUT.mobile.c2: centre (-575, -6), -24 deg, 0.8 */
+  const c0 = { x: BOX.x + BOX.w / 2, y: BOX.y + BOX.h / 2 };
+  tl.fromTo(card.root, { x: 0, y: 0, rotation: -2, scale: 1 }, { x: -575 - c0.x, y: -6 - c0.y, rotation: -24, scale: 0.8, duration: 0.3, ease: "power3.in", immediateRender: false }, tOut);
+  showDuring(ctx, card.root, [[tIn, tOut + 0.32]]);
 
   /* the card's own mark hides as its twin spins off into the coin */
   const tSpin = tOut + 0.02;
@@ -152,7 +170,8 @@ export async function checked(ctx, S, T) {
   });
   let m0 = null;
   markToCoin(ctx, cardLayer, {
-    mark0: { size: 68 },
+    mark0: { size: Math.round(44 * 1.3) },
+    flip: 0.06,
     markAt: () => {
       if (!m0) m0 = { x: BOX.x + backMark.offsetLeft + backMark.offsetWidth / 2, y: BOX.y + backMark.offsetTop + backMark.offsetHeight / 2 };
       return m0;

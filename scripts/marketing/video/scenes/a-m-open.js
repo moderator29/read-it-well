@@ -27,7 +27,11 @@ export function nightCard(ctx, parent, { q, a, box, size = 46, inner = 440 }) {
      the one 3D-transformed layer a card carries, and Chrome may raster such a layer at a scale kept
      from an earlier frame: without it the cards paint the same whichever way the film is sought. */
   card.back.style.display = "none";
-  return card;
+  /* An opaque body under the glass, from row 03 on (the caller fades it in), so in the stack and the fan
+     only the top card's words show. */
+  const body = ctx.el("div", { class: "abs", style: { inset: "0px", borderRadius: card.front.style.borderRadius, background: "linear-gradient(180deg, #1a2358 0%, #111848 100%)", opacity: "0" } });
+  card.inner.insertBefore(body, card.inner.firstChild);
+  return { ...card, body };
 }
 
 export function buildOpenMobile(ctx, T) {
@@ -106,9 +110,8 @@ export function buildOpenMobile(ctx, T) {
   /* Each word lands from a little to its right, so it never crosses the word before it. */
   const w1 = mk(line1, spec1, 48, null);
   const w2 = mk(line2, spec2, 48, "Nigeria");
-  /* On "shouldn't" they part: the top line out to the left, the bottom line out to the right, leading word first. */
-  w1.forEach((s, k) => tl.to(s, { x: -1100, duration: 0.3, ease: "power3.in" }, T.shouldnt - 0.1 + k * 0.03));
-  w2.forEach((s, k) => tl.to(s, { x: 1100, duration: 0.3, ease: "power3.in" }, T.shouldnt - 0.1 + (w2.length - 1 - k) * 0.03));
+  /* On "shouldn't" they fade in place (0.2 s), never flying past the frame's edge over the cards. */
+  [...w1, ...w2].forEach((s) => tl.fromTo(s, { opacity: 1 }, { opacity: 0, duration: 0.2, ease: "power1.in", immediateRender: false }, T.shouldnt - 0.1));
 
   /* The cards all but vanish behind the words (8%, blurred), so no type sits over their text. */
   const dimIn = { t0: T.finding - 0.1, t1: T.finding + 0.3 };
@@ -123,6 +126,8 @@ export function buildOpenMobile(ctx, T) {
   });
 
   /* ---------- row 03: the shuffle, the fan, the rush ---------- */
+  /* the cards become opaque as they gather */
+  cards.forEach((c) => tl.fromTo(c.body, { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power1.inOut" }, T.shouldnt - 0.05));
   const C = { x: 540, y: 720 };
   const at = (c, dx = 0, dy = 0) => ({ x: C.x - (c.box.x + c.box.w / 2) + dx, y: C.y - (c.box.y + c.box.h / 2) + dy });
   const stack = [{ dy: -12, r: -2.2 }, { dy: 0, r: 1.4 }, { dy: 12, r: -0.8 }];
@@ -194,7 +199,10 @@ export function buildOpenMobile(ctx, T) {
   const markH = (MARK.w * 587) / 614;
   const onBack = { w: MARK.w / 1.1, cy: 960 + (MARK.cy - 960) / 1.1 };
   const backMark = ctx.img(ctx.src.brand("vallo-mark.png"), { class: "abs", style: { left: `${540 - onBack.w / 2}px`, top: `${onBack.cy - (onBack.w * 587) / 614 / 2}px`, width: `${onBack.w}px`, height: `${(onBack.w * 587) / 614}px` } }, back);
-  const logo = ctx.el("div", { class: "fill", style: { transformOrigin: `${MARK.cx}px ${MARK.cy}px` } }, vallo);
+  /* The mark and wordmark sit above the opening day (their own layer), so the iris opens from behind
+     them as they rush past the camera: no seed of the screen shows before the disc is wide. */
+  const logoScene = ctx.scene("a-logo", T.drop - 0.02, T.widen + 0.45, { z: 15 });
+  const logo = ctx.el("div", { class: "fill", style: { transformOrigin: `${MARK.cx}px ${MARK.cy}px` } }, logoScene);
   const mark = ctx.img(ctx.src.brand("vallo-mark.png"), { class: "abs", style: { left: `${MARK.cx - MARK.w / 2}px`, top: `${MARK.cy - markH / 2}px`, width: `${MARK.w}px`, height: `${markH}px`, visibility: "hidden" } }, logo);
   ctx.onFrame((t) => {
     const landed = t >= T.drop;
@@ -212,9 +220,9 @@ export function buildOpenMobile(ctx, T) {
   tl.fromTo(wordmark, { y: 46, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "land" }, T.vallo - 0.04);
   tl.fromTo(logo, { scale: 1 }, { scale: 1.03, duration: T.widen - T.drop, ease: "drift" }, T.drop);
   /* Just before the iris opens, the mark and the wordmark rush past the camera through it. */
-  tl.fromTo(mark, { opacity: 1 }, { opacity: 0, duration: 0.3, ease: "power2.in", immediateRender: false }, T.widen - 0.1);
-  tl.fromTo(mark, { scale: 1 }, { scale: 1.35, duration: 0.3, ease: "power2.in", immediateRender: false }, T.widen - 0.1);
-  tl.fromTo(wordmark, { scale: 1, opacity: 1 }, { scale: 1.35, opacity: 0, duration: 0.3, ease: "power2.in", immediateRender: false }, T.widen - 0.1);
+  tl.fromTo(mark, { opacity: 1 }, { opacity: 0, duration: 0.45, ease: "power2.in", immediateRender: false }, T.widen - 0.05);
+  tl.fromTo(mark, { scale: 1 }, { scale: 1.35, duration: 0.45, ease: "power2.in", immediateRender: false }, T.widen - 0.05);
+  tl.fromTo(wordmark, { scale: 1, opacity: 1 }, { scale: 1.35, opacity: 0, duration: 0.45, ease: "power2.in", immediateRender: false }, T.widen - 0.05);
 
   /* ================= the iris opens onto daylight ================= */
   /* It opens from a point at the mark's centre onto the device, already rising in place behind it.

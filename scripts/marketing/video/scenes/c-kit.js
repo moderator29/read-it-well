@@ -441,10 +441,13 @@ export function roll(ctx, parent, { items, size, color = "#ffffff", weight = 700
     text: it.text,
     style: { left: "0px", top: "0px", width: `${W}px`, height: `${H}px`, lineHeight: `${H}px`, textAlign: align, font: `${weight} ${size}px ${font}`, letterSpacing, color, whiteSpace: "nowrap", visibility: "hidden" },
   }, slot));
-  const u = (i, t) => (i === 0 && !rollFirst ? 1 : ramp(ctx, t, items[i].t - 0.1, items[i].t + 0.18, "power3.inOut"));
+  /* The outgoing word finishes leaving before the incoming one starts: out
+     over [t - 0.2, t - 0.06], a 0.12 s empty slot, in over [t + 0.06, t + 0.26]. */
+  const inU = (i, t) => (i === 0 && !rollFirst ? 1 : ramp(ctx, t, items[i].t + 0.06, items[i].t + 0.26, "power3.out"));
+  const outU = (i, t) => (i + 1 < items.length ? ramp(ctx, t, items[i + 1].t - 0.2, items[i + 1].t - 0.06, "power2.in") : 0);
   function update(t) {
     nodes.forEach((n, i) => {
-      const y = (1 - u(i, t)) * H - (i + 1 < items.length ? u(i + 1, t) : 0) * H;
+      const y = (1 - inU(i, t)) * H - outU(i, t) * H;
       const on = Math.abs(y) < H - 0.5;
       n.style.visibility = on ? "" : "hidden";
       n.style.transform = `translateY(${y.toFixed(2)}px)`;

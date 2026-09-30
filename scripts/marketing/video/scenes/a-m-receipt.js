@@ -14,7 +14,7 @@
 import { QUESTIONS } from "./layout.js";
 import { questionCard, squiggle } from "../engine/components.js";
 import { NAVY, ELECTRIC, SHADOW_L, displayRectQuad, rectQuad, lerpQuad, placeOnQuad, LINES, TOTAL, naira, rollNumber, measure, cropCanvas, freshLayers } from "./a-common.js";
-import { PUSH_REST } from "./a-m-product.js";
+import { PUSH_REST, ROW10_SCROLL } from "./a-m-product.js";
 
 const W = 1080;
 const H = 1920;
@@ -45,7 +45,7 @@ export async function buildReceiptMobile(ctx, T, product) {
   tl.fromTo(P, { opacity: 0 }, { opacity: A_OUT.phone.opacity, duration: 0.35, ease: "power1.inOut", ...ir }, END - 0.37);
   /* v3.2: no UI shown twice. The cost section leaves the screen as it lifts (the lifted skin covers
      this patch on its first frame), so the fading phone never shows it under the receipt. */
-  const gone = ctx.el("div", { class: "abs", style: { left: "0px", top: "440px", width: "1320px", height: "2080px", background: "#f3f4f1", visibility: "hidden", zIndex: "30" } }, listing.el);
+  const gone = ctx.el("div", { class: "abs", style: { left: "0px", top: "330px", width: "1320px", height: "2150px", background: "#f3f4f1", visibility: "hidden", zIndex: "30" } }, listing.el);
   ctx.onFrame((t) => {
     const on = t >= T.call;
     if ((gone.style.visibility !== "hidden") !== on) gone.style.visibility = on ? "inherit" : "hidden";
@@ -67,7 +67,9 @@ export async function buildReceiptMobile(ctx, T, product) {
   const shell = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${R.w}px`, height: `${R.h}px`, transformOrigin: "0 0" } }, scene);
   const surface = ctx.el("div", { class: "abs", style: { inset: "0px", borderRadius: "44px", background: "#fff", boxShadow: SHADOW_L, border: "1px solid rgb(11 18 48 / 0.06)" } }, shell);
   /* The skin: the screen's own cost section (listing-cost-light), stretched into the receipt's box so it maps back onto the glass at the lift's start. */
-  const SKIN = { x: 20, y: 470, w: 1280, h: 2020 };
+  const SKIN = { x: 20, y: 470, w: 1280, h: 2010 };
+  /* where it sits on the screen: the page is scrolled up ROW10_SCROLL display px in row 10 */
+  const SKIN_ON = { ...SKIN, y: SKIN.y - ROW10_SCROLL };
   const skinWrap = ctx.el("div", { class: "abs", style: { inset: "0px", borderRadius: "44px", overflow: "hidden" } }, shell);
   await cropCanvas(ctx, ctx.src.display("listing-cost-light"), SKIN, { parent: skinWrap, style: { width: `${R.w}px`, height: `${R.h}px` } });
   /* the body clips its own sweeps and entries to the receipt's shape */
@@ -172,7 +174,7 @@ export async function buildReceiptMobile(ctx, T, product) {
     if (t < fold.t0) {
       /* the lift, then the push: shell and body share one quad */
       const k = ctx.ease("glide")(ctx.progress(t, lift.t0, lift.t1));
-      const q = lerpQuad(displayRectQuad(P, W, H, SKIN), rest(t), k);
+      const q = lerpQuad(displayRectQuad(P, W, H, SKIN_ON), rest(t), k);
       placeOnQuad(shell, R.w, R.h, q);
       placeOnQuad(body, R.w, R.h, q);
       surface.style.opacity = "1";
@@ -208,7 +210,8 @@ export async function buildReceiptMobile(ctx, T, product) {
 
   /* ---------- card 1 (rows 12-13): under the receipt, clear of its lines and of the captions ---------- */
   const cardScene = ctx.scene("a-card1", T.cardIn, END, { z: 10 });
-  const box = { x: 230, y: 1380, w: 620, h: 170 };
+  /* v3.3: under the receipt and above the captions (band 1520-1640) */
+  const box = { x: 230, y: 1246, w: 620, h: 170 };
   const card = questionCard(ctx, cardScene, { q: QUESTIONS[0].q, a: QUESTIONS[0].a, box, fontSize: 40 });
   Object.assign(card.front.style, { justifyContent: "center", textAlign: "center", textWrap: "balance" });
   Object.assign(card.back.style, { justifyContent: "center", textAlign: "center", fontSize: "33px", lineHeight: "1.22", textWrap: "balance" });

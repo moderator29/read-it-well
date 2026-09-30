@@ -43,9 +43,9 @@ export async function stays(ctx, S, T) {
   const HIGH = { cx: L.PHONE_HIGH.cx, cy: L.PHONE_HIGH.cy, height: L.PHONE_HIGH.height };
 
   /* ---------- the clock ---------- */
-  const tRise = ctx.beat(74.3);              // 42.87: the phone rises with the chapter's pill
-  const tHotels = ctx.beat(75.25);           // 43.41, inside "hotels" (43.00-43.72)
-  const tShortlets = T.shortlets;            // 43.74
+  const tRise = ctx.beat(74.6);              // 43.04: the phone rises as the title reaches the pill
+  const tHotels = ctx.beat(75.5);            // 43.56, inside "hotels" (43.00-43.72)
+  const tShortlets = T.shortlets + 0.1;      // 43.84, inside "shortlets"
   const tDim = T.pick - 0.33;                // 45.10: the phone dims under the card
   const tFlip0 = T.pick - 0.28;              // 45.15: the card turns into the calendar
   const tFlip1 = tFlip0 + 0.5;
@@ -92,7 +92,7 @@ export async function stays(ctx, S, T) {
   orbT.to(tHotels - 0.5, 0.14, { opacity: 1 }, "power1.out");
   orbT.to(tHotels - 0.5, 0.44, { x: hAt.x + 10, y: hAt.y + 8 }, "glide");
   pressAt(ctx, S.orb, tHotels, { sound: null });
-  orbT.to(tHotels + 0.12, 0.2, { x: sAt.x + 10, y: sAt.y + 8 }, "glide");
+  orbT.to(tHotels + 0.08, 0.2, { x: sAt.x + 10, y: sAt.y + 8 }, "glide");
   pressAt(ctx, S.orb, tShortlets, { sound: null });
   orbT.to(tShortlets + 0.14, 0.36, { x: 900, y: 1210, opacity: 0 }, "power2.in");
 
