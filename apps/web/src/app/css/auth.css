@@ -950,7 +950,7 @@
    * never the only signal.
    */
   .nf-auth__notice-link {
-    font-weight: 650;
+    font-weight: 600;
     color: inherit;
     text-decoration: underline;
     text-underline-offset: 0.2em;

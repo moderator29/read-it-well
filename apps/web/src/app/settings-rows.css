@@ -350,7 +350,7 @@
   .nf-hub-head__title {
     font-family: var(--nf-font-display);
     font-size: var(--nf-text-h1);
-    font-weight: 800;
+    font-weight: 600;
     letter-spacing: -0.03em;
     line-height: 1.1;
     color: var(--nf-content-primary);
@@ -476,7 +476,7 @@
   }
   .nf-hub .nf-srow__label {
     font-size: var(--nf-text-body-sm);
-    font-weight: 650;
+    font-weight: 600;
     letter-spacing: -0.005em;
   }
   /*

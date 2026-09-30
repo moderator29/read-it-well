@@ -631,7 +631,7 @@
     border-radius: var(--nf-radius-sm);
     font-size: var(--nf-text-overline);
     font-weight: 700;
-    letter-spacing: 0.03em;
+    letter-spacing: var(--nf-tracking-label);
     text-transform: uppercase;
     color: var(--nf-brand-secondary);
     /* Rung 1 for the fill and rung 3 for the edge, which is the pair the ladder

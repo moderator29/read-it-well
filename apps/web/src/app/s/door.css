@@ -37,7 +37,7 @@
 
   .nf-door__eyebrow {
     font-size: var(--nf-text-caption);
-    letter-spacing: 0.08em;
+    letter-spacing: var(--nf-tracking-label);
     text-transform: uppercase;
     color: var(--nf-content-muted);
   }

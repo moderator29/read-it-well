@@ -294,7 +294,7 @@
     padding: var(--nf-space-3xs) var(--nf-space-2xs);
     border-radius: var(--nf-radius-xs);
     font-size: var(--nf-pcard-fact, var(--nf-text-overline));
-    font-weight: 650;
+    font-weight: 600;
     line-height: 1;
     pointer-events: none;
     /* The 1px border this mark always had, kept transparent so the shared
@@ -901,7 +901,7 @@
     padding: 0 var(--nf-space-sm);
     border-radius: var(--nf-radius-sm);
     font-size: var(--nf-text-caption);
-    font-weight: 650;
+    font-weight: 600;
     line-height: 1;
     /* The 1px border this mark always had, kept transparent so the shared
        badge (whose ring is drawn inside) sits at the same size. */
@@ -956,7 +956,7 @@
     min-height: 2.75rem;
     padding: 0 var(--nf-space-md);
     font-size: var(--nf-text-caption);
-    font-weight: 650;
+    font-weight: 600;
     border: var(--nf-border-width) solid var(--nf-selected-edge);
     border-color: var(--nf-selected-edges);
     background: var(--nf-selected-fill);
@@ -1368,7 +1368,7 @@
     padding: var(--nf-space-3xs) var(--nf-space-xs);
     border-radius: var(--nf-radius-xs);
     font-size: var(--nf-text-overline);
-    font-weight: 650;
+    font-weight: 600;
     border: var(--nf-border-width) solid var(--nf-selected-edge);
     border-color: var(--nf-selected-edges);
     background: var(--nf-selected-fill);
@@ -1407,7 +1407,7 @@
     height: 1.75rem;
     border-radius: var(--nf-radius-circle);
     font-size: var(--nf-text-caption);
-    font-weight: 650;
+    font-weight: 600;
     color: var(--nf-brand-secondary);
     border: var(--nf-border-width) solid var(--nf-plate-edge);
     border-color: var(--nf-plate-edges);
@@ -1637,7 +1637,7 @@
     align-items: center;
     gap: var(--nf-space-3xs);
     font-size: var(--nf-text-body-sm);
-    font-weight: 650;
+    font-weight: 600;
     color: var(--nf-content-primary);
   }
   .nf-host-row__title > svg {
@@ -1952,7 +1952,7 @@
     overflow-wrap: break-word;
     word-break: normal;
     font-size: var(--nf-text-caption);
-    font-weight: 650;
+    font-weight: 600;
     line-height: 1.25;
     text-align: left;
     color: var(--nf-content-primary);
@@ -2194,7 +2194,7 @@
     padding: var(--nf-space-3xs) var(--nf-space-xs);
     border-radius: var(--nf-radius-xs);
     font-size: var(--nf-text-overline);
-    font-weight: 650;
+    font-weight: 600;
   }
   /* Its material and the two tones are the shared status badge's
      (chips.css, SW-C6). */

@@ -12,50 +12,67 @@
      founder asked for calm. */
   .nf-scam-shield {
     margin-top: var(--nf-space-xs);
-    padding: var(--nf-space-sm) var(--nf-space-md);
+    padding: var(--nf-space-sm) var(--nf-space-md) var(--nf-space-2xs);
     border-radius: var(--nf-radius-card-sm);
     background: var(--nf-state-info-surface);
     border: var(--nf-border-width) solid var(--nf-border-subtle);
     color: var(--nf-content-secondary);
     display: grid;
-    gap: var(--nf-space-xs);
+    grid-template-columns: 18px minmax(0, 1fr);
+    column-gap: var(--nf-space-xs);
     max-width: 100%;
   }
+  .nf-scam-shield__icon {
+    margin-top: 2px;
+    color: var(--nf-state-info);
+  }
+  .nf-scam-shield__body {
+    display: grid;
+    gap: var(--nf-space-2xs);
+    min-width: 0;
+  }
   .nf-scam-shield__lead {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--nf-space-xs);
     font-size: var(--nf-text-body-sm);
     line-height: 1.45;
+    overflow-wrap: anywhere;
   }
   .nf-scam-shield__lead strong {
     color: var(--nf-content-primary);
     font-weight: 600;
   }
-  .nf-scam-shield__icon {
-    flex-shrink: 0;
-    margin-top: 2px;
-    color: var(--nf-state-info);
+  .nf-scam-shield__private {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
   }
   .nf-scam-shield__steps {
     display: grid;
     gap: var(--nf-space-xs);
-    margin: 0;
-    padding-left: var(--nf-space-lg);
+    margin: var(--nf-space-xs) 0 0;
+    padding-inline-start: var(--nf-space-md);
     list-style: decimal;
     font-size: var(--nf-text-body-sm);
     line-height: 1.5;
   }
+  .nf-scam-shield__steps strong {
+    color: var(--nf-content-primary);
+    font-weight: 600;
+  }
   .nf-scam-shield__more {
-    list-style: none;
-    margin-left: calc(var(--nf-space-lg) * -1);
+    justify-self: start;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-link);
+    text-decoration: underline;
+    text-underline-offset: 4px;
   }
   .nf-scam-shield__actions {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    column-gap: var(--nf-space-md);
-    row-gap: var(--nf-space-2xs);
+    column-gap: var(--nf-space-lg);
   }
   .nf-scam-shield__toggle {
     display: inline-flex;
@@ -66,9 +83,19 @@
     font-weight: 600;
     color: var(--nf-content-link);
   }
-  .nf-scam-shield__private {
-    font-size: var(--nf-text-caption);
-    color: var(--nf-content-muted);
+  .nf-scam-shield__chev {
+    transition: transform var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-scam-shield__chev.is-open {
+    transform: rotate(180deg);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-scam-shield__chev {
+      transition: none;
+    }
+  }
+  :root[data-motion="off"] .nf-scam-shield__chev {
+    transition: none;
   }
 }
 
@@ -158,23 +185,33 @@
     color: var(--nf-content-muted);
   }
   .nf-reply-time__line {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--nf-space-2xs) var(--nf-space-xs);
+    display: grid;
+    grid-template-columns: 14px minmax(0, 1fr);
+    column-gap: var(--nf-space-xs);
+    align-content: center;
+    align-items: start;
     min-height: 44px;
+    line-height: 1.45;
     cursor: pointer;
     list-style: none;
   }
   .nf-reply-time__line::-webkit-details-marker {
     display: none;
   }
+  .nf-reply-time__icon {
+    margin-top: 0.15em;
+  }
   .nf-reply-time__how {
     text-decoration: underline;
     text-underline-offset: 3px;
+    white-space: nowrap;
+  }
+  .nf-reply-time[open] .nf-reply-time__how {
+    color: var(--nf-content-secondary);
   }
   .nf-reply-time__explain {
     padding-bottom: var(--nf-space-xs);
+    padding-inline-start: calc(14px + var(--nf-space-xs));
     line-height: 1.5;
   }
 }
@@ -185,7 +222,6 @@
   .nf-day-kit {
     display: grid;
     gap: var(--nf-space-xs);
-    padding: var(--nf-space-sm) 0;
   }
   .nf-day-kit__row {
     display: flex;
@@ -193,20 +229,61 @@
     align-items: center;
     gap: var(--nf-space-xs);
   }
-  .nf-day-kit__today {
-    font-size: var(--nf-text-caption);
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: var(--nf-brand-secondary);
+  .nf-day-kit__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-space-sm);
+  }
+  .nf-day-kit__pair {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+    gap: var(--nf-space-xs);
+  }
+  .nf-day-kit__late {
+    display: grid;
+    gap: var(--nf-space-2xs);
+  }
+  .nf-day-kit__choices {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--nf-space-xs);
   }
   .nf-day-kit__ask {
     font-size: var(--nf-text-body-sm);
-    color: var(--nf-content-secondary);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  /* A quiet text action with a full tap target: the calendar on the day and
+     the way back out of How late. */
+  .nf-day-kit__link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-link);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+  .nf-day-kit__link:disabled {
+    opacity: 0.5;
   }
   .nf-day-kit__note {
     font-size: var(--nf-text-caption);
-    color: var(--nf-content-muted);
+    color: var(--nf-content-secondary);
+  }
+  /* On the thread's inspection card: under the card's own buttons, across a
+     hairline, so it reads as the day's tools rather than a third action. */
+  .nf-context-card__kit {
+    margin-top: var(--nf-space-sm);
+    padding-top: var(--nf-space-sm);
+    border-top: var(--nf-border-width) solid var(--nf-border-subtle);
+  }
+  /* The live region stays in the tree so a later note is announced; empty,
+     it takes no room. */
+  .nf-day-kit__note:empty {
+    display: none;
   }
 }
 
@@ -435,6 +512,7 @@ html:root[data-contrast="more"] .nf-tab__link[aria-current="page"] .nf-tab__labe
   }
   .nf-msg-pane__top {
     display: flex;
+    align-items: baseline;
     justify-content: space-between;
     gap: var(--nf-space-xs);
   }
@@ -458,9 +536,20 @@ html:root[data-contrast="more"] .nf-tab__link[aria-current="page"] .nf-tab__labe
   .nf-msg-pane__title {
     color: var(--nf-content-secondary);
   }
+  .nf-msg-pane__meta {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+  }
+  .nf-msg-pane__name.is-unread {
+    font-weight: 700;
+  }
+  .nf-msg-pane__last.is-unread {
+    color: var(--nf-content-primary);
+  }
   .nf-msg-pane__dot {
     flex: 0 0 auto;
-    align-self: center;
     width: 8px;
     height: 8px;
     border-radius: var(--nf-radius-circle);
@@ -485,10 +574,13 @@ html:root[data-contrast="more"] .nf-tab__link[aria-current="page"] .nf-tab__labe
     font-size: var(--nf-text-body-sm);
     color: var(--nf-content-secondary);
   }
+  .nf-keys__row:last-child {
+    border-bottom: 0;
+  }
   .nf-keys__row dt {
     display: inline-flex;
     align-items: center;
-    gap: var(--nf-space-3xs);
+    gap: var(--nf-space-2xs);
   }
   .nf-keys__key {
     min-width: 1.75rem;

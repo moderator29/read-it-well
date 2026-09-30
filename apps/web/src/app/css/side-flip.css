@@ -516,7 +516,7 @@
     display: block;
     font-size: var(--nf-text-overline);
     font-weight: 700;
-    letter-spacing: 0.12em;
+    letter-spacing: var(--nf-tracking-label);
     text-transform: uppercase;
     color: var(--nf-brand-secondary);
   }

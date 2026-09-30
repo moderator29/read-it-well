@@ -1133,7 +1133,7 @@
   .nf-landing-cat-title {
     display: block;
     font-size: var(--nf-text-body-sm);
-    font-weight: 650;
+    font-weight: 600;
     line-height: 1.2;
     /* Two lines are reserved whether a name needs them or not, so "Guest
        Houses" and "Land" put their counts on the same baseline and the row
@@ -1263,7 +1263,7 @@
   }
   .nf-app-panel__install-title {
     font-size: var(--nf-text-body);
-    font-weight: 650;
+    font-weight: 600;
     color: var(--nf-content-primary);
   }
   .nf-app-panel__install-body {
