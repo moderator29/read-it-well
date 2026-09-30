@@ -1,4 +1,5 @@
 import { getLocale } from "@/lib/locale";
+import { readInternalIds } from "@/lib/admin/internal-accounts";
 import { getBookingOutcomes, getPriceCheckDemand, getSupplySeries, getThinAreas } from "@/lib/admin/reads/analytics";
 import type { CollectedRange } from "@/lib/admin/reads/shapes";
 import { LiveRefresh } from "../_components/LiveRefresh";
@@ -27,11 +28,12 @@ export default async function AdminAnalyticsPage({
   const params = await searchParams;
   const range = RANGES.find((r) => r === params.range) ?? "30d";
   const now = requestTime();
-  const [bookings, supply, thin, demand] = await Promise.all([
+  const [bookings, supply, thin, demand, internal] = await Promise.all([
     getBookingOutcomes(range, now),
     getSupplySeries(range, now),
     getThinAreas(5),
     getPriceCheckDemand(range, now),
+    readInternalIds(),
   ]);
   return (
     <>
@@ -44,6 +46,11 @@ export default async function AdminAnalyticsPage({
         thin={thin.state === "ok" ? thin.data : null}
         demand={demand.state === "ok" ? demand.data : null}
       />
+      {/* C10: the figures above leave these accounts out; the count is read, not assumed. */}
+      <p className="nf-caption mt-block">
+        Internal activity excluded: {internal.length} {internal.length === 1 ? "account" : "accounts"} (QA, staff and
+        anyone marked on the staff page). Example listings are left out as well.
+      </p>
     </>
   );
 }

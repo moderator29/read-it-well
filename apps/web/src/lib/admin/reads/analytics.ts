@@ -3,10 +3,13 @@ import "server-only";
 import { rangeBuckets } from "./overview";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { BookingOutcomes, CollectedRange, PriceCheckDemand, ThinAreas } from "./shapes";
-import { QA_NOT_IN, UNAVAILABLE, adminReader, bucketSum, exactCount, lagosDay, readAll, type Read } from "./shared";
+import { readInternalNotIn } from "../internal-accounts";
+import { UNAVAILABLE, adminReader, bucketSum, exactCount, lagosDay, readAll, type Read } from "./shared";
 
 /** A person-keyed row that is anonymous or not a QA account. */
-const QA_OR_NULL = `user_id.is.null,user_id.not.in.${QA_NOT_IN}`;
+/* C10: anonymous rows count; internal accounts (QA, staff, the super admin's
+   list; lib/admin/internal-accounts.ts) do not. */
+const orNullNotIn = (notIn: string) => `user_id.is.null,user_id.not.in.${notIn}`;
 
 /**
  * THE ANALYTICS DESK'S READS (01F7DFC7 panel three).
@@ -31,6 +34,7 @@ const WINDOW_DAYS: Record<CollectedRange, number> = { "30d": 30, "90d": 91, "12m
 export async function getBookingOutcomes(range: CollectedRange, now: number): Promise<Read<BookingOutcomes>> {
   const db = await adminReader();
   if (!db) return UNAVAILABLE;
+  const internal = await readInternalNotIn();
   try {
     const span = WINDOW_DAYS[range] * 86_400_000;
     const from = new Date(now - span).toISOString();
@@ -40,8 +44,8 @@ export async function getBookingOutcomes(range: CollectedRange, now: number): Pr
         .from("bookings")
         .select("id", { count: "exact", head: true })
         .in("status", ["CONFIRMED", "COMPLETED"])
-        // A QA account's stay is not a booking the platform made (founder, 23 September).
-        .not("guest_id", "in", QA_NOT_IN);
+        // An internal account's stay is not a booking the platform made (founder, 23 September; C10).
+        .not("guest_id", "in", internal);
     const [successful, successfulPrev] = await Promise.all([
       exactCount(q().gte("created_at", from)),
       exactCount(q().gte("created_at", before).lt("created_at", from)),
@@ -185,6 +189,7 @@ export async function getPriceCheckDemand(range: CollectedRange, now: number): P
   if (!db) return UNAVAILABLE;
   try {
     const { keys, fromIso, monthly } = rangeBuckets(range, now);
+    const internal = await readInternalNotIn();
     const loose = db as unknown as SupabaseClient;
     const rows = await readAll<CheckRow>((from, to) =>
       loose
@@ -192,7 +197,7 @@ export async function getPriceCheckDemand(range: CollectedRange, now: number): P
         .select("stage, outcome, refusal_code, state_code, lga_code, created_at")
         .in("stage", ["submit", "outcome"])
         // Anonymous checks count; the QA accounts' checks do not (founder, 23 September).
-        .or(QA_OR_NULL)
+        .or(orNullNotIn(internal))
         .gte("created_at", fromIso)
         .order("created_at", { ascending: true })
         .order("id", { ascending: true })
@@ -204,7 +209,7 @@ export async function getPriceCheckDemand(range: CollectedRange, now: number): P
         .from("price_check_events")
         .select("id", { count: "exact", head: true })
         .eq("stage", "submit")
-        .or(QA_OR_NULL)
+        .or(orNullNotIn(internal))
         .gte("created_at", new Date(Date.parse(fromIso) - span).toISOString())
         .lt("created_at", fromIso),
     );
