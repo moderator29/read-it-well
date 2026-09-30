@@ -1194,7 +1194,7 @@
    * `VerifyCodeForm` goes through the door at 1100ms. It stands in the
    * middle of the space the form left, not at its top.
    */
-  .nf-arrive {
+  .nf-arrival {
     display: grid;
     align-content: center;
     justify-items: center;
@@ -1203,31 +1203,31 @@
     padding-block: var(--nf-space-lg);
     text-align: center;
   }
-  .nf-arrive__art {
+  .nf-arrival__art {
     position: relative;
     width: 10rem;
     height: 10rem;
     margin-bottom: var(--nf-space-sm);
   }
-  .nf-arrive__glow {
+  .nf-arrival__glow {
     position: absolute;
     inset: -20%;
     border-radius: var(--nf-radius-circle);
     background: radial-gradient(circle, var(--nf-slate-light) 0%, transparent 70%);
-    animation: nf-arrive-glow 900ms var(--nf-ease-entrance) both;
+    animation: nf-arrival-glow 900ms var(--nf-ease-entrance) both;
   }
-  .nf-arrive__house {
+  .nf-arrival__house {
     position: absolute;
     inset: 8%;
-    animation: nf-arrive-rise 560ms var(--nf-ease-spring) both;
+    animation: nf-arrival-rise 560ms var(--nf-ease-spring) both;
   }
-  .nf-arrive__house > img {
+  .nf-arrival__house > img {
     display: block;
     width: 100%;
     height: 100%;
     object-fit: contain;
   }
-  .nf-arrive__tick {
+  .nf-arrival__tick {
     position: absolute;
     right: -0.25rem;
     bottom: 0.25rem;
@@ -1235,10 +1235,10 @@
     height: 3.25rem;
     border-radius: var(--nf-radius-circle);
     background: var(--nf-slate-page);
-    animation: nf-arrive-pop 320ms var(--nf-ease-spring) 180ms both;
+    animation: nf-arrival-pop 320ms var(--nf-ease-spring) 180ms both;
   }
-  .nf-arrive__ring,
-  .nf-arrive__check {
+  .nf-arrival__ring,
+  .nf-arrival__check {
     fill: none;
     stroke: var(--nf-state-success);
     stroke-width: 3.5;
@@ -1247,37 +1247,37 @@
     stroke-dasharray: 1;
     stroke-dashoffset: 0;
   }
-  .nf-arrive__ring {
-    animation: nf-arrive-draw 360ms var(--nf-ease-entrance) 220ms both;
+  .nf-arrival__ring {
+    animation: nf-arrival-draw 360ms var(--nf-ease-entrance) 220ms both;
   }
-  .nf-arrive__check {
-    animation: nf-arrive-draw 240ms var(--nf-ease-entrance) 500ms both;
+  .nf-arrival__check {
+    animation: nf-arrival-draw 240ms var(--nf-ease-entrance) 500ms both;
   }
-  .nf-arrive__title {
+  .nf-arrival__title {
     animation: nf-slate-rise var(--nf-duration-entrance) var(--nf-ease-entrance) 180ms both;
   }
-  .nf-arrive__body {
+  .nf-arrival__body {
     animation: nf-slate-rise var(--nf-duration-entrance) var(--nf-ease-entrance) 260ms both;
   }
-  @keyframes nf-arrive-glow {
+  @keyframes nf-arrival-glow {
     from {
       opacity: 0;
       transform: scale(0.6);
     }
   }
-  @keyframes nf-arrive-rise {
+  @keyframes nf-arrival-rise {
     from {
       opacity: 0;
       transform: translate3d(0, 18px, 0) scale(0.8);
     }
   }
-  @keyframes nf-arrive-pop {
+  @keyframes nf-arrival-pop {
     from {
       opacity: 0;
       transform: scale(0.4);
     }
   }
-  @keyframes nf-arrive-draw {
+  @keyframes nf-arrival-draw {
     from {
       stroke-dashoffset: 1;
     }
@@ -1292,10 +1292,10 @@
   /* Calm: the code's digits and the arrival fade in on the short ladder
      rather than pop, draw and spring; a refused code does not shake (its
      sentence says so). Off lands them at once (motion-pref.css). */
-  :root[data-motion="calm"] :is(.nf-code__digit, .nf-arrive__glow, .nf-arrive__house, .nf-arrive__tick, .nf-arrive__title, .nf-arrive__body) {
+  :root[data-motion="calm"] :is(.nf-code__digit, .nf-arrival__glow, .nf-arrival__house, .nf-arrival__tick, .nf-arrival__title, .nf-arrival__body) {
     animation: nf-calm-fade var(--nf-duration-base) var(--nf-ease-standard) both;
   }
-  :root[data-motion="calm"] :is(.nf-arrive__ring, .nf-arrive__check),
+  :root[data-motion="calm"] :is(.nf-arrival__ring, .nf-arrival__check),
   :root[data-motion="calm"] .nf-code__box[data-shake] .nf-code__cells {
     animation: none;
   }
@@ -1380,9 +1380,9 @@
     .nf-code__digit,
     .nf-code__cells,
     .nf-code__cell[data-next]::after,
-    .nf-arrive *,
-    .nf-arrive__title,
-    .nf-arrive__body {
+    .nf-arrival *,
+    .nf-arrival__title,
+    .nf-arrival__body {
       animation: none !important;
     }
     .nf-auth-field__halo {
