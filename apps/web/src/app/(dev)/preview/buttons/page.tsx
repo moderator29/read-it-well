@@ -100,7 +100,7 @@ function QuantityDemo({ disabled, force }: { disabled?: boolean; force?: string 
 
 function SegmentedDemo() {
   const [v, setV] = useState<"buy" | "rent" | "pay">("buy");
-  const [w, setW] = useState<"home" | "calendar" | "wallet">("home");
+  const [w, setW] = useState<"home" | "calendar" | "search">("home");
   return (
     <div className="flex flex-wrap items-center gap-md">
       <Segmented
@@ -121,7 +121,7 @@ function SegmentedDemo() {
         options={[
           { value: "home", label: "Home", icon: "home" },
           { value: "calendar", label: "Calendar", icon: "calendar-booking" },
-          { value: "wallet", label: "Wallet", icon: "wallet" },
+          { value: "search", label: "Search", icon: "search" },
         ]}
       />
     </div>
