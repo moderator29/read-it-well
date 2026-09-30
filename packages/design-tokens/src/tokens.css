@@ -4228,7 +4228,8 @@
   --nf-act-outline-hover-fill: #EAF2FF;
   --nf-act-outline-hover-ink: #0047B8;
   --nf-act-outline-press-fill: #D6E6FF;
-  --nf-act-icon-ink: #0066FF;
+  /* Every light-mode icon is brand blue (founder, 30 September): 5.5:1 on white. */
+  --nf-act-icon-ink: var(--nf-brand-primary);
   --nf-act-well: #FFFFFF;
   --nf-act-well-edge: rgb(15 23 42 / 0.08);
 }

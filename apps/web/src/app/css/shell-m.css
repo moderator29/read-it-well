@@ -1281,7 +1281,7 @@
     border-radius: var(--nf-radius-circle);
     background: var(--nf-surface-elevated);
     box-shadow: var(--nf-float-shadow);
-    color: var(--nf-content-primary);
+    color: var(--nf-act-icon-ink);
   }
   .nf-app-header .nf-app-header__btn.nf-icon-btn--round > svg,
   .nf-ws-bar .nf-ws-bell.nf-icon-btn--round > svg {
@@ -1294,7 +1294,7 @@
       border: var(--nf-border-width) solid var(--nf-border-default);
       background: linear-gradient(var(--nf-interactive-hover), var(--nf-interactive-hover)), var(--nf-surface-elevated);
       box-shadow: var(--nf-float-shadow);
-      color: var(--nf-content-primary);
+      color: var(--nf-act-icon-ink);
     }
   }
   /* The unread mark sits on the circle's shoulder, ringed in the circle's

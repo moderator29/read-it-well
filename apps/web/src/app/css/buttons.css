@@ -1089,7 +1089,8 @@
   }
 
   /* The header's round buttons (section 17): 44px circles on the card
-     hairline, ink glyphs, owned by the chrome. The header action slots round
+     hairline, the icon ink (brand blue on paper, white at night: the
+     founder wants every light-mode icon blue), owned by the chrome. The header action slots round
      any icon button put in them. Kept from the clean unified sweep. */
   .nf-icon-btn.nf-icon-btn--round,
   :is(.nf-ph-large__actions, .nf-ph-actions, .nf-ph-desk__actions) > :is(.nf-icon-btn, .nf-btn--icon) {
@@ -1101,7 +1102,7 @@
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
     box-shadow: var(--nf-float-shadow);
-    color: var(--nf-content-primary);
+    color: var(--nf-act-icon-ink);
   }
   @media (hover: hover) and (pointer: fine) {
     .nf-icon-btn.nf-icon-btn--round:hover,
@@ -1109,7 +1110,7 @@
       border-color: var(--nf-border-default);
       background: linear-gradient(var(--nf-interactive-hover), var(--nf-interactive-hover)), var(--nf-surface-elevated);
       box-shadow: var(--nf-float-shadow);
-      color: var(--nf-content-primary);
+      color: var(--nf-act-icon-ink);
     }
   }
 
