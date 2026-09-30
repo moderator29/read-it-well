@@ -338,8 +338,10 @@ function BusinessRow({
         </div>
       ) : (
         <div className="grid gap-sm sm:grid-cols-2">
+          {/* Secondary: one row per business would otherwise be a column of
+              primaries, and a hand-over is rare and deliberate (T-44). */}
           <Button
-            variant="primary"
+            variant="secondary"
             full
             onClick={() => setOpen(true)}
             data-testid={`transfer-open-${business.id}`}

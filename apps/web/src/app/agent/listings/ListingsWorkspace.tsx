@@ -754,7 +754,9 @@ export function ListingsWorkspace({
         <p className="mx-auto mt-xs max-w-[38ch] text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]">
           {t.workspace.emptyBody}
         </p>
-        <ButtonLink href="/agent/list" variant="primary" className="mt-lg">
+        {/* The page header already carries this door as the screen's one
+            primary (T-44), so the first-run card repeats it quietly. */}
+        <ButtonLink href="/agent/list" variant="secondary" className="mt-lg">
           {t.workspace.start}
         </ButtonLink>
       </div>
