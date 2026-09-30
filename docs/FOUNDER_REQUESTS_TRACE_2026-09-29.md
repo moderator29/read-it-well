@@ -41,7 +41,7 @@ The latest founder message wins wherever two conflict.
 | 7 | 02:56, 03:02 | Glass icons in light: "bring back their background container… branding colour" | DONE | `app/css/light.css:229-290` ("THE GLASS OBJECTS IN DAYLIGHT: EVERY ONE ON A NAVY TILE") |
 | 8 | 02:56 | "our logo should have a wrapper with… snakes around it moving in the edges **all areas** or place our logo is on light mode" | **FIXED NOW** (was PARTIAL) | Before: the navy pill was everywhere, but the moving lap ran only in the header, site bar and rail. The drawer, site menu, footer, app panel, side cover and staff access screen had a still rim. Now `light.css:100-114` laps every `.nf-logo` in light, still stops under reduced motion, data saving and Calm/Off (`:125-141`), and `docs/BRAND_MARKS.md` §8 carries a superseded note. Computed: `.nf-logo::before` animation is `nf-logo-lap` (home and landing, light) |
 | 9 | 23:51 (09-28), 02:45 | Light mode: dark branded top block (ref 05), mix navy islands into light | DONE | `light.css:145-160` (app header and site bar), `:185-225` (home top block), `profile.css:653-660` (profile hero), `light.css:296-305` plus `MobileTabBar.tsx:385` (dock). Screenshots: `trace/home-390-light.png`, `trace/profile-390-light.png` |
-| 10 | 03:31, 03:44 | Light-mode dock: dark neon blue capsule, white icons; "don't leave it how it was" | DONE (on the branch; production shows it after merge and deploy) | `MobileTabBar.tsx:385` (`data-theme="dark"`), `light.css:296-305`. Computed `.nf-tabbar` colour is white in light. `trace/home-390-light.png` |
+| 10 | 03:31, 03:44 | Light-mode dock: dark neon blue capsule, white icons; "don't leave it how it was" | SUPERSEDED by D-1 (the founder later asked for a WHITE light dock with blue icons, shipped in PR #71) | `MobileTabBar.tsx`, `light.css` (white light dock and tray) |
 | 11 | 03:44 | Dock centre becomes "+" (ref 17), opens Create; capsule really premium | DONE | `components/app/CreateDock.tsx:53-100`: the rows are List, Post (`/around?compose=1`), Book a viewing (`/search`), a host's stay, and Switch workspace. `.nf-dock-plus` renders 44×44. E2E `flow-15-create-sheet-*.png`. My scripted tap did not open the sheet in this run (the screenshot shows the closed dock); E2E flow 19 opened it with Escape-close |
 | 12 | 03:44 | Tray icons (right-hand More) to 2D | DONE | `components/app/DockMore.tsx:91,109` (`UiIcon`) |
 | 13 | 03:44 | Bottom-nav icons upgraded to premium 2D | DONE | `MobileTabBar.tsx:427` (`UiIcon`, filled when active) |
@@ -227,3 +227,36 @@ Items 1–83 in sections A and B (founder requests), plus 33 agent-found items i
 | Open, low / dev / ops / taste | n/a | 16 |
 
 The counts overlap where an item has a code half and a founder half; each such item is counted once, under its code status.
+
+
+---
+
+## D. Requests since PR #71 (29 and 30 September)
+
+Checked against the tree at the head of PR #74 (`233b77a6`). "Merged" means it is on `main`.
+
+| # | Request | Status | Where |
+|---|---|---|---|
+| D-1 | Light dock white with blue icons, like the round menu button; a little wider; no container behind the selected tab; the + bigger, glowing, with the logo's moving edge | DONE, merged (PR #71) | `MobileTabBar.tsx`, `shell-m.css`, `light.css` |
+| D-2 | Back buttons at a professional level, no wrong destinations | DONE, merged (PR #71) | `lib/nav/resolve.ts`, `BackControl.tsx`, `docs/BACK_NAVIGATION.md` |
+| D-3 | Every email dark and beautiful; from hello@vallospaces.com | DONE, merged (PR #71) | `lib/email/*`, `supabase/templates/*` |
+| D-4 | Send a test of every email to phantomfcalls@gmail.com | FOUNDER ACTION | The Vercel connection here cannot see `read-it-well-web`, so the Resend key is out of reach. Paste the key, or reconnect Vercel with that project. |
+| D-5 | Dark mode by default for everyone | DONE, merged (PR #71) | `lib/theme/theme.test.ts` |
+| D-6 | Admin support-staff role and desk | DONE, merged; both migrations applied live 29 Sep with the founder's approval | `docs/SUPPORT_STAFF.md`, migrations `20260929204530`, `20260929204542` |
+| D-7 | Support hero ("Hi PHANTOM") white in light mode | DONE, merged (PR #71) | `SupportHero.tsx`, `light.css` |
+| D-8 | Inner icons lean (settings, profile, saved, agreements); only the side nav and bottom nav bold | DONE, merged (PR #72) | `UiIcon.tsx` (`uiIconStrokeProps`), `symbols.css` |
+| D-9 | Motion that makes the platform feel alive: page transitions, entering areas, taps | DONE, in PR #74 | `components/motion/RouteTransition.tsx`, `route-motion.css`, `press-motion.css`, `docs/MOTION_SWEEP_2026-09-29.md` |
+| D-10 | Platform slow, stuck loading, skeletons | DONE, first pass in PR #72/#74; open items listed | `lib/supabase/deadline-fetch.ts`, `docs/PERF_SWEEP_2026-09-29.md` (open: `/home` 4x slower TTFB, search to listing 3.4 s) |
+| D-11 | Mobile, tablet and desktop fixed; mobile sign-in and sign-up slick, industry-standard sizing | DONE, in PR #74 | `docs/RESPONSIVE_SWEEP_2026-09-29.md` |
+| D-12 | Full permission, never ask for approvals (Supabase, GitHub, Vercel) | DONE | `~/.claude/settings.json` allow list (outside the repo) |
+| D-13 | 30 recommendations (UI, UX, motion, landing upgrade), reported AND built | DONE, reported; built in PR #73/#74 (item-level gaps in the builders' reports) | `docs/UIUX_30_RECOMMENDATIONS_2026-09-29.md` |
+| D-14 | Light mode like refs 30 and 31, clean and unified from the landing page to the backend; dark unified too; premium icons | DONE, in PR #73/#74; the integration QA sweep is re-auditing | `docs/design/CLEAN_UNIFIED_DIRECTION.md` |
+| D-15 | Emails read like ref 32 on a phone's lock screen | DONE, in PR #74 | `docs/EMAIL_NOTIFICATION_COPY_2026-09-29.md` |
+| D-16 | Share cards like refs 33 and 34 | DONE, in PR #74 | `components/share/ShareCardFrame.tsx`, `/preview/cards` |
+| D-17 | Workspace dashboard, live tracker and confirm modals like refs 35 to 38 | DONE, in PR #74 (dashboard KPIs use real data only; no delta chips because no previous period is measured) | `app/host/today.ts`, `StatusTrack.tsx`, `ConfirmPanel.tsx` |
+| D-18 | More engineers, all hands, mobile perfect | DONE (9 engineers in parallel, then 4) | This trace |
+| D-19 | Get started only on the first sign-up or first visit | DONE, merged (PR #73) | `app/welcome/plan.ts` and its test |
+| D-20 | Navy band in light mode on more areas | DONE, in PR #74: workspace home, money summaries, Home, landing | `components/ui/HeroBand.tsx` |
+| D-21 | Landing capsules like ref 39 (header and eyebrow), with the moving edge; touchable, draggable cards like ref 40; a final CTA like ref 41; landing clean and strong | DONE, in PR #74 | `components/site/**`, `.nf-edge-lap` / `EdgeLap` |
+| D-22 | A wide sweep, then 3 agents deep for 50 more recommendations, reported and not built | IN PROGRESS | `docs/recs/` (A 17, B 17, C 16), `docs/INTEGRATION_QA_2026-09-30.md` |
+| D-23 | Push everything to main | IN PROGRESS: #71, #72 and #73 merged; #74 open with CI running | |
