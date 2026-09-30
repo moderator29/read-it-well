@@ -730,17 +730,23 @@ const FRAG_VELVET = /* glsl */ `
       gl_FragColor = vec4(max(sheen - uGlowFloor, 0.0) * uGlowGain * 0.5, 1.0);
       return;
     }
-    vec2 g = texture2D(uGrain, vUv * uGrainScale).rg - 0.5;
     vec3 diff = (vAmb + vKey * pool) * grad;
-    if (uShadowAmt > 0.0) {
+    #ifdef USE_SHADOW
       vec2 st = (vPos.xz - uShadowRect.xy) * uShadowRect.zw;
       diff *= 1.0 - uShadowAmt * texture2D(uShadow, st).r * clamp(N.y * 4.0 - 3.0, 0.0, 1.0);
-    }
-    vec3 col = diff * (1.0 + g.x * uGrainAmt + g.y * uGrainAmt * 0.7) + sheen * (1.0 + 1.1 * g.x);
-    if (uWarmR > 0.0) {
-      vec3 dw = vPos - uWarmPos;
-      col += uWarmCol * exp(-dot(dw, dw) / (uWarmR * uWarmR)) * (0.4 + 0.6 * N.y);
-    }
+    #endif
+    #ifdef USE_GRAIN
+      vec2 g = texture2D(uGrain, vUv * uGrainScale).rg - 0.5;
+      vec3 col = diff * (1.0 + g.x * uGrainAmt + g.y * uGrainAmt * 0.7) + sheen * (1.0 + 1.1 * g.x);
+    #else
+      vec3 col = diff + sheen;
+    #endif
+    #ifdef USE_WARM
+      if (uWarmR > 0.0) {
+        vec3 dw = vPos - uWarmPos;
+        col += uWarmCol * exp(-dot(dw, dw) / (uWarmR * uWarmR)) * (0.4 + 0.6 * N.y);
+      }
+    #endif
     gl_FragColor = outColor(col, vec3(0.0));
   }
 `;
@@ -1162,7 +1168,7 @@ export async function createLiveMap(o) {
       gradDir: [-0.3, -0.95], gradR: 6.5, gradAmt: 0.22,
       ao: [-PLINTH.height, -0.04, 0.22],
       inflate: 0.08,
-      grainScale: 0.42, grainAmt: 0.06,
+      grainScale: 0.42, grainAmt: 0,
       glowGain: 0.9, glowFloor: 0.1,
     },
   };
@@ -1179,11 +1185,12 @@ export async function createLiveMap(o) {
   LOOK.plinth.shadow = shadowTex;
   LOOK.plinth.shadowRect = new THREE.Vector4(centre3.x - plinthR, centre3.z + plinthR, 1 / (2 * plinthR), -1 / (2 * plinthR));
   LOOK.plinth.shadowAmt = 0.9;
-  const plinth = new THREE.Mesh(bakeVelvet(plinthGeometry(plinthR, PLINTH), LOOK.plinth), shader(FRAG_VELVET, velvetUniforms(LOOK.plinth)));
+  // the plinth takes the shadow (one texture); the slab takes the grain and the warm spill
+  const plinth = new THREE.Mesh(bakeVelvet(plinthGeometry(plinthR, PLINTH), LOOK.plinth), shader(FRAG_VELVET, velvetUniforms(LOOK.plinth), { defines: { USE_SHADOW: "" } }));
   plinth.position.set(centre3.x, 0, centre3.z);
   model.add(plinth);
 
-  const slabMat = shader(FRAG_VELVET, velvetUniforms(LOOK.slab));
+  const slabMat = shader(FRAG_VELVET, velvetUniforms(LOOK.slab), { defines: { USE_GRAIN: "", USE_WARM: "" } });
   const slab = new THREE.Mesh(bakeVelvet(slabGeometry(outline, SLAB), LOOK.slab), slabMat);
   model.add(slab);
   slab.renderOrder = -2; // before the plinth: it hides much of it

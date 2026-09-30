@@ -15,7 +15,7 @@ import { createHash } from "node:crypto";
 import { existsSync, statSync } from "node:fs";
 import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { createPhoneStudio } from "../../phone3d/studio.mjs";
+import { createPhoneStudio, homography } from "../../phone3d/studio.mjs";
 import { CACHE, SCREENS } from "./paths.mjs";
 
 let studio = null;
@@ -26,6 +26,19 @@ async function getStudio() {
 export async function closeStudio() {
   if (studio) await studio.close();
   studio = null;
+}
+
+/**
+ * Where a point of the captured web view (capture px, 1320 wide, status bar
+ * not included) lands in the post, through the phone's screen homography.
+ */
+export function screenToPost(layer, x, y, bar = 186) {
+  const { width: w, height: h, quad } = layer.image;
+  const H = homography([[0, 0], [w, 0], [w, h], [0, h]], quad);
+  const X = x;
+  const Y = y + bar;
+  const d = H[6] * X + H[7] * Y + H[8];
+  return { x: (H[0] * X + H[1] * Y + H[2]) / d, y: (H[3] * X + H[4] * Y + H[5]) / d };
 }
 
 /** The display image for a capture id ("home") or a path. */
@@ -140,7 +153,13 @@ export async function phoneLayer(spec, { W, H, scale = 2, draft = false }) {
     const r = await s.render({ ...params, screen: scr });
     await writeFile(src, r.png);
     if (r.shadowPng) await writeFile(shd, r.shadowPng);
-    await writeFile(metaFile, JSON.stringify({ quad: r.screenQuad.map(([x, y]) => [x / scale, y / scale]), hasShadow: !!r.shadowPng, bbox: r.bboxProjected }));
+    const ic = r.screenImage.corners;
+    await writeFile(metaFile, JSON.stringify({
+      quad: r.screenQuad.map(([x, y]) => [x / scale, y / scale]),
+      image: { width: r.screenImage.width, height: r.screenImage.height, quad: [ic.topLeft, ic.topRight, ic.bottomRight, ic.bottomLeft].map(({ x, y }) => [x / scale, y / scale]) },
+      hasShadow: !!r.shadowPng,
+      bbox: r.bboxProjected,
+    }));
   }
   const meta = JSON.parse(await readFile(metaFile, "utf8"));
   return {
@@ -148,5 +167,6 @@ export async function phoneLayer(spec, { W, H, scale = 2, draft = false }) {
     shadow: meta.hasShadow ? shd : null,
     box: { x: cx - bw / 2, y: cy - bh / 2, w: bw, h: bh },
     quad: meta.quad,
+    image: meta.image,
   };
 }

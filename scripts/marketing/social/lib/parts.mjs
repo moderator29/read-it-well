@@ -3,6 +3,7 @@
  * and float them around it (see fun.mjs lift). Checked on a contact sheet:
  * node scripts/marketing/social/parts-sheet.mjs */
 import { lift } from "./fun.mjs";
+import { screenToPost } from "./phones.mjs";
 
 export const PARTS = {
   /* property */
@@ -65,4 +66,26 @@ export function part(name, opts) {
   const p = PARTS[name];
   if (!p) throw new Error(`unknown part '${name}'`);
   return lift(p.id, { x: p.x, y: p.y, w: p.w, h: p.h }, opts);
+}
+
+/**
+ * Lift a named part straight off its own place on a phone's screen: the flat
+ * card covers the component where the phone shows it, a touch bigger and
+ * nearer the camera. `grow` scales it, dx / dy nudge it (post px).
+ */
+export function partOff(name, layer, { grow = 1.12, dx = 0, dy = -14, rot: extra = 0, ...opts } = {}) {
+  const p = PARTS[name];
+  if (!p) throw new Error(`unknown part '${name}'`);
+  const tl = screenToPost(layer, p.x, p.y);
+  const tr = screenToPost(layer, p.x + p.w, p.y);
+  const br = screenToPost(layer, p.x + p.w, p.y + p.h);
+  const bl = screenToPost(layer, p.x, p.y + p.h);
+  const cx = (tl.x + tr.x + br.x + bl.x) / 4 + dx;
+  const cy = (tl.y + tr.y + br.y + bl.y) / 4 + dy;
+  const top = Math.hypot(tr.x - tl.x, tr.y - tl.y);
+  const bot = Math.hypot(br.x - bl.x, br.y - bl.y);
+  const w = Math.round(Math.max(top, bot) * grow);
+  const h = (w * p.h) / p.w;
+  const rot = (Math.atan2(tr.y - tl.y + (br.y - bl.y), tr.x - tl.x + (br.x - bl.x)) * 180) / Math.PI + extra;
+  return lift(p.id, { x: p.x, y: p.y, w: p.w, h: p.h }, { ...opts, x: cx - w / 2, y: cy - h / 2, w, rot });
 }
