@@ -1,5 +1,6 @@
 "use client";
 
+import { useHostCopy } from "@/components/host/host-copy";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -49,6 +50,7 @@ export function FacilitiesPicker({
   /** The codes on record. */
   chosen: readonly string[];
 }) {
+  const hw = useHostCopy();
   const locale = useClientLocale();
   const router = useRouter();
   const [picked, setPicked] = useState<Set<string>>(() => new Set(chosen));
@@ -95,7 +97,7 @@ export function FacilitiesPicker({
         shown the places that claim them, so a claim that is not true is a bad review waiting.
       </p>
 
-      <div className="nf-stays-tiles" role="group" aria-label="What the property offers">
+      <div className="nf-stays-tiles" role="group" aria-label={hw.facilitiesLabel}>
         {STAY_FACILITIES.map((facility) => {
           const on = picked.has(facility.code);
           return (

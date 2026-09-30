@@ -67,8 +67,8 @@ export default async function HostPage() {
       <HostShell logoLabel={t.a11y.logoHome}>
         <EmptyState
           icon="hotel"
-          title="Host on Vallo"
-          body="List a hotel, a guest house, serviced apartments or a restaurant. Sign in and the application saves to your account as you go."
+          title={t.hostWorkspace.home.signedOutTitle}
+          body={t.hostWorkspace.home.signedOutBody}
           action={
             <ButtonLink href={authHref(next, "sign-in")} variant="primary" size="lg">
               Sign in
@@ -299,8 +299,8 @@ export function HostStandingBody({
         {!open && businesses.length === 0 && (
           <EmptyState
             icon="hotel"
-            title="Become a host"
-            body="Ten short steps at most, saved as you go. A person on our team reads it, and the badge only ever means a human was checked."
+            title={t.hostWorkspace.home.startTitle}
+            body={t.hostWorkspace.home.startBody}
             action={
               <ButtonLink href="/profile/setup?side=stays" variant="primary" size="lg">
                 Start

@@ -1,5 +1,6 @@
 "use client";
 
+import { useHostCopy } from "@/components/host/host-copy";
 import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -588,10 +589,11 @@ function StepBody(props: StepProps) {
 }
 
 function HostTypeStep({ draft, set }: StepProps) {
+  const hw = useHostCopy();
   const chosen = draft.hostType ? HOST_TYPE_DEFINITIONS[draft.hostType] : null;
   return (
     <>
-      <div role="radiogroup" aria-label="What kind of host are you?" className="flex flex-col gap-xs">
+      <div role="radiogroup" aria-label={hw.wizard.hostKindLabel} className="flex flex-col gap-xs">
         {HOST_TYPES.map((type) => {
           const definition = HOST_TYPE_DEFINITIONS[type];
           const on = draft.hostType === type;
@@ -625,7 +627,7 @@ function HostTypeStep({ draft, set }: StepProps) {
       {chosen && chosen.kinds.length > 1 && (
         <div className="nf-panel nf-panel--card block nf-host-group">
           <p className="nf-host-group__title">What is it, exactly?</p>
-          <div className="mt-sm flex flex-wrap gap-xs" role="group" aria-label="Kind of business">
+          <div className="mt-sm flex flex-wrap gap-xs" role="group" aria-label={hw.wizard.businessKindLabel}>
             {chosen.kinds.map((kind) => (
               <button
                 key={kind}
@@ -691,26 +693,27 @@ function BusinessStep({ draft, set, fieldErrors }: StepProps) {
 }
 
 function RegistrationStep({ draft, set, userId, fieldErrors }: StepProps) {
+  const hw = useHostCopy();
   return (
     <>
       <section className="nf-panel nf-panel--card block nf-host-group">
         <h2 className="nf-host-group__title">As the CAC holds it</h2>
         <div className="mt-md flex flex-col gap-sm">
           <TextField
-            label="Registered business name"
+            label={hw.wizard.businessName}
             value={draft.registeredName}
             error={fieldErrors.registeredName}
             onChange={(event) => set("registeredName", event.target.value)}
           />
           <TextField
-            label="RC or BN number"
+            label={hw.wizard.rcNumber}
             hint="The one on your certificate, like RC 1234567."
             value={draft.cacNumber}
             error={fieldErrors.cacNumber}
             onChange={(event) => set("cacNumber", event.target.value)}
           />
           <TextField
-            label="TIN"
+            label={hw.wizard.tin}
             optionalText="(if you have one)"
             value={draft.tin}
             error={fieldErrors.tin}
@@ -730,6 +733,7 @@ function RegistrationStep({ draft, set, userId, fieldErrors }: StepProps) {
 }
 
 function RepresentativeStep({ draft, set, userId, fieldErrors }: StepProps) {
+  const hw = useHostCopy();
   const filed = (kind: HostDocumentKind) => set("documents", { ...draft.documents, [kind]: true });
   return (
     <>
@@ -737,7 +741,7 @@ function RepresentativeStep({ draft, set, userId, fieldErrors }: StepProps) {
         <h2 className="nf-host-group__title">You</h2>
         <div className="mt-md flex flex-col gap-sm">
           <TextField
-            label="Your full name"
+            label={hw.wizard.fullName}
             hint="As it appears on the ID you upload."
             value={draft.representativeName}
             error={fieldErrors.representativeName}
@@ -745,7 +749,7 @@ function RepresentativeStep({ draft, set, userId, fieldErrors }: StepProps) {
             autoComplete="name"
           />
           <TextField
-            label="Your phone"
+            label={hw.wizard.phone}
             type="tel"
             value={draft.representativePhone}
             error={fieldErrors.representativePhone}
@@ -810,6 +814,7 @@ function HygieneAttestation({ draft, pending, saveText }: StepProps) {
 }
 
 function PayoutStep({ draft, pending, run, setNotice, set }: StepProps) {
+  const hw = useHostCopy();
   const [banks, setBanks] = useState<{ code: string; name: string }[] | null>(null);
   const [banksError, setBanksError] = useState<string | null>(null);
   const [bank, setBank] = useState("");
@@ -874,7 +879,7 @@ function PayoutStep({ draft, pending, run, setNotice, set }: StepProps) {
               {banksError}
             </p>
           ) : (
-            <SelectField label="Bank" value={bank} disabled={banks === null} onChange={(e) => { setBank(e.target.value); setResolved(null); }}>
+            <SelectField label={hw.wizard.bank} value={bank} disabled={banks === null} onChange={(e) => { setBank(e.target.value); setResolved(null); }}>
               <option value="">{banks === null ? "Loading banks" : "Choose a bank"}</option>
               {(banks ?? []).map((b) => (
                 <option key={b.code} value={b.code}>
@@ -884,7 +889,7 @@ function PayoutStep({ draft, pending, run, setNotice, set }: StepProps) {
             </SelectField>
           )}
           <TextField
-            label="Account number"
+            label={hw.wizard.accountNumber}
             inputMode="numeric"
             maxLength={10}
             value={number}
@@ -915,6 +920,7 @@ function PayoutStep({ draft, pending, run, setNotice, set }: StepProps) {
 }
 
 function ConsentStep({ draft, pending, saveText, set }: StepProps) {
+  const hw = useHostCopy();
   const toggle = (id: ConsentId, on: boolean) => {
     const consents = { ...draft.consents };
     if (on) consents[id] = new Date().toISOString();
@@ -923,7 +929,7 @@ function ConsentStep({ draft, pending, saveText, set }: StepProps) {
     if (on) saveText({ consents: [id] });
   };
   return (
-    <div className="flex flex-col gap-xs" role="group" aria-label="Permissions">
+    <div className="flex flex-col gap-xs" role="group" aria-label={hw.wizard.permissionsLabel}>
       {CONSENTS.map((consent) => {
         const on = Boolean(draft.consents[consent.id]);
         return (
@@ -956,6 +962,7 @@ function ConsentStep({ draft, pending, saveText, set }: StepProps) {
 }
 
 function ReviewStep({ draft, pending, run, goTo, set, locale }: StepProps) {
+  const hw = useHostCopy();
   const missing = missingFrom(draft);
   const send = () =>
     run(
@@ -972,15 +979,15 @@ function ReviewStep({ draft, pending, run, goTo, set, locale }: StepProps) {
           {draft.kind ? `, ${KIND_LABEL[draft.kind]}` : ""}
         </p>
         <dl className="mt-sm">
-          <Fact label="Contact" value={[draft.phone, draft.email].filter(Boolean).join(", ")} onEdit={() => goTo("business")} />
-          <Fact label="Address" value={[draft.address, draft.area, draft.city, draft.stateCode].filter(Boolean).join(", ")} onEdit={() => goTo("business")} />
+          <Fact label={hw.wizard.review.contact} value={[draft.phone, draft.email].filter(Boolean).join(", ")} onEdit={() => goTo("business")} />
+          <Fact label={hw.wizard.review.address} value={[draft.address, draft.area, draft.city, draft.stateCode].filter(Boolean).join(", ")} onEdit={() => goTo("business")} />
           {draft.hostType === "business" && (
-            <Fact label="Registration" value={[draft.registeredName, draft.cacNumber].filter(Boolean).join(", ")} onEdit={() => goTo("registration")} />
+            <Fact label={hw.wizard.review.registration} value={[draft.registeredName, draft.cacNumber].filter(Boolean).join(", ")} onEdit={() => goTo("registration")} />
           )}
-          <Fact label="Representative" value={[draft.representativeName, draft.representativePhone].filter(Boolean).join(", ")} onEdit={() => goTo("representative")} />
+          <Fact label={hw.wizard.review.representative} value={[draft.representativeName, draft.representativePhone].filter(Boolean).join(", ")} onEdit={() => goTo("representative")} />
           {accommodation ? (
             <Fact
-              label="Property"
+              label={hw.wizard.review.property}
               value={draft.accommodation ? `${draft.accommodation.name}, ${countOf(draft.roomTypeCount, "roomTypes", locale)}, ${countOf(draft.ratePlanCount, "ratePlans", locale)}` : ""}
               /* The property's first drawn screen, whichever branch this
                  host is on: a hotelier lands on "Your hotel" and a shortlet
@@ -988,9 +995,9 @@ function ReviewStep({ draft, pending, run, goTo, set, locale }: StepProps) {
               onEdit={() => goTo(branchFor(draft.kind) === "shortlet" ? "place" : "hotel")}
             />
           ) : (
-            <Fact label="Service" value={draft.serviceWindowCount > 0 ? countOf(draft.serviceWindowCount, "windows", locale) : ""} onEdit={() => goTo("tables")} />
+            <Fact label={hw.wizard.review.service} value={draft.serviceWindowCount > 0 ? countOf(draft.serviceWindowCount, "windows", locale) : ""} onEdit={() => goTo("tables")} />
           )}
-          <Fact label="Payouts" value={draft.hasBankAccount ? "Bank account on record" : ""} onEdit={() => goTo("payout")} />
+          <Fact label={hw.wizard.review.payouts} value={draft.hasBankAccount ? "Bank account on record" : ""} onEdit={() => goTo("payout")} />
         </dl>
       </section>
 

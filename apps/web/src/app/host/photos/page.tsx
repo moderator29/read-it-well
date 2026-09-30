@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { countOf, getDictionary } from "@vallo/i18n";
+import { countOf, getDictionary, type Dictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { resolveSession } from "@/lib/actions/session";
 import {
@@ -70,8 +70,8 @@ export default async function HostPhotosPage({
       <HostShell logoLabel={t.a11y.logoHome} fallback="/host">
         <EmptyState
           icon="camera"
-          title="Photographs of your venue"
-          body="Sign in to put your own photographs on your venue's page."
+          title={t.hostWorkspace.photos.signedOutTitle}
+          body={t.hostWorkspace.photos.signedOutBody}
           action={
             <ButtonLink href={authHref(next, "sign-in")} variant="primary" size="lg">
               Sign in
@@ -106,6 +106,7 @@ export default async function HostPhotosPage({
   return (
     <HostShell logoLabel={t.a11y.logoHome} fallback="/host">
       <HostPhotosBody
+        copy={t.hostWorkspace}
         userId={session.user.id}
         businesses={businesses}
         chosen={chosen}
@@ -128,6 +129,7 @@ export function HostPhotosBody({
   photos,
   accommodation = null,
   propertyPhotos = [],
+  copy = getDictionary("en").hostWorkspace,
 }: {
   userId: string;
   businesses: MyBusiness[];
@@ -138,13 +140,15 @@ export function HostPhotosBody({
   accommodation?: MyAccommodation | null;
   /** That property's photographs, on the accommodation spine. */
   propertyPhotos?: AccommodationPhoto[];
+  /** The host workspace words in the reader's language; English in the previews. */
+  copy?: Dictionary["hostWorkspace"];
 }) {
   if (!chosen) {
     return (
       <EmptyState
         icon="camera"
-        title="No venue yet"
-        body="Photographs hang on a venue, so there is one thing to do first. An application takes ten short steps at most and saves as you go."
+        title={copy.photos.noVenueTitle}
+        body={copy.photos.noVenueBody}
         action={
           <ButtonLink href="/host/apply" variant="primary" size="lg">
             Start an application
@@ -177,7 +181,7 @@ export function HostPhotosBody({
       {/* Only drawn where there is a choice to make. One venue is the common
           case and a picker above it would be furniture. */}
       {businesses.length > 1 && (
-        <nav className="mt-block flex flex-wrap gap-inline" aria-label="Your venues">
+        <nav className="mt-block flex flex-wrap gap-inline" aria-label={copy.photos.venuesLabel}>
           {businesses.map((business) => (
             <Link
               key={business.id}
@@ -210,8 +214,8 @@ export function HostPhotosBody({
              first and it is named rather than drawn as an empty grid. */
           <EmptyState
             icon="camera"
-            title="Save the property first"
-            body="Photographs hang on the property itself, so the application asks for its name and pin first. Save the property there, and the photographs go up on the same step."
+            title={copy.photos.saveFirstTitle}
+            body={copy.photos.saveFirstBody}
             action={
               <ButtonLink href="/host/apply" variant="primary" size="lg">
                 Open the application

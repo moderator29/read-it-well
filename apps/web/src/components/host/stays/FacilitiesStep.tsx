@@ -1,5 +1,6 @@
 "use client";
 
+import { useHostCopy } from "@/components/host/host-copy";
 import { useState } from "react";
 import { formatNumber } from "@vallo/i18n/core";
 import { Button } from "@/components/ui/Button";
@@ -35,6 +36,7 @@ const coordinateText = (value: number) =>
 export function FacilitiesStep({ draft, userId, pending, run, setNotice, advance }: StaysStepProps & {
   userId: string;
 }) {
+  const hw = useHostCopy();
   const [lat, setLat] = useState("");
   const [lng, setLng] = useState("");
 
@@ -85,7 +87,7 @@ export function FacilitiesStep({ draft, userId, pending, run, setNotice, advance
       />
 
       <StaysPlate
-        label="The pin on the map"
+        label={hw.steps.pinLabel}
         note={
           draft.accommodation.hasPin
             ? "A pin is on record. Setting it again replaces it."

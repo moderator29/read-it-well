@@ -1,5 +1,6 @@
 "use client";
 
+import { useHostCopy } from "@/components/host/host-copy";
 import { useState } from "react";
 import { formatMoney } from "@vallo/i18n/core";
 import { Button } from "@/components/ui/Button";
@@ -50,6 +51,7 @@ export function PlaceStep({
   setNotice,
   advance,
 }: StaysStepProps) {
+  const hw = useHostCopy();
   const unit = draft.roomTypes[0] ?? null;
   /*
    * A studio has no separate bedroom and one bed, which is the smallest honest
@@ -110,7 +112,7 @@ export function PlaceStep({
 
   return (
     <>
-      <StaysTiles label="What kind of shortlet are you listing?">
+      <StaysTiles label={hw.steps.shortletKind}>
         {PLACE_TYPES.map((type) => (
           <StaysTile
             key={type.id}
@@ -122,7 +124,7 @@ export function PlaceStep({
         ))}
       </StaysTiles>
 
-      <StaysPlate label="What you call it" htmlFor="stays-place-name">
+      <StaysPlate label={hw.steps.placeName} htmlFor="stays-place-name">
         <input
           id="stays-place-name"
           className="nf-field nf-field--glass nf-stays-input"
@@ -142,7 +144,7 @@ export function PlaceStep({
         */}
         <div className="nf-stays-list">
           <StaysCountRow
-            label="Bedrooms"
+            label={hw.steps.bedrooms}
             value={bedrooms}
             min={0}
             max={30}
@@ -150,7 +152,7 @@ export function PlaceStep({
             disabled={pending}
           />
           <StaysCountRow
-            label="Beds"
+            label={hw.steps.beds}
             value={bedCount}
             min={1}
             max={60}
@@ -158,7 +160,7 @@ export function PlaceStep({
             disabled={pending}
           />
           <StaysCountRow
-            label="Maximum guests"
+            label={hw.steps.maxGuests}
             value={guests}
             min={1}
             max={40}
@@ -168,7 +170,7 @@ export function PlaceStep({
         </div>
       </section>
 
-      <StaysPlate label="Nightly price" htmlFor="stays-place-rate">
+      <StaysPlate label={hw.steps.nightlyPrice} htmlFor="stays-place-rate">
         {/*
           THE NAIRA MARK SITS INSIDE THE PLATE, as drawn, rather than beside
           it: the render puts it on the value's own plate at the left. It is

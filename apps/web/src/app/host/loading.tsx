@@ -1,3 +1,5 @@
+import { getDictionary } from "@vallo/i18n";
+import { getLocale } from "@/lib/locale";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { CardRowsSkeleton, LoadingShell, TitleBlockSkeleton } from "@/components/app/ScreenSkeleton";
 
@@ -11,7 +13,8 @@ import { CardRowsSkeleton, LoadingShell, TitleBlockSkeleton } from "@/components
  * glass workspace bar at the header height, and `nf-host__body` (40rem wide,
  * the shell's own padding), with a title block and rows inside it.
  */
-export default function LoadingHost() {
+export default async function LoadingHost() {
+  const label = getDictionary(await getLocale()).hostWorkspace.loading;
   return (
     <div className="nf-host">
       <header className="nf-ws-bar nf-glass nf-glass--chrome nf-safe-top sticky top-0 z-40">
@@ -28,7 +31,7 @@ export default function LoadingHost() {
           ))}
         </div>
       </header>
-      <LoadingShell label="Loading" className="nf-host__body">
+      <LoadingShell label={label} className="nf-host__body">
         <TitleBlockSkeleton className="mb-lg" />
         <CardRowsSkeleton rows={3} />
       </LoadingShell>

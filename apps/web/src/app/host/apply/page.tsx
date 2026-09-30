@@ -53,8 +53,8 @@ export default async function HostApplyPage({
       <HostShell logoLabel={t.a11y.logoHome}>
         <EmptyState
           icon="hotel"
-          title="Sign in to become a host"
-          body="Your application is saved to your account as you go, so it needs one. You will come straight back here."
+          title={t.hostWorkspace.apply.signedOutTitle}
+          body={t.hostWorkspace.apply.signedOutBody}
           action={
             <ButtonLink href={authHref(next, "sign-in")} variant="primary" size="lg">
               Sign in
@@ -90,8 +90,8 @@ export default async function HostApplyPage({
       <HostShell logoLabel={t.a11y.logoHome} fallback="/host">
         <EmptyState
           icon="hotel"
-          title="We could not open your application"
-          body="Nothing has been changed and your saved details are still there; we just could not load them this time. Try again in a moment."
+          title={t.hostWorkspace.apply.failedTitle}
+          body={t.hostWorkspace.apply.failedBody}
           action={
             <ButtonLink href={door ? `/host/apply?door=${door.id}` : "/host/apply"} variant="primary" size="lg">
               Try again

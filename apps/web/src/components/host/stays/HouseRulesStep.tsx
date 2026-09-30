@@ -1,5 +1,6 @@
 "use client";
 
+import { useHostCopy } from "@/components/host/host-copy";
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Switch } from "@/components/ui/Switch";
@@ -51,6 +52,7 @@ export function HouseRulesStep({
   setNotice,
   advance,
 }: StaysStepProps) {
+  const hw = useHostCopy();
   const existing = draft.accommodation?.houseRules ?? "";
   const [on, setOn] = useState<HouseRuleId[]>(() => {
     const saved = houseRulesOn(existing);
@@ -163,7 +165,7 @@ export function HouseRulesStep({
         the tiles and the chosen policy says its whole sentence under them.
       */}
       <StaysPlate
-        label="Cancellation policy"
+        label={hw.steps.cancellationPolicy}
         note={
           policies.length === 0
             ? "This estate publishes no cancellation policies yet, so there is nothing to choose from. A rate cannot be sold without one."
@@ -172,7 +174,7 @@ export function HouseRulesStep({
         }
       >
         {policies.length > 0 && (
-          <StaysTiles label="Cancellation policy" columns={Math.min(3, policies.length)}>
+          <StaysTiles label={hw.steps.cancellationPolicy} columns={Math.min(3, policies.length)}>
             {policies.slice(0, 3).map((option) => (
               <StaysTile
                 key={option.id}

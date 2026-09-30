@@ -1,5 +1,6 @@
 "use client";
 
+import { useHostCopy } from "@/components/host/host-copy";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { countOf, formatMoney, type Locale } from "@vallo/i18n/core";
@@ -51,6 +52,7 @@ export function RoomNightsEditor({
 }
 
 function RoomCard({ room, locale }: { room: MyRoomType; locale: Locale }) {
+  const hw = useHostCopy();
   const router = useRouter();
   const today = isoDate(new Date());
   const [from, setFrom] = useState(today);
@@ -123,13 +125,13 @@ function RoomCard({ room, locale }: { room: MyRoomType; locale: Locale }) {
 
       <div className="mt-md grid grid-cols-2 gap-sm">
         <TextField
-          label="First night"
+          label={hw.nights.firstNight}
           type="date"
           value={from}
           onChange={(event) => setFrom(event.target.value)}
         />
         <TextField
-          label="Last night"
+          label={hw.nights.lastNight}
           type="date"
           value={to}
           onChange={(event) => setTo(event.target.value)}
@@ -137,7 +139,7 @@ function RoomCard({ room, locale }: { room: MyRoomType; locale: Locale }) {
       </div>
       <div className="mt-sm">
         <TextField
-          label="Rooms on sale each night"
+          label={hw.nights.roomsOnSale}
           type="number"
           min={0}
           max={room.unitsTotal}
