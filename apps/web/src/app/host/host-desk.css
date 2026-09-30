@@ -151,6 +151,7 @@
   .nf-rcal__cell > span {
     position: relative;
     z-index: 1;
+    font-variant-numeric: tabular-nums;
     max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -162,11 +163,18 @@
     line-height: 1;
     color: var(--nf-content-secondary);
   }
+  /* Today: the day number sits in a small brand disc, the way a calendar
+     marks it everywhere else (an underline read as a link). */
   .nf-rcal__cell[data-today] .nf-rcal__day {
-    color: var(--nf-brand-primary);
-    text-decoration: underline;
-    text-underline-offset: 3px;
-    text-decoration-thickness: 2px;
+    display: inline-grid;
+    place-items: center;
+    min-width: 1.25rem;
+    height: 1.25rem;
+    margin: -3px 0 0 -3px;
+    padding-inline: 4px;
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
   }
   .nf-rcal__price {
     font-size: 0.75rem;
@@ -178,17 +186,6 @@
     font-size: 0.625rem;
     line-height: 1.2;
     color: var(--nf-content-muted);
-  }
-  .nf-rcal__meta-long {
-    display: none;
-  }
-  @media (min-width: 768px) {
-    .nf-rcal__meta-long {
-      display: inline;
-    }
-    .nf-rcal__meta-short {
-      display: none;
-    }
   }
   .nf-rcal__cell[data-tone="override"] .nf-rcal__price {
     font-weight: 700;
@@ -614,6 +611,29 @@
     flex: 1;
     min-width: 0;
   }
+  /* A phone: the clock rides above the title beside the plate, so the
+     title and its line get the card's full width instead of a narrow column
+     squeezed between the plate and the chip. */
+  @media (max-width: 639px) {
+    .nf-decide__top {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      grid-template-areas:
+        "plate clock"
+        "plate what";
+      row-gap: var(--nf-space-3xs);
+    }
+    .nf-decide__top > :first-child {
+      grid-area: plate;
+    }
+    .nf-decide__top > .nf-decide__what {
+      grid-area: what;
+    }
+    .nf-decide__top > .nf-clock {
+      grid-area: clock;
+      justify-self: start;
+    }
+  }
   .nf-decide__title {
     font-size: var(--nf-text-row);
     font-weight: 600;
@@ -713,6 +733,18 @@
     display: flex;
     flex-wrap: wrap;
     gap: var(--nf-space-xs);
+  }
+  .nf-hreview__foot {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0 var(--nf-space-xs);
+    margin-inline: calc(var(--nf-space-sm) * -1);
+    padding-top: var(--nf-space-2xs);
+    border-top: var(--nf-border-width) solid var(--nf-divider);
+  }
+  .nf-hreview__foot > .nf-btn {
+    padding-inline: var(--nf-space-sm);
   }
   .nf-hreview-choice {
     display: flex;
@@ -829,15 +861,83 @@
       display: none;
     }
   }
+  /* The month's totals read as one short column, not a label at one edge
+     of a 1,100px card and its figure at the other. */
+  @media (min-width: 768px) {
+    .nf-stmt-totals {
+      max-width: 26rem;
+    }
+  }
+  /* Download and Print: full width, one under the other, on a phone (two
+     pills of different widths read as an accident); side by side above. */
+  .nf-stmt-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--nf-space-sm);
+  }
+  .nf-stmt-actions > * {
+    width: 100%;
+  }
+  @media (min-width: 480px) {
+    .nf-stmt-actions {
+      display: flex;
+      flex-wrap: wrap;
+    }
+    .nf-stmt-actions > * {
+      width: auto;
+    }
+  }
+  /* PRINT: ink on paper whatever the theme. Dark mode printed white type on
+     the white page (a printer drops the night background), so the whole
+     statement is redrawn in the on-paper ink: no fills, no shadows, paper
+     hairlines, the full table and never the phone cards. */
   @media print {
+    @page {
+      size: A4 portrait;
+      margin: 14mm;
+    }
+    /* The page itself prints as paper: a light canvas under a dark theme. */
+    :root,
+    :root[data-theme] {
+      color-scheme: light !important;
+    }
+    html {
+      background: Canvas !important;
+    }
+    body,
+    .nf-host,
+    .nf-host__col {
+      background: none !important;
+    }
+    .nf-ambient,
+    .nf-grain,
+    .nf-to-top,
     .nf-host > aside,
     header,
     .nf-stmt-noprint {
       display: none !important;
     }
+    .nf-stmt,
+    .nf-stmt * {
+      color: var(--nf-content-on-paper) !important;
+      background: none !important;
+      box-shadow: none !important;
+      text-shadow: none !important;
+    }
+    .nf-stmt .nf-caption,
+    .nf-stmt thead th {
+      color: var(--nf-content-on-paper-secondary) !important;
+    }
+    .nf-stmt * {
+      border-color: var(--nf-border-on-paper) !important;
+    }
     .nf-stmt-wide {
       display: block;
+      overflow: visible;
       border: 0;
+    }
+    .nf-stmt-table tr {
+      break-inside: avoid;
     }
     .nf-stmt-narrow {
       display: none;

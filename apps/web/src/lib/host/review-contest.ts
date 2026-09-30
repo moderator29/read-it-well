@@ -54,7 +54,7 @@ export function criterionLabel(value: string): string {
 /** What the host reads about a contest's state. */
 export function contestWords(status: string, publicNote: string | null): string {
   if (status === "open") return "With Vallo. The review stays up while we look.";
-  if (status === "hidden") return publicNote ? `Hidden by Vallo: "${publicNote}"` : "Hidden by Vallo.";
+  if (status === "hidden") return publicNote ? `Hidden by Vallo: “${publicNote}”` : "Hidden by Vallo.";
   if (status === "kept") return "Vallo looked and kept it: it meets the review standards.";
   if (status === "withdrawn") return "You withdrew the request. The review stays up.";
   return "";

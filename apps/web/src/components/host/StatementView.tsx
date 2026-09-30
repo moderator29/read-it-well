@@ -39,7 +39,7 @@ export function StatementView({
   const next = addMonths(month, 1);
 
   return (
-    <>
+    <div className="nf-stmt">
       <PageHeader
         variant="large"
         back={false}
@@ -49,12 +49,12 @@ export function StatementView({
 
       <div className="mt-md grid gap-md">
         <nav className="nf-rcal__monthbar nf-stmt-noprint" aria-label="Other months">
-          <Link href={`/host/earnings/statement?month=${prev}`} className="nf-btn nf-btn--surface nf-btn--icon nf-btn--sm" aria-label="Previous month">
+          <Link href={`/host/earnings/statement?month=${prev}`} className="nf-btn nf-btn--surface nf-btn--icon nf-btn--round" aria-label="Previous month">
             <UiIcon name="arrow-left" size={20} />
           </Link>
           <p className="nf-rcal__month">{title}</p>
           {next <= thisMonth ? (
-            <Link href={`/host/earnings/statement?month=${next}`} className="nf-btn nf-btn--surface nf-btn--icon nf-btn--sm" aria-label="Next month">
+            <Link href={`/host/earnings/statement?month=${next}`} className="nf-btn nf-btn--surface nf-btn--icon nf-btn--round" aria-label="Next month">
               <UiIcon name="arrow-right" size={20} />
             </Link>
           ) : (
@@ -94,7 +94,7 @@ export function StatementView({
                 : { figure: <span className="nf-numeric">{formatMoney(totals.shareMinor, locale)}</span> })}
               sentence={`${totals.payments} ${totals.payments === 1 ? "payment" : "payments"}${totals.reversals ? `, ${totals.reversals} reversed by refunds` : ""}. ${EARNINGS_SETTLEMENT}`}
               footer={
-                <dl className="nf-stmt-line__split">
+                <dl className="nf-stmt-line__split nf-stmt-totals">
                   <dt>Guests paid</dt>
                   <dd>{formatMoney(totals.grossMinor, locale)}</dd>
                   <dt>Vallo commission</dt>
@@ -107,7 +107,7 @@ export function StatementView({
               }
             />
 
-            <div className="nf-stmt-noprint flex flex-wrap gap-sm">
+            <div className="nf-stmt-noprint nf-stmt-actions">
               {complete ? (
                 /* A plain anchor: the CSV is a file from a route handler, not a
                    page, so client navigation must not try to render it. */
@@ -176,7 +176,7 @@ export function StatementView({
           </>
         )}
       </div>
-    </>
+    </div>
   );
 }
 

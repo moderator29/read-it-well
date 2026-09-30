@@ -83,7 +83,7 @@ export function RoomRequestAnswer({ bookingId, summary }: { bookingId: string; s
         <Button variant="primary" size="md" disabled={pending} onClick={() => setOpen("accept")}>
           Accept
         </Button>
-        <Button variant="ghost" size="md" disabled={pending} onClick={() => setOpen("decline")}>
+        <Button variant="secondary" size="md" disabled={pending} onClick={() => setOpen("decline")}>
           Decline
         </Button>
       </div>

@@ -131,21 +131,30 @@ export function HostReviewCard({ review, when }: { review: HostReview; when: str
           </div>
         </div>
       ) : (
-        <div className="nf-hreview__actions">
-          <Button variant="secondary" size="md" leadingIcon="chat-bubble" disabled={pending} onClick={() => setWriting(true)}>
-            {review.reply ? "Edit reply" : "Reply"}
-          </Button>
-          {review.reply ? (
-            <Button variant="quiet" size="md" disabled={pending} onClick={withdraw}>
-              Take the reply back
+        <>
+          <div className="nf-hreview__actions">
+            <Button variant="secondary" size="md" leadingIcon="chat-bubble" disabled={pending} onClick={() => setWriting(true)}>
+              {review.reply ? "Edit reply" : "Reply"}
             </Button>
+          </div>
+          {/* The quieter doors sit on a foot under a hairline, their words in
+              line with the card's text, instead of wrapping under the reply
+              button at a different indent. */}
+          {review.reply || (!review.hiddenAt && !openContest) ? (
+            <div className="nf-hreview__foot">
+              {review.reply ? (
+                <Button variant="quiet" size="md" disabled={pending} onClick={withdraw}>
+                  Take the reply back
+                </Button>
+              ) : null}
+              {!review.hiddenAt && !openContest ? (
+                <Button variant="quiet" size="md" leadingIcon="flag" disabled={pending} onClick={() => setContesting(true)}>
+                  Ask Vallo to look
+                </Button>
+              ) : null}
+            </div>
           ) : null}
-          {!review.hiddenAt && !openContest ? (
-            <Button variant="quiet" size="md" leadingIcon="flag" disabled={pending} onClick={() => setContesting(true)}>
-              Ask Vallo to look
-            </Button>
-          ) : null}
-        </div>
+        </>
       )}
       {error ? (
         <p className="nf-rcal-panel__error" role="alert">
