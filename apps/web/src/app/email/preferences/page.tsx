@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { ButtonLink } from "@/components/ui/Button";
+import { IconPlate } from "@/components/ui/IconPlate";
+import { UiIcon } from "@/design-system/icons/UiIcon";
+import { Logo } from "@/design-system/brand/Logo";
 import { readEmailPreferences } from "@/lib/email/preferences";
 import { readUnsubscribe, unsubscribeKey } from "@/lib/email/unsubscribe-token";
 import { PreferencesForm } from "./PreferencesForm";
@@ -37,6 +40,7 @@ export default async function EmailPreferencesPage({ searchParams }: { searchPar
   return (
     <main id="main" className="nf-shell">
       <div className="nf-door-page">
+        <Logo size={40} wordSize={18} />
         {claims && prefs ? (
           <>
             <h1 className="nf-door-page__title">{copy.title}</h1>
@@ -46,6 +50,9 @@ export default async function EmailPreferencesPage({ searchParams }: { searchPar
           </>
         ) : (
           <>
+            <IconPlate size="lg" shape="round" tone="warning">
+              <UiIcon name="mail" size={24} />
+            </IconPlate>
             <h1 className="nf-door-page__title">{copy.invalidTitle}</h1>
             <p className="nf-door-page__lede">{copy.invalidBody}</p>
             <ButtonLink href="/settings/notifications" variant="primary" size="lg" full>

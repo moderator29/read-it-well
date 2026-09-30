@@ -840,8 +840,11 @@
   }
 
   /* --------------------------------------- A12 preferences, A5 invite */
+  /* Children keep their own width (the logo capsule stretched the column
+     in light); the lede, the actions and the form fill it. */
   .nf-door-page {
     display: grid;
+    justify-items: start;
     gap: var(--nf-space-md);
     max-width: 32rem;
     margin-inline: auto;
@@ -858,6 +861,9 @@
     font-size: var(--nf-text-body);
     line-height: 1.55;
     color: var(--nf-content-secondary);
+  }
+  .nf-door-page > :is(p, form, .nf-door-page__actions, .nf-btn) {
+    justify-self: stretch;
   }
   .nf-door-page__actions {
     display: grid;
