@@ -67,6 +67,9 @@ async function darkContext(state) {
   return context;
 }
 
+/** `AutoHideDock`'s SHOW_NEAR_END: it never hides this close to the foot. */
+const SHOW_NEAR_END = 48;
+
 /** Where the dock sits relative to the bottom of the viewport, and whether it counts. */
 const readDock = (page) =>
   page.evaluate(() => {
@@ -85,6 +88,8 @@ const readDock = (page) =>
       marked: dock.getAttribute("data-dock-hidden"),
       scrollY: window.scrollY,
       scrollable: document.documentElement.scrollHeight > window.innerHeight + 200,
+      /* How far the page can scroll at all. */
+      room: document.documentElement.scrollHeight - window.innerHeight,
     };
   });
 
@@ -102,6 +107,21 @@ const scrollBy = async (page, dy) => {
     last = y;
   }
   await page.waitForTimeout(400);
+};
+
+/* Read the dock until it settles where the check expects it, for at most
+   2.5s. On a loaded dev server the rAF-coalesced handler and the 220ms slide
+   can land after the fixed wait above, and a read taken mid-slide measured
+   the dock at its resting top (770 of 844) while `data-dock-hidden` was
+   already set (C-14). The claim is unchanged: the dock must END UP off (or
+   on) the screen; this only stops a slow frame from being read as a fault. */
+const settleDock = async (page, want) => {
+  let dock = await readDock(page);
+  for (let i = 0; i < 25 && dock && !want(dock); i += 1) {
+    await page.waitForTimeout(100);
+    dock = await readDock(page);
+  }
+  return dock;
 };
 
 /** Checks 1 to 6 on whatever screen `page` has open. False when it cannot scroll. */
@@ -124,9 +144,17 @@ async function autohide(page, label) {
     `scrollY ${dock.scrollY}, dock top ${Math.round(dock.top)}`,
   ]);
 
-  /* 2. Down, properly. */
-  await scrollBy(page, 500);
-  dock = await readDock(page);
+  /* 2. Down, properly: 500px, or as far as the page allows while staying
+     clear of the end (`AutoHideDock` never hides within 48px of the foot).
+     A short page, like a new member's /home, used to be scrolled straight
+     to its end, where the dock rightly stays, and read as a fault (C-14). */
+  const down = Math.min(500, dock.room - SHOW_NEAR_END - 40);
+  if (down < 120) {
+    skip(`${label} can scroll only ${dock.room}px at 390px, too little to leave the top without reaching the end`);
+    return false;
+  }
+  await scrollBy(page, down);
+  dock = await settleDock(page, (d) => d.offScreen);
   check("scrolling down takes it off the screen", dock.offScreen, [
     `scrollY ${dock.scrollY}, dock top ${Math.round(dock.top)} of ${dock.viewport}`,
   ]);
@@ -143,7 +171,7 @@ async function autohide(page, label) {
 
   /* 3. Up, and back. */
   await scrollBy(page, -200);
-  dock = await readDock(page);
+  dock = await settleDock(page, (d) => !d.offScreen && d.bottom <= d.viewport + 1);
   check("scrolling up brings it straight back", !dock.offScreen, [
     `scrollY ${dock.scrollY}, dock top ${Math.round(dock.top)}`,
   ]);
@@ -186,7 +214,7 @@ try {
     const page = await context.newPage();
     /* /home, because it is the tallest screen the dock appears on that is
        tall from its own designed content rather than from inventory. */
-    await page.goto(`${BASE_URL}/home`, { waitUntil: "load", timeout: 45000 });
+    await page.goto(`${BASE_URL}/home`, { waitUntil: "load", timeout: 90000 });
     await page.waitForTimeout(900);
     if (await autohide(page, "/home")) {
       /*
@@ -196,11 +224,13 @@ try {
        * hidden stays hidden unless something resets it.
        */
       console.log("\nAcross a navigation");
-      await page.evaluate(() => window.scrollTo(0, 400));
+      /* Down the page but clear of its end, however tall it is today. */
+      const room = (await readDock(page))?.room ?? 800;
+      await page.evaluate(() => window.scrollTo(0, 120));
       await page.waitForTimeout(300);
-      await page.evaluate(() => window.scrollBy(0, 400));
+      await page.evaluate((d) => window.scrollBy(0, d), Math.max(0, Math.min(400, room - SHOW_NEAR_END - 160)));
       await page.waitForTimeout(400);
-      const beforeLeaving = await readDock(page);
+      const beforeLeaving = await settleDock(page, (d) => d.offScreen);
       check("the dock is hidden at the moment the screen is left", beforeLeaving.offScreen, [
         `dock top ${Math.round(beforeLeaving.top)} of ${beforeLeaving.viewport}`,
       ]);

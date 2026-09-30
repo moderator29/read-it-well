@@ -71,6 +71,11 @@ async function walk(colorScheme) {
     // ------------------------------------------------------- a stay detail
     console.log("/listing/seed-2 (stay)");
     await page.goto(`${BASE_URL}/listing/seed-2`, { waitUntil: "load" });
+    /* Signed out, the address answers the sign-in wall, and the first-run
+       screen can then move the page again on the client. Read the page once
+       it has stopped moving, or the evaluate below dies with the navigation
+       (C-14: "Execution context was destroyed" on the light pass). */
+    await page.waitForLoadState("networkidle", { timeout: 30000 }).catch(() => {});
     await page.waitForTimeout(WAIT);
 
     const theme = await page.evaluate(
