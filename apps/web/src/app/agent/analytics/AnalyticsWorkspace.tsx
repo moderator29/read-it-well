@@ -22,7 +22,7 @@ import { Progress } from "@/components/ui/Progress";
 import { ButtonLink } from "@/components/ui/Button";
 import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/Table";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
-import { IconPlate } from "@/components/ui/IconPlate";
+import { Icon3D } from "@/components/ui/Icon3D";
 
 /**
  * The agent's analytics console.
@@ -634,9 +634,9 @@ export function AnalyticsWorkspace({
   if (nothingHappenedYet) {
     return (
       <div className="mx-auto flex max-w-md flex-col items-center gap-md py-10 text-center sm:py-14">
-        <IconPlate size="lg">
-          <UiIcon name="chart-bar" size={24} />
-        </IconPlate>
+        <span className="grid size-[5.5rem] shrink-0 place-items-center" aria-hidden="true" data-art="analytics">
+          <Icon3D name="analytics" size={88} />
+        </span>
         <h2 className="nf-h3">{t.emptyTitle}</h2>
         <p className="mx-auto max-w-[42ch] text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           {t.emptyBody}

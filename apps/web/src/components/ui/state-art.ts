@@ -8,8 +8,8 @@ import type { Icon3DName } from "./icon-3d";
  * flat plate. A call site can still pick an object (`art`) or opt out
  * (`art={false}`).
  *
- * Only clear matches: an error, a camera, a contract or a chat has no 3D
- * twin and stays a glyph.
+ * Only clear matches: an error or a chat has no 3D twin and stays a glyph.
+ * (The receipt's coin carries a "$", so `receipt-check` keeps the wallet.)
  */
 export const STATE_ART: Partial<Record<BrandIconName, Icon3DName>> = {
   "bell-badge": "bell",
@@ -27,7 +27,7 @@ export const STATE_ART: Partial<Record<BrandIconName, Icon3DName>> = {
   "card-lock": "card-secure",
   "keys-home": "keys",
   "home-ring": "home-small",
-  "heart-home": "villa",
+  "heart-home": "saved-heart",
   "ledger-book": "earnings",
   reviews: "stay-rated",
   "hotel-bed": "stay-rated",
@@ -35,7 +35,14 @@ export const STATE_ART: Partial<Record<BrandIconName, Icon3DName>> = {
   "concierge-bell": "restaurant",
   "bank-column": "earnings",
   "receipt-check": "pay",
-  hourglass: "calendar-pending",
+  hourglass: "clock",
+  // The wishlist sheet (30 September).
+  camera: "camera",
+  "contract-sign": "contract",
+  "report-stats": "analytics",
+  "support-chat": "support",
+  "doc-home": "folder",
+  "doc-lock": "folder",
 };
 
 export function stateArtFor(icon: BrandIconName | undefined, art?: Icon3DName | false): Icon3DName | undefined {

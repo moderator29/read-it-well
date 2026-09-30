@@ -5,6 +5,7 @@ import { ButtonLink } from "@/components/ui/Button";
 import { Logo } from "@/design-system/brand/Logo";
 import { inviteDoor } from "@/lib/referral/server";
 import { normaliseInviteCode } from "@/lib/referral/code";
+import { Icon3D } from "@/components/ui/Icon3D";
 
 export const dynamic = "force-dynamic";
 
@@ -41,6 +42,10 @@ export default async function JoinPage({ params }: { params: Promise<{ code: str
     <main id="main" className="nf-shell">
       <div className="nf-door-page">
         <Logo size={40} wordSize={18} />
+        {/* The founder's 3D gift (30 September): somebody sent an invite. */}
+        <span className="grid size-[5.5rem] place-items-center" aria-hidden="true" data-art="gift">
+          <Icon3D name="gift" size={88} priority />
+        </span>
         <h1 className="nf-door-page__title">{title}</h1>
         <p className="nf-door-page__lede">{copy.doorBody}</p>
         {!keep && <p className="nf-caption text-[var(--nf-content-muted)]">{copy.doorUnknown}</p>}

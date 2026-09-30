@@ -430,14 +430,16 @@ function Field({
 
 /**
  * The founder's 3D object on each step's header (30 September), in place of
- * the glass object's line twin. Photos and the rooms' facts have none.
+ * the glass object's line twin. The amenities step has none.
  */
 const STEP_ART: Partial<Record<(typeof STEP_KEYS)[number], Icon3DName>> = {
   basics: "list",
+  photos: "camera",
   location: "explore",
-  pricing: "earnings",
+  utilities: "power",
+  pricing: "price-tag",
   guestView: "search",
-  submit: "calendar-pending",
+  submit: "checklist",
 };
 
 /** The 3D object on each property type's card, where the sheets draw one. */

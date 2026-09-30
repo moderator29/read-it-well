@@ -14,6 +14,7 @@ import {
 import { resumableUpload, type UploadProgress } from "@/lib/agent/resumable-upload";
 import { createClient } from "@/lib/supabase/client";
 import { SUPABASE_URL } from "@/lib/supabase/env";
+import { Icon3D } from "@/components/ui/Icon3D";
 
 /**
  * THE WALKTHROUGH, WHICH NOBODY HAS EVER BEEN ABLE TO UPLOAD.
@@ -185,7 +186,12 @@ export function VideoWalkthrough({
 
   return (
     <section className="mt-lg" data-testid="video-walkthrough">
-      <h3 className="nf-h4">Video walkthrough</h3>
+      <div className="flex items-center gap-sm">
+        <span className="grid size-12 shrink-0 place-items-center" aria-hidden="true" data-art="video">
+          <Icon3D name="video" size={48} />
+        </span>
+        <h3 className="nf-h4">Video walkthrough</h3>
+      </div>
 
       {/* The calm explanatory panel with its small round glyph, which appears
           on almost every screen in the governing set. */}

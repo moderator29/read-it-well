@@ -443,7 +443,7 @@ const STEP_ART: Record<StepId, Icon3DName> = {
   "identity-document": "id-check",
   "address-document": "home-small",
   "business-question": "city",
-  "business-details": "city",
+  "business-details": "folder",
   consent: "shield",
   review: "verified",
 };
@@ -508,6 +508,7 @@ function KycSentSheet({ copy }: { copy: SuccessWords }) {
       open={open}
       onOpenChange={setOpen}
       variant={words.variant}
+      object={words.object}
       title={words.title}
       body={words.body}
       primary={{ label: copy.continue }}

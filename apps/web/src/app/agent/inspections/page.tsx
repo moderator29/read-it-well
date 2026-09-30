@@ -56,6 +56,7 @@ export default async function AgentInspectionsPage() {
       <AgentShell t={t} locale={locale} active="/agent/inspections" profile={null}>
         <EmptyState
           icon="calendar-check"
+          art="checklist"
           title="Inspections open once you are approved"
           body="Once your Listing or selling profile is approved, every request to inspect one of your properties arrives here with a state on it that the other side can see too."
           action={
@@ -156,6 +157,7 @@ export default async function AgentInspectionsPage() {
         ) : list.inspections.length === 0 ? (
           <EmptyState
             icon="calendar-check"
+            art="checklist"
             title="No inspection requests yet"
             body="When somebody requests an inspection from one of your listings it lands here, and you can confirm it, offer another time, or say no."
             action={

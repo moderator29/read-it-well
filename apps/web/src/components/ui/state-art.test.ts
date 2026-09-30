@@ -9,12 +9,12 @@ describe("stateArtFor", () => {
     expect(stateArtFor("calendar-home")).toBe("calendar-booked");
   });
   it("keeps the glyph where there is no twin, or when opted out", () => {
-    expect(stateArtFor("camera")).toBeUndefined();
+    expect(stateArtFor("alert-triangle")).toBeUndefined();
     expect(stateArtFor(undefined)).toBeUndefined();
     expect(stateArtFor("bell-badge", false)).toBeUndefined();
   });
   it("lets a call site choose", () => {
-    expect(stateArtFor("camera", "keys")).toBe("keys");
+    expect(stateArtFor("alert-triangle", "keys")).toBe("keys");
   });
   it("maps only to real 3D names", () => {
     for (const art of Object.values(STATE_ART)) expect(ICON_3D_NAMES).toContain(art);
