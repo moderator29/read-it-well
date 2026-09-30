@@ -49,7 +49,7 @@ export function PriceContextView({ href, title, sub }: { href: string; title: st
       <ListRow
         href={href}
         leading={
-          <IconPlate size="sm">
+          <IconPlate size="sm" shape="round" tone="info">
             <UiIcon name="coins" size={20} />
           </IconPlate>
         }

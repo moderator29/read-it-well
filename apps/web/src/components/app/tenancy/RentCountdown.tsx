@@ -27,7 +27,7 @@ export function RentCountdown({
   testId?: string;
 }) {
   const amount = formatMoney(countdown.dueMinor, locale);
-  const due = (countdown.fromOffer ? copy.dueLineOffer : copy.dueLine).replace("{amount}", amount).replace("{date}", endsOnLabel);
+  const due = withStrongAmount((countdown.fromOffer ? copy.dueLineOffer : copy.dueLine).replace("{date}", endsOnLabel), amount);
   const unit = plural(countdown.daysLeft, copy.unit, locale);
   return (
     <div data-testid={testId} className="nf-rent-countdown">
@@ -41,7 +41,11 @@ export function RentCountdown({
             {countdown.perMonthMinor !== null ? (
               <>
                 {" "}
-                <strong className="nf-numeric">{copy.perMonth.replace("{amount}", formatMoney(countdown.perMonthMinor, locale))}</strong>
+                {/* Only the monthly figure is strong; a whole bold sentence
+                    reads as a second headline under the counted days. */}
+                <span className="nf-numeric">
+                  {withStrongAmount(copy.perMonth, formatMoney(countdown.perMonthMinor, locale))}
+                </span>
               </>
             ) : null}
           </>
@@ -58,5 +62,18 @@ export function RentCountdown({
         }
       />
     </div>
+  );
+}
+
+/** The sentence with its `{amount}` set in the strong ink, the rest as written. */
+function withStrongAmount(template: string, amount: string) {
+  const at = template.indexOf("{amount}");
+  if (at < 0) return template;
+  return (
+    <>
+      {template.slice(0, at)}
+      <strong className="text-[var(--nf-content-primary)]">{amount}</strong>
+      {template.slice(at + "{amount}".length)}
+    </>
   );
 }

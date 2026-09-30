@@ -45,9 +45,13 @@ export function ReplyTimeText({ text, how, explain, className = "" }: { text: st
   return (
     <details className={`nf-reply-time ${className}`} data-testid="reply-time">
       <summary className="nf-reply-time__line">
-        <UiIcon name="history" size={14} className="shrink-0" />
-        <span>{text}</span>
-        <span className="nf-reply-time__how">{how}</span>
+        <UiIcon name="history" size={14} className="nf-reply-time__icon" />
+        <span>
+          {/* Inline after a real space, so on a narrow phone the link wraps
+              whole under the words, never under the icon. */}
+          {text}{" "}
+          <span className="nf-reply-time__how">{how}</span>
+        </span>
       </summary>
       <p className="nf-reply-time__explain">{explain}</p>
     </details>
