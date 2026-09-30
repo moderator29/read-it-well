@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { SAMPLE_RATE } from "@/lib/observability/vitals";
+import { sampleRateAt } from "@/lib/observability/vitals";
 
 /**
  * FIELD SPEED, FROM THE PHONE IN THE PERSON'S HAND. V-80.
@@ -16,7 +16,7 @@ import { SAMPLE_RATE } from "@/lib/observability/vitals";
  */
 export function VitalsReporter() {
   useEffect(() => {
-    if (typeof PerformanceObserver === "undefined" || Math.random() >= SAMPLE_RATE) return;
+    if (typeof PerformanceObserver === "undefined" || Math.random() >= sampleRateAt(Date.now())) return;
     const metrics: Record<string, number> = {};
     const observers: PerformanceObserver[] = [];
     const observe = (type: string, onEntry: (entry: PerformanceEntry) => void) => {

@@ -37,3 +37,11 @@ describe("sanitiseVitals", () => {
     expect(sanitiseVitals(null)).toBeNull();
   });
 });
+
+describe("the launch sampling window (C13)", () => {
+  it("reports every view until 15 October 2026, then one in ten", async () => {
+    const { sampleRateAt, SAMPLE_RATE } = await import("./vitals");
+    expect(sampleRateAt(Date.parse("2026-10-01T12:00:00Z"))).toBe(1);
+    expect(sampleRateAt(Date.parse("2026-10-15T12:00:00Z"))).toBe(SAMPLE_RATE);
+  });
+});
