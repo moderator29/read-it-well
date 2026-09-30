@@ -2,6 +2,7 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
+import { getDictionary } from "@vallo/i18n";
 
 /**
  * THE HOST WORKSPACE READS ITS WORDS FROM THE DICTIONARY (C11b).
@@ -25,7 +26,7 @@ const SPOKEN = new Set(["title", "body", "label", "placeholder", "aria-label", "
 const STILL_ENGLISH: Record<string, number> = {
   /* Open in other work on 30 September (C1 to C4 and the host desk). */
   "app/host/bookings/page.tsx": 7,
-  "app/host/calendar/page.tsx": 7,
+  "app/host/calendar/page.tsx": 6,
   "app/host/decide/page.tsx": 2,
   "app/host/earnings/page.tsx": 3,
   "app/host/earnings/statement/page.tsx": 2,
@@ -87,5 +88,24 @@ describe("the host workspace's words come from the dictionary", () => {
       }
     }
     expect(over, "Put the words in hostWorkspace (host-workspace.en.ts) and read them from the dictionary.").toEqual([]);
+  });
+});
+
+describe("the doors into the application read from the dictionary (C11 follow-up)", () => {
+  it("no host page or the bookings board spells a door in English", () => {
+    const doors = getDictionary("en").hostWorkspace.doors;
+    /* Every door but the one-word "Start", which is too common to scan for. */
+    const words = [doors.startApplication, doors.continueApplication, doors.openApplication, doors.checkCalendar];
+    const files = [...SURFACES.flatMap((surface) => walk(join(SRC, surface))), join(SRC, "app/agent/bookings/BookingsWorkspace.tsx")];
+    const found: string[] = [];
+    for (const path of files) {
+      const text = readFileSync(path, "utf8");
+      for (const word of words) {
+        if (text.includes(`"${word}"`) || text.includes(`>${word}<`) || new RegExp(`^\\s*${word}\\s*$`, "m").test(text)) {
+          found.push(`${relative(SRC, path)}: ${word}`);
+        }
+      }
+    }
+    expect(found).toEqual([]);
   });
 });

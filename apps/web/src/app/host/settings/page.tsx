@@ -117,10 +117,10 @@ export function HostSettingsBody({
         <Section title={t.hostWorkspace.settings.businessesTitle}>
           {businesses.length === 0 ? (
             <div className="nf-panel nf-panel--card p-panel">
-              <p className={TYPE.rowMeta}>Nothing listed yet. Your businesses appear here once you apply.</p>
+              <p className={TYPE.rowMeta}>{t.hostWorkspace.nothingYet.settings}</p>
               <div className="mt-sm">
                 <ButtonLink href="/profile/setup?side=stays" variant="secondary" size="sm">
-                  Start an application
+                  {t.hostWorkspace.doors.startApplication}
                 </ButtonLink>
               </div>
             </div>

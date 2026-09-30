@@ -122,7 +122,7 @@ export function HostRoomsBody({
         body={copy.rooms.noPropertyBody}
         action={
           <ButtonLink href="/host/apply" variant="primary" size="lg">
-            Start an application
+            {copy.doors.startApplication}
           </ButtonLink>
         }
       />
@@ -137,7 +137,7 @@ export function HostRoomsBody({
         body={copy.rooms.saveFirstBody}
         action={
           <ButtonLink href="/host/apply" variant="primary" size="lg">
-            Open the application
+            {copy.doors.openApplication}
           </ButtonLink>
         }
       />

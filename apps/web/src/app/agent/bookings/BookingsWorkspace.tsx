@@ -196,10 +196,6 @@ function DecisionSheet({
   );
 }
 
-/* The accept sheet asks the host to check the property is genuinely free;
-   this is the door to that check, on the listing's own calendar. */
-const CHECK_CALENDAR = "Check the calendar";
-
 function BookingCard({
   t,
   booking,
@@ -220,7 +216,8 @@ function BookingCard({
      `Intl.PluralRules` for the host's own locale, and the shared `counts` block
      at the root of the dictionary means the agent surfaces and the console say
      the same words for the same number. */
-  const counts = getDictionary(locale).counts;
+  const dictionary = getDictionary(locale);
+  const counts = dictionary.counts;
   const nightsLabel = plural(booking.nights, counts.nights, locale);
   const guestsLabel = plural(booking.guests, counts.guests, locale);
   const compositionLabel = formatParty(booking.adults, booking.children, counts, locale);
@@ -286,7 +283,10 @@ function BookingCard({
               {t.actions.decline}
             </Button>,
             <ButtonLink key="calendar" variant="secondary" href={`/agent/listings/${booking.listingId}/calendar`}>
-              {CHECK_CALENDAR}
+              {/* The accept sheet asks the host to check the property is
+                  genuinely free; this is the door to that check, on the
+                  listing's own calendar. */}
+              {dictionary.hostWorkspace.doors.checkCalendar}
             </ButtonLink>,
           ]}
         />

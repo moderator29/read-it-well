@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { resolveSession } from "@/lib/actions/session";
 import { getMyBusinesses, getPrimaryAccommodation } from "@/lib/host/queries";
@@ -68,15 +69,16 @@ export default async function HostCalendarPage({
   const accommodation = chosen ? await getPrimaryAccommodation(chosen.id) : null;
 
   if (!chosen || !accommodation) {
+    const hw = getDictionary(locale).hostWorkspace;
     return (
       <HostShell fallback="/host">
         <EmptyState
           icon="calendar-grid"
-          title={chosen ? "Save the property first" : "No property yet"}
-          body="A calendar hangs on a property and its rooms. Start or finish your application, and the calendar opens here."
+          title={chosen ? hw.calendar.saveFirstTitle : hw.calendar.noPropertyTitle}
+          body={hw.calendar.emptyBody}
           action={
             <ButtonLink href="/host/apply" variant="primary" size="lg">
-              {chosen ? "Open the application" : "Start an application"}
+              {chosen ? hw.doors.openApplication : hw.doors.startApplication}
             </ButtonLink>
           }
         />

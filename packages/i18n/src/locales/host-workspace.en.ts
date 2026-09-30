@@ -133,4 +133,22 @@ export const hostWorkspaceEn = {
     tableInventory: "Table inventory",
     sittingDuration: "Sitting duration",
   },
+  /* The doors into the application and the calendar, moved out of the
+     pages with the rest (C11 follow-up, 30 September 2026). */
+  doors: {
+    start: "Start",
+    startApplication: "Start an application",
+    continueApplication: "Continue the application",
+    openApplication: "Open the application",
+    checkCalendar: "Check the calendar",
+  },
+  nothingYet: {
+    home: "Nothing listed yet. One application, saved as you go.",
+    settings: "Nothing listed yet. Your businesses appear here once you apply.",
+  },
+  calendar: {
+    noPropertyTitle: "No property yet",
+    saveFirstTitle: "Save the property first",
+    emptyBody: "A calendar hangs on a property and its rooms. Start or finish your application, and the calendar opens here.",
+  },
 };

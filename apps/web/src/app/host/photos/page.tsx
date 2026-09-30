@@ -151,7 +151,7 @@ export function HostPhotosBody({
         body={copy.photos.noVenueBody}
         action={
           <ButtonLink href="/host/apply" variant="primary" size="lg">
-            Start an application
+            {copy.doors.startApplication}
           </ButtonLink>
         }
       />
@@ -218,7 +218,7 @@ export function HostPhotosBody({
             body={copy.photos.saveFirstBody}
             action={
               <ButtonLink href="/host/apply" variant="primary" size="lg">
-                Open the application
+                {copy.doors.openApplication}
               </ButtonLink>
             }
           />
