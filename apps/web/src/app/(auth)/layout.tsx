@@ -3,6 +3,7 @@ import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { AuthCurveBlock } from "@/components/auth/slate";
 import { AuthBackBar } from "./AuthBackBar";
+import { AuthFocal } from "./AuthFocal";
 import { AuthHeroLine } from "./AuthHeroLine";
 import { KeepPillInView } from "./KeepPillInView";
 import { ForgetOnSignOut } from "@/components/app/offline/ForgetOnSignOut";
@@ -19,9 +20,10 @@ import { ForgetOnSignOut } from "@/components/app/offline/ForgetOnSignOut";
  * the foot. Every auth screen renders inside the same shell, so sign in, sign
  * up, the code, the reset and the recovery read as the same place.
  *
- * THE THEME RULE (the founder's): in light the block, the pill and the focus
- * outline are the brand, navy to neon blue, on white; in dark they invert to
- * a light block and a white pill on dark navy. The block and its pieces are
+ * THE 3D GLASS DOOR (the founder, 30 September, after the passcode
+ * reference): a bright blue bowl in both themes with the Vallo lockup, one
+ * object in a glowing ring across its curve (`AuthFocal`), glass fields and
+ * a glossy blue pill; the page is warm paper in light and night in dark. The block and its pieces are
  * `components/auth/slate.tsx`; the whole surface is `app/css/auth.css`.
  */
 export default async function AuthLayout({ children }: { children: React.ReactNode }) {
@@ -37,6 +39,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
         brandLabel={t.a11y.logoHome}
         wordmark={t.auth.wordmark}
         start={<AuthBackBar />}
+        focal={<AuthFocal />}
         line={
           <AuthHeroLine
             lines={{

@@ -156,6 +156,9 @@
 @import "./css/clean-17.css";
 /* Pixel polish: wrapping, measure, figures and the gaps between primitives. */
 @import "./css/pixel.css";
+/* The brand pass (30 September): the 3D icons, the one navy glass material,
+   the blue lean icons in light. After pixel.css so it wins by position. */
+@import "./css/brand-glass.css";
 /*
  * `light.css` WAS IMPORTED HERE AND WAS DELETED (history). The founder removed light mode
  * from the platform on 23 September 2026. It was 1,200 lines of paper twins for

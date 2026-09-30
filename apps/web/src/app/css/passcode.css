@@ -40,6 +40,65 @@
     --nf-passcode-dot-on: var(--nf-slate-ink);
   }
 
+  /*
+   * THE 3D GLASS KEYPAD (30 September; the founder's reference is
+   * apps/web/assets-src/3d-2026-09-30/passcode-welcome-back-3d.png). Round
+   * glass keys with a soft inner light from the upper left, a blue rim and a
+   * depth shadow; ring dots that fill with lit blue; the delete key a glass
+   * pill. Night: blue glass on the night page, white numerals. Paper: white
+   * glass with a blue rim on the warm canvas, brand-blue numerals
+   * (`--nf-brand-primary-strong` on white clears AA for the 30px digits by a
+   * wide margin). Presentation only: the keypad's behaviour is Keypad.tsx.
+   */
+  .nf-passcode {
+    --nf-passcode-soft: color-mix(in oklab, var(--nf-brand-quiet) 70%, var(--nf-content-primary));
+    --nf-passcode-key:
+      radial-gradient(110% 110% at 32% 22%, color-mix(in oklab, var(--nf-electric-300) 60%, transparent) 0%, color-mix(in oklab, var(--nf-electric-300) 18%, transparent) 55%, transparent 80%),
+      linear-gradient(170deg, color-mix(in oklab, var(--nf-electric-700) 55%, var(--nf-surface-artwork)), var(--nf-surface-artwork));
+    --nf-passcode-key-press:
+      radial-gradient(110% 110% at 32% 22%, color-mix(in oklab, var(--nf-electric-300) 85%, transparent) 0%, color-mix(in oklab, var(--nf-electric-300) 40%, transparent) 60%, transparent 85%),
+      var(--nf-surface-artwork);
+    --nf-passcode-key-edge: color-mix(in oklab, var(--nf-brand-quiet) 60%, transparent);
+    --nf-passcode-key-depth:
+      inset 0 2px 3px color-mix(in oklab, var(--nf-content-on-brand) 26%, transparent),
+      inset 0 -8px 14px -6px color-mix(in oklab, var(--nf-surface-artwork) 70%, transparent),
+      0 0 18px -6px color-mix(in oklab, var(--nf-electric-300) 70%, transparent),
+      0 10px 20px -10px color-mix(in oklab, var(--nf-surface-artwork) 90%, transparent);
+    --nf-passcode-key-ink: var(--nf-content-on-brand);
+    --nf-passcode-dot-edge: color-mix(in oklab, var(--nf-electric-300) 85%, var(--nf-content-on-brand));
+    --nf-passcode-dot-on: var(--nf-electric-300);
+    --nf-passcode-dot-glow: 0 0 10px 1px color-mix(in oklab, var(--nf-electric-300) 70%, transparent);
+    --nf-passcode-ground:
+      radial-gradient(80% 50% at 50% 30%, color-mix(in oklab, var(--nf-electric-300) 18%, transparent), transparent 70%),
+      var(--nf-slate-page);
+  }
+  :root[data-theme="light"] .nf-passcode {
+    --nf-passcode-soft: var(--nf-content-secondary);
+    --nf-passcode-key:
+      radial-gradient(100% 100% at 32% 20%, var(--nf-surface-primary) 0%, var(--nf-surface-primary) 40%, transparent 75%),
+      linear-gradient(170deg, var(--nf-surface-primary), color-mix(in oklab, var(--nf-brand-primary) 12%, var(--nf-surface-primary)));
+    --nf-passcode-key-press:
+      radial-gradient(100% 100% at 32% 20%, color-mix(in oklab, var(--nf-brand-primary) 10%, var(--nf-surface-primary)) 0%, transparent 75%),
+      color-mix(in oklab, var(--nf-brand-primary) 20%, var(--nf-surface-primary));
+    --nf-passcode-key-edge: color-mix(in oklab, var(--nf-brand-primary) 32%, transparent);
+    --nf-passcode-key-depth:
+      inset 0 2px 2px var(--nf-surface-primary),
+      inset 0 -8px 14px -8px color-mix(in oklab, var(--nf-brand-primary) 30%, transparent),
+      0 10px 20px -12px color-mix(in oklab, var(--nf-brand-primary) 55%, transparent);
+    --nf-passcode-key-ink: var(--nf-brand-primary-strong);
+    --nf-passcode-dot-edge: var(--nf-brand-primary);
+    --nf-passcode-dot-on: var(--nf-brand-primary);
+    --nf-passcode-dot-glow: 0 0 8px 0 color-mix(in oklab, var(--nf-brand-primary) 45%, transparent);
+    --nf-passcode-ground:
+      radial-gradient(80% 50% at 50% 30%, color-mix(in oklab, var(--nf-brand-primary) 7%, transparent), transparent 70%),
+      var(--nf-surface-canvas);
+  }
+  /* The ring sits across the bowl: the block is a little taller than the
+     old compact band, and the column starts under the ring. */
+  .nf-passcode .nf-slate-top--compact {
+    --nf-slate-top-h: 10rem;
+  }
+
   /* The lock covers everything, the shell's rail and tab bar included. */
   .nf-passcode--overlay {
     position: fixed;
@@ -59,7 +118,7 @@
     overscroll-behavior: contain;
   }
   .nf-passcode--overlay::backdrop {
-    background: var(--nf-passcode-ground);
+    background: var(--nf-slate-page);
   }
   .nf-passcode--inline {
     display: flex;
@@ -79,25 +138,23 @@
     width: 100%;
     max-width: 24rem;
     margin-inline: auto;
-    margin-top: calc(-1 * var(--nf-space-xs));
+    margin-top: calc(var(--nf-slate-focal-size) / 2 + var(--nf-space-xs));
     padding-inline: max(var(--nf-auth-gutter), env(safe-area-inset-left, 0px));
     text-align: center;
   }
 
+  /* The face fills the focal glass ring (`AuthCurveBlock`'s `focal`). */
   .nf-passcode__avatar {
     display: grid;
     place-items: center;
-    width: 4.5rem;
-    height: 4.5rem;
+    width: 100%;
+    height: 100%;
     overflow: hidden;
     border-radius: var(--nf-radius-circle);
-    border: 3px solid var(--nf-passcode-avatar-ring);
-    background: var(--nf-slate-top-c);
-    color: var(--nf-slate-top-ink);
+    color: var(--nf-content-on-brand);
     font-family: var(--nf-font-display);
-    font-size: var(--nf-text-h3);
+    font-size: var(--nf-text-h2);
     font-weight: 600;
-    box-shadow: var(--nf-elev-1);
   }
   .nf-passcode__avatar img {
     width: 100%;
@@ -106,7 +163,7 @@
   }
 
   .nf-passcode__title {
-    margin-top: var(--nf-space-sm);
+    margin-top: var(--nf-space-xs);
     font-family: var(--nf-font-display);
     font-size: var(--nf-text-h3);
     font-weight: 600;
@@ -136,17 +193,20 @@
     min-height: 1rem;
   }
   .nf-passcode__dot {
-    width: 0.875rem;
-    height: 0.875rem;
+    width: 1rem;
+    height: 1rem;
     border-radius: var(--nf-radius-circle);
-    border: 1.5px solid var(--nf-passcode-dot-edge);
+    border: 2px solid var(--nf-passcode-dot-edge);
+    box-shadow: var(--nf-passcode-dot-glow);
     transition:
       background-color var(--nf-duration-fast) var(--nf-ease-standard),
       transform var(--nf-duration-fast) var(--nf-ease-spring);
   }
   .nf-passcode__dot--on {
-    border-color: var(--nf-passcode-dot-on);
-    background: var(--nf-passcode-dot-on);
+    border-color: var(--nf-passcode-dot-edge);
+    background:
+      radial-gradient(circle at 35% 30%, color-mix(in oklab, var(--nf-content-on-brand) 55%, transparent), transparent 55%),
+      var(--nf-passcode-dot-on);
     transform: scale(1.08);
   }
   .nf-passcode__dots--shake {
@@ -175,7 +235,7 @@
   /* ---------------------------------------------------------- the keypad */
   .nf-passcode__keypad {
     display: grid;
-    grid-template-columns: repeat(3, 4.5rem);
+    grid-template-columns: repeat(3, 4.75rem);
     justify-content: center;
     column-gap: clamp(var(--nf-space-lg), 8vw, var(--nf-space-2xl));
     row-gap: var(--nf-space-sm);
@@ -183,19 +243,20 @@
   }
   .nf-passcode__key,
   .nf-passcode__key-slot {
-    width: 4.5rem;
-    height: 4.5rem;
+    width: 4.75rem;
+    height: 4.75rem;
   }
   .nf-passcode__key {
     display: grid;
     place-items: center;
     border-radius: var(--nf-radius-circle);
-    border: var(--nf-border-width) solid var(--nf-passcode-key-edge);
+    border: 1.5px solid var(--nf-passcode-key-edge);
     background: var(--nf-passcode-key);
-    color: var(--nf-passcode-ink);
+    box-shadow: var(--nf-passcode-key-depth);
+    color: var(--nf-passcode-key-ink);
     font-family: var(--nf-font-display);
-    font-size: 1.75rem;
-    font-weight: 500;
+    font-size: 1.875rem;
+    font-weight: 600;
     font-variant-numeric: tabular-nums;
     line-height: 1;
     cursor: pointer;
@@ -205,9 +266,13 @@
       background-color var(--nf-duration-press) var(--nf-ease-press),
       transform var(--nf-duration-press) var(--nf-ease-press);
   }
+  /* Delete: a small glass pill beside the 0, as the reference draws it. */
   .nf-passcode__key--quiet {
-    border-color: transparent;
-    background: transparent;
+    justify-self: center;
+    align-self: center;
+    width: 4.25rem;
+    height: 2.875rem;
+    border-radius: var(--nf-radius-pill);
   }
   .nf-passcode__key:active:not(:disabled) {
     background: var(--nf-passcode-key-press);
@@ -246,6 +311,13 @@
     text-decoration: underline;
     text-underline-offset: 3px;
     text-decoration-thickness: 1px;
+  }
+  /* The way out in the reference's lit blue. */
+  .nf-passcode .nf-passcode__link:not(.nf-passcode__link--quiet) {
+    color: var(--nf-brand-quiet);
+  }
+  :root[data-theme="light"] .nf-passcode .nf-passcode__link:not(.nf-passcode__link--quiet) {
+    color: var(--nf-brand-primary-strong);
   }
   .nf-passcode__link--quiet {
     font-weight: 500;

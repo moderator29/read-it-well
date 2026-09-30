@@ -1,0 +1,21 @@
+/*
+ * THE BRAND PASS (30 September 2026): the founder's latest asks, in one
+ * partial, imported after light.css, clean-17.css and pixel.css so its rules
+ * win by position rather than by specificity.
+ *
+ *   1. The 3D icons (`components/ui/Icon3D.tsx`).
+ */
+@layer components {
+  /* --------------------------------------------------- 1. the 3D icons */
+  /* The drawn size: a host may set `--nf-icon3d-size`; otherwise the size
+     the component was given (`--nf-icon3d-default`, inline). */
+  .nf-icon3d {
+    display: block;
+    flex: none;
+    width: var(--nf-icon3d-size, var(--nf-icon3d-default, 3rem));
+    height: var(--nf-icon3d-size, var(--nf-icon3d-default, 3rem));
+    object-fit: contain;
+    user-select: none;
+    -webkit-user-drag: none;
+  }
+}

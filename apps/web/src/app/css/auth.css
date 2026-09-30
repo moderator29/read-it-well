@@ -207,10 +207,10 @@
     inset: 0;
     overflow: hidden;
     pointer-events: none;
-    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 390 260' preserveAspectRatio='none'%3E%3Cpath d='M0 0H390V64C354 168 262 256 150 256C88 256 38 236 0 206Z'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 390 260' preserveAspectRatio='none'%3E%3Cpath d='M0 0H390V150C340 226 270 256 195 256C120 256 50 226 0 150Z'/%3E%3C/svg%3E");
     mask-size: 100% 100%;
     mask-repeat: no-repeat;
-    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 390 260' preserveAspectRatio='none'%3E%3Cpath d='M0 0H390V64C354 168 262 256 150 256C88 256 38 236 0 206Z'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 390 260' preserveAspectRatio='none'%3E%3Cpath d='M0 0H390V150C340 226 270 256 195 256C120 256 50 226 0 150Z'/%3E%3C/svg%3E");
     -webkit-mask-size: 100% 100%;
     -webkit-mask-repeat: no-repeat;
     transition: opacity var(--nf-duration-base) var(--nf-ease-standard);
@@ -1316,12 +1316,12 @@
      by Chromium and Firefox; Safari draws the resting curve, still dropped in. */
   @keyframes nf-slate-morph {
     from {
-      d: path("M0 0H390V150C354 196 262 214 150 214C88 214 38 208 0 200Z");
+      d: path("M0 0H390V178C340 214 270 228 195 228C120 228 50 214 0 178Z");
     }
   }
   @keyframes nf-slate-morph-edge {
     from {
-      d: path("M390 150C354 196 262 214 150 214C88 214 38 208 0 200");
+      d: path("M390 178C340 214 270 228 195 228C120 228 50 214 0 178");
     }
   }
   /* The column's pieces rise in, one after another, quickly. A nested
@@ -1442,5 +1442,257 @@
       justify-content: center;
       padding-bottom: var(--nf-space-3xl);
     }
+  }
+
+  /* ================================================ THE 3D GLASS DOOR */
+  /*
+   * THE FOUNDER'S 3D GLASS LANGUAGE (30 September; the source is
+   * apps/web/assets-src/3d-2026-09-30/passcode-welcome-back-3d.png). Sign in,
+   * sign up, the code, the reset and the passcode lock are one family:
+   *
+   *   - a BRIGHT BLUE BOWL at the top in BOTH themes (this supersedes the
+   *     29 September inversion to a pale block at night), with the lockup in
+   *     white and a thread of light along the curve;
+   *   - ONE OBJECT IN A GLOWING GLASS RING across the bottom of the bowl
+   *     (`.nf-slate-focal`): the member's face on the passcode, the Vallo
+   *     mark or a 3D icon on the doors;
+   *   - GLASS FIELDS: a soft inner light from the top, a blue rim, a depth
+   *     shadow under them;
+   *   - THE PRIMARY AS A GLOSSY BLUE PILL: a lit top edge, a deeper foot and
+   *     a blue drop shadow. White type on the electric blue measures about
+   *     5:1 (tokens.css, `--nf-electric-300`).
+   *
+   * Light keeps a warm paper page with white glass; dark keeps the night
+   * page with blue-tinted glass. Every value is a role below, so the pieces
+   * above (fields, code cells, provider buttons, the quiet pill) change
+   * through the roles and not through new selectors.
+   */
+  .nf-slate {
+    /* White type stays at or near 5:1 across the block: the lightest stop
+       is the electric blue with a touch of white, and the bloom is soft. */
+    --nf-slate-top-a: color-mix(in oklab, var(--nf-electric-300) 90%, var(--nf-content-on-brand));
+    --nf-slate-top-b: var(--nf-electric-300);
+    --nf-slate-top-c: var(--nf-electric-700);
+    --nf-slate-top-ink: var(--nf-content-on-brand);
+    --nf-slate-top-ink-soft: color-mix(in oklab, var(--nf-content-on-brand) 84%, transparent);
+    --nf-slate-top-chip: color-mix(in oklab, var(--nf-content-on-brand) 16%, transparent);
+    --nf-slate-top-chip-edge: color-mix(in oklab, var(--nf-content-on-brand) 34%, transparent);
+    --nf-slate-edge: color-mix(in oklab, var(--nf-electric-300) 35%, var(--nf-content-on-brand));
+    --nf-slate-light: color-mix(in oklab, var(--nf-content-on-brand) 16%, transparent);
+    /* The glass: fill, rim and depth. */
+    --nf-slate-card:
+      linear-gradient(
+        180deg,
+        color-mix(in oklab, var(--nf-electric-300) 20%, transparent) 0%,
+        color-mix(in oklab, var(--nf-electric-300) 7%, transparent) 55%,
+        color-mix(in oklab, var(--nf-electric-300) 12%, transparent) 100%
+      ),
+      color-mix(in srgb, var(--nf-glow-ink) 8%, var(--nf-surface-canvas));
+    --nf-slate-card-edge: color-mix(in oklab, var(--nf-brand-quiet) 42%, transparent);
+    --nf-slate-card-shadow:
+      inset 0 1px 0 color-mix(in oklab, var(--nf-content-on-brand) 14%, transparent),
+      inset 0 -10px 18px -14px color-mix(in oklab, var(--nf-electric-300) 70%, transparent),
+      0 12px 26px -16px color-mix(in oklab, var(--nf-surface-artwork) 90%, transparent);
+    --nf-slate-pill:
+      linear-gradient(
+        180deg,
+        color-mix(in oklab, var(--nf-content-on-brand) 20%, transparent) 0%,
+        color-mix(in oklab, var(--nf-content-on-brand) 6%, transparent) 46%,
+        transparent 50%
+      ),
+      linear-gradient(180deg, var(--nf-electric-300) 0%, var(--nf-electric-300) 55%, var(--nf-electric-600) 100%);
+    --nf-slate-pill-ink: var(--nf-content-on-brand);
+    --nf-slate-pill-shadow:
+      inset 0 1px 0 color-mix(in oklab, var(--nf-content-on-brand) 55%, transparent),
+      inset 0 -3px 8px -2px color-mix(in oklab, var(--nf-electric-700) 70%, transparent),
+      0 0 0 1px color-mix(in oklab, var(--nf-brand-quiet) 55%, transparent),
+      0 14px 28px -12px color-mix(in oklab, var(--nf-electric-300) 75%, transparent);
+    --nf-slate-ring-glow:
+      0 0 0 3px color-mix(in oklab, var(--nf-electric-300) 45%, transparent),
+      0 0 26px 2px color-mix(in oklab, var(--nf-electric-300) 70%, transparent),
+      0 14px 28px -10px color-mix(in oklab, var(--nf-surface-artwork) 80%, transparent);
+    --nf-slate-ring-fill:
+      radial-gradient(90% 90% at 35% 25%, color-mix(in oklab, var(--nf-content-on-brand) 34%, transparent) 0%, transparent 60%),
+      linear-gradient(160deg, var(--nf-electric-300), var(--nf-electric-700));
+    --nf-slate-focal-size: 5.75rem;
+  }
+  /* The same bowl and pill in daylight (this rule restates the roles the
+     29 September light rule above set, at its specificity). */
+  :root[data-theme="light"] .nf-slate {
+    --nf-slate-top-a: color-mix(in oklab, var(--nf-electric-300) 90%, var(--nf-content-on-brand));
+    --nf-slate-top-b: var(--nf-electric-300);
+    --nf-slate-top-c: var(--nf-electric-700);
+    --nf-slate-edge: color-mix(in oklab, var(--nf-electric-300) 35%, var(--nf-content-on-brand));
+    --nf-slate-light: color-mix(in oklab, var(--nf-content-on-brand) 16%, transparent);
+    --nf-slate-pill:
+      linear-gradient(
+        180deg,
+        color-mix(in oklab, var(--nf-content-on-brand) 20%, transparent) 0%,
+        color-mix(in oklab, var(--nf-content-on-brand) 6%, transparent) 46%,
+        transparent 50%
+      ),
+      linear-gradient(180deg, var(--nf-electric-300) 0%, var(--nf-electric-300) 55%, var(--nf-electric-600) 100%);
+    --nf-slate-page: var(--nf-surface-canvas);
+    --nf-slate-card:
+      linear-gradient(
+        180deg,
+        var(--nf-surface-primary) 0%,
+        var(--nf-surface-primary) 45%,
+        color-mix(in oklab, var(--nf-brand-primary) 5%, var(--nf-surface-primary)) 100%
+      );
+    --nf-slate-card-edge: color-mix(in oklab, var(--nf-brand-primary) 24%, transparent);
+    --nf-slate-card-shadow:
+      inset 0 1px 0 var(--nf-surface-primary),
+      inset 0 -8px 16px -12px color-mix(in oklab, var(--nf-brand-primary) 32%, transparent),
+      0 10px 22px -14px color-mix(in oklab, var(--nf-brand-primary) 40%, transparent);
+    --nf-slate-pill-shadow:
+      inset 0 1px 0 color-mix(in oklab, var(--nf-content-on-brand) 55%, transparent),
+      inset 0 -3px 8px -2px color-mix(in oklab, var(--nf-electric-700) 60%, transparent),
+      0 14px 26px -12px color-mix(in oklab, var(--nf-electric-300) 60%, transparent);
+    --nf-slate-top-ink: var(--nf-content-on-brand);
+    --nf-slate-top-ink-soft: color-mix(in oklab, var(--nf-content-on-brand) 86%, transparent);
+    --nf-slate-top-chip: color-mix(in oklab, var(--nf-content-on-brand) 16%, transparent);
+    --nf-slate-top-chip-edge: color-mix(in oklab, var(--nf-content-on-brand) 34%, transparent);
+    --nf-slate-ring-glow:
+      0 0 0 3px color-mix(in oklab, var(--nf-electric-300) 30%, transparent),
+      0 0 22px 2px color-mix(in oklab, var(--nf-electric-300) 45%, transparent),
+      0 12px 24px -10px color-mix(in oklab, var(--nf-electric-700) 55%, transparent);
+  }
+  /* The block is blue in both themes, so it always carries the night mark. */
+  .nf-slate-top__mark--on-navy {
+    display: block;
+  }
+  .nf-slate-top__mark--on-paper {
+    display: none;
+  }
+  /* A brighter thread of light along the bowl. */
+  .nf-slate-top__edge {
+    stroke-width: 2px;
+    opacity: 0.9;
+    filter: drop-shadow(0 0 8px color-mix(in oklab, var(--nf-electric-300) 80%, transparent));
+  }
+  /* The block's own light: a soft white bloom under the lockup. */
+  .nf-slate-top__light--a {
+    top: -40%;
+    right: auto;
+    left: 18%;
+    width: 80%;
+  }
+
+  /* ---------------------------------------------- the focal glass ring */
+  .nf-slate-focal {
+    position: absolute;
+    z-index: 2;
+    left: 50%;
+    bottom: 0;
+    width: var(--nf-slate-focal-size);
+    height: var(--nf-slate-focal-size);
+    transform: translate(-50%, 50%);
+    pointer-events: none;
+    transition:
+      opacity var(--nf-duration-base) var(--nf-ease-standard),
+      transform var(--nf-duration-slow) var(--nf-ease-standard);
+    animation: nf-slate-focal-in var(--nf-duration-deliberate) var(--nf-ease-spring) 180ms both;
+  }
+  .nf-slate-focal__ring {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border-radius: var(--nf-radius-circle);
+    border: 3px solid color-mix(in oklab, var(--nf-content-on-brand) 88%, var(--nf-electric-300));
+    background: var(--nf-slate-ring-fill);
+    box-shadow: var(--nf-slate-ring-glow);
+  }
+  /* A lit rim on the glass: a highlight across the top of the ring. */
+  .nf-slate-focal__ring::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(180deg, color-mix(in oklab, var(--nf-content-on-brand) 26%, transparent), transparent 42%);
+    pointer-events: none;
+  }
+  .nf-slate-focal__mark {
+    width: 56%;
+    height: auto;
+    filter: drop-shadow(0 4px 8px color-mix(in oklab, var(--nf-surface-artwork) 55%, transparent));
+  }
+  .nf-slate-focal__icon {
+    --nf-icon3d-size: calc(var(--nf-slate-focal-size) * 0.78);
+    filter: drop-shadow(0 6px 10px color-mix(in oklab, var(--nf-surface-artwork) 45%, transparent));
+  }
+  @keyframes nf-slate-focal-in {
+    from {
+      opacity: 0;
+      transform: translate(-50%, 50%) scale(0.7);
+    }
+  }
+  /* The column starts under the ring, and its head is centred on it. */
+  .nf-slate:has(.nf-slate-top--focal) .nf-auth__body {
+    padding-top: calc(var(--nf-slate-focal-size) / 2 + var(--nf-space-md));
+  }
+  .nf-slate:has(.nf-slate-top--focal) .nf-auth__screen > :is(.nf-auth__title, .nf-auth__sub),
+  .nf-slate:has(.nf-slate-top--focal) .nf-auth__screen > * > :is(.nf-auth__title, .nf-auth__sub) {
+    text-align: center;
+  }
+  /* The keyboard: the short block has no room for the ring, so it steps
+     away and the column moves up with the block. */
+  @media (pointer: coarse) {
+    .nf-auth:has(.nf-auth__body :is(input:not([type="checkbox"]), select, textarea):focus) .nf-slate-focal {
+      opacity: 0;
+      transform: translate(-50%, 20%) scale(0.6);
+    }
+    .nf-auth:has(.nf-auth__body :is(input:not([type="checkbox"]), select, textarea):focus) .nf-auth__body {
+      padding-top: var(--nf-space-xs);
+    }
+  }
+  @media (max-height: 640px) {
+    .nf-slate {
+      --nf-slate-focal-size: 4.5rem;
+    }
+  }
+
+  /* ----------------------------------------- the code: glass rings */
+  .nf-code__cells {
+    justify-content: center;
+  }
+  .nf-code__cell {
+    flex: 0 1 3.25rem;
+    height: auto;
+    aspect-ratio: 1;
+    border-radius: var(--nf-radius-circle);
+    border-width: 2px;
+    font-size: 1.375rem;
+  }
+  .nf-code__cell[data-filled] {
+    border-color: color-mix(in oklab, var(--nf-electric-300) 75%, transparent);
+    box-shadow:
+      var(--nf-slate-card-shadow),
+      0 0 14px -2px color-mix(in oklab, var(--nf-electric-300) 55%, transparent);
+  }
+  .nf-code__cell[data-next] {
+    border-color: var(--nf-slate-edge);
+    box-shadow:
+      var(--nf-slate-card-shadow),
+      0 0 0 3px color-mix(in oklab, var(--nf-electric-300) 30%, transparent);
+  }
+  :root[data-theme="light"] .nf-code__cell[data-next] {
+    border-color: var(--nf-brand-primary);
+  }
+  .nf-code__box:has(.nf-code__input:focus-visible) .nf-code__cells {
+    border-radius: var(--nf-radius-pill);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-slate-focal {
+      animation: none;
+      transition: none;
+    }
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-slate-focal {
+    animation: none;
   }
 }

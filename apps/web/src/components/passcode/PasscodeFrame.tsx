@@ -10,10 +10,10 @@ import { initial } from "@/lib/text/initial";
  *
  * The top is the shared Slate block (`AuthCurveBlock` from
  * `components/auth/slate.tsx`, compact) so the lock reads as the same door
- * as sign-in: brand navy in light mode, inverted to a light block in dark
- * mode, through the `--nf-slate-*` roles in `app/css/auth.css`. Under the
- * arc: the member's avatar, one headline, one line, and the keypad on the
- * plain ground (`app/css/passcode.css`).
+ * as sign-in: the founder's 3D glass door of 30 September, a bright blue
+ * bowl with the lockup, and the member's avatar in a glowing ring across its
+ * curve (the block's `focal`). Under it: one headline, one line, the ring
+ * dots and the round glass keys (`app/css/passcode.css`).
  *
  * `overlay` draws it as a modal <dialog>: `showModal()` puts it in the top
  * layer and makes everything behind it inert (the shell's rail and tab bar
@@ -64,15 +64,22 @@ export function PasscodeFrame({
 
   const body = (
     <>
-      <AuthCurveBlock compact brandHref={null} brandLabel="Vallo" wordmark={wordmark} />
+      <AuthCurveBlock
+        compact
+        brandHref={null}
+        brandLabel="Vallo"
+        wordmark={wordmark}
+        focal={
+          <span className="nf-passcode__avatar">
+            {avatarUrl ? (
+              <RemoteImage src={avatarUrl} alt="" width={192} height={192} sizes="96px" />
+            ) : (
+              <span>{initial(name, "V")}</span>
+            )}
+          </span>
+        }
+      />
       <div className="nf-passcode__body">
-        <span className="nf-passcode__avatar" aria-hidden="true">
-          {avatarUrl ? (
-            <RemoteImage src={avatarUrl} alt="" width={128} height={128} sizes="72px" />
-          ) : (
-            <span>{initial(name, "V")}</span>
-          )}
-        </span>
         {/* The dialog opens with focus on its title, so a screen reader reads
             "Welcome back" first and no key starts out looking pressed. */}
         <h1 id={titleId} className="nf-passcode__title" tabIndex={-1} autoFocus={overlay}>
