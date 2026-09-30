@@ -63,6 +63,13 @@ Row 16 was applied after its review. Its read-back passed, including the
 severity backfill of every existing notification. The notify and saved tests
 pass (17 files, 199 tests).
 
+| 17 | `20260930150000` | `20260930122539` | `c13_alert_acknowledged_by_and_skipped_runs` (APPLY, verdict 0d751029) |
+
+Row 17 was applied after its review. The file had never been committed, but
+it was last written before the review commit (0d751029) and matches the review
+point for point. Its read-back passed. The cron and alerts tests pass
+(23 files, 293 tests).
+
 The verdicts below are the review as it was written before the apply.
 
 ## Summary
