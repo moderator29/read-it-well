@@ -108,7 +108,7 @@ export function totalCard({ x, y, w, rotate = 0, s = 1, z = 36 }) {
       ${exampleChip({ theme: "dark", scale: s })}
     </div>
     <div style="font-weight:800;font-size:${px(76 * s)};letter-spacing:-0.03em;line-height:1.05;margin-top:${px(10 * s)};font-variant-numeric:tabular-nums">₦26,100,000</div>
-    <div style="font-weight:500;font-size:${px(26 * s)};color:rgb(225 236 255 / 0.86);margin-top:${px(8 * s)}">Rent plus every fee, added up</div>
+    <div style="font-weight:500;font-size:${px(26 * s)};color:rgb(225 236 255 / 0.86);margin-top:${px(8 * s)}">What you pay to move in</div>
   </div>`;
 }
 

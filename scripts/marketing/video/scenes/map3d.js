@@ -63,9 +63,9 @@ const ROUTE_ORDER = ["Abuja", "Kano", "Port Harcourt", "Enugu", "Ibadan"];
 
 /* The model, in model units (the country is WIDTH units from east to west). */
 const WIDTH = 10;
-const SLAB = { height: 0.5, bevel: 0.11, segments: 6, sink: 0.06 };
-const PLINTH = { margin: 0.42, height: 0.62, bevel: 0.16, segments: 200 };
-const HOUSE_W = 0.42; // about 4 % of the country's width
+const SLAB = { height: 0.62, bevel: 0.18, segments: 8, sink: 0.06 };
+const PLINTH = { margin: 0.3, height: 0.66, bevel: 0.2, segments: 200 };
+const HOUSE_W = 0.44; // about 4 % of the country's width
 const CLEAR = { house: 0.42, dot: 0.2 }; // how far Lagos' house and the dots stay inside the edge
 
 /* Each film: camera path and the box the country must stay inside (canvas px, at 1080 x 1920
@@ -259,7 +259,7 @@ function nigeriaRing(topology) {
  * of the delta close, corners round off, and the result is a clean ring the bevel can
  * follow without folding over itself. Then resampled at an even spacing, anticlockwise.
  */
-function softOutline(P, { cell = 0.02, blur = 3, spacing = 0.045 } = {}) {
+function softOutline(P, { cell = 0.02, blur = 5, spacing = 0.045 } = {}) {
   let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
   for (const [x, y] of P) {
     x0 = Math.min(x0, x); x1 = Math.max(x1, x);
@@ -647,6 +647,25 @@ const VERT_LIT = /* glsl */ `
   }
 `;
 
+/* The velvet's vertex shader: in the glow pass the walls and the rounded edge swell outward
+   a little, so the rim's glow is wide enough to survive the quarter-size glow buffer. */
+const VERT_VELVET = /* glsl */ `
+  uniform float uGlowPass;
+  uniform float uInflate;
+  varying vec3 vPos;
+  varying vec3 vN;
+  varying vec2 vUv;
+  void main() {
+    vec3 p = position;
+    p.xz += normal.xz * uInflate * uGlowPass;
+    vec4 wp = modelMatrix * vec4(p, 1.0);
+    vPos = wp.xyz;
+    vN = normalize(mat3(modelMatrix) * normal);
+    vUv = uv;
+    gl_Position = projectionMatrix * viewMatrix * wp;
+  }
+`;
+
 /* The velvet: wrapped key light, a hemisphere of navy and blue, a soft pool of light, and
    the pile: fibres that catch the rim light at grazing angles (the glowing edge of the art),
    with a seeded grain. */
@@ -664,6 +683,10 @@ const FRAG_VELVET = /* glsl */ `
   uniform vec3 uPool;
   uniform float uPoolR;
   uniform float uPoolAmt;
+  uniform vec2 uGradDir;
+  uniform float uGradR;
+  uniform float uGradAmt;
+  uniform vec3 uAo;
   uniform sampler2D uGrain;
   uniform float uGrainScale;
   uniform float uGrainAmt;
@@ -680,18 +703,23 @@ const FRAG_VELVET = /* glsl */ `
     vec3 V = normalize(cameraPosition - vPos);
     float nv = clamp(dot(N, V), 0.0, 1.0);
     vec2 g = texture2D(uGrain, vUv * uGrainScale).rg - 0.5;
-    float kd = clamp((dot(N, uKeyDir) + 0.45) / 1.45, 0.0, 1.0);
+    float kd = clamp((dot(N, uKeyDir) + 0.5) / 1.5, 0.0, 1.0);
     vec2 dp = (vPos.xz - uPool.xz) / uPoolR;
     float pool = mix(1.0, exp(-dot(dp, dp)), uPoolAmt);
+    // light falls off toward the front, like the art's ground under a bright horizon
+    float grad = 1.0 + uGradAmt * clamp(dot(vPos.xz - uPool.xz, uGradDir) / uGradR, -1.0, 1.0);
+    // the walls darken toward their foot (occlusion by the plinth)
+    float side = 1.0 - clamp(N.y, 0.0, 1.0);
+    float ao = mix(1.0, mix(uAo.z, 1.0, smoothstep(uAo.x, uAo.y, vPos.y)), side);
     vec3 hemi = mix(uGround, uSky, N.y * 0.5 + 0.5);
-    vec3 col = uAlbedo * (hemi + uKeyCol * kd * pool);
-    // the pile: bright where the surface turns away from the eye, strongest toward the rim light
+    vec3 col = uAlbedo * (hemi + uKeyCol * kd * pool) * grad * ao;
+    // the pile: fibres light up where the surface turns away from the eye, most toward the rim light
     float fr = pow(1.0 - nv, uSheenPow);
-    float toRim = clamp(dot(N, uRimDir) * 0.5 + 0.5, 0.0, 1.0);
+    float toRim = clamp(dot(N, uRimDir), 0.0, 1.0);
     float behind = clamp(dot(-V, uRimDir) * 0.5 + 0.5, 0.0, 1.0);
-    vec3 sheen = fr * (uSheenCol * (0.45 + 0.55 * kd) + uRimCol * toRim * (0.35 + 0.65 * behind));
-    float grain = g.x * uGrainAmt + g.y * uGrainAmt * 0.6;
-    col = col * (1.0 + grain) + sheen * (1.0 + 2.2 * g.x);
+    vec3 sheen = fr * (uSheenCol * (0.35 + 0.65 * kd) * pool + uRimCol * toRim * (0.3 + 0.7 * behind)) * ao;
+    float grain = g.x * uGrainAmt + g.y * uGrainAmt * 0.7;
+    col = col * (1.0 + grain) + sheen * (1.0 + 1.1 * g.x);
     // warm light spilling from the home's windows
     vec3 dw = vPos - uWarmPos;
     col += uWarmCol * exp(-dot(dw, dw) / (uWarmR * uWarmR)) * (0.4 + 0.6 * N.y);
@@ -788,7 +816,7 @@ const FRAG_ROUTE = /* glsl */ `
     float head = exp(-behind * behind) * uHeadAmt;
     float dp = (u - uPulse) / 0.05;
     float pulse = exp(-dp * dp) * uPulseAmt;
-    float tail = smoothstep(0.0, 0.08, u);
+    float tail = smoothstep(0.0, 0.08, u) * (1.0 - 0.6 * smoothstep(0.86, 1.0, u));
     vec3 c = mix(uColA, uColB, u) * (0.45 + 0.55 * tail) * uIntensity;
     c += uHot * (head + pulse);
     float body = uOnlyGlow > 0.5 ? nv * nv : (0.55 + 0.45 * nv);
@@ -1018,6 +1046,11 @@ export async function createLiveMap(o) {
     uPool: { value: u.pool },
     uPoolR: { value: u.poolR },
     uPoolAmt: { value: u.poolAmt },
+    uGradDir: { value: new THREE.Vector2(u.gradDir[0], u.gradDir[1]).normalize() },
+    uGradR: { value: u.gradR },
+    uGradAmt: { value: u.gradAmt },
+    uAo: { value: new THREE.Vector3(u.ao[0], u.ao[1], u.ao[2]) },
+    uInflate: { value: u.inflate ?? 0 },
     uGrain: { value: grain },
     uGrainScale: { value: u.grainScale },
     uGrainAmt: { value: u.grainAmt },
@@ -1027,30 +1060,36 @@ export async function createLiveMap(o) {
     uWarmCol: { value: new THREE.Color(0, 0, 0) },
     uWarmR: { value: 0.6 },
   });
-  const shader = (frag, uniforms, extra = {}) => new THREE.ShaderMaterial({ vertexShader: VERT_LIT, fragmentShader: frag, uniforms, ...extra });
+  const shader = (frag, uniforms, extra = {}) => new THREE.ShaderMaterial({ vertexShader: frag === FRAG_VELVET ? VERT_VELVET : VERT_LIT, fragmentShader: frag, uniforms, ...extra });
 
   const LOOK = {
     slab: {
-      albedo: "#0a2fd6",
-      key: "#dfe6ff", keyAmt: 0.62,
-      rim: "#2f7dff", rimAmt: 1.35,
-      sky: "#1d3fae", skyAmt: 0.42,
-      ground: "#050b3a", groundAmt: 0.25,
-      sheen: "#3b74ff", sheenAmt: 0.55, sheenPow: 2.6,
-      pool: new THREE.Vector3(centre3.x - 1.2, 0, centre3.z + 1.0), poolR: 7.5, poolAmt: 0.42,
-      grainScale: 0.21, grainAmt: 0.075,
-      glowGain: 0.9, glowFloor: 0.18,
+      albedo: "#0036e6",
+      key: "#e2ecff", keyAmt: 0.5,
+      rim: "#2a7bff", rimAmt: 2.4,
+      sky: "#1f4fd0", skyAmt: 0.36,
+      ground: "#041046", groundAmt: 0.3,
+      sheen: "#3a7cff", sheenAmt: 0.7, sheenPow: 2.2,
+      pool: new THREE.Vector3(centre3.x - 2.2, 0, centre3.z - 0.6), poolR: 8.5, poolAmt: 0.5,
+      gradDir: [-0.35, -0.94], gradR: 5.5, gradAmt: 0.2,
+      ao: [-0.05, SLAB.height * 0.8, 0.45],
+      inflate: 0.07,
+      grainScale: 0.42, grainAmt: 0.09,
+      glowGain: 1.25, glowFloor: 0.08,
     },
     plinth: {
-      albedo: "#0a1466",
-      key: "#dfe6ff", keyAmt: 0.5,
-      rim: "#2f6dff", rimAmt: 1.1,
-      sky: "#1a2c8a", skyAmt: 0.32,
+      albedo: "#0a1a7a",
+      key: "#e2ecff", keyAmt: 0.42,
+      rim: "#2a6bff", rimAmt: 1.9,
+      sky: "#183399", skyAmt: 0.3,
       ground: "#02041c", groundAmt: 0.3,
-      sheen: "#2a52d8", sheenAmt: 0.42, sheenPow: 2.8,
-      pool: new THREE.Vector3(centre3.x - 1.2, 0, centre3.z + 1.0), poolR: 8.5, poolAmt: 0.5,
-      grainScale: 0.21, grainAmt: 0.07,
-      glowGain: 0.7, glowFloor: 0.2,
+      sheen: "#2a5ae0", sheenAmt: 0.5, sheenPow: 2.4,
+      pool: new THREE.Vector3(centre3.x - 1.8, 0, centre3.z - 0.4), poolR: 9.5, poolAmt: 0.55,
+      gradDir: [-0.35, -0.94], gradR: 6.5, gradAmt: 0.25,
+      ao: [-PLINTH.height, -0.05, 0.5],
+      inflate: 0.08,
+      grainScale: 0.42, grainAmt: 0.05,
+      glowGain: 0.9, glowFloor: 0.1,
     },
   };
 
@@ -1087,7 +1126,7 @@ export async function createLiveMap(o) {
       blendSrcAlpha: THREE.ZeroFactor,
       blendDstAlpha: THREE.OneFactor,
     });
-  const plinthShadow = new THREE.Mesh(new THREE.PlaneGeometry(plinthR * 2, plinthR * 2), decal(shadowTex, { opacity: 0.85 }));
+  const plinthShadow = new THREE.Mesh(new THREE.PlaneGeometry(plinthR * 2, plinthR * 2), decal(shadowTex, { opacity: 0.92 }));
   plinthShadow.rotation.x = -Math.PI / 2;
   plinthShadow.position.set(centre3.x, 0.002, centre3.z);
   plinthShadow.renderOrder = 1;
@@ -1216,7 +1255,7 @@ export async function createLiveMap(o) {
       uGlowPass: glowPass,
       uAlbedo: { value: lin(albedo) },
       uKeyDir: { value: keyDir },
-      uKeyCol: { value: lin("#fff4ea").multiplyScalar(0.95) },
+      uKeyCol: { value: lin("#fff4ea").multiplyScalar(1.05) },
       uRimDir: { value: rimDir },
       uRimCol: { value: lin("#4d8dff").multiplyScalar(rimAmt) },
       uSky: { value: lin("#4a64c8").multiplyScalar(0.55) },
@@ -1233,9 +1272,9 @@ export async function createLiveMap(o) {
     const scaler = new THREE.Group();
     scaler.scale.setScalar(s);
     root.add(scaler);
-    const white = clayMat("#f2eefb", { rimAmt: 0.7, rimGlow: 0.25 });
-    const baseMat = clayMat("#e7ecff", { rimAmt: 0.8, rimGlow: 0.35 });
-    const roofMat = clayMat("#1f56f2", { rimAmt: 1.2, rimGlow: 0.9 });
+    const white = clayMat("#fbf8ff", { rimAmt: 0.45, rimGlow: 0.15 });
+    const baseMat = clayMat("#eef2ff", { rimAmt: 0.6, rimGlow: 0.3 });
+    const roofMat = clayMat("#1d5cff", { rimAmt: 1.3, rimGlow: 0.8 });
     const doorMat = clayMat("#ff6b1a", { emissive: "#2a0c00" });
     // the base: a small round plinth
     const base = new THREE.Mesh(latheGeometry([
@@ -1493,7 +1532,7 @@ export async function createLiveMap(o) {
     const bob = Math.sin(TAU * 0.9 * (t - T.pinIn[0])) * 0.025 * prog(t, T.pinIn[0], T.pinIn[1]);
     const pos = rest.clone();
     pos.y += (1 - inU) * 0.9 + bob;
-    const scale0 = 0.14;
+    const scale0 = 0.2;
     let scale = scale0 * mix(0.55, 1, inU);
     const liftU = prog(t, T.pinLift[0], T.pinLift[1]);
     if (liftU > 0) {
@@ -1603,7 +1642,7 @@ export async function createLiveMap(o) {
         const m = r.ripple.material.uniforms;
         m.uRadius.value = rad / (rad + 0.2);
         m.uWidth.value = 0.09;
-        m.uAmt.value = 0.9 * (1 - ru) * (1 - ru);
+        m.uAmt.value = 0.55 * (1 - ru) * (1 - ru);
       }
       const lu = prog(t, r.start - 0.05, r.start + 0.55);
       r.launch.visible = lu > 0 && lu < 1;
@@ -1839,7 +1878,7 @@ function silhouetteShadow(outline, centre, R, keyDir) {
   const size = 256;
   const F = new Float32Array(size * size);
   const toPx = (x, y) => [((x - (centre[0] - R)) / (2 * R)) * size, ((y - (centre[1] - R)) / (2 * R)) * size];
-  const P = outline.map(([x, y]) => toPx(x - keyDir.x * 0.1, y + keyDir.z * 0.1));
+  const P = outline.map(([x, y]) => toPx(x - keyDir.x * 0.26, y + keyDir.z * 0.26));
   const xs = [];
   for (let j = 0; j < size; j += 1) {
     const y = j + 0.5;

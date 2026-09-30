@@ -90,6 +90,13 @@
     "theme": "dark",
     "signedIn": true
   },
+  "d-assistant": {
+    "url": "/assistant",
+    "at": "2026-09-30T16:48:38.315Z",
+    "kind": "desktop",
+    "theme": "dark",
+    "signedIn": true
+  },
   "d-assistant-answer": {
     "url": "/assistant",
     "at": "2026-09-30T15:54:20.698Z",

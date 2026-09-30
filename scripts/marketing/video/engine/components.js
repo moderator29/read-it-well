@@ -100,12 +100,12 @@ export function popup(ctx, { theme = "dark", sticker, icon, title, line, now = "
  * Drops a pop-up in at t: from above (or `from`: "left"|"right"|"below"),
  * overshooting a touch, with the notification chime; out at tOut.
  */
-export function popIn(ctx, card, t, { from = "above", distance = 90, tOut = null, sound = "chime_notify", gain = -4 } = {}) {
+export function popIn(ctx, card, t, { from = "above", distance = 90, tOut = null, sound = "chime_notify", offset = 0 } = {}) {
   const { tl } = ctx;
   const axis = from === "left" || from === "right" ? "x" : "y";
   const sign = from === "above" || from === "left" ? -1 : 1;
   tl.fromTo(card, { [axis]: sign * distance, scale: 0.92, opacity: 0 }, { [axis]: 0, scale: 1, opacity: 1, duration: 0.55, ease: "back.out(1.6)" }, t);
-  if (sound) ctx.sfx(sound, t, { gain });
+  if (sound) ctx.sfx(sound, t, { offset });
   if (tOut != null) tl.to(card, { [axis]: sign * distance * 0.6, opacity: 0, scale: 0.96, duration: 0.28, ease: "power2.in" }, tOut);
 }
 
@@ -114,16 +114,16 @@ export function popIn(ctx, card, t, { from = "above", distance = 90, tOut = null
 export const naira = (n) => `₦${Math.round(n).toLocaleString("en-NG")}`;
 
 /** Counts `node` from `from` to `to` between t0 and t1 (with counter ticks). */
-export function countUp(ctx, node, { from = 0, to, t0, t1, ease = "power2.out", format = naira, ticks = 10, gain = -14 }) {
+export function countUp(ctx, node, { from = 0, to, t0, t1, ease = "power2.out", format = naira, ticks = 10, offset = 0 }) {
   const e = ctx.ease(ease);
   ctx.text(node, (t) => format(from + (to - from) * e(ctx.progress(t, t0, t1))));
-  for (let k = 0; k < ticks; k += 1) ctx.sfx("counter_tick", t0 + ((t1 - t0) * k) / ticks, { gain });
+  for (let k = 0; k < ticks; k += 1) ctx.sfx("counter_tick", t0 + ((t1 - t0) * k) / ticks, { offset });
 }
 
 /* ---------- taps, cursor ---------- */
 
 /** A tap on a phone screen at display pixel (x, y): a ripple and the tap sound. */
-export function tap(ctx, screen, { x, y, t, size = 240, color = "rgb(143 211 255 / 0.55)", sound = "tap", gain = -6 }) {
+export function tap(ctx, screen, { x, y, t, size = 240, color = "rgb(143 211 255 / 0.55)", sound = "tap", offset = 0 }) {
   const ring = ctx.el("div", {
     class: "abs",
     style: {
@@ -132,7 +132,7 @@ export function tap(ctx, screen, { x, y, t, size = 240, color = "rgb(143 211 255
     },
   }, screen);
   ctx.tl.fromTo(ring, { scale: 0.2, opacity: 0.95 }, { scale: 1, opacity: 0, duration: 0.55, ease: "power2.out" }, t);
-  if (sound) ctx.sfx(sound, t, { gain });
+  if (sound) ctx.sfx(sound, t, { offset });
   return ring;
 }
 
@@ -144,14 +144,14 @@ export function cursor(ctx, parent, { size = 44 } = {}) {
 }
 
 /** A click: the pointer dips, a ring opens at its tip, the tap sound. */
-export function click(ctx, pointer, t, { ringParent, x, y, sound = "tap", gain = -6 } = {}) {
+export function click(ctx, pointer, t, { ringParent, x, y, sound = "tap", offset = 0 } = {}) {
   ctx.tl.to(pointer, { scale: 0.86, duration: 0.08, ease: "power2.out", transformOrigin: "10% 8%" }, t - 0.02);
   ctx.tl.to(pointer, { scale: 1, duration: 0.22, ease: "power2.out" }, t + 0.08);
   if (ringParent) {
     const ring = ctx.el("div", { class: "abs", style: { left: `${x - 60}px`, top: `${y - 60}px`, width: "120px", height: "120px", borderRadius: "50%", border: "3px solid rgb(143 211 255 / 0.9)", opacity: 0, zIndex: 790 } }, ringParent);
     ctx.tl.fromTo(ring, { scale: 0.2, opacity: 1 }, { scale: 1, opacity: 0, duration: 0.5, ease: "power2.out" }, t);
   }
-  if (sound) ctx.sfx(sound, t, { gain });
+  if (sound) ctx.sfx(sound, t, { offset });
 }
 
 /* ---------- the browser window (desktop film) ---------- */
@@ -334,9 +334,9 @@ export function questionCard(ctx, parent, { q, a, box, mark = false, fontSize = 
     front,
     back,
     /** Turns the card over to its answer at t (0.6 s, with a soft pop). */
-    turn(t, { sound = "pop", gain = -8 } = {}) {
+    turn(t, { sound = "pop", offset = 0 } = {}) {
       ctx.tl.fromTo(inner, { rotationY: 0 }, { rotationY: 180, duration: 0.62, ease: "back.out(1.4)" }, t);
-      if (sound) ctx.sfx(sound, t + 0.18, { gain });
+      if (sound) ctx.sfx(sound, t + 0.18, { offset });
     },
   };
 }

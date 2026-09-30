@@ -113,7 +113,7 @@ export const SET_A = [
       return [
         pill({ x: 50 * u, y: b.y + b.h * 0.27, text: "Lagos", lucide: "map-pin", size: 36 * u, z: 36, active: true, rotate: -3 }),
         pill({ x: 84 * u, y: b.y + b.h * 0.45, text: "Abuja", lucide: "map-pin", size: 34 * u, z: 36, rotate: 2 }),
-        pill({ x: 50 * u, y: b.y + b.h * 0.63, text: "Port Harcourt", lucide: "map-pin", size: 32 * u, z: 36, rotate: -2 }),
+        pill({ x: 50 * u, y: b.y + b.h * 0.63, text: "Kano", lucide: "map-pin", size: 34 * u, z: 36, rotate: -2 }),
         p.html,
         stickerIn(ctx, { code: "1f50d", x: Math.min(b.r - 30 * u, W - 120 * u), y: b.y + 40 * u, size: 210 * u, rotate: 14 }),
         headline({ lines: ["Search homes", "across Nigeria"], cx: W / 2, y: f.hlTop, max: f.max, size: f.size }),
@@ -202,8 +202,9 @@ export const SET_A = [
       const f = frame(ctx);
       const cy = f.phoneTop + f.phoneH / 2;
       const p = await ctx.phone({ id: "thread", cx: W * 0.44, cy, h: f.phoneH, rotation: { x: -5, y: 16, z: -2.5 }, fov: 26 });
-      /* The card lands over the first listing's photograph, where it hides no words. */
-      const py = p.at(700, 860)[1];
+      /* The card lands over the first listing's photograph, its lower edge
+         (rotation included) clear of the listing's title at display y 1180. */
+      const py = Math.min(p.at(700, 860)[1], p.at(420, 1180)[1] - 250 * u);
       ctx.anchors = { popup: [W - 44 * u, py + 92 * u] };
       return [
         p.html,

@@ -175,8 +175,11 @@ export async function createContext({ film, stage }) {
      * whoosh_short, chime_notify, success, ding_pay, stamp, impact_soft ...).
      * Only for real on-screen actions and real scene changes.
      */
-    sfx(name, t, { gain = 0, pan = 0 } = {}) {
-      cues.push({ name, t: Math.round(t * 1000) / 1000, gain_db: gain, pan });
+    sfx(name, t, { offset = 0, pan = 0 } = {}) {
+      /* `offset` is dB relative to the kit's own calibrated level for this
+         sound (sfx/index.json, recommended_gain_db): 0 is the kit's level,
+         +3 a touch louder. The mixer caps every effect under the voice. */
+      cues.push({ name, t: Math.round(t * 1000) / 1000, offset_db: offset, pan });
     },
 
     /** No captions from t0 to t1 (the same words are already big on screen). */

@@ -183,6 +183,7 @@ export const CAPTURES = [
   { id: "d-filters-set", kind: "desktop", steps: FILTERS_SET },
   { id: "d-filters-villas", kind: "desktop", steps: FILTER("button:has-text('Villas')") },
   { id: "d-search-villas", kind: "desktop", steps: [...FILTER("button:has-text('Villas')"), { click: "button:has-text('Apply (')" }, { wait: 2500 }] },
+  { id: "d-assistant", kind: "desktop", steps: [{ goto: "/assistant" }, { clear: ["nf_ai_threads", "nf_ai_thread"] }, { goto: "/assistant" }] },
   { id: "d-assistant-caution", kind: "desktop", steps: ask("What is a caution deposit?") },
   { id: "d-listing-share", kind: "desktop", steps: [{ goto: LISTING_RENT }, { click: "[data-testid=listing-share]" }, { wait: 1200 }] },
   { id: "d-listing-full", kind: "desktop", full: true, steps: go(LISTING_RENT) },

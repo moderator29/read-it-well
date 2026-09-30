@@ -96,11 +96,11 @@ img { display: block; user-select: none; -webkit-user-drag: none; }
 .captions .pill {
   max-width: 88%; padding: 0.42em 0.8em 0.46em; border-radius: 0.75em; text-align: center;
   font-family: var(--text); font-weight: 600; letter-spacing: -0.01em; line-height: 1.28;
-  background: rgb(6 10 40 / 0.62); border: 1.5px solid rgb(120 170 255 / 0.22);
+  background: rgb(6 10 40 / 0.86); border: 1.5px solid rgb(120 170 255 / 0.22);
   backdrop-filter: blur(18px) saturate(1.2);
   box-shadow: 0 12px 40px -12px rgb(0 0 20 / 0.6);
 }
-.captions .w { color: rgb(255 255 255 / 0.5); }
+.captions .w { color: rgb(255 255 255 / 0.7); }
 .captions .w.said { color: #fff; }
 .captions .w.now { color: var(--sky); }
 
