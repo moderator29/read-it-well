@@ -35,7 +35,7 @@ export default {
       ${phoneHtml(phones[0], { shadowOpacity: 1 })}
       <div class="head h">Book a room<br><span style="color:#9FD8FF">in a few taps.</span></div>
       <div class="sub">Hotels, shortlets and resorts across Nigeria.</div>
-      <div class="abs" style="left:56px;top:1236px">${popup({ theme: "dark", icon: { sticker: "1f6ce-fe0f" }, title: "Room booked", sub: "Lagoon Crest Resort · 3 nights", chipText: "Example", time: "now", width: 600 })}</div>
+      <div class="abs" style="left:56px;top:1452px">${popup({ theme: "dark", icon: { sticker: "1f6ce-fe0f" }, title: "Room booked", sub: "Lagoon Crest Resort · 3 nights", chipText: "Example", time: "now", width: 600 })}</div>
       `,
     }),
 };

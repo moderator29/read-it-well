@@ -1,7 +1,8 @@
 /* 21 · Story. "Reserve your table in seconds." A warm restaurant at night
- * fills the frame; the phone shows Harbour Lights Kitchen's opening hours
- * (it opens at 18:00, so 8:00 PM tonight fits) and the table arrives over
- * its edge. The headline sits low, above the story's reply bar. */
+ * fills the frame; the phone shows the restaurants list (Harbour Lights
+ * Kitchen opens at 18:00, so 8:00 PM tonight fits, and every card carries its
+ * Example chip) and the table arrives over its edge. The headline sits low,
+ * above the story's reply bar. */
 import { grain, page, phoneHtml, photo, popup } from "../lib/kit.mjs";
 
 export default {
@@ -10,7 +11,7 @@ export default {
   W: 1080,
   H: 1920,
   phones: [
-    { screen: "restaurant-hours", model: "island", color: "black-titanium", rotation: { x: -4, y: -18, z: -5 }, fov: 30, h: 1120, cx: 610, top: 250,
+    { screen: "restaurants", model: "island", color: "black-titanium", rotation: { x: -4, y: -18, z: -5 }, fov: 30, h: 1120, cx: 610, top: 250,
       shadow: { type: "drop", opacity: 0.6, ambientOpacity: 0.3, color: "#0A0300" } },
   ],
   html: ({ W, H, phones }) =>
@@ -37,7 +38,7 @@ export default {
       <div class="abs" style="left:372px;top:1016px">${popup({ theme: "dark", icon: { sticker: "1f942" }, title: "Table for 2", sub: "Tonight, 8:00 PM · Harbour Lights Kitchen", chipText: "Example", time: "now", width: 650,
         style: "background:rgba(28,14,10,.84);border-color:rgba(255,178,122,.38);box-shadow:0 40px 90px rgba(0,0,0,.6), 0 8px 24px rgba(0,0,0,.4)" })}</div>
       <div class="head h">Reserve your table<br><span class="w">in seconds.</span></div>
-      <div class="sub">The restaurant confirms, and the conversation lives inside the reservation.</div>
+      <div class="sub">Pick a time. The restaurant confirms, and the chat lives inside the reservation.</div>
       `,
     }),
 };
