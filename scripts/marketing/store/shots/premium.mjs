@@ -116,17 +116,22 @@ const HEADER = { top: 186, bottom: 365, bell: { x: 1204, y: 275, r: 66 }, menu: 
  * the phone is drawn once, tilted by the 3D studio, and keeps the studio's
  * own mapping of the capture.
  */
-function pair(a, b, { id, rotation, fov, dx = 0, h = 1, clear, extraB }) {
+function pair(a, b, { id, rotation, fov, dx = 0, h = 1, clear, through, extraB }) {
   const shared = async ({ pc, W, H, ios }) => {
     const m = M({ W, H, ios });
     const o = { id, cy: m.phoneTop + m.phoneH / 2, h: m.phoneH * h, rotation, fov, color: PHONE_COLOR, margin: ios ? 64 : 70 };
     let p = await pc.phone({ ...o, cx: W + dx * (W / 1320) });
-    if (clear) {
+    if (clear || through) {
       /* Slide the phone so the seam passes `clear.gap` px to the right of a
-         region of the display (display px), such as a name. */
-      const [x0, y0, x1, y1] = clear.box;
-      const right = Math.max(...[[x0, y0], [x1, y0], [x1, y1], [x0, y1]].map(([x, y]) => p.at(x, y)[0]));
-      const shift = W - clear.gap * (W / 1320) - right;
+         region of the display (display px), such as a name; or exactly
+         through a point of the display, such as the space between two words. */
+      let shift;
+      if (through) shift = W - p.at(through[0], through[1])[0];
+      else {
+        const [x0, y0, x1, y1] = clear.box;
+        const right = Math.max(...[[x0, y0], [x1, y0], [x1, y1], [x0, y1]].map(([x, y]) => p.at(x, y)[0]));
+        shift = W - clear.gap * (W / 1320) - right;
+      }
       pc.placed.pop();
       p = await pc.phone({ ...o, cx: W + dx * (W / 1320) + shift });
     }
@@ -156,7 +161,11 @@ export const SHOTS = [
     { n: 4, slug: "hotels-shortlets-and-resorts", lines: ["Hotels, shortlets", "and resorts"] },
     { n: 5, slug: "book-a-room-in-a-few-taps", lines: ["Book a room", "in a few taps"] },
     {
-      id: "stays", rotation: { x: -16, y: -16, z: -17 }, fov: 26, h: 1, dx: -15,
+      /* The phone slid left (about 220 px on the App Store) so the seam
+         passes clear of the area line ("Ibeju-Lekki, Lagos State") and the
+         hero's headline, and through the space between "across" and
+         "Nigeria." on its subline. */
+      id: "stays", rotation: { x: -16, y: -16, z: -17 }, fov: 26, h: 1, through: [893, 1272],
       async extraB(ctx, m) {
         const { u, W } = ctx;
         const sp = ctx.shared.phone;

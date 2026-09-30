@@ -51,7 +51,7 @@ It follows the founder's ruling on 3D icons: in the films they appear only as pa
 - **05:** the screen swaps on each word. No tile lighting here; row 20 owns it.
 - **06:** no welcome screen, because it is dark. "One app." and "One account." land in WORDS. Then the phone shows a light screen with one real component that says two worlds, one account, for example the Property | Stays tabs of `messages-lt`, lifted as the one body.
 - **07:** "Looking for" / "a **home**?" on two lines, no wider than 896 px at the real Poppins width, in WORDS before the phone rises.
-- **09–10:** Apply opens the Maitama villa (`listing-lt`), then `listing-cost-light`. The on-screen total stays unreadable (below the fold or cropped) until the receipt lands it at 28.87.
+- **09–10:** Apply opens the Maitama villa (`listing-lt`), then `listing-cost-light`. The search list may show its own "₦26.1m to move in" (it is the product doing exactly what the voice says: the full cost before a call). But no figure is lifted, enlarged or held on its own before the receipt lands ₦26,100,000 at 28.87.
 - **13:** the odometer never shows a readable amount but ₦26,100,000. Each digit column spins with motion blur and stops, left to right.
 - **14–18:** the pill reads "Talk straight to the **lister**". "Lister" is the product's own word ("ask the lister directly"), and the screens say "Message agent". Owner, landlord and agent stay the big words, as spoken.
 - **16:** the card that flies is the Maitama villa, the one `listing-share-lt` shares. It never lands above a message already sent: end the beat on the press, with the sheet closing and the phone sliding right.

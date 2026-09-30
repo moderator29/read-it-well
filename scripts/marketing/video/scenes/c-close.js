@@ -13,7 +13,7 @@
  *     faded; vallospaces.com below them. Soon: vallospaces.com only.
  */
 import { browserWindow, squiggle, sparkles } from "../engine/components.js";
-import { track, ramp, spring, during, place, screenImage, measure, night, SHADOW, mix, opa, scaledSrc, own } from "./c-kit.js";
+import { ramp, during, place, screenImage, measure, night, mix, opa, scaledSrc, own } from "./c-kit.js";
 
 const BADGES = { apple: "/video/assets/badges/app-store-black.svg", google: "/video/assets/badges/google-play-black.svg" };
 
@@ -173,8 +173,19 @@ export async function buildClose(ctx, S) {
     const drift = (t, ph) => Math.sin((t - K.r41) * 0.9 + ph);
     /* the hold: a slow turn toward the viewer and a slight push, never still */
     const hold = (t) => ramp(ctx, t, K.r41 + 0.9, end, "sine.inOut");
-    pI.poses.push({ t0: K.r41 - 0.02, t1: end, fn: (t) => ({ cx: 392 + 4 * drift(t, 0), cy: 1050 + (1 - rise(t, 0.05)) * 1150 + 5 * drift(t, 1.3) - 10 * hold(t), height: 800 * (1 + 0.04 * hold(t)), rx: 2, ry: mix(-4, 13, rise(t, 0.05)) - 6 * hold(t) + 1.5 * drift(t, 2), rz: 0, fov: 24, opacity: 1 }) });
-    pA.poses.push({ t0: K.r41 - 0.02, t1: end, fn: (t) => ({ cx: 694 - 4 * drift(t, 0.6), cy: 1066 + (1 - rise(t, 0.16)) * 1150 + 5 * drift(t, 2.1) - 10 * hold(t), height: 790 * (1 + 0.04 * hold(t)), rx: 2, ry: mix(4, -13, rise(t, 0.16)) + 6 * hold(t) - 1.5 * drift(t, 2.7), rz: 0, fov: 24, opacity: 1 }) });
+    /* Sized so that everything read on this card (the badges and vallospaces.com
+       too) sits above y 1430, the captions-off safe line of STORYBOARD.md: the
+       phones span about y 565 to 1270, the badges 1290 to 1374. */
+    /* The rise and the turn toward each other are the 3D pose; once risen the
+       pose holds still and the drift is a 2D move of each phone's layer, so
+       the two live phones are not re-rendered on every frame of the hold. */
+    pI.poses.push({ t0: K.r41 - 0.02, t1: end, fn: (t) => ({ cx: 410, cy: 910 + (1 - rise(t, 0.05)) * 1150, height: 690, rx: 2, ry: mix(-4, 13, rise(t, 0.05)), rz: 0, fov: 24, opacity: 1 }) });
+    pA.poses.push({ t0: K.r41 - 0.02, t1: end, fn: (t) => ({ cx: 676, cy: 924 + (1 - rise(t, 0.16)) * 1150, height: 680, rx: 2, ry: mix(4, -13, rise(t, 0.16)), rz: 0, fov: 24, opacity: 1 }) });
+    ctx.onFrame((t) => {
+      const on = t >= K.r41 - 0.02 && t < end;
+      pI.root.style.transform = on ? `translate(${(4 * drift(t, 0)).toFixed(2)}px, ${(5 * drift(t, 1.3) - 12 * hold(t)).toFixed(2)}px)` : "";
+      pA.root.style.transform = on ? `translate(${(-4 * drift(t, 0.6)).toFixed(2)}px, ${(5 * drift(t, 2.1) - 12 * hold(t)).toFixed(2)}px)` : "";
+    });
     sparkles(ctx, top, { area: { x: 120, y: 200, w: 820, h: 360 }, count: 4, seed: 4101, t0: K.r41 + 0.8, t1: end + 1, color: "#5c9fff", min: 16, max: 28 });
     const url0 = K.r42;
     during(ctx, K.r41 - 0.02, end, (t) => {
@@ -183,9 +194,9 @@ export async function buildClose(ctx, S) {
       const b = ramp(ctx, t, K.r41 + 0.45, K.r41 + 1.1, "land");
       place(pill, { x: 540, y: 470 + (1 - b) * 20, o: b });
       /* bar 44: the badges cut in (live); vallospaces.com arrives */
-      cutBadges(t, 540, 1530);
+      cutBadges(t, 540, 1332);
       const c = ramp(ctx, t, url0, url0 + 0.6, "land");
-      place(url, { x: 540, y: (live ? 1612 : 1545) + (1 - c) * 16, o: c });
+      place(url, { x: 540, y: (live ? 1410 : 1332) + (1 - c) * 16, o: c });
     });
   } else {
     /* desktop: the window at vallospaces.com (d-home-light) at the left, the island phone at the right */
@@ -198,7 +209,12 @@ export async function buildClose(ctx, S) {
     const rise = (t, lag) => ramp(ctx, t, K.r41 + lag, K.r41 + 0.85 + lag, "land");
     const drift = (t, ph) => Math.sin((t - K.r41) * 0.9 + ph);
     const hold = (t) => ramp(ctx, t, K.r41 + 0.9, end, "sine.inOut");
-    pD.poses.push({ t0: K.r41 - 0.02, t1: end, fn: (t) => ({ cx: 1500 + 3 * drift(t, 0.4), cy: 470 + (1 - rise(t, 0.14)) * 900 + 4 * drift(t, 1.1) - 8 * hold(t), height: 820 * (1 + 0.035 * hold(t)), rx: 2, ry: mix(6, -10, rise(t, 0.14)) + 5 * hold(t) - 1.2 * drift(t, 2.2), rz: 0, fov: 24, opacity: 1 }) });
+    /* the rise and turn in 3D; the hold's drift as a 2D move of the phone's layer */
+    pD.poses.push({ t0: K.r41 - 0.02, t1: end, fn: (t) => ({ cx: 1500, cy: 470 + (1 - rise(t, 0.14)) * 900, height: 820, rx: 2, ry: mix(6, -10, rise(t, 0.14)), rz: 0, fov: 24, opacity: 1 }) });
+    ctx.onFrame((t) => {
+      const on = t >= K.r41 - 0.02 && t < end;
+      pD.root.style.transform = on ? `translate(${(3 * drift(t, 0.4)).toFixed(2)}px, ${(4 * drift(t, 1.1) - 10 * hold(t)).toFixed(2)}px)` : "";
+    });
     sparkles(ctx, top, { area: { x: 1220, y: 40, w: 600, h: 220 }, count: 3, seed: 4102, t0: K.r41 + 0.8, t1: end + 1, color: "#5c9fff", min: 14, max: 24 });
     ctx.onFrame((t) => {
       dImg.style.visibility = t >= K.r41 - 0.05 ? "" : "hidden";

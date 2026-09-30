@@ -9,7 +9,7 @@
  * the beat at 88.27 goes to the map.
  */
 import { orb, browserWindow } from "../engine/components.js";
-import { track, ramp, spring, during, place, dispToStage, measure, SHADOW, mix, opa } from "./c-kit.js";
+import { track, ramp, during, place, dispToStage, measure, SHADOW, mix, opa } from "./c-kit.js";
 
 /* The rows as captured (display px on mobile, content px on desktop). */
 const ROWS = [

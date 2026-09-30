@@ -1,6 +1,6 @@
 # App Store and Google Play screenshots: the handbook
 
-Produced on 30 September 2026 (second round, after the premium review in `scratchpad/critic/store-premium-r1.md`). This records what is in `docs/store/screenshots/`, how every image was made, the sizes each store takes, and which images to submit. Everything in it can be regenerated with two commands (section 8).
+Produced on 30 September 2026: the second round, after a premium review of the first. This records what is in `docs/store/screenshots/`, how every image was made, the sizes each store takes, and which images to submit. Everything in it can be regenerated with two commands (section 8).
 
 **The short version.** There are 35 images for each store, in store order, made to DESIGN.md section 6a (`scripts/marketing/DESIGN.md`):
 
@@ -49,7 +49,7 @@ Every screen is the live product at <https://www.vallospaces.com>, in its dark t
 | 01 | Find your next home / in Nigeria | `home` | |
 | 02 | The move-in total, / before you call | `listing-cost` | the villa's own move-in lines |
 | 03 | Homes and stays, / one account | `welcome-1` | public |
-| 04 | Hotels, shortlets / and resorts | `stays` | pair with 05: one phone across the seam |
+| 04 | Hotels, shortlets / and resorts | `stays` | pair with 05: one phone across the seam, which passes clear of the area line and the hero's headline |
 | 05 | Book a room / in a few taps | `stays` | card: "Room booked · Lagoon Crest Resort · 3 nights", Example |
 | 06 | Search homes / across Nigeria | `search` | |
 | 07 | See every home / up close | `listing` | |
@@ -69,7 +69,7 @@ Every screen is the live product at <https://www.vallospaces.com>, in its dark t
 | 21 | Light or dark, / your call | `appearance` | |
 | 22 | Talk to the owner / or the agent | `thread` | not for submission yet (section 2) |
 | 23 | Filter by exactly / what you need | `filters-villas` | Villas selected, Apply (3) |
-| 24 | Homes to buy, / not just to rent | `listing-banana` | a four bedroom house for sale on Chevron Drive, ₦180,000,000 |
+| 24 | Homes to buy, / not just to rent | `listing-sale` | the three bedroom terrace for sale in Karsana, ₦95,000,000 asking price (see "The order") |
 | 25 | Six digits, / and you’re back in | `lock` | the passcode lock |
 | 26 | Talk first. / Pay when sure. | `welcome-3` | public; the product's own words |
 | 27 | Amenities and / rooms, all laid out | `stay-amenities` | broken after "and" to keep within the measure |
@@ -77,14 +77,19 @@ Every screen is the live product at <https://www.vallospaces.com>, in its dark t
 | 29 | Lock Vallo / with a passcode | `passcode` | the settings screen: "Vallo locks after 5 minutes away" |
 | 30 | Your account / takes a minute | `sign-up` | public; the page's own "Your account takes a minute" |
 | 31 | Every fee, / added up | `listing-cost-total` | "Total to move in ₦26,100,000" |
-| 32 | Need a BQ? / Filter for it | `filters-detached-bq` | "Comes with a BQ" on, Apply (6) |
-| 33 | Restaurants, / all in one place | `restaurants` | |
+| 32 | Restaurants, / all in one place | `restaurants` | |
+| 33 | Need a BQ? / Filter for it | `filters-detached-bq` | "Comes with a BQ" on, Apply (6) |
 | 34 | Rent or buy, / in one search | `search-buy` | the search with Buy chosen |
 | 35 | Vallo. Real estate, / done right. | `welcome-4` | public; the onboarding's last slide; subline "Homes, hotels, shortlets and restaurants." |
 
 The layouts are in `scripts/marketing/store/shots/premium.mjs`.
 
-**The order.** The first swipe shows 1, 2 and 3 and then a pair (4 and 5). No more than two screens without a photograph or artwork come in a row. The brief's own order would have put five text screens together (its 14 to 18), so five neighbours moved by one or two places: welcome-2 to 14, welcome-yo to 16, support-inspection to 17, the stay to 19 and stays-dates to 20; the thread and filters swapped (22 and 23). The onboarding's two twins (03 and 16) are thirteen places apart.
+**The order.** The first swipe shows 1, 2 and 3 and then a pair (4 and 5). No more than two screens without a photograph or artwork come in a row.
+
+- The brief's own order would have put five text screens together (its 14 to 18). So five neighbours moved by one or two places: welcome-2 to 14, welcome-yo to 16, support-inspection to 17, the stay to 19 and stays-dates to 20.
+- The thread and the filters swapped (22 and 23), and so did the restaurants and the BQ filter (32 and 33), so photographs and text screens alternate at the end.
+- Screens that look alike at store size sit far apart: the onboarding's two twins (03 and 16), the two filter sheets (23 and 33), the two searches (06 and 34) and the two move-in pages (02 and 31).
+- **24 shows the Karsana terrace (`listing-sale`), not the Chevron Drive house (`listing-banana`) the brief named.** The example stock reuses its photographs, and the Chevron Drive house opens on the same photograph as the Maitama villa on 07, so 24 would have read as a repeat of 07. The Karsana terrace tells the same "for sale" story with its own photograph, and its price is in the facts file.
 
 ### The system (DESIGN.md section 6a)
 
@@ -107,7 +112,11 @@ The layouts are in `scripts/marketing/store/shots/premium.mjs`.
 - **Two cards, one rule.** 05 and 18 each carry one of DESIGN.md section 4's cards, opaque navy with the Example chip and no amount. The card arrives over the app's header, as a notification does:
   - It covers the bell whole on 05, and the menu and the logo whole on 18, and never sits partly on a button or a word.
   - It overhangs one edge of the phone: 70 px on the App Store (where the phone leaves 112 px to the image's edge) and 84 px on Play.
-- **Two pairs.** Each pair shares one phone, tilted by the 3D studio across its seam: 04 and 05 (the stays home, leaning right) and 10 and 11 (the restaurant, leaning left, slid so the seam clears the restaurant's name). Across the two images the phone is whole; only the seam between them cuts it.
+- **Two pairs.** Each pair shares one phone, tilted by the 3D studio across its seam: 04 and 05 (the stays home, leaning right) and 10 and 11 (the restaurant, leaning left). Each phone is slid left of the seam so the seam cuts no name:
+  - on the stays home it passes clear of the area line and the hero's headline, and between two words of the small line under it;
+  - on the restaurant it passes 44 px clear of "Harbour Lights Kitchen".
+
+  Across the two images the phone is whole; only the seam between them cuts it.
 - **Files.** 24-bit truecolour PNG (IHDR colour type 2), no alpha, no palette.
 
 ## 4. The sizes each store takes
@@ -151,7 +160,7 @@ One to ten screenshots per display size and language, in .png, .jpg or .jpeg, wi
 ## 6. Before you submit: things to know
 
 - **Every listing, stay and restaurant on screen is example stock**, because that is all the platform holds today. Their own pages show the Example notice and cards show the Example tag; no image crops either out. The two cards (05, 18) carry the Example chip; their names and nights are illustrative, from DESIGN.md section 4, and neither shows an amount.
-- **The QA account's home area, "Dunukofia, Anambra State", is on screen** on 01, 04 and 05, and on the feature graphic. The founder decides on the area; if it changes, recapture `home` and `stays` and rerun `compose.mjs`.
+- **The QA account's home area is "Ibeju-Lekki, Lagos State"** (the founder's choice; `home`, `home-recent` and `stays` were recaptured with it on the evening of 30 September 2026, so their greeting reads "Good evening"). It shows on 01, 04, 05 and the feature graphic, and in a pill on the stays hero photograph.
 - **The QA account's name is on screen:** "omojuni" on the home, stays, support and lock screens. No email address or phone number appears in any image.
 - **Three headers were cleaned** (12, 17 and 28).
   - These captures were taken scrolled, and the app's translucent header let the labels scrolled under it show through as faint ghost text beside the logo.

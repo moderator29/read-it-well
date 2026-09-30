@@ -9,7 +9,7 @@
  * head, which row 40 turns into the Vallo mark.
  */
 import { createLiveMap, SHOT } from "./map3d.js";
-import { ramp, during, place, night, mix, opa } from "./c-kit.js";
+import { ramp, during, place, night, opa } from "./c-kit.js";
 
 export async function buildMap(ctx, S) {
   const { K, L } = S;
