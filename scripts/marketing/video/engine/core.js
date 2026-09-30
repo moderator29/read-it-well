@@ -41,6 +41,7 @@ export async function createContext({ film, stage }) {
   const loads = [];
   const cues = [];
   const captionGaps = [];
+  const pillGaps = [];
   const { beat: BEAT, bar: BAR } = T.music;
 
   const norm = (s) => s.toLowerCase().replace(/[.,…?!:;'"“”‘’()]/g, "").trim();
@@ -194,6 +195,12 @@ export async function createContext({ film, stage }) {
       captionGaps.push([t0, t1]);
     },
     captionGaps,
+
+    /** No chapter pill from t0 to t1 (a push brings the screen's own heading up under it). */
+    hidePill(t0, t1) {
+      pillGaps.push([t0, t1]);
+    },
+    pillGaps,
 
     /** A seeded random stream (mulberry32): the only randomness allowed. */
     random(seed = 1) {

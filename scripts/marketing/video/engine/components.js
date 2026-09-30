@@ -243,7 +243,9 @@ export function installCaptions(ctx) {
   });
 
   /* Centred on y 1290 (mobile: above the TikTok and Reels overlays) or y 960 (desktop). */
-  const box = ctx.el("div", { class: "captions", style: { top: mobile ? "1290px" : "960px", transform: "translateY(-50%)" } }, ctx.stage);
+  /* Mobile: centred on y 1580, below the phone's readable content and above
+     the Reels and TikTok bottom overlays. Desktop: y 960. */
+  const box = ctx.el("div", { class: "captions", style: { top: mobile ? "1580px" : "960px", transform: "translateY(-50%)" } }, ctx.stage);
   /* Mobile captions stay inside x 140–940: clear of the right-hand buttons of TikTok and Reels. */
   const pill = ctx.el("div", { class: "pill", style: { fontSize: mobile ? "44px" : "34px", ...(mobile ? { maxWidth: "800px" } : {}) } }, box);
   let shown = -1;
@@ -649,7 +651,9 @@ export function installChapterPill(ctx, chapters, { theme = (t) => "light" } = {
     const a = joinedIn ? 1 : ctx.ease("back.out(1.6)")(ctx.progress(t, c.start, c.start + 0.45));
     const b = joinedOut ? 1 : 1 - ctx.ease("power2.in")(ctx.progress(t, c.end - 0.3, c.end));
     const roll = joinedIn ? ctx.ease("power3.out")(ctx.progress(t, c.start, c.start + 0.35)) : 1;
-    box.style.opacity = String(Math.min(a, b, 0.9999));
+    /* A pill gap fades the pill out over 0.15 s and back after it. */
+    const gap = (ctx.pillGaps ?? []).reduce((m, [g0, g1]) => Math.min(m, t < g0 ? ctx.clamp((g0 - t) / 0.15, 0, 1) : t < g1 ? 0 : ctx.clamp((t - g1) / 0.15, 0, 1)), 1);
+    box.style.opacity = String(Math.min(a, b, gap, 0.9999));
     pill.style.transform = `translateY(${(1 - Math.min(a, 1)) * -10}px)`;
     lines[k].style.display = "inline-block";
     lines[k].style.transform = `translateY(${(1 - roll) * 100}%)`;

@@ -1,4 +1,4 @@
-# The Vallo launch films: brief and storyboard (v3.2)
+# The Vallo launch films: brief and storyboard (v3.3)
 
 v3 answers the second critique (`scratchpad/critic/storyboard-round2.md`) and brings in what the founder's reference film does well (`REFERENCES.md`), in Vallo's own form:
 - chapter pills;
@@ -9,6 +9,14 @@ v3 answers the second critique (`scratchpad/critic/storyboard-round2.md`) and br
 - one night contrast beat.
 
 It follows the founder's ruling on 3D icons: in the films they appear only as parts of real platform components, and small.
+
+## v3.3 (the whole-film critique, round 1; overrides v3.2 and v3.1)
+
+- **Captions (mobile) are centred on y 1580,** in the band 1520–1640, under the phone's readable content. Whatever the voice names on screen sits above y 1500. Push or scroll the phone so it does.
+- **The chapter pill never covers a screen heading.** During any push that brings screen text into y 270–380, call `ctx.hidePill(t0, t1)`. The pill fades out over 0.15 s and back after the push.
+- **No label ever covers the subject.** Keep a 40 px clear radius around the thing the row is about (for example the Lagos home on the map).
+- **Sound:** the payoffs are lifted by `signature-cues.json`, and the music rides up +4 dB over the end card from 95.3. If a payoff moves, move its window there.
+- **The white cut is at 96.35** (beat 4 of bar 42), not 95.77.
 
 ## v3.2 (the section critiques; these override v3.1 and the rows)
 

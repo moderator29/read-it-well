@@ -388,7 +388,7 @@ async function lineGapCheck(min) {
     });
   });
   const mask = async (k) => {
-    const tag = await tab.addStyleTag({ content: `#stage * { visibility: hidden !important; } .hl .ln:nth-of-type(${k}), .hl .ln:nth-of-type(${k}) * { visibility: visible !important; }` });
+    const tag = await tab.addStyleTag({ content: `#stage * { visibility: hidden !important; } #stage .hl .ln:nth-of-type(${k}), #stage .hl .ln:nth-of-type(${k}) * { visibility: visible !important; }` });
     const shot = await tab.screenshot({ type: "png", omitBackground: true });
     await tag.evaluate((n) => n.remove());
     const { data, info } = await sharp(shot).ensureAlpha().extractChannel(3).raw().toBuffer({ resolveWithObject: true });
@@ -420,6 +420,7 @@ async function lineGapCheck(min) {
         gap = Math.min(gap, (high[xx] - low[x] - 1) / RES);
       }
     }
+    if (process.env.STORE_DEBUG) console.log(`  line gap "${hd.text}": ${gap}`);
     if (gap < min) out.push({ ...hd, gap });
   }
   return out;

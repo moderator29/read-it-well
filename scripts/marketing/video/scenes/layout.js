@@ -16,7 +16,9 @@ export const LAYOUT = {
     PHONE_HERO: { cx: 540, cy: 1080, height: 1400 },
     PHONE_HIGH: { cx: 540, cy: 950, height: 1400 },
     PILL: { cx: 540, top: 290, bottom: 360 },
-    CAPTIONS: { y: 1290, top: 1230, bottom: 1360, left: 44, right: 940 },
+    /* v3.3: captions sit under the phone's readable content. Whatever the
+       voice names on screen must sit above y 1500. */
+    CAPTIONS: { y: 1580, top: 1520, bottom: 1640, left: 140, right: 940 },
     SAFE: { top: 285, bottom: 1635, left: 44, right: 940 },
     /* Big opening words land here, before the phone rises or over a dimmed
        phone: never over a live screen. */

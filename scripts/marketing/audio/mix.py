@@ -471,7 +471,7 @@ def event_gain(ev: dict, index: dict) -> tuple[float, str, float | None]:
     return rec + float(ev.get("offset_db", 0.0)), "offset_db", rec
 
 
-SIGNATURE_CAP_LU = 1.0    # a signature cue (the film's payoffs) may come up to the voice minus this
+SIGNATURE_CAP_LU = 0.0    # a signature cue (the film's payoffs) may come up to the voice, never above it
 
 
 def signature_for(ev: dict, t: float, signature: list[dict] | None) -> dict | None:
