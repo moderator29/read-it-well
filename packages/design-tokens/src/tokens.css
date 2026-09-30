@@ -3605,24 +3605,24 @@
 
   /* glass */
   --nf-night-glass-fill:
-    radial-gradient(120% 85% at 0% 0%, color-mix(in oklab, var(--nf-container-ink) 17%, transparent), transparent 62%),
+    radial-gradient(120% 85% at 0% 0%, color-mix(in oklab, var(--nf-container-ink) 22%, transparent), transparent 62%),
     linear-gradient(
       180deg,
       color-mix(in oklab, var(--nf-container-ink) 8%, transparent) 0%,
       color-mix(in oklab, var(--nf-container-ink) 2%, transparent) 70%
     ),
     color-mix(in oklab, var(--nf-surface-primary) 84%, transparent);
-  --nf-night-glass-edge: color-mix(in oklab, var(--nf-container-ink) 42%, transparent);
+  --nf-night-glass-edge: color-mix(in oklab, var(--nf-container-ink) 50%, transparent);
   --nf-night-glass-catch: inset 0 1px 0 color-mix(in oklab, var(--nf-content-primary) 8%, transparent);
-  --nf-night-glass-glow: 0 0 24px -12px color-mix(in oklab, var(--nf-glow-ink) 42%, transparent);
+  --nf-night-glass-glow: 0 0 28px -12px color-mix(in oklab, var(--nf-glow-ink) 50%, transparent);
   --nf-night-glass-drop: 0 14px 30px -22px color-mix(in oklab, var(--nf-surface-artwork) 80%, transparent);
   --nf-night-glass-shadow: var(--nf-night-glass-catch), var(--nf-night-glass-glow), var(--nf-night-glass-drop);
   /* A pressable glass card under a fine pointer: the edge brightens and the
      glow opens a little. Never a second ring. */
-  --nf-night-glass-edge-hover: color-mix(in oklab, var(--nf-container-ink) 62%, transparent);
+  --nf-night-glass-edge-hover: color-mix(in oklab, var(--nf-container-ink) 72%, transparent);
   --nf-night-glass-shadow-hover:
     var(--nf-night-glass-catch),
-    0 0 30px -10px color-mix(in oklab, var(--nf-glow-ink) 52%, transparent),
+    0 0 32px -10px color-mix(in oklab, var(--nf-glow-ink) 60%, transparent),
     var(--nf-night-glass-drop);
 
   /* glass-raised */
