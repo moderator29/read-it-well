@@ -414,7 +414,11 @@ export default async function RootLayout({
           suppressHydrationWarning
           dangerouslySetInnerHTML={{
             __html:
-              "try{var c=navigator.connection;if(c&&(c.saveData||/^(slow-)?2g$/.test(c.effectiveType||'')))document.documentElement.dataset.saveData='on'}catch(e){}",
+              "try{var c=navigator.connection;if(c&&(c.saveData||/^(slow-)?2g$/.test(c.effectiveType||'')))document.documentElement.dataset.saveData='on'}catch(e){}" +
+              // A low-end device (two cores or less, or two gigabytes or
+              // less): the night glass drops its outer glow (brand-glass.css),
+              // as the landing's own marker already does there.
+              "try{var n=navigator;if((n.hardwareConcurrency&&n.hardwareConcurrency<=2)||(n.deviceMemory&&n.deviceMemory<=2))document.documentElement.dataset.motionLite='on'}catch(e){}",
           }}
         />
         {/*
