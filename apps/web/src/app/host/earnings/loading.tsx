@@ -1,3 +1,5 @@
+import { getDictionary } from "@vallo/i18n";
+import { getLocale } from "@/lib/locale";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ListGroupSkeleton, SummaryCardSkeleton } from "@/components/app/ScreenSkeleton";
 import { HostScreenSkeleton } from "@/components/host/HostScreenSkeleton";
@@ -10,9 +12,9 @@ import { HostScreenSkeleton } from "@/components/host/HostScreenSkeleton";
  * the statements group under them. Covers the statement screen too, which
  * has the same title, figure and rows.
  */
-export default function LoadingHostEarnings() {
+export default async function LoadingHostEarnings() {
   return (
-    <HostScreenSkeleton label="Loading your earnings">
+    <HostScreenSkeleton label={getDictionary(await getLocale()).hostWorkspace.loadingScreens.earnings}>
       <div className="mx-auto max-w-2xl" aria-hidden="true">
         <Skeleton width="8rem" height="1.75rem" radius="sm" />
         <Skeleton className="mt-xs" height="1rem" radius="sm" />

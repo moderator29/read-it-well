@@ -151,4 +151,13 @@ export const hostWorkspaceEn = {
     saveFirstTitle: "Save the property first",
     emptyBody: "A calendar hangs on a property and its rooms. Start or finish your application, and the calendar opens here.",
   },
+  /** What each host screen's loading state says to a screen reader while it waits (D-10). */
+  loadingScreens: {
+    calendar: "Loading your calendar",
+    decide: "Loading the requests waiting for you",
+    reviews: "Loading your reviews",
+    earnings: "Loading your earnings",
+    tables: "Loading your tables",
+    rooms: "Loading your rooms",
+  },
 };

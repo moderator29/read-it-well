@@ -1,3 +1,5 @@
+import { getDictionary } from "@vallo/i18n";
+import { getLocale } from "@/lib/locale";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { LargeHeaderSkeleton, ListGroupSkeleton, SummaryCardSkeleton } from "@/components/app/ScreenSkeleton";
 import { HostScreenSkeleton } from "@/components/host/HostScreenSkeleton";
@@ -12,9 +14,9 @@ import "../host-desk.css";
  * toned plate, two lines, the clock on the right and the bar under it; the
  * aside is the two list groups that explain the clock.
  */
-export default function LoadingHostDecide() {
+export default async function LoadingHostDecide() {
   return (
-    <HostScreenSkeleton label="Loading the requests waiting for you" wide>
+    <HostScreenSkeleton label={getDictionary(await getLocale()).hostWorkspace.loadingScreens.decide} wide>
       <LargeHeaderSkeleton />
       <div className="nf-decide" aria-hidden="true">
         <div className="grid gap-md">

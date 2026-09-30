@@ -1,3 +1,5 @@
+import { getDictionary } from "@vallo/i18n";
+import { getLocale } from "@/lib/locale";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { LargeHeaderSkeleton, SummaryCardSkeleton } from "@/components/app/ScreenSkeleton";
 import { HostScreenSkeleton } from "@/components/host/HostScreenSkeleton";
@@ -10,9 +12,9 @@ import "../host-desk.css";
  * then the review cards in `nf-hreview-grid` (one column, two from 1024px).
  * Each card is the stars, a name and date line, and a few lines of prose.
  */
-export default function LoadingHostReviews() {
+export default async function LoadingHostReviews() {
   return (
-    <HostScreenSkeleton label="Loading your reviews" wide>
+    <HostScreenSkeleton label={getDictionary(await getLocale()).hostWorkspace.loadingScreens.reviews} wide>
       <LargeHeaderSkeleton />
       <div className="mt-md grid gap-md" aria-hidden="true">
         <SummaryCardSkeleton />

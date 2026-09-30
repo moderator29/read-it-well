@@ -126,4 +126,13 @@ export const hostWorkspaceIg = {
     tableInventory: "Ọnụọgụ tebụl",
     sittingDuration: "Ogologo oge ịnọdụ ala",
   },
+  /* Machine draft (D-10), needs native review like the rest of this file. */
+  loadingScreens: {
+    calendar: "Na-ebugo kalenda gị",
+    decide: "Na-ebugo arịrịọ ndị na-eche gị",
+    reviews: "Na-ebugo nyocha gị",
+    earnings: "Na-ebugo ego ị nwetara",
+    tables: "Na-ebugo tebụl gị",
+    rooms: "Na-ebugo ụlọ gị",
+  },
 } satisfies NonNullable<Translation["hostWorkspace"]>;

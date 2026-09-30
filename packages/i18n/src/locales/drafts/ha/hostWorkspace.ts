@@ -126,4 +126,13 @@ export const hostWorkspaceHa = {
     tableInventory: "Adadin tebura",
     sittingDuration: "Tsawon zama",
   },
+  /* Machine draft (D-10), needs native review like the rest of this file. */
+  loadingScreens: {
+    calendar: "Ana lodawa kalandarka",
+    decide: "Ana lodawa buƙatun da ke jiran ka",
+    reviews: "Ana lodawa sharhinka",
+    earnings: "Ana lodawa kuɗin da ka samu",
+    tables: "Ana lodawa teburanka",
+    rooms: "Ana lodawa ɗakunanka",
+  },
 } satisfies NonNullable<Translation["hostWorkspace"]>;

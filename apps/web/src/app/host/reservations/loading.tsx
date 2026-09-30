@@ -1,3 +1,5 @@
+import { getDictionary } from "@vallo/i18n";
+import { getLocale } from "@/lib/locale";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { HostHeadSkeleton, HostScreenSkeleton } from "@/components/host/HostScreenSkeleton";
 
@@ -8,9 +10,9 @@ import { HostHeadSkeleton, HostScreenSkeleton } from "@/components/host/HostScre
  * (`mt-block`, an `nf-h4` heading with its count) of table cards: the
  * venue overline, the time, the party line, and the two answer pills.
  */
-export default function LoadingHostReservations() {
+export default async function LoadingHostReservations() {
   return (
-    <HostScreenSkeleton label="Loading your tables">
+    <HostScreenSkeleton label={getDictionary(await getLocale()).hostWorkspace.loadingScreens.tables}>
       <HostHeadSkeleton />
       {[2, 1].map((cards, s) => (
         <section key={s} className="mt-block" aria-hidden="true">

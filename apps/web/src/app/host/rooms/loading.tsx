@@ -1,3 +1,5 @@
+import { getDictionary } from "@vallo/i18n";
+import { getLocale } from "@/lib/locale";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { HostHeadSkeleton, HostScreenSkeleton } from "@/components/host/HostScreenSkeleton";
 
@@ -8,9 +10,9 @@ import { HostHeadSkeleton, HostScreenSkeleton } from "@/components/host/HostScre
  * horizon note and one `nf-host-group` card per room type, each a name and
  * meta line, a note, the two figure tiles side by side and the save pill.
  */
-export default function LoadingHostRooms() {
+export default async function LoadingHostRooms() {
   return (
-    <HostScreenSkeleton label="Loading your rooms">
+    <HostScreenSkeleton label={getDictionary(await getLocale()).hostWorkspace.loadingScreens.rooms}>
       <HostHeadSkeleton />
       <div className="mt-block flex flex-col gap-block" aria-hidden="true">
         <Skeleton width="80%" height="0.8125rem" radius="sm" />

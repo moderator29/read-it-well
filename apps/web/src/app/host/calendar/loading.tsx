@@ -1,3 +1,5 @@
+import { getDictionary } from "@vallo/i18n";
+import { getLocale } from "@/lib/locale";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { LargeHeaderSkeleton } from "@/components/app/ScreenSkeleton";
 import { HostScreenSkeleton } from "@/components/host/HostScreenSkeleton";
@@ -13,9 +15,9 @@ import "../host-desk.css";
  * heights (60px, 84px from 768px), under the plan line, the month bar
  * and the quick-select chips. From 1024px the side panel is reserved too.
  */
-export default function LoadingHostCalendar() {
+export default async function LoadingHostCalendar() {
   return (
-    <HostScreenSkeleton label="Loading your calendar" wide>
+    <HostScreenSkeleton label={getDictionary(await getLocale()).hostWorkspace.loadingScreens.calendar} wide>
       <LargeHeaderSkeleton />
       <div className="nf-rcal" aria-hidden="true">
         <div className="nf-rcal__main">
