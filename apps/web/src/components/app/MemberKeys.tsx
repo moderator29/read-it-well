@@ -114,15 +114,17 @@ export function MemberKeys() {
         {KEY_HELP.map((row) => (
           <div key={row.keys} className="nf-keys__row">
             <dt>
-              {row.keys.split(" ").map((k, i) =>
-                k === "/" && row.keys.includes(" / ") ? (
+              {/* "j / k" is either key; "g h" is one key then the other. */}
+              {row.keys.split(" ").map((k, i, all) =>
+                k === "/" && all.length === 3 ? (
                   <span key={i} className="nf-keys__or">
                     or
                   </span>
                 ) : (
-                  <kbd key={i} className="nf-keys__key">
-                    {k}
-                  </kbd>
+                  <span key={i} className="contents">
+                    {i > 0 && all[i - 1] !== "/" ? <span className="nf-keys__or">then</span> : null}
+                    <kbd className="nf-keys__key">{k}</kbd>
+                  </span>
                 ),
               )}
             </dt>

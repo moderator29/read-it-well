@@ -14,7 +14,7 @@ import { initial } from "@/lib/text/initial";
  */
 const WIDE = "(min-width: 64rem)";
 
-export function InboxPane({ fixture }: { fixture?: PaneRow[] } = {}) {
+export function InboxPane({ fixture, currentId }: { fixture?: PaneRow[]; currentId?: string } = {}) {
   const pathname = usePathname();
   const [wide, setWide] = useState(false);
   const [fetched, setFetched] = useState<PaneRow[] | null>(null);
@@ -55,7 +55,9 @@ export function InboxPane({ fixture }: { fixture?: PaneRow[] } = {}) {
       <ul className="nf-msg-pane__list">
         {rows.map((row) => {
           const href = `/messages/${row.id}`;
-          const current = pathname === href;
+          /* The preview names its open row; the app reads the address. */
+          const current = currentId ? row.id === currentId : pathname === href;
+          const unread = row.unread > 0 && !current;
           return (
             <li key={row.id}>
               <Link
@@ -70,15 +72,16 @@ export function InboxPane({ fixture }: { fixture?: PaneRow[] } = {}) {
                 </span>
                 <span className="nf-msg-pane__body">
                   <span className="nf-msg-pane__top">
-                    <span className="nf-msg-pane__name">{row.name}</span>
-                    <span className="nf-msg-pane__when nf-numeric">{row.when}</span>
+                    <span className={`nf-msg-pane__name${unread ? " is-unread" : ""}`}>{row.name}</span>
+                    <span className="nf-msg-pane__meta">
+                      <span className="nf-msg-pane__when nf-numeric">{row.when}</span>
+                      {unread ? <span className="nf-msg-pane__dot" aria-hidden="true" /> : null}
+                    </span>
                   </span>
                   {row.title ? <span className="nf-msg-pane__title">{row.title}</span> : null}
-                  <span className="nf-msg-pane__last">{row.last}</span>
+                  <span className={`nf-msg-pane__last${unread ? " is-unread" : ""}`}>{row.last}</span>
+                  {unread ? <span className="sr-only">{`${row.unread} unread`}</span> : null}
                 </span>
-                {row.unread > 0 ? (
-                  <span className="nf-msg-pane__dot" aria-label={`${row.unread} unread`} />
-                ) : null}
               </Link>
             </li>
           );
