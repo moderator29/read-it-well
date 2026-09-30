@@ -6,7 +6,7 @@
  * and font. The renderer drives it through window.__film.seek(t).
  */
 import { createContext } from "./core.js";
-import { installCaptions, installGrain } from "./components.js";
+import { installCaptions, installGrain, installChapterPill } from "./components.js";
 
 const q = new URLSearchParams(location.search);
 const film = q.get("film") === "desktop" ? "desktop" : "mobile";
@@ -24,6 +24,9 @@ try {
     await mod.build(ctx);
   }
   if (q.get("captions") !== "0") installCaptions(ctx);
+  const { CHAPTERS, groundAt } = await import("/video/scenes/chapters.js");
+  ctx.groundAt = groundAt;
+  if (q.get("pill") !== "0") installChapterPill(ctx, CHAPTERS, { theme: groundAt });
   if (q.get("grain") === "1") installGrain(ctx);
   await Promise.all(ctx.pending ?? []);
   await ctx.finish();

@@ -34,7 +34,7 @@ Read, in this order: `STORYBOARD.md` (what to build), `FACTS.md` (the only sourc
   - `photo(name)`, `art(name)`, `brand(name)`, `asset(name)`.
 - **Text and sound:**
   - `ctx.text(node, t => string)`: text that changes with time.
-  - `ctx.sfx(name, t, { gain, pan })`: sound cues from the audio kit (index in `scratchpad/audio/out/sfx/index.json`), only for real on-screen actions and scene changes.
+  - `ctx.sfx(name, t, { offset, pan })`: sound cues from the audio kit (index in `scratchpad/audio/out/sfx/index.json`), only for real on-screen actions and scene changes. `offset` is dB relative to the kit's own calibrated level (0 = the kit's level); the storyboard's Sound column gives the offsets, and the mixer caps every effect under the voice.
   - `ctx.hideCaptions(t0, t1)`: for rows marked "off".
 - **Timeline:** `ctx.tl`, the master timeline. Eases: `land`, `leave`, `glide`, `whip`, `drift`, plus GSAP's own. Nothing linear.
 
@@ -53,9 +53,20 @@ Read, in this order: `STORYBOARD.md` (what to build), `FACTS.md` (the only sourc
   - It is the photoreal 3D phone (three.js, `phone3d/browser/live.js`) with the HTML display mapped onto it, so anything in `p.screen` (taps, overlays, scrolls) is under the glass.
   - Set `edge` to the display's top colour (for example `#030a2a`) so the bleed matches.
 
+## The reference film's devices, in Vallo's form (engine/components.js; see REFERENCES.md)
+
+- **The glossy pointer:** `orb(ctx, parent)` (animate its x and y: its centre) and `press(ctx, pointer, t, { ringParent, x, y })`. It stands in for the finger in both films; on mobile it hovers just above the phone's glass, and the tap ripple (`tap`) goes under the glass.
+- **Bodies:** `bodyFromImage(ctx, parent, { src, crop: { x, y, w, h, iw }, scale, x, y, light })` lifts a real part of a capture off the screen as a floating card (crop in capture px; `iw` is the capture's width). Add `bob(ctx, node, { seed })` for the slow float. Use real components only.
+- **Type:** `words(...)` for kinetic words (give each word its own small y offset and size for the staggered look; the key word electric blue). `squiggle(ctx, parent, { x, y, w, t })` draws an underline, used only in rows 13 and 40.
+- **Rings and sparkles:** `ringBurst(ctx, parent, { cx, cy, r, t })` only in rows 04, 19, 23 and 40. `sparkles(ctx, parent, { area, count, seed, t0, t1 })`, a few per chapter.
+- **Numbers:** `odometer(ctx, parent, { value, t0, t1, fontSize })` rolls a total into place, left to right, blurred while it rolls.
+- **The chapter pill** is installed by the engine from `scenes/chapters.js` (the schedule and the ground's light or dark, `ctx.groundAt(t)`). Don't build your own. Your big opening words must shrink into the PILL box (layout.js) just before the pill's start.
+- **Light chapters** use the light-theme captures: `<id>-lt` (and the older `home-light`, `search-light`, `listing-light` (the Karsana terrace), `listing-cost-light`, `stays-light`, `stay-light`, `restaurant-light`, `thread-light`, `saved-light`, `d-*-light`). In a light chapter the phone uses `phone(ctx, { env: "light", edge: "#ffffff" })`.
+- **Vallo's 3D icons** (`/repo/apps/web/public/brand/3d/<name>@2x.webp`) appear in the films **only as part of a real component** (the home tiles, the rows of "Add a workspace", an empty state), at most about 180 px. The founder's ruling.
+
 ## Layout and safe zones
 
-`scenes/layout.js` holds the handoff boxes (`PHONE_HERO`, `WINDOW_HERO`, `CARDS_OPEN`, `CARD_SLOT`, `RECEIPT`, `PILL`, ...). A carried object ends its row exactly on the box the next row starts from.
+`scenes/layout.js` holds the handoff boxes (`PHONE_HERO`, `PHONE_HIGH`, `WINDOW_HERO`, `CARDS_OPEN`, `CARD_SLOT`, `RECEIPT`, `PILL`, `PILL_SWITCH`, ...). Where a number in STORYBOARD.md and layout.js differ, layout.js wins (it was corrected after the storyboard to keep the pill, the receipt and the answered cards apart). A carried object ends its row exactly on the box the next row starts from.
 - **Mobile:** key content inside y 285–1635 and x 44–940; the captions band y 1230–1360 stays clear while captions are on; phone UI to be read inside y 130–1430.
 - **Desktop:** the captions band is y 915–1005.
 

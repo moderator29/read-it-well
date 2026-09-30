@@ -340,3 +340,241 @@ export function questionCard(ctx, parent, { q, a, box, mark = false, fontSize = 
     },
   };
 }
+
+/* ======================================================================
+ * The reference film's devices, in Vallo's form (video/REFERENCES.md).
+ * ==================================================================== */
+
+/**
+ * The glossy pointer: a 44 px electric-blue sphere that stands in for the
+ * finger (both films). Animate its x and y (stage px of its centre) with
+ * the timeline; press(t) dips it and opens a ring at its position.
+ */
+export function orb(ctx, parent, { size = 44, z = 850 } = {}) {
+  const node = ctx.el("div", {
+    class: "abs",
+    style: {
+      left: `${-size / 2}px`, top: `${-size / 2}px`, width: `${size}px`, height: `${size}px`, borderRadius: "50%", zIndex: String(z),
+      background: "radial-gradient(circle at 34% 30%, #ffffff 0%, #bfe3ff 9%, #5c9fff 26%, #0069fe 58%, #003f98 100%)",
+      boxShadow: "0 10px 22px -6px rgb(0 20 80 / 0.55), inset 0 -4px 10px rgb(0 20 90 / 0.35)",
+      transformOrigin: "50% 80%",
+    },
+  }, parent);
+  return node;
+}
+
+/** A press of the pointer at t: it dips, a ring opens where it is, the tap sound. */
+export function press(ctx, pointer, t, { ringParent, x, y, sound = "tap", offset = 0, ring = true } = {}) {
+  ctx.tl.to(pointer, { scaleY: 0.8, scaleX: 1.1, duration: 0.09, ease: "power2.out" }, t - 0.06);
+  ctx.tl.to(pointer, { scaleY: 1, scaleX: 1, duration: 0.32, ease: "back.out(2.2)" }, t + 0.05);
+  if (ring && ringParent) {
+    const r = ctx.el("div", { class: "abs", style: { left: `${x - 50}px`, top: `${y - 50}px`, width: "100px", height: "100px", borderRadius: "50%", border: "3px solid rgb(0 105 254 / 0.8)", opacity: 0, zIndex: 840 } }, ringParent);
+    ctx.tl.fromTo(r, { scale: 0.25, opacity: 1 }, { scale: 1.25, opacity: 0, duration: 0.55, ease: "power2.out" }, t);
+  }
+  if (sound) ctx.sfx(sound, t, { offset });
+}
+
+/**
+ * A hand-drawn squiggle underline that draws itself from t over `dur`.
+ * Placed under a word: x, y (its left end), w (its length).
+ */
+export function squiggle(ctx, parent, { x, y, w, t, dur = 0.55, color = "var(--electric)", stroke = 7, loops = null }) {
+  const n = loops ?? Math.max(3, Math.round(w / 70));
+  const h = 26;
+  let d = `M 4 ${h / 2}`;
+  for (let i = 0; i < n; i += 1) {
+    const x0 = 4 + ((w - 8) * i) / n;
+    const x1 = 4 + ((w - 8) * (i + 1)) / n;
+    const mid = (x0 + x1) / 2;
+    d += ` C ${x0 + (x1 - x0) * 0.2} ${h * 0.95}, ${mid - (x1 - x0) * 0.1} ${h * 0.95}, ${mid} ${h / 2}`;
+    d += ` S ${x1 - (x1 - x0) * 0.15} ${h * 0.02}, ${x1} ${h / 2}`;
+  }
+  const svg = ctx.el("div", { class: "abs", style: { left: `${x}px`, top: `${y}px`, width: `${w}px`, height: `${h}px` } }, parent);
+  svg.innerHTML = `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" fill="none"><path d="${d}" stroke="${color}" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round" pathLength="1" stroke-dasharray="1 1" stroke-dashoffset="1"/></svg>`;
+  const path = svg.querySelector("path");
+  ctx.tl.fromTo(path, { attr: { "stroke-dashoffset": 1 } }, { attr: { "stroke-dashoffset": 0 }, duration: dur, ease: "power2.inOut" }, t);
+  return svg;
+}
+
+/**
+ * A thin ring that draws itself around a title at t, with a burst of dots
+ * and dashes (seeded, so the same every render). cx, cy, r in stage px.
+ */
+export function ringBurst(ctx, parent, { cx, cy, r, t, color = "var(--electric)", dots = 18, seed = 7, stroke = 4, dur = 0.8 }) {
+  const size = r * 2 + 40;
+  const wrap = ctx.el("div", { class: "abs", style: { left: `${cx - size / 2}px`, top: `${cy - size / 2}px`, width: `${size}px`, height: `${size}px`, pointerEvents: "none" } }, parent);
+  wrap.innerHTML = `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" fill="none"><circle cx="${size / 2}" cy="${size / 2}" r="${r}" stroke="${color}" stroke-width="${stroke}" pathLength="1" stroke-dasharray="1 1" stroke-dashoffset="1" transform="rotate(-90 ${size / 2} ${size / 2})"/></svg>`;
+  const circle = wrap.querySelector("circle");
+  ctx.tl.fromTo(circle, { attr: { "stroke-dashoffset": 1 } }, { attr: { "stroke-dashoffset": 0 }, duration: dur, ease: "power2.inOut" }, t);
+  const rand = ctx.random(seed);
+  for (let i = 0; i < dots; i += 1) {
+    const a = rand() * Math.PI * 2;
+    const dist = r * (0.55 + rand() * 0.75);
+    const dash = rand() < 0.4;
+    const s = dash ? 4 : 6 + rand() * 8;
+    const piece = ctx.el("div", {
+      class: "abs",
+      style: {
+        left: `${size / 2 - (dash ? 14 : s / 2)}px`, top: `${size / 2 - s / 2}px`, width: dash ? "28px" : `${s}px`, height: `${s}px`,
+        borderRadius: dash ? "3px" : "50%", background: rand() < 0.5 ? color : "var(--sky)", opacity: 0,
+        transform: dash ? `rotate(${(a * 180) / Math.PI}deg)` : "none",
+      },
+    }, wrap);
+    const t0 = t + 0.1 + rand() * 0.45;
+    ctx.tl.fromTo(piece, { x: Math.cos(a) * r * 0.2, y: Math.sin(a) * r * 0.2, opacity: 0 }, { x: Math.cos(a) * dist, y: Math.sin(a) * dist, opacity: 1, duration: 0.5, ease: "power3.out" }, t0);
+    ctx.tl.to(piece, { opacity: 0, duration: 0.5, ease: "power1.in" }, t0 + 0.7 + rand() * 0.6);
+  }
+  return wrap;
+}
+
+/** A few four-point sparkles in an area, turning slowly (seeded). */
+export function sparkles(ctx, parent, { area, count = 5, seed = 3, t0 = 0, t1 = 999, color = "var(--sky)", min = 18, max = 40 }) {
+  const rand = ctx.random(seed);
+  const out = [];
+  for (let i = 0; i < count; i += 1) {
+    const s = min + rand() * (max - min);
+    const node = ctx.el("div", { class: "abs", style: { left: `${area.x + rand() * (area.w - s)}px`, top: `${area.y + rand() * (area.h - s)}px`, width: `${s}px`, height: `${s}px`, opacity: 0 } }, parent);
+    node.innerHTML = `<svg width="${s}" height="${s}" viewBox="0 0 24 24"><path d="M12 0c.6 6.2 5.8 11.4 12 12-6.2.6-11.4 5.8-12 12-.6-6.2-5.8-11.4-12-12C6.2 11.4 11.4 6.2 12 0Z" fill="${color}"/></svg>`;
+    const spin = (rand() < 0.5 ? -1 : 1) * (40 + rand() * 60);
+    const phase = rand() * 2;
+    ctx.onFrame((t) => {
+      const on = ctx.progress(t, t0 + phase * 0.2, t0 + phase * 0.2 + 0.4) * (1 - ctx.progress(t, t1 - 0.4, t1));
+      node.style.opacity = String(on * (0.55 + 0.45 * Math.sin((t + phase) * 2.1) ** 2));
+      node.style.transform = `rotate(${t * spin}deg) scale(${0.85 + 0.15 * Math.sin((t + phase) * 1.7)})`;
+    });
+    out.push(node);
+  }
+  return out;
+}
+
+/**
+ * A body: a part of a live screen lifted off as a floating card. `src` is a
+ * capture or display image; crop is in that image's pixels; the body shows
+ * it at `scale`, with round corners and a soft shadow. Returns the outer
+ * element (animate it with GSAP: x, y, scale, rotation, opacity).
+ */
+export function bodyFromImage(ctx, parent, { src, crop, scale = 1, radius = 22, shadow = true, x = 0, y = 0, z = 0, light = false }) {
+  const w = crop.w * scale;
+  const h = crop.h * scale;
+  const outer = ctx.el("div", {
+    class: "abs",
+    style: {
+      left: `${x}px`, top: `${y}px`, width: `${w}px`, height: `${h}px`, borderRadius: `${radius}px`, overflow: "hidden", zIndex: String(z),
+      boxShadow: shadow ? (light ? "0 28px 60px -22px rgb(10 30 80 / 0.35), 0 8px 20px -10px rgb(10 30 80 / 0.25)" : "0 30px 70px -24px rgb(0 0 20 / 0.7), 0 10px 24px -10px rgb(0 0 30 / 0.5)") : "none",
+      outline: light ? "1px solid rgb(10 30 80 / 0.06)" : "1px solid rgb(143 211 255 / 0.18)",
+    },
+  }, parent);
+  ctx.img(src, { style: { position: "absolute", left: `${-crop.x * scale}px`, top: `${-crop.y * scale}px`, width: `${crop.iw * scale}px`, height: "auto", maxWidth: "none" } }, outer);
+  return outer;
+}
+
+/** A slow bob (and slight turn) on an element, from t0: y ± amp px over `period` s (seeded phase). */
+export function bob(ctx, node, { amp = 6, period = 2.6, turn = 1.2, seed = 1, t0 = 0 } = {}) {
+  const phase = ctx.random(seed)() * Math.PI * 2;
+  ctx.onFrame((t) => {
+    if (t < t0) return;
+    const k = ((t - t0) / period) * Math.PI * 2 + phase;
+    node.style.translate = `0px ${(Math.sin(k) * amp).toFixed(2)}px`;
+    node.style.rotate = `${(Math.sin(k * 0.7) * turn).toFixed(3)}deg`;
+  });
+}
+
+/**
+ * An odometer number: each digit is a column that spins and lands, left to
+ * right, from t0 to t1. The final value is exact and sharp; the columns in
+ * motion are blurred by speed, so no false total is ever readable.
+ */
+export function odometer(ctx, parent, { value, t0, t1, prefix = "₦", fontSize = 96, color = "inherit", className = "display" }) {
+  const text = value.toLocaleString("en-NG");
+  const box = ctx.el("div", { class: `abs ${className}`, style: { fontSize: `${fontSize}px`, color, display: "flex", alignItems: "flex-start", lineHeight: "1", fontVariantNumeric: "tabular-nums" } }, parent);
+  if (prefix) ctx.el("span", { text: prefix }, box);
+  const digits = [...text].filter((c) => /\d/.test(c)).length;
+  let k = 0;
+  [...text].forEach((ch) => {
+    if (!/\d/.test(ch)) {
+      ctx.el("span", { text: ch }, box);
+      return;
+    }
+    const idx = k;
+    k += 1;
+    const col = ctx.el("span", { style: { display: "inline-block", height: "1em", overflow: "hidden", position: "relative" } }, box);
+    const strip = ctx.el("span", { style: { display: "flex", flexDirection: "column" } }, col);
+    const spins = 2 + (digits - idx);
+    const final = Number(ch);
+    const seq = [];
+    for (let s = 0; s < spins * 10 + final + 1; s += 1) seq.push(s % 10);
+    seq.forEach((d) => ctx.el("span", { text: String(d), style: { height: "1em", display: "block" } }, strip));
+    const land = t0 + ((t1 - t0) * (idx + 1)) / digits;
+    const e = ctx.ease("power3.out");
+    ctx.onFrame((t) => {
+      const p = e(ctx.progress(t, t0, land));
+      const pos = p * (seq.length - 1);
+      strip.style.transform = `translateY(${-pos}em)`;
+      const speed = p < 1 ? (1 - p) * 6 : 0;
+      col.style.filter = speed > 0.3 ? `blur(${Math.min(3, speed * 0.6).toFixed(2)}px)` : "none";
+    });
+  });
+  return box;
+}
+
+/* ---------- the chapter pill ---------- */
+
+/**
+ * The chapter pill (one for the whole film): the Vallo mark and a short
+ * phrase, one word in blue, at the top centre. `chapters` is a list of
+ * { start, end, parts: [["Find a ", false], ["home", true]] }. The pill
+ * appears at a chapter's start (after the big words have shrunk into its
+ * place), rolls its text at each change, and leaves at the chapter's end
+ * unless the next chapter follows on.
+ */
+export function installChapterPill(ctx, chapters, { theme = (t) => "light" } = {}) {
+  const mobile = ctx.isMobile;
+  const top = mobile ? 236 : 36;
+  const h = mobile ? 80 : 60;
+  const fs = mobile ? 34 : 26;
+  const box = ctx.el("div", { class: "abs", style: { left: 0, right: 0, top: `${top}px`, height: `${h}px`, display: "flex", justifyContent: "center", zIndex: 880, pointerEvents: "none" } }, ctx.stage);
+  const pill = ctx.el("div", {
+    style: {
+      height: `${h}px`, display: "flex", alignItems: "center", gap: `${Math.round(fs * 0.45)}px`, padding: `0 ${Math.round(fs * 0.9)}px 0 ${Math.round(fs * 0.6)}px`,
+      borderRadius: "999px", font: `600 ${fs}px/1 Poppins, Inter, sans-serif`, letterSpacing: "-0.02em", overflow: "hidden", position: "relative",
+    },
+  }, box);
+  const mark = ctx.img(ctx.src.brand("vallo-mark.png"), { style: { width: `${Math.round(fs * 1.35)}px`, height: `${Math.round(fs * 1.35)}px`, objectFit: "contain", flex: "none" } }, pill);
+  const lines = chapters.map((c) => {
+    const line = ctx.el("span", { style: { whiteSpace: "nowrap", display: "none" } }, pill);
+    c.parts.forEach(([text, blue]) => ctx.el("span", { text, style: blue ? { color: "var(--electric)" } : {} }, line));
+    return line;
+  });
+  let shown = -2;
+  ctx.onFrame((t) => {
+    const k = chapters.findIndex((c) => t >= c.start && t < c.end);
+    const dark = theme(t) === "dark";
+    Object.assign(pill.style, dark
+      ? { background: "rgb(10 16 60 / 0.86)", color: "#fff", border: "1.5px solid rgb(120 170 255 / 0.3)", boxShadow: "0 14px 34px -14px rgb(0 0 20 / 0.7)" }
+      : { background: "rgb(255 255 255 / 0.96)", color: "#0b1230", border: "1px solid rgb(10 30 80 / 0.06)", boxShadow: "0 14px 34px -16px rgb(10 30 80 / 0.35)" });
+    if (k !== shown) {
+      lines.forEach((l, i) => (l.style.display = i === k ? "inline" : "none"));
+      shown = k;
+    }
+    if (k < 0) {
+      box.style.visibility = "hidden";
+      return;
+    }
+    box.style.visibility = "visible";
+    const c = chapters[k];
+    const prev = chapters[k - 1];
+    const next = chapters[k + 1];
+    const joinedIn = prev && Math.abs(prev.end - c.start) < 0.02;
+    const joinedOut = next && Math.abs(next.start - c.end) < 0.02;
+    const a = joinedIn ? 1 : ctx.ease("back.out(1.6)")(ctx.progress(t, c.start, c.start + 0.45));
+    const b = joinedOut ? 1 : 1 - ctx.ease("power2.in")(ctx.progress(t, c.end - 0.3, c.end));
+    const roll = joinedIn ? ctx.ease("power3.out")(ctx.progress(t, c.start, c.start + 0.35)) : 1;
+    box.style.opacity = String(Math.min(a, b));
+    pill.style.transform = `scale(${0.7 + 0.3 * Math.min(a, 1)})`;
+    lines[k].style.display = "inline-block";
+    lines[k].style.transform = `translateY(${(1 - roll) * 100}%)`;
+    lines[k].style.opacity = String(roll);
+    mark.style.transform = `rotate(${(1 - a) * -40}deg)`;
+  });
+  return { box, pill };
+}

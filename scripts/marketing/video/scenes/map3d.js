@@ -1132,13 +1132,13 @@ export async function createLiveMap(o) {
   const LOOK = {
     slab: {
       albedo: "#0034c4",
-      key: "#e6eeff", keyAmt: 0.62,
+      key: "#e6eeff", keyAmt: 0.74,
       rim: "#0a6cff", rimAmt: 2.6,
-      sky: "#2250d8", skyAmt: 0.3,
+      sky: "#2250d8", skyAmt: 0.22,
       ground: "#030a3a", groundAmt: 0.25,
       sheen: "#1e6cff", sheenAmt: 0.66, sheenPow: 2.5,
-      pool: new THREE.Vector3(centre3.x - 2.6, 0, centre3.z - 0.4), poolR: 7.2, poolAmt: 0.62,
-      gradDir: [-0.3, -0.95], gradR: 5.5, gradAmt: 0.26,
+      pool: new THREE.Vector3(centre3.x - 2.8, 0, centre3.z - 0.8), poolR: 6.8, poolAmt: 0.78,
+      gradDir: [-0.3, -0.95], gradR: 5.5, gradAmt: 0.3,
       ao: [-0.05, SLAB.height * 0.85, 0.35],
       inflate: 0.07,
       grainScale: 0.42, grainAmt: 0.1,

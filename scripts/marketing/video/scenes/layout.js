@@ -6,44 +6,46 @@
  */
 export const LAYOUT = {
   mobile: {
-    PHONE_HERO: { cx: 540, cy: 820, height: 1400 },
-    PHONE_LOW: { cx: 540, cy: 1180, height: 1180 },
+    PHONE_HERO: { cx: 540, cy: 760, height: 1300 },
+    PHONE_HIGH: { cx: 540, cy: 640, height: 1180 },
+    PILL: { cx: 540, top: 236, bottom: 316 },
     CAPTIONS: { y: 1290, top: 1230, bottom: 1360 },
     SAFE: { top: 285, bottom: 1635, left: 44, right: 940 },
-    /* The three question cards: frame one, and the answered row (row 31). */
+    /* Frame one's three question cards, and the answered row (row 31). */
     CARDS_OPEN: [
-      { x: 70, y: 360, w: 630, h: 190, r: -5 },
-      { x: 330, y: 640, w: 680, h: 190, r: 4 },
-      { x: 110, y: 920, w: 680, h: 190, r: -3 },
+      { x: 80, y: 330, w: 620, h: 170, r: -5 },
+      { x: 380, y: 540, w: 620, h: 170, r: 4 },
+      { x: 120, y: 750, w: 620, h: 170, r: -3 },
     ],
     CARD_SLOT: [
-      { x: 60, y: 700, w: 300, h: 360 },
-      { x: 390, y: 700, w: 300, h: 360 },
-      { x: 720, y: 700, w: 300, h: 360 },
+      { x: 60, y: 360, w: 300, h: 360 },
+      { x: 390, y: 360, w: 300, h: 360 },
+      { x: 720, y: 360, w: 300, h: 360 },
     ],
-    /* The receipt of signature 1 (rows 11 to 13). */
-    RECEIPT: { x: 90, y: 200, w: 900, h: 980 },
-    /* The Property | Stays pill at full size (row 19). */
-    PILL: { x: 60, y: 700, w: 960, h: 400 },
+    /* The receipt of signature 1 (rows 11 to 13), clear of the pill and the captions. */
+    RECEIPT: { x: 90, y: 340, w: 900, h: 860 },
+    /* The Property | Stays switch at full size (row 19). */
+    PILL_SWITCH: { x: 60, y: 520, w: 960, h: 360 },
   },
   desktop: {
-    WINDOW_HERO: { x: 320, y: 64, width: 1280 },
+    WINDOW_HERO: { x: 160, y: 120, width: 1600 },
     WINDOW_LEFT: { x: 80, y: 150, width: 1020 },
-    RIGHT_PANEL: { x: 1160, y: 150, w: 680, h: 677 },
-    PHONE_SIDE: { cx: 1480, cy: 520, height: 860 },
+    RIGHT_PANEL: { x: 1160, y: 150, w: 680, h: 730 },
+    PHONE_SIDE: { cx: 1460, cy: 540, height: 900 },
+    PILL: { cx: 960, top: 36, bottom: 96 },
     CAPTIONS: { y: 960, top: 915, bottom: 1005 },
     CARDS_OPEN: [
-      { x: 120, y: 250, w: 640, h: 170, r: -4 },
-      { x: 300, y: 470, w: 640, h: 170, r: 3 },
-      { x: 160, y: 690, w: 640, h: 170, r: -2 },
+      { x: 140, y: 260, w: 600, h: 160, r: -4 },
+      { x: 320, y: 480, w: 600, h: 160, r: 3 },
+      { x: 180, y: 700, w: 600, h: 160, r: -2 },
     ],
     CARD_SLOT: [
-      { x: 150, y: 330, w: 520, h: 300 },
-      { x: 700, y: 330, w: 520, h: 300 },
-      { x: 1250, y: 330, w: 520, h: 300 },
+      { x: 150, y: 150, w: 520, h: 300 },
+      { x: 700, y: 150, w: 520, h: 300 },
+      { x: 1250, y: 150, w: 520, h: 300 },
     ],
-    RECEIPT: { x: 1160, y: 150, w: 680, h: 760 },
-    PILL: { x: 360, y: 390, w: 1200, h: 300 },
+    RECEIPT: { x: 560, y: 140, w: 800, h: 740 },
+    PILL_SWITCH: { x: 360, y: 390, w: 1200, h: 300 },
   },
 };
 

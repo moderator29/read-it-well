@@ -39,7 +39,17 @@ python3 $A/mix.py mix --voice voice.mp3 --timeline $T --music out/music.wav \
     --sfx-events $A/examples/sfx_events.timeline_test.json --sfx-dir out/sfx \
     --timings out/timings.json --out out                           # ~2 min
 python3 $A/verify.py --out out --timeline $T                       # ~1 min, exits 1 on any failure
+
+# cap test: deliberately hot cues (toggle_on +15, chime_notify +14, a hot gain_db override)
+python3 $A/mix.py mix --voice voice.mp3 --timeline $T --music out/music.wav \
+    --sfx-events $A/examples/sfx_events.hot_test.json --sfx-dir out/sfx --timings out/timings.json --out out_hot
+python3 $A/verify.py --out out --mix-dir out_hot --timeline $T      # cap checks pass; bed check FAILS by design
 ```
+
+`examples/`: `sfx_events.timeline_test.json` (15 cues on the film's markers, all at
+offset 0), `sfx_events.hot_test.json` (the same plus three over-hot cues and one
+quiet one), `voice_plan.demo.json` (`mix.py plan` output: 3 s intro, +0.5 s after
+sentence 2).
 
 All steps are deterministic (seeded), so re-running reproduces the same files.
 `timeline.json` is produced by `../video/voiceplan.py` from `out/timings.json`;
@@ -101,7 +111,9 @@ compatibility).
 `recommended_gain_db` = target minus the file's 100 ms K-weighted loudness as placed
 in a stereo mix (mono centred), with the voice at -16 LUFS as `mix.py` sets it:
 taps/clicks/ticks 13-16 LU under the voice, pops/toggles ~12, whooshes/slides 9-11,
-chimes ~9, stamp ~8, riser end ~5, logo hit ~3.
+chimes ~9, stamp ~8, logo hit and riser end 6.5. `calibrated_peak_100ms_lufs` is the
+resulting level. Nothing is calibrated above voice - 6.5 LU, so a cue at `offset_db` 0
+never meets the mixer's cap (voice - 6 LU).
 
 | name | s | ch | gain dB | description |
 |---|---|---|---|---|
@@ -121,8 +133,8 @@ chimes ~9, stamp ~8, riser end ~5, logo hit ~3.
 | `ding_pay` | 1.95 | stereo | -17.3 | One bright bell (D6 with a fifth shimmer) |
 | `sparkle` | 0.94 | stereo | -19.2 | Short shimmer of high D-major pentatonic pings |
 | `stamp` | 0.38 | stereo | -10.4 | Badge stamp: soft rubber thud with a small contact click |
-| `impact_soft` | 2.03 | stereo | -8.7 | Deep, warm logo hit: sub drop + D-major body + short dark reverb |
-| `riser` | 2.50 | stereo | -10.7 | 2.5 s build, loudest at the end and cut there: place its END on the downbeat |
+| `impact_soft` | 2.03 | stereo | -12.2 | Deep, warm logo hit: sub drop + D-major body + short dark reverb |
+| `riser` | 2.50 | stereo | -12.2 | 2.5 s build, loudest at the end and cut there: place its END on the downbeat |
 | `counter_tick` | 0.08 | mono | -13.8 | Tiny tick for count-ups (3-6 dB lower for fast runs) |
 | `type_key_1..6` | 0.16 | mono | -11.8 to -13.8 | Quiet keyboard clicks (cycle for typing) |
 | `lock_click` | 0.18 | mono | -13.2 | Two-stage latch: tick then soft clunk |
@@ -170,8 +182,27 @@ exactly to `music.wav`.
 See the docstring for the full chain. In short: voice placed by the plan, levelled and
 peak-limited (its peak-to-loudness ratio goes from 17.5 to 11.2 dB) and set to
 -16 LUFS; music ducked -9 dB by a look-ahead envelope follower (attack 60 ms, hold
-250 ms, release 450 ms, 25 ms smoother); SFX at their gains; bus compression 1.6:1;
-true-peak limiter at -1.0 dBTP and gain iterated to -14.0 LUFS (pyloudnorm).
+250 ms, release 450 ms, 25 ms smoother); SFX cues placed and capped; bus compression
+1.6:1; true-peak limiter at -1.0 dBTP and gain iterated to -14.0 LUFS (pyloudnorm).
+
+**SFX cues** are `{name, t, offset_db, pan}` as the film engine writes them.
+`offset_db` is relative to the sound's `recommended_gain_db` in `sfx/index.json`
+(0 = the kit's calibrated level); `gain_db`, if present, is an absolute override.
+Cues may also be anchored to the timeline's words or sentences instead of `t`.
+
+**Hard cap.** No cue may be louder than the voice minus 6 LU, measured as the maximum
+K-weighted loudness over 100 ms windows, against the voice as the mixer sets it
+(-16 LUFS integrated; its median 100 ms loudness in speech is -16.1). The ducked music
+plays no part. Each cue is capped before summing; every capped cue is printed and
+listed in `final_mix_report.json` → `sfx.capped` (name, t, dB taken off), and
+`sfx_capped_count` is in every `*_report.json`.
+
+**Bed check.** In every 100 ms window where the effects are within 15 LU of the bed:
+overshoot = (L_effects - L_bed) - (L_same cues at offset 0 - L_bed). It passes when no
+overshoot exceeds 0.5 LU, i.e. the effects never stand further above (or less far
+below) the music at that moment than the kit's calibration intends. The report gives
+the worst overshoot, the largest excess over the bed, the offending moments with their
+cues, and per cue its level, the bed level at its peak and the intended excess.
 Outputs `final_mix`, `music_only` (music + SFX, no voice, same normalization) and
 `music_bed` (the pure bed at -20 LUFS), each as WAV (48 kHz/24-bit) and M4A (AAC
 256k; re-encoded from a re-limited copy if AAC overshoots, so the M4A is <= -1 dBTP
@@ -186,14 +217,22 @@ plan reproduces the timeline's sentences and words (currently within 0.5 ms).
 ## What the numbers say (current build)
 
 - final mix: -14.00 LUFS (ffmpeg -14.07), -1.05 dBTP, LRA 3.1 LU, 101.538 s; M4A
-  -14.09 LUFS / -1.06 dBTP. Voice -13.1 LUFS in the mix, music under it 12.5 LU lower;
+  -14.09 LUFS / -1.07 dBTP. Voice -13.1 LUFS in the mix, music under it 12.5 LU lower;
   ducking averages -8.9 dB during speech, swings 0.5 dB (median) inside a sentence;
-  master limiter at most 0.9 dB of gain reduction.
-- music only: -14.00 LUFS, -1.05 dBTP, LRA 3.5 LU; M4A -14.12 / -1.29 dBTP.
+  master limiter at most 0.9 dB of gain reduction. 15 cues at offset 0: none capped,
+  loudest cue -22.6 LUFS (cap -22.0), bed check passes (worst overshoot 0.0 LU; the
+  effects never exceed the bed, the closest is 2.0 LU under it).
+- music only: -14.00 LUFS, -1.05 dBTP, LRA 3.4 LU; M4A -14.09 / -1.03 dBTP.
+- cap test (`out_hot`): toggle_on +15 asked -13.0 LUFS, capped -9.04 dB; chime_notify
+  +14 asked -11.0, capped -10.99 dB; tap with gain_db 0 asked -17.8, capped -4.23 dB;
+  tap_soft -3 untouched. Loudest cue exactly at the -22.0 cap. The bed check fails as
+  it should: after capping those cues are still +7.0, +6.0 and +3.0 LU above the kit's
+  calibration relative to the music (the chime ends up 1.4 LU over the bed).
 - bed: -20.00 LUFS, -4.49 dBTP, LRA 4.3 LU; centroid 518 Hz; energy <60 Hz 17 %,
   60-300 Hz 52 %, 300 Hz-3 kHz 27 %, 3-8 kHz 2.6 %, >8 kHz 0.8 %; L/R correlation
   0.71, worst 1/3-octave mono-sum drop -2.1 dB (not phasey); no clicks anywhere.
-- `verify.py`: 29/29 checks pass.
+- `verify.py`: 32/32 checks pass on `out`; on `out_hot`, 31/32 (the bed check is the one
+  that fails, by design).
 
 ## Limits
 

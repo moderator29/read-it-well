@@ -10,8 +10,16 @@ Chain (all 48 kHz):
           look-ahead sidechain envelope follower: -9 dB, attack 60 ms, hold
           250 ms (gaps between words never release), release 450 ms, plus a
           25 ms smoother, so it breathes between sentences but never pumps
-  sfx     events at their gain/pan (default gain = sfx/index.json's
-          recommended_gain_db); stereo files are balanced, mono ones panned
+  sfx     each cue at its gain/pan: offset_db relative to the kit's
+          recommended_gain_db (sfx/index.json; 0 = calibrated level) or an
+          absolute gain_db override; then a HARD CAP per cue before summing:
+          no cue louder than the voice minus 6 LU (max K-weighted loudness
+          over 100 ms windows, against the voice as the mixer sets it,
+          -16 LUFS; the ducked music plays no part). Every capped cue is
+          logged (name, t, dB taken off) and counted in the reports. A bed
+          check then verifies that the effects bus never exceeds the music
+          bed at the same moment by more than the kit intends (the same cues
+          at offset 0), in 100 ms windows, tolerance 0.5 LU.
   master  mild bus compression (1.6:1, soft knee, top 20 % of the programme)
           -> true-peak limiter (4x oversampled, look-ahead, -1.0 dBTP) and
           gain iterated to -14.0 LUFS integrated (pyloudnorm)
@@ -21,8 +29,9 @@ Outputs in --out:
   music_only.wav/.m4a  music + SFX, no voice (no ducking), same normalization
   music_bed.wav/.m4a   the pure bed at its rendered -20 LUFS (--bed-lufs to change)
   *_report.json        loudness report for each (integrated, true peak, LRA,
-                       ffmpeg EBU R128 cross-check, clicks; the final mix also
-                       has voice/ducking/bus/limiter stats and the placed SFX)
+                       ffmpeg EBU R128 cross-check, clicks, sfx_capped_count;
+                       the final mix also has voice/ducking/bus/limiter stats,
+                       every placed cue, the capped cues and the bed check)
   mix_stems/           voice, ducked music and SFX at the final gain (pre-bus)
   M4A is AAC 256k; if AAC overshoots the ceiling it is re-encoded from a copy
   re-limited just below it, so the M4A is also <= -1 dBTP.
@@ -34,10 +43,13 @@ dst_start on the film timeline. `mix.py plan` builds one from timings.json
 (cut mid-pause; --gap-after 2:0.5 adds 0.5 s after sentence 2); `mix.py
 shift` moves timings.json onto the film timeline for captions.
 
-SFX events: JSON list of {"name": "tap", "t": 12.34, "gain_db": -6, "pan": 0.0}.
-Instead of "t", an event can be anchored to the (film-timeline) words or
-sentences of timeline.json: {"name": "stamp", "word": "verified", "sentence": 13,
-"offset": 0.0} or {"name": "impact_soft", "sentence": 21, "anchor": "start"}.
+SFX cues: JSON list, as the film engine writes them:
+    {"name": "tap", "t": 12.34, "offset_db": 0, "pan": 0.0}
+offset_db is dB relative to that sound's recommended_gain_db (default 0);
+"gain_db" is an absolute override and wins if present; pan -1..1 (mono files:
+constant-power pan, stereo files: balance). Instead of "t", a cue may be
+anchored to timeline.json's words/sentences: {"name": "stamp", "word":
+"verified", "sentence": 13, "offset": 0.0} or {"sentence": 21, "anchor": "start"}.
 
     python mix.py mix --voice voice.mp3 --timeline ../video/timeline.json --music out/music.wav \
                       --sfx-events events.json --sfx-dir out/sfx --timings out/timings.json --out out
