@@ -34,11 +34,12 @@
    * than inventing a second shadow at this call site.
    */
   .nf-pcard {
-    /* This surface's own rung beneath the overline, for the card's smallest
-       type: the fact row, the place line, the price suffix and the pills on
-       the photograph. Declared on the card root so everything inside it
-       reads one value; a candidate for promotion to the token scale. */
-    --nf-pcard-fact: 0.6875rem;
+    /* The card's smallest type: the fact row, the place line, the price
+       suffix and the pills on the photograph. Declared on the card root so
+       everything inside it reads one value. 12px since the pixel polish of
+       30 September (was 11): no text under 12px outside legal; the fact row
+       wraps rather than clips, so the extra pixel costs no fact. */
+    --nf-pcard-fact: var(--nf-text-overline);
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -128,7 +129,7 @@
      with BQ" in the two-up grid at 320 before its last words. */
   /* The market as a quiet word above the title (plan item 17). */
   .nf-pcard__market {
-    font-size: 0.75rem;
+    font-size: var(--nf-text-overline);
     line-height: 1rem;
     font-weight: 500;
     color: var(--nf-content-muted);
