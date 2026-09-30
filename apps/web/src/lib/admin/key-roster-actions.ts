@@ -18,6 +18,7 @@ const WORDS: Record<string, string> = {
   forbidden: "Only a super admin can do this.",
   invalid_target: "Pick somebody other than yourself. A second super admin clears your keys.",
   reason_required: "Say why, in at least ten characters. It goes in the audit log.",
+  not_staff: "That person is not on the staff, so they have no console key to clear.",
   signed_out: SIGNED_OUT_MESSAGE,
 };
 
