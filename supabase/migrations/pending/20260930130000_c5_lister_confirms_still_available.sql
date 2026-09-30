@@ -155,12 +155,17 @@ declare
   refused   boolean := false;
   touched   boolean := false;
 begin
+  -- Only a listing its owner may still edit proves THIS guard: on a reviewed
+  -- listing listings_00_guard_owner_write refuses first with the same errcode,
+  -- so the refusal must also carry this guard's own sentence (review fix).
   select l.id, a.user_id into v_listing, v_user
     from public.listings l join public.agents a on a.id = l.agent_id
    where a.user_id is not null
+     and l.status in ('DRAFT', 'MORE_INFO_REQUIRED', 'REJECTED')
+     and l.closed_at is null
    limit 1;
   if v_listing is null then
-    raise notice 'C5 probe skipped: no listing with an owner';
+    raise notice 'C5 probe skipped: no editable listing with an owner';
     return;
   end if;
   perform set_config('request.jwt.claims', json_build_object('sub', v_user, 'role', 'authenticated')::text, true);
@@ -170,7 +175,8 @@ begin
     touched := found;
     raise exception 'c5_probe_undo';
   exception
-    when insufficient_privilege then refused := true;
+    when insufficient_privilege then
+      refused := sqlerrm like 'these facts are written by the platform%';
     when raise_exception then refused := false;
   end;
   execute 'reset role';
