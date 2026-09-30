@@ -1,3 +1,5 @@
+/* A .dom test only because the helpers live beside their components (TSX),
+   which the unit project cannot import; nothing here renders. */
 import { describe, expect, it } from "vitest";
 import { splitCounted } from "./HeroFigure";
 
