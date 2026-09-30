@@ -475,7 +475,7 @@ export default async function SearchPage({
         t={t}
         openFilters={raw.filters === "open"}
         anchors={anchors}
-        leading={<BackButton fallback="/" />}
+        leading={<BackButton fallback="/" surface="round" />}
       />
       <ReadAs query={query} said={said} locale={locale} copy={t.shape.unit} />
 

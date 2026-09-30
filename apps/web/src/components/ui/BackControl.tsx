@@ -30,18 +30,25 @@ import { useClientCopy } from "@/lib/i18n/client-copy";
  *
  * `surface` picks the material for where it sits, never the size or the glyph:
  *
- *   bare    no plate: page bars, the console and workspace bars, auth.
- *   plate   the base square (`nf-icon-btn`): the thread and the assistant bars.
- *   glass   the renders' glass square: `PageHeader`, settings, support.
+ *   bare    no plate: bars that paint their own control (auth, the slate).
+ *   round   the 44px white circle on a soft shadow (a raised night surface
+ *           in dark): founder references 44 and 45, CLEAN_UNIFIED_DIRECTION
+ *           section 17. `PageHeader`, the workspace and console bars,
+ *           settings, support, the thread and the assistant.
+ *   plate   the old base square; renders `round` now.
+ *   glass   the old glass square; renders `round` now.
  *   media   over a photograph: the listing gallery, a profile cover, a story.
  *   pill    `media` with the word on it: the profile banner.
  */
-export type BackSurface = "bare" | "plate" | "glass" | "media" | "pill";
+export type BackSurface = "bare" | "round" | "plate" | "glass" | "media" | "pill";
+
+const ROUND = "nf-icon-btn nf-icon-btn--round";
 
 const SURFACE: Record<BackSurface, string> = {
   bare: "rounded-[var(--nf-radius-control)] text-[var(--nf-content-primary)] transition-colors hover:text-[var(--nf-brand-secondary)]",
-  plate: "nf-icon-btn",
-  glass: "nf-icon-btn nf-icon-btn--glass",
+  round: ROUND,
+  plate: ROUND,
+  glass: ROUND,
   media: "nf-social-round nf-btn--glass",
   pill: "nf-social-round nf-social-round--pill nf-btn--glass",
 };

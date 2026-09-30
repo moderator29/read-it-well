@@ -849,13 +849,35 @@
     box-shadow: var(--nf-float-shadow);
   }
   /* The same circle on the hand-written header button (`.nf-icon-btn`,
-     controls.css): 44px, the elevated surface on the card hairline. */
-  .nf-icon-btn.nf-icon-btn--round {
+     controls.css): 44px, the elevated surface on the card hairline.
+     SECTION 17 (refs 44 and 45) EXTENDS IT TO BACK AND MORE: every header
+     button (back, search, bell, more, share) is a 44px white circle on a
+     soft shadow in light and the raised night surface in dark. The pair
+     `.nf-icon-btn.nf-icon-btn--round` outranks the lit square's own rules
+     (the brand rim, the glass fill, the glow on hover) whatever order the
+     partials load in, so no header has to argue with them. The header
+     action slots round any icon button put in them, so a page passing a
+     plain `nf-icon-btn` or an icon `Button` gets the circle too. */
+  .nf-icon-btn.nf-icon-btn--round,
+  :is(.nf-ph-large__actions, .nf-ph-actions, .nf-ph-desk__actions) > :is(.nf-icon-btn, .nf-btn--icon) {
     width: 2.75rem;
     height: 2.75rem;
     border: var(--nf-border-width) solid var(--nf-card-border);
+    border-radius: var(--nf-radius-circle);
     background: var(--nf-surface-elevated);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: var(--nf-float-shadow);
     color: var(--nf-content-primary);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .nf-icon-btn.nf-icon-btn--round:hover,
+    :is(.nf-ph-large__actions, .nf-ph-actions, .nf-ph-desk__actions) > :is(.nf-icon-btn, .nf-btn--icon):hover {
+      border-color: var(--nf-border-default);
+      background: linear-gradient(var(--nf-interactive-hover), var(--nf-interactive-hover)), var(--nf-surface-elevated);
+      box-shadow: var(--nf-float-shadow);
+      color: var(--nf-content-primary);
+    }
   }
 
   /*

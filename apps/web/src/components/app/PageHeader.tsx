@@ -89,9 +89,10 @@ export function PageHeader({
    */
   back?: boolean;
 }) {
-  /* The glass square the renders draw, 44px, named for where it goes. */
+  /* The 44px white circle of refs 44 and 45 (section 17), named for where
+     it goes. */
   const backButton = back ? (
-    <BackControl fallback={fallback} surface="glass" {...(backLabel ? { label: backLabel } : {})} />
+    <BackControl fallback={fallback} surface="round" {...(backLabel ? { label: backLabel } : {})} />
   ) : null;
 
   if (variant === "large") {
@@ -145,7 +146,7 @@ export function PageHeader({
       <div className={`mb-heading ${tone === "verified" ? "nf-page-header--verified rounded-[var(--nf-radius-lg)]" : ""}`}>
         <div className="flex items-center justify-between gap-md">
           {backButton}
-          {actions ? <div className="flex shrink-0 items-center gap-inline">{actions}</div> : null}
+          {actions ? <div className="nf-ph-actions flex shrink-0 items-center gap-inline">{actions}</div> : null}
         </div>
         <div className="mt-group flex items-start gap-md">
           {leading}
@@ -240,7 +241,7 @@ export function PageHeader({
             </p>
           ))}
       </div>
-      {actions ? <div className="ms-auto flex shrink-0 items-center gap-inline">{actions}</div> : null}
+      {actions ? <div className="nf-ph-actions ms-auto flex shrink-0 items-center gap-inline">{actions}</div> : null}
     </div>
   );
 }

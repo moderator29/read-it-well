@@ -186,7 +186,7 @@ export default async function AroundPage({
         object already says where you are.
       */}
       <div className="flex items-center gap-inline">
-        <BackButton fallback="/" />
+        <BackButton fallback="/" surface="round" />
         <LocationChip
           place={placeLabel || t.social.locationEverywhere}
           places={activePlaces}

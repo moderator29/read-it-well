@@ -61,7 +61,7 @@ export function WorkspaceHeader({
       className="nf-ws-bar nf-glass nf-glass--chrome nf-safe-top sticky top-0 z-40"
     >
       <div className="nf-ws-bar__row">
-        {back !== false ? <BackButton fallback={back} className="nf-ws-bar__btn" /> : null}
+        {back !== false ? <BackButton fallback={back} surface="round" className="nf-ws-bar__btn" /> : null}
         {menu}
         <p className="nf-ws-bar__title">{title}</p>
         {end}

@@ -341,7 +341,10 @@ export function AppShell({
         className={
           immersive
             ? "flex h-dvh min-w-0 flex-1 flex-col overflow-hidden"
-            : `min-w-0 flex-1 lg:pb-3xl ${showsTabBar(active) ? "nf-main--docked" : "pb-xl"}`
+            : /* `nf-soft-top`: section 17's lavender-white wash behind the
+                 header (a faint night glow in dark), painted once here for
+                 every in-app page (css/clean-17.css). */
+              `nf-soft-top min-w-0 flex-1 lg:pb-3xl ${showsTabBar(active) ? "nf-main--docked" : "pb-xl"}`
         }
       >
         {showsHeader && (

@@ -62,7 +62,7 @@ export default async function AddWorkspacePage({
   return (
     <>
       <div className="pb-sm">
-        <BackButton fallback={BACK.kind === "parent" ? BACK.href : "/profile"} />
+        <BackButton fallback={BACK.kind === "parent" ? BACK.href : "/profile"} surface="round" />
       </div>
       <AddWorkspaceChooser t={t} side={side} />
     </>

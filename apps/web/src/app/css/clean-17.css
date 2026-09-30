@@ -1,0 +1,47 @@
+/*
+ * SECTION 17: FOUNDER REFERENCES 44 AND 45 (30 September 2026).
+ *
+ * `docs/design/CLEAN_UNIFIED_DIRECTION.md` section 17 overrides the earlier
+ * shape rules platform-wide, in both themes. The pill buttons and the round
+ * header buttons live in `buttons.css`, the round plate in `controls.css`
+ * beside the square one; this partial holds the pieces that belong to no
+ * single primitive: the soft top, the centred hero figure and the 2x2
+ * figure tiles. Imported after `light.css`, so the paper header rules it
+ * relaxes are already in place.
+ */
+@layer components {
+  /* ------------------------------------------------------ THE SOFT TOP
+   * Light screens open on a lavender-white wash behind the header that
+   * fades into the warm canvas; dark screens get the same shape as a faint
+   * night glow. ONE class on the shells' page column (`AppShell`'s main,
+   * the host and agent workspaces, the console), never per page. The wash
+   * is a background image sized to the top of the column, so it scrolls
+   * away with the page and costs no layer. */
+  .nf-soft-top {
+    background-image: var(--nf-soft-top);
+    background-repeat: no-repeat;
+    background-position: top center;
+    background-size: 100% var(--nf-soft-top-size);
+  }
+
+  /* The paper header (light.css paints it the solid canvas) lets the wash
+     through at rest, so the top reads as one soft field as in refs 44 and
+     45. Once the page moves, chrome.css frosts it as before. The workspace
+     bar and the console's phone bar are sticky and never go clear, so they
+     carry the top slice of the same wash: at rest they meet the page's
+     wash without a seam. */
+  :root[data-theme="light"] .nf-soft-top .nf-app-header[data-theme="dark"]:not([data-scrolled]) {
+    background: transparent;
+    box-shadow: none;
+  }
+  :root[data-theme="light"] .nf-soft-top .nf-ws-bar[data-theme="dark"] {
+    background: var(--nf-soft-top) top center / 100% var(--nf-soft-top-size) no-repeat, var(--nf-surface-canvas);
+    box-shadow: none;
+  }
+  @media (max-width: 63.99rem) {
+    :root[data-theme="light"] .nf-soft-top > .nf-admin-bar {
+      background: var(--nf-soft-top) top center / 100% var(--nf-soft-top-size) no-repeat, var(--nf-surface-canvas);
+      border-bottom-color: transparent;
+    }
+  }
+}
