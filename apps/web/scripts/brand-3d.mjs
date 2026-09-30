@@ -6,7 +6,7 @@
  *
  * Sources live in assets-src/3d-2026-09-30/ (never served). Outputs:
  *
- * 1. public/brand/3d/<name>.webp and .png: the eight icons of
+ * 1. public/brand/3d/<name>.webp: the eight icons of
  *    icon-sheet-stays-and-actions.png (a 2 x 4 sheet on a dark navy ground),
  *    each a square with even padding, 256 px. The navy ground is keyed out
  *    with a difference key against a background estimated from the tile's own
@@ -188,7 +188,6 @@ async function icons() {
     const buf = await keyed.png().toBuffer();
     const sized = sharp(buf).resize(OUT_SIZE, OUT_SIZE, { fit: "contain", kernel: "lanczos3" });
     await sized.clone().webp({ quality: 90, alphaQuality: 90, effort: 6 }).toFile(join(OUT_ICONS, `${icon.name}.webp`));
-    await sized.clone().png({ compressionLevel: 9, palette: false }).toFile(join(OUT_ICONS, `${icon.name}.png`));
     console.log(`brand/3d/${icon.name}`);
   }
 }
