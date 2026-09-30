@@ -15,7 +15,7 @@ export default {
   file: "09-r9-see-what-places-are-asking.png",
   W,
   H,
-  phones: [phone("price", "night", { kind: "pose", rotation: { x: 6, y: -20, z: -11 }, fov: 30, h: 1020, cx: 660, top: TOP }, { images: [[120, 2480, 1300, 2868, "the pin map"]] })],
+  phones: [phone("price", "night", { kind: "pose", rotation: { x: 6, y: -20, z: -11 }, fov: 30, h: 996, cx: 660, top: TOP }, { images: [[120, 2480, 1300, 2868, "the pin map"]] })],
   html: ({ phones }) =>
     frame({
       W,
