@@ -1,41 +1,51 @@
 /**
  * Mobile rows 01-04 (0.00-8.65): frame one, the three questions, "Finding a
- * place in Nigeria", the shuffle, the rush into the Vallo card, the mark and
- * its ring, and the ring opening into daylight.
+ * place / in Nigeria", the shuffle and the fan, the rush into the Vallo card,
+ * the mark and its ring, and the ring opening into daylight.
  */
 import { LAYOUT, QUESTIONS } from "./layout.js";
 import { questionCard, ringBurst } from "../engine/components.js";
-import { NAVY, SKY, QUIET, SHADOW_NIGHT } from "./a-common.js";
+import { SKY, QUIET, SHADOW_NIGHT, fitSize } from "./a-common.js";
 
 const W = 1080;
 const H = 1920;
 
+/** The night's question cards: frosted glass, the question on two balanced lines. */
+export function nightCard(ctx, parent, { q, a, box, size = 46 }) {
+  const card = questionCard(ctx, parent, { q, a, box, fontSize: size });
+  Object.assign(card.front.style, {
+    background: "linear-gradient(180deg, rgb(255 255 255 / 0.15) 0%, rgb(255 255 255 / 0.07) 100%)",
+    border: "1.5px solid rgb(255 255 255 / 0.24)",
+    boxShadow: `${SHADOW_NIGHT}, inset 0 1px 0 rgb(255 255 255 / 0.16)`,
+    justifyContent: "center", textAlign: "center", color: "#fff", textWrap: "balance", lineHeight: "1.14",
+  });
+  Object.assign(card.back.style, { justifyContent: "center", textAlign: "center", textWrap: "balance", lineHeight: "1.2" });
+  return card;
+}
+
 export function buildOpenMobile(ctx, T) {
   const { tl } = ctx;
   const L = LAYOUT.mobile;
+  const WORDS = L.WORDS; // x 44, y 520, w 896, h 520
 
   /* ================= the night: rows 01-03 ================= */
   const night = ctx.scene("a-night", 0, T.rush + 0.32, { z: 1 });
   /* The sky meets the art's own top colour (#000b2e) at the art's edge (y 570). */
   ctx.el("div", { class: "fill", style: { background: "linear-gradient(180deg, #000313 0%, #00061c 16%, #000a2a 27%, #000b2e 29.7%, #000b2e 100%)" } }, night);
 
-  /* The slow push: the whole night world, 1.00 -> 1.04 by the end of row 01, still drifting in row 02. */
+  /* The slow push: the whole night world, 1.00 -> 1.04 by the end of row 01, drifting on through row 02. */
   const world = ctx.el("div", { class: "fill", style: { transformOrigin: "540px 820px" } }, night);
   tl.fromTo(world, { scale: 1 }, { scale: 1.075, duration: T.rows[2] + 0.4, ease: "drift" }, 0);
   /* The velvet-hills art at native size, anchored low: the house and hotel sit at y 900-1320. */
   ctx.img(ctx.src.art("step-1-dark.webp"), { class: "abs", style: { left: "0px", top: "570px", width: "1080px", height: "1440px" } }, world);
 
-  /* Three depths for the three cards (far, near, middle): a little parallax on the push. */
+  /* Three depths for the three cards: a little parallax on the push. */
   const depths = [1.012, 1.03, 1.02];
   const cards = QUESTIONS.map((q, i) => {
     const box = L.CARDS_OPEN[i];
     const layer = ctx.el("div", { class: "fill", style: { transformOrigin: "540px 760px", zIndex: String(i + 1) } }, night);
     tl.fromTo(layer, { scale: 1 }, { scale: depths[i], duration: T.rows[2] + 0.4, ease: "drift" }, 0);
-    const card = questionCard(ctx, layer, { q: q.q, a: q.a, box, fontSize: 40 });
-    card.front.style.boxShadow = SHADOW_NIGHT + ", inset 0 1px 0 rgb(255 255 255 / 0.10)";
-    card.front.style.justifyContent = "center";
-    card.front.style.textAlign = "center";
-    card.front.style.fontWeight = "600";
+    const card = nightCard(ctx, layer, { q: q.q, a: q.a, box });
     return { ...card, box, layer, i };
   });
 
@@ -43,67 +53,71 @@ export function buildOpenMobile(ctx, T) {
   const lift = [-2.5, 2, -2];
   cards.forEach((c) => {
     const k = c.i;
-    tl.set(c.root, { rotation: c.box.r + lift[k], y: -26 }, 0);
-    tl.fromTo(c.root, { y: -26, rotation: c.box.r + lift[k] }, { y: 0, rotation: c.box.r, duration: 0.5, ease: "power2.inOut" }, T.settle[k] - 0.5);
+    tl.set(c.root, { rotation: c.box.r + lift[k], y: -24 }, 0);
+    tl.fromTo(c.root, { y: -24, rotation: c.box.r + lift[k] }, { y: 0, rotation: c.box.r, duration: 0.5, ease: "power2.inOut" }, T.settle[k] - 0.5);
     tl.fromTo(c.front, { scale: 1.012 }, { scale: 1, duration: 0.5, ease: "power2.inOut" }, T.settle[k] - 0.5);
   });
-  /* A slow bob once settled, until the gather (seeded, time-only). */
+  /* A slow bob once settled, until the gather. */
   cards.forEach((c) => {
     const ph = c.i * 1.7;
     ctx.onFrame((t) => {
       const on = ctx.progress(t, T.settle[c.i], T.settle[c.i] + 0.6) * (1 - ctx.progress(t, T.shouldnt - 0.1, T.shouldnt + 0.2));
-      c.front.style.translate = `0px ${(Math.sin((t - T.settle[c.i]) * 2.3 + ph) * 5 * on).toFixed(2)}px`;
+      c.front.style.translate = `0px ${(Math.sin((t - T.settle[c.i]) * 2.3 + ph) * 4 * on).toFixed(2)}px`;
     });
   });
 
-  /* ---------- row 02: "Finding a place / in Nigeria" on a navy band ---------- */
+  /* ---------- row 02: "Finding a place / in Nigeria", in WORDS on a navy band, over the dimmed cards ---------- */
+  const bandTop = WORDS.y + 56;
   const band = ctx.el("div", {
     class: "abs",
     style: {
-      left: "0px", top: "950px", width: `${W}px`, height: "260px", zIndex: "10", transformOrigin: "50% 50%",
-      background: "linear-gradient(180deg, rgb(2 6 50 / 0) 0%, rgb(2 6 50 / 0.82) 12%, rgb(2 6 50 / 0.82) 88%, rgb(2 6 50 / 0) 100%)",
+      left: "0px", top: `${bandTop}px`, width: `${W}px`, height: "300px", zIndex: "10", transformOrigin: "50% 50%",
+      background: "linear-gradient(180deg, rgb(2 6 50 / 0) 0%, rgb(2 6 50 / 0.84) 14%, rgb(2 6 50 / 0.84) 86%, rgb(2 6 50 / 0) 100%)",
     },
   }, night);
   tl.fromTo(band, { scaleY: 0, opacity: 0 }, { scaleY: 1, opacity: 1, duration: 0.42, ease: "power3.out" }, T.finding - 0.12);
-  tl.to(band, { scaleY: 0, opacity: 0, duration: 0.3, ease: "power2.in" }, T.shouldnt + 0.08);
+  tl.to(band, { scaleY: 0, opacity: 0, duration: 0.28, ease: "power2.in" }, T.shouldnt + 0.02);
 
-  const lineStyle = (top) => ({ left: "0px", right: "0px", top: `${top}px`, height: "120px", zIndex: "11", display: "flex", alignItems: "baseline", gap: "0.24em", fontSize: "108px" });
-  const line1 = ctx.el("div", { class: "abs display", style: { ...lineStyle(966), justifyContent: "flex-start", paddingLeft: "64px" } }, night);
-  const line2 = ctx.el("div", { class: "abs display", style: { ...lineStyle(1086), justifyContent: "flex-end", paddingRight: "140px" } }, night);
-  const spec1 = [["Finding", 108, 0, T.finding], ["a", 100, 8, T.a1], ["place", 112, -6, T.place]];
-  const spec2 = [["in", 102, 6, T.in1], ["Nigeria", 114, -4, T.nigeria]];
+  const inner = WORDS.w - 2 * 28;
+  const s1 = fitSize("Finding a place", "700 {}px Poppins", 110, inner);
+  const s2 = fitSize("in Nigeria", "700 {}px Poppins", 116, inner);
+  const lineStyle = (top) => ({ left: `${WORDS.x + 28}px`, width: `${inner}px`, top: `${top}px`, height: "130px", zIndex: "11", display: "flex", alignItems: "baseline", gap: "0.24em", letterSpacing: "-0.03em" });
+  const line1 = ctx.el("div", { class: "abs display", style: { ...lineStyle(bandTop + 34), justifyContent: "flex-start" } }, night);
+  const line2 = ctx.el("div", { class: "abs display", style: { ...lineStyle(bandTop + 150), justifyContent: "flex-end" } }, night);
+  const spec1 = [["Finding", s1, 0, T.finding], ["a", Math.round(s1 * 0.94), 6, T.a1], ["place", s1, -4, T.place]];
+  const spec2 = [["in", Math.round(s2 * 0.92), 6, T.in1], ["Nigeria", s2, -2, T.nigeria]];
   const mk = (parent, spec, fromX, key) => spec.map(([text, size, dy, t]) => {
     const span = ctx.el("span", { text, style: { display: "inline-block", fontSize: `${size}px`, color: "#fff", position: "relative", top: `${dy}px`, whiteSpace: "pre" } }, parent);
+    /* On night, the key word takes the brand's light blues (electric on navy is 4.0:1; these are 7:1 and up). */
     if (text === key) Object.assign(span.style, { background: `linear-gradient(100deg, ${SKY} 0%, ${QUIET} 100%)`, WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" });
     tl.fromTo(span, { x: fromX, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: "land" }, t - 0.07);
     return span;
   });
   const w1 = mk(line1, spec1, -120, null);
   const w2 = mk(line2, spec2, 120, "Nigeria");
-  /* On "shouldn't" they part: the top line out to the left, the bottom line out to the right. */
-  w1.forEach((s, k) => tl.to(s, { x: -1000, duration: 0.42, ease: "power3.in" }, T.shouldnt - 0.02 + (w1.length - 1 - k) * 0.035));
-  w2.forEach((s, k) => tl.to(s, { x: 1000, duration: 0.42, ease: "power3.in" }, T.shouldnt - 0.02 + k * 0.035));
+  /* On "shouldn't" they part: the top line out to the left, the bottom line out to the right, leading word first. */
+  w1.forEach((s, k) => tl.to(s, { x: -1100, duration: 0.3, ease: "power3.in" }, T.shouldnt - 0.1 + k * 0.03));
+  w2.forEach((s, k) => tl.to(s, { x: 1100, duration: 0.3, ease: "power3.in" }, T.shouldnt - 0.1 + (w2.length - 1 - k) * 0.03));
 
   /* The cards dim behind the words. */
   cards.forEach((c) => {
-    tl.fromTo(c.root, { opacity: 1 }, { opacity: 0.36, duration: 0.4, ease: "power2.out" }, T.finding - 0.1);
+    tl.fromTo(c.root, { opacity: 1 }, { opacity: 0.3, duration: 0.4, ease: "power2.out" }, T.finding - 0.1);
     tl.to(c.root, { opacity: 1, duration: 0.35, ease: "power2.out" }, T.shouldnt + 0.02);
   });
 
   /* ---------- row 03: the shuffle, the fan, the rush ---------- */
-  const C = { x: 540, y: 700 };
+  const C = { x: 540, y: 720 };
   const at = (c, dx = 0, dy = 0) => ({ x: C.x - (c.box.x + c.box.w / 2) + dx, y: C.y - (c.box.y + c.box.h / 2) + dy });
   const stack = [{ dy: -12, r: -2.2 }, { dy: 0, r: 1.4 }, { dy: 12, r: -0.8 }];
-  /* Gather at the centre as the words part. */
   cards.forEach((c, k) => {
     const p = at(c, 0, stack[k].dy);
-    tl.to(c.root, { x: p.x, y: p.y, rotation: stack[k].r, scale: 0.9, duration: 0.5, ease: "power3.inOut" }, T.shouldnt + 0.0 + k * 0.03);
+    tl.to(c.root, { x: p.x, y: p.y, rotation: stack[k].r, scale: 0.9, duration: 0.5, ease: "power3.inOut" }, T.shouldnt + k * 0.03);
   });
   /* Three cuts, one card each (top to bottom), on the card_slide cues. */
   const moves = [
-    { c: 2, t: T.b(7.1), dx: 470, r: 11, back: -1.5, zb: 0 },
-    { c: 1, t: T.b(7.8), dx: -470, r: -11, back: 1.8, zb: -1 },
-    { c: 0, t: T.b(8.5), dx: 470, r: 10, back: -0.6, zb: -2 },
+    { c: 2, t: T.b(7.1), dx: 460, r: 11, back: -1.5, zb: 0 },
+    { c: 1, t: T.b(7.8), dx: -460, r: -11, back: 1.8, zb: -1 },
+    { c: 0, t: T.b(8.5), dx: 460, r: 10, back: -0.6, zb: -2 },
   ];
   moves.forEach((m) => {
     const c = cards[m.c];
@@ -113,23 +127,22 @@ export function buildOpenMobile(ctx, T) {
     tl.to(c.root, { x: home.x, y: home.y, rotation: m.back, duration: 0.2, ease: "power2.inOut" }, m.t + 0.19);
   });
   /* On "gamble" they fan like a hand, around a pivot far below the stack. */
-  const P = 760;
-  const fan = [-15, 0, 15];
+  const P = 700;
+  const fan = [-16, 0, 16];
   cards.forEach((c, k) => {
     tl.set(c.layer, { zIndex: k + 1 }, T.gamble - 0.02);
     const a = (fan[k] * Math.PI) / 180;
-    const p = at(c, P * Math.sin(a), P * (1 - Math.cos(a)));
-    tl.to(c.root, { x: p.x, y: p.y, rotation: fan[k], scale: 0.84, duration: 0.42, ease: "back.out(1.5)" }, T.gamble - 0.04);
-    /* The hand opens a touch while it is held. */
-    const a2 = ((fan[k] * 1.12) * Math.PI) / 180;
-    const p2 = at(c, P * Math.sin(a2), P * (1 - Math.cos(a2)));
-    tl.to(c.root, { x: p2.x, y: p2.y, rotation: fan[k] * 1.12, duration: T.rush - T.gamble - 0.45, ease: "sine.inOut" }, T.gamble + 0.4);
+    const p = at(c, P * Math.sin(a), P * (1 - Math.cos(a)) - 40);
+    tl.to(c.root, { x: p.x, y: p.y, rotation: fan[k], scale: 0.86, duration: 0.42, ease: "back.out(1.5)" }, T.gamble - 0.04);
+    const a2 = ((fan[k] * 1.1) * Math.PI) / 180;
+    const p2 = at(c, P * Math.sin(a2), P * (1 - Math.cos(a2)) - 40);
+    tl.to(c.root, { x: p2.x, y: p2.y, rotation: fan[k] * 1.1, duration: T.rush - T.gamble - 0.45, ease: "sine.inOut" }, T.gamble + 0.4);
   });
   /* On bar 3's last beat the middle card rushes at the camera and turns (edge-on at rush + 0.27). */
   const mid = cards[1];
   const edge = T.rush + 0.27;
   tl.set(mid.layer, { zIndex: 9 }, T.rush);
-  tl.to(mid.root, { y: 960 - (mid.box.y + mid.box.h / 2), scale: 2.6, duration: edge - T.rush, ease: "power2.in" }, T.rush);
+  tl.to(mid.root, { y: 960 - (mid.box.y + mid.box.h / 2), x: 540 - (mid.box.x + mid.box.w / 2), scale: 2.6, duration: edge - T.rush, ease: "power2.in" }, T.rush);
   tl.fromTo(mid.inner, { rotationY: 0 }, { rotationY: 90, duration: edge - T.rush, ease: "power2.in" }, T.rush);
   [cards[0], cards[2]].forEach((c, k) => {
     tl.to(c.root, { scale: 0.7, opacity: 0, x: `+=${k ? 160 : -160}`, y: "+=90", duration: 0.34, ease: "power2.in" }, T.rush + 0.02);
@@ -155,13 +168,13 @@ export function buildOpenMobile(ctx, T) {
   const markH = (MARK.w * 587) / 614;
   const mark = ctx.img(ctx.src.brand("vallo-mark.png"), { class: "abs", style: { left: `${MARK.cx - MARK.w / 2}px`, top: `${MARK.cy - markH / 2}px`, width: `${MARK.w}px`, height: `${markH}px` } }, vallo);
   tl.fromTo(mark, { scale: 1.45, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.6, ease: "land" }, T.drop);
-  const ring = ringBurst(ctx, vallo, { cx: MARK.cx, cy: MARK.cy, r: 285, t: T.drop + 0.06, color: SKY, stroke: 4, dots: 18, seed: 12, dur: 0.75 });
+  const ring = ringBurst(ctx, vallo, { cx: MARK.cx, cy: MARK.cy, r: 285, t: T.drop + 0.06, color: SKY, stroke: 4, dots: 16, seed: 12, dur: 0.75 });
   const WM = { w: 470 };
   const wmH = (WM.w * 167) / 758;
   const wordmark = ctx.img(ctx.src.brand("vallo-wordmark.png"), { class: "abs", style: { left: `${540 - WM.w / 2}px`, top: "1236px", width: `${WM.w}px`, height: `${wmH}px` } }, vallo);
   tl.fromTo(wordmark, { y: 46, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "land" }, T.vallo - 0.04);
   /* At the widen, the mark and the wordmark rush past the camera as the ring opens. */
-  tl.to([mark, wordmark], { scale: 1.3, opacity: 0, duration: 0.3, ease: "power2.in" }, T.widen);
+  tl.to([mark, wordmark], { scale: 1.3, opacity: 0, duration: 0.26, ease: "power2.in" }, T.widen);
   tl.to(ring, { opacity: 0, duration: 0.01 }, T.widen);
 
   /* ================= the ring opens onto daylight ================= */
