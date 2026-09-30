@@ -511,7 +511,7 @@
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
     line-height: 1.2;
-    font-size: 0.6875rem;
+    font-size: var(--nf-text-overline);
     font-weight: 600;
     color: var(--nf-content-secondary);
   }
@@ -747,7 +747,7 @@
       transform var(--nf-duration-press) var(--nf-ease-press);
   }
   .nf-tabbar .nf-tab__label {
-    font-weight: 650;
+    font-weight: 600;
     letter-spacing: 0.005em;
   }
   .nf-tabbar .nf-tab__link:focus-visible {
@@ -774,7 +774,7 @@
     filter: var(--nf-dock-glyph-glow, drop-shadow(0 0 6px var(--nf-glow-3)));
   }
   .nf-tabbar :is(.nf-tab__link[aria-current="page"], .nf-tab__link[data-on]) .nf-tab__label {
-    font-weight: 750;
+    font-weight: 600;
   }
   .nf-tabbar :is(.nf-tab__link[aria-current="page"], .nf-tab__link[data-on])::after {
     content: "";
@@ -963,7 +963,7 @@
   }
   .nf-dockmore__item[aria-current="page"] .nf-dockmore__label {
     color: var(--nf-dock-ink-on, var(--nf-brand-quiet));
-    font-weight: 750;
+    font-weight: 600;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -1076,7 +1076,7 @@
     transform: translateX(-4px);
     white-space: nowrap;
     font-size: var(--nf-text-caption);
-    font-weight: 700;
+    font-weight: 600;
     line-height: 1.2;
     letter-spacing: 0;
     transition:

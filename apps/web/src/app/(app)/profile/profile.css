@@ -135,6 +135,14 @@
     inset-block-start: calc(env(safe-area-inset-top, 0px) + 0.5rem + 2.75rem + var(--nf-space-xs));
     inset-inline-end: var(--nf-pad-shell);
   }
+  /* SECTION 17's round header button (gap audit UIUX-13): the gear wears
+     `nf-icon-btn--round`, the 44px circle on the soft float shadow the bell
+     wears, and `data-theme="light"` so it is white on the night cover by
+     day. That attribute's token block is unlayered and sets the ink on the
+     button, so the brand blue goes on the glyph itself. */
+  .nf-pf-cover .nf-pf-gear > svg {
+    color: var(--nf-brand-secondary);
+  }
   @media (min-width: 640px) {
     .nf-pf-cover .nf-pf-gear {
       inset-block-start: var(--nf-space-sm);

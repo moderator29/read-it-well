@@ -255,7 +255,8 @@ export function AccountHero({
         */}
         <Link
           href="/settings"
-          className="nf-icon-btn nf-pf-gear"
+          className="nf-icon-btn nf-icon-btn--round nf-pf-gear"
+          data-theme="light"
           aria-label={COPY.settings}
           data-testid="account-settings-button"
         >

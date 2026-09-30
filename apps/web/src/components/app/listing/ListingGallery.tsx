@@ -287,7 +287,12 @@ export function ListingGallery({
       <div ref={heroBack} className="nf-safe-top pointer-events-none absolute left-3 top-3 z-20 sm:left-4 sm:top-4">
         <BackControl
           fallback={backFallback}
-          surface="media"
+          surface="round"
+          /* Section 17's round header button (gap audit UIUX-13). The hero
+             is a night island, so `data-theme="light"` re-runs the paper
+             tokens on the button itself: a white circle by day, the raised
+             night surface at night. Share, save and the photo arrows too. */
+          data-theme="light"
           className="pointer-events-auto transition-transform active:scale-90 motion-reduce:transition-none"
         />
       </div>
@@ -375,7 +380,8 @@ export function ListingGallery({
             onClick={() => go(active - 1)}
             disabled={active === 0}
             aria-label="Previous photo"
-            className="absolute left-3 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 place-items-center nf-btn nf-btn--glass nf-btn--sm nf-btn--icon text-[var(--nf-content-on-media)] disabled:opacity-0 sm:grid"
+            data-theme="light"
+            className="absolute left-3 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 place-items-center nf-icon-btn nf-icon-btn--round disabled:opacity-0 sm:grid"
           >
             <UiIcon name="arrow-left" size={16} />
           </button>
@@ -384,7 +390,8 @@ export function ListingGallery({
             onClick={() => go(active + 1)}
             disabled={active === panes.length - 1}
             aria-label="Next photo"
-            className="absolute right-3 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 place-items-center nf-btn nf-btn--glass nf-btn--sm nf-btn--icon text-[var(--nf-content-on-media)] disabled:opacity-0 sm:grid"
+            data-theme="light"
+            className="absolute right-3 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 place-items-center nf-icon-btn nf-icon-btn--round disabled:opacity-0 sm:grid"
           >
             <UiIcon name="arrow-right" size={16} />
           </button>
