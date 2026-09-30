@@ -41,6 +41,48 @@ comment on column public.listings.lister_confirmed_at is
 -- private fact, so it joins the public columns for signed-in members.
 grant select (lister_confirmed_at) on public.listings to authenticated;
 
+-- THE HOLD (review, 30 September): members hold table-wide insert and update
+-- on listings, so a lister could write lister_confirmed_at directly (2099, on
+-- a draft) and bypass the function below. The column joins the platform facts
+-- the existing guard already protects: reset on a member's insert, refused on
+-- a member's update. The function below is SECURITY DEFINER, so it runs as
+-- its owner, not as `authenticated`, and passes the guard's own test
+-- (`current_user not in ('authenticated', 'anon')`), exactly as the landlord
+-- line's writer of availability_confirmed_at does. The body is the live
+-- definition read on 30 September plus the two lister_confirmed_at lines.
+create or replace function private.listing_platform_facts_guard()
+returns trigger
+language plpgsql
+set search_path to ''
+as $function$
+begin
+  if current_user not in ('authenticated', 'anon') then
+    return new;
+  end if;
+  if tg_op = 'INSERT' then
+    new.property_id := null;
+    new.availability_confirmed_at := null;
+    new.not_reconfirmed_since := null;
+    new.closed_at := null;
+    new.close_reason := null;
+    new.closed_rent_payment_id := null;
+    new.lister_confirmed_at := null;
+    return new;
+  end if;
+  if new.property_id is distinct from old.property_id
+     or new.availability_confirmed_at is distinct from old.availability_confirmed_at
+     or new.not_reconfirmed_since is distinct from old.not_reconfirmed_since
+     or new.closed_at is distinct from old.closed_at
+     or new.close_reason is distinct from old.close_reason
+     or new.closed_rent_payment_id is distinct from old.closed_rent_payment_id
+     or new.lister_confirmed_at is distinct from old.lister_confirmed_at then
+    raise exception 'these facts are written by the platform, never by editing a listing'
+      using errcode = 'insufficient_privilege';
+  end if;
+  return new;
+end;
+$function$;
+
 create or replace function public.lister_confirm_available(p_listings uuid[])
 returns integer
 language plpgsql
@@ -100,3 +142,41 @@ begin
   end if;
 end;
 $check$;
+
+-- READ-BACK, BEHAVIOURAL: a member writing lister_confirmed_at directly on
+-- their OWN listing is refused by the guard. Run as `authenticated` with the
+-- owner's claims so RLS lets the row through and only the guard can stop it.
+-- The write is undone either way (the inner block always ends in an
+-- exception). Skipped, with a notice, when no listing has an owner.
+do $probe$
+declare
+  v_listing uuid;
+  v_user    uuid;
+  refused   boolean := false;
+  touched   boolean := false;
+begin
+  select l.id, a.user_id into v_listing, v_user
+    from public.listings l join public.agents a on a.id = l.agent_id
+   where a.user_id is not null
+   limit 1;
+  if v_listing is null then
+    raise notice 'C5 probe skipped: no listing with an owner';
+    return;
+  end if;
+  perform set_config('request.jwt.claims', json_build_object('sub', v_user, 'role', 'authenticated')::text, true);
+  execute 'set local role authenticated';
+  begin
+    update public.listings set lister_confirmed_at = '2099-01-01'::timestamptz where id = v_listing;
+    touched := found;
+    raise exception 'c5_probe_undo';
+  exception
+    when insufficient_privilege then refused := true;
+    when raise_exception then refused := false;
+  end;
+  execute 'reset role';
+  perform set_config('request.jwt.claims', '', true);
+  if not refused then
+    raise exception 'C5 guard: a member''s direct write of lister_confirmed_at was not refused (row reached: %)', touched;
+  end if;
+end;
+$probe$;

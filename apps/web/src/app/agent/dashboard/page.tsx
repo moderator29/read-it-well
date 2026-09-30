@@ -9,6 +9,9 @@ import {
   readAgentNumbers,
 } from "@/lib/agent/listings-queries";
 import { RealDashboard } from "./RealDashboard";
+import { StillAvailableCard } from "@/components/agent/StillAvailableCard";
+import { readLiveFreshness } from "@/lib/agent/freshness-read";
+import { daysSinceConfirmed, dueForConfirmation } from "@/lib/agent/freshness";
 import { KycBanner } from "@/components/agent/KycBanner";
 import { getKycStanding } from "@/lib/agent/kyc-standing";
 import { readInspectionsForLister } from "@/lib/inspections/queries";
@@ -45,6 +48,11 @@ export async function generateMetadata(): Promise<Metadata> {
  * the workspace is, here is the way in. Signed in without an agent row: you
  * have no listings yet, here is how to start. Unconfigured: say so plainly.
  */
+/** The request's moment, read once, outside render proper (as the console does). */
+function requestTime(): number {
+  return Date.now();
+}
+
 export default async function AgentDashboardPage() {
   const locale = await getLocale();
   const t = getDictionary(locale);
@@ -55,7 +63,7 @@ export default async function AgentDashboardPage() {
     /* Two independent reads, so they cost one round trip rather than two.
        On the connections this product is built for that is the difference
        between a dashboard and a wait. */
-    const [numbers, inspections, standing] = await Promise.all([
+    const [numbers, inspections, standing, freshness] = await Promise.all([
       readAgentNumbers(context.supabase, context.agent.id, context.user.id),
       readInspectionsForLister(),
       /*
@@ -67,7 +75,11 @@ export default async function AgentDashboardPage() {
        * reasoning the two above were already written to.
        */
       getKycStanding(context),
+      /* C5: the live listings due a "still available?". Null until the column exists. */
+      readLiveFreshness(context.supabase, context.agent.id),
     ]);
+    const now = requestTime();
+    const due = freshness ? dueForConfirmation(freshness, now) : [];
     return (
       <AgentShell
         t={t}
@@ -76,6 +88,13 @@ export default async function AgentDashboardPage() {
         profile={agentProfileFrom(context.agent)}
       >
         {standing ? <KycBanner standing={standing} /> : null}
+        {due.length > 0 ? (
+          <div className="mb-block">
+            <StillAvailableCard
+              items={due.map((row) => ({ id: row.id, title: row.title, days: daysSinceConfirmed(row, now) }))}
+            />
+          </div>
+        ) : null}
         <RealDashboard
           t={t}
           locale={locale}
