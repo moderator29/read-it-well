@@ -363,7 +363,43 @@ export type AlertView = {
    * cannot say who resolved it is how accountability quietly disappears.
    */
   resolvedByName: string | null;
+  /**
+   * C13: who took the alert ("I have this"), and when. Undefined on reads that
+   * do not carry acknowledgements (the drift section, the previews), and
+   * `acknowledgementsAvailable` false when they could not be read, which is
+   * what keeps the button off a desk that cannot store it.
+   */
+  acknowledgedAt?: string | null;
+  acknowledgedByName?: string | null;
+  acknowledgementsAvailable?: boolean;
 };
+
+type Acknowledgement = { at: string | null; by: string | null };
+
+/**
+ * C13: the acknowledgement columns for these alerts (supabase/migrations/
+ * 20260930122539_c13_alert_acknowledged_by_and_skipped_runs.sql, applied
+ * 30 September 2026). A separate best-effort read, so the queue itself never
+ * fails on it: null when the read fails, and the card then draws no button.
+ */
+async function readAcknowledgements(
+  db: SupabaseClient<Database>,
+  ids: string[],
+): Promise<Map<string, Acknowledgement> | null> {
+  if (ids.length === 0) return new Map();
+  try {
+    const { data, error } = await db
+      .from("risk_alerts")
+      .select("id, acknowledged_by, acknowledged_at")
+      .in("id", ids);
+    if (error || !data) return null;
+    const out = new Map<string, Acknowledgement>();
+    for (const row of data) out.set(row.id, { at: row.acknowledged_at, by: row.acknowledged_by });
+    return out;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Risk alerts, narrowed by the console's shared queue frame.
@@ -401,11 +437,19 @@ export async function getRiskAlerts(
     if (error) return UNAVAILABLE;
 
     const { rows, full } = takePage(data ?? []);
+    const acknowledgements = await readAcknowledgements(
+      admin,
+      rows.map((row) => row.id),
+    );
 
-    // One extra read for every distinct resolver, not one per row. The list is
-    // capped at fifty, so this is at most one small IN query.
+    // One extra read for every distinct resolver (and acknowledger), not one
+    // per row. The list is capped at fifty, so this is at most one small IN query.
     const resolverIds = [
-      ...new Set(rows.map((row) => row.resolved_by).filter((id): id is string => Boolean(id))),
+      ...new Set(
+        [...rows.map((row) => row.resolved_by), ...[...(acknowledgements?.values() ?? [])].map((a) => a.by)].filter(
+          (id): id is string => Boolean(id),
+        ),
+      ),
     ];
     const resolvers = new Map<string, string>();
     if (resolverIds.length > 0) {
@@ -433,12 +477,27 @@ export async function getRiskAlerts(
           createdAt: row.created_at,
           resolvedAt: row.resolved_at,
           resolvedByName: row.resolved_by ? (resolvers.get(row.resolved_by) ?? null) : null,
+          ...acknowledgementView(acknowledgements, row.id, resolvers),
         })),
       },
     };
   } catch {
     return UNAVAILABLE;
   }
+}
+
+function acknowledgementView(
+  acknowledgements: Map<string, Acknowledgement> | null,
+  id: string,
+  names: Map<string, string>,
+): Pick<AlertView, "acknowledgedAt" | "acknowledgedByName" | "acknowledgementsAvailable"> {
+  if (!acknowledgements) return { acknowledgementsAvailable: false };
+  const ack = acknowledgements.get(id);
+  return {
+    acknowledgementsAvailable: true,
+    acknowledgedAt: ack?.at ?? null,
+    acknowledgedByName: ack?.by ? (names.get(ack.by) ?? null) : null,
+  };
 }
 
 /** ------------------------------------------------------------------ reports */

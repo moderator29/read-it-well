@@ -45,6 +45,7 @@ import { CLOSED_LISTING_MESSAGE, isClosedListingRefusal } from "../landlord/clos
 import { withDone } from "../ui/success-moments";
 import { MANDATE_NEEDED_MESSAGE, isMandateRefusal } from "../compliance/beneficial-ownership";
 import {
+  acknowledgeRiskAlertSchema,
   replySupportTicketSchema,
   resolveReportSchema,
   resolveRiskAlertSchema,
@@ -194,6 +195,70 @@ export async function resolveRiskAlert(input: {
     });
   } catch {
     // Best effort.
+  }
+
+  revalidatePath("/admin/alerts");
+  revalidatePath("/admin");
+  return ok(null);
+}
+
+/**
+ * C13: "I HAVE THIS". The first person to take an open alert puts their name
+ * on it, so two people do not chase the same fault and nobody assumes the
+ * other one has it. Behind the same admin check as resolving, written through
+ * the admin's own RLS-bound client (the existing admin-only policy), audited.
+ * The database stamps the time and refuses a name that is not the caller's.
+ *
+ * The columns arrived with 20260930122539_c13_alert_acknowledged_by_and_skipped_runs.sql;
+ * should they ever be missing the answer says so plainly rather than failing
+ * silently.
+ */
+export async function acknowledgeRiskAlert(input: { alertId: string }): Promise<ActionResult<null>> {
+  const access = await requireAdmin();
+  if (access.state !== "admin") return fail(adminRefusal(access));
+
+  const parsed = validate(acknowledgeRiskAlertSchema, input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+
+  const { data: alert, error: readError } = await access.supabase
+    .from("risk_alerts")
+    .select("id, status, severity, title")
+    .eq("id", parsed.data.alertId)
+    .maybeSingle();
+  if (readError) return fail(SERVICE_DOWN);
+  if (!alert) return fail(GONE);
+  if (alert.status !== "open") return fail("This alert is already resolved.");
+
+  /* `is null` makes the first taker win: a second click, or a second person,
+     changes nothing and is told somebody has it. The database guard holds
+     the same rule for any other writer. */
+  const { data: taken, error: updateError } = await access.supabase
+    .from("risk_alerts")
+    .update({ acknowledged_by: access.user.id, acknowledged_at: new Date().toISOString() })
+    .eq("id", alert.id)
+    .eq("status", "open")
+    .is("acknowledged_by", null)
+    .select("id");
+  if (updateError) {
+    if (updateError.code === "42703" || updateError.code === "PGRST204") {
+      return fail("Acknowledging is not switched on yet. Nothing was changed.");
+    }
+    return fail(claimRefusal(updateError) ?? SERVICE_DOWN);
+  }
+  if (!Array.isArray(taken) || taken.length === 0) {
+    return fail("Somebody has already taken this alert. Refresh the queue to see who.");
+  }
+
+  try {
+    await writeAudit(createAdminClient(), {
+      actorId: access.user.id,
+      action: "risk_alert.acknowledge",
+      entityType: "risk_alert",
+      entityId: alert.id,
+      detail: { status: alert.status, severity: alert.severity, title: alert.title },
+    });
+  } catch {
+    // Best effort; the name is on the row either way.
   }
 
   revalidatePath("/admin/alerts");

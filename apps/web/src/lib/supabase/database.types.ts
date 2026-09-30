@@ -4756,6 +4756,8 @@ export type Database = {
       }
       risk_alerts: {
         Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
           created_at: string
           description: string | null
           entity_id: string | null
@@ -4768,6 +4770,8 @@ export type Database = {
           title: string
         }
         Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
           created_at?: string
           description?: string | null
           entity_id?: string | null
@@ -4780,6 +4784,8 @@ export type Database = {
           title: string
         }
         Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
           created_at?: string
           description?: string | null
           entity_id?: string | null

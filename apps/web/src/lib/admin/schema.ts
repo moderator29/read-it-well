@@ -30,6 +30,9 @@ export const resolveRiskAlertSchema = z.object({
   notes,
 });
 
+/** C13: "I have this" on an open alert. */
+export const acknowledgeRiskAlertSchema = z.object({ alertId: uuid });
+
 export const reportDecisions = ["reviewing", "resolved", "dismissed"] as const;
 export type ReportDecision = (typeof reportDecisions)[number];
 
