@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
 import { Button, ButtonLink } from "@/components/ui/Button";
-import { reportClientError } from "@/lib/observability/client";
+import { useErrorReport } from "@/lib/observability/use-error-report";
 import { SystemMoment } from "./offline/SystemMoment";
 
 /**
@@ -24,15 +23,9 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  useEffect(() => {
-    /* The console line stays: it is what a developer reads locally, and it
-       is the only record at all when `SENTRY_DSN` is unset. The report is
-       what makes the first real user's crash visible to us; it is scrubbed
-       and it is silent when nothing is configured
-       (`lib/observability/report.ts`). */
-    console.error("[vallo] route error", error);
-    reportClientError(error, { kind: "client.route_boundary", digest: error.digest });
-  }, [error]);
+  /* Logs to the console (the only record when `SENTRY_DSN` is unset), sends
+     the scrubbed report, and returns the short reference (C13). */
+  const reference = useErrorReport(error, "client.route_boundary", "[vallo] route error");
 
   return (
     /* The lockup links to `/home-or-landing`, not `/`. An error boundary is
@@ -45,14 +38,12 @@ export default function Error({
       <p className="nf-system__body">
         Something stopped part way through. Anything you had typed on this
         screen may need typing again, and trying again usually settles it.{" "}
-        {error.digest
-          ? "If it keeps happening, tell support and quote the reference below."
-          : "If it keeps happening, tell support what you were doing when it stopped."}
+        If it keeps happening, tell support and quote the reference below.
       </p>
 
-      {error.digest && (
-        <p className="nf-system__ref">Reference {error.digest}</p>
-      )}
+      <p className="nf-system__ref">
+        Reference <span className="nf-numeric select-all">{reference}</span>. Quote this to support.
+      </p>
 
       <div className="nf-system__actions">
         <Button variant="primary" size="lg" full onClick={reset}>

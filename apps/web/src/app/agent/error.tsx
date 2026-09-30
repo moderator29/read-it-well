@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useErrorReport } from "@/lib/observability/use-error-report";
 import { ResultScreen } from "@/components/app/ResultSheet";
 
 /**
@@ -27,9 +27,7 @@ export default function AgentError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  useEffect(() => {
-    console.error("[vallo] agent route error", error);
-  }, [error]);
+  const reference = useErrorReport(error, "client.agent_boundary", "[vallo] agent route error");
 
   return (
     <main
@@ -52,9 +50,9 @@ export default function AgentError({
           { label: "Back to dashboard", href: "/agent/dashboard", tone: "quiet" },
         ]}
         footnote={
-          error.digest ? (
-            <span className="nf-numeric">Reference {error.digest}</span>
-          ) : null
+          <span>
+            Reference <span className="nf-numeric select-all">{reference}</span>. Quote this to support.
+          </span>
         }
       />
     </main>

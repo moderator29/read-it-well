@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 
 import { reportClientError } from "@/lib/observability/client";
+import { digestFor, shortReference } from "@/lib/observability/reference";
 import "./globals.css";
 
 /**
@@ -43,10 +44,12 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const digest = digestFor(error);
+  const reference = shortReference(digest);
   useEffect(() => {
     console.error("[vallo] global error", error);
-    reportClientError(error, { kind: "client.global_boundary", digest: error.digest });
-  }, [error]);
+    reportClientError(error, { kind: "client.global_boundary", digest });
+  }, [error, digest]);
 
   return (
     <html lang="en" data-theme="dark">
@@ -81,16 +84,12 @@ export default function GlobalError({
               Something stopped before the app could start. Anything you had
               typed may need typing again, and trying again usually settles
               it.{" "}
-              {error.digest
-                ? "If it keeps happening, tell support and quote the reference below."
-                : "If it keeps happening, tell support what you were doing when it stopped."}
+              If it keeps happening, tell support and quote the reference below.
             </p>
 
-            {error.digest && (
-              <p style={{ margin: "1rem 0 0", fontSize: "0.8125rem", opacity: 0.6 }}>
-                Reference {error.digest}
-              </p>
-            )}
+            <p style={{ margin: "1rem 0 0", fontSize: "0.8125rem", opacity: 0.6, userSelect: "all" }}>
+              Reference {reference}. Quote this to support.
+            </p>
 
             {/* Both of these were `borderRadius: "999px"`. They are controls
                 carrying words, so they take the control radius like every other

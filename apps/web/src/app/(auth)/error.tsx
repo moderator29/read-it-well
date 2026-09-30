@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useErrorReport } from "@/lib/observability/use-error-report";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { useClientCopy } from "@/lib/i18n/client-copy";
@@ -36,9 +36,7 @@ export default function AuthError({
   reset: () => void;
 }) {
   const a = useClientCopy().authFlow;
-  useEffect(() => {
-    console.error("[vallo] auth route error", error);
-  }, [error]);
+  const reference = useErrorReport(error, "client.auth_boundary", "[vallo] auth route error");
 
   return (
     <div className="text-center">
@@ -59,11 +57,9 @@ export default function AuthError({
         </Link>
       </div>
 
-      {error.digest && (
-        <p className="nf-numeric mt-5 text-[0.75rem] text-[var(--nf-content-muted)]">
-          {a.reference.replace("{digest}", error.digest)}
-        </p>
-      )}
+      <p className="nf-numeric mt-md select-all text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+        {a.reference.replace("{digest}", reference)}
+      </p>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useErrorReport } from "@/lib/observability/use-error-report";
 import { ResultScreen } from "@/components/app/ResultSheet";
 
 /**
@@ -27,9 +27,7 @@ export default function AdminError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  useEffect(() => {
-    console.error("[vallo] admin route error", error);
-  }, [error]);
+  const reference = useErrorReport(error, "client.admin_boundary", "[vallo] admin route error");
 
   return (
     /* Rose and a warning triangle, for the same reason as the app boundary:
@@ -45,9 +43,10 @@ export default function AdminError({
         { label: "Back to the console", href: "/admin", tone: "quiet" },
       ]}
       footnote={
-        error.digest ? (
-          <span className="nf-numeric">Reference {error.digest}</span>
-        ) : null
+        <span>
+          Reference <span className="nf-numeric select-all">{reference}</span>. Paste it into the console lookup
+          (Ctrl K) or quote it to engineering.
+        </span>
       }
     />
   );
