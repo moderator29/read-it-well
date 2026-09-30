@@ -2,10 +2,7 @@
 -- 30 September 2026. Reviewer's non-blocking note on
 -- 20260930104610_m1_b11_b13_severity_and_saved_changes.
 --
--- HELD IN pending/. Do not apply without review. When applying: apply, rename
--- to `<version>_m1_followup_saved_listing_back_on_market.sql` in
--- supabase/migrations, and record it
--- (`node scripts/check-migrations.mjs --record <file>`).
+-- Applied 30 September 2026 with the founder's approval.
 --
 -- THE GAP. private.record_listing_change() tells every saver "A place you
 -- saved is no longer available" when a live listing leaves PUBLISHED. An

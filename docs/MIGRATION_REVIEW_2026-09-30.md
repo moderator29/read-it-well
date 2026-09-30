@@ -83,6 +83,12 @@ Row 19 was applied after the lead confirmed production was serving PR #75
 (`/for-hosts` returned 200). Its read-back passed, with 8 enabled triggers. The
 email and notify tests pass (24 files, 2,791 tests).
 
+| 20 | pending (no version) | `20260930140424` | `m1_followup_severity_execute_revoke` (APPLY, verdict 661bbc77; file as at 1338849e) |
+| 21 | pending (no version) | `20260930140451` | `m1_followup_saved_listing_back_on_market` (APPLY, verdict 661bbc77; file as at 1338849e) |
+
+Rows 20 and 21 were applied after their review. Both read-backs passed. The
+notify and saved tests pass (17 files, 199 tests).
+
 The verdicts below are the review as it was written before the apply.
 
 ## Summary
