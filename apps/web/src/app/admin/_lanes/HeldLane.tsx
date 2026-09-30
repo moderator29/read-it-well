@@ -11,7 +11,7 @@ import {
 import { adminUi, type AdminUi } from "../_components/ui";
 import { QueueFilters, readQueueQuery, type QueueQuery } from "../_components/QueueFilters";
 import { ageShort } from "../_review/metrics";
-import { LiveRefresh } from "../_review/LiveRefresh";
+import { LiveRefresh } from "@/app/admin/_components/LiveRefresh";
 import { HoldDecision } from "./HoldDecision";
 import { ModerationDesk, type ModerationRow } from "./ModerationDesk";
 import { SafetyHolds, safetyHoldRowsFrom } from "./SafetyHolds";
@@ -110,7 +110,7 @@ export async function HeldLane({
 
   return (
     <>
-      <LiveRefresh />
+      <LiveRefresh seconds={30} />
       {showHolds && <SafetyHolds rows={holds} />}
       <ModerationDesk
         tabs={[

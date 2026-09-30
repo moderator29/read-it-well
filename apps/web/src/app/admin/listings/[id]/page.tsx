@@ -10,7 +10,7 @@ import { tileProvider } from "@/lib/maps/tiles";
 import { adminUi } from "../../_components/ui";
 import { readQueueQuery } from "../../_components/QueueFilters";
 import { DeskHead, Panel } from "../../_review/parts";
-import { LiveRefresh } from "../../_review/LiveRefresh";
+import { LiveRefresh } from "@/app/admin/_components/LiveRefresh";
 import { referenceOf } from "../rows";
 import { listingStatusWord, queueHrefFrom, reviewHref } from "../tabs";
 import { ListingReview } from "./ListingReview";
@@ -109,7 +109,7 @@ export default async function ListingUnderReviewPage({
 
   return (
     <>
-      <LiveRefresh />
+      <LiveRefresh seconds={30} />
       {extra?.lister ? <InternalNotes subjectId={extra.lister.userId} path={`/admin/listings/${found.id}`} /> : null}
       <ListingReview
         listing={found}

@@ -11,7 +11,7 @@ import {
 import { QUEUE_PAGE_SIZE } from "@/lib/admin/queue-filter";
 import { adminUi } from "../_components/ui";
 import { QueueFilters, queueHref, queueNarrowed, readQueueQuery } from "../_components/QueueFilters";
-import { LiveRefresh } from "../_review/LiveRefresh";
+import { LiveRefresh } from "@/app/admin/_components/LiveRefresh";
 import { ListingsQueue } from "./ListingsQueue";
 import { MandatesPanel } from "./MandatesPanel";
 import { MandateConsent } from "./MandateConsent";
@@ -171,7 +171,7 @@ export default async function AdminListingsPage({
 
   return (
     <>
-      <LiveRefresh />
+      <LiveRefresh seconds={30} />
       <ListingsQueue
         title="Listings"
         sub="Review and manage all submitted listings."
