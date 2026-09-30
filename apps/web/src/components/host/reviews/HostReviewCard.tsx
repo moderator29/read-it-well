@@ -75,7 +75,7 @@ export function HostReviewCard({ review, when }: { review: HostReview; when: str
             {review.place} · {when}
           </p>
         </div>
-        <span className="nf-hreview__stars" aria-label={`${review.rating} out of 5`}>
+        <span className="nf-hreview__stars" role="img" aria-label={`${review.rating} out of 5`}>
           {[1, 2, 3, 4, 5].map((n) => (
             <span key={n} {...(n > review.rating ? { "data-off": "" } : {})}>
               <UiIcon name="star" size={16} filled={n <= review.rating} />

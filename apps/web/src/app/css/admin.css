@@ -617,9 +617,10 @@
     border-color: var(--nf-selected-edges);
     box-shadow: var(--nf-selected-shadow);
   }
+  /* The count reads in the tab's own ink: at 0.85 opacity it fell under
+     4.5:1 on the light segmented track (axe, a11y-desks, light 390 and 1440). */
   .nf-admin-tab__count {
     font-variant-numeric: tabular-nums;
-    opacity: 0.85;
   }
 
   /* ---------------------------------------------------------- filters */
