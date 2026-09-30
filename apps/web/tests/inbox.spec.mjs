@@ -99,7 +99,7 @@ async function run(theme, { state = null, path }) {
       check(
         "the search field says what it searches",
         (await page.locator('[data-testid="inbox-search"]').getAttribute("placeholder")) ===
-          "Search messages...",
+          "Search messages…",
       );
 
       /* Track G: two sides as the tabs, four views as a radiogroup. */
