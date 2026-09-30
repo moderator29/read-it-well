@@ -360,10 +360,15 @@ export async function buildPay(ctx, S) {
         const b = bIn(tt);
         const o = out(tt);
         place(line, { x: 960, y: 180 - o * 30, o: 1 - o });
-        la.style.transform = `translateX(${(-(1 - a) * 1400).toFixed(1)}px)`;
+        /* whole pixels: a sub-pixel text offset rasterizes differently on a page's first frame */
+        la.style.transform = `translateX(${Math.round(-(1 - a) * 1400)}px)`;
+        /* an unseen half is hidden, not at opacity 0: an opacity-0 sibling made
+           the other half raster differently on a page's first frame */
         la.style.opacity = opa(Math.min(1, a * 4));
-        lb.style.transform = `translateX(${((1 - b) * 1500).toFixed(1)}px)`;
+        la.style.visibility = a > 0 ? "" : "hidden";
+        lb.style.transform = `translateX(${Math.round((1 - b) * 1500)}px)`;
         lb.style.opacity = opa(Math.min(1, b * 4));
+        lb.style.visibility = b > 0 ? "" : "hidden";
       });
     }
   }

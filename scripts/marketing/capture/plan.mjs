@@ -96,7 +96,14 @@ const BASE_CAPTURES = [
   { id: "listing-sale", full: true, steps: go(LISTING_SALE) },
   { id: "listing-banana", steps: go(LISTING_BANANA) },
   { id: "price", steps: go(PRICE) },
-  { id: "saved", full: true, steps: go("/saved") },
+  /* The Banana Island villa saved last, so the list opens on it (the QA
+     account's own favourites; un-saved and saved again). */
+  { id: "saved", full: true, steps: [
+    { goto: LISTING_BANANA },
+    { clickIf: "[data-testid=listing-save][aria-pressed=true]" }, { wait: 1500 },
+    { click: "[data-testid=listing-save][aria-pressed=false]" }, { wait: 2500 },
+    { goto: "/saved" },
+  ] },
 
   /* ---------------------------------------------------------- stays and tables */
   { id: "stays", full: true, steps: go("/stays") },
@@ -137,7 +144,7 @@ const BASE_CAPTURES = [
     steps: [{ goto: "/support" }, { click: `summary:has-text("${q}")` }, { wait: 900 }, { reveal: `summary:has-text("${q}")`, offset: 330 }, { blur: true }, { wait: 500 }],
   })),
   { id: "settings", steps: reveal("/settings", "text=Data saver", 150) },
-  { id: "appearance", steps: [{ goto: "/settings/appearance" }, { into: "text=Opening splash", offset: 600 }] },
+  { id: "appearance", steps: [{ goto: "/settings/appearance" }, { into: "text=Opening splash", offset: 660 }] },
   { id: "passcode", steps: go("/settings/passcode") },
   {
     id: "passcode-create",
