@@ -59,7 +59,7 @@ export const EMAIL_ICON_NAMES = [
   "verified",
   "home-small",
   "id-check",
-  // The third sheet, coming from the 3D rollout (30 September).
+  // The third sheet, from the 3D rollout.
   "envelope",
   "phone-code",
   "passcode-lock",
@@ -87,7 +87,7 @@ export type EmailIconName = (typeof EMAIL_ICON_NAMES)[number];
  * file is there; `icons.test.ts` checks every one exists, at both sizes.
  */
 export const EMAIL_ICON_READY: ReadonlySet<EmailIconName> = new Set<EmailIconName>([
-  // Sliced from the first sheet, converted from the webp cutouts.
+  // The first eight (re-cut by the rollout from the better sheet).
   "buy",
   "rent",
   "pay",
@@ -118,6 +118,25 @@ export const EMAIL_ICON_READY: ReadonlySet<EmailIconName> = new Set<EmailIconNam
   "verified",
   "home-small",
   "id-check",
+  // The third sheet (sheet 5 of the rollout).
+  "envelope",
+  "phone-code",
+  "passcode-lock",
+  "receipt",
+  "contract",
+  "boxes",
+  "toolbox",
+  "analytics",
+  "bank",
+  "megaphone",
+  "support",
+  "team",
+  "folder",
+  "clock",
+  "report-flag",
+  "saved-heart",
+  "gift",
+  "celebrate",
 ]);
 
 /** Every message the product sends, by the name its builder goes by. */
