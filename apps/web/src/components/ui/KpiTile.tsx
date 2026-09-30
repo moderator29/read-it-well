@@ -32,7 +32,17 @@ import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
  *   words          the direction words, in the reader's language
  *   href           the filtered list;  tag  a BCP 47 tag for the digits
  *
- * Material: `.nf-kpi` in `app/css/controls.css`. Server-safe.
+ *   sub            a quiet sub-line under the figure when there is no
+ *                  delta ("in 3 listings"); never a trend
+ *
+ * SECTION 17 (founder reference 45's 2x2 tiles): the label reads in
+ * sentence case at row size with a chevron at its right when the tile is a
+ * door, the figure is big, and a small coloured delta or a quiet sub-line
+ * sits under it. Lay four out with `.nf-figure-tiles` (two by two on a
+ * phone, a row of four from 1024px).
+ *
+ * Material: `.nf-kpi` in `app/css/controls.css`, section 17 in
+ * `app/css/clean-17.css`. Server-safe.
  */
 export function KpiTile({
   label,
@@ -46,6 +56,7 @@ export function KpiTile({
   href,
   tag = "en-NG",
   linkLabel,
+  sub,
   className,
 }: {
   label: string;
@@ -60,6 +71,8 @@ export function KpiTile({
   tag?: string;
   /** Accessible name of the door; defaults to the label. */
   linkLabel?: string;
+  /** A quiet line under the figure, shown only when there is no delta. */
+  sub?: ReactNode;
   className?: string;
 }) {
   let delta: ReactNode = null;
@@ -94,7 +107,7 @@ export function KpiTile({
         <span className="nf-section-label nf-kpi__label">{label}</span>
         {href ? (
           <span className="nf-kpi__door" aria-hidden="true">
-            <UiIcon name="arrow-right" size={16} />
+            <UiIcon name="chevron-right" size={16} />
           </span>
         ) : null}
       </p>
@@ -102,7 +115,7 @@ export function KpiTile({
         <CountUp value={value} tag={tag} eager />
         {unit != null ? <span className="nf-kpi__unit">{unit}</span> : null}
       </p>
-      {delta}
+      {delta ?? (sub != null ? <p className="nf-kpi__sub">{sub}</p> : null)}
     </>
   );
   const cls = ["nf-kpi", href ? "nf-kpi--door" : "", className ?? ""].filter(Boolean).join(" ");

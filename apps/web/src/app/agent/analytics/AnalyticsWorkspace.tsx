@@ -88,28 +88,22 @@ function Tile({
   note?: string;
 }) {
   return (
-    <div className="nf-panel nf-panel--card flex flex-col gap-xs p-md sm:gap-sm sm:p-md">
-      <IconPlate size="sm" className="shrink-0">
-        <UiIcon name={icon} size={20} />
-      </IconPlate>
-      <div className="min-w-0">
-        <p className="text-[length:var(--nf-text-overline)] font-medium leading-snug text-[var(--nf-content-muted)]">
-          {label}
-        </p>
-        <p className="mt-3xs leading-tight">{value}</p>
-        {note ? (
-          <p className="mt-2xs text-[length:var(--nf-text-overline)] leading-snug text-[var(--nf-content-muted)]">
-            {note}
-          </p>
-        ) : null}
-      </div>
+    /* The figure tile of reference 45 (section 17): label first with its
+       lean glyph, the big figure, then the quiet note. `.nf-kpi` material. */
+    <div className="nf-kpi">
+      <p className="nf-kpi__head">
+        <UiIcon name={icon} size={16} className="nf-kpi__glyph" />
+        <span className="nf-kpi__label">{label}</span>
+      </p>
+      <p className="nf-kpi__figure">{value}</p>
+      {note ? <p className="nf-kpi__sub">{note}</p> : null}
     </div>
   );
 }
 
 /** The size and weight every headline figure is set at. */
 const TILE_FIGURE =
-  "text-[length:var(--nf-text-body-lg)] font-bold tracking-tight text-[var(--nf-content-primary)] sm:text-[length:var(--nf-text-h4)]";
+  "text-[length:var(--nf-text-h4)] font-semibold tracking-tight text-[var(--nf-content-primary)] sm:text-[length:var(--nf-text-h3)]";
 
 /**
  * What a tile shows when its own source could not be read.
@@ -656,7 +650,7 @@ export function AnalyticsWorkspace({
 
   return (
     <div className="space-y-lg">
-      <div className="grid grid-cols-2 gap-md lg:grid-cols-4">
+      <div className="nf-figure-tiles">
         <Tile
           icon="wallet"
           label={t.headline.settled}
