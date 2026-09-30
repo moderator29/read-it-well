@@ -148,8 +148,38 @@ export function AutoHideDock({
        against the screen the reader is actually on. */
   }, [route]);
 
+  /*
+   * B1, SECOND RULING: THE PILL MOVES ON THE TAP, NOT WHEN THE ROUTE LANDS.
+   * The chosen tab opens into its pill with its word; waiting for the server
+   * to answer before moving it made the dock lag the finger by a round trip.
+   * The tapped tab is marked `data-on` at once and the row `data-dock-pending`
+   * (shell-m.css draws the pill on it and steps the old one back); the marks
+   * clear when the route arrives, where `aria-current` takes over.
+   */
+  const [pendingOn, setPendingOn] = useState<string | null>(null);
+  const pending = pendingOn === route;
+  useEffect(() => {
+    return () => {
+      for (const el of document.querySelectorAll(".nf-tab__link[data-on]")) el.removeAttribute("data-on");
+    };
+  }, [route]);
+  const onClickCapture = (event: React.MouseEvent<HTMLElement>) => {
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
+    const link = (event.target as Element).closest("a.nf-tab__link");
+    if (!link || link.getAttribute("aria-current") === "page") return;
+    for (const el of document.querySelectorAll(".nf-tab__link[data-on]")) el.removeAttribute("data-on");
+    link.setAttribute("data-on", "");
+    setPendingOn(route);
+  };
+
   return (
-    <nav aria-label={label} data-dock-hidden={hidden ? "true" : undefined} className={className}>
+    <nav
+      aria-label={label}
+      data-dock-hidden={hidden ? "true" : undefined}
+      data-dock-pending={pending ? "" : undefined}
+      onClickCapture={onClickCapture}
+      className={className}
+    >
       {children}
     </nav>
   );

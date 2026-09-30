@@ -46,6 +46,7 @@ import { useId } from "react";
 
 export type UiIconName =
   | "search"
+  | "search-disc"
   | "plus"
   | "minus"
   | "close"
@@ -271,6 +272,17 @@ const PATHS: Record<UiIconName, React.ReactNode> = {
     <>
       <circle cx="11" cy="11" r="8" />
       <path d="m21 21-4.34-4.34" />
+    </>
+  ),
+  /* The dock's Search (B1 second ruling, references 44 and 45): a magnifier
+     in a disc, so its solid twin is a disc with the magnifier cut out, the
+     way the references' own round glyphs are drawn. The line form is the
+     ring and the magnifier, for the rare place it rests outlined. */
+  "search-disc": (
+    <>
+      <circle cx="12" cy="12" r="9.5" />
+      <circle cx="11.25" cy="11.25" r="3.5" />
+      <path d="m16 16-2.25-2.25" />
     </>
   ),
   // [plus] [minus]: drawn, never typed, so they sit on the stroke language.
@@ -1226,8 +1238,20 @@ const FILLED: Partial<Record<UiIconName, FilledTwin>> = {
   /* No `search` twin, on purpose: a solid lens reads as a dot on a stick at
      20px, and every platform in the references keeps the magnifier open when
      its tab is selected. The pill and the colour carry the state. */
+  /* Two solid cards, each with a line of text cut out of it, so the capsule
+     shows through (the dock's solid cutout set, B1 second ruling). */
   feed: {
     body: PATHS.feed,
+    cut: <path d="M7 6.75h6M7 17.25h6" />,
+  },
+  "search-disc": {
+    body: <circle cx="12" cy="12" r="9.5" />,
+    cut: (
+      <>
+        <circle cx="11.25" cy="11.25" r="3.5" />
+        <path d="m16 16-2.25-2.25" />
+      </>
+    ),
   },
   grid: {
     body: PATHS.grid,

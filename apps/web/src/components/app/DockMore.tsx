@@ -144,7 +144,7 @@ export function DockMore({
         data-lit={activeItem ? true : undefined}
       >
         <span className="nf-dockmore__icon nf-dockmore__icon--grid" aria-hidden="true">
-          <UiIcon name="grid" size="md" />
+          <UiIcon name="grid" size="md" filled weight="bold" />
         </span>
         <span className="nf-dockmore__icon nf-dockmore__icon--close" aria-hidden="true">
           <UiIcon name="close" size="md" />

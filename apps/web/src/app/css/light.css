@@ -321,7 +321,11 @@
       0 1px 2px color-mix(in oklab, var(--nf-content-primary) 8%, transparent),
       0 10px 28px -10px color-mix(in oklab, var(--nf-content-primary) 16%, transparent),
       0 22px 44px -26px color-mix(in oklab, var(--nf-brand-primary) 45%, transparent);
-    --nf-dock-ink-on: var(--nf-brand-primary-strong);
+    --nf-dock-ink-on: var(--nf-brand-primary);
+    /* The second ruling (references 44, 45): ink glyphs at rest, the chosen
+       one brand blue on a soft brand-tint pill. */
+    --nf-dock-glyph: var(--nf-content-primary);
+    --nf-dock-pill: color-mix(in oklab, var(--nf-brand-primary) 11%, var(--nf-surface-primary));
     --nf-dock-glyph-glow: none;
     --nf-dock-dot-glow: none;
     border-color: color-mix(in oklab, var(--nf-content-primary) 8%, transparent);
@@ -332,11 +336,13 @@
       inset 0 -1px 0 color-mix(in oklab, var(--nf-brand-primary) 5%, transparent),
       var(--nf-dock-drop);
   }
-  /* The tabs, the round button's glyph and the tray's words: brand blue. */
-  :root[data-theme="light"] .nf-tabbar .nf-tab__link:not([aria-current="page"], :where([data-theme="dark"] *)),
-  :root[data-theme="light"] .nf-dock-island:not(:where([data-theme="dark"] *)),
+  /* The tray's words: brand blue. The tabs and the round button's glyph are
+     the ink since the second ruling (shell-m.css, "SECOND RULING"). */
   :root[data-theme="light"] .nf-dockmore__label:not(:where([data-theme="dark"] *)) {
     color: var(--nf-brand-primary);
+  }
+  :root[data-theme="light"] .nf-dock-island:not(:where([data-theme="dark"] *)) {
+    color: var(--nf-content-primary);
   }
   /* The moving edge light on the capsule and the button (edge-m.css) is a
      night sheen; on white it reads as a smudge, so it is not drawn here. */
