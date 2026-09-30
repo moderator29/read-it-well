@@ -1,0 +1,73 @@
+/*
+ * THE MEMBER KIT (recommendations B5 to B17): the scam shield under a received
+ * message, the viewing day strip, the renter's question chips, the reply-time
+ * line, what changed in an agreement, the rent countdown and increase
+ * contrast. Tokens only; only transform and opacity ever move.
+ */
+@layer components {
+  /* ------------------------------------------------------- B12 the shield */
+
+  /* A calm tinted row under the bubble, the width of the bubble column. The
+     tint is the info surface, never the error red: it is a note, and the
+     founder asked for calm. */
+  .nf-scam-shield {
+    margin-top: var(--nf-space-xs);
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    border-radius: var(--nf-radius-card-sm);
+    background: var(--nf-state-info-surface);
+    border: var(--nf-border-width) solid var(--nf-border-subtle);
+    color: var(--nf-content-secondary);
+    display: grid;
+    gap: var(--nf-space-xs);
+    max-width: 100%;
+  }
+  .nf-scam-shield__lead {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nf-space-xs);
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.45;
+  }
+  .nf-scam-shield__lead strong {
+    color: var(--nf-content-primary);
+    font-weight: 600;
+  }
+  .nf-scam-shield__icon {
+    flex-shrink: 0;
+    margin-top: 2px;
+    color: var(--nf-state-info);
+  }
+  .nf-scam-shield__steps {
+    display: grid;
+    gap: var(--nf-space-xs);
+    margin: 0;
+    padding-left: var(--nf-space-lg);
+    list-style: decimal;
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.5;
+  }
+  .nf-scam-shield__more {
+    list-style: none;
+    margin-left: calc(var(--nf-space-lg) * -1);
+  }
+  .nf-scam-shield__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: var(--nf-space-md);
+    row-gap: var(--nf-space-2xs);
+  }
+  .nf-scam-shield__toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    min-height: 44px;
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-link);
+  }
+  .nf-scam-shield__private {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+}

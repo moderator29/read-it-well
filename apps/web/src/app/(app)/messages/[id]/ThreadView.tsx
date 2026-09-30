@@ -45,6 +45,8 @@ import { Button } from "@/components/ui/Button";
 import { Chip, ChipRow } from "@/components/ui/Chip";
 import { AccountMomentCard } from "@/components/app/messages/AccountMomentCard";
 import { accountNumbersIn, isAccountMoment } from "@/lib/messages/account-moment";
+import { offPlatformAsk } from "@/lib/messages/off-platform-ask";
+import { ScamShield } from "@/components/app/messages/ScamShield";
 import type { AccountCheckView } from "@/lib/messages/account-check";
 import type { ChargeOffer } from "@/lib/messages/charge-offer";
 import { PushPrompt } from "@/components/app/push/PushPrompt";
@@ -166,6 +168,8 @@ export type ThreadViewProps = {
    */
   accountMoment?: { checks: Record<string, AccountCheckView>; offer: ChargeOffer } | null;
   accountCopy?: Dictionary["trustVisible"]["account"];
+  /** B12: the scam shield's words. Absent draws no shield. */
+  scamCopy?: Dictionary["memberKit"]["scam"];
   /** The options sheet's passport and safety words, from the page's `t`. */
   sheetCopy: ThreadSheetCopy;
   /**
@@ -308,6 +312,7 @@ export function ThreadView({
   quickRepliesTitle = "",
   accountMoment = null,
   accountCopy,
+  scamCopy,
   sheetCopy,
   personLine = [],
   personLabel,
@@ -926,6 +931,14 @@ export function ThreadView({
             live && accountCopy && !m.mine && role === "guest" && context?.kind === "listing"
               ? run.find((p) => isAccountMoment(p.body))
               : undefined;
+          /* B12: a message from the other side that asks the reader to pay
+             outside Vallo gets the calm shield under it, for the reader only.
+             Never on the lister's side, and never twice: the account card
+             above already speaks for a message it covers. */
+          const shielded =
+            scamCopy && !m.mine && role === "guest" && !m.card && !accountMessage
+              ? run.map((p) => ({ p, ask: offPlatformAsk(p.body) })).find((x) => x.ask)
+              : undefined;
           return (
             <div
               key={m.id}
@@ -1033,6 +1046,15 @@ export function ThreadView({
                       {m.mine && !m.state && <Ticks read={Boolean(last.read)} />}
                     </p>
                   </div>
+                )}
+
+                {shielded?.ask && scamCopy && (
+                  <ScamShield
+                    ask={shielded.ask}
+                    messageId={shielded.p.id}
+                    canReport={live && !shielded.p.id.startsWith("local-")}
+                    copy={scamCopy}
+                  />
                 )}
 
                 {m.state === "failed" && (

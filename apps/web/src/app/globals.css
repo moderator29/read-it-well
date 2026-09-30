@@ -93,6 +93,8 @@
 /* The filter drawer's icon tiles: property type and space. */
 @import "./css/filter-tiles.css";
 @import "./css/threads.css";
+/* B5 to B17: the member kit (scam shield, day kit, chips, contrast). */
+@import "./css/member-kit.css";
 /*
  * `admin.css` STOOD HERE AND IS IMPORTED BY `app/admin/layout.tsx` NOW (B-4,
  * 29 September 2026): 75 KB of the staff console that no member, visitor or
