@@ -79,7 +79,7 @@ export function AgentTitleSkeleton() {
     <div className="mb-lg flex flex-wrap items-end justify-between gap-md">
       <div>
         <Skeleton width="12rem" height="1.75rem" radius="sm" />
-        <Skeleton className="mt-xs" width="20rem" height="0.9375rem" radius="sm" />
+        <Skeleton className="mt-xs max-w-full" width="20rem" height="0.9375rem" radius="sm" />
       </div>
       <Skeleton width="9rem" height="3rem" radius="pill" />
     </div>
