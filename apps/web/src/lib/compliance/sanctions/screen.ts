@@ -208,6 +208,13 @@ export type DrainCounts = {
   hits: number;
   failed: number;
   renewed: number;
+  /**
+   * 1 when the rolling hold renewal could not run. Kept apart from `failed`
+   * (C13): no person went unscreened, so it is not a screening failure, and
+   * counting it there raised "screening failed" on every quarter hour for a
+   * housekeeping step (420 attention runs by 29 September 2026).
+   */
+  renewFailed?: number;
   listsUnreadable: boolean;
 };
 
@@ -215,7 +222,7 @@ export async function drainScreenQueue(admin: Admin, now: Date = new Date(), lim
   const counts: DrainCounts = { screened: 0, clear: 0, exact: 0, fuzzy: 0, noList: 0, hits: 0, failed: 0, renewed: 0, listsUnreadable: false };
   /* The rolling hold: thirty days from now for everyone still confirmed. */
   const { data: renewed, error: renewError } = await admin.rpc("sanctions_renew_holds");
-  if (renewError) counts.failed += 1;
+  if (renewError) counts.renewFailed = 1;
   else counts.renewed = Number(renewed) || 0;
   const lists = await currentLists(admin);
   if (!lists) return { ...counts, listsUnreadable: true };

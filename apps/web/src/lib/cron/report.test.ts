@@ -208,3 +208,70 @@ describe("the reporter never becomes the failure", () => {
     expect((onlyAudit().metadata as Record<string, unknown>).duration_ms).toBe(0);
   });
 });
+
+describe("clean runs and repeats leave the trail once job_runs exists (C7)", () => {
+  function adminWithJobRuns(rpcError: unknown = null) {
+    const calls: { fn: string; args: Record<string, unknown> }[] = [];
+    const admin = {
+      from(table: string) {
+        return {
+          async insert(row: AuditRow) {
+            audited.push({ table, ...row });
+            return { error: null };
+          },
+        };
+      },
+      async rpc(fn: string, args: Record<string, unknown>) {
+        calls.push({ fn, args });
+        return { error: rpcError };
+      },
+    } as never;
+    return { admin, calls };
+  }
+
+  it("counts a clean run in job_runs and writes no audit row", async () => {
+    const { admin, calls } = adminWithJobRuns();
+    await reportCronRun(admin, { job: "canary", outcome: "ok", durationMs: 12 });
+    expect(audited).toEqual([]);
+    expect(calls).toEqual([{ fn: "record_job_run", args: expect.objectContaining({ p_job: "canary", p_outcome: "ok" }) }]);
+  });
+
+  it("falls back to the audit row when job_runs is not installed", async () => {
+    const { admin } = adminWithJobRuns({ code: "PGRST202", message: "not found" });
+    await reportCronRun(admin, { job: "canary", outcome: "ok", durationMs: 12 });
+    expect(onlyAudit()).toMatchObject({ action: "cron.canary.ok" });
+  });
+
+  it("writes the first attention run for a cause to the trail, and counts a repeat", async () => {
+    const first = adminWithJobRuns();
+    await reportCronRun(first.admin, {
+      job: "sanctions-screen",
+      outcome: "attention",
+      durationMs: 5,
+      alert: { kind: "sanctions.screen_failed", severity: "warning", detail: { failed: 1 } },
+    });
+    expect(onlyAudit()).toMatchObject({ action: "cron.sanctions-screen.attention" });
+    expect(alerts.recordAlert).toHaveBeenCalledTimes(1);
+
+    audited = [];
+    alerts.recordAlert.mockReset();
+    alerts.recordAlert.mockResolvedValue({ ok: true, id: "alert", deduplicated: true });
+    const again = adminWithJobRuns();
+    await reportCronRun(again.admin, {
+      job: "sanctions-screen",
+      outcome: "attention",
+      durationMs: 5,
+      alert: { kind: "sanctions.screen_failed", severity: "warning", detail: { failed: 1 } },
+    });
+    expect(audited).toEqual([]);
+    expect(again.calls[0]).toMatchObject({ fn: "record_job_run", args: { p_outcome: "repeat" } });
+    expect(alerts.recordAlert).toHaveBeenCalledTimes(1);
+  });
+
+  it("never moves a failed run out of the trail", async () => {
+    const { admin, calls } = adminWithJobRuns();
+    await reportCronRun(admin, { job: "canary", outcome: "failed", durationMs: 1, reason: "boom" });
+    expect(onlyAudit()).toMatchObject({ action: "cron.canary.failed" });
+    expect(calls).toEqual([]);
+  });
+});

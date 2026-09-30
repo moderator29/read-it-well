@@ -39,6 +39,36 @@ export type CronRunRecord = {
 
 const ENTITY_TYPE = "cron_job";
 
+/**
+ * C7 AND C13: CLEAN RUNS AND REPEATS LEAVE THE TRAIL.
+ *
+ * With `public.record_job_run` installed (supabase/migrations/pending/
+ * 20260930120000_c7_job_runs_out_of_the_trail.sql), a clean run, and an
+ * attention run whose alert folded into one already open for the same cause,
+ * are counted in `job_runs` (one row per job, day and outcome) instead of
+ * appending to `audit_log`. A failed run and the FIRST attention run for a
+ * cause still write the trail. Until the function exists the call fails and
+ * every run is written to `audit_log` exactly as before, so nothing is lost
+ * either way. Returns true only when the row landed.
+ */
+async function recordJobRun(
+  admin: AdminClient,
+  job: string,
+  outcome: "ok" | "repeat",
+  metadata: Record<string, Json>,
+): Promise<boolean> {
+  try {
+    const caller = admin as unknown as {
+      rpc: (fn: string, args: Record<string, unknown>) => PromiseLike<{ error: unknown }>;
+    };
+    if (typeof caller.rpc !== "function") return false;
+    const { error } = await caller.rpc("record_job_run", { p_job: job, p_outcome: outcome, p_metadata: metadata });
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
 /** One line of run history, plus the alert the outcome deserves. */
 export async function reportCronRun(admin: AdminClient | null, record: CronRunRecord): Promise<void> {
   const durationMs = Math.max(0, Math.trunc(record.durationMs));
@@ -61,6 +91,22 @@ export async function reportCronRun(admin: AdminClient | null, record: CronRunRe
     });
     return;
   }
+
+  /* The alert first for an attention run, so a repeat of an open cause can be
+     counted rather than appended (see recordJobRun). */
+  let alertRaised = false;
+  if (record.outcome === "attention" && record.alert) {
+    const raised = await recordAlert({
+      kind: record.alert.kind,
+      severity: record.alert.severity,
+      detail: record.alert.detail,
+      subjectId: record.job,
+      subjectKind: ENTITY_TYPE,
+    });
+    alertRaised = true;
+    if (raised && raised.ok && raised.deduplicated && (await recordJobRun(admin, record.job, "repeat", metadata))) return;
+  }
+  if (record.outcome === "ok" && (await recordJobRun(admin, record.job, "ok", metadata))) return;
 
   try {
     const { error } = await admin.from("audit_log").insert({
@@ -111,7 +157,7 @@ export async function reportCronRun(admin: AdminClient | null, record: CronRunRe
     return;
   }
 
-  if (record.outcome === "attention" && record.alert) {
+  if (record.outcome === "attention" && record.alert && !alertRaised) {
     await recordAlert({
       kind: record.alert.kind,
       severity: record.alert.severity,

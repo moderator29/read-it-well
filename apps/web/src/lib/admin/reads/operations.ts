@@ -1,5 +1,6 @@
 import "server-only";
 
+import { jobRunDayTotals, newerRun, newestJobRun } from "@/lib/cron/job-runs";
 import { VERCEL_JOBS, databaseJobsSummary, jobRow, type DatabaseJobsSummary, type RunRow } from "./jobs";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
@@ -68,9 +69,15 @@ export async function getJobHealth(
       }),
     );
     if (reads.some((r) => r.error)) return UNAVAILABLE;
-    const jobs = VERCEL_JOBS.map((job, i) => jobRow(job, toRun(reads[i]!.data as AuditRunRow | null), now));
+    /* C7: clean runs are counted in job_runs once that table exists; the
+       newer of the two is the job's last run. */
+    const counted = await Promise.all(
+      VERCEL_JOBS.map((job) => (job.audit.entityType === "cron_job" ? newestJobRun(db, job.name) : Promise.resolve(null))),
+    );
+    const latest = VERCEL_JOBS.map((_, i) => newerRun(reads[i]!.data as AuditRunRow | null, counted[i]));
+    const jobs = VERCEL_JOBS.map((job, i) => jobRow(job, toRun(latest[i]), now));
     const watchIndex = VERCEL_JOBS.findIndex((j) => j.name === "pg-cron-watch");
-    const watch = toRun(reads[watchIndex]?.data as AuditRunRow | null);
+    const watch = toRun(latest[watchIndex]);
     return {
       state: "ok",
       data: {
@@ -116,7 +123,16 @@ export async function getRunDays(now: number): Promise<Read<{ day: string; runs:
         .range(from, to),
     );
     if (!rows) return UNAVAILABLE;
-    return { state: "ok", data: assembleRunDays(days, rows) };
+    const assembled = assembleRunDays(days, rows);
+    /* C7: plus the runs counted in job_runs (none until that table exists). */
+    const counted = await jobRunDayTotals(db, days[0]!);
+    return {
+      state: "ok",
+      data: assembled.map((d) => {
+        const extra = counted.get(d.day);
+        return extra ? { day: d.day, runs: d.runs + extra.runs, failed: d.failed + extra.failed } : d;
+      }),
+    };
   } catch {
     return UNAVAILABLE;
   }

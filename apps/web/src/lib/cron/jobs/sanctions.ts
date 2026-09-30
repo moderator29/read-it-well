@@ -107,6 +107,17 @@ export function screenVerdict(counts: DrainCounts): JobVerdict {
       alert: { kind: "sanctions.screen_failed", severity: "warning", detail: { failed: counts.failed, scuml_item: 8 } },
     };
   }
+  if ((counts.renewFailed ?? 0) > 0) {
+    /* Nobody went unscreened: the thirty-day hold renewal did not run, and a
+       hold has weeks before it could lapse. Its own cause, at info, so it
+       folds into one open alert instead of reading as a failed screening. */
+    return {
+      outcome: "attention",
+      counts: numbers,
+      detail: {},
+      alert: { kind: "sanctions.hold_renew_failed", severity: "info", detail: { scuml_item: 8 } },
+    };
+  }
   return { outcome: "ok", counts: numbers, detail: {}, alert: null };
 }
 
