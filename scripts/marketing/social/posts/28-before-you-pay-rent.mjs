@@ -34,8 +34,8 @@ export default {
       <div class="ground"></div>
       ${grain(0.05, "multiply", 7)}
       <div class="edge"></div>
-      <div class="abs" style="left:742px;top:96px">${sticker("1f3e1", 236)}</div>
-      <div class="abs" style="left:684px;top:226px;transform:rotate(-12deg)">${sticker("1f50d", 170)}</div>
+      <div class="abs" style="left:770px;top:104px">${sticker("1f3e1", 208)}</div>
+      <div class="abs" style="left:716px;top:222px;transform:rotate(-12deg)">${sticker("1f50d", 150)}</div>
       <div class="eyebrow">Before you pay rent</div>
       <div class="step" style="top:436px">
         <div class="num">1</div>
