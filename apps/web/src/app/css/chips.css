@@ -1087,3 +1087,72 @@
       inset 0 1px 0 var(--nf-glass-rim),
       0 0 12px var(--nf-glow-3);
   }}
+
+/*
+ * =====================================================================
+ * THE BUTTON SYSTEM'S CHIPS (founder reference 55; spec section 19).
+ *
+ *   .nf-tag         7. the soft pill with its glyph: Verified (brand),
+ *                   Featured (the warm spark, section 18), Available
+ *                   (success). A label, not a control: 32px, no hover.
+ *   .nf-segmented--pill   12. the solid segmented control takes the
+ *                   system's blue thumb on the raised well.
+ * =====================================================================
+ */
+@layer components {
+  .nf-tag {
+    --nf-tag-ink: var(--nf-act-ink);
+    --nf-tag-glyph: var(--nf-act-blue);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    min-height: 2rem;
+    padding: var(--nf-space-3xs) var(--nf-space-sm) var(--nf-space-3xs) var(--nf-space-xs);
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-act-surface);
+    border: var(--nf-border-width) solid var(--nf-act-surface-edge);
+    box-shadow: var(--nf-act-surface-shadow);
+    color: var(--nf-tag-ink);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+  .nf-tag__glyph {
+    display: inline-flex;
+    color: var(--nf-tag-glyph);
+  }
+  .nf-tag--spark {
+    --nf-tag-ink: var(--nf-spark-ink);
+    --nf-tag-glyph: var(--nf-spark);
+  }
+  .nf-tag--success {
+    --nf-tag-ink: var(--nf-state-success);
+    --nf-tag-glyph: var(--nf-state-success);
+  }
+  .nf-tag--neutral {
+    --nf-tag-ink: var(--nf-content-secondary);
+    --nf-tag-glyph: var(--nf-content-muted);
+  }
+  .nf-tag--danger {
+    --nf-tag-ink: var(--nf-state-error);
+    --nf-tag-glyph: var(--nf-state-error);
+  }
+
+  .nf-segmented--pill {
+    border-radius: var(--nf-plate-radius-md);
+    background: var(--nf-surface-raised);
+    border: var(--nf-border-width) solid var(--nf-act-well-edge);
+    box-shadow: none;
+  }
+  .nf-segmented--pill .nf-segmented__capsule,
+  .nf-segmented--pill .nf-segmented__link[aria-current="true"] {
+    background: var(--nf-act-fill);
+    box-shadow: var(--nf-act-shadow);
+  }
+  .nf-segmented--pill .nf-segmented__item[aria-selected="true"],
+  .nf-segmented--pill .nf-segmented__item[aria-checked="true"],
+  .nf-segmented--pill .nf-segmented__link[aria-current="true"] {
+    color: var(--nf-act-on);
+  }
+}
