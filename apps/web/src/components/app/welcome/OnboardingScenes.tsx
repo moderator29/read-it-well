@@ -114,10 +114,10 @@ export function WorldsScene({ t, priority }: { t: Dictionary; priority: boolean 
         <Chip icon="hotel" title={w.stays} hint={w.staysHint} />
       </Pop>
       <Pop i={4} className="nf-om-at nf-om-at--bc" float={false}>
-        <span className="nf-om-switch">
-          <span className="nf-om-switch__thumb" />
-          <span className="nf-om-switch__side">{w.property}</span>
-          <span className="nf-om-switch__side">{w.stays}</span>
+        <span className="nf-om-sides">
+          <span className="nf-om-sides__thumb" />
+          <span className="nf-om-sides__side">{w.property}</span>
+          <span className="nf-om-sides__side">{w.stays}</span>
         </span>
       </Pop>
     </>

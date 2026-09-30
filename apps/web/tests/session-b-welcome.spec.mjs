@@ -109,6 +109,7 @@ try {
   const page = await ctx.newPage();
   await page.goto(`${BASE_URL}/welcome?tour=1&next=%2Fsign-up`, { waitUntil: "domcontentloaded" });
   await page.getByTestId("welcome-get-started").waitFor();
+  await page.locator('[data-testid="first-run"][data-hydrated]').waitFor({ timeout: 60000 });
   await goToSlide(page, 1);
   check("the first slide is the render's", (await page.locator("h1").innerText()).includes("One platform"));
   check("four dots, the first current", (await page.locator('[data-testid^="welcome-dot-"]').count()) === 4 &&

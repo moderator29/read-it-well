@@ -99,7 +99,7 @@
     min-width: 2.75rem;
     padding: 0 var(--nf-space-sm);
     border: 0;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     background: transparent;
     color: var(--nf-content-secondary);
     font: inherit;
@@ -381,8 +381,9 @@
     background: var(--nf-brand-quiet);
   }
 
-  /* Property and Stays: a two-sided switch whose thumb flips between them. */
-  .nf-om-switch {
+  /* Property and Stays: a decorative two-sided picture (not a control; it
+     takes no press) whose thumb flips between them. */
+  .nf-om-sides {
     position: relative;
     display: inline-grid;
     grid-template-columns: 1fr 1fr;
@@ -394,14 +395,14 @@
     font-size: var(--nf-text-caption);
     font-weight: 650;
   }
-  .nf-om-switch__side {
+  .nf-om-sides__side {
     position: relative;
     z-index: 1;
     padding: 0.4rem 1rem;
     text-align: center;
     color: var(--nf-content-primary);
   }
-  .nf-om-switch__thumb {
+  .nf-om-sides__thumb {
     position: absolute;
     top: 0.25rem;
     bottom: 0.25rem;
@@ -720,7 +721,7 @@
     animation: nf-om-float 5.2s ease-in-out infinite alternate;
     animation-delay: calc(1100ms + var(--nf-om-i, 0) * 260ms);
   }
-  .nf-om-scene[data-state="active"] .nf-om-switch__thumb {
+  .nf-om-scene[data-state="active"] .nf-om-sides__thumb {
     animation: nf-om-flip 4.8s var(--nf-ease-standard) 1.4s infinite;
   }
   .nf-om-scene[data-state="active"] .nf-om-scan__frame {
@@ -765,7 +766,7 @@
   }
 
   /* A still background: the arrivals stay, nothing loops. */
-  .nf-om[data-still] :is(.nf-om-float, .nf-om-switch__thumb, .nf-om-scan__frame, .nf-om-scan__line, .nf-om-pill__dots > span, .nf-om-typing > span, .nf-om-cta__arrow) {
+  .nf-om[data-still] :is(.nf-om-float, .nf-om-sides__thumb, .nf-om-scan__frame, .nf-om-scan__line, .nf-om-pill__dots > span, .nf-om-typing > span, .nf-om-cta__arrow) {
     animation: none;
   }
 
@@ -776,21 +777,21 @@
   .nf-om[data-quiet] .nf-om-cta {
     transition: none;
   }
-  .nf-om[data-quiet] :is(.nf-om-pop, .nf-om-float, .nf-om-words > *, .nf-om-cta__arrow, .nf-om-switch__thumb, .nf-om-scan__frame, .nf-om-scan__line, .nf-om-pill__dots > span, .nf-om-typing, .nf-om-typing > span, .nf-om-total__part) {
+  .nf-om[data-quiet] :is(.nf-om-pop, .nf-om-float, .nf-om-words > *, .nf-om-cta__arrow, .nf-om-sides__thumb, .nf-om-scan__frame, .nf-om-scan__line, .nf-om-pill__dots > span, .nf-om-typing, .nf-om-typing > span, .nf-om-total__part) {
     animation: none;
   }
   @media (prefers-reduced-motion: reduce) {
     .nf-om :is(.nf-om-scene, .nf-om-copy, .nf-om-seg__fill, .nf-om-cta) {
       transition: none;
     }
-    .nf-om :is(.nf-om-pop, .nf-om-float, .nf-om-words > *, .nf-om-cta__arrow, .nf-om-switch__thumb, .nf-om-scan__frame, .nf-om-scan__line, .nf-om-pill__dots > span, .nf-om-typing, .nf-om-typing > span, .nf-om-total__part) {
+    .nf-om :is(.nf-om-pop, .nf-om-float, .nf-om-words > *, .nf-om-cta__arrow, .nf-om-sides__thumb, .nf-om-scan__frame, .nf-om-scan__line, .nf-om-pill__dots > span, .nf-om-typing, .nf-om-typing > span, .nf-om-total__part) {
       animation: none;
     }
   }
   :root:is([data-motion="calm"], [data-motion="off"]) .nf-om :is(.nf-om-scene, .nf-om-copy, .nf-om-seg__fill, .nf-om-cta) {
     transition: none;
   }
-  :root:is([data-motion="calm"], [data-motion="off"]) .nf-om :is(.nf-om-pop, .nf-om-float, .nf-om-words > *, .nf-om-cta__arrow, .nf-om-switch__thumb, .nf-om-scan__frame, .nf-om-scan__line, .nf-om-pill__dots > span, .nf-om-typing, .nf-om-typing > span, .nf-om-total__part) {
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-om :is(.nf-om-pop, .nf-om-float, .nf-om-words > *, .nf-om-cta__arrow, .nf-om-sides__thumb, .nf-om-scan__frame, .nf-om-scan__line, .nf-om-pill__dots > span, .nf-om-typing, .nf-om-typing > span, .nf-om-total__part) {
     animation: none;
   }
 

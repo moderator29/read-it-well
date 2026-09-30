@@ -302,6 +302,12 @@ export function FirstRun({
     return () => window.removeEventListener("popstate", onPop);
   }, [initialIndex, land]);
 
+  /* Marks the flow as live once hydrated, so a script driving it (the
+     browser checks in tests/) knows a press will be heard. */
+  useEffect(() => {
+    rootRef.current?.setAttribute("data-hydrated", "");
+  }, [beat]);
+
   /* The new step's title takes focus, so a keyboard or screen reader lands
      on what just arrived rather than on a button that moved. */
   useEffect(() => {
