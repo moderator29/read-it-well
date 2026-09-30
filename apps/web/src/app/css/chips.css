@@ -518,6 +518,9 @@
   .nf-badge--spark {
     --nf-badge-hue: var(--nf-spark);
     --nf-badge-ink: var(--nf-spark-ink);
+    /* A lighter tint than the shared 18 per cent, so the 11px word keeps
+       4.9:1 on paper (it would be 4.55 on the shared tint). */
+    background: color-mix(in oklab, var(--nf-spark) 12%, var(--nf-surface-primary));
   }
   .nf-badge--brand {
     --nf-badge-hue: var(--nf-brand-primary);
