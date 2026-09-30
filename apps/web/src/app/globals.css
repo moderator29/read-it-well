@@ -154,6 +154,8 @@
 /* Section 17 (refs 44 and 45): the soft top, the centred hero figure, the
    figure tiles. After light.css, which it relaxes for the paper header. */
 @import "./css/clean-17.css";
+/* Pixel polish: wrapping, measure, figures and the gaps between primitives. */
+@import "./css/pixel.css";
 /*
  * `light.css` WAS IMPORTED HERE AND WAS DELETED (history). The founder removed light mode
  * from the platform on 23 September 2026. It was 1,200 lines of paper twins for
@@ -170,6 +172,9 @@
 /* Motion sweep: route transitions, press on rows, toast and tab ink. */
 @import "./css/route-motion.css";
 @import "./css/press-motion.css";
+/* The small things: toast, connection line, back to top, pull to refresh,
+   the late spinner, the done check, the card menu, the field counter. */
+@import "./css/details.css";
 /* Track M: the motion setting (cinematic, standard, calm, off). Last, so
    "off" wins over every partial above it. */
 @import "./css/motion-pref.css";
