@@ -386,9 +386,15 @@ grant select on public.review_contests to authenticated;
 drop policy if exists review_contests_lister_select on public.review_contests;
 create policy review_contests_lister_select on public.review_contests for select to authenticated
   using (lister_id = (select auth.uid()));
+-- Staff read through private.is_staff() (admin or super admin), the policy-side
+-- staff predicate the repo uses. NOT private.staff_can: it is revoked from
+-- authenticated (track_k), and a policy helper the role cannot execute turns
+-- every select on this table into 42501, the lister's included (probe db-20).
+-- Moderation-scope staff act through decide_review_contest, which checks
+-- private.staff_can inside the definer.
 drop policy if exists review_contests_staff_select on public.review_contests;
 create policy review_contests_staff_select on public.review_contests for select to authenticated
-  using (private.staff_can((select auth.uid()), 'moderation'));
+  using ((select private.is_staff()));
 -- No insert, update or delete policy: the two functions below are the doors.
 
 create or replace function public.contest_review(p_review uuid, p_criterion text, p_note text default null)
