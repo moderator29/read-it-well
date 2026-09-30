@@ -3333,6 +3333,18 @@
       bottom: 1.5rem;
     }
   }
+  /* ONE "+" ON A PHONE (integration QA O3, 30 September). Below 1024px the
+     dock carries its own centre "+", and its create sheet's "Post to the
+     feed" opens this same fan (`?compose=1`), so the closed plus sat a thumb
+     above a second plus. While closed it steps aside where the dock is
+     drawn; the fan, the scrim and the close control still appear here the
+     moment it opens, from the dock or from a link. From 1024px there is no
+     dock and the plus is the page's own create control again. */
+  @media (max-width: 1023.98px) {
+    .nf-main--docked .nf-bloom:not([data-open]) {
+      display: none;
+    }
+  }
   /*
    * The scrim is the outside-tap target and very little else. The image keeps
    * the feed fully readable under the open fan, so this is a quiet deepening

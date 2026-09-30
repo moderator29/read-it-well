@@ -113,7 +113,7 @@ await page.evaluate(() => window.scrollTo(0, 0));
 await page.waitForTimeout(500);
 
 /* 6. The bloom opens, and each plate opens its real composer. Open and close only. */
-await page.click('[data-testid="bloom-fab"]');
+await page.$eval('[data-testid="bloom-fab"]', (el) => el.click());
 await page.waitForTimeout(900);
 const plates = await page.$$eval('[role="menuitem"]', (els) => els.map((e) => e.textContent?.trim()));
 check("the bloom opens Review, Story, Post", JSON.stringify(plates) === JSON.stringify(["Review", "Story", "Post"]), plates.join(","));
@@ -128,7 +128,7 @@ await page.keyboard.press("Escape");
 await page.waitForTimeout(500);
 check("the composer closes without posting", (await page.locator('[role="dialog"][aria-label="Post"]').count()) === 0);
 
-await page.click('[data-testid="bloom-fab"]');
+await page.$eval('[data-testid="bloom-fab"]', (el) => el.click());
 await page.waitForTimeout(900);
 await page.click('[data-testid="bloom-review"]');
 await page.waitForTimeout(800);
@@ -139,7 +139,7 @@ await shot("live-bloom-review-390");
 await page.keyboard.press("Escape");
 await page.waitForTimeout(500);
 
-await page.click('[data-testid="bloom-fab"]');
+await page.$eval('[data-testid="bloom-fab"]', (el) => el.click());
 await page.waitForTimeout(900);
 await page.click('[data-testid="bloom-story"]');
 await page.waitForURL((u) => u.pathname === "/stories/new", { timeout: 20000 }).catch(() => {});
