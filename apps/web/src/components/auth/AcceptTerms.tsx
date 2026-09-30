@@ -91,7 +91,7 @@ export function AcceptTerms({
         <p
           id="age-confirmed-error"
           role="alert"
-          className="-mt-2xs mb-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]"
+          className="-mt-2xs mb-sm pl-xl text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-state-error)]"
         >
           {t.safety.ageRequired}
         </p>
@@ -115,7 +115,7 @@ export function AcceptTerms({
       {/* The documents themselves, as three links rather than three links
           buried inside the sentence, so the sentence stays translatable as one
           sentence in all four locales. */}
-      <p className="mt-2xs pl-lg text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+      <p className="mt-2xs pl-xl text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
         {t.safety.acceptRead}{" "}
         <Link href="/terms" className="nf-tap underline underline-offset-4">
           {t.safety.termsLink}
@@ -138,7 +138,7 @@ export function AcceptTerms({
         <p
           id="accept-terms-error"
           role="alert"
-          className="mt-2xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]"
+          className="mt-2xs pl-xl text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-state-error)]"
         >
           {t.safety.acceptRequired}
         </p>

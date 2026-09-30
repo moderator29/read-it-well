@@ -1189,13 +1189,18 @@
   /*
    * The moment after the code is accepted (A17, `ArrivalMoment`): the house
    * rises on its own light, a ring draws round it, the tick draws inside,
-   * and "You're in" arrives under it. Under a second in all.
+   * and "You're in" arrives under it. Everything has landed by 780ms, so the
+   * finished picture rests for about a third of a second before
+   * `VerifyCodeForm` goes through the door at 1100ms. It stands in the
+   * middle of the space the form left, not at its top.
    */
   .nf-arrive {
     display: grid;
+    align-content: center;
     justify-items: center;
     gap: var(--nf-space-xs);
-    padding-top: var(--nf-space-lg);
+    min-height: min(26rem, 52svh);
+    padding-block: var(--nf-space-lg);
     text-align: center;
   }
   .nf-arrive__art {
@@ -1214,7 +1219,7 @@
   .nf-arrive__house {
     position: absolute;
     inset: 8%;
-    animation: nf-arrive-rise 620ms var(--nf-ease-spring) both;
+    animation: nf-arrive-rise 560ms var(--nf-ease-spring) both;
   }
   .nf-arrive__house > img {
     display: block;
@@ -1230,7 +1235,7 @@
     height: 3.25rem;
     border-radius: var(--nf-radius-circle);
     background: var(--nf-slate-page);
-    animation: nf-arrive-pop 360ms var(--nf-ease-spring) 240ms both;
+    animation: nf-arrive-pop 320ms var(--nf-ease-spring) 180ms both;
   }
   .nf-arrive__ring,
   .nf-arrive__check {
@@ -1243,16 +1248,16 @@
     stroke-dashoffset: 0;
   }
   .nf-arrive__ring {
-    animation: nf-arrive-draw 420ms var(--nf-ease-entrance) 280ms both;
+    animation: nf-arrive-draw 360ms var(--nf-ease-entrance) 220ms both;
   }
   .nf-arrive__check {
-    animation: nf-arrive-draw 320ms var(--nf-ease-entrance) 560ms both;
+    animation: nf-arrive-draw 240ms var(--nf-ease-entrance) 500ms both;
   }
   .nf-arrive__title {
-    animation: nf-slate-rise var(--nf-duration-entrance) var(--nf-ease-entrance) 300ms both;
+    animation: nf-slate-rise var(--nf-duration-entrance) var(--nf-ease-entrance) 180ms both;
   }
   .nf-arrive__body {
-    animation: nf-slate-rise var(--nf-duration-entrance) var(--nf-ease-entrance) 380ms both;
+    animation: nf-slate-rise var(--nf-duration-entrance) var(--nf-ease-entrance) 260ms both;
   }
   @keyframes nf-arrive-glow {
     from {
@@ -1282,6 +1287,16 @@
   /* Calm and Off: nothing drifts or floats; the objects simply appear. */
   :root:is([data-motion="calm"], [data-motion="off"]) :is(.nf-slate-top__light, .nf-auth-field__halo),
   :root:is([data-motion="calm"], [data-motion="off"]) .nf-auth::after {
+    animation: none;
+  }
+  /* Calm: the code's digits and the arrival fade in on the short ladder
+     rather than pop, draw and spring; a refused code does not shake (its
+     sentence says so). Off lands them at once (motion-pref.css). */
+  :root[data-motion="calm"] :is(.nf-code__digit, .nf-arrive__glow, .nf-arrive__house, .nf-arrive__tick, .nf-arrive__title, .nf-arrive__body) {
+    animation: nf-calm-fade var(--nf-duration-base) var(--nf-ease-standard) both;
+  }
+  :root[data-motion="calm"] :is(.nf-arrive__ring, .nf-arrive__check),
+  :root[data-motion="calm"] .nf-code__box[data-shake] .nf-code__cells {
     animation: none;
   }
   :root:is([data-motion="calm"], [data-motion="off"]) .nf-slate-top__obj {
