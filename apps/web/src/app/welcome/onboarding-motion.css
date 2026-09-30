@@ -670,6 +670,11 @@
   .nf-om-cta__arrow {
     display: inline-flex;
   }
+  /* The founder, 30 September: the doors' buttons are clean rectangles
+     with softly rounded corners, not pills. */
+  .nf-om .nf-om-foot :is(.nf-om-cta, .nf-om-second) {
+    border-radius: var(--nf-radius-control);
+  }
 
   /* ---------------------------------------------------------- the motion */
 
