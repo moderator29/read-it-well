@@ -113,8 +113,9 @@ export async function goingOut(ctx, S, T) {
   const HERO = { cx: L.PHONE_HERO.cx, cy: L.PHONE_HERO.cy, height: L.PHONE_HERO.height };
   const pose = S.pLpose;
   pose.to(T.r24 - 0.13, 0.001, { ...HERO, cy: 2600, rx: 0, ry: 0, opacity: 1 }, "none");
-  pose.to(T.r24 - 0.12, 0.58, { ...HERO, ry: -4 }, "glide");                    // rises as the warm light clears
-  pose.to(T.r24 + 0.4, T.seconds + 0.34 - (T.r24 + 0.4), { ry: 3 }, "drift");                                  // a slow turn while the card arrives
+  pose.to(T.r24 - 0.12, 0.58, HERO, "glide");                                    // rises as the warm light clears
+  /* a slow rise while the card arrives: a flat move (a turned screen costs ~3x to composite in software) */
+  pose.to(T.r24 + 0.46, T.seconds + 0.34 - (T.r24 + 0.46), { cy: HERO.cy - 12 }, "drift");
   pose.to(T.seconds + 0.34, 0.5, { cx: 330, ry: -64, opacity: 0 }, "power2.in");  // turns away
   const page = screenPage(ctx, pL, ctx.src.display("restaurant-light"));
   showDuring(ctx, page.el, [[T.r24 - 0.32, T.r25 + 0.1]]);
