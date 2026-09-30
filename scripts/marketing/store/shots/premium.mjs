@@ -56,6 +56,9 @@ export function M(ctx) {
        display px (2.35 mm on the island, 1.95 mm on the Android) */
     overhang: ios ? 70 : 80,
     frame: ios ? 42 : 36,
+    /* the cards keep the same size against the phone in both stores (the Play
+       phone is 0.876 of the App Store's width) */
+    card: ios ? 1 : 0.876,
   };
 }
 
@@ -162,11 +165,12 @@ export const SHOTS = [
         const bell = { l: Math.min(...ring.map((p) => p[0])), r: Math.max(...ring.map((p) => p[0])), t: Math.min(...ring.map((p) => p[1])), b: Math.max(...ring.map((p) => p[1])) };
         const logoEnd = Math.max(at(HEADER.logo[1], 237)[0], at(HEADER.logo[1], 313)[0]);
         const edge = Math.max(at(1320 + m.frame, HEADER.top)[0], at(1320 + m.frame, HEADER.bottom)[0]);
+        /* The card is as wide as its words, set from its right edge; at both
+           stores' sizes that leaves it clear of the end of the logo. */
         const right = edge + m.overhang;
-        const left = Math.max(logoEnd + 28 * u, 40);
-        const top = bell.t - 30 * u;
-        ctx.cardDebug = { bell, logoEnd, edge, right, left, top };
-        return popup({ x: left, y: top, w: right - left, lucide: "bed-double", title: "Room booked", line: "Lagoon Crest Resort · 3 nights", meta: null, example: true, scale: u });
+        const top = bell.t - 30 * m.card;
+        ctx.cardCheck = { clearOf: logoEnd + 12 * u };
+        return popup({ right: W - right, fit: true, y: top, lucide: "bed-double", title: "Room booked", line: "Lagoon Crest Resort · 3 nights", meta: null, example: true, scale: m.card });
       },
     },
   ),
@@ -200,11 +204,10 @@ export const SHOTS = [
       const { u } = ctx;
       const [edge] = p.at(-m.frame, HEADER.top);
       const left = edge - m.overhang;
-      /* wide enough to cover the menu, the logo and the wordmark whole, and
-         clear of the bell */
-      const w = 680 * u;
+      /* as wide as its words, which covers the menu, the logo and the
+         wordmark whole and stays clear of the bell */
       const [, bellTop] = p.at(HEADER.bell.x, HEADER.bell.y - HEADER.bell.r);
-      return popup({ x: left, y: bellTop - 30 * u, w, lucide: "landmark", title: "Payment settled", line: "Straight to your bank", line2: "Lagoon Crest Resort · 3 nights", meta: null, example: true, scale: u });
+      return popup({ x: left, fit: true, y: bellTop - 30 * m.card, lucide: "landmark", title: "Payment settled", line: "Straight to your bank", line2: "Lagoon Crest Resort · 3 nights", meta: null, example: true, scale: m.card });
     },
   }),
 

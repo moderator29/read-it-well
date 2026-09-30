@@ -3,8 +3,9 @@
  * its ₦26,100,000 total to move in, in a plain browser window at the right,
  * never larger than its 2880 px capture. The browser's address shows the
  * domain, so this post's footer carries the launch line instead. A globe with
- * a pin is the post's 3D icon, in the wide format's slot B. */
-import { browser, frame, grid, headline, icon3d } from "../lib/premium.mjs";
+ * a pin is the post's 3D icon, in the wide format's slot B, its foot on the
+ * window's foot. */
+import { browser, browserHeight, frame, grid, headline, icon3d } from "../lib/premium.mjs";
 
 const W = 1600;
 const H = 900;
@@ -25,7 +26,7 @@ export default {
       body: `
       ${headline(["Vallo on", "the <k>web.</k>"], { W, H })}
       ${browser({ id: "d-listing-cost", x: W - g.M - BW, y: g.capTop, w: BW })}
-      ${icon3d("explore", { W, H, slot: "B", top: 470 })}
+      ${icon3d("explore", { W, H, slot: "B", bottom: g.capTop + browserHeight(BW) })}
       `,
     }),
 };

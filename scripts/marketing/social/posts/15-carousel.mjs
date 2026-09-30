@@ -14,7 +14,7 @@ const W = 3240;
 const H = 1350;
 const P = 1080;
 const SLIDES = [
-  { screen: "listing-sale", w: 667, head: ["<k>Homes,</k>", "to rent or buy."], sub: "Listings with the price up front.", icon: "buy" },
+  { screen: "listing-sale", w: 660, head: ["<k>Homes,</k>", "to rent or buy."], sub: "Listings with the price up front.", icon: "buy" },
   { screen: "stay", w: 640, head: ["<k>Stays,</k>", "by the night."], sub: "Pick a place, then pick your dates.", icon: "hotel" },
   { screen: "restaurants", w: 644, head: ["<k>Tables,</k>", "for tonight."], sub: "See the opening hours before you go.", icon: "restaurant",
     edgeBand: [1586, 1691, "the first card's foot and the gap to the second card; one card border, no text"] },

@@ -1,15 +1,15 @@
 /* 24 · "Vallo speaks your language." Night. The literal proof: the first
  * welcome slide's headline as captured in each of the app's four languages,
  * English, Hausa, Yorùbá and Igbo ("Two worlds. One platform." and its three
- * translations), stacked as one column of real components at 0.70x. Nothing
+ * translations), stacked as one column of real components at 0.58x, 24 px apart. Nothing
  * here says the assistant answers in these languages. A pin with a speech
  * bubble (local talk) is the post's 3D icon, in slot B at the foot. */
 import { component, componentHeight, frame, headline, icon3d, subline } from "../lib/premium.mjs";
 
 const W = 1080;
 const H = 1350;
-const CW = 920;
-const GAP = 20;
+const CW = 760;
+const GAP = 24;
 /* each headline cut from its own capture, 184 rows around the two lines */
 const CROPS = [
   { id: "welcome-1", crop: { x: 0, y: 1973, w: 1320, h: 184 } },

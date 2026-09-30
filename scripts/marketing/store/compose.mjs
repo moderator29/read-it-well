@@ -432,6 +432,18 @@ for (const store of STORE_LIST) {
       const html = page({ width: pageW, height: S.H, body: parts.join("\n") });
       const shots = await renderHtml(html, pageW, S.H, flats.length > 0);
       const raw = await finish(shots, pageW, S.H, flats);
+      /* A card set from its right edge must stay clear of what it leaves
+         uncovered (a layout's `cardCheck.clearOf`, the x its left edge keeps to). */
+      const pops = await tab.evaluate(() => [...document.querySelectorAll(".half")].map((h) => {
+        const hr = h.getBoundingClientRect();
+        return [...h.querySelectorAll(".pop")].map((el) => { const r = el.getBoundingClientRect(); return { l: r.left - hr.left, r: r.right - hr.left }; });
+      }));
+      ctxs.forEach((c, k) => {
+        if (!c.cardCheck) return;
+        for (const pr of pops[k] || []) {
+          if (pr.l < c.cardCheck.clearOf) problems.push(`${store} ${shotName(halves[k])}: the card's left edge (${Math.round(pr.l)}) runs over what it should leave clear (${Math.round(c.cardCheck.clearOf)})`);
+        }
+      });
       for (const v of await edgeCheck(40 * (S.W / 1320))) {
         problems.push(`${store} ${shotName(halves[v.half])}: ${v.label.replace(/\s+/g, " ")} is ${v.d}px from the edge`);
       }

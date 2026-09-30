@@ -1,6 +1,6 @@
 /* R8 · after IMG_6735: the onboarding as a wall of flat cards, staggered in
  * three columns that run off the foot. 1080 x 1350, so Instagram's grid crops
- * no words. Night. The welcome cards at their own resolution (0.23x): the
+ * no words. Night. The welcome cards below their own resolution (0.22x): the
  * first three slides, each column running on into the first slide in Hausa,
  * Yorùbá and Igbo, whose foot is cut only through the illustration, never
  * through a line of text. A handover of keys is the post's 3D icon. */
@@ -11,13 +11,13 @@ import { u } from "../lib/render.mjs";
 
 const W = 1080;
 const H = 1350;
-const CW = 300;
+const CW = 290;
 const CH = Math.round((CW * 2682) / 1320);
-const GAP = 30;
+const GAP = 25;
 const COLS = [
-  { x: 60, top: 470, ids: ["welcome-1", "welcome-ha"] },
-  { x: 60 + CW + GAP, top: 550, ids: ["welcome-2", "welcome-yo"] },
-  { x: 60 + 2 * (CW + GAP), top: 510, ids: ["welcome-3", "welcome-ig"] },
+  { x: 80, top: 486, ids: ["welcome-1", "welcome-ha"] },
+  { x: 80 + CW + GAP, top: 566, ids: ["welcome-2", "welcome-yo"] },
+  { x: 80 + 2 * (CW + GAP), top: 526, ids: ["welcome-3", "welcome-ig"] },
 ];
 
 const card = (id, x, y) => `<div style="position:absolute;left:${x}px;top:${y}px;width:${CW}px;height:${CH}px;border-radius:34px;overflow:hidden;

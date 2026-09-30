@@ -52,23 +52,28 @@ export function exampleChip({ theme = "dark", scale = 1 } = {}) {
  *   lucide  a line icon name (drawn white on an electric disc)
  *   title, line, line2 (a smaller second line), amount (white), meta ("now"),
  *   example (bool)
- *   w       card width; the height follows its content
+ *   w       card width (or `fit: true`: as wide as its content); the height follows
+ *           its content
+ *   x       its left edge, or `right`: its right edge's distance from the right
+ *           edge of the image
  */
 export function popup({
-  x, y, w = 820, rotate = 0, theme = "dark", lucide, title, line, line2, amount, meta = "now",
+  x, right, y, w = 820, fit = false, rotate = 0, theme = "dark", lucide, title, line, line2, amount, meta = "now",
   example = false, scale = 1, z = 30, origin = "center",
 }) {
   const dark = theme === "dark";
   const s = scale;
   const chip = `<div class="pchip solid" style="width:${px(104 * s)};height:${px(104 * s)}">${icon(lucide, { size: Math.round(50 * s), color: "#FFFFFF", stroke: 2.1 })}</div>`;
-  const right = [
+  const tail = [
     example ? exampleChip({ theme, scale: s }) : "",
     meta ? `<span class="pmeta" style="font-size:${px(24 * s)}">${esc(meta)}</span>` : "",
   ].filter(Boolean).join("");
-  return `<div class="pop ${dark ? "dk" : "lt"}" style="left:${px(x)};top:${px(y)};width:${px(w)};transform:rotate(${rotate}deg);transform-origin:${origin};z-index:${z};padding:${px(28 * s)} ${px(30 * s)};gap:${px(26 * s)};border-radius:${px(38 * s)}">
+  const place = right !== undefined ? `right:${px(right)}` : `left:${px(x)}`;
+  const width = fit ? "width:max-content" : `width:${px(w)}`;
+  return `<div class="pop ${dark ? "dk" : "lt"}" style="${place};top:${px(y)};${width};transform:rotate(${rotate}deg);transform-origin:${origin};z-index:${z};padding:${px(28 * s)} ${px(30 * s)};gap:${px(26 * s)};border-radius:${px(38 * s)}">
     ${chip}
     <div class="ptxt">
-      <div class="ptop"><span class="ptitle" style="font-size:${px(35 * s)}">${esc(title)}</span><span class="pright" style="gap:${px(12 * s)}">${right}</span></div>
+      <div class="ptop"><span class="ptitle" style="font-size:${px(35 * s)}">${esc(title)}</span><span class="pright" style="gap:${px(12 * s)}">${tail}</span></div>
       <div class="pline" style="font-size:${px(27 * s)}">${esc(line)}</div>
       ${line2 ? `<div class="pline2" style="font-size:${px(23 * s)}">${esc(line2)}</div>` : ""}
       ${amount ? `<div class="pamt" style="font-size:${px(40 * s)}">${esc(amount)}</div>` : ""}
