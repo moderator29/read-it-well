@@ -22,9 +22,9 @@
  * name is switched on while its file is missing.
  */
 export const FOCAL_READY = {
-  envelope: false,
-  "phone-code": false,
-  "passcode-lock": false,
+  envelope: true,
+  "phone-code": true,
+  "passcode-lock": true,
   shield: true,
   verified: true,
   "id-check": true,
