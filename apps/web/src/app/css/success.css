@@ -183,7 +183,7 @@
   .nf-success__amount {
     margin-top: var(--nf-space-md);
     font-size: clamp(1.75rem, 7vw, 2.25rem);
-    font-weight: 800;
+    font-weight: 600;
     letter-spacing: -0.03em;
     line-height: 1;
     color: var(--nf-content-primary);
