@@ -98,6 +98,12 @@
   .nf-passcode .nf-slate-top--compact {
     --nf-slate-top-h: 10rem;
   }
+  /* Wider, the lockup is centred above the ring: give it the room. */
+  @media (min-width: 640px) {
+    .nf-passcode .nf-slate-top--compact {
+      --nf-slate-top-h: 12rem;
+    }
+  }
 
   /* The lock covers everything, the shell's rail and tab bar included. */
   .nf-passcode--overlay {
