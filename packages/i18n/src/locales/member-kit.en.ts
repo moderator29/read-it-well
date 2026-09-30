@@ -81,6 +81,23 @@ export const memberKitEn = {
     sub: "See what {count} similar places nearby are asking, in Price Check",
     subNoCount: "See what similar places nearby are asking, in Price Check",
   },
+  /**
+   * B10: the rent countdown for a sitting tenant. A calendar and a division,
+   * never a savings product: no wallet, no pot, no save button.
+   */
+  rentCountdown: {
+    label: "Rent due in",
+    dueToday: "Rent is due today",
+    /** The unit beside the counted figure. */
+    unit: { one: "day", other: "days" },
+    /** `{date}` a date; `{amount}` money. */
+    dueLine: "{amount} on {date}, the rent on your tenancy record.",
+    dueLineOffer: "{amount} on {date}, the renewal rent your landlord or agent offered.",
+    /** `{amount}` money, rounded up to the next thousand naira. */
+    perMonth: "About {amount} a month, set aside from now until then, adds up to it.",
+    perMonthNote: "This is the rent divided by the whole months left. Vallo does not hold or save money for you.",
+    open: "Open your tenancy",
+  },
 };
 
 export type MemberKitCopy = typeof memberKitEn;

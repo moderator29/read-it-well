@@ -20,6 +20,7 @@ import { TripSpine } from "@/components/app/plans/TripSpine";
 import { lagosToday } from "@/components/app/plans/trip-spine";
 import { InspectionsBoard } from "@/components/app/plans/InspectionsBoard";
 import { ComingUp } from "@/components/app/plans/ComingUp";
+import { RentCountdowns } from "@/components/app/plans/RentCountdowns";
 import {
   groupPlans,
   inFilter,
@@ -210,6 +211,8 @@ export default async function PlansPage({
               )}
               {rent.length > 0 && (
                 <Section title={copy.tenanciesTitle}>
+                  {/* B10: when the rent is due again, for the tenant. */}
+                  <RentCountdowns tenancies={rent} locale={locale} />
                   <div className="flex flex-col gap-md">
                     {rent.map((tenancy) => (
                       <TenancyCard key={tenancy.id} tenancy={tenancy} locale={locale} />

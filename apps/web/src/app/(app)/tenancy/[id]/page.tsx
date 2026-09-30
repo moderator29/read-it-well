@@ -22,6 +22,9 @@ import { PinMessages } from "@/components/app/tenancy/PinMessages";
 import { AddFlatmate, CancelSplit, PayShare, RemoveFlatmate, SettleShareOnReturn } from "@/components/app/tenancy/FlatmateControls";
 import type { ShareRefundStatus } from "@/lib/tenancy/queries";
 import { ExitAccountForm, RelistButton, RenewalAnswer, RenewalOfferForm } from "@/components/app/tenancy/RenewalControls";
+import { rentCountdown } from "@/lib/tenancy/countdown";
+import { RentCountdown } from "@/components/app/tenancy/RentCountdown";
+import { lagosToday } from "@/lib/bookings/schema";
 
 /** A private record. Never indexed, never in a tab title. */
 export const metadata: Metadata = { title: "Tenancy", robots: { index: false, follow: false } };
@@ -91,6 +94,18 @@ export default async function TenancyPage({
   return shell(
     <Stack>
       <TenancyHead file={file} copy={copy} />
+      {/* B10: the rent countdown, for the tenant, while the tenancy runs. */}
+      {file.viewer === "tenant" && file.paid && !file.void && !file.renewal.unavailable && (() => {
+        const countdown = rentCountdown({
+          today: lagosToday(),
+          endsOn: file.endsOn,
+          rentMinor: file.renewal.rentMinor,
+          offerRentMinor: file.renewal.offer ? file.renewal.rentMinor : null,
+        });
+        return countdown ? (
+          <RentCountdown countdown={countdown} endsOnLabel={file.endsOnLabel} copy={t.memberKit.rentCountdown} locale={locale} />
+        ) : null;
+      })()}
       {file.viewer === "tenant" && returnedRef && <SettleShareOnReturn tenancyId={file.id} reference={returnedRef} success={t.success} />}
       <MoneySection file={file} copy={copy} />
       {/* Flatmates' shares are the lead tenant's business, not the lister's. */}
