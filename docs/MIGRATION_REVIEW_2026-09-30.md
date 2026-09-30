@@ -966,3 +966,55 @@ match the custody rule.
 * `notification_severity` and `stamp_notification_severity` keep the default
   EXECUTE for PUBLIC and anon. Both are harmless (one is pure, the other is a
   trigger function), but revoking them would match the house style.
+
+---
+
+## Review: C13 (`20260930150000_c13_alert_acknowledged_by_and_skipped_runs`): **APPLY**
+
+Checked read-only against the live schema.
+
+* **`risk_alerts` columns:** it adds `acknowledged_by uuid`, which references
+  `auth.users` with on-delete set null, and `acknowledged_at timestamptz`. Both
+  are nullable with no default, so on the 798 live rows the change is only a
+  catalog change. It adds one index and the named CHECK
+  `risk_alerts_acknowledged_has_a_time`, which is added only if missing and
+  passes because every live row is null.
+* **RLS:** unchanged. The single live policy `risk_alerts_admin_all` (for all
+  commands, admin or super_admin through `has_role`, which requires the console
+  proof) is the only door. The read-back now fails if a second policy ever
+  appears.
+* **Grants:** unchanged. The existing table-level grants are anon SELECT and
+  authenticated SELECT, INSERT, UPDATE and DELETE, all gated by that policy.
+  The new columns ride them, and `risk_alerts` is already `idu` in db-06.
+* **Guard trigger:** `private.risk_alert_acknowledgement_is_the_caller`
+  (security invoker, `search_path ''`, execute revoked from PUBLIC, anon and
+  authenticated) runs BEFORE UPDATE OF `acknowledged_by`. It lets a signed-in
+  caller acknowledge only as themselves, and never clear an acknowledgement.
+  The database stamps `acknowledged_at`. A write with no `auth.uid()`
+  (service role or job) is left alone. The console's `acknowledgeRiskAlert`
+  writes through the admin's own client and adds `.is('acknowledged_by', null)`,
+  so the first person keeps it. The only other trigger on the table is
+  `risk_alerts_page_on_high`, which is AFTER INSERT, so the two do not
+  interact.
+* **`job_runs` outcome:** the live constraint is named `job_runs_outcome_check`
+  (`ok`, `attention`, `failed`, `repeat`), and the drop and re-add adds
+  `skipped`. There are 0 live rows. `record_job_run` is identical to the live
+  body except for `'skipped'` in the list. It stays a definer with
+  `search_path ''`, and its ACL (`postgres` and `service_role` only) is re-stated
+  and unchanged.
+* **Idempotency and read-back:** everything is guarded (`if not exists`,
+  constraints guarded by name, `create or replace`, `drop trigger if exists`),
+  and the read-back raises for each part. No probe references these objects,
+  and no payment table is touched. Version `20260930150000` no longer collides
+  with anything, because b9 was recorded as `20260930084615`.
+
+**Notes (not blockers):**
+* The guard fires only when `acknowledged_by` changes. An admin can therefore
+  write `acknowledged_at` alone, or replace another admin's name with their
+  own, straight through the API. Only admins can reach the table and the app
+  never does this, but firing the trigger on `update of acknowledged_by,
+  acknowledged_at` and refusing a change from one non-null person to another
+  would make "first person" a database fact.
+
+**No push-language migration from lane 4 was in `pending/` at the time of
+review.**
