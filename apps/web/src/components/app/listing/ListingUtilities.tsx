@@ -127,7 +127,7 @@ export function ListingUtilities({
               */}
               {utilities.prepaidMeter && (
                 <span className={`mt-2xs flex items-center gap-xs ${TYPE.rowMeta}`}>
-                  <UiIcon name="verified" size={ICON.inline} className="shrink-0" />
+                  <UiIcon name="verified" size={ICON.inline} className="shrink-0 text-[var(--nf-plate-neutral-ink)]" />
                   Prepaid meter, so you buy units rather than settle a shared bill
                 </span>
               )}
@@ -190,7 +190,7 @@ export function ListingUtilities({
               ) : (
                 <div data-testid="gate-withheld">
                   <p className="flex items-center gap-xs text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
-                    <UiIcon name="verified" size={ICON.inline} className="shrink-0" />
+                    <UiIcon name="verified" size={ICON.inline} className="shrink-0 text-[var(--nf-plate-neutral-ink)]" />
                     Gated, with the details released on confirmation
                   </p>
                   <p className={`mt-2xs ${TYPE.body}`}>

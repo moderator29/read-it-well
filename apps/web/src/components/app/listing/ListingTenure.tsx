@@ -1,7 +1,7 @@
 import type { Listing } from "@/lib/listings/types";
 import { TENURE_LABEL, SALE_STATUS_LABEL } from "@/lib/listings/pricing";
-import { UiIcon } from "@/design-system/icons/UiIcon";
-import { ICON, TYPE } from "@/components/app/Screen";
+import { DetailGlyph } from "./DetailGlyph";
+import { TYPE } from "@/components/app/Screen";
 
 /**
  * What you would actually be buying: the title.
@@ -33,11 +33,9 @@ export function ListingTenure({ listing }: { listing: Listing }) {
   return (
     <div data-testid="listing-tenure">
       <div className="flex items-start gap-sm">
-        <UiIcon
-          name={tenure ? "document" : "info"}
-          size={ICON.section}
-          className="mt-3xs shrink-0 text-[var(--nf-content-muted)]"
-        />
+        {/* The shared plate, as the move-in and utility rows beside it draw
+            their glyphs (blue in light, ref 49), not a bare grey line. */}
+        <DetailGlyph name={tenure ? "document" : "info"} />
         <div className="min-w-0">
           <p className={TYPE.label}>Title</p>
           {tenure ? (
