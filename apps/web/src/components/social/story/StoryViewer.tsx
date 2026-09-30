@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { Button } from "@/components/ui/Button";
 import { BackChevron } from "@/components/social/profile/BackChevron";
 import { FollowButton } from "@/components/social/profile/FollowButton";
 import { ReportSheet } from "@/components/social/ReportSheet";
@@ -289,16 +290,17 @@ export function StoryViewer({
           ) : null}
 
           <div className="relative">
-            <button
-              type="button"
+            <Button
+              variant="secondary"
+              size="sm"
+              iconOnly
+              leadingIcon="more"
               className="nf-social-round"
               aria-label="More actions for this story"
               aria-haspopup="menu"
               aria-expanded={menuOpen}
               onClick={() => setMenuOpen((open) => !open)}
-            >
-              <UiIcon name="more" size={20} />
-            </button>
+            />
             {menuOpen ? (
               <>
                 <button
@@ -369,14 +371,17 @@ export function StoryViewer({
         {/* -------------------------------------------------- what happened */}
         <div className="nf-story__foot">
           <div className="nf-story__card">
-            <button
-              type="button"
-              onClick={share}
-              aria-label="Share this story"
-              className="nf-story__card-share"
-            >
-              <UiIcon name="share" size={18} />
-            </button>
+            <span className="nf-story__card-share">
+              <Button
+                variant="secondary"
+                size="sm"
+                iconOnly
+                leadingIcon="share"
+                onClick={share}
+                aria-label="Share this story"
+                className="nf-social-round"
+              />
+            </span>
 
             <span className="nf-story-chip">{STORY_COPY.chip}</span>
             <h1 className="nf-story__headline">{story.headline}</h1>
