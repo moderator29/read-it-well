@@ -19,6 +19,9 @@
  *        d. every card's object answers the pointer: a lift and a turn;
  *        e. the closing card's three objects float at its corners.
  *
+ *   3. THE NIGHT GLASS: at night the cards wear the night glass tier and the
+ *      hero's search capsule the raised glass (no blur; tokens.css).
+ *
  * STILL WHEN ASKED. Reduced motion, the Motion setting's Calm and Off, data
  * saver and a low-end device (`data-motion-lite`) all draw every object at
  * rest. The floating fields only move once `ObjectField` has written
@@ -340,6 +343,44 @@
   }
   .nf-landing-cat:focus-visible .nf-obj > .nf-icon3d {
     transform: translate3d(0, -3px, 0);
+  }
+
+  /* ------------------------------------------ 3. the night glass (dark) */
+
+  /* The founder wants the dark glass back (30 September). At night the
+     landing's cards sit on the night glass tier (tokens.css, the
+     `--nf-night-glass-*` roles) and the hero's search capsule on the raised
+     glass. No backdrop blur: these scroll, and the tier fakes the glass with
+     its layered fill, edge and glow. The edge lap's moving light is its own
+     ring and is untouched. Paper never reads these. */
+  :root:not([data-theme="light"]) :is(
+      .nf-bento__card,
+      .nf-step__card,
+      .nf-worlds__stage,
+      .nf-check-card,
+      .nf-close,
+      .nf-stack__moment,
+      .nf-ai-show-panel,
+      .nf-faq-group .nf-list-group
+    ) {
+    border-color: var(--nf-night-glass-edge);
+    background: var(--nf-night-glass-fill);
+    box-shadow: var(--nf-night-glass-shadow);
+  }
+  :root:not([data-theme="light"]) .nf-hero-eyebrow {
+    background: var(--nf-night-glass-fill);
+    box-shadow: var(--nf-night-glass-shadow);
+  }
+  :root:not([data-theme="light"]) .nf-landing-pill {
+    border-color: var(--nf-night-glass-raised-edge);
+    background: var(--nf-night-glass-raised-fill);
+    box-shadow: var(--nf-night-glass-raised-shadow);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    :root:not([data-theme="light"]) :is(.nf-bento__card, .nf-step__card):hover {
+      border-color: var(--nf-night-glass-edge-hover);
+      box-shadow: var(--nf-night-glass-shadow-hover);
+    }
   }
 
   /* -------------------------------------------------- the quiet states */
