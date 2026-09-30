@@ -69,10 +69,10 @@ export default function Icons3DPreview() {
 
       <h2 className="nf-section-label mt-section-tight">Empty states</h2>
       <div className="grid gap-md sm:grid-cols-2">
-        <State kind="empty" icon="bell-badge" title="No notifications yet" body="When something needs you, it lands here." />
-        <State kind="empty" icon="search-home" title="No places matched" body="Widen the filters and the results come back." />
-        <State kind="empty" icon="calendar-check" title="No bookings yet" body="A stay you book shows here with its dates." />
-        <State kind="empty" icon="heart-home" title="Nothing saved yet" body="Tap the heart on a place to keep it here." />
+        <State kind="empty" icon="bell-badge" title="No notifications yet" body="When something needs you, it lands here." primary={{ href: "/home", label: "Back to home" }} />
+        <State kind="empty" icon="search-home" title="No places matched" body="Widen the filters and the results come back." primary={{ href: "/search", label: "Change filters" }} />
+        <State kind="empty" icon="calendar-check" title="No bookings yet" body="A stay you book shows here with its dates." primary={{ href: "/stays/search", label: "Find a stay" }} />
+        <State kind="empty" icon="heart-home" title="Nothing saved yet" body="Tap the heart on a place to keep it here." primary={{ href: "/search", label: "Browse places" }} />
       </div>
 
       <h2 className="nf-section-label mt-section-tight">Workspace first run</h2>
