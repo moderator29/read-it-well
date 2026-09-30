@@ -76,7 +76,10 @@ export function SelectionPanel({
   const nights = `${dates.length} ${dates.length === 1 ? "night" : "nights"}`;
   const priceMinor = nairaToMinor(price);
 
-  const run = (act: () => Promise<{ ok: true; data: { nights: number } } | { ok: false; error: string }>, word: (n: number) => string) =>
+  const run = (
+    act: () => Promise<{ ok: true; data: { nights: number; heldBack?: number } } | { ok: false; error: string }>,
+    word: (n: number, extra?: { heldBack?: number }) => string,
+  ) =>
     start(async () => {
       setError(null);
       const result = await act();
@@ -84,7 +87,7 @@ export function SelectionPanel({
         setError(result.error);
         return;
       }
-      onDone(word(result.data.nights));
+      onDone(word(result.data.nights, result.data));
       router.refresh();
     });
 
@@ -109,6 +112,17 @@ export function SelectionPanel({
             {low === null ? "No rate" : low === high ? formatMoney(low, locale) : `${formatMoney(low, locale)} to ${formatMoney(high ?? low, locale)}`}
           </dd>
         </div>
+        {cells.some((c) => c.held > 0) ? (
+          <div>
+            <dt>Held by other sites</dt>
+            <dd className="nf-numeric">
+              {(() => {
+                const top = cells.reduce((best, c) => (c.held > best.held ? c : best), cells[0]!);
+                return `Up to ${top.held} a night${top.imported ? `, ${top.imported}` : ""}`;
+              })()}
+            </dd>
+          </div>
+        ) : null}
         <div>
           <dt>Already booked</dt>
           <dd className="nf-numeric">{floor === 0 ? "None" : `Up to ${floor} a night`}</dd>
@@ -196,7 +210,10 @@ export function SelectionPanel({
             onClick={() =>
               run(
                 () => setNightsRooms({ roomTypeId: room.id, dates, unitsOpen: units }),
-                (n) => (units === 0 ? `No rooms on sale for ${count(n)}.` : `${units} on sale for ${count(n)}.`),
+                (n, extra) =>
+                  units === 0
+                    ? `No rooms on sale for ${count(n)}.`
+                    : `${units} on sale for ${count(n)}.${extra?.heldBack ? ` On ${count(extra.heldBack)}, fewer: another site holds a room there.` : ""}`,
               )
             }
           >
@@ -238,6 +255,12 @@ export function SelectionPanel({
           ) : null}
         </div>
         <p className="nf-caption">Closing stops new requests. A stay already asked for or booked is kept.</p>
+        {cells.some((c) => c.held > 0) ? (
+          <p className="nf-caption">
+            Rooms held by another site stay off sale here whatever you set, and come back when that booking leaves its
+            calendar.
+          </p>
+        ) : null}
       </section>
 
       {error ? (

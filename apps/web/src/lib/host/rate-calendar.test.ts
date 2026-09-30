@@ -4,6 +4,7 @@ import {
   bookedFloor,
   cellFor,
   cleanSelection,
+  heldWords,
   describeSelection,
   isIsoDate,
   lagosToday,
@@ -159,5 +160,21 @@ describe("naira typed by a person", () => {
     expect(nairaToMinor("N 1,200")).toBe(120_000);
     expect(nairaToMinor("forty")).toBeNull();
     expect(nairaToMinor("-5")).toBeNull();
+  });
+});
+
+describe("rooms another site holds (C2b)", () => {
+  it("says how many and by whom, and nothing when none", () => {
+    expect(heldWords({ held: 1, imported: "Airbnb" })).toBe("1 held by Airbnb");
+    expect(heldWords({ held: 2, imported: "Airbnb, Booking.com" })).toBe("2 held by Airbnb, Booking.com");
+    expect(heldWords({ held: 0, imported: null })).toBeNull();
+  });
+
+  it("counts one room per linked calendar when the read gives no count", () => {
+    const plan = primaryPlan(room);
+    const r = rows({ imported: new Map([[rowKey("rt1", "2026-10-09"), "Airbnb"]]) });
+    expect(cellFor(room, plan, "2026-10-09", r, "2026-10-01").held).toBe(1);
+    const counted = rows({ imported: new Map([[rowKey("rt1", "2026-10-09"), "Airbnb, Booking.com"]]), held: new Map([[rowKey("rt1", "2026-10-09"), 2]]) });
+    expect(cellFor(room, plan, "2026-10-09", counted, "2026-10-01").held).toBe(2);
   });
 });

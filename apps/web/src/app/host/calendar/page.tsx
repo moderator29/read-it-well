@@ -128,6 +128,7 @@ export default async function HostCalendarPage({
           rates={[...read.rows.rates.entries()]}
           inventory={[...read.rows.inventory.entries()]}
           imported={[...read.rows.imported.entries()]}
+          held={[...(read.rows.held?.entries() ?? [])]}
           month={month}
           today={today}
           initialRoomId={one("room") ?? null}

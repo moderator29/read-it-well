@@ -190,7 +190,7 @@ export async function setNightsClosed(input: unknown): Promise<ActionResult<{ ni
 }
 
 /** How many rooms of this type are on sale across some nights. */
-export async function setNightsRooms(input: unknown): Promise<ActionResult<{ nights: number }>> {
+export async function setNightsRooms(input: unknown): Promise<ActionResult<{ nights: number; heldBack: number }>> {
   const parsed = validate(roomsSchema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   const { roomTypeId, unitsOpen } = parsed.data;
@@ -225,8 +225,23 @@ export async function setNightsRooms(input: unknown): Promise<ActionResult<{ nig
     return fail(SERVICE_DOWN_MESSAGE);
   }
 
+  /* C2b: rooms another site holds stay off sale whatever is asked; the
+     database clamps the write and says how many it held back. Read it so the
+     host is told, rather than shown a number that did not land. A database
+     without the column (before the C2b migration) holds nothing back. */
+  const { data: heldRows } = await (got.s.supabase as unknown as {
+    from: (t: string) => { select: (c: string) => { eq: (c: string, v: string) => { in: (c: string, v: string[]) => PromiseLike<{ data: unknown }> } } };
+  })
+    .from("room_inventory")
+    .select("date, units_held_back")
+    .eq("room_type_id", roomTypeId)
+    .in("date", nights);
+  const heldBack = Array.isArray(heldRows)
+    ? (heldRows as { units_held_back?: number }[]).filter((r) => (r.units_held_back ?? 0) > 0).length
+    : 0;
+
   refresh();
-  return ok({ nights: nights.length });
+  return ok({ nights: nights.length, heldBack });
 }
 
 /**

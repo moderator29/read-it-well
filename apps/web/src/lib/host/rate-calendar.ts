@@ -203,6 +203,8 @@ export type CalendarRows = {
   inventory: Map<string, { unitsOpen: number; unitsBooked: number }>;
   /** Nights another site's calendar blocked, by `${roomTypeId}|${date}`: the source label. */
   imported: Map<string, string>;
+  /** C2b: how many rooms other sites hold that night (one per linked calendar), by `${roomTypeId}|${date}`. */
+  held?: Map<string, number>;
 };
 
 export type NightCell = {
@@ -221,6 +223,8 @@ export type NightCell = {
   unitsBooked: number;
   /** "Airbnb", when another site's calendar holds a room this night. */
   imported: string | null;
+  /** Rooms other sites hold this night (0 when none). */
+  held: number;
 };
 
 export function rowKey(id: string, date: IsoDate): string {
@@ -257,6 +261,7 @@ export function cellFor(
     unitsOpen: inv ? inv.unitsOpen : null,
     unitsBooked: inv ? inv.unitsBooked : 0,
     imported: rows.imported.get(rowKey(room.id, date)) ?? null,
+    held: rows.held?.get(rowKey(room.id, date)) ?? (rows.imported.has(rowKey(room.id, date)) ? 1 : 0),
   };
 }
 
@@ -277,6 +282,12 @@ export function toneOf(cell: NightCell): CellTone {
   if (cell.unitsOpen > 0 && cell.unitsBooked >= cell.unitsOpen) return "full";
   if (cell.overrideMinor !== null && cell.overrideMinor !== cell.baseMinor) return "override";
   return "open";
+}
+
+/** "1 held by Airbnb", "2 held by Airbnb, Booking.com": what another site holds. */
+export function heldWords(cell: Pick<NightCell, "held" | "imported">): string | null {
+  if (!cell.imported || cell.held <= 0) return null;
+  return `${cell.held} held by ${cell.imported}`;
 }
 
 /** Naira typed by a person ("45,000", "₦45000", "45000.50") to kobo, or null. */

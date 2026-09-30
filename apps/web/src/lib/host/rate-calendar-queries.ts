@@ -104,7 +104,7 @@ export async function readRateCalendar(
         }))
         .sort((a, b) => Number(b.active) - Number(a.active) || a.name.localeCompare(b.name)),
     }));
-    const rows: CalendarRows = { rates: new Map(), inventory: new Map(), imported: new Map() };
+    const rows: CalendarRows = { rates: new Map(), inventory: new Map(), imported: new Map(), held: new Map() };
     const empty: SyncState = { ready: false, feeds: [], imports: [] };
     if (rooms.length === 0) return { state: "ok", rooms, rows, sync: empty };
 
@@ -143,6 +143,7 @@ export async function readRateCalendar(
       rows.inventory.set(rowKey(r.room_type_id, r.date), { unitsOpen: r.units_open, unitsBooked: r.units_booked });
     }
     for (const [key, label] of sync.imported) rows.imported.set(key, label);
+    for (const [key, count] of sync.held) rows.held?.set(key, count);
     return { state: "ok", rooms, rows, sync: sync.state };
   } catch {
     return { state: "unavailable" };
@@ -158,9 +159,10 @@ async function readSync(
   roomIds: string[],
   from: string,
   to: string,
-): Promise<{ state: SyncState; imported: Map<string, string> }> {
+): Promise<{ state: SyncState; imported: Map<string, string>; held: Map<string, number> }> {
   const imported = new Map<string, string>();
-  const notReady = { state: { ready: false, feeds: [], imports: [] }, imported };
+  const held = new Map<string, number>();
+  const notReady = { state: { ready: false, feeds: [], imports: [] }, imported, held };
   const session = await resolveSession();
   if (session.state !== "signed-in") return notReady;
   const db = session.supabase as unknown as {
@@ -206,7 +208,13 @@ async function readSync(
       if (!nights.error) {
         for (const night of (nights.data ?? []) as { import_id: string; date: string }[]) {
           const source = byImport.get(night.import_id);
-          if (source) imported.set(rowKey(source.room_type_id, night.date), sourceLabel(source.source));
+          if (!source) continue;
+          /* C2b: each linked calendar that lists the night holds one room. */
+          const key = rowKey(source.room_type_id, night.date);
+          const label = sourceLabel(source.source);
+          const before = imported.get(key);
+          imported.set(key, before && !before.split(", ").includes(label) ? `${before}, ${label}` : (before ?? label));
+          held.set(key, (held.get(key) ?? 0) + 1);
         }
       }
     }
@@ -230,6 +238,7 @@ async function readSync(
         })),
       },
       imported,
+      held,
     };
   } catch {
     return notReady;

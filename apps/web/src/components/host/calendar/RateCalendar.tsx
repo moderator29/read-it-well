@@ -14,6 +14,7 @@ import {
   addMonths,
   cellFor,
   describeSelection,
+  heldWords,
   monthGrid,
   presetNights,
   primaryPlan,
@@ -61,6 +62,8 @@ export type RateCalendarProps = {
   rates: [string, { rateMinor: number | null; closed: boolean }][];
   inventory: [string, { unitsOpen: number; unitsBooked: number }][];
   imported: [string, string][];
+  /** C2b: rooms other sites hold, by room and night. */
+  held?: [string, number][];
   month: string;
   today: string;
   initialRoomId: string | null;
@@ -98,7 +101,7 @@ function cellWords(cell: NightCell, locale: Locale): string {
     tone === "past"
       ? "gone"
       : tone === "imported"
-        ? `closed, booked on ${cell.imported}`
+        ? `no room left, ${heldWords(cell) ?? `booked on ${cell.imported}`}`
         : tone === "closed"
           ? "closed"
           : tone === "none"
@@ -107,15 +110,20 @@ function cellWords(cell: NightCell, locale: Locale): string {
               ? "fully booked"
               : `${left} ${left === 1 ? "room" : "rooms"} left`;
   const own = tone === "override" ? ", your own price for this night" : "";
-  const elsewhere = cell.imported && tone !== "imported" ? `, one room booked on ${cell.imported}` : "";
+  const elsewhere = cell.imported && tone !== "imported" ? `, ${heldWords(cell)}` : "";
   return `${day}, ${price}${own}, ${state}${elsewhere}`;
 }
 
 export function RateCalendar(props: RateCalendarProps) {
   const { rooms, month, today, locale } = props;
   const rows: CalendarRows = useMemo(
-    () => ({ rates: new Map(props.rates), inventory: new Map(props.inventory), imported: new Map(props.imported) }),
-    [props.rates, props.inventory, props.imported],
+    () => ({
+      rates: new Map(props.rates),
+      inventory: new Map(props.inventory),
+      imported: new Map(props.imported),
+      held: new Map(props.held ?? []),
+    }),
+    [props.rates, props.inventory, props.imported, props.held],
   );
   const [roomId, setRoomId] = useState(() => rooms.find((r) => r.id === props.initialRoomId)?.id ?? rooms[0]?.id ?? "");
   const room = rooms.find((r) => r.id === roomId) ?? rooms[0];
@@ -466,6 +474,13 @@ export function RateCalendar(props: RateCalendarProps) {
                     <span className="nf-rcal__meta">
                       {tone === "imported"
                         ? cell.imported
+                        : cell.imported && tone !== "past"
+                          ? (
+                              <>
+                                <span className="nf-rcal__meta-long">{heldWords(cell)}</span>
+                                <span className="nf-rcal__meta-short">{`${cell.held} held`}</span>
+                              </>
+                            )
                         : tone === "closed"
                           ? "Closed"
                           : tone === "none"
@@ -489,7 +504,7 @@ export function RateCalendar(props: RateCalendarProps) {
           <li><span className="nf-rcal__key" data-tone="full" aria-hidden="true" />Fully booked</li>
           <li><span className="nf-rcal__key" data-tone="closed" aria-hidden="true" />Closed</li>
           <li><span className="nf-rcal__key" data-tone="imported" aria-hidden="true" />Every room booked elsewhere</li>
-          <li><span className="nf-rcal__key" data-tone="elsewhere" aria-hidden="true" />One room booked elsewhere</li>
+          <li><span className="nf-rcal__key" data-tone="elsewhere" aria-hidden="true" />Some rooms held by another site</li>
           <li><span className="nf-rcal__key" data-tone="none" aria-hidden="true" />Not on sale</li>
         </ul>
 

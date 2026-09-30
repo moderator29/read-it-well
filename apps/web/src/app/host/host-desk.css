@@ -179,6 +179,17 @@
     line-height: 1.2;
     color: var(--nf-content-muted);
   }
+  .nf-rcal__meta-long {
+    display: none;
+  }
+  @media (min-width: 768px) {
+    .nf-rcal__meta-long {
+      display: inline;
+    }
+    .nf-rcal__meta-short {
+      display: none;
+    }
+  }
   .nf-rcal__cell[data-tone="override"] .nf-rcal__price {
     font-weight: 700;
     color: var(--nf-content-primary);
