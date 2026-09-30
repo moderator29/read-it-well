@@ -222,7 +222,7 @@ export async function buildPay(ctx, S) {
   ctx.img(await scaledSrc(ctx.src.brand("vallo-mark.png"), 150), { class: "abs", style: { left: "56px", top: "8px", width: "108px", height: "103px", objectFit: "contain" } }, trayBox);
 
   const stationAt = (i, tt) => {
-    const f = ramp(ctx, tt, fold[0] + i * 0.03, fold[1] - (2 - i) * 0.03, "whip");
+    const f = ramp(ctx, tt, fold[0], fold[1], "whip");
     return { x: mix(ST[i].x, LINE[i].x, f), y: mix(ST[i].y, LINE[i].y, f), d: mix(SD, SMALL, f), u: f };
   };
   const bankAt = (sp, inU) => (M

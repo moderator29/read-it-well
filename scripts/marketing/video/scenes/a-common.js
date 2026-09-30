@@ -90,12 +90,11 @@ export function timesPlus(ctx) {
   T.open = T.need + 0.62;
   /* 13: card 1 comes in with its question as the receipt settles (it stays through the print, the
      question the receipt answers), turns so its answer opens exactly as the total lands on "right",
-     and holds until it leaves for the top right in the section's last 0.2 s. */
+     and holds, answer up, through the cut (section b takes it over at 30.577). */
   T.cardIn = T.call + 1.12;
   T.cardTurn = T.right - 0.3;
   /* (desktop: the receipt folds toward it, so it leaves as the fold starts, over 0.46 s) */
   T.foldAt = T.end - 0.46;
-  T.cardOut = ctx.isMobile ? T.end - 0.2 : T.foldAt;
   return T;
 }
 

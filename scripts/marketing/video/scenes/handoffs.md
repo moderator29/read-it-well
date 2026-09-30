@@ -27,7 +27,7 @@ end with zero velocity there; B's moves start from rest).
   box-shadow b-kit `SHADOW.l`, placed as a 2D `matrix()`.
   - The receipt (RECEIPT_M `{ x: 150, y: 390, w: 780, h: 820 }`) folds into it in one scaling move, 30.117-30.577
     (power3.inOut, arrives at rest); the villa crop cross-fades in over the last 0.2 s.
-- **Gone before 30.577:** the receipt, the pointer. Card 1 is leaving (below). The chapter pill "The full cost, **up front**"
+- **Gone before 30.577:** the receipt, the pointer. Card 1 stays at rest (below). The chapter pill "The full cost, **up front**"
   ends at 30.577 (the engine fades it).
 
 ### Desktop
@@ -42,18 +42,23 @@ end with zero velocity there; B's moves start from rest).
   a crop of `d-thread-lt` capture `{ x: 1884, y: 980, w: 796, h: 538 }`, radius 26 px, `SHADOW.l`, 2D `matrix()`.
   The receipt folds into it in one scaling move, 30.117-30.577, the crop cross-fading in over the last 0.2 s.
 
-### Card 1 leaves to the top right (for section c, row 31)
+### Card 1: at rest, answer up, at the cut (section b takes it over)
 
-Both films restyle the faces so they read centred (`justifyContent/textAlign: center`, `textWrap: balance`). The
-turn is the engine's flat turn (no CSS 3D). Card 1 comes in with its question as the receipt settles (24.95), stays
-still through rows 12-13, and turns at 28.566 so its answer opens exactly as the total lands on "right" (28.866).
+A leaves card 1 still on screen at 30.577; B rebuilds it answer-side-up in the same rest box, holds it to 31.30, and
+flies it out to section c's end points (mobile centre (1300, −105), 24°, 0.9; desktop centre (2070, −330), 22°, 0.9).
 
-- **Mobile:** `questionCard(..., { box: { x: 230, y: 1380, w: 620, h: 170 }, fontSize: 40 })` (under the receipt), back
-  33 px. Rest rotation −2°. Leaves 30.377-30.577: x (power2.out) and rotation/scale to (+1070, 24°, 0.9), y (power3.in)
-  to −1570: right first, then up. **End: centre (1300, −105), 24°, 0.9, answer side up** (unchanged).
-- **Desktop:** `questionCard(..., { box: { x: 1384, y: 150, w: 500, h: 160 }, fontSize: 34 })` (right of the receipt,
-  x ≥ 1384), back 28 px. Rest rotation 3°. Leaves 30.117-30.577 (power2.in, as the fold starts, since the receipt folds
-  toward it) to x +436, y −560. **End: centre (2070, −330), 22°, 0.9, answer side up** (unchanged).
+Both films: `questionCard(ctx, parent, { q: QUESTIONS[0].q, a: QUESTIONS[0].a, box, fontSize })`, root transform-origin
+the engine default (50% 50%), scale 1, opacity 1, inner scaleX 1, the back face showing (turned by the engine's flat
+turn at 28.566; the answer opened at 28.866 and has been still since about 29.19). Faces restyled after building:
+`front`: `justifyContent: "center", textAlign: "center", textWrap: "balance"`; `back`: the same plus
+`lineHeight: "1.22"` and the `fontSize` below. It came in with its question at 24.947 (0.5 s) and has not moved since 25.45.
+
+- **Mobile:** `box: { x: 230, y: 1380, w: 620, h: 170 }`, `fontSize: 40`, back `fontSize: "33px"`. Rest transform
+  `x 0, y 0, rotation −2°` (centre (540, 1465)), under the receipt, below the captions.
+- **Desktop:** `box: { x: 1384, y: 150, w: 500, h: 160 }`, `fontSize: 34`, back `fontSize: "28px"`. Rest transform
+  `x 0, y 0, rotation 3°` (centre (1634, 230)), at the right of the receipt. During A's fold (30.117–30.577) the
+  folding receipt passes under it (card z above); at the cut the villa card `{ x: 1206, y: 330, w: 600, h: 405.5 }`
+  sits just below it (the card's lowest corner is at about y 323).
 
 ## B → C (t = 62.885 = ctx.beat(109))
 

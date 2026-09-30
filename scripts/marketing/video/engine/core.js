@@ -115,7 +115,14 @@ export async function createContext({ film, stage }) {
       node.loading = "eager";
       node.alt = "";
       node.src = src;
-      loads.push(node.decode().catch(() => { throw new Error(`image failed: ${src}`); }));
+      /* A decode can fail once under memory pressure: reload up to three times. */
+      const attempt = (n) => node.decode().catch(async () => {
+        if (n >= 3) throw new Error(`image failed: ${src}`);
+        await new Promise((r) => setTimeout(r, 400 * (n + 1)));
+        node.src = `${src}${src.includes("?") ? "&" : "?"}retry=${n + 1}`;
+        return attempt(n + 1);
+      });
+      loads.push(attempt(0));
       return node;
     },
 

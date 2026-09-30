@@ -6,7 +6,7 @@
  * 1 comes in under the receipt with its question as it settles; the lines
  * print as they are named; the amounts arc into the total, which rolls and
  * lands on ₦26,100,000 on "right", as card 1 opens on its answer; card 1
- * leaves for the top right at the very end; the receipt folds into the
+ * stays at rest, answer up, through the cut (section b takes it over); the receipt folds into the
  * Maitama villa card in one scaling move, at rest on section b's A_OUT rect at
  * 30.577 (scenes/handoffs.md, "A -> B"), with the phone (v3.2's one size)
  * back under it at 30%.
@@ -220,12 +220,7 @@ export async function buildReceiptMobile(ctx, T, product) {
   /* It turns so its answer opens exactly as the total lands on "right" (28.87): the answer's figure is
      never readable before the receipt's. */
   card.turn(T.cardTurn, { sound: null });
-  /* It leaves for the top right in the section's last 0.2 s: right first, then up (never over the
-     folding card), to section c's start: centre (1300, -105), 24 deg, 0.9, answer side up */
-  const cx0 = box.x + box.w / 2;
-  const cy0 = box.y + box.h / 2;
-  tl.fromTo(card.root, { x: 0, rotation: -2, scale: 1 }, { x: 1300 - cx0, rotation: 24, scale: 0.9, duration: 0.2, ease: "power2.out", ...ir }, T.cardOut);
-  tl.fromTo(card.root, { y: 0 }, { y: -105 - cy0, duration: 0.2, ease: "power3.in", ...ir }, T.cardOut);
+  /* It stays at rest, answer up, through the cut: section b takes it over at 30.577 (handoffs.md). */
 
   return { card, villa, shell };
 }
