@@ -50,6 +50,7 @@ export function CalendarSync({
   room,
   sync,
   feedBase,
+  locale,
 }: {
   room: CalendarRoom;
   sync: SyncState;
@@ -159,7 +160,7 @@ export function CalendarSync({
             {imports.length > 0 ? (
               <ul className="nf-rcal-sync__imports">
                 {imports.map((imp) => (
-                  <ImportRow key={imp.id} imp={imp} now={now} pending={pending} act={act} />
+                  <ImportRow key={imp.id} imp={imp} now={now} pending={pending} act={act} locale={locale} />
                 ))}
               </ul>
             ) : (
@@ -215,10 +216,12 @@ function ImportRow({
   now,
   pending,
   act,
+  locale,
 }: {
   imp: CalendarImport;
   now: number;
   pending: boolean;
+  locale: Locale;
   act: (fn: () => Promise<{ ok: boolean; error?: string }>, success: string) => void;
 }) {
   const failing = imp.failures >= 2;
