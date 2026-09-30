@@ -8,7 +8,7 @@ import { phoneHtml } from "../lib/kit.mjs";
 
 const W = 1080;
 const H = 1350;
-const PH = { kind: "pose", fov: 26, h: 760 };
+const PH = { kind: "pose", fov: 26, h: 700 };
 const CY = 900;
 
 export default {
@@ -17,8 +17,9 @@ export default {
   W,
   H,
   phones: [
-    phone("listing-amenities", "night", { ...PH, rotation: { x: -14, y: 24, z: 15 }, cx: 520, cy: CY - 20 }),
-    phone("listing-cost-total", "night", { ...PH, rotation: { x: -18, y: -24, z: -8 }, cx: 790, cy: CY + 30 }),
+    /* turned toward each other; the right phone's bezel only touches the left phone's, never its screen */
+    phone("listing-amenities", "night", { ...PH, rotation: { x: -14, y: 20, z: 10 }, cx: 450, cy: CY }),
+    phone("listing-cost-total", "night", { ...PH, rotation: { x: -18, y: -20, z: -6 }, cx: 850, cy: CY + 30 }),
   ],
   html: ({ phones }) =>
     frame({

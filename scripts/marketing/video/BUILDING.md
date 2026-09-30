@@ -90,3 +90,13 @@ node video/engine/render.mjs --film desktop --scenes a --check 6 --from 0 --to 3
 - `--scenes a` builds only section a.
 - Clips come out silent, and `sfx-<film>.json` next to the clip lists the cues.
 - Put preview output in your own folder under `/tmp/claude-0/-home-user-read-it-well/e877abda-8aaf-57c8-a7aa-c0953c2acde6/scratchpad/renders/`.
+
+## Lessons from the first build (30 September 2026)
+
+- **Name every property in both "from" and "to".** GSAP silently ignores a property named only in a `fromTo`'s "from" on a plain object. Never overlap two tweens on the same property of the same target. `scratchpad/a-build/audit.mjs` flags overlaps, from-only properties and broken chains.
+- **Show with "inherit", never "visible".** A child set to `visibility: visible` would show through a hidden parent. The engine now hides everything inside an off scene (`.scene[data-off] *`), but keep the habit.
+- **A tween shows its build-time state before it starts.** Set the start state on the element at build, or gate its visibility per frame (`gate()` in components.js does this for press rings).
+- **Composited layers can keep an earlier raster scale.** Write flat quads as a 2D `matrix()`, drop unused back faces, and re-insert a layer when its 3D mapping changes. The renderer runs with `--disable-partial-raster --run-all-compositor-stages-before-draw`.
+- **Big images can fail to decode** when many are live at once ("The source image cannot be decoded"). Draw the crop you need to a canvas once, and release the image.
+- **Never upscale a capture.** Desktop captures are 2×, so a window push stops at 1.5× (the hero window already sits at 1.111).
+- **The 3D phone is the costly frame** (its 1.5 supersample). Keep it still, or flat, wherever the shot allows; a turned screen costs two to three times more.

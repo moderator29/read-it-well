@@ -107,10 +107,13 @@ export async function buildPay(ctx, S) {
   };
 
   let LOCK; // stage centre and size of the coin's resting place
+  let RIDE = () => 0; // how far below its resting place the lock still is (it rises in), in stage px
   let KEY; // stage point of a key
   let DOTS_AT; // stage centre of the screen's dot row
   if (M) {
     const P = L.PHONE_HIGH;
+    const cyTrack = [[K.r28, P.cy + 1150], [K.r28 + 0.36, P.cy, "land"], [K.pay + 0.16, P.cy], [K.r29 - 0.08, P.cy + 1750, "leave"]];
+    RIDE = (tt) => (tt < K.pay + 0.16 ? track(ctx, tt, cyTrack) - P.cy : 0);
     const p = S.light;
     const at = (x, y) => dispToStage(P, x, y);
     const dotsY = at(0, G.dots.y).y;
@@ -134,7 +137,7 @@ export async function buildPay(ctx, S) {
       t0: K.r28 - 0.05, t1: K.r29 - 0.02,
       fn: (tt) => ({
         cx: P.cx, height: P.height, fov: 24, rz: 0,
-        cy: track(ctx, tt, [[K.r28, P.cy + 1150], [K.r28 + 0.36, P.cy, "land"], [K.pay + 0.16, P.cy], [K.r29 - 0.08, P.cy + 1750, "leave"]]),
+        cy: track(ctx, tt, cyTrack),
         rx: track(ctx, tt, [[K.r28, 10], [K.r28 + 0.4, 0, "land"], [K.pay + 0.16, 0], [K.r29 - 0.08, 18, "leave"]]),
         ry: track(ctx, tt, [[K.r28, -9], [K.r28 + 0.42, 0, "land"], [K.pay + 0.16, 0], [K.r29 - 0.08, -7, "leave"]]),
         opacity: 1, // it leaves by moving: below the frame by 64.53
@@ -153,9 +156,11 @@ export async function buildPay(ctx, S) {
     LOCK = { x: lk.x, y: lk.y, d: 44 };
     KEY = (k) => C(...G.keys[k]);
     DOTS_AT = C(G.dots.x0 + G.dots.dx * 2.5, G.dots.y);
+    const yTrack = [[K.r28, W.y + 40], [K.r28 + 0.42, W.y, "land"], [K.pay + 0.16, W.y], [K.r29 - 0.06, W.y + 980, "leave"]];
+    RIDE = (tt) => (tt < K.pay + 0.16 ? track(ctx, tt, yTrack) - W.y : 0);
     during(ctx, K.r28 - 0.05, K.r29 + 0.1, (tt) => {
       drawDots(tt);
-      const y = track(ctx, tt, [[K.r28, W.y + 40], [K.r28 + 0.42, W.y, "land"], [K.pay + 0.16, W.y], [K.r29 - 0.06, W.y + 980, "leave"]]);
+      const y = track(ctx, tt, yTrack);
       const o = ramp(ctx, tt, K.r28 - 0.04, K.r28 + 0.16) * (1 - ramp(ctx, tt, K.r29 - 0.2, K.r29 - 0.06));
       win.root.style.transformOrigin = "0 0";
       win.root.style.transform = `translate(${W.x}px, ${y.toFixed(2)}px) scale(${sc})`;
@@ -188,8 +193,9 @@ export async function buildPay(ctx, S) {
     /* desktop: a ring opens under each press (the engine's press ring) */
     const rings = M ? [] : presses.map((pr, i) => ctx.el("div", { class: "abs", style: { left: `${k[i].x - 50}px`, top: `${k[i].y - 50}px`, width: "100px", height: "100px", borderRadius: "50%", border: "3px solid rgb(0 105 254 / 0.8)", zIndex: 840, visibility: "hidden" } }, over));
     during(ctx, K.r28 - 0.05, K.r29 + 0.1, (tt) => {
+      /* the pointer rides in with the lock, so the first presses land on their keys */
       const x = track(ctx, tt, xs);
-      const y = track(ctx, tt, ys);
+      const y = track(ctx, tt, ys) + RIDE(tt);
       const o = ramp(ctx, tt, K.r28 - 0.02, K.r28 + 0.1) * (1 - ramp(ctx, tt, K.pay + 0.08, K.pay + 0.3));
       const q = squash(tt);
       ptr.style.left = `${(x - half).toFixed(2)}px`;
@@ -237,7 +243,7 @@ export async function buildPay(ctx, S) {
       const out = ramp(ctx, tt, K.pay + 0.2, K.pay + 0.5, "power2.in");
       const s = mix(fromScale, 1, u) * (1 - 0.04 * out);
       const pulse = 1 + 0.05 * Math.max(0, spring(tt, K.pay, { freq: 3, decay: 9 }));
-      place(body, { x: mix(from.x, home.x, u), y: mix(from.y, home.y, u) - (M ? 0 : 40) * out, s: s * pulse, o: Math.min(1, u * 3) * (1 - out) });
+      place(body, { x: mix(from.x, home.x, u), y: mix(from.y + (M ? RIDE(tt) : 0), home.y, u) - (M ? 0 : 40) * out, s: s * pulse, o: Math.min(1, u * 3) * (1 - out) });
       dots.forEach((d, k) => {
         const f = fillU(tt, k);
         d.fill.style.opacity = opa(f * 1.4);
