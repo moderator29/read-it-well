@@ -731,31 +731,8 @@
     background: var(--nf-plate-fill);
     box-shadow: var(--nf-plate-shadow);
   }
-  /*
-   * THE CHOOSER'S DOORS CARRY A WHOLE GLASS OBJECT, AND LARGER (the founder,
-   * 25 September 2026). At night the object nearly fills a bigger plate, as
-   * `GOVERNING-02` draws the house, the key and the building. In daylight
-   * there is no plate at all: the object stands on the white card, with no
-   * navy square and no rim around it. The overview rows are the same
-   * treatment a step smaller, because they are a checklist and not a choice.
-   * The object's own ground and the fade at its canvas edge are the shared
-   * light rule's (light.css), as on every glass object.
-   */
-  .nf-door__mark--glass {
-    width: 4.5rem;
-    height: 4.5rem;
-    padding: var(--nf-space-3xs);
-  }
-  .nf-door--calm .nf-door__mark--glass {
-    width: 3.75rem;
-    height: 3.75rem;
-  }
-  :root[data-theme="light"] .nf-door__mark--glass:not(:where([data-theme="dark"] *)) {
-    padding: 0;
-    border-color: transparent;
-    background: none;
-    box-shadow: none;
-  }
+  /* `.nf-door__mark--glass` (the door's larger glass object) stood here; no
+     door carries it since the icon pass, so its sizes went (C12). */
   @media (prefers-reduced-motion: reduce) {
     .nf-door {
       transition: none;

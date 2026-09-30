@@ -1311,11 +1311,6 @@
     flex-shrink: 0;
     color: var(--nf-brand-secondary);
   }
-  .nf-amenity-tile__object {
-    display: block;
-    width: 2.25rem;
-    height: 2.25rem;
-  }
   /* The agent card. */
   .nf-agent-card {
     display: flex;

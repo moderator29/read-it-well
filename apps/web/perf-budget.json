@@ -7,7 +7,9 @@
     { "path": "/home", "signedIn": true, "budgetKb": null },
     { "path": "/search", "signedIn": true, "budgetKb": null },
     { "path": "/listing/seed-2", "signedIn": true, "budgetKb": null },
-    { "path": "/wallet", "signedIn": true, "budgetKb": null },
-    { "path": "/stays/search", "signedIn": true, "budgetKb": null }
+    { "path": "/stays/search", "signedIn": true, "budgetKb": null },
+    { "path": "/host", "signedIn": true, "budgetKb": null },
+    { "path": "/agent/dashboard", "signedIn": true, "budgetKb": null },
+    { "path": "/agent/listings", "signedIn": true, "budgetKb": null }
   ]
 }

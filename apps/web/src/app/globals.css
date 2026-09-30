@@ -109,7 +109,9 @@
  * register rather than restating it, and must therefore cascade after it.
  */
 @import "./css/stays.css";
-@import "./css/wallet.css";
+/* wallet.css (44 KB, the wallet retired on 25 September) is gone (C12); the
+   few rules live screens still used are in money-surface.css, in its slot. */
+@import "./css/money-surface.css";
 /* The payments and earnings histories: a record of money that already moved. */
 @import "./css/money-history.css";
 @import "./css/system.css";

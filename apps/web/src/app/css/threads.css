@@ -1341,21 +1341,6 @@
     background: var(--nf-well-fill);
     box-shadow: var(--nf-rim-lit);
   }
-  .nf-insp-step__tile {
-    display: grid;
-    place-items: center;
-    width: 2.25rem;
-    height: 2.25rem;
-    flex-shrink: 0;
-    border-radius: var(--nf-radius-sm);
-    border: var(--nf-border-width) solid var(--nf-brand-edge);
-    background: var(--nf-well-fill);
-    color: var(--nf-brand-secondary);
-    box-shadow:
-      var(--nf-rim-lit),
-      inset 0 0 10px var(--nf-glow-wash),
-      0 0 10px var(--nf-glow-1);
-  }
   .nf-insp-step__name {
     font-weight: 600;
     font-size: var(--nf-text-body-sm);
@@ -1381,10 +1366,6 @@
   .nf-insp-step--done .nf-insp-step__ring {
     border-color: var(--nf-state-success);
     background: var(--nf-state-success);
-  }
-  .nf-insp-step--done .nf-insp-step__tile {
-    color: var(--nf-state-success);
-    border-color: color-mix(in oklab, var(--nf-state-success) 45%, transparent);
   }
 
   .nf-insp-notes {

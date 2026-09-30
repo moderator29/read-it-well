@@ -839,10 +839,6 @@
     .nf-step__card {
       padding: var(--nf-pad-card-sm);
     }
-    .nf-step .nf-step__glass {
-      width: 2.25rem;
-      height: 2.25rem;
-    }
     .nf-step__label {
       margin-top: var(--nf-gap-inline);
     }

@@ -20,7 +20,7 @@ describe("the weight budget (V-80)", () => {
   it("records today's weight minus 20 percent", () => {
     expect(gate.recordedBudget(1544)).toBe(1235);
   });
-  it("names the eight routes the entry asked for", () => {
+  it("names the routes: the eight V-80 asked for, less the retired wallet, plus the workspaces (C12)", () => {
     const budget = JSON.parse(readFileSync(join(WEB, "perf-budget.json"), "utf8")) as { routes: { path: string }[] };
     expect(budget.routes.map((r) => r.path)).toEqual([
       "/",
@@ -29,8 +29,10 @@ describe("the weight budget (V-80)", () => {
       "/home",
       "/search",
       "/listing/seed-2",
-      "/wallet",
       "/stays/search",
+      "/host",
+      "/agent/dashboard",
+      "/agent/listings",
     ]);
   });
 });

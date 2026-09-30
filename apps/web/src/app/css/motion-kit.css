@@ -210,17 +210,6 @@
    * is never distorted; transform only. The kinds are named in
    * components/site/landing/glass-motion.ts.
    */
-  .nf-feature-glass {
-    display: inline-grid;
-    place-items: center;
-    flex: none;
-    width: 3.5rem;
-    height: 3.5rem;
-  }
-  .nf-feature-glass--sm {
-    width: 2.5rem;
-    height: 2.5rem;
-  }
   .nf-glass-fx {
     transform-origin: 50% 60%;
   }
