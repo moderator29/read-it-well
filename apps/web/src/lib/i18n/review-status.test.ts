@@ -78,6 +78,7 @@ describe("translation review status", () => {
       lines.push(`${locale.padEnd(6)}  ${t.total}   ${t.missing}     ${t.draft}   ${t.unreviewed}        ${t.reviewed}`);
       expect(t.missing + t.draft + t.unreviewed + t.reviewed).toBe(t.total);
     }
+    // eslint-disable-next-line no-console -- the coverage report is this test's printed output
     console.info(lines.join("\n"));
   });
 });
