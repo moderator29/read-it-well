@@ -1,9 +1,12 @@
-/* R7 · after IMG_6734, posted sixth (06 and 07 swap places in the order): one straight phone, whole and centred, with quiet
- * labels in the corners (our brand bar). Night. Sign up: "Create your
- * account", by email or with an account you already have. A phone with a
- * code is the post's 3D icon. */
+/* R7 · after IMG_6734, posted sixth. Night. Sign up, "Create your account":
+ * by email, or with an account you already have, on one bleed phone at the
+ * set's size (660 px, x 300 to 960, 0.47x), like 07 beside it. The screen is
+ * shown down to the row under "I already have an account", its own ground
+ * below (the empty lower screen and its terms line are left out). A phone
+ * with a code is the post's 3D icon, in slot B on the phone's centre. */
 import { PLACE, frame, headline, icon3d, phone } from "../lib/premium.mjs";
 import { phoneHtml } from "../lib/kit.mjs";
+import { scrolledDisplay } from "../lib/scroll.mjs";
 
 const W = 1080;
 const H = 1350;
@@ -13,7 +16,7 @@ export default {
   file: "06-r7-sign-up-in-a-minute.png",
   W,
   H,
-  phones: [phone("sign-up", "night", PLACE.whole())],
+  phones: async () => [phone(await scrolledDisplay({ id: "sign-up", offset: 0, page: "viewport", cutAt: 1314 }), "night", PLACE.bleed({ w: 660, cx: 630 }))],
   html: ({ phones }) =>
     frame({
       W,
@@ -22,7 +25,7 @@ export default {
       body: `
       ${headline(["Sign up", "in a <k>minute.</k>"], { W, H })}
       ${phoneHtml(phones[0])}
-      ${icon3d("phone-code", { W, H, slot: "B", cy: 440 + 830 / 2 })}
+      ${icon3d("phone-code", { W, H, slot: "B", cy: (490 + H) / 2 })}
       `,
     }),
 };

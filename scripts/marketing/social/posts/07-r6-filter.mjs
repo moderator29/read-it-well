@@ -18,7 +18,7 @@ export default {
   H,
   /* the sheet shown down to the divider under Property type, its own white
    * below (the Shape section is left out), so the foot crosses empty sheet */
-  phones: async () => [phone(await scrolledDisplay({ id: "filters-villas-lt", offset: 0, page: "viewport", footRows: 262, cutAt: 1310 }), "mist", PLACE.bleed({ w: 660, cx: 630 }))],
+  phones: async () => [phone(await scrolledDisplay({ id: "filters-villas-lt", offset: 0, page: "viewport", footRows: 262, cutAt: 1310, fill: "#FFFFFF" }), "mist", PLACE.bleed({ w: 660, cx: 630 }))],
   html: ({ phones }) =>
     frame({
       W,

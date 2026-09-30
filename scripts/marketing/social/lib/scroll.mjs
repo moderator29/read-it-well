@@ -22,6 +22,8 @@
  *     row, the page's own ground below it, so the frame's foot falls on empty
  *     page rather than on the next row of chips (the critic's round-3 fix for
  *     post 15; only the page's continuation is left out, nothing is added).
+ *     `fill`: a flat colour for those rows (a white sheet) instead of the
+ *     last row repeated.
  *
  * The property listing keeps nothing fixed at its top until its section tabs
  * stick, far further down (ListingSectionTabs.tsx), so a short scroll of it
@@ -44,10 +46,10 @@ const VIEW = H - BAR;
  * page; taken from a real capture of the same page scrolled */
 const BACK = { cx: 101, cy: 89.5, r: 66 };
 
-export async function scrolledDisplay({ id, offset, page = "full", fixedBack = null, footRows = 0, cutAt = 0 }) {
+export async function scrolledDisplay({ id, offset, page = "full", fixedBack = null, footRows = 0, cutAt = 0, fill = null }) {
   const dir = join(CACHE, "displays");
   await mkdir(dir, { recursive: true });
-  const out = join(dir, `${id}-${page}-scroll${offset}${fixedBack ? `-back-${fixedBack}` : ""}${footRows ? `-foot${footRows}` : ""}${cutAt ? `-cut${cutAt}` : ""}-ios.png`);
+  const out = join(dir, `${id}-${page}-scroll${offset}${fixedBack ? `-back-${fixedBack}` : ""}${footRows ? `-foot${footRows}` : ""}${cutAt ? `-cut${cutAt}` : ""}${fill ? `-fill${fill.slice(1)}` : ""}-ios.png`);
   if (existsSync(out)) return out;
 
   const bar = await sharp(join(SCREENS, `${id}-ios.png`)).extract({ left: 0, top: 0, width: W, height: BAR }).png().toBuffer();
@@ -73,7 +75,9 @@ export async function scrolledDisplay({ id, offset, page = "full", fixedBack = n
     /* below the cut, the page's own last row repeated (its fill and its card's side edges) */
     const { data: row, info } = await sharp(body).extract({ left: 0, top: bodyMeta.height - 1, width: W, height: 1 }).removeAlpha().raw().toBuffer({ resolveWithObject: true });
     const fillH = H - BAR - bodyMeta.height - footRows;
-    if (fillH > 0) {
+    if (fillH > 0 && fill) {
+      layers.push({ input: { create: { width: W, height: fillH, channels: 3, background: fill } }, left: 0, top: BAR + bodyMeta.height });
+    } else if (fillH > 0) {
       const buf = Buffer.alloc(row.length * fillH);
       for (let k = 0; k < fillH; k++) row.copy(buf, k * row.length);
       layers.push({ input: await sharp(buf, { raw: { width: W, height: fillH, channels: info.channels } }).png().toBuffer(), left: 0, top: BAR + bodyMeta.height });

@@ -216,6 +216,12 @@ export async function component(id, crop, { x, y, w, radius = 32, ground = "nigh
 }
 export const componentHeight = (crop, w) => Math.round((w * crop.h) / crop.w);
 
+/**
+ * The top that centres a component (h px tall), with its icon 48 px under it
+ * when `iconH` is given, in the field under the headline (y 440 to 1310).
+ */
+export const centreTop = (h, iconH = 0) => Math.round(440 + (870 - (h + (iconH ? 48 + iconH : 0))) / 2);
+
 /* ------------------------------------------------------------------ the one pop-up */
 
 /**

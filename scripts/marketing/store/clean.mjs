@@ -204,3 +204,52 @@ export async function cleanDisplay(id, store) {
   await sharp(o, { raw: { width: w, height: T.h, channels: 3 } }).png({ compressionLevel: 6, palette: false }).toFile(out);
   return out;
 }
+
+/*
+ * Small patches for two captures, where something scrolled away still peeks
+ * in (display px, the same on both platforms' 1320 x 2868 displays):
+ *
+ *   - stay-amenities: the outline of the card above, just under the status
+ *     bar (the back button there is kept as captured);
+ *   - saved: the start of a label ("Re") between the dock and the apps
+ *     button.
+ *
+ * Inside the rectangle, every pixel outside the kept discs takes its row's
+ * background: the median of the darkest half of that row's pixels there.
+ */
+export const PATCH = {
+  "stay-amenities": { rect: [0, 186, 1320, 305], keep: [[101, 314, 72]] },
+  saved: { rect: [1086, 2730, 1124, 2810], keep: [[1206, 2779, 84]] },
+};
+
+export async function patchDisplay(id, store, file) {
+  const plat = STORES[store].screen;
+  const P = PATCH[id];
+  mkdirSync(CACHE, { recursive: true });
+  const out = join(CACHE, `${id}-${plat}-patch-${Math.round(statSync(file).mtimeMs)}-v1.png`);
+  if (existsSync(out)) return out;
+  const T = await raw(file);
+  const { w } = T;
+  const [x0, y0, x1, y1] = P.rect;
+  const kept = (x, y) => P.keep.some(([cx, cy, r]) => Math.hypot(x - cx, y - cy) <= r);
+  const o = Buffer.from(T.data);
+  for (let y = y0; y < y1; y += 1) {
+    const vals = [];
+    for (let x = x0; x < x1; x += 1) {
+      if (kept(x, y)) continue;
+      const i = (y * w + x) * 3;
+      vals.push([T.data[i] + T.data[i + 1] + T.data[i + 2], T.data[i], T.data[i + 1], T.data[i + 2]]);
+    }
+    if (!vals.length) continue;
+    vals.sort((a, b) => a[0] - b[0]);
+    const dark = vals.slice(0, Math.max(1, vals.length >> 1));
+    const fill = [1, 2, 3].map((c) => dark[dark.length >> 1][c]);
+    for (let x = x0; x < x1; x += 1) {
+      if (kept(x, y)) continue;
+      const i = (y * w + x) * 3;
+      o[i] = fill[0]; o[i + 1] = fill[1]; o[i + 2] = fill[2];
+    }
+  }
+  await sharp(o, { raw: { width: w, height: T.h, channels: 3 } }).png({ compressionLevel: 6, palette: false }).toFile(out);
+  return out;
+}

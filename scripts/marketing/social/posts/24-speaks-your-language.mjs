@@ -9,7 +9,7 @@ import { existsSync } from "node:fs";
 import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import sharp from "sharp";
-import { componentHeight, frame, headline, icon3d, subline } from "../lib/premium.mjs";
+import { centreTop, componentHeight, frame, headline, icon3d, subline } from "../lib/premium.mjs";
 import { CACHE, SOURCE } from "../lib/paths.mjs";
 import { u } from "../lib/render.mjs";
 
@@ -18,7 +18,6 @@ const H = 1350;
 const PW = 920;
 const PAD = 24;
 const CW = PW - 2 * PAD;
-const TOP = 480;
 /* each headline cut from its own capture, 28 rows of air above and below */
 const CROPS = [
   { id: "welcome-1", crop: { x: 0, y: 1957, w: 1320, h: 233 } },
@@ -46,6 +45,7 @@ export default {
       y += h;
     }
     const PH = y + PAD;
+    const TOP = centreTop(PH);
     return frame({
       W,
       H,

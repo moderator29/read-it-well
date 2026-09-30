@@ -4,13 +4,13 @@
  * total (₦26,100,000, rent plus every fee, each amount in its legend, and the
  * product's own Example chip). A contract, the fees on paper, is the post's
  * 3D icon, 48 px under the card. */
-import { component, componentHeight, frame, headline, icon3d } from "../lib/premium.mjs";
+import { centreTop, component, componentHeight, frame, headline, icon3d, iconBox } from "../lib/premium.mjs";
 
 const W = 1080;
 const H = 1350;
 const card = { id: "listing-lt", x: 110, y: 1446, w: 1100, h: 672 };
-const TOP = 500;
 const CH = componentHeight(card, 920);
+const TOP = centreTop(CH, iconBox("contract").h);
 
 export default {
   id: "18",

@@ -13,7 +13,7 @@ const H = 900;
 const g = grid(W, H);
 const BW = 900;
 /* the page's main column and its right card, without the sidebar */
-const CROP = { x: 520, y: 0, w: 2360, h: 1576 };
+const CROP = { x: 520, y: 0, w: 2360, h: 1625 };
 
 export default {
   id: "27",

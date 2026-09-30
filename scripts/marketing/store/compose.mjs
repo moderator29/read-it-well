@@ -48,7 +48,7 @@ import { OUT, STORES, screenFile } from "./lib.mjs";
 import { page } from "./page.mjs";
 import { Phones } from "./phones.mjs";
 import { placePhone } from "./components.mjs";
-import { CLEAN, cleanDisplay } from "./clean.mjs";
+import { CLEAN, cleanDisplay, PATCH, patchDisplay } from "./clean.mjs";
 import { SHOTS, FEATURE, shotName, GROUND } from "./shots.mjs";
 
 const args = process.argv.slice(2);
@@ -118,7 +118,8 @@ async function down(raw2, w2, h2, w, h) {
 
 /** The display for capture `id`: the cleaned one for the few that need it (clean.mjs). */
 async function displayFile(id, store) {
-  const file = CLEAN[id] ? await cleanDisplay(id, store) : screenFile(id, store);
+  let file = CLEAN[id] ? await cleanDisplay(id, store) : screenFile(id, store);
+  if (PATCH[id]) file = await patchDisplay(id, store, file);
   if (!existsSync(file)) throw new Error(`missing display ${file}`);
   return file;
 }
