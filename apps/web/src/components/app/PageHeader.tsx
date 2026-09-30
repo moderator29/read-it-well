@@ -100,8 +100,8 @@ export function PageHeader({
         <div className="nf-ph-large__row">
           {backButton}
           {leading}
-          <div className="min-w-0 flex-1">
-            <h1 className="nf-ph-large__title [overflow-wrap:anywhere]" data-fold-anchor>
+          <div className="nf-ph-large__text">
+            <h1 className="nf-ph-large__title" data-fold-anchor>
               {title}
             </h1>
             {subtitle &&

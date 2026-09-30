@@ -72,17 +72,15 @@
   .nf-panel.nf-notif__row:active {
     transform: scale(var(--nf-press-scale-lg));
   }
+  /* Hover and unread follow the clean unified spec (sections 1.1 and 1.2): a
+     card never takes a coloured rim or a glow, in either theme. Hover is the
+     shared card hover shadow; unread is the dot, the title at full weight and
+     primary ink. Never colour alone. (It WAS the selected edge and its glow,
+     a bright blue outline on every unread card; integration QA, 30 September.) */
   @media (hover: hover) {
     .nf-panel.nf-notif__row:hover {
-      border-color: var(--nf-selected-edges);
+      box-shadow: var(--nf-card-shadow-hover, none);
     }
-  }
-  /* Unread is the lit state the render gives its newest card: the selected
-     edge and its glow from the token layer, the title at full weight, and the
-     dot. Never colour alone. */
-  .nf-panel.nf-notif__row[data-unread="true"] {
-    border-color: var(--nf-selected-edges);
-    box-shadow: var(--nf-selected-shadow);
   }
   .nf-notif__row .nf-plate {
     color: var(--nf-content-secondary);

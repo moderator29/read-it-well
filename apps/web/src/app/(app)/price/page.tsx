@@ -172,7 +172,7 @@ export default async function PriceCheckPage({
 
   return (
     <>
-      <PageHeader title={t.priceCheck.title} subtitle={t.priceCheck.lead} fallback="/home" />
+      <PageHeader variant="large" title={t.priceCheck.title} subtitle={t.priceCheck.lead} fallback="/home" />
       <p className="nf-body text-[var(--nf-content-secondary)]">{t.priceCheck.intro}</p>
       <div className="mt-section-tight">
         <PriceCheckScreen

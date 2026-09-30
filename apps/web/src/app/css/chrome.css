@@ -1041,12 +1041,23 @@
   .nf-ph-large {
     margin-block: 0.5rem 1.25rem;
   }
+  /* The row wraps rather than breaking the title inside a word. The text
+     block is never narrower than its longest word (or the row, whichever is
+     less), so when a back button, a one-word title and a text action cannot
+     share a 360 to 430px line, the action drops to its own line, right
+     aligned, instead of "Notification / s" (integration QA, 30 September). */
   .nf-ph-large__row {
     display: flex;
+    flex-wrap: wrap;
     align-items: flex-start;
     gap: 0.75rem;
   }
+  .nf-ph-large__text {
+    flex: 1 1 0;
+    min-width: min(100%, min-content);
+  }
   .nf-ph-large__title {
+    overflow-wrap: break-word;
     font-family: var(--nf-font-display);
     font-size: var(--nf-text-title-lg, 1.875rem);
     line-height: var(--nf-leading-title-lg, 2.25rem);
@@ -1073,6 +1084,7 @@
   .nf-ph-large__actions {
     display: flex;
     flex: none;
+    margin-inline-start: auto;
     align-items: center;
     gap: 0.5rem;
     margin-top: -0.25rem;
