@@ -410,11 +410,15 @@
     }
   }
   /* Two tiles to a row on a phone leave a label about 90px: it wraps to a
-     second line rather than being cut to "ARRIVI...". */
+     second line rather than being cut to "ARRIVI...". A single word longer
+     than the room ("Inspections" at 360 and 390) hyphenates, and breaks if
+     it still cannot fit, instead of running under the door's chevron. */
   .nf-desk-kpis .nf-kpi__label {
     white-space: normal;
     overflow: visible;
     text-overflow: clip;
+    overflow-wrap: break-word;
+    hyphens: auto;
   }
   .nf-desk-grid {
     display: grid;
