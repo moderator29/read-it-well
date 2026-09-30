@@ -58,7 +58,7 @@ export function RoomRequestForm({
         <label className="grid gap-2xs">
           <span className="nf-caption">{copy.roomsLabel}</span>
           <select
-            className="nf-input"
+            className="nf-field"
             value={rooms}
             onChange={(event) => setRooms(Number(event.target.value))}
             disabled={pending}

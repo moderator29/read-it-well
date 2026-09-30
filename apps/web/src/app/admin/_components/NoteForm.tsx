@@ -42,14 +42,14 @@ export function NoteForm({
       </label>
       <textarea
         id={`note-${subjectId}`}
-        className="nf-input"
+        className="nf-field"
         rows={2}
         maxLength={2000}
         value={body}
         onChange={(e) => setBody(e.target.value)}
       />
       <div className="flex flex-wrap items-center gap-xs">
-        <select className="nf-input w-auto" value={scope} onChange={(e) => setScope(e.target.value)} aria-label="Who can read it">
+        <select className="nf-field w-auto" value={scope} onChange={(e) => setScope(e.target.value)} aria-label="Who can read it">
           <option value="">Every member of staff can read it</option>
           {scopes.map((s) => (
             <option key={s.value} value={s.value}>

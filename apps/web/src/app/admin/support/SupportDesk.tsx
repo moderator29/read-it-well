@@ -561,7 +561,7 @@ export function SupportDesk({ now, tab, q, queue, selected, missing, copy }: Sup
               <label className="grid min-w-0 flex-1 gap-2xs">
                 <span className="nf-label">Find a ticket</span>
                 <input
-                  className="nf-input w-full"
+                  className="nf-field w-full"
                   type="search"
                   name="q"
                   defaultValue={q}

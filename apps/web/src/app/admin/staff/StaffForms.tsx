@@ -42,12 +42,12 @@ export function GrantStaffForm({
     >
       <label className="grid gap-2xs nf-body">
         <span>Email on their Vallo account</span>
-        <input className="nf-input" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+        <input className="nf-field" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
       </label>
       <label className="grid gap-2xs nf-body">
         <span>Position</span>
         <select
-          className="nf-input"
+          className="nf-field"
           value={position}
           onChange={(e) => {
             const next = e.target.value;
@@ -87,7 +87,7 @@ export function GrantStaffForm({
       </fieldset>
       <label className="grid gap-2xs nf-body">
         <span>Note (only you see it)</span>
-        <input className="nf-input" value={note} maxLength={500} onChange={(e) => setNote(e.target.value)} />
+        <input className="nf-field" value={note} maxLength={500} onChange={(e) => setNote(e.target.value)} />
       </label>
       <div>
         <Button type="submit" variant="primary" size="md" disabled={pending || (picked.length === 0 && !position)}>
@@ -122,7 +122,7 @@ export function RevokeStaffForm({ userId }: { userId: string }) {
     >
       <label className="grid gap-2xs nf-caption">
         <span>Reason (they read it)</span>
-        <input className="nf-input" value={reason} maxLength={500} onChange={(e) => setReason(e.target.value)} />
+        <input className="nf-field" value={reason} maxLength={500} onChange={(e) => setReason(e.target.value)} />
       </label>
       <Button type="submit" variant="secondary" size="sm" disabled={pending || reason.trim().length < 5}>
         End access

@@ -116,7 +116,7 @@ function Row({ row, locale, now }: { row: QueueRow; locale: Locale; now: number 
             </label>
             <textarea
               id={`reason-${row.id}`}
-              className="nf-input min-h-[4.5rem]"
+              className="nf-field min-h-[4.5rem]"
               value={reason}
               maxLength={1000}
               onChange={(e) => setReason(e.target.value)}

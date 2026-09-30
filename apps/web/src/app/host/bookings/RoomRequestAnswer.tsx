@@ -165,7 +165,7 @@ export function RoomRequestAnswer({ bookingId, summary }: { bookingId: string; s
             <label className="grid gap-2xs">
               <span className="nf-caption">Tell the guest why (optional)</span>
               <textarea
-                className="nf-input"
+                className="nf-field"
                 rows={2}
                 maxLength={500}
                 value={reason}

@@ -49,7 +49,7 @@ export function ClearKeysForm({ userId, name }: { userId: string; name: string }
       </p>
       <label className="grid gap-2xs nf-caption">
         <span>Reason (goes in the audit log)</span>
-        <input className="nf-input" value={reason} maxLength={500} onChange={(e) => setReason(e.target.value)} />
+        <input className="nf-field" value={reason} maxLength={500} onChange={(e) => setReason(e.target.value)} />
       </label>
       <div className="flex flex-wrap gap-xs">
         <Button type="submit" variant="danger" size="sm" disabled={pending || reason.trim().length < 10}>
@@ -125,7 +125,7 @@ export function MarkInternalForm() {
     >
       <label className="grid gap-2xs nf-caption">
         <span>Email address</span>
-        <input className="nf-input" type="email" value={email} maxLength={320} onChange={(e) => setEmail(e.target.value)} />
+        <input className="nf-field" type="email" value={email} maxLength={320} onChange={(e) => setEmail(e.target.value)} />
       </label>
       <Button type="submit" variant="secondary" size="sm" disabled={pending || email.trim().length < 5}>
         Leave out of figures

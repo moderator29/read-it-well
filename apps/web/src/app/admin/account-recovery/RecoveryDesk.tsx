@@ -55,19 +55,19 @@ function OpenForm() {
       <h2 className="nf-overline">Open a request</h2>
       <label className="grid gap-3xs text-[length:var(--nf-text-caption)]">
         Account id
-        <input name="userId" required className="nf-input" />
+        <input name="userId" required className="nf-field" />
       </label>
       <label className="grid gap-3xs text-[length:var(--nf-text-caption)]">
         New email address
-        <input name="newEmail" type="email" required className="nf-input" />
+        <input name="newEmail" type="email" required className="nf-field" />
       </label>
       <label className="grid gap-3xs text-[length:var(--nf-text-caption)]">
         NIN the person gave
-        <input name="nin" inputMode="numeric" required className="nf-input" autoComplete="off" />
+        <input name="nin" inputMode="numeric" required className="nf-field" autoComplete="off" />
       </label>
       <label className="grid gap-3xs text-[length:var(--nf-text-caption)]">
         Support ticket or evidence reference
-        <input name="evidenceRef" required className="nf-input" />
+        <input name="evidenceRef" required className="nf-field" />
       </label>
       <button type="submit" className="nf-btn nf-btn--primary" disabled={pending}>
         Open request
@@ -102,7 +102,7 @@ function RowActions({ row, isSuperAdmin }: { row: RecoveryRow; isSuperAdmin: boo
       )}
       <form action={cancel} className="flex items-end gap-xs">
         <input type="hidden" name="requestId" value={row.id} />
-        <input name="reason" placeholder="Why cancel" required className="nf-input" />
+        <input name="reason" placeholder="Why cancel" required className="nf-field" />
         <button type="submit" className="nf-btn nf-btn--glass nf-btn--sm" disabled={cancelling}>
           Cancel
         </button>
