@@ -43,8 +43,8 @@ import { CalendarSync } from "./CalendarSync";
  *                    moment first (the grid would otherwise steal the page's
  *                    scroll), feels a tick, then drags
  *   shift and click  extends from the last night chosen; ctrl or cmd toggles
- *   keyboard         arrows move, shift and an arrow extends, space or enter
- *                    selects
+ *   keyboard         arrows move, Home and End go to the week's ends, shift
+ *                    and a move extends, space or enter selects
  *   presets          Friday and Saturday nights, Sunday to Thursday, the
  *                    whole month
  * A night that has gone cannot be selected.
@@ -259,7 +259,10 @@ export function RateCalendar(props: RateCalendarProps) {
   };
 
   const moveFocus = (event: KeyboardEvent<HTMLButtonElement>, date: string) => {
-    const step: Record<string, number> = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 };
+    /* Home and End go to the start and end of the week row (the grid
+       pattern), held inside this month. */
+    const weekday = (new Date(`${date}T12:00:00Z`).getUTCDay() + 6) % 7;
+    const step: Record<string, number> = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7, Home: -weekday, End: 6 - weekday };
     if (event.key === " " || event.key === "Enter") {
       event.preventDefault();
       tapNight(date, new Set(selected), { shift: event.shiftKey, toggle: event.metaKey || event.ctrlKey });
@@ -268,8 +271,11 @@ export function RateCalendar(props: RateCalendarProps) {
     const by = step[event.key];
     if (by === undefined) return;
     event.preventDefault();
-    const next = addDays(date, by);
-    if (next.slice(0, 7) !== month) return;
+    let next = addDays(date, by);
+    if (next.slice(0, 7) !== month) {
+      if (event.key !== "Home" && event.key !== "End") return;
+      next = event.key === "Home" ? `${month}-01` : addDays(`${addMonths(month, 1)}-01`, -1);
+    }
     setFocusDate(next);
     if (event.shiftKey && selectable(next)) setSelected(new Set(range(anchor ?? date, next)));
     gridRef.current?.querySelector<HTMLButtonElement>(`[data-date="${next}"]`)?.focus();
@@ -386,7 +392,7 @@ export function RateCalendar(props: RateCalendarProps) {
 
         <div className="nf-rcal__monthbar">
           {canPrev ? (
-            <Link href={href(prevMonth)} className="nf-btn nf-btn--surface nf-btn--icon nf-btn--sm" aria-label="Previous month" scroll={false}>
+            <Link href={href(prevMonth)} className="nf-btn nf-btn--surface nf-btn--icon nf-btn--round" aria-label="Previous month" scroll={false}>
               <UiIcon name="arrow-left" size={20} />
             </Link>
           ) : (
@@ -396,7 +402,7 @@ export function RateCalendar(props: RateCalendarProps) {
             {monthTitle(month, locale)}
           </h2>
           {canNext ? (
-            <Link href={href(nextMonth)} className="nf-btn nf-btn--surface nf-btn--icon nf-btn--sm" aria-label="Next month" scroll={false}>
+            <Link href={href(nextMonth)} className="nf-btn nf-btn--surface nf-btn--icon nf-btn--round" aria-label="Next month" scroll={false}>
               <UiIcon name="arrow-right" size={20} />
             </Link>
           ) : (
@@ -460,6 +466,7 @@ export function RateCalendar(props: RateCalendarProps) {
                     aria-selected={isSelected}
                     aria-disabled={cell.past || undefined}
                     aria-label={cellWords(cell, locale)}
+                    title={cell.imported && tone !== "past" ? heldWords(cell) ?? undefined : undefined}
                     tabIndex={date === focusDate ? 0 : -1}
                     className={`nf-rcal__cell${isSelected ? " is-selected" : ""}`}
                     onPointerDown={(event) => onPointerDown(event, date)}
@@ -475,12 +482,7 @@ export function RateCalendar(props: RateCalendarProps) {
                       {tone === "imported"
                         ? cell.imported
                         : cell.imported && tone !== "past"
-                          ? (
-                              <>
-                                <span className="nf-rcal__meta-long">{heldWords(cell)}</span>
-                                <span className="nf-rcal__meta-short">{`${cell.held} held`}</span>
-                              </>
-                            )
+                          ? `${cell.held} held`
                         : tone === "closed"
                           ? "Closed"
                           : tone === "none"
