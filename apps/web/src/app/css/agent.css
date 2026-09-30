@@ -62,12 +62,14 @@
     align-items: center;
     gap: var(--nf-space-2xs);
     height: var(--nf-header-height-sm);
-    padding-inline: var(--nf-space-xs) var(--nf-space-sm);
+    /* The page gutter (16 / 24 / 32), so the round back and bell buttons
+       line up with the page's cards. At 8 and 12 they were drawn circles
+       sitting 9px from the screen edge (pixel polish). */
+    padding-inline: var(--nf-pad-shell);
   }
   @media (min-width: 640px) {
     .nf-ws-bar__row {
       gap: var(--nf-space-xs);
-      padding-inline: var(--nf-space-md) var(--nf-space-lg);
     }
   }
   /* Back and the toggle: bare glyphs on a 44px target, like the back arrow
