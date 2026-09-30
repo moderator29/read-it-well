@@ -5,7 +5,7 @@ import { getLocale } from "@/lib/locale";
 import { resolveSession } from "@/lib/actions/session";
 import { getMyBusinesses, getPrimaryAccommodation } from "@/lib/host/queries";
 import { readRateCalendar } from "@/lib/host/rate-calendar-queries";
-import { CALENDAR_HORIZON_MONTHS, addMonths, lagosToday, parseMonth } from "@/lib/host/rate-calendar";
+import { CALENDAR_HORIZON_MONTHS, addMonths, lagosToday, openingMonth, parseMonth } from "@/lib/host/rate-calendar";
 import { siteUrl } from "@/lib/site";
 import { authHref, returnHref } from "@/components/auth/auth-intent";
 import { EmptyState } from "@/components/app/Screen";
@@ -62,7 +62,7 @@ export default async function HostCalendarPage({
   const thisMonth = today.slice(0, 7);
   const maxMonth = addMonths(thisMonth, CALENDAR_HORIZON_MONTHS);
   const asked = parseMonth(one("month"));
-  const month = asked && asked >= thisMonth && asked <= maxMonth ? asked : thisMonth;
+  const month = asked && asked >= thisMonth && asked <= maxMonth ? asked : openingMonth(today);
 
   const businesses = (await getMyBusinesses()).filter((row) => row.kind !== "restaurant");
   const chosen = businesses.find((row) => row.id === one("business")) ?? businesses[0] ?? null;

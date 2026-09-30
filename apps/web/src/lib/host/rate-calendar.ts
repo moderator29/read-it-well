@@ -89,6 +89,19 @@ export function lastOfMonth(month: string): IsoDate {
   return addDays(firstOfMonth(addMonths(month, 1)), -1);
 }
 
+/**
+ * The month the calendar opens on when none is asked for. On the last two
+ * days of a month there is almost nothing left to price or close in it, so the
+ * grid opens on the next month; the back arrow still reaches this one (today
+ * stays sellable there).
+ */
+export const NEARLY_PAST_NIGHTS = 2;
+export function openingMonth(today: IsoDate): string {
+  const month = monthOf(today);
+  const left = rangeInclusive(today, lastOfMonth(month)).length;
+  return left <= NEARLY_PAST_NIGHTS ? addMonths(month, 1) : month;
+}
+
 /** Every night of a month, in order. */
 export function nightsOfMonth(month: string): IsoDate[] {
   return rangeInclusive(firstOfMonth(month), lastOfMonth(month));

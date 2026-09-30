@@ -11,6 +11,7 @@ import {
   lastOfMonth,
   monthGrid,
   nairaToMinor,
+  openingMonth,
   parseMonth,
   presetNights,
   primaryPlan,
@@ -176,5 +177,18 @@ describe("rooms another site holds (C2b)", () => {
     expect(cellFor(room, plan, "2026-10-09", r, "2026-10-01").held).toBe(1);
     const counted = rows({ imported: new Map([[rowKey("rt1", "2026-10-09"), "Airbnb, Booking.com"]]), held: new Map([[rowKey("rt1", "2026-10-09"), 2]]) });
     expect(cellFor(room, plan, "2026-10-09", counted, "2026-10-01").held).toBe(2);
+  });
+});
+
+describe("the month the calendar opens on", () => {
+  it("opens on this month while it has nights left to sell", () => {
+    expect(openingMonth("2026-09-01")).toBe("2026-09");
+    expect(openingMonth("2026-09-28")).toBe("2026-09");
+  });
+  it("opens on the next month on a month's last two days, across a year too", () => {
+    expect(openingMonth("2026-09-29")).toBe("2026-10");
+    expect(openingMonth("2026-09-30")).toBe("2026-10");
+    expect(openingMonth("2026-12-31")).toBe("2027-01");
+    expect(openingMonth("2028-02-29")).toBe("2028-03");
   });
 });
