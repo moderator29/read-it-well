@@ -658,7 +658,7 @@ approve a payout, request a refund, publish a listing, assign a viewing.
 
 The founder asked for every screen to fit the style of refs 44 and 45 in both themes. Where this section conflicts with sections 0 to 16, this section wins:
 
-- **Pill buttons.** Primary and secondary buttons are full pills: the primary filled in brand blue, the secondary white (in light) or a raised night surface (in dark), with a soft shadow. The capsule ban on controls is lifted for buttons.
+- **Buttons are rectangles with soft corners, not pills** (founder ruling, 30 September, which replaces the pill of refs 44, 45 and 55). Primary filled in brand blue, secondary outlined in blue (white in light, a navy surface in dark), with a soft shadow. The corner steps with the height: 10 / 12 / 14px on the 44 / 48 / 56px buttons (`--nf-act-radius-sm/-md/-lg`). Icon buttons, the FAB, round header buttons, toggles, radios, chips, tags and avatar rings stay round. Section 19 has the whole system.
 - **Round header buttons.** Back, search, bell, more and similar buttons are 44px white circles with a soft shadow (Q1, extended to back and more).
 - **The soft top.** Light screens open on a soft lavender-white gradient behind the header, fading into the warm canvas. Dark screens get the same shape as a faint night glow.
 - **Centred hero figures.** A screen's one headline figure (a total, a score or a balance) sits centred, large, with a muted caption above and a quiet sub-line under.
@@ -700,7 +700,7 @@ Tokens (`packages/design-tokens/src/tokens.css`, both themes):
 
 ## 19. Buttons and controls (founder reference 55, 30 September)
 
-The founder's "Button Styles & Usage Guide" (`docs/design/references/2026-09-29/55-button-system-guide.jpg`) is the system for every button, control and chip, in both themes. It overrides sections 3 and 7 where they differ. The founder asked for it finished **cleaner than the image**: restrained gradients (a few percent of lift, no sheen band), crisp 1px and 1.5px edges, heights 44 / 48 / 56 only, one pill radius for every word-carrying button, one glyph size per button size (16 / 20 / 24), calm grey disabled states, and the glow ring **only on the night primary, on hover and focus**. Live proof: `/preview/buttons` (every kind and state, paper and night side by side).
+The founder's "Button Styles & Usage Guide" (`docs/design/references/2026-09-29/55-button-system-guide.jpg`) is the system for every button, control and chip, in both themes. It overrides sections 3 and 7 where they differ. The founder asked for it finished **cleaner than the image**: restrained gradients (a few percent of lift, no sheen band), crisp 1px and 1.5px edges, heights 44 / 48 / 56 only, soft-cornered rectangles for every word-carrying button (**not pills**: the founder's ruling of 30 September over the image's capsules; 10 / 12 / 14px corners on 44 / 48 / 56px, `--nf-act-radius-sm/-md/-lg`), one glyph size per button size (16 / 20 / 24), calm grey disabled states, and the glow ring **only on the night primary, on hover and focus**. Live proof: `/preview/buttons` (every kind and state, paper and night side by side).
 
 ### 19.1 Tokens (`packages/design-tokens/src/tokens.css`, "THE BUTTON SYSTEM")
 
@@ -721,6 +721,7 @@ The founder's "Button Styles & Usage Guide" (`docs/design/references/2026-09-29/
 | `--nf-act-mark-edge` | grey 72% | #7D8CA3 (3.4:1) | an unchecked checkbox or radio |
 | `--nf-act-track-off`, `-track-off-edge`, `--nf-act-knob`, `-knob-shadow` | navy track | #D5DDE8 track | the toggle |
 | `--nf-act-well`, `-well-edge` | navy | white | the segmented track |
+| `--nf-act-radius-sm` / `-md` / `-lg` | 10 / 12 / 14px | same | the corner of every text button, the dropdown, the stepper and the segmented track (md) and thumb (sm); `--nf-radius-button` resolves to md |
 
 Orange is the spark (section 18): `--nf-spark`, `--nf-spark-ink`. Green is `--nf-state-success`; red is `--nf-state-error`.
 
@@ -735,8 +736,8 @@ Orange is the spark (section 18): `--nf-spark`, `--nf-spark-ink`. Green is `--nf
 | 5 | FAB | `Fab aria-label` | `.nf-btn--fab` | The one key action of a focused context (add a listing on a desk). At most one per screen, clear of the dock |
 | 6 | Toggle | `Toggle` (= `Switch`) | `.nf-switch` | On and off that applies at once: a filter, a notification |
 | 7 | Chip / tag | `Tag tone icon` | `.nf-tag` | A label on a card: Verified (brand), Featured (spark), Available (success), Example (neutral). Not a control; a filter that toggles is a `Chip`, a state in a row is a `StatusBadge`. The word must be true (claims rules) |
-| 8 | Dropdown | `DropdownButton expanded popup` | `.nf-btn--dropdown` | Opens a list the page owns: Sort by. The field's 12px corner, not the pill |
-| 9 | Quantity | `Quantity value onChange label decreaseLabel increaseLabel min max` | `.nf-qty` | A small count: guests, rooms, nights. Each end disables itself |
+| 8 | Dropdown | `DropdownButton expanded popup` | `.nf-btn--dropdown` | Opens a list the page owns: Sort by. The same soft corner as the buttons |
+| 9 | Quantity | `Quantity value onChange label decreaseLabel increaseLabel min max` | `.nf-qty` | A small count: guests, rooms, nights. A soft-cornered rectangle holding two soft-cornered 44px buttons; each end disables itself |
 | 10 | Checkbox | `Checkbox`, or any native checkbox | `input[type=checkbox]`, `.nf-check` | Several choices: terms, preferences. The label row is the 44px target |
 | 11 | Radio | `Radio`, or any native radio | `input[type=radio]`, `.nf-check` | One choice from a few: payment method |
 | 12 | Segmented | `Segmented` (`iconOnly` for glyphs) | `.nf-segmented` | Switching views or modes: Buy / Rent / Pay. The selected segment is brand blue in both variants |
@@ -753,6 +754,6 @@ Destructive: `danger` (solid red pill) for the confirmed step, `dangerQuiet` (re
 - **Motion:** only `transform` animates, on the shared press scale (`--nf-press-scale`, 0.97; `-sm` for circles, `-lg` for wide bars). Colour steps between states. Reduced motion and the Calm and Off settings stop the arrow nudge and the chevron turn; the press scale follows the shared press grammar (`press-motion.css`).
 - **Targets:** 44px or more for everything a finger presses (buttons 44 / 48 / 56, icon buttons 44, the FAB 56, stepper buttons 44, checkbox rows 44, link buttons 44 tall, action tiles at least 64 by 76). Tags are labels and carry no target.
 - **Focus:** a visible 2px ring (`--nf-focus-ring`) on every kind; the night primary adds its glow ring.
-- **One primary everywhere:** the doors (sign in, welcome, passcode) draw the same `.nf-btn--primary`; `.nf-slate-pill` keeps only the full-width 56px geometry.
+- **One primary everywhere:** the doors (sign in, welcome, passcode) draw the same `.nf-btn--primary`; `.nf-slate-pill` keeps only the full-width 56px geometry on the 14px corner. Get started's CTA (`welcome/onboarding-motion.css`) reads the same token.
 
 Files: `apps/web/src/app/css/buttons.css`, `controls.css`, `chips.css` (each ends with its button-system section), `apps/web/src/components/ui/` (`Button`, `Fab`, `DropdownButton`, `LinkButton`, `ActionTile`, `Quantity`, `Check`, `Tag`, `Switch`, `Segmented`), tests `button-system.dom.test.tsx` and `button-system-css.test.ts`.
