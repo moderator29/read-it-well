@@ -173,7 +173,7 @@ export const SUPPLY_DOORS: Record<SupplyRole, SupplyDoor> = {
       {
         icon: "certificate",
         title: "Add a document if you have one",
-        body: "A Certificate of Occupancy, a Deed of Assignment, a Governor's Consent, a survey plan or a utility bill. Most owners hold no title document, and \"I have none of these\" is an answer that still lets you list.",
+        body: "A Certificate of Occupancy, a Deed of Assignment, a Governor's Consent, a survey plan or a utility bill. If you hold none of these, \"I have none of these\" is an answer that still lets you list.",
       },
       { icon: "house", title: "List the property", body: `Add the rent, every fee and the move-in total. ${LISTING_REVIEW}` },
       {
