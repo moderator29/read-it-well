@@ -4,8 +4,8 @@
  * the mark and its ring, and the ring opening into daylight.
  */
 import { LAYOUT, QUESTIONS } from "./layout.js";
-import { questionCard, ringBurst } from "../engine/components.js";
-import { SKY, QUIET, SHADOW_NIGHT, fitSize, freshLayers } from "./a-common.js";
+import { questionCard } from "../engine/components.js";
+import { SKY, QUIET, SHADOW_NIGHT, fitSize, freshLayers, burst } from "./a-common.js";
 
 const W = 1080;
 const H = 1920;
@@ -167,14 +167,14 @@ export function buildOpenMobile(ctx, T) {
   const edge = T.rush + 0.27;
   tl.set(mid.layer, { zIndex: 9 }, T.rush);
   tl.to(mid.root, { y: 960 - (mid.box.y + mid.box.h / 2), x: 540 - (mid.box.x + mid.box.w / 2), scale: 2.6, duration: edge - T.rush, ease: "power2.in" }, T.rush);
-  tl.fromTo(mid.inner, { rotationY: 0 }, { rotationY: 90, duration: edge - T.rush, ease: "power2.in" }, T.rush);
+  /* (a flat turn to the edge: CSS 3D is raster-cached by Chromium differently depending on seek order) */
+  tl.fromTo(mid.inner, { scaleX: 1 }, { scaleX: 0.02, duration: edge - T.rush, ease: "power2.in" }, T.rush);
   [cards[0], cards[2]].forEach((c, k) => {
     tl.to(c.root, { scale: 0.7, opacity: 0, x: `+=${k ? 160 : -160}`, y: "+=90", duration: 0.34, ease: "power2.in" }, T.rush + 0.02);
   });
 
   /* ================= the Vallo card: rows 03-04 ================= */
   const vallo = ctx.scene("a-vallo", edge - 0.02, T.widen + 0.8, { z: 2 });
-  const persp = ctx.el("div", { class: "fill", style: { perspective: "1700px", perspectiveOrigin: "540px 960px" } }, vallo);
   const back = ctx.el("div", {
     class: "abs",
     style: {
@@ -184,34 +184,50 @@ export function buildOpenMobile(ctx, T) {
         linear-gradient(170deg, #03104f 0%, #020a36 48%, #010623 100%)`,
       boxShadow: "inset 0 0 0 4px rgb(92 159 255 / 0.55), inset 0 0 90px rgb(0 105 254 / 0.35)",
     },
-  }, persp);
-  tl.fromTo(back, { rotationY: -90, scale: 0.3 }, { rotationY: 0, scale: 1.1, duration: T.drop - edge, ease: "power3.out" }, edge);
-  freshLayers(ctx, [back], { from: edge - 0.02, to: T.widen + 0.8 });
+  }, vallo);
+  /* The card opens from its edge (flat, like the rush that turned the question card to its edge). */
+  tl.fromTo(back, { scaleX: 0.02, scaleY: 0.3 }, { scaleX: 1.1, scaleY: 1.1, duration: T.drop - edge, ease: "power3.out" }, edge);
 
-  /* Row 04: the mark lands at the centre on the drop, the ring draws, the wordmark rises on "Vallo". */
+  /* Row 04: the mark is printed on the card's back as it opens, so the drop lands a mark that is
+     already there; the ring draws, the wordmark rises on "Vallo"; a slow drift through the hold. */
   const MARK = { cx: 540, cy: 880, w: 380 };
   const markH = (MARK.w * 587) / 614;
-  const mark = ctx.img(ctx.src.brand("vallo-mark.png"), { class: "abs", style: { left: `${MARK.cx - MARK.w / 2}px`, top: `${MARK.cy - markH / 2}px`, width: `${MARK.w}px`, height: `${markH}px` } }, vallo);
-  tl.fromTo(mark, { scale: 1.45, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.6, ease: "land" }, T.drop);
-  const ring = ringBurst(ctx, vallo, { cx: MARK.cx, cy: MARK.cy, r: 285, t: T.drop + 0.06, color: SKY, stroke: 4, dots: 16, seed: 12, dur: 0.75 });
+  const onBack = { w: MARK.w / 1.1, cy: 960 + (MARK.cy - 960) / 1.1 };
+  const backMark = ctx.img(ctx.src.brand("vallo-mark.png"), { class: "abs", style: { left: `${540 - onBack.w / 2}px`, top: `${onBack.cy - (onBack.w * 587) / 614 / 2}px`, width: `${onBack.w}px`, height: `${(onBack.w * 587) / 614}px` } }, back);
+  const logo = ctx.el("div", { class: "fill", style: { transformOrigin: `${MARK.cx}px ${MARK.cy}px` } }, vallo);
+  const mark = ctx.img(ctx.src.brand("vallo-mark.png"), { class: "abs", style: { left: `${MARK.cx - MARK.w / 2}px`, top: `${MARK.cy - markH / 2}px`, width: `${MARK.w}px`, height: `${markH}px`, visibility: "hidden" } }, logo);
+  ctx.onFrame((t) => {
+    const landed = t >= T.drop;
+    backMark.style.visibility = landed ? "hidden" : "inherit";
+    mark.style.visibility = landed ? "inherit" : "hidden";
+  });
+  /* the drop: the mark takes the landing as a small pulse */
+  tl.fromTo(mark, { scale: 1 }, { scale: 1.06, duration: 0.12, ease: "power2.out", immediateRender: false }, T.drop);
+  tl.fromTo(mark, { scale: 1.06 }, { scale: 1, duration: 0.42, ease: "power2.inOut", immediateRender: false }, T.drop + 0.12);
+  const { ring, dots } = burst(ctx, vallo, { cx: MARK.cx, cy: MARK.cy, r: 285, t: T.drop + 0.06, clearBy: 7.9, color: SKY, stroke: 4, count: 16, seed: 12, dur: 0.75 });
+  logo.appendChild(dots);
   const WM = { w: 470 };
   const wmH = (WM.w * 167) / 758;
-  const wordmark = ctx.img(ctx.src.brand("vallo-wordmark.png"), { class: "abs", style: { left: `${540 - WM.w / 2}px`, top: "1236px", width: `${WM.w}px`, height: `${wmH}px` } }, vallo);
+  const wordmark = ctx.img(ctx.src.brand("vallo-wordmark.png"), { class: "abs", style: { left: `${540 - WM.w / 2}px`, top: "1236px", width: `${WM.w}px`, height: `${wmH}px` } }, logo);
   tl.fromTo(wordmark, { y: 46, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "land" }, T.vallo - 0.04);
-  /* At the widen, the mark and the wordmark rush past the camera as the ring opens. */
-  tl.to([mark, wordmark], { scale: 1.3, opacity: 0, duration: 0.26, ease: "power2.in" }, T.widen);
-  tl.to(ring, { opacity: 0, duration: 0.01 }, T.widen);
+  tl.fromTo(logo, { scale: 1 }, { scale: 1.03, duration: T.widen - T.drop, ease: "drift" }, T.drop);
+  /* Just before the iris opens, the mark and the wordmark rush past the camera through it. */
+  tl.fromTo(mark, { opacity: 1 }, { opacity: 0, duration: 0.3, ease: "power2.in", immediateRender: false }, T.widen - 0.1);
+  tl.fromTo(mark, { scale: 1 }, { scale: 1.35, duration: 0.3, ease: "power2.in", immediateRender: false }, T.widen - 0.1);
+  tl.fromTo(wordmark, { scale: 1, opacity: 1 }, { scale: 1.35, opacity: 0, duration: 0.3, ease: "power2.in", immediateRender: false }, T.widen - 0.1);
 
-  /* ================= the ring opens onto daylight ================= */
+  /* ================= the iris opens onto daylight ================= */
+  /* It opens from a point at the mark's centre onto the device, already rising in place behind it.
+     The ring holds at r 285 until the iris reaches it, then rides its edge out. */
   const R0 = 285;
   const R1 = 1240;
   const openEnd = T.widen + 0.62;
-  const radius = (t) => R0 + (R1 - R0) * ctx.ease("power3.in")(ctx.progress(t, T.widen, openEnd));
+  const radius = (t) => R1 * ctx.ease("power2.in")(ctx.progress(t, T.widen, openEnd));
   const win = ctx.scene("a-ring", T.widen, openEnd + 0.02, { z: 20 });
-  const edgeRing = ctx.el("div", { class: "abs", style: { borderRadius: "50%", border: `4px solid ${SKY}` } }, win);
+  const edgeRing = ctx.el("div", { class: "abs", style: { borderRadius: "50%", border: `4px solid ${SKY}`, boxSizing: "border-box" } }, win);
   ctx.onFrame((t) => {
-    if (t < T.widen || t > openEnd + 0.02) return;
-    const r = radius(t);
+    ring.style.visibility = t < T.widen ? "inherit" : "hidden";
+    const r = Math.max(R0 + 2, radius(t));
     Object.assign(edgeRing.style, { left: `${MARK.cx - r}px`, top: `${MARK.cy - r}px`, width: `${2 * r}px`, height: `${2 * r}px`, opacity: String(1 - ctx.progress(t, openEnd - 0.25, openEnd)) });
   });
   /** Clips a day layer to the opening window until it covers the frame. */

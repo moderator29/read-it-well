@@ -273,8 +273,8 @@ function ringHook(ctx, node, t0, dur, s0, s1, o0) {
 
 /** The glossy pointer's press at t: it dips, and a ring opens where it is (stage px). */
 export function pressAt(ctx, pointer, t, { parent, x, y, color = "rgb(0 105 254 / 0.8)" }) {
-  ctx.tl.to(pointer, { scaleY: 0.8, scaleX: 1.1, duration: 0.09, ease: "power2.out" }, t - 0.06);
-  ctx.tl.to(pointer, { scaleY: 1, scaleX: 1, duration: 0.32, ease: "back.out(2.2)" }, t + 0.05);
+  ctx.tl.fromTo(pointer, { scaleY: 1, scaleX: 1 }, { scaleY: 0.8, scaleX: 1.1, duration: 0.09, ease: "power2.out", immediateRender: false }, t - 0.06);
+  ctx.tl.fromTo(pointer, { scaleY: 0.8, scaleX: 1.1 }, { scaleY: 1, scaleX: 1, duration: 0.32, ease: "back.out(2.2)", immediateRender: false }, t + 0.05);
   const r = ctx.el("div", { class: "abs", style: { left: `${x - 50}px`, top: `${y - 50}px`, width: "100px", height: "100px", borderRadius: "50%", border: `3px solid ${color}`, visibility: "hidden", zIndex: "840" } }, parent);
   ringHook(ctx, r, t, 0.55, 0.25, 1.25, 1);
   return r;
@@ -564,8 +564,9 @@ function captionOverride(ctx, { t0, t1, words }) {
       });
       const a = ctx.progress(t, t0, t0 + 0.14);
       if (t < t1 - 0.12) {
-        pill.style.opacity = String(a);
-        pill.style.transform = `translateY(${(1 - a) * 14}px) scale(${0.97 + 0.03 * a})`;
+        /* as the engine does: never quite 1, and no scale */
+        pill.style.opacity = String(Math.min(a, 0.9999));
+        pill.style.transform = `translateY(${(1 - a) * 14}px)`;
       }
     });
   });

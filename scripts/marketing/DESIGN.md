@@ -85,10 +85,12 @@ The founder rated the first sets 20% overall and 5% on premium, and wants 90%: "
 - **Banned:** hand-drawn squiggles, sparkles, rings, particles, glows, stickers (Fluent), "bodies" floating around a phone, lifted duplicates of on-screen UI, and pop-ups placed over rows of text.
 
 **App Store and Google Play (35 each)**
-- **The backing:** all 35 of a store share one night ground (a quiet vertical gradient from `#050B3D` to `#010118`, identical in every image), so the set reads as one strip, as X's does. The screens are the app's dark theme.
-- **The layout:** a small lucide line icon (64 px, sky, 3 px stroke at size), then the headline, centred at the top, on the same baseline in every image. The phone is big, centred and whole: never cut by the image edge.
-- **Extras on two images only:** the "You got paid" style, with one or two of section 4's pop-up cards, each with the Example chip. No other image carries anything but the icon, the headline and the phone.
-- **Connected pairs:** one or two, where a single tilted phone and the headline run across the seam between two neighbouring images. On the unified backing the seam disappears.
+- **The backing:** all 35 of a store share one night ground, a quiet vertical gradient from `#050B3D` (top row) to `#010118` (bottom row), rasterised once and identical in every image, so the set reads as one strip, as X's does. The screens are the app's dark theme.
+- **The layout:** the headline centred at the top on the same baseline in every image (Poppins 600, line height 1.08, no line wider than the phone plus 50 px), then the phone: big, centred and whole, never cut by the image edge. The App Store phone is 1080 px wide (82%), Play's 946 px (66%). No icon: at store thumbnail size it does nothing.
+- **The phone:** the photoreal handset with the studio's `night` light, a ring that keeps a bright rim on all four sides, so the black frame separates from the navy. The screen is laid in flat with one Lanczos step, never upscaled.
+- **Files:** 24-bit RGB PNG, no palette, no alpha.
+- **Extras on two images only:** the "You got paid" style, with one of section 4's pop-up cards each ("Room booked" and "Payment settled"), opaque, with the Example chip, overhanging one phone edge by 70 to 90 px, never on text or a button.
+- **Connected pairs:** two, where a single tilted phone runs across the seam between neighbouring images. The seam never cuts a word.
 
 **Social campaign (30 posts and the X header)**
 - **Three grounds only:** Night (the store's ground), Electric (`#0A6CFF` to `#0048C8`, vertical) and Mist (`#F3F7FF`). Most posts are Night, some are Electric, and at most four are Mist. On a Mist post, light screens (the `-lt` captures) and ink type; never a dark screen on a light ground.
