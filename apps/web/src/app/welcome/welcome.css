@@ -579,7 +579,8 @@
     height: 0.5rem;
     margin-top: -0.25rem;
     border-radius: var(--nf-radius-pill);
-    background: var(--nf-content-primary);
+    /* The step you are on is the warm spark (spec section 18). */
+    background: var(--nf-spark);
     pointer-events: none;
     transform: translate3d(calc(var(--nf-gs-pos, 0) * var(--nf-gs-pitch)), 0, 0) scaleX(var(--nf-gs-stretch, 1));
   }
