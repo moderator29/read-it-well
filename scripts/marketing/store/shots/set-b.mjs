@@ -89,7 +89,7 @@ export const SET_B = [
           glows: [{ x: W * 0.55, y: cy, rx: W * 0.66, ry: f.phoneH * 0.5, alpha: 0.46, blur: 40 }, { x: sx, y: sy, rx: 420, ry: 420, color: "143 211 255", alpha: 0.2, blur: 30 }] }),
         `<svg class="g" style="left:0;top:0;z-index:7" width="${W}" height="${H}">${waves}</svg>`,
         p.html,
-        stickerIn(ctx, { code: "1f4e3", x: sx, y: sy, size: 250 * u, rotate: -14, z: 36 }),
+        stickerIn(ctx, { code: "1f4e3", x: sx - 40 * u, y: sy, size: 240 * u, rotate: -14, z: 36 }),
         headline({ lines: ["Hear what's happening", "around you"], cx: W / 2, y: f.hlTop, max: f.max, size: f.size }),
       ].join("\n");
     },
@@ -111,9 +111,9 @@ export const SET_B = [
           glows: [{ x: W * 0.62, y: cy - 150, rx: W * 0.62, ry: f.phoneH * 0.46, alpha: 0.48, blur: 40 }] }),
         `<svg class="g" style="left:0;top:0;z-index:7" width="${W}" height="${H}">${arc(W * 0.62, 0.16)}${arc(W * 0.46, 0.12)}</svg>`,
         p.html,
-        noteCard({ x: 64 * u, y: b.y + b.h * 0.16, w: cw * 0.94, lucide: "house", title: "New home", line: "For your saved search", meta: "2m", example: true, s: u * 0.98, rotate: 4, z: 31 }),
-        noteCard({ x: 52 * u, y: b.y + b.h * 0.33, w: cw * 1.02, lucide: "file-check", title: "Agreement confirmed", line: "By both of you", meta: "1m", example: true, s: u * 1.04, rotate: -2, z: 33 }),
-        noteCard({ x: 56 * u, y: b.y + b.h * 0.51, w: cw * 1.08, lucide: "calendar-check", title: "Inspection set", line: "Saturday, 11:00 AM", meta: "now", example: true, s: u * 1.1, rotate: -5, z: 35 }),
+        noteCard({ x: 64 * u, y: p.at(660, 1760)[1] - 60 * u, w: cw * 0.94, lucide: "house", title: "New home", line: "For your saved search", meta: "2m", example: true, s: u * 0.98, rotate: 4, z: 31 }),
+        noteCard({ x: 52 * u, y: p.at(660, 2010)[1] - 60 * u, w: cw * 1.02, lucide: "file-check", title: "Agreement confirmed", line: "By both of you", meta: "1m", example: true, s: u * 1.04, rotate: -2, z: 33 }),
+        noteCard({ x: 56 * u, y: p.at(660, 2260)[1] - 60 * u, w: cw * 1.08, lucide: "calendar-check", title: "Inspection set", line: "Saturday, 11:00 AM", meta: "now", example: true, s: u * 1.1, rotate: -5, z: 35 }),
         headline({ lines: ["Know the moment", "anything changes"], cx: W / 2, y: f.hlTop, max: f.max, size: f.size }),
       ].join("\n");
     },
