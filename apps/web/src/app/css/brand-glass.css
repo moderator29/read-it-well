@@ -130,3 +130,25 @@
     border-inline-end-color: var(--nf-navy-glass-edge);
   }
 }
+
+/*
+ * 4. BLUE LEAN ICONS IN LIGHT (the founder, 30 September, on ref 49's black
+ * glyphs in the listing's move-in rows: "blue everywhere"). The inner icons
+ * of a page stand on the neutral icon plate (`IconPlate`, symbols.css), whose
+ * glyph ink is the `--nf-plate-neutral-ink` token; in daylight it moves from
+ * the body ink to the brand blue, so every plate follows without a call site
+ * changing. The tinted tones (brand, success, warning, danger, info) keep
+ * their own inks, and night islands restate their own palette.
+ *
+ * Contrast: `--nf-brand-primary` (#005FE8) is about 5.4:1 on white and
+ * about 4.8:1 on the light raised plate (`--nf-surface-raised`), above the
+ * 3:1 a meaningful graphic needs and the 4.5:1 of body text.
+ *
+ * Unlayered on purpose: tokens.css is unlayered, and a layered custom
+ * property would lose to it whatever its specificity. Later in the cascade
+ * at the same specificity, so it wins by position.
+ */
+:root[data-theme="light"],
+:root[data-theme="light"] [data-theme="light"] {
+  --nf-plate-neutral-ink: var(--nf-brand-primary);
+}
