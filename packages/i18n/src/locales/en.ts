@@ -14,6 +14,7 @@ import { landingRoomsEn } from "./landing-rooms.en";
 import { afterTheGateEn } from "./after-the-gate.en";
 import { cryptoPayEn } from "./crypto-pay.en";
 import { trustVisibleEn } from "./trust-visible.en";
+import { memberKitEn } from "./member-kit.en";
 import { landlordEn } from "./landlord.en";
 import { trustDoorsEn } from "./trust-doors.en";
 import { arrivalCheckEn } from "./arrival-check.en";
@@ -5844,6 +5845,8 @@ export const en = {
   afterTheGate: afterTheGateEn,
   cryptoPay: cryptoPayEn,
   trustVisible: trustVisibleEn,
+  /* B5 to B17: the member kit. */
+  memberKit: memberKitEn,
 
   landlord: landlordEn,
 
