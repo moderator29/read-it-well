@@ -2032,11 +2032,6 @@
       overflow: visible;
     }
   }
-  @media (min-width: 72rem) {
-    .nf-stack--still {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
-  }
   .nf-stack--still .nf-stack__card {
     transform: none;
     cursor: auto;

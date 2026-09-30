@@ -40,6 +40,10 @@ async function main() {
       ]);
       const page = await context.newPage();
       await page.goto(base + row.path, { waitUntil: "networkidle", timeout: 120_000 });
+      /* Let hydration finish: with motion off the hands-on deck becomes its
+         still row once the page has hydrated, and measuring before that read
+         the server's deck on one run and the still row on the next. */
+      await page.waitForTimeout(1500);
       const px = await page.evaluate(() => document.documentElement.scrollHeight);
       const verdict = overHeight(px, row.maxPx) ? "OVER" : "ok  ";
       console.log(`  ${verdict}  ${row.path} at ${row.width}: ${px}px (ceiling ${row.maxPx}, target ${row.targetPx})`);
