@@ -20,7 +20,7 @@ export const GROUND = {
 /* type colours per ground */
 function ink(g) {
   if (g === "mist") return { head: "#0A1030", key: "#0056D0", sub: "rgba(10,16,48,.64)", foot: "rgba(10,16,48,.58)" };
-  if (g === "electric") return { head: "#FFFFFF", key: "#02063F", sub: "rgba(255,255,255,.86)", foot: "rgba(255,255,255,.80)" };
+  if (g === "electric") return { head: "#FFFFFF", key: "#FFFFFF", sub: "rgba(255,255,255,.86)", foot: "rgba(255,255,255,.80)" };
   return { head: "#FFFFFF", key: "#8FD3FF", sub: "rgba(255,255,255,.62)", foot: "rgba(255,255,255,.56)" };
 }
 
@@ -64,7 +64,7 @@ export function frame({ W, H, ground = "night", body = "", css = "", foot = "val
   .foot{position:absolute;font:500 22px/1 Inter,sans-serif;letter-spacing:.005em;color:${c.foot};white-space:nowrap}
   ${css}</style></head><body>
   ${body}
-  <img src="${u(join(BRAND, wm))}" alt="Vallo" style="position:absolute;left:${g.wm.x}px;top:${g.wm.y}px;height:${g.wm.h}px;width:auto">
+  <img src="${u(join(BRAND, wm))}" alt="Vallo" style="position:absolute;left:${g.wm.x}px;top:${g.wm.y}px;height:${g.wm.h}px;width:auto${ground === "electric" ? ";filter:drop-shadow(0 2px 5px rgba(0,16,80,.55))" : ""}">
   <div class="foot" style="right:${g.foot.right}px;top:${g.foot.y}px">${foot}</div>
   </body></html>`;
 }

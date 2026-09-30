@@ -6,8 +6,9 @@
  * The app unlocks by itself for five minutes after a sign-in (docs/PASSCODE.md),
  * so this signs in, waits out the five minutes, then opens a money screen in a
  * tab without the "unlocked" mark: the lock comes up as it does for a member
- * coming back. Nothing is typed into the keypad. Writes lock, lock-lt, d-lock
- * and d-lock-lt to docs/marketing/source.
+ * coming back. Nothing is typed into the keypad. The lock keeps one (dark)
+ * theme whatever the member chose, so it writes lock and d-lock only, to
+ * docs/marketing/source.
  */
 import sharp from "sharp";
 import { join, dirname } from "node:path";
@@ -32,7 +33,7 @@ await new Promise((resolve) => setTimeout(resolve, WAIT_MS));
 
 const report = JSON.parse(readFileSync(join(OUT, "capture-report.json"), "utf8"));
 for (const [kind, ctx] of Object.entries(contexts)) {
-  for (const theme of ["dark", "light"]) {
+  for (const theme of ["dark"]) {
     const id = `${kind === "desktop" ? "d-" : ""}lock${theme === "light" ? "-lt" : ""}`;
     await ctx.addCookies([{ name: "nf_theme", value: theme, url: BASE }]);
     const page = await ctx.newPage();

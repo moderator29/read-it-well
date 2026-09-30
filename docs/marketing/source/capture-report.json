@@ -307,6 +307,13 @@
     "theme": "light",
     "signedIn": true
   },
+  "d-lock": {
+    "url": "/payments (locked)",
+    "at": "2026-09-30T18:02:28.493Z",
+    "kind": "desktop",
+    "theme": "dark (the lock keeps one theme)",
+    "signedIn": true
+  },
   "d-messages": {
     "url": "/messages",
     "at": "2026-09-30T15:53:52.229Z",
@@ -780,6 +787,13 @@
     "at": "2026-09-30T17:08:27.525Z",
     "kind": "mobile",
     "theme": "light",
+    "signedIn": true
+  },
+  "lock": {
+    "url": "/payments (locked)",
+    "at": "2026-09-30T18:02:17.691Z",
+    "kind": "mobile",
+    "theme": "dark (the lock keeps one theme)",
     "signedIn": true
   },
   "messages": {

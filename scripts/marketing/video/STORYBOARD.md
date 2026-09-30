@@ -45,7 +45,7 @@ It follows the founder's ruling on 3D icons: in the films they appear only as pa
 - **Dates:** `stays-dates` / `-lt` / `d-` are now signed in, reading 16/10/2026 and 19/10/2026. "69 stays" may show as captured, but is never lifted.
 - **The assistant on light:** `assistant-caution-2-lt` / `d-assistant-caution-2-lt` (quoted in FACTS).
 - **Welcome:** the welcome screens keep one theme, so every `welcome-*-lt` is dark. Never put them on a light ground.
-- **The lock:** `lock` / `lock-lt` / `d-lock` / `d-lock-lt` show the real passcode lock, as a member meets it before money moves.
+- **The lock:** `lock` / `d-lock` show the real passcode lock ("Welcome back, omojuni · Enter your passcode"), as a member meets it before money moves. The product keeps it dark in both themes, like the welcome.
 
 **Rows**
 - **05:** the screen swaps on each word. No tile lighting here; row 20 owns it.
@@ -67,7 +67,7 @@ It follows the founder's ruling on 3D icons: in the films they appear only as pa
 - **24:** `restaurant-light`. The table card flies off. It never becomes a role chip.
 - **25:** the four role chips land fresh, not from the restaurant card.
 - **27 and 31:** card 2's back is the same everywhere: the verified mark and "Checked by a real person at Vallo." In row 31 all three cards show their answer faces.
-- **28:** the real lock (`lock-lt`) fills its dots on "pay". Not the passcode set-up.
+- **28:** the real lock (`lock`, always dark in the product) fills its dots on "pay". Not the passcode set-up. The ground stays light. Keep the dark screen inside the phone and let the dots be the one moment.
 - **31:**
   - Card 3 swings in at 70.5 and turns at 70.9.
   - Cards 1 and 2 return between 71.0 and 71.3.
