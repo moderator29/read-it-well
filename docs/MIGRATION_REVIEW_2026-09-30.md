@@ -1025,3 +1025,48 @@ Checked read-only against the live schema.
 
 **No push-language migration from lane 4 was in `pending/` at the time of
 review.**
+
+---
+
+## Review: C13b (`20260930160000_c13b_an_acknowledgement_stays_with_the_first_person`, 50ee22c4): **APPLY**
+
+Checked read-only against the live schema, where C13 is applied as
+`20260930122539`. The live guard fires `OF acknowledged_by` only and has the
+C13 body.
+
+**What changes:** the file replaces
+`private.risk_alert_acknowledgement_is_the_caller()` and re-creates its trigger
+`OF acknowledged_by, acknowledged_at`. It stays security invoker, with
+`search_path ''` and execute revoked. A change from one person to another is
+now refused for every writer. A signed-in caller still acknowledges only as
+themselves and can never clear a name, and they can no longer move the time
+while the name stays the same. RLS is untouched: `risk_alerts_admin_all` is
+still the only policy, and the read-back checks that. Nothing is dropped, and
+it is idempotent (`create or replace`, `drop trigger if exists`).
+
+**The read-back's live probe alert has no visible side effects.** I checked
+every path a row inserted into `risk_alerts` could leave by:
+* **Triggers:** the only INSERT trigger is `risk_alerts_page_on_high`, and its
+  `WHEN (new.severity = 'high')` condition does not fire for the probe's
+  `'low'` row. So there is no pg_net page, no notification and no email. The
+  only other trigger is the guard itself, which is BEFORE UPDATE.
+* **Realtime:** `risk_alerts` is in neither `supabase_realtime` nor
+  `supabase_realtime_messages_publication`, and neither publication covers all
+  tables, so no subscriber receives the insert.
+* **Dependents:** no foreign key references `risk_alerts`. The event triggers
+  are DDL-only. No audit row is written.
+* **Visibility:** the insert, both updates and the delete all run inside the
+  migration's one transaction, so under MVCC no other session ever sees the
+  row. If any step fails, the whole migration rolls back.
+
+The probe logic is sound. The values it uses exist (`'low'` in
+`alert_severity`, `'open'` in `alert_status`). The first update runs with no
+`auth.uid()`, so it is stamped. The switch from one person to another raises
+42501 inside its own exception block and is caught. The row is then deleted,
+and the probe raises if the switch was not refused. The trigger-column check
+reads `tgattr`, so it proves the real column list.
+
+**Note (not a blocker):** a name can be cleared only when `auth.uid()` is null,
+which is how the `on delete set null` path works. The repo has no in-database
+function that deletes from `auth.users`, so account deletion goes through the
+Auth admin API with no caller. This behaviour is the same in the live C13.
