@@ -26,12 +26,13 @@ export async function deskOut(ctx, S, T) {
   const wvT = S.wvT;
   const LEFT = S.HERO; // v3.3: the hero scale; the window's right third softens under the card
   const full = { viewTop: 0, viewH: CH, viewLeft: 0, viewW: CW };
-  S.page("d-restaurant-lt", [[ctx.beat(87.2) - 0.02, T.r25]]);
-  wvT.to(ctx.beat(87.2) - 0.01, 0.001, { cx: LEFT.cx, cy: LEFT.cy + 760, s: LEFT.s, ry: 0, opacity: 1, ...full }, "none");
-  wvT.to(ctx.beat(87.2), 0.6, { cy: LEFT.cy }, "glide");                                 // rises under the title
+  const tRise = ctx.beat(87.35) + 0.08; // 50.47: rises as the title lifts away, clear of it
+  S.page("d-restaurant-lt", [[tRise - 0.02, T.r25]]);
+  wvT.to(tRise - 0.01, 0.001, { cx: LEFT.cx, cy: LEFT.cy + 760, s: LEFT.s, ry: 0, opacity: 1, ...full }, "none");
+  wvT.to(tRise, 0.6, { cy: LEFT.cy }, "glide");                                          // rises as the title goes
   const tOff = ctx.beat(93.36);   // 53.86: the card holds, labelled, from its arrival to here
   const tTurn = ctx.beat(93.43);  // 53.90
-  wvT.to(T.r24 + 0.5, tTurn - T.r24 - 0.5, { cy: LEFT.cy - 10 }, "drift");              // a slow drift while the card holds
+  wvT.to(tRise + 0.62, tTurn - tRise - 0.62, { cy: LEFT.cy - 10 }, "drift");              // a slow drift while the card holds
   wvT.to(tTurn, 0.33, { cx: LEFT.cx - 240, ry: -48, opacity: 0 }, "power2.in");         // turns away as the chapter ends
 
   /* the Table for 2 card: free-standing, in RIGHT_PANEL */

@@ -56,8 +56,8 @@ export async function deskTalk(ctx, S, T) {
   const tClose0 = T.chat + 0.11;             // 36.26: the sheet closes after the press on "chat"
   const tClose1 = T.chat + 0.4;
   const tBack = T.r18 + 0.05;                // 38.70: to the inbox, at the hero scale
-  const tClick = T.planning;
-  const tTurn0 = tClick + 0.3;               // 41.84: the window turns over at TURN
+  const tClick = T.planning - 0.3;           // 41.24: pressed before the word, so the frame is clear as "Planning" rises
+  const tTurn0 = T.planning + 0.3;               // 41.84: the window turns over at TURN
   S.tSwap = tTurn0 + 0.26;                   // 42.10: its back is d-stays-lt
   const pThread = S.page("d-thread-lt", [[T.r14, T.share + 0.2]]);
   const pShare = S.page("d-listing-share-lt", [[T.share, tClose1 + 0.1]]);
@@ -288,10 +288,10 @@ export async function deskTalk(ctx, S, T) {
   ctx.sfx("whoosh_long", T.r19, { offset: -2 });
   ctx.sfx("toggle_on", tClick, { offset: 4 });
   /* the camera pulls back as the window turns over to Stays and moves right, clear of the title */
-  cam.to(tClick + 0.04, 0.36, { s: 1, tx: flipW.x, ty: flipW.y }, "power2.inOut");   // back to 1x by 41.94
+  cam.to(tClick + 0.04, 0.32, { s: 1, tx: flipW.x, ty: flipW.y }, "power2.inOut");   // back to 1x by 41.60
   /* the side scale (as in D14, D16 and D26), at the right: clear of the title at the left */
   const TURN = { cx: 1920 - 80 - (CW / 2) * S.LEFT.s, cy: S.LEFT.cy, s: S.LEFT.s };
-  wvT.to(tClick + 0.04, 0.26, TURN, "power2.inOut");                                  // at TURN by 41.84
+  wvT.to(tClick + 0.04, 0.26, TURN, "power2.inOut");                                  // at TURN by 41.54
   wvT.to(tTurn0, 0.26, { ry: 90 }, "power2.in");                                        // the turn, in place, 41.84-42.36
   wvT.to(S.tSwap, 0.001, { ry: -90 }, "none");
   wvT.to(S.tSwap + 0.001, 0.26, { ry: 0 }, "power2.out");
@@ -310,14 +310,14 @@ export async function deskTalk(ctx, S, T) {
     ctx.gsap.set(w, { yPercent: 118 });
     tl.fromTo(w, { yPercent: 118 }, { yPercent: 0, duration: 0.34, ease: "land", immediateRender: false }, t);
   };
-  wordEl(l1, "Planning", NAVY, tClick);
+  wordEl(l1, "Planning", NAVY, T.planning);
   wordEl(l2, "a", NAVY, T.a9);
   wordEl(l2, "trip?", ELECTRIC, T.trip, true);
   let tSize = null;
   const tShrink1 = tHold + 0.3;
-  showDuring(ctx, title, [[tClick - 0.02, tShrink1 + 0.04]]);
+  showDuring(ctx, title, [[T.planning - 0.02, tShrink1 + 0.04]]);
   ctx.onFrame((t) => {
-    if (t < tClick - 0.02 || t > tShrink1 + 0.05) return;
+    if (t < T.planning - 0.02 || t > tShrink1 + 0.05) return;
     if (!tSize) {
       const wP = measure("Planning", "700 100px Poppins") / 100;
       tSize = Math.min(120, 440 / wP);
@@ -332,10 +332,10 @@ export async function deskTalk(ctx, S, T) {
     title.style.opacity = String((1 - ramp(ctx, t, tShrink1 - 0.06, tShrink1 + 0.02)).toFixed(3));
   });
   const ringWrap = ctx.el("div", { class: "fill" }, type);
-  ringOut(ctx, ringWrap, { cx: TC.x, cy: TC.y, r: RR, t: tClick + 0.06, dots: 8, seed: 19, stroke: 4 });
+  ringOut(ctx, ringWrap, { cx: TC.x, cy: TC.y, r: RR, t: T.planning + 0.06, dots: 8, seed: 19, stroke: 4 });
   ringWrap.style.transformOrigin = `${TC.x}px ${TC.y}px`;
   tl.fromTo(ringWrap, { opacity: 1, scale: 1 }, { opacity: 0, scale: 0.9, duration: 0.28, ease: "power2.in", immediateRender: false }, tHold - 0.04);
-  showDuring(ctx, ringWrap, [[tClick, tHold + 0.26]]);
+  showDuring(ctx, ringWrap, [[T.planning, tHold + 0.26]]);
 
   /* ==================== the pointer ==================== */
   const o = S.orbT;
@@ -347,8 +347,8 @@ export async function deskTalk(ctx, S, T) {
   pressAt(ctx, S.orb, T.chat, { ringParent: S.pointer, x: chev.x, y: chev.y, sound: "tap" });
   o.to(T.chat + 0.14, 0.4, { x: 1700, y: 860 }, "glide");
   o.to(T.chat + 0.3, 0.2, { opacity: 0 }, "power1.in");
-  o.to(T.r19 - 0.2, 0.16, { opacity: 1 }, "power1.out");
-  o.to(T.r19 - 0.2, 0.6, { x: chevAt.x + 16, y: chevAt.y + 12 }, "glide");
+  o.to(T.r19 - 0.4, 0.16, { opacity: 1 }, "power1.out");
+  o.to(T.r19 - 0.4, 0.6, { x: chevAt.x + 16, y: chevAt.y + 12 }, "glide");
   pressAt(ctx, S.orb, tClick, { ringParent: S.pointer, x: chevAt.x, y: chevAt.y, sound: null });
   o.to(tClick + 0.14, 0.34, { x: chevAt.x + 260, y: chevAt.y + 260, opacity: 0 }, "power2.in");
 }

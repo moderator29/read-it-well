@@ -39,6 +39,11 @@ export async function buildMap(ctx, S) {
     }, layer);
   }
 
+  /* the labels' unscaled sizes, measured once the fonts have loaded (layout constants) */
+  const CLEAR = 40;
+  let sizes = null;
+  const sizeOf = () => (sizes ??= Object.fromEntries(Object.entries(labels).map(([c, el]) => [c, { w: el.offsetWidth, h: el.offsetHeight }])));
+
   /* the pin's head, drawn in HTML from the lift on: it carries into row 40 */
   const head = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: "200px", height: "200px", borderRadius: "50%", visibility: "hidden", background: "radial-gradient(circle at 38% 30%, #8cc6ff 0%, #3a8cff 26%, #0f6fff 55%, #0058e0 100%)", boxShadow: "0 0 60px 8px rgb(0 105 254 / 0.45)" } }, scene);
   const dot = ctx.el("div", { class: "abs", style: { left: "29%", top: "29%", width: "42%", height: "42%", borderRadius: "50%", background: "#ffffff", boxShadow: "0 0 22px 4px rgb(255 255 255 / 0.55)" } }, head);
@@ -57,8 +62,33 @@ export async function buildMap(ctx, S) {
     const out = ramp(ctx, t, K.r40, K.r40 + 0.4, "power2.inOut");
     canvas.style.opacity = ((1 - 0.6 * d) * (1 - out)).toFixed(4);
     canvas.style.visibility = out < 1 ? "" : "hidden";
-    for (const l of map.labels(mt)) {
-      const el = labels[l.city];
+    const all = map.labels(mt);
+    const size = sizeOf();
+    const lagos = all.find((l) => l.city === "Lagos");
+    /* the home's box (its half-width from Lagos' own label gap), and a 40 px clear radius around it */
+    const hw = Math.max(20, (lagos.y - lagos.dot.y) * 0.72);
+    const home = { x0: lagos.dot.x - hw - CLEAR, x1: lagos.dot.x + hw + CLEAR, y0: lagos.dot.y - 2.3 * hw - CLEAR, y1: lagos.dot.y + 0.5 * hw + CLEAR };
+    for (const l0 of all) {
+      const el = labels[l0.city];
+      let l = l0;
+      /* round 3: Ibadan sits north-west of its dot (right edge at dot x - 12, baseline at dot y - 18) */
+      if (l.city === "Ibadan") l = { ...l, x: l.dot.x - 12, y: l.dot.y - 18, ax: 1, ay: 1 };
+      if (l.city !== "Lagos") {
+        const w = size[l.city].w * l.scale;
+        const h = size[l.city].h * l.scale;
+        const r = { x0: l.x - l.ax * w, y0: l.y - l.ay * h };
+        r.x1 = r.x0 + w;
+        r.y1 = r.y0 + h;
+        const ox = Math.min(r.x1, home.x1) - Math.max(r.x0, home.x0);
+        const oy = Math.min(r.y1, home.y1) - Math.max(r.y0, home.y0);
+        if (ox > 0 && oy > 0) {
+          /* out of the home's clear box by the shorter way */
+          const cx = (r.x0 + r.x1) / 2 - lagos.dot.x;
+          const cy = (r.y0 + r.y1) / 2 - (home.y0 + home.y1) / 2;
+          if (ox < oy) l = { ...l, x: l.x + (cx < 0 ? -ox : ox) };
+          else l = { ...l, y: l.y + (cy < 0 ? -oy : oy) };
+        }
+      }
       const o = l.opacity * (1 - out);
       el.style.visibility = o > 0.001 ? "" : "hidden";
       el.style.opacity = opa(o);

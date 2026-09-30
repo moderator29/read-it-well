@@ -12,6 +12,7 @@
  */
 import { orb, browserWindow, tap } from "../engine/components.js";
 import { track, ramp, spring, during, place, dispToStage, screenImage, mix, opa, mist } from "./c-kit.js";
+import { ROW_OFF } from "./c-pay.js";
 
 const QUESTION = "What is a caution deposit?";
 
@@ -19,20 +20,24 @@ export async function buildAssist(ctx, S) {
   const { K, L } = S;
   const M = ctx.isMobile;
   const tSend = ctx.beat(131.4); // the send press (75.81)
-  const typeFrom = K.r33 + 0.08;
+  const typeFrom = K.r33 - 0.02; // 74.40 (round 3: no empty field before typing)
   const typeTo = K.prices + 0.36;
   const back = [tSend + 0.1, tSend + 0.8]; // the push eases back
   const revealFrom = tSend + 0.14;
   const revealTo = K.renting - 0.05;
   const leave = [ctx.beat(137.1), K.r35 - 0.06]; // 79.10 to 79.56: at the chapter's end
   const rise = [ctx.beat(126.95), ctx.beat(127.9)]; // 73.24 to 73.79
+  const qFrom = ROW_OFF[1] - 0.05; // 72.80: the "?" drops once the row has flown off
+  const qLand = qFrom + 0.28; // 73.08, on "question"
+  /* the answer rests, pushed 1.5% closer over its hold (never fully still) */
+  const restPush = (t) => 1 + 0.015 * ramp(ctx, t, K.renting, leave[0], "sine.inOut");
 
   /* ================= the ground: mist to the cut ================= */
   const sky = ctx.scene("c32-sky", K.r32 - 0.3, K.r35, { z: 1 });
   mist(ctx, sky);
 
   /* ================= the "?" ================= */
-  const qScene = ctx.scene("c32-q", K.r32 - 0.3, K.r33 + 0.05, { z: 10 });
+  const qScene = ctx.scene("c32-q", qFrom - 0.02, K.r33 + 0.05, { z: 10 });
   const qSize = M ? 700 : 620;
   const q = ctx.el("div", {
     class: "abs c-display-800",
@@ -42,7 +47,7 @@ export async function buildAssist(ctx, S) {
       background: "linear-gradient(165deg, #8fd3ff 0%, #3d8bff 34%, #0069fe 60%, #003f98 100%)", WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent",
     },
   }, qScene);
-  ctx.sfx("pop_low", K.r32, { offset: -2 });
+  ctx.sfx("pop_low", qLand, { offset: -2 });
 
   const shownText = (t) => QUESTION.slice(0, Math.round(QUESTION.length * ramp(ctx, t, typeFrom, typeTo, "none")));
   const caretBlink = (t) => (t < typeFrom || (t > typeTo && t < tSend) ? (Math.floor((t - K.questionEnd) * 2.2) % 2 === 0 ? 1 : 0) : 1);
@@ -79,27 +84,42 @@ export async function buildAssist(ctx, S) {
       car.style.opacity = t >= tSend ? "0" : opa(caretBlink(t));
     });
     /* pushed 1.35x onto the input field (x 145-935, y 1120) while the question
-       is typed, then back to PHONE_HERO for the answer; it leaves at the chapter's end */
+       is typed, then back to PHONE_HERO's size for the answer, 50 px higher so
+       the answer's last named line ("ask the lister directly before you
+       commit", display y 1763) ends by y 1200, above the captions (v3.3); it
+       leaves at the chapter's end. The pill fades out while the push brings
+       "How can I help today?" up through it. */
     const PUSH = 1.35;
     const s0 = dispToStage(P, 0, 0).s;
     const pushedCy = 1120 - (2731 - 1434) * s0 * PUSH;
+    const restCy = 1030;
+    ctx.hidePill(K.r33 - 0.2, back[1] - 0.1);
     p.poses.push({
       t0: rise[0] - 0.02, t1: leave[1] + 0.02,
       fn: (t) => {
         const up = ramp(ctx, t, rise[0], rise[1], "power3.out");
         const u = 1 - ramp(ctx, t, back[0], back[1], "power2.inOut");
         const out = ramp(ctx, t, leave[0], leave[1], "leave");
-        return { cx: P.cx, cy: mix(P.cy, pushedCy, u) + (1 - up) * 2300 + out * 2300, height: P.height * mix(1, PUSH, u), rx: 10 * (1 - up) + 10 * out, ry: 0, rz: 0, fov: 24, opacity: 1 };
+        const k = restPush(t);
+        /* the rest push holds the answer's last line (display 1763) where it is */
+        const cy = mix(restCy - (1763 - 1434) * s0 * (k - 1), pushedCy, u);
+        return { cx: P.cx, cy: cy + (1 - up) * 2300 + out * 2300, height: P.height * mix(k, PUSH, u), rx: 10 * (1 - up) + 10 * out, ry: 0, rz: 0, fov: 24, opacity: 1 };
       },
     });
     const at = dispToStage({ ...P, cy: pushedCy, height: P.height * PUSH }, 190, 2731);
     caret = { x: at.x, y: at.y };
   } else {
-    /* the window at hero scale (1.111), raised so its input field sits at y 860 */
+    /* the window rises pushed 1.5x past hero scale onto its input field (the
+       field's content point (900, 855) at stage (900, 860)), so the typing
+       reads; after the send it settles to hero scale (1.111) at y 120 for the
+       answer, which then drifts 1.5% closer over its hold */
     const s1 = 1600 / 1440;
     const X = 160;
-    const yType = 860 - (56 + 855) * s1;
+    const PUSH = 1.5;
+    const sP = s1 * PUSH;
+    const typed0 = { x: 900 - 900 * sP, y: 860 - (56 + 855) * sP, s: sP };
     const yAnswer = 120;
+    ctx.hidePill(K.r33 - 0.2, back[1] + 0.2); // the push brings the robot and "How can I help today?" up under the pill
     const winScene = ctx.scene("c32-win", rise[0] - 0.02, K.r35, { z: 4 });
     const win = browserWindow(ctx, { parent: winScene, width: 1440, url: "vallospaces.com", theme: "light" });
     const lt = ctx.img(ctx.src.capture("d-assistant-lt"), { class: "abs", style: { left: "0px", top: "0px", width: "1440px", height: "900px" } }, win.content);
@@ -107,15 +127,19 @@ export async function buildAssist(ctx, S) {
     const fieldCover = ctx.el("div", { class: "abs", style: { left: "648px", top: "838px", width: "380px", height: "34px", background: "#ebebe7", visibility: "hidden" } }, win.content);
     const fieldText = ctx.el("div", { class: "abs", style: { left: "654px", top: "843px", font: "500 17px/24px Inter, sans-serif", color: "#0b1230", whiteSpace: "nowrap" } }, win.content);
     const fieldCaret = ctx.el("div", { class: "abs", style: { left: "654px", top: "845px", width: "2px", height: "20px", background: "var(--electric)" } }, win.content);
-    const yAt = (t) => {
+    const poseAt = (t) => {
       const up = ramp(ctx, t, rise[0], rise[1], "power3.out");
       const settle = ramp(ctx, t, back[0], back[1] + 0.3, "power2.inOut");
       const out = ramp(ctx, t, leave[0], leave[1], "leave");
-      return mix(yType, yAnswer, settle) + (1 - up) * 1300 + out * 1200;
+      const k = restPush(t);
+      /* the rest push is about the frame's centre column, x 960, y 540 */
+      const rest = { x: 960 - (960 - X) * k, y: 540 - (540 - yAnswer) * k, s: s1 * k };
+      return { x: mix(typed0.x, rest.x, settle), y: mix(typed0.y, rest.y, settle) + (1 - up) * 1300 + out * 1200, s: mix(typed0.s, rest.s, settle) };
     };
     during(ctx, rise[0] - 0.02, K.r35, (t) => {
+      const q = poseAt(t);
       win.root.style.transformOrigin = "0 0";
-      win.root.style.transform = `translate(${X}px, ${yAt(t).toFixed(2)}px) scale(${s1.toFixed(5)})`;
+      win.root.style.transform = `translate(${q.x.toFixed(2)}px, ${q.y.toFixed(2)}px) scale(${q.s.toFixed(5)})`;
       win.root.style.opacity = opa(1);
       win.root.style.visibility = t < leave[1] ? "" : "hidden";
       const r = ramp(ctx, t, revealFrom, revealTo, "power1.inOut");
@@ -132,8 +156,8 @@ export async function buildAssist(ctx, S) {
       fieldCaret.style.left = `${654 + (showTyped ? fieldText.offsetWidth : 0) + 1}px`;
       fieldCaret.style.opacity = showTyped && t < tSend ? opa(caretBlink(t)) : "0";
     });
-    caret = { x: X + 655 * s1, y: 860 };
-    const sendAt = { x: X + 1251 * s1, y: 860 };
+    caret = { x: typed0.x + 655 * sP, y: 860 };
+    const sendAt = { x: typed0.x + 1251 * sP, y: 860 };
     /* the pointer clicks send */
     const ptr = orb(ctx, winScene, { size: 40 });
     ptr.style.visibility = "hidden";
@@ -160,12 +184,12 @@ export async function buildAssist(ctx, S) {
   /* ================= the "?": drop into WORDS, hold, into the caret ================= */
   {
     const centre = M ? { x: 540, y: L.WORDS.y + L.WORDS.h / 2 } : { x: 960, y: 500 };
-    const land = K.r32 + 0.04;
+    const land = qLand;
     const toCaret = [K.questionEnd - 0.03, K.questionEnd + 0.72];
     const inkH = qSize * 0.72;
-    const caretH = M ? 36 : 22;
-    during(ctx, K.r32 - 0.3, K.r33 + 0.05, (t) => {
-      const drop = ramp(ctx, t, K.r32 - 0.26, land, "power2.in");
+    const caretH = M ? 36 : 33;
+    during(ctx, qFrom - 0.02, K.r33 + 0.05, (t) => {
+      const drop = ramp(ctx, t, qFrom, land, "power2.in");
       const kick = spring(t, land, { freq: 2.2, decay: 6.5 });
       const u = ramp(ctx, t, toCaret[0], toCaret[1], "power3.inOut");
       const x = mix(centre.x, caret.x, u);

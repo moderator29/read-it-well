@@ -53,8 +53,9 @@ turn at 28.566; the answer opened at 28.866 and has been still since about 29.19
 `front`: `justifyContent: "center", textAlign: "center", textWrap: "balance"`; `back`: the same plus
 `lineHeight: "1.22"` and the `fontSize` below. It came in with its question at 24.947 (0.5 s) and has not moved since 25.45.
 
-- **Mobile:** `box: { x: 230, y: 1380, w: 620, h: 170 }`, `fontSize: 40`, back `fontSize: "33px"`. Rest transform
-  `x 0, y 0, rotation −2°` (centre (540, 1465)), under the receipt, below the captions.
+- **Mobile:** `box: { x: 230, y: 1246, w: 620, h: 170 }`, `fontSize: 40`, back `fontSize: "33px"`. Rest transform
+  `x 0, y 0, rotation −2°` (centre (540, 1331)), under the receipt and above the v3.3 caption band (1520–1640).
+  (Round 3: moved up from y 1380 for the new caption band.)
 - **Desktop:** `box: { x: 1384, y: 150, w: 500, h: 160 }`, `fontSize: 34`, back `fontSize: "28px"`. Rest transform
   `x 0, y 0, rotation 3°` (centre (1634, 230)), at the right of the receipt. During A's fold (30.117–30.577) the
   folding receipt passes under it (card z above); at the cut the villa card `{ x: 1206, y: 330, w: 600, h: 405.5 }`
@@ -62,15 +63,16 @@ turn at 28.566; the answer opened at 28.866 and has been still since about 29.19
 
 ## B → C (t = 62.885 = ctx.beat(109))
 
-Written by builder B (round 2, storyboard v3.2). Section b's scenes end at 62.885 (exclusive).
+Written by builder B (round 3, storyboard v3.3). Section b's scenes end at 62.885 (exclusive).
 
 ### The coin (section c's `coin()` from `c-kit.js`, which B imports)
 
-Card 2's verified mark spins off at 62.27: the badge turns edge-on (rotateY to 90°) by 62.43, then the
-coin carries on from 90°, rises to its peak and falls. At 62.885 it is exactly on c's `COIN_IN`:
+Card 2's verified mark spins off at 62.57 (`markToCoin`, flip 0.06): the badge turns edge-on (rotateY to
+90°) by 62.63, then the coin carries on from 90°, rises to its peak and falls. At 62.885 it is exactly on
+c's `COIN_IN`:
 
 - **Mobile** (`b-m-checked.js` `COIN_OUT`): centre (330, 470), size 110, spin 720 (≡ 0), tilt 0, opacity 1,
-  shadow 0; moving down at 233 px/s (`power2.in` from y 450 at 62.71) and spinning at 1,400 °/s; x and size
+  shadow 0; moving down at 233 px/s (`power2.in` from y 450 at 62.713) and spinning at 1,400 °/s; x and size
   arrive at rest. Matches `COIN_IN.mobile` (vy 233, vspin 1400).
 - **Desktop** (`b-d-checked.js` `COIN_OUT_D`): centre (1500, 420), size 88, spin 720 (≡ 0); 200 px/s down
   (from y 400 at 62.685) and 1,200 °/s; x and size at rest. Matches `COIN_IN.desktop`.
@@ -78,28 +80,31 @@ coin carries on from 90°, rises to its peak and falls. At 62.885 it is exactly 
 ### Card 2 leaves to the top left (for section c, row 31)
 
 `questionCard(ctx, parent, { q: QUESTIONS[1].q, a: QUESTIONS[1].a, box, mark: true, fontSize })` (the
-engine's flat turn), in on "person" (59.30), turned at 60.40, answer held to 62.25. Its back: the engine's
-inline mark and "Checked by a real person at Vallo.", balanced on two lines ("Checked by a real / person
-at Vallo."). From 62.25 it flies out over 0.4 s (`power3.in`), gone by 62.65, answer side up; its own mark
-hides from 62.27 (the spinning twin takes over).
+engine's flat turn), in on "person" (59.30), turned at 60.40, answer held to 62.55 (2.15 s). Its back: the
+engine's inline mark and "Checked by a real person at Vallo.", balanced on two lines. From 62.55
+(`ctx.beat(108.42)`) it flies out over 0.3 s (`power3.in`), gone by 62.85, answer side up; its own mark
+hides from 62.57 (the spinning twin takes over).
 
-- **Mobile:** box `{ x: 110, y: 640, w: 830, h: 228 }`, fontSize 52 (back 44 px, line height 1.22); out to
-  centre (−575, −6), rotation −24°, scale 0.8 = c's `CARD_OUT.mobile.c2`.
+- **Mobile:** box `{ x: 60, y: 380, w: 640, h: 228 }` (over the live phone's left third), fontSize 44 (back
+  38 px, line height 1.22); out to centre (−575, −6), rotation −24°, scale 0.8 = c's `CARD_OUT.mobile.c2`.
 - **Desktop:** box `{ x: 1200, y: 400, w: 600, h: 160 }`, fontSize 40; out to centre (−560, −200), rotation
   −22°, scale 0.8 = c's `CARD_OUT.desktop.c2`.
 
 ### Devices
 
-- **Mobile:** B's phone (verification-lt at PHONE_HIGH, dimmed under card 2) sinks out of the bottom from
-  62.25 and is below the frame by 62.80. Nothing of B's but the coin and the ground is on screen at the cut.
-- **Desktop:** B's window holds `d-verification-lt` at WINDOW_LEFT (flat, scale 0.708333, x 80, y 150,
-  opacity 1) to the cut, so c's lock window can start at full opacity in the same place (an in-place page
-  cut on beat 109).
+- **Mobile:** B's phone (verification-lt at PHONE_HIGH, live, no wash) sinks out of the bottom from 62.55
+  and is below the frame by 62.79. Nothing of B's but the coin and the ground is on screen at the cut.
+- **Desktop:** B's window shows `d-verification-lt` at the hero scale under card 2 (its right third under a
+  30% veil until 62.85), then settles from 62.48 (`ctx.beat(108.3)`) back to WINDOW_LEFT (flat, scale
+  0.708333, x 80, y 150, opacity 1), at rest on the cut, so c's lock window can start at full opacity in the
+  same place (an in-place page cut on beat 109).
 - **Pointer:** hidden since 46.6 (both films).
+- **Pill:** "Checked by a **person**", unchanged across the cut.
 
 ### A note for section a (A → B, both films)
 
 B covers the member's sent bubble at full opacity from 30.577 (same patch as A's), so A's cover from 29.39
-carries straight across the cut.
-The chapter pill "Talk straight to the **lister**" now starts at b(53) (`chapters.js`), so the pill rolls
-from "The full cost, up front" to it on the cut instead of fading out at 30.28.
+carries straight across the cut. B takes card 1 over at the cut: it holds A's end state to 31.30, then flies
+out to the top right (c's return geometry unchanged), so A should drop its own card 1 exit.
+The chapter pill "Talk straight to the **lister**" starts at b(53) (`chapters.js`), so the pill rolls from
+"The full cost, up front" to it on the cut instead of fading out at 30.28.

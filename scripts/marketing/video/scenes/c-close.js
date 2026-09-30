@@ -6,10 +6,12 @@
  *     squiggle under "done right"; the velvet hills of frame one return behind.
  *     The mark settles before the wordmark rises. No ring, no sparkles. The
  *     full lockup and tagline hold to beat 167 (96.35), then a cut to white.
- * 41  The white end card (from 96.35): mobile, the lockup, one pill button and
- *     two phones (island and Android, `home-light`) turning toward each
- *     other; desktop, the lockup at the top, the window at vallospaces.com
- *     with the island phone beside it, and the pill centred below.
+ * 41  The white end card (from 96.35), centred optically (round 3): mobile,
+ *     the lockup at y 520, one pill button at 640, two phones (island and
+ *     Android, `home-light`) turning toward each other across y 690 to 1450,
+ *     vallospaces.com at 1515; desktop, a 640 px lockup at y 250, the pill
+ *     (1.4x) at 380, the window (0.8x) and the island phone lower (y 440 to
+ *     1005), vallospaces.com at 1042. Sparkles only around the lockup.
  * 42  Live: the official badges appear by a cut on bar 44 (99.23), App Store
  *     first, both black, the same height, never moved, scaled, tilted or
  *     faded; vallospaces.com below them. Soon: vallospaces.com only.
@@ -81,6 +83,10 @@ export async function buildClose(ctx, S) {
   squiggle(ctx, close, { x: sqX0, y: pos[2].y + tagSize * 0.58, w: sqX1 - sqX0, t: K.done + 0.18, dur: 0.35, color: "var(--sky)", stroke: M ? 8 : 7 });
 
   during(ctx, hit - 0.02, K.r41, (t) => {
+    /* the held lockup and tagline drift 1.5% closer to the cut (never fully still) */
+    const k = 1 + 0.015 * ramp(ctx, t, hit + 1.4, K.r41, "sine.inOut");
+    close.style.transformOrigin = M ? "540px 900px" : "960px 500px";
+    close.style.transform = k > 1 ? `scale(${k.toFixed(5)})` : "";
     /* the pin's head (from the map) swells into a flash; the mark lands in it */
     const u = ramp(ctx, t, hit, hit + 0.34, "power2.out");
     if (S.pinHead && t >= hit) {
@@ -114,7 +120,7 @@ export async function buildClose(ctx, S) {
   const top = ctx.scene("c41-top", K.r41, end, { z: 8 });
   const live = ctx.ending === "live";
   const pillText = live ? "Available on the App Store and Google Play" : "Coming soon on iPhone and Android";
-  const pillFs = M ? (live ? 30 : 34) : 26;
+  const pillFs = M ? (live ? 30 : 34) : 36;
   const pill = ctx.el("div", {
     class: "abs",
     text: pillText,
@@ -130,7 +136,7 @@ export async function buildClose(ctx, S) {
      App Store first; they cut in on bar 44 and are never moved, scaled or
      faded. Apple's rules want both stores live before any badge shows, so
      the live ending refuses to build without the Google Play file. */
-  const badgeH = M ? 84 : 56;
+  const badgeH = M ? 84 : 50;
   let badgeRow = null;
   if (live) {
     const hasGoogle = await fetch(BADGES.google, { method: "HEAD", cache: "no-store" }).then((r) => r.ok).catch(() => false);
@@ -148,9 +154,9 @@ export async function buildClose(ctx, S) {
 
   if (M) {
     /* the lockup above */
-    const lk = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", display: "flex", alignItems: "center", gap: "22px" } }, top);
-    ctx.img(own(ctx.src.brand("vallo-mark.png"), "lockup"), { style: { width: "104px", height: `${Math.round(104 * 587 / 614)}px` } }, lk);
-    ctx.img(own(ctx.src.brand("vallo-wordmark-light.png"), "lockup"), { style: { width: "360px", height: `${Math.round(360 * 167 / 758)}px` } }, lk);
+    const lk = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", display: "flex", alignItems: "center", gap: "26px" } }, top);
+    ctx.img(own(ctx.src.brand("vallo-mark.png"), "lockup"), { style: { width: "128px", height: `${Math.round(128 * 587 / 614)}px` } }, lk);
+    ctx.img(own(ctx.src.brand("vallo-wordmark-light.png"), "lockup"), { style: { width: "444px", height: `${Math.round(444 * 167 / 758)}px` } }, lk);
     /* the two phones: island (the light phone that carried rows 28-34) and Android */
     const pI = S.light;
     const pA = S.android;
@@ -165,58 +171,59 @@ export async function buildClose(ctx, S) {
     const drift = (t, ph) => Math.sin((t - K.r41) * 0.9 + ph);
     /* the hold: a slow turn toward the viewer and a slight push, never still */
     const hold = (t) => ramp(ctx, t, K.r41 + 0.9, end, "sine.inOut");
-    /* Sized so that everything read on this card (the badges and vallospaces.com
-       too) sits above y 1430, the captions-off safe line of STORYBOARD.md: the
-       phones span about y 565 to 1270, the badges 1290 to 1374. */
+    /* Round 3: the block is centred optically, the phones 1.1x larger across
+       about y 690 to 1450; the captions are off on the end card, and
+       vallospaces.com (and the badges, live) sit at y 1515 to 1600. */
     /* The rise and the turn toward each other are the 3D pose; once risen the
        pose holds still and the drift is a 2D move of each phone's layer, so
        the two live phones are not re-rendered on every frame of the hold. */
-    pI.poses.push({ t0: K.r41 - 0.02, t1: end, fn: (t) => ({ cx: 356, cy: 910 + (1 - rise(t, 0.05)) * 1450, height: 690, rx: 2, ry: mix(-4, 13, rise(t, 0.05)), rz: 0, fov: 24, opacity: 1 }) });
-    pA.poses.push({ t0: K.r41 - 0.02, t1: end, fn: (t) => ({ cx: 724, cy: 924 + (1 - rise(t, 0.16)) * 1450, height: 680, rx: 2, ry: mix(4, -13, rise(t, 0.16)), rz: 0, fov: 24, opacity: 1 }) });
+    const PH = { cy: 1082, h: 760 };
+    pI.poses.push({ t0: K.r41 - 0.02, t1: end, fn: (t) => ({ cx: 336, cy: PH.cy + (1 - rise(t, 0.05)) * 1450, height: PH.h, rx: 2, ry: mix(-4, 13, rise(t, 0.05)), rz: 0, fov: 24, opacity: 1 }) });
+    pA.poses.push({ t0: K.r41 - 0.02, t1: end, fn: (t) => ({ cx: 744, cy: PH.cy + 12 + (1 - rise(t, 0.16)) * 1450, height: PH.h - 10, rx: 2, ry: mix(4, -13, rise(t, 0.16)), rz: 0, fov: 24, opacity: 1 }) });
     ctx.onFrame((t) => {
       const on = t >= K.r41 - 0.02 && t < end;
       pI.root.style.transform = on ? `translate(${(4 * drift(t, 0)).toFixed(2)}px, ${(5 * drift(t, 1.3) - 12 * hold(t)).toFixed(2)}px)` : "";
       pA.root.style.transform = on ? `translate(${(-4 * drift(t, 0.6)).toFixed(2)}px, ${(5 * drift(t, 2.1) - 12 * hold(t)).toFixed(2)}px)` : "";
     });
-    /* sparkles at fixed points in the margins, clear of the type and the phones */
-    [[150, 300, 24], [930, 350, 20], [120, 470, 16]].forEach(([x, y, d], i) => sparkles(ctx, top, { area: { x: x - d / 2, y: y - d / 2, w: d, h: d }, count: 1, seed: 4101 + i, t0: K.r41 + 0.8 + i * 0.15, t1: end + 1, color: "#5c9fff", min: d, max: d }));
+    /* sparkles at fixed points around the lockup only, clear of the type */
+    [[196, 452, 24], [892, 474, 20], [872, 568, 14]].forEach(([x, y, d], i) => sparkles(ctx, top, { area: { x: x - d / 2, y: y - d / 2, w: d, h: d }, count: 1, seed: 4101 + i, t0: K.r41 + 0.8 + i * 0.15, t1: end + 1, color: "#5c9fff", min: d, max: d }));
     const url0 = K.r42;
     during(ctx, K.r41 - 0.02, end, (t) => {
       const a = ramp(ctx, t, K.r41 + 0.25, K.r41 + 0.95, "land");
-      place(lk, { x: 540, y: 330 + (1 - a) * 24, o: a });
+      place(lk, { x: 540, y: 520 + (1 - a) * 24, o: a });
       const b = ramp(ctx, t, K.r41 + 0.45, K.r41 + 1.1, "land");
-      place(pill, { x: 540, y: 470 + (1 - b) * 20, o: b });
+      place(pill, { x: 540, y: 640 + (1 - b) * 20, o: b });
       /* bar 44: the badges cut in (live); vallospaces.com arrives */
-      cutBadges(t, 540, 1332);
+      cutBadges(t, 540, 1515);
       const c = ramp(ctx, t, url0, url0 + 0.6, "land");
-      place(url, { x: 540, y: (live ? 1410 : 1332) + (1 - c) * 16, o: c });
+      place(url, { x: 540, y: (live ? 1600 : 1515) + (1 - c) * 16, o: c });
     });
   } else {
     /* desktop: the window at vallospaces.com (d-home-light) at the left, the island phone at the right */
     const winScene = ctx.scene("c41-win", K.r41 - 0.02, end, { z: 3 });
     const win = browserWindow(ctx, { parent: winScene, width: 1440, url: "vallospaces.com", theme: "light" });
     ctx.img(ctx.src.capture("d-home-light"), { class: "abs", style: { left: "0px", top: "0px", width: "1440px", height: "900px" } }, win.content);
-    const s = 1060 / 1440;
+    const s = (0.8 * 1060) / 1440; // round 3: 0.8x the round-2 window
     const pD = S.deskPhone;
     const dImg = screenImage(ctx, pD, "home-light");
     const rise = (t, lag) => ramp(ctx, t, K.r41 + lag, K.r41 + 0.85 + lag, "land");
     const drift = (t, ph) => Math.sin((t - K.r41) * 0.9 + ph);
     const hold = (t) => ramp(ctx, t, K.r41 + 0.9, end, "sine.inOut");
     /* the rise and turn in 3D; the hold's drift as a 2D move of the phone's layer */
-    pD.poses.push({ t0: K.r41 - 0.02, t1: end, fn: (t) => ({ cx: 1500, cy: 510 + (1 - rise(t, 0.14)) * 1000, height: 820, rx: 2, ry: mix(6, -10, rise(t, 0.14)), rz: 0, fov: 24, opacity: 1 }) });
+    pD.poses.push({ t0: K.r41 - 0.02, t1: end, fn: (t) => ({ cx: 1466, cy: 724 + (1 - rise(t, 0.14)) * 1000, height: 560, rx: 2, ry: mix(6, -10, rise(t, 0.14)), rz: 0, fov: 24, opacity: 1 }) });
     ctx.onFrame((t) => {
       const on = t >= K.r41 - 0.02 && t < end;
       pD.root.style.transform = on ? `translate(${(3 * drift(t, 0.4)).toFixed(2)}px, ${(4 * drift(t, 1.1) - 10 * hold(t)).toFixed(2)}px)` : "";
     });
-    [[70, 90, 20], [1850, 120, 22], [1860, 1000, 16]].forEach(([x, y, d], i) => sparkles(ctx, top, { area: { x: x - d / 2, y: y - d / 2, w: d, h: d }, count: 1, seed: 4102 + i, t0: K.r41 + 0.8 + i * 0.15, t1: end + 1, color: "#5c9fff", min: d, max: d }));
+    [[606, 196, 22], [1318, 212, 20], [1300, 300, 14]].forEach(([x, y, d], i) => sparkles(ctx, top, { area: { x: x - d / 2, y: y - d / 2, w: d, h: d }, count: 1, seed: 4102 + i, t0: K.r41 + 0.8 + i * 0.15, t1: end + 1, color: "#5c9fff", min: d, max: d }));
     /* the Vallo lockup, top centre */
-    const lkD = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", display: "flex", alignItems: "center", gap: "14px", visibility: "hidden" } }, top);
-    ctx.img(own(ctx.src.brand("vallo-mark.png"), "lockup"), { style: { width: "54px", height: `${Math.round(54 * 587 / 614)}px` } }, lkD);
-    ctx.img(own(ctx.src.brand("vallo-wordmark-light.png"), "lockup"), { style: { width: "190px", height: `${Math.round(190 * 167 / 758)}px` } }, lkD);
+    const lkD = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", display: "flex", alignItems: "center", gap: "30px", visibility: "hidden" } }, top);
+    ctx.img(own(ctx.src.brand("vallo-mark.png"), "lockup"), { style: { width: "146px", height: `${Math.round(146 * 587 / 614)}px` } }, lkD);
+    ctx.img(own(ctx.src.brand("vallo-wordmark-light.png"), "lockup"), { style: { width: "464px", height: `${Math.round(464 * 167 / 758)}px` } }, lkD);
     ctx.onFrame((t) => {
       dImg.style.visibility = t >= K.r41 - 0.05 ? "" : "hidden";
     });
-    /* the pill alone, centred at y 940 from the start; below it one centred
+    /* the pill under the lockup at y 380; at the foot one centred
        row: the badges (live) and vallospaces.com, measured once the fonts and
        badge files have loaded (layout constants) */
     let row = null;
@@ -232,15 +239,15 @@ export async function buildClose(ctx, S) {
       const { uw, bw, gap, total, x0 } = row;
       const u = rise(t, 0);
       win.root.style.transformOrigin = "0 0";
-      win.root.style.transform = `translate(120px, ${(158 + (1 - u) * 1000 + 3 * drift(t, 0.2)).toFixed(2)}px) scale(${s.toFixed(5)})`;
+      win.root.style.transform = `translate(318px, ${(440 + (1 - u) * 1000 + 3 * drift(t, 0.2)).toFixed(2)}px) scale(${s.toFixed(5)})`;
       win.root.style.opacity = opa(1);
       const a = ramp(ctx, t, K.r41 + 0.25, K.r41 + 0.95, "land");
-      place(lkD, { x: 960, y: 70 + (1 - a) * 14, o: a });
+      place(lkD, { x: 960, y: 250 + (1 - a) * 14, o: a });
       const b = ramp(ctx, t, K.r41 + 0.45, K.r41 + 1.1, "land");
-      place(pill, { x: 960, y: 940 + (1 - b) * 16, o: b });
-      cutBadges(t, x0 + bw / 2, 1022);
+      place(pill, { x: 960, y: 380 + (1 - b) * 16, o: b });
+      cutBadges(t, x0 + bw / 2, 1042);
       const c = ramp(ctx, t, K.r42, K.r42 + 0.6, "land");
-      place(url, { x: x0 + total - uw / 2, y: 1022 + (1 - c) * 12, o: c });
+      place(url, { x: x0 + total - uw / 2, y: 1042 + (1 - c) * 12, o: c });
     });
   }
 }

@@ -14,21 +14,21 @@ export async function switcher(ctx, S, T) {
   const layer = ctx.scene("b-m-switch", T.r19 - 0.02, T.r20 + 0.5, { z: 30 });
 
   /* ---------- the press ---------- */
-  const tPress = T.planning;
+  const tPress = T.planning - 0.16; // 41.38: pressed just before the word, so the phone is gone as "Planning" rises
   pressAt(ctx, S.orb, tPress, { ringParent: S.pointer, x: S.flipAt.x, y: S.flipAt.y, sound: null });
   ripple(ctx, S.drawerPage.el, { x: FLIP.x - 120, y: FLIP.y, t: tPress, size: 320 });
   ctx.sfx("toggle_on", tPress, { offset: 4 });
   ctx.sfx("whoosh_long", T.r19, { offset: -2 });
-  S.orbT.to(tPress + 0.02, 0.18, { y: S.flipAt.y + 300, opacity: 0 }, "power1.in"); // goes with the phone
+  S.orbT.to(tPress + 0.01, 0.14, { y: S.flipAt.y + 300, opacity: 0 }, "power1.inOut"); // goes with the phone
 
-  /* The phone fades as it drops 300 px (41.56 to 41.74), clear before "Planning" rises. */
-  S.pLpose.to(tPress + 0.02, 0.18, { cy: S.FLIPPOSE.cy + 300, opacity: 0 }, "power1.in");
+  /* The phone fades as it drops 300 px (41.39 to 41.53), clear before "Planning" rises at 41.54. */
+  S.pLpose.to(tPress + 0.01, 0.14, { cy: S.FLIPPOSE.cy + 300, opacity: 0 }, "power1.inOut");
 
   /* ---------- "Planning / a trip?" on the frame's axis ---------- */
   const CX = ctx.W / 2;
   const CY = 780;
   const R = 380;
-  const tIn = tPress;              // 41.54: "Planning" rises on its word
+  const tIn = T.planning;          // 41.54: "Planning" rises on its word
   const tHold = ctx.beat(74.55);   // 43.01: held complete from about 41.9 to here
   const tShrink1 = tHold + 0.3;    // 43.10: into the pill
   const title = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${ctx.W}px`, textAlign: "center", fontFamily: "Poppins, Inter, sans-serif", fontWeight: "700", letterSpacing: "-0.035em", lineHeight: "1.06", color: NAVY, whiteSpace: "nowrap", transformOrigin: `${CX}px ${CY}px` } }, layer);

@@ -246,7 +246,7 @@ export async function buildPay(ctx, S) {
     const f = ramp(ctx, tt, fold[0], fold[1], "whip");
     const k = drift(tt);
     const x = mix(ST[i].x, LINE[i].x, f);
-    const y = mix(ST[i].y, LINE[i].y, f) + rowOff(tt) * (M ? 820 : 360);
+    const y = mix(ST[i].y, LINE[i].y, f) + rowOff(tt) * 60; // the folded path sinks a little and fades as the cards fly
     return { x: GC.x + (x - GC.x) * k, y: GC.y + (y - GC.y) * k, d: mix(SD, SMALL, f) * k, u: f };
   };
   const bankAt = (sp, inU) => (M
@@ -402,13 +402,19 @@ export async function buildPay(ctx, S) {
 
   /* ================= the three answered cards (row 31) ================= */
   const swingIn = ctx.beat(121.25); // 69.95
-  const cardScene = ctx.scene("c31-cards", swingIn - 0.02, K.r32, { z: 11 });
+  const cardScene = ctx.scene("c31-cards", swingIn - 0.02, ROW_OFF[1] + 0.02, { z: 11 });
   {
     const slot = L.CARD_SLOT;
     const w = slot[0].w;
     const h = slot[0].h;
     const fs = M ? 31 : 40;
-    const card = async (q, a, mark) => {
+    const pad = Math.round(fs * 0.85);
+    /* answers set in explicit lines (round 3): card 1 never wraps raggedly */
+    const LINES = {
+      mobile: [["₦26,100,000", "to move in.", "Seen before", "a single call."], null, null],
+      desktop: [["₦26,100,000 to move in.", "Seen before a single call."], null, null],
+    }[ctx.film];
+    const card = async (q, a, mark, lines) => {
       const root = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${w}px`, height: `${h}px`, visibility: "hidden" } }, cardScene);
       const inner = ctx.el("div", { class: "abs", style: { inset: "0px" } }, root);
       const face = (back) => ctx.el("div", {
@@ -416,7 +422,7 @@ export async function buildPay(ctx, S) {
         style: {
           inset: "0px", borderRadius: `${Math.round(Math.min(w, h) * 0.11)}px`, overflow: "hidden",
           display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: `${Math.round(fs * 0.6)}px`, textAlign: "center",
-          padding: `0 ${Math.round(fs * 0.85)}px`, color: "#fff", font: `600 ${back ? fs : Math.round(fs * 1.08)}px/1.2 "C Poppins", Inter, sans-serif`, letterSpacing: "-0.02em",
+          padding: `0 ${pad}px`, color: "#fff", font: `600 ${back ? fs : Math.round(fs * 1.08)}px/1.2 "C Poppins", Inter, sans-serif`, letterSpacing: "-0.02em",
           backdropFilter: "none", boxShadow: SHADOW.light,
           ...(back ? { background: "linear-gradient(150deg, rgb(0 105 254 / 0.94), rgb(0 63 152 / 0.96))", border: "1.5px solid rgb(143 211 255 / 0.55)" } : { background: "rgb(10 16 60 / 0.94)" }),
         },
@@ -425,38 +431,65 @@ export async function buildPay(ctx, S) {
       ctx.el("span", { text: q }, front);
       const back = face(true);
       if (mark) await verifiedMark(ctx, back, Math.round(fs * 1.8));
-      ctx.el("span", { text: a }, back);
+      if (lines) {
+        /* the longest line fits the card's width at the face's own size or smaller */
+        const widest = Math.max(...lines.map((l) => measure(l, `600 ${fs}px "C Poppins"`, "-0.02em")));
+        const size = Math.min(fs, Math.floor((fs * (w - 2 * pad - 8)) / widest));
+        const box = ctx.el("div", { style: { fontSize: `${size}px` } }, back);
+        lines.forEach((l) => ctx.el("div", { text: l, style: { whiteSpace: "nowrap" } }, box));
+      } else {
+        ctx.el("span", { text: a }, back);
+      }
       return { root, inner, front, back };
     };
-    /* card 2 returns to the left slot (it left to the top left), card 1 to
-       the right (it left to the top right), card 3 in the middle */
-    const c3 = await card(QUESTIONS[2].q, QUESTIONS[2].a, false);
-    const c2 = await card(QUESTIONS[1].q, QUESTIONS[1].a, true);
-    const c1 = await card(QUESTIONS[0].q, QUESTIONS[0].a, false);
+    /* the row reads 1 | 2 | 3, as the story asks them: card 1 comes back from
+       the left, card 2 from above, card 3 swings in from the right */
+    const c1 = await card(QUESTIONS[0].q, QUESTIONS[0].a, false, LINES[0]);
+    const c2 = await card(QUESTIONS[1].q, QUESTIONS[1].a, true, LINES[1]);
+    const c3 = await card(QUESTIONS[2].q, QUESTIONS[2].a, false, LINES[2]);
     const centre = (b) => ({ x: b.x + b.w / 2, y: b.y + b.h / 2 });
     const [S0, S1, S2] = slot.map(centre);
     /* the engine's flat turn (skew, edge shade, highlight): card 3 turns once;
        cards 1 and 2 come back already turned */
-    const t3 = [ctx.beat(123.0)]; // 70.96
+    const t3 = [ctx.beat(123.0)]; // 70.96: its answer shows from 71.26 and lies flat by 71.58
     installFlatTurn(ctx, c3, t3);
     installFlatTurn(ctx, c1, [-100]);
     installFlatTurn(ctx, c2, [-100]);
-    const back1 = ctx.beat(123.6); // 71.31
-    const full = ctx.beat(124.1); // 71.60
+    const land12 = [[70.45, 70.9], [70.5, 70.95]]; // cards 1 and 2 land by 70.95
+    const full = ctx.beat(124.1); // 71.60: the row is complete
     ctx.sfx("card_slide", swingIn, { offset: -4 });
     ctx.sfx("pop", t3[0] + 0.04, { offset: 0 });
     ctx.sfx("success", full, { offset: -2 });
-    during(ctx, swingIn - 0.02, K.r32, (tt) => {
+    const IN = CARD_IN[ctx.film];
+    const OFF = CARD_OFF[ctx.film];
+    /* the held row drifts 1.5% larger about its middle, then flies off */
+    const rowC = { x: S1.x, y: S1.y };
+    const hold = (tt) => 1 + 0.015 * ramp(ctx, tt, full - 0.3, ROW_OFF[0], "sine.inOut");
+    const off = (i, tt) => ramp(ctx, tt, ROW_OFF[0] + i * 0.02, ROW_OFF[1] - (2 - i) * 0.02, "power2.in");
+    const at = (Sx, k) => ({ x: rowC.x + (Sx.x - rowC.x) * k, y: rowC.y + (Sx.y - rowC.y) * k });
+    during(ctx, swingIn - 0.02, ROW_OFF[1] + 0.02, (tt) => {
+      const k = hold(tt);
       /* card 3 swings in from the right, clear of the pill */
-      const a = ramp(ctx, tt, swingIn, swingIn + 0.38, "back.out(1.3)");
-      place(c3.root, { x: mix(S1.x + (M ? 760 : 1200), S1.x, a), y: S1.y, r: mix(14, 0, a), o: tt >= swingIn ? 1 : 0 });
-      const flipped = tt >= t3[0] + TURN_SWAP;
-      c3.front.style.visibility = flipped ? "hidden" : "inherit";
-      c3.back.style.visibility = flipped ? "inherit" : "hidden";
-      const OUT = CARD_OUT[ctx.film];
-      [[c2, S0, 0, OUT.c2], [c1, S2, 0.08, OUT.c1]].forEach(([c, Sx, lag, from]) => {
-        const b = ramp(ctx, tt, back1 + lag, full + lag * 0.5, "power3.out");
-        place(c.root, { x: mix(from.x, Sx.x, b), y: mix(from.y, Sx.y, b), r: mix(from.r, 0, b), s: mix(from.s, 1, b), o: b > 0 ? 1 : 0 });
+      {
+        const a = ramp(ctx, tt, swingIn, swingIn + 0.38, "back.out(1.3)");
+        const p = at(S2, k);
+        const o = off(2, tt);
+        place(c3.root, {
+          x: mix(mix(S2.x + (M ? 560 : 900), p.x, a), OFF[2].x, o), y: mix(p.y, OFF[2].y, o),
+          r: mix(14, 0, a) + OFF[2].r * o, s: k, o: tt >= swingIn && o < 1 ? 1 : 0,
+        });
+        const flipped = tt >= t3[0] + TURN_SWAP;
+        c3.front.style.visibility = flipped ? "hidden" : "inherit";
+        c3.back.style.visibility = flipped ? "inherit" : "hidden";
+      }
+      [[c1, S0, IN.c1, 0], [c2, S1, IN.c2, 1]].forEach(([c, Sx, from, i]) => {
+        const b = ramp(ctx, tt, land12[i][0], land12[i][1], "power3.out");
+        const p = at(Sx, k);
+        const o = off(i, tt);
+        place(c.root, {
+          x: mix(mix(from.x, p.x, b), OFF[i].x, o), y: mix(mix(from.y, p.y, b), OFF[i].y, o),
+          r: mix(from.r, 0, b) + OFF[i].r * o, s: mix(from.s, 1, b) * k, o: b > 0 && o < 1 ? 1 : 0,
+        });
         c.front.style.visibility = "hidden";
         c.back.style.visibility = "inherit";
       });

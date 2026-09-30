@@ -139,7 +139,7 @@ export async function checked(ctx, S, T) {
   const pose = S.pLpose;
   pose.to(tRise + 0.11, 0.001, { ...HIGH, cy: 2600, rx: 0, ry: 0, opacity: 1 }, "none");
   pose.to(tRise + 0.12, 0.5, HIGH, "glide");                                      // 57.75-58.25
-  pose.to(tOut, 0.32, { cy: 2650 }, "power2.in");                                 // leaves as the chapter ends
+  pose.to(tOut, 0.24, { cy: 2650 }, "power2.in");                                 // leaves as the chapter ends, gone by 62.79
   const page = screenPage(ctx, pL, ctx.src.display("verification-lt"));
   showDuring(ctx, page.el, [[tRise + 0.1, tEnd]]);
 

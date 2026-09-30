@@ -191,10 +191,7 @@ export function buildOpenDesktop(ctx, T) {
   tl.fromTo(logo, { scale: LOGO_S }, { scale: LOGO_S * 1.03, duration: T.widen - T.drop, ease: "drift" }, T.drop);
   /* Just before the iris opens, the mark and the wordmark rush past the camera through it. */
   tl.fromTo(mark, { opacity: 1 }, { opacity: 0, duration: 0.45, ease: "power2.in", immediateRender: false }, T.widen - 0.05);
-  /* (the mark swings back to the ring's centre as it rushes, so the iris opens from behind it) */
-  const stepX = lockX + (markW * markS) / 2 - RING.cx;
   tl.fromTo(markWrap, { scale: markS }, { scale: markS * 1.35, duration: 0.45, ease: "power2.in", immediateRender: false }, T.widen - 0.05);
-  tl.fromTo(markWrap, { x: stepX }, { x: 0, duration: 0.3, ease: "power2.inOut", immediateRender: false }, T.widen - 0.1);
   tl.fromTo(wordmark, { scale: 1, opacity: 1 }, { scale: 1.35, opacity: 0, duration: 0.45, ease: "power2.in", immediateRender: false }, T.widen - 0.05);
 
   /* ================= the iris opens onto daylight ================= */
@@ -203,7 +200,11 @@ export function buildOpenDesktop(ctx, T) {
   const R0 = RING.r;
   const R1 = 1160;
   const openEnd = T.widen + 0.62;
-  const radius = (t) => R1 * ctx.ease("power2.in")(ctx.progress(t, T.widen, openEnd));
+  /* nearly linear from the first frame (no slow seed of a disc), easing in a little */
+  const radius = (t) => {
+    const p = ctx.progress(t, T.widen, openEnd);
+    return p > 0 ? 40 + (R1 - 40) * p * (0.45 + 0.55 * p) : 0;
+  };
   const win = ctx.scene("a-ring", T.widen, openEnd + 0.02, { z: 20 });
   const edgeRing = ctx.el("div", { class: "abs", style: { borderRadius: "50%", border: `4px solid ${SKY}`, boxSizing: "border-box" } }, win);
   ctx.onFrame((t) => {

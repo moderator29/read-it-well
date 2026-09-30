@@ -88,7 +88,7 @@ export function goingTitle(ctx, layer, T, { id, CX, CY, R, maxSize, feather, tPu
     L = { o: { x: pos[2][0] + tW + (toW - tW) / 2 - size * 0.02, y: base2 - 0.28 * size } };
   };
   /* no iris (it led nowhere): the title holds, then lifts a little and fades as the device rises under it */
-  const tEnd = tPush + 0.32;
+  const tEnd = tPush + 0.24;
   ctx.onFrame((t) => {
     if (t < T.r23 - 0.05 || t > tEnd + 0.05) return;
     if (!L) doLayout();
@@ -127,7 +127,7 @@ export async function goingOut(ctx, S, T) {
   /* ==================== row 24 ==================== */
   const pL = S.pL;
   const HIGH = { cx: L.PHONE_HIGH.cx, cy: L.PHONE_HIGH.cy, height: L.PHONE_HIGH.height };
-  const tRise = ctx.beat(87.2);    // 50.31: rises under the title as it lifts away
+  const tRise = ctx.beat(87.35) + 0.08; // 50.47: rises as the title lifts away, clear of it
   const tOff = ctx.beat(93.36);    // 53.86
   const tTurn = ctx.beat(93.43);   // 53.90
   const pose = S.pLpose;

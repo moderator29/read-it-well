@@ -230,7 +230,11 @@ export function buildOpenMobile(ctx, T) {
   const R0 = 285;
   const R1 = 1240;
   const openEnd = T.widen + 0.62;
-  const radius = (t) => R1 * ctx.ease("power2.in")(ctx.progress(t, T.widen, openEnd));
+  /* nearly linear from the first frame (no slow seed of a disc), easing in a little */
+  const radius = (t) => {
+    const p = ctx.progress(t, T.widen, openEnd);
+    return p > 0 ? 40 + (R1 - 40) * p * (0.45 + 0.55 * p) : 0;
+  };
   const win = ctx.scene("a-ring", T.widen, openEnd + 0.02, { z: 20 });
   const edgeRing = ctx.el("div", { class: "abs", style: { borderRadius: "50%", border: `4px solid ${SKY}`, boxSizing: "border-box" } }, win);
   ctx.onFrame((t) => {

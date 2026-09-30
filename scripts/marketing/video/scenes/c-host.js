@@ -3,9 +3,9 @@
  * films. STORYBOARD v3.2.
  *
  * On the night ground, `host-start` ("Add a workspace") slides in over the
- * last welcome screen. As each is named, its row lights on the screen and the
- * camera pushes onto it (1.2x on mobile; the window at hero scale on
- * desktop, with the pointer on the row). Nothing is lifted or copied beside
+ * last welcome screen. As each is named, its row lights on the screen; on
+ * mobile one 1.25x push holds the three rows (round 3), on desktop the
+ * window is at hero scale with the pointer on the row. Nothing is lifted or copied beside
  * the device. "I am an agent" is never lit. A cut on the beat at 88.27 goes
  * to the map.
  */
@@ -50,17 +50,22 @@ export async function buildHost(ctx, S) {
         n.style.opacity = opa(o);
       });
     });
-    /* a 1.2x push that holds the named row at y 1100, above the captions */
+    /* One push (1.25x) held across the three rows, the lit row changing under
+       it; no pull-out between rows (round 3). The push frames the three rows
+       with the lit one at y <= 1150 (property's lower edge at about 1149, the
+       hotel's top at about 360), drifting 20 px up over the row so the hold
+       is never still. The pill stays away for the row: "Add a workspace"
+       rises through its band as the push comes in. */
     const s0 = dispToStage(P, 0, 0).s;
-    const mid = ROWS.map((r) => (r.m[0] + r.m[1]) / 2);
-    const focus = [[named[0] - 0.2, mid[0]], [named[1] - 0.2, mid[0]], [named[1] + 0.2, mid[1], "power2.inOut"], [named[2] - 0.2, mid[1]], [named[2] + 0.2, mid[2], "power2.inOut"]];
+    const PUSH = 1.25;
+    const push = [K.r37 + 0.04, K.r37 + 0.5]; // as "Add a workspace" slides in; property lights at 85.55 under it
+    const cyHeld = (t) => 517 - 20 * ramp(ctx, t, push[1], K.r38, "none");
+    ctx.hidePill(K.r37, K.r38);
     p.poses.push({
       t0: K.r37 - 0.02, t1: K.r38,
       fn: (t) => {
-        const u = ramp(ctx, t, named[0] - 0.2, named[0] + 0.2, "power2.inOut");
-        const k = mix(1, 1.2, u);
-        const f = track(ctx, t, focus);
-        return { cx: P.cx, cy: mix(P.cy, 1100 - (f - 1434) * s0 * k, u), height: P.height * k, rx: 0, ry: 0, rz: 0, fov: 24, opacity: 1 };
+        const u = ramp(ctx, t, push[0], push[1], "power2.inOut");
+        return { cx: P.cx, cy: mix(P.cy, cyHeld(t), u), height: P.height * mix(1, PUSH, u), rx: 0, ry: 0, rz: 0, fov: 24, opacity: 1 };
       },
     });
   } else {
