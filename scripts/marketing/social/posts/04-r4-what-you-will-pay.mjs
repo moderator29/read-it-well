@@ -2,7 +2,7 @@
  * breakdown running big across the glass. Night. The phone lies on a long
  * diagonal and leaves through the right edge under the headline; a checklist
  * is the post's 3D icon. */
-import { frame, headline, icon3d } from "../lib/premium.mjs";
+import { SLOT, frame, headline, icon3d } from "../lib/premium.mjs";
 import { phoneHtml } from "../lib/kit.mjs";
 
 const W = 1080;
@@ -25,7 +25,7 @@ export default {
       body: `
       ${headline(["What you will", "<k>actually</k> pay."], { W, H })}
       ${phoneHtml(phones[0])}
-      ${icon3d("checklist", { x: 905, y: 262, size: 200, ground: "night" })}
+      ${icon3d("checklist", { ...SLOT.post.tr, size: 210, ground: "night" })}
       `,
     }),
 };

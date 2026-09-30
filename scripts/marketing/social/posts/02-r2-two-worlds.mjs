@@ -2,7 +2,7 @@
  * the frame. Electric. A home (the example villa in Maitama) and a stay (the
  * example resort, Lagoon Crest): two worlds in one account. The shortlet, a
  * home with a pool, is the post's 3D icon. */
-import { frame, headline, icon3d } from "../lib/premium.mjs";
+import { SLOT, frame, headline, icon3d } from "../lib/premium.mjs";
 import { phoneHtml } from "../lib/kit.mjs";
 
 const W = 1080;
@@ -27,7 +27,7 @@ export default {
       ${headline(["Two worlds.", "<k>One</k> account."], { W, H })}
       ${phoneHtml(phones[0])}
       ${phoneHtml(phones[1])}
-      ${icon3d("shortlet", { x: 900, y: 266, size: 220, ground: "electric" })}
+      ${icon3d("shortlet", { ...SLOT.post.tr, size: 210, ground: "electric" })}
       `,
     }),
 };

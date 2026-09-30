@@ -1,11 +1,14 @@
 /* R12 · after IMG_6739: two phones floating, tilted and turned toward each
- * other. Electric. A home for sale on Chevron Drive, and what its listing
- * says about light, water and getting in. A plug is the post's 3D icon. */
+ * other. Electric. One example listing, two things to know before you commit:
+ * what it says about light and water, and the total to move in with every fee
+ * named. Text screens only, so the example villa's photograph is not repeated
+ * here. A plug is the post's 3D icon. */
 import { frame, headline, icon3d, subline } from "../lib/premium.mjs";
 import { phoneHtml } from "../lib/kit.mjs";
 
 const W = 1600;
 const H = 1200;
+const PH = { model: "island", color: "black-titanium", fov: 26, h: 700 };
 
 export default {
   id: "12",
@@ -13,10 +16,10 @@ export default {
   W,
   H,
   phones: [
-    { screen: "listing-banana", model: "island", color: "black-titanium", rotation: { x: -14, y: 26, z: 17 }, fov: 26, h: 860, cx: 930, cy: 650,
-      shadow: { type: "drop", opacity: 0.4, ambientOpacity: 0.2, color: "#001040", offset: { x: 30, y: 60 }, blur: 60 } },
-    { screen: "listing-amenities", model: "island", color: "black-titanium", rotation: { x: -18, y: -26, z: -8 }, fov: 26, h: 860, cx: 1310, cy: 730,
-      shadow: { type: "drop", opacity: 0.4, ambientOpacity: 0.2, color: "#001040", offset: { x: 20, y: 70 }, blur: 60 } },
+    { ...PH, screen: "listing-amenities", rotation: { x: -14, y: 26, z: 17 }, cx: 1030, cy: 700,
+      shadow: { type: "drop", opacity: 0.4, ambientOpacity: 0.2, color: "#001040", offset: { x: 26, y: 50 }, blur: 50 } },
+    { ...PH, screen: "listing-cost-total", rotation: { x: -18, y: -26, z: -8 }, cx: 1332, cy: 772,
+      shadow: { type: "drop", opacity: 0.4, ambientOpacity: 0.2, color: "#001040", offset: { x: 18, y: 58 }, blur: 50 } },
   ],
   html: ({ phones }) =>
     frame({

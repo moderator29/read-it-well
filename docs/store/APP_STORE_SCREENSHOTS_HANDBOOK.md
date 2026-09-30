@@ -70,7 +70,7 @@ Every screen is the live product at <https://www.vallospaces.com>, in its dark t
 | 32 | Vallo speaks your language | languages | `welcome-yo` | public; subline "English, Hausa, Yorùbá and Igbo." |
 | 33 | Light or dark, your call | sun-moon | `appearance` | |
 | 34 | Listings that speak for themselves | image | `listing-sale` | |
-| 35 | Vallo. Real estate, done right. | the app icon | `home-recent` | subline "Coming soon on iPhone and Android." |
+| 35 | Vallo. Real estate, done right. | the app icon | `welcome-4` | public; the onboarding's last slide; subline "Coming soon on iPhone and Android." |
 
 The layouts are in `scripts/marketing/store/shots/premium.mjs`.
 
@@ -135,7 +135,7 @@ Everything lives in `scripts/marketing/`:
 From the repository root, with the displays in place:
 
 ```bash
-# Both stores and Play's feature graphic, at 2x (about 25 minutes on four CPUs).
+# Both stores and Play's feature graphic, at 2x (10 to 25 minutes on four CPUs, depending on the phone cache).
 node scripts/marketing/store/compose.mjs --feature
 #   a few images, one store, or a quick proof folder that touches nothing here:
 #   ... compose.mjs --only 10,30 --store app-store --res 1 --proof /tmp/proof

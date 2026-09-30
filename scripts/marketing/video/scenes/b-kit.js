@@ -270,7 +270,7 @@ export function showDuring(ctx, el, ranges) {
   ctx.onFrame((t) => {
     const on = ranges.some(([a, b]) => t >= a && t < b);
     if (on !== shown) {
-      el.style.visibility = on ? "visible" : "hidden";
+      el.style.visibility = on ? "inherit" : "hidden";
       shown = on;
     }
   });
@@ -376,7 +376,7 @@ export function quadDriver(ctx, el, w, h, { t0, t1, quadAt, opacityAt = null }) 
   ctx.onFrame((t) => {
     const on = t >= t0 && t < t1;
     if (on !== shown) {
-      el.style.visibility = on ? "visible" : "hidden";
+      el.style.visibility = on ? "inherit" : "hidden";
       shown = on;
     }
     if (!on) return;

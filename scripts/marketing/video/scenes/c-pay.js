@@ -105,7 +105,6 @@ export async function buildPay(ctx, S) {
     KEY = (k) => at(...G.keys[k]);
     DOTS_AT = at(G.dots.x0 + G.dots.dx * 2.5, G.dots.y);
     const img = screenImage(ctx, p, G.id);
-    const edgeLight = "#ececfc";
     const layer = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: "1320px", height: "2868px", visibility: "hidden" } }, p.screen);
     const drawDots = dotLayer(layer, 1);
     ctx.onFrame((tt) => {
@@ -114,8 +113,6 @@ export async function buildPay(ctx, S) {
       layer.style.visibility = on ? "" : "hidden";
       if (!on) return;
       drawDots(tt);
-      p.frame.style.background = G.edge;
-      p.screen.style.background = G.edge;
     });
     for (const pr of presses) tap(ctx, p.screen, { x: G.keys[pr.key][0], y: G.keys[pr.key][1], t: pr.t, size: 230, sound: null });
     /* up from below into PHONE_HIGH; after "pay" it drops out */

@@ -29,7 +29,7 @@ export default {
       ground: "night",
       body: `
       ${headline(["Welcome", "to <k>Vallo.</k>"], { W, H })}
-      ${subline("Homes, stays and tables, in one account.", { W, H })}
+      ${subline("Homes, stays and tables.", { W, H })}
       ${CARDS.map((c) => `<div style="position:absolute;left:${c.x}px;top:${c.y}px;width:${CW}px;height:${CH}px;border-radius:40px;overflow:hidden;
           box-shadow:0 60px 110px -30px rgba(0,0,10,.8), 0 18px 40px -14px rgba(0,0,20,.5), 0 0 0 1.5px rgba(130,178,255,.24)">
           <img src="${u(join(SOURCE, `${c.id}.webp`))}" alt="" style="display:block;width:${CW}px;height:${CH}px"></div>`).join("")}

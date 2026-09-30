@@ -51,11 +51,18 @@ export function grid(W, H) {
  * A whole post: the ground, the wordmark, the footer, and the post's own
  * layers in `body`. `foot` is the footer line (the same on every post).
  */
-export function frame({ W, H, ground = "night", body = "", css = "", foot = "vallospaces.com" }) {
+export function frame({ W, H, ground = "night", body = "", css = "", foot = "vallospaces.com", panels = 1 }) {
   const G = GROUND[ground];
   const c = ink(ground);
-  const g = grid(W, H);
+  const PW = W / panels;
+  const g = grid(PW, H);
   const wm = G.dark ? "vallo-wordmark.png" : "vallo-wordmark-light.png";
+  const wmFilter = ground === "electric" ? ";filter:drop-shadow(0 2px 5px rgba(0,16,80,.55))" : "";
+  /* the brand bar: the wordmark at the left margin and the footer line at the
+   * right margin, once per panel (a carousel repeats it on every slide) */
+  const bar = Array.from({ length: panels }, (_, i) => `
+  <img src="${u(join(BRAND, wm))}" alt="Vallo" style="position:absolute;left:${i * PW + g.wm.x}px;top:${g.wm.y}px;height:${g.wm.h}px;width:auto${wmFilter}">
+  <div class="foot" style="right:${W - (i + 1) * PW + g.foot.right}px;top:${g.foot.y}px">${foot}</div>`).join("");
   return `<!doctype html><html><head><meta charset="utf-8"><style>${baseCss(W, H)}
   body{background:${G.css}}
   .hl{position:absolute;font-family:"Poppins","Inter",sans-serif;font-weight:600;letter-spacing:-0.03em;line-height:1.05;color:${c.head};white-space:nowrap;font-feature-settings:"kern" 1}
@@ -64,8 +71,7 @@ export function frame({ W, H, ground = "night", body = "", css = "", foot = "val
   .foot{position:absolute;font:500 22px/1 Inter,sans-serif;letter-spacing:.005em;color:${c.foot};white-space:nowrap}
   ${css}</style></head><body>
   ${body}
-  <img src="${u(join(BRAND, wm))}" alt="Vallo" style="position:absolute;left:${g.wm.x}px;top:${g.wm.y}px;height:${g.wm.h}px;width:auto${ground === "electric" ? ";filter:drop-shadow(0 2px 5px rgba(0,16,80,.55))" : ""}">
-  <div class="foot" style="right:${g.foot.right}px;top:${g.foot.y}px">${foot}</div>
+  ${bar}
   </body></html>`;
 }
 
@@ -141,11 +147,13 @@ export async function component(id, crop, { x, y, w, radius = 32, ground = "nigh
 /* ------------------------------------------------------------------ the one pop-up */
 
 /**
- * An opaque pop-up card (navy at 0.96 on dark grounds, white at 0.98 on
- * mist) with a 3D icon chip, a title, one line, an optional amount and the
- * Example chip. Only where it is the post's story, one per post, on ground.
+ * An opaque pop-up card (navy at 0.97 on dark grounds, white at 0.98 on
+ * mist): a Vallo notification, so its chip is the app's own icon (the post's
+ * one 3D icon stays the only 3D icon), then a title, one line, an optional
+ * amount and the Example chip. Only where it is the post's story, one per
+ * post, on ground.
  */
-export function popcard({ ground = "night", obj, title, line, amount = "", time = "now", width = 600, x, y }) {
+export function popcard({ ground = "night", title, line, amount = "", time = "now", width = 600, x, y }) {
   const dark = GROUND[ground].dark;
   const ex = `<span style="display:inline-flex;align-items:center;gap:7px;height:32px;padding:0 13px;border-radius:999px;font:600 18px/1 Inter,sans-serif;white-space:nowrap;
       color:${dark ? "#E8EFFF" : "#34406B"};background:${dark ? "rgba(255,255,255,.10)" : "rgba(8,16,50,.05)"};box-shadow:inset 0 0 0 1.5px ${dark ? "rgba(255,255,255,.26)" : "rgba(8,16,50,.14)"}">
@@ -153,10 +161,8 @@ export function popcard({ ground = "night", obj, title, line, amount = "", time 
   return `<div style="position:absolute;left:${x}px;top:${y}px;width:${width}px;display:flex;align-items:center;gap:22px;padding:24px 28px 24px 24px;border-radius:32px;
       background:${dark ? "rgba(14,22,74,.97)" : "rgba(255,255,255,.98)"};
       box-shadow:${dark ? "inset 0 0 0 1.5px rgba(130,178,255,.34), 0 50px 100px -28px rgba(0,0,10,.85), 0 16px 36px -10px rgba(0,0,20,.5)" : "inset 0 0 0 1px rgba(10,20,70,.06), 0 50px 90px -30px rgba(20,30,90,.35), 0 14px 30px -10px rgba(20,30,90,.16)"}">
-    <div style="width:88px;height:88px;flex:none;border-radius:28px;display:grid;place-items:center;
-        background:${dark ? "linear-gradient(145deg,rgba(92,159,255,.26),rgba(0,105,254,.12))" : "linear-gradient(145deg,#EEF4FF,#DDE9FF)"};
-        box-shadow:inset 0 0 0 1.5px ${dark ? "rgba(140,185,255,.30)" : "rgba(0,86,208,.10)"}">
-      <img src="${u(join(BRAND, "3d", `${obj}@2x.webp`))}" alt="" style="width:70px;height:70px;display:block"></div>
+    <div style="width:84px;height:84px;flex:none;border-radius:19px;overflow:hidden;box-shadow:0 6px 14px -6px rgba(0,0,20,.5)">
+      <img src="${u(join(BRAND, "vallo-icon.png"))}" alt="Vallo" style="width:84px;height:84px;display:block"></div>
     <div style="flex:1;min-width:0">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:14px">
         <div style="font:700 30px/1.1 Poppins,Inter,sans-serif;letter-spacing:-0.02em;color:${dark ? "#FFFFFF" : "#0A1030"};white-space:nowrap">${title}</div>
@@ -188,3 +194,27 @@ export function browser({ id, x, y, w, ground = "night" }) {
   </div>`;
   void dark;
 }
+
+/* ------------------------------------------------------------------ shared phone look and icon slots */
+
+/** The phone's contact shadow on each ground (the same on every post). */
+export const SHADOW = {
+  night: { type: "drop", opacity: 0.5, ambientOpacity: 0.25 },
+  electric: { type: "drop", opacity: 0.4, ambientOpacity: 0.2, color: "#001040" },
+  mist: { type: "drop", opacity: 0.3, ambientOpacity: 0.16, color: "#141E5A" },
+};
+
+/** A straight, whole phone in the set's one finish; spread `place` for h/w and cx/top etc. */
+export function phone(screen, ground, place, extra = {}) {
+  return { screen, model: "island", color: "black-titanium", rotation: { x: 0, y: 0, z: 0 }, fov: 20, shadow: SHADOW[ground], ...place, ...extra };
+}
+
+/**
+ * The icon's fixed places, so it sits in the same spot across posts of one
+ * format: `tr` beside a short headline (top right), `left` in the left column
+ * beside a phone. Size 210 unless a post says otherwise.
+ */
+export const SLOT = {
+  post: { tr: { x: 900, y: 264 }, left: { x: 196, y: 930 } },
+  story: { tr: { x: 900, y: 452 } },
+};

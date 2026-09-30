@@ -1,7 +1,7 @@
 /* 23 · "Verified means a person checked." Night. The verification steps an
  * owner goes through (step 1 of 5, a government ID) on one big phone, and the
  * verified mark as the post's 3D icon. The mark is about people, never homes. */
-import { frame, headline, icon3d, subline } from "../lib/premium.mjs";
+import { SLOT, frame, headline, icon3d, subline } from "../lib/premium.mjs";
 import { phoneHtml } from "../lib/kit.mjs";
 
 const W = 1080;
@@ -25,7 +25,7 @@ export default {
       ${headline(["Verified means", "a <k>person</k> checked."], { W, H })}
       ${subline("For owners, hosts, hotels and restaurants.", { W, H })}
       ${phoneHtml(phones[0])}
-      ${icon3d("verified", { x: 210, y: 900, ground: "night" })}
+      ${icon3d("verified", { ...SLOT.post.left, size: 210, ground: "night" })}
       `,
     }),
 };

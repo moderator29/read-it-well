@@ -113,7 +113,7 @@ export async function buildAssist(ctx, S) {
     const lt = screenImage(ctx, p, "assistant-lt");
     const ans = screenImage(ctx, p, "assistant-caution-2-lt");
     ctx.onFrame((t) => {
-      if (t < K.r32 - 0.1 || t >= K.r35 + 0.1) return;
+      /* runs on every frame: the phone outlives these rows */
       const on = t >= K.r32 + 0.5 && t < K.r35 + 0.02;
       const r = ramp(ctx, t, revealFrom, revealTo, "power1.inOut");
       lt.style.visibility = on && r < 1 ? "" : "hidden";
@@ -123,7 +123,6 @@ export async function buildAssist(ctx, S) {
       const mask = r >= 1 ? "none" : `linear-gradient(180deg, #000 0%, #000 ${edge.toFixed(2)}%, transparent ${(edge + 6).toFixed(2)}%)`;
       ans.style.maskImage = mask;
       ans.style.webkitMaskImage = mask;
-      if (on) { p.frame.style.background = "#f3f4f1"; p.screen.style.background = "#f3f4f1"; }
     });
     /* the phone rises around the "?" into PHONE_HIGH, holds, and leaves by 78.9 */
     p.poses.push({

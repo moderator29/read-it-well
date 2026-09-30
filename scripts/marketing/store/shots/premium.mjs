@@ -201,11 +201,12 @@ export const SHOTS = [
   /* 35: the closing card. The app icon takes the line icon's place, and
      the launch line sits under the name. */
   {
-    n: 35, slug: "real-estate-done-right", captures: ["home-recent"],
+    n: 35, slug: "real-estate-done-right", captures: ["welcome-4"],
     async layout(ctx) {
       const { W } = ctx;
       const m = M(ctx);
-      const p = await stdPhone(ctx, m, "home-recent");
+      /* The onboarding's own last slide: "Ready when you are." */
+      const p = await stdPhone(ctx, m, "welcome-4");
       const s = m.iconSize * 1.25;
       return [
         fill(await ctx.ground(GROUND)),

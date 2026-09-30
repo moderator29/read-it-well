@@ -64,11 +64,11 @@ export function timesPlus(ctx) {
   /* 06: the Property | Stays tabs rise on "with one account". */
   T.tabsUp = T.one2 - 0.14;
   /* 07: the Rent press lands inside the word "rent", once the phone has risen. */
-  T.rentPress = T.rent + 0.15;
+  T.rentPress = T.rent + 0.25;
   /* 09: the lifted Apply button's count rolls just after the Villas press. */
   T.countRoll = T.exactly + 0.12;
-  /* 10: the listing's flick scroll starts on "see" and lands on "move-in". */
-  T.flick = T.see - 0.1;
+  /* 10: the listing's flick scroll starts as it arrives (before "see") and lands on "move-in". */
+  T.flick = T.need + 0.4;
   return T;
 }
 
@@ -296,29 +296,33 @@ function vblurFilters(ctx) {
   holder.innerHTML = `<svg width="0" height="0"><defs>${steps.map((k, i) => `<filter id="a-vblur-${i}" x="-5%" y="-60%" width="110%" height="220%"><feGaussianBlur stdDeviation="0 ${k}"/></filter>`).join("")}</defs></svg>`;
 }
 
-export function rollNumber(ctx, parent, { value, t0, t1, font, color, prefix = "₦", speed = 72, brake = 0.12 }) {
+export function rollNumber(ctx, parent, { value, t0, t1, font, color, prefix = "₦", speed = 72, gapMax = 0.075, ls = -0.02 }) {
   vblurFilters(ctx);
   const text = value.toLocaleString("en-NG");
-  const box = ctx.el("div", { style: { display: "flex", alignItems: "flex-start", font, color, lineHeight: "1", fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" } }, parent);
-  if (prefix) ctx.el("span", { text: prefix, style: { display: "inline-block", height: "1.08em" } }, box);
-  const digits = [...text].filter((c) => /\d/.test(c)).length;
+  const box = ctx.el("div", { style: { display: "flex", alignItems: "flex-start", font, color, lineHeight: "1", whiteSpace: "nowrap", letterSpacing: `${ls}em` } }, parent);
+  if (prefix) ctx.el("span", { text: prefix, style: { display: "inline-block", height: "1.08em", lineHeight: "1.08em" } }, box);
+  const n = [...text].filter((c) => /\d/.test(c)).length;
+  /* every column spins from t0; they stop left to right over the window's last part, the last on t1 */
+  const gap = Math.min(gapMax, (t1 - t0 - 0.25) / Math.max(1, n - 1));
   let k = 0;
   [...text].forEach((ch) => {
     if (!/\d/.test(ch)) {
-      ctx.el("span", { text: ch, style: { display: "inline-block" } }, box);
+      ctx.el("span", { text: ch, style: { display: "inline-block", height: "1.08em", lineHeight: "1.08em" } }, box);
       return;
     }
     const idx = k;
     k += 1;
-    const col = ctx.el("span", { style: { display: "inline-block", position: "relative", height: "1.08em", overflow: "hidden" } }, box);
-    ctx.el("span", { text: "0", style: { visibility: "hidden", display: "block", lineHeight: "1.08em" } }, col);
-    const land = t0 + ((t1 - t0) * (idx + 1)) / digits;
-    const run = land - t0;
-    /* whole digits travelled: the steady spin, then half the brake */
+    /* each column is exactly its final digit's width (Poppins has no tabular figures), the spin centred in it */
+    const fontPx = parseFloat(font.match(/(\d+(?:\.\d+)?)px/)[1]);
+    const cw = measure(ch, font.split(",")[0]) + ls * fontPx;
+    const col = ctx.el("span", { style: { display: "inline-block", position: "relative", height: "1.08em", overflow: "hidden", width: `${cw.toFixed(2)}px` } }, box);
+    const run = t1 - (n - 1 - idx) * gap - t0;
+    const brake = Math.min(0.12, run * 0.4);
     const final = Number(ch);
-    const travel = Math.max(10, Math.round(speed * (run - brake / 2) / 10) * 10 + final);
+    const cycles = Math.max(2, Math.round((speed * (run - brake / 2) - final) / 10));
+    const travel = cycles * 10 + final;
     const v = travel / (run - brake / 2);
-    const strip = ctx.el("span", { style: { position: "absolute", left: "0px", top: "0px", display: "flex", flexDirection: "column" } }, col);
+    const strip = ctx.el("span", { style: { position: "absolute", left: "-0.2em", right: "-0.2em", top: "0px", display: "flex", flexDirection: "column", alignItems: "center" } }, col);
     for (let s = 0; s <= travel; s += 1) ctx.el("span", { text: String(s % 10), style: { display: "block", height: "1.08em", lineHeight: "1.08em" } }, strip);
     let lastF = -2;
     ctx.onFrame((t) => {

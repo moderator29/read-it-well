@@ -210,7 +210,7 @@ export async function talk(ctx, S, T) {
   let lastH = null;
   ctx.onFrame((t) => {
     const on = t >= tLift && t < tSink + 0.26;
-    comp.style.visibility = on ? "visible" : "hidden";
+    comp.style.visibility = on ? "inherit" : "hidden";
     if (!on) return;
     const h = compH(t);
     if (h !== lastH) {
@@ -223,7 +223,7 @@ export async function talk(ctx, S, T) {
     const n = t < tType0 ? 0 : t >= tSend ? (t < tSend + 0.02 ? MESSAGE.length : 0) : Math.round(MESSAGE.length * ramp(ctx, t, tType0, tType1, "power1.inOut"));
     typedText.textContent = MESSAGE.slice(0, n);
     ph.style.opacity = t < tType0 || t >= tSend + 0.34 ? "1" : "0";
-    caret.style.visibility = t >= tLift + 0.05 && t < tSend && (t < tType1 || Math.floor((t - tType1) * 4) % 2 === 0) ? "visible" : "hidden";
+    caret.style.visibility = t >= tLift + 0.05 && t < tSend && (t < tType1 || Math.floor((t - tType1) * 4) % 2 === 0) ? "inherit" : "hidden";
   });
   for (let k = 0; k < 8; k += 1) ctx.sfx(`type_key_${(k % 6) + 1}`, tType0 + ((tType1 - tType0) * k) / 7.4, { offset: -6 });
 

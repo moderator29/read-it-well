@@ -81,9 +81,9 @@ export function buildOpenMobile(ctx, T) {
   const inner = WORDS.w - 2 * 28;
   const s1 = fitSize("Finding a place", "700 {}px Poppins", 110, inner);
   const s2 = fitSize("in Nigeria", "700 {}px Poppins", 116, inner);
-  const lineStyle = (top) => ({ left: `${WORDS.x + 28}px`, width: `${inner}px`, top: `${top}px`, height: "130px", zIndex: "11", display: "flex", alignItems: "baseline", gap: "0.24em", letterSpacing: "-0.03em" });
-  const line1 = ctx.el("div", { class: "abs display", style: { ...lineStyle(bandTop + 34), justifyContent: "flex-start" } }, night);
-  const line2 = ctx.el("div", { class: "abs display", style: { ...lineStyle(bandTop + 150), justifyContent: "flex-end" } }, night);
+  const lineStyle = (top, size) => ({ left: `${WORDS.x + 28}px`, width: `${inner}px`, top: `${top}px`, height: "130px", zIndex: "11", display: "flex", alignItems: "baseline", gap: `${Math.round(size * 0.24)}px`, letterSpacing: "-0.03em" });
+  const line1 = ctx.el("div", { class: "abs display", style: { ...lineStyle(bandTop + 34, s1), justifyContent: "flex-start" } }, night);
+  const line2 = ctx.el("div", { class: "abs display", style: { ...lineStyle(bandTop + 150, s2), justifyContent: "flex-end" } }, night);
   const spec1 = [["Finding", s1, 0, T.finding], ["a", Math.round(s1 * 0.94), 6, T.a1], ["place", s1, -4, T.place]];
   const spec2 = [["in", Math.round(s2 * 0.92), 6, T.in1], ["Nigeria", s2, -2, T.nigeria]];
   const mk = (parent, spec, fromX, key) => spec.map(([text, size, dy, t]) => {

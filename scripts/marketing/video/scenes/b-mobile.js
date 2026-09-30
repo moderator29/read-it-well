@@ -24,12 +24,12 @@ export function times(ctx) {
     keep: w(8, "keep"), conversation: w(8, "conversation"), one: w(8, "one"), place: w(8, "place"), placeEnd: we(8, "place"),
     planning: w(9, "Planning"), a9: w(9, "a"), trip: w(9, "trip"),
     browse: w(10, "Browse"), hotels: w(10, "hotels"), shortlets: w(10, "shortlets"), resorts: w(10, "resorts"), pick: w(10, "pick"), dates: w(10, "dates"),
-    and10: w(10, "and"), book: w(10, "book"), room: w(10, "room"), few: w(10, "few"), taps: w(10, "taps"),
+    and10: w(10, "and", 2), book: w(10, "book"), room: w(10, "room"), few: w(10, "few"), taps: w(10, "taps"),
     going: w(11, "Going"), out: w(11, "out"), tonight: w(11, "tonight"),
     find: w(12, "Find"), restaurant: w(12, "restaurant"), love: w(12, "love"), reserve: w(12, "reserve"), table: w(12, "table"), seconds: w(12, "seconds"),
     owners: w(13, "Owners"), hosts: w(13, "hosts"), hotels13: w(13, "hotels"), restaurants: w(13, "restaurants"), verified: w(13, "verified"), mark: w(13, "mark"),
-    checked: w(13, "checked"), real: w(13, "real"), person: w(13, "person"), vallo13: w(13, "Vallo"), so: w(13, "so"), who: w(13, "who"), dealing: w(13, "dealing"), with: w(13, "with"),
-    withEnd: we(13, "with"),
+    checked: w(13, "checked"), real: w(13, "real"), person: w(13, "person"), vallo13: w(13, "Vallo"), so: w(13, "so"), who: w(13, "who"), dealing: w(13, "dealing"), with: w(13, "with", 2),
+    withEnd: we(13, "with", 2),
   };
 }
 
@@ -65,7 +65,7 @@ export async function buildMobile(ctx) {
   const tBloom = T.planning;
   ctx.onFrame((t) => {
     const on = t >= tBloom && t < T.r25 + 0.1;
-    S.warm.style.visibility = on ? "visible" : "hidden";
+    S.warm.style.visibility = on ? "inherit" : "hidden";
     if (!on) return;
     const r = ramp(ctx, t, tBloom, tBloom + 0.62, "power2.inOut") * 2300;
     const at = S.bloom ?? BLOOM;
@@ -76,7 +76,7 @@ export async function buildMobile(ctx) {
   /* Row 23: the dusk (peach to amber, no navy), in with the row, out as the phone rises in row 24. */
   ctx.onFrame((t) => {
     const a = ramp(ctx, t, T.r23 - 0.2, T.r23 + 0.24, "power2.inOut") * (1 - ramp(ctx, t, T.r24 - 0.1, T.r24 + 0.45, "power2.inOut"));
-    S.dusk.style.visibility = a > 0.001 ? "visible" : "hidden";
+    S.dusk.style.visibility = a > 0.001 ? "inherit" : "hidden";
     S.dusk.style.opacity = a.toFixed(3);
   });
   S.ground = ground;

@@ -1,7 +1,7 @@
 /* R5 · after IMG_6732: the top of the phone, close, content big. Night. The
  * home screen's header, greeting and "Find your next home" hero under the
  * headline, with a search glass as the post's 3D icon. */
-import { frame, headline, icon3d } from "../lib/premium.mjs";
+import { SLOT, frame, headline, icon3d } from "../lib/premium.mjs";
 import { phoneHtml } from "../lib/kit.mjs";
 
 const W = 1080;
@@ -23,7 +23,7 @@ export default {
       body: `
       ${headline(["Search homes", "across <k>Nigeria.</k>"], { W, H })}
       ${phoneHtml(phones[0])}
-      ${icon3d("search", { x: 912, y: 262, size: 210, ground: "night" })}
+      ${icon3d("map", { ...SLOT.post.tr, size: 210, ground: "night" })}
       `,
     }),
 };

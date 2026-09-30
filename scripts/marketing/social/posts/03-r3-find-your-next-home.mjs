@@ -1,6 +1,6 @@
 /* R3 · after IMG_6730: a small, straight phone with room around it. Mist, so
  * the home screen is the app's light theme. Keys are the post's 3D icon. */
-import { frame, headline, icon3d, subline } from "../lib/premium.mjs";
+import { SLOT, frame, headline, icon3d, subline } from "../lib/premium.mjs";
 import { phoneHtml } from "../lib/kit.mjs";
 
 const W = 1080;
@@ -24,7 +24,7 @@ export default {
       ${headline(["Find your", "next <k>home.</k>"], { W, H })}
       ${subline("Rent, buy or sell property across Nigeria.", { W, H })}
       ${phoneHtml(phones[0], { shadowOpacity: 0.9 })}
-      ${icon3d("keys", { x: 885, y: 262, size: 220, ground: "mist" })}
+      ${icon3d("keys", { ...SLOT.post.tr, size: 210, ground: "mist" })}
       `,
     }),
 };

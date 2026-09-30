@@ -1,7 +1,7 @@
 /* R6 · after IMG_6733 (a hand holding the phone). No hand: the phone keeps the
  * held angle on a clean Night ground. The filters with villas chosen and
  * Apply (3). A list is the post's 3D icon. */
-import { frame, headline, icon3d } from "../lib/premium.mjs";
+import { SLOT, frame, headline, icon3d } from "../lib/premium.mjs";
 import { phoneHtml } from "../lib/kit.mjs";
 
 const W = 1080;
@@ -24,7 +24,7 @@ export default {
       body: `
       ${headline(["Filter by <k>exactly</k>", "what you need."], { W, H })}
       ${phoneHtml(phones[0])}
-      ${icon3d("list", { x: 190, y: 980, size: 210, ground: "night" })}
+      ${icon3d("list", { ...SLOT.post.left, size: 210, ground: "night" })}
       `,
     }),
 };

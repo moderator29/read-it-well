@@ -2,7 +2,7 @@
  * big. Night. The last welcome card lying back on a long foreshortened angle:
  * an account lets you search, save, message and book inspections. The keys
  * with a house tag are the post's 3D icon. */
-import { frame, headline, icon3d } from "../lib/premium.mjs";
+import { SLOT, frame, headline, icon3d } from "../lib/premium.mjs";
 import { phoneHtml } from "../lib/kit.mjs";
 
 const W = 1080;
@@ -25,7 +25,7 @@ export default {
       body: `
       ${headline(["Search, save", "and <k>message.</k>"], { W, H })}
       ${phoneHtml(phones[0])}
-      ${icon3d("rent", { x: 905, y: 262, size: 200, ground: "night" })}
+      ${icon3d("bell", { ...SLOT.post.tr, size: 210, ground: "night" })}
       `,
     }),
 };
