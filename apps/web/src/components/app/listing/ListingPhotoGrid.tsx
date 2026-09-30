@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Sheet } from "@/components/ui/Sheet";
+import { Button } from "@/components/ui/Button";
 import type { ListingKind } from "@/lib/listings/types";
 import { PhotoFrame } from "./PhotoFrame";
 import { usePhotoViewer } from "./PhotoViewer";
@@ -65,15 +65,9 @@ export function ListingPhotoGrid({
     <section data-testid="listing-photo-grid">
       <div className="mb-sm flex items-baseline justify-between gap-md">
         <h2 className="nf-h3">Photos</h2>
-        <button
-          type="button"
-          onClick={() => setShowAll(true)}
-          data-testid="photos-show-all"
-          className="inline-flex min-h-[2.75rem] items-center gap-2xs text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-secondary)] transition-colors hover:text-[var(--nf-content-primary)] motion-reduce:transition-none"
-        >
-          <UiIcon name="grid" size={16} />
+        <Button variant="quiet" size="sm" leadingIcon="grid" onClick={() => setShowAll(true)} data-testid="photos-show-all">
           Show all {photos.length}
-        </button>
+        </Button>
       </div>
 
       <ul className="grid grid-cols-3 gap-xs">
