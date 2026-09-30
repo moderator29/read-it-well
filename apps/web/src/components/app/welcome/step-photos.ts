@@ -24,16 +24,17 @@
 export type StepNumber = 1 | 2 | 3 | 4;
 
 /*
- * 3 and 4 arrived on 30 September (talk first, pay safely; the orange arch),
- * dark only, converted by scripts/brand-3d.mjs. THE LIGHT VERSIONS ARE OWED:
- * until the founder sends them, step-3-light.webp and step-4-light.webp are
- * copies of the dark picture (its bottom fades into the warm canvas). Replace
- * those two files when the light art lands; nothing else changes.
- * 1 and 2 keep the glass scene until their art arrives.
+ * All four arrived on 30 September (1 two worlds, 2 the shield and ID card,
+ * 3 talk first and pay safely, 4 the orange arch), DARK ONLY, converted by
+ * scripts/brand-3d.mjs. THE LIGHT VERSIONS ARE OWED: until the founder sends
+ * them, every step-N-light.webp is a copy of the dark picture (its bottom
+ * fades into the warm canvas). Replace those four files when the light art
+ * lands (drop the sources in assets-src and rerun the script); nothing else
+ * changes.
  */
 export const STEP_PHOTOS_READY: Readonly<Record<StepNumber, boolean>> = {
-  1: false,
-  2: false,
+  1: true,
+  2: true,
   3: true,
   4: true,
 };
