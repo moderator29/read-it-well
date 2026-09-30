@@ -513,6 +513,12 @@
     --nf-badge-hue: var(--nf-brand-primary);
     --nf-badge-ink: var(--nf-state-info);
   }
+  /* The warm spark (spec section 18): a "New" tag and nothing else. The
+     word is the spark ink on its own tint, 4.5:1 or better in both themes. */
+  .nf-badge--spark {
+    --nf-badge-hue: var(--nf-spark);
+    --nf-badge-ink: var(--nf-spark-ink);
+  }
   .nf-badge--brand {
     --nf-badge-hue: var(--nf-brand-primary);
     --nf-badge-ink: color-mix(in oklab, var(--nf-brand-secondary) 55%, white);

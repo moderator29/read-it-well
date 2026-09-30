@@ -508,7 +508,7 @@ export function ListingCard({
           {ageText && (
             <p className="nf-pcard__sub nf-pcard__age" data-testid="card-listed-age" suppressHydrationWarning>
               {isNew && (
-                <span className="nf-badge nf-badge--info nf-pcard__new" title={t.shape.listed.newMarkLabel}>
+                <span className="nf-badge nf-badge--spark nf-pcard__new" title={t.shape.listed.newMarkLabel}>
                   <span aria-hidden="true">{t.shape.listed.newMark}</span>
                   <span className="sr-only">{t.shape.listed.newMarkLabel}. </span>
                 </span>

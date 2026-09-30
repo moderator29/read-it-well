@@ -886,7 +886,8 @@ export default async function ListingDetailPage({
                   */}
                   <div className="flex flex-wrap items-center gap-xs empty:hidden">
                     {/* A rating only with the reviews behind it; a count only
-                        when the record carries one. Blue, never gold. */}
+                        when the record carries one. The stars are --nf-rating, the warm
+                        spark (spec section 18). */}
                     {listing.rating > 0 && listing.reviewCount > 0 && (
                       <span className="nf-numeric ml-auto flex shrink-0 items-center gap-xs">
                         <UiIcon

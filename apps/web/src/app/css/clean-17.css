@@ -85,6 +85,11 @@
     font-weight: 600;
     letter-spacing: -0.02em;
   }
+  /* The one tile on a desk band whose figure is the warm spark (spec
+     section 18): the unread count, the same meaning as the bell's dot. */
+  .nf-kpi--spark .nf-kpi__figure {
+    color: var(--nf-spark-ink);
+  }
   .nf-kpi__sub {
     font-size: var(--nf-text-caption);
     line-height: 1.35;

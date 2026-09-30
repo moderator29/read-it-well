@@ -217,6 +217,13 @@
   --nf-sky-400: #38BDF8;
 
   /*
+   * THE ONE EXCEPTION, SINCE 30 SEPTEMBER 2026: the founder's 3D icons carry
+   * one orange accent each and he asked for that orange in some places, so
+   * the warm spark (`--nf-spark`, beside `--nf-mark-unread` below) is the
+   * single sanctioned warm accent, sparing and rule-bound (spec section 18).
+   * The paragraph that follows is the rule it was an exception to, and it
+   * still holds for everything else.
+   *
    * There is no orange, amber, gold, magenta or violet in this palette, and
    * that is a decision rather than an omission. The brand is ONE family: deep
    * navy-black, dark neon blue, electric blue glow. A warm or purple accent
@@ -835,12 +842,13 @@
    * Rating is its own token and no longer borrows the warning one. Stars were
    * reaching for warning purely to obtain a gold, which welded two unrelated
    * things together: every change to a warning colour silently restyled every
-   * rating on the platform. */
+   * rating on the platform. Since 30 September the stars take the warm spark
+   * (the founder's 3D bed wears five orange stars), still their own token. */
   --nf-state-success: var(--nf-emerald-400);
   --nf-state-warning: var(--nf-cyan-400);
   --nf-state-error: var(--nf-rose-400);
   --nf-state-info: var(--nf-sky-400);
-  --nf-rating: var(--nf-brand-quiet);
+  --nf-rating: var(--nf-spark);
 
   /* Focus
    *
@@ -924,8 +932,33 @@
    * not as an error. Rule 8 still holds, because rule 8 assigns rose to error
    * and this token is not the error token; it is named for what it means and
    * can be tuned without touching either.
+   *
+   * SINCE 30 SEPTEMBER THE MARK IS THE WARM SPARK, the orange dot the
+   * founder's own 3D bell wears (below). Unread is still not a state and
+   * still not the error token; it simply takes the one warm colour now.
    */
-  --nf-mark-unread: var(--nf-rose-400);
+  --nf-mark-unread: var(--nf-spark);
+  /*
+   * THE WARM SPARK (the founder, 30 September 2026: "a mix of blue and
+   * orange in some areas ... lovely and clean"). The 3D icon set is royal
+   * blue clay with ONE orange accent each, sampled off
+   * `apps/web/assets-src/3d-2026-09-30/icon-sheet-2-new.png` at #F86838 to
+   * #F87040. The spark is that orange, used sparingly as the SECOND accent:
+   * blue leads, orange sparks. Spec section 18 lists where it may and may
+   * not appear. It is NOT the warning colour (warning stays the cyan) and
+   * never an error, a button fill or body text.
+   *
+   *   --nf-spark        dots, stars, underlines, a lap arc: 7.2:1 on the
+   *                     night canvas, 6.7:1 on the night card.
+   *   --nf-spark-ink    words and figures in the spark: 8.2:1 on the night
+   *                     card, 8.9:1 on the canvas.
+   *   --nf-spark-soft   the tint behind a "New" tag.
+   *   --nf-spark-on     a numeral on a spark fill (the dock badge): 6.5:1.
+   */
+  --nf-spark: #FF6A3D;
+  --nf-spark-ink: #FF8A5C;
+  --nf-spark-soft: color-mix(in oklab, var(--nf-spark) 16%, transparent);
+  --nf-spark-on: #111318;
   --nf-status-pending-surface: var(--nf-state-warning-surface);
   /*
    * THE ACCENT, WHICH EXISTS ENTIRELY FOR DAYLIGHT, and is the same colour as
@@ -3728,7 +3761,7 @@
   --nf-mode-agent: #0068F0;
   --nf-mode-admin: #003C99;
   --nf-focus-ring: var(--nf-brand-quiet);
-  --nf-rating: var(--nf-brand-quiet);
+  --nf-rating: var(--nf-spark);
   --nf-gradient-brand: linear-gradient(135deg, #1F7BFF 0%, #0050D0 100%);
   --nf-gradient-agent: linear-gradient(135deg, #1F7BFF 0%, #0050D0 100%);
   --nf-gradient-cta: linear-gradient(180deg, #0A6CF5 0%, #005FE8 100%);
@@ -3755,7 +3788,15 @@
   --nf-state-error: #C8102E;
   --nf-state-info: #0369A1;
   --nf-state-warning-accent: var(--nf-state-warning);
-  --nf-mark-unread: #C8102E;
+  --nf-mark-unread: var(--nf-spark);
+  /* The warm spark on paper, one step deeper so it still reads as the icons'
+     orange: the mark 3.4:1 on #F4F4F1 and 3.3:1 on the raised well (a
+     graphic, 3:1); the ink 5.2:1 on the canvas, 5.7:1 on white and 5.0:1 on
+     the raised well; a numeral on the mark 4.9:1. */
+  --nf-spark: #E4541F;
+  --nf-spark-ink: #B93A0E;
+  --nf-spark-soft: color-mix(in oklab, var(--nf-spark) 12%, transparent);
+  --nf-spark-on: #111318;
   --nf-state-success-surface: color-mix(in oklab, var(--nf-state-success) 10%, transparent);
   --nf-state-warning-surface: color-mix(in oklab, var(--nf-state-warning) 10%, transparent);
   --nf-state-error-surface: color-mix(in oklab, var(--nf-state-error) 9%, transparent);

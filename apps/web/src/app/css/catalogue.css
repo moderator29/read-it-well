@@ -2057,7 +2057,7 @@
     color: var(--nf-content-primary);
   }
   .nf-stay-card__rating > svg {
-    color: var(--nf-brand-secondary);
+    color: var(--nf-rating);
   }
   /*
    * DOC-21: the chips wrap instead of scrolling. The row sits inside the
@@ -2462,8 +2462,10 @@
     background: var(--nf-selected-fill);
     box-shadow: var(--nf-panel-halo);
   }
+  /* The step you are on ends in the warm spark (spec section 18): the
+     covered run is blue and its leading edge is the icons' orange. */
   .nf-lw-rail__seg[data-at] {
-    box-shadow: var(--nf-selected-shadow-inline);
+    box-shadow: var(--nf-selected-shadow-inline), inset -0.5rem 0 0 var(--nf-spark);
   }
   /* A bare icon-only control drawn round in a governing image stays round. */
   .nf-lw-back {

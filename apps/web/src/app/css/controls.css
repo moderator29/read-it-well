@@ -647,6 +647,12 @@
     background: var(--nf-brand-primary);
     box-shadow: var(--nf-glow-edge);
   }
+  /* The bar you are on is the warm spark (spec section 18); the steps
+     behind it stay blue. */
+  .nf-steprow__bar[data-on]:not(:has(+ .nf-steprow__bar[data-on])) {
+    background: var(--nf-spark);
+    box-shadow: none;
+  }
 
   /*
    * A DOOR: one of the three supplier cards in `GOVERNING-02`.

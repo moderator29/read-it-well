@@ -666,3 +666,32 @@ The founder asked for every screen to fit the style of refs 44 and 45 in both th
 - **Figure tiles.** A 2x2 grid of white tiles, each with a label and chevron, a big number, and a small coloured delta or sub-line (the delta only where a real previous value exists).
 - **The dock.** The active tab is a tinted pill with its icon and label; inactive tabs are icon only; the glyphs are solid cutout shapes (ref 45). This replaces section 16's "no container behind the active tab".
 - **Notifications** read as ONE grouped list with inset dividers, not separate cards.
+
+## 18. The warm spark (orange)
+
+The founder's 3D icons are royal blue clay with one orange accent each (the bell's dot, the bed's stars, the pin on the globe). On 30 September he asked for that orange "in some areas, not every area": a mix of blue and orange, lovely and clean. So the platform is **blue-led with orange sparks**. The orange is a second accent, never a second brand.
+
+Tokens (`packages/design-tokens/src/tokens.css`, both themes):
+
+| Token | Night | Paper | Use |
+| --- | --- | --- | --- |
+| `--nf-spark` | #FF6A3D (7.2:1 on the canvas) | #E4541F (3.4:1 on paper, a graphic) | dots, stars, strokes, a lap arc, a progress tip |
+| `--nf-spark-ink` | #FF8A5C (8.2:1 on the card) | #B93A0E (5.2:1 on paper, 5.0:1 on the raised well) | a word or figure in the spark |
+| `--nf-spark-soft` | 16% tint | 12% tint | the ground of a "New" tag |
+| `--nf-spark-on` | #111318 (6.5:1) | #111318 (4.9:1) | a numeral on a spark fill |
+
+`--nf-rating` and `--nf-mark-unread` now resolve to the spark.
+
+**Where it may appear** (the whole list; adding to it is a spec change):
+
+- The unread mark: the bell's dot, the notification row's dot, the workspace bell (and the feed like button's brief dotted burst, which reads the same token).
+- The dock's unread badge (the More button's count).
+- Rating stars, everywhere (`--nf-rating`).
+- The "New" tag on a listing card (`.nf-badge--spark`).
+- Where you are in a flow: onboarding's active dot pill, the list-your-property wizard's current segment tip, the register flows' current bar.
+- The place pin on the Home and Stays hero chip.
+- The desk band's unread KPI figure (agent and host), only when the count is above zero.
+- The landing: the eyebrow capsule's glyph, the hero headline's last word underlined in a short orange stroke, the same stroke under one word of two section heads (Journey and the two worlds), the first community figure.
+- The edge lap's second arc (blue-to-orange lap) on the landing capsule, the hero eyebrow and the desk home band.
+
+**Where it may not appear:** body text; a button's fill (primary stays blue); errors, warnings or any status (warning stays the cyan, error the rose, pending its own token); links; every card, row or section on a screen (at most one or two sparks in view); large fills or backgrounds; the logo. If a new place feels like it needs the orange, the default answer is blue.

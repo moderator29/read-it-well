@@ -1176,8 +1176,10 @@
     height: 1.25rem;
     padding: 0 0.25rem;
     border-radius: var(--nf-radius-xs);
-    background: var(--nf-brand-primary);
-    color: var(--nf-content-on-brand);
+    /* The warm spark (spec section 18), the orange dot of the founder's 3D
+       bell: the numeral is --nf-spark-on, 6.5:1 at night and 4.9:1 on paper. */
+    background: var(--nf-spark);
+    color: var(--nf-spark-on);
     font-size: 0.6875rem;
     font-weight: 750;
     line-height: 1;

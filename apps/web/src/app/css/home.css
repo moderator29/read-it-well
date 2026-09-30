@@ -757,6 +757,11 @@
     font-weight: 600;
     color: var(--nf-content-primary);
   }
+  /* The place pin is the warm spark (spec section 18): the founder's 3D
+     globe and plot both wear an orange pin. */
+  .nf-hero-plate__chip > svg {
+    color: var(--nf-spark);
+  }
   /*
    * THE INK OVER THE PLATE IS `--nf-content-on-media`, NOT THE PAGE INK, AND
    * IT IS THE SAME INK IN BOTH THEMES.

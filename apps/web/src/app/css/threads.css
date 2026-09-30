@@ -550,7 +550,7 @@
     color: var(--nf-content-primary);
     overflow-wrap: anywhere;
   }
-  /* Rating stars ship blue by rule 8. */
+  /* Rating stars take --nf-rating, the warm spark (spec section 18). */
   .nf-chat-card__stars {
     display: flex;
     gap: var(--nf-space-3xs);

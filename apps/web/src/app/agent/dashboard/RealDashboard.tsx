@@ -140,6 +140,7 @@ export function RealDashboard({
               value={numbers.unreadMessages}
               href="/agent/messages"
               tag={tag}
+              className={numbers.unreadMessages > 0 ? "nf-kpi--spark" : undefined}
             />
           ) : null}
         </div>

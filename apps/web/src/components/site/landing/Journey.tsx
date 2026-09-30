@@ -76,7 +76,7 @@ export function Journey({ t }: { t: Dictionary }) {
 
   return (
     <section className="nf-shell nf-room" data-chapter="journey" aria-labelledby="nf-landing-journey-title">
-      <SectionHead id="nf-landing-journey-title" eyebrow={j.overline} title={j.title} lede={j.body} align="center" />
+      <SectionHead id="nf-landing-journey-title" eyebrow={j.overline} title={j.title} lede={j.body} align="center" flourish />
       {/* Under 40rem the steps are a sideways swipe row, and this is its
           scroller: focusable and named, so a keyboard can move it (the cards
           hold no links to tab through). From 40rem nothing scrolls here. */}

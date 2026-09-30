@@ -96,6 +96,7 @@ export function HostTodayView({
                 value={kpi.value}
                 href={kpi.href}
                 tag={tag}
+                className={kpi.key === "unread" && kpi.value > 0 ? "nf-kpi--spark" : undefined}
               />
             ))}
           </div>

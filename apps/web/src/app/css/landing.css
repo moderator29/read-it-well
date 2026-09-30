@@ -1452,3 +1452,72 @@
     var(--nf-btn-lit-rim), var(--nf-btn-lit-inner-hover),
     0 6px 16px -6px color-mix(in srgb, var(--nf-brand-primary) 70%, transparent);
 }
+
+/*
+ * THE WARM SPARK ON THE LANDING (the founder, 30 September 2026; spec
+ * section 18). Blue leads, the icons' orange sparks, in five places only:
+ * the eyebrow capsule's glyph, the hero headline's last word underlined in a
+ * short orange stroke, the same stroke under one word of two section heads
+ * (`SectionHead`'s `flourish`), and the first of the community figures.
+ * The capsule's and the eyebrow's blue-to-orange lap is in `site.css`.
+ *
+ * The stroke is a graphic (3:1 is the bar, and the spark clears it in both
+ * themes); it draws in once, left to right, on transform only, after the
+ * words have arrived, and is simply there under reduced motion, Calm, Off
+ * and with scripts off.
+ */
+@layer components {
+  .nf-hero-eyebrow > svg {
+    color: var(--nf-spark);
+  }
+  .nf-landing-title .nf-depth-line--accent .nf-depth-word:last-child,
+  .nf-spark-flourish {
+    position: relative;
+  }
+  .nf-landing-title .nf-depth-line--accent .nf-depth-word:last-child::after,
+  .nf-spark-flourish::after {
+    content: "";
+    position: absolute;
+    left: 0.04em;
+    right: 0.08em;
+    bottom: -0.04em;
+    height: max(3px, 0.07em);
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-spark);
+    transform-origin: left center;
+    pointer-events: none;
+    animation: nf-spark-draw 520ms var(--nf-ease-entrance) both;
+  }
+  .nf-landing-title .nf-depth-line--accent .nf-depth-word:last-child::after {
+    animation-delay: calc(var(--nf-splash-hold, 0ms) + 1000ms);
+  }
+  .nf-spark-flourish::after {
+    animation-delay: 420ms;
+  }
+  @keyframes nf-spark-draw {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: none;
+    }
+  }
+  @media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+    .nf-depth-gate:not([data-seen]) .nf-spark-flourish::after {
+      animation-play-state: paused;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-landing-title .nf-depth-line--accent .nf-depth-word:last-child::after,
+    .nf-spark-flourish::after {
+      animation: none;
+    }
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) :is(.nf-landing-title .nf-depth-line--accent .nf-depth-word:last-child, .nf-spark-flourish)::after {
+    animation: none;
+  }
+  /* The community band's first figure is the highlighted one. */
+  .nf-landing-figure:first-child > strong {
+    color: var(--nf-spark-ink);
+  }
+}
