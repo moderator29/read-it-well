@@ -34,6 +34,22 @@ export const memberKitEn = {
     howPaying: "How paying on Vallo works",
     onlyYou: "Only you can see this note.",
   },
+  /**
+   * B6: the renter's question chips on a first message. A tap adds the
+   * sentence to the draft; nothing is sent until the renter sends it. A chip
+   * is left out when the listing already answers its question.
+   */
+  questions: {
+    title: "Questions to ask",
+    available: { label: "Still available?", text: "Is it still available?" },
+    caution: { label: "Caution refundable?", text: "Is the caution refundable, and how long does it take to come back?" },
+    term: { label: "One or two years?", text: "Is it one year or two years upfront?" },
+    water: { label: "Water supply?", text: "Is there running water, and is there a borehole?" },
+    meter: { label: "Prepaid meter?", text: "Is it a prepaid meter?" },
+    power: { label: "Generator?", text: "Is there a generator or inverter for when the light goes?" },
+    service: { label: "Service charge?", text: "Is there a service charge, and what does it cover?" },
+    viewing: { label: "Inspect on Saturday?", text: "Can I inspect on Saturday?" },
+  },
 };
 
 export type MemberKitCopy = typeof memberKitEn;

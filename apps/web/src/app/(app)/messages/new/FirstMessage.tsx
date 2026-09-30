@@ -3,6 +3,9 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { startConversationWithMessage } from "@/lib/messages/actions";
+import { Chip } from "@/components/ui/Chip";
+import { addQuestion, removeQuestion } from "@/lib/enquiry/renter-questions";
+import type { QuickReply } from "@/lib/enquiry/quick-replies";
 
 /**
  * UX-P2-03: the first message, written before any thread exists. Sending it
@@ -14,11 +17,23 @@ export function FirstMessage({
   listingId,
   listingTitle,
   suffix = "",
+  questions = [],
+  questionsTitle = "",
+  replyLine = null,
 }: {
   listingId: string;
   listingTitle: string | null;
   /** V-69: `?showme=1` when "Show me..." sent them, so the thread opens with the ask ready. */
   suffix?: string;
+  /**
+   * B6: the renter's question chips, already filtered to what the listing
+   * does not answer. A tap adds the sentence to the draft (a second tap takes
+   * it out); nothing is sent until Send.
+   */
+  questions?: QuickReply[];
+  questionsTitle?: string;
+  /** B7: the lister's reply-time line, only when the record supports one. */
+  replyLine?: React.ReactNode;
 }) {
   const router = useRouter();
   const [body, setBody] = useState("");
@@ -52,6 +67,28 @@ export function FirstMessage({
           className="nf-field"
         />
       </label>
+      {questions.length > 0 && (
+        <div role="group" aria-label={questionsTitle} className="nf-ask-chips" data-testid="renter-questions">
+          <p className="nf-section-label">{questionsTitle}</p>
+          <div className="nf-ask-chips__row">
+            {questions.map((q) => {
+              const added = body.includes(q.text);
+              return (
+                <Chip
+                  key={q.key}
+                  size="sm"
+                  selected={added}
+                  onSelectedChange={() => setBody((b) => (added ? removeQuestion(b, q.text) : addQuestion(b, q.text)))}
+                  data-testid={`renter-question-${q.key}`}
+                >
+                  {q.label}
+                </Chip>
+              );
+            })}
+          </div>
+        </div>
+      )}
+      {replyLine}
       {error && (
         <p role="alert" className="nf-caption">
           {error}

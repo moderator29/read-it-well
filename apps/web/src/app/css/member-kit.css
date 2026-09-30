@@ -71,3 +71,19 @@
     color: var(--nf-content-muted);
   }
 }
+
+@layer components {
+  /* ------------------------------------------- B6 the renter's question chips */
+
+  /* A wrapping row, not a rail: five short questions fit on two lines at 360
+     and every one is visible without a sideways swipe. */
+  .nf-ask-chips {
+    display: grid;
+    gap: var(--nf-space-xs);
+  }
+  .nf-ask-chips__row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--nf-space-xs);
+  }
+}
