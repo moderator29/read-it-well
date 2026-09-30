@@ -263,7 +263,7 @@ function CautionSection({ file, copy }: { file: TenancyFile; copy: Copy; locale:
                   </p>
                   <p className="nf-caption mt-2xs">
                     {copy.returnMethods[row.method]}
-                    {row.reference ? ` · ${row.reference}` : ""} ·{" "}
+                    {row.reference ? `\u00a0· ${row.reference}` : ""} ·{" "}
                     {row.recordedAs === "lister_sent" ? copy.returnedByLister : copy.returnedByTenant}
                   </p>
                   {row.ruling ? (

@@ -440,8 +440,8 @@ export function StayDetailView({
                 {detail.roomTypes.length > 0
                   ? countOf(detail.roomTypes.length, "roomTypes", locale)
                   : copy.noRoomsYet}
-                {detail.checkInFrom ? ` · ${copy.checkIn} ${detail.checkInFrom.slice(0, 5)}` : ""}
-                {detail.checkOutBy ? ` · ${copy.checkOut} ${detail.checkOutBy.slice(0, 5)}` : ""}
+                {detail.checkInFrom ? `\u00a0· ${copy.checkIn} ${detail.checkInFrom.slice(0, 5)}` : ""}
+                {detail.checkOutBy ? `\u00a0· ${copy.checkOut} ${detail.checkOutBy.slice(0, 5)}` : ""}
               </span>
             </span>
           </div>
