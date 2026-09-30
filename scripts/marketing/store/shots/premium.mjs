@@ -51,8 +51,11 @@ export function M(ctx) {
     subSize: ios ? 38 : 34,
     phoneTop,
     phoneH: H - phoneTop - phoneBottom,
-    /* how far a card overhangs the phone's edge (and still keeps 40 px to the image's) */
-    overhang: ios ? 70 : 84,
+    /* how far a card overhangs the phone's edge, in px (and still keeps 40 px to the
+       image's edge), and how far the frame's outer edge lies outside the display, in
+       display px (2.35 mm on the island, 1.95 mm on the Android) */
+    overhang: ios ? 70 : 80,
+    frame: ios ? 42 : 36,
   };
 }
 
@@ -99,8 +102,6 @@ function std(n, slug, id, lines, { sub, extra } = {}) {
 
 /* Page positions on a placed phone's display (display px, 1320 x 2868). */
 const HEADER = { top: 186, bottom: 365, bell: { x: 1204, y: 275, r: 66 }, menu: [77, 126], logo: [234, 596] };
-/* The frame's outer edge lies 2.35 mm outside the display: 42 display px. */
-const FRAME = 42;
 
 /* ------------------------------------------------------------- the pairs */
 
@@ -160,9 +161,9 @@ export const SHOTS = [
         const ring = Array.from({ length: 24 }, (_, k) => at(HEADER.bell.x + HEADER.bell.r * Math.cos((k * Math.PI) / 12), HEADER.bell.y + HEADER.bell.r * Math.sin((k * Math.PI) / 12)));
         const bell = { l: Math.min(...ring.map((p) => p[0])), r: Math.max(...ring.map((p) => p[0])), t: Math.min(...ring.map((p) => p[1])), b: Math.max(...ring.map((p) => p[1])) };
         const logoEnd = Math.max(at(HEADER.logo[1], 237)[0], at(HEADER.logo[1], 313)[0]);
-        const edge = Math.max(at(1320 + FRAME, HEADER.top)[0], at(1320 + FRAME, HEADER.bottom)[0]);
-        const right = edge + m.overhang * u;
-        const left = Math.max(logoEnd + 28 * u, 40 * u);
+        const edge = Math.max(at(1320 + m.frame, HEADER.top)[0], at(1320 + m.frame, HEADER.bottom)[0]);
+        const right = edge + m.overhang;
+        const left = Math.max(logoEnd + 28 * u, 40);
         const top = bell.t - 30 * u;
         ctx.cardDebug = { bell, logoEnd, edge, right, left, top };
         return popup({ x: left, y: top, w: right - left, lucide: "bed-double", title: "Room booked", line: "Lagoon Crest Resort · 3 nights", meta: null, example: true, scale: u });
@@ -197,8 +198,8 @@ export const SHOTS = [
   std(18, "have-a-property-put-it-on-vallo", "host-start", ["Have a property?", "Put it on Vallo"], {
     async extra(ctx, m, p) {
       const { u } = ctx;
-      const [edge] = p.at(-FRAME, HEADER.top);
-      const left = edge - m.overhang * u;
+      const [edge] = p.at(-m.frame, HEADER.top);
+      const left = edge - m.overhang;
       /* wide enough to cover the menu, the logo and the wordmark whole, and
          clear of the bell */
       const w = 680 * u;

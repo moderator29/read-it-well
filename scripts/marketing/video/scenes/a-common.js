@@ -446,7 +446,7 @@ export function registerSound(ctx, T) {
   /* 08 */ for (const t of T.dots) s("tap_soft", t, -6); s("tap", T.filterPress, 0);
   /* 09 */ s("toggle_on", T.exactly, 3); s("counter_tick", T.countRoll, -2); s("tap", T.need, 0);
   /* 10 */ s("swipe", T.flick, -2);
-  /* 11 (the receipt opens the chapter) */ s("whoosh_short", T.call, 0); s("card_slide", T.call + 0.17, -2);
+  /* 11 (v3.1: no whoosh inside a chapter; the receipt's flight has its slide) */ s("card_slide", T.call + 0.17, -2);
   /* 12 */ for (const t of T.lines) s("counter_tick", t, 0);
   /* 13 */ for (const t of T.flies) s("counter_tick", t + 0.24, -4); s("success", T.right, 0); s("pop", T.there + 0.11, 0);
   /* Captions: off while the same words are big (02, 04, 06, 07 until the pill). Row 05 has no big words (v3.1). */

@@ -349,7 +349,11 @@ export async function checkPhone(spec, layer, { W, H }) {
     const per = (q[3][1] - q[0][1]) / ih;
     const yCap = (H - q[0][1]) / per - 186;
     const bands = await emptyBands(spec.screen);
-    const b = bands.find(([a, z]) => yCap >= a && yCap <= z);
+    /* a post may declare the empty region its foot falls in, when a card's
+     * thin border runs through it: [from, to, what it holds] in capture px */
+    const declared = spec.edgeBand && yCap >= spec.edgeBand[0] && yCap <= spec.edgeBand[1] ? [spec.edgeBand[0], spec.edgeBand[1]] : null;
+    const b = declared || bands.find(([a, z]) => yCap >= a && yCap <= z);
+    if (declared) notes.push(`declared band: ${spec.edgeBand[2]}`);
     edge = { yCap: Math.round(yCap) };
     if (!b && spec.exemptBand) notes.push(`bottom edge crosses ${spec.exemptBand} (no text) at capture y ${Math.round(yCap)}`);
     else if (!b) notes.push(`bottom edge crosses live UI at capture y ${Math.round(yCap)}`);

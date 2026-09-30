@@ -10,6 +10,9 @@ const H = 900;
 const g = grid(W, H);
 const K = 1.62;
 const CARD_W = 600;
+const CARD_Y = 452;
+/* the card is 162 px tall at scale 1 */
+const CARD_H = 162 * K;
 
 export default {
   id: "26",
@@ -24,8 +27,8 @@ export default {
       body: `
       ${headline(["Have a <k>property?</k>"], { W, H })}
       ${subline("Put it on Vallo and welcome guests from across the country.", { W, H, lines: 1 })}
-      ${popcard({ ground: "night", title: "Payment settled", line: "Straight to your bank", amount: "₦1,800,000", x: W - g.M - CARD_W * K, y: 452, width: CARD_W, scale: K })}
-      ${icon3d("earnings", { W, H, slot: "B", top: 470 })}
+      ${popcard({ ground: "night", title: "Payment settled", line: "Straight to your bank", amount: "₦1,800,000", x: W - g.M - CARD_W * K, y: CARD_Y, width: CARD_W, scale: K })}
+      ${icon3d("earnings", { W, H, slot: "B", cy: CARD_Y + CARD_H / 2 })}
       `,
     }),
 };

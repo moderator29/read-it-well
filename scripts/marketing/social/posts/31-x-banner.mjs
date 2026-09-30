@@ -11,7 +11,7 @@ import { phoneHtml } from "../lib/kit.mjs";
 const W = 1500;
 const H = 500;
 const g = grid(W, H);
-const PL = { kind: "pose", rotation: { x: 0, y: 0, z: 0 }, fov: 20, h: 550, top: 132 };
+const PL = { kind: "pose", rotation: { x: 0, y: 0, z: 0 }, fov: 20, h: 550, top: 121 };
 
 export default {
   id: "x-banner",

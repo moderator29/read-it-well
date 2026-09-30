@@ -16,7 +16,8 @@ const P = 1080;
 const SLIDES = [
   { screen: "listing-sale", w: 667, head: ["<k>Homes,</k>", "to rent or buy."], sub: "Listings with the price up front.", icon: "buy" },
   { screen: "stay", w: 640, head: ["<k>Stays,</k>", "by the night."], sub: "Pick a place, then pick your dates.", icon: "hotel" },
-  { screen: "restaurants", w: 644, head: ["<k>Tables,</k>", "for tonight."], sub: "See the opening hours before you go.", icon: "restaurant" },
+  { screen: "restaurants", w: 644, head: ["<k>Tables,</k>", "for tonight."], sub: "See the opening hours before you go.", icon: "restaurant",
+    edgeBand: [1586, 1691, "the first card's foot and the gap to the second card; one card border, no text"] },
 ];
 
 export default {
@@ -29,7 +30,7 @@ export default {
     { file: "16-carousel-2-stays.png", extract: { left: P, top: 0, width: P, height: H } },
     { file: "17-carousel-3-tables.png", extract: { left: 2 * P, top: 0, width: P, height: H } },
   ],
-  phones: SLIDES.map((s, i) => phone(s.screen, "night", PLACE.bleed({ w: s.w, cx: i * P + 540 }))),
+  phones: SLIDES.map((s, i) => phone(s.screen, "night", PLACE.bleed({ w: s.w, cx: i * P + 540 }), s.edgeBand ? { edgeBand: s.edgeBand } : {})),
   html: ({ phones }) =>
     frame({
       W,

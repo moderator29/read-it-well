@@ -47,7 +47,7 @@ export const PARTS = {
   "key-9": { id: "passcode-create", x: 850, y: 2200, w: 240, h: 240 },
   "lock-badge": { id: "passcode-create", x: 500, y: 840, w: 320, h: 320 },
   "verify-steps": { id: "verification", x: 36, y: 490, w: 1250, h: 190 },
-  "id-card": { id: "verification", x: 48, y: 1276, w: 1230, h: 760 },
+  "id-card": { id: "verification", x: 56, y: 1277, w: 1207, h: 736 },
   "workspace-hotel": { id: "host-start", x: 36, y: 985, w: 1250, h: 262 },
   "workspace-shortlet": { id: "host-start", x: 36, y: 1296, w: 1250, h: 262 },
   "workspace-restaurant": { id: "host-start", x: 36, y: 1604, w: 1250, h: 262 },
