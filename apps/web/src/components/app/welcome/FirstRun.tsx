@@ -623,7 +623,8 @@ export function FirstRun({
             />
           )}
         </span>
-        <Lockup onCanvas />
+        {/* Always dark (the founder, 30 September): the night lockup. */}
+        <Lockup />
         <span className="nf-om-top__side nf-om-top__side--end">
           {!onLast && (
             <button

@@ -4,6 +4,10 @@
  * `components/app/welcome/FirstRun.tsx` (the chrome, the steps) and
  * `OnboardingScenes.tsx` (the four scenes). Every class starts `nf-om`.
  *
+ * ALWAYS DARK (the founder, 30 September): Get started sits on the night
+ * whatever the reader's theme, so nothing here reads the root theme; the
+ * tokens resolve inside the dark island the page is wrapped in.
+ *
  * THE SHAPE, top to bottom on a phone: back, the lockup and Skip; the
  * segmented progress; the scene (the founder's clay art in a rounded card,
  * with chips arriving over it); the title and body; one pill. On a wide
@@ -64,13 +68,6 @@
       110% 70% at 50% 0%,
       color-mix(in oklab, var(--nf-brand-primary) 16%, transparent),
       transparent 72%
-    );
-  }
-  :root[data-theme="light"] .nf-om-glow {
-    background: radial-gradient(
-      110% 70% at 50% 0%,
-      color-mix(in oklab, var(--nf-brand-primary) 12%, var(--nf-surface-canvas)),
-      transparent 75%
     );
   }
 
@@ -164,20 +161,16 @@
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    background: var(--nf-brand-primary);
+    background: var(--nf-brand-quiet);
     transform: scaleX(0);
     transform-origin: left center;
     transition: transform var(--nf-duration-entrance) var(--nf-ease-entrance);
-  }
-  :root:not([data-theme="light"]) .nf-om-seg__fill {
-    background: var(--nf-brand-quiet);
   }
   .nf-om-seg[data-filled] .nf-om-seg__fill {
     transform: scaleX(1);
   }
   /* Where you are in the flow: the spark (spec section 18). */
-  .nf-om-seg[data-current] .nf-om-seg__fill,
-  :root:not([data-theme="light"]) .nf-om-seg[data-current] .nf-om-seg__fill {
+  .nf-om-seg[data-current] .nf-om-seg__fill {
     background: var(--nf-spark);
   }
 
@@ -378,9 +371,6 @@
     width: 6px;
     height: 6px;
     border-radius: var(--nf-radius-circle);
-    background: var(--nf-brand-primary);
-  }
-  :root:not([data-theme="light"]) .nf-om-pill__dots > span {
     background: var(--nf-brand-quiet);
   }
 
@@ -652,9 +642,6 @@
   .nf-om-title__b {
     color: var(--nf-content-link);
   }
-  :root[data-theme="light"] .nf-om-title__b {
-    color: var(--nf-brand-primary);
-  }
   .nf-om-body {
     max-width: 34ch;
     margin: var(--nf-space-xs) auto 0;
@@ -678,21 +665,8 @@
     flex-direction: column;
     gap: var(--nf-space-2xs);
   }
-  .nf-om .nf-om-cta {
-    min-height: 3.5rem;
-    border-radius: var(--nf-radius-pill);
-    font-size: var(--nf-text-body);
-    font-weight: 650;
-    gap: var(--nf-space-xs);
-    transition: transform var(--nf-duration-press) var(--nf-ease-press);
-  }
-  .nf-om .nf-om-cta:active {
-    transform: scale(0.97);
-  }
-  .nf-om .nf-om-second {
-    min-height: 3rem;
-    border-radius: var(--nf-radius-pill);
-  }
+  /* Continue is the shared Button primary (its shape and press belong to
+     the button system); this only adds the arrow's nudge. */
   .nf-om-cta__arrow {
     display: inline-flex;
   }
@@ -776,22 +750,21 @@
   /* Quiet: every step lands at once. `data-quiet` is the hydrated answer
      (reduced motion, Calm or Off); the two rules after it hold the first
      paint before the script has read the setting. */
-  .nf-om[data-quiet] :is(.nf-om-scene, .nf-om-copy, .nf-om-seg__fill),
-  .nf-om[data-quiet] .nf-om-cta {
+  .nf-om[data-quiet] :is(.nf-om-scene, .nf-om-copy, .nf-om-seg__fill) {
     transition: none;
   }
   .nf-om[data-quiet] :is(.nf-om-pop, .nf-om-float, .nf-om-words > *, .nf-om-cta__arrow, .nf-om-sides__thumb, .nf-om-scan__frame, .nf-om-scan__line, .nf-om-pill__dots > span, .nf-om-typing, .nf-om-typing > span, .nf-om-total__part) {
     animation: none;
   }
   @media (prefers-reduced-motion: reduce) {
-    .nf-om :is(.nf-om-scene, .nf-om-copy, .nf-om-seg__fill, .nf-om-cta) {
+    .nf-om :is(.nf-om-scene, .nf-om-copy, .nf-om-seg__fill) {
       transition: none;
     }
     .nf-om :is(.nf-om-pop, .nf-om-float, .nf-om-words > *, .nf-om-cta__arrow, .nf-om-sides__thumb, .nf-om-scan__frame, .nf-om-scan__line, .nf-om-pill__dots > span, .nf-om-typing, .nf-om-typing > span, .nf-om-total__part) {
       animation: none;
     }
   }
-  :root:is([data-motion="calm"], [data-motion="off"]) .nf-om :is(.nf-om-scene, .nf-om-copy, .nf-om-seg__fill, .nf-om-cta) {
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-om :is(.nf-om-scene, .nf-om-copy, .nf-om-seg__fill) {
     transition: none;
   }
   :root:is([data-motion="calm"], [data-motion="off"]) .nf-om :is(.nf-om-pop, .nf-om-float, .nf-om-words > *, .nf-om-cta__arrow, .nf-om-sides__thumb, .nf-om-scan__frame, .nf-om-scan__line, .nf-om-pill__dots > span, .nf-om-typing, .nf-om-typing > span, .nf-om-total__part) {
