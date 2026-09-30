@@ -1158,3 +1158,76 @@ outbox is empty after an agreement, inspection or listing write.
 **When applying:** rename the file to `<version>_email_lifecycle_triggers.sql`
 in `supabase/migrations/` and record it with
 `node scripts/check-migrations.mjs --record`. The file itself says to do this.
+
+---
+
+## Review: M1 follow-ups (commit 1338849e)
+
+### `m1_followup_severity_execute_revoke.sql`: **APPLY**
+
+It revokes EXECUTE on `public.notification_severity(notification_kind, text, text)`
+from PUBLIC, anon and authenticated, and grants it to service_role. The live
+ACL has PUBLIC, anon, authenticated and service_role, so after the change only
+postgres and service_role hold it. It also revokes EXECUTE on
+`private.stamp_notification_severity()` (owned by postgres; its live ACL is
+NULL, meaning PUBLIC) from the same three roles.
+
+**Why the trigger keeps working (checked against live):**
+* Postgres checks EXECUTE on a trigger function only when the trigger is
+  created, so revoking it on the stamp function changes nothing at fire time.
+* The stamp trigger runs as the role doing the insert, and it calls
+  `notification_severity`, so every role that can insert into `notifications`
+  must keep EXECUTE. Live, the non-superuser roles holding INSERT are
+  `postgres` and `service_role`, which is exactly what the column grants show,
+  plus the predefined `pg_write_all_data`, which **has no members**. The
+  superuser `supabase_admin` bypasses the check.
+* Every function that inserts into `public.notifications` is a definer owned
+  by postgres.
+* The only caller of `notification_severity` anywhere in the database is the
+  stamp function, and the app never calls it over RPC.
+* The read-back's INSERT-grantee check, which reads
+  `information_schema.role_table_grants`, lists `service_role` and `postgres`
+  under the migration role, so it passes. It then calls the function as the
+  migration role.
+
+It changes only revokes and grants: no table, no policy, no payment path.
+Running it twice is safe. **db-06** is unaffected: a member's insert into
+notifications is still refused on privilege, before any trigger.
+
+### `m1_followup_saved_listing_back_on_market.sql`: **APPLY**
+
+**Body diffed against live:** the applied migration's function body
+(`20260930104610`) is identical to the M1 file I reviewed at 6bb94258, and it
+matches the live `pg_get_functiondef` text. Diffed mechanically, the new body
+differs **only by additions**:
+* the new variable `told_gone boolean`;
+* the `told_gone` read, taken before this transition's own availability row is
+  inserted;
+* the new "available again" loop after the existing "gone" loop.
+
+Every line of the price branch, the gone notice, the `listing_changes`
+inserts, the lister and demo exclusions and the `return null` is unchanged.
+The header is unchanged too (plpgsql, SECURITY DEFINER, `search_path ''`).
+`CREATE OR REPLACE` keeps the live ACL (`{postgres=X}`), and the revoke is
+re-stated. The trigger (`listings_record_change`, AFTER UPDATE OF the price
+columns, `status` and `closed_at`) is not touched.
+
+**Behaviour:**
+* The "back" notice fires only when the listing becomes live again **and** an
+  earlier `availability = false` row exists for it, so a listing published for
+  the first time stays silent.
+* Savers get it; never the lister, and never on a demo listing.
+* It uses the same `private.notify` path, kind `listing`. Its severity falls to
+  `update`, as the read-back proves by calling the live severity function.
+* The extra EXISTS uses `listing_changes_listing_idx (listing_id, changed_at)`
+  and runs only on a transition to live. It cannot raise, so listing writes
+  cannot be blocked.
+
+**Note (not a blocker):** the check asks whether a "gone" row was ever
+recorded, not whether this saver was told. A person who saved the listing
+while it was off the market would get "available again" without having seen
+"gone". The wording is still true.
+
+**Both files** are unversioned names. When applying, rename each to
+`<version>_<name>.sql` in `supabase/migrations/` and record it, as each file
+says. They are independent, so either order works.
