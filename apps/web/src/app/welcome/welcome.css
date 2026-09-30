@@ -1000,9 +1000,15 @@
     .nf-gs-copy {
       grid-column: 2;
       grid-row: 2;
-      max-width: 32rem;
+      max-width: 34rem;
       margin: 0;
-      padding-inline: 0 clamp(2rem, 6vw, 6rem);
+      padding-inline: 0 clamp(1.5rem, 3vw, 3rem);
+    }
+    /* The ground reaches the foot of the picture, which is the page's
+       height here. */
+    .nf-gs-hills {
+      bottom: 0;
+      height: 52%;
     }
     .nf-gs-title {
       font-size: clamp(3rem, 4.2vw, 4rem);
@@ -1017,8 +1023,10 @@
     .nf-gs-foot--last {
       max-width: 26rem;
     }
+    /* Top left, beside the back button rather than under it. */
     .nf-gs-lockup {
-      left: 2.5rem;
+      left: 4.5rem;
+      top: calc(env(safe-area-inset-top, 0px) + 1.4rem);
       translate: none;
     }
   }
