@@ -391,6 +391,11 @@
   .nf-supply__facts {
     margin-top: var(--nf-space-md);
   }
+  /* In the plate head the facts sit on the photograph from 64rem, so they
+     take the head's own ink, like its lede. */
+  .nf-site-head .nf-supply__facts {
+    color: var(--nf-landing-fg-2);
+  }
   .nf-supply__h2 {
     margin-bottom: var(--nf-space-sm);
     font-family: var(--nf-font-display);
