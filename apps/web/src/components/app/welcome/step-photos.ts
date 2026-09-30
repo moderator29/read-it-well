@@ -23,11 +23,19 @@
  */
 export type StepNumber = 1 | 2 | 3 | 4;
 
+/*
+ * 3 and 4 arrived on 30 September (talk first, pay safely; the orange arch),
+ * dark only, converted by scripts/brand-3d.mjs. THE LIGHT VERSIONS ARE OWED:
+ * until the founder sends them, step-3-light.webp and step-4-light.webp are
+ * copies of the dark picture (its bottom fades into the warm canvas). Replace
+ * those two files when the light art lands; nothing else changes.
+ * 1 and 2 keep the glass scene until their art arrives.
+ */
 export const STEP_PHOTOS_READY: Readonly<Record<StepNumber, boolean>> = {
   1: false,
   2: false,
-  3: false,
-  4: false,
+  3: true,
+  4: true,
 };
 
 /** The pictures' own size, for next/image. */
