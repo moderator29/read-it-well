@@ -52,6 +52,11 @@ export const publicDoorsEn = {
     compactTitle: "Rent is only part of it",
     compactBody: "Add the agency, legal, caution and service charge you were quoted, and see the whole amount.",
     compactSubmit: "Work out my total",
+    /** The hero's search surface: its two tabs, and the move-in field's hint. */
+    tabSearch: "Find a place",
+    tabMoveIn: "Move-in total",
+    tabsLabel: "What would you like to do?",
+    compactPlaceholder: "Yearly rent in naira",
     rentLabel: "Yearly rent",
     rentHint: "In naira, for one year.",
     rentPlaceholder: "1,500,000",
@@ -105,6 +110,9 @@ export const publicDoorsEn = {
     exampleBadge: "Example",
     exampleNote: "An example of the desk with made-up enquiries. Nothing here is a real person or property.",
     otherDoors: "Not you?",
+    faqTitle: "Common questions",
+    closeBody: "Create your account first. Your profile setup opens straight after.",
+    factsLabel: "In short",
   },
 
   guides: {

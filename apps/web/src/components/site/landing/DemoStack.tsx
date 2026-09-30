@@ -82,7 +82,10 @@ export function DemoStack({ cards, labels }: { cards: StackCard[]; labels: Label
 
   if (hydrated && quiet) {
     return (
-      <ul className="nf-stack nf-stack--still" aria-label={labels.region}>
+      /* A still row: swiped sideways on a phone (the native scroll, which
+         is not motion the page makes), two columns from 48rem. Focusable so
+         a keyboard can scroll it. */
+      <ul className="nf-stack nf-stack--still" aria-label={labels.region} tabIndex={0}>
         {cards.map((c) => (
           <li key={c.key} className="nf-stack__card">
             <Frame card={c} />

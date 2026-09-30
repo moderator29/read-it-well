@@ -4,8 +4,7 @@ import { DepthWords, wordCount } from "@/components/motion/DepthWords";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { EdgeLap } from "@/components/site/EdgeLap";
 import { catalogueIsOpen, type Door } from "./doors";
-import { SearchPill } from "./SearchPill";
-import { MoveInCompact } from "./MoveInCompact";
+import { HeroSurface } from "./HeroSurface";
 
 /**
  * The hero, to the founder's reference 39 (29 September 2026): a clean
@@ -73,7 +72,9 @@ export function Hero({ t, door }: { t: Dictionary; door: Door }) {
         </div>
 
         <div className="nf-landing-pill-wrap nf-depth-last">
-          <SearchPill labels={face.search} />
+          {/* A8 folded in: the search and the move-in total, as two tabs on
+              one surface (HeroSurface.tsx). */}
+          <HeroSurface search={face.search} moveIn={t.publicDoors.moveIn} />
         </div>
 
         <ul className="nf-hero-facts nf-rise nf-rise-4">
@@ -84,9 +85,6 @@ export function Hero({ t, door }: { t: Dictionary; door: Door }) {
             </li>
           ))}
         </ul>
-
-        {/* A8: the move-in total, for anyone, in the first screen. */}
-        <MoveInCompact t={t} />
       </div>
     </section>
   );

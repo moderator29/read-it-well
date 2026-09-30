@@ -1989,15 +1989,47 @@
     font-size: var(--nf-text-caption);
     color: var(--nf-content-muted);
   }
-  /* Reduced motion, Calm and Off: a still list, every card visible. */
+  /* Reduced motion, Calm and Off: a still row, every card there. On a phone
+     the cards sit side by side and scroll sideways with snap points (the
+     reader's own scroll, not motion the page makes), so the room keeps the
+     deck's height instead of four cards stacked (about 1,200px more at
+     390); from 48rem, two columns. */
   .nf-stack--still {
     display: grid;
-    gap: var(--nf-space-md);
-    width: 100%;
+    grid-auto-flow: column;
+    grid-auto-columns: 84%;
+    gap: var(--nf-space-sm);
+    /* Bleeds to the screen's edges, so the next card peeks from the edge
+       rather than from under the gutter. */
+    margin-inline: calc(-1 * var(--nf-pad-shell));
+    padding-inline: var(--nf-pad-shell);
+    scroll-padding-inline: var(--nf-pad-shell);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    padding-bottom: var(--nf-space-2xs);
+  }
+  .nf-stack--still::-webkit-scrollbar {
+    display: none;
+  }
+  .nf-stack--still > .nf-stack__card {
+    scroll-snap-align: start;
+  }
+  .nf-stack--still:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 4px;
+    border-radius: var(--nf-radius-card);
   }
   @media (min-width: 48rem) {
     .nf-stack--still {
+      grid-auto-flow: row;
+      grid-auto-columns: auto;
       grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--nf-space-md);
+      margin-inline: 0;
+      padding-inline: 0;
+      overflow: visible;
     }
   }
   .nf-stack--still .nf-stack__card {

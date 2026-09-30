@@ -871,8 +871,105 @@
   }
   @media (prefers-reduced-motion: reduce) {
     .nf-landing-pill-segments::before,
-    .nf-landing-pill-go {
+    .nf-landing-pill-go,
+    .nf-hero-tab {
       transition: none;
+    }
+  }
+
+  /* ------------------------------------------ the hero surface's two tabs
+     (HeroSurface.tsx): find a place, or the move-in total. Two capsules
+     centred over the card; the chosen one is the dock's tinted pill (spec
+     section 17), brand ink on a soft brand wash. Both panels share one grid
+     cell, so a switch never moves what sits under the card. */
+  .nf-hero-surface {
+    display: grid;
+    gap: var(--nf-space-xs);
+  }
+  .nf-hero-tabs {
+    display: flex;
+    justify-content: center;
+    gap: var(--nf-space-2xs);
+  }
+  .nf-hero-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    min-height: 2.75rem;
+    padding: 0 var(--nf-space-md);
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 500;
+    color: var(--nf-content-secondary);
+    white-space: nowrap;
+    transition:
+      background-color var(--nf-duration-fast) var(--nf-ease-standard),
+      color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-hero-tab[aria-selected="true"] {
+    background: color-mix(in oklab, var(--nf-brand-primary) 12%, var(--nf-surface-primary));
+    color: var(--nf-brand-primary);
+    font-weight: 600;
+  }
+  :root:not([data-theme="light"]) .nf-hero-tab[aria-selected="true"] {
+    background: color-mix(in oklab, var(--nf-brand-primary) 24%, var(--nf-surface-canvas));
+    color: var(--nf-brand-secondary);
+  }
+  @media (hover: hover) {
+    .nf-hero-tab[aria-selected="false"]:hover {
+      background: var(--nf-interactive-hover);
+      color: var(--nf-content-primary);
+    }
+  }
+  .nf-hero-tab:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  .nf-hero-surface__panels {
+    display: grid;
+  }
+  .nf-hero-surface__panels > [role="tabpanel"] {
+    grid-area: 1 / 1;
+    display: grid;
+    min-width: 0;
+  }
+  .nf-hero-surface__panels > [data-active="false"] {
+    visibility: hidden;
+  }
+
+  /* The move-in panel: the same card; a line on what it adds, then the rent
+     field with the go button in its right end (phone), or one 64px row with
+     the go button's word (40rem up). */
+  .nf-landing-pill--movein {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "note"
+      "field";
+    align-content: center;
+    height: 100%;
+  }
+  .nf-landing-pill-note {
+    grid-area: note;
+    padding: var(--nf-space-xs) var(--nf-space-sm) 0;
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.5;
+    color: var(--nf-content-secondary);
+    text-wrap: pretty;
+  }
+  .nf-landing-pill-naira {
+    flex: none;
+    font-weight: 600;
+    color: var(--nf-content-muted);
+  }
+  @media (min-width: 40rem) {
+    .nf-landing-pill--movein {
+      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-areas: "field go";
+    }
+    .nf-landing-pill-note {
+      display: none;
     }
   }
 

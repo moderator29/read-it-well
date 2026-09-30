@@ -15,7 +15,6 @@ import { Journey } from "./Journey";
 import { Bento } from "./Bento";
 import { WorldsBand } from "./WorldsBand";
 import { StackRoom } from "./StackRoom";
-import { CheckRoom } from "./CheckRoom";
 import { landingDoor } from "./doors";
 
 /**
@@ -119,7 +118,9 @@ export function LandingBody({
           Worlds      Property and Stays, with Example-tagged listings
           AI          the assistant's rules beside an example conversation
           Categories  eight kinds of place, then the cities
-          Community   who it is for, real figures only, the Third party label
+          Community   who it is for, real figures only, the Third party label,
+                      and "Check before you pay" with the check in the card
+                      (A7, folded in on 30 September)
           App, FAQ    on your phone; the short answers in one grouped card
           Close       the final card: sign up, or sign in
 
@@ -137,8 +138,6 @@ export function LandingBody({
       <AiBand t={t} locale={locale} cards={data.showcase ?? data.cards} door={door} />
       <CategoryGrid t={t} counts={data.counts} door={door} />
       <CommunityBand t={t} locale={locale} stats={data.stats} />
-      {/* A7: "Check before you pay", with the check itself in the card. */}
-      <CheckRoom t={t} locale={locale} />
       {native ? null : <AppBand t={t} native={native} />}
       <LandingFaq t={t} nonce={nonce} />
       <FinalCta t={t} />
