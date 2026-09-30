@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { lookup } from "@/lib/admin/lookup-reads";
 import { PageHead, Panel } from "../_components/panels";
+import { StatusBadge } from "@/components/ui/StatusBadge";
 
 export const metadata: Metadata = { title: "Lookup", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -36,7 +37,7 @@ export default async function LookupPage({ searchParams }: { searchParams: Promi
         <label className="sr-only" htmlFor="lookup-q">
           What to look up
         </label>
-        <input id="lookup-q" name="q" type="search" defaultValue={q} className="nf-input min-w-0 flex-1" autoFocus />
+        <input id="lookup-q" name="q" type="search" defaultValue={q} className="nf-field min-w-0 flex-1" autoFocus />
         <button type="submit" className="nf-btn nf-btn--primary nf-btn--md">
           Look up
         </button>
@@ -53,9 +54,12 @@ export default async function LookupPage({ searchParams }: { searchParams: Promi
             <ul className="nf-admin-queue" data-testid="lookup-hits">
               {result.hits.map((hit) => (
                 <li key={`${hit.kind}-${hit.href}`} className="nf-admin-queue-row">
-                  <Link href={hit.href} className="font-semibold underline">
-                    {hit.kind}: {hit.title}
-                  </Link>
+                  <p className="flex flex-wrap items-center gap-xs">
+                    <StatusBadge tone="neutral">{hit.kind}</StatusBadge>
+                    <Link href={hit.href} className="font-semibold text-[var(--nf-content-link)] underline-offset-2 hover:underline">
+                      {hit.title}
+                    </Link>
+                  </p>
                   <p className="nf-caption">{hit.sub}</p>
                 </li>
               ))}
