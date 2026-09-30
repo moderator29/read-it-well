@@ -24,7 +24,6 @@ import type { ShareRefundStatus } from "@/lib/tenancy/queries";
 import { ExitAccountForm, RelistButton, RenewalAnswer, RenewalOfferForm } from "@/components/app/tenancy/RenewalControls";
 import { rentCountdown } from "@/lib/tenancy/countdown";
 import { RentCountdown } from "@/components/app/tenancy/RentCountdown";
-import { lagosToday } from "@/lib/bookings/schema";
 
 /** A private record. Never indexed, never in a tab title. */
 export const metadata: Metadata = { title: "Tenancy", robots: { index: false, follow: false } };
