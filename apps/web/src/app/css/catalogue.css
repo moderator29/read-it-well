@@ -2237,25 +2237,37 @@
      loses its lit rim and its figure is a word at the muted ink, so the eye
      reads the declared costs first and still cannot miss that something was
      left unsaid. */
+  /* ONE GROUPED LIST (spec section 5, pixel polish 30 September): the
+     costs were six separate grey wells, one per row, which on the warm
+     canvas read as a stack of disabled fields. They are now one white card
+     (the card border, the card shadow, the card radius) with inset
+     hairlines that start at the text column (16 + 44 plate + 12 = 72px),
+     none above the first row. An undeclared cost still steps back through
+     its muted plate and its "Not declared" word. */
   .nf-movein__list {
     display: grid;
-    gap: var(--nf-space-xs);
+    overflow: hidden;
+    border: var(--nf-border-width) solid var(--nf-card-border);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-surface-primary);
+    box-shadow: var(--nf-card-shadow);
   }
   .nf-movein__row {
+    position: relative;
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
     gap: var(--nf-space-sm);
-    min-height: 3.5rem;
+    min-height: 3.75rem;
     padding: var(--nf-space-sm) var(--nf-space-md);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
-    background: var(--nf-glass-well-fill);
-    border-radius: var(--nf-radius-control);
   }
-  /* The declared rows carry the lit rim the render gives them; the undeclared
-     ones keep the neutral hairline above, which is the whole difference. */
-  .nf-movein__row[data-declared] {
-    border-color: var(--nf-panel-edge);
+  .nf-movein__row + .nf-movein__row::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    inset-inline: 4.5rem 0;
+    height: 1px;
+    background: var(--nf-divider);
   }
   /* THE ROW GLYPH (29 September 2026): a bold line glyph on the shared
      `IconPlate` (`DetailGlyph`), no longer a glass object, so the plate draws
@@ -2339,7 +2351,7 @@
     flex-shrink: 0;
     text-align: end;
     font-size: var(--nf-text-body-sm);
-    font-weight: 700;
+    font-weight: 600;
     font-variant-numeric: tabular-nums;
     color: var(--nf-content-primary);
   }
