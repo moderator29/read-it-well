@@ -12,7 +12,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
  *   <ListGroup label="Chase first" action={<Link ...>See all 8</Link>}>
  *     <ListRow leading={<IconPlate ... />} title="..." sub="..."
  *              value="N42,800" status={<StatusBadge kind="status" ... />}
- *              href="/..." chevron />
+ *              href="/saved" chevron />
  *   </ListGroup>
  *
  * ListGroup

@@ -39,6 +39,6 @@ describe("no trust score", () => {
 
   it("a zero stays count is never printed", () => {
     const header = readFileSync(join(root, "components/social/profile/ProfileHeader.tsx"), "utf8");
-    expect(header).toContain("trust.completedDeals > 0 ?");
+    expect(header).toMatch(/trust\.completedDeals > 0\s*\?/);
   });
 });
