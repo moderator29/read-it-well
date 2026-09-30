@@ -63,8 +63,8 @@ const ROUTE_ORDER = ["Abuja", "Kano", "Port Harcourt", "Enugu", "Ibadan"];
 
 /* The model, in model units (the country is WIDTH units from east to west). */
 const WIDTH = 10;
-const SLAB = { height: 0.62, bevel: 0.18, segments: 8, sink: 0.06 };
-const PLINTH = { margin: 0.3, height: 0.66, bevel: 0.2, segments: 200 };
+const SLAB = { height: 0.62, bevel: 0.18, segments: 6, sink: 0.06 };
+const PLINTH = { margin: 0.3, height: 0.66, bevel: 0.2, segments: 160 };
 const HOUSE_W = 0.44; // about 4 % of the country's width
 const CLEAR = { house: 0.42, dot: 0.2 }; // how far Lagos' house and the dots stay inside the edge
 
@@ -76,7 +76,7 @@ const FILMS = {
     box: [60, 380, 1020, 1300],
     frame: [22, 0, 1058, 1500], // the plinth stays inside this
     fov: 30,
-    az: [-9, 3],
+    az: [-26, -14],
     pitch: [46, 40],
     push: 0.035,
     margin: 12,
@@ -87,7 +87,7 @@ const FILMS = {
     box: [460, 120, 1460, 900],
     frame: [40, 40, 1880, 1040],
     fov: 26,
-    az: [-9, 3],
+    az: [-13, -1],
     pitch: [43, 37],
     push: 0.035,
     margin: 10,
@@ -219,7 +219,7 @@ function grainTexture(seed = 566) {
   const tex = new THREE.DataTexture(data, size, size, THREE.RGBAFormat, THREE.UnsignedByteType);
   tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
   tex.generateMipmaps = true;
-  tex.minFilter = THREE.LinearMipmapLinearFilter;
+  tex.minFilter = THREE.LinearMipmapNearestFilter;
   tex.magFilter = THREE.LinearFilter;
   tex.colorSpace = THREE.NoColorSpace;
   tex.needsUpdate = true;
@@ -259,7 +259,7 @@ function nigeriaRing(topology) {
  * of the delta close, corners round off, and the result is a clean ring the bevel can
  * follow without folding over itself. Then resampled at an even spacing, anticlockwise.
  */
-function softOutline(P, { cell = 0.02, blur = 5, spacing = 0.045 } = {}) {
+function softOutline(P, { cell = 0.02, blur = 5, spacing = 0.055 } = {}) {
   let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
   for (const [x, y] of P) {
     x0 = Math.min(x0, x); x1 = Math.max(x1, x);
@@ -598,7 +598,7 @@ function latheGeometry(profile, segments) {
 /** The round plinth: a flat top, a soft quarter-round edge and a straight side. */
 function plinthGeometry(R, { height, bevel, segments }) {
   const prof = [];
-  const rings = 14;
+  const rings = 10;
   for (let k = 0; k <= rings; k += 1) prof.push({ r: ((R - bevel) * k) / rings, y: 0, nr: 0, ny: 1, flat: true });
   const S = 8;
   for (let k = 1; k <= S; k += 1) {
@@ -724,7 +724,8 @@ const FRAG_VELVET = /* glsl */ `
     vec3 N = normalize(vN);
     vec3 V = normalize(cameraPosition - vPos);
     float nv = clamp(dot(N, V), 0.0, 1.0);
-    float fr = pow(1.0 - nv, uSheenPow);
+    float fx = 1.0 - nv;
+    float fr = fx * fx * sqrt(fx); // (1 - n.v)^2.5
     float behind = clamp(dot(-V, uRimDir) * 0.5 + 0.5, 0.0, 1.0);
     vec3 sheen = fr * (vSheen + vRim * behind);
     if (uGlowPass > 0.5) {
@@ -907,17 +908,22 @@ const VERT_QUAD = /* glsl */ `
   varying vec2 vUv;
   void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }
 `;
+/* The glow buffers are 8-bit and hold the square root of the light (precision near black,
+   where faint glow over the transparent background is lifted most); the blur itself works
+   on linear light: each tap is decoded, the sum encoded again. */
 const FRAG_BLUR = /* glsl */ `
   uniform sampler2D tSrc;
   uniform vec2 uStep;
+  uniform float uDecode;
   varying vec2 vUv;
+  vec3 tap(vec2 uv) { vec3 c = texture2D(tSrc, uv).rgb; return uDecode > 0.5 ? c * c : c; }
   void main() {
-    vec3 c = texture2D(tSrc, vUv).rgb * 0.2270270270;
-    c += texture2D(tSrc, vUv + uStep * 1.3846153846).rgb * 0.3162162162;
-    c += texture2D(tSrc, vUv - uStep * 1.3846153846).rgb * 0.3162162162;
-    c += texture2D(tSrc, vUv + uStep * 3.2307692308).rgb * 0.0702702703;
-    c += texture2D(tSrc, vUv - uStep * 3.2307692308).rgb * 0.0702702703;
-    gl_FragColor = vec4(c, 1.0);
+    vec3 c = tap(vUv) * 0.2270270270;
+    c += tap(vUv + uStep * 1.3846153846) * 0.3162162162;
+    c += tap(vUv - uStep * 1.3846153846) * 0.3162162162;
+    c += tap(vUv + uStep * 3.2307692308) * 0.0702702703;
+    c += tap(vUv - uStep * 3.2307692308) * 0.0702702703;
+    gl_FragColor = vec4(sqrt(c), 1.0);
   }
 `;
 const FRAG_COMBINE = /* glsl */ `
@@ -926,7 +932,10 @@ const FRAG_COMBINE = /* glsl */ `
   uniform float uA;
   uniform float uB;
   varying vec2 vUv;
-  void main() { gl_FragColor = vec4(texture2D(tA, vUv).rgb * uA + texture2D(tB, vUv).rgb * uB, 1.0); }
+  void main() {
+    vec3 a = texture2D(tA, vUv).rgb, b = texture2D(tB, vUv).rgb;
+    gl_FragColor = vec4(sqrt(a * a * uA + b * b * uB), 1.0);
+  }
 `;
 const FRAG_FINAL = /* glsl */ `
   uniform sampler2D tMain;
@@ -938,7 +947,8 @@ const FRAG_FINAL = /* glsl */ `
   varying vec2 vUv;
   void main() {
     if (uDebug > 0.5) {
-      gl_FragColor = vec4(texture2D(tGlow, vUv).rgb * 4.0, 1.0);
+      vec3 gd = texture2D(tGlow, vUv).rgb;
+      gl_FragColor = vec4(gd * gd * 4.0, 1.0);
       return;
     }
     vec4 m;
@@ -949,7 +959,8 @@ const FRAG_FINAL = /* glsl */ `
     } else {
       m = texture2D(tMain, vUv);
     }
-    vec3 glow = texture2D(tGlow, vUv).rgb * 2.0;
+    vec3 glow = texture2D(tGlow, vUv).rgb;
+    glow = glow * glow * 2.0;
     // add the glow in (near) linear light over the premultiplied sRGB model
     vec3 l = m.rgb * m.rgb + glow;
     vec3 c = sqrt(min(l, vec3(1.0)));
@@ -1047,8 +1058,9 @@ export async function createLiveMap(o) {
   const gw = Math.max(8, Math.round(width / 4)), gh = Math.max(8, Math.round(height / 4));
   /* half-float glow buffers: faint glow over the transparent background is lifted a lot by
      the encode, and 8 bits show as blocks there */
-  const rtOpts = { type: THREE.HalfFloatType, depthBuffer: false, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, generateMipmaps: false };
-  const glowRT = new THREE.WebGLRenderTarget(gw, gh, { ...rtOpts, type: o.glowHalf === false ? THREE.UnsignedByteType : THREE.HalfFloatType, depthBuffer: true, samples: o.glowSamples ?? 4 });
+  const glowType = o.glowFloat ? THREE.HalfFloatType : THREE.UnsignedByteType;
+  const rtOpts = { type: glowType, depthBuffer: false, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, generateMipmaps: false };
+  const glowRT = new THREE.WebGLRenderTarget(gw, gh, { ...rtOpts, depthBuffer: true, samples: o.glowSamples ?? 0 });
   const blurA1 = new THREE.WebGLRenderTarget(gw, gh, rtOpts);
   const blurA2 = new THREE.WebGLRenderTarget(gw, gh, rtOpts);
   const hw = Math.max(4, Math.round(gw / 2)), hh = Math.max(4, Math.round(gh / 2));
@@ -1056,7 +1068,7 @@ export async function createLiveMap(o) {
   const blurB2 = new THREE.WebGLRenderTarget(hw, hh, rtOpts);
 
   /* ---------- lights (world space) and shared uniforms ---------- */
-  const keyDir = new THREE.Vector3(-0.58, 0.64, 0.5).normalize(); // soft key: front left, above
+  const keyDir = new THREE.Vector3(-0.5, 0.8, 0.34).normalize(); // soft key: high, front left
   const rimDir = new THREE.Vector3(0.34, 0.3, -0.89).normalize(); // blue rim light behind, a little right
   const glowPass = { value: 0 };
   const grain = grainTexture(566);
@@ -1119,31 +1131,31 @@ export async function createLiveMap(o) {
 
   const LOOK = {
     slab: {
-      albedo: "#0036e6",
-      key: "#e2ecff", keyAmt: 0.5,
-      rim: "#2a7bff", rimAmt: 2.4,
-      sky: "#1f4fd0", skyAmt: 0.36,
-      ground: "#041046", groundAmt: 0.3,
-      sheen: "#3a7cff", sheenAmt: 0.7, sheenPow: 2.2,
-      pool: new THREE.Vector3(centre3.x - 2.2, 0, centre3.z - 0.6), poolR: 8.5, poolAmt: 0.5,
-      gradDir: [-0.35, -0.94], gradR: 5.5, gradAmt: 0.2,
-      ao: [-0.05, SLAB.height * 0.8, 0.45],
+      albedo: "#0034c4",
+      key: "#e6eeff", keyAmt: 0.62,
+      rim: "#0a6cff", rimAmt: 2.6,
+      sky: "#2250d8", skyAmt: 0.3,
+      ground: "#030a3a", groundAmt: 0.25,
+      sheen: "#1e6cff", sheenAmt: 0.66, sheenPow: 2.5,
+      pool: new THREE.Vector3(centre3.x - 2.6, 0, centre3.z - 0.4), poolR: 7.2, poolAmt: 0.62,
+      gradDir: [-0.3, -0.95], gradR: 5.5, gradAmt: 0.26,
+      ao: [-0.05, SLAB.height * 0.85, 0.35],
       inflate: 0.07,
-      grainScale: 0.42, grainAmt: 0.09,
+      grainScale: 0.42, grainAmt: 0.1,
       glowGain: 1.25, glowFloor: 0.08,
     },
     plinth: {
-      albedo: "#0a1a7a",
-      key: "#e2ecff", keyAmt: 0.42,
-      rim: "#2a6bff", rimAmt: 1.9,
-      sky: "#183399", skyAmt: 0.3,
-      ground: "#02041c", groundAmt: 0.3,
-      sheen: "#2a5ae0", sheenAmt: 0.5, sheenPow: 2.4,
-      pool: new THREE.Vector3(centre3.x - 1.8, 0, centre3.z - 0.4), poolR: 9.5, poolAmt: 0.55,
-      gradDir: [-0.35, -0.94], gradR: 6.5, gradAmt: 0.25,
-      ao: [-PLINTH.height, -0.05, 0.5],
+      albedo: "#081a86",
+      key: "#e6eeff", keyAmt: 0.55,
+      rim: "#0a62ff", rimAmt: 2.0,
+      sky: "#183399", skyAmt: 0.26,
+      ground: "#010312", groundAmt: 0.3,
+      sheen: "#1a52e6", sheenAmt: 0.5, sheenPow: 2.5,
+      pool: new THREE.Vector3(centre3.x - 1.6, 0, centre3.z + 0.2), poolR: 7.0, poolAmt: 0.72,
+      gradDir: [-0.3, -0.95], gradR: 6.5, gradAmt: 0.22,
+      ao: [-PLINTH.height, -0.04, 0.22],
       inflate: 0.08,
-      grainScale: 0.42, grainAmt: 0.05,
+      grainScale: 0.42, grainAmt: 0.06,
       glowGain: 0.9, glowFloor: 0.1,
     },
   };
@@ -1537,7 +1549,7 @@ export async function createLiveMap(o) {
   /* ---------- the passes ---------- */
   const quadCam = new THREE.Camera();
   const quadGeo = new THREE.PlaneGeometry(2, 2);
-  const blurMat = new THREE.ShaderMaterial({ vertexShader: VERT_QUAD, fragmentShader: FRAG_BLUR, uniforms: { tSrc: { value: null }, uStep: { value: new THREE.Vector2() } }, depthTest: false, depthWrite: false });
+  const blurMat = new THREE.ShaderMaterial({ vertexShader: VERT_QUAD, fragmentShader: FRAG_BLUR, uniforms: { tSrc: { value: null }, uStep: { value: new THREE.Vector2() }, uDecode: { value: 1 } }, depthTest: false, depthWrite: false });
   const finalMat = new THREE.ShaderMaterial({
     vertexShader: VERT_QUAD,
     fragmentShader: FRAG_FINAL,
@@ -1572,7 +1584,9 @@ export async function createLiveMap(o) {
   function blur(src, tmp, dst, spread) {
     blurMat.uniforms.tSrc.value = src.texture;
     blurMat.uniforms.uStep.value.set(spread / src.width, 0);
+    blurMat.uniforms.uDecode.value = src === glowRT ? 0 : 1; // the glow scene itself is linear
     pass(blurMat, tmp);
+    blurMat.uniforms.uDecode.value = 1;
     blurMat.uniforms.tSrc.value = tmp.texture;
     blurMat.uniforms.uStep.value.set(0, spread / tmp.height);
     pass(blurMat, dst);
@@ -1591,7 +1605,7 @@ export async function createLiveMap(o) {
     const bob = Math.sin(TAU * 0.9 * (t - T.pinIn[0])) * 0.025 * prog(t, T.pinIn[0], T.pinIn[1]);
     const pos = rest.clone();
     pos.y += (1 - inU) * 0.9 + bob;
-    const scale0 = 0.2;
+    const scale0 = 0.26;
     let scale = scale0 * mix(0.55, 1, inU);
     const liftU = prog(t, T.pinLift[0], T.pinLift[1]);
     if (liftU > 0) {
@@ -1696,12 +1710,12 @@ export async function createLiveMap(o) {
       const ru = prog(t, r.land, r.land + 0.9);
       r.ripple.visible = ru > 0 && ru < 1;
       if (r.ripple.visible) {
-        const rad = mix(0.25, 1.35, EASE.land(ru));
+        const rad = mix(0.22, 0.95, EASE.land(ru));
         r.ripple.scale.set(rad * 2 + 0.4, rad * 2 + 0.4, 1);
         const m = r.ripple.material.uniforms;
         m.uRadius.value = rad / (rad + 0.2);
         m.uWidth.value = 0.09;
-        m.uAmt.value = 0.55 * (1 - ru) * (1 - ru);
+        m.uAmt.value = 0.4 * (1 - ru) * (1 - ru);
       }
       const lu = prog(t, r.start - 0.05, r.start + 0.55);
       r.launch.visible = lu > 0 && lu < 1;
@@ -1718,12 +1732,12 @@ export async function createLiveMap(o) {
     const su = prog(t, T.land, T.land + 0.8);
     landRing.visible = su > 0 && su < 1;
     if (landRing.visible) {
-      const rad = mix(0.2, 1.1, EASE.land(su));
+      const rad = mix(0.2, 0.9, EASE.land(su));
       landRing.scale.set(rad * 2 + 0.3, rad * 2 + 0.3, 1);
       const m = landRing.material.uniforms;
       m.uRadius.value = rad / (rad + 0.15);
       m.uWidth.value = 0.14;
-      m.uAmt.value = 0.5 * (1 - su) * (1 - su);
+      m.uAmt.value = 0.4 * (1 - su) * (1 - su);
     }
 
     /* the pin */
@@ -1807,13 +1821,13 @@ export async function createLiveMap(o) {
     renderer.setClearColor(0x000000, 1);
     renderer.clear(true, true, false);
     renderer.render(scene, camera);
+    if (glowRT.samples === 0) mark("glowScene", glowRT);
     for (const ob of mainOnly) ob.visible = ob.userData.on;
     glowPass.value = 0;
     renderer.setClearColor(0x000000, 0);
     blur(glowRT, blurA1, blurA2, 1.0);
     mark("glow", blurA2);
-    blur(blurA2, blurB1, blurB2, 1.0);
-    blur(blurB2, blurB1, blurB2, 2.0);
+    blur(blurA2, blurB1, blurB2, 2.2);
     pass(combineMat, blurA1); // the two glows, pre-mixed at quarter size
     mark("blur", blurA1);
     /* final: clear the canvas, then filter the model down and add the glow inside the region */
@@ -1830,17 +1844,56 @@ export async function createLiveMap(o) {
   /* glow-only helpers are skipped in the main pass by their shader (discard) */
 
   /* ---------- labels, pin, points ---------- */
-  /* Which side of its dot each label sits on (screen directions): away from the routes,
-     which all run west toward Lagos. Lagos' label sits under the home (the pin is above). */
-  const labelSide = {
-    Lagos: { dx: 0, dy: 1 },
-    Abuja: { dx: 1, dy: -0.12 },
-    Kano: { dx: 1, dy: -0.2 },
-    "Port Harcourt": { dx: 1, dy: 0.25 },
-    Enugu: { dx: 1, dy: 0 },
-    Ibadan: { dx: -1, dy: -0.35 },
-  };
+  /* Which side of its dot each label sits on, chosen once (at mid-shot) so it never jumps:
+     of eight sides, the one whose label box (sized for the film's labels, ~34 px type on
+     mobile, ~24 px on desktop) stays clearest of the routes, the home and its pin, the other
+     labels and the edge of the safe zone. Lagos' label sits under the home (the pin is above). */
   const labelGap = 18 * Math.min(sx, sy) * (film === "mobile" ? 1.3 : 1);
+  const labelSide = {};
+  {
+    setCamera(2.6);
+    const font = (film === "mobile" ? 34 : 24) * Math.min(sx, sy);
+    const safe = film === "mobile" ? [44 * sx, 285 * sy, 940 * sx, 1225 * sy] : [40 * sx, 40 * sy, 1880 * sx, 910 * sy];
+    const pts = []; // things to keep clear of (screen px)
+    for (const r of routes) for (let k = 0; k <= 40; k += 1) { const p = toScreen(r.curve.getPointAt(k / 40)); pts.push([p.x, p.y, 1]); }
+    const hp = toScreen(new THREE.Vector3(lagos.x, topY + house.height * 0.5, lagos.z));
+    const pp = toScreen(new THREE.Vector3(lagos.x, topY + house.height + 0.6, lagos.z));
+    for (let k = 0; k <= 10; k += 1) pts.push([mix(hp.x, pp.x, k / 10), mix(hp.y, pp.y, k / 10), 3]);
+    const boxes = [];
+    const boxAt = (d, dir, name) => {
+      const w = font * (0.6 * name.length + 1.3), h = font * 1.6;
+      const ax = dir[0] > 0.38 ? 0 : dir[0] < -0.38 ? 1 : 0.5;
+      const ay = dir[1] > 0.38 ? 0 : dir[1] < -0.38 ? 1 : 0.5;
+      const x = d.x + dir[0] * labelGap, y = d.y + dir[1] * labelGap;
+      return [x - ax * w, y - ay * h, x - ax * w + w, y - ay * h + h];
+    };
+    const cost = (b) => {
+      const m = 6;
+      let c = 0;
+      for (const [x, y, wgt] of pts) if (x > b[0] - m && x < b[2] + m && y > b[1] - m && y < b[3] + m) c += wgt;
+      for (const o of boxes) {
+        const ox = Math.min(b[2], o[2]) - Math.max(b[0], o[0]), oy = Math.min(b[3], o[3]) - Math.max(b[1], o[1]);
+        if (ox > -8 && oy > -8) c += 40;
+      }
+      const out = Math.max(0, safe[0] - b[0]) + Math.max(0, b[2] - safe[2]) + Math.max(0, safe[1] - b[1]) + Math.max(0, b[3] - safe[3]);
+      return c + out * 2;
+    };
+    const L = toScreen(new THREE.Vector3(lagos.x, topY, lagos.z));
+    labelSide.Lagos = { dx: 0, dy: 1 };
+    boxes.push(boxAt({ x: L.x, y: L.y + labelGap }, [0, 1], "Lagos"));
+    const dirs = [[1, 0], [1, -0.7], [0, -1], [-1, -0.7], [-1, 0], [-1, 0.7], [0, 1], [1, 0.7]].map(([x, y]) => { const l = Math.hypot(x, y); return [x / l, y / l]; });
+    for (const city of ROUTE_ORDER) {
+      const an = anchors[city];
+      const d = toScreen(new THREE.Vector3(an.x, topY, an.z));
+      let best = null;
+      dirs.forEach((dir, k) => {
+        const c = cost(boxAt(d, dir, city)) + (dir[0] > 0.5 ? 0 : dir[0] > -0.5 ? 0.5 : 1); // prefer the right, then above/below
+        if (!best || c < best.c) best = { c, dir, k };
+      });
+      labelSide[city] = { dx: best.dir[0], dy: best.dir[1] };
+      boxes.push(boxAt(d, best.dir, city));
+    }
+  }
 
   function cityOpacity(city, t) {
     const outU = 1 - EASE.soft(prog(t, T.labelsOut[0], T.labelsOut[1]));

@@ -56,8 +56,8 @@ ROWS = [
     ("38", 153, 156, "Put it on Vallo and welcome"),
     ("39", 156, 160, "guests from across the country."),
     ("40", 160, 166, "Vallo. Real estate, done right."),
-    ("41", 166, 171, "(silent: no voice, music tail)"),
-    ("42", 171, 176, "(silent: no voice, music tail)"),
+    ("41", 166, 172, "(silent: no voice, music tail)"),
+    ("42", 172, 176, "(silent: no voice, music tail; the badges cut in on bar 44)"),
 ]
 
 

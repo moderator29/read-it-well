@@ -148,7 +148,11 @@ export function popup({ theme = "dark", icon: ic, title, sub, amount = "", time 
   const s = (v) => Math.round(v * scale);
   const chipSize = s(34);
   let iconHtml = "";
-  if (ic?.sticker) iconHtml = `<div style="width:${s(84)}px;height:${s(84)}px;border-radius:${s(26)}px;flex:none;display:grid;place-items:center;
+  if (ic?.obj) iconHtml = `<div style="width:${s(84)}px;height:${s(84)}px;border-radius:${s(26)}px;flex:none;display:grid;place-items:center;
+      background:${d ? "linear-gradient(145deg,rgba(92,159,255,.26),rgba(0,105,254,.10))" : "linear-gradient(145deg,#EEF4FF,#DCE9FF)"};
+      border:1px solid ${d ? "rgba(140,185,255,.28)" : "rgba(0,86,208,.10)"}"><img src="${u(join(BRAND, "3d", `${ic.obj}@2x.webp`))}" alt=""
+      style="width:${s(70)}px;height:${s(70)}px;display:block;filter:drop-shadow(0 ${s(4)}px ${s(6)}px rgba(0,0,30,.28))"></div>`;
+  else if (ic?.sticker) iconHtml = `<div style="width:${s(84)}px;height:${s(84)}px;border-radius:${s(26)}px;flex:none;display:grid;place-items:center;
       background:${d ? "linear-gradient(145deg,rgba(92,159,255,.26),rgba(0,105,254,.10))" : "linear-gradient(145deg,#EAF2FF,#DCE9FF)"};
       border:1px solid ${d ? "rgba(140,185,255,.28)" : "rgba(0,86,208,.10)"}">${sticker(ic.sticker, s(62))}</div>`;
   else if (ic?.lucide) iconHtml = `<div style="width:${s(84)}px;height:${s(84)}px;border-radius:${s(26)}px;flex:none;display:grid;place-items:center;

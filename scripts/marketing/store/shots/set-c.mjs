@@ -63,23 +63,26 @@ export const SET_C = [
       const cy = f.phoneTop + f.phoneH / 2;
       const p = await ctx.phone({ id: "plans", cx: W * 0.6, cy, h: f.phoneH, rotation: { x: -5, y: -17, z: 3 }, fov: 26 });
       const b = p.box;
-      /* The three example plans sit over the page's empty state (display
-         y 1240 to 2070), where the list of plans would be. */
-      const s = u * 1.1;
+      /* The three example plans cover the page's whole empty state (display
+         y 1280 to 2150), where the list of plans would be: a pop-up card is
+         160 s tall and the next starts 0.88 of a card lower, so no word of
+         the empty state peeks between them. */
+      const yTop = p.at(660, 1270)[1];
+      const span = p.at(660, 2160)[1] - yTop;
+      const s = span / (160 * (1 + 2 * 0.88));
       const hc = 160 * s;
-      const step = hc * 1.12;
-      const yc = p.at(660, 1686)[1];
-      const left = Math.min(p.at(90, 1300)[0], p.at(90, 2100)[0]) - 40 * u;
-      const cw = Math.max(p.at(1240, 1300)[0], p.at(1240, 2100)[0]) - left + 10 * u;
-      const y0 = yc - (hc + 2 * step) / 2 + 70 * u;
+      const step = hc * 0.88;
+      const left = Math.max(40 * u, Math.min(p.at(90, 1300)[0], p.at(90, 2100)[0]) - 60 * u);
+      const cw = Math.min(W - 40 * u - left, 880 * s);
+      const y0 = yTop + 70 * u;
       return [
         fill("#01041C"),
         `<div class="g" style="inset:0;background:url('${photoUrl("bg-blue-wave.jpg")}') 38% 50% / auto 100% no-repeat;transform:scaleX(-1)"></div>`,
         fill("linear-gradient(180deg, rgb(1 4 28 / 0.55) 0%, rgb(1 4 28 / 0) 22%)", "z-index:1"),
         p.html,
-        popup({ x: left, y: y0 - 70 * u, w: cw, rotate: -3, theme: "light", emoji: "1f942", tone: "warm", title: "Table for 2", line: "Tonight, 8:00 PM · Harbour Lights Kitchen", meta: "Today", example: true, scale: s, z: 31 }),
-        popup({ x: left + 24 * u, y: y0 - 70 * u + step, w: cw, rotate: 1.5, theme: "light", emoji: "1f6cf-fe0f", title: "Room booked", line: "Lagoon Crest Resort · 3 nights", meta: "Fri", example: true, scale: s, z: 32 }),
-        popup({ x: left, y: y0 - 70 * u + step * 2, w: cw, rotate: -2, theme: "light", lucide: "calendar-check", title: "Inspection set", line: "Saturday, 11:00 AM", meta: "Sat", example: true, scale: s, z: 33 }),
+        popup({ x: left, y: y0 - 70 * u, w: cw, rotate: -1.5, theme: "light", emoji: "1f942", tone: "warm", title: "Table for 2", line: "Tonight, 8:00 PM · Harbour Lights Kitchen", meta: "Today", example: true, scale: s, z: 31 }),
+        popup({ x: left + 24 * u, y: y0 - 70 * u + step, w: cw, rotate: 1, theme: "light", emoji: "1f6cf-fe0f", title: "Room booked", line: "Lagoon Crest Resort · 3 nights", meta: "Fri", example: true, scale: s, z: 32 }),
+        popup({ x: left, y: y0 - 70 * u + step * 2, w: cw, rotate: -1, theme: "light", lucide: "calendar-check", title: "Inspection set", line: "Saturday, 11:00 AM", meta: "Sat", example: true, scale: s, z: 33 }),
         headline({ lines: ["All your plans", "in one place"], cx: W / 2, y: f.hlTop, max: f.max, size: f.size }),
       ].join("\n");
     },

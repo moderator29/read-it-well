@@ -66,6 +66,7 @@
           supersample: q.get("ss") ? +q.get("ss") : undefined,
           glowSamples: q.get("gs") ? +q.get("gs") : undefined,
           glowHalf: q.get("gh") === "0" ? false : undefined,
+          glowFloat: q.get("gf") === "1" ? true : undefined,
         });
 
         /* the labels: HTML, placed every frame from map.labels(t) */

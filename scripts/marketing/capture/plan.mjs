@@ -65,7 +65,7 @@ const FILTERS_SET = [
   { wait: 1500 },
 ];
 
-export const CAPTURES = [
+const BASE_CAPTURES = [
   /* ---------------------------------------------------------- signed out */
   ...[1, 2, 3, 4].map((n) => ({ id: `welcome-${n}`, auth: false, steps: [{ goto: "/welcome" }, { click: `[data-testid=welcome-dot-${n}]` }, { wait: 1800 }] })),
   /* /welcome opens on its last slide for a returning browser; the dot brings slide 1. */
@@ -214,4 +214,22 @@ export const CAPTURES = [
   { id: "d-home-light", kind: "desktop", theme: "light", steps: HOME },
   { id: "d-listing-light", kind: "desktop", theme: "light", steps: go(LISTING_SALE) },
   { id: "d-stays-light", kind: "desktop", theme: "light", steps: go("/stays") },
+];
+
+/* Light twins for the films' light chapters (the same steps, the light theme). */
+const LIGHT_TWINS = [
+  "filters", "filters-villas", "messages", "listing-share", "stays-dates", "verification", "passcode-create",
+  "welcome-1", "welcome-ha", "welcome-yo", "welcome-ig", "host-start", "home", "stays", "assistant",
+  "listing", "plans", "payments",
+  "d-filters", "d-filters-villas", "d-listing-cost", "d-thread", "d-listing-share", "d-messages", "d-stays-dates",
+  "d-restaurant", "d-verification", "d-welcome", "d-welcome-ha", "d-welcome-yo", "d-welcome-ig", "d-host-start",
+  "d-search", "d-stays", "d-stay", "d-assistant", "d-passcode-create",
+];
+export const CAPTURES = [
+  ...BASE_CAPTURES,
+  ...LIGHT_TWINS.map((id) => {
+    const cap = BASE_CAPTURES.find((c) => c.id === id);
+    if (!cap) throw new Error(`no capture ${id} to twin`);
+    return { ...cap, id: `${id}-lt`, theme: "light", full: false };
+  }),
 ];

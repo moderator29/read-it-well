@@ -270,8 +270,8 @@ export const SET_B = [
         `<svg class="g" style="left:0;top:0;z-index:3" width="${W}" height="${H}">${scan}</svg>`,
         vignette(0.35),
         p.html,
-        /* In the empty band under the form (display y 2440 on), hiding no words. */
-        popup({ x: 44 * u, y: p.at(660, 2440)[1], w: 900 * u, rotate: -3, emoji: "2705", tone: "mint", title: "Checked by a person", line: "Verified mark added", meta: "now", example: true, scale: u * 1.08 }),
+        /* In the empty band under the Continue button (display y 2470 on), hiding no words. */
+        popup({ x: 44 * u, y: p.at(660, 2490)[1], w: 900 * u, rotate: -3, emoji: "2705", tone: "mint", title: "Checked by a person", line: "Verified mark added", meta: "now", example: true, scale: u * 1.08 }),
         headline({ lines: ["The verified mark means", "a real person checked"], cx: W / 2, y: f.hlTop, max: f.max, size: f.size * 0.92,
           sub: "About who you deal with, never the listing.", subSize: 42 * u }),
       ].join("\n");
