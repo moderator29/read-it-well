@@ -85,13 +85,9 @@ export function RateResolution({
           You rated this {rating} out of 5. Thank you.
         </p>
         {comment && <p className="nf-caption mt-row break-words text-[var(--nf-content-secondary)]">“{comment}”</p>}
-        <button
-          type="button"
-          onClick={() => setEditing(true)}
-          className="nf-caption mt-row inline-flex min-h-11 cursor-pointer items-center font-semibold text-[var(--nf-content-link)]"
-        >
+        <Button variant="quiet" size="sm" onClick={() => setEditing(true)} className="mt-row">
           Change your rating
-        </button>
+        </Button>
       </div>
     );
   }
