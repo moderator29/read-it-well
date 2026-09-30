@@ -134,16 +134,25 @@ export async function buildClose(ctx, S) {
   }, top);
   const url = ctx.el("div", { class: "abs", text: "vallospaces.com", style: { left: "0px", top: "0px", font: `600 ${M ? 38 : 30}px/1 Inter, sans-serif`, letterSpacing: "-0.01em", color: "#0b1230", whiteSpace: "nowrap" } }, top);
 
-  /* the badges: the official files, unmodified; same height; App Store first */
-  const hasGoogle = await fetch(BADGES.google, { method: "HEAD", cache: "no-store" }).then((r) => r.ok).catch(() => false);
+  /* The badges (live only): the official files, unmodified, the same height,
+     App Store first; they cut in on bar 44 and are never moved, scaled or
+     faded. Apple's rules want both stores live before any badge shows, so
+     the live ending refuses to build without the Google Play file. */
   const badgeH = M ? 84 : 56;
   let badgeRow = null;
   if (live) {
-    if (!hasGoogle) console.error("section c: the live ending needs video/assets/badges/google-play-black.svg (the founder supplies it); the App Store badge shows alone until then");
+    const hasGoogle = await fetch(BADGES.google, { method: "HEAD", cache: "no-store" }).then((r) => r.ok).catch(() => false);
+    if (!hasGoogle) throw new Error("section c: the live ending needs both store badges; video/assets/badges/google-play-black.svg is missing (the founder supplies it)");
     badgeRow = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", display: "flex", alignItems: "center", gap: `${M ? 24 : 18}px`, visibility: "hidden" } }, top);
     ctx.img(BADGES.apple, { style: { height: `${badgeH}px`, width: "auto" } }, badgeRow);
-    if (hasGoogle) ctx.img(BADGES.google, { style: { height: `${badgeH}px`, width: "auto" } }, badgeRow);
+    ctx.img(BADGES.google, { style: { height: `${badgeH}px`, width: "auto" } }, badgeRow);
   }
+  /* a cut, not a fade: position and visibility only (no opacity, no scale) */
+  const cutBadges = (t, x, y) => {
+    if (!badgeRow) return;
+    badgeRow.style.transform = `translate(${x.toFixed(2)}px, ${y.toFixed(2)}px) translate(-50%, -50%)`;
+    badgeRow.style.visibility = t >= K.r42 ? "" : "hidden";
+  };
 
   if (M) {
     /* the lockup above */
@@ -174,10 +183,7 @@ export async function buildClose(ctx, S) {
       const b = ramp(ctx, t, K.r41 + 0.45, K.r41 + 1.1, "land");
       place(pill, { x: 540, y: 470 + (1 - b) * 20, o: b });
       /* bar 44: the badges cut in (live); vallospaces.com arrives */
-      if (badgeRow) {
-        badgeRow.style.visibility = t >= K.r42 ? "" : "hidden";
-        place(badgeRow, { x: 540, y: 1530 });
-      }
+      cutBadges(t, 540, 1530);
       const c = ramp(ctx, t, url0, url0 + 0.6, "land");
       place(url, { x: 540, y: (live ? 1612 : 1545) + (1 - c) * 16, o: c });
     });
@@ -197,25 +203,28 @@ export async function buildClose(ctx, S) {
     ctx.onFrame((t) => {
       dImg.style.visibility = t >= K.r41 - 0.05 ? "" : "hidden";
     });
-    /* the bottom row: the pill (then the badges, live) and vallospaces.com */
-    const pw = pill.offsetWidth;
-    const uw = url.offsetWidth;
-    const bw = live ? (badgeH * 119.66) / 40 + (hasGoogle ? 18 + badgeH * 3.375 : 0) : 0;
-    const gap = 36;
-    const total = pw + gap + (live ? bw + gap : 0) + uw;
-    const x0 = 960 - total / 2;
+    /* the bottom row: the pill (then the badges, live) and vallospaces.com,
+       measured once the fonts and badge files have loaded (layout constants) */
+    let row = null;
+    const measureRow = () => {
+      const pw = pill.offsetWidth;
+      const uw = url.offsetWidth;
+      const bw = badgeRow ? badgeRow.offsetWidth : 0;
+      const gap = 36;
+      const total = pw + gap + (badgeRow ? bw + gap : 0) + uw;
+      return { pw, uw, bw, gap, total, x0: 960 - total / 2 };
+    };
     const rowY = 952;
     during(ctx, K.r41 - 0.02, end, (t) => {
+      row ??= measureRow();
+      const { pw, uw, bw, gap, total, x0 } = row;
       const u = rise(t, 0);
       win.root.style.transformOrigin = "0 0";
       win.root.style.transform = `translate(120px, ${(118 + (1 - u) * 900 + 3 * drift(t, 0.2)).toFixed(2)}px) scale(${s.toFixed(5)})`;
       win.root.style.opacity = opa(u * 3);
       const b = ramp(ctx, t, K.r41 + 0.45, K.r41 + 1.1, "land");
       place(pill, { x: x0 + pw / 2, y: rowY + (1 - b) * 16, o: b });
-      if (badgeRow) {
-        badgeRow.style.visibility = t >= K.r42 ? "" : "hidden";
-        place(badgeRow, { x: x0 + pw + gap + bw / 2, y: rowY });
-      }
+      cutBadges(t, x0 + pw + gap + bw / 2, rowY);
       const c = ramp(ctx, t, K.r42, K.r42 + 0.6, "land");
       place(url, { x: x0 + total - uw / 2, y: rowY + (1 - c) * 12, o: c });
     });

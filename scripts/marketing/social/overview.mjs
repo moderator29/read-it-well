@@ -24,7 +24,7 @@ const GAP = 24;
 const PAD = 48;
 const MAX_W = 3300;
 const LABEL = 34;
-const BG = "#0B0E1C";
+const BG = "#3A3F4B";
 
 const items = [];
 for (const f of files) {

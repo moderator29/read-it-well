@@ -1,9 +1,9 @@
 /* 14 · "Meet Vallo." Night. The product moment is the app's own icon, shown
  * alone at 440 px (its source is 1024) with the iOS corner radius; the line
  * under the headline is the website's own: "Rent, buy or stay. Without the
- * runaround." A party popper is the post's 3D icon. */
+ * runaround." A party popper is the post's 3D icon, in slot A. */
 import { join } from "node:path";
-import { SLOT, frame, headline, icon3d, subline } from "../lib/premium.mjs";
+import { frame, headline, icon3d, subline } from "../lib/premium.mjs";
 import { BRAND } from "../lib/paths.mjs";
 import { u } from "../lib/render.mjs";
 
@@ -32,7 +32,7 @@ export default {
           box-shadow:0 50px 90px -30px rgba(0,0,10,.85), 0 16px 34px -12px rgba(0,0,20,.55)">
         <img src="${u(join(BRAND, "vallo-icon.png"))}" alt="Vallo" style="display:block;width:${S}px;height:${S}px">
       </div>
-      ${icon3d("celebrate", { ...SLOT.post.tr, size: 210, ground: "night" })}
+      ${icon3d("celebrate", { W, H, slot: "A" })}
       `,
     }),
 };

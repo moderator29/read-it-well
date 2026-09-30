@@ -27,8 +27,8 @@ const SHIFT = { cx: 410, cy: HIGH.cy, height: HIGH.height };
 /* Row 10's push toward the costs: big enough that the listing's sticky bar (and its short total,
    "₦26.1m") sits below the frame, with the display's top at y 480, under the chapter pill. */
 export const PUSH = { cx: 540, cy: 1321, height: 1716 };
-/* ...and where its slow drift has taken it by "call", when the receipt lifts. */
-export const PUSH_REST = { cx: 540, cy: 1326, height: 1730 };
+/* It holds still there until "call" (a drift would re-render the 3D phone on every frame). */
+export const PUSH_REST = PUSH;
 const SB = 186; // the status bar in every display
 const Z = { mist: 3, map: 4, phone: 5, veil: 6, bodies: 7, words: 8, pointer: 12 };
 
@@ -47,6 +47,20 @@ export async function buildProductMobile(ctx, T, open) {
   open.clipDay(phoneWrap);
   const p = phone(ctx, { model: "island", parent: phoneWrap, env: "light", edge: "#f3f4f1" });
   await Promise.all(ctx.pending ?? []);
+  /* The engine maps the display with a matrix3d: a composited layer, whose raster scale Chrome may
+     keep from an earlier frame, so a frame's pixels could depend on the order frames are rendered.
+     Putting the display back in its place after each seek (this hook runs after the phone's own)
+     gives Chrome a fresh layer, rastered for this frame alone. */
+  let placed = "";
+  ctx.onFrame(() => {
+    const fr = p.frame;
+    if (!fr || !fr.parentNode || fr.style.visibility === "hidden") return;
+    /* only when the mapping changed: a layer built for this very mapping needs no rebuilding */
+    const key = `${fr.style.transform}|${fr.style.clipPath}`;
+    if (key === placed) return;
+    placed = key;
+    fr.parentNode.insertBefore(fr, fr.nextSibling);
+  });
   Object.assign(p.pose, { ...HERO, ...flat, cy: 1760, rx: 16, ry: -6, opacity: 1 });
   const P = p.pose;
 
@@ -69,7 +83,6 @@ export async function buildProductMobile(ctx, T, open) {
   /* 09 -> 10: on the press, centre and push in, so the listing opens with its sticky bar already
      below the frame (it is there by T.open). */
   tl.fromTo(P, { cx: SHIFT.cx, cy: HIGH.cy, height: HIGH.height }, { cx: PUSH.cx, cy: PUSH.cy, height: PUSH.height, duration: 0.6, ease: "power2.inOut", immediateRender: false }, T.need + 0.1);
-  tl.fromTo(P, { cy: PUSH.cy, height: PUSH.height }, { cy: PUSH_REST.cy, height: PUSH_REST.height, duration: T.call - T.movein, ease: "sine.inOut", immediateRender: false }, T.movein);
 
   /* ================= the screens (under the glass) ================= */
   /** A page: a full display; its own status bar is drawn fixed on top (a slide never moves it). */

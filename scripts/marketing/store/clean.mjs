@@ -98,7 +98,7 @@ export async function cleanDisplay(id, store) {
   const src = join(SCREENS, `${id}-${plat}.png`);
   const ref = join(SCREENS, `${CLEAN[id]}-${plat}.png`);
   mkdirSync(CACHE, { recursive: true });
-  const stamp = `${Math.round(statSync(src).mtimeMs)}-${Math.round(statSync(ref).mtimeMs)}-v3`;
+  const stamp = `${Math.round(statSync(src).mtimeMs)}-${Math.round(statSync(ref).mtimeMs)}-v4`;
   const out = join(CACHE, `${id}-${plat}-${stamp}.png`);
   if (existsSync(out)) return out;
 
@@ -111,9 +111,10 @@ export async function cleanDisplay(id, store) {
   const rBell = (x, y) => Math.hypot(x - BELL.x, y - BELL.y);
 
   /* 1. Where the reference's parts are: how far each pixel stands out from its own
-        background. The solid parts (from 20 levels up, fully from 36, grown by 1 px)
-        are kept from the capture; their soft glow is carried over from the reference
-        onto the band's colour instead, since the ghost text shows through it. */
+        background. The solid parts (from 40 levels up, fully from 64, grown by 1 px)
+        are kept from the capture; everything fainter (the logo's glow, the bell's
+        ring) is carried over from the reference onto the band's colour instead,
+        since the ghost text shows through it. */
   const bg = background(R, w);
   const part = new Float32Array(n);
   const glow = new Float32Array(n * 3);
@@ -124,7 +125,7 @@ export async function cleanDisplay(id, store) {
       d = Math.max(d, Math.abs(v));
       glow[i * 3 + c] = Math.max(0, v);
     }
-    part[i] = Math.max(0, Math.min(1, (d - 20) / 16));
+    part[i] = Math.max(0, Math.min(1, (d - 40) / 24));
   }
   const keep = grow(part, w, BAND, 1);
   const quiet = new Float32Array(n);
@@ -154,7 +155,6 @@ export async function cleanDisplay(id, store) {
   }
   const glyphKeep = grow(glyph, w, BAND, 2);
   const inDisc = (x, y) => rBell(x, y) < BELL.inner;
-  const inRing = (x, y) => rBell(x, y) >= BELL.inner && rBell(x, y) <= BELL.outer;
 
   /* 3. The colours to fill with: the band's per row (smoothed over 9 rows) and the
         button's fill, both from the capture's own pixels where nothing else is. */
@@ -193,9 +193,6 @@ export async function cleanDisplay(id, store) {
       if (inDisc(x, y)) {
         k = glyphKeep[i];
         to = fill;
-      } else if (inRing(x, y)) {
-        k = 1;
-        to = band[y];
       } else {
         k = keep[i];
         to = [0, 1, 2].map((c) => band[y][c] + glow[i * 3 + c]);

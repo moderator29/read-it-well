@@ -10,7 +10,7 @@
  */
 import { LAYOUT, QUESTIONS } from "./layout.js";
 import { questionCard, squiggle } from "../engine/components.js";
-import { NAVY, ELECTRIC, SHADOW_L, rectQuad, lerpQuad, placeOnQuad, LINES, TOTAL, naira, rollNumber, measure, cropCanvas } from "./a-common.js";
+import { NAVY, ELECTRIC, SHADOW_L, rectQuad, lerpQuad, placeOnQuad, LINES, TOTAL, naira, rollNumber, measure, cropCanvas, freshLayers } from "./a-common.js";
 import { LOW_REST, LEFT, cssToStage } from "./a-d-product.js";
 
 /* The hand-off to section b (handoffs.md, desktop). */
@@ -50,6 +50,9 @@ export async function buildReceiptDesktop(ctx, T, product) {
   tl.fromTo(dim, { opacity: 0 }, { opacity: 0.55, duration: 0.5, ease: "power2.out" }, T.call);
   const thread = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: "1440px", height: "900px", overflow: "hidden", visibility: "hidden", zIndex: "20" } }, win.content);
   ctx.img(ctx.src.capture("d-thread-lt"), { class: "abs", style: { left: "0px", top: "0px", width: "1440px", height: "900px" } }, thread);
+  /* The member's own message is sent in section b (row 15): its bubble stays under the same patch
+     section b lays over it (b-d-talk.js), so the cut at 30.577 is clean. */
+  ctx.el("div", { class: "abs", style: { left: "851px", top: "763px", width: "495px", height: "64px", background: "#f3f4f1" } }, thread);
   const threadIn = T.there + 0.2;
   ctx.onFrame((t) => {
     const on = t >= threadIn;
@@ -176,6 +179,7 @@ export async function buildReceiptDesktop(ctx, T, product) {
   Object.assign(card.back.style, { justifyContent: "center", textAlign: "center", fontSize: "31px", lineHeight: "1.22", textWrap: "balance" });
   tl.fromTo(card.root, { x: 520, y: -460, rotation: 24 }, { x: 0, y: 0, rotation: 3, duration: 0.44, ease: "back.out(1.15)" }, T.there - 0.26);
   card.turn(T.there + 0.02, { sound: null });
+  freshLayers(ctx, [card.root], { from: T.there - 0.26, to: T.end });
   const out = T.there + 0.93;
   tl.to(card.root, { x: 520, y: -560, rotation: 22, scale: 0.9, duration: 0.36, ease: "power3.in" }, out);
 

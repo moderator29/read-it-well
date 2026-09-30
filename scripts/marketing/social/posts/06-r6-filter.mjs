@@ -1,21 +1,21 @@
-/* R6 · after IMG_6733 (a hand holding the phone). No hand: the phone keeps the
- * held angle on a clean Night ground. The filters with villas chosen and
- * Apply (3). A list is the post's 3D icon. */
-import { SLOT, frame, headline, icon3d } from "../lib/premium.mjs";
+/* R6 · after IMG_6733: one phone, whole, turned and tilted. Night. The
+ * search filters with Villas picked and "Apply (3)" at the foot, the whole
+ * phone in frame. A villa, echoing the picked Villas tile, is the post's 3D
+ * icon, in the left column. */
+import { frame, headline, icon3d, phone } from "../lib/premium.mjs";
 import { phoneHtml } from "../lib/kit.mjs";
 
 const W = 1080;
 const H = 1350;
+const TOP = 450;
+const PH = 860;
 
 export default {
   id: "06",
   file: "06-r6-filter-by-what-you-need.png",
   W,
   H,
-  phones: [
-    { screen: "filters-villas", model: "island", color: "black-titanium", rotation: { x: -8, y: -26, z: -14 }, fov: 30, h: 1000, cx: 650, top: 470,
-      shadow: { type: "drop", opacity: 0.5, ambientOpacity: 0.25 } },
-  ],
+  phones: [phone("filters-villas", "night", { kind: "pose", rotation: { x: -8, y: -26, z: -14 }, fov: 30, h: PH, cx: 650, top: TOP })],
   html: ({ phones }) =>
     frame({
       W,
@@ -24,7 +24,7 @@ export default {
       body: `
       ${headline(["Filter by <k>exactly</k>", "what you need."], { W, H })}
       ${phoneHtml(phones[0])}
-      ${icon3d("list", { ...SLOT.post.left, size: 210, ground: "night" })}
+      ${icon3d("villa", { W, H, slot: "B", cy: TOP + PH / 2 })}
       `,
     }),
 };

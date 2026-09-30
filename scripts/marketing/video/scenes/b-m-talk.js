@@ -17,7 +17,7 @@
 import { LAYOUT } from "./layout.js";
 import {
   DW, DH, NAVY, ELECTRIC, SHADOW, ramp, kf, mix, track, screenPage, showDuring, box, cropBody, quadDriver,
-  displayQuad, quadAtPose, rectQuad, lerpQuad, shiftQuad, placeQuad, mapQuad, exampleChip, pressAt, ripple, measure, dayCard,
+  displayQuad, quadAtPose, rectQuad, lerpQuad, shiftQuad, placeQuad, mapQuad, pressAt, ripple, measure, dayCard,
 } from "./b-kit.js";
 
 /* thread-light (display px). */
@@ -50,7 +50,8 @@ export async function talk(ctx, S, T) {
   const HIGH = { cx: L.PHONE_HIGH.cx, cy: L.PHONE_HIGH.cy, height: L.PHONE_HIGH.height };
   const HERO = { cx: L.PHONE_HERO.cx, cy: L.PHONE_HERO.cy, height: L.PHONE_HERO.height };
   const PUSH = { cx: 540, cy: 505, height: 1180 };
-  const RIGHT = { cx: 700, cy: 790, height: 960, ry: -8 };
+  /* flat (a turned screen costs about 2x to composite), far enough right that the day card clears the screen's text */
+  const RIGHT = { cx: 720, cy: 790, height: 960, ry: 0 };
   const FLIPPOSE = { cx: 540, cy: 233, height: 1500 };
 
   const over = ctx.scene("b-m-talk", T.r14, T.r19 + 0.1, { z: 20 });
@@ -142,7 +143,7 @@ export async function talk(ctx, S, T) {
     },
     opacityAt: (t) => 1 - ramp(ctx, t, tLand, tLand + 0.14, "power1.out"),
   });
-  ctx.sfx("card_slide", 30.8);
+  ctx.sfx("card_slide", ctx.beat(53.4)); // 30.81
 
   /* "owner", "landlord", "agent" land in WORDS over the dimmed phone; each one's leading edge shoves the last out. */
   const W = L.WORDS;
@@ -326,18 +327,19 @@ export async function talk(ctx, S, T) {
     },
     opacityAt: (t) => ramp(ctx, t, tFly0, tFly0 + 0.06),
   });
-  ctx.sfx("card_slide", 35.6, { offset: -2 });
-  ctx.sfx("bubble_send", 36.1, { offset: -2 });
+  ctx.sfx("card_slide", ctx.beat(61.7), { offset: -2 }); // 35.60
+  ctx.sfx("bubble_send", ctx.beat(62.6), { offset: -2 }); // 36.12
 
   /* ==================== row 17 ==================== */
-  const day = dayCard(ctx, over, T, { X: 60, Y: 500, k: 1, chipAt: { x: 255, y: 870 }, tIn: T.r17 - 0.1, tOut0: T.keep - 0.1, tOut1: T.r18 - 0.02 });
-  ctx.sfx("card_slide", 36.95, { offset: -2 });
+  /* 432 px wide from x 50: it overlaps the phone's bezel, never the screen's text (which starts near x 521) */
+  const day = dayCard(ctx, over, T, { X: 50, Y: 500, k: 0.92, chipAt: { x: 255, y: 870 }, tIn: T.r17 - 0.1, tOut0: T.keep - 0.1, tOut1: T.r18 - 0.02 });
+  ctx.sfx("card_slide", ctx.beat(64.05), { offset: -2 }); // 36.95
   ctx.sfx("stamp", T.inspection);
 
   /* ==================== row 18 ==================== */
 
   /* The day card docks into the inbox row as its unread dot. */
-  const tDock = 39.2;
+  const tDock = ctx.beat(67.95); // 39.20
   const dot = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: "100px", height: "100px", borderRadius: "30px", background: `linear-gradient(160deg, #3d8bff, ${ELECTRIC} 60%, #0050d0)`, display: "grid", placeItems: "center", color: "#fff", transformOrigin: "0 0", visibility: "hidden", boxShadow: SHADOW.s } }, over);
   const dotIcon = ctx.el("div", { style: { display: "grid", placeItems: "center" } }, dot);
   ctx.icon("calendar-check", { size: 50, stroke: 2.2 }, dotIcon);
@@ -360,9 +362,7 @@ export async function talk(ctx, S, T) {
     dot.style.borderRadius = `${mix(30, 50, k).toFixed(1)}px`;
     dotIcon.style.opacity = String((1 - ramp(ctx, t, tChip0 + 0.1, tChip0 + 0.35)).toFixed(3));
   });
-  const ring = box(ctx, msgs.el, { x: DOT.x + 16 - 60, y: DOT.y + 16 - 60, w: 120, h: 120, style: { borderRadius: "50%", border: `6px solid ${ELECTRIC}`, opacity: "0" } });
-  tl.fromTo(ring, { scale: 0.25, opacity: 0.9 }, { scale: 1.5, opacity: 0, duration: 0.6, ease: "power2.out", immediateRender: false }, tDock);
-  showDuring(ctx, ring, [[tDock, tDock + 0.6]]);
+  /* (no ring at the dot: v3.1 keeps rings to rows 04, 19 and 23) */
   ctx.sfx("pop", tDock, { offset: -2 });
 
   /* ==================== the pointer ==================== */

@@ -8,7 +8,7 @@
  */
 import { LAYOUT, QUESTIONS } from "./layout.js";
 import { questionCard, squiggle } from "../engine/components.js";
-import { NAVY, ELECTRIC, SHADOW_L, displayRectQuad, rectQuad, lerpQuad, placeOnQuad, LINES, TOTAL, naira, rollNumber, measure, cropCanvas } from "./a-common.js";
+import { NAVY, ELECTRIC, SHADOW_L, displayRectQuad, rectQuad, lerpQuad, placeOnQuad, LINES, TOTAL, naira, rollNumber, measure, cropCanvas, freshLayers } from "./a-common.js";
 import { PUSH_REST } from "./a-m-product.js";
 
 const W = 1080;
@@ -33,6 +33,9 @@ export async function buildReceiptMobile(ctx, T, product) {
   tl.fromTo(P, { opacity: 1 }, { opacity: A_OUT.phone.opacity, duration: 0.3, ease: "power2.out", immediateRender: false }, T.call - 0.06);
   const thread = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: "1320px", height: "2868px", overflow: "hidden", visibility: "hidden", zIndex: "45" } }, p.screen);
   ctx.img(ctx.src.display("thread-light"), { class: "abs", style: { left: "0px", top: "0px", width: "1320px", height: "2868px" } }, thread);
+  /* The member's own message is sent in section b (row 15): its bubble stays under the same patch
+     section b lays over it (b-m-talk.js), so the cut at 30.577 is clean. */
+  ctx.el("div", { class: "abs", style: { left: "101px", top: "2395px", width: "1058px", height: "252px", background: "#f3f4f1" } }, thread);
   const threadIn = T.there + 0.2;
   ctx.onFrame((t) => {
     const on = t >= threadIn;
@@ -156,6 +159,7 @@ export async function buildReceiptMobile(ctx, T, product) {
   /* It swings in from beyond the top right corner (wholly off frame at its first frame). */
   tl.fromTo(card.root, { x: 900, y: -760, rotation: 26 }, { x: 0, y: 0, rotation: -3, duration: 0.44, ease: "back.out(1.15)" }, swing);
   card.turn(T.there + 0.02, { sound: null });
+  freshLayers(ctx, [card.root], { from: T.there - 0.26, to: T.end });
   const out = T.there + 0.93;
   tl.to(card.root, { x: 760, y: -660, rotation: 24, scale: 0.9, duration: 0.36, ease: "power3.in" }, out);
 

@@ -14,11 +14,24 @@
  *
  * The studio frames the handset to a fraction of its canvas; a small probe
  * render finds the box a pose makes, and the real render is sized from it,
- * with room around the handset for its shadow.
+ * with room around the handset.
+ *
+ * The light is the studio's "night" set (phone3d/browser/look.js): a ring of
+ * light around the phone, so the rounded front edge of the frame reads as one
+ * continuous highlight on all four sides against the near-black ground. The
+ * Android's front edge is narrower (0.36 mm against the island's 0.62), so
+ * its ring is wider and brighter (ANDROID_NIGHT). There is no shadow: on the
+ * night ground it cannot read.
+ *
+ * renderFlat() draws the same handset twice, once with a black display and
+ * once with a white one. The compositor uses the pair to lay the capture onto
+ * the display as a flat layer brought down in one Lanczos step (see
+ * compose.mjs), which is sharper than any texture the studio can sample.
  */
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync, statSync } from "node:fs";
 import { join } from "node:path";
+import sharp from "sharp";
 import { MARKETING } from "./lib.mjs";
 
 const CACHE = join(MARKETING, "node_modules", ".cache", "store-phones");
@@ -31,6 +44,41 @@ function contentHash(file) {
   const k = `${file}:${st.mtimeMs}:${st.size}`;
   if (!fileHash.has(k)) fileHash.set(k, hash(readFileSync(file)));
   return fileHash.get(k);
+}
+
+/** The studio's "night" ring, wider and brighter, for the Android's narrow front edge. */
+function ring({ phiMin, phiMax, intensity, radius = 3 }) {
+  const z1 = radius / Math.tan((phiMin * Math.PI) / 180);
+  const z0 = radius / Math.tan((phiMax * Math.PI) / 180);
+  const arc = (name, from, to) => ({ name, radius, z0, z1, from, to, intensity });
+  return {
+    blur: 0.03,
+    room: { wall: 0.12, lightScale: 0.3, pointScale: 0.45, dropFront: true },
+    panels: [
+      { name: "topBig", pos: [0, 12, -5], size: [30, 20], intensity: 3.6 },
+      { name: "topFront", pos: [-2, 10, 6], size: [20, 3], intensity: 5.5 },
+      { name: "rimL", pos: [-12, 2, -4], size: [3.4, 24], intensity: 12 },
+      { name: "rimR", pos: [12, 2, -2], size: [3.4, 24], intensity: 10 },
+      { name: "floor", pos: [0, -10, 2], size: [30, 24], intensity: 0.5 },
+    ],
+    arcs: [arc("ringBottom", -50, 50), arc("ringRight", 40, 140), arc("ringTop", 130, 230), arc("ringLeft", 220, 320)],
+  };
+}
+export const ANDROID_NIGHT = ring({ phiMin: 24, phiMax: 110, intensity: 10 });
+export const envFor = (model) => (model === "android" ? ANDROID_NIGHT : "night");
+
+/* Solid displays for renderFlat(). */
+const SOLID = {};
+async function solid(name) {
+  if (!SOLID[name]) {
+    const file = join(CACHE, `display-${name}.png`);
+    if (!existsSync(file)) {
+      const c = name === "white" ? 255 : 0;
+      await sharp({ create: { width: 1320, height: 2868, channels: 3, background: { r: c, g: c, b: c } } }).png().toFile(file);
+    }
+    SOLID[name] = file;
+  }
+  return SOLID[name];
 }
 
 export class Phones {
@@ -61,24 +109,25 @@ export class Phones {
   async render(o) {
     const opts = {
       model: o.model,
-      color: o.color || (o.model === "android" ? "black-titanium" : "black-titanium"),
+      color: o.color || "black-titanium",
       rotation: { x: 0, y: 0, z: 0, ...(o.rotation || {}) },
       fov: o.fov ?? 24,
-      shadow: o.shadow ?? { type: "drop", opacity: 0.34 },
-      reflection: o.reflection ?? 0.12,
+      shadow: o.shadow ?? { type: "none" },
+      reflection: o.reflection ?? 0.06,
       exposure: o.exposure ?? 1.0,
+      env: o.env ?? envFor(o.model),
       envIntensity: o.envIntensity ?? 1.0,
       keyLight: o.keyLight ?? 1.0,
     };
     const res = o.res ?? this.res;
-    const key = hash(JSON.stringify({ ...opts, h: Math.round(o.height), res, s: contentHash(o.screen), v: 4 }));
+    const key = hash(JSON.stringify({ ...opts, h: Math.round(o.height), res, s: contentHash(o.screen), v: 5 }));
     const png = join(CACHE, `${key}.png`);
     const meta = join(CACHE, `${key}.json`);
     if (existsSync(png) && existsSync(meta)) return { file: png, ...JSON.parse(readFileSync(meta, "utf8")) };
 
     const studio = await this.ensure();
     /* Probe: the box this pose makes on a known canvas. */
-    const probeKey = hash(JSON.stringify({ ...opts, shadow: null, probe: 2 }));
+    const probeKey = hash(JSON.stringify({ ...opts, shadow: null, probe: 3 }));
     const probeFile = join(CACHE, `probe-${probeKey}.json`);
     let probe;
     if (existsSync(probeFile)) probe = JSON.parse(readFileSync(probeFile, "utf8"));
@@ -88,16 +137,16 @@ export class Phones {
       writeFileSync(probeFile, JSON.stringify(probe));
     }
     /* The real canvas: the probe's, scaled so the handset is height*res tall,
-       then widened to the handset's own aspect with a margin for the shadow. */
+       then widened to the handset's own aspect with a margin. */
     const target = o.height * res;
     const k = target / probe.bbox.height;
     const bw = probe.bbox.width * k;
-    const margin = 0.13;
+    const margin = opts.shadow?.type && opts.shadow.type !== "none" ? 0.13 : 0.04;
     const width = Math.round(bw / (1 - 2 * margin));
     const height = Math.round(target / (1 - 2 * margin));
     const fill = 1 - 2 * margin;
     const t0 = performance.now();
-    const r = await studio.render({ ...opts, screen: o.screen, width, height, fill, supersample: 1 });
+    const r = await studio.render({ ...opts, screen: o.screen, width, height, fill, supersample: o.supersample ?? 2 });
     writeFileSync(png, r.png);
     const ic = r.screenImage.corners;
     const imageQuad = [ic.topLeft, ic.topRight, ic.bottomRight, ic.bottomLeft].map(({ x, y }) => [x, y]);
@@ -105,6 +154,16 @@ export class Phones {
     writeFileSync(meta, JSON.stringify(info));
     if (this.verbose) console.log(`  phone ${o.model} ${width}x${height} ${Math.round(performance.now() - t0)}ms`);
     return { file: png, ...info };
+  }
+
+  /**
+   * The handset twice, with a black display and with a white one (same pose,
+   * size and light, so the same pixels everywhere but the display).
+   */
+  async renderFlat(o) {
+    const black = await this.render({ ...o, screen: await solid("black") });
+    const white = await this.render({ ...o, screen: await solid("white") });
+    return { black, white };
   }
 
   async close() {

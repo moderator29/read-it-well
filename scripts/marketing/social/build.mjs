@@ -17,6 +17,7 @@ import { mkdirSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { closeStudio, phoneLayer } from "./lib/phones.mjs";
+import { checkPhone } from "./lib/premium.mjs";
 import { CACHE, OUT, SOCIAL } from "./lib/paths.mjs";
 import { closeRenderer, renderHtml, savePng } from "./lib/render.mjs";
 
@@ -38,7 +39,14 @@ for (const f of files) {
     const { W, H } = post;
     const specs = typeof post.phones === "function" ? post.phones() : post.phones || [];
     const phones = [];
-    for (const spec of specs) phones.push(await phoneLayer(spec, { W, H, scale, draft }));
+    for (const spec of specs) {
+      const layer = await phoneLayer(spec, { W, H, scale, draft });
+      phones.push(layer);
+      /* the phone-scale rule (lib/premium.mjs): report the screen scale and what the frame edge crosses */
+      const c = await checkPhone(spec, layer, { W, H });
+      const e = c.edge ? ` edge@${c.edge.yCap}${c.edge.bandPx !== undefined ? ` band ${c.edge.bandPx}px (+${c.edge.abovePx}/-${c.edge.belowPx})` : ""}` : "";
+      console.log(`  ${post.file.replace(/\.png$/, "")} ${spec.screen} ${spec.kind || "pose"} ${c.scale}x${e}${c.notes.length ? "  ! " + c.notes.join("; ") : ""}`);
+    }
     const html = await post.html({ W, H, phones, scale, draft });
     const raw = await renderHtml({ html, width: W, height: H, scale, name: post.file.replace(/\.png$/, "") });
     if (post.slices) {

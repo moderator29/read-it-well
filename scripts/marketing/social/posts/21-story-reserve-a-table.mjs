@@ -1,9 +1,9 @@
-/* 21 · Story. "Reserve your table." Night. The example restaurant's page
- * (Harbour Lights Kitchen, opens at 18:00, its Example notice in view) on one
- * big phone, whole and centred, the same grid as the stay story before it. A
- * clock is the post's 3D icon. Everything sits inside the story's
+/* 21 · Story. "Reserve your table tonight." Night. The example restaurant's
+ * page scrolled past its photograph to the opening hours (Opens at 18:00;
+ * the week, evenings from 18:00), on one whole phone lying back (10's pose,
+ * w 700). A clock is the post's 3D icon. Everything sits inside the story's
  * safe zone. */
-import { SLOT, frame, headline, icon3d, phone, subline } from "../lib/premium.mjs";
+import { PLACE, frame, headline, icon3d, phone, subline } from "../lib/premium.mjs";
 import { phoneHtml } from "../lib/kit.mjs";
 
 const W = 1080;
@@ -14,17 +14,17 @@ export default {
   file: "21-story-reserve-a-table.png",
   W,
   H,
-  phones: [phone("restaurant", "night", { h: 890, cx: 540, top: 690 })],
+  phones: [phone("restaurant-hours", "night", PLACE.lyingBack())],
   html: ({ phones }) =>
     frame({
       W,
       H,
       ground: "night",
       body: `
-      ${headline(["Reserve your", "<k>table.</k>"], { W, H })}
+      ${headline(["Reserve your", "table <k>tonight.</k>"], { W, H })}
       ${subline("The restaurant confirms, right inside Vallo.", { W, H })}
       ${phoneHtml(phones[0])}
-      ${icon3d("clock", { ...SLOT.story.tr, size: 210, ground: "night" })}
+      ${icon3d("clock", { W, H, slot: "A" })}
       `,
     }),
 };

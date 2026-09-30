@@ -10,7 +10,7 @@
  */
 import { ringBurst } from "../engine/components.js";
 import { LAYOUT } from "./layout.js";
-import { NAVY, INK2, DW, SHADOW, ramp, mix, screenPage, showDuring, glassCard, iconPlate, exampleChip, measure, quadAtPose } from "./b-kit.js";
+import { NAVY, INK2, DW, ramp, mix, screenPage, showDuring, glassCard, iconPlate, exampleChip, measure, quadAtPose } from "./b-kit.js";
 
 const SVGNS = "http://www.w3.org/2000/svg";
 const svgEl = (tag, attrs, parent) => {
@@ -75,7 +75,7 @@ export async function goingOut(ctx, S, T) {
     layout = { size, o };
   };
   /* each word rises into place on its voice; from 50.2 the push through the O */
-  const tPush = 50.2;
+  const tPush = ctx.beat(87); // 50.19
   const tPush1 = tPush + 0.46;
   ctx.onFrame((t) => {
     if (t < T.r23 - 0.05 || t > T.r24 + 0.3) return;

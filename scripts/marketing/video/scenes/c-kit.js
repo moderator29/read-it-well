@@ -282,26 +282,32 @@ export function chip(ctx, parent, { text, icon = null, size = 34, theme = "light
 /**
  * The naira coin: electric-blue enamel with a raised rim and ₦, with real
  * thickness (a stack of discs) so it reads as an object when it spins.
- * Place it with set({ x, y, size, spin, tilt, z }) — spin/tilt in degrees.
+ * Place it with set({ x, y, size, spin, tilt, sy, opacity, shadow }): spin
+ * (about the vertical axis) and tilt (about the horizontal) in degrees, sy a
+ * squash along the coin's own vertical.
+ *
+ * Drawn as a 2D projection of the 3D coin (each disc and face an ellipse with
+ * its own matrix, stacked back to front), not with CSS 3D: Chromium
+ * composites 3D layers and, when their scale changes between two frames,
+ * sometimes draws the previous raster for a frame, so the rim's edge pixels
+ * depended on timing. Flat, the coin paints with the rest of its layer.
  */
 export function coin(ctx, parent, { size = 150, layers = 14, z = 0 } = {}) {
   const S = size;
-  const wrap = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${S}px`, height: `${S}px`, zIndex: String(z), perspective: `${S * 7}px`, pointerEvents: "none" } }, parent);
+  const wrap = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${S}px`, height: `${S}px`, zIndex: String(z), pointerEvents: "none" } }, parent);
   const shadow = ctx.el("div", { class: "abs", style: { left: `${-S * 0.1}px`, top: `${S * 0.92}px`, width: `${S * 1.2}px`, height: `${S * 0.24}px`, borderRadius: "50%", background: "radial-gradient(closest-side, rgb(0 20 80 / 0.28), rgb(0 20 80 / 0))" } }, wrap);
-  const body = ctx.el("div", { class: "abs", style: { inset: "0px", transformStyle: "preserve-3d" } }, wrap);
+  const body = ctx.el("div", { class: "abs", style: { inset: "0px" } }, wrap);
   const th = S * 0.1;
+  const discs = [];
   for (let k = 0; k < layers; k += 1) {
     const zz = -th / 2 + (th * (k + 0.5)) / layers;
-    ctx.el("div", {
-      class: "abs",
-      style: { inset: "0px", borderRadius: "50%", background: k % 3 === 0 ? "#0a3fb0" : "#0b47c4", transform: `translateZ(${zz.toFixed(2)}px)` },
-    }, body);
+    discs.push({ zz, el: ctx.el("div", { class: "abs", style: { inset: "0px", borderRadius: "50%", background: k % 3 === 0 ? "#0a3fb0" : "#0b47c4" } }, body) });
   }
-  const face = (back) => {
+  const face = () => {
     const f = ctx.el("div", {
       class: "abs",
       style: {
-        inset: "0px", borderRadius: "50%", backfaceVisibility: "hidden", transform: `translateZ(${(back ? -th / 2 : th / 2).toFixed(2)}px)${back ? " rotateY(180deg)" : ""}`,
+        inset: "0px", borderRadius: "50%", zIndex: String(layers + 1),
         background: "radial-gradient(circle at 34% 28%, #9fd0ff 0%, #4d92ff 18%, #0b6bff 42%, #0050d6 70%, #003a9e 100%)",
         boxShadow: `inset 0 0 0 ${S * 0.045}px rgb(170 215 255 / 0.85), inset 0 0 0 ${S * 0.075}px #0a4fcf, inset 0 ${S * 0.02}px ${S * 0.1}px rgb(255 255 255 / 0.35), inset 0 ${-S * 0.03}px ${S * 0.08}px rgb(0 20 90 / 0.45)`,
         display: "grid", placeItems: "center", overflow: "hidden",
@@ -312,16 +318,42 @@ export function coin(ctx, parent, { size = 150, layers = 14, z = 0 } = {}) {
     const gloss = ctx.el("div", { class: "abs", style: { inset: "0px", borderRadius: "50%", background: "linear-gradient(115deg, rgb(255 255 255 / 0) 34%, rgb(255 255 255 / 0.28) 47%, rgb(255 255 255 / 0) 58%)", backgroundSize: "260% 100%" } }, f);
     return { f, gloss };
   };
-  const front = face(false);
-  const back = face(true);
-  const state = { x: 0, y: 0, size: S, spin: 0, tilt: 0, z: 0, opacity: 1, shadow: 0 };
+  const front = face();
+  const back = face();
+  const state = { x: 0, y: 0, size: S, spin: 0, tilt: 0, sy: 1, z: 0, opacity: 1, shadow: 0 };
+  const mat = (a, b, c, d, e, f) => `matrix(${a.toFixed(5)}, ${b.toFixed(5)}, ${c.toFixed(5)}, ${d.toFixed(5)}, ${e.toFixed(3)}, ${f.toFixed(3)})`;
+  let facing = null;
   function set(o) {
     Object.assign(state, o);
     const k = state.size / S;
     wrap.style.transform = `translate(${px(state.x - S / 2)}, ${px(state.y - S / 2)}) scale(${k.toFixed(4)})`;
     wrap.style.opacity = opa(state.opacity);
     wrap.style.visibility = state.opacity > 0.001 ? "" : "hidden";
-    body.style.transform = `rotateX(${state.tilt.toFixed(2)}deg) rotateY(${state.spin.toFixed(2)}deg)`;
+    /* rotateX(tilt) rotateY(spin) scaleY(sy), projected: a face's circle maps
+       through [[cos s, 0], [sin t sin s, cos t sy]]; a point at depth z moves
+       by z (sin s, -sin t cos s) */
+    const sp = (state.spin * Math.PI) / 180;
+    const tl = (state.tilt * Math.PI) / 180;
+    const cs = Math.cos(sp), ss = Math.sin(sp), ct = Math.cos(tl), st = Math.sin(tl);
+    const A = cs, B = st * ss, D = ct * state.sy;
+    const at = (zz) => [zz * ss, -zz * st * cs];
+    const front1 = ct * cs >= 0;
+    discs.forEach(({ zz, el }, i) => {
+      const [ox, oy] = at(zz);
+      el.style.transform = mat(A, B, 0, D, ox, oy);
+    });
+    if (front1 !== facing) {
+      /* back to front: the far end of the stack first, the visible face last */
+      facing = front1;
+      discs.forEach(({ el }, i) => { el.style.zIndex = String(front1 ? i + 1 : layers - i); });
+      front.f.style.visibility = front1 ? "" : "hidden";
+      back.f.style.visibility = front1 ? "hidden" : "";
+    }
+    const [fx, fy] = at(th / 2);
+    const [bx, by] = at(-th / 2);
+    front.f.style.transform = mat(A, B, 0, D, fx, fy);
+    /* the back face is turned half a revolution, so its ₦ reads the right way round */
+    back.f.style.transform = mat(-A, -B, 0, D, bx, by);
     const a = (((state.spin % 360) + 360) % 360) / 360;
     const pos = `${(a * 200 - 50).toFixed(1)}% 0%`;
     front.gloss.style.backgroundPosition = pos;

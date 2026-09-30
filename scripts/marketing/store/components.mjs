@@ -12,26 +12,28 @@ const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replac
 
 /**
  * The headline (DESIGN.md section 6a): Poppins 600, sentence case, tracking
- * -0.03em, two lines at most, white on the night ground. One key word may
- * be marked *like this* to take the sky blue. An optional subline sits
- * under it, in Inter 500 at 60% white, on one line.
+ * -0.03em, leading 1.08, two lines at most, white on the night ground. One
+ * key word may be marked *like this* to take the sky blue. An optional
+ * subline sits under it, in Inter 500 at 60% white, on one line.
  *
  * The block is centred on `cx` (align "center") or starts at `x` (align
- * "left"). `max` is the widest a line may run; the page shrinks the type to
- * fit if a line would overrun it.
+ * "left"); page.mjs then sets every line on its ink (centred, or flush with
+ * the left edge). `max` is the widest a line's ink may run; the page shrinks
+ * the type to fit if a line would overrun it.
  */
 export function headline({
-  lines, x = 0, cx, y, max, size = 112, align = "center", weight = 600, lineHeight = 1.05, z = 40,
-  color = "#FFFFFF", key = "#8FD3FF", sub, subSize, subColor = "rgb(255 255 255 / 0.6)",
+  lines, x = 0, cx, y, max, size = 112, align = "center", weight = 600, lineHeight = 1.08, z = 40,
+  color = "#FFFFFF", key = "#8FD3FF", sub, subSize, subGap, subColor = "rgb(255 255 255 / 0.6)",
 }) {
   const body = lines
     .map((l) => `<span class="ln">${esc(l).replace(/\*(.+?)\*/g, `<span class="kw" style="color:${key}">$1</span>`)}</span>`)
     .join("<br>");
   const left = align === "center" ? cx - max / 2 : x;
+  const ss = subSize || size * 0.36;
   const subHtml = sub
-    ? `<p class="sub" style="font-size:${px(subSize || size * 0.36)};color:${subColor};${align === "center" ? "margin-left:auto;margin-right:auto;" : ""}">${esc(sub)}</p>`
+    ? `<p class="sub" style="font-size:${px(ss)};color:${subColor};margin-top:${px(subGap ?? ss * 0.7)}"><span>${esc(sub)}</span></p>`
     : "";
-  return `<div class="hl" data-max="${max}" data-size="${size}" style="left:${px(left)};top:${px(y)};width:${px(max)};text-align:${align};z-index:${z}">
+  return `<div class="hl" data-max="${max}" data-size="${size}" data-align="${align}" style="left:${px(left)};top:${px(y)};width:${px(max)};text-align:${align};z-index:${z}">
     <h1 style="font-size:${px(size)};font-weight:${weight};line-height:${lineHeight};color:${color}">${body}</h1>${subHtml}</div>`;
 }
 
@@ -48,11 +50,12 @@ export function exampleChip({ theme = "dark", scale = 1 } = {}) {
 /**
  * A card that has just arrived, overlapping the handset's edge.
  *   lucide  a line icon name (drawn white on an electric disc)
- *   title, line, amount, meta ("now"), example (bool)
+ *   title, line, line2 (a smaller second line), amount (white), meta ("now"),
+ *   example (bool)
  *   w       card width; the height follows its content
  */
 export function popup({
-  x, y, w = 820, rotate = 0, theme = "dark", lucide, title, line, amount, meta = "now",
+  x, y, w = 820, rotate = 0, theme = "dark", lucide, title, line, line2, amount, meta = "now",
   example = false, scale = 1, z = 30, origin = "center",
 }) {
   const dark = theme === "dark";
@@ -67,6 +70,7 @@ export function popup({
     <div class="ptxt">
       <div class="ptop"><span class="ptitle" style="font-size:${px(35 * s)}">${esc(title)}</span><span class="pright" style="gap:${px(12 * s)}">${right}</span></div>
       <div class="pline" style="font-size:${px(27 * s)}">${esc(line)}</div>
+      ${line2 ? `<div class="pline2" style="font-size:${px(23 * s)}">${esc(line2)}</div>` : ""}
       ${amount ? `<div class="pamt" style="font-size:${px(40 * s)}">${esc(amount)}</div>` : ""}
     </div>
   </div>`;

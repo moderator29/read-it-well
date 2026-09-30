@@ -8,7 +8,7 @@
  */
 import { ringBurst } from "../engine/components.js";
 import { LAYOUT } from "./layout.js";
-import { NAVY, ELECTRIC, DW, DH, ramp, box, showDuring, pressAt, ripple, measure } from "./b-kit.js";
+import { NAVY, ELECTRIC, DW, DH, box, showDuring, pressAt, ripple, measure } from "./b-kit.js";
 import { FLIP } from "./b-m-talk.js";
 
 export async function switcher(ctx, S, T) {
@@ -28,7 +28,7 @@ export async function switcher(ctx, S, T) {
   /* The phone washes out and falls away as the warm light blooms; the words own the frame. */
   const wash = box(ctx, S.drawerPage.el, { x: 0, y: 0, w: DW, h: DH, style: { background: "#fffaf5", opacity: "0", zIndex: "40" } });
   tl.fromTo(wash, { opacity: 0 }, { opacity: 0.7, duration: 0.16, ease: "power1.out", immediateRender: false }, tPress + 0.02);
-  S.pLpose.to(tPress + 0.04, 0.42, { cy: S.FLIPPOSE.cy + 1500, rx: 12, opacity: 0 }, "power2.in");
+  S.pLpose.to(tPress + 0.04, 0.42, { cy: S.FLIPPOSE.cy + 1500, opacity: 0 }, "power2.in"); // a flat fall (a tilted screen costs about 2x to composite)
 
   /* ---------- "Planning / a trip?" in WORDS ---------- */
   const W = L.WORDS;

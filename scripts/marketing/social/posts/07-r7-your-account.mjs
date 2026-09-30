@@ -1,8 +1,8 @@
-/* R7 · after IMG_6734: one phone, leaning back, seen a little from below. Night.
- * Create your account, big, running off the foot of the frame so the screen is
- * all buttons and no empty space. An envelope (sign up with email) is the
- * post's 3D icon. */
-import { SLOT, frame, headline, icon3d } from "../lib/premium.mjs";
+/* R7 · after IMG_6734: one straight phone, whole and centred, with quiet
+ * labels in the corners (our brand bar). Night. Sign up: "Create your
+ * account", by email or with an account you already have. A phone with a
+ * code is the post's 3D icon. */
+import { PLACE, frame, headline, icon3d, phone } from "../lib/premium.mjs";
 import { phoneHtml } from "../lib/kit.mjs";
 
 const W = 1080;
@@ -13,10 +13,7 @@ export default {
   file: "07-r7-your-account-takes-a-minute.png",
   W,
   H,
-  phones: [
-    { screen: "sign-up", model: "island", color: "black-titanium", rotation: { x: -16, y: 9, z: 0 }, fov: 30, h: 1180, cx: 650, top: 470,
-      shadow: { type: "drop", opacity: 0.5, ambientOpacity: 0.25 } },
-  ],
+  phones: [phone("sign-up", "night", PLACE.whole())],
   html: ({ phones }) =>
     frame({
       W,
@@ -25,7 +22,7 @@ export default {
       body: `
       ${headline(["Your account", "takes a <k>minute.</k>"], { W, H })}
       ${phoneHtml(phones[0])}
-      ${icon3d("envelope", { ...SLOT.post.left, size: 210, ground: "night" })}
+      ${icon3d("phone-code", { W, H, slot: "A" })}
       `,
     }),
 };

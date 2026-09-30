@@ -14,7 +14,7 @@
 import { questionCard } from "../engine/components.js";
 import { LAYOUT, QUESTIONS } from "./layout.js";
 import { coin } from "./c-kit.js";
-import { NAVY, ELECTRIC, SHADOW, ramp, kf, mix, screenPage, showDuring, glassCard, verifiedMark, exampleChip, measure, box } from "./b-kit.js";
+import { NAVY, SHADOW, ramp, kf, mix, screenPage, showDuring, glassCard, verifiedMark, exampleChip, box } from "./b-kit.js";
 
 /** Where the coin is at 62.885 (B -> C in handoffs.md; section c's COIN_IN). */
 export const COIN_OUT = { x: 330, y: 470, size: 110, spin: 0 };

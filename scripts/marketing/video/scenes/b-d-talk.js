@@ -17,7 +17,7 @@
  *        ring at the left, then shrinks into the pill ("Book a room").
  */
 import { ringBurst } from "../engine/components.js";
-import { NAVY, ELECTRIC, SHADOW, ramp, kf, mix, showDuring, box, cropBody, quadDriver, rectQuad, lerpQuad, shiftQuad, placeQuad, pressAt, dayCard, measure } from "./b-kit.js";
+import { NAVY, ELECTRIC, SHADOW, ramp, kf, mix, showDuring, box, cropBody, quadDriver, rectQuad, lerpQuad, shiftQuad, pressAt, dayCard, measure } from "./b-kit.js";
 import { CW, CH } from "./b-desktop.js";
 
 /* d-thread-lt (CSS px of the 1440 x 900 page); crops are in capture px (2880 wide). */
@@ -99,7 +99,7 @@ export async function deskTalk(ctx, S, T) {
     },
     opacityAt: (t) => 1 - ramp(ctx, t, tLand, tLand + 0.14, "power1.out"),
   });
-  ctx.sfx("card_slide", 30.8);
+  ctx.sfx("card_slide", ctx.beat(53.4)); // 30.81
 
   /* owner, landlord, agent land in RIGHT_PANEL, one at a time, each at its own height and size */
   const words = [
@@ -216,21 +216,21 @@ export async function deskTalk(ctx, S, T) {
     },
     opacityAt: (t) => ramp(ctx, t, tFly0, tFly0 + 0.06),
   });
-  ctx.sfx("card_slide", 35.6, { offset: -2 });
-  ctx.sfx("bubble_send", 36.1, { offset: -2 });
+  ctx.sfx("card_slide", ctx.beat(61.7), { offset: -2 }); // 35.60
+  ctx.sfx("bubble_send", ctx.beat(62.6), { offset: -2 }); // 36.12
 
   /* ==================== D17: the day card in RIGHT_PANEL ==================== */
   const k17 = 1.2;
   const DX = RP.x + (RP.w - 470 * k17) / 2;
   const DY = RP.y + 70;
   const day = dayCard(ctx, cards, T, { X: DX, Y: DY, k: k17, chipAt: { x: DX + 150, y: DY + 470 }, tIn: T.r17 - 0.1, tOut0: T.keep - 0.1, tOut1: T.r18 - 0.02 });
-  ctx.sfx("card_slide", 36.95, { offset: -2 });
+  ctx.sfx("card_slide", ctx.beat(64.05), { offset: -2 }); // 36.95
   ctx.sfx("stamp", T.inspection);
 
   /* ==================== D18: the inbox, the dock, the push toward FLIP ==================== */
   wvT.to(T.r18 - 0.3, 0.56, { cx: S.HERO.cx, cy: S.HERO.cy, s: S.HERO.s }, "power2.inOut");
   tl.fromTo(pMsgs, { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power1.inOut", immediateRender: false }, T.r18 - 0.3);
-  const tDock = 39.2;
+  const tDock = ctx.beat(67.95); // 39.20
   const heroCam = { s: 1, fx: 960, fy: 540, tx: 960, ty: 540 };
   const dotAt = S.toStageAt({ ...S.wv, cx: S.HERO.cx, cy: S.HERO.cy, s: S.HERO.s }, heroCam, DOT.x, DOT.y);
   const chip = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: "100px", height: "100px", borderRadius: "30px", background: `linear-gradient(160deg, #3d8bff, ${ELECTRIC} 60%, #0050d0)`, display: "grid", placeItems: "center", color: "#fff", transformOrigin: "0 0", visibility: "hidden", boxShadow: SHADOW.s } }, cards);
@@ -251,9 +251,7 @@ export async function deskTalk(ctx, S, T) {
     chip.style.borderRadius = `${mix(30, 50, ramp(ctx, t, day.tOut1 + 0.1, tDock - 0.05, "power2.in")).toFixed(1)}px`;
     chipIcon.style.opacity = String((1 - ramp(ctx, t, day.tOut1 + 0.1, day.tOut1 + 0.35)).toFixed(3));
   });
-  const ring = box(ctx, pMsgs, { x: DOT.x - 22, y: DOT.y - 22, w: 44, h: 44, style: { borderRadius: "50%", border: `3px solid ${ELECTRIC}`, opacity: "0" } });
-  tl.fromTo(ring, { scale: 0.25, opacity: 0.9 }, { scale: 1.5, opacity: 0, duration: 0.6, ease: "power2.out", immediateRender: false }, tDock);
-  showDuring(ctx, ring, [[tDock, tDock + 0.6]]);
+  /* (no ring at the dot: v3.1 keeps rings to rows 04, 19 and 23) */
   ctx.sfx("pop", tDock, { offset: -2 });
   /* the push toward FLIP: 1.6 x 1.111 = 1.78, at or under the capture's own pixels; FLIP sits above y 1000 */
   const flipW = { x: S.HERO.cx + (FLIP_C.x - CW / 2) * S.HERO.s, y: S.HERO.cy + (56 + FLIP_C.y - (CH + 56) / 2) * S.HERO.s };
@@ -317,8 +315,6 @@ export async function deskTalk(ctx, S, T) {
 
   /* ==================== the pointer ==================== */
   const o = S.orbT;
-  const sendR = () => eSend.getBoundingClientRect();
-  void sendR;
   const sendAt = { x: RP.x + 20 + (RP.w - 40) - 16 - 31, y: ECHO_BOTTOM - 16 - 31 };
   o.to(T.right + 0.1, 0.14, { opacity: 1 }, "power1.out");
   o.to(T.right + 0.1, 0.46, { x: sendAt.x + 14, y: sendAt.y + 12 }, "glide");

@@ -1,8 +1,8 @@
-/* R10 · after IMG_6737: a steep view down the phone's lower half, the buttons
- * big. Night. The last welcome card lying back on a long foreshortened angle:
- * an account lets you search, save, message and book inspections. A pin with a
- * speech bubble is the post's 3D icon. */
-import { SLOT, frame, headline, icon3d } from "../lib/premium.mjs";
+/* R10 · after IMG_6737: a phone lying back on a long foreshortened angle,
+ * the buttons big at the near end. Night. The last welcome card: an account
+ * lets you search, save, message agents and hosts, and book inspections. The
+ * pose is the one the stories use. An envelope is the post's 3D icon. */
+import { PLACE, frame, headline, icon3d, phone } from "../lib/premium.mjs";
 import { phoneHtml } from "../lib/kit.mjs";
 
 const W = 1080;
@@ -13,10 +13,7 @@ export default {
   file: "10-r10-search-save-and-message.png",
   W,
   H,
-  phones: [
-    { screen: "welcome-4", model: "island", color: "black-titanium", rotation: { x: -44, y: 18, z: 14 }, fov: 50, w: 740, cx: 560, bottom: 1330,
-      shadow: { type: "drop", opacity: 0.5, ambientOpacity: 0.25 } },
-  ],
+  phones: [phone("welcome-4", "night", PLACE.lyingBack({ w: 680, cx: 560, bottom: 1290 }))],
   html: ({ phones }) =>
     frame({
       W,
@@ -25,7 +22,7 @@ export default {
       body: `
       ${headline(["Search, save", "and <k>message.</k>"], { W, H })}
       ${phoneHtml(phones[0])}
-      ${icon3d("local-talks", { ...SLOT.post.tr, size: 210, ground: "night" })}
+      ${icon3d("envelope", { W, H, slot: "A" })}
       `,
     }),
 };

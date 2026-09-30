@@ -1,8 +1,10 @@
-/* R4 · after IMG_6731: a steep close-up of the phone's lower half, the move-in
- * breakdown running big across the glass. Night. The phone lies on a long
- * diagonal and leaves through the right edge under the headline; a checklist
- * is the post's 3D icon. */
-import { SLOT, frame, headline, icon3d } from "../lib/premium.mjs";
+/* R4 · after IMG_6731: a phone lying on a long diagonal, the screen's lines
+ * rising to the right, its top leaving through the left edge under the
+ * headline, its bottom bezel and speaker grille in frame at the lower right.
+ * Night. What you will actually pay for the example villa: rent, every fee
+ * and the caution deposit, each figure kept well inside the frame. A
+ * checklist is the post's 3D icon. */
+import { frame, headline, icon3d, phone } from "../lib/premium.mjs";
 import { phoneHtml } from "../lib/kit.mjs";
 
 const W = 1080;
@@ -13,10 +15,7 @@ export default {
   file: "04-r4-what-you-will-actually-pay.png",
   W,
   H,
-  phones: [
-    { screen: "listing-cost", model: "island", color: "black-titanium", rotation: { x: -46, y: -16, z: -48 }, fov: 50, w: 1250, cx: 660, cy: 996,
-      shadow: { type: "drop", opacity: 0.5, ambientOpacity: 0.25 } },
-  ],
+  phones: [phone("listing-cost", "night", { kind: "pose", rotation: { x: -46, y: 16, z: 48 }, fov: 50, w: 1000, cx: 380, cy: 880 })],
   html: ({ phones }) =>
     frame({
       W,
@@ -25,7 +24,7 @@ export default {
       body: `
       ${headline(["What you will", "<k>actually</k> pay."], { W, H })}
       ${phoneHtml(phones[0])}
-      ${icon3d("checklist", { ...SLOT.post.tr, size: 210, ground: "night" })}
+      ${icon3d("checklist", { W, H, slot: "A" })}
       `,
     }),
 };

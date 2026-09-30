@@ -74,7 +74,7 @@ export async function deskOut(ctx, S, T) {
     const oW = measure("Go", font) - gW;
     layout = { size, o: { x: pos[0][0] + gW + oW * 0.2, y: base[0] - size * 0.27 } };
   };
-  const tPush = 50.2;
+  const tPush = ctx.beat(87); // 50.19
   const tPush1 = tPush + 0.46;
   ctx.onFrame((t) => {
     if (t < T.r23 - 0.05 || t > T.r24 + 0.3) return;

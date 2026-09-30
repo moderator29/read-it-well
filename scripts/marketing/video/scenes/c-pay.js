@@ -489,8 +489,7 @@ export async function buildPay(ctx, S) {
         shadow = tt > K.owner - 0.1 ? 1 : 0.4;
       }
       const gone = ramp(ctx, tt, K.r32 - 0.26, K.r32 - 0.04, "power2.in");
-      C.set({ x, y, size, spin, tilt, opacity: 1 - gone, shadow: shadow * 0.8 });
-      C.body.style.transform += ` scaleY(${sy.toFixed(4)})`;
+      C.set({ x, y, size, spin, tilt, sy, opacity: 1 - gone, shadow: shadow * 0.8 });
     });
   }
 

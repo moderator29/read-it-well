@@ -45,7 +45,7 @@ const SIZE = film === "desktop" ? { W: 1920, H: 1080 } : { W: 1080, H: 1920 };
 const GL_ARGS = ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist", "--enable-webgl"];
 /* Software compositing (faster than compositing through SwiftShader); WebGL
    still runs on SwiftShader for the 3D phones and the map. */
-const RENDER_ARGS = ["--disable-gpu-compositing", "--font-render-hinting=none", "--disable-lcd-text", "--force-color-profile=srgb", "--hide-scrollbars", "--disable-background-timer-throttling", "--disable-renderer-backgrounding"];
+const RENDER_ARGS = ["--disable-gpu-compositing", "--disable-partial-raster", "--run-all-compositor-stages-before-draw", "--font-render-hinting=none", "--disable-lcd-text", "--force-color-profile=srgb", "--hide-scrollbars", "--disable-background-timer-throttling", "--disable-renderer-backgrounding"];
 /* JPEG at quality 100 is several times faster to capture than PNG, and the
    film is 4:2:0 H.264 anyway; stills for review stay PNG. */
 const FRAME_FORMAT = process.env.FRAME_FORMAT ?? "jpeg";

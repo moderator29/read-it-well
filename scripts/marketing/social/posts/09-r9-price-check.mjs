@@ -1,30 +1,30 @@
-/* R9 · after IMG_6736 (a hand holding the phone against a pegboard). The hand
- * and the board go; the phone keeps its held angle on a clean Electric ground.
- * Price Check: what places nearby are asking. A map pin is the post's 3D icon. */
-import { SLOT, frame, headline, icon3d } from "../lib/premium.mjs";
+/* R9 · after IMG_6736: one phone, turned and tilted, running off the foot
+ * through the empty lower part of the form. Night (the pegboard and hand of
+ * the reference are dropped). Price Check: tell it where and what, and it
+ * says what similar places near there are currently advertised for. A pin on
+ * a plot of land (a place nearby) is the post's 3D icon, in the left column. */
+import { frame, headline, icon3d, phone } from "../lib/premium.mjs";
 import { phoneHtml } from "../lib/kit.mjs";
 
 const W = 1080;
 const H = 1350;
+const TOP = 470;
 
 export default {
   id: "09",
   file: "09-r9-see-what-places-are-asking.png",
   W,
   H,
-  phones: [
-    { screen: "price", model: "island", color: "black-titanium", rotation: { x: 6, y: -20, z: -11 }, fov: 30, h: 1020, cx: 660, top: 470,
-      shadow: { type: "drop", opacity: 0.45, ambientOpacity: 0.22, color: "#001040" } },
-  ],
+  phones: [phone("price", "night", { kind: "pose", rotation: { x: 6, y: -20, z: -11 }, fov: 30, h: 1020, cx: 660, top: TOP })],
   html: ({ phones }) =>
     frame({
       W,
       H,
-      ground: "electric",
+      ground: "night",
       body: `
       ${headline(["See what places", "nearby are <k>asking.</k>"], { W, H })}
       ${phoneHtml(phones[0])}
-      ${icon3d("analytics", { ...SLOT.post.left, size: 210, ground: "electric" })}
+      ${icon3d("land", { W, H, slot: "B", cy: (TOP + H) / 2 })}
       `,
     }),
 };

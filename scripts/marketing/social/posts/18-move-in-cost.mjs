@@ -1,7 +1,8 @@
 /* 18 · "See the full cost before you call." Night. One real component, shown
- * flat at its own resolution: the listing's move-in total card for the example
+ * flat below its own resolution: the listing's move-in total for the example
  * villa (₦26,100,000, rent plus every fee, each amount in its legend, and the
- * product's own Example chip). A price tag is the post's 3D icon. */
+ * product's own Example chip). A contract, the fees on paper, is the post's
+ * 3D icon, in slot B at the foot. */
 import { component, frame, headline, icon3d } from "../lib/premium.mjs";
 import { PARTS } from "../lib/parts.mjs";
 
@@ -22,7 +23,7 @@ export default {
       body: `
       ${headline(["See the <k>full</k> cost", "before you call."], { W, H })}
       ${await component(card.id, card, { x: 80, y: 480, w: 920, radius: 40 })}
-      ${icon3d("price-tag", { x: 880, y: 1170, size: 200, ground: "night" })}
+      ${icon3d("contract", { W, H, slot: "B", bottom: H - 80 })}
       `,
     }),
 };

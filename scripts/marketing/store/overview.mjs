@@ -2,12 +2,15 @@
  * Overview sheets of the finished store images.
  *
  *   node scripts/marketing/store/overview.mjs [--dir DIR] [--out DIR] [--height 560] [--grid]
+ *        [--bg "#000000" --suffix -dark]
  *
  * Writes docs/store/screenshots/<store>-overview.jpg: all 35 side by side in
  * store order, with rounded corners and the gap the store leaves between
  * screenshots, on the store's white page, so the set can be read as the
- * strip it is. --grid also writes <store>-overview-grid.jpg, seven to a row
- * with the file names, for review.
+ * strip it is. --bg draws the strip on another page colour (the stores'
+ * dark mode is black), and --suffix names that file apart. --grid also
+ * writes <store>-overview-grid.jpg, seven to a row with the file names, for
+ * review.
  */
 import sharp from "sharp";
 import { existsSync, readdirSync } from "node:fs";
@@ -23,6 +26,8 @@ const DIR = arg("--dir", OUT);
 const DEST = arg("--out", OUT);
 const TH = Number(arg("--height", "560"));
 const GRID = args.includes("--grid");
+const BG = arg("--bg", "#FFFFFF");
+const SUFFIX = arg("--suffix", "");
 
 async function thumb(file, w, h, radius) {
   const img = await sharp(file).resize(w, h, { kernel: "lanczos3" }).toBuffer();
@@ -48,8 +53,8 @@ for (const store of Object.keys(STORES)) {
     comps.push({ input: await thumb(join(dir, files[i]), tw, th, radius), left: pad + i * (tw + gap), top: pad });
   }
   const stripW = pad * 2 + files.length * tw + (files.length - 1) * gap;
-  const out = join(DEST, `${store}-overview.jpg`);
-  await sharp({ create: { width: stripW, height: th + pad * 2, channels: 3, background: "#FFFFFF" } })
+  const out = join(DEST, `${store}-overview${SUFFIX}.jpg`);
+  await sharp({ create: { width: stripW, height: th + pad * 2, channels: 3, background: BG } })
     .composite(comps)
     .jpeg({ quality: 90, chromaSubsampling: "4:4:4" })
     .toFile(out);
@@ -70,7 +75,7 @@ for (const store of Object.keys(STORES)) {
     g.push({ input: await thumb(join(dir, files[i]), gw, gh, Math.round(gw * 0.06)), left: x, top: y });
     g.push({ input: Buffer.from(`<svg width="${gw}" height="${LABEL}"><text x="4" y="30" font-family="DejaVu Sans, sans-serif" font-size="20" fill="#C9CEDD">${files[i].replace(/\.(png|jpe?g)$/, "")}</text></svg>`), left: x, top: y + gh + 4 });
   }
-  const gout = join(DEST, `${store}-overview-grid.jpg`);
+  const gout = join(DEST, `${store}-overview-grid${SUFFIX}.jpg`);
   await sharp({ create: { width: COLS * gw + (COLS + 1) * G, height: rows * (gh + LABEL) + (rows + 1) * G, channels: 3, background: "#15171F" } })
     .composite(g)
     .jpeg({ quality: 88, chromaSubsampling: "4:4:4" })

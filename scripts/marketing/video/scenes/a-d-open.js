@@ -7,7 +7,7 @@
  */
 import { LAYOUT, QUESTIONS } from "./layout.js";
 import { ringBurst } from "../engine/components.js";
-import { SKY, QUIET, fitSize } from "./a-common.js";
+import { SKY, QUIET, fitSize, freshLayers } from "./a-common.js";
 import { nightCard } from "./a-m-open.js";
 
 const W = 1920;
@@ -36,6 +36,8 @@ export function buildOpenDesktop(ctx, T) {
     const card = nightCard(ctx, layer, { q: q.q, a: q.a, box, size: 44 });
     return { ...card, box, layer, i };
   });
+
+  freshLayers(ctx, cards.map((c) => c.root), { to: T.rush + 0.32 });
 
   /* Row 01: all three readable at t = 0; each sets down on its beat. */
   const lift = [-3.5, 3, -3];
@@ -140,6 +142,7 @@ export function buildOpenDesktop(ctx, T) {
     },
   }, persp);
   tl.fromTo(back, { rotationY: -90, scale: 0.3 }, { rotationY: 0, scale: 1.1, duration: T.drop - edge, ease: "power3.out" }, edge);
+  freshLayers(ctx, [back], { from: edge - 0.02, to: T.widen + 0.8 });
 
   /* Row 04: the mark lands in the ring on the drop; on "Vallo" it steps left and the wordmark rises beside it. */
   const RING = { cx: 960, cy: 530, r: 300 };

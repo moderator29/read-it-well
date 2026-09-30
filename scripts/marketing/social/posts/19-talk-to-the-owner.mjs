@@ -1,9 +1,9 @@
-/* 19 · "Talk to the owner, landlord or agent." Night. The whole conversation
- * on one phone (a rental enquiry with Vallo Examples, the two listings they
- * shared, and the member's own question at the foot), and the one pop-up the
- * post is about, on the ground beside it: their reply has arrived. The
- * Example chip marks it as an illustration. */
-import { SLOT, frame, headline, icon3d, phone, popcard, subline } from "../lib/premium.mjs";
+/* 19 · "Talk to the owner, landlord or agent." Night. The conversation on one
+ * bleed phone at 0.53x: the rental enquiry with Vallo Examples and the first
+ * listing they shared, readable at feed size. The frame's foot falls in the
+ * gap between the two shared listing cards. Two people are the post's 3D
+ * icon, in the left column. No pop-up: the screen shows no reply. */
+import { PLACE, frame, headline, icon3d, phone, subline } from "../lib/premium.mjs";
 import { phoneHtml } from "../lib/kit.mjs";
 
 const W = 1080;
@@ -14,7 +14,7 @@ export default {
   file: "19-talk-to-the-owner.png",
   W,
   H,
-  phones: [phone("thread", "night", { h: 820, cx: 756, top: 486 })],
+  phones: [phone("thread", "night", PLACE.bleed({ w: 745, cx: 668 }))],
   html: ({ phones }) =>
     frame({
       W,
@@ -24,8 +24,7 @@ export default {
       ${headline(["Talk to the <k>owner,</k>", "landlord or agent."], { W, H })}
       ${subline("Message them straight from the listing.", { W, H })}
       ${phoneHtml(phones[0])}
-      ${popcard({ ground: "night", title: "New message", line: "Vallo Examples replied", x: 80, y: 590, width: 440 })}
-      ${icon3d("team", { ...SLOT.post.left, size: 210, ground: "night" })}
+      ${icon3d("team", { W, H, slot: "B", cy: (490 + H) / 2 })}
       `,
     }),
 };

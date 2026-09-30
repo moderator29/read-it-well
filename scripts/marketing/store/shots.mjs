@@ -9,7 +9,7 @@
  * numbers, and an Example chip on every card that shows a booking, a table,
  * a payment or an inspection.
  */
-export { SHOTS, FEATURE } from "./shots/premium.mjs";
+export { SHOTS, FEATURE, GROUND } from "./shots/premium.mjs";
 
 export const pad = (n) => String(n).padStart(2, "0");
 export const shotName = (s) => `${pad(s.n)}-${s.slug}`;

@@ -5,7 +5,7 @@
  */
 import { LAYOUT, QUESTIONS } from "./layout.js";
 import { questionCard, ringBurst } from "../engine/components.js";
-import { SKY, QUIET, SHADOW_NIGHT, fitSize } from "./a-common.js";
+import { SKY, QUIET, SHADOW_NIGHT, fitSize, freshLayers } from "./a-common.js";
 
 const W = 1080;
 const H = 1920;
@@ -20,6 +20,10 @@ export function nightCard(ctx, parent, { q, a, box, size = 46 }) {
     justifyContent: "center", textAlign: "center", color: "#fff", textWrap: "balance", lineHeight: "1.14",
   });
   Object.assign(card.back.style, { justifyContent: "center", textAlign: "center", textWrap: "balance", lineHeight: "1.2" });
+  /* No night card shows its back in this section (the rush turns card 2 only edge-on). Its back is
+     the one 3D-transformed layer a card carries, and Chrome may raster such a layer at a scale kept
+     from an earlier frame: without it the cards paint the same whichever way the film is sought. */
+  card.back.style.display = "none";
   return card;
 }
 
@@ -48,6 +52,8 @@ export function buildOpenMobile(ctx, T) {
     const card = nightCard(ctx, layer, { q: q.q, a: q.a, box });
     return { ...card, box, layer, i };
   });
+
+  freshLayers(ctx, cards.map((c) => c.root), { to: T.rush + 0.32 });
 
   /* Row 01: frame one is finished (all three cards readable at t = 0); each card sets down on its beat. */
   const lift = [-3.5, 3, -3];
@@ -170,6 +176,7 @@ export function buildOpenMobile(ctx, T) {
     },
   }, persp);
   tl.fromTo(back, { rotationY: -90, scale: 0.3 }, { rotationY: 0, scale: 1.1, duration: T.drop - edge, ease: "power3.out" }, edge);
+  freshLayers(ctx, [back], { from: edge - 0.02, to: T.widen + 0.8 });
 
   /* Row 04: the mark lands at the centre on the drop, the ring draws, the wordmark rises on "Vallo". */
   const MARK = { cx: 540, cy: 880, w: 380 };

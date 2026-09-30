@@ -17,17 +17,19 @@ end with zero velocity there; B's moves start from rest).
   Nothing else on the ground (no sparkles, no rings).
 - **The phone** (B's `A_OUT.phone`): island, black-titanium, `env: "light"`, `edge: "#f3f4f1"`.
   Pose `{ cx: 540, cy: 1500, height: 1180, rx: 0, ry: 0, rz: 0, fov: 24, opacity: 0.3 }`: sunk and
-  dimmed under the receipt since row 11 (A holds it still from 29.6 on).
-  Screen: the `thread-light` display, full (1320 × 2868, `ctx.src.display("thread-light")`), no
-  overlays, shown since 29.39.
+  dimmed under the receipt since row 11 (A holds it still from 24.93 on).
+  Screen: the `thread-light` display, full (1320 × 2868, `ctx.src.display("thread-light")`), shown
+  since 29.39, with one overlay: the member's unsent bubble is covered from 29.39 by the same patch B
+  lays (display `{ x: 101, y: 2395, w: 1058, h: 252 }`, `#f3f4f1`), so B's patch fading in changes nothing.
 - **The villa card** (B's `A_OUT.villa`): at rest on the stage rect `{ x: 160, y: 498, w: 760, h: 548 }`,
   rotation 0, opacity 1.
   - It is a crop of the `thread-light` display: `{ x: 52, y: 1602, w: 1088, h: 784 }` (display px, 1320
     wide), the Maitama card in the thread.
   - Its box is the crop's own size (1088 × 784), radius 40 px, box-shadow b-kit `SHADOW.l`
-    (`0 40px 90px -40px rgb(16 32 80 / 0.42), 0 10px 24px -12px rgb(16 32 80 / 0.18)`), placed with
-    `quadMatrix` (engine/phone.js) onto the rect.
-  - A's receipt folds into it between 30.25 and 30.577 (power3.inOut, so it arrives at rest).
+    (`0 40px 90px -40px rgb(16 32 80 / 0.42), 0 10px 24px -12px rgb(16 32 80 / 0.18)`), placed onto the
+    rect (A writes a flat rect as the equivalent 2D `matrix()`, the same geometry as `quadMatrix` from
+    engine/phone.js, so Chrome paints it without a composited layer).
+  - A's receipt folds into it between 30.17 and 30.577 (power3.inOut, so it arrives at rest).
   - B flies it from 30.577 into the phone and lands it on the same display rect of the thread,
     on the rising phone (B's `talk()`, card_slide at 30.8).
 - **Gone before 30.577:** card 1 (see below), the receipt, the pointer. The chapter pill "The full
@@ -38,13 +40,14 @@ end with zero velocity there; B's moves start from rest).
 - **Ground:** the same mist string as mobile.
 - **The window:** `browserWindow(ctx, { width: 1020, theme: "light", url: "vallospaces.com" })` at
   WINDOW_LEFT, flat: root `x: 80, y: 150` (scale 0.708333, transform-origin 0 0), opacity 1, not
-  dimmed, showing `d-thread-lt` (2880 × 1800 in the 1440 × 900 content). The pointer is hidden.
+  dimmed, showing `d-thread-lt` (2880 × 1800 in the 1440 × 900 content), its unsent bubble covered from
+  29.39 by the same patch B lays (css `{ x: 851, y: 763, w: 495, h: 64 }`, `#f3f4f1`). The pointer is hidden.
 - **The villa card:** at rest on the stage rect `{ x: 1206, y: 330, w: 600, h: 405.5 }`, rotation 0,
   opacity 1.
   - It is a crop of the `d-thread-lt` capture: `{ x: 1884, y: 980, w: 796, h: 538 }` (capture px,
     2880 wide), the Maitama card in the thread.
   - Its box is the crop's own size (796 × 538), radius 26 px, box-shadow b-kit `SHADOW.l`, placed with
-    `quadMatrix` onto the rect.
+    `quadMatrix` onto the rect (A writes it as the equivalent 2D `matrix()`).
   - It lands on the thread's Maitama card in the window, stage rect
     `{ x: 747.25, y: 536.75, w: 281.92, h: 190.54 }` (WINDOW_LEFT: stage = 80 + css × 0.708333,
     150 + (56 + css) × 0.708333, with the card at css x 942–1340, y 490–759).
@@ -118,3 +121,6 @@ A's last frames show the member's sent bubble in the thread ("I like these two a
 all three on Saturday morning?", `thread-light` display y 2398–2637 / `d-thread-lt` css y 764–823).
 In B that message is sent in row 15, so B covers the bubble from 30.577 (fading the cover in over
 0.3 s so nothing pops). If a covers it too (a patch of `#f3f4f1` over it from 29.39), the cut is clean.
+
+> Builder A: done. A lays the same patch (same box, same colour) over the bubble from 29.39 in both
+> films (`a-m-receipt.js`, `a-d-receipt.js`), so the cut is clean either way.

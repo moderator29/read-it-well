@@ -1,21 +1,22 @@
 /* 15-17 · The carousel. One 3240 x 1350 Night ground cut into three 1080 x
- * 1350 slides, so the ground runs on without a join; every seam crosses only
- * ground. Each slide names one part of Vallo in the same grid: a home for sale
- * (the example terrace in Karsana, its Example notice in view), the stays home
- * (hotels, shortlets, restaurants and local talk), and the restaurants list
- * (an Example chip on every card). One big phone and one 3D icon per slide;
- * the brand bar repeats on every slide. */
-import { frame, headline, icon3d, phone, subline } from "../lib/premium.mjs";
+ * 1350 slides; the ground runs on without a join and every seam crosses only
+ * ground. Three slides in one grammar from the product's own words: homes to
+ * rent or buy (the example terrace in Karsana, for sale), stays by the night
+ * (the example Lagoon Crest Resort at ₦150,000 per night) and tables for
+ * tonight (the restaurants list, Example on every card). One bleed phone and
+ * one 3D icon per slide; each phone's scale is chosen so the frame's foot
+ * falls in an empty band of its screen: under the price, under the nightly
+ * rate, between the two restaurant cards. */
+import { PLACE, frame, headline, icon3d, phone, subline } from "../lib/premium.mjs";
 import { phoneHtml } from "../lib/kit.mjs";
 
 const W = 3240;
 const H = 1350;
 const P = 1080;
-const PLACE = { h: 1000, top: 500 };
 const SLIDES = [
-  { screen: "listing-sale", head: ["<k>Homes,</k>", "to rent or buy."], sub: "Listings with the price up front.", icon: "buy" },
-  { screen: "stays", head: ["<k>Hotels</k> and", "shortlets."], sub: "Pick a place, then pick your dates.", icon: "stay-rated" },
-  { screen: "restaurants", head: ["<k>Restaurants.</k>", "One account."], sub: "See the opening hours before you go.", icon: "restaurant" },
+  { screen: "listing-sale", w: 667, head: ["<k>Homes,</k>", "to rent or buy."], sub: "Listings with the price up front.", icon: "buy" },
+  { screen: "stay", w: 640, head: ["<k>Stays,</k>", "by the night."], sub: "Pick a place, then pick your dates.", icon: "hotel" },
+  { screen: "restaurants", w: 644, head: ["<k>Tables,</k>", "for tonight."], sub: "See the opening hours before you go.", icon: "restaurant" },
 ];
 
 export default {
@@ -25,10 +26,10 @@ export default {
   H,
   slices: [
     { file: "15-carousel-1-homes.png", extract: { left: 0, top: 0, width: P, height: H } },
-    { file: "16-carousel-2-hotels-and-shortlets.png", extract: { left: P, top: 0, width: P, height: H } },
-    { file: "17-carousel-3-restaurants.png", extract: { left: 2 * P, top: 0, width: P, height: H } },
+    { file: "16-carousel-2-stays.png", extract: { left: P, top: 0, width: P, height: H } },
+    { file: "17-carousel-3-tables.png", extract: { left: 2 * P, top: 0, width: P, height: H } },
   ],
-  phones: SLIDES.map((s, i) => phone(s.screen, "night", { ...PLACE, cx: i * P + 660 })),
+  phones: SLIDES.map((s, i) => phone(s.screen, "night", PLACE.bleed({ w: s.w, cx: i * P + 540 }))),
   html: ({ phones }) =>
     frame({
       W,
@@ -40,7 +41,7 @@ export default {
       ${headline(s.head, { W: P, H, x: i * P + 80 })}
       ${subline(s.sub, { W: P, H, x: i * P + 80 })}
       ${phoneHtml(phones[i])}
-      ${icon3d(s.icon, { x: i * P + 200, y: 960, size: 210, ground: "night" })}`,
+      <div style="position:absolute;left:${i * P}px;top:0;width:${P}px;height:${H}px">${icon3d(s.icon, { W: P, H, slot: "A" })}</div>`,
       ).join(""),
     }),
 };

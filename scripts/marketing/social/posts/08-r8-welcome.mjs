@@ -1,21 +1,28 @@
-/* R8 · after IMG_6735: the onboarding as flat screens in rounded cards,
- * staggered, on one clean ground. Night. The first three welcome cards, shown
- * flat at their own resolution; the headline and a handover of keys hold the
- * left column. */
+/* R8 · after IMG_6735: the onboarding as a wall of flat cards, staggered in
+ * three columns that run off the foot. 1080 x 1350, so Instagram's grid crops
+ * no words. Night. The welcome cards at their own resolution (0.23x): the
+ * first three slides, each column running on into the first slide in Hausa,
+ * Yorùbá and Igbo, whose foot is cut only through the illustration, never
+ * through a line of text. A handover of keys is the post's 3D icon. */
 import { join } from "node:path";
 import { frame, headline, icon3d, subline } from "../lib/premium.mjs";
 import { SOURCE } from "../lib/paths.mjs";
 import { u } from "../lib/render.mjs";
 
-const W = 1600;
-const H = 1200;
+const W = 1080;
+const H = 1350;
 const CW = 300;
 const CH = Math.round((CW * 2682) / 1320);
-const CARDS = [
-  { id: "welcome-1", x: 600, y: 330 },
-  { id: "welcome-2", x: 920, y: 190 },
-  { id: "welcome-3", x: 1240, y: 420 },
+const GAP = 30;
+const COLS = [
+  { x: 60, top: 470, ids: ["welcome-1", "welcome-ha"] },
+  { x: 60 + CW + GAP, top: 550, ids: ["welcome-2", "welcome-yo"] },
+  { x: 60 + 2 * (CW + GAP), top: 510, ids: ["welcome-3", "welcome-ig"] },
 ];
+
+const card = (id, x, y) => `<div style="position:absolute;left:${x}px;top:${y}px;width:${CW}px;height:${CH}px;border-radius:34px;overflow:hidden;
+    box-shadow:0 60px 110px -30px rgba(0,0,10,.8), 0 18px 40px -14px rgba(0,0,20,.5), 0 0 0 1.5px rgba(130,178,255,.24)">
+    <img src="${u(join(SOURCE, `${id}.webp`))}" alt="" style="display:block;width:${CW}px;height:${CH}px"></div>`;
 
 export default {
   id: "08",
@@ -30,10 +37,8 @@ export default {
       body: `
       ${headline(["Welcome", "to <k>Vallo.</k>"], { W, H })}
       ${subline("Homes, stays and tables.", { W, H })}
-      ${CARDS.map((c) => `<div style="position:absolute;left:${c.x}px;top:${c.y}px;width:${CW}px;height:${CH}px;border-radius:40px;overflow:hidden;
-          box-shadow:0 60px 110px -30px rgba(0,0,10,.8), 0 18px 40px -14px rgba(0,0,20,.5), 0 0 0 1.5px rgba(130,178,255,.24)">
-          <img src="${u(join(SOURCE, `${c.id}.webp`))}" alt="" style="display:block;width:${CW}px;height:${CH}px"></div>`).join("")}
-      ${icon3d("handover", { x: 250, y: 820, size: 230, ground: "night" })}
+      ${COLS.map((c) => c.ids.map((id, i) => card(id, c.x, c.top + i * (CH + GAP))).join("")).join("")}
+      ${icon3d("handover", { W, H, slot: "A" })}
       `,
     }),
 };

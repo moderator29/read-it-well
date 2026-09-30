@@ -1,117 +1,137 @@
 /**
- * The 35 store images, by DESIGN.md section 6a (the founder's ruling of
- * 30 September 2026, evening), in the manner of X's App Store set:
+ * The 35 store images, by DESIGN.md section 6a and the round-2 review
+ * (30 September 2026), in the manner of X's App Store set:
  *
- *   - one night ground for every image, a quiet vertical gradient from
- *     #050B3D to #010118, the same pixel for pixel in all 35;
- *   - a small line icon, then the headline, centred at the top on the same
- *     baseline in every image;
- *   - the phone: big, centred on its screen, whole, straight on, at the
- *     same scale in every image, the app's dark theme on its screen.
+ *   - one night ground for every image, a vertical gradient from #050B3D
+ *     (the top row) to #010118 (the last), drawn by compose.mjs;
+ *   - the headline, centred at the top on the same baselines in every image,
+ *     set on its ink, never wider than the phone plus 50 px;
+ *   - the phone: big, centred on its screen, whole, straight on, the same
+ *     size in every image, lit so its frame reads against the ground, with
+ *     the capture laid on flat (the app's dark theme).
  *
  * Nothing else is drawn, except on two images, each with one card that has
- * just arrived: "Room booked" (11) and "Payment settled" (30). Two pairs
- * share one big tilted phone across their seam, as X's "Be the first to
- * know" does: 10 and 11 (stays) and 13 and 14 (restaurants). On the one
- * ground the seam disappears, and the phone is whole across the pair.
+ * just arrived: "Room booked" (5) and "Payment settled" (18). Both follow one
+ * rule: the card overhangs one edge of the phone by 70 to 90 px, never sits
+ * on a button or words (it covers the app's header whole, as a notification
+ * does), carries the Example chip, and sets any amount in white.
+ *
+ * Two pairs share one big tilted phone across their seam, as X's "Be the
+ * first to know" does: 4 and 5 (stays) and 10 and 11 (restaurants).
+ *
+ * Order: the first three, then a pair in the first swipe; never more than
+ * two screens without a photograph or artwork in a row.
  */
-import { headline, popup, px } from "../components.mjs";
-import { fill } from "../grounds.mjs";
-import { icon, brandUrl } from "../lib.mjs";
+import { headline, popup } from "../components.mjs";
+import { brandUrl } from "../lib.mjs";
 
 /* ------------------------------------------------------------- the system */
 
-export const GROUND = "linear-gradient(180deg, #050B3D 0%, #010118 100%)";
-const SKY = "#8FD3FF";
+/** The ground (compose.mjs draws it): the first row and the last. */
+export const GROUND = { top: [5, 11, 61], bottom: [1, 1, 24] };
 const PHONE_COLOR = "black-titanium";
-const SHADOW = { type: "contact", opacity: 0.5 };
 const FRONT = { rotation: { x: 0, y: 0, z: 0 }, fov: 20 };
 
-/** The grid every image shares, per store (page pixels). */
+/**
+ * The grid every image shares, per store (page pixels). The headline's cap
+ * height is 2.7% of the image's height in both stores (112 px on 2868, 100 px
+ * on 2560), so the two sets read the same size in their store rows; `max` is
+ * the phone's width plus 50 px.
+ */
 export function M(ctx) {
   const { W, H, ios } = ctx;
-  const side = ios ? 80 : 88;
-  const size = ios ? 112 : 122;
-  const iconSize = ios ? 64 : 70;
-  const iconTop = ios ? 196 : 150;
-  const hlTop = iconTop + iconSize + (ios ? 40 : 42);
-  const lh = 1.05;
-  const phoneTop = ios ? 700 : 660;
-  const phoneBottom = ios ? 112 : 96;
-  return { W, H, side, size, iconSize, iconTop, hlTop, lh, max: W - 2 * side, phoneTop, phoneH: H - phoneTop - phoneBottom };
-}
-
-/* A lucide line icon, 3 px of stroke at its size. */
-function lineIcon({ name, x, top, size, align = "center" }) {
-  const left = align === "center" ? x - size / 2 : x;
-  return `<div class="abs" style="left:${px(left)};top:${px(top)};width:${px(size)};height:${px(size)};z-index:40">${icon(name, { size: Math.round(size), color: SKY, stroke: (3 * 24) / size })}</div>`;
+  const size = ios ? 112 : 100;
+  const hlTop = ios ? 150 : 140;
+  const phoneTop = ios ? 490 : 470;
+  const phoneBottom = ios ? 100 : 90;
+  return {
+    W, H, size, hlTop, lh: 1.08,
+    side: ios ? 80 : 88,
+    max: ios ? 1146 : 1002,
+    subSize: ios ? 38 : 34,
+    phoneTop,
+    phoneH: H - phoneTop - phoneBottom,
+    /* how far a card overhangs the phone's edge (and still keeps 40 px to the image's) */
+    overhang: ios ? 70 : 84,
+  };
 }
 
 function head(ctx, m, lines, { align = "center", sub } = {}) {
   return headline({
-    lines, cx: ctx.W / 2, x: m.side, y: m.hlTop, max: m.max, size: m.size, align, accent: 0, weight: 600, lineHeight: m.lh, theme: "dark",
-    sub, subSize: ctx.ios ? 40 : 44, subColor: "rgb(255 255 255 / 0.6)",
+    lines, cx: ctx.W / 2, x: m.side, y: m.hlTop, max: m.max, size: m.size, align, weight: 600, lineHeight: m.lh,
+    sub, subSize: m.subSize, subGap: m.subSize * 0.42, subColor: "rgb(255 255 255 / 0.62)",
   });
 }
 
-/** The phone every plain image shows: centred on its screen, straight on. */
+/**
+ * The phone every plain image shows: straight on, centred on its screen
+ * (the side buttons make the body's box lopsided), with the display's corner
+ * on whole pixels so the flat layer lands exactly.
+ */
 async function stdPhone(ctx, m, id) {
   const cy = m.phoneTop + m.phoneH / 2;
-  const first = await ctx.phone({ id, cx: ctx.W / 2, cy, h: m.phoneH, rotation: FRONT.rotation, fov: FRONT.fov, color: PHONE_COLOR, shadow: SHADOW });
-  /* Optical centring: the side buttons make the body's box lopsided, so
-     centre the screen instead. */
+  const opts = { id, h: m.phoneH, rotation: FRONT.rotation, fov: FRONT.fov, color: PHONE_COLOR, flat: true };
+  const first = await ctx.phone({ ...opts, cx: ctx.W / 2, cy });
   const sx = first.quad.reduce((a, q) => a + q[0], 0) / 4;
-  const dx = ctx.W / 2 - sx;
-  if (Math.abs(dx) < 0.5) return first;
+  let dx = ctx.W / 2 - sx;
+  const tl = first.quad[0];
+  dx += Math.round(tl[0] + dx) - (tl[0] + dx);
+  const dy = Math.round(tl[1]) - tl[1];
+  if (Math.abs(dx) < 0.01 && Math.abs(dy) < 0.01) return first;
   ctx.placed.pop();
-  return ctx.phone({ id, cx: ctx.W / 2 + dx, cy, h: m.phoneH, rotation: FRONT.rotation, fov: FRONT.fov, color: PHONE_COLOR, shadow: SHADOW });
+  ctx.flats.pop();
+  return ctx.phone({ ...opts, cx: ctx.W / 2 + dx, cy: cy + dy });
 }
 
 /** The template every plain image follows. */
-function std(n, slug, id, iconName, lines, { sub } = {}) {
+function std(n, slug, id, lines, { sub, extra } = {}) {
   return {
     n, slug, captures: [id],
     async layout(ctx) {
       const m = M(ctx);
       const p = await stdPhone(ctx, m, id);
-      return [
-        fill(await ctx.ground(GROUND)),
-        lineIcon({ name: iconName, x: ctx.W / 2, top: m.iconTop, size: m.iconSize }),
-        head(ctx, m, lines, { sub }),
-        p.html,
-      ].join("\n");
+      return [head(ctx, m, lines, { sub }), p.html, extra ? await extra(ctx, m, p) : ""].join("\n");
     },
   };
 }
+
+/* ------------------------------------------------------------- the cards */
+
+/* Page positions on a placed phone's display (display px, 1320 x 2868). */
+const HEADER = { top: 186, bottom: 365, bell: { x: 1204, y: 275, r: 66 }, menu: [77, 126], logo: [234, 596] };
+/* The frame's outer edge lies 2.35 mm outside the display: 42 display px. */
+const FRAME = 42;
 
 /* ------------------------------------------------------------- the pairs */
 
 /**
  * Two neighbours that share one phone across their seam. Each keeps its own
- * icon and headline, set left on the same grid, so the words run on across
- * the seam; the phone is drawn once, tilted by the 3D studio.
+ * headline, set left on the same grid, so the words run on across the seam;
+ * the phone is drawn once, tilted by the 3D studio, and keeps the studio's
+ * own mapping of the capture.
  */
-function pair(a, b, { id, rotation, fov, cy, h, extraB }) {
+function pair(a, b, { id, rotation, fov, dx = 0, h = 1, clear, extraB }) {
   const shared = async ({ pc, W, H, ios }) => {
     const m = M({ W, H, ios });
-    const ph = m.phoneH * h;
-    const p = await pc.phone({ id, cx: W, cy: m.phoneTop + (H - m.phoneTop) * cy, h: ph, rotation, fov, color: PHONE_COLOR, shadow: SHADOW, margin: ios ? 64 : 70 });
+    const o = { id, cy: m.phoneTop + m.phoneH / 2, h: m.phoneH * h, rotation, fov, color: PHONE_COLOR, margin: ios ? 64 : 70 };
+    let p = await pc.phone({ ...o, cx: W + dx * (W / 1320) });
+    if (clear) {
+      /* Slide the phone so the seam passes `clear.gap` px to the right of a
+         region of the display (display px), such as a name. */
+      const [x0, y0, x1, y1] = clear.box;
+      const right = Math.max(...[[x0, y0], [x1, y0], [x1, y1], [x0, y1]].map(([x, y]) => p.at(x, y)[0]));
+      const shift = W - clear.gap * (W / 1320) - right;
+      pc.placed.pop();
+      p = await pc.phone({ ...o, cx: W + dx * (W / 1320) + shift });
+    }
     return { html: p.html, phone: p };
   };
   const words = (S, extra) => async (ctx) => {
     const m = M(ctx);
-    return [
-      lineIcon({ name: S.icon, x: m.side, top: m.iconTop, size: m.iconSize, align: "left" }),
-      head(ctx, m, S.lines, { align: "left" }),
-      extra ? await extra(ctx, m) : "",
-    ].join("\n");
+    return [head(ctx, m, S.lines, { align: "left" }), extra ? await extra(ctx, m) : ""].join("\n");
   };
   return [
-    {
-      n: a.n, slug: a.slug, captures: [id], pairWith: b.n, shared,
-      ground: async ({ pageW, H, ground }) => `<div class="g" style="left:0;top:0;width:${pageW}px;height:${H}px;background:${await ground(GROUND)}"></div>`,
-      layout: words(a),
-    },
+    { n: a.n, slug: a.slug, captures: [id], pairWith: b.n, shared, layout: words(a) },
     { n: b.n, slug: b.slug, captures: [id], pairedFrom: a.n, layout: words(b, extraB) },
   ];
 }
@@ -119,112 +139,103 @@ function pair(a, b, { id, rotation, fov, cy, h, extraB }) {
 /* ------------------------------------------------------------- the 35 */
 
 export const SHOTS = [
-  std(1, "find-your-next-home", "home", "house", ["Find your next", "home in Nigeria"]),
-  std(2, "homes-and-stays-one-account", "welcome-1", "circle-user-round", ["Homes and stays,", "one account"]),
-  std(3, "the-full-move-in-cost", "listing-cost", "receipt-text", ["The full move-in cost,", "before you call"]),
-  std(4, "search-homes-across-nigeria", "search", "search", ["Search homes", "across Nigeria"]),
-  std(5, "filter-by-what-you-need", "filters-villas", "sliders-horizontal", ["Filter by exactly", "what you need"]),
-  std(6, "see-every-home-up-close", "listing", "zoom-in", ["See every home", "up close"]),
-  std(7, "share-a-home-in-one-tap", "listing-share", "share-2", ["Share a home", "in one tap"]),
-  std(8, "talk-straight-to-the-owner", "thread", "message-circle", ["Talk straight", "to the owner"]),
-  std(9, "every-conversation-in-one-place", "messages", "inbox", ["Every conversation", "in one place"]),
+  std(1, "find-your-next-home-in-nigeria", "home", ["Find your next home", "in Nigeria"]),
+  std(2, "the-move-in-total-before-you-call", "listing-cost", ["The move-in total,", "before you call"]),
+  std(3, "homes-and-stays-one-account", "welcome-1", ["Homes and stays,", "one account"]),
 
-  /* 10 and 11: the stays home across the seam, leaning right; the booking
-     arrives over its photograph on 11. */
+  /* 4 and 5: the stays home across the seam, leaning right; the booking
+     arrives over the app's header on 5, covering the bell whole, and
+     overhangs the phone's right edge. */
   ...pair(
-    { n: 10, slug: "hotels-shortlets-and-resorts", icon: "hotel", lines: ["Hotels, shortlets", "and resorts"] },
-    { n: 11, slug: "book-a-room-in-a-few-taps", icon: "bed-double", lines: ["Book a room", "in a few taps"] },
+    { n: 4, slug: "hotels-shortlets-and-resorts", lines: ["Hotels, shortlets", "and resorts"] },
+    { n: 5, slug: "book-a-room-in-a-few-taps", lines: ["Book a room", "in a few taps"] },
     {
-      id: "stays", rotation: { x: -16, y: -16, z: -17 }, fov: 26, cy: 0.52, h: 1.06,
-      async extraB(ctx) {
+      id: "stays", rotation: { x: -16, y: -16, z: -17 }, fov: 26, h: 1, dx: -15,
+      async extraB(ctx, m) {
         const { u, W } = ctx;
-        /* Over the photograph at the top of the screen (display y 360 to
-           900, clear of its words), inside this image. */
         const sp = ctx.shared.phone;
-        const [, y] = sp.at(700, 560);
-        const w = 860 * u;
-        return popup({ x: W - 70 * u - w, y: y - 110 * u, w, lucide: "bed-double", title: "Room booked", line: "Lagoon Crest Resort · 3 nights", meta: "now", example: true, scale: u * 1.06 });
+        const at = (x, y) => { const [px, py] = sp.at(x, y); return [px - W, py]; };
+        /* The bell, whole; the end of the logo, left clear; the frame's right
+           edge beside the bell, which the card overhangs. */
+        const ring = Array.from({ length: 24 }, (_, k) => at(HEADER.bell.x + HEADER.bell.r * Math.cos((k * Math.PI) / 12), HEADER.bell.y + HEADER.bell.r * Math.sin((k * Math.PI) / 12)));
+        const bell = { l: Math.min(...ring.map((p) => p[0])), r: Math.max(...ring.map((p) => p[0])), t: Math.min(...ring.map((p) => p[1])), b: Math.max(...ring.map((p) => p[1])) };
+        const logoEnd = Math.max(at(HEADER.logo[1], 237)[0], at(HEADER.logo[1], 313)[0]);
+        const edge = Math.max(at(1320 + FRAME, HEADER.top)[0], at(1320 + FRAME, HEADER.bottom)[0]);
+        const right = edge + m.overhang * u;
+        const left = Math.max(logoEnd + 28 * u, 40 * u);
+        const top = bell.t - 30 * u;
+        ctx.cardDebug = { bell, logoEnd, edge, right, left, top };
+        return popup({ x: left, y: top, w: right - left, lucide: "bed-double", title: "Room booked", line: "Lagoon Crest Resort · 3 nights", meta: null, example: true, scale: u });
       },
     },
   ),
 
-  std(12, "pick-your-dates", "stays-dates", "calendar-days", ["Pick your dates,", "see what's free"]),
+  std(6, "search-homes-across-nigeria", "search", ["Search homes", "across Nigeria"]),
+  std(7, "see-every-home-up-close", "listing", ["See every home", "up close"]),
+  std(8, "ask-the-ai-assistant-any-time-of-day", "assistant-caution-2", ["Ask the AI assistant", "any time of day"]),
+  std(9, "save-favourites-compare-later", "saved", ["Save favourites,", "compare later"]),
 
-  /* 13 and 14: the restaurant across the seam, leaning left. */
+  /* 10 and 11: the restaurant across the seam, leaning left, the phone
+     slid left (about 130 px) so the seam passes 44 px clear of the
+     restaurant's name. */
   ...pair(
-    { n: 13, slug: "find-a-restaurant-you-love", icon: "utensils", lines: ["Find a restaurant", "you love"] },
-    { n: 14, slug: "reserve-your-table", icon: "calendar-check", lines: ["Reserve your table", "in seconds"] },
-    { id: "restaurant", rotation: { x: -16, y: 16, z: 17 }, fov: 26, cy: 0.52, h: 1.06 },
+    { n: 10, slug: "find-a-restaurant-you-love", lines: ["Find a restaurant", "you love"] },
+    { n: 11, slug: "hours-dress-code-and-seats-up-front", lines: ["Hours, dress code", "and seats, up front"] },
+    { id: "restaurant", rotation: { x: -16, y: 16, z: 17 }, fov: 26, h: 1, clear: { box: [148, 1250, 851, 1310], gap: 44 } },
   ),
 
-  std(15, "whats-happening-around-you", "around", "megaphone", ["What's happening", "around you"]),
-  std(16, "know-the-moment-anything-changes", "notifications", "bell", ["Know the moment", "anything changes"]),
-  std(17, "ask-the-ai-assistant", "assistant-caution-2", "sparkles", ["Ask the AI assistant,", "any time of day"]),
-  std(18, "save-favourites-compare-later", "saved", "heart", ["Save favourites,", "compare later"]),
-  std(19, "everything-one-tap-away", "drawer", "layout-grid", ["Everything,", "one tap away"]),
-  std(20, "vallo-never-holds-your-money", "payments", "landmark", ["Vallo never holds", "your money"]),
-  std(21, "cards-and-banks-in-one-place", "payment-methods", "credit-card", ["Cards and banks,", "in one place"]),
-  std(22, "a-real-person-checks-every-verified-mark", "verification", "badge-check", ["A real person checks", "every verified mark"]),
-  std(23, "lock-vallo-with-a-passcode", "passcode-create", "lock-keyhole", ["Lock Vallo", "with a passcode"]),
-  std(24, "help-from-a-real-person", "support", "headset", ["Help from", "a real person"]),
-  std(25, "see-what-places-nearby-are-asking", "price", "map-pin", ["See what places", "nearby are asking"]),
-  std(26, "all-your-plans-in-one-place", "plans", "calendar-range", ["All your plans", "in one place"]),
-  std(27, "run-your-listings-from-one-workspace", "agent-dashboard", "layout-dashboard", ["Run your listings", "from one workspace"]),
-  std(28, "list-your-property-on-vallo", "agent-properties", "house-plus", ["List your property", "on Vallo"]),
-  std(29, "host-your-hotel-or-shortlet", "host-start", "key-round", ["Host your hotel", "or shortlet"]),
+  std(12, "vallo-never-holds-your-money", "support-money", ["Vallo never holds", "your money"]),
+  std(13, "light-water-and-getting-in", "listing-amenities", ["Light, water", "and getting in"]),
+  std(14, "every-verified-mark-checked-by-a-person", "welcome-2", ["Every verified mark,", "checked by a person"]),
+  std(15, "help-from-a-real-person", "support", ["Help from", "a real person"]),
+  std(16, "vallo-speaks-your-language", "welcome-yo", ["Vallo speaks", "your language"], { sub: "English, Hausa, Yorùbá and Igbo." }),
+  std(17, "vallo-charges-no-inspection-fee", "support-inspection", ["Vallo charges no", "inspection fee"]),
 
-  /* 30: the host's side of a booking; the payout arrives in the clear space
-     under the empty state, where the screen shows no amount of its own. */
-  {
-    n: 30, slug: "your-share-goes-straight-to-your-bank", captures: ["host-bookings"],
-    async layout(ctx) {
-      const { W, u } = ctx;
-      const m = M(ctx);
-      const p = await stdPhone(ctx, m, "host-bookings");
-      const [, y] = p.at(660, 2040);
-      const w = 900 * u;
-      return [
-        fill(await ctx.ground(GROUND)),
-        lineIcon({ name: "banknote", x: W / 2, top: m.iconTop, size: m.iconSize }),
-        head(ctx, m, ["Your share goes", "straight to your bank"]),
-        p.html,
-        popup({ x: W / 2 - w / 2, y, w, lucide: "landmark", title: "Payment settled", line: "Straight to your bank", amount: "₦1,800,000", meta: "now", example: true, scale: u * 1.06 }),
-      ].join("\n");
+  /* 18: the host's side. The payout arrives over the app's header, covering
+     the menu and the logo whole, and overhangs the phone's left edge. No
+     amount: none on these screens would honestly apply. */
+  std(18, "have-a-property-put-it-on-vallo", "host-start", ["Have a property?", "Put it on Vallo"], {
+    async extra(ctx, m, p) {
+      const { u } = ctx;
+      const [edge] = p.at(-FRAME, HEADER.top);
+      const left = edge - m.overhang * u;
+      /* wide enough to cover the menu, the logo and the wordmark whole, and
+         clear of the bell */
+      const w = 680 * u;
+      const [, bellTop] = p.at(HEADER.bell.x, HEADER.bell.y - HEADER.bell.r);
+      return popup({ x: left, y: bellTop - 30 * u, w, lucide: "landmark", title: "Payment settled", line: "Straight to your bank", line2: "Lagoon Crest Resort · 3 nights", meta: null, example: true, scale: u });
     },
-  },
+  }),
 
-  std(31, "welcome-back", "sign-in", "log-in", ["Welcome back,", "sign in in seconds"]),
-  std(32, "vallo-speaks-your-language", "welcome-yo", "languages", ["Vallo speaks", "your language"], { sub: "English, Hausa, Yorùbá and Igbo." }),
-  std(33, "light-or-dark-your-call", "appearance", "sun-moon", ["Light or dark,", "your call"]),
-  std(34, "listings-that-speak-for-themselves", "listing-sale", "image", ["Listings that speak", "for themselves"]),
+  std(19, "see-the-stay-before-you-book", "stay", ["See the stay", "before you book"]),
+  std(20, "pick-your-dates-see-the-price", "stays-dates", ["Pick your dates,", "see the price"]),
+  std(21, "light-or-dark-your-call", "appearance", ["Light or dark,", "your call"]),
+  std(22, "talk-to-the-owner-or-the-agent", "thread", ["Talk to the owner", "or the agent"]),
+  std(23, "filter-by-exactly-what-you-need", "filters-villas", ["Filter by exactly", "what you need"]),
+  std(24, "homes-to-buy-not-just-to-rent", "listing-banana", ["Homes to buy,", "not just to rent"]),
+  std(25, "six-digits-and-youre-back-in", "lock", ["Six digits,", "and you’re back in"]),
+  std(26, "talk-first-pay-when-sure", "welcome-3", ["Talk first.", "Pay when sure."]),
+  std(27, "amenities-and-rooms-all-laid-out", "stay-amenities", ["Amenities and", "rooms, all laid out"]),
+  std(28, "pick-up-where-you-left-off", "home-recent", ["Pick up where", "you left off"]),
+  std(29, "lock-vallo-with-a-passcode", "passcode", ["Lock Vallo", "with a passcode"]),
+  std(30, "your-account-takes-a-minute", "sign-up", ["Your account", "takes a minute"]),
+  std(31, "every-fee-added-up", "listing-cost-total", ["Every fee,", "added up"]),
+  std(32, "need-a-bq-filter-for-it", "filters-detached-bq", ["Need a BQ?", "Filter for it"]),
+  std(33, "restaurants-all-in-one-place", "restaurants", ["Restaurants,", "all in one place"]),
+  std(34, "rent-or-buy-in-one-search", "search-buy", ["Rent or buy,", "in one search"]),
 
-  /* 35: the closing card. The app icon takes the line icon's place, and
-     the launch line sits under the name. */
-  {
-    n: 35, slug: "real-estate-done-right", captures: ["welcome-4"],
-    async layout(ctx) {
-      const { W } = ctx;
-      const m = M(ctx);
-      /* The onboarding's own last slide: "Ready when you are." */
-      const p = await stdPhone(ctx, m, "welcome-4");
-      const s = m.iconSize * 1.25;
-      return [
-        fill(await ctx.ground(GROUND)),
-        `<img class="abs" src="${brandUrl("vallo-icon.png")}" style="left:${px(W / 2 - s / 2)};top:${px(m.iconTop + m.iconSize - s)};width:${px(s)};height:${px(s)};border-radius:22.4%;z-index:40;box-shadow:0 0 0 1px rgb(255 255 255 / 0.14)">`,
-        head(ctx, m, ["Vallo. Real estate,", "done right."], { sub: "Coming soon on iPhone and Android." }),
-        p.html,
-      ].join("\n");
-    },
-  },
+  /* 35: the closing card, on the onboarding's own last slide ("Ready when
+     you are."). The app icon is left out: the grid has no place for it and
+     the logo is on the screen. */
+  std(35, "vallo-real-estate-done-right", "welcome-4", ["Vallo. Real estate,", "done right."], { sub: "Homes, hotels, shortlets and restaurants." }),
 ];
 
 /** Play's feature graphic, 1024 x 500, on the same night ground: the wordmark, one line, one phone. */
 export async function FEATURE(ctx) {
-  const p = await ctx.phone({ id: "home", cx: 792, cy: 258, h: 420, rotation: { x: -6, y: -16, z: 4 }, fov: 24, margin: 34, color: PHONE_COLOR, shadow: { type: "drop", opacity: 0.45 } });
+  const p = await ctx.phone({ id: "home", cx: 740, cy: 258, h: 440, rotation: { x: -6, y: -16, z: 4 }, fov: 24, margin: 30, color: PHONE_COLOR });
   return [
-    fill(await ctx.ground(GROUND)),
-    `<img class="abs" src="${brandUrl("vallo-wordmark.png")}" style="left:74px;top:150px;width:176px;z-index:30">`,
-    `<div class="abs" style="left:72px;top:212px;width:560px;z-index:30;font:600 56px/1.05 Poppins;letter-spacing:-0.03em;color:#fff">Real estate,<br>done right.</div>`,
+    `<img class="abs" src="${brandUrl("vallo-wordmark.png")}" style="left:120px;top:146px;width:176px;z-index:30">`,
+    `<div class="abs" style="left:118px;top:206px;width:460px;z-index:30;font:600 64px/1.04 Poppins;letter-spacing:-0.03em;color:#fff">Real estate,<br>done right.</div>`,
     p.html,
   ].join("\n");
 }

@@ -173,7 +173,8 @@ export async function buildProductDesktop(ctx, T, open) {
   const rentAt = cssToStage(HERO, 720, 578);
   tl.fromTo(pointer, { x: 2000, y: 1000 }, { x: rentAt.x, y: rentAt.y, duration: 0.6, ease: "glide" }, T.rentPress - 0.66);
   pressAt(ctx, pointer, T.rentPress, { parent: pointerScene, x: rentAt.x, y: rentAt.y });
-  tl.to(pointer, { x: 2000, y: 800, duration: 0.45, ease: "power2.in" }, T.buy + 0.04);
+  /* It leaves by the left edge (the map is about to draw on the right) and comes back that way. */
+  tl.to(pointer, { x: -120, y: 420, duration: 0.45, ease: "power2.in" }, T.buy + 0.04);
 
   /* ================= row 08: the results scroll; Nigeria draws in RIGHT_PANEL ================= */
   const SCROLL = 300;
@@ -215,7 +216,7 @@ export async function buildProductDesktop(ctx, T, open) {
 
   /* "More" (the filters), clicked at 18.30. */
   const moreAt = cssToStage(LEFT, 724, 100);
-  tl.fromTo(pointer, { x: 2000, y: 800 }, { x: moreAt.x, y: moreAt.y, duration: 0.55, ease: "glide", immediateRender: false }, T.filterPress - 0.62);
+  tl.fromTo(pointer, { x: -120, y: 420 }, { x: moreAt.x, y: moreAt.y, duration: 0.55, ease: "glide", immediateRender: false }, T.filterPress - 0.62);
   pressAt(ctx, pointer, T.filterPress, { parent: pointerScene, x: moreAt.x, y: moreAt.y });
 
   /* ================= row 09: the filters ================= */

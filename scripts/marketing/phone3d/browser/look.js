@@ -111,11 +111,13 @@ export const ENV_PRESETS = {
     // phone, 90 = its right, 180 = above, 270 = its left; z0..z1 along the axis (+z = camera)
     // (radius 3: inside the room's floor at y -4.4 and nearer than its boxes, so nothing
     // occludes the ring)
+    // (32 to 108 degrees off the view axis; on the island's 0.62 mm front edge that is a
+    // highlight about 4 px wide at luminance 180 or more on a phone 1100 px wide)
     arcs: [
-      { name: 'ringBottom', radius: 3, z0: -0.9, z1: 2.7, from: -50, to: 50, intensity: 7 },
-      { name: 'ringRight', radius: 3, z0: -0.9, z1: 2.7, from: 40, to: 140, intensity: 7 },
-      { name: 'ringTop', radius: 3, z0: -0.9, z1: 2.7, from: 130, to: 230, intensity: 6 },
-      { name: 'ringLeft', radius: 3, z0: -0.9, z1: 2.7, from: 220, to: 320, intensity: 7 },
+      { name: 'ringBottom', radius: 3, z0: -0.975, z1: 4.8, from: -50, to: 50, intensity: 7 },
+      { name: 'ringRight', radius: 3, z0: -0.975, z1: 4.8, from: 40, to: 140, intensity: 7 },
+      { name: 'ringTop', radius: 3, z0: -0.975, z1: 4.8, from: 130, to: 230, intensity: 7.5 },
+      { name: 'ringLeft', radius: 3, z0: -0.975, z1: 4.8, from: 220, to: 320, intensity: 7.5 },
     ],
   },
 };

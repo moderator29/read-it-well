@@ -2,28 +2,42 @@
  * Draws the store images.
  *
  *   node scripts/marketing/store/compose.mjs [--store app-store|google-play] [--only 1,2,3]
- *        [--res 2] [--proof DIR] [--feature | --feature-only] [--verbose]
+ *        [--res 2] [--proof DIR] [--png] [--feature | --feature-only] [--verbose]
  *
  * For every shot in shots.mjs and each store, the shot's layout is laid out
  * as HTML (shots/premium.mjs, with parts from components.mjs), its phones
  * drawn by the 3D studio through phones.mjs, rendered by Chromium at `res`
- * times the store's pixel size, brought down to the exact size with a
- * Lanczos filter and written as an RGB PNG with no alpha channel:
+ * times the store's pixel size on a transparent page, laid over the night
+ * ground, brought down to the exact size with a Lanczos filter and written as
+ * a 24-bit RGB PNG with no alpha channel:
  *
  *   docs/store/screenshots/app-store/<NN>-<slug>.png     1320 x 2868
  *   docs/store/screenshots/google-play/<NN>-<slug>.png   1440 x 2560 (under 8 MB)
+ *
+ * The ground. One raster, a vertical gradient from #050B3D (the top row reads
+ * 5, 11, 61) to #010118, drawn here pixel by pixel rather than by the browser,
+ * so every image carries exactly the same ground.
+ *
+ * The screens. A straight-on phone's display is laid on as a flat layer: the
+ * capture brought down to the display's size in one Lanczos step. The page is
+ * drawn twice, with the phone's display black (A) and white (B); B - A is then
+ * exactly how much of the display shows through at each pixel (its rounded
+ * corners, the cut-out, anything drawn over it), and A holds the glass's own
+ * sheen, so the image is A + capture x (B - A). A tilted phone keeps the
+ * studio's own mapping of the capture.
  *
  * A connected pair (`pairWith`) is drawn as one page twice as wide and cut
  * in two: its ground runs under both images and its one phone (`shared`)
  * crosses the seam. --feature also draws Play's 1024 x 500 feature graphic.
  * --proof writes quick JPEGs to DIR instead of the store folders (--png
- * keeps them lossless), and
- * `STORE_SCREENS=dir` reads the displays from another folder.
+ * keeps them lossless), and `STORE_SCREENS=dir` reads the displays from
+ * another folder.
  *
  * Every image is checked as it is drawn: each phone stays clear of the
  * image's edge (a pair's shared phone is exempt at its seam only), every
- * word and card sits at least 40 px inside the image, and every headline
- * line has at least 4.5:1 contrast against what lies behind it.
+ * word and card sits at least 40 px inside the image, every headline line
+ * has at least 4.5:1 contrast against what lies behind it, and no headline
+ * had to shrink to fit its measure.
  */
 import { chromium } from "playwright-core";
 import sharp from "sharp";
@@ -34,7 +48,8 @@ import { OUT, STORES, screenFile } from "./lib.mjs";
 import { page } from "./page.mjs";
 import { Phones } from "./phones.mjs";
 import { placePhone } from "./components.mjs";
-import { SHOTS, FEATURE, shotName } from "./shots.mjs";
+import { CLEAN, cleanDisplay } from "./clean.mjs";
+import { SHOTS, FEATURE, shotName, GROUND } from "./shots.mjs";
 
 const args = process.argv.slice(2);
 const arg = (name, dflt) => {
@@ -60,31 +75,61 @@ const context = await browser.newContext({ deviceScaleFactor: RES, viewport: { w
 const tab = await context.newPage();
 const problems = [];
 
+/* ------------------------------------------------------------- the ground */
+
 /**
- * A ground (a CSS background) drawn once at the page's device scale and
- * kept as a PNG, so every image that uses it carries exactly the same
- * pixels: Chromium dithers a gradient a little differently in each page.
- * Returns a CSS background value that tiles it horizontally.
+ * The night ground as raw RGB, `w` x `h` px: each row one colour, from
+ * GROUND.top at the first row to GROUND.bottom at the last, rounded to the
+ * nearest level. The same function draws every image's ground.
  */
 const grounds = new Map();
-async function groundRaster(css, w, h) {
-  const key = `${css}|${w}|${h}`;
+function groundRaw(w, h) {
+  const key = `${w}x${h}`;
   if (!grounds.has(key)) {
-    const p = await context.newPage();
-    await p.setViewportSize({ width: w, height: h });
-    await p.setContent(`<!doctype html><html><body style="margin:0"><div style="width:${w}px;height:${h}px;background:${css}"></div></body></html>`);
-    const file = join(TMP, `ground-${grounds.size}.png`);
-    writeFileSync(file, await p.screenshot({ type: "png" }));
-    await p.close();
-    grounds.set(key, `url("file://${file}") 0 0 / ${w}px ${h}px repeat-x`);
+    const buf = Buffer.alloc(w * h * 3);
+    const [t, b] = [GROUND.top, GROUND.bottom];
+    for (let y = 0; y < h; y += 1) {
+      const k = h > 1 ? y / (h - 1) : 0;
+      const c = [0, 1, 2].map((i) => Math.round(t[i] + (b[i] - t[i]) * k));
+      for (let x = 0; x < w; x += 1) buf.set(c, (y * w + x) * 3);
+    }
+    grounds.set(key, buf);
   }
   return grounds.get(key);
 }
+
+/** A transparent page shot laid over the ground at the same size, as raw RGB. */
+async function overGround(shot) {
+  const meta = await sharp(shot).metadata();
+  const g = groundRaw(meta.width, meta.height);
+  return sharp(g, { raw: { width: meta.width, height: meta.height, channels: 3 } })
+    .composite([{ input: shot }])
+    .removeAlpha()
+    .raw()
+    .toBuffer();
+}
+
+/** Raw RGB at `res` times the page, brought down to the page's size. */
+async function down(raw2, w2, h2, w, h) {
+  return sharp(raw2, { raw: { width: w2, height: h2, channels: 3 } }).resize(w, h, { kernel: "lanczos3" }).raw().toBuffer();
+}
+
+/* ------------------------------------------------------------- displays */
+
+/** The display for capture `id`: the cleaned one for the few that need it (clean.mjs). */
+async function displayFile(id, store) {
+  const file = CLEAN[id] ? await cleanDisplay(id, store) : screenFile(id, store);
+  if (!existsSync(file)) throw new Error(`missing display ${file}`);
+  return file;
+}
+
+/* ------------------------------------------------------------- the context */
 
 /** The context a layout draws with: one image, its store, its handsets. */
 function makeCtx(shot, store, offset) {
   const S = STORES[store];
   const placed = [];
+  const flats = [];
   const ctx = {
     n: shot.n,
     store,
@@ -95,23 +140,25 @@ function makeCtx(shot, store, offset) {
     offset,
     u: S.W / 1320,
     placed,
+    flats,
     screen: (id) => screenFile(id, store),
-    /** The ground `css`, as the one shared raster (see groundRaster). */
-    ground: (css) => groundRaster(css, ctx.W, ctx.H),
-    /** Render and place a handset showing capture `id`. */
     /**
      * Render and place a handset showing capture `id`, its body centred on
      * (cx, cy) and `h` tall. A handset is never allowed within `margin` of the
      * image's edge: it is slid inwards, and made smaller only if it cannot fit.
+     * `flat: true` (straight-on phones only) lays the capture on as a flat
+     * layer after the page is drawn (see the file's head).
      */
-    async phone({ id, cx, cy, h, rotation, fov, color, shadow, z = 20, extra = "", reflection, exposure, envIntensity, keyLight, margin }) {
-      const file = screenFile(id, store);
-      if (!existsSync(file)) throw new Error(`missing display ${file}`);
+    async phone({ id, cx, cy, h, rotation, fov, color, z = 20, extra = "", reflection, exposure, envIntensity, keyLight, margin, flat = false }) {
+      const file = await displayFile(id, store);
       const m = margin ?? 60 * ctx.u;
       let height = h;
       let pl;
+      let pair;
       for (let pass = 0; pass < 4; pass += 1) {
-        const p = await phones.render({ screen: file, model: S.model, color, rotation, fov, height, shadow, reflection, exposure, envIntensity, keyLight });
+        const o = { model: S.model, color, rotation, fov, height, reflection, exposure, envIntensity, keyLight };
+        pair = flat ? await phones.renderFlat(o) : { black: await phones.render({ ...o, screen: file }) };
+        const p = pair.black;
         let x = cx;
         let y = cy;
         pl = placePhone(p, { cx: x, cy: y, z, extra });
@@ -132,6 +179,11 @@ function makeCtx(shot, store, offset) {
         break;
       }
       placed.push({ id, ...pl.box });
+      if (flat) {
+        /* The white twin is swapped in for page B. */
+        pl.html = pl.html.replace('<img class="phone"', `<img class="phone" data-white="file://${pair.white.file}"`);
+        flats.push({ id, file, quad: pl.quad });
+      }
       return pl;
     },
   };
@@ -147,46 +199,113 @@ function checkPlacement(shot, store, ctx) {
   }
 }
 
-async function renderHtml(html, width, height) {
+/* ------------------------------------------------------------- drawing */
+
+async function waitImages() {
+  await tab.evaluate(async () => {
+    await Promise.all([...document.images].map((im) => (im.complete ? null : new Promise((r) => { im.onload = im.onerror = r; }))));
+  });
+  await tab.waitForTimeout(120);
+}
+
+/**
+ * Draw the page: shot A as laid out, and, when it holds flat phones, shot B
+ * with each flat phone's white twin. Both are transparent PNGs at `res`.
+ */
+async function renderHtml(html, width, height, withB) {
   const file = join(TMP, "page.html");
   writeFileSync(file, html);
   await tab.setViewportSize({ width, height });
   await tab.goto(`file://${file}`, { waitUntil: "load" });
   await tab.waitForFunction(() => window.__fit === true, null, { timeout: 30000 });
-  await tab.evaluate(async () => {
-    await Promise.all([...document.images].map((im) => (im.complete ? null : new Promise((r) => { im.onload = im.onerror = r; }))));
-  });
-  await tab.waitForTimeout(120);
-  return tab.screenshot({ type: "png", fullPage: false });
+  await waitImages();
+  const a = await tab.screenshot({ type: "png", fullPage: false, omitBackground: true });
+  let b = null;
+  if (withB) {
+    await tab.evaluate(() => {
+      for (const im of document.querySelectorAll("img.phone[data-white]")) {
+        im.dataset.black = im.src;
+        im.src = im.dataset.white;
+      }
+    });
+    await waitImages();
+    b = await tab.screenshot({ type: "png", fullPage: false, omitBackground: true });
+    await tab.evaluate(() => {
+      for (const im of document.querySelectorAll("img.phone[data-black]")) im.src = im.dataset.black;
+    });
+    await waitImages();
+  }
+  return { a, b };
 }
 
 /**
+ * The finished page at 1x, as raw RGB: A over the ground, brought down, and
+ * each flat phone's capture laid on through B - A.
+ */
+async function finish({ a, b }, pageW, pageH, flats) {
+  const w2 = pageW * RES;
+  const h2 = pageH * RES;
+  const A = await down(await overGround(a), w2, h2, pageW, pageH);
+  if (!b || !flats.length) return A;
+  const B = await down(await overGround(b), w2, h2, pageW, pageH);
+  const out = Buffer.from(A);
+  for (const f of flats) {
+    const [tl, tr, br, bl] = f.quad;
+    const x0 = (tl[0] + bl[0]) / 2;
+    const y0 = (tl[1] + tr[1]) / 2;
+    const dw = (tr[0] - tl[0] + br[0] - bl[0]) / 2;
+    const dh = (bl[1] - tl[1] + br[1] - tr[1]) / 2;
+    const fw = Math.round(dw);
+    const fh = Math.round(dh);
+    const fx = Math.round(x0 + (dw - fw) / 2);
+    const fy = Math.round(y0 + (dh - fh) / 2);
+    if (process.env.STORE_DEBUG) console.log(`  flat ${f.id}: display at ${fx},${fy} ${fw}x${fh} (exact ${x0.toFixed(2)},${y0.toFixed(2)} ${dw.toFixed(2)}x${dh.toFixed(2)})`);
+    const F = await sharp(f.file).removeAlpha().toColourspace("srgb").resize(fw, fh, { kernel: "lanczos3", fit: "fill" }).raw().toBuffer();
+    /* The display plus a 2 px margin: B - A is zero outside it anyway. */
+    for (let y = Math.max(0, fy - 2); y < Math.min(pageH, fy + fh + 2); y += 1) {
+      for (let x = Math.max(0, fx - 2); x < Math.min(pageW, fx + fw + 2); x += 1) {
+        const i = (y * pageW + x) * 3;
+        const sx = Math.min(fw - 1, Math.max(0, x - fx));
+        const sy = Math.min(fh - 1, Math.max(0, y - fy));
+        const j = (sy * fw + sx) * 3;
+        for (let c = 0; c < 3; c += 1) {
+          const d = B[i + c] - A[i + c];
+          if (d <= 0) continue;
+          out[i + c] = Math.max(0, Math.min(255, Math.round(A[i + c] + (F[j + c] / 255) * d)));
+        }
+      }
+    }
+  }
+  return out;
+}
+
+/* ------------------------------------------------------------- checks */
+
+/**
  * WCAG contrast of every headline line and subline against what is behind
- * it: the text is hidden, the page shot again, and each text box compared
- * with the worst 3% of the pixels under it. Gradient lines are judged by
- * their weakest colour stop.
+ * it: the text is hidden, the page shot again over the ground, and each text
+ * box compared with the worst 3% of the pixels under it.
  */
 async function contrastCheck(min) {
   const items = await tab.evaluate(() => {
     const out = [];
     const halves = [...document.querySelectorAll(".half")];
-    for (const el of document.querySelectorAll(".hl .ln, .hl .sub")) {
+    for (const el of document.querySelectorAll(".hl .ln, .hl .sub span")) {
       const r = el.getBoundingClientRect();
-      const colors = el.classList.contains("acc")
-        ? (el.style.backgroundImage.match(/rgb\([^)]*\)|#[0-9a-fA-F]{6}/g) || [])
-        : [getComputedStyle(el).color];
+      const colors = [getComputedStyle(el).color];
       const half = halves.findIndex((h) => h.contains(el));
       out.push({ x: r.left, y: r.top, w: r.width, h: r.height, colors, half, text: el.textContent.trim().slice(0, 30) });
     }
     return out;
   });
   await tab.addStyleTag({ content: ".hl { visibility: hidden !important; }" });
-  const bg = await tab.screenshot({ type: "png" });
-  const { data, info } = await sharp(bg).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+  const shot = await tab.screenshot({ type: "png", omitBackground: true });
+  const meta = await sharp(shot).metadata();
+  const data = await overGround(shot);
+  const info = { width: meta.width, height: meta.height };
   const lin = (c) => { c /= 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
   const L = (r, g, b) => 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
   const parse = (s) => {
-    if (s.startsWith("#")) return [parseInt(s.slice(1, 3), 16), parseInt(s.slice(3, 5), 16), parseInt(s.slice(5, 7), 16), 1];
     const n = s.match(/[\d.]+/g).map(Number);
     return [n[0], n[1], n[2], n.length > 3 ? n[3] : 1];
   };
@@ -229,7 +348,7 @@ async function edgeCheck(m) {
     halves.forEach((half, k) => {
       const hr = half.getBoundingClientRect();
       const els = [
-        ...half.querySelectorAll(".st, .pop, .pill, .card, .abs:not(.g), .hl .ln, .hl .sub, .ebpill, [data-chk]"),
+        ...half.querySelectorAll(".st, .pop, .pill, .card, .abs:not(.g), .hl .ln, .hl .sub span, .ebpill, [data-chk]"),
       ];
       for (const el of els) {
         if (el.closest("[data-bleed]") && !el.hasAttribute("data-chk")) continue;
@@ -246,35 +365,29 @@ async function edgeCheck(m) {
   }, m);
 }
 
-async function write(buf, file, { width, height, left = 0 }) {
-  let img = sharp(buf);
-  const meta = await img.metadata();
-  const pageW = meta.width / RES;
-  const pageH = meta.height / RES;
-  const scaled = await sharp(buf).resize(Math.round(pageW), Math.round(pageH), { kernel: "lanczos3" }).toBuffer();
-  img = sharp(scaled).extract({ left, top: 0, width, height }).flatten({ background: "#010118" }).removeAlpha().toColourspace("srgb");
+/* ------------------------------------------------------------- writing */
+
+async function write(raw, pageW, pageH, file, { width, height, left = 0 }) {
+  const img = sharp(raw, { raw: { width: pageW, height: pageH, channels: 3 } }).extract({ left, top: 0, width, height });
   mkdirSync(join(file, ".."), { recursive: true });
   if (PROOF && PROOF_EXT === "jpg") {
     await img.jpeg({ quality: 90, chromaSubsampling: "4:4:4" }).toFile(file);
     return;
   }
-  await img.png({ compressionLevel: 9, adaptiveFiltering: true, effort: 10 }).toFile(file);
+  /* 24-bit truecolour: in sharp, `effort` or `colours` would switch on palette mode. */
+  await img.png({ compressionLevel: 9, adaptiveFiltering: true, palette: false }).toFile(file);
   const out = await sharp(file).metadata();
-  if (out.width !== width || out.height !== height || out.hasAlpha || out.channels !== 3) {
-    throw new Error(`${file}: ${out.width}x${out.height} channels=${out.channels} alpha=${out.hasAlpha}`);
+  if (out.width !== width || out.height !== height || out.hasAlpha || out.channels !== 3 || out.isPalette) {
+    throw new Error(`${file}: ${out.width}x${out.height} channels=${out.channels} alpha=${out.hasAlpha} palette=${out.isPalette}`);
   }
   const size = statSync(file).size;
-  if (size > 8 * 1024 * 1024) {
-    /* Play refuses files over 8 MB: the same pixels as a JPEG at q95. */
-    const jpg = file.replace(/\.png$/, ".jpg");
-    await sharp(file).jpeg({ quality: 95, chromaSubsampling: "4:4:4" }).toFile(jpg);
-    rmSync(file);
-    problems.push(`${file} was ${(size / 1048576).toFixed(1)} MB as PNG, written as JPEG q95`);
-  }
+  if (size > 8 * 1024 * 1024) problems.push(`${file} is ${(size / 1048576).toFixed(1)} MB, over Play's 8 MB`);
 }
 
 const outFile = (store, shot) =>
   PROOF ? join(PROOF, store, `${shotName(shot)}.${PROOF_EXT}`) : join(OUT, store, `${shotName(shot)}.png`);
+
+/* ------------------------------------------------------------- the run */
 
 const made = [];
 const t0 = performance.now();
@@ -297,11 +410,12 @@ for (const store of STORE_LIST) {
          context as wide as both images, so each half can place its words
          (and the one pop-up) around it. */
       let shared = null;
-      const args = { W: S.W, H: S.H, pageW, store, u: S.W / 1320, ios: store === "app-store", ground: (css) => groundRaster(css, S.W, S.H) };
+      const sargs = { W: S.W, H: S.H, pageW, store, u: S.W / 1320, ios: store === "app-store" };
+      let pc = null;
       if (partner && shot.shared) {
-        const pc = makeCtx(shot, store, 0);
+        pc = makeCtx(shot, store, 0);
         pc.W = pageW;
-        shared = await shot.shared({ ...args, pc });
+        shared = await shot.shared({ ...sargs, pc });
       }
       for (let k = 0; k < halves.length; k += 1) {
         const ctx = makeCtx(halves[k], store, k * S.W);
@@ -310,11 +424,14 @@ for (const store of STORE_LIST) {
         const body = await halves[k].layout(ctx);
         parts.push(`<div class="half" style="left:${k * S.W}px;width:${S.W}px;height:${S.H}px">${body}</div>`);
       }
-      /* The ground runs unbroken through the seam: drawn once, under both. */
-      if (partner && shot.ground) parts.unshift(await shot.ground({ ...args, ctxs }));
       if (shared) parts.push(shared.html);
+      /* Flat phones, in page coordinates (a half's own are offset by its left edge). */
+      const flats = [];
+      ctxs.forEach((c, k) => c.flats.forEach((f) => flats.push({ ...f, quad: f.quad.map(([x, y]) => [x + k * S.W, y]) })));
+      if (pc) flats.push(...pc.flats);
       const html = page({ width: pageW, height: S.H, body: parts.join("\n") });
-      const buf = await renderHtml(html, pageW, S.H);
+      const shots = await renderHtml(html, pageW, S.H, flats.length > 0);
+      const raw = await finish(shots, pageW, S.H, flats);
       for (const v of await edgeCheck(40 * (S.W / 1320))) {
         problems.push(`${store} ${shotName(halves[v.half])}: ${v.label.replace(/\s+/g, " ")} is ${v.d}px from the edge`);
       }
@@ -327,7 +444,7 @@ for (const store of STORE_LIST) {
         problems.push(`${store} ${shotName(halves[Math.max(0, v.half)])}: "${v.text}" contrast ${v.ratio.toFixed(2)}:1`);
       }
       for (let k = 0; k < halves.length; k += 1) {
-        await write(buf, outFile(store, halves[k]), { width: S.W, height: S.H, left: k * S.W });
+        await write(raw, pageW, S.H, outFile(store, halves[k]), { width: S.W, height: S.H, left: k * S.W });
         checkPlacement(halves[k], store, ctxs[k]);
         made.push(`${store}/${shotName(halves[k])}`);
       }
@@ -347,9 +464,10 @@ if (WITH_FEATURE && FEATURE) {
   ctx.H = H;
   ctx.u = 0.5;
   const body = await FEATURE(ctx);
-  const buf = await renderHtml(page({ width: W, height: H, body }), W, H);
+  const shots = await renderHtml(page({ width: W, height: H, body }), W, H, ctx.flats.length > 0);
+  const raw = await finish(shots, W, H, ctx.flats);
   const file = PROOF ? join(PROOF, `feature-graphic.${PROOF_EXT}`) : join(OUT, "google-play", "feature-graphic.png");
-  await write(buf, file, { width: W, height: H });
+  await write(raw, W, H, file, { width: W, height: H });
   made.push("google-play/feature-graphic");
 }
 

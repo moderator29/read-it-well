@@ -145,9 +145,36 @@ export function rectQuad(cx, cy, w, h, rot = 0) {
 export const lerp = (a, b, p) => a + (b - a) * p;
 export const lerpQuad = (qa, qb, p) => qa.map((pt, i) => ({ x: lerp(pt.x, qb[i].x, p), y: lerp(pt.y, qb[i].y, p) }));
 
-/** Places an element (its own box w x h at left 0 / top 0, origin 0 0) onto a quad. */
+/**
+ * Places an element (its own box w x h at left 0 / top 0, origin 0 0) onto a quad. A quad that is a
+ * parallelogram (every flat rectangle, at rest or mid-flight between flat poses) gets a 2D matrix():
+ * Chrome paints it straight into its parent, so its pixels depend on the frame alone. Only a truly
+ * projective quad gets matrix3d, and with it a composited layer, whose raster scale Chrome may keep
+ * from an earlier frame (so its pixels can depend on the order frames are sought).
+ */
 export function placeOnQuad(node, w, h, q) {
+  const [p0, p1, p2, p3] = q;
+  const skew = Math.abs(p0.x + p2.x - p1.x - p3.x) + Math.abs(p0.y + p2.y - p1.y - p3.y);
+  if (skew < 0.02) {
+    const m = [(p1.x - p0.x) / w, (p1.y - p0.y) / w, (p3.x - p0.x) / h, (p3.y - p0.y) / h, p0.x, p0.y];
+    node.style.transform = `matrix(${m.map((v) => +v.toFixed(6)).join(",")})`;
+    return;
+  }
   node.style.transform = quadMatrix(w, h, q);
+}
+
+/**
+ * Fresh layers, frame by frame. Chrome gives an element with a 3D transform or a backdrop filter its
+ * own composited layer, and may keep that layer's raster scale from an earlier frame, so the same
+ * frame could come out a level or two different depending on the order frames are rendered in.
+ * Putting each node back in its place after every seek (from `from` to `to`) makes Chrome build its
+ * layer anew, rastered for this frame alone.
+ */
+export function freshLayers(ctx, nodes, { from = -Infinity, to = Infinity } = {}) {
+  ctx.onFrame((t) => {
+    if (t < from || t >= to) return;
+    for (const n of nodes) if (n.parentNode) n.parentNode.insertBefore(n, n.nextSibling);
+  });
 }
 
 /* ---------- builders ---------- */

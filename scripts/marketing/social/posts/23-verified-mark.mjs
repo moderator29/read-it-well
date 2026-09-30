@@ -1,22 +1,21 @@
-/* 23 · "Verified means a person checked." Night. The verification steps an
- * owner goes through (step 1 of 5, a government ID) on one big phone, and the
- * verified mark as the post's 3D icon. The mark is about people, never homes. */
-import { SLOT, frame, headline, icon3d, subline } from "../lib/premium.mjs";
-import { phoneHtml } from "../lib/kit.mjs";
+/* 23 · "Verified means a person checked." Night. One real component, shown
+ * flat: the government ID step of verification, cut from the captured
+ * screen and readable at feed size. The verified mark is the post's 3D icon,
+ * in slot B at the foot. The mark is about people and businesses, never
+ * homes. */
+import { component, frame, headline, icon3d, subline } from "../lib/premium.mjs";
+import { PARTS } from "../lib/parts.mjs";
 
 const W = 1080;
 const H = 1350;
+const card = PARTS["id-card"];
 
 export default {
   id: "23",
   file: "23-verified-mark.png",
   W,
   H,
-  phones: [
-    { screen: "verification", model: "island", color: "black-titanium", rotation: { x: 0, y: 0, z: 0 }, fov: 22, h: 1000, cx: 660, top: 520,
-      shadow: { type: "drop", opacity: 0.5, ambientOpacity: 0.25 } },
-  ],
-  html: ({ phones }) =>
+  html: async () =>
     frame({
       W,
       H,
@@ -24,8 +23,8 @@ export default {
       body: `
       ${headline(["Verified means", "a <k>person</k> checked."], { W, H })}
       ${subline("For owners, hosts, hotels and restaurants.", { W, H })}
-      ${phoneHtml(phones[0])}
-      ${icon3d("verified", { ...SLOT.post.left, size: 210, ground: "night" })}
+      ${await component(card.id, card, { x: 80, y: 480, w: 920, radius: 40 })}
+      ${icon3d("verified", { W, H, slot: "B", bottom: H - 80 })}
       `,
     }),
 };

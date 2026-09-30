@@ -229,12 +229,14 @@ export async function deskStays(ctx, S, T) {
 
   const tLand = tDrop1;
   const tE = tDrop1 + 0.02;
+  /* each result comes out of the field it answers (the price out of "Show prices"), so nothing crosses */
+  const fy = FIELDS.y + FIELDS.h / 2;
   const items = [
-    { el: E, x: colX.a, y: Y1, t: tE, sound: null },
-    { el: A, x: colX.a, y: Y0, t: tLand + 0.06, sound: null },
-    { el: B, x: colX.b, y: Y0, t: tLand + 0.12, sound: "pop" },
-    { el: C, x: colX.c, y: Y0, t: tLand + 0.18, sound: "pop" },
-    { el: D, x: colX.d, y: Y0, t: tLand + 0.24, sound: "pop" },
+    { el: E, x: colX.a, y: Y1, t: tE, sound: null, from: fieldsC },
+    { el: A, x: colX.a, y: Y0, t: tLand + 0.06, sound: null, from: P((COL.checkIn + COL.checkOut) / 2 - 8, fy) },
+    { el: B, x: colX.b, y: Y0, t: tLand + 0.12, sound: "pop", from: P((COL.checkOut + COL.guests) / 2 - 8, fy) },
+    { el: C, x: colX.c, y: Y0, t: tLand + 0.18, sound: "pop", from: P((COL.guests + COL.guestsR) / 2, fy) },
+    { el: D, x: colX.d, y: Y0, t: tLand + 0.24, sound: "pop", from: P((COL.button + COL.buttonR) / 2, fy) },
   ];
   ctx.sfx("chime_notify", tE);
   for (const [i, it] of items.entries()) {
@@ -251,8 +253,8 @@ export async function deskStays(ctx, S, T) {
       const away = ramp(ctx, t, out0, out0 + 0.22, "power2.in");
       const s = mix(0.4, 1, k);
       const bob = Math.sin((t - it.t) * 2.2 + i * 1.3) * 2.5 * ramp(ctx, t, it.t + 0.44, it.t + 0.84);
-      const x = mix(fieldsC.x - (size.w * s) / 2, it.x, k);
-      const y = mix(fieldsC.y - (size.h * s) / 2, it.y, k) + bob - away * 480;
+      const x = mix(it.from.x - (size.w * s) / 2, it.x, k);
+      const y = mix(it.from.y - (size.h * s) / 2, it.y, k) + bob - away * 480;
       it.el.style.transform = `translate(${x.toFixed(2)}px, ${y.toFixed(2)}px) scale(${s.toFixed(4)})`;
       it.el.style.opacity = String((ramp(ctx, t, it.t, it.t + 0.08) * (1 - away)).toFixed(3));
     });
