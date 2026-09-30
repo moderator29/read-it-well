@@ -83,6 +83,7 @@ Question: "What is a caution deposit?"
 - Ask the AI assistant about prices, areas or how renting works, any time of day.
 - English, Hausa, Yorùbá and Igbo.
 - Real estate, done right.
+- Vallo charges no inspection fee (confirmed by the founder, 30 September 2026; also on the live landing page).
 
 ## Illustrative pop-ups (always with a small "Example" chip, as the product labels its example stock)
 

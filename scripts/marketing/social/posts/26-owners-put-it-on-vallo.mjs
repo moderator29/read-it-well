@@ -1,6 +1,8 @@
 /* 26 · Owners. "Have a property? Put it on Vallo." In daylight, business-like:
- * the host workspace on a laptop (drawn in CSS, no maker's marks) and, in
- * front of it, the phone asking what kind of place you have. */
+ * on a laptop (drawn in CSS, no maker's marks) the page that asks what you
+ * have (a hotel, a shortlet, a restaurant, a property to rent or sell), and
+ * in front of it a phone showing how a place looks on Vallo: the example
+ * villa with its full move-in cost. */
 import { join } from "node:path";
 import { grain, laptop, page, phoneHtml, pill } from "../lib/kit.mjs";
 import { SOURCE } from "../lib/paths.mjs";
@@ -15,11 +17,11 @@ export default {
   W: 1600,
   H: 900,
   phones: [
-    { screen: "host-start", model: "island", color: "natural-titanium", rotation: { x: 0, y: -14, z: 0 }, fov: 24, h: 560, cx: 748, bottom: 858,
+    { screen: "listing", model: "island", color: "natural-titanium", rotation: { x: 0, y: -14, z: 0 }, fov: 24, h: 560, cx: 748, bottom: 858,
       shadow: { type: "drop", opacity: 0.32, ambientOpacity: 0.18, color: "#101A4A" } },
   ],
   html: ({ W, H, phones }) => {
-    const lap = laptop({ src: u(join(SOURCE, "d-host.webp")), w: 720, metal: "silver" });
+    const lap = laptop({ src: u(join(SOURCE, "d-host-start.webp")), w: 720, metal: "silver" });
     return page({
       W,
       H,

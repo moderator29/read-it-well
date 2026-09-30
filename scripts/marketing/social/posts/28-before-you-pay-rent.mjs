@@ -1,6 +1,8 @@
 /* 28 · Education. "Before you pay rent: inspect first, and pay on Vallo, never
  * to anybody outside it." A warm paper notice, two numbered steps, and one
- * sticker pair that says it without words: a magnifier over a house. */
+ * sticker pair that says it without words: a magnifier over a house.
+ * "No inspection fee." quotes the live landing page (packages/i18n en.ts,
+ * the landing eyebrow); the rest is the product's own advice. */
 import { grain, lockup, page, sticker } from "../lib/kit.mjs";
 
 export default {
@@ -40,7 +42,7 @@ export default {
       <div class="step" style="top:436px">
         <div class="num">1</div>
         <div class="t">Inspect first.</div>
-        <div class="b">See the place in person before you agree to anything. Vallo charges no inspection fee.</div>
+        <div class="b">See the place in person before you agree to anything. No inspection fee.</div>
       </div>
       <div class="rule"></div>
       <div class="step" style="top:812px">

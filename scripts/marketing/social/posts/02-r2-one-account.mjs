@@ -27,9 +27,9 @@ export default {
         radial-gradient(60% 40% at 50% 55%, rgba(255,255,255,.9), rgba(255,255,255,0) 72%),
         linear-gradient(160deg,#DDE9FF 0%,#EFEAFB 45%,#FFE9DD 100%)}
       .ribbon{position:absolute;border-radius:50%;filter:blur(28px);opacity:.75}
-      .word{position:absolute;left:0;right:0;top:128px;text-align:center;font:800 138px/1 Poppins;letter-spacing:-0.04em;
-        background:linear-gradient(180deg,rgba(255,255,255,.92) 0%,rgba(255,255,255,.62) 55%,rgba(255,255,255,.28) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
-        filter:drop-shadow(0 10px 26px rgba(86,98,190,.16));white-space:nowrap}
+      .word{position:absolute;left:0;right:0;top:106px;text-align:center;font:800 138px/1 Poppins;letter-spacing:-0.04em;
+        background:linear-gradient(180deg,#FFFFFF 0%,rgba(255,255,255,.9) 55%,rgba(255,255,255,.62) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+        filter:drop-shadow(0 12px 28px rgba(70,84,190,.22)) drop-shadow(0 2px 2px rgba(70,84,190,.10));white-space:nowrap}
       `,
       body: `
       <div class="ground"></div>
