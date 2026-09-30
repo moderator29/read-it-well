@@ -38,6 +38,8 @@ export function ThreadContextBanner({
   copy,
   locale,
   onAccepted,
+  dayKit,
+  conversationId = null,
 }: {
   context: ThreadContext;
   /** The live inspection on a listing thread, resolved server-side. */
@@ -50,6 +52,10 @@ export function ThreadContextBanner({
   copy: Dictionary["threads"];
   locale: Locale;
   onAccepted: () => void;
+  /** B5: the viewing day kit's words, for a confirmed inspection. */
+  dayKit?: Dictionary["memberKit"]["dayKit"];
+  /** This conversation, where the day kit's messages are sent. */
+  conversationId?: string | null;
 }) {
   const words = copy.context;
 
@@ -198,6 +204,10 @@ export function ThreadContextBanner({
           copy={copy.rental}
           locale={locale}
           onAccepted={onAccepted}
+          dayKit={dayKit}
+          conversationId={conversationId}
+          area={listing?.area || listing?.city || ""}
+          place={[listing?.area, listing?.city].filter(Boolean).join(", ")}
         />
       )}
     </div>

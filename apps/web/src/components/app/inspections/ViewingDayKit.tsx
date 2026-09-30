@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { Dictionary } from "@vallo/i18n/core";
 import { Button } from "@/components/ui/Button";
+import { StatusBadge } from "@/components/ui/StatusBadge";
 import { sendMessage } from "@/lib/messages/actions";
 import { sendOrKeep } from "@/lib/offline/send-or-keep";
 import {
@@ -103,49 +104,70 @@ export function ViewingDayKit({
     }
   }
 
+  const calendar = (
+    <Button variant="secondary" size="sm" leadingIcon="calendar-booking" onClick={addToCalendar} data-testid="day-kit-calendar">
+      {copy.addToCalendar}
+    </Button>
+  );
+
   return (
     <section className="nf-day-kit" aria-label={copy.label} data-testid="viewing-day-kit">
-      <div className="nf-day-kit__row">
-        {today && <span className="nf-day-kit__today">{copy.dayOf}</span>}
-        <Button variant="quiet" size="sm" leadingIcon="calendar-booking" onClick={addToCalendar} data-testid="day-kit-calendar">
-          {copy.addToCalendar}
-        </Button>
-        {today && !asking && (
-          <>
-            <Button variant="quiet" size="sm" disabled={busy} onClick={() => void send(copy.onMyWayMessage)} data-testid="day-kit-on-my-way">
+      {!today ? (
+        /* Before the day: the one thing worth doing is the calendar. */
+        <div className="nf-day-kit__row">{calendar}</div>
+      ) : asking ? (
+        /* How late, in place of the day's buttons: three equal choices and a
+           way back, never two rows of buttons at once. */
+        <div className="nf-day-kit__late" role="group" aria-label={copy.lateAsk}>
+          <div className="nf-day-kit__head">
+            <span className="nf-day-kit__ask">{copy.lateAsk}</span>
+            <button type="button" className="nf-tap nf-day-kit__link" disabled={busy} onClick={() => setAsking(false)}>
+              {copy.cancel}
+            </button>
+          </div>
+          <div className="nf-day-kit__choices">
+            {LATE_OPTIONS.map((m: LateMinutes) => (
+              <Button
+                key={m}
+                variant="secondary"
+                size="sm"
+                full
+                disabled={busy}
+                onClick={() => void send(lateMessage(m, copy.lateMessage))}
+                data-testid={`day-kit-late-${m}`}
+              >
+                {copy.lateChoice.replace("{minutes}", String(m))}
+              </Button>
+            ))}
+          </div>
+        </div>
+      ) : (
+        /* On the day: the two messages lead, side by side where they fit and
+           stacked full width where they do not; the calendar follows. */
+        <>
+          <div className="nf-day-kit__head">
+            <StatusBadge tone="info" size="sm">
+              {copy.dayOf}
+            </StatusBadge>
+          </div>
+          <div className="nf-day-kit__pair">
+            <Button variant="secondary" size="sm" full leadingIcon="location" disabled={busy} onClick={() => void send(copy.onMyWayMessage)} data-testid="day-kit-on-my-way">
               {copy.onMyWay}
             </Button>
-            <Button variant="quiet" size="sm" disabled={busy} onClick={() => setAsking(true)} data-testid="day-kit-late">
+            <Button variant="secondary" size="sm" full leadingIcon="clock" disabled={busy} onClick={() => setAsking(true)} data-testid="day-kit-late">
               {copy.runningLate}
             </Button>
-          </>
-        )}
-      </div>
-      {today && asking && (
-        <div className="nf-day-kit__row" role="group" aria-label={copy.lateAsk}>
-          <span className="nf-day-kit__ask">{copy.lateAsk}</span>
-          {LATE_OPTIONS.map((m: LateMinutes) => (
-            <Button
-              key={m}
-              variant="secondary"
-              size="sm"
-              disabled={busy}
-              onClick={() => void send(lateMessage(m, copy.lateMessage))}
-              data-testid={`day-kit-late-${m}`}
-            >
-              {copy.lateChoice.replace("{minutes}", String(m))}
-            </Button>
-          ))}
-          <Button variant="ghost" size="sm" disabled={busy} onClick={() => setAsking(false)}>
-            {copy.cancel}
-          </Button>
-        </div>
+          </div>
+          <div className="nf-day-kit__row">
+            <button type="button" className="nf-tap nf-day-kit__link" onClick={addToCalendar} data-testid="day-kit-calendar">
+              {copy.addToCalendar}
+            </button>
+          </div>
+        </>
       )}
-      {note && (
-        <p role="status" className="nf-day-kit__note">
-          {note}
-        </p>
-      )}
+      <p role="status" className="nf-day-kit__note">
+        {note}
+      </p>
     </section>
   );
 }

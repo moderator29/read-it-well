@@ -343,6 +343,7 @@ export default async function ConversationPage({
         personLabel={t.trustVisible.person.label}
         accountCopy={t.trustVisible.account}
         scamCopy={t.memberKit.scam}
+        dayKitCopy={t.memberKit.dayKit}
         messages={thread.messages.map((m): ThreadBubble => {
           const card = cards.get(m.id);
           return {

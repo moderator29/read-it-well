@@ -172,6 +172,8 @@ export type ThreadViewProps = {
   accountCopy?: Dictionary["trustVisible"]["account"];
   /** B12: the scam shield's words. Absent draws no shield. */
   scamCopy?: Dictionary["memberKit"]["scam"];
+  /** B5: the viewing day kit's words, for the inspection card. Absent, no kit. */
+  dayKitCopy?: Dictionary["memberKit"]["dayKit"];
   /** The options sheet's passport and safety words, from the page's `t`. */
   sheetCopy: ThreadSheetCopy;
   /**
@@ -315,6 +317,7 @@ export function ThreadView({
   accountMoment = null,
   accountCopy,
   scamCopy,
+  dayKitCopy,
   sheetCopy,
   personLine = [],
   personLabel,
@@ -885,6 +888,8 @@ export function ThreadView({
           copy={threadCopy}
           locale={locale}
           onAccepted={() => setCeremony(true)}
+          dayKit={dayKitCopy}
+          conversationId={live ? conversationId : null}
         />
       )}
 
@@ -1079,6 +1084,7 @@ export function ThreadView({
                     messageId={shielded.p.id}
                     canReport={live && !shielded.p.id.startsWith("local-")}
                     copy={scamCopy}
+                    quote={shielded.p.body}
                   />
                 )}
 
