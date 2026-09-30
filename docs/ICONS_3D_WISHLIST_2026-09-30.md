@@ -2,7 +2,7 @@
 
 The two sheets we have cover 29 objects: the actions (Buy, Rent, Pay, List), Stays (hotel, shortlet, restaurant, local talks), and the 21 on sheet 2. The objects below fill the places those don't reach. They are grouped into three sheets of eight, so each sheet comes out as one 4 x 2 grid.
 
-**Please make them on a fully transparent background.** Sheet 2 came on a black, glowing background, and the glow has to be cut away by hand. On the warm paper of light mode, that cut can leave a faint halo.
+Keep them on a transparent background, as sheet 2 was. Sheet 2 looks black and glowing in some viewers, but it is truly transparent underneath, so it cuts cleanly.
 
 ## Sheet 3: listing and the move
 
