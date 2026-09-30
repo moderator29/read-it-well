@@ -1,7 +1,8 @@
 "use client";
 
+import { Money } from "@/components/ui/Money";
 import { useEffect, useRef } from "react";
-import { formatMoneyGlance, plural, type Locale } from "@vallo/i18n/core";
+import { plural, type Locale } from "@vallo/i18n/core";
 import { useClientCopy } from "@/lib/i18n/client-copy";
 import { useStayDatesOptional } from "./StayDates";
 import { ButtonLink } from "@/components/ui/Button";
@@ -223,7 +224,7 @@ export function ListingStickyBar({
                  * through `formatMoney`. `Amount` is not in this scope and the
                  * defect is reported rather than edited here.
                  */}
-                {formatMoneyGlance(amount, locale, currency)}
+                <Money minor={amount} locale={locale} currency={currency} mode="glance" />
               </span>
               {/* No `truncate`. A caption that reads "to move in, from the p..."
                   is a promise trimmed into a different promise, and this column

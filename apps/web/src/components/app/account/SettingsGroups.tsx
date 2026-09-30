@@ -10,6 +10,7 @@ import { RowButton, RowSelect, RowSwitch, RowValue, SettingsGroup } from "./rows
 import { useClientMount } from "@/lib/ui/client-mount";
 import {
   applyTextSize,
+  applyContrast,
   useNfSettings,
   type TextSize,
 } from "./settings-store";
@@ -80,6 +81,10 @@ export function AppearanceCard({ t, children }: { t: Dictionary; children?: Reac
   useEffect(() => {
     applyTextSize(settings.textSize);
   }, [settings.textSize]);
+  useEffect(() => {
+    applyContrast(settings.increaseContrast);
+  }, [settings.increaseContrast]);
+  const contrastCopy = t.memberKit?.contrast;
 
   /* MOTION MOVED OUT OF THIS CARD (Track M). The "Reduce motion" switch that
      stood here set a root flag no stylesheet read, so it never did anything;
@@ -95,6 +100,16 @@ export function AppearanceCard({ t, children }: { t: Dictionary; children?: Reac
         options={textSizes}
         onChange={(next) => set("textSize", next)}
       />
+      {/* B15: stronger lines and ink, beside the system's own setting. */}
+      {contrastCopy ? (
+        <RowSwitch
+          icon="contrast"
+          label={contrastCopy.label}
+          sub={contrastCopy.sub}
+          checked={settings.increaseContrast}
+          onChange={(next) => set("increaseContrast", next)}
+        />
+      ) : null}
       {/*
        * The data-saver switch lives beside the other two device settings
        * because it is one: it is stored on the device, it applies to this

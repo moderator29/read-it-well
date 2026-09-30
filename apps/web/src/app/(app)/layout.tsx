@@ -3,6 +3,7 @@ import { VitalsReporter } from "@/components/app/VitalsReporter";
 import { DataMeterRecorder } from "@/components/app/DataMeterRecorder";
 import { OfflineTray } from "@/components/app/OfflineTray";
 import { WidgetBridge } from "@/components/app/WidgetBridge";
+import { ContrastSync } from "@/components/app/account/ContrastSync";
 import { getLocale } from "@/lib/locale";
 import { getShellIdentity, getShellWorkspaces } from "@/lib/app/shell-queries";
 import { getSide } from "@/lib/side";
@@ -116,6 +117,8 @@ export default async function AppLayout({
       <DataMeterRecorder />
       {/* V-80: one page view in ten reports its own speed, anonymously. */}
       <VitalsReporter />
+      {/* B15: the Increase contrast setting, on the root. */}
+      <ContrastSync />
       {/* V-40: what was done offline is sent, and what was paid is resolved. */}
       <OfflineTray />
       {/* V-98: the home-screen widget's token, in the native app only. */}

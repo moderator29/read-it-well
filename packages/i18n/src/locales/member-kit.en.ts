@@ -120,6 +120,11 @@ export const memberKitEn = {
     failed: "That did not send. Try again.",
     noThread: "Open the conversation to send a message.",
   },
+  /** B15: the Increase contrast switch under Appearance. */
+  contrast: {
+    label: "Increase contrast",
+    sub: "Stronger lines and darker secondary text, for bright sun or low vision. Your phone's own contrast setting turns this on too.",
+  },
 };
 
 export type MemberKitCopy = typeof memberKitEn;

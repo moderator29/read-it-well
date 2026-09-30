@@ -40,6 +40,12 @@ export type NfSettings = {
    * platform does not decide on somebody's behalf that they are poor.
    */
   dataSaver: boolean;
+  /**
+   * B15: Increase contrast. Written to the root as `data-contrast="more"`
+   * (`applyContrast`), which `app/css/member-kit.css` reads. Off by default;
+   * the system's own `prefers-contrast: more` applies either way.
+   */
+  increaseContrast: boolean;
 };
 
 export const SETTINGS_DEFAULTS: NfSettings = {
@@ -53,6 +59,7 @@ export const SETTINGS_DEFAULTS: NfSettings = {
   defaultCity: "",
   distanceUnit: "km",
   dataSaver: false,
+  increaseContrast: false,
 };
 
 export function loadSettings(): NfSettings {
@@ -195,6 +202,12 @@ export function useNfSettings() {
  * Text size scales the root font size, so every rem-based measure in the app
  * follows: S reads denser, L reads larger, M is the designed default.
  */
+/** B15: the Increase contrast switch, on the root, like the text size. */
+export function applyContrast(on: boolean): void {
+  if (on) document.documentElement.dataset.contrast = "more";
+  else delete document.documentElement.dataset.contrast;
+}
+
 export function applyTextSize(size: TextSize): void {
   document.documentElement.dataset.textSize = size;
   const scale = size === "s" ? "93.75%" : size === "l" ? "106.25%" : "";

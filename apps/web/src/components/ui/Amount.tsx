@@ -1,3 +1,4 @@
+import { spokenMoney, spokenSuffix } from "@/lib/money/spoken";
 import { COMPACT_FROM_MINOR, intlTag, isGlanceCompact, moneyParts, type Locale } from "@vallo/i18n/core";
 
 /**
@@ -155,6 +156,30 @@ export function Amount({
   const tail = lower(splitAt === -1 || lastFraction === -1 ? "" : join(lastFraction + 1));
 
   const muted = secondaryClassName ?? "text-[0.62em] font-semibold opacity-60";
+
+  /*
+   * B15: WHAT A SCREEN READER HEARS. A compact figure ("₦2.8m") is read
+   * "naira two point eight m", and a short suffix ("/yr") "slash y r". Either
+   * way the printed form is hidden from the ear and a visually hidden spoken
+   * one ("2.8 million naira a year") stands beside it. A full figure with a
+   * word suffix is left exactly as it was: engines read it correctly.
+   */
+  const slashSuffix = Boolean(suffix && suffix.trim().startsWith("/"));
+  if (short || slashSuffix) {
+    const spokenFigure = short ? spokenMoney(minorUnits, locale, currency) : `${head}${fraction}${tail}`;
+    const spoken = [spokenFigure, spokenSuffix(suffix)].filter(Boolean).join(" ");
+    return (
+      <span className={["nf-numeric", className ?? ""].filter(Boolean).join(" ")}>
+        <span aria-hidden="true">
+          {head}
+          {fraction ? <span className={muted}>{fraction}</span> : null}
+          {tail}
+          {suffix ? <span className={muted}> {suffix}</span> : null}
+        </span>
+        <span className="sr-only">{spoken}</span>
+      </span>
+    );
+  }
 
   return (
     <span className={["nf-numeric", className ?? ""].filter(Boolean).join(" ")}>

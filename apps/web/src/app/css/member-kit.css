@@ -209,3 +209,63 @@
     color: var(--nf-content-muted);
   }
 }
+
+/* ------------------------------------------------- B15 increase contrast */
+/*
+ * Unlayered on purpose, and on `html:root` for one more point of specificity,
+ * so it wins over the theme blocks in either palette. It re-points semantic
+ * tokens at their stronger siblings and changes nothing else: hairlines take
+ * the strong border, muted and subtle ink take the secondary ink, and focus
+ * rings grow to 3px. The active dock label is underlined as well as coloured,
+ * so the current tab never rests on a hue alone.
+ *
+ * Two ways in: the system asks (`prefers-contrast: more`), unless the person
+ * set Standard in Settings; or the person turns on "Increase contrast"
+ * (`data-contrast="more"`, written to the root by `ContrastSync`).
+ */
+@media (prefers-contrast: more) {
+  html:root:not([data-contrast="standard"]) {
+    --nf-border-subtle: var(--nf-border-strong);
+    --nf-border-default: var(--nf-border-strong);
+    --nf-card-border: var(--nf-border-strong);
+    --nf-glass-border: var(--nf-border-strong);
+    --nf-content-muted: var(--nf-content-secondary);
+    --nf-content-subtle: var(--nf-content-secondary);
+    --nf-focus-ring-width: 3px;
+  }
+  html:root:not([data-contrast="standard"]) .nf-tab__link[aria-current="page"] .nf-tab__label {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 4px;
+  }
+}
+html:root[data-contrast="more"] {
+  --nf-border-subtle: var(--nf-border-strong);
+  --nf-border-default: var(--nf-border-strong);
+  --nf-card-border: var(--nf-border-strong);
+  --nf-glass-border: var(--nf-border-strong);
+  --nf-content-muted: var(--nf-content-secondary);
+  --nf-content-subtle: var(--nf-content-secondary);
+  --nf-focus-ring-width: 3px;
+}
+html:root[data-contrast="more"] .nf-tab__link[aria-current="page"] .nf-tab__label {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+
+/* Forced colours (Windows High Contrast and the like): the pins, badges and
+   the segmented thumb draw with a fill the system removes, so each keeps a
+   visible edge in the system's own text colour. */
+@media (forced-colors: active) {
+  [data-testid="map-pin"],
+  .nf-badge,
+  .nf-segmented__capsule,
+  .nf-tabbar__pill {
+    border: 1px solid CanvasText;
+    forced-color-adjust: none;
+  }
+  [data-testid="map-pin"][aria-pressed="true"] {
+    outline: 2px solid Highlight;
+  }
+}
