@@ -34,7 +34,7 @@ describe("profile setup: one back control to the declared parent", () => {
     const source = readFileSync(join(SETUP, "page.tsx"), "utf8");
     expect(source).toMatch(/import \{ BackButton \} from "@\/components\/site\/BackButton"/);
     expect(source).toContain(`parentOf("/profile/setup")`);
-    expect(source).toMatch(/<BackButton fallback=\{BACK\.kind === "parent" \? BACK\.href : "\/profile"\} \/>/);
+    expect(source).toMatch(/<BackButton fallback=\{BACK\.kind === "parent" \? BACK\.href : "\/profile"\}(?: surface="round")? \/>/);
   });
 
   const FORMS: [string, string, string][] = [
