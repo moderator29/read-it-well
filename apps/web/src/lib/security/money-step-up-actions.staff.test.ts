@@ -12,6 +12,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const state = vi.hoisted(() => ({
   staff: false,
   keys: [] as string[],
+  revoked: [] as string[],
   passwordOk: true,
   codeOk: true,
   method: "password" as "password" | "email-code",
@@ -45,6 +46,7 @@ vi.mock("./money-step-up", () => ({
   ceremonyOrigin: async () => ({ origin: "https://www.vallospaces.com", rpId: "www.vallospaces.com" }),
   isStaffAccount: async () => state.staff,
   listCredentialIds: async () => state.keys,
+  listConsoleCredentialIds: async () => state.keys.filter((k) => !state.revoked.includes(k)),
   passwordChangedRecently: async () => false,
   mintChallenge: async () => "challenge-xxxxxxxxxxxxxxxxxxxxxxxx",
   spendEmailCodeMarker: async (_a: unknown, _u: string, proved: () => Promise<boolean>) => proved(),
@@ -66,6 +68,7 @@ beforeEach(() => {
   Object.assign(state, {
     staff: false,
     keys: [],
+    revoked: [],
     passwordOk: true,
     codeOk: true,
     method: "password",
@@ -109,6 +112,25 @@ describe("enrolling a key on a staff account", () => {
     const { beginEnrol } = await import("./money-step-up-actions");
     expect(await beginEnrol({ password: "right", code: "123456" })).toEqual({ error: "rejected" });
     expect(state.reauthCalls).toEqual([]);
+  });
+
+  it("C14: with every key revoked for the console, enrols a new one on the first-key proof", async () => {
+    state.staff = true;
+    state.keys = ["lost-phone"];
+    state.revoked = ["lost-phone"];
+    const { beginEnrol } = await import("./money-step-up-actions");
+    const begun = await beginEnrol({ password: "right", code: "123456" });
+    expect("challenge" in begun).toBe(true);
+    expect(state.reauthCalls).toEqual(["password", "code"]);
+    expect(await beginEnrol({ password: "stolen" })).toEqual({ error: "rejected" });
+  });
+
+  it("C14: a key still usable for the console must vouch, even beside a revoked one", async () => {
+    state.staff = true;
+    state.keys = ["lost-phone", "laptop"];
+    state.revoked = ["lost-phone"];
+    const { beginEnrol } = await import("./money-step-up-actions");
+    expect(await beginEnrol({ password: "right", code: "123456" })).toEqual({ error: "rejected" });
   });
 
   it("with a key already enrolled, adds another only on a proof made with a key", async () => {

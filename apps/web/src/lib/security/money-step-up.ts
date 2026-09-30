@@ -5,6 +5,7 @@ import { authOrigin } from "../site";
 import { getAdminClient } from "@/lib/supabase/service";
 import { b64urlToBuffer, bufferToB64url, checkClientData, readEnrolKey, verifyAssertion, type Alg } from "./webauthn";
 import { intentLine, type MoneyIntent } from "./money-intent";
+import { revocationsNotInstalled, usableForConsole } from "./console-key-revocation";
 
 /**
  * THE LOCK ON MONEY, SERVER SIDE. V-81.
@@ -96,6 +97,24 @@ export async function listCredentialIds(a: Admin, userId: string): Promise<strin
     const { data, error } = await loose(a).from("money_credentials").select("credential_id").eq("user_id", userId);
     if (error) return lockNotDeployed(error) ? [] : null;
     return Array.isArray(data) ? (data as { credential_id: string }[]).map((r) => r.credential_id) : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * C14: the keys that may still prove the CONSOLE, i.e. this person's keys
+ * minus the ones a super admin revoked for the console. A missing revocations
+ * table (the migration not applied) revokes nothing. Null when unreadable.
+ */
+export async function listConsoleCredentialIds(a: Admin, userId: string): Promise<string[] | null> {
+  const ids = await listCredentialIds(a, userId);
+  if (ids === null || ids.length === 0) return ids;
+  try {
+    const { data, error } = await loose(a).from("console_key_revocations").select("credential_id").eq("user_id", userId);
+    if (error) return revocationsNotInstalled(error) ? ids : null;
+    const revoked = Array.isArray(data) ? (data as { credential_id: string }[]).map((r) => r.credential_id) : [];
+    return usableForConsole(ids, revoked);
   } catch {
     return null;
   }

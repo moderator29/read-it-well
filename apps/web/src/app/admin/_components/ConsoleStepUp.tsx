@@ -3,8 +3,10 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button, ButtonLink } from "@/components/ui/Button";
+import { TextField } from "@/components/ui/Field";
 import { beginConsoleStepUp, finishConsoleStepUp } from "@/lib/security/console-step-up";
-import { assertPlatformKey } from "@/lib/security/webauthn-client";
+import { beginEnrol, finishEnrol, sendFallbackCode } from "@/lib/security/money-step-up-actions";
+import { assertPlatformKey, createPlatformKey } from "@/lib/security/webauthn-client";
 
 /**
  * THE CONSOLE'S SECOND FACTOR, AS STAFF SEE IT.
@@ -13,10 +15,19 @@ import { assertPlatformKey } from "@/lib/security/webauthn-client";
  * (the passkey on their phone or computer) before any desk opens, once per
  * sign-in and again after twelve hours. Somebody without a key is sent to set
  * one up first; there is no password-only way in.
+ *
+ * C14 (30 September 2026): somebody with no key that may open the console
+ * (none enrolled, or every one revoked for the console after a lost phone)
+ * enrols a new one right here, on the first-key proof the settings page uses
+ * for a staff account: the emailed code, and the password for an account
+ * with one (`beginEnrol`). Then the console asks for the new key at once.
  */
 export function ConsoleStepUp({ name }: { name: string }) {
   const [message, setMessage] = useState<string | null>(null);
-  const [needsKey, setNeedsKey] = useState(false);
+  const [needsKey, setNeedsKey] = useState<null | "password" | "email-code">(null);
+  const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
+  const [codeSent, setCodeSent] = useState(false);
   const [pending, start] = useTransition();
   const router = useRouter();
 
@@ -25,7 +36,7 @@ export function ConsoleStepUp({ name }: { name: string }) {
       setMessage(null);
       const begun = await beginConsoleStepUp();
       if (begun.state === "enrol") {
-        setNeedsKey(true);
+        setNeedsKey(begun.method);
         return;
       }
       if (begun.state !== "ready") {
@@ -42,6 +53,47 @@ export function ConsoleStepUp({ name }: { name: string }) {
       else setMessage(done.error === "rejected" ? "That key was not accepted. Try again." : "That did not go through. Try again.");
     });
 
+  const sendCode = () =>
+    start(async () => {
+      setMessage(null);
+      const sent = await sendFallbackCode().catch(() => ({ error: "failed" as const }));
+      if ("ok" in sent) setCodeSent(true);
+      else setMessage("The code did not send. Try again in a moment.");
+    });
+
+  const enrolHere = () =>
+    start(async () => {
+      setMessage(null);
+      const begun = await beginEnrol({ code: code.trim(), password: needsKey === "password" ? password : undefined }).catch(
+        () => ({ error: "failed" as const }),
+      );
+      if ("error" in begun) {
+        setMessage(
+          begun.error === "password_recent"
+            ? "Your password changed in the last day, so it cannot vouch for a new key yet. Ask a super admin, or try tomorrow."
+            : begun.error === "rejected"
+              ? "That code or password was not accepted. Check both and try again."
+              : "That did not go through. Try again.",
+        );
+        return;
+      }
+      const made = await createPlatformKey({ challenge: begun.challenge, userId: begun.userId, email: begun.email, rpId: begun.rpId, rpName: "Vallo", exclude: [] });
+      if (!made) {
+        setMessage("Your device did not make a key. Use the device you will keep, and allow its screen lock.");
+        return;
+      }
+      const done = await finishEnrol({ challenge: begun.challenge, ...made, label: "Console" }).catch(() => ({ error: "failed" as const }));
+      if (!("ok" in done)) {
+        setMessage("The new key was not saved. Try again.");
+        return;
+      }
+      setNeedsKey(null);
+      setCode("");
+      setPassword("");
+      setCodeSent(false);
+      confirm();
+    });
+
   return (
     /* In the page gutter: rendered straight from the admin layout, the card
        ran flush to both edges of a phone. The safe area covers a notch. */
@@ -54,13 +106,51 @@ export function ConsoleStepUp({ name }: { name: string }) {
           twelve hours. A password on its own never opens it.
         </p>
         {needsKey ? (
-          <div className="mt-block grid gap-xs" role="status">
+          <div className="mt-block grid gap-sm" role="status" data-testid="console-enrol">
             <p className="nf-body">
-              You have not set up a security key yet. Set one up in your privacy settings (it uses your phone&apos;s or
-              computer&apos;s screen lock), then come back here.
+              You have no security key that opens the console: none is set up, or the one you had was cleared after a
+              lost device. Set up a new one on this device (it uses its screen lock).{" "}
+              {needsKey === "password"
+                ? "We email you a code, and ask for your password too."
+                : "We email you a code to prove it is you."}
             </p>
-            <ButtonLink href="/settings/privacy" variant="primary" size="md">
-              Set up a security key
+            {needsKey === "password" ? (
+              <TextField
+                label="Your password"
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                disabled={pending}
+              />
+            ) : null}
+            {codeSent ? (
+              <TextField
+                label="The code we emailed you"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                value={code}
+                onChange={(event) => setCode(event.target.value)}
+                disabled={pending}
+              />
+            ) : null}
+            {codeSent ? (
+              <Button
+                variant="primary"
+                size="md"
+                loading={pending}
+                disabled={pending || code.trim().length === 0 || (needsKey === "password" && password.length === 0)}
+                onClick={enrolHere}
+              >
+                Set up the key on this device
+              </Button>
+            ) : (
+              <Button variant="primary" size="md" loading={pending} disabled={pending} onClick={sendCode}>
+                Email me a code
+              </Button>
+            )}
+            <ButtonLink href="/settings/privacy" variant="quiet" size="md">
+              Or set it up in your privacy settings
             </ButtonLink>
           </div>
         ) : (
