@@ -35,9 +35,10 @@ describe("the success moments registry", () => {
     }
   });
 
-  it("never draws the seal for a submission: it waits on a person", () => {
+  it("never draws an object with a tick for a submission: it waits on a person", () => {
+    const ticked = ["verified", "id-check", "home-verified", "calendar-booked", "shield"];
     for (const id of IDS) {
-      if (SUCCESS_VARIANT[id] === "submitted") expect(SUCCESS_OBJECT[id]).not.toBe("verified");
+      if (SUCCESS_VARIANT[id] === "submitted") expect(ticked, id).not.toContain(SUCCESS_OBJECT[id]);
     }
   });
 

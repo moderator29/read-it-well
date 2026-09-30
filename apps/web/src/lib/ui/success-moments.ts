@@ -84,9 +84,10 @@ export const SUCCESS_VARIANT: Readonly<Record<SuccessMomentId, SuccessVariant>> 
  * THE OBJECT AT THE CENTRE OF EACH MOMENT (founder reference 54, 30
  * September): one of the founder's 3D objects (components/ui/icon-3d.ts),
  * chosen for what the moment is ABOUT rather than how it feels. The picture
- * never claims more than the words: a submission shows the calendar with a
- * clock (it waits on a person), never the seal, and the seal is kept for a
- * decision somebody else made in your favour or for the account itself.
+ * never claims more than the words: a submission shows the clock, the
+ * calendar with a clock or the folder (it waits on a person), never an
+ * object with a tick on it; the seal is kept for a decision somebody else
+ * made in your favour.
  *
  * Only names whose files exist may appear here (icon-3d.test.ts checks the
  * files, and the type checks the name).
@@ -107,15 +108,15 @@ export const SUCCESS_OBJECT: Readonly<Record<SuccessMomentId, Icon3DName>> = {
   agreementInReview: "clock",
   agreementApprovedRenter: "handover",
   agreementApprovedOwner: "handover",
-  claimFiled: "shield",
+  claimFiled: "folder",
   refundRequested: "receipt",
   listingSubmitted: "list",
   listingApproved: "home-verified",
   listingLive: "home-verified",
-  agentApplied: "id-check",
-  hostApplied: "id-check",
-  registrationFiled: "id-check",
-  kycSubmitted: "id-check",
+  agentApplied: "folder",
+  hostApplied: "folder",
+  registrationFiled: "folder",
+  kycSubmitted: "folder",
   identityMatched: "verified",
   verificationApproved: "verified",
   agentApproved: "verified",
