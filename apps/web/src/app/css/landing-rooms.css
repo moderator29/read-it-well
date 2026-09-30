@@ -444,6 +444,20 @@
     width: auto;
     height: 2.75rem;
   }
+  /* Not live yet: the same unaltered artwork (neither store allows a faded
+     badge), with the plain words under it. */
+  .nf-store-badge--soon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.375rem;
+  }
+  .nf-store-badge__soon {
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--nf-content-secondary);
+  }
   .nf-store-badge:focus-visible {
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
     outline-offset: 3px;

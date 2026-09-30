@@ -14,12 +14,14 @@ import { BADGE } from "./store-badge-palette";
  * first screen, and so the badge is crisp at every density.
  *
  * WHICH BADGES APPEAR IS NOT DECIDED HERE. `storeBadges()` in
- * `store-badges.ts` returns a badge only for a real store address and none
- * inside a native shell; this component draws what it is handed and nothing
- * else, so the rule and its tests are untouched.
+ * `store-badges.ts` decides; this component draws what it is handed. A badge
+ * with a store address is a link. One without (`href: null`, the listing is
+ * not live yet) is the same unaltered artwork, not a link and not dimmed
+ * (neither store allows a badge to be faded or recoloured), with "Coming
+ * soon" printed beneath it.
  *
- * The link carries the accessible name; the drawing is hidden from assistive
- * tech so the name is read once.
+ * The link (or the labelled group) carries the accessible name; the drawing
+ * is hidden from assistive tech so the name is read once.
  */
 export function StoreBadges({
   badges,
@@ -27,28 +29,38 @@ export function StoreBadges({
   className,
 }: {
   badges: StoreBadge[];
-  labels: { appleSmall: string; apple: string; googleSmall: string; google: string };
+  labels: { appleSmall: string; apple: string; googleSmall: string; google: string; comingSoon: string };
   className?: string;
 }) {
   if (badges.length === 0) return null;
   return (
     <ul className={`nf-store-badges ${className ?? ""}`.trim()} data-testid="store-badges">
-      {badges.map((badge) => (
-        <li key={badge.store}>
-          <a
-            href={badge.href}
-            rel="noopener"
-            className="nf-store-badge nf-m-press"
-            aria-label={
-              badge.store === "ios"
-                ? `${labels.appleSmall} ${labels.apple}`
-                : `${labels.googleSmall} ${labels.google}`
-            }
-          >
-            {badge.store === "ios" ? <AppleBadge small={labels.appleSmall} big={labels.apple} /> : <GoogleBadge small={labels.googleSmall} big={labels.google} />}
-          </a>
-        </li>
-      ))}
+      {badges.map((badge) => {
+        const name =
+          badge.store === "ios" ? `${labels.appleSmall} ${labels.apple}` : `${labels.googleSmall} ${labels.google}`;
+        const art =
+          badge.store === "ios" ? (
+            <AppleBadge small={labels.appleSmall} big={labels.apple} />
+          ) : (
+            <GoogleBadge small={labels.googleSmall} big={labels.google} />
+          );
+        return (
+          <li key={badge.store}>
+            {badge.href ? (
+              <a href={badge.href} rel="noopener" className="nf-store-badge nf-m-press" aria-label={name}>
+                {art}
+              </a>
+            ) : (
+              <div className="nf-store-badge nf-store-badge--soon" role="group" aria-label={`${name}, ${labels.comingSoon}`}>
+                {art}
+                <span className="nf-store-badge__soon" aria-hidden="true">
+                  {labels.comingSoon}
+                </span>
+              </div>
+            )}
+          </li>
+        );
+      })}
     </ul>
   );
 }
