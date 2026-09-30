@@ -816,7 +816,7 @@ const FRAG_ROUTE = /* glsl */ `
     float head = exp(-behind * behind) * uHeadAmt;
     float dp = (u - uPulse) / 0.05;
     float pulse = exp(-dp * dp) * uPulseAmt;
-    float tail = smoothstep(0.0, 0.08, u) * (1.0 - 0.6 * smoothstep(0.86, 1.0, u));
+    float tail = smoothstep(0.0, 0.08, u) * (1.0 - 0.75 * smoothstep(0.8, 1.0, u));
     vec3 c = mix(uColA, uColB, u) * (0.45 + 0.55 * tail) * uIntensity;
     c += uHot * (head + pulse);
     float body = uOnlyGlow > 0.5 ? nv * nv : (0.55 + 0.45 * nv);
@@ -1026,8 +1026,8 @@ export async function createLiveMap(o) {
   const blurB2 = new THREE.WebGLRenderTarget(hw, hh, rtOpts);
 
   /* ---------- lights (world space) and shared uniforms ---------- */
-  const keyDir = new THREE.Vector3(-0.62, 0.7, 0.36).normalize(); // soft key from the west, above, in front
-  const rimDir = new THREE.Vector3(0.28, 0.3, -0.91).normalize(); // blue rim light behind (north)
+  const keyDir = new THREE.Vector3(-0.58, 0.64, 0.5).normalize(); // soft key: front left, above
+  const rimDir = new THREE.Vector3(0.34, 0.3, -0.89).normalize(); // blue rim light behind, a little right
   const glowPass = { value: 0 };
   const grain = grainTexture(566);
   const centre3 = new THREE.Vector3(centre2[0], 0, -centre2[1]);
@@ -1267,89 +1267,85 @@ export async function createLiveMap(o) {
   }
 
   function buildHouse() {
+    /* The sticker's silhouette (gable end to the camera), in the art's colours: white walls,
+       an electric-blue roof, warm windows and an orange door, on a small round base.
+       Built 1 unit wide, scaled to HOUSE_W. */
     const root = new THREE.Group();
-    const s = HOUSE_W; // the house is 1 unit wide in its own space
     const scaler = new THREE.Group();
-    scaler.scale.setScalar(s);
+    scaler.scale.setScalar(HOUSE_W);
     root.add(scaler);
-    const white = clayMat("#fbf8ff", { rimAmt: 0.45, rimGlow: 0.15 });
-    const baseMat = clayMat("#eef2ff", { rimAmt: 0.6, rimGlow: 0.3 });
-    const roofMat = clayMat("#1d5cff", { rimAmt: 1.3, rimGlow: 0.8 });
-    const doorMat = clayMat("#ff6b1a", { emissive: "#2a0c00" });
-    // the base: a small round plinth
+    const white = clayMat("#fdfbff", { rimAmt: 0.4, rimGlow: 0.12 });
+    const baseMat = clayMat("#d9e2ff", { rimAmt: 0.55, rimGlow: 0.25 });
+    const roofMat = clayMat("#1b5bff", { rimAmt: 1.1, rimGlow: 0.7 });
+    const doorMat = clayMat("#ff6b1a", { emissive: "#3a1000" });
+    const BASE_H = 0.06;
     const base = new THREE.Mesh(latheGeometry([
-      { r: 0, y: 0.07, nr: 0, ny: 1, flat: true },
-      { r: 0.8, y: 0.07, nr: 0, ny: 1, flat: true },
-      { r: 0.86, y: 0.055, nr: 0.7, ny: 0.7, v: 0 },
-      { r: 0.88, y: 0.0, nr: 1, ny: 0, v: 0.1 },
+      { r: 0, y: BASE_H, nr: 0, ny: 1, flat: true },
+      { r: 0.74, y: BASE_H, nr: 0, ny: 1, flat: true },
+      { r: 0.79, y: BASE_H - 0.02, nr: 0.7, ny: 0.7, v: 0 },
+      { r: 0.8, y: 0.0, nr: 1, ny: 0, v: 0.1 },
     ], 64), baseMat);
     scaler.add(base);
-    // walls (grow from the base), door and windows ride on them
+    const W = 0.86, D = 0.92, WALL_H = 0.56, RH = 0.4, o = 0.08, th = 0.07;
+    // walls and the gable (they rise together from the base)
     const walls = new THREE.Group();
-    walls.position.y = 0.07;
+    walls.position.y = BASE_H;
     scaler.add(walls);
-    const WALL_H = 0.6, W = 1.0, D = 0.78;
     const body = new THREE.Mesh(new THREE.BoxGeometry(W, WALL_H, D), white);
     body.position.y = WALL_H / 2;
     walls.add(body);
+    const tri = new THREE.Shape();
+    tri.moveTo(-W / 2, 0);
+    tri.lineTo(W / 2, 0);
+    tri.lineTo(0, RH);
+    tri.closePath();
+    const gableGeo = new THREE.ExtrudeGeometry(tri, { depth: D, bevelEnabled: false });
+    gableGeo.translate(0, WALL_H, -D / 2);
+    walls.add(new THREE.Mesh(gableGeo, white));
     const winMats = [];
-    const addWin = (x, y, z, w, h, ry) => {
+    const addWin = (x, y, z, w, h, ry, round = false) => {
       const m = lightMat("#ffb27a", 0, 1.1);
       winMats.push(m);
-      const win = new THREE.Mesh(new THREE.PlaneGeometry(w, h), m);
+      const geo = round ? new THREE.CircleGeometry(w / 2, 20) : new THREE.PlaneGeometry(w, h);
+      const win = new THREE.Mesh(geo, m);
       win.position.set(x, y, z);
       win.rotation.y = ry;
       walls.add(win);
-      // a thin white frame proud of the wall
-      const fr = new THREE.Mesh(new THREE.BoxGeometry(w + 0.05, 0.03, 0.03), white);
-      fr.position.set(x, y - h / 2 - 0.02, z);
-      fr.rotation.y = ry;
-      walls.add(fr);
     };
-    const zf = D / 2 + 0.003;
-    addWin(-0.3, 0.36, zf, 0.2, 0.2, 0);
-    addWin(0.3, 0.36, zf, 0.2, 0.2, 0);
-    addWin(W / 2 + 0.003, 0.36, 0, 0.2, 0.2, Math.PI / 2);
-    addWin(-W / 2 - 0.003, 0.36, 0, 0.2, 0.2, -Math.PI / 2);
-    addWin(0, 0.36, -zf, 0.22, 0.2, Math.PI);
-    const door = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.3, 0.03), doorMat);
-    door.position.set(0, 0.15, D / 2 + 0.012);
+    const zf = D / 2 + 0.004;
+    addWin(0.2, 0.3, zf, 0.2, 0.2, 0); // front, beside the door
+    addWin(0, WALL_H + 0.13, zf, 0.13, 0.13, 0, true); // the round gable window
+    addWin(W / 2 + 0.004, 0.3, 0.12, 0.2, 0.2, Math.PI / 2); // sides
+    addWin(-W / 2 - 0.004, 0.3, 0.12, 0.2, 0.2, -Math.PI / 2);
+    addWin(W / 2 + 0.004, 0.3, -0.24, 0.16, 0.2, Math.PI / 2);
+    addWin(-W / 2 - 0.004, 0.3, -0.24, 0.16, 0.2, -Math.PI / 2);
+    const door = new THREE.Mesh(new THREE.BoxGeometry(0.19, 0.33, 0.03), doorMat);
+    door.position.set(-0.17, 0.165, D / 2 + 0.01);
     walls.add(door);
-    // the roof: a gable with eaves, dropped on
+    // the roof: two planks and a ridge, dropped onto the gable
     const roof = new THREE.Group();
     scaler.add(roof);
-    const RH = 0.42, over = 0.09;
-    const tri = new THREE.Shape();
-    tri.moveTo(-(D / 2 + over), 0);
-    tri.lineTo(D / 2 + over, 0);
-    tri.lineTo(0, RH);
-    tri.closePath();
-    const roofGeo = new THREE.ExtrudeGeometry(tri, { depth: W + 2 * over, bevelEnabled: true, bevelThickness: 0.025, bevelSize: 0.025, bevelSegments: 2, curveSegments: 1 });
-    roofGeo.translate(0, 0, -(W + 2 * over) / 2);
-    roofGeo.rotateY(Math.PI / 2);
-    const roofMesh = new THREE.Mesh(roofGeo, roofMat);
-    roof.add(roofMesh);
-    // gable ends in white, under the roof
-    const gableShape = new THREE.Shape();
-    gableShape.moveTo(-D / 2, 0);
-    gableShape.lineTo(D / 2, 0);
-    gableShape.lineTo(0, RH - 0.07);
-    gableShape.closePath();
-    const gableGeo = new THREE.ExtrudeGeometry(gableShape, { depth: W - 0.02, bevelEnabled: false });
-    gableGeo.translate(0, 0, -(W - 0.02) / 2);
-    gableGeo.rotateY(Math.PI / 2);
-    const gable = new THREE.Mesh(gableGeo, white);
-    gable.position.y = -0.005;
-    roof.add(gable);
-    const chimney = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.2, 0.11), white);
-    chimney.position.set(0.26, RH * 0.72, -0.12);
+    const a = Math.atan2(RH, W / 2);
+    const len = Math.hypot(W / 2 + o, RH + o * Math.tan(a)) + th * Math.tan(a);
+    for (const side of [-1, 1]) {
+      const plank = new THREE.Mesh(new THREE.BoxGeometry(len, th, D + 2 * o), roofMat);
+      const mx = (side * (W / 2 + o)) / 2, my = (RH - o * Math.tan(a)) / 2;
+      plank.position.set(mx + side * Math.sin(a) * (th / 2), my + Math.cos(a) * (th / 2), 0);
+      plank.rotation.z = -side * a;
+      roof.add(plank);
+    }
+    const ridge = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.06, D + 2 * o), roofMat);
+    ridge.position.set(0, RH + th * 0.9, 0);
+    roof.add(ridge);
+    const chimney = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.3, 0.12), white);
+    chimney.position.set(-0.24, RH * 0.62 + 0.1, -0.22);
     roof.add(chimney);
     // a warm glow proxy for the bloom (the lit windows seen from afar)
-    const warmHalo = new THREE.Mesh(new THREE.SphereGeometry(0.75, 16, 12), lightMat("#ff9a4d", 0, 1.0, { onlyGlow: true, shape: -1 }));
+    const warmHalo = new THREE.Mesh(new THREE.SphereGeometry(0.7, 16, 12), lightMat("#ff9a4d", 0, 1.0, { onlyGlow: true, shape: -1 }));
     warmHalo.position.y = 0.4;
     warmHalo.userData.glowOnly = true;
     scaler.add(warmHalo);
-    return { root, scaler, base, walls, roof, roofY: 0.07 + WALL_H, winMats, warmHalo, height: (0.07 + WALL_H + RH) * s };
+    return { root, scaler, base, walls, roof, roofY: BASE_H + WALL_H, winMats, warmHalo, height: (BASE_H + WALL_H + RH + th) * HOUSE_W };
   }
 
   function buildPin() {
@@ -1475,7 +1471,7 @@ export async function createLiveMap(o) {
     // centre the country in its box, then nudge so the plinth stays inside the frame
     let dx = (box[0] + box[2]) / 2 - (u[0] + u[2]) / 2;
     let dy = (box[1] + box[3]) / 2 - (u[1] + u[3]) / 2;
-    dx = Math.min(dx, box[2] - u[2]); dx = Math.max(dx, box[0] - u[0]);
+    dx = Math.min(dx, box[2] - u[2], frame[2] - up[2]); dx = Math.max(dx, box[0] - u[0], frame[0] - up[0]);
     dy = Math.min(dy, box[3] - u[3]); dy = Math.max(dy, box[1] - u[1]);
     if (up[3] + dy > frame[3]) dy = Math.max(box[1] - u[1], frame[3] - up[3]);
     shift = [(dx / width) * 2, (-dy / height) * 2];
@@ -1495,8 +1491,8 @@ export async function createLiveMap(o) {
       tGlowB: { value: blurB2.texture },
       uTexel: { value: new THREE.Vector2(1 / mainRT.width, 1 / mainRT.height) },
       uTaps: { value: aa === "ss" ? 4 : 1 },
-      uGlowA: { value: 0.9 },
-      uGlowB: { value: 0.7 },
+      uGlowA: { value: 0.85 },
+      uGlowB: { value: 0.4 },
       uHaloAlpha: { value: 1.0 },
     },
     depthTest: false,
@@ -1576,7 +1572,7 @@ export async function createLiveMap(o) {
     const uRoof = EASE.land(prog(t, T.roof[0], T.roof[1]));
     const settle = spring(t, T.roof[0] + 0.28, { freq: 3.2, decay: 9 }) * prog(t, T.roof[0], T.roof[1]);
     house.root.visible = uBase > 0.001;
-    house.root.rotation.y = camAz * 0.35 + 0.18;
+    house.root.rotation.y = camAz * 0.6 - 0.32;
     house.base.scale.set(uBase, 1, uBase);
     house.walls.scale.set(mix(0.6, 1, uWalls), Math.max(0.001, uWalls) * (1 - 0.05 * settle), mix(0.6, 1, uWalls));
     house.walls.visible = uWalls > 0.002;
@@ -1589,7 +1585,7 @@ export async function createLiveMap(o) {
       m.uniforms.uIntensity.value = 1.35 * u;
       lit += u / house.winMats.length;
     });
-    house.warmHalo.material.uniforms.uIntensity.value = 0.55 * lit;
+    house.warmHalo.material.uniforms.uIntensity.value = 0.32 * lit;
     const shadowS = HOUSE_W * 2.5 * uBase;
     houseShadow.visible = uBase > 0.001;
     houseShadow.scale.set(shadowS, shadowS, 1);

@@ -51,6 +51,7 @@ const ask = (question) => [
   { clickIf: "button[aria-label*='end' i]:not([disabled])" },
   { waitStable: "main", ms: 4000, max: 90000 },
   { into: `main >> text="${question}"`, offset: 40 },
+  { blur: true },
 ];
 /* The inbox opens on the side last used; the rental enquiry is under Property. */
 const INBOX = [{ goto: "/messages" }, { clickIf: "main button:text-is('Property'), main [role=tab]:text-is('Property')" }, { wait: 1500 }];
@@ -117,6 +118,8 @@ export const CAPTURES = [
   { id: "assistant-answer", steps: ask("What documents should I ask for before I rent a flat?") },
   { id: "assistant-areas", steps: ask("Is Yaba or Lekki better for a young family?") },
   { id: "assistant-caution", steps: ask("What is a caution deposit?") },
+  /* The same question with the field blurred; the answer is worded afresh (FACTS.md quotes both). */
+  { id: "assistant-caution-2", steps: ask("What is a caution deposit?") },
 
   /* ---------------------------------------------------------- account and money */
   { id: "profile", steps: go("/profile") },
@@ -185,6 +188,7 @@ export const CAPTURES = [
   { id: "d-search-villas", kind: "desktop", steps: [...FILTER("button:has-text('Villas')"), { click: "button:has-text('Apply (')" }, { wait: 2500 }] },
   { id: "d-assistant", kind: "desktop", steps: [{ goto: "/assistant" }, { clear: ["nf_ai_threads", "nf_ai_thread"] }, { goto: "/assistant" }] },
   { id: "d-assistant-caution", kind: "desktop", steps: ask("What is a caution deposit?") },
+  { id: "d-assistant-caution-2", kind: "desktop", steps: ask("What is a caution deposit?") },
   { id: "d-listing-share", kind: "desktop", steps: [{ goto: LISTING_RENT }, { click: "[data-testid=listing-share]" }, { wait: 1200 }] },
   { id: "d-listing-full", kind: "desktop", full: true, steps: go(LISTING_RENT) },
   { id: "d-stays-dates", kind: "desktop", steps: go(STAYS_DATES) },

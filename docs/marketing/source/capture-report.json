@@ -69,6 +69,13 @@
     "theme": "dark",
     "signedIn": true
   },
+  "assistant-caution-2": {
+    "url": "/assistant",
+    "at": "2026-09-30T16:51:28.657Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
   "d-agent-dashboard": {
     "url": "/agent/dashboard",
     "at": "2026-09-30T15:27:31.987Z",
@@ -114,6 +121,13 @@
   "d-assistant-caution": {
     "url": "/assistant",
     "at": "2026-09-30T16:05:27.231Z",
+    "kind": "desktop",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "d-assistant-caution-2": {
+    "url": "/assistant",
+    "at": "2026-09-30T16:51:42.616Z",
     "kind": "desktop",
     "theme": "dark",
     "signedIn": true

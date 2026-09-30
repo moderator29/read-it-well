@@ -67,6 +67,11 @@ async function run(page, steps, signed) {
         else if (Date.now() - since > quiet) break;
         await page.waitForTimeout(500);
       }
+    } else if (step.blur) {
+      /* Nothing keeps focus: no focus ring on the captured field. */
+      await page.evaluate(() => document.activeElement?.blur?.());
+      await page.mouse.move(2, 2);
+      await page.waitForTimeout(600);
     } else if (step.clear) {
       await page.evaluate((keys) => { for (const k of keys) { try { localStorage.removeItem(k); } catch {} } }, step.clear);
     } else if (step.top) {

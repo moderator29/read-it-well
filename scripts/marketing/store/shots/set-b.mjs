@@ -205,7 +205,9 @@ export const SET_B = [
         electric({ W, H }),
         rings({ W, H, cx: W * 0.45, cy: cy + 260 * u, r: W * 0.86, ratio: 0.3, rotate: -8, alpha: 0.2, count: 3 }),
         p.html,
-        popup({ x: W - 900 * u - 60 * u, y: b.y + b.h * 0.44, w: 900 * u, rotate: -3, theme: "light", lucide: "landmark", title: "Payment settled", line: "Straight to the owner's bank", meta: "now", example: true, scale: u * 1.1 }),
+        /* In the band between the summary card (whose last line is "Vallo
+           never holds your money") and the empty-state picture. */
+        popup({ x: W - 820 * u - 56 * u, y: p.at(900, 1112)[1], w: 820 * u, rotate: -1.5, theme: "light", lucide: "landmark", title: "Payment settled", line: "Straight to the owner's bank", meta: "now", example: true, scale: u }),
         headline({ lines: ["Vallo never holds", "your money"], cx: W / 2, y: f.hlTop, max: f.max, size: f.size, accent: 0,
           sub: "Money goes straight to the owner, the host or the business, through Paystack.", subSize: 40 * u, subMax: f.max * 0.9, subColor: "#FFFFFF" }),
       ].join("\n");
