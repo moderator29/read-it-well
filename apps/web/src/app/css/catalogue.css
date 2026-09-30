@@ -1238,13 +1238,13 @@
   }
   /* The lead card, overlapping the photograph's lower edge: the job the
      page-wide sheet used to do before it was retired. */
+  /* The card padding (16 on a phone, 20 from 40rem), which the amenity row
+     below bleeds by: it reached for the page gutter instead, and from 80rem
+     the 32px gutter pushed the row 7px past the card's edge (pixel
+     polish). */
   .nf-detail-lead {
-    padding: var(--nf-space-md);
-  }
-  @media (min-width: 40rem) {
-    .nf-detail-lead {
-      padding: var(--nf-space-lg);
-    }
+    --nf-row-bleed: var(--nf-pad-card);
+    padding: var(--nf-pad-card);
   }
   .nf-detail-panel {
     padding: var(--nf-space-md);
@@ -1270,11 +1270,11 @@
   .nf-amenity-row {
     display: flex;
     gap: var(--nf-space-2xs);
-    margin-inline: calc(var(--nf-pad-shell) * -1);
-    padding: var(--nf-space-3xs) var(--nf-pad-shell);
+    margin-inline: calc(var(--nf-row-bleed, var(--nf-pad-shell)) * -1);
+    padding: var(--nf-space-3xs) var(--nf-row-bleed, var(--nf-pad-shell));
     /* Snapped its own gutter away on load, the same way `.nf-shelf-chips`
        did. The note there has the mechanism. */
-    scroll-padding-inline: var(--nf-pad-shell);
+    scroll-padding-inline: var(--nf-row-bleed, var(--nf-pad-shell));
   }
   .nf-amenity-grid {
     display: grid;
@@ -1304,8 +1304,13 @@
     word-break: normal;
     color: var(--nf-content-primary);
   }
+  /* At least 68px, and never narrower than the tile's longest word plus 8px
+     either side: at a fixed 68px "conditioning" ran past both edges of its
+     tile (pixel polish). */
   .nf-amenity-row .nf-amenity-tile {
-    width: 4.25rem;
+    width: min-content;
+    min-width: 4.25rem;
+    padding-inline: var(--nf-space-xs);
     flex-shrink: 0;
   }
   .nf-amenity-tile > svg {
