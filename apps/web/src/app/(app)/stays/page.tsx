@@ -230,6 +230,7 @@ export default async function StaysHomePage() {
               locale={locale}
               t={forStayCard(t)}
               index={index}
+              eager={index === 0}
               saved={stay.place ? isSaved(savedKeys, stay.place.kind, stay.place.id) : false}
               canSavePlaces={canSavePlaces}
             />

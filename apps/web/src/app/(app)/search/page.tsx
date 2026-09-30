@@ -677,6 +677,7 @@ export default async function SearchPage({
                     locale={locale}
                     t={forListingCard(t)}
                     index={i}
+                    eager={i === 0}
                     dense={query.view !== "rows"}
                     saved={savedIds.has(l.id)}
                     intent={tuning.signedIn ? tuning.interests : undefined}

@@ -35,6 +35,7 @@ export function StayCard({
   index,
   saved = false,
   canSavePlaces = false,
+  eager = false,
 }: {
   stay: StayCardData;
   locale: Locale;
@@ -52,6 +53,9 @@ export function StayCard({
    * and refusing.
    */
   canSavePlaces?: boolean;
+  /** The first card above the fold: its photograph loads at once and high
+      (the page's largest paint; integration QA O5). One per page. */
+  eager?: boolean;
 }) {
   const copy = t.catalogue.stays;
   const save = useSaveControl(stay.id, saved, stay.place);
@@ -81,9 +85,22 @@ export function StayCard({
       <Link href={stay.href} className="flex h-full flex-col">
         <div className="nf-pcard__media" data-theme="dark">
           <div className="nf-pcard__photo">
-            <MediaFrame hue={stay.hue} index={index ?? 0} kind={stay.kind} sizes="(max-width: 640px) 100vw, 50vw" />
+            <MediaFrame
+              hue={stay.hue}
+              index={index ?? 0}
+              kind={stay.kind}
+              sizes="(max-width: 640px) 100vw, 50vw"
+              priority={eager && !stay.photo && !stay.standIn}
+            />
             {(stay.photo ?? stay.standIn) && (
-              <Image src={stay.photo ?? stay.standIn!} alt="" fill sizes="(max-width: 640px) 100vw, 50vw" className="object-cover" />
+              <Image
+                src={stay.photo ?? stay.standIn!}
+                alt=""
+                fill
+                sizes="(max-width: 640px) 100vw, 50vw"
+                className="object-cover"
+                {...(eager ? ({ loading: "eager", fetchPriority: "high" } as const) : {})}
+              />
             )}
           </div>
           {stay.hours && (

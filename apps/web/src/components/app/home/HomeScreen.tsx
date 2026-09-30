@@ -307,7 +307,7 @@ export function HomeScreen({
           <li key={listing.id} className="nf-feature-row__item">
             {/* The catalogue's card is F3's and is never forked here, so home
                 and search show one object. */}
-            <ListingCard listing={listing} locale={locale} t={forListingCard(t)} index={index} />
+            <ListingCard listing={listing} locale={locale} t={forListingCard(t)} index={index} eager={index === 0} />
           </li>
         ))}
       </FeaturedBand>

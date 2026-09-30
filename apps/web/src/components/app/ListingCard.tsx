@@ -77,6 +77,7 @@ export function ListingCard({
   photographed = null,
   messageAgent = false,
   commute = null,
+  eager = false,
 }: {
   /** V-70: "Photographed: kitchen, prepaid meter", when the lister labelled photos. */
   photographed?: string | null;
@@ -125,6 +126,12 @@ export function ListingCard({
   messageAgent?: boolean;
   /** V-43: the rush-hour line to the reader's chosen anchor, or null. */
   commute?: string | null;
+  /**
+   * The first card above the fold on its page: its photograph loads at once
+   * and high, because it is the page's largest paint (integration QA O5).
+   * One card per page, never a whole list.
+   */
+  eager?: boolean;
 }) {
   const photo = listing.photos[0];
   /* Track M: several photographs swipe (CardPhotos.tsx); the arrows drawn
@@ -431,6 +438,7 @@ export function ListingCard({
               kind={listing.kind}
               drawn={isModestExample(listing)}
               sizes={wide ? "(max-width: 640px) 100vw, 50vw" : "(max-width: 640px) 50vw, 25vw"}
+              priority={eager && !photo}
             />
             {photo && (
               <CardPhotos
@@ -438,6 +446,7 @@ export function ListingCard({
                 sizes={wide ? "(max-width: 640px) 100vw, 50vw" : "(max-width: 640px) 50vw, 25vw"}
                 trackRef={photoTrack}
                 onIndex={setPhotoAt}
+                eager={eager}
               />
             )}
           </div>

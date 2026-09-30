@@ -67,6 +67,9 @@ export default async function SavedPage() {
      phone's copy cannot disagree with the card. */
   const shelf = shelfCopies(entries.map((entry) => entry.listing));
 
+  /* The board opens on the newest save, so that card's photograph is the
+     page's largest paint and loads at once (integration QA O5). */
+  const newest = Math.max(-Infinity, ...entries.map((e) => e.savedAt), ...places.map((e) => e.savedAt));
   const items: SavedBoardItem[] = [
     ...entries.map<SavedBoardItem>((entry) => ({
       id: entry.listing.id,
@@ -78,7 +81,15 @@ export default async function SavedPage() {
          `saved_items` saw an empty heart beside the `StayCard` half's filled
          one, on the same screen. `entry.mode` says which half resolved it
          and both mean saved. (R2 finding 4.) */
-      card: <ListingCard listing={entry.listing} locale={locale} t={forListingCard(t)} saved />,
+      card: (
+        <ListingCard
+          listing={entry.listing}
+          locale={locale}
+          t={forListingCard(t)}
+          saved
+          eager={entry.savedAt === newest}
+        />
+      ),
     })),
     ...places.map<SavedBoardItem>((entry) => ({
       id: entry.row.entity_id,
@@ -95,6 +106,7 @@ export default async function SavedPage() {
           t={forStayCard(t)}
           saved
           canSavePlaces
+          eager={entry.savedAt === newest}
         />
       ),
     })),
