@@ -5,6 +5,8 @@ import { frontDoorHa } from "./frontDoor";
 import { landingRoomsHa } from "./landingRooms";
 import { trustDoorsHa } from "./trustDoors";
 import { shapeHa } from "./shape";
+import { afterTheGateHa } from "./afterTheGate";
+import { trustVisibleHa } from "./trustVisible";
 
 /**
  * Every machine-drafted namespace for this locale, laid under the locale
@@ -19,4 +21,6 @@ export const haDrafts = {
   landingRooms: landingRoomsHa,
   trustDoors: trustDoorsHa,
   shape: shapeHa,
+  afterTheGate: afterTheGateHa,
+  trustVisible: trustVisibleHa,
 } satisfies Translation;

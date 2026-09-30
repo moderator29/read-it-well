@@ -46,6 +46,8 @@ export const DRAFTED_2026_09_30 = [
   "landingRooms",
   "trustDoors",
   "shape",
+  "afterTheGate",
+  "trustVisible",
 ] as const;
 
 function drafted(

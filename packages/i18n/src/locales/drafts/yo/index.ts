@@ -5,6 +5,8 @@ import { frontDoorYo } from "./frontDoor";
 import { landingRoomsYo } from "./landingRooms";
 import { trustDoorsYo } from "./trustDoors";
 import { shapeYo } from "./shape";
+import { afterTheGateYo } from "./afterTheGate";
+import { trustVisibleYo } from "./trustVisible";
 
 /**
  * Every machine-drafted namespace for this locale, laid under the locale
@@ -19,4 +21,6 @@ export const yoDrafts = {
   landingRooms: landingRoomsYo,
   trustDoors: trustDoorsYo,
   shape: shapeYo,
+  afterTheGate: afterTheGateYo,
+  trustVisible: trustVisibleYo,
 } satisfies Translation;
