@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { GUIDE_SLUGS } from "@/lib/guides/slugs";
 
 /**
  * What the sitemap says, decided away from the route that serves it.
@@ -70,6 +71,16 @@ export const PUBLIC_PAGES: readonly {
   { path: "/cancellations", changeFrequency: "monthly" },
   { path: "/contact", changeFrequency: "monthly" },
   { path: "/careers", changeFrequency: "monthly" },
+  /* Recommendations A: the trust tools (A7), the supply doors (A9), the
+     calculator (A8) and the guides (A14). All public, all indexable. */
+  { path: "/check", changeFrequency: "monthly" },
+  { path: "/r", changeFrequency: "yearly" },
+  { path: "/move-in-cost", changeFrequency: "monthly" },
+  { path: "/for-agents", changeFrequency: "monthly" },
+  { path: "/for-hosts", changeFrequency: "monthly" },
+  { path: "/for-landlords", changeFrequency: "monthly" },
+  { path: "/guides", changeFrequency: "weekly" },
+  ...GUIDE_SLUGS.map((slug) => ({ path: `/guides/${slug}`, changeFrequency: "monthly" as const })),
   { path: "/delete-account", changeFrequency: "yearly" },
   { path: "/eula", changeFrequency: "yearly" },
   { path: "/terms", changeFrequency: "yearly" },

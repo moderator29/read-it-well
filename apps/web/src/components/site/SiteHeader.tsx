@@ -38,11 +38,15 @@ export function SiteHeader({
     { href: "/assistant", label: nav.ai },
   ];
   const more = [
+    /* A7: "Check an agent" is a front-door feature, one tap from any page. */
+    { href: "/check", label: t.publicDoors.nav.checkAgent },
     { href: "/about", label: nav.about },
     { href: "/help", label: nav.help },
     { href: "/docs", label: nav.docs },
     { href: "/contact", label: nav.contact },
     { href: "/careers", label: nav.careers },
+    { href: "/guides", label: t.publicDoors.nav.guides },
+    { href: "/for-agents", label: t.publicDoors.nav.forAgents },
   ];
   const id = "nf-site-nav";
 

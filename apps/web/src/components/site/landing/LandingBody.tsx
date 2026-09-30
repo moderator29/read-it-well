@@ -15,6 +15,7 @@ import { Journey } from "./Journey";
 import { Bento } from "./Bento";
 import { WorldsBand } from "./WorldsBand";
 import { StackRoom } from "./StackRoom";
+import { CheckRoom } from "./CheckRoom";
 import { landingDoor } from "./doors";
 
 /**
@@ -136,6 +137,8 @@ export function LandingBody({
       <AiBand t={t} locale={locale} cards={data.showcase ?? data.cards} door={door} />
       <CategoryGrid t={t} counts={data.counts} door={door} />
       <CommunityBand t={t} locale={locale} stats={data.stats} />
+      {/* A7: "Check before you pay", with the check itself in the card. */}
+      <CheckRoom t={t} locale={locale} />
       {native ? null : <AppBand t={t} native={native} />}
       <LandingFaq t={t} nonce={nonce} />
       <FinalCta t={t} />

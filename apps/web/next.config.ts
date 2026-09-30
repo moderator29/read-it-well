@@ -166,7 +166,11 @@ const nextConfig: NextConfig = {
    */
   async redirects() {
     return [
-      { source: "/agents", destination: "/profile?switch=owner", permanent: false },
+      /* A9 (30 September 2026): a stranger who clicked "Become an agent"
+         met a sign-in wall with no word about cost, checks or payouts.
+         `/for-agents` says all three, and its Start buttons carry
+         `next=/profile/setup/agent` through sign-up. */
+      { source: "/agents", destination: "/for-agents", permanent: false },
       { source: "/agents/apply", destination: "/profile/setup/owner", permanent: false },
       { source: "/agents/status", destination: "/profile/application", permanent: false },
       /*

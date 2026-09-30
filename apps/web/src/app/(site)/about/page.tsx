@@ -180,7 +180,7 @@ export default function AboutPage() {
             </p>
             <div className="mt-heading flex flex-wrap items-center justify-center gap-group">
               <ButtonLink
-                href="/agents"
+                href="/for-agents"
                 variant="primary"
                 size="lg"
                 trailingIcon="arrow-right"

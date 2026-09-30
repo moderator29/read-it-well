@@ -6,22 +6,47 @@ import { Button, ButtonLink } from "@/components/ui/Button";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { checkAgent, type CheckOutcome } from "@/lib/doors/agent-check-actions";
+import { BRAND_DOMAIN } from "@/lib/brand-domain";
 
 type CheckCopy = Dictionary["trustDoors"]["check"];
+type WarningCopy = Dictionary["publicDoors"]["warning"];
+
+/**
+ * A7: the fixed warning a renter can forward after a "no match". It never
+ * carries the number that was checked: the text is the same for everybody,
+ * so sharing it names no one.
+ */
+export function warningShareHref(copy: WarningCopy): string {
+  return `https://wa.me/?text=${encodeURIComponent(copy.text.replace("{url}", `${BRAND_DOMAIN}/check`))}`;
+}
 
 /**
  * The check itself. One field, one button, and the answer drawn under it in
  * words and an icon, never colour alone: a tick and the agent's name for yes,
  * a stop mark and "do not pay them anything" for no.
  */
-export function CheckForm({ copy, locale, initial }: { copy: CheckCopy; locale: Locale; initial: string }) {
+export function CheckForm({
+  copy,
+  locale,
+  initial,
+  warning,
+  compact = false,
+}: {
+  copy: CheckCopy;
+  locale: Locale;
+  initial: string;
+  /** The "Share this warning" copy; without it the no-match answer offers no share. */
+  warning?: WarningCopy;
+  /** The landing card: the label is visually hidden because the card's title asks the question. */
+  compact?: boolean;
+}) {
   const fieldId = useId();
   const [state, action, pending] = useActionState<ActionResult<CheckOutcome> | null, FormData>(checkAgent, null);
 
   return (
     <div className="mt-md">
       <form action={action} className="grid gap-sm">
-        <label htmlFor={fieldId} className="nf-label">
+        <label htmlFor={fieldId} className={compact ? "sr-only" : "nf-label"}>
           {copy.label}
         </label>
         <input
@@ -48,13 +73,23 @@ export function CheckForm({ copy, locale, initial }: { copy: CheckCopy; locale: 
             {copy.failed}
           </p>
         )}
-        {state?.ok && <Answer outcome={state.data} copy={copy} locale={locale} />}
+        {state?.ok && <Answer outcome={state.data} copy={copy} locale={locale} warning={warning} />}
       </div>
     </div>
   );
 }
 
-function Answer({ outcome, copy, locale }: { outcome: CheckOutcome; copy: CheckCopy; locale: Locale }) {
+function Answer({
+  outcome,
+  copy,
+  locale,
+  warning,
+}: {
+  outcome: CheckOutcome;
+  copy: CheckCopy;
+  locale: Locale;
+  warning?: WarningCopy;
+}) {
   if (outcome.state === "unreadable") {
     return <p className="text-[length:var(--nf-text-body-sm)] text-[var(--nf-state-warning)]">{copy.unreadable}</p>;
   }
@@ -72,6 +107,24 @@ function Answer({ outcome, copy, locale }: { outcome: CheckOutcome; copy: CheckC
         <p className="mt-xs text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           {result.kind === "code" ? copy.noCodeBody : copy.noBody}
         </p>
+        {warning && (
+          <>
+            <ButtonLink
+              href={warningShareHref(warning)}
+              variant="secondary"
+              size="md"
+              full
+              leadingIcon="share"
+              className="mt-sm"
+              target="_blank"
+              rel="noopener noreferrer"
+              data-testid="check-warning-share"
+            >
+              {warning.share}
+            </ButtonLink>
+            <p className="nf-caption mt-xs text-[var(--nf-content-muted)]">{warning.note}</p>
+          </>
+        )}
       </div>
     );
   }

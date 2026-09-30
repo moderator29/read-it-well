@@ -5,6 +5,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { EdgeLap } from "@/components/site/EdgeLap";
 import { catalogueIsOpen, type Door } from "./doors";
 import { SearchPill } from "./SearchPill";
+import { MoveInCompact } from "./MoveInCompact";
 
 /**
  * The hero, to the founder's reference 39 (29 September 2026): a clean
@@ -83,6 +84,9 @@ export function Hero({ t, door }: { t: Dictionary; door: Door }) {
             </li>
           ))}
         </ul>
+
+        {/* A8: the move-in total, for anyone, in the first screen. */}
+        <MoveInCompact t={t} />
       </div>
     </section>
   );

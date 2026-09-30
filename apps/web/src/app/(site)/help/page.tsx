@@ -6,6 +6,8 @@ import { HelpSearch } from "./HelpSearch";
 import { ButtonLink } from "@/components/ui/Button";
 import { aiConsentForViewer } from "@/lib/ai/consent-server";
 import { FAQS, TRUST_LINKS } from "@/lib/support/help-articles";
+import { JsonLd } from "@/components/site/JsonLd";
+import { faqLd } from "@/lib/site/structured-data";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { IconPlate } from "@/components/ui/IconPlate";
 import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
@@ -29,6 +31,8 @@ export const metadata: Metadata = {
 export default async function HelpPage() {
   return (
     <>
+      {/* A13: the page is questions and answers, so it says so to a crawler. */}
+      <JsonLd data={faqLd(FAQS.map((faq) => ({ q: faq.q, a: faq.a })))} />
       <SiteHead
         plate="living-room-dusk"
         icon="support-chat"

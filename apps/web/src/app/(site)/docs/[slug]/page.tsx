@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { JsonLd } from "@/components/site/JsonLd";
+import { breadcrumbLd } from "@/lib/site/structured-data";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -56,6 +58,14 @@ export default async function DocChapterPage({
 
   return (
     <div>
+      {/* A13: where this chapter sits, for a crawler. */}
+      <JsonLd
+        data={breadcrumbLd([
+          { name: "Vallo", path: "/" },
+          { name: "Documentation", path: "/docs" },
+          { name: chapter.title, path: `/docs/${chapter.slug}` },
+        ])}
+      />
       {/* --------------------------------------------------------- heading */}
       <header className="nf-rise">
         <nav aria-label="Breadcrumb" className="mb-row">

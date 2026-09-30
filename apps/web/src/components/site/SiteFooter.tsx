@@ -19,6 +19,7 @@ import { NewsletterForm } from "./NewsletterForm";
 export function SiteFooter({ t }: { t: Dictionary }) {
   const f = t.landing.footer;
   const face = t.landing.face;
+  const doors = t.publicDoors.nav;
   /*
    * THREE COLUMNS, on the founder's ruling of 19 September, matching the
    * render: Product, Company, Support.
@@ -56,7 +57,12 @@ export function SiteFooter({ t }: { t: Dictionary }) {
       links: [
         { href: "/about", label: face.footer.aboutUs },
         { href: "/careers", label: f.careers },
-        { href: "/agents", label: f.becomeAgent },
+        /* A9: the supply front doors, public pages rather than a sign-in
+           wall (the old "Become an agent" / "List your property" entry went
+           to `/agents`, which redirected a stranger to sign in). */
+        { href: "/for-agents", label: doors.forAgents },
+        { href: "/for-hosts", label: doors.forHosts },
+        { href: "/for-landlords", label: doors.forLandlords },
         { href: "/contact", label: f.contact },
       ],
     },
@@ -64,6 +70,11 @@ export function SiteFooter({ t }: { t: Dictionary }) {
       title: f.support,
       links: [
         { href: "/help", label: face.footer.helpSupport },
+        /* A7: the two checks a stranger can run with no account. */
+        { href: "/check", label: doors.checkAgent },
+        { href: "/r", label: doors.checkReceipt },
+        { href: "/move-in-cost", label: doors.moveInCost },
+        { href: "/guides", label: doors.guides },
         { href: "/docs", label: f.docs },
         { href: "/safety", label: face.footer.safety },
         { href: "/standards", label: face.footer.standards },

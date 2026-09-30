@@ -5,7 +5,13 @@ import { getLocale } from "@/lib/locale";
 import { normaliseReceiptCode } from "@/lib/receipts/code";
 import { Button } from "@/components/ui/Button";
 
-export const metadata: Metadata = { title: "Check a receipt", robots: { index: false, follow: false } };
+/* A7: the lookup form itself is a public tool and is indexed (it is in the
+   sitemap); each `/r/[code]` answer keeps its own metadata. */
+export const metadata: Metadata = {
+  title: "Check a receipt",
+  description: "Type the code on a Vallo receipt to see whether it is genuine. No account needed.",
+  alternates: { canonical: "/r" },
+};
 
 /**
  * V-55. Type a receipt code. A plain GET form, so it works with no script at

@@ -217,6 +217,9 @@ const EXPECTED_PUBLIC = new Set([
      canary cron, which authenticates itself with the cron secret. */
   "/api/health/catalogue",
   "/api/cron/canary",
+  /* C2: the calendar feed (a secret token, dates only) and its sync job. */
+  "/api/calendar/feed",
+  "/api/cron/calendar-sync",
   "/",
   "/robots.txt",
   "/sitemap.xml",
@@ -269,6 +272,15 @@ const EXPECTED_PUBLIC = new Set([
      renter's trusted contact opens by a token, the area only. */
   "/check",
   "/safe/[token]",
+  /* Recommendations A (30 September 2026): the supply front doors (A9), the
+     move-in calculator (A8) and the guides (A14), all read-only and about no
+     person. */
+  "/for-agents",
+  "/for-hosts",
+  "/for-landlords",
+  "/move-in-cost",
+  "/guides",
+  "/guides/[slug]",
   /* No network, and which home. */
   "/home-or-landing",
   "/open",

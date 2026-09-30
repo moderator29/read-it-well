@@ -194,6 +194,19 @@ const PUBLIC_SEGMENTS = new Set([
   // showing the area and never the address.
   "check",
   "safe",
+  // Recommendations A (30 September 2026). A9: the supply front doors, which
+  // say what listing costs and how payouts arrive, for people who have no
+  // account yet. A8: the move-in calculator, which reads nothing but what the
+  // visitor types. A14: the guides, plain articles. A12: the sign-in-free
+  // email preferences, authorised by the signed token in the link and by
+  // nothing else. A5: the invite door, which shows a first name at most.
+  "for-agents",
+  "for-hosts",
+  "for-landlords",
+  "move-in-cost",
+  "guides",
+  "email",
+  "join",
   // Serving with no network, and resolving which home the caller means.
   // `open` is where the native app starts (STORE-04): it answers /home for a
   // session and /welcome or the open catalogue for anybody else.
@@ -275,9 +288,14 @@ const PUBLIC_PATHS = new Set(["/", "/robots.txt", "/sitemap.xml", "/opengraph-im
  */
 const PUBLIC_API_PATHS = new Set([
   "/api/auth/email-hook",
+  /* C2: a room's calendar for Airbnb or Booking.com to subscribe to. The
+     64-character token in the query is the whole key; it returns dates only. */
+  "/api/calendar/feed",
   "/api/client-error",
   "/api/cron/account-purge",
   "/api/cron/canary",
+  /* C2: calendar sync, behind the cron bearer and CALENDAR_SYNC_ENABLED. */
+  "/api/cron/calendar-sync",
   "/api/cron/complete-stays",
   /* Crypto payments read back from the provider, behind the cron bearer. */
   "/api/cron/crypto-reconcile",
@@ -296,6 +314,12 @@ const PUBLIC_API_PATHS = new Set([
   "/api/cron/sanctions-lists",
   "/api/cron/sanctions-screen",
   "/api/csp-report",
+  /* A12: RFC 8058 one-click unsubscribe. A mailbox provider POSTs it with no
+     cookie; the HMAC-signed token in the query is the whole authorisation. */
+  "/api/email/unsubscribe",
+  /* A6: the first-party funnel beacon. It records a step name, a surface and
+     a random visit id, never a person, and is rate limited per address. */
+  "/api/funnel",
   "/api/health/catalogue",
   "/api/landlord/inbound",
   "/api/push/key",
