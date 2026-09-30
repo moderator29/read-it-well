@@ -4,6 +4,10 @@
  * win by position rather than by specificity.
  *
  *   1. The 3D icons (`components/ui/Icon3D.tsx`).
+ *   2. The door glass: the 3D glass of the founder's passcode reference
+ *      (fields, code rings, provider buttons and the Get started choice
+ *      tiles). One token set; auth.css points its `--nf-slate-card*` roles
+ *      at it.
  */
 @layer components {
   /* --------------------------------------------------- 1. the 3D icons */
@@ -17,5 +21,51 @@
     object-fit: contain;
     user-select: none;
     -webkit-user-drag: none;
+  }
+
+  /* ------------------------------------------------- 2. the door glass */
+  /* Declared on every theme root (the document and each night island), so
+     the values resolve in the theme they are used in. Night: blue-tinted
+     glass with a soft light from the top, a blue rim, a dark depth shadow.
+     Paper: white glass with a faint blue foot, a blue rim, a blue drop. */
+  :root,
+  [data-theme] {
+    --nf-door-glass-fill:
+      linear-gradient(
+        180deg,
+        color-mix(in oklab, var(--nf-electric-300) 20%, transparent) 0%,
+        color-mix(in oklab, var(--nf-electric-300) 7%, transparent) 55%,
+        color-mix(in oklab, var(--nf-electric-300) 12%, transparent) 100%
+      ),
+      color-mix(in srgb, var(--nf-glow-ink) 8%, var(--nf-surface-canvas));
+    --nf-door-glass-rim: color-mix(in oklab, var(--nf-brand-quiet) 42%, transparent);
+    --nf-door-glass-depth:
+      inset 0 1px 0 color-mix(in oklab, var(--nf-content-on-brand) 14%, transparent),
+      inset 0 -10px 18px -14px color-mix(in oklab, var(--nf-electric-300) 70%, transparent),
+      0 12px 26px -16px color-mix(in oklab, var(--nf-surface-artwork) 90%, transparent);
+  }
+  :root[data-theme="light"],
+  :root[data-theme="light"] [data-theme="light"] {
+    --nf-door-glass-fill: linear-gradient(
+      180deg,
+      var(--nf-surface-primary) 0%,
+      var(--nf-surface-primary) 45%,
+      color-mix(in oklab, var(--nf-brand-primary) 5%, var(--nf-surface-primary)) 100%
+    );
+    --nf-door-glass-rim: color-mix(in oklab, var(--nf-brand-primary) 24%, transparent);
+    --nf-door-glass-depth:
+      inset 0 1px 0 var(--nf-surface-primary),
+      inset 0 -8px 16px -12px color-mix(in oklab, var(--nf-brand-primary) 32%, transparent),
+      0 10px 22px -14px color-mix(in oklab, var(--nf-brand-primary) 40%, transparent);
+  }
+  /* Get started's "What are you here for?" tiles wear the door glass, so
+     the question reads as the same family as sign in and the passcode.
+     Chosen, they keep the shared selected state (settings-rows.css). */
+  main .nf-gs-question .nf-panel.nf-interest:not([aria-pressed="true"]) {
+    border: 1.5px solid var(--nf-door-glass-rim);
+    background: var(--nf-door-glass-fill);
+    box-shadow: var(--nf-door-glass-depth);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
   }
 }
