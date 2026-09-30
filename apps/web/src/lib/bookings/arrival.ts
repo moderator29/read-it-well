@@ -5,6 +5,7 @@ import type { Database } from "../supabase/database.types";
 import { bestEffortEmail, sendMessage } from "../email/client";
 import { bookingConfirmed, stayArrivalDetails, type ArrivalAccess } from "../email/messages";
 import { contactForUser, emailMuted, type Contact } from "../email/recipients";
+import { mailLanguageFor } from "../email/mail-language";
 import { isRentBooking } from "../rent/booking-kind";
 
 /**
@@ -185,6 +186,7 @@ export async function announceConfirmedStay(
       const payer = hinted ?? (await contactForUser(admin, booking.guest_id, "bookings"));
       if (payer) {
         const message = bookingConfirmed({
+          ...(await mailLanguageFor(admin, booking.guest_id)),
           guestName: payer.name,
           listingTitle,
           checkIn: booking.check_in,

@@ -34,6 +34,7 @@ import {
   type ArrivingGuest,
 } from "../email/messages";
 import { adminOrNull, contactForAgent, contactForSelf } from "../email/recipients";
+import { mailLanguageFor } from "../email/mail-language";
 import { announceConfirmedStay } from "./arrival";
 import {
   NOT_CONFIGURED_MESSAGE,
@@ -474,6 +475,7 @@ export async function cancel(
     const guest = await contactForSelf(session.supabase, session.user, "bookings");
     if (!guest) return;
     const message = bookingCancelled({
+      ...(await mailLanguageFor(session.supabase, session.user.id)),
       guestName: guest.name,
       listingTitle: booking.listing_id
         ? await listingTitleFor(booking.listing_id)

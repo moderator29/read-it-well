@@ -36,6 +36,7 @@ import {
   type ReservationData,
 } from "../email/lifecycle-messages";
 import type { EmailChannel } from "../email/recipients";
+import type { MailLanguage } from "../email/messages";
 import { scamRecall } from "../email/safety-messages";
 
 /**
@@ -89,6 +90,12 @@ import { scamRecall } from "../email/safety-messages";
 export type TemplateRecipient = {
   /** Their display name, when we have one worth greeting them by. */
   name: string | null;
+  /**
+   * The language they chose (A11), looked up only for a template marked
+   * `localized`. Absent means English, which is also what a builder writes
+   * for any string its translation lacks.
+   */
+  language?: MailLanguage;
 };
 
 /** A property, as an email prints it. */
@@ -168,6 +175,12 @@ export type OutboxTemplate = {
    * the code quietly ignores is worse than no switch.
    */
   channel?: EmailChannel;
+  /**
+   * True when the builder writes the reader's own language (A11), so the
+   * drain reads their setting for this row. Only the templates whose builder
+   * takes a language say so; every other one is English and costs no read.
+   */
+  localized?: true;
   /**
    * The ids this template needs looked up.
    *
@@ -462,10 +475,12 @@ export const OUTBOX_TEMPLATES: Readonly<Record<string, OutboxTemplate>> = {
   /* ------------------------------------------------------------- security */
 
   "security.password_changed": {
+    localized: true,
     needs: () => ({}),
     build: (payload, context) => {
       const when = lagosParts(str(payload, "at"));
       return passwordChanged({
+        ...context.recipient.language,
         name: context.recipient.name,
         date: when.date,
         time: when.time,
@@ -474,10 +489,12 @@ export const OUTBOX_TEMPLATES: Readonly<Record<string, OutboxTemplate>> = {
   },
 
   "security.new_device_sign_in": {
+    localized: true,
     needs: () => ({}),
     build: (payload, context) => {
       const when = lagosParts(str(payload, "at"));
       return newDeviceSignIn({
+        ...context.recipient.language,
         name: context.recipient.name,
         date: when.date,
         time: when.time,

@@ -5,6 +5,7 @@ import { setLite } from "@/lib/ui/lite";
 import { useRouter } from "next/navigation";
 import { LOCALES, localeMeta, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { LOCALE_COOKIE } from "@/lib/locale.constants";
+import { updateSettings } from "@/lib/profile/actions";
 import { NIGERIAN_STATES } from "@/lib/data/nigeria";
 import { RowButton, RowSelect, RowSwitch, RowValue, SettingsGroup } from "./rows";
 import { useClientMount } from "@/lib/ui/client-mount";
@@ -184,6 +185,10 @@ export function LanguageRow({
     setSelected(next);
     // One year, lax. A language choice holds no personal data.
     document.cookie = `${LOCALE_COOKIE}=${next}; path=/; max-age=31536000; samesite=lax`;
+    /* A11: the choice is also kept on the account (`profiles.settings.locale`),
+       so the account and booking emails arrive in it. Signed out, or on a
+       failed write, the cookie alone still switches the screen. */
+    void updateSettings({ locale: next }).catch(() => undefined);
     startTransition(() => router.refresh());
   };
 

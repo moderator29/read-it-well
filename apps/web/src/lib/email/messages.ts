@@ -60,7 +60,40 @@ import {
   type Block,
   type ReceiptRow,
 } from "./render";
-import { countOf } from "@vallo/i18n/core";
+import { countOf, DEFAULT_LOCALE, type Locale } from "@vallo/i18n/core";
+import { mailEn, type MailCopy } from "@vallo/i18n/mail";
+
+/**
+ * A11: WHICH LANGUAGE A MESSAGE IS WRITTEN IN.
+ *
+ * The account, security and booking builders below take the reader's
+ * language as data: `locale` for the counted nouns and `copy`, the `mail`
+ * namespace in that language (a server caller passes
+ * `getDictionary(locale).mail`, which falls back to English for anything a
+ * translation lacks). Both default to English, so a caller that passes
+ * neither sends exactly what it always sent. The words are not imported from
+ * the whole package here because the "What everyone gets" preview brings this
+ * module into client code.
+ */
+export type MailLanguage = { locale?: Locale; copy?: MailCopy };
+
+/** `{name}` style placeholders, filled; an unknown one is left as written. */
+function fill(template: string, values: Record<string, string | number>): string {
+  return template.replace(/\{(\w+)\}/g, (whole, key: string) =>
+    key in values ? String(values[key]) : whole,
+  );
+}
+
+/** The greeting, in the reader's language. */
+function helloIn(copy: MailCopy, name?: string | null): string {
+  const first = greetingName(name);
+  return first === null ? copy.common.helloThere : fill(copy.common.hello, { name: first });
+}
+
+/** The one plain English line a security email carries in any other language. */
+function englishLine(locale: Locale, line: string): Block | null {
+  return locale === DEFAULT_LOCALE ? null : note(line);
+}
 
 /**
  * What every message function returns.
@@ -92,18 +125,23 @@ const LISTER_SAFETY_LINE =
   "Vallo asks everybody to keep chats and payments inside Vallo and to pay only after inspecting.";
 
 /** "2 adults and 1 child", or null when the party size is not known. */
-function partyLine(adults?: number, children?: number): string | null {
+function partyLine(
+  adults?: number,
+  children?: number,
+  locale: Locale = DEFAULT_LOCALE,
+  copy: MailCopy = mailEn,
+): string | null {
   const grownUps = typeof adults === "number" && adults > 0 ? adults : 0;
   const little = typeof children === "number" && children > 0 ? children : 0;
   if (grownUps === 0 && little === 0) return null;
   const parts: string[] = [];
-  if (grownUps > 0) parts.push(countOf(grownUps, "adults"));
-  if (little > 0) parts.push(countOf(little, "children"));
-  return parts.join(" and ");
+  if (grownUps > 0) parts.push(countOf(grownUps, "adults", locale));
+  if (little > 0) parts.push(countOf(little, "children", locale));
+  return parts.length === 2 ? fill(copy.common.partyJoin, { first: parts[0]!, second: parts[1]! }) : parts[0]!;
 }
 
-function nightsLine(nights: number): string {
-  return countOf(nights, "nights");
+function nightsLine(nights: number, locale: Locale = DEFAULT_LOCALE): string {
+  return countOf(nights, "nights", locale);
 }
 
 /**
@@ -138,20 +176,22 @@ function stayRows(data: {
   children?: number;
   totalMinor?: number;
   arriving?: ArrivingGuest | null;
-}): ReceiptRow[] {
+} & MailLanguage): ReceiptRow[] {
+  const locale = data.locale ?? DEFAULT_LOCALE;
+  const label = (data.copy ?? mailEn).common.rows;
   const list: ReceiptRow[] = [
-    { label: "Stay", value: data.listingTitle },
-    { label: "Dates", value: dateRange(data.checkIn, data.checkOut) },
-    { label: "Length", value: nightsLine(data.nights) },
+    { label: label.stay, value: data.listingTitle },
+    { label: label.dates, value: dateRange(data.checkIn, data.checkOut) },
+    { label: label.length, value: nightsLine(data.nights, locale) },
   ];
-  const party = partyLine(data.adults, data.children);
-  if (party) list.push({ label: "Guests", value: party });
+  const party = partyLine(data.adults, data.children, locale, data.copy ?? mailEn);
+  if (party) list.push({ label: label.guests, value: party });
   if (data.arriving) {
-    list.push({ label: "Arriving", value: data.arriving.name });
-    list.push({ label: "Their number", value: data.arriving.phone });
+    list.push({ label: label.arriving, value: data.arriving.name });
+    list.push({ label: label.theirNumber, value: data.arriving.phone });
   }
   if (typeof data.totalMinor === "number") {
-    list.push({ label: "Total for the stay", value: money(data.totalMinor), strong: true });
+    list.push({ label: label.totalForStay, value: money(data.totalMinor), strong: true });
   }
   return list;
 }
@@ -163,8 +203,9 @@ function stayRows(data: {
  * lines, because a panel with nothing in it reads as a bug and, worse, reads
  * as though the answer were "no gate". `compose` drops an empty rows block.
  */
-function accessRows(access?: ArrivalAccess | null): ReceiptRow[] {
+function accessRows(access?: ArrivalAccess | null, copy: MailCopy = mailEn): ReceiptRow[] {
   if (!access) return [];
+  const label = copy.common.rows;
   const list: ReceiptRow[] = [];
   const push = (label: string, value: string | null | undefined, strong?: boolean) => {
     const trimmed = (value ?? "").trim();
@@ -172,10 +213,10 @@ function accessRows(access?: ArrivalAccess | null): ReceiptRow[] {
       list.push(strong ? { label, value: trimmed, strong } : { label, value: trimmed });
     }
   };
-  push("Estate", access.estateName);
-  push("Getting in", access.gateDirections);
-  push("Security desk", access.securityPhone);
-  push("Gate code", access.accessCode, true);
+  push(label.estate, access.estateName);
+  push(label.gettingIn, access.gateDirections);
+  push(label.securityDesk, access.securityPhone);
+  push(label.gateCode, access.accessCode, true);
   return list;
 }
 
@@ -200,7 +241,7 @@ function message(
 
 export { welcome, type SignupRole, type WelcomeData } from "./welcome-message";
 
-export type VerificationCodeData = {
+export type VerificationCodeData = MailLanguage & {
   name?: string | null;
   /** The one-time code, already formatted for reading. */
   code: string;
@@ -221,28 +262,25 @@ export type VerificationCodeData = {
  * notification without opening anything, which is faster and strictly safer.
  */
 export function verificationCode(data: VerificationCodeData): EmailMessage {
+  const copy = data.copy ?? mailEn;
+  const m = copy.verificationCode;
+  const minutes = data.expiresInMinutes;
   return message(
-    `${data.code} is your Vallo code`,
-    `It works once and expires in ${data.expiresInMinutes} minutes.`,
+    fill(m.subject, { code: data.code }),
+    fill(m.preheader, { minutes }),
     [
-      heading("Your Vallo code"),
-      paragraph(`${hello(data.name)} Type this into the tab you have open.`),
+      heading(m.heading),
+      paragraph(fill(m.lead, { hello: helloIn(copy, data.name) })),
       code(data.code),
-      paragraph(
-        `It expires in ${data.expiresInMinutes} minutes and works once. If it has run out, ask for another.`,
-      ),
-      note(
-        "If you did not ask for this code, you can ignore this email. Nobody can use it without your inbox, and nothing has changed on your account.",
-      ),
+      paragraph(fill(m.expiry, { minutes })),
+      note(m.note),
+      englishLine(data.locale ?? DEFAULT_LOCALE, mailEn.verificationCode.securityInEnglish),
     ],
-    [
-      "You are receiving this because a code was requested for this address on Vallo.",
-      "Vallo will never ask you for this code. Not by phone, not by message, not by email.",
-    ],
+    [m.footerWhy, m.footerNever],
   );
 }
 
-export type PasswordResetData = {
+export type PasswordResetData = MailLanguage & {
   name?: string | null;
   /** The one-time reset link. Absolute. Omitted when the hook was handed no
       token hash to build it from; the code then carries the reset alone. */
@@ -278,38 +316,26 @@ export type PasswordResetData = {
 export function passwordReset(data: PasswordResetData): EmailMessage {
   const link = data.resetUrl || null;
   const otp = data.code || null;
+  const copy = data.copy ?? mailEn;
+  const m = copy.passwordReset;
+  const minutes = data.expiresInMinutes;
   return message(
     /* No code in the subject: a reset code grants a password change, and a
        lock-screen notification is readable by anybody holding the phone. */
-    "Set a new Vallo password",
-    `The link works once and expires in ${data.expiresInMinutes} minutes.`,
+    m.subject,
+    fill(m.preheader, { minutes }),
     [
-      heading("Set a new password"),
-      paragraph(
-        `${hello(data.name)} Somebody asked to reset the password on this account. If that was you, set a new one here.`,
-      ),
-      link ? button("Set a new password", link, true) : null,
-      link
-        ? paragraph(
-            `The link expires in ${data.expiresInMinutes} minutes and works once, in the browser you asked from.`,
-          )
-        : null,
-      otp
-        ? paragraph(
-            link
-              ? "Opening this somewhere else, or in your mail app? Type this code instead:"
-              : "Type this code on the reset screen:",
-          )
-        : null,
+      heading(m.heading),
+      paragraph(fill(m.lead, { hello: helloIn(copy, data.name) })),
+      link ? button(m.button, link, true) : null,
+      link ? paragraph(fill(m.linkExpiry, { minutes })) : null,
+      otp ? paragraph(link ? m.codeInstead : m.codeOnly) : null,
       otp ? code(otp) : null,
-      otp && data.codeUrl
-        ? paragraph(`Enter it at ${data.codeUrl}. It works on any device, once, for ${data.expiresInMinutes} minutes.`)
-        : null,
-      note(
-        "If this was not you, ignore this email. Your password has not changed and nobody can change it without this email.",
-      ),
+      otp && data.codeUrl ? paragraph(fill(m.codeWhere, { url: data.codeUrl, minutes })) : null,
+      note(m.note),
+      englishLine(data.locale ?? DEFAULT_LOCALE, mailEn.passwordReset.securityInEnglish),
     ],
-    ["You are receiving this because a password reset was requested for this address."],
+    [m.footerWhy],
   );
 }
 
@@ -339,23 +365,27 @@ export function passwordReset(data: PasswordResetData): EmailMessage {
  */
 
 /** Only the rows we actually have. A fact we cannot produce is not printed. */
-function securityRows(data: {
-  date?: string | null;
-  time?: string | null;
-  device?: string | null;
-  place?: string | null;
-}): ReceiptRow[] {
+function securityRows(
+  data: {
+    date?: string | null;
+    time?: string | null;
+    device?: string | null;
+    place?: string | null;
+  },
+  copy: MailCopy = mailEn,
+): ReceiptRow[] {
+  const label = copy.common.rows;
   const list: ReceiptRow[] = [];
   const when = [data.date ? prettyDate(data.date) : null, data.time?.trim() || null]
     .filter(Boolean)
     .join(", ");
-  if (when) list.push({ label: "When", value: when });
-  if (data.device?.trim()) list.push({ label: "Device", value: data.device.trim() });
-  if (data.place?.trim()) list.push({ label: "Near", value: data.place.trim() });
+  if (when) list.push({ label: label.when, value: when });
+  if (data.device?.trim()) list.push({ label: label.device, value: data.device.trim() });
+  if (data.place?.trim()) list.push({ label: label.near, value: data.place.trim() });
   return list;
 }
 
-export type PasswordChangedData = {
+export type PasswordChangedData = MailLanguage & {
   name?: string | null;
   /** ISO date of the change. Omitted when the caller cannot say. */
   date?: string | null;
@@ -379,30 +409,24 @@ export type PasswordChangedData = {
  * they cannot do.
  */
 export function passwordChanged(data: PasswordChangedData): EmailMessage {
-  const when = securityRows({ date: data.date, time: data.time });
+  const copy = data.copy ?? mailEn;
+  const m = copy.passwordChanged;
+  const when = securityRows({ date: data.date, time: data.time }, copy);
   const at = when[0]?.value ?? null;
   return message(
-    "Your Vallo password was changed",
-    at
-      ? `Changed ${at}. If this was not you, set a new one now.`
-      : "If this was not you, set a new password now.",
+    m.subject,
+    at ? fill(m.preheaderAt, { at }) : m.preheader,
     [
-      heading("Your password was changed"),
-      paragraph(`${hello(data.name)} The password on your Vallo account has been changed.`),
+      heading(m.heading),
+      paragraph(fill(m.lead, { hello: helloIn(copy, data.name) })),
       rows(when),
-      paragraph("If that was you, there is nothing to do and you can ignore this message."),
-      paragraph(
-        "If it was not you, somebody else knows your password. Set a new one now, before anything else.",
-      ),
-      button("Set a new password", appUrl("/forgot-password"), true),
-      note(
-        "Vallo will never ask you for your password, by phone, by message or by email. If somebody does, it is not us.",
-      ),
+      paragraph(m.ifYou),
+      paragraph(m.ifNot),
+      button(m.button, appUrl("/forgot-password"), true),
+      note(m.note),
+      englishLine(data.locale ?? DEFAULT_LOCALE, mailEn.passwordChanged.securityInEnglish),
     ],
-    [
-      "You are receiving this because the password on this address was changed.",
-      "This is a security notice. It is always sent and it cannot be switched off.",
-    ],
+    [m.footerWhy, copy.common.alwaysSent],
   );
 }
 
@@ -464,7 +488,7 @@ export function emailRecoveryCompleted(data: EmailRecoveryData): EmailMessage {
   );
 }
 
-export type NewDeviceSignInData = {
+export type NewDeviceSignInData = MailLanguage & {
   name?: string | null;
   /** ISO date of the sign-in. */
   date?: string | null;
@@ -492,34 +516,32 @@ export type NewDeviceSignInData = {
  * remove it. The reset is named in the copy for the case that needs it.
  */
 export function newDeviceSignIn(data: NewDeviceSignInData): EmailMessage {
+  const copy = data.copy ?? mailEn;
+  const m = copy.newDeviceSignIn;
   const device = data.device?.trim() || null;
   const place = data.place?.trim() || null;
-  const at = securityRows({ date: data.date, time: data.time })[0]?.value ?? null;
-  const who = device ? `${device}${place ? ` near ${place}` : ""}` : place ? `A device near ${place}` : null;
+  const at = securityRows({ date: data.date, time: data.time }, copy)[0]?.value ?? null;
+  const who = device
+    ? place
+      ? fill(m.whoNear, { device, place })
+      : device
+    : place
+      ? fill(m.placeOnly, { place })
+      : null;
   return message(
-    "New sign-in to your Vallo account",
-    who
-      ? clip(`${who} signed in${at ? ` on ${at}` : ""}.`, 90)
-      : "A device your account has not seen before signed in.",
+    m.subject,
+    who ? clip(at ? fill(m.preheaderWhoAt, { who, at }) : fill(m.preheaderWho, { who }), 90) : m.preheader,
     [
-      heading("New sign-in"),
-      paragraph(
-        `${hello(data.name)} Somebody signed in to your Vallo account from a device it has not seen before.`,
-      ),
-      rows(securityRows(data)),
-      paragraph("If that was you, there is nothing to do and you can ignore this message."),
-      paragraph(
-        "If it was not you, set a new password first, then remove the device from your account.",
-      ),
-      button("Review your devices", appUrl("/settings/devices"), true),
-      note(
-        "Vallo will never ask you for your password or a sign-in code, by phone, by message or by email.",
-      ),
+      heading(m.heading),
+      paragraph(fill(m.lead, { hello: helloIn(copy, data.name) })),
+      rows(securityRows(data, copy)),
+      paragraph(m.ifYou),
+      paragraph(m.ifNot),
+      button(m.button, appUrl("/settings/devices"), true),
+      note(m.note),
+      englishLine(data.locale ?? DEFAULT_LOCALE, mailEn.newDeviceSignIn.securityInEnglish),
     ],
-    [
-      "You are receiving this because a device signed in to this account for the first time.",
-      "This is a security notice. It is always sent and it cannot be switched off.",
-    ],
+    [m.footerWhy, copy.common.alwaysSent],
   );
 }
 
@@ -1091,7 +1113,7 @@ export function bookingRequestedHost(data: BookingRequestedHostData): EmailMessa
   );
 }
 
-export type BookingConfirmedData = {
+export type BookingConfirmedData = MailLanguage & {
   guestName?: string | null;
   listingTitle: string;
   checkIn: string;
@@ -1109,33 +1131,26 @@ export type BookingConfirmedData = {
 
 /** To the guest when the host confirms. */
 export function bookingConfirmed(data: BookingConfirmedData): EmailMessage {
-  const gate = accessRows(data.access);
+  const copy = data.copy ?? mailEn;
+  const locale = data.locale ?? DEFAULT_LOCALE;
+  const m = copy.bookingConfirmed;
+  const gate = accessRows(data.access, copy);
+  const range = shortRange(data.checkIn, data.checkOut);
   return message(
-    fitSubject("Booking confirmed", data.listingTitle),
-    `${shortRange(data.checkIn, data.checkOut)}, ${nightsLine(data.nights)}. The host confirmed your dates.`,
+    fitSubject(m.subject, data.listingTitle),
+    fill(m.preheader, { range, nights: nightsLine(data.nights, locale) }),
     [
-      heading("Booking confirmed"),
-      paragraph(
-        `${hello(data.guestName)} The host confirmed your booking, so ${shortRange(data.checkIn, data.checkOut)} is yours.`,
-      ),
+      heading(m.heading),
+      paragraph(fill(m.lead, { hello: helloIn(copy, data.guestName), range })),
       rows(stayRows(data)),
-      gate.length > 0 ? paragraph("Here is how to get in when you arrive.") : null,
+      gate.length > 0 ? paragraph(m.gate) : null,
       rows(gate),
-      data.arriving
-        ? paragraph(
-            `We have sent ${data.arriving.name} their own copy of the dates and the arrival details, so they have everything they need at the gate.`,
-          )
-        : null,
-      paragraph(
-        "Your booking now shows as confirmed in the app, where you can find the details and message the host.",
-      ),
-      button("View my booking", appUrl("/bookings")),
-      note("Plans changed? You can cancel from your bookings before the stay begins."),
+      data.arriving ? paragraph(fill(m.arriving, { name: data.arriving.name })) : null,
+      paragraph(m.inApp),
+      button(m.button, appUrl("/bookings")),
+      note(m.note),
     ],
-    [
-      "You are receiving this because you booked a stay on Vallo.",
-      MONEY_SAFETY_LINE,
-    ],
+    [m.footerWhy, copy.common.moneySafety],
   );
 }
 
@@ -1194,7 +1209,7 @@ export function stayArrivalDetails(data: StayArrivalDetailsData): EmailMessage {
   );
 }
 
-export type BookingCancelledData = {
+export type BookingCancelledData = MailLanguage & {
   guestName?: string | null;
   listingTitle: string;
   checkIn: string;
@@ -1203,35 +1218,29 @@ export type BookingCancelledData = {
 
 /** To the guest when a booking is cancelled. Plain, no drama. */
 export function bookingCancelled(data: BookingCancelledData): EmailMessage {
+  const copy = data.copy ?? mailEn;
+  const m = copy.bookingCancelled;
+  const label = copy.common.rows;
   return message(
-    fitSubject("Booking cancelled", data.listingTitle),
-    `Your stay for ${shortRange(data.checkIn, data.checkOut)} is cancelled and the dates are released.`,
+    fitSubject(m.subject, data.listingTitle),
+    fill(m.preheader, { range: shortRange(data.checkIn, data.checkOut) }),
     [
-      heading("Booking cancelled"),
-      paragraph(
-        `${hello(data.guestName)} This booking is now cancelled, and the dates have been released.`,
-      ),
+      heading(m.heading),
+      paragraph(fill(m.lead, { hello: helloIn(copy, data.guestName) })),
       rows([
-        { label: "Stay", value: data.listingTitle },
-        { label: "Dates", value: dateRange(data.checkIn, data.checkOut) },
-        { label: "Status", value: "Cancelled", strong: true },
+        { label: label.stay, value: data.listingTitle },
+        { label: label.dates, value: dateRange(data.checkIn, data.checkOut) },
+        { label: label.status, value: m.status, strong: true },
       ]),
-      paragraph(
-        "There is nothing left for you to do. The booking stays in your history for your records, and you are free to book other dates whenever you are ready.",
-      ),
-      button("Find another place", appUrl("/search")),
-      note(
-        "If you did not expect this cancellation, contact support from the app and a person will look into it.",
-      ),
+      paragraph(m.nothingLeft),
+      button(m.button, appUrl("/search")),
+      note(m.note),
     ],
-    [
-      "You are receiving this because of a change to your Vallo booking.",
-      MONEY_SAFETY_LINE,
-    ],
+    [m.footerWhy, copy.common.moneySafety],
   );
 }
 
-export type BookingRefundedData = {
+export type BookingRefundedData = MailLanguage & {
   guestName?: string | null;
   listingTitle: string;
   checkIn: string;
@@ -1260,49 +1269,50 @@ export type BookingRefundedData = {
  * guest who got everything is owed the good news.
  */
 export function bookingRefunded(data: BookingRefundedData): EmailMessage {
+  const copy = data.copy ?? mailEn;
+  const m = copy.bookingRefunded;
+  const label = copy.common.rows;
   const returned = data.refundMinor > 0;
   const list: ReceiptRow[] = [
-    { label: "Stay", value: data.listingTitle },
-    { label: "Dates", value: dateRange(data.checkIn, data.checkOut) },
-    { label: "You had paid", value: money(data.paidMinor) },
-    { label: "Going back to your card", value: money(data.refundMinor), strong: true },
+    { label: label.stay, value: data.listingTitle },
+    { label: label.dates, value: dateRange(data.checkIn, data.checkOut) },
+    { label: m.paid, value: money(data.paidMinor) },
+    { label: m.goingBack, value: money(data.refundMinor), strong: true },
   ];
   if (data.retainedMinor > 0) {
-    list.push({ label: "Kept by the host", value: money(data.retainedMinor) });
+    list.push({ label: m.kept, value: money(data.retainedMinor) });
   }
 
   return message(
     returned
-      ? `${money(data.refundMinor)} refund on its way to your card`
-      : fitSubject("Stay cancelled", data.listingTitle),
+      ? fill(m.subjectRefund, { amount: money(data.refundMinor) })
+      : fitSubject(m.subjectCancelled, data.listingTitle),
     returned
-      ? clip(`${shortTitle(data.listingTitle, 32)} is cancelled; ${money(data.refundMinor)} of ${money(data.paidMinor)} comes back.`, 90)
+      ? clip(
+          fill(m.preheaderRefund, {
+            title: shortTitle(data.listingTitle, 32),
+            refund: money(data.refundMinor),
+            paid: money(data.paidMinor),
+          }),
+          90,
+        )
       : clip(data.reasonLine, 90),
     [
-      heading(returned ? "Refund on its way" : "Stay cancelled"),
-      paragraph(
-        `${hello(data.guestName)} A person at Vallo has cancelled this stay and released the dates.`,
-      ),
+      heading(returned ? m.headingRefund : m.headingCancelled),
+      paragraph(fill(m.lead, { hello: helloIn(copy, data.guestName) })),
       paragraph(data.reasonLine),
       rows(list),
+      /* English reads the one money constant; another language reads its
+         translation of the same sentence (mail-language.test.ts holds the
+         English copy equal to REFUND_ROUTE). */
       returned
-        ? paragraph(REFUND_ROUTE)
-        : paragraph(
-            "Nothing has been taken from you beyond what you had already paid for this stay, and the booking stays in your history for your records.",
-          ),
+        ? paragraph(copy === mailEn ? REFUND_ROUTE : m.refundRoute)
+        : paragraph(m.nothingTaken),
       data.reference ? code(data.reference) : null,
-      button(
-        returned ? "Open your bookings" : "Find another place",
-        appUrl(returned ? "/bookings" : "/search"),
-      ),
-      note(
-        "If this amount does not look right to you, reply to support with the reference above and a person will go through it with you.",
-      ),
+      button(returned ? m.buttonRefund : m.buttonCancelled, appUrl(returned ? "/bookings" : "/search")),
+      note(m.note),
     ],
-    [
-      "You are receiving this because of a change to your Vallo booking.",
-      MONEY_SAFETY_LINE,
-    ],
+    [m.footerWhy, copy.common.moneySafety],
   );
 }
 

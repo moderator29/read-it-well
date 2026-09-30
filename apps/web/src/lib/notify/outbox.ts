@@ -10,6 +10,7 @@ import {
 } from "@/lib/email/client";
 import { siteUrl } from "@/lib/site";
 import { contactForUser, type EmailChannel } from "@/lib/email/recipients";
+import { mailLanguageFor } from "@/lib/email/mail-language";
 import { signUnsubscribe, unsubscribeKey } from "@/lib/email/unsubscribe-token";
 
 /** A12: the signed one-click token for this person and channel, or null without a key. */
@@ -563,11 +564,14 @@ async function deliverOne(
     return "dropped";
   }
 
+  /* A11: the reader's language, read only for a template that writes it. */
+  const language = template.localized ? await mailLanguageFor(admin, row.user_id) : undefined;
+
   let message: { subject: string; html: string; text: string } | null;
   try {
     message = template.build(row.payload, {
       recipientId: row.user_id,
-      recipient: { name: contact.name },
+      recipient: language ? { name: contact.name, language } : { name: contact.name },
       lookups,
     });
   } catch (error) {

@@ -23,6 +23,7 @@ import { TERMS_VERSION } from "@/lib/legal/versions";
 import { ageConfirmed, ageRefusal, termsRefusal } from "./terms-gate";
 import { welcomeOnce } from "@/lib/notify/welcome";
 import { authOrigin } from "@/lib/site";
+import { getLocale } from "@/lib/locale";
 import {
   getProviderStates,
   providerAllowed,
@@ -428,6 +429,9 @@ export async function signUpWithEmail(
         occupation_code: field(formData, "occupationCode").trim().toLowerCase() || null,
         display_name: nickname.length > 0 ? nickname : [firstName, surname].join(" ").trim(),
         hear_about: field(formData, "hearAbout") || null,
+        /* A11: the language this form was read in, so the confirmation code
+           email arrives in it before the person has a setting of their own. */
+        locale: await getLocale(),
         /* A5: the form's field is gone (A1), so the code the /join/<code>
            door left in this browser is what records who invited them. */
         referral_code: field(formData, "referralCode").trim() || (await inviteCodeFromCookie()) || null,
