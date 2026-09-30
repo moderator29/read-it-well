@@ -42,6 +42,8 @@ import { doneFlagForLinkType } from "./link-moment";
 import { finishSetupHref, SETUP_DONE_CLAIM } from "./finish-setup";
 import { setupOnRecord, setupStillOwed } from "./finish-setup-server";
 import { contentRefusal } from "@/lib/safety/content-refusal";
+import { inviteCodeFromCookie } from "@/lib/referral/server";
+import { recordFunnelStep } from "@/lib/funnel/record";
 import type {
   AuthField,
   AuthFormState,
@@ -426,7 +428,9 @@ export async function signUpWithEmail(
         occupation_code: field(formData, "occupationCode").trim().toLowerCase() || null,
         display_name: nickname.length > 0 ? nickname : [firstName, surname].join(" ").trim(),
         hear_about: field(formData, "hearAbout") || null,
-        referral_code: field(formData, "referralCode").trim() || null,
+        /* A5: the form's field is gone (A1), so the code the /join/<code>
+           door left in this browser is what records who invited them. */
+        referral_code: field(formData, "referralCode").trim() || (await inviteCodeFromCookie()) || null,
         /*
          * WHAT THEY ACCEPTED, AND WHEN, RECORDED RATHER THAN ASSUMED.
          *
@@ -939,6 +943,9 @@ export async function resendSignUpCode(
   });
 
   await rememberPendingEmail(email);
+  /* A6: a resend is a step in the funnel (never throws, never blocks on
+     anything the person needs). */
+  await recordFunnelStep("code_resent");
   return {
     ok: true,
     message: "If that address is waiting on a code, a new one is on its way. It lasts an hour.",

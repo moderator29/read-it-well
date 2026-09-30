@@ -6,6 +6,7 @@ import { EmailAuthForm } from "@/components/auth/EmailAuthForm";
 import { resolveProviderStates } from "@/lib/auth/providers";
 import { requestSurface } from "@/lib/auth/surface";
 import { emailFromQuery } from "@/components/auth/auth-intent";
+import { FunnelBeacon } from "@/components/site/FunnelBeacon";
 
 export const metadata: Metadata = {
   title: "Create your account with email",
@@ -32,15 +33,19 @@ export default async function SignUpEmailPage({
   const ready = (id: "google" | "apple") => providers.some((p) => p.id === id && p.configured);
 
   return (
-    <EmailAuthForm
-      mode="sign-up"
-      t={t}
-      action={signUpWithEmail}
-      next={next}
-      initialEmail={emailFromQuery(email) || (await chooserEmail())}
-      googleReady={ready("google")}
-      appleReady={ready("apple")}
-      surface={surface}
-    />
+    <>
+      {/* A6: the funnel's "sign-up opened" step; draws nothing. */}
+      <FunnelBeacon step="signup_opened" />
+      <EmailAuthForm
+        mode="sign-up"
+        t={t}
+        action={signUpWithEmail}
+        next={next}
+        initialEmail={emailFromQuery(email) || (await chooserEmail())}
+        googleReady={ready("google")}
+        appleReady={ready("apple")}
+        surface={surface}
+      />
+    </>
   );
 }

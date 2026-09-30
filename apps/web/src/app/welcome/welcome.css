@@ -118,6 +118,13 @@
     inset: 0;
     will-change: opacity;
   }
+  /* The picture never takes the pointer: a press on the art is the
+     carousel's drag, never the browser's own image drag (which cancels the
+     pointer mid-swipe). */
+  .nf-gs-art * {
+    pointer-events: none;
+    -webkit-user-drag: none;
+  }
   /* Quiet: the script sets the step at once, and the layers cross-fade on
      the short ladder instead of travelling. */
   .nf-gs-carousel[data-quiet] .nf-gs-layer {
@@ -320,13 +327,15 @@
     white-space: nowrap;
     transform: translate3d(calc(var(--d, 0) * 60vw), 0, 0);
   }
+  /* Low on the sides, by the plinth, so they read as signposts on the
+     hills rather than labels across the object. */
   .nf-gs-tag--a {
-    left: 7%;
-    top: 46%;
+    left: 4%;
+    top: 60%;
   }
   .nf-gs-tag--b {
-    right: 7%;
-    top: 40%;
+    right: 4%;
+    top: 54%;
   }
   /* The intro's one tag is a sentence long, so it sits in the open sky at
      the top left rather than across the house. */
@@ -933,6 +942,11 @@
     .nf-gs-hero {
       width: min(66vw, 30rem);
     }
+    /* A tablet's column is short beside its height: the controls follow
+       the words instead of waiting at the foot of the screen. */
+    .nf-gs-foot {
+      margin-top: var(--nf-space-2xl);
+    }
     .nf-gs-sub {
       min-height: calc(3 * 1.5em);
       font-size: 1.0625rem;
@@ -957,8 +971,16 @@
       grid-row: 1 / -1;
       height: 100svh;
       min-height: 36rem;
-      mask-image: linear-gradient(90deg, black 0%, black 72%, transparent 100%);
-      -webkit-mask-image: linear-gradient(90deg, black 0%, black 72%, transparent 100%);
+      /* Fading to the right into the words and, more gently, into the
+         foot of the page. */
+      mask-image:
+        linear-gradient(90deg, black 0%, black 72%, transparent 100%),
+        linear-gradient(180deg, black 0%, black 80%, transparent 100%);
+      -webkit-mask-image:
+        linear-gradient(90deg, black 0%, black 72%, transparent 100%),
+        linear-gradient(180deg, black 0%, black 80%, transparent 100%);
+      mask-composite: intersect;
+      -webkit-mask-composite: source-in;
     }
     .nf-gs-art::after {
       background: linear-gradient(
