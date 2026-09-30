@@ -1,5 +1,6 @@
 -- HOST C4b: A REVIEW CONTEST CLOSES WITH ITS REPORT (30 September 2026).
--- PENDING: written by the host build team; split out of the held
+-- Applied 30 September 2026 with the founder's approval. Written by the host
+-- build team; split out of the held
 -- 20260930160000 file at the lead's request (the C4b half was approved as
 -- written). Idempotent. Widens one CHECK, adds one function and one trigger;
 -- no row is changed, no column dropped.

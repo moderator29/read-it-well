@@ -1,6 +1,6 @@
 -- C5: A LISTER CONFIRMS "STILL AVAILABLE", ONE LISTING OR MANY (30 September 2026).
 --
--- WAITS FOR THE LEAD'S REVIEW. Adds one nullable column and one function.
+-- Applied 30 September 2026 with the founder's approval. Adds one nullable column and one function.
 -- Rewrites no row, drops nothing, changes no existing policy or function;
 -- safe to run twice.
 --

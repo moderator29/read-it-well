@@ -41,6 +41,13 @@ in the same change that applied host_c2.
 | 10 | `20260930180100` | `20260930084814` | `a6_first_party_front_door_funnel` |
 | 11 | `20260930090000` | `20260930084937` | `host_c2_calendar_sync_feeds_out_and_imports_in` |
 | 12 | `20260930120200` | `20260930085021` | `c14_console_key_break_glass` (second draft, cleared by the re-review below) |
+| 13 | `20260930160100` | `20260930102419` | `host_c4b_contests_close_with_their_report` (round 3, APPLY; file as at 17cdbec5) |
+| 14 | `20260930130000` | `20260930102453` | `c5_lister_confirms_still_available` (round 3, APPLY AFTER FIX; file as at ee85de3e) |
+
+Rows 13 and 14 were applied later the same day, after round 3. Both
+read-backs passed. c5's behavioural probe ran against the one editable owned
+listing live and was not skipped. `20260930160200_host_c2b_rooms_held_by_other_sites`
+is on HOLD and was not applied.
 
 The verdicts below are the review as it was written before the apply.
 
@@ -618,3 +625,116 @@ security function.
 * `revoked-columns.test.ts` checks member selects against the step-2 private
   lists. The new column is not on them, so it passes, and with the grant the
   read also works at runtime.
+
+---
+
+## Round 3 (30 September): c4b split, c2b second draft, c5 second draft
+
+### `20260930160100_host_c4b_contests_close_with_their_report` (17cdbec5): **APPLY**
+
+The substance is unchanged from the C4b half judged sound above: the same widened
+`review_contests_status_chk`, the same `private.close_contest_with_its_report()`
+body, and the same AFTER UPDATE OF `status` trigger on `reports`. The read-back
+now also checks that members cannot execute the trigger function.
+
+Checked against the live C4 (`20260930084402`): `review_contests` has
+`report_id`, `lister_id`, `review_id`, `decided_by` and `decided_at`. The live
+constraint is named `review_contests_status_chk` (`open`, `kept`, `hidden`), so
+the drop and re-add hits the right one. The function and trigger do not exist
+yet. There are 0 contests, so nothing needs revalidating.
+
+### `20260930160200_host_c2b_rooms_held_by_other_sites` (2bdc64a4): **HOLD**
+
+**The three oversell paths from the first draft are closed:**
+1. A night with no inventory row gets its rate plans closed (`plans_closed`).
+   No row means it cannot be reserved anyway. A row created later is born
+   clamped by the BEFORE INSERT trigger, and the closure is lifted after the
+   insert.
+2. A host's write is clamped to `units_total - holds`. This covers a plain
+   UPDATE and the PostgREST upsert alike.
+3. A cancelled Vallo room: `release_room_nights` sets
+   `vallo.inventory_writer`, the carried path computes
+   `greatest(least(requested, ceiling), units_booked)`, and the freed room goes
+   to the hold.
+
+**Vallo's booking and payment path is not blocked.**
+* `reserve_room_nights`, called by the `bookings_hold_and_release_rooms`
+  trigger, keeps its own WHERE (`units_booked + p_rooms <= units_open`),
+  evaluated on the already clamped `units_open`. A room held elsewhere is
+  simply not free, which is the intended outcome, with the existing "Only x of
+  n nights" error.
+* The new trigger never raises. On the carried path it never sets
+  `units_open` below `units_booked`, so `room_inventory_check` (booked ≤ open)
+  cannot fire on a booking or a release.
+
+**Trigger order:** BEFORE triggers fire by name. `room_inventory_booked_by_function_only`
+runs first, then `room_inventory_open_within_total`, then `room_inventory_set_updated_at`,
+then `room_inventory_zz_respects_import_holds`, so the total check sees the
+raw request, as intended. The read-back's check of that order compares two
+string literals, so it proves nothing, but the order itself is right.
+
+**Why it is held:**
+1. **A new oversell hole above the room total (must fix).** The trigger
+   ignores `units_total` when no import holds the night
+   (`ceiling := requested`). It also runs after the total check, and it does
+   not fire when `units_held_back` changes. `authenticated` has table-level
+   UPDATE on `room_inventory`, with the policy `room_inventory_owner_write`, so
+   a host can write their own row's `units_held_back` directly (say 50). The
+   next carried write, which is any guest's reservation on that night, sets
+   `units_open := units_open + 50`, above `units_total`. `within_total` has
+   already passed by then. Vallo then sells rooms that do not exist, and the
+   guests pay for them. **Fix:** always compute the total and set
+   `ceiling := greatest(least(requested, total - held), 0)`. Add
+   `units_held_back` to the trigger's `update of` list so that a direct write
+   is recomputed.
+2. **The host's upsert loses their request (undersell, which contradicts the
+   file's own promise).** The app writes inventory with an upsert
+   (`setNightsRooms` in `lib/host/calendar-actions.ts`, and
+   `lib/host/actions.ts`), which becomes INSERT ... ON CONFLICT DO UPDATE SET
+   `units_open = EXCLUDED.units_open`. EXCLUDED carries the BEFORE INSERT
+   trigger's clamped value (for example 11), so the UPDATE records a request of
+   11 with `units_held_back = 0`. When the hold ends, the 12th room never
+   comes back. The probe only tests a plain `update`, so it misses this.
+3. **Two imports on a night with no row keep every room closed for good
+   (undersell).** The second import sees the first import's closure as
+   `prior`, so it records `was_closed = true`. When a row is created, the
+   takeover trigger sees `was_closed` and does not lift the closure, but it
+   clears `plans_closed` anyway, so no later release lifts it either. `prior`
+   should ignore closures that belong to an import (`plans_closed` rows).
+4. **CI: the probe arrived before its migration.**
+   `supabase/tests/probes/calendar-holds.sql` is already committed in
+   `probes/`. The db-probes job runs every file there against the live
+   database, where `units_held_back` and the new `apply_calendar_import` do not
+   exist yet, so it fails on every push until this file is applied. Move it
+   out of `probes/` until then, or apply both together.
+
+The probe should also cover the upsert path, a forged `units_held_back`, and
+two imports on the same night with no inventory row. It needs no new db-06 or
+db-20 entries (no new grants or policies). `units_held_back` rides the existing
+`room_inventory idu` grant, which is exactly why point 1 matters.
+
+### `20260930130000_c5_lister_confirms_still_available` (1c79c901): **APPLY AFTER FIX (fixed, ee85de3e)**
+
+**Guard body diffed against the live `private.listing_platform_facts_guard()`
+line by line:** it is identical, except for the two added lines
+`new.lister_confirmed_at := null;` on INSERT and
+`or new.lister_confirmed_at is distinct from old.lister_confirmed_at` on
+UPDATE. The header is also the same: plpgsql, not a definer,
+`search_path ''`, and the `current_user not in ('authenticated', 'anon')`
+bypass. `CREATE OR REPLACE` keeps the owner and ACL. Nothing is dropped or
+weakened. The definer `lister_confirm_available` runs as its owner, so the
+guard lets its write through. My earlier `SELECT` grant and its read-back are
+kept.
+
+**Fixed: the behavioural read-back was hollow.** It picked any owned listing
+(`limit 1`), and 64 of the 65 live ones are PUBLISHED. On those,
+`listings_00_guard_owner_write` fires first and refuses with the same errcode
+(42501, "has been through review"), so the check passed without ever reaching
+the new guard. It now picks an editable listing (DRAFT, MORE_INFO_REQUIRED or
+REJECTED, not closed); one DRAFT exists live. It counts as refused only on this
+guard's own message ("these facts are written by the platform..."). With no
+editable listing it skips with a notice, as before.
+
+**Probes:** db-01, db-02, db-03 and new-a4-01 never write `lister_confirmed_at`,
+so the guard's new line cannot fire for them. Their inserts get NULL anyway.
+db-06 and db-20 are unchanged.
