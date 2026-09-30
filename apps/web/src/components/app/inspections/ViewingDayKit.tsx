@@ -37,7 +37,7 @@ export function ViewingDayKit({
   place,
   conversationId,
   copy,
-  now = Date.now(),
+  now,
 }: {
   inspectionId: string;
   slotAt: string | null;
@@ -50,12 +50,14 @@ export function ViewingDayKit({
   /** The render's clock, so a test can pin the day. */
   now?: number;
 }) {
+  /* Read once, when the kit mounts: the strip does not tick. */
+  const [clock] = useState(() => now ?? Date.now());
   const [asking, setAsking] = useState(false);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<string | null>(null);
 
-  if (!viewingAhead(slotAt, now)) return null;
-  const today = dayOfViewing(slotAt, now);
+  if (!viewingAhead(slotAt, clock)) return null;
+  const today = dayOfViewing(slotAt, clock);
 
   function addToCalendar() {
     const origin = typeof window !== "undefined" ? window.location.origin : "";

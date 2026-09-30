@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 export default async function PreviewDayKit() {
   const locale: Locale = await getLocale();
   const copy = getDictionary(locale).memberKit.dayKit;
-  const now = Date.now();
+  const now = requestTime();
   const inAWeek = new Date(now + 7 * 86_400_000).toISOString();
   const laterToday = new Date(now + 60 * 60_000).toISOString();
   return (
@@ -29,4 +29,9 @@ export default async function PreviewDayKit() {
       </div>
     </main>
   );
+}
+
+/** The request's clock, read once. */
+function requestTime(): number {
+  return Date.now();
 }
