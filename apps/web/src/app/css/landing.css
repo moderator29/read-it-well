@@ -1213,20 +1213,6 @@
     align-items: center;
     gap: var(--nf-gap-inline);
   }
-  /* The glass square the object sits in: brand-tinted glass on the photo. */
-  .nf-landing-cat-icon {
-    display: inline-grid;
-    place-items: center;
-    flex: none;
-    width: 2.25rem;
-    height: 2.25rem;
-    padding: 0.3rem;
-    border-radius: var(--nf-plate-radius-sm);
-    background: var(--nf-plate-fill);
-    border: var(--nf-border-width) solid var(--nf-plate-edge);
-    border-color: var(--nf-plate-edges);
-    box-shadow: var(--nf-plate-shadow);
-  }
   .nf-landing-cat-title {
     display: block;
     font-size: var(--nf-text-body-sm);

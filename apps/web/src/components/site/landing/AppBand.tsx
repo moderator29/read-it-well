@@ -1,9 +1,10 @@
 import type { Dictionary } from "@vallo/i18n/core";
 import { MotionReveal } from "@/components/motion/Reveal";
 import { HeroBand } from "@/components/ui/HeroBand";
-import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { Icon3D } from "@/components/ui/Icon3D";
 import { storeBadges } from "./store-badges";
 import { StoreBadges } from "./StoreBadges";
+import { APP_OBJECTS, LANDING_OBJECT_SIZE } from "./landing-objects";
 
 /**
  * Take Vallo with you: one branded panel, no device frame (the founder's
@@ -34,10 +35,10 @@ export function AppBand({
   native?: boolean;
 }) {
   const a = t.landing.face.app;
-  const points: { key: string; icon: UiIconName; label: string }[] = [
-    { key: "notify", icon: "bell", label: a.points.notify },
-    { key: "sides", icon: "home", label: a.points.sides },
-    { key: "record", icon: "document", label: a.points.record },
+  const points: { key: keyof typeof APP_OBJECTS; label: string }[] = [
+    { key: "notify", label: a.points.notify },
+    { key: "sides", label: a.points.sides },
+    { key: "record", label: a.points.record },
   ];
   /* `NEXT_PUBLIC_*` is inlined at build time. */
   const badges = storeBadges({
@@ -69,7 +70,9 @@ export function AppBand({
               <ul className="nf-app-band__points">
                 {points.map((p) => (
                   <li key={p.key}>
-                    <UiIcon name={p.icon} size={20} aria-hidden />
+                    <span className="nf-obj nf-app-band__obj">
+                      <Icon3D name={APP_OBJECTS[p.key]} size={LANDING_OBJECT_SIZE.app} />
+                    </span>
                     {p.label}
                   </li>
                 ))}

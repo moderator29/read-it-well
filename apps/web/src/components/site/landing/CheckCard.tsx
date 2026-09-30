@@ -1,7 +1,8 @@
 import Link from "next/link";
 import type { Dictionary, Locale } from "@vallo/i18n/core";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { IconPlate } from "@/components/ui/IconPlate";
+import { Icon3D } from "@/components/ui/Icon3D";
+import { LANDING_OBJECT_SIZE } from "./landing-objects";
 import { CheckForm } from "@/app/(site)/check/CheckForm";
 
 /**
@@ -25,9 +26,9 @@ export function CheckCard({ t, locale }: { t: Dictionary; locale: Locale }) {
   return (
     <div className="nf-pd-card nf-check-card" data-chapter="check">
       <div className="nf-check-card__head">
-        <IconPlate size="md" tone="brand">
-          <UiIcon name="shield-check" size={20} />
-        </IconPlate>
+        <span className="nf-obj nf-check-card__obj">
+          <Icon3D name="id-check" size={LANDING_OBJECT_SIZE.check} />
+        </span>
         <div className="nf-check-card__heading">
           <p className="nf-section-label">{c.label}</p>
           <h3 className="nf-check-card__title">

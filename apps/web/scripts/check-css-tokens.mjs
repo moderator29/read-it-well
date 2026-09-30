@@ -1432,9 +1432,10 @@ try {
   const { bundle } = await import("lightningcss");
   const entry = join(ROOT, "src/app/globals.css");
   /* Route stylesheets: partials a route layout imports instead of
-     `globals.css` (B-4). They are parsed after the global graph, which is
+     `globals.css` (B-4; the landing imports landing-3d.css from
+     LandingBody.tsx). They are parsed after the global graph, which is
      the order the browser receives them in. */
-  const ROUTE_STYLESHEETS = ["./css/admin.css"];
+  const ROUTE_STYLESHEETS = ["./css/admin.css", "./css/landing-3d.css"];
   const graph = readFileSync(entry, "utf8")
     .split("\n")
     .flatMap((line) => [...line.matchAll(/@import\s+"(\.\/[^"]+)"/g)].map((m) => m[1]))

@@ -1,16 +1,14 @@
 import type { Dictionary, Locale } from "@vallo/i18n/core";
 import { ButtonLink } from "@/components/ui/Button";
 import { MotionReveal } from "@/components/motion/Reveal";
-import { IconPlate, ICON_PLATE_GLYPH } from "@/components/ui/IconPlate";
-import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { Icon3D } from "@/components/ui/Icon3D";
 import type { ListingKind } from "@/lib/listings/types";
 import type { MiniListing } from "@/lib/site/listing-card";
 import { AiShowcase, type ShowcaseScript } from "./AiShowcase";
 import type { Door } from "./doors";
 import { SectionHead } from "./SectionHead";
+import { LANDING_OBJECT_SIZE, TRUTH_OBJECTS } from "./landing-objects";
 
-/* Flat neutral plates beside the three rules (spec section 4). */
-const TRUTH_GLYPHS: readonly UiIconName[] = ["file-search", "receipt", "shield-check"];
 const RENT_KINDS: ReadonlySet<ListingKind> = new Set(["rental"]);
 const STAY_KINDS: ReadonlySet<ListingKind> = new Set(["shortlet", "hotel", "villa", "apartment"]);
 
@@ -51,9 +49,9 @@ export function AiBand({ t, locale, cards, door }: { t: Dictionary; locale: Loca
           <MotionReveal as="ul" stagger className="nf-ai-truths">
             {[truths.listings, truths.costs, truths.title].map((line, i) => (
               <li key={line}>
-                <IconPlate size="sm" tone="neutral">
-                  <UiIcon name={TRUTH_GLYPHS[i] ?? "bot"} size={ICON_PLATE_GLYPH.sm} />
-                </IconPlate>
+                <span className="nf-obj nf-ai-truths__obj">
+                  <Icon3D name={TRUTH_OBJECTS[i] ?? "assistant"} size={LANDING_OBJECT_SIZE.truths} />
+                </span>
                 <span>{line}</span>
               </li>
             ))}

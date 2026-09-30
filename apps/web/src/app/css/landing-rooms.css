@@ -469,21 +469,6 @@
     margin-top: 0;
   }
 
-  /* ======================================= category micro-motion */
-
-  .nf-landing-cat-icon {
-    transition: transform var(--nf-duration-slow) var(--nf-ease-spring);
-  }
-  @media (hover: hover) {
-    .nf-landing-cat:hover .nf-landing-cat-icon[data-motion="lift"] { transform: translate3d(0, -4px, 0); }
-    .nf-landing-cat:hover .nf-landing-cat-icon[data-motion="tilt"] { transform: rotate(-8deg); }
-    .nf-landing-cat:hover .nf-landing-cat-icon[data-motion="turn"] { transform: rotate(12deg) scale(1.06); }
-    .nf-landing-cat:hover .nf-landing-cat-icon[data-motion="drop"] { transform: translate3d(0, 3px, 0) scale(1.06); }
-  }
-  .nf-landing-cat:focus-visible .nf-landing-cat-icon {
-    transform: translate3d(0, -3px, 0);
-  }
-
   /* ============================================ reduced motion */
 
   @media (prefers-reduced-motion: reduce) {
@@ -495,15 +480,12 @@
     .nf-ai-note[data-live] {
       animation: none;
     }
-    .nf-landing-cat-icon,
     .nf-room-link svg,
     .nf-ai-show-panel,
     .nf-ai-show-pip::before {
       transition: none;
     }
 
-    .nf-landing-cat:hover .nf-landing-cat-icon,
-    .nf-landing-cat:focus-visible .nf-landing-cat-icon,
     .nf-room-link:hover svg {
       transform: none;
     }
@@ -1706,14 +1688,6 @@
 
   /* ------------------------------------------ categories and the cities */
 
-  .nf-landing-cat-icon.nf-plate {
-    transition: transform var(--nf-duration-slow) var(--nf-ease-spring);
-  }
-  @media (hover: hover) and (pointer: fine) {
-    .nf-landing-cat:hover .nf-landing-cat-icon.nf-plate {
-      transform: translate3d(0, -3px, 0);
-    }
-  }
   .nf-cities {
     display: grid;
     gap: var(--nf-space-lg);
@@ -2545,7 +2519,6 @@
     .nf-stack__card,
     .nf-stack__dot::before,
     .nf-worlds__switch::before,
-    .nf-landing-cat-icon.nf-plate,
     .nf-bento__card,
     .nf-step__card {
       transition: none;
