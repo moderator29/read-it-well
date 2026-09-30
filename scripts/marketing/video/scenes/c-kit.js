@@ -411,39 +411,6 @@ export function passDot(ctx, parent, d) {
   return { slot, ring, fill };
 }
 
-/**
- * One of the spine's three question cards, built for a slot (w x h): the
- * question on the navy face (with an optional tick), the answer on the blue
- * back. Same materials as the engine's questionCard. Animate `root` with
- * place(); turn it with `inner.style.transform = rotateY(...)`.
- */
-export function slotCard(ctx, parent, { w, h, q, a = null, fs, pad, tickSize }) {
-  const root = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${w}px`, height: `${h}px`, perspective: `${w * 4}px` } }, parent);
-  const inner = ctx.el("div", { class: "abs", style: { inset: "0px", transformStyle: "preserve-3d" } }, root);
-  const face = (back) => ctx.el("div", {
-    class: "abs",
-    style: {
-      inset: "0px", borderRadius: `${Math.round(Math.min(w, h) * 0.1)}px`, backfaceVisibility: "hidden", transform: back ? "rotateY(180deg)" : "none",
-      display: "flex", flexDirection: "column", justifyContent: "space-between", padding: `${pad}px`, color: "#fff",
-      font: `600 ${fs}px/1.16 "C Poppins", Inter, sans-serif`, letterSpacing: "-0.02em",
-      background: back ? "linear-gradient(155deg, #2a86ff 0%, #0069fe 42%, #0050c8 100%)" : "linear-gradient(160deg, #121c5e 0%, #0a1248 100%)",
-      border: back ? "1.5px solid rgb(143 211 255 / 0.6)" : "1.5px solid rgb(120 170 255 / 0.28)",
-      boxShadow: SHADOW.light,
-    },
-  }, inner);
-  const front = face(false);
-  const topRow = ctx.el("div", { style: { height: `${tickSize}px`, display: "flex" } }, front);
-  const tickEl = tick(ctx, topRow, tickSize);
-  ctx.el("div", { text: q }, front);
-  let back = null;
-  if (a) {
-    back = face(true);
-    ctx.el("div", { style: { height: `${tickSize}px` } }, back);
-    ctx.el("div", { text: a }, back);
-  }
-  return { root, inner, front, back, tick: tickEl };
-}
-
 /** Measures a text's width in px for a CSS font (after the font is loaded). */
 export function measure(text, font, letterSpacing = "-0.03em") {
   /* A hidden span: a detached canvas does not see the page's web fonts here. */

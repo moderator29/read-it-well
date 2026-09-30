@@ -20,7 +20,9 @@
  * first to know" does: 4 and 5 (stays) and 10 and 11 (restaurants).
  *
  * Order: the first three, then a pair in the first swipe; never more than
- * two screens without a photograph or artwork in a row.
+ * two screens without a photograph or artwork in a row; screens that look
+ * alike at store size (the two onboarding slides, the two filter sheets, the
+ * two searches, the two move-in pages) far apart.
  */
 import { headline, popup } from "../components.mjs";
 import { brandUrl } from "../lib.mjs";
@@ -216,7 +218,11 @@ export const SHOTS = [
   std(21, "light-or-dark-your-call", "appearance", ["Light or dark,", "your call"]),
   std(22, "talk-to-the-owner-or-the-agent", "thread", ["Talk to the owner", "or the agent"]),
   std(23, "filter-by-exactly-what-you-need", "filters-villas", ["Filter by exactly", "what you need"]),
-  std(24, "homes-to-buy-not-just-to-rent", "listing-banana", ["Homes to buy,", "not just to rent"]),
+  /* 24: a home for sale. The Karsana terrace (listing-sale) rather than the
+     Chevron Drive house (listing-banana): the example stock reuses its
+     photographs, and the Chevron Drive house opens on the same photograph as
+     the Maitama villa on 7. */
+  std(24, "homes-to-buy-not-just-to-rent", "listing-sale", ["Homes to buy,", "not just to rent"]),
   std(25, "six-digits-and-youre-back-in", "lock", ["Six digits,", "and you’re back in"]),
   std(26, "talk-first-pay-when-sure", "welcome-3", ["Talk first.", "Pay when sure."]),
   std(27, "amenities-and-rooms-all-laid-out", "stay-amenities", ["Amenities and", "rooms, all laid out"]),
@@ -224,8 +230,10 @@ export const SHOTS = [
   std(29, "lock-vallo-with-a-passcode", "passcode", ["Lock Vallo", "with a passcode"]),
   std(30, "your-account-takes-a-minute", "sign-up", ["Your account", "takes a minute"]),
   std(31, "every-fee-added-up", "listing-cost-total", ["Every fee,", "added up"]),
-  std(32, "need-a-bq-filter-for-it", "filters-detached-bq", ["Need a BQ?", "Filter for it"]),
-  std(33, "restaurants-all-in-one-place", "restaurants", ["Restaurants,", "all in one place"]),
+  /* 32 and 33 swapped from the brief's order: the two filter sheets (23 and
+     33) look alike at store size, so they sit ten places apart. */
+  std(32, "restaurants-all-in-one-place", "restaurants", ["Restaurants,", "all in one place"]),
+  std(33, "need-a-bq-filter-for-it", "filters-detached-bq", ["Need a BQ?", "Filter for it"]),
   std(34, "rent-or-buy-in-one-search", "search-buy", ["Rent or buy,", "in one search"]),
 
   /* 35: the closing card, on the onboarding's own last slide ("Ready when

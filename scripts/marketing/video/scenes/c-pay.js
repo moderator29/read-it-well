@@ -178,8 +178,9 @@ export async function buildPay(ctx, S) {
     const end = M ? { x: 900, y: 1150 } : { x: 1000, y: 800 };
     const hover = M ? -14 : -10;
     const lead = [0.06, 0.05, 0.06, 0.07, 0.08, 0.05];
-    const xs = [[K.r28, start.x], ...presses.map((pr, i) => [pr.t - lead[i], k[i].x, "glide"]), [K.pay + 0.3, end.x, "power2.in"]];
-    const ys = [[K.r28, start.y], ...presses.map((pr, i) => [pr.t - lead[i], k[i].y + hover, "glide"]), [K.pay + 0.3, end.y, "power2.in"]];
+    /* on each key from just before its press until just after it, then on to the next */
+    const xs = [[K.r28, start.x], ...presses.flatMap((pr, i) => [[pr.t - lead[i], k[i].x, "glide"], [pr.t + 0.012, k[i].x]]), [K.pay + 0.3, end.x, "power2.in"]];
+    const ys = [[K.r28, start.y], ...presses.flatMap((pr, i) => [[pr.t - lead[i], k[i].y + hover, "glide"], [pr.t + 0.012, k[i].y + hover]]), [K.pay + 0.3, end.y, "power2.in"]];
     const half = M ? 22 : 20;
     /* The dip of each press (the engine's press(): 1.1 x 0.8 in 0.09 s, back in
        0.32 s with a little overshoot), summed as a pure function of t: six
@@ -507,12 +508,12 @@ export async function buildPay(ctx, S) {
     const h = slot[0].h;
     const fs = M ? 31 : 40;
     const card = async (q, a, mark) => {
-      const root = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${w}px`, height: `${h}px`, perspective: `${w * 4}px` } }, cardScene);
-      const inner = ctx.el("div", { class: "abs", style: { inset: "0px", transformStyle: "preserve-3d" } }, root);
+      const root = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${w}px`, height: `${h}px` } }, cardScene);
+      const inner = ctx.el("div", { class: "abs", style: { inset: "0px" } }, root);
       const face = (back) => ctx.el("div", {
         class: "abs glass-dark",
         style: {
-          inset: "0px", borderRadius: `${Math.round(Math.min(w, h) * 0.11)}px`, backfaceVisibility: "hidden", transform: back ? "rotateY(180deg)" : "none",
+          inset: "0px", borderRadius: `${Math.round(Math.min(w, h) * 0.11)}px`,
           display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: `${Math.round(fs * 0.6)}px`, textAlign: "center",
           padding: `0 ${Math.round(fs * 0.85)}px`, color: "#fff", font: `600 ${back ? fs : Math.round(fs * 1.08)}px/1.2 "C Poppins", Inter, sans-serif`, letterSpacing: "-0.02em",
           backdropFilter: "none", boxShadow: SHADOW.light,
@@ -524,7 +525,17 @@ export async function buildPay(ctx, S) {
       const back = face(true);
       if (mark) await verifiedMark(ctx, back, Math.round(fs * 1.8));
       ctx.el("span", { text: a }, back);
-      return { root, inner };
+      return { root, inner, front, back };
+    };
+    /* The turn, drawn flat: the card narrows to its edge and opens on the
+       other face (scaleX |cos|). A CSS 3D turn is composited, and Chromium
+       sometimes shows a composited layer's previous raster for a frame while
+       its scale changes, so the same frame could come out two ways. */
+    const turnTo = (c, deg) => {
+      const cs = Math.cos((deg * Math.PI) / 180);
+      c.inner.style.transform = `scaleX(${Math.max(0.001, Math.abs(cs)).toFixed(4)})`;
+      c.front.style.visibility = cs < 0 ? "hidden" : "";
+      c.back.style.visibility = cs < 0 ? "" : "hidden";
     };
     /* card 2 returns to the left slot (it left to the top left), card 1 to
        the right (it left to the top right), card 3 in the middle */
@@ -547,13 +558,13 @@ export async function buildPay(ctx, S) {
       const f3 = ramp(ctx, tt, off, K.r32 - 0.02, "power3.in");
       place(c3.root, { x: S1.x, y: mix(S1.y - (M ? 900 : 640), S1.y, a) - f3 * (M ? 1000 : 700), r: swing, o: 1 });
       const turn = ramp(ctx, tt, turnAt, turnAt + 0.6, "back.out(1.4)");
-      c3.inner.style.transform = `rotateY(${(turn * 180).toFixed(2)}deg)`;
+      turnTo(c3, turn * 180);
       const OUT = CARD_OUT[ctx.film];
       [[c2, S0, -1, 0, OUT.c2], [c1, S2, 1, 0.1, OUT.c1]].forEach(([c, S, side, lag, from]) => {
         const b = ramp(ctx, tt, back1 + lag, full + lag * 0.5, "power3.out");
         const f = ramp(ctx, tt, off + lag * 0.2, K.r32 - 0.02, "power3.in");
         place(c.root, { x: mix(from.x, S.x, b) + side * f * (M ? 760 : 1000), y: mix(from.y, S.y, b), r: mix(from.r, 0, b) + side * f * 16, o: b > 0 ? 1 : 0 });
-        c.inner.style.transform = "rotateY(180deg)";
+        turnTo(c, 180);
       });
     });
   }
