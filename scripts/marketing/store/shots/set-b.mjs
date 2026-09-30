@@ -64,7 +64,9 @@ export const SET_B = [
       const b = p.box;
       return [
         p.html,
-        popup({ x: 44 * u, y: b.y + b.h * 0.6, w: 920 * u, rotate: -3, emoji: "1f942", tone: "warm", title: "Table for 2", line: "Tonight, 8:00 PM · Harbour Lights Kitchen", meta: "now", example: true, scale: u * 1.06 }),
+        /* Over the restaurant's photograph (display y 400 to 690), clear of
+           every word and of the page's example notice. */
+        popup({ x: 44 * u, y: p.at(660, 400)[1], w: 920 * u, rotate: -3, emoji: "1f942", tone: "warm", title: "Table for 2", line: "Tonight, 8:00 PM · Harbour Lights Kitchen", meta: "now", example: true, scale: u * 1.06 }),
         headline({ lines: ["Reserve your table", "in seconds"], cx: W / 2, y: f.hlTop, max: f.max, size: f.size }),
       ].join("\n");
     },
@@ -253,7 +255,8 @@ export const SET_B = [
         `<div class="g" style="left:${px(56 * u)};top:${px(b.y + b.h * 0.08)};width:${px(aw)};height:${px(aw * 4 / 3)};border-radius:${px(48 * u)};overflow:hidden;transform:rotate(-6deg);z-index:12;box-shadow:inset 0 0 0 2px rgb(255 255 255 / 0.1), 0 60px 120px -30px rgb(0 0 20 / 0.8)"><img src="${artUrl("step-2-dark.webp")}" style="width:100%;height:100%;object-fit:cover;object-position:50% 40%"></div>`,
         vignette(0.35),
         p.html,
-        popup({ x: 44 * u, y: b.y + b.h * 0.62, w: 900 * u, rotate: -3, emoji: "2705", tone: "mint", title: "Checked by a person", line: "Verified mark added", meta: "now", example: true, scale: u * 1.08 }),
+        /* In the empty band under the form (display y 2440 on), hiding no words. */
+        popup({ x: 44 * u, y: p.at(660, 2440)[1], w: 900 * u, rotate: -3, emoji: "2705", tone: "mint", title: "Checked by a person", line: "Verified mark added", meta: "now", example: true, scale: u * 1.08 }),
         headline({ lines: ["The verified mark means", "a real person checked"], cx: W / 2, y: f.hlTop, max: f.max, size: f.size * 0.92,
           sub: "About the person, not the property.", subSize: 42 * u }),
       ].join("\n");

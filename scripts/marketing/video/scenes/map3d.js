@@ -1718,24 +1718,17 @@ export async function createLiveMap(o) {
   /* glow-only helpers are skipped in the main pass by their shader (discard) */
 
   /* ---------- labels, pin, points ---------- */
-  const labelSide = {};
-  {
-    setCamera(SHOT * 0.5);
-    const L = toScreen(new THREE.Vector3(lagos.x, topY, lagos.z));
-    for (const c of CITIES) {
-      if (c.city === "Lagos") {
-        labelSide[c.city] = { dx: -1, dy: 0.35 };
-        continue;
-      }
-      const an = anchors[c.city];
-      const s = toScreen(new THREE.Vector3(an.x, topY, an.z));
-      let dx = s.x - L.x, dy = s.y - L.y;
-      const len = Math.hypot(dx, dy) || 1;
-      dx /= len; dy /= len;
-      labelSide[c.city] = { dx, dy };
-    }
-  }
-  const labelGap = 20 * Math.min(sx, sy) * (film === "mobile" ? 1.25 : 1);
+  /* Which side of its dot each label sits on (screen directions): away from the routes,
+     which all run west toward Lagos. Lagos' label sits under the home (the pin is above). */
+  const labelSide = {
+    Lagos: { dx: 0, dy: 1 },
+    Abuja: { dx: 1, dy: -0.12 },
+    Kano: { dx: 1, dy: -0.2 },
+    "Port Harcourt": { dx: 1, dy: 0.25 },
+    Enugu: { dx: 1, dy: 0 },
+    Ibadan: { dx: -1, dy: -0.35 },
+  };
+  const labelGap = 18 * Math.min(sx, sy) * (film === "mobile" ? 1.3 : 1);
 
   function cityOpacity(city, t) {
     const outU = 1 - EASE.soft(prog(t, T.labelsOut[0], T.labelsOut[1]));
@@ -1792,10 +1785,10 @@ export async function createLiveMap(o) {
       const M = modelMatrixAt(t);
       return CITIES.map(({ city }) => {
         const an = anchors[city];
-        const lift = city === "Lagos" ? house.height * 0.35 : 0.02;
+        const lift = city === "Lagos" ? 0 : 0.02;
         const d = toScreen(new THREE.Vector3(an.x, topY + lift, an.z).applyMatrix4(M));
         const side = labelSide[city];
-        const gap = city === "Lagos" ? labelGap + HOUSE_W * 0.6 * (height / (2 * Math.tan(fovY / 2) * dist)) : labelGap;
+        const gap = city === "Lagos" ? labelGap + HOUSE_W * 0.5 * (height / (2 * Math.tan(fovY / 2) * dist)) : labelGap;
         const x = d.x + side.dx * gap;
         const y = d.y + side.dy * gap;
         const ax = side.dx > 0.38 ? 0 : side.dx < -0.38 ? 1 : 0.5;
