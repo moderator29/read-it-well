@@ -148,7 +148,7 @@ export const SHOTS = [
     },
   ),
 
-  std(12, "pick-your-dates", "stays-dates", "calendar-days", ["Pick your dates,", "see what's free"]),
+  std(12, "pick-your-dates", "stays-dates-gb", "calendar-days", ["Pick your dates,", "see what's free"]),
 
   /* 13 and 14: the restaurant across the seam, leaning left. */
   ...pair(
