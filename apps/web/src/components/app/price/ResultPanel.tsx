@@ -3,12 +3,13 @@ import { ShareCardFrame } from "@/components/share/ShareCardFrame";
 import { CONFIDENCE_FILL } from "@/lib/ui/meter";
 import { EmptyState } from "@/components/app/Screen";
 import { TYPE } from "@/components/app/Screen";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import type { Locale } from "@vallo/i18n/core";
 import { COMPARABLES_LEAD, PRICE_CHECK_DISCLAIMER } from "@/lib/price-check/disclaimer";
 import type { PriceCheckResult } from "@/lib/price-check/gate";
 import { REFUSALS, type RefusalCode } from "@/lib/price-check/refusals";
 import type { Comparable } from "@/lib/price-check/types";
+import { UiIcon } from "@/design-system/icons/UiIcon";
+import { IconPlate } from "@/components/ui/IconPlate";
 
 /**
  * THE RESULT SURFACE: a figure, or a refusal, and never both.
@@ -85,7 +86,6 @@ export function AnsweredResult({
 }) {
   const months = Math.max(1, Math.round(result.medianAgeDays / 30));
 
-  return (
   /*
    * THE SHARE CARD FRAME (spec section 10, reference 33). The range is the
    * figure, low and high at one size (see the header). The meter pictures the
@@ -101,6 +101,7 @@ export function AnsweredResult({
     months,
   });
 
+  return (
     <div>
       <ShareCardFrame
         testId="price-check-card"
@@ -284,8 +285,8 @@ export function ComparablesRail({
 /** The mark beside a heading, kept here so the screen files stay about layout. */
 export function PriceCheckMark() {
   return (
-    <span className="block h-12 w-12">
-      <BrandIcon name="naira-coins" fill />
-    </span>
+    <IconPlate size="md" tone="brand">
+      <UiIcon name="coins" size={20} />
+    </IconPlate>
   );
 }
