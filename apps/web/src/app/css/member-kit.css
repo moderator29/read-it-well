@@ -351,3 +351,159 @@ html:root[data-contrast="more"] .nf-tab__link[aria-current="page"] .nf-tab__labe
     pointer-events: none;
   }
 }
+
+@layer components {
+  /* -------------------------------------------- B17 the messages split view */
+
+  /* Below 64rem this is a pass-through column: the thread fills the screen
+     exactly as it did. */
+  .nf-msg-split {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  .nf-msg-split__thread {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    min-width: 0;
+  }
+  .nf-msg-pane {
+    display: none;
+  }
+  @media (min-width: 64rem) {
+    .nf-msg-split {
+      flex-direction: row;
+    }
+    .nf-msg-pane {
+      display: flex;
+      flex-direction: column;
+      flex: 0 0 22.5rem;
+      min-height: 0;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      border-inline-end: var(--nf-border-width) solid var(--nf-border-subtle);
+      padding: var(--nf-space-md) var(--nf-space-sm);
+    }
+  }
+  .nf-msg-pane__label {
+    padding: 0 var(--nf-space-xs) var(--nf-space-xs);
+  }
+  .nf-msg-pane__list {
+    display: grid;
+    gap: var(--nf-space-3xs);
+  }
+  .nf-msg-pane__row {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nf-space-sm);
+    min-height: 44px;
+    padding: var(--nf-space-sm);
+    border-radius: var(--nf-radius-control);
+    color: inherit;
+  }
+  .nf-msg-pane__row:hover {
+    background: var(--nf-surface-secondary);
+  }
+  .nf-msg-pane__row[aria-current="page"] {
+    background: var(--nf-surface-raised);
+    box-shadow: inset 0 0 0 var(--nf-border-width) var(--nf-border-default);
+  }
+  .nf-msg-pane__row:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  .nf-msg-pane__avatar {
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-surface-secondary);
+    color: var(--nf-content-primary);
+    font-weight: 700;
+    font-size: var(--nf-text-body-sm);
+  }
+  .nf-msg-pane__body {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+  .nf-msg-pane__top {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--nf-space-xs);
+  }
+  .nf-msg-pane__name {
+    font-weight: 600;
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .nf-msg-pane__when,
+  .nf-msg-pane__title,
+  .nf-msg-pane__last {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .nf-msg-pane__title {
+    color: var(--nf-content-secondary);
+  }
+  .nf-msg-pane__dot {
+    flex: 0 0 auto;
+    align-self: center;
+    width: 8px;
+    height: 8px;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-brand-primary);
+  }
+}
+
+@layer components {
+  /* ------------------------------------------------- B17 the cheat sheet */
+  .nf-keys {
+    display: grid;
+    gap: var(--nf-space-2xs);
+    padding: var(--nf-space-sm) var(--nf-space-md) var(--nf-space-lg);
+  }
+  .nf-keys__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-space-md);
+    padding: var(--nf-space-xs) 0;
+    border-bottom: var(--nf-border-width) solid var(--nf-border-subtle);
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+  }
+  .nf-keys__row dt {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-3xs);
+  }
+  .nf-keys__key {
+    min-width: 1.75rem;
+    padding: 2px var(--nf-space-xs);
+    border-radius: var(--nf-radius-xs);
+    border: var(--nf-border-width) solid var(--nf-border-strong);
+    background: var(--nf-surface-secondary);
+    color: var(--nf-content-primary);
+    font-family: inherit;
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    text-align: center;
+  }
+  .nf-keys__or {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+}

@@ -4,6 +4,7 @@ import { DataMeterRecorder } from "@/components/app/DataMeterRecorder";
 import { OfflineTray } from "@/components/app/OfflineTray";
 import { WidgetBridge } from "@/components/app/WidgetBridge";
 import { ContrastSync } from "@/components/app/account/ContrastSync";
+import { MemberKeys } from "@/components/app/MemberKeys";
 import { getLocale } from "@/lib/locale";
 import { getShellIdentity, getShellWorkspaces } from "@/lib/app/shell-queries";
 import { getSide } from "@/lib/side";
@@ -119,6 +120,8 @@ export default async function AppLayout({
       <VitalsReporter />
       {/* B15: the Increase contrast setting, on the root. */}
       <ContrastSync />
+      {/* B17: the desktop keyboard layer (fine pointer only). */}
+      <MemberKeys />
       {/* V-40: what was done offline is sent, and what was paid is resolved. */}
       <OfflineTray />
       {/* V-98: the home-screen widget's token, in the native app only. */}
