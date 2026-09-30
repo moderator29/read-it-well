@@ -21,7 +21,7 @@ export default {
       H,
       ground: "night",
       body: `
-      ${headline(["Search homes", "in <k>Nigeria.</k>"], { W, H })}
+      ${headline(["Homes across", "<k>Nigeria.</k>"], { W, H })}
       ${phoneHtml(phones[0])}
       ${icon3d("map", { W, H, slot: "A" })}
       `,

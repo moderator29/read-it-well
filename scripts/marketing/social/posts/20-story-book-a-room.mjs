@@ -1,6 +1,6 @@
 /* 20 · Story. "Book a room in a few taps." Night. Explore stays with the
  * dates filled in (16/10/2026 to 19/10/2026, two guests), captured signed in
- * and in British English, on one whole phone lying back (10's pose, w 700),
+ * and in British English, on one whole phone lying back (10's pose, w 820),
  * the date fields and "Show prices for these dates" big at the near end. A
  * booked calendar is the post's 3D icon. Everything sits inside the story's
  * safe zone (top 250 and bottom 340 px clear). */
@@ -15,7 +15,7 @@ export default {
   file: "20-story-book-a-room.png",
   W,
   H,
-  phones: [phone("stays-dates", "night", PLACE.lyingBack())],
+  phones: [phone("stays-dates", "night", PLACE.lyingBack({ w: 820 }))],
   html: ({ phones }) =>
     frame({
       W,

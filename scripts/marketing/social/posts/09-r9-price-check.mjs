@@ -8,7 +8,7 @@ import { phoneHtml } from "../lib/kit.mjs";
 
 const W = 1080;
 const H = 1350;
-const TOP = 470;
+const TOP = 454;
 
 export default {
   id: "09",

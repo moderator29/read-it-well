@@ -1,6 +1,6 @@
 /* 30 · Story. "Almost here." Night. The launch line, exactly "Coming soon on
  * iPhone and Android.", under the headline; one iPhone lying back (10's
- * pose, w 700) on the home screen ("Good evening, omojuni", Find your next
+ * pose, w 820) on the home screen ("Good evening, omojuni", Find your next
  * home, Buy, Rent, Pay and List, the places looked at recently). No logos and
  * no store badges. A megaphone is the post's 3D icon. Everything sits inside
  * the story's safe zone. */
@@ -15,7 +15,7 @@ export default {
   file: "30-story-coming-soon.png",
   W,
   H,
-  phones: [phone("home", "night", PLACE.lyingBack())],
+  phones: [phone("home", "night", PLACE.lyingBack({ w: 820 }))],
   html: ({ phones }) =>
     frame({
       W,

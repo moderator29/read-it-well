@@ -13,9 +13,9 @@ export const CHAPTERS = [
   { start: b(74.6), end: b(85), parts: [["Book a ", false], ["room", true]] },
   { start: b(88), end: b(94), parts: [["Reserve a ", false], ["table", true]] },
   { start: b(94.3), end: b(109), parts: [["Checked by a ", false], ["person", true]] },
-  { start: b(115), end: b(126), parts: [["Straight to the ", false], ["owner", true]] },
+  { start: b(121), end: b(126), parts: [["Straight to the ", false], ["owner", true]] },
   { start: b(129), end: b(138), parts: [["Ask ", false], ["anything", true]] },
-  { start: b(140.4), end: b(148), parts: [["Speaks your ", false], ["language", true]] },
+  { start: b(141.3), end: b(148), parts: [["Speaks your ", false], ["language", true]] },
   { start: b(148), end: b(159.5), parts: [["Put it on ", false], ["Vallo", true]] },
 ];
 

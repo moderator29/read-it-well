@@ -1,32 +1,34 @@
-/* 22 · "Vallo never holds your money." 1080 x 1350 (so Instagram's grid
- * crops no words), Night. The Agreements page says it in the product's own
- * words ("Vallo never holds your money. When you pay, the owner's or agent's
- * share goes straight to their bank account through our payment processor,
- * in the same transaction."): one bleed phone whose foot falls in the empty
- * band under the page's illustration. A bank is the post's 3D icon, in the
- * left column. */
-import { PLACE, frame, headline, icon3d, phone, subline } from "../lib/premium.mjs";
-import { phoneHtml } from "../lib/kit.mjs";
+/* 22 · "Vallo never holds your money." 1080 x 1350, Night. The statement
+ * piece of the 20 to 30 run: the claim in bold type at 108 px, and under it
+ * the product saying it in its own words, one real component cut from the
+ * Agreements page and shown flat at 0.73x ("Payment opens only after the
+ * inspection report is submitted, both of you confirm the agreement, and
+ * Vallo approves it. Vallo never holds your money. When you pay, the owner's
+ * or agent's share goes straight to their bank account through our payment
+ * processor, in the same transaction."). A bank is the post's 3D icon, 48 px
+ * under the card. */
+import { component, componentHeight, frame, headline, icon3d } from "../lib/premium.mjs";
 
 const W = 1080;
 const H = 1350;
+const card = { id: "agreements", x: 30, y: 290, w: 1260, h: 650 };
+const TOP = 480;
+const CH = componentHeight(card, 920);
 
 export default {
   id: "22",
   file: "22-never-holds-your-money.png",
   W,
   H,
-  phones: [phone("agreements", "night", PLACE.bleed({ w: 641, cx: 630 }))],
-  html: ({ phones }) =>
+  html: async () =>
     frame({
       W,
       H,
       ground: "night",
       body: `
-      ${headline(["Vallo never holds", "your <k>money.</k>"], { W, H })}
-      ${subline("The owner’s share goes straight to their bank.", { W, H })}
-      ${phoneHtml(phones[0])}
-      ${icon3d("bank", { W, H, slot: "B", cy: (490 + H) / 2 })}
+      ${headline(["Vallo never holds", "your <k>money.</k>"], { W, H, size: 108 })}
+      ${await component(card.id, card, { x: 80, y: TOP, w: 920, radius: 40 })}
+      ${icon3d("bank", { W, H, slot: "B", top: TOP + CH + 48 })}
       `,
     }),
 };

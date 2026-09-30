@@ -1,4 +1,4 @@
-/* R7 · after IMG_6734: one straight phone, whole and centred, with quiet
+/* R7 · after IMG_6734, posted sixth (06 and 07 swap places in the order): one straight phone, whole and centred, with quiet
  * labels in the corners (our brand bar). Night. Sign up: "Create your
  * account", by email or with an account you already have. A phone with a
  * code is the post's 3D icon. */
@@ -9,8 +9,8 @@ const W = 1080;
 const H = 1350;
 
 export default {
-  id: "07",
-  file: "07-r7-your-account-takes-a-minute.png",
+  id: "06",
+  file: "06-r7-sign-up-in-a-minute.png",
   W,
   H,
   phones: [phone("sign-up", "night", PLACE.whole())],
