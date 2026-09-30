@@ -250,10 +250,16 @@ export function popcard({ ground = "night", title, line, amount = "", time = "no
 
 /* ------------------------------------------------------------------ a browser window, flat */
 
-/** A flat browser window around a desktop capture (2880 x 1800). No 3D transforms. */
-export function browser({ id, x, y, w, url = "vallospaces.com" }) {
+/**
+ * A flat browser window around a desktop capture (2880 x 1800), or around a
+ * crop of it (`crop`: capture px, the page's main column), never larger than
+ * the capture. No 3D transforms.
+ */
+export function browser({ id, x, y, w, url = "vallospaces.com", crop = { x: 0, y: 0, w: 2880, h: 1800 } }) {
+  if (w > crop.w) throw new Error(`browser ${id}: ${w} px would upscale a ${crop.w} px crop`);
   const bar = Math.round(w * 0.04);
-  const h = Math.round((w * 1800) / 2880);
+  const k = w / crop.w;
+  const h = Math.round(crop.h * k);
   const dot = Math.round(bar * 0.24);
   return `<div style="position:absolute;left:${x}px;top:${y}px;width:${w}px;border-radius:20px;overflow:hidden;background:#0B1030;
       box-shadow:0 60px 120px -30px rgba(0,0,10,.8), 0 20px 40px -14px rgba(0,0,20,.5), 0 0 0 1.5px rgba(130,178,255,.22)">
@@ -262,10 +268,11 @@ export function browser({ id, x, y, w, url = "vallospaces.com" }) {
       <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);height:${Math.round(bar * 0.6)}px;width:${Math.round(w * 0.3)}px;border-radius:999px;
           display:flex;align-items:center;justify-content:center;font:500 ${Math.round(bar * 0.34)}px/1 Inter,sans-serif;color:rgba(220,232,255,.78);background:rgba(255,255,255,.06)">${url}</div>
     </div>
-    <img src="${u(join(SOURCE, `${id}.webp`))}" alt="" style="display:block;width:${w}px;height:${h}px">
+    <div style="position:relative;width:${w}px;height:${h}px;overflow:hidden">
+      <img src="${u(join(SOURCE, `${id}.webp`))}" alt="" style="position:absolute;left:${-crop.x * k}px;top:${-crop.y * k}px;width:${2880 * k}px;height:${1800 * k}px"></div>
   </div>`;
 }
-export const browserHeight = (w) => Math.round(w * 0.04) + Math.round((w * 1800) / 2880);
+export const browserHeight = (w, crop = { w: 2880, h: 1800 }) => Math.round(w * 0.04) + Math.round((crop.h * w) / crop.w);
 
 /* ------------------------------------------------------------------ phones: one finish, three placements */
 
@@ -306,14 +313,14 @@ export function phone(screen, ground, place, extra = {}) {
  * pixels. The display is read for ink: a pixel is ink where it steps by more
  * than 20 grey levels to its neighbour across or down (soft glows and
  * gradients are not ink). A step of more than 40 levels is text, an icon or
- * a control; a fainter one is an outline, which keeps 8 px from the edges. Ink in a straight run of
+ * a control; a fainter one is an outline. Ink in a straight run of
  * 40 px or more along a row is a horizontal line, along a column a vertical
  * line (card outlines, hairlines, the tops of buttons); all other ink is
  * treated as text. Each ink pixel is carried into the post through the
  * phone's screen homography, and:
  *   - text keeps 32 px or more from every frame edge, and no text is cut by
  *     an edge (none within 4 px outside it, where antialiasing could show it);
- *   - a line keeps 8 px or more from an edge it runs along;
+ *   - an outline, and a line along an edge, keep 32 px from it too;
  *   - a photograph or an illustration may be cut: a post declares it with
  *     `images: [[x0, y0, x1, y1, "what"]]` in display px, and ink inside it
  *     is not counted.
@@ -394,17 +401,17 @@ export async function edgeClearance(spec, layer, { W, H }) {
       const py = (M[3] * X + M[4] * Y + M[5]) / dd;
       const e = { left: px, right: W - px, top: py, bottom: H - py };
       if (ink.edge[i] === 1 && !ink.hline[i] && !ink.vline[i]) {
-        /* a faint outline: 8 px or more inside every edge, never crossing one */
+        /* a faint outline: 32 px or more inside every edge, never crossing one */
         const near = Object.entries(e).sort((p, q) => p[1] - q[1])[0];
         if (near[1] > -3 && near[1] < line.d) line = { d: near[1], edge: near[0], at: [x, y] };
-        if (near[1] > -3 && near[1] < 8) breaches.add(`an outline ${near[1].toFixed(0)} px from the ${near[0]} edge (display ~${Math.round(x / 20) * 20},${Math.round(y / 20) * 20})`);
+        if (near[1] > -3 && near[1] < 32) breaches.add(`an outline ${near[1].toFixed(0)} px from the ${near[0]} edge (display ~${Math.round(x / 20) * 20},${Math.round(y / 20) * 20})`);
         continue;
       }
       if (ink.hline[i] || ink.vline[i]) {
         const along = ink.hline[i] ? ["top", "bottom"] : ["left", "right"];
         for (const k of along) {
           if (e[k] > -2 && e[k] < line.d) line = { d: e[k], edge: k, at: [x, y] };
-          if (e[k] > -2 && e[k] < 8) breaches.add(`a line ${e[k].toFixed(0)} px from the ${k} edge (display ${x},${y})`);
+          if (e[k] > -2 && e[k] < 32) breaches.add(`a line ${e[k].toFixed(0)} px from the ${k} edge (display ${x},${y})`);
         }
         continue;
       }

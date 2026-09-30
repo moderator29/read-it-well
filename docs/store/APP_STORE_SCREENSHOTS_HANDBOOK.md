@@ -182,7 +182,7 @@ One to ten screenshots per display size and language, in .png, .jpg or .jpeg, wi
 - **Every listing, stay and restaurant on screen is example stock**, because that is all the platform holds today. Their own pages show the Example notice and cards show the Example tag; no image crops either out. The two cards (04, 13) carry the Example chip; their names and nights are illustrative, from DESIGN.md section 4, and neither shows an amount.
 - **The QA account's home area is "Ibeju-Lekki, Lagos State"** (the founder's choice). It shows on 01, 04 and the feature graphic, and in a pill on the home and stays hero photographs.
 - **The QA account's first name, "omojuni", is on screen** on the home greetings (01, 04) and on 20 ("Hi omojuni") and 15 ("Welcome back, omojuni"). No email address or phone number appears in any image.
-- **Five headers were cleaned:** 06, 23, 25, 27 and one more with the same app header.
+- **Four headers were cleaned:** 06, 23, 25 and 27.
   - These captures were taken scrolled, and the app's translucent header let what scrolled under it show through as faint ghost text.
   - `scripts/marketing/store/clean.mjs` finds the header's own parts (the status bar, the menu, the logo and the bell) on an unscrolled capture of the same header. It keeps them as captured and sets the rest of the band to the band's own colour. Nothing below the header's hairline is touched.
 - **Product text that is shown but never lifted:**
