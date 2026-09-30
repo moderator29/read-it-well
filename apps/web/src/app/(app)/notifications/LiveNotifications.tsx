@@ -1,11 +1,11 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import "./notifications.css";
 import { PageHeader } from "@/components/app/PageHeader";
-import { IconPlate, ICON_PLATE_GLYPH } from "@/components/ui/IconPlate";
+import { IconPlate, ICON_PLATE_GLYPH, type IconPlateTone } from "@/components/ui/IconPlate";
+import { ListGroup, ListRow } from "@/components/ui/ListGroup";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { markNotificationsRead } from "@/lib/messages/notifications-actions";
 import { loadOlderNotifications } from "@/lib/notify/inbox-actions";
@@ -16,7 +16,7 @@ import {
   type LiveNotificationRow,
 } from "@/lib/messages/useRealtime";
 import { Button, ButtonLink } from "@/components/ui/Button";
-import { EmptyState, TYPE } from "@/components/app/Screen";
+import { EmptyState } from "@/components/app/Screen";
 
 /**
  * The signed-in notifications inbox, in the home register.
@@ -45,6 +45,20 @@ import { EmptyState, TYPE } from "@/components/app/Screen";
  */
 
 export type { NotificationItem };
+
+/* The round plate's tint per kind (section 17, reference 44's rating list):
+   the colour sorts the list at a glance, the glyph and the words say what it
+   is, so nothing rests on colour alone. */
+const KIND_TONE: Record<string, IconPlateTone> = {
+  booking: "brand",
+  message: "info",
+  wallet: "success",
+  listing: "brand",
+  agent: "warning",
+  support: "info",
+  social: "info",
+  system: "neutral",
+};
 
 const KIND_ICON: Record<string, UiIconName> = {
   booking: "calendar-booking",
@@ -209,76 +223,50 @@ export function LiveNotifications({
 
       <div className="nf-notif">
         {sections.map((section) => (
-          <section key={section.label} aria-label={section.label}>
-            <div className="nf-notif__head">
-              <h2 className={TYPE.sectionTitle}>{section.label}</h2>
+          /* ONE GROUPED LIST per section, rows on inset hairlines inside a
+             single card (section 17: notifications read as one list, not a
+             stack of cards), each glyph on the ROUND tinted plate of
+             reference 44. Unread is the dot, the title at full weight and
+             primary ink, never colour alone. */
+          <ListGroup
+            key={section.label}
+            aria-label={section.label}
+            label={section.label}
+            action={
               <span
                 className="nf-notif__count nf-numeric"
                 aria-label={`${section.items.length} in ${section.label}`}
               >
                 {section.items.length}
               </span>
-            </div>
-            {/* One shared panel per notification, as GOVERNING-12's
-                notification centre draws them (a stack of lit cards, not one
-                card with rules between rows), each with its glyph on the
-                shared icon plate. Platform sweep, 23 September. */}
-            <ul className="nf-notif__list">
-              {section.items.map((n) => {
-                const inner = (
-                  <>
-                    <IconPlate size="md">
-                      <UiIcon name={iconFor(n.kind)} size={ICON_PLATE_GLYPH.md} />
-                    </IconPlate>
-
-                    <span className="nf-notif__body">
-                      <span className="nf-notif__title">{n.title}</span>
-                      {n.body && (
-                        <span className="nf-notif__text">{n.body}</span>
-                      )}
-                    </span>
-
-                    <span className="nf-notif__meta">
-                      <span className="nf-notif__time nf-numeric">
-                        {lagosTimeLabel(n.createdAt)}
-                      </span>
-                      {n.read ? (
-                        <span aria-hidden="true" className="h-2.5 w-2.5" />
-                      ) : (
-                        <>
-                          <span aria-hidden="true" className="nf-notif__dot" />
-                          <span className="sr-only">Unread</span>
-                        </>
-                      )}
-                    </span>
-                  </>
-                );
-                return (
-                  <li key={n.id}>
-                    {n.href ? (
-                      <Link
-                        href={n.href}
-                        onClick={() => markOne(n.id)}
-                        className="nf-panel nf-panel--card nf-notif__row"
-                        data-unread={!n.read}
-                      >
-                        {inner}
-                      </Link>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => markOne(n.id)}
-                        className="nf-panel nf-panel--card nf-notif__row"
-                        data-unread={!n.read}
-                      >
-                        {inner}
-                      </button>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
+            }
+            className="nf-notif__group"
+          >
+            {section.items.map((n) => (
+              <ListRow
+                key={n.id}
+                className={n.read ? "nf-notif__row" : "nf-notif__row nf-notif__row--unread"}
+                leading={
+                  <IconPlate size="sm" shape="round" tone={KIND_TONE[n.kind] ?? "neutral"}>
+                    <UiIcon name={iconFor(n.kind)} size={ICON_PLATE_GLYPH.sm} />
+                  </IconPlate>
+                }
+                title={n.title}
+                sub={n.body || undefined}
+                value={<span className="nf-notif__time nf-numeric">{lagosTimeLabel(n.createdAt)}</span>}
+                status={
+                  n.read ? undefined : (
+                    <>
+                      <span aria-hidden="true" className="nf-notif__dot" />
+                      <span className="sr-only">Unread</span>
+                    </>
+                  )
+                }
+                {...(n.href ? { href: n.href } : {})}
+                onClick={() => markOne(n.id)}
+              />
+            ))}
+          </ListGroup>
         ))}
       </div>
 

@@ -28,8 +28,9 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
  *             (a `StatusBadge kind="status"` or `kind="badge"`)
  *   trailing  a switch, a count, a button; never with `chevron`
  *   chevron   the 16px muted chevron of a row that opens something
- *   href      the row is a link;  onClick  the row is a button;
- *             neither  the row is static
+ *   href      the row is a link;  onClick  the row is a button (or, with
+ *             `href`, runs before the link navigates: a notification marks
+ *             itself read);  neither  the row is static
  *
  * Server-safe unless a caller passes `onClick`, which only a client parent
  * can do.
@@ -122,7 +123,14 @@ export function ListRow({
   return (
     <li className="nf-list-item">
       {href ? (
-        <Link href={href} prefetch={prefetch} className={cls} aria-label={ariaLabel} data-testid={testId}>
+        <Link
+          href={href}
+          prefetch={prefetch}
+          onClick={onClick}
+          className={cls}
+          aria-label={ariaLabel}
+          data-testid={testId}
+        >
           {inner}
         </Link>
       ) : onClick ? (

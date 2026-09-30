@@ -20,6 +20,12 @@ import type { ReactNode } from "react";
  *         "solid": an ink square with the glyph reversed out (a done step, an
  *         external system), as reference 30's "Check order" tile.
  *
+ *   shape "square" (default): the utility plate, settings-style rows.
+ *         "round": the circle of founder reference 44's rating list
+ *         (CLEAN_UNIFIED_DIRECTION.md section 17). CONTENT rows take it,
+ *         tinted: notifications, stats, categories, rankings. Settings and
+ *         other utility rows keep the neutral square.
+ *
  * "error" and "pending" are the old names of "danger" and "warning" and
  * resolve to them.
  *
@@ -27,6 +33,7 @@ import type { ReactNode } from "react";
  * meaning. Server-safe.
  */
 export type IconPlateSize = "sm" | "md" | "lg";
+export type IconPlateShape = "square" | "round";
 export type IconPlateTone =
   | "neutral"
   | "brand"
@@ -48,29 +55,41 @@ const TONE_ALIAS: Partial<Record<IconPlateTone, IconPlateTone>> = { error: "dang
 export function iconPlateClass({
   size = "md",
   tone = "neutral",
+  shape = "square",
   className,
 }: {
   size?: IconPlateSize;
   tone?: IconPlateTone;
+  shape?: IconPlateShape;
   className?: string;
 }): string {
   const resolved = TONE_ALIAS[tone] ?? tone;
-  return ["nf-plate", `nf-plate--${resolved}`, `nf-plate--${size}`, className ?? ""].filter(Boolean).join(" ");
+  return [
+    "nf-plate",
+    `nf-plate--${resolved}`,
+    `nf-plate--${size}`,
+    shape === "round" ? "nf-plate--round" : "",
+    className ?? "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 }
 
 export function IconPlate({
   size = "md",
   tone = "neutral",
+  shape = "square",
   className,
   children,
 }: {
   size?: IconPlateSize;
   tone?: IconPlateTone;
+  shape?: IconPlateShape;
   className?: string;
   children: ReactNode;
 }) {
   return (
-    <span className={iconPlateClass({ size, tone, className })} aria-hidden="true">
+    <span className={iconPlateClass({ size, tone, shape, className })} aria-hidden="true">
       {children}
     </span>
   );

@@ -44,78 +44,28 @@
     color: var(--nf-content-primary);
   }
   /*
-   * THE PLATFORM SWEEP (23 September). The list was one `.nf-glass--card` with
-   * rules between rows, each row its own `--nf-radius-lg` and brand tint, and
-   * each glyph a `.nf-glass--tile` resized and re-lit here. GOVERNING-12's
-   * notification centre draws a stack of lit cards, one per notification, the
-   * glyph on a plate. So each row is now the shared panel (`.nf-panel
-   * .nf-panel--card`) and each glyph the shared `IconPlate`; this file keeps
-   * only the layout. The rules are doubled to outrank `.nf-panel`, which
-   * glass.css declares.
+   * ONE GROUPED LIST (founder references 44 and 45, section 17; it replaces
+   * the platform sweep's stack of cards of 23 September). Each section is a
+   * `ListGroup`: one card, rows on inset hairlines, the glyph on the round
+   * tinted plate. This file keeps only what a notification adds to a row:
+   * the unread weight, the time and the dot.
    */
-  .nf-notif__list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--nf-space-xs);
-  }
-  .nf-panel.nf-notif__row {
-    flex-direction: row;
-    width: 100%;
-    min-height: 4rem;
+  .nf-notif .nf-list-section__head {
     align-items: center;
-    gap: var(--nf-gap-row);
-    padding: var(--nf-space-sm);
-    color: var(--nf-content-primary);
-    text-align: left;
-    transition: transform var(--nf-duration-press) var(--nf-ease-press);
   }
-  .nf-panel.nf-notif__row:active {
-    transform: scale(var(--nf-press-scale-lg));
-  }
-  /* Hover and unread follow the clean unified spec (sections 1.1 and 1.2): a
-     card never takes a coloured rim or a glow, in either theme. Hover is the
-     shared card hover shadow; unread is the dot, the title at full weight and
-     primary ink. Never colour alone. (It WAS the selected edge and its glow,
-     a bright blue outline on every unread card; integration QA, 30 September.) */
-  @media (hover: hover) {
-    .nf-panel.nf-notif__row:hover {
-      box-shadow: var(--nf-card-shadow-hover, none);
-    }
-  }
-  .nf-notif__row .nf-plate {
+  .nf-notif__row .nf-list-row__title {
     color: var(--nf-content-secondary);
   }
-  .nf-notif__row[data-unread="true"] .nf-plate {
-    color: var(--nf-content-primary);
-  }
-  .nf-notif__body {
-    min-width: 0;
-    flex: 1;
-  }
-  .nf-notif__title {
-    display: block;
-    font-size: var(--nf-text-body);
-    font-weight: 500;
-    line-height: 1.3;
-    color: var(--nf-content-secondary);
-  }
-  .nf-notif__row[data-unread="true"] .nf-notif__title {
+  .nf-notif__row--unread .nf-list-row__title {
     font-weight: 650;
     color: var(--nf-content-primary);
   }
-  .nf-notif__text {
-    display: block;
-    margin-top: var(--nf-space-3xs);
-    font-size: var(--nf-text-caption);
-    line-height: 1.4;
-    color: var(--nf-content-muted);
+  .nf-notif__row .nf-list-row__end {
+    align-self: flex-start;
+    justify-items: end;
   }
-  .nf-notif__meta {
-    display: flex;
-    flex-shrink: 0;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: var(--nf-space-xs);
+  .nf-notif__row .nf-list-row__value {
+    font-weight: 500;
   }
   .nf-notif__time {
     font-size: var(--nf-text-overline);
