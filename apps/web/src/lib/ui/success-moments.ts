@@ -203,6 +203,9 @@ export const DONE_FLAGS = {
   "listing-submitted": "listingSubmitted",
   "listing-approved": "listingApproved",
   "listing-live": "listingLive",
+  /* The owner invited agents to pitch; the portfolio checks the invitation
+     is open on that unit of theirs (`listing`). */
+  "agents-invited": "agentsInvited",
   "account-created": "accountCreated",
   "email-verified": "emailVerified",
   "password-changed": "passwordChanged",

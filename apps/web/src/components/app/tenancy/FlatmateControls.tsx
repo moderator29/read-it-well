@@ -28,7 +28,9 @@ function useRun() {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  function run(work: () => Promise<{ ok: boolean; error?: string }>) {
+  /* `onOk` takes over the refresh: a success moment refreshes the page when
+     it closes, so the list does not jump underneath it. */
+  function run(work: () => Promise<{ ok: boolean; error?: string }>, onOk?: () => void) {
     setError(null);
     start(async () => {
       const result = await work();
@@ -36,7 +38,8 @@ function useRun() {
         setError(result.error ?? null);
         return;
       }
-      router.refresh();
+      if (onOk) onOk();
+      else router.refresh();
     });
   }
   return { pending, error, run };
@@ -45,58 +48,91 @@ function useRun() {
 export function AddFlatmate({
   tenancyId,
   copy,
+  success: s,
 }: {
   tenancyId: string;
   copy: Copy;
+  /** The page's `t.success`, for "Invitation sent". Absent, no moment. */
+  success?: SuccessWords;
 }) {
+  const router = useRouter();
   const { pending, error, run } = useRun();
   const [email, setEmail] = useState("");
   const [share, setShare] = useState("");
+  /* Opens only once the database door took the invitation. */
+  const [invited, setInvited] = useState(false);
+  const words = s ? successCopy(s, "flatmateInvited") : null;
   return (
-    <form
-      className="grid gap-md"
-      data-testid="flatmate-add"
-      onSubmit={(event) => {
-        event.preventDefault();
-        run(() => addRentContributor({ tenancyId, email, shareNaira: share }));
-      }}
-    >
-      <p className="nf-body-sm text-[var(--nf-content-secondary)]">
-        {copy.addHelp}
-      </p>
-      <Field label={copy.email}>
-        {(control) => (
-          <input
-            {...control}
-            type="email"
-            autoComplete="off"
-            className="nf-field"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        )}
-      </Field>
-      <Field label={copy.share} error={error ?? undefined}>
-        {(control) => (
-          <input
-            {...control}
-            inputMode="decimal"
-            className="nf-field"
-            value={share}
-            onChange={(e) => setShare(e.target.value)}
-          />
-        )}
-      </Field>
-      <Button
-        type="submit"
-        variant="secondary"
-        full
-        loading={pending}
-        disabled={pending || !email.trim() || !share.trim()}
+    <>
+      <form
+        className="grid gap-md"
+        data-testid="flatmate-add"
+        onSubmit={(event) => {
+          event.preventDefault();
+          run(
+            () => addRentContributor({ tenancyId, email, shareNaira: share }),
+            s
+              ? () => {
+                  setEmail("");
+                  setShare("");
+                  setInvited(true);
+                }
+              : undefined,
+          );
+        }}
       >
-        {copy.addSubmit}
-      </Button>
-    </form>
+        <p className="nf-body-sm text-[var(--nf-content-secondary)]">
+          {copy.addHelp}
+        </p>
+        <Field label={copy.email}>
+          {(control) => (
+            <input
+              {...control}
+              type="email"
+              autoComplete="off"
+              className="nf-field"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          )}
+        </Field>
+        <Field label={copy.share} error={error ?? undefined}>
+          {(control) => (
+            <input
+              {...control}
+              inputMode="decimal"
+              className="nf-field"
+              value={share}
+              onChange={(e) => setShare(e.target.value)}
+            />
+          )}
+        </Field>
+        <Button
+          type="submit"
+          variant="secondary"
+          full
+          loading={pending}
+          disabled={pending || !email.trim() || !share.trim()}
+        >
+          {copy.addSubmit}
+        </Button>
+      </form>
+      {invited && words && s ? (
+        <SuccessSheet
+          open
+          onOpenChange={(open) => {
+            if (open) return;
+            setInvited(false);
+            router.refresh();
+          }}
+          variant={words.variant}
+          object={words.object}
+          title={words.title}
+          body={words.body}
+          primary={{ label: s.continue }}
+        />
+      ) : null}
+    </>
   );
 }
 

@@ -109,7 +109,7 @@ export default async function TenancyPage({
       <MoneySection file={file} copy={copy} />
       {/* Flatmates' shares are the lead tenant's business, not the lister's. */}
       {file.viewer === "tenant" && (!file.void || file.flatmates.locked) && (
-        <FlatmatesSection file={file} copy={mates} locale={locale} />
+        <FlatmatesSection file={file} copy={mates} locale={locale} success={t.success} />
       )}
       {file.viewer === "tenant" && file.paid && (
         <Section>
@@ -389,10 +389,13 @@ function CautionSection({ file, copy }: { file: TenancyFile; copy: Copy; locale:
 function FlatmatesSection({
   file,
   copy,
+  success,
 }: {
   file: TenancyFile;
   copy: ReturnType<typeof getDictionary>["afterTheGate"]["flatmates"];
   locale: Locale;
+  /** The page's `t.success`, for "Invitation sent". */
+  success: ReturnType<typeof getDictionary>["success"];
 }) {
   const mates = file.flatmates;
   if (mates.unavailable) {
@@ -452,7 +455,7 @@ function FlatmatesSection({
               <p className="nf-caption">{copy.locked}</p>
             ) : (
               <div className="nf-panel nf-panel--card block p-md">
-                <AddFlatmate tenancyId={file.id} copy={copy} />
+                <AddFlatmate tenancyId={file.id} copy={copy} success={success} />
               </div>
             )}
             {mates.cancellable && (

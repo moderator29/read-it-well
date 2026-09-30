@@ -7,6 +7,9 @@ import { ListingPitch } from "../list/ListingPitch";
 import { groupByPlace } from "@/lib/landlord/portfolio";
 import { readMandateBriefs, readMyBuildings, readPitchesFor } from "@/lib/landlord/portfolio-queries";
 import { AwardButton, InviteForm, PitchForm, WithdrawButton } from "./PortfolioControls";
+import { SuccessFromFlag } from "@/components/ui/SuccessFromFlag";
+import { portfolioInviteArrival } from "@/lib/ui/arrival-moments";
+import { readDone } from "@/lib/ui/success-moments";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
@@ -35,7 +38,12 @@ function day(iso: string | null, locale: Locale): string {
  * choosing an agent, and answers with a note; the owner reads it beside the
  * agent's record on Vallo. Nothing here ever shows an address.
  */
-export default async function PortfolioPage() {
+export default async function PortfolioPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ done?: string | string[]; listing?: string | string[] }>;
+}) {
+  const query = await searchParams;
   const locale = await getLocale();
   const t = getDictionary(locale);
   const copy = t.landlord.portfolio;
@@ -54,9 +62,20 @@ export default async function PortfolioPage() {
   const pitches = await readPitchesFor(open);
   const groups = groupByPlace(units ?? []);
   const nothing = (units?.length ?? 0) === 0 && (briefs?.length ?? 0) === 0;
+  const listingParam = Array.isArray(query.listing) ? query.listing[0] : query.listing;
+  const invited = portfolioInviteArrival(units ?? [], readDone(query.done), listingParam);
 
   return (
     <AgentShell t={t} locale={locale} active="/agent/portfolio" profile={agentProfileFrom(context.agent)}>
+      {/* Rendered unconditionally, `show` deciding: it latches what it says
+          when it opens, so stripping the flag cannot take it away. */}
+      <SuccessFromFlag
+        copy={t.success}
+        show={invited !== null}
+        moment="agentsInvited"
+        values={invited?.values}
+        strip={["listing"]}
+      />
       <div className="mb-lg">
         <h1 className="nf-h1">{copy.title}</h1>
         <p className="mt-2xs text-[var(--nf-content-secondary)]">{copy.lede}</p>

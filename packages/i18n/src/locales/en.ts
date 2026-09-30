@@ -6170,10 +6170,11 @@ export const en = {
         title: "Invitation sent",
         body: "They can accept or decline their share from their Vallo account. Their answer shows here.",
       },
-      /* Only when the database says it told at least one agent ({n}). */
+      /* Only when the database says it told at least one agent, and the
+         page finds the invitation open on this owner's unit. */
       agentsInvited: {
         title: "Invitation sent",
-        body: "We told {n} agents, and they can pitch for {place}. Their pitches show here.",
+        body: "Agents who list in this area were told, and they can pitch for {place}. Their pitches show here.",
       },
     },
   },

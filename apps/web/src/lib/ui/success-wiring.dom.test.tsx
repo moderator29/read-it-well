@@ -763,3 +763,158 @@ run("account created, password changed, email verified, passcode set (the root l
     }
   });
 });
+
+/* ---------------------------------------- the moment's own promises, per flow */
+
+/*
+ * Every account moment the host shows (passcode set and changed, account
+ * ready, email confirmed, password changed): the right words, the right
+ * object, and ONE primary pill that is a real 44px-or-taller target and
+ * closes the moment. The account moments land wherever the person was going,
+ * so their button is "Continue", which closes, rather than a link.
+ */
+run("the account moments' object and button, flow by flow", () => {
+  it.each([
+    ["passcode-set", "Passcode set", "shield"],
+    ["passcode-changed", "Passcode changed", "shield"],
+    ["account-created", "Welcome to Vallo", "verified"],
+    ["email-verified", "Email confirmed", "bell"],
+    ["password-changed", "Password changed", "shield"],
+  ] as const)("%s: %s, with its object and a Continue pill that closes it", async (flag, title, object) => {
+    const { page, close } = await mountInBrowser({ entry: HOST });
+    try {
+      await page.evaluate((f) => (window as unknown as { __show: (f: string) => void }).__show(f), flag);
+      const dialog = page.getByRole("dialog", { name: title });
+      await dialog.waitFor({ timeout: 15_000 });
+      expect(await page.locator(".nf-success__mark").getAttribute("data-object")).toBe(object);
+      const primary = page.getByTestId("success-primary");
+      expect(await primary.textContent()).toBe("Continue");
+      expect(await primary.evaluate((el) => el.tagName)).toBe("BUTTON");
+      expect(await page.getByTestId("success-secondary").count()).toBe(0);
+      await primary.click();
+      await page.waitForFunction(() => document.querySelector('[data-testid="success-sheet-account"]') === null);
+    } finally {
+      await close();
+    }
+  });
+});
+
+/* ---------------------------------------------------------- invitations */
+
+const ADD_FLATMATE = `
+  import { mount } from "@/lib/testing/browser-root";
+  import { getDictionary } from "@vallo/i18n";
+  import { AddFlatmate } from "@/components/app/tenancy/FlatmateControls";
+  mount(<AddFlatmate tenancyId="11111111-1111-4111-8111-111111111111" copy={getDictionary("en").afterTheGate.flatmates} success={getDictionary("en").success} />);
+`;
+
+async function inviteFlatmate(page: Page): Promise<void> {
+  const inputs = page.locator('[data-testid="flatmate-add"] input');
+  await inputs.nth(0).fill("ada@example.com");
+  await inputs.nth(1).fill("150000");
+  await page.locator('[data-testid="flatmate-add"] button[type="submit"]').click();
+}
+
+run("flatmate invited to share a move-in", () => {
+  it("opens 'Invitation sent' once the door took it, and refreshes only when it closes", async () => {
+    const { page, close } = await mountInBrowser({
+      entry: ADD_FLATMATE,
+      actions: { addRentContributor: `async () => ({ ok: true, data: null })` },
+    });
+    try {
+      await inviteFlatmate(page);
+      await sheetOpens(page, "Invitation sent");
+      expect(await page.locator(".nf-success__mark").getAttribute("data-object")).toBe("handover");
+      /* It says what happens next, and never that anybody agreed. */
+      expect(await page.locator(".nf-success__body").textContent()).toContain("accept or decline");
+      expect((await routerCalls(page)).filter((c) => c[0] === "refresh")).toHaveLength(0);
+      await page.getByTestId("success-primary").click();
+      await page.waitForFunction(() => (window as unknown as { __router: { calls: unknown[][] } }).__router.calls.some((c) => c[0] === "refresh"));
+    } finally {
+      await close();
+    }
+  });
+
+  it("does not open when the door refuses", async () => {
+    const { page, close } = await mountInBrowser({
+      entry: ADD_FLATMATE,
+      actions: { addRentContributor: `async () => ({ ok: false, error: "No Vallo account uses that email address." })` },
+    });
+    try {
+      await inviteFlatmate(page);
+      await page.getByText("No Vallo account uses that email address.").first().waitFor();
+      await noSheet(page);
+    } finally {
+      await close();
+    }
+  });
+});
+
+const INVITE_AGENTS = `
+  import { mount } from "@/lib/testing/browser-root";
+  import { getDictionary } from "@vallo/i18n";
+  import { InviteForm } from "@/app/agent/portfolio/PortfolioControls";
+  mount(<InviteForm listingId="l-1" place="Flat 2, Yaba" copy={getDictionary("en").landlord.portfolio} />);
+`;
+
+async function inviteAgents(page: Page): Promise<void> {
+  const inputs = page.locator("form input");
+  await inputs.nth(0).fill("2000000");
+  await inputs.nth(1).fill("2500000");
+  await page.getByTestId("portfolio-invite").click();
+}
+
+run("agents invited to pitch (owner's portfolio)", () => {
+  it("asks the portfolio for the moment, naming the unit, only when the database told somebody", async () => {
+    const { page, close } = await mountInBrowser({
+      entry: INVITE_AGENTS,
+      url: "http://vallo.test/agent/portfolio",
+      actions: { inviteAgents: `async () => ({ ok: true, data: { told: 3 } })` },
+    });
+    try {
+      await inviteAgents(page);
+      await page.waitForFunction(() => (window as unknown as { __router: { calls: unknown[][] } }).__router.calls.some((c) => c[0] === "replace"));
+      const replaced = (await routerCalls(page)).filter((c) => c[0] === "replace");
+      expect(replaced[0]?.[1]).toBe("/agent/portfolio?done=agents-invited&listing=l-1");
+    } finally {
+      await close();
+    }
+  });
+
+  it("asks for nothing when nobody was told, or when it was refused", async () => {
+    for (const answer of [`{ ok: true, data: { told: 0 } }`, `{ ok: false, error: "band" }`]) {
+      const { page, close } = await mountInBrowser({
+        entry: INVITE_AGENTS,
+        actions: { inviteAgents: `async () => (${answer})` },
+      });
+      try {
+        await inviteAgents(page);
+        await actionCalled(page, "inviteAgents");
+        await page.locator("form p[role]").waitFor();
+        expect((await routerCalls(page)).filter((c) => c[0] === "replace")).toHaveLength(0);
+      } finally {
+        await close();
+      }
+    }
+  });
+
+  it("opens on arrival when the page found the invitation open on that unit", async () => {
+    const { page, close } = await mountInBrowser({
+      entry: `
+        import { mount } from "@/lib/testing/browser-root";
+        import { getDictionary } from "@vallo/i18n";
+        import { SuccessFromFlag } from "@/components/ui/SuccessFromFlag";
+        mount(<SuccessFromFlag copy={getDictionary("en").success} show moment="agentsInvited" values={{ place: "Flat 2, Yaba" }} strip={["listing"]} />);
+      `,
+      url: "http://vallo.test/agent/portfolio?done=agents-invited&listing=l-1",
+    });
+    try {
+      await sheetOpens(page, "Invitation sent");
+      expect(await page.locator(".nf-success__body").textContent()).toContain("Flat 2, Yaba");
+      const replaced = (await routerCalls(page)).filter((c) => c[0] === "replace");
+      expect(replaced[0]?.[1]).toBe("/agent/portfolio");
+    } finally {
+      await close();
+    }
+  });
+});

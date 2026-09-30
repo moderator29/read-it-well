@@ -54,6 +54,23 @@ export function listingArrival(
   return null;
 }
 
+/**
+ * The owner's invitation to agents (`/agent/portfolio?done=agents-invited&listing=`):
+ * shown only when that unit is one of this owner's and its invitation is
+ * open now. The form asks for it only when the database told at least one
+ * agent; a hand-typed flag on a unit with no open invitation shows nothing.
+ */
+export function portfolioInviteArrival(
+  units: readonly { listingId: string; place: string; invitationStatus: string | null }[],
+  done: DoneFlag | null,
+  listingId: string | null | undefined,
+): { moment: SuccessMomentId; values: Record<string, string> } | null {
+  if (done !== "agents-invited" || !listingId) return null;
+  const unit = units.find((row) => row.listingId === listingId);
+  if (!unit || unit.invitationStatus !== "open") return null;
+  return { moment: "agentsInvited", values: { place: unit.place } };
+}
+
 /* ------------------------------------------ approvals decided elsewhere */
 
 

@@ -2,7 +2,9 @@
 
 import { useId, useState, useTransition } from "react";
 import type { Dictionary } from "@vallo/i18n/core";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
+import { withDone } from "@/lib/ui/success-moments";
 import { awardMandate, inviteAgents, pitchForMandate, withdrawInvitation } from "@/lib/landlord/portfolio-actions";
 
 type Copy = Dictionary["landlord"]["portfolio"];
@@ -15,6 +17,7 @@ export function InviteForm({ listingId, place, copy }: { listingId: string; plac
   const [max, setMax] = useState("");
   const [note, setNote] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
   const [pending, start] = useTransition();
+  const router = useRouter();
 
   return (
     <form
@@ -29,6 +32,13 @@ export function InviteForm({ listingId, place, copy }: { listingId: string; plac
               tone: "ok",
               text: result.data.told > 0 ? copy.inviteSent.replace("{n}", String(result.data.told)) : copy.inviteSentNone,
             });
+            /* "Invitation sent" only when the database told somebody; the
+               portfolio checks the invitation is open on this unit before
+               it shows (arrival-moments.ts), and the form itself gives way
+               to the invitation as the page refreshes. */
+            if (result.data.told > 0) {
+              router.replace(withDone("/agent/portfolio", "agents-invited", { listing: listingId }), { scroll: false });
+            }
             return;
           }
           setNote({ tone: "error", text: result.error === "band" ? copy.inviteBand : copy.inviteFailed });

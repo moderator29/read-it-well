@@ -7,6 +7,7 @@ import { createClientWithAgent } from "@/lib/security/agent-client";
 import { consume, ipFromHeaders, subjectForIp } from "@/lib/security/rate-limit";
 import { safeReturnPath } from "@/lib/security/return-path";
 import { formatPhone, normalisePhone } from "@/lib/phone";
+import { rememberFirstCodeSignIn } from "./first-sign-in-server";
 import { isSixDigits, type CodeSignInState } from "./code-sign-in-state";
 import { phoneSignInEnabled } from "./phone-sign-in-flag";
 
@@ -57,8 +58,11 @@ export async function verifyPhoneSignInCode(_prev: CodeSignInState, formData: Fo
   if (!verdict.allowed) return { step: "code", target: phone, shown: formatPhone(phone), error: "limited" };
 
   const supabase = await createClientWithAgent();
-  const { error } = await supabase.auth.verifyOtp({ phone, token, type: "sms" });
+  const { data, error } = await supabase.auth.verifyOtp({ phone, token, type: "sms" });
   if (error) return { step: "code", target: phone, shown: formatPhone(phone), error: "wrongCode" };
+  /* A first sign-in (this code confirmed the number) earns "Welcome to
+     Vallo" on the next screen, by the one-shot cookie. */
+  await rememberFirstCodeSignIn(supabase, data?.user, "phone");
 
   revalidatePath("/", "layout");
   const next = formData.get("next");

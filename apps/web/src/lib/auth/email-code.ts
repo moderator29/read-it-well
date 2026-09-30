@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { createClientWithAgent } from "@/lib/security/agent-client";
 import { consume, ipFromHeaders, subjectForEmail, subjectForIp } from "@/lib/security/rate-limit";
 import { safeReturnPath } from "@/lib/security/return-path";
+import { rememberFirstCodeSignIn } from "./first-sign-in-server";
 import { isSixDigits, type CodeSignInState } from "./code-sign-in-state";
 
 /**
@@ -70,8 +71,11 @@ export async function verifyEmailSignInCode(_prev: CodeSignInState, formData: Fo
   if (!verdict.allowed) return { step: "code", target: email, shown: maskAddress(email), error: "limited" };
 
   const supabase = await createClientWithAgent();
-  const { error } = await supabase.auth.verifyOtp({ email, token, type: "email" });
+  const { data, error } = await supabase.auth.verifyOtp({ email, token, type: "email" });
   if (error) return { step: "code", target: email, shown: maskAddress(email), error: "wrongCode" };
+  /* A first sign-in (this code confirmed the address) earns "Welcome to
+     Vallo" on the next screen, by the one-shot cookie. */
+  await rememberFirstCodeSignIn(supabase, data?.user, "email");
 
   /* The address the chooser remembered is spent, as after a password sign-in. */
   (await cookies()).delete("nf_chooser_email");

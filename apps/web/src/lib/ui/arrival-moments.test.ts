@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { approvedRecently } from "./recent-approval";
-import { agreementArrival, applicationArrival, businessArrival, listingArrival } from "./arrival-moments";
+import { agreementArrival, applicationArrival, businessArrival, listingArrival, portfolioInviteArrival } from "./arrival-moments";
 
 /**
  * The pages that show a success moment on arrival (docs/SUCCESS_MOMENTS.md):
@@ -98,5 +98,29 @@ describe("approvals decided in the staff console", () => {
     });
     expect(businessArrival([b("1", "APPROVED", "2026-09-20T10:00:00Z"), b("2", "PUBLISHED", recent)], now)?.seenKey).toBe("host-live:2");
     expect(businessArrival([b("1", "PUBLISHED", old), b("2", "REJECTED", recent), b("3", "SUBMITTED", null)], now)).toBeNull();
+  });
+});
+
+describe("the owner's invitation to agents, on the portfolio", () => {
+  const units = [
+    { listingId: "l-1", place: "Flat 2, Yaba", invitationStatus: "open" },
+    { listingId: "l-2", place: "Flat 3, Yaba", invitationStatus: null },
+    { listingId: "l-3", place: "Flat 4, Yaba", invitationStatus: "awarded" },
+  ];
+
+  it("opens for this owner's unit with an open invitation, naming the place", () => {
+    expect(portfolioInviteArrival(units, "agents-invited", "l-1")).toEqual({
+      moment: "agentsInvited",
+      values: { place: "Flat 2, Yaba" },
+    });
+  });
+
+  it("does not open without an open invitation, for another's unit, or for another flag", () => {
+    expect(portfolioInviteArrival(units, "agents-invited", "l-2")).toBeNull();
+    expect(portfolioInviteArrival(units, "agents-invited", "l-3")).toBeNull();
+    expect(portfolioInviteArrival(units, "agents-invited", "someone-elses")).toBeNull();
+    expect(portfolioInviteArrival(units, "agents-invited", null)).toBeNull();
+    expect(portfolioInviteArrival(units, "listing-live", "l-1")).toBeNull();
+    expect(portfolioInviteArrival(units, null, "l-1")).toBeNull();
   });
 });
