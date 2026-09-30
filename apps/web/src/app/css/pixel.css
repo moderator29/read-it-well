@@ -80,10 +80,11 @@
 /* ------------------------------------------------ T2 THE LISTING'S MEASURE
  * On a portrait tablet the listing is one 772px column, and its description,
  * the move-in notes and the example notice ran to 84 to 94 characters a
- * line. Their paragraphs keep the body measure (62ch); the cards around
- * them keep their width. */
+ * line. Their paragraphs (in the sections, panels and cards of the detail
+ * surface, never a centred one) keep the body measure (62ch); the cards
+ * around them keep their width. */
 @layer components {
-  .nf-cat-surface :is(.nf-detail-panel, .nf-detail-lead, .nf-movein) p {
+  .nf-cat-surface :is(.nf-hairline, .nf-panel, .nf-detail-panel, .nf-detail-lead, .nf-movein) p:not(.text-center) {
     max-width: var(--nf-measure-body);
   }
 }
