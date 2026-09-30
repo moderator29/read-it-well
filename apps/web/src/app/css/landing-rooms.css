@@ -1232,6 +1232,10 @@
     color: var(--nf-content-secondary);
   }
   .nf-worlds__cards {
+    /* A16: the containing block for the cards' absolutely placed spoken
+       prices (`.sr-only`), so they are clipped by this scroller instead of
+       widening the page: at 320px (200% zoom) they pushed it 305px sideways. */
+    position: relative;
     display: grid;
     grid-auto-flow: column;
     grid-auto-columns: minmax(12rem, 1fr);
@@ -2112,7 +2116,8 @@
   }
   .nf-mo__slots > li[data-chosen] {
     background: var(--nf-brand-primary);
-    color: color-mix(in oklab, var(--nf-content-on-brand) 82%, transparent);
+    /* A16: full ink, not 82%: the dimmed word failed 4.5:1 on the brand fill. */
+    color: var(--nf-content-on-brand);
   }
   .nf-mo__slots > li[data-chosen] > span:first-child {
     color: var(--nf-content-on-brand);
@@ -2142,7 +2147,9 @@
     background: var(--nf-brand-tint-2, var(--nf-surface-raised));
     font-size: 0.8125rem;
     font-weight: 600;
-    color: var(--nf-brand-primary);
+    /* A16: the link blue, which each theme tunes for text; brand-primary on
+       its own tint failed 4.5:1 at night. */
+    color: var(--nf-content-link);
   }
   .nf-mo__rows {
     margin-top: 0.5rem;

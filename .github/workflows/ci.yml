@@ -193,6 +193,69 @@ jobs:
       - name: Build
         run: npm run build
 
+  # A15 and A16 (30 September 2026): the front door, measured on a production
+  # build. The build is started with `next start` and walked by three scripts:
+  #   - the weight budget (`scripts/check-weight.mjs`): transferred KB per
+  #     public route at 390; a null budget prints the measured weight and never
+  #     fails, so the first green run is where budgets are recorded from;
+  #   - the landing height ratchet (`scripts/check-landing-height.mjs`),
+  #     against `perf-budget.json` "heights" (UIUX item 9 targets beside it);
+  #   - the accessibility gate (`tests/a11y-front-door.spec.mjs`): axe over
+  #     every public front-door page in en, ha, yo and ig, dark and light, at
+  #     390 and 1440, motion off. Serious or critical findings fail the job.
+  front-door:
+    name: Front door speed and accessibility
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL || 'https://uccixoonmbhrnyczyigt.supabase.co' }}
+      NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL || 'https://www.vallospaces.com' }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      NEXT_PUBLIC_MAPTILER_KEY: ${{ vars.NEXT_PUBLIC_MAPTILER_KEY }}
+      BASE_URL: http://localhost:3210
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Browser
+        run: npx playwright-core install --with-deps chromium
+
+      - name: Build
+        run: npm run build --workspace @vallo/web
+
+      - name: Start the production server
+        working-directory: apps/web
+        run: |
+          npx next start -p 3210 > next-start.log 2>&1 &
+          for i in $(seq 1 60); do
+            curl -sf -o /dev/null http://localhost:3210/ && exit 0
+            sleep 2
+          done
+          cat next-start.log
+          exit 1
+
+      - name: Weight budget (public routes)
+        working-directory: apps/web
+        run: node scripts/check-weight.mjs
+
+      - name: Landing height ratchet
+        if: ${{ !cancelled() }}
+        working-directory: apps/web
+        run: node scripts/check-landing-height.mjs
+
+      - name: Accessibility gate (axe, four locales)
+        if: ${{ !cancelled() }}
+        working-directory: apps/web
+        run: node tests/a11y-front-door.spec.mjs
+
   # DOC-03. Every supabase/tests/probes/*.sql against the database named by the
   # PROBES_DATABASE_URL secret; each probe must raise PROBE_OK and always rolls
   # back (supabase/tests/README.md). Without the secret this job FAILS, saying

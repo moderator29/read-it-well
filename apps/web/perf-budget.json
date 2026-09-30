@@ -1,15 +1,21 @@
 {
-  "$comment": "V-80. Transferred kilobytes for a cold load at 390x844, per route. null means not yet measured against a production build: run `node scripts/check-weight.mjs --record` against one and the budget becomes the measured weight minus 20 percent. Ratchet down, never up without a reason in the commit.",
+  "$comment": "V-80 and A15. Transferred kilobytes for a cold load at 390x844, per route, and the landing's height. A null budget is reported and never fails: run `node scripts/check-weight.mjs --record` against a PRODUCTION build (the CI speed job prints the measured weights) and each budget becomes the measured weight minus 20 percent. Ratchet down, never up without a reason in the commit. /wallet was retired on 25 September and is gone from the list. Heights are a ratchet too: the UIUX item 9 targets are under 8,000px at 390 and under 6,500px at 1440, and the landing is above both (A7 and A8 added the check room and the move-in card on 30 September), so the budget holds today's height and must only come down.",
   "routes": [
     { "path": "/", "signedIn": false, "budgetKb": null },
     { "path": "/welcome", "signedIn": false, "budgetKb": null },
     { "path": "/sign-in", "signedIn": false, "budgetKb": null },
+    { "path": "/sign-up/email", "signedIn": false, "budgetKb": null },
+    { "path": "/check", "signedIn": false, "budgetKb": null },
+    { "path": "/move-in-cost", "signedIn": false, "budgetKb": null },
+    { "path": "/for-agents", "signedIn": false, "budgetKb": null },
+    { "path": "/guides/avoiding-rental-scams", "signedIn": false, "budgetKb": null },
     { "path": "/home", "signedIn": true, "budgetKb": null },
     { "path": "/search", "signedIn": true, "budgetKb": null },
     { "path": "/listing/seed-2", "signedIn": true, "budgetKb": null },
-    { "path": "/stays/search", "signedIn": true, "budgetKb": null },
-    { "path": "/host", "signedIn": true, "budgetKb": null },
-    { "path": "/agent/dashboard", "signedIn": true, "budgetKb": null },
-    { "path": "/agent/listings", "signedIn": true, "budgetKb": null }
+    { "path": "/stays/search", "signedIn": true, "budgetKb": null }
+  ],
+  "heights": [
+    { "path": "/", "width": 390, "maxPx": 11200, "targetPx": 8000 },
+    { "path": "/", "width": 1440, "maxPx": 9100, "targetPx": 6500 }
   ]
 }
