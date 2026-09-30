@@ -160,8 +160,11 @@ export async function buildClose(ctx, S) {
     });
     const rise = (t, lag) => ramp(ctx, t, K.r41 + lag, K.r41 + 0.85 + lag, "land");
     const drift = (t, ph) => Math.sin((t - K.r41) * 0.9 + ph);
-    pI.poses.push({ t0: K.r41 - 0.02, t1: end, fn: (t) => ({ cx: 392 + 4 * drift(t, 0), cy: 1050 + (1 - rise(t, 0.05)) * 1150 + 5 * drift(t, 1.3), height: 800, rx: 2, ry: mix(-4, 13, rise(t, 0.05)) + 1.5 * drift(t, 2), rz: 0, fov: 24, opacity: 1 }) });
-    pA.poses.push({ t0: K.r41 - 0.02, t1: end, fn: (t) => ({ cx: 694 - 4 * drift(t, 0.6), cy: 1066 + (1 - rise(t, 0.16)) * 1150 + 5 * drift(t, 2.1), height: 790, rx: 2, ry: mix(4, -13, rise(t, 0.16)) - 1.5 * drift(t, 2.7), rz: 0, fov: 24, opacity: 1 }) });
+    /* the hold: a slow turn toward the viewer and a slight push, never still */
+    const hold = (t) => ramp(ctx, t, K.r41 + 0.9, end, "sine.inOut");
+    pI.poses.push({ t0: K.r41 - 0.02, t1: end, fn: (t) => ({ cx: 392 + 4 * drift(t, 0), cy: 1050 + (1 - rise(t, 0.05)) * 1150 + 5 * drift(t, 1.3) - 10 * hold(t), height: 800 * (1 + 0.04 * hold(t)), rx: 2, ry: mix(-4, 13, rise(t, 0.05)) - 6 * hold(t) + 1.5 * drift(t, 2), rz: 0, fov: 24, opacity: 1 }) });
+    pA.poses.push({ t0: K.r41 - 0.02, t1: end, fn: (t) => ({ cx: 694 - 4 * drift(t, 0.6), cy: 1066 + (1 - rise(t, 0.16)) * 1150 + 5 * drift(t, 2.1) - 10 * hold(t), height: 790 * (1 + 0.04 * hold(t)), rx: 2, ry: mix(4, -13, rise(t, 0.16)) + 6 * hold(t) - 1.5 * drift(t, 2.7), rz: 0, fov: 24, opacity: 1 }) });
+    sparkles(ctx, top, { area: { x: 120, y: 200, w: 820, h: 360 }, count: 4, seed: 4101, t0: K.r41 + 0.8, t1: end + 1, color: "#5c9fff", min: 16, max: 28 });
     const url0 = K.r42;
     during(ctx, K.r41 - 0.02, end, (t) => {
       const a = ramp(ctx, t, K.r41 + 0.25, K.r41 + 0.95, "land");
@@ -186,7 +189,9 @@ export async function buildClose(ctx, S) {
     const dImg = screenImage(ctx, pD, "home-light");
     const rise = (t, lag) => ramp(ctx, t, K.r41 + lag, K.r41 + 0.85 + lag, "land");
     const drift = (t, ph) => Math.sin((t - K.r41) * 0.9 + ph);
-    pD.poses.push({ t0: K.r41 - 0.02, t1: end, fn: (t) => ({ cx: 1500 + 3 * drift(t, 0.4), cy: 470 + (1 - rise(t, 0.14)) * 900 + 4 * drift(t, 1.1), height: 820, rx: 2, ry: mix(6, -10, rise(t, 0.14)) - 1.2 * drift(t, 2.2), rz: 0, fov: 24, opacity: 1 }) });
+    const hold = (t) => ramp(ctx, t, K.r41 + 0.9, end, "sine.inOut");
+    pD.poses.push({ t0: K.r41 - 0.02, t1: end, fn: (t) => ({ cx: 1500 + 3 * drift(t, 0.4), cy: 470 + (1 - rise(t, 0.14)) * 900 + 4 * drift(t, 1.1) - 8 * hold(t), height: 820 * (1 + 0.035 * hold(t)), rx: 2, ry: mix(6, -10, rise(t, 0.14)) + 5 * hold(t) - 1.2 * drift(t, 2.2), rz: 0, fov: 24, opacity: 1 }) });
+    sparkles(ctx, top, { area: { x: 1220, y: 40, w: 600, h: 220 }, count: 3, seed: 4102, t0: K.r41 + 0.8, t1: end + 1, color: "#5c9fff", min: 14, max: 24 });
     ctx.onFrame((t) => {
       dImg.style.visibility = t >= K.r41 - 0.05 ? "" : "hidden";
     });

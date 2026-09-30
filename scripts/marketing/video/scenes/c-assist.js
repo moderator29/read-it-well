@@ -128,11 +128,13 @@ export async function buildAssist(ctx, S) {
     p.poses.push({
       t0: K.r32 + 0.5, t1: leave[1] + 0.02,
       fn: (t) => ({
-        cx: P.cx, height: P.height, fov: 24, rz: 0,
-        cy: track(ctx, t, [[K.questionEnd - 0.05, P.cy + 1250], [K.questionEnd + 0.72, P.cy, "land"], [leave[0], P.cy], [leave[1], P.cy + 1350, "leave"]]),
+        cx: P.cx, fov: 24, rz: 0,
+        /* while the answer rests, a slow drift: a quarter turn of a few degrees and a slight push */
+        height: P.height * (1 + 0.025 * ramp(ctx, t, K.renting, leave[0], "sine.inOut")),
+        cy: track(ctx, t, [[K.questionEnd - 0.05, P.cy + 1250], [K.questionEnd + 0.72, P.cy, "land"], [leave[0], P.cy], [leave[1], P.cy + 1750, "leave"]]),
         rx: track(ctx, t, [[K.questionEnd - 0.05, 16], [K.questionEnd + 0.8, 0, "land"], [leave[0], 0], [leave[1], 14, "leave"]]),
-        ry: track(ctx, t, [[K.questionEnd - 0.05, 8], [K.questionEnd + 0.8, 0, "land"], [leave[0], 0], [leave[1], -6, "leave"]]),
-        opacity: 1 - ramp(ctx, t, leave[1] - 0.12, leave[1]),
+        ry: track(ctx, t, [[K.questionEnd - 0.05, 8], [K.questionEnd + 0.8, 0, "land"], [K.renting, 0], [leave[0], -5, "sine.inOut"], [leave[1], -10, "leave"]]),
+        opacity: 1,
       }),
     });
 
@@ -302,7 +304,8 @@ export async function buildAssist(ctx, S) {
         const cx = it.anchor === "right" ? it.x - it.w / 2 : it.x + it.w / 2;
         /* each word slides out from the device's side */
         const dx = M ? 50 : -50;
-        place(it.n, { x: cx + dx * (1 - inU), y: it.y - outU * 30, o: Math.min(1, inU * 2) * (1 - outU) });
+        const float = -8 * ramp(ctx, t, it.t + 0.3, leave[0], "sine.inOut");
+        place(it.n, { x: cx + dx * (1 - inU), y: it.y + float - outU * 30, o: Math.min(1, inU * 2) * (1 - outU) });
       });
     });
   }

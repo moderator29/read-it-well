@@ -1,8 +1,10 @@
 /* 30 · Story. "Almost here." Night. The launch line, exactly "Coming soon on
  * iPhone and Android.", under the headline; an iPhone and an Android phone
- * side by side, both on the first welcome card ("Two worlds. One platform."),
- * no logos and no store badges. A megaphone is the post's 3D icon. Everything
- * sits inside the story's safe zone. */
+ * side by side on the same screen, the assistant's greeting ("How can I help
+ * today? Ask about somewhere to rent or buy, a hotel or shortlet to stay in, a
+ * table to book, and what moving in really costs."), no logos and no store
+ * badges. A megaphone is the post's 3D icon. Everything sits inside the
+ * story's safe zone. */
 import { SLOT, frame, headline, icon3d, phone, subline } from "../lib/premium.mjs";
 import { phoneHtml } from "../lib/kit.mjs";
 
@@ -16,8 +18,8 @@ export default {
   W,
   H,
   phones: [
-    phone("welcome-1", "night", { ...PLACE, cx: 306 }),
-    phone("welcome-1", "night", { ...PLACE, cx: 774 }, { model: "android" }),
+    phone("assistant", "night", { ...PLACE, cx: 306 }),
+    phone("assistant", "night", { ...PLACE, cx: 774 }, { model: "android" }),
   ],
   html: ({ phones }) =>
     frame({

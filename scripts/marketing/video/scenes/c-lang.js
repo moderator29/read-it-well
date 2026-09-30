@@ -105,7 +105,7 @@ export async function buildLang(ctx, S) {
 
   const partCentre = M ? 640 : 590; // where the device rises
   during(ctx, K.r35 - 0.02, K.r37 + 0.05, (t) => {
-    const drift = (t - K.r35) * (M ? 16 : 20);
+    const drift = (t - K.r35) * (M ? 26 : 30);
     const p = ramp(ctx, t, part[0], part[1], "power3.inOut");
     const fade = 1 - ramp(ctx, t, K.hausa - 0.1, K.hausa + 0.5, "power2.inOut") * 0.9 - ramp(ctx, t, K.r37 - 0.3, K.r37) * 0.1;
     pills.forEach((q, i) => {

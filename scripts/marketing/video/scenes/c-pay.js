@@ -134,10 +134,10 @@ export async function buildPay(ctx, S) {
       t0: K.r28 - 0.05, t1: K.r29 - 0.02,
       fn: (tt) => ({
         cx: P.cx, height: P.height, fov: 24, rz: 0,
-        cy: track(ctx, tt, [[K.r28, P.cy + 1150], [K.r28 + 0.36, P.cy, "land"], [K.pay + 0.16, P.cy], [K.r29 - 0.08, P.cy + 1500, "leave"]]),
+        cy: track(ctx, tt, [[K.r28, P.cy + 1150], [K.r28 + 0.36, P.cy, "land"], [K.pay + 0.16, P.cy], [K.r29 - 0.08, P.cy + 1750, "leave"]]),
         rx: track(ctx, tt, [[K.r28, 10], [K.r28 + 0.4, 0, "land"], [K.pay + 0.16, 0], [K.r29 - 0.08, 18, "leave"]]),
         ry: track(ctx, tt, [[K.r28, -9], [K.r28 + 0.42, 0, "land"], [K.pay + 0.16, 0], [K.r29 - 0.08, -7, "leave"]]),
-        opacity: 1 - ramp(ctx, tt, K.r29 - 0.2, K.r29 - 0.08),
+        opacity: 1, // it leaves by moving: below the frame by 64.53
       }),
     });
   } else {
