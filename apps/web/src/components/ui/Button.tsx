@@ -50,14 +50,14 @@ import { feedback } from "@/lib/ui/feedback";
  * FOUR LEVELS, ONE PER JOB (the clean unified sweep, 29 September 2026;
  * `docs/design/CLEAN_UNIFIED_DIRECTION.md` section 3):
  *
- *   primary    ONE per view. Solid brand on paper; the lit bar with its glow
- *              at night (the glow budget's one button).
- *   secondary  white on a hairline in light, a raised night surface at night.
+ *   primary    ONE per view. A solid brand pill on paper; the lit bar with
+ *              its glow at night (the glow budget's one button).
+ *   secondary  a white pill on a soft shadow in light, a raised night
+ *              surface at night (section 17: every text button is a pill).
  *   quiet      no fill, brand ink ("See all 8", "Manage", row actions).
- *   icon       a 44px square on a hairline (back, prev and next, search,
- *              bell); pass `aria-label`. `round` makes it the 44px circle the
- *              header's search and bell take (spec section 16, Q1), and
- *              nothing else should.
+ *   icon       a 44px square on a hairline (prev and next, row tools);
+ *              pass `aria-label`. `round` makes it the 44px white circle the
+ *              header's back, search, bell and more take (section 17).
  *
  * `ghost` is the old name of `quiet` and renders it. `glass` renders the
  * secondary: the brand-edged glass secondary was a second glowing button
@@ -75,6 +75,11 @@ export type ButtonVariant =
   | "dangerQuiet";
 
 /**
+ * EVERY BUTTON IS A PILL NOW (founder references 44 and 45, 30 September
+ * 2026; CLEAN_UNIFIED_DIRECTION.md section 17). The shape lives in
+ * `buttons.css` on `--nf-radius-button`, so `shape="pill"` is a no-op that
+ * nothing needs to pass. The history below is kept as the record.
+ *
  * RETIRED BY THE SHAPE LAW, and kept only so nothing breaks on the night it
  * landed. A control that carries text is a rounded rectangle on
  * `--nf-radius-control`; there is no capsule variant of a control any more.
@@ -163,8 +168,8 @@ type CommonProps = {
    */
   iconOnly?: boolean;
   /**
-   * With `variant="icon"` only: the 44px circle of the header's search and
-   * bell (spec section 16, Q1). The shape law allows no other round control.
+   * With `variant="icon"` only: the 44px circle of the header's back,
+   * search, bell and more (section 17, extending Q1).
    */
   round?: boolean;
   /**

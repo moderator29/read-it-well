@@ -781,11 +781,25 @@
    * and the pointer hover. It is last so it wins at equal weight, and the
    * loading line above still owns `::after` while a button is loading.
    * ===================================================================== */
+  /*
+   * THE PILL (founder references 44 and 45, 30 September 2026; spec section
+   * 17, which lifts the capsule ban for buttons and only for buttons). Every
+   * button that carries a word is a full pill at every size: the primary
+   * filled in brand blue, the secondary white on paper (a raised night
+   * surface in dark) on a soft shadow, the quiet and danger levels on the
+   * same outline so a row of actions reads as one family. The icon button
+   * keeps its 12px square unless it is one of the round header buttons.
+   * The radius is a token (`--nf-radius-button`), so this is the one place
+   * the shape is decided.
+   */
   .nf-btn {
     font-weight: 600;
+    border-radius: var(--nf-radius-button);
   }
-  /* 44 on a 12px corner; 48 and 56 keep the 14px control corner. */
   .nf-btn--sm {
+    border-radius: var(--nf-radius-button);
+  }
+  .nf-btn--icon:not(.nf-btn--round) {
     border-radius: var(--nf-plate-radius-md);
   }
 
@@ -808,7 +822,7 @@
     box-shadow: none;
   }
   .nf-btn--quiet.nf-btn--sm {
-    border-radius: var(--nf-radius-control-sm);
+    border-radius: var(--nf-radius-button);
     padding-inline: var(--nf-space-sm);
   }
   .nf-btn--quiet::after {
@@ -858,7 +872,7 @@
     .nf-btn--surface:hover:not(:disabled) {
       background: linear-gradient(var(--nf-interactive-hover), var(--nf-interactive-hover)), var(--nf-btn-glass-fill);
       border-color: var(--nf-border-default);
-      box-shadow: var(--nf-card-shadow);
+      box-shadow: var(--nf-btn-glass-shadow);
     }
     .nf-btn--quiet:hover:not(:disabled) {
       background: var(--nf-interactive-hover);

@@ -2168,6 +2168,12 @@
    * design system's own six have been moved.
    * ------------------------------------------------------------------ */
   --nf-radius-control: var(--nf-radius-md);
+  /* THE BUTTON IS A PILL (founder references 44 and 45, 30 September 2026;
+     CLEAN_UNIFIED_DIRECTION.md section 17, which overrides the shape law for
+     buttons and for nothing else). Primary, secondary, quiet and danger
+     buttons read this; chips, fields, segments and tabs stay on
+     `--nf-radius-control`. */
+  --nf-radius-button: var(--nf-radius-pill);
   /* The clean unified radii (docs/design/CLEAN_UNIFIED_DIRECTION.md section
      1.3). Every one of them obeys the 0.30 ratio on the box it names. */
   --nf-radius-card: var(--nf-radius-lg);
@@ -3491,9 +3497,23 @@
 
   /* The secondary button: a raised night surface on the card hairline, with
      no rim and no bloom (spec section 3). The primary keeps its lit bar. */
-  --nf-btn-glass-fill: linear-gradient(var(--nf-surface-elevated), var(--nf-surface-elevated));
+  --nf-btn-glass-fill: linear-gradient(var(--nf-surface-raised), var(--nf-surface-raised));
   --nf-btn-glass-edge: var(--nf-card-border);
-  --nf-btn-glass-shadow: 0 0 0 0 transparent;
+  /* Section 17: the secondary pill is a raised night surface with a soft
+     shadow under it (a shadow, not a glow: no colour). */
+  --nf-btn-glass-shadow: 0 4px 14px -6px rgb(0 0 0 / 0.55);
+
+  /* THE SOFT TOP (section 17). At night the lavender wash of refs 44 and 45
+     is a faint brand glow behind the header, fading into the canvas by
+     `--nf-soft-top-size`. Painted once by `.nf-soft-top` (chrome.css) on the
+     app, workspace and console shells. */
+  --nf-soft-top: radial-gradient(
+    120% 100% at 50% 0%,
+    color-mix(in oklab, var(--nf-brand-primary) 13%, transparent) 0%,
+    color-mix(in oklab, var(--nf-brand-primary) 5%, transparent) 45%,
+    transparent 100%
+  );
+  --nf-soft-top-size: 22rem;
 }
 
 /*
@@ -3841,13 +3861,26 @@
   --nf-btn-lit-rim: inset 0 1px 0 rgb(255 255 255 / 0.18);
   --nf-btn-lit-inner: inset 0 0 0 rgb(255 255 255 / 0);
   --nf-btn-lit-inner-hover: inset 0 0 0 rgb(255 255 255 / 0);
-  --nf-btn-lit-bloom: var(--nf-card-shadow);
-  --nf-btn-lit-bloom-hover: var(--nf-card-shadow-hover);
   --nf-btn-lit-text-glow: 0 0 0 rgb(255 255 255 / 0);
   --nf-btn-lit-pool: radial-gradient(50% 55% at 50% 16%, rgb(255 255 255 / 0) 0%, rgb(255 255 255 / 0) 100%);
   --nf-btn-glass-fill: linear-gradient(#FFFFFF, #FFFFFF);
-  --nf-btn-glass-edge: var(--nf-border-default);
-  --nf-btn-glass-shadow: var(--nf-card-shadow);
+  /* Section 17 (refs 44 and 45): the secondary pill is white with a soft
+     shadow and only the card hairline, and the primary pill sits on a soft
+     brand shadow of its own. */
+  --nf-btn-glass-edge: var(--nf-card-border);
+  --nf-btn-glass-shadow: 0 1px 2px rgb(17 19 24 / 0.04), 0 6px 18px -6px rgb(17 19 24 / 0.12);
+  --nf-btn-lit-bloom: 0 1px 2px rgb(17 19 24 / 0.06), 0 8px 18px -8px color-mix(in oklab, var(--nf-brand-primary) 60%, transparent);
+  --nf-btn-lit-bloom-hover: 0 2px 4px rgb(17 19 24 / 0.06), 0 12px 24px -10px color-mix(in oklab, var(--nf-brand-primary) 65%, transparent);
+  /* THE SOFT TOP (section 17): a lavender-white wash behind the header that
+     fades into the warm canvas. */
+  --nf-soft-top: linear-gradient(
+    180deg,
+    #ECEBFA 0%,
+    #F1F0F8 38%,
+    color-mix(in oklab, #F1F0F8 50%, var(--nf-surface-canvas)) 64%,
+    var(--nf-surface-canvas) 100%
+  );
+  --nf-soft-top-size: 22rem;
   --nf-bar-edge-lit: var(--nf-divider);
   --nf-bar-glow: 0 1px 0 var(--nf-divider);
 
