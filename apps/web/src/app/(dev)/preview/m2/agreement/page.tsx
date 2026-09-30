@@ -3,7 +3,9 @@ import { getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { termsDiff } from "@/lib/agreements/terms-diff";
 import { AgreementChanges } from "@/components/app/agreements/AgreementChanges";
-import { ConfirmTerms } from "@/components/app/agreements/AgreementControls";
+import { CancelAgreement, ConfirmTerms } from "@/components/app/agreements/AgreementControls";
+import { DecisionCard } from "@/components/app/confirm/DecisionCard";
+import { ButtonLink } from "@/components/ui/Button";
 
 /**
  * B9: the "What changed since you confirmed" card and the confirm step that
@@ -35,6 +37,30 @@ export default async function PreviewAgreementChanges() {
       <div className="mt-block">
         <ConfirmTerms agreementId="00000000-0000-4000-8000-0000000ag001" version={2} changes={worded} changesLead={kit.confirmLead} />
       </div>
+      {/* Plan item 22: the same confirm step as it opens a live agreement
+          page for a party who has not confirmed, on the Awaiting you card.
+          Fixture lines; the controls are the page's own. */}
+      <DecisionCard
+        className="mt-block"
+        testId="agreement-awaiting-you"
+        label="Awaiting you"
+        when="Since 30 Sept"
+        title="Confirm version 2 of the terms"
+        lines={[
+          { label: "Rent", amount: formatMoney(v2.terms.rent_minor, locale) },
+          { label: "Caution deposit", amount: formatMoney(v2.terms.caution_minor, locale) },
+          { label: "Agency fee", amount: formatMoney(v2.terms.agency_minor, locale) },
+          { label: "Legal fee", amount: formatMoney(v2.terms.legal_minor, locale) },
+        ]}
+        total={{ label: "Total", amount: formatMoney(v2.amountMinor, locale) }}
+        primary={<ConfirmTerms agreementId="00000000-0000-4000-8000-0000000ag001" version={2} changes={worded} changesLead={kit.confirmLead} />}
+        secondary={[
+          <ButtonLink key="terms" variant="secondary" href="#top">
+            Read the terms
+          </ButtonLink>,
+          <CancelAgreement key="cancel" agreementId="00000000-0000-4000-8000-0000000ag001" variant="secondary" />,
+        ]}
+      />
     </main>
   );
 }

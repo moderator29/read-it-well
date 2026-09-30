@@ -188,13 +188,24 @@ export function AmendTerms({
   );
 }
 
-export function CancelAgreement({ agreementId }: { agreementId: string }) {
+export function CancelAgreement({
+  agreementId,
+  variant = "ghost",
+}: {
+  agreementId: string;
+  /** "secondary" where it sits as a secondary beside another (the Awaiting you card). */
+  variant?: "ghost" | "secondary";
+}) {
   const { pending, error, run } = useAction();
   const [sure, setSure] = useState(false);
   return (
     <div className="grid gap-inline">
       {error && !sure ? <p role="alert" className="text-[var(--nf-status-error)]">{error}</p> : null}
-      <button type="button" className="nf-btn nf-btn--ghost nf-btn--md" onClick={() => setSure(true)}>
+      <button
+        type="button"
+        className={`nf-btn nf-btn--md ${variant === "secondary" ? "nf-btn--glass text-[var(--nf-state-error)]" : "nf-btn--ghost"}`}
+        onClick={() => setSure(true)}
+      >
         Cancel this agreement
       </button>
       <Sheet

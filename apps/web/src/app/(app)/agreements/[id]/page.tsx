@@ -10,6 +10,8 @@ import type { TermChange } from "@/lib/agreements/terms-diff";
 import { AgreementChanges, type WordedChange } from "@/components/app/agreements/AgreementChanges";
 import { PageHeader } from "@/components/app/PageHeader";
 import { HeroBand } from "@/components/ui/HeroBand";
+import { DecisionCard } from "@/components/app/confirm/DecisionCard";
+import { ButtonLink } from "@/components/ui/Button";
 import { SuccessFromFlag } from "@/components/ui/SuccessFromFlag";
 import { readDone, type SuccessMomentId } from "@/lib/ui/success-moments";
 import { agreementArrival } from "@/lib/ui/arrival-moments";
@@ -109,6 +111,12 @@ export default async function AgreementPage({
   /* Staff read every agreement under RLS but are not a party to it: they see
      the record and none of the parties' controls. */
   const party = a.role !== null;
+  /* The one pending decision this page can hold for its reader. */
+  const awaitingYou = party && a.status === "awaiting_parties" && !a.youConfirmedCurrent;
+  const lastEvent = a.events.length > 0 ? a.events[a.events.length - 1] : undefined;
+  const lastEventAt = lastEvent
+    ? new Date(lastEvent.at).toLocaleString("en-NG", { timeZone: "Africa/Lagos", day: "numeric", month: "short" })
+    : null;
 
   /*
    * THE SUCCESS MOMENT ON ARRIVAL (docs/SUCCESS_MOMENTS.md). A flag from the
@@ -179,6 +187,40 @@ export default async function AgreementPage({
         <StatusTrack label="Agreement progress" steps={agreementSteps(a.status, a.events)} testId="agreement-track" />
       </HeroBand>
 
+      {/* AWAITING YOU (plan item 22; spec section 14, reference 36). Drawn
+          only when this reader is a party and has not confirmed the current
+          version: the one real decision on this page. Its lines and total are
+          the terms' own; its controls are the page's own ConfirmTerms and
+          CancelAgreement, moved here rather than repeated below. */}
+      {awaitingYou ? (
+        <DecisionCard
+          className="mt-block"
+          testId="agreement-awaiting-you"
+          label="Awaiting you"
+          when={lastEventAt ? `Since ${lastEventAt}` : undefined}
+          title={`Confirm version ${a.termsVersion} of the terms`}
+          lines={LINES.flatMap((line) => {
+            const amount = num(a.terms, line.key);
+            return amount ? [{ label: line.label, amount: formatMoney(amount, locale) }] : [];
+          })}
+          total={{ label: "Total", amount: formatMoney(a.amountMinor, locale) }}
+          primary={
+            <ConfirmTerms
+              agreementId={a.id}
+              version={a.termsVersion}
+              changes={worded.length > 0 ? worded : undefined}
+              changesLead={kit.confirmLead}
+            />
+          }
+          secondary={[
+            <ButtonLink key="terms" variant="secondary" href="#agreement-terms">
+              Read the terms
+            </ButtonLink>,
+            <CancelAgreement key="cancel" agreementId={a.id} variant="secondary" />,
+          ]}
+        />
+      ) : null}
+
       {a.status === "rejected" && a.decisionReason ? (
         <div className="nf-card mt-block p-card" role="note">
           <p className="font-semibold">Vallo sent this back</p>
@@ -206,7 +248,7 @@ export default async function AgreementPage({
         />
       ) : null}
 
-      <Section title={`The terms (version ${a.termsVersion})`}>
+      <Section id="agreement-terms" title={`The terms (version ${a.termsVersion})`}>
         <dl className="grid grid-cols-[auto_1fr] gap-x-md gap-y-2xs">
           <dt className={TYPE.rowMeta}>Between</dt>
           <dd>
@@ -258,14 +300,8 @@ export default async function AgreementPage({
             {a.youConfirmedCurrent ? "You confirmed this version." : "You have not confirmed this version yet."}{" "}
             {a.otherConfirmedCurrent ? "The other side confirmed it." : "The other side has not confirmed it yet."}
           </p>
-          {a.status === "awaiting_parties" && !a.youConfirmedCurrent ? (
-            <ConfirmTerms
-              agreementId={a.id}
-              version={a.termsVersion}
-              changes={worded.length > 0 ? worded : undefined}
-              changesLead={kit.confirmLead}
-            />
-          ) : null}
+          {/* Confirming, when it is this reader's move, is the Awaiting you
+              card at the top of the page. */}
           {a.kind === "rent" ? (
             <AmendTerms
               agreementId={a.id}
@@ -275,7 +311,7 @@ export default async function AgreementPage({
               minDate={today}
             />
           ) : null}
-          <CancelAgreement agreementId={a.id} />
+          {awaitingYou ? null : <CancelAgreement agreementId={a.id} />}
         </Section>
       ) : null}
 

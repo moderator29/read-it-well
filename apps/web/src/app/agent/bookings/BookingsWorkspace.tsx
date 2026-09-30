@@ -18,6 +18,7 @@ import type { HostBooking, HostBookingBoard } from "@/lib/agent/bookings-queries
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
+import { DecisionCard } from "@/components/app/confirm/DecisionCard";
 import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
 import { Chip, ChipRow } from "@/components/ui/Chip";
 import { TextArea } from "@/components/ui/Field";
@@ -195,6 +196,10 @@ function DecisionSheet({
   );
 }
 
+/* The accept sheet asks the host to check the property is genuinely free;
+   this is the door to that check, on the listing's own calendar. */
+const CHECK_CALENDAR = "Check the calendar";
+
 function BookingCard({
   t,
   booking,
@@ -231,6 +236,63 @@ function BookingCard({
       : booking.holdHoursLeft > 0
         ? fill(t.card.releasesIn, { duration: durationLabel(t, booking.holdHoursLeft) })
         : fill(t.card.releasingNow, { hours: HOLD_WINDOW_HOURS });
+
+  /*
+   * AWAITING YOU (plan item 22; spec section 14, reference 36). A request is
+   * the one real decision on this board, so it is drawn as the tinted
+   * decision card: the guest, how long they have waited, what happens if
+   * nobody answers, the stay's lines and its total, Accept as the one
+   * primary, and Decline and a look at the calendar beside it. Accept and
+   * Decline open the same DecisionSheet they always did; the card holds no
+   * action of its own.
+   */
+  if (pending) {
+    const dates = fill(t.card.dates, {
+      from: formatDate(dateOnly(booking.checkIn), locale, { day: "numeric", month: "short" }),
+      to: formatDate(dateOnly(booking.checkOut), locale, { day: "numeric", month: "short" }),
+    });
+    return (
+      <li className="block" data-testid="booking-awaiting-you">
+        <DecisionCard
+          label={t.status.PENDING}
+          when={waitingLabel}
+          title={booking.guestName}
+          sub={[
+            releasesLabel,
+            booking.arrivingName ? fill(t.card.arriving, { name: booking.arrivingName }) : null,
+          ]
+            .filter(Boolean)
+            .join(" · ") || undefined}
+          lines={[
+            { label: booking.listingTitle, amount: nightsLabel },
+            {
+              label: dates,
+              amount: booking.children > 0 ? `${guestsLabel} · ${compositionLabel}` : guestsLabel,
+            },
+          ]}
+          total={{ label: t.card.total, amount: formatMoney(booking.totalMinor, locale) }}
+          primary={
+            <Button variant="primary" full onClick={() => onDecide("accept", booking)}>
+              {t.actions.accept}
+            </Button>
+          }
+          secondary={[
+            <Button
+              key="decline"
+              variant="secondary"
+              className="text-[var(--nf-state-error)]"
+              onClick={() => onDecide("decline", booking)}
+            >
+              {t.actions.decline}
+            </Button>,
+            <ButtonLink key="calendar" variant="secondary" href={`/agent/listings/${booking.listingId}/calendar`}>
+              {CHECK_CALENDAR}
+            </ButtonLink>,
+          ]}
+        />
+      </li>
+    );
+  }
 
   const settlementLabel =
     booking.settlement === "settled"
