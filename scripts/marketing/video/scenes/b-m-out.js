@@ -127,7 +127,7 @@ export async function goingOut(ctx, S, T) {
   iconPlate(ctx, top, "utensils", { size: 56 });
   ctx.el("div", { text: "Table for 2", style: { font: "600 31px/1.05 Poppins, Inter, sans-serif", letterSpacing: "-0.025em", color: NAVY, whiteSpace: "nowrap" } }, top);
   ctx.el("div", { html: "Tonight, 8:00 PM<br>Harbour Lights Kitchen", style: { font: "500 21px/1.36 Inter, sans-serif", color: INK2, whiteSpace: "nowrap" } }, card);
-  const ex = exampleChip(ctx, ctx.el("div", {}, card), { size: 18 });
+  const ex = exampleChip(ctx, ctx.el("div", {}, card), { size: 18, style: { opacity: "0" } });
   const tIn = T.reserve;
   const tStamp = T.table;
   const tOff = T.seconds + 0.2;

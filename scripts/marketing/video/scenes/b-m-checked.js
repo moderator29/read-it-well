@@ -109,7 +109,7 @@ export async function checked(ctx, S, T) {
 
   /* The verdict: the mark lands with "Checked by a person" (Example), where the pages were. */
   const verdict = glassCard(ctx, doc, { w: PW + 20, radius: 30, shadow: "l", style: { display: "flex", flexDirection: "column", gap: "16px", padding: "28px 28px 26px", visibility: "hidden" } });
-  const vm = verifiedMark(ctx, verdict, 76);
+  const vm = verifiedMark(ctx, verdict, 76, { style: { opacity: "0" } });
   ctx.el("div", { html: "Checked by<br>a person", style: { font: "600 40px/1.1 Poppins, Inter, sans-serif", letterSpacing: "-0.03em", color: NAVY } }, verdict);
   exampleChip(ctx, ctx.el("div", {}, verdict), { size: 20 });
   const tV = T.person;

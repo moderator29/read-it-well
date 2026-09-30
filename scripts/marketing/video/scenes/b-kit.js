@@ -54,10 +54,15 @@ export function ramp(ctx, t, t0, t1, ease = "power2.inOut") {
 
 export const mix = (a, b, u) => a + (b - a) * u;
 
-/** A GSAP track on one object: segments are fromTo from the last value. */
+/**
+ * A GSAP track on one object: segments are fromTo from the last value.
+ * GSAP (3.15) shows an element's build-time values before its first tween
+ * (rewinding reverts to them), so a DOM element gets its start state now.
+ */
 export function track(ctx, obj, init) {
   const cur = { ...init };
-  Object.assign(obj, init);
+  if (obj instanceof Element) ctx.gsap.set(obj, init);
+  else Object.assign(obj, init);
   return {
     cur,
     to(t, dur, vals, ease = "power2.inOut") {
