@@ -10,6 +10,14 @@ import { icon3dSrc, type Icon3DName } from "./icon-3d";
  *
  *   stays    hotel, shortlet, restaurant, local-talks
  *   actions  buy, rent, pay, list
+ *   sheet 2  bell, assistant, calendar-booked, calendar-pending, shield,
+ *            search, explore, verified, id-check, card-secure,
+ *            home-verified, home-small, villa, city, apartment, land,
+ *            stay-rated, earnings, coin, handover, keys
+ *
+ * Where they go: doors, heroes, empty states, category pickers and first-run
+ * cards (one object per card, 40 to 96 px). Rows, controls and nav chrome
+ * stay UiIcon.
  *
  * Pictures, not glyphs: `UiIcon` stays the icon system for rows, chrome and
  * controls. Use these where a door or a category wants an object (the Home
@@ -17,7 +25,7 @@ import { icon3dSrc, type Icon3DName } from "./icon-3d";
  * (`alt=""`), because a label always sits beside it; pass `label` only when
  * it stands alone.
  */
-export { ICON_3D_NAMES, icon3dSrc, type Icon3DName } from "./icon-3d";
+export { ICON_3D_NAMES, icon3dEmailSrc, icon3dSrc, type Icon3DName } from "./icon-3d";
 
 export function Icon3D({
   name,
