@@ -45,7 +45,7 @@ export default async function GuidesPage() {
           {GUIDES.map((guide) => (
             <li key={guide.slug} className="grid">
               <Link href={`/guides/${guide.slug}`} className="nf-pd-card nf-guide-card">
-                <span className="nf-plate nf-plate--brand nf-plate--sm" aria-hidden="true">
+                <span className="nf-plate nf-plate--brand nf-plate--sm nf-plate--round" aria-hidden="true">
                   <UiIcon name="file-text" size={20} />
                 </span>
                 <span className="nf-guide-card__title">{guide.title}</span>
