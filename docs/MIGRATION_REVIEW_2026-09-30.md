@@ -46,8 +46,16 @@ in the same change that applied host_c2.
 
 Rows 13 and 14 were applied later the same day, after round 3. Both
 read-backs passed. c5's behavioural probe ran against the one editable owned
-listing live and was not skipped. `20260930160200_host_c2b_rooms_held_by_other_sites`
-is on HOLD and was not applied.
+listing live and was not skipped.
+
+| 15 | `20260930160200` | `20260930104350` | `host_c2b_rooms_held_by_other_sites` (third draft, round 4 APPLY; file as at 75c75d07) |
+
+Row 15 was applied after round 4. Before it ran, live had 0 calendar imports,
+0 import nights and 0 closed rate_calendar rows, so the migration's refusal
+guard did not fire. Its read-back passed. `calendar-holds.sql` moved from
+`supabase/tests/pending/` to `supabase/tests/probes/`. I ran it against live
+through execute_sql: it ended with `PROBE_OK calendar-holds`, which rolls back
+everything it wrote. A check afterwards found no probe rows left behind.
 
 The verdicts below are the review as it was written before the apply.
 

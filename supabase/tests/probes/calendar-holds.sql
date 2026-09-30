@@ -1,6 +1,6 @@
 -- HOST C2b (30 September 2026): a booking on another site holds ONE room of a
 -- room type, and every writer respects the hold. Run after
--- 20260930160200_host_c2b_rooms_held_by_other_sites.sql (waits in tests/pending until then); the whole probe
+-- 20260930104350_host_c2b_rooms_held_by_other_sites.sql (applied 30 September 2026); the whole probe
 -- rolls back (PROBE_OK is raised at the end).
 --
 --  * a free night: one room held, the others still for sale;

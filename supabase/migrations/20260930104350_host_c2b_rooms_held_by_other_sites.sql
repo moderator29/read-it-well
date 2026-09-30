@@ -1,7 +1,7 @@
 -- HOST C2b (third draft): A BOOKING ON ANOTHER SITE HOLDS ONE ROOM, AND
 -- EVERY WRITER RESPECTS THE HOLD (30 September 2026).
--- PENDING: written by the host build team for re-review (rounds 2 and 3 in
--- docs/MIGRATION_REVIEW_2026-09-30.md). Idempotent. Adds columns to
+-- Applied 30 September 2026 with the founder's approval. Written by the host
+-- build team (review rounds 2 to 4 in docs/MIGRATION_REVIEW_2026-09-30.md). Idempotent. Adds columns to
 -- room_inventory, rate_calendar and calendar_import_nights, four functions and
 -- four triggers; replaces private.calendar_import_release and
 -- public.apply_calendar_import (same signatures and grants). No row is
@@ -46,8 +46,7 @@
 --     once per night and told again only if they clear and recur.
 -- A whole-place listing is unchanged (`availability`).
 --
--- Proven by supabase/tests/pending/calendar-holds.sql (moves to probes/ once
--- this is applied): free night, plain update, UPSERT, forged units_held_back,
+-- Proven by supabase/tests/probes/calendar-holds.sql: free night, plain update, UPSERT, forged units_held_back,
 -- over-total request, a full night and a cancelled Vallo room, a night with
 -- no row, two imports on a night with no row, host closure kept, release.
 
