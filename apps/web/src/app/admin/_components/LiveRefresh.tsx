@@ -16,7 +16,7 @@ import { useRouter } from "next/navigation";
  * that was raised, a listing that went live.
  *
  * ONE COMPONENT FOR THE JOB (C12): the review desks had their own copy in
- * `_review/LiveRefresh.tsx` at 30 seconds; they now pass `seconds={30}` here.
+ * the review folder (since removed) at 30 seconds; they now pass `seconds={30}` here.
  */
 export function LiveRefresh({ seconds = 60 }: { seconds?: number }) {
   const router = useRouter();
