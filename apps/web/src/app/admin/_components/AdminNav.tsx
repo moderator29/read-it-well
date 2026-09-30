@@ -1,5 +1,6 @@
 "use client";
 
+import { isIdentifier } from "@/lib/admin/lookup-classify";
 import { PersonTier } from "./PersonTier";
 import type { PersonTier as PersonTierValue } from "@/lib/admin/reads/shapes";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
@@ -253,6 +254,11 @@ export function ConsoleSearch({ label, placeholder }: { label: string; placehold
       onSubmit={(event) => {
         event.preventDefault();
         const q = input.current?.value.trim() ?? "";
+        /* C6: a reference goes to the console-wide lookup; a word searches this desk. */
+        if (q && isIdentifier(q)) {
+          router.push(`/admin/lookup?q=${encodeURIComponent(q)}`);
+          return;
+        }
         router.push(q ? `${base}?q=${encodeURIComponent(q)}` : base);
       }}
     >

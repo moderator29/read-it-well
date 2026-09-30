@@ -1,3 +1,5 @@
+import { dateTimeLabel } from "@/lib/format/when";
+import { countOf } from "@vallo/i18n/core";
 import type { Metadata } from "next";
 import { STAFF_SCOPE_LABEL, STAFF_SCOPES } from "@/lib/admin/guard";
 import { readStaffDesk, type StaffRow } from "@/lib/admin/staff-queries";
@@ -5,12 +7,17 @@ import { JOB_DESCRIPTIONS, STAFF_POSITIONS, positionTitle } from "@/lib/admin/st
 import { PageHead, Panel } from "../_components/panels";
 import { GrantStaffForm, RevokeStaffForm } from "./StaffForms";
 import { SupportTeam, type SupportMember } from "./SupportTeam";
+import { ClearKeysForm, InternalSwitch, MarkInternalForm } from "./KeyRosterForms";
+import { readKeyRoster } from "@/lib/admin/key-roster";
+import { ROSTER_WARNING_TEXT, lastProved, rosterWarning } from "@/lib/admin/key-roster-rules";
+import { QA_ACCOUNT_IDS } from "@/lib/admin/reads/shapes";
+import { internalFlagsInstalled } from "@/lib/admin/internal-accounts";
 
 export const metadata: Metadata = { title: "Staff", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
-const when = (iso: string | null) =>
-  iso ? new Date(iso).toLocaleString("en-NG", { timeZone: "Africa/Lagos", dateStyle: "medium", timeStyle: "short" }) : "not yet";
+/* The one way the console says when (lib/format/when.ts). */
+const when = (iso: string | null) => (iso ? dateTimeLabel(iso) : "not yet");
 
 /**
  * TRACK K: THE STAFF DESK. Only the founder's super admin account opens it,
@@ -34,6 +41,11 @@ function supportMembers(rows: StaffRow[]): SupportMember[] {
 
 export default async function StaffPage() {
   const desk = await readStaffDesk();
+  const people = desk.state === "ok" ? desk.rows.filter((r) => !r.revokedAt) : [];
+  const [roster, flags] = await Promise.all([
+    desk.state === "ok" ? readKeyRoster(people.map((r) => r.userId)) : Promise.resolve(null),
+    internalFlagsInstalled(),
+  ]);
   if (desk.state === "forbidden") {
     return (
       <div className="nf-console">
@@ -104,6 +116,84 @@ export default async function StaffPage() {
           </ul>
         )}
       </Panel>
+      {desk.state === "ok" ? (
+        <Panel title="Console keys">
+          {/* C14: who can still get in if a phone is lost. Labels and dates only. */}
+          {roster === null ? (
+            <p className="nf-body">Keys could not be read just now. Refresh to try again.</p>
+          ) : (
+            <ul className="nf-admin-queue" data-testid="key-roster">
+              {people.map((row) => {
+                const keys = roster.get(row.userId) ?? [];
+                const warning = rosterWarning(row.kind, keys);
+                return (
+                  <li key={row.userId} className="nf-admin-queue-row">
+                    <p className="font-semibold">
+                      {row.name}
+                      <span className="nf-caption text-[var(--nf-content-secondary)]">
+                        {" · "}
+                        {keys.length === 0 ? "no key" : countOf(keys.length, "consoleKeys", "en")}
+                        {" · last proved "}
+                        {when(lastProved(keys))}
+                      </span>
+                    </p>
+                    {keys.length > 0 ? (
+                      <ul className="nf-caption text-[var(--nf-content-secondary)]">
+                        {keys.map((k, i) => (
+                          <li key={`${row.userId}-${i}`}>
+                            {k.label ?? "Unnamed device"} · added {when(k.createdAt)} · last proved {when(k.lastUsedAt)}
+                            {k.consoleRevoked ? " · revoked for the console" : ""}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
+                    {warning ? (
+                      <p className="nf-caption" role="note" data-warning={warning}>
+                        {ROSTER_WARNING_TEXT[warning]}
+                      </p>
+                    ) : null}
+                    {keys.some((k) => !k.consoleRevoked) ? <ClearKeysForm userId={row.userId} name={row.name} /> : null}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+          <p className="nf-caption mt-row">
+            A lost phone: a second super admin confirms who it is, revokes the keys for the console here, and the person sets up a new
+            key at their next visit. The written steps are &quot;A lost console key&quot; in the staff guide.
+          </p>
+        </Panel>
+      ) : null}
+      {desk.state === "ok" ? (
+        <Panel title="Left out of figures">
+          {/* C10: one list, applied to the analytics, the overview and the view counter. */}
+          <p className="nf-body text-[var(--nf-content-secondary)]">
+            Everybody above with access is left out of every figure automatically, and so are the QA accounts. Mark
+            anybody else here (a test account, a relative helping you try the app).
+          </p>
+          {!flags.installed ? (
+            <p className="nf-caption mt-row">
+              The switch goes live when its database change is applied. Until then the QA accounts ({QA_ACCOUNT_IDS.length})
+              and staff are left out.
+            </p>
+          ) : (
+            <>
+              <ul className="nf-admin-queue mt-row">
+                {flags.people.map((p) => (
+                  <li key={p.id} className="nf-admin-queue-row">
+                    <p className="font-semibold">
+                      {p.name}
+                      {p.reason ? <span className="nf-caption text-[var(--nf-content-secondary)]">{` · ${p.reason}`}</span> : null}
+                    </p>
+                    <InternalSwitch userId={p.id} name={p.name} initial />
+                  </li>
+                ))}
+              </ul>
+              <MarkInternalForm />
+            </>
+          )}
+        </Panel>
+      ) : null}
       {desk.state === "ok" ? (
         <Panel title="What staff did, last 30 days">
           {desk.recent.length === 0 ? (

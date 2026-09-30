@@ -14,8 +14,10 @@ import { landingRoomsEn } from "./landing-rooms.en";
 import { afterTheGateEn } from "./after-the-gate.en";
 import { cryptoPayEn } from "./crypto-pay.en";
 import { trustVisibleEn } from "./trust-visible.en";
+import { memberKitEn } from "./member-kit.en";
 import { landlordEn } from "./landlord.en";
 import { trustDoorsEn } from "./trust-doors.en";
+import { publicDoorsEn } from "./public-doors.en";
 import { arrivalCheckEn } from "./arrival-check.en";
 /* The platform and the craft (devices, sign-in alert, wallet hold, feedback),
    in its own module for the same reason as Price Check. */
@@ -30,6 +32,16 @@ import { complianceBeneficialOwnershipEn } from "./compliance-17.en";
 import { passcodeEn } from "./passcode.en";
 /* The workspace desks and the confirm panel (UI/UX plan items 14, 20, 22). */
 import { deskEn } from "./desk.en";
+/* The public pages' titles and descriptions, per language (A10). */
+import { publicMetaEn } from "./public-meta.en";
+/* The host workspace's words, moved out of the pages (C11). */
+import { hostWorkspaceEn } from "./host-workspace.en";
+/* Outbound mail in the member's language (A11). */
+import { mailEn } from "./mail.en";
+/* The small things (toast, copy, connection, pull to refresh, card menu). */
+import { detailsEn } from "./details.en";
+/* Get started in motion: the chips and controls of the four scenes. */
+import { onboardingMotionEn } from "./onboarding-motion.en";
 
 /**
  * The counted nouns, in every form English uses.
@@ -236,6 +248,20 @@ export const en = {
     sendAnother: "Send me another code",
     sameEmailButton: "The same email carries a button that does this in one tap.",
     alreadyConfirmed: "Already confirmed? Sign in",
+    /* A4 (30 September): the code screen helps when the code does not
+       come. `{s}` is whole seconds. */
+    resendIn: "Send a new code in {s}s",
+    checkSpam: "Not in your inbox? Look in Spam and Promotions for mail from Vallo.",
+    stillNothing: "Still nothing? Check Spam and Promotions for mail from Vallo, or ask us for help.",
+    openMail: "Open {app}",
+    wrongAddress: "Wrong address?",
+    changeAddress: "Change it",
+    getHelp: "Get help with sign up",
+    codeCells: "{count} digit code",
+    /* A17: the moment after the code is accepted. */
+    youreIn: "You're in, {name}.",
+    youreInNoName: "You're in.",
+    arrivalBody: "Your account is ready. Opening it now.",
     verifyingTitle: "Verifying your email",
     verifyingBody: "One moment. We are confirming your address and opening your account.",
     signingInTitle: "Signing you in",
@@ -341,7 +367,7 @@ export const en = {
       propertyHint: "Rent, buy and sell",
       stays: "Stays",
       staysHint: "Hotels, shortlets and tables",
-      getStarted: "Get Started",
+      getStarted: "Get started",
       step: "Step {n} of {total}",
     },
     /* The other three slides of first run and the choice it ends on. Every
@@ -389,6 +415,17 @@ export const en = {
         continue: "Continue",
       },
       worldsArt: "Property and Stays, with the coin that turns between them",
+      /* A1 (30 September): what the sign-up form no longer asks, asked
+         once the account exists, beside the interests question. Optional,
+         and each answer is saved as it is given. */
+      asks: {
+        title: "Two more, if you like",
+        body: "Both are optional. You can change them later in Settings.",
+        hearAbout: "How did you hear about Vallo?",
+        place: "Where do you stay?",
+        saved: "Saved",
+        failed: "That did not save. Try again, or leave it for Settings.",
+      },
     },
     /*
      * `one` AND `two` WERE HERE AND ARE DELETED, as one unreferenced pair.
@@ -613,6 +650,10 @@ export const en = {
     overview: "Overview",
     reservations: "Reservations",
     roomBookings: "Room bookings",
+    /* C1 to C4 (30 September 2026). */
+    decide: "Decide by",
+    calendar: "Calendar",
+    reviews: "Reviews",
     rooms: "Rooms and nights",
     photos: "Photographs",
     arrival: "Charges at the door",
@@ -923,7 +964,7 @@ export const en = {
            yearly rentals stood in these slots while the three were thought
            unavailable; both remain reachable from the search filters. */
         resorts: "Resorts",
-        guestHouses: "Guest Houses",
+        guestHouses: "Guest houses",
         commercial: "Commercial",
         land: "Land",
         count: "{count} listed",
@@ -1286,8 +1327,8 @@ export const en = {
     ageLabel: "I am 18 or older.",
     ageRequired: "Vallo is for adults. Tick the box to confirm you are 18 or older.",
     termsLink: "Terms",
-    privacyLink: "Privacy Policy",
-    rulesLink: "Community Rules",
+    privacyLink: "Privacy policy",
+    rulesLink: "Community rules",
   },
 
   auth: {
@@ -1649,21 +1690,21 @@ export const en = {
       ledeShort: "Your account, preferences and payments.",
       signInRow: "Sign in to Vallo",
       signInRowSub: "Your preferences follow you to every device once you do.",
-      accountInfo: "Account Information",
+      accountInfo: "Account information",
       accountInfoSub: "Name, email, phone number",
       notificationsSub: "Push, email, in-app",
       on: "On",
       off: "Off",
-      privacy: "Privacy & Security",
+      privacy: "Privacy and security",
       privacySub: "Password, sign-in and devices",
       appearanceSub: "Text size, motion, data",
       languageSub: "App language",
       help: "Help & Support",
       helpSub: "FAQs, contact us",
-      payments: "Payment Methods",
+      payments: "Payment methods",
       paymentsSub: "Manage your cards and bank accounts.",
       add: "Add",
-      logOut: "Log Out",
+      logOut: "Log out",
       loggingOut: "Signing out",
       verified: "Verified",
       devices: { one: "{count} device", other: "{count} devices" },
@@ -1945,6 +1986,9 @@ export const en = {
           "Emails when you pay, when a refund is on its way, your receipts, and decisions on your agreements and Guarantee claims. Anything about your money's safety still appears in the app.",
         marketing: "Ideas and offers",
         marketingSub: "Occasional highlights from around Nigeria. Off by default.",
+        /* B13: the push for a price drop on a place you saved. */
+        savedPriceDrops: "Price drops on places you saved",
+        savedPriceDropsSub: "A push when a place you saved comes down in price. Changes also show in Saved and here in the app.",
       },
       host: {
         bookings: "Bookings",
@@ -1956,6 +2000,8 @@ export const en = {
           "Emails when a renter or guest pays you, and when your share settles to your bank. Anything about your money's safety still appears in the app.",
         marketing: "Ideas and offers",
         marketingSub: "Hosting tips and what is moving in your area. Off by default.",
+        savedPriceDrops: "Price drops on places you saved",
+        savedPriceDropsSub: "A push when a place you saved comes down in price. Changes also show in Saved and here in the app.",
       },
       hideActivity: "Hide my activity",
       hideActivitySub: "Keep your reviews and recent stays off your public profile.",
@@ -2121,7 +2167,7 @@ export const en = {
       shortlet: "Shortlet",
       land: "Land",
     },
-    popularCities: "Popular Cities",
+    popularCities: "Popular cities",
     /* The nine markets on home, to the founder's target render (BUILD_06, F1).
        Three of the render's names are not here because the search vocabulary
        has no filter behind them: Resorts becomes Villas, Guest Houses becomes
@@ -2176,7 +2222,7 @@ export const en = {
       title: "AI Assistant",
       sub: "Always here. Ask anything.",
       placeholder: "Type your message",
-      thinking: "Thinking...",
+      thinking: "Thinking…",
       chips: {
         lekki: "Two bedroom in Lekki under 5m a year",
         moveIn: "What will it cost me to move in?",
@@ -2265,7 +2311,7 @@ export const en = {
       chooseSub: "Change workspace at any time.",
       personalDesc: "Discover and book amazing places across Nigeria.",
       agentDesc: "Manage your listings, bookings, customers and earnings.",
-      verifiedAgent: "Verified Agent",
+      verifiedAgent: "Verified agent",
       noWorkspace: "You are not listing yet",
       applyToList: "Apply to list",
       workspaceLabel: "Your listings",
@@ -2274,8 +2320,8 @@ export const en = {
     nav: {
       dashboard: "Dashboard",
       money: "Money",
-      myListings: "My Listings",
-      listApartment: "List Apartment",
+      myListings: "My listings",
+      listApartment: "List apartment",
       bookings: "Bookings",
       messages: "Inbox",
       reviews: "Reviews",
@@ -2312,10 +2358,10 @@ export const en = {
       business: "Business",
       businessDesc: "You represent a registered company or agency.",
       steps: {
-        personal: "Personal Information",
-        identity: "Identity Verification",
-        business: "Business Information",
-        documents: "Documents Upload",
+        personal: "Personal information",
+        identity: "Identity verification",
+        business: "Business information",
+        documents: "Documents upload",
         payout: "Bank / Payout Details",
         review: "Review & Submit",
       },
@@ -2357,9 +2403,9 @@ export const en = {
       submittedBody: "We are reviewing your application. You will be notified once it is approved.",
       status: "Status",
       draft: "Draft",
-      pendingReview: "Pending Review",
-      underReview: "Under Review",
-      moreInfo: "More Information Required",
+      pendingReview: "Pending review",
+      underReview: "Under review",
+      moreInfo: "More information required",
       approved: "Approved",
       rejected: "Rejected",
       submittedOn: "Submitted on",
@@ -2397,24 +2443,24 @@ export const en = {
       },
     },
     dashboard: {
-      title: "Agent Dashboard",
+      title: "Agent dashboard",
       subtitle: "Overview of your property business",
-      totalEarnings: "Total Earnings",
-      totalBookings: "Total Bookings",
-      activeListings: "Active Listings",
-      occupancyRate: "Occupancy Rate",
-      responseRate: "Response Rate",
-      earningsOverview: "Earnings Overview",
-      recentBookings: "Recent Bookings",
-      bookingSources: "Booking Sources",
-      listingPerformance: "Listing Performance",
-      guestMessages: "Guest Messages",
-      quickActions: "Quick Actions",
-      addListing: "Add New Listing",
-      viewBookings: "View Bookings",
-      manageListings: "Manage Listings",
-      earningsReport: "Earnings Report",
-      thisMonth: "This Month",
+      totalEarnings: "Total earnings",
+      totalBookings: "Total bookings",
+      activeListings: "Active listings",
+      occupancyRate: "Occupancy rate",
+      responseRate: "Response rate",
+      earningsOverview: "Earnings overview",
+      recentBookings: "Recent bookings",
+      bookingSources: "Booking sources",
+      listingPerformance: "Listing performance",
+      guestMessages: "Guest messages",
+      quickActions: "Quick actions",
+      addListing: "Add new listing",
+      viewBookings: "View bookings",
+      manageListings: "Manage listings",
+      earningsReport: "Earnings report",
+      thisMonth: "This month",
       lastMonth: "vs last month",
       views: "Views",
       revenue: "Revenue",
@@ -4464,9 +4510,9 @@ export const en = {
         alerts: "alerts open, waiting on a person",
       },
       bar: {
-        search: "Search anything...",
-        operator: "Platform Operator",
-        owner: "Platform Owner",
+        search: "Search anything…",
+        operator: "Platform operator",
+        owner: "Platform owner",
       },
       entry: {
         opening: "Opening the overview first.",
@@ -4719,6 +4765,8 @@ export const en = {
      */
     notificationsUnread: "Notifications, {count} unread",
     unreadOn: "{label}, {count} unread notifications",
+    /* B1: the dock's More button and the Messages row, live. */
+    unreadConversationsOn: "{label}, {count} unread conversations",
     /* DOC-21: a horizontal scroller a keyboard can reach has to be named. */
     photoGallery: "Photographs of {title}",
     /* DOC-21: the navigation landmarks, each named for what it is, so a
@@ -4895,7 +4943,7 @@ export const en = {
     yesSave: "Yes, save this account",
     notMe: "Not me, change the number",
     saving: "Saving",
-    blockTitle: "Payment Methods",
+    blockTitle: "Payment methods",
     blockSub: "Manage your cards and bank accounts.",
     add: "Add",
     addTitle: "Add a payment method",
@@ -5020,6 +5068,49 @@ export const en = {
       sqm: "m²",
       noPhotos: "No photographs yet",
       example: "Example",
+    },
+    /* B2: what the phone remembers, offered back (lib/search/memory.ts). */
+    recent: {
+      title: "Recent searches",
+      clear: "Clear",
+      clearLabel: "Clear recent searches",
+      staysIn: "Stays in {place}",
+      lookedAt: "Looked at recently",
+      lookedAtClearLabel: "Clear the places you looked at",
+    },
+    /* B13: one line on a saved card when something moved (lib/saved/changes.ts). */
+    savedChanges: {
+      priceDown: "Price down from {was} to {now}",
+      priceUp: "Price changed from {was} to {now}",
+      gone: "No longer available",
+      back: "Available again",
+      windows: "New viewing windows added",
+      similar: "See similar nearby",
+    },
+    /* B3: the Saved compare (lib/saved/compare.ts). */
+    compare: {
+      open: "Compare",
+      openLabel: "Compare your saved places side by side",
+      title: "Compare",
+      pick: "Choose two or three to set side by side.",
+      pickLimit: "Three at a time. Take one out to add another.",
+      tooFew: "Choose one more to compare.",
+      shortlist: "Your shortlist",
+      ready: "Ready to compare",
+      notStated: "Not stated",
+      lowest: "Lowest",
+      moveIn: "Move-in total",
+      rent: "Rent",
+      beds: "Bedrooms",
+      baths: "Bathrooms",
+      size: "Size",
+      parking: "Parking",
+      type: "Type",
+      power: "Power",
+      availableFrom: "Available from",
+      from: "from",
+      view: "Open",
+      close: "Close",
     },
     shelf: {
       searchPlaceholder: "Area, city or landmark",
@@ -5164,7 +5255,7 @@ export const en = {
       /* The two halves of the record, each saying where the other half is
          (R3 finding F-08). Written as one sentence and a link rather than a
          second navigation block. */
-      openBookings: "Open Bookings",
+      openBookings: "Open bookings",
       /* One booking's own page, which a shared card opens (R2 finding R2-2).
          "Not yours" and "not there" say the same thing on purpose: naming the
          difference would confirm to somebody guessing that a booking exists. */
@@ -5346,6 +5437,18 @@ export const en = {
     pay: "Pay",
     invest: "Invest",
     investNote: "Properties presented for their yield. Vallo sells no investment product.",
+    /* "Up next" (plan item 15): one row each for the next confirmed viewing,
+       the next stay and the latest unread thread, only when they exist. */
+    upNext: {
+      label: "Up next",
+      viewingFallback: "Your viewing",
+      viewingOn: "Viewing on {when}",
+      viewingWith: "Viewing on {when} with {name}",
+      confirmed: "Confirmed",
+      stayingNow: "Staying now",
+      awaitingHost: "Waiting for the host",
+      unread: "{count} unread",
+    },
     stays: {
       heroTitle: "Great stays. Better experiences.",
       heroLede: "Hotels, shortlets and restaurants across Nigeria.",
@@ -5460,7 +5563,7 @@ export const en = {
      * to another owner; this is the key set that ends the stopgap.
      */
     console: {
-      title: "Operations Console",
+      title: "Operations console",
       short: "Admin",
       notifications: "Notifications",
       filterByStatus: "Filter by status",
@@ -5844,10 +5947,16 @@ export const en = {
   afterTheGate: afterTheGateEn,
   cryptoPay: cryptoPayEn,
   trustVisible: trustVisibleEn,
+  /* B5 to B17: the member kit. */
+  memberKit: memberKitEn,
+  /* The small things: one toast, copy, connection, pull to refresh. */
+  details: detailsEn,
 
   landlord: landlordEn,
 
   trustDoors: trustDoorsEn,
+  /* Recommendations A: the public doors (check card, move-in calculator, guides, email preferences). */
+  publicDoors: publicDoorsEn,
   arrivalCheck: arrivalCheckEn,
 
   platform: platformEn,
@@ -5862,6 +5971,14 @@ export const en = {
   passcode: passcodeEn,
 
   desk: deskEn,
+
+  publicMeta: publicMetaEn,
+
+  hostWorkspace: hostWorkspaceEn,
+
+  mail: mailEn,
+
+  onboardingMotion: onboardingMotionEn,
 
   /*
    * THE SUCCESS SHEET (components/ui/SuccessSheet.tsx, docs/SUCCESS_MOMENTS.md).
@@ -6047,6 +6164,18 @@ export const en = {
       },
       passcodeSet: { title: "Passcode set", body: "It unlocks Vallo on this device from now on." },
       passcodeChanged: { title: "Passcode changed", body: "Use your new passcode to unlock Vallo on this device." },
+      /* The lead asked a flatmate to share the move-in; nothing is agreed
+         until they answer. */
+      flatmateInvited: {
+        title: "Invitation sent",
+        body: "They can accept or decline their share from their Vallo account. Their answer shows here.",
+      },
+      /* Only when the database says it told at least one agent, and the
+         page finds the invitation open on this owner's unit. */
+      agentsInvited: {
+        title: "Invitation sent",
+        body: "Agents who list in this area were told, and they can pitch for {place}. Their pitches show here.",
+      },
     },
   },
 

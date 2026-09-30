@@ -217,6 +217,9 @@ const EXPECTED_PUBLIC = new Set([
      canary cron, which authenticates itself with the cron secret. */
   "/api/health/catalogue",
   "/api/cron/canary",
+  /* C2: the calendar feed (a secret token, dates only) and its sync job. */
+  "/api/calendar/feed",
+  "/api/cron/calendar-sync",
   "/",
   "/robots.txt",
   "/sitemap.xml",
@@ -269,6 +272,23 @@ const EXPECTED_PUBLIC = new Set([
      renter's trusted contact opens by a token, the area only. */
   "/check",
   "/safe/[token]",
+  /* Recommendations A (30 September 2026): the supply front doors (A9), the
+     move-in calculator (A8) and the guides (A14), all read-only and about no
+     person. */
+  "/for-agents",
+  "/for-hosts",
+  "/for-landlords",
+  "/move-in-cost",
+  "/guides",
+  "/guides/[slug]",
+  /* A12: the sign-in-free email preferences, by signed token. A5: the
+     invite door and the step that keeps its code for sign-up. */
+  "/email/preferences",
+  "/join/[code]",
+  "/join/[code]/start",
+  /* A3 and A2: code sign-in by email, and by phone behind its switch. */
+  "/sign-in/code",
+  "/sign-in/phone",
   /* No network, and which home. */
   "/home-or-landing",
   "/open",
@@ -276,7 +296,13 @@ const EXPECTED_PUBLIC = new Set([
   /* API, each one guarded by a signature, a bearer secret, or nothing because
      it is telemetry a signed-out browser has to be able to post. */
   "/api/auth/email-hook",
+  /* A2: the Send SMS hook, signed, and off by default. */
+  "/api/auth/sms-hook",
   "/api/client-error",
+  /* A12: RFC 8058 one-click unsubscribe, by signed token. A6: the
+     first-party funnel beacon, rate limited, recording no person. */
+  "/api/email/unsubscribe",
+  "/api/funnel",
   "/api/cron/account-purge",
   "/api/cron/complete-stays",
   "/api/cron/email-outbox",
@@ -287,6 +313,8 @@ const EXPECTED_PUBLIC = new Set([
   "/api/cron/sanctions-lists",
   "/api/cron/sanctions-screen",
   "/api/cron/pg-cron-watch",
+  /* C8: the nightly duplicate-photo hash backfill, behind the cron bearer. */
+  "/api/cron/photo-hash-backfill",
   /* SCUML item 15: the daily risk classification, behind the cron bearer. */
   "/api/cron/risk-classes",
   /* Crypto payments read back from the provider, behind the cron bearer. */

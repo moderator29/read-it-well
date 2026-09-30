@@ -339,4 +339,12 @@
     height: var(--nf-plate-size-lg);
     border-radius: var(--nf-plate-radius-lg);
   }
+  /* THE ROUND PLATE (founder reference 44's rating list; section 17): the
+     same box and tones as a circle, for CONTENT rows (notifications, stats,
+     categories, rankings). Three classes so it outranks the size rules
+     above whatever their order. A shape, not a control, so the circle is
+     outside the capsule check. */
+  .nf-plate.nf-plate.nf-plate--round {
+    border-radius: var(--nf-radius-circle);
+  }
 }

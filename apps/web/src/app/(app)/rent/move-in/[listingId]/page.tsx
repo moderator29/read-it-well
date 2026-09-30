@@ -45,6 +45,7 @@ export default async function MoveInPage({ params }: { params: Promise<{ listing
         <PageHeader title={copy.title} fallback={`/listing/${listing.id}`} />
         <EmptyState
           icon="ledger-book"
+          art="boxes"
           title={copy.notRental}
           body={listing.title}
           action={

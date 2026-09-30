@@ -316,7 +316,9 @@ async function run(theme, state) {
 
     const fab = page.locator('[data-testid="bloom-fab"]');
     if ((await fab.count()) > 0) {
-      await fab.click();
+      /* Below 1024px the closed plus steps aside for the dock's own "+"
+         (integration QA O3); the control is still there to press. */
+      await fab.evaluate((el) => el.click());
       await page.waitForTimeout(900);
       await bloomOffers(page);
       await page.keyboard.press("Escape");

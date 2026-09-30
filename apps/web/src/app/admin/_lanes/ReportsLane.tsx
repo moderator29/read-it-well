@@ -20,6 +20,8 @@ import { adminUi, type AdminUi } from "../_components/ui";
 import { QueueTable, shortRef, type QueueRowData } from "../_components/QueueTable";
 import { gradeForReportCategory } from "@/lib/trust/standards";
 import { dueChip } from "../_components/due";
+import { getOpenContestsByReport, type ContestView } from "@/lib/admin/reads/review-contests";
+import { ContestDecision } from "./ContestDecision";
 
 /* V-88: this was the /admin/reports desk; it is the Reports lane of the
    unified queue now (`/admin/queue?tab=reports`), and the old address
@@ -57,11 +59,14 @@ function ReportCard({
   copy,
   common,
   ui,
+  contest,
 }: {
   report: ReportView;
   copy: AdminCopy["reports"];
   common: AdminCommon;
   ui: AdminUi;
+  /** A lister's "Ask Vallo to look at this review" behind this report (host C4). */
+  contest?: ContestView;
 }) {
   const closed = report.status === "resolved" || report.status === "dismissed" || (report.status as string) === "withdrawn";
 
@@ -112,6 +117,10 @@ function ReportCard({
           {fill(common.resolvedBy, { who: report.resolvedByName ?? common.someone })}.{" "}
           {common.inAuditLog}
         </p>
+      ) : contest ? (
+        /* The contest is decided with its own two outcomes (keep, or hide
+           behind a public note); they close this report too. */
+        <ContestDecision contest={contest} />
       ) : (
         <ReportDecision
           reportId={report.id}
@@ -210,6 +219,9 @@ export async function ReportsLane({
      have just paged past. `queueNarrowed` itself deliberately ignores the
      offset, because the Clear control is about the filters. */
   const narrowed = queueNarrowed(query) || (query.offset ?? 0) > 0;
+  const contests = await getOpenContestsByReport(
+    open.filter((report) => report.targetType === "review").map((report) => report.id),
+  );
   const noMatch = queueNoMatch(common);
 
   return (
@@ -279,7 +291,7 @@ export async function ReportsLane({
             ...reportRow(report, ui),
             children: (
               <ul className="nf-queue-list">
-                <ReportCard key={report.id} report={report} copy={copy} common={common} ui={ui} />
+                <ReportCard key={report.id} report={report} copy={copy} common={common} ui={ui} contest={contests.get(report.id)} />
               </ul>
             ),
           }))}

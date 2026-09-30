@@ -43,7 +43,7 @@
   }
   .nf-agent-head__title {
     font-family: var(--nf-font-display);
-    font-weight: 800;
+    font-weight: 600;
     font-size: var(--nf-text-h1);
     line-height: 1.1;
     letter-spacing: var(--nf-tracking-tight);
@@ -62,12 +62,14 @@
     align-items: center;
     gap: var(--nf-space-2xs);
     height: var(--nf-header-height-sm);
-    padding-inline: var(--nf-space-xs) var(--nf-space-sm);
+    /* The page gutter (16 / 24 / 32), so the round back and bell buttons
+       line up with the page's cards. At 8 and 12 they were drawn circles
+       sitting 9px from the screen edge (pixel polish). */
+    padding-inline: var(--nf-pad-shell);
   }
   @media (min-width: 640px) {
     .nf-ws-bar__row {
       gap: var(--nf-space-xs);
-      padding-inline: var(--nf-space-md) var(--nf-space-lg);
     }
   }
   /* Back and the toggle: bare glyphs on a 44px target, like the back arrow
@@ -93,7 +95,7 @@
     padding-inline-start: var(--nf-space-3xs);
     font-family: var(--nf-font-display);
     font-size: var(--nf-text-body);
-    font-weight: 650;
+    font-weight: 600;
     letter-spacing: var(--nf-tracking-tight);
     line-height: 1.2;
     white-space: nowrap;
@@ -257,7 +259,7 @@
   .nf-host-step__title {
     margin-top: var(--nf-space-md);
     font-family: var(--nf-font-display);
-    font-weight: 800;
+    font-weight: 600;
     font-size: var(--nf-text-h2);
     line-height: 1.15;
     letter-spacing: var(--nf-tracking-tight);
@@ -413,6 +415,17 @@
     white-space: normal;
     overflow: visible;
     text-overflow: clip;
+    /* Last resort for a word longer than the tile (a translation): break it
+       rather than run it under the chevron. */
+    overflow-wrap: break-word;
+  }
+  /* On a phone the head is label and chevron only, as reference 45's tiles
+     draw it: with the 16px glyph as well, a one-word label ("Inspections")
+     had about 54px at 360 and ran under the chevron. */
+  @media (max-width: 29.99rem) {
+    .nf-desk-kpis .nf-kpi__glyph {
+      display: none;
+    }
   }
   .nf-desk-grid {
     display: grid;

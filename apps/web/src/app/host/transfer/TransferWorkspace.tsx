@@ -1,5 +1,6 @@
 "use client";
 
+import { useHostCopy } from "@/components/host/host-copy";
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -80,6 +81,7 @@ export function TransferWorkspace({
   incoming: TransferOffer[];
   partial: boolean;
 }) {
+  const hw = useHostCopy();
   const locale = useClientLocale();
   const trading = businesses.filter((business) => business.stillTrading).length;
 
@@ -108,7 +110,7 @@ export function TransferWorkspace({
       <Stack>
         {incoming.length > 0 && (
           <Section
-            title="Offered to you"
+            title={hw.transfer.offeredTitle}
             description="Nothing has moved. It is yours only if you accept it, and taking it on means taking on its bookings and its obligations."
           >
             <RowList boxed>
@@ -121,7 +123,7 @@ export function TransferWorkspace({
 
         {businesses.length > 0 && (
           <Section
-            title="Your businesses"
+            title={hw.transfer.businessesTitle}
             description="Two ways out of each one: hand it to somebody who accepts it, or close it and take it off the market. Both leave every record where it is."
           >
             <RowList boxed>
@@ -141,8 +143,8 @@ export function TransferWorkspace({
         {businesses.length === 0 && (
           <EmptyState
             icon="hotel"
-            title="Nothing to hand over"
-            body="There is no business on this account, so nothing here is standing between you and anything."
+            title={hw.transfer.nothingTitle}
+            body={hw.transfer.nothingBody}
             action={
               <ButtonLink href="/settings/account" variant="secondary" size="lg">
                 Back to my account
@@ -336,8 +338,10 @@ function BusinessRow({
         </div>
       ) : (
         <div className="grid gap-sm sm:grid-cols-2">
+          {/* Secondary: one row per business would otherwise be a column of
+              primaries, and a hand-over is rare and deliberate (T-44). */}
           <Button
-            variant="primary"
+            variant="secondary"
             full
             onClick={() => setOpen(true)}
             data-testid={`transfer-open-${business.id}`}

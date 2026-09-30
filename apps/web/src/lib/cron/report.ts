@@ -29,8 +29,11 @@ import type { AdminClient } from "./rpc";
 
 export type CronRunRecord = {
   job: string;
-  outcome: "ok" | "attention" | "failed";
+  /** `skipped`: the job's feature flag was off and the job was not called (C13). Never alerts. */
+  outcome: "ok" | "attention" | "failed" | "skipped";
   durationMs: number;
+  /** The feature flag a skipped run was skipped for. */
+  flag?: string;
   counts?: Record<string, number>;
   /** Why a failed run failed. An error message, never a payload. */
   reason?: string;
@@ -38,6 +41,36 @@ export type CronRunRecord = {
 };
 
 const ENTITY_TYPE = "cron_job";
+
+/**
+ * C7 AND C13: CLEAN RUNS AND REPEATS LEAVE THE TRAIL.
+ *
+ * With `public.record_job_run` installed (supabase/migrations/
+ * 20260930084450_c7_job_runs_out_of_the_trail.sql), a clean run, and an
+ * attention run whose alert folded into one already open for the same cause,
+ * are counted in `job_runs` (one row per job, day and outcome) instead of
+ * appending to `audit_log`. A failed run and the FIRST attention run for a
+ * cause still write the trail. Until the function exists the call fails and
+ * every run is written to `audit_log` exactly as before, so nothing is lost
+ * either way. Returns true only when the row landed.
+ */
+async function recordJobRun(
+  admin: AdminClient,
+  job: string,
+  outcome: "ok" | "repeat" | "skipped",
+  metadata: Record<string, Json>,
+): Promise<boolean> {
+  try {
+    const caller = admin as unknown as {
+      rpc: (fn: string, args: Record<string, unknown>) => PromiseLike<{ error: unknown }>;
+    };
+    if (typeof caller.rpc !== "function") return false;
+    const { error } = await caller.rpc("record_job_run", { p_job: job, p_outcome: outcome, p_metadata: metadata });
+    return !error;
+  } catch {
+    return false;
+  }
+}
 
 /** One line of run history, plus the alert the outcome deserves. */
 export async function reportCronRun(admin: AdminClient | null, record: CronRunRecord): Promise<void> {
@@ -47,6 +80,7 @@ export async function reportCronRun(admin: AdminClient | null, record: CronRunRe
     duration_ms: durationMs,
     ...(record.counts ?? {}),
     ...(record.reason ? { reason: record.reason } : {}),
+    ...(record.flag ? { flag: record.flag } : {}),
   };
 
   if (!admin) {
@@ -60,6 +94,34 @@ export async function reportCronRun(admin: AdminClient | null, record: CronRunRe
       subjectKind: ENTITY_TYPE,
     });
     return;
+  }
+
+  /* The alert first for an attention run, so a repeat of an open cause can be
+     counted rather than appended (see recordJobRun). */
+  let alertRaised = false;
+  if (record.outcome === "attention" && record.alert) {
+    const raised = await recordAlert({
+      kind: record.alert.kind,
+      severity: record.alert.severity,
+      detail: record.alert.detail,
+      subjectId: record.job,
+      subjectKind: ENTITY_TYPE,
+    });
+    alertRaised = true;
+    if (raised && raised.ok && raised.deduplicated && (await recordJobRun(admin, record.job, "repeat", metadata))) return;
+  }
+  if (record.outcome === "ok" && (await recordJobRun(admin, record.job, "ok", metadata))) return;
+
+  /* C13: a skip is counted, never alerted. `skipped` is its own job_runs
+     outcome since supabase/migrations/20260930122539_c13_alert_acknowledged_by_and_skipped_runs.sql
+     was applied (30 September 2026); without it record_job_run refuses the word, and the skip is
+     counted as a clean run whose metadata still says `outcome: "skipped"`, so
+     it never lands in the audit trail every fifteen minutes. Only when the
+     counter is missing altogether does it fall through to one audit row,
+     `cron.<job>.skipped`, like any other run. */
+  if (record.outcome === "skipped") {
+    if (await recordJobRun(admin, record.job, "skipped", metadata)) return;
+    if (await recordJobRun(admin, record.job, "ok", { ...metadata, skipped: true })) return;
   }
 
   try {
@@ -111,7 +173,7 @@ export async function reportCronRun(admin: AdminClient | null, record: CronRunRe
     return;
   }
 
-  if (record.outcome === "attention" && record.alert) {
+  if (record.outcome === "attention" && record.alert && !alertRaised) {
     await recordAlert({
       kind: record.alert.kind,
       severity: record.alert.severity,

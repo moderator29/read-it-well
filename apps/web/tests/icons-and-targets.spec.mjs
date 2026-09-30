@@ -97,9 +97,12 @@ for (const f of files) {
      styleguide sentence that tells everybody the thing is retired - so writing
      the rule down broke the rule. A guard that punishes its own documentation
      gets the documentation deleted. */
+  /* The founder's clay icons (components/ui/Icon3D, 30 September) are a new
+     component with the old name; only the retired design-system one counts. */
+  const clay = /from ["']@\/components\/ui\/Icon3D["']/.test(src);
   if (
     /from ["']@?[./\w-]*icons\/(Icon3D|Icon|glyphs)["']/.test(src) ||
-    /<Icon3D[\s/>]/.test(src)
+    (!clay && /<Icon3D[\s/>]/.test(src))
   ) {
     retired.push(f.rel);
   }

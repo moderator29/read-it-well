@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { dismissToast, toast as showToast } from "@/lib/ui/toast";
 
 /**
  * The toast, and until now there was not one.
@@ -46,13 +47,6 @@ export type ToastTone = "neutral" | "success" | "error";
  *  over the dock while somebody is trying to use it. */
 export const TOAST_DURATION_MS = 4000;
 
-const TONE_CLASS: Record<ToastTone, string> = {
-  neutral: "",
-  success:
-    "border-[color-mix(in_oklab,var(--nf-state-success)_45%,transparent)] text-[var(--nf-state-success)]",
-  error:
-    "border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] text-[var(--nf-state-error)]",
-};
 
 export type ToastProps = {
   /** The whole message. One sentence; a toast is not a panel. */
@@ -71,21 +65,24 @@ export function Toast({
   message,
   tone = "neutral",
   "data-testid": testId,
-  className,
 }: ToastProps) {
-  return (
-    <p
-      data-testid={testId}
-      /* Failure interrupts; everything else waits its turn. See above. */
-      role={tone === "error" ? "alert" : "status"}
-      data-tone={tone}
-      className={["nf-social-toast", TONE_CLASS[tone], className ?? ""]
-        .filter(Boolean)
-        .join(" ")}
-    >
-      {message}
-    </p>
-  );
+  /*
+   * DRAWN BY THE ONE HOST NOW (details pass, 30 September 2026). This used to
+   * render its own `<p class="nf-social-toast">` wherever the caller sat, so a
+   * toast fired inside a sheet was painted by that sheet and two could stack.
+   * It now hands the message to `lib/ui/toast.ts`, and `ToastHost` (root
+   * layout) draws it in the one place, with swipe to dismiss. The caller's
+   * `useToast` still decides how long it stays: unmounting takes it down.
+   */
+  useEffect(() => {
+    const id = showToast(message, {
+      tone,
+      durationMs: 60_000,
+      ...(testId ? { "data-testid": testId } : {}),
+    });
+    return () => dismissToast(id);
+  }, [message, tone, testId]);
+  return null;
 }
 
 export type ToastState = { message: string; tone: ToastTone };

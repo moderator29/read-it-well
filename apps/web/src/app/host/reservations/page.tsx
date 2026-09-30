@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { countOf, getDictionary } from "@vallo/i18n";
+import { countOf, getDictionary, type Dictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { resolveSession } from "@/lib/actions/session";
 import { authHref, returnHref } from "@/components/auth/auth-intent";
@@ -42,8 +42,8 @@ export default async function HostReservationsPage() {
       <HostShell logoLabel={t.a11y.logoHome} fallback="/host">
         <EmptyState
           icon="concierge-bell"
-          title="Your tables"
-          body="Sign in to see the tables guests have asked for at your venue, and to accept or decline them."
+          title={t.hostWorkspace.reservations.signedOutTitle}
+          body={t.hostWorkspace.reservations.signedOutBody}
           action={
             <ButtonLink href={authHref(next, "sign-in")} variant="primary" size="lg">
               Sign in
@@ -59,6 +59,7 @@ export default async function HostReservationsPage() {
   return (
     <HostShell logoLabel={t.a11y.logoHome} fallback="/host">
       <HostTablesBody
+        copy={t.hostWorkspace}
         board={read.state === "ok" ? read.board : null}
         unavailable={read.state === "unavailable"}
       />
@@ -74,17 +75,20 @@ export default async function HostReservationsPage() {
 export function HostTablesBody({
   board,
   unavailable = false,
+  copy = getDictionary("en").hostWorkspace,
 }: {
   board: HostTableBoard | null;
   /** True when the read itself failed. A dropped read is not an empty venue. */
   unavailable?: boolean;
+  /** The host workspace words in the reader's language; English in the previews. */
+  copy?: Dictionary["hostWorkspace"];
 }) {
   if (unavailable || board === null) {
     return (
       <EmptyState
         icon="concierge-bell"
-        title="We could not load your tables"
-        body="This is on our side, not yours, and nothing has been lost. Try again in a few minutes. Any request a guest has made is still waiting for you."
+        title={copy.reservations.failedTitle}
+        body={copy.reservations.failedBody}
         action={
           <ButtonLink href="/host/reservations" variant="primary" size="lg">
             Try again
@@ -117,8 +121,8 @@ export function HostTablesBody({
         */
         <EmptyState
           icon="concierge-bell"
-          title="No tables yet"
-          body="When somebody asks for a table at your venue it appears here, with their name, party and time on the Lagos clock. It costs nobody anything, and nothing is held until you accept."
+          title={copy.reservations.emptyTitle}
+          body={copy.reservations.emptyBody}
           action={
             <ButtonLink href="/host" variant="secondary" size="lg">
               Your venue

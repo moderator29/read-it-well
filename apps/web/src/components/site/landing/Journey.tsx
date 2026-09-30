@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import type { Dictionary } from "@vallo/i18n/core";
 import { MotionReveal } from "@/components/motion/Reveal";
 import {
@@ -5,16 +6,17 @@ import {
   NO_INSPECTION_FEE,
   PAYMENT_GATE_SENTENCE,
 } from "@/lib/money/copy";
-import { IconPlate, ICON_PLATE_GLYPH } from "@/components/ui/IconPlate";
+import { Icon3D } from "@/components/ui/Icon3D";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { SectionHead } from "./SectionHead";
+import { JOURNEY_OBJECTS, LANDING_OBJECT_SIZE } from "./landing-objects";
 
 /**
  * THE JOURNEY: Find, Inspect, Agree, Move in, as four numbered step cards
  * joined by one progress line (the founder's ruling of 29 September: no phone
  * or device frame anywhere on the landing).
  *
- * Each card carries a flat icon plate, its number on the line, the step's name,
+ * Each card carries one of the founder's 3D objects, its number on the line, the step's name,
  * a title, one sentence, and a small product fragment: the one or two labels
  * the product itself shows at that step ("Booked", "Approved by Vallo",
  * "Straight to their bank"). The fragment repeats what the sentence says, so
@@ -38,9 +40,8 @@ import { SectionHead } from "./SectionHead";
  * `NO_CUSTODY_SENTENCE`, verbatim from `lib/money/copy.ts`. No fragment
  * carries money copy of its own.
  */
-/* One flat plate per step (spec section 4; the glass objects retire from
-   the landing's cards, section 16 Q3). */
-const CHAPTER_GLYPH: readonly UiIconName[] = ["search", "calendar-booking", "file-check", "key"];
+/* One 3D object per step (the founder, 30 September), at one size. Each
+   pops in at its stop as the line reaches it (landing-3d.css). */
 
 type Fragment = { icon: UiIconName; label: string; tone?: "ok" };
 
@@ -76,7 +77,7 @@ export function Journey({ t }: { t: Dictionary }) {
 
   return (
     <section className="nf-shell nf-room" data-chapter="journey" aria-labelledby="nf-landing-journey-title">
-      <SectionHead id="nf-landing-journey-title" eyebrow={j.overline} title={j.title} lede={j.body} align="center" />
+      <SectionHead id="nf-landing-journey-title" eyebrow={j.overline} title={j.title} lede={j.body} align="center" flourish />
       {/* Under 40rem the steps are a sideways swipe row, and this is its
           scroller: focusable and named, so a keyboard can move it (the cards
           hold no links to tab through). From 40rem nothing scrolls here. */}
@@ -91,9 +92,9 @@ export function Journey({ t }: { t: Dictionary }) {
                 {String(i + 1).padStart(2, "0")}
               </span>
               <article className="nf-step__card">
-                <IconPlate size="md" tone="brand" className="nf-step__plate">
-                  <UiIcon name={CHAPTER_GLYPH[i] ?? "search"} size={ICON_PLATE_GLYPH.md} />
-                </IconPlate>
+                <span className="nf-obj nf-step__obj" style={{ "--o3-i": i } as CSSProperties}>
+                  <Icon3D name={JOURNEY_OBJECTS[i] ?? "search"} size={LANDING_OBJECT_SIZE.journey} />
+                </span>
                 <span className="nf-section-label nf-step__label">{step.label}</span>
                 <h3 className="nf-step__title">{step.title}</h3>
                 <p className="nf-step__body">{step.body}</p>

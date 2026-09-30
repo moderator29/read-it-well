@@ -108,6 +108,7 @@ export function buildNav({
   t,
   side = "property",
   unreadNotifications,
+  unreadConversations = 0,
   isAgent,
   isAdmin,
   isHost = false,
@@ -123,6 +124,8 @@ export function buildNav({
    */
   side?: Side;
   unreadNotifications: number;
+  /** B1: conversations with an unread message, live; badges Messages. */
+  unreadConversations?: number;
   isAgent: boolean;
   isAdmin: boolean;
   /** Holds a Stays host business: one row into `/host`, on either side. */
@@ -185,7 +188,12 @@ export function buildNav({
           label: t.shape.plans.title,
           icon: "calendar-booking",
         } as NavNode,
-        { href: "/messages", label: t.nav.messages, icon: "chat-bubble" },
+        {
+          href: "/messages",
+          label: t.nav.messages,
+          icon: "chat-bubble",
+          ...(unreadConversations > 0 ? { badge: unreadConversations } : {}),
+        },
         {
           href: "/notifications",
           label: t.nav.notifications,

@@ -20,4 +20,4 @@ export const reelEn = {
     pause: "Pause the moving photos",
     play: "Play the moving photos",
   },
-} as const;
+};

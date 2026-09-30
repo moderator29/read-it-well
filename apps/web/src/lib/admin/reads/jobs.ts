@@ -77,6 +77,8 @@ export const VERCEL_JOBS: readonly VercelJob[] = [
   /* Crypto payments read back from the provider (lib/crypto/reconcile.ts). A no-op while nothing is moving. */
   { name: "crypto-reconcile", cron: "3,18,33,48 * * * *", schedule: "Every 15 minutes", maxGapHours: 2, audit: { entityType: "cron_job", term: "crypto-reconcile" } },
   { name: "rent-share-refunds", cron: "35 * * * *", schedule: "Hourly at :35", maxGapHours: 2, audit: { entityType: "cron_job", term: "rent-share-refunds" } },
+  /* C2: hosts' Airbnb and Booking.com calendars pulled in. A no-op while CALENDAR_SYNC_ENABLED is off. */
+  { name: "calendar-sync", cron: "2,17,32,47 * * * *", schedule: "Every 15 minutes", maxGapHours: 2, audit: { entityType: "cron_job", term: "calendar-sync" } },
 ];
 
 /**
@@ -95,6 +97,8 @@ export const PG_CRON_JOBS: readonly PgCronJob[] = [
   { name: "vallo_safety_share_sweep", cron: "*/10 * * * *", when: "every 10 min", what: "reminds a renter who has not checked in after an inspection they shared" },
   { name: "vallo_hold_claims_sweep", cron: "* * * * *", when: "every minute", what: "lets compliance hold claims take over within a minute of a this-was-not-me hold ending (SCUML items 6 and 8)" },
   { name: "vallo_release_stale_holds", cron: "*/15 * * * *", when: "every 15 min", what: "database side of the hold release" },
+  { name: "vallo_remind_hosts_to_decide", cron: "4,19,34,49 * * * *", when: "every 15 min", what: "reminds a host once when a room or table request has used three quarters of its window (C3)" },
+  { name: "vallo_send_member_reminders", cron: "7,22,37,52 * * * *", when: "every 15 min", what: "sends each viewing reminder (the evening before, two hours before) and rent-due reminder (180, 90, 30, 7 days) once (B5, B10)" },
   { name: "vallo_alert_overdue_refunds", cron: "12 * * * *", when: "hourly at :12", what: "alerts on refunds past their due-by date" },
   { name: "vallo_escrow_sweep_timeouts", cron: "17 * * * *", when: "hourly at :17", what: "escrow timeouts" },
   { name: "vallo_str_nudge_overdue", cron: "17 * * * *", when: "hourly at :17", what: "reminds staff of an STR case past its clock, once a day each (SCUML item 6)" },
@@ -107,7 +111,10 @@ export const PG_CRON_JOBS: readonly PgCronJob[] = [
   { name: "vallo-nightly-badges", cron: "20 2 * * *", when: "daily 03:20", what: "awards earned badges" },
   { name: "vallo_purge_email_outbox", cron: "25 2 * * *", when: "daily 03:25", what: "forgets emails already delivered" },
   { name: "vallo_purge_web_vitals", cron: "35 2 * * *", when: "daily 03:35", what: "deletes field speed figures older than 30 days" },
+  { name: "vallo_photo_hash_backfill", cron: "5 2 * * *", when: "daily 03:05", what: "asks the app to hash older listing photos, so the duplicate-photo signal works (C8)" },
+  { name: "vallo_purge_job_runs", cron: "55 2 * * *", when: "daily 03:55", what: "forgets counted scheduled runs older than 90 days (C7)" },
   { name: "vallo_purge_money_step_ups", cron: "45 2 * * *", when: "daily 03:45", what: "forgets used money-lock challenges and proofs after a day" },
+  { name: "vallo_purge_funnel_events", cron: "50 2 * * *", when: "daily 03:50", what: "forgets front door funnel counts older than 90 days (A6)" },
   { name: "vallo_escrow_book_the_float", cron: "5 3 * * *", when: "daily 04:05", what: "books the day's escrow float as a liability" },
   { name: "vallo_sweep_price_check_events", cron: "40 3 * * *", when: "daily 04:40", what: "deletes price check events older than 24 months" },
   { name: "vallo_announce_completed_stays", cron: "20 5 * * *", when: "daily 06:20", what: "announces completed stays" },
@@ -139,7 +146,10 @@ function meta(row: RunRow): Record<string, unknown> {
 export function outcomeOf(row: RunRow): JobOutcome | null {
   if (row.action.startsWith("cron.")) {
     const tail = row.action.split(".").pop();
-    return tail === "ok" || tail === "attention" || tail === "failed" ? tail : null;
+    /* C13: before the `skipped` outcome exists in job_runs, a skip is counted
+       as a clean run whose metadata says it skipped. */
+    if (tail === "ok" && meta(row)["skipped"] === true) return "skipped";
+    return tail === "ok" || tail === "attention" || tail === "failed" || tail === "skipped" ? tail : null;
   }
   if (row.action === "wallet.reconciliation.run") {
     const outcome = meta(row)["outcome"];
@@ -184,6 +194,7 @@ export function jobStatus(row: JobHealthRow): JobStatus {
   if (row.lastOutcome === "failed") return { tone: "error", word: "Failed" };
   if (row.stale) return { tone: "error", word: "Overdue" };
   if (row.lastOutcome === "attention") return { tone: "info", word: "Attention" };
+  if (row.lastOutcome === "skipped") return { tone: "info", word: "Skipped (flag off)" };
   return { tone: "success", word: "Healthy" };
 }
 

@@ -6,6 +6,7 @@ import type { Dictionary } from "@vallo/i18n/core";
 import { Button } from "@/components/ui/Button";
 import { assignFirmListing, setFirmRouting } from "@/lib/firm/actions";
 import type { FirmListing, FirmMember, FirmRouting } from "@/lib/firm/queries";
+import { Icon3D } from "@/components/ui/Icon3D";
 
 /**
  * V-99: THE FIRM DESK. Every open listing under the firm with who handles it
@@ -89,9 +90,14 @@ export function FirmDesk({
   return (
     <div className="flex flex-col gap-lg" data-testid="firm-desk">
       <section className="nf-panel nf-panel--card p-card-sm" aria-labelledby="firm-listings-title">
-        <h2 id="firm-listings-title" className="nf-h4 text-[var(--nf-content-primary)]">
-          {copy.listingsTitle}
-        </h2>
+        <div className="flex items-center gap-sm">
+          <span className="grid size-10 shrink-0 place-items-center" aria-hidden="true" data-art="keys">
+            <Icon3D name="keys" size={40} />
+          </span>
+          <h2 id="firm-listings-title" className="nf-h4 text-[var(--nf-content-primary)]">
+            {copy.listingsTitle}
+          </h2>
+        </div>
         {listings.length === 0 ? (
           <p className="mt-group nf-body-sm text-[var(--nf-content-muted)]">{copy.listingsEmpty}</p>
         ) : (
@@ -104,9 +110,14 @@ export function FirmDesk({
       </section>
 
       <section className="nf-panel nf-panel--card p-card-sm" aria-labelledby="firm-team-title">
-        <h2 id="firm-team-title" className="nf-h4 text-[var(--nf-content-primary)]">
-          {copy.teamTitle}
-        </h2>
+        <div className="flex items-center gap-sm">
+          <span className="grid size-10 shrink-0 place-items-center" aria-hidden="true" data-art="team">
+            <Icon3D name="team" size={40} />
+          </span>
+          <h2 id="firm-team-title" className="nf-h4 text-[var(--nf-content-primary)]">
+            {copy.teamTitle}
+          </h2>
+        </div>
         <ul className="mt-group flex flex-col gap-xs">
           {team.map((m) => (
             <li key={m.agentId} className="flex justify-between gap-sm nf-body-sm text-[var(--nf-content-primary)]">

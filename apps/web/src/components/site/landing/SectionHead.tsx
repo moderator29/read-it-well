@@ -22,6 +22,10 @@ import { MotionReveal } from "@/components/motion/Reveal";
  *
  * `[[phrase]]` in the title takes the brand ink; a translation without
  * brackets renders plain.
+ *
+ * `flourish` underlines the title's last word in the warm spark, a short
+ * orange stroke that draws in once (spec section 18). Two heads on the page
+ * carry it and no more: it is a spark, not a style.
  */
 export function SectionHead({
   id,
@@ -29,6 +33,7 @@ export function SectionHead({
   title,
   lede,
   align = "start",
+  flourish = false,
   children,
   className,
 }: {
@@ -37,6 +42,8 @@ export function SectionHead({
   title: string;
   lede?: string;
   align?: "start" | "center";
+  /** Underline the title's last word in the warm spark. */
+  flourish?: boolean;
   children?: ReactNode;
   className?: string;
 }) {
@@ -51,12 +58,31 @@ export function SectionHead({
         {parts.map((part, i) => (
           <Fragment key={`${i}-${part.text}`}>
             {i > 0 ? " " : null}
-            {part.lit ? <span className="nf-landing-hl">{part.text}</span> : part.text}
+            {part.lit ? (
+              <span className="nf-landing-hl">{part.text}</span>
+            ) : flourish && i === parts.length - 1 ? (
+              <SparkLast text={part.text} />
+            ) : (
+              part.text
+            )}
           </Fragment>
         ))}
       </h2>
       {lede && <p className="nf-sec-lede">{lede}</p>}
       {children}
     </MotionReveal>
+  );
+}
+
+/** The text with its last word wrapped for the spark stroke. */
+function SparkLast({ text }: { text: string }) {
+  const at = text.lastIndexOf(" ");
+  const head = at < 0 ? "" : text.slice(0, at + 1);
+  const last = at < 0 ? text : text.slice(at + 1);
+  return (
+    <>
+      {head}
+      <span className="nf-spark-flourish">{last}</span>
+    </>
   );
 }

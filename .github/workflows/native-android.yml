@@ -145,3 +145,71 @@ jobs:
           path: apps/web/android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 14
           if-no-files-found: error
+
+  # C15 (30 September 2026): the first time the APK meets a phone, even an
+  # emulated one. Installs the debug APK from the job above on an Android 14
+  # emulator and runs the P0 rows of docs/VALLO_NATIVE_TEST_MATRIX.md that
+  # need no account: cold launch online (row 1), a deep link to /open, the
+  # back button at the root (row 23), and a cold launch with the network off
+  # (row 2). A screenshot of each is kept under Artifacts; the pass or fail is
+  # a person looking at them, because a web view's content is not readable to
+  # adb. `continue-on-error` so an emulator that fails to boot never blocks a
+  # build that compiled.
+  emulator:
+    name: Android emulator smoke (no account)
+    needs: debug
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    continue-on-error: true
+    steps:
+      - uses: actions/download-artifact@v6
+        with:
+          name: vallo-android-debug-${{ github.sha }}
+          path: apk
+
+      # Hardware acceleration for the emulator on GitHub's Linux runners.
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Run the no-account P0 rows
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          script: |
+            mkdir -p shots
+            adb install -r apk/app-debug.apk
+            adb shell monkey -p com.vallospaces.app -c android.intent.category.LAUNCHER 1
+            sleep 25
+            adb exec-out screencap -p > shots/01-cold-launch-online.png
+            adb shell am start -W -a android.intent.action.VIEW -d "https://www.vallospaces.com/open" com.vallospaces.app || true
+            sleep 12
+            adb exec-out screencap -p > shots/02-deep-link-open.png
+            adb shell input keyevent 4
+            sleep 4
+            adb exec-out screencap -p > shots/03-back-at-root.png
+            adb shell am force-stop com.vallospaces.app
+            adb shell svc wifi disable
+            adb shell svc data disable
+            adb shell monkey -p com.vallospaces.app -c android.intent.category.LAUNCHER 1
+            sleep 20
+            adb exec-out screencap -p > shots/04-cold-launch-offline.png
+            adb shell svc wifi enable
+            adb shell svc data enable
+            adb logcat -d -s Capacitor:* chromium:* AndroidRuntime:E > shots/logcat.txt || true
+
+      - name: Keep the screenshots
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: android-emulator-smoke-${{ github.sha }}
+          path: shots
+          retention-days: 14
+          if-no-files-found: warn

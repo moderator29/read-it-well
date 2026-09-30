@@ -7,7 +7,7 @@ import { useMotionGate } from "@/components/motion/useMotionGate";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { MiniListing } from "@/lib/site/listing-card";
 import { ListingMini } from "./ListingMini";
-import { IconPlate } from "@/components/ui/IconPlate";
+import { Icon3D } from "@/components/ui/Icon3D";
 
 /**
  * The AI chat showcase (Track M): a scripted conversation in a panel.
@@ -135,9 +135,9 @@ export function AiShowcase({
 
       <div className="nf-ai-show-panel" data-leaving={leaving ? "true" : undefined} aria-hidden="true" inert>
         <div className="nf-ai-show-head">
-          <IconPlate size="sm" tone="brand" className="nf-ai-show-avatar">
-            <UiIcon name="bot" size={20} />
-          </IconPlate>
+          <span className="nf-ai-show-avatar" aria-hidden="true">
+            <Icon3D name="assistant" size={32} />
+          </span>
           <span className="nf-ai-show-name">{labels.name}</span>
         </div>
 

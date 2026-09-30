@@ -254,14 +254,14 @@ export function ResultSheet(props: ResultSheetProps) {
         `nf-money` is carried INSIDE the sheet on purpose. `Sheet` renders
         through a portal on `document.body`, so it sits outside the page's
         surface root and the money surfaces' control law (the lit brand edge
-        and the glow, scoped in `app/css/wallet.css`) would stop at the
+        and the glow, scoped in `app/css/money-surface.css`) would stop at the
         sheet's edge: a confirmation would answer the page's own controls with
         differently dressed ones. The class travels with the content instead.
 
         THIS USED TO SAY "the render's capsule and its glow". There is no
         capsule any more and there is no capsule rule to inherit: the shape
-        law closed at DESIGN_DIRECTION section 1.4 and `wallet.css:589`
-        records the deletion of the rule this sentence was pointing at. A
+        law closed at DESIGN_DIRECTION section 1.4, and the retired wallet
+        sheet that recorded the rule's deletion is itself gone (C12). A
         stale comment naming a withdrawn ruling as its authority is how a
         shape law gets reopened by accident, so it is corrected rather than
         left to be read.

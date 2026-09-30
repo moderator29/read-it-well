@@ -20,6 +20,7 @@ export function RegistrationFiledSheet({ reference, copy }: { reference: string;
       open={open}
       onOpenChange={setOpen}
       variant={words.variant}
+      object={words.object}
       title={words.title}
       body={words.body}
       details={[{ label: copy.detail.reference, value: reference, mono: true }]}

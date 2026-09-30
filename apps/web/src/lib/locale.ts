@@ -7,6 +7,7 @@ import {
   type Locale,
 } from "@vallo/i18n/core";
 import { LOCALE_COOKIE } from "./locale.constants";
+import { URL_LOCALE_HEADER } from "./i18n/public-locale";
 
 export { LOCALE_COOKIE };
 
@@ -35,10 +36,20 @@ export { LOCALE_COOKIE };
  * `headers()` is reached, so no page becomes uncacheable that was not.
  */
 export async function getLocale(): Promise<Locale> {
+  /*
+   * 0. The address (A10). `/ha/about` is Hausa whatever the cookie says: a
+   *    shared link means the same page for everybody who opens it. The proxy
+   *    sets this header only on a public page reached through a language
+   *    prefix, after deleting any copy the client sent, so the signed-in app
+   *    is never affected and keeps the member's own choice below.
+   */
+  const requestHeaders = await headers();
+  const fromAddress = requestHeaders.get(URL_LOCALE_HEADER);
+  if (isLocale(fromAddress)) return fromAddress;
+
   const store = await cookies();
   const chosen = store.get(LOCALE_COOKIE)?.value;
   if (isLocale(chosen)) return chosen;
 
-  const requestHeaders = await headers();
   return localeFromAcceptLanguage(requestHeaders.get("accept-language")) ?? DEFAULT_LOCALE;
 }

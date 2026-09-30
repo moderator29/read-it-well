@@ -164,9 +164,14 @@
       box-shadow: var(--nf-panel-rim), var(--nf-panel-glow), var(--nf-elev-3);
     }
   }
+  /* Through a custom property on purpose (motion sweep 2): written as a
+     plain 0.98 beside `transform: none`, the CSS compiler folded the two
+     into `transform: scale3d(.98, .98, 1)`, which the entrance animation's
+     held `transform` then overrode, and the card never pressed. A value it
+     cannot resolve at build time is a value it cannot fold. */
   .nf-pcard:active {
     transform: none;
-    scale: 0.98;
+    scale: var(--nf-pcard-press, 0.98);
   }
 
   /* The heart's spring: only on the tap that saves (ListingCard.tsx). */

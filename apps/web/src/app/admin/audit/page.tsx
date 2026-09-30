@@ -8,12 +8,14 @@ import {
   queueNoMatch,
   QueueFilters,
   QueuePager,
+  queueHref,
   queueNarrowed,
   readQueueQuery,
 } from "../_components/QueueFilters";
 import { QueueTabs } from "../_components/QueueTable";
 import { adminUi } from "../_components/ui";
 import { AUDIT_COPY as COPY, AuditList, auditTabs } from "./AuditList";
+import { pickAuditEntityType, pickAuditWho } from "@/lib/admin/audit-filter";
 import { AuditCharts } from "./AuditCharts";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -40,6 +42,12 @@ export default async function AdminAuditPage({
 
   const params = await searchParams;
   const query = readQueueQuery(params);
+  /* C7: the trail opens on people; "Everything" carries `?who=all` in the
+     base, so the tabs, the filters and the pager all keep it. */
+  const whoParam = Array.isArray(params.who) ? params.who[0] : params.who;
+  const exactId = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test((query.q ?? "").trim());
+  const who = pickAuditWho(whoParam, pickAuditEntityType(query.status), exactId);
+  const base = who === "all" ? `${COPY.base}?who=all` : COPY.base;
   /*
    * The charts read their own window and are NOT narrowed by `query`. A chart
    * that silently followed the operator's search box would carry a caption
@@ -47,13 +55,16 @@ export default async function AdminAuditPage({
    * parallel with the page, because neither one waits on the other.
    */
   const [log, activity] = await Promise.all([
-    getAuditLog({
-      ...(query.q ? { q: query.q } : {}),
-      ...(query.status ? { status: query.status } : {}),
-      ...(query.from ? { from: query.from } : {}),
-      ...(query.to ? { to: query.to } : {}),
-      ...(query.offset ? { offset: query.offset } : {}),
-    }),
+    getAuditLog(
+      {
+        ...(query.q ? { q: query.q } : {}),
+        ...(query.status ? { status: query.status } : {}),
+        ...(query.from ? { from: query.from } : {}),
+        ...(query.to ? { to: query.to } : {}),
+        ...(query.offset ? { offset: query.offset } : {}),
+      },
+      { who },
+    ),
     getAuditActivity(),
   ]);
 
@@ -103,10 +114,29 @@ export default async function AdminAuditPage({
         />
       ) : null}
 
-      <QueueTabs label={COPY.tabsLabel} tabs={auditTabs(COPY.base, query)} />
+      <QueueTabs
+        label="Who wrote it"
+        tabs={[
+          { key: "people", label: "People", href: queueHref(COPY.base, query, { offset: undefined }), on: who === "people" },
+          {
+            key: "all",
+            label: "Everything, with scheduled jobs",
+            href: queueHref(`${COPY.base}?who=all`, query, { offset: undefined }),
+            on: who === "all",
+          },
+        ]}
+      />
+      {who === "people" ? (
+        <p className="nf-caption mt-inline">
+          Showing what staff and members did. Clean scheduled runs are counted on the operations desk, and
+          anything a job raised is on the alerts desk.
+        </p>
+      ) : null}
+
+      <QueueTabs label={COPY.tabsLabel} tabs={auditTabs(base, query)} />
 
       <QueueFilters
-        base={COPY.base}
+        base={base}
         query={query}
         common={common}
         statuses={[]}
@@ -121,11 +151,11 @@ export default async function AdminAuditPage({
           state={narrowed ? "no-match" : "never"}
         />
       ) : (
-        <AuditList rows={rows} ui={ui} base={COPY.base} />
+        <AuditList rows={rows} ui={ui} base={base} />
       )}
 
       <QueuePager
-        base={COPY.base}
+        base={base}
         query={query}
         pageSize={QUEUE_PAGE_SIZE}
         full={log.data.full}

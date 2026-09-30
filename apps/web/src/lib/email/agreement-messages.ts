@@ -1,5 +1,6 @@
 import { NO_CUSTODY_SENTENCE, OFF_PLATFORM_SENTENCE } from "../money/copy";
 import { appUrl, button, compose, fitSubject, heading, hello, money, note, paragraph, quoteLine, rows, type Block, type ReceiptRow } from "./render";
+import type { EmailKind } from "./icons";
 import type { EmailMessage } from "./messages";
 
 /**
@@ -11,8 +12,8 @@ import type { EmailMessage } from "./messages";
  * opens now, or does not), and the one thing to do next.
  */
 
-function message(subject: string, preheader: string, blocks: readonly (Block | null | false)[], footer: string): EmailMessage {
-  const composed = compose({ preheader, blocks, footerLines: [footer] });
+function message(icon: EmailKind, subject: string, preheader: string, blocks: readonly (Block | null | false)[], footer: string): EmailMessage {
+  const composed = compose({ icon, preheader, blocks, footerLines: [footer] });
   return { subject, preheader: composed.preheader, html: composed.html, text: composed.text };
 }
 
@@ -40,6 +41,7 @@ function facts(data: AgreementEmailData): ReceiptRow[] {
 export function agreementApproved(data: AgreementEmailData): EmailMessage {
   const renter = data.viewer === "renter";
   return message(
+    "agreementApproved",
     fitSubject("Approved, payment is open", data.listingTitle),
     renter
       ? `${money(data.amountMinor)} agreed. You can pay in the app now.`
@@ -65,6 +67,7 @@ export function agreementApproved(data: AgreementEmailData): EmailMessage {
 
 export function agreementRejected(data: AgreementEmailData): EmailMessage {
   return message(
+    "agreementRejected",
     fitSubject("Agreement sent back", data.listingTitle),
     data.reason ? quoteLine("Why", data.reason) : "Vallo did not approve it yet. Nothing has been charged.",
     [
@@ -81,6 +84,7 @@ export function agreementRejected(data: AgreementEmailData): EmailMessage {
 
 export function agreementWaiting(data: AgreementEmailData): EmailMessage {
   return message(
+    "agreementWaiting",
     fitSubject("Agreement to confirm", data.listingTitle),
     `${money(data.amountMinor)} in total. Read the terms and confirm them in the app.`,
     [
@@ -107,6 +111,7 @@ export type ClaimDecidedData = {
 export function guaranteeClaimDecided(data: ClaimDecidedData): EmailMessage {
   const approved = data.decision === "approve";
   return message(
+    "guaranteeClaimDecided",
     approved ? "Vallo Guarantee claim approved" : "Vallo Guarantee claim not approved",
     approved
       ? data.amountMinor !== null

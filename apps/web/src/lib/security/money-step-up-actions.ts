@@ -28,6 +28,7 @@ import {
   enrolKey,
   intentDigest,
   isStaffAccount,
+  listConsoleCredentialIds,
   listCredentialIds,
   mintChallenge,
   passwordChangedRecently,
@@ -159,7 +160,10 @@ async function staffEnrolProven(
   user: Parameters<typeof reauthenticate>[0],
   proof: z.infer<typeof enrolProofSchema>,
 ): Promise<true | FallbackError> {
-  const keys = await listCredentialIds(a, user.id);
+  /* C14: a key revoked for the console (a lost phone, cleared by a second
+     super admin, audited) cannot vouch for a new one, so it does not count:
+     a staff member with none left takes the first-key proof. */
+  const keys = await listConsoleCredentialIds(a, user.id);
   if (keys === null) return "failed";
   if (keys.length > 0) {
     if (!proof.stepUp) return "rejected";

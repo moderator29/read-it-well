@@ -8,17 +8,14 @@
  * nothing.
  *
  * HOW IT WORKS. Each route group's `template.tsx` wraps the page in React's
- * `<ViewTransition>` (`components/motion/RouteTransition.tsx`) with the class
- * `nf-page` on enter and exit. The App Router runs every navigation as a
- * transition, so React hands the swap to the browser's View Transitions API,
- * which snapshots the outgoing page and animates it against the live incoming
- * one. Which way it moves is read from `data-nav-dir` on the root
- * (`lib/motion/nav-direction.ts`): forward, back or tab.
- *
- *   forward  old drifts toward the leading edge and fades; new arrives from
- *            the trailing edge
- *   back     the mirror image
- *   tab      a crossfade with a small rise: nothing was pushed or popped
+ * `<ViewTransition>` (`components/motion/RouteTransition.tsx`). The App Router
+ * runs every navigation as a transition, so React hands the swap to the
+ * browser's View Transitions API, which snapshots the outgoing page and
+ * animates it against the live incoming one. Since the second sweep (30
+ * September) the page moves as the root snapshot, with depth and from the
+ * point that was tapped: see "THE PAGE ITSELF" below. Which way it moves is
+ * read from `data-nav-dir` on the root (`lib/motion/nav-direction.ts`), and
+ * where it grows from from `data-nav-origin` (`lib/motion/nav-origin.ts`).
  *
  * THE CHROME DOES NOT MOVE. The header, the dock, the rail and the site bar
  * carry their own `view-transition-name`, so they are lifted out of the page
@@ -30,15 +27,15 @@
  *
  * NOTHING WAITS AND NOTHING IS SWALLOWED. `::view-transition` takes no pointer
  * events, so a tap during the animation reaches the live page underneath.
- * Only `translate` and `opacity` animate, on snapshots the compositor already
+ * Only `translate`, `scale` and `opacity` animate, on snapshots the compositor already
  * holds, which is what keeps this at frame rate on a low-end Android.
  *
  * THE GATES.
  *   - Operating-system reduced motion: `base.css` sets every view-transition
  *     animation to none, so the swap is instant. The route tokens also
  *     collapse to 0 in tokens.css.
- *   - Motion set to Off: `RouteTransition` asks React for no transition at
- *     all. The rule at the foot is the stylesheet's second guard.
+ *   - Motion set to Off: the rule at the foot stops every view-transition
+ *     animation, so the swap is instant.
  *   - Motion set to Calm: a short crossfade, with no travel.
  *   - Cinematic: the same moves, on its longer duration ladder.
  *   - The side flip passes the `nf-flip` transition type and gets none, so
@@ -116,92 +113,209 @@
 ::view-transition-new(.nf-chrome) {
   animation: none;
 }
+/* Into or out of an immersive page (a listing, a thread) the header or the
+   dock exists on one side only: it fades rather than blinking away or in. */
+::view-transition-old(.nf-chrome):only-child {
+  display: block;
+  animation: nf-route-fade-out var(--nf-duration-fast) var(--nf-ease-exit) both;
+}
+::view-transition-new(.nf-chrome):only-child {
+  animation: nf-route-fade-in var(--nf-duration-base) var(--nf-ease-standard) both;
+}
 
-/* The canvas behind the pages does not crossfade with itself. */
+/*
+ * ------------------------------------------------------------ THE PAGE ITSELF
+ *
+ * Second sweep (30 September 2026): the page travels as the browser's root
+ * snapshot, one full-screen image for the page leaving and one live image for
+ * the page arriving (RouteTransition.tsx names nothing else). That is what
+ * lets it behave like a native stack:
+ *
+ *   forward   the page behind recedes: it scales to 0.97 and dims under the
+ *             new one, which arrives 32px from the trailing edge and fades up
+ *   from a tap (`data-nav-origin`, lib/motion/nav-origin.ts)
+ *             the new page grows out of the tapped element instead: it scales
+ *             up from 0.9 about the element's centre (`--nf-tap-x/y`), and a
+ *             card or a row (`expand`) lifts out of the old page, grows toward
+ *             the screen and dissolves into the page it opened
+ *   back      the page on top slides back out toward the trailing edge while
+ *             the one beneath comes forward out of its dim; after a page opened
+ *             from a tap (`return`) it shrinks back into that element instead,
+ *             and the element settles into its place
+ *   tab       nothing was pushed: a crossfade, the new page lifting 12px, and
+ *             its sections arriving one after another (the stagger below)
+ *
+ * Every image is a compositor layer the browser already holds; only
+ * `translate`, `scale` and `opacity` animate. The durations are the motion
+ * ladder's own, so Cinematic stretches them and Calm is handled on its own.
+ */
+:root {
+  --nf-route-in: var(--nf-duration-slow);
+  --nf-route-out: var(--nf-duration-slow);
+  --nf-route-depth: 0.97;
+  --nf-route-dim: 0.28;
+  --nf-route-grow-from: 0.9;
+  --nf-route-lift: 0.75rem;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --nf-route-depth: 1;
+    --nf-route-grow-from: 1;
+    --nf-route-lift: 0;
+  }
+}
+
+/* The two page images stack plainly: no additive crossfade, which bleached a
+   light page to white halfway through. The page arriving is on top going
+   forward; the one leaving is on top going back, so it can leave over the one
+   it uncovers. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  mix-blend-mode: normal;
+  transform-origin: var(--nf-tap-x, 50%) var(--nf-tap-y, 38%);
+}
+
+/* Forward, and the default for a navigation with no direction. */
 ::view-transition-old(root) {
-  display: none;
+  animation: nf-page-recede var(--nf-route-out) var(--nf-ease-standard) both;
 }
 ::view-transition-new(root) {
+  animation:
+    nf-route-fade-in var(--nf-duration-base) var(--nf-ease-standard) both,
+    nf-route-in var(--nf-route-in) var(--nf-ease-entrance) both;
+}
+
+/* From a tap: the page grows out of it. */
+:root[data-nav-origin="point"]::view-transition-new(root),
+:root[data-nav-origin="expand"]::view-transition-new(root) {
+  animation:
+    nf-route-fade-in var(--nf-duration-base) var(--nf-ease-standard) both,
+    nf-page-grow var(--nf-route-in) var(--nf-ease-entrance) both;
+}
+
+/* Back: the page on top leaves, the one beneath comes forward. */
+:root[data-nav-dir="back"]::view-transition-old(root),
+html:active-view-transition-type(nf-back)::view-transition-old(root) {
+  z-index: 1;
+  animation:
+    nf-route-fade-out var(--nf-route-out) var(--nf-ease-exit) both,
+    nf-route-in-reverse var(--nf-route-out) var(--nf-ease-standard) both;
+}
+:root[data-nav-dir="back"]::view-transition-new(root),
+html:active-view-transition-type(nf-back)::view-transition-new(root) {
+  animation: nf-page-surface var(--nf-route-in) var(--nf-ease-entrance) both;
+}
+/* Back into the element it was opened from. */
+:root[data-nav-origin^="return"]::view-transition-old(root) {
+  animation:
+    nf-route-fade-out var(--nf-route-out) var(--nf-ease-exit) both,
+    nf-page-shrink var(--nf-route-out) var(--nf-ease-standard) both;
+}
+
+/* Tab: sideways, nothing pushed. */
+:root[data-nav-dir="tab"]::view-transition-old(root) {
+  animation: nf-route-fade-out var(--nf-duration-fast) var(--nf-ease-exit) both;
+}
+:root[data-nav-dir="tab"]::view-transition-new(root) {
+  animation:
+    nf-route-fade-in var(--nf-duration-base) var(--nf-ease-standard) both,
+    nf-route-lift var(--nf-route-in) var(--nf-ease-entrance) both;
+}
+
+/* The side flip turns the whole screen itself: the swap under it is instant. */
+html:active-view-transition-type(nf-flip)::view-transition-old(root) {
+  display: none;
+}
+html:active-view-transition-type(nf-flip)::view-transition-new(root) {
   animation: none;
 }
 
-/* ----------------------------------------------------------- forward / back */
-
-::view-transition-old(.nf-page) {
-  animation:
-    nf-route-fade-out var(--nf-duration-fast) var(--nf-ease-exit) both,
-    nf-route-out var(--nf-duration-base) var(--nf-ease-exit) both;
-}
-::view-transition-new(.nf-page) {
-  animation:
-    nf-route-fade-in var(--nf-duration-base) var(--nf-ease-entrance) both,
-    nf-route-in var(--nf-duration-base) var(--nf-ease-entrance) both;
-}
-
-/* ---------------------------------------------------------------------- tab */
-
-:root[data-nav-dir="tab"]::view-transition-old(.nf-page) {
-  animation: nf-route-fade-out var(--nf-duration-fast) var(--nf-ease-exit) both;
-}
-:root[data-nav-dir="tab"]::view-transition-new(.nf-page) {
-  animation:
-    nf-route-fade-in var(--nf-duration-base) var(--nf-ease-entrance) both,
-    nf-route-rise var(--nf-duration-base) var(--nf-ease-entrance) both;
-}
-
-/* ------------------------------------------------ the in-app back traversal */
+/* ------------------------------------------------------- the tapped element */
 
 /*
- * `animateBack` (lib/motion/nav-direction.ts) wraps a history traversal in a
- * view transition typed `nf-back`. No page group is named in that one, so
- * the page travels as the root snapshot, backwards; the chrome is named and
- * stays where it is.
+ * `nf-origin` is lent to the one card or row that was tapped (forward) or to
+ * the one it returns into (back). Above the pages, below the chrome.
  */
-html:active-view-transition-type(nf-back)::view-transition-old(root) {
-  display: block;
-  animation:
-    nf-route-fade-out var(--nf-duration-fast) var(--nf-ease-exit) both,
-    nf-route-out var(--nf-duration-base) var(--nf-ease-exit) both;
+::view-transition-group(nf-origin) {
+  z-index: 2;
 }
-html:active-view-transition-type(nf-back)::view-transition-new(root) {
+::view-transition-old(nf-origin),
+::view-transition-new(nf-origin) {
+  mix-blend-mode: normal;
+}
+/* Forward: the element grows toward the screen and dissolves into the page. */
+::view-transition-old(nf-origin) {
   animation:
-    nf-route-fade-in var(--nf-duration-base) var(--nf-ease-entrance) both,
-    nf-route-in var(--nf-duration-base) var(--nf-ease-entrance) both;
+    nf-origin-grow var(--nf-route-in) var(--nf-ease-entrance) both,
+    nf-route-fade-out var(--nf-duration-base) var(--nf-ease-exit) 60ms both;
+}
+/* Back: it comes back down out of the page into its place. */
+:root[data-nav-origin^="return"]::view-transition-new(nf-origin) {
+  animation:
+    nf-origin-settle var(--nf-route-in) var(--nf-ease-entrance) both,
+    nf-route-fade-in var(--nf-duration-base) var(--nf-ease-standard) both;
 }
 
 /*
- * A TAB ARRIVES IN A BREATH, NOT A BLOCK. On a tab switch the new page's
- * first four sections rise into place a beat apart, inside the crossfade.
- * Only while `data-nav-dir` says a tab switch is under way, so it never runs
- * on a first load (no cost to the first paint) and never on a push, where
- * the page is already travelling. Four sections and 40ms steps: the last one
- * lands inside 400ms.
+ * EVERY PAGE ARRIVES IN A BREATH, NOT A BLOCK (second sweep: every main page,
+ * on the first paint and on every move, not only a tab switch). The first six
+ * sections of the page rise 10px into place 50ms apart, inside whatever the
+ * page itself is doing, and the last one lands inside 650ms.
+ *
+ * `:where()` keeps it at no specificity at all, so a block that already has
+ * an entrance of its own (the home hero, the cards, a page title) keeps its
+ * own and this steps aside. `backwards`, never `both`: once a section has
+ * landed nothing is left on it, because a transform, even a finished one,
+ * would make it the containing block of any fixed bar inside it. A section
+ * that holds a fixed layer (a sheet, a floating back, the map pill) is left
+ * still for the same reason. On the first paint it waits for the splash, as
+ * every entrance does.
  */
 @layer components {
-  :root[data-nav-dir="tab"] .nf-page-stage > * > :nth-child(-n + 4) {
-    animation: nf-route-stagger var(--nf-duration-base) var(--nf-ease-entrance) both;
+  :where(.nf-page-stage > * > :nth-child(-n + 6)):where(
+      :not(
+          :has(
+              .fixed,
+              .nf-sheet,
+              .nf-sheet-backdrop,
+              .nf-social-sheet,
+              .nf-floating-back,
+              .nf-maplist-pill,
+              .nf-confirm-dim,
+              dialog
+            )
+        )
+    ) {
+    animation: nf-route-stagger var(--nf-duration-slow) var(--nf-ease-entrance) backwards;
+    animation-delay: var(--nf-splash-hold, 0s);
   }
-  :root[data-nav-dir="tab"] .nf-page-stage > * > :nth-child(2) {
-    animation-delay: 40ms;
+  :where(.nf-page-stage > * > :nth-child(2)) {
+    animation-delay: calc(var(--nf-splash-hold, 0s) + 50ms);
   }
-  :root[data-nav-dir="tab"] .nf-page-stage > * > :nth-child(3) {
-    animation-delay: 80ms;
+  :where(.nf-page-stage > * > :nth-child(3)) {
+    animation-delay: calc(var(--nf-splash-hold, 0s) + 100ms);
   }
-  :root[data-nav-dir="tab"] .nf-page-stage > * > :nth-child(4) {
-    animation-delay: 120ms;
+  :where(.nf-page-stage > * > :nth-child(4)) {
+    animation-delay: calc(var(--nf-splash-hold, 0s) + 150ms);
   }
-  :root[data-motion="calm"][data-nav-dir="tab"] .nf-page-stage > * > :nth-child(-n + 4) {
-    animation: none;
+  :where(.nf-page-stage > * > :nth-child(5)) {
+    animation-delay: calc(var(--nf-splash-hold, 0s) + 200ms);
+  }
+  :where(.nf-page-stage > * > :nth-child(6)) {
+    animation-delay: calc(var(--nf-splash-hold, 0s) + 250ms);
+  }
+  :where(:root[data-motion="calm"], :root[data-save-data="on"]) :where(.nf-page-stage > * > :nth-child(-n + 6)) {
+    animation-name: none;
   }
   @media (prefers-reduced-motion: reduce) {
-    :root[data-nav-dir="tab"] .nf-page-stage > * > :nth-child(-n + 4) {
-      animation: none;
+    :where(.nf-page-stage > * > :nth-child(-n + 6)) {
+      animation-name: none;
     }
   }
   @keyframes nf-route-stagger {
     from {
       opacity: 0;
-      transform: translateY(calc(var(--nf-route-rise) * 2));
+      translate: 0 0.625rem;
     }
   }
 }
@@ -225,17 +339,18 @@ html:active-view-transition-type(nf-back)::view-transition-new(root) {
 
 /* --------------------------------------------------------------------- calm */
 
-:root[data-motion="calm"]::view-transition-old(.nf-page) {
-  animation: nf-route-fade-out var(--nf-duration-fast) var(--nf-ease-standard) both;
-}
-:root[data-motion="calm"]::view-transition-new(.nf-page) {
-  animation: nf-route-fade-in var(--nf-duration-fast) var(--nf-ease-standard) both;
-}
+/* Calm: a short crossfade whichever way you went, and nothing travels. */
+:root[data-motion="calm"]::view-transition-old(root),
 html[data-motion="calm"]:active-view-transition-type(nf-back)::view-transition-old(root) {
   animation: nf-route-fade-out var(--nf-duration-fast) var(--nf-ease-standard) both;
 }
+:root[data-motion="calm"]::view-transition-new(root),
 html[data-motion="calm"]:active-view-transition-type(nf-back)::view-transition-new(root) {
   animation: nf-route-fade-in var(--nf-duration-fast) var(--nf-ease-standard) both;
+}
+:root[data-motion="calm"]::view-transition-old(nf-origin),
+:root[data-motion="calm"]::view-transition-new(nf-origin) {
+  animation: none;
 }
 
 /* ---------------------------------------------------------------------- off */
@@ -258,18 +373,56 @@ html[data-motion="calm"]:active-view-transition-type(nf-back)::view-transition-n
     opacity: 0;
   }
 }
-@keyframes nf-route-out {
-  to {
-    translate: calc(var(--nf-route-shift-out) * var(--nf-route-sign) * -1) 0;
-  }
-}
+/* The new page, from the trailing edge (the leading edge going back). */
 @keyframes nf-route-in {
   from {
     translate: calc(var(--nf-route-shift-in) * var(--nf-route-sign)) 0;
   }
 }
-@keyframes nf-route-rise {
+/* The page on top going back, out toward where it came from. */
+@keyframes nf-route-in-reverse {
+  to {
+    translate: calc(var(--nf-route-shift-in) * var(--nf-route-sign) * -1) 0;
+  }
+}
+@keyframes nf-route-lift {
   from {
-    translate: 0 var(--nf-route-rise);
+    translate: 0 var(--nf-route-lift);
+  }
+}
+/* The page behind a push: a step back and into the dark. */
+@keyframes nf-page-recede {
+  to {
+    scale: var(--nf-route-depth);
+    opacity: var(--nf-route-dim);
+  }
+}
+/* The page behind coming forward again as the one on top leaves. */
+@keyframes nf-page-surface {
+  from {
+    scale: var(--nf-route-depth);
+    opacity: var(--nf-route-dim);
+  }
+}
+@keyframes nf-page-grow {
+  from {
+    scale: var(--nf-route-grow-from);
+  }
+}
+@keyframes nf-page-shrink {
+  to {
+    scale: var(--nf-route-grow-from);
+  }
+}
+@keyframes nf-origin-grow {
+  to {
+    translate: var(--nf-origin-dx, 0) var(--nf-origin-dy, 0);
+    scale: var(--nf-origin-scale, 1);
+  }
+}
+@keyframes nf-origin-settle {
+  from {
+    translate: var(--nf-origin-dx, 0) var(--nf-origin-dy, 0);
+    scale: var(--nf-origin-scale, 1);
   }
 }

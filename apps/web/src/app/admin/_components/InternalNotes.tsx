@@ -1,9 +1,10 @@
+import { dateTimeLabel } from "@/lib/format/when";
 import { STAFF_SCOPES, STAFF_SCOPE_LABEL, requireConsole } from "@/lib/admin/guard";
 import { readMemberNotes, type MemberNotesRead } from "@/lib/admin/notes";
 import { NoteForm } from "./NoteForm";
 
-const when = (iso: string) =>
-  new Date(iso).toLocaleString("en-NG", { timeZone: "Africa/Lagos", dateStyle: "medium", timeStyle: "short" });
+/* The one way the console says when (lib/format/when.ts). */
+const when = (iso: string) => dateTimeLabel(iso);
 
 /**
  * INTERNAL NOTES about one member, for whoever on the team opens their case

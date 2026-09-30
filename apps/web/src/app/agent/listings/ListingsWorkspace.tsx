@@ -21,12 +21,15 @@ import type { ListingSummary } from "@/lib/agent/listings-queries";
 import { createUndoWindow, type UndoWindow } from "@/lib/ui/undo-window";
 import { withDone } from "@/lib/ui/success-moments";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { Icon3D } from "@/components/ui/Icon3D";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
 import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
 import { CloseListingSheet } from "./CloseListingSheet";
 import { OwnerAskStrip } from "./OwnerAskStrip";
+import { BulkBar } from "./BulkBar";
+import { planBulk, rangeToggle } from "./bulk";
 
 /**
  * The agent's listings workspace.
@@ -319,8 +322,11 @@ function ListingRow({
   onCloseListing,
   ownerAsk = false,
   ownerCopy,
+  selection,
 }: {
   t: WorkspaceCopy;
+  /** C5: present while selecting; draws the row's checkbox. */
+  selection?: { selected: boolean; onToggle: (on: boolean, shift: boolean) => void } | undefined;
   /** V-08: the board action's words, when the board is switched on. */
   boardLabel?: string;
   /** V-29: "List another like this". */
@@ -352,8 +358,20 @@ function ListingRow({
   const closesWithReason = Boolean(onCloseListing && closeCopy && live && listing.intent === "rent");
 
   return (
-    <li className="nf-panel nf-panel--card block overflow-hidden p-0">
+    <li className="nf-panel nf-panel--card block overflow-hidden p-0" data-selected={selection?.selected ? "true" : undefined}>
       <div className="flex gap-4.5 p-md">
+        {selection ? (
+          <label className="-m-xs grid h-11 w-11 shrink-0 cursor-pointer place-items-center self-center">
+            <input
+              type="checkbox"
+              className="h-5 w-5"
+              checked={selection.selected}
+              onChange={() => undefined}
+              onClick={(event) => selection.onToggle(!selection.selected, event.shiftKey)}
+              aria-label={`Select ${listing.title}`}
+            />
+          </label>
+        ) : null}
         <span
           className="relative block h-[5.25rem] w-[5.25rem] shrink-0 overflow-hidden rounded-[var(--nf-radius-md)]"
           style={{ background: "var(--nf-surface-raised)" }}
@@ -651,6 +669,10 @@ export function ListingsWorkspace({
   const listings = term ? all.filter((row) => row.title.toLowerCase().includes(term)) : all;
   const [sheet, setSheet] = useState<SheetState | null>(null);
   const [closing, setClosing] = useState<ListingSummary | null>(null);
+  /* C5: select mode. The anchor is the last row toggled, for shift-click ranges. */
+  const [selecting, setSelecting] = useState(false);
+  const [selected, setSelected] = useState<string[]>([]);
+  const anchor = useRef<string | null>(null);
 
   /* Drafts whose delete is scheduled but has not been sent, and the failure a
      rejected delete came back with. A row in `pending` is off the screen and
@@ -724,24 +746,52 @@ export function ListingsWorkspace({
   if (listings.length === 0) {
     return (
       <div className="mx-auto max-w-md py-10 text-center">
-        <span
-          className="nf-plate nf-plate--brand nf-plate--lg mx-auto"
-        >
-          <UiIcon name="house" size={24} />
+        {/* The first-run card: the founder's 3D keys (30 September). */}
+        <span className="mx-auto grid size-[5.5rem] place-items-center" aria-hidden="true" data-art="keys">
+          <Icon3D name="keys" size={88} />
         </span>
         <h2 className="nf-h3 mt-5">{t.workspace.emptyTitle}</h2>
         <p className="mx-auto mt-xs max-w-[38ch] text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]">
           {t.workspace.emptyBody}
         </p>
-        <ButtonLink href="/agent/list" variant="primary" className="mt-lg">
+        {/* The page header already carries this door as the screen's one
+            primary (T-44), so the first-run card repeats it quietly. */}
+        <ButtonLink href="/agent/list" variant="secondary" className="mt-lg">
           {t.workspace.start}
         </ButtonLink>
       </div>
     );
   }
 
+  /* C5: the rows in the order the screen shows them, for shift-click ranges. */
+  const order = GROUPS.flatMap((group) =>
+    listings.filter((l) => group.statuses.includes(l.status) && !(l.id in closed) && !pending.includes(l.id)).map((l) => l.id),
+  );
+  const toggle = (id: string, on: boolean, shift: boolean) => {
+    /* Read the anchor now: the updater runs later, after it has moved. */
+    const from = anchor.current;
+    setSelected((prev) => (shift ? rangeToggle(order, prev, from, id, on) : on ? [...prev, id] : prev.filter((s) => s !== id)));
+    anchor.current = id;
+  };
+  const plan = planBulk(listings, selected);
+
   return (
     <div className="space-y-7">
+      <div className="flex justify-end">
+        <Button
+          type="button"
+          variant="quiet"
+          size="sm"
+          onClick={() => {
+            setSelecting((on) => !on);
+            setSelected([]);
+            anchor.current = null;
+          }}
+          data-testid="bulk-select-toggle"
+        >
+          {selecting ? "Done selecting" : "Select"}
+        </Button>
+      </div>
       {GROUPS.map((group) => {
         const rows = listings.filter((l) => group.statuses.includes(l.status) && !(l.id in closed));
         if (rows.length === 0) return null;
@@ -758,6 +808,17 @@ export function ListingsWorkspace({
             <p className="mb-sm mt-2xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
               {heading.blurb}
             </p>
+            {selecting ? (
+              <Button
+                type="button"
+                variant="quiet"
+                size="sm"
+                className="mb-xs"
+                onClick={() => setSelected((prev) => [...new Set([...prev, ...rows.filter((l) => !pending.includes(l.id)).map((l) => l.id)])])}
+              >
+                {`Select all in ${heading.title}`}
+              </Button>
+            ) : null}
             <ul className="space-y-sm">
               {rows.map((listing) =>
                 pending.includes(listing.id) ? (
@@ -784,6 +845,11 @@ export function ListingsWorkspace({
                     onCloseListing={closeCopy ? setClosing : undefined}
                     ownerAsk={ownerAsks.includes(listing.id)}
                     ownerCopy={ownerCopy}
+                    selection={
+                      selecting
+                        ? { selected: selected.includes(listing.id), onToggle: (on, shift) => toggle(listing.id, on, shift) }
+                        : undefined
+                    }
                   />
                 ),
               )}
@@ -822,6 +888,10 @@ export function ListingsWorkspace({
           </ul>
         </section>
       )}
+
+      {selecting && selected.length > 0 ? (
+        <BulkBar plan={plan} count={selected.length} onClear={() => setSelected([])} />
+      ) : null}
 
       {sheet && <ConfirmSheet t={t} state={sheet} onClose={() => setSheet(null)} />}
       {closing && closeCopy && (

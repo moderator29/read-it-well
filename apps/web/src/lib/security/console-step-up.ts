@@ -21,7 +21,8 @@ import { createHash } from "node:crypto";
 import { z } from "zod";
 import { resolveSession } from "../actions/session";
 import { consume, subjectForUser } from "./rate-limit";
-import { admin, ceremonyOrigin, listCredentialIds, mintChallenge, takeChallenge } from "./money-step-up";
+import { admin, ceremonyOrigin, listConsoleCredentialIds, mintChallenge, takeChallenge } from "./money-step-up";
+import { reauthMethodFor, type ReauthMethod } from "../account-deletion/reauthenticate";
 import { b64urlToBuffer, verifyAssertion, type Alg } from "./webauthn";
 
 /** How long one proof opens the console for, on this session. */
@@ -53,16 +54,18 @@ async function current() {
 
 export type ConsoleStepUpStart =
   | { state: "ready"; challenge: string; credentialIds: string[]; rpId: string }
-  | { state: "enrol" }
+  /* C14: no key that may open the console (none enrolled, or every one
+     revoked for the console): enrol a new one here, on the first-key proof. */
+  | { state: "enrol"; method: ReauthMethod }
   | { state: "failed" };
 
 export async function beginConsoleStepUp(): Promise<ConsoleStepUpStart> {
   const now = await current();
   const a = admin();
   if (!now || !a) return { state: "failed" };
-  const ids = await listCredentialIds(a, now.session.user.id);
+  const ids = await listConsoleCredentialIds(a, now.session.user.id);
   if (ids === null) return { state: "failed" };
-  if (ids.length === 0) return { state: "enrol" };
+  if (ids.length === 0) return { state: "enrol", method: reauthMethodFor(now.session.user) };
   const challenge = await mintChallenge(a, now.session.user.id, "money", digestFor(now.sessionId));
   const { rpId } = await ceremonyOrigin();
   return challenge ? { state: "ready", challenge, credentialIds: ids, rpId } : { state: "failed" };

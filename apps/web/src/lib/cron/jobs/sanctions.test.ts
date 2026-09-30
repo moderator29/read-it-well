@@ -20,4 +20,10 @@ describe("the sanctions jobs' verdicts (SCUML items 8 and 9)", () => {
     expect(screenVerdict({ ...zero, listsUnreadable: true }).alert?.severity).toBe("critical");
     expect(screenVerdict({ ...zero, screened: 3, clear: 3 }).outcome).toBe("ok");
   });
+
+  it("keeps a failed hold renewal apart from a failed screening, at info (C13)", () => {
+    const v = screenVerdict({ ...zero, renewFailed: 1 });
+    expect(v.alert).toMatchObject({ kind: "sanctions.hold_renew_failed", severity: "info" });
+    expect(screenVerdict({ ...zero, failed: 2, renewFailed: 1 }).alert?.kind).toBe("sanctions.screen_failed");
+  });
 });

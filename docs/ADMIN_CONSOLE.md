@@ -800,9 +800,12 @@ a fall is emerald. The line is alerts raised per day.
 | sanctions-lists | Vercel Cron `10 5 * * *` | daily 06:10 | 26 h | loads the UN and Nigeria sanctions lists from their configured URLs when they changed; a new version re-screens everyone (SCUML items 8, 9); a no-op with no URL set |
 | sanctions-screen | Vercel Cron `7,22,37,52 * * * *` | every 15 min | 2 h | screens the people and transactions the triggers queued against the lists in force and raises matches on the compliance desk (SCUML item 8) |
 | risk-classes | Vercel Cron `50 3 * * *` | daily 04:50 | 26 h | classifies every customer high, medium or low risk, dated, from the documented factors (SCUML item 15) |
+| calendar-sync | Vercel Cron `2,17,32,47 * * * *` | every 15 min | 2 h | pulls the Airbnb, Booking.com and other calendars hosts linked on `/host/calendar` and holds those nights on Vallo (C2, `lib/cron/jobs/calendar-sync.ts`); a no-op while `CALENDAR_SYNC_ENABLED` is off |
 | vallo_push_drain | pg_cron `*/5 * * * *` | every 5 min | | asks the app to drain the push queue (`private.request_push_drain`) |
 | vallo_safety_share_sweep | pg_cron `*/10 * * * *` | every 10 min | | reminds a renter once when half an hour has passed since they expected to be back from an inspection they shared and they have not tapped I'm done (V-62) |
 | vallo_release_stale_holds | pg_cron `*/15 * * * *` | every 15 min | | database side of the hold release |
+| vallo_remind_hosts_to_decide | pg_cron `4,19,34,49 * * * *` | every 15 min | | reminds a host once, in the app and by push, when a room or table request has used three quarters of its window (C3, `private.remind_hosts_to_decide`) |
+| vallo_send_member_reminders | pg_cron `7,22,37,52 * * * *` | every 15 min | | sends each viewing reminder (7pm the evening before, two hours before) and each rent-due reminder (180, 90, 30 and 7 days) once, through the booking notifications (B5, B10, `private.send_member_reminders`) |
 | vallo_purge_rate_limits | pg_cron `30 * * * *` | hourly at :30 | | clears old rate limit rows |
 | vallo_purge_view_marks | pg_cron `41 * * * *` | hourly at :41 | | forgets the day's listing view marks and salt once the day ends (V-73) |
 | vallo_alert_overdue_refunds | pg_cron `12 * * * *` | hourly at :12 | | alerts on refunds past their due-by date (V-24) |
@@ -816,7 +819,10 @@ a fall is emerald. The line is alerts raised per day.
 | vallo-nightly-badges | pg_cron `20 2 * * *` | daily 03:20 | | awards earned badges |
 | vallo_purge_email_outbox | pg_cron `25 2 * * *` | daily 03:25 | | forgets emails the outbox has already delivered |
 | vallo_purge_web_vitals | pg_cron `35 2 * * *` | daily 03:35 | | deletes field speed figures older than 30 days (V-80) |
+| vallo_photo_hash_backfill | pg_cron `5 2 * * *` | daily 03:05 | | asks the app to hash listing photos uploaded before hashing existed, so the duplicate-photo signal works (C8) |
+| vallo_purge_job_runs | pg_cron `55 2 * * *` | daily 03:55 | | forgets counted scheduled runs older than 90 days (C7) |
 | vallo_purge_money_step_ups | pg_cron `45 2 * * *` | daily 03:45 | | forgets used money-lock challenges and proofs after a day (V-81) |
+| vallo_purge_funnel_events | pg_cron `50 2 * * *` | daily 03:50 | | forgets front door funnel counts (`public.funnel_events`) older than 90 days (A6) |
 | vallo_escrow_book_the_float | pg_cron `5 3 * * *` | daily 04:05 | | books the day's escrow float snapshot as a liability (`private.escrow_float_snapshot_take`) |
 | vallo_sweep_price_check_events | pg_cron `40 3 * * *` | daily 04:40 | | deletes price check events older than 24 months (the retention schedule, run) |
 | vallo_announce_completed_stays | pg_cron `20 5 * * *` | daily 06:20 | | announces completed stays |
@@ -832,7 +838,7 @@ a fall is emerald. The line is alerts raised per day.
 | vallo_sweep_rent_splits | pg_cron `25 7 * * *` | daily 08:25 | | refunds the paid shares of a flatmate split still short on move-in day, or cancelled (V-86) |
 | vallo_threshold_reminders | pg_cron `5 * * * *` | hourly at :05 | | tells staff three days and one day before a threshold report to the NFIU is due (SCUML item 7) |
 
-17 Vercel Cron jobs and 31 pg_cron jobs in all. The numbers are derived,
+18 Vercel Cron jobs and 36 pg_cron jobs in all. The numbers are derived,
 not remembered: the Vercel list is `VERCEL_JOBS` in
 `lib/admin/reads/jobs.ts`, held equal to `vercel.json` by a test, and the
 database list is `PG_CRON_JOBS` in the same file, held equal by

@@ -66,7 +66,7 @@ export async function AgentShell({
 
       <main
         id="main"
-        className={immersive ? "flex h-dvh min-w-0 flex-1 flex-col overflow-hidden" : "min-w-0 flex-1"}
+        className={immersive ? "flex h-dvh min-w-0 flex-1 flex-col overflow-hidden" : "nf-soft-top min-w-0 flex-1"}
       >
         <WorkspaceHeader
           back={chromeBack ? "/home" : false}

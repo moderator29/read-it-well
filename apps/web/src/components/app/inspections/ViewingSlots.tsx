@@ -67,6 +67,7 @@ export function ViewingSlots({
           open={celebrate}
           onOpenChange={setCelebrate}
           variant={words.variant}
+          object={words.object}
           title={words.title}
           body={words.body}
           details={[{ label: success.detail.when, value: when(booked.at, locale, true) }]}

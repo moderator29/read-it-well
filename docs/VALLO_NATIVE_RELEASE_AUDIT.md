@@ -21,6 +21,19 @@ Still authoritative and not repeated here: `store/FOUNDER_STEPS.md` (console
 click paths), `store/PRIVACY_LABELS.md` (App Privacy and Data safety answers),
 `store/LISTING_COPY.md`, `STORE_SUBMISSION_NOTES.md` (reviewer account).
 
+> **UPDATE, 30 September 2026 (C15).** This file said below that no Android
+> or iOS build had ever run. That stopped being true on 29 September: GitHub
+> Actions compiles both on every relevant push. `native-android.yml` has 33
+> runs and every recent one succeeds (first APK: run 36500914409; latest:
+> run 36572375537, 29 September, success); `native-ios.yml` has 20 runs, the
+> unsigned simulator compile succeeding (latest: run 36572375519, success).
+> The rows below that say "no build has ever run" are corrected in place and
+> marked (C15). What is STILL true: nobody has run the app on a physical
+> device. Section 8 is the script for the founder's first handset session.
+> Also new on 30 September: F-14 and F-15 are fixed (section 3), the iOS app
+> target carries a privacy manifest, and an Android emulator smoke job runs
+> after every debug build (screenshots under the run's Artifacts).
+
 **What this session could and could not run.** The container has no macOS and
 no Xcode, and its network policy blocks `dl.google.com` (re-confirmed: HTTP 000),
 so the Android SDK and the Android Gradle Plugin cannot be fetched. **No iOS
@@ -83,8 +96,8 @@ the airplane-mode path until this session** (F-03).
 | # | Pri | Finding | Why not, and what is needed |
 | --- | --- | --- | --- |
 | F-10 | P2 | **Sign in with Apple cannot ship on iOS today.** The code (`NativeAppleSignIn.tsx`) needs the `SignInWithApple` plugin, which is not installed. The only release, `@capacitor-community/apple-sign-in` 7.1.0, pins `capacitor-swift-pm from: "7.0.0"` (i.e. `< 8.0.0`) in its `Package.swift`; the app pins `8.5.0`, so adding it would break iOS package resolution | Not a submission blocker: the shell offers no third-party login, so guideline 4.8 does not require Apple. Wait for a Capacitor 8 release. Also still owed: provider sign-ups record no terms acceptance or 18+ statement (`FOUNDER_STEPS.md` section 1) |
-| F-14 | P2 | Native push tokens are only registered when the person taps Yes; nothing re-registers at launch, so a rotated FCM/APNs token goes stale until the provider says "gone" | Needs a device to design safely (permission read, silent re-register); recorded for the first device session |
-| F-15 | P2 | `currentPermission()` always answers `default` in the shell, so the Vallo explainer can be offered again to someone who already granted; the moments cooldown limits it | Same as F-14 |
+| F-14 | P2 | Native push tokens are only registered when the person taps Yes; nothing re-registers at launch, so a rotated FCM/APNs token goes stale until the provider says "gone" | **FIXED 30 September (C15).** At launch the shell reads the permission with `checkPermissions` (never prompts) and, for a device enrolled before on this install whose permission is still granted, re-registers silently (`refreshNativeRegistration` in `components/app/push/enrol.ts`, called from `lib/native/boot.ts`; `enrol-native.test.ts`). Still to watch on a device: the token row's `last_seen` moves on relaunch |
+| F-15 | P2 | `currentPermission()` always answers `default` in the shell, so the Vallo explainer can be offered again to someone who already granted; the moments cooldown limits it | **FIXED 30 September (C15)** with F-14: the launch read is remembered and `currentPermission()` answers it |
 | F-16 | P2 | Paystack's inline popup runs in an iframe inside the web view. Whether a bank's 3-D Secure page stays inside it on iOS and Android is **unverified** (`PaystackCheckout.tsx` says so itself); the hosted-page fallback opens the system browser tab | Test on a device with a real card in Paystack **test** mode. Never against live keys |
 | F-17 | P3 | HEIC is allowed by the listing schema, but Android WebView cannot decode it for the canvas re-encode, so such a photo is refused client-side. iOS converts to JPEG for file inputs | Low incidence on Android pickers; revisit if reports appear |
 | F-18 | P3 | No upload progress or resumable retry on any upload | Product work, out of native scope |
@@ -194,8 +207,8 @@ build. Listing copy is drafted in `store/LISTING_COPY.md`.
 | Live `curl` of both association files on apex and www | www 200 JSON; apex 308 (F-06) |
 | Supabase (read only): RLS and columns on `push_tokens`, `push_queue`, `push_deliveries`; token count | RLS on, `device_ref = left(md5(token),12)`; 0 tokens |
 | Vercel (names only, nothing decrypted) | `FCM_*` and VAPID set; no `APNS_*`, no `SENTRY_DSN` |
-| **iOS build (`xcodebuild archive`)** | **UNVERIFIED: environment lacks toolchain (no macOS/Xcode)** |
-| **Android build (`./gradlew bundleRelease`)** | **UNVERIFIED: environment lacks toolchain (`dl.google.com` blocked, no SDK/AGP)** |
+| **iOS build (`xcodebuild archive`)** | **UNVERIFIED in this container (no macOS/Xcode).** (C15) The unsigned simulator compile runs on GitHub Actions and succeeds (`native-ios.yml`, 20 runs, latest 36572375519 success). The SIGNED archive still waits on the four Apple secrets |
+| **Android build (`./gradlew bundleRelease`)** | **UNVERIFIED in this container.** (C15) `./gradlew assembleDebug` runs on GitHub Actions and succeeds (`native-android.yml`, 33 runs, latest 36572375537 success). `bundleRelease` still waits on the keystore and the Firebase key |
 
 ---
 
@@ -210,12 +223,16 @@ READY in configuration (resolved config verified, sync passes, offline and
 splash path fixed). Not proven on a device.
 
 ## 3. IOS CODEBASE
-UNVERIFIED. The known compile error is fixed (F-01) and every file parses,
-but no Xcode build has ever run, so other compile or signing problems may exist.
+COMPILES (C15). The unsigned simulator build succeeds on GitHub Actions on
+every relevant push. Signing is unproven until the Apple secrets exist. The
+app target now carries `PrivacyInfo.xcprivacy` (no tracking; collected types
+as in `store/PRIVACY_LABELS.md`).
 
 ## 4. ANDROID CODEBASE
-UNVERIFIED. Manifest defects fixed (F-02, F-12), Gradle parses, but no Gradle
-build has ever run.
+COMPILES (C15). `assembleDebug` succeeds on GitHub Actions on every relevant
+push, and an emulator smoke job installs the APK and screenshots the
+no-account P0 rows. R8 and release signing are unproven until the keystore
+and Firebase key exist.
 
 ## 5. IOS BUILD
 BLOCKED: no Xcode in this environment, and signing needs an Apple Developer
@@ -224,9 +241,9 @@ account. Since 29 September 2026 that is the founder's personal account first
 (`docs/MOBILE.md` section 7).
 
 ## 6. ANDROID BUILD
-UNVERIFIED: environment lacks toolchain. A debug build needs only a machine
-with Android Studio; a release build also needs the Firebase key and the
-upload keystore.
+DEBUG BUILD VERIFIED ON CI (C15): download `vallo-android-debug-<sha>` from
+the latest `Native Android` run and `adb install` it. A release build still
+needs the Firebase key and the upload keystore.
 
 ## 7. DEEP LINKS
 BLOCKED on the Apple Team ID, the Play app-signing and upload-key fingerprints,
@@ -260,6 +277,10 @@ UNVERIFIED on devices. No static issue found.
 NEEDS CONFIRMATION: answers exist in `store/PRIVACY_LABELS.md` and already list
 the push token as a Device ID. Sentry is not configured in production, so crash
 data is answered No; the founder confirms the whole form on submission day.
+(C15) ONE ANSWER TO CHANGE: field speed samples (`web_vitals_samples`, the
+route template, the metric and the connection type, no user id) are collected
+from the app too, so Diagnostics > Performance Data is YES, not linked to the
+user, App Functionality. The iOS privacy manifest already says so.
 
 ## 15. STORE ASSETS
 PARTIAL. Icons, splash and listing copy exist; store-size screenshots and the
@@ -276,11 +297,14 @@ Status of the Play Console account is unconfirmed; treated as not started. See
 section 7 and `VALLO_ANDROID_RELEASE_CHECKLIST.md`.
 
 ## 18. REAL DEVICE TESTING
-Nothing has been tested on a device, by anyone, ever. The full list is
-`VALLO_NATIVE_TEST_MATRIX.md`; every row reads NOT RUN.
+Nothing has been tested on a physical device, by anyone, ever. The full list is
+`VALLO_NATIVE_TEST_MATRIX.md`; every row reads NOT RUN. (C15) The emulator
+smoke job covers rows 1, 2 and 23 plus a deep link to `/open` on an emulated
+Pixel 6 (Android 14); its screenshots are evidence for an emulator, not a
+phone. The founder's first handset session is section 8.
 
 ## 19. RELEASE BLOCKERS
-1. No native build has compiled (both platforms).
+1. ~~No native build has compiled (both platforms).~~ Both compile on CI (C15). A signed build of either has not.
 2. Apple Developer enrolment, on the founder's personal account first (no D-U-N-S needed): blocks signing, APNs, Associated Domains, TestFlight. The transfer to the VALLO SPACES LTD account comes later and changes the Team ID (`docs/MOBILE.md` section 7).
 3. Play Console account, upload keystore and Play App Signing: blocks the AAB and App Links.
 4. Association file values (Team ID, two fingerprints): `cap:sync` refuses without them.
@@ -303,11 +327,11 @@ Nothing has been tested on a device, by anyone, ever. The full list is
 | Area | Status | Evidence | Remaining action |
 |------|--------|----------|------------------|
 | Capacitor | Ready (static) | resolved config, `cap:sync:dev`, 9 plugins | device run |
-| iOS | Unverified | F-01 fixed; plist, storyboard, Swift names checked | first Xcode build |
-| Android | Unverified | F-02, F-12 fixed; Gradle parses; XML valid | first Gradle build |
+| iOS | Compiles (CI) | unsigned simulator build green on `native-ios.yml`; privacy manifest added (C15) | signed archive after Apple enrolment |
+| Android | Compiles (CI) | `assembleDebug` green on `native-android.yml`; emulator smoke job (C15) | release bundle after keystore and Firebase key |
 | Auth | Partial | email flow in code; cookies in web view jar | device lifecycle tests; deep links |
 | Apple Login | Blocked | plugin 7.1.0 pins Capacitor < 8 | wait for a Capacitor 8 plugin; provider terms step |
-| Push | Partial | 0 tokens live; FCM server creds set; F-04, F-05, F-11 fixed | Android API key, APNs key, device test |
+| Push | Partial | 0 tokens live; FCM server creds set; F-04, F-05, F-11, F-14, F-15 fixed | Android API key, APNs key, device test |
 | Deep Links | Blocked | www-only claims; gate refuses placeholders | Team ID, two fingerprints, Associated Domains |
 | Camera | Unverified | Camera plugin + capture intents; no CAMERA permission needed | device test |
 | Photos | Unverified | system pickers; iOS purpose strings | device test |
@@ -358,3 +382,39 @@ Both stores:
 - [ ] Content and age rating questionnaires
 - [ ] Reviewer account and review notes (`STORE_SUBMISSION_NOTES.md`)
 - [ ] Optional: decide whether the apex should serve `/.well-known/*` (F-06)
+
+## 8. The founder's first handset session (C15)
+
+One Android phone and one iPhone, in this order, which is the order of risk.
+Use the debug APK from the latest `Native Android` run (Artifacts) and, for
+iOS, Xcode with a free personal team until the Apple account is ready. Fill in
+the matching rows of `VALLO_NATIVE_TEST_MATRIX.md` as you go, with a screenshot
+each.
+
+1. **Cold launch, online, then offline** (rows 1 and 2). Splash, then
+   `/welcome`. Airplane mode, kill, relaunch: the branded offline card, and
+   Try again works once online.
+2. **Sign in** (row 3) with the QA account, not your own. Kill and reopen
+   (row 7): still signed in.
+3. **Passcode.** Set it, background the app 6 minutes, return: the lock. Wrong
+   code five times: the cool-down. On a device where a passkey is registered,
+   "Unlock with Face ID or fingerprint" appears (C14, when the setting is on).
+4. **Push to a host** (rows 11 to 13). Needs the Firebase Android key in
+   `google-services.json` (Android) or the APNs key in Vercel (iOS). Accept the
+   Vallo explainer, then the system prompt; from a second account send the host
+   a request; the banner arrives with the app closed, backgrounded and open;
+   the tap opens that request. Kill and relaunch: `/settings/devices` still
+   shows one row for this phone, not two (F-14).
+5. **Paystack test card with 3-D Secure** (row 21), TEST keys only, never live:
+   the bank page stays inside the app or returns to it, and the booking shows
+   paid. This is F-16 and the single most likely failure.
+6. **Back button and keyboard** (rows 22 and 23) on Android.
+7. **Sign out, kill, reopen** (row 9): signed out, and the device row is gone.
+
+Anything that fails: note the row, the phone model and OS version, and the
+screen reference if an error screen shows one ("Reference ABCD1234"): support
+and engineering find the report by it (C13).
+
+Which phones: the founder's decision (RECS_C C15). Recommended pair: a Samsung
+or Pixel on Android 14 or newer, and the newest iPhone to hand on iOS 17 or
+newer; then one Android 10 or 11 phone for App Links and location.

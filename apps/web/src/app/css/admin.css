@@ -617,9 +617,10 @@
     border-color: var(--nf-selected-edges);
     box-shadow: var(--nf-selected-shadow);
   }
+  /* The count reads in the tab's own ink: at 0.85 opacity it fell under
+     4.5:1 on the light segmented track (axe, a11y-desks, light 390 and 1440). */
   .nf-admin-tab__count {
     font-variant-numeric: tabular-nums;
-    opacity: 0.85;
   }
 
   /* ---------------------------------------------------------- filters */
@@ -692,6 +693,24 @@
   }
   .nf-admin-more > summary::-webkit-details-marker {
     display: none;
+  }
+  /* C16: the search row when it carries the date control. The field keeps the
+     row; the sliders summary sits at its end; the dates open full width below. */
+  .nf-admin-search--split {
+    position: relative;
+    display: block;
+  }
+  .nf-admin-search--split > .nf-admin-search__field {
+    margin-inline-end: calc(2.75rem + var(--nf-space-xs));
+  }
+  .nf-admin-search--split > .nf-admin-more > summary {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-end: 0;
+    cursor: pointer;
+  }
+  .nf-admin-search--split:not(:has(.nf-admin-search__field)) {
+    min-height: 2.75rem;
   }
   /*
    * ------------------------------------------------- THE OVERVIEW'S TILES
@@ -910,6 +929,56 @@
     box-shadow: var(--nf-selected-shadow-inline);
   }
 
+  /*
+   * ONE FILTER LANGUAGE (integration QA O2, 30 September; spec section 7).
+   * The queue stacked two brand-filled rows: lane tabs ("All 42",
+   * "Listings 18") over status chips ("All", "Pending"). Both are filters,
+   * so both are now the QUIET SEGMENTED control: a raised well, the choices
+   * as bare labels on it, the chosen one on the white thumb (the raised
+   * night surface in dark) with the card shadow. No brand fill and no glow
+   * on either row; the status dot keeps each state's hue, never colour
+   * alone, since the word is always there.
+   */
+  .nf-admin-tabs,
+  .nf-admin-status {
+    gap: var(--nf-space-3xs);
+    padding: var(--nf-space-3xs);
+    border-radius: var(--nf-plate-radius-md);
+    background: var(--nf-surface-raised);
+  }
+  .nf-admin-tabs,
+  .nf-admin-status {
+    width: fit-content;
+    max-width: 100%;
+  }
+  .nf-admin-status__label {
+    padding-inline: var(--nf-space-xs) var(--nf-space-2xs);
+  }
+  .nf-admin-tab,
+  .nf-admin-chip {
+    border-radius: var(--nf-radius-control-sm);
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
+    color: var(--nf-content-muted);
+    font-weight: 500;
+  }
+  .nf-admin-tab--on,
+  .nf-admin-chip--on,
+  .nf-admin-chip--all.nf-admin-chip--on {
+    color: var(--nf-content-primary);
+    border-color: var(--nf-card-border);
+    background: var(--nf-surface-elevated);
+    box-shadow: var(--nf-card-shadow);
+    font-weight: 600;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .nf-admin-tab:not(.nf-admin-tab--on):hover,
+    .nf-admin-chip:not(.nf-admin-chip--on):hover {
+      color: var(--nf-content-primary);
+    }
+  }
+
   /* ------------------------------------------------------------ table */
 
   /* The dense table is a list of rows on a grid, so a row can carry its
@@ -936,7 +1005,10 @@
        word is short in every desk that renders this table, so `auto` costs
        the title about fourteen pixels and stops an operator having to learn
        eight glyphs and eight reference prefixes to read a mixed queue. */
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    /* A fixed 3.5rem, not `auto`: with `auto` each row sized the column to its
+       own word, so a Payment row's title sat 13px right of a Listing row's
+       and the titles no longer ran down one edge (seen at 390). */
+    grid-template-columns: 3.5rem minmax(0, 1fr) auto;
     grid-template-areas:
       "type title actions"
       "type meta actions";
@@ -1937,6 +2009,12 @@
     .nf-chart__xaxis--bars > span:last-child:nth-child(even) {
       visibility: visible;
     }
+    /* With an even count the last label is an even child and stays, so the
+       odd one just before it would print against it ("AugSept" at 390).
+       It stands down instead (pixel polish). */
+    .nf-chart__xaxis > span:nth-last-child(2):nth-child(odd):not(:first-child) {
+      visibility: hidden;
+    }
   }
   .nf-chart__frame {
     display: flex;
@@ -2462,6 +2540,13 @@
   }
   .nf-admin-nav__row--on .nf-admin-nav__count {
     margin-inline-end: 0.5rem;
+  }
+  /* At night the brand blue as text is 4.3:1 on the canvas (under AA at
+     14px): the current label takes the link ink, the dot keeps the brand, as
+     in the desk sidebar and the member rail (integration QA, 30 September). */
+  :root:not([data-theme="light"]) :is(.nf-admin-nav__row--on, .nf-admin-nav__row--on:hover),
+  :root:not([data-theme="light"]) .nf-admin-nav__count {
+    color: var(--nf-content-link);
   }
   /* The console's badges take the platform's badge anatomy (spec 6): the
      state hue as a quiet fill, the hue as ink, no rim and no glow. */

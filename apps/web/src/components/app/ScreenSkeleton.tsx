@@ -84,8 +84,8 @@ export function PageHeaderSkeleton({
 export function TitleBlockSkeleton({ className }: { className?: string }) {
   return (
     <div className={className}>
-      <Skeleton width="14rem" height="1.75rem" radius="sm" />
-      <Skeleton className="mt-xs" width="22rem" height="0.9375rem" radius="sm" />
+      <Skeleton width="14rem" height="1.75rem" radius="sm" className="max-w-full" />
+      <Skeleton className="mt-xs max-w-full" width="22rem" height="0.9375rem" radius="sm" />
     </div>
   );
 }
@@ -122,5 +122,140 @@ export function CardRowsSkeleton({
         </li>
       ))}
     </ul>
+  );
+}
+
+/**
+ * `PageHeader variant="large"` (spec 8.1), without `PageHeader`.
+ *
+ * Drawn from the real classes (`nf-ph-large`, its row and text block), so the
+ * margins, the wrap and the 30/36 title line are the header's own and the
+ * title lands where the bar already was. `actions` reserves the round 44px
+ * buttons some large headers carry on the right.
+ */
+export function LargeHeaderSkeleton({
+  subtitle = true,
+  actions = 0,
+}: {
+  subtitle?: boolean;
+  actions?: number;
+}) {
+  return (
+    <div className="nf-ph-large" aria-hidden="true">
+      <div className="nf-ph-large__row">
+        <div className="nf-ph-large__text">
+          <Skeleton width="11rem" height="2.25rem" radius="sm" className="max-w-full" />
+          {subtitle ? <Skeleton className="mt-2xs" width="16rem" height="1.125rem" radius="sm" style={{ maxWidth: "85%" }} /> : null}
+        </div>
+        {actions > 0 ? (
+          <div className="nf-ph-large__actions">
+            {Array.from({ length: actions }, (_, i) => (
+              <Skeleton key={i} circle width="2.75rem" />
+            ))}
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * `SummaryCard`, before its figure. The real card's own class draws the
+ * frame (padding, border, radius, shadow), so only the label, the big figure,
+ * the sentence and the status bar are slabs.
+ */
+export function SummaryCardSkeleton({ bar = true, className }: { bar?: boolean; className?: string }) {
+  return (
+    <div aria-hidden="true" className={["nf-summary", className ?? ""].filter(Boolean).join(" ")}>
+      <Skeleton width="9rem" height="0.875rem" radius="sm" />
+      <Skeleton className="mt-2xs" width="5rem" height="2.5rem" radius="sm" />
+      <Skeleton width="85%" height="0.875rem" radius="sm" />
+      {bar ? <Skeleton className="mt-xs" height="0.5rem" radius="pill" /> : null}
+    </div>
+  );
+}
+
+/**
+ * `ListGroup` with `ListRow`s: the section label above one card of rows,
+ * each a round plate, a title and a sub line. Built from the list's own
+ * classes, so the row height, the inset hairlines and the card are real.
+ */
+export function ListGroupSkeleton({
+  rows = 3,
+  label = true,
+  className,
+}: {
+  rows?: number;
+  label?: boolean;
+  className?: string;
+}) {
+  return (
+    <div aria-hidden="true" className={["nf-list-section", className ?? ""].filter(Boolean).join(" ")}>
+      {label ? (
+        <div className="nf-list-section__head">
+          <Skeleton width="6rem" height="0.75rem" radius="sm" />
+        </div>
+      ) : null}
+      <ul className="nf-list-group">
+        {Array.from({ length: rows }, (_, i) => (
+          <li key={i} className="nf-list-item">
+            <div className="nf-list-row nf-list-row--two">
+              <span className="nf-list-row__lead">
+                <Skeleton width="2.25rem" height="2.25rem" radius="md" />
+              </span>
+              <span className="nf-list-row__text">
+                <Skeleton width="55%" height="0.9375rem" radius="sm" />
+                <Skeleton width="80%" height="0.75rem" radius="sm" />
+              </span>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/**
+ * A settings group (`SettingsGroup` and its rows), before it is read: the
+ * quiet label outside the card, then rows at the real `nf-srow` height with
+ * the small plate on the rail. `note` reserves the sentence under the card.
+ */
+export function SettingsGroupSkeleton({
+  rows = 3,
+  label = true,
+  note = false,
+  className,
+}: {
+  rows?: number;
+  label?: boolean;
+  note?: boolean;
+  className?: string;
+}) {
+  return (
+    <div aria-hidden="true" className={["nf-sgroup", className ?? ""].filter(Boolean).join(" ")}>
+      {label ? (
+        <div className="nf-sgroup__label">
+          <Skeleton width="7rem" height="0.75rem" radius="sm" />
+        </div>
+      ) : null}
+      <div className="nf-sgroup__body nf-panel nf-panel--card">
+        {Array.from({ length: rows }, (_, i) => (
+          <div key={i} className="nf-srow">
+            <span className="nf-srow__icon">
+              <Skeleton width="2.25rem" height="2.25rem" radius="md" />
+            </span>
+            <span className="nf-srow__body">
+              <Skeleton width="50%" height="0.9375rem" radius="sm" />
+              <Skeleton className="mt-2xs" width="72%" height="0.75rem" radius="sm" />
+            </span>
+          </div>
+        ))}
+      </div>
+      {note ? (
+        <div className="nf-sgroup__note">
+          <Skeleton width="70%" height="0.75rem" radius="sm" />
+        </div>
+      ) : null}
+    </div>
   );
 }

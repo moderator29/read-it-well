@@ -1,9 +1,13 @@
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { getDictionary } from "@vallo/i18n";
+import { ICON_3D_NAMES, icon3dSrc } from "@/components/ui/icon-3d";
 import {
   DONE_FLAGS,
   GLOBAL_DONE_FLAGS,
   SUCCESS_EVENT,
+  SUCCESS_OBJECT,
   SUCCESS_VARIANT,
   readDone,
   showSuccess,
@@ -21,8 +25,25 @@ describe("the success moments registry", () => {
     expect(Object.keys(SUCCESS_VARIANT).sort()).toEqual([...IDS].sort());
   });
 
+  it("gives every moment a 3D object whose files exist", () => {
+    expect(Object.keys(SUCCESS_OBJECT).sort()).toEqual([...IDS].sort());
+    for (const id of IDS) {
+      const name = SUCCESS_OBJECT[id];
+      expect(ICON_3D_NAMES).toContain(name);
+      expect(existsSync(join(__dirname, "../../../public", icon3dSrc(name)))).toBe(true);
+      expect(successCopy(copy, id).object).toBe(name);
+    }
+  });
+
+  it("never draws an object with a tick for a submission: it waits on a person", () => {
+    const ticked = ["verified", "id-check", "home-verified", "calendar-booked", "shield"];
+    for (const id of IDS) {
+      if (SUCCESS_VARIANT[id] === "submitted") expect(ticked, id).not.toContain(SUCCESS_OBJECT[id]);
+    }
+  });
+
   it.each(IDS)("%s: has a title and one line, with no exclamation mark", (id) => {
-    const words = successCopy(copy, id, { when: "Tue 30 Sep, 10:00", reference: "SUP-123", promise: "We reply today.", name: "The Harbour Kitchen" });
+    const words = successCopy(copy, id, { when: "Tue 30 Sep, 10:00", reference: "SUP-123", promise: "We reply today.", name: "The Harbour Kitchen", n: "3", place: "Flat 2, Yaba" });
     expect(words.title.length).toBeGreaterThan(0);
     expect(words.body.length).toBeGreaterThan(0);
     expect(`${words.title} ${words.body}`).not.toMatch(/!|\{[a-z]+\}/);

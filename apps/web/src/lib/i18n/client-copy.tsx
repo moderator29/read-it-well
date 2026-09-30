@@ -46,3 +46,12 @@ export function useClientCopy(): ClientCopy {
   }
   return copy;
 }
+
+/**
+ * The same words, or null outside the provider: for small shared hooks
+ * (`lib/ui/use-copy.ts`) that a component test may mount bare. A screen
+ * never needs this; it is always inside the root layout's provider.
+ */
+export function useClientCopyOptional(): ClientCopy | null {
+  return useContext(Context);
+}

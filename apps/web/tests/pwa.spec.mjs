@@ -136,7 +136,7 @@ try {
     await lp.goto(`${BASE_URL}/`, { waitUntil: "load" });
     await lp.waitForTimeout(WAIT);
     const lightColor = await lp.locator('meta[name="theme-color"]').first().getAttribute("content");
-    check("a stored light choice turns the chrome white before paint", String(lightColor).toUpperCase() === "#FFFFFF");
+    check("a stored light choice turns the chrome to the warm paper before paint", String(lightColor).toUpperCase() === "#F4F4F1");
     await light.close();
   }
   check(

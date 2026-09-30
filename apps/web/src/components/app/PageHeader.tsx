@@ -89,9 +89,10 @@ export function PageHeader({
    */
   back?: boolean;
 }) {
-  /* The glass square the renders draw, 44px, named for where it goes. */
+  /* The 44px white circle of refs 44 and 45 (section 17), named for where
+     it goes. */
   const backButton = back ? (
-    <BackControl fallback={fallback} surface="glass" {...(backLabel ? { label: backLabel } : {})} />
+    <BackControl fallback={fallback} surface="round" {...(backLabel ? { label: backLabel } : {})} />
   ) : null;
 
   if (variant === "large") {
@@ -100,8 +101,8 @@ export function PageHeader({
         <div className="nf-ph-large__row">
           {backButton}
           {leading}
-          <div className="min-w-0 flex-1">
-            <h1 className="nf-ph-large__title [overflow-wrap:anywhere]" data-fold-anchor>
+          <div className="nf-ph-large__text">
+            <h1 className="nf-ph-large__title" data-fold-anchor>
               {title}
             </h1>
             {subtitle &&
@@ -145,7 +146,7 @@ export function PageHeader({
       <div className={`mb-heading ${tone === "verified" ? "nf-page-header--verified rounded-[var(--nf-radius-lg)]" : ""}`}>
         <div className="flex items-center justify-between gap-md">
           {backButton}
-          {actions ? <div className="flex shrink-0 items-center gap-inline">{actions}</div> : null}
+          {actions ? <div className="nf-ph-actions flex shrink-0 items-center gap-inline">{actions}</div> : null}
         </div>
         <div className="mt-group flex items-start gap-md">
           {leading}
@@ -181,7 +182,12 @@ export function PageHeader({
          basis wide enough for a whole word at `nf-h2`, and when the row
          cannot hold that beside the actions, the actions take their own
          line at the end instead. An icon action still fits on the row. */
-      className={`mb-heading flex flex-wrap items-center gap-x-md gap-y-inline rounded-[var(--nf-radius-lg)] ${
+      /* With a subtitle the row aligns to the top and the title's first line
+         is centred on the 44px back square: centring the square on the whole
+         block dropped it below a one-line title whenever the subtitle ran to
+         two or three lines (Restaurants, Price Check; integration QA,
+         30 September). Without one, centring is the same thing. */
+      className={`mb-heading flex flex-wrap ${subtitle ? "items-start" : "items-center"} gap-x-md gap-y-inline rounded-[var(--nf-radius-lg)] ${
         tone === "verified" ? "nf-page-header--verified" : ""
       }`}
     >
@@ -216,7 +222,7 @@ export function PageHeader({
           hid it. A title long enough to wrap three times is a copy problem, and
           a copy problem you can read is better than one you cannot.
         */}
-        <h1 className="nf-h2 [overflow-wrap:anywhere]">{title}</h1>
+        <h1 className={`nf-h2 [overflow-wrap:anywhere] ${subtitle ? "pt-[max(0px,calc((2.75rem-1lh)/2))]" : ""}`}>{title}</h1>
         {subtitle &&
           (subtitleHref ? (
             <Link
@@ -235,7 +241,7 @@ export function PageHeader({
             </p>
           ))}
       </div>
-      {actions ? <div className="ms-auto flex shrink-0 items-center gap-inline">{actions}</div> : null}
+      {actions ? <div className="nf-ph-actions ms-auto flex shrink-0 items-center gap-inline">{actions}</div> : null}
     </div>
   );
 }

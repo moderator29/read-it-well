@@ -20,6 +20,7 @@ import { TripSpine } from "@/components/app/plans/TripSpine";
 import { lagosToday } from "@/components/app/plans/trip-spine";
 import { InspectionsBoard } from "@/components/app/plans/InspectionsBoard";
 import { ComingUp } from "@/components/app/plans/ComingUp";
+import { RentCountdowns } from "@/components/app/plans/RentCountdowns";
 import {
   groupPlans,
   inFilter,
@@ -31,6 +32,7 @@ import {
 } from "@/components/app/plans/plans";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { IconPlate } from "@/components/ui/IconPlate";
+import { PullToRefresh } from "@/components/ui/PullToRefresh";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: getDictionary(await getLocale()).shape.plans.title };
@@ -162,7 +164,7 @@ export default async function PlansPage({
     (!showStays || !hasStays);
 
   return (
-    <div className="nf-cat-surface mx-auto max-w-2xl">
+    <PullToRefresh className="nf-cat-surface mx-auto max-w-2xl">
       <div className="relative">
         <PageScene art="calendar-check" />
         <PageHeader variant="large" title={copy.title} subtitle={copy.lede} />
@@ -210,6 +212,8 @@ export default async function PlansPage({
               )}
               {rent.length > 0 && (
                 <Section title={copy.tenanciesTitle}>
+                  {/* B10: when the rent is due again, for the tenant. */}
+                  <RentCountdowns tenancies={rent} locale={locale} />
                   <div className="flex flex-col gap-md">
                     {rent.map((tenancy) => (
                       <TenancyCard key={tenancy.id} tenancy={tenancy} locale={locale} />
@@ -252,7 +256,7 @@ export default async function PlansPage({
       )}
 
       {showStays && <HowItWorks locale={locale} />}
-    </div>
+    </PullToRefresh>
   );
 }
 

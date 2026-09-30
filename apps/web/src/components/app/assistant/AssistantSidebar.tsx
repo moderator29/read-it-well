@@ -102,7 +102,8 @@ export function AssistantSidebar({
           placeholder="Search conversations"
           autoComplete="off"
         />
-        <Button variant="primary" size="sm" full onClick={onNew}>
+        {/* Secondary: the composer's send is the screen's one primary (T-44). */}
+        <Button variant="secondary" size="sm" full onClick={onNew}>
           <UiIcon name="plus" size={16} />
           New chat
         </Button>

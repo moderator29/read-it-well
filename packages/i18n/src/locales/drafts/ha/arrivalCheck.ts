@@ -1,0 +1,46 @@
+import type { Translation } from "../../fallback";
+
+/* MACHINE DRAFT, 30 September 2026. Needs a native Hausa speaker's review
+   (review-status.ts). A safety surface: 112 is kept exactly. */
+export const arrivalCheckHa = {
+  title: "Ya yi daidai da yadda aka lissafa?",
+  lede: "Ka iso. Gaya mana ko wurin ya yi daidai da jerin. Wannan yana buɗe har zuwa {time}.",
+  yes: "Ee, ya yi daidai da yadda aka lissafa",
+  no: "A'a, akwai matsala",
+  reasonLabel: "Me ke damun sa?",
+  reasons: {
+    not_as_listed: "Ba wurin da ke cikin jerin ba ne",
+    no_access: "Ba zan iya shiga ba",
+  },
+  photosLabel: "Hotuna, da aka ɗauka yanzu",
+  photosHint: "Ɗauki aƙalla hoto ɗaya da ke nuna matsalar: ƙofa, ɗaki, mita. Har zuwa {max}.",
+  takePhoto: "Ɗauki hoto",
+  photoCount: "An ƙara hotuna {count} cikin {max}",
+  noteLabel: "Wani abu kuma (ba dole ba)",
+  send: "Aika rahoton",
+  back: "Koma baya",
+  uploadFailed: "Wannan hoton bai loda ba. Sake gwadawa.",
+  failed: "Ba mu iya aika wannan yanzu ba. Sake gwadawa. Idan ba ka iya shiga kuma kana jin ba ka da lafiya, kira 112.",
+  readFailed: "Ba mu iya loda binciken isowa yanzu ba. Sabunta nan da minti ɗaya. Idan ba ka iya shiga kuma kana jin ba ka da lafiya, kira 112.",
+  closedOrAnswered: "An rufe binciken isowa na wannan masauki.",
+  answeredYes: "Ka gaya mana cewa ya yi daidai da yadda aka lissafa a {time}.",
+  answeredReport: "Ka kai rahoton wannan masauki a {time}. Ƙungiyarmu tana da hotunanka kuma za ta tuntuɓe ka. Lambar shaidarka ita ce {reference}.",
+  answeredReportNoRef: "Ka kai rahoton wannan masauki a {time}. Ƙungiyarmu tana da hotunanka kuma za ta tuntuɓe ka.",
+  admin: {
+    title: "Binciken isowa",
+    asListed: "Baƙon ya ce ya yi daidai da yadda aka lissafa.",
+    reported: "Baƙon ya kai rahoto: {reason}.",
+    photos: "Hoto {n}",
+    note: "Bayanin baƙo",
+    uphold: "Tabbatar da rahoton",
+    decline: "Ƙi rahoton",
+    ruledUpheld: "An tabbatar a {when}.",
+    ruledDeclined: "An ƙi a {when}.",
+    ruleFailed: "Ba a ajiye hukuncin ba. Sake gwadawa.",
+    confirmUphold: "Tabbatar da wannan rahoto? Biyan kuɗin masaukin zai ci gaba da dakatarwa har sai an yanke hukuncin mayar da kuɗi.",
+    confirmDecline: "Ƙi wannan rahoto? Dakatarwar biyan kuɗin masaukin za ta ɗauke.",
+    confirm: "Tabbatar",
+    cancel: "Soke",
+    ruleNone: "Ba a yanke komai ba: an riga an yanke hukunci kan wannan rahoto, ko ba rahoto ba ne.",
+  },
+} satisfies NonNullable<Translation["arrivalCheck"]>;

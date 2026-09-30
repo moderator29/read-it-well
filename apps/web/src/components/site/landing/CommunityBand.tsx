@@ -1,25 +1,28 @@
-import Image from "next/image";
 import type { Dictionary, Locale } from "@vallo/i18n/core";
 import { intlTag } from "@vallo/i18n/core";
 import { CountUp } from "@/components/motion/CountUp";
 import { MotionReveal } from "@/components/motion/Reveal";
-import { photo } from "@/lib/site/photos";
 import type { PlatformStats } from "@/lib/platform-stats";
 import { statTiles } from "./stat-tiles";
 import { SectionHead } from "./SectionHead";
+import { CheckCard } from "./CheckCard";
 
 /**
- * The community band: copy and up to three honest figures on the left, and
- * on the right one photograph with the Third party card over its foot. The
- * listing card that also sat over the photograph showed the same villa
- * twice and is gone (UIUX item 9).
+ * The community band: copy, up to three honest figures and the Third party
+ * label on the left, and "Check before you pay" on the right (A7).
  *
- * THE THIRD PARTY CARD IS A LABEL, NOT A LISTING. The render shows a
+ * THE CHECK CARD TOOK THE PHOTOGRAPH'S PLACE (30 September). It had a room
+ * of its own under this one, and with the move-in card in the hero it made
+ * the landing about 1,200px taller than before A7 and A8. The room says the
+ * platform is built for both sides of the deal; the one thing a stranger can
+ * do with that today, without an account, is check the other side. The
+ * villa photograph repeated the category tiles' pictures and goes.
+ *
+ * THE THIRD PARTY LABEL IS A LABEL, NOT A LISTING. The render shows a
  * partner hotel dressed as a card. This platform has no partner inventory
  * live, and the stop list forbids rendering a partner row before its label
- * and fulfilment-honest CTA exist. So the card shows the tag itself and
+ * and fulfilment-honest CTA exist. So the room shows the tag itself and
  * says what it means: partner stays carry this and say who confirms them.
- * When partner rows land, this card is where a real one goes.
  */
 export function CommunityBand({
   t,
@@ -57,26 +60,15 @@ export function CommunityBand({
               ))}
             </ul>
           )}
+          <div className="nf-landing-thirdparty">
+            <span className="nf-badge nf-badge--neutral nf-landing-tag">{c.thirdParty}</span>
+            <p className="nf-landing-thirdparty__title">{c.thirdPartyTitle}</p>
+            <p className="nf-landing-thirdparty__body">{c.thirdPartyBody}</p>
+          </div>
         </div>
 
         <MotionReveal delay={80}>
-          <div className="nf-landing-stack" data-theme="dark">
-            <div className="nf-landing-stack-photo nf-landing-stack-photo--main">
-              <Image
-                src={photo("villa-pool-skyline-01")}
-                alt=""
-                fill
-                sizes="(max-width: 1024px) 100vw, 560px"
-              />
-            </div>
-            <div className="nf-landing-stack-card nf-landing-stack-card--b">
-              <span className="nf-badge nf-badge--neutral nf-landing-tag">{c.thirdParty}</span>
-              <p className="nf-landing-float-title mt-row text-[var(--nf-content-primary)]">
-                {c.thirdPartyTitle}
-              </p>
-              <p className="nf-caption mt-inline-tight">{c.thirdPartyBody}</p>
-            </div>
-          </div>
+          <CheckCard t={t} locale={locale} />
         </MotionReveal>
       </div>
     </section>

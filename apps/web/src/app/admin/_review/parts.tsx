@@ -1,3 +1,4 @@
+import { CountedText } from "@/components/ui/HeroFigure";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
@@ -258,7 +259,12 @@ export function Kpi({
           {figure === null ? (
             <p className="nf-rv-kpi__figure nf-rv-kpi__figure--quiet">Could not be read</p>
           ) : (
-            <p className="nf-rv-kpi__figure">{figure}</p>
+            <p className="nf-rv-kpi__figure">
+              {/* Counts up once on first view when the printed figure is a
+                  plain whole number (the founder's count-up ruling); any
+                  other figure (a rate, a compact money) prints as it is. */}
+              <CountedText text={figure} value={wholeIn(figure)} tag="en-NG" />
+            </p>
           )}
           {delta ? <DeltaLine delta={delta} /> : null}
         </div>
@@ -517,3 +523,8 @@ export function Avatar({
   );
 }
 
+/** The whole number a printed console figure holds ("1,204", "₦12,000"), or -1. */
+function wholeIn(text: string): number {
+  const m = /^[^\d.-]*(\d{1,3}(?:,\d{3})*|\d+)(?![\d.])[^\d]*$/.exec(text);
+  return m ? Number(m[1]!.replace(/,/g, "")) : -1;
+}

@@ -341,7 +341,10 @@ export function AppShell({
         className={
           immersive
             ? "flex h-dvh min-w-0 flex-1 flex-col overflow-hidden"
-            : `min-w-0 flex-1 lg:pb-3xl ${showsTabBar(active) ? "nf-main--docked" : "pb-xl"}`
+            : /* `nf-soft-top`: section 17's lavender-white wash behind the
+                 header (a faint night glow in dark), painted once here for
+                 every in-app page (css/clean-17.css). */
+              `nf-soft-top min-w-0 flex-1 lg:pb-3xl ${showsTabBar(active) ? "nf-main--docked" : "pb-xl"}`
         }
       >
         {showsHeader && (
@@ -449,7 +452,7 @@ export function AppShell({
                      header `SignedOutActions` renders null, so this is the
                      first item after the brand and it is the one that has to
                      push the group right. */
-                  className="nf-tap nf-icon-btn nf-app-header__btn ms-auto"
+                  className="nf-tap nf-icon-btn nf-icon-btn--round nf-app-header__btn ms-auto"
                 >
                   <UiIcon name="bell" size={20} />
                   {marked && <span aria-hidden="true" className="nf-app-header__dot" />}

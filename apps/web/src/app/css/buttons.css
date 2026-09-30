@@ -772,132 +772,382 @@
 
   /*
    * =====================================================================
-   * THE CLEAN UNIFIED BUTTONS (29 September 2026;
-   * docs/design/CLEAN_UNIFIED_DIRECTION.md section 3, plan items 5 and 27).
-   * Four levels, one per job, and ONE glow per view: the primary's, at night.
-   * The materials come from tokens (`--nf-btn-lit-*` for the primary,
-   * `--nf-btn-glass-*` for the secondary), which the paper and night blocks
-   * of tokens.css answer; this section adds the two new levels, the radii
-   * and the pointer hover. It is last so it wins at equal weight, and the
-   * loading line above still owns `::after` while a button is loading.
+   * THE BUTTON SYSTEM (founder reference 55, "Button Styles & Usage Guide",
+   * 30 September 2026; CLEAN_UNIFIED_DIRECTION.md section 19). This section
+   * replaces the clean unified buttons of the 29th and is last so it wins at
+   * equal weight; the loading line above still owns `::after` while a button
+   * is loading (its selector carries the attribute, so it outranks these).
+   *
+   * Every material reads a `--nf-act-*` token (tokens.css, "THE BUTTON
+   * SYSTEM"), answered for night and for paper, so no rule here names a
+   * theme. The founder's finish: restrained gradients, crisp 1px and 1.5px
+   * edges, heights 44 / 48 / 56, soft-cornered rectangles for every
+   * word-carrying button (not pills: the founder's ruling of the 30th), one glyph size per button size, calm grey disabled states, and
+   * the glow ring only on the night primary under hover and focus.
+   *
+   * MOTION: the press is the shared scale (`--nf-press-scale*`, one grammar
+   * with every pressable surface), and it is the only thing that animates.
+   * Colour steps between states rather than fading, so a low-end phone
+   * composites the whole press on the transform.
+   *
+   *   primary     the blue pill (Save, Continue, Book, Submit, Next)
+   *   glass       the secondary: the outlined blue pill (Cancel, View details)
+   *   quiet       the tertiary: brand words, a soft tint box on hover
+   *   icon        the round white (night: navy) circle with a blue glyph
+   *   fab         the round blue +
+   *   dropdown    "Sort by" with a chevron
+   *   danger      the solid red pill; danger-quiet its tinted twin
    * ===================================================================== */
+  /* THE SHAPE (founder ruling, 30 September, over the guide's pills): every
+     text button is a rectangle with soft corners, the corner stepping with
+     the height (10 / 12 / 14px on 44 / 48 / 56). Icon buttons and the FAB
+     stay circles (below). */
   .nf-btn {
     font-weight: 600;
+    border-radius: var(--nf-act-radius-md);
+    transition: transform var(--nf-duration-press) var(--nf-ease-press);
   }
-  /* 44 on a 12px corner; 48 and 56 keep the 14px control corner. */
   .nf-btn--sm {
-    border-radius: var(--nf-plate-radius-md);
+    border-radius: var(--nf-act-radius-sm);
+  }
+  .nf-btn--lg {
+    border-radius: var(--nf-act-radius-lg);
+  }
+  .nf-btn--icon {
+    border-radius: var(--nf-radius-circle);
+  }
+  .nf-btn:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: var(--nf-focus-ring-offset);
   }
 
-  /* The glass-brand secondary retires into the plain secondary: it was a
-     second lit button beside the primary. Kept for hand-written markup. */
-  .nf-btn--glass-brand {
-    color: var(--nf-content-primary);
-    background: var(--nf-btn-glass-fill);
-    border-color: var(--nf-btn-glass-edge);
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    box-shadow: var(--nf-btn-glass-shadow);
+  /* ---- 1. primary: the blue pill -------------------------------------- */
+  .nf-btn--primary {
+    color: var(--nf-act-on);
+    background: var(--nf-act-fill);
+    border: var(--nf-border-width) solid transparent;
+    box-shadow: var(--nf-act-shadow);
+    text-shadow: none;
+    filter: none;
   }
-
-  /* QUIET: no fill, brand ink. `ghost` renders it (Button.tsx). */
-  .nf-btn--quiet {
-    background: transparent;
-    border-color: transparent;
-    color: var(--nf-content-link);
-    box-shadow: none;
-  }
-  .nf-btn--quiet.nf-btn--sm {
-    border-radius: var(--nf-radius-control-sm);
-    padding-inline: var(--nf-space-sm);
-  }
-  .nf-btn--quiet::after {
+  .nf-btn--primary::after {
     content: none;
   }
+  .nf-btn--primary:focus-visible {
+    box-shadow: var(--nf-act-ring);
+  }
+  .nf-btn--primary:active:not(:disabled, [aria-disabled="true"]) {
+    background: var(--nf-act-fill-press);
+    border-color: var(--nf-act-press-edge);
+    box-shadow: var(--nf-act-shadow-press);
+  }
 
-  /* ICON: a 44px square (or, with `.nf-btn--round`, the header's circle) on
-     the card hairline, white on paper and a raised surface at night. */
-  .nf-btn--surface {
-    color: var(--nf-content-primary);
-    background: var(--nf-surface-elevated);
-    border-color: var(--nf-card-border);
-    box-shadow: var(--nf-card-shadow);
+  /* ---- 2. secondary: the outlined blue pill --------------------------- */
+  .nf-btn--glass,
+  .nf-btn--glass-brand {
+    color: var(--nf-act-outline-ink);
+    background: var(--nf-act-surface);
+    border: var(--nf-act-edge-width) solid var(--nf-act-edge);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: var(--nf-act-surface-shadow);
+  }
+  .nf-btn--glass::after,
+  .nf-btn--glass-brand::after {
+    content: none;
+  }
+  .nf-btn--glass:active:not(:disabled, [aria-disabled="true"]),
+  .nf-btn--glass-brand:active:not(:disabled, [aria-disabled="true"]) {
+    color: var(--nf-act-outline-hover-ink);
+    background: var(--nf-act-outline-press-fill);
+    box-shadow: none;
+  }
+
+  /* ---- 3. tertiary: brand words, a tint box on hover ------------------- */
+  .nf-btn--quiet,
+  .nf-btn--ghost {
+    background: transparent;
+    border-color: transparent;
+    color: var(--nf-act-ink);
+    box-shadow: none;
+  }
+  .nf-btn--quiet.nf-btn--sm,
+  .nf-btn--ghost.nf-btn--sm {
+    padding-inline: var(--nf-space-sm);
+  }
+  .nf-btn--quiet::after,
+  .nf-btn--ghost::after {
+    content: none;
+  }
+  .nf-btn--quiet:active:not(:disabled, [aria-disabled="true"]),
+  .nf-btn--ghost:active:not(:disabled, [aria-disabled="true"]) {
+    background: var(--nf-act-tint-press);
+  }
+
+  /* ---- 4. icon: the round button with a blue glyph -------------------- */
+  /* Every icon button is a circle now (the guide draws no other), on the
+     surface's hairline and soft shadow; the glyph is brand on paper and
+     white at night. Hover fills it blue with a white glyph. */
+  .nf-btn--surface,
+  .nf-btn--round {
+    color: var(--nf-act-icon-ink);
+    background: var(--nf-act-surface);
+    border: var(--nf-border-width) solid var(--nf-act-surface-edge);
+    box-shadow: var(--nf-act-surface-shadow);
   }
   .nf-btn--surface::after {
     content: none;
   }
-  /* The header's search and bell (spec section 16, Q1): the one round
-     control the shape law allows. They float, so they take the float
-     shadow. */
+  .nf-btn--icon.nf-btn--surface,
   .nf-btn--round,
   .nf-icon-btn--round {
     border-radius: var(--nf-radius-circle);
-    box-shadow: var(--nf-float-shadow);
   }
-  /* The same circle on the hand-written header button (`.nf-icon-btn`,
-     controls.css): 44px, the elevated surface on the card hairline. */
-  .nf-icon-btn.nf-icon-btn--round {
+  .nf-btn--surface:active:not(:disabled, [aria-disabled="true"]) {
+    color: var(--nf-act-on);
+    background: var(--nf-act-fill-press);
+    border-color: var(--nf-act-press-edge);
+  }
+
+  /* ---- 5. FAB: the round blue + --------------------------------------- */
+  .nf-btn--fab {
+    --nf-btn-h: var(--nf-act-fab-size);
+    width: var(--nf-act-fab-size);
+    min-width: var(--nf-act-fab-size);
+    padding: var(--nf-space-0);
+    aspect-ratio: 1;
+    border-radius: var(--nf-radius-circle);
+  }
+
+  /* ---- 8. dropdown: "Sort by" with a chevron --------------------------- */
+  /* A control that opens a list, on the same soft corner as every text
+     button. The chevron turns while the list is open. */
+  .nf-btn--dropdown {
+    justify-content: space-between;
+    border-radius: var(--nf-act-radius-md);
+    color: var(--nf-act-outline-ink);
+    background: var(--nf-act-surface);
+    border: var(--nf-border-width) solid var(--nf-act-surface-edge);
+    box-shadow: var(--nf-act-surface-shadow);
+  }
+  .nf-btn--dropdown.nf-btn--sm {
+    border-radius: var(--nf-act-radius-sm);
+  }
+  .nf-btn--dropdown::after {
+    content: none;
+  }
+  .nf-btn__chevron {
+    display: inline-flex;
+    transition: transform var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-btn--dropdown[aria-expanded="true"] .nf-btn__chevron {
+    transform: rotate(180deg);
+  }
+  .nf-btn--dropdown[aria-expanded="true"],
+  .nf-btn--dropdown:active:not(:disabled, [aria-disabled="true"]) {
+    border-color: var(--nf-act-edge);
+    background: var(--nf-act-outline-press-fill);
+    color: var(--nf-act-outline-hover-ink);
+  }
+
+  /* ---- danger: the destructive pair ----------------------------------- */
+  .nf-btn--danger {
+    color: var(--nf-act-on);
+    background: var(--nf-state-error);
+    border: var(--nf-border-width) solid transparent;
+    box-shadow: var(--nf-act-rim);
+  }
+  .nf-btn--danger:active:not(:disabled, [aria-disabled="true"]) {
+    background: color-mix(in oklab, var(--nf-state-error) 78%, var(--nf-act-press-edge));
+  }
+  .nf-btn--danger-quiet {
+    color: var(--nf-state-error);
+    background: var(--nf-state-error-surface);
+    border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-state-error) 34%, transparent);
+    box-shadow: none;
+  }
+  .nf-btn--danger-quiet:active:not(:disabled, [aria-disabled="true"]) {
+    background: color-mix(in oklab, var(--nf-state-error) 22%, transparent);
+  }
+
+  /* ---- disabled: one calm grey for every kind ------------------------- */
+  /* The guide's disabled is the grey family (Gray #94A3B8) on a pale fill,
+     for every kind: present, legible, plainly not answering. The primary
+     no longer stays half-lit; the founder asked for calm. The quiet kinds
+     keep no fill, only the grey word. A loading button is excluded, as in
+     the recipe above: it keeps its colours and loses only the press. */
+  .nf-btn:disabled:not([data-loading="true"]),
+  .nf-btn[aria-disabled="true"]:not([data-loading="true"]),
+  .nf-btn--primary:disabled:not([data-loading="true"]),
+  .nf-btn--primary[aria-disabled="true"]:not([data-loading="true"]) {
+    color: var(--nf-act-disabled-ink);
+    background: var(--nf-act-disabled-fill);
+    border-color: var(--nf-act-disabled-edge);
+    box-shadow: none;
+    text-shadow: none;
+    filter: none;
+    opacity: 1;
+  }
+  :is(.nf-btn--quiet, .nf-btn--ghost):disabled:not([data-loading="true"]),
+  :is(.nf-btn--quiet, .nf-btn--ghost)[aria-disabled="true"]:not([data-loading="true"]) {
+    background: transparent;
+    border-color: transparent;
+  }
+
+  /* ---- hover: pointer devices only, never under the finger ------------ */
+  @media (hover: hover) and (pointer: fine) {
+    .nf-btn--primary:hover:not(:disabled, [aria-disabled="true"], :active) {
+      background: var(--nf-act-fill-hover);
+      box-shadow: var(--nf-act-ring);
+      filter: none;
+    }
+    :is(.nf-btn--glass, .nf-btn--glass-brand):hover:not(:disabled, [aria-disabled="true"], :active) {
+      color: var(--nf-act-outline-hover-ink);
+      background: var(--nf-act-outline-hover-fill);
+      border-color: var(--nf-act-edge);
+      box-shadow: var(--nf-act-surface-shadow);
+    }
+    :is(.nf-btn--quiet, .nf-btn--ghost):hover:not(:disabled, [aria-disabled="true"], :active) {
+      color: var(--nf-act-ink);
+      background: var(--nf-act-tint);
+    }
+    .nf-btn--surface:hover:not(:disabled, [aria-disabled="true"], :active) {
+      color: var(--nf-act-on);
+      background: var(--nf-act-blue);
+      border-color: transparent;
+      box-shadow: var(--nf-act-shadow);
+    }
+    .nf-btn--dropdown:hover:not(:disabled, [aria-disabled="true"], :active, [aria-expanded="true"]) {
+      border-color: var(--nf-act-edge);
+      background: var(--nf-act-outline-hover-fill);
+      color: var(--nf-act-outline-hover-ink);
+    }
+    .nf-btn--danger:hover:not(:disabled, [aria-disabled="true"], :active) {
+      background: color-mix(in oklab, var(--nf-state-error) 90%, var(--nf-act-press-edge));
+    }
+    .nf-btn--danger-quiet:hover:not(:disabled, [aria-disabled="true"], :active) {
+      background: color-mix(in oklab, var(--nf-state-error) 16%, transparent);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-btn__chevron {
+      transition: none;
+    }
+  }
+
+  /* ---- 16. link buttons: "View all", "Learn more" --------------------- */
+  /* Inline words with an arrow, brand ink, no box: the smallest action.
+     44px tall for the finger, painted at the line's own height; hover
+     underlines and deepens the ink, and the arrow nudges as on a button. */
+  .nf-link-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    min-height: 2.75rem;
+    padding-inline: var(--nf-space-3xs);
+    border-radius: var(--nf-radius-control-sm);
+    color: var(--nf-act-ink);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    text-underline-offset: 3px;
+    cursor: pointer;
+    transition: transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  .nf-link-btn:active {
+    transform: scale(var(--nf-press-scale));
+  }
+  .nf-link-btn:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: var(--nf-focus-ring-offset);
+  }
+  .nf-link-btn[aria-disabled="true"] {
+    color: var(--nf-act-disabled-ink);
+    pointer-events: none;
+  }
+  .nf-link-btn .nf-btn__arrow {
+    display: inline-flex;
+    transition: transform var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .nf-link-btn:hover {
+      color: var(--nf-act-ink-hover);
+      text-decoration: underline;
+    }
+    .nf-link-btn:hover .nf-btn__arrow {
+      transform: translateX(2px);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-link-btn,
+    .nf-link-btn .nf-btn__arrow {
+      transition: none;
+    }
+    .nf-link-btn:hover .nf-btn__arrow {
+      transform: none;
+    }
+  }
+
+  /* The header's round buttons (section 17): 44px circles on the card
+     hairline, the icon ink (brand blue on paper, white at night: the
+     founder wants every light-mode icon blue), owned by the chrome. The header action slots round
+     any icon button put in them. Kept from the clean unified sweep. */
+  .nf-icon-btn.nf-icon-btn--round,
+  :is(.nf-ph-large__actions, .nf-ph-actions, .nf-ph-desk__actions) > :is(.nf-icon-btn, .nf-btn--icon) {
     width: 2.75rem;
     height: 2.75rem;
     border: var(--nf-border-width) solid var(--nf-card-border);
+    border-radius: var(--nf-radius-circle);
     background: var(--nf-surface-elevated);
-    color: var(--nf-content-primary);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: var(--nf-float-shadow);
+    color: var(--nf-act-icon-ink);
   }
-
-  /*
-   * POINTER HOVER, ONE SYSTEM (plan item 27). Only for a fine pointer, so a
-   * finger never leaves a button stuck in its hover. One step brighter,
-   * colour only, and never while pressed (the press is lane A's scale).
-   */
   @media (hover: hover) and (pointer: fine) {
-    .nf-btn--primary:hover:not(:disabled, :active) {
-      filter: brightness(1.07);
-    }
-    .nf-btn--glass:hover:not(:disabled),
-    .nf-btn--glass-brand:hover:not(:disabled),
-    .nf-btn--surface:hover:not(:disabled) {
-      background: linear-gradient(var(--nf-interactive-hover), var(--nf-interactive-hover)), var(--nf-btn-glass-fill);
+    .nf-icon-btn.nf-icon-btn--round:hover,
+    :is(.nf-ph-large__actions, .nf-ph-actions, .nf-ph-desk__actions) > :is(.nf-icon-btn, .nf-btn--icon):hover {
       border-color: var(--nf-border-default);
-      box-shadow: var(--nf-card-shadow);
-    }
-    .nf-btn--quiet:hover:not(:disabled) {
-      background: var(--nf-interactive-hover);
-      color: var(--nf-content-link);
+      background: linear-gradient(var(--nf-interactive-hover), var(--nf-interactive-hover)), var(--nf-surface-elevated);
+      box-shadow: var(--nf-float-shadow);
+      color: var(--nf-act-icon-ink);
     }
   }
 
   /*
-   * THE QUIET SEGMENTED CONTROL (spec section 7; `Segmented.tsx`,
-   * `variant="quiet"`, the default). A raised track, 4px inset, 12px corner;
-   * the thumb is the elevated surface on the card shadow at a 10px corner.
-   * The solid variant is `.nf-segmented--pill` in chips.css.
+   * 12. THE SEGMENTED CONTROL (spec sections 7 and 19; `Segmented.tsx`).
+   * Reference 55 draws one: a white track (a navy well at night) on the
+   * surface hairline with the ACTIVE SEGMENT IN BRAND BLUE and a white
+   * word. Both variants take it now; `solid` (`.nf-segmented--pill`,
+   * chips.css) differs only by standing on the raised well. The corners
+   * are the button system's, 12px outside and 10px on the thumb.
    */
-  /* A bare `.nf-segmented` (ViewToggle's links, hand-built tracks) is quiet
-     too: quiet is the default, solid is asked for. */
   .nf-segmented:not(.nf-segmented--pill) {
-    border-radius: var(--nf-plate-radius-md);
-    background: var(--nf-surface-raised);
-    border: 0;
-    box-shadow: none;
+    border-radius: var(--nf-act-radius-md);
+    background: var(--nf-act-well);
+    border: var(--nf-border-width) solid var(--nf-act-well-edge);
+    box-shadow: var(--nf-act-surface-shadow);
   }
-  .nf-segmented:not(.nf-segmented--pill) .nf-segmented__capsule {
+  .nf-segmented .nf-segmented__capsule {
     height: calc(100% - 8px);
-    border-radius: var(--nf-radius-control-sm);
-    background: var(--nf-surface-elevated);
-    box-shadow: var(--nf-card-shadow), 0 0 0 var(--nf-border-width) var(--nf-card-border);
+    border-radius: var(--nf-act-radius-sm);
+    background: var(--nf-act-fill);
+    box-shadow: var(--nf-act-shadow);
     transition:
       transform var(--nf-duration-base) var(--nf-ease-standard),
       width var(--nf-duration-base) var(--nf-ease-standard);
   }
-  /* The selected label on the quiet thumb is ink, whatever a hand-built
-     track set for the old brand thumb (the search view toggle marks its
-     current link `data-on`). */
-  .nf-segmented:not(.nf-segmented--pill) :is([data-on="true"], [aria-current="true"], [aria-selected="true"], [aria-checked="true"]) {
-    color: var(--nf-content-primary);
+  .nf-segmented :is([data-on="true"], [aria-current="true"], [aria-selected="true"], [aria-checked="true"]) {
+    color: var(--nf-act-on);
   }
-  .nf-segmented:not(.nf-segmented--pill) .nf-segmented__link[aria-current="true"] {
-    background: var(--nf-surface-elevated);
-    color: var(--nf-content-primary);
-    box-shadow: var(--nf-card-shadow), 0 0 0 var(--nf-border-width) var(--nf-card-border);
+  .nf-segmented .nf-segmented__link[aria-current="true"] {
+    background: var(--nf-act-fill);
+    color: var(--nf-act-on);
+    box-shadow: var(--nf-act-shadow);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-segmented .nf-segmented__capsule {
+      transition: none;
+    }
   }
 }

@@ -246,8 +246,14 @@ function ifNotYou(event: PaymentInstrumentEvent): string {
   }
 }
 
-function build(subject: string, preheader: string, blocks: readonly Block[]): PaymentInstrumentEmail {
+function build(
+  event: PaymentInstrumentEvent,
+  subject: string,
+  preheader: string,
+  blocks: readonly Block[],
+): PaymentInstrumentEmail {
   const composed = compose({
+    icon: event.startsWith("bank_") ? "paymentInstrumentChanged:bank" : "paymentInstrumentChanged:card",
     preheader,
     blocks: [...blocks],
     footerLines: [
@@ -280,7 +286,7 @@ export function paymentInstrumentChanged(data: PaymentInstrumentData): PaymentIn
       "Vallo will never ask you for your card number, your PIN, your bank password or a one-time code, by phone, by message or by email. If somebody does, it is not us.",
     ),
   ];
-  return build(SUBJECT[data.event], preheaderFor(data), blocks);
+  return build(data.event, SUBJECT[data.event], preheaderFor(data), blocks);
 }
 
 /** Exported for the test that holds this vocabulary equal to the notice's. */

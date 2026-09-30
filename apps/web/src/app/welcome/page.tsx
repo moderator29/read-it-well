@@ -15,6 +15,8 @@ import {
 import { isPropertyType } from "@/lib/interests/schema";
 import { loadInterestsState } from "@/lib/interests/queries";
 import { planFirstRun } from "./plan";
+import { resolveSession } from "@/lib/actions/session";
+import { listStates } from "@/lib/places/queries";
 import { WelcomeIntro } from "./WelcomeIntro";
 
 export const metadata: Metadata = {
@@ -101,16 +103,44 @@ export default async function WelcomePage({
     );
   }
 
+  /* A1: what the one-screen sign-up no longer asks, asked here once the
+     account exists and only while the interests question is still open.
+     Where somebody stays is skipped when the profile already holds it. */
+  const asks = plan.intent.asked ? null : await arrivalAsks();
+
   return (
     <WelcomeStage>
       <FirstRun
         t={t}
         interests={plan.intent.interests}
-        showCards
+        /* A17: a device that has already been shown the steps (the intro or
+           the tour, before the account existed) goes straight to the
+           question after sign-up rather than through the steps again; asked
+           for (`?tour=1`), the steps show. */
+        showCards={tour || !seen}
         asked={plan.intent.asked}
         viewer="member"
         next={plan.next}
+        asks={asks}
       />
     </WelcomeStage>
   );
+}
+
+/** The member's answers so far, for `ArrivalAsks`; null when it cannot read. */
+async function arrivalAsks() {
+  const session = await resolveSession();
+  if (session.state !== "signed-in") return null;
+  const { data: row } = await session.supabase
+    .from("profiles")
+    .select("state_code")
+    .eq("id", session.user.id)
+    .maybeSingle();
+  const askPlace = !row?.state_code;
+  const heard = session.user.user_metadata?.hear_about;
+  return {
+    states: askPlace ? await listStates() : [],
+    askPlace,
+    hearAbout: typeof heard === "string" && heard ? heard : null,
+  };
 }

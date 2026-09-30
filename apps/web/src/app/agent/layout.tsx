@@ -1,5 +1,9 @@
 import type { ReactNode } from "react";
 import { PasscodeLayer } from "@/components/passcode/PasscodeLayer";
+import { DeskKeys } from "@/components/app/desk/DeskKeys";
+import { AGENT_JUMPS, AGENT_JUMP_WORDS } from "@/components/app/desk/desk-keys";
+/* C12: the workspace sheet, out of `globals.css`. */
+import "@/app/css/agent.css";
 
 /**
  * The agent workspace's layout. Its only job is the passcode lock
@@ -8,5 +12,11 @@ import { PasscodeLayer } from "@/components/passcode/PasscodeLayer";
  * own frame and checks its own access.
  */
 export default function AgentLayout({ children }: { children: ReactNode }) {
-  return <PasscodeLayer>{children}</PasscodeLayer>;
+  return (
+    <PasscodeLayer>
+      {children}
+      {/* C6: the desks' shared keys (j/k, a/x, g-jumps, ?). */}
+      <DeskKeys jumps={AGENT_JUMPS} jumpWords={AGENT_JUMP_WORDS} />
+    </PasscodeLayer>
+  );
 }

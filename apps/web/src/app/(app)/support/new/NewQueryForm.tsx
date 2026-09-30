@@ -356,7 +356,7 @@ function RecordList({
     <div className="space-y-group">
       {[...groups.entries()].map(([kind, list]) => (
         <section key={kind} aria-label={RELATED_KIND_TITLE[kind as RelatedRecord["kind"]]}>
-          <p className="nf-caption mb-row font-semibold uppercase tracking-wide text-[var(--nf-content-muted)]">
+          <p className="nf-caption mb-row font-semibold uppercase tracking-[var(--nf-tracking-label)] text-[var(--nf-content-muted)]">
             {RELATED_KIND_TITLE[kind as RelatedRecord["kind"]]}
           </p>
           <ul className="-mx-xs">

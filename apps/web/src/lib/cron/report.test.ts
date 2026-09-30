@@ -208,3 +208,129 @@ describe("the reporter never becomes the failure", () => {
     expect((onlyAudit().metadata as Record<string, unknown>).duration_ms).toBe(0);
   });
 });
+
+describe("clean runs and repeats leave the trail once job_runs exists (C7)", () => {
+  function adminWithJobRuns(rpcError: unknown = null) {
+    const calls: { fn: string; args: Record<string, unknown> }[] = [];
+    const admin = {
+      from(table: string) {
+        return {
+          async insert(row: AuditRow) {
+            audited.push({ table, ...row });
+            return { error: null };
+          },
+        };
+      },
+      async rpc(fn: string, args: Record<string, unknown>) {
+        calls.push({ fn, args });
+        return { error: rpcError };
+      },
+    } as never;
+    return { admin, calls };
+  }
+
+  it("counts a clean run in job_runs and writes no audit row", async () => {
+    const { admin, calls } = adminWithJobRuns();
+    await reportCronRun(admin, { job: "canary", outcome: "ok", durationMs: 12 });
+    expect(audited).toEqual([]);
+    expect(calls).toEqual([{ fn: "record_job_run", args: expect.objectContaining({ p_job: "canary", p_outcome: "ok" }) }]);
+  });
+
+  it("falls back to the audit row when job_runs is not installed", async () => {
+    const { admin } = adminWithJobRuns({ code: "PGRST202", message: "not found" });
+    await reportCronRun(admin, { job: "canary", outcome: "ok", durationMs: 12 });
+    expect(onlyAudit()).toMatchObject({ action: "cron.canary.ok" });
+  });
+
+  it("writes the first attention run for a cause to the trail, and counts a repeat", async () => {
+    const first = adminWithJobRuns();
+    await reportCronRun(first.admin, {
+      job: "sanctions-screen",
+      outcome: "attention",
+      durationMs: 5,
+      alert: { kind: "sanctions.screen_failed", severity: "warning", detail: { failed: 1 } },
+    });
+    expect(onlyAudit()).toMatchObject({ action: "cron.sanctions-screen.attention" });
+    expect(alerts.recordAlert).toHaveBeenCalledTimes(1);
+
+    audited = [];
+    alerts.recordAlert.mockReset();
+    alerts.recordAlert.mockResolvedValue({ ok: true, id: "alert", deduplicated: true });
+    const again = adminWithJobRuns();
+    await reportCronRun(again.admin, {
+      job: "sanctions-screen",
+      outcome: "attention",
+      durationMs: 5,
+      alert: { kind: "sanctions.screen_failed", severity: "warning", detail: { failed: 1 } },
+    });
+    expect(audited).toEqual([]);
+    expect(again.calls[0]).toMatchObject({ fn: "record_job_run", args: { p_outcome: "repeat" } });
+    expect(alerts.recordAlert).toHaveBeenCalledTimes(1);
+  });
+
+  it("never moves a failed run out of the trail", async () => {
+    const { admin, calls } = adminWithJobRuns();
+    await reportCronRun(admin, { job: "canary", outcome: "failed", durationMs: 1, reason: "boom" });
+    expect(onlyAudit()).toMatchObject({ action: "cron.canary.failed" });
+    expect(calls).toEqual([]);
+  });
+});
+
+/**
+ * C13: A SKIPPED RUN (the job's feature flag was off) is counted and NEVER
+ * alerted. It prefers its own `skipped` outcome in job_runs, falls back to a
+ * counted clean run marked `skipped: true` while the pending migration has
+ * not widened record_job_run, and only writes the trail when the counter is
+ * missing altogether.
+ */
+describe("a skipped run stays off the desk", () => {
+  function rpcAdmin(accepts: (outcome: string) => boolean) {
+    const calls: Array<{ fn: string; args: Record<string, unknown> }> = [];
+    const base = fakeAdmin() as unknown as Record<string, unknown>;
+    return {
+      calls,
+      admin: {
+        ...base,
+        from: (base as { from: unknown }).from,
+        async rpc(fn: string, args: Record<string, unknown>) {
+          calls.push({ fn, args });
+          return { error: accepts(String(args.p_outcome)) ? null : { message: "unknown outcome" } };
+        },
+      } as never,
+    };
+  }
+
+  const skipped = { job: "landlord-line", outcome: "skipped" as const, durationMs: 3, reason: "flag_off", flag: "landlord_line" };
+
+  it("counts it under its own outcome once the migration is applied", async () => {
+    const { admin, calls } = rpcAdmin(() => true);
+    await reportCronRun(admin, skipped);
+    expect(calls).toEqual([
+      {
+        fn: "record_job_run",
+        args: {
+          p_job: "landlord-line",
+          p_outcome: "skipped",
+          p_metadata: { outcome: "skipped", duration_ms: 3, reason: "flag_off", flag: "landlord_line" },
+        },
+      },
+    ]);
+    expect(audited).toEqual([]);
+    expect(alerts.recordAlert).not.toHaveBeenCalled();
+  });
+
+  it("counts it as a clean run marked skipped before the migration", async () => {
+    const { admin, calls } = rpcAdmin((outcome) => outcome !== "skipped");
+    await reportCronRun(admin, skipped);
+    expect(calls.map((c) => c.args.p_outcome)).toEqual(["skipped", "ok"]);
+    expect(calls[1]!.args.p_metadata).toMatchObject({ outcome: "skipped", skipped: true, reason: "flag_off" });
+    expect(audited).toEqual([]);
+    expect(alerts.recordAlert).not.toHaveBeenCalled();
+  });
+
+  it("writes one trail row, and still no alert, when there is no counter at all", async () => {
+    await reportCronRun(fakeAdmin(), skipped);
+    expect(onlyAudit()).toMatchObject({ action: "cron.landlord-line.skipped", entity_id: "landlord-line" });
+    expect(alerts.recordAlert).not.toHaveBeenCalled();
+  });
+});

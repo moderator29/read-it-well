@@ -1,0 +1,109 @@
+/*
+  money-surface: the few money rules still in use after the wallet retired.
+
+  `wallet.css` (44 KB) was imported into every page for the wallet retired on
+  25 September 2026. Nothing renders its home, send, receive, statement or
+  receipt surfaces any more, so the file is gone (C12, 30 September 2026).
+  What it still styled for live screens moved here, unchanged:
+
+  - `.nf-money`, the wrapper on the result sheet and Settings > Payments;
+  - the rolling figure inside it (odometer slots, the white ink, the kobo);
+  - the payment methods block (`PaymentMethodsPanel`, `.nf-pay-*`).
+
+  Tokens only, inside `@layer components`, in the slot wallet.css held so the
+  cascade outcome is the same.
+*/
+@layer components {
+  /* Inside the rolling figures, digits and separators carry no tracking and
+     each slot is clipped to the digits' own band, so only the digit in the
+     window is painted, settled or moving. */
+  .nf-money .nf-odometer__slot,
+  .nf-money .nf-odometer__sep {
+    letter-spacing: 0;
+  }
+  .nf-money .nf-odometer__slot {
+    clip-path: inset(0.1em -0.05em 0.1em -0.05em);
+  }
+  /* The big figure is white; blue is kept for accents. */
+  .nf-money .nf-odometer-figure {
+    color: var(--nf-content-primary);
+  }
+  .nf-money-kobo {
+    font-size: 0.68em;
+    font-weight: 600;
+    color: var(--nf-content-primary);
+    opacity: 0.74;
+  }
+
+  /* ------------------------------------------------------ payment methods */
+
+  .nf-pay-head {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--nf-gap-row);
+    padding: var(--nf-pad-card-sm);
+  }
+  .nf-pay-head__sub {
+    grid-column: 2 / -1;
+    margin-top: calc(var(--nf-gap-row) * -1 + var(--nf-space-3xs));
+  }
+  .nf-pay-rows {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-gap-inline);
+    padding: 0 var(--nf-pad-card-sm) var(--nf-pad-card-sm);
+  }
+  .nf-pay-row {
+    display: flex;
+    width: 100%;
+    min-height: 4.5rem;
+    align-items: center;
+    gap: var(--nf-gap-row);
+    padding: var(--nf-space-sm);
+    color: var(--nf-content-primary);
+    text-align: left;
+    transition:
+      background-color var(--nf-duration-fast) var(--nf-ease-standard),
+      box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
+    border: var(--nf-border-width) solid;
+    border-color: var(--nf-panel-edges);
+    border-radius: var(--nf-container-radius);
+    background: var(--nf-panel-fill-card);
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
+  }
+  @media (hover: hover) {
+    button.nf-pay-row:hover {
+      border-color: var(--nf-selected-edges);
+      background: var(--nf-selected-fill);
+    }
+  }
+  .nf-pay-row:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  /* The card's brand mark: the brand's word on a small brand plate. */
+  .nf-pay-brand {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 4.25rem;
+    height: 2.75rem;
+    border-radius: var(--nf-radius-sm);
+    background: var(--nf-gradient-brand);
+    color: var(--nf-content-on-brand);
+    font-size: var(--nf-text-caption);
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    box-shadow:
+      inset 0 1px 0 var(--nf-glow-2),
+      0 8px 18px -10px var(--nf-glow-3);
+  }
+
+  /* The money pages reach 10px into the shell's 24px gutter on a phone. */
+  @media (max-width: 639px) {
+    .nf-money > * {
+      margin-inline: -0.625rem;
+    }
+  }
+}

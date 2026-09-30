@@ -22,6 +22,7 @@ export function staffAccessGranted(data: {
 }): EmailMessage {
   const job = data.position ? JOB_DESCRIPTIONS[data.position] : null;
   const composed = compose({
+    icon: "staffAccessGranted",
     preheader:
       accessLine(data.scopeWords),
     blocks: [

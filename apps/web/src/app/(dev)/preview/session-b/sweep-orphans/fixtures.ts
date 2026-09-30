@@ -90,6 +90,7 @@ export const REVIEW_SUBJECT: ReviewSubject = {
   listingId: "00000000-0000-4000-8000-00000000a002",
   title: "Lekki Palm Grove shortlet",
   location: "Lekki Phase 1, Lagos",
+  href: "/listing/00000000-0000-4000-8000-00000000a002",
   checkOutDisplay: "Sun 16 Aug",
 };
 

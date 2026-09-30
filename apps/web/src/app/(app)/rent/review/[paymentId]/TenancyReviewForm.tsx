@@ -63,6 +63,7 @@ export function TenancyReviewForm({
             if (!open) setSuccessClosed(true);
           }}
           variant={sent.variant}
+          object={sent.object}
           title={sent.title}
           body={sent.body}
           primary={{ label: success.continue }}

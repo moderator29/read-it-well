@@ -1,23 +1,31 @@
 /*
- * THE SUCCESS SHEET (components/ui/SuccessSheet.tsx, docs/SUCCESS_MOMENTS.md).
+ * THE SUCCESS MOMENT (components/ui/SuccessSheet.tsx, docs/SUCCESS_MOMENTS.md,
+ * founder reference 54).
  *
- * A centred card on every width, on `Sheet`'s `card` geometry, carrying one
- * mark, one title, one line, the facts worth keeping and a full-width action.
+ * Two shapes on one body: `SuccessSheet` (a dialog that fills a phone and is
+ * a centred card from 40rem up) and `SuccessScreen` (a page's own content).
+ * Both open on the soft top (section 17), carry one of the founder's 3D
+ * objects in a soft halo ring with a few blue and orange sparks (section 18),
+ * a title, one line, the facts worth keeping, and a full-width pill at the
+ * foot.
  *
  * THE STATIC STATE IS THE DEFAULT AND THE MOTION IS OPT-IN. Every rule below
- * the geometry draws the FINAL picture: the circle full size, the mark drawn,
- * the sparkles at rest round it. The animation is layered on top only when
- * all three of these hold: the operating system has no reduced-motion
- * request, the app's motion setting is not Calm or Off, and the component
- * itself found the room quiet-free when it opened (`data-quiet="false"`). So
- * a quiet reader is never shown a half-drawn tick, and nothing here has to be
- * switched OFF for them.
+ * the geometry draws the FINAL picture: the object in place, the ring open,
+ * the sparks at rest round it, the words up. The animation is layered on top
+ * only when all three of these hold: the operating system has no
+ * reduced-motion request, the app's motion setting is not Calm or Off, and
+ * the component itself found the room quiet-free when it opened
+ * (`data-quiet="false"`). So a quiet reader is never shown a half-drawn
+ * moment, and nothing here has to be switched OFF for them.
  *
- * BRAND, NOT GREEN. Light: a white card and a brand-blue mark. Dark: the navy
- * glass card and the brighter member of the brand family, with one restrained
- * bloom behind the card and none on the mark.
+ * LIGHT ON A LOW-END PHONE: transform and opacity only, on about a dozen
+ * small elements; no filter, no blur, no layout property animated. The float
+ * runs a few breaths and stops, and not at all with ambient motion or data
+ * saver off.
+ *
+ * The card geometry (`.nf-sheet--card`) is Sheet's, shared with the confirm
+ * cards; the success moment's own shape is layered on `.nf-success-card`.
  */
-
 @layer components {
   /* ------------------------------------------------------------ geometry */
 
@@ -51,31 +59,76 @@
 
   /* ------------------------------------------------------------- surface */
 
-  /* Night: the navy glass card, one soft bloom of brand light behind it. */
-  .nf-sheet.nf-success-card {
-    --nf-success-ink: var(--nf-brand-quiet);
-    --nf-success-halo: color-mix(in oklab, var(--nf-brand-quiet) 16%, transparent);
-    --nf-success-spark: color-mix(in oklab, var(--nf-brand-quiet) 88%, var(--nf-content-primary));
-    --nf-success-spark-soft: color-mix(in oklab, var(--nf-brand-primary) 70%, transparent);
-    background: var(--nf-glass-card-fill);
-    -webkit-backdrop-filter: blur(var(--nf-glass-blur)) saturate(var(--nf-glass-saturate));
-    backdrop-filter: blur(var(--nf-glass-blur)) saturate(var(--nf-glass-saturate));
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim-thin),
-      0 0 3rem -1rem color-mix(in oklab, var(--nf-brand-primary) 38%, transparent),
-      var(--nf-elev-4);
+  /* Both shapes open on the soft top: a lavender-white wash in the day, a
+     faint brand glow at night, fading into the canvas. */
+  .nf-sheet.nf-success-card,
+  .nf-success-screen {
+    --nf-success-halo: color-mix(in oklab, var(--nf-brand-quiet) 14%, transparent);
+    --nf-success-ring: color-mix(in oklab, var(--nf-brand-quiet) 34%, transparent);
+    --nf-success-blue: var(--nf-brand-quiet);
+    --nf-success-blue-soft: color-mix(in oklab, var(--nf-brand-quiet) 60%, transparent);
+    background:
+      var(--nf-soft-top) top center / 100% var(--nf-soft-top-size) no-repeat,
+      var(--nf-surface-canvas);
+  }
+  :root[data-theme="light"] :is(.nf-sheet.nf-success-card, .nf-success-screen):not(:where([data-theme="dark"] *)) {
+    --nf-success-halo: color-mix(in oklab, var(--nf-brand-primary) 9%, transparent);
+    --nf-success-ring: color-mix(in oklab, var(--nf-brand-primary) 22%, transparent);
+    --nf-success-blue: var(--nf-brand-primary);
+    --nf-success-blue-soft: color-mix(in oklab, var(--nf-brand-primary) 45%, transparent);
   }
 
-  /* Day: a white card on a lifted shadow, the brand's own blue, no bloom. */
-  :root[data-theme="light"] .nf-sheet.nf-success-card:not(:where([data-theme="dark"] *)) {
-    --nf-success-ink: var(--nf-brand-primary);
-    --nf-success-halo: color-mix(in oklab, var(--nf-brand-primary) 10%, transparent);
-    --nf-success-spark: var(--nf-brand-primary);
-    --nf-success-spark-soft: color-mix(in oklab, var(--nf-brand-primary) 45%, transparent);
-    background: var(--nf-glass-card-fill);
+  /* The card (40rem and up): the soft top inside a lifted card, no glass. */
+  .nf-sheet.nf-success-card {
+    width: min(26rem, calc(100% - 2rem));
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
     box-shadow: var(--nf-elev-5);
+  }
+
+  /* A PHONE GETS THE WHOLE SCREEN (reference 54). Same dialog, same focus
+     trap and Back; only the geometry changes. The safe areas are padded so
+     the object clears the notch and the pill clears the home indicator. */
+  @media (max-width: 39.99rem) {
+    .nf-sheet.nf-sheet--card.nf-success-card {
+      inset: 0;
+      margin: 0;
+      width: 100%;
+      height: 100dvh;
+      max-height: none;
+      border: 0;
+      border-radius: 0;
+      box-shadow: none;
+      padding-top: env(safe-area-inset-top, 0px);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+      transform: translateY(0.75rem);
+    }
+    .nf-sheet.nf-sheet--card.nf-success-card[data-open="true"] {
+      transform: none;
+    }
+    .nf-success-card .nf-sheet__body {
+      display: flex;
+      flex-direction: column;
+    }
+    .nf-success-card .nf-success {
+      flex: 1 0 auto;
+    }
+  }
+
+  /* The page shape fills what the page gives it and centres on a wide
+     screen, as the card does. */
+  .nf-success-screen {
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100dvh - env(safe-area-inset-top, 0px));
+    padding: calc(env(safe-area-inset-top, 0px) + var(--nf-space-lg)) var(--nf-space-md)
+      calc(env(safe-area-inset-bottom, 0px) + var(--nf-space-lg));
+  }
+  .nf-success-screen > .nf-success {
+    flex: 1 0 auto;
+    width: 100%;
+    max-width: 26rem;
+    margin-inline: auto;
   }
 
   /* ------------------------------------------------------------- content */
@@ -83,59 +136,56 @@
   .nf-success {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
     text-align: center;
+  }
+  /* The object and the words sit in the middle of what is left; the pill
+     sits at the foot. In the card there is no slack, so they simply stack. */
+  .nf-success__stage {
+    flex: 1 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding-block: var(--nf-space-lg) var(--nf-space-md);
   }
 
   .nf-success__mark {
     position: relative;
     display: grid;
     place-items: center;
-    width: 8.25rem;
-    height: 8.25rem;
+    width: 12rem;
+    height: 12rem;
     flex-shrink: 0;
   }
-  .nf-success__halo {
+  .nf-success__halo,
+  .nf-success__pulse {
     position: absolute;
-    inset: 0.75rem;
+    inset: 1.5rem;
     border-radius: var(--nf-radius-circle);
+    pointer-events: none;
+  }
+  /* The soft halo: a tinted disc with a thin ring round it. */
+  .nf-success__halo {
     background: var(--nf-success-halo);
+    box-shadow: 0 0 0 1px var(--nf-success-ring);
   }
-  .nf-success__glyph {
+  /* The one ring that pulses out on arrival; nothing at rest. */
+  .nf-success__pulse {
+    border: 2px solid var(--nf-success-ring);
+    opacity: 0;
+  }
+  .nf-success__pop,
+  .nf-success__float {
     position: relative;
-    width: 7.5rem;
-    height: 7.5rem;
-    overflow: visible;
+    display: block;
   }
-  .nf-success__stroke {
-    fill: none;
-    stroke: var(--nf-success-ink);
-    stroke-width: 5;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-dasharray: 1;
-    stroke-dashoffset: 0;
-  }
-  .nf-success__stroke--big {
-    stroke-width: 7;
-  }
-  .nf-success__stroke--on-badge {
-    stroke: var(--nf-content-on-brand);
-    stroke-width: 3.5;
-  }
-  .nf-success__badge {
-    fill: var(--nf-success-ink);
-    transform-origin: 78px 80px;
-  }
-  .nf-success__seal {
-    fill: color-mix(in oklab, var(--nf-success-ink) 14%, transparent);
-    stroke: var(--nf-success-ink);
-    stroke-width: 2.5;
-    stroke-linejoin: round;
-    transform-origin: 60px 60px;
+  /* 144px on a phone, a little smaller in the card: between 120 and 160. */
+  .nf-success__object {
+    --nf-icon3d-size: clamp(7.5rem, 36vw, 9rem);
   }
 
-  /* The confetti, at rest round the circle. */
+  /* The sparks, at rest round the ring: blue, with three in the orange. */
   .nf-success__bit {
     position: absolute;
     left: 50%;
@@ -145,18 +195,20 @@
     margin: calc(var(--bit-size) / -2) 0 0 calc(var(--bit-size) / -2);
     transform: translate(var(--bit-x), var(--bit-y));
     pointer-events: none;
+    background: var(--nf-success-blue-soft);
+  }
+  .nf-success__bit[data-tone="spark"] {
+    background: var(--nf-spark);
   }
   .nf-success__bit--dot {
     border-radius: var(--nf-radius-circle);
-    background: var(--nf-success-spark-soft);
-  }
-  .nf-success__bit--ring {
-    border-radius: var(--nf-radius-circle);
-    border: 2px solid var(--nf-success-spark-soft);
   }
   .nf-success__bit--star {
-    background: var(--nf-success-spark);
+    background: var(--nf-success-blue);
     clip-path: polygon(50% 0, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0 50%, 39% 39%);
+  }
+  .nf-success__bit--star[data-tone="spark"] {
+    background: var(--nf-spark);
   }
 
   .nf-success__words {
@@ -164,7 +216,7 @@
   }
   .nf-success__title {
     font-family: var(--nf-font-display);
-    font-size: var(--nf-text-h3);
+    font-size: var(--nf-text-h2);
     font-weight: 700;
     letter-spacing: -0.02em;
     line-height: 1.2;
@@ -174,7 +226,7 @@
   .nf-success__body {
     margin: var(--nf-space-xs) auto 0;
     max-width: 32ch;
-    font-size: var(--nf-text-body-sm);
+    font-size: var(--nf-text-body);
     line-height: 1.55;
     color: var(--nf-content-secondary);
     text-wrap: pretty;
@@ -183,7 +235,7 @@
   .nf-success__amount {
     margin-top: var(--nf-space-md);
     font-size: clamp(1.75rem, 7vw, 2.25rem);
-    font-weight: 800;
+    font-weight: 600;
     letter-spacing: -0.03em;
     line-height: 1;
     color: var(--nf-content-primary);
@@ -221,6 +273,8 @@
     user-select: all;
   }
 
+  /* The foot: one full-width pill, and an optional quiet one under it. Each
+     is the large button (56px), well over the 44px floor. */
   .nf-success__actions {
     display: grid;
     gap: var(--nf-space-xs);
@@ -231,38 +285,60 @@
   /* ------------------------------------------------------------- motion */
 
   @media (prefers-reduced-motion: no-preference) {
-    :root:not([data-motion="calm"], [data-motion="off"])
-      .nf-sheet--card[data-open="true"]
-      .nf-success[data-quiet="false"] {
+    :root:not([data-motion="calm"], [data-motion="off"]) .nf-success[data-quiet="false"] {
+      & .nf-success__pop {
+        animation: nf-success-pop 520ms var(--nf-ease-spring) both;
+      }
       & .nf-success__halo {
-        animation: nf-success-halo 360ms var(--nf-ease-spring) both;
+        animation: nf-success-halo 480ms var(--nf-ease-spring) 40ms both;
       }
-      & .nf-success__stroke {
-        animation: nf-success-draw 340ms cubic-bezier(0.65, 0, 0.35, 1) 200ms both;
-      }
-      & .nf-success__stroke--late {
-        animation-delay: 360ms;
-        animation-duration: 240ms;
-      }
-      & .nf-success__badge {
-        animation: nf-success-pop 280ms var(--nf-ease-spring) 380ms both;
-      }
-      & .nf-success__stroke--on-badge {
-        animation-delay: 500ms;
-        animation-duration: 220ms;
-      }
-      & .nf-success__seal {
-        animation: nf-success-seal 420ms var(--nf-ease-spring) 60ms both;
+      & .nf-success__pulse {
+        animation: nf-success-pulse 620ms var(--nf-ease-entrance) 80ms both;
       }
       & .nf-success__bit {
-        animation: nf-success-burst 440ms var(--nf-ease-entrance) calc(300ms + var(--bit-delay)) both;
+        animation: nf-success-burst 460ms var(--nf-ease-entrance) calc(220ms + var(--bit-delay)) both;
       }
+      & .nf-success__title,
+      & .nf-success__amount,
+      & .nf-success__facts,
+      & .nf-success__actions {
+        animation: nf-success-rise 380ms var(--nf-ease-entrance) 340ms both;
+      }
+      & .nf-success__body {
+        animation: nf-success-rise 380ms var(--nf-ease-entrance) 420ms both;
+      }
+      & :is(.nf-success__amount, .nf-success__facts) {
+        animation-delay: 460ms;
+      }
+      & .nf-success__actions {
+        animation-delay: 520ms;
+      }
+    }
+    /* The float: a few slow breaths once the pop has landed, then still. */
+    :root:not([data-motion="calm"], [data-motion="off"], [data-motion-ambient="off"], [data-save-data="on"])
+      .nf-success[data-quiet="false"]
+      .nf-success__float {
+      animation: nf-success-float 3.2s ease-in-out 900ms 5;
     }
   }
 
+  @keyframes nf-success-pop {
+    0% {
+      transform: translateY(0.75rem) scale(0.4);
+      opacity: 0;
+    }
+    55% {
+      transform: translateY(-0.125rem) scale(1.08);
+      opacity: 1;
+    }
+    100% {
+      transform: none;
+      opacity: 1;
+    }
+  }
   @keyframes nf-success-halo {
     from {
-      transform: scale(0.4);
+      transform: scale(0.55);
       opacity: 0;
     }
     to {
@@ -270,30 +346,14 @@
       opacity: 1;
     }
   }
-  @keyframes nf-success-draw {
-    from {
-      stroke-dashoffset: 1;
+  @keyframes nf-success-pulse {
+    0% {
+      transform: scale(0.85);
+      opacity: 0.9;
     }
-    to {
-      stroke-dashoffset: 0;
-    }
-  }
-  @keyframes nf-success-pop {
-    from {
-      transform: scale(0);
-    }
-    to {
-      transform: none;
-    }
-  }
-  @keyframes nf-success-seal {
-    from {
-      transform: scale(0.5) rotate(-30deg);
+    100% {
+      transform: scale(1.45);
       opacity: 0;
-    }
-    to {
-      transform: none;
-      opacity: 1;
     }
   }
   /* Out past the resting place, then back to it: a burst, not a drift. */
@@ -303,12 +363,31 @@
       opacity: 0;
     }
     60% {
-      transform: translate(calc(var(--bit-x) * 1.18), calc(var(--bit-y) * 1.18)) scale(1.15);
+      transform: translate(calc(var(--bit-x) * 1.16), calc(var(--bit-y) * 1.16)) scale(1.15);
       opacity: 1;
     }
     100% {
       transform: translate(var(--bit-x), var(--bit-y)) scale(1);
       opacity: 1;
+    }
+  }
+  @keyframes nf-success-rise {
+    from {
+      transform: translateY(0.625rem);
+      opacity: 0;
+    }
+    to {
+      transform: none;
+      opacity: 1;
+    }
+  }
+  @keyframes nf-success-float {
+    0%,
+    100% {
+      transform: none;
+    }
+    50% {
+      transform: translateY(-0.375rem);
     }
   }
 

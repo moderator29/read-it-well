@@ -140,6 +140,7 @@ export function RealDashboard({
               value={numbers.unreadMessages}
               href="/agent/messages"
               tag={tag}
+              className={numbers.unreadMessages > 0 ? "nf-kpi--spark" : undefined}
             />
           ) : null}
         </div>
@@ -196,7 +197,8 @@ export function RealDashboard({
                 key={booking.id}
                 href="/agent/bookings"
                 leading={
-                  <IconPlate size="sm">
+                  /* A content row: the round tinted plate (section 17). */
+                  <IconPlate size="sm" shape="round" tone="brand">
                     <UiIcon name="calendar-booking" size={20} />
                   </IconPlate>
                 }

@@ -1,0 +1,46 @@
+import type { Translation } from "../../fallback";
+
+/* MACHINE DRAFT, 30 September 2026. Needs a native Igbo speaker's review
+   (review-status.ts). A safety surface: 112 is kept exactly. */
+export const arrivalCheckIg = {
+  title: "Ọ dị ka e si depụta ya?",
+  lede: "Ị bịarutela. Gwa anyị ma ebe ahụ dabara na ndepụta ahụ. Nke a na-anọ na-emeghe ruo {time}.",
+  yes: "Ee, ọ dị ka e si depụta ya",
+  no: "Mba, ihe adịghị mma",
+  reasonLabel: "Gịnị na-adịghị mma?",
+  reasons: {
+    not_as_listed: "Ọ bụghị ebe dị na ndepụta ahụ",
+    no_access: "Enweghị m ike ịbanye",
+  },
+  photosLabel: "Foto, e sere ugbu a",
+  photosHint: "See opekata mpe otu foto na-egosi nsogbu ahụ: ọnụ ụzọ, ime ụlọ, mita. Ruo {max}.",
+  takePhoto: "See foto",
+  photoCount: "Etinyela foto {count} n'ime {max}",
+  noteLabel: "Ihe ọ bụla ọzọ (ọ bụghị iwu)",
+  send: "Zipu akụkọ ahụ",
+  back: "Laghachi",
+  uploadFailed: "Foto ahụ ebugoghị. Nwaa ọzọ.",
+  failed: "Anyị enweghị ike izipụ nke a ugbu a. Nwaa ọzọ. Ọ bụrụ na ị nweghị ike ịbanye, obi adịghịkwa gị mma, kpọọ 112.",
+  readFailed: "Anyị enweghị ike ibugo nlele mbata ugbu a. Bugharịa n'ime otu nkeji. Ọ bụrụ na ị nweghị ike ịbanye, obi adịghịkwa gị mma, kpọọ 112.",
+  closedOrAnswered: "Emechiela nlele mbata maka ebe obibi a.",
+  answeredYes: "Ị gwara anyị na ọ dị ka e si depụta ya na {time}.",
+  answeredReport: "Ị kọrọ ebe obibi a na {time}. Otu anyị nwere foto gị, ha ga-akpọtụrụkwa gị. Ntụaka gị bụ {reference}.",
+  answeredReportNoRef: "Ị kọrọ ebe obibi a na {time}. Otu anyị nwere foto gị, ha ga-akpọtụrụkwa gị.",
+  admin: {
+    title: "Nlele mbata",
+    asListed: "Ọbịa ahụ kwuru na ọ dị ka e si depụta ya.",
+    reported: "Ọbịa ahụ kọrọ: {reason}.",
+    photos: "Foto {n}",
+    note: "Ndetu ọbịa",
+    uphold: "Kwado akụkọ ahụ",
+    decline: "Jụ akụkọ ahụ",
+    ruledUpheld: "Akwadoro ya na {when}.",
+    ruledDeclined: "Ajụrụ ya na {when}.",
+    ruleFailed: "Echekwaghị mkpebi ahụ. Nwaa ọzọ.",
+    confirmUphold: "Kwado akụkọ a? Ịkwụ ụgwọ ebe obibi ahụ ga-anọgide na nkwụsị ruo mgbe e kpebiri nkwụghachi.",
+    confirmDecline: "Jụ akụkọ a? Nkwụsị ịkwụ ụgwọ ebe obibi ahụ ga-ewepụ.",
+    confirm: "Kwado",
+    cancel: "Kagbuo",
+    ruleNone: "E kpebighị ihe ọ bụla: e kpebiela akụkọ a, ma ọ bụ ọ bụghị akụkọ.",
+  },
+} satisfies NonNullable<Translation["arrivalCheck"]>;

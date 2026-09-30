@@ -127,9 +127,9 @@ The screen is under Settings, then Privacy and security, then **Passcode** (`/se
 
 ## 8. Native (Capacitor)
 
-Biometric unlock is out of scope for now. The hook is `lib/passcode/native-unlock.ts`, and the keypad's empty bottom-left slot is where its button goes.
+**Unlock with Face ID or fingerprint (built 30 September 2026, C14).** A member who holds a platform key (the one the money lock enrols, `money_credentials`) sees a key on the keypad's bottom-left slot (`components/passcode/PasskeyUnlockKey.tsx`). It runs the V-81 WebAuthn ceremony (`lib/security/webauthn.ts`) through `lib/passcode/passkey-unlock.ts`: the challenge is bound to THIS session and to unlocking (digest `passcode-unlock:<session id>`, the same pattern as the console's `console:<session id>`), so a proof made for money or for the console cannot unlock the passcode. The server verifies the assertion and only then writes the unlock cookie. It unlocks only a passcode that is set: ten wrong codes (password-only mode) still need the password. No migration: it reuses the money lock's tables. Works in any browser with a platform authenticator; in the Capacitor shell it depends on the web view's WebAuthn support (iOS 16+ WKWebView with the Associated Domains entitlement; Android WebView support varies), so it must be tried on a device (release audit section 8). `lib/passcode/native-unlock.ts` is unchanged.
 
-A biometric unlock must not trust a local "passed". It should run the V-81 WebAuthn ceremony that the money lock already has (`lib/security/webauthn.ts`, `money-step-up.ts`) with an `unlock` purpose. The server writes the unlock cookie only after verifying that assertion.
+**The fifteen-minute idle lock, behind a setting.** On a device with a key, Settings, Passcode offers "Lock after 15 minutes idle" (per device, `lib/passcode/idle-setting.ts`). Off by default: five minutes stays the rule until the member turns it on. Fifteen minutes equals the server's sliding unlock (`UNLOCK_IDLE_SECONDS`), so the cookie never outlives the client lock. The founder decides whether to keep the setting (RECS_C C14).
 
 ## 9. Browser specs and the store reviewer
 

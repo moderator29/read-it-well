@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useSyncExternalStore } from "react";
 
 /**
  * Device settings store.
@@ -40,6 +40,12 @@ export type NfSettings = {
    * platform does not decide on somebody's behalf that they are poor.
    */
   dataSaver: boolean;
+  /**
+   * B15: Increase contrast. Written to the root as `data-contrast="more"`
+   * (`applyContrast`), which `app/css/member-kit.css` reads. Off by default;
+   * the system's own `prefers-contrast: more` applies either way.
+   */
+  increaseContrast: boolean;
 };
 
 export const SETTINGS_DEFAULTS: NfSettings = {
@@ -53,6 +59,7 @@ export const SETTINGS_DEFAULTS: NfSettings = {
   defaultCity: "",
   distanceUnit: "km",
   dataSaver: false,
+  increaseContrast: false,
 };
 
 export function loadSettings(): NfSettings {
@@ -192,11 +199,39 @@ export function useNfSettings() {
 /* --------------------------------------------------- document side effects */
 
 /**
+ * Keeps the root in step with the stored Text size and Increase contrast.
+ *
+ * The FIRST frame is not this hook's job: `THEME_BOOT_SCRIPT`
+ * (lib/theme/theme.ts) applies both from storage before paint. This hook
+ * follows later changes (the Settings controls, another tab). It skips the
+ * hydration pass, whose snapshot is the server's defaults object, because
+ * applying the defaults there would undo the boot script for one frame and
+ * the page would visibly reflow twice.
+ */
+export function useApplyDeviceSettings(): void {
+  const { settings } = useNfSettings();
+  const hydrating = settings === SETTINGS_DEFAULTS;
+  useEffect(() => {
+    if (!hydrating) applyTextSize(settings.textSize);
+  }, [hydrating, settings.textSize]);
+  useEffect(() => {
+    if (!hydrating) applyContrast(settings.increaseContrast);
+  }, [hydrating, settings.increaseContrast]);
+}
+
+/**
  * Text size scales the root font size, so every rem-based measure in the app
  * follows: S reads denser, L reads larger, M is the designed default.
  */
+/** B15: the Increase contrast switch, on the root, like the text size. */
+export function applyContrast(on: boolean): void {
+  if (on) document.documentElement.dataset.contrast = "more";
+  else delete document.documentElement.dataset.contrast;
+}
+
 export function applyTextSize(size: TextSize): void {
-  document.documentElement.dataset.textSize = size;
+  if (size === "m") delete document.documentElement.dataset.textSize;
+  else document.documentElement.dataset.textSize = size;
   const scale = size === "s" ? "93.75%" : size === "l" ? "106.25%" : "";
   document.documentElement.style.fontSize = scale;
 }

@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { JsonLd } from "@/components/site/JsonLd";
+import { breadcrumbLd } from "@/lib/site/structured-data";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -56,6 +58,14 @@ export default async function DocChapterPage({
 
   return (
     <div>
+      {/* A13: where this chapter sits, for a crawler. */}
+      <JsonLd
+        data={breadcrumbLd([
+          { name: "Vallo", path: "/" },
+          { name: "Documentation", path: "/docs" },
+          { name: chapter.title, path: `/docs/${chapter.slug}` },
+        ])}
+      />
       {/* --------------------------------------------------------- heading */}
       <header className="nf-rise">
         <nav aria-label="Breadcrumb" className="mb-row">
@@ -73,7 +83,7 @@ export default async function DocChapterPage({
             <UiIcon name={lineGlyphFor(chapter.icon)} size={20} />
           </IconPlate>
           <div className="min-w-0">
-            <span className="nf-numeric block text-[0.6875rem] font-semibold tracking-[var(--nf-tracking-overline)] text-[var(--nf-content-muted)] uppercase">
+            <span className="nf-numeric block text-[length:var(--nf-text-label)] font-semibold tracking-[var(--nf-tracking-label)] text-[var(--nf-content-muted)] uppercase">
               Chapter {chapter.number} of {CHAPTER_INDEX.length}
             </span>
             {/* The title arrives word by word out of depth (Track M). */}

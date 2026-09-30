@@ -172,3 +172,40 @@ The reply **email** to a member is the `support.replied` template, enqueued by
 `private.enqueue_support_reply_email` in the separate pending file
 `supabase/migrations/pending/email_lifecycle_triggers.sql`. Until that is
 applied, members are told of a reply in the app only.
+
+## A lost console key (C14, 30 September 2026)
+
+Every console person proves a platform key (Face ID, fingerprint or a phone
+screen lock) every twelve hours. The console offers to set up a key only to
+somebody who holds none, so a person whose only key was on a lost or broken
+phone cannot get back in by themselves. The way back:
+
+1. **They tell a super admin**, by phone or in person. Not by email alone: an
+   email is exactly what somebody holding the lost phone could send.
+2. **A second super admin confirms who it is** (a call on the number already on
+   file, or face to face), then opens **Staff, Console keys**, finds the person,
+   chooses **Lost their key? Revoke it for the console** and writes why (10 to
+   500 characters). A super admin cannot do this for themselves: that is the
+   point of needing a second one. Only people with console access can be
+   chosen.
+3. Their current keys stop opening the console at once and one audit row is
+   written, `staff.console_keys_revoked`, with the reason and the count. The
+   keys are NOT deleted: the same key is also that person's money lock and
+   passcode unlock, which keep working.
+4. **They sign in on the new phone.** The console asks them to set up a key.
+   That is the one-time enrolment; nothing else is sent.
+5. If the phone may be in somebody else's hands, also **sign them out
+   everywhere** from their person file, and consider ending access until they
+   are back.
+
+**Keep two keys.** The roster on the Staff page shows everybody's keys, when
+each was added and last proved, and warns on anybody with one key. A super
+admin must hold two (for example the phone and a laptop), because step 2 needs
+a second super admin and there may not be one. Until the founder names a
+second super admin (RECS_C C14), the founder's two keys are the only way back
+for the founder.
+
+The "Clear their keys" control uses the database change
+`20260930085021_c14_console_key_break_glass.sql` (applied 30 September
+2026). It revokes the person's keys for the console only; their money lock
+and passcode unlock keep working.

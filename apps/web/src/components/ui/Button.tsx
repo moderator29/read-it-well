@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Children, forwardRef } from "react";
 import type { ComponentPropsWithoutRef, ReactNode, Ref } from "react";
+import { joinTextParts } from "./button-label";
 import { UiIcon, type UiIconSize, type UiIconName } from "@/design-system/icons/UiIcon";
 import { feedback } from "@/lib/ui/feedback";
 
@@ -50,14 +51,14 @@ import { feedback } from "@/lib/ui/feedback";
  * FOUR LEVELS, ONE PER JOB (the clean unified sweep, 29 September 2026;
  * `docs/design/CLEAN_UNIFIED_DIRECTION.md` section 3):
  *
- *   primary    ONE per view. Solid brand on paper; the lit bar with its glow
- *              at night (the glow budget's one button).
- *   secondary  white on a hairline in light, a raised night surface at night.
+ *   primary    ONE per view. A solid brand pill on paper; the lit bar with
+ *              its glow at night (the glow budget's one button).
+ *   secondary  a white pill on a soft shadow in light, a raised night
+ *              surface at night (section 17: every text button is a pill).
  *   quiet      no fill, brand ink ("See all 8", "Manage", row actions).
- *   icon       a 44px square on a hairline (back, prev and next, search,
- *              bell); pass `aria-label`. `round` makes it the 44px circle the
- *              header's search and bell take (spec section 16, Q1), and
- *              nothing else should.
+ *   icon       a 44px square on a hairline (prev and next, row tools);
+ *              pass `aria-label`. `round` makes it the 44px white circle the
+ *              header's back, search, bell and more take (section 17).
  *
  * `ghost` is the old name of `quiet` and renders it. `glass` renders the
  * secondary: the brand-edged glass secondary was a second glowing button
@@ -75,6 +76,13 @@ export type ButtonVariant =
   | "dangerQuiet";
 
 /**
+ * EVERY TEXT BUTTON IS A RECTANGLE WITH SOFT CORNERS (the founder's ruling of
+ * 30 September 2026, over the pills of references 44, 45 and 55;
+ * CLEAN_UNIFIED_DIRECTION.md sections 17 and 19). The shape lives in
+ * `buttons.css` on `--nf-act-radius-sm/-md/-lg` (10 / 12 / 14px, one per
+ * size), and icon buttons are circles, so `shape="pill"` is a no-op that
+ * nothing needs to pass. The history below is kept as the record.
+ *
  * RETIRED BY THE SHAPE LAW, and kept only so nothing breaks on the night it
  * landed. A control that carries text is a rounded rectangle on
  * `--nf-radius-control`; there is no capsule variant of a control any more.
@@ -139,6 +147,13 @@ type CommonProps = {
    * so the button never changes width mid-press.
    */
   loading?: boolean;
+  /**
+   * The job just finished: the leading slot shows a check that pops in
+   * (details.css), for the moment a save or a send lands. The caller holds it
+   * for a beat (`useDoneFlash`) and lets it go; the label stays, so the
+   * button never changes width. A small win gets this, never a modal.
+   */
+  done?: boolean;
   leadingIcon?: UiIconName;
   trailingIcon?: UiIconName;
   /**
@@ -163,8 +178,8 @@ type CommonProps = {
    */
   iconOnly?: boolean;
   /**
-   * With `variant="icon"` only: the 44px circle of the header's search and
-   * bell (spec section 16, Q1). The shape law allows no other round control.
+   * With `variant="icon"` only: the 44px circle of the header's back,
+   * search, bell and more (section 17, extending Q1).
    */
   round?: boolean;
   /**
@@ -222,14 +237,31 @@ function pulse(enabled: boolean) {
   feedback("select");
 }
 
+function DoneCheck({ size }: { size: number }) {
+  return (
+    <span className="nf-btn__done" aria-hidden="true">
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+        <path
+          d="M5 12.5l4.5 4.5L19 7.5"
+          stroke="currentColor"
+          strokeWidth="2.25"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </span>
+  );
+}
+
 function Content({
   loading,
+  done,
   leadingIcon,
   trailingIcon,
   arrow,
   size,
   children,
-}: Pick<CommonProps, "loading" | "leadingIcon" | "trailingIcon" | "arrow" | "children"> & {
+}: Pick<CommonProps, "loading" | "done" | "leadingIcon" | "trailingIcon" | "arrow" | "children"> & {
   size: ButtonSize;
 }) {
   const icon = ICON_SIZE[size];
@@ -247,11 +279,15 @@ function Content({
    * The label class is what `[data-loading]` dims, and dimming an icon the
    * caller passed deliberately would be wrong.
    */
-  const parts = Children.toArray(children);
+  /* Neighbouring text is one label (button-label.ts): `Take down ({n})` as
+     three flex items printed "Take down ( 1 )". */
+  const parts = joinTextParts(Children.toArray(children));
   return (
     <>
       {loading ? (
         <span className="nf-spinner" aria-hidden="true" />
+      ) : done ? (
+        <DoneCheck size={icon} />
       ) : leadingIcon ? (
         <UiIcon name={leadingIcon} size={icon} />
       ) : null}
@@ -283,6 +319,7 @@ export const Button = forwardRef(function Button(
     size = "md",
     full,
     loading = false,
+    done,
     leadingIcon,
     trailingIcon,
     arrow,
@@ -322,6 +359,7 @@ export const Button = forwardRef(function Button(
     >
       <Content
         loading={loading}
+        done={done}
         leadingIcon={leadingIcon}
         trailingIcon={trailingIcon}
         arrow={arrow}
@@ -347,6 +385,7 @@ export const ButtonLink = forwardRef(function ButtonLink(
     size = "md",
     full,
     loading = false,
+    done,
     leadingIcon,
     trailingIcon,
     arrow,
@@ -376,6 +415,7 @@ export const ButtonLink = forwardRef(function ButtonLink(
     >
       <Content
         loading={loading}
+        done={done}
         leadingIcon={leadingIcon}
         trailingIcon={trailingIcon}
         arrow={arrow}

@@ -65,8 +65,8 @@ export default async function HostSettingsPage() {
       <HostShell fallback="/host">
         <EmptyState
           icon="hotel"
-          title="Host settings"
-          body="Sign in to change what reaches you about your stays and your restaurant."
+          title={t.hostWorkspace.settings.signedOutTitle}
+          body={t.hostWorkspace.settings.signedOutBody}
           action={
             <ButtonLink href={authHref(next, "sign-in")} variant="primary" size="lg">
               Sign in
@@ -114,13 +114,13 @@ export function HostSettingsBody({
       </div>
 
       <Stack>
-        <Section title="Your businesses">
+        <Section title={t.hostWorkspace.settings.businessesTitle}>
           {businesses.length === 0 ? (
             <div className="nf-panel nf-panel--card p-panel">
-              <p className={TYPE.rowMeta}>Nothing listed yet. Your businesses appear here once you apply.</p>
+              <p className={TYPE.rowMeta}>{t.hostWorkspace.nothingYet.settings}</p>
               <div className="mt-sm">
                 <ButtonLink href="/profile/setup?side=stays" variant="secondary" size="sm">
-                  Start an application
+                  {t.hostWorkspace.doors.startApplication}
                 </ButtonLink>
               </div>
             </div>

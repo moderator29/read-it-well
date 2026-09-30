@@ -59,9 +59,12 @@ describe("the host workspace navigation", () => {
     const labels = hostNavLabels(getDictionary("en"));
     expect(hostNavItems(labels).map((item) => item.label)).toEqual([
       "Overview",
+      "Decide by",
       "Reservations",
       "Room bookings",
+      "Calendar",
       "Rooms and nights",
+      "Reviews",
       "Photographs",
       "Charges at the door",
       "Hand over",

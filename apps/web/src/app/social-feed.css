@@ -878,7 +878,7 @@
     block-size: 44px;
     padding-inline: 0.85rem 1.05rem;
     font-size: var(--nf-text-caption);
-    font-weight: 650;
+    font-weight: 600;
     letter-spacing: -0.005em;
   }
 
@@ -977,7 +977,7 @@
     align-items: center;
     gap: 7px;
     font-size: 1.5rem;
-    font-weight: 800;
+    font-weight: 600;
     letter-spacing: -0.03em;
     line-height: 1.15;
     color: var(--nf-content-primary);
@@ -1037,9 +1037,9 @@
     border-radius: var(--nf-radius-xs);
     border: 1px solid var(--nf-border-brand);
     color: var(--nf-brand-secondary);
-    font-size: 0.6875rem;
-    font-weight: 800;
-    letter-spacing: 0.08em;
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    letter-spacing: var(--nf-tracking-label);
     text-transform: uppercase;
     white-space: nowrap;
   }
@@ -1074,7 +1074,7 @@
        the chip's light is the profile's shared material. */
     border: 1px solid var(--nf-brand-edge);
     font-size: var(--nf-text-caption);
-    font-weight: 650;
+    font-weight: 600;
     color: var(--nf-content-secondary);
   }
 
@@ -1115,7 +1115,7 @@
   }
   .nf-social-count__value {
     font-size: 1.0625rem;
-    font-weight: 800;
+    font-weight: 600;
     letter-spacing: -0.02em;
     color: var(--nf-content-primary);
   }
@@ -1154,7 +1154,7 @@
     position: relative;
     margin-block-start: 0.75rem;
     font-size: var(--nf-text-body);
-    font-weight: 650;
+    font-weight: 600;
     color: var(--nf-brand-secondary);
   }
   /*
@@ -1209,9 +1209,9 @@
     padding-inline: 0.25rem;
   }
   .nf-social-trust__cell dt {
-    font-size: 0.625rem;
+    font-size: var(--nf-text-overline);
     font-weight: 700;
-    letter-spacing: 0.09em;
+    letter-spacing: var(--nf-tracking-label);
     text-transform: uppercase;
     color: var(--nf-content-muted);
     /* The label is the meaning of the number under it, so it wraps rather than
@@ -1232,7 +1232,7 @@
   .nf-social-trust__cell dd {
     margin-block-start: 0.35rem;
     font-size: 1.25rem;
-    font-weight: 800;
+    font-weight: 600;
     letter-spacing: -0.02em;
     color: var(--nf-content-primary);
   }
@@ -1322,7 +1322,7 @@
 
   .nf-social-tab__count {
     margin-inline-start: 6px;
-    font-size: 0.72rem;
+    font-size: var(--nf-text-overline);
     font-weight: 700;
     color: var(--nf-content-muted);
   }
@@ -1588,16 +1588,16 @@
     border-radius: var(--nf-radius-xs);
     background: var(--nf-brand-primary);
     color: var(--nf-content-on-brand);
-    font-size: 0.625rem;
-    font-weight: 800;
-    letter-spacing: 0.12em;
+    font-size: var(--nf-text-overline);
+    font-weight: 700;
+    letter-spacing: var(--nf-tracking-label);
   }
 
   .nf-story__headline {
     margin-block-start: 0.7rem;
     font-size: 1.6rem;
     line-height: 1.14;
-    font-weight: 800;
+    font-weight: 700;
     letter-spacing: -0.032em;
     color: var(--nf-content-on-media);
     /* Two lines is the design. A third is allowed rather than clipping a
@@ -1870,7 +1870,7 @@
   }
   .nf-story-plate__headline {
     font-size: 1.15rem;
-    font-weight: 800;
+    font-weight: 700;
     line-height: 1.2;
     letter-spacing: -0.025em;
     color: var(--nf-content-on-media);
@@ -2241,7 +2241,7 @@
   .nf-district__name {
     display: block;
     font-size: 1.35rem;
-    font-weight: 800;
+    font-weight: 600;
     letter-spacing: -0.03em;
     line-height: 1.15;
     color: var(--nf-content-primary);
@@ -2327,7 +2327,7 @@
   }
   .nf-fab__place-name {
     font-size: var(--nf-text-body);
-    font-weight: 650;
+    font-weight: 600;
     color: var(--nf-content-primary);
   }
   .nf-fab__place-city {
@@ -2418,7 +2418,7 @@
     overflow: hidden;
     background: var(--nf-gradient-brand);
     color: var(--nf-content-on-brand);
-    font-weight: 800;
+    font-weight: 600;
   }
   .nf-people__avatar img {
     inline-size: 100%;
@@ -2500,7 +2500,7 @@
 
   .nf-enter__title {
     font-size: 1.05rem;
-    font-weight: 800;
+    font-weight: 600;
     letter-spacing: -0.02em;
     color: var(--nf-content-primary);
   }
@@ -2529,7 +2529,7 @@
   .nf-enter__state {
     min-inline-size: 0;
     font-size: 1.05rem;
-    font-weight: 800;
+    font-weight: 600;
     letter-spacing: -0.02em;
     color: var(--nf-content-primary);
   }
@@ -2638,7 +2638,7 @@
 
   .nf-enter__hint {
     margin-block-start: 0.75rem;
-    font-size: 0.72rem;
+    font-size: var(--nf-text-overline);
     line-height: 1.5;
     color: var(--nf-content-muted);
   }
@@ -3331,6 +3331,18 @@
     .nf-bloom {
       inset-inline-end: 1.5rem;
       bottom: 1.5rem;
+    }
+  }
+  /* ONE "+" ON A PHONE (integration QA O3, 30 September). Below 1024px the
+     dock carries its own centre "+", and its create sheet's "Post to the
+     feed" opens this same fan (`?compose=1`), so the closed plus sat a thumb
+     above a second plus. While closed it steps aside where the dock is
+     drawn; the fan, the scrim and the close control still appear here the
+     moment it opens, from the dock or from a link. From 1024px there is no
+     dock and the plus is the page's own create control again. */
+  @media (max-width: 1023.98px) {
+    .nf-main--docked .nf-bloom:not([data-open]) {
+      display: none;
     }
   }
   /*

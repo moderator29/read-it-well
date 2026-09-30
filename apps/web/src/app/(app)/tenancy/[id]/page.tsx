@@ -22,6 +22,8 @@ import { PinMessages } from "@/components/app/tenancy/PinMessages";
 import { AddFlatmate, CancelSplit, PayShare, RemoveFlatmate, SettleShareOnReturn } from "@/components/app/tenancy/FlatmateControls";
 import type { ShareRefundStatus } from "@/lib/tenancy/queries";
 import { ExitAccountForm, RelistButton, RenewalAnswer, RenewalOfferForm } from "@/components/app/tenancy/RenewalControls";
+import { rentCountdown } from "@/lib/tenancy/countdown";
+import { RentCountdown } from "@/components/app/tenancy/RentCountdown";
 
 /** A private record. Never indexed, never in a tab title. */
 export const metadata: Metadata = { title: "Tenancy", robots: { index: false, follow: false } };
@@ -91,11 +93,23 @@ export default async function TenancyPage({
   return shell(
     <Stack>
       <TenancyHead file={file} copy={copy} />
+      {/* B10: the rent countdown, for the tenant, while the tenancy runs. */}
+      {file.viewer === "tenant" && file.paid && !file.void && !file.renewal.unavailable && (() => {
+        const countdown = rentCountdown({
+          today: lagosToday(),
+          endsOn: file.endsOn,
+          rentMinor: file.renewal.rentMinor,
+          offerRentMinor: file.renewal.offer ? file.renewal.rentMinor : null,
+        });
+        return countdown ? (
+          <RentCountdown countdown={countdown} endsOnLabel={file.endsOnLabel} copy={t.memberKit.rentCountdown} locale={locale} />
+        ) : null;
+      })()}
       {file.viewer === "tenant" && returnedRef && <SettleShareOnReturn tenancyId={file.id} reference={returnedRef} success={t.success} />}
       <MoneySection file={file} copy={copy} />
       {/* Flatmates' shares are the lead tenant's business, not the lister's. */}
       {file.viewer === "tenant" && (!file.void || file.flatmates.locked) && (
-        <FlatmatesSection file={file} copy={mates} locale={locale} />
+        <FlatmatesSection file={file} copy={mates} locale={locale} success={t.success} />
       )}
       {file.viewer === "tenant" && file.paid && (
         <Section>
@@ -249,7 +263,7 @@ function CautionSection({ file, copy }: { file: TenancyFile; copy: Copy; locale:
                   </p>
                   <p className="nf-caption mt-2xs">
                     {copy.returnMethods[row.method]}
-                    {row.reference ? ` · ${row.reference}` : ""} ·{" "}
+                    {row.reference ? `\u00a0· ${row.reference}` : ""} ·{" "}
                     {row.recordedAs === "lister_sent" ? copy.returnedByLister : copy.returnedByTenant}
                   </p>
                   {row.ruling ? (
@@ -375,10 +389,13 @@ function CautionSection({ file, copy }: { file: TenancyFile; copy: Copy; locale:
 function FlatmatesSection({
   file,
   copy,
+  success,
 }: {
   file: TenancyFile;
   copy: ReturnType<typeof getDictionary>["afterTheGate"]["flatmates"];
   locale: Locale;
+  /** The page's `t.success`, for "Invitation sent". */
+  success: ReturnType<typeof getDictionary>["success"];
 }) {
   const mates = file.flatmates;
   if (mates.unavailable) {
@@ -438,7 +455,7 @@ function FlatmatesSection({
               <p className="nf-caption">{copy.locked}</p>
             ) : (
               <div className="nf-panel nf-panel--card block p-md">
-                <AddFlatmate tenancyId={file.id} copy={copy} />
+                <AddFlatmate tenancyId={file.id} copy={copy} success={success} />
               </div>
             )}
             {mates.cancellable && (

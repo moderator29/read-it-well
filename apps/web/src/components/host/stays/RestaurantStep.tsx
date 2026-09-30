@@ -1,5 +1,6 @@
 "use client";
 
+import { useHostCopy } from "@/components/host/host-copy";
 import { useState } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
@@ -45,6 +46,7 @@ export function RestaurantStep({
   goTo,
   advance,
 }: StaysStepProps) {
+  const hw = useHostCopy();
   const [cuisines, setCuisines] = useState<string[]>(draft.restaurant?.cuisines ?? []);
   const [band, setBand] = useState<number | null>(draft.restaurant?.priceBand ?? null);
 
@@ -76,7 +78,7 @@ export function RestaurantStep({
         </div>
       </StaysHero>
 
-      <StaysPlate label="Restaurant name" htmlFor="stays-restaurant-name">
+      <StaysPlate label={hw.steps.restaurantName} htmlFor="stays-restaurant-name">
         <input
           id="stays-restaurant-name"
           className="nf-field nf-field--glass nf-stays-input"
@@ -86,8 +88,8 @@ export function RestaurantStep({
         />
       </StaysPlate>
 
-      <StaysPlate label="Cuisine">
-        <div className="nf-stays-chips" role="group" aria-label="Cuisine">
+      <StaysPlate label={hw.steps.cuisine}>
+        <div className="nf-stays-chips" role="group" aria-label={hw.steps.cuisine}>
           {CUISINES.map((cuisine) => {
             const chosen = cuisines.includes(cuisine);
             return (
@@ -114,12 +116,12 @@ export function RestaurantStep({
         </p>
       </StaysPlate>
 
-      <StaysPlate label="Address">
+      <StaysPlate label={hw.steps.address}>
         <button
           type="button"
           onClick={() => goTo("business")}
           className="nf-stays-row w-full"
-          aria-label="Change the address"
+          aria-label={hw.steps.changeAddress}
         >
           <UiIcon name="location" size={20} className="shrink-0 text-[var(--nf-brand-secondary)]" />
           <span className="min-w-0 flex-1 text-left">
@@ -137,8 +139,8 @@ export function RestaurantStep({
         </button>
       </StaysPlate>
 
-      <StaysPlate label="Price band">
-        <StaysTiles label="Price band" columns={4}>
+      <StaysPlate label={hw.steps.priceBand}>
+        <StaysTiles label={hw.steps.priceBand} columns={4}>
           {PRICE_BANDS.map((option) => (
             <StaysTile
               key={option.value}

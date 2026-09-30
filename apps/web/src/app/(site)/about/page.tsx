@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { publicPageMetadata } from "@/lib/i18n/public-metadata";
 import { SiteHead } from "@/components/site/SiteHead";
 import { Reveal } from "@/components/site/Reveal";
 import type { BrandIconName } from "@/design-system/icons/BrandIcon";
@@ -7,11 +8,11 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { IconPlate } from "@/components/ui/IconPlate";
 import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
 
-export const metadata: Metadata = {
-  title: "About",
-  description:
-    "Vallo is one app with two sides: Property for renting, buying and selling, and Vallo Stays for hotels, apartments, guest houses, resorts and restaurant tables. Homes, land, hotels and shortlets across Nigeria, one account, one inbox, four languages.",
-};
+/* A10: the title and description in the page's own language, with its
+   canonical and hreflang (lib/i18n/public-metadata.ts; words in publicMeta). */
+export async function generateMetadata(): Promise<Metadata> {
+  return publicPageMetadata("about");
+}
 
 /**
  * About page.
@@ -180,7 +181,7 @@ export default function AboutPage() {
             </p>
             <div className="mt-heading flex flex-wrap items-center justify-center gap-group">
               <ButtonLink
-                href="/agents"
+                href="/for-agents"
                 variant="primary"
                 size="lg"
                 trailingIcon="arrow-right"

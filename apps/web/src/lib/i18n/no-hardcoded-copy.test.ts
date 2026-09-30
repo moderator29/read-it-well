@@ -50,6 +50,7 @@ const LAYOUT = new Set([
 const ALLOWED = new Map<string, string>([
   ['title="Vallo"', "the brand name on the logo, the same in every language"],
   ['"email name"', "the Sign in with Apple scope list, a protocol value"],
+  ['"[vallo] auth route error"', "the console tag useErrorReport logs under, read by staff in the log, never shown"],
 ]);
 
 /**

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useErrorReport } from "@/lib/observability/use-error-report";
 import { Button, ButtonLink } from "@/components/ui/Button";
 
 /**
@@ -29,9 +29,7 @@ export default function SiteError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  useEffect(() => {
-    console.error("[vallo] site route error", error);
-  }, [error]);
+  const reference = useErrorReport(error, "client.site_boundary", "[vallo] site route error");
 
   return (
     <section className="nf-shell py-section">
@@ -51,11 +49,9 @@ export default function SiteError({
           </ButtonLink>
         </div>
 
-        {error.digest && (
-          <p className="nf-numeric mt-heading text-[0.8125rem] text-[var(--nf-content-muted)]">
-            Reference {error.digest}
-          </p>
-        )}
+        <p className="nf-caption mt-heading">
+          Reference <span className="nf-numeric select-all">{reference}</span>. Quote this to support.
+        </p>
       </div>
     </section>
   );

@@ -218,7 +218,7 @@ function InspectionRow({
           )}
           <span className={`mt-3xs block ${TYPE.rowMeta}`}>
             {whenLine(shown, locale)}
-            {inspection.counterpartName ? ` · ${inspection.counterpartName}` : ""}
+            {inspection.counterpartName ? `\u00a0· ${inspection.counterpartName}` : ""}
             {inspection.counterpartName && inspection.counterpartBadge ? <TierBadge tier={inspection.counterpartBadge} size={14} className="nf-ix-name-tier" /> : null}
           </span>
 

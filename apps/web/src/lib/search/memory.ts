@@ -24,6 +24,7 @@
  */
 
 import type { ViewKey } from "@/lib/listings/search-params";
+import { isSafePhoto, type CardGlanceMark } from "@/lib/listings/card-glance";
 
 /* --------------------------------------------------------------- the view */
 
@@ -214,9 +215,20 @@ function isRecentSearch(value: unknown): value is RecentSearch {
     entry.label.length <= 80 &&
     typeof entry.href === "string" &&
     /* Same-origin, and specifically a search. An href read back from storage
-       is attacker-controlled text, and it goes into a link. */
-    entry.href.startsWith("/search")
+       is attacker-controlled text, and it goes into a link. B2: the Stays
+       search is a search too. */
+    isSearchHref(entry.href)
   );
+}
+
+/** `/search` or `/stays/search`, bare or with a query, and nothing else. */
+export function isSearchHref(href: string): boolean {
+  return /^\/(stays\/)?search(\?|$)/.test(href);
+}
+
+/** B2: the recent searches that belong to one search screen. */
+export function searchesFor(entries: readonly RecentSearch[], path: "/search" | "/stays/search"): RecentSearch[] {
+  return entries.filter((entry) => entry.href === path || entry.href.startsWith(`${path}?`));
 }
 
 export function readRecentSearches(): RecentSearch[] {
@@ -249,7 +261,20 @@ export type RecentListing = {
   title: string;
   /** "Lekki, Lagos". Kept short: this is a chip, not a card. */
   place: string;
+  /*
+   * B2, 30 September 2026: what the small card on Home draws, all optional so
+   * an entry written by an older build still reads. Each is the string the
+   * listing's own card printed (`lib/listings/card-glance.ts`).
+   */
+  photo?: string | null;
+  price?: string | null;
+  priceNote?: string;
+  mark?: CardGlanceMark;
 };
+
+function optionalShort(value: unknown, max: number): boolean {
+  return value === undefined || value === null || (typeof value === "string" && value.length <= max);
+}
 
 function isRecentListing(value: unknown): value is RecentListing {
   if (!value || typeof value !== "object") return false;
@@ -263,7 +288,11 @@ function isRecentListing(value: unknown): value is RecentListing {
     /^[A-Za-z0-9._-]+$/.test(entry.id) &&
     typeof entry.title === "string" &&
     entry.title.length > 0 &&
-    typeof entry.place === "string"
+    typeof entry.place === "string" &&
+    (entry.photo === undefined || entry.photo === null || isSafePhoto(entry.photo)) &&
+    optionalShort(entry.price, 40) &&
+    optionalShort(entry.priceNote, 40) &&
+    (entry.mark === undefined || entry.mark === null || entry.mark === "verified" || entry.mark === "example")
   );
 }
 

@@ -9,7 +9,7 @@ import { adminUi, type AdminUi } from "../_components/ui";
 import { QueueFilters, readQueueQuery, type QueueStatusOption } from "../_components/QueueFilters";
 import { Panel } from "../_review/parts";
 import { ageShort } from "../_review/metrics";
-import { LiveRefresh } from "../_review/LiveRefresh";
+import { LiveRefresh } from "@/app/admin/_components/LiveRefresh";
 import { KIND_LABEL, SUBTYPE_LABEL, SubjectCard } from "./SubjectCard";
 import { InternalNotes } from "../_components/InternalNotes";
 import { notesOf, readMemberNotesFor } from "@/lib/admin/notes";
@@ -148,7 +148,7 @@ export default async function AdminKycPage({
 
   return (
     <>
-      <LiveRefresh />
+      <LiveRefresh seconds={30} />
       <VerificationDesk
         filters={filters}
         rows={waiting.map((subject) => toRow(subject, true))}

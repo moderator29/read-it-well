@@ -26,6 +26,16 @@ import { previewHarnessIsOpen } from "@/lib/preview-harness";
 import { isKnownRoute } from "@/lib/routing/known-routes";
 import { detailIsMissing, type ListingCounter } from "@/lib/routing/listing-exists";
 import {
+  hreflangLinkHeader,
+  isLocalizablePath,
+  localizedPath,
+  preferredLocale,
+  splitLocalePrefix,
+  URL_LOCALE_HEADER,
+  URL_PATH_HEADER,
+} from "@/lib/i18n/public-locale";
+import { LOCALE_COOKIE } from "@/lib/locale.constants";
+import {
   finishSetupGateApplies,
   finishSetupHref,
   mayOweSetup,
@@ -194,6 +204,19 @@ const PUBLIC_SEGMENTS = new Set([
   // showing the area and never the address.
   "check",
   "safe",
+  // Recommendations A (30 September 2026). A9: the supply front doors, which
+  // say what listing costs and how payouts arrive, for people who have no
+  // account yet. A8: the move-in calculator, which reads nothing but what the
+  // visitor types. A14: the guides, plain articles. A12: the sign-in-free
+  // email preferences, authorised by the signed token in the link and by
+  // nothing else. A5: the invite door, which shows a first name at most.
+  "for-agents",
+  "for-hosts",
+  "for-landlords",
+  "move-in-cost",
+  "guides",
+  "email",
+  "join",
   // Serving with no network, and resolving which home the caller means.
   // `open` is where the native app starts (STORE-04): it answers /home for a
   // session and /welcome or the open catalogue for anybody else.
@@ -275,9 +298,17 @@ const PUBLIC_PATHS = new Set(["/", "/robots.txt", "/sitemap.xml", "/opengraph-im
  */
 const PUBLIC_API_PATHS = new Set([
   "/api/auth/email-hook",
+  /* A2: Supabase's Send SMS hook, behind the Standard Webhooks signature and
+     off unless PHONE_SIGNIN_ENABLED is true. */
+  "/api/auth/sms-hook",
+  /* C2: a room's calendar for Airbnb or Booking.com to subscribe to. The
+     64-character token in the query is the whole key; it returns dates only. */
+  "/api/calendar/feed",
   "/api/client-error",
   "/api/cron/account-purge",
   "/api/cron/canary",
+  /* C2: calendar sync, behind the cron bearer and CALENDAR_SYNC_ENABLED. */
+  "/api/cron/calendar-sync",
   "/api/cron/complete-stays",
   /* Crypto payments read back from the provider, behind the cron bearer. */
   "/api/cron/crypto-reconcile",
@@ -287,6 +318,8 @@ const PUBLIC_API_PATHS = new Set([
   "/api/cron/inventory-drift",
   "/api/cron/landlord-line",
   "/api/cron/pg-cron-watch",
+  /* C8: the nightly duplicate-photo hash backfill, behind the cron bearer. */
+  "/api/cron/photo-hash-backfill",
   /* SCUML item 15: the daily risk classification, behind the cron bearer. */
   "/api/cron/risk-classes",
   "/api/cron/saved-search-alerts",
@@ -296,6 +329,12 @@ const PUBLIC_API_PATHS = new Set([
   "/api/cron/sanctions-lists",
   "/api/cron/sanctions-screen",
   "/api/csp-report",
+  /* A12: RFC 8058 one-click unsubscribe. A mailbox provider POSTs it with no
+     cookie; the HMAC-signed token in the query is the whole authorisation. */
+  "/api/email/unsubscribe",
+  /* A6: the first-party funnel beacon. It records a step name, a surface and
+     a random visit id, never a person, and is rate limited per address. */
+  "/api/funnel",
   "/api/health/catalogue",
   "/api/landlord/inbound",
   "/api/push/key",
@@ -322,6 +361,13 @@ export function isPublicPath(
   path: string,
   options: { publicCatalogue?: boolean } = {},
 ): boolean {
+  /* A10: a language address is public exactly when its bare page is public
+     and has a language address at all (the proxy sends the rest to the bare
+     address before this is asked). */
+  const addressed = splitLocalePrefix(path);
+  if (addressed.locale) {
+    return isLocalizablePath(addressed.path) && isPublicPath(addressed.path, options);
+  }
   if (PUBLIC_PATHS.has(path)) return true;
   /* STORE-P2-04: the founder's switch, VALLO_PUBLIC_CATALOGUE. It can only
      ADD the six read-only catalogue segments; it cannot open an account
@@ -434,6 +480,86 @@ export async function proxy(request: NextRequest) {
   request.headers.set(NONCE_HEADER, nonce);
 
   /*
+   * A10: LANGUAGES YOU CAN LINK TO. `/ha/about` is the Hausa `/about`: the
+   * prefix is taken off here and the rest of this function sees the bare
+   * address, so the gate, the harness guard and the 404 checks decide exactly
+   * as they do for English. The page is served by a rewrite, with the locale
+   * on a request header `getLocale()` reads first. A client cannot choose that
+   * header for itself: any copy it sent is deleted before anything reads it.
+   * Only public pages have a language address; `/ha/home` goes to `/home`,
+   * where the member's own Settings choice applies as before.
+   */
+  request.headers.delete(URL_LOCALE_HEADER);
+  request.headers.delete(URL_PATH_HEADER);
+  const addressed = splitLocalePrefix(request.nextUrl.pathname);
+  const urlLocale = addressed.locale;
+  const pathname = addressed.path;
+  if (urlLocale && !isLocalizablePath(pathname)) {
+    const bare = request.nextUrl.clone();
+    bare.pathname = pathname;
+    return withSecurityPolicy(NextResponse.redirect(bare, 307), nonce);
+  }
+  if (urlLocale) request.headers.set(URL_LOCALE_HEADER, urlLocale);
+  /* The address as typed, for the page's canonical and hreflang metadata:
+     under a rewrite the page itself only sees the bare path. */
+  if (isLocalizablePath(pathname)) request.headers.set(URL_PATH_HEADER, request.nextUrl.pathname);
+  const routed = request.nextUrl.clone();
+  routed.pathname = pathname;
+  /* The pass-through: a rewrite to the bare page for a language address, the
+     plain next() otherwise. */
+  const forward = () =>
+    urlLocale ? NextResponse.rewrite(routed, { request }) : NextResponse.next({ request });
+
+  /*
+   * A public page asked for with no prefix, by somebody who reads Hausa,
+   * Yoruba or Igbo (their stored choice, or their browser on a first visit),
+   * is sent to its language address, so the address they share is the one
+   * they read. Page loads only, never the store shell, and English stays at
+   * the bare address for everybody else, crawlers included.
+   */
+  if (
+    !urlLocale &&
+    request.method === "GET" &&
+    isDocumentRequest(request) &&
+    isLocalizablePath(pathname) &&
+    !isShellUserAgent(request.headers.get("user-agent"))
+  ) {
+    const wanted = preferredLocale(
+      request.cookies.get(LOCALE_COOKIE)?.value,
+      request.headers.get("accept-language"),
+    );
+    if (wanted !== "en") {
+      const target = request.nextUrl.clone();
+      target.pathname = localizedPath(pathname, wanted);
+      const redirected = NextResponse.redirect(target, 307);
+      redirected.headers.set("vary", "cookie, accept-language");
+      redirected.headers.set("cache-control", "no-store");
+      return withSecurityPolicy(redirected, nonce);
+    }
+  }
+
+  /*
+   * What every page response on a language-bearing address also carries: the
+   * hreflang set (so a search engine finds all four languages from any one),
+   * and, for a first-time visitor who arrived through a language address with
+   * no stored choice yet, that language as their choice, so the next page
+   * they open is in it too. A member who already chose keeps their choice.
+   */
+  const finish = (response: NextResponse): NextResponse => {
+    if (request.method === "GET" && isLocalizablePath(pathname)) {
+      response.headers.set("link", hreflangLinkHeader(request.nextUrl.origin, pathname));
+    }
+    if (urlLocale && !request.cookies.get(LOCALE_COOKIE)) {
+      response.cookies.set(LOCALE_COOKIE, urlLocale, {
+        path: "/",
+        maxAge: 60 * 60 * 24 * 365,
+        sameSite: "lax",
+      });
+    }
+    return withSecurityPolicy(response, nonce);
+  };
+
+  /*
    * STORE-17: A CLOSED HARNESS IS A REAL 404, DECIDED BEFORE ANY RENDER.
    *
    * The harness layout's own `notFound()` runs after the root `loading.tsx`
@@ -443,7 +569,7 @@ export async function proxy(request: NextRequest) {
    * site's not-found page and a 404 status, and nothing of the harness is
    * rendered at all.
    */
-  if (isHarnessPath(request.nextUrl.pathname) && !previewHarnessIsOpen(process.env)) {
+  if (isHarnessPath(pathname) && !previewHarnessIsOpen(process.env)) {
     const closed = request.nextUrl.clone();
     closed.pathname = HARNESS_CLOSED_PATH;
     closed.search = "";
@@ -476,10 +602,10 @@ export async function proxy(request: NextRequest) {
     return withSecurityPolicy(NextResponse.redirect(new URL(AUTH_CALLBACK_REFUSED, request.url), 307), nonce);
   }
 
-  let response = NextResponse.next({ request });
+  let response = forward();
 
   if (!isSupabaseConfigured()) {
-    return withSecurityPolicy(response, nonce);
+    return finish(response);
   }
 
   const supabase = createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -526,7 +652,7 @@ export async function proxy(request: NextRequest) {
         for (const { name, value } of cookiesToSet) {
           request.cookies.set(name, value);
         }
-        response = NextResponse.next({ request });
+        response = forward();
         for (const { name, value, options } of cookiesToSet) {
           response.cookies.set(name, value, withAuthCookiePolicy(options, serverCookiesSecure(request.nextUrl.protocol)));
         }
@@ -574,7 +700,7 @@ export async function proxy(request: NextRequest) {
      5xx, a network failure, no answer in time) is let through: the page's
      own reads decide, and fail visibly, instead of every member being sent
      to sign-in at once. */
-  if (reader === "unknown") return withSecurityPolicy(response, nonce);
+  if (reader === "unknown") return finish(response);
   const user = reader;
 
   /* SPEED-4: the 404 check for a detail page, when it is already known to be
@@ -589,7 +715,7 @@ export async function proxy(request: NextRequest) {
   let earlyDetailCheck: Promise<boolean> | null = null;
 
   if (!user) {
-    const path = request.nextUrl.pathname.replace(/\/+$/, "") || "/";
+    const path = pathname.replace(/\/+$/, "") || "/";
     const publicCatalogue = publicCatalogueEnabled();
 
     /* A stranger reading the open catalogue is counted per address, so the
@@ -611,7 +737,7 @@ export async function proxy(request: NextRequest) {
         const target = request.nextUrl.clone();
         target.pathname = "/sign-in";
         target.search = "";
-        const back = safeReturnPath(request.nextUrl.pathname, request.nextUrl.search);
+        const back = safeReturnPath(pathname, request.nextUrl.search);
         if (back) target.searchParams.set("next", back);
         target.searchParams.set("notice", "catalogue-paced");
         const response = NextResponse.redirect(target);
@@ -660,7 +786,7 @@ export async function proxy(request: NextRequest) {
        * everything else keeps the redirect.
        */
       if (isServerActionRequest(request) && SELF_GUARDING_FORM_PATHS.has(path)) {
-        return withSecurityPolicy(response, nonce);
+        return finish(response);
       }
 
       /* OPS-17: an address this app does not answer at is a 404 for a
@@ -713,7 +839,7 @@ export async function proxy(request: NextRequest) {
    * (`finishSetupGateApplies`), so this cannot loop.
    */
   if (user) {
-    const path = request.nextUrl.pathname.replace(/\/+$/, "") || "/";
+    const path = pathname.replace(/\/+$/, "") || "/";
     if (
       finishSetupGateApplies({
         path,
@@ -737,7 +863,7 @@ export async function proxy(request: NextRequest) {
      the page, which renders the not-found state itself. The refreshed session
      cookies on `response` are carried over. */
   if (request.method === "GET" && isDocumentRequest(request)) {
-    const path = request.nextUrl.pathname.replace(/\/+$/, "") || "/";
+    const path = pathname.replace(/\/+$/, "") || "/";
     if (await (earlyDetailCheck ?? detailIsMissing(path, supabase as unknown as ListingCounter))) {
       const missing = request.nextUrl.clone();
       missing.pathname = HARNESS_CLOSED_PATH;
@@ -748,7 +874,7 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  return withSecurityPolicy(response, nonce);
+  return finish(response);
 }
 
 /** The one read the finish-setup gate makes, narrowed to its shape. */

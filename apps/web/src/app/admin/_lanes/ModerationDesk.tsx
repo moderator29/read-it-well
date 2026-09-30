@@ -1,3 +1,4 @@
+import { CountUp } from "@/components/motion/CountUp";
 import type { ReactNode } from "react";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import type { StatusTone } from "@/components/ui/StatusPill";
@@ -118,7 +119,9 @@ export function ModerationDesk(props: ModerationDeskProps) {
               </p>
               {s ? (
                 <>
-                  <p className="nf-rv-kpi__figure">{s.olderThan24h.reports + s.olderThan24h.held}</p>
+                  <p className="nf-rv-kpi__figure">
+                    <CountUp value={s.olderThan24h.reports + s.olderThan24h.held} eager />
+                  </p>
                   <p className="nf-rv-panel__note">
                     {countOf(s.olderThan24h.reports, "reports")} past the 24 hour promise,{" "}
                     {countOf(s.olderThan24h.held, "heldItems")} older

@@ -46,6 +46,7 @@ import { lagosToday } from "@/lib/bookings/schema";
 import { ExampleNotice } from "@/components/app/listing/ExampleNotice";
 import { ListingGallery } from "@/components/app/listing/ListingGallery";
 import { RecordVisit } from "@/components/app/listing/RecordVisit";
+import { cardGlance } from "@/lib/listings/card-glance";
 import { ReservePanel } from "./ReservePanel";
 import { RentalPanel } from "./RentalPanel";
 import { ReserveTable } from "./ReserveTable";
@@ -66,6 +67,8 @@ import { ListingCodeRow } from "@/components/app/listing/ListingCode";
 import { ListingMoveIn } from "@/components/app/listing/ListingMoveIn";
 import { readPayeeRecords } from "@/lib/after-gate/payee";
 import { LastLetLine } from "@/components/app/listing/LastLetLine";
+import { ReplyTimeLine } from "@/components/app/listing/ReplyTimeLine";
+import { PriceContextRow } from "@/components/app/listing/PriceContextRow";
 import { PhotographedLine } from "@/components/app/listing/PhotographedLine";
 import { CautionRecordLine } from "@/components/app/listing/CautionRecordLine";
 import { ListingPurchase } from "@/components/app/listing/ListingPurchase";
@@ -803,15 +806,9 @@ export default async function ListingDetailPage({
             search page offers back, whichever way it was reached. */}
         {/* V-73: this listing was opened (counted once per person per day). */}
         <RecordViews opened={listing.id} />
-        <RecordVisit
-          id={listing.id}
-          title={listing.title}
-          place={
-            listing.area && listing.area !== listing.city
-              ? `${listing.area}, ${listing.city}`
-              : listing.city
-          }
-        />
+        {/* B2: with the card's own glance (photo, price line, mark), so
+            Home's "Looked at recently" draws a real small card. */}
+        <RecordVisit glance={cardGlance(listing, locale, t.catalogue.card)} />
 
         {/* ------------------------------------------------------- 1. MEDIA */}
         <ListingGallery
@@ -889,7 +886,8 @@ export default async function ListingDetailPage({
                   */}
                   <div className="flex flex-wrap items-center gap-xs empty:hidden">
                     {/* A rating only with the reviews behind it; a count only
-                        when the record carries one. Blue, never gold. */}
+                        when the record carries one. The stars are --nf-rating, the warm
+                        spark (spec section 18). */}
                     {listing.rating > 0 && listing.reviewCount > 0 && (
                       <span className="nf-numeric ml-auto flex shrink-0 items-center gap-xs">
                         <UiIcon
@@ -1131,6 +1129,8 @@ export default async function ListingDetailPage({
                     className="scroll-mt-16"
                   >
                     <ListingMoveIn listing={listing} locale={locale} t={t} records={await readPayeeRecords(listing.id)} />
+                    {/* B8: the door to Price Check, drawn only where it would answer. */}
+                    <PriceContextRow listing={listing} locale={locale} />
                     {/* V-38: what this flat was last let at through Vallo. Nothing when there is no such let. */}
                     <LastLetLine listingId={listing.id} locale={locale} />
                     {/* V-70: which of the shot list's photos this listing has. */}
@@ -1370,6 +1370,8 @@ export default async function ListingDetailPage({
                       name={listing.listerName ?? null}
                       listingRole={listing.listerRole ?? null}
                     />
+                    {/* B7: the reply-time line, only when the record supports one. */}
+                    <ReplyTimeLine listingId={listing.id} locale={locale} className="mt-2xs" />
                     <ValloRecord record={record} t={t} locale={locale} className="mt-row" />
                   </Section>
                 </Reveal>

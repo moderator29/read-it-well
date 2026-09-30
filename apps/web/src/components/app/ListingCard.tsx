@@ -13,6 +13,8 @@ import { isPropertyType, type PropertyType } from "@/lib/interests/property-type
 import { isDataSaver } from "@/lib/ui/data-saver";
 import { motionQuiet } from "@/lib/motion/gate";
 import { startPhotoMorph } from "@/lib/motion/photo-morph";
+import { drawnSrcIn, handOff } from "@/lib/listings/handoff";
+import { cardGlance } from "@/lib/listings/card-glance";
 import { SaveButton, useSaveControl } from "@/components/app/SaveControl";
 import { cardFacts, cardMarket, cardMessageHref, cardPrice, cardUtility } from "./listing-card-model";
 import { ButtonLink } from "@/components/ui/Button";
@@ -26,6 +28,7 @@ import { unitLine } from "@/lib/listings/unit-shape";
 import { ProofStrip } from "@/components/app/listing/ProofStrip";
 import { CardPhotos } from "@/components/app/search/CardPhotos";
 import { proofFactsOf, proofLines } from "@/lib/trust/proof-strip";
+import { CardMenu, useCardMenu } from "@/components/app/listing/CardMenu";
 
 /**
  * The property card, to the results image (3EB3E2A9).
@@ -75,6 +78,7 @@ export function ListingCard({
   photographed = null,
   messageAgent = false,
   commute = null,
+  eager = false,
 }: {
   /** V-70: "Photographed: kitchen, prepaid meter", when the lister labelled photos. */
   photographed?: string | null;
@@ -123,6 +127,12 @@ export function ListingCard({
   messageAgent?: boolean;
   /** V-43: the rush-hour line to the reader's chosen anchor, or null. */
   commute?: string | null;
+  /**
+   * The first card above the fold on its page: its photograph loads at once
+   * and high, because it is the page's largest paint (integration QA O5).
+   * One card per page, never a whole list.
+   */
+  eager?: boolean;
 }) {
   const photo = listing.photos[0];
   /* Track M: several photographs swipe (CardPhotos.tsx); the arrows drawn
@@ -223,6 +233,10 @@ export function ListingCard({
       return;
     }
     const media = mediaRef.current;
+    /* B4: the listing opens in one frame. The facts this card already
+       printed, and the photo it already drew, go to the listing's loading
+       shell (lib/listings/handoff.ts), which paints them at once. */
+    handOff(cardGlance(listing, locale, copy), drawnSrcIn(media, listing.photos[0]));
     if (!media || motionQuiet()) return;
     media.style.viewTransitionName = `listing-photo-${listing.id}`;
     startPhotoMorph(listing.id);
@@ -283,6 +297,9 @@ export function ListingCard({
 
   const tunableKind: PropertyType | null = isPropertyType(listing.kind) ? listing.kind : null;
   const save = useSaveControl(listing.id, saved);
+  /* Details pass: hold the card for Save, Share and Hide (CardMenu.tsx). */
+  const shareable = !listing.isDemo;
+  const menu = useCardMenu(listing.id, { shareable });
 
   /* The facts row: beds, baths, then the floor area when the lister gave one,
      then what the place is. Four at most, so a card stays one row. */
@@ -344,9 +361,14 @@ export function ListingCard({
   const shown = factRow.slice(0, factLimit);
   const spilled = factRow.slice(factLimit, 3);
 
+  /* Hidden on this phone from the card menu; a saved listing never hides. */
+  if (menu.hidden && !save.saved) return null;
+
   return (
     <article
       ref={cardRef}
+      {...menu.press.handlers}
+      data-long-press={menu.press.holding ? "holding" : undefined}
       className={panelClass({
         variant: "card",
         className: `nf-pcard group ${wide ? "nf-pcard--wide" : ""} ${index !== undefined ? "nf-card-in" : ""}`,
@@ -425,6 +447,7 @@ export function ListingCard({
               kind={listing.kind}
               drawn={isModestExample(listing)}
               sizes={wide ? "(max-width: 640px) 100vw, 50vw" : "(max-width: 640px) 50vw, 25vw"}
+              priority={eager && !photo}
             />
             {photo && (
               <CardPhotos
@@ -432,6 +455,7 @@ export function ListingCard({
                 sizes={wide ? "(max-width: 640px) 100vw, 50vw" : "(max-width: 640px) 50vw, 25vw"}
                 trackRef={photoTrack}
                 onIndex={setPhotoAt}
+                eager={eager}
               />
             )}
           </div>
@@ -484,7 +508,7 @@ export function ListingCard({
           {ageText && (
             <p className="nf-pcard__sub nf-pcard__age" data-testid="card-listed-age" suppressHydrationWarning>
               {isNew && (
-                <span className="nf-badge nf-badge--info nf-pcard__new" title={t.shape.listed.newMarkLabel}>
+                <span className="nf-badge nf-badge--spark nf-pcard__new" title={t.shape.listed.newMarkLabel}>
                   <span aria-hidden="true">{t.shape.listed.newMark}</span>
                   <span className="sr-only">{t.shape.listed.newMarkLabel}. </span>
                 </span>
@@ -673,6 +697,20 @@ export function ListingCard({
           </ButtonLink>
         </div>
       )}
+      <CardMenu
+        open={menu.open}
+        onOpenChange={menu.setOpen}
+        listingId={listing.id}
+        title={listing.title}
+        thumb={photo}
+        saved={save.saved}
+        onToggleSave={() => {
+          setHeartPop(true);
+          save.toggle();
+        }}
+        mint={menu.mint}
+        shareable={shareable}
+      />
     </article>
   );
 }

@@ -1,0 +1,975 @@
+/*
+ * THE HOST DESK'S OWN SCREENS (30 September 2026): the rate calendar (C1)
+ * with its sync panel (C2), the decide-by list (C3), reviews (C4) and payout
+ * statements (C9). Imported by those pages only, so no other page pays for
+ * it (the C12 diet keeps globals.css for what every page draws).
+ *
+ * Tokens only; motion is transform and opacity only, and every motion here
+ * stands still under reduced motion and the in-app Calm and Off settings.
+ */
+@layer components {
+  /* ------------------------------------------------------ rate calendar */
+  .nf-rcal {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--nf-space-lg);
+    margin-top: var(--nf-space-md);
+    padding-bottom: calc(var(--nf-space-4xl) + env(safe-area-inset-bottom));
+  }
+  .nf-rcal__main {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--nf-space-md);
+    min-width: 0;
+  }
+  .nf-rcal > *,
+  .nf-rcal-panel > *,
+  .nf-rcal-sync > * {
+    min-width: 0;
+  }
+  .nf-rcal-panel,
+  .nf-rcal-sync {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .nf-rcal__places,
+  .nf-rcal__rooms,
+  .nf-rcal__plans,
+  .nf-rcal__presets {
+    display: flex;
+    gap: var(--nf-space-xs);
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin-inline: calc(var(--nf-space-2xs) * -1);
+    padding: var(--nf-space-3xs) var(--nf-space-2xs);
+  }
+  .nf-rcal__places {
+    margin-top: var(--nf-space-sm);
+  }
+  .nf-rcal__presets {
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+  .nf-rcal__rooms > *,
+  .nf-rcal__plans > *,
+  .nf-rcal__presets > *,
+  .nf-rcal__places > * {
+    flex: none;
+    min-height: 44px;
+  }
+  .nf-rcal__plan {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-space-sm);
+  }
+  .nf-rcal__plan-name {
+    font-size: var(--nf-text-h4);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-rcal__monthbar {
+    display: grid;
+    grid-template-columns: 44px 1fr 44px;
+    align-items: center;
+    gap: var(--nf-space-sm);
+  }
+  .nf-rcal__monthbar-gap {
+    width: 44px;
+    height: 44px;
+  }
+  .nf-rcal__month {
+    text-align: center;
+    font-size: var(--nf-text-h4);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+
+  /* The grid: seven even columns, the weekend nights marked in the head. */
+  .nf-rcal__grid {
+    display: grid;
+    gap: var(--nf-space-3xs);
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+  .nf-rcal__week {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: var(--nf-space-3xs);
+  }
+  .nf-rcal__wd {
+    padding-block: var(--nf-space-3xs);
+    text-align: center;
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--nf-content-muted);
+  }
+  .nf-rcal__wd--wknd {
+    color: var(--nf-content-secondary);
+  }
+  .nf-rcal__cell {
+    position: relative;
+    display: flex;
+    min-width: 0;
+    min-height: 60px;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1px;
+    padding: 5px 5px 4px;
+    border: var(--nf-border-width) solid var(--nf-card-border);
+    border-radius: var(--nf-radius-sm);
+    background: var(--nf-surface-primary);
+    color: var(--nf-content-primary);
+    text-align: left;
+    overflow: hidden;
+    touch-action: manipulation;
+    cursor: pointer;
+  }
+  .nf-rcal__cell--gap {
+    border-color: transparent;
+    background: transparent;
+    cursor: default;
+  }
+  /* The selection is a layer over the cell that fades in: opacity only. */
+  .nf-rcal__cell::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--nf-brand-tint-2);
+    box-shadow: inset 0 0 0 2px var(--nf-brand-primary);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-rcal__cell.is-selected::after {
+    opacity: 1;
+  }
+  .nf-rcal__cell > span {
+    position: relative;
+    z-index: 1;
+    font-variant-numeric: tabular-nums;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .nf-rcal__day {
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--nf-content-secondary);
+  }
+  /* Today: the day number sits in a small brand disc, the way a calendar
+     marks it everywhere else (an underline read as a link). */
+  .nf-rcal__cell[data-today] .nf-rcal__day {
+    display: inline-grid;
+    place-items: center;
+    min-width: 1.25rem;
+    height: 1.25rem;
+    margin: -3px 0 0 -3px;
+    padding-inline: 4px;
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+  }
+  .nf-rcal__price {
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.2;
+    color: var(--nf-content-secondary);
+  }
+  .nf-rcal__meta {
+    font-size: 0.625rem;
+    line-height: 1.2;
+    color: var(--nf-content-muted);
+  }
+  .nf-rcal__cell[data-tone="override"] .nf-rcal__price {
+    font-weight: 700;
+    color: var(--nf-content-primary);
+  }
+  .nf-rcal__cell[data-tone="override"]::before {
+    content: "";
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 6px;
+    height: 6px;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-brand-primary);
+  }
+  /* C2b: another site holds one of the rooms; the rest are still for sale. */
+  .nf-rcal__elsewhere {
+    position: absolute !important;
+    right: 6px;
+    bottom: 6px;
+    width: 6px;
+    height: 6px;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-state-info);
+  }
+  .nf-rcal__cell[data-tone="closed"] {
+    background: repeating-linear-gradient(
+      135deg,
+      var(--nf-surface-raised) 0 6px,
+      var(--nf-surface-secondary) 6px 12px
+    );
+  }
+  .nf-rcal__cell[data-tone="closed"] .nf-rcal__price {
+    text-decoration: line-through;
+    color: var(--nf-content-muted);
+  }
+  .nf-rcal__cell[data-tone="imported"] {
+    border-color: transparent;
+    background: var(--nf-state-info-surface);
+  }
+  .nf-rcal__cell[data-tone="imported"] .nf-rcal__meta {
+    color: var(--nf-state-info);
+    font-weight: 600;
+  }
+  .nf-rcal__cell[data-tone="full"] {
+    border-color: var(--nf-border-strong);
+    background: var(--nf-surface-raised);
+  }
+  .nf-rcal__cell[data-tone="full"] .nf-rcal__meta {
+    color: var(--nf-content-primary);
+    font-weight: 700;
+  }
+  .nf-rcal__cell[data-tone="none"] {
+    border-style: dashed;
+    background: transparent;
+  }
+  .nf-rcal__cell[data-tone="none"] .nf-rcal__price {
+    color: var(--nf-content-muted);
+  }
+  .nf-rcal__cell[data-tone="past"] {
+    border-color: transparent;
+    background: transparent;
+    opacity: 0.4;
+    cursor: default;
+  }
+  .nf-rcal__cell:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: var(--nf-focus-ring-offset);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .nf-rcal__cell:not([data-tone="past"]):not(.nf-rcal__cell--gap):hover {
+      border-color: var(--nf-border-strong);
+    }
+  }
+
+  .nf-rcal__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--nf-space-2xs) var(--nf-space-md);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+  }
+  .nf-rcal__legend li {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+  }
+  .nf-rcal__key {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: var(--nf-border-width) solid var(--nf-border-strong);
+    border-radius: 3px;
+    background: var(--nf-surface-primary);
+  }
+  .nf-rcal__key[data-tone="override"] {
+    background: var(--nf-brand-primary);
+    border-color: transparent;
+  }
+  .nf-rcal__key[data-tone="full"] {
+    background: var(--nf-surface-raised);
+    border-color: var(--nf-content-secondary);
+  }
+  .nf-rcal__key[data-tone="closed"] {
+    background: repeating-linear-gradient(135deg, var(--nf-surface-raised) 0 3px, var(--nf-border-strong) 3px 4px);
+  }
+  .nf-rcal__key[data-tone="imported"] {
+    background: var(--nf-state-info-surface);
+    border-color: var(--nf-state-info);
+  }
+  .nf-rcal__key[data-tone="elsewhere"] {
+    border-radius: var(--nf-radius-circle);
+    border-color: transparent;
+    background: var(--nf-state-info);
+    width: 8px;
+    height: 8px;
+  }
+  .nf-rcal__key[data-tone="none"] {
+    border-style: dashed;
+    background: transparent;
+  }
+  .nf-rcal__notice {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-state-success);
+  }
+  .nf-rcal__fine {
+    color: var(--nf-content-muted);
+  }
+
+  /* The side panel is a desk's; a phone gets the bar and the sheet. */
+  .nf-rcal__side {
+    display: none;
+  }
+  .nf-rcal__sync-phone {
+    display: block;
+  }
+  .nf-rcal__bar {
+    position: fixed;
+    z-index: 40;
+    left: var(--nf-space-md);
+    right: var(--nf-space-md);
+    bottom: calc(var(--nf-space-sm) + env(safe-area-inset-bottom));
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    padding: var(--nf-space-xs) var(--nf-space-xs) var(--nf-space-xs) var(--nf-space-md);
+    border: var(--nf-border-width) solid var(--nf-card-border);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-surface-elevated);
+    box-shadow: var(--nf-card-shadow-hover);
+    animation: nf-rcal-bar-in var(--nf-duration-base) var(--nf-ease-entrance) both;
+  }
+  .nf-rcal__bar > .min-w-0 {
+    flex: 1;
+  }
+  .nf-rcal__bar-count {
+    font-size: var(--nf-text-row);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-rcal__bar-sub {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  @media (min-width: 768px) {
+    .nf-rcal__cell {
+      min-height: 84px;
+      padding: 8px 8px 6px;
+    }
+    .nf-rcal__day {
+      font-size: 0.8125rem;
+    }
+    .nf-rcal__price {
+      font-size: 0.875rem;
+    }
+    .nf-rcal__meta {
+      font-size: 0.75rem;
+    }
+    .nf-rcal__grid,
+    .nf-rcal__week {
+      gap: var(--nf-space-2xs);
+    }
+  }
+  @media (min-width: 1024px) {
+    .nf-rcal {
+      grid-template-columns: minmax(0, 1fr) 22.5rem;
+      align-items: start;
+      padding-bottom: var(--nf-space-2xl);
+    }
+    .nf-rcal__side {
+      position: sticky;
+      top: var(--nf-space-md);
+      display: grid;
+      gap: var(--nf-space-md);
+      max-height: calc(100dvh - var(--nf-space-2xl));
+      overflow-y: auto;
+    }
+    .nf-rcal__sync-phone,
+    .nf-rcal__bar {
+      display: none;
+    }
+  }
+
+  /* ------------------------------------------ the panel and the stepper */
+  .nf-rcal-panel,
+  .nf-rcal-sync {
+    display: grid;
+    gap: var(--nf-space-md);
+    padding: var(--nf-space-md);
+    border: var(--nf-border-width) solid var(--nf-card-border);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-surface-primary);
+    box-shadow: var(--nf-card-shadow);
+  }
+  /* Inside a sheet the sheet is the card. */
+  [role="dialog"] .nf-rcal-panel {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+  .nf-rcal-panel--empty {
+    justify-items: start;
+    gap: var(--nf-space-xs);
+  }
+  .nf-rcal-panel__icon {
+    display: inline-grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    flex: none;
+    border-radius: var(--nf-radius-plate);
+    background: var(--nf-surface-raised);
+    color: var(--nf-content-primary);
+  }
+  .nf-rcal-panel__head,
+  .nf-rcal-sync__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--nf-space-sm);
+  }
+  .nf-rcal-sync__head {
+    justify-content: flex-start;
+  }
+  .nf-rcal-panel__title {
+    font-size: var(--nf-text-h4);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-rcal-panel__facts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--nf-space-sm);
+    margin: 0;
+    padding: var(--nf-space-sm);
+    border-radius: var(--nf-radius-md);
+    background: var(--nf-surface-secondary);
+  }
+  .nf-rcal-panel__facts dt {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-rcal-panel__facts dd {
+    margin: 0;
+    font-size: var(--nf-text-row);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-rcal-panel__block {
+    display: grid;
+    gap: var(--nf-space-xs);
+  }
+  .nf-rcal-panel__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--nf-space-xs);
+  }
+  .nf-rcal-panel__row > :first-child {
+    flex: 1 1 10rem;
+    min-width: 0;
+  }
+  .nf-rcal-panel__row--split > :first-child {
+    flex: 0 0 auto;
+  }
+  .nf-rcal-panel__error {
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-state-error);
+  }
+  .nf-rcal-stepper {
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-space-2xs);
+    padding: var(--nf-space-3xs);
+    border-radius: var(--nf-radius-control);
+    background: var(--nf-surface-raised);
+  }
+  .nf-rcal-stepper__btn {
+    display: inline-grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--nf-radius-control-sm);
+    background: var(--nf-surface-primary);
+    color: var(--nf-content-primary);
+  }
+  .nf-rcal-stepper__btn:disabled {
+    opacity: 0.4;
+  }
+  .nf-rcal-stepper__value {
+    min-width: 4.5rem;
+    text-align: center;
+    font-size: var(--nf-text-row);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+
+  /* ------------------------------------------------------------- sync */
+  .nf-rcal-sync__block {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--nf-space-xs);
+  }
+  .nf-rcal-sync__link {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    padding: var(--nf-space-2xs) var(--nf-space-2xs) var(--nf-space-2xs) var(--nf-space-sm);
+    border-radius: var(--nf-radius-md);
+    background: var(--nf-surface-secondary);
+  }
+  .nf-rcal-sync__url {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+  }
+  .nf-rcal-sync__imports {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .nf-rcal-sync__import {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    padding-block: var(--nf-space-xs);
+    border-bottom: var(--nf-border-width) solid var(--nf-divider);
+  }
+  .nf-rcal-sync__import:last-child {
+    border-bottom: 0;
+  }
+  .nf-rcal-sync__import-name {
+    font-size: var(--nf-text-row);
+    font-weight: 500;
+    color: var(--nf-content-primary);
+  }
+  .nf-rcal-sync__add {
+    display: grid;
+    gap: var(--nf-space-sm);
+  }
+
+  /* ---------------------------------------------------- the decide list */
+  .nf-decide {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--nf-space-lg);
+    margin-top: var(--nf-space-md);
+  }
+  .nf-decide__list {
+    display: grid;
+    gap: var(--nf-space-sm);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .nf-decide__row {
+    display: grid;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-md);
+    border: var(--nf-border-width) solid var(--nf-card-border);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-surface-primary);
+    box-shadow: var(--nf-card-shadow);
+  }
+  .nf-decide__dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-inline: 13px;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-brand-primary);
+  }
+  .nf-decide__dot[data-tone="warning"] {
+    background: var(--nf-state-warning);
+  }
+  .nf-decide__dot[data-tone="error"] {
+    background: var(--nf-state-error);
+  }
+  .nf-decide__row[data-urgency="late"] {
+    border-color: var(--nf-state-error);
+  }
+  .nf-decide__top {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nf-space-sm);
+  }
+  .nf-decide__what {
+    flex: 1;
+    min-width: 0;
+  }
+  /* A phone: the clock rides above the title beside the plate, so the
+     title and its line get the card's full width instead of a narrow column
+     squeezed between the plate and the chip. */
+  @media (max-width: 639px) {
+    .nf-decide__top {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      grid-template-areas:
+        "plate clock"
+        "plate what";
+      row-gap: var(--nf-space-3xs);
+    }
+    .nf-decide__top > :first-child {
+      grid-area: plate;
+    }
+    .nf-decide__top > .nf-decide__what {
+      grid-area: what;
+    }
+    .nf-decide__top > .nf-clock {
+      grid-area: clock;
+      justify-self: start;
+    }
+  }
+  .nf-decide__title {
+    font-size: var(--nf-text-row);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-decide__sub {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+  }
+  .nf-clock {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: var(--nf-space-3xs);
+    min-height: 26px;
+    padding: 2px 8px;
+    border-radius: var(--nf-radius-badge);
+    font-size: 0.75rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    background: var(--nf-brand-tint-2);
+    color: var(--nf-brand-quiet);
+  }
+  .nf-clock[data-urgency="soon"] {
+    background: var(--nf-state-warning-surface);
+    color: var(--nf-state-warning);
+  }
+  .nf-clock[data-urgency="late"],
+  .nf-clock[data-urgency="lapsed"] {
+    background: var(--nf-state-error-surface);
+    color: var(--nf-state-error);
+  }
+  .nf-clock__bar {
+    position: relative;
+    height: 4px;
+    overflow: hidden;
+    border-radius: var(--nf-radius-xs);
+    background: var(--nf-surface-raised);
+  }
+  .nf-clock__fill {
+    position: absolute;
+    inset: 0;
+    transform-origin: left center;
+    background: var(--nf-brand-primary);
+    transition: transform var(--nf-duration-slow) var(--nf-ease-standard);
+  }
+  .nf-clock__bar[data-urgency="soon"] .nf-clock__fill {
+    background: var(--nf-state-warning);
+  }
+  .nf-clock__bar[data-urgency="late"] .nf-clock__fill,
+  .nf-clock__bar[data-urgency="lapsed"] .nf-clock__fill {
+    background: var(--nf-state-error);
+  }
+  @media (min-width: 1024px) {
+    .nf-decide {
+      grid-template-columns: minmax(0, 1fr) 20rem;
+      align-items: start;
+    }
+  }
+
+  /* ------------------------------------------------------------ reviews */
+  .nf-hreview {
+    display: grid;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-md);
+    border: var(--nf-border-width) solid var(--nf-card-border);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-surface-primary);
+    box-shadow: var(--nf-card-shadow);
+  }
+  .nf-hreview__stars {
+    display: inline-flex;
+    gap: 2px;
+    color: var(--nf-state-warning);
+  }
+  .nf-hreview__stars [data-off] {
+    color: var(--nf-border-strong);
+  }
+  .nf-hreview__body {
+    font-size: var(--nf-text-body);
+    color: var(--nf-content-primary);
+    white-space: pre-line;
+  }
+  .nf-hreview__reply {
+    padding: var(--nf-space-sm);
+    border-left: 2px solid var(--nf-brand-primary);
+    border-radius: 0 var(--nf-radius-md) var(--nf-radius-md) 0;
+    background: var(--nf-surface-secondary);
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+  }
+  .nf-hreview__hidden {
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-muted);
+  }
+  .nf-hreview__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--nf-space-xs);
+  }
+  .nf-hreview__foot {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0 var(--nf-space-xs);
+    margin-inline: calc(var(--nf-space-sm) * -1);
+    padding-top: var(--nf-space-2xs);
+    border-top: var(--nf-border-width) solid var(--nf-divider);
+  }
+  .nf-hreview__foot > .nf-btn {
+    padding-inline: var(--nf-space-sm);
+  }
+  .nf-hreview-choice {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nf-space-sm);
+    min-height: 44px;
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    border: var(--nf-border-width) solid var(--nf-card-border);
+    border-radius: var(--nf-radius-md);
+    background: var(--nf-surface-primary);
+    cursor: pointer;
+  }
+  .nf-hreview-choice:has(:checked) {
+    border-color: var(--nf-brand-primary);
+    background: var(--nf-brand-tint-1);
+  }
+  .nf-hreview-choice:has(:focus-visible) {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: var(--nf-focus-ring-offset);
+  }
+  .nf-hreview-choice__input {
+    flex: none;
+    width: 20px;
+    height: 20px;
+    margin-top: 2px;
+    accent-color: var(--nf-brand-primary);
+  }
+  .nf-hreview-grid {
+    display: grid;
+    gap: var(--nf-space-md);
+  }
+  @media (min-width: 1024px) {
+    .nf-hreview-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      align-items: start;
+    }
+  }
+
+  /* --------------------------------------------------------- statements */
+  .nf-stmt-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--nf-text-body-sm);
+  }
+  .nf-stmt-table th,
+  .nf-stmt-table td {
+    padding: var(--nf-space-xs) var(--nf-space-sm);
+    border-bottom: var(--nf-border-width) solid var(--nf-divider);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .nf-stmt-table th:first-child,
+  .nf-stmt-table td:first-child {
+    text-align: left;
+    white-space: normal;
+  }
+  .nf-stmt-table thead th {
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--nf-content-muted);
+  }
+  .nf-stmt-table tfoot td {
+    font-weight: 600;
+    color: var(--nf-content-primary);
+    border-bottom: 0;
+  }
+  .nf-stmt-lines {
+    display: grid;
+    gap: var(--nf-space-sm);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .nf-stmt-line {
+    display: grid;
+    gap: var(--nf-space-2xs);
+    padding: var(--nf-space-md);
+    border: var(--nf-border-width) solid var(--nf-card-border);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-surface-primary);
+  }
+  .nf-stmt-line__split {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 2px var(--nf-space-sm);
+    margin: 0;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+  }
+  .nf-stmt-line__split dd {
+    margin: 0;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .nf-stmt-line__split .is-share {
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-stmt-wide {
+    display: none;
+  }
+  @media (min-width: 768px) {
+    .nf-stmt-wide {
+      display: block;
+      overflow-x: auto;
+      border: var(--nf-border-width) solid var(--nf-card-border);
+      border-radius: var(--nf-radius-card);
+      background: var(--nf-surface-primary);
+    }
+    .nf-stmt-narrow {
+      display: none;
+    }
+  }
+  /* The month's totals read as one short column, not a label at one edge
+     of a 1,100px card and its figure at the other. */
+  @media (min-width: 768px) {
+    .nf-stmt-totals {
+      max-width: 26rem;
+    }
+  }
+  /* Download and Print: full width, one under the other, on a phone (two
+     pills of different widths read as an accident); side by side above. */
+  .nf-stmt-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--nf-space-sm);
+  }
+  .nf-stmt-actions > * {
+    width: 100%;
+  }
+  @media (min-width: 480px) {
+    .nf-stmt-actions {
+      display: flex;
+      flex-wrap: wrap;
+    }
+    .nf-stmt-actions > * {
+      width: auto;
+    }
+  }
+  /* PRINT: ink on paper whatever the theme. Dark mode printed white type on
+     the white page (a printer drops the night background), so the whole
+     statement is redrawn in the on-paper ink: no fills, no shadows, paper
+     hairlines, the full table and never the phone cards. */
+  @media print {
+    @page {
+      size: A4 portrait;
+      margin: 14mm;
+    }
+    /* The page itself prints as paper: a light canvas under a dark theme. */
+    :root,
+    :root[data-theme] {
+      color-scheme: light !important;
+    }
+    html {
+      background: Canvas !important;
+    }
+    body,
+    .nf-host,
+    .nf-host__col {
+      background: none !important;
+    }
+    .nf-ambient,
+    .nf-grain,
+    .nf-to-top,
+    .nf-host > aside,
+    header,
+    .nf-stmt-noprint {
+      display: none !important;
+    }
+    .nf-stmt,
+    .nf-stmt * {
+      color: var(--nf-content-on-paper) !important;
+      background: none !important;
+      box-shadow: none !important;
+      text-shadow: none !important;
+    }
+    .nf-stmt .nf-caption,
+    .nf-stmt thead th {
+      color: var(--nf-content-on-paper-secondary) !important;
+    }
+    .nf-stmt * {
+      border-color: var(--nf-border-on-paper) !important;
+    }
+    .nf-stmt-wide {
+      display: block;
+      overflow: visible;
+      border: 0;
+    }
+    .nf-stmt-table tr {
+      break-inside: avoid;
+    }
+    .nf-stmt-narrow {
+      display: none;
+    }
+  }
+}
+
+@keyframes nf-rcal-bar-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nf-rcal__bar {
+    animation: none;
+  }
+  .nf-rcal__cell::after,
+  .nf-clock__fill {
+    transition: none;
+  }
+}
+:root[data-motion="calm"] .nf-rcal__bar,
+:root[data-motion="off"] .nf-rcal__bar {
+  animation: none;
+}
+:root[data-motion="off"] .nf-rcal__cell::after,
+:root[data-motion="off"] .nf-clock__fill {
+  transition: none;
+}

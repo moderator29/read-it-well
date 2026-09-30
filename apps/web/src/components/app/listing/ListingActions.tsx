@@ -21,7 +21,8 @@ import { ShareSheet } from "@/components/app/messages/ShareSheet";
 import type { SharedKind } from "@/components/app/messages/share";
 import { createShareLink } from "@/lib/share/actions";
 import { useClientCopy } from "@/lib/i18n/client-copy";
-import { nativeHaptic, nativeShare } from "@/lib/native/device";
+import { nativeShare } from "@/lib/native/device";
+import { feedback } from "@/lib/ui/feedback";
 
 /**
  * The two controls that float over the gallery: share and save.
@@ -228,6 +229,7 @@ export function ListingActions({
         // A catalogue id can never be a row, so the device owns this save.
         if (next) addLocalSave(listingId);
         else removeLocalSave(listingId);
+        if (next) feedback("confirm");
         /* And the store is told, so every other heart for this listing on the
            page behind this one moves with it rather than waiting for a reload. */
         deviceSavesChanged();
@@ -235,7 +237,10 @@ export function ListingActions({
         return;
       }
       setSaved(result.data.saved);
-      if (result.data.saved) void nativeHaptic("success");
+      /* B14: a save accepted by the server is a CONFIRM. "success" is kept
+         for money and confirmed viewings, so a heart never feels like a
+         settled payment. */
+      if (result.data.saved) feedback("confirm");
       say(result.data.saved ? "Saved to your shortlist" : "Removed from saved");
     });
   }
@@ -300,8 +305,9 @@ export function ListingActions({
   return (
     /*
      * `nf-safe-top` is padding rather than an offset, so these clear the notch
-     * while the photography still runs full bleed behind them. 44px squares,
-     * which is the App Store minimum and what the pair used to miss by four.
+     * while the photography still runs full bleed behind them. 44px circles on
+     * the soft float shadow (section 17's round header buttons), which is the
+     * App Store minimum and what the pair used to miss by four.
      */
     <div className="nf-safe-top absolute right-3 top-3 z-20 flex flex-col items-end gap-xs sm:right-4 sm:top-4">
       <div className="flex items-center gap-xs">
@@ -315,7 +321,8 @@ export function ListingActions({
           aria-expanded={shareOpen}
           aria-label="Share this listing"
           data-testid="listing-share"
-          className="grid h-11 w-11 place-items-center nf-btn nf-btn--glass nf-btn--sm nf-btn--icon text-[var(--nf-content-on-media)] transition-transform active:scale-90 motion-reduce:transition-none"
+          data-theme="light"
+          className="grid h-11 w-11 place-items-center nf-icon-btn nf-icon-btn--round transition-transform active:scale-90 motion-reduce:transition-none"
         >
           <UiIcon name="share" size={16} />
         </button>
@@ -339,7 +346,8 @@ export function ListingActions({
             aria-pressed={saved}
             aria-label={saved ? "Remove from saved" : "Save this listing"}
             data-testid="listing-save"
-            className="grid h-11 w-11 place-items-center nf-btn nf-btn--glass nf-btn--sm nf-btn--icon text-[var(--nf-content-on-media)] transition-transform active:scale-90 disabled:opacity-70 motion-reduce:transition-none"
+            data-theme="light"
+            className="grid h-11 w-11 place-items-center nf-icon-btn nf-icon-btn--round transition-transform active:scale-90 disabled:opacity-70 motion-reduce:transition-none"
           >
             <UiIcon
               name="heart"

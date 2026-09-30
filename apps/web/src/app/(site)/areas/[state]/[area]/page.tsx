@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { localizedAlternates } from "@/lib/i18n/public-metadata";
 import { notFound } from "next/navigation";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
@@ -71,7 +72,8 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   return {
     title,
     description,
-    alternates: { canonical: url },
+    /* A10: canonical in the page's language, and the hreflang set. */
+    alternates: (await localizedAlternates(found.path)) ?? { canonical: url },
     robots: { index: true, follow: true },
     openGraph: { type: "website", title, description, url },
   };

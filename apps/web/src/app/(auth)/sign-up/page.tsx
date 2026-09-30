@@ -1,14 +1,17 @@
 import type { Metadata } from "next";
+import { publicPageMetadata } from "@/lib/i18n/public-metadata";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { resolveProviderStates } from "@/lib/auth/providers";
 import { requestSurface } from "@/lib/auth/surface";
+import { phoneSignInEnabled } from "@/lib/auth/phone-sign-in-flag";
 import { SignUpOptions } from "@/components/auth/SignUpOptions";
 
-export const metadata: Metadata = {
-  title: "Create your account",
-  robots: { index: false, follow: false },
-};
+/* A10: the title and description in the page's own language, with its
+   canonical and hreflang (lib/i18n/public-metadata.ts; words in publicMeta). */
+export async function generateMetadata(): Promise<Metadata> {
+  return publicPageMetadata("signUp", { robots: { index: false, follow: false } });
+}
 
 /**
  * The sign-up OPTIONS page, where Get started on the welcome intro leads
@@ -56,6 +59,7 @@ export default async function SignUpPage({
       appleReady={ready("apple")}
       surface={surface}
       next={next}
+      phoneReady={phoneSignInEnabled()}
     />
   );
 }

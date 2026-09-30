@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { publicPageMetadata } from "@/lib/i18n/public-metadata";
 import { SiteHead } from "@/components/site/SiteHead";
 import Link from "next/link";
 import { ButtonLink } from "@/components/ui/Button";
@@ -10,11 +11,11 @@ import {
 import { TIER_NAME, VERIFICATION_ORDER } from "@/lib/trust/verification";
 import { RankingExplained } from "@/components/site/RankingExplained";
 
-export const metadata: Metadata = {
-  title: "Trust and safety standards",
-  description:
-    "What is not allowed on Vallo on either side, property or stays, how we enforce it, how long we take to answer a report, and how to appeal a decision.",
-};
+/* A10: the title and description in the page's own language, with its
+   canonical and hreflang (lib/i18n/public-metadata.ts; words in publicMeta). */
+export async function generateMetadata(): Promise<Metadata> {
+  return publicPageMetadata("standards");
+}
 
 /**
  * Trust and safety standards.

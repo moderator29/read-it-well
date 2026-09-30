@@ -1,5 +1,6 @@
 "use client";
 
+import { useHostCopy } from "@/components/host/host-copy";
 import { useState } from "react";
 import { countOf, formatMoney } from "@vallo/i18n/core";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -48,6 +49,7 @@ export function RoomTypesStep({
   advance,
   expectedRooms,
 }: StaysStepProps & { expectedRooms: number }) {
+  const hw = useHostCopy();
   const cover = draft.accommodation?.photos[0]?.url ?? null;
   const [adding, setAdding] = useState(draft.roomTypes.length === 0);
   const [name, setName] = useState("");
@@ -145,20 +147,20 @@ export function RoomTypesStep({
         </button>
       ) : (
         <>
-          <StaysPlate label="Name" htmlFor="stays-room-name">
+          <StaysPlate label={hw.steps.roomTypeName} htmlFor="stays-room-name">
             <input
               id="stays-room-name"
               className="nf-field nf-field--glass nf-stays-input"
               value={name}
-              placeholder="Deluxe double"
+              placeholder={hw.steps.roomTypePlaceholder}
               aria-invalid={fieldErrors.name ? true : undefined}
               onChange={(event) => setName(event.target.value)}
             />
             <p className="nf-stays-plate__note">What a guest sees when they pick a room.</p>
           </StaysPlate>
 
-          <StaysPlate label="What kind of room">
-            <StaysTiles label="What kind of room" columns={3}>
+          <StaysPlate label={hw.steps.roomKind}>
+            <StaysTiles label={hw.steps.roomKind} columns={3}>
               {ROOM_KINDS.map((option) => (
                 <StaysTile
                   key={option.value}
@@ -176,7 +178,7 @@ export function RoomTypesStep({
               <StaysRow
                 trailing={
                   <StaysStepper
-                    label="rooms of this kind"
+                    label={hw.steps.roomsOfKind}
                     value={units}
                     min={1}
                     max={999}
@@ -190,7 +192,7 @@ export function RoomTypesStep({
               <StaysRow
                 trailing={
                   <StaysStepper
-                    label="guests"
+                    label={hw.steps.guestsUnit}
                     value={sleeps}
                     min={1}
                     max={20}
@@ -204,7 +206,7 @@ export function RoomTypesStep({
             </div>
           </section>
 
-          <StaysPlate label="Nightly price" htmlFor="stays-room-rate">
+          <StaysPlate label={hw.steps.nightlyPrice} htmlFor="stays-room-rate">
             <input
               id="stays-room-rate"
               className="nf-field nf-field--glass nf-stays-input"

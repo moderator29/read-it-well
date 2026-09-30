@@ -70,11 +70,11 @@ function DisputeItem({ row, locale }: { row: CautionDispute; locale: Locale }) {
         <div className="grid gap-inline">
           <label className="text-[length:var(--nf-text-caption)]">
             Amount that stands (₦, 0 to allow none)
-            <input className="nf-input mt-3xs" inputMode="decimal" value={allowed} onChange={(e) => setAllowed(e.target.value)} />
+            <input className="nf-field mt-3xs" inputMode="decimal" value={allowed} onChange={(e) => setAllowed(e.target.value)} />
           </label>
           <label className="text-[length:var(--nf-text-caption)]">
             Reason (both parties read it)
-            <input className="nf-input mt-3xs" value={reason} maxLength={1000} onChange={(e) => setReason(e.target.value)} />
+            <input className="nf-field mt-3xs" value={reason} maxLength={1000} onChange={(e) => setReason(e.target.value)} />
           </label>
           <button
             type="button"
@@ -123,7 +123,7 @@ function ReturnItem({ row, locale }: { row: ContestedReturn; locale: Locale }) {
         <div className="grid gap-inline">
           <label className="text-[length:var(--nf-text-caption)]">
             Reason (both parties read it)
-            <input className="nf-input mt-3xs" value={reason} maxLength={1000} onChange={(e) => setReason(e.target.value)} />
+            <input className="nf-field mt-3xs" value={reason} maxLength={1000} onChange={(e) => setReason(e.target.value)} />
           </label>
           <div className="flex gap-inline">
             <button type="button" className="nf-btn nf-btn--primary" disabled={pending || reason.trim().length < 10} onClick={() => rule("received")}>

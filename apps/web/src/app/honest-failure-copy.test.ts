@@ -35,11 +35,14 @@ describe("failure screens promise nothing they cannot keep", () => {
   });
 
   it.each(["app/error.tsx", "app/global-error.tsx"])(
-    "%s asks for the reference only when there is one",
+    "%s always has a reference to quote, and it is the one the report carries (C13)",
     (file) => {
       const text = read(file).replace(/\s+/g, " ");
-      expect(text).toMatch(/error\.digest \? "If it keeps happening, tell support and quote the reference below\."/);
-      expect(text).toContain("tell support what you were doing");
+      expect(text).toContain("If it keeps happening, tell support and quote the reference below.");
+      expect(text).toContain("Quote this to support.");
+      /* A client error has no digest, so one is made (lib/observability/reference.ts)
+         and sent with the report: the promise of a reference is kept every time. */
+      expect(text).toMatch(/useErrorReport|digestFor\(error\)/);
     },
   );
 });

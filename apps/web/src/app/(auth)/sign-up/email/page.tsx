@@ -3,10 +3,10 @@ import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { chooserEmail, signUpWithEmail } from "@/lib/auth/actions";
 import { EmailAuthForm } from "@/components/auth/EmailAuthForm";
-import { listStates } from "@/lib/places/queries";
 import { resolveProviderStates } from "@/lib/auth/providers";
 import { requestSurface } from "@/lib/auth/surface";
 import { emailFromQuery } from "@/components/auth/auth-intent";
+import { FunnelBeacon } from "@/components/site/FunnelBeacon";
 
 export const metadata: Metadata = {
   title: "Create your account with email",
@@ -14,14 +14,11 @@ export const metadata: Metadata = {
 };
 
 /**
- * The sign-up form in two steps, reached from "Sign up with email" on the
- * options page (`/sign-up`), from the email-first chooser, or from a link
- * that carries `?email=`.
- *
- * The 37 states come down with the page because they are small and every
- * sign-up needs them. The 774 local governments and 749 occupations do not:
- * their pickers fetch themselves when opened, so nobody pays for a list they
- * never look at.
+ * The sign-up form, on one screen (A1, 30 September), reached from "Sign up
+ * with email" on the options page (`/sign-up`), from the email-first
+ * chooser, from a link that carries `?email=`, or from "Change it" on the
+ * code screen. Where somebody stays is asked after the account exists, so
+ * no list of states comes down with this page any more.
  */
 export default async function SignUpEmailPage({
   searchParams,
@@ -31,22 +28,24 @@ export default async function SignUpEmailPage({
   const { next, email } = await searchParams;
   const locale = await getLocale();
   const t = getDictionary(locale);
-  const states = await listStates();
   const surface = await requestSurface();
   const providers = await resolveProviderStates(surface);
   const ready = (id: "google" | "apple") => providers.some((p) => p.id === id && p.configured);
 
   return (
-    <EmailAuthForm
-      mode="sign-up"
-      t={t}
-      action={signUpWithEmail}
-      states={states}
-      next={next}
-      initialEmail={emailFromQuery(email) || (await chooserEmail())}
-      googleReady={ready("google")}
-      appleReady={ready("apple")}
-      surface={surface}
-    />
+    <>
+      {/* A6: the funnel's "sign-up opened" step; draws nothing. */}
+      <FunnelBeacon step="signup_opened" />
+      <EmailAuthForm
+        mode="sign-up"
+        t={t}
+        action={signUpWithEmail}
+        next={next}
+        initialEmail={emailFromQuery(email) || (await chooserEmail())}
+        googleReady={ready("google")}
+        appleReady={ready("apple")}
+        surface={surface}
+      />
+    </>
   );
 }

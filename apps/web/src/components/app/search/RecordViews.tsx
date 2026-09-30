@@ -31,6 +31,9 @@ export async function RecordViews({ seen = [], opened = null }: { seen?: string[
   const viewer = session.user.id;
   after(async () => {
     try {
+      /* C10: QA, staff and the super admin's internal list are not viewers. */
+      const { isInternalAccount } = await import("@/lib/admin/internal-accounts");
+      if (await isInternalAccount(viewer)) return;
       await (
         createAdminClient() as unknown as {
           rpc: (fn: string, args: object) => Promise<{ error: unknown }>;

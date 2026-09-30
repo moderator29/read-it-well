@@ -97,7 +97,7 @@ function AddToSupport() {
       <label className="grid min-w-0 flex-1 gap-2xs">
         <span className="nf-label">Put somebody on support</span>
         <input
-          className="nf-input w-full"
+          className="nf-field w-full"
           type="email"
           required
           value={email}
@@ -150,7 +150,7 @@ function RemoveFromSupport({ userId, ends }: { userId: string; ends: boolean }) 
     >
       <label className="grid min-w-0 flex-1 gap-2xs">
         <span className="nf-label">{ends ? "Reason (they read it; support was all their access)" : "Reason (kept on the record)"}</span>
-        <input className="nf-input w-full" value={reason} maxLength={500} onChange={(e) => setReason(e.target.value)} />
+        <input className="nf-field w-full" value={reason} maxLength={500} onChange={(e) => setReason(e.target.value)} />
       </label>
       <Button type="submit" variant={ends ? "dangerQuiet" : "secondary"} size="sm" loading={pending} disabled={reason.trim().length < 5}>
         {ends ? "End their access" : "Take off support"}

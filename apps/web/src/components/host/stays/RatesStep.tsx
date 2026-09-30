@@ -1,5 +1,6 @@
 "use client";
 
+import { useHostCopy } from "@/components/host/host-copy";
 import { useState } from "react";
 import { countOf, formatMoney } from "@vallo/i18n/core";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -54,6 +55,7 @@ export function RatesStep({
   setNotice,
   advance,
 }: StaysStepProps) {
+  const hw = useHostCopy();
   const cover = draft.accommodation?.photos[0]?.url ?? null;
   const free = policies.filter((policy) => policy.isFreeUntilHours !== null);
   const strict = policies.filter((policy) => policy.isFreeUntilHours === null);
@@ -139,13 +141,13 @@ export function RatesStep({
         </article>
       ))}
 
-      <StaysPlate label="Cancellation">
+      <StaysPlate label={hw.steps.cancellation}>
         <div className="nf-stays-list">
           <StaysRow
             trailing={
               <Switch
                 checked={isFree}
-                aria-label="Free cancellation"
+                aria-label={hw.steps.freeCancellation}
                 disabled={pending || (isFree ? strict.length === 0 : free.length === 0)}
                 onCheckedChange={(next) => {
                   const pick = next ? free[0] : strict[0];
@@ -247,6 +249,7 @@ function RateEditor({
   run: StaysStepProps["run"];
   setNotice: StaysStepProps["setNotice"];
 }) {
+  const hw = useHostCopy();
   const open = MEAL_PLANS.filter((plan) => !taken.includes(plan.id));
   const [adding, setAdding] = useState(false);
   const [plan, setPlan] = useState(open[0]?.id ?? "room_only");
@@ -286,7 +289,7 @@ function RateEditor({
 
   return (
     <div className="mt-[var(--nf-space-sm)]">
-      <StaysTiles label="What the night includes" columns={2}>
+      <StaysTiles label={hw.steps.mealPlan} columns={2}>
         {open.map((option) => (
           <StaysTile
             key={option.id}

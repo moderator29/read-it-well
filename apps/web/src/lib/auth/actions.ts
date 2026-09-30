@@ -23,6 +23,7 @@ import { TERMS_VERSION } from "@/lib/legal/versions";
 import { ageConfirmed, ageRefusal, termsRefusal } from "./terms-gate";
 import { welcomeOnce } from "@/lib/notify/welcome";
 import { authOrigin } from "@/lib/site";
+import { getLocale } from "@/lib/locale";
 import {
   getProviderStates,
   providerAllowed,
@@ -42,6 +43,8 @@ import { doneFlagForLinkType } from "./link-moment";
 import { finishSetupHref, SETUP_DONE_CLAIM } from "./finish-setup";
 import { setupOnRecord, setupStillOwed } from "./finish-setup-server";
 import { contentRefusal } from "@/lib/safety/content-refusal";
+import { inviteCodeFromCookie } from "@/lib/referral/server";
+import { recordFunnelStep } from "@/lib/funnel/record";
 import type {
   AuthField,
   AuthFormState,
@@ -120,10 +123,11 @@ function validateSignUp(formData: FormData): Partial<Record<AuthField, string>> 
   // Nickname is optional; only its length is bounded when supplied.
   if (nickname.length > 40) errors.nickname = "Keep your nickname under 40 characters.";
 
-  if (!errors.password) {
-    if (!confirmPassword) errors.confirmPassword = "Re-enter your password.";
-    else if (confirmPassword !== field(formData, "password"))
-      errors.confirmPassword = "Passwords do not match.";
+  /* A1 (30 September): sign up is one screen, and the second password
+     field is gone (show and hide, and the reset flow, cover the typo it
+     guarded against). A post that still carries one is held to it. */
+  if (!errors.password && confirmPassword && confirmPassword !== field(formData, "password")) {
+    errors.confirmPassword = "Passwords do not match.";
   }
 
   /* The English value, never the translated label. The select posts the one
@@ -161,15 +165,19 @@ function validateSignUp(formData: FormData): Partial<Record<AuthField, string>> 
   const underAge = ageRefusal(field(formData, "ageConfirmed"));
   if (underAge) errors.ageConfirmed = underAge;
 
-  if (!hearAbout) errors.hearAbout = "Tell us where you heard about us.";
-  else if (!HEAR_ABOUT_VALUES.includes(hearAbout))
+  /* A1: optional, and asked after the account exists (the interests step
+     on /welcome). Supplied, it must be one of the listed answers. */
+  if (hearAbout && !HEAR_ABOUT_VALUES.includes(hearAbout))
     errors.hearAbout = "Choose one of the listed options.";
 
   /* Codes, not names. `profiles.state_code` and `profiles.lga_code` are keyed
      to `public.states` and `public.local_governments`, and the signup trigger
      checks both against those tables before writing either, so the shape check
      here is only about catching a mangled post early. */
-  if (!STATE_CODE_RE.test(stateCode)) errors.stateCode = "Choose the state you stay in.";
+  /* A1: where somebody stays is asked after the account exists, like the
+     rest; supplied here (an older form), it is still checked. */
+  if (stateCode !== "" && !STATE_CODE_RE.test(stateCode))
+    errors.stateCode = "Choose the state you stay in.";
   if (lgaCode !== "" && !LGA_CODE_RE.test(lgaCode))
     errors.lgaCode = "Choose a local government from the list.";
   if (lgaCode !== "" && stateCode === "")
@@ -420,8 +428,13 @@ export async function signUpWithEmail(
         lga_code: field(formData, "lgaCode").trim().toLowerCase() || null,
         occupation_code: field(formData, "occupationCode").trim().toLowerCase() || null,
         display_name: nickname.length > 0 ? nickname : [firstName, surname].join(" ").trim(),
-        hear_about: field(formData, "hearAbout"),
-        referral_code: field(formData, "referralCode").trim() || null,
+        hear_about: field(formData, "hearAbout") || null,
+        /* A11: the language this form was read in, so the confirmation code
+           email arrives in it before the person has a setting of their own. */
+        locale: await getLocale(),
+        /* A5: the form's field is gone (A1), so the code the /join/<code>
+           door left in this browser is what records who invited them. */
+        referral_code: field(formData, "referralCode").trim() || (await inviteCodeFromCookie()) || null,
         /*
          * WHAT THEY ACCEPTED, AND WHEN, RECORDED RATHER THAN ASSUMED.
          *
@@ -678,7 +691,11 @@ export async function verifySignUpCode(
   /* The account now exists: "Welcome to Vallo" on the next screen, by the
      one-shot cookie (lib/ui/success-cookie.ts). */
   await rememberSuccess("account-created");
-  return { ok: true, verified: landingAfterAuth(formData) };
+  /* The name the sign-up gave, for the moment on screen (A17); never more
+     than a first name, and nothing when the metadata holds none. */
+  const given = data.user?.user_metadata?.first_name;
+  const name = typeof given === "string" && given.trim() ? given.trim().slice(0, 40) : undefined;
+  return { ok: true, verified: landingAfterAuth(formData), ...(name ? { name } : {}) };
 }
 
 /**
@@ -930,6 +947,9 @@ export async function resendSignUpCode(
   });
 
   await rememberPendingEmail(email);
+  /* A6: a resend is a step in the funnel (never throws, never blocks on
+     anything the person needs). */
+  await recordFunnelStep("code_resent");
   return {
     ok: true,
     message: "If that address is waiting on a code, a new one is on its way. It lasts an hour.",

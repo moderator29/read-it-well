@@ -25,10 +25,14 @@ const CSS = [
   /* The tokens first: an animation shorthand naming an undefined easing token
      is invalid, and would read as "no animation" for the wrong reason. */
   readFileSync(join(__dirname, "..", "..", "..", "..", "..", "packages", "design-tokens", "src", "tokens.css"), "utf8"),
+  /* The sheet's own geometry, which the success card's shape is layered on. */
+  "*, ::before, ::after { box-sizing: border-box; }",
+  readFileSync(join(__dirname, "..", "..", "app", "css", "overlays.css"), "utf8"),
+  readFileSync(join(__dirname, "..", "..", "app", "css", "buttons.css"), "utf8"),
   readFileSync(join(__dirname, "..", "..", "app", "css", "success.css"), "utf8"),
 ].join("\n");
 
-function entry(variant: "success" | "submitted" | "approved" = "success"): string {
+function entry(variant: "success" | "submitted" | "approved" = "success", object?: string): string {
   return `
     import { useState } from "react";
     import { mount } from "@/lib/testing/browser-root";
@@ -43,6 +47,7 @@ function entry(variant: "success" | "submitted" | "approved" = "success"): strin
             open={open}
             onOpenChange={setOpen}
             variant=${JSON.stringify(variant)}
+            ${object ? `object=${JSON.stringify(object)}` : ""}
             title="Stay paid"
             body="Your payment is in and these dates are confirmed."
             amount={{ minorUnits: 48500000 }}
@@ -74,7 +79,10 @@ describe.skipIf(!hasBrowser && !process.env.CI)("SuccessSheet", () => {
       expect(await page.getByTestId("success-title").getAttribute("aria-hidden")).toBe("true");
       expect(await page.getByTestId("success-amount").textContent()).toContain("485,000");
       expect(await page.locator(".nf-success__mono").textContent()).toBe("rm-book-7f3a9c21e4");
-      expect(await page.locator(".nf-success__bit").count()).toBe(10);
+      /* The object, decorative, with eight sparks round it (three orange). */
+      expect(await page.locator(".nf-success__mark img").getAttribute("alt")).toBe("");
+      expect(await page.locator(".nf-success__bit").count()).toBe(8);
+      expect(await page.locator('.nf-success__bit[data-tone="spark"]').count()).toBe(3);
     } finally {
       await close();
     }
@@ -118,13 +126,17 @@ describe.skipIf(!hasBrowser && !process.env.CI)("SuccessSheet", () => {
     }
   });
 
-  it("animates by default: the mark is marked not-quiet and the burst runs", async () => {
+  it("animates by default: the object pops, the sparks burst and the words rise", async () => {
     const { page, close } = await mountInBrowser({ entry: entry(), css: CSS });
     try {
       await page.waitForSelector('.nf-success[data-quiet="false"]');
-      await page.waitForSelector('.nf-sheet--card[data-open="true"]');
-      const animation = await page.locator(".nf-success__bit").first().evaluate((el) => getComputedStyle(el).animationName);
-      expect(animation).toBe("nf-success-burst");
+      const names = await page.evaluate(() => ({
+        pop: getComputedStyle(document.querySelector(".nf-success__pop")!).animationName,
+        bit: getComputedStyle(document.querySelector(".nf-success__bit")!).animationName,
+        title: getComputedStyle(document.querySelector(".nf-success__title")!).animationName,
+        float: getComputedStyle(document.querySelector(".nf-success__float")!).animationName,
+      }));
+      expect(names).toEqual({ pop: "nf-success-pop", bit: "nf-success-burst", title: "nf-success-rise", float: "nf-success-float" });
     } finally {
       await close();
     }
@@ -140,32 +152,105 @@ describe.skipIf(!hasBrowser && !process.env.CI)("SuccessSheet", () => {
       await page.waitForSelector('.nf-success[data-quiet="true"]');
       await page.waitForSelector('.nf-sheet--card[data-open="true"]');
       const state = await page.evaluate(() => {
-        const bit = document.querySelector(".nf-success__bit")!;
-        const stroke = document.querySelector(".nf-success__stroke")!;
+        const cs = (sel: string) => getComputedStyle(document.querySelector(sel)!);
         return {
-          bitAnimation: getComputedStyle(bit).animationName,
-          strokeAnimation: getComputedStyle(stroke).animationName,
-          dashoffset: getComputedStyle(stroke).strokeDashoffset,
+          pop: cs(".nf-success__pop").animationName,
+          float: cs(".nf-success__float").animationName,
+          bit: cs(".nf-success__bit").animationName,
+          title: cs(".nf-success__title").animationName,
+          actions: cs(".nf-success__actions").animationName,
+          /* Everything in its final place, fully drawn. */
+          popOpacity: cs(".nf-success__pop").opacity,
+          titleOpacity: cs(".nf-success__title").opacity,
+          pulseOpacity: cs(".nf-success__pulse").opacity,
         };
       });
-      expect(state).toEqual({ bitAnimation: "none", strokeAnimation: "none", dashoffset: "0px" });
+      expect(state).toEqual({
+        pop: "none",
+        float: "none",
+        bit: "none",
+        title: "none",
+        actions: "none",
+        popOpacity: "1",
+        titleOpacity: "1",
+        pulseOpacity: "0",
+      });
     } finally {
       await close();
     }
   });
 
-  it.each(["success", "submitted", "approved"] as const)("draws the %s variant's own mark", async (variant) => {
+  it("keeps the float off when ambient motion is off, while the arrival still runs", async () => {
+    const { page, close } = await mountInBrowser({
+      entry: entry(),
+      css: CSS,
+      init: `document.documentElement.dataset.motionAmbient = "off";`,
+    });
+    try {
+      await page.waitForSelector('.nf-success[data-quiet="false"]');
+      const names = await page.evaluate(() => ({
+        pop: getComputedStyle(document.querySelector(".nf-success__pop")!).animationName,
+        float: getComputedStyle(document.querySelector(".nf-success__float")!).animationName,
+      }));
+      expect(names).toEqual({ pop: "nf-success-pop", float: "none" });
+    } finally {
+      await close();
+    }
+  });
+
+  it("fills a phone screen, with the pill at the foot and every action 44px or taller", async () => {
+    const { page, close } = await mountInBrowser({ entry: entry(), css: CSS, viewport: { width: 360, height: 740 } });
+    try {
+      await page.waitForSelector('.nf-sheet--card[data-open="true"]');
+      await page.waitForTimeout(400);
+      const box = await page.getByTestId("success-sheet").boundingBox();
+      expect(box).toMatchObject({ x: 0, y: 0, width: 360, height: 740 });
+      const primary = (await page.getByTestId("success-primary").boundingBox())!;
+      const secondary = (await page.getByTestId("success-secondary").boundingBox())!;
+      expect(primary.height).toBeGreaterThanOrEqual(44);
+      expect(secondary.height).toBeGreaterThanOrEqual(44);
+      /* The pills sit in the lower part of the screen, under the object. */
+      const mark = (await page.locator(".nf-success__mark").boundingBox())!;
+      expect(primary.y).toBeGreaterThan(mark.y + mark.height);
+      expect(secondary.y + secondary.height).toBeGreaterThan(740 * 0.8);
+    } finally {
+      await close();
+    }
+  });
+
+  it("is a centred card on a wide screen", async () => {
+    const { page, close } = await mountInBrowser({ entry: entry(), css: CSS, viewport: { width: 1440, height: 900 } });
+    try {
+      await page.waitForSelector('.nf-sheet--card[data-open="true"]');
+      await page.waitForTimeout(500);
+      const box = (await page.getByTestId("success-sheet").boundingBox())!;
+      expect(box.width).toBeLessThanOrEqual(26 * 16 + 1);
+      expect(Math.abs(box.x + box.width / 2 - 720)).toBeLessThan(2);
+      expect(box.height).toBeLessThan(900);
+    } finally {
+      await close();
+    }
+  });
+
+  it.each([
+    ["success", "verified"],
+    ["submitted", "clock"],
+    ["approved", "verified"],
+  ] as const)("draws the %s variant with its default object", async (variant, object) => {
     const { page, close } = await mountInBrowser({ entry: entry(variant), css: CSS });
     try {
       await page.waitForSelector(`.nf-success[data-variant="${variant}"]`);
-      const marks = await page.evaluate(() => ({
-        badge: document.querySelectorAll(".nf-success__badge").length,
-        seal: document.querySelectorAll(".nf-success__seal").length,
-      }));
-      expect(marks).toEqual({
-        badge: variant === "submitted" ? 1 : 0,
-        seal: variant === "approved" ? 1 : 0,
-      });
+      expect(await page.locator(".nf-success__mark").getAttribute("data-object")).toBe(object);
+      expect(await page.locator(".nf-success__mark img").getAttribute("src")).toContain(`/brand/3d/${object}@2x.webp`);
+    } finally {
+      await close();
+    }
+  });
+
+  it("draws the object it is given", async () => {
+    const { page, close } = await mountInBrowser({ entry: entry("success", "keys"), css: CSS });
+    try {
+      expect(await page.locator(".nf-success__mark").getAttribute("data-object")).toBe("keys");
     } finally {
       await close();
     }

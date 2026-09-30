@@ -23,6 +23,7 @@
 
 import { oncePerTap, tapKey } from "../offline/replay-guard";
 import { revalidatePath } from "next/cache";
+import type { Database } from "../supabase/database.types";
 import { phoneGateFor } from "../phone-otp/gate";
 import { fail, formDataToObject, ok, validate, type ActionResult } from "../actions/envelope";
 import {
@@ -57,7 +58,8 @@ const PAUSED_MESSAGE =
 const SERVICE_DOWN_MESSAGE =
   "We could not save your review just then. Nothing was lost, please try again in a moment.";
 
-export type ReviewWritten = { listingId: string };
+/** `href` is where the reviewed place lives: `/listing/<id>`, or `/stay/<id>` for a hotel (C4). */
+export type ReviewWritten = { listingId: string; href: string };
 
 export async function submitReview(
   _prev: ActionResult<ReviewWritten> | null,
@@ -87,7 +89,7 @@ async function submitReviewWork(
   // the client, so a crafted form cannot point a review at another property.
   const { data: booking, error: readError } = await session.supabase
     .from("bookings")
-    .select("id, listing_id, status, check_out")
+    .select("id, listing_id, accommodation_id, status, check_out")
     .eq("id", parsed.data.bookingId)
     .maybeSingle();
 
@@ -98,12 +100,16 @@ async function submitReviewWork(
     );
   }
 
-  /* ROOM BOOKINGS 1: a review attaches to a listing, and a hotel room has
-     none. Reviews of hotel stays are not open yet; say so rather than fail. */
-  if (!booking.listing_id) {
-    return fail("Reviews of hotel stays are not open yet. Thank you for staying.");
+  /* C4 (30 September 2026): a hotel room stay is reviewed against its hotel
+     (`reviews.accommodation_id`, migration
+     20260930084402_host_c4_reviews_reach_a_hotel_and_a_fair_contest.sql,
+     applied 30 September 2026).
+     Until that is applied the insert is refused and said in words below. */
+  const hotelId: string | null = booking.listing_id ? null : (booking.accommodation_id ?? null);
+  if (!booking.listing_id && !hotelId) {
+    return fail("We could not find what this stay was for. Open it again from Bookings.");
   }
-  const listingId: string = booking.listing_id;
+  const listingId: string = booking.listing_id ?? hotelId ?? "";
 
   // A rent charge is carried on a bookings row; it is a tenancy, not a stay.
   const { data: rentCharge, error: rentError } = await session.supabase
@@ -122,13 +128,16 @@ async function submitReviewWork(
 
   const body = parsed.data.body && parsed.data.body.length > 0 ? parsed.data.body : null;
 
-  const { error: insertError } = await session.supabase.from("reviews").insert({
-    listing_id: listingId,
+  const row = {
+    ...(hotelId ? { accommodation_id: hotelId } : { listing_id: listingId }),
     booking_id: booking.id,
     author_id: session.user.id,
     rating: parsed.data.rating,
     body,
-  });
+  };
+  const { error: insertError } = await session.supabase
+    .from("reviews")
+    .insert(row as unknown as Database["public"]["Tables"]["reviews"]["Insert"]);
 
   if (insertError) {
     // 23505 is the unique booking_id: the stay is already reviewed.
@@ -138,6 +147,11 @@ async function submitReviewWork(
     if (refused) return fail(refused, { body: refused });
     const limited = dbLimitRefusal(insertError);
     if (limited) return fail(limited);
+    /* Before the C4 migration: no accommodation column (42703 / PGRST204),
+       or listing_id still NOT NULL (23502). */
+    if (hotelId && ["42703", "PGRST204", "23502"].includes(insertError.code ?? "")) {
+      return fail("Reviews of hotel stays are not open yet. Thank you for staying.");
+    }
     if (insertError.code === "23505") {
       return fail("You have already reviewed this stay. Thank you for that.");
     }
@@ -153,8 +167,9 @@ async function submitReviewWork(
 
   // The listing's rating aggregate and its written reviews both change, and so
   // does the trips hub's per stay control.
-  revalidatePath(`/listing/${listingId}`);
+  const href = hotelId ? `/stay/${hotelId}` : `/listing/${listingId}`;
+  revalidatePath(href);
   revalidatePath("/bookings");
 
-  return ok({ listingId });
+  return ok({ listingId, href });
 }

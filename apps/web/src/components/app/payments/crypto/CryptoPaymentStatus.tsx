@@ -1,5 +1,6 @@
 "use client";
 
+import { useCopyFlash } from "@/lib/ui/use-copy";
 import { useEffect, useRef, useState } from "react";
 import { getDictionary, type Locale } from "@vallo/i18n";
 import { cryptoPaymentStatus } from "@/lib/crypto/actions";
@@ -95,7 +96,7 @@ function useLivePayment(initial: CryptoPaymentView): CryptoPaymentView {
 }
 
 function CopyRow({ label, value, copyLabel, copiedLabel, mono = true }: { label: string; value: string; copyLabel: string; copiedLabel: string; mono?: boolean }) {
-  const [copied, setCopied] = useState(false);
+  const [copied, copyValue] = useCopyFlash();
   return (
     <div className="flex items-start gap-sm">
       <div className="min-w-0 flex-1">
@@ -106,15 +107,8 @@ function CopyRow({ label, value, copyLabel, copiedLabel, mono = true }: { label:
         variant="secondary"
         size="sm"
         className="shrink-0"
-        onClick={async () => {
-          try {
-            await navigator.clipboard.writeText(value);
-            setCopied(true);
-            window.setTimeout(() => setCopied(false), 2000);
-          } catch {
-            setCopied(false);
-          }
-        }}
+        done={copied}
+        onClick={() => void copyValue(value)}
         aria-label={`${copyLabel}: ${label}`}
       >
         {copied ? copiedLabel : copyLabel}
@@ -311,6 +305,7 @@ export function CryptoPaymentStatus({
         open={celebrate}
         onOpenChange={setCelebrate}
         variant={paidWords.variant}
+        object={paidWords.object}
         title={paidWords.title}
         body={paidWords.body}
         amount={{ minorUnits: view.amountMinor, locale }}

@@ -10,6 +10,7 @@ import { FollowButton } from "@/components/social/profile/FollowButton";
 import { ReportSheet } from "@/components/social/ReportSheet";
 import { CommentsSheet } from "@/components/social/comments/CommentsSheet";
 import { StoryRail } from "./StoryRail";
+import { StorySequence } from "./StorySequence";
 import type { Face, StoryCard, StoryComment, StoryView } from "@/lib/social/stories-queries";
 import type { CommentRow } from "@/components/social/comments/CommentsSheet";
 import {
@@ -110,6 +111,11 @@ export function StoryViewer({
   }, [story.id]);
 
   const who = story.author.label;
+  /* B16: this story and the recent run, as the sequence reads them. */
+  const current = useMemo(
+    () => ({ id: story.id, imageUrl: story.imageUrl, authorLabel: story.author.label }),
+    [story.id, story.imageUrl, story.author.label],
+  );
 
   const requireSignIn = () => {
     if (signedIn) return false;
@@ -221,7 +227,7 @@ export function StoryViewer({
   })), [comments]);
 
   return (
-    <div className="nf-story">
+    <div className="nf-story nf-story--seq">
       <article className="nf-story__stage">
         {story.imageUrl ? (
           /* The picture IS the page, so it is the one image here that is
@@ -239,6 +245,8 @@ export function StoryViewer({
           <div className="nf-story__image nf-story__image--none" aria-hidden="true" />
         )}
         <div className="nf-story__wash" aria-hidden="true" />
+        {/* B16: progress, tap zones, hold to pause, the next one ready. */}
+        <StorySequence current={current} more={more} hold={menuOpen || commenting || reporting} />
 
         {/* --------------------------------------------- who is telling me */}
         <header className="nf-story__top">

@@ -4,6 +4,7 @@ import { useState, type ReactNode } from "react";
 import { Sheet } from "@/components/ui/Sheet";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ICON, TYPE } from "./Screen";
+import { DisclosureInline } from "./DisclosureInline";
 
 /**
  * Progressive disclosure: the mechanism by which nothing gets deleted.
@@ -79,19 +80,9 @@ export function Disclosure({
 
   if (inline) {
     return (
-      <details className="nf-disclosure" open={defaultOpen || undefined} data-testid={testId}>
-        <summary>
-          <span className="nf-disclosure__label">
-            <span className={`block ${TYPE.rowTitle}`}>{title ?? label}</span>
-            {hint && <span className="nf-disclosure__hint">{hint}</span>}
-          </span>
-          <UiIcon name="chevron-down" size={ICON.row} className="nf-disclosure__chevron" />
-        </summary>
-        <div className="nf-disclosure__panel">
-          {children}
-          {footer}
-        </div>
-      </details>
+      <DisclosureInline title={title ?? label} hint={hint} footer={footer} defaultOpen={defaultOpen} data-testid={testId}>
+        {children}
+      </DisclosureInline>
     );
   }
 

@@ -1,21 +1,23 @@
 import Link from "next/link";
 import type { Dictionary } from "@vallo/i18n/core";
 import { MotionReveal } from "@/components/motion/Reveal";
-import { IconPlate, ICON_PLATE_GLYPH } from "@/components/ui/IconPlate";
+import { Icon3D } from "@/components/ui/Icon3D";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { Door } from "./doors";
 import { SectionHead } from "./SectionHead";
+import { BENTO_OBJECTS, LANDING_OBJECT_SIZE } from "./landing-objects";
 
 /**
  * "Everything in one place": the bento (Track M, second pass).
  *
- * Seven doors into the product, in mixed sizes, each on the FLAT ICON PLATE
- * (spec section 4; section 16, Q3 as the lead decided it: the landing's
- * feature cards use the plate every other surface uses, so the platform
- * reads as one family, and the glass objects retire from light mode). The
- * plate sits top left and the words at the foot of the card, so a tall cell
- * is never half empty. The three front doors (rent and buy, stays, the
- * assistant) take the brand plate; the rest are neutral.
+ * Seven doors into the product, in mixed sizes, each with ONE OF THE
+ * FOUNDER'S 3D OBJECTS (30 September; `landing-objects.ts`), all at one
+ * size, in place of the flat plates. The object sits top left and the words
+ * at the foot of the card, so a tall cell is never half empty.
+ *
+ * FROM 40REM THE CARDS FAN IN LIKE A DECK as the grid scrolls into view
+ * (the founder's reference 51; landing-3d.css, scroll-driven, transform
+ * only). Under 40rem the bento is a swipe row and keeps the plain stagger.
  *
  * EVERY DOOR IS HONEST (UIUX item 12): a door a stranger cannot open goes
  * to the sign-up door carrying the destination (`doors.ts`).
@@ -37,18 +39,16 @@ import { SectionHead } from "./SectionHead";
  * The cards are in reading order (no `grid-auto-flow: dense`), so the tab
  * order runs row by row, and the same order tiles two columns too.
  */
-type Glyph = "home" | "calendar-check" | "bot" | "chart-bar" | "shield-check" | "messages" | "compass";
-
 export function Bento({ t, door }: { t: Dictionary; door: Door }) {
   const b = t.landingRooms.bento;
-  const cards: { key: keyof typeof b.cards; href: string; glyph: Glyph; size: "wide" | "tall" | "base"; tone: "brand" | "neutral" }[] = [
-    { key: "rent", href: "/search", glyph: "home", size: "wide", tone: "brand" },
-    { key: "stays", href: "/stays", glyph: "calendar-check", size: "tall", tone: "brand" },
-    { key: "ai", href: "/assistant", glyph: "bot", size: "tall", tone: "brand" },
-    { key: "price", href: "/price", glyph: "chart-bar", size: "base", tone: "neutral" },
-    { key: "messages", href: "/messages", glyph: "messages", size: "base", tone: "neutral" },
-    { key: "agree", href: "/safety", glyph: "shield-check", size: "wide", tone: "neutral" },
-    { key: "feed", href: "/around", glyph: "compass", size: "wide", tone: "neutral" },
+  const cards: { key: keyof typeof b.cards & keyof typeof BENTO_OBJECTS; href: string; size: "wide" | "tall" | "base" }[] = [
+    { key: "rent", href: "/search", size: "wide" },
+    { key: "stays", href: "/stays", size: "tall" },
+    { key: "ai", href: "/assistant", size: "tall" },
+    { key: "price", href: "/price", size: "base" },
+    { key: "messages", href: "/messages", size: "base" },
+    { key: "agree", href: "/safety", size: "wide" },
+    { key: "feed", href: "/around", size: "wide" },
   ];
   return (
     <section className="nf-shell nf-room" data-chapter="bento" aria-labelledby="nf-landing-bento-title">
@@ -58,9 +58,9 @@ export function Bento({ t, door }: { t: Dictionary; door: Door }) {
           {cards.map((c) => (
             <li key={c.key} className={`nf-bento__cell nf-bento__cell--${c.size}`}>
               <Link href={door(c.href)} prefetch={false} className="nf-bento__card">
-                <IconPlate size="md" tone={c.tone} className="nf-bento__plate">
-                  <UiIcon name={c.glyph} size={ICON_PLATE_GLYPH.md} />
-                </IconPlate>
+                <span className="nf-obj nf-bento__obj">
+                  <Icon3D name={BENTO_OBJECTS[c.key]} size={LANDING_OBJECT_SIZE.bento} />
+                </span>
                 {(() => {
                   const card = b.cards[c.key];
                   const chips = "chips" in card ? card.chips : null;

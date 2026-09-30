@@ -1,6 +1,7 @@
 import type { Dictionary } from "@vallo/i18n/core";
 import type { SignInSurface } from "@/lib/auth/providers";
 import { withNext } from "@/lib/auth/next-link";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 import { SocialDoors } from "./SocialDoors";
 import { AuthOrRule, AuthPillLink } from "./slate";
 
@@ -13,6 +14,10 @@ import { AuthOrRule, AuthPillLink } from "./slate";
  *                               (`/sign-up/email`)
  *   Continue with Google        drawn only when it works here (`SocialDoors`)
  *   Continue with Apple         the same rule; the native sheet in the iOS shell
+ *   Continue with phone number  A2, only while `PHONE_SIGNIN_ENABLED` is on:
+ *                               `/sign-in/phone`, where a new number makes
+ *                               an account and the finish-setup gate asks for
+ *                               the terms and the 18+ statement
  *   I already have an account   the quiet pill, to sign in
  *
  * `next` rides every door, so a stranger stopped on the way to a shared
@@ -28,12 +33,15 @@ export function SignUpOptions({
   appleReady,
   surface = "web",
   next,
+  phoneReady = false,
 }: {
   t: Dictionary;
   googleReady: boolean;
   appleReady: boolean;
   surface?: SignInSurface;
   next?: string | undefined;
+  /** A2: phone sign-in is switched on (`phoneSignInEnabled()`). */
+  phoneReady?: boolean;
 }) {
   return (
     <div className="nf-auth__screen nf-slate-stagger">
@@ -53,6 +61,12 @@ export function SignUpOptions({
           intent="sign-up"
           layout="rows"
         />
+        {phoneReady && (
+          <AuthPillLink href={withNext("/sign-in/phone", next)} quiet testId="options-phone">
+            <UiIcon name="phone" size={20} />
+            {t.publicDoors.phone.offer}
+          </AuthPillLink>
+        )}
       </div>
 
       <AuthOrRule>{t.auth.orDivider}</AuthOrRule>

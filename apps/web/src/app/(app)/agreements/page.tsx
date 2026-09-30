@@ -1,3 +1,4 @@
+import { Unreachable } from "@/components/app/Unreachable";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { formatMoney } from "@vallo/i18n/core";
@@ -22,12 +23,12 @@ export default async function AgreementsPage() {
   const rows = await readMyAgreements();
   return (
     <main className="nf-page nf-md">
-      <PageHeader title="Agreements" />
+      <PageHeader variant="large" title="Agreements" />
       <p className={`${TYPE.body} mt-inline`}>{PAYMENT_GATE_SENTENCE}</p>
       <p className={`${TYPE.rowMeta} mt-inline mb-block`}>{NO_CUSTODY_SENTENCE}</p>
       <Section title="Your agreements">
         {rows === null ? (
-          <p className={TYPE.body}>Your agreements could not be read just now. Refresh to try again.</p>
+          <Unreachable noun="agreements" icon="contract-sign" />
         ) : rows.length === 0 ? (
           <EmptyState
             icon="contract-sign"

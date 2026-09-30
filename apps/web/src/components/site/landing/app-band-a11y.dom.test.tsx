@@ -31,8 +31,12 @@ describe("AppBand", () => {
     expect(html).toContain("nf-hero-band");
   });
 
-  it("prints the install line when no store badge is live, and every point", () => {
-    expect(html).toContain(t.landing.face.app.installTitle);
+  it("shows both store badges as coming soon while no store URL is set, and every point", () => {
+    expect(html).not.toContain(t.landing.face.app.installTitle);
+    expect(html.match(/nf-store-badge--soon/g)?.length).toBe(2);
+    expect(html).toContain(t.landingRooms.badges.comingSoon);
+    /* Not a link until the listing is live. */
+    expect(html).not.toMatch(/<a[^>]*nf-store-badge/);
     for (const point of [t.landing.face.app.points.notify, t.landing.face.app.points.sides, t.landing.face.app.points.record]) {
       expect(html).toContain(point);
     }

@@ -1,10 +1,13 @@
 "use client";
 
+import { Money } from "@/components/ui/Money";
 import { useAppliedTheme } from "@/lib/theme/theme-client";
 import { tileProvider, warnIfNonCommercialTiles } from "@/lib/maps/tiles";
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { formatMoney, type Locale } from "@vallo/i18n/core";
+import type { Locale } from "@vallo/i18n/core";
 import "leaflet/dist/leaflet.css";
+/* C12: the pins and the zoom control, out of `globals.css`. */
+import "@/app/css/map.css";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { toggleSave } from "@/lib/saved/actions";
@@ -735,9 +738,12 @@ export function MapCanvas({
                     className={chosen ? undefined : "text-[var(--nf-brand-primary)]"}
                   />
                 )}
-                {pin.priceMinor > 0
-                  ? formatMoney(pin.priceMinor, locale, pin.currency, { compact: true })
-                  : pin.kindLabel}
+                {pin.priceMinor > 0 ? (
+                  /* B15: "2.8 million naira", not "naira two point eight m". */
+                  <Money minor={pin.priceMinor} locale={locale} currency={pin.currency} />
+                ) : (
+                  pin.kindLabel
+                )}
               </span>
               <span className="sr-only">
                 {`, ${pin.title}, ${pin.area}`}
@@ -963,11 +969,11 @@ export function MapCanvas({
                       </span>
                     </span>
                     <span className="nf-numeric shrink-0 text-[length:var(--nf-text-caption)] font-bold text-[var(--nf-content-primary)]">
-                      {listing.priceMinor > 0
-                        ? formatMoney(listing.priceMinor, locale, listing.currency, {
-                            compact: true,
-                          })
-                        : listing.kindLabel}
+                      {listing.priceMinor > 0 ? (
+                        <Money minor={listing.priceMinor} locale={locale} currency={listing.currency} />
+                      ) : (
+                        listing.kindLabel
+                      )}
                     </span>
                   </button>
                 </li>

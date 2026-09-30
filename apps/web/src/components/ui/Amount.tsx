@@ -1,4 +1,6 @@
+import { spokenMoney, spokenSuffix } from "@/lib/money/spoken";
 import { COMPACT_FROM_MINOR, intlTag, isGlanceCompact, moneyParts, type Locale } from "@vallo/i18n/core";
+import { CountUp, CountUpMoney } from "@/components/motion/CountUp";
 
 /**
  * Money, set the way the reference set sets money.
@@ -63,9 +65,33 @@ export type AmountProps = {
   className?: string;
   /** Overrides the muted part's classes when the default relative size is wrong. */
   secondaryClassName?: string;
+  /**
+   * THE HERO FIGURE COUNTS UP (the founder's count-up ruling, 30 September
+   * 2026): 0 to the amount once, on first view, ~600ms, off under reduced
+   * motion, Calm and Off (`CountUpMoney`). Only where the figure is the hero
+   * of its card; the server still prints the final figure.
+   */
+  count?: boolean;
 };
 
-export function Amount({
+export function Amount(props: AmountProps) {
+  if (!props.count) return <AmountStatic {...props} />;
+  const { minorUnits, locale = "en", currency = "NGN", compact = false, glance = false, className } = props;
+  return (
+    <CountUpMoney
+      minorUnits={minorUnits}
+      locale={locale}
+      currency={currency}
+      glance={compact || glance}
+      eager
+      frameClassName={className}
+    >
+      <AmountStatic {...props} />
+    </CountUpMoney>
+  );
+}
+
+function AmountStatic({
   minorUnits,
   locale = "en",
   currency = "NGN",
@@ -156,6 +182,30 @@ export function Amount({
 
   const muted = secondaryClassName ?? "text-[0.62em] font-semibold opacity-60";
 
+  /*
+   * B15: WHAT A SCREEN READER HEARS. A compact figure ("₦2.8m") is read
+   * "naira two point eight m", and a short suffix ("/yr") "slash y r". Either
+   * way the printed form is hidden from the ear and a visually hidden spoken
+   * one ("2.8 million naira a year") stands beside it. A full figure with a
+   * word suffix is left exactly as it was: engines read it correctly.
+   */
+  const slashSuffix = Boolean(suffix && suffix.trim().startsWith("/"));
+  if (short || slashSuffix) {
+    const spokenFigure = short ? spokenMoney(minorUnits, locale, currency) : `${head}${fraction}${tail}`;
+    const spoken = [spokenFigure, spokenSuffix(suffix)].filter(Boolean).join(" ");
+    return (
+      <span className={["nf-numeric", className ?? ""].filter(Boolean).join(" ")}>
+        <span aria-hidden="true">
+          {head}
+          {fraction ? <span className={muted}>{fraction}</span> : null}
+          {tail}
+          {suffix ? <span className={muted}> {suffix}</span> : null}
+        </span>
+        <span className="sr-only">{spoken}</span>
+      </span>
+    );
+  }
+
   return (
     <span className={["nf-numeric", className ?? ""].filter(Boolean).join(" ")}>
       {head}
@@ -176,15 +226,22 @@ export function Figure({
   locale = "en",
   className,
   secondaryClassName,
+  count = false,
 }: {
   value: number | string;
   suffix?: string;
   locale?: Locale;
   className?: string;
   secondaryClassName?: string;
+  /** A whole number that is the hero of its card counts up once (CountUp). */
+  count?: boolean;
 }) {
   const shown =
-    typeof value === "number" ? value.toLocaleString(intlTag[locale]) : value;
+    typeof value === "number"
+      ? count && Number.isSafeInteger(value) && value >= 0
+        ? <CountUp value={value} tag={intlTag[locale]} eager />
+        : value.toLocaleString(intlTag[locale])
+      : value;
   const muted = secondaryClassName ?? "text-[0.62em] font-semibold opacity-60";
   return (
     <span className={["nf-numeric", className ?? ""].filter(Boolean).join(" ")}>

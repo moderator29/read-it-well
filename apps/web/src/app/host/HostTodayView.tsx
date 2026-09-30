@@ -96,6 +96,7 @@ export function HostTodayView({
                 value={kpi.value}
                 href={kpi.href}
                 tag={tag}
+                className={kpi.key === "unread" && kpi.value > 0 ? "nf-kpi--spark" : undefined}
               />
             ))}
           </div>
@@ -109,7 +110,7 @@ export function HostTodayView({
               label={d.today.needsAttention}
               action={
                 today.attention.length > shown.length ? (
-                  <Link href="/host/bookings" className="nf-link-quiet">
+                  <Link href="/host/decide" className="nf-link-quiet">
                     {d.today.viewAll.replace("{count}", String(today.attention.length))}
                   </Link>
                 ) : undefined
@@ -174,7 +175,7 @@ function AttentionRow({ item, t, tag }: { item: TodayAttention; t: Dictionary; t
     <ListRow
       href={item.href}
       leading={
-        <IconPlate size="sm" tone={item.tone === "neutral" ? "neutral" : item.tone}>
+        <IconPlate size="sm" shape="round" tone={item.tone === "neutral" ? "neutral" : item.tone}>
           <UiIcon name={ATTENTION_ICON[item.kind]} size={20} />
         </IconPlate>
       }

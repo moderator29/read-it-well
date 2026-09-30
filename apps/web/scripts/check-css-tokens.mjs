@@ -761,7 +761,7 @@ const DULL_ALLOWED = new Set([
  * a second copy of this walk would acquire its own version of that mistake on
  * its own schedule. A caller passes `test` and `allowed` and nothing else.
  */
-function restingControlFaults(source, where, test, allowed) {
+function restingControlFaults(source, where, test, allowed, permits = () => false) {
   const found = [];
   /* A stack, so `@layer components { .nf-chip { ... } }` reports `.nf-chip`
      and not the layer. Every partial in this repository is wrapped in a
@@ -790,6 +790,7 @@ function restingControlFaults(source, where, test, allowed) {
         rule.hit >= 0 &&
         resting &&
         (CONTROL_SELECTOR.test(rule.selector) || rule.pointer) &&
+        !permits(rule.selector) &&
         /* Keyed on file and selector rather than on a line number, because a
            line number moves every time somebody edits above it and an
            exception that silently stops matching is worse than no exception. */
@@ -907,7 +908,31 @@ for (const dir of ROOTS) {
  *   their owners deleting the rules.
  */
 const PILL_RADIUS =
-  /border(?:-[a-z]+)*-radius\s*:[^;]*(?:var\(\s*--nf-radius-(?:pill|control-pill)\s*\)|\b9{3,4}px\b)/;
+  /border(?:-[a-z]+)*-radius\s*:[^;]*(?:var\(\s*--nf-radius-(?:pill|control-pill|button)\s*\)|\b9{3,4}px\b)/;
+
+/*
+ * THE BUTTON IS THE ONE CONTROL ALLOWED A CAPSULE (founder references 44 and
+ * 45, 30 September 2026; CLEAN_UNIFIED_DIRECTION.md section 17: "the capsule
+ * ban on controls is lifted for buttons"). A rule is a BUTTON rule when every
+ * selector in its list ends on a compound that names `.nf-btn` or one of its
+ * variants (`.nf-btn--primary`, `.nf-btn--sm`, ...), never an element of it
+ * (`.nf-btn__label`) and never a chip, tab, field or segment that happens to
+ * sit near one. `--nf-radius-button` counts as a pill radius above, so the
+ * button's own token cannot be borrowed by a chip without this check firing.
+ * Every other control keeps the rule exactly as it was.
+ */
+const BUTTON_COMPOUND = /\.nf-btn(?:--[a-z0-9-]+)?(?![a-z0-9_-])/;
+function isButtonRule(selector) {
+  return selector
+    .split(",")
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .every((part) => {
+      const compounds = part.split(/\s+|\s*[>+~]\s*/).filter(Boolean);
+      const last = compounds[compounds.length - 1] ?? "";
+      return BUTTON_COMPOUND.test(last) && !/\.nf-btn__/.test(last);
+    });
+}
 
 /*
  * THE EXCEPTIONS, keyed on file and selector, each with its reason, exactly as
@@ -971,6 +996,13 @@ const PILL_ALLOWED = new Set([
    * language control) stays on the control radius.
    */
   "src/app/css/auth.css  .nf-slate .nf-slate-pill.nf-btn",
+  /*
+   * PERMANENT, by section 17 (buttons are full pills): the listing review's
+   * Approve, Ask for more and Reject are buttons drawn by the review desk's
+   * own class (`nf-rv-btn`, review.css) rather than `.nf-btn`, so the button
+   * test above cannot see them. They are buttons; nothing else wears it.
+   */
+  "src/app/admin/_review/review.css  .nf-rv-btn",
 ]);
 
 /* The TSX half of the same list, and it has one entry. The two round things
@@ -995,7 +1027,7 @@ for (const dir of ROOTS) {
   for (const file of filesUnder(join(ROOT, dir), [".css"])) {
     const source = withoutComments(readFileSync(file, "utf8"));
     const where = relative(ROOT, file);
-    for (const fault of restingControlFaults(source, where, PILL_RADIUS, PILL_ALLOWED)) {
+    for (const fault of restingControlFaults(source, where, PILL_RADIUS, PILL_ALLOWED, isButtonRule)) {
       pillControls.push(fault);
     }
   }
@@ -1083,7 +1115,11 @@ function pillControlsInTsx(source, where) {
          which is coarser, and an exception for one of those has to say so. */
       const marker = /\bnf-[a-z0-9-]+/.exec(attributes)?.[0] ?? "";
       const key = `${where}  <${name[1]}> ${marker}`.trimEnd();
-      if (hit && !PILL_ALLOWED_TSX.has(key)) {
+      /* Section 17: a button may be a pill, so the shared `Button` and
+         `ButtonLink`, and a hand-written element whose first class is the
+         button's own, are left alone. Chips, fields and links are not. */
+      const isButton = name[1] === "Button" || name[1] === "ButtonLink" || marker === "nf-btn";
+      if (hit && !isButton && !PILL_ALLOWED_TSX.has(key)) {
         found.push(`${where}:${lineAt(i + hit.index)}  <${name[1]}> ${marker}  ${hit[0].trim()}`);
       }
     }
@@ -1395,19 +1431,36 @@ let parseError = null;
 try {
   const { bundle } = await import("lightningcss");
   const entry = join(ROOT, "src/app/globals.css");
-  /* Route stylesheets: partials a route layout imports instead of
-     `globals.css` (B-4). They are parsed after the global graph, which is
-     the order the browser receives them in. */
-  const ROUTE_STYLESHEETS = ["./css/admin.css"];
-  const graph = readFileSync(entry, "utf8")
+  /* Route stylesheets: partials a route layout or a component imports
+     instead of `globals.css` (B-4 moved admin.css; C12 moved landing,
+     landing-rooms, public-doors, agent, stays, map and feed-m; LandingBody
+     imports landing-3d.css). They are parsed after the global graph, which
+     is the order the browser receives them in. The named ones are listed so
+     they are parsed even if an import is lost; any other `app/css/*.css` a
+     TS file imports is found by the scan, so a new entry point is covered
+     without anyone remembering to add it here. */
+  const ROUTE_STYLESHEETS = [
+    "./css/admin.css",
+    "./css/landing-3d.css",
+    "./css/landing.css",
+    "./css/landing-rooms.css",
+    "./css/public-doors.css",
+    "./css/agent.css",
+    "./css/stays.css",
+    "./css/map.css",
+    "./css/feed-m.css",
+  ];
+  const imported = filesUnder(join(ROOT, "src"), [".ts", ".tsx"])
+    .flatMap((file) => [...readFileSync(file, "utf8").matchAll(/import\s+"@\/app\/(css\/[\w.-]+\.css)"/g)].map((m) => `./${m[1]}`));
+  const globalGraph = readFileSync(entry, "utf8")
     .split("\n")
-    .flatMap((line) => [...line.matchAll(/@import\s+"(\.\/[^"]+)"/g)].map((m) => m[1]))
-    .concat(ROUTE_STYLESHEETS);
+    .flatMap((line) => [...line.matchAll(/@import\s+"(\.\/[^"]+)"/g)].map((m) => m[1]));
+  const graph = [...new Set([...globalGraph, ...ROUTE_STYLESHEETS, ...imported])];
   const shim = join(ROOT, "src/app", ".parse-check.css");
   writeFileSync(shim, graph.map((f) => `@import "${f}";`).join("\n"));
   try {
     bundle({ filename: shim, minify: false });
-    console.log(`css parse: ${graph.length} partials bundle cleanly from globals.css.`);
+    console.log(`css parse: ${graph.length} partials bundle cleanly (${globalGraph.length} from globals.css, ${graph.length - globalGraph.length} route sheets).`);
   } finally {
     rmSync(shim, { force: true });
   }

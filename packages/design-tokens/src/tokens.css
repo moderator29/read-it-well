@@ -217,6 +217,13 @@
   --nf-sky-400: #38BDF8;
 
   /*
+   * THE ONE EXCEPTION, SINCE 30 SEPTEMBER 2026: the founder's 3D icons carry
+   * one orange accent each and he asked for that orange in some places, so
+   * the warm spark (`--nf-spark`, beside `--nf-mark-unread` below) is the
+   * single sanctioned warm accent, sparing and rule-bound (spec section 18).
+   * The paragraph that follows is the rule it was an exception to, and it
+   * still holds for everything else.
+   *
    * There is no orange, amber, gold, magenta or violet in this palette, and
    * that is a decision rather than an omission. The brand is ONE family: deep
    * navy-black, dark neon blue, electric blue glow. A warm or purple accent
@@ -835,12 +842,13 @@
    * Rating is its own token and no longer borrows the warning one. Stars were
    * reaching for warning purely to obtain a gold, which welded two unrelated
    * things together: every change to a warning colour silently restyled every
-   * rating on the platform. */
+   * rating on the platform. Since 30 September the stars take the warm spark
+   * (the founder's 3D bed wears five orange stars), still their own token. */
   --nf-state-success: var(--nf-emerald-400);
   --nf-state-warning: var(--nf-cyan-400);
   --nf-state-error: var(--nf-rose-400);
   --nf-state-info: var(--nf-sky-400);
-  --nf-rating: var(--nf-brand-quiet);
+  --nf-rating: var(--nf-spark);
 
   /* Focus
    *
@@ -924,8 +932,33 @@
    * not as an error. Rule 8 still holds, because rule 8 assigns rose to error
    * and this token is not the error token; it is named for what it means and
    * can be tuned without touching either.
+   *
+   * SINCE 30 SEPTEMBER THE MARK IS THE WARM SPARK, the orange dot the
+   * founder's own 3D bell wears (below). Unread is still not a state and
+   * still not the error token; it simply takes the one warm colour now.
    */
-  --nf-mark-unread: var(--nf-rose-400);
+  --nf-mark-unread: var(--nf-spark);
+  /*
+   * THE WARM SPARK (the founder, 30 September 2026: "a mix of blue and
+   * orange in some areas ... lovely and clean"). The 3D icon set is royal
+   * blue clay with ONE orange accent each, sampled off
+   * `apps/web/assets-src/3d-2026-09-30/icon-sheet-2-new.png` at #F86838 to
+   * #F87040. The spark is that orange, used sparingly as the SECOND accent:
+   * blue leads, orange sparks. Spec section 18 lists where it may and may
+   * not appear. It is NOT the warning colour (warning stays the cyan) and
+   * never an error, a button fill or body text.
+   *
+   *   --nf-spark        dots, stars, underlines, a lap arc: 7.2:1 on the
+   *                     night canvas, 6.7:1 on the night card.
+   *   --nf-spark-ink    words and figures in the spark: 8.2:1 on the night
+   *                     card, 8.9:1 on the canvas.
+   *   --nf-spark-soft   the tint behind a "New" tag.
+   *   --nf-spark-on     a numeral on a spark fill (the dock badge): 6.5:1.
+   */
+  --nf-spark: #FF6A3D;
+  --nf-spark-ink: #FF8A5C;
+  --nf-spark-soft: color-mix(in oklab, var(--nf-spark) 16%, transparent);
+  --nf-spark-on: #111318;
   --nf-status-pending-surface: var(--nf-state-warning-surface);
   /*
    * THE ACCENT, WHICH EXISTS ENTIRELY FOR DAYLIGHT, and is the same colour as
@@ -2168,6 +2201,18 @@
    * design system's own six have been moved.
    * ------------------------------------------------------------------ */
   --nf-radius-control: var(--nf-radius-md);
+  /* THE BUTTON IS A RECTANGLE WITH SOFT CORNERS (founder ruling, 30
+     September 2026, over reference 55's pills; CLEAN_UNIFIED_DIRECTION.md
+     sections 17 and 19). It was the pill for a day. Every text button reads
+     the `--nf-act-radius-*` rung for its size (10 / 12 / 14px on the 44 /
+     48 / 56px rungs), so the corner keeps the same share of each height;
+     this name stays for the few readers outside the button system and
+     resolves to the middle rung. Icon buttons, the FAB, toggles, radios,
+     chips and tags stay round. */
+  --nf-act-radius-sm: 0.625rem;
+  --nf-act-radius-md: 0.75rem;
+  --nf-act-radius-lg: 0.875rem;
+  --nf-radius-button: var(--nf-act-radius-md);
   /* The clean unified radii (docs/design/CLEAN_UNIFIED_DIRECTION.md section
      1.3). Every one of them obeys the 0.30 ratio on the box it names. */
   --nf-radius-card: var(--nf-radius-lg);
@@ -2445,8 +2490,20 @@
    * spec's cards are 18px (`--nf-radius-card`), not 22, and a 16 to 17px
    * phone gutter is the industry's (and the references') density.
    */
-  --nf-pad-shell: clamp(1rem, 0.61rem + 1.74vw, 2rem);  /* the page gutter, 16 -> 32 */
-  --nf-pad-card: var(--nf-space-lg);       /* 24, the ordinary card */
+  /*
+   * STEPPED, NOT CONTINUOUS (pixel polish, 30 September). The clamp gave a
+   * 16.5px gutter at 390 and 17.2 at 430, so every card edge, rail bleed
+   * and hairline on a phone sat on a fractional pixel, off the 4px grid.
+   * The spec's three values, stepped: 16 on a phone, 24 from 40rem (a
+   * tablet), 32 from 80rem (desktop). The steps are the @media blocks
+   * after this rule set. Every consumer reads the token, so the bleeds
+   * still land on the screen edge.
+   */
+  --nf-pad-shell: 1rem;                    /* the page gutter, 16 / 24 / 32 */
+  /* The ordinary card: 16 on a phone, 20 from 40rem (spec 1.4). It was 24
+     everywhere, so a phone card spent 48 of its 358px on padding and sat
+     beside list groups and figure tiles padded 16. */
+  --nf-pad-card: var(--nf-space-md);
   --nf-pad-card-lg: clamp(2rem, 1rem + 4vw, 4rem);      /* the one card a page is built around */
   --nf-pad-card-sm: var(--nf-space-md);    /* 16, a card inside another surface */
   /*
@@ -2870,7 +2927,10 @@
    * heading without touching a file this workstream does not own, which is the
    * argument for a token over a literal restated in one line.
    */
-  --nf-tracking-overline: 0.1em;
+  /* Pixel polish (30 September): every caps label on the platform tracks
+     alike, so the overline reads the section label's 0.06em. Two trackings
+     on two 12px caps labels read as a mistake, not a hierarchy. */
+  --nf-tracking-overline: 0.06em;
 
   /*
    * THE CLEAN UNIFIED TYPE ROLES (docs/design/CLEAN_UNIFIED_DIRECTION.md
@@ -2883,8 +2943,10 @@
   --nf-leading-title-lg: 2.25rem;
   --nf-text-row: 0.9375rem;
   --nf-leading-row: 1.25rem;
-  --nf-text-label: 0.6875rem;
-  --nf-leading-label: 0.875rem;
+  /* 12px, not the spec's 11: no text under 12px outside legal (pixel
+     polish, 30 September). The caps and the tracking keep it a label. */
+  --nf-text-label: 0.75rem;
+  --nf-leading-label: 1rem;
   --nf-tracking-label: 0.06em;
   --nf-text-figure: 2.5rem;
   --nf-leading-figure: 2.75rem;
@@ -3491,9 +3553,127 @@
 
   /* The secondary button: a raised night surface on the card hairline, with
      no rim and no bloom (spec section 3). The primary keeps its lit bar. */
-  --nf-btn-glass-fill: linear-gradient(var(--nf-surface-elevated), var(--nf-surface-elevated));
+  --nf-btn-glass-fill: linear-gradient(var(--nf-surface-raised), var(--nf-surface-raised));
   --nf-btn-glass-edge: var(--nf-card-border);
-  --nf-btn-glass-shadow: 0 0 0 0 transparent;
+  /* Section 17: the secondary pill is a raised night surface with a soft
+     shadow under it (a shadow, not a glow: no colour). */
+  --nf-btn-glass-shadow: 0 4px 14px -6px rgb(0 0 0 / 0.55);
+
+  /* THE SOFT TOP (section 17). At night the lavender wash of refs 44 and 45
+     is a faint brand glow behind the header, fading into the canvas by
+     `--nf-soft-top-size`. Painted once by `.nf-soft-top` (chrome.css) on the
+     app, workspace and console shells. */
+  --nf-soft-top: radial-gradient(
+    120% 100% at 50% 0%,
+    color-mix(in oklab, var(--nf-brand-primary) 13%, transparent) 0%,
+    color-mix(in oklab, var(--nf-brand-primary) 5%, transparent) 45%,
+    transparent 100%
+  );
+  --nf-soft-top-size: 22rem;
+}
+
+/*
+ * THE NIGHT GLASS CONTAINERS (the founder, 30 September 2026: "bring back
+ * the glass containers that have the glowing ... like the side nav").
+ *
+ * The calmed night (above) moved every card onto a flat surface and a
+ * hairline. The founder wants the glass back, clean, in the material of the
+ * side navigation (reference 50, `.nf-navy-glass` in brand-glass.css):
+ * translucent navy with a blue bloom from the top left, a luminous blue
+ * hairline edge, a faint top catchlight and a soft blue glow. Three tiers,
+ * each with ONE radius, and brand-glass.css maps the shared containers onto
+ * them:
+ *
+ *   glass         a standard card or container (cards, panels, list groups,
+ *                 summary and figure tiles, desk cards, settings groups);
+ *   glass-raised  the one object a screen is built around (a hero, a
+ *                 summary at the top): a stronger bloom, edge and glow;
+ *   glass-quiet   a row or a box INSIDE a glass card: a faint fill and a
+ *                 hairline, no bloom and no glow, so glow never nests.
+ *
+ * NIGHT ONLY. Scoped to the night document and its islands; paper never
+ * reads these, and its own dark blocks already wear the navy glass.
+ *
+ * NO BLUR. A container scrolls, and a backdrop blur per card is the costliest
+ * layer a low-end Android phone is asked to draw; the glass is faked with the
+ * layered fill, the edge and the glow. Real blur stays on fixed chrome (the
+ * dock, sheets, headers). Under data saver and on a low-end device the outer
+ * glow goes and the edge and fill stay (below).
+ *
+ * Contrast, measured in the browser: the fill's lightest corner (the bloom,
+ * top left) is about #04215A over the night canvas; the body ink is 15.3:1
+ * on it, the secondary 11.5:1, the muted 5.6:1 and the focus ring 5.7:1.
+ */
+:root:not([data-theme="light"]),
+:root:not([data-theme="light"]) [data-theme="dark"] {
+  --nf-night-glass-radius: var(--nf-radius-card);
+  --nf-night-glass-raised-radius: var(--nf-radius-card);
+  --nf-night-glass-quiet-radius: var(--nf-radius-card-sm);
+
+  /* glass */
+  --nf-night-glass-fill:
+    radial-gradient(120% 85% at 0% 0%, color-mix(in oklab, var(--nf-container-ink) 22%, transparent), transparent 62%),
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--nf-container-ink) 8%, transparent) 0%,
+      color-mix(in oklab, var(--nf-container-ink) 2%, transparent) 70%
+    ),
+    color-mix(in oklab, var(--nf-surface-primary) 84%, transparent);
+  --nf-night-glass-edge: color-mix(in oklab, var(--nf-container-ink) 50%, transparent);
+  --nf-night-glass-catch: inset 0 1px 0 color-mix(in oklab, var(--nf-content-primary) 8%, transparent);
+  --nf-night-glass-glow: 0 0 28px -12px color-mix(in oklab, var(--nf-glow-ink) 50%, transparent);
+  --nf-night-glass-drop: 0 14px 30px -22px color-mix(in oklab, var(--nf-surface-artwork) 80%, transparent);
+  --nf-night-glass-shadow: var(--nf-night-glass-catch), var(--nf-night-glass-glow), var(--nf-night-glass-drop);
+  /* A pressable glass card under a fine pointer: the edge brightens and the
+     glow opens a little. Never a second ring. */
+  --nf-night-glass-edge-hover: color-mix(in oklab, var(--nf-container-ink) 72%, transparent);
+  --nf-night-glass-shadow-hover:
+    var(--nf-night-glass-catch),
+    0 0 32px -10px color-mix(in oklab, var(--nf-glow-ink) 60%, transparent),
+    var(--nf-night-glass-drop);
+
+  /* glass-raised */
+  --nf-night-glass-raised-fill:
+    radial-gradient(110% 70% at 0% 0%, color-mix(in oklab, var(--nf-container-ink) 28%, transparent), transparent 70%),
+    radial-gradient(80% 50% at 100% 100%, color-mix(in oklab, var(--nf-container-ink) 10%, transparent), transparent 70%),
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--nf-container-ink) 10%, transparent) 0%,
+      transparent 75%
+    ),
+    color-mix(in oklab, var(--nf-surface-elevated) 88%, transparent);
+  --nf-night-glass-raised-edge: color-mix(in oklab, var(--nf-container-ink) 55%, transparent);
+  --nf-night-glass-raised-glow: 0 0 36px -12px color-mix(in oklab, var(--nf-glow-ink) 55%, transparent);
+  --nf-night-glass-raised-shadow:
+    inset 0 1px 0 color-mix(in oklab, var(--nf-content-primary) 10%, transparent),
+    var(--nf-night-glass-raised-glow),
+    0 20px 40px -26px color-mix(in oklab, var(--nf-surface-artwork) 85%, transparent);
+
+  /* glass-quiet */
+  --nf-night-glass-quiet-fill: color-mix(in oklab, var(--nf-container-ink) 6%, transparent);
+  --nf-night-glass-quiet-edge: color-mix(in oklab, var(--nf-container-ink) 22%, transparent);
+  --nf-night-glass-quiet-shadow: inset 0 1px 0 color-mix(in oklab, var(--nf-content-primary) 4%, transparent);
+
+  /* A floating sheet: the raised glass over a denser ground, because it sits
+     on live content (it keeps its real backdrop blur, being fixed chrome). */
+  --nf-night-glass-sheet-fill:
+    radial-gradient(110% 50% at 0% 0%, color-mix(in oklab, var(--nf-container-ink) 22%, transparent), transparent 70%),
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--nf-container-ink) 8%, transparent) 0%,
+      transparent 60%
+    ),
+    color-mix(in oklab, var(--nf-surface-elevated) 94%, transparent);
+}
+/* Data saver and a low-end device: the glass keeps its fill, edge and
+   catchlight, and drops the outer glow (a blurred shadow per card). */
+:root:not([data-theme="light"]):is([data-save-data="on"], [data-motion-lite="on"]),
+:root:not([data-theme="light"]):is([data-save-data="on"], [data-motion-lite="on"]) [data-theme="dark"] {
+  --nf-night-glass-glow: 0 0 0 0 transparent;
+  --nf-night-glass-drop: 0 0 0 0 transparent;
+  --nf-night-glass-shadow-hover: var(--nf-night-glass-catch);
+  --nf-night-glass-raised-glow: 0 0 0 0 transparent;
+  --nf-night-glass-raised-shadow: inset 0 1px 0 color-mix(in oklab, var(--nf-content-primary) 10%, transparent);
 }
 
 /*
@@ -3541,6 +3721,19 @@
  * Durations collapse rather than animations being deleted, so components keep
  * one code path and transitions simply resolve immediately.
  */
+/* The stepped gutter and card padding (see `--nf-pad-shell` above). */
+@media (min-width: 40rem) {
+  :root {
+    --nf-pad-shell: 1.5rem;
+    --nf-pad-card: 1.25rem;
+  }
+}
+@media (min-width: 80rem) {
+  :root {
+    --nf-pad-shell: 2rem;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   /* A night subtree (`[data-theme="dark"]`: auth, first run, every
      photograph region) redeclares the palette and with it the durations, so
@@ -3678,7 +3871,7 @@
   --nf-mode-agent: #0068F0;
   --nf-mode-admin: #003C99;
   --nf-focus-ring: var(--nf-brand-quiet);
-  --nf-rating: var(--nf-brand-quiet);
+  --nf-rating: var(--nf-spark);
   --nf-gradient-brand: linear-gradient(135deg, #1F7BFF 0%, #0050D0 100%);
   --nf-gradient-agent: linear-gradient(135deg, #1F7BFF 0%, #0050D0 100%);
   --nf-gradient-cta: linear-gradient(180deg, #0A6CF5 0%, #005FE8 100%);
@@ -3686,7 +3879,10 @@
   --nf-gradient-surface: linear-gradient(180deg, rgb(11 13 23 / 0.02) 0%, rgb(11 13 23 / 0) 100%);
 
   /* ------------------------------------------------ edges and interaction */
-  --nf-border-subtle: rgb(11 13 23 / 0.08);
+  /* One hairline per theme (pixel polish): the subtle border IS the card
+     border, so a card, a row edge and a divider never draw two near-equal
+     greys side by side. */
+  --nf-border-subtle: var(--nf-card-border);
   --nf-border-default: rgb(17 19 24 / 0.12);
   --nf-border-strong: rgb(17 19 24 / 0.20);
   --nf-divider: rgb(17 19 24 / 0.07);
@@ -3702,7 +3898,15 @@
   --nf-state-error: #C8102E;
   --nf-state-info: #0369A1;
   --nf-state-warning-accent: var(--nf-state-warning);
-  --nf-mark-unread: #C8102E;
+  --nf-mark-unread: var(--nf-spark);
+  /* The warm spark on paper, one step deeper so it still reads as the icons'
+     orange: the mark 3.4:1 on #F4F4F1 and 3.3:1 on the raised well (a
+     graphic, 3:1); the ink 5.2:1 on the canvas, 5.7:1 on white and 5.0:1 on
+     the raised well; a numeral on the mark 4.9:1. */
+  --nf-spark: #E4541F;
+  --nf-spark-ink: #B93A0E;
+  --nf-spark-soft: color-mix(in oklab, var(--nf-spark) 12%, transparent);
+  --nf-spark-on: #111318;
   --nf-state-success-surface: color-mix(in oklab, var(--nf-state-success) 10%, transparent);
   --nf-state-warning-surface: color-mix(in oklab, var(--nf-state-warning) 10%, transparent);
   --nf-state-error-surface: color-mix(in oklab, var(--nf-state-error) 9%, transparent);
@@ -3753,7 +3957,7 @@
   --nf-elev-3-rim: inset 0 1px 0 rgb(255 255 255 / 0.6);
   --nf-elev-4-rim: inset 0 1px 0 rgb(255 255 255 / 0.6);
   --nf-elev-5-rim: inset 0 1px 0 rgb(255 255 255 / 0.6);
-  --nf-elev-1-border: rgb(11 13 23 / 0.08);
+  --nf-elev-1-border: var(--nf-card-border);
   --nf-elev-2-border: rgb(11 13 23 / 0.10);
   --nf-elev-3-border: rgb(11 13 23 / 0.12);
   --nf-elev-4-border: rgb(11 13 23 / 0.14);
@@ -3841,13 +4045,26 @@
   --nf-btn-lit-rim: inset 0 1px 0 rgb(255 255 255 / 0.18);
   --nf-btn-lit-inner: inset 0 0 0 rgb(255 255 255 / 0);
   --nf-btn-lit-inner-hover: inset 0 0 0 rgb(255 255 255 / 0);
-  --nf-btn-lit-bloom: var(--nf-card-shadow);
-  --nf-btn-lit-bloom-hover: var(--nf-card-shadow-hover);
   --nf-btn-lit-text-glow: 0 0 0 rgb(255 255 255 / 0);
   --nf-btn-lit-pool: radial-gradient(50% 55% at 50% 16%, rgb(255 255 255 / 0) 0%, rgb(255 255 255 / 0) 100%);
   --nf-btn-glass-fill: linear-gradient(#FFFFFF, #FFFFFF);
-  --nf-btn-glass-edge: var(--nf-border-default);
-  --nf-btn-glass-shadow: var(--nf-card-shadow);
+  /* Section 17 (refs 44 and 45): the secondary pill is white with a soft
+     shadow and only the card hairline, and the primary pill sits on a soft
+     brand shadow of its own. */
+  --nf-btn-glass-edge: var(--nf-card-border);
+  --nf-btn-glass-shadow: 0 1px 2px rgb(17 19 24 / 0.04), 0 6px 18px -6px rgb(17 19 24 / 0.12);
+  --nf-btn-lit-bloom: 0 1px 2px rgb(17 19 24 / 0.06), 0 8px 18px -8px color-mix(in oklab, var(--nf-brand-primary) 60%, transparent);
+  --nf-btn-lit-bloom-hover: 0 2px 4px rgb(17 19 24 / 0.06), 0 12px 24px -10px color-mix(in oklab, var(--nf-brand-primary) 65%, transparent);
+  /* THE SOFT TOP (section 17): a lavender-white wash behind the header that
+     fades into the warm canvas. */
+  --nf-soft-top: linear-gradient(
+    180deg,
+    #ECEBFA 0%,
+    #F1F0F8 38%,
+    color-mix(in oklab, #F1F0F8 50%, var(--nf-surface-canvas)) 64%,
+    var(--nf-surface-canvas) 100%
+  );
+  --nf-soft-top-size: 22rem;
   --nf-bar-edge-lit: var(--nf-divider);
   --nf-bar-glow: 0 1px 0 var(--nf-divider);
 
@@ -3912,4 +4129,107 @@
  */
 :root[data-theme="light"] [data-theme="dark"] {
   --nf-glow-scale: 0.3;
+}
+
+/*
+ * THE BUTTON SYSTEM (founder reference 55, "Button Styles & Usage Guide",
+ * 30 September 2026; CLEAN_UNIFIED_DIRECTION.md section 19). Sixteen kinds,
+ * one material family: the guide's palette (Brand Blue #0066FF, Cyan
+ * #00D1FF, Orange, Gray #94A3B8, Text #0F172A) mapped onto one set of
+ * `--nf-act-*` tokens that buttons.css, controls.css and chips.css read.
+ * Finished cleaner than the image, on the founder's word: a restrained
+ * gradient (a few percent of lift, never a sheen band), crisp 1px and 1.5px
+ * edges, calm disabled states, and the glow ring only on the NIGHT primary
+ * under hover and focus.
+ *
+ * Contrast (white label on the fill's middle stop, where the label sits):
+ * #0066FF 4.8:1, the hover #0A6CFF 4.6:1, the pressed navy 17.9:1 (paper)
+ * and 13:1 (night). Brand ink on white #0057DB 6.2:1 and on the tint 5.5:1;
+ * night ink #5AA2FF 6.7:1 on the navy surface. The unchecked ring on paper
+ * #7D8CA3 is 3.4:1 (a component edge needs 3:1).
+ *
+ * Night first (the default theme and every dark island), paper below it.
+ */
+:root,
+[data-theme="dark"],
+:root[data-theme="light"] [data-theme="light"] {
+  --nf-act-blue: #0066FF;
+  --nf-act-cyan: #00D1FF;
+  --nf-act-on: #FFFFFF;
+  --nf-act-fill: linear-gradient(180deg, #1A75FF 0%, #0066FF 55%, #005CEB 100%);
+  --nf-act-fill-hover: linear-gradient(180deg, #2E82FF 0%, #0A6CFF 55%, #0062F0 100%);
+  --nf-act-fill-press: linear-gradient(180deg, #0B2C72 0%, #0A2666 100%);
+  --nf-act-press-edge: rgb(0 102 255 / 0.7);
+  --nf-act-rim: inset 0 1px 0 rgb(255 255 255 / 0.16);
+  --nf-act-shadow: inset 0 1px 0 rgb(255 255 255 / 0.16), 0 6px 16px -8px rgb(0 102 255 / 0.55);
+  /* The glow ring: the night primary's hover and focus, and nowhere else. */
+  --nf-act-ring:
+    inset 0 1px 0 rgb(255 255 255 / 0.2),
+    0 0 0 1px rgb(0 209 255 / 0.45),
+    0 0 0 4px rgb(0 102 255 / 0.22),
+    0 8px 22px -6px rgb(0 102 255 / 0.6);
+  --nf-act-shadow-press: inset 0 1px 2px rgb(0 0 0 / 0.35);
+  --nf-act-ink: #5AA2FF;
+  --nf-act-ink-hover: #8CC0FF;
+  --nf-act-tint: rgb(0 102 255 / 0.16);
+  --nf-act-tint-press: rgb(0 102 255 / 0.26);
+  --nf-act-edge: rgb(0 102 255 / 0.72);
+  --nf-act-surface: #0C1838;
+  --nf-act-surface-ink: #FFFFFF;
+  --nf-act-surface-edge: rgb(255 255 255 / 0.09);
+  --nf-act-surface-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05), 0 8px 18px -10px rgb(0 0 0 / 0.7);
+  --nf-act-disabled-fill: rgb(148 163 184 / 0.12);
+  --nf-act-disabled-edge: rgb(148 163 184 / 0.16);
+  --nf-act-disabled-ink: rgb(148 163 184 / 0.62);
+  --nf-act-mark-edge: rgb(148 163 184 / 0.72);
+  --nf-act-track-off: #1A2548;
+  --nf-act-track-off-edge: rgb(255 255 255 / 0.1);
+  --nf-act-knob: #FFFFFF;
+  --nf-act-knob-shadow: 0 1px 2px rgb(0 0 0 / 0.35), 0 2px 6px rgb(0 0 0 / 0.25);
+  --nf-act-well: #0A1433;
+  --nf-act-well-edge: rgb(255 255 255 / 0.08);
+  --nf-act-outline-ink: #FFFFFF;
+  --nf-act-outline-hover-fill: #0066FF;
+  --nf-act-outline-hover-ink: #FFFFFF;
+  --nf-act-outline-press-fill: #0052D6;
+  --nf-act-icon-ink: #FFFFFF;
+  --nf-act-fab-size: 3.5rem;
+  --nf-act-edge-width: 1.5px;
+}
+:root[data-theme="light"],
+:root[data-theme="light"] [data-theme="light"],
+:root[data-theme="light"] :is(.nf-app-header, .nf-ws-bar)[data-theme="dark"] {
+  --nf-act-fill: linear-gradient(180deg, #1A75FF 0%, #0066FF 55%, #005EEB 100%);
+  --nf-act-fill-hover: linear-gradient(180deg, #2E82FF 0%, #0A6CFF 55%, #0064F2 100%);
+  --nf-act-fill-press: linear-gradient(180deg, #1E293B 0%, #0F172A 100%);
+  --nf-act-press-edge: #0F172A;
+  --nf-act-rim: inset 0 1px 0 rgb(255 255 255 / 0.2);
+  --nf-act-shadow: inset 0 1px 0 rgb(255 255 255 / 0.2), 0 1px 2px rgb(15 23 42 / 0.08), 0 6px 14px -6px rgb(0 102 255 / 0.45);
+  /* Paper has no glow ring: hover is the lighter fill and one step more lift. */
+  --nf-act-ring: inset 0 1px 0 rgb(255 255 255 / 0.22), 0 1px 2px rgb(15 23 42 / 0.08), 0 10px 20px -8px rgb(0 102 255 / 0.5);
+  --nf-act-shadow-press: inset 0 1px 2px rgb(0 0 0 / 0.3);
+  --nf-act-ink: #0057DB;
+  --nf-act-ink-hover: #0047B8;
+  --nf-act-tint: #EAF2FF;
+  --nf-act-tint-press: #D6E6FF;
+  --nf-act-edge: #0066FF;
+  --nf-act-surface: #FFFFFF;
+  --nf-act-surface-ink: #0F172A;
+  --nf-act-surface-edge: rgb(15 23 42 / 0.07);
+  --nf-act-surface-shadow: 0 1px 2px rgb(15 23 42 / 0.05), 0 4px 12px -4px rgb(15 23 42 / 0.1);
+  --nf-act-disabled-fill: #F1F5F9;
+  --nf-act-disabled-edge: #E2E8F0;
+  --nf-act-disabled-ink: #94A3B8;
+  --nf-act-mark-edge: #7D8CA3;
+  --nf-act-track-off: #D5DDE8;
+  --nf-act-track-off-edge: rgb(15 23 42 / 0.1);
+  --nf-act-knob-shadow: 0 1px 2px rgb(15 23 42 / 0.2), 0 2px 6px rgb(15 23 42 / 0.12);
+  --nf-act-outline-ink: #0057DB;
+  --nf-act-outline-hover-fill: #EAF2FF;
+  --nf-act-outline-hover-ink: #0047B8;
+  --nf-act-outline-press-fill: #D6E6FF;
+  /* Every light-mode icon is brand blue (founder, 30 September): 5.5:1 on white. */
+  --nf-act-icon-ink: var(--nf-brand-primary);
+  --nf-act-well: #FFFFFF;
+  --nf-act-well-edge: rgb(15 23 42 / 0.08);
 }

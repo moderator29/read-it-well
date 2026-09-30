@@ -235,6 +235,7 @@ export function MobileTabBar({
   signedIn = false,
   switchSlot,
   prefetchFull = false,
+  unreadConversationsPreview,
 }: {
   t: ShellDictionary;
   side?: Side;
@@ -261,6 +262,8 @@ export function MobileTabBar({
    * False under data saving, when nothing is fetched ahead at all.
    */
   prefetchFull?: boolean;
+  /** Dev preview only: a fixed unread-conversations figure (B1). */
+  unreadConversationsPreview?: number;
 }) {
   /*
     FIVE SLOTS, AND THE CENTRE ONE IS THE SWITCH.
@@ -292,12 +295,12 @@ export function MobileTabBar({
     side === "stays"
       ? [
           { href: "/stays", label: t.nav.stays, icon: "bed" },
-          { href: "/stays/search", label: t.nav.search, icon: "search" },
+          { href: "/stays/search", label: t.nav.search, icon: "search-disc" },
           { href: "/around", label: t.nav.feed, icon: "feed" },
         ]
       : [
           { href: "/home", label: t.nav.home, icon: "home" },
-          { href: "/search", label: t.nav.search, icon: "search" },
+          { href: "/search", label: t.nav.search, icon: "search-disc" },
           { href: "/around", label: t.nav.feed, icon: "feed" },
         ];
 
@@ -394,12 +397,12 @@ export function MobileTabBar({
           } as React.CSSProperties
         }
       >
-        {/* The travelling pill: the drawing of a state `aria-current` already
-            announces, so it is hidden from the tree. Since 29 September 2026
-            it paints nothing (the founder: no container behind the current
-            tab); the current tab is its filled glyph, a stronger label and a
-            small dot under it (shell-m.css). The element and its geometry
-            stay so the arithmetic is there if a highlight ever returns. */}
+        {/* The travelling pill element: hidden from the tree and not drawn.
+            Since the second ruling of 30 September 2026 (B1, references 44
+            and 45; it SUPERSEDES the 29 September "no container" rule) the
+            chosen tab draws its own tinted pill with its word beside the
+            glyph (shell-m.css, "SECOND RULING"); the element stays for its
+            geometry. */}
         <li className="nf-tabbar__pill" data-parked={activeIndex < 0 || undefined} aria-hidden="true" />
         {slots.map((tab, index) => {
           if (tab == null) {
@@ -429,8 +432,12 @@ export function MobileTabBar({
                 }
                 className="nf-tab__link"
               >
+                {/* The second ruling (B1, references 44 and 45): every dock
+                    glyph is its SOLID CUTOUT twin, ink at rest and brand blue
+                    when chosen; the chosen tab opens into a pill with its
+                    word (shell-m.css, "SECOND RULING"). */}
                 <span className="nf-tab__icon">
-                  <UiIcon name={tab.icon} size="md" filled={isActive} />
+                  <UiIcon name={tab.icon} size="md" filled weight="bold" />
                 </span>
                 <span className="nf-tab__label">{tab.label}</span>
               </Link>
@@ -438,7 +445,15 @@ export function MobileTabBar({
           );
         })}
       </ul>
-      <DockMore items={more} label={t.nav.more} active={active} />
+      {/* B1: a member's More button and Messages row carry the live count of
+          conversations waiting on them (DockMore, lib/messages/unread-live). */}
+      <DockMore
+        items={more}
+        label={t.nav.more}
+        active={active}
+        unreadLabel={signedIn ? t.a11y.unreadConversationsOn : undefined}
+        unreadPreview={unreadConversationsPreview}
+      />
     </AutoHideDock>
   );
 }

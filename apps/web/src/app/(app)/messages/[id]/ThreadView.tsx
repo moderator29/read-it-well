@@ -13,6 +13,7 @@ import { VerifiedAvatar } from "@/components/messages/VerifiedAvatar";
 import { TierBadge } from "@/components/trust/TierBadge";
 import type { BadgeTier } from "@/lib/trust/badge-tier";
 import { MediaFrame } from "@/components/app/MediaFrame";
+import { InitialsTile } from "@/components/ui/InitialsTile";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ChatCard, type ChatCardData } from "@/components/app/messages/ChatCard";
 import { bundlePhotos, isCaption } from "@/components/app/messages/bundle";
@@ -45,6 +46,9 @@ import { Button } from "@/components/ui/Button";
 import { Chip, ChipRow } from "@/components/ui/Chip";
 import { AccountMomentCard } from "@/components/app/messages/AccountMomentCard";
 import { accountNumbersIn, isAccountMoment } from "@/lib/messages/account-moment";
+import { offPlatformAsk } from "@/lib/messages/off-platform-ask";
+import { ScamShield } from "@/components/app/messages/ScamShield";
+import { feedback } from "@/lib/ui/feedback";
 import type { AccountCheckView } from "@/lib/messages/account-check";
 import type { ChargeOffer } from "@/lib/messages/charge-offer";
 import { PushPrompt } from "@/components/app/push/PushPrompt";
@@ -166,6 +170,10 @@ export type ThreadViewProps = {
    */
   accountMoment?: { checks: Record<string, AccountCheckView>; offer: ChargeOffer } | null;
   accountCopy?: Dictionary["trustVisible"]["account"];
+  /** B12: the scam shield's words. Absent draws no shield. */
+  scamCopy?: Dictionary["memberKit"]["scam"];
+  /** B5: the viewing day kit's words, for the inspection card. Absent, no kit. */
+  dayKitCopy?: Dictionary["memberKit"]["dayKit"];
   /** The options sheet's passport and safety words, from the page's `t`. */
   sheetCopy: ThreadSheetCopy;
   /**
@@ -308,6 +316,8 @@ export function ThreadView({
   quickRepliesTitle = "",
   accountMoment = null,
   accountCopy,
+  scamCopy,
+  dayKitCopy,
   sheetCopy,
   personLine = [],
   personLabel,
@@ -442,6 +452,8 @@ export function ThreadView({
   }, []);
 
   const markFailed = useCallback((tempId: string) => {
+    /* B14: a message that failed and was kept is felt as a warning. */
+    feedback("warning");
     setItems((prev) => prev.map((m) => (m.id === tempId ? { ...m, state: "failed" } : m)));
   }, []);
 
@@ -474,6 +486,8 @@ export function ThreadView({
       if (!tempId) return;
       waitingKeys.current.delete(detail.key);
       const sent = detail.data as { id: string; createdAt: string };
+      /* B14: delivered from the outbox, felt as a confirm (on delivery, not on the tap). */
+      feedback("confirm");
       adoptResult(tempId, sent.id, lagosTimeLabel(sent.createdAt));
     };
     window.addEventListener(OUTBOX_SENT_EVENT, onSent);
@@ -668,6 +682,12 @@ export function ThreadView({
    * never show a check-in date, and neither face has to be told which it is.
    */
   const propertyFace = context?.kind === "listing" && listing !== null;
+  /* A stay or a table is kept by a venue: a business, so the guest sees an
+     initials tile. The host's counterpart is the guest, a person. */
+  const venueFace = role === "guest" && (context?.kind === "booking" || context?.kind === "reservation");
+  /* The kind glyph before the muted context line (the inbox rows' glyphs). */
+  const contextGlyph =
+    context?.kind === "booking" ? "bed" : context?.kind === "reservation" ? "calendar-clock" : "chat-bubble";
   const tags = roleTags(context, role);
   const bundles = bundlePhotos(items);
   /*
@@ -702,13 +722,21 @@ export function ThreadView({
           bubble. The mark is only ever about identity; the inspection state
           tints the header row instead.
         */}
-        <span className="nf-thread__ring">
-          {propertyFace && listing ? (
+        {/* THE ROW SPEC (plan item 19): a calm leading tile, no lit ring. The
+            property is its photograph on the plate's rounded square; a venue
+            (a stay or a table) is a business, so it is an initials tile;
+            a person stays a round avatar. */}
+        {propertyFace && listing ? (
+          <span className="nf-thread__ring nf-thread__ring--tile">
             <MediaFrame hue={listing.hue} sizes="44px" />
-          ) : (
+          </span>
+        ) : venueFace ? (
+          <InitialsTile name={counterpartName} size="md" className="nf-thread__initials" />
+        ) : (
+          <span className="nf-thread__ring">
             <VerifiedAvatar name={counterpartName} tier={counterpartTier} size="md" />
-          )}
-        </span>
+          </span>
+        )}
         <div className="min-w-0 flex-1">
           <h1 className={`nf-thread__title${propertyFace ? " nf-thread__title--place" : ""}`}>
             <span className="min-w-0">{propertyFace && listing ? listing.title : counterpartName}</span>
@@ -722,10 +750,15 @@ export function ThreadView({
           </h1>
           {/* Said once. The context card under a property header already
               carries "Rental enquiry", and the render does not repeat it. */}
-          {!propertyFace && <p className="nf-thread__context">{contextLine}</p>}
+          {!propertyFace && (
+            <p className="nf-thread__context">
+              <UiIcon name={contextGlyph} size={14} className="shrink-0" />
+              <span className="truncate">{contextLine}</span>
+            </p>
+          )}
           {place && (
             <p className="nf-thread__place">
-              <UiIcon name="location" size={16} className="shrink-0 text-[var(--nf-brand-secondary)]" />
+              <UiIcon name="location" size={14} className="shrink-0 text-[var(--nf-content-muted)]" />
               <span className={propertyFace ? "min-w-0" : "truncate"}>{place}</span>
               {/* The LISTING's own badge, beside the place, exactly where the
                   render puts it. It is a claim about the property and it is
@@ -855,6 +888,8 @@ export function ThreadView({
           copy={threadCopy}
           locale={locale}
           onAccepted={() => setCeremony(true)}
+          dayKit={dayKitCopy}
+          conversationId={live ? conversationId : null}
         />
       )}
 
@@ -925,6 +960,14 @@ export function ThreadView({
           const accountMessage =
             live && accountCopy && !m.mine && role === "guest" && context?.kind === "listing"
               ? run.find((p) => isAccountMoment(p.body))
+              : undefined;
+          /* B12: a message from the other side that asks the reader to pay
+             outside Vallo gets the calm shield under it, for the reader only.
+             Never on the lister's side, and never twice: the account card
+             above already speaks for a message it covers. */
+          const shielded =
+            scamCopy && !m.mine && role === "guest" && !m.card && !accountMessage
+              ? run.map((p) => ({ p, ask: offPlatformAsk(p.body) })).find((x) => x.ask)
               : undefined;
           return (
             <div
@@ -1033,6 +1076,16 @@ export function ThreadView({
                       {m.mine && !m.state && <Ticks read={Boolean(last.read)} />}
                     </p>
                   </div>
+                )}
+
+                {shielded?.ask && scamCopy && (
+                  <ScamShield
+                    ask={shielded.ask}
+                    messageId={shielded.p.id}
+                    canReport={live && !shielded.p.id.startsWith("local-")}
+                    copy={scamCopy}
+                    quote={shielded.p.body}
+                  />
                 )}
 
                 {m.state === "failed" && (

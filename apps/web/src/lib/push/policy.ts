@@ -4,6 +4,8 @@ import { sameOriginPath } from "./same-origin";
 import { quietVerdict, readQuietHours } from "./quiet-hours";
 import type { PushPayload } from "./types";
 import { actionsFor, recipientLocale } from "./actions";
+import { DEFAULT_LOCALE, localizePush, pushSummary, type Locale } from "@vallo/i18n";
+import { severityOf } from "@/lib/notify/severity";
 
 /**
  * EVERY DECISION ABOUT ONE QUEUED PUSH, AS A PURE FUNCTION.
@@ -132,6 +134,12 @@ export function decide(input: {
     return { action: "suppress", outcome: "suppressed_preference" };
   }
 
+  /* B13: a price drop on a saved place pushes unless the member turned that
+     one off (settings, "Price drops on places you saved", default on). */
+  if (isSavedPriceDrop(notification.href) && !wantsSavedPriceDrops(settings)) {
+    return { action: "suppress", outcome: "suppressed_preference" };
+  }
+
   const urgent = isUrgentKind(notification.kind) || isUrgentPath(notification.href);
   const quiet = quietVerdict({ quiet: readQuietHours(settings), at: now, urgent });
   if (quiet.held) {
@@ -144,16 +152,23 @@ export function decide(input: {
     return { action: "hold", until: quiet.until };
   }
 
+  const locale = recipientLocale(settings);
+  /* A11: the database wrote this in English; the lock screen shows it in the
+     recipient's language where the catalogue has it (machine drafts for ha,
+     yo and ig, awaiting native review), and in English otherwise. */
+  const text = localizePush({ title: notification.title, body: notification.body }, locale);
   return {
     action: "send",
     payload: {
       /* Held to the lock-screen limits (lib/push/copy.ts): a title longer
          than a phone shows arrives cut at a word, not mid-letter. */
-      ...fitPush({ title: notification.title, body: notification.body }),
+      ...fitPush(text),
       href: safeHref(notification.href),
       tag: collapseTag(notification.kind),
       urgent,
-      actions: actionsFor(notification.kind, notification.href, recipientLocale(settings)),
+      /* B11: an fyi never wakes the phone: it arrives silent. */
+      quiet: !urgent && severityOf(notification).severity === "fyi",
+      actions: actionsFor(notification.kind, notification.href, locale),
     },
   };
 }
@@ -199,6 +214,8 @@ export type CollapsePlan = {
  */
 export function planCollapse(
   candidates: Array<{ queueId: string; payload: PushPayload; createdAt: Date }>,
+  /** A11: the person's language, for the summary line. */
+  locale: Locale = DEFAULT_LOCALE,
 ): CollapsePlan {
   const urgent = candidates.filter((candidate) => candidate.payload.urgent);
   const ordinary = candidates.filter((candidate) => !candidate.payload.urgent);
@@ -228,7 +245,7 @@ export function planCollapse(
     queueId: carrier.queueId,
     payload: {
       title: "Vallo",
-      body: `${ordinary.length} things happened while you were away`,
+      body: pushSummary(ordinary.length, locale),
       /* The list, not the newest item: a summary that opens one of the
          eleven things it is summarising hides the other ten. */
       href: "/notifications",
@@ -241,4 +258,18 @@ export function planCollapse(
   }
 
   return { send, collapsed };
+}
+
+/** B13: the saved-place price-drop notification (the pending trigger's href). */
+export function isSavedPriceDrop(href: string | null): boolean {
+  return typeof href === "string" && /^\/listing\/[^?#]+\?(?:.*&)?change=price-down(?:&|$)/.test(href);
+}
+
+/** B13: the member's "price drops on places you saved" push switch; on unless turned off. */
+export function wantsSavedPriceDrops(settings: unknown): boolean {
+  if (!settings || typeof settings !== "object") return true;
+  const notifications = (settings as Record<string, unknown>).notifications;
+  if (!notifications || typeof notifications !== "object") return true;
+  const value = (notifications as Record<string, unknown>).savedPriceDrops;
+  return value !== false;
 }

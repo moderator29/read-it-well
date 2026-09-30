@@ -1,4 +1,5 @@
 import { isAncestor, isAppRoot, normalisePath } from "@/lib/nav/resolve";
+import { prepareReturn, returnPending } from "./nav-origin";
 
 /**
  * WHICH WAY A NAVIGATION MOVES (motion sweep, 29 September 2026).
@@ -56,11 +57,26 @@ export function markNav(direction: NavDirection | null): void {
   clearAfter(CEILING_MS);
 }
 
-/** Called by the page that just arrived: the transition has started. */
+/**
+ * Called by the page that just arrived. When the browser exposes the running
+ * transition, the mark comes down once it has finished: on a slow phone the
+ * capture can land well after the page mounted, and a mark taken down first
+ * turned a tab switch into a push (seen under data saver). Elsewhere, after
+ * the settle delay.
+ */
 export function settleNav(): void {
   if (typeof document === "undefined") return;
   if (!document.documentElement.hasAttribute(ATTR)) return;
+  if (afterTransition(() => clearAfter(0))) return;
   clearAfter(SETTLE_MS);
+}
+
+/** Run `done` when the active view transition finishes; false if none. */
+export function afterTransition(done: () => void): boolean {
+  const vt = (document as Document & { activeViewTransition?: { finished: Promise<unknown> } | null }).activeViewTransition;
+  if (!vt?.finished) return false;
+  vt.finished.then(done, done);
+  return true;
 }
 
 /** Mark the move from the current page to `href`, if it is in the app. */
@@ -128,6 +144,7 @@ export function animateBack(go: () => void): void {
     return;
   }
   markNav("back");
+  const leaving = window.location.pathname;
   doc.startViewTransition({
     types: ["nf-back"],
     update: () =>
@@ -139,7 +156,23 @@ export function animateBack(go: () => void): void {
           window.removeEventListener("popstate", onPop);
           resolve();
         };
-        const onPop = () => window.setTimeout(finish, AFTER_COMMIT_MS);
+        /* The page coming back may hold the card this one was opened from
+           (lib/motion/nav-origin.ts). Then the capture waits, looking every
+           16ms (rendering is paused, so not a frame) and never past the
+           ceiling, until that card is drawn, so the
+           page being left can shrink back into it. */
+        const onPop = () => {
+          if (!returnPending(leaving)) {
+            window.setTimeout(finish, AFTER_COMMIT_MS);
+            return;
+          }
+          const look = () => {
+            if (settled) return;
+            if (prepareReturn(leaving)) finish();
+            else window.setTimeout(look, 16);
+          };
+          look();
+        };
         window.addEventListener("popstate", onPop);
         window.setTimeout(finish, BACK_CEILING_MS);
         go();

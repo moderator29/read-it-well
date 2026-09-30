@@ -111,7 +111,8 @@ export function Switch({
          * settings row keeps its rhythm.
          */
         "after:absolute after:inset-x-0 after:top-1/2 after:h-11 after:-translate-y-1/2 after:content-['']",
-        "disabled:cursor-not-allowed disabled:opacity-45",
+        /* Disabled is the calm grey track at full opacity (controls.css, reference 55). */
+        "disabled:cursor-not-allowed",
         label ? "" : className ?? "",
       ]
         .filter(Boolean)
@@ -182,3 +183,11 @@ export function Switch({
     </div>
   );
 }
+
+/**
+ * Reference 55 calls this control the Toggle (kind 6): a blue track with a
+ * white knob. It is the same primitive as `Switch`, one name for each
+ * vocabulary, so nothing forks.
+ */
+export const Toggle = Switch;
+export type ToggleProps = SwitchProps;

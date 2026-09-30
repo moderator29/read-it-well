@@ -18,10 +18,11 @@ import type { HostBooking, HostBookingBoard } from "@/lib/agent/bookings-queries
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
+import { DecisionCard } from "@/components/app/confirm/DecisionCard";
 import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
 import { Chip, ChipRow } from "@/components/ui/Chip";
 import { TextArea } from "@/components/ui/Field";
-import { IconPlate } from "@/components/ui/IconPlate";
+import { Icon3D } from "@/components/ui/Icon3D";
 
 /**
  * The host's bookings console: requests that need a decision, plus the stays
@@ -215,7 +216,8 @@ function BookingCard({
      `Intl.PluralRules` for the host's own locale, and the shared `counts` block
      at the root of the dictionary means the agent surfaces and the console say
      the same words for the same number. */
-  const counts = getDictionary(locale).counts;
+  const dictionary = getDictionary(locale);
+  const counts = dictionary.counts;
   const nightsLabel = plural(booking.nights, counts.nights, locale);
   const guestsLabel = plural(booking.guests, counts.guests, locale);
   const compositionLabel = formatParty(booking.adults, booking.children, counts, locale);
@@ -231,6 +233,66 @@ function BookingCard({
       : booking.holdHoursLeft > 0
         ? fill(t.card.releasesIn, { duration: durationLabel(t, booking.holdHoursLeft) })
         : fill(t.card.releasingNow, { hours: HOLD_WINDOW_HOURS });
+
+  /*
+   * AWAITING YOU (plan item 22; spec section 14, reference 36). A request is
+   * the one real decision on this board, so it is drawn as the tinted
+   * decision card: the guest, how long they have waited, what happens if
+   * nobody answers, the stay's lines and its total, Accept as the one
+   * primary, and Decline and a look at the calendar beside it. Accept and
+   * Decline open the same DecisionSheet they always did; the card holds no
+   * action of its own.
+   */
+  if (pending) {
+    const dates = fill(t.card.dates, {
+      from: formatDate(dateOnly(booking.checkIn), locale, { day: "numeric", month: "short" }),
+      to: formatDate(dateOnly(booking.checkOut), locale, { day: "numeric", month: "short" }),
+    });
+    return (
+      <li className="block" data-testid="booking-awaiting-you">
+        <DecisionCard
+          label={t.status.PENDING}
+          when={waitingLabel}
+          title={booking.guestName}
+          sub={[
+            releasesLabel,
+            booking.arrivingName ? fill(t.card.arriving, { name: booking.arrivingName }) : null,
+          ]
+            .filter(Boolean)
+            .join(" · ") || undefined}
+          lines={[
+            { label: booking.listingTitle, amount: nightsLabel },
+            {
+              label: dates,
+              amount: booking.children > 0 ? `${guestsLabel} · ${compositionLabel}` : guestsLabel,
+            },
+          ]}
+          total={{ label: t.card.total, amount: formatMoney(booking.totalMinor, locale) }}
+          primary={
+            <Button variant="primary" full onClick={() => onDecide("accept", booking)}>
+              {t.actions.accept}
+            </Button>
+          }
+          secondary={[
+            <Button
+              key="decline"
+              variant="secondary"
+              className="text-[var(--nf-state-error)]"
+              onClick={() => onDecide("decline", booking)}
+            >
+              {t.actions.decline}
+            </Button>,
+            <ButtonLink key="calendar" variant="secondary" href={`/agent/listings/${booking.listingId}/calendar`}>
+              {/* The accept sheet asks the host to check the property is
+                  genuinely free; this is the door to that check, on the
+                  listing's own calendar. */}
+              {dictionary.hostWorkspace.doors.checkCalendar}
+            </ButtonLink>,
+          ]}
+        />
+      </li>
+    );
+  }
 
   const settlementLabel =
     booking.settlement === "settled"
@@ -454,9 +516,9 @@ export function BookingsWorkspace({
           </ul>
         ) : (
           <div className="flex flex-col items-center gap-md py-10 text-center sm:py-14">
-            <IconPlate size="lg">
-              <UiIcon name="calendar-check" size={24} />
-            </IconPlate>
+            <span className="grid size-[5.5rem] shrink-0 place-items-center" aria-hidden="true" data-art="calendar-booked">
+              <Icon3D name="calendar-booked" size={88} />
+            </span>
             <h3 className="nf-h3">{emptyCopy[active].title}</h3>
             <p className="mx-auto max-w-[38ch] text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
               {emptyCopy[active].body}

@@ -417,78 +417,12 @@
   }
 
   /*
-   * THE PILL. One element, and it moves.
-   *
-   * Its width is one tab: the bar's own width, less its two paddings and the
-   * gaps between the tabs, divided by the number of tabs. Percentages on an
-   * absolutely positioned box resolve against the containing block's padding
-   * box, which is why the two paddings are subtracted here.
-   *
-   * Its position is the active index times one tab plus one gap, and inside a
-   * `translate` on this element `100%` means its own width, which IS one tab.
-   * So the whole traversal is one multiplication and the browser interpolates
-   * it on the entrance curve.
-   *
-   * `translate` rather than `transform`, so a press or any other transform on
-   * the bar cannot overwrite the position.
+   * THE TRAVELLING PILL'S RULES STOOD HERE AND ARE GONE (gap audit UIUX-13,
+   * 30 September 2026). Since the section 17 dock the active tab draws its
+   * own tinted pill (`.nf-tab__link::before`, shell-m.css) and the old
+   * `.nf-tabbar__pill` element is `display: none` there, so its geometry,
+   * paint and parked state were dead rules.
    */
-  /*
-   * QUIET NOW, ON THE FOUNDER'S REFERENCE. The pill was a full brand-gradient
-   * block with its own glow, which made the bar the loudest thing on every
-   * screen it floated over. The reference bar marks the active tab with
-   * weight and brightness alone, so the pill becomes what it always was
-   * underneath: the drawing of "you are here", a soft lift of the capsule's
-   * own material that the active glyph sits on. The travel physics are
-   * untouched; only the paint calmed down.
-   */
-  .nf-tabbar__pill {
-    position: absolute;
-    z-index: 0;
-    top: var(--nf-tab-pad);
-    bottom: var(--nf-tab-pad);
-    left: var(--nf-tab-pad);
-    width: calc(
-      (100% - (2 * var(--nf-tab-pad)) - ((var(--nf-tab-count) - 1) * var(--nf-tab-gap))) /
-        var(--nf-tab-count)
-    );
-    translate: calc(var(--nf-tab-i) * (100% + var(--nf-tab-gap)));
-    /* The control rung, because it sits directly under `.nf-tab__link`, which
-       the shape law puts there: a highlight whose corners do not match the
-       label it is drawn behind reads as a second shape. */
-    border-radius: var(--nf-radius-control);
-    /*
-     * WHAT THE PILL IS, RESOLVED AGAINST THE IMAGES RATHER THAN ARGUED ABOUT
-     * AGAIN.
-     *
-     * This rule and the one that replaced it below both read the same
-     * reference and reached opposite conclusions: one made the pill a 30 per
-     * cent brand plate with a lit rim, the other a 22 per cent wash of the
-     * side accent with an 18px bloom. Neither is what the images show. In
-     * `founder/GOVERNING-home-markets-target-2.jpg` and in
-     * `GOVERNING-feed-plus-bloom.png` there is NO PLATE BEHIND THE ACTIVE TAB
-     * AT ALL: the bar is one even sheet of blue glass and the active
-     * destination is marked by a lit glyph and a lit label, nothing else.
-     *
-     * But the pill is not decoration to delete. It is the only thing in the
-     * dock that MOVES, and the travel is what makes changing tabs read as one
-     * highlight sliding rather than as two cuts. So it is resolved as the
-     * faintest lift that still carries the motion: a 10 per cent wash of the
-     * side's own depth of blue with a hairline of its rim and no bloom. At a
-     * glance the bar reads as the image; in motion it still morphs.
-     */
-    background: color-mix(in oklab, var(--nf-side-accent) 10%, transparent);
-    box-shadow: inset 0 1px 0 var(--nf-glass-rim-thin);
-    transition: translate var(--nf-duration-base) var(--nf-ease-entrance);
-  }
-  /*
-   * Parked. `/saved` and, for a guest, `/messages` render the bar with no tab
-   * claiming the route. The pill is the drawing of "you are here", so when
-   * nobody is here it is not drawn: it used to leave the first tab looking
-   * selected on a screen the reader had not chosen.
-   */
-  .nf-tabbar__pill[data-parked] {
-    opacity: 0;
-  }
 
   /*
    * The detached island. Same material as the capsule so the group reads as one
@@ -664,7 +598,7 @@
     max-width: calc(100% + 2 * var(--nf-space-2xs));
     height: 1em;
     margin-inline: calc(-1 * var(--nf-space-2xs));
-    font-size: 0.6875rem;
+    font-size: var(--nf-text-overline);
     font-weight: 600;
     line-height: 1;
     letter-spacing: 0.01em;
@@ -721,26 +655,6 @@
    * note in `MobileTabBar.tsx`. Left as a rule it would have been a dead
    * selector, which this file has a long paragraph about further down.
    */
-  /*
-   * THE SECOND `.nf-tabbar` AND `.nf-tabbar__pill` BLOCKS STOOD HERE AND ARE
-   * GONE, FOLDED INTO THE ONES ABOVE.
-   *
-   * They restated the radius and the whole box-shadow of both objects, so the
-   * capsule and the pill were described twice in one file and what shipped
-   * was whichever block happened to be later. Both decisions they carried are
-   * kept upstairs: the rounded rectangle rather than a true pill (which is
-   * what the founder's target draws), and the side's own depth of blue on the
-   * travelling element (depth, never hue, so the dock tells the same story as
-   * the flip cover the moment a flip lands). What is NOT kept is the soft
-   * `--nf-brand-edge-soft` ring, because the target's capsule is outlined in
-   * a bright blue line, and the 22 per cent plate, for the reason set out on
-   * the pill above.
-   */
-  @media (prefers-reduced-motion: reduce) {
-    .nf-tabbar__pill {
-      transition: none;
-    }
-  }
 
   /* ------------------------------------------------------ the app header */
   /*
@@ -1041,12 +955,23 @@
   .nf-ph-large {
     margin-block: 0.5rem 1.25rem;
   }
+  /* The row wraps rather than breaking the title inside a word. The text
+     block is never narrower than its longest word (or the row, whichever is
+     less), so when a back button, a one-word title and a text action cannot
+     share a 360 to 430px line, the action drops to its own line, right
+     aligned, instead of "Notification / s" (integration QA, 30 September). */
   .nf-ph-large__row {
     display: flex;
+    flex-wrap: wrap;
     align-items: flex-start;
     gap: 0.75rem;
   }
+  .nf-ph-large__text {
+    flex: 1 1 0;
+    min-width: min(100%, min-content);
+  }
   .nf-ph-large__title {
+    overflow-wrap: break-word;
     font-family: var(--nf-font-display);
     font-size: var(--nf-text-title-lg, 1.875rem);
     line-height: var(--nf-leading-title-lg, 2.25rem);
@@ -1073,6 +998,7 @@
   .nf-ph-large__actions {
     display: flex;
     flex: none;
+    margin-inline-start: auto;
     align-items: center;
     gap: 0.5rem;
     margin-top: -0.25rem;
@@ -1280,7 +1206,7 @@
   .nf-desk-side__heading {
     padding-inline: 0.5rem;
     margin-bottom: 0.25rem;
-    font-size: 0.6875rem;
+    font-size: var(--nf-text-label);
     line-height: 0.875rem;
     font-weight: 600;
     letter-spacing: var(--nf-tracking-label, 0.06em);
@@ -1317,6 +1243,14 @@
   }
   .nf-desk-side__row[aria-current="page"] .nf-desk-side__glyph {
     color: var(--nf-brand-primary);
+  }
+  /* At night the brand blue as text is 4.3:1 on the canvas (under AA at
+     14px); the label and glyph take the link ink, the dot keeps the brand.
+     (Integration QA, 30 September; the member rail in shell-m.css matches.) */
+  :root:not([data-theme="light"]) .nf-desk-side__row[aria-current="page"],
+  :root:not([data-theme="light"]) .nf-desk-side__row[aria-current="page"] .nf-desk-side__glyph,
+  :root:not([data-theme="light"]) .nf-desk-side__count {
+    color: var(--nf-content-link);
   }
   .nf-desk-side__dot {
     position: absolute;

@@ -105,7 +105,7 @@ export function RoomTypes({
                     {copy.category[ROOM_CATEGORY_KEY[room.category]]}
                     {" · "}
                     {copy.sleeps.replace("{count}", String(room.sleeps))}
-                    {room.sizeSqm ? ` · ${room.sizeSqm} m²` : ""}
+                    {room.sizeSqm ? `\u00a0· ${room.sizeSqm} m²` : ""}
                   </span>
                   {includes && <span className={`mt-3xs block ${TYPE.rowMeta}`}>{includes}</span>}
                   {!fits && (

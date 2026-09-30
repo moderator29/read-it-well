@@ -35,6 +35,8 @@ export type PushPayload = {
   tag: string;
   /** True for money and security, which also ignore quiet hours. */
   urgent: boolean;
+  /** B11: an fyi (a like, a follow): shown without sound or vibration. */
+  quiet?: boolean;
   /** V-53: up to two buttons, each a destination on our origin. */
   actions?: import("./actions").PushAction[];
 };

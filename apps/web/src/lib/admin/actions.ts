@@ -18,6 +18,7 @@
  * twice would be worse than not telling them at all.
  */
 
+import { composeReviewNote, isReviewReasonCode } from "./review-reasons";
 import { revalidatePath } from "next/cache";
 import { eddGateMessage, isEddGateRefusal } from "../compliance/gate";
 import { ARRIVAL_DECLARATION_NEEDED, arrivalChargesDeclared } from "../stays/arrival-gate";
@@ -44,6 +45,7 @@ import { CLOSED_LISTING_MESSAGE, isClosedListingRefusal } from "../landlord/clos
 import { withDone } from "../ui/success-moments";
 import { MANDATE_NEEDED_MESSAGE, isMandateRefusal } from "../compliance/beneficial-ownership";
 import {
+  acknowledgeRiskAlertSchema,
   replySupportTicketSchema,
   resolveReportSchema,
   resolveRiskAlertSchema,
@@ -193,6 +195,70 @@ export async function resolveRiskAlert(input: {
     });
   } catch {
     // Best effort.
+  }
+
+  revalidatePath("/admin/alerts");
+  revalidatePath("/admin");
+  return ok(null);
+}
+
+/**
+ * C13: "I HAVE THIS". The first person to take an open alert puts their name
+ * on it, so two people do not chase the same fault and nobody assumes the
+ * other one has it. Behind the same admin check as resolving, written through
+ * the admin's own RLS-bound client (the existing admin-only policy), audited.
+ * The database stamps the time and refuses a name that is not the caller's.
+ *
+ * The columns arrived with 20260930122539_c13_alert_acknowledged_by_and_skipped_runs.sql;
+ * should they ever be missing the answer says so plainly rather than failing
+ * silently.
+ */
+export async function acknowledgeRiskAlert(input: { alertId: string }): Promise<ActionResult<null>> {
+  const access = await requireAdmin();
+  if (access.state !== "admin") return fail(adminRefusal(access));
+
+  const parsed = validate(acknowledgeRiskAlertSchema, input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+
+  const { data: alert, error: readError } = await access.supabase
+    .from("risk_alerts")
+    .select("id, status, severity, title")
+    .eq("id", parsed.data.alertId)
+    .maybeSingle();
+  if (readError) return fail(SERVICE_DOWN);
+  if (!alert) return fail(GONE);
+  if (alert.status !== "open") return fail("This alert is already resolved.");
+
+  /* `is null` makes the first taker win: a second click, or a second person,
+     changes nothing and is told somebody has it. The database guard holds
+     the same rule for any other writer. */
+  const { data: taken, error: updateError } = await access.supabase
+    .from("risk_alerts")
+    .update({ acknowledged_by: access.user.id, acknowledged_at: new Date().toISOString() })
+    .eq("id", alert.id)
+    .eq("status", "open")
+    .is("acknowledged_by", null)
+    .select("id");
+  if (updateError) {
+    if (updateError.code === "42703" || updateError.code === "PGRST204") {
+      return fail("Acknowledging is not switched on yet. Nothing was changed.");
+    }
+    return fail(claimRefusal(updateError) ?? SERVICE_DOWN);
+  }
+  if (!Array.isArray(taken) || taken.length === 0) {
+    return fail("Somebody has already taken this alert. Refresh the queue to see who.");
+  }
+
+  try {
+    await writeAudit(createAdminClient(), {
+      actorId: access.user.id,
+      action: "risk_alert.acknowledge",
+      entityType: "risk_alert",
+      entityId: alert.id,
+      detail: { status: alert.status, severity: alert.severity, title: alert.title },
+    });
+  } catch {
+    // Best effort; the name is on the row either way.
   }
 
   revalidatePath("/admin/alerts");
@@ -583,6 +649,8 @@ export async function reviewListing(input: {
   listingId: string;
   decision: "approve" | "publish" | "reject" | "request_changes";
   notes?: string;
+  /** C8: reason codes; their lister-facing sentences are composed into the note here, on the server. */
+  reasons?: string[];
 }): Promise<ActionResult<null>> {
   const access = await requireAdmin("listing_approval");
   if (access.state !== "admin") return fail(adminRefusal(access));
@@ -590,7 +658,14 @@ export async function reviewListing(input: {
   const parsed = validate(reviewListingSchema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   const { listingId, decision } = parsed.data;
-  const notes = parsed.data.notes ?? null;
+  const reasons = (parsed.data.reasons ?? []).filter(isReviewReasonCode);
+  /* The codes' sentences, then the reviewer's own words: the same reasons
+     always read the same to the lister (C8). Approve and publish carry no codes. */
+  const composed =
+    decision === "reject" || decision === "request_changes"
+      ? composeReviewNote(reasons, parsed.data.notes ?? "")
+      : (parsed.data.notes ?? "");
+  const notes = composed.length > 0 ? composed : null;
 
   if (decision === "request_changes" && (notes === null || notes.length === 0)) {
     return fail("Tell the agent what to change.", {
@@ -778,6 +853,8 @@ export async function reviewListing(input: {
       title: listing.title,
       agent_id: listing.agent_id,
       notes,
+      /* C8: countable on the analytics desk ("why listings were sent back"). */
+      reasons: reasons.join(","),
     };
     await writeAudit(admin, {
       actorId: access.user.id,

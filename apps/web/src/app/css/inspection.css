@@ -69,7 +69,7 @@
     /* Render: two lines at 10.5px strict; 13px, the same two lines. */
     margin-top: var(--nf-space-2xs);
     max-width: 15rem;
-    font-size: 0.6875rem;
+    font-size: var(--nf-text-overline);
     line-height: 1.35;
     color: var(--nf-brand-secondary);
   }
@@ -202,7 +202,7 @@
     align-items: center;
     gap: var(--nf-space-2xs);
     margin-top: var(--nf-space-3xs);
-    font-size: 0.6875rem;
+    font-size: var(--nf-text-overline);
     line-height: 1.3;
     color: var(--nf-content-secondary);
   }
@@ -220,7 +220,7 @@
     font-variant-numeric: tabular-nums;
   }
   .nf-ix-card__price small {
-    font-size: 0.6875rem;
+    font-size: var(--nf-text-overline);
     font-weight: 500;
   }
   .nf-ix-card__chev {
@@ -242,7 +242,7 @@
     padding: 0 var(--nf-space-2xs);
     border-radius: var(--nf-radius-xs);
     border: var(--nf-border-width) solid color-mix(in oklab, currentColor 45%, transparent);
-    font-size: 0.6875rem;
+    font-size: var(--nf-text-overline);
     font-weight: 600;
     line-height: 1;
     white-space: nowrap;
@@ -301,7 +301,7 @@
   }
   .nf-ix-fact__label {
     display: block;
-    font-size: 0.6875rem;
+    font-size: var(--nf-text-overline);
     line-height: 1.3;
     white-space: nowrap;
     color: var(--nf-content-secondary);
@@ -309,7 +309,7 @@
   .nf-ix-fact__value {
     display: block;
     margin-top: var(--nf-space-3xs);
-    font-size: 0.6875rem;
+    font-size: var(--nf-text-overline);
     line-height: 1.3;
     font-weight: 600;
     color: var(--nf-content-primary);
@@ -318,7 +318,7 @@
   .nf-ix-fact__sub {
     display: block;
     margin-top: var(--nf-space-3xs);
-    font-size: 0.6875rem;
+    font-size: var(--nf-text-overline);
     line-height: 1.3;
     color: var(--nf-content-secondary);
   }
@@ -332,7 +332,7 @@
     margin-top: var(--nf-space-3xs);
     padding-block: 0.9375rem;
     margin-block: -0.9375rem;
-    font-size: 0.6875rem;
+    font-size: var(--nf-text-overline);
     line-height: 1.3;
     font-weight: 500;
     color: var(--nf-content-link);
@@ -390,7 +390,7 @@
     box-shadow: 0 0 6px color-mix(in oklab, var(--nf-state-success) 60%, transparent);
   }
   .nf-ix-life__label {
-    font-size: 0.6875rem;
+    font-size: var(--nf-text-overline);
     line-height: 1.2;
     color: var(--nf-content-secondary);
   }
@@ -419,7 +419,7 @@
     gap: var(--nf-space-xs);
     font-family: var(--nf-font-display);
     font-weight: 600;
-    font-size: 0.6875rem;
+    font-size: var(--nf-text-overline);
     color: var(--nf-content-primary);
     white-space: nowrap;
   }
@@ -434,7 +434,7 @@
     align-items: stretch;
     gap: var(--nf-space-2xs);
     flex-shrink: 0;
-    font-size: 0.6875rem;
+    font-size: var(--nf-text-overline);
     font-weight: 500;
     color: var(--nf-brand-secondary);
     font-variant-numeric: tabular-nums;
@@ -442,7 +442,7 @@
   }
   .nf-ix-check__note {
     margin: 0 var(--nf-space-2xs) var(--nf-space-2xs);
-    font-size: 0.6875rem;
+    font-size: var(--nf-text-overline);
     line-height: 1.35;
     color: var(--nf-content-secondary);
   }
@@ -506,13 +506,13 @@
   .nf-ix-room__name {
     display: block;
     font-weight: 600;
-    font-size: 0.6875rem;
+    font-size: var(--nf-text-overline);
     line-height: 1.25;
     color: var(--nf-content-primary);
   }
   .nf-ix-room__detail {
     display: block;
-    font-size: 0.6875rem;
+    font-size: var(--nf-text-overline);
     line-height: 1.25;
     color: var(--nf-brand-secondary);
   }
@@ -583,12 +583,12 @@
   .nf-ix-notes__label {
     display: block;
     font-weight: 600;
-    font-size: 0.6875rem;
+    font-size: var(--nf-text-overline);
     color: var(--nf-content-primary);
   }
   .nf-ix-notes__said {
     margin-top: var(--nf-space-2xs);
-    font-size: 0.6875rem;
+    font-size: var(--nf-text-overline);
     line-height: 1.4;
     color: var(--nf-content-secondary);
     white-space: pre-wrap;
@@ -619,7 +619,7 @@
     color: var(--nf-content-primary);
   }
   .nf-ix-notes__field::placeholder {
-    font-size: 0.6875rem;
+    font-size: var(--nf-text-overline);
     color: var(--nf-content-muted);
   }
   .nf-ix-notes__field:disabled {
@@ -636,7 +636,7 @@
     padding: var(--nf-space-2xs);
     font-family: var(--nf-font-display);
     font-weight: 600;
-    font-size: 0.6875rem;
+    font-size: var(--nf-text-overline);
     line-height: 1.2;
     color: var(--nf-content-primary);
   }
@@ -658,7 +658,7 @@
     border-radius: var(--nf-radius-sm);
     border: var(--nf-border-width) solid var(--nf-panel-hair);
     background: color-mix(in oklab, var(--nf-lit) 10%, transparent);
-    font-size: 0.6875rem;
+    font-size: var(--nf-text-overline);
     font-weight: 600;
     color: var(--nf-content-primary);
     cursor: pointer;
@@ -705,7 +705,7 @@
   .nf-ix .nf-ix-submit {
     --nf-btn-h: 2.75rem;
     padding-block: 0;
-    font-size: 0.6875rem;
+    font-size: var(--nf-text-overline);
     justify-content: center;
   }
   /* Submit while it waits: the render draws it as blue glass with a brand
@@ -740,7 +740,7 @@
     right: var(--nf-space-md);
   }
   .nf-ix-hint {
-    font-size: 0.6875rem;
+    font-size: var(--nf-text-overline);
     color: var(--nf-content-muted);
     text-align: center;
   }

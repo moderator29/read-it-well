@@ -9,8 +9,13 @@ import { Field } from "./fields";
 import { AuthPillButton } from "./slate";
 import { useRouter } from "next/navigation";
 import { playThreshold, thresholdAllowed } from "@/lib/motion/threshold";
-import { VerifyingPanel } from "./VerifyingPanel";
+import { motionQuiet } from "@/lib/motion/gate";
+import { ArrivalMoment } from "./ArrivalMoment";
+import { CodeInput } from "./CodeInput";
+import { withNext } from "@/lib/auth/next-link";
+import { mailAppFor, resendLabel, RESEND_WAIT_SECONDS } from "@/lib/auth/mail-app";
 import {
+  CONFIRMATION_CODE_LENGTH,
   CONFIRMATION_CODE_PLACEHOLDER,
   codeLengthWord,
   readCode,
@@ -68,13 +73,39 @@ export function VerifyCodeForm({
   const form = useRef<HTMLFormElement>(null);
   const router = useRouter();
 
+  /* How many times the server refused a code, so the cells shake once for
+     each (`CodeInput`). Counted as the answer arrives, during render, the
+     way the sign-up form picks its step, so no effect re-renders for it. */
+  const [answered, setAnswered] = useState(state);
+  const [wrongCount, setWrongCount] = useState(0);
+  if (answered !== state) {
+    setAnswered(state);
+    if (state.fieldErrors?.code) setWrongCount((n) => n + 1);
+  }
+
   /*
-   * The same moment the link path shows.
+   * A4: THE SCREEN HELPS WHEN THE CODE DOES NOT COME. "Send a new code"
+   * waits thirty seconds (a code was sent a moment ago; a second one sent at
+   * once only races the first), counting down in place. Each send starts
+   * the wait again, and after two the hint about Spam and Promotions turns
+   * into "Still nothing?" with the way to help.
+   */
+  const [wait, setWait] = useState(RESEND_WAIT_SECONDS);
+  const [sends, setSends] = useState(0);
+  useEffect(() => {
+    if (wait <= 0) return;
+    const timer = window.setTimeout(() => setWait((s) => s - 1), 1000);
+    return () => window.clearTimeout(timer);
+  }, [wait]);
+
+  /*
+   * THE MOMENT THE ACCOUNT EXISTS (A17).
    *
    * Confirming by code used to redirect from the server, which put somebody
-   * inside the platform on the next frame, while confirming by link held
-   * "Verifying your email" for two seconds first. Two ways into one account
-   * should not feel like two products. The floor lives in `VerifyingPanel`.
+   * inside the platform on the next frame. The screen now says so first,
+   * by name ("You're in, Ada."), for under a second, then goes through the
+   * door to where the person was going. Quiet (reduced motion, Calm, Off):
+   * the finished picture, and on at once.
    */
   useEffect(() => {
     if (!state.ok || !state.verified) return;
@@ -85,17 +116,17 @@ export function VerifyCodeForm({
       router.replace(to);
       router.refresh();
     };
-    /* Track M: through the door, which replaces the two-second floor. */
-    if (thresholdAllowed()) {
-      void playThreshold("door").then(go);
-      return;
-    }
-    const timer = window.setTimeout(go, 2000);
+    const hold = motionQuiet() ? 350 : 1100;
+    const timer = window.setTimeout(() => {
+      /* Track M: through the door when motion allows it. */
+      if (thresholdAllowed()) void playThreshold("door").then(go);
+      else go();
+    }, hold);
     return () => window.clearTimeout(timer);
   }, [state.ok, state.verified, router]);
 
   if (state.ok && state.verified) {
-    return <VerifyingPanel />;
+    return <ArrivalMoment t={t} name={state.name} />;
   }
 
   /*
@@ -121,72 +152,93 @@ export function VerifyCodeForm({
     }
   }
 
-  return (
-    <div className="w-full max-w-[26rem]">
-      <h1 className="nf-h2">{a.enterCode}</h1>
-      <p className="mt-2 text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
-        {address.length > 0 ? (
-          <>
-            {a.sentTo.replace("{count}", codeLengthWord())}{" "}
-            <span className="font-semibold text-[var(--nf-content-primary)]">{address}</span>
-            {a.sentToTail}
-          </>
-        ) : (
-          <>
-            {a.sentNoAddress.replace("{count}", codeLengthWord())}
-          </>
-        )}
-      </p>
+  /* Every send starts the wait again. */
+  const onResend = () => {
+    setWait(RESEND_WAIT_SECONDS);
+    setSends((n) => n + 1);
+  };
 
-      <form ref={form} action={verifyAction} className="mt-7 space-y-4" noValidate>
+  const mail = mailAppFor(address);
+  /* Back to the form with the address in it, and the destination kept; the
+     form restores the names typed a moment ago (A1's draft, never the
+     password). */
+  const changeHref = (() => {
+    const base = withNext("/sign-up/email", next);
+    return address ? `${base}${base.includes("?") ? "&" : "?"}email=${encodeURIComponent(address)}` : base;
+  })();
+
+  return (
+    <div className="nf-auth__screen nf-verify">
+      <div className="nf-slate-stagger">
+        <h1 className="nf-auth__title">{a.enterCode}</h1>
+        <p className="nf-auth__sub">
+          {address.length > 0 ? (
+            <>
+              {a.sentTo.replace("{count}", codeLengthWord())}{" "}
+              <span className="font-semibold text-[var(--nf-content-primary)]">{address}</span>
+              {a.sentToTail}
+            </>
+          ) : (
+            <>
+              {a.sentNoAddress.replace("{count}", codeLengthWord())}
+            </>
+          )}
+        </p>
+        {email.length > 0 && address.length > 0 ? (
+          <p className="nf-verify__change">
+            {a.wrongAddress}{" "}
+            <Link href={changeHref} className="nf-auth__notice-link" data-testid="verify-change-address">
+              {a.changeAddress}
+            </Link>
+          </p>
+        ) : null}
+      </div>
+
+      <form ref={form} action={verifyAction} className="nf-auth__form nf-auth__form--fields nf-slate-stagger" noValidate>
         {next && <input type="hidden" name="next" value={next} />}
 
         {/*
           The address is on the form whether or not we remembered it. Opening
           the email on a phone and the code on a laptop is ordinary, and the
-          cookie that carries it does not travel between the two.
+          cookie that carries it does not travel between the two. Remembered,
+          it is a hidden input and the line above shows it, with a way to
+          change it.
         */}
-        <Field
-          t={t}
-          id="verify-email"
-          name="email"
-          type="email"
-          label={t.auth.emailLabel}
-          placeholder={t.auth.emailPlaceholder}
-          autoComplete="email"
-          error={state.fieldErrors?.email ?? resendState.fieldErrors?.email}
-          value={address}
-          onChange={setAddress}
-        />
+        {email.length > 0 ? (
+          <input type="hidden" name="email" value={address} />
+        ) : (
+          <Field
+            t={t}
+            id="verify-email"
+            name="email"
+            type="email"
+            label={t.auth.emailLabel}
+            placeholder={t.auth.emailPlaceholder}
+            autoComplete="email"
+            error={state.fieldErrors?.email ?? resendState.fieldErrors?.email}
+            value={address}
+            onChange={setAddress}
+          />
+        )}
 
-        <Field
-          t={t}
+        {/* The surplus first. It is about what is in the field right now,
+            where the server's refusal is about the last thing sent, and the
+            newer fact is the one worth reading. */}
+        <CodeInput
           id="verify-code"
           name="code"
-          type="text"
           label={a.codeLabel}
-          placeholder={CONFIRMATION_CODE_PLACEHOLDER}
-          /* `one-time-code` is what makes iOS and Android offer the code from
-             the message above the keyboard, which is the difference between
-             one tap and copying the digits by hand. */
-          autoComplete="one-time-code"
-          inputMode="numeric"
-          /* The surplus first. It is about what is in the field right now,
-             where the server's refusal is about the last thing sent, and the
-             newer fact is the one worth reading. `Field` already wires
-             aria-invalid and aria-describedby off this prop, so saying it here
-             says it to a screen reader too. */
-          error={surplus ?? state.fieldErrors?.code}
+          length={CONFIRMATION_CODE_LENGTH}
           value={code}
           onChange={onCode}
-          className="nf-numeric text-[1.25rem] tracking-[0.32em]"
+          error={surplus ?? state.fieldErrors?.code}
+          wrongCount={wrongCount}
+          placeholder={CONFIRMATION_CODE_PLACEHOLDER}
+          cellsLabel={a.codeCells.replace("{count}", codeLengthWord())}
         />
 
         {state.message && (
-          <p
-            role="alert"
-            className="rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-warning)_35%,transparent)] bg-[var(--nf-state-warning-surface)] px-md py-sm text-[0.8125rem] leading-relaxed text-[var(--nf-state-warning)]"
-          >
+          <p role="alert" className="nf-auth__alert">
             {state.message}
           </p>
         )}
@@ -200,33 +252,55 @@ export function VerifyCodeForm({
 
       {/* Its own form, so asking for another code cannot submit the one that
           is already typed, and a refusal on one does not clear the other. */}
-      <form action={resendAction} className="mt-5 text-center">
-        <input type="hidden" name="email" value={address} />
+      <form action={resendAction} onSubmit={onResend} className="nf-verify__resend nf-slate-stagger">
         {next ? <input type="hidden" name="next" value={next} /> : null}
-        <Button type="submit" variant="ghost" size="sm" loading={resending}>
-          {a.sendAnother}
+        <input type="hidden" name="email" value={address} />
+        <Button
+          type="submit"
+          variant="ghost"
+          size="sm"
+          loading={resending}
+          disabled={wait > 0}
+          data-testid="verify-resend"
+        >
+          {wait > 0 ? resendLabel(a.resendIn, wait) : a.sendAnother}
         </Button>
         {resendState.message && (
-          <p
-            role="status"
-            className="mt-2 text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]"
-          >
+          <p role="status" className="nf-verify__status">
             {resendState.message}
           </p>
         )}
       </form>
 
+      {/* Where the code might be, and one tap to the inbox when we can tell
+          which one it is. */}
+      <div className="nf-verify__help nf-slate-stagger">
+        <p className="nf-verify__hint">{sends >= 2 ? a.stillNothing : a.checkSpam}</p>
+        {mail ? (
+          <a
+            href={mail.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="nf-verify__mail nf-tap"
+            data-testid="verify-open-mail"
+          >
+            {a.openMail.replace("{app}", mail.app)}
+          </a>
+        ) : null}
+      </div>
+
       {/* The house classes, not a one-off. `nf-auth__swap` is what every other
           screen in this card uses for "the other door", and it is the reason
           that door is legible: it draws the link in `--nf-content-link` at 600.
-          This paragraph used to be muted grey throughout with the link marked
-          only by a :hover rule, which on a phone is no mark at all, so on the
-          one screen where somebody is stuck waiting for an email the way out
-          was invisible. Colour is never the ONLY signal (rule 13); here there
-          was no signal. */}
-      <p className="nf-auth__terms">{a.sameEmailButton}</p>
+          Colour is never the ONLY signal (rule 13). */}
+      <p className="nf-auth__terms nf-verify__same">{a.sameEmailButton}</p>
       <p className="nf-auth__swap mt-xs">
         <Link href="/sign-in">{a.alreadyConfirmed}</Link>
+      </p>
+      <p className="nf-auth__swap nf-auth__swap--quiet">
+        <Link href="/help" className="nf-tap" data-testid="verify-help">
+          {a.getHelp}
+        </Link>
       </p>
     </div>
   );

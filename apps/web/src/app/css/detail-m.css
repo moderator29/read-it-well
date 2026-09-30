@@ -111,6 +111,35 @@
     }
   }
 
+  /*
+   * THE PAGE'S OTHER BACK CONTROLS ARE ROUND TOO (gap audit UIUX-13;
+   * CLEAN_UNIFIED_DIRECTION section 17). The hero's back, share and save
+   * wear `nf-icon-btn--round` (ListingGallery, ListingActions). The back
+   * that stays once the photograph has scrolled away and the one in the
+   * stuck section tabs are hand-placed (fixed, and fading in), so they take
+   * the same circle here rather than the class, whose `position` would
+   * fight theirs: 44px, the elevated surface on the card hairline, the
+   * float shadow, the same tokens as `.nf-app-header__btn.nf-icon-btn--round`.
+   * Opacity and the 4px slide stay theirs.
+   */
+  .nf-floating-back,
+  .nf-detail-tabs .nf-detail-tabs__back {
+    border: var(--nf-border-width) solid var(--nf-card-border);
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-surface-elevated);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: var(--nf-float-shadow);
+    color: var(--nf-content-primary);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .nf-floating-back:hover,
+    .nf-detail-tabs .nf-detail-tabs__back:hover {
+      border-color: var(--nf-border-default);
+      background: linear-gradient(var(--nf-interactive-hover), var(--nf-interactive-hover)), var(--nf-surface-elevated);
+    }
+  }
+
   @media (prefers-reduced-motion: reduce), print {
     .nf-gallery-mark,
     .nf-detail-price,

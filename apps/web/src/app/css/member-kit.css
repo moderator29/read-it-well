@@ -1,0 +1,604 @@
+/*
+ * THE MEMBER KIT (recommendations B5 to B17): the scam shield under a received
+ * message, the viewing day strip, the renter's question chips, the reply-time
+ * line, what changed in an agreement, the rent countdown and increase
+ * contrast. Tokens only; only transform and opacity ever move.
+ */
+@layer components {
+  /* ------------------------------------------------------- B12 the shield */
+
+  /* A calm tinted row under the bubble, the width of the bubble column. The
+     tint is the info surface, never the error red: it is a note, and the
+     founder asked for calm. */
+  .nf-scam-shield {
+    margin-top: var(--nf-space-xs);
+    padding: var(--nf-space-sm) var(--nf-space-md) var(--nf-space-2xs);
+    border-radius: var(--nf-radius-card-sm);
+    background: var(--nf-state-info-surface);
+    border: var(--nf-border-width) solid var(--nf-border-subtle);
+    color: var(--nf-content-secondary);
+    display: grid;
+    grid-template-columns: 18px minmax(0, 1fr);
+    column-gap: var(--nf-space-xs);
+    max-width: 100%;
+  }
+  .nf-scam-shield__icon {
+    margin-top: 2px;
+    color: var(--nf-state-info);
+  }
+  .nf-scam-shield__body {
+    display: grid;
+    gap: var(--nf-space-2xs);
+    min-width: 0;
+  }
+  .nf-scam-shield__lead {
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+  }
+  .nf-scam-shield__lead strong {
+    color: var(--nf-content-primary);
+    font-weight: 600;
+  }
+  .nf-scam-shield__private {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-scam-shield__steps {
+    display: grid;
+    gap: var(--nf-space-xs);
+    margin: var(--nf-space-xs) 0 0;
+    padding-inline-start: var(--nf-space-md);
+    list-style: decimal;
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.5;
+  }
+  .nf-scam-shield__steps strong {
+    color: var(--nf-content-primary);
+    font-weight: 600;
+  }
+  .nf-scam-shield__more {
+    justify-self: start;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-link);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+  .nf-scam-shield__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: var(--nf-space-lg);
+  }
+  .nf-scam-shield__toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    min-height: 44px;
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-link);
+  }
+  .nf-scam-shield__chev {
+    transition: transform var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-scam-shield__chev.is-open {
+    transform: rotate(180deg);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-scam-shield__chev {
+      transition: none;
+    }
+  }
+  :root[data-motion="off"] .nf-scam-shield__chev {
+    transition: none;
+  }
+}
+
+@layer components {
+  /* ------------------------------------------- B6 the renter's question chips */
+
+  /* A wrapping row, not a rail: five short questions fit on two lines at 360
+     and every one is visible without a sideways swipe. */
+  .nf-ask-chips {
+    display: grid;
+    gap: var(--nf-space-xs);
+  }
+  .nf-ask-chips__row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--nf-space-xs);
+  }
+}
+
+@layer components {
+  /* ------------------------------------------- B9 what changed in the terms */
+
+  .nf-terms-diff {
+    margin-top: var(--nf-space-lg);
+    padding: var(--nf-space-md);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-state-warning-surface);
+    border: var(--nf-border-width) solid var(--nf-border-default);
+    display: grid;
+    gap: var(--nf-space-sm);
+  }
+  .nf-terms-diff__title {
+    display: flex;
+    align-items: flex-start;
+    line-height: 1.35;
+    gap: var(--nf-space-xs);
+    font-size: var(--nf-text-body);
+    font-weight: 700;
+    color: var(--nf-content-primary);
+  }
+  .nf-terms-diff__icon {
+    color: var(--nf-state-warning);
+    flex-shrink: 0;
+    /* On the first line's centre when the title wraps at 360. */
+    margin-top: 0.1em;
+  }
+  .nf-terms-diff__meta {
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+  }
+  .nf-terms-diff__rows {
+    display: grid;
+  }
+  .nf-terms-diff__row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--nf-space-2xs) var(--nf-space-md);
+    padding: var(--nf-space-xs) 0;
+    border-top: var(--nf-border-width) solid var(--nf-border-subtle);
+  }
+  .nf-terms-diff__label {
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+  }
+  .nf-terms-diff__values {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    font-size: var(--nf-text-body-sm);
+  }
+  .nf-terms-diff__old {
+    color: var(--nf-content-muted);
+  }
+  .nf-terms-diff__arrow {
+    color: var(--nf-content-muted);
+  }
+  .nf-terms-diff__new {
+    color: var(--nf-content-primary);
+    font-weight: 700;
+  }
+}
+
+@layer components {
+  /* ------------------------------------------------ B7 the reply-time line */
+
+  .nf-reply-time {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-reply-time__line {
+    display: grid;
+    grid-template-columns: 14px minmax(0, 1fr);
+    column-gap: var(--nf-space-xs);
+    align-content: center;
+    align-items: start;
+    min-height: 44px;
+    line-height: 1.45;
+    cursor: pointer;
+    list-style: none;
+  }
+  .nf-reply-time__line::-webkit-details-marker {
+    display: none;
+  }
+  .nf-reply-time__icon {
+    margin-top: 0.15em;
+  }
+  .nf-reply-time__how {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    white-space: nowrap;
+  }
+  .nf-reply-time[open] .nf-reply-time__how {
+    color: var(--nf-content-secondary);
+  }
+  .nf-reply-time__explain {
+    padding-bottom: var(--nf-space-xs);
+    padding-inline-start: calc(14px + var(--nf-space-xs));
+    line-height: 1.5;
+  }
+}
+
+@layer components {
+  /* ------------------------------------------------- B5 the viewing day kit */
+
+  .nf-day-kit {
+    display: grid;
+    gap: var(--nf-space-xs);
+  }
+  .nf-day-kit__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--nf-space-xs);
+  }
+  .nf-day-kit__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-space-sm);
+  }
+  .nf-day-kit__pair {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+    gap: var(--nf-space-xs);
+  }
+  .nf-day-kit__late {
+    display: grid;
+    gap: var(--nf-space-2xs);
+  }
+  .nf-day-kit__choices {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--nf-space-xs);
+  }
+  .nf-day-kit__ask {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  /* A quiet text action with a full tap target: the calendar on the day and
+     the way back out of How late. */
+  .nf-day-kit__link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-link);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+  .nf-day-kit__link:disabled {
+    opacity: 0.5;
+  }
+  .nf-day-kit__note {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+  }
+  /* On the thread's inspection card: under the card's own buttons, across a
+     hairline, so it reads as the day's tools rather than a third action. */
+  .nf-context-card__kit {
+    margin-top: var(--nf-space-sm);
+    padding-top: var(--nf-space-sm);
+    border-top: var(--nf-border-width) solid var(--nf-border-subtle);
+  }
+  /* The live region stays in the tree so a later note is announced; empty,
+     it takes no room. */
+  .nf-day-kit__note:empty {
+    display: none;
+  }
+}
+
+/* ------------------------------------------------- B15 increase contrast */
+/*
+ * Unlayered on purpose, and on `html:root` for one more point of specificity,
+ * so it wins over the theme blocks in either palette. It re-points semantic
+ * tokens at their stronger siblings and changes nothing else: hairlines take
+ * the strong border, muted and subtle ink take the secondary ink, and focus
+ * rings grow to 3px. The active dock label is underlined as well as coloured,
+ * so the current tab never rests on a hue alone.
+ *
+ * Two ways in: the system asks (`prefers-contrast: more`), unless the person
+ * set Standard in Settings; or the person turns on "Increase contrast"
+ * (`data-contrast="more"`, written to the root by `ContrastSync`).
+ */
+@media (prefers-contrast: more) {
+  html:root:not([data-contrast="standard"]) {
+    --nf-border-subtle: var(--nf-border-strong);
+    --nf-border-default: var(--nf-border-strong);
+    --nf-card-border: var(--nf-border-strong);
+    --nf-glass-border: var(--nf-border-strong);
+    --nf-content-muted: var(--nf-content-secondary);
+    --nf-content-subtle: var(--nf-content-secondary);
+    --nf-focus-ring-width: 3px;
+  }
+  html:root:not([data-contrast="standard"]) .nf-tab__link[aria-current="page"] .nf-tab__label {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 4px;
+  }
+}
+html:root[data-contrast="more"] {
+  --nf-border-subtle: var(--nf-border-strong);
+  --nf-border-default: var(--nf-border-strong);
+  --nf-card-border: var(--nf-border-strong);
+  --nf-glass-border: var(--nf-border-strong);
+  --nf-content-muted: var(--nf-content-secondary);
+  --nf-content-subtle: var(--nf-content-secondary);
+  --nf-focus-ring-width: 3px;
+}
+html:root[data-contrast="more"] .nf-tab__link[aria-current="page"] .nf-tab__label {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+
+/* Forced colours (Windows High Contrast and the like): the pins, badges and
+   the segmented thumb draw with a fill the system removes, so each keeps a
+   visible edge in the system's own text colour. */
+@media (forced-colors: active) {
+  [data-testid="map-pin"],
+  .nf-badge,
+  .nf-segmented__capsule,
+  .nf-tabbar__pill {
+    border: 1px solid CanvasText;
+    forced-color-adjust: none;
+  }
+  [data-testid="map-pin"][aria-pressed="true"] {
+    outline: 2px solid Highlight;
+  }
+}
+
+@layer components {
+  /* --------------------------------------------- B16 stories as a sequence */
+
+  /* The header and the foot sit over the tap zones, so their own controls
+     keep working; the zones take the picture between them. */
+  .nf-story--seq .nf-story__top,
+  .nf-story--seq .nf-story__foot {
+    position: relative;
+    z-index: 2;
+  }
+  .nf-story-seq__bars {
+    position: absolute;
+    z-index: 3;
+    inset-inline: var(--nf-space-md);
+    top: calc(var(--nf-social-bar, 0px) + var(--nf-space-2xs));
+    display: flex;
+    gap: var(--nf-space-3xs);
+    pointer-events: none;
+  }
+  .nf-story-seq__bar {
+    flex: 1 1 0;
+    height: 3px;
+    border-radius: var(--nf-radius-xs);
+    background: var(--nf-surface-control-on-media);
+    overflow: hidden;
+  }
+  .nf-story-seq__fill {
+    display: block;
+    height: 100%;
+    background: var(--nf-content-on-media);
+    transform: scaleX(0);
+    transform-origin: left center;
+  }
+  .nf-story-seq__fill.is-done {
+    transform: scaleX(1);
+  }
+  .nf-story-seq__fill.is-running {
+    animation-name: nf-story-fill;
+    animation-timing-function: linear;
+    animation-fill-mode: forwards;
+  }
+  @keyframes nf-story-fill {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+  .nf-story-seq__zone {
+    position: absolute;
+    z-index: 1;
+    top: 0;
+    bottom: 0;
+    width: 33.333%;
+    background: transparent;
+    touch-action: pan-x;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .nf-story-seq__zone--prev {
+    left: 0;
+  }
+  .nf-story-seq__zone--next {
+    right: 0;
+  }
+  .nf-story-seq__zone:disabled {
+    pointer-events: none;
+  }
+  .nf-story-seq__zone:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: -6px;
+  }
+  .nf-story-seq__warm {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+@layer components {
+  /* -------------------------------------------- B17 the messages split view */
+
+  /* Below 64rem this is a pass-through column: the thread fills the screen
+     exactly as it did. */
+  .nf-msg-split {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  .nf-msg-split__thread {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    min-width: 0;
+  }
+  .nf-msg-pane {
+    display: none;
+  }
+  @media (min-width: 64rem) {
+    .nf-msg-split {
+      flex-direction: row;
+    }
+    .nf-msg-pane {
+      display: flex;
+      flex-direction: column;
+      flex: 0 0 22.5rem;
+      min-height: 0;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      border-inline-end: var(--nf-border-width) solid var(--nf-border-subtle);
+      padding: var(--nf-space-md) var(--nf-space-sm);
+    }
+  }
+  .nf-msg-pane__label {
+    padding: 0 var(--nf-space-xs) var(--nf-space-xs);
+  }
+  .nf-msg-pane__list {
+    display: grid;
+    gap: var(--nf-space-3xs);
+  }
+  .nf-msg-pane__row {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nf-space-sm);
+    min-height: 44px;
+    padding: var(--nf-space-sm);
+    border-radius: var(--nf-radius-control);
+    color: inherit;
+  }
+  .nf-msg-pane__row:hover {
+    background: var(--nf-surface-secondary);
+  }
+  .nf-msg-pane__row[aria-current="page"] {
+    background: var(--nf-surface-raised);
+    box-shadow: inset 0 0 0 var(--nf-border-width) var(--nf-border-default);
+  }
+  .nf-msg-pane__row:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  .nf-msg-pane__avatar {
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-surface-secondary);
+    color: var(--nf-content-primary);
+    font-weight: 700;
+    font-size: var(--nf-text-body-sm);
+  }
+  .nf-msg-pane__body {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+  .nf-msg-pane__top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--nf-space-xs);
+  }
+  .nf-msg-pane__name {
+    font-weight: 600;
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .nf-msg-pane__when,
+  .nf-msg-pane__title,
+  .nf-msg-pane__last {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .nf-msg-pane__title {
+    color: var(--nf-content-secondary);
+  }
+  .nf-msg-pane__meta {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+  }
+  .nf-msg-pane__name.is-unread {
+    font-weight: 700;
+  }
+  .nf-msg-pane__last.is-unread {
+    color: var(--nf-content-primary);
+  }
+  .nf-msg-pane__dot {
+    flex: 0 0 auto;
+    width: 8px;
+    height: 8px;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-brand-primary);
+  }
+}
+
+@layer components {
+  /* ------------------------------------------------- B17 the cheat sheet */
+  .nf-keys {
+    display: grid;
+    gap: var(--nf-space-2xs);
+    padding: var(--nf-space-sm) var(--nf-space-md) var(--nf-space-lg);
+  }
+  .nf-keys__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-space-md);
+    padding: var(--nf-space-xs) 0;
+    border-bottom: var(--nf-border-width) solid var(--nf-border-subtle);
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+  }
+  .nf-keys__row:last-child {
+    border-bottom: 0;
+  }
+  .nf-keys__row dt {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+  }
+  .nf-keys__key {
+    min-width: 1.75rem;
+    padding: 2px var(--nf-space-xs);
+    border-radius: var(--nf-radius-xs);
+    border: var(--nf-border-width) solid var(--nf-border-strong);
+    background: var(--nf-surface-secondary);
+    color: var(--nf-content-primary);
+    font-family: inherit;
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    text-align: center;
+  }
+  .nf-keys__or {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+}

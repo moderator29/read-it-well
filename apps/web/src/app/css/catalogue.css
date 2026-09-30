@@ -34,11 +34,12 @@
    * than inventing a second shadow at this call site.
    */
   .nf-pcard {
-    /* This surface's own rung beneath the overline, for the card's smallest
-       type: the fact row, the place line, the price suffix and the pills on
-       the photograph. Declared on the card root so everything inside it
-       reads one value; a candidate for promotion to the token scale. */
-    --nf-pcard-fact: 0.6875rem;
+    /* The card's smallest type: the fact row, the place line, the price
+       suffix and the pills on the photograph. Declared on the card root so
+       everything inside it reads one value. 12px since the pixel polish of
+       30 September (was 11): no text under 12px outside legal; the fact row
+       wraps rather than clips, so the extra pixel costs no fact. */
+    --nf-pcard-fact: var(--nf-text-overline);
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -86,10 +87,20 @@
     inset: 0;
     transition: transform var(--nf-duration-deliberate) var(--nf-ease-standard);
   }
-  @media (hover: hover) {
-    .nf-pcard:hover .nf-pcard__photo {
-      transform: scale(1.04);
+  /* THE PHOTO LEANS IN ON HOVER (plan item 27): a 3 percent zoom inside the
+     media's own clip, over about 600ms, on listing and stay cards alike. A
+     fine pointer only, so a finger never leaves a card zoomed, and never
+     while the card is pressed (the press is lane A's). Off under reduced
+     motion (below) and under the Calm and Off motion settings. */
+  @media (hover: hover) and (pointer: fine) {
+    .nf-pcard:hover:not(:active) .nf-pcard__photo {
+      transform: scale(1.03);
     }
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-pcard__photo,
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-pcard:hover:not(:active) .nf-pcard__photo {
+    transition: none;
+    transform: none;
   }
   /*
    * THE BODY'S SCALE IS THE RENDER'S, and the old one was half again too
@@ -118,7 +129,7 @@
      with BQ" in the two-up grid at 320 before its last words. */
   /* The market as a quiet word above the title (plan item 17). */
   .nf-pcard__market {
-    font-size: 0.75rem;
+    font-size: var(--nf-text-overline);
     line-height: 1rem;
     font-weight: 500;
     color: var(--nf-content-muted);
@@ -284,7 +295,7 @@
     padding: var(--nf-space-3xs) var(--nf-space-2xs);
     border-radius: var(--nf-radius-xs);
     font-size: var(--nf-pcard-fact, var(--nf-text-overline));
-    font-weight: 650;
+    font-weight: 600;
     line-height: 1;
     pointer-events: none;
     /* The 1px border this mark always had, kept transparent so the shared
@@ -891,7 +902,7 @@
     padding: 0 var(--nf-space-sm);
     border-radius: var(--nf-radius-sm);
     font-size: var(--nf-text-caption);
-    font-weight: 650;
+    font-weight: 600;
     line-height: 1;
     /* The 1px border this mark always had, kept transparent so the shared
        badge (whose ring is drawn inside) sits at the same size. */
@@ -946,7 +957,7 @@
     min-height: 2.75rem;
     padding: 0 var(--nf-space-md);
     font-size: var(--nf-text-caption);
-    font-weight: 650;
+    font-weight: 600;
     border: var(--nf-border-width) solid var(--nf-selected-edge);
     border-color: var(--nf-selected-edges);
     background: var(--nf-selected-fill);
@@ -1227,13 +1238,13 @@
   }
   /* The lead card, overlapping the photograph's lower edge: the job the
      page-wide sheet used to do before it was retired. */
+  /* The card padding (16 on a phone, 20 from 40rem), which the amenity row
+     below bleeds by: it reached for the page gutter instead, and from 80rem
+     the 32px gutter pushed the row 7px past the card's edge (pixel
+     polish). */
   .nf-detail-lead {
-    padding: var(--nf-space-md);
-  }
-  @media (min-width: 40rem) {
-    .nf-detail-lead {
-      padding: var(--nf-space-lg);
-    }
+    --nf-row-bleed: var(--nf-pad-card);
+    padding: var(--nf-pad-card);
   }
   .nf-detail-panel {
     padding: var(--nf-space-md);
@@ -1259,11 +1270,11 @@
   .nf-amenity-row {
     display: flex;
     gap: var(--nf-space-2xs);
-    margin-inline: calc(var(--nf-pad-shell) * -1);
-    padding: var(--nf-space-3xs) var(--nf-pad-shell);
+    margin-inline: calc(var(--nf-row-bleed, var(--nf-pad-shell)) * -1);
+    padding: var(--nf-space-3xs) var(--nf-row-bleed, var(--nf-pad-shell));
     /* Snapped its own gutter away on load, the same way `.nf-shelf-chips`
        did. The note there has the mechanism. */
-    scroll-padding-inline: var(--nf-pad-shell);
+    scroll-padding-inline: var(--nf-row-bleed, var(--nf-pad-shell));
   }
   .nf-amenity-grid {
     display: grid;
@@ -1293,18 +1304,18 @@
     word-break: normal;
     color: var(--nf-content-primary);
   }
+  /* At least 68px, and never narrower than the tile's longest word plus 8px
+     either side: at a fixed 68px "conditioning" ran past both edges of its
+     tile (pixel polish). */
   .nf-amenity-row .nf-amenity-tile {
-    width: 4.25rem;
+    width: min-content;
+    min-width: 4.25rem;
+    padding-inline: var(--nf-space-xs);
     flex-shrink: 0;
   }
   .nf-amenity-tile > svg {
     flex-shrink: 0;
     color: var(--nf-brand-secondary);
-  }
-  .nf-amenity-tile__object {
-    display: block;
-    width: 2.25rem;
-    height: 2.25rem;
   }
   /* The agent card. */
   .nf-agent-card {
@@ -1363,7 +1374,7 @@
     padding: var(--nf-space-3xs) var(--nf-space-xs);
     border-radius: var(--nf-radius-xs);
     font-size: var(--nf-text-overline);
-    font-weight: 650;
+    font-weight: 600;
     border: var(--nf-border-width) solid var(--nf-selected-edge);
     border-color: var(--nf-selected-edges);
     background: var(--nf-selected-fill);
@@ -1402,7 +1413,7 @@
     height: 1.75rem;
     border-radius: var(--nf-radius-circle);
     font-size: var(--nf-text-caption);
-    font-weight: 650;
+    font-weight: 600;
     color: var(--nf-brand-secondary);
     border: var(--nf-border-width) solid var(--nf-plate-edge);
     border-color: var(--nf-plate-edges);
@@ -1632,7 +1643,7 @@
     align-items: center;
     gap: var(--nf-space-3xs);
     font-size: var(--nf-text-body-sm);
-    font-weight: 650;
+    font-weight: 600;
     color: var(--nf-content-primary);
   }
   .nf-host-row__title > svg {
@@ -1947,7 +1958,7 @@
     overflow-wrap: break-word;
     word-break: normal;
     font-size: var(--nf-text-caption);
-    font-weight: 650;
+    font-weight: 600;
     line-height: 1.25;
     text-align: left;
     color: var(--nf-content-primary);
@@ -2046,7 +2057,7 @@
     color: var(--nf-content-primary);
   }
   .nf-stay-card__rating > svg {
-    color: var(--nf-brand-secondary);
+    color: var(--nf-rating);
   }
   /*
    * DOC-21: the chips wrap instead of scrolling. The row sits inside the
@@ -2189,7 +2200,7 @@
     padding: var(--nf-space-3xs) var(--nf-space-xs);
     border-radius: var(--nf-radius-xs);
     font-size: var(--nf-text-overline);
-    font-weight: 650;
+    font-weight: 600;
   }
   /* Its material and the two tones are the shared status badge's
      (chips.css, SW-C6). */
@@ -2208,8 +2219,8 @@
     .nf-stays-tile:active {
       transform: none;
     }
-    @media (hover: hover) {
-      .nf-pcard:hover .nf-pcard__photo {
+    @media (hover: hover) and (pointer: fine) {
+      .nf-pcard:hover:not(:active) .nf-pcard__photo {
         transform: none;
       }
     }
@@ -2231,25 +2242,37 @@
      loses its lit rim and its figure is a word at the muted ink, so the eye
      reads the declared costs first and still cannot miss that something was
      left unsaid. */
+  /* ONE GROUPED LIST (spec section 5, pixel polish 30 September): the
+     costs were six separate grey wells, one per row, which on the warm
+     canvas read as a stack of disabled fields. They are now one white card
+     (the card border, the card shadow, the card radius) with inset
+     hairlines that start at the text column (16 + 44 plate + 12 = 72px),
+     none above the first row. An undeclared cost still steps back through
+     its muted plate and its "Not declared" word. */
   .nf-movein__list {
     display: grid;
-    gap: var(--nf-space-xs);
+    overflow: hidden;
+    border: var(--nf-border-width) solid var(--nf-card-border);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-surface-primary);
+    box-shadow: var(--nf-card-shadow);
   }
   .nf-movein__row {
+    position: relative;
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
     gap: var(--nf-space-sm);
-    min-height: 3.5rem;
+    min-height: 3.75rem;
     padding: var(--nf-space-sm) var(--nf-space-md);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
-    background: var(--nf-glass-well-fill);
-    border-radius: var(--nf-radius-control);
   }
-  /* The declared rows carry the lit rim the render gives them; the undeclared
-     ones keep the neutral hairline above, which is the whole difference. */
-  .nf-movein__row[data-declared] {
-    border-color: var(--nf-panel-edge);
+  .nf-movein__row + .nf-movein__row::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    inset-inline: 4.5rem 0;
+    height: 1px;
+    background: var(--nf-divider);
   }
   /* THE ROW GLYPH (29 September 2026): a bold line glyph on the shared
      `IconPlate` (`DetailGlyph`), no longer a glass object, so the plate draws
@@ -2333,7 +2356,7 @@
     flex-shrink: 0;
     text-align: end;
     font-size: var(--nf-text-body-sm);
-    font-weight: 700;
+    font-weight: 600;
     font-variant-numeric: tabular-nums;
     color: var(--nf-content-primary);
   }
@@ -2439,8 +2462,10 @@
     background: var(--nf-selected-fill);
     box-shadow: var(--nf-panel-halo);
   }
+  /* The step you are on ends in the warm spark (spec section 18): the
+     covered run is blue and its leading edge is the icons' orange. */
   .nf-lw-rail__seg[data-at] {
-    box-shadow: var(--nf-selected-shadow-inline);
+    box-shadow: var(--nf-selected-shadow-inline), inset -0.5rem 0 0 var(--nf-spark);
   }
   /* A bare icon-only control drawn round in a governing image stays round. */
   .nf-lw-back {

@@ -83,6 +83,8 @@ export type NotificationSettings = {
   messages: boolean;
   wallet: boolean;
   marketing: boolean;
+  /** B13: push for a price drop on a saved place. On by default. */
+  savedPriceDrops?: boolean;
 };
 
 export type PrivacySettings = {
@@ -134,7 +136,9 @@ export type ProfileSettings = {
 export type ResolvedProfileSettings = Required<ProfileSettings>;
 
 export const SETTINGS_DEFAULTS: ResolvedProfileSettings = {
-  notifications: { bookings: true, messages: true, wallet: true, marketing: false },
+  /* B13: savedPriceDrops, the push for a price drop on a saved place, is on
+     by default (the founder, 30 September 2026). */
+  notifications: { bookings: true, messages: true, wallet: true, marketing: false, savedPriceDrops: true },
   /* V-64: occupation and home town are private until the member turns each
      one on. `public.profile_public_facts` reads these two keys. */
   privacy: { hideActivity: false, showOccupation: false, showHomeTown: false },
@@ -158,6 +162,7 @@ const storedSettingsSchema = z
         messages: z.boolean(),
         wallet: z.boolean(),
         marketing: z.boolean(),
+        savedPriceDrops: z.boolean(),
       })
       .partial()
       .catch({}),
@@ -199,6 +204,7 @@ export const settingsPatchSchema = z
         messages: z.boolean(),
         wallet: z.boolean(),
         marketing: z.boolean(),
+        savedPriceDrops: z.boolean(),
       })
       .partial()
       .optional(),

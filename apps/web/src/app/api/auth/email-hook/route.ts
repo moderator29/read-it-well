@@ -2,7 +2,9 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 
 import { sendMessage } from "@/lib/email/client";
-import { passwordReset, verificationCode } from "@/lib/email/messages";
+import { mailLanguageFor, mailLanguageOf } from "@/lib/email/mail-language";
+import { passwordReset, verificationCode, type MailLanguage } from "@/lib/email/messages";
+import { adminOrNull } from "@/lib/email/recipients";
 import { siteUrl } from "@/lib/site";
 
 /**
@@ -101,6 +103,7 @@ type EmailActionType =
 
 type HookPayload = {
   user?: {
+    id?: string;
     email?: string;
     user_metadata?: Record<string, unknown>;
   };
@@ -265,12 +268,21 @@ export async function POST(request: Request): Promise<NextResponse> {
    * fell through to the generic code email, which carried no link and pointed
    * at no screen that took a recovery code.
    */
+  /*
+   * THE READER'S OWN LANGUAGE (A11). The setting they chose in /settings
+   * first; for somebody signing up, who has no setting yet, the language the
+   * sign-up form was shown in, which it records in their metadata. English
+   * whenever neither is there or the lookup fails.
+   */
+  const language = await hookLanguage(payload.user);
+
   if (action === "recovery") {
     const resetUrl = recoveryLink(payload.email_data);
     if (!resetUrl && token.length === 0) {
       return NextResponse.json({ ok: false, reason: "incomplete" }, { status: 400 });
     }
     const reset = passwordReset({
+      ...language,
       name: nameFrom(payload.user?.user_metadata),
       resetUrl,
       code: token.length > 0 ? token : null,
@@ -296,6 +308,7 @@ export async function POST(request: Request): Promise<NextResponse> {
    * faster and strictly safer than opening mail to find it.
    */
   const message = verificationCode({
+    ...language,
     name: nameFrom(payload.user?.user_metadata),
     code: token,
     expiresInMinutes: CODE_LIFETIME_MINUTES,
@@ -318,4 +331,11 @@ export async function POST(request: Request): Promise<NextResponse> {
   }
 
   return NextResponse.json({ ok: true });
+}
+
+/** The mail language for the account this hook is sending to. */
+async function hookLanguage(user: HookPayload["user"]): Promise<MailLanguage> {
+  const admin = adminOrNull();
+  const chosen = admin ? await mailLanguageFor(admin, user?.id) : {};
+  return chosen.locale ? chosen : mailLanguageOf(user?.user_metadata?.["locale"]);
 }

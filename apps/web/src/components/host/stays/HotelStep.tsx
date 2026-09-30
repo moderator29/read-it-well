@@ -1,5 +1,6 @@
 "use client";
 
+import { useHostCopy } from "@/components/host/host-copy";
 import { useState } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
@@ -65,6 +66,7 @@ export function HotelStep({
   expectedRooms: number;
   onExpectedRooms(next: number): void;
 }) {
+  const hw = useHostCopy();
   const [name, setName] = useState(draft.accommodation?.name ?? draft.name ?? "");
   const [stars, setStars] = useState<number | null>(draft.accommodation?.starRating ?? null);
 
@@ -94,7 +96,7 @@ export function HotelStep({
     <>
       <StaysHero mark="stays-hotel-palms" />
 
-      <StaysPlate label="Hotel name" htmlFor="stays-hotel-name">
+      <StaysPlate label={hw.steps.hotelName} htmlFor="stays-hotel-name">
         <input
           id="stays-hotel-name"
           className="nf-field nf-field--glass nf-stays-input"
@@ -104,7 +106,7 @@ export function HotelStep({
         />
       </StaysPlate>
 
-      <StaysPlate label="RC number" htmlFor="stays-hotel-rc">
+      <StaysPlate label={hw.steps.rcNumber} htmlFor="stays-hotel-rc">
         <input
           id="stays-hotel-rc"
           className="nf-field nf-field--glass nf-stays-input"
@@ -120,12 +122,12 @@ export function HotelStep({
         ) : null}
       </StaysPlate>
 
-      <StaysPlate label="Address">
+      <StaysPlate label={hw.steps.address}>
         <button
           type="button"
           onClick={() => goTo("business")}
           className="nf-stays-row w-full"
-          aria-label="Change the address"
+          aria-label={hw.steps.changeAddress}
         >
           <UiIcon name="location" size={20} className="shrink-0 text-[var(--nf-brand-secondary)]" />
           <span className="min-w-0 flex-1 text-left">
@@ -143,10 +145,10 @@ export function HotelStep({
         </button>
       </StaysPlate>
 
-      <StaysPlate label="Star rating">
+      <StaysPlate label={hw.steps.starRating}>
         <div
           role="radiogroup"
-          aria-label="Star rating"
+          aria-label={hw.steps.starRating}
           className="nf-stays-stars mt-[var(--nf-space-xs)]"
         >
           {[1, 2, 3, 4, 5].map((n) => (
@@ -170,11 +172,11 @@ export function HotelStep({
         </p>
       </StaysPlate>
 
-      <StaysPlate label="Number of rooms">
+      <StaysPlate label={hw.steps.roomCount}>
         <StaysRow
           trailing={
             <StaysStepper
-              label="rooms"
+              label={hw.steps.roomsUnit}
               value={rooms}
               min={1}
               max={999}

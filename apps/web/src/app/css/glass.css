@@ -869,7 +869,6 @@
    * since the fill behind it went with light mode.
    */
   .nf-home__market-art .nf-brand-icon-ground,
-  .nf-landing-cat-icon .nf-brand-icon-ground,
   .nf-landing-orb .nf-brand-icon-ground {
     box-shadow: var(--nf-glow-edge);
   }

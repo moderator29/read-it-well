@@ -29,11 +29,31 @@ import type { AdminClient } from "./rpc";
 
 export type CronJob = (admin: AdminClient) => Promise<JobVerdict>;
 
+/**
+ * C13: A JOB BEHIND A SWITCHED-OFF FEATURE SAYS IT SKIPPED, NOT THAT IT RAN.
+ *
+ * `landlord-line` fires every fifteen minutes while its fail-closed flag is
+ * off, and each firing used to be recorded as a clean run of a job that did
+ * nothing. Handing the wrapper the flag's key makes the run history say what
+ * happened: `skipped`, with `reason: "flag_off"` and the key, and the job
+ * itself is not called. A skip raises no alert (the desk stays quiet) and
+ * still dates the run, so the freshness watch keeps seeing a live scheduler.
+ *
+ * Only a DEFINITE off skips: the flag's row reads `enabled = false`, or there
+ * is no row (fail closed, as `lib/flags/read.ts`). A read that errors is
+ * "unknown" and the job runs, because the job checks its own flag inside the
+ * database, and a broken read must never be what silences a job.
+ */
+export type CronOptions = { flag?: string };
+
+export type FlagState = "on" | "off" | "unknown";
+
 export type CronEnvelope =
   | {
       ok: true;
       job: string;
-      outcome: "ok" | "attention";
+      /** `skipped`: the job's feature flag is off, so the job was not called (C13). */
+      outcome: "ok" | "attention" | "skipped";
       startedAt: string;
       durationMs: number;
       counts: Record<string, number>;
@@ -55,9 +75,16 @@ export type CronDeps = {
   admin: AdminClient | null;
   report: typeof reportCronRun;
   now: () => number;
+  /** How the job's flag reads through the service client. Only consulted when a flag is given. */
+  readFlag?: (admin: AdminClient, key: string) => Promise<FlagState>;
 };
 
-export async function executeCronJob(name: string, job: CronJob, deps: CronDeps): Promise<CronOutcome> {
+export async function executeCronJob(
+  name: string,
+  job: CronJob,
+  deps: CronDeps,
+  options: CronOptions = {},
+): Promise<CronOutcome> {
   const started = deps.now();
   const startedAt = new Date(started).toISOString();
 
@@ -86,6 +113,16 @@ export async function executeCronJob(name: string, job: CronJob, deps: CronDeps)
     return {
       status: 503,
       body: { ok: false, job: name, reason: "service_role_key_missing", startedAt, durationMs: 0 },
+    };
+  }
+
+  if (options.flag && deps.readFlag && (await deps.readFlag(deps.admin, options.flag)) === "off") {
+    const durationMs = deps.now() - started;
+    const detail = { reason: "flag_off", flag: options.flag };
+    await deps.report(deps.admin, { job: name, outcome: "skipped", durationMs, reason: "flag_off", flag: options.flag });
+    return {
+      status: 200,
+      body: { ok: true, job: name, outcome: "skipped", startedAt, durationMs, counts: {}, detail },
     };
   }
 
@@ -122,6 +159,21 @@ export async function executeCronJob(name: string, job: CronJob, deps: CronDeps)
       detail: verdict.detail,
     },
   };
+}
+
+/**
+ * A feature flag read through the service client: `on` only when the row says
+ * true, `off` when it says false or is missing (fail closed), `unknown` when
+ * the read itself failed.
+ */
+export async function readFlagState(admin: AdminClient, key: string): Promise<FlagState> {
+  try {
+    const { data, error } = await admin.from("feature_flags").select("enabled").eq("key", key).maybeSingle();
+    if (error) return "unknown";
+    return data?.enabled === true ? "on" : "off";
+  } catch {
+    return "unknown";
+  }
 }
 
 /** A service client, or null when this process cannot have one. */
@@ -246,13 +298,24 @@ async function refusal(name: string, request: Request): Promise<CronDeps["refuse
 }
 
 /** Run a job for a request and answer it. Vercel Cron issues a GET. */
-export async function runCronJob(name: string, request: Request, job: CronJob): Promise<NextResponse> {
-  const outcome = await executeCronJob(name, job, {
-    refused: await refusal(name, request),
-    admin: adminOrNull(),
-    report: reportCronRun,
-    now: Date.now,
-  });
+export async function runCronJob(
+  name: string,
+  request: Request,
+  job: CronJob,
+  options: CronOptions = {},
+): Promise<NextResponse> {
+  const outcome = await executeCronJob(
+    name,
+    job,
+    {
+      refused: await refusal(name, request),
+      admin: adminOrNull(),
+      report: reportCronRun,
+      now: Date.now,
+      readFlag: readFlagState,
+    },
+    options,
+  );
   const headers =
     outcome.retryAfterSeconds !== undefined
       ? { "retry-after": String(outcome.retryAfterSeconds) }

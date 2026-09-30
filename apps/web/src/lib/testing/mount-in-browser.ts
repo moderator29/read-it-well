@@ -132,6 +132,8 @@ export async function mountInBrowser(opts: {
   url?: string;
   /** Script run in the page before the component mounts (seed storage, stub an API). */
   init?: string;
+  /** The window size; a phone (390 by 844) unless a test needs another. */
+  viewport?: { width: number; height: number };
 }): Promise<Mounted> {
   if (!CHROMIUM) throw new Error("no Chromium binary for the browser mount");
   const dir = mkdtempSync(join(tmpdir(), "nf-mount-"));
@@ -160,7 +162,7 @@ export async function mountInBrowser(opts: {
 
   browser ??= await chromium.launch({ executablePath: CHROMIUM, args: ["--no-sandbox"] });
   const context = await browser.newContext({
-    viewport: { width: 390, height: 844 },
+    viewport: opts.viewport ?? { width: 390, height: 844 },
     reducedMotion: opts.reducedMotion ? "reduce" : "no-preference",
   });
   const page = await context.newPage();

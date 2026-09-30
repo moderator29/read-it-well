@@ -688,7 +688,7 @@ export function TicketStatusControl({
           </label>
           <textarea
             id={`close-${ticketId}`}
-            className="nf-input"
+            className="nf-field"
             rows={2}
             maxLength={1000}
             value={closingNote}

@@ -150,7 +150,8 @@
     font-size: var(--nf-text-overline);
     text-transform: uppercase;
     letter-spacing: var(--nf-tracking-overline);
-    font-weight: 650;
+    /* 600, the section label's weight: one caps label, not two. */
+    font-weight: 600;
     color: var(--nf-content-subtle);
   }
 
@@ -166,7 +167,7 @@
    *
    * `.nf-title-lg` is the phone's large title ("Today", "Saved", "Inbox"):
    * Poppins 30/36 at 600. `.nf-row-title` is the 15/20 title of a list row.
-   * `.nf-section-label` is the 11px uppercase label above a group, in muted
+   * `.nf-section-label` is the 12px uppercase label above a group, in muted
    * ink; it is NOT `.nf-label`, which is the form field label (controls.css)
    * on well over a hundred fields and stays sentence case. `.nf-figure` is a
    * summary's hero figure, 40/44 at 500, and `.nf-figure-xl` the share

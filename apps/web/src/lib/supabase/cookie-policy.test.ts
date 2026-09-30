@@ -50,7 +50,10 @@ describe("the auth cookie policy", () => {
   it("is applied by every writer of the session cookies: server client, proxy, browser client", () => {
     const src = (p: string) => readFileSync(join(__dirname, p), "utf8");
     for (const file of ["server.ts", "../../proxy.ts"]) {
-      const writes = [...src(file).matchAll(/\b(?:cookieStore|response\.cookies)\.set\(([^;]*)\);/g)].map((m) => m[1] ?? "");
+      /* The locale cookie (the URL's language, /ha /yo /ig) is a preference, not a session cookie: it keeps its own year. */
+      const writes = [...src(file).matchAll(/\b(?:cookieStore|response\.cookies)\.set\(([^;]*)\);/g)]
+        .map((m) => m[1] ?? "")
+        .filter((w) => !w.trimStart().startsWith("LOCALE_COOKIE,"));
       expect(writes.length, file).toBeGreaterThan(0);
       for (const w of writes) expect(w, file).toContain("withAuthCookiePolicy(");
     }

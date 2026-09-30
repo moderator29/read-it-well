@@ -138,7 +138,7 @@ function ChapterLink({
       {number !== null && (
         <span
           aria-hidden="true"
-          className={`nf-numeric w-4 shrink-0 text-right text-[0.6875rem] ${
+          className={`nf-numeric w-4 shrink-0 text-right text-[length:var(--nf-text-overline)] ${
             active ? "text-[var(--nf-content-on-brand)]" : "text-[var(--nf-content-muted)]"
           }`}
         >

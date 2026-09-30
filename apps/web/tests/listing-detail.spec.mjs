@@ -16,6 +16,8 @@ import { chromium } from "playwright-core";
 
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:3210";
 const WAIT = 1200;
+/** A published Example stay (labelled "Example" on the page); /listing/seed-2 no longer exists. */
+const EXAMPLE_STAY = "ed000000-0000-4000-8000-000000000003";
 
 let failures = 0;
 function check(name, condition) {
@@ -69,8 +71,15 @@ async function walk(colorScheme) {
 
   try {
     // ------------------------------------------------------- a stay detail
-    console.log("/listing/seed-2 (stay)");
-    await page.goto(`${BASE_URL}/listing/seed-2`, { waitUntil: "load" });
+    /* An Example stay from the published catalogue (migration 20260809081618):
+       the one bedroom serviced flat in Lekki Phase 1, let by the night. */
+    console.log(`/listing/${EXAMPLE_STAY} (stay)`);
+    await page.goto(`${BASE_URL}/listing/${EXAMPLE_STAY}`, { waitUntil: "load" });
+    /* Signed out, the address answers the sign-in wall, and the first-run
+       screen can then move the page again on the client. Read the page once
+       it has stopped moving, or the evaluate below dies with the navigation
+       (C-14: "Execution context was destroyed" on the light pass). */
+    await page.waitForLoadState("networkidle", { timeout: 30000 }).catch(() => {});
     await page.waitForTimeout(WAIT);
 
     const theme = await page.evaluate(
@@ -84,8 +93,9 @@ async function walk(colorScheme) {
     /*
      * `seed-2` was one of twenty-three invented places, and that catalogue was
      * removed on purpose: a full shelf of homes that do not exist is a worse
-     * answer than an empty one. Every check below needs a listing to exist, so
-     * with nothing on the shelf they cannot run - which is not the same as
+     * answer than an empty one. The spec now reads a labelled Example stay;
+     * every check below needs it to exist, so if it is ever unpublished they
+     * cannot run - which is not the same as
      * failing, and saying so out loud is the whole point. See tests/_catalogue.mjs.
      */
     if ((await page.locator('[data-testid="listing-gallery"]').count()) === 0) {

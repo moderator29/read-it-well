@@ -445,6 +445,8 @@ function notificationFromPayload(raw) {
          only ever make an urgent notification easier to miss, never a
          non-urgent one harder to dismiss. */
       requireInteraction: urgent,
+      /* B11: an fyi (a like, a follow) never wakes the phone. Never urgent. */
+      silent: payload.quiet === true && !urgent,
       /* Everything the tap handler needs, and nothing that identifies a
          device. `count` is what makes a summary countable; see below. */
       data: {

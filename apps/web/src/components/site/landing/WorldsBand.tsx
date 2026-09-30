@@ -14,7 +14,7 @@ export function WorldsBand({ t, locale, cards, door }: { t: Dictionary; locale: 
   const property = cards.filter((c) => !STAY_KINDS.has(c.kind)).slice(0, 3);
   return (
     <section className="nf-shell nf-room" data-chapter="worlds" aria-labelledby="nf-landing-worlds-title">
-      <SectionHead id="nf-landing-worlds-title" eyebrow={w.overline} title={`${w.property.label}. ${w.stays.label}.`} align="center" />
+      <SectionHead id="nf-landing-worlds-title" eyebrow={w.overline} title={`${w.property.label}. ${w.stays.label}.`} align="center" flourish />
       <TwoWorlds
         property={w.property}
         stays={w.stays}

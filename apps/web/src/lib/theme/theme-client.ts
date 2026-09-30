@@ -3,6 +3,7 @@
 import { useSyncExternalStore } from "react";
 import { CHROME_COLOUR, CHROME_COLOUR_LIGHT } from "./chrome";
 import { THEME_KEY, parseThemeChoice, resolveTheme, type ResolvedTheme, type ThemeChoice } from "./theme";
+import { NIGHT_DOOR_ATTR, NIGHT_DOOR_VALUE } from "./night-door";
 
 /** Fired on `window` whenever the applied theme changes, for the status bar and the maps. */
 export const THEME_EVENT = "nf-theme";
@@ -27,10 +28,20 @@ export function readAppliedTheme(): ResolvedTheme {
   return document.documentElement.dataset.theme === "light" ? "light" : "dark";
 }
 
-/** Paints a choice onto the document, without persisting it. */
+/** True while a night door (`night-door.ts`) is on screen. */
+export function isNightDoorOpen(): boolean {
+  if (typeof document === "undefined") return false;
+  return document.documentElement.dataset[NIGHT_DOOR_ATTR] === NIGHT_DOOR_VALUE;
+}
+
+/**
+ * Paints a choice onto the document, without persisting it. While a night
+ * door is on screen the document is painted dark and the choice is only
+ * recorded, so it comes back the moment the door is left.
+ */
 export function applyTheme(choice: ThemeChoice): ResolvedTheme {
   const root = document.documentElement;
-  const theme = resolveTheme(choice, prefersLight());
+  const theme = isNightDoorOpen() ? "dark" : resolveTheme(choice, prefersLight());
   root.dataset.theme = theme;
   root.dataset.themeChoice = choice;
   document
@@ -91,4 +102,28 @@ export function useThemeChoice(): ThemeChoice {
 /** The theme the page is painted in, live. Server render answers dark. */
 export function useAppliedTheme(): ResolvedTheme {
   return useSyncExternalStore(subscribeTheme, readAppliedTheme, () => "dark");
+}
+
+/*
+ * NIGHT DOORS, while mounted. Counted, because two can overlap for a frame
+ * (a passcode lock opening over Get started, or a route transition keeping
+ * the leaving page a moment): the root stays night until the last one goes.
+ */
+let openDoors = 0;
+
+/** Marks the document as showing a night door and repaints; returns the undo. */
+export function openNightDoor(): () => void {
+  const root = document.documentElement;
+  openDoors += 1;
+  root.dataset[NIGHT_DOOR_ATTR] = NIGHT_DOOR_VALUE;
+  applyTheme(readThemeChoice());
+  let closed = false;
+  return () => {
+    if (closed) return;
+    closed = true;
+    openDoors = Math.max(0, openDoors - 1);
+    if (openDoors > 0) return;
+    delete root.dataset[NIGHT_DOOR_ATTR];
+    applyTheme(readThemeChoice());
+  };
 }

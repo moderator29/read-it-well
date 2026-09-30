@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PullToRefresh } from "@/components/ui/PullToRefresh";
 import { resolveSession } from "@/lib/actions/session";
 import { isFeatureEnabled } from "@/lib/flags";
 import { loadConversationSummaries } from "@/lib/messages/live";
@@ -88,9 +89,9 @@ export default async function InboxPage() {
     }));
 
     return (
-      <div className="mx-auto max-w-2xl">
+      <PullToRefresh className="mx-auto max-w-2xl">
         <Inbox rows={rows} meId={session.user.id} canMarkRead initialSide={side} archiveOpen={views.archiveOpen} />
-      </div>
+      </PullToRefresh>
     );
   }
 

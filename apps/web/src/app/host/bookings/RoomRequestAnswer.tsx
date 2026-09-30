@@ -83,7 +83,7 @@ export function RoomRequestAnswer({ bookingId, summary }: { bookingId: string; s
         <Button variant="primary" size="md" disabled={pending} onClick={() => setOpen("accept")}>
           Accept
         </Button>
-        <Button variant="ghost" size="md" disabled={pending} onClick={() => setOpen("decline")}>
+        <Button variant="secondary" size="md" disabled={pending} onClick={() => setOpen("decline")}>
           Decline
         </Button>
       </div>
@@ -165,7 +165,7 @@ export function RoomRequestAnswer({ bookingId, summary }: { bookingId: string; s
             <label className="grid gap-2xs">
               <span className="nf-caption">Tell the guest why (optional)</span>
               <textarea
-                className="nf-input"
+                className="nf-field"
                 rows={2}
                 maxLength={500}
                 value={reason}

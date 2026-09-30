@@ -46,6 +46,7 @@ import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { bestEffortEmail, sendMessage } from "../email/client";
 import { bookingRefunded } from "../email/messages";
 import { contactForUser } from "../email/recipients";
+import { mailLanguageFor } from "../email/mail-language";
 import { refundReference } from "../payments/references";
 import { submitBookingRefund } from "../payments/refund";
 import { createAdminClient } from "../supabase/admin";
@@ -278,6 +279,7 @@ export async function cancelBookingAsAdmin(
       const guest = await contactForUser(admin, booking.guest_id, "bookings");
       if (!guest) return;
       const message = bookingRefunded({
+        ...(await mailLanguageFor(admin, booking.guest_id)),
         guestName: guest.name,
         listingTitle: await stayTitle(admin, booking),
         checkIn: booking.check_in,

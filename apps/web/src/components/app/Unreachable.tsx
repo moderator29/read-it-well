@@ -1,5 +1,6 @@
 import { EmptyState } from "@/components/app/Screen";
 import { EmptyActions } from "@/components/app/EmptyActions";
+import { RetryInPlace } from "@/components/ui/RetryInPlace";
 import type { BrandIconName } from "@/design-system/icons/BrandIcon";
 
 /**
@@ -51,7 +52,9 @@ export function Unreachable({
       icon={icon}
       title={`We cannot reach your ${noun} right now`}
       body="This is on our side, not yours. Nothing has been lost and nothing has moved. Try again in a few minutes."
-      action={action ? <EmptyActions primary={action} /> : undefined}
+      /* Without a better place to send them, the one useful thing is to ask
+         again, in place (details pass). */
+      action={action ? <EmptyActions primary={action} /> : <RetryInPlace />}
       data-testid={testId}
     />
   );

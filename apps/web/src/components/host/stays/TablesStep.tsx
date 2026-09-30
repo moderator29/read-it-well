@@ -1,5 +1,6 @@
 "use client";
 
+import { useHostCopy } from "@/components/host/host-copy";
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Switch } from "@/components/ui/Switch";
@@ -51,6 +52,7 @@ import { countOf } from "@vallo/i18n/core";
 type DayRow = { weekday: number; label: string; on: boolean; opens: string; closes: string };
 
 export function TablesStep({ draft, pending, run, setNotice, advance, locale }: StaysStepProps) {
+  const hw = useHostCopy();
   /*
    * THE WEEK IS AN ARRAY IN THE DRAWN ORDER AND NOT A MAP KEYED BY WEEKDAY.
    * `WEEK_FROM_MONDAY` already carries the order the render lists and the
@@ -106,7 +108,7 @@ export function TablesStep({ draft, pending, run, setNotice, advance, locale }: 
 
   return (
     <>
-      <StaysPlate label="Opening hours">
+      <StaysPlate label={hw.steps.openingHours}>
         <div className="nf-stays-list">
           {days.map((row) => {
             const day = row;
@@ -188,7 +190,7 @@ export function TablesStep({ draft, pending, run, setNotice, advance, locale }: 
         </p>
       </StaysPlate>
 
-      <StaysPlate label="Table inventory">
+      <StaysPlate label={hw.steps.tableInventory}>
         <div className="nf-stays-list">
           {TABLE_SIZES.map((size) => (
             <StaysCountRow
@@ -217,7 +219,7 @@ export function TablesStep({ draft, pending, run, setNotice, advance, locale }: 
             <select
               className="nf-field nf-field--glass nf-stays-select w-auto"
               value={minutes}
-              aria-label="Sitting duration"
+              aria-label={hw.steps.sittingDuration}
               onChange={(event) => setMinutes(Number(event.target.value))}
             >
               {SITTING_DURATIONS.map((option) => (

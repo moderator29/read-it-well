@@ -19,6 +19,7 @@ import { NewsletterForm } from "./NewsletterForm";
 export function SiteFooter({ t }: { t: Dictionary }) {
   const f = t.landing.footer;
   const face = t.landing.face;
+  const doors = t.publicDoors.nav;
   /*
    * THREE COLUMNS, on the founder's ruling of 19 September, matching the
    * render: Product, Company, Support.
@@ -56,14 +57,26 @@ export function SiteFooter({ t }: { t: Dictionary }) {
       links: [
         { href: "/about", label: face.footer.aboutUs },
         { href: "/careers", label: f.careers },
-        { href: "/agents", label: f.becomeAgent },
+        /* A9: the supply front doors, public pages rather than a sign-in
+           wall (the old "Become an agent" / "List your property" entry went
+           to `/agents`, which redirected a stranger to sign in). */
+        { href: "/for-agents", label: doors.forAgents },
+        { href: "/for-hosts", label: doors.forHosts },
+        { href: "/for-landlords", label: doors.forLandlords },
         { href: "/contact", label: f.contact },
       ],
     },
     {
       title: f.support,
+      /* Nine links: two columns of its own on a phone and a tablet. */
+      wide: true,
       links: [
         { href: "/help", label: face.footer.helpSupport },
+        /* A7: the two checks a stranger can run with no account. */
+        { href: "/check", label: doors.checkAgent },
+        { href: "/r", label: doors.checkReceipt },
+        { href: "/move-in-cost", label: doors.moveInCost },
+        { href: "/guides", label: doors.guides },
         { href: "/docs", label: f.docs },
         { href: "/safety", label: face.footer.safety },
         { href: "/standards", label: face.footer.standards },
@@ -113,8 +126,8 @@ export function SiteFooter({ t }: { t: Dictionary }) {
           </div>
 
           {columns.map((col) => (
-            <nav key={col.title} aria-label={col.title}>
-              <h2 className="nf-overline mb-row text-[var(--nf-brand-secondary)]">{col.title}</h2>
+            <nav key={col.title} aria-label={col.title} className={"wide" in col && col.wide ? "nf-site-footer-col--wide" : undefined}>
+              <h2 className="nf-overline mb-row text-[var(--nf-content-muted)]">{col.title}</h2>
               <ul>
                 {col.links.map((l) => (
                   <li key={`${l.href}-${l.label}`}>
@@ -128,7 +141,7 @@ export function SiteFooter({ t }: { t: Dictionary }) {
           ))}
 
           <div className="nf-site-footer-connect">
-            <h2 className="nf-overline mb-row text-[var(--nf-brand-secondary)]">
+            <h2 className="nf-overline mb-row text-[var(--nf-content-muted)]">
               {face.footer.stayConnected}
             </h2>
             <p className="nf-body-sm mb-group text-[var(--nf-content-secondary)]">

@@ -74,7 +74,7 @@ identity, (c) is it used for tracking. **(c) is No for every row.**
 | Usage Data → Advertising Data | No | | | |
 | Usage Data → Other Usage Data | No | | | |
 | Diagnostics → **Crash Data** | Yes (only when `SENTRY_DSN` is set) | App Functionality | **No** | `lib/observability/report.ts` scrubs identifiers before sending. If Sentry is not configured at submission time, answer No, and change it the day it is switched on. |
-| Diagnostics → Performance Data | No | | | |
+| Diagnostics → **Performance Data** | **Yes** | App Functionality | **No** | `web_vitals_samples`: page speed figures (route template, metric, connection type), no user id, kept 30 days. Collected in the app too. Corrected 30 September 2026 (C15); the iOS privacy manifest says the same. |
 | Diagnostics → Other Diagnostic Data | No | | | |
 | Surroundings, Body | No | | | |
 | Other Data → **Other Data Types** | Yes | App Functionality | Yes | Government ID and NIN, business registration documents (agents and hosts); occupation and interests (optional, on the profile) |
@@ -143,7 +143,7 @@ is stored) / **Required or optional?** / **Purposes**.
 | App activity → Other actions | **No** | | |
 | Web browsing → Web browsing history | **No** | | |
 | App info and performance → **Crash logs** | Yes if `SENTRY_DSN` is set at submission, otherwise No | Optional | App functionality |
-| App info and performance → Diagnostics / Other app performance data | **No** | | |
+| App info and performance → **Diagnostics** | **Yes** (corrected 30 September 2026, C15: page speed samples) | Required | Analytics, App functionality |
 | Device or other IDs → **Device or other IDs** | Yes | Optional | App functionality, Fraud prevention, security and compliance (FCM token; new-device fingerprint) |
 
 ### Section 3: Security practices (shown on the listing)

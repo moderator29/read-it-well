@@ -11,6 +11,8 @@ import { SUPPLY_DOOR_ORDER, STAYS_DOOR_ORDER } from "@/lib/supply/roles";
 import type { Side } from "@/lib/side.constants";
 import { hrefFor } from "./AddWorkspaceChooser.href";
 import { IconPlate } from "@/components/ui/IconPlate";
+import { Icon3D } from "@/components/ui/Icon3D";
+import type { Icon3DName } from "@/components/ui/icon-3d";
 import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
 
 export { hrefFor };
@@ -99,6 +101,19 @@ const DOOR_OBJECT: Record<string, BrandIconName> = {
   hotel: "hotel",
   shortlet: "shortlet",
   restaurant: "concierge-bell",
+};
+
+/**
+ * The founder's 3D object on each door (30 September): a picker is where an
+ * object helps. The overview rows under it stay plates (rows are UiIcon).
+ */
+const DOOR_ART: Record<string, Icon3DName> = {
+  owner: "home-verified",
+  agent: "keys",
+  firm: "city",
+  hotel: "hotel",
+  shortlet: "shortlet",
+  restaurant: "restaurant",
 };
 
 /**
@@ -225,6 +240,7 @@ export function AddWorkspaceChooser({ t, side }: { t: Dictionary; side: Side }) 
               {group.doors.map((id) => {
                 const door = doorCopy(id);
                 const selected = chosen === id;
+                const art = DOOR_ART[id];
                 return (
                   <li key={id}>
                     <button
@@ -234,9 +250,15 @@ export function AddWorkspaceChooser({ t, side }: { t: Dictionary; side: Side }) 
                       className="nf-door"
                       data-on={selected || undefined}
                     >
-                      <IconPlate size="md" tone={selected ? "brand" : "neutral"} className="nf-door__mark">
-                        <UiIcon name={lineGlyphFor(DOOR_OBJECT[id] ?? "modern-house")} size={20} />
-                      </IconPlate>
+                      {art ? (
+                        <span className="grid size-12 shrink-0 place-items-center" aria-hidden="true" data-art={art}>
+                          <Icon3D name={art} size={48} />
+                        </span>
+                      ) : (
+                        <IconPlate size="md" tone={selected ? "brand" : "neutral"} className="nf-door__mark">
+                          <UiIcon name={lineGlyphFor(DOOR_OBJECT[id] ?? "modern-house")} size={20} />
+                        </IconPlate>
+                      )}
                       <span className="min-w-0 flex-1 text-left">
                         <span className={`block ${TYPE.rowTitle}`}>{door.title}</span>
                         <span className={`mt-inline-tight block ${TYPE.rowMeta}`}>{door.blurb}</span>

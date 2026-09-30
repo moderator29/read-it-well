@@ -6,7 +6,7 @@ import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
 import { SupportChat } from "@/components/app/account/SupportChat";
-import { IconPlate } from "@/components/ui/IconPlate";
+import { Icon3D } from "@/components/ui/Icon3D";
 
 /**
  * The top of the support home.
@@ -53,9 +53,9 @@ export function SupportHero({
           </h1>
           <p className="nf-body-sm mt-row text-[var(--nf-content-secondary)]">{promise}</p>
         </div>
-        <IconPlate size="lg" className="shrink-0">
-          <UiIcon name="headset" size={24} />
-        </IconPlate>
+        <span className="grid size-16 shrink-0 place-items-center" aria-hidden="true" data-art="support">
+          <Icon3D name="support" size={64} />
+        </span>
       </div>
 
       <Button

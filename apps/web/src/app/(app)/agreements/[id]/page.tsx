@@ -5,7 +5,13 @@ import { formatMoney } from "@vallo/i18n/core";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { readAgreement } from "@/lib/agreements/queries";
+import { readChangesSinceConfirmed } from "@/lib/agreements/changes-read";
+import type { TermChange } from "@/lib/agreements/terms-diff";
+import { AgreementChanges, type WordedChange } from "@/components/app/agreements/AgreementChanges";
 import { PageHeader } from "@/components/app/PageHeader";
+import { HeroBand } from "@/components/ui/HeroBand";
+import { DecisionCard } from "@/components/app/confirm/DecisionCard";
+import { ButtonLink } from "@/components/ui/Button";
 import { SuccessFromFlag } from "@/components/ui/SuccessFromFlag";
 import { readDone, type SuccessMomentId } from "@/lib/ui/success-moments";
 import { agreementArrival } from "@/lib/ui/arrival-moments";
@@ -105,6 +111,12 @@ export default async function AgreementPage({
   /* Staff read every agreement under RLS but are not a party to it: they see
      the record and none of the parties' controls. */
   const party = a.role !== null;
+  /* The one pending decision this page can hold for its reader. */
+  const awaitingYou = party && a.status === "awaiting_parties" && !a.youConfirmedCurrent;
+  const lastEvent = a.events.length > 0 ? a.events[a.events.length - 1] : undefined;
+  const lastEventAt = lastEvent
+    ? new Date(lastEvent.at).toLocaleString("en-NG", { timeZone: "Africa/Lagos", day: "numeric", month: "short" })
+    : null;
 
   /*
    * THE SUCCESS MOMENT ON ARRIVAL (docs/SUCCESS_MOMENTS.md). A flag from the
@@ -113,6 +125,26 @@ export default async function AgreementPage({
    * written by the database into a notification, where no flag can ride, so
    * it opens from the status itself, once per device.
    */
+  /* B9: what moved since this party last confirmed. Null (today's page)
+     until the versions migration is applied, and whenever there is nothing
+     to show. */
+  const kit = getDictionary(locale).memberKit.agreementDiff;
+  const since =
+    party && (a.status === "awaiting_parties" || a.status === "rejected") && !a.youConfirmedCurrent
+      ? await readChangesSinceConfirmed({
+          agreementId: a.id,
+          currentVersion: a.termsVersion,
+          currentTerms: a.terms,
+          currentAmountMinor: a.amountMinor,
+        })
+      : null;
+  const worded: WordedChange[] = (since?.changes ?? []).map((c: TermChange) => ({
+    key: c.key,
+    label: c.label,
+    before: termValue(c, c.before, locale, kit.notStated),
+    after: termValue(c, c.after, locale, kit.notStated),
+  }));
+
   const arrival = agreementArrival(a, done);
   const moment: SuccessMomentId | null = arrival && !arrival.seenOnce ? arrival.moment : null;
   const approvedMoment: SuccessMomentId | null = arrival?.seenOnce ? arrival.moment : null;
@@ -135,19 +167,59 @@ export default async function AgreementPage({
         haptic={moment ? undefined : false}
       />
       <PageHeader title="Agreement" />
-      <p className={`${TYPE.body} mt-inline`}>
-        <strong>{a.listingTitle}</strong> · {a.kind === "rent" ? "Rental" : "Stay"}
-      </p>
-      <p className={`${TYPE.rowMeta} mt-2xs`} data-testid="agreement-status">
-        {AGREEMENT_STATUS_LABEL[a.status] ?? a.status}
-      </p>
-
       {/* Where it stands, on the shared status track (spec section 14): drawn
           up, both confirmed, approved, paid, each dated from this agreement's
-          own events. Sent back or cancelled stops the track where it stood. */}
-      <div className="nf-panel nf-panel--card mt-block p-card">
+          own events. Sent back or cancelled stops the track where it stood.
+          It opens the page on the hero band (plan item 21; spec section 16,
+          Q2: the agreement's live-status header), the property named above
+          the track with the kind and the status word under it. */}
+      <HeroBand
+        className="nf-status-band mt-inline"
+        label="Live status"
+        title={a.listingTitle}
+        sub={
+          <>
+            {a.kind === "rent" ? "Rental" : "Stay"} ·{" "}
+            <span data-testid="agreement-status">{AGREEMENT_STATUS_LABEL[a.status] ?? a.status}</span>
+          </>
+        }
+      >
         <StatusTrack label="Agreement progress" steps={agreementSteps(a.status, a.events)} testId="agreement-track" />
-      </div>
+      </HeroBand>
+
+      {/* AWAITING YOU (plan item 22; spec section 14, reference 36). Drawn
+          only when this reader is a party and has not confirmed the current
+          version: the one real decision on this page. Its lines and total are
+          the terms' own; its controls are the page's own ConfirmTerms and
+          CancelAgreement, moved here rather than repeated below. */}
+      {awaitingYou ? (
+        <DecisionCard
+          className="mt-block"
+          testId="agreement-awaiting-you"
+          label="Awaiting you"
+          when={lastEventAt ? `Since ${lastEventAt}` : undefined}
+          title={`Confirm version ${a.termsVersion} of the terms`}
+          lines={LINES.flatMap((line) => {
+            const amount = num(a.terms, line.key);
+            return amount ? [{ label: line.label, amount: formatMoney(amount, locale) }] : [];
+          })}
+          total={{ label: "Total", amount: formatMoney(a.amountMinor, locale) }}
+          primary={
+            <ConfirmTerms
+              agreementId={a.id}
+              version={a.termsVersion}
+              changes={worded.length > 0 ? worded : undefined}
+              changesLead={kit.confirmLead}
+            />
+          }
+          secondary={[
+            <ButtonLink key="terms" variant="secondary" href="#agreement-terms">
+              Read the terms
+            </ButtonLink>,
+            <CancelAgreement key="cancel" agreementId={a.id} variant="secondary" />,
+          ]}
+        />
+      ) : null}
 
       {a.status === "rejected" && a.decisionReason ? (
         <div className="nf-card mt-block p-card" role="note">
@@ -161,7 +233,22 @@ export default async function AgreementPage({
         </div>
       ) : null}
 
-      <Section title={`The terms (version ${a.termsVersion})`}>
+      {since ? (
+        <AgreementChanges
+          changes={worded}
+          copy={kit}
+          byLine={
+            since.by && since.at
+              ? kit.by
+                  .replace("{who}", since.by === "you" ? kit.you : kit.other)
+                  .replace("{date}", new Date(since.at).toLocaleString("en-NG", { timeZone: "Africa/Lagos", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }))
+              : kit.byUndated
+          }
+          versionsLine={kit.versions.replace("{from}", String(since.fromVersion)).replace("{to}", String(since.toVersion))}
+        />
+      ) : null}
+
+      <Section id="agreement-terms" title={`The terms (version ${a.termsVersion})`}>
         <dl className="grid grid-cols-[auto_1fr] gap-x-md gap-y-2xs">
           <dt className={TYPE.rowMeta}>Between</dt>
           <dd>
@@ -213,9 +300,8 @@ export default async function AgreementPage({
             {a.youConfirmedCurrent ? "You confirmed this version." : "You have not confirmed this version yet."}{" "}
             {a.otherConfirmedCurrent ? "The other side confirmed it." : "The other side has not confirmed it yet."}
           </p>
-          {a.status === "awaiting_parties" && !a.youConfirmedCurrent ? (
-            <ConfirmTerms agreementId={a.id} version={a.termsVersion} />
-          ) : null}
+          {/* Confirming, when it is this reader's move, is the Awaiting you
+              card at the top of the page. */}
           {a.kind === "rent" ? (
             <AmendTerms
               agreementId={a.id}
@@ -225,7 +311,7 @@ export default async function AgreementPage({
               minDate={today}
             />
           ) : null}
-          <CancelAgreement agreementId={a.id} />
+          {awaitingYou ? null : <CancelAgreement agreementId={a.id} />}
         </Section>
       ) : null}
 
@@ -329,6 +415,19 @@ function agreementSteps(status: string, events: { at: string; action: string }[]
       : null,
     state: step.state,
   }));
+}
+
+/** One side of a changed line, in words: money, a day, or the text itself. */
+function termValue(
+  c: TermChange,
+  v: TermChange["before"],
+  locale: Parameters<typeof formatMoney>[1],
+  notStated: string,
+): string {
+  if (v === null) return notStated;
+  if (c.kind === "money" && typeof v === "number") return formatMoney(v, locale);
+  if (c.kind === "date" && typeof v === "string") return day(v) ?? v;
+  return String(v);
 }
 
 function FragmentLine({ label, value }: { label: string; value: string }) {

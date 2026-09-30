@@ -22,6 +22,7 @@ import { readPassportShareState, readThreadPassport } from "@/lib/trust/passport
 import { InboxEmpty } from "../Inbox";
 import { readDeskStage } from "@/lib/enquiry/queries";
 import { quickReplies } from "@/lib/enquiry/quick-replies";
+import { renterQuestions } from "@/lib/enquiry/renter-questions";
 import { loadListingsByIds } from "@/lib/listings/supabase-repository";
 import { StageControl } from "@/components/app/messages/StageControl";
 
@@ -155,6 +156,10 @@ export default async function ConversationPage({
        answers only for the caller's own threads, and the listing is read
        under the lister's own client for the quick replies' figures. */
     const desk = listingThread && role === "host";
+    /* B6: the renter's question chips, on a listing thread nobody has written
+       in yet. The listing is read for the same reason as the desk's: to leave
+       out what it already answers. */
+    const askChips = listingThread && role === "guest" && thread.messages.length === 0 && Boolean(thread.listing);
     /*
      * PERF-SWEEP 1: every read below depends only on the thread, its context
      * and the reader's role, all known by now, and on none of each other. They
@@ -183,9 +188,9 @@ export default async function ConversationPage({
       listingThread ? readOpenInspectionForConversation(id) : null,
       /* V-14: the still-available question on this thread, if one was asked. */
       listingThread ? readAvailabilityForConversation(id) : null,
-      desk
+      desk || askChips
         ? Promise.all([
-            readDeskStage(id),
+            desk ? readDeskStage(id) : Promise.resolve(null),
             thread.listing
               ? loadListingsByIds(session.supabase, [thread.listing.id])
                   .then((found) => found.get(thread.listing!.id) ?? null)
@@ -305,8 +310,14 @@ export default async function ConversationPage({
           ) : null
         }
         stageSlot={stage ? <StageControl conversationId={id} stage={stage} copy={t.frontDoor.desk} /> : null}
-        quickReplies={desk ? quickReplies(deskListing, t.frontDoor.desk.quick, locale) : []}
-        quickRepliesTitle={t.frontDoor.desk.quickTitle}
+        quickReplies={
+          desk
+            ? quickReplies(deskListing, t.frontDoor.desk.quick, locale)
+            : askChips
+              ? renterQuestions(deskListing, t.memberKit.questions)
+              : []
+        }
+        quickRepliesTitle={desk ? t.frontDoor.desk.quickTitle : t.memberKit.questions.title}
         openAttach={(Array.isArray(attach) ? attach[0] : attach) === "1"}
         accountMoment={accountMoment}
         personLine={counterpartFactsLine}
@@ -331,6 +342,8 @@ export default async function ConversationPage({
         }
         personLabel={t.trustVisible.person.label}
         accountCopy={t.trustVisible.account}
+        scamCopy={t.memberKit.scam}
+        dayKitCopy={t.memberKit.dayKit}
         messages={thread.messages.map((m): ThreadBubble => {
           const card = cards.get(m.id);
           return {

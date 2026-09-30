@@ -28,9 +28,9 @@ const GUEST = "11111111-1111-4111-8111-111111111111";
 const BOOKING = "22222222-2222-4222-8222-222222222222";
 const LISTING = "33333333-3333-4333-8333-333333333333";
 
-type Booking = { id: string; listing_id: string; status: string; check_out: string };
+type Booking = { id: string; listing_id: string | null; accommodation_id?: string | null; status: string; check_out: string };
 
-function fakeClient(booking: Booking | null, tenancy: boolean, inserts: unknown[]) {
+function fakeClient(booking: Booking | null, tenancy: boolean, inserts: unknown[], insertError: { code: string } | null = null) {
   return {
     from(table: string) {
       const chain: Record<string, unknown> = {};
@@ -42,7 +42,7 @@ function fakeClient(booking: Booking | null, tenancy: boolean, inserts: unknown[
       };
       chain.insert = async (row: unknown) => {
         inserts.push(row);
-        return { error: null };
+        return { error: insertError };
       };
       return chain;
     },
@@ -57,12 +57,12 @@ function form(): FormData {
   return f;
 }
 
-function signedIn(booking: Booking | null, tenancy = false) {
+function signedIn(booking: Booking | null, tenancy = false, insertError: { code: string } | null = null) {
   const inserts: unknown[] = [];
   session.resolveSession.mockResolvedValue({
     state: "signed-in",
     user: { id: GUEST },
-    supabase: fakeClient(booking, tenancy, inserts),
+    supabase: fakeClient(booking, tenancy, inserts, insertError),
   });
   return inserts;
 }
@@ -114,5 +114,25 @@ describe("submitReview (NEW-A1-03)", () => {
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error).toMatch(/tenancy|move-in|rent/i);
     expect(inserts).toHaveLength(0);
+  });
+
+  /* C4: a hotel room stay is reviewed against its hotel. */
+  const HOTEL = "44444444-4444-4444-8444-444444444444";
+  const hotelStay = (): Booking => ({ id: BOOKING, listing_id: null, accommodation_id: HOTEL, status: "COMPLETED", check_out: "2026-09-20" });
+
+  it("writes a hotel stay's review against the hotel, never a listing", async () => {
+    const inserts = signedIn(hotelStay());
+    const result = await submitReview(null, form());
+    expect(result.ok).toBe(true);
+    expect(inserts[0]).toMatchObject({ accommodation_id: HOTEL, booking_id: BOOKING });
+    expect(inserts[0]).not.toHaveProperty("listing_id");
+    if (result.ok) expect(result.data.href).toBe(`/stay/${HOTEL}`);
+  });
+
+  it("says hotel reviews are not open yet until the database can hold one", async () => {
+    signedIn(hotelStay(), false, { code: "23502" });
+    const result = await submitReview(null, form());
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toMatch(/not open yet/);
   });
 });

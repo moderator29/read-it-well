@@ -12,6 +12,8 @@ import { gradeForSeverity } from "@/lib/trust/standards";
 import { dueChip } from "../_components/due";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { IconPlate } from "@/components/ui/IconPlate";
+import { AlertAcknowledge } from "./AlertAcknowledge";
+import { ACK_COPY } from "./ack-copy";
 
 /**
  * The alerts desk's cards, out of the page so the preview harness draws the
@@ -94,7 +96,10 @@ export function AlertCard({
       <ConsiderStr from="risk_alert" id={alert.id} />
 
       {alert.status === "open" ? (
-        <AlertResolve alertId={alert.id} copy={copy} common={common} />
+        <>
+          <AlertAcknowledgement alert={alert} ui={ui} />
+          <AlertResolve alertId={alert.id} copy={copy} common={common} />
+        </>
       ) : (
         <p className="mt-sm text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           {fill(copy.resolvedWhen, { when: ui.when(alert.resolvedAt) })}{" "}
@@ -104,6 +109,30 @@ export function AlertCard({
       )}
     </li>
   );
+}
+
+/**
+ * C13: WHO HAS THIS ALERT. An acknowledged alert names the person and the
+ * time; an open one nobody has taken offers "I have this". Nothing is drawn
+ * when the desk cannot store an acknowledgement yet (the pending migration),
+ * so the button never promises what the database would refuse.
+ */
+export function AlertAcknowledgement({ alert, ui }: { alert: AlertView; ui: AdminUi }) {
+  if (!alert.acknowledgementsAvailable) return null;
+  if (alert.acknowledgedAt) {
+    const when = ui.when(alert.acknowledgedAt);
+    return (
+      <p className="mt-sm flex items-start gap-inline text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
+        <UiIcon name="user-check" size={16} />
+        <span className="min-w-0">
+          {alert.acknowledgedByName
+            ? fill(ACK_COPY.by, { who: alert.acknowledgedByName, when })
+            : fill(ACK_COPY.byUnknown, { when })}
+        </span>
+      </p>
+    );
+  }
+  return <AlertAcknowledge alertId={alert.id} />;
 }
 
 /**

@@ -17,6 +17,20 @@ export const EFFECTIVE_TYPES = ["slow-2g", "2g", "3g", "4g"] as const;
 /** One page view in ten reports. Decided once per page load. */
 export const SAMPLE_RATE = 0.1;
 
+/**
+ * THE LAUNCH WINDOW (C13): every page view reports for the two weeks after
+ * the store launch, because `web_vitals_samples` held 6 rows on 30 September
+ * and one in ten of a launch week's traffic is too few to read. On
+ * 15 October 2026 (Lagos) it drops back to one in ten by itself; nobody has
+ * to remember to turn it down.
+ */
+export const FULL_SAMPLING_UNTIL = Date.parse("2026-10-15T00:00:00+01:00");
+
+/** The sampling rate at a moment: every view in the launch window, then one in ten. */
+export function sampleRateAt(now: number): number {
+  return now < FULL_SAMPLING_UNTIL ? 1 : SAMPLE_RATE;
+}
+
 export type VitalsRow = {
   route: string;
   metric: VitalMetric;

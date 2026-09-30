@@ -4,7 +4,9 @@ import { DepthWords, wordCount } from "@/components/motion/DepthWords";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { EdgeLap } from "@/components/site/EdgeLap";
 import { catalogueIsOpen, type Door } from "./doors";
-import { SearchPill } from "./SearchPill";
+import { HeroSurface } from "./HeroSurface";
+import { ObjectField } from "./ObjectField";
+import { HERO_OBJECTS } from "./landing-objects";
 
 /**
  * The hero, to the founder's reference 39 (29 September 2026): a clean
@@ -48,6 +50,10 @@ export function Hero({ t, door }: { t: Dictionary; door: Door }) {
     <section className="nf-landing-hero" data-chapter="hero" aria-labelledby="nf-landing-title">
       <div className="nf-hero-grid" aria-hidden="true" />
       <div className="nf-shell nf-landing-hero-body">
+        {/* THE HERO'S OBJECTS: the headline's three words as the founder's
+            3D objects (rent, buy, stay) and the map pin, floating at the
+            stage's edges, leaning toward a desktop pointer (ObjectField). */}
+        <ObjectField objects={HERO_OBJECTS} className="nf-o3--hero" pointer />
         <EdgeLap as="p" className="nf-hero-eyebrow nf-rise nf-rise-1">
           <UiIcon name="sparkle" size={16} aria-hidden />
           <span>{hero.eyebrow}</span>
@@ -72,7 +78,9 @@ export function Hero({ t, door }: { t: Dictionary; door: Door }) {
         </div>
 
         <div className="nf-landing-pill-wrap nf-depth-last">
-          <SearchPill labels={face.search} />
+          {/* A8 folded in: the search and the move-in total, as two tabs on
+              one surface (HeroSurface.tsx). */}
+          <HeroSurface search={face.search} moveIn={t.publicDoors.moveIn} />
         </div>
 
         <ul className="nf-hero-facts nf-rise nf-rise-4">

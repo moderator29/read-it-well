@@ -29,7 +29,9 @@ const SUMMARY = {
 
 export default function ConfirmPreview() {
   return (
-    <div className="nf-shell grid gap-section py-section">
+    /* C16: a main landmark and a page heading, so the harness page itself passes axe. */
+    <main id="main" className="nf-shell grid gap-section py-section">
+      <h1 className="sr-only">Confirm panel preview</h1>
       <div className="nf-panel nf-panel--card mx-auto w-full max-w-[32rem] p-card">
         <ConfirmPanel
           icon="credit-card"
@@ -69,6 +71,6 @@ export default function ConfirmPreview() {
         <p className="nf-caption">Sat 4 Oct to Mon 6 Oct · Seyi Omojuni</p>
         <RoomRequestAnswer bookingId="00000000-0000-4000-8000-00000000c001" summary={SUMMARY} />
       </div>
-    </div>
+    </main>
   );
 }

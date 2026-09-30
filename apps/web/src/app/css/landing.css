@@ -871,8 +871,105 @@
   }
   @media (prefers-reduced-motion: reduce) {
     .nf-landing-pill-segments::before,
-    .nf-landing-pill-go {
+    .nf-landing-pill-go,
+    .nf-hero-tab {
       transition: none;
+    }
+  }
+
+  /* ------------------------------------------ the hero surface's two tabs
+     (HeroSurface.tsx): find a place, or the move-in total. Two capsules
+     centred over the card; the chosen one is the dock's tinted pill (spec
+     section 17), brand ink on a soft brand wash. Both panels share one grid
+     cell, so a switch never moves what sits under the card. */
+  .nf-hero-surface {
+    display: grid;
+    gap: var(--nf-space-xs);
+  }
+  .nf-hero-tabs {
+    display: flex;
+    justify-content: center;
+    gap: var(--nf-space-2xs);
+  }
+  .nf-hero-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    min-height: 2.75rem;
+    padding: 0 var(--nf-space-md);
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 500;
+    color: var(--nf-content-secondary);
+    white-space: nowrap;
+    transition:
+      background-color var(--nf-duration-fast) var(--nf-ease-standard),
+      color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-hero-tab[aria-selected="true"] {
+    background: color-mix(in oklab, var(--nf-brand-primary) 12%, var(--nf-surface-primary));
+    color: var(--nf-brand-primary);
+    font-weight: 600;
+  }
+  :root:not([data-theme="light"]) .nf-hero-tab[aria-selected="true"] {
+    background: color-mix(in oklab, var(--nf-brand-primary) 24%, var(--nf-surface-canvas));
+    color: var(--nf-brand-secondary);
+  }
+  @media (hover: hover) {
+    .nf-hero-tab[aria-selected="false"]:hover {
+      background: var(--nf-interactive-hover);
+      color: var(--nf-content-primary);
+    }
+  }
+  .nf-hero-tab:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  .nf-hero-surface__panels {
+    display: grid;
+  }
+  .nf-hero-surface__panels > [role="tabpanel"] {
+    grid-area: 1 / 1;
+    display: grid;
+    min-width: 0;
+  }
+  .nf-hero-surface__panels > [data-active="false"] {
+    visibility: hidden;
+  }
+
+  /* The move-in panel: the same card; a line on what it adds, then the rent
+     field with the go button in its right end (phone), or one 64px row with
+     the go button's word (40rem up). */
+  .nf-landing-pill--movein {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "note"
+      "field";
+    align-content: center;
+    height: 100%;
+  }
+  .nf-landing-pill-note {
+    grid-area: note;
+    padding: var(--nf-space-xs) var(--nf-space-sm) 0;
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.5;
+    color: var(--nf-content-secondary);
+    text-wrap: pretty;
+  }
+  .nf-landing-pill-naira {
+    flex: none;
+    font-weight: 600;
+    color: var(--nf-content-muted);
+  }
+  @media (min-width: 40rem) {
+    .nf-landing-pill--movein {
+      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-areas: "field go";
+    }
+    .nf-landing-pill-note {
+      display: none;
     }
   }
 
@@ -1116,24 +1213,10 @@
     align-items: center;
     gap: var(--nf-gap-inline);
   }
-  /* The glass square the object sits in: brand-tinted glass on the photo. */
-  .nf-landing-cat-icon {
-    display: inline-grid;
-    place-items: center;
-    flex: none;
-    width: 2.25rem;
-    height: 2.25rem;
-    padding: 0.3rem;
-    border-radius: var(--nf-plate-radius-sm);
-    background: var(--nf-plate-fill);
-    border: var(--nf-border-width) solid var(--nf-plate-edge);
-    border-color: var(--nf-plate-edges);
-    box-shadow: var(--nf-plate-shadow);
-  }
   .nf-landing-cat-title {
     display: block;
     font-size: var(--nf-text-body-sm);
-    font-weight: 650;
+    font-weight: 600;
     line-height: 1.2;
     /* Two lines are reserved whether a name needs them or not, so "Guest
        Houses" and "Land" put their counts on the same baseline and the row
@@ -1263,7 +1346,7 @@
   }
   .nf-app-panel__install-title {
     font-size: var(--nf-text-body);
-    font-weight: 650;
+    font-weight: 600;
     color: var(--nf-content-primary);
   }
   .nf-app-panel__install-body {
@@ -1354,4 +1437,73 @@
   --nf-btn-lit-shadow-hover:
     var(--nf-btn-lit-rim), var(--nf-btn-lit-inner-hover),
     0 6px 16px -6px color-mix(in srgb, var(--nf-brand-primary) 70%, transparent);
+}
+
+/*
+ * THE WARM SPARK ON THE LANDING (the founder, 30 September 2026; spec
+ * section 18). Blue leads, the icons' orange sparks, in five places only:
+ * the eyebrow capsule's glyph, the hero headline's last word underlined in a
+ * short orange stroke, the same stroke under one word of two section heads
+ * (`SectionHead`'s `flourish`), and the first of the community figures.
+ * The capsule's and the eyebrow's blue-to-orange lap is in `site.css`.
+ *
+ * The stroke is a graphic (3:1 is the bar, and the spark clears it in both
+ * themes); it draws in once, left to right, on transform only, after the
+ * words have arrived, and is simply there under reduced motion, Calm, Off
+ * and with scripts off.
+ */
+@layer components {
+  .nf-hero-eyebrow > svg {
+    color: var(--nf-spark);
+  }
+  .nf-landing-title .nf-depth-line--accent .nf-depth-word:last-child,
+  .nf-spark-flourish {
+    position: relative;
+  }
+  .nf-landing-title .nf-depth-line--accent .nf-depth-word:last-child::after,
+  .nf-spark-flourish::after {
+    content: "";
+    position: absolute;
+    left: 0.04em;
+    right: 0.08em;
+    bottom: -0.04em;
+    height: max(3px, 0.07em);
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-spark);
+    transform-origin: left center;
+    pointer-events: none;
+    animation: nf-spark-draw 520ms var(--nf-ease-entrance) both;
+  }
+  .nf-landing-title .nf-depth-line--accent .nf-depth-word:last-child::after {
+    animation-delay: calc(var(--nf-splash-hold, 0ms) + 1000ms);
+  }
+  .nf-spark-flourish::after {
+    animation-delay: 420ms;
+  }
+  @keyframes nf-spark-draw {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: none;
+    }
+  }
+  @media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+    .nf-depth-gate:not([data-seen]) .nf-spark-flourish::after {
+      animation-play-state: paused;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-landing-title .nf-depth-line--accent .nf-depth-word:last-child::after,
+    .nf-spark-flourish::after {
+      animation: none;
+    }
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) :is(.nf-landing-title .nf-depth-line--accent .nf-depth-word:last-child, .nf-spark-flourish)::after {
+    animation: none;
+  }
+  /* The community band's first figure is the highlighted one. */
+  .nf-landing-figure:first-child > strong {
+    color: var(--nf-spark-ink);
+  }
 }

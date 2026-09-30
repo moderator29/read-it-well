@@ -1,4 +1,7 @@
 import type { MetadataRoute } from "next";
+import { LOCALES } from "@vallo/i18n/core";
+import { GUIDE_SLUGS } from "@/lib/guides/slugs";
+import { alternateUrls, localizedPath } from "@/lib/i18n/public-locale";
 
 /**
  * What the sitemap says, decided away from the route that serves it.
@@ -70,6 +73,16 @@ export const PUBLIC_PAGES: readonly {
   { path: "/cancellations", changeFrequency: "monthly" },
   { path: "/contact", changeFrequency: "monthly" },
   { path: "/careers", changeFrequency: "monthly" },
+  /* Recommendations A: the trust tools (A7), the supply doors (A9), the
+     calculator (A8) and the guides (A14). All public, all indexable. */
+  { path: "/check", changeFrequency: "monthly" },
+  { path: "/r", changeFrequency: "yearly" },
+  { path: "/move-in-cost", changeFrequency: "monthly" },
+  { path: "/for-agents", changeFrequency: "monthly" },
+  { path: "/for-hosts", changeFrequency: "monthly" },
+  { path: "/for-landlords", changeFrequency: "monthly" },
+  { path: "/guides", changeFrequency: "weekly" },
+  ...GUIDE_SLUGS.map((slug) => ({ path: `/guides/${slug}`, changeFrequency: "monthly" as const })),
   { path: "/delete-account", changeFrequency: "yearly" },
   { path: "/eula", changeFrequency: "yearly" },
   { path: "/terms", changeFrequency: "yearly" },
@@ -96,17 +109,30 @@ export function buildSitemap(
   areaPages: readonly { path: string; lastModified?: string | null }[] = [],
 ): MetadataRoute.Sitemap {
   const base = origin.replace(/\/+$/, "");
+  /* A10: every public page in all four languages, each entry naming the
+     other three as its alternates (hreflang), English also as x-default. */
+  const languages = (path: string) => {
+    const urls = alternateUrls(base, path);
+    return { alternates: { languages: urls } };
+  };
   return [
-    ...PUBLIC_PAGES.map((page) => ({
-      url: `${base}${page.path === "/" ? "" : page.path}` || base,
-      changeFrequency: page.changeFrequency,
-    })),
+    ...PUBLIC_PAGES.flatMap((page) =>
+      LOCALES.map((locale) => {
+        const localized = localizedPath(page.path, locale);
+        return {
+          url: localized === "/" ? base : `${base}${localized}`,
+          changeFrequency: page.changeFrequency,
+          ...languages(page.path),
+        };
+      }),
+    ),
     ...areaPages
       .filter((page) => /^\/areas\/[a-z0-9-]+\/[a-z0-9-]+$/.test(page.path))
       .map((page) => ({
         url: `${base}${page.path}`,
         changeFrequency: "weekly" as const,
         ...(page.lastModified ? { lastModified: page.lastModified } : {}),
+        ...languages(page.path),
       })),
   ];
 }

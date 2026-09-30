@@ -57,7 +57,7 @@ export default async function SupportPage() {
 
   return (
     <div className="mx-auto max-w-2xl pb-[env(safe-area-inset-bottom)]">
-      <BackButton fallback="/home" className="nf-icon-btn nf-icon-btn--glass h-11 w-11" />
+      <BackButton fallback="/home" surface="round" />
 
       <div className="mt-row space-y-block">
         <SupportHero

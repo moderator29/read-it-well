@@ -113,7 +113,14 @@ export function ShareCardFrame({
   foot,
   className,
   testId,
+  align = "start",
 }: {
+  /**
+   * `center` sets the figure (and the meter under it) centred in the well:
+   * the one headline figure of a screen (section 17, refs 44 and 45), as
+   * Price Check's answer. The share image keeps the default.
+   */
+  align?: "start" | "center";
   variant?: "plain" | "tinted";
   /** The card's name, left of the chip in the plain frame. */
   title?: string;
@@ -154,6 +161,7 @@ export function ShareCardFrame({
         .filter(Boolean)
         .join(" ")}
       data-meter={below ? "below" : "beside"}
+      data-align={align === "center" ? "center" : undefined}
       data-testid={testId ?? "share-card"}
       aria-label={title ?? chip?.label}
     >

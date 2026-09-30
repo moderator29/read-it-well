@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
+import Link from "next/link";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 import { CheckForm } from "./CheckForm";
 
 /**
@@ -38,7 +40,16 @@ export default async function CheckPage({ searchParams }: { searchParams: Promis
           <p className="nf-overline text-[var(--nf-content-muted)]">{copy.chip}</p>
           <h1 className="nf-h2 mt-xs">{copy.title}</h1>
           <p className="nf-body mt-sm leading-relaxed text-[var(--nf-content-secondary)]">{copy.lede}</p>
-          <CheckForm copy={copy} locale={locale} initial={typeof q === "string" ? q.slice(0, 40) : ""} />
+          <CheckForm
+            copy={copy}
+            locale={locale}
+            initial={typeof q === "string" ? q.slice(0, 40) : ""}
+            warning={t.publicDoors.warning}
+          />
+          <Link href="/r" className="nf-caption mt-md inline-flex min-h-11 items-center gap-xs font-semibold text-[var(--nf-brand-primary)]">
+            <UiIcon name="receipt" size={16} aria-hidden />
+            {t.publicDoors.checkCard.receipt}
+          </Link>
         </section>
         <p className="nf-caption mt-md text-center text-[var(--nf-content-muted)]">{copy.privacy}</p>
       </div>

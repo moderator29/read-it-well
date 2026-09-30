@@ -1,5 +1,9 @@
 import type { ReactNode } from "react";
 import { PasscodeLayer } from "@/components/passcode/PasscodeLayer";
+/* C12: the workspace sheets, out of `globals.css`. stays.css inherits
+   agent.css's `nf-host-*` register, so it comes second. */
+import "@/app/css/agent.css";
+import "@/app/css/stays.css";
 
 /**
  * The host workspace's layout. Its only job is the passcode lock

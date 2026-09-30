@@ -54,6 +54,7 @@ export function deletionStarted(data: DeletionStartedData): DeletionEmail {
   // reads back a machine timestamp, which `emails.test.ts` caught.
   const when = prettyDate(data.purgeAfter.slice(0, 10));
   const composed = compose({
+    icon: "deletionStarted",
     preheader: "Nothing is destroyed yet. The restore code in this email stops it.",
     blocks: [
       heading("Your account is scheduled for deletion"),
@@ -98,6 +99,7 @@ export type DeletionCompletedData = {
  */
 export function deletionCompleted(data: DeletionCompletedData): DeletionEmail {
   const composed = compose({
+    icon: "deletionCompleted",
     preheader: "This is the last email Vallo sends to this address.",
     blocks: [
       heading("Your account has been deleted"),

@@ -147,7 +147,7 @@ export default async function AroundManagePage({
       <ProposalsAnswered proposals={answered} />
 
       <section className="mb-xl">
-        <h2 className="mb-sm text-[length:var(--nf-text-overline)] font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
+        <h2 className="mb-sm nf-section-label">
           Your places
         </h2>
         {mine.length > 0 ? (
@@ -164,7 +164,7 @@ export default async function AroundManagePage({
       </section>
 
       <section>
-        <h2 className="mb-sm text-[length:var(--nf-text-overline)] font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
+        <h2 className="mb-sm nf-section-label">
           Open places
         </h2>
         {others.length > 0 ? (

@@ -59,6 +59,12 @@
     --nf-slate-edge: var(--nf-brand-primary);
     --nf-slate-hair: color-mix(in oklab, var(--nf-content-primary) 14%, transparent);
     --nf-slate-top-h: 15.5rem;
+    /* The depth pieces: the light that drifts in the block and in the page,
+       and the shadow the glass objects cast. */
+    --nf-slate-light: color-mix(in oklab, var(--nf-brand-quiet) 34%, transparent);
+    --nf-slate-obj-shadow: color-mix(in oklab, var(--nf-surface-artwork) 22%, transparent);
+    --nf-slate-page-light: color-mix(in oklab, var(--nf-brand-primary) 16%, transparent);
+    --nf-slate-halo: color-mix(in oklab, var(--nf-brand-quiet) 34%, transparent);
     --nf-auth-gutter: var(--nf-space-md);
     /* THE FOCUS RING. The platform's ring is one unlayered rule
        (`base.css`) that reads `--nf-focus-ring`; it is steered here rather
@@ -91,6 +97,10 @@
     --nf-slate-top-chip-edge: color-mix(in oklab, var(--nf-content-on-brand) 26%, transparent);
     --nf-slate-edge: var(--nf-brand-quiet);
     --nf-slate-hair: color-mix(in oklab, var(--nf-content-primary) 12%, transparent);
+    --nf-slate-light: color-mix(in oklab, var(--nf-brand-primary) 60%, transparent);
+    --nf-slate-obj-shadow: color-mix(in oklab, var(--nf-surface-artwork) 60%, transparent);
+    --nf-slate-page-light: color-mix(in oklab, var(--nf-brand-primary) 9%, transparent);
+    --nf-slate-halo: color-mix(in oklab, var(--nf-brand-primary) 20%, transparent);
   }
 
   /* ========================================================== THE SCREEN */
@@ -108,6 +118,33 @@
     overflow-x: clip;
     padding-bottom: max(var(--nf-space-md), env(safe-area-inset-bottom, 0px));
     background: var(--nf-slate-page);
+  }
+  /* The page's own depth: a soft pool of brand light low on the left and a
+     second, fainter one drifting on the right, so the column stands in a
+     lit room rather than on a flat colour. Behind everything; the
+     `position: fixed` keeps it still while a long form scrolls. */
+  .nf-auth::before,
+  .nf-auth::after {
+    content: "";
+    position: fixed;
+    z-index: 0;
+    pointer-events: none;
+    border-radius: var(--nf-radius-circle);
+    background: radial-gradient(circle, var(--nf-slate-page-light) 0%, transparent 70%);
+  }
+  .nf-auth::before {
+    bottom: -18vh;
+    left: -30vw;
+    width: max(70vw, 28rem);
+    aspect-ratio: 1;
+  }
+  .nf-auth::after {
+    top: 38vh;
+    right: -26vw;
+    width: max(52vw, 22rem);
+    aspect-ratio: 1;
+    opacity: 0.7;
+    animation: nf-slate-drift 20s var(--nf-ease-standard) infinite alternate;
   }
 
   /* ======================================================= THE TOP BLOCK */
@@ -154,6 +191,112 @@
     opacity: 0.7;
     filter: drop-shadow(0 0 6px var(--nf-glow-4));
     animation: nf-slate-morph-edge var(--nf-duration-cinematic) var(--nf-ease-entrance) both;
+  }
+
+  /*
+   * DEPTH IN THE BLOCK (30 September): the same quality as inside the
+   * platform. Two soft lights drift slowly under the curve, and two of the
+   * brand's glass objects float on the right, where the arc leaves room,
+   * clipped by the arc itself (the mask is the block's own shape, stretched
+   * the way the SVG is). They arrive after the block lands: a short rise out
+   * of a slight scale. Transform and opacity only; nothing drifts under
+   * reduced motion, Calm or Off.
+   */
+  .nf-slate-top__depth {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 390 260' preserveAspectRatio='none'%3E%3Cpath d='M0 0H390V150C340 226 270 256 195 256C120 256 50 226 0 150Z'/%3E%3C/svg%3E");
+    mask-size: 100% 100%;
+    mask-repeat: no-repeat;
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 390 260' preserveAspectRatio='none'%3E%3Cpath d='M0 0H390V150C340 226 270 256 195 256C120 256 50 226 0 150Z'/%3E%3C/svg%3E");
+    -webkit-mask-size: 100% 100%;
+    -webkit-mask-repeat: no-repeat;
+    transition: opacity var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  .nf-slate-top__light {
+    position: absolute;
+    border-radius: var(--nf-radius-circle);
+    background: radial-gradient(circle, var(--nf-slate-light) 0%, transparent 68%);
+    animation: nf-slate-drift 14s var(--nf-ease-standard) infinite alternate;
+  }
+  .nf-slate-top__light--a {
+    top: -30%;
+    right: -12%;
+    width: 70%;
+    aspect-ratio: 1;
+  }
+  .nf-slate-top__light--b {
+    bottom: -40%;
+    left: -20%;
+    width: 60%;
+    aspect-ratio: 1;
+    animation-duration: 18s;
+    animation-delay: -6s;
+  }
+  @keyframes nf-slate-drift {
+    from {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    to {
+      transform: translate3d(-8%, 6%, 0) scale(1.08);
+    }
+  }
+  .nf-slate-top__obj {
+    position: absolute;
+    display: block;
+    animation:
+      nf-slate-obj-in var(--nf-duration-deliberate) var(--nf-ease-entrance) both,
+      nf-slate-bob 6s var(--nf-ease-standard) var(--nf-duration-deliberate) infinite alternate;
+  }
+  .nf-slate-top__obj > img {
+    display: block;
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 10px 18px var(--nf-slate-obj-shadow));
+  }
+  .nf-slate-top__objs {
+    position: absolute;
+    top: calc(env(safe-area-inset-top, 0px) + 22%);
+    right: max(6%, calc(50% - 13rem));
+    width: clamp(4.5rem, 24vw, 7rem);
+    aspect-ratio: 1;
+  }
+  .nf-slate-top__obj--a {
+    inset: 0;
+    animation-delay: 260ms, 1100ms;
+  }
+  .nf-slate-top__obj--b {
+    top: -22%;
+    left: -34%;
+    width: 42%;
+    animation-delay: 400ms, 1300ms;
+    animation-duration: var(--nf-duration-deliberate), 4.8s;
+  }
+  @keyframes nf-slate-obj-in {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 14px, 0) scale(0.86);
+    }
+  }
+  @keyframes nf-slate-bob {
+    from {
+      transform: translate3d(0, 2px, 0);
+    }
+    to {
+      transform: translate3d(0, -6px, 0);
+    }
+  }
+  /* The artwork for the ground, as the mark does. */
+  .nf-slate-top__obj > img.nf-slate-top__art--on-navy {
+    display: none;
+  }
+  :root[data-theme="light"] .nf-slate-top__obj > img.nf-slate-top__art--on-navy {
+    display: block;
+  }
+  :root[data-theme="light"] .nf-slate-top__obj > img.nf-slate-top__art--on-paper {
+    display: none;
   }
 
   .nf-slate-top__inner {
@@ -254,7 +397,8 @@
     .nf-auth:has(.nf-auth__body :is(input:not([type="checkbox"]), select, textarea):focus) .nf-slate-top__brand {
       margin-top: var(--nf-space-2xs);
     }
-    .nf-auth:has(.nf-auth__body :is(input:not([type="checkbox"]), select, textarea):focus) .nf-slate-top__line {
+    .nf-auth:has(.nf-auth__body :is(input:not([type="checkbox"]), select, textarea):focus) .nf-slate-top__line,
+    .nf-auth:has(.nf-auth__body :is(input:not([type="checkbox"]), select, textarea):focus) .nf-slate-top__depth {
       opacity: 0;
     }
     .nf-auth:has(.nf-auth__body :is(input:not([type="checkbox"]), select, textarea):focus) .nf-auth__title {
@@ -393,6 +537,78 @@
     color: var(--nf-state-error);
   }
 
+  /*
+   * THE FIELDS, ALIVE (30 September). Focus lifts a soft halo in around the
+   * card (the ink edge stays the indicator; the halo is the light around it)
+   * and the label takes the ink; while somebody types, the halo breathes;
+   * an address that is shaped like one gets a small tick that pops in at the
+   * right of the card. Opacity and transform only; reduced motion keeps the
+   * halo and drops the breathing and the pop.
+   */
+  .nf-auth-field__box {
+    position: relative;
+  }
+  .nf-auth-field__halo {
+    position: absolute;
+    inset: -4px;
+    border-radius: calc(var(--nf-radius-control) + 4px);
+    box-shadow:
+      0 0 0 3px var(--nf-slate-halo),
+      0 10px 28px -12px var(--nf-slate-halo);
+    pointer-events: none;
+    opacity: 0;
+    transform: scale(0.97);
+    transition:
+      opacity var(--nf-duration-base) var(--nf-ease-standard),
+      transform var(--nf-duration-base) var(--nf-ease-entrance);
+  }
+  .nf-auth-field__box:focus-within .nf-auth-field__halo {
+    opacity: 1;
+    transform: none;
+  }
+  .nf-auth-field__box:focus-within:has(input:not(:placeholder-shown)) .nf-auth-field__halo {
+    animation: nf-slate-breathe 1.6s var(--nf-ease-standard) infinite alternate;
+  }
+  @keyframes nf-slate-breathe {
+    to {
+      opacity: 0.55;
+    }
+  }
+  .nf-auth-field .nf-label {
+    transition: color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-auth-field:focus-within .nf-label {
+    color: var(--nf-slate-ink);
+  }
+  .nf-auth-field__box:has(input[type="email"]:not(:placeholder-shown):valid:not([aria-invalid="true"]))::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: var(--nf-space-md);
+    width: 1.125rem;
+    height: 1.125rem;
+    margin-top: -0.5625rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-state-success);
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 1a11 11 0 1 0 0 22 11 11 0 0 0 0-22Zm5.2 8.1-6 6.4a1 1 0 0 1-1.5 0l-3-3.1a1 1 0 1 1 1.5-1.4l2.2 2.3 5.3-5.6a1 1 0 1 1 1.5 1.4Z'/%3E%3C/svg%3E") center / contain no-repeat;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 1a11 11 0 1 0 0 22 11 11 0 0 0 0-22Zm5.2 8.1-6 6.4a1 1 0 0 1-1.5 0l-3-3.1a1 1 0 1 1 1.5-1.4l2.2 2.3 5.3-5.6a1 1 0 1 1 1.5 1.4Z'/%3E%3C/svg%3E") center / contain no-repeat;
+    pointer-events: none;
+    animation: nf-slate-pop 320ms var(--nf-ease-spring) both;
+  }
+  .nf-auth-field__box:has(input[type="email"]:not(:placeholder-shown):valid:not([aria-invalid="true"])) input {
+    padding-right: 2.75rem;
+  }
+  @keyframes nf-slate-pop {
+    from {
+      opacity: 0;
+      transform: scale(0.3);
+    }
+  }
+  .nf-auth .nf-field,
+  .nf-slate-input {
+    caret-color: var(--nf-slate-ink);
+  }
+
   /* First name and surname side by side, stacked below 360px. */
   .nf-slate-pair {
     display: grid;
@@ -420,53 +636,31 @@
 
   /* ============================================================ THE PILL */
   /*
-   * The full-width pill: the brand gradient with white words in light, white
-   * with navy words in dark. It is the shared `Button` (spinner, haptics,
-   * press) wearing this; the shared lit bar's edges, pool and text glow are
-   * put down here, because the reference's pill is one flat object.
+   * THE DOORS TAKE THE PLATFORM'S PRIMARY (the button system, reference 55,
+   * 30 September 2026): one primary everywhere. This rule keeps only the
+   * door's geometry, the full-width bar on the large rung (56px, the soft
+   * 14px corner of the founder's rectangle ruling); the
+   * material, hover, press, focus and disabled states are `.nf-btn--primary`
+   * in buttons.css, read from the `--nf-act-*` tokens, so sign in, the
+   * welcome and the passcode screens draw the same blue pill as the app.
    */
   .nf-slate .nf-slate-pill.nf-btn {
-    --nf-btn-h: 3.25rem;
-    height: 3.25rem;
-    min-height: 3.25rem;
+    --nf-btn-h: 3.5rem;
+    height: 3.5rem;
+    min-height: 3.5rem;
     padding-block: 0;
     gap: var(--nf-space-xs);
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-act-radius-lg);
     font-size: 1rem;
     font-weight: 600;
   }
-  .nf-slate .nf-slate-pill.nf-btn--primary {
-    border: 0;
-    background: var(--nf-slate-pill);
-    color: var(--nf-slate-pill-ink);
-    text-shadow: none;
-    box-shadow: var(--nf-slate-pill-shadow);
-  }
-  /* The platform's edge runner (`edge-m.css`) laps every button; on a pill
-     its straight edges begin at half the height, not at the control corner. */
+  /* The platform's edge runner (`edge-m.css`) laps every button; its
+     corner follows the bar's own. */
   .nf-slate .nf-slate-pill.nf-btn::before {
-    --nf-edge-r: calc(var(--nf-btn-h) / 2 + 2px);
+    --nf-edge-r: calc(var(--nf-act-radius-lg) + 2px);
   }
-  .nf-slate .nf-slate-pill.nf-btn--primary::after {
-    display: none;
-  }
-  @media (hover: hover) {
-    .nf-slate .nf-slate-pill.nf-btn--primary:hover:not(:disabled) {
-      box-shadow: var(--nf-slate-pill-shadow), 0 0 0 3px var(--nf-glow-2);
-    }
-  }
-  /* The second way on: an outline pill in the page's ink. */
-  .nf-slate .nf-slate-pill--quiet.nf-btn {
-    border: 1.5px solid var(--nf-slate-hair);
-    background: var(--nf-slate-card);
-    color: var(--nf-content-primary);
-    box-shadow: var(--nf-slate-card-shadow);
-  }
-  @media (hover: hover) {
-    .nf-slate .nf-slate-pill--quiet.nf-btn:hover {
-      border-color: var(--nf-slate-ink);
-    }
-  }
+  /* The second way on is the platform's secondary, the outlined blue pill
+     (`.nf-btn--glass`, buttons.css); nothing here repaints it. */
   .nf-slate .nf-auth__actions {
     margin-top: var(--nf-space-xs);
   }
@@ -734,7 +928,7 @@
    * never the only signal.
    */
   .nf-auth__notice-link {
-    font-weight: 650;
+    font-weight: 600;
     color: inherit;
     text-decoration: underline;
     text-underline-offset: 0.2em;
@@ -750,6 +944,8 @@
 
   /* ========================================================= SMALL PRINT */
   .nf-auth__legal {
+    position: relative;
+    z-index: 1;
     width: 100%;
     max-width: calc(26rem + 2 * var(--nf-auth-gutter));
     margin: var(--nf-space-xl) auto 0;
@@ -789,7 +985,302 @@
     height: max(100%, 44px);
   }
 
+  /* ============================================================ THE CODE */
+  /*
+   * The confirmation code as a row of cells (`CodeInput`): one real input
+   * over the row with its own text made transparent, so paste, autofill and
+   * the phone's code suggestion work as ever, and the cells draw its value.
+   * Each digit pops in; the next empty cell carries a soft caret; a refused
+   * code shakes the row once; a surplus lights every cell as an error.
+   */
+  .nf-code__box {
+    position: relative;
+  }
+  .nf-code__cells {
+    display: flex;
+    gap: clamp(0.375rem, 2vw, 0.625rem);
+  }
+  .nf-code__cell {
+    position: relative;
+    flex: 1 1 0;
+    min-width: 0;
+    display: grid;
+    place-items: center;
+    height: 3.5rem;
+    border: 1.5px solid var(--nf-slate-card-edge);
+    border-radius: var(--nf-radius-control);
+    background: var(--nf-slate-card);
+    box-shadow: var(--nf-slate-card-shadow);
+    font-family: var(--nf-font-display);
+    font-size: 1.5rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-content-primary);
+    transition: border-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-code__cell[data-filled] {
+    border-color: color-mix(in oklab, var(--nf-slate-ink) 55%, transparent);
+  }
+  .nf-code__cell[data-next] {
+    border-color: var(--nf-slate-ink);
+  }
+  /* The caret in the waiting cell, blinking. */
+  .nf-code__cell[data-next]::after {
+    content: "";
+    width: 2px;
+    height: 1.5rem;
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-slate-ink);
+    animation: nf-code-caret 1s steps(1, end) infinite;
+  }
+  @keyframes nf-code-caret {
+    50% {
+      opacity: 0;
+    }
+  }
+  .nf-code[data-error] .nf-code__cell,
+  .nf-code__cell[data-over] {
+    border-color: var(--nf-state-error);
+  }
+  .nf-code__digit {
+    display: block;
+    animation: nf-code-pop 260ms var(--nf-ease-spring) both;
+  }
+  @keyframes nf-code-pop {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 0.35em, 0) scale(0.6);
+    }
+  }
+  .nf-code__box[data-shake="a"] .nf-code__cells {
+    animation: nf-code-shake-a 420ms var(--nf-ease-standard);
+  }
+  .nf-code__box[data-shake="b"] .nf-code__cells {
+    animation: nf-code-shake-b 420ms var(--nf-ease-standard);
+  }
+  @keyframes nf-code-shake-a {
+    15%,
+    55% {
+      transform: translate3d(-8px, 0, 0);
+    }
+    35%,
+    75% {
+      transform: translate3d(8px, 0, 0);
+    }
+  }
+  @keyframes nf-code-shake-b {
+    15%,
+    55% {
+      transform: translate3d(-8px, 0, 0);
+    }
+    35%,
+    75% {
+      transform: translate3d(8px, 0, 0);
+    }
+  }
+  /* The real input: over the whole row, taking every tap, drawing nothing. */
+  .nf-auth .nf-code__input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: transparent;
+    caret-color: transparent;
+    font-size: 1rem;
+    letter-spacing: 0;
+    outline: none;
+    -webkit-text-fill-color: transparent;
+    /* The row draws the focus (below); the platform ring would outline the
+       invisible input's box. */
+    --nf-focus-ring-width: 0px;
+  }
+  .nf-auth .nf-code__input::placeholder {
+    color: transparent;
+  }
+  .nf-auth .nf-code__input::selection {
+    background: transparent;
+  }
+  /* The keyboard focus is still shown: the row takes the halo. */
+  .nf-code__box:has(.nf-code__input:focus-visible) .nf-code__cells {
+    border-radius: var(--nf-radius-control);
+    box-shadow: 0 0 0 3px var(--nf-slate-halo);
+  }
+
+  /* The help around the code (A4). */
+  .nf-verify__change {
+    margin-top: var(--nf-space-xs);
+    font-size: 0.875rem;
+    color: var(--nf-content-secondary);
+  }
+  .nf-verify__resend {
+    display: grid;
+    justify-items: center;
+    gap: var(--nf-space-2xs);
+    margin-top: var(--nf-space-md);
+    text-align: center;
+  }
+  .nf-verify__resend .nf-btn {
+    font-variant-numeric: tabular-nums;
+  }
+  .nf-verify__status,
+  .nf-verify__hint {
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--nf-content-secondary);
+  }
+  .nf-verify__help {
+    display: grid;
+    justify-items: center;
+    gap: var(--nf-space-xs);
+    margin-top: var(--nf-space-sm);
+    text-align: center;
+  }
+  .nf-verify__mail {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    padding-inline: var(--nf-space-md);
+    border: 1.5px solid var(--nf-slate-hair);
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-slate-card);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--nf-content-primary);
+    text-decoration: none;
+  }
+  @media (hover: hover) {
+    .nf-verify__mail:hover {
+      border-color: var(--nf-slate-ink);
+    }
+  }
+  .nf-verify__same {
+    margin-top: var(--nf-space-lg);
+    text-align: center;
+    font-size: 0.8125rem;
+    color: var(--nf-content-muted);
+  }
+
+  /* ========================================================= THE ARRIVAL */
+  /*
+   * The moment after the code is accepted (A17, `ArrivalMoment`): the house
+   * rises on its own light, a ring draws round it, the tick draws inside,
+   * and "You're in" arrives under it. Everything has landed by 780ms, so the
+   * finished picture rests for about a third of a second before
+   * `VerifyCodeForm` goes through the door at 1100ms. It stands in the
+   * middle of the space the form left, not at its top.
+   */
+  .nf-arrival {
+    display: grid;
+    align-content: center;
+    justify-items: center;
+    gap: var(--nf-space-xs);
+    min-height: min(26rem, 52svh);
+    padding-block: var(--nf-space-lg);
+    text-align: center;
+  }
+  .nf-arrival__art {
+    position: relative;
+    width: 10rem;
+    height: 10rem;
+    margin-bottom: var(--nf-space-sm);
+  }
+  .nf-arrival__glow {
+    position: absolute;
+    inset: -20%;
+    border-radius: var(--nf-radius-circle);
+    background: radial-gradient(circle, var(--nf-slate-light) 0%, transparent 70%);
+    animation: nf-arrival-glow 900ms var(--nf-ease-entrance) both;
+  }
+  .nf-arrival__house {
+    position: absolute;
+    inset: 8%;
+    animation: nf-arrival-rise 560ms var(--nf-ease-spring) both;
+  }
+  .nf-arrival__house > img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+  .nf-arrival__tick {
+    position: absolute;
+    right: -0.25rem;
+    bottom: 0.25rem;
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-slate-page);
+    animation: nf-arrival-pop 320ms var(--nf-ease-spring) 180ms both;
+  }
+  .nf-arrival__ring,
+  .nf-arrival__check {
+    fill: none;
+    stroke: var(--nf-state-success);
+    stroke-width: 3.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+  }
+  .nf-arrival__ring {
+    animation: nf-arrival-draw 360ms var(--nf-ease-entrance) 220ms both;
+  }
+  .nf-arrival__check {
+    animation: nf-arrival-draw 240ms var(--nf-ease-entrance) 500ms both;
+  }
+  .nf-arrival__title {
+    animation: nf-slate-rise var(--nf-duration-entrance) var(--nf-ease-entrance) 180ms both;
+  }
+  .nf-arrival__body {
+    animation: nf-slate-rise var(--nf-duration-entrance) var(--nf-ease-entrance) 260ms both;
+  }
+  @keyframes nf-arrival-glow {
+    from {
+      opacity: 0;
+      transform: scale(0.6);
+    }
+  }
+  @keyframes nf-arrival-rise {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 18px, 0) scale(0.8);
+    }
+  }
+  @keyframes nf-arrival-pop {
+    from {
+      opacity: 0;
+      transform: scale(0.4);
+    }
+  }
+  @keyframes nf-arrival-draw {
+    from {
+      stroke-dashoffset: 1;
+    }
+  }
+
   /* ============================================================== MOTION */
+  /* Calm and Off: nothing drifts or floats; the objects simply appear. */
+  :root:is([data-motion="calm"], [data-motion="off"]) :is(.nf-slate-top__light, .nf-auth-field__halo),
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-auth::after {
+    animation: none;
+  }
+  /* Calm: the code's digits and the arrival fade in on the short ladder
+     rather than pop, draw and spring; a refused code does not shake (its
+     sentence says so). Off lands them at once (motion-pref.css). */
+  :root[data-motion="calm"] :is(.nf-code__digit, .nf-arrival__glow, .nf-arrival__house, .nf-arrival__tick, .nf-arrival__title, .nf-arrival__body) {
+    animation: nf-calm-fade var(--nf-duration-base) var(--nf-ease-standard) both;
+  }
+  :root[data-motion="calm"] :is(.nf-arrival__ring, .nf-arrival__check),
+  :root[data-motion="calm"] .nf-code__box[data-shake] .nf-code__cells {
+    animation: none;
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-slate-top__obj {
+    animation: nf-calm-fade var(--nf-duration-base) var(--nf-ease-standard) both;
+  }
+
   /* The block drops in from above the screen. */
   @keyframes nf-slate-drop {
     from {
@@ -803,12 +1294,12 @@
      by Chromium and Firefox; Safari draws the resting curve, still dropped in. */
   @keyframes nf-slate-morph {
     from {
-      d: path("M0 0H390V150C354 196 262 214 150 214C88 214 38 208 0 200Z");
+      d: path("M0 0H390V178C340 214 270 228 195 228C120 228 50 214 0 178Z");
     }
   }
   @keyframes nf-slate-morph-edge {
     from {
-      d: path("M390 150C354 196 262 214 150 214C88 214 38 208 0 200");
+      d: path("M390 178C340 214 270 228 195 228C120 228 50 214 0 178");
     }
   }
   /* The column's pieces rise in, one after another, quickly. A nested
@@ -858,8 +1349,22 @@
     .nf-slate-top,
     .nf-slate-top__shape,
     .nf-slate-top__edge,
-    .nf-slate-stagger > * {
-      animation: none;
+    .nf-slate-stagger > *,
+    .nf-slate-top__light,
+    .nf-slate-top__obj,
+    .nf-auth::after,
+    .nf-auth-field__box .nf-auth-field__halo,
+    .nf-auth-field__box::after,
+    .nf-code__digit,
+    .nf-code__cells,
+    .nf-code__cell[data-next]::after,
+    .nf-arrival *,
+    .nf-arrival__title,
+    .nf-arrival__body {
+      animation: none !important;
+    }
+    .nf-auth-field__halo {
+      transition: none;
     }
     .nf-slate-top,
     .nf-slate-top__brand,
@@ -915,5 +1420,241 @@
       justify-content: center;
       padding-bottom: var(--nf-space-3xl);
     }
+  }
+
+  /* ================================================ THE 3D GLASS DOOR */
+  /*
+   * THE FOUNDER'S 3D GLASS LANGUAGE (30 September; the source is
+   * apps/web/assets-src/3d-2026-09-30/passcode-welcome-back-3d.png). Sign in,
+   * sign up, the code, the reset and the passcode lock are one family:
+   *
+   *   - a BRIGHT BLUE BOWL at the top in BOTH themes (this supersedes the
+   *     29 September inversion to a pale block at night), with the lockup in
+   *     white and a thread of light along the curve;
+   *   - ONE OBJECT IN A GLOWING GLASS RING across the bottom of the bowl
+   *     (`.nf-slate-focal`): the member's face on the passcode, the Vallo
+   *     mark or a 3D icon on the doors;
+   *   - GLASS FIELDS: a soft inner light from the top, a blue rim, a depth
+   *     shadow under them;
+   *   - THE PRIMARY AS A GLOSSY BLUE PILL: a lit top edge, a deeper foot and
+   *     a blue drop shadow. White type on the electric blue measures about
+   *     5:1 or better (`--nf-brand-primary`: #0069FE at night, #005FE8 by day).
+   *
+   * Light keeps a warm paper page with white glass; dark keeps the night
+   * page with blue-tinted glass. Every value is a role below, so the pieces
+   * above (fields, code cells, provider buttons, the quiet pill) change
+   * through the roles and not through new selectors.
+   */
+  .nf-slate {
+    /* White type stays at or near 5:1 across the block: the lightest stop
+       is the electric blue with a touch of white, and the bloom is soft. */
+    --nf-slate-top-a: color-mix(in oklab, var(--nf-brand-primary) 90%, var(--nf-content-on-brand));
+    --nf-slate-top-b: var(--nf-brand-primary);
+    --nf-slate-top-c: color-mix(in oklab, var(--nf-brand-primary) 62%, var(--nf-surface-artwork));
+    --nf-slate-top-ink: var(--nf-content-on-brand);
+    --nf-slate-top-ink-soft: color-mix(in oklab, var(--nf-content-on-brand) 84%, transparent);
+    --nf-slate-top-chip: color-mix(in oklab, var(--nf-content-on-brand) 16%, transparent);
+    --nf-slate-top-chip-edge: color-mix(in oklab, var(--nf-content-on-brand) 34%, transparent);
+    --nf-slate-edge: color-mix(in oklab, var(--nf-brand-primary) 35%, var(--nf-content-on-brand));
+    --nf-slate-light: color-mix(in oklab, var(--nf-content-on-brand) 16%, transparent);
+    /* The glass: fill, rim and depth, the shared door glass
+       (`--nf-door-glass-*`, app/css/brand-glass.css). */
+    --nf-slate-card: var(--nf-door-glass-fill);
+    --nf-slate-card-edge: var(--nf-door-glass-rim);
+    --nf-slate-card-shadow: var(--nf-door-glass-depth);
+    --nf-slate-pill:
+      linear-gradient(
+        180deg,
+        color-mix(in oklab, var(--nf-content-on-brand) 20%, transparent) 0%,
+        color-mix(in oklab, var(--nf-content-on-brand) 6%, transparent) 46%,
+        transparent 50%
+      ),
+      linear-gradient(180deg, var(--nf-brand-primary) 0%, var(--nf-brand-primary) 55%, var(--nf-brand-primary-strong) 100%);
+    --nf-slate-pill-ink: var(--nf-content-on-brand);
+    --nf-slate-pill-shadow:
+      inset 0 1px 0 color-mix(in oklab, var(--nf-content-on-brand) 55%, transparent),
+      inset 0 -3px 8px -2px color-mix(in oklab, color-mix(in oklab, var(--nf-brand-primary) 62%, var(--nf-surface-artwork)) 70%, transparent),
+      0 0 0 1px color-mix(in oklab, var(--nf-brand-quiet) 55%, transparent),
+      0 14px 28px -12px color-mix(in oklab, var(--nf-brand-primary) 75%, transparent);
+    --nf-slate-ring-glow:
+      0 0 0 3px color-mix(in oklab, var(--nf-brand-primary) 45%, transparent),
+      0 0 26px 2px color-mix(in oklab, var(--nf-brand-primary) 70%, transparent),
+      0 14px 28px -10px color-mix(in oklab, var(--nf-surface-artwork) 80%, transparent);
+    --nf-slate-ring-fill:
+      radial-gradient(90% 90% at 35% 25%, color-mix(in oklab, var(--nf-content-on-brand) 34%, transparent) 0%, transparent 60%),
+      linear-gradient(160deg, var(--nf-brand-primary), color-mix(in oklab, var(--nf-brand-primary) 62%, var(--nf-surface-artwork)));
+    --nf-slate-focal-size: 5.75rem;
+  }
+  /* The same bowl and pill in daylight (this rule restates the roles the
+     29 September light rule above set, at its specificity). */
+  :root[data-theme="light"] .nf-slate {
+    --nf-slate-top-a: color-mix(in oklab, var(--nf-brand-primary) 90%, var(--nf-content-on-brand));
+    --nf-slate-top-b: var(--nf-brand-primary);
+    --nf-slate-top-c: color-mix(in oklab, var(--nf-brand-primary) 62%, var(--nf-surface-artwork));
+    --nf-slate-edge: color-mix(in oklab, var(--nf-brand-primary) 35%, var(--nf-content-on-brand));
+    --nf-slate-light: color-mix(in oklab, var(--nf-content-on-brand) 16%, transparent);
+    --nf-slate-pill:
+      linear-gradient(
+        180deg,
+        color-mix(in oklab, var(--nf-content-on-brand) 20%, transparent) 0%,
+        color-mix(in oklab, var(--nf-content-on-brand) 6%, transparent) 46%,
+        transparent 50%
+      ),
+      linear-gradient(180deg, var(--nf-brand-primary) 0%, var(--nf-brand-primary) 55%, var(--nf-brand-primary-strong) 100%);
+    --nf-slate-page: var(--nf-surface-canvas);
+    --nf-slate-card: var(--nf-door-glass-fill);
+    --nf-slate-card-edge: var(--nf-door-glass-rim);
+    --nf-slate-card-shadow: var(--nf-door-glass-depth);
+    --nf-slate-pill-shadow:
+      inset 0 1px 0 color-mix(in oklab, var(--nf-content-on-brand) 55%, transparent),
+      inset 0 -3px 8px -2px color-mix(in oklab, color-mix(in oklab, var(--nf-brand-primary) 62%, var(--nf-surface-artwork)) 60%, transparent),
+      0 14px 26px -12px color-mix(in oklab, var(--nf-brand-primary) 60%, transparent);
+    --nf-slate-top-ink: var(--nf-content-on-brand);
+    --nf-slate-top-ink-soft: color-mix(in oklab, var(--nf-content-on-brand) 86%, transparent);
+    --nf-slate-top-chip: color-mix(in oklab, var(--nf-content-on-brand) 16%, transparent);
+    --nf-slate-top-chip-edge: color-mix(in oklab, var(--nf-content-on-brand) 34%, transparent);
+    --nf-slate-ring-glow:
+      0 0 0 3px color-mix(in oklab, var(--nf-brand-primary) 30%, transparent),
+      0 0 22px 2px color-mix(in oklab, var(--nf-brand-primary) 45%, transparent),
+      0 12px 24px -10px color-mix(in oklab, color-mix(in oklab, var(--nf-brand-primary) 62%, var(--nf-surface-artwork)) 55%, transparent);
+  }
+  /* The block is blue in both themes, so it always carries the night mark. */
+  .nf-slate-top__mark--on-navy {
+    display: block;
+  }
+  .nf-slate-top__mark--on-paper {
+    display: none;
+  }
+  /* A brighter thread of light along the bowl. */
+  .nf-slate-top__edge {
+    stroke-width: 2px;
+    opacity: 0.9;
+    filter: drop-shadow(0 0 8px color-mix(in oklab, var(--nf-brand-primary) 80%, transparent));
+  }
+  /* The block's own light: a soft white bloom under the lockup. */
+  .nf-slate-top__light--a {
+    top: -40%;
+    right: auto;
+    left: 18%;
+    width: 80%;
+  }
+
+  /* ---------------------------------------------- the focal glass ring */
+  .nf-slate-focal {
+    position: absolute;
+    z-index: 2;
+    left: 50%;
+    bottom: 0;
+    width: var(--nf-slate-focal-size);
+    height: var(--nf-slate-focal-size);
+    transform: translate(-50%, 50%);
+    pointer-events: none;
+    transition:
+      opacity var(--nf-duration-base) var(--nf-ease-standard),
+      transform var(--nf-duration-slow) var(--nf-ease-standard);
+    animation: nf-slate-focal-in var(--nf-duration-deliberate) var(--nf-ease-spring) 180ms both;
+  }
+  .nf-slate-focal__ring {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border-radius: var(--nf-radius-circle);
+    border: 3px solid color-mix(in oklab, var(--nf-content-on-brand) 88%, var(--nf-brand-primary));
+    background: var(--nf-slate-ring-fill);
+    box-shadow: var(--nf-slate-ring-glow);
+  }
+  /* A lit rim on the glass: a highlight across the top of the ring. */
+  .nf-slate-focal__ring::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(180deg, color-mix(in oklab, var(--nf-content-on-brand) 26%, transparent), transparent 42%);
+    pointer-events: none;
+  }
+  .nf-slate-focal__mark {
+    width: 56%;
+    height: auto;
+    filter: drop-shadow(0 4px 8px color-mix(in oklab, var(--nf-surface-artwork) 55%, transparent));
+  }
+  .nf-slate-focal__icon {
+    width: 76%;
+    height: 76%;
+    object-fit: contain;
+    filter: drop-shadow(0 6px 10px color-mix(in oklab, var(--nf-surface-artwork) 45%, transparent));
+  }
+  @keyframes nf-slate-focal-in {
+    from {
+      opacity: 0;
+      transform: translate(-50%, 50%) scale(0.7);
+    }
+  }
+  /* The column starts under the ring, and its head is centred on it. */
+  .nf-slate:has(.nf-slate-top--focal) .nf-auth__body {
+    padding-top: calc(var(--nf-slate-focal-size) / 2 + var(--nf-space-md));
+  }
+  .nf-slate:has(.nf-slate-top--focal) .nf-auth__screen > :is(.nf-auth__title, .nf-auth__sub),
+  .nf-slate:has(.nf-slate-top--focal) .nf-auth__screen > * > :is(.nf-auth__title, .nf-auth__sub) {
+    text-align: center;
+  }
+  /* The keyboard: the short block has no room for the ring, so it steps
+     away and the column moves up with the block. */
+  @media (pointer: coarse) {
+    .nf-auth:has(.nf-auth__body :is(input:not([type="checkbox"]), select, textarea):focus) .nf-slate-focal {
+      opacity: 0;
+      transform: translate(-50%, 20%) scale(0.6);
+    }
+    .nf-auth:has(.nf-auth__body :is(input:not([type="checkbox"]), select, textarea):focus) .nf-auth__body {
+      padding-top: var(--nf-space-xs);
+    }
+  }
+  @media (max-height: 640px) {
+    .nf-slate {
+      --nf-slate-focal-size: 4.5rem;
+    }
+  }
+
+  /* ----------------------------------------- the code: glass rings */
+  .nf-code__cells {
+    justify-content: center;
+  }
+  .nf-code__cell {
+    flex: 0 1 3.25rem;
+    height: auto;
+    aspect-ratio: 1;
+    border-radius: var(--nf-radius-circle);
+    border-width: 2px;
+    font-size: 1.375rem;
+  }
+  .nf-code__cell[data-filled] {
+    border-color: color-mix(in oklab, var(--nf-brand-primary) 75%, transparent);
+    box-shadow:
+      var(--nf-slate-card-shadow),
+      0 0 14px -2px color-mix(in oklab, var(--nf-brand-primary) 55%, transparent);
+  }
+  .nf-code__cell[data-next] {
+    border-color: var(--nf-slate-edge);
+    box-shadow:
+      var(--nf-slate-card-shadow),
+      0 0 0 3px color-mix(in oklab, var(--nf-brand-primary) 30%, transparent);
+  }
+  :root[data-theme="light"] .nf-code__cell[data-next] {
+    border-color: var(--nf-brand-primary);
+  }
+  .nf-code__box:has(.nf-code__input:focus-visible) .nf-code__cells {
+    border-radius: var(--nf-radius-pill);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-slate-focal {
+      animation: none;
+      transition: none;
+    }
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-slate-focal {
+    animation: none;
   }
 }

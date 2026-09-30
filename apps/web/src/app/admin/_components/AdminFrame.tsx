@@ -74,7 +74,7 @@ export function AdminFrame({
         </div>
       </aside>
 
-      <div className="nf-admin-main">
+      <div className="nf-admin-main nf-soft-top">
         <header className="nf-admin-bar nf-safe-top">
           <AdminTabs
             counts={badges}
@@ -91,7 +91,7 @@ export function AdminFrame({
           <ConsoleClock />
           <Link
             href="/notifications"
-            className="nf-admin-icon-btn nf-admin-bell"
+            className="nf-admin-icon-btn nf-admin-bell nf-icon-btn nf-icon-btn--round"
             aria-label={
               unread > 0
                 ? `${bellLabel}, ${unread} unread`

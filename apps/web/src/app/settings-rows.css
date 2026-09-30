@@ -52,12 +52,12 @@
    */
   .nf-sgroup__label {
     display: block;
-    /* The clean spec's section label (section 2, plan item 16): 11/14, 600,
+    /* The clean spec's section label (section 2, plan item 16): 12/16 since the pixel polish, 600,
        caps, tracked 0.06em, muted, 8px above its card. */
     padding-block: var(--nf-space-0) 0.5rem;
     padding-inline: var(--nf-space-2xs);
-    font-size: 0.6875rem;
-    line-height: 0.875rem;
+    font-size: var(--nf-text-label);
+    line-height: var(--nf-leading-label);
     font-weight: 600;
     text-transform: uppercase;
     /* The 0.04em it carried was there to hold 12px uppercase apart. At a
@@ -350,7 +350,7 @@
   .nf-hub-head__title {
     font-family: var(--nf-font-display);
     font-size: var(--nf-text-h1);
-    font-weight: 800;
+    font-weight: 600;
     letter-spacing: -0.03em;
     line-height: 1.1;
     color: var(--nf-content-primary);
@@ -476,7 +476,7 @@
   }
   .nf-hub .nf-srow__label {
     font-size: var(--nf-text-body-sm);
-    font-weight: 650;
+    font-weight: 600;
     letter-spacing: -0.005em;
   }
   /*
@@ -561,8 +561,13 @@
    * same family as everything else on the screen, one step down in presence
    * rather than one step towards grey.
    */
+  /* SUPERSEDED FOR THE ROWS (plan item 16, 30 September 2026). Inside the
+     white group cards in light, a line of brand-tinted slate under every
+     label read as a stray blue line through the card. The clean spec's row
+     sub-line (section 1.1) is the neutral `--nf-content-subtle` in both
+     themes, as on every other grouped list. */
   .nf-hub .nf-srow__sub {
-    color: color-mix(in oklab, var(--nf-brand-secondary) 30%, var(--nf-content-secondary));
+    color: var(--nf-content-subtle);
   }
   .nf-hub .nf-srow__value {
     color: var(--nf-content-primary);

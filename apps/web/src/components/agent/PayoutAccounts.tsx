@@ -101,6 +101,7 @@ export function PayoutAccounts({
           if (!open) setAcknowledged(addState);
         }}
         variant={addedWords.variant}
+        object={addedWords.object}
         title={addedWords.title}
         body={addedWords.body}
         primary={{ label: success.continue }}

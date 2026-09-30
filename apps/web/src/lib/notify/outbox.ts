@@ -9,7 +9,15 @@ import {
   type SendFailureReason,
 } from "@/lib/email/client";
 import { siteUrl } from "@/lib/site";
-import { contactForUser } from "@/lib/email/recipients";
+import { contactForUser, type EmailChannel } from "@/lib/email/recipients";
+import { mailLanguageFor } from "@/lib/email/mail-language";
+import { signUnsubscribe, unsubscribeKey } from "@/lib/email/unsubscribe-token";
+
+/** A12: the signed one-click token for this person and channel, or null without a key. */
+function unsubscribeTokenFor(userId: string, channel: EmailChannel): string | null {
+  const key = unsubscribeKey();
+  return key ? signUnsubscribe(key, userId, channel, Math.floor(Date.now() / 1000)) : null;
+}
 import type { Database } from "@/lib/supabase/database.types";
 import {
   templateFor,
@@ -556,11 +564,14 @@ async function deliverOne(
     return "dropped";
   }
 
+  /* A11: the reader's language, read only for a template that writes it. */
+  const language = template.localized ? await mailLanguageFor(admin, row.user_id) : undefined;
+
   let message: { subject: string; html: string; text: string } | null;
   try {
     message = template.build(row.payload, {
       recipientId: row.user_id,
-      recipient: { name: contact.name },
+      recipient: language ? { name: contact.name, language } : { name: contact.name },
       lookups,
     });
   } catch (error) {
@@ -580,7 +591,7 @@ async function deliverOne(
     /* OPS-14: mail a /settings switch can turn off says where the switch is,
        in the header mail clients read. */
     result = template.channel
-      ? await send(contact.email, message, listUnsubscribeHeaders(siteUrl(), template.channel))
+      ? await send(contact.email, message, listUnsubscribeHeaders(siteUrl(), template.channel, unsubscribeTokenFor(row.user_id, template.channel)))
       : await send(contact.email, message);
   } catch {
     /* The client is documented never to throw. If it ever does, that is a

@@ -118,10 +118,21 @@ import { allLocaleCompleteness, localeCompleteness } from "./locale-completeness
  * English strings into `yo.ts` and this would stay green. A ratchet is only a
  * ratchet when it sits on the current value.
  */
+/*
+ * 30 SEPTEMBER 2026 (C11): BACK DOWN TO THE MEASUREMENT. The machine drafts
+ * in `locales/drafts/` (recorded in `review-status.ts`) fill nineteen
+ * namespaces in all three languages; a draft value identical to English was
+ * left out of the draft rather than declared, so it cannot pad a count. What
+ * the drafts do declare identically is inside inline objects: "Studio",
+ * "Price Check" (the product's name) and, in Igbo, "flat" as the loanword
+ * Igbo speakers use. Measured on this tree: ha 72, yo 70, ig 78, and 31
+ * English sentences in each (all 31 in the locale files themselves:
+ * `paymentsPage`, `threads`, `stayDetail`, `inspectionsPage` and the like).
+ */
 const KNOWN_INCOMPLETE = {
-  yo: { englishValued: 98, englishSentences: 57 },
-  ha: { englishValued: 100, englishSentences: 57 },
-  ig: { englishValued: 105, englishSentences: 57 },
+  yo: { englishValued: 70, englishSentences: 31 },
+  ha: { englishValued: 72, englishSentences: 31 },
+  ig: { englishValued: 78, englishSentences: 31 },
 } as const;
 
 describe("locale completeness", () => {

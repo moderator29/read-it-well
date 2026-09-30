@@ -157,6 +157,10 @@ export const RISK_ALERTS: readonly AlertView[] = [
     createdAt: ago(80),
     resolvedAt: null,
     resolvedByName: null,
+    /* C13: taken by a named person, so the card shows who has it. */
+    acknowledgementsAvailable: true,
+    acknowledgedAt: ago(62),
+    acknowledgedByName: PERSON.name,
   },
   {
     id: "00000000-0000-4000-8000-00000000c9b2",
@@ -169,6 +173,10 @@ export const RISK_ALERTS: readonly AlertView[] = [
     createdAt: ago(4 * 60),
     resolvedAt: null,
     resolvedByName: null,
+    /* C13: nobody has it yet, so the card offers "I have this". */
+    acknowledgementsAvailable: true,
+    acknowledgedAt: null,
+    acknowledgedByName: null,
   },
   {
     id: "00000000-0000-4000-8000-00000000c9b3",

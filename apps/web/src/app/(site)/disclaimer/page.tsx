@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
+import { publicPageMetadata } from "@/lib/i18n/public-metadata";
 import Link from "next/link";
 import { SiteHead } from "@/components/site/SiteHead";
 import { DISCLAIMER_SECTIONS as sections, DISCLAIMER_UPDATED } from "@/lib/legal/disclaimer";
 
-export const metadata: Metadata = {
-  title: "Disclaimer",
-  description:
-    "Anything arranged, discussed or paid outside Vallo is not Vallo's responsibility. Vallo never holds your money, charges no inspection fee, and is a marketplace rather than a party to your deal.",
-};
+/* A10: the title and description in the page's own language, with its
+   canonical and hreflang (lib/i18n/public-metadata.ts; words in publicMeta). */
+export async function generateMetadata(): Promise<Metadata> {
+  return publicPageMetadata("disclaimer");
+}
 
 /** The Disclaimer, public copy. The content lives in `lib/legal/disclaimer.tsx`. */
 export default function DisclaimerPage() {

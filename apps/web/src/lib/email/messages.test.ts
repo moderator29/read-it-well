@@ -154,9 +154,11 @@ describe("every message in the catalogue", () => {
      * somebody has put words in a picture.
      */
     const images = message.html.match(/<img\b[^>]*>/g) ?? [];
-    expect(images).toHaveLength(1);
     expect(images[0]).toContain(LOCKUP_PATH);
     expect(images[0]).toContain(`alt="${WORDMARK_ALT}"`);
+    // Beyond the lockup, only the decorative 3D mark, with no words (icons.test.ts).
+    for (const image of images.slice(1)) expect(image).toContain('alt=""');
+    expect(images.length).toBeLessThanOrEqual(2);
   });
 
   it.each(EVERY_MESSAGE)("$name closes with the sign-off and the legal line, in both renderings", ({ message }) => {

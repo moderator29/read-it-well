@@ -83,7 +83,7 @@ export function SignedOutHero({ unconfigured }: { unconfigured: boolean }) {
         <span className="nf-pf-cover__fade" aria-hidden="true" />
       </div>
 
-      <div className="nf-pf-id">
+      <div className="nf-pf-id nf-hero-band" data-theme="dark">
         <div className="nf-pf-avatar nf-pf-avatar--static">
           <span className="nf-pf-avatar__disc">
             <span aria-hidden="true">{monogram}</span>

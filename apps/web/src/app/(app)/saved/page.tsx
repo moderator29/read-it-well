@@ -15,6 +15,10 @@ import { SavedBoard, type SavedBoardItem } from "./SavedBoard";
 import { ShelfSync } from "./ShelfSync";
 import { resolveSession } from "@/lib/actions/session";
 import { shelfFromListing } from "@/lib/offline/shelf";
+import { comparable, compareTable } from "@/lib/saved/compare";
+import { SavedCompare } from "./SavedCompare";
+import { readSavedChanges } from "@/lib/saved/changes";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 export const metadata: Metadata = { title: "Saved" };
 
@@ -62,11 +66,46 @@ export default async function SavedPage() {
   ]);
   /* V-77: the phone's shelf is kept for one account at a time. */
   const owner = session.state === "signed-in" ? session.user.id : null;
+  /* B13: what moved on these saves lately (none until the migration lands). */
+  const changes =
+    session.state === "signed-in"
+      ? await readSavedChanges(
+          session.supabase as unknown as SupabaseClient,
+          entries.filter((e) => e.mode === "db").map((e) => e.listing.id),
+        )
+      : new Map();
 
   /* The copies are built here, from the same rows the cards draw, so the
      phone's copy cannot disagree with the card. */
   const shelf = shelfCopies(entries.map((entry) => entry.listing));
 
+  /* B3: the compare table for every saved property, most recent first; the
+     reader picks two or three of its columns (SavedCompare). */
+  const cc = t.catalogue.compare;
+  const compare = compareTable(
+    [...entries]
+      .sort((a, b) => b.savedAt - a.savedAt)
+      .map((entry) => entry.listing)
+      .filter(comparable),
+    locale,
+    {
+      moveIn: cc.moveIn,
+      rent: cc.rent,
+      beds: cc.beds,
+      baths: cc.baths,
+      size: cc.size,
+      parking: cc.parking,
+      type: cc.type,
+      power: cc.power,
+      availableFrom: cc.availableFrom,
+      from: cc.from,
+    },
+    t.moveIn,
+  );
+
+  /* The board opens on the newest save, so that card's photograph is the
+     page's largest paint and loads at once (integration QA O5). */
+  const newest = Math.max(-Infinity, ...entries.map((e) => e.savedAt), ...places.map((e) => e.savedAt));
   const items: SavedBoardItem[] = [
     ...entries.map<SavedBoardItem>((entry) => ({
       id: entry.listing.id,
@@ -78,7 +117,17 @@ export default async function SavedPage() {
          `saved_items` saw an empty heart beside the `StayCard` half's filled
          one, on the same screen. `entry.mode` says which half resolved it
          and both mean saved. (R2 finding 4.) */
-      card: <ListingCard listing={entry.listing} locale={locale} t={forListingCard(t)} saved />,
+      card: (
+        <ListingCard
+          listing={entry.listing}
+          locale={locale}
+          t={forListingCard(t)}
+          saved
+          eager={entry.savedAt === newest}
+        />
+      ),
+      changes: changes.get(entry.listing.id),
+      similarHref: `/search?q=${encodeURIComponent(entry.listing.area || entry.listing.city)}`,
     })),
     ...places.map<SavedBoardItem>((entry) => ({
       id: entry.row.entity_id,
@@ -95,6 +144,7 @@ export default async function SavedPage() {
           t={forStayCard(t)}
           saved
           canSavePlaces
+          eager={entry.savedAt === newest}
         />
       ),
     })),
@@ -126,7 +176,31 @@ export default async function SavedPage() {
       {/* V-77: the saved listings, copied to the phone for when there is no
           signal, and any figure that moved since it was first copied. */}
       {owner && <ShelfSync owner={owner} items={shelf} copy={t.platform.shelf} locale={locale} />}
-      <SavedBoard items={items} />
+      <SavedBoard
+        items={items}
+        comparable={compare.columns.length}
+        copy={{ shortlist: cc.shortlist, ready: cc.ready }}
+        changeCopy={t.catalogue.savedChanges}
+        compare={
+          <SavedCompare
+            table={compare}
+            copy={{
+              open: cc.open,
+              openLabel: cc.openLabel,
+              title: cc.title,
+              pick: cc.pick,
+              pickLimit: cc.pickLimit,
+              tooFew: cc.tooFew,
+              notStated: cc.notStated,
+              lowest: cc.lowest,
+              view: cc.view,
+              close: cc.close,
+              example: t.catalogue.card.example,
+              verified: t.common.verified,
+            }}
+          />
+        }
+      />
     </div>
   );
 }

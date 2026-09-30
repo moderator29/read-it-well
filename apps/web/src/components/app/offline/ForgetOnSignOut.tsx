@@ -6,6 +6,7 @@ import { clearShelf } from "@/lib/offline/shelf-store";
 import { clearOutbox, rememberedOutboxUser, sessionUserId } from "@/lib/offline/outbox";
 import { forgetWidget } from "@/lib/native/widget";
 import { clearAllInflight } from "@/lib/offline/inflight";
+import { clearRecentListings, clearRecentSearches } from "@/lib/search/memory";
 
 /**
  * THE WAY IN FORGETS WHAT THE LAST PERSON LEFT ON THE PHONE. V-35, V-77.
@@ -39,6 +40,12 @@ export function ForgetOnSignOut() {
       /* V-40: somebody signed out on this phone, so their queued taps and
          payment notes go. A guest who never signed in keeps their own saves. */
       if (hadUser) await clearOutbox();
+      /* B2: the recent searches and the places looked at are that person's
+         too, and Home and the search fields offer them back. */
+      if (hadUser) {
+        clearRecentSearches();
+        clearRecentListings();
+      }
       await forgetWidget();
       clearAllInflight();
     })();

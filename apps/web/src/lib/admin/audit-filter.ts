@@ -115,6 +115,22 @@ export function pickAuditEntityType(value: string | undefined): AuditEntityType 
   return hit ? hit.value : null;
 }
 
+/**
+ * WHO THE TRAIL SHOWS (C7). The desk opens on PEOPLE: rows a signed-in person
+ * wrote (`actor_id` set). On 30 September 8,432 of 8,487 rows were written by
+ * scheduled jobs, so a staff decision was one row in 150 on the mixed view.
+ * "Everything" brings the jobs, webhooks and system rows back; asking for the
+ * Scheduled job type, or searching an exact id, implies it.
+ */
+export type AuditWho = "people" | "all";
+
+export function pickAuditWho(value: string | undefined, entityType: string | null, exactId = false): AuditWho {
+  if (value === "all") return "all";
+  if (entityType === "cron_job" || entityType === "paystack_webhook") return "all";
+  if (exactId) return "all";
+  return "people";
+}
+
 /** The `.or()` expression for a free-text term, safe to hand to PostgREST. */
 export function auditTextExpression(term: string): string {
   const safe = orSafe(`%${term}%`);

@@ -85,7 +85,7 @@ export async function HostShell({
           deskName={t.desk.sidebar.hostDesk}
         />
       ) : null}
-      <div className="nf-host__col">
+      <div className={immersive ? "nf-host__col" : "nf-host__col nf-soft-top"}>
       <WorkspaceHeader
         back={chromeBack ? fallback : false}
         menu={nav ? <HostDrawer labels={labels} /> : undefined}

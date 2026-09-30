@@ -6,6 +6,7 @@ import type { ListingFacts } from "@/lib/listings/filter";
 import type { Anchor } from "@/lib/listings/commute";
 import { kindLabel } from "@/lib/listings/search-params";
 import { ICON } from "@/components/app/Screen";
+import { RecentSearches } from "./RecentSearches";
 import {
   MARKET_PARAM,
   shelfActiveCount,
@@ -146,6 +147,13 @@ export function ShelfBar({
           openOnMount={openFilters}
         />
       </div>
+      {/* B2: the phone's recent hunts, offered when the field is empty. */}
+      <RecentSearches
+        inputId="shelf-q"
+        path="/search"
+        copy={{ title: t.catalogue.recent.title, clear: t.catalogue.recent.clear, clearLabel: t.catalogue.recent.clearLabel }}
+        className="mx-auto max-w-3xl"
+      />
 
       <nav aria-label={copy.filters} className="nf-shelf-chips nf-scroll-x mt-sm">
         {chips.map((chip) => (

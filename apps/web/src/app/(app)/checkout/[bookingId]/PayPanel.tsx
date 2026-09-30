@@ -24,6 +24,7 @@ import { ActionBar } from "@/components/ui/ActionBar";
 import { Amount } from "@/components/ui/Amount";
 import { Panel } from "@/components/ui/Panel";
 import { IconPlate } from "@/components/ui/IconPlate";
+import { Icon3D } from "@/components/ui/Icon3D";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { CryptoPayOption } from "@/components/app/payments/crypto/CryptoPayOption";
@@ -138,11 +139,19 @@ function Option({
 }) {
   return (
     <Panel as="li" variant="card" className="isolate flex-row items-start gap-group">
-      <IconPlate size="lg">
-        <span className="block h-8 w-8">
-          <BrandIcon name={icon} fill tile={false} />
+      {/* The founder's 3D card with its padlock (30 September) for the card
+          options; display only, nothing here touches the charge. */}
+      {icon === "card-lock" ? (
+        <span className="grid size-14 shrink-0 place-items-center" aria-hidden="true" data-art="card-secure">
+          <Icon3D name="card-secure" size={56} />
         </span>
-      </IconPlate>
+      ) : (
+        <IconPlate size="lg">
+          <span className="block h-8 w-8">
+            <BrandIcon name={icon} fill tile={false} />
+          </span>
+        </IconPlate>
+      )}
       <div className="min-w-0 flex-1">
         <p className="nf-body font-semibold text-[var(--nf-content-primary)]">{title}</p>
         <p className="nf-body-sm mt-inline-tight leading-relaxed text-[var(--nf-content-secondary)]">
@@ -555,6 +564,7 @@ export function PayPanel({
           router.refresh();
         }}
         variant={paid.variant}
+        object={paid.object}
         title={paid.title}
         body={paid.body}
         amount={{ minorUnits: view.totalMinor, currency: view.currency, locale: view.locale }}

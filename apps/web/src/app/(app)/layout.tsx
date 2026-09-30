@@ -3,6 +3,8 @@ import { VitalsReporter } from "@/components/app/VitalsReporter";
 import { DataMeterRecorder } from "@/components/app/DataMeterRecorder";
 import { OfflineTray } from "@/components/app/OfflineTray";
 import { WidgetBridge } from "@/components/app/WidgetBridge";
+import { ContrastSync } from "@/components/app/account/ContrastSync";
+import { MemberKeys } from "@/components/app/MemberKeys";
 import { getLocale } from "@/lib/locale";
 import { getShellIdentity, getShellWorkspaces } from "@/lib/app/shell-queries";
 import { getSide } from "@/lib/side";
@@ -10,6 +12,8 @@ import { shellDictionary } from "@/lib/i18n/shell-dictionary";
 import { AppShell } from "@/components/app/AppShell";
 import { PasscodeGate } from "@/components/passcode/PasscodeGate";
 import { resolvePasscodeGate } from "@/lib/passcode/state";
+/* C12: the feed's motion sheet, out of `globals.css`; only this tree draws a post. */
+import "@/app/css/feed-m.css";
 
 import type { Metadata } from "next";
 
@@ -116,6 +120,10 @@ export default async function AppLayout({
       <DataMeterRecorder />
       {/* V-80: one page view in ten reports its own speed, anonymously. */}
       <VitalsReporter />
+      {/* B15: the Increase contrast setting, on the root. */}
+      <ContrastSync />
+      {/* B17: the desktop keyboard layer (fine pointer only). */}
+      <MemberKeys />
       {/* V-40: what was done offline is sent, and what was paid is resolved. */}
       <OfflineTray />
       {/* V-98: the home-screen widget's token, in the native app only. */}

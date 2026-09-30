@@ -102,6 +102,7 @@ export async function InspectionsBoard({
       <InspectionSheet
         success={t.success}
         gateCopy={t.platform.gate}
+        dayKit={t.memberKit.dayKit}
         inspection={row}
         side={row.side}
         facts={facts.get(row.listingId) ?? null}

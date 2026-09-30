@@ -1,0 +1,120 @@
+/*
+ * THE DECISION CARD, "AWAITING YOU" (spec section 14, reference 36).
+ * Drawn by `components/app/confirm/DecisionCard.tsx`, which imports this.
+ *
+ * The one warm tint in the system: `--nf-state-warning-surface` (the warning
+ * hue at 10 per cent on paper, its night twin at night), no border, the card
+ * radius. The quoted request sits in a white well; the lines are 14 with the
+ * amounts tabular on the right; the total is 17/700 under a hairline; the
+ * primary is full width and the secondaries share a row. Tokens only, and
+ * one set for both themes.
+ */
+@layer components {
+  .nf-decision {
+    display: grid;
+    gap: var(--nf-space-sm);
+    min-width: 0;
+    padding: var(--nf-space-md);
+    border-radius: var(--nf-radius-card, var(--nf-radius-lg));
+    background: var(--nf-state-warning-surface);
+    color: var(--nf-content-primary);
+  }
+  @media (min-width: 40rem) {
+    .nf-decision {
+      padding: 1.25rem;
+    }
+  }
+  .nf-decision__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--nf-space-sm);
+  }
+  .nf-decision__label {
+    margin: 0;
+  }
+  .nf-decision__when {
+    margin: 0;
+    font-size: var(--nf-text-caption);
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-content-muted);
+  }
+  .nf-decision__title {
+    margin: 0;
+    font-size: 1.0625rem;
+    line-height: 1.5rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    overflow-wrap: anywhere;
+  }
+  .nf-decision__sub {
+    margin: var(--nf-space-3xs) 0 0;
+    font-size: var(--nf-text-caption);
+    line-height: 1.45;
+    color: var(--nf-content-secondary);
+  }
+  .nf-decision__quote {
+    margin: 0;
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    border-radius: var(--nf-radius-well, var(--nf-radius-md));
+    background: var(--nf-surface-primary);
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.5;
+    color: var(--nf-content-secondary);
+    overflow-wrap: anywhere;
+  }
+  .nf-decision__lines {
+    display: grid;
+    gap: var(--nf-space-2xs);
+    margin: 0;
+  }
+  .nf-decision__line {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--nf-space-md);
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+  .nf-decision__line dt {
+    min-width: 0;
+    color: var(--nf-content-secondary);
+  }
+  .nf-decision__line dd {
+    margin: 0;
+    flex-shrink: 0;
+    text-align: end;
+    color: var(--nf-content-primary);
+  }
+  .nf-decision__total {
+    margin-block-start: var(--nf-space-2xs);
+    padding-block-start: var(--nf-space-xs);
+    border-block-start: var(--nf-border-width) solid var(--nf-divider);
+    font-size: 1.0625rem;
+    line-height: 1.5rem;
+  }
+  .nf-decision__total dt,
+  .nf-decision__total dd {
+    font-weight: 700;
+    color: var(--nf-content-primary);
+  }
+  .nf-decision__primary {
+    display: grid;
+    margin-block-start: var(--nf-space-2xs);
+  }
+  /* Side by side while both fit their words; a long label ("Cancel this
+     agreement") drops the pair onto two rows rather than clipping. */
+  .nf-decision__secondary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--nf-space-xs);
+  }
+  .nf-decision__secondary > * {
+    display: grid;
+    flex: 1 1 11rem;
+    min-width: 0;
+  }
+  .nf-decision__secondary .nf-btn {
+    width: 100%;
+  }
+}

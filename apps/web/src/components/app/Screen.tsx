@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import type { BrandIconName } from "@/design-system/icons/BrandIcon";
+import type { Icon3DName } from "@/components/ui/icon-3d";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { panelClass } from "@/components/ui/Panel";
 import { State } from "@/components/ui/State";
@@ -252,6 +253,7 @@ export function Stack({ children, className }: { children: ReactNode; className?
  */
 export function EmptyState({
   icon,
+  art,
   title,
   body,
   action,
@@ -260,6 +262,8 @@ export function EmptyState({
   "data-testid": testId,
 }: {
   icon: BrandIconName;
+  /** The founder's 3D object; see `State`'s `art`. */
+  art?: Icon3DName | false;
   title: string;
   /** One or two sentences, true of the state the reader is actually in. */
   body: string;
@@ -278,6 +282,7 @@ export function EmptyState({
     <State
       kind="empty"
       icon={icon}
+      {...(art !== undefined ? { art } : {})}
       title={title}
       body={body}
       action={action}

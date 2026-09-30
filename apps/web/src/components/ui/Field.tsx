@@ -9,6 +9,7 @@ import type {
   TextareaHTMLAttributes,
 } from "react";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { counterFor } from "@/lib/ui/small-rules";
 
 /**
  * Form fields.
@@ -74,6 +75,8 @@ export type FieldProps = {
    */
   id?: string;
   className?: string;
+  /** A quiet line under the control, at the end: the character counter. */
+  counter?: ReactNode;
   children(control: FieldControlProps): ReactNode;
 };
 
@@ -86,6 +89,7 @@ export function Field({
   hideLabel = false,
   id: fixedId,
   className,
+  counter,
   children,
 }: FieldProps) {
   /*
@@ -137,6 +141,7 @@ export function Field({
         "aria-required": required || undefined,
       })}
 
+      {counter}
       {hint ? (
         <p id={hintId} className="mt-xs text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">
           {hint}
@@ -169,6 +174,44 @@ export function Field({
 }
 
 /* ------------------------------------------------------- shared internals */
+
+/**
+ * VALIDATION ON BLUR, NOT ON EVERY KEY (details pass, 30 September 2026).
+ *
+ * A field that turns red on the first keystroke of an email address is
+ * scolding somebody for not having finished. `validate` runs when the reader
+ * LEAVES the field; once it has shown a message, it re-runs as they type, so
+ * the message goes the moment the value is right ("late to scold, quick to
+ * forgive"). An `error` from the caller (a server refusal) always wins.
+ */
+function useBlurValidation(
+  validate: ((value: string) => string | null | undefined) | undefined,
+  external: string | undefined,
+) {
+  const [touched, setTouched] = useState(false);
+  const [own, setOwn] = useState<string | null>(null);
+  return {
+    error: external ?? (touched && own ? own : undefined),
+    onBlurValue(value: string) {
+      if (!validate) return;
+      setTouched(true);
+      setOwn(validate(value) ?? null);
+    },
+    onChangeValue(value: string) {
+      if (validate && touched) setOwn(validate(value) ?? null);
+    },
+  };
+}
+
+function Counter({ length, max }: { length: number; max: number | undefined }) {
+  const { show, over } = counterFor(length, max);
+  if (!show) return null;
+  return (
+    <p className="nf-field-count" data-over={over || undefined} aria-live="polite">
+      {length} / {max}
+    </p>
+  );
+}
 
 /** 48 / 56px. The same two rungs the buttons use, so a field and the button
  *  beside it agree on height without either being nudged. */
@@ -298,6 +341,10 @@ export type TextFieldProps = Omit<
     onClear?(): void;
     size?: ControlSize;
     inputClassName?: string;
+    /** Checked when the reader leaves the field; see `useBlurValidation`. */
+    validate?: (value: string) => string | null | undefined;
+    /** Shows the counter near `maxLength`. Off for fields whose limit is a format (a phone, a code). */
+    showCount?: boolean;
   };
 
 export function TextField({
@@ -318,9 +365,14 @@ export function TextField({
   size = "md",
   inputClassName,
   onChange,
+  onBlur,
+  validate,
+  showCount = false,
   ...rest
 }: TextFieldProps) {
   const ref = useRef<HTMLInputElement | null>(null);
+  const checked = useBlurValidation(validate, error);
+  const [typedLength, setTypedLength] = useState(String(rest.defaultValue ?? "").length);
   /*
    * Uncontrolled fields have no `value` prop to read, so emptiness is tracked
    * here. Controlled ones ignore this entirely - their prop is the truth.
@@ -351,7 +403,8 @@ export function TextField({
     <Field
       label={label}
       hint={hint}
-      error={error}
+      error={checked.error}
+      counter={showCount ? <Counter length={rest.value !== undefined ? String(rest.value ?? "").length : typedLength} max={rest.maxLength} /> : undefined}
       required={required}
       optionalText={optionalText}
       hideLabel={hideLabel}
@@ -385,10 +438,16 @@ export function TextField({
               shape,
               className: inputClassName,
             })}
-            style={error ? INVALID_STYLE : undefined}
+            style={checked.error ? INVALID_STYLE : undefined}
             onChange={(event) => {
               if (!controlled) setTypedInto(event.target.value.length > 0);
+              setTypedLength(event.target.value.length);
+              checked.onChangeValue(event.target.value);
               onChange?.(event);
+            }}
+            onBlur={(event) => {
+              checked.onBlurValue(event.target.value);
+              onBlur?.(event);
             }}
           />
 
@@ -511,6 +570,10 @@ export type TextAreaProps = Omit<
 > &
   Omit<FieldProps, "children"> & {
     textAreaClassName?: string;
+    /** Checked when the reader leaves the field; see `useBlurValidation`. */
+    validate?: (value: string) => string | null | undefined;
+    /** The counter near `maxLength`; on by default for long text. */
+    showCount?: boolean;
   };
 
 export function TextArea({
@@ -523,13 +586,21 @@ export function TextArea({
   className,
   rows = 4,
   textAreaClassName,
+  validate,
+  showCount = true,
+  onChange,
+  onBlur,
   ...rest
 }: TextAreaProps) {
+  const checked = useBlurValidation(validate, error);
+  const [typedLength, setTypedLength] = useState(String(rest.defaultValue ?? "").length);
+  const length = rest.value !== undefined ? String(rest.value ?? "").length : typedLength;
   return (
     <Field
       label={label}
       hint={hint}
-      error={error}
+      error={checked.error}
+      counter={showCount ? <Counter length={length} max={rest.maxLength} /> : undefined}
       required={required}
       optionalText={optionalText}
       hideLabel={hideLabel}
@@ -550,7 +621,16 @@ export function TextArea({
           className={["nf-field block resize-y px-md py-sm", FIELD_TYPE, textAreaClassName ?? ""]
             .filter(Boolean)
             .join(" ")}
-          style={error ? INVALID_STYLE : undefined}
+          style={checked.error ? INVALID_STYLE : undefined}
+          onChange={(event) => {
+            setTypedLength(event.target.value.length);
+            checked.onChangeValue(event.target.value);
+            onChange?.(event);
+          }}
+          onBlur={(event) => {
+            checked.onBlurValue(event.target.value);
+            onBlur?.(event);
+          }}
         />
       )}
     </Field>

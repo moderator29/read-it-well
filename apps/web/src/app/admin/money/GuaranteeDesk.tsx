@@ -72,11 +72,11 @@ function ClaimItem({ claim, locale }: { claim: ClaimRow; locale: Locale }) {
           <div className="grid gap-inline">
             <label className="text-[length:var(--nf-text-caption)]">
               Pay from the Guarantee (₦)
-              <input className="nf-input mt-3xs" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} />
+              <input className="nf-field mt-3xs" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} />
             </label>
             <label className="text-[length:var(--nf-text-caption)]">
               Reason (required to reject)
-              <input className="nf-input mt-3xs" value={reason} maxLength={1000} onChange={(e) => setReason(e.target.value)} />
+              <input className="nf-field mt-3xs" value={reason} maxLength={1000} onChange={(e) => setReason(e.target.value)} />
             </label>
             <div className="flex gap-inline">
               <button
@@ -108,7 +108,7 @@ function ClaimItem({ claim, locale }: { claim: ClaimRow; locale: Locale }) {
           <div className="grid gap-inline">
             <label className="text-[length:var(--nf-text-caption)]">
               Bank transfer reference
-              <input className="nf-input mt-3xs" value={reference} onChange={(e) => setReference(e.target.value)} />
+              <input className="nf-field mt-3xs" value={reference} onChange={(e) => setReference(e.target.value)} />
             </label>
             <button
               type="button"

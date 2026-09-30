@@ -69,7 +69,7 @@ function partyLabel(size: number, locale: Locale): string {
   return countOf(size, "guests", locale);
 }
 
-function Decision({ table }: { table: HostReservationView }) {
+export function Decision({ table }: { table: HostReservationView }) {
   const reservationId = table.id;
   const [state, formAction, pending] = useActionState<ActionResult<null> | null, FormData>(
     respondToReservation,

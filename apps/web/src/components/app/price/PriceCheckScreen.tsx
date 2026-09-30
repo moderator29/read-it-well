@@ -460,6 +460,7 @@ export function PriceCheckScreen(props: PriceCheckScreenProps) {
                so plainly. */
             <EmptyState
               icon="home-ring"
+              art={false}
               title={copy.result.unreachableTitle}
               body={copy.result.unreachableBody}
               data-testid="nf-pc-unreachable"

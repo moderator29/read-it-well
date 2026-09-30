@@ -38,7 +38,10 @@ describe("money at the edges", () => {
       ];
       export const html = () => cases.map((c) => renderToStaticMarkup(<Amount {...c} />)).join("|");
     `);
-    const texts = html.replace(/<[^>]+>/g, "").split("|");
+    /* A compact figure also carries a visually hidden spoken form (d70bf5c2); read the printed text, then the spoken one. */
+    const spoken = /<span class="sr-only">([^<]*)<\/span>/g;
+    const texts = html.replace(spoken, "").replace(/<[^>]+>/g, "").split("|");
     expect(texts).toEqual(["₦42,000.75", "₦42,000", "₦42,000.00", "₦0.01", "₦999.9k"]);
+    expect([...html.matchAll(spoken)].map((m) => m[1])).toContain("999.9 thousand naira");
   }, 30_000);
 });

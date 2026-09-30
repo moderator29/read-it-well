@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { FunnelBeacon } from "@/components/site/FunnelBeacon";
 import { forListingCard } from "@/lib/i18n/slice";
 import { after } from "next/server";
 import { demandRecorder } from "@/lib/demand/record";
@@ -40,7 +41,8 @@ import {
 } from "@/lib/listings/intent";
 import { readIntentTuning } from "@/lib/interests/queries";
 import { getSavedListings } from "@/lib/saved/queries";
-import { canonicalSearch } from "@/lib/saved/searches";
+import { canonicalSearch, describeSearch } from "@/lib/saved/searches";
+import { SearchMemory } from "@/components/app/search/SearchMemory";
 import { findSavedSearch } from "@/lib/saved/searches-queries";
 import { SaveSearchControl } from "@/components/app/saved-searches/SaveSearchControl";
 import { KIND_NOUN, type SortKey } from "@/lib/listings/search-params";
@@ -445,6 +447,8 @@ export default async function SearchPage({
 
   return (
     <>
+      {/* A6: the funnel's "first search", once a search has something in it. */}
+      {Object.keys(raw).length > 0 && <FunnelBeacon step="first_search" />}
       {/*
         THE WAY BACK, ON THE BAR'S OWN ROW.
 
@@ -471,7 +475,7 @@ export default async function SearchPage({
         t={t}
         openFilters={raw.filters === "open"}
         anchors={anchors}
-        leading={<BackButton fallback="/" />}
+        leading={<BackButton fallback="/" surface="round" />}
       />
       <ReadAs query={query} said={said} locale={locale} copy={t.shape.unit} />
 
@@ -518,6 +522,15 @@ export default async function SearchPage({
           {t.listingReference.impossible}
         </p>
       )}
+
+      {/* B2: this hunt goes into the phone's recent searches, which the field
+          offers back on focus. Only a real hunt (something asked), labelled
+          by the same words a saved search gets. */}
+      <SearchMemory
+        view={query.view}
+        label={canonical.key ? describeSearch(canonical.params, locale) : ""}
+        href={canonical.href}
+      />
 
       {/* Keeping the hunt, beside the count of what it found. It is drawn only
           when there is something to keep: an unfiltered /search is every place
@@ -664,6 +677,7 @@ export default async function SearchPage({
                     locale={locale}
                     t={forListingCard(t)}
                     index={i}
+                    eager={i === 0}
                     dense={query.view !== "rows"}
                     saved={savedIds.has(l.id)}
                     intent={tuning.signedIn ? tuning.interests : undefined}

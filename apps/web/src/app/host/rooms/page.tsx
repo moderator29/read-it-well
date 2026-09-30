@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { countOf, getDictionary, type Locale } from "@vallo/i18n";
+import { countOf, getDictionary, type Dictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { resolveSession } from "@/lib/actions/session";
 import {
@@ -59,8 +59,8 @@ export default async function HostRoomsPage({
       <HostShell logoLabel={t.a11y.logoHome} fallback="/host">
         <EmptyState
           icon="hotel"
-          title="Your rooms and your nights"
-          body="Sign in to see how many rooms you have on sale and how far ahead guests can book them."
+          title={t.hostWorkspace.rooms.signedOutTitle}
+          body={t.hostWorkspace.rooms.signedOutBody}
           action={
             <ButtonLink href={authHref(next, "sign-in")} variant="primary" size="lg">
               Sign in
@@ -83,6 +83,7 @@ export default async function HostRoomsPage({
   return (
     <HostShell logoLabel={t.a11y.logoHome} fallback="/host">
       <HostRoomsBody
+        copy={t.hostWorkspace}
         businesses={businesses}
         chosen={chosen}
         accommodation={accommodation}
@@ -103,22 +104,25 @@ export function HostRoomsBody({
   accommodation,
   rooms,
   locale,
+  copy = getDictionary("en").hostWorkspace,
 }: {
   businesses: MyBusiness[];
   chosen: MyBusiness | null;
   accommodation: MyAccommodation | null;
   rooms: MyRoomType[];
   locale: Locale;
+  /** The host workspace words in the reader's language; English in the previews. */
+  copy?: Dictionary["hostWorkspace"];
 }) {
   if (!chosen) {
     return (
       <EmptyState
         icon="hotel"
-        title="No property yet"
-        body="Rooms hang on a property, so there is one thing to do first. An application takes ten short steps at most and saves as you go."
+        title={copy.rooms.noPropertyTitle}
+        body={copy.rooms.noPropertyBody}
         action={
           <ButtonLink href="/host/apply" variant="primary" size="lg">
-            Start an application
+            {copy.doors.startApplication}
           </ButtonLink>
         }
       />
@@ -129,11 +133,11 @@ export function HostRoomsBody({
     return (
       <EmptyState
         icon="hotel"
-        title="Save the property first"
-        body="Rooms and their nights hang on the property itself, so the application asks for its name and pin first. Save the property there, and the rooms follow on the next step."
+        title={copy.rooms.saveFirstTitle}
+        body={copy.rooms.saveFirstBody}
         action={
           <ButtonLink href="/host/apply" variant="primary" size="lg">
-            Open the application
+            {copy.doors.openApplication}
           </ButtonLink>
         }
       />
@@ -160,7 +164,7 @@ export function HostRoomsBody({
       {/* Only drawn where there is a choice to make. One property is the
           common case and a picker above it would be furniture. */}
       {businesses.length > 1 && (
-        <nav className="mt-block flex flex-wrap gap-inline" aria-label="Your properties">
+        <nav className="mt-block flex flex-wrap gap-inline" aria-label={copy.rooms.propertiesLabel}>
           {businesses.map((business) => (
             <Link
               key={business.id}
@@ -178,8 +182,8 @@ export function HostRoomsBody({
         {rooms.length === 0 ? (
           <EmptyState
             icon="hotel"
-            title="No room types yet"
-            body="A room type is a kind of room a guest books, such as a deluxe double. Add at least one, with how many there are and what a night costs, and the property can go on the shelf."
+            title={copy.rooms.noRoomTypesTitle}
+            body={copy.rooms.noRoomTypesBody}
             action={
               <ButtonLink href="/host/apply" variant="primary" size="lg">
                 Add a room type

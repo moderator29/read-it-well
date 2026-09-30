@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { forListingCard } from "@/lib/i18n/slice";
 import type { Dictionary, Locale } from "@vallo/i18n/core";
 import type { Listing } from "@/lib/listings/types";
@@ -8,6 +9,7 @@ import { CityRow } from "@/components/app/home/CityRow";
 import { CategoryRow, type HomeCategory } from "@/components/app/home/CategoryRow";
 import { FeaturedBand } from "@/components/app/home/FeaturedBand";
 import { HomeHero } from "@/components/app/home/HomeHero";
+import { LookedAtRecently } from "@/components/app/home/LookedAtRecently";
 import { HeroBand } from "@/components/ui/HeroBand";
 import { LogoMark } from "@/design-system/brand/Logo";
 import { VerifyPrompt } from "@/components/roles/VerifyPrompt";
@@ -79,6 +81,7 @@ export function HomeScreen({
   listings,
   roles,
   manageHref,
+  upNext = null,
 }: {
   t: Dictionary;
   locale: Locale;
@@ -92,6 +95,13 @@ export function HomeScreen({
    * Decided by the route, because only the route may read the account.
    */
   manageHref: string;
+  /**
+   * "Up next" (plan item 15): the route hands in the streamed card
+   * (`UpNext`, inside a `Suspense` with no fallback), which draws nothing
+   * when the account has no confirmed viewing, stay or unread thread. The
+   * preview harness leaves it out.
+   */
+  upNext?: ReactNode;
 }) {
   const greeting = DAYPART_GREETING[overview.daypart];
   const name = overview.firstName || (overview.signedIn ? "there" : "");
@@ -151,10 +161,10 @@ export function HomeScreen({
     /* Buy, Rent and Pay open with no skeleton: their pages are fetched whole
        ahead of the tap (about 35, 35 and 11 KB on the wire). List opens the
        listing form, about 120 KB, so it waits for the tap. */
-    { key: "buy", label: copy.buy, href: "/search?market=buy", icon: "home-check", glyph: "house", whole: true },
-    { key: "rent", label: copy.rent, href: "/search?market=rent", icon: "keys-home", glyph: "key", whole: true },
-    { key: "pay", label: copy.pay, href: "/agreements", icon: "naira-hand", glyph: "wallet", whole: true },
-    { key: "manage", label: copy.manage, href: manageHref, icon: "doc-home", glyph: "file-text" },
+    { key: "buy", art: "buy", label: copy.buy, href: "/search?market=buy", icon: "home-check", glyph: "house", whole: true },
+    { key: "rent", art: "rent", label: copy.rent, href: "/search?market=rent", icon: "keys-home", glyph: "key", whole: true },
+    { key: "pay", art: "pay", label: copy.pay, href: "/agreements", icon: "naira-hand", glyph: "wallet", whole: true },
+    { key: "manage", art: "list", label: copy.manage, href: manageHref, icon: "doc-home", glyph: "file-text" },
     /*
       UX-22 / STORE-05: NO INVEST TILE. It went to `/search?market=buy`, the
       same shelf as Buy, so it filtered nothing distinct and promised an
@@ -230,12 +240,28 @@ export function HomeScreen({
           filtersLabel={copy.filters}
           searchLabel={t.landing.hero.searchLabel}
           kind="home"
+          recent={t.catalogue.recent}
         />
       </div>
 
       {/* ------------------------------------------------ 2. the categories */}
       <CategoryRow categories={categories} label={t.home.markets.label} variant="plates" />
       </HeroBand>
+
+      {/* ------------------------------------------------------- up next */}
+      {upNext}
+
+      {/* B2: the places this phone opened lately, one tap back. Hidden
+          when there are none; beside "Up next", never instead of it. */}
+      <LookedAtRecently
+        copy={{
+          title: t.catalogue.recent.lookedAt,
+          clear: t.catalogue.recent.clear,
+          clearLabel: t.catalogue.recent.lookedAtClearLabel,
+          example: t.catalogue.card.example,
+          verified: t.common.verified,
+        }}
+      />
 
       {/* ------------------------------------------- 3. featured properties */}
       <FeaturedBand
@@ -281,7 +307,7 @@ export function HomeScreen({
           <li key={listing.id} className="nf-feature-row__item">
             {/* The catalogue's card is F3's and is never forked here, so home
                 and search show one object. */}
-            <ListingCard listing={listing} locale={locale} t={forListingCard(t)} index={index} />
+            <ListingCard listing={listing} locale={locale} t={forListingCard(t)} index={index} eager={index === 0} />
           </li>
         ))}
       </FeaturedBand>

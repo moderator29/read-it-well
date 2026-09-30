@@ -1,10 +1,10 @@
 import type { Dictionary } from "@vallo/i18n/core";
 import { MotionReveal } from "@/components/motion/Reveal";
 import { HeroBand } from "@/components/ui/HeroBand";
-import { IconPlate, ICON_PLATE_GLYPH } from "@/components/ui/IconPlate";
-import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { Icon3D } from "@/components/ui/Icon3D";
 import { storeBadges } from "./store-badges";
 import { StoreBadges } from "./StoreBadges";
+import { APP_OBJECTS, LANDING_OBJECT_SIZE } from "./landing-objects";
 
 /**
  * Take Vallo with you: one branded panel, no device frame (the founder's
@@ -15,18 +15,16 @@ import { StoreBadges } from "./StoreBadges";
  * On it: the app promise, the store badges or the install line, and three
  * short points on what the phone gives you, divided by hairlines.
  *
- * STORE-06 (also UI-07, UX-26). The store badges:
+ * STORE-06 (also UI-07, UX-26), revised 30 September: the apps launch this
+ * week, so the "Add it to your home screen" instructions are gone and the two
+ * official badges always show (`store-badges.ts`):
  *
- *   - each renders ONLY when its store URL is set and is that store's own
- *     address (`storeBadges` in `store-badges.ts`);
+ *   - a badge is a link ONLY when its store URL is set and is that store's
+ *     own address (NEXT_PUBLIC_APP_STORE_URL, NEXT_PUBLIC_PLAY_STORE_URL);
+ *   - until then it shows "Coming soon" beneath it and is not a link;
  *   - neither renders inside a native shell, whatever is set (`LandingBody`
  *     passes the surface the server read from the shell's User-Agent, and
- *     leaves this band out entirely there);
- *   - "Full access to all features" and "Secure and fast" are gone.
- *
- * With no badge live the panel prints how to install from the browser
- * instead, which is what the FAQ's "Is there an app?" answer says, so the
- * slot is never empty and never a badge that leads nowhere.
+ *     leaves this band out entirely there).
  */
 export function AppBand({
   t,
@@ -37,10 +35,10 @@ export function AppBand({
   native?: boolean;
 }) {
   const a = t.landing.face.app;
-  const points: { key: string; icon: UiIconName; label: string }[] = [
-    { key: "notify", icon: "bell", label: a.points.notify },
-    { key: "sides", icon: "home", label: a.points.sides },
-    { key: "record", icon: "document", label: a.points.record },
+  const points: { key: keyof typeof APP_OBJECTS; label: string }[] = [
+    { key: "notify", label: a.points.notify },
+    { key: "sides", label: a.points.sides },
+    { key: "record", label: a.points.record },
   ];
   /* `NEXT_PUBLIC_*` is inlined at build time. */
   const badges = storeBadges({
@@ -64,27 +62,17 @@ export function AppBand({
         >
           <div className="nf-app-band__cols">
             <div className="nf-app-band__store">
-              {badges.length > 0 ? (
-                /* The official artwork, drawn inline (StoreBadges.tsx). */
-                <StoreBadges badges={badges} labels={t.landingRooms.badges} className="nf-app-panel__badges" />
-              ) : (
-                <div className="nf-app-band__install">
-                  <IconPlate size="sm" tone="neutral">
-                    <UiIcon name="share" size={ICON_PLATE_GLYPH.sm} />
-                  </IconPlate>
-                  <div>
-                    <p className="nf-app-band__install-title">{a.installTitle}</p>
-                    <p className="nf-app-band__install-body">{a.installBody}</p>
-                  </div>
-                </div>
-              )}
+              {/* The official artwork, drawn inline (StoreBadges.tsx). */}
+              <StoreBadges badges={badges} labels={t.landingRooms.badges} className="nf-app-panel__badges" />
             </div>
             <div className="nf-app-band__aside">
               <p className="nf-section-label">{a.rightTitle}</p>
               <ul className="nf-app-band__points">
                 {points.map((p) => (
                   <li key={p.key}>
-                    <UiIcon name={p.icon} size={20} aria-hidden />
+                    <span className="nf-obj nf-app-band__obj">
+                      <Icon3D name={APP_OBJECTS[p.key]} size={LANDING_OBJECT_SIZE.app} />
+                    </span>
                     {p.label}
                   </li>
                 ))}

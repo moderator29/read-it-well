@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { formatMoney, formatNumber } from "@vallo/i18n/core";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { IconTiles } from "./IconTiles";
+import type { Icon3DName } from "@/components/ui/icon-3d";
 import { priceScale } from "@/lib/listings/price-bounds";
 import {
   hasBackupPower,
@@ -225,6 +226,18 @@ const KIND_ICON: Record<ListingKind | "all", UiIconName> = {
   land: "land-plot",
   restaurant: "utensils",
   experience: "ticket",
+};
+/** The founder's 3D object for the property types the sheets draw. */
+const KIND_ART: Partial<Record<ListingKind, Icon3DName>> = {
+  hotel: "hotel",
+  apartment: "apartment",
+  home: "home-verified",
+  shortlet: "shortlet",
+  villa: "villa",
+  rental: "keys",
+  office: "city",
+  land: "land",
+  restaurant: "restaurant",
 };
 const SHAPE_ICON: Record<UnitShape, UiIconName> = {
   self_contain: "door",
@@ -674,7 +687,7 @@ export function FilterDrawerPanel({
                   onToggle={pickKind}
                   options={[
                     { value: "all" as const, label: copy.all, icon: KIND_ICON.all },
-                    ...kindOptions.map((kind) => ({ value: kind, label: kindLabel(kind), icon: KIND_ICON[kind] })),
+                    ...kindOptions.map((kind) => ({ value: kind, label: kindLabel(kind), icon: KIND_ICON[kind], art: KIND_ART[kind] })),
                   ]}
                 />
               </Group>

@@ -129,7 +129,9 @@ function Code({ code }: { code: string }) {
   );
 }
 
-const EYEBROW = { display: "flex", color: OG_INK_MUTED, fontSize: 26, letterSpacing: 4, textTransform: "uppercase" } as const;
+/** The sanctioned word for an example (`lib/listings/types.ts`), on the chip. */
+const EXAMPLE_CHIP = "Example";
+
 
 function face(input: DoorImageFace, copy: Dictionary["frontDoor"]["door"]) {
   if (input.kind === "mark") {
@@ -156,45 +158,36 @@ function face(input: DoorImageFace, copy: Dictionary["frontDoor"]["door"]) {
       honest: lines.footer,
     });
   }
+  /*
+   * THE EXAMPLE AND THE LISTING FACES ON THE SHARE CARD FRAME (plan item 23;
+   * spec section 10), the frame the area face already wears, so every link
+   * Vallo unfurls is one card. An example says "Example" in the chip and in
+   * its title, with the agreed sentence and no figure; a listing carries its
+   * own photograph in the well, the title, the stated figure (or, with none,
+   * the line that says to ask), the bedrooms and the area, and its code in
+   * the foot. Every word arrives already decided by `doorLines`.
+   */
   if (input.kind === "example") {
-    return (
-      <Frame>
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          <div style={EYEBROW}>Vallo</div>
-          <div style={{ display: "flex", marginTop: 28, color: OG_INK, fontSize: 72 }}>{input.card.stay ? copy.stay.example : copy.example}</div>
-          <div style={{ display: "flex", marginTop: 20, color: OG_INK_SECONDARY, fontSize: 32, lineHeight: 1.3 }}>{input.card.stay ? copy.stay.exampleBody : copy.exampleBody}</div>
-        </div>
-        {input.card.reference ? <Code code={input.card.reference} /> : <div style={{ display: "flex" }} />}
-      </Frame>
-    );
+    const stay = input.card.stay;
+    return ogShareCard({
+      ...DOOR_IMAGE_SIZE,
+      title: stay ? copy.stay.example : copy.example,
+      chip: EXAMPLE_CHIP,
+      honest: stay ? copy.stay.exampleBody : copy.exampleBody,
+      footRight: input.card.reference ? `${copy.codeLabel} ${input.card.reference}` : null,
+    });
   }
   const { card, lines, photo } = input;
   const sub = [lines.bedrooms, card.place].filter(Boolean).join(" · ");
-  return (
-    <Frame>
-      <div style={{ display: "flex", gap: 44, alignItems: "center" }}>
-        {photo && (
-          // Satori draws this; there is no browser here for next/image to serve.
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={photo} alt="" width={220} height={220} style={{ borderRadius: 24, objectFit: "cover" }} />
-        )}
-        <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
-          <div style={EYEBROW}>Vallo</div>
-          <div style={{ display: "flex", marginTop: 16, color: OG_INK, fontSize: 52, lineHeight: 1.15 }}>
-            {lines.title.length > 60 ? `${lines.title.slice(0, 57)}...` : lines.title}
-          </div>
-          {sub && <div style={{ display: "flex", marginTop: 14, color: OG_INK_SECONDARY, fontSize: 32 }}>{sub}</div>}
-        </div>
-      </div>
-      <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          <div style={{ display: "flex", color: OG_INK, fontSize: 64, letterSpacing: -1 }}>{lines.headline ?? copy.askForPrice}</div>
-          {lines.second && <div style={{ display: "flex", marginTop: 10, color: OG_INK_SECONDARY, fontSize: 34 }}>{lines.second}</div>}
-        </div>
-        {card.kind === "listing" && card.reference && <Code code={card.reference} />}
-      </div>
-    </Frame>
-  );
+  return ogShareCard({
+    ...DOOR_IMAGE_SIZE,
+    title: lines.title.length > 60 ? `${lines.title.slice(0, 57)}...` : lines.title,
+    figure: lines.headline,
+    honest: lines.headline ? lines.second : copy.askForPrice,
+    footnote: sub || null,
+    footRight: card.kind === "listing" && card.reference ? `${copy.codeLabel} ${card.reference}` : null,
+    photo,
+  });
 }
 
 export async function doorImage(input: DoorImageFace, copy: Dictionary["frontDoor"]["door"]): Promise<ImageResponse> {

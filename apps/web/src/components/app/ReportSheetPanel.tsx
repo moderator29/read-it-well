@@ -20,6 +20,7 @@ import { SuccessSheet } from "@/components/ui/SuccessSheet";
 import { successCopy } from "@/lib/ui/success-moments";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { IconPlate } from "@/components/ui/IconPlate";
+import { Icon3D } from "@/components/ui/Icon3D";
 
 /**
  * The report sheet's BODY: the categories, the details, the send, the "we have
@@ -91,6 +92,7 @@ export function ReportSheetPanel({
           if (!next) setAcknowledged(state);
         }}
         variant={filedWords.variant}
+        object={filedWords.object}
         title={filedWords.title}
         body={filedWords.body}
         primary={{ label: success.continue, onClick: close }}
@@ -111,9 +113,9 @@ export function ReportSheetPanel({
                 </p>
                 {state?.ok ? (
                   <div className={panelClass({ variant: "card", className: "block p-lg text-center" })} data-testid="report-filed">
-                    <IconPlate size="lg" className="mx-auto">
-                      <UiIcon name="shield-check" size={24} />
-                    </IconPlate>
+                    <span className="grid size-[4.5rem] shrink-0 place-items-center mx-auto" aria-hidden="true" data-art="report-flag">
+                      <Icon3D name="report-flag" size={72} />
+                    </span>
                     <p className="mt-sm text-[length:var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
                       Thank you, we have it
                     </p>

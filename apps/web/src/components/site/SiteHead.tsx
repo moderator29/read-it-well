@@ -28,6 +28,7 @@ export function SiteHead({
   lede,
   heading = "h1",
   align = "center",
+  tool = false,
   children,
 }: {
   plate: PhotoName;
@@ -37,11 +38,14 @@ export function SiteHead({
   lede?: string;
   heading?: "h1" | "p";
   align?: "center" | "start";
+  /** A page whose point is a tool (the move-in calculator): the plate shows
+      from 64rem only, so on a phone the tool starts in the first screen. */
+  tool?: boolean;
   children?: ReactNode;
 }) {
   const Title = heading;
   return (
-    <section className={`nf-site-head ${align === "start" ? "nf-site-head--start" : ""}`}>
+    <section className={`nf-site-head ${align === "start" ? "nf-site-head--start" : ""} ${tool ? "nf-site-head--tool" : ""}`}>
       <div className="nf-aurora nf-site-head-aurora" aria-hidden="true" />
       <div className="nf-shell">
         <div className="nf-site-head-body mx-auto max-w-3xl">

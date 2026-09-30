@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { publicPageMetadata } from "@/lib/i18n/public-metadata";
 import { SiteHead } from "@/components/site/SiteHead";
 import Link from "next/link";
 import { SupportChat } from "@/components/app/account/SupportChat";
@@ -6,15 +7,17 @@ import { HelpSearch } from "./HelpSearch";
 import { ButtonLink } from "@/components/ui/Button";
 import { aiConsentForViewer } from "@/lib/ai/consent-server";
 import { FAQS, TRUST_LINKS } from "@/lib/support/help-articles";
+import { JsonLd } from "@/components/site/JsonLd";
+import { faqLd } from "@/lib/site/structured-data";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { IconPlate } from "@/components/ui/IconPlate";
 import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
 
-export const metadata: Metadata = {
-  title: "Help centre",
-  description:
-    "Answers about both sides of Vallo: the switch between Property and Stays, booking a stay, holding a table, payments after inspection, refunds, listing, verification and languages.",
-};
+/* A10: the title and description in the page's own language, with its
+   canonical and hreflang (lib/i18n/public-metadata.ts; words in publicMeta). */
+export async function generateMetadata(): Promise<Metadata> {
+  return publicPageMetadata("help");
+}
 
 /**
  * Help centre.
@@ -29,6 +32,8 @@ export const metadata: Metadata = {
 export default async function HelpPage() {
   return (
     <>
+      {/* A13: the page is questions and answers, so it says so to a crawler. */}
+      <JsonLd data={faqLd(FAQS.map((faq) => ({ q: faq.q, a: faq.a })))} />
       <SiteHead
         plate="living-room-dusk"
         icon="support-chat"

@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { rememberListing } from "@/lib/search/memory";
+import type { CardGlance } from "@/lib/listings/card-glance";
 
 /**
  * Records that this place was opened. Renders nothing.
@@ -11,21 +12,15 @@ import { rememberListing } from "@/lib/search/memory";
  * the assistant or from the back button counts exactly the same as one reached
  * from a search card, and there is one place to be right rather than six.
  *
- * The three fields are handed down from the server render, so a remembered
- * chip carries the title the page actually showed.
+ * The glance is handed down from the server render (`cardGlance`), so a
+ * remembered card carries the title, photo and price line the page actually
+ * showed (B2: Home's "Looked at recently" row reads it back).
  */
-export function RecordVisit({
-  id,
-  title,
-  place,
-}: {
-  id: string;
-  title: string;
-  place: string;
-}) {
+export function RecordVisit({ glance }: { glance: CardGlance }) {
+  const { id, title, place, photo, price, priceNote, mark } = glance;
   useEffect(() => {
-    rememberListing({ id, title, place });
-  }, [id, title, place]);
+    rememberListing({ id, title, place, photo, price, priceNote, mark });
+  }, [id, title, place, photo, price, priceNote, mark]);
 
   return null;
 }

@@ -102,7 +102,7 @@ export default async function PeoplePage({
         </Button>
       </form>
 
-      <p className="mt-md text-[length:var(--nf-text-overline)] font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
+      <p className="mt-md nf-section-label">
         {searching ? `People matching ${view.query}` : "People who just arrived"}
       </p>
 

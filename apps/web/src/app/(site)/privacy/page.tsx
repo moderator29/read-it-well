@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
+import { publicPageMetadata } from "@/lib/i18n/public-metadata";
 import { SiteHead } from "@/components/site/SiteHead";
 import Link from "next/link";
 import { PRIVACY_SECTIONS as sections, PRIVACY_UPDATED } from "@/lib/legal/privacy";
 
-export const metadata: Metadata = {
-  title: "Privacy policy",
-  description:
-    "How Vallo collects, uses, protects and shares personal data, and your rights under the Nigeria Data Protection Act 2023.",
-};
+/* A10: the title and description in the page's own language, with its
+   canonical and hreflang (lib/i18n/public-metadata.ts; words in publicMeta). */
+export async function generateMetadata(): Promise<Metadata> {
+  return publicPageMetadata("privacy");
+}
 
 /**
  * Privacy policy.

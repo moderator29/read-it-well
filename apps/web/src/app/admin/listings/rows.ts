@@ -28,6 +28,8 @@ export type QueueRow = {
   price: string;
   submittedAge: string;
   status: string;
+  /** C8: this listing's photographs seen on another listing; absent when not read. */
+  photoMatches?: number | null;
 };
 
 /** The six hex characters the queue has always used before a code exists. */

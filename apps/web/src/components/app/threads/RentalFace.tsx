@@ -16,6 +16,7 @@ import {
 import type { Inspection, InspectionOutcome, InspectionState } from "@/lib/inspections/types";
 import { fill, lagosWhen } from "./when";
 import { earliestLagosInput, lagosWallClockToIso } from "@/lib/inspections/when";
+import { ViewingDayKit } from "@/components/app/inspections/ViewingDayKit";
 
 /**
  * THE RENTAL FACE: the inspection request, inside the chat it was made in.
@@ -45,6 +46,10 @@ export function RentalFace({
   copy,
   locale,
   onAccepted,
+  dayKit,
+  conversationId = null,
+  area = "",
+  place = "",
 }: {
   inspection: Inspection;
   role: "lister" | "requester";
@@ -53,6 +58,14 @@ export function RentalFace({
   locale: Locale;
   /** The accept ceremony: the header tints once. Pitch 13. */
   onAccepted: () => void;
+  /** B5: the viewing day kit's words. Absent, no kit. */
+  dayKit?: Dictionary["memberKit"]["dayKit"];
+  /** This thread, where On my way and Running late are sent. */
+  conversationId?: string | null;
+  /** The area alone, for the calendar title; never a street. */
+  area?: string;
+  /** Area and city, for the calendar location. */
+  place?: string;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -255,6 +268,23 @@ export function RentalFace({
               <Button size="sm" variant="secondary" disabled={pending} onClick={() => setClosing(true)}>
                 {copy.markInspected}
               </Button>
+            </div>
+          )}
+
+          {/* B5: the viewing day kit, the same one the inspection card on
+              Plans carries: add to calendar, and on the day On my way and
+              Running late, sent into this conversation. It draws nothing
+              once the viewing has passed. */}
+          {state === "CONFIRMED" && dayKit && slotAt && (
+            <div className="nf-context-card__kit">
+              <ViewingDayKit
+                inspectionId={inspection.id}
+                slotAt={slotAt}
+                area={area}
+                place={place}
+                conversationId={conversationId}
+                copy={dayKit}
+              />
             </div>
           )}
         </div>

@@ -1,0 +1,877 @@
+/*
+ * THE PUBLIC DOORS (Recommendations A, 30 September 2026): the "Check before
+ * you pay" card, the move-in calculator, the supply pages,
+ * the guides, the email preferences and the invite door.
+ *
+ * One material for every card here, the clean unified card
+ * (docs/design/CLEAN_UNIFIED_DIRECTION.md section 1): `--nf-surface-primary`
+ * on the one hairline, the resting shadow in light and none at night. Mobile
+ * first: every block is one column at 360 and gains a second from 48rem.
+ * Tokens only. Motion is none beyond what the shared primitives already do.
+ *
+ * A partial of globals.css, after site.css.
+ */
+@layer components {
+  /* ------------------------------------------------------------ the card */
+  .nf-pd-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--nf-space-sm);
+    min-width: 0;
+    padding: var(--nf-space-md);
+    border: var(--nf-border-width) solid var(--nf-card-border);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-surface-primary);
+    box-shadow: var(--nf-card-shadow);
+    color: var(--nf-content-primary);
+  }
+  @media (min-width: 64rem) {
+    .nf-pd-card {
+      padding: 1.25rem;
+    }
+  }
+
+  .nf-pd-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    min-height: 2.75rem;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-link);
+    text-decoration: none;
+  }
+  .nf-pd-link:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .nf-pd-link:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+    border-radius: var(--nf-radius-sm);
+  }
+
+  /* ------------------------------------- A7 the check card (landing) */
+  /* In the community room's second column: one column at every width, the
+     plate and the two-line heading, a line, the field, then the two links. */
+  .nf-check-card {
+    gap: var(--nf-space-sm);
+    align-content: start;
+  }
+  @media (min-width: 48rem) {
+    .nf-check-card {
+      padding: var(--nf-space-lg);
+    }
+  }
+  .nf-check-card__head {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+  }
+  .nf-check-card__heading {
+    display: grid;
+    gap: var(--nf-space-2xs);
+    min-width: 0;
+  }
+  .nf-check-card__title {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h3);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+    color: var(--nf-content-primary);
+  }
+  .nf-check-card__body {
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.55;
+    color: var(--nf-content-secondary);
+    text-wrap: pretty;
+  }
+  .nf-check-card__form > div {
+    margin-top: 0;
+  }
+  .nf-check-card__links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0 var(--nf-space-md);
+    padding-top: var(--nf-space-2xs);
+    border-top: var(--nf-border-width) solid var(--nf-divider);
+  }
+
+  /* The check's answers (CheckForm.tsx): a note for a state, a card for an
+     answer, each with its glyph so no answer is colour alone. */
+  .nf-check-note {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nf-space-xs);
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.5;
+    color: var(--nf-content-primary);
+  }
+  .nf-check-note > svg {
+    flex: none;
+    margin-top: 0.1875rem;
+  }
+  .nf-check-note[data-tone="error"] > svg {
+    color: var(--nf-state-error);
+  }
+  .nf-check-note[data-tone="warning"] > svg {
+    color: var(--nf-state-warning);
+  }
+  .nf-check-answer {
+    display: grid;
+    gap: var(--nf-space-xs);
+    padding: var(--nf-space-md);
+    border: var(--nf-border-width) solid var(--nf-card-border);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-surface-primary);
+  }
+  .nf-check-answer[data-tone="warning"] {
+    background: color-mix(in oklab, var(--nf-state-warning) 7%, var(--nf-surface-primary));
+  }
+  .nf-check-answer[data-tone="success"] {
+    background: color-mix(in oklab, var(--nf-state-success) 6%, var(--nf-surface-primary));
+  }
+  .nf-check-answer__title {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    font-size: var(--nf-text-row);
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--nf-content-primary);
+  }
+  .nf-check-answer__body {
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.6;
+    color: var(--nf-content-secondary);
+  }
+
+  /* The Third party label, under the community room's lede: the tag and
+     what it means, on a hairline, no card. */
+  .nf-landing-thirdparty {
+    display: grid;
+    justify-items: start;
+    gap: var(--nf-space-2xs);
+    padding-top: var(--nf-space-md);
+    border-top: var(--nf-border-width) solid var(--nf-divider);
+  }
+  .nf-landing-thirdparty__title {
+    margin-top: var(--nf-space-2xs);
+    font-size: var(--nf-text-row);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-landing-thirdparty__body {
+    max-width: 52ch;
+    font-size: var(--nf-text-caption);
+    line-height: 1.5;
+    color: var(--nf-content-secondary);
+  }
+
+  /* -------------------------------------------- A8 the full calculator */
+  .nf-calc {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--nf-space-md);
+  }
+  @media (min-width: 60rem) {
+    .nf-calc {
+      grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+      align-items: start;
+    }
+    .nf-calc__result {
+      position: sticky;
+      top: calc(var(--nf-space-2xl) + env(safe-area-inset-top, 0px));
+    }
+  }
+  .nf-calc__form {
+    gap: var(--nf-space-md);
+  }
+  .nf-calc__field {
+    display: grid;
+    gap: var(--nf-space-2xs);
+    min-width: 0;
+  }
+  .nf-calc__row {
+    display: grid;
+    gap: var(--nf-space-md);
+  }
+  @media (min-width: 36rem) {
+    .nf-calc__row {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      align-items: end;
+    }
+  }
+  .nf-calc__money {
+    position: relative;
+    min-width: 0;
+  }
+  .nf-calc__currency {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: var(--nf-space-sm);
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    color: var(--nf-content-muted);
+    pointer-events: none;
+  }
+  .nf-calc__input {
+    width: 100%;
+    padding-inline-start: 2rem;
+    font-size: max(1rem, var(--nf-text-body));
+  }
+  .nf-calc__rule {
+    display: grid;
+    justify-items: start;
+    gap: var(--nf-space-xs);
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    border-radius: var(--nf-radius-well);
+    background: var(--nf-surface-raised);
+  }
+  .nf-calc__rule-title {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-calc__fees {
+    display: grid;
+    gap: var(--nf-space-sm);
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  .nf-calc__fee {
+    display: grid;
+    gap: var(--nf-space-2xs);
+    padding-block-start: var(--nf-space-sm);
+    border-top: var(--nf-border-width) solid var(--nf-divider);
+  }
+  .nf-calc__fee-label {
+    font-size: var(--nf-text-row);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-calc__fee-input {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--nf-space-xs);
+  }
+  .nf-calc__fee-input .nf-field {
+    font-size: max(1rem, var(--nf-text-body));
+  }
+  .nf-calc__result {
+    gap: var(--nf-space-sm);
+  }
+  .nf-calc__caption {
+    text-align: center;
+  }
+  .nf-calc__total {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-figure);
+    font-weight: 600;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    text-align: center;
+    color: var(--nf-content-primary);
+    overflow-wrap: anywhere;
+  }
+  .nf-calc__empty {
+    padding-block: var(--nf-space-sm);
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.5;
+    text-align: center;
+    color: var(--nf-content-secondary);
+  }
+  .nf-calc__empty[data-tone="error"] {
+    color: var(--nf-state-error);
+  }
+  .nf-calc__lines {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .nf-calc__lines > li {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    min-height: 2.75rem;
+    border-top: var(--nf-border-width) solid var(--nf-divider);
+    font-size: var(--nf-text-row);
+  }
+  .nf-calc__lines > li:first-child {
+    border-top: 0;
+  }
+  .nf-calc__dot {
+    inline-size: 0.5rem;
+    block-size: 0.5rem;
+    border-radius: 50%;
+    background: var(--nf-brand-primary);
+  }
+  .nf-calc__dot[data-tone="info"] {
+    background: var(--nf-state-info);
+  }
+  .nf-calc__dot[data-tone="neutral"] {
+    background: var(--nf-content-muted);
+  }
+  .nf-calc__dot[data-tone="success"] {
+    background: var(--nf-state-success);
+  }
+  .nf-calc__dot[data-tone="warning"] {
+    background: var(--nf-state-warning);
+  }
+  .nf-calc__dot[data-tone="error"] {
+    background: var(--nf-state-error);
+  }
+  .nf-calc__line-label {
+    color: var(--nf-content-secondary);
+  }
+  .nf-calc__line-value {
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-calc__actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--nf-space-xs);
+  }
+  .nf-calc__actions > .nf-btn {
+    width: 100%;
+    min-width: 0;
+    padding-inline: var(--nf-space-sm);
+  }
+  .nf-calc__actions > .nf-btn svg {
+    flex: none;
+  }
+  .nf-calc__cta {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--nf-space-xs);
+    margin-top: var(--nf-space-xs);
+    padding-top: var(--nf-space-md);
+    border-top: var(--nf-border-width) solid var(--nf-divider);
+  }
+
+  /* A long call to action wraps inside its button rather than widening the
+     card past a 360px screen. */
+  .nf-calc__cta .nf-btn,
+  .nf-supply__actions .nf-btn,
+  .nf-guide__next .nf-btn {
+    max-width: 100%;
+    height: auto;
+    min-height: 2.75rem;
+    padding-block: var(--nf-space-xs);
+    white-space: normal;
+    text-align: center;
+  }
+
+  /* -------------------------------------------------- A9 supply pages */
+  .nf-supply {
+    display: grid;
+    gap: var(--nf-space-2xl);
+    padding-block: var(--nf-space-xl) var(--nf-gap-section-tight);
+  }
+  .nf-supply__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--nf-space-xs);
+    margin-top: var(--nf-space-lg);
+  }
+  /* The three facts under the doors: the landing hero's fact row. */
+  .nf-supply__facts {
+    margin-top: var(--nf-space-md);
+  }
+  /* In the plate head the facts sit on the photograph from 64rem, so they
+     take the head's own ink, like its lede. */
+  .nf-site-head .nf-supply__facts {
+    color: var(--nf-landing-fg-2);
+  }
+  .nf-supply__h2 {
+    margin-bottom: var(--nf-space-sm);
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h3);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+    color: var(--nf-content-primary);
+    text-wrap: balance;
+  }
+  .nf-supply__h2-row {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    margin-bottom: var(--nf-space-sm);
+  }
+  .nf-supply__h2-row > .nf-supply__h2 {
+    margin-bottom: 0;
+  }
+  .nf-supply__h3 {
+    font-size: var(--nf-text-row);
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--nf-content-primary);
+  }
+  .nf-supply__body {
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.6;
+    color: var(--nf-content-secondary);
+    text-wrap: pretty;
+  }
+  .nf-supply__note {
+    margin-top: var(--nf-space-xs);
+    font-size: var(--nf-text-caption);
+    line-height: 1.5;
+    color: var(--nf-content-muted);
+  }
+
+  /* The steps: one card, one track. Each step is a round tinted plate on a
+     hairline rail that runs to the next plate; the last step has no rail. */
+  .nf-supply__track {
+    gap: 0;
+    margin: 0;
+    list-style: none;
+  }
+  .nf-supply__step {
+    display: grid;
+    grid-template-columns: 2.25rem minmax(0, 1fr);
+    gap: var(--nf-space-sm);
+  }
+  .nf-supply__rail {
+    position: relative;
+    display: flex;
+    justify-content: center;
+  }
+  .nf-supply__step:not(:last-child) .nf-supply__rail::after {
+    content: "";
+    position: absolute;
+    inset-block: calc(2.25rem + var(--nf-space-2xs)) var(--nf-space-2xs);
+    inset-inline-start: calc(50% - 0.5px);
+    width: 1px;
+    background: var(--nf-divider);
+  }
+  .nf-supply__step-text {
+    display: grid;
+    gap: var(--nf-space-2xs);
+    min-width: 0;
+    padding-bottom: var(--nf-space-lg);
+  }
+  .nf-supply__step:last-child .nf-supply__step-text {
+    padding-bottom: 0;
+  }
+  .nf-supply__step-n {
+    padding-top: var(--nf-space-2xs);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    letter-spacing: var(--nf-tracking-label, 0.06em);
+    color: var(--nf-content-muted);
+  }
+
+  /* What it costs: the figure tiles (spec section 17), a word for a figure
+     where the rate is none. */
+  .nf-supply__tiles {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  @media (min-width: 64rem) {
+    .nf-supply__tiles {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .nf-supply__tile .nf-kpi__figure {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .nf-supply__payout {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    gap: var(--nf-space-sm);
+  }
+  .nf-supply__prose {
+    display: grid;
+    gap: var(--nf-space-xs);
+  }
+  .nf-supply__two {
+    display: grid;
+    gap: var(--nf-space-lg);
+  }
+  .nf-supply__row-text {
+    display: block;
+    white-space: normal;
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--nf-content-primary);
+    text-wrap: pretty;
+  }
+  .nf-supply__others {
+    display: grid;
+    gap: var(--nf-space-xs);
+    padding-top: var(--nf-space-2xl);
+  }
+  .nf-supply__close-room .nf-close__title {
+    font-size: clamp(1.75rem, 1.3rem + 2vw, 2.5rem);
+  }
+
+  /* ------------------------------------------------------- A14 guides */
+  .nf-guides {
+    display: grid;
+    gap: var(--nf-space-md);
+    padding-top: var(--nf-space-xl);
+  }
+  @media (min-width: 48rem) {
+    .nf-guides {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .nf-guide-card {
+    align-content: start;
+    text-decoration: none;
+    transition: box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .nf-guide-card:hover {
+      box-shadow: var(--nf-card-shadow-hover, var(--nf-card-shadow));
+    }
+  }
+  .nf-guide-card:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  .nf-guide-card__title {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h4);
+    font-weight: 700;
+    line-height: 1.25;
+    color: var(--nf-content-primary);
+  }
+  .nf-guide-card__meta {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  /* One guide (GuideArticle.tsx): the article on a ~68ch reading measure,
+     and from 64rem a sticky contents column beside it. */
+  .nf-guide {
+    --nf-guide-measure: 68ch;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    padding-top: var(--nf-space-lg);
+  }
+  .nf-guide__article {
+    display: grid;
+    min-width: 0;
+    width: 100%;
+    max-width: var(--nf-guide-measure);
+    margin-inline: auto;
+  }
+  .nf-guide__aside {
+    display: none;
+  }
+  @media (min-width: 64rem) {
+    .nf-guide {
+      grid-template-columns: minmax(0, var(--nf-guide-measure)) 15rem;
+      justify-content: center;
+      column-gap: var(--nf-space-3xl);
+      padding-top: var(--nf-space-2xl);
+    }
+    .nf-guide__aside {
+      display: block;
+    }
+    .nf-guide__toc-fold {
+      display: none;
+    }
+  }
+
+  /* The head. */
+  .nf-guide__head {
+    display: grid;
+    justify-items: start;
+    gap: var(--nf-space-sm);
+    padding-bottom: var(--nf-space-lg);
+    border-bottom: var(--nf-border-width) solid var(--nf-divider);
+  }
+  .nf-guide__kind {
+    color: var(--nf-brand-primary);
+  }
+  :root:not([data-theme="light"]) .nf-guide__kind {
+    color: var(--nf-brand-secondary);
+  }
+  .nf-guide__title {
+    font-family: var(--nf-font-display);
+    font-size: clamp(1.875rem, 1.45rem + 1.8vw, 2.75rem);
+    font-weight: 600;
+    line-height: 1.12;
+    letter-spacing: -0.025em;
+    color: var(--nf-content-primary);
+    text-wrap: balance;
+  }
+  .nf-guide__lede {
+    font-size: var(--nf-text-body-lg);
+    line-height: 1.6;
+    color: var(--nf-content-secondary);
+    text-wrap: pretty;
+  }
+  .nf-guide__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--nf-space-xs) var(--nf-space-md);
+    margin-top: var(--nf-space-2xs);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  /* "Last reviewed": its own capsule, the success tint and a tick, because
+     the date is the promise that a person read it against the product. */
+  .nf-guide__reviewed {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    min-height: 2rem;
+    padding: 0 var(--nf-space-sm) 0 var(--nf-space-xs);
+    border-radius: 999px;
+    background: var(--nf-state-success-surface);
+    color: var(--nf-content-primary);
+    font-weight: 600;
+  }
+  .nf-guide__reviewed > svg {
+    color: var(--nf-state-success);
+  }
+  .nf-guide__time {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+  }
+  .nf-guide__note {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+
+  /* The phone's folded contents. */
+  .nf-guide__toc-fold {
+    margin-top: var(--nf-space-lg);
+  }
+  .nf-guide__toc-fold-list {
+    display: grid;
+    padding-bottom: var(--nf-space-xs);
+  }
+  .nf-guide__toc-n {
+    flex: none;
+    min-width: 1.75rem;
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-muted);
+  }
+
+  /* The wide contents column. */
+  .nf-guide-toc {
+    position: sticky;
+    top: calc(6rem + env(safe-area-inset-top, 0px));
+    display: grid;
+    gap: var(--nf-space-sm);
+    padding-top: var(--nf-space-2xs);
+  }
+  .nf-guide-toc__list {
+    display: grid;
+    border-inline-start: var(--nf-border-width) solid var(--nf-divider);
+  }
+  .nf-guide-toc__link {
+    display: flex;
+    align-items: baseline;
+    gap: var(--nf-space-xs);
+    min-height: 2.75rem;
+    padding: var(--nf-space-xs) var(--nf-space-sm);
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.4;
+    color: var(--nf-content-secondary);
+    text-decoration: none;
+  }
+  .nf-guide-toc__list .nf-guide-toc__link {
+    margin-inline-start: -1px;
+    border-inline-start: 2px solid transparent;
+  }
+  .nf-guide-toc__link:hover {
+    color: var(--nf-content-primary);
+  }
+  .nf-guide-toc__link[aria-current="location"] {
+    border-inline-start-color: var(--nf-brand-primary);
+    color: var(--nf-brand-primary);
+    font-weight: 600;
+  }
+  :root:not([data-theme="light"]) .nf-guide-toc__link[aria-current="location"] {
+    border-inline-start-color: var(--nf-brand-secondary);
+    color: var(--nf-brand-secondary);
+  }
+  .nf-guide-toc__link:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: -2px;
+    border-radius: var(--nf-radius-sm);
+  }
+
+  /* The text: 16 on 1.7 on a phone, 17 on 1.75 from 40rem, in the ink. */
+  .nf-guide__body {
+    font-size: var(--nf-text-body);
+    line-height: 1.7;
+    color: var(--nf-content-primary);
+  }
+  @media (min-width: 40rem) {
+    .nf-guide__body {
+      font-size: var(--nf-text-body-lg);
+      line-height: 1.75;
+    }
+  }
+  .nf-guide__section {
+    padding-top: var(--nf-space-2xl);
+    scroll-margin-top: calc(5rem + env(safe-area-inset-top, 0px));
+  }
+  .nf-guide__section h2 {
+    margin-bottom: var(--nf-space-xs);
+    font-family: var(--nf-font-display);
+    font-size: clamp(1.3125rem, 1.15rem + 0.6vw, 1.5rem);
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.015em;
+    color: var(--nf-content-primary);
+    text-wrap: balance;
+  }
+  .nf-guide__section > p,
+  .nf-guide__section > ul {
+    margin-top: var(--nf-space-md);
+    text-wrap: pretty;
+  }
+  .nf-guide__section > h2 + p,
+  .nf-guide__section > h2 + ul {
+    margin-top: var(--nf-space-xs);
+  }
+  .nf-guide__section > ul {
+    display: grid;
+    gap: var(--nf-space-xs);
+  }
+  .nf-guide__section > ul > li {
+    position: relative;
+    padding-inline-start: 1.5rem;
+  }
+  .nf-guide__section > ul > li::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: 0.375rem;
+    top: 0.72em;
+    width: 0.375rem;
+    height: 0.375rem;
+    border-radius: 50%;
+    background: var(--nf-brand-primary);
+  }
+
+  /* The pull-quote: a sentence the guide already says, set large on a brand
+     rule. */
+  .nf-guide__quote {
+    margin: var(--nf-space-xl) 0 var(--nf-space-lg);
+    padding-inline-start: var(--nf-space-md);
+    border-inline-start: 3px solid var(--nf-brand-primary);
+  }
+  .nf-guide__quote p {
+    font-family: var(--nf-font-display);
+    font-size: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);
+    font-weight: 500;
+    line-height: 1.35;
+    letter-spacing: -0.015em;
+    color: var(--nf-content-primary);
+    text-wrap: balance;
+  }
+
+  /* The callout: a round tinted plate and a short aside, on a quiet tint. */
+  .nf-guide__callout {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    gap: var(--nf-space-sm);
+    margin-top: var(--nf-space-md);
+    padding: var(--nf-space-md);
+    border: var(--nf-border-width) solid var(--nf-card-border);
+    border-radius: var(--nf-radius-card);
+    background: color-mix(in oklab, var(--nf-brand-primary) 5%, var(--nf-surface-primary));
+  }
+  .nf-guide__callout[data-tone="rule"] {
+    background: color-mix(in oklab, var(--nf-state-info) 6%, var(--nf-surface-primary));
+  }
+  .nf-guide__callout[data-tone="warn"] {
+    background: color-mix(in oklab, var(--nf-state-warning) 8%, var(--nf-surface-primary));
+  }
+  .nf-guide__callout-title {
+    padding-top: var(--nf-space-2xs);
+    font-size: var(--nf-text-row);
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--nf-content-primary);
+  }
+  .nf-guide__callout-body {
+    margin-top: var(--nf-space-2xs);
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.6;
+    color: var(--nf-content-secondary);
+  }
+
+  /* The foot. */
+  .nf-guide__sources {
+    display: grid;
+    gap: var(--nf-space-xs);
+    margin-top: var(--nf-space-2xl);
+    padding-top: var(--nf-space-md);
+    border-top: var(--nf-border-width) solid var(--nf-divider);
+  }
+  .nf-guide__sources ol {
+    display: grid;
+    gap: var(--nf-space-2xs);
+    padding-inline-start: 1.25rem;
+    list-style: decimal;
+    font-size: var(--nf-text-caption);
+    line-height: 1.5;
+    color: var(--nf-content-muted);
+  }
+  .nf-guide__next {
+    margin-top: var(--nf-space-xl);
+    gap: var(--nf-space-sm);
+  }
+  .nf-guide__more {
+    margin-top: var(--nf-space-2xl);
+  }
+
+  /* --------------------------------------- A12 preferences, A5 invite */
+  /* Children keep their own width (the logo capsule stretched the column
+     in light); the lede, the actions and the form fill it. */
+  .nf-door-page {
+    display: grid;
+    justify-items: start;
+    gap: var(--nf-space-md);
+    max-width: 32rem;
+    margin-inline: auto;
+    padding-block: var(--nf-space-2xl) var(--nf-space-3xl);
+  }
+  .nf-door-page__title {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h2);
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--nf-content-primary);
+  }
+  .nf-door-page__lede {
+    font-size: var(--nf-text-body);
+    line-height: 1.55;
+    color: var(--nf-content-secondary);
+  }
+  .nf-door-page > :is(p, form, .nf-door-page__actions, .nf-btn) {
+    justify-self: stretch;
+  }
+  .nf-door-page__actions {
+    display: grid;
+    gap: var(--nf-space-xs);
+  }
+}

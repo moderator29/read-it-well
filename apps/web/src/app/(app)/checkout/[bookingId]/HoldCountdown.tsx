@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { formatDate, getDictionary, type Locale } from "@vallo/i18n";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { Panel } from "@/components/ui/Panel";
-import { IconPlate } from "@/components/ui/IconPlate";
+import { Icon3D } from "@/components/ui/Icon3D";
 
 /**
  * The hold clock.
@@ -133,11 +132,11 @@ export function HoldCountdown({
 
   return (
     <Panel as="div" className="flex-row items-center gap-sm">
-      <IconPlate size="md">
-        <span className="block h-7 w-7">
-          <BrandIcon name="calendar-clock" fill tile={false} />
-        </span>
-      </IconPlate>
+      {/* The founder's 3D pending calendar (30 September): the booking is
+          held and waiting, 48px in a fixed box. */}
+      <span className="grid size-12 shrink-0 place-items-center" aria-hidden="true" data-art="calendar-pending">
+        <Icon3D name="calendar-pending" size={48} />
+      </span>
       <div className="min-w-0 flex-1">
         <p
           className={`nf-overline ${

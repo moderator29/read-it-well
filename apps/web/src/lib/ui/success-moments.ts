@@ -1,5 +1,6 @@
 import type { Dictionary } from "@vallo/i18n/core";
 import type { FeedbackKind } from "@/lib/ui/feedback";
+import type { Icon3DName } from "@/components/ui/icon-3d";
 
 /**
  * EVERY "IT WORKED" MOMENT, BY NAME (docs/SUCCESS_MOMENTS.md).
@@ -75,6 +76,77 @@ export const SUCCESS_VARIANT: Readonly<Record<SuccessMomentId, SuccessVariant>> 
   passwordChanged: "success",
   passcodeSet: "success",
   passcodeChanged: "success",
+  flatmateInvited: "submitted",
+  agentsInvited: "submitted",
+};
+
+/**
+ * THE OBJECT AT THE CENTRE OF EACH MOMENT (founder reference 54, 30
+ * September): one of the founder's 3D objects (components/ui/icon-3d.ts),
+ * chosen for what the moment is ABOUT rather than how it feels. The picture
+ * never claims more than the words: a submission shows the clock, the
+ * calendar with a clock or the folder (it waits on a person), never an
+ * object with a tick on it; the seal is kept for a decision somebody else
+ * made in your favour.
+ *
+ * Only names whose files exist may appear here (icon-3d.test.ts checks the
+ * files, and the type checks the name).
+ */
+export const SUCCESS_OBJECT: Readonly<Record<SuccessMomentId, Icon3DName>> = {
+  stayPaid: "calendar-booked",
+  stayPaidRecorded: "receipt",
+  rentPaid: "keys",
+  sharePaid: "earnings",
+  moveInPaid: "keys",
+  cryptoPaid: "coin",
+  inspectionRequested: "calendar-pending",
+  inspectionBooked: "calendar-booked",
+  inspectionReportSubmitted: "checklist",
+  inspectionRecorded: "checklist",
+  agreementDrawn: "contract",
+  agreementConfirmed: "contract",
+  agreementInReview: "clock",
+  agreementApprovedRenter: "handover",
+  agreementApprovedOwner: "handover",
+  claimFiled: "folder",
+  refundRequested: "receipt",
+  listingSubmitted: "list",
+  listingApproved: "home-verified",
+  listingLive: "home-verified",
+  agentApplied: "folder",
+  hostApplied: "folder",
+  registrationFiled: "folder",
+  kycSubmitted: "folder",
+  identityMatched: "verified",
+  verificationApproved: "verified",
+  agentApproved: "verified",
+  hostApproved: "verified",
+  hostLive: "hotel",
+  ticketFiled: "support",
+  contactSent: "envelope",
+  reportFiled: "report-flag",
+  stayRequested: "calendar-pending",
+  stayHeld: "calendar-booked",
+  tableRequested: "restaurant",
+  reviewPosted: "stay-rated",
+  tenancyReviewSent: "stay-rated",
+  bankAccountAdded: "bank",
+  cardSaved: "card-secure",
+  payoutAccountAdded: "earnings",
+  accountCreated: "celebrate",
+  emailVerified: "envelope",
+  passwordChanged: "shield",
+  passcodeSet: "passcode-lock",
+  passcodeChanged: "passcode-lock",
+  flatmateInvited: "team",
+  agentsInvited: "megaphone",
+};
+
+/** The object when a caller names no moment: by what kind of news it is. */
+export const VARIANT_OBJECT: Readonly<Record<SuccessVariant, Icon3DName>> = {
+  success: "verified",
+  submitted: "clock",
+  approved: "verified",
 };
 
 /**
@@ -88,7 +160,7 @@ export const SUCCESS_FEEL: Readonly<Record<SuccessVariant, FeedbackKind>> = {
   approved: "success",
 };
 
-export type SuccessCopy = { variant: SuccessVariant; title: string; body: string };
+export type SuccessCopy = { variant: SuccessVariant; object: Icon3DName; title: string; body: string };
 
 type MomentWords = { title: string; body: string };
 
@@ -108,7 +180,7 @@ export function successCopy<M extends Partial<Record<SuccessMomentId, MomentWord
   const words = copy.moments[id] as MomentWords;
   const fill = (text: string) =>
     Object.entries(values).reduce((out, [key, value]) => out.split(`{${key}}`).join(value), text);
-  return { variant: SUCCESS_VARIANT[id], title: fill(words.title), body: fill(words.body) };
+  return { variant: SUCCESS_VARIANT[id], object: SUCCESS_OBJECT[id], title: fill(words.title), body: fill(words.body) };
 }
 
 /* ------------------------------------------------------ the one-shot flag */
@@ -132,6 +204,9 @@ export const DONE_FLAGS = {
   "listing-submitted": "listingSubmitted",
   "listing-approved": "listingApproved",
   "listing-live": "listingLive",
+  /* The owner invited agents to pitch; the portfolio checks the invitation
+     is open on that unit of theirs (`listing`). */
+  "agents-invited": "agentsInvited",
   "account-created": "accountCreated",
   "email-verified": "emailVerified",
   "password-changed": "passwordChanged",

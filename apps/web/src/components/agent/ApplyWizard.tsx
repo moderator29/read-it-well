@@ -10,6 +10,8 @@ import {
 import { NIGERIAN_BANKS, NIGERIAN_STATES } from "@/lib/data/nigeria";
 import { createClient } from "@/lib/supabase/client";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+/* C12: `nf-agent-mode-option` lives in the workspace sheet, which left `globals.css`. */
+import "@/app/css/agent.css";
 import { Button } from "@/components/ui/Button";
 import { SuccessSheet } from "@/components/ui/SuccessSheet";
 import { successCopy } from "@/lib/ui/success-moments";
@@ -393,6 +395,7 @@ export function ApplyWizard({ t, role }: { t: Dictionary; role?: SetupRole }) {
           if (!open) setSuccessClosed(true);
         }}
         variant={appliedWords.variant}
+        object={appliedWords.object}
         title={appliedWords.title}
         body={appliedWords.body}
         primary={{ label: t.success.continue }}

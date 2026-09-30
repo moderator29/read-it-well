@@ -1,0 +1,52 @@
+import type { Translation } from "../../fallback";
+
+/* MACHINE DRAFT, 30 September 2026. Needs a native Igbo speaker's review
+   (review-status.ts). Only `lister`, the agent's own mandate page; the
+   console copy stays English by decision (STAFF_ENGLISH). */
+export const complianceBeneficialOwnershipIg = {
+  lister: {
+    title: "Onye ị na-agbazinye ụlọ n'aha ya",
+    lede: "Mgbe ị na-agbazinye ụlọ n'aha onye nwe ya, anyị na-akwado ya n'aka onye nwe ya na ọ bụ ha gwara gị. Ọ bụ nlele a na-eme ka ndepụta gị bụrụ nke a pụrụ ịtụkwasị obi, ndị na-achọ ụlọ na-ahụkwa ụbọchị anyị mere ya.",
+    whyLive: "Ndepụta onye nnọchi anya ma ọ bụ ụlọ ọrụ na-aga n'ihu naanị mgbe onye nwe ya kwadoro.",
+    grace: "Ndepụta gị ga-anọgide n'ihu ruo {date} ka ị na-atinye nke a.",
+    takenDown: "Ewepụla ndepụta a n'ahịa ruo mgbe onye nwe ya kwadoro. Ozugbo ha kwadoro, ọ nwere ike ịlaghachi n'ihu.",
+    owner: "I depụtara nke a dịka onye nwe ya, ya mere ọ dịghị onye a ga-akwado.",
+    example: "Nke a bụ ndepụta ihe atụ, ya mere ọ chọghị ihe ọ bụla ebe a.",
+    notYours: "Ndepụta a abụghị nke gị.",
+    failed: "Anyị enweghị ike ịgụ nke a ugbu a. Ọ dịghị ihe gbanwere. Nwaa ọzọ n'oge na-adịghị anya.",
+    back: "Laghachi na ndepụta gị",
+    waiting: "Anyị anatala ihe i zitere, anyị ga-akwadokwa ya na {name}. Ị nwere ike imezi ya tupu anyị emee ya.",
+    approved: "{name} kwadoro na {date}. Ọ dịghị ihe ọzọ ị ga-eme.",
+    rejected: "Anyị enweghị ike ịkwado nke a: {reason} Zitegharịa ya na nkọwa ziri ezi.",
+    kind: "Ihe onye nwe ya gwara gị mee",
+    kinds: { letting: "Gbazinye ya", sale: "Ree ya", management: "Lekọta ya" },
+    name: "Aha zuru ezu nke onye nwe ya",
+    phone: "Nọmba ekwentị onye nwe ya",
+    phoneHint: "Anyị nwere ike ịkpọ nọmba a iji kwado ya. Anyị anaghị egosi ya ndị na-achọ ụlọ.",
+    relationship: "Otu ha si metụta ụlọ ahụ",
+    relationships: {
+      owner: "Ha nwe ya",
+      joint_owner: "Ha na ndị ọzọ nwe ya",
+      family_of_owner: "Ezinụlọ onye nwe ya",
+      company_director: "Onye isi ụlọ ọrụ nwe ya",
+      executor_or_trustee: "Onye na-ahụ maka ihe nketa ma ọ bụ onye nlekọta",
+      attorney: "Ha nwere ikike nnọchi anya",
+      other: "Ihe ọzọ",
+    },
+    exclusive: "Ọ bụ naanị gị na-agbazinye ya?",
+    exclusiveYes: "Ee, naanị m",
+    exclusiveNo: "Mba, ndị ọzọ kwa",
+    exclusiveUnknown: "O doghị m anya",
+    signedOn: "Ụbọchị onye nwe ya nyere gị ntụziaka (ọ bụghị iwu)",
+    expiresOn: "Ụbọchị ọ ga-agwụ (ọ bụghị iwu, ọ bụghị n'oge gara aga)",
+    send: "Zipu ka a kwado ya",
+    update: "Chekwaa mmezi ahụ",
+    sent: "Ezitela ya. Anyị ga-akwado ya na onye nwe ya.",
+    link: "Ikike onye nwe ya",
+    renewDue: "Ikike gị site n'aka {name} ga-agwụ na {date}. Zipu mmeghari ugbu a ka anyị kwado ya na ha, ka ndepụta ahụ nọgide n'ihu na-akwụsịghị.",
+    renewEnded: "Ikike gị site n'aka {name} gwụrụ na {date}, ya mere ọ baghịzi uru. Zipu nke ọhụrụ, anyị ga-akwadokwa ya na ha.",
+    renewWaiting: "Anyị anatala mmeghari gị, anyị ga-akwadokwa ya na {name}. Ikike dị na ndekọ ka bara uru ruo ụbọchị ọ ga-agwụ.",
+    renewWaitingEnded: "Anyị anatala mmeghari gị, anyị ga-akwadokwa ya na {name}. Ikike ochie agwụla, ya mere ndepụta ahụ chọrọ ka akwado nke a.",
+    renew: "Zipu mmeghari ahụ",
+  },
+} satisfies NonNullable<Translation["complianceBeneficialOwnership"]>;

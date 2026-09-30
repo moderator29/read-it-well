@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState, useTransition } from "react";
+import { useActionState, useEffect, useState, useTransition, type ReactNode } from "react";
 import { DataSaverRow } from "@/components/app/account/DataSaverRow";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
@@ -63,6 +63,7 @@ export function InterestChoices({
   initial,
   mode = "welcome",
   t,
+  extra,
 }: {
   initial: PropertyType[];
   /* The nine market names and every word around them. `INTEREST_COPY` in
@@ -71,6 +72,12 @@ export function InterestChoices({
   t: Dictionary;
   /** `welcome` is the first run. `settings` is somebody changing their mind. */
   mode?: "welcome" | "settings";
+  /**
+   * First run only: the optional asks the sign-up form no longer carries
+   * (`ArrivalAsks`, A1), drawn above Continue. They save themselves; nothing
+   * in them is read by this form's action.
+   */
+  extra?: ReactNode;
 }) {
   const router = useRouter();
   const firstRun = mode === "welcome";
@@ -162,7 +169,7 @@ export function InterestChoices({
                  (`.nf-interest[aria-pressed="true"]` in settings-rows.css reads
                  the `--nf-selected-*` tokens), as the console's selected row.
                  It was `.nf-card` with an inline flat tint. */
-              className="nf-panel nf-panel--card nf-interest nf-tap relative flex min-h-[5.5rem] flex-col items-start justify-center gap-2xs p-md text-left transition-transform active:scale-[0.97] disabled:opacity-60"
+              className="nf-panel nf-panel--card nf-interest nf-tap relative flex min-h-[5.5rem] flex-col items-start justify-start gap-2xs p-md text-left transition-transform active:scale-[0.97] disabled:opacity-60"
             >
               {selected && (
                 <UiIcon
@@ -171,6 +178,10 @@ export function InterestChoices({
                   className="absolute right-3 top-3 shrink-0"
                 />
               )}
+              {/* A ring of light that spreads once from the tick when a card
+                  is chosen (first run only: welcome.css scopes it to the
+                  question; on settings it is an empty, unstyled span). */}
+              {selected && <span className="nf-interest__burst" aria-hidden="true" />}
               <span className="pr-lg text-[length:var(--nf-text-body-sm)] font-semibold leading-tight text-[var(--nf-content-primary)]">
                 {t.interests.markets[value]}
               </span>
@@ -191,6 +202,8 @@ export function InterestChoices({
           />
         </div>
       )}
+
+      {firstRun && extra ? <div className="mt-md">{extra}</div> : null}
 
       {state && !state.ok && (
         <p

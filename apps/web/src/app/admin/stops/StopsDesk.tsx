@@ -1,5 +1,6 @@
 "use client";
 
+import { dateTimeLabel } from "@/lib/format/when";
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import {
@@ -44,14 +45,7 @@ function dateLabel(iso: string | null): string {
   if (!iso) return "not recorded";
   const parsed = Date.parse(iso);
   if (Number.isNaN(parsed)) return "not recorded";
-  return new Date(parsed).toLocaleString("en-GB", {
-    timeZone: "Africa/Lagos",
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return dateTimeLabel(parsed);
 }
 
 /** Who signed a stop, distinguishing "nobody" from "somebody who has left". */

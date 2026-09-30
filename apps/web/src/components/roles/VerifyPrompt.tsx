@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Icon3D } from "@/components/ui/Icon3D";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { needsVerification, type RoleState } from "./roles";
 
@@ -47,8 +48,10 @@ export function VerifyPrompt({
 
   return (
     <div className={`nf-verify-row ${className ?? ""}`}>
-      <span className="nf-verify-row__mark" aria-hidden="true">
-        <UiIcon name="verified" size="md" />
+      {/* The founder's 3D ID card (30 September): this row is a door to
+          the identity step, so it carries the object, 48px in a fixed box. */}
+      <span className="grid size-12 shrink-0 place-items-center" aria-hidden="true" data-art="id-check">
+        <Icon3D name="id-check" size={48} />
       </span>
 
       <div className="min-w-0 flex-1">

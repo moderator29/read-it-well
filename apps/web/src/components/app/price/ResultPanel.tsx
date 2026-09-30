@@ -105,6 +105,7 @@ export function AnsweredResult({
     <div>
       <ShareCardFrame
         testId="price-check-card"
+        align="center"
         title={copy.askingRange}
         figureSize="lg"
         figure={

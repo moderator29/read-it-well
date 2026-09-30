@@ -79,6 +79,27 @@
       grid-column: span 1;
     }
   }
+  /* The support column's nine links: across both phone tracks in two
+     columns of their own (it was a single column of nine, the footer's
+     longest run at 390), one column again from 1024px. */
+  .nf-site-footer-col--wide {
+    grid-column: span 2;
+  }
+  .nf-site-footer-col--wide > ul {
+    columns: 2;
+    column-gap: var(--nf-gap-group);
+  }
+  .nf-site-footer-col--wide li {
+    break-inside: avoid;
+  }
+  @media (min-width: 1024px) {
+    .nf-site-footer-col--wide {
+      grid-column: span 1;
+    }
+    .nf-site-footer-col--wide > ul {
+      columns: 1;
+    }
+  }
   .nf-site-footer-link {
     display: inline-flex;
     align-items: center;
@@ -226,6 +247,14 @@
   @media (min-width: 64rem) {
     .nf-site-head {
       padding-block: var(--nf-space-4xl) var(--nf-space-3xl);
+      /* From 64rem the copy stands on the photograph and its ink scrim, so
+         it takes the on-ink whites in both themes (landing.css names them).
+         Without this, light mode printed the theme's dark ink on the dusk
+         plate and /help, /about and every content page opened on an
+         unreadable title (pixel polish, 30 September). */
+      --nf-landing-fg: var(--nf-landing-on-ink);
+      --nf-landing-fg-2: var(--nf-landing-on-ink-secondary);
+      --nf-landing-fg-3: var(--nf-landing-on-ink-muted);
     }
     .nf-site-head-aurora {
       display: none;
@@ -243,6 +272,11 @@
     box-shadow:
       var(--nf-panel-glow),
       var(--nf-elev-2);
+  }
+  @media (max-width: 63.999rem) {
+    .nf-site-head--tool .nf-site-head-plate {
+      display: none;
+    }
   }
   .nf-site-head-plate img {
     object-fit: cover;
@@ -437,6 +471,9 @@
 @layer components {
   .nf-edge-lap {
     --nf-edge-lap-ink: var(--nf-glow-ink, var(--nf-brand-primary));
+    /* The second of the two arcs. It is the same ink unless a host asks for
+       the blue-to-orange lap (the warm spark, spec section 18), below. */
+    --nf-edge-lap-ink-2: var(--nf-edge-lap-ink);
     --nf-edge-lap-speed: 6s;
     --nf-edge-lap-width: 1.5px;
     position: relative;
@@ -463,11 +500,21 @@
       color-mix(in oklab, var(--nf-edge-lap-ink) 55%, transparent) 150deg,
       var(--nf-edge-lap-ink) 177deg,
       transparent 180deg 292deg,
-      color-mix(in oklab, var(--nf-edge-lap-ink) 55%, transparent) 330deg,
-      var(--nf-edge-lap-ink) 357deg,
+      color-mix(in oklab, var(--nf-edge-lap-ink-2) 55%, transparent) 330deg,
+      var(--nf-edge-lap-ink-2) 357deg,
       transparent 360deg
     );
     animation: nf-logo-lap var(--nf-edge-lap-speed) linear infinite;
+  }
+  /* THE BLUE-TO-ORANGE LAP (the warm spark, spec section 18): on the landing
+     capsule, the hero's eyebrow capsule and the one band that opens each
+     workspace desk, the second light chasing round the rim is the icons'
+     orange. At rest (reduced motion, Calm, Off, data saver) the steady rim
+     stays blue. */
+  .nf-cap.nf-edge-lap,
+  .nf-hero-eyebrow.nf-edge-lap,
+  .nf-desk-home .nf-edge-lap {
+    --nf-edge-lap-ink-2: var(--nf-spark);
   }
   @media (prefers-reduced-motion: reduce) {
     .nf-edge-lap::after {

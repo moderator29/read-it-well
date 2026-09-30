@@ -99,6 +99,7 @@ export function ReviewForm({
           if (!open) setSuccessClosed(true);
         }}
         variant={posted.variant}
+        object={posted.object}
         title={posted.title}
         body={posted.body}
         details={[{ label: success.detail.for, value: subject.title }]}
@@ -113,7 +114,7 @@ export function ReviewForm({
         actions={[
           {
             label: "See it on the listing",
-            href: `/listing/${state.data.listingId}`,
+            href: state.data.href,
             tone: "primary",
           },
           { label: plansAction.label, href: plansAction.href, tone: "quiet" },

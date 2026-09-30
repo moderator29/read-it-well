@@ -10,6 +10,11 @@ import { getMessageRepository } from "@/lib/messages/repository";
 import { authHref, returnHref } from "@/components/auth/auth-intent";
 import { EmptyActions } from "@/components/app/EmptyActions";
 import { EmptyState } from "@/components/app/Screen";
+import { getDictionary } from "@vallo/i18n";
+import { getLocale } from "@/lib/locale";
+import { renterQuestions } from "@/lib/enquiry/renter-questions";
+import { readViewingSlots } from "@/lib/viewings/queries";
+import { ReplyTimeLine } from "@/components/app/listing/ReplyTimeLine";
 
 export const metadata: Metadata = { title: "New message" };
 
@@ -119,11 +124,28 @@ export default async function NewMessagePage({
       redirect(`/messages/${result.data.conversationId}${suffix}`);
     }
     if (result.ok) {
-      const found = await getListingRepository().byId(listing);
+      const [found, slots, locale] = await Promise.all([
+        getListingRepository().byId(listing),
+        /* B6: open viewing slots answer "Can I inspect on Saturday?". A failed
+           read is null, which keeps the question. */
+        readViewingSlots(listing).catch(() => null),
+        getLocale(),
+      ]);
+      const t = getDictionary(locale);
+      const questions = renterQuestions(found ?? null, t.memberKit.questions, {
+        viewingSlots: Array.isArray(slots) && slots.length > 0,
+      });
       return (
         <div className="mx-auto max-w-2xl">
           <PageHeader title="Message the agent" fallback={`/listing/${listing}`} />
-          <FirstMessage listingId={listing} listingTitle={found?.title ?? null} suffix={suffix} />
+          <FirstMessage
+            listingId={listing}
+            listingTitle={found?.title ?? null}
+            suffix={suffix}
+            questions={questions}
+            questionsTitle={t.memberKit.questions.title}
+            replyLine={<ReplyTimeLine listingId={listing} locale={locale} />}
+          />
         </div>
       );
     }

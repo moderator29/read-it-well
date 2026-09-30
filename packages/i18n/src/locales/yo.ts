@@ -1,6 +1,8 @@
 import { unitsYo } from "./units";
 import type { Dictionary } from "./en";
 import { withFallback, type Translation } from "./fallback";
+/* Machine drafts, one module per namespace, awaiting a native speaker. */
+import { yoDrafts } from "./drafts/yo";
 
 /**
  * Yorùbá.
@@ -304,11 +306,13 @@ export const yo: Dictionary = withFallback({
     myBookings: "Àwọn ìfipamọ́ mi",
     myBookingsSub: "Wo ìfipamọ́ ilé àti ibùgbé rẹ",
     savedSub: "Àwọn ilé, hótẹ́ẹ̀lì àti ibi tí o fipamọ́",
-    /* Draft built from this file's words for agreements and payments; a
-       native speaker should confirm, especially the word for claims:
-       "ẹ̀san" also reads as "revenge", and the English means deposit
-       claims (a request to be paid back from a deposit). */
-    agreementsSub: "Àwọn àdéhùn, ìsanwó àti ìbéèrè ẹ̀san",
+    /* "Claims" here are Vallo Guarantee claims: a request to be paid
+       money back. The earlier draft wrote "ìbéèrè ẹ̀san", and "ẹ̀san" reads
+       first as vengeance or retribution, so it was replaced on 30 September
+       2026 with "ìsanpadà" (paying back, compensation), the same sense Hausa
+       ("diyya") and Igbo ("nkwụghachi") carry here. Still a draft: a native
+       speaker should confirm "ìbéèrè ìsanpadà" for a Guarantee claim. */
+    agreementsSub: "Àwọn àdéhùn, ìsanwó àti ìbéèrè ìsanpadà",
     /** The phone's wording for the four Belongings rows: one line each. */
     myBookingsRow: "Ìfipamọ́ ilé àti ibùgbé",
     savedRow: "Ilé, hótẹ́ẹ̀lì àti ibi",
@@ -3587,4 +3591,4 @@ export const yo: Dictionary = withFallback({
     close: "Close",
   },
 
-} satisfies Translation);
+} satisfies Translation, yoDrafts);

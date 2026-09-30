@@ -1,0 +1,52 @@
+import type { Translation } from "../../fallback";
+
+/* MACHINE DRAFT, 30 September 2026. Needs a native Yoruba speaker's review
+   (review-status.ts). Only `lister`, the agent's own mandate page; the
+   console copy stays English by decision (STAFF_ENGLISH). */
+export const complianceBeneficialOwnershipYo = {
+  lister: {
+    title: "Ẹni tí o ń yálé fún",
+    lede: "Nígbà tí o bá ń yá ilé fún onílé, a máa ń jẹ́rìí sí i lọ́dọ̀ onílé pé àwọn ni wọ́n ní kí o ṣe é. Àyẹ̀wò yìí ló ń mú kí àtòjọ rẹ ṣeé gbẹ́kẹ̀lé, àwọn tí ń wá ilé sì ń rí ọjọ́ tí a ṣe é.",
+    whyLive: "Àtòjọ aṣojú tàbí ilé iṣẹ́ kan máa ń lọ sí ojú òpó lẹ́yìn tí onílé bá ti jẹ́rìí nìkan.",
+    grace: "Àtòjọ rẹ yóò wà lójú òpó títí di {date} nígbà tí o bá ń fi èyí kún un.",
+    takenDown: "A ti yọ àtòjọ yìí kúrò lọ́jà títí onílé yóò fi jẹ́rìí. Lẹ́yìn tí wọ́n bá ti ṣe bẹ́ẹ̀, ó lè padà sí ojú òpó.",
+    owner: "O fi èyí sílẹ̀ gẹ́gẹ́ bí onílé, nítorí náà kò sí ẹni tí a ó jẹ́rìí sí.",
+    example: "Àtòjọ àpẹẹrẹ ni èyí, nítorí náà kò nílò nǹkan kan níbí.",
+    notYours: "Àtòjọ yìí kì í ṣe tìrẹ.",
+    failed: "A kò lè ka èyí báyìí. Kò sí ohun tí ó yípadà. Gbìyànjú lẹ́ẹ̀kan sí i láìpẹ́.",
+    back: "Padà sí àwọn àtòjọ rẹ",
+    waiting: "A ti gba ohun tí o fi ránṣẹ́, a ó sì jẹ́rìí sí i lọ́dọ̀ {name}. O lè ṣàtúnṣe rẹ̀ kí a tó ṣe bẹ́ẹ̀.",
+    approved: "{name} jẹ́rìí sí i ní {date}. Kò sí ohun mìíràn láti ṣe.",
+    rejected: "A kò lè jẹ́rìí sí èyí: {reason} Fi ránṣẹ́ lẹ́ẹ̀kan sí i pẹ̀lú àlàyé tí ó tọ́.",
+    kind: "Ohun tí onílé ní kí o ṣe",
+    kinds: { letting: "Yá a", sale: "Tà á", management: "Bójútó o" },
+    name: "Orúkọ kíkún onílé",
+    phone: "Nọ́ńbà fóònù onílé",
+    phoneHint: "A lè pe nọ́ńbà yìí láti jẹ́rìí. A kì í fi hàn àwọn tí ń wá ilé.",
+    relationship: "Bí wọ́n ṣe jẹ mọ́ ilé náà",
+    relationships: {
+      owner: "Àwọn ni wọ́n ni ín",
+      joint_owner: "Wọ́n ni ín pẹ̀lú àwọn mìíràn",
+      family_of_owner: "Ẹbí onílé",
+      company_director: "Olùdarí ilé iṣẹ́ tí ó ni ín",
+      executor_or_trustee: "Aláṣẹ ogún tàbí olùtọ́jú",
+      attorney: "Wọ́n ní agbára aṣojú",
+      other: "Nǹkan mìíràn",
+    },
+    exclusive: "Ṣé ìwọ nìkan ló ń yá a?",
+    exclusiveYes: "Bẹ́ẹ̀ ni, èmi nìkan",
+    exclusiveNo: "Rárá, àwọn mìíràn náà",
+    exclusiveUnknown: "Kò dá mi lójú",
+    signedOn: "Ọjọ́ tí onílé fún ọ ní àṣẹ (kò pọndandan)",
+    expiresOn: "Ọjọ́ tí yóò parí (kò pọndandan, kì í ṣe ọjọ́ tí ó ti kọjá)",
+    send: "Fi ránṣẹ́ fún ìjẹ́rìí",
+    update: "Fi àtúnṣe pamọ́",
+    sent: "A ti fi ránṣẹ́. A ó jẹ́rìí sí i lọ́dọ̀ onílé.",
+    link: "Àṣẹ onílé",
+    renewDue: "Àṣẹ rẹ láti ọ̀dọ̀ {name} yóò parí ní {date}. Fi ìsọdọ̀tun ránṣẹ́ báyìí kí a lè jẹ́rìí sí i lọ́dọ̀ wọn, kí àtòjọ náà sì wà lójú òpó láìdáwọ́dúró.",
+    renewEnded: "Àṣẹ rẹ láti ọ̀dọ̀ {name} parí ní {date}, nítorí náà kò ka mọ́. Fi tuntun ránṣẹ́, a ó sì jẹ́rìí sí i lọ́dọ̀ wọn.",
+    renewWaiting: "A ti gba ìsọdọ̀tun rẹ, a ó sì jẹ́rìí sí i lọ́dọ̀ {name}. Àṣẹ tí ó wà nínú àkọsílẹ̀ ṣì ka títí di ọjọ́ ìparí rẹ̀.",
+    renewWaitingEnded: "A ti gba ìsọdọ̀tun rẹ, a ó sì jẹ́rìí sí i lọ́dọ̀ {name}. Àṣẹ àtijọ́ ti parí, nítorí náà àtòjọ náà nílò kí a jẹ́rìí sí èyí.",
+    renew: "Fi ìsọdọ̀tun ránṣẹ́",
+  },
+} satisfies NonNullable<Translation["complianceBeneficialOwnership"]>;

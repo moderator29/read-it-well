@@ -1,3 +1,4 @@
+import { dateTimeLabel } from "@/lib/format/when";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { STAFF_SCOPE_LABEL } from "@/lib/admin/guard";
@@ -7,8 +8,8 @@ import { PageHead, Panel } from "../_components/panels";
 export const metadata: Metadata = { title: "Team oversight", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
-const when = (iso: string | null) =>
-  iso ? new Date(iso).toLocaleString("en-NG", { timeZone: "Africa/Lagos", dateStyle: "medium", timeStyle: "short" }) : "none";
+/* The one way the console says when (lib/format/when.ts). */
+const when = (iso: string | null) => (iso ? dateTimeLabel(iso) : "none");
 
 function age(iso: string | null, now: number): string {
   if (!iso) return "nothing waiting";

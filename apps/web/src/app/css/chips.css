@@ -513,6 +513,15 @@
     --nf-badge-hue: var(--nf-brand-primary);
     --nf-badge-ink: var(--nf-state-info);
   }
+  /* The warm spark (spec section 18): a "New" tag and nothing else. The
+     word is the spark ink on its own tint, 4.5:1 or better in both themes. */
+  .nf-badge--spark {
+    --nf-badge-hue: var(--nf-spark);
+    --nf-badge-ink: var(--nf-spark-ink);
+    /* A lighter tint than the shared 18 per cent, so the 11px word keeps
+       4.9:1 on paper (it would be 4.55 on the shared tint). */
+    background: color-mix(in oklab, var(--nf-spark) 12%, var(--nf-surface-primary));
+  }
   .nf-badge--brand {
     --nf-badge-hue: var(--nf-brand-primary);
     --nf-badge-ink: color-mix(in oklab, var(--nf-brand-secondary) 55%, white);
@@ -631,7 +640,7 @@
     border-radius: var(--nf-radius-sm);
     font-size: var(--nf-text-overline);
     font-weight: 700;
-    letter-spacing: 0.03em;
+    letter-spacing: var(--nf-tracking-label);
     text-transform: uppercase;
     color: var(--nf-brand-secondary);
     /* Rung 1 for the fill and rung 3 for the edge, which is the pair the ladder
@@ -1078,3 +1087,73 @@
       inset 0 1px 0 var(--nf-glass-rim),
       0 0 12px var(--nf-glow-3);
   }}
+
+/*
+ * =====================================================================
+ * THE BUTTON SYSTEM'S CHIPS (founder reference 55; spec section 19).
+ *
+ *   .nf-tag         7. the soft pill with its glyph: Verified (brand),
+ *                   Featured (the warm spark, section 18), Available
+ *                   (success). A label, not a control: 32px, no hover.
+ *   .nf-segmented--pill   12. the solid segmented control takes the
+ *                   system's blue thumb on the raised well.
+ * =====================================================================
+ */
+@layer components {
+  .nf-tag {
+    --nf-tag-ink: var(--nf-act-ink);
+    --nf-tag-glyph: var(--nf-act-blue);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    min-height: 2rem;
+    padding: var(--nf-space-3xs) var(--nf-space-sm) var(--nf-space-3xs) var(--nf-space-xs);
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-act-surface);
+    border: var(--nf-border-width) solid var(--nf-act-surface-edge);
+    box-shadow: var(--nf-act-surface-shadow);
+    color: var(--nf-tag-ink);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+  .nf-tag__glyph {
+    display: inline-flex;
+    color: var(--nf-tag-glyph);
+  }
+  .nf-tag--spark {
+    --nf-tag-ink: var(--nf-spark-ink);
+    --nf-tag-glyph: var(--nf-spark);
+  }
+  .nf-tag--success {
+    --nf-tag-ink: var(--nf-state-success);
+    --nf-tag-glyph: var(--nf-state-success);
+  }
+  .nf-tag--neutral {
+    --nf-tag-ink: var(--nf-content-secondary);
+    --nf-tag-glyph: var(--nf-content-muted);
+  }
+  .nf-tag--danger {
+    --nf-tag-ink: var(--nf-state-error);
+    --nf-tag-glyph: var(--nf-state-error);
+  }
+
+  .nf-segmented--pill {
+    border-radius: var(--nf-act-radius-md);
+    background: var(--nf-surface-raised);
+    border: var(--nf-border-width) solid var(--nf-act-well-edge);
+    box-shadow: none;
+  }
+  .nf-segmented--pill .nf-segmented__capsule,
+  .nf-segmented--pill .nf-segmented__link[aria-current="true"] {
+    border-radius: var(--nf-act-radius-sm);
+    background: var(--nf-act-fill);
+    box-shadow: var(--nf-act-shadow);
+  }
+  .nf-segmented--pill .nf-segmented__item[aria-selected="true"],
+  .nf-segmented--pill .nf-segmented__item[aria-checked="true"],
+  .nf-segmented--pill .nf-segmented__link[aria-current="true"] {
+    color: var(--nf-act-on);
+  }
+}

@@ -5,7 +5,7 @@ import { ButtonLink } from "@/components/ui/Button";
 import { Amount, Figure } from "@/components/ui/Amount";
 import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/Table";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
-import { IconPlate } from "@/components/ui/IconPlate";
+import { Icon3D } from "@/components/ui/Icon3D";
 
 /**
  * The host's earnings console: what has actually settled, read straight from
@@ -44,21 +44,21 @@ function Tile({
   value: React.ReactNode;
 }) {
   return (
-    <div className="nf-panel nf-panel--card flex flex-col gap-xs p-md sm:gap-sm sm:p-md">
-      <IconPlate size="sm" className="shrink-0">
-        <UiIcon name={icon} size={20} />
-      </IconPlate>
-      <div className="min-w-0">
-        <p className="leading-snug text-[length:var(--nf-text-overline)] font-medium text-[var(--nf-content-muted)]">{label}</p>
-        <p className="mt-3xs leading-tight">{value}</p>
-      </div>
+    /* The figure tile of reference 45 (section 17): label first with its
+       lean glyph, then the big figure. The shared `.nf-kpi` material. */
+    <div className="nf-kpi">
+      <p className="nf-kpi__head">
+        <UiIcon name={icon} size={16} className="nf-kpi__glyph" />
+        <span className="nf-kpi__label">{label}</span>
+      </p>
+      <p className="nf-kpi__figure">{value}</p>
     </div>
   );
 }
 
 /** The size and weight every totals tile figure is set at. */
 const TILE_FIGURE =
-  "text-[length:var(--nf-text-body-lg)] font-bold tracking-tight text-[var(--nf-content-primary)] sm:text-[length:var(--nf-text-h4)]";
+  "text-[length:var(--nf-text-h4)] font-semibold tracking-tight text-[var(--nf-content-primary)] sm:text-[length:var(--nf-text-h3)]";
 
 export function EarningsWorkspace({
   t,
@@ -84,9 +84,10 @@ export function EarningsWorkspace({
   if (earnings.months.length === 0) {
     return (
       <div className="mx-auto flex max-w-md flex-col items-center gap-md py-10 text-center sm:py-14">
-        <IconPlate size="lg">
-          <UiIcon name="bank" size={24} />
-        </IconPlate>
+        {/* The founder's 3D earnings hand (30 September), 88px, fixed box. */}
+        <span className="grid size-[5.5rem] place-items-center" aria-hidden="true" data-art="earnings">
+          <Icon3D name="earnings" size={88} />
+        </span>
         <h2 className="nf-h3">{t.emptyTitle}</h2>
         <p className="mx-auto max-w-[40ch] text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           {t.emptyBody}
@@ -102,7 +103,7 @@ export function EarningsWorkspace({
 
   return (
     <div className="space-y-lg">
-      <div className="grid grid-cols-2 gap-md lg:grid-cols-4">
+      <div className="nf-figure-tiles">
         <Tile
           icon="bank"
           label={t.totals.yourShare}
@@ -111,6 +112,7 @@ export function EarningsWorkspace({
               minorUnits={earnings.totalAgentShareMinor}
               locale={locale}
               className={TILE_FIGURE}
+                count
             />
           }
         />
@@ -122,6 +124,7 @@ export function EarningsWorkspace({
               minorUnits={earnings.totalGrossMinor}
               locale={locale}
               className={TILE_FIGURE}
+                count
             />
           }
         />
@@ -129,13 +132,15 @@ export function EarningsWorkspace({
           icon="calendar-check"
           label={t.totals.settledStays}
           value={
-            <Figure value={earnings.settledStays} locale={locale} className={TILE_FIGURE} />
+            <Figure value={earnings.settledStays} locale={locale} className={TILE_FIGURE}
+                count />
           }
         />
         <Tile
           icon="trending-up"
           label={t.totals.thisMonth}
-          value={<Amount minorUnits={thisMonthMinor} locale={locale} className={TILE_FIGURE} />}
+          value={<Amount minorUnits={thisMonthMinor} locale={locale} className={TILE_FIGURE}
+                count />}
         />
       </div>
 

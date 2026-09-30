@@ -5,6 +5,8 @@ import type { BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { BackControl } from "@/components/ui/BackControl";
 import { IconPlate } from "@/components/ui/IconPlate";
+import { Icon3D } from "@/components/ui/Icon3D";
+import type { Icon3DName } from "@/components/ui/icon-3d";
 import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
 
 /**
@@ -99,6 +101,18 @@ export function StaysHead({
  * as `GOVERNING-10` screen one has the hotel, and beside the heading, as
  * `GOVERNING-11` screen three has the restaurant.
  */
+/**
+ * The founder's 3D objects (30 September) for the marks the sheets draw: the
+ * hero of the hotel and restaurant steps, and the shortlet's place tiles.
+ */
+const STAYS_ART: Partial<Record<BrandIconName, Icon3DName>> = {
+  "stays-hotel-palms": "hotel",
+  "concierge-bell": "restaurant",
+  "apartment-block": "apartment",
+  "modern-house": "villa",
+  "hotel-room": "stay-rated",
+};
+
 export function StaysHero({
   mark,
   inline = false,
@@ -113,9 +127,15 @@ export function StaysHero({
       {/* The mark as a lean glyph on the brand plate (the icon upgrade): it
           centres above the words, or leads them in the inline hero. */}
       <span className={inline ? "shrink-0" : "flex justify-center"}>
-        <IconPlate size="lg" tone="brand">
-          <UiIcon name={lineGlyphFor(mark)} size={24} />
-        </IconPlate>
+        {STAYS_ART[mark] ? (
+          <span className="grid size-[4.5rem] place-items-center" aria-hidden="true" data-art={STAYS_ART[mark]}>
+            <Icon3D name={STAYS_ART[mark]!} size={72} priority />
+          </span>
+        ) : (
+          <IconPlate size="lg" tone="brand">
+            <UiIcon name={lineGlyphFor(mark)} size={24} />
+          </IconPlate>
+        )}
       </span>
       {children}
     </div>
@@ -302,10 +322,17 @@ export function StaysTile({
       onClick={onSelect}
       className={`nf-stays-tile${variant === "band" ? " nf-stays-tile--band" : ""}`}
     >
-      {variant === "mark" && mark && (
-        <IconPlate size="md" className="nf-stays-tile__mark">
-          <UiIcon name={lineGlyphFor(mark)} size={20} />
-        </IconPlate>
+      {variant === "mark" && mark && STAYS_ART[mark] ? (
+        <span className="nf-stays-tile__mark grid size-12 place-items-center" aria-hidden="true" data-art={STAYS_ART[mark]}>
+          <Icon3D name={STAYS_ART[mark]!} size={48} />
+        </span>
+      ) : (
+        variant === "mark" &&
+        mark && (
+          <IconPlate size="md" className="nf-stays-tile__mark">
+            <UiIcon name={lineGlyphFor(mark)} size={20} />
+          </IconPlate>
+        )
       )}
       <span className={variant === "band" ? undefined : "nf-stays-tile__title"}>{title}</span>
       {meaning && variant !== "band" && <span className="nf-stays-tile__meta">{meaning}</span>}

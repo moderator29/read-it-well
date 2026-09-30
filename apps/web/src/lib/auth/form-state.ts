@@ -47,6 +47,9 @@ export type AuthFormState = {
   ok: boolean;
   /** Where to go once the verifying moment has been on screen long enough. */
   verified?: string;
+  /** The first name the account was made with, for "You're in, Ada." on the
+      moment after a code is accepted (A17). Absent when none was given. */
+  name?: string;
   message?: string;
   fieldErrors?: Partial<Record<AuthField, string>>;
   /**

@@ -29,7 +29,7 @@ export async function ArrivalCheckRecord({ bookingId, locale }: { bookingId: str
           : copy.admin.reported.replace("{reason}", copy.reasons[record.answer])}{" "}
         <span className="text-[var(--nf-content-muted)]">
           {when}
-          {record.reference ? ` · ${record.reference}` : ""}
+          {record.reference ? `\u00a0· ${record.reference}` : ""}
         </span>
       </p>
       {record.note && (

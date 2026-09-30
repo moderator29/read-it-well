@@ -109,7 +109,7 @@ export function ContactForm({
             aria-invalid={fieldError("name") ? true : undefined}
           />
           {fieldError("name") && (
-            <span className="mt-inline block text-[0.78rem] text-[var(--nf-state-warning)]">
+            <span className="mt-inline block text-[length:var(--nf-text-overline)] text-[var(--nf-state-warning)]">
               {fieldError("name")}
             </span>
           )}
@@ -125,7 +125,7 @@ export function ContactForm({
             aria-invalid={fieldError("email") ? true : undefined}
           />
           {fieldError("email") && (
-            <span className="mt-inline block text-[0.78rem] text-[var(--nf-state-warning)]">
+            <span className="mt-inline block text-[length:var(--nf-text-overline)] text-[var(--nf-state-warning)]">
               {fieldError("email")}
             </span>
           )}
@@ -159,7 +159,7 @@ export function ContactForm({
           aria-invalid={fieldError("message") ? true : undefined}
         />
         {fieldError("message") && (
-          <span className="mt-inline block text-[0.78rem] text-[var(--nf-state-warning)]">
+          <span className="mt-inline block text-[length:var(--nf-text-overline)] text-[var(--nf-state-warning)]">
             {fieldError("message")}
           </span>
         )}

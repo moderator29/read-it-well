@@ -8,6 +8,7 @@ import { searchStays } from "@/lib/stays/search";
 import { narrowByType, readType } from "./narrow";
 import { StayCard } from "@/components/app/stays/StayCard";
 import { StaySearchBar } from "@/components/app/stays/StaySearchBar";
+import { SearchMemory } from "@/components/app/search/SearchMemory";
 import { StayCategoryTiles } from "@/components/app/stays/StayCategoryTiles";
 import { StayFilterSheet } from "@/components/app/stays/StayFilterSheet";
 import { stayCardFromRow } from "@/components/app/stays/stay-card-model";
@@ -69,6 +70,11 @@ export default async function StaysSearchPage({
   return (
     <div className="mx-auto max-w-5xl">
       <PageHeader title={t.nav.exploreStays} subtitle={countLine} fallback="/stays" />
+      {/* B2: a Stays hunt with a place in it joins the phone's recent searches. */}
+      <SearchMemory
+        label={query.q ? t.catalogue.recent.staysIn.replace("{place}", query.q.slice(0, 60)) : ""}
+        href={toStaysHref(query, "/stays/search")}
+      />
 
       <StaySearchBar
         t={t}
@@ -144,6 +150,7 @@ export default async function StaysSearchPage({
                 locale={locale}
                 t={forStayCard(t)}
                 index={index}
+                eager={index === 0}
                 saved={stay.place ? isSaved(savedKeys, stay.place.kind, stay.place.id) : false}
                 canSavePlaces={canSavePlaces}
               />

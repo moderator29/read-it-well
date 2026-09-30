@@ -38,6 +38,7 @@ import {
   auditTextExpression,
   planAuditQuery,
   safeAuditMetadata,
+  type AuditWho,
 } from "./audit-filter";
 import { requireAdmin } from "./guard";
 import { takePage, type AdminQueueFilter } from "./queue-filter";
@@ -60,7 +61,10 @@ export type AuditRowView = {
 
 export type AuditPage = { rows: AuditRowView[]; full: boolean };
 
-export async function getAuditLog(filter?: AdminQueueFilter): Promise<AdminRead<AuditPage>> {
+export async function getAuditLog(
+  filter?: AdminQueueFilter,
+  options: { who?: AuditWho } = {},
+): Promise<AdminRead<AuditPage>> {
   const access = await requireAdmin();
   if (access.state !== "admin") return UNAVAILABLE;
 
@@ -74,6 +78,8 @@ export async function getAuditLog(filter?: AdminQueueFilter): Promise<AdminRead<
     if (plan.exactId) select = select.or(auditIdExpression(plan.exactId));
     if (plan.textLike) select = select.or(auditTextExpression(plan.textLike));
     if (plan.entityType) select = select.eq("entity_type", plan.entityType);
+    /* C7: the people view is rows a signed-in person wrote. */
+    if ((options.who ?? "all") === "people") select = select.not("actor_id", "is", null);
     if (plan.fromIso) select = select.gte("created_at", plan.fromIso);
     if (plan.toIso) select = select.lte("created_at", plan.toIso);
 

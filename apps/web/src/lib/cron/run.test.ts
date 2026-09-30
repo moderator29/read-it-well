@@ -306,3 +306,73 @@ describe("a refused scheduler is not a refused stranger", () => {
     expect(alert.detail).toMatchObject({ ran: false });
   });
 });
+
+/**
+ * C13: A JOB WHOSE FEATURE IS SWITCHED OFF SAYS IT SKIPPED.
+ *
+ * `landlord-line` fired every fifteen minutes with its flag off and each run
+ * read as a clean run. With the flag handed to the wrapper, a definite "off"
+ * is recorded as `skipped` (reason flag_off) and the job is never called; an
+ * unreadable flag is not a reason to stop a job, so it runs.
+ */
+describe("a job behind a switched-off flag", () => {
+  const verdict = { outcome: "ok" as const, counts: { sent: 1 }, detail: {}, alert: null };
+
+  it("records a skipped run, raises nothing and does not call the job when the flag is off", async () => {
+    const job = vi.fn(async () => verdict);
+    const readFlag = vi.fn(async () => "off" as const);
+    const d = deps({ readFlag });
+    const outcome = await executeCronJob("landlord-line", job, d, { flag: "landlord_line" });
+    expect(job).not.toHaveBeenCalled();
+    expect(readFlag).toHaveBeenCalledWith(FAKE_ADMIN, "landlord_line");
+    expect(outcome.status).toBe(200);
+    expect(outcome.body).toMatchObject({
+      ok: true,
+      job: "landlord-line",
+      outcome: "skipped",
+      counts: {},
+      detail: { reason: "flag_off", flag: "landlord_line" },
+    });
+    expect(d.reports).toEqual([
+      { job: "landlord-line", outcome: "skipped", durationMs: 25, reason: "flag_off", flag: "landlord_line" },
+    ]);
+    expect(d.reports[0]).not.toHaveProperty("alert");
+  });
+
+  it("runs the job as normal when the flag is on", async () => {
+    const job = vi.fn(async () => verdict);
+    const d = deps({ readFlag: async () => "on" });
+    const outcome = await executeCronJob("landlord-line", job, d, { flag: "landlord_line" });
+    expect(job).toHaveBeenCalledTimes(1);
+    expect(outcome.body).toMatchObject({ ok: true, outcome: "ok", counts: { sent: 1 } });
+    expect(d.reports[0]).toMatchObject({ outcome: "ok" });
+  });
+
+  it("runs the job when the flag cannot be read, because a broken read must not silence a job", async () => {
+    const job = vi.fn(async () => verdict);
+    const d = deps({ readFlag: async () => "unknown" });
+    await executeCronJob("landlord-line", job, d, { flag: "landlord_line" });
+    expect(job).toHaveBeenCalledTimes(1);
+    expect(d.reports[0]).toMatchObject({ outcome: "ok" });
+  });
+
+  it("never reads a flag for a job that has none", async () => {
+    const job = vi.fn(async () => verdict);
+    const readFlag = vi.fn(async () => "off" as const);
+    await executeCronJob("hold-sweep", job, deps({ readFlag }));
+    expect(readFlag).not.toHaveBeenCalled();
+    expect(job).toHaveBeenCalledTimes(1);
+  });
+
+  it("still refuses a bad secret before it reads any flag", async () => {
+    const job = vi.fn(async () => verdict);
+    const readFlag = vi.fn(async () => "off" as const);
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const outcome = await executeCronJob("landlord-line", job, deps({ readFlag, refused: { retryAfterSeconds: 0 } }), {
+      flag: "landlord_line",
+    });
+    warn.mockRestore();
+    expect(outcome.status).toBe(401);
+    expect(readFlag).not.toHaveBeenCalled();
+  });
+});

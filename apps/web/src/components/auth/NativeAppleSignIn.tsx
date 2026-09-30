@@ -140,7 +140,7 @@ export function NativeAppleSignIn({
         className={
           round
             ? "nf-slate-social"
-            : "nf-btn nf-btn--ghost nf-btn--lg nf-btn--full nf-slate-pill nf-slate-pill--quiet"
+            : "nf-btn nf-btn--glass nf-btn--lg nf-btn--full nf-slate-pill nf-slate-pill--quiet"
         }
       >
         <AppleMark />

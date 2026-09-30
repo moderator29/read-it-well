@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { isPropertyMarket, marketOf } from "@/lib/listings/market";
 import { redirect } from "next/navigation";
 import { getDictionary, type Locale } from "@vallo/i18n";
@@ -6,6 +7,7 @@ import { getLocale } from "@/lib/locale";
 import { getHomeOverview } from "@/lib/app/home-queries";
 import { getListingRepository } from "@/lib/listings/repository";
 import { HomeScreen } from "@/components/app/home/HomeScreen";
+import { UpNext } from "@/components/app/home/UpNext";
 import { getAgentContext } from "@/lib/agent/listings-queries";
 import { getMode } from "@/lib/mode";
 import { roleStateFrom, type AgentFacts } from "@/components/roles/roles";
@@ -127,6 +129,15 @@ export default async function HomePage() {
       listings={listings}
       roles={roles}
       manageHref={manageHref}
+      upNext={
+        /* Streamed, so its three reads never hold up the first paint; it
+           draws nothing when there is nothing next (plan item 15). */
+        overview.signedIn ? (
+          <Suspense fallback={null}>
+            <UpNext t={t} locale={locale} />
+          </Suspense>
+        ) : null
+      }
     />
   );
 }

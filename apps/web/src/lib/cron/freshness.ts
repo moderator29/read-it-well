@@ -1,5 +1,6 @@
 import "server-only";
 
+import { newerRun, newestJobRun } from "./job-runs";
 import type { Json } from "../supabase/database.types";
 import type { AdminClient } from "./rpc";
 
@@ -293,7 +294,10 @@ export async function readLastRuns(
           .limit(1)
           .maybeSingle();
         if (error) return { job: entry.job, lastRunAt: null, unreadable: true };
-        return { job: entry.job, lastRunAt: data?.created_at ?? null };
+        /* C7: a clean run is counted in job_runs once that table exists. */
+        const counted = entry.audit ? null : await newestJobRun(admin, entry.job);
+        const newest = newerRun(data ?? null, counted);
+        return { job: entry.job, lastRunAt: newest?.created_at ?? null };
       } catch {
         return { job: entry.job, lastRunAt: null, unreadable: true };
       }

@@ -133,7 +133,14 @@ export const ADMIN_PRIMARY: AdminDestination[] = [
       { key: "oversight", href: "/admin/oversight", icon: ui("user"), label: "Team oversight" },
     ],
   },
-  { key: "analytics", href: "/admin/analytics", icon: glyph("bars"), label: "Analytics" },
+  {
+    key: "analytics",
+    href: "/admin/analytics",
+    icon: glyph("bars"),
+    label: "Analytics",
+    /* A6: the first-party front door funnel and the invite codes (A5). */
+    children: [{ key: "front-door", href: "/admin/front-door", icon: ui("trending-up"), label: "Front door" }],
+  },
 ];
 
 export const ADMIN_SETTINGS: AdminDestination = {

@@ -8,7 +8,7 @@ import type { Dictionary } from "@vallo/i18n/core";
  * Every screen under `/host` used to be an island: the shell drew a back
  * control and a logo that went to the consumer home, so a venue owner on
  * Rooms could reach Photographs only by going back to `/host` first. These are
- * the seven working screens a host moves between. The application (`/host/apply`)
+ * the working screens a host moves between. The application (`/host/apply`)
  * and the kind chooser (`/host/start`) are flows, not destinations, and their
  * shell draws no bar (`HostShell`'s `nav`).
  *
@@ -34,6 +34,9 @@ export type HostNavLabels = {
   overview: string;
   reservations: string;
   roomBookings: string;
+  decide: string;
+  calendar: string;
+  reviews: string;
   rooms: string;
   photos: string;
   arrival: string;
@@ -69,10 +72,16 @@ type HostNavEntry = { href: string; key: keyof HostNavLabels; icon: UiIconName }
 
 export const HOST_NAV: readonly HostNavEntry[] = [
   { href: HOST_DASHBOARD, key: "overview", icon: "grid" },
+  /* C3: every request waiting for an answer, soonest to lapse first. */
+  { href: "/host/decide", key: "decide", icon: "hourglass" },
   { href: "/host/reservations", key: "reservations", icon: "calendar-booking" },
   /* ROOM BOOKINGS 1: guests' requests for rooms, to accept or decline. */
   { href: "/host/bookings", key: "roomBookings", icon: "calendar-check" },
+  /* C1: nightly prices and rooms on sale, on one month. */
+  { href: "/host/calendar", key: "calendar", icon: "calendar-clock" },
   { href: "/host/rooms", key: "rooms", icon: "bed" },
+  /* C4: what guests wrote, the answer, and a fair way to contest. */
+  { href: "/host/reviews", key: "reviews", icon: "star" },
   { href: "/host/photos", key: "photos", icon: "picture" },
   { href: "/host/arrival", key: "arrival", icon: "receipt" },
   { href: "/host/transfer", key: "transfer", icon: "key" },

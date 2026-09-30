@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { publicPageMetadata } from "@/lib/i18n/public-metadata";
 import { SiteHead } from "@/components/site/SiteHead";
 import { Reveal } from "@/components/site/Reveal";
 import type { BrandIconName } from "@/design-system/icons/BrandIcon";
@@ -9,11 +10,11 @@ import { SUPPLY_DOOR_HREF } from "@/lib/supply/roles";
 import { IconPlate } from "@/components/ui/IconPlate";
 import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
 
-export const metadata: Metadata = {
-  title: "Careers",
-  description:
-    "Help build Nigeria's property marketplace and the stays side beside it. How we work at Vallo, and how to send a speculative application.",
-};
+/* A10: the title and description in the page's own language, with its
+   canonical and hreflang (lib/i18n/public-metadata.ts; words in publicMeta). */
+export async function generateMetadata(): Promise<Metadata> {
+  return publicPageMetadata("careers");
+}
 
 /**
  * Careers page.

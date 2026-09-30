@@ -20,6 +20,7 @@ import {
   WORDMARK_ALT,
 } from "./theme";
 import { BRAND_ORIGIN } from "@/lib/brand-domain";
+import { EMAIL_ICON_SIZE, emailIconFor, emailIconPath, type EmailKind } from "./icons";
 
 /**
  * The Vallo transactional email shell.
@@ -58,9 +59,11 @@ import { BRAND_ORIGIN } from "@/lib/brand-domain";
  * ground both as written and inverted. `theme.ts` carries the palette and the
  * measurements, and `email-dark-paint.test.ts` holds every message to it.
  *
- * NO WORDS IN IMAGES BEYOND THE BRAND'S OWN. The shell carries one image,
- * the lockup, whose alt is the brand name, so with images off the reader sees
- * "Vallo" once, in its place. Every other word is live text. Copy baked into
+ * NO WORDS IN IMAGES BEYOND THE BRAND'S OWN. The shell carries the lockup,
+ * whose alt is the brand name, so with images off the reader sees "Vallo"
+ * once, in its place, and at most one decorative 3D object above the headline
+ * (`icons.ts`), whose alt is empty because the headline already names it.
+ * Every other word is live text. Copy baked into
  * a picture is unreadable with images off, which is the default in a large
  * share of inboxes, and unreadable to a screen reader always.
  *
@@ -588,6 +591,12 @@ function textBlock(block: Block): string {
 /* ------------------------------------------------------------------- shell */
 
 export type ComposeOptions = {
+  /**
+   * Which message this is, which picks the 3D object drawn above the
+   * headline (`icons.ts`). Required, so no new message ships without one
+   * being chosen; a message whose object is not ready yet draws nothing.
+   */
+  icon: EmailKind;
   /** The inbox preview line. Never rendered in the body. Required. */
   preheader: string;
   /** The message, block by block. Nulls are dropped. */
@@ -719,6 +728,32 @@ export function brandBandRow(): string {
             <tr><td style="height:2px;line-height:2px;font-size:0;background-color:${BRAND};background-image:${GRADIENT_CAP};mso-line-height-rule:exactly;">&nbsp;</td></tr>`;
 }
 
+/**
+ * THE 3D MARK: one of the founder's objects above the headline, like the app
+ * icon beside a notification. Empty string when the message has none yet.
+ *
+ * Drawn at 64 px from a 128 px PNG (webp is not drawn by every client), with
+ * width and height set so a blocked image reserves its box rather than
+ * reflowing the card, and alt empty because the headline under it says what
+ * the message is: with images off it is a quiet gap, never a broken label.
+ * The object is a cutout with an alpha channel, so it sits on the navy card
+ * as drawn and on the light ground a client inverts to, with nothing around
+ * it to invert. The cell's zero font size and line height stop Outlook and
+ * Gmail adding a text line under the image.
+ */
+export function heroMarkHtml(kind: EmailKind): string {
+  const name = emailIconFor(kind);
+  if (name === null) return "";
+  const size = EMAIL_ICON_SIZE;
+  return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 18px;">
+                    <tr>
+                      <td style="font-size:0;line-height:0;mso-line-height-rule:exactly;">
+                        <img src="${siteUrl()}${emailIconPath(name)}" width="${size}" height="${size}" alt="" border="0" style="display:block;width:${size}px;height:${size}px;border:0;outline:none;text-decoration:none;" />
+                      </td>
+                    </tr>
+                  </table>`;
+}
+
 /** The pages every footer links, by the same three names everywhere. */
 export const FOOTER_LINKS: readonly { label: string; path: string }[] = [
   { label: "Help and support", path: "/support" },
@@ -818,7 +853,8 @@ export function compose(options: ComposeOptions): Composed {
   const blocks = usable(options.blocks);
   const footerLines = options.footerLines ?? [];
 
-  const body = blocks.map(htmlBlock).join("\n                ");
+  const mark = heroMarkHtml(options.icon);
+  const body = (mark ? mark + "\n                " : "") + blocks.map(htmlBlock).join("\n                ");
 
   const html = documentHtml({
     title: "Vallo",

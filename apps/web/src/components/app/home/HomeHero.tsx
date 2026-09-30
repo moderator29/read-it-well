@@ -4,6 +4,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ICON } from "@/components/app/Screen";
 import { panelClass } from "@/components/ui/Panel";
 import { ButtonLink } from "@/components/ui/Button";
+import { RecentSearches } from "@/components/app/search/RecentSearches";
 
 /**
  * The hero container, to `GOVERNING-01` screen one and `GOVERNING-09` screen
@@ -49,6 +50,7 @@ export function HomeHero({
   searchLabel,
   kind,
   id,
+  recent,
 }: {
   /** The place the plate is showing, or null when nobody has told us one. */
   place: string | null;
@@ -65,6 +67,8 @@ export function HomeHero({
   kind: ListingKind;
   /** The field's id, so the two sides never collide in one document. */
   id: string;
+  /** B2: the recent-searches list's words; with it, the field offers them. */
+  recent?: { title: string; clear: string; clearLabel: string };
 }) {
   return (
     <section className={panelClass({ className: "nf-hero-plate nf-rise nf-rise-3" })} data-testid="home-hero">
@@ -117,6 +121,9 @@ export function HomeHero({
             <UiIcon name="sliders" size={20} />
           </ButtonLink>
         </form>
+        {recent && (searchAction === "/search" || searchAction === "/stays/search") ? (
+          <RecentSearches inputId={id} path={searchAction} copy={recent} className="nf-recent--hero" />
+        ) : null}
       </div>
     </section>
   );

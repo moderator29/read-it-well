@@ -1,5 +1,7 @@
 import "server-only";
 
+import { readInternalNotIn } from "../internal-accounts";
+
 import type {
   CollectedRange,
   CollectedSeries,
@@ -24,7 +26,6 @@ import {
   lastMonths,
   lastWeeks,
   readAll,
-  QA_NOT_IN,
   type AdminReader,
   type Read,
 } from "./shared";
@@ -131,6 +132,8 @@ export async function getConsolePulse(now: number): Promise<Read<ConsolePulse>> 
   const days = lastDays(14, now);
   const fromIso = lagosDayStartIso(days[0]!);
   const weekAgoIso = new Date(Date.parse(lagosDayEndIso(days[days.length - 1]!)) - 7 * DAY_MS).toISOString();
+  /* C10: QA, staff and the super admin's internal list, left out of people figures. */
+  const internal = await readInternalNotIn();
   try {
     const live = () =>
       db.from("listings").select("id", { count: "exact", head: true }).eq("status", "PUBLISHED").eq("is_demo", false);
@@ -150,7 +153,7 @@ export async function getConsolePulse(now: number): Promise<Read<ConsolePulse>> 
         db
           .from("profiles")
           .select("created_at")
-          .not("id", "in", QA_NOT_IN)
+          .not("id", "in", internal)
           .gte("created_at", fromIso)
           .order("created_at", { ascending: true })
           .order("id", { ascending: true })
@@ -167,7 +170,7 @@ export async function getConsolePulse(now: number): Promise<Read<ConsolePulse>> 
       ),
       collectedRows(db, fromIso),
       // Every account there is, the QA accounts left out (founder, 23 September).
-      exactCount(db.from("profiles").select("id", { count: "exact", head: true }).not("id", "in", QA_NOT_IN)),
+      exactCount(db.from("profiles").select("id", { count: "exact", head: true }).not("id", "in", internal)),
     ]);
     if (liveNow === null || liveWeekAgo === null || !published || !signups || !submitted || !collected || people === null) {
       return UNAVAILABLE;

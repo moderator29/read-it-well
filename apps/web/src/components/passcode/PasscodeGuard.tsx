@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import type { Locale } from "@vallo/i18n/core";
 import { lockPasscodeAction } from "@/lib/passcode/actions";
-import { IDLE_LOCK_MS, idleExpired, type PasscodeLength } from "@/lib/passcode/rules";
+import { idleExpired, type PasscodeLength } from "@/lib/passcode/rules";
+import { idleLimitMs, readLongIdle } from "@/lib/passcode/idle-setting";
 import { markTabUnlocked, tabWasUnlocked } from "@/lib/passcode/tab";
 import { PasscodeLock, type PasscodeCopy } from "./PasscodeLock";
 
@@ -41,6 +42,7 @@ export function PasscodeGuard({
   mint,
   name,
   avatarUrl,
+  passkey = false,
   children,
 }: {
   copy: PasscodeCopy;
@@ -50,6 +52,8 @@ export function PasscodeGuard({
   mint: boolean;
   name: string;
   avatarUrl?: string | null;
+  /** C14: the member has a platform key (the lock offers it; the longer idle setting can apply). */
+  passkey?: boolean;
   children: ReactNode;
 }) {
   const [locked, setLocked] = useState(false);
@@ -90,6 +94,8 @@ export function PasscodeGuard({
   }, [lock, mint, touch]);
 
   useEffect(() => {
+    /* Five minutes, or fifteen on a device with a key and the setting on (C14). */
+    const limit = idleLimitMs(passkey, readLongIdle());
     const onActivity = () => {
       if (lockedRef.current) return;
       lastActivity.current = Date.now();
@@ -102,19 +108,19 @@ export function PasscodeGuard({
       }
       const since = hiddenAt.current;
       hiddenAt.current = null;
-      if (since !== null && Date.now() - since >= IDLE_LOCK_MS) lock();
+      if (since !== null && Date.now() - since >= limit) lock();
     };
     for (const name of ACTIVITY) window.addEventListener(name, onActivity, { passive: true, capture: true });
     document.addEventListener("visibilitychange", onVisibility);
     const timer = window.setInterval(() => {
-      if (!lockedRef.current && idleExpired(lastActivity.current, Date.now())) lock();
+      if (!lockedRef.current && idleExpired(lastActivity.current, Date.now(), limit)) lock();
     }, CHECK_EVERY_MS);
     return () => {
       for (const name of ACTIVITY) window.removeEventListener(name, onActivity, { capture: true });
       document.removeEventListener("visibilitychange", onVisibility);
       window.clearInterval(timer);
     };
-  }, [lock, touch]);
+  }, [lock, touch, passkey]);
 
   const unlocked = useCallback(() => {
     lockedRef.current = false;
@@ -129,7 +135,16 @@ export function PasscodeGuard({
         {children}
       </div>
       {locked ? (
-        <PasscodeLock copy={copy} locale={locale} mode="code" length={length} name={name} avatarUrl={avatarUrl} onUnlocked={unlocked} />
+        <PasscodeLock
+          copy={copy}
+          locale={locale}
+          mode="code"
+          length={length}
+          name={name}
+          avatarUrl={avatarUrl}
+          onUnlocked={unlocked}
+          passkey={passkey}
+        />
       ) : null}
     </>
   );

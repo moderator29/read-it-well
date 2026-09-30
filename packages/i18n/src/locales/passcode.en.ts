@@ -33,8 +33,11 @@ export const passcodeEn = {
   setupBody: "You will use it to open Vallo and before money moves. It is not your password.",
   resetTitle: "Set a new passcode",
   resetBody: "You signed in again, so you can choose a new passcode now.",
-  confirmTitle: "Enter it again",
+  confirmTitle: "Confirm your passcode",
   confirmBody: "Type the same {count} digits to confirm.",
+  /** The setup steps' line under the title; the longer setup or reset line sits under the dots. */
+  stepChoose: "Step 1 of 2. Choose {count} digits.",
+  stepConfirm: "Step 2 of 2. Type the same {count} digits.",
   currentTitle: "Enter your current passcode",
   currentBody: "Then choose the new one.",
   useFour: "Use a 4-digit passcode",

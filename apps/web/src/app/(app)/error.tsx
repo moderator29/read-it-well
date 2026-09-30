@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
 import { Button, ButtonLink } from "@/components/ui/Button";
-import { reportClientError } from "@/lib/observability/client";
+import { useErrorReport } from "@/lib/observability/use-error-report";
 import { useClientCopy } from "@/lib/i18n/client-copy";
 import { StateMoment } from "@/components/ui/StateMoment";
 
@@ -34,14 +33,10 @@ export default function AppError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  useEffect(() => {
-    /* The full error object goes to the console and nowhere near the
-       rendered output. The report beside it is scrubbed before it leaves the
-       server and is silent when `SENTRY_DSN` is unset, matching the root
-       boundary. */
-    console.error("[vallo] app route error", error);
-    reportClientError(error, { kind: "client.app_boundary", digest: error.digest });
-  }, [error]);
+  /* The full error object goes to the console and nowhere near the rendered
+     output; the scrubbed report carries the same short reference the screen
+     shows (C13). */
+  const reference = useErrorReport(error, "client.app_boundary", "[vallo] app route error");
 
   /* The words come from the root layout (`lib/i18n/client-copy.tsx`), so
      the screen speaks the reader's language; it was English for everyone,
@@ -59,11 +54,7 @@ export default function AppError({
       overline={COPY.screenErrorOverline}
       title={COPY.screenErrorTitle}
       body={COPY.screenErrorBody}
-      detail={
-        error.digest ? (
-          <p className="nf-system__ref">{COPY.screenErrorRef.replace("{digest}", error.digest)}</p>
-        ) : null
-      }
+      detail={<p className="nf-system__ref select-all">{COPY.screenErrorRef.replace("{digest}", reference)}</p>}
       actions={
         <div className="nf-system__actions">
           <Button variant="primary" size="lg" full onClick={reset}>

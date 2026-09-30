@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { DeskKeys } from "@/components/app/desk/DeskKeys";
+import { CONSOLE_JUMPS, CONSOLE_JUMP_WORDS } from "@/components/app/desk/desk-keys";
 import type { ReactNode } from "react";
 import { cookies } from "next/headers";
 import { getDictionary } from "@vallo/i18n";
@@ -68,6 +70,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     return (
       <StaffFrame staff={door.staff} name={name}>
         <PasscodeLayer>{children}</PasscodeLayer>
+        <DeskKeys jumps={CONSOLE_JUMPS} jumpWords={CONSOLE_JUMP_WORDS} />
       </StaffFrame>
     );
   }
@@ -103,11 +106,13 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       searchLabel={t.admin.common.searchLabel}
       bellLabel={t.uiCommon.console.notifications}
       shell={t.admin.shell}
-      back={<BackButton fallback="/admin" />}
+      back={<BackButton fallback="/admin" surface="round" />}
     >
       <EntryGate entered={entered} userId={access.user.id} opening={t.admin.shell.entry.opening}>
         {/* The passcode lock (docs/PASSCODE.md), for staff as for everyone. */}
         <PasscodeLayer>{children}</PasscodeLayer>
+        {/* C6: j/k, a/x, g-jumps and ? on every desk but support, which has its own. */}
+        <DeskKeys jumps={CONSOLE_JUMPS} jumpWords={CONSOLE_JUMP_WORDS} />
       </EntryGate>
     </AdminFrame>
   );

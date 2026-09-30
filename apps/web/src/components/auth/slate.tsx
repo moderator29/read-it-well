@@ -34,12 +34,13 @@ import { Button, ButtonLink } from "@/components/ui/Button";
  * or carry `nf-slate` themselves, for the roles to resolve.
  */
 
-/* The block's bottom edge, in a 390 x 260 box stretched to any width. The
-   arc falls from the left edge, bottoms out a little left of centre and
-   sweeps up to meet the right edge high, as the reference draws it. The
-   morph (auth.css, `nf-slate-morph`) starts from a shallower arc. */
-export const SLATE_CURVE_PATH = "M0 0H390V64C354 168 262 256 150 256C88 256 38 236 0 206Z";
-const SLATE_EDGE_PATH = "M390 64C354 168 262 256 150 256C88 256 38 236 0 206";
+/* The block's bottom edge, in a 390 x 260 box stretched to any width. THE 3D
+   GLASS DOOR (30 September, the founder's passcode reference): one
+   symmetric bowl, high at both edges and lowest in the middle, where the
+   focal object (the avatar ring, the Vallo mark, a 3D icon) sits across it.
+   The morph (auth.css, `nf-slate-morph`) starts from a shallower bowl. */
+export const SLATE_CURVE_PATH = "M0 0H390V150C340 226 270 256 195 256C120 256 50 226 0 150Z";
+const SLATE_EDGE_PATH = "M390 150C340 226 270 256 195 256C120 256 50 226 0 150";
 
 /**
  * The top block. `start` and `end` are the toolbar cells (the auth screens
@@ -59,6 +60,7 @@ export function AuthCurveBlock({
   brandLabel,
   wordmark,
   compact = false,
+  focal,
   id,
 }: {
   line?: ReactNode;
@@ -71,6 +73,12 @@ export function AuthCurveBlock({
   /** The spaced-capitals name, from the dictionary (`auth.wordmark`). */
   wordmark: string;
   compact?: boolean;
+  /**
+   * The object that sits across the bottom of the bowl in its glowing glass
+   * ring: the member's face on the passcode, the Vallo mark or a 3D icon on
+   * the doors. Decorative (the screen's title names the place).
+   */
+  focal?: ReactNode;
   id?: string;
 }) {
   const word = (
@@ -102,7 +110,10 @@ export function AuthCurveBlock({
   );
 
   return (
-    <header id={id} className={compact ? "nf-slate-top nf-slate-top--compact" : "nf-slate-top"}>
+    <header
+      id={id}
+      className={`nf-slate-top${compact ? " nf-slate-top--compact" : ""}${focal ? " nf-slate-top--focal" : ""}`}
+    >
       <svg
         className="nf-slate-top__ground"
         viewBox="0 0 390 260"
@@ -120,6 +131,17 @@ export function AuthCurveBlock({
         <path className="nf-slate-top__shape" d={SLATE_CURVE_PATH} fill="url(#nf-slate-fill)" />
         <path className="nf-slate-top__edge" d={SLATE_EDGE_PATH} fill="none" />
       </svg>
+
+      {/* DEPTH: two soft lights drifting inside the block, clipped by the
+          bowl. Decorative; gone while a field has focus on a phone. The
+          glass objects that floated here retired on 30 September: the one
+          object is now the focal ring across the curve. */}
+      {compact ? null : (
+        <div className="nf-slate-top__depth" aria-hidden="true">
+          <span className="nf-slate-top__light nf-slate-top__light--a" />
+          <span className="nf-slate-top__light nf-slate-top__light--b" />
+        </div>
+      )}
 
       <div className="nf-slate-top__inner">
         <div className="nf-slate-top__bar">
@@ -139,6 +161,11 @@ export function AuthCurveBlock({
         )}
         {line ? <p className="nf-slate-top__line">{line}</p> : null}
       </div>
+      {focal ? (
+        <div className="nf-slate-focal" aria-hidden="true">
+          <span className="nf-slate-focal__ring">{focal}</span>
+        </div>
+      ) : null}
     </header>
   );
 }
@@ -197,12 +224,12 @@ export function AuthPillButton({
   quiet = false,
   ...props
 }: Omit<ComponentProps<typeof Button>, "variant" | "size" | "full"> & {
-  /** The secondary pill: an outline in the page's ink, for a second way on. */
+  /** The secondary pill (the outlined blue pill of the button system), for a second way on. */
   quiet?: boolean;
 }) {
   return (
     <Button
-      variant={quiet ? "ghost" : "primary"}
+      variant={quiet ? "secondary" : "primary"}
       size="lg"
       full
       className={`nf-slate-pill${quiet ? " nf-slate-pill--quiet" : ""}${className ? ` ${className}` : ""}`}
@@ -232,7 +259,7 @@ export function AuthPillLink({
   return (
     <ButtonLink
       href={href}
-      variant={quiet ? "ghost" : "primary"}
+      variant={quiet ? "secondary" : "primary"}
       size="lg"
       full
       {...(prefetch === undefined ? {} : { prefetch })}

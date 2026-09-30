@@ -1,3 +1,4 @@
+import "@/app/css/landing-3d.css";
 import type { Dictionary, Locale } from "@vallo/i18n/core";
 import { getListingRepository } from "@/lib/listings/repository";
 import { landingCatalogue } from "@/lib/listings/landing-catalogue";
@@ -118,7 +119,9 @@ export function LandingBody({
           Worlds      Property and Stays, with Example-tagged listings
           AI          the assistant's rules beside an example conversation
           Categories  eight kinds of place, then the cities
-          Community   who it is for, real figures only, the Third party label
+          Community   who it is for, real figures only, the Third party label,
+                      and "Check before you pay" with the check in the card
+                      (A7, folded in on 30 September)
           App, FAQ    on your phone; the short answers in one grouped card
           Close       the final card: sign up, or sign in
 

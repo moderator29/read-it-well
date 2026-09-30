@@ -99,6 +99,7 @@ export function ListingMoveInBlock({
               locale={locale}
               currency={listing.currency}
               secondaryClassName="text-[0.5em] font-semibold opacity-70"
+              count
             />
             {!hasTotal && <span className="nf-detail-movein__suffix">{PERIOD_SUFFIX_SLASH[period]}</span>}
           </>

@@ -51,8 +51,8 @@ export default async function TransferBusinessPage() {
       <HostShell logoLabel={t.a11y.logoHome}>
         <EmptyState
           icon="hotel"
-          title="Hand over a business"
-          body="Sign in to move a business to somebody else, or to answer an offer somebody has made you."
+          title={t.hostWorkspace.transfer.signedOutTitle}
+          body={t.hostWorkspace.transfer.signedOutBody}
           action={
             <ButtonLink href={authHref(next, "sign-in")} variant="primary" size="lg">
               Sign in

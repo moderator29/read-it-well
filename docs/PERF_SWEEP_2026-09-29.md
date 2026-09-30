@@ -99,3 +99,15 @@ Earlier rounds did a lot of this work: SPEED-1..3, PERF-DB 4, OPS-11 and the Tra
 5. **`/home` TTFB is 4x any other signed-in route** (954 ms median against about 250 ms; the three runs were 596, 1975 and 954 ms). The page's own reads are already in one `Promise.all`, so the next step is a server timing trace of this route on a production build.
 6. **Search to listing takes 3.4 s** even though the listing page already batches its reads. Its LCP of 2.7 s is the hero photo. The first gallery image already carries `priority` and `sizes`, so the next step is the image optimiser's cold-cache time.
 7. **Serial reads left alone on purpose**, because each read depends on the one before it: host rooms/photos/arrival (business, then accommodation, then rows) and `/messages/new`.
+
+## Open item 1, examined (Recommendations A15, 30 September 2026)
+
+The public pages were not moved to the CDN in this pass, and the reason is not the nonce alone. What a static or ISR public page needs, and what stands in the way today:
+
+- **The root layout reads the request.** `app/layout.tsx` reads `headers()` (the nonce) and `cookies()` three times (locale, theme, motion) to print `lang`, `data-theme` and the motion attributes into the first byte, so there is no flash of the wrong theme or language. Any one of those reads makes every route under it dynamic. A static public page needs its own root layout (a route group with its own `<html>`) that takes the locale from the path (A10) and resolves theme and motion in the before-paint script only.
+- **Next's own inline scripts change per build and per page.** The flight payload (`self.__next_f.push(...)`) is inline, so a hash-based policy needs the SHA-256 of every inline script of every prerendered page, computed after `next build` from `.next/server/app/**.html` and served by the proxy per path. `experimental.sri` covers the external chunks, not these.
+- **Caching a nonced page is not an option.** A nonce served from a CDN is the same for every visitor until the cache expires, which is a predictable nonce, which is no CSP. So the per-request nonce stays until the static path exists, and nothing was weakened to get speed.
+
+The safe order is: A10 (locale in the path) first, then a `(public)` root layout with no request reads, then a post-build hash manifest and a proxy branch that serves `script-src 'self' 'strict-dynamic' 'sha256-...'` for exactly those paths, proven by `tests/csp.spec.mjs` on a production build. The owner of the CSP decides; nothing in it can be verified without `next build`, which this pass may not run.
+
+What did land for A15: `perf-budget.json` covers the public routes (the retired `/wallet` is gone) with a landing height ratchet, and the CI job "Front door speed and accessibility" builds, starts the production server and runs the weight, height and accessibility checks on every push. The weights print on the first run; record them with `node scripts/check-weight.mjs --record` against that build.

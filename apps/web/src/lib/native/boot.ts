@@ -140,6 +140,16 @@ export function startNativeRuntime(handlers: NativeRuntimeHandlers): () => void 
     }
 
     try {
+      /* F-14 and F-15: read the real notification permission without asking,
+         and re-register a device enrolled before, so a rotated token is not
+         left stale. Never prompts; nothing runs for a device never enrolled. */
+      const { refreshNativeRegistration } = await import("@/components/app/push/enrol");
+      if (!stopped) void refreshNativeRegistration();
+    } catch {
+      /* The token stays as it was; the provider's "gone" still retires it. */
+    }
+
+    try {
       const { startDeepLinks } = await import("./deep-links");
       collect(await startDeepLinks());
     } catch {

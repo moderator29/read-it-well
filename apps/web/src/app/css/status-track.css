@@ -356,3 +356,17 @@
     );
   }
 }
+
+/*
+ * THE TRACK ON THE HERO BAND (plan item 21): the booking and agreement pages
+ * open with it (`BookingTrack band`, the agreement page). The band's title
+ * there names a record, not a world, so it steps down from the band's
+ * display size to a card title, and the track sits a rung under the head.
+ */
+.nf-status-band .nf-hero-band__title {
+  font-size: 1.25rem;
+  line-height: 1.625rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}

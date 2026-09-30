@@ -115,7 +115,7 @@
     background: transparent;
     color: var(--nf-content-secondary);
     font-size: var(--nf-text-body-sm);
-    font-weight: 650;
+    font-weight: 600;
     cursor: pointer;
     transition:
       background var(--nf-duration-fast) var(--nf-ease-standard),
@@ -185,7 +185,7 @@
     border-radius: var(--nf-radius-xl);
     color: var(--nf-content-primary);
     font-size: var(--nf-text-body);
-    font-weight: 650;
+    font-weight: 600;
     cursor: pointer;
     border: 1px solid transparent;
     background: var(--nf-wash-1);
@@ -647,6 +647,12 @@
     background: var(--nf-brand-primary);
     box-shadow: var(--nf-glow-edge);
   }
+  /* The bar you are on is the warm spark (spec section 18); the steps
+     behind it stay blue. */
+  .nf-steprow__bar[data-on]:not(:has(+ .nf-steprow__bar[data-on])) {
+    background: var(--nf-spark);
+    box-shadow: none;
+  }
 
   /*
    * A DOOR: one of the three supplier cards in `GOVERNING-02`.
@@ -731,31 +737,8 @@
     background: var(--nf-plate-fill);
     box-shadow: var(--nf-plate-shadow);
   }
-  /*
-   * THE CHOOSER'S DOORS CARRY A WHOLE GLASS OBJECT, AND LARGER (the founder,
-   * 25 September 2026). At night the object nearly fills a bigger plate, as
-   * `GOVERNING-02` draws the house, the key and the building. In daylight
-   * there is no plate at all: the object stands on the white card, with no
-   * navy square and no rim around it. The overview rows are the same
-   * treatment a step smaller, because they are a checklist and not a choice.
-   * The object's own ground and the fade at its canvas edge are the shared
-   * light rule's (light.css), as on every glass object.
-   */
-  .nf-door__mark--glass {
-    width: 4.5rem;
-    height: 4.5rem;
-    padding: var(--nf-space-3xs);
-  }
-  .nf-door--calm .nf-door__mark--glass {
-    width: 3.75rem;
-    height: 3.75rem;
-  }
-  :root[data-theme="light"] .nf-door__mark--glass:not(:where([data-theme="dark"] *)) {
-    padding: 0;
-    border-color: transparent;
-    background: none;
-    box-shadow: none;
-  }
+  /* `.nf-door__mark--glass` (the door's larger glass object) stood here; no
+     door carries it since the icon pass, so its sizes went (C12). */
   @media (prefers-reduced-motion: reduce) {
     .nf-door {
       transition: none;
@@ -2023,5 +2006,321 @@
       .nf-count-swap
     ) {
     animation: none;
+  }
+}
+
+/*
+ * =====================================================================
+ * THE BUTTON SYSTEM'S CONTROLS (founder reference 55; spec section 19).
+ * Last in this file so they win at equal weight. Every material is a
+ * `--nf-act-*` token (tokens.css), answered for night and paper.
+ *
+ *   .nf-icon-btn          4. the round icon button, blue glyph, blue on hover
+ *   .nf-switch            6. the toggle: blue track, white knob
+ *   .nf-qty               9. the quantity stepper: minus, value, plus
+ *   checkbox and radio   10, 11. every native one, and `.nf-check`
+ *   .nf-action-tile      15. Call, Share, Download, Delete
+ *
+ * Only transform animates (the shared press scale); colour steps.
+ * =====================================================================
+ */
+@layer components {
+  /* ---- 4. the hand-written icon button takes the same circle ----------- */
+  .nf-icon-btn {
+    border-radius: var(--nf-radius-circle);
+    border: var(--nf-border-width) solid var(--nf-act-surface-edge);
+    background: var(--nf-act-surface);
+    color: var(--nf-act-icon-ink);
+    box-shadow: var(--nf-act-surface-shadow);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    transition: transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  .nf-icon-btn:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: var(--nf-focus-ring-offset);
+  }
+  .nf-icon-btn:active:not(:disabled, [aria-disabled="true"]) {
+    color: var(--nf-act-on);
+    background: var(--nf-act-fill-press);
+    border-color: var(--nf-act-press-edge);
+  }
+  .nf-icon-btn:disabled,
+  .nf-icon-btn[aria-disabled="true"] {
+    color: var(--nf-act-disabled-ink);
+    background: var(--nf-act-disabled-fill);
+    border-color: var(--nf-act-disabled-edge);
+    box-shadow: none;
+    cursor: not-allowed;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .nf-icon-btn:not(.nf-icon-btn--round):hover:not(:disabled, [aria-disabled="true"], :active) {
+      color: var(--nf-act-on);
+      background: var(--nf-act-blue);
+      border-color: transparent;
+      box-shadow: var(--nf-act-shadow);
+    }
+  }
+
+  /* ---- 6. the toggle ---------------------------------------------------- */
+  /* Off: a pale track (a navy one at night) with its own hairline, so the
+     control is found on a white card; on: the brand fill. The knob is white
+     on a soft shadow in both. Disabled is the calm grey at full opacity. */
+  .nf-switch {
+    background: var(--nf-act-track-off);
+    border: var(--nf-border-width) solid var(--nf-act-track-off-edge);
+    box-shadow: none;
+    transition: none;
+  }
+  .nf-switch[aria-checked="true"] {
+    background: var(--nf-act-fill);
+    border-color: transparent;
+    box-shadow: var(--nf-act-rim);
+  }
+  .nf-switch__thumb,
+  .nf-switch[aria-checked="true"] .nf-switch__thumb {
+    background: var(--nf-act-knob);
+    box-shadow: var(--nf-act-knob-shadow);
+  }
+  .nf-switch:disabled {
+    opacity: 1;
+    background: var(--nf-act-disabled-fill);
+    border-color: var(--nf-act-disabled-edge);
+    box-shadow: none;
+  }
+  .nf-switch:disabled .nf-switch__thumb {
+    box-shadow: 0 0 0 var(--nf-border-width) var(--nf-act-disabled-edge);
+  }
+  .nf-switch:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: var(--nf-focus-ring-offset);
+  }
+
+  /* ---- 9. the quantity stepper ---------------------------------------- */
+  /* One white soft-cornered rectangle (a navy one at night) holding two
+     44px soft-cornered buttons and the value between them (the founder's
+     rectangle ruling of the 30th, over the guide's capsule). The value is
+     tabular so 9 and 10 do not move the buttons. */
+  .nf-qty {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    padding: var(--nf-space-3xs);
+    border-radius: var(--nf-act-radius-lg);
+    background: var(--nf-act-surface);
+    border: var(--nf-border-width) solid var(--nf-act-surface-edge);
+    box-shadow: var(--nf-act-surface-shadow);
+  }
+  .nf-qty[data-disabled="true"] {
+    background: var(--nf-act-disabled-fill);
+    border-color: var(--nf-act-disabled-edge);
+    box-shadow: none;
+  }
+  .nf-qty__btn {
+    display: inline-grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    flex-shrink: 0;
+    border-radius: var(--nf-act-radius-sm);
+    border: 0;
+    background: var(--nf-act-tint);
+    color: var(--nf-act-ink);
+    cursor: pointer;
+    transition: transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  .nf-qty__btn:active:not(:disabled) {
+    transform: scale(var(--nf-press-scale-sm));
+    color: var(--nf-act-on);
+    background: var(--nf-act-fill-press);
+  }
+  .nf-qty__btn:disabled {
+    background: transparent;
+    color: var(--nf-act-disabled-ink);
+    cursor: not-allowed;
+  }
+  .nf-qty__btn:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: var(--nf-focus-ring-offset);
+  }
+  .nf-qty__value {
+    min-width: 2.5rem;
+    text-align: center;
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-act-surface-ink);
+  }
+  .nf-qty[data-disabled="true"] .nf-qty__value {
+    color: var(--nf-act-disabled-ink);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .nf-qty__btn:hover:not(:disabled, :active) {
+      color: var(--nf-act-on);
+      background: var(--nf-act-blue);
+    }
+  }
+
+  /* ---- 10, 11. checkbox and radio ------------------------------------- */
+  /* Every native checkbox and radio on the platform, at zero specificity so
+     a call site's size utility still wins: a 20px rounded square (a ring for
+     the radio) on the grey edge, blue when checked. The tick is drawn white
+     on the brand fill in both themes. The 44px target is the label the
+     input sits in, as every form here writes it. */
+  :where(input[type="checkbox"]:not([role="switch"]), input[type="radio"]) {
+    -webkit-appearance: none;
+    appearance: none;
+    display: inline-grid;
+    place-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    flex-shrink: 0;
+    margin: 0;
+    border: var(--nf-act-edge-width) solid var(--nf-act-mark-edge);
+    background-color: var(--nf-act-surface);
+    background-repeat: no-repeat;
+    background-position: center;
+    cursor: pointer;
+    vertical-align: middle;
+  }
+  :where(input[type="checkbox"]:not([role="switch"])) {
+    border-radius: 0.375rem;
+  }
+  :where(input[type="radio"]) {
+    border-radius: var(--nf-radius-circle);
+  }
+  :where(input[type="checkbox"]:not([role="switch"])):checked,
+  :where(input[type="checkbox"]:not([role="switch"])):indeterminate {
+    border-color: transparent;
+    background-color: var(--nf-act-blue);
+    background-size: 0.875rem;
+  }
+  :where(input[type="checkbox"]:not([role="switch"])):checked {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E");
+  }
+  :where(input[type="checkbox"]:not([role="switch"])):indeterminate {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round'%3E%3Cpath d='M6 12h12'/%3E%3C/svg%3E");
+  }
+  :where(input[type="radio"]):checked {
+    border-color: var(--nf-act-blue);
+    background-image: radial-gradient(circle, var(--nf-act-blue) 0 38%, transparent 42%);
+  }
+  :where(input[type="checkbox"]:not([role="switch"]), input[type="radio"]):disabled {
+    border-color: var(--nf-act-disabled-edge);
+    background-color: var(--nf-act-disabled-fill);
+    cursor: not-allowed;
+  }
+  :where(input[type="checkbox"]:not([role="switch"])):checked:disabled {
+    background-color: var(--nf-act-disabled-ink);
+  }
+  :where(input[type="radio"]):checked:disabled {
+    border-color: var(--nf-act-disabled-ink);
+    background-image: radial-gradient(circle, var(--nf-act-disabled-ink) 0 38%, transparent 42%);
+  }
+  :where(input[type="checkbox"]:not([role="switch"]), input[type="radio"]):focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: var(--nf-focus-ring-offset);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    :where(input[type="checkbox"]:not([role="switch"]), input[type="radio"]):not(:checked, :disabled):hover {
+      border-color: var(--nf-act-edge);
+    }
+  }
+  /* The row a checkbox or radio sits in: the label is the 44px target. */
+  .nf-check {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    min-height: 2.75rem;
+    font-size: var(--nf-text-body);
+    color: var(--nf-content-primary);
+    cursor: pointer;
+  }
+  .nf-check:has(input:disabled) {
+    color: var(--nf-act-disabled-ink);
+    cursor: not-allowed;
+  }
+
+  /* ---- 15. action tiles ----------------------------------------------- */
+  /* A tinted rounded square with its glyph, the word under it: Call, Share,
+     Download, Delete. The tone's soft fill and ink at rest; hover and press
+     fill it with the tone and turn the glyph white. */
+  .nf-action-tile {
+    --nf-tile-ink: var(--nf-act-ink);
+    --nf-tile-fill: var(--nf-act-tint);
+    --nf-tile-solid: var(--nf-act-blue);
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    min-width: 4rem;
+    padding: var(--nf-space-3xs);
+    border: 0;
+    background: transparent;
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  .nf-action-tile--success {
+    --nf-tile-ink: var(--nf-state-success);
+    --nf-tile-fill: var(--nf-state-success-surface);
+    --nf-tile-solid: var(--nf-state-success);
+  }
+  .nf-action-tile--danger {
+    --nf-tile-ink: var(--nf-state-error);
+    --nf-tile-fill: var(--nf-state-error-surface);
+    --nf-tile-solid: var(--nf-state-error);
+    color: var(--nf-state-error);
+  }
+  .nf-action-tile__plate {
+    display: grid;
+    place-items: center;
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: var(--nf-plate-radius-md);
+    background: var(--nf-tile-fill);
+    color: var(--nf-tile-ink);
+    border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-tile-ink) 16%, transparent);
+  }
+  .nf-action-tile:active:not(:disabled, [aria-disabled="true"]) {
+    transform: scale(var(--nf-press-scale-sm));
+  }
+  .nf-action-tile:active:not(:disabled, [aria-disabled="true"]) .nf-action-tile__plate {
+    background: var(--nf-tile-solid);
+    color: var(--nf-act-on);
+  }
+  .nf-action-tile:disabled,
+  .nf-action-tile[aria-disabled="true"] {
+    color: var(--nf-act-disabled-ink);
+    cursor: not-allowed;
+  }
+  .nf-action-tile:disabled .nf-action-tile__plate,
+  .nf-action-tile[aria-disabled="true"] .nf-action-tile__plate {
+    background: var(--nf-act-disabled-fill);
+    border-color: var(--nf-act-disabled-edge);
+    color: var(--nf-act-disabled-ink);
+  }
+  .nf-action-tile:focus-visible {
+    outline: none;
+  }
+  .nf-action-tile:focus-visible .nf-action-tile__plate {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: var(--nf-focus-ring-offset);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .nf-action-tile:hover:not(:disabled, [aria-disabled="true"]) .nf-action-tile__plate {
+      background: var(--nf-tile-solid);
+      color: var(--nf-act-on);
+      border-color: transparent;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-icon-btn,
+    .nf-qty__btn,
+    .nf-action-tile {
+      transition: none;
+    }
   }
 }

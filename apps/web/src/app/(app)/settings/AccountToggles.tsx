@@ -78,7 +78,7 @@ function saveNote(t: Dictionary, saved: boolean, error: string | null) {
 
 /* --------------------------------------------------------- notifications */
 
-type NotifyKey = "bookings" | "messages" | "wallet" | "marketing";
+type NotifyKey = "bookings" | "messages" | "wallet" | "marketing" | "savedPriceDrops";
 
 /**
  * The same four switches, described from where you are standing.
@@ -109,6 +109,7 @@ export function AccountNotificationsCard({
     messages: [words.messages, words.messagesSub],
     wallet: [words.wallet, words.walletSub],
     marketing: [words.marketing, words.marketingSub],
+    savedPriceDrops: [words.savedPriceDrops, words.savedPriceDropsSub],
   };
 
   const flip = (key: NotifyKey, next: boolean) => {
@@ -119,11 +120,12 @@ export function AccountNotificationsCard({
 
   /* The `wallet` key is the stored preference's name; what it covers is
      payment and receipt emails, so the glyph is a document (custody retired). */
-  const ICON: Record<NotifyKey, "calendar-booking" | "chat-bubble" | "document" | "sparkle"> = {
+  const ICON: Record<NotifyKey, "calendar-booking" | "chat-bubble" | "document" | "sparkle" | "price-tag"> = {
     bookings: "calendar-booking",
     messages: "chat-bubble",
     wallet: "document",
     marketing: "sparkle",
+    savedPriceDrops: "price-tag",
   };
 
   const row = (key: NotifyKey) => {
@@ -133,7 +135,7 @@ export function AccountNotificationsCard({
         icon={ICON[key]}
         label={label}
         sub={description}
-        checked={value[key]}
+        checked={value[key] ?? true}
         onChange={(next) => flip(key, next)}
         disabled={pending}
       />
@@ -145,6 +147,8 @@ export function AccountNotificationsCard({
       {row("bookings")}
       {row("messages")}
       {row("wallet")}
+      {/* B13: guests only; a host's listings are not somebody's saves. */}
+      {variant === "guest" ? row("savedPriceDrops") : null}
       {row("marketing")}
     </SettingsGroup>
   );

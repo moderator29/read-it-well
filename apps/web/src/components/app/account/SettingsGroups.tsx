@@ -1,15 +1,16 @@
 "use client";
 
-import { useEffect, useState, useTransition, type ReactNode } from "react";
+import { useState, useTransition, type ReactNode } from "react";
 import { setLite } from "@/lib/ui/lite";
 import { useRouter } from "next/navigation";
 import { LOCALES, localeMeta, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { LOCALE_COOKIE } from "@/lib/locale.constants";
+import { updateSettings } from "@/lib/profile/actions";
 import { NIGERIAN_STATES } from "@/lib/data/nigeria";
 import { RowButton, RowSelect, RowSwitch, RowValue, SettingsGroup } from "./rows";
 import { useClientMount } from "@/lib/ui/client-mount";
 import {
-  applyTextSize,
+  useApplyDeviceSettings,
   useNfSettings,
   type TextSize,
 } from "./settings-store";
@@ -77,9 +78,10 @@ export function AppearanceCard({ t, children }: { t: Dictionary; children?: Reac
      effect: it is this component updating an external system, which is the case
      the rule says an effect is for. */
 
-  useEffect(() => {
-    applyTextSize(settings.textSize);
-  }, [settings.textSize]);
+  /* Follows the two root settings here too, for the preview harness that
+     draws this card outside the member layout's ContrastSync. */
+  useApplyDeviceSettings();
+  const contrastCopy = t.memberKit?.contrast;
 
   /* MOTION MOVED OUT OF THIS CARD (Track M). The "Reduce motion" switch that
      stood here set a root flag no stylesheet read, so it never did anything;
@@ -95,6 +97,16 @@ export function AppearanceCard({ t, children }: { t: Dictionary; children?: Reac
         options={textSizes}
         onChange={(next) => set("textSize", next)}
       />
+      {/* B15: stronger lines and ink, beside the system's own setting. */}
+      {contrastCopy ? (
+        <RowSwitch
+          icon="contrast"
+          label={contrastCopy.label}
+          sub={contrastCopy.sub}
+          checked={settings.increaseContrast}
+          onChange={(next) => set("increaseContrast", next)}
+        />
+      ) : null}
       {/*
        * The data-saver switch lives beside the other two device settings
        * because it is one: it is stored on the device, it applies to this
@@ -173,6 +185,10 @@ export function LanguageRow({
     setSelected(next);
     // One year, lax. A language choice holds no personal data.
     document.cookie = `${LOCALE_COOKIE}=${next}; path=/; max-age=31536000; samesite=lax`;
+    /* A11: the choice is also kept on the account (`profiles.settings.locale`),
+       so the account and booking emails arrive in it. Signed out, or on a
+       failed write, the cookie alone still switches the screen. */
+    void updateSettings({ locale: next }).catch(() => undefined);
     startTransition(() => router.refresh());
   };
 
