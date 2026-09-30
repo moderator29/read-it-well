@@ -82,3 +82,17 @@ The screenshots are in `scratchpad/pixel/before/`, `mid/` and `after/`. They are
 | `.nf-gs-tag` (welcome) tracks 0.14em. The thread view's caps label tracks 0.14em. `member-loop.css` has 650 / 750 weights | Onboarding, gap-closer, details | Those files had uncommitted work in progress |
 | About 190 on-scale arbitrary sizes (`text-[0.9375rem]` and similar) still trip `nf/no-arbitrary-font-size` as warnings | Anyone touching those files | No visual change. A tree-wide codemod across files others are editing is not worth the collision risk this week |
 | The crawler's Chromium cannot reach Supabase directly (a certificate authority error through the proxy), so client-side realtime is absent in its screenshots | Environment | Server-rendered content is complete. The passcode lock is cleared by re-signing in |
+
+## Verification (the after crawl)
+
+The same crawler ran over the same routes, widths and themes after the fixes (`scratchpad/pixel/after/`, with the workspace half in `after2/`). The before and mid reports are beside them for comparison.
+
+- **Text under 12px outside legal:** the only remaining text is the dock's tab label (11px, M1's, listed under Open). It was 20+ elements per landing shot and 60+ per `/home` and `/search` shot.
+- **Reading lines over 80ch:** none. Before, `/help`, `/price` and the listing at 820 all had them.
+- **Headings wrapping without balance:** none.
+- **Horizontal scroll:** none, at any width.
+- **Nested same-surface bordered cards:** none.
+- **Off-grid padding:** none. The fractional gutter is gone.
+- **Dock clearance:** every scrolled member page clears the dock by 16px or more.
+- **CLS:** 0 on `/saved`, where it was 0.045. Two single readings did not reproduce on a warm server: `/help` at 430 light (0.147) and `/home` at 360 dark (0.087 from the dock row). Both re-measured at 0 three times, and were taken while the dev server was recompiling.
+- **Checks:** `scripts/check-css-tokens.mjs` is clean. tsc through the lock shows one error, and it belongs to another lane (`preview/session-b/sweep-orphans/fixtures.ts`).
