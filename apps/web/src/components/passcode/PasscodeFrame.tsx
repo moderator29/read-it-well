@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, type ReactNode } from "react";
 import { AuthCurveBlock } from "@/components/auth/slate";
+import { focalObject } from "@/components/auth/focal-art";
+import { FocalArtImage } from "@/components/auth/FocalArtImage";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import { initial } from "@/lib/text/initial";
 
@@ -32,6 +34,7 @@ export function PasscodeFrame({
   wordmark,
   children,
   testId,
+  focal = "face",
 }: {
   overlay: boolean;
   titleId: string;
@@ -43,8 +46,15 @@ export function PasscodeFrame({
   wordmark: string;
   children: ReactNode;
   testId?: string;
+  /**
+   * What sits in the ring: the member's face (welcome back; the 3D padlock
+   * when there is no photo), or the 3D padlock (setting or resetting the
+   * code). Presentation only.
+   */
+  focal?: "face" | "lock";
 }) {
   const ref = useRef<HTMLDialogElement>(null);
+  const lock = focalObject("passcode-lock");
 
   useEffect(() => {
     const dialog = ref.current;
@@ -70,13 +80,17 @@ export function PasscodeFrame({
         brandLabel="Vallo"
         wordmark={wordmark}
         focal={
-          <span className="nf-passcode__avatar">
-            {avatarUrl ? (
+          focal === "face" && avatarUrl ? (
+            <span className="nf-passcode__avatar">
               <RemoteImage src={avatarUrl} alt="" width={192} height={192} sizes="96px" />
-            ) : (
+            </span>
+          ) : lock.kind === "object" ? (
+            <FocalArtImage art={lock} />
+          ) : (
+            <span className="nf-passcode__avatar">
               <span>{initial(name, "V")}</span>
-            )}
-          </span>
+            </span>
+          )
         }
       />
       <div className="nf-passcode__body">

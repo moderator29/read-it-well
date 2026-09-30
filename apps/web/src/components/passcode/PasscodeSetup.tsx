@@ -237,6 +237,7 @@ export function PasscodeSetup({
       subtitle={subtitle}
       name={name}
       avatarUrl={avatarUrl}
+      focal="lock"
       testId={`passcode-setup-${step}`}
     >
       <PasscodeDots length={width} filled={code.length} shake={shake} label={fill(copy.digitsEntered, { count: code.length, total: width })} />

@@ -1603,7 +1603,9 @@
     filter: drop-shadow(0 4px 8px color-mix(in oklab, var(--nf-surface-artwork) 55%, transparent));
   }
   .nf-slate-focal__icon {
-    --nf-icon3d-size: calc(var(--nf-slate-focal-size) * 0.78);
+    width: 76%;
+    height: 76%;
+    object-fit: contain;
     filter: drop-shadow(0 6px 10px color-mix(in oklab, var(--nf-surface-artwork) 45%, transparent));
   }
   @keyframes nf-slate-focal-in {
