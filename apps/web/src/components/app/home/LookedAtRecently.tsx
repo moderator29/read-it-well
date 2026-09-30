@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useSyncExternalStore } from "react";
 import { RemoteImage } from "@/components/ui/RemoteImage";
-import { handOff } from "@/lib/listings/handoff";
+import { drawnSrcIn, handOff } from "@/lib/listings/handoff";
 import {
   clearRecentListings,
   recentListingsServerSnapshot,
@@ -63,7 +63,6 @@ function LookbackCard({ entry, copy }: { entry: RecentListing; copy: { example: 
       href={`/listing/${entry.id}`}
       className="nf-lookback__card"
       onClick={(event) => {
-        const img = event.currentTarget.querySelector("img");
         handOff(
           {
             id: entry.id,
@@ -74,7 +73,7 @@ function LookbackCard({ entry, copy }: { entry: RecentListing; copy: { example: 
             priceNote: entry.priceNote ?? "",
             mark: entry.mark ?? null,
           },
-          img?.currentSrc || null,
+          drawnSrcIn(event.currentTarget, entry.photo),
         );
       }}
     >

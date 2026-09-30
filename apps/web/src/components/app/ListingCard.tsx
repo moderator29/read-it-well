@@ -228,7 +228,7 @@ export function ListingCard({
     /* B4: the listing opens in one frame. The facts this card already
        printed, and the photo it already drew, go to the listing's loading
        shell (lib/listings/handoff.ts), which paints them at once. */
-    handOff(cardGlance(listing, locale, copy), drawnSrcIn(media));
+    handOff(cardGlance(listing, locale, copy), drawnSrcIn(media, listing.photos[0]));
     if (!media || motionQuiet()) return;
     media.style.viewTransitionName = `listing-photo-${listing.id}`;
     startPhotoMorph(listing.id);

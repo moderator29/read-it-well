@@ -60,6 +60,8 @@ export function RecentSearches({
       if (event.key === "Escape") setOpen(false);
     };
     input.setAttribute("aria-controls", listId);
+    /* Focused before hydration (a fast tap, autofocus): answer it now. */
+    if (document.activeElement === input) sync();
     input.addEventListener("focus", sync);
     input.addEventListener("input", sync);
     input.addEventListener("focusout", onFocusOut);

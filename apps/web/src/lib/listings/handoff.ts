@@ -43,9 +43,19 @@ export function handoffFor(id: string | null | undefined): Handoff | null {
   return store.get(id) ?? null;
 }
 
-/** The image the card drew: its `currentSrc`, when it is a safe URL. */
-export function drawnSrcIn(root: Element | null): string | null {
-  const img = root?.querySelector("img");
+/**
+ * The image the card drew for `photo` (the listing's lead photograph): the
+ * `img` whose address carries that photo, by its `currentSrc`, when it is a
+ * safe URL. Never the scene plate the card paints under a missing photo: a
+ * card with no drawn lead photo hands over none.
+ */
+export function drawnSrcIn(root: Element | null, photo: string | null | undefined): string | null {
+  if (!root || !photo) return null;
+  const encoded = encodeURIComponent(photo);
+  const img = [...root.querySelectorAll("img")].find((el) => {
+    const at = el.currentSrc || el.getAttribute("src") || "";
+    return at === photo || at.includes(encoded);
+  });
   const src = img?.currentSrc || img?.getAttribute("src") || "";
   if (!src) return null;
   if (src.startsWith("/") && !src.startsWith("//")) return src;
