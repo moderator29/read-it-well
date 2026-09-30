@@ -91,9 +91,9 @@ export default function GlobalError({
               Reference {reference}. Quote this to support.
             </p>
 
-            {/* Both of these were `borderRadius: "999px"`. They are controls
-                carrying words, so they take the control radius like every other
-                one in the product. The radius is read as a token even here: this
+            {/* Both of these were `borderRadius: "999px"`, then the control
+                radius; section 17 makes every button a pill, so they read the
+                button radius like every other one in the product. The radius is read as a token even here: this
                 boundary renders its own <html>, but the token sheet is a global
                 stylesheet and the gradient and ink beside it already rely on it,
                 so a raw 999px was the only value on this screen that had opted
@@ -104,7 +104,7 @@ export default function GlobalError({
                 onClick={reset}
                 style={{
                   minHeight: "3rem",
-                  borderRadius: "var(--nf-radius-control)",
+                  borderRadius: "var(--nf-radius-button)",
                   border: 0,
                   padding: "0 1.5rem",
                   font: "inherit",
@@ -126,7 +126,7 @@ export default function GlobalError({
                   minHeight: "3rem",
                   display: "grid",
                   placeItems: "center",
-                  borderRadius: "var(--nf-radius-control)",
+                  borderRadius: "var(--nf-radius-button)",
                   padding: "0 1.5rem",
                   fontWeight: 600,
                   textDecoration: "none",
