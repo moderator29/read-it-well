@@ -53,23 +53,23 @@
   .nf-passcode {
     --nf-passcode-soft: color-mix(in oklab, var(--nf-brand-quiet) 70%, var(--nf-content-primary));
     --nf-passcode-key:
-      radial-gradient(110% 110% at 32% 22%, color-mix(in oklab, var(--nf-electric-300) 60%, transparent) 0%, color-mix(in oklab, var(--nf-electric-300) 18%, transparent) 55%, transparent 80%),
-      linear-gradient(170deg, color-mix(in oklab, var(--nf-electric-700) 55%, var(--nf-surface-artwork)), var(--nf-surface-artwork));
+      radial-gradient(110% 110% at 32% 22%, color-mix(in oklab, var(--nf-brand-primary) 60%, transparent) 0%, color-mix(in oklab, var(--nf-brand-primary) 18%, transparent) 55%, transparent 80%),
+      linear-gradient(170deg, color-mix(in oklab, color-mix(in oklab, var(--nf-brand-primary) 62%, var(--nf-surface-artwork)) 55%, var(--nf-surface-artwork)), var(--nf-surface-artwork));
     --nf-passcode-key-press:
-      radial-gradient(110% 110% at 32% 22%, color-mix(in oklab, var(--nf-electric-300) 85%, transparent) 0%, color-mix(in oklab, var(--nf-electric-300) 40%, transparent) 60%, transparent 85%),
+      radial-gradient(110% 110% at 32% 22%, color-mix(in oklab, var(--nf-brand-primary) 85%, transparent) 0%, color-mix(in oklab, var(--nf-brand-primary) 40%, transparent) 60%, transparent 85%),
       var(--nf-surface-artwork);
     --nf-passcode-key-edge: color-mix(in oklab, var(--nf-brand-quiet) 60%, transparent);
     --nf-passcode-key-depth:
       inset 0 2px 3px color-mix(in oklab, var(--nf-content-on-brand) 26%, transparent),
       inset 0 -8px 14px -6px color-mix(in oklab, var(--nf-surface-artwork) 70%, transparent),
-      0 0 18px -6px color-mix(in oklab, var(--nf-electric-300) 70%, transparent),
+      0 0 18px -6px color-mix(in oklab, var(--nf-brand-primary) 70%, transparent),
       0 10px 20px -10px color-mix(in oklab, var(--nf-surface-artwork) 90%, transparent);
     --nf-passcode-key-ink: var(--nf-content-on-brand);
-    --nf-passcode-dot-edge: color-mix(in oklab, var(--nf-electric-300) 85%, var(--nf-content-on-brand));
-    --nf-passcode-dot-on: var(--nf-electric-300);
-    --nf-passcode-dot-glow: 0 0 10px 1px color-mix(in oklab, var(--nf-electric-300) 70%, transparent);
+    --nf-passcode-dot-edge: color-mix(in oklab, var(--nf-brand-primary) 85%, var(--nf-content-on-brand));
+    --nf-passcode-dot-on: var(--nf-brand-primary);
+    --nf-passcode-dot-glow: 0 0 10px 1px color-mix(in oklab, var(--nf-brand-primary) 70%, transparent);
     --nf-passcode-ground:
-      radial-gradient(80% 50% at 50% 30%, color-mix(in oklab, var(--nf-electric-300) 18%, transparent), transparent 70%),
+      radial-gradient(80% 50% at 50% 30%, color-mix(in oklab, var(--nf-brand-primary) 18%, transparent), transparent 70%),
       var(--nf-slate-page);
   }
   :root[data-theme="light"] .nf-passcode {

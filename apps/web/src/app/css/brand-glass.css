@@ -36,15 +36,15 @@
     --nf-door-glass-fill:
       linear-gradient(
         180deg,
-        color-mix(in oklab, var(--nf-electric-300) 20%, transparent) 0%,
-        color-mix(in oklab, var(--nf-electric-300) 7%, transparent) 55%,
-        color-mix(in oklab, var(--nf-electric-300) 12%, transparent) 100%
+        color-mix(in oklab, var(--nf-brand-primary) 20%, transparent) 0%,
+        color-mix(in oklab, var(--nf-brand-primary) 7%, transparent) 55%,
+        color-mix(in oklab, var(--nf-brand-primary) 12%, transparent) 100%
       ),
       color-mix(in srgb, var(--nf-glow-ink) 8%, var(--nf-surface-canvas));
     --nf-door-glass-rim: color-mix(in oklab, var(--nf-brand-quiet) 42%, transparent);
     --nf-door-glass-depth:
       inset 0 1px 0 color-mix(in oklab, var(--nf-content-on-brand) 14%, transparent),
-      inset 0 -10px 18px -14px color-mix(in oklab, var(--nf-electric-300) 70%, transparent),
+      inset 0 -10px 18px -14px color-mix(in oklab, var(--nf-brand-primary) 70%, transparent),
       0 12px 26px -16px color-mix(in oklab, var(--nf-surface-artwork) 90%, transparent);
   }
   :root[data-theme="light"],
