@@ -24,9 +24,14 @@ export const VIEWPORTS = {
 
 export async function launch() {
   const executablePath = [process.env.CHROMIUM_PATH, "/opt/pw-browsers/chromium"].find((p) => p && existsSync(p));
+  /* The browser's own language sets how native fields print: without it a
+     date input reads 10/16/2026 even in an en-NG context. Nigerians read
+     16/10/2026, so the whole browser runs in British English. */
   return chromium.launch({
     ...(executablePath ? { executablePath } : {}),
     ...(process.env.HTTPS_PROXY ? { proxy: { server: process.env.HTTPS_PROXY } } : {}),
+    args: ["--lang=en-GB"],
+    env: { ...process.env, LANG: "en_GB.UTF-8", LANGUAGE: "en_GB" },
   });
 }
 

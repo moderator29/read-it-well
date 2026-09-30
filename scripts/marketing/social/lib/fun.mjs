@@ -61,7 +61,7 @@ export function objChip(name, { size = 84, theme = "dark", radius } = {}) {
  * once into the cache; the page shows it `w` px wide with a rounded glass
  * edge and a long soft shadow.
  */
-export async function lift(id, crop, { x, y, w, rot = 0, radius = 26, theme = "dark", edge = true, tilt = "", style = "", shadow = "" } = {}) {
+export async function lift(id, crop, { x, y, w, rot = 0, radius = 26, theme = "dark", edge = true, tilt = "", style = "", shadow = "", badge = "" } = {}) {
   const dir = join(CACHE, "lift");
   await mkdir(dir, { recursive: true });
   const file = join(dir, `${id}-${crop.x}-${crop.y}-${crop.w}-${crop.h}.png`);
@@ -75,9 +75,16 @@ export async function lift(id, crop, { x, y, w, rot = 0, radius = 26, theme = "d
     (d
       ? "0 34px 70px rgba(0,0,16,.62), 0 10px 22px rgba(0,0,20,.4), 0 0 0 1.5px rgba(120,170,255,.35)"
       : "0 34px 70px rgba(18,28,90,.22), 0 10px 22px rgba(18,28,90,.12), 0 0 0 1.5px rgba(255,255,255,.9)");
-  return `<div class="lift" style="position:absolute;left:${Math.round(x)}px;top:${Math.round(y)}px;width:${w}px;height:${h}px;border-radius:${radius}px;overflow:hidden;
-      transform:${tilt ? `${tilt} ` : ""}rotate(${rot}deg);box-shadow:${edge ? sh : "none"};${style}">
-    <img src="${u(file)}" alt="" style="display:block;width:${w}px;height:${h}px"></div>`;
+  /* an "Example" chip on the card's corner, for lifted prices and amounts */
+  const b = badge
+    ? `<span style="position:absolute;right:${-10}px;top:${-16}px;display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 13px;border-radius:999px;
+        font:600 17px/1 Inter,sans-serif;color:#fff;background:#0A1450;border:1.5px solid rgba(143,211,255,.55);box-shadow:0 8px 18px rgba(0,0,20,.45);white-space:nowrap">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>${badge}</span>`
+    : "";
+  return `<div class="lift" style="position:absolute;left:${Math.round(x)}px;top:${Math.round(y)}px;width:${w}px;height:${h}px;
+      transform:${tilt ? `${tilt} ` : ""}rotate(${rot}deg);${style}">
+    <div style="position:absolute;inset:0;border-radius:${radius}px;overflow:hidden;box-shadow:${edge ? sh : "none"}">
+      <img src="${u(file)}" alt="" style="display:block;width:${w}px;height:${h}px"></div>${b}</div>`;
 }
 
 /* ------------------------------------------------------------------ hand-drawn marks */
@@ -170,4 +177,41 @@ export function titlePill(html, { theme = "dark", size = 24, style = "" } = {}) 
 /** CSS the fun layer needs on every page (the key word colour inside pills). */
 export function funCss(theme = "dark") {
   return `.tpill .tp b{font-weight:700;color:${theme === "dark" ? "#8FD3FF" : "#0056D0"}}`;
+}
+
+/* ------------------------------------------------------------------ marks bound to a word */
+
+/**
+ * A hand-drawn ring around a word, sized by the word itself: the returned
+ * HTML is the word wrapped in an inline box with the ring drawn around it.
+ * padX / padY: how far the ring stands off the word (px).
+ */
+export function wordRing(html, { color = "#8FD3FF", stroke = 4.5, padX = 26, padY = 14, rot = -3, style = "" } = {}) {
+  const pts = [];
+  for (let t = -0.35; t <= Math.PI * 2 + 0.55; t += 0.04) {
+    const k = 1 + 0.03 * Math.sin(3 * t + 0.6) + 0.018 * Math.cos(5 * t);
+    const drift = t > Math.PI * 2 ? (t - Math.PI * 2) * 0.06 : 0;
+    pts.push(`${f1(100 + 96 * k * Math.cos(t) * (1 + drift))},${f1(50 + 46 * k * Math.sin(t) * (1 - drift))}`);
+  }
+  return `<span class="wmark" style="position:relative;display:inline-block;${style}">${html}<svg class="mark" viewBox="0 0 200 100" preserveAspectRatio="none"
+      style="position:absolute;left:${-padX}px;top:${-padY}px;width:calc(100% + ${padX * 2}px);height:calc(100% + ${padY * 2}px);overflow:visible;transform:rotate(${rot}deg);pointer-events:none">
+    <polyline points="${pts.join(" ")}" fill="none" stroke="${color}" stroke-width="${stroke}" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`;
+}
+
+/**
+ * A looped hand-drawn squiggle under a word, as wide as the word. `below`:
+ * gap under the word's box (px, may be negative to tuck under descenders).
+ */
+export function wordSquiggle(html, { color = "#FF8A3D", stroke = 5, loops, amp = 16, below = -6, style = "" } = {}) {
+  const n = loops ?? 8;
+  const pts = [];
+  const T = n * 2 * Math.PI + 2.2;
+  for (let t = 0; t <= T; t += 0.1) {
+    const px = (t - 1.9 * Math.sin(t) + 1.9) / (T + 3.8);
+    const py = 0.5 - 0.5 * Math.cos(t) + Math.sin(t * 0.37) * 0.06;
+    pts.push(`${f1(px * 400)},${f1(py * 100)}`);
+  }
+  return `<span class="wmark" style="position:relative;display:inline-block;${style}">${html}<svg class="mark" viewBox="0 0 400 100" preserveAspectRatio="none"
+      style="position:absolute;left:0;top:calc(100% + ${below}px);width:100%;height:${amp}px;overflow:visible;pointer-events:none">
+    <polyline points="${pts.join(" ")}" fill="none" stroke="${color}" stroke-width="${stroke}" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`;
 }

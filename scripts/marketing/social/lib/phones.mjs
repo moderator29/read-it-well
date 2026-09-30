@@ -148,7 +148,8 @@ export async function phoneLayer(spec, { W, H, scale = 2, draft = false }) {
   const src = join(CACHE, "phones", `p-${key}.png`);
   const shd = join(CACHE, "phones", `s-${key}.png`);
   const metaFile = join(CACHE, "phones", `p-${key}.json`);
-  if (!existsSync(src) || !existsSync(metaFile)) {
+  const stale = existsSync(metaFile) && !JSON.parse(await readFile(metaFile, "utf8")).image;
+  if (!existsSync(src) || !existsSync(metaFile) || stale) {
     const s = await getStudio();
     const r = await s.render({ ...params, screen: scr });
     await writeFile(src, r.png);

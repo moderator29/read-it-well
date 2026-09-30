@@ -27,6 +27,7 @@ export const PARTS = {
   "stays-shortlets": { id: "stays", x: 674, y: 1424, w: 604, h: 416 },
   "stays-restaurants": { id: "stays", x: 40, y: 1872, w: 604, h: 416 },
   "opens-chip": { id: "restaurant", x: 140, y: 948, w: 376, h: 68 },
+  "list-opens-chip": { id: "restaurants", x: 92, y: 1252, w: 350, h: 70 },
   "restaurant-chips": { id: "restaurant", x: 140, y: 1498, w: 1050, h: 156 },
   "restaurant-card": { id: "restaurants", x: 46, y: 588, w: 1232, h: 1056 },
   /* people and messages */

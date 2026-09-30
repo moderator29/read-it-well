@@ -9,17 +9,30 @@
  *
  *   import { createLiveMap } from "/video/scenes/map3d.js";
  *   const map = await createLiveMap({ canvas, width, height, dpr, film: "mobile" | "desktop" });
- *   map.render(t);   // t = seconds from the start of the map shot (row 38), 0 to 4.04
- *   map.labels(t);   // [{ city, x, y, ax, ay, opacity, scale, dot: { x, y } }]
- *   map.pin(t);      // { x, y, scale, size, opacity }
+ *   map.render(t);        // t = seconds from the start of the map shot (row 38, 88.27 s), 0 to 4.04
+ *   map.labels(t);        // [{ city, x, y, ax, ay, opacity, scale, dot: { x, y } }]
+ *   map.pin(t);           // { x, y, scale, size, opacity }
+ *   map.point(city, t);   // { x, y }: a city's point on the slab (Lagos: where the home stands)
+ *   map.bounds(t);        // { country, plinth }: projected boxes [x0, y0, x1, y1]
+ *   map.timing;           // every event time, for the sound cues (see below)
  *
- * Coordinates are canvas CSS px. A label is drawn with its anchor fraction (ax, ay) on
- * (x, y), i.e. `translate(x px, y px) translate(-ax*100 %, -ay*100 %) scale(scale)`, so it
- * sits beside its city's dot on the side away from Lagos and never under a route.
- * `map.pin(t)` is the pin head's centre, its on-screen diameter (`size`, px) and
- * `scale` = size / its size when it first sits above Lagos (1 until the lift at 3.7 s).
- * `map.point(city, t)` is a city's point on the slab (Lagos: where the house stands), for
- * the falling sticker to land on; `map.timing` holds every event time (sound cues).
+ * All positions are canvas CSS px. Options: `aa` ('ss', a 1.5x buffer filtered down, the
+ * default; or 'msaa'), `supersample`, `land` (when the falling house lands on Lagos, 0.35 s by
+ * default; the home's rise moves with it), `world` or `data` (the topology, or its URL).
+ *
+ * Labels (HTML, drawn by the film): put each label's anchor fraction (ax, ay) on (x, y), i.e.
+ * `transform: translate(x px, y px) translate(-ax*100%, -ay*100%) scale(scale)` with
+ * `transform-origin: ax*100% ay*100%`, at `opacity`. The side of each city's dot is chosen once,
+ * clear of the routes, the home, its pin and the safe zones, for labels of ~34 px type on mobile
+ * and ~24 px on desktop. The five cities' labels pop in as their routes leave and fade out
+ * (3.12-3.42 s) as the pin drops in; Lagos' label sits under the home until the lift.
+ *
+ * The pin: its head's centre and on-screen diameter (`size`, px); `scale` = size / its size at
+ * rest above Lagos (1 until the lift at 3.7 s). At 4.04 s it reaches the hand-over point of the
+ * Vallo mark: (540, 900) at 250 px on mobile, (960, 520) at 210 px on desktop.
+ *
+ * map.timing: { shot, land, home: [start, end], routes: [{ city, start, land }] (a label pops
+ * at `start`, the route lands with a ripple at `land`), pinIn, pinLift, labelsOut, lagosOut }.
  *
  * Rules kept (video/BUILDING.md): every frame is a pure function of t (no clock, no
  * Math.random: the velvet grain comes from a seeded generator), nothing is carried between
@@ -47,12 +60,13 @@ export const CITIES = [
   { city: "Ibadan", lon: 3.947, lat: 7.378 },
 ];
 
-const T = {
-  land: 0.35, // the sticker lands on Lagos: the slab takes a soft squash
+const TIMES = {
+  land: 0.35, // the falling house lands on Lagos: the slab takes a soft squash
   base: [0.3, 0.56], // the home's round base
   walls: [0.42, 1.06],
   roof: [0.8, 1.3],
   windows: [1.12, 1.62],
+  lagosIn: [1.05, 1.45], // Lagos' label
   routes: 1.73, // the first route leaves; then one every 0.24 s
   routeGap: 0.24,
   pinIn: [3.1, 3.42], // the pin drops in above the home, as the city labels leave
@@ -61,6 +75,13 @@ const T = {
   lagosOut: [3.56, 3.8], // Lagos' label (under the home) stays until the lift
 };
 const ROUTE_ORDER = ["Abuja", "Kano", "Port Harcourt", "Enugu", "Ibadan"];
+
+/** The timings for a landing at `land` s: the landing and the home's rise move with it. */
+function timingFor(land = TIMES.land) {
+  const d = land - TIMES.land;
+  const sh = ([a, b]) => [a + d, b + d];
+  return { ...TIMES, land, base: sh(TIMES.base), walls: sh(TIMES.walls), roof: sh(TIMES.roof), windows: sh(TIMES.windows), lagosIn: sh(TIMES.lagosIn) };
+}
 
 /* The model, in model units (the country is WIDTH units from east to west). */
 const WIDTH = 10;
@@ -76,10 +97,10 @@ const FILMS = {
   mobile: {
     size: [1080, 1920],
     box: [60, 380, 1020, 1300],
-    frame: [22, 0, 1058, 1500], // the plinth stays inside this
+    frame: [22, 0, 1058, 1222], // the plinth stays inside this (above the captions band, y 1230)
     fov: 30,
-    az: [-26, -14],
-    pitch: [46, 40],
+    az: [-12, -24], // opens close to north-up, turns toward Lagos as the routes come in
+    pitch: [45, 39],
     push: 0.035,
     margin: 12,
     pinEnd: [540, 900, 250], // x, y, head diameter (px) when the pin hands over to the mark
@@ -87,10 +108,10 @@ const FILMS = {
   desktop: {
     size: [1920, 1080],
     box: [460, 120, 1460, 900],
-    frame: [40, 40, 1880, 1040],
+    frame: [40, 40, 1880, 908], // above the captions band (y 915)
     fov: 26,
     az: [-13, -1],
-    pitch: [43, 37],
+    pitch: [42, 36],
     push: 0.035,
     margin: 10,
     pinEnd: [960, 520, 210],
@@ -996,10 +1017,12 @@ const FRAG_FINAL = /* glsl */ `
  * @param {number} [o.supersample=1.5]
  * @param {string} [o.data]  world-atlas countries-50m.json URL
  * @param {object} [o.world] the parsed topology (skips the fetch)
+ * @param {number} [o.land=0.35] when the falling house lands on Lagos (s); the home's rise follows
  * @param {'glow'} [o.debug] 'glow': show the blurred glow buffer instead of the frame (tuning)
  */
 export async function createLiveMap(o) {
   const { canvas, width, height } = o;
+  const T = timingFor(o.land ?? TIMES.land);
   const dpr = o.dpr ?? 1;
   const film = o.film === "desktop" ? "desktop" : "mobile";
   const F = FILMS[film];
@@ -1911,13 +1934,13 @@ export async function createLiveMap(o) {
   }
 
   function cityOpacity(city, t) {
-    if (city === "Lagos") return EASE.soft(prog(t, 1.05, 1.45)) * (1 - EASE.soft(prog(t, T.lagosOut[0], T.lagosOut[1])));
+    if (city === "Lagos") return EASE.soft(prog(t, T.lagosIn[0], T.lagosIn[1])) * (1 - EASE.soft(prog(t, T.lagosOut[0], T.lagosOut[1])));
     const outU = 1 - EASE.soft(prog(t, T.labelsOut[0], T.labelsOut[1]));
     const r = routes.find((x) => x.city === city);
     return EASE.land(prog(t, r.start - 0.06, r.start + 0.22)) * outU;
   }
   function cityScale(city, t) {
-    if (city === "Lagos") return mix(0.9, 1, EASE.land(prog(t, 1.05, 1.5)));
+    if (city === "Lagos") return mix(0.9, 1, EASE.land(prog(t, T.lagosIn[0], T.lagosIn[1] + 0.05)));
     const r = routes.find((x) => x.city === city);
     return mix(0.82, 1, EASE.land(prog(t, r.start - 0.06, r.start + 0.3)));
   }
@@ -1981,22 +2004,26 @@ export async function createLiveMap(o) {
 
     /** The Lagos pin at t: its head's centre, on-screen diameter and scale (1 at rest). */
     pin(t) {
+      // the head's projected diameter: its radius over its depth in front of the camera
+      const fpx = (height / 2) / Math.tan(fovY / 2);
+      const depth = (p) => Math.max(1e-3, -p.clone().applyMatrix4(camera.matrixWorldInverse).z);
+      const rest = pinState(T.pinIn[1] + 0.2);
       setCamera(t);
+      const sizeRest = (2 * rest.scale * pin.radius * fpx) / depth(rest.pos);
       const ps = pinState(t);
       const c = toScreen(ps.pos);
-      const r = ps.scale * pin.radius;
-      // diameter from the projected head (distance to the camera)
-      const dcam = ps.pos.distanceTo(camera.position);
-      const fpx = (height / 2) / Math.tan(fovY / 2);
-      const size = (2 * r * fpx) / dcam;
-      const rest = pinState(T.pinIn[1] + 0.2);
-      const sizeRest = (2 * rest.scale * pin.radius * fpx) / rest.pos.distanceTo(new THREE.Vector3().copy(camera.position));
+      const size = (2 * ps.scale * pin.radius * fpx) / depth(ps.pos);
       const opacity = t < T.pinIn[0] ? 0 : EASE.soft(prog(t, T.pinIn[0], T.pinIn[0] + 0.12));
       return { x: c.x, y: c.y, size, scale: size / sizeRest, opacity };
     },
 
     /** A city's point on the slab (Lagos: where the home stands), canvas CSS px. */
     point,
+
+    /** The projected bounding boxes [x0, y0, x1, y1] of the country and of the plinth at t. */
+    bounds(t) {
+      return { country: bounds(framePts, t), plinth: bounds(plinthPts, t) };
+    },
 
     /** Renders t with a sync after each stage; returns the ms per stage (for tuning). */
     profile(t) {
@@ -2016,7 +2043,7 @@ export async function createLiveMap(o) {
           ob.material.dispose();
         }
       });
-      grain.dispose();
+      for (const tex of [grain, shadowTex, maskTex, blob, warmTex]) tex.dispose();
     },
   };
 

@@ -262,20 +262,26 @@ for (const store of STORE_LIST) {
       const pageW = S.W * halves.length;
       const parts = [];
       const ctxs = [];
+      /* A pair shares one phone drawn across its seam: laid out first, on a
+         context as wide as both images, so each half can place its words
+         (and the one pop-up) around it. */
+      let shared = null;
+      const args = { W: S.W, H: S.H, pageW, store, u: S.W / 1320, ios: store === "app-store" };
+      if (partner && shot.shared) {
+        const pc = makeCtx(shot, store, 0);
+        pc.W = pageW;
+        shared = await shot.shared({ ...args, pc });
+      }
       for (let k = 0; k < halves.length; k += 1) {
         const ctx = makeCtx(halves[k], store, k * S.W);
+        ctx.shared = shared;
         ctxs.push(ctx);
         const body = await halves[k].layout(ctx);
         parts.push(`<div class="half" style="left:${k * S.W}px;width:${S.W}px;height:${S.H}px">${body}</div>`);
       }
-      if (partner && shot.bridge) {
-        parts.push(await shot.bridge({ W: S.W, H: S.H, pageW, store, u: S.W / 1320, ctxs }));
-      }
-      /* A pair's ground is drawn once across both images, so it runs
-         unbroken through the seam. */
-      if (partner && shot.ground) {
-        parts.unshift(await shot.ground({ W: S.W, H: S.H, pageW, store, u: S.W / 1320, ctxs, ios: store === "app-store" }));
-      }
+      /* The ground runs unbroken through the seam: drawn once, under both. */
+      if (partner && shot.ground) parts.unshift(await shot.ground({ ...args, ctxs }));
+      if (shared) parts.push(shared.html);
       const html = page({ width: pageW, height: S.H, body: parts.join("\n") });
       const buf = await renderHtml(html, pageW, S.H);
       for (const v of await edgeCheck(40 * (S.W / 1320))) {

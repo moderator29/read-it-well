@@ -47,7 +47,7 @@ The only source for any number, name or claim that appears on screen in the mobi
 | Harbour Lights Kitchen, Victoria Island, Lagos (restaurant) | seafood · smart casual · seats 80 · opens at 18:00 |
 | Three bedroom terrace for sale in Karsana, Abuja | ₦95,000,000 asking price |
 | Five bedroom villa on Banana Island, Lagos | ₦25,000,000 a year · 5 beds, 5 baths |
-| Stays search | check in 16 Oct 2026, check out 19 Oct 2026 (3 nights), 2 guests |
+| Stays search | check in 16 Oct 2026, check out 19 Oct 2026 (3 nights), 2 guests. "Explore stays · 69 stays" is the page's own count and may show as captured, but is never lifted into a headline, card or pop-up. Use `stays-dates-gb` (and `-lt`, `d-`): the fields read 16/10/2026 and 19/10/2026, as Nigerians write dates; the older `stays-dates` captures print them the US way (10/16/2026), so avoid them where the dates can be read. |
 | Nigerian cities for the map (places guests may come from; no counts) | Lagos, Abuja, Kano, Ibadan, Port Harcourt, Enugu, Benin City, Calabar, Kaduna, Jos |
 | Desktop cost table (`d-listing-cost`) | the five lines above, plus "Fees to the agent: ₦4,500,000, 25.0% of a year's rent" (the three fees added up) |
 | Filters | "Apply (52)" with every type (`filters`); "Apply (3)" with Villas selected (`filters-villas`, captured 30 Sep 2026) |

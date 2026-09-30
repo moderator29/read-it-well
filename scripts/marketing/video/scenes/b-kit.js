@@ -1,0 +1,397 @@
+/**
+ * SECTION B's KIT: the pieces rows 14 to 27 share, in both films.
+ *
+ * Motion is either a GSAP fromTo on the master timeline or a per-frame hook
+ * that reads only t (keyframes below), never both on one property.
+ * Everything here keeps the founder's "clean" rule: one shadow language,
+ * crisp live type, screens never shown above their native pixels.
+ */
+import { phone, quadMatrix } from "../engine/phone.js";
+
+export const DW = 1320;
+export const DH = 2868;
+export const NAVY = "#0b1230";
+export const INK2 = "#5b6275";
+export const ELECTRIC = "#0069fe";
+
+/* ---------- time ---------- */
+
+/** Word start (w) and end (we) helpers bound to ctx. */
+export function clock(ctx) {
+  return {
+    b: ctx.beat,
+    w: (i, word, n = 1) => ctx.word(i, word, n).start,
+    we: (i, word, n = 1) => ctx.word(i, word, n).end,
+  };
+}
+
+const EASES = new Map();
+export function E(ctx, name = "power2.inOut") {
+  if (!EASES.has(name)) EASES.set(name, ctx.gsap.parseEase(name));
+  return EASES.get(name);
+}
+
+/** Keyframes as a pure function of t: [[t0, v0], [t1, v1, ease], ...]. */
+export function kf(ctx, t, keys) {
+  if (t <= keys[0][0]) return keys[0][1];
+  for (let i = 1; i < keys.length; i += 1) {
+    const [t1, v1, ease] = keys[i];
+    if (t < t1) {
+      const [t0, v0] = keys[i - 1];
+      const u = t1 > t0 ? (t - t0) / (t1 - t0) : 1;
+      return v0 + (v1 - v0) * E(ctx, ease)(u);
+    }
+  }
+  return keys[keys.length - 1][1];
+}
+
+/** 0 -> 1 from t0 to t1 with an ease. */
+export function ramp(ctx, t, t0, t1, ease = "power2.inOut") {
+  if (t <= t0) return 0;
+  if (t >= t1) return 1;
+  return E(ctx, ease)((t - t0) / (t1 - t0));
+}
+
+export const mix = (a, b, u) => a + (b - a) * u;
+
+/** A GSAP track on one object: segments are fromTo from the last value. */
+export function track(ctx, obj, init) {
+  const cur = { ...init };
+  Object.assign(obj, init);
+  return {
+    cur,
+    to(t, dur, vals, ease = "power2.inOut") {
+      const from = {};
+      for (const k of Object.keys(vals)) from[k] = cur[k];
+      ctx.tl.fromTo(obj, from, { ...vals, duration: dur, ease, immediateRender: false }, t);
+      Object.assign(cur, vals);
+      return this;
+    },
+  };
+}
+
+/* ---------- looks ---------- */
+
+/** One soft shadow language (light grounds): size "s" | "m" | "l". */
+export const SHADOW = {
+  s: "0 14px 32px -16px rgb(16 32 80 / 0.34), 0 3px 10px -5px rgb(16 32 80 / 0.16)",
+  m: "0 26px 56px -26px rgb(16 32 80 / 0.38), 0 6px 16px -8px rgb(16 32 80 / 0.16)",
+  l: "0 40px 90px -40px rgb(16 32 80 / 0.42), 0 10px 24px -12px rgb(16 32 80 / 0.18)",
+};
+/** The same language on night grounds. */
+export const SHADOW_DARK = {
+  s: "0 14px 32px -14px rgb(0 0 12 / 0.7), 0 3px 10px -4px rgb(0 0 12 / 0.5)",
+  m: "0 26px 56px -24px rgb(0 0 12 / 0.75), 0 6px 16px -8px rgb(0 0 12 / 0.5)",
+  l: "0 40px 90px -36px rgb(0 0 12 / 0.8), 0 10px 24px -12px rgb(0 0 12 / 0.5)",
+};
+
+/** Mist: the product's daylight (matches section c's ground). */
+export function mist(ctx, parent) {
+  return ctx.el("div", {
+    class: "fill",
+    style: {
+      background: `radial-gradient(70% 45% at 50% 42%, rgb(0 105 254 / 0.07) 0%, rgb(0 105 254 / 0) 70%),
+        linear-gradient(180deg, #ffffff 0%, #f6f9ff 38%, #f3f7ff 70%, #ecf2ff 100%)`,
+    },
+  }, parent);
+}
+
+/** Warm light: mist washed with peach (#FFB27A at 25%). */
+export function warm(ctx, parent) {
+  return ctx.el("div", {
+    class: "fill",
+    style: {
+      background: `radial-gradient(80% 50% at 50% 62%, rgb(255 178 122 / 0.22) 0%, rgb(255 178 122 / 0) 72%),
+        linear-gradient(180deg, rgb(255 178 122 / 0.2) 0%, rgb(255 178 122 / 0.27) 100%),
+        linear-gradient(180deg, #ffffff 0%, #f6f9ff 38%, #f3f7ff 70%, #ecf2ff 100%)`,
+    },
+  }, parent);
+}
+
+/** Night: the brand navy (matches section c's ground). */
+export function night(ctx, parent, { x = 50, y = 40, glow = 0.26 } = {}) {
+  return ctx.el("div", {
+    class: "fill",
+    style: {
+      background: `radial-gradient(70% 42% at ${x}% ${y}%, rgb(0 105 254 / ${glow}) 0%, rgb(0 105 254 / 0) 70%),
+        linear-gradient(180deg, #000d36 0%, #02063f 46%, #010118 100%)`,
+    },
+  }, parent);
+}
+
+/**
+ * Warm city bokeh drawn in code: soft discs (radial gradients) at three
+ * depths, drifting slowly. Seeded, so every render is the same.
+ */
+export function bokeh(ctx, parent, { area, count = 16, seed = 11, t0 = 0, drift = 14 }) {
+  const rand = ctx.random(seed);
+  const hues = ["255 178 122", "255 150 80", "255 210 150", "255 120 60", "255 196 120"];
+  const out = [];
+  for (let i = 0; i < count; i += 1) {
+    const depth = rand();
+    const size = 40 + depth * depth * 190;
+    const x = area.x + rand() * area.w;
+    const y = area.y + rand() * area.h;
+    const hue = hues[Math.floor(rand() * hues.length)];
+    const a = 0.16 + (1 - depth) * 0.22;
+    const node = ctx.el("div", {
+      class: "abs",
+      style: {
+        left: `${(x - size / 2).toFixed(1)}px`, top: `${(y - size / 2).toFixed(1)}px`, width: `${size.toFixed(1)}px`, height: `${size.toFixed(1)}px`, borderRadius: "50%",
+        background: `radial-gradient(closest-side, rgb(${hue} / ${a.toFixed(3)}) 0%, rgb(${hue} / ${(a * 0.8).toFixed(3)}) 55%, rgb(${hue} / 0) 100%)`,
+      },
+    }, parent);
+    const phase = rand() * Math.PI * 2;
+    const sp = 0.35 + rand() * 0.4;
+    const amp = drift * (0.4 + depth);
+    ctx.onFrame((t) => {
+      const k = (t - t0) * sp + phase;
+      node.style.transform = `translate(${(Math.sin(k) * amp).toFixed(2)}px, ${(Math.cos(k * 0.8) * amp * 0.6).toFixed(2)}px)`;
+    });
+    out.push(node);
+  }
+  return out;
+}
+
+/** The platform's trust mark: a filled electric disc with a white tick (verified-badge.svg). */
+export function verifiedMark(ctx, parent, size, { color = ELECTRIC, style = {} } = {}) {
+  const node = ctx.el("div", { style: { width: `${size}px`, height: `${size}px`, flex: "none", ...style } }, parent);
+  node.innerHTML = `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="${color}"/><path d="m16.2 9-5.6 5.6L7.8 11.8" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  return node;
+}
+
+/** The product's "Example" chip. theme "light" (on white glass) or "dark". */
+export function exampleChip(ctx, parent, { size = 22, theme = "light", style = {} } = {}) {
+  return ctx.el("span", {
+    text: "Example",
+    style: {
+      display: "inline-flex", alignItems: "center", flex: "none", font: `600 ${size}px/1 Inter, sans-serif`, letterSpacing: "0.01em",
+      padding: `${Math.round(size * 0.36)}px ${Math.round(size * 0.66)}px`, borderRadius: "999px", whiteSpace: "nowrap",
+      ...(theme === "light"
+        ? { background: "rgb(0 105 254 / 0.08)", color: "#0056d0", border: "1px solid rgb(0 105 254 / 0.2)" }
+        : { background: "rgb(143 211 255 / 0.14)", color: "#8fd3ff", border: "1px solid rgb(143 211 255 / 0.3)" }),
+      ...style,
+    },
+  }, parent);
+}
+
+/** The product's photo chip "(i) Example" (dark pill over a photo). */
+export function photoExample(ctx, parent, { size = 22, style = {} } = {}) {
+  const node = ctx.el("span", {
+    style: {
+      position: "absolute", display: "inline-flex", alignItems: "center", gap: `${Math.round(size * 0.25)}px`, font: `600 ${size}px/1 Inter, sans-serif`,
+      padding: `${Math.round(size * 0.3)}px ${Math.round(size * 0.5)}px`, borderRadius: `${Math.round(size * 0.5)}px`, color: "#fff", background: "rgb(8 14 40 / 0.78)", whiteSpace: "nowrap", ...style,
+    },
+  }, parent);
+  ctx.icon("info", { size: Math.round(size * 1.05), stroke: 2.2 }, node);
+  ctx.el("span", { text: "Example" }, node);
+  return node;
+}
+
+/** A white glass card (light grounds). */
+export function glassCard(ctx, parent, { w, h = null, radius = 32, shadow = "m", style = {}, cls = "" } = {}) {
+  return ctx.el("div", {
+    class: `abs ${cls}`,
+    style: {
+      left: "0px", top: "0px", width: `${w}px`, ...(h != null ? { height: `${h}px` } : {}), borderRadius: `${radius}px`,
+      background: "rgb(255 255 255 / 0.96)", border: "1px solid rgb(255 255 255 / 0.9)", boxShadow: SHADOW[shadow], color: NAVY, ...style,
+    },
+  }, parent);
+}
+
+/** A navy glass card (night grounds). */
+export function nightCard(ctx, parent, { w, h = null, radius = 32, shadow = "m", style = {} } = {}) {
+  return ctx.el("div", {
+    class: "abs",
+    style: {
+      left: "0px", top: "0px", width: `${w}px`, ...(h != null ? { height: `${h}px` } : {}), borderRadius: `${radius}px`,
+      background: "rgb(10 16 60 / 0.9)", border: "1.5px solid rgb(120 170 255 / 0.32)", boxShadow: SHADOW_DARK[shadow], color: "#fff", ...style,
+    },
+  }, parent);
+}
+
+/** An icon plate: a lucide icon on a tinted rounded square. */
+export function iconPlate(ctx, parent, name, { size = 64, theme = "light", round = false } = {}) {
+  const node = ctx.el("span", {
+    style: {
+      display: "grid", placeItems: "center", flex: "none", width: `${size}px`, height: `${size}px`, borderRadius: round ? "50%" : `${Math.round(size * 0.3)}px`,
+      ...(theme === "light" ? { background: "rgb(0 105 254 / 0.1)", color: ELECTRIC } : { background: "rgb(143 211 255 / 0.14)", color: "#8fd3ff" }),
+    },
+  }, parent);
+  ctx.icon(name, { size: Math.round(size * 0.52), stroke: 2.1 }, node);
+  return node;
+}
+
+/** Measures text in px for a CSS font (fonts must be loaded). */
+export function measure(text, font) {
+  const c = measure.c ?? (measure.c = document.createElement("canvas").getContext("2d"));
+  c.font = font;
+  return c.measureText(text).width;
+}
+
+/* ---------- the phone ---------- */
+
+/**
+ * A 3D phone, made only after every phone before it has loaded (the
+ * engine's loader returns the CSS stand-in to a phone made while another
+ * phone's module import is still in flight).
+ */
+export async function phone3d(ctx, opts) {
+  await Promise.all(ctx.pending ?? []);
+  const p = phone(ctx, opts);
+  await Promise.all(ctx.pending ?? []);
+  if (p.mode !== "3d") console.error(`section b: a phone fell back to CSS (${opts.model ?? "island"})`);
+  return p;
+}
+
+/** A full-display layer in a phone's screen (an image or an empty div). */
+export function screenLayer(ctx, p, src = null, { style = {} } = {}) {
+  const box = { left: "0px", top: "0px", width: `${DW}px`, height: `${DH}px`, ...style };
+  if (src) return ctx.img(src, { class: "abs", style: box }, p.screen);
+  return ctx.el("div", { class: "abs", style: { ...box, overflow: "hidden" } }, p.screen);
+}
+
+/** The phone's display corners [tl, tr, br, bl] in stage px, from its pose now. */
+export function phoneQuad(p) {
+  const P = p.pose;
+  if (p.handle) {
+    p.handle.set({ cx: P.cx, cy: P.cy, height: P.height, rotation: { x: P.rx, y: P.ry, z: P.rz }, fov: P.fov });
+    return p.handle.screenQuad();
+  }
+  const s = (1156.6 / 1180) * P.height / DH;
+  const w = DW * s;
+  const h = DH * s;
+  return [
+    { x: P.cx - w / 2, y: P.cy - h / 2 }, { x: P.cx + w / 2, y: P.cy - h / 2 },
+    { x: P.cx + w / 2, y: P.cy + h / 2 }, { x: P.cx - w / 2, y: P.cy + h / 2 },
+  ];
+}
+
+/** The square-to-quad map: (u, v) in [0, 1]^2 to a stage point. */
+export function mapQuad(q, u, v) {
+  const [p0, p1, p2, p3] = q;
+  const dx1 = p1.x - p2.x, dx2 = p3.x - p2.x, dx3 = p0.x - p1.x + p2.x - p3.x;
+  const dy1 = p1.y - p2.y, dy2 = p3.y - p2.y, dy3 = p0.y - p1.y + p2.y - p3.y;
+  const den = dx1 * dy2 - dx2 * dy1;
+  const g = (dx3 * dy2 - dx2 * dy3) / den;
+  const h = (dx1 * dy3 - dx3 * dy1) / den;
+  const a = p1.x - p0.x + g * p1.x, b = p3.x - p0.x + h * p3.x, c = p0.x;
+  const d = p1.y - p0.y + g * p1.y, e = p3.y - p0.y + h * p3.y, f = p0.y;
+  const z = g * u + h * v + 1;
+  return { x: (a * u + b * v + c) / z, y: (d * u + e * v + f) / z };
+}
+
+/** The stage quad of a display rect (display px) on phone p, now. */
+export function displayQuad(p, { x, y, w, h }, q = phoneQuad(p)) {
+  const m = (xd, yd) => mapQuad(q, xd / DW, yd / DH);
+  return [m(x, y), m(x + w, y), m(x + w, y + h), m(x, y + h)];
+}
+
+/** A rect's quad, turned by rot (deg) around its centre and scaled by s. */
+export function rectQuad({ x, y, w, h, rot = 0, s = 1 }) {
+  const cx = x + w / 2;
+  const cy = y + h / 2;
+  const r = (rot * Math.PI) / 180;
+  const c = Math.cos(r) * s;
+  const n = Math.sin(r) * s;
+  return [[-w / 2, -h / 2], [w / 2, -h / 2], [w / 2, h / 2], [-w / 2, h / 2]].map(([dx, dy]) => ({ x: cx + dx * c - dy * n, y: cy + dx * n + dy * c }));
+}
+
+export function lerpQuad(a, b, k) {
+  return a.map((p, i) => ({ x: p.x + (b[i].x - p.x) * k, y: p.y + (b[i].y - p.y) * k }));
+}
+
+export function shiftQuad(q, dx, dy) {
+  return q.map((p) => ({ x: p.x + dx, y: p.y + dy }));
+}
+
+/** Places an element (w x h box at the stage origin) onto a quad. */
+export function placeQuad(el, w, h, q) {
+  el.style.transform = quadMatrix(w, h, q);
+}
+
+/**
+ * A body cut from a display or capture image: an element of w x h (the
+ * crop at 1:1 of the source), placed each frame by quad. Never shown above
+ * the source's own pixels: callers keep the placed size at or under w x h.
+ */
+export function cropBody(ctx, parent, { src, crop, iw, radius = 0, shadow = null, bg = null, z = 0 }) {
+  const el = ctx.el("div", {
+    class: "abs",
+    style: {
+      left: "0px", top: "0px", width: `${crop.w}px`, height: `${crop.h}px`, transformOrigin: "0 0", overflow: "hidden", zIndex: String(z),
+      borderRadius: `${radius}px`, ...(shadow ? { boxShadow: shadow } : {}), ...(bg ? { background: bg } : {}), visibility: "hidden",
+    },
+  }, parent);
+  ctx.img(src, { style: { position: "absolute", left: `${-crop.x}px`, top: `${-crop.y}px`, width: `${iw}px`, height: "auto", maxWidth: "none" } }, el);
+  return el;
+}
+
+/**
+ * Drives an element by a quad function of t while t is in [t0, t1); hidden
+ * outside. quadAt(t) returns the quad; opacityAt(t) optional.
+ */
+export function quadDriver(ctx, el, w, h, { t0, t1, quadAt, opacityAt = null }) {
+  let shown = null;
+  ctx.onFrame((t) => {
+    const on = t >= t0 && t < t1;
+    if (on !== shown) {
+      el.style.visibility = on ? "visible" : "hidden";
+      shown = on;
+    }
+    if (!on) return;
+    placeQuad(el, w, h, quadAt(t));
+    if (opacityAt) el.style.opacity = String(Math.max(0, Math.min(1, opacityAt(t))).toFixed(3));
+  });
+}
+
+/* ---------- type ---------- */
+
+/**
+ * A big word on a white glass pill (type as an object). Centered on its
+ * (x, y) by xPercent/yPercent; animate x, y, rotation, scale, opacity.
+ */
+export function wordPill(ctx, parent, text, { size = 120, color = NAVY, h = null, padX = null, font = "Poppins", weight = 700, z = 0 } = {}) {
+  const H = h ?? Math.round(size * 1.3);
+  const node = ctx.el("div", {
+    class: "abs",
+    style: {
+      left: "0px", top: "0px", height: `${H}px`, display: "flex", alignItems: "center", padding: `0 ${padX ?? Math.round(size * 0.46)}px`,
+      borderRadius: "999px", background: "rgb(255 255 255 / 0.97)", border: "1px solid rgb(255 255 255 / 0.9)", boxShadow: SHADOW.m,
+      font: `${weight} ${size}px/1 ${font}, Inter, sans-serif`, letterSpacing: "-0.035em", color, whiteSpace: "nowrap", zIndex: String(z),
+    },
+  }, parent);
+  ctx.el("span", { text, style: { transform: `translateY(${Math.round(size * 0.04)}px)` } }, node);
+  ctx.gsap.set(node, { xPercent: -50, yPercent: -50, opacity: 0 });
+  return node;
+}
+
+/** Plain big type (no pill). Centered like wordPill. */
+export function bigText(ctx, parent, parts, { size = 120, weight = 700, color = NAVY, z = 0, style = {} } = {}) {
+  const node = ctx.el("div", {
+    class: "abs",
+    style: { left: "0px", top: "0px", font: `${weight} ${size}px/1.02 Poppins, Inter, sans-serif`, letterSpacing: "-0.035em", color, whiteSpace: "nowrap", zIndex: String(z), ...style },
+  }, parent);
+  for (const [text, blue] of parts) ctx.el("span", { text, style: blue ? { color: ELECTRIC } : {} }, node);
+  ctx.gsap.set(node, { xPercent: -50, yPercent: -50, opacity: 0 });
+  return node;
+}
+
+/* ---------- the desktop camera ---------- */
+
+/**
+ * A camera over a "world" layer: animate cam.s (scale), cam.fx/fy (the
+ * world point in focus) and cam.tx/ty (where that point sits on the stage).
+ */
+export function camera(ctx, world) {
+  const cam = { s: 1, fx: ctx.W / 2, fy: ctx.H / 2, tx: ctx.W / 2, ty: ctx.H / 2 };
+  world.style.transformOrigin = "0 0";
+  ctx.onFrame(() => {
+    const x = cam.tx - cam.s * cam.fx;
+    const y = cam.ty - cam.s * cam.fy;
+    world.style.transform = `translate(${x.toFixed(2)}px, ${y.toFixed(2)}px) scale(${cam.s.toFixed(5)})`;
+  });
+  /** A world point to stage px. */
+  cam.toStage = (x, y) => ({ x: cam.tx + cam.s * (x - cam.fx), y: cam.ty + cam.s * (y - cam.fy) });
+  return cam;
+}

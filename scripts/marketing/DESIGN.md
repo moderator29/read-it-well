@@ -34,11 +34,8 @@ A Nigerian app for homes, hotels, shortlets and restaurants, with one account: r
 - **Brand art:** `apps/web/public/brand/onboarding/step-1..4-dark.webp` (1080 × 1440): the product's own fuzzy 3D scenes (houses on blue velvet hills, a shield, chat bubbles and a lock, an orange arch with stairs). Use them as hero art and backgrounds; they match the reference mockups' style.
 - **Photographs:** `apps/web/public/brand/photos/*.jpg` (dusk villas, pools, skylines, restaurants), the same photographs the product serves.
 - **Vallo's 3D identity icons** (`apps/web/public/brand/3d/<name>@2x.webp`, 256 px, 53 clay objects in the brand blue with orange accents: analytics, apartment, assistant, bank, bell, boxes, buy, calendar-booked, calendar-pending, camera, card-secure, celebrate, checklist, city, clock, coin, contract, earnings, envelope, explore, folder, gift, handover, home-small, home-verified, hotel, id-check, keys, land, list, local-talks, map, megaphone, passcode-lock, pay, phone-code, power, price-tag, receipt, rent, report-flag, restaurant, saved-heart, search, shield, shortlet, stay-rated, support, team, toolbox, verified, video, villa). The founder's ruling, 30 September 2026:
-  - **Social campaign:** these are the main decorative objects. Use them generously, floating in depth around phones and components, bobbing, overlapping card edges.
-  - **Store images (the founder's ruling after seeing the set, 30 September 2026):**
-  - clean and premium, like X's App Store screenshots: a solid or gradient colour background (never a photograph, never a listing image), a big headline at the top or side with an optional small line icon above it, and the app on a big, whole phone;
-  - extra design (pop-up cards, floating components, icons) on only two of the 35;
-  - at least one connected pair where one phone crosses the seam of two neighbouring images.
+  - **Social campaign:** they are the campaign's signature, used the clean way (section 6a): one icon per post, naming the post's subject, placed deliberately with a soft contact shadow. Never scattered, never a cloud of objects.
+  - **Store images:** none, except on the two "You got paid" style images (section 6a).
   - **Films:** only where they are part of a real platform component, and small; otherwise not at all.
   - Never show one larger than about 260 px on a 1080-wide canvas: the sources are 256 px. Don't mix them with Fluent stickers in one image. Never use `brand/glass/` (the retired glass set). "shield" and "card-secure" must not suggest "safe", "secure" or "protected" in the copy next to them.
 - **The motion-film language** (see `video/REFERENCES.md`) suits stills too:
@@ -57,7 +54,7 @@ Floating cards that overlap a phone's edge, like a notification that just arrive
 - "Payment settled · ₦1,800,000 straight to your bank" (for an owner; never "held" or "wallet")
 - "Room booked · Lagoon Crest Resort · 3 nights"
 - "Table for 2 · Tonight, 8:00 PM · Harbour Lights Kitchen"
-- "New message · The owner replied"
+- "New message · Vallo Examples replied" (match the thread on screen; never "the owner replied" over a thread with an agent)
 - "Inspection set · Saturday, 11:00 AM"
 - "Agreement confirmed by both of you"
 - "Checked by a person · Verified mark added"
@@ -73,6 +70,38 @@ Floating cards that overlap a phone's edge, like a notification that just arrive
 ## 6. Quality bar
 
 The references in the repo root (`IMG_6727.png` … `IMG_6739.jpeg`) and `docs/design/references/` set the bar: Dribbble-grade product renders, generous space, one idea per image, crisp type, real depth. Every image is reviewed at full size before it ships: no text touching an edge, nothing cropped by accident, no blurry screen, no two images alike.
+
+## 6a. The premium bar (the founder's ruling, 30 September 2026, evening)
+
+The founder rated the first sets 20% overall and 5% on premium, and wants 90%: "like a very big design team", clean, sharp, beautiful, next gen. X's App Store screenshots are the example: every image on one unified backing, the app shown plainly and big, one headline. This section overrides anything looser above.
+
+**Everywhere (store and social)**
+- **One idea, three elements at most:** a headline, the app, and at most one supporting piece. Everything else goes.
+- **Unified backings.** The same ground, pixel for pixel, wherever it is used. No photographs, textures, patterns, grain, vignettes, bokeh or colour glows behind anything.
+- **Sharp.** Screens come from the 1320 × 2868 displays and are never upscaled. Render at 2× and bring down with Lanczos. Never let Chromium rasterise a 3D-transformed image layer: tilt phones with the 3D studio or a pre-warped homography. All type is live text.
+- **Type is the design.** Poppins 600, sentence case, tracking −0.03em, line height 1.05, two lines at most. At most one key word in sky `#8FD3FF`. Sublines are optional, in Inter 500 at 60% white, and one line only.
+- **A strict grid.** The same margins, headline position, sizes and phone scale across the set. Alignment is exact: optical centring for the phone, and text on the grid.
+- **One device look.** One model per store, one colour, one light direction and one soft contact shadow.
+- **Banned:** hand-drawn squiggles, sparkles, rings, particles, glows, stickers (Fluent), "bodies" floating around a phone, lifted duplicates of on-screen UI, and pop-ups placed over rows of text.
+
+**App Store and Google Play (35 each)**
+- **The backing:** all 35 of a store share one night ground (a quiet vertical gradient from `#050B3D` to `#010118`, identical in every image), so the set reads as one strip, as X's does. The screens are the app's dark theme.
+- **The layout:** a small lucide line icon (64 px, sky, 3 px stroke at size), then the headline, centred at the top, on the same baseline in every image. The phone is big, centred and whole: never cut by the image edge.
+- **Extras on two images only:** the "You got paid" style, with one or two of section 4's pop-up cards, each with the Example chip. No other image carries anything but the icon, the headline and the phone.
+- **Connected pairs:** one or two, where a single tilted phone and the headline run across the seam between two neighbouring images. On the unified backing the seam disappears.
+
+**Social campaign (30 posts and the X header)**
+- **Three grounds only:** Night (the store's ground), Electric (`#0A6CFF` to `#0048C8`, vertical) and Mist (`#F3F7FF`). Most posts are Night, some are Electric, and at most four are Mist. On a Mist post, light screens (the `-lt` captures) and ink type; never a dark screen on a light ground.
+- **The same brand furniture on every post:**
+  - the Vallo wordmark at the same size and corner;
+  - the same small footer line ("Coming soon on iPhone and Android." or "vallospaces.com");
+  - story safe zones kept clear (top 250 px, bottom 340 px).
+- **The signature:** one 3D identity icon per post, the post's subject (keys for homes, hotel for stays, restaurant for tables, bank for payments, assistant for the AI, verified for the mark, passcode-lock for the passcode, and so on). It is shown at 200 to 240 px on a clean area with a soft contact shadow, never over text or a screen.
+- **The product moment:** either one big, crisp phone, or one real component shown cleanly on its own, at native resolution with a soft shadow. Examples of a component: the move-in cost card, a booking summary, a chat bubble. Not both.
+- **The 12 remakes:** each keeps its reference's composition (where the phone sits, its angle and crop), rebuilt in this system. A prop that cannot be made photoreal (the pegboard, a hand) is dropped for a clean ground.
+- **Carousels:** one continuous ground. Seams cross only ground or bezel, never text.
+
+**How it is judged.** A fresh critic places each set beside top-tier App Store and campaign sets (X, Apple, Revolut, Monzo, Airbnb). It scores each image from 1 to 10 on five things: clean, consistent, sharp, typography and restraint. The set ships at an average of 9 or more with no image under 8, and with every honesty rule in sections 2 and 4 met.
 
 ## 7. Sizes and where files go
 

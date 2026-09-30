@@ -214,6 +214,11 @@ const BASE_CAPTURES = [
   { id: "d-home-light", kind: "desktop", theme: "light", steps: HOME },
   { id: "d-listing-light", kind: "desktop", theme: "light", steps: go(LISTING_SALE) },
   { id: "d-stays-light", kind: "desktop", theme: "light", steps: go("/stays") },
+
+  /* The date screen signed out, so it can be retaken without the QA account:
+     the browser runs in British English, so the fields read 16/10/2026. */
+  { id: "stays-dates-gb", auth: false, steps: go(STAYS_DATES) },
+  { id: "d-stays-dates-gb", kind: "desktop", auth: false, steps: go(STAYS_DATES) },
 ];
 
 /* Light twins for the films' light chapters (the same steps, the light theme). */
@@ -224,6 +229,7 @@ const LIGHT_TWINS = [
   "d-filters", "d-filters-villas", "d-listing-cost", "d-thread", "d-listing-share", "d-messages", "d-stays-dates",
   "d-restaurant", "d-verification", "d-welcome", "d-welcome-ha", "d-welcome-yo", "d-welcome-ig", "d-host-start",
   "d-search", "d-stays", "d-stay", "d-assistant", "d-passcode-create",
+  "stays-dates-gb", "d-stays-dates-gb",
 ];
 export const CAPTURES = [
   ...BASE_CAPTURES,

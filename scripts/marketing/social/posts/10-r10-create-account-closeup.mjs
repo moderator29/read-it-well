@@ -6,7 +6,7 @@
  * a party popper float in the dark. (Sign-in is not used: its email field
  * would put an address on screen.) */
 import { obj, sparkles, titlePill, funCss } from "../lib/fun.mjs";
-import { part } from "../lib/parts.mjs";
+import { partOff } from "../lib/parts.mjs";
 import { grain, page, phoneHtml } from "../lib/kit.mjs";
 
 export default {
@@ -34,7 +34,7 @@ export default {
       ${grain(0.06, "overlay")}
       ${obj("coin", { x: 140, y: 690, size: 110, rot: 20, depth: "far" })}
       ${phoneHtml(phones[0], { shadowOpacity: 1 })}
-      ${await part("welcome4-total", { x: 300, y: 330, w: 640, rot: -10, theme: "dark", radius: 34 })}
+      ${await partOff("welcome4-total", phones[0], { grow: 1.14, dy: -34, theme: "dark", radius: 34 })}
       ${obj("celebrate", { x: 170, y: 250, size: 210, rot: -14 })}
       ${obj("keys", { x: 980, y: 1180, size: 240, rot: 26, depth: "near" })}
       ${sparkles([{ x: 300, y: 140, s: 24 }, { x: 328, y: 176, s: 9, kind: "dot", c: "#FFB27A" }, { x: 60, y: 420, s: 14, c: "#FFB27A" }])}

@@ -426,6 +426,20 @@
     "theme": "dark",
     "signedIn": true
   },
+  "d-stays-dates-gb": {
+    "url": "/stays/search?in=2026-10-16&out=2026-10-19&guests=2",
+    "at": "2026-09-30T17:39:42.717Z",
+    "kind": "desktop",
+    "theme": "dark",
+    "signedIn": false
+  },
+  "d-stays-dates-gb-lt": {
+    "url": "/stays/search?in=2026-10-16&out=2026-10-19&guests=2",
+    "at": "2026-09-30T17:40:44.315Z",
+    "kind": "desktop",
+    "theme": "light",
+    "signedIn": false
+  },
   "d-stays-dates-lt": {
     "url": "/stays/search?in=2026-10-16&out=2026-10-19&guests=2",
     "at": "2026-09-30T17:09:22.642Z",
@@ -956,6 +970,20 @@
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
+  },
+  "stays-dates-gb": {
+    "url": "/stays/search?in=2026-10-16&out=2026-10-19&guests=2",
+    "at": "2026-09-30T17:39:13.984Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": false
+  },
+  "stays-dates-gb-lt": {
+    "url": "/stays/search?in=2026-10-16&out=2026-10-19&guests=2",
+    "at": "2026-09-30T17:40:17.916Z",
+    "kind": "mobile",
+    "theme": "light",
+    "signedIn": false
   },
   "stays-dates-lt": {
     "url": "/stays/search?in=2026-10-16&out=2026-10-19&guests=2",

@@ -3,7 +3,7 @@
  * night: navy glass cards on ink, three lit with the welcome screens, and
  * every other card holding one of Vallo's 3D identity icons. */
 import { join } from "node:path";
-import { funCss, sparkles, titlePill } from "../lib/fun.mjs";
+import { funCss, obj, sparkles, titlePill } from "../lib/fun.mjs";
 import { grain, page, pill } from "../lib/kit.mjs";
 import { BRAND, SOURCE } from "../lib/paths.mjs";
 import { u } from "../lib/render.mjs";
@@ -85,6 +85,9 @@ export default {
       <div class="ground"></div>
       ${COLS.map((c, i) => column(c, i, next)).join("")}
       ${grain(0.05, "overlay")}
+      ${obj("id-check", { x: 562, y: 600, size: 150, rot: 10 })}
+      ${obj("coin", { x: 1060, y: 560, size: 110, rot: -16 })}
+      ${obj("calendar-booked", { x: 1492, y: 690, size: 150, rot: 8 })}
       ${sparkles([{ x: 330, y: 250, s: 24 }, { x: 1250, y: 980, s: 22, c: "#FFB27A" }, { x: 1280, y: 1010, s: 8, kind: "dot" }])}
       <div class="abs" style="left:44px;top:36px">${titlePill("Get <b>started</b>", { theme: "dark", size: 20, style: "background:rgba(6,12,52,.86)" })}</div>
       <div class="abs" style="right:44px;top:40px">${pill("vallospaces.com", { theme: "dark", size: 19, style: "background:rgba(6,12,52,.86);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)" })}</div>

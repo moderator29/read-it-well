@@ -29,9 +29,8 @@ const BASE = `
   /* pop-up card */
   .pop { display: flex; align-items: center; font-family: "Inter", sans-serif; }
   .pop.dk { color: #FFFFFF;
-    background: linear-gradient(180deg, rgb(36 48 124 / 0.93) 0%, rgb(14 20 74 / 0.92) 100%);
-    box-shadow: inset 0 0 0 1.5px rgb(130 178 255 / 0.40), inset 0 2px 0 rgb(255 255 255 / 0.13), 0 60px 110px -28px rgb(0 0 16 / 0.85), 0 18px 40px -10px rgb(0 0 30 / 0.55), 0 30px 90px -30px rgb(0 105 254 / 0.55);
-    -webkit-backdrop-filter: blur(28px) saturate(1.5); backdrop-filter: blur(28px) saturate(1.5); }
+    background: linear-gradient(180deg, rgb(22 31 92 / 0.97) 0%, rgb(12 18 66 / 0.97) 100%);
+    box-shadow: inset 0 0 0 1.5px rgb(120 170 255 / 0.35), 0 60px 110px -30px rgb(0 0 12 / 0.9), 0 20px 44px -14px rgb(0 0 20 / 0.6); }
   .pop.lt { color: #0A1030;
     background: rgb(255 255 255 / 0.92);
     box-shadow: inset 0 0 0 1px rgb(10 20 70 / 0.06), 0 50px 90px -30px rgb(20 30 90 / 0.40), 0 14px 30px -10px rgb(20 30 90 / 0.18);
