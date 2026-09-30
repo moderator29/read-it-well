@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { readPhotoMatchCounts } from "@/lib/photo-hash/matches-read";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getListingSubmissions } from "@/lib/admin/queries";
@@ -154,7 +155,11 @@ export default async function AdminListingsPage({
   const closedReasons = await readClosedReasons([...waiting, ...decided].map((listing) => listing.id));
   const main = decidedTab ? decided : waiting;
   const shownDecided = !status && offset === 0 ? decided : [];
-  const extras = await getQueueRowExtras([...main, ...shownDecided].map((listing) => listing.id));
+  const [extras, photoMatches] = await Promise.all([
+    getQueueRowExtras([...main, ...shownDecided].map((listing) => listing.id)),
+    /* C8: the duplicate-photo signal on the waiting rows only. */
+    decidedTab ? Promise.resolve(new Map<string, number>()) : readPhotoMatchCounts(main.map((listing) => listing.id)),
+  ]);
   const rowOf = (listing: (typeof main)[number]) => {
     const row = toQueueRow(listing, copy, locale, hrefFor);
     const extra = extras.state === "ok" ? extras.data.get(listing.id) : undefined;
@@ -163,6 +168,7 @@ export default async function AdminListingsPage({
       listerRole: extra?.role ? ROLE_WORD[extra.role] : null,
       isExample: extra ? extra.isDemo : null,
       badge: extra?.badge ?? null,
+      photoMatches: photoMatches.get(listing.id) ?? null,
       /* V-48: a closed listing reads as closed, never as suspended. */
       status: listing.id in closedReasons ? "CLOSED" : row.status,
     };

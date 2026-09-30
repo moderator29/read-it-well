@@ -4,6 +4,8 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { reviewListing } from "@/lib/admin/actions";
+import { Chip } from "@/components/ui/Chip";
+import { REVIEW_REASONS, composeReviewNote } from "@/lib/admin/review-reasons";
 
 type Decision = "approve" | "publish" | "request_changes" | "reject";
 
@@ -41,6 +43,8 @@ export function ReviewActionBar({
 }) {
   const router = useRouter();
   const [notes, setNotes] = useState("");
+  /* C8: reason codes as chips; each sends the lister one reviewed sentence. */
+  const [codes, setCodes] = useState<string[]>([]);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<string | null>(null);
@@ -56,14 +60,18 @@ export function ReviewActionBar({
 
   const approving: Decision = status === "APPROVED" ? "publish" : "approve";
   const reason = notes.trim();
+  /* What the lister will read when sending back or rejecting. */
+  const composed = composeReviewNote(codes, notes);
 
   const run = (decision: Decision) => {
     setError(null);
     startTransition(async () => {
+      const sendsReasons = decision === "reject" || decision === "request_changes";
       const result = await reviewListing({
         listingId,
         decision,
         ...(reason.length > 0 ? { notes: reason } : {}),
+        ...(sendsReasons && codes.length > 0 ? { reasons: codes } : {}),
       });
       if (!result.ok) {
         setError(result.fieldErrors?.["notes"] ?? result.error);
@@ -79,6 +87,7 @@ export function ReviewActionBar({
               : "Sent back. The lister has your note.",
       );
       setNotes("");
+      setCodes([]);
       router.push(nextHref ?? queueHref);
       router.refresh();
     });
@@ -97,6 +106,27 @@ export function ReviewActionBar({
 
   return (
     <div className="nf-panel nf-rv-panel nf-rv-actionbar">
+      <div className="flex flex-wrap gap-2xs" role="group" aria-label="Reasons the lister will read" data-testid="rv-reasons">
+        {REVIEW_REASONS.map((r) => (
+          <Chip
+            key={r.code}
+            size="sm"
+            behaviour="filter"
+            selected={codes.includes(r.code)}
+            disabled={pending}
+            onSelectedChange={(next) =>
+              setCodes((prev) => (next ? [...prev, r.code] : prev.filter((c) => c !== r.code)))
+            }
+          >
+            {r.label}
+          </Chip>
+        ))}
+      </div>
+      {codes.length > 0 ? (
+        <p className="nf-rv-msg" data-testid="rv-reasons-preview">
+          The lister reads: {REVIEW_REASONS.filter((r) => codes.includes(r.code)).map((r) => r.sentence).join(" ")}
+        </p>
+      ) : null}
       <label className="sr-only" htmlFor="rv-reason">
         A reason for the lister
       </label>
@@ -107,13 +137,14 @@ export function ReviewActionBar({
         maxLength={2000}
         value={notes}
         disabled={pending}
-        placeholder="Add a reason (optional for Approve, needed to ask for more)"
+        placeholder="Add your own note (optional with a reason above)"
         onChange={(event) => setNotes(event.target.value)}
       />
       <div className="nf-rv-actionbar__buttons">
         <button
           type="button"
           className="nf-rv-btn nf-rv-btn--approve"
+          data-desk-approve
           disabled={pending}
           onClick={() => run(approving)}
         >
@@ -123,8 +154,8 @@ export function ReviewActionBar({
         <button
           type="button"
           className="nf-rv-btn nf-rv-btn--ask"
-          disabled={pending || reason.length === 0}
-          title={reason.length === 0 ? "Write what you need from the lister first" : undefined}
+          disabled={pending || composed.length === 0}
+          title={composed.length === 0 ? "Pick a reason or write what you need from the lister first" : undefined}
           onClick={() => run("request_changes")}
         >
           <UiIcon name="info" size={16} />
@@ -133,6 +164,7 @@ export function ReviewActionBar({
         <button
           type="button"
           className="nf-rv-btn nf-rv-btn--reject"
+          data-desk-decline
           disabled={pending}
           aria-describedby={armed ? "rv-reject-confirm" : undefined}
           onClick={onReject}

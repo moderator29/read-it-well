@@ -18,6 +18,7 @@
  * twice would be worse than not telling them at all.
  */
 
+import { composeReviewNote, isReviewReasonCode } from "./review-reasons";
 import { revalidatePath } from "next/cache";
 import { eddGateMessage, isEddGateRefusal } from "../compliance/gate";
 import { ARRIVAL_DECLARATION_NEEDED, arrivalChargesDeclared } from "../stays/arrival-gate";
@@ -583,6 +584,8 @@ export async function reviewListing(input: {
   listingId: string;
   decision: "approve" | "publish" | "reject" | "request_changes";
   notes?: string;
+  /** C8: reason codes; their lister-facing sentences are composed into the note here, on the server. */
+  reasons?: string[];
 }): Promise<ActionResult<null>> {
   const access = await requireAdmin("listing_approval");
   if (access.state !== "admin") return fail(adminRefusal(access));
@@ -590,7 +593,14 @@ export async function reviewListing(input: {
   const parsed = validate(reviewListingSchema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   const { listingId, decision } = parsed.data;
-  const notes = parsed.data.notes ?? null;
+  const reasons = (parsed.data.reasons ?? []).filter(isReviewReasonCode);
+  /* The codes' sentences, then the reviewer's own words: the same reasons
+     always read the same to the lister (C8). Approve and publish carry no codes. */
+  const composed =
+    decision === "reject" || decision === "request_changes"
+      ? composeReviewNote(reasons, parsed.data.notes ?? "")
+      : (parsed.data.notes ?? "");
+  const notes = composed.length > 0 ? composed : null;
 
   if (decision === "request_changes" && (notes === null || notes.length === 0)) {
     return fail("Tell the agent what to change.", {
@@ -778,6 +788,8 @@ export async function reviewListing(input: {
       title: listing.title,
       agent_id: listing.agent_id,
       notes,
+      /* C8: countable on the analytics desk ("why listings were sent back"). */
+      reasons: reasons.join(","),
     };
     await writeAudit(admin, {
       actorId: access.user.id,

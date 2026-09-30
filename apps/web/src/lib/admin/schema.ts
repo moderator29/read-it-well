@@ -57,6 +57,8 @@ export const reviewListingSchema = z.object({
   listingId: uuid,
   decision: z.enum(listingDecisions),
   notes,
+  /* C8: reason codes from lib/admin/review-reasons.ts; unknown ones are dropped. */
+  reasons: z.array(z.string().max(40)).max(12).optional(),
 });
 
 export const replySupportTicketSchema = z.object({

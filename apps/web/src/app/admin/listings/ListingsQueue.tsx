@@ -197,7 +197,7 @@ function QueueTableView({
         </thead>
         <tbody>
           {rows.map((row) => (
-            <tr key={row.id}>
+            <tr key={row.id} data-desk-row tabIndex={-1}>
               <td>
                 <Link href={row.href} className="nf-rv-cell-link" prefetch={false}>
                   {row.thumb ? (
@@ -220,6 +220,11 @@ function QueueTableView({
                       {row.reference}
                       {row.isExample ? <span className="nf-rv-example">Example</span> : null}
                     </span>
+                    {row.photoMatches ? (
+                      <span className="nf-rv-example" data-testid="rv-photo-elsewhere">
+                        Photo seen elsewhere ({row.photoMatches})
+                      </span>
+                    ) : null}
                     <span className="nf-rv-table__muted">{row.typeLabel}</span>
                   </span>
                 </Link>
