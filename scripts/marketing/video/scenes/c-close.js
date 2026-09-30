@@ -4,10 +4,12 @@
  * 40  The pin's head becomes the Vallo mark on the logo hit (92.31); the
  *     wordmark rises; "Real estate, done right." writes in on the voice with a
  *     squiggle under "done right"; the velvet hills of frame one return behind.
- *     No ring (v3.1). At 95.48 the frame whitens from the centre.
- * 41  The white end card: mobile, the lockup, one pill button and two phones
- *     (island and Android, `home-light`) turning toward each other; desktop,
- *     the window at vallospaces.com with the island phone beside it.
+ *     The mark settles before the wordmark rises. No ring, no sparkles. The
+ *     full lockup and tagline hold to beat 167 (96.35), then a cut to white.
+ * 41  The white end card (from 96.35): mobile, the lockup, one pill button and
+ *     two phones (island and Android, `home-light`) turning toward each
+ *     other; desktop, the lockup at the top, the window at vallospaces.com
+ *     with the island phone beside it, and the pill centred below.
  * 42  Live: the official badges appear by a cut on bar 44 (99.23), App Store
  *     first, both black, the same height, never moved, scaled, tilted or
  *     faded; vallospaces.com below them. Soon: vallospaces.com only.
@@ -21,12 +23,11 @@ export async function buildClose(ctx, S) {
   const { K, L } = S;
   const M = ctx.isMobile;
   const hit = K.r40;
-  const white = ctx.beat(165.5); // 95.48: the frame whitens from the centre
   const end = K.end + 0.05;
-  ctx.hideCaptions(K.r40, K.end + 1);
+  ctx.hideCaptions(92.188, K.end + 1); // from the caption span's edge: "Vallo." never flashes
 
   /* ================= row 40 ================= */
-  const close = ctx.scene("c40-close", hit - 0.02, K.r41 + 0.02, { z: 6 });
+  const close = ctx.scene("c40-close", hit - 0.02, K.r41, { z: 6 });
   night(ctx, close, { y: 38, glow: 0.3 });
   const groundIn = ctx.el("div", { class: "fill" }, close);
   /* the velvet hills of frame one, anchored low, feathered into the night */
@@ -38,7 +39,7 @@ export async function buildClose(ctx, S) {
       WebkitMaskImage: M ? "linear-gradient(180deg, transparent 0%, #000 22%)" : "radial-gradient(ellipse 58% 62% at 50% 62%, #000 58%, transparent 100%)",
     },
   }, groundIn);
-  const artAt = M ? { x: 540, y: 1000 + 720 } : { x: 960, y: 500 + 720 };
+  const artAt = M ? { x: 540, y: 1000 + 720 } : { x: 960, y: 360 + 720 };
   const markSize = M ? 300 : 190;
   /* the mark lands from the pin's size with an overshoot (0.9 to 1.1 of its size): a copy
      1.5 times its size keeps every frame on the copy's full-size decode (scaledSrc) */
@@ -77,10 +78,9 @@ export async function buildClose(ctx, S) {
   /* the squiggle under "done right" */
   const sqX0 = pos[2].x - ww[2] / 2;
   const sqX1 = pos[3].x + ww[3] / 2;
-  squiggle(ctx, close, { x: sqX0, y: pos[2].y + tagSize * 0.58, w: sqX1 - sqX0, t: K.done + 0.18, dur: 0.6, color: "var(--sky)", stroke: M ? 8 : 7 });
-  sparkles(ctx, close, { area: M ? { x: 250, y: 380, w: 580, h: 420 } : { x: 560, y: 250, w: 800, h: 300 }, count: 4, seed: 4001, t0: hit + 0.2, t1: white + 0.1, color: "var(--sky)", min: 16, max: 30 });
+  squiggle(ctx, close, { x: sqX0, y: pos[2].y + tagSize * 0.58, w: sqX1 - sqX0, t: K.done + 0.18, dur: 0.35, color: "var(--sky)", stroke: M ? 8 : 7 });
 
-  during(ctx, hit - 0.02, K.r41 + 0.02, (t) => {
+  during(ctx, hit - 0.02, K.r41, (t) => {
     /* the pin's head (from the map) swells into a flash; the mark lands in it */
     const u = ramp(ctx, t, hit, hit + 0.34, "power2.out");
     if (S.pinHead && t >= hit) {
@@ -91,10 +91,10 @@ export async function buildClose(ctx, S) {
     }
     place(flash, { x: pinEnd.x, y: pinEnd.y, s: 0.4 + 1.2 * u, o: t >= hit ? (1 - u) * 0.9 : 0 });
     const land = ramp(ctx, t, hit, hit + 0.5, "back.out(1.7)");
-    const settle = ramp(ctx, t, hit + 0.42, hit + 1.05, "power3.inOut");
+    const settle = ramp(ctx, t, hit + 0.2, hit + 0.7, "power3.inOut");
     const mS = mix(pinEnd.size / markSize, 1, land);
     place(mark, { x: mix(pinEnd.x, markTo.x, settle), y: mix(pinEnd.y, markTo.y, settle), s: mS * mix(1.08, 1, settle), o: Math.min(1, u * 3) });
-    const wm = ramp(ctx, t, hit + 0.55, hit + 1.15, "land");
+    const wm = ramp(ctx, t, hit + 0.9, hit + 1.4, "land");
     place(wordmark, { x: wmTo.x + (M ? 0 : (1 - wm) * -30), y: wmTo.y + (M ? (1 - wm) * 40 : 0), o: wm });
     const a = ramp(ctx, t, hit + 0.1, hit + 1.1, "power2.out");
     place(art, { x: artAt.x, y: artAt.y + (1 - a) * 140, o: a });
@@ -105,21 +105,13 @@ export async function buildClose(ctx, S) {
     });
   });
 
-  /* the whitening, from the centre */
-  const whiteScene = ctx.scene("c40-white", white - 0.02, K.r41 + 0.03, { z: 12 });
-  /* a soft white light from the centre that fills the frame by 95.77 */
-  const disc = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: "200px", height: "200px", borderRadius: "50%", background: "radial-gradient(closest-side, #ffffff 0%, #ffffff 45%, rgb(255 255 255 / 0.6) 70%, rgb(255 255 255 / 0) 100%)" } }, whiteScene);
-  const reach = Math.hypot(ctx.W, ctx.H) / 2 / (100 * 0.45);
-  during(ctx, white - 0.02, K.r41 + 0.03, (t) => {
-    const u = ramp(ctx, t, white, K.r41 - 0.01, "power1.in");
-    place(disc, { x: ctx.W / 2, y: ctx.H / 2, s: 0.4 + reach * u, o: t >= white ? Math.min(1, 0.4 + u * 3) : 0 });
-  });
+  /* a cut to the white end card on beat 167 */
   ctx.sfx("whoosh_long", K.r41, { offset: -4 });
 
   /* ================= rows 41 and 42: the end card ================= */
-  const card = ctx.scene("c41-card", K.r41 - 0.02, end, { z: 1 });
+  const card = ctx.scene("c41-card", K.r41, end, { z: 1 });
   ctx.el("div", { class: "fill", style: { background: "radial-gradient(120% 70% at 50% 100%, #eef3ff 0%, #ffffff 60%)" } }, card);
-  const top = ctx.scene("c41-top", K.r41 - 0.02, end, { z: 8 });
+  const top = ctx.scene("c41-top", K.r41, end, { z: 8 });
   const live = ctx.ending === "live";
   const pillText = live ? "Available on the App Store and Google Play" : "Coming soon on iPhone and Android";
   const pillFs = M ? (live ? 30 : 34) : 26;
@@ -179,14 +171,15 @@ export async function buildClose(ctx, S) {
     /* The rise and the turn toward each other are the 3D pose; once risen the
        pose holds still and the drift is a 2D move of each phone's layer, so
        the two live phones are not re-rendered on every frame of the hold. */
-    pI.poses.push({ t0: K.r41 - 0.02, t1: end, fn: (t) => ({ cx: 410, cy: 910 + (1 - rise(t, 0.05)) * 1150, height: 690, rx: 2, ry: mix(-4, 13, rise(t, 0.05)), rz: 0, fov: 24, opacity: 1 }) });
-    pA.poses.push({ t0: K.r41 - 0.02, t1: end, fn: (t) => ({ cx: 676, cy: 924 + (1 - rise(t, 0.16)) * 1150, height: 680, rx: 2, ry: mix(4, -13, rise(t, 0.16)), rz: 0, fov: 24, opacity: 1 }) });
+    pI.poses.push({ t0: K.r41 - 0.02, t1: end, fn: (t) => ({ cx: 356, cy: 910 + (1 - rise(t, 0.05)) * 1450, height: 690, rx: 2, ry: mix(-4, 13, rise(t, 0.05)), rz: 0, fov: 24, opacity: 1 }) });
+    pA.poses.push({ t0: K.r41 - 0.02, t1: end, fn: (t) => ({ cx: 724, cy: 924 + (1 - rise(t, 0.16)) * 1450, height: 680, rx: 2, ry: mix(4, -13, rise(t, 0.16)), rz: 0, fov: 24, opacity: 1 }) });
     ctx.onFrame((t) => {
       const on = t >= K.r41 - 0.02 && t < end;
       pI.root.style.transform = on ? `translate(${(4 * drift(t, 0)).toFixed(2)}px, ${(5 * drift(t, 1.3) - 12 * hold(t)).toFixed(2)}px)` : "";
       pA.root.style.transform = on ? `translate(${(-4 * drift(t, 0.6)).toFixed(2)}px, ${(5 * drift(t, 2.1) - 12 * hold(t)).toFixed(2)}px)` : "";
     });
-    sparkles(ctx, top, { area: { x: 120, y: 200, w: 820, h: 360 }, count: 4, seed: 4101, t0: K.r41 + 0.8, t1: end + 1, color: "#5c9fff", min: 16, max: 28 });
+    /* sparkles at fixed points in the margins, clear of the type and the phones */
+    [[150, 300, 24], [930, 350, 20], [120, 470, 16]].forEach(([x, y, d], i) => sparkles(ctx, top, { area: { x: x - d / 2, y: y - d / 2, w: d, h: d }, count: 1, seed: 4101 + i, t0: K.r41 + 0.8 + i * 0.15, t1: end + 1, color: "#5c9fff", min: d, max: d }));
     const url0 = K.r42;
     during(ctx, K.r41 - 0.02, end, (t) => {
       const a = ramp(ctx, t, K.r41 + 0.25, K.r41 + 0.95, "land");
@@ -210,39 +203,44 @@ export async function buildClose(ctx, S) {
     const drift = (t, ph) => Math.sin((t - K.r41) * 0.9 + ph);
     const hold = (t) => ramp(ctx, t, K.r41 + 0.9, end, "sine.inOut");
     /* the rise and turn in 3D; the hold's drift as a 2D move of the phone's layer */
-    pD.poses.push({ t0: K.r41 - 0.02, t1: end, fn: (t) => ({ cx: 1500, cy: 470 + (1 - rise(t, 0.14)) * 900, height: 820, rx: 2, ry: mix(6, -10, rise(t, 0.14)), rz: 0, fov: 24, opacity: 1 }) });
+    pD.poses.push({ t0: K.r41 - 0.02, t1: end, fn: (t) => ({ cx: 1500, cy: 510 + (1 - rise(t, 0.14)) * 1000, height: 820, rx: 2, ry: mix(6, -10, rise(t, 0.14)), rz: 0, fov: 24, opacity: 1 }) });
     ctx.onFrame((t) => {
       const on = t >= K.r41 - 0.02 && t < end;
       pD.root.style.transform = on ? `translate(${(3 * drift(t, 0.4)).toFixed(2)}px, ${(4 * drift(t, 1.1) - 10 * hold(t)).toFixed(2)}px)` : "";
     });
-    sparkles(ctx, top, { area: { x: 1220, y: 40, w: 600, h: 220 }, count: 3, seed: 4102, t0: K.r41 + 0.8, t1: end + 1, color: "#5c9fff", min: 14, max: 24 });
+    [[70, 90, 20], [1850, 120, 22], [1860, 1000, 16]].forEach(([x, y, d], i) => sparkles(ctx, top, { area: { x: x - d / 2, y: y - d / 2, w: d, h: d }, count: 1, seed: 4102 + i, t0: K.r41 + 0.8 + i * 0.15, t1: end + 1, color: "#5c9fff", min: d, max: d }));
+    /* the Vallo lockup, top centre */
+    const lkD = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", display: "flex", alignItems: "center", gap: "14px", visibility: "hidden" } }, top);
+    ctx.img(own(ctx.src.brand("vallo-mark.png"), "lockup"), { style: { width: "54px", height: `${Math.round(54 * 587 / 614)}px` } }, lkD);
+    ctx.img(own(ctx.src.brand("vallo-wordmark-light.png"), "lockup"), { style: { width: "190px", height: `${Math.round(190 * 167 / 758)}px` } }, lkD);
     ctx.onFrame((t) => {
       dImg.style.visibility = t >= K.r41 - 0.05 ? "" : "hidden";
     });
-    /* the bottom row: the pill (then the badges, live) and vallospaces.com,
-       measured once the fonts and badge files have loaded (layout constants) */
+    /* the pill alone, centred at y 940 from the start; below it one centred
+       row: the badges (live) and vallospaces.com, measured once the fonts and
+       badge files have loaded (layout constants) */
     let row = null;
     const measureRow = () => {
-      const pw = pill.offsetWidth;
       const uw = url.offsetWidth;
       const bw = badgeRow ? badgeRow.offsetWidth : 0;
-      const gap = 36;
-      const total = pw + gap + (badgeRow ? bw + gap : 0) + uw;
-      return { pw, uw, bw, gap, total, x0: 960 - total / 2 };
+      const gap = 40;
+      const total = (badgeRow ? bw + gap : 0) + uw;
+      return { uw, bw, gap, total, x0: 960 - total / 2 };
     };
-    const rowY = 952;
     during(ctx, K.r41 - 0.02, end, (t) => {
       row ??= measureRow();
-      const { pw, uw, bw, gap, total, x0 } = row;
+      const { uw, bw, gap, total, x0 } = row;
       const u = rise(t, 0);
       win.root.style.transformOrigin = "0 0";
-      win.root.style.transform = `translate(120px, ${(118 + (1 - u) * 900 + 3 * drift(t, 0.2)).toFixed(2)}px) scale(${s.toFixed(5)})`;
-      win.root.style.opacity = opa(u * 3);
+      win.root.style.transform = `translate(120px, ${(158 + (1 - u) * 1000 + 3 * drift(t, 0.2)).toFixed(2)}px) scale(${s.toFixed(5)})`;
+      win.root.style.opacity = opa(1);
+      const a = ramp(ctx, t, K.r41 + 0.25, K.r41 + 0.95, "land");
+      place(lkD, { x: 960, y: 70 + (1 - a) * 14, o: a });
       const b = ramp(ctx, t, K.r41 + 0.45, K.r41 + 1.1, "land");
-      place(pill, { x: x0 + pw / 2, y: rowY + (1 - b) * 16, o: b });
-      cutBadges(t, x0 + pw + gap + bw / 2, rowY);
+      place(pill, { x: 960, y: 940 + (1 - b) * 16, o: b });
+      cutBadges(t, x0 + bw / 2, 1022);
       const c = ramp(ctx, t, K.r42, K.r42 + 0.6, "land");
-      place(url, { x: x0 + total - uw / 2, y: rowY + (1 - c) * 12, o: c });
+      place(url, { x: x0 + total - uw / 2, y: 1022 + (1 - c) * 12, o: c });
     });
   }
 }

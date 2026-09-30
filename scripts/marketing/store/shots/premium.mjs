@@ -172,7 +172,8 @@ export const SHOTS = [
         /* the frame's left edge along the header, and the menu button */
         const edge = Math.min(...[HEADER.top, 275, HEADER.bottom].map((y) => sp.at(-m.frame, y)[0]));
         const menuLeft = Math.min(...[237, 313].map((y) => sp.at(HEADER.menu[0], y)[0]));
-        const right = edge + m.overhang;
+        /* the rule's overhang, or less where the menu button comes first */
+        const right = Math.min(edge + m.overhang, menuLeft - 12 * u);
         const [, midY] = sp.at(0, 275);
         const cardH = 158 * m.card;
         ctx.cardCheck = { rightOf: menuLeft - 12 * u };

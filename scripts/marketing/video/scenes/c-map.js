@@ -15,10 +15,10 @@ export async function buildMap(ctx, S) {
   const { K, L } = S;
   const M = ctx.isMobile;
   const t0 = K.r38;
-  const scene = ctx.scene("c38-map", t0 - 0.01, K.r40 + 0.45, { z: 3 });
+  const scene = ctx.scene("c38-map", t0, K.r40 + 0.45, { z: 3 });
   night(ctx, scene, { y: M ? 46 : 48, glow: 0.3 });
   const canvas = ctx.el("canvas", { class: "abs", style: { left: "0px", top: "0px" } }, scene);
-  const map = await createLiveMap({ canvas, width: ctx.W, height: ctx.H, dpr: window.devicePixelRatio || 1, film: ctx.film, land: 0.5 });
+  const map = await createLiveMap({ canvas, width: ctx.W, height: ctx.H, dpr: window.devicePixelRatio || 1, film: ctx.film, land: 0.5, house: 1.5 });
   S.map = map;
 
   /* the city labels: glass pills, Lagos in white (as the map's test page draws them) */
@@ -49,7 +49,7 @@ export async function buildMap(ctx, S) {
   for (const r of T.routes) ctx.sfx("pop", t0 + r.start, { offset: -4 });
   const dim = [T.pinLift[0], T.pinLift[1]];
 
-  during(ctx, t0 - 0.01, K.r40 + 0.45, (t) => {
+  during(ctx, t0, K.r40 + 0.45, (t) => {
     const mt = Math.min(SHOT, Math.max(0, t - t0));
     map.render(mt);
     /* the canvas dims under the lifting pin, then gives way to row 40 */

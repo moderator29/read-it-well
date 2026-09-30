@@ -87,7 +87,7 @@ function timingFor(land = TIMES.land) {
 const WIDTH = 10;
 const SLAB = { height: 0.62, bevel: 0.18, segments: 6, sink: 0.06 };
 const PLINTH = { margin: 0.3, height: 0.66, bevel: 0.2, segments: 160 };
-const HOUSE_W = 0.44; // about 4 % of the country's width
+const HOUSE_W0 = 0.44; // about 4 % of the country's width (o.house scales it)
 const PIN_SCALE = 0.26; // the pin's head radius at rest (model units)
 const CLEAR = { house: 0.42, dot: 0.2 }; // how far Lagos' house and the dots stay inside the edge
 
@@ -1018,10 +1018,12 @@ const FRAG_FINAL = /* glsl */ `
  * @param {string} [o.data]  world-atlas countries-50m.json URL
  * @param {object} [o.world] the parsed topology (skips the fetch)
  * @param {number} [o.land=0.35] when the falling house lands on Lagos (s); the home's rise follows
+ * @param {number} [o.house=1] the home's size, as a multiple of its default width
  * @param {'glow'} [o.debug] 'glow': show the blurred glow buffer instead of the frame (tuning)
  */
 export async function createLiveMap(o) {
   const { canvas, width, height } = o;
+  const HOUSE_W = HOUSE_W0 * (o.house ?? 1);
   const T = timingFor(o.land ?? TIMES.land);
   const dpr = o.dpr ?? 1;
   const film = o.film === "desktop" ? "desktop" : "mobile";

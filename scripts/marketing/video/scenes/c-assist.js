@@ -78,11 +78,11 @@ export async function buildAssist(ctx, S) {
       typed.textContent = txt;
       car.style.opacity = t >= tSend ? "0" : opa(caretBlink(t));
     });
-    /* pushed 1.35x onto the input field (x 145-935, y 1000) while the question
+    /* pushed 1.35x onto the input field (x 145-935, y 1120) while the question
        is typed, then back to PHONE_HERO for the answer; it leaves at the chapter's end */
     const PUSH = 1.35;
     const s0 = dispToStage(P, 0, 0).s;
-    const pushedCy = 1000 - (2731 - 1434) * s0 * PUSH;
+    const pushedCy = 1120 - (2731 - 1434) * s0 * PUSH;
     p.poses.push({
       t0: rise[0] - 0.02, t1: leave[1] + 0.02,
       fn: (t) => {
