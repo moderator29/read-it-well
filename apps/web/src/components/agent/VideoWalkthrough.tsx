@@ -229,13 +229,9 @@ export function VideoWalkthrough({
                     ? "Walkthrough"
                     : `Walkthrough, ${formatClock(video.durationSeconds)}`}
                 </span>
-                <button
-                  type="button"
-                  className="text-[length:var(--nf-text-overline)] font-semibold text-[var(--nf-content-muted)]"
-                  onClick={() => void drop(video)}
-                >
+                <Button variant="quiet" size="sm" onClick={() => void drop(video)}>
                   Remove
-                </button>
+                </Button>
               </div>
             </li>
           ))}
