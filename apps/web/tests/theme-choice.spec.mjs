@@ -99,7 +99,7 @@ await radios.nth(0).tap();
 await page.waitForTimeout(500);
 check("Light paints light", (await theme()) === "light");
 check("and is announced as checked", (await radios.nth(0).getAttribute("aria-checked")) === "true");
-check("the browser chrome turns white", (await page.evaluate(() => document.querySelector('meta[name="theme-color"]')?.getAttribute("content"))) === "#FFFFFF");
+check("the browser chrome turns to the warm paper", (await page.evaluate(() => document.querySelector('meta[name="theme-color"]')?.getAttribute("content"))) === "#F4F4F1");
 check("stored", (await page.evaluate(() => localStorage.getItem("nf_theme"))) === "light");
 check("and in the cookie", (await ctx.cookies()).some((c) => c.name === "nf_theme" && c.value === "light"));
 const html = await (await page.request.get(`${BASE}/home`)).text();
