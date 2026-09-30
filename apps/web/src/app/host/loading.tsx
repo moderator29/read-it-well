@@ -1,7 +1,7 @@
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
-import { Skeleton } from "@/components/ui/Skeleton";
-import { CardRowsSkeleton, LoadingShell, TitleBlockSkeleton } from "@/components/app/ScreenSkeleton";
+import { CardRowsSkeleton, TitleBlockSkeleton } from "@/components/app/ScreenSkeleton";
+import { HostScreenSkeleton } from "@/components/host/HostScreenSkeleton";
 
 /**
  * The wait, across the host workspace (SPEED-2).
@@ -9,32 +9,17 @@ import { CardRowsSkeleton, LoadingShell, TitleBlockSkeleton } from "@/components
  * No host route had a `loading.tsx`, and `HostShell` renders inside each page
  * after an identity read, so a host screen showed the ROOT boundary (the
  * landing hero) and then the whole workspace arrived at once. This draws the
- * same frame `HostShell` does, from the same classes: `nf-host`, the sticky
- * glass workspace bar at the header height, and `nf-host__body` (40rem wide,
- * the shell's own padding), with a title block and rows inside it.
+ * same frame `HostShell` does (`HostScreenSkeleton`: the desk sidebar from
+ * 1024px, the workspace bar with its chips, `nf-host__body`), with a title
+ * block and rows inside it. The busier host screens (calendar, decide,
+ * reviews, earnings, tables, rooms) carry their own shaped files.
  */
 export default async function LoadingHost() {
   const label = getDictionary(await getLocale()).hostWorkspace.loading;
   return (
-    <div className="nf-host">
-      <header className="nf-ws-bar nf-glass nf-glass--chrome nf-safe-top sticky top-0 z-40">
-        <div className="nf-ws-bar__row">
-          <Skeleton circle width="2.25rem" className="shrink-0" />
-          <Skeleton width="8rem" height="1rem" radius="sm" className="max-w-[40%]" />
-        </div>
-        {/* HostNav's chip row, which sits inside the same bar: `px-gutter
-            pb-xs` around small chips (h-9), so the bar reaches its real
-            height before the page arrives. */}
-        <div aria-hidden="true" className="flex gap-xs overflow-hidden px-gutter pb-xs">
-          {Array.from({ length: 4 }, (_, i) => (
-            <Skeleton key={i} width="6rem" height="2.25rem" radius="md" className="shrink-0" />
-          ))}
-        </div>
-      </header>
-      <LoadingShell label={label} className="nf-host__body">
-        <TitleBlockSkeleton className="mb-lg" />
-        <CardRowsSkeleton rows={3} />
-      </LoadingShell>
-    </div>
+    <HostScreenSkeleton label={label}>
+      <TitleBlockSkeleton className="mb-lg" />
+      <CardRowsSkeleton rows={3} />
+    </HostScreenSkeleton>
   );
 }
