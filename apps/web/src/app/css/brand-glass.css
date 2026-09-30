@@ -11,6 +11,10 @@
  *   3. The navy glass: ONE material for every dark block (ref 50, the
  *      side navigation), shared by the drawer and rail at night and by every
  *      hero band in both themes.
+ *   4. Blue lean icons in light (unlayered, below).
+ *   5. The night glass containers: the side-nav material as a three-tier
+ *      container glass (glass, glass-raised, glass-quiet) on the shared
+ *      cards, panels, lists and sheets, night only.
  */
 @layer components {
   /* --------------------------------------------------- 1. the 3D icons */
@@ -151,4 +155,174 @@
 :root[data-theme="light"],
 :root[data-theme="light"] [data-theme="light"] {
   --nf-plate-neutral-ink: var(--nf-brand-primary);
+}
+
+/*
+ * 5. THE NIGHT GLASS CONTAINERS (the founder, 30 September: "bring back the
+ * glass containers that have the glowing ... like the side nav container").
+ *
+ * The side-nav material (section 3) as a small container tier, NIGHT ONLY,
+ * on the shared containers, so it lands on every screen at once. The tokens
+ * (`--nf-night-glass-*`, three tiers) are in tokens.css beside the calmed
+ * night they answer.
+ *
+ *   glass         `.nf-card`, `.nf-panel` (settings groups, notifications,
+ *                 listing and stay cards, console panels and tiles),
+ *                 `ListGroup`, `KpiTile`, the desk cards, the profile's
+ *                 belongings group, the listing's detail panes and move-in
+ *                 costs, the inbox list, recently viewed and compare, the
+ *                 host calendar panels and review cards;
+ *   glass-raised  `SummaryCard` (the one figure a screen opens on);
+ *   glass-quiet   any of those INSIDE another glass container, a hero band
+ *                 or a sheet: a faint fill and a hairline, no glow, so a card
+ *                 never glows inside a glowing card.
+ *
+ * `HeroBand` is already the navy glass (section 3). Sheets keep their real
+ * backdrop blur (fixed chrome) and take the raised glass over a dense
+ * ground. Nothing here adds a backdrop filter: containers scroll.
+ *
+ * One border (the luminous edge recolours the hairline, never a second
+ * ring beside it), one shadow list (catchlight, glow, drop) and one radius
+ * per tier (glass and raised are the card's 18px, which every container here
+ * already draws; quiet is 14px). The focus ring is an outline (base.css), so
+ * the glow never hides it.
+ *
+ * SPECIFICITY. The night test sits in `:where()`, so the tier weighs what a
+ * container's own class weighs and wins by position (this partial is late):
+ * a deliberate state a surface declares with more weight (a chosen tile, a
+ * selected choice) still wins over the tier. The two rules whose surfaces
+ * load their own route stylesheet (the profile group, an unread
+ * notification) keep the full night test, because a route sheet can land
+ * after this one.
+ */
+@layer components {
+  /* ------------------------------------------------------------- glass */
+  :where(:root:not([data-theme="light"]))
+    :is(
+      .nf-card,
+      .nf-panel,
+      .nf-kpi,
+      .nf-list-group:not(.nf-list-group--bare),
+      .nf-desk-card,
+      .nf-detail-panel,
+      .nf-agent-card,
+      .nf-detail-movein,
+      .nf-movein__list,
+      .nf-movein__total,
+      .nf-inbox-list,
+      .nf-recent,
+      .nf-compare,
+      .nf-admin-tile
+    ),
+  :root:not([data-theme="light"]) :is(.nf-pf-rows, .nf-rcal-panel, .nf-rcal-sync, .nf-hreview) {
+    border-color: var(--nf-night-glass-edge);
+    background: var(--nf-night-glass-fill);
+    box-shadow: var(--nf-night-glass-shadow);
+  }
+
+  /* ------------------------------------------------------ glass-raised */
+  :where(:root:not([data-theme="light"])) .nf-summary {
+    border-color: var(--nf-night-glass-raised-edge);
+    border-radius: var(--nf-night-glass-raised-radius);
+    background: var(--nf-night-glass-raised-fill);
+    box-shadow: var(--nf-night-glass-raised-shadow);
+  }
+
+  /* ------------------------------------------------------- glass-quiet */
+  :where(:root:not([data-theme="light"]))
+    :is(
+      .nf-card,
+      .nf-panel,
+      .nf-summary,
+      .nf-kpi,
+      .nf-list-group,
+      .nf-desk-card,
+      .nf-pf-rows,
+      .nf-detail-panel,
+      .nf-agent-card,
+      .nf-detail-movein,
+      .nf-movein__list,
+      .nf-movein__total,
+      .nf-inbox-list,
+      .nf-admin-tile,
+      .nf-hero-band,
+      .nf-navy-glass,
+      .nf-sheet
+    )
+    :is(
+      .nf-card,
+      .nf-panel,
+      .nf-summary,
+      .nf-kpi,
+      .nf-list-group:not(.nf-list-group--bare),
+      .nf-desk-card,
+      .nf-pf-rows,
+      .nf-detail-panel,
+      .nf-agent-card,
+      .nf-detail-movein,
+      .nf-movein__list,
+      .nf-movein__total,
+      .nf-admin-tile
+    ) {
+    border-color: var(--nf-night-glass-quiet-edge);
+    border-radius: var(--nf-night-glass-quiet-radius);
+    background: var(--nf-night-glass-quiet-fill);
+    box-shadow: var(--nf-night-glass-quiet-shadow);
+  }
+
+  /* ------------------------------------------------------ pointer hover
+     A pressable glass card: the edge brightens and the glow opens. It
+     replaces the shared hover shadow (which at night is a white ring). */
+  @media (hover: hover) and (pointer: fine) {
+    :root:not([data-theme="light"])
+      :is(.nf-card--interactive, .nf-pcard, .nf-kpi--door, .nf-panel.nf-notif__row, a.nf-admin-tile):hover:not(:active) {
+      border-color: var(--nf-night-glass-edge-hover);
+      box-shadow: var(--nf-night-glass-shadow-hover);
+    }
+  }
+
+  /* ---------------------------------------------------- notifications
+     Unread comes back as a soft rim (2172c441 took the selected edge and
+     its glow off): the brighter edge and the hover glow, with the dot and
+     the full-weight title still carrying it (never colour alone). */
+  :root:not([data-theme="light"]) .nf-panel.nf-notif__row[data-unread="true"] {
+    border-color: var(--nf-night-glass-edge-hover);
+    box-shadow: var(--nf-night-glass-shadow-hover);
+  }
+
+  /* ------------------------------------------------------------ sheets
+     Fixed chrome over live content: the raised glass over a dense ground,
+     the luminous edge on its three open sides, the backdrop blur it already
+     had (overlays.css) kept. */
+  :root:not([data-theme="light"]) .nf-sheet {
+    border-color: var(--nf-night-glass-raised-edge);
+    background: var(--nf-night-glass-sheet-fill);
+    box-shadow:
+      inset 0 1px 0 color-mix(in oklab, var(--nf-content-primary) 10%, transparent),
+      var(--nf-night-glass-raised-glow),
+      var(--nf-elev-3);
+  }
+
+  /* ------------------------------------------------------ conversation
+     The header sits on a glass strip with the luminous hairline under it;
+     the composer's field is the glass, its focus ring unchanged. */
+  :root:not([data-theme="light"]) .nf-thread__head {
+    border-block-end-color: var(--nf-night-glass-edge);
+    background: var(--nf-night-glass-fill);
+  }
+  :root:not([data-theme="light"]) .nf-composer {
+    border-block-start-color: var(--nf-night-glass-edge);
+  }
+  :root:not([data-theme="light"]) .nf-composer__field:not(:focus) {
+    border-color: var(--nf-night-glass-edge);
+    background: var(--nf-night-glass-fill);
+    box-shadow: var(--nf-night-glass-shadow);
+  }
+
+  /* ----------------------------------------------------------- console
+     The console's phone drawer is the member drawer's navy glass. */
+  :where(:root:not([data-theme="light"])) .nf-admin-drawer__panel {
+    border-right-color: var(--nf-night-glass-raised-edge);
+    background: var(--nf-night-glass-raised-fill);
+  }
 }
