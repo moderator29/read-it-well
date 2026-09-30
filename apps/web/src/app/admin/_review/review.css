@@ -1120,7 +1120,8 @@
     gap: var(--nf-space-xs);
     min-height: 44px;
     padding: 0 var(--nf-space-lg);
-    border-radius: var(--nf-radius-control);
+    /* Section 17: buttons are full pills. */
+    border-radius: var(--nf-radius-pill);
     border: 1px solid color-mix(in oklab, var(--rv-btn) 70%, var(--nf-content-on-brand));
     background: linear-gradient(
       180deg,
@@ -1134,7 +1135,7 @@
     box-shadow:
       inset 0 1px 0 color-mix(in oklab, var(--nf-content-on-brand) 55%, transparent),
       0 10px 24px -10px color-mix(in oklab, var(--rv-btn) 85%, transparent);
-    transition: transform 120ms ease, filter 120ms ease;
+    transition: transform 120ms ease;
   }
 
   .nf-rv-btn:hover:not(:disabled) {
@@ -1274,9 +1275,23 @@
       display: none;
     }
 
+    /* A phone: Approve takes the full width, Ask for more and Reject share
+       the row under it, so no label breaks onto two lines at 360 to 430. */
+    .nf-rv-actionbar__buttons {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
     .nf-rv-actionbar__buttons > * {
-      flex: 1 1 30%;
       padding: 0 var(--nf-space-sm);
+      white-space: nowrap;
+    }
+    .nf-rv-actionbar__buttons > :first-child {
+      grid-column: 1 / -1;
+    }
+    /* Two lines of room for the note, at the 16px an input needs on a phone. */
+    .nf-rv-field {
+      min-height: 4.5rem;
+      font-size: var(--nf-text-body);
     }
   }
 }

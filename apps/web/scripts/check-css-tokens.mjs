@@ -996,6 +996,13 @@ const PILL_ALLOWED = new Set([
    * language control) stays on the control radius.
    */
   "src/app/css/auth.css  .nf-slate .nf-slate-pill.nf-btn",
+  /*
+   * PERMANENT, by section 17 (buttons are full pills): the listing review's
+   * Approve, Ask for more and Reject are buttons drawn by the review desk's
+   * own class (`nf-rv-btn`, review.css) rather than `.nf-btn`, so the button
+   * test above cannot see them. They are buttons; nothing else wears it.
+   */
+  "src/app/admin/_review/review.css  .nf-rv-btn",
 ]);
 
 /* The TSX half of the same list, and it has one entry. The two round things

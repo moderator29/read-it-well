@@ -1,3 +1,4 @@
+import "@/app/admin/_review/review.css";
 import { StillAvailableCard } from "@/components/agent/StillAvailableCard";
 import { ReviewActionBar } from "@/app/admin/listings/[id]/ReviewActionBar";
 import { PasskeyIdleSetting } from "@/app/(app)/settings/passcode/PasskeyIdleSetting";
