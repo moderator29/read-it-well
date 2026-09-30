@@ -20,6 +20,7 @@ import { ClientCopyProvider } from "@/lib/i18n/client-copy";
 import { clientCopyOf } from "@/lib/i18n/client-copy-of";
 import { SuccessFlagHost } from "@/components/ui/SuccessFlagHost";
 
+import { DetailsHost } from "@/components/ui/DetailsHost";
 /*
  * The fonts are declared in `css/fonts.css` and served from `public/fonts`,
  * not through next/font. That file explains which subsets ship and why; this
@@ -457,3 +458,5 @@ export default async function RootLayout({
     </html>
   );
 }
+          {/* The one toast, the connection line and back to top. */}
+          <DetailsHost />

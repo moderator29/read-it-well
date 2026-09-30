@@ -45,6 +45,8 @@ const AUTH_FLOW_KEYS = [
  *   catalogue.card             the listing gallery's empty frame
  *   frontDoor.share            the listing page's share control
  *   offPlatform                the sheet before a link leaves Vallo
+ *   details                    the toast, copy, connection line, pull to
+ *                              refresh, back to top, the card menu
  *   socialProfile.accountPage  the profile's hero and rows
  *   success (chrome, and the   the success sheet's own words, and only the
  *   moments below)             moments whose components have no server
@@ -69,6 +71,7 @@ export type ClientCopy = {
   catalogue: Pick<Dictionary["catalogue"], "card">;
   frontDoor: Pick<Dictionary["frontDoor"], "share">;
   offPlatform: Dictionary["offPlatform"];
+  details: Dictionary["details"];
   socialProfile: Pick<Dictionary["socialProfile"], "accountPage">;
   success: Pick<Dictionary["success"], "continue" | "close" | "detail"> & {
     moments: Pick<Dictionary["success"]["moments"], (typeof SLICED_MOMENTS)[number]>;
@@ -106,6 +109,7 @@ export function clientCopyOf(t: Dictionary): ClientCopy {
     catalogue: { card: t.catalogue.card },
     frontDoor: { share: t.frontDoor.share },
     offPlatform: t.offPlatform,
+    details: t.details,
     socialProfile: { accountPage: t.socialProfile.accountPage },
     success: {
       continue: t.success.continue,

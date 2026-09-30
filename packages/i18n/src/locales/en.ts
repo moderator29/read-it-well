@@ -32,6 +32,8 @@ import { complianceBeneficialOwnershipEn } from "./compliance-17.en";
 import { passcodeEn } from "./passcode.en";
 /* The workspace desks and the confirm panel (UI/UX plan items 14, 20, 22). */
 import { deskEn } from "./desk.en";
+/* The small things (toast, copy, connection, pull to refresh, card menu). */
+import { detailsEn } from "./details.en";
 
 /**
  * The counted nouns, in every form English uses.
@@ -5939,6 +5941,8 @@ export const en = {
   complianceStr: complianceStrEn,
   complianceThreshold: complianceThresholdEn,
   compliancePep: compliancePepEn,
+  /* The small things: one toast, copy, connection, pull to refresh. */
+  details: detailsEn,
   complianceRisk: complianceRiskEn,
   complianceBeneficialOwnership: complianceBeneficialOwnershipEn,
 
