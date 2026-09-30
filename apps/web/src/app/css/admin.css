@@ -1004,7 +1004,10 @@
        word is short in every desk that renders this table, so `auto` costs
        the title about fourteen pixels and stops an operator having to learn
        eight glyphs and eight reference prefixes to read a mixed queue. */
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    /* A fixed 3.5rem, not `auto`: with `auto` each row sized the column to its
+       own word, so a Payment row's title sat 13px right of a Listing row's
+       and the titles no longer ran down one edge (seen at 390). */
+    grid-template-columns: 3.5rem minmax(0, 1fr) auto;
     grid-template-areas:
       "type title actions"
       "type meta actions";
