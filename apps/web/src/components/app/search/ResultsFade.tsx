@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
+import { motionQuiet } from "@/lib/motion/gate";
 
 /**
  * The results dim while the next set is on its way (Track M).
@@ -21,6 +22,16 @@ import { usePathname, useSearchParams } from "next/navigation";
  *
  * Reduced motion: the dim is instant, and it is still a dim, because it is
  * information rather than decoration.
+ *
+ * THE CARDS THAT STAY, MOVE (motion sweep 2, 30 September 2026). When a
+ * filter or a sort keeps a listing on the shelf, that card now glides from
+ * where it was to where it lands (FLIP) instead of blinking into its new
+ * cell; cards that are new arrive on the card entrance as before, and cards
+ * that left were already dimmed on their way out. The places are read once
+ * when the change starts (the tap) and once when the new list is drawn, in a
+ * layout effect before paint; only `translate` animates, on the Web
+ * Animations API, and only for cards on or near the screen. Not under Calm,
+ * Off, reduced motion or data saver.
  */
 export function ResultsFade({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -31,6 +42,8 @@ export function ResultsFade({ children }: { children: ReactNode }) {
   const [dimFrom, setDimFrom] = useState<string | null>(null);
   const updating = dimFrom === current;
   const timer = useRef<number | undefined>(undefined);
+  const box = useRef<HTMLDivElement>(null);
+  const before = useRef<Map<string, { left: number; top: number }> | null>(null);
   const here = useRef(current);
   useEffect(() => {
     here.current = current;
@@ -38,6 +51,7 @@ export function ResultsFade({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const start = () => {
+      before.current = motionQuiet() || document.documentElement.dataset.saveData === "on" ? null : places(box.current);
       setDimFrom(here.current);
       window.clearTimeout(timer.current);
       timer.current = window.setTimeout(() => setDimFrom(null), 4000);
@@ -68,9 +82,56 @@ export function ResultsFade({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  /* The new list is in the document and not yet painted: move each card
+     that stayed back to where it was, then let it go. */
+  useLayoutEffect(() => {
+    const was = before.current;
+    before.current = null;
+    if (!was || was.size === 0) return;
+    const now = places(box.current);
+    const style = getComputedStyle(document.documentElement);
+    const duration = parseFloat(style.getPropertyValue("--nf-duration-slow")) || 380;
+    const easing = style.getPropertyValue("--nf-ease-entrance").trim() || "ease-out";
+    for (const [key, rect] of now) {
+      const from = was.get(key);
+      if (!from) continue;
+      const dx = from.left - rect.left;
+      const dy = from.top - rect.top;
+      if (Math.abs(dx) < 1 && Math.abs(dy) < 1) continue;
+      const item = box.current?.querySelector<HTMLElement>(`[data-flip-key="${CSS.escape(key)}"]`);
+      item?.animate([{ translate: `${dx}px ${dy}px` }, { translate: "0 0" }], { duration, easing });
+    }
+  }, [current]);
+
   return (
-    <div className="nf-results-fade" data-updating={updating ? "true" : undefined} aria-busy={updating || undefined}>
+    <div
+      ref={box}
+      className="nf-results-fade"
+      data-updating={updating ? "true" : undefined}
+      aria-busy={updating || undefined}
+    >
       {children}
     </div>
   );
+}
+
+/**
+ * Where each result sits now, keyed by the page it opens. Only cards within a
+ * screen's height of the viewport: a card far below cannot be seen moving,
+ * and measuring it would be work for nothing.
+ */
+function places(root: HTMLElement | null): Map<string, { left: number; top: number }> {
+  const out = new Map<string, { left: number; top: number }>();
+  if (!root) return out;
+  const reach = window.innerHeight;
+  for (const item of root.querySelectorAll<HTMLElement>("ul > li")) {
+    const href = item.querySelector("a[href]")?.getAttribute("href");
+    if (!href || out.has(href)) continue;
+    const rect = item.getBoundingClientRect();
+    if (rect.bottom < -reach || rect.top > reach * 2) continue;
+    item.dataset.flipKey = href;
+    /* Page coordinates, so a change that also scrolls does not fling. */
+    out.set(href, { left: rect.left + window.scrollX, top: rect.top + window.scrollY });
+  }
+  return out;
 }

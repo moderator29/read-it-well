@@ -9,6 +9,7 @@
  * hover never fires, a tap on them did nothing visible until the next page
  * arrived. Three more things are here too:
  *
+ *   floor      every other tappable sinks and tints (second sweep, below)
  *   rows       a settings row lights up and its glyph sinks. The row does not
  *              scale, because it is one slice of a grouped card and a
  *              shrinking slice tears the hairlines. Standalone rows (inbox,
@@ -39,19 +40,117 @@
     transform: scale(var(--nf-press-scale-sm));
   }
 
+  /* `scale`, not `transform` (second sweep): the inbox and notification rows
+     slide in with an animation that holds `transform`, and an animation
+     outranks a static value, so the press never showed on them. The two
+     properties compose, so the press lands whatever the entrance is doing. */
   .nf-inbox-row,
   .nf-notif__row,
   .nf-nav__row {
     transition:
       background-color var(--nf-duration-fast) var(--nf-ease-standard),
       color var(--nf-duration-fast) var(--nf-ease-standard),
-      transform var(--nf-duration-press) var(--nf-ease-press);
+      scale var(--nf-duration-press) var(--nf-ease-press);
   }
   .nf-inbox-row:active,
   .nf-notif__row:active,
   a.nf-nav__row:active,
   .nf-nav__row--parent:active {
-    transform: scale(var(--nf-press-scale-lg));
+    scale: var(--nf-press-scale-lg);
+  }
+
+  /* --------------------------------------------------- everything else */
+
+  /*
+   * EVERY TAPPABLE ANSWERS (second sweep, 30 September 2026). The founder's
+   * test is a finger on any button, row, chip or icon: something must give.
+   * The named components above and in buttons.css, chips.css and the rest
+   * press on their own terms; this is the floor for everything that has no
+   * press of its own. An audit of seven signed-in pages found seventeen
+   * such controls (the sort menu items, the view toggle, the segmented
+   * links, the profile tabs and count, the shelf buttons, the home doors'
+   * frame, the header logo, quiet text links).
+   *
+   *   - It sinks to `--nf-press-scale` on the individual `scale` property, so
+   *     it composes with any `transform` or `translate` the element already
+   *     has, and yields to any component that sets `scale` itself.
+   *   - A control with no fill of its own takes the brand's lightest tint
+   *     while pressed; one with a fill keeps it (components set their
+   *     background in this layer at a higher specificity than zero).
+   *   - `:where()` throughout: no specificity at all, so any component rule
+   *     wins. Controls that already press, and anything inside a card that
+   *     presses as a whole, are left out so nothing sinks twice. A grouped
+   *     settings row does not scale (it tears the hairlines; see above).
+   *   - Inline text links cannot scale (an inline box takes no transform);
+   *     they get the tint alone.
+   *
+   * The tokens collapse under reduced motion, and Off zeroes the transition.
+   */
+  :where(a[href], button, [role="button"], [role="tab"], [role="link"], [role="menuitem"], [role="option"], summary):where(
+      :not(
+          :disabled,
+          [aria-disabled="true"],
+          [data-press="none"],
+          .nf-skip-link,
+          .nf-srow,
+          .nf-btn,
+          .nf-icon-btn,
+          .nf-chip,
+          .nf-shelf-chip,
+          .nf-press,
+          .nf-m-press,
+          .nf-card--interactive,
+          .nf-row--tap,
+          .nf-list-row,
+          .nf-segmented__item,
+          .nf-inbox-row,
+          .nf-notif__row,
+          .nf-nav__row,
+          .nf-tab__link,
+          .nf-dockmore__item,
+          .nf-dock-island,
+          .nf-cat-tile,
+          .nf-stays-tile,
+          .nf-passcode__key,
+          .nf-kpi--door,
+          .nf-home__loc,
+          .nf-app-header__btn,
+          .nf-side-switch,
+          .nf-bento__card,
+          .nf-post--pressable,
+          .nf-auth-row,
+          .nf-belong__row,
+          .nf-step__card,
+          .nf-theme-control__option,
+          .nf-motion-level,
+          .nf-icon-tile-option,
+          .nf-bloom__item,
+          .nf-bloom__fab,
+          .nf-composer__send,
+          .nf-detail-tabs__back,
+          .nf-cap__menu,
+          .nf-stack__arrow,
+          .nf-landing-cat,
+          .nf-landing-pill-go,
+          .nf-slate-social,
+          .nf-story-ring__item,
+          .nf-ai__chip,
+          .nf-pcard__heart,
+          .nf-pcard *,
+          .nf-card--interactive *,
+          .nf-tabbar *
+        )
+    ) {
+    transition:
+      scale var(--nf-duration-press) var(--nf-ease-press),
+      background-color var(--nf-duration-fast) var(--nf-ease-standard);
+    &:active {
+      scale: var(--nf-press-scale);
+    }
+    &:active:not(:has(img, picture, video)) {
+      background-color: var(--nf-brand-tint-1);
+      border-radius: var(--nf-radius-sm, 0.5rem);
+    }
   }
 
   /* --------------------------------------------------------------- toast */
