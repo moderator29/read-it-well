@@ -32,6 +32,7 @@ import {
 } from "@/components/app/plans/plans";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { IconPlate } from "@/components/ui/IconPlate";
+import { PullToRefresh } from "@/components/ui/PullToRefresh";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: getDictionary(await getLocale()).shape.plans.title };
@@ -163,7 +164,7 @@ export default async function PlansPage({
     (!showStays || !hasStays);
 
   return (
-    <div className="nf-cat-surface mx-auto max-w-2xl">
+    <PullToRefresh className="nf-cat-surface mx-auto max-w-2xl">
       <div className="relative">
         <PageScene art="calendar-check" />
         <PageHeader variant="large" title={copy.title} subtitle={copy.lede} />
@@ -255,7 +256,7 @@ export default async function PlansPage({
       )}
 
       {showStays && <HowItWorks locale={locale} />}
-    </div>
+    </PullToRefresh>
   );
 }
 

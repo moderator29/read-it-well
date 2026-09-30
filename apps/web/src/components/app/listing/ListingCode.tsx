@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCopyFlash } from "@/lib/ui/use-copy";
 import type { Dictionary } from "@vallo/i18n/core";
 import { Button } from "@/components/ui/Button";
 
@@ -55,17 +55,9 @@ export function ListingCodeText({ code, className = "" }: { code: string; classN
  * the code: one line, a label, the code, and a way to take it with you.
  */
 export function ListingCodeRow({ code, copy }: { code: string; copy: Copy }) {
-  const [copied, setCopied] = useState(false);
-
-  const onCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(code);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 2000);
-    } catch {
-      /* The code is on screen and can be read straight off. */
-    }
-  };
+  /* Details pass: the one copy path (fallback, tick, a check on the button). */
+  const [copied, copyCode] = useCopyFlash();
+  const onCopy = () => copyCode(code);
 
   return (
     <div className="flex flex-wrap items-center gap-sm" data-testid="listing-code-row">
@@ -76,6 +68,7 @@ export function ListingCodeRow({ code, copy }: { code: string; copy: Copy }) {
         variant="ghost"
         size="sm"
         leadingIcon="document"
+        done={copied}
         onClick={() => void onCopy()}
         data-testid="listing-code-row-copy"
       >

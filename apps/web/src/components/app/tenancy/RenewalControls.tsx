@@ -1,5 +1,6 @@
 "use client";
 
+import { NairaField } from "@/components/ui/NairaField";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { Dictionary } from "@vallo/i18n/core";
@@ -61,17 +62,10 @@ export function RenewalOfferForm({
       }}
     >
       <p className="nf-body-sm text-[var(--nf-content-secondary)]">{copy.renewalOfferHelp}</p>
-      <Field label={copy.renewalRent}>
-        {(control) => <input {...control} className="nf-field" inputMode="decimal" value={rent} onChange={(e) => setRent(e.target.value)} />}
-      </Field>
-      <Field label={copy.renewalServiceField}>
-        {(control) => (
-          <input {...control} className="nf-field" inputMode="decimal" value={service} onChange={(e) => setService(e.target.value)} />
-        )}
-      </Field>
-      <Field label={copy.renewalFeesField} error={error ?? undefined}>
-        {(control) => <input {...control} className="nf-field" inputMode="decimal" value={fees} onChange={(e) => setFees(e.target.value)} />}
-      </Field>
+      {/* Details pass: naira grouped as it is typed ("1,500,000"). */}
+      <NairaField label={copy.renewalRent} value={rent} onValueChange={setRent} allowKobo />
+      <NairaField label={copy.renewalServiceField} value={service} onValueChange={setService} allowKobo />
+      <NairaField label={copy.renewalFeesField} value={fees} onValueChange={setFees} allowKobo error={error ?? undefined} />
       <Button type="submit" variant="primary" full loading={pending} disabled={pending || rent.trim() === ""}>
         {copy.renewalOfferSubmit}
       </Button>

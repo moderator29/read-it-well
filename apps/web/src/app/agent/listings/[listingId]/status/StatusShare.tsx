@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useShare } from "@/lib/ui/use-copy";
 import type { Dictionary } from "@vallo/i18n/core";
 import { Button, ButtonLink } from "@/components/ui/Button";
 
@@ -19,24 +19,12 @@ export function StatusShare({
   imagePath: string;
   copy: Dictionary["frontDoor"]["status"];
 }) {
-  const [note, setNote] = useState<string | null>(null);
+  /* Details pass: the one share path (native sheet, Web Share, then the
+     clipboard with the one toast). */
+  const shareLink = useShare();
 
   async function share() {
-    const url = `${window.location.origin}${path}`;
-    if (typeof navigator.share === "function") {
-      try {
-        await navigator.share({ url });
-        return;
-      } catch (error) {
-        if (error instanceof DOMException && error.name === "AbortError") return;
-      }
-    }
-    try {
-      await navigator.clipboard.writeText(url);
-      setNote(copy.copied);
-    } catch {
-      setNote(url);
-    }
+    await shareLink({ url: `${window.location.origin}${path}` });
   }
 
   return (
@@ -50,11 +38,6 @@ export function StatusShare({
       <p className="nf-caption text-[var(--nf-content-muted)]">
         {copy.linkLabel}: <span className="[overflow-wrap:anywhere]">{path}</span>
       </p>
-      {note && (
-        <p className="nf-body-sm text-[var(--nf-content-secondary)] [overflow-wrap:anywhere]" role="status">
-          {note}
-        </p>
-      )}
     </div>
   );
 }

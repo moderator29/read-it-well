@@ -1,5 +1,6 @@
 "use client";
 
+import { PhoneField } from "@/components/app/PhoneField";
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useBack } from "@/lib/nav/use-back";
@@ -213,15 +214,15 @@ export function AgentRegisterForm({
               />
             </RegField>
             <RegField>
-              <TextField
+              {/* Details pass: the one phone field, +234 fixed beside the box,
+                  grouped as it is read aloud, the network named. */}
+              <PhoneField
+                name="phone"
                 label={mine.you.phone}
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                type="tel"
-                inputMode="tel"
-                autoComplete="tel"
+                onChange={setPhone}
                 required
-                {...(errors.phone ? { error: errors.phone } : {})}
+                error={errors.phone}
               />
             </RegField>
             <RegField>

@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useCopyFlash } from "@/lib/ui/use-copy";
 import type { Dictionary } from "@vallo/i18n/core";
 import { Button, ButtonLink } from "@/components/ui/Button";
 
 /** A5. The member's invite link: copy it, or send it on WhatsApp. */
 export function InviteShare({ copy, url, code }: { copy: Dictionary["publicDoors"]["invite"]; url: string; code: string }) {
-  const [copied, setCopied] = useState(false);
+  const [copied, copyUrl] = useCopyFlash(2400);
   const text = copy.shareText.replace("{url}", url);
   return (
     <div className="grid gap-sm">
@@ -25,15 +25,8 @@ export function InviteShare({ copy, url, code }: { copy: Dictionary["publicDoors
         size="lg"
         full
         leadingIcon="link"
-        onClick={async () => {
-          try {
-            await navigator.clipboard.writeText(url);
-            setCopied(true);
-            window.setTimeout(() => setCopied(false), 2400);
-          } catch {
-            setCopied(false);
-          }
-        }}
+        done={copied}
+        onClick={() => void copyUrl(url)}
       >
         {copied ? copy.copied : copy.copy}
       </Button>
