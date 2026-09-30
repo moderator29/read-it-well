@@ -48,6 +48,8 @@ export const DRAFTED_2026_09_30 = [
   "shape",
   "afterTheGate",
   "trustVisible",
+  "platform",
+  "priceCheck",
 ] as const;
 
 function drafted(

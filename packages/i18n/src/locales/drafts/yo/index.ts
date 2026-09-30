@@ -7,6 +7,8 @@ import { trustDoorsYo } from "./trustDoors";
 import { shapeYo } from "./shape";
 import { afterTheGateYo } from "./afterTheGate";
 import { trustVisibleYo } from "./trustVisible";
+import { platformYo } from "./platform";
+import { priceCheckYo } from "./priceCheck";
 
 /**
  * Every machine-drafted namespace for this locale, laid under the locale
@@ -23,4 +25,6 @@ export const yoDrafts = {
   shape: shapeYo,
   afterTheGate: afterTheGateYo,
   trustVisible: trustVisibleYo,
+  platform: platformYo,
+  priceCheck: priceCheckYo,
 } satisfies Translation;

@@ -7,6 +7,8 @@ import { trustDoorsIg } from "./trustDoors";
 import { shapeIg } from "./shape";
 import { afterTheGateIg } from "./afterTheGate";
 import { trustVisibleIg } from "./trustVisible";
+import { platformIg } from "./platform";
+import { priceCheckIg } from "./priceCheck";
 
 /**
  * Every machine-drafted namespace for this locale, laid under the locale
@@ -23,4 +25,6 @@ export const igDrafts = {
   shape: shapeIg,
   afterTheGate: afterTheGateIg,
   trustVisible: trustVisibleIg,
+  platform: platformIg,
+  priceCheck: priceCheckIg,
 } satisfies Translation;
