@@ -1,7 +1,7 @@
 /* 22 · "Vallo never holds your money." 1080 x 1350, Night. The statement
  * piece of the 20 to 30 run: the claim in bold type at 108 px, and under it
  * the product saying it in its own words, one real component cut from the
- * Agreements page and shown flat at 0.73x ("Payment opens only after the
+ * Agreements page and shown flat at 0.70x ("Payment opens only after the
  * inspection report is submitted, both of you confirm the agreement, and
  * Vallo approves it. Vallo never holds your money. When you pay, the owner's
  * or agent's share goes straight to their bank account through our payment
@@ -11,7 +11,7 @@ import { component, componentHeight, frame, headline, icon3d } from "../lib/prem
 
 const W = 1080;
 const H = 1350;
-const card = { id: "agreements", x: 30, y: 290, w: 1260, h: 650 };
+const card = { id: "agreements", x: 0, y: 280, w: 1320, h: 700 };
 const TOP = 480;
 const CH = componentHeight(card, 920);
 

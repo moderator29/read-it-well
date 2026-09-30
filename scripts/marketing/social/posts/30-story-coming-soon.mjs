@@ -15,7 +15,7 @@ export default {
   file: "30-story-coming-soon.png",
   W,
   H,
-  phones: [phone("home", "night", PLACE.lyingBack({ w: 820 }))],
+  phones: [phone("home", "night", PLACE.lyingBack({ w: 760, bottom: 1580 }))],
   html: ({ phones }) =>
     frame({
       W,

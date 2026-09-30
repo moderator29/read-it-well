@@ -8,7 +8,7 @@ import { component, componentHeight, frame, headline, icon3d } from "../lib/prem
 
 const W = 1080;
 const H = 1350;
-const card = { id: "listing-lt", x: 110, y: 1446, w: 1100, h: 640 };
+const card = { id: "listing-lt", x: 110, y: 1446, w: 1100, h: 672 };
 const TOP = 500;
 const CH = componentHeight(card, 920);
 
