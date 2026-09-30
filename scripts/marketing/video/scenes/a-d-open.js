@@ -6,8 +6,7 @@
  * opening onto daylight.
  */
 import { LAYOUT, QUESTIONS } from "./layout.js";
-import { ringBurst } from "../engine/components.js";
-import { SKY, QUIET, fitSize, freshLayers } from "./a-common.js";
+import { SKY, QUIET, fitSize, freshLayers, burst } from "./a-common.js";
 import { nightCard } from "./a-m-open.js";
 
 const W = 1920;
@@ -26,14 +25,15 @@ export function buildOpenDesktop(ctx, T) {
   /* A mask, not an overlay: the night's own gradient shows through the feather, so no seam at any height. */
   const feather = "linear-gradient(90deg, rgb(0 0 0 / 0) 0px, rgb(0 0 0 / 0.55) 110px, #000 240px)";
   const panel = ctx.el("div", { class: "abs", style: { left: "1060px", top: "0px", width: `${W - 1060}px`, height: `${H}px`, overflow: "hidden", WebkitMaskImage: feather, maskImage: feather } }, world);
-  ctx.img(ctx.src.art("step-1-dark.webp"), { class: "abs", style: { left: "-20px", top: "-40px", width: "1080px", height: "1440px" } }, panel);
+  /* (the art sits 80 px left in its panel, so the house and the hotel are both whole) */
+  ctx.img(ctx.src.art("step-1-dark.webp"), { class: "abs", style: { left: "-80px", top: "-40px", width: "1080px", height: "1440px" } }, panel);
 
   const depths = [1.01, 1.028, 1.018];
   const cards = QUESTIONS.map((q, i) => {
     const box = L.CARDS_OPEN[i];
     const layer = ctx.el("div", { class: "fill", style: { transformOrigin: "760px 540px", zIndex: String(i + 1) } }, night);
     tl.fromTo(layer, { scale: 1 }, { scale: depths[i], duration: T.rows[2] + 0.4, ease: "drift" }, 0);
-    const card = nightCard(ctx, layer, { q: q.q, a: q.a, box, size: 44 });
+    const card = nightCard(ctx, layer, { q: q.q, a: q.a, box, size: 44, inner: 430 });
     return { ...card, box, layer, i };
   });
 
@@ -58,7 +58,7 @@ export function buildOpenDesktop(ctx, T) {
     class: "abs",
     style: {
       left: "0px", top: "640px", width: "1260px", height: "280px", zIndex: "10", transformOrigin: "0% 50%",
-      background: "linear-gradient(90deg, rgb(2 6 50 / 0.86) 0%, rgb(2 6 50 / 0.86) 70%, rgb(2 6 50 / 0) 100%)",
+      background: "linear-gradient(90deg, rgb(2 6 50 / 0.9) 0%, rgb(2 6 50 / 0.9) 72%, rgb(2 6 50 / 0) 100%)",
     },
   }, night);
   tl.fromTo(band, { scaleX: 0, opacity: 0 }, { scaleX: 1, opacity: 1, duration: 0.5, ease: "power3.out" }, T.finding - 0.14);
@@ -80,20 +80,27 @@ export function buildOpenDesktop(ctx, T) {
   const w2 = mk(line2, [["in", Math.round(s2 * 0.92), 6, T.in1], ["Nigeria", s2, -2, T.nigeria]], 60, "Nigeria");
   w1.forEach((s, k) => tl.to(s, { x: -1500, duration: 0.3, ease: "power3.in" }, T.shouldnt - 0.1 + k * 0.03));
   w2.forEach((s, k) => tl.to(s, { x: 1700, duration: 0.3, ease: "power3.in" }, T.shouldnt - 0.1 + (w2.length - 1 - k) * 0.03));
+  /* The cards all but vanish behind the words (8%, blurred), so no type sits over their text. */
+  const dimIn = { t0: T.finding - 0.1, t1: T.finding + 0.3 };
+  const dimOut = { t0: T.shouldnt + 0.02, t1: T.shouldnt + 0.37 };
   cards.forEach((c) => {
-    tl.fromTo(c.root, { opacity: 1 }, { opacity: 0.3, duration: 0.4, ease: "power2.out" }, T.finding - 0.1);
-    tl.to(c.root, { opacity: 1, duration: 0.35, ease: "power2.out" }, T.shouldnt + 0.02);
+    tl.fromTo(c.root, { opacity: 1 }, { opacity: 0.08, duration: dimIn.t1 - dimIn.t0, ease: "power2.out" }, dimIn.t0);
+    tl.fromTo(c.root, { opacity: 0.08 }, { opacity: 1, duration: dimOut.t1 - dimOut.t0, ease: "power2.out", immediateRender: false }, dimOut.t0);
+    ctx.onFrame((t) => {
+      const d = ctx.ease("power2.out")(ctx.progress(t, dimIn.t0, dimIn.t1)) * (1 - ctx.ease("power2.out")(ctx.progress(t, dimOut.t0, dimOut.t1)));
+      c.root.style.filter = d > 0.01 ? `blur(${(6 * d).toFixed(2)}px)` : "none";
+    });
   });
 
-  /* ---------- row 03: the cards gather, then deal across the width like a dealer's spread ---------- */
-  const C = { x: 960, y: 480 };
+  /* ---------- row 03: the cards gather, then deal a spread across the night (x 140-1100, clear of the art) ---------- */
+  const C = { x: 620, y: 500 };
   const at = (c, dx = 0, dy = 0) => ({ x: C.x - (c.box.x + c.box.w / 2) + dx, y: C.y - (c.box.y + c.box.h / 2) + dy });
   const stack = [{ dy: -10, r: -2 }, { dy: 0, r: 1.2 }, { dy: 10, r: -0.8 }];
   /* The deal (the card_slide cues): right, left, then the last card to the centre. Each card's moves
      are one chain of tweens that never overlap on a property (so a frame never depends on the seek
      direction): the first card's gather carries it straight to its spot, and the centre card's deal
      hands it straight to the fan. */
-  const spots = [{ c: 2, dx: 560, r: 4, t: T.b(7.1), settle: true }, { c: 0, dx: -560, r: -4, t: T.b(7.8), settle: true }, { c: 1, dx: 0, r: 0, t: T.b(8.5), settle: false }];
+  const spots = [{ c: 2, dx: 180, r: 4, t: T.b(7.1), settle: true }, { c: 0, dx: -180, r: -4, t: T.b(7.8), settle: true }, { c: 1, dx: 0, r: 0, t: T.b(8.5), settle: false }];
   const OUT = 0.19;
   cards.forEach((c, k) => {
     const s0 = spots.find((sp) => sp.c === k);
@@ -111,7 +118,7 @@ export function buildOpenDesktop(ctx, T) {
   });
   tl.set(cards[1].layer, { zIndex: 5 }, T.b(8.5));
   /* On "gamble" the spread fans a touch, like a hand; the centre card stays on top. */
-  const fan = [{ c: 0, dx: -560, dy: 40, r: -8 }, { c: 1, dx: 0, dy: -6, r: 0 }, { c: 2, dx: 560, dy: 40, r: 8 }];
+  const fan = [{ c: 0, dx: -180, dy: 40, r: -8 }, { c: 1, dx: 0, dy: -6, r: 0 }, { c: 2, dx: 180, dy: 40, r: 8 }];
   fan.forEach((f) => {
     const c = cards[f.c];
     const p = at(c, f.dx, f.dy);
@@ -123,14 +130,14 @@ export function buildOpenDesktop(ctx, T) {
   const edge = T.rush + 0.27;
   tl.set(mid.layer, { zIndex: 9 }, T.rush);
   tl.to(mid.root, { x: 960 - (mid.box.x + mid.box.w / 2), y: 540 - (mid.box.y + mid.box.h / 2), scale: 2.8, duration: edge - T.rush, ease: "power2.in" }, T.rush);
-  tl.fromTo(mid.inner, { rotationY: 0 }, { rotationY: 90, duration: edge - T.rush, ease: "power2.in" }, T.rush);
+  /* (a flat turn to the edge: CSS 3D is raster-cached by Chromium differently depending on seek order) */
+  tl.fromTo(mid.inner, { scaleX: 1 }, { scaleX: 0.02, duration: edge - T.rush, ease: "power2.in" }, T.rush);
   [cards[0], cards[2]].forEach((c, k) => {
     tl.to(c.root, { scale: 0.75, opacity: 0, x: `+=${k ? 220 : -220}`, y: "+=80", duration: 0.34, ease: "power2.in" }, T.rush + 0.02);
   });
 
   /* ================= the Vallo card: rows 03-04 ================= */
   const vallo = ctx.scene("a-vallo", edge - 0.02, T.widen + 0.8, { z: 2 });
-  const persp = ctx.el("div", { class: "fill", style: { perspective: "2200px", perspectiveOrigin: "960px 540px" } }, vallo);
   const back = ctx.el("div", {
     class: "abs",
     style: {
@@ -140,37 +147,58 @@ export function buildOpenDesktop(ctx, T) {
         linear-gradient(170deg, #03104f 0%, #020a36 48%, #010623 100%)`,
       boxShadow: "inset 0 0 0 4px rgb(92 159 255 / 0.55), inset 0 0 90px rgb(0 105 254 / 0.35)",
     },
-  }, persp);
-  tl.fromTo(back, { rotationY: -90, scale: 0.3 }, { rotationY: 0, scale: 1.1, duration: T.drop - edge, ease: "power3.out" }, edge);
-  freshLayers(ctx, [back], { from: edge - 0.02, to: T.widen + 0.8 });
+  }, vallo);
+  /* The card opens from its edge (flat, like the rush that turned the question card to its edge). */
+  tl.fromTo(back, { scaleX: 0.02, scaleY: 0.3 }, { scaleX: 1.1, scaleY: 1.1, duration: T.drop - edge, ease: "power3.out" }, edge);
 
-  /* Row 04: the mark lands in the ring on the drop; on "Vallo" it steps left and the wordmark rises beside it. */
+  /* Row 04: the mark is printed on the card's back as it opens (so the drop lands a mark already
+     there), the ring draws, and on "Vallo" the mark steps left and the wordmark rises beside it: a
+     lockup centred in the ring, 40 px clear of it; a slow drift through the hold. */
   const RING = { cx: 960, cy: 530, r: 300 };
   const markW = 300;
   const markH = (markW * 587) / 614;
+  const onBack = { w: markW / 1.1, cy: 540 + (RING.cy - 540) / 1.1 };
+  const backMark = ctx.img(ctx.src.brand("vallo-mark.png"), { class: "abs", style: { left: `${RING.cx - onBack.w / 2}px`, top: `${onBack.cy - (onBack.w * 587) / 614 / 2}px`, width: `${onBack.w}px`, height: `${(onBack.w * 587) / 614}px` } }, back);
+  const logo = ctx.el("div", { class: "fill", style: { transformOrigin: `${RING.cx}px ${RING.cy}px` } }, vallo);
   /* The landing moves the mark; the step left moves its holder (the two overlap in time, never on one element). */
-  const markWrap = ctx.el("div", { class: "abs", style: { left: `${RING.cx - markW / 2}px`, top: `${RING.cy - markH / 2}px`, width: `${markW}px`, height: `${markH}px` } }, vallo);
-  const mark = ctx.img(ctx.src.brand("vallo-mark.png"), { class: "abs", style: { left: "0px", top: "0px", width: `${markW}px`, height: `${markH}px` } }, markWrap);
-  tl.fromTo(mark, { scale: 1.45, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.6, ease: "land" }, T.drop);
-  tl.to(markWrap, { x: -170, scale: 0.62, duration: 0.55, ease: "power3.inOut" }, T.vallo - 0.06);
-  const ring = ringBurst(ctx, vallo, { cx: RING.cx, cy: RING.cy, r: RING.r, t: T.drop + 0.06, color: SKY, stroke: 4, dots: 16, seed: 12, dur: 0.75 });
-  const wmW = 350;
-  const wmH = (wmW * 167) / 758;
-  const wordmark = ctx.img(ctx.src.brand("vallo-wordmark.png"), { class: "abs", style: { left: `${RING.cx - 60}px`, top: `${RING.cy - wmH / 2}px`, width: `${wmW}px`, height: `${wmH}px` } }, vallo);
-  tl.fromTo(wordmark, { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "land" }, T.vallo + 0.06);
-  tl.to([mark, wordmark], { scale: "+=0.3", opacity: 0, duration: 0.26, ease: "power2.in" }, T.widen);
-  tl.to(ring, { opacity: 0, duration: 0.01 }, T.widen);
+  const markWrap = ctx.el("div", { class: "abs", style: { left: `${RING.cx - markW / 2}px`, top: `${RING.cy - markH / 2}px`, width: `${markW}px`, height: `${markH}px` } }, logo);
+  const mark = ctx.img(ctx.src.brand("vallo-mark.png"), { class: "abs", style: { left: "0px", top: "0px", width: `${markW}px`, height: `${markH}px`, visibility: "hidden" } }, markWrap);
+  ctx.onFrame((t) => {
+    const landed = t >= T.drop;
+    backMark.style.visibility = landed ? "hidden" : "inherit";
+    mark.style.visibility = landed ? "inherit" : "hidden";
+  });
+  tl.fromTo(mark, { scale: 1 }, { scale: 1.06, duration: 0.12, ease: "power2.out", immediateRender: false }, T.drop);
+  tl.fromTo(mark, { scale: 1.06 }, { scale: 1, duration: 0.42, ease: "power2.inOut", immediateRender: false }, T.drop + 0.12);
+  const LOCK = { gap: 24, wm: 300 };
+  const markS = 0.62;
+  const lockW = markW * markS + LOCK.gap + LOCK.wm;
+  const lockX = RING.cx - lockW / 2;
+  const stepAt = Math.max(T.drop + 0.02, T.vallo - 0.3);
+  tl.fromTo(markWrap, { x: 0, scale: 1 }, { x: lockX + (markW * markS) / 2 - RING.cx, scale: markS, duration: 0.5, ease: "power3.inOut", immediateRender: false }, stepAt);
+  const { ring, dots } = burst(ctx, vallo, { cx: RING.cx, cy: RING.cy, r: RING.r, t: T.drop + 0.06, clearBy: 7.9, color: SKY, stroke: 4, count: 16, seed: 12, dur: 0.75 });
+  logo.appendChild(dots);
+  const wmH = (LOCK.wm * 167) / 758;
+  const wordmark = ctx.img(ctx.src.brand("vallo-wordmark.png"), { class: "abs", style: { left: `${lockX + markW * markS + LOCK.gap}px`, top: `${RING.cy - wmH / 2}px`, width: `${LOCK.wm}px`, height: `${wmH}px` } }, logo);
+  tl.fromTo(wordmark, { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "land" }, T.vallo + 0.12);
+  tl.fromTo(logo, { scale: 1 }, { scale: 1.03, duration: T.widen - T.drop, ease: "drift" }, T.drop);
+  /* Just before the iris opens, the mark and the wordmark rush past the camera through it. */
+  tl.fromTo(mark, { opacity: 1 }, { opacity: 0, duration: 0.3, ease: "power2.in", immediateRender: false }, T.widen - 0.1);
+  tl.fromTo(markWrap, { scale: markS }, { scale: markS * 1.35, duration: 0.3, ease: "power2.in", immediateRender: false }, T.widen - 0.1);
+  tl.fromTo(wordmark, { scale: 1, opacity: 1 }, { scale: 1.35, opacity: 0, duration: 0.3, ease: "power2.in", immediateRender: false }, T.widen - 0.1);
 
-  /* ================= the ring opens onto daylight ================= */
+  /* ================= the iris opens onto daylight ================= */
+  /* From a point at the ring's centre onto the window, already rising in place behind it; the ring
+     holds at r 300 until the iris reaches it, then rides its edge out. */
   const R0 = RING.r;
   const R1 = 1160;
   const openEnd = T.widen + 0.62;
-  const radius = (t) => R0 + (R1 - R0) * ctx.ease("power3.in")(ctx.progress(t, T.widen, openEnd));
+  const radius = (t) => R1 * ctx.ease("power2.in")(ctx.progress(t, T.widen, openEnd));
   const win = ctx.scene("a-ring", T.widen, openEnd + 0.02, { z: 20 });
-  const edgeRing = ctx.el("div", { class: "abs", style: { borderRadius: "50%", border: `4px solid ${SKY}` } }, win);
+  const edgeRing = ctx.el("div", { class: "abs", style: { borderRadius: "50%", border: `4px solid ${SKY}`, boxSizing: "border-box" } }, win);
   ctx.onFrame((t) => {
-    if (t < T.widen || t > openEnd + 0.02) return;
-    const r = radius(t);
+    ring.style.visibility = t < T.widen ? "inherit" : "hidden";
+    const r = Math.max(R0 + 2, radius(t));
     Object.assign(edgeRing.style, { left: `${RING.cx - r}px`, top: `${RING.cy - r}px`, width: `${2 * r}px`, height: `${2 * r}px`, opacity: String(1 - ctx.progress(t, openEnd - 0.25, openEnd)) });
   });
   const clipDay = (node) => ctx.onFrame((t) => {
