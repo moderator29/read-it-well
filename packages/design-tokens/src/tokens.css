@@ -3711,7 +3711,10 @@
   --nf-gradient-surface: linear-gradient(180deg, rgb(11 13 23 / 0.02) 0%, rgb(11 13 23 / 0) 100%);
 
   /* ------------------------------------------------ edges and interaction */
-  --nf-border-subtle: rgb(11 13 23 / 0.08);
+  /* One hairline per theme (pixel polish): the subtle border IS the card
+     border, so a card, a row edge and a divider never draw two near-equal
+     greys side by side. */
+  --nf-border-subtle: var(--nf-card-border);
   --nf-border-default: rgb(17 19 24 / 0.12);
   --nf-border-strong: rgb(17 19 24 / 0.20);
   --nf-divider: rgb(17 19 24 / 0.07);
@@ -3778,7 +3781,7 @@
   --nf-elev-3-rim: inset 0 1px 0 rgb(255 255 255 / 0.6);
   --nf-elev-4-rim: inset 0 1px 0 rgb(255 255 255 / 0.6);
   --nf-elev-5-rim: inset 0 1px 0 rgb(255 255 255 / 0.6);
-  --nf-elev-1-border: rgb(11 13 23 / 0.08);
+  --nf-elev-1-border: var(--nf-card-border);
   --nf-elev-2-border: rgb(11 13 23 / 0.10);
   --nf-elev-3-border: rgb(11 13 23 / 0.12);
   --nf-elev-4-border: rgb(11 13 23 / 0.14);
