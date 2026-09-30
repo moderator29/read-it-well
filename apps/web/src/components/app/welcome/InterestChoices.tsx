@@ -171,6 +171,10 @@ export function InterestChoices({
                   className="absolute right-3 top-3 shrink-0"
                 />
               )}
+              {/* A ring of light that spreads once from the tick when a card
+                  is chosen (first run only: welcome.css scopes it to the
+                  question; on settings it is an empty, unstyled span). */}
+              {selected && <span className="nf-interest__burst" aria-hidden="true" />}
               <span className="pr-lg text-[length:var(--nf-text-body-sm)] font-semibold leading-tight text-[var(--nf-content-primary)]">
                 {t.interests.markets[value]}
               </span>
