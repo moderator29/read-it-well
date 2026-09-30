@@ -1428,3 +1428,95 @@
     }
   }
 }
+/*
+ * THE INSIDE OF A CONVERSATION ON THE ROW SPEC (plan item 19, 30 September
+ * 2026; docs/design/CLEAN_UNIFIED_DIRECTION.md sections 1, 4, 5 and 12).
+ *
+ *   The header is calm: the leading tile is the plate's rounded square for
+ *   the property's photograph, an initials tile for a venue, a round avatar
+ *   for a person, with no lit ring and no glow; the context line is 13px
+ *   muted with its kind glyph, as on the inbox row; a hairline under it.
+ *
+ *   The bubbles are quiet: theirs is the white card on its one hairline in
+ *   light and the night card at night; mine is the brand blue, solid, with
+ *   no lit gradient and no bloom (the glow budget keeps glow for the one
+ *   primary). The tail corner stays the asymmetric radius.
+ *
+ *   The composer sits on the warm canvas: its bar is the page's own ground
+ *   with a hairline above, the field a white card, the send the one primary.
+ *
+ * Tokens only; one set that answers in both themes, so no theme rule here.
+ */
+@layer components {
+  .nf-thread__head {
+    border-block-end: var(--nf-border-width) solid var(--nf-divider);
+  }
+  .nf-thread__ring {
+    border: var(--nf-border-width) solid var(--nf-card-border);
+    background: var(--nf-surface-raised);
+    box-shadow: none;
+  }
+  .nf-thread__ring--tile {
+    overflow: hidden;
+    border-radius: var(--nf-radius-plate, 0.75rem);
+  }
+  .nf-thread__initials {
+    flex-shrink: 0;
+  }
+  .nf-thread__context {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-3xs);
+    min-width: 0;
+    font-weight: 400;
+    color: var(--nf-content-muted);
+  }
+  .nf-thread__place {
+    color: var(--nf-content-muted);
+  }
+  .nf-thread__tick {
+    color: inherit;
+  }
+
+  .nf-bubble {
+    border-radius: var(--nf-radius-card, var(--nf-radius-lg));
+  }
+  .nf-bubble--theirs {
+    color: var(--nf-content-primary);
+    background: var(--nf-surface-primary);
+    border: var(--nf-border-width) solid var(--nf-card-border);
+    border-bottom-left-radius: var(--nf-radius-xs);
+    box-shadow: var(--nf-card-shadow);
+  }
+  .nf-bubble--mine {
+    color: var(--nf-content-on-brand);
+    background: var(--nf-brand-primary);
+    border: var(--nf-border-width) solid transparent;
+    border-bottom-right-radius: var(--nf-radius-xs);
+    box-shadow: none;
+  }
+  .nf-bubble--failed {
+    background: transparent;
+    border-color: var(--nf-state-error);
+    box-shadow: none;
+  }
+
+  .nf-composer {
+    background: var(--nf-surface-canvas);
+    border-block-start: var(--nf-border-width) solid var(--nf-divider);
+  }
+  .nf-composer__field {
+    border: var(--nf-border-width) solid var(--nf-card-border);
+    background: var(--nf-surface-primary);
+    box-shadow: var(--nf-card-shadow);
+  }
+  .nf-composer__field:focus {
+    border-color: var(--nf-focus-ring);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--nf-focus-ring) 24%, transparent);
+  }
+  .nf-composer__send {
+    border: var(--nf-border-width) solid transparent;
+    background: var(--nf-brand-primary);
+    box-shadow: var(--nf-card-shadow);
+  }
+}

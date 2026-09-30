@@ -13,6 +13,7 @@ import { VerifiedAvatar } from "@/components/messages/VerifiedAvatar";
 import { TierBadge } from "@/components/trust/TierBadge";
 import type { BadgeTier } from "@/lib/trust/badge-tier";
 import { MediaFrame } from "@/components/app/MediaFrame";
+import { InitialsTile } from "@/components/ui/InitialsTile";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ChatCard, type ChatCardData } from "@/components/app/messages/ChatCard";
 import { bundlePhotos, isCaption } from "@/components/app/messages/bundle";
@@ -673,6 +674,12 @@ export function ThreadView({
    * never show a check-in date, and neither face has to be told which it is.
    */
   const propertyFace = context?.kind === "listing" && listing !== null;
+  /* A stay or a table is kept by a venue: a business, so the guest sees an
+     initials tile. The host's counterpart is the guest, a person. */
+  const venueFace = role === "guest" && (context?.kind === "booking" || context?.kind === "reservation");
+  /* The kind glyph before the muted context line (the inbox rows' glyphs). */
+  const contextGlyph =
+    context?.kind === "booking" ? "bed" : context?.kind === "reservation" ? "calendar-clock" : "chat-bubble";
   const tags = roleTags(context, role);
   const bundles = bundlePhotos(items);
   /*
@@ -707,13 +714,21 @@ export function ThreadView({
           bubble. The mark is only ever about identity; the inspection state
           tints the header row instead.
         */}
-        <span className="nf-thread__ring">
-          {propertyFace && listing ? (
+        {/* THE ROW SPEC (plan item 19): a calm leading tile, no lit ring. The
+            property is its photograph on the plate's rounded square; a venue
+            (a stay or a table) is a business, so it is an initials tile;
+            a person stays a round avatar. */}
+        {propertyFace && listing ? (
+          <span className="nf-thread__ring nf-thread__ring--tile">
             <MediaFrame hue={listing.hue} sizes="44px" />
-          ) : (
+          </span>
+        ) : venueFace ? (
+          <InitialsTile name={counterpartName} size="md" className="nf-thread__initials" />
+        ) : (
+          <span className="nf-thread__ring">
             <VerifiedAvatar name={counterpartName} tier={counterpartTier} size="md" />
-          )}
-        </span>
+          </span>
+        )}
         <div className="min-w-0 flex-1">
           <h1 className={`nf-thread__title${propertyFace ? " nf-thread__title--place" : ""}`}>
             <span className="min-w-0">{propertyFace && listing ? listing.title : counterpartName}</span>
@@ -727,10 +742,15 @@ export function ThreadView({
           </h1>
           {/* Said once. The context card under a property header already
               carries "Rental enquiry", and the render does not repeat it. */}
-          {!propertyFace && <p className="nf-thread__context">{contextLine}</p>}
+          {!propertyFace && (
+            <p className="nf-thread__context">
+              <UiIcon name={contextGlyph} size={14} className="shrink-0" />
+              <span className="truncate">{contextLine}</span>
+            </p>
+          )}
           {place && (
             <p className="nf-thread__place">
-              <UiIcon name="location" size={16} className="shrink-0 text-[var(--nf-brand-secondary)]" />
+              <UiIcon name="location" size={14} className="shrink-0 text-[var(--nf-content-muted)]" />
               <span className={propertyFace ? "min-w-0" : "truncate"}>{place}</span>
               {/* The LISTING's own badge, beside the place, exactly where the
                   render puts it. It is a claim about the property and it is
