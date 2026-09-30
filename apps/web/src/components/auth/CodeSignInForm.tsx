@@ -41,18 +41,19 @@ export function CodeSignInForm({ mode, t, next }: { mode: Mode; t: Dictionary; n
     mode === "email" ? verifyEmailSignInCode : verifyPhoneSignInCode,
     CODE_START,
   );
-  const state = checked.step === "code" || checked.error ? checked : sent;
-  const onCode = sent.step === "code" && checked.step !== "ask";
-  const message = state.error ? (copy as Record<string, string>)[state.error] ?? copy.failed : null;
-
   const [code, setCode] = useState("");
   const verifyForm = useRef<HTMLFormElement>(null);
   /* One shake per refusal, counted as the answer arrives, as
      VerifyCodeForm does. */
   const [answered, setAnswered] = useState(checked);
   const [wrongCount, setWrongCount] = useState(0);
+  /* Which of the two forms answered last: the screen shows that answer.
+     (It used to read the step off both at once, and the verify form's
+     starting state, "ask", kept the code step from ever showing.) */
+  const [latest, setLatest] = useState<"sent" | "checked">("sent");
   if (answered !== checked) {
     setAnswered(checked);
+    setLatest("checked");
     if (checked.error === "wrongCode" || checked.error === "badCode") setWrongCount((n) => n + 1);
   }
 
@@ -61,8 +62,13 @@ export function CodeSignInForm({ mode, t, next }: { mode: Mode; t: Dictionary; n
   const [sentAnswer, setSentAnswer] = useState(sent);
   if (sentAnswer !== sent) {
     setSentAnswer(sent);
+    setLatest("sent");
     if (sent.step === "code") setWait(RESEND_WAIT_SECONDS);
   }
+  const state = latest === "checked" ? checked : sent;
+  const onCode = state.step === "code";
+  const message = state.error ? (copy as Record<string, string>)[state.error] ?? copy.failed : null;
+
   useEffect(() => {
     if (!onCode || wait <= 0) return;
     const timer = window.setTimeout(() => setWait((n) => n - 1), 1000);
@@ -97,7 +103,7 @@ export function CodeSignInForm({ mode, t, next }: { mode: Mode; t: Dictionary; n
               label={t.publicDoors.emailCode.emailLabel}
               placeholder={t.auth.emailPlaceholder}
               autoComplete="email"
-              error={sent.error === "badTarget" ? t.publicDoors.emailCode.badEmail : undefined}
+              error={state.error === "badTarget" ? t.publicDoors.emailCode.badEmail : undefined}
             />
           ) : (
             <Field
@@ -109,10 +115,10 @@ export function CodeSignInForm({ mode, t, next }: { mode: Mode; t: Dictionary; n
               label={`${t.publicDoors.phone.phoneLabel} (${t.publicDoors.phone.prefix})`}
               placeholder={t.publicDoors.phone.placeholder}
               autoComplete="tel-national"
-              error={sent.error === "badTarget" ? t.publicDoors.phone.badPhone : undefined}
+              error={state.error === "badTarget" ? t.publicDoors.phone.badPhone : undefined}
             />
           )}
-          {message && sent.error !== "badTarget" && (
+          {message && state.error !== "badTarget" && (
             <p role="alert" className="nf-auth__notice">
               {message}
             </p>
@@ -134,12 +140,12 @@ export function CodeSignInForm({ mode, t, next }: { mode: Mode; t: Dictionary; n
             length={SIGN_IN_CODE_LENGTH}
             value={code}
             onChange={onDigits}
-            error={checked.error === "badCode" ? copy.badCode : checked.error === "wrongCode" ? copy.wrongCode : undefined}
+            error={state.error === "badCode" ? copy.badCode : state.error === "wrongCode" ? copy.wrongCode : undefined}
             wrongCount={wrongCount}
             placeholder="123456"
             cellsLabel={t.authFlow.codeCells.replace("{count}", codeLengthWord(SIGN_IN_CODE_LENGTH))}
           />
-          {checked.error && checked.error !== "badCode" && checked.error !== "wrongCode" && message && (
+          {state.error && state.error !== "badCode" && state.error !== "wrongCode" && message && (
             <p role="alert" className="nf-auth__notice">
               {message}
             </p>
