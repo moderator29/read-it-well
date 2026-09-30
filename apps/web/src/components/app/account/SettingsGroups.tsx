@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition, type ReactNode } from "react";
+import { useState, useTransition, type ReactNode } from "react";
 import { setLite } from "@/lib/ui/lite";
 import { useRouter } from "next/navigation";
 import { LOCALES, localeMeta, type Dictionary, type Locale } from "@vallo/i18n/core";
@@ -9,8 +9,7 @@ import { NIGERIAN_STATES } from "@/lib/data/nigeria";
 import { RowButton, RowSelect, RowSwitch, RowValue, SettingsGroup } from "./rows";
 import { useClientMount } from "@/lib/ui/client-mount";
 import {
-  applyTextSize,
-  applyContrast,
+  useApplyDeviceSettings,
   useNfSettings,
   type TextSize,
 } from "./settings-store";
@@ -78,12 +77,9 @@ export function AppearanceCard({ t, children }: { t: Dictionary; children?: Reac
      effect: it is this component updating an external system, which is the case
      the rule says an effect is for. */
 
-  useEffect(() => {
-    applyTextSize(settings.textSize);
-  }, [settings.textSize]);
-  useEffect(() => {
-    applyContrast(settings.increaseContrast);
-  }, [settings.increaseContrast]);
+  /* Follows the two root settings here too, for the preview harness that
+     draws this card outside the member layout's ContrastSync. */
+  useApplyDeviceSettings();
   const contrastCopy = t.memberKit?.contrast;
 
   /* MOTION MOVED OUT OF THIS CARD (Track M). The "Reduce motion" switch that

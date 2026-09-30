@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useSyncExternalStore } from "react";
 
 /**
  * Device settings store.
@@ -199,6 +199,27 @@ export function useNfSettings() {
 /* --------------------------------------------------- document side effects */
 
 /**
+ * Keeps the root in step with the stored Text size and Increase contrast.
+ *
+ * The FIRST frame is not this hook's job: `THEME_BOOT_SCRIPT`
+ * (lib/theme/theme.ts) applies both from storage before paint. This hook
+ * follows later changes (the Settings controls, another tab). It skips the
+ * hydration pass, whose snapshot is the server's defaults object, because
+ * applying the defaults there would undo the boot script for one frame and
+ * the page would visibly reflow twice.
+ */
+export function useApplyDeviceSettings(): void {
+  const { settings } = useNfSettings();
+  const hydrating = settings === SETTINGS_DEFAULTS;
+  useEffect(() => {
+    if (!hydrating) applyTextSize(settings.textSize);
+  }, [hydrating, settings.textSize]);
+  useEffect(() => {
+    if (!hydrating) applyContrast(settings.increaseContrast);
+  }, [hydrating, settings.increaseContrast]);
+}
+
+/**
  * Text size scales the root font size, so every rem-based measure in the app
  * follows: S reads denser, L reads larger, M is the designed default.
  */
@@ -209,7 +230,8 @@ export function applyContrast(on: boolean): void {
 }
 
 export function applyTextSize(size: TextSize): void {
-  document.documentElement.dataset.textSize = size;
+  if (size === "m") delete document.documentElement.dataset.textSize;
+  else document.documentElement.dataset.textSize = size;
   const scale = size === "s" ? "93.75%" : size === "l" ? "106.25%" : "";
   document.documentElement.style.fontSize = scale;
 }

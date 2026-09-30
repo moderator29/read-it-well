@@ -58,3 +58,47 @@ describe("theme default", () => {
     expect(resolveTheme("dark", true)).toBe("dark");
   });
 });
+
+/**
+ * Text size and Increase contrast apply before paint from `nf_settings`, so a
+ * person who chose Large never sees the medium page reflow after hydration.
+ */
+function bootSettings(settings: string | null) {
+  const dataset: Record<string, string> = {};
+  const style: Record<string, string> = {};
+  const document = {
+    documentElement: { dataset, style },
+    cookie: "",
+    querySelector: () => null,
+  };
+  const localStorage = { getItem: (key: string) => (key === "nf_settings" ? settings : null) };
+  const window = { matchMedia: () => ({ matches: false }) };
+  new Function("document", "localStorage", "matchMedia", "window", THEME_BOOT_SCRIPT)(
+    document,
+    localStorage,
+    window.matchMedia,
+    window,
+  );
+  return { dataset, style };
+}
+
+describe("device settings before paint", () => {
+  it("applies Large and Small to the root font size", () => {
+    expect(bootSettings(JSON.stringify({ textSize: "l" }))).toMatchObject({ dataset: { textSize: "l" }, style: { fontSize: "106.25%" } });
+    expect(bootSettings(JSON.stringify({ textSize: "s" }))).toMatchObject({ dataset: { textSize: "s" }, style: { fontSize: "93.75%" } });
+  });
+
+  it("leaves Medium, nothing stored and a malformed document alone", () => {
+    for (const raw of [JSON.stringify({ textSize: "m" }), null, "{not json", JSON.stringify({ textSize: "xl" })]) {
+      const { dataset, style } = bootSettings(raw);
+      expect(dataset.textSize).toBeUndefined();
+      expect(style.fontSize).toBeUndefined();
+      expect(dataset.theme).toBe("dark");
+    }
+  });
+
+  it("marks Increase contrast only when it is on", () => {
+    expect(bootSettings(JSON.stringify({ increaseContrast: true })).dataset.contrast).toBe("more");
+    expect(bootSettings(JSON.stringify({ increaseContrast: false })).dataset.contrast).toBeUndefined();
+  });
+});

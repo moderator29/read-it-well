@@ -52,4 +52,13 @@ export const THEME_BOOT_SCRIPT =
   "var l=c==='light'||(c==='system'&&window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches);" +
   "d.dataset.theme=l?'light':'dark';d.dataset.themeChoice=c;" +
   `var t=document.querySelector('meta[name=theme-color]');if(t)t.setAttribute('content',l?'${CHROME_COLOUR_LIGHT}':'${CHROME_COLOUR}')` +
+  "}catch(e){}" +
+  /* The device settings that change the first frame, from `nf_settings`
+     (components/app/account/settings-store.ts): Text size scales the root
+     font size and Increase contrast marks the root. Applied here, before
+     paint, so neither waits for Settings to be opened and nothing reflows
+     after hydration. The values mirror `applyTextSize` and `applyContrast`. */
+  "try{var s=JSON.parse(localStorage.getItem('nf_settings')||'{}'),e=document.documentElement;" +
+  "if(s&&(s.textSize==='s'||s.textSize==='l')){e.dataset.textSize=s.textSize;e.style.fontSize=s.textSize==='s'?'93.75%':'106.25%'}" +
+  "if(s&&s.increaseContrast===true)e.dataset.contrast='more'" +
   "}catch(e){}";
