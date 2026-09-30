@@ -68,6 +68,13 @@ export function StorySequence({
     },
     [router],
   );
+  /* Past the last story the run is over: Next (a tap, the arrow key or the
+     timer running out) closes the viewer, as every story reader does,
+     instead of leaving a full bar and a dead tap zone. */
+  const forward = useCallback(() => {
+    if (seq.next) go(seq.next);
+    else back();
+  }, [back, go, seq.next]);
 
   /* The next story, ready before it is asked for, unless data is precious. */
   const [warm, setWarm] = useState(false);
@@ -83,12 +90,12 @@ export function StorySequence({
       if (hold) return;
       const target = event.target as HTMLElement | null;
       if (target?.closest("input, textarea, select, [contenteditable='true'], [role='dialog']")) return;
-      if (event.key === "ArrowRight") go(seq.next);
+      if (event.key === "ArrowRight") forward();
       else if (event.key === "ArrowLeft") go(seq.prev);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [go, hold, seq.next, seq.prev]);
+  }, [forward, go, hold, seq.prev]);
 
   const paused = hold || held;
 
@@ -109,7 +116,7 @@ export function StorySequence({
       back();
     }
   }
-  function onUp(to: StoryRef | null) {
+  function onUp(step: () => void) {
     const p = press.current;
     press.current = null;
     if (p) window.clearTimeout(p.timer);
@@ -117,7 +124,7 @@ export function StorySequence({
       setHeld(false);
       return;
     }
-    go(to);
+    step();
   }
   function onCancel() {
     const p = press.current;
@@ -140,7 +147,7 @@ export function StorySequence({
                   ? { animationDuration: `${STORY_SECONDS}s`, animationPlayState: paused ? "paused" : "running" }
                   : undefined
               }
-              onAnimationEnd={i === seq.index && auto ? () => go(seq.next) : undefined}
+              onAnimationEnd={i === seq.index && auto ? forward : undefined}
             />
           </span>
         ))}
@@ -152,10 +159,10 @@ export function StorySequence({
         type="button"
         className="nf-story-seq__zone nf-story-seq__zone--prev"
         aria-label="Previous story"
-        disabled={!seq.prev}
+        aria-disabled={!seq.prev || undefined}
         onPointerDown={onDown}
         onPointerMove={onMove}
-        onPointerUp={() => onUp(seq.prev)}
+        onPointerUp={() => onUp(() => go(seq.prev))}
         onPointerCancel={onCancel}
         onPointerLeave={onCancel}
         onKeyDown={(e) => {
@@ -169,17 +176,16 @@ export function StorySequence({
       <button
         type="button"
         className="nf-story-seq__zone nf-story-seq__zone--next"
-        aria-label="Next story"
-        disabled={!seq.next}
+        aria-label={seq.next ? "Next story" : "Close stories"}
         onPointerDown={onDown}
         onPointerMove={onMove}
-        onPointerUp={() => onUp(seq.next)}
+        onPointerUp={() => onUp(forward)}
         onPointerCancel={onCancel}
         onPointerLeave={onCancel}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
-            go(seq.next);
+            forward();
           }
         }}
         data-testid="story-next"
