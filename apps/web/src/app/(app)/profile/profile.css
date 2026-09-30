@@ -296,7 +296,7 @@
      subtitle role under the floor, so 11. The mist blue. */
   .nf-pf-handle {
     margin: 0.0625rem 0 0;
-    font-size: 0.6875rem;
+    font-size: var(--nf-text-overline);
     line-height: 1.35;
     color: var(--nf-pf-mist);
   }
@@ -304,7 +304,7 @@
      so 11. A longer bio wraps rather than being cut: it is the person's own. */
   .nf-pf-bio {
     margin: 0.25rem 0 0;
-    font-size: 0.6875rem;
+    font-size: var(--nf-text-overline);
     line-height: 1.4;
     color: var(--nf-pf-mist);
   }
@@ -341,13 +341,13 @@
     outline-offset: 2px;
   }
   .nf-pf-count__value {
-    font-size: 0.7125rem;
+    font-size: var(--nf-text-overline);
     font-weight: 600;
     line-height: 1.2;
     color: var(--nf-content-primary);
   }
   .nf-pf-count__label {
-    font-size: 0.6875rem;
+    font-size: var(--nf-text-overline);
     line-height: 1.3;
     color: var(--nf-pf-mist);
   }

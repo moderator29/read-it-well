@@ -514,7 +514,7 @@
   }
   .nf-side-switch__over {
     display: block;
-    font-size: 0.6875rem;
+    font-size: var(--nf-text-overline);
     font-weight: 700;
     letter-spacing: 0.12em;
     text-transform: uppercase;

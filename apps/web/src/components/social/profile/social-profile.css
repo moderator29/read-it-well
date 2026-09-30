@@ -70,7 +70,7 @@
   /* The three labels are labels: the R-A floor of 11px, not 10 (audit S6).
      The tracking comes in a little so the band keeps its two-line rhythm. */
   .nf-social-trust.nf-panel .nf-social-trust__cell dt {
-    font-size: 0.6875rem;
+    font-size: var(--nf-text-overline);
     letter-spacing: 0.06em;
   }
 

@@ -652,7 +652,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-size: 0.6875rem;
+    font-size: var(--nf-text-overline);
     font-weight: 700;
     letter-spacing: 0.1em;
     color: var(--nf-brand-secondary);

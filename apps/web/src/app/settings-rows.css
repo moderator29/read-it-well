@@ -56,7 +56,7 @@
        caps, tracked 0.06em, muted, 8px above its card. */
     padding-block: var(--nf-space-0) 0.5rem;
     padding-inline: var(--nf-space-2xs);
-    font-size: 0.6875rem;
+    font-size: var(--nf-text-label);
     line-height: 0.875rem;
     font-weight: 600;
     text-transform: uppercase;

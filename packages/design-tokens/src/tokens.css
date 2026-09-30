@@ -2876,7 +2876,10 @@
    * heading without touching a file this workstream does not own, which is the
    * argument for a token over a literal restated in one line.
    */
-  --nf-tracking-overline: 0.1em;
+  /* Pixel polish (30 September): every caps label on the platform tracks
+     alike, so the overline reads the section label's 0.06em. Two trackings
+     on two 12px caps labels read as a mistake, not a hierarchy. */
+  --nf-tracking-overline: 0.06em;
 
   /*
    * THE CLEAN UNIFIED TYPE ROLES (docs/design/CLEAN_UNIFIED_DIRECTION.md
@@ -2889,8 +2892,10 @@
   --nf-leading-title-lg: 2.25rem;
   --nf-text-row: 0.9375rem;
   --nf-leading-row: 1.25rem;
-  --nf-text-label: 0.6875rem;
-  --nf-leading-label: 0.875rem;
+  /* 12px, not the spec's 11: no text under 12px outside legal (pixel
+     polish, 30 September). The caps and the tracking keep it a label. */
+  --nf-text-label: 0.75rem;
+  --nf-leading-label: 1rem;
   --nf-tracking-label: 0.06em;
   --nf-text-figure: 2.5rem;
   --nf-leading-figure: 2.75rem;
