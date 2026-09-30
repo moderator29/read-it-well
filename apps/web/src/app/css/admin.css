@@ -2005,6 +2005,12 @@
     .nf-chart__xaxis--bars > span:last-child:nth-child(even) {
       visibility: visible;
     }
+    /* With an even count the last label is an even child and stays, so the
+       odd one just before it would print against it ("AugSept" at 390).
+       It stands down instead (pixel polish). */
+    .nf-chart__xaxis > span:nth-last-child(2):nth-child(odd):not(:first-child) {
+      visibility: hidden;
+    }
   }
   .nf-chart__frame {
     display: flex;
