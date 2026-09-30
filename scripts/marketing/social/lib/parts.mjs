@@ -8,6 +8,8 @@ import { screenToPost } from "./phones.mjs";
 export const PARTS = {
   /* property */
   "move-in-card": { id: "listing", x: 36, y: 1480, w: 1248, h: 625 },
+  /* the move-in card's inside, without the capture's own border (for flat components) */
+  "move-in-inner": { id: "listing", x: 106, y: 1478, w: 1108, h: 634 },
   "for-rent-chip": { id: "listing", x: 44, y: 752, w: 290, h: 92 },
   "cost-rent": { id: "listing-cost", x: 30, y: 648, w: 1260, h: 352 },
   "cost-agency": { id: "listing-cost", x: 30, y: 985, w: 1260, h: 280 },

@@ -1,4 +1,4 @@
-# The Vallo launch films: brief and storyboard (v3)
+# The Vallo launch films: brief and storyboard (v3.1)
 
 v3 answers the second critique (`scratchpad/critic/storyboard-round2.md`) and brings in what the founder's reference film does well (`REFERENCES.md`), in Vallo's own form:
 - chapter pills;
@@ -9,6 +9,83 @@ v3 answers the second critique (`scratchpad/critic/storyboard-round2.md`) and br
 - one night contrast beat.
 
 It follows the founder's ruling on 3D icons: in the films they appear only as parts of real platform components, and small.
+
+## v3.1 amendments (the third critique and the founder's "make it all clean"; these override the rows below)
+
+**Clean first.** The founder's latest ask for everything is "clean, sharp, beautiful, premium, like a very big design team". Fewer moves, more air:
+- Sparkles only at the logo (row 40) and the end card; none in the chapters.
+- Rings only in rows 04, 19 and 23.
+- At most one lifted body and one card beside the phone at a time.
+- Whooshes only at a ground change (8.65, 79.62) or a chapter opener; none inside a chapter.
+
+**Grounds** (`chapters.js` GROUND)
+| Time | Ground | Rows |
+|---|---|---|
+| 0–8.65 | Night | 01–04 |
+| 8.65–79.62 | Light | 05–34; rows 19–24 wear the warm wash, still light |
+| 79.62–95.77 | Night: the contrast beat and the finale | 35–40 |
+| 95.77–end | White end card | 41–42 |
+
+- Row 23 is a warm dusk on the light ground: a peach-to-amber gradient, no navy, no bokeh. Row 24 uses `restaurant-light`.
+- Rows 32–34 use `assistant-caution-2-lt`.
+- In row 34 the phone leaves by 78.9, the ground falls to night, and the cut to the wall lands on the beat at 79.62 (not 79.4).
+
+**Mobile boxes** (`layout.js`)
+- The phone sits under the pill: PHONE_HERO is cx 540, cy 860, h 1080; PHONE_HIGH is cy 790, h 960.
+- The pill is at y 290–360, on the phone's top bezel, so it covers the status bar and never a screen's heading.
+- Opening big words land in WORDS (y 520–1040), before the phone rises or over a dimmed phone, never over a live screen.
+- Lifted bodies go in BODY_LEFT or BODY_RIGHT. They overlap the phone's edge by 60 px at most and never cover screen text.
+- Every screen y stated in the rows is superseded: compute it through the phone's real quad.
+- CARD_SLOT and RECEIPT sit inside x 44–940.
+- Captions are capped at x 140–940 and hidden while the same words are big (rows 14, 25, 31 and any like them).
+
+**Captures**
+- **The Maitama villa on light:** `listing-lt` / `d-listing-lt` for the listing, `listing-cost-light` for its cost section. `listing-light` / `d-listing-light` are the Karsana terrace for sale.
+- **Filters:** `filters-lt` has been recaptured (the old one was an error page).
+- **Dates:** `stays-dates` / `-lt` / `d-` are now signed in, reading 16/10/2026 and 19/10/2026. "69 stays" may show as captured, but is never lifted.
+- **The assistant on light:** `assistant-caution-2-lt` / `d-assistant-caution-2-lt` (quoted in FACTS).
+- **Welcome:** the welcome screens keep one theme, so every `welcome-*-lt` is dark. Never put them on a light ground.
+- **The lock:** `lock` / `lock-lt` / `d-lock` / `d-lock-lt` show the real passcode lock, as a member meets it before money moves.
+
+**Rows**
+- **05:** the screen swaps on each word. No tile lighting here; row 20 owns it.
+- **06:** no welcome screen, because it is dark. "One app." and "One account." land in WORDS. Then the phone shows a light screen with one real component that says two worlds, one account, for example the Property | Stays tabs of `messages-lt`, lifted as the one body.
+- **07:** "Looking for" / "a **home**?" on two lines, no wider than 896 px at the real Poppins width, in WORDS before the phone rises.
+- **09–10:** Apply opens the Maitama villa (`listing-lt`), then `listing-cost-light`. The on-screen total stays unreadable (below the fold or cropped) until the receipt lands it at 28.87.
+- **13:** the odometer never shows a readable amount but ₦26,100,000. Each digit column spins with motion blur and stops, left to right.
+- **14–18:** the pill reads "Talk straight to the **lister**". "Lister" is the product's own word ("ask the lister directly"), and the screens say "Message agent". Owner, landlord and agent stay the big words, as spoken.
+- **16:** the card that flies is the Maitama villa, the one `listing-share-lt` shares. It never lands above a message already sent: end the beat on the press, with the sheet closing and the phone sliding right.
+- **18–19, Signature 2:** it presses the product's real switch: `drawer-light`'s FLIP "Switch to Stays" on mobile, and the sidebar FLIP on desktop.
+  - On desktop, frame the FLIP above y 1000 by raising the window or pushing in.
+  - Row 18 ends on the inbox, and the drawer slides open at about 40.6.
+  - The ring circles the words only.
+- **21–22 become one row,** 45.58–49.04:
+  - The phone is at h 760 (cx 540, cy 820), showing the date fields of `stays-dates-lt`.
+  - The results sit as cards in the body boxes: the dates chip, "3 nights", "2 guests", and Lagoon Crest "₦150,000 per night".
+  - "Room booked · Lagoon Crest Resort · 3 nights" (Example) stays readable for at least 1.5 s.
+- **23:** a warm dusk (see Grounds). This is the third and last ring.
+- **24:** `restaurant-light`. The table card flies off. It never becomes a role chip.
+- **25:** the four role chips land fresh, not from the restaurant card.
+- **27 and 31:** card 2's back is the same everywhere: the verified mark and "Checked by a real person at Vallo." In row 31 all three cards show their answer faces.
+- **28:** the real lock (`lock-lt`) fills its dots on "pay". Not the passcode set-up.
+- **31:**
+  - Card 3 swings in at 70.5 and turns at 70.9.
+  - Cards 1 and 2 return between 71.0 and 71.3.
+  - The full row holds from 71.3 to 72.4, then flies off from 72.4 to 72.69.
+- **33–34:** no robot outside a component. The assistant's robot shows only where the screen shows it. "Prices", "Areas" and "How renting works" may land as plain type.
+- **35:** the pill wall uses the product's own pill styling (radius, border and type as captured), in Vallo navy and electric.
+- **36:** align the four welcome captures so their headlines share one y; the Igbo capture sits about 75 px higher. The in-place cuts must not jump.
+- **37:** `host-start` on night.
+  - The rows' 3D icons stay inside their rows, and nothing falls to the map.
+  - "I am an agent" is never lit or lifted.
+  - A cut on the beat goes to the map, whose own home rises.
+- **38–39:**
+  - Use `map3d.js`. Pass `land: 0.5` so the landing meets the impact at 88.77.
+  - Cue the pops from `map.timing`.
+  - Dim the canvas from 3.7 to 4.04 before the mark.
+- **40:** no ring. The squiggle under "done right" stays.
+- **Desktop D10–D12:** never lift the "Paid to / Kept by … Vallo Examples" column. Lift only line names and amounts.
+- **Desktop scale:** a hero window is always at 1.111. A side window is the same smaller scale in D14, D16 and D26.
 
 ## Brief
 

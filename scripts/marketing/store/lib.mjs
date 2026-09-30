@@ -20,7 +20,6 @@ export const SCREENS = process.env.STORE_SCREENS || join(REPO, "docs", "marketin
 export const SOURCE = join(REPO, "docs", "marketing", "source");
 export const OUT = join(REPO, "docs", "store", "screenshots");
 const MODULES = join(MARKETING, "node_modules");
-const STICKERS = join(MODULES, "@lobehub", "fluent-emoji-3d", "assets");
 const ICONS = join(MODULES, "lucide-static", "icons");
 
 export const url = (p) => pathToFileURL(p).href;
@@ -73,10 +72,6 @@ export function fontCss() {
 
 /* ------------------------------------------------------------- art */
 
-/** A Fluent 3D emoji sticker by codepoint (DESIGN.md lists the useful ones). */
-export const stickerUrl = (code) => url(join(STICKERS, `${code}.webp`));
-export const photoUrl = (name) => url(join(BRAND, "photos", name));
-export const artUrl = (name) => url(join(BRAND, "onboarding", name));
 export const brandUrl = (name) => url(join(BRAND, name));
 
 /** A Lucide line icon, inline, in the colour and stroke asked for. */

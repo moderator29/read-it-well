@@ -2,22 +2,27 @@
  * Draws the store images.
  *
  *   node scripts/marketing/store/compose.mjs [--store app-store|google-play] [--only 1,2,3]
- *        [--res 2] [--proof DIR] [--feature]
+ *        [--res 2] [--proof DIR] [--feature | --feature-only] [--verbose]
  *
  * For every shot in shots.mjs and each store, the shot's layout is laid out
- * as HTML (templates in components.mjs and grounds.mjs, handsets from the 3D
- * studio through phones.mjs), rendered by Chromium at `res` times the store's
- * pixel size, brought down to the exact size with a Lanczos filter and written
- * as an RGB PNG with no alpha channel:
+ * as HTML (shots/premium.mjs, with parts from components.mjs), its phones
+ * drawn by the 3D studio through phones.mjs, rendered by Chromium at `res`
+ * times the store's pixel size, brought down to the exact size with a
+ * Lanczos filter and written as an RGB PNG with no alpha channel:
  *
  *   docs/store/screenshots/app-store/<NN>-<slug>.png     1320 x 2868
  *   docs/store/screenshots/google-play/<NN>-<slug>.png   1440 x 2560 (under 8 MB)
  *
- * Shots that connect across the seam (`pairWith`) are drawn as one page twice
- * as wide and cut in two, so the ribbon, photograph or card that crosses the
- * seam meets itself exactly. --feature also draws Play's 1024 x 500 feature
- * graphic. --proof writes quick JPEGs to DIR instead of the store folders.
+ * A connected pair (`pairWith`) is drawn as one page twice as wide and cut
+ * in two: its ground runs under both images and its one phone (`shared`)
+ * crosses the seam. --feature also draws Play's 1024 x 500 feature graphic.
+ * --proof writes quick JPEGs to DIR instead of the store folders, and
  * `STORE_SCREENS=dir` reads the displays from another folder.
+ *
+ * Every image is checked as it is drawn: each phone stays clear of the
+ * image's edge (a pair's shared phone is exempt at its seam only), every
+ * word and card sits at least 40 px inside the image, and every headline
+ * line has at least 4.5:1 contrast against what lies behind it.
  */
 import { chromium } from "playwright-core";
 import sharp from "sharp";
@@ -286,6 +291,11 @@ for (const store of STORE_LIST) {
       const buf = await renderHtml(html, pageW, S.H);
       for (const v of await edgeCheck(40 * (S.W / 1320))) {
         problems.push(`${store} ${shotName(halves[v.half])}: ${v.label.replace(/\s+/g, " ")} is ${v.d}px from the edge`);
+      }
+      /* One type size across the set: a headline the page had to shrink to
+         fit its measure is a headline that is too long. */
+      for (const v of await tab.evaluate(() => [...document.querySelectorAll(".hl")].filter((el) => el.dataset.fit && +el.dataset.fit !== +el.dataset.size).map((el) => ({ text: el.textContent.trim().slice(0, 40), fit: el.dataset.fit, size: el.dataset.size })))) {
+        problems.push(`${store} ${halves.map(shotName).join("+")}: headline "${v.text}" shrunk from ${v.size} to ${v.fit} px to fit`);
       }
       for (const v of await contrastCheck(4.5)) {
         problems.push(`${store} ${shotName(halves[Math.max(0, v.half)])}: "${v.text}" contrast ${v.ratio.toFixed(2)}:1`);

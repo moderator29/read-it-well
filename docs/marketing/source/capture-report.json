@@ -76,6 +76,13 @@
     "theme": "dark",
     "signedIn": true
   },
+  "assistant-caution-2-lt": {
+    "url": "/assistant",
+    "at": "2026-09-30T17:50:36.747Z",
+    "kind": "mobile",
+    "theme": "light",
+    "signedIn": true
+  },
   "assistant-lt": {
     "url": "/assistant",
     "at": "2026-09-30T17:10:35.203Z",
@@ -137,6 +144,13 @@
     "at": "2026-09-30T16:51:42.616Z",
     "kind": "desktop",
     "theme": "dark",
+    "signedIn": true
+  },
+  "d-assistant-caution-2-lt": {
+    "url": "/assistant",
+    "at": "2026-09-30T17:50:46.565Z",
+    "kind": "desktop",
+    "theme": "light",
     "signedIn": true
   },
   "d-assistant-lt": {
@@ -272,6 +286,13 @@
     "theme": "light",
     "signedIn": true
   },
+  "d-listing-lt": {
+    "url": "/listing/ed000000-0000-4000-8000-00000000003e",
+    "at": "2026-09-30T17:51:31.372Z",
+    "kind": "desktop",
+    "theme": "light",
+    "signedIn": true
+  },
   "d-listing-share": {
     "url": "/listing/ed000000-0000-4000-8000-00000000003e",
     "at": "2026-09-30T15:24:25.570Z",
@@ -377,6 +398,13 @@
     "theme": "dark",
     "signedIn": true
   },
+  "d-search-full-lt": {
+    "url": "/search?market=rent",
+    "at": "2026-09-30T17:51:21.429Z",
+    "kind": "desktop",
+    "theme": "light",
+    "signedIn": true
+  },
   "d-search-lt": {
     "url": "/search?market=rent",
     "at": "2026-09-30T17:11:17.590Z",
@@ -421,7 +449,7 @@
   },
   "d-stays-dates": {
     "url": "/stays/search?in=2026-10-16&out=2026-10-19&guests=2",
-    "at": "2026-09-30T15:25:19.838Z",
+    "at": "2026-09-30T17:50:00.846Z",
     "kind": "desktop",
     "theme": "dark",
     "signedIn": true
@@ -442,7 +470,7 @@
   },
   "d-stays-dates-lt": {
     "url": "/stays/search?in=2026-10-16&out=2026-10-19&guests=2",
-    "at": "2026-09-30T17:09:22.642Z",
+    "at": "2026-09-30T17:50:12.125Z",
     "kind": "desktop",
     "theme": "light",
     "signedIn": true
@@ -588,7 +616,7 @@
   },
   "filters-lt": {
     "url": "/search?filters=open",
-    "at": "2026-09-30T17:07:50.633Z",
+    "at": "2026-09-30T17:50:00.875Z",
     "kind": "mobile",
     "theme": "light",
     "signedIn": true
@@ -908,6 +936,13 @@
     "theme": "light",
     "signedIn": true
   },
+  "search-lt": {
+    "url": "/search?market=rent",
+    "at": "2026-09-30T17:51:08.515Z",
+    "kind": "mobile",
+    "theme": "light",
+    "signedIn": true
+  },
   "search-villas": {
     "url": "/search?filters=open",
     "at": "2026-09-30T16:05:00.799Z",
@@ -966,7 +1001,7 @@
   },
   "stays-dates": {
     "url": "/stays/search?in=2026-10-16&out=2026-10-19&guests=2",
-    "at": "2026-09-30T15:27:34.171Z",
+    "at": "2026-09-30T17:49:48.788Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
@@ -987,7 +1022,7 @@
   },
   "stays-dates-lt": {
     "url": "/stays/search?in=2026-10-16&out=2026-10-19&guests=2",
-    "at": "2026-09-30T17:08:36.947Z",
+    "at": "2026-09-30T17:50:09.698Z",
     "kind": "mobile",
     "theme": "light",
     "signedIn": true

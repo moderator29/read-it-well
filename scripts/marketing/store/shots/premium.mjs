@@ -157,14 +157,14 @@ export const SHOTS = [
     { id: "restaurant", rotation: { x: -16, y: 16, z: 17 }, fov: 26, cy: 0.52, h: 1.06 },
   ),
 
-  std(15, "hear-whats-happening-around-you", "around", "megaphone", ["Hear what's happening", "around you"]),
+  std(15, "whats-happening-around-you", "around", "megaphone", ["What's happening", "around you"]),
   std(16, "know-the-moment-anything-changes", "notifications", "bell", ["Know the moment", "anything changes"]),
   std(17, "ask-the-ai-assistant", "assistant-caution-2", "sparkles", ["Ask the AI assistant,", "any time of day"]),
   std(18, "save-favourites-compare-later", "saved", "heart", ["Save favourites,", "compare later"]),
   std(19, "everything-one-tap-away", "drawer", "layout-grid", ["Everything,", "one tap away"]),
   std(20, "vallo-never-holds-your-money", "payments", "landmark", ["Vallo never holds", "your money"]),
-  std(21, "your-cards-and-banks", "payment-methods", "credit-card", ["Your cards and banks,", "in one place"]),
-  std(22, "the-verified-mark", "verification", "badge-check", ["The verified mark means", "a real person checked"]),
+  std(21, "cards-and-banks-in-one-place", "payment-methods", "credit-card", ["Cards and banks,", "in one place"]),
+  std(22, "a-real-person-checks-every-verified-mark", "verification", "badge-check", ["A real person checks", "every verified mark"]),
   std(23, "lock-vallo-with-a-passcode", "passcode-create", "lock-keyhole", ["Lock Vallo", "with a passcode"]),
   std(24, "help-from-a-real-person", "support", "headset", ["Help from", "a real person"]),
   std(25, "see-what-places-nearby-are-asking", "price", "map-pin", ["See what places", "nearby are asking"]),
@@ -210,7 +210,7 @@ export const SHOTS = [
       return [
         fill(GROUND),
         `<img class="abs" src="${brandUrl("vallo-icon.png")}" style="left:${px(W / 2 - s / 2)};top:${px(m.iconTop + m.iconSize - s)};width:${px(s)};height:${px(s)};border-radius:22.4%;z-index:40;box-shadow:0 0 0 1px rgb(255 255 255 / 0.14)">`,
-        head(ctx, m, ["Vallo.", "Real estate, done right."], { sub: "Coming soon on iPhone and Android." }),
+        head(ctx, m, ["Vallo. Real estate,", "done right."], { sub: "Coming soon on iPhone and Android." }),
         p.html,
       ].join("\n");
     },

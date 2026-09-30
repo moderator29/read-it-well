@@ -160,6 +160,62 @@ export function wordChip(ctx, parent, { parts, size = 124, x, y, anchor = "left"
   return { root, chip };
 }
 
+/*
+ * The pointer's press and the tap ripple. The engine's press()/tap()/click()
+ * build their rings with fromTo from a visible state, so every future ring
+ * shows as a small circle from frame 0 until its press. These draw the rings
+ * from the time alone (a frame hook), so nothing shows before the press.
+ */
+function ringHook(ctx, node, t0, dur, s0, s1, o0) {
+  const e = ctx.ease("power2.out");
+  ctx.onFrame((t) => {
+    const k = (t - t0) / dur;
+    if (k < 0 || k >= 1) {
+      if (node.style.visibility !== "hidden") node.style.visibility = "hidden";
+      return;
+    }
+    const p = e(k);
+    node.style.visibility = "visible";
+    node.style.transform = `scale(${(s0 + (s1 - s0) * p).toFixed(4)})`;
+    node.style.opacity = String(o0 * (1 - p));
+  });
+}
+
+/** The glossy pointer's press at t: it dips, and a ring opens where it is (stage px). */
+export function pressAt(ctx, pointer, t, { parent, x, y, color = "rgb(0 105 254 / 0.8)" }) {
+  ctx.tl.to(pointer, { scaleY: 0.8, scaleX: 1.1, duration: 0.09, ease: "power2.out" }, t - 0.06);
+  ctx.tl.to(pointer, { scaleY: 1, scaleX: 1, duration: 0.32, ease: "back.out(2.2)" }, t + 0.05);
+  const r = ctx.el("div", { class: "abs", style: { left: `${x - 50}px`, top: `${y - 50}px`, width: "100px", height: "100px", borderRadius: "50%", border: `3px solid ${color}`, visibility: "hidden", zIndex: "840" } }, parent);
+  ringHook(ctx, r, t, 0.55, 0.25, 1.25, 1);
+  return r;
+}
+
+/** A tap ripple under the glass (display px, inside the phone's screen). */
+export function rippleAt(ctx, parent, { x, y, t, size = 260 }) {
+  const r = ctx.el("div", {
+    class: "abs",
+    style: {
+      left: `${x - size / 2}px`, top: `${y - size / 2}px`, width: `${size}px`, height: `${size}px`, borderRadius: "50%", visibility: "hidden", zIndex: "50",
+      background: "radial-gradient(closest-side, rgb(0 105 254 / 0.22), rgb(0 105 254 / 0.08) 70%, transparent)", border: "4px solid rgb(0 105 254 / 0.35)",
+    },
+  }, parent);
+  ringHook(ctx, r, t, 0.55, 0.25, 1, 1);
+  return r;
+}
+
+/* ---------- signature 1: the receipt's lines (FACTS.md, the Maitama villa) ---------- */
+
+export const LINES = [
+  { label: "Rent · a year", amount: 18000000 },
+  { label: "Agency fee", amount: 1800000, note: "10.0% of a year's rent" },
+  { label: "Legal fee", amount: 1800000, note: "10.0% of a year's rent" },
+  { label: "Agreement fee", amount: 900000, note: "5.0% of a year's rent" },
+  { label: "Caution deposit", amount: 3600000, note: "(refundable)" },
+  { label: "Service charge: not declared", amount: null },
+];
+export const TOTAL = 26100000;
+export const naira = (n) => `₦${n.toLocaleString("en-NG")}`;
+
 /** Nigeria's outline as an SVG path in a box (world-atlas 50m, id 566), and a projector for cities. */
 export async function nigeriaOutline({ x, y, w }) {
   const { feature } = await import("/node_modules/topojson-client/src/index.js");

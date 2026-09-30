@@ -170,8 +170,25 @@ for (const cap of CAPTURES) {
     if (error) throw error;
     if (signedOut) throw new Error("signed out");
     if (locked) throw new Error("passcode lock");
+    /* A capture must be the page it names: no error page, nothing blank,
+       and a light twin that really is light (some pages keep one theme). */
+    const bad = await page.evaluate(() => {
+      const text = document.body?.innerText ?? "";
+      return ["upstream request failed", "Application error", "Something went wrong", "This page could not be found"].find((t) => text.includes(t)) ?? null;
+    });
+    if (bad) throw new Error(`the page shows "${bad}"`);
     const shot = await page.screenshot({ type: "png" });
-    await sharp(shot).webp({ quality: 95, effort: 6 }).toFile(file);
+    const webp = await sharp(shot).webp({ quality: 95, effort: 6 }).toBuffer();
+    if (webp.length < 50_000) throw new Error(`only ${Math.round(webp.length / 1000)} KB: a blank or broken page`);
+    if (cap.id.endsWith("-lt")) {
+      const darkFile = join(OUT, `${cap.id.slice(0, -3)}.webp`);
+      if (existsSync(darkFile)) {
+        const [a, b] = await Promise.all([webp, readFileSync(darkFile)].map((buf) => sharp(buf).resize(64, 64, { fit: "fill" }).greyscale().raw().toBuffer()));
+        const mean = (buf) => buf.reduce((sum, v) => sum + v, 0) / buf.length;
+        if (Math.abs(mean(a) - mean(b)) < 12) throw new Error("the light twin is as dark as its dark capture: this page keeps one theme");
+      }
+    }
+    writeFileSync(file, webp);
     if (cap.full) {
       await loadWholePage(page);
       /* Shot at the device scale, then brought to 2x (880 px wide) for the

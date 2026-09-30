@@ -233,7 +233,8 @@ export function installCaptions(ctx) {
 
   /* Centred on y 1290 (mobile: above the TikTok and Reels overlays) or y 960 (desktop). */
   const box = ctx.el("div", { class: "captions", style: { top: mobile ? "1290px" : "960px", transform: "translateY(-50%)" } }, ctx.stage);
-  const pill = ctx.el("div", { class: "pill", style: { fontSize: mobile ? "44px" : "34px" } }, box);
+  /* Mobile captions stay inside x 140–940: clear of the right-hand buttons of TikTok and Reels. */
+  const pill = ctx.el("div", { class: "pill", style: { fontSize: mobile ? "44px" : "34px", ...(mobile ? { maxWidth: "800px" } : {}) } }, box);
   let shown = -1;
   let nodes = [];
   ctx.onFrame((t) => {
@@ -529,9 +530,11 @@ export function odometer(ctx, parent, { value, t0, t1, prefix = "₦", fontSize 
  */
 export function installChapterPill(ctx, chapters, { theme = (t) => "light" } = {}) {
   const mobile = ctx.isMobile;
-  const top = mobile ? 236 : 36;
-  const h = mobile ? 80 : 60;
-  const fs = mobile ? 34 : 26;
+  /* Mobile: y 290–360 (layout.js PILL), sitting on the phone's top bezel so
+     it covers the status bar and never the screen's own headings. */
+  const top = mobile ? 290 : 36;
+  const h = mobile ? 70 : 60;
+  const fs = mobile ? 31 : 26;
   const box = ctx.el("div", { class: "abs", style: { left: 0, right: 0, top: `${top}px`, height: `${h}px`, display: "flex", justifyContent: "center", zIndex: 880, pointerEvents: "none" } }, ctx.stage);
   const pill = ctx.el("div", {
     style: {

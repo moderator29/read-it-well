@@ -18,16 +18,11 @@ const SPECS = {
 };
 export const DISPLAY = { W: 1320, H: 2868 };
 
+/* One import for every phone: a phone made while the import is still on its
+   way waits for it, rather than falling back to the flat stand-in. */
 let liveModule = null;
-let liveTried = false;
-async function loadLive() {
-  if (liveTried) return liveModule;
-  liveTried = true;
-  try {
-    liveModule = await import("/phone3d/browser/live.js");
-  } catch {
-    liveModule = null;
-  }
+function loadLive() {
+  liveModule ??= import("/phone3d/browser/live.js").catch(() => null);
   return liveModule;
 }
 

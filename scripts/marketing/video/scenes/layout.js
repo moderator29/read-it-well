@@ -6,26 +6,38 @@
  */
 export const LAYOUT = {
   mobile: {
-    PHONE_HERO: { cx: 540, cy: 760, height: 1300 },
-    PHONE_HIGH: { cx: 540, cy: 640, height: 1180 },
-    PILL: { cx: 540, top: 236, bottom: 316 },
-    CAPTIONS: { y: 1290, top: 1230, bottom: 1360 },
+    /* v3.1: the phone sits under the pill, so the pill covers only the
+       status bar and never the screen's own headings. The display runs from
+       about y 336 to 1385; keep what must be read above the captions (1230). */
+    PHONE_HERO: { cx: 540, cy: 860, height: 1080 },
+    /* The same phone lifted clear of the captions (display bottom ≈ 1255). */
+    PHONE_HIGH: { cx: 540, cy: 790, height: 960 },
+    PILL: { cx: 540, top: 290, bottom: 360 },
+    CAPTIONS: { y: 1290, top: 1230, bottom: 1360, left: 44, right: 940 },
     SAFE: { top: 285, bottom: 1635, left: 44, right: 940 },
+    /* Big opening words land here, before the phone rises or over a dimmed
+       phone: never over a live screen. */
+    WORDS: { x: 44, y: 520, w: 896, h: 520 },
+    /* Lifted bodies: beside the phone, overlapping its edge by 60 px at most,
+       never over the screen's text. A larger body moves the phone (cx 640, or
+       a three-quarter turn) rather than covering it. */
+    BODY_LEFT: { x: 44, y: 400, w: 300, h: 800 },
+    BODY_RIGHT: { x: 740, y: 400, w: 200, h: 800 },
     /* Frame one's three question cards, and the answered row (row 31). */
     CARDS_OPEN: [
       { x: 80, y: 330, w: 620, h: 170, r: -5 },
-      { x: 380, y: 540, w: 620, h: 170, r: 4 },
+      { x: 320, y: 540, w: 620, h: 170, r: 4 },
       { x: 120, y: 750, w: 620, h: 170, r: -3 },
     ],
     CARD_SLOT: [
-      { x: 60, y: 360, w: 300, h: 360 },
-      { x: 390, y: 360, w: 300, h: 360 },
-      { x: 720, y: 360, w: 300, h: 360 },
+      { x: 44, y: 400, w: 280, h: 340 },
+      { x: 352, y: 400, w: 280, h: 340 },
+      { x: 660, y: 400, w: 280, h: 340 },
     ],
-    /* The receipt of signature 1 (rows 11 to 13), clear of the pill and the captions. */
-    RECEIPT: { x: 90, y: 340, w: 900, h: 860 },
+    /* The receipt of signature 1 (rows 11 to 13), under the pill and clear of the captions. */
+    RECEIPT: { x: 90, y: 390, w: 900, h: 820 },
     /* The Property | Stays switch at full size (row 19). */
-    PILL_SWITCH: { x: 60, y: 520, w: 960, h: 360 },
+    PILL_SWITCH: { x: 100, y: 560, w: 840, h: 320 },
   },
   desktop: {
     WINDOW_HERO: { x: 160, y: 120, width: 1600 },

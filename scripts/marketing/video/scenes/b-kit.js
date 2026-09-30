@@ -244,11 +244,34 @@ export async function phone3d(ctx, opts) {
   return p;
 }
 
-/** A full-display layer in a phone's screen (an image or an empty div). */
-export function screenLayer(ctx, p, src = null, { style = {} } = {}) {
-  const box = { left: "0px", top: "0px", width: `${DW}px`, height: `${DH}px`, ...style };
-  if (src) return ctx.img(src, { class: "abs", style: box }, p.screen);
-  return ctx.el("div", { class: "abs", style: { ...box, overflow: "hidden" } }, p.screen);
+/**
+ * A page in a phone's screen: a full-display div (hidden until shown) with
+ * an optional display image inside. Returns { el, img }.
+ */
+export function screenPage(ctx, p, src = null, { bg = null } = {}) {
+  const el = ctx.el("div", {
+    class: "abs",
+    style: { left: "0px", top: "0px", width: `${DW}px`, height: `${DH}px`, overflow: "hidden", visibility: "hidden", ...(bg ? { background: bg } : {}) },
+  }, p.screen);
+  const img = src ? ctx.img(src, { class: "abs", style: { left: "0px", top: "0px", width: `${DW}px`, height: `${DH}px` } }, el) : null;
+  return { el, img };
+}
+
+/** Shows an element only inside the given [t0, t1) ranges (visibility, per frame). */
+export function showDuring(ctx, el, ranges) {
+  let shown = null;
+  ctx.onFrame((t) => {
+    const on = ranges.some(([a, b]) => t >= a && t < b);
+    if (on !== shown) {
+      el.style.visibility = on ? "visible" : "hidden";
+      shown = on;
+    }
+  });
+}
+
+/** A plain div in display px inside a parent (for patches and overlays in a screen). */
+export function box(ctx, parent, { x, y, w, h, style = {} }) {
+  return ctx.el("div", { class: "abs", style: { left: `${x}px`, top: `${y}px`, width: `${w}px`, height: `${h}px`, ...style } }, parent);
 }
 
 /** The phone's display corners [tl, tr, br, bl] in stage px, from its pose now. */
@@ -265,6 +288,16 @@ export function phoneQuad(p) {
     { x: P.cx - w / 2, y: P.cy - h / 2 }, { x: P.cx + w / 2, y: P.cy - h / 2 },
     { x: P.cx + w / 2, y: P.cy + h / 2 }, { x: P.cx - w / 2, y: P.cy + h / 2 },
   ];
+}
+
+/** The display quad for a given pose (not the phone's current one). */
+export function quadAtPose(p, P) {
+  const saved = { ...p.pose };
+  Object.assign(p.pose, P);
+  const q = phoneQuad(p);
+  Object.assign(p.pose, saved);
+  if (p.handle) phoneQuad(p);
+  return q;
 }
 
 /** The square-to-quad map: (u, v) in [0, 1]^2 to a stage point. */
@@ -343,6 +376,40 @@ export function quadDriver(ctx, el, w, h, { t0, t1, quadAt, opacityAt = null }) 
     placeQuad(el, w, h, quadAt(t));
     if (opacityAt) el.style.opacity = String(Math.max(0, Math.min(1, opacityAt(t))).toFixed(3));
   });
+}
+
+/* ---------- the pointer ---------- */
+
+/**
+ * A press of the glossy pointer at t (the engine's press(), with its ring
+ * shown only during its own half second: a fromTo ring would otherwise sit
+ * visible at its start state before the press when frames are sought out
+ * of order). ringParent null: no ring (the ripple is under the glass).
+ */
+export function pressAt(ctx, pointer, t, { ringParent = null, x = 0, y = 0, sound = "tap", offset = 0, color = "rgb(0 105 254 / 0.8)" } = {}) {
+  ctx.tl.fromTo(pointer, { scaleX: 1, scaleY: 1 }, { scaleX: 1.1, scaleY: 0.8, duration: 0.09, ease: "power2.out", immediateRender: false }, t - 0.06);
+  ctx.tl.fromTo(pointer, { scaleX: 1.1, scaleY: 0.8 }, { scaleX: 1, scaleY: 1, duration: 0.32, ease: "back.out(2.2)", immediateRender: false }, t + 0.05);
+  if (ringParent) {
+    const r = ctx.el("div", { class: "abs", style: { left: `${x - 50}px`, top: `${y - 50}px`, width: "100px", height: "100px", borderRadius: "50%", border: `3px solid ${color}`, visibility: "hidden", zIndex: "840" } }, ringParent);
+    ctx.tl.fromTo(r, { scale: 0.25, opacity: 1 }, { scale: 1.25, opacity: 0, duration: 0.55, ease: "power2.out", immediateRender: false }, t);
+    showDuring(ctx, r, [[t, t + 0.55]]);
+  }
+  if (sound) ctx.sfx(sound, t, { offset });
+}
+
+/** A tap ripple under the glass at display px (x, y), shown only while it plays. */
+export function ripple(ctx, parent, { x, y, t, size = 240, sound = null, offset = 0 }) {
+  const ring = ctx.el("div", {
+    class: "abs",
+    style: {
+      left: `${x - size / 2}px`, top: `${y - size / 2}px`, width: `${size}px`, height: `${size}px`, borderRadius: "50%", visibility: "hidden",
+      background: "radial-gradient(closest-side, rgb(0 105 254 / 0.22), rgb(0 105 254 / 0))", border: "4px solid rgb(0 105 254 / 0.45)", zIndex: "50",
+    },
+  }, parent);
+  ctx.tl.fromTo(ring, { scale: 0.2, opacity: 0.95 }, { scale: 1, opacity: 0, duration: 0.55, ease: "power2.out", immediateRender: false }, t);
+  showDuring(ctx, ring, [[t, t + 0.55]]);
+  if (sound) ctx.sfx(sound, t, { offset });
+  return ring;
 }
 
 /* ---------- type ---------- */

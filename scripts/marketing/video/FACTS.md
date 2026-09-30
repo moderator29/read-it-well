@@ -64,6 +64,9 @@ Question: "What is a caution deposit?"
 - Desktop (`d-assistant-caution`): "A caution deposit is a refundable sum a landlord asks for upfront, on top of the rent, to cover any damage or unpaid bills at the end of the tenancy. It's separate from agency, legal and agreement fees, which are also common extras in Nigeria. So when you see a rent figure, the actual move in cost can be higher once you add these. Where a listing states a total move in cost, I'll always quote that alongside the rent; where it doesn't, I'll flag that extra costs exist but aren't stated, so you can ask the lister directly before committing. Want me to search for a place and check what it says about move in costs?"
 - Mobile, second capture with the field unfocused (`assistant-caution-2`, preferred): "A caution deposit is a refundable sum a landlord or agent asks for upfront when you move in, held against any damage to the property during your tenancy. It sits alongside the rent itself and is one of the extra costs (with agency fee, legal fee, agreement fee and service charge) that Nigerian rentals usually carry on top of the headline rent figure. Where a listing states its total move in cost, I'll quote that so you can plan properly. Where it doesn't, I'll flag that these extras exist even though the amount isn't stated. Want me to search for rentals somewhere specific?"
 - Desktop, second capture (`d-assistant-caution-2`, preferred): "A caution deposit is a refundable sum a landlord asks for upfront, on top of the annual rent, to cover any damage or unpaid bills when you eventually move out. It is separate from agency, legal and agreement fees, and is one of the extra costs that make the total move in cost higher than the rent shown on a listing. If you are budgeting for a place, tell me and I can check whether it states a total move in cost, or just the rent."
+- Mobile on light (`assistant-caution-2-lt`, 30 September 2026, the one the films use): "A caution deposit is a refundable sum a landlord asks for when you move in, held as security against damage to the property or unpaid bills. It's separate from the rent itself, and separate again from agency, legal and agreement fees that are also common in Nigeria. So when you're budgeting for a rental, don't plan around the rent figure alone. Where a listing states a total move-in cost, I'll always quote that; where it doesn't, I'll flag that these extra costs exist but aren't stated, so you can ask the lister directly before you commit. Want me to search for a place and check what's stated?"
+- Desktop on light (`d-assistant-caution-2-lt`): "A caution deposit is a refundable sum a landlord asks for upfront, on top of the rent, as security against damage or unpaid bills during your tenancy. It is normal in Nigeria and is separate from agency, legal and agreement fees. It is not always stated on the listing card itself, so when you find a place you like, it is worth confirming with the lister (in Vallo Messages) what the full move in cost actually is, rent plus caution deposit plus any other fees, before you commit. Want me to search for a property so we can check what it says about total move in costs?"
+- "Security" in these answers is the assistant's word for what a deposit is for, not a promise by Vallo. Show the answer as captured, but never lift or enlarge that line.
 - The suggestion chips under the input ("Two bedroom in Lekki under 5m a year", "What will it cost me to move in?") are the product's own and may show.
 
 ## The three questions and their answers (the films' spine)
@@ -73,6 +76,12 @@ Question: "What is a caution deposit?"
 | What will it really cost? | ₦26,100,000 to move in. Seen before a single call. | row 13 |
 | Who am I talking to? | Checked by a real person at Vallo. | row 27 |
 | Where does my money go? | Straight to the owner, through Paystack. | row 31 |
+
+## What a capture may show
+
+Anything visible on an unedited capture may show as captured, for example "Notifications 3", "Open until 23:00", a "generator" chip, or "69 stays". This file governs everything that is lifted, enlarged, typed, drawn or spoken. A number or claim that is lifted off a screen, turned into a card, or set as big type must appear in this file.
+
+Labels for the films' own diagrams: the money path's "Your card", "Paystack" and "The owner's bank" (then "Owner", "Host", "Business", as spoken). The pill "Talk straight to the **lister**" uses the product's own word: the assistant says "ask the lister directly".
 
 ## Claims allowed on screen
 

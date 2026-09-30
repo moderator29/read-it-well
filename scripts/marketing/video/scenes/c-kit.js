@@ -103,18 +103,33 @@ export async function languageFonts(ctx) {
     const css = document.createElement("style");
     css.id = "c-fonts";
     const inter = "/node_modules/@fontsource-variable/inter/files";
-    css.textContent = `
+    const pop = "/node_modules/@fontsource/poppins/files";
+    /* "C Poppins": the same Poppins files as tokens.css, one weight per face.
+       (tokens.css's naira face spans weights 600-800, and Chromium then
+       resolves Poppins 700 and 800 to it and falls back to Inter; reported.) */
+    const faces = [600, 700, 800].map((w) => `
+@font-face { font-family: "C Poppins"; font-weight: ${w}; font-display: block; src: url("${pop}/poppins-latin-${w}-normal.woff2") format("woff2"); }
+@font-face { font-family: "C Poppins"; font-weight: ${w}; font-display: block; unicode-range: U+0100-02AF, U+1E00-1E9F, U+1EF2-1EFF; src: url("${pop}/poppins-latin-ext-${w}-normal.woff2") format("woff2"); }
+@font-face { font-family: "C Poppins"; font-weight: ${w}; font-display: block; unicode-range: U+20A6; src: url("${inter}/inter-latin-ext-wght-normal.woff2") format("woff2"); }`).join("");
+    css.textContent = `${faces}
 @font-face { font-family: "Inter"; font-weight: 100 900; font-display: block; unicode-range: U+0250-02AF, U+1E00-1E9F, U+1EF2-1EFF; src: url("${inter}/inter-latin-ext-wght-normal.woff2") format("woff2"); }
 @font-face { font-family: "Inter"; font-weight: 100 900; font-display: block; unicode-range: U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF1; src: url("${inter}/inter-vietnamese-wght-normal.woff2") format("woff2"); }
-@font-face { font-family: "Poppins"; font-weight: 700; font-display: block; unicode-range: U+0100-02AF, U+1E00-1E9F; src: url("/node_modules/@fontsource/poppins/files/poppins-latin-ext-700-normal.woff2") format("woff2"); }
+.c-display { font-family: "C Poppins", "Inter", sans-serif; font-weight: 700; letter-spacing: -0.03em; line-height: 1.02; }
+.c-display-800 { font-family: "C Poppins", "Inter", sans-serif; font-weight: 800; letter-spacing: -0.035em; line-height: 1; }
+.c-600 { font-family: "C Poppins", "Inter", sans-serif; font-weight: 600; letter-spacing: -0.02em; }
 `;
     document.head.appendChild(css);
   }
-  const probe = "Duniya biyu ɗaya Ayé méjì Pèpéle Ụwa abụọ Yorùbá";
-  const loads = ["600 40px Inter", "700 40px Inter", "700 80px Poppins", "800 80px Poppins", "600 80px Poppins"].map((f) => document.fonts.load(f, probe));
+  const probe = "Duniya biyu ɗaya Ayé méjì Pèpéle Ụwa abụọ Yorùbá ₦ Vallo";
+  const loads = ["600 40px Inter", "700 40px Inter", "600 80px 'C Poppins'", "700 80px 'C Poppins'", "800 80px 'C Poppins'"].map((f) => document.fonts.load(f, probe));
   ctx.pending = (ctx.pending ?? []).concat(loads);
   await Promise.all(loads);
+  const bad = ["600", "700", "800"].filter((w) => !document.fonts.check(`${w} 40px 'C Poppins'`, "Vallo"));
+  if (bad.length) console.error(`section c: C Poppins ${bad.join(", ")} did not load`);
 }
+
+/** The display family (real Poppins; see languageFonts). */
+export const DISPLAY = `"C Poppins", "Inter", sans-serif`;
 
 /* ---------- phones ---------- */
 
@@ -151,7 +166,7 @@ export function place(el, { x = 0, y = 0, s = 1, sx = null, sy = null, r = 0, o 
   const Y = sy ?? s;
   el.style.transform = `translate(${x.toFixed(2)}px, ${y.toFixed(2)}px) translate(-50%, -50%) rotate(${r.toFixed(3)}deg) scale(${X.toFixed(4)}, ${Y.toFixed(4)})`;
   el.style.opacity = o >= 0.999 ? "1" : o.toFixed(4);
-  el.style.visibility = o > 0.001 ? "visible" : "hidden";
+  el.style.visibility = o > 0.001 ? "" : "hidden";
 }
 
 /** One soft shadow language for every floating body (on light and on dark). */
@@ -268,7 +283,7 @@ export function coin(ctx, parent, { size = 150, layers = 14, z = 0 } = {}) {
     const k = state.size / S;
     wrap.style.transform = `translate(${px(state.x - S / 2)}, ${px(state.y - S / 2)}) scale(${k.toFixed(4)})`;
     wrap.style.opacity = String(state.opacity);
-    wrap.style.visibility = state.opacity > 0.001 ? "visible" : "hidden";
+    wrap.style.visibility = state.opacity > 0.001 ? "" : "hidden";
     body.style.transform = `rotateX(${state.tilt.toFixed(2)}deg) rotateY(${state.spin.toFixed(2)}deg)`;
     const a = (((state.spin % 360) + 360) % 360) / 360;
     const pos = `${(a * 200 - 50).toFixed(1)}% 0%`;
@@ -326,7 +341,7 @@ export function slotCard(ctx, parent, { w, h, q, a = null, fs, pad, tickSize }) 
     style: {
       inset: "0px", borderRadius: `${Math.round(Math.min(w, h) * 0.1)}px`, backfaceVisibility: "hidden", transform: back ? "rotateY(180deg)" : "none",
       display: "flex", flexDirection: "column", justifyContent: "space-between", padding: `${pad}px`, color: "#fff",
-      font: `600 ${fs}px/1.16 Poppins, Inter, sans-serif`, letterSpacing: "-0.02em",
+      font: `600 ${fs}px/1.16 "C Poppins", Inter, sans-serif`, letterSpacing: "-0.02em",
       background: back ? "linear-gradient(155deg, #2a86ff 0%, #0069fe 42%, #0050c8 100%)" : "linear-gradient(160deg, #121c5e 0%, #0a1248 100%)",
       border: back ? "1.5px solid rgb(143 211 255 / 0.6)" : "1.5px solid rgb(120 170 255 / 0.28)",
       boxShadow: SHADOW.light,
@@ -346,8 +361,12 @@ export function slotCard(ctx, parent, { w, h, q, a = null, fs, pad, tickSize }) 
 }
 
 /** Measures a text's width in px for a CSS font (after the font is loaded). */
-export function measure(text, font) {
-  const c = measure.c ?? (measure.c = document.createElement("canvas").getContext("2d"));
-  c.font = font;
-  return c.measureText(text).width;
+export function measure(text, font, letterSpacing = "-0.03em") {
+  /* A hidden span: a detached canvas does not see the page's web fonts here. */
+  const n = measure.n ?? (measure.n = Object.assign(document.createElement("span"), { style: "position:absolute;left:-9999px;top:0;visibility:hidden;white-space:nowrap" }));
+  if (!n.isConnected) document.body.appendChild(n);
+  n.style.font = font;
+  n.style.letterSpacing = letterSpacing;
+  n.textContent = text;
+  return n.getBoundingClientRect().width;
 }

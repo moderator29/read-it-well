@@ -230,12 +230,15 @@ const LIGHT_TWINS = [
   "d-restaurant", "d-verification", "d-welcome", "d-welcome-ha", "d-welcome-yo", "d-welcome-ig", "d-host-start",
   "d-search", "d-stays", "d-stay", "d-assistant", "d-passcode-create",
   "stays-dates-gb", "d-stays-dates-gb",
+  "assistant-caution-2", "d-assistant-caution-2", "search", "d-search-full", "d-listing",
 ];
+/* Twins that keep their whole-page capture, for the films' scrolls. */
+const FULL_TWINS = ["search", "d-search-full"];
 export const CAPTURES = [
   ...BASE_CAPTURES,
   ...LIGHT_TWINS.map((id) => {
     const cap = BASE_CAPTURES.find((c) => c.id === id);
     if (!cap) throw new Error(`no capture ${id} to twin`);
-    return { ...cap, id: `${id}-lt`, theme: "light", full: false };
+    return { ...cap, id: `${id}-lt`, theme: "light", full: FULL_TWINS.includes(id) ? cap.full : false };
   }),
 ];
