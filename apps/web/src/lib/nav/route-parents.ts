@@ -438,6 +438,11 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/host/reservations": "/host",
   "/host/bookings": "/host",
   "/host/rooms": "/host",
+  /* C1 to C4 and C9 (30 September 2026). */
+  "/host/calendar": "/host",
+  "/host/decide": "/host",
+  "/host/reviews": "/host",
+  "/host/earnings/statement": "/host/earnings",
   "/host/start": "/host",
   "/host/transfer": "/host",
   /* The host workspace's own assistant, settings and bell (29 September 2026). */
@@ -547,6 +552,9 @@ export const NON_NAVIGABLE: Readonly<Record<string, string>> = {
   "/api/vitals": "the browser's field speed beacon (V-80).",
   "/api/cron/account-purge": "scheduled job, bearer token.",
   "/api/cron/canary": "scheduled job, bearer token.",
+  "/api/cron/calendar-sync": "scheduled job, bearer token (C2, behind CALENDAR_SYNC_ENABLED).",
+  "/api/calendar/feed": "C2: a room's calendar as iCal for another site to subscribe to, behind its secret token.",
+  "/host/earnings/statement/csv": "C9: one month's payout statement as a CSV download, not a page.",
   "/api/cron/complete-stays": "scheduled job, bearer token.",
   "/api/cron/crypto-reconcile": "scheduled job, bearer token.",
   "/api/cron/email-outbox": "scheduled job, bearer token.",

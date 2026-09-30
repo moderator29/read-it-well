@@ -640,6 +640,10 @@ export const en = {
     overview: "Overview",
     reservations: "Reservations",
     roomBookings: "Room bookings",
+    /* C1 to C4 (30 September 2026). */
+    decide: "Decide by",
+    calendar: "Calendar",
+    reviews: "Reviews",
     rooms: "Rooms and nights",
     photos: "Photographs",
     arrival: "Charges at the door",
