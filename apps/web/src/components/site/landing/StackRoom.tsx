@@ -154,7 +154,11 @@ export function StackRoom({ t, locale }: { t: Dictionary; locale: Locale }) {
             <p className="nf-mo__label">{u.moveIn}</p>
             {example}
           </div>
-          <p className="nf-mo__figure">{naira(TOTAL)}</p>
+          {/* The move-in figure counts up once when the card is seen (the
+              founder's count-up ruling); it is the Example flat's figure. */}
+          <p className="nf-mo__figure">
+            <Amount minorUnits={TOTAL} locale={locale} currency="NGN" className="nf-numeric" count />
+          </p>
           {/* The segmented bar (spec section 9): each segment its real share
               of the total, the rent in the brand blue and the fees in steps
               of it. */}

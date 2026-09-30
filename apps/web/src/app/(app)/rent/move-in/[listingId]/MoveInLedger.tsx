@@ -133,6 +133,7 @@ export function MoveInLedger({
               locale={locale}
               currency={listing.currency}
               secondaryClassName="text-[0.5em] font-semibold opacity-70"
+              count
             />
           </span>
         </div>

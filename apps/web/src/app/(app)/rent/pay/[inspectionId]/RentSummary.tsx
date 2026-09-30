@@ -33,6 +33,7 @@ export function RentSummary({ view }: { view: RentPayView }) {
           locale={view.locale}
           currency={view.currency}
           showFraction
+          count
           className="text-[length:var(--nf-text-display-sm)] font-bold leading-none tracking-[-0.02em] text-[var(--nf-content-primary)]"
           secondaryClassName="text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-muted)]"
         />

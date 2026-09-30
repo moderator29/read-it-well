@@ -1,7 +1,8 @@
 import { initial } from "@/lib/text/initial";
 import Image from "next/image";
 import Link from "next/link";
-import { formatNumber, formatRating, type Dictionary, type Locale } from "@vallo/i18n/core";
+import { formatNumber, formatRating, intlTag, type Dictionary, type Locale } from "@vallo/i18n/core";
+import { CountUp } from "@/components/motion/CountUp";
 import { TierBadge } from "@/components/trust/TierBadge";
 import { ShareCardFrame } from "@/components/share/ShareCardFrame";
 import { BADGE_TIER_LABEL } from "@/lib/trust/badge-tier";
@@ -254,14 +255,14 @@ export function ProfileHeader({
           <div className="nf-social-counts" data-testid="profile-counts">
             <Link href={`/u/${profile.handle}/followers`} className="nf-social-count">
               <span className="nf-social-count__value nf-numeric">
-                {formatNumber(profile.followerCount, locale)}
+                <CountUp value={profile.followerCount} tag={intlTag[locale]} eager />
               </span>
               <span className="nf-social-count__label">{copy.followers}</span>
             </Link>
             <span className="nf-social-count__rule" aria-hidden="true" />
             <Link href={`/u/${profile.handle}/following`} className="nf-social-count">
               <span className="nf-social-count__value nf-numeric">
-                {formatNumber(profile.followingCount, locale)}
+                <CountUp value={profile.followingCount} tag={intlTag[locale]} eager />
               </span>
               <span className="nf-social-count__label">{copy.following}</span>
             </Link>

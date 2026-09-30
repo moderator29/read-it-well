@@ -111,6 +111,7 @@ export function EarningsWorkspace({
               minorUnits={earnings.totalAgentShareMinor}
               locale={locale}
               className={TILE_FIGURE}
+                count
             />
           }
         />
@@ -122,6 +123,7 @@ export function EarningsWorkspace({
               minorUnits={earnings.totalGrossMinor}
               locale={locale}
               className={TILE_FIGURE}
+                count
             />
           }
         />
@@ -129,13 +131,15 @@ export function EarningsWorkspace({
           icon="calendar-check"
           label={t.totals.settledStays}
           value={
-            <Figure value={earnings.settledStays} locale={locale} className={TILE_FIGURE} />
+            <Figure value={earnings.settledStays} locale={locale} className={TILE_FIGURE}
+                count />
           }
         />
         <Tile
           icon="trending-up"
           label={t.totals.thisMonth}
-          value={<Amount minorUnits={thisMonthMinor} locale={locale} className={TILE_FIGURE} />}
+          value={<Amount minorUnits={thisMonthMinor} locale={locale} className={TILE_FIGURE}
+                count />}
         />
       </div>
 

@@ -6,7 +6,8 @@ import { useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { formatNumber, type Locale } from "@vallo/i18n/core";
+import { formatNumber, intlTag, type Locale } from "@vallo/i18n/core";
+import { CountUp } from "@/components/motion/CountUp";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { setAvatar } from "@/lib/profile/actions";
 import { setSocialCover } from "@/lib/social/profiles-actions";
@@ -108,7 +109,13 @@ export function AccountHero({
   /* The render writes 12.4K: from ten thousand a count is compact, below
      it every digit shows. The figure itself is always the database's. */
   const formatCount = (value: number) =>
-    value >= 10_000 ? formatNumber(value, locale, COMPACT) : formatNumber(value, locale);
+    value >= 10_000 ? (
+      formatNumber(value, locale, COMPACT)
+    ) : (
+      /* The count counts up once on first view (the founder's count-up
+         ruling); a compact 12.4K prints as it is. */
+      <CountUp value={value} tag={intlTag[locale]} eager />
+    );
   const coverInput = useRef<HTMLInputElement>(null);
   const avatarInput = useRef<HTMLInputElement>(null);
 

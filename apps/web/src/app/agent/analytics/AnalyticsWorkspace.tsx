@@ -660,6 +660,7 @@ export function AnalyticsWorkspace({
                 minorUnits={earnings.totalAgentShareMinor}
                 locale={locale}
                 className={TILE_FIGURE}
+                count
               />
             ) : (
               <Unknown label={t.unavailable} />
@@ -671,7 +672,8 @@ export function AnalyticsWorkspace({
           label={t.headline.stays}
           value={
             requests ? (
-              <Figure value={requests.confirmed} locale={locale} className={TILE_FIGURE} />
+              <Figure value={requests.confirmed} locale={locale} className={TILE_FIGURE}
+                count />
             ) : (
               <Unknown label={t.unavailable} />
             )
@@ -690,6 +692,7 @@ export function AnalyticsWorkspace({
                 value={formatRating(reviews.average, locale)}
                 locale={locale}
                 className={TILE_FIGURE}
+                count
               />
             )
           }
@@ -714,6 +717,7 @@ export function AnalyticsWorkspace({
                 locale={locale}
                 suffix={`/ ${formatNumber(calendar.offeredNights, locale)}`}
                 className={TILE_FIGURE}
+                count
               />
             ) : (
               <Unknown label={t.unavailable} />
