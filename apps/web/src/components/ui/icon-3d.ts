@@ -32,6 +32,34 @@ export const ICON_3D_NAMES = [
   "coin",
   "handover",
   "keys",
+  // The wishlist sheet (30 September): listing and the move.
+  "camera",
+  "video",
+  "checklist",
+  "contract",
+  // A "$" coin sits on this receipt: use it small, never beside a naira sum.
+  "receipt",
+  "boxes",
+  "toolbox",
+  "price-tag",
+  // Workspaces.
+  "analytics",
+  "bank",
+  "megaphone",
+  "support",
+  "team",
+  "folder",
+  "clock",
+  "report-flag",
+  // Everyday moments.
+  "saved-heart",
+  "envelope",
+  "phone-code",
+  "passcode-lock",
+  "gift",
+  "map",
+  "power",
+  "celebrate",
 ] as const;
 export type Icon3DName = (typeof ICON_3D_NAMES)[number];
 

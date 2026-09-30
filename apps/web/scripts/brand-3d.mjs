@@ -53,9 +53,14 @@ const OUT_STEPS = join(ROOT, "public/brand/onboarding");
  * rim on a few, so check the paper composites before shipping a matte run).
  */
 const SHEETS = [
+  /* The first eight. icon-sheet-4-transparent.png (the founder's better
+     re-render, 30 September) replaced icon-sheet-transparent.png, which
+     stays in assets-src as a source only. Its objects stand in a baked,
+     opaque navy glow, so it runs in "rim" mode. */
   {
-    file: "icon-sheet-transparent.png",
-    mode: "alpha",
+    file: "icon-sheet-4-transparent.png",
+    mode: "rim",
+    matte: { max: [60, 90, 230], dark: 120, step: 6, feather: 2 },
     layout: {
       grid: {
         cols: 4,
@@ -91,6 +96,40 @@ const SHEETS = [
         handover: [223, 871, 389, 1004],
         keys: [533, 892, 683, 1008],
         "home-small": [815, 892, 1013, 1002],
+      },
+    },
+  },
+  /* The wishlist (30 September): three rows of eight, each under a text
+     pill ("Sheet 3 - ...") that every box stays clear of. Real alpha. */
+  {
+    file: "icon-sheet-5.png",
+    mode: "alpha",
+    layout: {
+      boxes: {
+        camera: [15, 140, 210, 362],
+        video: [222, 140, 412, 362],
+        checklist: [420, 140, 590, 366],
+        contract: [596, 140, 778, 366],
+        receipt: [782, 140, 955, 368],
+        boxes: [966, 140, 1152, 368],
+        toolbox: [1158, 140, 1374, 360],
+        "price-tag": [1380, 130, 1522, 362],
+        analytics: [15, 460, 212, 680],
+        bank: [218, 458, 410, 670],
+        megaphone: [412, 460, 606, 668],
+        support: [608, 460, 788, 668],
+        team: [790, 460, 978, 668],
+        folder: [986, 460, 1162, 674],
+        clock: [1168, 460, 1350, 660],
+        "report-flag": [1352, 460, 1516, 682],
+        "saved-heart": [18, 772, 212, 964],
+        envelope: [224, 772, 406, 964],
+        "phone-code": [424, 770, 594, 964],
+        "passcode-lock": [610, 768, 776, 966],
+        gift: [800, 772, 970, 966],
+        map: [972, 772, 1184, 966],
+        power: [1192, 760, 1340, 964],
+        celebrate: [1350, 760, 1522, 966],
       },
     },
   },
@@ -130,6 +169,7 @@ function cellPixels(data, W, { x0, y0, w, h }, mode, matte) {
   const out = Buffer.alloc(w * h * 4);
   for (let y = 0; y < h; y++) data.copy(out, y * w * 4, ((y0 + y) * W + x0) * 4, ((y0 + y) * W + x0 + w) * 4);
   if (mode === "alpha") return out;
+  if (mode === "rim") return stripRim(out, w, h, matte);
   if (mode !== "matte") throw new Error(`unknown mode ${mode}`);
   const { step = 2, erode = 2, feather = 1 } = matte ?? {};
   const ground = new Uint8Array(w * h);
@@ -180,6 +220,65 @@ function cellPixels(data, W, { x0, y0, w, h }, mode, matte) {
   }
   for (let i = 0; i < w * h; i++) out[i * 4 + 3] = Math.round(mask[i] * 255);
   return out;
+}
+
+/**
+ * "rim": an alpha sheet whose objects stand in a baked, OPAQUE navy glow
+ * (icon-sheet-4). Flood from the transparent ground into the dark navy
+ * pixels touching it (every channel under `max`, dark: r + g under `dark`,
+ * and across a colour step no bigger than `step`), clear them, then ramp the alpha over the next `feather` px so the
+ * object's own edge stays soft. The object's lit rim stops the flood.
+ */
+function stripRim(px, w, h, { max = [60, 90, 215], dark = 110, step = 255, feather = 2 } = {}) {
+  const navy = (i) => px[i * 4] < max[0] && px[i * 4 + 1] < max[1] && px[i * 4 + 2] < max[2] && px[i * 4] + px[i * 4 + 1] < dark;
+  const gone = new Uint8Array(w * h);
+  const stack = [];
+  for (let i = 0; i < w * h; i++) {
+    if (px[i * 4 + 3] <= ALPHA_FLOOR) {
+      gone[i] = 1;
+      stack.push(i);
+    }
+  }
+  while (stack.length) {
+    const i = stack.pop();
+    const x = i % w;
+    const y = (i - x) / w;
+    for (const [nx, ny] of [[x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]]) {
+      if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
+      const j = ny * w + nx;
+      if (gone[j] || !navy(j)) continue;
+      // Across a soft step only (the glow shades slowly), unless from the
+      // clear ground itself.
+      if (px[i * 4 + 3] > ALPHA_FLOOR && Math.max(...[0, 1, 2].map((c) => Math.abs(px[i * 4 + c] - px[j * 4 + c]))) > step) continue;
+      gone[j] = 1;
+      stack.push(j);
+    }
+  }
+  // Distance (in px, 4-connected, capped) from the cleared ground, for the ramp.
+  const dist = new Uint8Array(w * h).fill(255);
+  let ring = [];
+  for (let i = 0; i < w * h; i++) if (gone[i]) (dist[i] = 0), ring.push(i);
+  for (let d = 1; d <= feather && ring.length; d++) {
+    const next = [];
+    for (const i of ring) {
+      const x = i % w;
+      const y = (i - x) / w;
+      for (const [nx, ny] of [[x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]]) {
+        if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
+        const j = ny * w + nx;
+        if (dist[j] === 255) {
+          dist[j] = d;
+          next.push(j);
+        }
+      }
+    }
+    ring = next;
+  }
+  for (let i = 0; i < w * h; i++) {
+    if (dist[i] === 0) px[i * 4 + 3] = 0;
+    else if (dist[i] <= feather) px[i * 4 + 3] = Math.round((px[i * 4 + 3] * dist[i]) / (feather + 1));
+  }
+  return px;
 }
 
 /**

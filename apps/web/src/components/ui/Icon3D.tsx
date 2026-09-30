@@ -14,6 +14,11 @@ import { icon3dSrc, type Icon3DName } from "./icon-3d";
  *            search, explore, verified, id-check, card-secure,
  *            home-verified, home-small, villa, city, apartment, land,
  *            stay-rated, earnings, coin, handover, keys
+ *   sheet 5  camera, video, checklist, contract, receipt, boxes, toolbox,
+ *            price-tag, analytics, bank, megaphone, support, team, folder,
+ *            clock, report-flag, saved-heart, envelope, phone-code,
+ *            passcode-lock, gift, map, power, celebrate
+ *   (the first eight come from icon-sheet-4 since 30 September)
  *
  * Where they go: doors, heroes, empty states, category pickers and first-run
  * cards (one object per card, 40 to 96 px). Rows, controls and nav chrome
