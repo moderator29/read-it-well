@@ -171,7 +171,9 @@ export default async function PriceCheckPage({
   }
 
   return (
-    <>
+    // A form page reads at a measure on a wide screen, as Settings and Saved do,
+    // instead of stretching its fields across 1100px (pixel polish).
+    <div className="mx-auto max-w-3xl">
       <PageHeader variant="large" title={t.priceCheck.title} subtitle={t.priceCheck.lead} fallback="/home" />
       <p className="nf-body text-[var(--nf-content-secondary)]">{t.priceCheck.intro}</p>
       <div className="mt-section-tight">
@@ -218,6 +220,6 @@ export default async function PriceCheckPage({
           />
         </div>
       )}
-    </>
+    </div>
   );
 }

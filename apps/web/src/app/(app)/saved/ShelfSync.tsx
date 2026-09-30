@@ -47,7 +47,16 @@ export function ShelfSync({
   }, [owner, items]);
 
   if (changes.length === 0) {
-    return written ? <p className="nf-caption mb-row text-muted" data-testid="shelf-on-phone">{copy.onPhone}</p> : null;
+    if (written) return <p className="nf-caption mb-row text-muted" data-testid="shelf-on-phone">{copy.onPhone}</p>;
+    /* The note's line is held (invisible, silent) while the copy is being
+       written, so the shortlist under it does not jump 50px when the note
+       arrives (pixel polish: a 0.045 layout shift on every visit). With
+       nothing saved there is nothing to write and no line to hold. */
+    return items.length > 0 ? (
+      <p className="nf-caption mb-row text-muted invisible" aria-hidden="true">
+        {copy.onPhone}
+      </p>
+    ) : null;
   }
 
   return (
