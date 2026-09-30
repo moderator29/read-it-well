@@ -688,10 +688,71 @@ Tokens (`packages/design-tokens/src/tokens.css`, both themes):
 - The dock's unread badge (the More button's count).
 - Rating stars, everywhere (`--nf-rating`).
 - The "New" tag on a listing card (`.nf-badge--spark`).
+- The Featured tag (`Tag tone="spark"`, `.nf-tag--spark`, section 19 kind 7): the glyph in `--nf-spark`, the word in `--nf-spark-ink`, on the white (night: navy) tag pill. Only on a listing that is really featured.
 - Where you are in a flow: onboarding's active dot pill, the list-your-property wizard's current segment tip, the register flows' current bar.
 - The place pin on the Home and Stays hero chip.
 - The desk band's unread KPI figure (agent and host), only when the count is above zero.
 - The landing: the eyebrow capsule's glyph, the hero headline's last word underlined in a short orange stroke, the same stroke under one word of two section heads (Journey and the two worlds), the first community figure.
 - The edge lap's second arc (blue-to-orange lap) on the landing capsule, the hero eyebrow and the desk home band.
+- The success moment's sparks (founder, 30 September, reference 54): three of the eight small sparks round the 3D object, never the ring, the words or the button (`app/css/success.css`).
 
 **Where it may not appear:** body text; a button's fill (primary stays blue); errors, warnings or any status (warning stays the cyan, error the rose, pending its own token); links; every card, row or section on a screen (at most one or two sparks in view); large fills or backgrounds; the logo. If a new place feels like it needs the orange, the default answer is blue.
+
+## 19. Buttons and controls (founder reference 55, 30 September)
+
+The founder's "Button Styles & Usage Guide" (`docs/design/references/2026-09-29/55-button-system-guide.jpg`) is the system for every button, control and chip, in both themes. It overrides sections 3 and 7 where they differ. The founder asked for it finished **cleaner than the image**: restrained gradients (a few percent of lift, no sheen band), crisp 1px and 1.5px edges, heights 44 / 48 / 56 only, one pill radius for every word-carrying button, one glyph size per button size (16 / 20 / 24), calm grey disabled states, and the glow ring **only on the night primary, on hover and focus**. Live proof: `/preview/buttons` (every kind and state, paper and night side by side).
+
+### 19.1 Tokens (`packages/design-tokens/src/tokens.css`, "THE BUTTON SYSTEM")
+
+| Token | Night | Paper | Use |
+| --- | --- | --- | --- |
+| `--nf-act-blue` | #0066FF | same | the guide's Brand Blue: solid fills, the hover of icon buttons |
+| `--nf-act-cyan` | #00D1FF | same | the edge of the night glow ring |
+| `--nf-act-fill` / `-fill-hover` | #1A75FF to #0066FF to #005CEB | same family | the primary's restrained gradient; white on its middle stop 4.8:1 (hover 4.6:1) |
+| `--nf-act-fill-press` / `--nf-act-press-edge` | deep blue #0B2C72 | navy #0F172A (the guide's Text) | pressed |
+| `--nf-act-shadow` / `--nf-act-ring` / `--nf-act-shadow-press` | a soft blue lift / cyan ring and blue halo / inset | a soft lift / one step more lift (no ring on paper) / inset | rest / hover and focus / pressed |
+| `--nf-act-ink` / `-ink-hover` | #5AA2FF (6.7:1 on navy) | #0057DB (6.2:1 on white) | brand words: tertiary, link, tag |
+| `--nf-act-tint` / `-tint-press` | blue 16% / 26% | #EAF2FF / #D6E6FF | the tertiary's hover box, the stepper buttons |
+| `--nf-act-edge`, `--nf-act-edge-width` | blue 72% | #0066FF | the secondary's 1.5px outline |
+| `--nf-act-outline-*` | white word, fills blue on hover | brand word, fills the tint on hover | the secondary and the dropdown |
+| `--nf-act-surface`, `-surface-ink`, `-surface-edge`, `-surface-shadow` | navy #0C1838 | white | icon buttons, secondary, dropdown, stepper, tag |
+| `--nf-act-icon-ink` | white | #0066FF | the icon button's glyph |
+| `--nf-act-disabled-fill` / `-edge` / `-ink` | grey 12% / 16% / 62% | #F1F5F9 / #E2E8F0 / #94A3B8 | every disabled kind |
+| `--nf-act-mark-edge` | grey 72% | #7D8CA3 (3.4:1) | an unchecked checkbox or radio |
+| `--nf-act-track-off`, `-track-off-edge`, `--nf-act-knob`, `-knob-shadow` | navy track | #D5DDE8 track | the toggle |
+| `--nf-act-well`, `-well-edge` | navy | white | the segmented track |
+
+Orange is the spark (section 18): `--nf-spark`, `--nf-spark-ink`. Green is `--nf-state-success`; red is `--nf-state-error`.
+
+### 19.2 The kinds
+
+| # | Kind | Primitive | Class | When |
+| --- | --- | --- | --- | --- |
+| 1 | Primary | `Button variant="primary"` (`arrow` for the trailing arrow) | `.nf-btn--primary` | The one main action per view: Save, Continue, Book, Submit, Next |
+| 2 | Secondary | `Button variant="secondary"` (`glass` is the same button) | `.nf-btn--glass` | The alternative beside it: Cancel, View details, Back |
+| 3 | Tertiary | `Button variant="quiet"` (`ghost` is the old name) | `.nf-btn--quiet` | Less emphasis: Learn more, Skip, See all, row actions |
+| 4 | Icon | `Button variant="icon" iconOnly aria-label`; hand-written `.nf-icon-btn` | `.nf-btn--surface`, `.nf-icon-btn` | Compact actions: search, filter, share, prev and next. Always a circle. The header's round buttons keep their ink glyph (section 17, the chrome's rules) |
+| 5 | FAB | `Fab aria-label` | `.nf-btn--fab` | The one key action of a focused context (add a listing on a desk). At most one per screen, clear of the dock |
+| 6 | Toggle | `Toggle` (= `Switch`) | `.nf-switch` | On and off that applies at once: a filter, a notification |
+| 7 | Chip / tag | `Tag tone icon` | `.nf-tag` | A label on a card: Verified (brand), Featured (spark), Available (success), Example (neutral). Not a control; a filter that toggles is a `Chip`, a state in a row is a `StatusBadge`. The word must be true (claims rules) |
+| 8 | Dropdown | `DropdownButton expanded popup` | `.nf-btn--dropdown` | Opens a list the page owns: Sort by. The field's 12px corner, not the pill |
+| 9 | Quantity | `Quantity value onChange label decreaseLabel increaseLabel min max` | `.nf-qty` | A small count: guests, rooms, nights. Each end disables itself |
+| 10 | Checkbox | `Checkbox`, or any native checkbox | `input[type=checkbox]`, `.nf-check` | Several choices: terms, preferences. The label row is the 44px target |
+| 11 | Radio | `Radio`, or any native radio | `input[type=radio]`, `.nf-check` | One choice from a few: payment method |
+| 12 | Segmented | `Segmented` (`iconOnly` for glyphs) | `.nf-segmented` | Switching views or modes: Buy / Rent / Pay. The selected segment is brand blue in both variants |
+| 13 | Add / create | `Button leadingIcon="plus"` as primary, secondary or quiet | the button classes | Filled when adding is the screen's job, outline beside another primary, text in a list's head |
+| 14 | Back / nav | `BackControl surface="round"`; `Button variant="secondary" leadingIcon="arrow-left"` for Back, `variant="primary" arrow` for Next | the button classes | Returning, and the steps of a flow |
+| 15 | Action tiles | `ActionTile icon label tone href or onClick` | `.nf-action-tile` | Direct actions on a thing: Call, Share, Download (success), Delete (danger, destructive only) |
+| 16 | Link buttons | `LinkButton href` | `.nf-link-btn` | Inline ways on: View all, Learn more. An action that stays on the page is the tertiary instead |
+
+Destructive: `danger` (solid red pill) for the confirmed step, `dangerQuiet` (red tint) inside a sheet.
+
+### 19.3 States, motion and targets
+
+- **Default, hover, pressed, disabled** for every kind, in both themes. Hover exists only under `(hover: hover) and (pointer: fine)`, so a finger never leaves a button lit. Pressed is the dark fill (navy on paper, deep blue at night) plus the shared press scale. Disabled is the calm grey at full opacity: present, legible, plainly not answering. A loading button keeps its colours and its spinner and loses only the press.
+- **Motion:** only `transform` animates, on the shared press scale (`--nf-press-scale`, 0.97; `-sm` for circles, `-lg` for wide bars). Colour steps between states. Reduced motion and the Calm and Off settings stop the arrow nudge and the chevron turn; the press scale follows the shared press grammar (`press-motion.css`).
+- **Targets:** 44px or more for everything a finger presses (buttons 44 / 48 / 56, icon buttons 44, the FAB 56, stepper buttons 44, checkbox rows 44, link buttons 44 tall, action tiles at least 64 by 76). Tags are labels and carry no target.
+- **Focus:** a visible 2px ring (`--nf-focus-ring`) on every kind; the night primary adds its glow ring.
+- **One primary everywhere:** the doors (sign in, welcome, passcode) draw the same `.nf-btn--primary`; `.nf-slate-pill` keeps only the full-width 56px geometry.
+
+Files: `apps/web/src/app/css/buttons.css`, `controls.css`, `chips.css` (each ends with its button-system section), `apps/web/src/components/ui/` (`Button`, `Fab`, `DropdownButton`, `LinkButton`, `ActionTile`, `Quantity`, `Check`, `Tag`, `Switch`, `Segmented`), tests `button-system.dom.test.tsx` and `button-system-css.test.ts`.
