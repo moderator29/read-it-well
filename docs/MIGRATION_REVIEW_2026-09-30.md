@@ -738,3 +738,138 @@ editable listing it skips with a notice, as before.
 **Probes:** db-01, db-02, db-03 and new-a4-01 never write `lister_confirmed_at`,
 so the guard's new line cannot fire for them. Their inserts get NULL anyway.
 db-06 and db-20 are unchanged.
+
+---
+
+## Round 4: host C2b third draft (`20260930160200_host_c2b_rooms_held_by_other_sites`, 75c75d07): **APPLY**
+
+Checked against the live schema: `room_inventory` (990 rows, with its
+constraints, triggers, grants and policies), `rate_calendar` (1,980 rows,
+**0 closed**, table-level grants: anon SELECT, authenticated IDU, policies
+`rate_calendar_select` and `rate_calendar_write`), `reserve_room_nights` and
+`release_room_nights` (the only functions that write `room_inventory`), the
+readers of `rate_calendar`, and the probes. The live state has 0 calendar
+imports and 0 import nights.
+
+### The round-3 holds are all closed
+1. **Nothing can go above the room total.** Every UPDATE now caps the request
+   at `units_total` and then at `units_total - holds`, whether or not a hold
+   exists. The trigger fires `OF units_open, units_booked, units_held_back`, so
+   a direct write to `units_held_back` is recomputed as
+   `requested - units_open`, and the carried path only ever reads a value the
+   trigger computed. A forged value cannot open rooms that do not exist.
+2. **The upsert keeps the host's request.** BEFORE INSERT leaves the proposed
+   row as asked (`units_held_back = 0`), so the conflict update's
+   `EXCLUDED.units_open` is the host's real number. The BEFORE UPDATE clamp
+   then records what it held back. A row that is genuinely inserted is clamped
+   in the same statement by `room_inventory_after_insert_holds`, which is
+   AFTER INSERT and fires only for real inserts, never for the conflict path.
+3. **Two imports on a night with no inventory row.** Closures now carry a
+   source (`host_closed`, `import_closed`), and `closed` is derived from them
+   by a trigger. An import only ever touches its own part, and only inside
+   `set_import_closure`, which is flagged. A second import can no longer
+   mistake the first import's closure for the host's, and lifting an import's
+   closure never reopens the host's.
+
+### rate_calendar: the new columns, the trigger, and every reader and writer
+* **Readers are unchanged.** The only functions that read `rate_calendar` are
+  `price_room_booking`, `reserve_room_nights`, `stays_search_exact`,
+  `stays_search_public`, `calendar_feed`, and the two import functions this
+  file replaces. All of them read `closed` (and `rate_minor`), and `closed`
+  keeps its meaning. Pricing is untouched.
+* **Writers:**
+  * The host's price upsert (`calendar-actions.ts`) sends only
+    `rate_plan_id`, `date` and `rate_minor`, so its conflict update leaves both
+    source columns unchanged.
+  * The host's Close and Reopen now write `closed` together with
+    `host_closed`. The upsert records the host's closure even on a night an
+    import already holds. A Reopen clears only the host's part.
+  * A plain `insert ... closed true`, as in the room-bookings probe line 52,
+    becomes a host closure, so the probe's "closed night refuses a booking"
+    still holds.
+  * A forged `import_closed` from a member is ignored, because outside the
+    flag the trigger keeps `old.import_closed`.
+* **Grants and RLS:** the new columns ride the existing table-level grants.
+  Authenticated needs UPDATE on `host_closed`, which the app now writes, and
+  has it. The existing owner policy `rate_calendar_write` still gates rows.
+  Anon can read the new flags through the table-level SELECT. `closed` is
+  already public, so the only new fact exposed is that a closure came from
+  another site. That is minor, and noted for the lead.
+* **Backfill:** `update ... set host_closed = true where closed and not
+  host_closed and not import_closed` runs before the trigger exists. It only
+  sets a new column and is idempotent. Live it touches 0 rows (0 closed), so
+  it is non-destructive and correct. The read-back then proves
+  `closed = host_closed or import_closed` for every row.
+
+### Trigger order across both tables
+* On `room_inventory`, BEFORE triggers fire by name:
+  `booked_by_function_only`, then `open_within_total`, then
+  `set_updated_at`, then `zz_respects_import_holds`. The total check sees the
+  raw request, so an over-total request is still refused. The read-back now
+  checks the real `pg_trigger` order (BEFORE triggers only), not two string
+  literals.
+* The AFTER INSERT trigger calls `refresh_import_holds`, which issues an UPDATE
+  on the same row: the BEFORE UPDATE triggers run, carried by the flag. It
+  then calls `set_import_closure(false)`, which updates `rate_calendar`: its
+  single BEFORE trigger runs, flagged `open`. Neither table's trigger writes
+  back to the other through a trigger, so there is no recursion. Both flags
+  are transaction-local and reset after use.
+
+### reserve_room_nights and checkout cannot be refused or broken
+* `bookings_hold_and_release_rooms` calls `reserve_room_nights`, whose own
+  WHERE (`units_booked + p_rooms <= units_open`) is evaluated on the
+  already-held `units_open`. A room another site holds is simply not free,
+  with the existing "Only x of n nights" message.
+* The trigger never raises. On the carried path it sets
+  `units_open := greatest(least(requested, ceiling), units_booked)`, so
+  `room_inventory_check` (booked ≤ open) cannot fire on a reservation or a
+  release. `within_total` does not fire on a booking-function write, because
+  the SET list is `units_booked` only.
+* For a room type with no linked calendar, reserve, release and host writes
+  give exactly the same `units_open` as today (`requested`, `held_back = 0`),
+  and the AFTER INSERT trigger returns at once.
+* On nights with no inventory row, the import's fallback closure changes
+  nothing for Vallo guests, because reserve already refuses a night with no
+  row.
+
+### Dry run of `supabase/tests/pending/calendar-holds.sql` against the live schema
+I traced every step by hand against the live constraints and triggers. **I
+expect it to pass.**
+* **Setup:** as postgres, `guard_owner_write` steps aside. `business_kind
+  'hotel'`, `room_category 'double'` and `cancellation_policies` (2 rows) all
+  exist. The inventory insert passes `within_total` (3 of 3), and the AFTER
+  INSERT trigger returns because no import exists yet. `reserve(3)` fills
+  night +3.
+* **First pull:** +3 becomes 3 open and 3 booked, a clash (3 > 3 - 1), so
+  there is 1 conflict. +5 becomes 2 open with 1 held back. +400 has no row,
+  so the import closes it.
+* **Plain update to 3:** clamped to 2.
+* **Release of 1 on +3:** carried path, 2 open = 2 booked.
+* **Row created at +400:** clamped to 2, and the closure is lifted.
+* **Second pull:** there is no longer a clash, so nothing new is told.
+* **An update to 4:** `within_total` refuses it with `check_violation`.
+* **Dropping everything:** +5 and +400 go back to 3 open with 0 held back.
+* **Round 3:**
+  * The host-closed +402 becomes a host closure, and the import adds its part.
+  * The upsert on +5 with two imports gives 1 open and 2 held back.
+  * The forged 50 on +6 is recomputed to 0, and reserve leaves 3 on sale.
+  * +410 with two imports is closed as the imports' closure. The upsert
+    creates the row, clamps it to 1, and lifts the closure.
+  * Releasing both imports brings +5 back to 3 open with 0 held back, and the
+    host's closure on +402 stays.
+
+The probe waits in `tests/pending/`, which CI does not run, so it can move to
+`probes/` once the migration is applied.
+
+### Notes (not blockers)
+* **`calendar_feed` (the live C2 export)** still hides a night held by an
+  import unless it has `was_closed`. `was_closed` is now always false for room
+  types, so a host's own closure on a night another site holds is left out of
+  Vallo's export feed. That night is already booked on the importing site, so
+  the effect is small. A later change could read `host_closed` instead.
+* **The migration refuses to run if any room-type import night already
+  exists.** The live C2 is on, so if a host links a calendar before this lands,
+  the migration has to be converted by hand. There are 0 today, so apply it
+  soon.
+* On every booking the trigger adds one `room_types` lookup and one count of
+  import nights. Both are indexed, and the cost is negligible at today's scale.
