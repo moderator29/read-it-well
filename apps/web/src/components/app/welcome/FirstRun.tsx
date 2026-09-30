@@ -23,6 +23,7 @@ import {
 } from "./first-run-seen";
 import type { Arrival } from "@/app/welcome/plan";
 import { wallHeading } from "./wall-heading";
+import { stepPhoto } from "./step-photos";
 import { destinationOf, withNext } from "@/lib/auth/next-link";
 
 /**
@@ -189,6 +190,7 @@ export function FirstRun({
           tags: [f.choice.left, f.choice.right],
           sky: "night",
           label: f.choice.art,
+          photo: stepPhoto(4),
         },
       }
     : {
@@ -205,6 +207,7 @@ export function FirstRun({
           tags: [w.property, w.stays],
           sky: "night",
           label: f.worldsArt,
+          photo: stepPhoto(4),
         },
       };
 
@@ -223,6 +226,7 @@ export function FirstRun({
         tags: [w.property, w.stays],
         sky: "dawn",
         label: `${f.worldsArt}. ${w.property}: ${w.propertyHint}. ${w.stays}: ${w.staysHint}.`,
+        photo: stepPhoto(1),
       },
     },
     {
@@ -238,6 +242,7 @@ export function FirstRun({
         ],
         sky: "noon",
         label: f.verified.art,
+        photo: stepPhoto(2),
       },
     },
     {
@@ -254,6 +259,7 @@ export function FirstRun({
         tags: [f.safe.left, f.safe.right],
         sky: "dusk",
         label: f.safe.art,
+        photo: stepPhoto(3),
       },
     },
     last,
@@ -720,7 +726,10 @@ export function FirstRun({
               </div>
             );
           })}
-          <Lockup />
+          {/* On the founder's pictures the lockup follows the theme (a light
+              picture needs the dark wordmark); on the glass skies it is the
+              night one. */}
+          <Lockup themed={slides.some((s) => s.art.photo)} />
           {/* What the picture on screen shows, for a reader. */}
           <p className="sr-only">{slide.art.label}</p>
         </div>

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import type { CSSProperties } from "react";
 import { WelcomeCoin } from "./WelcomeScene";
+import type { StepPhoto } from "./step-photos";
 
 /**
  * THE PIECES A FULL-PAGE STEP IS DRAWN FROM (30 September), shared by the
@@ -21,6 +22,11 @@ export type Art = {
   /** Which light the sky carries (welcome.css `data-sky`). */
   sky: "dawn" | "noon" | "dusk" | "night";
   label: string;
+  /**
+   * The step's own picture, one per theme (`step-photos.ts`). Present, it
+   * replaces the glass scene above; absent, the glass scene is drawn.
+   */
+  photo?: StepPhoto | null;
 };
 
 export function wordsIn(text: string): number {
@@ -52,7 +58,7 @@ export function RiseWords({ text, start = 0 }: { text: string; start?: number })
  * it on the page itself (the interests question) rather than on the art, so
  * the light theme gets the artwork made for a light ground.
  */
-export function Lockup({ onCanvas = false }: { onCanvas?: boolean }) {
+export function Lockup({ onCanvas = false, themed = false }: { onCanvas?: boolean; themed?: boolean }) {
   const pair = (day: boolean) => (
     <>
       <Image
@@ -76,8 +82,12 @@ export function Lockup({ onCanvas = false }: { onCanvas?: boolean }) {
     </>
   );
   return (
-    <span className={onCanvas ? "nf-gs-lockup nf-gs-lockup--canvas" : "nf-gs-lockup"} role="img" aria-label="Vallo">
-      {onCanvas ? (
+    <span
+      className={onCanvas ? "nf-gs-lockup nf-gs-lockup--canvas" : themed ? "nf-gs-lockup nf-gs-lockup--themed" : "nf-gs-lockup"}
+      role="img"
+      aria-label="Vallo"
+    >
+      {onCanvas || themed ? (
         <>
           <span className="nf-gs-lockup__set nf-gs-lockup__set--night">{pair(false)}</span>
           <span className="nf-gs-lockup__set nf-gs-lockup__set--day">{pair(true)}</span>
@@ -95,6 +105,7 @@ export function Lockup({ onCanvas = false }: { onCanvas?: boolean }) {
  * a drag parallaxes them apart. Decorative; the step's words carry it.
  */
 export function StepArt({ art, priority }: { art: Art; priority: boolean }) {
+  if (art.photo) return <StepPhotoArt photo={art.photo} priority={priority} />;
   return (
     <>
       <span className="nf-gs-sky" />
@@ -133,5 +144,30 @@ export function StepArt({ art, priority }: { art: Art; priority: boolean }) {
         </span>
       ))}
     </>
+  );
+}
+
+/**
+ * A step's picture, the light and the dark version both in the page and the
+ * one for the reader's theme shown (welcome.css, "THE PICTURES"). Both are
+ * lazy, so the hidden one is never fetched (a `display: none` image is not
+ * loaded lazily); the first step asks for high priority instead of a
+ * preload, because a preload would fetch both themes. Next/image serves a
+ * width to suit: the art is the full width of a phone and a little over
+ * half of a wide screen.
+ */
+function StepPhotoArt({ photo, priority }: { photo: StepPhoto; priority: boolean }) {
+  const common = {
+    fill: true,
+    sizes: "(min-width: 64rem) 56vw, 100vw",
+    loading: "lazy" as const,
+    fetchPriority: priority ? ("high" as const) : ("auto" as const),
+    draggable: false,
+  };
+  return (
+    <span className="nf-gs-photo">
+      <Image {...common} alt="" src={photo.light} className="nf-gs-photo__img nf-gs-photo__img--light" />
+      <Image {...common} alt="" src={photo.dark} className="nf-gs-photo__img nf-gs-photo__img--dark" />
+    </span>
   );
 }

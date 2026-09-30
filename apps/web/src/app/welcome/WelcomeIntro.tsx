@@ -7,6 +7,7 @@ import type { Dictionary } from "@vallo/i18n/core";
 import { AuthPillLink } from "@/components/auth/slate";
 import { rememberFirstRunSeen, withPassedFlag } from "@/components/app/welcome/first-run-seen";
 import { Lockup, RiseWords, StepArt, wordsIn, type Art } from "@/components/app/welcome/StepArt";
+import { stepPhoto } from "@/components/app/welcome/step-photos";
 
 /**
  * The welcome intro: the first screen a stranger meets on a cold start, as
@@ -63,6 +64,7 @@ export function WelcomeIntro({ t, next = null }: { t: Dictionary; next?: string 
     tags: [c.chip],
     sky: "dawn",
     label: c.sceneLabel,
+    photo: stepPhoto(1),
   };
   const lead = wordsIn(w.titleA) + wordsIn(w.titleB);
 
@@ -74,7 +76,7 @@ export function WelcomeIntro({ t, next = null }: { t: Dictionary; next?: string 
             <div className="nf-gs-layer" data-sky={art.sky} aria-hidden="true">
               <StepArt art={art} priority />
             </div>
-            <Lockup />
+            <Lockup themed={!!art.photo} />
           </div>
 
           <div className="nf-gs-copy">

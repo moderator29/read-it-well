@@ -230,6 +230,36 @@
       );
   }
 
+  /* THE PICTURES (`step-photos.ts`): the founder's scene for the step, one
+     per theme, filling the art. It is a little wider than the screen so the
+     gentle parallax (12vw a step, a hair of scale as it leaves) never shows
+     its edge; the art's own fade, the blur of its foot and the haze above
+     melt it into the page as they do the glass skies. Its subject is in the
+     upper part of the file (the bottom 30 percent is left empty for the
+     fade), so a short screen crops from below. */
+  /* Under a picture the art's ground is the page, not the ink. */
+  .nf-gs-art:has(.nf-gs-photo) {
+    background: var(--nf-surface-canvas);
+  }
+  .nf-gs-photo {
+    position: absolute;
+    inset: 0 -12%;
+    transform: translate3d(calc(var(--d, 0) * 12vw), 0, 0) scale(calc(1 + var(--a, 0) * 0.04));
+  }
+  .nf-gs-photo__img {
+    object-fit: cover;
+    object-position: 50% 30%;
+  }
+  .nf-gs-photo__img--light {
+    display: none;
+  }
+  :root[data-theme="light"] .nf-gs-photo__img--light {
+    display: block;
+  }
+  :root[data-theme="light"] .nf-gs-photo__img--dark {
+    display: none;
+  }
+
   /* THE HILLS: three soft mounds in the deep blues, the ground the objects
      stand on (reference 42's velvet hills, drawn as light). */
   .nf-gs-hills {
@@ -877,11 +907,14 @@
   .nf-gs-lockup__set--day {
     display: none;
   }
-  :root[data-theme="light"] .nf-gs-lockup--canvas .nf-gs-lockup__set--day {
+  :root[data-theme="light"] :is(.nf-gs-lockup--canvas, .nf-gs-lockup--themed) .nf-gs-lockup__set--day {
     display: inline-flex;
   }
-  :root[data-theme="light"] .nf-gs-lockup--canvas .nf-gs-lockup__set--night {
+  :root[data-theme="light"] :is(.nf-gs-lockup--canvas, .nf-gs-lockup--themed) .nf-gs-lockup__set--night {
     display: none;
+  }
+  :root[data-theme="light"] .nf-gs-lockup--themed {
+    filter: none;
   }
   .nf-gs-question {
     margin-top: var(--nf-space-2xl);
