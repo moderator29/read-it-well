@@ -8,6 +8,9 @@
  *      (fields, code rings, provider buttons and the Get started choice
  *      tiles). One token set; auth.css points its `--nf-slate-card*` roles
  *      at it.
+ *   3. The navy glass: ONE material for every dark block (ref 50, the
+ *      side navigation), shared by the drawer and rail at night and by every
+ *      hero band in both themes.
  */
 @layer components {
   /* --------------------------------------------------- 1. the 3D icons */
@@ -67,5 +70,63 @@
     box-shadow: var(--nf-door-glass-depth);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
+  }
+
+  /* ------------------------------------------------- 3. the navy glass */
+  /*
+   * THE SIDE-NAV GLASS (founder reference 50, 30 September: "every dark
+   * block inside light mode" should be the member drawer's material). Deep
+   * navy, a soft blue bloom in the upper left and a fainter one lower right,
+   * a thin luminous blue edge. One token set, declared on the element
+   * itself (every user is a night island or the night document, so the
+   * inks resolve to the night's), used by:
+   *
+   *   - `.nf-navy-glass`, for any new dark block;
+   *   - every `HeroBand` (`.nf-hero-band`: Home's "Good morning" top, the
+   *     workspace "Today" band, the money summaries, the status headers,
+   *     the profile identity, the landing app band), in BOTH themes: in
+   *     light it replaces the flat navy of light.css; at night the band
+   *     keeps its raised night surface under the same bloom and edge;
+   *   - the drawer and the rail at night (shell-m.css drew this material
+   *     first; it is restated here from the same tokens so the two can
+   *     never drift).
+   *
+   * The moving edge light stays where edge-m.css allows it (the drawer, the
+   * hero band); nothing here animates.
+   */
+  :is(.nf-navy-glass, .nf-hero-band, .nf-drawer--left, .nf-nav--rail) {
+    --nf-navy-glass-bloom:
+      radial-gradient(110% 60% at 0% 0%, color-mix(in oklab, var(--nf-container-ink) 30%, transparent), transparent 72%),
+      radial-gradient(80% 40% at 100% 100%, color-mix(in oklab, var(--nf-container-ink) 10%, transparent), transparent 70%);
+    --nf-navy-glass-ground: linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--nf-container-ink) 9%, var(--nf-surface-canvas)) 0%,
+      var(--nf-surface-canvas) 70%
+    );
+    --nf-navy-glass-fill: var(--nf-navy-glass-bloom), var(--nf-navy-glass-ground);
+    --nf-navy-glass-edge: color-mix(in oklab, var(--nf-container-ink) 48%, transparent);
+    --nf-navy-glass-lift:
+      inset 0 1px 0 color-mix(in oklab, var(--nf-content-primary) 7%, transparent),
+      0 0 28px -12px color-mix(in oklab, var(--nf-glow-ink) 40%, transparent),
+      0 18px 36px -24px color-mix(in oklab, var(--nf-surface-artwork) 70%, transparent);
+  }
+  .nf-navy-glass,
+  :root[data-theme="light"] .nf-hero-band[data-theme="dark"] {
+    border: 1px solid var(--nf-navy-glass-edge);
+    background: var(--nf-navy-glass-fill);
+    box-shadow: var(--nf-navy-glass-lift);
+  }
+  /* Night: the band keeps its own raised surface, with the same bloom and
+     the same luminous edge, so the two themes read as one family. */
+  :root:not([data-theme="light"]) .nf-hero-band {
+    border-color: var(--nf-navy-glass-edge);
+    background: var(--nf-navy-glass-bloom), var(--nf-surface-elevated);
+    box-shadow: var(--nf-navy-glass-lift);
+  }
+  :root:not([data-theme="light"]) :is(.nf-drawer--left, .nf-nav--rail) {
+    background: var(--nf-navy-glass-fill);
+  }
+  :root:not([data-theme="light"]) .nf-drawer--left {
+    border-inline-end-color: var(--nf-navy-glass-edge);
   }
 }
