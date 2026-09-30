@@ -5087,15 +5087,6 @@ export const en = {
       windows: "New viewing windows added",
       similar: "See similar nearby",
     },
-    /* B13: one line on a saved card when something moved (lib/saved/changes.ts). */
-    savedChanges: {
-      priceDown: "Price down from {was} to {now}",
-      priceUp: "Price changed from {was} to {now}",
-      gone: "No longer available",
-      back: "Available again",
-      windows: "New viewing windows added",
-      similar: "See similar nearby",
-    },
     /* B3: the Saved compare (lib/saved/compare.ts). */
     compare: {
       open: "Compare",

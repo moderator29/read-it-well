@@ -572,7 +572,6 @@ export const NON_NAVIGABLE: Readonly<Record<string, string>> = {
   "/api/cron/sanctions-screen": "scheduled job, bearer token.",
   "/api/cron/pg-cron-watch": "scheduled job, bearer token.",
   "/api/cron/photo-hash-backfill": "scheduled job, bearer token.",
-  "/api/cron/photo-hash-backfill": "scheduled job, bearer token.",
   "/api/cron/risk-classes": "scheduled job, bearer token.",
   "/api/cron/saved-search-alerts": "scheduled job, bearer token.",
   "/api/cron/store-readiness": "scheduled job, bearer token.",
