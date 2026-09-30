@@ -881,3 +881,82 @@ The probe waits in `tests/pending/`, which CI does not run, so it can move to
   soon.
 * On every booking the trigger adds one `room_types` lookup and one count of
   import nights. Both are indexed, and the cost is negligible at today's scale.
+
+---
+
+## Review: M1 B11 and B13 (`20261001090000_m1_b11_b13_severity_and_saved_changes`, 6bb94258): **APPLY**
+
+Checked read-only against the live schema.
+
+**B11, notification severity**
+* **Column and constraint:** it adds `notifications.severity`, nullable, with a
+  CHECK of `action`, `update` or `fyi`. The constraint is added by name only if
+  it is missing. The backfill touches the 60 live rows. `notifications` has
+  only AFTER INSERT triggers (`push_enqueue`, `whatsapp_enqueue`), so the
+  backfill UPDATE fires nothing.
+* **Stamping trigger:** the new BEFORE INSERT trigger runs before those two
+  AFTER INSERT triggers and only fills a null.
+* **`public.notification_severity`:** SQL, `immutable`, `search_path ''`. It
+  reads only its arguments, and the enum values it names (`message`,
+  `social`, `booking`) exist.
+* **`private.stamp_notification_severity`:** `search_path ''`, fully qualified,
+  not a definer. The rows are written by `private.notify` (a definer running as
+  postgres) and by the service role, and both can execute the severity
+  function.
+* **Grants:** `notifications` already has table-level SELECT for authenticated,
+  so `grant select (severity)` changes nothing and is harmless. The UPDATE
+  grant is still column-level on `read_at` only, so the new column is not
+  writable by members. No policy is changed.
+
+**B13, `listing_changes`**
+* **Table access:** RLS is on. The only policy is SELECT `to authenticated`,
+  scoped to the caller's own rows in `saved_items`, whose `user_id` and
+  `listing_id` columns and `saved_items_listing_idx` index exist. Anon has
+  everything revoked, and authenticated has INSERT, UPDATE and DELETE revoked,
+  so **db-06** is unaffected. The policy depends only on `auth.uid()`, so
+  **db-20** is fine.
+* **`private.record_listing_change`:** AFTER UPDATE OF the price, `status` and
+  `closed_at` columns on `listings`. Definer, `search_path ''`, fully
+  qualified, execute revoked from PUBLIC, anon and authenticated. Every column
+  it reads exists: `listing_intent` (an enum, compared as text),
+  `sale_price_minor`, `rent_amount_minor`, `rate_minor`, `closed_at`, `is_demo`,
+  and `title`, which is NOT NULL, so the notification text cannot be null. It
+  never notifies the lister, and never on a demo listing.
+* **`private.record_viewing_windows`:** AFTER INSERT on `viewing_windows`.
+  `active` and `listing_ids uuid[]` exist, and the table has no triggers today.
+* **Idempotency:** `if not exists`, `create or replace`, `drop ... if exists`
+  and the constraint guarded by name make it safe to run twice. The read-back
+  raises on failure.
+
+**Hot tables, performance and payment**
+* **Payment tables and functions:** nothing is added to them. The functions
+  that update `listings` status, `closed_at` or price are the moderation and
+  agent sweeps, `close_listing` / `close_listings`, `reopen_listing` and
+  `principal_apply_answer`. None is a payment or settlement function, so the
+  new trigger never runs inside a charge.
+* **Cost per listing write:** it runs only when a price, `status` or
+  `closed_at` column is in the SET list. It does one `agents` lookup and one
+  indexed `saved_items` scan (16 saves live). It notifies only on a price move
+  while live, or on leaving live.
+* **Bulk writes:** `suspend_agent` or `admin_retire_demo_listings` can fan out
+  one notification per saver per listing. Demo listings are excluded. This is
+  fine at today's scale.
+* **Failure risk:** the trigger has no raise, and every value it writes is
+  NOT NULL-safe. The only way it could fail a listing write is if
+  `private.notify` or the push and WhatsApp enqueue triggers failed, and those
+  already run on every notification.
+
+**Probes:** the new column is nullable and there is no new write grant, so
+db-06's "member inserted a notification" check is still refused. Probe
+listings are never saved, so no probe counts extra notifications, and the
+extra `listing_changes` rows roll back with the probes. The name does not
+match the custody rule.
+
+**Notes (not blockers):**
+* A lister who takes a live listing back to DRAFT to edit it tells every saver
+  "no longer available", and no "back" message follows. Consider ignoring
+  PUBLISHED to DRAFT to PUBLISHED, or debouncing it.
+* Switching a listing between rent and sale reads as a "price change".
+* `notification_severity` and `stamp_notification_severity` keep the default
+  EXECUTE for PUBLIC and anon. Both are harmless (one is pure, the other is a
+  trigger function), but revoking them would match the house style.
