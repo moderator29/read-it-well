@@ -1,5 +1,6 @@
 import type { Dictionary } from "@vallo/i18n/core";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { Icon3D } from "@/components/ui/Icon3D";
 import { ButtonLink } from "@/components/ui/Button";
 import { ICON, Row, RowList, TYPE } from "@/components/app/Screen";
 import { SUPPLY_DOOR_HREF } from "@/components/agent/agent-doors";
@@ -39,10 +40,10 @@ export function ListingPitch({ copy, signedIn }: { copy: PitchCopy; signedIn: bo
       {/* `--nf-content-on-brand` rather than `#fff`. The mark sits on the agent
           gradient in both themes and the token is what follows the theme; the
           literal was a dark-only assumption that happened to look right. */}
-      <span
-        className="nf-plate nf-plate--brand nf-plate--lg mx-auto"
-      >
-        <UiIcon name="key" size={24} />
+      {/* LIST YOUR PROPERTY: the founder's 3D page with its plus (30
+          September), the same object as Home's List door. */}
+      <span className="mx-auto grid size-[5.5rem] place-items-center" aria-hidden="true" data-art="list">
+        <Icon3D name="list" size={88} priority />
       </span>
 
       <h1 className="nf-h2 mt-heading">{copy.title}</h1>
