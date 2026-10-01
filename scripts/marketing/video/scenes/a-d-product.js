@@ -143,7 +143,7 @@ export async function buildProductDesktop(ctx, T, open) {
   };
   const sA = fitSize("One app.", "700 {}px Poppins", 120, 900, -0.035);
   const sB = fitSize("One account.", "700 {}px Poppins", 112, 1100, -0.035);
-  /* round 4: centred optically (words at y ~400 / ~510, the switch at 640), held in place */
+  /* round 4: centred optically (words at y ~400 / ~510, the switch at 690, with clear air above it), held in place */
   const yA = 326;
   const yB = yA + 130;
   const oneApp = bigLine([["One", true], [" app.", false]], sA, { left: 400, top: yA }, group6).el;
@@ -161,7 +161,7 @@ export async function buildProductDesktop(ctx, T, open) {
   const bodies = ctx.scene("a-bodies", T.dropAt, T.row6Out + 0.4, { z: Z.bodies });
   const TABS = { w: 820, h: 110 };
   const tabs = stayTabs(ctx, bodies, { w: TABS.w, h: TABS.h, font: 40 }).el;
-  const tabsTo = { cx: 960, cy: 640, s: 1 };
+  const tabsTo = { cx: 960, cy: 690, s: 1 };
   const tabsT = { up0: T.tabsUp, up1: T.tabsUp + 0.5, down0: T.row6Out - 0.001, down1: T.row6Out };
   ctx.onFrame((t) => {
     const on = t >= tabsT.up0 && t < tabsT.down1;

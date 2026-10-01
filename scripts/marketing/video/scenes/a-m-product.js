@@ -33,13 +33,18 @@ export const HIGH = { ...L.PHONE_HIGH };
 /* Row 07's push onto the home screen's tiles (1.29x; display top at y 336, just under the pill;
    the Rent tile at y 1468). */
 const PUSH_TOP = { cx: 540, cy: 1218, height: 1800 };
-/* Row 08 (v3.3): the phone stays at PHONE_HERO; the Nigeria outline draws large behind its top, faint. */
-const LOW08 = { ...HERO };
+/* Row 08 (v3.3): the one size, the Nigeria outline drawn large behind the top of the phone, faint. */
+/* Rows 05 and 08 (round 5, #11): the one size, raised so the display ends at y 1500, above the caption band
+   (1520-1640): the caption never sits on the tab bar. In row 08 the pill is held off while the search page's
+   header passes under it. */
+const R05 = { cx: 540, cy: 814, height: HERO.height };
+const LOW08 = { ...R05 };
 /* Row 09's push onto the Property type grid (1.5x; display top at y 289, so the pill sits on the
    status bar; the Villas tile at y 1007). */
-const VILLAS_PUSH = { cx: 510, cy: 1318, height: 2100 };
+/* (round 5: lowered so the caption falls on the blank band between the grid and "Shape", not on a tile row) */
+const VILLAS_PUSH = { cx: 510, cy: 1559, height: 2100 };
 /* ...and its slow drift through the press (1.4%, about the display's top), so the hold is never still */
-const VILLAS_DRIFT = { cx: 510, cy: 1318 + 15, height: 2130 };
+const VILLAS_DRIFT = { cx: 510, cy: 1559 + 15, height: 2130 };
 /* Row 09 after the press: the one size, raised so the Apply button ends above y 1500 (v3.3: what the
    voice names sits above the captions); the pill is held off meanwhile (the sheet's title passes under it). */
 const SHEET = { cx: 540, cy: 830, height: HERO.height };
@@ -70,6 +75,8 @@ export async function buildProductMobile(ctx, T, open) {
   const phoneScene = ctx.scene("a-phone", T.riseAt - 0.05, END, { z: Z.phone });
   const phoneWrap = ctx.el("div", { class: "fill" }, phoneScene);
   open.clipDay(phoneWrap);
+  /* the screen comes up inside the opening disc over its first 0.15 s, so its first frames are clean mist */
+  tl.fromTo(phoneWrap, { opacity: 0 }, { opacity: 1, duration: 0.15, ease: "power1.in" }, T.widen + 0.01);
   const p = phone(ctx, { model: "island", parent: phoneWrap, env: "light", edge: "#f3f4f1" });
   await Promise.all(ctx.pending ?? []);
   /* The engine maps the display with a matrix3d: a composited layer, whose raster scale Chrome may
@@ -86,8 +93,8 @@ export async function buildProductMobile(ctx, T, open) {
     placed = key;
     fr.parentNode.insertBefore(fr, fr.nextSibling);
   });
-  const RISE = HERO.cy + 900;
-  Object.assign(p.pose, { ...HERO, ...flat, cy: RISE, rx: 16, ry: -6, opacity: 1 });
+  const RISE = R05.cy + 900;
+  Object.assign(p.pose, { ...R05, ...flat, cy: RISE, rx: 16, ry: -6, opacity: 1 });
   const P = p.pose;
 
   /* The pose, row by row (GSAP on p.pose only). Each tween names the same properties in its from and
@@ -96,10 +103,10 @@ export async function buildProductMobile(ctx, T, open) {
      whichever way the film is sought. */
   const ir = { immediateRender: false };
   /* 04 -> 05: rising behind the closed iris, nearly in place when it opens (8.19). */
-  tl.fromTo(P, { cy: RISE, rx: 16 }, { cy: HERO.cy, rx: 0, duration: 1.05, ease: "power3.out" }, T.riseAt);
+  tl.fromTo(P, { cy: RISE, rx: 16 }, { cy: R05.cy, rx: 0, duration: 1.05, ease: "power3.out" }, T.riseAt);
   tl.fromTo(P, { ry: -6 }, { ry: 6, duration: T.dropAt - T.homes, ease: "sine.inOut", ...ir }, T.homes);
   /* 06: the phone drops away as the row opens; the words land on clean mist. */
-  tl.fromTo(P, { cy: HERO.cy, rx: 0, ry: 6 }, { cy: 2800, rx: 10, ry: 0, duration: 0.32, ease: "power3.in", ...ir }, T.dropAt);
+  tl.fromTo(P, { cy: R05.cy, rx: 0, ry: 6 }, { cy: 2800, rx: 10, ry: 0, duration: 0.32, ease: "power3.in", ...ir }, T.dropAt);
   /* unseen, far below the frame: the pose row 07 rises from */
   tl.fromTo(P, { cy: 2800, rx: 10, height: HERO.height }, { cy: PARK.cy, rx: 12, height: PARK.height, duration: 0.01, ease: "none", ...ir }, T.dropAt + 1.2);
   /* 07: it rises only behind the shrinking question, pushed in on the home screen's tiles. */
@@ -112,6 +119,7 @@ export async function buildProductMobile(ctx, T, open) {
   tl.fromTo(P, { cy: VILLAS_PUSH.cy, height: VILLAS_PUSH.height }, { cy: VILLAS_DRIFT.cy, height: VILLAS_DRIFT.height, duration: T.pullBack - (T.villasPush + 0.6), ease: "sine.inOut", ...ir }, T.villasPush + 0.6);
   tl.fromTo(P, { cx: VILLAS_DRIFT.cx, cy: VILLAS_DRIFT.cy, height: VILLAS_DRIFT.height }, { cx: SHEET.cx, cy: SHEET.cy, height: SHEET.height, duration: 0.45, ease: "power2.inOut", ...ir }, T.pullBack);
   ctx.hidePill(T.pullBack, T.open + 0.3);
+  ctx.hidePill(T.toSearch + 0.05, T.villasPush + 0.2);
   /* 10: down to PHONE_HIGH as the cost section opens */
   tl.fromTo(P, { cx: SHEET.cx, cy: SHEET.cy, height: SHEET.height }, { cx: ROW10.cx, cy: ROW10.cy, height: ROW10.height, duration: 0.55, ease: "power2.inOut", ...ir }, T.need + 0.04);
   /* 10: the phone stays at PHONE_HIGH for the costs; a slow rise through the hold. */

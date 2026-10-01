@@ -243,8 +243,9 @@ export function buildOpenMobile(ctx, T) {
     Object.assign(edgeRing.style, { left: `${MARK.cx - r}px`, top: `${MARK.cy - r}px`, width: `${2 * r}px`, height: `${2 * r}px`, opacity: String(1 - ctx.progress(t, openEnd - 0.25, openEnd)) });
   });
   /** Clips a day layer to the opening window until it covers the frame. */
-  const clipDay = (node) => ctx.onFrame((t) => {
-    const r = t < T.widen ? 0 : radius(t);
+  /* (`lag` px: a layer whose disc trails the ground's, so the first frames show clean mist only) */
+  const clipDay = (node, lag = 0) => ctx.onFrame((t) => {
+    const r = t < T.widen ? 0 : Math.max(0, radius(t) - lag);
     node.style.clipPath = t < openEnd ? `circle(${r.toFixed(1)}px at ${MARK.cx}px ${MARK.cy}px)` : "none";
   });
 
