@@ -233,12 +233,12 @@ export const SHOTS = [
       const [edge] = p.at(-m.frame, HEADER.top);
       const left = edge - m.overhang;
       /* 25 px under the camera; two lines, no third */
-      /* and 20 px under the status bar (its clock and its icons) */
+      /* and 24 px under the status bar (its clock and its icons), safely past the 20 px rule */
       const cam = pageBox(p.at, CAMERA[ctx.model], "the camera");
       const clock = pageBox(p.at, [40, 60, 300, 130], "the clock");
       const icons = pageBox(p.at, [1000, 60, 1290, 130], "the status icons");
       ctx.cardCheck = { avoid: [cam, clock, icons, pageBox(p.at, BACK, "the back button"), pageBox(p.at, [1138, 209, 1270, 341], "the bell")] };
-      return popup({ x: left, fit: true, y: Math.max(cam.b + 25, clock.b + 20), lucide: "landmark", title: "Payment settled", line: "Straight to your bank", meta: null, example: true, scale: m.card });
+      return popup({ x: left, fit: true, y: Math.max(cam.b + 25, clock.b + 24), lucide: "landmark", title: "Payment settled", line: "Straight to your bank", meta: null, example: true, scale: m.card });
     },
   }),
 
