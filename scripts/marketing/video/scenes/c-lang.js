@@ -110,7 +110,7 @@ export async function buildLang(ctx, S) {
         x = hit[1] + GAP;
         continue;
       }
-      pills.push({ el: mkPill(x, y, w, NAVIES[Math.floor(rand() * NAVIES.length)], word), x, y, w });
+      pills.push({ el: mkPill(x, y, w, NAVIES[Math.floor(rand() * NAVIES.length)], word), x, y, w, word });
       x += w + GAP;
     }
   }
@@ -138,7 +138,14 @@ export async function buildLang(ctx, S) {
       const dir = Math.round((q.y - rowA) / pitch) % 2 === 0 ? 1 : -1;
       const mid = q.x + q.w / 2 + dir * drift;
       const away = (mid < partCentre ? -1 : 1) * p * (M ? 420 : 560) * (0.7 + 0.3 * Math.min(1, Math.abs(mid - partCentre) / 400));
-      place(q.el, { x: mid + away, y: q.y, o: (1 - 0.55 * p) * fade });
+      const x = mid + away;
+      place(q.el, { x, y: q.y, o: (1 - 0.55 * p) * fade });
+      /* round 5: a word shows whole or not at all: it fades as its pill
+         nears a frame edge, at 40% white */
+      if (q.word) {
+        const edge = Math.min(x - q.w / 2, ctx.W - (x + q.w / 2));
+        q.el.style.color = `rgb(255 255 255 / ${(0.4 * ctx.clamp(edge / 40)).toFixed(3)})`;
+      }
     });
     litPills.forEach((q, i) => {
       const on = ramp(ctx, t, lit[i] - 0.03, lit[i] + 0.12, "power2.out");
@@ -230,7 +237,9 @@ export async function buildLang(ctx, S) {
     });
     during(ctx, K.english - 0.2, K.r37 + 0.1, (t) => {
       const o = 1 - ramp(ctx, t, K.r37 - 0.15, K.r37 + 0.05);
-      place(R.slot, { x: M ? deviceAt.x : deviceAt.x + R.width / 2, y: deviceAt.y, o });
+      /* round 5: the last name grows 3% over its hold (never still) */
+      const k = 1 + 0.03 * ramp(ctx, t, K.igbo + 0.2, K.igbo + 1.2, "sine.inOut");
+      place(R.slot, { x: M ? deviceAt.x : deviceAt.x + R.width / 2, y: deviceAt.y, s: k, o });
       R.update(t);
     });
   }

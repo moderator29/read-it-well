@@ -72,7 +72,7 @@ export async function deskChecked(ctx, S, T) {
       if (!row) doRow();
       const k = ramp(ctx, t, c.t - 0.02, c.t + 0.46, "land");
       const gone = ramp(ctx, t, tGone, tGone + 0.3, "power2.in");
-      const y = row[i].y + 90 * (1 - k) + gone * 120;
+      const y = row[i].y + 90 * (1 - k) + gone * 120 - 10 * ramp(ctx, t, c.t + 0.46, tGone, "none"); // floats up while held
       const rot = (1 - k) * (i % 2 ? 7 : -7);
       c.el.style.transform = `translate(${row[i].x.toFixed(2)}px, ${y.toFixed(2)}px) rotate(${rot.toFixed(2)}deg)`;
       c.el.style.opacity = String((Math.min(1, k * 2.2) * (1 - gone)).toFixed(3));

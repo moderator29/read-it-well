@@ -63,6 +63,7 @@ export async function buildMobile(ctx) {
   /* Captions are off where the same words are big on screen. */
   /* Each gap covers exactly the caption lines (they open 0.12 s before their first word). */
   ctx.hideCaptions(T.r14 - 0.14, T.right - 0.12);   // "Talk straight to the owner, / the landlord or the agent,"
+  ctx.hideCaptions(40.4, 41.2);                        // round 5: off the drawer's "Switch to Stays" ("one place." is short and plain)
   ctx.hideCaptions(T.planning - 0.14, T.browse - 0.12); // row 19 is "off": "Planning a trip?" ("one place." has faded by 41.12)
   ctx.hideCaptions(T.going - 0.14, T.find - 0.12);  // row 23 is "off": "Going out tonight?"
   ctx.hideCaptions(T.owners - 0.14, T.mark - 0.12); // the role chips: "Owners, hosts, hotels and / restaurants with the verified"

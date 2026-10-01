@@ -16,8 +16,6 @@
  *        warm light blooms from the click; "Planning a trip?" lands in its
  *        ring at the left, then shrinks into the pill ("Book a room").
  */
-import { questionCard } from "../engine/components.js";
-import { QUESTIONS } from "./layout.js";
 import { NAVY, ELECTRIC, SHADOW, ramp, kf, mix, showDuring, box, cropBody, quadDriver, rectQuad, lerpQuad, shiftQuad, pressAt, dayCard, measure, ringOut } from "./b-kit.js";
 import { CW, CH } from "./b-desktop.js";
 
@@ -99,7 +97,7 @@ export async function deskTalk(ctx, S, T) {
   wvT.to(T.r14, 0.52, { cx: S.WIN85.cx, cy: S.WIN85.cy, s: S.WIN85.s }, "glide");
   wvT.to(T.r14 + 0.52, tLandBubble - T.r14 - 0.5, { cx: S.WIN85.cx - 6, cy: S.WIN85.cy - 6, s: S.WIN85.s * 1.012 }, "drift");
   wvT.to(tLandBubble + 0.04, 0.3, { cx: S.HERO.cx, cy: S.HERO.cy, s: S.HERO.s }, "power2.inOut");
-  const tLand = T.r14 + 0.52;
+  const tLand = T.r14 + 0.27;               // round 5: 30.85, the flown card reaches its twin's rect and swaps on one frame
   /* the thread's own Maitama card stays covered until the flown card lands on it: never two of it at once */
   const twin = box(ctx, pThread, { x: MAITAMA.x - 8, y: MAITAMA.y - 8, w: MAITAMA.w + 16, h: MAITAMA.h + 12, style: { background: "#f3f4f1" } });
   showDuring(ctx, twin, [[0, tLand]]);
@@ -111,24 +109,11 @@ export async function deskTalk(ctx, S, T) {
       const q = lerpQuad(rectQuad(A_VILLA), S.rectQuad(MAITAMA), k);
       return shiftQuad(q, 0, -50 * Math.sin(Math.PI * k));
     },
-    opacityAt: (t) => 1 - ramp(ctx, t, tLand, tLand + 0.14, "power1.out"),
+    opacityAt: (t) => (t < tLand ? 1 : 0),
   });
   ctx.sfx("card_slide", ctx.beat(53.4)); // 30.81
 
-  /* Card 1, taken over from section a at the cut in its end state (answer side up, right of where the
-     receipt was), so its answer reads to 31.30; then it leaves for the top right, where row 31 brings it back. */
-  const card1Out = ctx.beat(54.25); // 31.30
-  const C1 = { x: 1384, y: 150, w: 500, h: 160 };
-  const card1 = questionCard(ctx, cards, { q: QUESTIONS[0].q, a: QUESTIONS[0].a, box: C1, fontSize: 34 });
-  Object.assign(card1.front.style, { justifyContent: "center", textAlign: "center", textWrap: "balance" });
-  Object.assign(card1.back.style, { justifyContent: "center", textAlign: "center", fontSize: "28px", lineHeight: "1.22", textWrap: "balance" });
-  /* the answer on two set lines, never ragged */
-  card1.back.querySelector("span").innerHTML = "₦26,100,000 to move in.<br>Seen before a single call.";
-  card1.turn(T.r14 - 5, { sound: null }); // already turned at the cut
-  const c1c = { x: C1.x + C1.w / 2, y: C1.y + C1.h / 2 };
-  ctx.gsap.set(card1.root, { transformOrigin: "50% 50%", rotation: 3 });
-  tl.fromTo(card1.root, { x: 0, y: 0, rotation: 3, scale: 1 }, { x: 2070 - c1c.x, y: -330 - c1c.y, rotation: 22, scale: 0.9, duration: 0.36, ease: "power2.in", immediateRender: false }, card1Out);
-  showDuring(ctx, card1.root, [[T.r14, card1Out + 0.4]]);
+  /* Card 1: round 5, section a flies it out by 30.50 on desktop too, so nothing of it is left at the cut. */
 
   /* round 4: owner, landlord, agent on bare mist at the right (x 1300-1860), baselines 420 / 600 / 780, 120 px */
   const WX = 1300;
@@ -142,7 +127,7 @@ export async function deskTalk(ctx, S, T) {
     return { ...w, mask, el };
   });
   let wSize = null;
-  const tFly = T.inside + 0.4;               // 34.40: they fade out together (no flight into the pill)
+  const tFly = 33.85;                         // round 5: they fade out together over 33.85-34.00, before the echo
   ctx.onFrame((t) => {
     if (t < T.r14 || t > tFly + 0.4) {
       words.forEach((w) => (w.mask.style.visibility = "hidden"));
@@ -154,12 +139,12 @@ export async function deskTalk(ctx, S, T) {
     }
     words.forEach((w, i) => {
       const k = ramp(ctx, t, w.t - 0.06, w.t + 0.34, "land");
-      const out = ramp(ctx, t, tFly, tFly + 0.24, "power2.in");
+      const out = ramp(ctx, t, tFly, tFly + 0.15, "power1.in");
       const on = t >= w.t - 0.06 && out < 0.999;
       w.mask.style.visibility = on ? "inherit" : "hidden";
       if (!on) return;
       w.el.style.transform = `translateY(${((1 - k) * 110).toFixed(2)}%)`;
-      w.mask.style.transform = `translate(${(WX - 0.06 * wSize + w.dx).toFixed(2)}px, ${(w.y - 0.95 * wSize + 30 * out).toFixed(2)}px)`; // baseline at w.y
+      w.mask.style.transform = `translate(${(WX - 0.06 * wSize + w.dx).toFixed(2)}px, ${(w.y - 0.95 * wSize + 30 * out - 8 * ramp(ctx, t, w.t + 0.34, tFly, "none")).toFixed(2)}px)`; // baseline at w.y, floating up 8 px while held
       w.mask.style.opacity = (1 - out).toFixed(3);
     });
   });
@@ -180,9 +165,9 @@ export async function deskTalk(ctx, S, T) {
   ctx.el("span", { style: { position: "absolute", left: "2px", top: "0px", width: "3px", height: "30px", background: ELECTRIC, borderRadius: "2px" } }, eCaret);
   const eSend = ctx.el("div", { style: { flex: "none", width: "54px", height: "54px", borderRadius: "16px", background: "#0042a2", display: "grid", placeItems: "center", color: "rgb(210 225 255 / 0.85)" } }, echo);
   ctx.icon("arrow-up-right", { size: 27, stroke: 2.2 }, eSend);
-  const tEcho = T.r15 - 0.02;
-  const tType0 = T.r15 + 0.05;
-  const tType1 = T.inside + 0.3;
+  const tEcho = 34.0;                       // round 5: only once the words have gone
+  const tType0 = tEcho + 0.06;
+  const tType1 = T.app - 0.1;
   const tSend = T.app;
   const tEchoOut = tLandBubble + 0.02;
   const ECHO_BOTTOM = 990; // in the words' column, under "agent"; the caption is centred and short, clear to its left
@@ -285,11 +270,11 @@ export async function deskTalk(ctx, S, T) {
   });
   /* (no ring at the dot: v3.1 keeps rings to rows 04, 19 and 23) */
   ctx.sfx("pop", tDock, { offset: -2 });
-  /* the push toward FLIP: 1.8 x 1.111 = 2.0, the capture's own pixels */
+  /* the push toward FLIP */
   const flipW = { x: S.HERO.cx + (FLIP_C.x - CW / 2) * S.HERO.s, y: S.HERO.cy + (56 + FLIP_C.y - (CH + 56) / 2) * S.HERO.s };
-  /* round 4: FLIP sits left of centre (x 760), so the sidebar's foot and the page fill the frame; the mist at the
-     left is where the title lands */
-  const PUSH18 = { s: 1.8, fx: flipW.x, fy: flipW.y, tx: 760, ty: 860 };
+  /* round 5: 1.25 x 1.111 = 1.39; FLIP low at x 700, the sidebar whole and the inbox list across the right, the mist at
+     the left where the title lands (at x 960 and 2x the page there is empty) */
+  const PUSH18 = { s: 1.25, fx: flipW.x, fy: flipW.y, tx: 700, ty: 900 }; // round 5: a wider push, so the inbox fills the right
   /* never still: a slow push about the unread dot from 39.22, so the chip still docks on it exactly */
   cam.to(tBack + 0.52, T.place + 0.18 - (tBack + 0.52), { s: 1.03, fx: dotAt.x, fy: dotAt.y, tx: dotAt.x, ty: dotAt.y }, "drift");
   ctx.hidePill(T.place + 0.18, T.r19 + 0.02);
@@ -350,6 +335,12 @@ export async function deskTalk(ctx, S, T) {
   ringWrap.style.transformOrigin = `${TC.x}px ${TC.y}px`;
   tl.fromTo(ringWrap, { opacity: 1, scale: 1 }, { opacity: 0, scale: 0.9, duration: 0.28, ease: "power2.in", immediateRender: false }, tHold - 0.04);
   showDuring(ctx, ringWrap, [[T.planning, tHold + 0.26]]);
+  /* round 5: never still. The lines drift 2% while held; the ring's particles turn at 6 deg/s */
+  for (const ln of [l1, l2]) {
+    ctx.gsap.set(ln, { transformOrigin: "50% 50%" });
+    tl.fromTo(ln, { scale: 1 }, { scale: 1.02, duration: tHold - 41.9, ease: "none", immediateRender: false }, 41.9);
+  }
+  tl.fromTo(ringWrap, { rotation: 0 }, { rotation: 6 * (tHold + 0.26 - T.planning), duration: tHold + 0.26 - T.planning, ease: "none", immediateRender: false }, T.planning);
 
   /* ==================== the pointer ==================== */
   const o = S.orbT;

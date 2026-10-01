@@ -93,6 +93,17 @@ export async function buildDesktop(ctx) {
     veil.style.opacity = a.toFixed(3);
   });
 
+  /* round 5: a whole-window dim (to 60%) while a card or calendar sits over the page */
+  const dim = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${CW}px`, height: `${CH}px`, zIndex: "31", background: "rgb(246 248 252 / 0.4)", opacity: "0", visibility: "hidden" } }, inner);
+  S.dimRanges = [];
+  S.dimDuring = (t0, t1) => S.dimRanges.push([t0, t1]);
+  ctx.onFrame((t) => {
+    let a = 0;
+    for (const [t0, t1] of S.dimRanges) a = Math.max(a, ramp(ctx, t, t0, t0 + 0.25) * (1 - ramp(ctx, t, t1 - 0.25, t1)));
+    dim.style.visibility = a > 0.001 ? "inherit" : "hidden";
+    dim.style.opacity = a.toFixed(3);
+  });
+
   /** A page in the window: the capture at 1440 x 900 CSS px, hidden outside its ranges. */
   S.page = (id, ranges) => {
     const el = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${CW}px`, height: `${CH}px`, overflow: "hidden", visibility: "hidden" } }, inner);
@@ -129,6 +140,8 @@ export async function buildDesktop(ctx) {
   /* Captions are off where the same words are big on screen. */
   /* Each gap covers exactly the caption lines (they open 0.12 s before their first word). */
   ctx.hideCaptions(T.r14 - 0.14, T.right - 0.12);       // "Talk straight to the owner, / the landlord or the agent,"
+  ctx.hideCaptions(37.0, 37.6);                         // round 5: off the legend under "₦26,100,000" ("plan an inspection" is on the card)
+  ctx.hideCaptions(40.4, 41.2);                         // round 5: off the sidebar's foot during the push ("one place." is plain)
   ctx.hideCaptions(T.planning - 0.14, T.browse - 0.12); // row 19 is "off": "Planning a trip?" ("one place." has faded by 41.12)
   ctx.hideCaptions(T.going - 0.14, T.find - 0.12);      // row 23 is "off": "Going out tonight?"
   ctx.hideCaptions(T.owners - 0.14, T.verified - 0.12); // the role chips: "Owners, hosts, hotels and restaurants with the"

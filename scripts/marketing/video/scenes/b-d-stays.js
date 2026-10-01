@@ -7,11 +7,11 @@
  *        out of the page's featured row into RIGHT_PANEL as the window moves
  *        to WINDOW_LEFT; it turns over into the October calendar.
  *   D21-22 (one row) the pointer clicks 16 and 19, the range fills, "3
- *        nights" pops out; the window folds into a strip of d-stays-dates-lt
- *        (its date fields and button only, at the hero scale: no count, no
- *        price), the chip lands in the fields; the results settle under the
- *        fields they answer; "Room booked" (Example) stays readable 1.5 s.
- *        Then everything lifts away into the dusk.
+ *        nights" pops out; on one frame the calendar goes and the page swaps
+ *        to d-stays-dates-lt (round 5: the window stays at the hero; the
+ *        capture's results grid is covered), the chip lands in the fields;
+ *        "Room booked" (Example) and the price land as bodies in the page's
+ *        empty foot. Then everything lifts away into the dusk.
  */
 import { NAVY, INK2, ELECTRIC, SHADOW, ramp, mix, showDuring, box, cropBody, quadDriver, rectQuad, pressAt, glassCard, iconPlate, exampleChip, photoExample, monthCalendar } from "./b-kit.js";
 import { CW, CH } from "./b-desktop.js";
@@ -24,11 +24,9 @@ const PAGE_BG = "#f1f2ed";
 /* d-stay-lt, capture px: the resort's photo, clear of the page's buttons and chips. */
 const PHOTO = { x: 720, y: 140, w: 1880, h: 800 };
 const PHOTO_D = { x: 820, y: 140, w: 1680, h: 800 }; // the same, narrower, for the price card
-/* d-stays-dates-lt: the strip's view (the fields and the button), the fields, the columns. */
-const STRIP = { viewLeft: 320, viewW: 1064, viewTop: 196, viewH: 104 };
+/* d-stays-dates-lt: the fields and the columns. */
 const FIELDS = { x: 340, y: 228, w: 505, h: 57 }; // Check in and Check out
 const COL = { checkIn: 340, checkOut: 600, guests: 858, guestsR: 1100, button: 1117, buttonR: 1363 };
-const STRIP_TOP = 250;
 
 export async function deskStays(ctx, S, T) {
   const { tl } = ctx;
@@ -47,15 +45,14 @@ export async function deskStays(ctx, S, T) {
   const tHotels = 43.72;                     // once the window has risen (round 4: the title holds to 43.15)
   const tShortlets = T.shortlets + 0.24;     // 43.98
   const tPop = T.and10;                      // 46.39: "3 nights"
-  const tFold0 = tPop + 0.01;                // the window folds into its strip
-  const tFold1 = tFold0 + 0.4;
-  const tFade = tFold0 + 0.22;               // then the dates page fades in, the fold >80% done
-  const pStays = S.page("d-stays-lt", [[S.tSwap, tFold1 + 0.1]]);
-  const pDates = S.page("d-stays-dates-lt", [[tFade, T.r23 + 0.3]]);
-  /* never below CSS y 302: the capture's results row (with its own prices) never paints */
-  pDates.style.clipPath = "inset(0px 0px 598px 0px)";
-  ctx.gsap.set(pDates, { opacity: 0 });
-  tl.fromTo(pDates, { opacity: 0 }, { opacity: 1, duration: 0.034, ease: "none", immediateRender: false }, tFade); // a cut, not a dissolve
+  /* round 5: the window stays at the hero; on the calendar's exit the page swaps to d-stays-dates-lt on one frame */
+  const tSwapDates = tPop + 0.06 + 0.017;
+  const pStays = S.page("d-stays-lt", [[S.tSwap, tSwapDates + 0.02]]);
+  const pDates = S.page("d-stays-dates-lt", [[tSwapDates, T.r23 + 0.3]]);
+  /* the capture's results grid (with its own prices) never paints: its rows are covered by the page's own ground,
+     and that empty foot is where the results land as bodies */
+  const RESULTS_TOP = 515;
+  box(ctx, pDates, { x: 264, y: RESULTS_TOP, w: CW - 264, h: CH - RESULTS_TOP, style: { background: "#f3f4f1" } });
 
   /* ==================== D20: the tiles lift in place ==================== */
   const tiles = [
@@ -99,7 +96,7 @@ export async function deskStays(ctx, S, T) {
 
   /* D20 -> D21: to the side as the resort card rises */
   /* the window stays at the hero scale; its right third softens under the card and the calendar */
-  S.veilDuring(T.resorts - 0.1, tPop + 0.2);
+  S.dimDuring(T.resorts - 0.1, tPop + 0.3); // round 5: the page dims to 60% under the card and the calendar
 
   /* ==================== the resort card, which turns over into the calendar ==================== */
   const FW = 560;
@@ -129,7 +126,7 @@ export async function deskStays(ctx, S, T) {
   const tFlip0 = T.pick - 0.28;
   const tFlip1 = tFlip0 + 0.5;
   const tCalOut0 = tPop + 0.06;
-  const tCalOut1 = tCalOut0 + 0.12;           // round 4: scale to 0.9 and fade, gone before the dates page shows
+  const tCalOut1 = tCalOut0 + 0.017;          // round 5: a hard swap on one frame (no dissolve); only the flying chip carries on
   ctx.sfx("card_slide", T.resorts, { offset: -2 });
   showDuring(ctx, flipper, [[tRise0, tCalOut1]]);
   ctx.onFrame((t) => {
@@ -165,13 +162,12 @@ export async function deskStays(ctx, S, T) {
   cal.select(tap16, tap19, T.r23);
 
   /* ==================== D22: the window folds into the strip; the chip lands ==================== */
-  const sH = (56 + STRIP.viewH) * S.HERO.s;
-  const stripWv = { cx: 960, cy: STRIP_TOP + sH / 2, s: S.HERO.s, ry: 0, opacity: 1, ...STRIP };
-  wvT.to(tFold0, tFold1 - tFold0, { cx: stripWv.cx, cy: stripWv.cy, s: stripWv.s, ...STRIP }, "glide");
-  /* everything lifts away before "Going" (49.04) */
+  /* the hero holds (a 6 px float, never still); everything lifts away before "Going" (49.04) */
   const tAway = T.r23 - 0.24;
-  wvT.to(tAway - 0.06, 0.22, { cy: stripWv.cy - 420, opacity: 0 }, "power2.in");
-  const P = (x, y) => S.toStageAt(stripWv, cam0, x, y);
+  wvT.to(43.7, tSwapDates - 43.7, { cy: S.HERO.cy - 6 }, "drift");
+  wvT.to(tSwapDates, tAway - 0.06 - tSwapDates, { cy: S.HERO.cy - 12 }, "drift");
+  wvT.to(tAway - 0.06, 0.22, { cy: S.HERO.cy - 420, opacity: 0 }, "power2.in");
+  const P = (x, y) => S.toStageAt(heroWv, cam0, x, y);
   const fieldsC = P(FIELDS.x + FIELDS.w / 2, FIELDS.y + FIELDS.h / 2);
 
   const tGrow0 = tPop + 0.06;
@@ -211,7 +207,7 @@ export async function deskStays(ctx, S, T) {
 
   /* ==================== the results, each under the field it answers ==================== */
   const colX = { a: P(COL.checkIn, 0).x, b: P(COL.checkOut, 0).x, c: P(COL.guests, 0).x, cR: P(COL.guestsR, 0).x, d: P(COL.button, 0).x, dR: P(COL.buttonR, 0).x };
-  const Y0 = P(0, STRIP.viewTop + STRIP.viewH).y + 42;
+  const Y0 = P(0, RESULTS_TOP).y + 18; // in the page's empty foot
   const DH = 250;
   const EH = 150;
   /* D: the price, under "Show prices for these dates" */

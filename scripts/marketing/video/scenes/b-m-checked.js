@@ -121,7 +121,7 @@ export async function checked(ctx, S, T) {
       if (!lay) doLayout();
       const k = ramp(ctx, t, c.t - 0.02, c.t + 0.46, "land");
       const gone = ramp(ctx, t, tGone, tGone + 0.3, "power2.in");
-      const y = lay[i].y + 90 * (1 - k) + gone * 120;
+      const y = lay[i].y + 90 * (1 - k) + gone * 120 - 10 * ramp(ctx, t, c.t + 0.46, tGone, "none"); // floats up while held
       const rot = (1 - k) * (i % 2 ? 7 : -7);
       c.el.style.transform = `translate(${lay[i].x.toFixed(2)}px, ${y.toFixed(2)}px) rotate(${rot.toFixed(2)}deg)`;
       c.el.style.opacity = String((Math.min(1, k * 2.2) * (1 - gone)).toFixed(3));
@@ -139,11 +139,12 @@ export async function checked(ctx, S, T) {
   const pose = S.pLpose;
   pose.to(tRise + 0.11, 0.001, { ...HIGH, cy: 2600, rx: 0, ry: 0, opacity: 1 }, "none");
   pose.to(tRise + 0.12, 0.5, HIGH, "glide");                                      // 57.75-58.25
-  /* round 4: never still. The phone eases right (cx 700) as card 2 comes, so the card has the bezel and the
-     form's empty foot; then a slow 1.04x push to the cut. */
-  const SIDE = { cx: 700, cy: HIGH.cy - 8, height: HIGH.height * 1.02 };
+  /* round 5: the phone eases right to cx 700 at h 1400 (x 365-1035, whole) as card 2 comes; then a 10 px float,
+     never still. The pill steps aside: it would sit on the app's logo. */
+  const SIDE = { cx: 700, cy: HIGH.cy - 4, height: HIGH.height };
   pose.to(tRise + 0.64, tIn + 0.3 - (tRise + 0.64), SIDE, "power1.inOut");
-  pose.to(tIn + 0.3, tOut - tIn - 0.3, { cy: HIGH.cy - 20, height: HIGH.height * 1.04 }, "drift");
+  pose.to(tIn + 0.3, tOut - tIn - 0.3, { cy: HIGH.cy - 14 }, "drift");
+  ctx.hidePill(57.9, 62.5);
   pose.to(tOut, 0.24, { cy: 2650 }, "power2.in");                                 // leaves as the chapter ends, gone by 62.79
   const page = screenPage(ctx, pL, ctx.src.display("verification-lt"));
   showDuring(ctx, page.el, [[tRise + 0.1, tEnd]]);
@@ -151,12 +152,13 @@ export async function checked(ctx, S, T) {
   /* ==================== row 27: card 2 ==================== */
   const q = QUESTIONS[1];
   const cardLayer = ctx.scene("b-m-card2", tIn - 0.05, tEnd, { z: 32 });
-  /* round 4: on the bezel and the form's empty foot (left of the phone at cx 700), clear of every line of text */
-  const BOX = { x: 40, y: 1180, w: 480, h: 200 };
-  const card = questionCard(ctx, cardLayer, { q: q.q, a: q.a, box: BOX, mark: true, fontSize: 38 });
+  /* round 5: at x 40-400, y 1180-1340: on the mist and the bezel (35 px at most), on no screen text */
+  const BOX = { x: 40, y: 1180, w: 360, h: 160 };
+  const card = questionCard(ctx, cardLayer, { q: q.q, a: q.a, box: BOX, mark: true, fontSize: 30 });
   card.front.style.justifyContent = "center";
   card.front.style.textAlign = "center";
-  Object.assign(card.back.style, { justifyContent: "center", fontSize: "33px", lineHeight: "1.22", textWrap: "balance" });
+  card.front.style.textWrap = "balance";
+  Object.assign(card.back.style, { justifyContent: "center", fontSize: "27px", lineHeight: "1.22", textWrap: "balance" });
   ctx.gsap.set(card.root, { transformOrigin: "50% 50%" });
   ctx.gsap.set(card.root, { x: -900, y: -560, rotation: -32 });
   tl.fromTo(card.root, { x: -900, y: -560, rotation: -32 }, { x: 0, y: 0, rotation: -2, duration: 0.52, ease: "back.out(1.2)", immediateRender: false }, tIn);
@@ -175,7 +177,7 @@ export async function checked(ctx, S, T) {
   });
   let m0 = null;
   markToCoin(ctx, cardLayer, {
-    mark0: { size: Math.round(38 * 1.3) },
+    mark0: { size: Math.round(30 * 1.3) },
     flip: 0.06,
     markAt: () => {
       if (!m0) m0 = { x: BOX.x + backMark.offsetLeft + backMark.offsetWidth / 2, y: BOX.y + backMark.offsetTop + backMark.offsetHeight / 2 };

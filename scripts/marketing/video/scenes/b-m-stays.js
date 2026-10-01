@@ -43,7 +43,7 @@ export async function stays(ctx, S, T) {
   const HIGH = { cx: L.PHONE_HIGH.cx, cy: L.PHONE_HIGH.cy, height: L.PHONE_HIGH.height };
 
   /* ---------- the clock ---------- */
-  const tRise = 43.15;                       // the phone rises as the title starts for the pill (round 4)
+  const tRise = 42.95;                       // round 5: it starts under the held title (its top stays below the ring until 43.15)
   const tHotels = 43.72;                     // at the end of "hotels", once the phone is up
   const tShortlets = T.shortlets + 0.24;     // 43.98, inside "shortlets"
   const tDim = T.pick - 0.33;                // 45.10: the phone dims under the card
@@ -53,7 +53,7 @@ export async function stays(ctx, S, T) {
   const tap19 = T.dates + 0.38;              // 46.10
   const tPop = T.and10;                      // 46.39: "3 nights"
   const tCalOut0 = tPop + 0.06;              // 46.45: the calendar lifts away; the screen swaps under it
-  const tCalOut1 = tCalOut0 + 0.12;          // round 4: a scale-and-fade exit, done before the date page shows (no ghost)
+  const tCalOut1 = tCalOut0 + 0.017;         // round 5: a hard swap on one frame (no dissolve); only the flying chip carries on
   const tGrow0 = tPop + 0.06;                // the chip's width grows first, its dates fade in once it is complete
   const tGrow1 = tGrow0 + 0.2;
   const tDrop0 = T.book;                     // 46.52: the chip drops into the fields
@@ -65,7 +65,13 @@ export async function stays(ctx, S, T) {
   /* ---------- the phone: one pose from 42.87 to 48.80 ---------- */
   const pose = S.pLpose;
   pose.to(tRise - 0.01, 0.001, { cx: HIGH.cx, cy: 2650, height: HIGH.height, rx: 0, ry: 0, opacity: 1 }, "none");
-  pose.to(tRise, 0.5, HIGH, "glide");
+  pose.to(tRise, 0.6, HIGH, "glide");
+  pose.to(tRise + 0.6, T.resorts - 0.12 - tRise - 0.6, { cy: HIGH.cy - 8 }, "drift");
+  /* round 5: the phone steps right while the resort card rises at its left (overlap 60 px at most), and comes
+     back under the calendar (the wash dims it there) */
+  pose.to(T.resorts - 0.12, 0.4, { cx: 760, cy: HIGH.cy - 8 }, "power2.inOut");
+  pose.to(tFlip0, 0.5, HIGH, "power2.inOut");
+  pose.to(tCalOut1, tAway - tCalOut1, { cy: HIGH.cy - 8 }, "drift");
   pose.to(tAway, 0.22, { cy: 2650 }, "power2.in");
 
   const staysPage = screenPage(ctx, pL, ctx.src.display("stays-lt"));
@@ -131,7 +137,7 @@ export async function stays(ctx, S, T) {
   }
 
   /* ==================== the resort card, which turns over into the calendar ==================== */
-  const CW = 560;
+  const CW = 460; // round 5: x 44-504, over the phone's bezel by 60 px at most
   const photoH = Math.round((PHOTO.h * CW) / PHOTO.w);
   const cardH = photoH + 92;
   const CAL = { x: 90, y: 400, w: 900, h: 720 };

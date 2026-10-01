@@ -431,7 +431,7 @@ export function measure(text, font, letterSpacing = "-0.03em") {
  * update(t) }; place `slot` yourself (it is left-aligned; align "center"
  * centres the words in it).
  */
-export function roll(ctx, parent, { items, size, color = "#ffffff", weight = 700, font = '"C Poppins"', align = "left", rollFirst = false, letterSpacing = "-0.03em" }) {
+export function roll(ctx, parent, { items, size, color = "#ffffff", weight = 700, font = '"C Poppins"', align = "left", rollFirst = false, letterSpacing = "-0.03em", fade = false }) {
   const H = Math.round(size * 1.34);
   const widths = items.map((it) => measure(it.text, `${weight} ${size}px ${font}`, letterSpacing));
   const W = Math.ceil(Math.max(...widths)) + Math.round(size * 0.2);
@@ -445,7 +445,19 @@ export function roll(ctx, parent, { items, size, color = "#ffffff", weight = 700
      over [t - 0.2, t - 0.06], a 0.12 s empty slot, in over [t + 0.06, t + 0.26]. */
   const inU = (i, t) => (i === 0 && !rollFirst ? 1 : ramp(ctx, t, items[i].t + 0.06, items[i].t + 0.26, "power3.out"));
   const outU = (i, t) => (i + 1 < items.length ? ramp(ctx, t, items[i + 1].t - 0.2, items[i + 1].t - 0.06, "power2.in") : 0);
+  /* fade: the words cross-fade in place over 0.16 s instead (no empty slot) */
+  const fadeIn = (i, t) => (i === 0 && !rollFirst ? 1 : ramp(ctx, t, items[i].t - 0.06, items[i].t + 0.1, "power1.inOut"));
+  const fadeOut = (i, t) => (i + 1 < items.length ? ramp(ctx, t, items[i + 1].t - 0.06, items[i + 1].t + 0.1, "power1.inOut") : 0);
   function update(t) {
+    if (fade) {
+      nodes.forEach((n, i) => {
+        const o = fadeIn(i, t) * (1 - fadeOut(i, t));
+        n.style.visibility = o > 0.001 ? "" : "hidden";
+        n.style.opacity = opa(o);
+        n.style.transform = "";
+      });
+      return;
+    }
     nodes.forEach((n, i) => {
       const y = (1 - inU(i, t)) * H - outU(i, t) * H;
       const on = Math.abs(y) < H - 0.5;

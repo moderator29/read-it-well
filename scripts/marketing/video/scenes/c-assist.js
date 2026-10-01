@@ -30,7 +30,7 @@ export async function buildAssist(ctx, S) {
   const qFrom = 72.85; // round 4: the "?" drops once the row has flown off (72.82)
   const qLand = qFrom + 0.28; // 73.13, on "question" (72.95 to 73.43)
   /* the answer rests, pushed 1.5% closer over its hold (never fully still) */
-  const restPush = (t) => 1 + 0.015 * ramp(ctx, t, K.renting, leave[0], "sine.inOut");
+  const restPush = (t) => 1 + 0.03 * ramp(ctx, t, back[1], leave[0], "sine.inOut"); // round 5: from the end of the push-back
 
   /* ================= the ground: mist to the cut ================= */
   const sky = ctx.scene("c32-sky", K.r32 - 0.3, K.r35, { z: 1 });
@@ -83,19 +83,21 @@ export async function buildAssist(ctx, S) {
       typed.textContent = txt;
       car.style.opacity = t >= tSend ? "0" : opa(caretBlink(t));
     });
-    /* pushed 1.4x onto the input bar, which lands at y 1380 with "How can I
-       help today?" at about y 560 (round 4: the phone fills the frame down to
-       the caption instead of hanging from the top), creeping 3% closer while
-       the question is typed (never still), then back to PHONE_HERO's size for the answer, 50 px higher so
-       the answer's last named line ("ask the lister directly before you
-       commit", display y 1763) ends by y 1200, above the captions (v3.3); it
-       leaves at the chapter's end. The pill fades out while the push brings
-       "How can I help today?" up through it. */
+    /* pushed onto the input bar while the question is typed, creeping 3%
+       closer (never still), then back to PHONE_HERO's size for the answer,
+       which leaves at the chapter's end. */
     const s0 = dispToStage(P, 0, 0).s;
-    const pushK = (t) => 1.4 * (1 + 0.03 * ramp(ctx, t, rise[1], back[0], "none"));
-    const pushedCy = (t) => 1380 - (2731 - 1434) * s0 * pushK(t);
-    const restCy = 1030;
-    ctx.hidePill(K.r33 - 0.2, back[1] - 0.1);
+    /* round 5: the whole phone stays in frame, a 1.25x push with its top
+       at y 50; the input bar lands at about y 1684, under the caption band,
+       "How can I help today?" at about 965. The answer then rests at
+       PHONE_HERO's size, raised to cy 860 so the whole screen (to its input
+       bar, display 2790) ends above the caption band and its last named
+       line sits near y 1018; the pill stays away through row 34, where it
+       would sit on the app's own header. */
+    const pushK = (t) => 1.25 * (1 + 0.03 * ramp(ctx, t, rise[1], back[0], "none"));
+    const pushedCy = () => 50 + 1434 * s0 * 1.25;
+    const restCy = 860;
+    ctx.hidePill(K.r33 - 0.2, K.r35);
     p.poses.push({
       t0: rise[0] - 0.02, t1: leave[1] + 0.02,
       fn: (t) => {
@@ -103,8 +105,8 @@ export async function buildAssist(ctx, S) {
         const u = 1 - ramp(ctx, t, back[0], back[1], "power2.inOut");
         const out = ramp(ctx, t, leave[0], leave[1], "leave");
         const k = restPush(t);
-        /* the rest push holds the answer's last line (display 1763) where it is */
-        const cy = mix(restCy - (1763 - 1434) * s0 * (k - 1), pushedCy(t), u);
+        /* the rest push holds the screen's foot (display 2790) where it is */
+        const cy = mix(restCy - (2790 - 1434) * s0 * (k - 1), pushedCy(t), u);
         return { cx: P.cx, cy: cy + (1 - up) * 2300 + out * 2300, height: P.height * mix(k, pushK(t), u), rx: 10 * (1 - up) + 10 * out, ry: 0, rz: 0, fov: 24, opacity: 1 };
       },
     });

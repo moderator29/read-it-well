@@ -67,6 +67,12 @@ export async function switcher(ctx, S, T) {
   tl.fromTo(title, { y: 0, scale: 1 }, { y: pillY - CY, scale: 0.22, duration: tShrink1 - tHold, ease: "power3.inOut", immediateRender: false }, tHold);
   tl.fromTo(title, { opacity: 1 }, { opacity: 0, duration: 0.08, ease: "power1.in", immediateRender: false }, tShrink1 - 0.06);
   tl.fromTo(ringWrap, { opacity: 1, scale: 1 }, { opacity: 0, scale: 0.9, duration: 0.28, ease: "power2.in", immediateRender: false }, tHold - 0.04);
+  /* round 5: never still. The lines drift up 2% while held; the ring's particles turn at 6 deg/s */
+  for (const ln of [line1, line2]) {
+    ctx.gsap.set(ln, { transformOrigin: "50% 50%" });
+    tl.fromTo(ln, { scale: 1 }, { scale: 1.02, duration: tHold - 41.9, ease: "none", immediateRender: false }, 41.9);
+  }
+  tl.fromTo(ringWrap, { rotation: 0 }, { rotation: 6 * (tHold + 0.26 - tIn), duration: tHold + 0.26 - tIn, ease: "none", immediateRender: false }, tIn);
   showDuring(ctx, title, [[tIn - 0.02, tShrink1 + 0.04]]);
   showDuring(ctx, ringWrap, [[tIn, tHold + 0.26]]);
 }

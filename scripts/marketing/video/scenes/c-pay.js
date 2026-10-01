@@ -66,7 +66,7 @@ export async function buildPay(ctx, S) {
   /* ================= the lock (row 28) ================= */
   /* three presses, spaced on the words; each fills two dots; the last on "pay" */
   const presses = [
-    { key: M ? 2 : 4, t: K.when, snd: 1 },
+    { key: M ? 2 : 4, t: 63.1, snd: 1 }, // round 5: the first dot on 63.10, no still lock before it
     { key: M ? 1 : 2, t: K.time, snd: 3 },
     { key: M ? 3 : 6, t: K.pay, snd: 6 },
   ];
@@ -140,11 +140,14 @@ export async function buildPay(ctx, S) {
        the caption */
     const SP = 1.8;
     const pushed = { x: 960 - (G.dots.x0 + 2.5 * G.dots.dx) * SP, y: 420 - (56 + G.dots.y) * SP, s: SP };
-    const pushT = [K.r28 + 0.02, K.when - 0.03];
+    const pushT = [K.r28 + 0.02, 63.06];
     const pose = (tt) => {
       const u = ramp(ctx, tt, pushT[0], pushT[1], "power3.out");
       const out = ramp(ctx, tt, leave[0], leave[1], "leave");
-      return { x: mix(W.x, pushed.x, u), y: mix(W.y, pushed.y, u) + out * 1500, s: mix(sc, SP, u) };
+      /* then a slow creep closer about the dots (never still) */
+      const k = 1 + 0.03 * ramp(ctx, tt, pushT[1], leave[0], "none");
+      const q = { x: 960 - (960 - pushed.x) * k, y: 420 - (420 - pushed.y) * k, s: SP * k };
+      return { x: mix(W.x, q.x, u), y: mix(W.y, q.y, u) + out * 1500, s: mix(sc, q.s, u) };
     };
     const C = (x, y, tt = K.when) => { const q = pose(tt); return { x: q.x + x * q.s, y: q.y + (56 + y) * q.s }; };
     ctx.img(ctx.src.capture(G.id), { class: "abs", style: { left: "0px", top: "0px", width: "1440px", height: "900px" } }, win.content);
@@ -227,16 +230,16 @@ export async function buildPay(ctx, S) {
   const labels = ["Your card", "Paystack"].map((text) => ctx.el("div", { class: "abs", text, style: { left: "0px", top: "0px", ...labelStyle } }, pathScene));
   /* the bank's label: one line that rolls The owner's bank -> Owner -> Host -> Business */
   const bank = roll(ctx, pathScene, {
-    items: [{ text: "The owner's bank", t: drawAt[2] }, { text: "Owner", t: K.owner }, { text: "Host", t: K.host }, { text: "Business", t: K.business }],
-    size: bigFont, color: "#0b1230", weight: 700, align: M ? "left" : "center", letterSpacing: "-0.025em",
+    items: [{ text: "The owner's bank", t: drawAt[2] }, { text: "Owner", t: 68.22 }, { text: "Host", t: K.host }, { text: "Business", t: K.business }],
+    size: bigFont, color: "#0b1230", weight: 700, align: M ? "left" : "center", letterSpacing: "-0.025em", fade: true, // round 5: cross-fade in place
   });
   bank.nodes.forEach((n, i) => { n.style.color = i ? "var(--electric)" : "#0b1230"; n.style.fontWeight = i ? "700" : "600"; });
   bank.slot.style.visibility = "hidden";
   ctx.sfx("tap_soft", K.host, { offset: -6 });
   ctx.sfx("tap_soft", K.business, { offset: -6 });
-  const smallStyle = { font: "600 26px/1 Inter, sans-serif", letterSpacing: "-0.01em", color: "#0b1230", whiteSpace: "nowrap", visibility: "hidden" };
+  const smallStyle = { font: `600 ${M ? 32 : 28}px/1 Inter, sans-serif`, letterSpacing: "-0.01em", color: "#0b1230", whiteSpace: "nowrap", visibility: "hidden" };
   const small = ["Your card", "Paystack", "Business"].map((text) => ctx.el("div", { class: "abs", text, style: { left: "0px", top: "0px", ...smallStyle } }, pathScene));
-  const licensed = ctx.el("div", { class: "abs", text: "Licensed payment processor", style: { left: "0px", top: "0px", font: "600 30px/1.2 Inter, sans-serif", letterSpacing: "-0.01em", color: "var(--electric-600)", whiteSpace: "nowrap", clipPath: "inset(0 100% 0 0)", visibility: "hidden" } }, pathScene);
+  const licensed = ctx.el("div", { class: "abs", text: "Licensed payment processor", style: { left: "0px", top: "0px", font: `600 ${M ? 32 : 30}px/1.2 Inter, sans-serif`, letterSpacing: "-0.01em", color: "var(--electric-600)", whiteSpace: "nowrap", clipPath: "inset(0 100% 0 0)", visibility: "hidden" } }, pathScene);
   /* the holds are never still: the path group drifts 1.02x about its middle
      from the first station to the fold, and the node the coin rests on
      breathes (2 beats a breath) */
@@ -287,7 +290,7 @@ export async function buildPay(ctx, S) {
       seg[i].setAttribute("stroke-width", mix(M ? 6 : 5, 3, a.u).toFixed(2));
       seg[i].style.opacity = g > 0.001 ? opa(1 - rowOff(tt)) : "0";
     });
-    [[1, K.goes], [2, K.owner], [3, K.host], [4, K.business]].forEach(([j, tf]) => {
+    [[1, K.goes], [2, 68.22], [3, K.host], [4, K.business]].forEach(([j, tf]) => {
       const i = Math.min(j, 2);
       const fl = flashes[j];
       const f = ramp(ctx, tt, tf, tf + 0.6, "power2.out");
@@ -309,12 +312,12 @@ export async function buildPay(ctx, S) {
     }
     small.forEach((n, i) => {
       const u = ramp(ctx, tt, fold[1] - 0.1, fold[1] + 0.2, "power2.out");
-      place(n, { x: sp[i].x, y: sp[i].y - (M ? 42 : 40) + (1 - u) * 10, o: u * (1 - rowOff(tt)) });
+      place(n, { x: sp[i].x, y: sp[i].y - (M ? 48 : 42) + (1 - u) * 10, o: u * (1 - rowOff(tt)) });
     });
     {
       const w = ramp(ctx, tt, fold[1] + 0.1, fold[1] + 0.45, "power1.inOut"); // 0.35 s, done before the row is complete
       licensed.style.clipPath = `inset(-8px ${(100 - w * 100).toFixed(2)}% -8px 0)`;
-      place(licensed, { x: sp[1].x, y: sp[1].y + (M ? 44 : 40), o: w > 0 ? 1 - rowOff(tt) : 0 });
+      place(licensed, { x: sp[1].x, y: sp[1].y + (M ? 50 : 42), o: w > 0 ? 1 - rowOff(tt) : 0 });
     }
   });
   ctx.sfx("ding_pay", 68.22, { offset: 0 }); // round 4: just after the "ow" of "owner", off the word
@@ -424,15 +427,16 @@ export async function buildPay(ctx, S) {
   const swingIn = 69.82; // as the line leaves
   const cardScene = ctx.scene("c31-cards", swingIn - 0.02, ROW_OFF[1] + 0.02, { z: 11 });
   {
-    const slot = L.CARD_SLOT;
+    /* round 5: mobile cards 300 x 330 centred on 540, answers at 34 px */
+    const slot = M ? [60, 390, 720].map((x) => ({ x, y: 400, w: 300, h: 330 })) : L.CARD_SLOT;
     const w = slot[0].w;
     const h = slot[0].h;
-    const fs = M ? 31 : 40;
-    const pad = Math.round(fs * 0.85);
+    const fs = M ? 34 : 40;
+    const pad = Math.round(fs * (M ? 0.6 : 0.85));
     /* answers set in explicit lines (round 3): card 1 never wraps raggedly */
     const LINES = {
-      mobile: [["₦26,100,000", "to move in.", "Seen before", "a single call."], null, null],
-      desktop: [["₦26,100,000 to move in.", "Seen before a single call."], null, null],
+      mobile: [["₦26,100,000", "to move in.", "Seen before", "a single call."], ["Checked by", "a real person", "at Vallo."], ["Straight to", "the owner,", "through", "Paystack."]],
+      desktop: [["₦26,100,000 to move in.", "Seen before a single call."], ["Checked by a real", "person at Vallo."], ["Straight to the owner,", "through Paystack."]],
     }[ctx.film];
     const card = async (q, a, mark, lines) => {
       const root = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${w}px`, height: `${h}px`, visibility: "hidden" } }, cardScene);
@@ -455,7 +459,7 @@ export async function buildPay(ctx, S) {
         /* the longest line fits the card's width at the face's own size or smaller */
         const widest = Math.max(...lines.map((l) => measure(l, `600 ${fs}px "C Poppins"`, "-0.02em")));
         const size = Math.min(fs, Math.floor((fs * (w - 2 * pad - 8)) / widest));
-        const box = ctx.el("div", { style: { fontSize: `${size}px` } }, back);
+        const box = ctx.el("div", { style: { fontSize: `${size}px`, lineHeight: "1.1" } }, back);
         lines.forEach((l) => ctx.el("div", { text: l, style: { whiteSpace: "nowrap" } }, box));
       } else {
         ctx.el("span", { text: a }, back);

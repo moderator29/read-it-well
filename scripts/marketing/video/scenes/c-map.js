@@ -71,8 +71,8 @@ export async function buildMap(ctx, S) {
     for (const l0 of all) {
       const el = labels[l0.city];
       let l = l0;
-      /* round 3: Ibadan sits north-west of its dot (right edge at dot x - 12, baseline at dot y - 18) */
-      if (l.city === "Ibadan") l = { ...l, x: l.dot.x - 12, y: l.dot.y - 18, ax: 1, ay: 1 };
+      /* round 5: Ibadan sits to the left of its dot (right edge at dot x - 60), clear of the Lagos home */
+      if (l.city === "Ibadan") l = { ...l, x: l.dot.x - 60, y: l.dot.y, ax: 1, ay: 0.5 };
       if (l.city !== "Lagos") {
         const w = size[l.city].w * l.scale;
         const h = size[l.city].h * l.scale;

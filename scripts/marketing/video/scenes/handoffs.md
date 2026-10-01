@@ -83,7 +83,7 @@ turn at 28.566; the answer opened at 28.866 and has been still since about 29.19
 
 ## B → C (t = 62.885 = ctx.beat(109))
 
-Written by builder B (round 4, storyboard v3.3). Section b's scenes end at 62.885 (exclusive).
+Written by builder B (round 5, storyboard v3.3). Section b's scenes end at 62.885 (exclusive).
 
 ### The coin (section c's `coin()` from `c-kit.js`, which B imports)
 
@@ -105,29 +105,30 @@ engine's inline mark and "Checked by a real person at Vallo.", balanced on two l
 (`ctx.beat(108.42)`) it flies out over 0.3 s (`power3.in`), gone by 62.85, answer side up; its own mark
 hides from 62.57 (the spinning twin takes over).
 
-- **Mobile:** box `{ x: 40, y: 1180, w: 480, h: 200 }` (round 4: on the bezel and the form's empty foot, left of
-  the phone at cx 700), fontSize 38 (back 33 px, line height 1.22); out to centre (−575, −6), rotation −24°,
-  scale 0.8 = c's `CARD_OUT.mobile.c2`.
+- **Mobile:** box `{ x: 40, y: 1180, w: 360, h: 160 }` (round 5: on the mist and the bezel, 35 px at most, on no
+  screen text; the phone at cx 700), fontSize 30 (back 27 px, line height 1.22, both balanced); out to centre
+  (−575, −6), rotation −24°, scale 0.8 = c's `CARD_OUT.mobile.c2`.
 - **Desktop:** box `{ x: 1260, y: 520, w: 520, h: 170 }` (round 4: on bare mist right of the window), fontSize 38;
   out to centre (−560, −200), rotation −22°, scale 0.8 = c's `CARD_OUT.desktop.c2`.
 
 ### Devices
 
-- **Mobile:** B's phone (verification-lt, live, no wash; round 4: eased to cx 700 and pushing slowly to 1.04x)
-  sinks out of the bottom from 62.55 and is below the frame by 62.79. Nothing of B's but the coin and the ground is on screen at the cut.
+- **Mobile:** B's phone (verification-lt, live, no wash; round 5: at cx 700, h 1400, whole, with a 10 px float)
+  sinks out of the bottom from 62.55 and is below the frame by 62.79. Nothing of B's but the coin and the ground is
+  on screen at the cut.
+- **Pill (mobile):** hidden 57.9-62.5 (`ctx.hidePill`), so it never sits on the app's logo; it is back for c.
 - **Desktop:** B's window shows `d-verification-lt` at 0.85 of the frame (x 60-1240, top y 120, drifting to
   1.02x; no veil, card 2 is off the window), then settles from 62.48 (`ctx.beat(108.3)`) back to WINDOW_LEFT (flat, scale
   0.708333, x 80, y 150, opacity 1), at rest on the cut, so c's lock window can start at full opacity in the
   same place (an in-place page cut on beat 109).
 - **Pointer:** hidden since 46.6 (both films).
-- **Pill:** "Checked by a **person**", unchanged across the cut.
+- **Pill (desktop):** "Checked by a **person**", unchanged across the cut.
 
 ### A note for section a (A → B, both films)
 
 B covers the member's sent bubble at full opacity from 30.577 (same patch as A's), so A's cover from 29.39
-carries straight across the cut. Card 1: on **mobile** (round 4) A flies it out to the top right by 30.55, so B
-draws nothing of it. On **desktop** B still takes it over at the cut, holds A's end state to 31.30 and flies it
-out to the top right (c's return geometry unchanged). B covers the thread's own Maitama card (both films) until
+carries straight across the cut. Card 1: A flies it out to the top right before the cut on both films (round 5:
+desktop by 30.50 too), so B draws nothing of it. The desktop window starts at WINDOW_HERO, where A ends. B covers the thread's own Maitama card (both films) until
 the flown villa card lands on it at 31.10, so it never shows twice. For the cut to match, A should lay the same cover
 from the fold on: mobile display `{ x: 38, y: 1588, w: 1116, h: 806 }`, desktop CSS `{ x: 934, y: 482, w: 414, h: 281 }`,
 both `#f3f4f1` (on mobile it is on screen at 30.55 under the 0.3 phone; without it, it pops off on the cut).

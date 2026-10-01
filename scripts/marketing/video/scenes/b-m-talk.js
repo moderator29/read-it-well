@@ -41,7 +41,7 @@ const DRAWER_W = 1103;
 
 /* Section a's last frame (A -> B in handoffs.md): the phone and the villa card. */
 export const A_OUT = {
-  phone: { cx: 540, cy: 1500, height: 1400, rx: 0, ry: 0, rz: 0, fov: 24, opacity: 0.3 },
+  phone: { cx: 540, cy: 1500, height: 1400, rx: 0, ry: 0, rz: 0, fov: 24, opacity: 0 },
   villa: { x: 160, y: 498, w: 760, h: 548, rot: 0 },
 };
 
@@ -54,11 +54,11 @@ export async function talk(ctx, S, T) {
   const thread = ctx.src.display("thread-light");
   const HIGH = { cx: L.PHONE_HIGH.cx, cy: L.PHONE_HIGH.cy, height: L.PHONE_HIGH.height };
   /* row 14: the phone to the right (it may run off the right edge), its thread live; the words take the left column */
-  const WORDS14 = { cx: 840, cy: L.PHONE_HIGH.cy, height: L.PHONE_HIGH.height };
+  const WORDS14 = { cx: 720, cy: L.PHONE_HIGH.cy, height: L.PHONE_HIGH.height }; // round 5: whole in frame (x 385-1055)
   /* the push onto the thread's foot (1.5x): the composer sits just above the captions */
   const PUSH15 = { cx: 510, cy: 210, height: 2100 };
   /* the same phone, moved right so the day card has the left side (flat: a turned screen costs 2x) */
-  const RIGHT17 = { cx: 700, cy: L.PHONE_HIGH.cy, height: L.PHONE_HIGH.height };
+  const RIGHT17 = { cx: 700, cy: L.PHONE_HIGH.cy - 80, height: L.PHONE_HIGH.height }; // round 5: 80 px up, the composer clear of the caption
   /* the push onto FLIP (1.5x): the pill falls in the drawer's gap under "AI Assistant" */
   const FLIPPOSE = { cx: 540, cy: 42, height: 2100 };
 
@@ -88,9 +88,13 @@ export async function talk(ctx, S, T) {
 
   /* ---------- the phone ---------- */
   const pose = track(ctx, pL.pose, { ...A_OUT.phone });
-  pose.to(T.r14, 0.52, { ...WORDS14, opacity: 1 }, "glide");     // up, to the right, as the card flies in
+  /* round 5: section a leaves the phone hidden; it comes in whole (100%) from 200 px below, never faded in */
+  pose.to(T.r14, 0.001, { ...WORDS14, cy: WORDS14.cy + 200, opacity: 1 }, "none");
+  pose.to(T.r14 + 0.002, 0.3, WORDS14, "power3.out");
+  pose.to(T.r14 + 0.32, tWordsOut - T.r14 - 0.32, { cy: WORDS14.cy - 14 }, "drift"); // round 5: never still
   pose.to(tWordsOut, 0.46, PUSH15, "power2.inOut");                // the push onto the thread's foot
   pose.to(tSlide, 0.47, RIGHT17, "glide");                        // back to h 1400, to the right
+  pose.to(tSlide + 0.47, tBack - tSlide - 0.47, { cy: RIGHT17.cy - 14 }, "drift"); // round 5: never still
   /* v3.3: the pill steps aside while a push brings screen text under it */
   ctx.hidePill(tWordsOut, tSlide + 0.42);
   ctx.hidePill(tFlipPush, T.r19 + 0.1);
@@ -171,18 +175,19 @@ export async function talk(ctx, S, T) {
       const q = lerpQuad(rectQuad(A_OUT.villa), displayQuad(pL, MAITAMA), k);
       return shiftQuad(q, 0, -60 * Math.sin(Math.PI * k));
     },
-    opacityAt: (t) => 1 - ramp(ctx, t, tLand, tLand + 0.14, "power1.out"),
+    opacityAt: (t) => (t < tLand ? 1 : 0), // round 5: swaps with its twin on one frame (no dissolve)
   });
   ctx.sfx("card_slide", ctx.beat(53.4)); // 30.81
 
   /* Card 1: section a flies it out to the top right by 30.55 (round 4), so nothing of it is left at the cut. */
 
-  /* "owner", "landlord", "agent" stack in the left column (x 60-480), clear of the phone's bezel, each entering on its word. */
-  const X0 = 60;
+  /* round 5: "owner", "landlord", "agent" in the left column (x 44-360), right-aligned to 360, clear of the
+     phone's bezel at 385, each entering on its word. */
+  const XR = 360;
   const words = [
-    { text: "owner", blue: true, y: 640, t: T.owner, k: 1.04 },
+    { text: "owner", blue: true, y: 690, t: T.owner, k: 1 },
     { text: "landlord", blue: false, y: 800, t: T.landlord, k: 1 },
-    { text: "agent", blue: false, y: 960, t: T.agent, k: 0.97 },
+    { text: "agent", blue: false, y: 910, t: T.agent, k: 1 },
   ].map((w) => {
     const el = ctx.el("div", { class: "abs", text: w.text, style: { left: "0px", top: "0px", font: "700 150px/1 Poppins, Inter, sans-serif", letterSpacing: "-0.035em", color: w.blue ? ELECTRIC : NAVY, whiteSpace: "nowrap", transformOrigin: "0% 50%", visibility: "hidden" } }, type);
     return { ...w, el };
@@ -194,8 +199,8 @@ export async function talk(ctx, S, T) {
       return;
     }
     if (!wd) {
-      /* one size for all three, "landlord" at most 420 px wide (x 60-480, the phone's bezel starts at 501) */
-      const size = Math.min(130, (420 / measure("landlord", "700 100px Poppins")) * 100);
+      /* one size for all three, "landlord" at most 316 px wide (x 44-360), never above 92 px */
+      const size = Math.min(92, (316 / measure("landlord", "700 100px Poppins")) * 100);
       words.forEach((w) => (w.el.style.fontSize = `${(size * w.k).toFixed(1)}px`));
       wd = words.map((w) => ({ w: w.el.offsetWidth, h: w.el.offsetHeight }));
     }
@@ -205,8 +210,8 @@ export async function talk(ctx, S, T) {
       w.el.style.visibility = on ? "inherit" : "hidden";
       if (!on) return;
       const k = ramp(ctx, t, w.t - 0.14, w.t + 0.26, "land");
-      const x = mix(-wd[i].w - 40, X0, k);
-      const y = w.y - wd[i].h / 2 + 40 * out;
+      const x = mix(-wd[i].w - 40, XR - wd[i].w, k);
+      const y = w.y - wd[i].h / 2 + 40 * out - 8 * ramp(ctx, t, w.t + 0.26, tWordsOut, "none"); // floats up 8 px while held
       w.el.style.transform = `translate(${x.toFixed(2)}px, ${y.toFixed(2)}px) rotate(${((1 - k) * -5).toFixed(2)}deg)`;
       w.el.style.opacity = (1 - out).toFixed(3);
     });

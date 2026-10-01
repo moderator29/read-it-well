@@ -88,11 +88,13 @@ export async function buildHost(ctx, S) {
     const lights = ROWS.map((r) => ctx.el("div", { class: "abs", style: { left: "515px", top: `${r.d[0]}px`, width: "674px", height: `${r.d[1] - r.d[0]}px`, borderRadius: "22px", border: "2.5px solid #2f7cff", boxShadow: "0 0 24px 1px rgb(0 105 254 / 0.45)", opacity: 0 } }, win.content));
     /* round 4: 70 px lower (the heading clears the pill), and one continuous
        push through the row: 4% closer from hero scale, about the frame's middle */
-    const hero = { x: 960 - 852 * s1, y: 610 - (56 + 532) * s1 };
+    /* round 5: the window's left edge holds at x 40 (its sidebar logo whole),
+       the heading near y 220; the push creeps about that edge */
+    const hero = { x: 40, y: 640 - (56 + 532) * s1 };
     const pose = (t) => {
       const u = ramp(ctx, t, K.r37 + 0.1, named[0] - 0.02, "power2.inOut");
       const k = 1 + 0.04 * ramp(ctx, t, named[0] - 0.02, K.r38, "none");
-      const h = { x: 960 - (960 - hero.x) * k, y: 610 - (610 - hero.y) * k, s: s1 * k };
+      const h = { x: hero.x, y: 640 - (640 - hero.y) * k, s: s1 * k };
       return { x: mix(W.x, h.x, u), y: mix(W.y, h.y, u), s: mix(s0, h.s, u) };
     };
     const C = (x, y, t) => { const q = pose(t); return { x: q.x + x * q.s, y: q.y + (56 + y) * q.s }; };

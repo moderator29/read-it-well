@@ -622,9 +622,13 @@ export function installChapterPill(ctx, chapters, { theme = (t) => "light" } = {
     },
   }, box);
   const mark = ctx.img(ctx.src.brand("vallo-mark.png"), { style: { width: `${Math.round(fs * 1.35)}px`, height: `${Math.round(fs * 1.35)}px`, objectFit: "contain", flex: "none" } }, pill);
+  const keys = [];
   const lines = chapters.map((c) => {
     const line = ctx.el("span", { style: { whiteSpace: "nowrap", display: "none" } }, pill);
-    c.parts.forEach(([text, blue]) => ctx.el("span", { text, style: blue ? { color: "var(--electric)" } : {} }, line));
+    c.parts.forEach(([text, blue]) => {
+      const n = ctx.el("span", { text, style: blue ? { color: "var(--electric)" } : {} }, line);
+      if (blue) keys.push(n);
+    });
     return line;
   });
   let shown = -2;
@@ -634,6 +638,8 @@ export function installChapterPill(ctx, chapters, { theme = (t) => "light" } = {
     Object.assign(pill.style, dark
       ? { background: "rgb(10 16 60 / 0.86)", color: "#fff", border: "1.5px solid rgb(120 170 255 / 0.3)", boxShadow: "0 14px 34px -14px rgb(0 0 20 / 0.7)" }
       : { background: "rgb(255 255 255 / 0.96)", color: "#0b1230", border: "1px solid rgb(10 30 80 / 0.06)", boxShadow: "0 14px 34px -16px rgb(10 30 80 / 0.35)" });
+    /* the key word: electric on light, sky on night (electric on navy barely reads) */
+    for (const n of keys) n.style.color = dark ? "#8FD3FF" : "var(--electric)";
     if (k !== shown) {
       lines.forEach((l, i) => (l.style.display = i === k ? "inline" : "none"));
       shown = k;

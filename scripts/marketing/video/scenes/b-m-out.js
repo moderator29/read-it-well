@@ -1,17 +1,15 @@
 /**
  * Mobile rows 23 and 24 (49.04 to 54.23), storyboard v3.2, on the mist.
- *   23  "Going out" in navy, "tonight?" filled with a warm restaurant photo
- *       (atmosphere only, never named, 1.3x at most, its edges feathered),
- *       centred on the frame's axis in the electric ring. From 50.19 the
- *       camera pushes through the "o" of "tonight?" and comes out on the
- *       mist, where the restaurant rises.
- *   24  restaurant-light at PHONE_HIGH, its notice readable; on "reserve"
- *       the Table for 2 card arrives with its Example chip, over the
- *       restaurant's photo (no text under it); it holds to 53.86 and flies
- *       off; the phone turns away as the chapter ends.
+ *   23  "Going out" in navy, "tonight?" in electric (round 5), centred on
+ *       the frame's axis in the electric ring; it holds 1.25 s, then lifts
+ *       and fades as the phone rises.
+ *   24  restaurant-light at the left (cx 400), its notice readable; on
+ *       "reserve" the Table for 2 card arrives with its Example chip on the
+ *       mist at the right, off the page; it holds to 53.56 and flies off by
+ *       53.90; the phone turns away as the chapter ends.
  */
 import { LAYOUT } from "./layout.js";
-import { NAVY, INK2, ramp, mix, screenPage, showDuring, glassCard, iconPlate, exampleChip, measure, ringOut } from "./b-kit.js";
+import { NAVY, INK2, ELECTRIC, ramp, mix, screenPage, showDuring, glassCard, iconPlate, exampleChip, measure, ringOut } from "./b-kit.js";
 
 const SVGNS = "http://www.w3.org/2000/svg";
 const svgEl = (tag, attrs, parent) => {
@@ -49,9 +47,10 @@ export function goingTitle(ctx, layer, T, { id, CX, CY, R, maxSize, feather, tPu
   svgEl("rect", { x: px, y: py, width: PH.w, height: PH.h, fill: `url(#${id}-fv)`, ...(fx > 0 ? { mask: `url(#${id}-featherH)` } : {}) }, fMask);
   const shown = svgEl("g", { mask: `url(#${id}-letters)` }, svg);
   const photoG = svgEl("g", { mask: `url(#${id}-feather)` }, shown);
-  const img = svgEl("image", { href: ctx.src.photo("restaurant-02-lounge.jpg"), x: px, y: py, width: PH.w, height: PH.h, preserveAspectRatio: "xMidYMid slice", style: "filter: brightness(1.32) saturate(1.12) contrast(1.04)" }, photoG);
-  svgEl("rect", { x: px, y: py, width: PH.w, height: PH.h, fill: "rgb(255 170 90)", opacity: 0.1 }, photoG);
-  ctx.pending = (ctx.pending ?? []).concat(new Promise((ok) => { img.addEventListener("load", ok, { once: true }); img.addEventListener("error", ok, { once: true }); }));
+  /* round 5: "tonight?" in electric (the photo fill read brown at this size) */
+  const lgE = svgEl("linearGradient", { id: `${id}-el`, x1: 0, y1: 0, x2: 1, y2: 1 }, defs);
+  [[0, "#3d8bff"], [0.55, ELECTRIC], [1, "#0050d0"]].forEach(([o, c]) => svgEl("stop", { offset: o, "stop-color": c }, lgE));
+  svgEl("rect", { x: px, y: py, width: PH.w, height: PH.h, fill: `url(#${id}-el)` }, photoG);
   /* "Going out" in navy, live */
   const gNavy = svgEl("g", {}, svg);
   const mk = (parent, text, fill) => {
@@ -99,7 +98,8 @@ export function goingTitle(ctx, layer, T, { id, CX, CY, R, maxSize, feather, tPu
       w.node.setAttribute("transform", `translate(0 ${((1 - k) * 50).toFixed(2)})`);
     });
     const p = ramp(ctx, t, tPush, tEnd, "power2.in");
-    const s = 1 + 0.1 * p;
+    /* round 5: a 2% drift while the complete title holds, so it is never still */
+    const s = (1 + 0.02 * ramp(ctx, t, T.going + 0.32, tPush, "none")) * (1 + 0.1 * p);
     const tr = `translate(${CX} ${CY}) scale(${s.toFixed(4)}) translate(${-CX} ${(-CY + 40 * p).toFixed(2)})`;
     gMask.setAttribute("transform", tr);
     gNavy.setAttribute("transform", tr);
@@ -112,6 +112,7 @@ export function goingTitle(ctx, layer, T, { id, CX, CY, R, maxSize, feather, tPu
   ringOut(ctx, ringWrap, { cx: CX, cy: CY, r: R, t: T.going - 0.06, dots: 8, seed: 23, stroke: 4, dur: 0.38 });
   ringWrap.style.transformOrigin = `${CX}px ${CY}px`;
   tl.fromTo(ringWrap, { opacity: 1, scale: 1 }, { opacity: 0, scale: 1.1, duration: 0.15, ease: "power2.in", immediateRender: false }, tPush);
+  tl.fromTo(ringWrap, { rotation: 0 }, { rotation: 6 * (tPush + 0.15 - T.going), duration: tPush + 0.15 - T.going, ease: "none", immediateRender: false }, T.going); // its particles turn at 6 deg/s
   showDuring(ctx, ringWrap, [[T.going - 0.08, tPush + 0.15]]);
   return { tEnd };
 }
@@ -132,24 +133,27 @@ export async function goingOut(ctx, S, T) {
   const tOff = ctx.beat(93.36);    // 53.86
   const tTurn = ctx.beat(93.43);   // 53.90
   const pose = S.pLpose;
-  pose.to(tRise - 0.01, 0.001, { ...HIGH, cy: 2600, rx: 0, ry: 0, opacity: 1 }, "none");
-  pose.to(tRise, 0.58, HIGH, "glide");                                             // rises under the title
+  /* round 5: at the left (cx 400), so "Table for 2" lands on the mist beside it, never on a page whose notice
+     says no such property is available */
+  const SIDE = { ...HIGH, cx: 400 };
+  pose.to(tRise - 0.01, 0.001, { ...SIDE, cy: 2600, rx: 0, ry: 0, opacity: 1 }, "none");
+  pose.to(tRise, 0.58, SIDE, "glide");                                             // rises under the title
   pose.to(tRise + 0.6, tTurn - tRise - 0.6, { cy: HIGH.cy - 12 }, "drift");        // a slow rise while the card holds
-  pose.to(tTurn, 0.33, { cx: 330, ry: -64, opacity: 0 }, "power2.in");            // turns away as the chapter ends
+  pose.to(tTurn, 0.33, { cx: 200, ry: -64, opacity: 0 }, "power2.in");            // turns away as the chapter ends
   const page = screenPage(ctx, pL, ctx.src.display("restaurant-light"));
   showDuring(ctx, page.el, [[tRise - 0.02, T.r25 + 0.1]]);
 
-  /* The table card: over the restaurant's photo (display y 186-1180), where no text is; the notice stays readable below. */
+  /* The table card: a body on the mist right of the phone (x 720-1040), off the restaurant page. */
   const cards = ctx.scene("b-m-table", T.r24, T.r25 + 0.1, { z: 20 });
-  const CWd = 560;
-  const X = (ctx.W - CWd) / 2;
-  const Y = 452;
-  const card = glassCard(ctx, cards, { w: CWd, radius: 30, shadow: "l", style: { display: "flex", flexDirection: "column", gap: "12px", padding: "24px 26px 22px", visibility: "hidden" } });
-  const top = ctx.el("div", { style: { display: "flex", alignItems: "center", gap: "16px" } }, card);
-  iconPlate(ctx, top, "utensils", { size: 60 });
-  ctx.el("div", { text: "Table for 2", style: { font: "600 36px/1.05 Poppins, Inter, sans-serif", letterSpacing: "-0.025em", color: NAVY, whiteSpace: "nowrap" } }, top);
-  exampleChip(ctx, top, { size: 18, style: { marginLeft: "auto" } });
-  ctx.el("div", { html: "Tonight, 8:00 PM<br>Harbour Lights Kitchen", style: { font: "500 25px/1.36 Inter, sans-serif", color: INK2, whiteSpace: "nowrap" } }, card);
+  const CWd = 320;
+  const X = 720;
+  const Y = 560;
+  const card = glassCard(ctx, cards, { w: CWd, radius: 28, shadow: "l", style: { display: "flex", flexDirection: "column", gap: "12px", padding: "22px 22px 20px", visibility: "hidden" } });
+  const top = ctx.el("div", { style: { display: "flex", alignItems: "center", gap: "14px" } }, card);
+  iconPlate(ctx, top, "utensils", { size: 52 });
+  ctx.el("div", { text: "Table for 2", style: { font: "600 31px/1.05 Poppins, Inter, sans-serif", letterSpacing: "-0.025em", color: NAVY, whiteSpace: "nowrap" } }, top);
+  ctx.el("div", { html: "Tonight, 8:00 PM<br>Harbour Lights Kitchen", style: { font: "500 22px/1.36 Inter, sans-serif", color: INK2, whiteSpace: "nowrap" } }, card);
+  exampleChip(ctx, ctx.el("div", {}, card), { size: 17 });
   const tIn = T.reserve;
   ctx.sfx("pop", tIn);
   showDuring(ctx, card, [[tIn, tOff + 0.04]]);

@@ -7,9 +7,9 @@
  *     The mark settles before the wordmark rises. No ring, no sparkles. The
  *     full lockup and tagline hold to beat 167 (96.35), then a cut to white.
  * 41  The white end card (from 96.35), centred optically (round 3): mobile,
- *     the lockup at y 520, one pill button at 640, two phones (island and
- *     Android, `home-light`) turning toward each other across y 690 to 1450,
- *     vallospaces.com at 1515; desktop, a 640 px lockup at y 250, the pill
+ *     the lockup at y 515, one pill button at 638, two phones (island and
+ *     Android, `home-light`) turning toward each other across y 740 to 1500,
+ *     vallospaces.com at 1560; desktop, a 640 px lockup at y 218, the pill
  *     (1.4x) at 380, the window (0.8x) and the island phone lower (y 440 to
  *     1005), vallospaces.com at 1042. Sparkles only around the lockup.
  * 42  Live: the official badges appear by a cut on bar 44 (99.23), App Store
@@ -178,12 +178,12 @@ export async function buildClose(ctx, S) {
     /* the hold: a slow turn toward the viewer and a slight push, never still */
     const hold = (t) => ramp(ctx, t, K.r41 + 0.9, end, "sine.inOut");
     /* Round 3: the block is centred optically, the phones 1.1x larger across
-       about y 690 to 1450; the captions are off on the end card, and
-       vallospaces.com (and the badges, live) sit at y 1515 to 1600. */
+       about y 740 to 1500; the captions are off on the end card, and
+       vallospaces.com (and the badges, live) sit at y 1560 to 1650. */
     /* The rise and the turn toward each other are the 3D pose; once risen the
        pose holds still and the drift is a 2D move of each phone's layer, so
        the two live phones are not re-rendered on every frame of the hold. */
-    const PH = { cy: 1082, h: 760 };
+    const PH = { cy: 1120, h: 760 }; // round 5: phones across y 740 to 1500
     pI.poses.push({ t0: K.r41 - 0.02, t1: end, fn: (t) => ({ cx: 336, cy: PH.cy + (1 - rise(t, 0.05)) * 1450, height: PH.h, rx: 2, ry: mix(-4, 13, rise(t, 0.05)), rz: 0, fov: 24, opacity: 1 }) });
     pA.poses.push({ t0: K.r41 - 0.02, t1: end, fn: (t) => ({ cx: 744, cy: PH.cy + 12 + (1 - rise(t, 0.16)) * 1450, height: PH.h - 10, rx: 2, ry: mix(4, -13, rise(t, 0.16)), rz: 0, fov: 24, opacity: 1 }) });
     ctx.onFrame((t) => {
@@ -196,13 +196,13 @@ export async function buildClose(ctx, S) {
     const url0 = K.r42;
     during(ctx, K.r41 - 0.02, end, (t) => {
       const a = ramp(ctx, t, K.r41 + 0.25, K.r41 + 0.95, "land");
-      place(lk, { x: 540, y: 520 + (1 - a) * 24, o: a });
+      place(lk, { x: 540, y: 515 + (1 - a) * 24, o: a });
       const b = ramp(ctx, t, K.r41 + 0.45, K.r41 + 1.1, "land");
       place(pill, { x: 540, y: 640 + (1 - b) * 20, o: b });
       /* bar 44: the badges cut in (live); vallospaces.com arrives */
-      cutBadges(t, 540, 1515);
+      cutBadges(t, 540, 1560);
       const c = ramp(ctx, t, url0, url0 + 0.6, "land");
-      place(url, { x: 540, y: (live ? 1600 : 1515) + (1 - c) * 16, o: c });
+      place(url, { x: 540, y: (live ? 1650 : 1560) + (1 - c) * 16, o: c });
     });
   } else {
     /* desktop: the window at vallospaces.com (d-home-light) at the left, the island phone at the right */
@@ -221,7 +221,7 @@ export async function buildClose(ctx, S) {
       const on = t >= K.r41 - 0.02 && t < end;
       pD.root.style.transform = on ? `translate(${(3 * drift(t, 0.4)).toFixed(2)}px, ${(4 * drift(t, 1.1) - 10 * hold(t)).toFixed(2)}px)` : "";
     });
-    [[606, 196, 22], [1318, 212, 20], [1300, 300, 14]].forEach(([x, y, d], i) => sparkles(ctx, top, { area: { x: x - d / 2, y: y - d / 2, w: d, h: d }, count: 1, seed: 4102 + i, t0: K.r41 + 0.8 + i * 0.15, t1: end + 1, color: "#5c9fff", min: d, max: d }));
+    [[606, 164, 22], [1318, 180, 20], [1300, 268, 14]].forEach(([x, y, d], i) => sparkles(ctx, top, { area: { x: x - d / 2, y: y - d / 2, w: d, h: d }, count: 1, seed: 4102 + i, t0: K.r41 + 0.8 + i * 0.15, t1: end + 1, color: "#5c9fff", min: d, max: d }));
     /* the Vallo lockup, top centre */
     const lkD = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", display: "flex", alignItems: "center", gap: "30px", visibility: "hidden" } }, top);
     ctx.img(own(ctx.src.brand("vallo-mark.png"), "lockup"), { style: { width: "146px", height: `${Math.round(146 * 587 / 614)}px` } }, lkD);
@@ -248,9 +248,9 @@ export async function buildClose(ctx, S) {
       win.root.style.transform = `translate(318px, ${(440 + (1 - u) * 1000 + 3 * drift(t, 0.2)).toFixed(2)}px) scale(${s.toFixed(5)})`;
       win.root.style.opacity = opa(1);
       const a = ramp(ctx, t, K.r41 + 0.25, K.r41 + 0.95, "land");
-      place(lkD, { x: 960, y: 250 + (1 - a) * 14, o: a });
+      place(lkD, { x: 960, y: 218 + (1 - a) * 14, o: a });
       const b = ramp(ctx, t, K.r41 + 0.45, K.r41 + 1.1, "land");
-      place(pill, { x: 960, y: 380 + (1 - b) * 16, o: b });
+      place(pill, { x: 960, y: 348 + (1 - b) * 16, o: b }); // round 5: 48 px above the devices
       cutBadges(t, x0 + bw / 2, 1042);
       const c = ramp(ctx, t, K.r42, K.r42 + 0.6, "land");
       place(url, { x: x0 + total - uw / 2, y: 1042 + (1 - c) * 12, o: c });
