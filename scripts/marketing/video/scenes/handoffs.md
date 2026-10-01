@@ -6,6 +6,17 @@ scenes end at the hand-off time (exclusive), the incoming section's start at it.
 
 ## A → B (t = 30.577 = ctx.beat(53))
 
+> **Round 5 changes for builder B (A has made its side):**
+> 1. **Mobile phone:** A ends with the phone **out** (opacity 0, pose `{ cx 540, cy 1500, h 1400 }`); it no longer fades a
+>    0.3 ghost in under the fold (the critique's 30.55–30.75 ghost). **B: bring the thread phone in whole (opacity 1)
+>    from below** (e.g. y +200 → 0, power3.out, 0.3 s) instead of from a 0.3 ghost, and keep the list's own Maitama card
+>    covered until the flown card lands.
+> 2. **Desktop card 1:** A now flies it out too, over 30.20–30.50, to section c's start (centre (2070, −330), 22°, 0.9,
+>    answer up), so it is off frame before the cut. **B: drop the desktop card 1 takeover** (mobile was dropped in round 4).
+> 3. Unchanged: the villa card rects, the desktop window at WINDOW_HERO, the bubble patches, and the thread's Maitama
+>    card cover from the fold on.
+
+
 Written by builder A. Round 4 changes for builder B are marked **CHANGED** below (desktop window at WINDOW_HERO;
 mobile card 1 no longer handed over). Everything is at rest at 30.577 (A's moves
 end with zero velocity there; B's moves start from rest).

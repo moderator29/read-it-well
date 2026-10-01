@@ -67,10 +67,12 @@ export function riffle(ctx, T, cards, { C, scale, rushTo, rushScale, awayDx }) {
   });
   /* the rush: the top card (card 3) at the camera, turning to its edge */
   const top = cards[2];
-  const edge = T.rush + 0.27;
+  /* round 5: no edge-on outline; the rushing card cuts to the Vallo card on one frame, mark already printed */
+  const edge = T.rush + 0.18;
   tl.set(top.layer, { zIndex: 9 }, T.rush);
   tl.to(top.root, { x: rushTo.x - (top.box.x + top.box.w / 2), y: rushTo.y - (top.box.y + top.box.h / 2), scale: rushScale, duration: edge - T.rush, ease: "power2.in" }, T.rush);
-  tl.fromTo(top.inner, { scaleX: 1 }, { scaleX: 0.02, duration: edge - T.rush, ease: "power2.in", immediateRender: false }, T.rush);
+  tl.fromTo(top.inner, { scaleX: 1 }, { scaleX: 0.6, duration: edge - T.rush, ease: "power2.in", immediateRender: false }, T.rush);
+  tl.fromTo(top.root, { opacity: 1 }, { opacity: 0, duration: 0.01, ease: "none", immediateRender: false }, edge);
   [cards[0], cards[1]].forEach((c, k) => {
     tl.to(c.root, { scale: scale * 0.8, opacity: 0, x: `+=${k ? awayDx : -awayDx}`, y: "+=80", duration: 0.34, ease: "power2.in" }, T.rush + 0.02);
   });
@@ -123,17 +125,18 @@ export function buildOpenMobile(ctx, T) {
     });
   });
 
-  /* ---------- row 02: "Finding a place / in Nigeria", in WORDS on a navy band, over the dimmed cards ---------- */
+  /* ---------- row 02: "Finding a place / in Nigeria", in WORDS on a soft scrim; the cards are gone ---------- */
   const bandTop = WORDS.y + 56;
   const band = ctx.el("div", {
     class: "abs",
     style: {
-      left: "0px", top: `${bandTop}px`, width: `${W}px`, height: "300px", zIndex: "10", transformOrigin: "50% 50%",
-      background: "linear-gradient(180deg, rgb(2 6 50 / 0) 0%, rgb(2 6 50 / 0.9) 8%, rgb(2 6 50 / 0.9) 92%, rgb(2 6 50 / 0) 100%)",
+      /* round 5: a soft scrim from the top, no edge (was a hard-edged band) */
+      left: "0px", top: "0px", width: `${W}px`, height: "700px", zIndex: "10",
+      background: "linear-gradient(180deg, rgb(2 6 40 / 0.7) 0%, rgb(2 6 40 / 0.45) 55%, rgb(2 6 40 / 0) 100%)",
     },
   }, night);
-  tl.fromTo(band, { scaleY: 0, opacity: 0 }, { scaleY: 1, opacity: 1, duration: 0.42, ease: "power3.out" }, T.finding - 0.12);
-  tl.to(band, { scaleY: 0, opacity: 0, duration: 0.28, ease: "power2.in" }, T.shouldnt + 0.02);
+  tl.fromTo(band, { opacity: 0 }, { opacity: 1, duration: 0.42, ease: "power2.out" }, T.finding - 0.12);
+  tl.to(band, { opacity: 0, duration: 0.28, ease: "power2.in" }, T.shouldnt + 0.02);
 
   const inner = WORDS.w - 2 * 28;
   const s1 = fitSize("Finding a place", "700 {}px Poppins", 110, inner);
@@ -157,12 +160,13 @@ export function buildOpenMobile(ctx, T) {
   [...w1, ...w2].forEach((s) => tl.fromTo(s, { opacity: 1 }, { opacity: 0, duration: 0.2, ease: "power1.in", immediateRender: false }, T.shouldnt - 0.1));
 
   /* The cards all but vanish behind the words (8%, blurred), so no type sits over their text. */
-  const dimIn = { t0: T.finding - 0.1, t1: T.finding + 0.3 };
+  /* round 5: they are gone (0) by 2.30, before "Finding" lands */
+  const dimIn = { t0: T.finding - 0.36, t1: T.finding - 0.01 };
   /* (they come back only once they are stacked, so no two questions ever show at once) */
   const dimOut = { t0: T.shouldnt + 0.45, t1: T.shouldnt + 0.65 };
   cards.forEach((c) => {
-    tl.fromTo(c.root, { opacity: 1 }, { opacity: 0.08, duration: dimIn.t1 - dimIn.t0, ease: "power2.out" }, dimIn.t0);
-    tl.fromTo(c.root, { opacity: 0.08 }, { opacity: 1, duration: dimOut.t1 - dimOut.t0, ease: "power2.out", immediateRender: false }, dimOut.t0);
+    tl.fromTo(c.root, { opacity: 1 }, { opacity: 0, duration: dimIn.t1 - dimIn.t0, ease: "power2.out" }, dimIn.t0);
+    tl.fromTo(c.root, { opacity: 0 }, { opacity: 1, duration: dimOut.t1 - dimOut.t0, ease: "power2.out", immediateRender: false }, dimOut.t0);
     ctx.onFrame((t) => {
       const d = ctx.ease("power2.out")(ctx.progress(t, dimIn.t0, dimIn.t1)) * (1 - ctx.ease("power2.out")(ctx.progress(t, dimOut.t0, dimOut.t1)));
       c.root.style.filter = d > 0.01 ? `blur(${(6 * d).toFixed(2)}px)` : "none";
@@ -175,7 +179,7 @@ export function buildOpenMobile(ctx, T) {
   const { edge } = riffle(ctx, T, cards, { C: { x: 540, y: 720 }, scale: 0.9, rushTo: { x: 540, y: 960 }, rushScale: 2.6, awayDx: 160 });
 
   /* ================= the Vallo card: rows 03-04 ================= */
-  const vallo = ctx.scene("a-vallo", edge - 0.02, T.widen + 0.8, { z: 2 });
+  const vallo = ctx.scene("a-vallo", edge, T.widen + 0.8, { z: 2 });
   const back = ctx.el("div", {
     class: "abs",
     style: {
@@ -186,8 +190,8 @@ export function buildOpenMobile(ctx, T) {
       boxShadow: "inset 0 0 0 4px rgb(92 159 255 / 0.55), inset 0 0 90px rgb(0 105 254 / 0.35)",
     },
   }, vallo);
-  /* The card opens from its edge (flat, like the rush that turned the question card to its edge). */
-  tl.fromTo(back, { scaleX: 0.02, scaleY: 0.3 }, { scaleX: 1.1, scaleY: 1.1, duration: T.drop - edge, ease: "power3.out" }, edge);
+  /* The Vallo card is cut in on one frame as the rushing card leaves (round 5), its mark already printed. */
+  tl.fromTo(back, { scaleX: 0.86, scaleY: 0.86 }, { scaleX: 1.1, scaleY: 1.1, duration: T.drop - edge, ease: "power3.out" }, edge);
 
   /* Row 04: the mark is printed on the card's back as it opens, so the drop lands a mark that is
      already there; the ring draws, the wordmark rises on "Vallo"; a slow drift through the hold. */
@@ -216,9 +220,9 @@ export function buildOpenMobile(ctx, T) {
   tl.fromTo(wordmark, { y: 46, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "land" }, T.vallo - 0.04);
   tl.fromTo(logo, { scale: 1 }, { scale: 1.03, duration: T.widen - T.drop, ease: "drift" }, T.drop);
   /* Just before the iris opens, the mark and the wordmark rush past the camera through it. */
-  tl.fromTo(mark, { opacity: 1 }, { opacity: 0, duration: 0.45, ease: "power2.in", immediateRender: false }, T.widen - 0.05);
-  tl.fromTo(mark, { scale: 1 }, { scale: 1.35, duration: 0.45, ease: "power2.in", immediateRender: false }, T.widen - 0.05);
-  tl.fromTo(wordmark, { scale: 1, opacity: 1 }, { scale: 1.35, opacity: 0, duration: 0.45, ease: "power2.in", immediateRender: false }, T.widen - 0.05);
+  tl.fromTo(mark, { opacity: 1 }, { opacity: 0, duration: 0.1, ease: "power1.in", immediateRender: false }, T.widen - 0.12);
+  tl.fromTo(mark, { scale: 1 }, { scale: 1.15, duration: 0.1, ease: "power1.in", immediateRender: false }, T.widen - 0.12);
+  tl.fromTo(wordmark, { scale: 1, opacity: 1 }, { scale: 1.15, opacity: 0, duration: 0.1, ease: "power1.in", immediateRender: false }, T.widen - 0.12);
 
   /* ================= the iris opens onto daylight ================= */
   /* It opens from a point at the mark's centre onto the device, already rising in place behind it.

@@ -22,7 +22,7 @@ const H = 1920;
 /* The hand-off to section b: b-m-talk.js A_OUT, recorded in handoffs.md. */
 export const A_OUT = {
   /* v3.2: the film's one phone size (h 1400); b-m-talk.js A_OUT.phone must match */
-  phone: { cx: 540, cy: 1500, height: 1400, rx: 0, ry: 0, rz: 0, fov: 24, opacity: 0.3 },
+  phone: { cx: 540, cy: 1500, height: 1400, rx: 0, ry: 0, rz: 0, fov: 24, opacity: 0 }, // round 5: B brings it in whole, from below
   villa: { x: 160, y: 498, w: 760, h: 548 },
   crop: { x: 52, y: 1602, w: 1088, h: 784 }, // thread-light display px: the Maitama card
 };
@@ -41,8 +41,8 @@ export async function buildReceiptMobile(ctx, T, product) {
   /* ---------- the phone sinks and fades out under the lift; it comes back at 30% only as the fold lands ---------- */
   /* (fromTo from where row 10's drift leaves it, so the pose chain holds whichever way the film is sought) */
   tl.fromTo(P, { cx: PUSH_REST.cx, cy: PUSH_REST.cy, height: PUSH_REST.height, rx: 0, ry: 0, rz: 0 }, { cx: A_OUT.phone.cx, cy: A_OUT.phone.cy, height: A_OUT.phone.height, rx: 0, ry: 0, rz: 0, duration: 1.05, ease: "power3.inOut", ...ir }, T.call + 0.05);
-  tl.fromTo(P, { opacity: 1 }, { opacity: 0, duration: 0.3, ease: "power2.out", ...ir }, T.call - 0.06);
-  tl.fromTo(P, { opacity: 0 }, { opacity: A_OUT.phone.opacity, duration: END - (T.foldAt + 0.36), ease: "power1.inOut", ...ir }, T.foldAt + 0.36);
+  /* round 5: cut out on one frame as the receipt takes over (no fading phone under it) */
+  tl.fromTo(P, { opacity: 1 }, { opacity: 0, duration: 0.001, ease: "none", ...ir }, T.call - 0.002);
   /* v3.2: no UI shown twice. The cost section leaves the screen as it lifts (the receipt covers
      this patch on its first frame), so the fading phone never shows it under the receipt. */
   const gone = ctx.el("div", { class: "abs", style: { left: "0px", top: "330px", width: "1320px", height: "2150px", background: "#f3f4f1", visibility: "hidden", zIndex: "30" } }, listing.el);
@@ -65,7 +65,7 @@ export async function buildReceiptMobile(ctx, T, product) {
   });
 
   /* ---------- the receipt: a shell (the surface, which morphs) and a body (the content, which only ever scales evenly) ---------- */
-  const scene = ctx.scene("a-receipt", T.call - 0.02, END, { z: 9 });
+  const scene = ctx.scene("a-receipt", T.call, END, { z: 9 });
   const shell = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${R.w}px`, height: `${R.h}px`, transformOrigin: "0 0" } }, scene);
   const surface = ctx.el("div", { class: "abs", style: { inset: "0px", borderRadius: "44px", background: "#fff", boxShadow: SHADOW_L, border: "1px solid rgb(11 18 48 / 0.06)" } }, shell);
   /* the body clips its own sweeps and entries to the receipt's shape */

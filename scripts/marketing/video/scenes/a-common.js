@@ -71,11 +71,12 @@ export function timesPlus(ctx) {
   T.oneAppIn = T.all - 0.08;
   T.tabsUp = T.oneAppIn + 0.62;
   T.oneAccIn = T.one2 - 0.2;
-  T.row6Out = T.rows[6] - 0.56;
+  /* round 5: row 06 cuts to row 07 on one frame at 14.6 (no empty mist frame) */
+  T.row6Out = T.rows[6] - 0.4;
   /* 07 (v3.3): the question lands as one object by 15.06 and rests to 16.25 (1.2 s), then becomes the
      pill by 16.50 (the engine's pill is held off until then); the device rises only behind it, and Rent
      is pressed once it is at rest. */
-  T.qIn = T.looking - 0.2;
+  T.qIn = T.row6Out;
   T.qRest = T.qIn + 0.26;
   T.qShrink = T.pill1 + 0.04;
   T.qDone = T.qShrink + 0.25;

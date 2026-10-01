@@ -121,7 +121,7 @@ export async function buildProductDesktop(ctx, T, open) {
   go(stays, T.shortlets);
   go(rest, T.restaurants);
   go(search, T.toSearch);
-  go(listing, T.open, 0.22);
+  go(listing, T.open, 0.01); // a cut, not a dissolve (round 5)
 
   /* ================= row 06: one app, one account ================= */
   const wordsScene = ctx.scene("a-words", T.dropAt, T.qDone + 0.1, { z: Z.words });
@@ -141,30 +141,28 @@ export async function buildProductDesktop(ctx, T, open) {
     const spans = parts.map(([t, blue]) => ctx.el("span", { text: t, style: blue ? { color: ELECTRIC } : {} }, el));
     return { el, spans };
   };
-  const sA = fitSize("One app.", "700 {}px Poppins", 150, 900, -0.035);
-  const sB = fitSize("One account.", "700 {}px Poppins", 142, 1100, -0.035);
-  /* round 4: centred optically (words at y ~400 / ~530, the switch at 660), held in place */
-  const yA = 318;
-  const yB = yA + Math.round(sA * 0.92);
+  const sA = fitSize("One app.", "700 {}px Poppins", 120, 900, -0.035);
+  const sB = fitSize("One account.", "700 {}px Poppins", 112, 1100, -0.035);
+  /* round 4: centred optically (words at y ~400 / ~510, the switch at 640), held in place */
+  const yA = 326;
+  const yB = yA + 130;
   const oneApp = bigLine([["One", true], [" app.", false]], sA, { left: 400, top: yA }, group6).el;
   const oneAcc = bigLine([["One", true], [" account.", false]], sB, { right: W - 1520, top: yB }, group6).el;
   oneApp.style.transformOrigin = "0% 60%";
   oneAcc.style.transformOrigin = "100% 60%";
   tl.fromTo(oneApp, { x: -180, opacity: 0, rotation: -3 }, { x: 0, opacity: 1, rotation: 0, duration: 0.55, ease: "land" }, T.oneAppIn);
-  tl.fromTo(oneAcc, { x: 180, opacity: 0, rotation: 3 }, { x: 0, opacity: 1, rotation: 0, duration: 0.55, ease: "land" }, T.oneAccIn);
-  /* All three leave together, 0.46 s before row 07's question. */
-  tl.fromTo(oneApp, { x: 0 }, { x: -260, duration: 0.24, ease: "power2.in", ...ir }, T.row6Out);
-  tl.fromTo(oneApp, { opacity: 1 }, { opacity: 0, duration: 0.18, ease: "power1.out", ...ir }, T.row6Out + 0.04);
-  tl.fromTo(oneAcc, { x: 0 }, { x: 260, duration: 0.24, ease: "power2.in", ...ir }, T.row6Out);
-  tl.fromTo(oneAcc, { opacity: 1 }, { opacity: 0, duration: 0.18, ease: "power1.out", ...ir }, T.row6Out + 0.04);
+  tl.fromTo(oneAcc, { y: 70, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: "land" }, T.oneAccIn);
+  /* All three cut out on one frame at 14.6, as row 07's question cuts in (round 5). */
+  tl.fromTo(oneApp, { opacity: 1 }, { opacity: 0, duration: 0.01, ease: "none", ...ir }, T.row6Out);
+  tl.fromTo(oneAcc, { opacity: 1 }, { opacity: 0, duration: 0.01, ease: "none", ...ir }, T.row6Out);
 
   /* The one body: the inbox's real Property | Stays tabs (d-messages-lt), two worlds in one app. It
      rises from below once "One app." is still, and leaves with the words. */
   const bodies = ctx.scene("a-bodies", T.dropAt, T.row6Out + 0.4, { z: Z.bodies });
   const TABS = { w: 820, h: 110 };
   const tabs = stayTabs(ctx, bodies, { w: TABS.w, h: TABS.h, font: 40 }).el;
-  const tabsTo = { cx: 960, cy: 668, s: 1 };
-  const tabsT = { up0: T.tabsUp, up1: T.tabsUp + 0.5, down0: T.row6Out, down1: T.row6Out + 0.28 };
+  const tabsTo = { cx: 960, cy: 640, s: 1 };
+  const tabsT = { up0: T.tabsUp, up1: T.tabsUp + 0.5, down0: T.row6Out - 0.001, down1: T.row6Out };
   ctx.onFrame((t) => {
     const on = t >= tabsT.up0 && t < tabsT.down1;
     tabs.style.visibility = on ? "inherit" : "hidden";
@@ -195,7 +193,9 @@ export async function buildProductDesktop(ctx, T, open) {
   qLine.style.transformOrigin = `960px ${sQ * 0.55}px`;
   tl.fromTo(qLine, { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: T.qRest - T.qIn, ease: "land" }, T.qIn);
   /* at rest from T.qRest to T.qShrink, then scaled as one into the pill by 16.21 */
-  tl.fromTo(qLine, { y: 0, scale: 1 }, { y: pillY - qcY, scale: 0.24, duration: T.qDone - T.qShrink, ease: "power2.inOut", ...ir }, T.qShrink);
+  /* a slow drift through the rest (1.5%/s), so the reading hold is never still */
+  tl.fromTo(qLine, { scale: 1 }, { scale: 1.02, duration: T.qShrink - T.qRest, ease: "none", ...ir }, T.qRest);
+  tl.fromTo(qLine, { y: 0, scale: 1.02 }, { y: pillY - qcY, scale: 0.24, duration: T.qDone - T.qShrink, ease: "power2.inOut", ...ir }, T.qShrink);
   tl.fromTo(qLine, { opacity: 1 }, { opacity: 0, duration: 0.1, ease: "power1.in", ...ir }, T.qDone - 0.08);
 
   /* ================= the pointer ================= */

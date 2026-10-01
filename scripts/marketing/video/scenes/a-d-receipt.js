@@ -7,7 +7,7 @@
  * 15% and each lights as it is named; the amounts arc into the total, which
  * rolls and lands on ₦26,100,000 on "right". Card 1 waits at the right of the
  * receipt with its question from the settle, opens on its answer as the total
- * lands, and stays at rest through the cut (section b takes it over). Under the fold (one
+ * lands, and flies out to the top right by 30.50. Under the fold (one
  * scaling move into the Maitama villa card, at rest at 30.577) the window goes
  * at the hero framing (WINDOW_HERO), cut to d-thread-lt, undimmed (scenes/handoffs.md, "A -> B").
  */
@@ -251,7 +251,10 @@ export async function buildReceiptDesktop(ctx, T, product) {
   tl.fromTo(card.root, { x: 520, y: -420, rotation: 22 }, { x: 0, y: 0, rotation: 3, duration: 0.5, ease: "back.out(1.15)" }, T.cardIn);
   /* its answer opens exactly as the total lands on "right" (28.87) */
   card.turn(T.cardTurn, { sound: null });
-  /* it stays at rest, answer up, through the cut: section b takes it over at 30.577 (handoffs.md) */
+  /* Round 5: it flies out to the top right over 30.20-30.50 (gone before the fold lands), to section c's start:
+     centre (2070, -330), 22 deg, 0.9, answer side up. */
+  const c0 = { x: box.x + box.w / 2, y: box.y + box.h / 2 };
+  tl.fromTo(card.root, { x: 0, y: 0, rotation: 3, scale: 1 }, { x: 2070 - c0.x, y: -330 - c0.y, rotation: 22, scale: 0.9, duration: 0.3, ease: "power2.in", immediateRender: false }, 30.2);
 
   /* ---------- under the fold: the window settles at WINDOW_HERO, cut to the thread, and undims (round 4: no scale jump; B starts at the hero) ---------- */
   const thread = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: "1440px", height: "900px", overflow: "hidden", visibility: "hidden", zIndex: "20" } }, win.content);

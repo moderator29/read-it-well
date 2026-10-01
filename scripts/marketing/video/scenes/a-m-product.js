@@ -204,12 +204,10 @@ export async function buildProductMobile(ctx, T, open) {
   oneApp.style.transformOrigin = "0% 60%";
   oneAcc.style.transformOrigin = "100% 60%";
   tl.fromTo(oneApp, { x: -150, opacity: 0, rotation: -4 }, { x: 0, opacity: 1, rotation: 0, duration: 0.55, ease: "land" }, T.oneAppIn);
-  tl.fromTo(oneAcc, { x: 150, opacity: 0, rotation: 4 }, { x: 0, opacity: 1, rotation: 0, duration: 0.55, ease: "land" }, T.oneAccIn);
-  /* All three leave together, 0.46 s before row 07's question. */
-  tl.fromTo(oneApp, { x: 0 }, { x: -220, duration: 0.24, ease: "power2.in", ...ir }, T.row6Out);
-  tl.fromTo(oneApp, { opacity: 1 }, { opacity: 0, duration: 0.18, ease: "power1.out", ...ir }, T.row6Out + 0.04);
-  tl.fromTo(oneAcc, { x: 0 }, { x: 220, duration: 0.24, ease: "power2.in", ...ir }, T.row6Out);
-  tl.fromTo(oneAcc, { opacity: 1 }, { opacity: 0, duration: 0.18, ease: "power1.out", ...ir }, T.row6Out + 0.04);
+  tl.fromTo(oneAcc, { y: 70, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: "land" }, T.oneAccIn);
+  /* All three cut out on one frame at 14.6, as row 07's question cuts in (round 5). */
+  tl.fromTo(oneApp, { opacity: 1 }, { opacity: 0, duration: 0.01, ease: "none", ...ir }, T.row6Out);
+  tl.fromTo(oneAcc, { opacity: 1 }, { opacity: 0, duration: 0.01, ease: "none", ...ir }, T.row6Out);
 
   /* The one body: the inbox's real Property | Stays tabs (messages-lt), two worlds in one app. It
      rises from below once "One app." is still, and leaves with the words. */
@@ -217,7 +215,7 @@ export async function buildProductMobile(ctx, T, open) {
   const TABS = { w: 620, h: 86 };
   const tabs = stayTabs(ctx, bodies, { w: TABS.w, h: TABS.h, font: 33 }).el;
   const tabsTo = { cx: 540, cy: 980, s: 1 };
-  const tabsT = { up0: T.tabsUp, up1: T.tabsUp + 0.5, down0: T.row6Out, down1: T.row6Out + 0.28 };
+  const tabsT = { up0: T.tabsUp, up1: T.tabsUp + 0.5, down0: T.row6Out - 0.001, down1: T.row6Out };
   ctx.onFrame((t) => {
     const on = t >= tabsT.up0 && t < tabsT.down1;
     tabs.style.visibility = on ? "inherit" : "hidden";
@@ -247,7 +245,9 @@ export async function buildProductMobile(ctx, T, open) {
   qGroup.style.transformOrigin = `${qc.x}px ${qc.y}px`;
   tl.fromTo(qGroup, { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: T.qRest - T.qIn, ease: "land" }, T.qIn);
   /* at rest from T.qRest to T.qShrink, then scaled as one into the pill by 16.21 */
-  tl.fromTo(qGroup, { y: 0, scale: 1 }, { y: pillY - qc.y, scale: 0.26, duration: T.qDone - T.qShrink, ease: "power2.inOut", ...ir }, T.qShrink);
+  /* a slow drift through the rest (1.5%/s), so the reading hold is never still */
+  tl.fromTo(qGroup, { scale: 1 }, { scale: 1.02, duration: T.qShrink - T.qRest, ease: "none", ...ir }, T.qRest);
+  tl.fromTo(qGroup, { y: 0, scale: 1.02 }, { y: pillY - qc.y, scale: 0.26, duration: T.qDone - T.qShrink, ease: "power2.inOut", ...ir }, T.qShrink);
   tl.fromTo(qGroup, { opacity: 1 }, { opacity: 0, duration: 0.1, ease: "power1.in", ...ir }, T.qDone - 0.08);
 
   /* ================= the pointer (hovering above the glass) ================= */

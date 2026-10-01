@@ -57,12 +57,13 @@ export function buildOpenDesktop(ctx, T) {
   const band = ctx.el("div", {
     class: "abs",
     style: {
-      left: "0px", top: "640px", width: "1260px", height: "280px", zIndex: "10", transformOrigin: "0% 50%",
-      background: "linear-gradient(90deg, rgb(2 6 50 / 0.9) 0%, rgb(2 6 50 / 0.9) 72%, rgb(2 6 50 / 0) 100%)",
+      /* round 5: a soft scrim, no edge (was a band) */
+      left: "0px", top: "0px", width: "1260px", height: `${H}px`, zIndex: "10",
+      background: "radial-gradient(70% 45% at 30% 72%, rgb(2 6 40 / 0.6) 0%, rgb(2 6 40 / 0) 100%)",
     },
   }, night);
-  tl.fromTo(band, { scaleX: 0, opacity: 0 }, { scaleX: 1, opacity: 1, duration: 0.5, ease: "power3.out" }, T.finding - 0.14);
-  tl.to(band, { scaleX: 0, opacity: 0, duration: 0.3, ease: "power2.in" }, T.shouldnt + 0.02);
+  tl.fromTo(band, { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power2.out" }, T.finding - 0.14);
+  tl.to(band, { opacity: 0, duration: 0.3, ease: "power2.in" }, T.shouldnt + 0.02);
   const s1 = fitSize("Finding a place", "700 {}px Poppins", 112, 1000);
   const s2 = fitSize("in Nigeria", "700 {}px Poppins", 116, 1000);
   const line = (top, size) => ctx.el("div", { class: "abs display", style: { left: "120px", top: `${top}px`, height: "130px", zIndex: "11", display: "flex", alignItems: "baseline", gap: `${Math.round(size * 0.24)}px`, letterSpacing: "-0.03em" } }, night);
@@ -81,12 +82,13 @@ export function buildOpenDesktop(ctx, T) {
   /* they fade in place (0.2 s), never flying past the frame's edge over the cards */
   [...w1, ...w2].forEach((s) => tl.fromTo(s, { opacity: 1 }, { opacity: 0, duration: 0.2, ease: "power1.in", immediateRender: false }, T.shouldnt - 0.1));
   /* The cards all but vanish behind the words (8%, blurred), so no type sits over their text. */
-  const dimIn = { t0: T.finding - 0.1, t1: T.finding + 0.3 };
+  /* round 5: they are gone (0) by 2.30, before "Finding" lands */
+  const dimIn = { t0: T.finding - 0.36, t1: T.finding - 0.01 };
   /* (they come back only once they are stacked, so no two questions ever show at once) */
   const dimOut = { t0: T.shouldnt + 0.45, t1: T.shouldnt + 0.65 };
   cards.forEach((c) => {
-    tl.fromTo(c.root, { opacity: 1 }, { opacity: 0.08, duration: dimIn.t1 - dimIn.t0, ease: "power2.out" }, dimIn.t0);
-    tl.fromTo(c.root, { opacity: 0.08 }, { opacity: 1, duration: dimOut.t1 - dimOut.t0, ease: "power2.out", immediateRender: false }, dimOut.t0);
+    tl.fromTo(c.root, { opacity: 1 }, { opacity: 0, duration: dimIn.t1 - dimIn.t0, ease: "power2.out" }, dimIn.t0);
+    tl.fromTo(c.root, { opacity: 0 }, { opacity: 1, duration: dimOut.t1 - dimOut.t0, ease: "power2.out", immediateRender: false }, dimOut.t0);
     ctx.onFrame((t) => {
       const d = ctx.ease("power2.out")(ctx.progress(t, dimIn.t0, dimIn.t1)) * (1 - ctx.ease("power2.out")(ctx.progress(t, dimOut.t0, dimOut.t1)));
       c.root.style.filter = d > 0.01 ? `blur(${(6 * d).toFixed(2)}px)` : "none";
@@ -99,7 +101,7 @@ export function buildOpenDesktop(ctx, T) {
   const { edge } = riffle(ctx, T, cards, { C: { x: 620, y: 500 }, scale: 0.92, rushTo: { x: 960, y: 540 }, rushScale: 2.8, awayDx: 220 });
 
   /* ================= the Vallo card: rows 03-04 ================= */
-  const vallo = ctx.scene("a-vallo", edge - 0.02, T.widen + 0.8, { z: 2 });
+  const vallo = ctx.scene("a-vallo", edge, T.widen + 0.8, { z: 2 });
   const back = ctx.el("div", {
     class: "abs",
     style: {
@@ -110,8 +112,8 @@ export function buildOpenDesktop(ctx, T) {
       boxShadow: "inset 0 0 0 4px rgb(92 159 255 / 0.55), inset 0 0 90px rgb(0 105 254 / 0.35)",
     },
   }, vallo);
-  /* The card opens from its edge (flat, like the rush that turned the question card to its edge). */
-  tl.fromTo(back, { scaleX: 0.02, scaleY: 0.3 }, { scaleX: 1.1, scaleY: 1.1, duration: T.drop - edge, ease: "power3.out" }, edge);
+  /* The Vallo card is cut in on one frame as the rushing card leaves (round 5), its mark already printed. */
+  tl.fromTo(back, { scaleX: 0.86, scaleY: 0.86 }, { scaleX: 1.1, scaleY: 1.1, duration: T.drop - edge, ease: "power3.out" }, edge);
 
   /* Row 04: the mark is printed on the card's back as it opens (so the drop lands a mark already
      there), the ring draws, and on "Vallo" the mark steps left and the wordmark rises beside it: a
