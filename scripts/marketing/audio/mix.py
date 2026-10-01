@@ -517,7 +517,10 @@ def build_sfx_bus(events: list[dict], sfx_dir: Path, timeline: dict | None, N: i
         j = min(N, i + len(y))
         bus[max(i, 0):j] += undb(applied) * y[a0: a0 + j - max(i, 0)]
         if rec is not None:
-            kit_bus[max(i, 0):j] += undb(rec) * y[a0: a0 + j - max(i, 0)]
+            # A signature's lift is part of the design, so the bed check measures
+            # against the kit's level plus that lift, not the plain kit level.
+            intent = rec + (float(sig["lift_db"]) if sig else 0.0)
+            kit_bus[max(i, 0):j] += undb(intent) * y[a0: a0 + j - max(i, 0)]
         row = {"name": ev["name"], "t": round(t, 3), "mode": mode, "requested_gain_db": round(gain, 2),
                "applied_gain_db": round(applied, 2), "pan": pan, "dur": round(len(y) / SR, 3),
                "peak_l100_lufs": round(l_req - take, 2), "peak_at_s": round(t + t_peak, 3),
