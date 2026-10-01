@@ -112,7 +112,7 @@ export async function buildClose(ctx, S) {
   });
 
   /* a cut to the white end card on beat 167 */
-  ctx.sfx("whoosh_long", K.r41, { offset: 6 }); // round 4: +10 dB, felt under the bed
+  ctx.sfx("whoosh_long", K.r41, { offset: -4 }); // lifted +10 dB in signature-cues.json, felt under the bed
 
   /* ================= rows 41 and 42: the end card ================= */
   const card = ctx.scene("c41-card", K.r41, end, { z: 1 });
