@@ -496,30 +496,31 @@ export function camera(ctx, world) {
 export function dayCard(ctx, parent, T, { X, Y, k = 1, layout = "wide", chipAt, tIn, tOut0, tOut1 }) {
   const { tl } = ctx;
   const narrow = layout === "narrow";
-  const W = (narrow ? 360 : 470) * k;
-  const H = (narrow ? 400 : 440) * k;
+  const land = layout === "land"; // round 4: a low card that docks over a photo's corner (desktop D17)
+  const W = (narrow ? 360 : land ? 460 : 470) * k;
+  const H = (narrow ? 400 : land ? 270 : 440) * k;
   const r = (v) => Math.round(v * k);
   const wrap = ctx.el("div", { class: "abs", style: { left: `${X}px`, top: `${Y}px`, width: `${W}px`, height: `${H}px`, perspective: `${r(1600)}px`, visibility: "hidden" } }, parent);
   const card = ctx.el("div", {
     class: "abs",
     style: { inset: "0px", borderRadius: `${r(36)}px`, background: "#fff", boxShadow: SHADOW.l, overflow: "hidden", transformStyle: "preserve-3d", border: "1px solid rgb(255 255 255 / 0.9)" },
   }, wrap);
-  const BAND = r(narrow ? 108 : 124);
+  const BAND = r(narrow ? 108 : land ? 80 : 124);
   const pages = ["Saturday"].map((d, i) => {
     const pg = ctx.el("div", { class: "abs", style: { inset: "0px", background: "#fff", transformOrigin: "50% 0%", backfaceVisibility: "hidden", zIndex: String(10 - i) } }, card);
     const band = ctx.el("div", { class: "abs", style: { left: "0px", right: "0px", top: "0px", height: `${BAND}px`, background: `linear-gradient(160deg, #2f83ff, ${ELECTRIC} 55%, #0052d6)`, display: "flex", alignItems: "center", justifyContent: "center" } }, pg);
-    if (d) ctx.el("div", { text: d, style: { font: `700 ${r(narrow ? 46 : 52)}px/1 Poppins, Inter, sans-serif`, letterSpacing: "-0.03em", color: "#fff", transform: `translateY(${r(3)}px)` } }, band);
-    for (let j = 0; j < 3; j += 1) box(ctx, pg, { x: r(44), y: BAND + r(76) + j * r(narrow ? 84 : 74), w: W - r(88), h: Math.max(1, r(2)), style: { background: "rgb(16 32 80 / 0.07)" } });
+    if (d) ctx.el("div", { text: d, style: { font: `700 ${r(narrow ? 46 : land ? 42 : 52)}px/1 Poppins, Inter, sans-serif`, letterSpacing: "-0.03em", color: "#fff", transform: `translateY(${r(3)}px)` } }, band);
+    if (!land) for (let j = 0; j < 3; j += 1) box(ctx, pg, { x: r(44), y: BAND + r(76) + j * r(narrow ? 84 : 74), w: W - r(88), h: Math.max(1, r(2)), style: { background: "rgb(16 32 80 / 0.07)" } });
     return pg;
   });
   const sat = pages[0];
-  const time = ctx.el("div", { class: "abs", text: "11:00 AM", style: { left: "0px", right: "0px", top: `${BAND + r(narrow ? 44 : 58)}px`, textAlign: "center", font: `700 ${r(narrow ? 76 : 92)}px/1 Poppins, Inter, sans-serif`, letterSpacing: "-0.04em", color: NAVY, opacity: "0", background: "#fff" } }, sat);
-  const rows = ctx.el("div", { class: "abs", style: { left: "0px", right: "0px", top: `${BAND + r(narrow ? 150 : 196)}px`, display: "flex", flexDirection: narrow ? "column" : "row", alignItems: "center", justifyContent: "center", gap: `${r(narrow ? 16 : 12)}px`, opacity: "0", background: "#fff", padding: `${r(10)}px 0` } }, sat);
+  const time = ctx.el("div", { class: "abs", text: "11:00 AM", style: { left: "0px", right: "0px", top: `${BAND + r(narrow ? 44 : land ? 26 : 58)}px`, textAlign: "center", font: `700 ${r(narrow ? 76 : land ? 74 : 92)}px/1 Poppins, Inter, sans-serif`, letterSpacing: "-0.04em", color: NAVY, opacity: "0", background: "#fff" } }, sat);
+  const rows = ctx.el("div", { class: "abs", style: { left: "0px", right: "0px", top: `${BAND + r(narrow ? 150 : land ? 116 : 196)}px`, display: "flex", flexDirection: narrow ? "column" : "row", alignItems: "center", justifyContent: "center", gap: `${r(narrow ? 16 : 12)}px`, opacity: "0", background: "#fff", padding: `${r(10)}px 0` } }, sat);
   const row = ctx.el("div", { style: { display: "flex", alignItems: "center", gap: `${r(12)}px` } }, rows);
   const plate = ctx.el("span", { style: { width: `${r(42)}px`, height: `${r(42)}px`, borderRadius: `${r(13)}px`, display: "grid", placeItems: "center", background: "rgb(0 105 254 / 0.1)", color: ELECTRIC, flex: "none" } }, row);
   ctx.icon("check", { size: r(28), stroke: 3 }, plate);
-  ctx.el("span", { text: "Inspection set", style: { font: `600 ${r(narrow ? 32 : 34)}px/1 Inter, sans-serif`, letterSpacing: "-0.015em", color: NAVY, whiteSpace: "nowrap" } }, row);
-  exampleChip(ctx, rows, { size: r(narrow ? 22 : 20) });
+  ctx.el("span", { text: "Inspection set", style: { font: `600 ${r(narrow ? 32 : land ? 30 : 34)}px/1 Inter, sans-serif`, letterSpacing: "-0.015em", color: NAVY, whiteSpace: "nowrap" } }, row);
+  exampleChip(ctx, rows, { size: r(narrow ? 22 : land ? 18 : 20) });
 
   tl.fromTo(wrap, { x: -W - 60, y: r(60), rotation: -14 }, { x: 0, y: 0, rotation: -2.5, duration: 0.42, ease: "land", immediateRender: false }, tIn);
   tl.fromTo(card, { rotationY: 36 }, { rotationY: 0, duration: 0.42, ease: "power3.out", immediateRender: false }, tIn);

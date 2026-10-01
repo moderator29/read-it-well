@@ -39,8 +39,8 @@ const PUSHF = { x: -1826, y: -40, s: 2 };
 /* Row 10 (v3.3): the hero framing raised 140 px, so the six cost lines end above the caption (y 915);
    the page's own total card (css y 710 on) is held back until the receipt lands it (see below)... */
 export const LOW = { x: HERO.x, y: 98, s: HERO.s };
-/* ...and its slow drift: a 0.8% push about (960, 400), which only takes the card further down. */
-export const LOW_REST = { x: 960 - (960 - LOW.x) * 1.008, y: 400 - (400 - LOW.y) * 1.008, s: 1.12 };
+/* ...and its slow drift through the hold: a 3% push about (960, 900), so the lines above the caption stay above it. */
+export const LOW_REST = { x: 960 - (960 - LOW.x) * 1.03, y: 900 - (900 - LOW.y) * 1.03, s: LOW.s * 1.03 };
 const Z = { mist: 3, map: 4, window: 5, bodies: 7, words: 8, pointer: 12 };
 
 /** Stage point of a css point in the window at a framing. */
@@ -84,7 +84,7 @@ export async function buildProductDesktop(ctx, T, open) {
   tl.fromTo(R, F(LEFT08), { ...F(PUSHF), duration: 0.62, ease: "power3.inOut", ...ir }, T.villasPush);
   /* 09 -> 10: back out to the lowered hero framing first; the listing comes in once it is there. */
   tl.fromTo(R, F(PUSHF), { ...F(LOW), duration: T.open - (T.need + 0.1), ease: "power3.inOut", ...ir }, T.need + 0.1);
-  tl.fromTo(R, F(LOW), { ...F(LOW_REST), duration: T.call - T.movein, ease: "sine.inOut", ...ir }, T.movein);
+  tl.fromTo(R, F(LOW), { ...F(LOW_REST), duration: T.call - T.open, ease: "sine.inOut", ...ir }, T.open);
 
   /* ================= the pages ================= */
   const page = (id, { bg = "#f3f4f1" } = {}) => {
@@ -126,7 +126,7 @@ export async function buildProductDesktop(ctx, T, open) {
   /* ================= row 06: one app, one account ================= */
   const wordsScene = ctx.scene("a-words", T.dropAt, T.qDone + 0.1, { z: Z.words });
   /* One group, drifting slowly (1.00 -> 1.025) through the row, so the hold never freezes. */
-  const ROW6 = { x: 960, y: 480 };
+  const ROW6 = { x: 960, y: 520 };
   const group6 = ctx.el("div", { class: "fill", style: { transformOrigin: `${ROW6.x}px ${ROW6.y}px` } }, wordsScene);
   const drift6 = (t) => 1 + 0.025 * ctx.ease("drift")(ctx.progress(t, T.oneAppIn, T.row6Out + 0.24));
   ctx.onFrame((t) => { group6.style.transform = `scale(${drift6(t).toFixed(5)})`; });
@@ -143,8 +143,9 @@ export async function buildProductDesktop(ctx, T, open) {
   };
   const sA = fitSize("One app.", "700 {}px Poppins", 150, 900, -0.035);
   const sB = fitSize("One account.", "700 {}px Poppins", 142, 1100, -0.035);
-  const yA = 230;
-  const yB = yA + Math.round(sA * 1.02);
+  /* round 4: centred optically (words at y ~400 / ~530, the switch at 660), held in place */
+  const yA = 318;
+  const yB = yA + Math.round(sA * 0.92);
   const oneApp = bigLine([["One", true], [" app.", false]], sA, { left: 400, top: yA }, group6).el;
   const oneAcc = bigLine([["One", true], [" account.", false]], sB, { right: W - 1520, top: yB }, group6).el;
   oneApp.style.transformOrigin = "0% 60%";
@@ -162,7 +163,7 @@ export async function buildProductDesktop(ctx, T, open) {
   const bodies = ctx.scene("a-bodies", T.dropAt, T.row6Out + 0.4, { z: Z.bodies });
   const TABS = { w: 820, h: 110 };
   const tabs = stayTabs(ctx, bodies, { w: TABS.w, h: TABS.h, font: 40 }).el;
-  const tabsTo = { cx: 960, cy: yB + Math.round(sB * 1.0) + 110, s: 1 };
+  const tabsTo = { cx: 960, cy: 668, s: 1 };
   const tabsT = { up0: T.tabsUp, up1: T.tabsUp + 0.5, down0: T.row6Out, down1: T.row6Out + 0.28 };
   ctx.onFrame((t) => {
     const on = t >= tabsT.up0 && t < tabsT.down1;
@@ -171,7 +172,7 @@ export async function buildProductDesktop(ctx, T, open) {
     const up = ctx.ease("back.out(1.2)")(ctx.progress(t, tabsT.up0, tabsT.up1));
     const down = ctx.ease("power2.in")(ctx.progress(t, tabsT.down0, tabsT.down1));
     const d = drift6(t);
-    const cy = tabsTo.cy + 220 * (1 - up) + 200 * down;
+    const cy = tabsTo.cy + 40 * (1 - up) + 40 * down;
     const pos = { x: ROW6.x + (tabsTo.cx - ROW6.x) * d, y: ROW6.y + (cy - ROW6.y) * d };
     placeOnQuad(tabs, TABS.w, TABS.h, rectQuad(pos.x, pos.y, TABS.w * tabsTo.s * d, TABS.h * tabsTo.s * d, 0));
     tabs.style.opacity = String(Math.min(up * 1.6, 1) * (1 - down));

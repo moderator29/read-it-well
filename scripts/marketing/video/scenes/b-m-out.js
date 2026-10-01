@@ -49,7 +49,7 @@ export function goingTitle(ctx, layer, T, { id, CX, CY, R, maxSize, feather, tPu
   svgEl("rect", { x: px, y: py, width: PH.w, height: PH.h, fill: `url(#${id}-fv)`, ...(fx > 0 ? { mask: `url(#${id}-featherH)` } : {}) }, fMask);
   const shown = svgEl("g", { mask: `url(#${id}-letters)` }, svg);
   const photoG = svgEl("g", { mask: `url(#${id}-feather)` }, shown);
-  const img = svgEl("image", { href: ctx.src.photo("restaurant-02-lounge.jpg"), x: px, y: py, width: PH.w, height: PH.h, preserveAspectRatio: "xMidYMid slice" }, photoG);
+  const img = svgEl("image", { href: ctx.src.photo("restaurant-02-lounge.jpg"), x: px, y: py, width: PH.w, height: PH.h, preserveAspectRatio: "xMidYMid slice", style: "filter: brightness(1.32) saturate(1.12) contrast(1.04)" }, photoG);
   svgEl("rect", { x: px, y: py, width: PH.w, height: PH.h, fill: "rgb(255 170 90)", opacity: 0.1 }, photoG);
   ctx.pending = (ctx.pending ?? []).concat(new Promise((ok) => { img.addEventListener("load", ok, { once: true }); img.addEventListener("error", ok, { once: true }); }));
   /* "Going out" in navy, live */
@@ -60,9 +60,10 @@ export function goingTitle(ctx, layer, T, { id, CX, CY, R, maxSize, feather, tPu
     return n;
   };
   const words = [
-    { node: mk(gNavy, "Going", NAVY), t: T.going, line: 0 },
-    { node: mk(gNavy, "out", NAVY), t: T.out, line: 0 },
-    { node: mk(gMask, "tonight?", "white"), t: T.tonight, line: 1 },
+    /* round 4: the three words land close together, so the title is complete by 49.35 and holds 1.25 s */
+    { node: mk(gNavy, "Going", NAVY), t: T.going - 0.04, line: 0 },
+    { node: mk(gNavy, "out", NAVY), t: T.going - 0.01, line: 0 },
+    { node: mk(gMask, "tonight?", "white"), t: T.going + 0.02, line: 1 },
   ];
   let L = null;
   const doLayout = () => {
@@ -88,7 +89,7 @@ export function goingTitle(ctx, layer, T, { id, CX, CY, R, maxSize, feather, tPu
     L = { o: { x: pos[2][0] + tW + (toW - tW) / 2 - size * 0.02, y: base2 - 0.28 * size } };
   };
   /* no iris (it led nowhere): the title holds, then lifts a little and fades as the device rises under it */
-  const tEnd = tPush + 0.24;
+  const tEnd = tPush + 0.15;
   ctx.onFrame((t) => {
     if (t < T.r23 - 0.05 || t > tEnd + 0.05) return;
     if (!L) doLayout();
@@ -108,10 +109,10 @@ export function goingTitle(ctx, layer, T, { id, CX, CY, R, maxSize, feather, tPu
   /* the ring: electric, round the words, its particles outside it */
   const ringWrap = ctx.el("div", { class: "fill" }, layer);
   layer.insertBefore(ringWrap, svg);
-  ringOut(ctx, ringWrap, { cx: CX, cy: CY, r: R, t: T.going + 0.04, dots: 8, seed: 23, stroke: 4 });
+  ringOut(ctx, ringWrap, { cx: CX, cy: CY, r: R, t: T.going - 0.06, dots: 8, seed: 23, stroke: 4, dur: 0.38 });
   ringWrap.style.transformOrigin = `${CX}px ${CY}px`;
-  tl.fromTo(ringWrap, { opacity: 1, scale: 1 }, { opacity: 0, scale: 1.1, duration: 0.3, ease: "power2.in", immediateRender: false }, tPush);
-  showDuring(ctx, ringWrap, [[T.going, tPush + 0.3]]);
+  tl.fromTo(ringWrap, { opacity: 1, scale: 1 }, { opacity: 0, scale: 1.1, duration: 0.15, ease: "power2.in", immediateRender: false }, tPush);
+  showDuring(ctx, ringWrap, [[T.going - 0.08, tPush + 0.15]]);
   return { tEnd };
 }
 
@@ -121,13 +122,13 @@ export async function goingOut(ctx, S, T) {
   /* ==================== row 23 ==================== */
   const layer = ctx.scene("b-m-going", T.r23 - 0.05, T.r24 + 0.3, { z: 30 });
   ctx.sfx("whoosh_short", T.r23, { offset: -2 });
-  const tPush = ctx.beat(87.35); // 50.39: the title holds 0.2 s longer
+  const tPush = 50.6;              // round 4: complete from 49.35, held 1.25 s
   goingTitle(ctx, layer, T, { id: "b-m-going", CX: ctx.W / 2, CY: 780, R: 400, maxSize: 170, feather: { x: 0, y: 240 }, tPush });
 
   /* ==================== row 24 ==================== */
   const pL = S.pL;
   const HIGH = { cx: L.PHONE_HIGH.cx, cy: L.PHONE_HIGH.cy, height: L.PHONE_HIGH.height };
-  const tRise = ctx.beat(87.35) + 0.08; // 50.47: rises as the title lifts away, clear of it
+  const tRise = 50.55;             // rises under the title's fade (50.60-50.75)
   const tOff = ctx.beat(93.36);    // 53.86
   const tTurn = ctx.beat(93.43);   // 53.90
   const pose = S.pLpose;
@@ -151,13 +152,14 @@ export async function goingOut(ctx, S, T) {
   ctx.el("div", { html: "Tonight, 8:00 PM<br>Harbour Lights Kitchen", style: { font: "500 25px/1.36 Inter, sans-serif", color: INK2, whiteSpace: "nowrap" } }, card);
   const tIn = T.reserve;
   ctx.sfx("pop", tIn);
-  showDuring(ctx, card, [[tIn, tOff + 0.4]]);
+  showDuring(ctx, card, [[tIn, tOff + 0.04]]);
   ctx.onFrame((t) => {
-    if (t < tIn || t > tOff + 0.4) return;
+    if (t < tIn || t > tOff + 0.05) return;
     const k = ramp(ctx, t, tIn, tIn + 0.45, "back.out(1.4)");
-    const off = ramp(ctx, t, tOff, tOff + 0.34, "power3.in");
-    const x = mix(ctx.W + 40, X, k) + off * 640;
-    const y = Y - off * 560;
+    /* round 4: fully out of frame by 53.90, no sliver on the edge as the chips begin */
+    const off = ramp(ctx, t, tOff - 0.3, tOff + 0.04, "power3.in");
+    const x = mix(ctx.W + 40, X, k) + off * 980;
+    const y = Y - off * 760;
     card.style.transform = `translate(${x.toFixed(2)}px, ${y.toFixed(2)}px) rotate(${(mix(6, 0, k) + off * 16).toFixed(2)}deg)`;
     card.style.opacity = String((1 - off * 0.3).toFixed(3));
   });

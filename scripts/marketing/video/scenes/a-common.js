@@ -524,7 +524,7 @@ export function rollNumber(ctx, parent, { value, t0, t1, font, color, prefix = "
 export function registerSound(ctx, T) {
   const s = (name, t, offset = 0) => ctx.sfx(name, t, { offset });
   const m = ctx.isMobile;
-  /* 03 */ s("card_slide", T.b(7.1), 0); s("card_slide", T.b(7.8), 0); s("card_slide", T.b(8.5), 0);
+  /* 03: the riffle's three cuts (a-m-open.js CUT_BEATS) */ for (const k of [8.0, 8.7, 9.6]) s("card_slide", T.b(k), 0);
   /* 03 -> 04: the rush into the Vallo card opens "Meet Vallo" */ s("whoosh_long", T.rush, 0);
   /* 04 */ s("impact_soft", T.drop, 0); s("sparkle", T.sparkle, -3);
   /* 04 -> 05: the ground changes to daylight as the iris opens */ s("whoosh_short", T.widen, -4);

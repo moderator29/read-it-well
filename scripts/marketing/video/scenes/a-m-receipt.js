@@ -6,14 +6,14 @@
  * 1 comes in under the receipt with its question as it settles; the lines
  * print as they are named; the amounts arc into the total, which rolls and
  * lands on ₦26,100,000 on "right", as card 1 opens on its answer; card 1
- * stays at rest, answer up, through the cut (section b takes it over); the receipt folds into the
+ * flies out to the top right by 30.55; the receipt folds into the
  * Maitama villa card in one scaling move, at rest on section b's A_OUT rect at
  * 30.577 (scenes/handoffs.md, "A -> B"), with the phone (v3.2's one size)
  * back under it at 30%.
  */
 import { QUESTIONS } from "./layout.js";
 import { questionCard, squiggle } from "../engine/components.js";
-import { NAVY, ELECTRIC, SHADOW_L, displayRectQuad, rectQuad, lerpQuad, placeOnQuad, LINES, TOTAL, naira, rollNumber, measure, cropCanvas, freshLayers } from "./a-common.js";
+import { NAVY, ELECTRIC, SHADOW_L, displayToStage, rectQuad, lerpQuad, placeOnQuad, LINES, TOTAL, naira, rollNumber, measure, cropCanvas, freshLayers } from "./a-common.js";
 import { PUSH_REST, ROW10_SCROLL } from "./a-m-product.js";
 
 const W = 1080;
@@ -42,8 +42,8 @@ export async function buildReceiptMobile(ctx, T, product) {
   /* (fromTo from where row 10's drift leaves it, so the pose chain holds whichever way the film is sought) */
   tl.fromTo(P, { cx: PUSH_REST.cx, cy: PUSH_REST.cy, height: PUSH_REST.height, rx: 0, ry: 0, rz: 0 }, { cx: A_OUT.phone.cx, cy: A_OUT.phone.cy, height: A_OUT.phone.height, rx: 0, ry: 0, rz: 0, duration: 1.05, ease: "power3.inOut", ...ir }, T.call + 0.05);
   tl.fromTo(P, { opacity: 1 }, { opacity: 0, duration: 0.3, ease: "power2.out", ...ir }, T.call - 0.06);
-  tl.fromTo(P, { opacity: 0 }, { opacity: A_OUT.phone.opacity, duration: 0.35, ease: "power1.inOut", ...ir }, END - 0.37);
-  /* v3.2: no UI shown twice. The cost section leaves the screen as it lifts (the lifted skin covers
+  tl.fromTo(P, { opacity: 0 }, { opacity: A_OUT.phone.opacity, duration: END - (T.foldAt + 0.36), ease: "power1.inOut", ...ir }, T.foldAt + 0.36);
+  /* v3.2: no UI shown twice. The cost section leaves the screen as it lifts (the receipt covers
      this patch on its first frame), so the fading phone never shows it under the receipt. */
   const gone = ctx.el("div", { class: "abs", style: { left: "0px", top: "330px", width: "1320px", height: "2150px", background: "#f3f4f1", visibility: "hidden", zIndex: "30" } }, listing.el);
   ctx.onFrame((t) => {
@@ -62,16 +62,10 @@ export async function buildReceiptMobile(ctx, T, product) {
     if ((thread.style.visibility !== "hidden") !== on) thread.style.visibility = on ? "inherit" : "hidden";
   });
 
-  /* ---------- the receipt: a shell (surface and skin, which morph) and a body (the content, which only ever scales evenly) ---------- */
+  /* ---------- the receipt: a shell (the surface, which morphs) and a body (the content, which only ever scales evenly) ---------- */
   const scene = ctx.scene("a-receipt", T.call - 0.02, END, { z: 9 });
   const shell = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${R.w}px`, height: `${R.h}px`, transformOrigin: "0 0" } }, scene);
   const surface = ctx.el("div", { class: "abs", style: { inset: "0px", borderRadius: "44px", background: "#fff", boxShadow: SHADOW_L, border: "1px solid rgb(11 18 48 / 0.06)" } }, shell);
-  /* The skin: the screen's own cost section (listing-cost-light), stretched into the receipt's box so it maps back onto the glass at the lift's start. */
-  const SKIN = { x: 20, y: 470, w: 1280, h: 2010 };
-  /* where it sits on the screen: the page is scrolled up ROW10_SCROLL display px in row 10 */
-  const SKIN_ON = { ...SKIN, y: SKIN.y - ROW10_SCROLL };
-  const skinWrap = ctx.el("div", { class: "abs", style: { inset: "0px", borderRadius: "44px", overflow: "hidden" } }, shell);
-  await cropCanvas(ctx, ctx.src.display("listing-cost-light"), SKIN, { parent: skinWrap, style: { width: `${R.w}px`, height: `${R.h}px` } });
   /* the body clips its own sweeps and entries to the receipt's shape */
   const body = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${R.w}px`, height: `${R.h}px`, transformOrigin: "0 0", overflow: "hidden", borderRadius: "44px" } }, scene);
 
@@ -156,7 +150,8 @@ export async function buildReceiptMobile(ctx, T, product) {
 
   /* ---------- the lift (row 11), the slow push through rows 12-13, and the fold ---------- */
   const lift = { t0: T.call, t1: T.call + 1.1 };
-  const fold = { t0: T.foldAt, t1: END };
+  /* the fold (round 4): 0.36 s, both fully opaque; the villa card takes over on the frame the rects match */
+  const fold = { t0: T.foldAt, t1: T.foldAt + 0.36 };
   const V = A_OUT.villa;
   const PUSH_END = 1.02;
   const rest = (t) => {
@@ -168,19 +163,32 @@ export async function buildReceiptMobile(ctx, T, product) {
   /* the villa card (identical to section b's), which the receipt becomes */
   const villa = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${A_OUT.crop.w}px`, height: `${A_OUT.crop.h}px`, transformOrigin: "0 0", overflow: "hidden", borderRadius: "40px", boxShadow: SHADOW_L, visibility: "hidden" } }, scene);
   await cropCanvas(ctx, ctx.src.display("thread-light"), A_OUT.crop, { parent: villa });
-  const XF = 0.2; // the cross-fade into the villa card: the fold's last 0.2 s
+  /* The lift is a match cut (round 4): on "call" the empty receipt takes over on one frame, its title
+     exactly on the screen's own title (same left, cap top and width), and the screen's section is gone
+     on that frame (the patch above), so no text ever shows twice and nothing of the page (its "Paid to /
+     Kept by" lines) rises with it. */
+  const TITLE_D = { x: 43, capTop: 488, w: 754 }; // listing-cost-light, display px
+  const titleW = measure("What you will actually pay", "700 42px Poppins", -0.03);
+  const TITLE_CAP = 52.4; // the receipt title's cap top in the body (top 44, 42 px/1.1 Poppins)
+  const startQuad = () => {
+    const a = displayToStage(P, W, H, TITLE_D.x, TITLE_D.capTop);
+    const b2 = displayToStage(P, W, H, TITLE_D.x + TITLE_D.w, TITLE_D.capTop);
+    const s = (b2.x - a.x) / titleW;
+    const x0 = a.x - PAD * s;
+    const y0 = a.y - TITLE_CAP * s;
+    return rectQuad(x0 + (R.w * s) / 2, y0 + (R.h * s) / 2, R.w * s, R.h * s, 0);
+  };
   const RAD = { from: 44 * PUSH_END, to: 40 * (V.w / A_OUT.crop.w) };
   ctx.onFrame((t) => {
     if (t < fold.t0) {
       /* the lift, then the push: shell and body share one quad */
       const k = ctx.ease("glide")(ctx.progress(t, lift.t0, lift.t1));
-      const q = lerpQuad(displayRectQuad(P, W, H, SKIN_ON), rest(t), k);
+      const q = lerpQuad(startQuad(), rest(t), k);
       placeOnQuad(shell, R.w, R.h, q);
       placeOnQuad(body, R.w, R.h, q);
       surface.style.opacity = "1";
-      surface.style.borderRadius = `${(24 + 20 * ctx.ease("power2.out")(ctx.progress(t, lift.t0, lift.t0 + 0.8))).toFixed(2)}px`;
-      /* the empty receipt appears as the skin gives way during the flight */
-      body.style.opacity = String(ctx.ease("power1.inOut")(ctx.progress(t, lift.t0 + 0.3, lift.t0 + 0.7)));
+      surface.style.borderRadius = "44px";
+      body.style.opacity = "1";
       villa.style.visibility = "hidden";
       return;
     }
@@ -196,7 +204,7 @@ export async function buildReceiptMobile(ctx, T, product) {
     placeOnQuad(body, R.w, R.h, rectQuad(c.x, c.y, R.w * sBody, R.h * sBody, 0));
     const r = RAD.from + (RAD.to - RAD.from) * k;
     surface.style.borderRadius = `${(r * R.w / w).toFixed(2)}px / ${(r * R.h / h).toFixed(2)}px`;
-    const x = ctx.progress(t, fold.t1 - XF, fold.t1);
+    const x = t >= fold.t1 ? 1 : 0;
     villa.style.visibility = x > 0 ? "inherit" : "hidden";
     const vw = w;
     placeOnQuad(villa, A_OUT.crop.w, A_OUT.crop.h, rectQuad(c.x, c.y, vw, vw * (V.h / V.w), 0));
@@ -204,9 +212,8 @@ export async function buildReceiptMobile(ctx, T, product) {
     surface.style.opacity = String(1 - x);
     body.style.opacity = String(1 - x);
   });
-  /* the skin gives way to the empty receipt during the flight (the body's opacity, like the shell's
+  /* (the body's opacity, like the shell's
      transform and the surface's radius and opacity, belongs to the hook above, for every frame) */
-  tl.fromTo(skinWrap, { opacity: 1 }, { opacity: 0, duration: 0.45, ease: "power1.inOut" }, lift.t0 + 0.12);
 
   /* ---------- card 1 (rows 12-13): under the receipt, clear of its lines and of the captions ---------- */
   const cardScene = ctx.scene("a-card1", T.cardIn, END, { z: 10 });
@@ -223,7 +230,13 @@ export async function buildReceiptMobile(ctx, T, product) {
   /* It turns so its answer opens exactly as the total lands on "right" (28.87): the answer's figure is
      never readable before the receipt's. */
   card.turn(T.cardTurn, { sound: null });
-  /* It stays at rest, answer up, through the cut: section b takes it over at 30.577 (handoffs.md). */
+  /* Round 4: it flies out to the top right over 30.25-30.55, right first, then up (never over the folding
+     card), and is gone before the cut: centre (1300, -105), 24 deg, 0.9, answer side up (section c's start). */
+  const OUT0 = 30.25;
+  const cx0 = box.x + box.w / 2;
+  const cy0 = box.y + box.h / 2;
+  tl.fromTo(card.root, { x: 0, rotation: -2, scale: 1 }, { x: 1300 - cx0, rotation: 24, scale: 0.9, duration: 0.3, ease: "power2.out", ...ir }, OUT0);
+  tl.fromTo(card.root, { y: 0 }, { y: -105 - cy0, duration: 0.3, ease: "power3.in", ...ir }, OUT0);
 
   return { card, villa, shell };
 }

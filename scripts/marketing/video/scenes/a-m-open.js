@@ -34,6 +34,49 @@ export function nightCard(ctx, parent, { q, a, box, size = 46, inner = 440 }) {
   return { ...card, body };
 }
 
+/** The riffle's three cuts (card_slide cues; a-common registerSound uses the same beats). */
+export const CUT_BEATS = [8.0, 8.7, 9.6];
+
+/**
+ * Row 03 (round 4): the three question cards gather into one tight, opaque stack, so only the top
+ * card's words ever show (the cards below sit at most 14 px off it, edge only). On each cut the top
+ * card flicks edge-on (a flat turn) and tucks under, so the next card's question is the only one up.
+ * On "gamble" the stack sways; on the rush the top card (card 3) rushes the camera and turns.
+ * Returns { top, edge }.
+ */
+export function riffle(ctx, T, cards, { C, scale, rushTo, rushScale, awayDx }) {
+  const { tl } = ctx;
+  const at = (c, dx = 0, dy = 0) => ({ x: C.x - (c.box.x + c.box.w / 2) + dx, y: C.y - (c.box.y + c.box.h / 2) + dy });
+  const slots = [{ dy: 14, r: -1.2 }, { dy: 7, r: 0.8 }, { dy: 0, r: 0 }];
+  const homes = cards.map((c, k) => ({ ...at(c, 0, slots[k].dy), r: slots[k].r }));
+  /* the gather (the cards are all but invisible behind the row 02 words until it is done) */
+  cards.forEach((c, k) => tl.to(c.root, { x: homes[k].x, y: homes[k].y, rotation: homes[k].r, scale, duration: 0.5, ease: "power3.inOut" }, T.shouldnt + k * 0.03));
+  /* the cuts: card 3 (top), then card 2, then card 1 flick to their edge and tuck under */
+  const order = [2, 1, 0];
+  CUT_BEATS.forEach((beat, i) => {
+    const t = T.b(beat);
+    const c = cards[order[i]];
+    tl.fromTo(c.inner, { scaleX: 1 }, { scaleX: 0.02, duration: 0.11, ease: "power2.in", immediateRender: false }, t);
+    tl.set(c.layer, { zIndex: -i }, t + 0.11);
+    tl.fromTo(c.inner, { scaleX: 0.02 }, { scaleX: 1, duration: 0.14, ease: "power2.out", immediateRender: false }, t + 0.11);
+  });
+  /* on "gamble" the stack sways as one, then drifts */
+  cards.forEach((c, k) => {
+    tl.to(c.root, { y: homes[k].y - 16, rotation: homes[k].r + 3, duration: 0.42, ease: "back.out(1.5)" }, T.gamble - 0.04);
+    tl.to(c.root, { y: homes[k].y - 6, rotation: homes[k].r + 2, duration: T.rush - T.gamble - 0.45, ease: "sine.inOut" }, T.gamble + 0.4);
+  });
+  /* the rush: the top card (card 3) at the camera, turning to its edge */
+  const top = cards[2];
+  const edge = T.rush + 0.27;
+  tl.set(top.layer, { zIndex: 9 }, T.rush);
+  tl.to(top.root, { x: rushTo.x - (top.box.x + top.box.w / 2), y: rushTo.y - (top.box.y + top.box.h / 2), scale: rushScale, duration: edge - T.rush, ease: "power2.in" }, T.rush);
+  tl.fromTo(top.inner, { scaleX: 1 }, { scaleX: 0.02, duration: edge - T.rush, ease: "power2.in", immediateRender: false }, T.rush);
+  [cards[0], cards[1]].forEach((c, k) => {
+    tl.to(c.root, { scale: scale * 0.8, opacity: 0, x: `+=${k ? awayDx : -awayDx}`, y: "+=80", duration: 0.34, ease: "power2.in" }, T.rush + 0.02);
+  });
+  return { top, edge };
+}
+
 export function buildOpenMobile(ctx, T) {
   const { tl } = ctx;
   const L = LAYOUT.mobile;
@@ -115,7 +158,8 @@ export function buildOpenMobile(ctx, T) {
 
   /* The cards all but vanish behind the words (8%, blurred), so no type sits over their text. */
   const dimIn = { t0: T.finding - 0.1, t1: T.finding + 0.3 };
-  const dimOut = { t0: T.shouldnt + 0.02, t1: T.shouldnt + 0.37 };
+  /* (they come back only once they are stacked, so no two questions ever show at once) */
+  const dimOut = { t0: T.shouldnt + 0.45, t1: T.shouldnt + 0.65 };
   cards.forEach((c) => {
     tl.fromTo(c.root, { opacity: 1 }, { opacity: 0.08, duration: dimIn.t1 - dimIn.t0, ease: "power2.out" }, dimIn.t0);
     tl.fromTo(c.root, { opacity: 0.08 }, { opacity: 1, duration: dimOut.t1 - dimOut.t0, ease: "power2.out", immediateRender: false }, dimOut.t0);
@@ -125,58 +169,10 @@ export function buildOpenMobile(ctx, T) {
     });
   });
 
-  /* ---------- row 03: the shuffle, the fan, the rush ---------- */
+  /* ---------- row 03: the stack, the riffle, the sway, the rush ---------- */
   /* the cards become opaque as they gather */
   cards.forEach((c) => tl.fromTo(c.body, { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power1.inOut" }, T.shouldnt - 0.05));
-  const C = { x: 540, y: 720 };
-  const at = (c, dx = 0, dy = 0) => ({ x: C.x - (c.box.x + c.box.w / 2) + dx, y: C.y - (c.box.y + c.box.h / 2) + dy });
-  const stack = [{ dy: -12, r: -2.2 }, { dy: 0, r: 1.4 }, { dy: 12, r: -0.8 }];
-  /* Three cuts, one card each (bottom, middle, top), on the card_slide cues. Each card's moves are one
-     chain of tweens that never overlap on a property, so a frame never depends on the seek direction:
-     the bottom card's gather carries it straight out to its cut, and the top card's cut hands it
-     straight to the fan. */
-  const moves = [
-    { c: 2, t: T.b(7.1), dx: 460, r: 11, back: -1.5, zb: 0 },
-    { c: 1, t: T.b(7.8), dx: -460, r: -11, back: 1.8, zb: -1 },
-    { c: 0, t: T.b(8.5), dx: -460, r: -10, back: null, zb: -2 },
-  ];
-  const OUT = 0.19;
-  cards.forEach((c, k) => {
-    const home = at(c, 0, stack[k].dy);
-    const m = moves.find((mv) => mv.c === k);
-    const t0 = T.shouldnt + k * 0.03;
-    const out = { x: home.x + m.dx, y: home.y - 26, rotation: m.r };
-    if (m.t < t0 + 0.5) {
-      tl.to(c.root, { ...out, scale: 0.9, duration: m.t + OUT - t0, ease: "power3.inOut" }, t0);
-    } else {
-      tl.to(c.root, { x: home.x, y: home.y, rotation: stack[k].r, scale: 0.9, duration: 0.5, ease: "power3.inOut" }, t0);
-      tl.to(c.root, { ...out, duration: OUT, ease: "power2.out" }, m.t);
-    }
-    tl.set(c.layer, { zIndex: m.zb }, m.t + OUT);
-    if (m.back != null) tl.to(c.root, { x: home.x, y: home.y, rotation: m.back, duration: 0.2, ease: "power2.inOut" }, m.t + OUT);
-  });
-  /* On "gamble" they fan like a hand, around a pivot far below the stack. */
-  const P = 700;
-  const fan = [-16, 0, 16];
-  cards.forEach((c, k) => {
-    tl.set(c.layer, { zIndex: k + 1 }, T.gamble - 0.02);
-    const a = (fan[k] * Math.PI) / 180;
-    const p = at(c, P * Math.sin(a), P * (1 - Math.cos(a)) - 40);
-    tl.to(c.root, { x: p.x, y: p.y, rotation: fan[k], scale: 0.86, duration: 0.42, ease: "back.out(1.5)" }, T.gamble - 0.04);
-    const a2 = ((fan[k] * 1.1) * Math.PI) / 180;
-    const p2 = at(c, P * Math.sin(a2), P * (1 - Math.cos(a2)) - 40);
-    tl.to(c.root, { x: p2.x, y: p2.y, rotation: fan[k] * 1.1, duration: T.rush - T.gamble - 0.45, ease: "sine.inOut" }, T.gamble + 0.4);
-  });
-  /* On bar 3's last beat the middle card rushes at the camera and turns (edge-on at rush + 0.27). */
-  const mid = cards[1];
-  const edge = T.rush + 0.27;
-  tl.set(mid.layer, { zIndex: 9 }, T.rush);
-  tl.to(mid.root, { y: 960 - (mid.box.y + mid.box.h / 2), x: 540 - (mid.box.x + mid.box.w / 2), scale: 2.6, duration: edge - T.rush, ease: "power2.in" }, T.rush);
-  /* (a flat turn to the edge: CSS 3D is raster-cached by Chromium differently depending on seek order) */
-  tl.fromTo(mid.inner, { scaleX: 1 }, { scaleX: 0.02, duration: edge - T.rush, ease: "power2.in" }, T.rush);
-  [cards[0], cards[2]].forEach((c, k) => {
-    tl.to(c.root, { scale: 0.7, opacity: 0, x: `+=${k ? 160 : -160}`, y: "+=90", duration: 0.34, ease: "power2.in" }, T.rush + 0.02);
-  });
+  const { edge } = riffle(ctx, T, cards, { C: { x: 540, y: 720 }, scale: 0.9, rushTo: { x: 540, y: 960 }, rushScale: 2.6, awayDx: 160 });
 
   /* ================= the Vallo card: rows 03-04 ================= */
   const vallo = ctx.scene("a-vallo", edge - 0.02, T.widen + 0.8, { z: 2 });

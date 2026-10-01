@@ -93,11 +93,15 @@ export async function deskTalk(ctx, S, T) {
   tl.fromTo(pListing, { opacity: 0 }, { opacity: 1, duration: 0.26, ease: "power1.inOut", immediateRender: false }, tClose0);
 
   /* ==================== D14 ==================== */
-  /* the window grows from section a's side window to the hero as the villa card lands (v3.3: never a thumbnail) */
-  wvT.to(T.r14, 0.52, { cx: S.HERO.cx, cy: S.HERO.cy, s: S.HERO.s }, "glide");
-  S.veilDuring(T.owner - 0.2, T.share + 0.05);
-  S.veilDuring(T.r17 - 0.15, T.r18 + 0.45);
+  /* round 4: the window grows from section a's side window to 0.85 of the frame (x 60-1240) as the villa card
+     lands, so the words and the echo have bare mist at the right; it reaches the hero once the bubble has landed */
+  wvT.to(T.r14, 0.52, { cx: S.WIN85.cx, cy: S.WIN85.cy, s: S.WIN85.s }, "glide");
+  wvT.to(T.r14 + 0.52, tLandBubble - T.r14 - 0.5, { cx: S.WIN85.cx - 6, cy: S.WIN85.cy - 6, s: S.WIN85.s * 1.012 }, "drift");
+  wvT.to(tLandBubble + 0.04, 0.3, { cx: S.HERO.cx, cy: S.HERO.cy, s: S.HERO.s }, "power2.inOut");
   const tLand = T.r14 + 0.52;
+  /* the thread's own Maitama card stays covered until the flown card lands on it: never two of it at once */
+  const twin = box(ctx, pThread, { x: MAITAMA.x - 8, y: MAITAMA.y - 8, w: MAITAMA.w + 16, h: MAITAMA.h + 12, style: { background: "#f3f4f1" } });
+  showDuring(ctx, twin, [[0, tLand]]);
   const villa = cropBody(ctx, cards, { src: thread, crop: MAITAMA_CROP, iw: 2880, radius: 26, shadow: SHADOW.l, canvas: true });
   quadDriver(ctx, villa, MAITAMA_CROP.w, MAITAMA_CROP.h, {
     t0: T.r14, t1: tLand + 0.16,
@@ -125,11 +129,12 @@ export async function deskTalk(ctx, S, T) {
   tl.fromTo(card1.root, { x: 0, y: 0, rotation: 3, scale: 1 }, { x: 2070 - c1c.x, y: -330 - c1c.y, rotation: 22, scale: 0.9, duration: 0.36, ease: "power2.in", immediateRender: false }, card1Out);
   showDuring(ctx, card1.root, [[T.r14, card1Out + 0.4]]);
 
-  /* owner, landlord, agent land in RIGHT_PANEL, one at a time, each at its own height and size */
+  /* round 4: owner, landlord, agent on bare mist at the right (x 1300-1860), baselines 420 / 600 / 780, 120 px */
+  const WX = 1300;
   const words = [
-    { text: "owner", blue: true, t: T.owner, y: 318, k: 1.04, dx: 0 },
-    { text: "landlord", blue: false, t: T.landlord, y: 470, k: 1, dx: 28 },
-    { text: "agent", blue: false, t: T.agent, y: 626, k: 0.97, dx: 10 },
+    { text: "owner", blue: true, t: T.owner, y: 420, k: 1, dx: 0 },
+    { text: "landlord", blue: false, t: T.landlord, y: 600, k: 1, dx: 0 },
+    { text: "agent", blue: false, t: T.agent, y: 780, k: 1, dx: 0 },
   ].map((w) => {
     const mask = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", overflow: "hidden", padding: "0.1em 0.06em 0.18em", visibility: "hidden" } }, type);
     const el = ctx.el("div", { text: w.text, style: { font: "700 120px/1 Poppins, Inter, sans-serif", letterSpacing: "-0.035em", color: w.blue ? ELECTRIC : NAVY, whiteSpace: "nowrap" } }, mask);
@@ -143,7 +148,7 @@ export async function deskTalk(ctx, S, T) {
       return;
     }
     if (!wSize) {
-      wSize = Math.min(126, (560 / measure("landlord", "700 100px Poppins")) * 100);
+      wSize = Math.min(120, (556 / measure("landlord", "700 100px Poppins", "-0.035em")) * 100);
       words.forEach((w) => (w.el.style.fontSize = `${(wSize * w.k).toFixed(1)}px`));
     }
     words.forEach((w, i) => {
@@ -153,7 +158,7 @@ export async function deskTalk(ctx, S, T) {
       w.mask.style.visibility = on ? "inherit" : "hidden";
       if (!on) return;
       w.el.style.transform = `translateY(${((1 - k) * 110).toFixed(2)}%)`;
-      w.mask.style.transform = `translate(${(RP.x + 40 + w.dx).toFixed(2)}px, ${(w.y - wSize * 0.62 + 30 * out).toFixed(2)}px)`;
+      w.mask.style.transform = `translate(${(WX - 0.06 * wSize + w.dx).toFixed(2)}px, ${(w.y - 0.95 * wSize + 30 * out).toFixed(2)}px)`; // baseline at w.y
       w.mask.style.opacity = (1 - out).toFixed(3);
     });
   });
@@ -161,24 +166,25 @@ export async function deskTalk(ctx, S, T) {
 
   /* (no push onto the empty composer: the echo in RIGHT_PANEL is the close-up) */
 
-  /* ==================== D15: the echo in RIGHT_PANEL ==================== */
-  const echo = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${RP.w - 40}px`, display: "flex", alignItems: "flex-end", gap: "14px", padding: "16px", borderRadius: "34px", background: "#f3f4f1", boxShadow: SHADOW.l, visibility: "hidden" } }, cards);
-  const eImg = ctx.el("div", { style: { flex: "none", width: "62px", height: "62px", borderRadius: "50%", background: "#fff", display: "grid", placeItems: "center", color: "#0066fe", boxShadow: "0 4px 12px -6px rgb(16 32 80 / 0.25)" } }, echo);
-  ctx.icon("image", { size: 28, stroke: 2 }, eImg);
-  const eField = ctx.el("div", { style: { flex: "1", minHeight: "62px", borderRadius: "22px", background: "#fff", padding: "14px 20px", font: "400 25px/34px Inter, sans-serif", color: NAVY, letterSpacing: "-0.01em", boxShadow: "0 4px 12px -8px rgb(16 32 80 / 0.2)" } }, echo);
+  /* ==================== D15: the echo, in the words' column ==================== */
+  const EW = 560;
+  const echo = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${EW}px`, display: "flex", alignItems: "flex-end", gap: "12px", padding: "14px", borderRadius: "32px", background: "#f3f4f1", boxShadow: SHADOW.l, visibility: "hidden" } }, cards);
+  const eImg = ctx.el("div", { style: { flex: "none", width: "54px", height: "54px", borderRadius: "50%", background: "#fff", display: "grid", placeItems: "center", color: "#0066fe", boxShadow: "0 4px 12px -6px rgb(16 32 80 / 0.25)" } }, echo);
+  ctx.icon("image", { size: 25, stroke: 2 }, eImg);
+  const eField = ctx.el("div", { style: { flex: "1", minHeight: "54px", borderRadius: "20px", background: "#fff", padding: "12px 16px", font: "400 22px/30px Inter, sans-serif", color: NAVY, letterSpacing: "-0.01em", boxShadow: "0 4px 12px -8px rgb(16 32 80 / 0.2)" } }, echo);
   const ePh = ctx.el("span", { text: "Type a message", style: { color: "#6b7280" } }, eField);
   const eText = ctx.el("span", {}, eField);
   /* a zero-width caret, so it never wraps to a line of its own */
   const eCaret = ctx.el("span", { style: { display: "inline-block", width: "0px", height: "30px", verticalAlign: "-7px", position: "relative" } }, eField);
   ctx.el("span", { style: { position: "absolute", left: "2px", top: "0px", width: "3px", height: "30px", background: ELECTRIC, borderRadius: "2px" } }, eCaret);
-  const eSend = ctx.el("div", { style: { flex: "none", width: "62px", height: "62px", borderRadius: "18px", background: "#0042a2", display: "grid", placeItems: "center", color: "rgb(210 225 255 / 0.85)" } }, echo);
-  ctx.icon("arrow-up-right", { size: 30, stroke: 2.2 }, eSend);
+  const eSend = ctx.el("div", { style: { flex: "none", width: "54px", height: "54px", borderRadius: "16px", background: "#0042a2", display: "grid", placeItems: "center", color: "rgb(210 225 255 / 0.85)" } }, echo);
+  ctx.icon("arrow-up-right", { size: 27, stroke: 2.2 }, eSend);
   const tEcho = T.r15 - 0.02;
   const tType0 = T.r15 + 0.05;
   const tType1 = T.inside + 0.3;
   const tSend = T.app;
   const tEchoOut = tLandBubble + 0.02;
-  const ECHO_BOTTOM = 872;
+  const ECHO_BOTTOM = 990; // in the words' column, under "agent"; the caption is centred and short, clear to its left
   let eH = null;
   showDuring(ctx, echo, [[tEcho, tEchoOut + 0.3]]);
   ctx.onFrame((t) => {
@@ -190,7 +196,7 @@ export async function deskTalk(ctx, S, T) {
     eH = echo.offsetHeight;
     const k = ramp(ctx, t, tEcho, tEcho + 0.4, "land");
     const out = ramp(ctx, t, tEchoOut, tEchoOut + 0.28, "power2.in");
-    echo.style.transform = `translate(${RP.x + 20}px, ${(ECHO_BOTTOM - eH + (1 - k) * 90 + out * 60).toFixed(2)}px)`;
+    echo.style.transform = `translate(${WX}px, ${(ECHO_BOTTOM - eH + (1 - k) * 90 + out * 60).toFixed(2)}px)`;
     echo.style.opacity = String((Math.min(1, k * 1.6) * (1 - out)).toFixed(3));
   });
   tl.fromTo(eSend, { scale: 1 }, { scale: 0.88, duration: 0.08, ease: "power2.out", immediateRender: false }, T.the7 - 0.02);
@@ -241,10 +247,13 @@ export async function deskTalk(ctx, S, T) {
   ctx.sfx("card_slide", tFly0, { offset: -2 });
 
   /* ==================== D17: the day card in RIGHT_PANEL ==================== */
-  const k17 = 1.2;
-  const DX = RP.x + (RP.w - 470 * k17) / 2;
-  const DY = RP.y + 70;
-  const day = dayCard(ctx, cards, T, { X: DX, Y: DY, k: k17, chipAt: { x: DX + 150, y: DY + 470 }, tIn: T.r17 - 0.1, tOut0: T.r18, tOut1: T.r18 + 0.42 });
+  /* round 4: a low card docked over the photo's upper right (x 1300-1760, y 160-430), clear of the notice panel;
+     the window rises 90 px for rows 17-18 so "₦26,100,000" clears the caption */
+  wvT.to(T.r17 - 0.42, 0.4, { cy: S.HERO.cy - 90 }, "power2.inOut");
+  wvT.to(T.r17 - 0.02, tBack - T.r17 + 0.02, { cy: S.HERO.cy - 100, s: S.HERO.s * 1.008 }, "drift");
+  const DX = 1300;
+  const DY = 160;
+  const day = dayCard(ctx, cards, T, { X: DX, Y: DY, k: 1, layout: "land", chipAt: { x: DX + 230, y: DY + 135 }, tIn: T.r17 - 0.1, tOut0: T.r18, tOut1: T.r18 + 0.42 });
   ctx.sfx("card_slide", ctx.beat(64.05), { offset: -2 }); // 36.95
   ctx.sfx("stamp", T.inspection);
 
@@ -275,10 +284,13 @@ export async function deskTalk(ctx, S, T) {
   });
   /* (no ring at the dot: v3.1 keeps rings to rows 04, 19 and 23) */
   ctx.sfx("pop", tDock, { offset: -2 });
-  /* the push toward FLIP: 1.8 x 1.111 = 2.0, the capture's own pixels; FLIP at the right third, above y 1000,
-     with the window's edge and the mist on the left (the title lands there), not a slab of empty page */
+  /* the push toward FLIP: 1.8 x 1.111 = 2.0, the capture's own pixels */
   const flipW = { x: S.HERO.cx + (FLIP_C.x - CW / 2) * S.HERO.s, y: S.HERO.cy + (56 + FLIP_C.y - (CH + 56) / 2) * S.HERO.s };
-  const PUSH18 = { s: 1.8, fx: flipW.x, fy: flipW.y, tx: 330, ty: 860 };   // the window's lower-left quadrant fills the frame
+  /* round 4: FLIP sits left of centre (x 760), so the sidebar's foot and the page fill the frame; the mist at the
+     left is where the title lands */
+  const PUSH18 = { s: 1.8, fx: flipW.x, fy: flipW.y, tx: 760, ty: 860 };
+  /* never still: a slow push about the unread dot from 39.22, so the chip still docks on it exactly */
+  cam.to(tBack + 0.52, T.place + 0.18 - (tBack + 0.52), { s: 1.03, fx: dotAt.x, fy: dotAt.y, tx: dotAt.x, ty: dotAt.y }, "drift");
   ctx.hidePill(T.place + 0.18, T.r19 + 0.02);
   cam.to(T.place + 0.18, 0.66, PUSH18, "power2.inOut");
 
@@ -295,8 +307,8 @@ export async function deskTalk(ctx, S, T) {
   wvT.to(tTurn0, 0.26, { ry: 90 }, "power2.in");                                        // the turn, in place, 41.84-42.36
   wvT.to(S.tSwap, 0.001, { ry: -90 }, "none");
   wvT.to(S.tSwap + 0.001, 0.26, { ry: 0 }, "power2.out");
-  const tHold = ctx.beat(74.55);                                                         // 43.01
-  wvT.to(tHold + 0.04, 0.5, { cx: S.HERO.cx, cy: S.HERO.cy, s: S.HERO.s }, "glide");    // rises to the hero at 43.05-43.55
+  const tHold = 43.15;                                                                   // held 1.25 s from 41.90 (round 4)
+  wvT.to(tHold + 0.04, 0.5, { cx: S.HERO.cx, cy: S.HERO.cy, s: S.HERO.s }, "glide");    // rises to the hero at 43.19-43.69
 
   /* "Planning / a trip?" at the left, over the mist, in a ring that circles the words only */
   const TC = { x: 350, y: 560 };
@@ -304,15 +316,16 @@ export async function deskTalk(ctx, S, T) {
   const title = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: "700px", textAlign: "center", fontFamily: "Poppins, Inter, sans-serif", fontWeight: "700", letterSpacing: "-0.035em", lineHeight: "1.06", color: NAVY, whiteSpace: "nowrap", visibility: "hidden" } }, type);
   const l1 = ctx.el("div", {}, title);
   const l2 = ctx.el("div", {}, title);
-  const wordEl = (parent, text, color, t, gap = false) => {
+  const wordEl = (parent, text, color, t, gap = false, dur = 0.34) => {
     const mask = ctx.el("span", { style: { display: "inline-block", overflow: "hidden", verticalAlign: "top", padding: "0.06em 0.04em 0.39em", margin: "-0.06em -0.04em -0.39em", marginLeft: gap ? "0.22em" : "0" } }, parent);
     const w = ctx.el("span", { text, style: { display: "inline-block", color } }, mask);
     ctx.gsap.set(w, { yPercent: 118 });
-    tl.fromTo(w, { yPercent: 118 }, { yPercent: 0, duration: 0.34, ease: "land", immediateRender: false }, t);
+    tl.fromTo(w, { yPercent: 118 }, { yPercent: 0, duration: dur, ease: "land", immediateRender: false }, t);
   };
   wordEl(l1, "Planning", NAVY, T.planning);
-  wordEl(l2, "a", NAVY, T.a9);
-  wordEl(l2, "trip?", ELECTRIC, T.trip, true);
+  /* the second line close behind: complete by 41.90 */
+  wordEl(l2, "a", NAVY, T.planning + 0.08, false, 0.28);
+  wordEl(l2, "trip?", ELECTRIC, T.planning + 0.1, true, 0.26);
   let tSize = null;
   const tShrink1 = tHold + 0.3;
   showDuring(ctx, title, [[T.planning - 0.02, tShrink1 + 0.04]]);
@@ -332,14 +345,14 @@ export async function deskTalk(ctx, S, T) {
     title.style.opacity = String((1 - ramp(ctx, t, tShrink1 - 0.06, tShrink1 + 0.02)).toFixed(3));
   });
   const ringWrap = ctx.el("div", { class: "fill" }, type);
-  ringOut(ctx, ringWrap, { cx: TC.x, cy: TC.y, r: RR, t: T.planning + 0.06, dots: 8, seed: 19, stroke: 4 });
+  ringOut(ctx, ringWrap, { cx: TC.x, cy: TC.y, r: RR, t: T.planning, dots: 8, seed: 19, stroke: 4, dur: 0.36 });
   ringWrap.style.transformOrigin = `${TC.x}px ${TC.y}px`;
   tl.fromTo(ringWrap, { opacity: 1, scale: 1 }, { opacity: 0, scale: 0.9, duration: 0.28, ease: "power2.in", immediateRender: false }, tHold - 0.04);
   showDuring(ctx, ringWrap, [[T.planning, tHold + 0.26]]);
 
   /* ==================== the pointer ==================== */
   const o = S.orbT;
-  const sendAt = { x: RP.x + 20 + (RP.w - 40) - 16 - 31, y: ECHO_BOTTOM - 16 - 31 };
+  const sendAt = { x: WX + EW - 14 - 27, y: ECHO_BOTTOM - 14 - 27 };
   o.to(T.right + 0.1, 0.14, { opacity: 1 }, "power1.out");
   o.to(T.right + 0.1, 0.46, { x: sendAt.x + 14, y: sendAt.y + 12 }, "glide");
   pressAt(ctx, S.orb, T.the7, { ringParent: S.pointer, x: sendAt.x, y: sendAt.y, sound: "tap" });

@@ -38,13 +38,18 @@ const LOW08 = { ...HERO };
 /* Row 09's push onto the Property type grid (1.5x; display top at y 289, so the pill sits on the
    status bar; the Villas tile at y 1007). */
 const VILLAS_PUSH = { cx: 510, cy: 1318, height: 2100 };
+/* ...and its slow drift through the press (1.4%, about the display's top), so the hold is never still */
+const VILLAS_DRIFT = { cx: 510, cy: 1318 + 15, height: 2130 };
 /* Row 09 after the press: the one size, raised so the Apply button ends above y 1500 (v3.3: what the
    voice names sits above the captions); the pill is held off meanwhile (the sheet's title passes under it). */
 const SHEET = { cx: 540, cy: 830, height: HERO.height };
 /* Row 10 (v3.3): the one size at PHONE_HIGH, the cost section scrolled up (ROW10_SCROLL) so its six
    lines sit at y 610-1360, above the captions (1520); a slow 12 px rise through the hold. */
-export const ROW10_SCROLL = 165;
-export const PUSH_REST = { cx: 540, cy: HIGH.cy - 12, height: HIGH.height };
+export const ROW10_SCROLL = 0;
+/* Round 4: raised so the sticky bar's button ends at the caption band (1520) and the title clears the pill, the page
+   unscrolled: its six lines at y 550-1310, its title just under the pill. */
+const ROW10 = { cx: 540, cy: 838, height: HIGH.height };
+export const PUSH_REST = { cx: 540, cy: ROW10.cy - 12, height: HIGH.height + 24 };
 /* Off frame, between the drop (row 06) and the rise (row 07): the pose is re-set here unseen. */
 const PARK = { cx: 540, cy: 3200, height: PUSH_TOP.height };
 const SB = 186; // the status bar in every display
@@ -104,12 +109,13 @@ export async function buildProductMobile(ctx, T, open) {
   /* 08 -> 09: the sheet rises and the camera pushes onto the Property type grid. */
   tl.fromTo(P, { cx: LOW08.cx, cy: LOW08.cy, height: LOW08.height }, { cx: VILLAS_PUSH.cx, cy: VILLAS_PUSH.cy, height: VILLAS_PUSH.height, duration: 0.6, ease: "power2.inOut", ...ir }, T.villasPush);
   /* 09: after the Villas press, back to the one size (PHONE_HIGH): the whole sheet, Apply at its foot. */
-  tl.fromTo(P, { cx: VILLAS_PUSH.cx, cy: VILLAS_PUSH.cy, height: VILLAS_PUSH.height }, { cx: SHEET.cx, cy: SHEET.cy, height: SHEET.height, duration: 0.45, ease: "power2.inOut", ...ir }, T.pullBack);
+  tl.fromTo(P, { cy: VILLAS_PUSH.cy, height: VILLAS_PUSH.height }, { cy: VILLAS_DRIFT.cy, height: VILLAS_DRIFT.height, duration: T.pullBack - (T.villasPush + 0.6), ease: "sine.inOut", ...ir }, T.villasPush + 0.6);
+  tl.fromTo(P, { cx: VILLAS_DRIFT.cx, cy: VILLAS_DRIFT.cy, height: VILLAS_DRIFT.height }, { cx: SHEET.cx, cy: SHEET.cy, height: SHEET.height, duration: 0.45, ease: "power2.inOut", ...ir }, T.pullBack);
   ctx.hidePill(T.pullBack, T.open + 0.3);
   /* 10: down to PHONE_HIGH as the cost section opens */
-  tl.fromTo(P, { cx: SHEET.cx, cy: SHEET.cy, height: SHEET.height }, { cx: HIGH.cx, cy: HIGH.cy, height: HIGH.height, duration: 0.55, ease: "power2.inOut", ...ir }, T.need + 0.04);
+  tl.fromTo(P, { cx: SHEET.cx, cy: SHEET.cy, height: SHEET.height }, { cx: ROW10.cx, cy: ROW10.cy, height: ROW10.height, duration: 0.55, ease: "power2.inOut", ...ir }, T.need + 0.04);
   /* 10: the phone stays at PHONE_HIGH for the costs; a slow rise through the hold. */
-  tl.fromTo(P, { cy: HIGH.cy, height: HIGH.height }, { cy: PUSH_REST.cy, height: PUSH_REST.height, duration: T.call - T.movein, ease: "sine.inOut", ...ir }, T.movein);
+  tl.fromTo(P, { cy: ROW10.cy, height: ROW10.height }, { cy: PUSH_REST.cy, height: PUSH_REST.height, duration: T.call - (T.need + 0.6), ease: "sine.inOut", ...ir }, T.need + 0.6);
 
   /* ================= the screens (under the glass) ================= */
   /** A page: a full display; its own status bar is drawn fixed on top (a slide never moves it). */
@@ -183,14 +189,15 @@ export async function buildProductMobile(ctx, T, open) {
     return { el, spans };
   };
   /* One group, drifting slowly (1.00 -> 1.025) through the row, so the hold never freezes. */
-  const ROW6 = { x: 540, y: 870 };
+  const ROW6 = { x: 540, y: 840 };
   const group6 = ctx.el("div", { class: "fill", style: { transformOrigin: `${ROW6.x}px ${ROW6.y}px` } }, wordsScene);
   const drift6 = (t) => 1 + 0.025 * ctx.ease("drift")(ctx.progress(t, T.oneAppIn, T.row6Out + 0.24));
   ctx.onFrame((t) => { group6.style.transform = `scale(${drift6(t).toFixed(5)})`; });
   const sA = fitSize("One app.", "700 {}px Poppins", 132, inner, -0.035);
   const sB = fitSize("One account.", "700 {}px Poppins", 124, inner, -0.035);
   /* the three sit centred in the frame (the captions are off here) */
-  const yA = WD.y + 130;
+  /* round 4: centred optically (words at y ~700 / ~840, the switch at 980), held in place */
+  const yA = 627;
   const yB = yA + Math.round(sA * 1.02);
   const oneApp = bigLine([["One", true], [" app.", false]], sA, { left: WD.x + 28, top: yA }, group6).el;
   const oneAcc = bigLine([["One", true], [" account.", false]], sB, { right: W - (WD.x + WD.w - 28), top: yB }, group6).el;
@@ -207,9 +214,9 @@ export async function buildProductMobile(ctx, T, open) {
   /* The one body: the inbox's real Property | Stays tabs (messages-lt), two worlds in one app. It
      rises from below once "One app." is still, and leaves with the words. */
   const bodies = ctx.scene("a-bodies", T.dropAt, T.row6Out + 0.4, { z: Z.bodies });
-  const TABS = { w: 720, h: 100 };
-  const tabs = stayTabs(ctx, bodies, { w: TABS.w, h: TABS.h, font: 38 }).el;
-  const tabsTo = { cx: 540, cy: yB + Math.round(sB * 1.0) + 110, s: 1 };
+  const TABS = { w: 620, h: 86 };
+  const tabs = stayTabs(ctx, bodies, { w: TABS.w, h: TABS.h, font: 33 }).el;
+  const tabsTo = { cx: 540, cy: 980, s: 1 };
   const tabsT = { up0: T.tabsUp, up1: T.tabsUp + 0.5, down0: T.row6Out, down1: T.row6Out + 0.28 };
   ctx.onFrame((t) => {
     const on = t >= tabsT.up0 && t < tabsT.down1;
@@ -218,7 +225,7 @@ export async function buildProductMobile(ctx, T, open) {
     const up = ctx.ease("back.out(1.2)")(ctx.progress(t, tabsT.up0, tabsT.up1));
     const down = ctx.ease("power2.in")(ctx.progress(t, tabsT.down0, tabsT.down1));
     const d = drift6(t);
-    const cy = tabsTo.cy + 260 * (1 - up) + 240 * down;
+    const cy = tabsTo.cy + 40 * (1 - up) + 40 * down;
     const pos = { x: ROW6.x + (tabsTo.cx - ROW6.x) * d, y: ROW6.y + (cy - ROW6.y) * d };
     placeOnQuad(tabs, TABS.w, TABS.h, rectQuad(pos.x, pos.y, TABS.w * tabsTo.s * d, TABS.h * tabsTo.s * d, 0));
     tabs.style.opacity = String(Math.min(up * 1.6, 1) * (1 - down));
@@ -365,7 +372,7 @@ function buildFilters(ctx, T, { sheet, pointer, pointerScene, pose }) {
 
   /* The pointer: to the Villas tile from the start of the push, pressed at its lower right (the icon
      and the label stay clear); then to Apply's right end once the phone is back at PHONE_HIGH. */
-  const villasAt = displayToStage(pose(VILLAS_PUSH), 1080, 1920, VILLAS_D.x + 140, VILLAS_D.y + 70);
+  const villasAt = displayToStage(pose({ ...VILLAS_PUSH, cy: VILLAS_PUSH.cy + 11, height: 2122 }), 1080, 1920, VILLAS_D.x + 140, VILLAS_D.y + 70);
   tl.to(pointer, { x: villasAt.x, y: villasAt.y, duration: 0.8, ease: "glide" }, T.villasPush);
   pressAt(ctx, pointer, T.exactly, { parent: pointerScene, x: villasAt.x, y: villasAt.y });
   const hit = displayToStage(pose(SHEET), 1080, 1920, HIT_D.x, HIT_D.y);

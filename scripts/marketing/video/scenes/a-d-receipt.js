@@ -9,12 +9,12 @@
  * receipt with its question from the settle, opens on its answer as the total
  * lands, and stays at rest through the cut (section b takes it over). Under the fold (one
  * scaling move into the Maitama villa card, at rest at 30.577) the window goes
- * to WINDOW_LEFT on d-thread-lt, undimmed (scenes/handoffs.md, "A -> B").
+ * at the hero framing (WINDOW_HERO), cut to d-thread-lt, undimmed (scenes/handoffs.md, "A -> B").
  */
 import { LAYOUT, QUESTIONS } from "./layout.js";
 import { questionCard, squiggle } from "../engine/components.js";
 import { NAVY, ELECTRIC, SHADOW_L, rectQuad, lerpQuad, placeOnQuad, LINES, TOTAL, naira, rollNumber, measure, cropCanvas, freshLayers } from "./a-common.js";
-import { LOW_REST, LEFT, cssToStage } from "./a-d-product.js";
+import { LOW_REST, HERO, cssToStage } from "./a-d-product.js";
 
 /* The hand-off to section b (handoffs.md, desktop). */
 export const D_OUT = {
@@ -96,7 +96,8 @@ export async function buildReceiptDesktop(ctx, T, product) {
   const lift = { t0: T.call + 0.04, dur: 0.9, stagger: 0.03 };
   const settle = { t0: T.call + 0.62, t1: T.call + 1.1 };
   const liftEnd = lift.t0 + 0.07 + 5 * lift.stagger + lift.dur;
-  const fold = { t0: T.foldAt, t1: END };
+  /* the fold (round 4): 0.36 s, both fully opaque; the villa card takes over on the frame the rects match */
+  const fold = { t0: T.foldAt, t1: T.foldAt + 0.36 };
   const PUSH_END = 1.02;
   const V = D_OUT.villa;
   const restS = (t) => (0.97 + 0.03 * ctx.ease("power2.out")(ctx.progress(t, settle.t0, settle.t1))) * (1 + (PUSH_END - 1) * ctx.ease("drift")(ctx.progress(t, liftEnd, fold.t0)));
@@ -119,18 +120,25 @@ export async function buildReceiptDesktop(ctx, T, product) {
   /* the villa card (identical to section b's), which the receipt becomes */
   const villa = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${D_OUT.crop.w}px`, height: `${D_OUT.crop.h}px`, transformOrigin: "0 0", overflow: "hidden", borderRadius: "26px", boxShadow: SHADOW_L, visibility: "hidden" } }, scene);
   await cropCanvas(ctx, ctx.src.capture("d-thread-lt"), D_OUT.crop, { parent: villa });
-  const XF = 0.2; // the cross-fade into the villa card: the fold's last 0.2 s
-  const RAD = { from: 40 * PUSH_END, to: 26 * (V.w / D_OUT.crop.w) };
+    const RAD = { from: 40 * PUSH_END, to: 26 * (V.w / D_OUT.crop.w) };
   /* One hook owns the shell's and the body's transforms, the surface's opacity and radius, the
      printed content's opacity and the villa card's, for every frame. */
   ctx.onFrame((t) => {
     const bf = bodyFrame(t);
     placeOnQuad(body, RC.w, RC.h, rectQuad(bf.x + (RC.w * bf.s) / 2, bf.y + (RC.h * bf.s) / 2, RC.w * bf.s, RC.h * bf.s, 0));
     if (t < fold.t0) {
-      placeOnQuad(shell, RC.w, RC.h, rectQuad(C0.x, C0.y, RC.w * bf.s, RC.h * bf.s, 0));
+      /* (round 4) the surface takes over the page's own cost section on the call's first frame, so the
+         pieces only ever move over the white card, never over the page's other lines, and grows into the
+         receipt with them */
+      const f = framing();
+      const a0 = cssToStage(f, 330, 96);
+      const a1 = cssToStage(f, 1010, 702);
+      const pageQ = rectQuad((a0.x + a1.x) / 2, (a0.y + a1.y) / 2, a1.x - a0.x, a1.y - a0.y, 0);
+      const ks = ctx.ease("glide")(ctx.progress(t, lift.t0, liftEnd));
+      placeOnQuad(shell, RC.w, RC.h, lerpQuad(pageQ, rectQuad(C0.x, C0.y, RC.w * bf.s, RC.h * bf.s, 0), ks));
       /* the surface comes up under the pieces once they are most of the way there; what the receipt
          prints itself comes after they land, so nothing overprints */
-      surface.style.opacity = String(ctx.ease("power1.out")(ctx.progress(t, settle.t0, settle.t0 + 0.25)));
+      surface.style.opacity = "1";
       surface.style.borderRadius = "40px";
       print.style.opacity = String(ctx.ease("power1.inOut")(ctx.progress(t, liftEnd - 0.12, liftEnd + 0.2)));
       villa.style.visibility = "hidden";
@@ -143,7 +151,7 @@ export async function buildReceiptDesktop(ctx, T, product) {
     const h = q[3].y - q[0].y;
     const r = RAD.from + (RAD.to - RAD.from) * k;
     surface.style.borderRadius = `${((r * RC.w) / w).toFixed(2)}px / ${((r * RC.h) / h).toFixed(2)}px`;
-    const x = ctx.progress(t, fold.t1 - XF, fold.t1);
+    const x = t >= fold.t1 ? 1 : 0;
     villa.style.visibility = x > 0 ? "inherit" : "hidden";
     const c = { x: (q[0].x + q[2].x) / 2, y: (q[0].y + q[2].y) / 2 };
     placeOnQuad(villa, D_OUT.crop.w, D_OUT.crop.h, rectQuad(c.x, c.y, w, w * (V.h / V.w), 0));
@@ -245,8 +253,8 @@ export async function buildReceiptDesktop(ctx, T, product) {
   card.turn(T.cardTurn, { sound: null });
   /* it stays at rest, answer up, through the cut: section b takes it over at 30.577 (handoffs.md) */
 
-  /* ---------- under the fold: the window goes to WINDOW_LEFT on the thread, and undims ---------- */
-  const thread = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: "1440px", height: "900px", overflow: "hidden", visibility: "hidden", zIndex: "20", opacity: "0" } }, win.content);
+  /* ---------- under the fold: the window settles at WINDOW_HERO, cut to the thread, and undims (round 4: no scale jump; B starts at the hero) ---------- */
+  const thread = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: "1440px", height: "900px", overflow: "hidden", visibility: "hidden", zIndex: "20" } }, win.content);
   ctx.img(ctx.src.capture("d-thread-lt"), { class: "abs", style: { left: "0px", top: "0px", width: "1440px", height: "900px" } }, thread);
   /* The member's own message is sent in section b (row 15): its bubble stays under the same patch
      section b lays over it (b-d-talk.js), so the cut at 30.577 is clean. */
@@ -255,8 +263,7 @@ export async function buildReceiptDesktop(ctx, T, product) {
     const on = t >= fold.t0;
     if ((thread.style.visibility !== "hidden") !== on) thread.style.visibility = on ? "inherit" : "hidden";
   });
-  tl.fromTo(thread, { opacity: 0 }, { opacity: 1, duration: 0.25, ease: "power1.inOut" }, fold.t0);
-  tl.fromTo(R, { x: LOW_REST.x, y: LOW_REST.y, scale: LOW_REST.s }, { x: LEFT.x, y: LEFT.y, scale: LEFT.s, duration: fold.t1 - fold.t0, ease: "power3.inOut", ...ir }, fold.t0);
+  tl.fromTo(R, { x: LOW_REST.x, y: LOW_REST.y, scale: LOW_REST.s }, { x: HERO.x, y: HERO.y, scale: HERO.s, duration: END - fold.t0, ease: "power3.inOut", ...ir }, fold.t0);
   tl.fromTo(dim, { opacity: 0.55 }, { opacity: 0, duration: fold.t1 - fold.t0, ease: "power2.inOut", ...ir }, fold.t0);
 
   return { card, villa, shell };

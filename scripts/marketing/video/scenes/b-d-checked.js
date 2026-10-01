@@ -19,14 +19,13 @@ import { CW, CH } from "./b-desktop.js";
 /** Where the coin is at 62.885 (B -> C in handoffs.md; section c's COIN_IN.desktop). */
 export const COIN_OUT_D = { x: 1500, y: 420, size: 88, spin: 0, vy: 200, vspin: 1200 };
 /** Card 2's box and where it leaves to (section c's CARD_OUT.desktop.c2: centre and rotation). */
-export const CARD2_D = { box: { x: 1200, y: 400, w: 600, h: 160 }, out: { x: -560, y: -200, r: -22, s: 0.8 } };
+export const CARD2_D = { box: { x: 1260, y: 520, w: 520, h: 170 }, out: { x: -560, y: -200, r: -22, s: 0.8 } };
 
 export async function deskChecked(ctx, S, T) {
   const { tl } = ctx;
   const { L } = S;
   const RP = L.RIGHT_PANEL;
   const LEFT = S.LEFT;
-  const HERO = S.HERO;
   const wvT = S.wvT;
   const layer = S.type;
 
@@ -84,8 +83,11 @@ export async function deskChecked(ctx, S, T) {
   const full = { viewTop: 0, viewH: CH, viewLeft: 0, viewW: CW };
   const tRise = ctx.beat(99.9) + 0.12;       // 57.75
   S.page("d-verification-lt", [[tRise - 0.01, T.end]]);
-  wvT.to(tRise - 0.01, 0.001, { cx: HERO.cx, cy: HERO.cy + 760, s: HERO.s, ry: 0, opacity: 1, ...full }, "none");
-  wvT.to(tRise, 0.5, { cy: HERO.cy }, "glide");                    // 57.75-58.25, at the hero scale (v3.3)
+  /* round 4: at 0.85 of the frame (x 60-1240), so card 2 lands on bare mist at its right; then a slow push, never still */
+  const W85 = S.WIN85;
+  wvT.to(tRise - 0.01, 0.001, { cx: W85.cx, cy: W85.cy + 760, s: W85.s, ry: 0, opacity: 1, ...full }, "none");
+  wvT.to(tRise, 0.5, { cy: W85.cy }, "glide");                     // 57.75-58.25
+  wvT.to(tRise + 0.5, ctx.beat(108.3) - tRise - 0.5, { cx: W85.cx - 10, cy: W85.cy - 8, s: W85.s * 1.02 }, "drift");
   /* back to section c's place (WINDOW_LEFT, at rest) as card 2 flies out, for its in-place cut at 62.885 */
   wvT.to(ctx.beat(108.3), T.end - ctx.beat(108.3), { cx: LEFT.cx, cy: LEFT.cy, s: LEFT.s }, "power2.inOut");
 
@@ -96,8 +98,8 @@ export async function deskChecked(ctx, S, T) {
   const tIn = T.person - 0.02;               // 59.30
   const tTurn = ctx.beat(104.7);             // 60.40
   const tOut = ctx.beat(108.42);             // 62.55
-  S.veilDuring(tIn - 0.1, tOut + 0.3);
-  const card = questionCard(ctx, S.cards, { q: q.q, a: q.a, box: BOX, mark: true, fontSize: 40 });
+  /* (no veil: the card sits on the mist, off the window) */
+  const card = questionCard(ctx, S.cards, { q: q.q, a: q.a, box: BOX, mark: true, fontSize: 38 });
   card.front.style.justifyContent = "center";
   card.front.style.textAlign = "center";
   Object.assign(card.back.style, { textWrap: "balance", lineHeight: "1.22" });
@@ -115,7 +117,7 @@ export async function deskChecked(ctx, S, T) {
   });
   let m0 = null;
   markToCoin(ctx, S.cards, {
-    mark0: { size: Math.round(40 * 1.3) },
+    mark0: { size: Math.round(38 * 1.3) },
     flip: 0.06,
     markAt: () => {
       if (!m0) m0 = { x: BOX.x + backMark.offsetLeft + backMark.offsetWidth / 2, y: BOX.y + backMark.offsetTop + backMark.offsetHeight / 2 };

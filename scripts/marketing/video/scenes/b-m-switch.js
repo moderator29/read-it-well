@@ -29,22 +29,23 @@ export async function switcher(ctx, S, T) {
   const CY = 780;
   const R = 380;
   const tIn = T.planning;          // 41.54: "Planning" rises on its word
-  const tHold = ctx.beat(74.55);   // 43.01: held complete from about 41.9 to here
-  const tShrink1 = tHold + 0.3;    // 43.10: into the pill
+  const tHold = 43.15;             // complete by 41.90, held 1.25 s to here (round 4)
+  const tShrink1 = tHold + 0.3;    // 43.45: into the pill
   const title = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${ctx.W}px`, textAlign: "center", fontFamily: "Poppins, Inter, sans-serif", fontWeight: "700", letterSpacing: "-0.035em", lineHeight: "1.06", color: NAVY, whiteSpace: "nowrap", transformOrigin: `${CX}px ${CY}px` } }, layer);
   const line1 = ctx.el("div", {}, title);
   const line2 = ctx.el("div", {}, title);
-  const word = (parent, text, color, t, gap = false) => {
+  const word = (parent, text, color, t, gap = false, dur = 0.34) => {
     /* the mask runs 0.39 em below the line, so the g's descender is never clipped as it rises */
     const mask = ctx.el("span", { style: { display: "inline-block", overflow: "hidden", verticalAlign: "top", padding: "0.06em 0.04em 0.39em", margin: "-0.06em -0.04em -0.39em", marginLeft: gap ? "0.22em" : "0" } }, parent);
     const w = ctx.el("span", { text, style: { display: "inline-block", color } }, mask);
     ctx.gsap.set(w, { yPercent: 118 });
-    tl.fromTo(w, { yPercent: 118 }, { yPercent: 0, duration: 0.34, ease: "land", immediateRender: false }, t);
+    tl.fromTo(w, { yPercent: 118 }, { yPercent: 0, duration: dur, ease: "land", immediateRender: false }, t);
     return w;
   };
   word(line1, "Planning", NAVY, tIn);
-  word(line2, "a", NAVY, T.a9);
-  word(line2, "trip?", ELECTRIC, T.trip, true);
+  /* the second line follows close behind, so the title is complete by 41.90 and holds 1.25 s */
+  word(line2, "a", NAVY, tIn + 0.08, false, 0.28);
+  word(line2, "trip?", ELECTRIC, tIn + 0.1, true, 0.26);
   /* one size: "Planning" at most 600 px, and the two lines' box at least 34 px inside the ring */
   let fitted = false;
   ctx.onFrame(() => {
@@ -59,7 +60,7 @@ export async function switcher(ctx, S, T) {
   /* The ring circles the words only; its few particles fly outside it. */
   const ringWrap = ctx.el("div", { class: "fill" }, layer);
   layer.insertBefore(ringWrap, title);
-  ringOut(ctx, ringWrap, { cx: CX, cy: CY, r: R, t: tIn + 0.06, dots: 8, seed: 19, stroke: 4 });
+  ringOut(ctx, ringWrap, { cx: CX, cy: CY, r: R, t: tIn, dots: 8, seed: 19, stroke: 4, dur: 0.36 });
   ringWrap.style.transformOrigin = `${CX}px ${CY}px`;
   /* then the words shrink into the pill, and the ring goes */
   const pillY = 325;

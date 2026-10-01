@@ -51,6 +51,9 @@ export async function buildDesktop(ctx) {
   const HERO = { cx: L.WINDOW_HERO.x + (CW / 2) * (L.WINDOW_HERO.width / CW), cy: L.WINDOW_HERO.y + ((CH + BAR) / 2) * (L.WINDOW_HERO.width / CW), s: L.WINDOW_HERO.width / CW };
   S.LEFT = LEFT;
   S.HERO = HERO;
+  /* round 4: the window at 0.85 of the frame's width (x 60-1240, top y 120), with bare mist at its right for words and cards */
+  const s85 = 1180 / CW;
+  S.WIN85 = { cx: 60 + (CW / 2) * s85, cy: 120 + ((CH + BAR) / 2) * s85, s: s85 };
   /* the window's state: its centre and scale in world px, its turn, its view (the content crop) */
   S.wv = { cx: LEFT.cx, cy: LEFT.cy, s: LEFT.s, ry: 0, opacity: 1, viewTop: 0, viewH: CH, viewLeft: 0, viewW: CW };
   S.wvT = track(ctx, S.wv, { ...S.wv });

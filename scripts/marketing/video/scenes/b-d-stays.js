@@ -44,8 +44,8 @@ export async function deskStays(ctx, S, T) {
   /* ---------- the window's pages ---------- */
   const staysSrc = ctx.src.capture("d-stays-lt");
   const staySrc = ctx.src.capture("d-stay-lt");
-  const tHotels = ctx.beat(75.5);            // 43.56, inside "hotels"
-  const tShortlets = T.shortlets + 0.1;      // 43.84
+  const tHotels = 43.72;                     // once the window has risen (round 4: the title holds to 43.15)
+  const tShortlets = T.shortlets + 0.24;     // 43.98
   const tPop = T.and10;                      // 46.39: "3 nights"
   const tFold0 = tPop + 0.01;                // the window folds into its strip
   const tFold1 = tFold0 + 0.4;
@@ -55,7 +55,7 @@ export async function deskStays(ctx, S, T) {
   /* never below CSS y 302: the capture's results row (with its own prices) never paints */
   pDates.style.clipPath = "inset(0px 0px 598px 0px)";
   ctx.gsap.set(pDates, { opacity: 0 });
-  tl.fromTo(pDates, { opacity: 0 }, { opacity: 1, duration: 0.18, ease: "power1.inOut", immediateRender: false }, tFade);
+  tl.fromTo(pDates, { opacity: 0 }, { opacity: 1, duration: 0.034, ease: "none", immediateRender: false }, tFade); // a cut, not a dissolve
 
   /* ==================== D20: the tiles lift in place ==================== */
   const tiles = [
@@ -92,7 +92,7 @@ export async function deskStays(ctx, S, T) {
   orbT.to(tHotels - 0.42, 0.16, { opacity: 1 }, "power1.out");
   orbT.to(tHotels - 0.42, 0.4, { x: hAt.x + 14, y: hAt.y + 12 }, "glide");
   pressAt(ctx, S.orb, tHotels, { sound: "tap_soft", offset: -2 });
-  orbT.to(tHotels + 0.08, 0.24, { x: sAt.x + 14, y: sAt.y + 12 }, "glide");
+  orbT.to(tHotels + 0.06, 0.18, { x: sAt.x + 14, y: sAt.y + 12 }, "glide");
   pressAt(ctx, S.orb, tShortlets, { sound: "tap_soft", offset: -2 });
   orbT.to(tShortlets + 0.16, 0.42, { x: 1990, y: 980 }, "power2.in");
   orbT.to(tShortlets + 0.3, 0.2, { opacity: 0 }, "power1.in");
@@ -129,7 +129,7 @@ export async function deskStays(ctx, S, T) {
   const tFlip0 = T.pick - 0.28;
   const tFlip1 = tFlip0 + 0.5;
   const tCalOut0 = tPop + 0.06;
-  const tCalOut1 = tCalOut0 + 0.3;
+  const tCalOut1 = tCalOut0 + 0.12;           // round 4: scale to 0.9 and fade, gone before the dates page shows
   ctx.sfx("card_slide", T.resorts, { offset: -2 });
   showDuring(ctx, flipper, [[tRise0, tCalOut1]]);
   ctx.onFrame((t) => {
@@ -143,10 +143,10 @@ export async function deskStays(ctx, S, T) {
     const cy = mix(mix(start.y, cardC.y, rise), calC.y, flip) + bob;
     const fs = mix(mix((q[1].x - q[0].x) / FW, 1, rise), (CAL.w * 0.62) / FW, flip);
     const bs = mix(0.62, 1, flip);
-    const out = ramp(ctx, t, tCalOut0, tCalOut1, "power2.in");
-    inner.style.transform = `translate(${cx.toFixed(2)}px, ${(cy - out * 140).toFixed(2)}px) rotateY(${(180 * flip).toFixed(2)}deg)`;
+    const out = ramp(ctx, t, tCalOut0, tCalOut1, "power1.in");
+    inner.style.transform = `translate(${cx.toFixed(2)}px, ${cy.toFixed(2)}px) rotateY(${(180 * flip).toFixed(2)}deg)`;
     front.style.transform = `translate(${-FW / 2}px, ${-cardH / 2}px) scale(${fs.toFixed(4)})`;
-    back.style.transform = `translate(${-CAL.w / 2}px, ${-CAL.h / 2}px) rotateY(180deg) scale(${(bs * (1 - out * 0.08)).toFixed(4)})`;
+    back.style.transform = `translate(${-CAL.w / 2}px, ${-CAL.h / 2}px) rotateY(180deg) scale(${(bs * (1 - out * 0.1)).toFixed(4)})`;
     flipper.style.opacity = String((ramp(ctx, t, tRise0, tRise0 + 0.12) * (1 - out)).toFixed(3));
   });
 

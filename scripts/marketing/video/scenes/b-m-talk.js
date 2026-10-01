@@ -19,8 +19,7 @@
  *   18  back to the inbox, the phone recentred; the card docks as the unread
  *       dot; the menu opens the drawer; the phone pushes onto FLIP.
  */
-import { questionCard } from "../engine/components.js";
-import { LAYOUT, QUESTIONS } from "./layout.js";
+import { LAYOUT } from "./layout.js";
 import {
   DW, DH, NAVY, ELECTRIC, SHADOW, ramp, kf, mix, track, screenPage, showDuring, box, cropBody, quadDriver,
   displayQuad, quadAtPose, rectQuad, lerpQuad, shiftQuad, placeQuad, mapQuad, pressAt, ripple, measure, dayCard,
@@ -96,6 +95,7 @@ export async function talk(ctx, S, T) {
   ctx.hidePill(tWordsOut, tSlide + 0.42);
   ctx.hidePill(tFlipPush, T.r19 + 0.1);
   pose.to(tBack, 0.5, HIGH, "power2.inOut");                       // recentred with the inbox
+  pose.to(tBack + 0.5, tMenu - tBack - 0.5, { cy: HIGH.cy - 16, height: HIGH.height * 1.02 }, "drift"); // a slow drift, never still
   pose.to(tFlipPush, 0.6, FLIPPOSE, "power2.inOut");               // the push onto FLIP
   S.pLpose = pose;
   S.FLIPPOSE = FLIPPOSE;
@@ -160,6 +160,9 @@ export async function talk(ctx, S, T) {
 
   /* The villa card (section a's folded receipt) flies in and lands on its twin in the thread. */
   const tLand = T.r14 + 0.52;
+  /* the thread's own Maitama card stays covered until the flown card lands on it: never two of it at once */
+  const twin = box(ctx, th.el, { x: MAITAMA.x - 14, y: MAITAMA.y - 14, w: MAITAMA.w + 28, h: MAITAMA.h + 22, style: { background: "#f3f4f1" } });
+  showDuring(ctx, twin, [[0, tLand]]);
   const villa = cropBody(ctx, over, { src: thread, crop: MAITAMA, iw: DW, radius: 40, shadow: SHADOW.l, canvas: true });
   quadDriver(ctx, villa, MAITAMA.w, MAITAMA.h, {
     t0: T.r14, t1: tLand + 0.16,
@@ -172,21 +175,7 @@ export async function talk(ctx, S, T) {
   });
   ctx.sfx("card_slide", ctx.beat(53.4)); // 30.81
 
-  /* Card 1, taken over from section a at the cut in its end state (answer side up, at rest under the
-     phone), so its answer reads 28.87 to 31.30; then it leaves for the top right, where row 31 brings it back. */
-  const card1Out = ctx.beat(54.25); // 31.30
-  const c1Scene = ctx.scene("b-m-card1", T.r14, card1Out + 0.4, { z: 25 });
-  const C1 = { x: 230, y: 1246, w: 620, h: 170 };
-  const card1 = questionCard(ctx, c1Scene, { q: QUESTIONS[0].q, a: QUESTIONS[0].a, box: C1, fontSize: 40 });
-  Object.assign(card1.front.style, { justifyContent: "center", textAlign: "center", textWrap: "balance" });
-  Object.assign(card1.back.style, { justifyContent: "center", textAlign: "center", fontSize: "33px", lineHeight: "1.22", textWrap: "balance" });
-  /* the answer on two set lines, never ragged */
-  card1.back.querySelector("span").innerHTML = "₦26,100,000 to move in.<br>Seen before a single call.";
-  card1.turn(T.r14 - 5, { sound: null }); // already turned at the cut
-  const c1c = { x: C1.x + C1.w / 2, y: C1.y + C1.h / 2 };
-  ctx.gsap.set(card1.root, { transformOrigin: "50% 50%", rotation: -2 });
-  tl.fromTo(card1.root, { x: 0, rotation: -2, scale: 1 }, { x: 1300 - c1c.x, rotation: 24, scale: 0.9, duration: 0.34, ease: "power2.out", immediateRender: false }, card1Out);
-  tl.fromTo(card1.root, { y: 0 }, { y: -105 - c1c.y, duration: 0.34, ease: "power3.in", immediateRender: false }, card1Out);
+  /* Card 1: section a flies it out to the top right by 30.55 (round 4), so nothing of it is left at the cut. */
 
   /* "owner", "landlord", "agent" stack in the left column (x 60-480), clear of the phone's bezel, each entering on its word. */
   const X0 = 60;

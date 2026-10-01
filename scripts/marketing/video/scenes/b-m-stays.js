@@ -43,9 +43,9 @@ export async function stays(ctx, S, T) {
   const HIGH = { cx: L.PHONE_HIGH.cx, cy: L.PHONE_HIGH.cy, height: L.PHONE_HIGH.height };
 
   /* ---------- the clock ---------- */
-  const tRise = ctx.beat(74.6);              // 43.04: the phone rises as the title reaches the pill
-  const tHotels = ctx.beat(75.5);            // 43.56, inside "hotels" (43.00-43.72)
-  const tShortlets = T.shortlets + 0.1;      // 43.84, inside "shortlets"
+  const tRise = 43.15;                       // the phone rises as the title starts for the pill (round 4)
+  const tHotels = 43.72;                     // at the end of "hotels", once the phone is up
+  const tShortlets = T.shortlets + 0.24;     // 43.98, inside "shortlets"
   const tDim = T.pick - 0.33;                // 45.10: the phone dims under the card
   const tFlip0 = T.pick - 0.28;              // 45.15: the card turns into the calendar
   const tFlip1 = tFlip0 + 0.5;
@@ -53,7 +53,7 @@ export async function stays(ctx, S, T) {
   const tap19 = T.dates + 0.38;              // 46.10
   const tPop = T.and10;                      // 46.39: "3 nights"
   const tCalOut0 = tPop + 0.06;              // 46.45: the calendar lifts away; the screen swaps under it
-  const tCalOut1 = tCalOut0 + 0.3;
+  const tCalOut1 = tCalOut0 + 0.12;          // round 4: a scale-and-fade exit, done before the date page shows (no ghost)
   const tGrow0 = tPop + 0.06;                // the chip's width grows first, its dates fade in once it is complete
   const tGrow1 = tGrow0 + 0.2;
   const tDrop0 = T.book;                     // 46.52: the chip drops into the fields
@@ -70,15 +70,15 @@ export async function stays(ctx, S, T) {
 
   const staysPage = screenPage(ctx, pL, ctx.src.display("stays-lt"));
   const datesPage = screenPage(ctx, pL, ctx.src.display("stays-dates-lt"));
-  showDuring(ctx, staysPage.el, [[tRise - 0.02, tCalOut0 + 0.02]]);
-  showDuring(ctx, datesPage.el, [[tCalOut0, T.r23 + 0.3]]);
+  showDuring(ctx, staysPage.el, [[tRise - 0.02, tCalOut1 + 0.02]]);
+  showDuring(ctx, datesPage.el, [[tCalOut1, T.r23 + 0.3]]);
   /* the wash that dims the phone under the card and the calendar */
   const wash = screenPage(ctx, pL, null, { bg: "#ffffff" });
   wash.el.style.zIndex = "60";
-  showDuring(ctx, wash.el, [[tDim, tCalOut1 + 0.05]]);
+  showDuring(ctx, wash.el, [[tDim, tCalOut1 + 0.24]]);
   ctx.gsap.set(wash.el, { opacity: 0 });
   tl.fromTo(wash.el, { opacity: 0 }, { opacity: 0.85, duration: 0.3, ease: "power2.inOut", immediateRender: false }, tDim);
-  tl.fromTo(wash.el, { opacity: 0.85 }, { opacity: 0, duration: 0.3, ease: "power2.inOut", immediateRender: false }, tCalOut0);
+  tl.fromTo(wash.el, { opacity: 0.85 }, { opacity: 0, duration: 0.22, ease: "power2.inOut", immediateRender: false }, tCalOut1);
 
   /* ==================== row 20: the tiles light and lift in place, one at a time ==================== */
   const orbT = S.orbT;
@@ -89,10 +89,12 @@ export async function stays(ctx, S, T) {
   };
   const hAt = at(HOTELS.x + 330, HOTELS.y + 190);
   const sAt = at(SHORTLETS.x + 330, SHORTLETS.y + 190);
-  orbT.to(tHotels - 0.5, 0.14, { opacity: 1 }, "power1.out");
-  orbT.to(tHotels - 0.5, 0.44, { x: hAt.x + 10, y: hAt.y + 8 }, "glide");
+  /* the pointer comes back on the Hotels tile itself, never alone on the mist */
+  orbT.to(tHotels - 0.17, 0.001, { x: hAt.x + 50, y: hAt.y + 70 }, "none");
+  orbT.to(tHotels - 0.16, 0.12, { opacity: 1 }, "power1.out");
+  orbT.to(tHotels - 0.16, 0.16, { x: hAt.x + 10, y: hAt.y + 8 }, "glide");
   pressAt(ctx, S.orb, tHotels, { sound: null });
-  orbT.to(tHotels + 0.08, 0.2, { x: sAt.x + 10, y: sAt.y + 8 }, "glide");
+  orbT.to(tHotels + 0.06, 0.18, { x: sAt.x + 10, y: sAt.y + 8 }, "glide");
   pressAt(ctx, S.orb, tShortlets, { sound: null });
   orbT.to(tShortlets + 0.14, 0.36, { x: 900, y: 1210, opacity: 0 }, "power2.in");
 
@@ -163,10 +165,10 @@ export async function stays(ctx, S, T) {
     const cy = mix(mix(start.y, cardC.y, rise), calC.y, flip);
     const fs = mix(mix(0.4, 1, rise), (CAL.w * 0.62) / CW, flip);
     const bs = mix(0.62, 1, flip);
-    const out = ramp(ctx, t, tCalOut0, tCalOut1, "power2.in");
-    inner.style.transform = `translate(${cx.toFixed(2)}px, ${(cy - out * 160).toFixed(2)}px) rotateY(${(180 * flip).toFixed(2)}deg)`;
+    const out = ramp(ctx, t, tCalOut0, tCalOut1, "power1.in");
+    inner.style.transform = `translate(${cx.toFixed(2)}px, ${cy.toFixed(2)}px) rotateY(${(180 * flip).toFixed(2)}deg)`;
     front.style.transform = `translate(${-CW / 2}px, ${-cardH / 2}px) scale(${fs.toFixed(4)})`;
-    back.style.transform = `translate(${-CAL.w / 2}px, ${-CAL.h / 2}px) rotateY(180deg) scale(${(bs * (1 - out * 0.06)).toFixed(4)})`;
+    back.style.transform = `translate(${-CAL.w / 2}px, ${-CAL.h / 2}px) rotateY(180deg) scale(${(bs * (1 - out * 0.1)).toFixed(4)})`;
     flipper.style.opacity = String((ramp(ctx, t, tRise0, tRise0 + 0.1) * (1 - out)).toFixed(3));
   });
 

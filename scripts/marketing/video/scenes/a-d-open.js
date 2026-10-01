@@ -7,7 +7,7 @@
  */
 import { LAYOUT, QUESTIONS } from "./layout.js";
 import { SKY, QUIET, fitSize, freshLayers, burst } from "./a-common.js";
-import { nightCard } from "./a-m-open.js";
+import { nightCard, riffle } from "./a-m-open.js";
 
 const W = 1920;
 const H = 1080;
@@ -82,7 +82,8 @@ export function buildOpenDesktop(ctx, T) {
   [...w1, ...w2].forEach((s) => tl.fromTo(s, { opacity: 1 }, { opacity: 0, duration: 0.2, ease: "power1.in", immediateRender: false }, T.shouldnt - 0.1));
   /* The cards all but vanish behind the words (8%, blurred), so no type sits over their text. */
   const dimIn = { t0: T.finding - 0.1, t1: T.finding + 0.3 };
-  const dimOut = { t0: T.shouldnt + 0.02, t1: T.shouldnt + 0.37 };
+  /* (they come back only once they are stacked, so no two questions ever show at once) */
+  const dimOut = { t0: T.shouldnt + 0.45, t1: T.shouldnt + 0.65 };
   cards.forEach((c) => {
     tl.fromTo(c.root, { opacity: 1 }, { opacity: 0.08, duration: dimIn.t1 - dimIn.t0, ease: "power2.out" }, dimIn.t0);
     tl.fromTo(c.root, { opacity: 0.08 }, { opacity: 1, duration: dimOut.t1 - dimOut.t0, ease: "power2.out", immediateRender: false }, dimOut.t0);
@@ -92,51 +93,10 @@ export function buildOpenDesktop(ctx, T) {
     });
   });
 
-  /* ---------- row 03: the cards gather, then deal a spread across the night (x 140-1100, clear of the art) ---------- */
-  /* the cards become opaque as they gather, so in the spread and the fan only the top card's words show */
+  /* ---------- row 03: the stack, the riffle, the sway, the rush (x 320-920, clear of the art) ---------- */
+  /* the cards become opaque as they gather */
   cards.forEach((c) => tl.fromTo(c.body, { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power1.inOut" }, T.shouldnt - 0.05));
-  const C = { x: 620, y: 500 };
-  const at = (c, dx = 0, dy = 0) => ({ x: C.x - (c.box.x + c.box.w / 2) + dx, y: C.y - (c.box.y + c.box.h / 2) + dy });
-  const stack = [{ dy: -10, r: -2 }, { dy: 0, r: 1.2 }, { dy: 10, r: -0.8 }];
-  /* The deal (the card_slide cues): right, left, then the last card to the centre. Each card's moves
-     are one chain of tweens that never overlap on a property (so a frame never depends on the seek
-     direction): the first card's gather carries it straight to its spot, and the centre card's deal
-     hands it straight to the fan. */
-  const spots = [{ c: 2, dx: 180, r: 4, t: T.b(7.1), settle: true }, { c: 0, dx: -180, r: -4, t: T.b(7.8), settle: true }, { c: 1, dx: 0, r: 0, t: T.b(8.5), settle: false }];
-  const OUT = 0.19;
-  cards.forEach((c, k) => {
-    const s0 = spots.find((sp) => sp.c === k);
-    const p = at(c, s0.dx, 10);
-    const t0 = T.shouldnt + k * 0.03;
-    const out = { x: p.x, y: p.y - 40, rotation: s0.r * 1.6 };
-    if (s0.t < t0 + 0.5) {
-      tl.to(c.root, { ...out, scale: 0.92, duration: s0.t + OUT - t0, ease: "power3.inOut" }, t0);
-    } else {
-      const g = at(c, 0, stack[k].dy);
-      tl.to(c.root, { x: g.x, y: g.y, rotation: stack[k].r, scale: 0.92, duration: 0.5, ease: "power3.inOut" }, t0);
-      tl.to(c.root, { ...out, duration: OUT, ease: "power2.out" }, s0.t);
-    }
-    if (s0.settle) tl.to(c.root, { y: p.y, rotation: s0.r, duration: 0.24, ease: "back.out(1.6)" }, s0.t + OUT);
-  });
-  tl.set(cards[1].layer, { zIndex: 5 }, T.b(8.5));
-  /* On "gamble" the spread fans a touch, like a hand; the centre card stays on top. */
-  const fan = [{ c: 0, dx: -180, dy: 40, r: -8 }, { c: 1, dx: 0, dy: -6, r: 0 }, { c: 2, dx: 180, dy: 40, r: 8 }];
-  fan.forEach((f) => {
-    const c = cards[f.c];
-    const p = at(c, f.dx, f.dy);
-    tl.to(c.root, { x: p.x, y: p.y, rotation: f.r, duration: 0.42, ease: "back.out(1.5)" }, T.gamble - 0.04);
-    tl.to(c.root, { y: p.y + (f.c === 1 ? -8 : 8), rotation: f.r * 1.1, duration: T.rush - T.gamble - 0.45, ease: "sine.inOut" }, T.gamble + 0.4);
-  });
-  /* On bar 3's last beat the centre card rushes at the camera and turns. */
-  const mid = cards[1];
-  const edge = T.rush + 0.27;
-  tl.set(mid.layer, { zIndex: 9 }, T.rush);
-  tl.to(mid.root, { x: 960 - (mid.box.x + mid.box.w / 2), y: 540 - (mid.box.y + mid.box.h / 2), scale: 2.8, duration: edge - T.rush, ease: "power2.in" }, T.rush);
-  /* (a flat turn to the edge: CSS 3D is raster-cached by Chromium differently depending on seek order) */
-  tl.fromTo(mid.inner, { scaleX: 1 }, { scaleX: 0.02, duration: edge - T.rush, ease: "power2.in" }, T.rush);
-  [cards[0], cards[2]].forEach((c, k) => {
-    tl.to(c.root, { scale: 0.75, opacity: 0, x: `+=${k ? 220 : -220}`, y: "+=80", duration: 0.34, ease: "power2.in" }, T.rush + 0.02);
-  });
+  const { edge } = riffle(ctx, T, cards, { C: { x: 620, y: 500 }, scale: 0.92, rushTo: { x: 960, y: 540 }, rushScale: 2.8, awayDx: 220 });
 
   /* ================= the Vallo card: rows 03-04 ================= */
   const vallo = ctx.scene("a-vallo", edge - 0.02, T.widen + 0.8, { z: 2 });
@@ -189,10 +149,10 @@ export function buildOpenDesktop(ctx, T) {
   const wordmark = ctx.img(ctx.src.brand("vallo-wordmark.png"), { class: "abs", style: { left: `${lockX + markW * markS + LOCK.gap}px`, top: `${RING.cy - wmH / 2}px`, width: `${LOCK.wm}px`, height: `${wmH}px` } }, logo);
   tl.fromTo(wordmark, { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "land" }, T.vallo + 0.12);
   tl.fromTo(logo, { scale: LOGO_S }, { scale: LOGO_S * 1.03, duration: T.widen - T.drop, ease: "drift" }, T.drop);
-  /* Just before the iris opens, the mark and the wordmark rush past the camera through it. */
-  tl.fromTo(mark, { opacity: 1 }, { opacity: 0, duration: 0.45, ease: "power2.in", immediateRender: false }, T.widen - 0.05);
-  tl.fromTo(markWrap, { scale: markS }, { scale: markS * 1.35, duration: 0.45, ease: "power2.in", immediateRender: false }, T.widen - 0.05);
-  tl.fromTo(wordmark, { scale: 1, opacity: 1 }, { scale: 1.35, opacity: 0, duration: 0.45, ease: "power2.in", immediateRender: false }, T.widen - 0.05);
+  /* The lockup lifts and fades out by 8.15 (1.0 -> 1.15, 0.12 s), so the iris opens on a clean ring. */
+  tl.fromTo(mark, { opacity: 1 }, { opacity: 0, duration: 0.12, ease: "power1.in", immediateRender: false }, T.widen - 0.16);
+  tl.fromTo(markWrap, { scale: markS }, { scale: markS * 1.15, duration: 0.12, ease: "power1.in", immediateRender: false }, T.widen - 0.16);
+  tl.fromTo(wordmark, { scale: 1, opacity: 1 }, { scale: 1.15, opacity: 0, duration: 0.12, ease: "power1.in", immediateRender: false }, T.widen - 0.16);
 
   /* ================= the iris opens onto daylight ================= */
   /* From a point at the ring's centre onto the window, already rising in place behind it; the ring
