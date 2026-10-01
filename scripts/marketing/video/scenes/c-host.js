@@ -15,9 +15,10 @@ import { seated, DESK_BANDS } from "./c-lang.js";
 
 /* The rows as captured (display px on mobile, content px on desktop). */
 const ROWS = [
-  { key: "property", m: [2226, 2490], d: [671, 763] },
-  { key: "hotel", m: [1164, 1428], d: [301, 393] },
-  { key: "restaurant", m: [1788, 2052], d: [520, 612] },
+  /* mobile: the re-shot capture (scrolled to its foot), cards measured from host-start-ios.png */
+  { key: "property", m: [1921, 2165], d: [671, 763] },
+  { key: "hotel", m: [859, 1103], d: [301, 393] },
+  { key: "restaurant", m: [1483, 1727], d: [520, 612] },
 ];
 
 export async function buildHost(ctx, S) {
@@ -50,22 +51,26 @@ export async function buildHost(ctx, S) {
         n.style.opacity = opa(o);
       });
     });
-    /* One push (1.25x) held across the three rows, the lit row changing under
-       it; no pull-out between rows (round 3). The push frames the three rows
-       with the lit one at y <= 1150 (property's lower edge at about 1149, the
-       hotel's top at about 360), drifting 20 px up over the row so the hold
-       is never still. The pill stays away for the row: "Add a workspace"
-       rises through its band as the push comes in. */
+    /* Round 4: one gentle push (1.06x) held across the three rows, the lit
+       row changing under it, so that the whole phone reads inside the safe
+       area: "Add a workspace" (display y 412) at y >= 320 and the property
+       card's middle (display 2043) at about y 1147, above the captions. (A
+       1.25x push cannot hold both.) It creeps 2% closer over the row about
+       display y 1300, so the hold is never still. The pill stays away for
+       the row: it would sit on the heading. */
     const s0 = dispToStage(P, 0, 0).s;
-    const PUSH = 1.25;
-    const push = [K.r37 + 0.04, K.r37 + 0.5]; // as "Add a workspace" slides in; property lights at 85.55 under it
-    const cyHeld = (t) => 517 - 20 * ramp(ctx, t, push[1], K.r38, "none");
+    const PUSH = 1.06;
+    const push = [K.r37 + 0.04, K.r37 + 0.5];
+    const cyBase = 320 + (1434 - 412) * s0 * PUSH;
+    const anchorY = cyBase + (1300 - 1434) * s0 * PUSH;
+    const kAt = (t) => PUSH * (1 + 0.02 * ramp(ctx, t, push[1], K.r38, "none"));
+    const cyHeld = (t) => anchorY - (1300 - 1434) * s0 * kAt(t);
     ctx.hidePill(K.r37, K.r38);
     p.poses.push({
       t0: K.r37 - 0.02, t1: K.r38,
       fn: (t) => {
         const u = ramp(ctx, t, push[0], push[1], "power2.inOut");
-        return { cx: P.cx, cy: mix(P.cy, cyHeld(t), u), height: P.height * mix(1, PUSH, u), rx: 0, ry: 0, rz: 0, fov: 24, opacity: 1 };
+        return { cx: P.cx, cy: mix(P.cy, cyHeld(t), u), height: P.height * mix(1, kAt(t), u), rx: 0, ry: 0, rz: 0, fov: 24, opacity: 1 };
       },
     });
   } else {
@@ -81,10 +86,14 @@ export async function buildHost(ctx, S) {
     under.style.visibility = "";
     const host = ctx.img(ctx.src.capture("d-host-start"), { class: "abs", style: { left: "0px", top: "0px", width: "1440px", height: "900px" } }, win.content);
     const lights = ROWS.map((r) => ctx.el("div", { class: "abs", style: { left: "515px", top: `${r.d[0]}px`, width: "674px", height: `${r.d[1] - r.d[0]}px`, borderRadius: "22px", border: "2.5px solid #2f7cff", boxShadow: "0 0 24px 1px rgb(0 105 254 / 0.45)", opacity: 0 } }, win.content));
-    const hero = { x: 960 - 852 * s1, y: 540 - (56 + 532) * s1 };
+    /* round 4: 70 px lower (the heading clears the pill), and one continuous
+       push through the row: 4% closer from hero scale, about the frame's middle */
+    const hero = { x: 960 - 852 * s1, y: 610 - (56 + 532) * s1 };
     const pose = (t) => {
       const u = ramp(ctx, t, K.r37 + 0.1, named[0] - 0.02, "power2.inOut");
-      return { x: mix(W.x, hero.x, u), y: mix(W.y, hero.y, u), s: mix(s0, s1, u) };
+      const k = 1 + 0.04 * ramp(ctx, t, named[0] - 0.02, K.r38, "none");
+      const h = { x: 960 - (960 - hero.x) * k, y: 610 - (610 - hero.y) * k, s: s1 * k };
+      return { x: mix(W.x, h.x, u), y: mix(W.y, h.y, u), s: mix(s0, h.s, u) };
     };
     const C = (x, y, t) => { const q = pose(t); return { x: q.x + x * q.s, y: q.y + (56 + y) * q.s }; };
     during(ctx, K.r37 - 0.02, K.r38, (t) => {

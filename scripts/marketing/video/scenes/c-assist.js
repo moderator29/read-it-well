@@ -20,15 +20,15 @@ export async function buildAssist(ctx, S) {
   const { K, L } = S;
   const M = ctx.isMobile;
   const tSend = ctx.beat(131.4); // the send press (75.81)
-  const typeFrom = K.r33 - 0.02; // 74.40 (round 3: no empty field before typing)
+  const typeFrom = 73.95; // round 4: typing starts as the "?" reaches the caret
   const typeTo = K.prices + 0.36;
   const back = [tSend + 0.1, tSend + 0.8]; // the push eases back
   const revealFrom = tSend + 0.14;
   const revealTo = K.renting - 0.05;
   const leave = [ctx.beat(137.1), K.r35 - 0.06]; // 79.10 to 79.56: at the chapter's end
   const rise = [ctx.beat(126.95), ctx.beat(127.9)]; // 73.24 to 73.79
-  const qFrom = ROW_OFF[1] - 0.05; // 72.80: the "?" drops once the row has flown off
-  const qLand = qFrom + 0.28; // 73.08, on "question"
+  const qFrom = 72.85; // round 4: the "?" drops once the row has flown off (72.82)
+  const qLand = qFrom + 0.28; // 73.13, on "question" (72.95 to 73.43)
   /* the answer rests, pushed 1.5% closer over its hold (never fully still) */
   const restPush = (t) => 1 + 0.015 * ramp(ctx, t, K.renting, leave[0], "sine.inOut");
 
@@ -78,20 +78,22 @@ export async function buildAssist(ctx, S) {
       ans.style.maskImage = mask;
       ans.style.webkitMaskImage = mask;
       const txt = shownText(t);
-      const showField = on(t) && t >= K.questionEnd + 0.6 && t < tSend + 0.05;
+      const showField = on(t) && t >= 73.85 && t < tSend + 0.05;
       field.style.visibility = showField ? "" : "hidden";
       typed.textContent = txt;
       car.style.opacity = t >= tSend ? "0" : opa(caretBlink(t));
     });
-    /* pushed 1.35x onto the input field (x 145-935, y 1120) while the question
-       is typed, then back to PHONE_HERO's size for the answer, 50 px higher so
+    /* pushed 1.4x onto the input bar, which lands at y 1380 with "How can I
+       help today?" at about y 560 (round 4: the phone fills the frame down to
+       the caption instead of hanging from the top), creeping 3% closer while
+       the question is typed (never still), then back to PHONE_HERO's size for the answer, 50 px higher so
        the answer's last named line ("ask the lister directly before you
        commit", display y 1763) ends by y 1200, above the captions (v3.3); it
        leaves at the chapter's end. The pill fades out while the push brings
        "How can I help today?" up through it. */
-    const PUSH = 1.35;
     const s0 = dispToStage(P, 0, 0).s;
-    const pushedCy = 1120 - (2731 - 1434) * s0 * PUSH;
+    const pushK = (t) => 1.4 * (1 + 0.03 * ramp(ctx, t, rise[1], back[0], "none"));
+    const pushedCy = (t) => 1380 - (2731 - 1434) * s0 * pushK(t);
     const restCy = 1030;
     ctx.hidePill(K.r33 - 0.2, back[1] - 0.1);
     p.poses.push({
@@ -102,11 +104,11 @@ export async function buildAssist(ctx, S) {
         const out = ramp(ctx, t, leave[0], leave[1], "leave");
         const k = restPush(t);
         /* the rest push holds the answer's last line (display 1763) where it is */
-        const cy = mix(restCy - (1763 - 1434) * s0 * (k - 1), pushedCy, u);
-        return { cx: P.cx, cy: cy + (1 - up) * 2300 + out * 2300, height: P.height * mix(k, PUSH, u), rx: 10 * (1 - up) + 10 * out, ry: 0, rz: 0, fov: 24, opacity: 1 };
+        const cy = mix(restCy - (1763 - 1434) * s0 * (k - 1), pushedCy(t), u);
+        return { cx: P.cx, cy: cy + (1 - up) * 2300 + out * 2300, height: P.height * mix(k, pushK(t), u), rx: 10 * (1 - up) + 10 * out, ry: 0, rz: 0, fov: 24, opacity: 1 };
       },
     });
-    const at = dispToStage({ ...P, cy: pushedCy, height: P.height * PUSH }, 190, 2731);
+    const at = dispToStage({ ...P, cy: pushedCy(73.98), height: P.height * pushK(73.98) }, 190, 2731);
     caret = { x: at.x, y: at.y };
   } else {
     /* the window rises pushed 1.5x past hero scale onto its input field (the
@@ -118,6 +120,11 @@ export async function buildAssist(ctx, S) {
     const PUSH = 1.5;
     const sP = s1 * PUSH;
     const typed0 = { x: 900 - 900 * sP, y: 860 - (56 + 855) * sP, s: sP };
+    /* the pushed window creeps 3% closer about the field while the question is typed */
+    const typedAt = (t) => {
+      const k = 1 + 0.03 * ramp(ctx, t, rise[1], back[0], "none");
+      return { x: 900 - 900 * sP * k, y: 860 - (56 + 855) * sP * k, s: sP * k };
+    };
     const yAnswer = 120;
     ctx.hidePill(K.r33 - 0.2, back[1] + 0.2); // the push brings the robot and "How can I help today?" up under the pill
     const winScene = ctx.scene("c32-win", rise[0] - 0.02, K.r35, { z: 4 });
@@ -134,7 +141,8 @@ export async function buildAssist(ctx, S) {
       const k = restPush(t);
       /* the rest push is about the frame's centre column, x 960, y 540 */
       const rest = { x: 960 - (960 - X) * k, y: 540 - (540 - yAnswer) * k, s: s1 * k };
-      return { x: mix(typed0.x, rest.x, settle), y: mix(typed0.y, rest.y, settle) + (1 - up) * 1300 + out * 1200, s: mix(typed0.s, rest.s, settle) };
+      const ty = typedAt(t);
+      return { x: mix(ty.x, rest.x, settle), y: mix(ty.y, rest.y, settle) + (1 - up) * 1300 + out * 1200, s: mix(ty.s, rest.s, settle) };
     };
     during(ctx, rise[0] - 0.02, K.r35, (t) => {
       const q = poseAt(t);
@@ -150,14 +158,14 @@ export async function buildAssist(ctx, S) {
       ans.style.maskImage = mask;
       ans.style.webkitMaskImage = mask;
       const txt = shownText(t);
-      const showTyped = t >= K.questionEnd + 0.6 && t < tSend + 0.05;
+      const showTyped = t >= 73.85 && t < tSend + 0.05;
       fieldCover.style.visibility = showTyped ? "" : "hidden";
       fieldText.textContent = showTyped ? txt : "";
       fieldCaret.style.left = `${654 + (showTyped ? fieldText.offsetWidth : 0) + 1}px`;
       fieldCaret.style.opacity = showTyped && t < tSend ? opa(caretBlink(t)) : "0";
     });
-    caret = { x: typed0.x + 655 * sP, y: 860 };
-    const sendAt = { x: typed0.x + 1251 * sP, y: 860 };
+    caret = { x: typedAt(73.98).x + 655 * typedAt(73.98).s, y: 860 };
+    const sendAt = { x: typedAt(tSend).x + 1251 * typedAt(tSend).s, y: 860 };
     /* the pointer clicks send */
     const ptr = orb(ctx, winScene, { size: 40 });
     ptr.style.visibility = "hidden";
@@ -185,7 +193,7 @@ export async function buildAssist(ctx, S) {
   {
     const centre = M ? { x: 540, y: L.WORDS.y + L.WORDS.h / 2 } : { x: 960, y: 500 };
     const land = qLand;
-    const toCaret = [K.questionEnd - 0.03, K.questionEnd + 0.72];
+    const toCaret = [73.38, 73.98];
     const inkH = qSize * 0.72;
     const caretH = M ? 36 : 33;
     during(ctx, qFrom - 0.02, K.r33 + 0.05, (t) => {
@@ -194,7 +202,8 @@ export async function buildAssist(ctx, S) {
       const u = ramp(ctx, t, toCaret[0], toCaret[1], "power3.inOut");
       const x = mix(centre.x, caret.x, u);
       const y = mix(mix(centre.y - (M ? 1400 : 1000), centre.y, drop), caret.y, ramp(ctx, t, toCaret[0], toCaret[1], "power2.in"));
-      const s = mix(1, caretH / inkH, ramp(ctx, t, toCaret[0], toCaret[1], "power3.in"));
+      /* it shrinks early in its flight, so it never sits large over the screen's heading */
+      const s = mix(1, caretH / inkH, ramp(ctx, t, toCaret[0], toCaret[1] - 0.2, "power3.out"));
       const thin = ramp(ctx, t, toCaret[1] - 0.14, toCaret[1], "power2.in");
       place(q, { x, y, sx: s * (1 + 0.06 * kick) * (1 - 0.9 * thin), sy: s * (1 - 0.08 * kick), o: drop > 0 ? 1 - ramp(ctx, t, toCaret[1] - 0.04, toCaret[1]) : 0 });
     });

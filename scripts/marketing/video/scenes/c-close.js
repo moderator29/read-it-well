@@ -112,7 +112,7 @@ export async function buildClose(ctx, S) {
   });
 
   /* a cut to the white end card on beat 167 */
-  ctx.sfx("whoosh_long", K.r41, { offset: -4 });
+  ctx.sfx("whoosh_long", K.r41, { offset: 6 }); // round 4: +10 dB, felt under the bed
 
   /* ================= rows 41 and 42: the end card ================= */
   const card = ctx.scene("c41-card", K.r41, end, { z: 1 });
@@ -162,10 +162,16 @@ export async function buildClose(ctx, S) {
     const pA = S.android;
     const iImg = screenImage(ctx, pI, "home-light");
     const aImg = screenImage(ctx, pA, "home-light", { platform: "android" });
+    /* round 4: both phones read 9:41. The Android capture's status bar is the
+       screens kit's own drawn bar (10:00); its clock is redrawn on the same
+       ground, nothing else in the capture is touched. */
+    const clock = ctx.el("div", { class: "abs", style: { left: "60px", top: "60px", width: "200px", height: "76px", background: "rgb(236 236 250)", visibility: "hidden" } }, pA.screen);
+    ctx.el("div", { class: "abs", text: "9:41", style: { left: "18px", top: "0px", height: "76px", lineHeight: "76px", font: "500 50px Roboto, Inter, sans-serif", letterSpacing: "0.01em", color: "#000000", whiteSpace: "nowrap" } }, clock);
     ctx.onFrame((t) => {
       const on = t >= K.r41 - 0.05;
       iImg.style.visibility = on ? "" : "hidden";
       aImg.style.visibility = on ? "" : "hidden";
+      clock.style.visibility = on ? "" : "hidden";
     });
     const rise = (t, lag) => ramp(ctx, t, K.r41 + lag, K.r41 + 0.85 + lag, "land");
     const drift = (t, ph) => Math.sin((t - K.r41) * 0.9 + ph);

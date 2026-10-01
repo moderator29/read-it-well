@@ -39,7 +39,7 @@ const CARD_OFF = {
   desktop: [{ x: -420, y: 240, r: -20 }, { x: 960, y: -300, r: 6 }, { x: 2340, y: 240, r: 20 }],
 };
 /* the row leaves over 72.60 to 72.85 (power2.in); the "?" drops from 72.80 */
-export const ROW_OFF = [72.6, 72.85];
+export const ROW_OFF = [72.6, 72.82];
 
 /* The real lock (`lock`, dark in both themes): its six dots and keys
    (display px on mobile, content px on desktop). */
@@ -68,7 +68,7 @@ export async function buildPay(ctx, S) {
   const presses = [
     { key: M ? 2 : 4, t: K.when, snd: 1 },
     { key: M ? 1 : 2, t: K.time, snd: 3 },
-    { key: M ? 3 : 9, t: K.pay, snd: 6 },
+    { key: M ? 3 : 6, t: K.pay, snd: 6 },
   ];
   const fillAt = [0, 0, 1, 1, 2, 2].map((p, k) => presses[p].t + (k % 2) * 0.07);
   const fillU = (tt, k) => ramp(ctx, tt, fillAt[k] - 0.02, fillAt[k] + 0.12, "back.out(2.6)");
@@ -135,25 +135,35 @@ export async function buildPay(ctx, S) {
     const over = ctx.scene("c28-over", K.r28, K.r29 + 0.1, { z: 7 });
     const win = browserWindow(ctx, { parent: over, width: W.width, url: "vallospaces.com", theme: "light" });
     const sc = win.scale;
-    const C = (x, y) => ({ x: W.x + x * sc, y: W.y + (56 + y) * sc });
+    /* round 4: from B's place the camera pushes in (to 1.8x the page) onto
+       the passcode dots, which land at (960, 420); the keys used sit above
+       the caption */
+    const SP = 1.8;
+    const pushed = { x: 960 - (G.dots.x0 + 2.5 * G.dots.dx) * SP, y: 420 - (56 + G.dots.y) * SP, s: SP };
+    const pushT = [K.r28 + 0.02, K.when - 0.03];
+    const pose = (tt) => {
+      const u = ramp(ctx, tt, pushT[0], pushT[1], "power3.out");
+      const out = ramp(ctx, tt, leave[0], leave[1], "leave");
+      return { x: mix(W.x, pushed.x, u), y: mix(W.y, pushed.y, u) + out * 1500, s: mix(sc, SP, u) };
+    };
+    const C = (x, y, tt = K.when) => { const q = pose(tt); return { x: q.x + x * q.s, y: q.y + (56 + y) * q.s }; };
     ctx.img(ctx.src.capture(G.id), { class: "abs", style: { left: "0px", top: "0px", width: "1440px", height: "900px" } }, win.content);
     const layer = ctx.el("div", { class: "abs", style: { inset: "0px" } }, win.content);
     const drawDots = dotLayer(layer);
-    const yTrack = [[K.r28, W.y], [leave[0], W.y], [leave[1], W.y + 980, "leave"]];
     during(ctx, K.r28 - 0.05, K.r29 + 0.1, (tt) => {
       drawDots(tt);
-      const y = track(ctx, tt, yTrack);
+      const q = pose(tt);
       win.root.style.transformOrigin = "0 0";
-      win.root.style.transform = `translate(${W.x}px, ${y.toFixed(2)}px) scale(${sc})`;
+      win.root.style.transform = `translate(${q.x.toFixed(2)}px, ${q.y.toFixed(2)}px) scale(${q.s.toFixed(5)})`;
       win.root.style.opacity = opa(1);
       win.root.style.visibility = tt < leave[1] ? "" : "hidden";
     });
     /* the pointer comes in from the right and presses the three keys */
     const ptr = orb(ctx, over, { size: 40 });
     ptr.style.visibility = "hidden";
-    const k = presses.map((pr) => C(...G.keys[pr.key]));
-    const xs = [[K.r28, 1180], ...presses.flatMap((pr, i) => [[pr.t - 0.07, k[i].x, "glide"], [pr.t + 0.02, k[i].x]]), [K.pay + 0.35, 1250, "power2.in"]];
-    const ys = [[K.r28, k[0].y + 80], ...presses.flatMap((pr, i) => [[pr.t - 0.07, k[i].y - 8, "glide"], [pr.t + 0.02, k[i].y - 8]]), [K.pay + 0.35, 820, "power2.in"]];
+    const k = presses.map((pr) => C(...G.keys[pr.key], pr.t));
+    const xs = [[K.r28, 1500], ...presses.flatMap((pr, i) => [[pr.t - 0.07, k[i].x, "glide"], [pr.t + 0.02, k[i].x]]), [K.pay + 0.35, 1500, "power2.in"]];
+    const ys = [[K.r28, k[0].y + 120], ...presses.flatMap((pr, i) => [[pr.t - 0.07, k[i].y - 8, "glide"], [pr.t + 0.02, k[i].y - 8]]), [K.pay + 0.35, 900, "power2.in"]];
     const squash = (tt) => {
       let q = 0;
       for (const pr of presses) q += ramp(ctx, tt, pr.t - 0.06, pr.t + 0.03, "power2.out") - ramp(ctx, tt, pr.t + 0.05, pr.t + 0.37, "back.out(2.2)");
@@ -161,7 +171,7 @@ export async function buildPay(ctx, S) {
     };
     const rings = presses.map((pr, i) => ctx.el("div", { class: "abs", style: { left: `${k[i].x - 50}px`, top: `${k[i].y - 50}px`, width: "100px", height: "100px", borderRadius: "50%", border: "3px solid rgb(0 105 254 / 0.8)", zIndex: 840, visibility: "hidden" } }, over));
     during(ctx, K.r28 - 0.05, K.r29 + 0.1, (tt) => {
-      const o = ramp(ctx, tt, K.r28, K.r28 + 0.12) * (1 - ramp(ctx, tt, K.pay + 0.12, K.pay + 0.32));
+      const o = ramp(ctx, tt, K.r28 + 0.05, K.r28 + 0.17) * (1 - ramp(ctx, tt, K.pay + 0.12, K.pay + 0.32));
       const q = squash(tt);
       ptr.style.left = `${(track(ctx, tt, xs) - 20).toFixed(2)}px`;
       ptr.style.top = `${(track(ctx, tt, ys) - 20).toFixed(2)}px`;
@@ -194,15 +204,15 @@ export async function buildPay(ctx, S) {
 
   /* ================= the path (rows 29 to 31): one path that does not move ================= */
   const pathScene = ctx.scene("c29-path", K.r29 - 0.1, ROW_OFF[1] + 0.02, { z: 6 });
-  /* mobile: the path spans y 720 to 1260 (round 3), its labels large enough to fill the width */
-  const ST = M ? [{ x: 170, y: 720 }, { x: 170, y: 990 }, { x: 170, y: 1260 }] : [{ x: 300, y: 560 }, { x: 960, y: 560 }, { x: 1620, y: 560 }];
+  /* mobile: the path spans y 760 to 1400 (round 4), filling the frame down to the caption */
+  const ST = M ? [{ x: 170, y: 760 }, { x: 170, y: 1080 }, { x: 170, y: 1400 }] : [{ x: 300, y: 560 }, { x: 960, y: 560 }, { x: 1620, y: 560 }];
   const LINE = M ? [{ x: 200, y: 1120 }, { x: 540, y: 1120 }, { x: 870, y: 1120 }] : [{ x: 300, y: 800 }, { x: 960, y: 800 }, { x: 1620, y: 800 }];
   const SD = M ? 124 : 112;
   const SMALL = 26;
   const COIN_D = M ? 104 : 96;
   const drawAt = [K.r29 + 0.14, K.r29 + 0.52, K.r29 + 0.9];
   const fold = [ctx.beat(121.25), ctx.beat(121.85)]; // 69.95 to 70.30, after the line has gone
-  const lineOut = [K.r31, K.r31 + 0.24];
+  const lineOut = [69.56, 69.8]; // round 4: the line leaves a little earlier so card 3 is in sooner
   const svg = ctx.el("div", { class: "abs", style: { inset: "0px" } }, pathScene);
   svg.innerHTML = `<svg width="${ctx.W}" height="${ctx.H}" viewBox="0 0 ${ctx.W} ${ctx.H}" style="position:absolute;left:0;top:0;overflow:visible"><line id="c29a" stroke="#3d86ff" stroke-linecap="round"/><line id="c29b" stroke="#3d86ff" stroke-linecap="round"/></svg>`;
   const seg = [svg.querySelector("#c29a"), svg.querySelector("#c29b")];
@@ -211,8 +221,8 @@ export async function buildPay(ctx, S) {
     const ring = ctx.el("div", { class: "abs", style: { inset: "9%", borderRadius: "50%", border: "2px solid rgb(0 105 254 / 0.22)" } }, n);
     return { n, ring };
   });
-  const flashes = [0, 1, 2].map(() => ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: "100px", height: "100px", borderRadius: "50%", border: "3px solid rgb(0 105 254 / 0.7)", opacity: 0, visibility: "hidden" } }, pathScene));
-  const bigFont = M ? 64 : 46;
+  const flashes = [0, 1, 2, 3, 4].map(() => ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: "100px", height: "100px", borderRadius: "50%", border: "3px solid rgb(0 105 254 / 0.7)", opacity: 0, visibility: "hidden" } }, pathScene));
+  const bigFont = M ? 56 : 46;
   const labelStyle = { font: `600 ${bigFont}px/1.1 "C Poppins", Inter, sans-serif`, letterSpacing: "-0.025em", color: "#0b1230", whiteSpace: "nowrap", visibility: "hidden" };
   const labels = ["Your card", "Paystack"].map((text) => ctx.el("div", { class: "abs", text, style: { left: "0px", top: "0px", ...labelStyle } }, pathScene));
   /* the bank's label: one line that rolls The owner's bank -> Owner -> Host -> Business */
@@ -230,8 +240,8 @@ export async function buildPay(ctx, S) {
   /* the holds are never still: the path group drifts 1.02x about its middle
      from the first station to the fold, and the node the coin rests on
      breathes (2 beats a breath) */
-  const GC = M ? { x: 540, y: 990 } : { x: 960, y: 600 };
-  const drift = (tt) => 1 + 0.02 * ramp(ctx, tt, drawAt[0], fold[0], "sine.inOut") * (1 - ramp(ctx, tt, fold[0] - 0.1, fold[0] + 0.2));
+  const GC = M ? { x: 540, y: 1080 } : { x: 960, y: 600 };
+  const drift = (tt) => 1 + 0.04 * ramp(ctx, tt, drawAt[0], fold[0], "sine.inOut") * (1 - ramp(ctx, tt, fold[0] - 0.1, fold[0] + 0.2));
   const restsOn = (tt) => (tt < drawAt[0] + 0.2 ? -1 : tt < K.r30 + 0.4 ? 0 : tt < K.goes ? -1 : tt < K.owner ? 1 : 2);
   const arrived = [drawAt[0] + 0.2, K.goes, K.owner];
   const pulse = (i, tt) => {
@@ -277,11 +287,13 @@ export async function buildPay(ctx, S) {
       seg[i].setAttribute("stroke-width", mix(M ? 6 : 5, 3, a.u).toFixed(2));
       seg[i].style.opacity = g > 0.001 ? opa(1 - rowOff(tt)) : "0";
     });
-    [[1, K.goes], [2, K.owner]].forEach(([i, tf]) => {
+    [[1, K.goes], [2, K.owner], [3, K.host], [4, K.business]].forEach(([j, tf]) => {
+      const i = Math.min(j, 2);
+      const fl = flashes[j];
       const f = ramp(ctx, tt, tf, tf + 0.6, "power2.out");
-      flashes[i].style.width = `${sp[i].d.toFixed(2)}px`;
-      flashes[i].style.height = `${sp[i].d.toFixed(2)}px`;
-      place(flashes[i], { x: sp[i].x, y: sp[i].y, s: 1 + 0.6 * f, o: f > 0 && f < 1 ? (1 - f) * 0.9 : 0 });
+      fl.style.width = `${sp[i].d.toFixed(2)}px`;
+      fl.style.height = `${sp[i].d.toFixed(2)}px`;
+      place(fl, { x: sp[i].x, y: sp[i].y, s: 1 + 0.6 * f, o: f > 0 && f < 1 ? (1 - f) * 0.9 : 0 });
     });
     /* the big labels: beside the stations (mobile), under them (desktop); they go before the fold */
     const bigOut = ramp(ctx, tt, fold[0] - 0.14, fold[0] + 0.06);
@@ -300,17 +312,20 @@ export async function buildPay(ctx, S) {
       place(n, { x: sp[i].x, y: sp[i].y - (M ? 42 : 40) + (1 - u) * 10, o: u * (1 - rowOff(tt)) });
     });
     {
-      const w = ramp(ctx, tt, fold[1] + 0.2, fold[1] + 0.7, "power1.inOut");
+      const w = ramp(ctx, tt, fold[1] + 0.1, fold[1] + 0.45, "power1.inOut"); // 0.35 s, done before the row is complete
       licensed.style.clipPath = `inset(-8px ${(100 - w * 100).toFixed(2)}% -8px 0)`;
       place(licensed, { x: sp[1].x, y: sp[1].y + (M ? 44 : 40), o: w > 0 ? 1 - rowOff(tt) : 0 });
     }
   });
-  ctx.sfx("ding_pay", K.owner, { offset: 0 });
+  ctx.sfx("ding_pay", 68.22, { offset: 0 }); // round 4: just after the "ow" of "owner", off the word
 
   /* ================= the line (rows 29 and 30): lands, then holds still ================= */
   const type = ctx.scene("c29-type", 64.4, lineOut[1] + 0.02, { z: 10 });
   {
-    ctx.hideCaptions(64.495, M ? 70.708 : 69.908); // caption span edges: none shows while the line is big
+    /* round 4: captions only stay off while "Vallo never holds your money."
+       is the big type (to sentence 15's first span at 66.516), and through
+       row 28, where the caption would sit on the pushed keypad */
+    ctx.hideCaptions(62.94, 66.5);
     ctx.sfx("whoosh_short", K.r29, { offset: -2 });
     const font = (size) => `700 ${size}px "C Poppins"`;
     const mk = (parts, size, parent = type) => {
@@ -324,13 +339,13 @@ export async function buildPay(ctx, S) {
     if (M) {
       /* two lines under the pill: "Vallo never" from the left, "holds your money." from the right */
       const Wd = L.WORDS;
-      let s2 = 96;
+      let s2 = 88;
       const w2full = measure("holds your money.", font(s2));
       if (w2full > Wd.w - 16) s2 = Math.floor((s2 * (Wd.w - 16)) / w2full);
       const s1 = s2;
       const l1 = mk([["Vallo never", false]], s1);
       const l2 = mk([["holds your ", false], ["money.", true]], s2);
-      const y1 = 460;
+      const y1 = 430; // the two lines sit in y 380 to 560
       const y2 = y1 + Math.round(s2 * 1.12);
       during(ctx, 64.4, lineOut[1] + 0.02, (tt) => {
         const a = aIn(tt);
@@ -378,7 +393,7 @@ export async function buildPay(ctx, S) {
   const C = coin(ctx, coinScene, { size: COIN_D });
   {
     const land29 = drawAt[0] + 0.2;
-    const from = M ? { x: -90, y: 520 } : { x: -90, y: 380 };
+    const from = M ? { x: -160, y: 560 } : { x: -160, y: 380 }; // fully off the edge until it moves
     during(ctx, K.r29, ROW_OFF[1] + 0.02, (tt) => {
       let x, y, size = COIN_D, spin, tilt = 0, sy = 1, shadow = 0;
       if (tt < land29) {
@@ -406,7 +421,7 @@ export async function buildPay(ctx, S) {
   }
 
   /* ================= the three answered cards (row 31) ================= */
-  const swingIn = ctx.beat(121.25); // 69.95
+  const swingIn = 69.82; // as the line leaves
   const cardScene = ctx.scene("c31-cards", swingIn - 0.02, ROW_OFF[1] + 0.02, { z: 11 });
   {
     const slot = L.CARD_SLOT;
@@ -456,15 +471,17 @@ export async function buildPay(ctx, S) {
     const [S0, S1, S2] = slot.map(centre);
     /* the engine's flat turn (skew, edge shade, highlight): card 3 turns once;
        cards 1 and 2 come back already turned */
-    const t3 = [ctx.beat(123.0)]; // 70.96: its answer shows from 71.26 and lies flat by 71.58
+    /* round 4: card 3's answer shows from 70.95 and lies flat by 71.27; the
+       row then holds still to 72.60 (about 1.4 s) */
+    const t3 = [70.65];
     installFlatTurn(ctx, c3, t3);
     installFlatTurn(ctx, c1, [-100]);
     installFlatTurn(ctx, c2, [-100]);
-    const land12 = [[70.45, 70.9], [70.5, 70.95]]; // cards 1 and 2 land by 70.95
-    const full = ctx.beat(124.1); // 71.60: the row is complete
+    const land12 = [[70.4, 70.85], [70.45, 70.9]]; // cards 1 and 2 land by 70.90
+    const full = 71.27; // the row is complete
     ctx.sfx("card_slide", swingIn, { offset: -4 });
-    ctx.sfx("pop", t3[0] + 0.04, { offset: 0 });
-    ctx.sfx("success", full, { offset: -2 });
+    ctx.sfx("pop", t3[0] + TURN_SWAP, { offset: 0 }); // 70.95, as the answer shows
+    ctx.sfx("success", 71.6, { offset: -2 }); // kept at 71.6, inside its lift window
     const IN = CARD_IN[ctx.film];
     const OFF = CARD_OFF[ctx.film];
     /* the held row drifts 1.5% larger about its middle, then flies off */
