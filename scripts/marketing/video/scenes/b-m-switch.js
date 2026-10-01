@@ -17,7 +17,7 @@ export async function switcher(ctx, S, T) {
   const tPress = T.planning - 0.16; // 41.38: pressed just before the word, so the phone is gone as "Planning" rises
   pressAt(ctx, S.orb, tPress, { ringParent: S.pointer, x: S.flipAt.x, y: S.flipAt.y, sound: null });
   ripple(ctx, S.drawerPage.el, { x: FLIP.x - 120, y: FLIP.y, t: tPress, size: 320 });
-  ctx.sfx("toggle_on", tPress, { offset: 4 });
+  ctx.sfx("toggle_on", tPress, { offset: 0.5 }); // round 4: the bed check caps it at +0.5 dB
   ctx.sfx("whoosh_long", T.r19, { offset: -2 });
   S.orbT.to(tPress + 0.01, 0.14, { y: S.flipAt.y + 300, opacity: 0 }, "power1.inOut"); // goes with the phone
 

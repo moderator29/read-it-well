@@ -298,7 +298,7 @@ export async function deskTalk(ctx, S, T) {
   const heroWv = { ...S.wv, cx: S.HERO.cx, cy: S.HERO.cy, s: S.HERO.s };
   const chevAt = S.toStageAt(heroWv, PUSH18, FLIP_CHEV.x, FLIP_CHEV.y);
   ctx.sfx("whoosh_long", T.r19, { offset: -2 });
-  ctx.sfx("toggle_on", tClick, { offset: 4 });
+  ctx.sfx("toggle_on", tClick, { offset: 0.5 }); // round 4: the bed check caps it at +0.5 dB
   /* the camera pulls back as the window turns over to Stays and moves right, clear of the title */
   cam.to(tClick + 0.04, 0.32, { s: 1, tx: flipW.x, ty: flipW.y }, "power2.inOut");   // back to 1x by 41.60
   /* the side scale (as in D14, D16 and D26), at the right: clear of the title at the left */
