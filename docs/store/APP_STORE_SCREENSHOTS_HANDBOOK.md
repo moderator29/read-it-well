@@ -1,6 +1,6 @@
 # App Store and Google Play screenshots: the handbook
 
-Produced on 30 September 2026: the fifth round, after four premium reviews. This records what is in `docs/store/screenshots/`, how every image was made, the sizes each store takes, and which images to submit. Everything in it can be regenerated with two commands (section 8).
+Produced on 30 September 2026: the sixth round, after five premium reviews. This records what is in `docs/store/screenshots/`, how every image was made, the sizes each store takes, and which images to submit. Everything in it can be regenerated with two commands (section 8).
 
 **The short version.** There are 35 images for each store, in store order, made to DESIGN.md section 6a (`scripts/marketing/DESIGN.md`):
 
@@ -56,11 +56,11 @@ Every screen is the live product at <https://www.vallospaces.com>, in its dark t
 | 06 | Vallo never holds / your money | `support-money` | the help centre's own answer; header cleaned (section 6) |
 | 07 | See the stay / before you book | `stay` | Lagoon Crest Resort |
 | 08 | Ask the AI assistant / any time of day | `assistant-caution-2` | the assistant's own answer, unedited |
-| 09 | Save favourites, / compare later | `saved` | recaptured; opens on the Chevron Drive house ("4 places saved"), whose photograph is the same stock living room as the Maitama villa on 02: the example stock's own repeat |
+| 09 | Save favourites, / compare later | `saved` | recaptured; opens on the Chevron Drive house ("4 places saved"), whose photograph is the same stock living room as the Maitama villa on 02. The floating apps button crosses the foot of "Remove" (the product's own layout at the top of the page); a recapture scrolled about 24 CSS px would clear it |
 | 10 | Find a restaurant / you love | `restaurant` | |
 | 11 | Every fee, / added up | `listing-cost` | the fee lines; not for submission until the lister is renamed (section 6) |
 | 12 | Each verified mark, / checked by a person | `welcome-2` | public; "Verified means a person checked." |
-| 13 | Have a property? / Put it on Vallo | `host-start` | card "Payment settled · Straight to your bank", Example, no amount |
+| 13 | Have a property? / Put it on Vallo | `host-start` | recaptured; card "Payment settled · Straight to your bank", Example, no amount. "I own the property" shows its house icon; "I am an agent" sits under the dock, as the page lays it out (it does not scroll) |
 | 14 | Search homes / across Nigeria | `search-villas` | the Map button sits over photographs, not over an Example chip |
 | 15 | Six digits, / and you’re back in | `lock` | the passcode lock |
 | 16 | Vallo speaks / your language | `welcome-yo` | public; subline "English, Hausa, Yorùbá and Igbo." |
@@ -70,7 +70,7 @@ Every screen is the live product at <https://www.vallospaces.com>, in its dark t
 | 20 | Real help, / from real people | `support` | |
 | 21 | Inspect first, / then pay on Vallo | `welcome-3` | public; the screen's own claim ("book an inspection first. When you pay, pay on Vallo"), not its headline |
 | 22 | Filter down / to what you need | `filters-villas` | Villas selected, Apply (3) |
-| 23 | Light or dark, / your call | `appearance` | recaptured; the Theme label and the whole switch sit under the header; the "Appearance" title behind the header is cleaned out |
+| 23 | Light or dark, / your call | `appearance` | recaptured with more air above the Theme label; the label and the whole switch sit under the header; the "Appearance" title behind the header is cleaned out |
 | 24 | Rooms, amenities, / all laid out | `stay-amenities` | recaptured; opens on the Amenities heading; the outline of the card above is blended out, column by column |
 | 25 | Vallo charges no / inspection fee | `support-inspection` | worded exactly so; header cleaned; 06's twin, 19 places apart |
 | 26 | Earn the / verified mark | `verification` | step 1 of 5, the ID upload; "verified" about a person |
@@ -132,8 +132,11 @@ The Maitama living-room photograph, which the example stock reuses for several l
 - **Two cards, one rule.** 04 and 13 each carry one of DESIGN.md section 4's cards: opaque navy, the Example chip, no amount, two lines, 1.3 times round 2's size (a 45 px title), so they read at store size.
   - Each overhangs the phone's left edge (50 px on the App Store, 80 on Play past the rim beside the header). It keeps at least 64 px from the image edge and at least 20 px from the camera and from every control it leaves uncovered. `compose.mjs` fails any card that breaks that.
   - Its shadow is limited, so the ground next to every image edge stays pixel-identical.
-  - On 13 the card sits 25 px under the camera and at least 20 px under the status bar's clock and icons: y 659 on the App Store (under the island), y 596 on Play (24 px under the clock, since the punch hole is level with it). It covers the menu and the logo whole and stays clear of the bell and the back button.
-  - On 04 the card lies over the tilted phone's rim. Its right edge sits 24 px from the menu button. Where its rounded top corner meets the rim (the corner at 45 degrees), it overlaps the rim by 19 px on the App Store and 20 px on Play. It sits 24 px below the header's middle, where the rim runs further left, so both hold.
+  - On 13 the card's top border is at y 659 on the App Store (25 px under the island) and y 606 on Play (24 px under the status bar's box, about 35 px under the clock's ink, since the punch hole is level with the clock). It covers the menu and the logo whole. It keeps 22 px (App Store) and 29 px (Play) from the back button, and stays clear of the bell.
+  - On 04 the card is level with the header and lies over the tilted phone's rim.
+    - App Store: 24 px from the menu button and 37 px clear of the greeting; its rounded top corner overlaps the rim by 11 px, measured where the corner's curve meets the rim (at 45 degrees).
+    - Play: 22 px from the menu and 23 px clear of the greeting ("Good evening" is whole); its corner overlaps the rim by 9 px.
+    - `compose.mjs` fails the card if it comes within 20 px of the menu, the greeting or the camera, or if its corner overlaps the rim by less than 8 px.
 - **One pair.** 04 and 05 share one phone, tilted by the 3D studio across their seam (the stays home, leaning right). The phone slides left until the seam crosses no word: it passes clear of the area line and the hero's headline, and between two words of the small line under it. Across the two images the phone is whole; only the seam between them cuts it.
 - **Files.** 24-bit truecolour PNG (IHDR colour type 2), no alpha, no palette.
 

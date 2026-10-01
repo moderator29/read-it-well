@@ -112,7 +112,7 @@ const HEADER = { top: 186, bottom: 365, bell: { x: 1204, y: 275, r: 66 }, menu: 
    the studio's white display), the header's menu glyph, and host-start's back button. */
 const CAMERA = { island: [472, 34, 848, 145], android: [632, 20, 688, 75] };
 const MENU = [77, 256, 126, 295];
-const BACK = [55, 464, 145, 554];
+const BACK = [44, 462, 182, 600];
 /** A display box mapped onto the page through a placed phone's `at()`, less `dx`. */
 function pageBox(at, [x0, y0, x1, y1], label, dx = 0) {
   const pts = [[x0, y0], [x1, y0], [x1, y1], [x0, y1]].map(([x, y]) => at(x, y));
@@ -189,29 +189,36 @@ export const SHOTS = [
           }
           return rim[0][0];
         };
-        const cardH = (ios ? 205 : 180) * (m.card / (ios ? 1.3 : 1.3 * 0.876));
+        const cardH = (ios ? 198 : 174) * (m.card / (ios ? 1.3 : 1.3 * 0.876));
         const [, midY] = sp.at(0, 275);
         /* level with the header; lower (where the rim lies further left) only as far as
            it takes for the card to reach 20 px over the rim and keep 24 px from the menu */
         const menu = pageBox(sp.at, MENU, "the menu button");
         let top = midY - cardH / 2;
-        while (rimX(top) + 20 > menu.x - 24 && top < midY) top += 2;
-        /* the rule's overhang past the rim beside the header, moved right (52 px on the
-           App Store, 42 on Play) so the card's whole right edge, its rounded top corner
-           included, sits over the frame; 24 px lower instead where that would bring it
-           within 24 px of the menu */
+        /* level with the header's middle. The right edge goes past the rim by the rule's
+           overhang plus 52 px (App Store) or 42 (Play), so the rounded top corner sits over
+           the frame too, but never closer than 24 px to the menu; the greeting below must
+           stay 20 px clear (the check below), and the corner must overlap the rim by 8 px
+           or more. */
         const radius = 38 * m.card;
-        const place = (t, shift) => Math.max(Math.min(rimX(t), rimX(t + cardH)) + m.overhang + shift, rimX(t) + 20, rimX(t + cardH) + 20);
-        let right = place(top, ios ? 52 : 42);
-        if (right > menu.x - 24) {
-          top += 24;
-          right = Math.min(menu.x - 24, place(top, ios ? 52 : 42));
-        }
-        /* the overlap where the corner's curve meets the rim: the corner at 45 degrees */
-        const cy = top + radius * (1 - Math.SQRT1_2);
-        ctx.cornerOverlap = right - radius * (1 - Math.SQRT1_2) - rimX(cy);
-        if (process.env.STORE_DEBUG) console.log(`  04 card: top ${top.toFixed(0)}, right ${right.toFixed(0)}, menu gap ${(menu.x - right).toFixed(0)}, corner overlap ${ctx.cornerOverlap.toFixed(1)} px`);
-        ctx.cardCheck = { avoid: [menu, pageBox(sp.at, CAMERA[ctx.model], "the camera")] };
+        const greeting = pageBox(sp.at, [45, 478, 470, 640], "the greeting");
+        let menuGap = 24;
+        const fit = (t) => {
+          const r = Math.min(menu.x - menuGap, Math.max(Math.min(rimX(t), rimX(t + cardH)) + m.overhang + (ios ? 52 : 42), rimX(t) + 20, rimX(t + cardH) + 20));
+          /* the overlap where the corner's curve meets the rim: the corner at 45 degrees */
+          return { right: r, overlap: r - radius * (1 - Math.SQRT1_2) - rimX(t + radius * (1 - Math.SQRT1_2)) };
+        };
+        /* lower only while the corner overlaps the rim by less than 8 px and the greeting
+           stays more than 20 px below */
+        const clear = (t) => Math.hypot(Math.max(greeting.x - fit(t).right, 0), Math.max(greeting.y - (t + cardH), 0));
+        while (fit(top).overlap < 8 && clear(top + 1) >= 22) top += 1;
+        /* and if the corner still overlaps by less than 8 px, let the card come as close
+           as the 20 px rule to the menu */
+        while (fit(top).overlap < 8 && menuGap > 20) menuGap -= 1;
+        const { right, overlap } = fit(top);
+        ctx.cornerOverlap = overlap;
+        ctx.cardCheck = { avoid: [menu, greeting, pageBox(sp.at, CAMERA[ctx.model], "the camera")], minCornerOverlap: 8 };
+        if (process.env.STORE_DEBUG) console.log(`  04 card: top ${top.toFixed(0)}, bottom ${(top + cardH).toFixed(0)}, right ${right.toFixed(0)}, menu gap ${(menu.x - right).toFixed(1)}, greeting top ${greeting.y.toFixed(0)}, corner overlap ${ctx.cornerOverlap.toFixed(1)} px`);
         return popup({ right: W - right, fit: true, y: top, lucide: "bed-double", title: "Room booked", line: "Lagoon Crest Resort · 3 nights", meta: null, example: true, scale: m.card });
       },
     },

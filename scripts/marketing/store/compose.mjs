@@ -501,12 +501,14 @@ for (const store of STORE_LIST) {
       }));
       ctxs.forEach((c, k) => {
         if (!c.cardCheck) return;
+        if (c.cardCheck.minCornerOverlap !== undefined && !(c.cornerOverlap >= c.cardCheck.minCornerOverlap)) problems.push(`${store} ${shotName(halves[k])}: the card's corner overlaps the rim by ${c.cornerOverlap?.toFixed(1)} px (at least ${c.cardCheck.minCornerOverlap})`);
         for (const pr of pops[k] || []) {
           /* at least 20 px from the camera and from every control it leaves uncovered */
           for (const a of c.cardCheck.avoid || []) {
             const dx = Math.max(a.x - pr.r, pr.l - a.r, 0);
             const dy = Math.max(a.y - pr.b, pr.t - a.b, 0);
             const d = Math.hypot(dx, dy);
+            if (process.env.STORE_DEBUG) console.log(`  ${shotName(halves[k])} card to ${a.label}: ${d.toFixed(1)} px`);
             if (d < 20) problems.push(`${store} ${shotName(halves[k])}: the card is ${Math.round(d)} px from ${a.label} (at least 20)`);
           }
           if (c.cardCheck.rightOf !== undefined && pr.r > c.cardCheck.rightOf) problems.push(`${store} ${shotName(halves[k])}: the card's right edge (${Math.round(pr.r)}) runs over what it should leave clear (${Math.round(c.cardCheck.rightOf)})`);
