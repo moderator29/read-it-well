@@ -166,7 +166,7 @@ const BASE_CAPTURES = [
   { id: "host", steps: go("/host") },
   /* "Start an application" asks what kind of host you are (a page, nothing is saved). */
   /* The page fits the screen (it does not scroll); wait for every icon. */
-  { id: "host-start", steps: [{ goto: "/profile/setup?side=stays" }, { wait: 3000 }] },
+  { id: "host-start", steps: [{ goto: "/profile/setup?side=stays" }, { wait: 3000 }, { reveal: "text=I am an agent", offset: 0 }] },
   { id: "host-bookings", steps: go("/host/bookings") },
   { id: "host-earnings", steps: go("/host/earnings") },
   { id: "host-assistant", steps: go("/host/assistant") },
