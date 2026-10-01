@@ -93,8 +93,9 @@ export async function deskTalk(ctx, S, T) {
   tl.fromTo(pListing, { opacity: 0 }, { opacity: 1, duration: 0.26, ease: "power1.inOut", immediateRender: false }, tClose0);
 
   /* ==================== D14 ==================== */
-  /* round 4: the window grows from section a's side window to 0.85 of the frame (x 60-1240) as the villa card
-     lands, so the words and the echo have bare mist at the right; it reaches the hero once the bubble has landed */
+  /* round 4: the window eases from section a's hero (where it is at rest at the cut) to 0.85 of the frame
+     (x 60-1240) as the villa card lands, so the words and the echo have bare mist at the right; it returns to the
+     hero once the bubble has landed */
   wvT.to(T.r14, 0.52, { cx: S.WIN85.cx, cy: S.WIN85.cy, s: S.WIN85.s }, "glide");
   wvT.to(T.r14 + 0.52, tLandBubble - T.r14 - 0.5, { cx: S.WIN85.cx - 6, cy: S.WIN85.cy - 6, s: S.WIN85.s * 1.012 }, "drift");
   wvT.to(tLandBubble + 0.04, 0.3, { cx: S.HERO.cx, cy: S.HERO.cy, s: S.HERO.s }, "power2.inOut");
