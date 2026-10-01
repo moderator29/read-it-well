@@ -259,6 +259,8 @@ export async function buildReceiptDesktop(ctx, T, product) {
   /* The member's own message is sent in section b (row 15): its bubble stays under the same patch
      section b lays over it (b-d-talk.js), so the cut at 30.577 is clean. */
   ctx.el("div", { class: "abs", style: { left: "851px", top: "763px", width: "495px", height: "64px", background: "#f3f4f1" } }, thread);
+  /* B covers the thread's Maitama card (where the flown villa card lands) from the cut: the same cover here */
+  ctx.el("div", { class: "abs", style: { left: "934px", top: "482px", width: "414px", height: "281px", background: "#f3f4f1" } }, thread);
   ctx.onFrame((t) => {
     const on = t >= fold.t0;
     if ((thread.style.visibility !== "hidden") !== on) thread.style.visibility = on ? "inherit" : "hidden";
