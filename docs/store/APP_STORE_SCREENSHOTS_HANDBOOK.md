@@ -1,6 +1,6 @@
 # App Store and Google Play screenshots: the handbook
 
-Produced on 30 September 2026: the fourth round, after three premium reviews. This records what is in `docs/store/screenshots/`, how every image was made, the sizes each store takes, and which images to submit. Everything in it can be regenerated with two commands (section 8).
+Produced on 30 September 2026: the fifth round, after four premium reviews. This records what is in `docs/store/screenshots/`, how every image was made, the sizes each store takes, and which images to submit. Everything in it can be regenerated with two commands (section 8).
 
 **The short version.** There are 35 images for each store, in store order, made to DESIGN.md section 6a (`scripts/marketing/DESIGN.md`):
 
@@ -56,7 +56,7 @@ Every screen is the live product at <https://www.vallospaces.com>, in its dark t
 | 06 | Vallo never holds / your money | `support-money` | the help centre's own answer; header cleaned (section 6) |
 | 07 | See the stay / before you book | `stay` | Lagoon Crest Resort |
 | 08 | Ask the AI assistant / any time of day | `assistant-caution-2` | the assistant's own answer, unedited |
-| 09 | Save favourites, / compare later | `saved` | its one card is the Maitama villa (the same photograph as 02); a label peeking beside the dock is patched out (section 6); a recapture with another listing saved last would be better |
+| 09 | Save favourites, / compare later | `saved` | recaptured; opens on the Chevron Drive house ("4 places saved"), whose photograph is the same stock living room as the Maitama villa on 02: the example stock's own repeat |
 | 10 | Find a restaurant / you love | `restaurant` | |
 | 11 | Every fee, / added up | `listing-cost` | the fee lines; not for submission until the lister is renamed (section 6) |
 | 12 | Each verified mark, / checked by a person | `welcome-2` | public; "Verified means a person checked." |
@@ -70,8 +70,8 @@ Every screen is the live product at <https://www.vallospaces.com>, in its dark t
 | 20 | Real help, / from real people | `support` | |
 | 21 | Inspect first, / then pay on Vallo | `welcome-3` | public; the screen's own claim ("book an inspection first. When you pay, pay on Vallo"), not its headline |
 | 22 | Filter down / to what you need | `filters-villas` | Villas selected, Apply (3) |
-| 23 | Light or dark, / your call | `appearance` | recaptured with no dock, every toggle clear; the theme switch sits just under the header, and the "Theme" label behind the header is cleaned out |
-| 24 | Rooms, amenities, / all laid out | `stay-amenities` | recaptured; opens on the Amenities heading; the outline of the card above is patched out |
+| 23 | Light or dark, / your call | `appearance` | recaptured; the Theme label and the whole switch sit under the header; the "Appearance" title behind the header is cleaned out |
+| 24 | Rooms, amenities, / all laid out | `stay-amenities` | recaptured; opens on the Amenities heading; the outline of the card above is blended out, column by column |
 | 25 | Vallo charges no / inspection fee | `support-inspection` | worded exactly so; header cleaned; 06's twin, 19 places apart |
 | 26 | Earn the / verified mark | `verification` | step 1 of 5, the ID upload; "verified" about a person |
 | 27 | Back where / you left off | `home-recent` | recaptured; opens on "Looked at recently"; header cleaned |
@@ -96,7 +96,7 @@ The layouts are in `scripts/marketing/store/shots/premium.mjs`.
 - 22 and 31 (filter sheet);
 - 10 and 29 (a shared photograph).
 
-The Maitama living-room photograph, which the example stock reuses, leads 02 and is the one saved card on 09 (seven places later). It also appears on 14's first card and twice on 27. A recapture of `saved` with another listing saved last would remove the repeat on 09.
+The Maitama living-room photograph, which the example stock reuses for several listings, leads 02. It also leads 09 (the Chevron Drive house uses the same stock photograph) and 14's first card, and appears twice on 27. That is the example stock's own repeat.
 
 **Changes from round 2:**
 
@@ -132,8 +132,8 @@ The Maitama living-room photograph, which the example stock reuses, leads 02 and
 - **Two cards, one rule.** 04 and 13 each carry one of DESIGN.md section 4's cards: opaque navy, the Example chip, no amount, two lines, 1.3 times round 2's size (a 45 px title), so they read at store size.
   - Each overhangs the phone's left edge (50 px on the App Store, 80 on Play past the rim beside the header). It keeps at least 64 px from the image edge and at least 20 px from the camera and from every control it leaves uncovered. `compose.mjs` fails any card that breaks that.
   - Its shadow is limited, so the ground next to every image edge stays pixel-identical.
-  - On 13 the card sits 25 px under the Dynamic Island (y 659 on the App Store). It covers the menu and the logo whole and stays clear of the bell and the back button.
-  - On 04 the card lies over the tilted phone's rim along its whole right edge (at least 20 px in, the top corner included), and keeps 24 px from the menu button. On Play it sits a little lower than the header so both hold.
+  - On 13 the card sits 25 px under the camera and at least 20 px under the status bar's clock and icons: y 659 on the App Store (under the island), y 592 on Play (under the clock, since the punch hole is level with it). It covers the menu and the logo whole and stays clear of the bell and the back button.
+  - On 04 the card lies over the tilted phone's rim. Its right edge sits 24 px from the menu button. Where its rounded top corner meets the rim (the corner at 45 degrees), it overlaps the rim by 19 px on the App Store and 20 px on Play. It sits 24 px below the header's middle, where the rim runs further left, so both hold.
 - **One pair.** 04 and 05 share one phone, tilted by the 3D studio across their seam (the stays home, leaning right). The phone slides left until the seam crosses no word: it passes clear of the area line and the hero's headline, and between two words of the small line under it. Across the two images the phone is whole; only the seam between them cuts it.
 - **Files.** 24-bit truecolour PNG (IHDR colour type 2), no alpha, no palette.
 
@@ -182,7 +182,7 @@ One to ten screenshots per display size and language, in .png, .jpg or .jpeg, wi
 - **Every listing, stay and restaurant on screen is example stock**, because that is all the platform holds today. Their own pages show the Example notice and cards show the Example tag; no image crops either out. The two cards (04, 13) carry the Example chip; their names and nights are illustrative, from DESIGN.md section 4, and neither shows an amount.
 - **The QA account's home area is "Ibeju-Lekki, Lagos State"** (the founder's choice). It shows on 01, 04 and the feature graphic, and in a pill on the home and stays hero photographs.
 - **The QA account's first name, "omojuni", is on screen** on the home greetings (01, 04) and on 20 ("Hi omojuni") and 15 ("Welcome back, omojuni"). No email address or phone number appears in any image.
-- **Four headers were cleaned (06, 23, 25 and 27), and two captures patched (09 and 24):** on 09 the start of a label peeking between the dock and the apps button, and on 24 the outline of the card above, under the status bar. `clean.mjs` holds both patches.
+- **Four headers were cleaned (06, 23, 25 and 27), and one capture patched (24):** the outline of the card above, under the status bar, is blended out column by column between the clean rows above and below it. `clean.mjs` holds the patch.
   - These captures were taken scrolled, and the app's translucent header let what scrolled under it show through as faint ghost text.
   - `scripts/marketing/store/clean.mjs` finds the header's own parts (the status bar, the menu, the logo and the bell) on an unscrolled capture of the same header. It keeps them as captured and sets the rest of the band to the band's own colour. Nothing below the header's hairline is touched.
 - **Product text that is shown but never lifted:**

@@ -206,13 +206,11 @@ export async function cleanDisplay(id, store) {
 }
 
 /*
- * Small patches for two captures, where something scrolled away still peeks
+ * A small patch for one capture, where something scrolled away still peeks
  * in (display px, the same on both platforms' 1320 x 2868 displays):
  *
  *   - stay-amenities: the outline of the card above, just under the status
  *     bar (the back button there is kept as captured);
- *   - saved: the start of a label ("Re") between the dock and the apps
- *     button.
  *
  * Inside the rectangle, every pixel outside the kept discs takes its row's
  * background (the median of the darkest half of that row's pixels there), or
@@ -220,17 +218,15 @@ export async function cleanDisplay(id, store) {
  * own column.
  */
 export const PATCH = {
-  /* the fill comes from a clean row below the outline */
-  "stay-amenities": { rect: [0, 186, 1320, 282], keep: [[101, 290, 70, 0]], fillRow: [300, 600, 1300] },
-  /* the apps button's rim (r 79 to 88) and icon are kept */
-  saved: { rect: [1099, 2742, 1140, 2808], keep: [[1206, 2779, 88, 83, 1123], [1206, 2779, 60, 0]], vertical: true },
+  /* each column blended from the clean status strip above to the clean background below */
+  "stay-amenities": { rect: [0, 186, 1320, 306], keep: [[102, 276, 66, 0]], vertical: true },
 };
 
 export async function patchDisplay(id, store, file) {
   const plat = STORES[store].screen;
   const P = PATCH[id];
   mkdirSync(CACHE, { recursive: true });
-  const out = join(CACHE, `${id}-${plat}-patch-${Math.round(statSync(file).mtimeMs)}-v7.png`);
+  const out = join(CACHE, `${id}-${plat}-patch-${Math.round(statSync(file).mtimeMs)}-v10.png`);
   if (existsSync(out)) return out;
   const T = await raw(file);
   const { w } = T;
@@ -238,14 +234,32 @@ export async function patchDisplay(id, store, file) {
   const kept = (x, y) => P.keep.some(([cx, cy, r, r0, xMin = 0]) => { const d = Math.hypot(x - cx, y - cy); return d <= r && d >= r0 && x >= xMin; });
   const o = Buffer.from(T.data);
   if (P.vertical) {
+    /* the rows just above and below, each averaged over 61 columns (leaving out the
+       kept discs), so the blend carries no streaks from their texture */
+    const ref = (yy) => {
+      const out = [];
+      for (let x = x0; x < x1; x += 1) {
+        const sum = [0, 0, 0];
+        let n = 0;
+        for (let d = -30; d <= 30; d += 1) {
+          const xx = x + d;
+          if (xx < 0 || xx >= w || kept(xx, yy)) continue;
+          const i = (yy * w + xx) * 3;
+          for (let c = 0; c < 3; c += 1) sum[c] += T.data[i + c];
+          n += 1;
+        }
+        out.push(n ? sum.map((v) => v / n) : [T.data[(yy * w + x) * 3], T.data[(yy * w + x) * 3 + 1], T.data[(yy * w + x) * 3 + 2]]);
+      }
+      return out;
+    };
+    const top = ref(y0 - 1);
+    const bot = ref(y1);
     for (let x = x0; x < x1; x += 1) {
-      const a = ((y0 - 1) * w + x) * 3;
-      const b = (y1 * w + x) * 3;
       for (let y = y0; y < y1; y += 1) {
         if (kept(x, y)) continue;
         const t = (y - y0 + 1) / (y1 - y0 + 1);
         const i = (y * w + x) * 3;
-        for (let c = 0; c < 3; c += 1) o[i + c] = Math.round(T.data[a + c] * (1 - t) + T.data[b + c] * t);
+        for (let c = 0; c < 3; c += 1) o[i + c] = Math.round(top[x - x0][c] * (1 - t) + bot[x - x0][c] * t);
       }
     }
   }

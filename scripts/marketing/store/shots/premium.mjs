@@ -196,10 +196,21 @@ export const SHOTS = [
         const menu = pageBox(sp.at, MENU, "the menu button");
         let top = midY - cardH / 2;
         while (rimX(top) + 20 > menu.x - 24 && top < midY) top += 2;
-        /* the rule's overhang past the rim beside the header, moved right (36 px on the
-           App Store, 30 on Play) so the card's whole right edge sits over the frame, at
-           least 20 px in from the rim at both its corners */
-        const right = Math.min(menu.x - 24, Math.max(Math.min(rimX(top), rimX(top + cardH)) + m.overhang + (ios ? 36 : 30), rimX(top) + 20, rimX(top + cardH) + 20));
+        /* the rule's overhang past the rim beside the header, moved right (52 px on the
+           App Store, 42 on Play) so the card's whole right edge, its rounded top corner
+           included, sits over the frame; 24 px lower instead where that would bring it
+           within 24 px of the menu */
+        const radius = 38 * m.card;
+        const place = (t, shift) => Math.max(Math.min(rimX(t), rimX(t + cardH)) + m.overhang + shift, rimX(t) + 20, rimX(t + cardH) + 20);
+        let right = place(top, ios ? 52 : 42);
+        if (right > menu.x - 24) {
+          top += 24;
+          right = Math.min(menu.x - 24, place(top, ios ? 52 : 42));
+        }
+        /* the overlap where the corner's curve meets the rim: the corner at 45 degrees */
+        const cy = top + radius * (1 - Math.SQRT1_2);
+        ctx.cornerOverlap = right - radius * (1 - Math.SQRT1_2) - rimX(cy);
+        if (process.env.STORE_DEBUG) console.log(`  04 card: top ${top.toFixed(0)}, right ${right.toFixed(0)}, menu gap ${(menu.x - right).toFixed(0)}, corner overlap ${ctx.cornerOverlap.toFixed(1)} px`);
         ctx.cardCheck = { avoid: [menu, pageBox(sp.at, CAMERA[ctx.model], "the camera")] };
         return popup({ right: W - right, fit: true, y: top, lucide: "bed-double", title: "Room booked", line: "Lagoon Crest Resort · 3 nights", meta: null, example: true, scale: m.card });
       },
@@ -222,9 +233,12 @@ export const SHOTS = [
       const [edge] = p.at(-m.frame, HEADER.top);
       const left = edge - m.overhang;
       /* 25 px under the camera; two lines, no third */
+      /* and 20 px under the status bar (its clock and its icons) */
       const cam = pageBox(p.at, CAMERA[ctx.model], "the camera");
-      ctx.cardCheck = { avoid: [cam, pageBox(p.at, BACK, "the back button"), pageBox(p.at, [1138, 209, 1270, 341], "the bell")] };
-      return popup({ x: left, fit: true, y: cam.b + 25, lucide: "landmark", title: "Payment settled", line: "Straight to your bank", meta: null, example: true, scale: m.card });
+      const clock = pageBox(p.at, [40, 60, 300, 130], "the clock");
+      const icons = pageBox(p.at, [1000, 60, 1290, 130], "the status icons");
+      ctx.cardCheck = { avoid: [cam, clock, icons, pageBox(p.at, BACK, "the back button"), pageBox(p.at, [1138, 209, 1270, 341], "the bell")] };
+      return popup({ x: left, fit: true, y: Math.max(cam.b + 25, clock.b + 20), lucide: "landmark", title: "Payment settled", line: "Straight to your bank", meta: null, example: true, scale: m.card });
     },
   }),
 

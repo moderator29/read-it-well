@@ -81,7 +81,7 @@ The founder rated the first sets 20% overall and 5% on premium, and wants 90%: "
 - **Sharp.** Screens come from the 1320 × 2868 displays and are never upscaled. Render at 2× and bring down with Lanczos. Never let Chromium rasterise a 3D-transformed image layer: tilt phones with the 3D studio or a pre-warped homography. All type is live text.
 - **Type is the design.** Poppins 600, sentence case, tracking −0.03em, line height 1.05, two lines at most. At most one key word in sky `#8FD3FF`. Sublines are optional, in Inter 500 at 60% white, and one line only.
 - **A strict grid.** The same margins, headline position, sizes and phone scale across the set. Alignment is exact: optical centring for the phone, and text on the grid.
-- **One device look.** One model per store, one colour, one light direction and one soft contact shadow.
+- **One device look.** One model per store, one colour, one light direction and one soft contact shadow (for the store, no contact shadow; see below).
 - **Banned:** hand-drawn squiggles, sparkles, rings, particles, glows, stickers (Fluent), "bodies" floating around a phone, lifted duplicates of on-screen UI, and pop-ups placed over rows of text.
 
 **App Store and Google Play (35 each)**
