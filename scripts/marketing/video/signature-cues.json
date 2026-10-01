@@ -30,7 +30,7 @@
       "name": "chime_notify",
       "from": 46.5,
       "to": 47.2,
-      "lift_db": 16.0
+      "lift_db": 17.5
     },
     {
       "name": "stamp",
@@ -48,7 +48,7 @@
       "name": "ding_pay",
       "from": 67.8,
       "to": 68.4,
-      "lift_db": 6.5
+      "lift_db": 8.0
     },
     {
       "name": "pop",
@@ -72,7 +72,7 @@
       "name": "impact_soft",
       "from": 88.5,
       "to": 89.0,
-      "lift_db": 9.6
+      "lift_db": 12.6
     },
     {
       "name": "pop",
@@ -108,7 +108,7 @@
       "name": "impact_soft",
       "from": 92.1,
       "to": 92.5,
-      "lift_db": 2.8
+      "lift_db": 6.8
     },
     {
       "name": "whoosh_long",
