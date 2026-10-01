@@ -60,7 +60,7 @@ Every screen is the live product at <https://www.vallospaces.com>, in its dark t
 | 10 | Find a restaurant / you love | `restaurant` | |
 | 11 | Every fee, / added up | `listing-cost` | the fee lines; not for submission until the lister is renamed (section 6) |
 | 12 | Each verified mark, / checked by a person | `welcome-2` | public; "Verified means a person checked." |
-| 13 | Have a property? / Put it on Vallo | `host-start` | recaptured; card "Payment settled · Straight to your bank", Example, no amount. "I own the property" shows its house icon; "I am an agent" sits under the dock, as the page lays it out (it does not scroll) |
+| 13 | Have a property? / Put it on Vallo | `host-start` | recaptured scrolled to the page's foot, so "I am an agent" sits whole above the dock (the back arrow shows faintly through the frosted header, as the product draws it); card "Payment settled · Straight to your bank", Example, no amount |
 | 14 | Search homes / across Nigeria | `search-villas` | the Map button sits over photographs, not over an Example chip |
 | 15 | Six digits, / and you’re back in | `lock` | the passcode lock |
 | 16 | Vallo speaks / your language | `welcome-yo` | public; subline "English, Hausa, Yorùbá and Igbo." |
@@ -132,7 +132,7 @@ The Maitama living-room photograph, which the example stock reuses for several l
 - **Two cards, one rule.** 04 and 13 each carry one of DESIGN.md section 4's cards: opaque navy, the Example chip, no amount, two lines, 1.3 times round 2's size (a 45 px title), so they read at store size.
   - Each overhangs the phone's left edge (50 px on the App Store, 80 on Play past the rim beside the header). It keeps at least 64 px from the image edge and at least 20 px from the camera and from every control it leaves uncovered. `compose.mjs` fails any card that breaks that.
   - Its shadow is limited, so the ground next to every image edge stays pixel-identical.
-  - On 13 the card's top border is at y 659 on the App Store (25 px under the island) and y 606 on Play (24 px under the status bar's box, about 35 px under the clock's ink, since the punch hole is level with the clock). It covers the menu and the logo whole. It keeps 22 px (App Store) and 29 px (Play) from the back button, and stays clear of the bell.
+  - On 13 the page is scrolled to its foot, so its title sits right under the header. The card takes the band between the camera (or the clock) and the title, 22 px clear of each, and so is a little smaller there than on 04 (0.82 of the set's card size). It covers the menu and the logo whole and stays clear of the bell.
   - On 04 the card is level with the header and lies over the tilted phone's rim.
     - App Store: 24 px from the menu button and 37 px clear of the greeting; its rounded top corner overlaps the rim by 11 px, measured where the corner's curve meets the rim (at 45 degrees).
     - Play: 22 px from the menu and 23 px clear of the greeting ("Good evening" is whole); its corner overlaps the rim by 9 px.

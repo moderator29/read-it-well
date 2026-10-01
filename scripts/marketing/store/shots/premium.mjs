@@ -109,10 +109,11 @@ function std(n, slug, id, lines, { sub, extra } = {}) {
 /* Page positions on a placed phone's display (display px, 1320 x 2868). */
 const HEADER = { top: 186, bottom: 365, bell: { x: 1204, y: 275, r: 66 }, menu: [77, 126], logo: [234, 596] };
 /* Boxes on the display (display px): the camera cut-out of each handset (measured on
-   the studio's white display), the header's menu glyph, and host-start's back button. */
+   the studio's white display), the header's menu glyph, and host-start's title. */
 const CAMERA = { island: [472, 34, 848, 145], android: [632, 20, 688, 75] };
 const MENU = [77, 256, 126, 295];
-const BACK = [44, 462, 182, 600];
+/* host-start, scrolled to the page's foot: its title "Add a workspace" starts at display y 412 */
+const TITLE = [48, 412, 830, 600];
 /** A display box mapped onto the page through a placed phone's `at()`, less `dx`. */
 function pageBox(at, [x0, y0, x1, y1], label, dx = 0) {
   const pts = [[x0, y0], [x1, y0], [x1, y1], [x0, y1]].map(([x, y]) => at(x, y));
@@ -239,13 +240,21 @@ export const SHOTS = [
     async extra(ctx, m, p) {
       const [edge] = p.at(-m.frame, HEADER.top);
       const left = edge - m.overhang;
-      /* 25 px under the camera; two lines, no third */
-      /* and 24 px under the status bar (its clock and its icons), safely past the 20 px rule */
+      /* under the camera and the status bar (its clock and its icons); two lines */
       const cam = pageBox(p.at, CAMERA[ctx.model], "the camera");
       const clock = pageBox(p.at, [40, 60, 300, 130], "the clock");
       const icons = pageBox(p.at, [1000, 60, 1290, 130], "the status icons");
-      ctx.cardCheck = { avoid: [cam, clock, icons, pageBox(p.at, BACK, "the back button"), pageBox(p.at, [1138, 209, 1270, 341], "the bell")] };
-      return popup({ x: left, fit: true, y: Math.max(cam.b + 25, clock.b + 24), lucide: "landmark", title: "Payment settled", line: "Straight to your bank", meta: null, example: true, scale: m.card });
+      const title = pageBox(p.at, TITLE, "the page title");
+      ctx.cardCheck = { avoid: [cam, clock, icons, title, pageBox(p.at, [1138, 209, 1270, 341], "the bell")] };
+      /* The page is scrolled to its foot, so its title sits right under the header: the
+         card takes the band between the camera (or the clock) and the title, 22 px clear
+         of each, at the set's card size or smaller if the band is shorter (a two-line card
+         is 152.5 px tall per unit of scale). */
+      const top = Math.max(cam.b + 22, clock.b + 24);
+      const scale = Math.min(m.card, (title.y - 22 - top) / 152.5);
+      ctx.cardScale = scale;
+      if (process.env.STORE_DEBUG) console.log(`  13 card: top ${top.toFixed(0)}, scale ${scale.toFixed(3)} (set size ${m.card.toFixed(3)})`);
+      return popup({ x: left, fit: true, y: top, lucide: "landmark", title: "Payment settled", line: "Straight to your bank", meta: null, example: true, scale });
     },
   }),
 
