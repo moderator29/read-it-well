@@ -177,6 +177,12 @@ for (const cap of CAPTURES) {
       return ["upstream request failed", "Application error", "Something went wrong", "This page could not be found"].find((t) => text.includes(t)) ?? null;
     });
     if (bad) throw new Error(`the page shows "${bad}"`);
+    /* A visible image that failed to load (a broken-image box) fails the capture. */
+    const broken = await page.evaluate(() => [...document.images].filter((im) => {
+      const r = im.getBoundingClientRect();
+      return r.width > 8 && r.height > 8 && r.bottom > 0 && r.top < innerHeight && im.complete && im.naturalWidth === 0;
+    }).map((im) => im.currentSrc || im.src).slice(0, 3));
+    if (broken.length) throw new Error(`broken image: ${broken.join(", ")}`);
     const shot = await page.screenshot({ type: "png" });
     const webp = await sharp(shot).webp({ quality: 95, effort: 6 }).toBuffer();
     if (webp.length < 50_000) throw new Error(`only ${Math.round(webp.length / 1000)} KB: a blank or broken page`);

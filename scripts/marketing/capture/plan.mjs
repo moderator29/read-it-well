@@ -144,7 +144,7 @@ const BASE_CAPTURES = [
     steps: [{ goto: "/support" }, { click: `summary:has-text("${q}")` }, { wait: 900 }, { reveal: `summary:has-text("${q}")`, offset: 330 }, { blur: true }, { wait: 500 }],
   })),
   { id: "settings", steps: reveal("/settings", "text=Data saver", 150) },
-  { id: "appearance", steps: [{ goto: "/settings/appearance" }, { into: "text=Opening splash", offset: 660 }] },
+  { id: "appearance", steps: [{ goto: "/settings/appearance" }, { into: "text=Opening splash", offset: 675 }] },
   { id: "passcode", steps: go("/settings/passcode") },
   {
     id: "passcode-create",
@@ -165,7 +165,8 @@ const BASE_CAPTURES = [
   { id: "agent-earnings", steps: go("/agent/earnings") },
   { id: "host", steps: go("/host") },
   /* "Start an application" asks what kind of host you are (a page, nothing is saved). */
-  { id: "host-start", steps: go("/profile/setup?side=stays") },
+  /* The page fits the screen (it does not scroll); wait for every icon. */
+  { id: "host-start", steps: [{ goto: "/profile/setup?side=stays" }, { wait: 3000 }] },
   { id: "host-bookings", steps: go("/host/bookings") },
   { id: "host-earnings", steps: go("/host/earnings") },
   { id: "host-assistant", steps: go("/host/assistant") },
