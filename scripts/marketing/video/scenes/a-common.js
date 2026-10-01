@@ -533,7 +533,7 @@ export function registerSound(ctx, T) {
   /* 06 */ s("pop", T.tabsUp, -4);
   /* 07 (the chapter's opener) */ s("whoosh_short", T.rows[6], -4); s("tap", T.rentPress, 0); if (m) s("swipe", T.toSearch, -2);
   /* 08 */ for (const t of T.dots) s("tap_soft", t, -6); s("tap", T.filterPress, 0);
-  /* 09 */ s("toggle_on", T.exactly, 3); s("counter_tick", T.countRoll, -2); s("tap", T.need, 0);
+  /* 09 */ s("toggle_on", T.exactly, 0); s("counter_tick", T.countRoll, -2); s("tap", T.need, 0);
   /* 10 */ if (m) s("swipe", T.open, -2);
   /* 11 (v3.1: no whoosh inside a chapter; the receipt's flight has its slide) */ s("card_slide", T.call + 0.17, -2);
   /* 12 */ for (const t of T.lines) s("counter_tick", t, 0);
