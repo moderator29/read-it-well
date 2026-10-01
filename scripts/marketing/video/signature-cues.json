@@ -1,5 +1,5 @@
 {
-  "about": "The films' payoff sounds, lifted over the bed (whole-film critiques, rounds 1 and 2). Tuned so each lands about +5.5 LU over the unducked bed on a 100 ms window; those that reach the voice are held there by the mixer's cap (SIGNATURE_CAP_LU), never above it. The music dips around each; the end card rides the music back up.",
+  "about": "The films' payoff sounds, lifted over the bed (whole-film critiques, rounds 1 to 3). Levelled against what is actually under each one: the voice plus the ducked music, or the dipped music in a pause. Those that would pass the voice are held at its level by the mixer (SIGNATURE_CAP_LU), never above it. The music dips around each; the end card rides the music back up.",
   "dip_db": -3,
   "dip_s": 0.25,
   "end_ride": {
@@ -18,7 +18,7 @@
       "name": "success",
       "from": 28.7,
       "to": 29.0,
-      "lift_db": 4.6
+      "lift_db": 8.6
     },
     {
       "name": "stamp",
@@ -30,7 +30,7 @@
       "name": "chime_notify",
       "from": 46.5,
       "to": 47.2,
-      "lift_db": 9.0
+      "lift_db": 11.0
     },
     {
       "name": "stamp",
@@ -42,31 +42,31 @@
       "name": "glass_clink",
       "from": 63.5,
       "to": 64.0,
-      "lift_db": 15.1
+      "lift_db": 7.1
     },
     {
       "name": "ding_pay",
       "from": 67.8,
       "to": 68.4,
-      "lift_db": 7.0
+      "lift_db": 8.5
     },
     {
       "name": "pop",
       "from": 70.7,
       "to": 71.3,
-      "lift_db": 9.8
+      "lift_db": 12.8
     },
     {
       "name": "success",
       "from": 71.3,
       "to": 71.9,
-      "lift_db": 10.8
+      "lift_db": -0.2
     },
     {
       "name": "pop",
       "from": 79.9,
       "to": 81.2,
-      "lift_db": 12.9
+      "lift_db": 10.4
     },
     {
       "name": "impact_soft",
@@ -96,13 +96,13 @@
       "name": "pop",
       "from": 90.62,
       "to": 90.82,
-      "lift_db": 12.8
+      "lift_db": 9.3
     },
     {
       "name": "pop",
       "from": 90.86,
       "to": 91.06,
-      "lift_db": 15.0
+      "lift_db": 11.5
     },
     {
       "name": "impact_soft",
