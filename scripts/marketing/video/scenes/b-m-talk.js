@@ -90,8 +90,8 @@ export async function talk(ctx, S, T) {
   const pose = track(ctx, pL.pose, { ...A_OUT.phone });
   /* round 5: section a leaves the phone hidden; it comes in whole (100%) from fully below the frame, never faded in */
   pose.to(T.r14, 0.001, { ...WORDS14, cy: 2700, opacity: 1 }, "none");
-  pose.to(T.r14 + 0.002, 0.42, WORDS14, "land");
-  pose.to(T.r14 + 0.44, tWordsOut - T.r14 - 0.44, { cy: WORDS14.cy - 14 }, "drift"); // round 5: never still
+  pose.to(T.r14 + 0.002, 0.3, WORDS14, "land");             // lands at 30.88, as before
+  pose.to(T.r14 + 0.32, tWordsOut - T.r14 - 0.32, { cy: WORDS14.cy - 14 }, "drift"); // round 5: never still
   pose.to(tWordsOut, 0.46, PUSH15, "power2.inOut");                // the push onto the thread's foot
   pose.to(tSlide, 0.47, RIGHT17, "glide");                        // back to h 1400, to the right
   pose.to(tSlide + 0.47, tBack - tSlide - 0.47, { cy: RIGHT17.cy - 14 }, "drift"); // round 5: never still
