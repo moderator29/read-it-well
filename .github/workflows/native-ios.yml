@@ -146,7 +146,7 @@ jobs:
 
       - name: Keep the build log
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ios-compile-log-${{ github.sha }}
           path: ${{ runner.temp }}/xcodebuild.log
@@ -261,7 +261,7 @@ jobs:
 
       - name: Keep the IPA
         if: ${{ success() && !inputs.upload }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: vallo-ios-${{ github.run_number }}
           path: ${{ runner.temp }}/export/*.ipa
