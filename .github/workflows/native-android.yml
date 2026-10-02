@@ -74,7 +74,7 @@ jobs:
       # secret: it is the public website.
       CAPACITOR_SERVER_URL: https://www.vallospaces.com
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-node@v5
         with:
