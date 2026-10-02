@@ -197,10 +197,12 @@ jobs:
       - name: Write versions
         run: VALLO_BUILD=${{ github.run_number }} npm run sync:versions
 
-      # The RELEASE gate: refuses while the association files carry
-      # placeholders, so no binary claims links that cannot verify.
+      # The RELEASE gate: refuses while the iOS association file carries a
+      # placeholder, so no binary claims a universal link that cannot verify.
+      # Scoped to iOS so a staged launch (iOS first, Play Store later) is never
+      # blocked on Android values that are deliberately not set up yet.
       - name: Capacitor sync (release gate)
-        run: npm run cap:sync --workspace @vallo/web
+        run: npm run cap:sync:ios --workspace @vallo/web
 
       - name: Write the API key to the runner only
         run: |
