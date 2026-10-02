@@ -210,25 +210,25 @@ jobs:
           echo "$ASC_KEY_P8_BASE64" | base64 --decode > "$RUNNER_TEMP/asc/AuthKey.p8"
           chmod 600 "$RUNNER_TEMP/asc/AuthKey.p8"
 
-      # The App target's Release configuration (project.pbxproj) carries
-      # CODE_SIGN_IDENTITY="Apple Distribution" and CODE_SIGN_ENTITLEMENTS
-      # (Associated Domains, aps-environment, Sign in with Apple) itself, so
-      # neither is overridden here. Both used to be passed as xcodebuild
-      # command-line overrides, which was wrong two different ways:
-      # CODE_SIGN_IDENTITY as a command-line override next to
-      # CODE_SIGN_STYLE=Automatic is a hard conflict Xcode refuses outright
-      # ("App has conflicting provisioning settings... a conflicting code
-      # signing identity Apple Distribution has been manually specified"),
-      # and a bare command-line override of either setting applies globally
-      # to every target in the build graph, including Swift Package plugin
-      # targets (e.g. IONCameraLib) that have no App.entitlements file and
-      # fail to resolve it. Setting both in the project file scopes them to
-      # the App target's Release configuration only, which is also what
-      # finally lets automatic signing resolve a Distribution profile instead
-      # of defaulting to Development (which needs registered device UDIDs
-      # and fails with "Your team has no devices from which to generate a
-      # provisioning profile").
-      - name: Archive (automatic signing via the API key)
+      # UNSIGNED on purpose. Every earlier attempt tried to get this step
+      # itself to resolve a Distribution identity under automatic signing,
+      # and every one of them either got "App has conflicting provisioning
+      # settings" (an explicit CODE_SIGN_IDENTITY next to
+      # CODE_SIGN_STYLE=Automatic is a hard conflict, wherever it is set) or
+      # fell back silently to Development, which needs a registered device
+      # UDID and fails with "Your team has no devices from which to generate
+      # a provisioning profile." That is because `xcodebuild archive` run
+      # from the command line always resolves automatic signing as if it
+      # were an ordinary device build; only the Xcode GUI's Archive menu
+      # command special-cases this to Distribution, and that special case
+      # does not exist in xcodebuild. The archive step never needed to be
+      # signed at all: CODE_SIGNING_ALLOWED=NO produces an unsigned archive
+      # (the same technique the compile job above already uses for the
+      # simulator build), and the "Export the IPA" step below does the real
+      # Distribution signing, via -allowProvisioningUpdates and the API key,
+      # for the app-store-connect export method specifically, which resolves
+      # a Distribution profile and never needs a device.
+      - name: Archive (unsigned; the export step signs for distribution)
         working-directory: apps/web/ios/App
         run: |
           set -o pipefail
@@ -238,11 +238,7 @@ jobs:
             -configuration Release \
             -destination 'generic/platform=iOS' \
             -archivePath "$RUNNER_TEMP/Vallo.xcarchive" \
-            -allowProvisioningUpdates \
-            -authenticationKeyPath "$RUNNER_TEMP/asc/AuthKey.p8" \
-            -authenticationKeyID "$ASC_KEY_ID" \
-            -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
-            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
+            CODE_SIGNING_ALLOWED=NO \
             | tee "$RUNNER_TEMP/archive.log" | grep -E "error:|ARCHIVE (SUCCEEDED|FAILED)" || true
           grep -q "ARCHIVE SUCCEEDED" "$RUNNER_TEMP/archive.log"
 
