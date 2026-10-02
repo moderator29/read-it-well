@@ -213,6 +213,15 @@ jobs:
       # CODE_SIGN_ENTITLEMENTS adopts App/App.entitlements (Associated
       # Domains, aps-environment, Sign in with Apple). The App ID must carry
       # all three capabilities or signing stops here, by name.
+      #
+      # CODE_SIGN_IDENTITY="Apple Distribution" is required here. Without it,
+      # `xcodebuild archive` run from the command line (unlike an archive
+      # started from the Xcode GUI, which silently forces Distribution)
+      # resolves automatic signing to a Development identity, and Apple then
+      # refuses because a Development profile needs registered device UDIDs:
+      # "Your team has no devices from which to generate a provisioning
+      # profile." Forcing Distribution here is what makes it request the
+      # right profile type for an App Store archive.
       - name: Archive (automatic signing via the API key)
         working-directory: apps/web/ios/App
         run: |
@@ -229,6 +238,7 @@ jobs:
             -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
             CODE_SIGN_STYLE=Automatic \
+            CODE_SIGN_IDENTITY="Apple Distribution" \
             CODE_SIGN_ENTITLEMENTS=App/App.entitlements \
             | tee "$RUNNER_TEMP/archive.log" | grep -E "error:|ARCHIVE (SUCCEEDED|FAILED)" || true
           grep -q "ARCHIVE SUCCEEDED" "$RUNNER_TEMP/archive.log"
