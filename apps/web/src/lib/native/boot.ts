@@ -54,12 +54,47 @@ export type NativeRuntimeHandlers = {
 
 const NOOP = (): void => {};
 
+/**
+ * The bridge's own escape hatch, armed before anything is imported.
+ *
+ * `startSplash()` below (via `./splash`) is reached only after two sequential
+ * dynamic imports -- `@capacitor/core`, then the module itself -- each a
+ * network fetch for a separate JS chunk. On a slow or interrupted connection
+ * that fetch can simply never settle. If it never settles, `startSplash()` is
+ * never called, and ITS OWN four-second failsafe (`FAILSAFE_MS` in
+ * `splash.ts`) is never armed either: nothing is left running that could ever
+ * hide the splash. That is indistinguishable, to the person holding the
+ * phone, from the app being broken, and no amount of waiting fixes it.
+ *
+ * `window.Capacitor.nativePromise` is injected by the native bridge itself
+ * before any of this file's code runs, so calling it needs no import and no
+ * network fetch of our own -- the same primitive `native-shell/shell.js` calls
+ * for the same reason when the live origin cannot be reached at all. Longer
+ * than `FAILSAFE_MS`, so the ordinary path's own failsafe always wins first;
+ * this one only matters for the chunk that never arrives.
+ */
+const BRIDGE_FAILSAFE_MS = 7_000;
+
+function hideSplashViaBridge(): void {
+  try {
+    const cap = (window as unknown as { Capacitor?: { nativePromise?: (...args: unknown[]) => unknown } }).Capacitor;
+    const pending = cap?.nativePromise?.("SplashScreen", "hide", { fadeOutDuration: 200 });
+    if (pending && typeof (pending as Promise<unknown>).then === "function") {
+      (pending as Promise<unknown>).then(null, () => {});
+    }
+  } catch {
+    /* Nothing left to try. */
+  }
+}
+
 export function startNativeRuntime(handlers: NativeRuntimeHandlers): () => void {
   if (typeof window === "undefined") return NOOP;
   if (!looksNative()) return NOOP;
 
   let stopped = false;
   const teardowns: Array<() => void> = [];
+  const bridgeFailsafe = window.setTimeout(hideSplashViaBridge, BRIDGE_FAILSAFE_MS);
+  teardowns.push(() => window.clearTimeout(bridgeFailsafe));
 
   /*
    * Collect a teardown, or run it immediately if the runtime was already torn
