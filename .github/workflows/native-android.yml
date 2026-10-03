@@ -86,7 +86,7 @@ jobs:
         run: npm ci
 
       # Capacitor 8's android library compiles with Java 21.
-      - uses: actions/setup-java@v5
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: 21
