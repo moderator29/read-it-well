@@ -9,6 +9,7 @@ import { ScrollToTop } from "@/components/site/ScrollToTop";
 import { LivingCanvas } from "@/components/site/LivingCanvas";
 import { ThemeSync } from "@/components/site/ThemeControl";
 import { ServiceWorkerRegistrar } from "@/components/app/ServiceWorkerRegistrar";
+import { NativeRuntime } from "@/components/app/NativeRuntime";
 import { BrandAssemble } from "@/components/motion/BrandAssemble";
 import { ThresholdStage } from "@/components/motion/ThresholdStage";
 import { MOTION_COOKIE, motionAttributes, parseMotion } from "@/lib/motion/motion-pref";
@@ -469,6 +470,21 @@ export default async function RootLayout({
         <ThemeSync />
         {/* Installs the offline shell after load, in production only. Renders nothing. */}
         <ServiceWorkerRegistrar />
+        {/*
+          THE NATIVE RUNTIME, MOUNTED (3 October 2026): this was the whole bug.
+
+          `lib/native/boot.ts` has said for a while that this component "mounts
+          this once from the root layout". It never did. No `<NativeRuntime />`
+          existed anywhere in the tree -- not here, not in the (app) layout, not
+          anywhere -- which meant `startNativeRuntime()` was never called, on
+          any page, on any device, ever. Every plugin it starts, splash-hiding
+          included, is reached only from inside that one call, so not one of
+          them had run in production. A cold start on the native shell showed
+          the branded splash and then nothing: not a hang, not a crash, not a
+          slow network -- the one piece of code that could ever have taken it
+          down was simply never in the page.
+        */}
+        <NativeRuntime />
         <a href="#main" className="nf-skip-link">
           {t.common.skipToContent}
         </a>
