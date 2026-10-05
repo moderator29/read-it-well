@@ -72,13 +72,13 @@ Yorùbá, Igbo and Hausa diacritics.
 
 ## Read before you start
 
-1. `docs/design/VISUAL_NORTH_STAR_2026-10-05.md` — in full. Your specification.
+1. `docs/design/VISUAL_NORTH_STAR_2026-10-05.md`: in full. Your specification.
    The four locked decisions in its section 1 are not reopenable.
-2. `docs/sessions/FEATURE-REGISTER.md` — **section I is yours**, plus every screen
+2. `docs/sessions/FEATURE-REGISTER.md`: **section I is yours**, plus every screen
    named in E2, E3, E4, E6, D9, D10, G, H3 and J3 to J9.
-3. `docs/sessions/BLIND-SPOTS.md` — B-26 no chart system, B-27 no map design, B-28
+3. `docs/sessions/BLIND-SPOTS.md`: B-26 no chart system, B-27 no map design, B-28
    no print design, B-29 email, B-30 photography, B-31 localisation are yours.
-4. `docs/design/CHATGPT_ASSET_PROMPTS.md` — a complete standalone prompt per asset.
+4. `docs/design/CHATGPT_ASSET_PROMPTS.md`: a complete standalone prompt per asset.
 5. The 79 reference images in `docs/design/references/2026-10-05/`. **Look at the
    twelve canonical ones yourself** before designing the surface each maps to. Many
    are video frames, so read sequences as motion.

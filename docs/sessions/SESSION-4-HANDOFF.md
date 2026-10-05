@@ -20,9 +20,9 @@ inside your own files.
 ## Read before you start
 
 1. `docs/sessions/SESSION-1-RESPONSE.md` sections 3, 10, 13, 14, 20.
-2. `docs/sessions/FEATURE-REGISTER.md` — **section L is yours**, plus I12 the
+2. `docs/sessions/FEATURE-REGISTER.md`: **section L is yours**, plus I12 the
    navigation audit and I26, I27 accessibility and performance.
-3. `docs/sessions/BLIND-SPOTS.md` — B-01, B-02, B-04, B-34 to B-39 are yours.
+3. `docs/sessions/BLIND-SPOTS.md`: B-01, B-02, B-04, B-34 to B-39 are yours.
 4. Session 2's and Session 3's response files. **Verify what they claim.**
 5. `docs/VALLO_NATIVE_TEST_MATRIX.md`, `docs/MOBILE.md`,
    `docs/STORE_SUBMISSION_NOTES.md`, `docs/NATIVE_CI.md`.

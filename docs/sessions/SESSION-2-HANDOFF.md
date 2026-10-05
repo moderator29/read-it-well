@@ -32,13 +32,13 @@ full, especially section 0 (an evidence warning) and section 3A (the two rails),
 
 ## Read before you start
 
-1. `docs/sessions/FEATURE-REGISTER.md` — the complete inventory, 1,547 requirements
+1. `docs/sessions/FEATURE-REGISTER.md`: the complete inventory, 1,547 requirements
    extracted from the founder's prompts. **Sections A, B, D, E, F, J, K are yours.**
-2. `docs/sessions/BLIND-SPOTS.md` — 39 gaps the spec does not cover. B-01, B-05,
+2. `docs/sessions/BLIND-SPOTS.md`: 39 gaps the spec does not cover. B-01, B-05,
    B-06, B-11, B-13, B-15 are yours.
-3. `docs/payments/VALLO_PAYMENTS_ARCHITECTURE.md` — in full. Section 0 is an
+3. `docs/payments/VALLO_PAYMENTS_ARCHITECTURE.md`: in full. Section 0 is an
    evidence warning. Section 3A is the two-rail decision.
-4. `docs/sessions/SESSION-1-RESPONSE.md` — sections 1 to 5, 15, 16, 19.
+4. `docs/sessions/SESSION-1-RESPONSE.md`: sections 1 to 5, 15, 16, 19.
 5. `docs/PRODUCT.md`, `docs/MONEY_ARCHITECTURE.md`, `docs/COMPLIANCE_SCUML.md`,
    `docs/adr/0002-vallo-never-holds-customer-money.md`.
 6. The conflict register at the end of the feature register. Five conflicts between
