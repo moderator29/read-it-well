@@ -24,7 +24,7 @@ warns publicly that anyone offering to facilitate it is not their agent.
 **Beneficial ownership is NOT a registration document for this category.**
 Checklist item 17 shows why: SCUML expects beneficial ownership to be read from
 CAC's own register at `bor.cac.gov.ng`, which VALLO SPACES LTD already
-populated — the PSC reconciliation was one of the two queries cleared before
+populated: the PSC reconciliation was one of the two queries cleared before
 incorporation on 18 September. A beneficial-ownership section that refuses to
 save should not block the submission.
 
@@ -96,8 +96,8 @@ document.
 
 | # | Obligation | Why we are covered |
 |---|---|---|
-| 2 | Identify and verify clients before any transaction | NIN verification exists for listers. **Not** for members, by the founder's rule that a person looking for a home is never asked to verify — defensible, because a member transacting is verified at payout. Record the reasoning. |
-| 11 | Retain transaction records five years, reconstructable | The append-only ledger does exactly this. The retention schedule must not purge below five years — check `docs/RETENTION_SCHEDULE.md` against this, because NDPA minimisation and AML retention pull in opposite directions and AML wins for transaction records. |
+| 2 | Identify and verify clients before any transaction | NIN verification exists for listers. **Not** for members, by the founder's rule that a person looking for a home is never asked to verify, which is defensible because a member transacting is verified at payout. Record the reasoning. |
+| 11 | Retain transaction records five years, reconstructable | The append-only ledger does exactly this. The retention schedule must not purge below five years: check `docs/RETENTION_SCHEDULE.md` against this, because NDPA minimisation and AML retention pull in opposite directions and AML wins for transaction records. |
 
 ---
 
@@ -105,9 +105,9 @@ document.
 
 - **Item 19 versus one admin.** THE_AUDIT found one admin with a password can
   open escrow, rule on their own dispute, and no ruling can be reversed. Item 19
-  makes that a finable control weakness as well as a defect. The audit's fix —
+  makes that a finable control weakness as well as a defect. The audit's fix,
   super_admin only, two-person approval above a threshold, an audit row on every
-  change — satisfies both. Do it once.
+  change, satisfies both. Do it once.
 - **Item 7 versus the move-in total.** A single Lagos move-in of rent, caution
   and fees crosses ₦5,000,000 easily. The first real tenancy may be a reportable
   transaction, and the clock is seven days.
@@ -117,7 +117,7 @@ document.
 - **Item 17 versus the optional mandate.** Making the mandate mandatory for
   agent and firm listings adds friction to the one thing the platform is short
   of, which is supply. It is still the law. Frame it as the check that makes an
-  agent's listing worth trusting — which is what THE_HUNDRED argues anyway.
+  agent's listing worth trusting, which is what THE_HUNDRED argues anyway.
 
 ---
 
