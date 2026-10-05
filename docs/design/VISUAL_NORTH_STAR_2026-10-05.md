@@ -228,6 +228,29 @@ are corrected by this document.
 
 ---
 
+## 5A. The button system
+
+**Master spec section 40 is explicit: "Do not make every button a pill."** A
+product where every control is a pill reads as a template, which is the opposite
+of this brief. Buttons must feel designed, which means the shape carries meaning.
+
+| Role | Shape | Radius | Use |
+|---|---|---|---|
+| **Primary** | Rounded rectangle, confident and wide | 14 | The one action a screen exists for. Full width on a phone, intrinsic on desktop. Carries the view's single glow |
+| **Secondary** | Rounded rectangle, outlined or tinted | 14 | The alternative. Same size and weight as the primary, never a pill, so the pair reads as a genuine choice |
+| **Tertiary and inline** | Text, underlined on hover | none | Low-commitment navigation inside content |
+| **Chip and filter** | Pill | 999 | **Pills are for selectable, removable, plural things**: filters, interests, categories, tags. This is where a pill carries meaning |
+| **Segmented** | Pill track, pill thumb | 999 | Period and view switches. The sliding thumb is the signature |
+| **Icon control** | Circle | 50% | 44px header controls, the dock centre, floating actions |
+| **Destructive** | Rounded rectangle, rose | 14 | Never a pill, never glowing, always behind a confirm |
+| **Sticky bar action** | Rounded rectangle, full width | 14 | Checkout, booking, escrow release. Sits above the safe area |
+
+**The rules.** One primary per screen. Press sinks 1px and pulls its bloom in.
+The primary morphs into a tick on success (motion 7). Sentence case always. A
+destructive action never sits flush beside a primary. Minimum touch target 44px.
+**The 999px radius is reserved for the chip, segment and circle roles**, so that
+seeing a pill tells a person the thing is selectable.
+
 ## 6. Navigation: both kept, both upgraded
 
 The founder was explicit: keep the capsule bottom dock and keep the side
@@ -470,7 +493,9 @@ One large figure as the headline. Odometer digits. Sliding-pill segments. Tier
 pages with a hero object, three stats and a benefit list. Itemised receipts with
 dual confirmation. Explicit "what happens next" step lists. Before-and-after
 studies, meaning the reasoning matters as much as the result. Bento analytics
-tiles with hatched empty bars. Big soft pill buttons. Micro-interaction studies.
+tiles with hatched empty bars. Big soft-shadowed buttons, though **master spec
+section 40 overrules the obvious reading of these: "Do not make every button a
+pill." See section 5A.** Micro-interaction studies.
 Reveal and unfold moments for codes and rewards. Frosted cards floating over a
 device. One considered icon family.
 

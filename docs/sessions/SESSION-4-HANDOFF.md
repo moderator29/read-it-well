@@ -17,6 +17,98 @@ inside your own files.
 
 ---
 
+## Read before you start
+
+1. `docs/sessions/SESSION-1-RESPONSE.md` sections 3, 10, 13, 14, 20.
+2. `docs/sessions/FEATURE-REGISTER.md` — **section L is yours**, plus I12 the
+   navigation audit and I26, I27 accessibility and performance.
+3. `docs/sessions/BLIND-SPOTS.md` — B-01, B-02, B-04, B-34 to B-39 are yours.
+4. Session 2's and Session 3's response files. **Verify what they claim.**
+5. `docs/VALLO_NATIVE_TEST_MATRIX.md`, `docs/MOBILE.md`,
+   `docs/STORE_SUBMISSION_NOTES.md`, `docs/NATIVE_CI.md`.
+
+---
+
+## THE OPERATING RULES (Third Follow-Up Addendum, binding on this session)
+
+### You work autonomously. Do not stop to ask.
+
+Routine access is already authorised: GitHub, Vercel, Supabase, the repository, the
+deployment environment, the project configuration. **Never ask whether you may
+inspect the repository, Supabase, Vercel or GitHub, whether you may run tests,
+whether you may investigate an implementation, whether you may fix an obvious
+issue, or whether you should do something the approved strategy already requires.**
+Use the access and proceed.
+
+For normal implementation, investigation, testing, refactoring, auditing,
+documentation and debugging: **do the work.**
+
+The only limits: do not expose or print secrets, do not rotate or delete
+credentials, do not destroy production data, and do not perform irreversible
+destructive actions casually.
+
+### When you hit something you cannot resolve, climb the ladder before escalating
+
+1. Investigate the repository.
+2. Inspect related implementation.
+3. Inspect the database, schema and configuration.
+4. Search existing documentation.
+5. Check dependencies.
+6. Check previous session response files.
+7. Decide whether the answer follows from the established Vallo strategy.
+8. Make the safest production-quality decision.
+
+**Only escalate a genuinely blocking decision**, and escalate it by writing it into
+your response file, not by stopping.
+
+### The response file protocol
+
+The repository is the authoritative execution record. Do not rely on chat memory or
+on the founder remembering anything.
+
+Write `docs/sessions/SESSION-<N>-RESPONSE.md` and keep it current as you work. It
+must end with these nine headings, which are not optional:
+
+| Heading | Contents |
+|---|---|
+| **Completed** | What was actually implemented |
+| **Changed** | Important files, systems and components changed |
+| **Tested** | What tests and checks were actually run |
+| **Failed** | Anything that failed |
+| **Remaining** | Anything intentionally unfinished |
+| **Decisions** | Important architectural and product decisions made |
+| **Risks** | Anything that could still cause problems |
+| **Next Session** | Exactly what the next session needs to know |
+| **Do Not Repeat** | Work already done, so the next session does not redo it |
+
+### The breadth mandate
+
+**The prompts are a strategic direction, not a feature checklist.** Upgrade the
+platform wherever the audit shows it is incomplete, outdated, inconsistent, broken,
+poorly designed, poorly implemented or below production standard.
+
+**Do not leave an existing screen untouched simply because it was not named.**
+Classify every route, dashboard, workspace, navigation item, flow, modal, form,
+settings area, profile, listing workflow, admin page, mobile page, web page, auth
+state, onboarding state, empty state, error state, loading state, success state,
+detail page, management page, document area, payment flow and notification surface
+as **KEEP, UPGRADE, REWORK, COMPLETE, REPLACE or DEFER**, and record the
+classification in your response file.
+
+### Verify, never assume
+
+**Never assume a previous session completed something because it said it would.**
+Check the code.
+
+### The default decision ladder
+
+**KEEP, IMPROVE, HARDEN, REFACTOR, EXTEND. Not REBUILD.** Recommend replacement
+only where the existing implementation creates a serious architectural, security,
+correctness, scalability, maintainability or product problem, and then justify it in
+nine parts: what exists now, what is wrong, why it matters, what should change, what
+must remain untouched, dependencies, migration strategy, risk, acceptance criteria.
+
+
 ## Binding rules
 
 1. **Never skip, disable or quarantine a test to get green.** If a test fails,
@@ -148,6 +240,24 @@ a policy.
   null, and a Data Protection Officer who is not the founder.
 - **Date the cancellations page.** It carries none.
 - Legal pages are English only. Note it; do not machine-translate a contract.
+
+### Task 6B: The navigation audit
+
+A dedicated audit, because the founder reports areas where a person has no obvious
+way back. For every flow check: back, close, breadcrumb where useful, browser back,
+mobile back, Android hardware back, iOS navigation, modal dismissal, nested pages,
+deep links, notification routing, and the destination after an action completes.
+
+Every screen must have an intentional navigation model. **Do not mechanically add a
+back button everywhere**; work out the right pattern per context.
+`lib/nav/route-parents.ts` is the map and a route with no declared parent already
+warns in development.
+
+### Task 6C: The production readiness checklist
+
+One list, every item marked **READY**, **NOT READY** or **BLOCKED**, with who holds
+the blocker. This is the document the founder reads before submitting to either
+store or switching the escrow rail on.
 
 ### Task 7: Documentation consolidation
 

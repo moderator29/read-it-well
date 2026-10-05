@@ -70,6 +70,103 @@ Yorùbá, Igbo and Hausa diacritics.
 
 ---
 
+## Read before you start
+
+1. `docs/design/VISUAL_NORTH_STAR_2026-10-05.md` — in full. Your specification.
+   The four locked decisions in its section 1 are not reopenable.
+2. `docs/sessions/FEATURE-REGISTER.md` — **section I is yours**, plus every screen
+   named in E2, E3, E4, E6, D9, D10, G, H3 and J3 to J9.
+3. `docs/sessions/BLIND-SPOTS.md` — B-26 no chart system, B-27 no map design, B-28
+   no print design, B-29 email, B-30 photography, B-31 localisation are yours.
+4. `docs/design/CHATGPT_ASSET_PROMPTS.md` — a complete standalone prompt per asset.
+5. The 79 reference images in `docs/design/references/2026-10-05/`. **Look at the
+   twelve canonical ones yourself** before designing the surface each maps to. Many
+   are video frames, so read sequences as motion.
+6. `docs/PRODUCT.md` section 7, the terminology table, and conflict C-3 in the
+   feature register, which stages the Space rename.
+
+---
+
+## THE OPERATING RULES (Third Follow-Up Addendum, binding on this session)
+
+### You work autonomously. Do not stop to ask.
+
+Routine access is already authorised: GitHub, Vercel, Supabase, the repository, the
+deployment environment, the project configuration. **Never ask whether you may
+inspect the repository, Supabase, Vercel or GitHub, whether you may run tests,
+whether you may investigate an implementation, whether you may fix an obvious
+issue, or whether you should do something the approved strategy already requires.**
+Use the access and proceed.
+
+For normal implementation, investigation, testing, refactoring, auditing,
+documentation and debugging: **do the work.**
+
+The only limits: do not expose or print secrets, do not rotate or delete
+credentials, do not destroy production data, and do not perform irreversible
+destructive actions casually.
+
+### When you hit something you cannot resolve, climb the ladder before escalating
+
+1. Investigate the repository.
+2. Inspect related implementation.
+3. Inspect the database, schema and configuration.
+4. Search existing documentation.
+5. Check dependencies.
+6. Check previous session response files.
+7. Decide whether the answer follows from the established Vallo strategy.
+8. Make the safest production-quality decision.
+
+**Only escalate a genuinely blocking decision**, and escalate it by writing it into
+your response file, not by stopping.
+
+### The response file protocol
+
+The repository is the authoritative execution record. Do not rely on chat memory or
+on the founder remembering anything.
+
+Write `docs/sessions/SESSION-<N>-RESPONSE.md` and keep it current as you work. It
+must end with these nine headings, which are not optional:
+
+| Heading | Contents |
+|---|---|
+| **Completed** | What was actually implemented |
+| **Changed** | Important files, systems and components changed |
+| **Tested** | What tests and checks were actually run |
+| **Failed** | Anything that failed |
+| **Remaining** | Anything intentionally unfinished |
+| **Decisions** | Important architectural and product decisions made |
+| **Risks** | Anything that could still cause problems |
+| **Next Session** | Exactly what the next session needs to know |
+| **Do Not Repeat** | Work already done, so the next session does not redo it |
+
+### The breadth mandate
+
+**The prompts are a strategic direction, not a feature checklist.** Upgrade the
+platform wherever the audit shows it is incomplete, outdated, inconsistent, broken,
+poorly designed, poorly implemented or below production standard.
+
+**Do not leave an existing screen untouched simply because it was not named.**
+Classify every route, dashboard, workspace, navigation item, flow, modal, form,
+settings area, profile, listing workflow, admin page, mobile page, web page, auth
+state, onboarding state, empty state, error state, loading state, success state,
+detail page, management page, document area, payment flow and notification surface
+as **KEEP, UPGRADE, REWORK, COMPLETE, REPLACE or DEFER**, and record the
+classification in your response file.
+
+### Verify, never assume
+
+**Never assume a previous session completed something because it said it would.**
+Check the code.
+
+### The default decision ladder
+
+**KEEP, IMPROVE, HARDEN, REFACTOR, EXTEND. Not REBUILD.** Recommend replacement
+only where the existing implementation creates a serious architectural, security,
+correctness, scalability, maintainability or product problem, and then justify it in
+nine parts: what exists now, what is wrong, why it matters, what should change, what
+must remain untouched, dependencies, migration strategy, risk, acceptance criteria.
+
+
 ## Binding rules
 
 1. **Foundations before surfaces.** Build the primitives in Stage 1 first.
