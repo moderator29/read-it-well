@@ -9,8 +9,22 @@ identity and trust, compliance, supply tooling, the native entry path.
 Those are Session 3. If a change of yours needs a new screen, build the plainest
 possible version and note it in your response document for Session 3 to dress.
 
-**Read first, in this order:** `docs/sessions/SESSION-1-RESPONSE.md` (sections
-1 to 5, 15, 16, 19), `docs/payments/VALLO_PAYMENTS_ARCHITECTURE.md` in full,
+**THE FOUNDER DECIDED THE MONEY MODEL ON 5 OCTOBER. Read
+`docs/payments/VALLO_PAYMENTS_ARCHITECTURE.md` section 3A before anything else.**
+Two rails: **escrow through Payluk** for rent, shortlet, apartment, land and
+property sale; **direct Paystack split** for hotel bookings and restaurant
+reservations. The principle the code encodes is the accountability of the
+counterparty: an individual lister gets escrow, a registered business gets direct
+settlement. The founder has instructed that the escrow rail be built now and has
+accepted the legal position; the switch-on for real customer money stays behind a
+founder-controlled flag.
+
+**The full list of what is new is `docs/sessions/NEW-FEATURES.md`.** Items 1 to 16
+and 17 to 22 are yours.
+
+**Read first, in this order:** `docs/payments/VALLO_PAYMENTS_ARCHITECTURE.md` in
+full, especially section 0 (an evidence warning) and section 3A (the two rails),
+`docs/sessions/SESSION-1-RESPONSE.md` (sections 1 to 5, 15, 16, 19),
 `docs/PRODUCT.md`, `docs/MONEY_ARCHITECTURE.md`,
 `docs/adr/0002-vallo-never-holds-customer-money.md`, `docs/COMPLIANCE_SCUML.md`.
 
@@ -27,8 +41,10 @@ possible version and note it in your response document for Session 3 to dress.
    grants, the off flags that refuse to turn on and the event trigger refusing
    custody-named objects all stay. Do not name a new object `wallet`, `escrow`,
    `balance` or `custody`.
-4. **No production custody.** Payluk work is staging-only in this session. See
-   task 6.
+4. **Build the escrow rail fully; do not switch it on.** Every line is written,
+   tested and proven against Payluk staging. The production switch is a
+   founder-controlled, fail-closed flag on the `lib/crypto/gate.ts` pattern. Do
+   not add a production key and do not flip the flag.
 5. **Do not switch on a feature flag that is off.** Do not apply a migration from
    `supabase/migrations/pending/`. Do not rotate or delete a credential. Do not
    touch production data.
@@ -122,7 +138,7 @@ deliverable is identical outcomes with one seam. If any money outcome changes,
 the refactor has failed. Prove it with the existing payment tests passing
 untouched plus a new contract test for the interface.
 
-### Task 6: Payluk, staging only
+### Task 6: The Payluk escrow rail
 
 **Read `VALLO_PAYMENTS_ARCHITECTURE.md` section 0 before anything else.** The
 Payluk documentation could not be reached from Session 1's environment. Section 3
@@ -171,9 +187,81 @@ before building the booking integration.
   strict. Driving the API directly may be the better answer. Write down the
   decision.
 
-**6e.** Stop at the staging boundary. **Do not add a production key, do not
-request one, and do not build the switch-on.** Production Payluk is Track 2 and
-is blocked on a legal opinion the founder has not yet obtained.
+**6e. The escrow lifecycle**, per section 3A.6. Each of these is a requirement:
+
+- **Release is gated on a human confirming arrival or move-in**, never on a clock
+  alone. If Payluk's delivery window can auto-release, set it long enough that it
+  is a backstop and not the normal path.
+- **The agreement gate stays in front of escrow.** Escrow does not replace it.
+  Payment still opens only after both parties confirm and an admin approves.
+  Escrow then holds what the gate permitted.
+- **Cancellation must not require a dispute.** This is open question 3 and it is
+  the most important fact to establish, because the product already freezes
+  cancellation terms at acceptance and at payment and must honour them
+  automatically. Establish the answer before building this path.
+- **Milestone escrow for sale**, with milestones mapped to a real Nigerian property
+  transaction: deposit, title and documents verified, completion. Amounts must sum
+  to the total, each release needs its own confirmation and its own record.
+
+**6f. The switch-on gate.** Build it fail-closed on the `lib/crypto/gate.ts`
+pattern: the flag is on, the provider is fully configured, the dispute policy page
+is published, a second super admin exists so two-person rulings do not fail closed,
+and the Terms version has been bumped. **Do not add a production key, do not
+request one, and do not flip the flag.** That is the founder's act.
+
+### Task 6B: The payment rail router
+
+**A policy table with effective dates, never a condition in code.** Same discipline
+as `fee_rates`, same reason: every transaction records which rail priced it, and
+changing the routing is a data change with an audit row rather than a deploy.
+
+Schema and the resolution table are in `VALLO_PAYMENTS_ARCHITECTURE.md` section
+3A.3. `transactions` gains a `rail` column written at open and never altered: a
+transaction's rail is a historical fact, like the frozen quote and the frozen
+cancellation terms.
+
+**Fail closed.** If the router cannot resolve a rail, no payment opens. It must
+never fall back, because one fallback holds money that should not be held and the
+other releases money that should have been held.
+
+### Task 6C: The escrow dispute desk
+
+Payluk does not arbitrate. The merchant does, which means **Vallo rules on who
+keeps a guest's money.** Build the apparatus, reusing what already exists rather
+than inventing it:
+
+- Two-person rulings on the existing threshold pattern. Note that two-person
+  rulings currently fail closed because no second super admin has been appointed,
+  and say so in your response document.
+- An append-only record of every ruling with the evidence that supported it. The
+  caution-dispute and Guarantee-claim machinery is the precedent.
+- Nobody rules a case they are party to. The existing `conflicted` answer is the
+  pattern.
+- A `SPLIT` outcome where the two amounts must sum exactly to what the escrow still
+  holds, which Payluk enforces and you must enforce before calling it.
+- Everything written to `audit_log`.
+
+### Task 6D: One protection per rail
+
+The two-rail model forces a decision and section 3A.4 sets it out. **Build Option 1
+unless the founder says otherwise:** on the escrow rail the hold itself is the
+protection, so no Guarantee contribution is taken; on the direct rail the Vallo
+Guarantee works exactly as it does today.
+
+This touches `money_policy`, the `transactions` summing constraint and
+`guarantee_reserve_entries`, so it needs migrations and a test reading the live
+policy shape. It also needs **one sentence per rail in `lib/money/copy.ts`** so a
+payer always knows which protection they have. That copy is part of the ADR; draft
+it and flag it for the founder rather than shipping new money wording alone.
+
+### Task 6E: ADR-0003
+
+Write it before the escrow rail is switched on, not after. It supersedes ADR-0002,
+records the founder's 5 October decision, states the two rails and the principle
+beneath them, names Payluk as the custodian and Vallo as never one, and records
+that the written legal opinion is outstanding. An architecture decision that
+reverses a previous one and is not written down is how a team re-litigates it in
+three months.
 
 ### Task 7: Referral economics as booking credit
 
@@ -265,10 +353,13 @@ answers no to performance data.
 
 ## What you must not do
 
-- Build production custody, a wallet, an escrow or a withdrawal.
+- Switch the escrow rail on, add a Payluk production key, or request one.
+- Build a Vallo-held wallet, balance or withdrawal. Custody is Payluk's; Vallo
+  holds a reconciled mirror and never a liability.
 - Add a Payluk production key or request one.
-- Rewrite `lib/money/copy.ts` to say anything other than that Vallo never holds
-  money. That rewrite is a legal act and it waits for the opinion and ADR-0003.
+- Ship new money wording on your own. Draft the per-rail sentences for
+  `lib/money/copy.ts` and flag them: that copy is a legal act and belongs to
+  ADR-0003 and the founder.
 - Switch on `crypto_payments`, `room_bookings`, `vnin_identity` or any other off
   flag.
 - Apply anything from `supabase/migrations/pending/`.

@@ -259,6 +259,158 @@ whether to use the widget at all or to drive the API directly.
 
 ---
 
+## 3A. THE TWO-RAIL DECISION (founder, 5 October 2026)
+
+**This supersedes the single-rail assumption everywhere above and below it.**
+
+### 3A.1 The decision
+
+| Rail | Carries | Mechanism |
+|---|---|---|
+| **ESCROW (Payluk)** | Rent and annual tenancy, shortlet, apartment, home, villa, land, shop, office, **and property sale** | Funds held by Payluk, released on confirmation, milestone escrow for sale |
+| **DIRECT (Paystack)** | Hotel room bookings, restaurant reservations | Split at the moment of charge, three legs, exactly as today. Unchanged |
+
+### 3A.2 The principle underneath it, which is the thing to implement
+
+The founder expressed this as rent versus bookings. The sharper rule, and the one
+the code should encode, is **the accountability of the counterparty**:
+
+> **An individual lister gets escrow. A registered business gets direct
+> settlement.**
+
+A hotel is a physical business with a brand, a premises, staff and reviews, and it
+cannot disappear. A shortlet landlord is one person with a bank account, and the
+Nigerian shortlet market's characteristic fraud is exactly this: you pay, you
+arrive, and the apartment is not what was photographed or does not exist. Escrow
+belongs where that risk lives, and it is wasted cost and wasted latency where it
+does not.
+
+This also resolves the one ambiguous type. `apartment` can be either an
+individual's flat or a serviced-apartment operator's unit, so it routes on the
+lister rather than the type.
+
+### 3A.3 The router
+
+Routing is **a policy table with effective dates, never a condition in code.**
+Same discipline as `fee_rates`, and for the same reason: every transaction must
+record which rail priced it, and changing the routing must be a data change with
+an audit row rather than a deploy.
+
+```
+payment_rail_policy
+  property_type        the listing type, or null for any
+  listing_intent       rent | sale | null for any
+  lister_kind          individual | business | null for any
+  rail                 escrow | direct
+  effective_from       timestamptz
+  effective_to         timestamptz, null while current
+```
+
+Resolution, most specific match wins:
+
+| Condition | Rail |
+|---|---|
+| `listing_intent = sale` | **escrow**, milestone |
+| `property_type in (rental, home, villa, land, shop, office)` | **escrow** |
+| `property_type = shortlet` | **escrow** |
+| `property_type = apartment`, lister is an individual | **escrow** |
+| `property_type = apartment`, lister is a registered business | **direct** |
+| `property_type in (hotel, restaurant)` | **direct** |
+
+`transactions` gains a `rail` column, written at open and never altered. A
+transaction's rail is a historical fact about how it was priced, the same way the
+frozen move-in quote and the frozen cancellation terms are facts.
+
+**Fail closed.** If the router cannot resolve a rail, no payment opens. It must
+never silently fall back to either rail, because one fallback holds customer money
+that should not be held and the other releases money that should have been held.
+
+### 3A.4 The Guarantee question the two-rail model forces
+
+Payluk cannot perform the three-way split (Finding A), so the Guarantee
+contribution has no atomic leg on the escrow rail. There are two coherent answers
+and **the founder must pick one.**
+
+**Option 1, recommended: one protection per rail.**
+
+| Rail | What protects the payer |
+|---|---|
+| Escrow | **The hold itself.** Money is not released until the tenant or guest confirms. Nothing needs reserving, because nothing has been handed over yet |
+| Direct | **The Vallo Guarantee**, exactly as today: 150 basis points to the reserve, claimable for 72 hours after check-in |
+
+This is clean, it is cheaper for listers on the escrow rail, it is easy to explain
+in one sentence per rail, and it means the reserve keeps funding from precisely the
+transactions that need it. It also makes the escrow rail's release condition
+load-bearing: **release must be gated on the tenant or guest confirming arrival or
+move-in**, not on a timer, or the protection evaporates.
+
+**Option 2: the Guarantee applies to both.** Vallo's Payluk merchant commission
+carries both its own fee and the Guarantee portion, and a scheduled transfer moves
+the Guarantee portion to the reserve account, reconciled, with a
+`guarantee_reserve_entries` row per transfer. Correct but it adds a two-step money
+movement, a reconciliation obligation, and a window in which the reserve is
+under-funded relative to its liabilities.
+
+**Session 2 builds Option 1 unless the founder says otherwise**, and either way
+`lib/money/copy.ts` needs a sentence per rail so a payer always knows which
+protection they have. That copy change is part of the ADR, not a tweak.
+
+### 3A.5 The founder's instruction on the legal position
+
+**Recorded verbatim in substance, 5 October 2026:** the founder has decided Payluk
+may hold users' money on Vallo's behalf, states that Payluk holds the necessary
+licences, and has instructed that the escrow rail be built. The written legal
+opinion will be obtained later.
+
+**One distinction is noted once, for the record, and is not re-argued:** Payluk's
+licence authorises **Payluk**. Whether Vallo may orchestrate provider-held
+customer funds without its own authorisation, and whether the objects clause
+covers it, is a question about **Vallo** that only Nigerian counsel can answer.
+Section 6 is unchanged and is still the list.
+
+**How the build proceeds without waiting.** Everything is written, tested,
+reconciled and proven: the adapter, the router, the mirror, the dispute desk, the
+release conditions, the payer and lister interfaces, the reconciler, and the whole
+thing exercised against `staging.api.payluk.ng` with Payluk Test Bank. The only
+act that is gated is **switching the escrow rail on for real customer money**, and
+that gate is a founder-controlled flag, fail-closed on the `lib/crypto/gate.ts`
+pattern. Nothing is lost by the letter arriving late, and nothing irreversible
+happens before it does.
+
+### 3A.6 What the escrow rail must get right
+
+These are the places where an escrow integration goes wrong, and each is a
+requirement rather than a preference.
+
+1. **Release is gated on a human confirming arrival or move-in**, never on a
+   clock alone. If the delivery window can auto-release, that window must be set
+   long enough that it is a backstop and not the normal path.
+2. **Cancellation must not require a dispute.** This is open question 3 and it is
+   the single most important fact to establish. If a funded escrow cannot be
+   refunded outside a dispute, then **every ordinary cancellation becomes a ruling
+   Vallo has to make**, and the frozen cancellation terms already in the product
+   cannot be honoured automatically. Ask Payluk before building the cancellation
+   path.
+3. **Vallo arbitrates, so Vallo needs the apparatus** (Finding B): a published
+   dispute policy with an SLA, two-person rulings reusing the existing threshold
+   pattern, an append-only record of every ruling with its evidence, and nobody
+   ruling on a case they are party to. The caution-dispute and Guarantee-claim
+   machinery is the precedent and must be reused rather than reinvented.
+4. **The agreement gate stays in front of escrow.** Escrow is not a replacement
+   for it. Payment still opens only after both parties confirm and an admin
+   approves. Escrow then holds what the gate permitted.
+5. **Sale uses milestone escrow**, with the milestones mapped to the real steps of
+   a Nigerian property transaction: deposit, title and documents verified,
+   completion. Milestone amounts must sum to the total, which Payluk enforces, and
+   each release needs its own confirmation and its own record.
+6. **The mirror is never truth.** Every balance and state shown to a member is a
+   reconciled observation carrying the time it was observed.
+7. **Vallo owns idempotency** on its own reference, because Payluk documents none.
+8. **Reconciliation is the source of truth**, because no failure webhooks are
+   documented.
+
+---
+
 ## 4. The architecture
 
 ### 4.1 The principle
@@ -343,7 +495,11 @@ Vallo holds: nothing. Vallo records: a mirror. Vallo decides: every dispute.
 
 ## 5. The three tracks
 
-### Track 1: now, no legal dependency, no real money
+### Track 1: build now, flag-gated (revised by the founder's 5 October instruction)
+
+**Revision:** the escrow rail is now built end to end in this track rather than
+deferred, per section 3A.5. What remains gated is switching it on for real
+customer money. Everything below still ships, and the escrow build joins it.
 
 1. **The `PaymentProvider` interface**, with Paystack behind it, behaviour
    unchanged.
@@ -365,10 +521,12 @@ Vallo holds: nothing. Vallo records: a mirror. Vallo decides: every dispute.
    entirely safe.**
 5. **Correct the documents** that still describe virtual accounts.
 
-### Track 2: blocked on the legal opinion
+### Track 2: the switch-on, founder-gated
 
-Production Payluk. Real escrow holds. Provider-custodied balances. Cash referral
-withdrawal. Release on check-in. Vallo arbitrating live disputes.
+Not a separate build any more. It is one decision: turning the escrow rail on for
+real customer money, once the founder is satisfied on section 6. Cash referral
+withdrawal stays in this track regardless, because booking credit covers the
+launch need without custody.
 
 **Gated, fail-closed, on the `lib/crypto/gate.ts` pattern:** several independent
 conditions, checked on every render and again in every server action, so a

@@ -32,6 +32,8 @@ so in your response document rather than inventing a query.
 3. `docs/design/CLEAN_UNIFIED_DIRECTION.md` and `docs/TRACK_M_MOTION_PLAN.md`,
    both still live.
 4. `docs/sessions/SESSION-1-RESPONSE.md` sections 3, 5, 11, 12.
+5. `docs/sessions/NEW-FEATURES.md`. Items 12, 13, 20, 21 and 31 to 45 are yours.
+6. `docs/design/CHATGPT_ASSET_PROMPTS.md`, for every asset you need generated.
 5. `docs/PRODUCT.md` section 7, the terminology table. **The words are not yours
    to change.** Listing, agent, member, guest, stay, reservation, Around, place,
    post, story, standing, stop, the console, workspace.
@@ -197,6 +199,37 @@ over an unbounded network call is a longer hang with better production values.
   navy ground, one Island, one pill action.
 
 ### Stage 4: Transaction, in Paper
+
+**Two rails now, and the interface must make which one a payer is on obvious
+without them having to ask.** The founder decided on 5 October: escrow through
+Payluk for rent, shortlet, apartment, land and sale; direct Paystack split for
+hotels and restaurants. Architecture in
+`docs/payments/VALLO_PAYMENTS_ARCHITECTURE.md` section 3A. Session 2 builds the
+rails; you build what a person sees.
+
+**The escrow rail needs screens that do not exist yet:**
+
+- **The held state.** The clearest screen in the product. What is held, by whom,
+  what releases it, and when. A payer must never wonder where their money is.
+  "Held by Payluk until you confirm you have moved in" is the sentence; take the
+  exact wording from `lib/money/copy.ts` once Session 2 has it approved.
+- **The release action.** The tenant or guest confirms arrival, and that
+  confirmation releases the money. This is the single most consequential button in
+  the product, so it gets the full morph (motion 7) and a confirm step, and it is
+  never reachable by accident.
+- **Milestone progress for a sale:** deposit, title and documents verified,
+  completion. A path with ticks on reference 7110, each stage naming what has to
+  be true before it releases.
+- **Raising a dispute**, and following one. Both parties see the same timeline and
+  the same evidence. No party ever sees a ruling before it is made.
+- **The lister's side:** what is held in their favour, what has released, what is
+  awaiting a confirmation that is not theirs to give.
+
+**The direct rail keeps today's flow** and gets the full restyle below.
+
+**One honesty rule across both:** the protection differs per rail, so the screen
+says which one applies. On escrow the hold is the protection; on direct it is the
+Vallo Guarantee. Never imply a payer has both.
 
 The highest-trust family, where the founder's references concentrate, and where
 investors and guests both decide whether this is real. Build it like a document.

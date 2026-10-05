@@ -82,6 +82,8 @@ For setup, architecture and the repository layout, start with the [repository RE
 | [sessions/SESSION-1-RESPONSE.md](sessions/SESSION-1-RESPONSE.md) | The 5 October platform audit, architecture, the founder's four locked visual decisions, priorities, risk register and what only the founder can do. **Start here** |
 | [design/VISUAL_NORTH_STAR_2026-10-05.md](design/VISUAL_NORTH_STAR_2026-10-05.md) | The governing visual, material and motion specification for the full-platform upgrade: container tiers, the motion inventory, the surface-by-surface sweep, all 79 references classified, the asset prompts, and the per-page audit checklist |
 | [payments/VALLO_PAYMENTS_ARCHITECTURE.md](payments/VALLO_PAYMENTS_ARCHITECTURE.md) | Paystack, Payluk and Yellow Card: the provider interface, the ledger, the two tracks, and the legal gate. Its section 0 is an evidence warning that must be read before any Payluk code |
+| [sessions/NEW-FEATURES.md](sessions/NEW-FEATURES.md) | Every feature that does not exist today and is being built, 46 items, with the session that owns each |
+| [design/CHATGPT_ASSET_PROMPTS.md](design/CHATGPT_ASSET_PROMPTS.md) | A complete standalone image prompt for every asset the upgrade needs: property types, Nigerian specifics, empty states, success and reward, tiers, onboarding and email |
 | [sessions/SESSION-2-HANDOFF.md](sessions/SESSION-2-HANDOFF.md) | Backend, money and trust execution brief |
 | [sessions/SESSION-3-HANDOFF.md](sessions/SESSION-3-HANDOFF.md) | The platform-wide experience upgrade execution brief |
 | [sessions/SESSION-4-HANDOFF.md](sessions/SESSION-4-HANDOFF.md) | QA, release and store execution brief |
