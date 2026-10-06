@@ -333,3 +333,94 @@ finding by finding, including anything Session 2's own review missed**; the devi
 matrix filled in; test suite state with counts and what you could not repair and why;
 store readiness per platform with owners; every bug found with a reproduction, routed;
 and the readiness checklist.
+
+---
+
+## ROUND 2, added 6 October 2026
+
+**Read `docs/sessions/ROUND-2-2026-10-06.md` in full before continuing.** It
+measures what each session actually built, lists what is missing after reading the
+tree rather than the response files, and carries thirty numbered recommendations.
+
+**Your share is R2-25 to R2-30**, quality, release and the system.
+
+**R2-25, the 34 row matrix, remains the single highest-value action on the project.** Then R2-26 to R2-30: correct the four wrong documents, add the NativeRuntime mount test that the outage still lacks, gate scripts/marketing, set the QA_MEMBER secrets to unlock signed-in coverage, and fix the weight measurement variance so every budget can come down.
+
+**The standing rule this round adds: "done" means the brief, not the session.**
+Report what you finished and what remains, in those words. Never report completion
+while your own Remaining section is non-empty. If you believe the brief is
+finished, say so against this handoff's acceptance criteria one by one, with
+evidence for each.
+
+---
+
+## ROUND 3, added 6 October 2026
+
+**Read `docs/sessions/ROUND-3-2026-10-06.md` in full.** Four audits were run
+against the branches rather than the response files, and they found what the
+reports did not.
+
+**Your share is R3-33 to R3-40.**
+
+**Four agents this round**, with declared file ownership, never two on one file:
+Q1 Task 2, the second audit. Q2 the device matrix and the native lane. Q3 tests and gates. Q4 documents, store and operations.
+
+**D48 outranks everything on every branch.** Shipped copy tells members Vallo holds
+their money, in a dictionary that is wired to live panels and gated only by three
+keys not being mounted.
+
+**The rule for this round: a number, not an adjective.** Every claim of progress
+carries a count and a denominator. Routes audited of 213. Sections done of 18.
+Matrix rows run of 34. "Upgraded", "swept" and "done" are not reportable without
+one, and a surface edited by five lines is not a surface that was audited.
+
+### Your share of the financial layer (D50)
+
+**Everything in D50 is money, so it is all second-audit work and it is all yours.**
+
+Specifically: verify that **no raw provider status, error or identifier reaches a
+member** on any surface; that **no fiat transaction shows a fabricated chain hash**
+or a provider reference relabelled as one; that **"Processing" is never shown as
+"Successful"** before the provider confirms; that **failover can never
+double-charge**; that **customer money and Vallo revenue are separated in the
+schema**, not only in a report, since Payluk cannot do a three-way split; and that
+**legally required provider disclosures are present** where a rule, a receipt, the
+Terms or a KYC step requires them, because the abstraction governs the product
+surface and never the legal one.
+
+**Also audit the rate limit as a design property**, not a runtime surprise: ten
+requests per minute per key across all routes means any call per listing, per
+render or in a loop is a defect, and every reconciliation sweep must be paced
+against it. Find them before production does.
+
+### Pricing and referral audit (D51): yours to verify
+
+**Confirm `guarantee_bps = 0` actually unblocks payment**, rather than taking
+Session 2's word for it: the split refuses a charge whose reserve leg is missing,
+and the founder is blocked for nothing if that still holds at zero.
+
+**Confirm no withdrawal figure is hardcoded.** Payluk's fee is variable and read
+back per intent; any constant in the withdrawal path is a defect, and a quoted
+total shown before the intent exists is a defect.
+
+**Confirm the pricing table is continuous**, with no gap between bands and no
+boundary where splitting a withdrawal is cheaper than making one.
+
+**Confirm the three pots are separated in the schema**, not in a report, and that
+no rewards balance is presented as custody.
+
+**Confirm no fraud signal, risk score or admin note is reachable by a member**, on
+any surface, in any payload, including a server response the UI does not render.
+
+**Confirm the platform-wide referral budget cap is enforced server-side** and
+cannot be exceeded by concurrent qualification.
+
+### The 2 percent and the agreement gate (D51 final)
+
+Verify: **no fee line ever reaches a renter or guest surface**, on any rail, in any
+payload. **The agreement gate is enforced server-side** and a listing cannot
+publish without a recorded acceptance carrying a rate version. **A rate change
+cannot alter an accepted listing's rate retroactively**, which needs a test, not an
+inspection. **The Payluk commission sweep records to Vallo revenue** and never to
+customer funds. And the figures a lister accepted at publish are **the same figures
+shown at payout**.
