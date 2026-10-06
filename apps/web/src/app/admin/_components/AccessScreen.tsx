@@ -54,12 +54,13 @@ export function AccessScreen({
           and sat visibly right of centre, and "Sign in with another account"
           rendered as five stacked words, one per line. Reproduced on fresh
           loads at 390, 430, 768 and 1280 in both themes. No CSS rule sets a
-          width; removing `inline-block` restores 179px, and a fresh
-          `inline-block` probe in the same parent also measures 179px, so it is
-          a shrink-to-fit inside the `min-h-dvh` flex container rather than a
-          rule anybody wrote. The mechanism is not root-caused and the fix does
-          not depend on it: a block that sizes to its content cannot collapse
-          this way.
+          width by hand. ROOT CAUSE, found in Round 3 (C5, fixed by C1 in
+          app/css/theme.css): the theme had a spacing key called `block`, and
+          Tailwind 4's `inline-*` (inline-size) utility reads that namespace,
+          so the class `inline-block` also wrote `inline-size: 2rem`. The key
+          has moved out of the spacing namespace (spacing-keys.test.ts holds
+          it), so `inline-block` is a display class again; `block w-fit` stays
+          because it centres the same way and needs nothing.
 
           This is the first thing anybody sees at `/admin`, in all three
           refusal states.

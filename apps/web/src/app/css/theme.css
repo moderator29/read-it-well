@@ -64,7 +64,23 @@
 
   --spacing-section: var(--nf-gap-section);
   --spacing-section-tight: var(--nf-gap-section-tight);
-  --spacing-block: var(--nf-gap-block);
+  /*
+   * `block` IS NOT A `--spacing` KEY, and must never be one. Tailwind 4's
+   * `inline-*` utility (inline-size) reads the `--spacing` namespace, so a key
+   * called `block` turned the display class `inline-block` into
+   * `display: inline-block; inline-size: var(--nf-gap-block)`: every
+   * inline-block element in the product was about 32px wide (found by C5 on
+   * /host's "Contact us"; measured by C1 as the agent rail's "Apply / to list"
+   * broken over two lines in a 32px box). The role lives in the four
+   * namespaces its utilities actually read instead, so `mt-block`, `mb-block`,
+   * `pt-block`, `pb-block`, `py-block`, `gap-block` and `space-y-block` keep
+   * their names and their value, and `inline-block` is a display class again.
+   * `app/css/spacing-keys.test.ts` compiles the cascade and holds both.
+   */
+  --margin-block: var(--nf-gap-block);
+  --padding-block: var(--nf-gap-block);
+  --gap-block: var(--nf-gap-block);
+  --space-block: var(--nf-gap-block);
   --spacing-heading: var(--nf-gap-heading);
   --spacing-group: var(--nf-gap-group);
   --spacing-row: var(--nf-gap-row);
