@@ -440,7 +440,7 @@ export function CommentsSheet({
                                   className="nf-post__menu-item nf-post__menu-item--danger"
                                   onClick={() => onMenu(comment, "report")}
                                 >
-                                  Report this comment
+                                  {reportWords.reportComment}
                                 </button>
                                 <button
                                   type="button"
@@ -506,8 +506,8 @@ export function CommentsSheet({
 
       {reporting ? (
         <ReportSheet
-          title="Report this comment"
-          subject={`Written by ${reporting.authorLabel}`}
+          title={reportWords.reportComment}
+          subject={reportWords.commentSubject.replace("{who}", () => reporting.authorLabel)}
           reasons={POST_REPORT_REASONS}
           words={reportWords}
           submit={({ reason, detail }) =>

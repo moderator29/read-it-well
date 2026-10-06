@@ -369,7 +369,7 @@ export function StoryViewer({
                           setReporting(true);
                         }}
                       >
-                        Report this story
+                        {reportWords.reportStory}
                       </button>
                       <button
                         type="button"
@@ -537,8 +537,8 @@ export function StoryViewer({
 
       {reporting && story.author.id ? (
         <ReportSheet
-          title={`Report ${who}`}
-          subject={`The account behind this story, at @${story.author.handle ?? ""}.`}
+          title={reportWords.reportWho.replace("{who}", () => who)}
+          subject={reportWords.storySubject.replace("{handle}", () => (story.author.handle ?? ""))}
           reasons={PROFILE_REPORT_REASONS}
           words={reportWords}
           submit={({ reason, detail }) =>

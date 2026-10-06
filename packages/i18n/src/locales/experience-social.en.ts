@@ -81,6 +81,18 @@ export const experienceSocialEn = {
       sentMute:
         "If you would rather not see them at all in the meantime, mute or block them from the same menu. Neither of those tells them anything.",
       done: "Done",
+      /*
+       * The sheet's title and subject line, and the menu row that opens it,
+       * for an account (ProfileMenu, StoryViewer), a story and a comment (C9,
+       * moved word for word). `{who}` is a name or "@handle", `{handle}` the
+       * bare handle.
+       */
+      reportWho: "Report {who}",
+      accountSubject: "The account at @{handle}, not one thing they wrote. To report a single post, use the menu on that post.",
+      reportStory: "Report this story",
+      storySubject: "The account behind this story, at @{handle}.",
+      reportComment: "Report this comment",
+      commentSubject: "Written by {who}",
     },
   },
   profile: {

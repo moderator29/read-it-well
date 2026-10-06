@@ -318,7 +318,7 @@ export function ProfileMenu({
                       setReporting(true);
                     }}
                   >
-                    Report {who}
+                    {reportWords.reportWho.replace("{who}", () => who)}
                   </button>
                   <button
                     type="button"
@@ -390,8 +390,8 @@ export function ProfileMenu({
 
       {reporting ? (
         <ReportSheet
-          title={`Report ${who}`}
-          subject={`The account at @${handle}, not one thing they wrote. To report a single post, use the menu on that post.`}
+          title={reportWords.reportWho.replace("{who}", () => who)}
+          subject={reportWords.accountSubject.replace("{handle}", () => handle)}
           reasons={PROFILE_REPORT_REASONS}
           words={reportWords}
           submit={({ reason, detail }) => reportProfile({ userId, reason, detail })}
