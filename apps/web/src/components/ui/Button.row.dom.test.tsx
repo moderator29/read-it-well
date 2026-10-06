@@ -19,7 +19,7 @@ vi.setConfig({ testTimeout: BROWSER_TEST_TIMEOUT });
 beforeAll(warmBrowser);
 afterAll(closeBrowser);
 
-const CSS = productCss("app/css/passcode.css");
+const STYLES = productCss("app/css/passcode.css");
 
 const entry = `
   import { mount } from "@/lib/testing/browser-root";
@@ -42,7 +42,7 @@ const entry = `
 
 describe.skipIf(!hasBrowser && !process.env.CI)("an inline Button in its row", () => {
   it("keeps its label's width beside a shrinking sibling, keeps a component cap, and wraps only in a narrower row", async () => {
-    const { page, close } = await mountInBrowser({ entry, css: CSS });
+    const { page, close } = await mountInBrowser({ entry, css: STYLES });
     try {
       const box = (id: string) =>
         page.getByTestId(id).evaluate((el) => {
