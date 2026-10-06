@@ -472,7 +472,7 @@ export function HostWizard({
               title: pathWords.allSteps,
               hint: [
                 pathWords.stepOf.replace("{n}", String(at + 1)).replace("{total}", String(steps.length)),
-                draft.businessId ? pathWords.savedBoth : pathWords.savedDevice,
+                draft.businessId ? pathWords.savedHost : pathWords.savedDevice,
               ].join(" "),
               content: (
                 <ProgressPath
@@ -894,7 +894,7 @@ function PayoutStep({ draft, pending, run, setNotice, set }: StepProps) {
 
   /* V-81: a new account to be paid into asks for the phone lock, when there is one. */
   const viewerLocale = useClientLocale();
-  const lock = useMoneyStepUp(viewerLocale);
+  const lock = useMoneyStepUp();
   const save = () =>
     run(
       async () => {

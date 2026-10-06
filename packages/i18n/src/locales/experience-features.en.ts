@@ -236,6 +236,12 @@ export const experienceFeaturesEn = {
     savedBoth: "Saved on this device as you type, and to your account each time you move on.",
     savedDevice: "Saved on this device as you type.",
     savedAccount: "Saved to your account each time you move on.",
+    /* The host wizard writes to the account only when you move on from the
+       business, registration and representative steps (`next()` in
+       `HostWizard.tsx`); the other steps keep their answers on the device
+       until then. Said as far as it is true. */
+    savedHost:
+      "Saved on this device as you type, and to your account when you move on from the business, registration and representative steps.",
   },
 
   /**
