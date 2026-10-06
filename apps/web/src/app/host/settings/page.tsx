@@ -15,33 +15,11 @@ import { HostShell } from "@/components/host/HostShell";
 import { BusinessTierFan } from "@/components/app/artefact/BusinessTierFan";
 import { AccountNotificationsCard } from "../../(app)/settings/AccountToggles";
 
-export const metadata: Metadata = {
-  title: "Host settings",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: getDictionary(await getLocale()).experienceHost.settingsPage.metaTitle, robots: { index: false, follow: false } };
+}
 
 export const dynamic = "force-dynamic";
-
-const KIND_WORD: Record<MyBusiness["kind"], string> = {
-  hotel: "Hotel",
-  serviced_apartments: "Serviced apartments",
-  guest_house: "Guest house",
-  resort: "Resort",
-  shortlet_operator: "Shortlets",
-  restaurant: "Restaurant",
-  agency: "Agency",
-};
-
-const STATUS_WORD: Record<string, string> = {
-  DRAFT: "Draft",
-  SUBMITTED: "With our team",
-  UNDER_REVIEW: "Being read",
-  MORE_INFO_REQUIRED: "Needs more from you",
-  APPROVED: "Approved",
-  PUBLISHED: "Live",
-  REJECTED: "Not approved",
-  SUSPENDED: "Suspended",
-};
 
 /**
  * /host/settings: the host workspace's own settings.
@@ -70,7 +48,7 @@ export default async function HostSettingsPage() {
           body={t.hostWorkspace.settings.signedOutBody}
           action={
             <ButtonLink href={authHref(next, "sign-in")} variant="primary" size="lg">
-              Sign in
+              {t.common.signIn}
             </ButtonLink>
           }
         />
@@ -113,12 +91,14 @@ export function HostSettingsBody({
   /** Null when the preference document could not be read. */
   notifications: ResolvedProfileSettings["notifications"] | null;
 }) {
+  const words = t.experienceHost;
+  const page = words.settingsPage;
   return (
     <>
       <div className="nf-agent-head">
         <div>
-          <h1 className="nf-agent-head__title">Settings</h1>
-          <p className={`mt-row ${TYPE.bodyLg}`}>Your businesses, what reaches you, and your assistant.</p>
+          <h1 className="nf-agent-head__title">{page.title}</h1>
+          <p className={`mt-row ${TYPE.bodyLg}`}>{page.sub}</p>
         </div>
       </div>
 
@@ -141,36 +121,38 @@ export function HostSettingsBody({
                     <span className="min-w-0">
                       <span className={`block ${TYPE.rowTitle}`}>{business.name}</span>
                       <span className={`block ${TYPE.rowMeta}`}>
-                        {KIND_WORD[business.kind]}, tier {business.verificationTier} of 4
+                        {page.kindTier
+                          .replace("{kind}", words.businessKind[business.kind as keyof typeof words.businessKind] ?? business.kind)
+                          .replace("{tier}", String(business.verificationTier))}
                       </span>
                     </span>
                     <StatusPill
                       tone={toneForStatus(business.status)}
                       className="justify-self-start sm:justify-self-end"
                     >
-                      {STATUS_WORD[business.status] ?? business.status}
+                      {words.businessStatus[business.status as keyof typeof words.businessStatus] ?? business.status}
                     </StatusPill>
                   </div>
                   <div className="flex flex-wrap gap-inline">
                     {business.kind === "restaurant" ? (
                       <Link href="/host/reservations" className="nf-chip">
-                        Tables
+                        {words.businessDoors.tables}
                       </Link>
                     ) : (
                       <Link href={`/host/rooms?business=${business.id}`} className="nf-chip">
-                        Rooms and nights
+                        {words.businessDoors.rooms}
                       </Link>
                     )}
                     <Link href={`/host/photos?business=${business.id}`} className="nf-chip">
-                      Photographs
+                      {words.businessDoors.photos}
                     </Link>
                     {business.kind !== "restaurant" && (
                       <Link href={`/host/arrival?business=${business.id}`} className="nf-chip">
-                        Charges at the door
+                        {words.businessDoors.arrival}
                       </Link>
                     )}
                     <Link href="/host/transfer" className="nf-chip">
-                      Hand over
+                      {words.businessDoors.handOver}
                     </Link>
                   </div>
                 </Row>
@@ -198,7 +180,7 @@ export function HostSettingsBody({
           <AccountNotificationsCard t={t} initial={notifications} variant="host" />
         ) : (
           <div className="nf-panel nf-panel--card p-panel">
-            <p className={TYPE.rowMeta}>We cannot reach your notification preferences right now.</p>
+            <p className={TYPE.rowMeta}>{page.notificationsUnreachable}</p>
           </div>
         )}
 
@@ -207,20 +189,19 @@ export function HostSettingsBody({
             <UiIcon name="sparkle" size={24} />
           </span>
           <span className="min-w-0 flex-1">
-            <span className={`block ${TYPE.rowTitle}`}>Assistant</span>
-            <span className={`block ${TYPE.rowMeta}`}>Ask about running your stay or restaurant, without leaving.</span>
+            <span className={`block ${TYPE.rowTitle}`}>{page.assistantTitle}</span>
+            <span className={`block ${TYPE.rowMeta}`}>{page.assistantSub}</span>
           </span>
           <UiIcon name="chevron-right" size={20} className="shrink-0 text-[var(--nf-content-muted)]" />
         </Link>
 
         <div className="nf-panel nf-panel--card block p-panel">
-          <p className="nf-overline">Everything else</p>
+          <p className="nf-overline">{page.elseLabel}</p>
           <p className="mt-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
-            Language, theme, privacy, security and account deletion are one account wide, so they live on your
-            Vallo settings page rather than being kept in two places.
+            {page.elseBody}
           </p>
           <Link href="/settings" className="nf-btn nf-btn--glass nf-btn--sm mt-md">
-            Open account settings
+            {page.elseOpen}
           </Link>
         </div>
       </Stack>

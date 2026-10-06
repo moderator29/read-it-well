@@ -25,13 +25,9 @@ const SPOKEN = new Set(["title", "body", "label", "placeholder", "aria-label", "
 
 const STILL_ENGLISH: Record<string, number> = {
   /* Open in other work on 30 September (C1 to C4 and the host desk). */
-  "app/host/calendar/page.tsx": 6,
-  "app/host/decide/page.tsx": 2,
-  "app/host/earnings/page.tsx": 3,
-  "app/host/earnings/statement/page.tsx": 2,
   "app/host/reservations/ReservationsBoard.tsx": 6,
   "components/host/DecideView.tsx": 11,
-  "components/host/StatementView.tsx": 6,
+  "components/host/StatementView.tsx": 3,
   "components/host/calendar/CalendarSync.tsx": 4,
   "components/host/calendar/RateCalendar.tsx": 9,
   "components/host/calendar/RatePlanSheet.tsx": 3,
