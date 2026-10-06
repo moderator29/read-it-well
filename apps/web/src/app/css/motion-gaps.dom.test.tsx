@@ -23,6 +23,8 @@ const CSS = productCss("app/css/edge-m.css", "app/css/flow-m.css", "app/css/cont
 const entry = `
   import { useState } from "react";
   import { mount } from "@/lib/testing/browser-root";
+  import { watchRefusals } from "@/lib/ui/refusal";
+  watchRefusals(document);
   function Form() {
     const [bad, setBad] = useState(false);
     window.__setBad = setBad;
@@ -35,6 +37,7 @@ const entry = `
     <div className="nf-lw-head__object" id="obj" />
     <nav className="nf-tabbar"><a className="nf-tab"><span className="nf-tab__link" id="link" aria-current="page"><span className="nf-tab__label" id="label">Home</span></span></a></nav>
     <Form />
+    <input id="born" className="nf-field" aria-invalid="true" defaultValue="" />
     <div className="nf-auth"><input id="authf" className="nf-field" aria-invalid="true" /></div>
     <div className="nf-ptr" data-refreshing="" id="ptr"><svg className="nf-ptr__ring" id="ring" viewBox="0 0 24 24" style={{ "--nf-ptr-a": "200deg", transform: "rotate(200deg)" }}><circle className="nf-ptr__track" cx="12" cy="12" r="9" /><circle id="arc" cx="12" cy="12" r="9" /></svg></div>
   </div>);
@@ -70,12 +73,28 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the five motion gaps", () => {
     }
   });
 
+  const setBad = (page: Page, value: boolean) =>
+    page.evaluate((v) => (window as unknown as { __setBad: (v: boolean) => void }).__setBad(v), value);
+  const shaking = (page: Page) => page.evaluate(() => document.getElementById("f")!.getAnimations().length);
+
+  it("a field that mounts already invalid does not shake (a form returned with its errors)", async () => {
+    const { page, close } = await mountInBrowser({ entry, css: CSS });
+    try {
+      await page.waitForTimeout(250);
+      expect(await style(page, "#born", "animationName")).toBe("none");
+      expect(await page.evaluate(() => document.getElementById("born")!.hasAttribute("data-refused"))).toBe(false);
+      expect(await page.evaluate(() => document.getElementById("born")!.getAnimations().length)).toBe(0);
+    } finally {
+      await close();
+    }
+  });
+
   it("a field that becomes invalid shakes 4px once on whip 160ms, and replays when it is refused again", async () => {
     const { page, close } = await mountInBrowser({ entry, css: CSS });
     try {
       expect(await style(page, "#f", "animationName")).toBe("none");
-      await page.evaluate(() => (window as unknown as { __setBad: (v: boolean) => void }).__setBad(true));
-      expect(await style(page, "#f", "animationName")).toBe("nf-field-refuse");
+      await setBad(page, true);
+      await expect.poll(() => style(page, "#f", "animationName")).toBe("nf-field-refuse");
       expect(await style(page, "#f", "animationDuration")).toBe("0.16s");
       expect(await style(page, "#f", "animationIterationCount")).toBe("1");
       expect(await style(page, "#f", "animationTimingFunction")).toBe("cubic-bezier(0.7, 0, 0.2, 1)");
@@ -84,12 +103,14 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the five motion gaps", () => {
       );
       expect(frames).toContain("translate3d(-4px, 0px, 0px)");
       expect(frames).toContain("translate3d(4px, 0px, 0px)");
-      /* Cleared and refused again: it is a new animation, so it shakes again. */
-      await page.evaluate(() => (window as unknown as { __setBad: (v: boolean) => void }).__setBad(false));
-      await page.waitForTimeout(250);
+      /* Once: it ends and clears its own marker, and does not run again while the field stays invalid. */
+      await expect.poll(() => page.evaluate(() => document.getElementById("f")!.hasAttribute("data-refused"))).toBe(false);
+      expect(await shaking(page)).toBe(0);
       expect(await style(page, "#f", "animationName")).toBe("none");
-      await page.evaluate(() => (window as unknown as { __setBad: (v: boolean) => void }).__setBad(true));
-      expect(await page.evaluate(() => document.getElementById("f")!.getAnimations().length)).toBe(1);
+      /* Cleared and refused again: it is a new animation, so it shakes again. */
+      await setBad(page, false);
+      await setBad(page, true);
+      await expect.poll(() => shaking(page)).toBe(1);
       /* The auth screens keep their own shake: the shared one is not stacked on it. */
       expect(await style(page, "#authf", "animationName")).not.toBe("nf-field-refuse");
     } finally {
@@ -106,8 +127,11 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the five motion gaps", () => {
     for (const { name, opts } of quiet) {
       const { page, close } = await mountInBrowser({ entry, css: CSS, ...opts });
       try {
-        await page.evaluate(() => (window as unknown as { __setBad: (v: boolean) => void }).__setBad(true));
+        await setBad(page, true);
+        await page.waitForTimeout(60);
+        expect(await page.evaluate(() => document.getElementById("f")!.hasAttribute("data-refused")), name).toBe(false);
         expect(await style(page, "#f", "animationName"), name).toBe("none");
+        expect(await shaking(page), name).toBe(0);
         expect(await style(page, "#ptr .nf-ptr__ring", "animationName"), name).toBe("none");
       } finally {
         await close();

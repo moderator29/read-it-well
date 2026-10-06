@@ -313,13 +313,15 @@
    * message (`Field`'s `nf-arrive` line) fades in beneath. Never a dialog. It
    * played on the sign-in screens only (auth.css, `useRefusalShake`); the
    * shared Field, which every other form uses, changed colour and nothing
-   * else. The animation is keyed by the attribute: it begins the moment the
-   * field BECOMES invalid and does not replay while it stays so. The auth
-   * screens keep their own (they alternate a/b so a repeat refusal shakes
-   * again), and Calm, Off and reduced motion draw none (the message is the
-   * answer).
+   * else. The animation is keyed by `data-refused`, which `lib/ui/refusal.ts`
+   * sets only when a field that is already on screen BECOMES invalid, and
+   * clears when the shake ends (so a second refusal plays again). It does NOT
+   * play for a field that mounts invalid (a form returned with its errors, a
+   * sheet reopening with one set). The auth screens keep their own (they
+   * alternate a/b so a repeat refusal shakes again), and Calm, Off and reduced
+   * motion draw none (the message is the answer).
    */
-  .nf-field[aria-invalid="true"]:not(.nf-auth .nf-field) {
+  .nf-field[data-refused]:not(.nf-auth .nf-field) {
     animation: nf-field-refuse var(--nf-duration-fast) var(--nf-ease-whip) both;
   }
   @keyframes nf-field-refuse {
@@ -331,11 +333,11 @@
     }
   }
   @media (prefers-reduced-motion: reduce) {
-    .nf-field[aria-invalid="true"]:not(.nf-auth .nf-field) {
+    .nf-field[data-refused]:not(.nf-auth .nf-field) {
       animation: none;
     }
   }
-  :root:is([data-motion="calm"], [data-motion="off"]) .nf-field[aria-invalid="true"] {
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-field[data-refused] {
     animation: none;
   }
 

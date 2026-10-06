@@ -54,7 +54,8 @@ describe("the form error, for every form (whip 160ms, 4px, once)", () => {
   const controls = strip(css("controls.css"));
 
   it("shakes the shared Field when it becomes invalid, and leaves the auth screens to their own", () => {
-    expect(controls).toContain('.nf-field[aria-invalid="true"]:not(.nf-auth .nf-field) {');
+    expect(controls).toContain(".nf-field[data-refused]:not(.nf-auth .nf-field) {");
+    expect(controls).not.toContain('.nf-field[aria-invalid="true"]:not(.nf-auth .nf-field)');
     expect(controls).toContain("animation: nf-field-refuse var(--nf-duration-fast) var(--nf-ease-whip) both");
     const frames = controls.slice(controls.indexOf("@keyframes nf-field-refuse"), controls.indexOf("@keyframes nf-field-refuse") + 200);
     expect(frames).toContain("translate3d(-4px, 0, 0)");
@@ -63,8 +64,8 @@ describe("the form error, for every form (whip 160ms, 4px, once)", () => {
   });
 
   it("draws none under reduced motion, Calm or Off", () => {
-    expect(controls).toMatch(/prefers-reduced-motion: reduce\) \{\s*\.nf-field\[aria-invalid="true"\]:not\(\.nf-auth \.nf-field\) \{\s*animation: none;/);
-    expect(controls).toMatch(/\[data-motion="calm"\], \[data-motion="off"\]\) \.nf-field\[aria-invalid="true"\] \{\s*animation: none;/);
+    expect(controls).toMatch(/prefers-reduced-motion: reduce\) \{\s*\.nf-field\[data-refused\]:not\(\.nf-auth \.nf-field\) \{\s*animation: none;/);
+    expect(controls).toMatch(/\[data-motion="calm"\], \[data-motion="off"\]\) \.nf-field\[data-refused\] \{\s*animation: none;/);
   });
 });
 
@@ -131,11 +132,10 @@ describe("principle 10, the marketing and loading loops (Session 3, C1)", () => 
       "app/css/ported.css": 1, // the assistant's thinking lines (spec)
       "components/app/assistant/assistant-answer.css": 1, // the assistant's thinking orb (spec)
       "app/welcome/get-started.css": 2, // the aurora's drift (spec)
-      "app/css/side-flip.css": 2, // the cover's three objects while the network is behind the flip
-      "app/css/motion.css": 1, // the counterpart's typing dots, a live signal
-      "app/css/auth.css": 1, // the waiting cell's caret
-      "app/css/animation.css": 1, // the verifying bar, indeterminate while the request runs
-      "app/css/symbols.css": 1, // `.nf-sym--loop`, opt in
+      /* KEPT BY THE LEAD'S RULING (Session 3): live presence signals, like the assistant's
+         thinking, each stopped by reduced motion, Calm, Off and data saver. */
+      "app/css/motion.css": 1, // the counterpart's typing dots
+      "app/css/auth.css": 1, // the waiting cell's caret blink
     };
     const root = join(process.cwd(), "src");
     const found: Record<string, number> = {};
@@ -151,5 +151,32 @@ describe("principle 10, the marketing and loading loops (Session 3, C1)", () => 
     };
     walk(root);
     expect(found).toEqual(KEPT);
+  });
+
+  it("the verifying bar, the flip cover's breathing and the opt-in symbol loop are bounded, with a held rest", () => {
+    const anim = strip(css("animation.css"));
+    expect(anim).toContain("nf-verify-sweep 1.15s cubic-bezier(0.65, 0, 0.35, 1) 3,");
+    expect(anim).toContain("nf-verify-settle var(--nf-duration-deliberate) var(--nf-ease-entrance) 3.45s forwards;");
+    expect(anim).toMatch(/@keyframes nf-verify-settle \{\s*from \{\s*transform: translateX\(-110%\);\s*\}\s*to \{\s*transform: translateX\(100%\);/);
+    const flip = strip(css("side-flip.css"));
+    expect(flip.match(/nf-flip-mini-breathe 1\.2s var\(--nf-ease-standard\) 3;/g)).toHaveLength(2);
+    /* It ends where it started: full light, so there is no jump when it stops. */
+    expect(flip).toMatch(/@keyframes nf-flip-mini-breathe \{\s*0%, 100% \{ opacity: 1; \}\s*50% \{ opacity: 0\.55; \}/);
+    expect(strip(css("symbols.css"))).toMatch(/\.nf-sym--loop \{\s*animation-iteration-count: 3;/);
+  });
+
+  it("the two kept loops, and the bounded ones, are still under data saver", () => {
+    const saver = strip(css("data-saver.css"));
+    for (const sel of [".nf-verify-sweep", ".nf-typing-dot", ".nf-code__cell[data-next]::after", ".nf-flip-cover__miniature[data-shimmer] > li"]) {
+      expect(saver).toContain(`:root[data-save-data="on"] ${sel}`);
+    }
+  });
+
+  it("the dock's chosen label stays nowrap while it animates and wraps only once settled", () => {
+    const shell = strip(css("shell-m.css"));
+    expect(shell).toContain("white-space 0s linear;");
+    expect(shell).toContain("transition-behavior: normal, normal, normal, normal, allow-discrete;");
+    expect(shell).toContain("transition-delay: 0s, 0s, 60ms, 0s, var(--nf-duration-base);");
+    expect(shell).toMatch(/white-space: normal;\s*text-wrap: balance;/);
   });
 });
