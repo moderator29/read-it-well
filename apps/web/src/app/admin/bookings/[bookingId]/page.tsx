@@ -10,6 +10,9 @@ import { fill } from "../../_components/copy";
 import { adminUi } from "../../_components/ui";
 import { ArrivalCheckRecord } from "@/components/app/arrival-check/ArrivalCheckRecord";
 import { ActingFor } from "../../_components/ActingFor";
+import { CaseHistory } from "../../_components/CaseHistory";
+import { PaperLedger, PaperLedgerRow, PaperStatus } from "../../_components/paper";
+import { DocHead, DocRow, DocRows, DocSection, DocumentSheet } from "@/components/app/money/DocumentSheet";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
@@ -167,84 +170,91 @@ export default async function AdminBookingPage({
           )}
         </ui.DetailSection>
 
-        <ui.DetailSection title={copy.sections.money}>
-          <ui.DetailRow label={f.perNight} value={money(stay.pricePerNightMinor)} />
-          <ui.DetailRow label={f.cleaning} value={money(stay.cleaningFeeMinor)} />
-          <ui.DetailRow label={f.service} value={money(stay.serviceFeeMinor)} />
-          <ui.DetailRow label={f.subtotal} value={money(stay.subtotalMinor)} />
-          <ui.DetailRow
-            label={f.total}
-            value={<span className="font-semibold">{money(stay.totalMinor)}</span>}
-          />
-          <ui.DetailRow label={f.settled} value={money(stay.paidMinor)} />
-          <ui.DetailRow label={f.returned} value={money(stay.refundedMinor)} />
-        </ui.DetailSection>
+      </div>
 
-        <ui.DetailSection title={copy.sections.payments}>
-          {stay.payments.length === 0 ? (
-            <p className="py-xs text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
-              {copy.noPayments}
-            </p>
-          ) : (
-            stay.payments.map((payment) => (
-              <ui.DetailRow
-                key={payment.id}
-                label={ui.when(payment.createdAt)}
-                value={
-                  <span>
-                    <span className="nf-numeric font-semibold">{money(payment.amountMinor)}</span>
-                    {" · "}
-                    {payment.provider}
-                    {" · "}
-                    {payment.status}
-                    {payment.reference ? (
-                      <span className="mt-3xs block break-all text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
-                        {payment.reference}
-                      </span>
-                    ) : null}
-                  </span>
-                }
-              />
-            ))
-          )}
-        </ui.DetailSection>
+      {/* THE PAYMENT RECORD, ON PAPER (D28.1). What the stay cost, what has been
+          settled, every attempt and every refund already decided is a RECORD, so
+          it is a light document sheet, the thing an operator screenshots for a
+          guest or an auditor. The cancellation control stays below it in the
+          console's own theme, because a control is never on the paper. */}
+      <section className="nf-admin-doc mt-md">
+        <DocumentSheet aria-labelledby="stay-record-title" data-testid="stay-payment-record">
+          <DocHead label={t.experienceAdmin.money.statementOverline} title={copy.sections.money} id="stay-record-title" />
+          <DocRows>
+            <DocRow label={f.perNight} numeric>{money(stay.pricePerNightMinor)}</DocRow>
+            <DocRow label={f.cleaning} numeric>{money(stay.cleaningFeeMinor)}</DocRow>
+            <DocRow label={f.service} numeric>{money(stay.serviceFeeMinor)}</DocRow>
+            <DocRow label={f.subtotal} numeric>{money(stay.subtotalMinor)}</DocRow>
+            <DocRow label={f.total} variant="total" numeric>{money(stay.totalMinor)}</DocRow>
+          </DocRows>
+          <DocRows className="nf-doc__rows--confirm">
+            <DocRow label={f.settled} numeric>{money(stay.paidMinor)}</DocRow>
+            <DocRow label={f.returned} numeric>{money(stay.refundedMinor)}</DocRow>
+          </DocRows>
 
-        <ui.DetailSection title={copy.sections.refunds}>
-          {stay.refunds.length === 0 ? (
-            <p className="py-xs text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">{copy.noRefunds}</p>
-          ) : (
-            stay.refunds.map((refund) => (
-              <ui.DetailRow
-                key={refund.id}
-                label={fill(copy.decidedBy, {
-                  who: refund.decidedByName ?? copy.unnamed,
-                  when: ui.when(refund.createdAt),
-                })}
-                value={
-                  <span>
-                    <span className="block">
-                      {fill(copy.refundLine, {
-                        refund: money(refund.refundMinor),
-                        retained: money(refund.retainedMinor),
-                      })}
-                    </span>
-                    <span className="mt-3xs block text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
-                      {copy.reasons[refund.reason as CancellationReason] ?? refund.reason}
-                    </span>
-                    {refund.note ? <span className="mt-3xs block">{refund.note}</span> : null}
-                    {refund.reference ? (
-                      <span className="mt-3xs block break-all text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
-                        {refund.reference}
-                      </span>
-                    ) : null}
-                  </span>
-                }
-              />
-            ))
-          )}
-        </ui.DetailSection>
+          <DocSection title={copy.sections.payments}>
+            {stay.payments.length === 0 ? (
+              <p className="nf-doc__note">{copy.noPayments}</p>
+            ) : (
+              <PaperLedger label={copy.sections.payments}>
+                {stay.payments.map((payment) => (
+                  <PaperLedgerRow
+                    key={payment.id}
+                    when={ui.when(payment.createdAt)}
+                    title={`${payment.provider}`}
+                    sub={payment.reference ? <span className="font-mono">{payment.reference}</span> : undefined}
+                    amount={money(payment.amountMinor)}
+                    status={
+                      <PaperStatus state={payment.status === "SUCCESSFUL" ? "done" : payment.status === "FAILED" ? "failed" : "waiting"}>
+                        {ui.statusLabel(payment.status)}
+                      </PaperStatus>
+                    }
+                  />
+                ))}
+              </PaperLedger>
+            )}
+          </DocSection>
 
-        <ui.DetailSection title={copy.sections.history}>
+          <DocSection title={copy.sections.refunds}>
+            {stay.refunds.length === 0 ? (
+              <p className="nf-doc__note">{copy.noRefunds}</p>
+            ) : (
+              <PaperLedger label={copy.sections.refunds}>
+                {stay.refunds.map((refund) => (
+                  <PaperLedgerRow
+                    key={refund.id}
+                    when={ui.when(refund.createdAt)}
+                    title={refund.decidedByName ?? copy.unnamed}
+                    sub={
+                      <>
+                        {copy.reasons[refund.reason as CancellationReason] ?? refund.reason}
+                        {refund.note ? ` · ${refund.note}` : ""}
+                        {refund.reference ? <span className="block font-mono">{refund.reference}</span> : null}
+                      </>
+                    }
+                    amount={
+                      <>
+                        {money(refund.refundMinor)}
+                        <span className="block text-[length:var(--nf-text-overline)] font-normal text-[var(--nf-content-muted)]">
+                          {fill(copy.refundLine, { refund: money(refund.refundMinor), retained: money(refund.retainedMinor) })}
+                        </span>
+                      </>
+                    }
+                  />
+                ))}
+              </PaperLedger>
+            )}
+          </DocSection>
+        </DocumentSheet>
+      </section>
+
+      <div className="nf-panel nf-panel--card nf-admin-card mt-md p-md sm:p-lg">
+        <CaseHistory
+          title={copy.sections.history}
+          hint={t.experienceAdmin.cases.historyCount.replace("{count}", String(stay.events.length))}
+          testId="booking-history"
+        >
+          <dl>
           {stay.events.map((event) => (
             <ui.DetailRow
               key={event.id}
@@ -265,7 +275,16 @@ export default async function AdminBookingPage({
               }
             />
           ))}
-        </ui.DetailSection>
+          </dl>
+        </CaseHistory>
+        <p className="mt-sm">
+          <Link
+            href={`/admin/audit?who=all&q=${stay.id}`}
+            className="inline-flex min-h-11 items-center text-[length:var(--nf-text-caption)] font-medium underline underline-offset-2"
+          >
+            {t.experienceAdmin.cases.trailLink}
+          </Link>
+        </p>
 
         {cancellable ? (
           <StayCancel bookingId={stay.id} copy={copy} common={common} locale={locale} />

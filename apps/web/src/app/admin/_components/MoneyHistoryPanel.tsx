@@ -2,13 +2,15 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
 import type { Locale } from "@vallo/i18n/core";
 import { Amount, Figure } from "@/components/ui/Amount";
-import { StatusPill } from "@/components/ui/StatusPill";
-import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/Table";
+import type { StatusTone } from "@/components/ui/StatusPill";
+import { getDictionary } from "@vallo/i18n";
+import { DocHead, DocRow, DocRows, DocumentSheet } from "@/components/app/money/DocumentSheet";
+import { PaperLedger, PaperLedgerRow, PaperStatus, type PaperState } from "./paper";
 import { formatMoneyDate } from "@/lib/money/dates";
 import { readAdminMoneyHistory } from "@/lib/money/history";
 import { KIND_LABEL, statusFor } from "@/lib/money/history-model";
 import { ADMIN_HISTORY_NOTE, ADMIN_HISTORY_UNAVAILABLE } from "@/lib/money/copy";
-import { CalmNote, Panel } from "./panels";
+import { CalmNote } from "./panels";
 
 /**
  * THE PLATFORM-WIDE HISTORY ON THE MONEY DESK (`id="history"`).
@@ -39,87 +41,69 @@ export async function MoneyHistoryPanel({
 }) {
   const read = await readAdminMoneyHistory(userClient, { limit: PANEL_ROWS });
 
-  return (
-    <Panel
-      id="history"
-      title="Payments and refunds"
-      action={
-        <a href="/admin/money/export" download className="nf-admin-panel__link" data-testid="money-history-csv">
-          Download CSV
-        </a>
-      }
-    >
-      <p className="mb-sm text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]">{ADMIN_HISTORY_NOTE}</p>
-      {read.state !== "ok" ? (
-        <CalmNote kind="error" title="Not available" fills={ADMIN_HISTORY_UNAVAILABLE} />
-      ) : (
-        <>
-          <dl className="grid grid-cols-2 gap-sm sm:grid-cols-3" data-testid="money-history-summary">
-            {[
-              { label: "Paid by renters and guests", minor: read.summary.grossMinor },
-              { label: "Settled to listers", minor: read.summary.listerMinor },
-              { label: "To the Guarantee reserve", minor: read.summary.guaranteeMinor },
-              { label: "Vallo commission", minor: read.summary.commissionMinor },
-              { label: "Refunded (processed)", minor: read.summary.refundedMinor },
-            ].map((fact) => (
-              <div key={fact.label}>
-                <dt className="text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">{fact.label}</dt>
-                <dd className="mt-3xs font-semibold text-[var(--nf-content-primary)]">
-                  <Amount minorUnits={fact.minor} locale={locale} showFraction />
-                </dd>
-              </div>
-            ))}
-            <div>
-              <dt className="text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">Payments</dt>
-              <dd className="mt-3xs font-semibold text-[var(--nf-content-primary)]">
-                <Figure value={read.summary.payments} locale={locale} />
-              </dd>
-            </div>
-          </dl>
+  const t = getDictionary(locale);
+  const x = t.experienceAdmin.money;
 
-          {read.entries.length === 0 ? (
-            <p className="mt-md text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
-              No payment or refund has been recorded on the platform yet.
-            </p>
-          ) : (
-            <div className="mt-md overflow-x-auto">
-              <Table caption={`The latest ${PANEL_ROWS} payments and refunds`} density="dense">
-                <THead>
-                  <TR>
-                    <TH>When</TH>
-                    <TH>Kind</TH>
-                    <TH>Listing</TH>
-                    <TH>Payer</TH>
-                    <TH>Payee</TH>
-                    <TH align="end">Amount</TH>
-                    <TH>State</TH>
-                  </TR>
-                </THead>
-                <TBody>
-                  {read.entries.map((entry) => {
-                    const status = statusFor(entry.kind, entry.status);
-                    return (
-                      <TR key={entry.id}>
-                        <TD>{formatMoneyDate(entry.occurredAt, locale, { withTime: true })}</TD>
-                        <TD>{KIND_LABEL[entry.kind]}</TD>
-                        <TD>{entry.title ?? "A property"}</TD>
-                        <TD>{entry.payerName ?? "Not recorded"}</TD>
-                        <TD>{entry.payeeName ?? (entry.kind === "refund" ? "Back to the payer" : "Not recorded")}</TD>
-                        <TD align="end">
-                          <Amount minorUnits={entry.amountMinor} locale={locale} showFraction />
-                        </TD>
-                        <TD>
-                          <StatusPill tone={status.tone}>{status.label}</StatusPill>
-                        </TD>
-                      </TR>
-                    );
-                  })}
-                </TBody>
-              </Table>
-            </div>
-          )}
-        </>
-      )}
-    </Panel>
+  return (
+    <section id="history" className="nf-admin-doc nf-admin-anchor">
+      <DocumentSheet aria-labelledby="history-title" data-testid="money-history">
+        <DocHead label={x.historyOverline} title={x.historyTitle} id="history-title" />
+        <p className="nf-doc__note">{ADMIN_HISTORY_NOTE}</p>
+        {read.state !== "ok" ? (
+          <div className="mt-sm">
+            <CalmNote kind="error" title="Not available" fills={ADMIN_HISTORY_UNAVAILABLE} />
+          </div>
+        ) : (
+          <>
+            <DocRows testId="money-history-summary">
+              {[
+                { label: "Paid by renters and guests", minor: read.summary.grossMinor },
+                { label: "Settled to listers", minor: read.summary.listerMinor },
+                { label: "To the Guarantee reserve", minor: read.summary.guaranteeMinor },
+                { label: "Vallo commission", minor: read.summary.commissionMinor },
+                { label: "Refunded (processed)", minor: read.summary.refundedMinor },
+              ].map((fact) => (
+                <DocRow key={fact.label} label={fact.label} numeric>
+                  <Amount minorUnits={fact.minor} locale={locale} showFraction />
+                </DocRow>
+              ))}
+              <DocRow label="Payments" numeric>
+                <Figure value={read.summary.payments} locale={locale} />
+              </DocRow>
+            </DocRows>
+
+            {read.entries.length === 0 ? (
+              <p className="nf-doc__note">No payment or refund has been recorded on the platform yet.</p>
+            ) : (
+              <PaperLedger label={`The latest ${PANEL_ROWS} payments and refunds`}>
+                {read.entries.map((entry) => {
+                  const status = statusFor(entry.kind, entry.status);
+                  return (
+                    <PaperLedgerRow
+                      key={entry.id}
+                      when={formatMoneyDate(entry.occurredAt, locale, { withTime: true })}
+                      title={`${KIND_LABEL[entry.kind]} · ${entry.title ?? "A property"}`}
+                      sub={`${entry.payerName ?? "Not recorded"} to ${entry.payeeName ?? (entry.kind === "refund" ? "back to the payer" : "not recorded")}`}
+                      amount={<Amount minorUnits={entry.amountMinor} locale={locale} showFraction />}
+                      status={<PaperStatus state={paperStateFor(status.tone)}>{status.label}</PaperStatus>}
+                    />
+                  );
+                })}
+              </PaperLedger>
+            )}
+          </>
+        )}
+        <p className="nf-doc__note">
+          <a href="/admin/money/export" download className="underline" data-testid="money-history-csv">
+            Download CSV
+          </a>
+        </p>
+      </DocumentSheet>
+    </section>
   );
+}
+
+/** The ledger's states on paper: a word and a shape, from the tone the money model already chose. */
+function paperStateFor(tone: StatusTone): PaperState {
+  return tone === "success" ? "done" : tone === "danger" ? "failed" : tone === "neutral" ? "neutral" : "waiting";
 }

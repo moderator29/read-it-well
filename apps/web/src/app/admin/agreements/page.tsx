@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { formatMoney } from "@vallo/i18n/core";
+import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
+import { rulingWords } from "../_components/rulings";
 import { requireAdmin } from "@/lib/admin/guard";
 import { readAgreementQueue, readGuaranteeDesk } from "@/lib/admin/reads/agreements";
 import { GuaranteeClaims } from "../money/GuaranteeDesk";
@@ -47,7 +49,7 @@ export default async function AgreementsDeskPage() {
       {claimsDesk.state !== "ok" ? (
         <p className="nf-body">The claims could not be read just now. Refresh to try again.</p>
       ) : (
-        <GuaranteeClaims claims={claimsDesk.claims} locale={locale} />
+        <GuaranteeClaims claims={claimsDesk.claims} locale={locale} words={rulingWords(getDictionary(locale))} />
       )}
     </Panel>
   ) : null;

@@ -7,6 +7,8 @@ import { getRevenueSummary, REVENUE_WINDOW_DAYS } from "@/lib/admin/revenue-quer
 import type { RevenueSummary } from "@/lib/admin/revenue-queries";
 import { adminUi, type AdminUi } from "../_components/ui";
 import { FeeRateForm } from "../_components/MoneyDecisions";
+import { PaperLedger, PaperLedgerRow, PaperStatus } from "../_components/paper";
+import { DocFigure, DocHead, DocRow, DocRows, DocSection, DocState, DocumentSheet } from "@/components/app/money/DocumentSheet";
 
 export const metadata: Metadata = {
   title: "Fees",
@@ -122,6 +124,7 @@ function Earned({
   ui: AdminUi;
   locale: Awaited<ReturnType<typeof getLocale>>;
 }) {
+  const t = getDictionary(locale);
   if (!summary) {
     return (
       <ui.Section title="What the platform has earned">
@@ -130,71 +133,52 @@ function Earned({
     );
   }
 
+  /* The revenue ledger is a RECORD, so it is a statement on paper (D28.1):
+     the window's total leads, then where it came from, then the latest entries.
+     Nothing on it is a control. */
   return (
-    <ui.Section
-      title="What the platform has earned"
-      hint={`Booked to the revenue ledger, which is written in the same transaction that credits the payee. Totals cover the last ${summary.windowDays} days.`}
-    >
-      <ui.StatRow>
-        <ui.Stat
-          label={`Last ${summary.windowDays} days`}
-          value={formatMoney(summary.windowTotalMinor, locale)}
-          hint={summary.windowTotalMinor === 0 ? "Every rate is zero today" : undefined}
-        />
-        <ui.Stat
-          label="All time"
-          value={formatMoney(summary.allTimeMinor, locale)}
-          hint="Since the revenue ledger existed"
-        />
-      </ui.StatRow>
-
-      <div className="nf-panel nf-panel--card nf-admin-card">
-        <ul className="nf-rows nf-group">
+    <section className="nf-admin-doc">
+      <DocumentSheet aria-labelledby="earned-title" data-testid="revenue-statement">
+        <DocHead label={t.experienceAdmin.money.statementOverline} title="What the platform has earned" id="earned-title" />
+        <p className="nf-doc__label mt-sm">{`Last ${summary.windowDays} days`}</p>
+        <DocFigure>{formatMoney(summary.windowTotalMinor, locale)}</DocFigure>
+        {summary.windowTotalMinor === 0 && <p className="nf-doc__note">Every rate is zero today</p>}
+        <DocRows>
+          <DocRow label="All time" numeric>
+            {formatMoney(summary.allTimeMinor, locale)}
+          </DocRow>
           {summary.bySource.map((line) => (
-            <li key={line.source} className="nf-row">
-              <span className="min-w-0 flex-1">
-                <span className="nf-body block font-semibold text-content">
-                  {SOURCE_LABEL[line.source] ?? line.source}
-                </span>
-                <span className="nf-caption block">
-                  {line.entries === 0
-                    ? "Nothing booked in this window"
-                    : countOf(line.entries, "entries")}
-                </span>
+            <DocRow key={line.source} label={SOURCE_LABEL[line.source] ?? line.source} numeric>
+              {formatMoney(line.amountMinor, locale)}
+              <span className="block text-[length:var(--nf-text-overline)] font-normal text-[var(--nf-content-muted)]">
+                {line.entries === 0 ? "Nothing booked in this window" : countOf(line.entries, "entries")}
               </span>
-              <span className="nf-numeric nf-body shrink-0 font-bold">
-                {formatMoney(line.amountMinor, locale)}
-              </span>
-            </li>
+            </DocRow>
           ))}
-        </ul>
-      </div>
+        </DocRows>
+        <p className="nf-doc__note">
+          Booked to the revenue ledger, which is written in the same transaction that credits the payee. Totals cover the last{" "}
+          {summary.windowDays} days. All time is since the revenue ledger existed.
+        </p>
 
-      {summary.recent.length > 0 && (
-        <div className="mt-block">
-          <h3 className="nf-overline">The most recent entries</h3>
-          <div className="nf-panel nf-panel--card nf-admin-card mt-heading">
-            <ul className="nf-rows nf-group">
+        {summary.recent.length > 0 && (
+          <DocSection title="The most recent entries">
+            <PaperLedger label="The most recent revenue entries">
               {summary.recent.map((entry) => (
-                <li key={entry.id} className="nf-row">
-                  <span className="min-w-0 flex-1">
-                    <span className="nf-body block font-semibold text-content">
-                      {SOURCE_LABEL[entry.source] ?? entry.source}
-                    </span>
-                    <span className="nf-caption block truncate">
-                      {entry.reference} · {ui.when(entry.createdAt)}
-                    </span>
-                  </span>
-                  <span className="nf-numeric nf-body shrink-0 font-bold">
-                    {formatMoney(entry.amountMinor, locale)}
-                  </span>
-                </li>
+                <PaperLedgerRow
+                  key={entry.id}
+                  when={ui.when(entry.createdAt)}
+                  title={SOURCE_LABEL[entry.source] ?? entry.source}
+                  sub={<span className="font-mono">{entry.reference}</span>}
+                  amount={formatMoney(entry.amountMinor, locale)}
+                  status={<PaperStatus state="done">Booked</PaperStatus>}
+                />
               ))}
-            </ul>
-          </div>
-        </div>
-      )}
-    </ui.Section>
+            </PaperLedger>
+          </DocSection>
+        )}
+      </DocumentSheet>
+    </section>
   );
 }
 
@@ -215,42 +199,54 @@ function FeeSection({
 }) {
   const live = rates.find((r) => r.inForce);
 
+  /* THE RATE IS A RECORD, THE FORM IS A CONTROL. What is in force and every rate
+     there has ever been are drawn on a sheet of paper, because that history is
+     exactly what gets shown to a lister or an auditor who asks what was
+     charged. Changing a rate is a form, so it sits under the paper in the
+     console's own theme, never on it. */
   return (
-    <section className="nf-panel nf-panel--card nf-admin-card nf-section--tight p-card">
-      <h2 className="nf-h4">{title}</h2>
-      <p className="nf-body-sm mt-row max-w-[68ch] text-content-2">{blurb}</p>
+    <section className="nf-admin-doc" aria-labelledby={`fee-${kind}`}>
+      <DocumentSheet aria-labelledby={`fee-${kind}`} data-testid={`fee-${kind}`}>
+        <DocHead label="Rate" title={title} id={`fee-${kind}`} />
+        <p className="nf-doc__note">{blurb}</p>
 
-      <p className="nf-numeric nf-h2 mt-group text-content">
-        {live ? describe(live, locale) : "No rate on record"}
-      </p>
-      <p className="nf-caption mt-inline-tight">
-        {live
-          ? inForceCaption(live.effectiveFrom, ui.when)
-          : "Nothing is being charged, because no rate exists at all. That is a bug rather than a decision."}
-      </p>
+        <DocFigure>{live ? describe(live, locale) : "No rate on record"}</DocFigure>
+        <p className="nf-doc__note">
+          {live
+            ? inForceCaption(live.effectiveFrom, ui.when)
+            : "Nothing is being charged, because no rate exists at all. That is a bug rather than a decision."}
+        </p>
 
-      <h3 className="nf-overline mt-block">Every rate there has ever been</h3>
-      <ul className="mt-heading">
-        {rates.map((rate) => (
-          <li
-            key={rate.id}
-            className="flex flex-wrap items-baseline justify-between gap-x-group gap-y-inline-tight border-t border-[var(--nf-border-subtle)] py-row"
-          >
-            <span className="min-w-0">
-              <span className="nf-body font-medium text-content">{describe(rate, locale)}</span>
-              {rate.inForce && <span className="nf-badge nf-badge--brand ml-inline">In force</span>}
-              {rate.scheduled && <span className="nf-badge ml-inline">Starts later</span>}
-              {rate.note && (
-                <span className="nf-caption mt-inline-tight block max-w-[68ch]">{rate.note}</span>
-              )}
-            </span>
-            <span className="nf-caption shrink-0 text-right">
-              <span className="block">{rateStartLabel(rate.effectiveFrom, ui.when)}</span>
-              {rate.setByName && <span className="block">{rate.setByName}</span>}
-            </span>
-          </li>
-        ))}
-      </ul>
+        <DocSection title="Every rate there has ever been">
+          <DocRows>
+            {rates.map((rate) => (
+              <DocRow key={rate.id} label={rateStartLabel(rate.effectiveFrom, ui.when)}>
+                <span className="block font-medium">
+                  {describe(rate, locale)}
+                  {rate.inForce && (
+                    <span className="ml-xs">
+                      <DocState done>In force</DocState>
+                    </span>
+                  )}
+                  {rate.scheduled && (
+                    <span className="ml-xs">
+                      <DocState done={false}>Starts later</DocState>
+                    </span>
+                  )}
+                </span>
+                {rate.setByName && (
+                  <span className="block text-[length:var(--nf-text-overline)] font-normal text-[var(--nf-content-muted)]">
+                    {rate.setByName}
+                  </span>
+                )}
+                {rate.note && (
+                  <span className="block text-[length:var(--nf-text-overline)] font-normal text-[var(--nf-content-muted)]">{rate.note}</span>
+                )}
+              </DocRow>
+            ))}
+          </DocRows>
+        </DocSection>
+      </DocumentSheet>
 
       <FeeRateForm
         kind={kind}

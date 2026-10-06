@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { formatMoney, type Locale } from "@vallo/i18n/core";
 import { ruleCautionDispute, ruleCautionReturn } from "@/lib/admin/caution-desk-actions";
 import type { CautionDesk, CautionDispute, ContestedReturn } from "@/lib/admin/reads/caution-desk";
+import { DragToConfirm } from "@/components/ui/DragToConfirm";
+import type { RulingWords } from "../_components/rulings";
 
 /**
  * THE CAUTION DESK. V-36.
@@ -28,19 +30,24 @@ const ITEM_LABEL: Record<string, string> = {
 
 const METHOD_LABEL: Record<string, string> = { bank_transfer: "bank transfer", cash: "cash", other: "other" };
 
+/**
+ * A ruling is a slide (COMPONENT_LIBRARY, `DragToConfirm`: "an admin ruling on
+ * a dispute"), and a slide is only confirmed once the server has said so, so
+ * `run` hands back what the server said and the track never claims a decision
+ * that was refused.
+ */
 function useRun() {
-  const [pending, start] = useTransition();
   const [message, setMessage] = useState<string | null>(null);
-  const run = (fn: () => Promise<{ ok: boolean; error?: string }>, done: string) =>
-    start(async () => {
-      const result = await fn();
-      setMessage(result.ok ? done : (result.error ?? "That did not go through."));
-    });
-  return { pending, message, run };
+  const run = async (fn: () => Promise<{ ok: boolean; error?: string }>, done: string): Promise<boolean> => {
+    const result = await fn();
+    setMessage(result.ok ? done : (result.error ?? "That did not go through."));
+    return result.ok;
+  };
+  return { message, run };
 }
 
-function DisputeItem({ row, locale }: { row: CautionDispute; locale: Locale }) {
-  const { pending, message, run } = useRun();
+function DisputeItem({ row, locale, words }: { row: CautionDispute; locale: Locale; words: RulingWords }) {
+  const { message, run } = useRun();
   const [allowed, setAllowed] = useState(String(row.amountMinor / 100));
   const [reason, setReason] = useState("");
   return (
@@ -76,30 +83,35 @@ function DisputeItem({ row, locale }: { row: CautionDispute; locale: Locale }) {
             Reason (both parties read it)
             <input className="nf-field mt-3xs" value={reason} maxLength={1000} onChange={(e) => setReason(e.target.value)} />
           </label>
-          <button
-            type="button"
-            className="nf-btn nf-btn--primary"
-            disabled={pending || reason.trim().length < 10}
-            onClick={() =>
+          {/* The amount that stands decides how much of a caution is kept, so
+              the ruling is a money slide: it never resets once confirmed. */}
+          <DragToConfirm
+            money
+            label={words.slideRule}
+            confirmingLabel={words.confirming}
+            confirmedLabel={words.confirmed}
+            errorLabel={words.error}
+            disabled={reason.trim().length < 10}
+            onConfirm={() =>
               run(
                 () => ruleCautionDispute({ deductionId: row.deductionId, allowedNaira: allowed, reason }),
                 "Ruled. Both parties were told.",
               )
             }
-          >
-            Rule
-          </button>
+            data-testid="caution-rule"
+          />
         </div>
       </div>
     </li>
   );
 }
 
-function ReturnItem({ row, locale }: { row: ContestedReturn; locale: Locale }) {
-  const { pending, message, run } = useRun();
+function ReturnItem({ row, locale, words }: { row: ContestedReturn; locale: Locale; words: RulingWords }) {
+  const { message, run } = useRun();
   const [reason, setReason] = useState("");
   const rule = (outcome: "received" | "not_received") =>
     run(() => ruleCautionReturn({ returnId: row.returnId, outcome, reason }), "Ruled. Both parties were told.");
+  const blocked = reason.trim().length < 10;
   return (
     <li className="nf-admin-queue-row" data-testid="caution-return-row">
       <div className="nf-admin-queue-row__main">
@@ -125,13 +137,25 @@ function ReturnItem({ row, locale }: { row: ContestedReturn; locale: Locale }) {
             Reason (both parties read it)
             <input className="nf-field mt-3xs" value={reason} maxLength={1000} onChange={(e) => setReason(e.target.value)} />
           </label>
-          <div className="flex gap-inline">
-            <button type="button" className="nf-btn nf-btn--primary" disabled={pending || reason.trim().length < 10} onClick={() => rule("received")}>
-              Received
-            </button>
-            <button type="button" className="nf-btn nf-btn--ghost" disabled={pending || reason.trim().length < 10} onClick={() => rule("not_received")}>
-              Not received
-            </button>
+          <div className="grid gap-inline">
+            <DragToConfirm
+              label={words.slideReceived}
+              confirmingLabel={words.confirming}
+              confirmedLabel={words.confirmed}
+              errorLabel={words.error}
+              disabled={blocked}
+              onConfirm={() => rule("received")}
+              data-testid="caution-received"
+            />
+            <DragToConfirm
+              label={words.slideNotReceived}
+              confirmingLabel={words.confirming}
+              confirmedLabel={words.confirmed}
+              errorLabel={words.error}
+              disabled={blocked}
+              onConfirm={() => rule("not_received")}
+              data-testid="caution-not-received"
+            />
           </div>
         </div>
       </div>
@@ -139,7 +163,7 @@ function ReturnItem({ row, locale }: { row: ContestedReturn; locale: Locale }) {
   );
 }
 
-export function CautionRulings({ desk, locale }: { desk: CautionDesk; locale: Locale }) {
+export function CautionRulings({ desk, locale, words }: { desk: CautionDesk; locale: Locale; words: RulingWords }) {
   if (desk.state === "forbidden") {
     return <p className="nf-body text-[var(--nf-content-secondary)]">Your account cannot rule on cautions.</p>;
   }
@@ -154,14 +178,14 @@ export function CautionRulings({ desk, locale }: { desk: CautionDesk; locale: Lo
       {desk.disputes.length > 0 ? (
         <ul className="nf-admin-queue">
           {desk.disputes.map((row) => (
-            <DisputeItem key={row.deductionId} row={row} locale={locale} />
+            <DisputeItem key={row.deductionId} row={row} locale={locale} words={words} />
           ))}
         </ul>
       ) : null}
       {desk.returns.length > 0 ? (
         <ul className="nf-admin-queue">
           {desk.returns.map((row) => (
-            <ReturnItem key={row.returnId} row={row} locale={locale} />
+            <ReturnItem key={row.returnId} row={row} locale={locale} words={words} />
           ))}
         </ul>
       ) : null}
