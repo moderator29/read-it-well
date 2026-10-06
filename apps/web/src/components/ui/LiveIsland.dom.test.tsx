@@ -194,6 +194,9 @@ describe.skipIf(!hasBrowser && !process.env.CI)("LiveIsland", () => {
       init: `document.body.insertAdjacentHTML("beforeend", '<main class="nf-main--docked"></main>');`,
     });
     try {
+      /* Measured where it rests: the island rises into place, and on a loaded
+         machine its entrance can still be in flight at the first frame. */
+      await page.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished)));
       const box = (await page.getByTestId("island").boundingBox())!;
       /* Its bottom edge is above the 90px the dock reserves. */
       expect(box.y + box.height).toBeLessThanOrEqual(844 - 90 + 1);
