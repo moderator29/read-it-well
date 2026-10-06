@@ -1052,9 +1052,25 @@
   }
 
   /* ---- 1. primary: the blue pill -------------------------------------- */
+  /*
+   * THE PRIMARY'S TOP LIGHT STAYS UNDER THE WHITE LABEL'S CEILING (the control
+   * contrast suite, Session 3). The guide's blue ramp opens at #1A75FF, and the
+   * label measured 4.30:1 on that top row at rest and 3.8:1 on the lighter
+   * hover ramp, under the 4.5:1 a 16px label needs. The ramp is built from the
+   * brand blue itself now (`--nf-act-blue`, 5.2:1 under white): a little light
+   * on the top row, the brand blue in the middle, a little shade at the foot.
+   * Hover does not go lighter than rest, because lighter is exactly what falls
+   * under the floor; it deepens by a hair instead. `control-contrast.dom.test`
+   * measures the paint.
+   */
   .nf-btn--primary {
     color: var(--nf-act-on);
-    background: var(--nf-act-fill);
+    background: linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--nf-act-blue) 97%, white) 0%,
+      var(--nf-act-blue) 55%,
+      color-mix(in oklab, var(--nf-act-blue) 92%, black) 100%
+    );
     border: var(--nf-border-width) solid transparent;
     box-shadow: var(--nf-act-shadow);
     text-shadow: none;
@@ -1203,8 +1219,12 @@
   .nf-btn--danger:active:not(:disabled, [aria-disabled="true"]) {
     background: color-mix(in oklab, var(--nf-state-error) 62%, black);
   }
+  /* The label is the error colour drawn toward the theme's own ink, so it keeps
+     4.5:1 on the rose wash its hover and press deepen (paper measured 4.0:1 on
+     hover and 3.7:1 on press with the bare error colour; the control contrast
+     suite). The wash and the edge are unchanged. */
   .nf-btn--danger-quiet {
-    color: var(--nf-state-error);
+    color: color-mix(in oklab, var(--nf-state-error) 78%, var(--nf-content-primary));
     background: var(--nf-state-error-surface);
     border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-state-error) 34%, transparent);
     box-shadow: none;
@@ -1269,7 +1289,12 @@
   /* ---- hover: pointer devices only, never under the finger ------------ */
   @media (hover: hover) and (pointer: fine) {
     .nf-btn--primary:hover:not(:disabled, [aria-disabled="true"], :active) {
-      background: var(--nf-act-fill-hover);
+      background: linear-gradient(
+        180deg,
+        var(--nf-act-blue) 0%,
+        var(--nf-act-blue) 55%,
+        color-mix(in oklab, var(--nf-act-blue) 88%, black) 100%
+      );
       box-shadow: var(--nf-act-ring);
       filter: none;
     }
