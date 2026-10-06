@@ -13,3 +13,8 @@ import { useScopedCopy } from "@/lib/i18n/copy-scope";
 export function useHostCopy() {
   return useScopedCopy("hostWorkspace");
 }
+
+/** The host pages' own words (`experienceHost`), from the route's CopyScope. */
+export function useHostPageCopy() {
+  return useScopedCopy("experienceHost");
+}

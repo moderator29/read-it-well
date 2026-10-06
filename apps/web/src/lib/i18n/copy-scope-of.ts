@@ -26,6 +26,8 @@ export type ScopedCopy = {
   myReports: Dictionary["platform"]["myReports"];
   hostWorkspace: Dictionary["hostWorkspace"];
   featuresWizard: Dictionary["experienceFeatures"]["wizard"];
+  /** The host pages' own words (C5), for the host workspace's client islands. */
+  experienceHost: Dictionary["experienceHost"];
 };
 
 export type ScopeKey = keyof ScopedCopy;
@@ -38,6 +40,7 @@ const READ: { [K in ScopeKey]: (t: Dictionary) => ScopedCopy[K] } = {
   myReports: (t) => t.platform.myReports,
   hostWorkspace: (t) => t.hostWorkspace,
   featuresWizard: (t) => t.experienceFeatures.wizard,
+  experienceHost: (t) => t.experienceHost,
 };
 
 export const ALL_SCOPE_KEYS = Object.keys(READ) as ScopeKey[];
