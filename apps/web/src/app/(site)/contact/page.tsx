@@ -60,7 +60,7 @@ export default async function ContactPage({
 
         {/* ------------------------------------------------ the promise */}
         <Reveal as="section" className="mt-section">
-          <div className="nf-panel nf-panel--card block p-card text-center-lg">
+          <div className="nf-island p-card text-center-lg">
             {/*
               The hero used to be a large mailto to support@rentme.ng, a
               mailbox that does not exist, sitting directly above a form that

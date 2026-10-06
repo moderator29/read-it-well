@@ -6,6 +6,7 @@ import type { BrandIconName } from "@/design-system/icons/BrandIcon";
 import { ButtonLink } from "@/components/ui/Button";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { IconPlate } from "@/components/ui/IconPlate";
+import "@/components/site/guides/docs-type.css";
 import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
 
 /* A10: the title and description in the page's own language, with its
@@ -94,16 +95,19 @@ export default function AboutPage() {
 
         {/* ----------------------------------------------------- mission */}
         <Reveal as="section" className="mt-section">
-          <div className="nf-panel nf-panel--card block p-card-lg">
+          {/* The mission is the page's one Island (Session 3, stage 9), and its
+              first paragraph is set as the statement it is: the display face
+              at lead size, with the supporting paragraph at reading size. */}
+          <div className="nf-island p-card-lg">
             <h2 className="nf-overline">Our mission</h2>
-            <p className="mt-row text-[1.0625rem] font-medium leading-relaxed sm:text-[1.125rem]">
+            <p className="nf-lead-statement mt-row">
               To make finding a place in Nigeria as simple as messaging a
               friend, whether it is a flat for the year, a house to buy, a hotel room
               for Friday or a table for six, so that nobody pays for a room that does
               not exist, queues for an agent who never shows, or settles for less
               because the good options were hidden.
             </p>
-            <p className="mt-row text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
+            <p className="mt-row text-[length:var(--nf-text-row)] leading-[1.6] text-[var(--nf-content-secondary)]">
               Too much of Nigerian renting still runs on hearsay, a chain of agents on
               one property and a cost nobody will state until you are standing in the
               flat. We are not removing the agent, who holds most of the supply in this
@@ -119,7 +123,7 @@ export default function AboutPage() {
         <Reveal as="section" className="mt-heading">
           <div className="nf-panel nf-panel--card block p-card-lg">
             <h2 className="nf-overline">Our vision</h2>
-            <p className="mt-row text-[1.0625rem] font-medium leading-relaxed sm:text-[1.125rem]">
+            <p className="nf-lead-statement mt-row">
               A Nigeria where anyone can find a place, see the whole cost of it and
               deal with whoever is actually behind it, from a Lagos flat let for the
               year to a Calabar kitchen held for one evening, in their own language
