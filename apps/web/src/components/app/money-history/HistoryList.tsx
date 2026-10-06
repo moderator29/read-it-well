@@ -44,6 +44,7 @@ export function HistoryList({
   paged,
   locale,
   heading,
+  linkToBooking = false,
 }: {
   entries: HistoryEntry[];
   nextBefore: string | null;
@@ -53,6 +54,14 @@ export function HistoryList({
   paged: boolean;
   locale: Locale;
   heading: string;
+  /**
+   * The payer's side only: a row that names its booking opens it, where the
+   * stay or tenancy and its money record live. Off for a lister's history,
+   * whose rows are another person's booking and would open on a "not yours"
+   * panel, and for any row with no booking id, which stays a plain row
+   * rather than a link to nowhere.
+   */
+  linkToBooking?: boolean;
 }) {
   const days = groupByDay(entries);
   const earlier = earlierHref(basePath, nextBefore);
@@ -67,7 +76,12 @@ export function HistoryList({
             </h3>
             <ul className="nf-history-rows">
               {day.entries.map((entry) => (
-                <HistoryRow key={entry.id} entry={entry} locale={locale} />
+                <HistoryRow
+                  key={entry.id}
+                  entry={entry}
+                  locale={locale}
+                  href={linkToBooking && entry.bookingId ? `/bookings/${encodeURIComponent(entry.bookingId)}` : null}
+                />
               ))}
             </ul>
           </div>
@@ -93,36 +107,49 @@ export function HistoryList({
   );
 }
 
-function HistoryRow({ entry, locale }: { entry: HistoryEntry; locale: Locale }) {
+function HistoryRow({ entry, locale, href }: { entry: HistoryEntry; locale: Locale; href: string | null }) {
   const incoming = entry.direction === "in";
   const status = statusFor(entry.kind, entry.status);
   const time = formatMoneyTime(new Date(entry.occurredAt), locale);
+  const body = (
+    <>
+      <IconPlate size="sm" tone={incoming ? "success" : "brand"} className="nf-history-row__tile">
+        <UiIcon name={incoming ? "arrow-down" : "arrow-up"} size={ICON_PLATE_GLYPH.sm} />
+      </IconPlate>
+      <span className="min-w-0 flex-1">
+        <span className="nf-history-row__title">{entry.title ?? KIND_LABEL[entry.kind]}</span>
+        <span className="nf-history-row__when">
+          {KIND_LABEL[entry.kind]}
+          <span aria-hidden="true"> · </span>
+          <span className="sr-only">, </span>
+          {time}
+        </span>
+      </span>
+      <span className="nf-numeric flex shrink-0 flex-col items-end gap-inline-tight text-right">
+        <span className={`nf-history-row__amount ${incoming ? "nf-history-row__amount--in" : ""}`}>
+          <span className="sr-only">{incoming ? "Money in: " : "Money out: "}</span>
+          <span aria-hidden="true">{signFor(entry.direction)} </span>
+          <Amount minorUnits={entry.amountMinor} locale={locale} showFraction secondaryClassName="nf-history-kobo" />
+        </span>
+        {/* At the pill's own 12px, the floor anywhere (north star section
+            5): this was forced down to 11px. */}
+        <StatusPill tone={status.tone} className="nf-history-badge">
+          {status.label}
+        </StatusPill>
+      </span>
+    </>
+  );
   return (
     <li>
-      <div className="nf-history-row" data-kind={entry.kind}>
-        <IconPlate size="sm" tone={incoming ? "success" : "brand"} className="nf-history-row__tile">
-          <UiIcon name={incoming ? "arrow-down" : "arrow-up"} size={ICON_PLATE_GLYPH.sm} />
-        </IconPlate>
-        <span className="min-w-0 flex-1">
-          <span className="nf-history-row__title">{entry.title ?? KIND_LABEL[entry.kind]}</span>
-          <span className="nf-history-row__when">
-            {KIND_LABEL[entry.kind]}
-            <span aria-hidden="true"> · </span>
-            <span className="sr-only">, </span>
-            {time}
-          </span>
-        </span>
-        <span className="nf-numeric flex shrink-0 flex-col items-end gap-inline-tight text-right">
-          <span className={`nf-history-row__amount ${incoming ? "nf-history-row__amount--in" : ""}`}>
-            <span className="sr-only">{incoming ? "Money in: " : "Money out: "}</span>
-            <span aria-hidden="true">{signFor(entry.direction)} </span>
-            <Amount minorUnits={entry.amountMinor} locale={locale} showFraction secondaryClassName="nf-history-kobo" />
-          </span>
-          <StatusPill tone={status.tone} className="nf-history-badge text-[length:0.6875rem]!">
-            {status.label}
-          </StatusPill>
-        </span>
-      </div>
+      {href ? (
+        <Link href={href} className="nf-history-row nf-history-row--link nf-tap" data-kind={entry.kind}>
+          {body}
+        </Link>
+      ) : (
+        <div className="nf-history-row" data-kind={entry.kind}>
+          {body}
+        </div>
+      )}
     </li>
   );
 }

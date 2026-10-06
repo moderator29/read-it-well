@@ -188,6 +188,24 @@
     line-height: 1.25;
   }
 
+  /* A payer's row that names its booking opens it (HistoryList's
+     `linkToBooking`). The row keeps its look; it gains the press tint every
+     tappable Plate row has and a visible focus ring, and nothing else, so a
+     linked row and a plain one sit in the same list without a seam. */
+  .nf-history-row--link {
+    border-radius: var(--nf-radius-sm);
+    transition: background-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  @media (hover: hover) {
+    .nf-history-row--link:hover {
+      background: var(--nf-surface-secondary);
+    }
+  }
+  .nf-history-row--link:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+
   /* "Show earlier", and the line that says the list has ended. */
   .nf-history-foot {
     display: flex;

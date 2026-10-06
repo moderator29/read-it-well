@@ -93,6 +93,9 @@ export default async function PaymentsPage({
               paged={before !== null}
               locale={locale}
               heading="Your payments and refunds"
+              /* Each row opens its booking, where the stay or tenancy and
+                 its receipt live. A row with no booking stays a plain row. */
+              linkToBooking
             />
           )}
           <p className={TYPE.rowMeta}>{REFUND_ROUTE}</p>
