@@ -824,6 +824,73 @@ committed and pushed as it is done, cleanly, without sessions conflicting.
 | **D58 on the referral engine, and Session 1's "apply it" on b4_referral_rewards_engine** | **D62: architecture locked by the founder; hold the migration until campaigns are in it** |
 | **D62's hold on b4_referral_rewards_engine** | **D63: wrong on both reasons. Apply it. Only the payout path waits, on the budget cap** |
 | **"Qualification refuses past the cap with a named reason"** | **D64: it pauses instead, and the cap is 700,000 naira a month** |
+| Suspecting your own diff when Advisories goes red | D65: check the package name first, it is usually a new advisory |
+
+---
+
+## D65. A new advisory landed mid-afternoon and it is nobody's change: the pattern, and how to handle the next one
+
+**At 15:14 the Advisories check went red on PR #86 after two documentation-only pushes.** No
+code changed, no dependency was touched, and the failure was real:
+
+```
+sharp  <0.35.5
+Severity: high
+sharp: Vulnerability in librsvg dependency CVE-2026-96889
+       GHSA-wq5f-xc86-pv6w
+```
+
+**A different package from the morning's `source-map-js`, and a CVE published while the
+session was working.** `npm audit` queries the live advisory database rather than anything in
+the repository, so **a newly published advisory turns the check red on every branch
+simultaneously, with nobody having done anything.** That is the second time in one day the
+Advisories job has gone red for a reason no diff explains, and it will not be the last.
+
+### The handling rule, so nobody loses an hour to it again
+
+**Red Advisories after a push that touched no dependency is almost always a new advisory, not
+your change.** Check it in this order, and it takes two minutes:
+
+1. **Read the package name.** If it is not something the push went near, stop suspecting the
+   push.
+2. **Check whether a patched version satisfies the existing range.** If it does, the whole fix
+   is a lockfile bump and no `package.json` changes.
+3. **Check whether it is red on the base branch too.** If it is, it is not that pull request's
+   failure, though somebody still has to fix it.
+
+**Do not reach for the diff first.** Session 1 spent real time this morning suspecting its own
+lockfile change for a Vercel failure that turned out to be transient, which is the same
+mistake in a different costume: **assuming the most recent change is the cause because it is
+the most recent.**
+
+### What was done, and the verification that matters for a native package
+
+`sharp@0.35.5` satisfies the existing `^0.35.4`, so it is a lockfile bump. **A native package
+deserves more care than a parser did**, so:
+
+- `npm audit fix --omit=dev --package-lock-only` changed **nothing but `sharp`, its platform
+  binaries and the `libvips` natives they wrap** (1.3.3 to 1.3.4, which carries the librsvg
+  fix). Added none, removed none, verified by comparing the parsed lockfile before and after.
+- **The native module actually loads:** `require("sharp").versions.vips` reports 8.18.7. For a
+  compiled dependency that check matters more than the audit does, because a lockfile can be
+  perfectly valid while the binary fails to load on the platform.
+- `npm run build` passes, which is the meaningful test: Next.js uses `sharp` for image
+  optimisation at build time.
+- Typecheck and lint pass, audit exits 0.
+
+**One honest note on the first attempt at that check.** Session 1 first ran
+`require("sharp/package.json")`, which threw `ERR_PACKAGE_PATH_NOT_EXPORTED` because `sharp`
+does not export that path. **That was the probe being wrong, not `sharp` being broken**, and
+it is recorded because a thrown error in a verification step is exactly the kind of thing that
+gets misreported as a finding.
+
+### Who fixes it on the other branches
+
+**It is red everywhere right now.** Session 2's and Session 4's branches carry the morning's
+`source-map-js` pin but not this one; Session 3 carries neither. **Nobody should chase it
+separately.** It arrives with main once #86 lands, and each session picks it up in the merge
+they are already going to do. **If a session sees Advisories red on `sharp` before that merge,
+the correct response is to note it as main's and carry on.**
 
 ---
 
