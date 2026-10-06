@@ -6,11 +6,11 @@ component with the fixture named in its row. **P** pass, **X** failed and fixed 
 sweep, **F** failed and still open, **·** does not apply. The denominator is 213 real routes
 (every `page.tsx` under `apps/web/src/app`, excluding `(dev)` and `api`).
 
-**Routes audited: 108 of 213.**
+**Routes audited: 113 of 213.**
 
 | Family | Audited |
 |---|---|
-| admin | 28 |
+| admin | 33 |
 | agent | 24 |
 | around | 5 |
 | assistant | 1 |
@@ -35,14 +35,19 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | `/admin` | C1 | P | P | P | P | P | P | X | P | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/admin/account-recovery` | C1 | P | · | P | P | X | X | · | · | · | P | P | P | P | · | P | P | · | X | P | P | P | P | P | P |
 | `/admin/agents` | C1 | P | · | P | X | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
+| `/admin/agreements` | C1 | P | · | P | P | P | P | P | P | P | P | P | X | P | · | X | P | · | P | P | P | P | P | P | P |
 | `/admin/alerts` | C1 | X | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/admin/analytics` | C1 | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | P | · | P | X | X | X | P | P | P |
 | `/admin/audit` | C1 | P | P | P | P | P | P | X | P | P | P | P | P | P | · | P | P | · | P | X | P | P | P | P | P |
 | `/admin/bookings` | C1 | P | P | P | P | P | X | X | P | P | P | P | P | P | · | P | P | · | P | P | P | X | X | P | P |
+| `/admin/bookings/[bookingId]` | C1 | P | · | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P |
 | `/admin/bookings/reservations` | C1 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/admin/businesses` | C1 | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | X | · | P | P | P | X | P | P | P |
 | `/admin/compliance` | C1 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/admin/examples` | C1 | P | P | P | P | P | P | X | P | P | P | P | P | P | · | P | P | · | P | P | P | P | X | P | X |
+| `/admin/fees` | C1 | P | P | P | P | P | P | P | P | P | P | P | P | P | · | X | P | P | P | P | P | P | P | P | P |
+| `/admin/field-speed` | C1 | P | · | P | X | P | P | P | P | P | P | P | P | P | · | X | P | · | P | P | P | P | P | P | P |
+| `/admin/front-door` | C1 | P | P | P | P | X | X | P | P | P | P | P | X | P | · | P | P | · | P | X | P | P | P | P | P |
 | `/admin/handbook` | C1 | P | · | P | P | X | P | · | · | · | P | P | P | P | · | P | P | · | · | P | P | P | P | P | X |
 | `/admin/handbook/position` | C1 | P | · | P | P | X | P | · | · | · | P | P | P | P | · | · | P | · | · | P | P | P | P | P | P |
 | `/admin/kyc` | C1 | P | P | P | X | X | P | P | P | P | P | P | P | P | · | P | P | · | P | P | X | P | P | P | P |
@@ -157,6 +162,11 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 
 - 4 (fixed): Each verification rung was a hand-drawn rounded-md box with the subtle border, a radius and ink no tier has; it is the Plate tier now (new .nf-admin-plate: radius 14, the plate wash and hairline, one edge).
 
+**`/admin/agreements`** (the real page in the real AdminFrame; a signed-in admin whose deal_agreements read answers no rows (the repository holds no agreement fixture, so the waiting and decided lists are measured empty))
+
+- 12 (fixed): No loading file: it fell back to the overview's strip and KPI cards. agreements/loading.tsx draws the console's QueueSkeleton (4 rows).
+- 15 (fixed): The decided list printed the database's status at the operator ("approved", "paid", "sent back: ..." in lower case). It reads Approved, Paid and "Sent back: <reason>" now.
+
 **`/admin/alerts`** (the real page component inside the real AdminFrame, getRiskAlerts and getInventoryDriftAlerts mocked to bd/fixtures RISK_ALERTS and DRIFT_ALERTS)
 
 - 1 (fixed): Every card's Mark resolved was a lit primary: 4 glows on one phone screen at 390. The opener is secondary now; the commit inside the sheet stays the primary.
@@ -189,6 +199,22 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 - 7 (fixed): Whole counts did not count up; ui.Stat now counts a whole-number value up (CountUp, eager), money and dates stay as given. Amounts through formatMoney, tabular.
 - 22 (fixed): In Igbo the amount was pushed out of a 390px window (2 overflow findings: the row held a chip, the words, a second chip and the amount on one line). The row now wraps with the words kept at 12rem and the amount at the end of the second line.
 - 24 (fixed): Went back to /admin past Settings; now /admin/settings.
+
+**`/admin/fees`** (the real page in the real AdminFrame; getFeeConsole answers the two rows the fee_rates seed migration inserts (0 and 0 from the epoch, with their notes), and admin_revenue_summary answers the empty ledger exactly as the RPC builds it (every source present at zero))
+
+- 15 (fixed): "Every rate is zero today" was printed whenever the window's total was zero, so a live rate above zero with no sale yet would have been called zero. It is said only when every rate in force is zero; otherwise the per-source rows already say "Nothing booked in this window". A missing rate says "No rate on record", never zero.
+
+**`/admin/field-speed`** (the real page in the real AdminFrame; a signed-in session whose admin_field_speed answers [] (nothing measured in seven days); the repository has no field speed rows)
+
+- 4 (fixed): The empty note sat in a flush panel (no inner padding, meant for the table), so the note's own edge ran into the card's. The panel is flush only when it holds the table.
+- 15 (fixed): A metric a phone did not report printed an empty cell; it says "Not reported" (the dictionary's own fieldSpeed.unknown) now.
+
+**`/admin/front-door`** (the real page in the real AdminFrame; admin_funnel_summary answers the three rows of lib/funnel/summary.test.ts for both windows (every visit inside the week), admin_referral_counts answers [])
+
+- 5 (fixed): The page returned its panels with no wrapper, so the read-only note and the three panels sat edge to edge with no air between them. It draws in the console's stack now (field speed's own wrapper).
+- 6 (fixed): Language codes printed in capitals ("EN", "HA"); the panel names the language (English, Hausa) from localeMeta.
+- 12 (fixed): No loading file: it fell back to the overview's strip and KPI cards. front-door/loading.tsx draws a heading, the seven steps and the two lists.
+- 19 (fixed): At 390 the five-column funnel scrolled sideways inside its panel with each step broken a word a line. Below 768 it uses the console's self-naming rows (nf-admin-dt--stack, as the operations jobs table does): each step, then each figure with its label; a cell with nothing in it takes no row. The 5 "clipped" findings at 390 are that stacked table's visually hidden head, by design.
 
 **`/admin/handbook`** (the real page inside the real AdminFrame; requireConsole mocked to the support-staff preview's STAFF access (a support agent who has acknowledged); the handbook text is the real STAFF_HANDBOOK)
 
