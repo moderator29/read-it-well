@@ -811,6 +811,71 @@ committed and pushed as it is done, cleanly, without sessions conflicting.
 | **D48's reading that no balance may ever exist** | **D50: a balance held by a licensed provider may be presented, under four conditions** |
 | **The Vallo Guarantee at 1 to 2 percent** | **D51: retired to zero, machinery kept** |
 | **D51's claim that zeroing the rate is a row and lifts the blocker** | **D52: false on three counts, corrected** |
+| Any reading that a defect predating a session is nobody's | D53 |
+
+---
+
+## D53. Ownership is by concern, never by authorship. And nobody second-reviews their own change
+
+Session 4 asked, on 6 October, who owns three Task 2 defects, noting that one
+"predates Session 2, so it may be nobody's under the current split". **It is not
+nobody's, and the question is worth settling once because it will recur every time
+an audit finds something older than the session that owns its area.**
+
+### The rule
+
+**A defect belongs to whichever session owns the concern, whatever its age and
+whoever wrote it.** The cross-session contract divides the platform by area so that
+every part has an owner, not so that each session owns only what it typed. A rule
+that assigns by authorship creates orphans by construction: the older the defect,
+the less likely its author is still working, so the oldest and most settled bugs
+would become permanently unownable.
+
+**This repository already has the evidence.** D40, the wrong-payer refund, predated
+every current session and sat unfixed through two rounds. The wallet, escrow and
+withdrawal copy in `experience-features.en.ts` predated Session 3 and shipped
+anyway. Both were found by a session auditing someone else's area, and both needed
+an owner assigned before anything happened.
+
+**So the three findings go to Session 2**, because all three are its concerns:
+
+1. **The `transactions` column grant.** A grant is schema, and schema is Session
+   2's, whoever wrote the migration.
+2. **The per-render `listBanks()`.** A provider call is Session 2's, and this one
+   also breaks D50's ten-requests-per-minute constraint directly: a call per render
+   is the exact shape that directive names as already broken. The fix is server
+   side, cached, and shaped to the limit.
+3. **The raw Paystack error text.** D50 forbids a raw provider error reaching a
+   member. The **mapping** to Vallo language is Session 2's, as part of the status
+   vocabulary and error abstraction in its brief. Session 3 owns only how the
+   mapped sentence is presented.
+
+### And the second half, which Session 4 raised against itself
+
+**Nobody second-reviews their own change.** Session 4 keyed `db-probes` per ref,
+which widened concurrency against the production database, and reviewed it itself.
+It flagged that as a D5 breach without being asked twice, which is the behaviour
+D5 exists to produce. **The second pass goes to Session 2**, which owns the
+database.
+
+**The specific thing to attack**, so the review is a review rather than a nod:
+**can sixty-four probes running concurrently from several branches interact in a
+way one serialised run cannot?** Named risks, each checkable:
+
+- **A probe that asserts on global state.** Any probe checking a count, or that no
+  row exists, can be broken by another branch's probe inserting at the same moment.
+  This is the likeliest failure and it would read as a flaky test rather than as a
+  concurrency defect.
+- **Advisory locks.** Two probes taking locks in different orders deadlock under
+  concurrency and never under serialisation.
+- **Fixed-name temporary objects.** A probe creating an object by a constant name
+  collides with itself across branches.
+- **Connection count** against the pooler's limit, with several full runs at once.
+
+**Mitigating context, which the reviewer should weigh rather than assume away:**
+the `claude/vallo-**` push trigger was removed, so only pull requests start runs
+and the realistic concurrency is three or four, not unbounded. That lowers the risk
+without removing the question.
 
 ---
 
