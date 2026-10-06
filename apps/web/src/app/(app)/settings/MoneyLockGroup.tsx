@@ -12,6 +12,7 @@ import { useMoneyStepUp } from "@/components/app/money/MoneyStepUp";
 import { beginEnrol, finishEnrol, removeMoneyCredential, sendFallbackCode } from "@/lib/security/money-step-up-actions";
 import { createPlatformKey, platformLockAvailable } from "@/lib/security/webauthn-client";
 import type { MoneyCredentialList } from "@/lib/security/money-step-up";
+import { MONEY_LOCK_BODY, MONEY_LOCK_DONE, MONEY_LOCK_REMOVED } from "@/lib/money/copy";
 
 /**
  * LOCK MONEY WITH THIS PHONE. V-81.
@@ -106,7 +107,7 @@ export function MoneyLockGroup({ list, locale }: { list: MoneyCredentialList; lo
       setEnrolling(false);
       setPassword("");
       setCode("");
-      setNote(copy.settingsDone);
+      setNote(MONEY_LOCK_DONE);
       router.refresh();
     });
 
@@ -122,13 +123,13 @@ export function MoneyLockGroup({ list, locale }: { list: MoneyCredentialList; lo
         setError(done.error === "rejected" ? (staff ? copy.staffKeyOnly : copy.rejected) : copy.failed);
         return;
       }
-      setNote(copy.settingsRemoved);
+      setNote(MONEY_LOCK_REMOVED);
       router.refresh();
     });
   };
 
   const rows = list.state === "ok" ? list.rows : [];
-  const groupNote = note ?? error ?? (list.state === "unreadable" ? copy.settingsUnknown : copy.settingsBody);
+  const groupNote = note ?? error ?? (list.state === "unreadable" ? copy.settingsUnknown : MONEY_LOCK_BODY);
 
   return (
     <SettingsGroup label={copy.settingsTitle} note={<span role={error ? "alert" : undefined}>{groupNote}</span>}>

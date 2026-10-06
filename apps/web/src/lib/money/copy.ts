@@ -683,3 +683,33 @@ export const SAFETY_TABLE_NOT_A_PAYMENT =
 /** /safety, already paid outside: what Vallo can and cannot do. */
 export const SAFETY_OUTSIDE_NOT_RECOVERABLE =
   "We cannot recover money that never came through the platform, and we will not pretend otherwise, but we can remove the account, hold the listing, and stop the same person from doing it to the next person.";
+
+/* -------------------------------------------------------------------------- */
+/* THE LOCK ON MONEY (V-81)                                                   */
+/* -------------------------------------------------------------------------- */
+/*
+ * What the phone's lock guards, said as it is: Vallo holds no money, so there
+ * is no wallet to send from and nothing to withdraw (`lib/security/money-intent.ts`).
+ * The lock stands in front of the accounts a person's money is paid into: a
+ * bank account or payout account added, made the default or removed, and the
+ * lock itself removed. The dictionary's "Sending and withdrawing" lines said
+ * otherwise and are no longer read on this screen.
+ */
+
+/** /settings/privacy/money-lock, the lede: what the lock is for. */
+export const MONEY_LOCK_WHAT =
+  "Use this phone's face or fingerprint lock before anybody adds, changes or removes the account your money is paid into, so a stolen unlocked phone cannot redirect it.";
+
+/** /settings/privacy, the row's line under "Lock money with this phone". */
+export const MONEY_LOCK_ROW =
+  "Face or fingerprint before your payout account changes";
+
+/** The money-lock group's note while nothing has happened. */
+export const MONEY_LOCK_BODY =
+  "Adding, changing or removing the bank or payout account your money is paid into will ask for this phone's face or fingerprint lock. If the lock will not answer, your password still works.";
+
+/** After a phone is added as the lock. */
+export const MONEY_LOCK_DONE = "Done. Changing where your money is paid will now ask for this phone's lock.";
+
+/** After a phone is removed as the lock. */
+export const MONEY_LOCK_REMOVED = "Removed. This phone no longer guards where your money is paid.";

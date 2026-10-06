@@ -16,6 +16,7 @@ import { PendingAddressMove } from "./PendingAddressMove";
 import { countMyBlocks } from "@/lib/safety/blocks-queries";
 import { RowLink, SettingsGroup } from "@/components/app/account/rows";
 import { withNext } from "@/lib/auth/next-link";
+import { MONEY_LOCK_ROW } from "@/lib/money/copy";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: getDictionary(await getLocale()).settings.hub.privacy };
@@ -122,7 +123,7 @@ export default async function PrivacySettingsPage() {
               href="/settings/privacy/money-lock"
               icon="lock"
               label={t.platform.moneyLock.settingsTitle}
-              sub={copy.privacy.moneyLockSub}
+              sub={MONEY_LOCK_ROW}
               testId="settings-money-lock-row"
             />
             {/* STORE-07: the AI disclosure, and the way to withdraw it. */}

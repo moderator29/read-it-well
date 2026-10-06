@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/app/PageHeader";
 import { SettingsLede } from "@/components/app/account/SettingsLede";
 import { loadMoneyCredentials } from "@/lib/security/money-step-up";
 import { MoneyLockGroup } from "../../MoneyLockGroup";
+import { MONEY_LOCK_WHAT } from "@/lib/money/copy";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: getDictionary(await getLocale()).platform.moneyLock.settingsTitle, robots: { index: false, follow: false } };
@@ -25,7 +26,7 @@ export default async function MoneyLockPage() {
   return (
     <div className="mx-auto max-w-2xl">
       <PageHeader title={t.platform.moneyLock.settingsTitle} fallback="/settings/privacy" />
-      <SettingsLede label={lede.what} what={lede.moneyLock.what} who={lede.moneyLock.who} />
+      <SettingsLede label={lede.what} what={MONEY_LOCK_WHAT} who={lede.moneyLock.who} />
       <MoneyLockGroup list={list} locale={locale} />
     </div>
   );
