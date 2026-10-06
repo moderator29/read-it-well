@@ -246,11 +246,76 @@ describe("the global stylesheet (C12)", () => {
   });
 
   it("keeps the sheets that many routes draw in the global bundle", () => {
-    /* The lock overlays every signed-in tree, a success moment can open on
-       any screen, and social-feed.css carries the round back control. */
-    for (const sheet of ["./css/passcode.css", "./css/success.css", "./social-feed.css"]) {
+    /* A success moment can open on any screen, so success.css stays global.
+       The round back control (`.nf-social-round`) is drawn signed out too, so
+       it stays global in the part of social-feed.css that never left (C6). The
+       passcode lock renders only inside signed-in trees, so passcode.css moved
+       to them; every layout that mounts the lock imports it (checked below). */
+    for (const sheet of ["./css/success.css", "./social-feed.shared.css"]) {
       expect(imports, sheet).toContain(sheet);
     }
+    expect(readFileSync(join(APP, "social-feed.shared.css"), "utf8")).toMatch(/\.nf-social-round\s*\{/);
+    const lockTrees = ["(app)/layout.tsx", "agent/layout.tsx", "host/layout.tsx", "admin/layout.tsx"];
+    for (const tree of lockTrees) {
+      expect(readFileSync(join(APP, tree), "utf8"), tree).toMatch(/import "@\/app\/css\/passcode\.css";/);
+    }
+  });
+
+  /*
+   * C6, the member CSS move (6 October). The sheets no signed-out route draws
+   * load from the member layouts instead of globals.css. Each keeps a
+   * `.shared.css` part in globals.css where a signed-out route draws a rule or
+   * where moving a rule after a later global sheet would flip who wins; the
+   * layouts import the rest first, in the old globals order, so every rule
+   * keeps its old place relative to everything it meets. Paths are relative
+   * to `src/app`, in the old globals order.
+   */
+  const MEMBER_SHEETS: [string, { shared: boolean; entries: string[] }][] = [
+    ["social.css", { shared: true, entries: ["(app)", "agent", "host", "admin", "(dev)/preview", "(dev)/gallery"] }],
+    ["social-feed.css", { shared: true, entries: ["(app)", "agent", "host", "admin", "(dev)/preview", "(dev)/gallery"] }],
+    ["css/motion.css", { shared: true, entries: ["(app)", "agent", "host", "(dev)/preview", "(dev)/gallery"] }],
+    ["css/passcode.css", { shared: false, entries: ["(app)", "agent", "host", "admin", "(dev)/preview", "(dev)/gallery"] }],
+    ["css/photo-viewer.css", { shared: true, entries: ["(app)", "(dev)/preview", "(dev)/gallery"] }],
+    ["css/filter-tiles.css", { shared: false, entries: ["(app)", "(dev)/preview", "(dev)/gallery"] }],
+    ["css/threads.css", { shared: true, entries: ["(app)", "agent", "(dev)/preview", "(dev)/gallery"] }],
+    ["css/member-kit.css", { shared: true, entries: ["(app)", "agent", "(dev)/preview", "(dev)/gallery"] }],
+    ["css/money-history.css", { shared: false, entries: ["(app)", "agent", "host", "admin", "(dev)/preview", "(dev)/gallery"] }],
+    ["css/flow-m.css", { shared: true, entries: ["(app)", "agent", "(dev)/preview", "(dev)/gallery"] }],
+    ["css/detail-m.css", { shared: false, entries: ["(app)", "agent", "host", "admin", "(dev)/preview", "(dev)/gallery"] }],
+    ["css/member-loop.css", { shared: false, entries: ["(app)", "agent", "host", "admin", "(dev)/preview", "(dev)/gallery"] }],
+  ];
+  const memberImportsOf = (layout: string) =>
+    [...readFileSync(join(APP, layout, "layout.tsx"), "utf8").matchAll(/import\s+"@\/app\/([\w./-]+\.css)"/g)].map((m) => m[1]);
+
+  describe("the member-only sheets (C6)", () => {
+    it("leave globals.css, keeping only their shared part in the old place", () => {
+      for (const [sheet, { shared }] of MEMBER_SHEETS) {
+        expect(imports, sheet).not.toContain(`./${sheet}`);
+        const part = `./${sheet.replace(/\.css$/, ".shared.css")}`;
+        if (shared) expect(imports, part).toContain(part);
+        else expect(existsSync(join(APP, part)), part).toBe(false);
+      }
+      const parts = MEMBER_SHEETS.filter(([, m]) => m.shared).map(([s]) => `./${s.replace(/\.css$/, ".shared.css")}`);
+      expect(imports.filter((i) => parts.includes(i))).toEqual(parts);
+    });
+
+    it("load from every member layout that draws them, first and in the old order", () => {
+      const layouts = new Set(MEMBER_SHEETS.flatMap(([, m]) => m.entries));
+      for (const layout of layouts) {
+        const want = MEMBER_SHEETS.filter(([, m]) => m.entries.includes(layout)).map(([s]) => s);
+        const got = memberImportsOf(layout);
+        /* First: nothing a component of this tree imports can land ahead of them. */
+        expect(got.slice(0, want.length), layout).toEqual(want);
+        const head = readFileSync(join(APP, layout, "layout.tsx"), "utf8").split(/\nimport (?!")/)[0] ?? "";
+        expect(head, `${layout}: the member sheets come before any other import`).toContain(`import "@/app/${want.at(-1)}";`);
+      }
+    });
+
+    it("state the layer order, as the other moved sheets do", () => {
+      for (const [sheet] of MEMBER_SHEETS) {
+        expect(readFileSync(join(APP, sheet), "utf8"), sheet).toContain("@layer theme, base, components, utilities;");
+      }
+    });
   });
 
   it("carries none of the dead glass and tile rules", () => {

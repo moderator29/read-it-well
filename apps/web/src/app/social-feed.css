@@ -37,6 +37,19 @@
  * no longer impose a background or a radius. That is a change with an eye on it
  * rather than a search and replace, and it belongs to whoever owns this file.
  */
+/*
+ * Loaded by the member layouts (the signed-in app, the agent and host
+ * workspaces, admin and the preview harness), not by globals.css: C6's member
+ * CSS move, 6 October. No signed-out route draws these classes, so signed-out
+ * pages no longer download them. What a signed-out route does draw, and
+ * what must keep its old place in the cascade, stays global in
+ * `social-feed.shared.css`. Comments below that still say "global" or "globals.css"
+ * describe where the sheet used to load. This line states the layer order the
+ * document already has from Tailwind, so the order holds whichever chunk the
+ * browser receives first.
+ */
+@layer theme, base, components, utilities;
+
 @layer components {
   /* ------------------------------------------------------------------
    * Geometry. One place, so a card, a menu and a composer cannot drift.
@@ -48,12 +61,6 @@
    * everywhere; cards stand 18 image px apart (10.5) and the words sit 20 in
    * from the card's edge (11.7), the avatar ring a little further out.
    */
-  :root {
-    --nf-feed-radius: var(--nf-container-radius);
-    --nf-feed-gap: 10px;
-    --nf-feed-pad: 12px;
-    --nf-feed-avatar: 38px;
-  }
 
   /* ------------------------------------------------------------------
    * The post card.
@@ -63,13 +70,6 @@
    * they made the feed read as an information-design exercise rather than
    * as somewhere people talk.
    * ------------------------------------------------------------------ */
-  .nf-post {
-    padding: var(--nf-feed-pad);
-    position: relative;
-    transition:
-      transform var(--nf-duration-fast) var(--nf-ease-standard),
-      box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
-  }
 
   /*
    * **Every rule here that names a property `.nf-card` also sets must carry
@@ -114,38 +114,6 @@
    * drawn rounder than the platform's `--nf-radius-xl` in the render, which
    * `--nf-feed-radius` carries, and a radius is not part of the edge recipe.
    */
-  .nf-panel.nf-post {
-    /* The shared card sets flex; a post is a block of lines. Padding and
-       corner as measured: the words 20 image px in (11.7 CSS), the avatar
-       ring 12 image px under the top edge (7 CSS), the corner 15 image px
-       (8.8 CSS) drawn with the platform's 10px container corner. */
-    display: block;
-    /* 12px to the words less the card's own 1px edge (overlay pass 1). */
-    padding: 7px 10.7px 0;
-    border-radius: var(--nf-container-radius);
-    /*
-     * THE FEED IMAGE'S CARD IS DARKER THAN THE SHARED CARD AND ITS EDGE
-     * BRIGHTER, so this tunes the shared material to the image with the
-     * shared tokens as the base (the coordinator's instruction on Phase 1).
-     * Sampled: #00133d through the body, #021951 near the foot; edges top
-     * #0f459e, right #123779, foot #144395 (the brightest), left #0c2b6d.
-     */
-    background:
-      radial-gradient(55% 14px at 50% 0, color-mix(in oklab, var(--nf-lit-cyan) 12%, transparent), transparent),
-      linear-gradient(
-        180deg,
-        color-mix(in oklab, var(--nf-lit) 30%, var(--nf-surface-canvas)) 0,
-        color-mix(in oklab, var(--nf-lit) 18%, var(--nf-surface-canvas)) 14px,
-        color-mix(in oklab, var(--nf-lit) 15%, var(--nf-surface-canvas)) 50%,
-        color-mix(in oklab, var(--nf-lit) 22%, var(--nf-surface-canvas)) calc(100% - 10px),
-        color-mix(in oklab, var(--nf-lit) 28%, var(--nf-surface-canvas)) 100%
-      );
-    border-color:
-      color-mix(in oklab, color-mix(in oklab, var(--nf-lit) 80%, var(--nf-state-info)) 82%, var(--nf-surface-canvas))
-      color-mix(in oklab, var(--nf-lit) 76%, var(--nf-surface-canvas))
-      color-mix(in oklab, color-mix(in oklab, var(--nf-lit) 80%, var(--nf-state-info)) 88%, var(--nf-surface-canvas))
-      color-mix(in oklab, var(--nf-lit) 62%, var(--nf-surface-canvas));
-  }
 
   /*
    * THE WORDS ARE WHITE, WITH BLUE UNDER THEM.
@@ -693,12 +661,6 @@
   /* ------------------------------------------------------------------
    * A person, in a list of people.
    * ------------------------------------------------------------------ */
-  .nf-social-person {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 14px;
-  }
 
   .nf-social-person__face {
     display: grid;
@@ -724,20 +686,6 @@
   /* ------------------------------------------------------------------
    * The profile's own overflow control, and the line it leaves behind.
    * ------------------------------------------------------------------ */
-  .nf-social-more {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    inline-size: 44px;
-    block-size: 44px;
-    /* The control radius, as Follow beside it: the glass door brings its
-       material but not a shape, so this drew a sharp-cornered square (Round
-       3 sweep). */
-    border-radius: var(--nf-radius-control);
-    /* Its material is the shared glass door in the profile's markup now
-       (SW-S1): this keeps the box and the ink only. */
-    color: var(--nf-content-secondary);
-  }
   .nf-social-more:hover,
   .nf-social-more:focus-visible {
     color: var(--nf-content-primary);
@@ -820,24 +768,6 @@
       inset-inline-end: 2rem;
     }
   }
-
-  .nf-social-round {
-    display: inline-grid;
-    place-items: center;
-    inline-size: 44px;
-    block-size: 44px;
-    border-radius: var(--nf-radius-control);
-    color: var(--nf-content-on-media);
-    background: var(--nf-surface-control-on-media);
-    border: 1px solid var(--nf-border-on-media);
-    backdrop-filter: blur(10px) saturate(150%);
-    -webkit-backdrop-filter: blur(10px) saturate(150%);
-    transition: background var(--nf-duration-fast) var(--nf-ease-standard);
-  }
-  .nf-social-round:hover,
-  .nf-social-round:focus-visible {
-    background: var(--nf-surface-control-on-media-strong);
-  }
   /*
    * The same glass, with the word on it.
    *
@@ -847,18 +777,6 @@
    * flow turns to a column of two so the chevron and the word sit on one line
    * rather than stacking in the grid's single cell.
    */
-  .nf-social-round--pill {
-    grid-auto-flow: column;
-    align-items: center;
-    gap: 8px;
-    inline-size: auto;
-    min-inline-size: 44px;
-    block-size: 44px;
-    padding-inline: 0.85rem 1.05rem;
-    font-size: var(--nf-text-caption);
-    font-weight: 600;
-    letter-spacing: -0.005em;
-  }
 
   /*
    * The avatar, and the ring.
@@ -1092,10 +1010,6 @@
     font-size: var(--nf-text-caption);
     color: var(--nf-content-muted);
   }
-  .nf-social-count:hover .nf-social-count__value,
-  .nf-social-count:focus-visible .nf-social-count__value {
-    color: var(--nf-brand-secondary);
-  }
   .nf-social-count__rule {
     inline-size: 1px;
     block-size: 1.1rem;
@@ -1185,9 +1099,6 @@
     font-size: var(--nf-text-overline);
     font-weight: 700;
     color: var(--nf-content-muted);
-  }
-  .nf-social-tab[aria-selected="true"] .nf-social-tab__count {
-    color: var(--nf-brand-secondary);
   }
 
   /* ------------------------------------------------------------------
@@ -1964,14 +1875,6 @@
     align-items: flex-end;
     gap: 8px;
   }
-  .nf-comments__field {
-    flex: 1 1 auto;
-    min-block-size: 44px;
-    max-block-size: 8rem;
-    resize: none;
-    border-radius: var(--nf-radius-control);
-    padding-block: 11px;
-  }
   .nf-comments__count {
     display: block;
     margin-block-start: 6px;
@@ -2057,14 +1960,6 @@
   .nf-district__chip {
     flex-shrink: 0;
   }
-  .nf-district__chip .nf-numeric {
-    font-size: var(--nf-text-overline);
-    color: var(--nf-content-muted);
-  }
-  .nf-district__chip.nf-chip--active .nf-numeric {
-    color: var(--nf-content-on-brand);
-    opacity: 0.8;
-  }
 
   /* One place, in the picker. */
   .nf-fab__place {
@@ -2102,12 +1997,6 @@
    * stretched: the column stops growing at a comfortable measure and the
    * card gains padding instead of width.
    * ------------------------------------------------------------------ */
-  @media (min-width: 768px) {
-    :root {
-      --nf-feed-pad: 16px;
-      --nf-feed-avatar: 42px;
-    }
-  }
 }
 
 @layer components {
@@ -2152,13 +2041,6 @@
     min-block-size: 40px;
     padding-inline: 18px;
     font-size: 0.8125rem;
-  }
-
-  .nf-people__row {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 14px;
   }
   .nf-people__who {
     display: flex;
@@ -2361,23 +2243,6 @@
     text-align: start;
   }
 
-  .nf-enter__chip[data-open="true"] {
-    border-color: var(--nf-border-brand);
-    color: var(--nf-brand-secondary);
-  }
-
-  .nf-enter__chip:disabled {
-    opacity: 0.5;
-  }
-
-  .nf-enter__chip[aria-busy="true"] {
-    opacity: 1;
-    color: var(--nf-content-on-brand);
-    background: var(--nf-selected-fill);
-    border-color: var(--nf-selected-edges);
-    box-shadow: var(--nf-selected-shadow-inline);
-  }
-
   .nf-enter__chip-name {
     min-inline-size: 0;
   }
@@ -2464,21 +2329,6 @@
    * the container blue sunk toward the canvas, named once. The cyan rims
    * are the shared `--nf-lit-cyan`.
    */
-  :root {
-    --nf-feed-glass-deep: color-mix(in oklab, var(--nf-container-ink) 62%, var(--nf-surface-canvas));
-    /*
-     * The image's lit blue is a few degrees deeper than the brand's (#1557fa,
-     * #012dd4 against #0069FE); no layer-2 token carries it (FEED-5), so it
-     * is the brand blue turned 7 degrees and a touch darker, derived rather
-     * than written, with the brand itself where relative colour is missing.
-     */
-    --nf-feed-indigo: var(--nf-brand-primary);
-  }
-  @supports (color: oklch(from red l c h)) {
-    :root {
-      --nf-feed-indigo: oklch(from var(--nf-brand-primary) calc(l - 0.07) c calc(h + 7));
-    }
-  }
   .nf-feed-page {
     inline-size: 100%;
     max-inline-size: 48rem;
@@ -3004,9 +2854,6 @@
     .nf-feed-seg__link {
       min-block-size: 44px;
       font-size: 0.875rem;
-    }
-    .nf-panel.nf-post {
-      padding: 12px 16px 0;
     }
     .nf-post__name {
       font-size: 0.9375rem;

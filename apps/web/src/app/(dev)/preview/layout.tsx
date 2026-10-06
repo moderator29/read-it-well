@@ -1,3 +1,19 @@
+/* C6's member CSS move (6 October): the member-only sheets that left
+   `globals.css`, the ones this tree draws, in their old globals order. They
+   are the first imports so they keep their old place in the cascade: after
+   every global partial, before any sheet this tree's components import. */
+import "@/app/social.css";
+import "@/app/social-feed.css";
+import "@/app/css/motion.css";
+import "@/app/css/passcode.css";
+import "@/app/css/photo-viewer.css";
+import "@/app/css/filter-tiles.css";
+import "@/app/css/threads.css";
+import "@/app/css/member-kit.css";
+import "@/app/css/money-history.css";
+import "@/app/css/flow-m.css";
+import "@/app/css/detail-m.css";
+import "@/app/css/member-loop.css";
 import { notFound } from "next/navigation";
 
 import { previewHarnessIsOpen } from "@/lib/preview-harness";

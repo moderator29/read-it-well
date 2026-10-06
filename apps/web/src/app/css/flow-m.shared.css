@@ -1,0 +1,59 @@
+/*
+ * The part of flow-m.css that stays in globals.css (C6's member CSS move, 6
+ * October). The rest of flow-m.css loads from the member layouts, after every
+ * global partial. What stays here: the door rules, which signed-out pages draw
+ * (the email preferences and share pages among them), and the choose
+ * keyframes, which a door wears. A rule moved after a sheet that answers it
+ * would win where it used to lose, so it keeps its place.
+ */
+@layer components {
+  @keyframes nf-flow-choose {
+    0% {
+      transform: scale(0.97);
+    }
+    60% {
+      transform: scale(1.012);
+    }
+    100% {
+      transform: none;
+    }
+  }
+
+  /* ------------------------------------------------------------- doors */
+
+  .nf-door {
+    animation: nf-in-rise var(--nf-duration-entrance) var(--nf-ease-entrance) both;
+  }
+  li:nth-child(2) > .nf-door,
+  .nf-door:nth-child(2) {
+    animation-delay: 70ms;
+  }
+  li:nth-child(3) > .nf-door,
+  .nf-door:nth-child(3) {
+    animation-delay: 140ms;
+  }
+  li:nth-child(n + 4) > .nf-door,
+  .nf-door:nth-child(n + 4) {
+    animation-delay: 200ms;
+  }
+  .nf-door img {
+    transition: transform var(--nf-duration-base) var(--nf-ease-spring);
+  }
+  @media (hover: hover) {
+    .nf-door:hover img {
+      transform: translateY(-3px) scale(1.05);
+    }
+  }
+  .nf-door[data-on] {
+    animation: nf-flow-choose var(--nf-duration-slow) var(--nf-ease-spring) both;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-door,
+    .nf-door[data-on] {
+      animation: none;
+    }
+    .nf-door img {
+      transition: none;
+    }
+  }
+}

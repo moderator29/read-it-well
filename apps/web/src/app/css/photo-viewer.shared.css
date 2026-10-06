@@ -1,0 +1,33 @@
+/*
+ * The part of photo-viewer.css that stays in globals.css (C6's member CSS
+ * move, 6 October). The rest of photo-viewer.css loads from the member
+ * layouts, after every global partial. What stays here: `.nf-floating-back`,
+ * which detail-m.css answers at equal specificity. A rule moved after a sheet
+ * that answers it would win where it used to lose, so it keeps its place.
+ */
+@layer components {
+
+  /*
+   * The back control that stays after the photograph scrolls away
+   * (`ListingGallery`, stays and restaurants). Fixed, so appearing moves
+   * nothing; only opacity and a 4px slide animate.
+   */
+  .nf-floating-back {
+    position: fixed;
+    z-index: 30;
+    top: calc(env(safe-area-inset-top, 0px) + var(--nf-space-xs));
+    left: max(var(--nf-space-sm), env(safe-area-inset-left, 0px));
+    color: var(--nf-content-primary);
+    /* Over body copy rather than over a photograph, so the glass is nearly
+       opaque: text underneath must not read through the arrow. */
+    background: color-mix(in oklab, var(--nf-surface-elevated) 90%, transparent);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-soft));
+    backdrop-filter: blur(var(--nf-glass-blur-soft));
+    opacity: 0;
+    transform: translateY(-4px);
+    pointer-events: none;
+    transition:
+      opacity var(--nf-duration-fast) var(--nf-ease-standard),
+      transform var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+}

@@ -1,0 +1,242 @@
+/*
+ * The part of social-feed.css that stays in globals.css (C6's member CSS move,
+ * 6 October). The rest of social-feed.css loads from the member layouts, after
+ * every global partial. What stays here: the `:root` geometry, the round back
+ * control a signed-out page draws (`.nf-social-round`, its hover, focus and
+ * pill), the rules a later global sheet answers at equal specificity
+ * (glass.css on `.nf-post`, buttons.css and chips.css on the round control,
+ * the chips and the comment field, and the rest the audit named), and the few
+ * rules that came before one of those and would otherwise jump ahead of it. A
+ * rule moved after a sheet that answers it would win where it used to lose, so
+ * it keeps its place.
+ */
+@layer components {
+  /*
+   * MEASURED OFF THE FOUNDER'S FEED IMAGE (ledger 13, 0.5865 CSS px per
+   * image px): the card corner is 15 image px (8.8 CSS), which is the
+   * console's 10px container corner, the reference anatomy the sweep puts
+   * everywhere; cards stand 18 image px apart (10.5) and the words sit 20 in
+   * from the card's edge (11.7), the avatar ring a little further out.
+   */
+  :root {
+    --nf-feed-radius: var(--nf-container-radius);
+    --nf-feed-gap: 10px;
+    --nf-feed-pad: 12px;
+    --nf-feed-avatar: 38px;
+  }
+
+  /* ------------------------------------------------------------------
+   * The post card.
+   *
+   * Independent and floating. No line threading the cards together, no
+   * notched corners, no node shapes: all three were tried and cut, because
+   * they made the feed read as an information-design exercise rather than
+   * as somewhere people talk.
+   * ------------------------------------------------------------------ */
+  .nf-post {
+    padding: var(--nf-feed-pad);
+    position: relative;
+    transition:
+      transform var(--nf-duration-fast) var(--nf-ease-standard),
+      box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  /*
+   * THE CARD'S EDGE IS LIT GLASS, on the founder's ruling that our containers
+   * read dull beside the renders.
+   *
+   * `GOVERNING-feed-plus-bloom.png` draws every card with a bright blue rim,
+   * a catchlight inside its top edge and a soft bloom in the air around it,
+   * over a near-black navy fill. `.nf-card`'s stride ring is the quiet
+   * material underneath and stays exactly as it is for the rest of the
+   * platform.
+   *
+   * THIS USED TO HAND-ROLL THAT LIT EDGE, and it was right to at the time:
+   * the founder's ruling had not reached the token layer yet and `.nf-card`
+   * is a shared class. It has reached it. `--nf-glow-edge` is now the rim,
+   * the full brand ring and the near bloom composed once, and `.nf-bloom-card`
+   * is the float `.nf-glass--card` already pairs with it, so the feed card
+   * wears the platform's own material rather than a second copy of it that
+   * would drift the first time either was tuned.
+   *
+   * What still needs a rule here, and why: the radius. The feed's cards are
+   * drawn rounder than the platform's `--nf-radius-xl` in the render, which
+   * `--nf-feed-radius` carries, and a radius is not part of the edge recipe.
+   */
+  .nf-panel.nf-post {
+    /* The shared card sets flex; a post is a block of lines. Padding and
+       corner as measured: the words 20 image px in (11.7 CSS), the avatar
+       ring 12 image px under the top edge (7 CSS), the corner 15 image px
+       (8.8 CSS) drawn with the platform's 10px container corner. */
+    display: block;
+    /* 12px to the words less the card's own 1px edge (overlay pass 1). */
+    padding: 7px 10.7px 0;
+    border-radius: var(--nf-container-radius);
+    /*
+     * THE FEED IMAGE'S CARD IS DARKER THAN THE SHARED CARD AND ITS EDGE
+     * BRIGHTER, so this tunes the shared material to the image with the
+     * shared tokens as the base (the coordinator's instruction on Phase 1).
+     * Sampled: #00133d through the body, #021951 near the foot; edges top
+     * #0f459e, right #123779, foot #144395 (the brightest), left #0c2b6d.
+     */
+    background:
+      radial-gradient(55% 14px at 50% 0, color-mix(in oklab, var(--nf-lit-cyan) 12%, transparent), transparent),
+      linear-gradient(
+        180deg,
+        color-mix(in oklab, var(--nf-lit) 30%, var(--nf-surface-canvas)) 0,
+        color-mix(in oklab, var(--nf-lit) 18%, var(--nf-surface-canvas)) 14px,
+        color-mix(in oklab, var(--nf-lit) 15%, var(--nf-surface-canvas)) 50%,
+        color-mix(in oklab, var(--nf-lit) 22%, var(--nf-surface-canvas)) calc(100% - 10px),
+        color-mix(in oklab, var(--nf-lit) 28%, var(--nf-surface-canvas)) 100%
+      );
+    border-color:
+      color-mix(in oklab, color-mix(in oklab, var(--nf-lit) 80%, var(--nf-state-info)) 82%, var(--nf-surface-canvas))
+      color-mix(in oklab, var(--nf-lit) 76%, var(--nf-surface-canvas))
+      color-mix(in oklab, color-mix(in oklab, var(--nf-lit) 80%, var(--nf-state-info)) 88%, var(--nf-surface-canvas))
+      color-mix(in oklab, var(--nf-lit) 62%, var(--nf-surface-canvas));
+  }
+
+  /* ------------------------------------------------------------------
+   * A person, in a list of people.
+   * ------------------------------------------------------------------ */
+  .nf-social-person {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px;
+  }
+
+  /* ------------------------------------------------------------------
+   * The profile's own overflow control, and the line it leaves behind.
+   * ------------------------------------------------------------------ */
+  .nf-social-more {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 44px;
+    block-size: 44px;
+    /* The control radius, as Follow beside it: the glass door brings its
+       material but not a shape, so this drew a sharp-cornered square (Round
+       3 sweep). */
+    border-radius: var(--nf-radius-control);
+    /* Its material is the shared glass door in the profile's markup now
+       (SW-S1): this keeps the box and the ink only. */
+    color: var(--nf-content-secondary);
+  }
+
+  .nf-social-round {
+    display: inline-grid;
+    place-items: center;
+    inline-size: 44px;
+    block-size: 44px;
+    border-radius: var(--nf-radius-control);
+    color: var(--nf-content-on-media);
+    background: var(--nf-surface-control-on-media);
+    border: 1px solid var(--nf-border-on-media);
+    backdrop-filter: blur(10px) saturate(150%);
+    -webkit-backdrop-filter: blur(10px) saturate(150%);
+    transition: background var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-social-round:hover,
+  .nf-social-round:focus-visible {
+    background: var(--nf-surface-control-on-media-strong);
+  }
+  /*
+   * The same glass, with the word on it.
+   *
+   * Back on a profile banner is the control a stranger reaches for most and the
+   * only one they have to guess at, so it says what it is. `inline-size: auto`
+   * releases the 44px square while `min-block-size` keeps the floor, and the
+   * flow turns to a column of two so the chevron and the word sit on one line
+   * rather than stacking in the grid's single cell.
+   */
+  .nf-social-round--pill {
+    grid-auto-flow: column;
+    align-items: center;
+    gap: 8px;
+    inline-size: auto;
+    min-inline-size: 44px;
+    block-size: 44px;
+    padding-inline: 0.85rem 1.05rem;
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    letter-spacing: -0.005em;
+  }
+  .nf-social-count:hover .nf-social-count__value,
+  .nf-social-count:focus-visible .nf-social-count__value {
+    color: var(--nf-brand-secondary);
+  }
+  .nf-social-tab[aria-selected="true"] .nf-social-tab__count {
+    color: var(--nf-brand-secondary);
+  }
+  .nf-comments__field {
+    flex: 1 1 auto;
+    min-block-size: 44px;
+    max-block-size: 8rem;
+    resize: none;
+    border-radius: var(--nf-radius-control);
+    padding-block: 11px;
+  }
+  .nf-district__chip .nf-numeric {
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-muted);
+  }
+  .nf-district__chip.nf-chip--active .nf-numeric {
+    color: var(--nf-content-on-brand);
+    opacity: 0.8;
+  }
+  @media (min-width: 768px) {
+    :root {
+      --nf-feed-pad: 16px;
+      --nf-feed-avatar: 42px;
+    }
+  }
+
+  .nf-people__row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .nf-enter__chip[data-open="true"] {
+    border-color: var(--nf-border-brand);
+    color: var(--nf-brand-secondary);
+  }
+
+  .nf-enter__chip:disabled {
+    opacity: 0.5;
+  }
+
+  .nf-enter__chip[aria-busy="true"] {
+    opacity: 1;
+    color: var(--nf-content-on-brand);
+    background: var(--nf-selected-fill);
+    border-color: var(--nf-selected-edges);
+    box-shadow: var(--nf-selected-shadow-inline);
+  }
+  /*
+   * The deep glass through a bloom plate's middle (#082b8f in the image):
+   * the container blue sunk toward the canvas, named once. The cyan rims
+   * are the shared `--nf-lit-cyan`.
+   */
+  :root {
+    --nf-feed-glass-deep: color-mix(in oklab, var(--nf-container-ink) 62%, var(--nf-surface-canvas));
+    /*
+     * The image's lit blue is a few degrees deeper than the brand's (#1557fa,
+     * #012dd4 against #0069FE); no layer-2 token carries it (FEED-5), so it
+     * is the brand blue turned 7 degrees and a touch darker, derived rather
+     * than written, with the brand itself where relative colour is missing.
+     */
+    --nf-feed-indigo: var(--nf-brand-primary);
+  }
+  @supports (color: oklch(from red l c h)) {
+    :root {
+      --nf-feed-indigo: oklch(from var(--nf-brand-primary) calc(l - 0.07) c calc(h + 7));
+    }
+  }
+  @media (min-width: 768px) {
+    .nf-panel.nf-post {
+      padding: 12px 16px 0;
+    }
+  }
+}

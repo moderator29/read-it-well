@@ -1,0 +1,49 @@
+/*
+ * The part of motion.css that stays in globals.css (C6's member CSS move, 6
+ * October). The rest of motion.css loads from the member layouts, after every
+ * global partial. What stays here: the anchored-heading scroll margin, which
+ * any `id="nf-…"` element on any page wears, and the typing dots' keyframes,
+ * which glass.css names. A rule moved after a sheet that answers it would win
+ * where it used to lose, so it keeps its place.
+ */
+@layer components {
+  @keyframes nf-typing-breathe {
+    0%, 100% { transform: scale(0.72); opacity: 0.45; }
+    50% { transform: scale(1); opacity: 1; }
+  }
+
+  /*
+   * Anchored headings clear the sticky header instead of hiding under it.
+   *
+   * It was `5.5rem`, which is 88 pixels, which is the 76px header plus 12px of
+   * air, arrived at by measuring the header once and typing the answer. That
+   * made `--nf-header-height` a token with no consumer anywhere in the product:
+   * it stated the height and this rule, the one thing that actually depends on
+   * it, could not see it. The day somebody makes the bar taller, every anchored
+   * heading on the site lands underneath it and nothing fails.
+   *
+   * Said as what it is: the bar, plus one row of air.
+   *
+   * AND THE BAR IS TWO HEIGHTS, WHICH THE FIRST VERSION OF THIS FIX MISSED.
+   * Pointing it at `--nf-header-height` was right in shape and wrong in fact
+   * while that token said 76px, because the marketing header is 60 below the
+   * `sm` breakpoint and 72 above it. An anchored heading was clearing 88px of a
+   * bar that was never 76 tall: 16 pixels of dead space on a desktop and 28 on
+   * a phone, which on a phone is most of a line of body text pushed off the top
+   * for no reason. The token carries the real pair now; this follows it.
+   *
+   * Mobile first, so the narrow value needs no query and the wide one takes the
+   * breakpoint. 40rem is a literal because `@media` cannot read a custom
+   * property - there is no `@media (min-width: var(--x))` in CSS - and it is
+   * Tailwind's own `sm`, which is the variant `SiteHeader.tsx` switches on. If
+   * that breakpoint ever moves, this number moves with it by hand.
+   */
+  [id^="nf-"] {
+    scroll-margin-top: calc(var(--nf-header-height-sm) + var(--nf-gap-row));
+  }
+  @media (min-width: 40rem) {
+    [id^="nf-"] {
+      scroll-margin-top: calc(var(--nf-header-height) + var(--nf-gap-row));
+    }
+  }
+}

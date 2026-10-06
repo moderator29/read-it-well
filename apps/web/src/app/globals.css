@@ -7,14 +7,18 @@
  * monoliths (inbox item 226). Everything in social.css draws from the same layer
  * two tokens as everything else, and may not introduce a raw colour either.
  */
-@import "./social.css";
+/* What stays global of social.css: its unlayered tokens and three rules a later
+   sheet answers. The member layouts load the rest (C6, 6 October). */
+@import "./social.shared.css";
 
 /*
  * The feed's own material, in its own file for the same reason and one more:
  * three people are building the social layer at once, and one writer per file
  * is the cheapest way to stop us overwriting each other.
  */
-@import "./social-feed.css";
+/* What stays global of social-feed.css: the :root geometry, the round back
+   control signed-out pages draw, and the rules later sheets answer; the member layouts load the rest (C6, 6 October). */
+@import "./social-feed.shared.css";
 
 /*
  * Grouped settings rows, the switch, the segment and the sheet. Its own file
@@ -54,7 +58,9 @@
 @import "./css/theme.css";
 @import "./css/base.css";
 @import "./css/glass.css";
-@import "./css/motion.css";
+/* What stays global of motion.css: the anchored-heading scroll margin and the
+   typing keyframes glass.css names; the member layouts load the rest (C6, 6 October). */
+@import "./css/motion.shared.css";
 /*
  * side-flip.css (the flip and the coin that starts it) STOOD HERE. It is
  * imported by SideFlip, SideCover, SideSwitch and AppRail, the only files that
@@ -77,8 +83,9 @@
 @import "./css/utilities.css";
 /* auth.css STOOD HERE: imported by the sign-in and sign-up components and the
    (auth) layout that draw it. Nothing later overrides it at equal specificity. */
-/* The passcode lock, setup and settings (docs/PASSCODE.md). It stays global: the lock can render on any signed-in route. */
-@import "./css/passcode.css";
+/* passcode.css STOOD HERE: the lock, setup and settings (docs/PASSCODE.md)
+   render only inside signed-in trees, so the member layouts that draw them
+   import it (C6, 6 October). */
 /* home.css STOOD HERE: imported by the home, assistant and stays components
    that draw it. Nothing later overrides it at equal specificity. */
 /*
@@ -102,13 +109,17 @@
 /* Track M: the list views (view toggle, map pill, card lift, heart, photos). */
 /* list-views.css STOOD HERE: imported by the card, view toggle, save control and
    saved-board components that draw it, always after catalogue.css. */
-/* The full-screen photo viewer: its notch-aware chrome and swipe-to-dismiss. */
-@import "./css/photo-viewer.css";
-/* The filter drawer's icon tiles: property type and space. */
-@import "./css/filter-tiles.css";
-@import "./css/threads.css";
-/* B5 to B17: the member kit (scam shield, day kit, chips, contrast). */
-@import "./css/member-kit.css";
+/* The full-screen photo viewer: what stays global is `.nf-floating-back`, which
+   detail-m.css answers; the member layouts load the rest (C6, 6 October). */
+@import "./css/photo-viewer.shared.css";
+/* filter-tiles.css STOOD HERE (the filter drawer's icon tiles); the signed-in
+   app imports it (C6, 6 October). */
+/* What stays global of threads.css: `.nf-inbox-row`, which press-motion.css
+   answers; the member layouts load the rest (C6, 6 October). */
+@import "./css/threads.shared.css";
+/* B5 to B17: the member kit. What stays global is its unlayered contrast and
+   forced-colours rules; the member layouts load the rest (C6, 6 October). */
+@import "./css/member-kit.shared.css";
 /*
  * `admin.css` STOOD HERE AND IS IMPORTED BY `app/admin/layout.tsx` NOW (B-4,
  * 29 September 2026): 75 KB of the staff console that no member, visitor or
@@ -127,8 +138,8 @@
 /* wallet.css (44 KB, the wallet retired on 25 September) is gone (C12); the
    few rules live screens still used are in money-surface.css, in its slot. */
 @import "./css/money-surface.css";
-/* The payments and earnings histories: a record of money that already moved. */
-@import "./css/money-history.css";
+/* money-history.css STOOD HERE (the payments and earnings histories); the
+   member layouts import it (C6, 6 October). */
 @import "./css/system.css";
 /*
  * THE LIGHT THEME'S SHAPE AND ARTWORK RULES, back in the slot `light.css`
@@ -147,15 +158,16 @@
 @import "./css/threshold.css";
 /* Track M: the inner rooms breathe (titles, empty states, rows, the bell). */
 @import "./css/inner-m.css";
-/* Track M: the supplier flows (registrations, set-ups, the listing wizard). */
-@import "./css/flow-m.css";
+/* Track M: the supplier flows. What stays global is the door rules signed-out
+   pages draw and the choose keyframes; the member layouts load the rest (C6, 6 October). */
+@import "./css/flow-m.shared.css";
 /* feed-m.css (the feed's arrivals, heart, repost, story rings) is imported
    by `app/(app)/layout.tsx`, the only tree that draws a post (C12). */
-/* Track M: the listing page (marks, price, sections, tiles, the booking bar). */
-@import "./css/detail-m.css";
-/* Recommendations B (member loop): recents, compare, the one-frame listing,
-   notifications that say what needs you, and changes on saved places. */
-@import "./css/member-loop.css";
+/* detail-m.css STOOD HERE (Track M: the listing page); the member layouts
+   import it (C6, 6 October). */
+/* member-loop.css STOOD HERE (Recommendations B: recents, compare, the
+   one-frame listing, notifications, changes on saved places); the member
+   layouts import it (C6, 6 October). */
 /* Track M, second round: the moving edge on every container and button. */
 @import "./css/edge-m.css";
 /* Track M: the cinema kit (Truchet field, horizontal reel, vertical columns,

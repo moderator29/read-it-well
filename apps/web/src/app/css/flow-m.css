@@ -25,6 +25,19 @@
  * A partial of globals.css. The imports there are ordered, and the order is
  * the cascade: do not move this one.
  */
+/*
+ * Loaded by the member layouts (the signed-in app, the agent and host
+ * workspaces, admin and the preview harness), not by globals.css: C6's member
+ * CSS move, 6 October. No signed-out route draws these classes, so signed-out
+ * pages no longer download them. What a signed-out route does draw, and
+ * what must keep its old place in the cascade, stays global in
+ * `flow-m.shared.css`. Comments below that still say "global" or "globals.css"
+ * describe where the sheet used to load. This line states the layer order the
+ * document already has from Tailwind, so the order holds whichever chunk the
+ * browser receives first.
+ */
+@layer theme, base, components, utilities;
+
 @layer components {
   @keyframes nf-flow-fill {
     from {
@@ -79,17 +92,6 @@
     }
     50% {
       transform: translateY(-5px);
-    }
-  }
-  @keyframes nf-flow-choose {
-    0% {
-      transform: scale(0.97);
-    }
-    60% {
-      transform: scale(1.012);
-    }
-    100% {
-      transform: none;
     }
   }
   @keyframes nf-flow-ring {
@@ -181,33 +183,6 @@
   }
 
   /* ------------------------------------------------------------- doors */
-
-  .nf-door {
-    animation: nf-in-rise var(--nf-duration-entrance) var(--nf-ease-entrance) both;
-  }
-  li:nth-child(2) > .nf-door,
-  .nf-door:nth-child(2) {
-    animation-delay: 70ms;
-  }
-  li:nth-child(3) > .nf-door,
-  .nf-door:nth-child(3) {
-    animation-delay: 140ms;
-  }
-  li:nth-child(n + 4) > .nf-door,
-  .nf-door:nth-child(n + 4) {
-    animation-delay: 200ms;
-  }
-  .nf-door img {
-    transition: transform var(--nf-duration-base) var(--nf-ease-spring);
-  }
-  @media (hover: hover) {
-    .nf-door:hover img {
-      transform: translateY(-3px) scale(1.05);
-    }
-  }
-  .nf-door[data-on] {
-    animation: nf-flow-choose var(--nf-duration-slow) var(--nf-ease-spring) both;
-  }
   .nf-lw-choice[aria-pressed="true"],
   .nf-lw-choice[aria-checked="true"] {
     animation: nf-flow-choose var(--nf-duration-slow) var(--nf-ease-spring) both;
@@ -280,8 +255,6 @@
     .nf-flow-step,
     .nf-lw-body > *,
     .nf-lw-head__object,
-    .nf-door,
-    .nf-door[data-on],
     .nf-lw-choice[aria-pressed="true"],
     .nf-lw-choice[aria-checked="true"],
     .nf-regobject > :not(style),
@@ -292,9 +265,6 @@
     .nf-lw-id::after,
     .nf-lw-next__row {
       animation: none;
-    }
-    .nf-door img {
-      transition: none;
     }
   }
 }

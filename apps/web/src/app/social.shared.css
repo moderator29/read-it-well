@@ -1,0 +1,83 @@
+/*
+ * The part of social.css that stays in globals.css (C6's member CSS move, 6
+ * October). The rest of social.css loads from the member layouts, after every
+ * global partial. What stays here: its two unlayered `:root` token blocks, and
+ * three rules a later global sheet answers at equal specificity
+ * (`.nf-social-avatar` and `.nf-profile-text .nf-social-count__value` against
+ * social-feed.css, `.nf-belong__switch .nf-row-button` against controls.css).
+ * A rule moved after a sheet that answers it would win where it used to lose,
+ * so it keeps its place.
+ */
+/*
+ * Around: the social layer's styles.
+ *
+ * Owned by the social layer work, imported once from globals.css. Layer two
+ * tokens only, never a raw colour, and every rule has a paper answer as well as
+ * a night one because light is a designed theme here and not a derivation.
+ *
+ * The card material is deliberately the platform's own stride (ADR-012) rather
+ * than a plain hairline: a luminous ring on the border box with the fill on the
+ * padding box, brightest at the upper left. That treatment is what makes this
+ * feed read as Vallo rather than as a dark mode clone of somebody else.
+ *
+ * Everything here sits inside @layer components, for the same reason the rest
+ * of the platform's component classes do: Tailwind emits utilities in a later
+ * layer, so an unlayered rule here would silently beat `hidden` on the same
+ * element.
+ *
+ * Nothing below invents a hue. The only additions to the custom property space
+ * are three pieces of geometry, declared once so a card, the gap under it and
+ * the bar the cover runs behind can never drift apart.
+ */
+
+:root {
+  /* The social radius. Softer than --nf-radius-lg, because a post is a spoken
+     thing and it should not read as a panel. */
+  --nf-social-radius: 20px;
+  /* The gap between independent, floating cards. They are not a list, they do
+     not share an edge, and nothing connects them. */
+  --nf-social-gap: 12px;
+  /* How far the cover runs up behind the app's own translucent top bar. */
+  --nf-social-bar: 64px;
+}
+/* In light the app header is a solid navy block (reference 05), so a cover
+   running up behind it would be hidden, not seen through glass. */
+:root[data-theme="light"] {
+  --nf-social-bar: 0px;
+}
+@layer components {
+
+  /*
+   * The avatar overlaps the cover from below, which is what makes the cover
+   * read as behind the person rather than above them. The ring is the canvas
+   * colour, so the disc is cut cleanly out of the page in either theme.
+   */
+  .nf-social-avatar {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 5.5rem;
+    height: 5.5rem;
+    flex-shrink: 0;
+    border-radius: var(--nf-radius-circle);
+    overflow: hidden;
+    background: var(--nf-gradient-brand-ink);
+    color: var(--nf-content-on-brand);
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1;
+    box-shadow:
+      0 0 0 3px var(--nf-surface-canvas),
+      0 12px 30px -12px var(--nf-shade-3);
+  }
+  .nf-profile-text .nf-social-count__value {
+    font-size: 1.125rem;
+  }
+  /* The role switch wears the card and keeps its own row inside it. */
+  .nf-belong__switch .nf-row-button {
+    min-block-size: 66px;
+    padding-inline: 10px 14px;
+    background: transparent;
+    border: 0;
+  }
+}

@@ -20,6 +20,17 @@
  * A partial of globals.css. The imports there are ordered, and the order is
  * the cascade: do not move this one.
  */
+/*
+ * Loaded by the member layouts (the signed-in app, the agent and host
+ * workspaces, admin and the preview harness), not by globals.css: C6's member
+ * CSS move, 6 October. No signed-out route draws these classes, so signed-out
+ * pages no longer download them. Comments below that still say "global" or "globals.css"
+ * describe where the sheet used to load. This line states the layer order the
+ * document already has from Tailwind, so the order holds whichever chunk the
+ * browser receives first.
+ */
+@layer theme, base, components, utilities;
+
 @layer components {
   .nf-gallery-mark {
     animation: nf-detail-mark var(--nf-duration-slow) var(--nf-ease-entrance) both;

@@ -6,6 +6,19 @@
  * A partial of globals.css. The imports there are ordered, and the order is
  * the cascade: do not move this one.
  */
+/*
+ * Loaded by the member layouts (the signed-in app, the agent and host
+ * workspaces, admin and the preview harness), not by globals.css: C6's member
+ * CSS move, 6 October. No signed-out route draws these classes, so signed-out
+ * pages no longer download them. What a signed-out route does draw, and
+ * what must keep its old place in the cascade, stays global in
+ * `motion.shared.css`. Comments below that still say "global" or "globals.css"
+ * describe where the sheet used to load. This line states the layer order the
+ * document already has from Tailwind, so the order holds whichever chunk the
+ * browser receives first.
+ */
+@layer theme, base, components, utilities;
+
 @layer components {
   /* -------------------------------------------------------- conversation */
 
@@ -45,10 +58,6 @@
      part of the conversation rather than a spinner bolted on beside it. */
   .nf-typing-dot {
     animation: nf-typing-breathe 1.2s var(--nf-ease-standard) infinite;
-  }
-  @keyframes nf-typing-breathe {
-    0%, 100% { transform: scale(0.72); opacity: 0.45; }
-    50% { transform: scale(1); opacity: 1; }
   }
   @media (prefers-reduced-motion: reduce) {
     .nf-typing-dot {
@@ -411,14 +420,6 @@
    * Tailwind's own `sm`, which is the variant `SiteHeader.tsx` switches on. If
    * that breakpoint ever moves, this number moves with it by hand.
    */
-  [id^="nf-"] {
-    scroll-margin-top: calc(var(--nf-header-height-sm) + var(--nf-gap-row));
-  }
-  @media (min-width: 40rem) {
-    [id^="nf-"] {
-      scroll-margin-top: calc(var(--nf-header-height) + var(--nf-gap-row));
-    }
-  }
 
   /* ------------------------------------------------ landing motion system */
 

@@ -19,22 +19,21 @@
  * are three pieces of geometry, declared once so a card, the gap under it and
  * the bar the cover runs behind can never drift apart.
  */
-
-:root {
-  /* The social radius. Softer than --nf-radius-lg, because a post is a spoken
-     thing and it should not read as a panel. */
-  --nf-social-radius: 20px;
-  /* The gap between independent, floating cards. They are not a list, they do
-     not share an edge, and nothing connects them. */
-  --nf-social-gap: 12px;
-  /* How far the cover runs up behind the app's own translucent top bar. */
-  --nf-social-bar: 64px;
-}
 /* In light the app header is a solid navy block (reference 05), so a cover
    running up behind it would be hidden, not seen through glass. */
-:root[data-theme="light"] {
-  --nf-social-bar: 0px;
-}
+
+/*
+ * Loaded by the member layouts (the signed-in app, the agent and host
+ * workspaces, admin and the preview harness), not by globals.css: C6's member
+ * CSS move, 6 October. No signed-out route draws these classes, so signed-out
+ * pages no longer download them. What a signed-out route does draw, and
+ * what must keep its old place in the cascade, stays global in
+ * `social.shared.css`. Comments below that still say "global" or "globals.css"
+ * describe where the sheet used to load. This line states the layer order the
+ * document already has from Tailwind, so the order holds whichever chunk the
+ * browser receives first.
+ */
+@layer theme, base, components, utilities;
 
 @layer components {
 
@@ -158,24 +157,6 @@
    * read as behind the person rather than above them. The ring is the canvas
    * colour, so the disc is cut cleanly out of the page in either theme.
    */
-  .nf-social-avatar {
-    position: relative;
-    display: grid;
-    place-items: center;
-    width: 5.5rem;
-    height: 5.5rem;
-    flex-shrink: 0;
-    border-radius: var(--nf-radius-circle);
-    overflow: hidden;
-    background: var(--nf-gradient-brand-ink);
-    color: var(--nf-content-on-brand);
-    font-size: 2rem;
-    font-weight: 700;
-    line-height: 1;
-    box-shadow:
-      0 0 0 3px var(--nf-surface-canvas),
-      0 12px 30px -12px var(--nf-shade-3);
-  }
 
   .nf-social-avatar img {
     width: 100%;
@@ -446,9 +427,6 @@
     align-items: flex-start;
     gap: 2px;
   }
-  .nf-profile-text .nf-social-count__value {
-    font-size: 1.125rem;
-  }
   .nf-profile-text .nf-social-count__rule {
     block-size: 2.25rem;
   }
@@ -670,13 +648,7 @@
     flex-shrink: 0;
     color: var(--nf-content-secondary);
   }
-  /* The role switch wears the card and keeps its own row inside it. */
-  .nf-belong__switch .nf-row-button {
-    min-block-size: 66px;
-    padding-inline: 10px 14px;
-    background: transparent;
-    border: 0;
-  }}
+  /* The role switch wears the card and keeps its own row inside it. */}
 
 /*
  * THE PUBLIC PROFILE'S TOP BLOCK IN DAYLIGHT (reference 05, 29 September
