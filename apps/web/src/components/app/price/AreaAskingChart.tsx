@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { formatMoney, formatMoneyGlance, type Locale } from "@vallo/i18n/core";
+import { formatMoney, formatMoneyGlance, formatNumber, type Locale } from "@vallo/i18n/core";
 import { Segmented, SegmentedPanel } from "@/components/ui/Segmented";
 import { PeriodBars } from "@/components/ui/charts/PeriodBars";
 import { axisTicks, type VizPoint } from "@/components/ui/charts/chart-rules";
@@ -86,12 +86,20 @@ export function AreaAskingChart({
   );
   const [type, setType] = useState<string>(types[0] ?? "apartment");
 
-  const forType = rows.filter((row) => row.propertyType === type);
-  if (types.length === 0 || forType.length === 0) return null;
+  /* The area can change under a chosen type (the read for a new area may not
+     hold that type). The segments only ever offer `types`, so a stale choice
+     falls back to the first type held rather than leaving a chart that
+     returns nothing and no segment to click back with. */
+  const current = types.includes(type as (typeof TYPE_ORDER)[number]) ? type : types[0];
+  if (current === undefined) return null;
+  const forType = rows.filter((row) => row.propertyType === current);
+  if (forType.length === 0) return null;
 
   /* The lead: the size with the most listings behind it, the firmest claim. */
   const lead = [...forType].sort((a, b) => b.listingCount - a.listingCount || a.bedrooms - b.bedrooms)[0]!;
-  const typeName = typeNames[type] ?? type;
+  /* Sentence case: the type names are capitalised for the segments, but
+     inside a sentence they are common nouns ("3 bedroom flat"). */
+  const typeName = (typeNames[current] ?? current).toLocaleLowerCase(locale);
   const what = (bedrooms: number) =>
     bedrooms > 0 ? fill(copy.middleWhat, { bedrooms, type: typeName }) : fill(copy.studioWhat, { type: typeName });
 
@@ -115,7 +123,7 @@ export function AreaAskingChart({
       {types.length > 1 ? (
         <Segmented
           label={copy.segmentsLabel}
-          value={type}
+          value={current}
           onChange={setType}
           options={types.map((value) => ({ value, label: typeNames[value] ?? value }))}
           itemIdPrefix="nf-area-type"
@@ -145,15 +153,20 @@ export function AreaAskingChart({
         height={160}
       />
 
-      <SegmentedPanel value={type} panelIdPrefix="nf-area-panel" itemIdPrefix="nf-area-type">
+      <SegmentedPanel value={current} panelIdPrefix="nf-area-panel" itemIdPrefix="nf-area-type">
         <p className="nf-area-chart__range nf-body-sm">
           {fill(copy.range, {
             low: formatMoneyGlance(lead.p25Minor, locale),
             high: formatMoneyGlance(lead.p75Minor, locale),
           })}{" "}
-          <span className="text-[var(--nf-content-muted)]">{fill(copy.basis, { count: lead.listingCount })}</span>
+          <span className="text-[var(--nf-content-muted)]">
+            {fill(copy.basis, { count: formatNumber(lead.listingCount, locale) })}
+          </span>
         </p>
-        <p className="nf-caption mt-inline-tight text-[var(--nf-content-muted)]">{copy.thinNote}</p>
+        {/* Explains the hatching, so it is said only when a slot is hatched. */}
+        {points.some((point) => point.value === null) ? (
+          <p className="nf-caption mt-inline-tight text-[var(--nf-content-muted)]">{copy.thinNote}</p>
+        ) : null}
       </SegmentedPanel>
     </section>
   );
