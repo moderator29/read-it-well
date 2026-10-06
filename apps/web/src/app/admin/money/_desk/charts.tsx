@@ -146,7 +146,8 @@ export type Series = {
   dash?: string;
 };
 
-const PAD = { left: 64, right: 16, top: 16, bottom: 30 };
+/* The y figures sit inside the plot on their gridlines (HTML, see SeriesChart), so the left gutter is only air. */
+const PAD = { left: 16, right: 16, top: 16, bottom: 30 };
 
 export function SeriesChart({
   id,
@@ -209,20 +210,8 @@ export function SeriesChart({
         </defs>
 
         {ticks.map((t) => (
-          <g key={t}>
-            <line x1={PAD.left} x2={W - PAD.right} y1={y(t)} y2={y(t)} className="nf-md-chart__grid" strokeWidth="1" />
-            <text x={PAD.left - 10} y={y(t) + 4} textAnchor="end" className="nf-md-chart__axis">
-              {ghost && t !== 0 ? "" : yLabel(t)}
-            </text>
-          </g>
+          <line key={t} x1={PAD.left} x2={W - PAD.right} y1={y(t)} y2={y(t)} className="nf-md-chart__grid" strokeWidth="1" />
         ))}
-        {xLabels.map((l, i) =>
-          i === n - 1 || (i % labelEvery === 0 && n - 1 - i >= labelEvery * 0.7) ? (
-            <text key={`${l}-${i}`} x={x(i)} y={H - 8} textAnchor="middle" className="nf-md-chart__axis">
-              {l}
-            </text>
-          ) : null,
-        )}
 
         {series.filter((s) => s.values.length > 0).map((s, si, drawn) => {
           const labelYs = spreadLabels(
@@ -271,6 +260,42 @@ export function SeriesChart({
           );
         })}
       </svg>
+      {/*
+        THE AXIS WORDS ARE HTML, NOT SVG TEXT. In the drawing they were sized
+        in its own units, and the drawing is 720 wide: on a phone it scales to
+        about 330px and every axis figure drew at about 5px, under the 12px floor
+        (C1 sweep, measured on the stays desk at 390). Placed by the same
+        fractions over a box with the drawing's aspect ratio, they stay 12px at
+        every width. The y figures sit on their gridline at the plot's left; on
+        a narrow card every other x label steps aside so the rest never collide.
+      */}
+      <div className="nf-md-chart__ticks" aria-hidden="true" style={{ aspectRatio: `${W} / ${H}` }}>
+        {ticks.map((t) =>
+          ghost && t !== 0 ? null : (
+            <span
+              key={t}
+              className="nf-md-chart__tick nf-md-chart__tick--y"
+              style={{ left: `${(PAD.left / W) * 100}%`, top: `${(y(t) / H) * 100}%` }}
+            >
+              {yLabel(t)}
+            </span>
+          ),
+        )}
+        {xLabels
+          .map((l, i) => ({ l, i }))
+          .filter(({ i }) => i === n - 1 || (i % labelEvery === 0 && n - 1 - i >= labelEvery * 0.7))
+          .map(({ l, i }, k, shownLabels) => (
+            <span
+              key={`${l}-${i}`}
+              className={`nf-md-chart__tick nf-md-chart__tick--x${i === n - 1 ? " nf-md-chart__tick--end" : i === 0 ? " nf-md-chart__tick--start" : ""}${
+                (k % 2 === 1 || k === shownLabels.length - 2) && k !== shownLabels.length - 1 ? " nf-md-chart__tick--minor" : ""
+              }`}
+              style={{ left: `${(x(i) / W) * 100}%`, top: `${((H - PAD.bottom) / H) * 100}%` }}
+            >
+              {l}
+            </span>
+          ))}
+      </div>
       {!ghost && <ChartReadout columns={readout} plotLeft={PAD.left / W} plotRight={(W - PAD.right) / W} />}
       {/* The table is for a screen reader. A table sizes to its content
           whatever width `sr-only` gives it, so on a phone it widened the page
@@ -519,7 +544,12 @@ export function StatusBar({
             className={`nf-md-statusbar__seg nf-md-statusbar__seg--${s.tone}`}
             style={{ flexGrow: s.count, flexBasis: 0 }}
           >
-            {s.count / total >= 0.07 ? s.label : s.count / total >= 0.025 ? s.count : ""}
+            {/* THE COUNT, NOT THE WORD. The key under the bar names every
+                segment, and a word inside a share-wide segment was clipped on
+                every narrow one: 3 of 3 labels cut at 390 and at 1440 on the
+                stays desk (C1 sweep, measured). A count is short enough for any
+                segment it is drawn in. */}
+            {s.count / total >= 0.07 ? s.count : ""}
           </span>
         ))}
       </div>

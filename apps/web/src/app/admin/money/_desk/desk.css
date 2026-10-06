@@ -318,6 +318,7 @@
     overflow: hidden;
     font-size: var(--nf-text-overline);
     font-weight: 600;
+    font-variant-numeric: tabular-nums;
     white-space: nowrap;
     color: var(--nf-surface-canvas);
   }
@@ -572,6 +573,41 @@
   .nf-md-chart {
     position: relative;
     width: 100%;
+    container-type: inline-size;
+  }
+  /* The axis words (charts.tsx, SeriesChart): HTML over a box with the
+     drawing's aspect ratio, so they hold the 12px floor at any width. */
+  .nf-md-chart__ticks {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    pointer-events: none;
+  }
+  .nf-md-chart__tick {
+    position: absolute;
+    font-size: var(--nf-text-overline);
+    line-height: 1;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-brand-quiet);
+  }
+  .nf-md-chart__tick--y {
+    transform: translate(var(--nf-space-3xs), calc(-100% - var(--nf-space-3xs)));
+  }
+  .nf-md-chart__tick--x {
+    transform: translate(-50%, var(--nf-space-2xs));
+  }
+  .nf-md-chart__tick--start {
+    transform: translate(0, var(--nf-space-2xs));
+  }
+  .nf-md-chart__tick--end {
+    transform: translate(-100%, var(--nf-space-2xs));
+  }
+  @container (max-width: 30rem) {
+    .nf-md-chart__tick--minor {
+      display: none;
+    }
   }
   .nf-md-chart svg {
     display: block;
