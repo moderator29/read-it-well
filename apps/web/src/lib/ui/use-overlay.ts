@@ -17,6 +17,8 @@ import { isTopOverlay, joinOverlay, leaveOverlay } from "@/lib/ui/overlay-regist
  *  1. **Escape closes.** An overlay a keyboard cannot leave is a trap.
  *  2. **The body does not scroll behind it.** The most common mobile bug in
  *     the world: you flick to dismiss a sheet and the page underneath moves.
+ *     On iOS Safari that needs the body pinned, not only `overflow: hidden`
+ *     (`lockBody`).
  *  3. **Tab stays inside.** Tabbing out of a modal into the page behind it
  *     leaves a screen reader reading content that is visually covered.
  *  4. **Focus comes back.** On close, focus returns to whatever opened the
@@ -42,12 +44,37 @@ import { isTopOverlay, joinOverlay, leaveOverlay } from "@/lib/ui/overlay-regist
 
 /** How many overlays currently want the body still. */
 let lockCount = 0;
-let restoreOverflow = "";
+/** The body's own inline styles before the first lock, put back by the last release. */
+let restore: Partial<Record<LockedStyle, string>> = {};
+let restoreScrollY = 0;
 
+const LOCKED_STYLES = ["overflow", "position", "top", "left", "right", "width", "paddingRight"] as const;
+type LockedStyle = (typeof LOCKED_STYLES)[number];
+
+/**
+ * THE LOCK HOLDS ON iOS SAFARI (D49.3). `overflow: hidden` on the body alone
+ * is ignored by iOS Safari: the page behind a sheet still scrolls under a
+ * finger, which is the bug this hook exists to prevent, and every sheet
+ * inherited it. So the body is also pinned in place: `position: fixed` at
+ * `top: -scrollY`, full width, which iOS does honour, and the page stays
+ * exactly where it was on screen. The last release unpins it and scrolls the
+ * window back to the same place, so closing a sheet never jumps the page to
+ * the top. Where the page had a classic scrollbar, its width is padded back
+ * so the content does not shift sideways when it disappears.
+ */
 function lockBody(): () => void {
   if (lockCount === 0) {
-    restoreOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const body = document.body;
+    restoreScrollY = window.scrollY;
+    restore = Object.fromEntries(LOCKED_STYLES.map((name) => [name, body.style[name]]));
+    const scrollbar = window.innerWidth - document.documentElement.clientWidth;
+    body.style.overflow = "hidden";
+    body.style.position = "fixed";
+    body.style.top = `-${restoreScrollY}px`;
+    body.style.left = "0";
+    body.style.right = "0";
+    body.style.width = "100%";
+    if (scrollbar > 0) body.style.paddingRight = `${scrollbar}px`;
   }
   lockCount += 1;
   let released = false;
@@ -55,7 +82,10 @@ function lockBody(): () => void {
     if (released) return;
     released = true;
     lockCount = Math.max(0, lockCount - 1);
-    if (lockCount === 0) document.body.style.overflow = restoreOverflow;
+    if (lockCount > 0) return;
+    const body = document.body;
+    for (const name of LOCKED_STYLES) body.style[name] = restore[name] ?? "";
+    window.scrollTo(0, restoreScrollY);
   };
 }
 

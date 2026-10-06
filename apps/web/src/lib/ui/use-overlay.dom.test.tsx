@@ -68,6 +68,37 @@ describe.skipIf(!hasBrowser && !process.env.CI)("useOverlay", () => {
     }
   });
 
+  /* D49.3: `overflow: hidden` alone does not hold on iOS Safari, so the body
+     is pinned where the page was and put back on close. */
+  it("modal: pins the page where it was, so it cannot scroll under a finger, and puts it back on close", async () => {
+    const { page, close } = await mountInBrowser({ entry: entry(true) });
+    try {
+      await page.evaluate(() => window.scrollTo(0, 1200));
+      await page.waitForFunction(() => window.scrollY === 1200);
+      const before = await page.evaluate(() => document.getElementById("opener")!.getBoundingClientRect().top);
+      await page.evaluate(() => document.getElementById("opener")!.click());
+      await page.waitForSelector("#panel");
+      const pinned = await page.evaluate(() => {
+        const st = document.body.style;
+        return { position: st.position, top: st.top, width: st.width, overflow: st.overflow };
+      });
+      expect(pinned).toEqual({ position: "fixed", top: "-1200px", width: "100%", overflow: "hidden" });
+      /* Nothing on screen moved when it locked. */
+      expect(await page.evaluate(() => document.getElementById("opener")!.getBoundingClientRect().top)).toBe(before);
+      /* A wheel or a flick does not move the page behind. */
+      await page.mouse.move(100, 300);
+      await page.mouse.wheel(0, 600);
+      await page.waitForTimeout(200);
+      expect(await page.evaluate(() => document.getElementById("opener")!.getBoundingClientRect().top)).toBe(before);
+      await page.keyboard.press("Escape");
+      await page.waitForFunction(() => !document.getElementById("panel"));
+      expect(await page.evaluate(() => window.scrollY)).toBe(1200);
+      expect(await page.evaluate(() => [document.body.style.position, document.body.style.top, document.body.style.overflow])).toEqual(["", "", ""]);
+    } finally {
+      await close();
+    }
+  });
+
   it("non-modal: no scroll lock, Tab walks out, focus is left alone, and it is in the registry", async () => {
     const { page, close } = await mountInBrowser({ entry: entry(false) });
     try {
