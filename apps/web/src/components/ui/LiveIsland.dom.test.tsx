@@ -11,7 +11,7 @@ import {
   mountInBrowser,
   warmBrowser,
 } from "@/lib/testing/mount-in-browser";
-import { PORTED_CSS, axeViolations } from "./ported-test-css";
+import { PORTED_CSS, axeViolations, withoutFeatures } from "./ported-test-css";
 
 vi.setConfig({ testTimeout: BROWSER_TEST_TIMEOUT });
 beforeAll(warmBrowser);
@@ -70,7 +70,7 @@ describe.skipIf(!hasBrowser && !process.env.CI)("LiveIsland", () => {
     }
   });
 
-  it("opens and closes its body, which is out of the page entirely while closed", async () => {
+  it("opens and closes its body, which is hidden and unreachable while closed", async () => {
     const { page, close } = await mountInBrowser({ entry: entry(), css: PORTED_CSS });
     try {
       const toggle = page.getByRole("button", { name: "Show details" });
@@ -82,8 +82,9 @@ describe.skipIf(!hasBrowser && !process.env.CI)("LiveIsland", () => {
       await page.getByRole("button", { name: "Cancel it" }).click();
       expect(await page.evaluate(() => (window as unknown as { __cancelled: number }).__cancelled)).toBe(1);
       await page.getByRole("button", { name: "Hide details" }).click();
-      /* The exit finishes, then the body leaves. */
-      await page.waitForFunction(() => document.querySelector(".nf-live__panel") === null);
+      /* The exit finishes, then the body is hidden again. */
+      await page.waitForFunction(() => getComputedStyle(document.querySelector(".nf-live__clip")!).visibility === "hidden");
+      expect(await page.getByRole("button", { name: "Cancel it" }).count()).toBe(0);
     } finally {
       await close();
     }
@@ -119,6 +120,24 @@ describe.skipIf(!hasBrowser && !process.env.CI)("LiveIsland", () => {
       await page.getByRole("button", { name: "Show details" }).click();
       await page.waitForTimeout(900);
       expect(Math.round(await width())).toBe(358);
+    } finally {
+      await close();
+    }
+  });
+
+  it("is fully usable with framer-motion's features never loaded: opens, widens, shows the body, is clickable", async () => {
+    const { page, close } = await mountInBrowser({ entry: withoutFeatures(entry()), css: PORTED_CSS });
+    try {
+      await page.waitForTimeout(300);
+      const width = () => page.getByTestId("island").evaluate((el) => Math.round(el.getBoundingClientRect().width));
+      expect(await width()).toBe(288);
+      await page.getByRole("button", { name: "Show details" }).click();
+      await page.getByRole("button", { name: "Cancel it" }).waitFor();
+      await page.waitForTimeout(900);
+      expect(await width()).toBe(358);
+      expect(await page.getByRole("button", { name: "Hide details" }).getAttribute("aria-expanded")).toBe("true");
+      await page.getByRole("button", { name: "Cancel it" }).click();
+      expect(await page.evaluate(() => (window as unknown as { __cancelled: number }).__cancelled)).toBe(1);
     } finally {
       await close();
     }

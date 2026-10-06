@@ -12,7 +12,7 @@ import {
   mountInBrowser,
   warmBrowser,
 } from "@/lib/testing/mount-in-browser";
-import { PORTED_CSS, axeViolations } from "./ported-test-css";
+import { PORTED_CSS, axeViolations, withoutFeatures } from "./ported-test-css";
 
 vi.setConfig({ testTimeout: BROWSER_TEST_TIMEOUT });
 beforeAll(warmBrowser);
@@ -49,7 +49,7 @@ const entry = (initial = 2) => `
   mount(<Harness />);
 `;
 
-const isOpen = async (page: Page) => ((await page.getByTestId("tray").count()) > 0 ? "true" : null);
+const isOpen = (page: Page) => page.getByTestId("tray").getAttribute("data-open");
 const count = (page: Page) => page.evaluate(() => (window as unknown as { __count: number }).__count);
 
 async function drag(page: Page, distance: number, settle = 0) {
@@ -81,14 +81,16 @@ describe.skipIf(!hasBrowser && !process.env.CI)("BatchTray", () => {
     }
   });
 
-  it("is not in the page at all when nothing is selected, and rises when something is", async () => {
+  it("is closed, hidden and inert when nothing is selected, and rises when something is", async () => {
     const { page, close } = await mountInBrowser({ entry: entry(0), css: PORTED_CSS });
     try {
       expect(await isOpen(page)).toBeNull();
-      expect(await page.getByRole("toolbar").count()).toBe(0);
+      expect(await page.getByTestId("tray").evaluate((el) => getComputedStyle(el).visibility)).toBe("hidden");
+      expect(await page.getByTestId("tray").evaluate((el) => (el as HTMLElement).inert)).toBe(true);
+      expect(await page.getByRole("button", { name: "Action one" }).count()).toBe(0);
       const y = () => page.getByTestId("tray").evaluate((el) => el.getBoundingClientRect().top);
       await page.locator("#select").click();
-      await page.getByTestId("tray").waitFor();
+      await page.waitForFunction(() => getComputedStyle(document.querySelector("[data-testid=tray]")!).visibility === "visible");
       const early = await y();
       await page.waitForTimeout(900);
       const settled = await y();
@@ -99,15 +101,20 @@ describe.skipIf(!hasBrowser && !process.env.CI)("BatchTray", () => {
     }
   });
 
-  it("finishes leaving before it is removed", async () => {
-    const { page, close } = await mountInBrowser({ entry: entry(), css: PORTED_CSS });
+  it("is fully usable with framer-motion's features never loaded: visible, focusable, and the grip follows the finger", async () => {
+    const { page, close } = await mountInBrowser({ entry: withoutFeatures(entry()), css: PORTED_CSS });
     try {
       await page.waitForTimeout(700);
-      await page.getByRole("button", { name: "Clear selection" }).click();
-      /* Still there a moment later, mid-exit, then gone. */
-      await page.waitForTimeout(40);
-      expect(await page.getByTestId("tray").count()).toBe(1);
-      await page.waitForFunction(() => document.querySelector("[data-testid=tray]") === null);
+      expect(await page.getByRole("toolbar", { name: "Bulk actions" }).isVisible()).toBe(true);
+      await page.getByRole("button", { name: "Action one" }).focus();
+      expect(await page.evaluate(() => document.activeElement?.textContent)).toContain("Action one");
+      const box = (await page.locator(".nf-batch__grip").boundingBox())!;
+      const before = (await page.locator(".nf-batch__surface").boundingBox())!.y;
+      await page.mouse.move(box.x + box.width / 2, box.y + 10);
+      await page.mouse.down();
+      await page.mouse.move(box.x + box.width / 2, box.y + 10 + 30, { steps: 5 });
+      expect(Math.abs((await page.locator(".nf-batch__surface").boundingBox())!.y - before - 30)).toBeLessThan(2);
+      await page.mouse.up();
     } finally {
       await close();
     }
@@ -138,7 +145,7 @@ describe.skipIf(!hasBrowser && !process.env.CI)("BatchTray", () => {
           await page.keyboard.press("Escape");
         } else await drag(page, 90, 150);
         expect(await count(page), how).toBe(0);
-        await page.waitForFunction(() => document.querySelector("[data-testid=tray]") === null);
+        await page.waitForFunction(() => getComputedStyle(document.querySelector("[data-testid=tray]")!).visibility === "hidden");
       } finally {
         await close();
       }
@@ -196,7 +203,7 @@ describe.skipIf(!hasBrowser && !process.env.CI)("BatchTray", () => {
       expect(top).toBeLessThan(844);
       await page.getByRole("button", { name: "Clear selection" }).click();
       await page.waitForTimeout(60);
-      expect(await page.getByTestId("tray").count()).toBe(0);
+      expect(await page.getByTestId("tray").evaluate((el) => getComputedStyle(el).visibility)).toBe("hidden");
     } finally {
       await close();
     }

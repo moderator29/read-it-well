@@ -1,15 +1,15 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { AnimatePresence, m } from "framer-motion";
+import { animate, useMotionValue } from "framer-motion";
 import "@/app/css/ported.css";
 import { useMotionGate } from "@/components/motion/useMotionGate";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
 import { IconPlate, type IconPlateTone } from "@/components/ui/IconPlate";
 import { cn } from "@/lib/cn";
-import { SPRING_GENTLE, springFor } from "./ported-motion";
+import { SPRING_GENTLE, springFor, useDrive } from "./ported-motion";
 
 /**
  * LIVE ISLAND: THE DYNAMIC ISLAND AS A STATUS SURFACE.
@@ -51,16 +51,24 @@ import { SPRING_GENTLE, springFor } from "./ported-motion";
  * ONE COMPONENT, TWO SIZES, AND THE MORPH BETWEEN THEM. Rebuilt from the
  * founder's `dynamic-island.tsx`, whose point is the way the island changes shape
  * rather than swapping screens. The header (glyph, title, one line, a quiet
- * toggle) is always there. Open it and the island WIDENS and the body (steps,
- * progress, meta, one action) grows beneath it, both on a gentle spring, so the
- * same object has become a larger version of itself. That is framer-motion's job
- * and CSS cannot do it as well: the spring is interruptible (collapse it
- * mid-widen and it turns round from where it is), and `AnimatePresence` lets the
- * body finish closing before it leaves the page. The original gets the morph
+ * toggle) is always there. Open it and the island WIDENS on a gentle spring and
+ * the body (steps, progress, meta, one action) opens beneath it, so the same
+ * object has become a larger version of itself. The widening is framer-motion's
+ * job and CSS cannot do it as well: the spring is interruptible (collapse it
+ * mid-widen and it turns round from where it is). The original gets the morph
  * from the `layout` prop, which lives in the `domMax` bundle; the platform loads
- * `domAnimation` only (MotionProvider), so the width is animated directly, in
- * pixels measured from the viewport. The size change is the one deliberate
- * layout animation here, because the size change IS the idea.
+ * `domAnimation` only (MotionProvider), so the width is a motion value in
+ * pixels measured from the viewport, written into the island by `useDrive`
+ * (ported-motion.ts) rather than through an `m` element, because `m` shows
+ * nothing but its first frame until the lazily loaded features arrive.
+ *
+ * OPEN AND CLOSED ARE STATE AND CSS, NOT MOTION. `data-open` sets the island's
+ * width and opens the body in the stylesheet, so with no script beyond React the
+ * island is fully usable: it is the right size and the body is visible and
+ * focusable. The spring only carries the width between the two, and the body's
+ * reveal is the stylesheet's (a known track, the same grid reveal as `Unfold`).
+ * The size change is the one deliberate layout animation here, because the size
+ * change IS the idea.
  * Controlled with `expanded` and `onExpandedChange`, or uncontrolled with
  * `defaultExpanded`. Quiet readers (system reduced motion, Calm, Off) get the
  * final size at once.
@@ -125,6 +133,12 @@ function useViewportWidth(): number | null {
   return width;
 }
 
+/* Module level and stable, as `useDrive` requires. Zero means "not placed yet":
+   the stylesheet's own width stands. */
+const writeWidth = (el: HTMLElement, v: number) => {
+  if (v > 0) el.style.width = `${v}px`;
+};
+
 export function LiveIsland(props: LiveIslandProps) {
   const {
     label,
@@ -146,6 +160,9 @@ export function LiveIsland(props: LiveIslandProps) {
   const bodyId = useId();
   const { quiet } = useMotionGate();
   const viewport = useViewportWidth();
+  const width = useMotionValue(0);
+  const islandRef = useDrive<HTMLElement, number>(width, writeWidth);
+  const placed = useRef(false);
   const [inner, setInner] = useState(defaultExpanded);
   const open = expanded ?? inner;
   const hasBody = Boolean(props.steps?.length || progress || meta || action);
@@ -154,8 +171,18 @@ export function LiveIsland(props: LiveIslandProps) {
   /* The two widths, in px, from the same formula the stylesheet uses for its
      first paint (`min(18rem or 26rem, viewport minus 2rem)`), so the spring and
      the CSS agree and nothing jumps when this takes over. */
-  const widths = viewport ? { open: Math.min(416, viewport - 32), closed: Math.min(288, viewport - 32) } : null;
   const wide = hasBody && open;
+  const target = viewport ? (wide ? Math.min(416, viewport - 32) : Math.min(288, viewport - 32)) : 0;
+  useLayoutEffect(() => {
+    if (!target) return;
+    if (!placed.current) {
+      placed.current = true;
+      width.jump(target);
+      return;
+    }
+    const controls = animate(width, target, springFor(quiet, SPRING_GENTLE));
+    return () => controls.stop();
+  }, [target, quiet, width]);
 
   const toggle = () => {
     const next = !open;
@@ -164,15 +191,13 @@ export function LiveIsland(props: LiveIslandProps) {
   };
 
   return (
-    <m.section
+    <section
+      ref={islandRef}
       aria-label={label}
       className={cn("nf-live", className)}
       data-placement={placement}
       data-open={wide || undefined}
       data-testid={props["data-testid"]}
-      initial={false}
-      animate={widths ? { width: wide ? widths.open : widths.closed } : undefined}
-      transition={springFor(quiet, SPRING_GENTLE)}
     >
       <div className="nf-live__head">
         <IconPlate tone={tone} shape="round" size="md">
@@ -195,17 +220,9 @@ export function LiveIsland(props: LiveIslandProps) {
           </button>
         ) : null}
       </div>
-      <AnimatePresence initial={false}>
-        {hasBody && open ? (
-          <m.div
-            key="body"
-            id={bodyId}
-            className="nf-live__panel"
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={springFor(quiet, SPRING_GENTLE)}
-          >
+      {hasBody ? (
+        <div id={bodyId} className="nf-live__panel">
+          <div className="nf-live__clip" inert={!open}>
             <div className="nf-live__body">
               {pct !== undefined ? (
                 <div
@@ -249,9 +266,9 @@ export function LiveIsland(props: LiveIslandProps) {
                 </Button>
               ) : null}
             </div>
-          </m.div>
-        ) : null}
-      </AnimatePresence>
-    </m.section>
+          </div>
+        </div>
+      ) : null}
+    </section>
   );
 }

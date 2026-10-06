@@ -12,7 +12,7 @@ import {
   mountInBrowser,
   warmBrowser,
 } from "@/lib/testing/mount-in-browser";
-import { PORTED_CSS, axeViolations } from "./ported-test-css";
+import { PORTED_CSS, axeViolations, withoutFeatures } from "./ported-test-css";
 
 vi.setConfig({ testTimeout: BROWSER_TEST_TIMEOUT });
 beforeAll(warmBrowser);
@@ -121,6 +121,35 @@ describe.skipIf(!hasBrowser && !process.env.CI)("InnerNav", () => {
       await page.waitForFunction(() => document.querySelector("[data-testid=nav]")?.hasAttribute("data-open"));
       await pull(page, -80);
       await page.waitForFunction(() => !document.querySelector("[data-testid=nav]")?.hasAttribute("data-open"));
+    } finally {
+      await close();
+    }
+  });
+
+  it("is fully usable with framer-motion's features never loaded: a tap opens it visibly, the keyboard lands focus in it, and the pull follows the finger", async () => {
+    const { page, close } = await mountInBrowser({ entry: withoutFeatures(entry), css: PORTED_CSS });
+    try {
+      const toggle = page.getByRole("button", { name: "Sections" });
+      await toggle.click();
+      await page.waitForFunction(() => document.querySelector("[data-testid=nav]")?.hasAttribute("data-open"));
+      await page.waitForTimeout(900);
+      expect(await panelVisible(page)).toBe(true);
+      expect(await page.getByRole("link", { name: "Section two" }).isVisible()).toBe(true);
+      await page.keyboard.press("Escape");
+      await page.waitForFunction(() => getComputedStyle(document.querySelector(".nf-innernav__panel")!).visibility === "hidden");
+      /* Keyboard open: focus must land on a VISIBLE item. */
+      await toggle.focus();
+      await page.keyboard.press("Enter");
+      await page.waitForFunction(() => document.activeElement?.getAttribute("aria-current") === "page");
+      await page.keyboard.press("Escape");
+      await page.waitForTimeout(900);
+      /* And the pull still tracks the finger. */
+      await pull(page, 60, false);
+      const opacity = await panelOpacity(page);
+      expect(opacity).toBeGreaterThan(0.5);
+      expect(opacity).toBeLessThan(0.7);
+      expect(await toggleY(page)).toBeGreaterThan(2);
+      await page.mouse.up();
     } finally {
       await close();
     }

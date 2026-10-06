@@ -1,13 +1,13 @@
 "use client";
 
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
-import { animate, m, useMotionValue } from "framer-motion";
+import { animate, useMotionValue } from "framer-motion";
 import "@/app/css/ported.css";
 import { useMotionGate } from "@/components/motion/useMotionGate";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { cn } from "@/lib/cn";
 import { feedback } from "@/lib/ui/feedback";
-import { SPRING_SNAP, springFor } from "./ported-motion";
+import { SPRING_SNAP, springFor, useDrive } from "./ported-motion";
 import { paginationRange } from "./slide-pagination";
 
 /**
@@ -21,12 +21,14 @@ import { paginationRange } from "./slide-pagination";
  * shared `layoutId`, which is a layout-animation feature and lives in the
  * `domMax` bundle. The platform loads `domAnimation` only (MotionProvider, D39),
  * so a `layoutId` here would render and never animate. The indicator is instead
- * ONE absolutely positioned `m.span` whose `x` is a motion value, measured
+ * ONE absolutely positioned element whose `x` is a motion value, measured
  * against the real page buttons and moved with `animate()` on a snappy spring.
  * That keeps what `layoutId` gave (a shared element travelling between slots,
  * interruptible mid-flight: click page 9 while it is still moving to page 4 and
  * it turns round from where it is) with no layout measurement per frame and no
- * extra bundle. Every slot is the same 44px width, so the indicator never has to
+ * extra bundle. The value is written into the element by `useDrive`
+ * (ported-motion.ts), not through an `m` element, because `m` shows nothing but
+ * its first frame until the lazily loaded features arrive. Every slot is the same 44px width, so the indicator never has to
  * change size, only position.
  *
  * WHERE: desktop tables. Admin tables, transaction history, search results on a
@@ -51,6 +53,11 @@ import { paginationRange } from "./slide-pagination";
  * the indicator is placed with a jump, and only later moves are sprung. Quiet
  * readers (system reduced motion, Calm, Off) get a jump every time.
  */
+/* Module level and stable, as `useDrive` requires. */
+const writeThumb = (el: HTMLElement, v: number) => {
+  el.style.transform = `translate3d(${v}px, 0, 0)`;
+};
+
 export function SlidePagination({
   pageCount,
   page: controlledPage,
@@ -92,6 +99,7 @@ export function SlidePagination({
   const listRef = useRef<HTMLOListElement | null>(null);
   const refs = useRef(new Map<number, HTMLButtonElement>());
   const x = useMotionValue(0);
+  const thumbRef = useDrive<HTMLLIElement, number>(x, writeThumb);
   const [placed, setPlaced] = useState(false);
   const first = useRef(true);
 
@@ -162,7 +170,7 @@ export function SlidePagination({
         </button>
       ) : null}
       <ol ref={listRef} className="nf-slidepag__track">
-        {placed ? <m.li aria-hidden="true" className="nf-slidepag__thumb" style={{ x }} /> : null}
+        <li ref={thumbRef} aria-hidden="true" className="nf-slidepag__thumb" data-placed={placed || undefined} />
         {slots.map((slot) =>
           typeof slot === "number" ? (
             <li key={slot} className="nf-slidepag__slot">

@@ -12,7 +12,7 @@ import {
   mountInBrowser,
   warmBrowser,
 } from "@/lib/testing/mount-in-browser";
-import { PORTED_CSS, axeViolations } from "./ported-test-css";
+import { PORTED_CSS, axeViolations, withoutFeatures } from "./ported-test-css";
 
 vi.setConfig({ testTimeout: BROWSER_TEST_TIMEOUT });
 beforeAll(warmBrowser);
@@ -110,6 +110,22 @@ describe.skipIf(!hasBrowser && !process.env.CI)("SlidePagination", () => {
     const { page, close } = await mountInBrowser({ entry: entry({ start: 3 }), css: PORTED_CSS, viewport: DESKTOP });
     try {
       const box = (await page.getByRole("button", { name: "Page 3" }).boundingBox())!;
+      expect(Math.abs((await thumbLeft(page)) - box.x)).toBeLessThan(1.5);
+    } finally {
+      await close();
+    }
+  });
+
+  it("is fully usable with framer-motion's features never loaded: the indicator is under the page and travels", async () => {
+    const { page, close } = await mountInBrowser({ entry: withoutFeatures(entry({ start: 3 })), css: PORTED_CSS, viewport: DESKTOP });
+    try {
+      expect(await page.locator(".nf-slidepag__thumb").evaluate((el) => getComputedStyle(el).visibility)).toBe("visible");
+      let box = (await page.getByRole("button", { name: "Page 3" }).boundingBox())!;
+      expect(Math.abs((await thumbLeft(page)) - box.x)).toBeLessThan(1.5);
+      await page.getByRole("button", { name: "Page 5" }).click();
+      await page.waitForTimeout(800);
+      expect(await pageNo(page)).toBe(5);
+      box = (await page.getByRole("button", { name: "Page 5" }).boundingBox())!;
       expect(Math.abs((await thumbLeft(page)) - box.x)).toBeLessThan(1.5);
     } finally {
       await close();

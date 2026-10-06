@@ -12,7 +12,7 @@ import {
   mountInBrowser,
   warmBrowser,
 } from "@/lib/testing/mount-in-browser";
-import { PORTED_CSS, axeViolations } from "./ported-test-css";
+import { PORTED_CSS, axeViolations, withoutFeatures } from "./ported-test-css";
 
 vi.setConfig({ testTimeout: BROWSER_TEST_TIMEOUT });
 beforeAll(warmBrowser);
@@ -117,6 +117,36 @@ describe.skipIf(!hasBrowser && !process.env.CI)("DragToConfirm", () => {
       expect(Math.abs(await handleX(page))).toBeLessThan(0.5);
     } finally {
       await close();
+    }
+  });
+
+  it("is fully usable with framer-motion's features never loaded: follows the finger, confirms, and works from the keyboard", async () => {
+    const { page, close } = await mountInBrowser({ entry: withoutFeatures(entry()), css: PORTED_CSS });
+    try {
+      const handle = page.getByRole("button", { name: "Confirm the action" });
+      const box = (await handle.boundingBox())!;
+      await page.mouse.move(box.x + 24, box.y + 24);
+      await page.mouse.down();
+      await page.mouse.move(box.x + 24 + 100, box.y + 24, { steps: 5 });
+      expect(Math.abs((await handleX(page)) - 100)).toBeLessThan(1);
+      expect(Number(await page.locator(".nf-dtc__fill").evaluate((el) => getComputedStyle(el).opacity))).toBe(1);
+      await page.mouse.up();
+      await page.waitForTimeout(700);
+      expect(Math.abs(await handleX(page))).toBeLessThan(0.5);
+      await slide(page, 1);
+      await page.waitForFunction(() => document.querySelector("[data-testid=dtc]")?.getAttribute("data-state") === "confirmed");
+      expect(await confirms(page)).toBe(1);
+      expect(await page.getByTestId("dtc").textContent()).toContain("Confirmed");
+    } finally {
+      await close();
+    }
+    const kb = await mountInBrowser({ entry: withoutFeatures(entry()), css: PORTED_CSS });
+    try {
+      await kb.page.getByRole("button", { name: "Confirm the action" }).focus();
+      await kb.page.keyboard.press("Enter");
+      await kb.page.waitForFunction(() => document.querySelector("[data-testid=dtc]")?.getAttribute("data-state") === "confirmed");
+    } finally {
+      await kb.close();
     }
   });
 

@@ -13,18 +13,22 @@
  *   - every colour is a --nf-* token, in both themes, by the token alone;
  *   - radii: 14 for controls, 18 for cards, 26 to 32 for islands, and 999
  *     only for a segmented track, a segment's indicator and a circle;
- *   - motion splits as D34 and D39 say. GESTURE-DRIVEN, interruptible or
- *     size-changing motion is framer-motion in the component (the drag in
+ *   - motion splits as D34 and D39 say. GESTURE-DRIVEN or interruptible motion
+ *     is framer-motion's value and spring engine in the component (the drag in
  *     DragToConfirm, the pull in InnerNav, the sliding indicator, the tray's
- *     grip, the island morph, the accordion panel), so no transform or
- *     transition for those lives here. KNOWN-TRACK motion is CSS and lives
- *     here, on the named curves (`land` is --nf-ease-entrance, `leave` is
+ *     grip, the island's width), written into the elements by `useDrive`, so no
+ *     transform for those lives here. It is never an `m` element: those show
+ *     nothing but their first frame until the lazily loaded features arrive,
+ *     so open, visible and focusable are always React state and the rules
+ *     below, never a motion value. KNOWN-TRACK motion is CSS and lives here, on
+ *     the named curves (`land` is --nf-ease-entrance, `leave` is
  *     --nf-ease-exit, `glide` is --nf-ease-standard, `drift` is
- *     --nf-ease-spring): the chevrons, the call capsule, the thinking
- *     skeleton, the particle keyframe. Transform and opacity only, except
- *     where a panel or an island changes SIZE, which is framer-motion's
- *     height or width on a spring (the same compromise `.nf-disclosure` in
- *     list-group.css makes, so every disclosure opens alike);
+ *     --nf-ease-spring): the accordion and island-body reveals, the tray's
+ *     rise and exit, the chevrons, the call capsule, the thinking skeleton, the
+ *     particle keyframe. Transform and opacity only, except the disclosure
+ *     reveals, which grow a grid row exactly as `.nf-disclosure` in
+ *     list-group.css does, so every disclosure opens alike, and the island's
+ *     width, which is the island morph;
  *   - reduced motion: the duration tokens collapse to 1ms (tokens.css) and the
  *     blocks below also switch transitions and entrances off outright, so the
  *     result does not depend on that alone. Data saver drops every blur;
@@ -92,9 +96,19 @@
   }
   /* Confirming and confirmed: the track is wholly filled, the handle rests at
      the end, and the words sit on the fill, clear of the handle. */
+  .nf-dtc__label[hidden] {
+    display: none;
+  }
   .nf-dtc__label--status {
     padding-inline: 1rem 4rem;
     color: var(--nf-dtc-on-fill);
+    animation: nf-dtc-status-in var(--nf-duration-fast) var(--nf-ease-standard) both;
+  }
+  @keyframes nf-dtc-status-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
   }
   .nf-dtc[data-failed] .nf-dtc__label:not(.nf-dtc__label--status) {
     color: var(--nf-state-error);
@@ -119,6 +133,11 @@
     /* The handle is dragged by a thumb: the browser must not scroll the page
        out from under it. */
     touch-action: none;
+  }
+  /* A press sinks the handle a touch: a known track, so CSS. `scale` composes
+     with the transform the drag writes. */
+  .nf-dtc[data-state="idle"]:not([data-disabled]) .nf-dtc__handle:active {
+    scale: 0.96;
   }
   .nf-dtc__handle:focus-visible {
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
@@ -217,10 +236,32 @@
     transform: rotate(180deg);
   }
 
-  /* The panel's height and the content's lift are framer-motion's (Unfold.tsx);
-     only the clip and the type live here. */
+  /* The reveal: a row that grows from 0fr to 1fr, the content fading and
+     lifting 8px as it arrives. Closed content is visibility:hidden (after the
+     fade) as well as inert, so it is out of the accessibility tree. */
   .nf-unfold__panel {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  .nf-unfold__item[data-open] .nf-unfold__panel {
+    grid-template-rows: 1fr;
+  }
+  .nf-unfold__clip {
+    min-block-size: 0;
     overflow: hidden;
+    visibility: hidden;
+    opacity: 0;
+    transition:
+      opacity var(--nf-duration-base) var(--nf-ease-exit),
+      visibility 0s linear var(--nf-duration-base);
+  }
+  .nf-unfold__item[data-open] .nf-unfold__clip {
+    visibility: visible;
+    opacity: 1;
+    transition:
+      opacity var(--nf-duration-base) var(--nf-ease-entrance),
+      visibility 0s linear 0s;
   }
   .nf-unfold__content {
     padding: 0 var(--nf-space-md) var(--nf-space-md);
@@ -228,6 +269,11 @@
     font-size: var(--nf-text-body-sm);
     line-height: 1.55;
     overflow-wrap: anywhere;
+    transform: translateY(-0.5rem);
+    transition: transform var(--nf-duration-base) var(--nf-ease-entrance);
+  }
+  .nf-unfold__item[data-open] .nf-unfold__content {
+    transform: none;
   }
 
   /* ========================================================= SLIDE PAGINATION */
@@ -273,6 +319,11 @@
     block-size: 2.75rem;
     border-radius: var(--nf-radius-control);
     background: var(--nf-gradient-cta);
+    /* Not drawn until it has been placed under the current page. */
+    visibility: hidden;
+  }
+  .nf-slidepag__thumb[data-placed] {
+    visibility: visible;
   }
   .nf-slidepag__slot {
     position: relative;
@@ -445,9 +496,31 @@
     transform: rotate(180deg);
   }
 
-  /* The panel's height and opacity are framer-motion's (LiveIsland.tsx). */
+  /* The body's reveal: a row that grows from 0fr to 1fr, with a fade. A known
+     track, so CSS; closed it is hidden and inert as well. */
   .nf-live__panel {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  .nf-live[data-open] .nf-live__panel {
+    grid-template-rows: 1fr;
+  }
+  .nf-live__clip {
+    min-block-size: 0;
     overflow: hidden;
+    visibility: hidden;
+    opacity: 0;
+    transition:
+      opacity var(--nf-duration-base) var(--nf-ease-exit),
+      visibility 0s linear var(--nf-duration-base);
+  }
+  .nf-live[data-open] .nf-live__clip {
+    visibility: visible;
+    opacity: 1;
+    transition:
+      opacity var(--nf-duration-base) var(--nf-ease-entrance),
+      visibility 0s linear 0s;
   }
   .nf-live__body {
     display: grid;
@@ -549,10 +622,11 @@
   /* ============================================================== INNER NAV */
 
   /*
-   * The pull is framer-motion's (InnerNav.tsx): one motion value for how open
-   * the panel is, with the panel's opacity, lift, scale and visibility and the
-   * two glyphs all derived from it. No transform, opacity or transition on
-   * those is written here; a CSS transition would fight the motion value.
+   * The pull is framer-motion's value engine (InnerNav.tsx): one motion value
+   * for how open the panel is, written into the panel and the two glyphs while
+   * it moves. No transition on those is written here; a CSS transition would
+   * fight the motion value. What is written here is the resting truth: hidden,
+   * or visible when open.
    */
   .nf-innernav {
     position: relative;
@@ -588,6 +662,15 @@
     display: grid;
     place-items: center;
   }
+  .nf-innernav__glyph--close {
+    opacity: 0;
+  }
+  .nf-innernav[data-open] .nf-innernav__glyph:not(.nf-innernav__glyph--close) {
+    opacity: 0;
+  }
+  .nf-innernav[data-open] .nf-innernav__glyph--close {
+    opacity: 1;
+  }
   .nf-innernav__current {
     font-family: var(--nf-font-display);
     font-size: var(--nf-text-h4);
@@ -615,6 +698,17 @@
     border-inline-start-color: var(--nf-container-edge-lit);
     box-shadow: var(--nf-panel-rim), var(--nf-elev-3);
     transform-origin: top left;
+    /* Hidden until opened or pulled. The pull writes opacity, lift and scale
+       inline as it goes; with nothing written (before the first frame, or if a
+       script never ran) an open panel is simply visible and a closed one is not. */
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .nf-innernav__panel[data-open] {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
   }
   .nf-innernav[data-pulling] .nf-innernav__toggle {
     cursor: grabbing;
@@ -673,9 +767,11 @@
 
   /* ============================================================ BATCH TRAY */
 
-  /* The wrapper only positions: fixed, centred, clear of the dock. Its rise and
-     exit are framer-motion's (BatchTray.tsx). The visible tray is the surface
-     inside it, which is also what the grip drags. */
+  /* The wrapper positions the tray (fixed, centred, clear of the dock) and owns
+     its rise and exit, a known track, so CSS: below the screen and hidden when
+     nothing is selected, `land` up when something is, `leave` away when not.
+     The visible tray is the surface inside it, which is what the grip drags
+     (BatchTray.tsx). */
   .nf-batch {
     position: fixed;
     inset-inline: 0;
@@ -684,6 +780,22 @@
     z-index: var(--nf-z-overlay);
     box-sizing: border-box;
     inline-size: min(40rem, calc(100% - 2rem));
+    transform: translateY(calc(100% + 3rem));
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      transform var(--nf-duration-base) var(--nf-ease-exit),
+      opacity var(--nf-duration-base) var(--nf-ease-exit),
+      visibility 0s linear var(--nf-duration-base);
+  }
+  .nf-batch[data-open] {
+    transform: none;
+    opacity: 1;
+    visibility: visible;
+    transition:
+      transform var(--nf-duration-slow) var(--nf-ease-entrance),
+      opacity var(--nf-duration-base) var(--nf-ease-entrance),
+      visibility 0s linear 0s;
   }
   :root:has(.nf-main--docked) .nf-batch {
     inset-block-end: calc(var(--nf-tabbar-clearance) + 0.25rem);
@@ -1128,11 +1240,18 @@
      The drag still tracks the finger: that is direct manipulation. */
   @media (prefers-reduced-motion: reduce) {
     .nf-unfold__chevron,
+    .nf-unfold__panel,
+    .nf-unfold__clip,
+    .nf-unfold__content,
+    .nf-dtc__label--status,
     .nf-slidepag__page,
     .nf-live,
+    .nf-live__panel,
+    .nf-live__clip,
     .nf-live__chevron,
     .nf-live__fill,
     .nf-live__mark,
+    .nf-batch,
     .nf-callcap__capsule,
     .nf-callcap__rest,
     .nf-callcap__call,
@@ -1140,6 +1259,12 @@
     .nf-particle {
       transition: none;
       animation: none;
+    }
+    .nf-unfold__item[data-open] .nf-unfold__clip,
+    .nf-unfold__item[data-open] .nf-unfold__content,
+    .nf-live[data-open] .nf-live__clip,
+    .nf-batch[data-open] {
+      transition: none;
     }
     /* The thinking state is still a skeleton, only not a moving one. */
     .nf-ai__skeleton > span {

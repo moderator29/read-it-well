@@ -2,13 +2,13 @@
 
 import { useRef, useState } from "react";
 import type { KeyboardEvent, PointerEvent as ReactPointerEvent } from "react";
-import { AnimatePresence, animate, m, useMotionValue } from "framer-motion";
+import { animate, useMotionValue } from "framer-motion";
 import "@/app/css/ported.css";
 import { useMotionGate } from "@/components/motion/useMotionGate";
 import { Button } from "@/components/ui/Button";
 import type { UiIconName } from "@/design-system/icons/UiIcon";
 import { cn } from "@/lib/cn";
-import { SPRING_GENTLE, SPRING_SETTLE, springFor } from "./ported-motion";
+import { SPRING_SETTLE, springFor, useDrive } from "./ported-motion";
 
 /**
  * BATCH TRAY: THE BULK-ACTION BAR FOR MULTI-SELECT.
@@ -41,18 +41,22 @@ import { SPRING_GENTLE, SPRING_SETTLE, springFor } from "./ported-motion";
  * lone primary, since it has no primary: every action is the quiet glass button,
  * so nothing here competes with the screen's own primary.
  *
- * LAYOUT AND MOTION, AND WHY framer-motion. Fixed above the floating dock using
- * the toast host's clearance (`--nf-tabbar-clearance`), so it never covers the
- * dock; at the bottom edge on a wide screen where the dock is a side rail. It is
- * mounted only while something is selected: `AnimatePresence` lets it rise on a
- * gentle spring when the first item is selected and finish leaving before it is
- * removed when the last is cleared, so a tray that is not needed is not in the
- * page at all (nothing for Tab to land in, nothing to read). The grip drags
- * through a `useMotionValue`, so the surface follows the finger one to one, and
- * a release short of the threshold springs back from wherever the finger left
- * it (interruptible). Pointer events, not framer's `drag` prop, which is in the
- * `domMax` bundle the platform does not load. Quiet readers (system reduced
- * motion, Calm, Off) get an instant appear, disappear and snap-back.
+ * LAYOUT AND MOTION. Fixed above the floating dock using the toast host's
+ * clearance (`--nf-tabbar-clearance`), so it never covers the dock; at the
+ * bottom edge on a wide screen where the dock is a side rail. Open and closed
+ * are a data attribute and the stylesheet's: while nothing is selected it is
+ * below the screen, `visibility: hidden` and `inert`, so it costs nothing and
+ * cannot be tabbed into; selecting rises it on `land` and clearing sends it
+ * away on `leave`, a known track, so CSS. The only framer-motion is the grip's
+ * drag: a `useMotionValue` that the surface follows one to one, and a release
+ * short of the threshold springs back from wherever the finger left it
+ * (interruptible). The value is written into the surface by `useDrive`
+ * (ported-motion.ts) rather than through an `m` element, because `m` shows
+ * nothing but its first frame until the lazily loaded features arrive, and the
+ * tray must be fully usable from its first frame. Pointer events, not framer's
+ * `drag` prop, which is in the `domMax` bundle the platform does not load.
+ * Quiet readers (system reduced motion, Calm, Off) get an instant appear,
+ * disappear and snap-back.
  *
  * ANNOUNCING. `countLabel` is in a polite live region, so each change in the
  * selection is read once as the number changes.
@@ -73,6 +77,11 @@ export type BatchAction = {
 
 /** Downward travel, in px, past which letting go clears the selection. */
 const DISMISS_AT = 56;
+
+/* Module level and stable, as `useDrive` requires. */
+const writeSurface = (el: HTMLElement, y: number) => {
+  el.style.transform = y === 0 ? "" : `translate3d(0, ${y}px, 0)`;
+};
 
 export function BatchTray({
   count,
@@ -99,6 +108,7 @@ export function BatchTray({
   const open = count > 0;
   const { quiet } = useMotionGate();
   const dragY = useMotionValue(0);
+  const surfaceRef = useDrive<HTMLDivElement, number>(dragY, writeSurface);
   const gesture = useRef<{ startY: number; from: number; lastY: number; lastT: number; v: number } | null>(null);
   const [dragging, setDragging] = useState(false);
 
@@ -146,53 +156,46 @@ export function BatchTray({
   };
 
   return (
-    <AnimatePresence>
-      {open ? (
-        <m.div
-          key="tray"
-          role="toolbar"
-          aria-label={label}
-          className={cn("nf-batch", className)}
-          data-dragging={dragging || undefined}
-          data-testid={testId}
-          initial={{ y: 160, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: 160, opacity: 0 }}
-          transition={springFor(quiet, SPRING_GENTLE)}
-          onKeyDown={onKeyDown}
-        >
-          <m.div className="nf-batch__surface" style={{ y: dragY }}>
-            <div
-              className="nf-batch__grip"
-              aria-hidden="true"
-              onPointerDown={onPointerDown}
-              onPointerMove={onPointerMove}
-              onPointerUp={(e) => finish(false, e.timeStamp)}
-              onPointerCancel={(e) => finish(true, e.timeStamp)}
-            />
-            <div className="nf-batch__row">
-              <p className="nf-batch__count" role="status" aria-live="polite">
-                {countLabel}
-              </p>
-              <div className="nf-batch__actions">
-                {actions.map((action) => (
-                  <Button
-                    key={action.id}
-                    variant={action.tone === "danger" ? "danger" : "glass"}
-                    size="sm"
-                    leadingIcon={action.icon}
-                    disabled={action.disabled}
-                    onClick={action.onSelect}
-                  >
-                    {action.label}
-                  </Button>
-                ))}
-              </div>
-              <Button variant="icon" round aria-label={clearLabel} leadingIcon="close" onClick={onClear} />
-            </div>
-          </m.div>
-        </m.div>
-      ) : null}
-    </AnimatePresence>
+    <div
+      role="toolbar"
+      aria-label={label}
+      className={cn("nf-batch", className)}
+      data-open={open || undefined}
+      data-dragging={dragging || undefined}
+      data-testid={testId}
+      inert={!open}
+      onKeyDown={onKeyDown}
+    >
+      <div ref={surfaceRef} className="nf-batch__surface">
+        <div
+          className="nf-batch__grip"
+          aria-hidden="true"
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={(e) => finish(false, e.timeStamp)}
+          onPointerCancel={(e) => finish(true, e.timeStamp)}
+        />
+        <div className="nf-batch__row">
+          <p className="nf-batch__count" role="status" aria-live="polite">
+            {open ? countLabel : ""}
+          </p>
+          <div className="nf-batch__actions">
+            {actions.map((action) => (
+              <Button
+                key={action.id}
+                variant={action.tone === "danger" ? "danger" : "glass"}
+                size="sm"
+                leadingIcon={action.icon}
+                disabled={action.disabled}
+                onClick={action.onSelect}
+              >
+                {action.label}
+              </Button>
+            ))}
+          </div>
+          <Button variant="icon" round aria-label={clearLabel} leadingIcon="close" onClick={onClear} />
+        </div>
+      </div>
+    </div>
   );
 }

@@ -2,12 +2,9 @@
 
 import { useCallback, useId, useRef, useState } from "react";
 import type { KeyboardEvent, ReactNode } from "react";
-import { AnimatePresence, m } from "framer-motion";
 import "@/app/css/ported.css";
-import { useMotionGate } from "@/components/motion/useMotionGate";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { cn } from "@/lib/cn";
-import { EASE_LAND, SPRING_GENTLE, springFor } from "./ported-motion";
 
 /**
  * UNFOLD: A GROUP OF DISCLOSURES THAT OPEN IN PLACE.
@@ -35,17 +32,23 @@ import { EASE_LAND, SPRING_GENTLE, springFor } from "./ported-motion";
  * Enter or Space toggle (a native button gives that). A closed panel is `inert`,
  * so nothing inside it is reachable by Tab or read out while it is closed.
  *
- * MOTION, AND WHY IT IS framer-motion HERE. Rebuilt from the founder's
- * `unfold-accordion.tsx`: the panel UNMOUNTS when closed, so what is behind a
- * closed row is not in the page at all (nothing for Tab to land in, nothing for
- * a screen reader to read), and `AnimatePresence` is what lets it finish
- * closing before it leaves. The panel grows from 0 to its natural height on a
- * gentle spring while its content leads by a hair, lifting 4px and fading in,
- * so title, chevron and content read as one motion. The chevron is CSS (a known
- * track: 180 degrees on the standard curve). The height reveal is the single
- * deliberate layout animation here, the same compromise `.nf-disclosure`
- * (list-group.css) makes, so every disclosure on the platform opens alike.
- * Quiet readers (system reduced motion, or Calm and Off) get an instant swap.
+ * MOTION, AND WHY IT IS CSS. The founder's `unfold-accordion.tsx` springs the
+ * panel's height with framer-motion and unmounts the content when closed. A
+ * disclosure is a known track with a known end, so by the platform's split
+ * (D34, D39) it is CSS, and it has a second reason: framer's `m` elements show
+ * nothing but their first frame until the lazily loaded features arrive, which
+ * would leave a panel that opened and stayed invisible. Here open and closed
+ * are React state and a data attribute, so an accordion works from its first
+ * frame. The panel grows with the one disclosure motion the product already has
+ * (`.nf-disclosure` in list-group.css): a `grid-template-rows` reveal and a
+ * fade over `--nf-duration-base` on the standard curve, the content lifting 8px
+ * as it arrives, and the chevron turning on the same duration, so title,
+ * chevron and content read as one motion. Closed content is `inert` and
+ * `visibility: hidden` once the fade ends, so it is out of the tab order and
+ * the accessibility tree. The height reveal is the single deliberate layout
+ * animation here, the same compromise `.nf-disclosure` makes, so every
+ * disclosure on the platform opens alike. Reduced motion, Calm and Off make it
+ * instant, because the duration tokens collapse.
  *
  * MODES. `multiple` lets several items stay open; the default is one at a time.
  * Controlled with `value` plus `onValueChange`, or uncontrolled with
@@ -90,7 +93,6 @@ export function Unfold({
   "data-testid"?: string;
 }) {
   const base = useId();
-  const { quiet } = useMotionGate();
   const [inner, setInner] = useState<string[]>(() => [...(defaultValue ?? [])]);
   const open = value ?? inner;
   const triggers = useRef<(HTMLButtonElement | null)[]>([]);
@@ -149,31 +151,11 @@ export function Unfold({
                 <UiIcon name="chevron-down" size={20} className="nf-unfold__chevron" />
               </button>
             </Heading>
-            <AnimatePresence initial={false}>
-              {isOpen ? (
-                <m.div
-                  key="panel"
-                  id={panelId}
-                  role="region"
-                  aria-labelledby={triggerId}
-                  className="nf-unfold__panel"
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={springFor(quiet, SPRING_GENTLE)}
-                >
-                  <m.div
-                    className="nf-unfold__content"
-                    initial={{ y: -4, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    exit={{ y: -4, opacity: 0 }}
-                    transition={springFor(quiet, { duration: 0.28, ease: EASE_LAND })}
-                  >
-                    {item.content}
-                  </m.div>
-                </m.div>
-              ) : null}
-            </AnimatePresence>
+            <div id={panelId} role="region" aria-labelledby={triggerId} className="nf-unfold__panel">
+              <div className="nf-unfold__clip" inert={!isOpen}>
+                <div className="nf-unfold__content">{item.content}</div>
+              </div>
+            </div>
           </div>
         );
       })}

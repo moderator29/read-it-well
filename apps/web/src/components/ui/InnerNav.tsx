@@ -3,13 +3,13 @@
 import Link from "next/link";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import type { KeyboardEvent, PointerEvent as ReactPointerEvent } from "react";
-import { animate, m, useMotionValue, useTransform } from "framer-motion";
+import { animate, useMotionValue, useTransform } from "framer-motion";
 import "@/app/css/ported.css";
 import { useMotionGate } from "@/components/motion/useMotionGate";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { cn } from "@/lib/cn";
 import { feedback } from "@/lib/ui/feedback";
-import { SPRING_SETTLE, clamp, springFor } from "./ported-motion";
+import { SPRING_SETTLE, clamp, springFor, useDrive } from "./ported-motion";
 
 /**
  * INNER NAV: GLASS SECOND-LEVEL NAVIGATION WITH A PHYSICAL PULL.
@@ -40,7 +40,7 @@ import { SPRING_SETTLE, clamp, springFor } from "./ported-motion";
  * real button, so Enter and Space work, Escape closes and returns focus to the
  * toggle, and Tab walks the items.
  *
- * WHY framer-motion, AND HOW. The pull is the founder's favourite thing about
+ * WHY framer-motion, AND HOW (and why no `m` element). The pull is the founder's favourite thing about
  * this component, and it is exactly what CSS is worst at: motion that follows a
  * finger and then inherits it. One `useMotionValue` (`pull`, 0 to 1: how open)
  * and one for the toggle's own travel are written straight from the pointer
@@ -50,9 +50,15 @@ import { SPRING_SETTLE, clamp, springFor } from "./ported-motion";
  * settles it on a spring with the finger's momentum (interruptible: put a finger
  * back on it mid-settle and it carries on from where it is). Pointer events
  * rather than framer's `drag` prop, because `drag` is in the `domMax` bundle and
- * the platform loads `domAnimation` only (MotionProvider). Quiet readers (system
- * reduced motion, Calm, Off) get an instant open and close; the pull still
- * tracks the finger.
+ * the platform loads `domAnimation` only (MotionProvider). Those values are
+ * written into the elements by `useDrive` (ported-motion.ts), not through `m`
+ * elements, because `m` renders nothing but its first frame until the lazily
+ * loaded features arrive: a tap would "open" a panel that stayed invisible. Open
+ * and closed are React state and a data attribute, the panel is hidden by CSS
+ * until it is open or being pulled, and the motion values only add the
+ * continuous flourish on top, so the control works from its first frame. Quiet
+ * readers (system reduced motion, Calm, Off) get an instant open and close; the
+ * pull still tracks the finger.
  *
  * HAPTIC: one "select" (light, the grammar's tab and toggle weight) when the
  * panel settles open or closed by a gesture or tap. Nothing while dragging.
@@ -84,6 +90,26 @@ const SLOP = 6;
 /** Most the toggle itself travels, in px, however far the finger goes. */
 const TOGGLE_TRAVEL = 22;
 
+type PanelDrive = { p: number };
+type GlyphDrive = { opacity: number; rotate: number };
+/* Module level and stable, as `useDrive` requires. The panel is `visibility:
+   hidden` in the stylesheet until it is open or pulled, and these only add the
+   in-between: opacity, lift and scale follow `p`, and a panel that has fully
+   closed is hidden again. */
+const writeToggle = (el: HTMLElement, y: number) => {
+  el.style.transform = `translate3d(0, ${y}px, 0)`;
+};
+const writePanel = (el: HTMLElement, { p }: PanelDrive) => {
+  el.style.opacity = String(p);
+  el.style.transform = `translate3d(0, ${(1 - p) * -12}px, 0) scale(${0.94 + 0.06 * p})`;
+  el.style.visibility = p > 0.001 ? "visible" : "hidden";
+  el.style.pointerEvents = p > 0.05 ? "auto" : "none";
+};
+const writeGlyph = (el: HTMLElement, { opacity, rotate }: GlyphDrive) => {
+  el.style.opacity = String(opacity);
+  el.style.transform = `rotate(${rotate}deg)`;
+};
+
 export function InnerNav({
   label,
   toggleLabel,
@@ -108,20 +134,19 @@ export function InnerNav({
 }) {
   const panelId = useId();
   const rootRef = useRef<HTMLElement | null>(null);
-  const toggleRef = useRef<HTMLButtonElement | null>(null);
   const listRef = useRef<HTMLUListElement | null>(null);
   const { quiet } = useMotionGate();
   const [open, setOpenState] = useState(false);
   const [pulling, setPulling] = useState(false);
   const pull = useMotionValue(0);
   const toggleY = useMotionValue(0);
-  const panelY = useTransform(pull, (p) => (1 - p) * -12);
-  const panelScale = useTransform(pull, (p) => 0.94 + 0.06 * p);
-  const shown = useTransform(pull, (p) => (p > 0.001 ? "visible" : "hidden"));
-  const touchable = useTransform(pull, (p) => (p > 0.05 ? "auto" : "none"));
-  const menuOpacity = useTransform(pull, (p) => 1 - p);
-  const menuRotate = useTransform(pull, (p) => p * 90);
-  const closeRotate = useTransform(pull, (p) => (1 - p) * -90);
+  const panelDrive = useTransform(pull, (p): PanelDrive => ({ p }));
+  const menuDrive = useTransform(pull, (p): GlyphDrive => ({ opacity: 1 - p, rotate: p * 90 }));
+  const closeDrive = useTransform(pull, (p): GlyphDrive => ({ opacity: p, rotate: (1 - p) * -90 }));
+  const toggleRef = useDrive<HTMLButtonElement, number>(toggleY, writeToggle);
+  const panelRef = useDrive<HTMLDivElement, PanelDrive>(panelDrive, writePanel);
+  const menuRef = useDrive<HTMLSpanElement, GlyphDrive>(menuDrive, writeGlyph);
+  const closeRef = useDrive<HTMLSpanElement, GlyphDrive>(closeDrive, writeGlyph);
   const gesture = useRef<{
     startY: number;
     from: number;
@@ -285,11 +310,10 @@ export function InnerNav({
       onKeyDown={onKeyDown}
     >
       <div className="nf-innernav__bar">
-        <m.button
+        <button
           ref={toggleRef}
           type="button"
           className="nf-innernav__toggle"
-          style={{ y: toggleY }}
           aria-expanded={open}
           aria-controls={panelId}
           aria-label={toggleLabel}
@@ -299,21 +323,16 @@ export function InnerNav({
           onPointerCancel={(e) => finish(true, e.timeStamp)}
           onClick={onClick}
         >
-          <m.span className="nf-innernav__glyph" style={{ opacity: menuOpacity, rotate: menuRotate }}>
+          <span ref={menuRef} className="nf-innernav__glyph">
             <UiIcon name="menu" size={24} />
-          </m.span>
-          <m.span className="nf-innernav__glyph" style={{ opacity: pull, rotate: closeRotate }}>
+          </span>
+          <span ref={closeRef} className="nf-innernav__glyph nf-innernav__glyph--close">
             <UiIcon name="close" size={24} />
-          </m.span>
-        </m.button>
+          </span>
+        </button>
         {currentLabel ? <span className="nf-innernav__current">{currentLabel}</span> : null}
       </div>
-      <m.div
-        id={panelId}
-        className="nf-innernav__panel"
-        style={{ opacity: pull, y: panelY, scale: panelScale, visibility: shown, pointerEvents: touchable }}
-        inert={!open && !pulling}
-      >
+      <div ref={panelRef} id={panelId} className="nf-innernav__panel" data-open={open || undefined} inert={!open && !pulling}>
         <ul ref={listRef} className="nf-innernav__list">
           {items.map((item) => {
             const active = item.id === activeId;
@@ -348,7 +367,7 @@ export function InnerNav({
             );
           })}
         </ul>
-      </m.div>
+      </div>
     </nav>
   );
 }

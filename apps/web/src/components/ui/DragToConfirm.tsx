@@ -2,14 +2,14 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from "react";
-import { AnimatePresence, animate, m, useMotionValue, useTransform } from "framer-motion";
+import { animate, useMotionValue, useTransform } from "framer-motion";
 import type { AnimationPlaybackControls } from "framer-motion";
 import "@/app/css/ported.css";
 import { useMotionGate } from "@/components/motion/useMotionGate";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { cn } from "@/lib/cn";
 import { feedback } from "@/lib/ui/feedback";
-import { SPRING_SETTLE, SPRING_SNAP, clamp, springFor } from "./ported-motion";
+import { SPRING_SETTLE, SPRING_SNAP, clamp, springFor, useDrive } from "./ported-motion";
 
 /**
  * DRAG TO CONFIRM: THE CEREMONY FOR ACTIONS THAT CANNOT BE TAKEN BACK.
@@ -58,8 +58,12 @@ import { SPRING_SETTLE, SPRING_SNAP, clamp, springFor } from "./ported-motion";
  * currently is, with no jump. A CSS transition cannot do that. Drag itself is
  * written with pointer events rather than framer's `drag` prop, because `drag`
  * lives in the `domMax` feature bundle and the platform loads `domAnimation`
- * only (MotionProvider). Reduced motion turns every settle into an instant
- * jump (`springFor`); the drag still tracks the finger, because that is direct
+ * only (MotionProvider). Nothing here is an `m` element: those depend on
+ * features that arrive after first paint, and a handle that did not follow the
+ * finger in that window would be broken, so `useDrive` (ported-motion.ts)
+ * writes the values into the elements itself and the control is fully usable
+ * from its first frame. Reduced motion turns every settle into an instant jump
+ * (`springFor`); the drag still tracks the finger, because that is direct
  * manipulation and not decoration.
  *
  * HAPTICS (CRAFT_DOCTRINE section 6, one grammar through `feedback()`): one
@@ -131,6 +135,19 @@ const NUDGE = 14;
 
 type View = "idle" | "dragging" | "confirming" | "confirmed";
 
+type FillDrive = { x: number; opacity: number };
+/* Module level and stable, as `useDrive` requires. */
+const writeHandle = (el: HTMLElement, v: number) => {
+  el.style.transform = `translate3d(${v}px, 0, 0)`;
+};
+const writeFill = (el: HTMLElement, v: FillDrive) => {
+  el.style.transform = `translate3d(${v.x}px, 0, 0)`;
+  el.style.opacity = String(v.opacity);
+};
+const writeOpacity = (el: HTMLElement, v: number) => {
+  el.style.opacity = String(v);
+};
+
 export function DragToConfirm(props: DragToConfirmProps) {
   const {
     label,
@@ -176,15 +193,17 @@ export function DragToConfirm(props: DragToConfirmProps) {
   const progress = useTransform(x, (v) => (maxRef.current > 0 ? clamp(v / maxRef.current, 0, 1) : 0));
   /* The fill's leading edge rides under the handle's centre (4px gap plus half
      the 48px handle), and widens by the last 24px so that at the end it covers
-     the whole track. The track's overflow clip rounds the far corners. */
-  const fillX = useTransform(x, (v) => {
+     the whole track. The track's overflow clip rounds the far corners. Opaque
+     as soon as a finger has moved, invisible at rest. */
+  const fill = useTransform(x, (v): FillDrive => {
     const p = maxRef.current > 0 ? clamp(v / maxRef.current, 0, 1) : 0;
-    return v + PAD + HANDLE / 2 - widthRef.current + (HANDLE / 2) * p;
+    return { x: v + PAD + HANDLE / 2 - widthRef.current + (HANDLE / 2) * p, opacity: Math.min(1, p * 12) };
   });
-  /* Opaque as soon as a finger has moved, invisible at rest. */
-  const fillOpacity = useTransform(progress, (p) => Math.min(1, p * 12));
   /* The words are gone before the fill reaches them. */
   const labelOpacity = useTransform(progress, (p) => 1 - Math.min(1, p * 1.6));
+  const handleRef = useDrive<HTMLButtonElement, number>(x, writeHandle);
+  const fillRef = useDrive<HTMLSpanElement, FillDrive>(fill, writeFill);
+  const labelRef = useDrive<HTMLSpanElement, number>(labelOpacity, writeOpacity);
 
   const fly = useCallback(
     (to: number, spring = SPRING_SETTLE) => {
@@ -336,32 +355,19 @@ export function DragToConfirm(props: DragToConfirmProps) {
       aria-busy={view === "confirming" || undefined}
       data-testid={props["data-testid"]}
     >
-      <m.span className="nf-dtc__fill" aria-hidden="true" style={{ x: fillX, opacity: fillOpacity }} />
-      {showRest ? (
-        <m.span className="nf-dtc__label" aria-hidden="true" style={{ opacity: labelOpacity }}>
-          {failed && errorLabel ? errorLabel : label}
-        </m.span>
+      <span ref={fillRef} className="nf-dtc__fill" aria-hidden="true" />
+      <span ref={labelRef} className="nf-dtc__label" aria-hidden="true" hidden={!showRest}>
+        {failed && errorLabel ? errorLabel : label}
+      </span>
+      {statusLabel && !showRest ? (
+        <span key={view} className="nf-dtc__label nf-dtc__label--status" aria-hidden="true">
+          {statusLabel}
+        </span>
       ) : null}
-      <AnimatePresence initial={false}>
-        {statusLabel && !showRest ? (
-          <m.span
-            key={view}
-            className="nf-dtc__label nf-dtc__label--status"
-            aria-hidden="true"
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.16, ease: [0.22, 0.61, 0.36, 1] }}
-          >
-            {statusLabel}
-          </m.span>
-        ) : null}
-      </AnimatePresence>
-      <m.button
+      <button
+        ref={handleRef}
         type="button"
         className="nf-dtc__handle"
-        style={{ x }}
-        whileTap={locked ? undefined : { scale: 0.96 }}
         aria-label={keyboardLabel ?? label}
         aria-disabled={locked || undefined}
         onPointerDown={onPointerDown}
@@ -371,7 +377,7 @@ export function DragToConfirm(props: DragToConfirmProps) {
         onClick={onClick}
       >
         <UiIcon name={view === "confirmed" ? "check" : "arrow-right"} size={24} />
-      </m.button>
+      </button>
       <span role="status" aria-live="polite" className="sr-only">
         {statusLabel}
       </span>

@@ -11,7 +11,7 @@ import {
   mountInBrowser,
   warmBrowser,
 } from "@/lib/testing/mount-in-browser";
-import { PORTED_CSS, axeViolations } from "./ported-test-css";
+import { PORTED_CSS, axeViolations, withoutFeatures } from "./ported-test-css";
 
 vi.setConfig({ testTimeout: BROWSER_TEST_TIMEOUT });
 beforeAll(warmBrowser);
@@ -69,33 +69,46 @@ describe.skipIf(!hasBrowser && !process.env.CI)("Unfold", () => {
     }
   });
 
-  it("keeps a closed panel out of the page altogether, and an open one reachable", async () => {
+  it("keeps a closed panel out of reach, and an open one reachable", async () => {
     const { page, close } = await mountInBrowser({ entry: entry(), css: PORTED_CSS });
     try {
-      /* Unmounted when closed: nothing for Tab to land in or a reader to read. */
-      expect(await page.locator("a[href='#x']").count()).toBe(0);
-      expect(await page.locator("[role=region]").count()).toBe(0);
+      expect(await page.getByText("Content one").isVisible()).toBe(false);
+      expect(await page.locator("a[href='#x']").isVisible()).toBe(false);
+      expect(await page.locator("a[href='#x']").evaluate((el) => !!el.closest("[inert]"))).toBe(true);
       await page.getByRole("button", { name: /Row one/ }).click();
-      await page.waitForSelector("a[href='#x']");
+      await page.waitForFunction(() => getComputedStyle(document.querySelector("a[href='#x']")!).visibility === "visible");
       expect(await page.locator("a[href='#x']").isVisible()).toBe(true);
+      await page.locator("a[href='#x']").focus();
+      expect(await page.evaluate(() => document.activeElement?.getAttribute("href"))).toBe("#x");
       await page.getByRole("button", { name: /Row one/ }).click();
-      /* The exit finishes before it leaves. */
-      await page.waitForFunction(() => document.querySelectorAll("[role=region]").length === 0);
+      await page.waitForFunction(() => getComputedStyle(document.querySelector("a[href='#x']")!).visibility === "hidden");
     } finally {
       await close();
     }
   });
 
-  it("grows the panel on a spring rather than snapping it", async () => {
+  it("grows the panel over the base duration rather than snapping it", async () => {
     const { page, close } = await mountInBrowser({ entry: entry(), css: PORTED_CSS });
     try {
+      expect(await page.locator(".nf-unfold__panel").first().evaluate((el) => getComputedStyle(el).transitionDuration)).toBe("0.24s");
       await page.getByRole("button", { name: /Row one/ }).click();
-      await page.waitForSelector("[role=region]");
-      const early = await page.locator("[role=region]").evaluate((el) => el.getBoundingClientRect().height);
-      await page.waitForTimeout(900);
-      const late = await page.locator("[role=region]").evaluate((el) => el.getBoundingClientRect().height);
-      expect(late).toBeGreaterThan(20);
-      expect(early).toBeLessThan(late);
+      await page.waitForTimeout(700);
+      const natural = await page.locator(".nf-unfold__content").first().evaluate((el) => el.getBoundingClientRect().height);
+      expect(natural).toBeGreaterThan(20);
+    } finally {
+      await close();
+    }
+  });
+
+  it("is fully usable with framer-motion's features never loaded: opens, shows, is focusable", async () => {
+    const { page, close } = await mountInBrowser({ entry: withoutFeatures(entry()), css: PORTED_CSS });
+    try {
+      await page.getByRole("button", { name: /Row one/ }).click();
+      expect(await page.getByRole("button", { name: /Row one/ }).getAttribute("aria-expanded")).toBe("true");
+      await page.waitForFunction(() => getComputedStyle(document.querySelector("a[href='#x']")!).visibility === "visible");
+      expect(await page.getByText("Content one").isVisible()).toBe(true);
+      await page.locator("a[href='#x']").focus();
+      expect(await page.evaluate(() => document.activeElement?.getAttribute("href"))).toBe("#x");
     } finally {
       await close();
     }
@@ -139,10 +152,9 @@ describe.skipIf(!hasBrowser && !process.env.CI)("Unfold", () => {
     const { page, close } = await mountInBrowser({ entry: entry(), css: PORTED_CSS, reducedMotion: true });
     try {
       await page.getByRole("button", { name: /Row one/ }).click();
-      await page.waitForSelector("[role=region]");
-      const natural = await page.locator("[role=region]").evaluate((el) => el.scrollHeight);
-      const h = await page.locator("[role=region]").evaluate((el) => el.getBoundingClientRect().height);
-      expect(Math.abs(h - natural)).toBeLessThan(1.5);
+      await page.waitForTimeout(60);
+      expect(await page.locator(".nf-unfold__panel").first().evaluate((el) => getComputedStyle(el).transitionDuration)).toBe("0s");
+      expect(await page.getByText("Content one").isVisible()).toBe(true);
     } finally {
       await close();
     }
