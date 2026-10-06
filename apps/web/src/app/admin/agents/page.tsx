@@ -76,10 +76,7 @@ function VerificationLadderPanel({
           const blocked = rung.step > ladder.tier + 1;
 
           return (
-            <li
-              key={rung.kind}
-              className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-sm"
-            >
+            <li key={rung.kind} className="nf-admin-plate p-sm">
               <div className="flex flex-wrap items-center gap-xs">
                 <span className="nf-numeric text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                   {rung.step}
