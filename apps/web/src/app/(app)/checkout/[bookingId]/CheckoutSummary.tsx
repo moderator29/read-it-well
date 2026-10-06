@@ -3,7 +3,9 @@ import { bpsAsPercentText } from "@/lib/money/percent";
 import type { CheckoutView } from "@/lib/bookings/checkout-view";
 import { Amount } from "@/components/ui/Amount";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { DocActions, DocumentSheet } from "@/components/app/money/DocumentSheet";
+import { DocActions } from "@/components/app/money/DocumentSheet";
+import { ReceiptSheet } from "@/components/app/money/ReceiptSheet";
+import { stayReceipt } from "@/components/app/money/receipt-model";
 import { PrintDocumentTile } from "@/components/app/money/PrintDocumentTile";
 import { formatMoneyDate } from "@/lib/money/dates";
 import { PLATFORM_TERMS_V1, cancelStanding } from "@/lib/trust/cancellation";
@@ -126,16 +128,25 @@ export function CheckoutSummary({
     </>
   );
 
-  if (paid) {
+  /*
+   * THE RECEIPT IS THE ONE RECEIPT MODEL (W9). Once paid, these lines are no
+   * longer drawn here: `stayReceipt` turns the same view into finished words
+   * and `ReceiptSheet` draws them, and the receipt email draws the very same
+   * model, so the receipt on screen and the one in the inbox cannot differ.
+   */
+  const receipt = paid ? stayReceipt(view, t, locale) : null;
+  if (receipt) {
     return (
-      <>
-        <DocumentSheet kind="receipt" printable as="section" aria-labelledby="nf-checkout-summary" data-testid="checkout-receipt">
-          {body}
-        </DocumentSheet>
-        <DocActions label={view.title}>
-          <PrintDocumentTile label={t.afterTheGate.complaint.print} testId="checkout-receipt-print" />
-        </DocActions>
-      </>
+      <ReceiptSheet
+        receipt={receipt}
+        headingId="nf-checkout-summary"
+        testId="checkout-receipt"
+        actions={
+          <DocActions label={view.title}>
+            <PrintDocumentTile label={t.afterTheGate.complaint.print} testId="checkout-receipt-print" />
+          </DocActions>
+        }
+      />
     );
   }
   return (

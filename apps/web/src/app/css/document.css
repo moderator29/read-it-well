@@ -278,6 +278,87 @@
     color: var(--nf-content-primary);
   }
 
+  /* The hero block: the quiet label and the figure the sheet leads with
+     (reference 7073's 6,420.00 under its account line). */
+  .nf-doc__hero {
+    display: grid;
+    gap: var(--nf-space-2xs);
+    margin-top: var(--nf-space-md);
+  }
+  /* Kobo beside a naira figure: the same ink, half the size, so the whole
+     reads first and the exact tail is still there to check. */
+  .nf-doc__kobo {
+    font-size: 0.5em;
+    font-weight: 600;
+    color: var(--nf-content-muted);
+  }
+
+  /*
+   * THE ITEMISED LEDGER ROW (reference 7073): a line glyph on a tinted
+   * plate, the line's name, the arithmetic beneath it in muted ink, and the
+   * figure on the right. The glyph is chrome below 32px, so it is the line
+   * tier, never an object (north star D2).
+   */
+  .nf-doc__row--glyph {
+    align-items: center;
+    padding-block: var(--nf-space-sm);
+  }
+  .nf-doc__row--glyph dt {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    gap: var(--nf-space-sm);
+  }
+  /* A figure is never broken mid-number: the line's words wrap instead. */
+  .nf-doc__row--glyph dd {
+    flex: none;
+    white-space: nowrap;
+    overflow-wrap: normal;
+  }
+  .nf-doc__glyph {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: var(--nf-radius-circle);
+    color: var(--nf-content-link);
+    background: color-mix(in oklab, var(--nf-content-link) 9%, transparent);
+  }
+  .nf-doc__line {
+    display: grid;
+    min-width: 0;
+    gap: var(--nf-space-3xs);
+  }
+  .nf-doc__line-label {
+    font-weight: 500;
+    color: var(--nf-content-primary);
+    overflow-wrap: anywhere;
+  }
+  .nf-doc__line-hint {
+    font-size: var(--nf-text-overline);
+    line-height: 1.45;
+    color: var(--nf-content-muted);
+    overflow-wrap: anywhere;
+  }
+  /* A part of the total nobody itemised (V-13): the attention ink on the
+     label, the glyph and the figure, with the words that say why beside it,
+     so the colour is never the only signal. */
+  .nf-doc__row--attention .nf-doc__line-label,
+  .nf-doc__row--attention dd,
+  .nf-doc__row--attention .nf-doc__glyph {
+    color: var(--nf-state-warning);
+  }
+  .nf-doc__row--attention .nf-doc__glyph {
+    background: color-mix(in oklab, var(--nf-state-warning) 10%, transparent);
+  }
+
+  /* The confirmations and the reference: their own block under the total,
+     the way reference 7082 sets its two "Confirmed" rows apart. */
+  .nf-doc__rows--confirm {
+    margin-top: var(--nf-space-md);
+  }
+
   /* A reference or code: tabular Inter, never wrapped mid-glyph-group. */
   .nf-doc__ref {
     font-variant-numeric: tabular-nums;
