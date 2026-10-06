@@ -111,6 +111,14 @@
     }
   }
 
+  /* A skeleton waiting on the sheet (the legal documents' loading files,
+     C6): its slab reads the night inset, a dark bar on white paper, so on
+     the paper it is the paper's hairline ink instead. The sweep's washes are
+     unchanged and stop under reduced motion as everywhere. */
+  .nf-doc .nf-skeleton {
+    --nf-surface-inset: var(--nf-doc-hairline, var(--nf-border-on-paper));
+  }
+
   /* On Light the sheet is paper on paper: the contact ring is the first
      layer of the one shadow, never a separate border. */
   :root[data-theme="light"] .nf-doc {
