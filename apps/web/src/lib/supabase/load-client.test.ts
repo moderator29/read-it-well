@@ -45,6 +45,16 @@ describe("the browser Supabase client is loaded at the moment of use", () => {
     expect(helper).not.toMatch(/^import\s+(?!type\b)[^;]*from\s+["']@\/lib\/supabase\/client["']/m);
   });
 
+  /* R3-18: the sign-in and sign-up screens drew PasskeySignIn, whose static
+     import of the passkey client put supabase-js (65KB gzipped) on both
+     routes' first load while passkeys were switched off. */
+  it("keeps the passkey client off the sign-in screen's first load", () => {
+    const door = read("components/auth/PasskeySignIn.tsx");
+    expect(door).not.toMatch(/^import\s+(?!type\b)[^;]*from\s+["']@\/lib\/auth\/passkey-client["']/m);
+    expect(door).not.toMatch(/^import\s+(?!type\b)[^;]*from\s+["']@supabase\//m);
+    expect(door).toContain('import("@/lib/auth/passkey-client")');
+  });
+
   it("resolves to null when the chunk cannot be fetched, so the caller shows its own upload error", async () => {
     vi.resetModules();
     vi.doMock("@/lib/supabase/client", () => {

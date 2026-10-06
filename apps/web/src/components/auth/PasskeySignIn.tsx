@@ -3,7 +3,7 @@
 import { useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
-import { passkeyClient, passkeySignInEnabled } from "@/lib/auth/passkey-client";
+import { passkeySignInEnabled } from "@/lib/auth/passkey-flag";
 import "@/app/css/auth.css";
 
 /**
@@ -35,6 +35,10 @@ export function PasskeySignIn({ label, next, failed }: { label: string; next?: s
           setBusy(true);
           setError(false);
           try {
+            /* Fetched now, not with the screen: supabase-js is about 65KB
+               gzipped, and every visit to sign in paid for it whether or not
+               passkeys were switched on (R3-18). */
+            const { passkeyClient } = await import("@/lib/auth/passkey-client");
             const auth = passkeyClient().auth as unknown as {
               signInWithPasskey: () => Promise<{ error: { name?: string } | null }>;
             };
