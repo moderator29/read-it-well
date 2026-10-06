@@ -75,6 +75,74 @@ prompt itself, not because I found a contract.
 
 ---
 
+## WHY I HAVE NOT MERGED #83 YET, AND IT IS THE STANDING RULE APPLIED TO MYSELF
+
+I was told to push #83 to main, and then told the mechanics: merge main once #86
+lands so I pick up the db-06 allowlist row, confirm green, then land it. **The
+mechanics are the order, and #86 has not landed, so #83 stays open.** Merging it
+now would knowingly turn main red, which is the exact outcome D54 exists to
+prevent.
+
+### The evidence, and it is my own gate caught by my own new rule
+
+`#83`'s `Database probes` check reads **`success`**. It is stale.
+
+| | |
+| --- | --- |
+| The run | `37450475060`, job `112225542733` |
+| Its verdict | `success` |
+| It finished | **10:34:29** |
+| The grant it would now be measured against | applied to production at **10:45** |
+
+Session 2's migration `20261006104536_b4_first_run_store.sql` adds
+`grant select, insert on public.first_runs_seen to authenticated`. Its own
+filename carries the time, 10:45:36. My probe run finished eleven minutes
+earlier.
+
+`db-06` holds a checked-in allowlist of every write privilege `authenticated`
+may hold, and **it reads the live database rather than the branch**. So the
+moment that grant landed in production, `db-06` began failing on every branch
+and every pull request, mine included. My green is not a pass that still holds:
+it is a photograph taken before the thing it claims to show.
+
+Verified rather than assumed, on my own branch:
+`grep -n "first_runs_seen" supabase/tests/probes/db-06.sql` returns **nothing**.
+The allowlist row is not here. It is on #86, at
+`supabase/tests/probes/db-06.sql:79`, with the dated note the file's convention
+requires at `:18-21`.
+
+### So the order is forced, and it is not the order I was given first
+
+1. **#86 lands**, carrying the `('first_runs_seen', 'i')` allowlist row.
+2. **I merge main into this branch** and pick that row up.
+3. **CI re-runs and `db-06` reports green on the current production state**, not
+   on yesterday's.
+4. **Then #83 goes to main.**
+
+Doing step 4 first puts a red `db-06` on main, and D54 already records what that
+looks like: main shows green today only because it has not re-run CI since
+02:57, before the migration. The next push to main goes red whatever it
+contains. I am not going to be the push that does it while holding a stale tick
+that says I am safe.
+
+**This is instance four of the pattern, and the one with my name on it.** D47
+was a cancelled run read as a pass. D54 was a probe whose scope was misread.
+D56 was a probe that never ran, carried as "pending". Mine is a green whose run
+predates the state it measures. Same defect, fourth costume: **I would have been
+reading a colour instead of asking what the check actually measured and when.**
+
+### One thing in my favour that I should not overclaim
+
+`Advisories (production dependencies)` is green on #83, and that is real rather
+than stale: this branch carries the `source-map-js` 1.2.2 pin from `13e5b2e`.
+**D55 says Session 1 has landed the same bump on #86**, so when I merge main the
+two arrive at the same resolved version. I expect that to merge cleanly or to
+resolve trivially, and if it does not, D55's own instruction applies: regenerate
+with `npm install` rather than resolving a lockfile by hand. I will say which
+happened rather than assert it went smoothly.
+
+---
+
 ## D53 CLOSES MY THREE OPEN QUESTIONS, AND CORRECTS A RULE I HAD WRONG
 
 All three things I was carrying are now assigned, and one of them was a
@@ -1252,7 +1320,41 @@ One thing I noticed while reading that run, and it is not a defect:
 It will clear the moment that branch takes in the lockfile change, which is
 D46's ordering question and Session 2's call, not something to fix from here.
 
-### The general rule I am adopting from D47
+### THE STANDING RULE: a check that did not run is a check that failed
+
+Three instances in two days, and it is now a rule rather than a lesson.
+
+**Cancelled, timed out, skipped, "pending", or never triggered: none of these is
+a pass, and none may be recorded in a way that reads like one.** Where a check
+cannot be run, the words are "it has not been run", in the status document and
+in the commit message, carried as open work rather than as a footnote.
+
+The three instances, because the shape is the same each time and only the
+disguise changes:
+
+1. **D47: a cancelled run read as a pass.** PR 84's probe job concluded
+   `cancelled` after nine seconds against the 92 to 99 a real run takes, with no
+   successful companion, so the branch carrying this round's migrations had its
+   database checked by nothing. `cancelled` is not red, which is how it hid.
+2. **D54: a probe whose scope was misread.** `db-06` reads the live database,
+   not the branch, so its verdict is platform-wide. A green on a branch says
+   nothing once production has moved underneath it.
+3. **D56: a probe that did not run at all**, recorded as "pending" and moved
+   past, on a 641-line money ledger already applied to production.
+
+**And I nearly committed the fourth myself, today.** See the section below on
+why I did not merge #83: its `Database probes` job reads `success`, and that run
+finished at 10:34:29 while the grant it would now be measured against was
+applied at 10:45. The tick is real and it is **stale**, which is instance 2
+wearing instance 1's clothes. A green whose run predates the state it measures
+is not evidence about now.
+
+**What this changes in how I write the gate tables in this file.** Every row
+names the outcome I actually saw, and where that outcome is a pass I say what
+run produced it and when. "Passed" with no run behind it is the thing all three
+instances have in common.
+
+### The earlier form of this rule, kept because the wording came from D47
 
 **A check has three outcomes, not two, and the third one means it did not
 run.** `cancelled`, `skipped` and `neutral` are not passes, and a job that
