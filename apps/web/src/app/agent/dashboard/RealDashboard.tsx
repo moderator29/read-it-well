@@ -143,6 +143,7 @@ export function RealDashboard({
         className="nf-edge-lap"
         label={dateLine}
         title={t.desk.today.title}
+        titleAs="h1"
         sub={fill(d.standing, { name: displayName })}
         action={
           <ButtonLink href="/agent/list" variant="primary">
