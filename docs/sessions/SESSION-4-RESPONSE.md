@@ -1044,6 +1044,40 @@ The job can no longer be read as a verdict on the product.
 confirmation of the `source-map-js` pin. `Database probes` 64 of 64,
 `iOS compile` green, `Android emulator smoke` green.
 
+**The next run proved the loose budgets were necessary, which I did not
+expect to be able to show so quickly.** Run `37413426841` on head `5b0aa5ba`,
+same code, measured `/welcome` at **728 KB**. The run before it read 658.
+
+That single number settles the design argument. My first instinct was a flat
+25 KB of headroom, which would have set `/welcome` at 685: **this run would
+have been red**, on a commit that changed nothing but a comment and a
+Markdown file. Whoever was on shift would have found a red gate with no
+defect behind it, and the obvious move would have been to raise the number,
+which is the one thing `perf-budget.json` forbids. The five-pass measurement
+is the only reason that did not happen.
+
+It also shows the variance is not a quirk of this container. CI alone has now
+read `/welcome` at 658 and 728, a 70 KB spread on identical code, which is the
+same shape as the 660 to 737 seen locally. That strengthens the case that
+`waitUntil: "networkidle"` in `check-weight.mjs` is the instrument wobbling
+rather than the page, and it is why tightening these budgets without fixing
+the measurement first would be a mistake.
+
+`/for-agents` also read 482 for the second run running, against the single
+552 that I had wrongly written up as a CI-versus-local gap. Two readings agree
+and the outlier stands alone.
+
+| Route | CI run 1 | CI run 2 | Budget |
+| --- | --- | --- | --- |
+| `/` | 510 | 505 | 555 |
+| `/welcome` | 658 | **728** | 815 |
+| `/sign-in` | 653 | 663 | 690 |
+| `/sign-up/email` | 678 | 652 | 700 |
+| `/check` | 590 | 592 | 630 |
+| `/move-in-cost` | 462 | 460 | 495 |
+| `/for-agents` | 482 | 482 | 575 |
+| `/guides/avoiding-rental-scams` | 458 | 450 | 480 |
+
 ### What is still mine and not done
 
 - `check-weight.mjs`'s `networkidle` measurement, which is the root cause of the
