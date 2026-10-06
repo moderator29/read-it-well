@@ -37,6 +37,7 @@ import { experienceSocialEn } from "./experience-social.en";
 import { experienceInboxEn } from "./experience-inbox.en";
 import { experienceAccountEn } from "./experience-account.en";
 import { experienceFeaturesEn } from "./experience-features.en";
+import { experienceRewardsEn } from "./experience-rewards.en";
 import { experienceAdminEn } from "./experience-admin.en";
 import { experienceMoneyEn } from "./experience-money.en";
 import { experienceUiEn } from "./experience-ui.en";
@@ -5791,6 +5792,8 @@ export const en = {
   experienceInbox: experienceInboxEn,
   experienceAccount: experienceAccountEn,
   experienceFeatures: experienceFeaturesEn,
+  /* C3, Round 3: the Rewards Balance and the referral dashboard (D51). */
+  experienceRewards: experienceRewardsEn,
   experienceAdmin: experienceAdminEn,
   experienceMoney: experienceMoneyEn,
   experienceUi: experienceUiEn,

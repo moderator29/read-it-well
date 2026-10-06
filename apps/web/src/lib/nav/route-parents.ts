@@ -261,6 +261,12 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/settings/invite/how-it-works": "/settings/invite",
   "/settings/invite/referrals": "/settings/invite",
   "/settings/invite/referrals/[id]": "/settings/invite/referrals",
+  /* D51, Round 3 C3: the Rewards Balance and its inner pages. Not linked from
+     member navigation until the rewards read is live (R-C3-1). */
+  "/rewards": "/settings",
+  "/rewards/referrals": "/rewards",
+  "/rewards/history": "/rewards",
+  "/rewards/withdraw": "/rewards",
   "/rent/pay/[inspectionId]": "/bookings",
   "/rent/share/[id]": "/agreements",
   "/tenancy/[id]": "/bookings",
