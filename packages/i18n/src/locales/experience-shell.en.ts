@@ -8,4 +8,7 @@
  * here; they come from `lib/money/copy.ts` (Session 2).
  */
 export const experienceShellEn = {
+  /* The side navigation's Payments row (`nav-model.ts`): what this person
+     paid and what came back. It was a literal in the model. */
+  navPayments: "Payments",
 };
