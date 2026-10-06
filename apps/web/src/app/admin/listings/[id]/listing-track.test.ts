@@ -36,4 +36,22 @@ describe("listingTrack", () => {
     const waiting = listingTrack({ status: "SUBMITTED", submittedAt: at.submittedAt, reviewedAt: null })!;
     expect(waiting.map((step) => step.at)).toEqual([at.submittedAt, null, null, null]);
   });
+
+  describe("Live is dated only when the record dates it", () => {
+    it("keeps the date when the last decision is the first publish (the same instant)", () => {
+      const live = listingTrack({ status: "PUBLISHED", ...at, publishedAt: at.reviewedAt })!;
+      expect(live.map((step) => step.at)).toEqual([at.submittedAt, null, null, at.reviewedAt]);
+    });
+
+    it("draws Live undated when the listing came back after a stop, rather than the old decision date", () => {
+      const back = listingTrack({ status: "PUBLISHED", ...at, publishedAt: "2026-09-20T08:00:00Z" })!;
+      expect(back.map((step) => step.at)).toEqual([at.submittedAt, null, null, null]);
+      expect(back.map((step) => step.state)).toEqual(["done", "done", "done", "done"]);
+    });
+
+    it("draws Live undated when it never recorded a first publish, and keeps the old behaviour when the caller does not read it", () => {
+      expect(listingTrack({ status: "PUBLISHED", ...at, publishedAt: null })![3]!.at).toBeNull();
+      expect(listingTrack({ status: "PUBLISHED", ...at })![3]!.at).toBe(at.reviewedAt);
+    });
+  });
 });

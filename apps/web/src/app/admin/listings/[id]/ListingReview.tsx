@@ -647,7 +647,12 @@ const STATUS_REASON: Record<string, string> = {
  * the approval flow, only with the times the record keeps (`listing-track.ts`).
  */
 function ListingFlow({ listing, locale }: { listing: ListingReviewView; locale: Locale }) {
-  const model = listingTrack({ status: listing.status, submittedAt: listing.submittedAt, reviewedAt: listing.reviewedAt });
+  const model = listingTrack({
+    status: listing.status,
+    submittedAt: listing.submittedAt,
+    reviewedAt: listing.reviewedAt,
+    publishedAt: listing.publishedAt,
+  });
   if (!model) return null;
   const w = getDictionary(locale).experienceAdmin.listingTrack;
   const day = (iso: string | null) =>
