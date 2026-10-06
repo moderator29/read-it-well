@@ -117,7 +117,7 @@ export default async function MoveInPage({ params }: { params: Promise<{ listing
               full
               size="lg"
             >
-              Get told when real homes arrive
+              {t.experienceMoney.ledger.similar}
             </ButtonLink>
           ) : payHref ? (
             <AuthGate action="pay">

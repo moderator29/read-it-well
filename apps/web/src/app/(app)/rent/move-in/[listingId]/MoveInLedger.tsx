@@ -10,6 +10,7 @@ import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { MediaFrame } from "@/components/app/MediaFrame";
 import { Amount } from "@/components/ui/Amount";
 import { ICON } from "@/components/app/Screen";
+import { DocFigure, DocHead, DocNote, DocumentSheet } from "@/components/app/money/DocumentSheet";
 
 export type LedgerLine = {
   key: string;
@@ -99,48 +100,61 @@ export function MoveInLedger({
         </span>
       </Link>
 
-      {/* ------------------------------------------------ the breakdown */}
-      <section className="nf-ledger-card" aria-labelledby="ledger-breakdown">
-        <h2 id="ledger-breakdown" className="nf-h4 text-[var(--nf-content-primary)]">
-          {copy.breakdown}
-        </h2>
-        <dl className="mt-xs">
-          {lines.map((line) => (
-            <div key={line.key} className="nf-ledger-row" data-testid={`ledger-line-${line.key}`}>
-              <span className="nf-ledger-row__glyph" aria-hidden="true">
-                <UiIcon name={line.icon} size={ICON.row} />
-              </span>
-              <dt className="min-w-0">
-                <span className="nf-ledger-row__label block">{line.label}</span>
-                <span className="nf-ledger-row__hint block">{line.hint}</span>
-              </dt>
-              <dd className="nf-ledger-row__amount nf-numeric">
-                <Amount minorUnits={line.minor} locale={locale} currency={listing.currency} />
-              </dd>
-            </div>
-          ))}
-        </dl>
-        <div className="nf-ledger-total" data-testid="ledger-total">
-          <span className="nf-ledger-row__glyph" aria-hidden="true">
-            <UiIcon name="wallet" size={ICON.row} />
-          </span>
-          <span className="nf-body font-semibold text-[var(--nf-content-primary)]">
-            {stated ? copy.total : copy.namedSoFar}
-          </span>
-          <span className="nf-ledger-total__figure nf-numeric">
+      {/* ------------------------------------------------ the breakdown
+
+          THE LEDGER IS A DOCUMENT (reference 7073, north star 10 D, D28.1).
+          Before it was a card like every other card, with the total at the
+          foot, counting up. It is now the paper sheet the receipt and the
+          agreement use: the total leads as the hero figure, because the whole
+          cost before the action that incurs it is the point of the page;
+          every named cost is its own row with its line glyph and the
+          arithmetic beneath it; and the total closes the column under its
+          rule, so the column visibly adds up. The figure does not count up:
+          it is a stated obligation, not a number arriving. Tax lines appear
+          only when Session 2's tax layer supplies them (D4, R-22). */}
+      <DocumentSheet kind="document" printable as="section" aria-labelledby="ledger-breakdown" data-testid="ledger-sheet">
+        <DocHead label={copy.breakdown} title={listing.title} id="ledger-breakdown" />
+        <div className="nf-doc__hero">
+          <p className="nf-doc__label">{stated ? copy.total : copy.namedSoFar}</p>
+          <DocFigure testId="ledger-figure">
             <Amount
               minorUnits={totalMinor}
               locale={locale}
               currency={listing.currency}
-              secondaryClassName="text-[0.5em] font-semibold opacity-70"
-              count
+              secondaryClassName="nf-doc__kobo"
             />
-          </span>
+          </DocFigure>
         </div>
-        <p className="nf-caption mt-sm leading-relaxed text-[var(--nf-content-muted)]">
-          {stated ? copy.statedNote : copy.summedNote}
-        </p>
-      </section>
+        <dl className="nf-doc__rows nf-doc__rows--ledger">
+          {lines.map((line) => (
+            <div
+              key={line.key}
+              className={`nf-doc__row nf-doc__row--glyph${line.key === "remainder" ? " nf-doc__row--attention" : ""}`}
+              data-testid={`ledger-line-${line.key}`}
+            >
+              <dt>
+                <span className="nf-doc__glyph" aria-hidden="true">
+                  <UiIcon name={line.icon} size={ICON.row} />
+                </span>
+                <span className="nf-doc__line">
+                  <span className="nf-doc__line-label">{line.label}</span>
+                  <span className="nf-doc__line-hint">{line.hint}</span>
+                </span>
+              </dt>
+              <dd className="nf-numeric">
+                <Amount minorUnits={line.minor} locale={locale} currency={listing.currency} />
+              </dd>
+            </div>
+          ))}
+          <div className="nf-doc__row nf-doc__row--total" data-testid="ledger-total">
+            <dt>{stated ? copy.total : copy.namedSoFar}</dt>
+            <dd className="nf-numeric">
+              <Amount minorUnits={totalMinor} locale={locale} currency={listing.currency} />
+            </dd>
+          </div>
+        </dl>
+        <DocNote>{stated ? copy.statedNote : copy.summedNote}</DocNote>
+      </DocumentSheet>
 
       {/* ------------------------------------------- the comparison
           Only from real listings in the same area; never invented. */}

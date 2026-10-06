@@ -6,6 +6,7 @@ import { resolveSession } from "@/lib/actions/session";
 import { formatMoneyDate } from "@/lib/money/dates";
 import { PageHeader } from "@/components/app/PageHeader";
 import { EmptyState, Section, TYPE } from "@/components/app/Screen";
+import { DocFigure, DocHead, DocRow, DocRows, DocumentSheet } from "@/components/app/money/DocumentSheet";
 import { PayShare, SettleShareOnReturn, ShareAnswer } from "@/components/app/tenancy/FlatmateControls";
 
 /** A private record. Never indexed. */
@@ -106,23 +107,49 @@ export default async function RentSharePage({
     state = <p className={TYPE.body}>{copy.shareClosed}</p>;
   }
 
+  /*
+   * THE SHARE SPLIT AS NAMED ROWS (north star 10 D, reference 7073). The
+   * share used to be one sentence carrying two figures and a place; on the
+   * document sheet it is a figure and its rows, so the share leads, the
+   * whole it is a part of sits beneath it, and who arranged it is a named
+   * line of its own beside the rail it pays through. The state and the one control follow, in the
+   * member's theme, because they are not the document.
+   */
+  const x = getDictionary(locale).experienceMoney.share;
   return shell(
-    <Section>
-      <div className="grid gap-md" data-testid="rent-share">
-        <p className="nf-body nf-numeric font-semibold">
-          {copy.shareLine
-            .replace("{share}", formatMoney(share, locale))
-            .replace("{total}", formatMoney(total, locale))
-            .replace("{area}", area)}
-        </p>
-        {moveIn && <p className={TYPE.rowMeta}>{copy.shareDue.replace("{date}", moveIn)}</p>}
-        <p className={TYPE.body}>{lead ? copy.shareLead.replace("{name}", lead) : copy.shareLeadUnknown}</p>
-        {/* Not gated on `!paidAt`: settling refreshes this page with the
-            share paid, and a gate on it unmounted the receipt it had just
-            opened. A revisit answers `already` and shows nothing. */}
-        {returnedRef && tenancyId && <SettleShareOnReturn tenancyId={tenancyId} reference={returnedRef} success={getDictionary(locale).success} />}
-        {state}
-      </div>
-    </Section>,
+    <div className="grid gap-md" data-testid="rent-share">
+      <DocumentSheet kind="document" as="section" aria-labelledby="share-sheet-title" data-testid="share-sheet">
+        <DocHead label={copy.shareTitle} title={area || copy.shareTitle} id="share-sheet-title" />
+        <div className="nf-doc__hero">
+          <p className="nf-doc__label">{x.yours}</p>
+          <DocFigure testId="share-figure">{formatMoney(share, locale)}</DocFigure>
+        </div>
+        <DocRows>
+          <DocRow label={x.yours} numeric>
+            {formatMoney(share, locale)}
+          </DocRow>
+          <DocRow label={x.total} numeric>
+            {formatMoney(total, locale)}
+          </DocRow>
+          {moveIn ? (
+            <DocRow label={x.due} numeric>
+              {moveIn}
+            </DocRow>
+          ) : null}
+        </DocRows>
+      </DocumentSheet>
+      <Section>
+        <div className="grid gap-md">
+          {/* Who arranged it and the rail, said plainly: the share goes
+              straight to the landlord or agent, split by Paystack. */}
+          <p className={TYPE.body}>{lead ? copy.shareLead.replace("{name}", lead) : copy.shareLeadUnknown}</p>
+          {/* Not gated on `!paidAt`: settling refreshes this page with the
+              share paid, and a gate on it unmounted the receipt it had just
+              opened. A revisit answers `already` and shows nothing. */}
+          {returnedRef && tenancyId && <SettleShareOnReturn tenancyId={tenancyId} reference={returnedRef} success={getDictionary(locale).success} />}
+          {state}
+        </div>
+      </Section>
+    </div>,
   );
 }
