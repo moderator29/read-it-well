@@ -283,6 +283,15 @@ document sheet; money email in Paper; host analytics once R-8 lands.
 
 ## Risks
 
+- **The machine, not the work, became the limit.** Fourteen agents plus the
+  gate on 4 cores and 15GB drove the load average to about 90 and the
+  out-of-memory killer ended `tsc` (exit 137), browser tests ("Target crashed")
+  and the lead's own gate. From 04:10 a resource rule binds every agent: no full
+  typecheck, whole suite, build or dev server (the sweep and the speed agent
+  excepted, one process each); targeted tests only; the full typecheck, lint and
+  suite run once, serialized, in the lead's gate, which now waits for the load to
+  fall before it starts. Nothing is pushed on an agent's partial verification.
+
 - The perforation notches are painted in the canvas colour; on a page whose ground
   is not the bare canvas they read as dots rather than holes (B2).
 - `print.css` relies on `:has()`, fine in current browsers, absent in very old ones.
