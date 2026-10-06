@@ -110,4 +110,23 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the filter tile's select pop", 
       }
     }
   });
+
+  it("plays nothing under data saving: the tile is still chosen, and no pop runs", async () => {
+    /* The data-saver signal the way `lib/ui/data-saver.ts` reads it: the
+       browser's own `navigator.connection.saveData`. The pop reads it at tap
+       time, so setting it after the page has mounted is a tap under saving. */
+    const { page, close } = await mountInBrowser({
+      entry,
+      css: CSS,
+      init: `Object.defineProperty(navigator, "connection", { value: { saveData: true }, configurable: true });`,
+    });
+    try {
+      await page.getByRole("button", { name: "Pool" }).click();
+      await afterTwoFrames(page);
+      expect(await page.getByRole("button", { name: "Pool" }).getAttribute("aria-pressed")).toBe("true");
+      expect(await pops(page, "Pool"), "data saver").toEqual([]);
+    } finally {
+      await close();
+    }
+  });
 });

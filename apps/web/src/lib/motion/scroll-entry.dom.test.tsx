@@ -22,7 +22,7 @@ afterAll(closeBrowser);
 
 const CSS = productCss("app/css/animation.css", "app/css/list-views.css");
 
-const entry = `
+const entryWith = (saver: boolean) => `
   import { useRef } from "react";
   import { mount } from "@/lib/testing/browser-root";
   import { useScrollEntry } from "@/lib/motion/scroll-entry";
@@ -36,12 +36,15 @@ const entry = `
       </article>
     );
   }
+  ${saver ? `Object.defineProperty(navigator, "connection", { value: { saveData: true }, configurable: true });` : ""}
   mount(
     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, padding: 16 }}>
       {Array.from({ length: 40 }, (_, i) => <Card key={i} index={i} />)}
     </div>,
   );
 `;
+
+const entry = entryWith(false);
 
 const cards = (page: import("playwright-core").Page) =>
   page.evaluate(() =>
@@ -130,6 +133,21 @@ describe.skipIf(!hasBrowser && !process.env.CI)("card entry on scroll", () => {
       } finally {
         await close();
       }
+    }
+  });
+
+  it("does nothing under data saving", async () => {
+    /* The data-saver signal the way `lib/ui/data-saver.ts` reads it
+       (`navigator.connection.saveData`), set after the imports and before the
+       cards mount, because the hook reads it when it mounts. */
+    const { page, close } = await mountInBrowser({ entry: entryWith(true), css: CSS });
+    try {
+      await page.waitForTimeout(900);
+      expect((await cards(page)).every((card) => card.entry === null), "no card is held").toBe(true);
+      expect(await page.locator('[data-card="39"]').evaluate((el) => getComputedStyle(el).opacity)).toBe("1");
+      expect(await page.locator("[data-entry]").count()).toBe(0);
+    } finally {
+      await close();
     }
   });
 });
