@@ -103,7 +103,7 @@ describe.skipIf(!hasBrowser && !process.env.CI)("card entry never strands a card
       const { page, close } = await mountInBrowser({ entry, css: CSS });
       try {
         await expect.poll(() => entryOf(page, 11)).toBe("pending");
-        await page.evaluate(([n, v]) => document.documentElement.setAttribute(n, v), [name, value]);
+        await page.evaluate(({ n, v }) => document.documentElement.setAttribute(n, v), { n: name, v: value });
         expect(await opacityOf(page, 11)).toBe("1");
       } finally {
         await close();
