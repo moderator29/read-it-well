@@ -183,6 +183,7 @@ Read by build tooling, never by the running app:
 | `CAPACITOR_SERVER_URL` | `capacitor.config.ts` during `npx cap sync`: the origin the native shell loads. Unset, the build succeeds but the app opens on its offline page |
 | `VALLO_BUILD` | `scripts/sync-native-versions.mjs`: the native build number |
 | `NEXT_DIST_DIR` | `next.config.ts`: an alternative `.next` output directory for parallel builds |
+| `W6_APP_CSS` | `src/components/app/account/w6-test-css.ts`, the account surfaces' browser tests: a compiled `globals.css` to draw screenshots from the real cascade. Unset, the bundled sheets are used |
 | `VALLO_AUTH_EMAIL_OUT_DIR` | `scripts/build-auth-emails.mjs`: where the auth email templates are written |
 | `SEED_REVIEWER_EMAIL`, `SEED_REVIEWER_PASSWORD` | `npm run seed:reviewer` only |
 | `DATABASE_URL` | `scripts/db-probes/run.mjs`, the database probe runner. CI reads it from the `PROBES_DATABASE_URL` repository secret |
