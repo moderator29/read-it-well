@@ -10,7 +10,9 @@ import { RegisterRow } from "@/components/app/agreements/RegisterRow";
 import { readKeptVersions } from "@/components/app/agreements/record-read";
 import { gateFirstRun } from "@/components/app/feature-onboarding/first-run-store";
 
-export const metadata: Metadata = { title: "Agreements" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: getDictionary(await getLocale()).nav.agreements };
+}
 export const dynamic = "force-dynamic";
 
 /**
@@ -37,20 +39,21 @@ export default async function AgreementsPage({
   const locale = await getLocale();
   const rows = await readMyAgreements();
   const kept = rows && rows.length > 0 ? await readKeptVersions(rows.map((row) => row.id)) : null;
-  const copy = getDictionary(locale).experienceMoney.agreements;
+  const t = getDictionary(locale);
+  const copy = t.experienceMoney.agreements;
   return (
     <main className="nf-page nf-md">
-      <PageHeader variant="large" title="Agreements" />
+      <PageHeader variant="large" title={t.nav.agreements} />
       <p className={`${TYPE.body} mt-inline`}>{PAYMENT_GATE_SENTENCE}</p>
       <p className={`${TYPE.rowMeta} mt-inline mb-block`}>{NO_CUSTODY_SENTENCE}</p>
-      <Section title="Your agreements">
+      <Section title={copy.listTitle}>
         {rows === null ? (
           <Unreachable noun="agreements" icon="contract-sign" />
         ) : rows.length === 0 ? (
           <EmptyState
             icon="contract-sign"
-            title="No agreements yet"
-            body="An agreement is drawn up after an inspection report is submitted, or when a host accepts your stay."
+            title={copy.emptyTitle}
+            body={copy.emptyBody}
           />
         ) : (
           <ul className="nf-agr-register" data-testid="agreements-list">

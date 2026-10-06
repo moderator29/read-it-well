@@ -67,6 +67,11 @@ export const experienceMoneyEn = {
     replacedBy: "Replaced by version {n}",
     historyTitle: "History",
     historyVersion: "Version {n}",
+    /* `/agreements`, the register's own words (Round 3 sweep, C3). The
+       sentences about payment are lib/money/copy.ts's. */
+    listTitle: "Your agreements",
+    emptyTitle: "No agreements yet",
+    emptyBody: "An agreement is drawn up after an inspection report is submitted, or when a host accepts your stay.",
   },
   /* M2: the tenancy's caution register as a documented exchange
      (components/app/tenancy/CautionRegister.tsx). The sentences about the
