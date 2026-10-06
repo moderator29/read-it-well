@@ -24,8 +24,8 @@ labels into the dictionary).
 **The sweep, as a number.** The per-route record is
 [`SESSION-3-SWEEP.md`](SESSION-3-SWEEP.md), generated from each agent's own 24-point
 result, run in Chromium at 390, 768 and 1440 in both themes on the route's real page
-component. **Routes audited with all 24 points recorded: 199 of the 213** at this edit, plus
-four routes added since (204 records; a route whose found state no fixture holds is
+component. **Routes audited with all 24 points recorded: 207 of the 213** at this edit, plus
+four routes added since (212 records; a route whose found state no fixture holds is
 recorded but not counted, and its unmeasured points show as N). 38 admin, 24 agent and 17 host: every route
 in those trees. 39 public site, auth and landing: every route in those groups. The
 member routes and the top-level pages make up the rest; the 25 not yet audited are

@@ -6,11 +6,11 @@ component with the fixture named in its row. **P** pass, **X** failed and fixed 
 sweep, **F** failed and still open, **·** does not apply. The denominator is 213 real routes
 (every `page.tsx` under `apps/web/src/app`, excluding `(dev)` and `api`).
 
-**Routes audited: 199 of the 213** measured at the start of the sweep, plus 4 routes added since (`/join/[code]/start`, `/s/[token]/status`, `/settings/accessibility`, `/settings/region`): 204 records in all.
+**Routes audited: 207 of the 213** measured at the start of the sweep, plus 4 routes added since (`/join/[code]/start`, `/s/[token]/status`, `/settings/accessibility`, `/settings/region`): 212 records in all.
 
 Recorded but not counted, because a point could not be measured (no fixture holds the found state): `/agreements/[id]`.
 
-Not yet audited: `/agreements/[id]`, `/checkout/[bookingId]`, `/checkout`, `/home`, `/listing/[id]`, `/listing/[id]/trust`, `/payments`, `/price/area/[id]`, `/rent/share/[id]`, `/restaurants`, `/search`, `/stays`, `/stays/search`, `/tenancy/[id]`.
+Not yet audited: `/agreements/[id]`, `/home`, `/listing/[id]`, `/listing/[id]/trust`, `/search`, `/tenancy/[id]`.
 
 | Family | Audited |
 |---|---|
@@ -27,6 +27,7 @@ Not yet audited: `/agreements/[id]`, `/checkout/[bookingId]`, `/checkout`, `/hom
 | cancellations | 1 |
 | careers | 1 |
 | check | 1 |
+| checkout | 2 |
 | contact | 1 |
 | delete-account | 1 |
 | disclaimer | 1 |
@@ -50,15 +51,17 @@ Not yet audited: `/agreements/[id]`, `/checkout/[bookingId]`, `/checkout`, `/hom
 | notifications | 2 |
 | offline | 1 |
 | pay | 1 |
+| payments | 1 |
 | post | 1 |
-| price | 1 |
+| price | 2 |
 | privacy | 1 |
 | profile | 7 |
 | r | 2 |
 | record | 1 |
-| rent | 3 |
+| rent | 4 |
 | reset-password | 1 |
 | restaurant | 1 |
+| restaurants | 1 |
 | s | 2 |
 | safe | 1 |
 | safety | 1 |
@@ -68,6 +71,7 @@ Not yet audited: `/agreements/[id]`, `/checkout/[bookingId]`, `/checkout`, `/hom
 | sign-up | 4 |
 | standards | 1 |
 | stay | 1 |
+| stays | 2 |
 | stories | 2 |
 | styleguide | 1 |
 | support | 4 |
@@ -159,6 +163,8 @@ Not yet audited: `/agreements/[id]`, `/checkout/[bookingId]`, `/checkout`, `/hom
 | `/cancellations` | C6 | P | · | P | P | P | P | P | P | P | P | P | P | P | P | P | P | X | · | P | P | P | P | P | P |
 | `/careers` | C6 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | P | P | P | P | P | P | P |
 | `/check` | C6 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
+| `/checkout` | C1 | P | P | P | P | P | X | P | P | P | P | P | P | P | P | P | P | P | P | P | P | X | P | P | P |
+| `/checkout/[bookingId]` | C1 | X | P | P | P | P | P | P | P | P | P | P | P | P | P | P | X | P | P | P | X | P | P | P | P |
 | `/contact` | C6 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | P | P | P | P |
 | `/delete-account` | C6 | P | · | P | P | P | P | P | · | P | P | P | P | P | · | P | X | · | · | P | P | P | P | P | P |
 | `/disclaimer` | C6 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | F | · | P | P | P | P | P | P |
@@ -208,8 +214,10 @@ Not yet audited: `/agreements/[id]`, `/checkout/[bookingId]`, `/checkout`, `/hom
 | `/notifications/[id]` | C3 | P | · | P | P | P | P | · | P | P | P | P | P | P | · | P | X | · | P | P | P | X | P | P | P |
 | `/offline` | C7 | P | · | P | P | P | P | · | · | P | P | P | · | P | · | · | P | · | P | P | P | P | P | P | P |
 | `/pay/crypto/[reference]` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | X | P | P | P | P | P | P |
+| `/payments` | C1 | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | P | P | P | P | P | X | P | P | P |
 | `/post/[id]` | C3 | P | · | P | P | P | P | P | · | P | P | P | P | P | · | · | X | · | · | P | P | P | P | P | P |
 | `/price` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | X | P | P | P |
+| `/price/area/[id]` | C1 | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/privacy` | C6 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | F | · | P | P | P | P | P | P |
 | `/profile` | C3 | P | · | P | P | P | P | P | P | P | P | P | P | P | · | P | X | · | P | P | P | P | X | P | P |
 | `/profile/application` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
@@ -224,8 +232,10 @@ Not yet audited: `/agreements/[id]`, `/checkout/[bookingId]`, `/checkout`, `/hom
 | `/rent/move-in/[listingId]` | C3 | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | P | P | X | P | P | P |
 | `/rent/pay/[inspectionId]` | C3 | P | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | X | · | P | P | P | P | P | P |
 | `/rent/review/[paymentId]` | C3 | P | · | P | P | P | P | · | · | · | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
+| `/rent/share/[id]` | C1 | P | P | P | P | P | X | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P |
 | `/reset-password` | C6 | P | · | P | P | P | P | · | · | P | X | P | P | P | · | · | P | · | P | P | P | P | P | P | P |
 | `/restaurant/[id]` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | P | P | X | P | P | P | P | X | P | P | P |
+| `/restaurants` | C1 | P | · | P | P | P | P | · | P | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/s/[token]` | C7 | P | P | P | P | P | P | P | P | P | P | P | X | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/s/[token]/status` | C7 | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | P | · | · | · | · | · | · | · | P |
 | `/safe/[token]` | C6 | P | · | P | P | P | P | · | · | P | P | P | X | P | · | P | P | · | P | P | P | P | P | P | P |
@@ -267,6 +277,8 @@ Not yet audited: `/agreements/[id]`, `/checkout/[bookingId]`, `/checkout`, `/hom
 | `/sign-up/verify` | C6 | P | · | P | P | P | P | · | · | P | X | P | P | P | · | · | P | · | P | P | X | P | P | P | P |
 | `/standards` | C6 | P | · | P | P | P | P | P | · | P | P | P | P | P | · | P | P | P | · | P | P | P | P | P | P |
 | `/stay/[id]` | C3 | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | X | P | · | P | P | P | P | P | P |
+| `/stays` | C1 | P | · | P | P | P | P | P | P | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
+| `/stays/search` | C1 | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | X | · | P | P | P | P | P | P | P |
 | `/stories/[id]` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | X | X | X | P | P | P |
 | `/stories/new` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | P | P | P | P | X | P | P |
 | `/styleguide` | C6 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | · | P | X | P | P | P | P |
@@ -554,6 +566,17 @@ Not yet audited: `/agreements/[id]`, `/checkout/[bookingId]`, `/checkout`, `/hom
 
 - 17 (fixed): Every money sentence the page wrote for itself (the lede, before and after paying, the three 'not your doing' cases, the table, and 'There is no Vallo balance for a refund to sit in') is in lib/money/copy.ts now (CANCEL_*, REFUND_NO_BALANCE), word for word, and the page reads them. The tier sentences were already dictionary words (CancellationTimeline).
 
+**`/checkout`** (the real page; getStayDetail answers f3 STAY turned back into its rows (C3's mapping); the visitor picks STAY's Garden suite, Room only, three nights a month out, two guests. Two states: rooms switched on and signed out; rooms switched off. The signed-in request form is not drawn: it needs the room's units_total, which no fixture of this stay carries)
+
+- 6 (fixed): The nightly row's label read "a night" (stayDetail.perNight is the suffix written after a price); it reads the catalogue's own row label, "Per night".
+- 21 (fixed): Labels present. The sign-in link was built with authHref, which does not run the destination through safeReturnPath; it goes through withNext now, as the brief requires.
+
+**`/checkout/[bookingId]`** (the real page; getCheckoutView answers f3 CHECKOUT (a PENDING hold), saved cards f3 SAVED_CARDS, no crypto offer, a stay charge; and the signed-out answer)
+
+- 1 (fixed): Subject: paying for this stay. With a saved card offered the screen lit three primaries: Pay with this card, Pay by card, and a pinned Pay by card, although the pinned bar's own note says it pins only the chosen way. The card page is now the secondary alternative while a saved card is offered, and the bar pins the chosen way (the saved card when offered, else the card page): one lit primary in the body, the same action pinned.
+- 16 (fixed): 0 banned phrases. The 50-word rail sentence ("What stands behind this payment: ...") was printed twice on one screen: in TransactionCheckout's row and again under the pay options. The pay panel now says only where the money goes (NO_CUSTODY_SENTENCE); the standing sentence stays once, in its labelled row.
+- 20 (fixed): Both themes. On paper the receipt lines' kobo (".00") measured 2.97:1 (axe color-contrast, 2 nodes): Amount's default 60% fade on the line's secondary ink. The lines keep their own ink now; 0 axe violations.
+
 **`/delete-account`** (the REAL page in the REAL (site) layout; no read (the words are the page's own, lib/trust and lib/legal))
 
 - 16 (fixed): The 'what is kept' sentence listed 'wallet entries' among the records kept: Vallo keeps no wallet for anybody. The sentence no longer names it; the table list under it still names every retained table exactly.
@@ -723,6 +746,10 @@ Not yet audited: `/agreements/[id]`, `/checkout/[bookingId]`, `/checkout`, `/hom
 
 - 18 (fixed): Signed out showed the not-found sentence ("Open the charge from your bookings and start again") under Sign in, and Sign in went to a bare /sign-in, so the payer never came back to the payment. It now says why to sign in (cryptoPay.signedOutBody) and carries next=/pay/crypto/<reference>.
 
+**`/payments`** (the real page; my_payments_history answers the two rows of lib/money/history-model.test.ts (a payment and its refund, given its own id), my_payments_summary those rows added up; and signed out)
+
+- 21 (fixed): Labels present. The signed-out Sign in went through authHref; it goes through withNext now, as the brief requires.
+
 **`/post/[id]`** (the real page signed in with getThread answering f4 THREAD (the first feed post with its three answers))
 
 - 16 (fixed): The page's title, subtitle and metadata, and the report sheet's title and subject line (shared with the feed), were English literals. The page reads experienceSocial.post; the report words and the menu's "this person" travel in SheetWords (sheetWordsOf) to ThreadView and Feed.
@@ -757,6 +784,10 @@ Not yet audited: `/agreements/[id]`, `/checkout/[bookingId]`, `/checkout`, `/hom
 **`/rent/pay/[inspectionId]`** (the real page with getRentPayView mocked to session-b/sweep-orphans RENT_VIEW, no saved card, crypto off)
 
 - 17 (fixed): checkout.onPlatformRent said Money moves inside Vallo directly under NO_CUSTODY_SENTENCE (D48, D50). It is C2's copy, so it went as patch checkout-no-custody-onplatform.patch; the lead applied it.
+
+**`/rent/share/[id]`** (the real page; my_rent_share answers a contributor's 140,000,000 of 420,000,000, the figures of lib/tenancy/shares.test.ts, nothing else known (no area, no lead, no move-in), not yet answered; and the missing share)
+
+- 6 (fixed): With no place on the row the sheet printed "Your share of a move-in" as its overline and again as its title, under a page header saying the same. The overline is drawn only when the title is a place.
 
 **`/reset-password`** (the REAL page inside the REAL (auth) layout, signed out, no cookie, a web surface; with no auth provider configured in this environment; no session (the expired screen, the honest default) and a recovery session ('link-only' proof) so the form is drawn; the session prints nothing)
 
@@ -889,6 +920,10 @@ Not yet audited: `/agreements/[id]`, `/checkout/[bookingId]`, `/checkout`, `/hom
 **`/stay/[id]`** (the real page with getStayDetail answering f3 STAY turned back into the rows the read returns (every value read from STAY; the photo path is the fixture's url and the url builder is mocked to hand it back unchanged))
 
 - 16 (fixed): The star class ("5 star"), the property kind (Hotel, Resort...), the host fallback and the share card's line were English literals; they come from experienceDetail.stay now.
+
+**`/stays/search`** (the real page; searchStays answers the same two f3 STAYS rows (total 2); and no results for q=Lekki with no dates)
+
+- 16 (fixed): 0 banned phrases. A search with no dates that found nothing said "Nothing here for those dates yet" and to "widen the dates" when no dates were asked for. With no dates it says "No stays match yet" and why a shelf fills; the dated copy is kept for a dated search, whose action clears the dates.
 
 **`/stories/[id]`** (the real page with f4 STORY, STORY_FACES and STORY_COMMENTS (the f4 story deck), measured inside the shell it is drawn in)
 
