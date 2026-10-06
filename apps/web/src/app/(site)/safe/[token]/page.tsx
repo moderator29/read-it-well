@@ -58,6 +58,7 @@ export default async function SafetySharePage({ params }: { params: Promise<{ to
           state={view.state === "failed" ? "failed" : view.state === "unknown" ? "pending" : "expired"}
           verdict={words.title}
           consequence={words.body}
+          heading
           data-testid={`safety-${view.state}`}
         />
         {stillOut && (

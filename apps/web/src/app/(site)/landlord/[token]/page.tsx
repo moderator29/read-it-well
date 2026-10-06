@@ -65,6 +65,7 @@ export default async function LandlordReplyPage({ params }: { params: Promise<{ 
           state={view.state === "failed" ? "failed" : "pending"}
           verdict={words.title}
           consequence={words.body}
+          heading
           data-testid={`landlord-${view.state}`}
         />
       </Frame>
@@ -81,6 +82,7 @@ export default async function LandlordReplyPage({ params }: { params: Promise<{ 
           state={view.state === "expired" ? "expired" : "confirmed"}
           verdict={words.title}
           consequence={`${words.body}${when}`}
+          heading
           data-testid={`landlord-${view.state}`}
         />
       </Frame>

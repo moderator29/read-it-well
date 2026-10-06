@@ -457,6 +457,7 @@ export function ResultScreen({
   consequence,
   actions,
   footnote,
+  heading = false,
   "data-testid": testId,
 }: {
   state: ResultScreenState;
@@ -466,6 +467,15 @@ export function ResultScreen({
   /** Kept for existing callers and no longer drawn (SW-ST3). */
   mark?: BrandIconName;
   footnote?: ReactNode;
+  /**
+   * The verdict is the page's one h1. Off by default, because most callers sit
+   * under a page that already has its own heading; a public door whose whole
+   * page is this screen (a safety share, a landlord's reply link) turns it on,
+   * so the page is not left without one. On a failure the alert role moves to a
+   * wrapper around the heading and the sentence, since `role="alert"` on the
+   * heading itself would replace its heading semantics.
+   */
+  heading?: boolean;
   "data-testid"?: string;
 }) {
   const tone = STATE[state];
@@ -483,16 +493,30 @@ export function ResultScreen({
         announced one assertively before; a screen a person lands on after a
         crash should say so rather than wait to be read.
       */}
-      <p
-        role={bad ? "alert" : undefined}
-        className="nf-h2 mt-block max-w-[18ch] font-bold tracking-[-0.02em] [text-wrap:balance]"
-        style={{ color: bad ? "var(--nf-result-ink)" : "var(--nf-content-primary)" }}
-      >
-        {verdict}
-      </p>
-      <p className="nf-body mt-row max-w-[38ch] leading-relaxed text-[var(--nf-content-secondary)]">
-        {consequence}
-      </p>
+      {(() => {
+        const Verdict = heading ? "h1" : "p";
+        const words = (
+          <>
+            <Verdict
+              role={bad && !heading ? "alert" : undefined}
+              className="nf-h2 mt-block max-w-[18ch] font-bold tracking-[-0.02em] [text-wrap:balance]"
+              style={{ color: bad ? "var(--nf-result-ink)" : "var(--nf-content-primary)" }}
+            >
+              {verdict}
+            </Verdict>
+            <p className="nf-body mt-row max-w-[38ch] leading-relaxed text-[var(--nf-content-secondary)]">
+              {consequence}
+            </p>
+          </>
+        );
+        return bad && heading ? (
+          <div role="alert" className="flex flex-col items-center">
+            {words}
+          </div>
+        ) : (
+          words
+        );
+      })()}
       {actions && actions.length > 0 && (
         <div className="mt-group flex w-full max-w-sm flex-col gap-row">
           {actions.map((action) =>
