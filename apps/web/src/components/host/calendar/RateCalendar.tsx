@@ -7,7 +7,6 @@ import { countOf, formatMoney, type Locale } from "@vallo/i18n/core";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Sheet } from "@/components/ui/Sheet";
 import { Button } from "@/components/ui/Button";
-import { Chip } from "@/components/ui/Chip";
 import { BatchTray } from "@/components/ui/BatchTray";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { feedback } from "@/lib/ui/feedback";
@@ -335,11 +334,15 @@ export function RateCalendar(props: RateCalendarProps) {
         {rooms.length > 1 ? (
           <nav className="nf-rcal__rooms" aria-label="Room types">
             {rooms.map((r) => (
-              <Chip
+              /* The raw chip: `Chip`'s selected state blooms, and this rail sits
+                 beside the primary and the presets, so it keeps the calm
+                 `nf-chip--active` tint like the rail beside it. */
+              <button
                 key={r.id}
-                behaviour="filter"
-                selected={r.id === room.id}
-                onSelectedChange={() => {
+                type="button"
+                className={`nf-chip${r.id === room.id ? " nf-chip--active" : ""}`}
+                aria-pressed={r.id === room.id}
+                onClick={() => {
                   setRoomId(r.id);
                   setPlanId(null);
                   setNotice(null);
@@ -348,7 +351,7 @@ export function RateCalendar(props: RateCalendarProps) {
                 }}
               >
                 {r.name}
-              </Chip>
+              </button>
             ))}
           </nav>
         ) : null}
@@ -379,15 +382,16 @@ export function RateCalendar(props: RateCalendarProps) {
         {room.plans.length > 1 ? (
           <div className="nf-rcal__plans" role="group" aria-label="Which rate the calendar shows">
             {room.plans.map((p) => (
-              <Chip
+              <button
                 key={p.id}
-                behaviour="filter"
-                selected={p.id === plan?.id}
-                onSelectedChange={() => setPlanId(p.id)}
+                type="button"
+                className={`nf-chip${p.id === plan?.id ? " nf-chip--active" : ""}`}
+                aria-pressed={p.id === plan?.id}
+                onClick={() => setPlanId(p.id)}
               >
                 {p.name}
                 {p.active ? "" : " (off sale)"}
-              </Chip>
+              </button>
             ))}
           </div>
         ) : null}

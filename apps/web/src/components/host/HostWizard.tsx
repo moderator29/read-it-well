@@ -5,13 +5,12 @@ import { useCallback, useEffect, useMemo, useState, useTransition } from "react"
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useBack } from "@/lib/nav/use-back";
-import { countOf, getDictionary, type Locale } from "@vallo/i18n";
-import { useClientLocale } from "@/lib/i18n/use-client-locale";
+import { countOf, type Locale } from "@vallo/i18n/core";
+import { useScopedCopy } from "@/lib/i18n/copy-scope";
 import { useMoneyStepUp } from "@/components/app/money/MoneyStepUp";
 import type { BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
-import { Chip } from "@/components/ui/Chip";
 import { SuccessSheet } from "@/components/ui/SuccessSheet";
 import { Unfold } from "@/components/ui/Unfold";
 import { ProgressPath } from "@/components/supply/ProgressPath";
@@ -264,13 +263,11 @@ export function HostWizard({
     setWasSubmitted(submitted);
     if (submitted) setCelebrate(true);
   }
-  /* This wizard already carries the dictionary for its locale. */
-  const dictionary = getDictionary(useClientLocale());
-  const successWords = dictionary.success;
+  /* The page's CopyScope carries these (W13): no client dictionary read. */
+  const successWords = useScopedCopy("success");
   /* The progress path's words: the same ones the agent's listing wizard uses
-     (`experienceFeatures.wizard`), read here from the reader's dictionary
-     because this component is the client island and its page passes none. */
-  const pathWords = dictionary.experienceFeatures.wizard;
+     (`experienceFeatures.wizard`). */
+  const pathWords = useScopedCopy("featuresWizard");
 
   const set = useCallback(<K extends keyof HostDraft>(key: K, value: HostDraft[K]) => {
     setDraft((current) => {
@@ -676,14 +673,18 @@ function HostTypeStep({ draft, set }: StepProps) {
           <p className="nf-host-group__title">What is it, exactly?</p>
           <div className="mt-sm flex flex-wrap gap-xs" role="group" aria-label={hw.wizard.businessKindLabel}>
             {chosen.kinds.map((kind) => (
-              <Chip
+              /* The raw chip, on purpose: `Chip`'s selected state is the lit CTA
+                 gradient with a bloom, and a filter row is not where a screen's
+                 one glow goes. `nf-chip--active` is the calm brand tint. */
+              <button
                 key={kind}
-                behaviour="filter"
-                selected={draft.kind === kind}
-                onSelectedChange={() => set("kind", kind)}
+                type="button"
+                aria-pressed={draft.kind === kind}
+                className={`nf-chip${draft.kind === kind ? " nf-chip--active" : ""}`}
+                onClick={() => set("kind", kind)}
               >
                 {KIND_LABEL[kind]}
-              </Chip>
+              </button>
             ))}
           </div>
         </div>
@@ -893,7 +894,7 @@ function PayoutStep({ draft, pending, run, setNotice, set }: StepProps) {
   };
 
   /* V-81: a new account to be paid into asks for the phone lock, when there is one. */
-  const viewerLocale = useClientLocale();
+  const lockWords = useScopedCopy("moneyLock");
   const lock = useMoneyStepUp();
   const save = () =>
     run(
@@ -901,7 +902,7 @@ function PayoutStep({ draft, pending, run, setNotice, set }: StepProps) {
         const result = await lock.guard({ kind: "bank_add", target: `${bank}:${number.replace(/\D/g, "")}` }, (stepUp) =>
           addBankAccount({ bankCode: bank, accountNumber: number, stepUp }),
         );
-        return result ?? { ok: false as const, error: getDictionary(viewerLocale).platform.moneyLock.notConfirmed };
+        return result ?? { ok: false as const, error: lockWords.notConfirmed };
       },
       () => {
         set("hasBankAccount", true);
