@@ -74,8 +74,8 @@ function componentSheets(): string[] {
       const path = join(dir, entry.name);
       if (entry.isDirectory()) {
         /* The staff console, the development harness and the public site are other routes' sheets, loaded on
-           other routes: every route group but `(app)` (the site's and the landing's `landing-rooms.css`, for one, also names `.nf-movein__figure`), and a member's
-           listing page never loads them. */
+           other routes: every route group but `(app)` (the site's and the landing's sheets), which a member's
+           page never loads together with its own. */
         if (entry.name === "admin" || entry.name === "(dev)" || (entry.name.startsWith("(") && entry.name !== "(app)") || path.endsWith(join("components", "site"))) continue;
         walk(path);
         continue;

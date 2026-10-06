@@ -52,14 +52,14 @@ export function MoveInBand({ t, locale, door }: { t: Dictionary; locale: Locale;
 
   return (
     <section className="nf-shell nf-room" data-chapter="movein" aria-labelledby="nf-landing-movein-title">
-      <div className="nf-movein">
+      <div className="nf-landing-movein">
         <SectionHead
           id="nf-landing-movein-title"
           eyebrow={m.compactLabel}
           title={m.compactTitle}
           lede={t.landingRooms.stack.cards.listing.body}
         >
-          <div className="nf-movein__actions">
+          <div className="nf-landing-movein__actions">
             <ButtonLink href="/move-in-cost" variant="secondary" size="md" trailingIcon="arrow-right">
               {m.compactSubmit}
             </ButtonLink>
@@ -70,20 +70,20 @@ export function MoveInBand({ t, locale, door }: { t: Dictionary; locale: Locale;
           </div>
         </SectionHead>
 
-        <MotionReveal className="nf-movein__card nf-panel nf-panel--card nf-panel--figure">
-          <div className="nf-movein__head">
+        <MotionReveal className="nf-landing-movein__card nf-panel nf-panel--card nf-panel--figure">
+          <div className="nf-landing-movein__head">
             <p className="nf-section-label">{u.moveIn}</p>
             <span className="nf-badge nf-badge--example">
               <UiIcon name="info" size={12} aria-hidden />
               {u.example}
             </span>
           </div>
-          <p className="nf-movein__figure">
+          <p className="nf-landing-movein__figure">
             <Amount minorUnits={EXAMPLE_MOVE_IN.total} locale={locale} currency="NGN" className="nf-numeric" count />
           </p>
-          <p className="nf-movein__on">{t.experienceLanding.moveIn.onRent.replace("{amount}", rentText)}</p>
+          <p className="nf-landing-movein__on">{t.experienceLanding.moveIn.onRent.replace("{amount}", rentText)}</p>
 
-          <div className="nf-movein__bar" aria-hidden="true">
+          <div className="nf-landing-movein__bar" aria-hidden="true">
             {MOVE_IN_PARTS.map((part, i) => (
               <span
                 key={part}
@@ -93,11 +93,11 @@ export function MoveInBand({ t, locale, door }: { t: Dictionary; locale: Locale;
             ))}
           </div>
 
-          <dl className="nf-movein__lines" aria-label={m.barLabel}>
+          <dl className="nf-landing-movein__lines" aria-label={m.barLabel}>
             {MOVE_IN_PARTS.map((part) => (
-              <div key={part} className="nf-movein__line" data-part={part}>
+              <div key={part} className="nf-landing-movein__line" data-part={part}>
                 <dt>
-                  <span className="nf-movein__dot" aria-hidden="true" />
+                  <span className="nf-landing-movein__dot" aria-hidden="true" />
                   {label[part]}
                 </dt>
                 <dd>
@@ -105,7 +105,7 @@ export function MoveInBand({ t, locale, door }: { t: Dictionary; locale: Locale;
                 </dd>
               </div>
             ))}
-            <div className="nf-movein__line nf-movein__line--total">
+            <div className="nf-landing-movein__line nf-landing-movein__line--total">
               <dt>{u.moveIn}</dt>
               <dd>
                 <Amount minorUnits={EXAMPLE_MOVE_IN.total} locale={locale} currency="NGN" className="nf-numeric" />

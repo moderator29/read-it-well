@@ -1593,42 +1593,42 @@
 
   /* ------------------------------------------------------ the move-in band */
 
-  .nf-movein {
+  .nf-landing-movein {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: var(--nf-gap-block);
     align-items: center;
   }
   @media (min-width: 64rem) {
-    .nf-movein {
+    .nf-landing-movein {
       grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
       gap: var(--nf-space-3xl);
     }
   }
-  .nf-movein__actions {
+  .nf-landing-movein__actions {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: var(--nf-space-xs) var(--nf-space-md);
     margin-top: var(--nf-space-md);
   }
-  .nf-movein__card {
+  .nf-landing-movein__card {
     gap: var(--nf-space-sm);
     padding: var(--nf-space-lg);
   }
   @media (min-width: 64rem) {
-    .nf-movein__card {
+    .nf-landing-movein__card {
       padding: var(--nf-space-xl);
     }
   }
-  .nf-movein__head {
+  .nf-landing-movein__head {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: var(--nf-space-xs);
   }
   /* The subject of the band: the hero figure (north star 5, 56 to 72). */
-  .nf-movein__figure {
+  .nf-landing-movein__figure {
     align-self: flex-start;
     text-align: start;
     font-family: var(--nf-font-display);
@@ -1639,47 +1639,47 @@
     font-variant-numeric: tabular-nums;
     color: var(--nf-content-primary);
   }
-  .nf-movein__on {
+  .nf-landing-movein__on {
     font-size: var(--nf-text-body-sm);
     color: var(--nf-content-secondary);
   }
-  .nf-movein__bar {
+  .nf-landing-movein__bar {
     display: flex;
     gap: 4px;
     height: 0.625rem;
     margin-top: var(--nf-space-xs);
   }
-  .nf-movein__bar > span {
+  .nf-landing-movein__bar > span {
     min-width: 6px;
     border-radius: 3px;
-    background: var(--nf-movein-seg, var(--nf-brand-primary));
+    background: var(--nf-landing-movein-seg, var(--nf-brand-primary));
     transform-origin: left center;
     transition: opacity var(--nf-duration-fast) var(--nf-ease-standard);
   }
   /* One hue in steps (the chart rule: brand for the subject, the rest in
      quieter steps of it), the rent strongest. Never colour alone: every
      segment has its line below with its name and amount. */
-  .nf-movein [data-part="rent"] { --nf-movein-seg: var(--nf-brand-primary); }
-  .nf-movein [data-part="caution"] { --nf-movein-seg: color-mix(in oklab, var(--nf-brand-primary) 70%, var(--nf-surface-canvas)); }
-  .nf-movein [data-part="agency"] { --nf-movein-seg: color-mix(in oklab, var(--nf-brand-primary) 54%, var(--nf-surface-canvas)); }
-  .nf-movein [data-part="legal"] { --nf-movein-seg: color-mix(in oklab, var(--nf-brand-primary) 40%, var(--nf-surface-canvas)); }
-  .nf-movein [data-part="agreement"] { --nf-movein-seg: color-mix(in oklab, var(--nf-brand-primary) 28%, var(--nf-surface-canvas)); }
+  .nf-landing-movein [data-part="rent"] { --nf-landing-movein-seg: var(--nf-brand-primary); }
+  .nf-landing-movein [data-part="caution"] { --nf-landing-movein-seg: color-mix(in oklab, var(--nf-brand-primary) 70%, var(--nf-surface-canvas)); }
+  .nf-landing-movein [data-part="agency"] { --nf-landing-movein-seg: color-mix(in oklab, var(--nf-brand-primary) 54%, var(--nf-surface-canvas)); }
+  .nf-landing-movein [data-part="legal"] { --nf-landing-movein-seg: color-mix(in oklab, var(--nf-brand-primary) 40%, var(--nf-surface-canvas)); }
+  .nf-landing-movein [data-part="agreement"] { --nf-landing-movein-seg: color-mix(in oklab, var(--nf-brand-primary) 28%, var(--nf-surface-canvas)); }
   /* The bar draws in from the left as the card arrives, a segment every
      60ms (MotionReveal sets `data-reveal`; nothing hides without script). */
-  @keyframes nf-movein-seg {
+  @keyframes nf-landing-movein-seg {
     from {
       transform: scaleX(0);
     }
   }
-  .nf-movein__card[data-reveal="in"] .nf-movein__bar > span {
-    animation: nf-movein-seg var(--nf-duration-deliberate) var(--nf-ease-entrance) both;
+  .nf-landing-movein__card[data-reveal="in"] .nf-landing-movein__bar > span {
+    animation: nf-landing-movein-seg var(--nf-duration-deliberate) var(--nf-ease-entrance) both;
     animation-delay: calc(160ms + var(--seg-i, 0) * 60ms);
   }
-  .nf-movein__lines {
+  .nf-landing-movein__lines {
     display: grid;
     margin-top: var(--nf-space-xs);
   }
-  .nf-movein__line {
+  .nf-landing-movein__line {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -1689,35 +1689,35 @@
     font-size: var(--nf-text-body-sm);
     color: var(--nf-content-secondary);
   }
-  .nf-movein__line dt {
+  .nf-landing-movein__line dt {
     display: inline-flex;
     align-items: center;
     gap: var(--nf-space-xs);
   }
-  .nf-movein__line dd {
+  .nf-landing-movein__line dd {
     font-variant-numeric: tabular-nums;
     color: var(--nf-content-primary);
   }
-  .nf-movein__line--total {
+  .nf-landing-movein__line--total {
     font-weight: 600;
     color: var(--nf-content-primary);
   }
-  .nf-movein__dot {
+  .nf-landing-movein__dot {
     width: 0.625rem;
     height: 0.625rem;
     border-radius: 3px;
-    background: var(--nf-movein-seg, var(--nf-brand-primary));
+    background: var(--nf-landing-movein-seg, var(--nf-brand-primary));
   }
   /* Pointing at a line lifts its segment and quiets the rest. */
   @media (hover: hover) {
-    .nf-movein__card:has(.nf-movein__line[data-part]:hover) .nf-movein__bar > span {
+    .nf-landing-movein__card:has(.nf-landing-movein__line[data-part]:hover) .nf-landing-movein__bar > span {
       opacity: 0.35;
     }
-    .nf-movein__card:has([data-part="rent"]:hover) .nf-movein__bar > [data-part="rent"],
-    .nf-movein__card:has([data-part="caution"]:hover) .nf-movein__bar > [data-part="caution"],
-    .nf-movein__card:has([data-part="agency"]:hover) .nf-movein__bar > [data-part="agency"],
-    .nf-movein__card:has([data-part="legal"]:hover) .nf-movein__bar > [data-part="legal"],
-    .nf-movein__card:has([data-part="agreement"]:hover) .nf-movein__bar > [data-part="agreement"] {
+    .nf-landing-movein__card:has([data-part="rent"]:hover) .nf-landing-movein__bar > [data-part="rent"],
+    .nf-landing-movein__card:has([data-part="caution"]:hover) .nf-landing-movein__bar > [data-part="caution"],
+    .nf-landing-movein__card:has([data-part="agency"]:hover) .nf-landing-movein__bar > [data-part="agency"],
+    .nf-landing-movein__card:has([data-part="legal"]:hover) .nf-landing-movein__bar > [data-part="legal"],
+    .nf-landing-movein__card:has([data-part="agreement"]:hover) .nf-landing-movein__bar > [data-part="agreement"] {
       opacity: 1;
     }
   }
@@ -2134,7 +2134,7 @@
   @media (prefers-reduced-motion: reduce) {
     .nf-hero-photo,
     .nf-landing-hero .nf-hero-card,
-    .nf-movein__card .nf-movein__bar > span,
+    .nf-landing-movein__card .nf-landing-movein__bar > span,
     .nf-os__panel .nf-mo__reply,
     .nf-os__panel :is(.nf-mo__facts, .nf-mo__path, .nf-mo__desk) > li {
       animation: none;
@@ -2155,7 +2155,7 @@
   }
   :root:is([data-motion="calm"], [data-motion="off"]) :is(
       .nf-landing-hero .nf-hero-card,
-      .nf-movein__card .nf-movein__bar > span,
+      .nf-landing-movein__card .nf-landing-movein__bar > span,
       .nf-os__panel .nf-mo__reply,
       .nf-os__panel .nf-mo__facts > li,
       .nf-os__panel .nf-mo__path > li,
