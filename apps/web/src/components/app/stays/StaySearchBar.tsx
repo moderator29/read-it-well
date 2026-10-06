@@ -4,6 +4,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ICON } from "@/components/app/Screen";
 import { RecentSearches } from "@/components/app/search/RecentSearches";
 import { PillLanding, PillOrigin } from "@/components/app/search/SearchPillMorph";
+import "@/app/css/catalogue.css";
 
 /**
  * "Where are you going?" with the filter glyph beside it, to FD3DFE84.

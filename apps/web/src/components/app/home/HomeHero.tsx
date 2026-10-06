@@ -6,6 +6,7 @@ import { panelClass } from "@/components/ui/Panel";
 import { ButtonLink } from "@/components/ui/Button";
 import { RecentSearches } from "@/components/app/search/RecentSearches";
 import { PillOrigin } from "@/components/app/search/SearchPillMorph";
+import "@/app/css/home.css";
 
 /**
  * The hero container, to `GOVERNING-01` screen one and `GOVERNING-09` screen

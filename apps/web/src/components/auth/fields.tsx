@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { FieldsCopy } from "./auth-copy";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import "@/app/css/auth.css";
 
 /**
  * The form furniture the auth screens share.

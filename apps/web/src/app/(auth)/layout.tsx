@@ -9,6 +9,7 @@ import { AuthHeroLine } from "./AuthHeroLine";
 import { KeepPillInView } from "./KeepPillInView";
 import { AuthMain } from "./AuthMain";
 import { ForgetOnSignOut } from "@/components/app/offline/ForgetOnSignOut";
+import "@/app/css/auth.css";
 
 /**
  * Auth shell: one full-height screen, one Island (W11, 6 October 2026).

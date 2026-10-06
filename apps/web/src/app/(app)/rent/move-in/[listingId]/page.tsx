@@ -14,6 +14,7 @@ import { RequestInspection } from "@/components/app/inspections/RequestInspectio
 import { ButtonLink } from "@/components/ui/Button";
 import { AuthGate } from "@/components/auth/AuthGate";
 import { EmptyState } from "@/components/app/Screen";
+import "@/app/css/catalogue.css";
 
 export const metadata: Metadata = {
   title: "Move-in cost",

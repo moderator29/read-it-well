@@ -3,6 +3,7 @@
 import type { Dictionary } from "@vallo/i18n/core";
 import { Segmented } from "@/components/ui/Segmented";
 import { UNIT_SHAPES, inferShape, type UnitForm, type UnitShape } from "@/lib/listings/unit-shape";
+import "@/app/css/catalogue.css";
 
 /**
  * WHAT SHAPE IS IT, in the listing wizard's first step (V-66).

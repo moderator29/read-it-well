@@ -6,6 +6,7 @@ import { panelClass } from "@/components/ui/Panel";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { handoffFor } from "@/lib/listings/handoff";
+import "@/app/css/catalogue.css";
 
 /**
  * THE LISTING IN ONE FRAME (recommendation B4, 30 September 2026).

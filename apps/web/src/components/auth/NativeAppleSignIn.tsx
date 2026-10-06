@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { signInWithAppleIdToken } from "@/lib/auth/actions";
 import { useClientCopy } from "@/lib/i18n/client-copy";
+import "@/app/css/auth.css";
 
 /**
  * SIGN IN WITH APPLE INSIDE THE iOS SHELL (STORE-02).

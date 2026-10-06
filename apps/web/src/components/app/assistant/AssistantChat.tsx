@@ -48,6 +48,9 @@ import { Icon3D } from "@/components/ui/Icon3D";
 import { AIResponse, type AIResponseStatus } from "@/components/ui/AIResponse";
 import { LiveIsland } from "@/components/ui/LiveIsland";
 import "./assistant-answer.css";
+import "@/app/css/home.css";
+import "@/app/css/catalogue.css";
+import "@/app/css/list-views.css";
 
 /**
  * Vallo AI, to its governing image (`docs/design/references/BF49B814`).

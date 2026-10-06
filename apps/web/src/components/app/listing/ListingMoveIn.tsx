@@ -10,6 +10,7 @@ import { feeShares, formatBps, type FeeKey } from "@/lib/listings/fee-share";
 import { feeRuleFor } from "@/lib/trust/fee-rules";
 import { formatMoney } from "@vallo/i18n/core";
 import { Unfold } from "@/components/ui/Unfold";
+import "@/app/css/catalogue.css";
 
 /**
  * What it actually costs to move in.

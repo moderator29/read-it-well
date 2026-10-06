@@ -7,6 +7,7 @@ import { feedback } from "@/lib/ui/feedback";
 import { THRESHOLD_GOING_MS } from "@/lib/motion/threshold";
 import { STARTUP_CEILING_MS } from "@/components/startup/startup-script";
 import { ObjectArt } from "./ObjectArt";
+import "@/app/css/auth.css";
 
 /**
  * THE MOMENT AFTER THE CODE IS ACCEPTED, FULL SCREEN (A17, 30 September;

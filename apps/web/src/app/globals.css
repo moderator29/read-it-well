@@ -56,10 +56,10 @@
 @import "./css/glass.css";
 @import "./css/motion.css";
 /*
- * The flip and the coin that starts it. Sits right after motion.css because
- * it is component motion of the same family; nothing in it is declared twice.
+ * side-flip.css (the flip and the coin that starts it) STOOD HERE. It is
+ * imported by SideFlip, SideCover, SideSwitch and AppRail, the only files that
+ * draw it. Nothing later in this list overrides it at equal specificity.
  */
-@import "./css/side-flip.css";
 /* map.css (the search map's pins and zoom) is imported by MapCanvas.tsx (C12). */
 @import "./css/typography.css";
 @import "./css/buttons.css";
@@ -75,10 +75,12 @@
 @import "./css/ambient.css";
 @import "./css/animation.css";
 @import "./css/utilities.css";
-@import "./css/auth.css";
-/* The passcode lock, setup and settings (docs/PASSCODE.md); after auth.css, whose Slate block it reuses. */
+/* auth.css STOOD HERE: imported by the sign-in and sign-up components and the
+   (auth) layout that draw it. Nothing later overrides it at equal specificity. */
+/* The passcode lock, setup and settings (docs/PASSCODE.md). It stays global: the lock can render on any signed-in route. */
 @import "./css/passcode.css";
-@import "./css/home.css";
+/* home.css STOOD HERE: imported by the home, assistant and stays components
+   that draw it. Nothing later overrides it at equal specificity. */
 /*
  * landing.css and landing-rooms.css STOOD HERE (C12, 30 September 2026). They
  * are imported by `app/(landing)/layout.tsx` and `app/(site)/layout.tsx`, the
@@ -88,13 +90,18 @@
  */
 /* Track M: the documentation's motion (sections, flows, the contents rail). */
 @import "./css/docs-motion.css";
-@import "./css/site.css";
+/* site.css STOOD HERE: imported by the site header, footer and the few other
+   components that draw `nf-site-*` and the edge lap. */
 /* public-doors.css (check room, calculator, supply pages, guides, door
    pages) is imported by the landing and site layouts, the join and email
    preference layouts, and InviteShare.tsx (C12). */
-@import "./css/catalogue.css";
+/* catalogue.css STOOD HERE: imported by the listing, search, stay, rent and agent
+   components that draw it. list-views.css (below) answers it at equal
+   specificity on `.nf-pcard`, so every file that imports list-views.css imports
+   catalogue.css first. */
 /* Track M: the list views (view toggle, map pill, card lift, heart, photos). */
-@import "./css/list-views.css";
+/* list-views.css STOOD HERE: imported by the card, view toggle, save control and
+   saved-board components that draw it, always after catalogue.css. */
 /* The full-screen photo viewer: its notch-aware chrome and swipe-to-dismiss. */
 @import "./css/photo-viewer.css";
 /* The filter drawer's icon tiles: property type and space. */

@@ -6,6 +6,7 @@ import { Icon3D } from "@/components/ui/Icon3D";
 import type { Icon3DName } from "@/components/ui/icon-3d";
 import { IconPlate, ICON_PLATE_GLYPH } from "@/components/ui/IconPlate";
 import { panelClass } from "@/components/ui/Panel";
+import "@/app/css/home.css";
 
 /**
  * The category row, to `GOVERNING-01` screen one and `GOVERNING-09` screen

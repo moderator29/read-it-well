@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { useNightDoor } from "@/components/auth/NightDoor";
 import { isNightDoorPath } from "@/lib/theme/night-door";
+import "@/app/css/auth.css";
 
 /**
  * The auth shell's <main>. On a night door (the sign-up flow, the founder's

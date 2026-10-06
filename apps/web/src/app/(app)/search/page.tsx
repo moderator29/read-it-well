@@ -64,6 +64,8 @@ import { readAnchors, readCommutes } from "@/lib/listings/commute-queries";
 import { commuteLine, originKey, withinCommute, type CommuteBand } from "@/lib/listings/commute";
 import { parseWords } from "@/lib/listings/query-parse";
 import { looksCheckable } from "@/lib/doors/agent-check";
+import "@/app/css/catalogue.css";
+import "@/app/css/list-views.css";
 
 export const metadata: Metadata = {
   title: "Search",

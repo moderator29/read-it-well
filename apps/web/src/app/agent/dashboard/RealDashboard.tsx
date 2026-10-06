@@ -17,6 +17,7 @@ import { IconPlate } from "@/components/ui/IconPlate";
 import { Gauge, type GaugeStage } from "@/components/ui/charts/Gauge";
 import { TodayHero } from "@/components/workspace/TodayHero";
 import { waitingOn } from "@/lib/inspections/types";
+import "@/app/css/site.css";
 
 /**
  * The signed-in agent's real dashboard.

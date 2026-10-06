@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { useMotionGate } from "@/components/motion/useMotionGate";
 import { clockText, type ResendState } from "./resend-clock";
 import type { ResendClock } from "./useResendClock";
+import "@/app/css/auth.css";
 
 /**
  * THE DRAINING HAIRLINE AND THE WINDOW SENTENCE UNDER "SEND A NEW CODE" (W11,

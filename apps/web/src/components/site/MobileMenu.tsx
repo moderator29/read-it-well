@@ -7,6 +7,7 @@ import { Logo } from "@/design-system/brand/Logo";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ButtonLink } from "@/components/ui/Button";
 import { SUPPORT_HREF } from "@/lib/support-email";
+import "@/app/css/site.css";
 
 /**
  * Marketing side navigation, for phones.

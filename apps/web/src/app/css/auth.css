@@ -46,6 +46,15 @@
   system's "form error"). Transform and opacity only. Under reduced motion (the
   OS setting, or the app's own through the duration tokens) nothing moves.
 */
+/*
+ * Loaded by the components that draw its classes, not by globals.css (the
+ * CSS-diet move of 6 October). This line states the layer order the document
+ * already has from Tailwind, so the order holds whichever chunk the browser
+ * receives first; without it a chunk that arrived before globals would put
+ * `components` ahead of `base` and `theme`.
+ */
+@layer theme, base, components, utilities;
+
 @layer components {
   /* =========================================================== THE ROLES */
   .nf-slate {

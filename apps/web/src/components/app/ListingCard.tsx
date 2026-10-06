@@ -30,6 +30,8 @@ import { ProofStrip } from "@/components/app/listing/ProofStrip";
 import { CardPhotos } from "@/components/app/search/CardPhotos";
 import { proofFactsOf, proofLines } from "@/lib/trust/proof-strip";
 import { CardMenu, useCardMenu } from "@/components/app/listing/CardMenu";
+import "@/app/css/catalogue.css";
+import "@/app/css/list-views.css";
 
 /**
  * The property card, to the results image (3EB3E2A9).

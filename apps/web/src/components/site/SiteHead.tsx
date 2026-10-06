@@ -4,6 +4,7 @@ import type { BrandIconName } from "@/design-system/icons/BrandIcon";
 import { photo, type PhotoName } from "@/lib/site/photos";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
+import "@/app/css/site.css";
 
 /**
  * The plate head every public content page opens on.

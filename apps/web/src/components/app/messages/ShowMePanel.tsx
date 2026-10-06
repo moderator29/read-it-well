@@ -18,6 +18,7 @@ import {
   type ShowMeRequest,
   type ShowMeResult,
 } from "@/lib/messages/show-me";
+import "@/app/css/catalogue.css";
 
 /** The clip's length, read by the browser from the file's own metadata. */
 function durationOf(file: File): Promise<number | null> {

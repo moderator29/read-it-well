@@ -8,6 +8,7 @@ import { updatePassword } from "@/lib/auth/actions";
 import { PasswordField, StrengthMeter } from "./fields";
 import { AuthPillButton } from "./slate";
 import { useRefusalShake } from "./useRefusalShake";
+import "@/app/css/auth.css";
 
 const EMPTY: AuthFormState = { ok: false };
 

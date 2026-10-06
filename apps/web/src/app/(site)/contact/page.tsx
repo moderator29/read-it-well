@@ -11,6 +11,7 @@ import { CONTACT_TOPICS, DEFAULT_CONTACT_TOPIC, type ContactTopic } from "./topi
 import { SUPPLY_DOOR_HREF } from "@/lib/supply/roles";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { IconPlate } from "@/components/ui/IconPlate";
+import "@/app/css/site.css";
 
 /* A10: the title and description in the page's own language, with its
    canonical and hreflang (lib/i18n/public-metadata.ts; words in publicMeta). */

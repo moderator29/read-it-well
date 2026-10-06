@@ -4,6 +4,7 @@ import Link from "next/link";
 import { DocumentSheet } from "@/components/app/money/DocumentSheet";
 import { SiteHead } from "@/components/site/SiteHead";
 import { DISCLAIMER_SECTIONS as sections, DISCLAIMER_UPDATED } from "@/lib/legal/disclaimer";
+import "@/app/css/site.css";
 
 /* A10: the title and description in the page's own language, with its
    canonical and hreflang (lib/i18n/public-metadata.ts; words in publicMeta). */

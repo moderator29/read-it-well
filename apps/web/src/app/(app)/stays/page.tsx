@@ -20,6 +20,7 @@ import { AreaFigure, type AreaShelfSummary } from "@/components/app/stays/AreaFi
 import { resolveSession } from "@/lib/actions/session";
 import { listSavedPlaces } from "@/lib/saved/places-actions";
 import { isSaved, savedKeySet } from "@/lib/saved/places";
+import "@/app/css/home.css";
 
 export const metadata: Metadata = {
   title: "Stays",

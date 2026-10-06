@@ -11,6 +11,7 @@ import { successCopy, type SuccessWords } from "@/lib/ui/success-moments";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { slotsFor, type ServiceWindow } from "./table-windows";
 import { useClientMount } from "@/lib/ui/client-mount";
+import "@/app/css/catalogue.css";
 
 /**
  * Asking a restaurant to hold a table.

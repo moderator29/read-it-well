@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { groundForPath } from "@/components/auth/ground";
+import "@/app/css/auth.css";
 
 /**
  * THE PICTURE IN THE BOWL (W11, 6 October 2026; reference 7044).

@@ -6,6 +6,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ButtonLink } from "@/components/ui/Button";
 import { StatusChip } from "@/components/ui/StatusChip";
 import { ICON, TYPE } from "@/components/app/Screen";
+import "@/app/css/catalogue.css";
 
 /**
  * A TENANCY CHARGE ON THE BOOKINGS SCREEN, AND IT IS NOT A STAY.

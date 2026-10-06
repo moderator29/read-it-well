@@ -11,6 +11,7 @@ import { MediaFrame } from "@/components/app/MediaFrame";
 import { Amount } from "@/components/ui/Amount";
 import { ICON } from "@/components/app/Screen";
 import { DocFigure, DocHead, DocNote, DocumentSheet } from "@/components/app/money/DocumentSheet";
+import "@/app/css/catalogue.css";
 
 export type LedgerLine = {
   key: string;

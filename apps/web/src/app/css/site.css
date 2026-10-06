@@ -8,6 +8,15 @@
   register the content pages inherit from the landing: a photo plate behind
   the page head, the same glass, the same glow, the same rhythm.
 */
+/*
+ * Loaded by the components that draw its classes, not by globals.css (the
+ * CSS-diet move of 6 October). This line states the layer order the document
+ * already has from Tailwind, so the order holds whichever chunk the browser
+ * receives first; without it a chunk that arrived before globals would put
+ * `components` ahead of `base` and `theme`.
+ */
+@layer theme, base, components, utilities;
+
 @layer components {
   /*
    * The phone bar carries exactly three things, as the render does: the

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { CountUp } from "@/components/motion/CountUp";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ICON } from "@/components/app/Screen";
+import "@/app/css/home.css";
 
 /**
  * WHAT HOME LEADS WITH (Session 3, W2; north star 10 B, D4 "the signature is

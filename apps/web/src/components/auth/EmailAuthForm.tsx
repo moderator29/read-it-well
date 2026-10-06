@@ -14,6 +14,7 @@ import { EmailTakenNotice } from "./EmailTakenNotice";
 import { SocialDoors } from "./SocialDoors";
 import { AuthPillButton } from "./slate";
 import { signUpMethodForEmail, startGoogleOAuth } from "@/lib/auth/actions";
+import "@/app/css/auth.css";
 
 const EMPTY: AuthFormState = { ok: false };
 

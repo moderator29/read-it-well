@@ -3,6 +3,8 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { motionQuiet } from "@/lib/motion/gate";
+import "@/app/css/catalogue.css";
+import "@/app/css/list-views.css";
 
 /**
  * The results dim while the next set is on its way (Track M).

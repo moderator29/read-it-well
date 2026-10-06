@@ -16,6 +16,7 @@ import { ICON, Section, Stack, Surface, TYPE } from "@/components/app/Screen";
 import { ReserveTable } from "../../listing/[id]/ReserveTable";
 import { panelClass } from "@/components/ui/Panel";
 import { ReportSheet } from "@/components/app/ReportSheet";
+import "@/app/css/catalogue.css";
 
 const WEEKDAY: Record<number, string> = {
   0: "Sunday",

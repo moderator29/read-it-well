@@ -8,6 +8,7 @@ import { AuthGate } from "@/components/auth/AuthGate";
 import { MessageVenue } from "@/components/stays/MessageVenue";
 import { ListingAbout } from "./ListingAbout";
 import { ICON } from "@/components/app/Screen";
+import "@/app/css/catalogue.css";
 
 /**
  * THE ONE DETAIL ANATOMY, as B047A0CE draws it.

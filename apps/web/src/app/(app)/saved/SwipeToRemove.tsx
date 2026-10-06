@@ -3,6 +3,8 @@
 import { useRef, useState, type ReactNode } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { feedback } from "@/lib/ui/feedback";
+import "@/app/css/catalogue.css";
+import "@/app/css/list-views.css";
 
 const REVEAL = 96;
 const OPEN_AT = 56;

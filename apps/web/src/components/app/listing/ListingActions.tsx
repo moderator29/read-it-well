@@ -23,6 +23,8 @@ import { createShareLink } from "@/lib/share/actions";
 import { useClientCopy } from "@/lib/i18n/client-copy";
 import { nativeShare } from "@/lib/native/device";
 import { feedback } from "@/lib/ui/feedback";
+import "@/app/css/catalogue.css";
+import "@/app/css/list-views.css";
 
 /**
  * The two controls that float over the gallery: share and save.

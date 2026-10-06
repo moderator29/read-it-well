@@ -4,6 +4,7 @@ import { withNext } from "@/lib/auth/next-link";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { SocialDoors } from "./SocialDoors";
 import { AuthOrRule, AuthPillLink } from "./slate";
+import "@/app/css/auth.css";
 
 /**
  * The sign-up options page (`/sign-up`), where Get started on the welcome

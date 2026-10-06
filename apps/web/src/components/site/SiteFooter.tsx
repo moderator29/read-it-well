@@ -3,6 +3,7 @@ import type { Dictionary } from "@vallo/i18n/core";
 import { Logo } from "@/design-system/brand/Logo";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { NewsletterForm } from "./NewsletterForm";
+import "@/app/css/site.css";
 
 /**
  * Site footer, to the governing fullpage image.

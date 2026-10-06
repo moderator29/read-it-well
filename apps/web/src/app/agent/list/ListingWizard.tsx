@@ -107,6 +107,7 @@ import { Icon3D } from "@/components/ui/Icon3D";
 import type { Icon3DName } from "@/components/ui/icon-3d";
 import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
 import { DetailGlyph } from "@/components/app/listing/DetailGlyph";
+import "@/app/css/catalogue.css";
 
 /**
  * The List Apartment wizard: eight steps, canon reference 03.

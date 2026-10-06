@@ -11,6 +11,7 @@ import {
   type ServiceCover,
   type ServiceForm,
 } from "@/lib/listings/service";
+import "@/app/css/catalogue.css";
 
 /**
  * THE SERVICE CHARGE AND THE GATE, in the listing wizard (V-68).

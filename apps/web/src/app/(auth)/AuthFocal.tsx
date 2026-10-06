@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { ObjectArt } from "@/components/auth/ObjectArt";
 import { focalForPath } from "@/components/auth/focal-art";
+import "@/app/css/auth.css";
 
 /**
  * THE OBJECT ACROSS THE EDGE OF THE ISLAND on every door (the founder's 3D

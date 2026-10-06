@@ -5,6 +5,7 @@ import type { ProviderId, ProviderState, SignInSurface } from "@/lib/auth/provid
 import { continueWithEmail } from "@/lib/auth/actions";
 import { SocialDoors } from "./SocialDoors";
 import { AuthPillButton } from "./slate";
+import "@/app/css/auth.css";
 
 /**
  * The door, to the Slate references of 29 September

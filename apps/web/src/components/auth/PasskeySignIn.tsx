@@ -4,6 +4,7 @@ import { useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { passkeyClient, passkeySignInEnabled } from "@/lib/auth/passkey-client";
+import "@/app/css/auth.css";
 
 /**
  * A3. "Sign in with a passkey", drawn only when the flag is on and the

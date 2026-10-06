@@ -10,6 +10,7 @@ import { catalogueIsOpen, type Door } from "./doors";
 import { HeroSurface } from "./HeroSurface";
 import { heroCopy } from "./hero-copy";
 import { EXAMPLE_MOVE_IN } from "./example-move-in";
+import "@/app/css/site.css";
 
 /**
  * THE HERO, ON THE GOVERNING COMPOSITION (GOVERNING-landing-desktop-hero.png

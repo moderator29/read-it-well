@@ -20,6 +20,7 @@ import type { ListingKind } from "@/lib/listings/types";
 import { PhotoFrame } from "./PhotoFrame";
 import { useClientMount } from "@/lib/ui/client-mount";
 import { useMotionGate } from "@/components/motion/useMotionGate";
+import "@/app/css/catalogue.css";
 
 /**
  * The listing lightbox.

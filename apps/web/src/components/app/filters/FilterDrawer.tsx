@@ -10,6 +10,7 @@ import { shelfActiveCount, type ShelfQuery } from "@/components/app/search/shelf
 import { ICON } from "@/components/app/Screen";
 import { useLazySheet } from "@/lib/ui/lazy-sheet";
 import { PendingRing } from "@/components/ui/PendingRing";
+import "@/app/css/catalogue.css";
 
 /**
  * The filter sheet's TRIGGER: the sliders square on the shelf, with the count

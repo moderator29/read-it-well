@@ -18,6 +18,7 @@ import { HeroBand } from "@/components/ui/HeroBand";
 import { LogoMark } from "@/design-system/brand/Logo";
 import { VerifyPrompt } from "@/components/roles/VerifyPrompt";
 import type { RoleState } from "@/components/roles/roles";
+import "@/app/css/home.css";
 
 /**
  * The property home page, to `GOVERNING-01` SCREEN ONE.

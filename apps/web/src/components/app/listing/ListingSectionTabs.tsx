@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { BackControl } from "@/components/ui/BackControl";
 import { InnerNav } from "@/components/ui/InnerNav";
 import type { UiIconName } from "@/design-system/icons/UiIcon";
+import "@/app/css/catalogue.css";
 
 /**
  * Overview / Amenities / Location / Reviews, as anchors.

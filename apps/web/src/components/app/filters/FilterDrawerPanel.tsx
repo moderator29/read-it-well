@@ -54,6 +54,7 @@ import type { FilterDrawerProps } from "./FilterDrawer";
 import { Button } from "@/components/ui/Button";
 import { Switch } from "@/components/ui/Switch";
 import { isDataSaver } from "@/lib/ui/data-saver";
+import "@/app/css/catalogue.css";
 
 /**
  * The filter sheet's BODY, to the right-hand panel of 3EB3E2A9. Its trigger is

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { BrandIcon, type BrandIconProp } from "@/design-system/icons/BrandIcon";
 import type { PropertyType } from "@/lib/interests/property-types";
 import { orderSpaceTypes, type SpaceTypeKey } from "./space-types";
+import "@/app/css/home.css";
 
 /**
  * SPACES BY TYPE, PERSONALISED BY WHAT SOMEBODY SAID THEY CAME FOR (Session 3,

@@ -33,6 +33,7 @@ import {
   type StayDetail,
 } from "./detail-model";
 import { panelClass } from "@/components/ui/Panel";
+import "@/app/css/catalogue.css";
 
 type StaysCopy = Dictionary["stayDetail"];
 

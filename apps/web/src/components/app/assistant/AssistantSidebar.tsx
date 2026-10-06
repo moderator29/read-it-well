@@ -6,6 +6,7 @@ import type { Thread } from "./threads";
 import { Button } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/Field";
 import { AssistantSettingsSheet } from "./AssistantSettingsSheet";
+import "@/app/css/home.css";
 
 /**
  * Assistant side navigation.

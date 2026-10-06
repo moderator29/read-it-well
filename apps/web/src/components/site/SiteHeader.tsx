@@ -7,6 +7,7 @@ import { EdgeLap } from "./EdgeLap";
 import { MobileMenu } from "./MobileMenu";
 import { NavScrollState } from "./NavScrollState";
 import { SiteNavLinks, type MegaGroup } from "./SiteNavLinks";
+import "@/app/css/site.css";
 
 /**
  * Marketing header, to the governing landing image.

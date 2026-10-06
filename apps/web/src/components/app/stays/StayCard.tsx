@@ -10,6 +10,8 @@ import { panelClass } from "@/components/ui/Panel";
 import { SaveButton, useSaveControl } from "@/components/app/SaveControl";
 import { amenityLabel } from "@/components/app/filters/amenities";
 import type { StayCardData } from "./stay-card-model";
+import "@/app/css/catalogue.css";
+import "@/app/css/list-views.css";
 
 /**
  * The stay card of FD3DFE84: one across, the photograph with Verified and

@@ -15,6 +15,7 @@ import {
   toShelfHref,
   type ShelfQuery,
 } from "./shelf-query";
+import "@/app/css/catalogue.css";
 
 /**
  * The top of the results shelf, to 3EB3E2A9: the glass field with its

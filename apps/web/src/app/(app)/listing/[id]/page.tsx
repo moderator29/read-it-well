@@ -101,6 +101,7 @@ import type { StatusTone } from "@/components/ui/StatusPill";
 import { Disclosure } from "@/components/app/Disclosure";
 import { publicListingTitle } from "@/lib/listings/public-title";
 import { FactGrid, ICON, Section, Stack, TYPE, type Fact } from "@/components/app/Screen";
+import "@/app/css/catalogue.css";
 
 /**
  * Listing detail.

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import type { ListingKind } from "@/lib/listings/types";
 import { PhotoFrame } from "./PhotoFrame";
 import { usePhotoViewer } from "./PhotoViewer";
+import "@/app/css/catalogue.css";
 
 /**
  * The photo grid.

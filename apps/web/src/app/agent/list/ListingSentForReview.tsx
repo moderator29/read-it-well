@@ -4,6 +4,7 @@ import { ButtonLink } from "@/components/ui/Button";
 import { IconPlate } from "@/components/ui/IconPlate";
 import { Icon3D } from "@/components/ui/Icon3D";
 import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
+import "@/app/css/catalogue.css";
 
 type WizardCopy = Dictionary["agentListings"];
 

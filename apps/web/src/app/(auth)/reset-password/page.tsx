@@ -8,6 +8,7 @@ import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { ResetPasswordForm } from "@/components/auth/ResetPasswordForm";
 import { AuthPillLink } from "@/components/auth/slate";
 import { passwordChangeProof, type PasswordChangeProof } from "@/lib/auth/password-change-proof";
+import "@/app/css/auth.css";
 
 /* A10: the title and description in the page's own language, with its
    canonical and hreflang (lib/i18n/public-metadata.ts; words in publicMeta). */

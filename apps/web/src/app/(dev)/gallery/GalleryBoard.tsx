@@ -9,6 +9,7 @@ import { Sheet } from "@/components/ui/Sheet";
 import { EmptyActions } from "@/components/app/EmptyActions";
 import { adminUi } from "@/app/admin/_components/ui";
 import { QUEUE_EMPTY_MARK } from "@/app/admin/_components/queue-empty";
+import "@/app/css/auth.css";
 
 /**
  * The fixtures. Deliberately boring copy: this is for looking at the MATERIAL,

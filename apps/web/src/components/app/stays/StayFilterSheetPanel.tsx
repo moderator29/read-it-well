@@ -17,6 +17,7 @@ import { ICON } from "@/components/app/Screen";
 import { Button } from "@/components/ui/Button";
 import { Switch } from "@/components/ui/Switch";
 import type { StayFilterSheetProps } from "./StayFilterSheet";
+import "@/app/css/catalogue.css";
 
 /**
  * The stays filter sheet's BODY. Its trigger is `StayFilterSheet`, which loads

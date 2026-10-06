@@ -16,6 +16,15 @@
   rules below carry layout; where a material is written here it is the
   shared tokens by name, for the classes other groups' components draw.
 */
+/*
+ * Loaded by the components that draw its classes, not by globals.css (the
+ * CSS-diet move of 6 October). This line states the layer order the document
+ * already has from Tailwind, so the order holds whichever chunk the browser
+ * receives first; without it a chunk that arrived before globals would put
+ * `components` ahead of `base` and `theme`.
+ */
+@layer theme, base, components, utilities;
+
 @layer components {
   /* ======================================================= the property card
      3EB3E2A9: a photograph, Verified top-left, the heart top-right, the market

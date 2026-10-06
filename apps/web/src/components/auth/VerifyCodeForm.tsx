@@ -24,6 +24,7 @@ import {
   readCode,
   surplusMessage,
 } from "@/lib/auth/confirmation-code";
+import "@/app/css/auth.css";
 
 /**
  * The code from the confirmation email.

@@ -9,6 +9,7 @@ import type { StatusSegment } from "@/components/ui/charts/StatusBar";
 import { moveInLines } from "./move-in-lines";
 import { unexplainedRemainder } from "@/lib/rent/ledger";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import "@/app/css/catalogue.css";
 
 /**
  * The Move-in Total block of 9E8B56ED, translated per DESIGN_DIRECTION 1.3.

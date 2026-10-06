@@ -10,6 +10,7 @@ import { Gauge, type GaugeStage } from "@/components/ui/charts/Gauge";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { TodayHero } from "@/components/workspace/TodayHero";
 import { HOST_STATUS_WORD, type HostToday, type TodayAttention } from "./today";
+import "@/app/css/site.css";
 
 /**
  * THE HOST WORKSPACE HOME, DRAWN (plan item 14, spec 13, reference 38 on a

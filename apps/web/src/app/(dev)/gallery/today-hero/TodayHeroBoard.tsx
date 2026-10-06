@@ -11,6 +11,7 @@ import { TodayHero } from "@/components/workspace/TodayHero";
 /* The workspace sheet that left `globals.css`, imported where it is drawn. */
 import "@/app/css/agent.css";
 import { Section, Specimen, SystemFrame } from "../_system/SystemFrame";
+import "@/app/css/site.css";
 
 /**
  * THE TODAY HERO (reference 7033, north star section 10 G and H).

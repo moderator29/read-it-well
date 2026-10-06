@@ -7,6 +7,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { panelClass } from "@/components/ui/Panel";
 import { IconPlate } from "@/components/ui/IconPlate";
 import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
+import "@/app/css/catalogue.css";
 
 /**
  * The five category tiles of FD3DFE84, each a glass square with its object.

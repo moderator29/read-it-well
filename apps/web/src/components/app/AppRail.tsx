@@ -15,6 +15,7 @@ import { NavTree } from "./NavTree";
 import { SideSwitch } from "./SideSwitch";
 import { COMPANY_LEGAL_NAME } from "@/lib/legal/company";
 import type { Side } from "@/lib/side.constants";
+import "@/app/css/side-flip.css";
 
 /**
  * The consumer navigation, for both sides.

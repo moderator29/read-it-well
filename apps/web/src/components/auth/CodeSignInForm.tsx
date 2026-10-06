@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/Button";
 import { CodeInput } from "./CodeInput";
 import { Field } from "./fields";
 import { AuthPillButton } from "./slate";
+import "@/app/css/auth.css";
 
 /* A sign-in code is six digits (`isSixDigits`), whatever length the sign-up
    confirmation uses. */

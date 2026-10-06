@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { ComponentProps, MouseEventHandler, ReactNode } from "react";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { VectorMark, VectorWordmark } from "./VectorMark";
+import "@/app/css/auth.css";
 
 /**
  * THE SLATE SYSTEM: the pieces every door into Vallo is built from.

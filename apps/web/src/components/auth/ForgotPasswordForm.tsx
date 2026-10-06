@@ -9,6 +9,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Field } from "./fields";
 import { AuthPillButton, AuthPillLink } from "./slate";
 import { useRefusalShake } from "./useRefusalShake";
+import "@/app/css/auth.css";
 
 const EMPTY: AuthFormState = { ok: false };
 

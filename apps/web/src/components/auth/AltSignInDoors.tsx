@@ -3,6 +3,7 @@ import type { AltDoorsCopy } from "./auth-copy";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { phoneSignInEnabled } from "@/lib/auth/phone-sign-in-flag";
 import { PasskeySignIn } from "./PasskeySignIn";
+import "@/app/css/auth.css";
 
 /**
  * A3 and A2: the other ways in, under the sign-in form. Quiet links that

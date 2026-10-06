@@ -9,6 +9,7 @@ import { setAccommodationFacilities } from "@/lib/host/actions";
 import { STAY_FACILITIES } from "@/lib/host/facilities";
 import { countOf } from "@vallo/i18n/core";
 import { useClientLocale } from "@/lib/i18n/use-client-locale";
+import "@/app/css/catalogue.css";
 
 /**
  * WHAT THE PROPERTY OFFERS. `GOVERNING-10` screen four, the facilities half.

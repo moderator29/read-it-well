@@ -1,6 +1,7 @@
 import { CountUp } from "@/components/motion/CountUp";
 import { Amount } from "@/components/ui/Amount";
 import type { Locale } from "@vallo/i18n/core";
+import "@/app/css/home.css";
 
 /**
  * THE FIGURE HERO FOR THE AREA, ON THE STAYS AND RESTAURANTS SHELVES

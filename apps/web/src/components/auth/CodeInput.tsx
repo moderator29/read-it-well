@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import "@/app/css/auth.css";
 
 /**
  * THE CODE FIELD, DRAWN AS CELLS (30 September).

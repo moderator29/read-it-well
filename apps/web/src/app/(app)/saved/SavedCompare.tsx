@@ -8,6 +8,8 @@ import { RemoteImage } from "@/components/ui/RemoteImage";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { COMPARE_MIN, forSelection, type CompareTable } from "@/lib/saved/compare";
 import type { UiIconName } from "@/design-system/icons/UiIcon";
+import "@/app/css/catalogue.css";
+import "@/app/css/list-views.css";
 
 /** 15.3: a head-to-head is two columns. */
 const TWO = 2;

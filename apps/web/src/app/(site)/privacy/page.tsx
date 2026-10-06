@@ -4,6 +4,7 @@ import { SiteHead } from "@/components/site/SiteHead";
 import Link from "next/link";
 import { DocumentSheet } from "@/components/app/money/DocumentSheet";
 import { PRIVACY_SECTIONS as sections, PRIVACY_UPDATED } from "@/lib/legal/privacy";
+import "@/app/css/site.css";
 
 /* A10: the title and description in the page's own language, with its
    canonical and hreflang (lib/i18n/public-metadata.ts; words in publicMeta). */

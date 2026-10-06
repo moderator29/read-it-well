@@ -4,6 +4,8 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { SORTS, sortBasisOf } from "@/lib/listings/search-params";
 import { ViewToggle } from "@/components/app/filters/ViewToggle";
 import { toShelfHref, toShelfViewHref, type ShelfQuery } from "./shelf-query";
+import "@/app/css/catalogue.css";
+import "@/app/css/list-views.css";
 
 /**
  * "342 properties found" and the sort control beside it, to 3EB3E2A9.

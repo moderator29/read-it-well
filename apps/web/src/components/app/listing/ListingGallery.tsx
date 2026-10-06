@@ -12,6 +12,8 @@ import type { ListingKind } from "@/lib/listings/types";
 import { PhotoFrame } from "./PhotoFrame";
 import { isPhotoMorphFor } from "@/lib/motion/photo-morph";
 import { usePhotoViewer } from "./PhotoViewer";
+import "@/app/css/catalogue.css";
+import "@/app/css/list-views.css";
 
 /**
  * The immersive media hero.

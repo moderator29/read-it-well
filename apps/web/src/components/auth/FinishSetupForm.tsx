@@ -8,6 +8,7 @@ import { AcceptTerms } from "./AcceptTerms";
 import { Field } from "./fields";
 import { AuthPillButton } from "./slate";
 import { useRefusalShake } from "./useRefusalShake";
+import "@/app/css/auth.css";
 
 const EMPTY: AuthFormState = { ok: false };
 

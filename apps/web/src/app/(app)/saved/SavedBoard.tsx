@@ -32,6 +32,8 @@ import { motionQuiet } from "@/lib/motion/gate";
 import { SwipeToRemove } from "./SwipeToRemove";
 import { changeLine, type SavedChange, type SavedChangeCopy } from "@/lib/saved/changes";
 import Link from "next/link";
+import "@/app/css/catalogue.css";
+import "@/app/css/list-views.css";
 
 /**
  * The shortlist, made interactive.

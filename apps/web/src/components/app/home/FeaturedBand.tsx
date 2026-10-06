@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ICON } from "@/components/app/Screen";
+import "@/app/css/home.css";
 
 /**
  * The featured band, to `GOVERNING-01` screen one and `GOVERNING-09` screen

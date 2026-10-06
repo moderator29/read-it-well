@@ -13,6 +13,7 @@ import {
   readCode,
   surplusMessage,
 } from "@/lib/auth/confirmation-code";
+import "@/app/css/auth.css";
 
 const EMPTY: AuthFormState = { ok: false };
 

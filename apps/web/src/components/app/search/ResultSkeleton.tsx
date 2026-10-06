@@ -1,5 +1,6 @@
 import { Skeleton } from "@/components/ui/Skeleton";
 import { panelClass } from "@/components/ui/Panel";
+import "@/app/css/catalogue.css";
 
 /**
  * THE RESULT CARD'S OWN SKELETON (Session 3, W2; north star motion 16, Stage

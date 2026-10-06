@@ -8,6 +8,7 @@ import { activeFilterCount, type StaysQuery } from "@/lib/stays/query";
 import { ICON } from "@/components/app/Screen";
 import { useLazySheet } from "@/lib/ui/lazy-sheet";
 import { PendingRing } from "@/components/ui/PendingRing";
+import "@/app/css/catalogue.css";
 
 /**
  * The stays filter sheet's TRIGGER: the sliders square with the count of

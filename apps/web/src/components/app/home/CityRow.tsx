@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import "@/app/css/home.css";
 
 /**
  * The location row under the greeting (UIUX item 15): a QUIET row, no box,
