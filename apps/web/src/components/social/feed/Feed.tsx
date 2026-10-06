@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/Button";
 import { DEFAULT_LOCALE, type Locale } from "@vallo/i18n/core";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
@@ -19,7 +20,7 @@ import { EmptyPanel } from "../profile/EmptyPanel";
 import type { StoryCard } from "@/lib/social/stories-queries";
 import type { ReviewCard } from "@/lib/social/profile-tabs-queries";
 import { PostEditor } from "./PostEditor";
-import { leadProps } from "./lead";
+import { LEAD_SETTLE_MS, leadIndexes, leadPropsFor } from "./lead";
 import { feedback } from "@/lib/ui/feedback";
 import { ViewportPost } from "./ViewportPost";
 import {
@@ -31,7 +32,6 @@ import {
   toggleRepost,
 } from "@/lib/social/posts-actions";
 import type { BrandIconName } from "@/design-system/icons/BrandIcon";
-import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { FeedPage } from "@/lib/social/posts-queries";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { POST_COPY, POST_REPORT_REASONS } from "@/lib/social/posts-schema";
@@ -164,6 +164,15 @@ export function Feed({
      would be one modal per row in the document. */
   const [sheetFor, setSheetFor] = useState<PostView | null>(null);
   const [chip, setChip] = useState<DistrictChip>("all");
+  /* The lead stagger belongs to the posts the feed mounted with, once. See
+     `lead.ts`: keyed by id so a hidden card cannot pull the seventh in, and
+     switched off after it has played so a chip change does not replay it. */
+  const [leadIds] = useState(() => leadIndexes(initial.map((post) => post.id)));
+  const [leadSettled, setLeadSettled] = useState(false);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setLeadSettled(true), LEAD_SETTLE_MS);
+    return () => window.clearTimeout(timer);
+  }, []);
   const [, startTransition] = useTransition();
 
   /*
@@ -547,8 +556,8 @@ export function Feed({
         />
       ) : null}
 
-      {(chip === "stories" || chip === "reviews" ? [] : shown).map((post, index) => {
-        const lead = leadProps(index);
+      {(chip === "stories" || chip === "reviews" ? [] : shown).map((post) => {
+        const lead = leadPropsFor(leadIds, post.id, leadSettled);
         return (
         <div
           key={post.id}
@@ -610,17 +619,17 @@ export function Feed({
           <div className="nf-feed-more" data-testid="feed-more">
             <div ref={sentinelRef} aria-hidden="true" className="nf-feed-more__sentinel" />
             {cursor ? (
-              <button
-                type="button"
-                className="nf-btn nf-btn--glass nf-feed-more__button"
+              <Button
+                variant="secondary"
+                className="nf-feed-more__button"
                 onClick={() => void readMore()}
                 disabled={loadingMore}
                 aria-busy={loadingMore}
+                leadingIcon="arrow-down"
                 data-testid="feed-load-more"
               >
-                <UiIcon name="arrow-down" size={16} />
                 {loadingMore ? MORE_COPY.loading : MORE_COPY.more}
-              </button>
+              </Button>
             ) : null}
             <p role="status" aria-live="polite" className="nf-feed-more__status">
               {loadError
