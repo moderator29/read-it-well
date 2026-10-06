@@ -158,14 +158,14 @@ export function PaymentsTable({
   locale: Locale;
   ui: AdminUi;
 }) {
-  const link = (key: "outcome" | "kind", value: string | undefined) => {
+  const link = (key: "outcome", value: string | undefined) => {
     const next = new URLSearchParams();
     for (const [k, v] of Object.entries(params)) if (v && k !== key && k !== "page") next.set(k, v);
     if (value) next.set(key, value);
     const qs = next.toString();
     return qs ? `/admin/payments?${qs}` : "/admin/payments";
   };
-  const chip = (key: "outcome" | "kind", value: string | undefined, label: string) => {
+  const chip = (key: "outcome", value: string | undefined, label: string) => {
     const on = (params[key] ?? undefined) === value;
     return (
       <Link key={`${key}-${value ?? "all"}`} href={link(key, on ? undefined : value)} className="nf-md-toggle" aria-pressed={on}>
@@ -173,7 +173,7 @@ export function PaymentsTable({
       </Link>
     );
   };
-  const narrowed = Boolean(params.outcome || params.kind);
+  const narrowed = Boolean(params.outcome);
   const t = getDictionary(locale);
   const c = t.admin.payments;
   const word = outcomeWords(t);
@@ -183,11 +183,6 @@ export function PaymentsTable({
       <div className="mb-sm flex flex-wrap gap-xs" role="group" aria-label={c.narrowOutcome}>
         {chip("outcome", undefined, c.allOutcomes)}
         {PAYMENT_OUTCOMES.map((o) => chip("outcome", o, word[o]))}
-      </div>
-      <div className="mb-sm flex flex-wrap gap-xs" role="group" aria-label={c.narrowKind}>
-        {chip("kind", undefined, c.allKinds)}
-        {chip("kind", "checkout", c.checkouts)}
-        {chip("kind", "topup", c.topups)}
       </div>
       {!desk ? (
         <Waiting title={c.unreadTitle} body={c.unreadTable} />
@@ -229,10 +224,8 @@ export function PaymentsTable({
                         <Link href={`/admin/bookings/${p.bookingId}`} className="underline-offset-2 hover:underline">
                           {c.checkout}
                         </Link>
-                      ) : p.kind === "checkout" ? (
-                        c.checkout
                       ) : (
-                        c.topup
+                        c.checkout
                       )}
                     </td>
                     <td className="nf-md-desc" data-label={c.channel}>
