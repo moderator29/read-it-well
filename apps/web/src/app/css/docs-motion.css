@@ -216,7 +216,8 @@
       box-shadow: 0 0 12px var(--nf-glow-2);
       opacity: 0;
       pointer-events: none;
-      animation: nf-flow-pulse 5.6s var(--nf-ease-standard) 1.4s infinite;
+      /* Two walks along the line, then it rests unseen (principle 10). */
+      animation: nf-flow-pulse 5.6s var(--nf-ease-standard) 1.4s 2;
     }
     .nf-flow__gate[data-playing="false"] .nf-flow__pulse {
       animation-play-state: paused;
