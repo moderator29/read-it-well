@@ -170,11 +170,18 @@ const NOT_MEMBER_COPY = [/^app\/\(dev\)\//, /^app\/admin\//, /^lib\/admin\//, /^
  *     are (`wallets`, `wallet_entries`, from before ADR-0002). A legal
  *     disclosure of what is retained, not a claim that a wallet exists.
  *   - The payments log line names a legacy wallet id field. Never shown.
+ *   - The commission sweep's reason names Vallo's own merchant account at
+ *     Payluk by Payluk's word for it; it reaches staff logs, never a member.
  */
 const BARE_WALLET_ALLOWED: { file: string; text: RegExp; why: string }[] = [
   { file: "lib/account-deletion/emails.ts", text: /\bwallet entries\b/, why: "legal: records retained under AML rules" },
   { file: "lib/account-deletion/plan.ts", text: /^a wallet is a ledger\b/, why: "legal: the retained `wallets` table's reason" },
   { file: "lib/payments/observability.ts", text: /^wallet=/, why: "technical: a log field" },
+  {
+    file: "lib/payouts/payluk-merchant.ts",
+    text: /^Payluk documents no API route that withdraws the merchant wallet\./,
+    why: "operations: the commission sweep's reason about Vallo's own Payluk merchant account (Payluk's word); no member surface reads it",
+  },
 ];
 
 function readsAsWords(text: string): boolean {
