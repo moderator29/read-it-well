@@ -38,7 +38,16 @@ vi.setConfig({ testTimeout: BROWSER_TEST_TIMEOUT * 4 });
 beforeAll(warmBrowser);
 afterAll(closeBrowser);
 
-const CSS = productCss("app/css/chips.css");
+/* Tailwind is not in this harness; the segmented track's own utilities (a positioned track the capsule is placed in,
+   items that sit in a row) are given here as the plain CSS they are, so the capsule lands behind the chosen item.
+   They sit in a layer BELOW the product's `components` layer: an unlayered shim would beat the product's selected
+   colour and the label would be measured in the wrong ink. */
+const CSS = `@layer base, components;
+  ${productCss("app/css/chips.css")}
+  @layer base {
+    .nf-segmented { position: relative; display: inline-flex; padding: 4px; }
+    .nf-segmented__item { position: relative; z-index: 1; display: inline-flex; align-items: center; justify-content: center; min-height: 36px; padding: 0 16px; border: 0; background: transparent; color: inherit; font: inherit; }
+  }`;
 
 /*
  * THE BOUNDARY FINDINGS, RECORDED, NOT HIDDEN. These are the controls whose
@@ -52,46 +61,48 @@ const CSS = productCss("app/css/chips.css");
  * decision rather than fixed here. The test holds the list exactly: a NEW
  * boundary failure fails, and one that gets fixed fails until it is removed.
  * The value is the measured ratios (the painted fill, then the strongest edge
- * pixel, each against the page).
+ * pixel, each against the page), held as FLOORS: a recorded boundary that gets
+ * worse than its ratio (beyond the 0.05 of anti-aliasing noise) fails too, so
+ * "known" never quietly becomes "worse".
  */
-const KNOWN_BOUNDARY: Record<string, string> = {
-  "dark | button primary | press": "fill 1.44:1, edge 2.71:1",
-  "dark | button secondary | rest": "fill 1.16:1, edge 2.88:1",
-  "dark | button glass | rest": "fill 1.16:1, edge 2.88:1",
-  "dark | button dangerQuiet | rest": "fill 1.09:1, edge 1.71:1",
-  "dark | button dangerQuiet | hover": "fill 1.11:1, edge 1.74:1",
-  "dark | button dangerQuiet | press": "fill 1.18:1, edge 1.71:1",
-  "dark | button icon | rest": "fill 1.16:1, edge 1.43:1",
-  "dark | button icon | press": "fill 1.44:1, edge 1.96:1",
-  "dark | button primary lg glow | press": "fill 1.43:1, edge 2.71:1",
-  "dark | chip filter unchosen | rest": "fill 1.11:1, edge 1.33:1",
-  "dark | chip filter unchosen | hover": "fill 1.11:1, edge 1.31:1",
-  "dark | chip filter unchosen | press": "fill 1.11:1, edge 1.31:1",
-  "dark | chip choice unchosen | rest": "fill 1.11:1, edge 1.33:1",
-  "dark | chip choice unchosen | hover": "fill 1.11:1, edge 1.31:1",
-  "dark | chip choice unchosen | press": "fill 1.11:1, edge 1.31:1",
-  "dark | chip link other | rest": "fill 1.11:1, edge 1.33:1",
-  "dark | chip link other | hover": "fill 1.11:1, edge 1.31:1",
-  "dark | chip link other | press": "fill 1.11:1, edge 1.31:1",
-  "light | button secondary | press": "fill 1.15:1, edge 1.32:1",
-  "light | button glass | press": "fill 1.15:1, edge 1.32:1",
-  "light | button dangerQuiet | rest": "fill 1.17:1, edge 2.08:1",
-  "light | button dangerQuiet | hover": "fill 1.32:1, edge 2.26:1",
-  "light | button dangerQuiet | press": "fill 1.46:1, edge 2.22:1",
-  "light | button icon | rest": "fill 1.10:1, edge 1.10:1",
-  "light | chip filter unchosen | rest": "fill 1.10:1, edge 1.10:1",
-  "light | chip filter unchosen | hover": "fill 1.10:1, edge 1.10:1",
-  "light | chip filter unchosen | press": "fill 1.10:1, edge 1.10:1",
-  "light | chip choice unchosen | rest": "fill 1.10:1, edge 1.10:1",
-  "light | chip choice unchosen | hover": "fill 1.10:1, edge 1.10:1",
-  "light | chip choice unchosen | press": "fill 1.10:1, edge 1.10:1",
-  "light | chip link other | rest": "fill 1.10:1, edge 1.10:1",
-  "light | chip link other | hover": "fill 1.10:1, edge 1.10:1",
-  "light | chip link other | press": "fill 1.10:1, edge 1.10:1",
+const KNOWN_BOUNDARY: Record<string, { fill: number; edge: number }> = {
+  "dark | button primary | press": { fill: 1.44, edge: 2.71 },
+  "dark | button secondary | rest": { fill: 1.16, edge: 2.88 },
+  "dark | button glass | rest": { fill: 1.16, edge: 2.88 },
+  "dark | button dangerQuiet | rest": { fill: 1.09, edge: 1.71 },
+  "dark | button dangerQuiet | hover": { fill: 1.11, edge: 1.74 },
+  "dark | button dangerQuiet | press": { fill: 1.18, edge: 1.71 },
+  "dark | button icon | rest": { fill: 1.16, edge: 1.43 },
+  "dark | button icon | press": { fill: 1.44, edge: 1.96 },
+  "dark | button primary lg glow | press": { fill: 1.43, edge: 2.71 },
+  "dark | chip filter unchosen | rest": { fill: 1.11, edge: 1.33 },
+  "dark | chip filter unchosen | hover": { fill: 1.11, edge: 1.31 },
+  "dark | chip filter unchosen | press": { fill: 1.11, edge: 1.31 },
+  "dark | chip choice unchosen | rest": { fill: 1.11, edge: 1.33 },
+  "dark | chip choice unchosen | hover": { fill: 1.11, edge: 1.31 },
+  "dark | chip choice unchosen | press": { fill: 1.11, edge: 1.31 },
+  "dark | chip link other | rest": { fill: 1.11, edge: 1.33 },
+  "dark | chip link other | hover": { fill: 1.11, edge: 1.31 },
+  "dark | chip link other | press": { fill: 1.11, edge: 1.31 },
+  "light | button secondary | press": { fill: 1.15, edge: 1.32 },
+  "light | button glass | press": { fill: 1.15, edge: 1.32 },
+  "light | button dangerQuiet | rest": { fill: 1.17, edge: 2.08 },
+  "light | button dangerQuiet | hover": { fill: 1.32, edge: 2.26 },
+  "light | button dangerQuiet | press": { fill: 1.46, edge: 2.22 },
+  "light | button icon | rest": { fill: 1.10, edge: 1.10 },
+  "light | chip filter unchosen | rest": { fill: 1.10, edge: 1.10 },
+  "light | chip filter unchosen | hover": { fill: 1.10, edge: 1.10 },
+  "light | chip filter unchosen | press": { fill: 1.10, edge: 1.10 },
+  "light | chip choice unchosen | rest": { fill: 1.10, edge: 1.10 },
+  "light | chip choice unchosen | hover": { fill: 1.10, edge: 1.10 },
+  "light | chip choice unchosen | press": { fill: 1.10, edge: 1.10 },
+  "light | chip link other | rest": { fill: 1.10, edge: 1.10 },
+  "light | chip link other | hover": { fill: 1.10, edge: 1.10 },
+  "light | chip link other | press": { fill: 1.10, edge: 1.10 },
 };
 
 /* Each case: an id, the JSX, whether it is interactive, and whether it owes a boundary. */
-type Case = { id: string; jsx: string; interactive: boolean; boundary: boolean; kind: "button" | "chip" };
+type Case = { id: string; jsx: string; interactive: boolean; boundary: boolean; kind: "button" | "chip" | "segment"; target?: string };
 
 const BUTTON_VARIANTS = ["primary", "secondary", "glass", "quiet", "ghost", "danger", "dangerQuiet"] as const;
 
@@ -122,12 +133,30 @@ const CASES: Case[] = [
     kind: "chip",
   })),
   { id: "chip static", jsx: `<Chip behaviour="static" size="sm">Label text</Chip>`, interactive: false, boundary: false, kind: "chip" },
+  /* THE SELECTED SEGMENT paints the same brand ramp as the primary (`--nf-act-fill`): the capsule behind the
+     chosen item, with its label in white. Held to the same 4.5:1, so the primary and the segment cannot drift. */
+  ...(["control", "pill"] as const).map<Case>((shape) => ({
+    id: `segmented ${shape} selected`,
+    jsx: `<Segmented label="View" value="a" onChange={() => {}} variant="solid" shape="${shape}" options={[{ value: "a", label: "Label text" }, { value: "b", label: "Other" }]} />`,
+    interactive: true,
+    boundary: false,
+    kind: "segment",
+    target: '[aria-selected="true"]',
+  })),
 ];
+
+/** The element a case is judged on: its first child, or the part of it named by `target`. */
+const targetOf = (page: Page, id: string) => {
+  const base = id.replace(/ disabled$/, "");
+  const c = CASES.find((x) => x.id === base);
+  return page.locator(`[data-case="${id}"] ${c?.target ?? "> *"}`).first();
+};
 
 const entry = `
   import { mount } from "@/lib/testing/browser-root";
   import { Button } from "@/components/ui/Button";
   import { Chip } from "@/components/ui/Chip";
+  import { Segmented } from "@/components/ui/Segmented";
   const cases = [${CASES.map((c) => `{ id: ${JSON.stringify(c.id)}, node: ${c.jsx} }`).join(",\n")}];
   mount(
     <div style={{ display: "flex", flexWrap: "wrap", gap: 24, padding: 24, background: "var(--nf-surface-canvas)" }}>
@@ -148,7 +177,7 @@ type Row = { theme: string; id: string; state: string } & Measure & { failures: 
 
 /** Measures the control inside the wrapper whose data-case is `id`: the label against the painted fill, and the boundary. */
 async function measure(page: Page, id: string): Promise<Measure> {
-  const target = page.locator(`[data-case="${id}"] > *`).first();
+  const target = targetOf(page, id);
   const info = await target.evaluate((el) => {
     const style = getComputedStyle(el);
     return { label: style.color, fontPx: Number.parseFloat(style.fontSize), weight: Number.parseInt(style.fontWeight, 10) || 400 };
@@ -156,10 +185,14 @@ async function measure(page: Page, id: string): Promise<Measure> {
   /* Hide every child (label, glyph, chevron) so only the fill and the edge are painted. */
   await target.evaluate((el) => {
     for (const child of Array.from(el.children)) (child as HTMLElement).style.visibility = "hidden";
+    /* ... and any words that are a bare text node, which `visibility` on a child cannot reach. The text
+       fill, not `color`: buttons transition `color`, so changing it would be photographed mid-fade. */
+    (el as HTMLElement).style.setProperty("-webkit-text-fill-color", "transparent");
   });
   const png = (await target.screenshot()).toString("base64");
   await target.evaluate((el) => {
     for (const child of Array.from(el.children)) (child as HTMLElement).style.visibility = "";
+    (el as HTMLElement).style.removeProperty("-webkit-text-fill-color");
   });
   return page.evaluate(
     async ({ png, info }) => {
@@ -240,7 +273,7 @@ async function measure(page: Page, id: string): Promise<Measure> {
 }
 
 const settle = (page: Page, id: string) =>
-  page.locator(`[data-case="${id}"] > *`).first().evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished.catch(() => undefined))).then(() => undefined));
+  targetOf(page, id).evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished.catch(() => undefined))).then(() => undefined));
 
 function judge(m: Measure, boundary: boolean): string[] {
   const large = m.fontPx >= 24 || (m.fontPx >= 18.66 && m.weight >= 700);
@@ -271,7 +304,7 @@ describe.skipIf(!hasBrowser && !process.env.CI)("control contrast, measured on t
           await settle(page, c.id);
           await record(c.id, "rest", true, c.boundary);
           if (c.interactive) {
-            const loc = page.locator(`[data-case="${c.id}"] > *`).first();
+            const loc = targetOf(page, c.id);
             await loc.hover();
             await settle(page, c.id);
             await record(c.id, "hover", true, c.boundary);
@@ -291,7 +324,7 @@ describe.skipIf(!hasBrowser && !process.env.CI)("control contrast, measured on t
             else el.setAttribute("aria-disabled", "true");
           }
         });
-        for (const c of CASES.filter((x) => x.interactive)) {
+        for (const c of CASES.filter((x) => x.interactive && !x.target)) {
           const m = await measure(page, `${c.id} disabled`);
           rows.push({ theme, id: c.id, state: "disabled", ...m, failures: [] });
         }
@@ -318,5 +351,32 @@ describe.skipIf(!hasBrowser && !process.env.CI)("control contrast, measured on t
       known.filter((key) => !boundary.includes(key)),
       "a recorded boundary failure now passes (remove it from KNOWN_BOUNDARY)",
     ).toEqual([]);
+
+    /* THE FLOORS. Still failing is allowed; getting worse is not. A tenth of a ratio point is far more than the
+       anti-aliasing noise of one edge pixel (0.05), and far less than any change of token. */
+    const NOISE = 0.05;
+    const worse = rows
+      .filter((row) => row.failures.some((f) => f.startsWith("boundary")))
+      .flatMap((row) => {
+        const key = `${row.theme} | ${row.id} | ${row.state}`;
+        const floor = KNOWN_BOUNDARY[key];
+        if (!floor) return [];
+        const out: string[] = [];
+        if (row.fillVsGround < floor.fill - NOISE) out.push(`fill ${row.fillVsGround.toFixed(2)}:1 < ${floor.fill}:1`);
+        if (row.edgeVsGround < floor.edge - NOISE) out.push(`edge ${row.edgeVsGround.toFixed(2)}:1 < ${floor.edge}:1`);
+        return out.length ? [`${key}: ${out.join("; ")}`] : [];
+      });
+    expect(worse, "a recorded boundary got worse than the ratio recorded for it").toEqual([]);
+
+    /* THE SELECTED SEGMENT AND THE PRIMARY BUTTON ARE ONE FILL (`--nf-act-fill`). Their painted label ratio and
+       painted fill, at rest, must agree in both themes, so a segment-only gradient cannot creep back in. */
+    for (const theme of ["dark", "light"]) {
+      const primary = rows.find((r) => r.theme === theme && r.id === "button primary" && r.state === "rest")!;
+      for (const shape of ["control", "pill"]) {
+        const seg = rows.find((r) => r.theme === theme && r.id === `segmented ${shape} selected` && r.state === "rest")!;
+        expect(Math.abs(seg.label - primary.label), `${theme} ${shape} segment label vs primary`).toBeLessThan(0.1);
+        expect(Math.abs(seg.fillVsGround - primary.fillVsGround), `${theme} ${shape} segment fill vs primary`).toBeLessThan(0.15);
+      }
+    }
   });
 });

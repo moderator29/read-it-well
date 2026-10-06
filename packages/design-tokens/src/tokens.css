@@ -4228,8 +4228,26 @@
   --nf-act-blue: #0066FF;
   --nf-act-cyan: #00D1FF;
   --nf-act-on: #FFFFFF;
-  --nf-act-fill: linear-gradient(180deg, #1A75FF 0%, #0066FF 55%, #005CEB 100%);
-  --nf-act-fill-hover: linear-gradient(180deg, #2E82FF 0%, #0A6CFF 55%, #0062F0 100%);
+  /* THE BRAND RAMP, UNDER ITS WHITE LABEL'S CEILING (control-contrast suite).
+     The guide's ramp opened at #1A75FF, which measured 4.30:1 under white
+     (hover's #2E82FF 3.8:1). Built from `--nf-act-blue` (5.2:1 under white):
+     a hair of light on the top row, the brand blue in the middle, shade at the
+     foot. Hover never goes lighter than rest, because lighter is what falls
+     under 4.5:1. Every selected control that paints this (the primary, the
+     segmented capsule, selected links, the pill segment, the switch's on
+     layer) keeps its white label legible. */
+  --nf-act-fill: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--nf-act-blue) 97%, white) 0%,
+    var(--nf-act-blue) 55%,
+    color-mix(in oklab, var(--nf-act-blue) 92%, black) 100%
+  );
+  --nf-act-fill-hover: linear-gradient(
+    180deg,
+    var(--nf-act-blue) 0%,
+    var(--nf-act-blue) 55%,
+    color-mix(in oklab, var(--nf-act-blue) 88%, black) 100%
+  );
   --nf-act-fill-press: linear-gradient(180deg, #0B2C72 0%, #0A2666 100%);
   --nf-act-press-edge: rgb(0 102 255 / 0.7);
   --nf-act-rim: inset 0 1px 0 rgb(255 255 255 / 0.16);
@@ -4271,8 +4289,19 @@
 :root[data-theme="light"],
 :root[data-theme="light"] [data-theme="light"],
 :root[data-theme="light"] :is(.nf-app-header, .nf-ws-bar)[data-theme="dark"] {
-  --nf-act-fill: linear-gradient(180deg, #1A75FF 0%, #0066FF 55%, #005EEB 100%);
-  --nf-act-fill-hover: linear-gradient(180deg, #2E82FF 0%, #0A6CFF 55%, #0064F2 100%);
+  /* The brand ramp: see the night block above (same tokens, same ramp). */
+  --nf-act-fill: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--nf-act-blue) 97%, white) 0%,
+    var(--nf-act-blue) 55%,
+    color-mix(in oklab, var(--nf-act-blue) 92%, black) 100%
+  );
+  --nf-act-fill-hover: linear-gradient(
+    180deg,
+    var(--nf-act-blue) 0%,
+    var(--nf-act-blue) 55%,
+    color-mix(in oklab, var(--nf-act-blue) 88%, black) 100%
+  );
   --nf-act-fill-press: linear-gradient(180deg, #1E293B 0%, #0F172A 100%);
   --nf-act-press-edge: #0F172A;
   --nf-act-rim: inset 0 1px 0 rgb(255 255 255 / 0.2);

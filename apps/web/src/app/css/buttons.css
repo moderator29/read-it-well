@@ -1054,25 +1054,9 @@
   }
 
   /* ---- 1. primary: the blue pill -------------------------------------- */
-  /*
-   * THE PRIMARY'S TOP LIGHT STAYS UNDER THE WHITE LABEL'S CEILING (the control
-   * contrast suite, Session 3). The guide's blue ramp opens at #1A75FF, and the
-   * label measured 4.30:1 on that top row at rest and 3.8:1 on the lighter
-   * hover ramp, under the 4.5:1 a 16px label needs. The ramp is built from the
-   * brand blue itself now (`--nf-act-blue`, 5.2:1 under white): a little light
-   * on the top row, the brand blue in the middle, a little shade at the foot.
-   * Hover does not go lighter than rest, because lighter is exactly what falls
-   * under the floor; it deepens by a hair instead. `control-contrast.dom.test`
-   * measures the paint.
-   */
   .nf-btn--primary {
     color: var(--nf-act-on);
-    background: linear-gradient(
-      180deg,
-      color-mix(in oklab, var(--nf-act-blue) 97%, white) 0%,
-      var(--nf-act-blue) 55%,
-      color-mix(in oklab, var(--nf-act-blue) 92%, black) 100%
-    );
+    background: var(--nf-act-fill);
     border: var(--nf-border-width) solid transparent;
     box-shadow: var(--nf-act-shadow);
     text-shadow: none;
@@ -1291,12 +1275,7 @@
   /* ---- hover: pointer devices only, never under the finger ------------ */
   @media (hover: hover) and (pointer: fine) {
     .nf-btn--primary:hover:not(:disabled, [aria-disabled="true"], :active) {
-      background: linear-gradient(
-        180deg,
-        var(--nf-act-blue) 0%,
-        var(--nf-act-blue) 55%,
-        color-mix(in oklab, var(--nf-act-blue) 88%, black) 100%
-      );
+      background: var(--nf-act-fill-hover);
       box-shadow: var(--nf-act-ring);
       filter: none;
     }
