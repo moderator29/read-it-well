@@ -30,6 +30,10 @@ import { agreementTrack, type AgreementStepKey } from "@/components/app/status/t
 import { AmendTerms, CancelAgreement, ClaimForm, ConfirmTerms } from "@/components/app/agreements/AgreementControls";
 import { bpsAsPercentText } from "@/lib/money/percent";
 import {
+  AGREEMENT_IN_REVIEW,
+  AGREEMENT_PAYMENT_OPEN_TITLE,
+  agreementOwnerApproved,
+  agreementPayLabel,
   LEGACY_GUARANTEE_CLAIM,
   NO_CUSTODY_SENTENCE,
   NO_INSPECTION_FEE,
@@ -195,7 +199,7 @@ export default async function AgreementPage({
         details={[{ label: getDictionary(locale).success.detail.for, value: a.listingTitle }]}
         primary={
           !moment && approvedMoment && a.role === "renter" && payHref
-            ? { label: `Pay ${formatMoney(a.amountMinor, locale)}`, href: payHref }
+            ? { label: agreementPayLabel(formatMoney(a.amountMinor, locale)), href: payHref }
             : undefined
         }
         haptic={moment ? undefined : false}
@@ -395,24 +399,20 @@ export default async function AgreementPage({
 
       {a.status === "in_review" ? (
         <Section title={pw.withVallo}>
-          <p className={TYPE.body}>
-            Both of you confirmed. A person at Vallo is reviewing the agreement. You will get an email and a notification
-            the moment it is decided. Payment opens only after approval.
-          </p>
+          <p className={TYPE.body}>{AGREEMENT_IN_REVIEW}</p>
           {party ? <CancelAgreement agreementId={a.id} /> : null}
         </Section>
       ) : null}
 
       {a.status === "approved" ? (
-        <Section title="Payment is open">
+        <Section title={AGREEMENT_PAYMENT_OPEN_TITLE}>
           {a.role === "renter" && payHref ? (
             <Link href={payHref} className="nf-btn nf-btn--primary nf-btn--md nf-btn--full" data-testid="agreement-pay">
-              Pay {formatMoney(a.amountMinor, locale)}
+              {agreementPayLabel(formatMoney(a.amountMinor, locale))}
             </Link>
           ) : a.role === "owner" ? (
             <p className={TYPE.body} data-testid="agreement-awaiting-payment">
-              Vallo approved the agreement. The {a.kind === "rent" ? "renter" : "guest"} can pay now, and your share
-              settles straight to your bank account from the same payment.
+              {agreementOwnerApproved(a.kind)}
             </p>
           ) : null}
           {party ? <CancelAgreement agreementId={a.id} /> : null}

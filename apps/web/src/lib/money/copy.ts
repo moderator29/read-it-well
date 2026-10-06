@@ -135,6 +135,22 @@ export const OFF_PLATFORM_SENTENCE =
 export const PAYMENT_GATE_SENTENCE =
   "Payment opens only after the inspection report is submitted, both of you confirm the agreement, and Vallo approves it.";
 
+/* The agreement page's money lines (/agreements/[id]), moved out of the page
+   (Round 3 sweep, C3). The words are the page's own, unchanged. */
+/** The renter's one action once the agreement is approved. `amount` is formatted. */
+export function agreementPayLabel(amount: string): string {
+  return `Pay ${amount}`;
+}
+/** Both parties confirmed and Vallo is reviewing. */
+export const AGREEMENT_IN_REVIEW =
+  "Both of you confirmed. A person at Vallo is reviewing the agreement. You will get an email and a notification the moment it is decided. Payment opens only after approval.";
+/** The section an approved agreement opens. */
+export const AGREEMENT_PAYMENT_OPEN_TITLE = "Payment is open";
+/** The lister's line once the agreement is approved. */
+export function agreementOwnerApproved(kind: "rent" | "stay"): string {
+  return `Vallo approved the agreement. The ${kind === "rent" ? "renter" : "guest"} can pay now, and your share settles straight to your bank account from the same payment.`;
+}
+
 /* -------------------------------------------------------------------------- */
 /* WHO PAYS THE FEE (D51: the lister; the renter sees exactly the price)      */
 /* -------------------------------------------------------------------------- */
