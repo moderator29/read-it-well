@@ -22,7 +22,7 @@ describe("Android resource comments", () => {
   it("never carry a double hyphen", () => {
     const offenders = xmlFiles(RES).flatMap((file) =>
       [...readFileSync(file, "utf8").matchAll(/<!--([\s\S]*?)-->/g)]
-        .filter((m) => m[1].includes("--"))
+        .filter((m) => (m[1] ?? "").includes("--"))
         .map(() => file.slice(RES.length + 1)),
     );
     expect(offenders).toEqual([]);
