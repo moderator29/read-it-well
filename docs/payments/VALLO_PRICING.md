@@ -212,20 +212,53 @@ contradict a live promise. And in Nigeria the renter already pays roughly 20
 percent in agency and legal fees on top of rent, so adding to that side would make
 Vallo part of the problem it was built to solve.
 
-**For the lister this is a reduction, not a new cost**, and that is the sales
-sentence: a lister replacing a 10 percent agent with Vallo's 4 percent **keeps 96
-percent instead of 90**. On 1,800,000 naira of rent that is 108,000 naira more in
-their hand.
+**For the lister this is a reduction, not a new cost.**
+
+> **Corrected on 6 October.** This passage used to read "a lister replacing a 10 percent
+> agent with Vallo's 4 percent keeps 96 percent instead of 90", and Session 3 built that
+> sentence into the acceptance screen verbatim, which was the right thing to do with a
+> figure from this document. **The figure was wrong, and the fault is here.** Four percent
+> is the escrow rail; the direct rail is 2 percent plus a capped Paystack fee, so the lister
+> keeps about 98 percent there. A single flat percentage contradicts this document's own rail
+> table forty lines below.
+>
+> **It cannot be fixed by picking the other number either, because the rail is not knowable
+> when the lister accepts.** Acceptance happens before publishing; the rail is chosen per
+> booking, later, by how the buyer pays. So the screen shows a **range anchored on the worst
+> case**, with the second two percent named as escrow protection rather than a Vallo fee.
+> `docs/sessions/SESSION-3-DEEP-2026-10-06.md` section 1 has the layout.
+>
+> **And the comparison needs dating.** "Instead of 90" asserts what other people charge. Ten
+> percent is a fair description of the typical Nigerian agency fee, so it is defensible, but
+> on a screen that forms part of an agreement it must be framed as a typical market rate as
+> at a date, never attributed to a named competitor. If an agent charges eight percent,
+> Vallo's screen is false and Vallo put it in writing.
+
+The honest sales sentence is about the money the lister keeps in naira, not about a
+percentage comparison. On 1,800,000 naira of rent, a lister replacing a typical 10 percent
+agency fee keeps **between 1,728,000 and 1,764,000** rather than 1,620,000. Lead with that
+figure. **Competing on the percentage alone invites a race against someone willing to charge
+nothing, which Vallo cannot win and should not enter:** the advantage is that the money is
+protected, the tenancy is documented, and the person on the other side is verified.
 
 ### The agreement gate
 
 A lister cannot publish until they have seen the exact figures and accepted them.
 
 ```
-Rent you set            1,800,000
-Platform fee (4%)          72,000
-You receive             1,728,000
+Rent you set                          1,800,000
+
+Platform fee                     36,000 to 72,000
+  Vallo, 2%                           36,000
+  Escrow protection, 2%
+  when a buyer pays into escrow       36,000
+
+You receive                   1,728,000 to 1,764,000
 ```
+
+**The worst case is the headline.** "You receive 1,728,000" is what the lister should
+remember, and if a booking lands on the direct rail they receive more. **A pleasant surprise
+is the only acceptable direction for a money figure to move.**
 
 Rules, all enforced server-side:
 
