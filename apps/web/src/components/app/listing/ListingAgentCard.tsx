@@ -6,6 +6,7 @@ import { VerifiedAgentBadge } from "./VerifiedAgentBadge";
 import { ListerRoleLine } from "./ListerRoleLine";
 import { listerHeading } from "./lister-role";
 import type { ListingRole } from "@/lib/supply/roles";
+import "@/app/css/catalogue.css";
 
 /**
  * The agent card of 9E8B56ED, with what the product can honestly say.

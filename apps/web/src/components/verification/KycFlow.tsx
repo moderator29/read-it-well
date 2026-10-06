@@ -13,15 +13,19 @@ import type { Icon3DName } from "@/components/ui/icon-3d";
 import { DocumentUploader } from "./DocumentUploader";
 import { SuccessSheet } from "@/components/ui/SuccessSheet";
 import { successCopy, type SuccessWords } from "@/lib/ui/success-moments";
+import type { Dictionary } from "@vallo/i18n/core";
+
+/** The flow's words (`experienceAccount.kyc`), from the server page (Round 3 sweep, C3). */
+export type KycCopy = Dictionary["experienceAccount"]["kyc"];
 import {
   BUSINESS_SECTIONS,
   CONSENTS,
-  addressDateProblem,
+  addressDateIssue,
   isSubtypeOf,
   lagosToday,
-  missingFrom,
-  progressLabel,
+  missingItems,
   stepsFor,
+  type MissingItem,
   type ConsentId,
   type DocumentKind,
   type KycDocument,
@@ -59,7 +63,10 @@ import {
 export function KycFlow({
   submit,
   success,
+  copy,
 }: {
+  /** The flow's words, from the server page. */
+  copy: KycCopy;
   /** The page's `t.success`, for the "Documents sent" sheet. Absent, no sheet. */
   success?: SuccessWords;
   /**
@@ -95,7 +102,7 @@ export function KycFlow({
   if (sent)
     return (
       <>
-        <Submitted />
+        <Submitted copy={copy} />
         {success ? <KycSentSheet copy={success} /> : null}
       </>
     );
@@ -122,7 +129,7 @@ export function KycFlow({
         return (
           Boolean(documents.address) &&
           isSubtypeOf("address", documents.address?.subtype) &&
-          addressDateProblem(documents.address?.issuedOn, lagosToday()) === null
+          addressDateIssue(documents.address?.issuedOn, lagosToday()) === null
         );
       case "business-question":
         return business !== null;
@@ -149,7 +156,7 @@ export function KycFlow({
     } catch {
       /* A dropped connection or a deploy between taps throws rather than
          answering. Nothing is lost: every answer is still on this screen. */
-      result = { ok: false, message: SEND_UNREACHED };
+      result = { ok: false, message: copy.sendUnreached };
     }
     setSending(false);
     if (result.ok) {
@@ -161,7 +168,9 @@ export function KycFlow({
     setFailure(result.message);
   }
 
-  const gaps = missingFrom(submission);
+  const gaps = missingItems(submission).map((item) => gapWords(item, copy));
+  const progress = copy.progress.replace("{n}", String(at + 1)).replace("{total}", String(steps.length));
+  const stepWords = copy.steps[step.id];
 
   return (
     <div className="mx-auto max-w-xl">
@@ -171,22 +180,22 @@ export function KycFlow({
             real control rather than a reliance on the browser's back button,
             which on a single-route wizard would leave the flow entirely. */}
         {at > 0 ? (
-          <BackControl onBack={back} label={BACK} surface="plate" />
+          <BackControl onBack={back} label={copy.back} surface="plate" />
         ) : (
-          <Link href="/profile" aria-label={LEAVE} className="nf-icon-btn h-11 w-11 shrink-0">
+          <Link href="/profile" aria-label={copy.leave} className="nf-icon-btn h-11 w-11 shrink-0">
             <UiIcon name="close" size="md" />
           </Link>
         )}
 
         <p className="nf-numeric text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-muted)]">
-          {progressLabel(at, steps.length)}
+          {progress}
         </p>
       </div>
 
       <SegmentedProgress
         steps={steps.length}
         current={at + 1}
-        label={progressLabel(at, steps.length)}
+        label={progress}
         className="mt-sm"
       />
 
@@ -195,9 +204,9 @@ export function KycFlow({
       <span className="mt-lg grid size-16 place-items-center" aria-hidden="true" data-art={STEP_ART[step.id]}>
         <Icon3D name={STEP_ART[step.id]} size={64} priority />
       </span>
-      <h1 className="nf-h2 mt-sm">{step.title}</h1>
+      <h1 className="nf-h2 mt-sm">{stepWords.title}</h1>
       <p className="mt-2xs text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
-        {step.hint}
+        {stepWords.hint}
       </p>
 
       {/* -------------------------------------------------------------- body */}
@@ -205,6 +214,7 @@ export function KycFlow({
         {step.id === "identity-document" && (
           <DocumentUploader
             kind="identity"
+            copy={copy}
             batchId={batchId}
             file={documents.identity ?? null}
             onChange={(file) =>
@@ -216,6 +226,7 @@ export function KycFlow({
         {step.id === "address-document" && (
           <DocumentUploader
             kind="address"
+            copy={copy}
             batchId={batchId}
             file={documents.address ?? null}
             onChange={(file) =>
@@ -232,8 +243,8 @@ export function KycFlow({
            */
           <ul className="divide-y divide-[var(--nf-divider)]">
             {[
-              { value: true, label: BUSINESS_YES, detail: BUSINESS_YES_DETAIL },
-              { value: false, label: BUSINESS_NO, detail: BUSINESS_NO_DETAIL },
+              { value: true, label: copy.businessYes, detail: copy.businessYesDetail },
+              { value: false, label: copy.businessNo, detail: copy.businessNoDetail },
             ].map((option) => (
               <li key={String(option.value)}>
                 <button
@@ -286,21 +297,23 @@ export function KycFlow({
            * is three small tasks rather than one long one.
            */
           BUSINESS_SECTIONS.map((section) => (
-            <section key={section.heading} className="nf-panel nf-panel--card block p-md sm:p-lg">
+            <section key={section.key} className="nf-panel nf-panel--card block p-md sm:p-lg">
               <h2 className="text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
-                {section.heading}
+                {copy.sections[section.key].heading}
               </h2>
-              <p className="mt-2xs text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">{section.note}</p>
+              <p className="mt-2xs text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">
+                {copy.sections[section.key].note}
+              </p>
 
               <div className="mt-md space-y-sm">
                 {section.fields.map((field) => (
                   <TextField
                     key={field.name}
-                    label={field.label}
-                    hint={field.hint}
+                    label={fieldWords(field.name, copy).label}
+                    hint={fieldWords(field.name, copy).hint || undefined}
                     type={field.type ?? "text"}
                     required={!field.optional}
-                    optionalText={field.optional ? OPTIONAL : undefined}
+                    optionalText={field.optional ? copy.optional : undefined}
                     value={businessDetails[field.name] ?? ""}
                     onChange={(event) =>
                       setBusinessDetails((d) => ({ ...d, [field.name]: event.target.value }))
@@ -338,7 +351,7 @@ export function KycFlow({
                       className="mt-3xs h-5 w-5 shrink-0 accent-[var(--nf-brand-primary)]"
                     />
                     <span className="min-w-0">
-                      <span className="block text-[length:var(--nf-text-body-sm)] font-medium leading-snug text-[var(--nf-content-primary)]">
+                      <span className="block text-[length:var(--nf-text-body-sm)] font-semibold leading-snug text-[var(--nf-content-primary)]">
                         {consent.label}
                       </span>
                       <span className="mt-2xs block text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
@@ -355,15 +368,15 @@ export function KycFlow({
         {step.id === "review" && (
           <>
             <ul className="nf-panel nf-panel--card block divide-y divide-[var(--nf-divider)] p-0">
-              <ReviewRow label={IDENTITY_ROW} value={documents.identity?.name ?? MISSING} />
-              <ReviewRow label={ADDRESS_ROW} value={documents.address?.name ?? MISSING} />
-              <ReviewRow label={BUSINESS_ROW} value={business ? YES : NO} />
+              <ReviewRow label={copy.identityRow} value={documents.identity?.name ?? copy.missing} />
+              <ReviewRow label={copy.addressRow} value={documents.address?.name ?? copy.missing} />
+              <ReviewRow label={copy.businessRow} value={business ? copy.yes : copy.no} />
               {business &&
                 BUSINESS_SECTIONS.flatMap((s) => s.fields).map((field) => (
                   <ReviewRow
                     key={field.name}
-                    label={field.label}
-                    value={businessDetails[field.name]?.trim() || (field.optional ? DASH : MISSING)}
+                    label={fieldWords(field.name, copy).label}
+                    value={businessDetails[field.name]?.trim() || (field.optional ? copy.notGiven : copy.missing)}
                   />
                 ))}
             </ul>
@@ -372,7 +385,7 @@ export function KycFlow({
             {gaps.length > 0 && (
               <div role="alert" className="nf-panel nf-panel--card block border-[color-mix(in_oklab,var(--nf-state-error)_55%,transparent)]">
                 <p className="text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
-                  {GAPS_TITLE}
+                  {copy.gapsTitle}
                 </p>
                 <ul className="mt-xs list-disc space-y-2xs pl-lg text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
                   {gaps.map((gap) => (
@@ -403,11 +416,11 @@ export function KycFlow({
               disabled={gaps.length > 0}
               onClick={send}
             >
-              {SEND}
+              {copy.send}
             </Button>
           ) : (
             <Button variant="primary" size="lg" full disabled={!canAdvance} onClick={forward}>
-              {CONTINUE}
+              {copy.continue}
             </Button>
           )}
         </div>
@@ -448,24 +461,24 @@ const STEP_ART: Record<StepId, Icon3DName> = {
   review: "verified",
 };
 
-function Submitted() {
+function Submitted({ copy }: { copy: KycCopy }) {
   return (
     <div className="mx-auto max-w-md py-xl text-center">
       <span className="mx-auto grid size-[5.5rem] place-items-center" aria-hidden="true" data-art="calendar-pending">
         <Icon3D name="calendar-pending" size={88} />
       </span>
-      <h1 className="nf-h2 mt-md">{SENT_TITLE}</h1>
+      <h1 className="nf-h2 mt-md">{copy.sentTitle}</h1>
       <p className="mt-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
-        {SENT_BODY}
+        {copy.sentBody}
       </p>
       <p className="mt-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
-        {SENT_MEANWHILE}
+        {copy.sentMeanwhile}
       </p>
       <Link
         href="/profile"
         className="mt-lg inline-flex items-center gap-2xs text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
       >
-        {SENT_ACTION}
+        {copy.sentAction}
         <UiIcon name="arrow-right" size="sm" />
       </Link>
     </div>
@@ -473,31 +486,30 @@ function Submitted() {
 }
 
 /* --------------------------------------------------------------- the copy */
-const BACK = "Back a step";
-const LEAVE = "Leave verification";
-const CONTINUE = "Continue";
-const SEND = "Send for review";
-const SEND_UNREACHED =
-  "We could not reach Vallo to send this. Nothing was lost. Check your connection and press Send for review again.";
-const OPTIONAL = "Optional";
-const BUSINESS_YES = "Yes, I run a property business";
-const BUSINESS_YES_DETAIL = "An agency, a management company, or anything registered with the CAC.";
-const BUSINESS_NO = "No, this is just me";
-const BUSINESS_NO_DETAIL = "You are listing or selling your own property.";
-const IDENTITY_ROW = "Government issued ID";
-const ADDRESS_ROW = "Proof of address";
-const BUSINESS_ROW = "Property business";
-const YES = "Yes";
-const NO = "No";
-const DASH = "Not given";
-const MISSING = "Missing";
-const GAPS_TITLE = "Still needed before this can be sent";
-const SENT_TITLE = "Sent for review";
-const SENT_BODY =
-  "A person on our team reads every submission by hand. Most decisions come back within one working day, and we email you either way.";
-const SENT_MEANWHILE =
-  "You can keep drafting listings while you wait. They publish the moment you are approved. If anything is wrong with a document we tell you exactly what and you replace just that one.";
-const SENT_ACTION = "Back to your profile";
+/* The words are the dictionary's (`experienceAccount.kyc`). A business field
+   and a gap are looked up by their key; a consent keeps its recorded English
+   label (kyc.ts). */
+/* A field with nothing to add under its label has no `hint` at all, rather than an empty one. */
+function fieldWords(name: string, copy: KycCopy): { label: string; hint?: string } {
+  return (copy.fields as Record<string, { label: string; hint?: string }>)[name] ?? { label: name };
+}
+
+function gapWords(item: MissingItem, copy: KycCopy): string {
+  switch (item.kind) {
+    case "document":
+      return copy.documents[item.document].title;
+    case "which-id":
+      return copy.gapWhichId;
+    case "which-address":
+      return copy.gapWhichAddress;
+    case "address-date":
+      return copy.gapAddressDate;
+    case "field":
+      return fieldWords(item.name, copy).label;
+    case "consent":
+      return CONSENTS.find((c) => c.id === item.id)?.label ?? item.id;
+  }
+}
 
 /** "Documents sent", once, over the in-review screen. */
 function KycSentSheet({ copy }: { copy: SuccessWords }) {

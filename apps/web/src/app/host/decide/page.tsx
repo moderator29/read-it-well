@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { resolveSession } from "@/lib/actions/session";
 import { readHostRoomBookings } from "@/lib/host/room-bookings";
@@ -10,8 +11,12 @@ import { HostShell } from "@/components/host/HostShell";
 import { DecideView, type DecideRowData } from "@/components/host/DecideView";
 import { readHostTableBoard } from "../reservations/board";
 import "../host-desk.css";
+import { HostInnerNav } from "@/components/host/HostInnerNav";
+import { hostInnerNavCopy } from "@/components/host/host-inner-nav";
 
-export const metadata: Metadata = { title: "Decide by", robots: { index: false, follow: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: getDictionary(await getLocale()).experienceHost.decide.metaTitle, robots: { index: false, follow: false } };
+}
 
 export const dynamic = "force-dynamic";
 
@@ -32,15 +37,16 @@ export default async function HostDecidePage() {
   const locale = await getLocale();
   const session = await resolveSession();
   if (session.state !== "signed-in") {
+    const t = getDictionary(locale);
     return (
       <HostShell fallback="/host">
         <EmptyState
           icon="hourglass"
-          title="Requests waiting for you"
-          body="Sign in to see every room and table request waiting for your answer, and how long each one has left."
+          title={t.experienceHost.decide.signedOutTitle}
+          body={t.experienceHost.decide.signedOutBody}
           action={
             <ButtonLink href={authHref(returnHref("/host/decide", "", "list"), "sign-in")} variant="primary" size="lg">
-              Sign in
+              {t.common.signIn}
             </ButtonLink>
           }
         />
@@ -87,6 +93,7 @@ export default async function HostDecidePage() {
 
   return (
     <HostShell fallback="/host" wide>
+      <HostInnerNav active="decide" {...hostInnerNavCopy(getDictionary(locale))} />
       <DecideView rows={sorted} now={now} locale={locale} unreadable={unreadable} />
     </HostShell>
   );

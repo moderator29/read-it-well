@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { localizedAlternates } from "@/lib/i18n/public-metadata";
 import Link from "next/link";
+import { MotionReveal } from "@/components/motion/Reveal";
 import { formatDate } from "@vallo/i18n/core";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
@@ -41,7 +42,10 @@ export default async function GuidesPage() {
       />
       <SiteHead plate="living-room-dusk" icon="doc-review" chip={g.chip} title={g.title} lede={g.lede} />
       <div className="nf-shell pb-section">
-        <ul className="nf-guides mx-auto max-w-4xl" lang="en">
+        {/* The guides rise 60ms apart on the shared reveal (Session 3), the
+            same arrival as every card list on the public site. */}
+        <div lang="en">
+        <MotionReveal as="ul" stagger className="nf-guides mx-auto max-w-4xl">
           {GUIDES.map((guide) => (
             <li key={guide.slug} className="grid">
               <Link href={`/guides/${guide.slug}`} className="nf-pd-card nf-guide-card">
@@ -60,7 +64,8 @@ export default async function GuidesPage() {
               </Link>
             </li>
           ))}
-        </ul>
+        </MotionReveal>
+        </div>
         {locale !== "en" && <p className="nf-caption mt-md text-center text-[var(--nf-content-muted)]">{g.englishOnly}</p>}
       </div>
     </>

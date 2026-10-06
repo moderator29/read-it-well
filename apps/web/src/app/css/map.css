@@ -1,3 +1,5 @@
+@layer theme, base, components, utilities;
+
 /*
  * The live map: price pins, cluster drops, and the small amount of Leaflet
  * chrome that has to be restyled rather than replaced.
@@ -48,15 +50,54 @@
    * and run, then gets out of the way, so a later selection's own scale
    * (Tailwind's `scale-110`) is never left fighting a lingering animation.
    */
+  /*
+   * THE PIN DROP, TO THE INVENTORY (motion 19, MOTION_SYSTEM "Map pin drop";
+   * Session 3, W2): each mark falls 12px and settles on `drift`, 520ms, the
+   * first six 40ms apart and every later one with the sixth (principle 3: one
+   * organism, not a queue of eighty). It was a 22px fall from 0.4 scale over
+   * 620ms at 26ms a pin, which on a full result set was two seconds of pins
+   * still landing after the reader had started reading.
+   *
+   * TRANSFORM ONLY, AND NOT THE PIN'S OWN TRANSLATE. The mark is placed by
+   * Tailwind's `-translate-x-1/2 -translate-y-full`, which in v4 is the
+   * individual `translate` property; the keyframes animate `transform`, which
+   * composes with it, so the tip stays exactly on its point throughout. (The
+   * old keyframes also wrote the centring translate into `transform`, which
+   * doubled the offset for the length of the drop.)
+   */
+  /* At the browsing pace since round 5 (CRAFT_DOCTRINE 5: browsing is 160
+     to 240ms): a pan or a zoom mounts new marks, and a 520ms settle on each
+     was the map still landing while the reader was already looking. */
   .nf-map-pin-drop {
-    animation: nf-map-pin-drop var(--nf-duration-deliberate) var(--nf-ease-spring) backwards;
-    animation-delay: calc(var(--pin-i, 0) * 26ms);
+    animation: nf-map-pin-drop var(--nf-duration-base) var(--nf-ease-spring) backwards;
+    animation-delay: calc(min(var(--pin-i, 0), 5) * 40ms);
+    transition:
+      transform var(--nf-duration-base) var(--nf-ease-spring),
+      scale var(--nf-duration-base) var(--nf-ease-spring),
+      border-color var(--nf-duration-fast) var(--nf-ease-standard);
   }
   @keyframes nf-map-pin-drop {
-    0% { opacity: 0; transform: translate(-50%, -100%) translateY(-22px) scale(0.4); }
-    60% { opacity: 1; transform: translate(-50%, -100%) translateY(3px) scale(1.08); }
-    100% { opacity: 1; transform: translate(-50%, -100%) scale(1); }
+    from {
+      opacity: 0;
+      transform: translate3d(0, -12px, 0);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
   }
+  /* The chosen pin LIFTS (motion 19), 6px on the spring, above the rest by its
+     z-index; hover on a pointer lifts it 2px, so a hovered pin and a chosen
+     one differ by height as well as by fill, never by colour alone. */
+  .nf-map-pin-drop[data-selected="true"] {
+    transform: translate3d(0, -6px, 0);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .nf-map-pin-drop:not([data-selected="true"]):hover {
+      transform: translate3d(0, -2px, 0);
+    }
+  }
+
   /*
    * THE 44PX FLOOR FOR A PRICE PIN, WITHOUT MOVING WHERE IT POINTS.
    *
@@ -80,13 +121,18 @@
     border-radius: inherit;
   }
   .nf-map-cluster-drop {
-    animation: nf-map-cluster-drop var(--nf-duration-deliberate) var(--nf-ease-spring) backwards;
-    animation-delay: calc(var(--pin-i, 0) * 26ms);
+    animation: nf-map-cluster-drop var(--nf-duration-base) var(--nf-ease-spring) backwards;
+    animation-delay: calc(min(var(--pin-i, 0), 5) * 40ms);
   }
   @keyframes nf-map-cluster-drop {
-    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.4); }
-    60% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
-    100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    from {
+      opacity: 0;
+      transform: translate3d(0, -12px, 0);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
   }
 
   /*
@@ -151,9 +197,53 @@
     .nf-map-cluster-drop,
     .nf-map-pin-breathe {
       animation: none;
+      transition: none;
     }
     .nf-map-pin-drop[data-hero]::after {
       animation: none;
+      opacity: 0;
+    }
+  }
+
+  /*
+   * THE CHOSEN PLACE'S CARD (MapDock), round 5 craft. It is the chosen pin's
+   * other half: it rises from the frame's foot, the edge it docks to, 12px on
+   * `land` at the base rung, and wears the chosen pin's edge ink, so pin and
+   * card read as one object. Keyed per place, so a new choice lands a new
+   * card. Transform and opacity only, on the wrapper: the card's own
+   * transform belongs to the swipe that dismisses it. `backwards`, like the
+   * pins, so nothing is held on the wrapper once it has landed.
+   */
+  .nf-map-dock {
+    animation: nf-map-dock-in var(--nf-duration-base) var(--nf-ease-entrance) backwards;
+  }
+  @keyframes nf-map-dock-in {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 12px, 0);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  /* Four classes: the night glass (brand-glass.css) paints every panel's
+     edge at three, and this edge is the point of the card. */
+  .nf-map-dock > .nf-map-dock__card.nf-panel.nf-panel--card {
+    border-color: var(--nf-selected-edge);
+  }
+  /* Reduced motion keeps the arrival as opacity alone, 160ms, opted in over
+     the 0.01ms floor (animation.css, `--nf-reduced-duration`): without it a
+     new choice swaps the card's words in place and nothing says the card is
+     a different place. */
+  @media (prefers-reduced-motion: reduce) {
+    .nf-map-dock {
+      animation: nf-map-dock-fade 160ms var(--nf-ease-standard) backwards;
+      --nf-reduced-duration: 160ms;
+    }
+  }
+  @keyframes nf-map-dock-fade {
+    from {
       opacity: 0;
     }
   }

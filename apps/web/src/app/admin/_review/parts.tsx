@@ -15,9 +15,10 @@ import { donutArcs, pagerPages, share } from "./metrics";
  * inline SVG (no charting dependency); they draw only the series they are
  * handed and draw nothing, with a sentence, when handed nothing.
  *
- * The sparkline is admin-shell's shared `Sparkline`. The donut stays local: the
- * shared `DonutChart` is the agent console's booking-sources chart (round caps,
- * legend beside), and the renders draw a centred total with a legend beneath.
+ * The sparkline is admin-shell's shared `Sparkline`. The donut stays local and
+ * is the only one left: the agent console's four-hue `DonutChart` was deleted
+ * by Session 3 as the refused pattern (north star 9), and the chart system in
+ * `components/ui/charts` draws a share of a whole as a bar instead.
  */
 
 /* ---------------------------------------------------------------- head */

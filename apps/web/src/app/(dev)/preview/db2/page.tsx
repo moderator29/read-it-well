@@ -12,7 +12,7 @@ export default function PreviewDb2() {
       <ul className="mt-md flex flex-col gap-xs">
         {PAGES.map(([slug, label]) => (
           <li key={slug}>
-            <Link className="nf-link-quiet text-[var(--nf-content-link)]" href={`/preview/db2/${slug}`}>
+            <Link className="nf-link-quiet nf-tap text-[var(--nf-content-link)]" href={`/preview/db2/${slug}`}>
               {label}
             </Link>
           </li>

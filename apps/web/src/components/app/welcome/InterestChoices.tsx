@@ -11,9 +11,31 @@ import {
   skipInterests,
   type InterestsSaved,
 } from "@/lib/interests/actions";
-import type { Dictionary } from "@vallo/i18n/core";
-import { PROPERTY_TYPES, type PropertyType } from "@/lib/interests/schema";
+import type { InterestsCopy } from "./welcome-copy";
+import { PROPERTY_TYPES, type PropertyType } from "@/lib/interests/model";
 import { forgetFirstInterest } from "./first-run-seen";
+import { ObjectArt } from "@/components/auth/ObjectArt";
+import type { TieredObjectName } from "@/design-system/icons/object-assets";
+
+/**
+ * The object each market is drawn with (W11, 6 October 2026): a real place for
+ * the markets that are places (Tier A, realistic), a matte symbol for the one
+ * that is not (a restaurant: a cup on its saucer, Tier B). Chosen by what the
+ * thing IS, per D29, so a card reads at a glance and the question stops being
+ * a wall of words.
+ */
+const MARKET_OBJECT: Record<PropertyType, TieredObjectName> = {
+  apartment: "apartment-block",
+  hotel: "serviced-block",
+  home: "family-house-gate",
+  villa: "villa-pool",
+  shortlet: "small-house",
+  rental: "terrace-row",
+  shop: "retail-shop",
+  office: "office-tower",
+  land: "land-plot",
+  restaurant: "cup-saucer",
+};
 
 /**
  * The one question worth asking at the door.
@@ -69,7 +91,7 @@ export function InterestChoices({
   /* The nine market names and every word around them. `INTEREST_COPY` in
      lib/interests/schema.ts stays as the English source the dictionary was
      written from, but nothing renders it now. */
-  t: Dictionary;
+  t: InterestsCopy;
   /** `welcome` is the first run. `settings` is somebody changing their mind. */
   mode?: "welcome" | "settings";
   /**
@@ -169,7 +191,7 @@ export function InterestChoices({
                  (`.nf-interest[aria-pressed="true"]` in settings-rows.css reads
                  the `--nf-selected-*` tokens), as the console's selected row.
                  It was `.nf-card` with an inline flat tint. */
-              className="nf-panel nf-panel--card nf-interest nf-tap relative flex min-h-[5.5rem] flex-col items-start justify-start gap-2xs p-md text-left transition-transform active:scale-[0.97] disabled:opacity-60"
+              className="nf-panel nf-panel--card nf-interest nf-tap relative flex min-h-[8rem] flex-col items-start justify-start gap-2xs p-md text-left transition-transform active:scale-[0.97] disabled:opacity-60"
             >
               {selected && (
                 <UiIcon
@@ -182,6 +204,7 @@ export function InterestChoices({
                   is chosen (first run only: welcome.css scopes it to the
                   question; on settings it is an empty, unstyled span). */}
               {selected && <span className="nf-interest__burst" aria-hidden="true" />}
+              <ObjectArt name={MARKET_OBJECT[value]} size={96} className="nf-interest__object" />
               <span className="pr-lg text-[length:var(--nf-text-body-sm)] font-semibold leading-tight text-[var(--nf-content-primary)]">
                 {t.interests.markets[value]}
               </span>

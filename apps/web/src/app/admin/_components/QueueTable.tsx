@@ -2,7 +2,8 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { DEFAULT_LOCALE, getDictionary, type Dictionary } from "@vallo/i18n";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
-import { StatusPill, toneForStatus, type StatusTone } from "@/components/ui/StatusPill";
+import { toneForStatus, type StatusTone } from "@/components/ui/StatusPill";
+import { ConsoleStatus } from "./chip-state";
 
 /**
  * The console's dense row table, built once (278CC66A at 390px, CDA4B82B at
@@ -183,9 +184,9 @@ function RowGrid({ row, view: viewWord = DEFAULT_WORDS.view }: { row: QueueRowDa
       <span className="nf-admin-row__meta">
         <span className="nf-admin-row__id nf-numeric">{row.reference}</span>
         <span className="nf-admin-row__status">
-          <StatusPill tone={row.tone ?? toneForStatus(row.status)} size="xs">
+          <ConsoleStatus tone={row.tone ?? toneForStatus(row.status)} size="xs">
             {row.statusLabel}
-          </StatusPill>
+          </ConsoleStatus>
         </span>
         <span className="nf-admin-row__when">{row.submitted}</span>
       </span>

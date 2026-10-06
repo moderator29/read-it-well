@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { withNext } from "@/lib/auth/next-link";
 import Link from "next/link";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
@@ -88,7 +89,14 @@ export default async function NewSignInAlertPage({
           icon="globe-pin"
           title={t.settings.devices.accountTitle}
           body={t.settings.devices.accountBodySignedOut}
-          action={<EmptyActions primary={{ label: t.common.signIn, href: "/sign-in" }} />}
+          action={
+            <EmptyActions
+              primary={{
+                label: t.common.signIn,
+                href: withNext("/sign-in", d ? `/settings/devices/alert?d=${encodeURIComponent(d)}` : "/settings/devices/alert"),
+              }}
+            />
+          }
         />
       </div>
     );

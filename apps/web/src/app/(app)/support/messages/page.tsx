@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
 import { EmptyState } from "@/components/app/Screen";
@@ -8,7 +9,9 @@ import { RetryButton } from "@/components/support/RetryButton";
 import { loadMyTickets } from "@/lib/support/my-tickets";
 import { TicketListView } from "./ListView";
 
-export const metadata: Metadata = { title: "Support messages" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: getDictionary(await getLocale()).experienceInbox.support.pages.listMeta };
+}
 
 /**
  * Messages: every support ticket this member filed while signed in, most
@@ -19,7 +22,8 @@ export const metadata: Metadata = { title: "Support messages" };
 export default async function SupportMessagesPage() {
   const locale = await getLocale();
   const list = await loadMyTickets(50);
-  const header = <PageHeader title="Messages" subtitle="Your support conversations" fallback="/support" />;
+  const w = getDictionary(locale).experienceInbox.support.pages;
+  const header = <PageHeader title={w.listTitle} subtitle={w.listSub} fallback="/support" />;
 
   if (list.state === "signed-out") {
     return (
@@ -27,16 +31,16 @@ export default async function SupportMessagesPage() {
         {header}
         <EmptyState
           icon="support-chat"
-          title="Sign in to see your conversations"
-          body="Tickets you file while signed in, and every reply from the team, are kept here."
+          title={w.listSignedOutTitle}
+          body={w.listSignedOutBody}
           action={
             <ButtonLink href="/sign-in?next=%2Fsupport%2Fmessages" variant="primary" size="lg">
-              Sign in
+              {w.signIn}
             </ButtonLink>
           }
           secondary={
             <Link href="/help" className="nf-link-quiet inline-flex min-h-11 items-center">
-              Open the help centre
+              {w.helpCentre}
             </Link>
           }
         />
@@ -50,12 +54,12 @@ export default async function SupportMessagesPage() {
         {header}
         <EmptyState
           icon="support-chat"
-          title="Your conversations could not be loaded"
-          body="Nothing is lost. Check your connection and try again."
+          title={w.listUnreadableTitle}
+          body={w.listUnreadableBody}
           action={<RetryButton />}
           secondary={
             <Link href="/contact" className="nf-link-quiet inline-flex min-h-11 items-center">
-              Use the contact form instead
+              {w.contactInstead}
             </Link>
           }
         />
@@ -69,11 +73,11 @@ export default async function SupportMessagesPage() {
         {header}
         <EmptyState
           icon="support-chat"
-          title="No support conversations yet"
-          body="When you write to the team while signed in, the ticket and every reply appear here. A ticket filed while signed out is answered by email instead."
+          title={w.listEmptyTitle}
+          body={w.listEmptyBody}
           action={
             <ButtonLink href="/support/new" variant="primary" size="lg">
-              Write to support
+              {w.writeToSupport}
             </ButtonLink>
           }
         />

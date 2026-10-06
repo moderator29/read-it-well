@@ -1,6 +1,6 @@
 import type { InterestsState } from "@/lib/interests/queries";
 import { firstRunNext, isAuthDoor } from "@/components/app/welcome/first-run-seen";
-import { isPropertyType, type PropertyType } from "@/lib/interests/schema";
+import { isPropertyType, type PropertyType } from "@/lib/interests/model";
 
 /**
  * Who sees what at `/welcome`, as one pure function so it can be tested

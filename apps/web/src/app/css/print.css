@@ -1,0 +1,96 @@
+/*
+ * PRINT AND SAVE AS PDF, FOR THE DOCUMENT SHEET (stage 4, B-28).
+ *
+ * Receipts, statements and agreements are printed, emailed and taken to
+ * banks, landlords and lawyers. A page that holds a sheet marked
+ * `data-doc-print` (`DocumentSheet` with `printable`) prints that sheet and
+ * nothing else: no header, no dock, no side navigation, no background, no
+ * glow, black ink on white paper. The browser's own dialog saves it as a PDF,
+ * so there is no second renderer that could disagree with the screen.
+ *
+ * HOW. In print, every element that neither is the sheet, nor sits inside it,
+ * nor contains it is taken out of the flow with `display: none` (not hidden
+ * with `visibility`, which would leave the page's height behind and print
+ * blank pages after the receipt). The sheet's ancestors stay, stripped of
+ * their padding, fill, shadow and scroll clipping, so the sheet lands at the
+ * top of the first page at full width.
+ *
+ * One printable sheet per page. Imported by `DocumentSheet.tsx` beside
+ * document.css. The complaint pack keeps its own print rules (pack.css); a
+ * page never carries both. Tokens only.
+ */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 16mm;
+  }
+
+  html:has([data-doc-print]),
+  html:has([data-doc-print]) body {
+    background: none !important;
+    color: var(--nf-content-on-paper) !important;
+  }
+
+  body:has([data-doc-print]) *:not([data-doc-print], [data-doc-print] *, :has([data-doc-print])) {
+    display: none !important;
+  }
+
+  body:has([data-doc-print]) :has([data-doc-print]) {
+    position: static !important;
+    inset: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: none !important;
+    width: auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    background: none !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    filter: none !important;
+    transform: none !important;
+    backdrop-filter: none !important;
+  }
+
+  [data-doc-print] {
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    background: none !important;
+    box-shadow: none !important;
+    animation: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+    color: var(--nf-content-on-paper) !important;
+  }
+  [data-doc-print]::before,
+  [data-doc-print]::after {
+    display: none !important;
+  }
+  [data-doc-print] * {
+    color: var(--nf-content-on-paper) !important;
+    background: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+  [data-doc-print] .nf-doc__row {
+    border-top-color: var(--nf-border-on-paper) !important;
+    break-inside: avoid;
+  }
+  /* The filled confirmation mark stays filled in ink, so a printed
+     "Confirmed" keeps its shape after the colour is gone. */
+  [data-doc-print] .nf-doc__state--done .nf-doc__mark {
+    background: var(--nf-content-on-paper) !important;
+  }
+  [data-doc-print] .nf-doc__perf {
+    margin-inline: 0 !important;
+  }
+  [data-doc-print] .nf-doc__perf::before,
+  [data-doc-print] .nf-doc__perf::after {
+    display: none !important;
+  }
+  [data-doc-print] .nf-doc-noprint {
+    display: none !important;
+  }
+}

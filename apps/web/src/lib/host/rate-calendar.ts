@@ -180,13 +180,22 @@ function short(date: IsoDate): string {
   return SHORT.format(new Date(utc(date)));
 }
 
-/** "3 to 5 Dec, 12 Dec" (at most three runs, then "and N more"). */
-export function describeSelection(dates: readonly IsoDate[]): string {
+/** The words a selection is said in (`experienceHost.calendarUi.selection`). */
+export type SelectionWords = { none: string; run: string; more: string };
+
+/**
+ * "3 Dec to 5 Dec, 12 Dec" (at most three runs, then "and N more"). The
+ * dates are en-NG in every locale (`intlTag`); the joining words are the
+ * reader's.
+ */
+export function describeSelection(dates: readonly IsoDate[], words: SelectionWords): string {
   const runs = runsOf(dates);
-  if (runs.length === 0) return "No nights";
-  const words = runs.slice(0, 3).map((run) => (run.from === run.to ? short(run.from) : `${short(run.from)} to ${short(run.to)}`));
+  if (runs.length === 0) return words.none;
+  const said = runs
+    .slice(0, 3)
+    .map((run) => (run.from === run.to ? short(run.from) : words.run.replace("{from}", short(run.from)).replace("{to}", short(run.to))));
   const more = runs.length - 3;
-  return more > 0 ? `${words.join(", ")} and ${more} more` : words.join(", ");
+  return more > 0 ? words.more.replace("{list}", said.join(", ")).replace("{count}", String(more)) : said.join(", ");
 }
 
 /* ------------------------------------------------------------ the cells */
@@ -297,10 +306,14 @@ export function toneOf(cell: NightCell): CellTone {
   return "open";
 }
 
-/** "1 held by Airbnb", "2 held by Airbnb, Booking.com": what another site holds. */
-export function heldWords(cell: Pick<NightCell, "held" | "imported">): string | null {
+/**
+ * "1 held by Airbnb", "2 held by Airbnb, Booking.com": what another site
+ * holds, in the host's words (`experienceHost.calendarUi.heldBy`, with
+ * `{count}` and `{site}`). Null when no other site holds a room.
+ */
+export function heldWords(cell: Pick<NightCell, "held" | "imported">, template: string): string | null {
   if (!cell.imported || cell.held <= 0) return null;
-  return `${cell.held} held by ${cell.imported}`;
+  return template.replace("{count}", String(cell.held)).replace("{site}", cell.imported);
 }
 
 /** Naira typed by a person ("45,000", "₦45000", "45000.50") to kobo, or null. */

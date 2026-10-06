@@ -13,7 +13,8 @@ import type { AgentStanding, StopRecord } from "@/lib/admin/suspension-queries";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { RecallPanel } from "./RecallPanel";
-import { countOf } from "@vallo/i18n/core";
+import { countOf, type Dictionary } from "@vallo/i18n/core";
+import { Button } from "@/components/ui/Button";
 
 /**
  * The stops desk.
@@ -151,8 +152,10 @@ function StoppedCard({
   state,
   pending,
   closedIds,
+  recallCopy,
 }: {
   agent: AgentStanding;
+  recallCopy: Dictionary["trustVisible"]["desk"];
   closedIds: ReadonlySet<string>;
   action: (formData: FormData) => void;
   state: ActionResult<LiftReceipt> | null;
@@ -204,7 +207,7 @@ function StoppedCard({
           <WithdrawnList withdrawn={stop.withdrawn} lifted={false} closedIds={closedIds} />
 
           {/* V-60: tell everybody this account talked to, counted first. */}
-          <RecallPanel suspensionId={stop.id} />
+          <RecallPanel suspensionId={stop.id} desk={recallCopy} />
         </>
       ) : (
         <p className="mt-heading nf-body-sm leading-relaxed text-[var(--nf-state-warning)]">
@@ -224,13 +227,9 @@ function StoppedCard({
             className="nf-field"
           />
         </label>
-        <button
-          type="submit"
-          disabled={pending}
-          className="nf-btn nf-btn--primary nf-btn--sm mt-heading"
-        >
+        <Button variant="primary" size="sm" className="mt-heading" type="submit" disabled={pending}>
           {pending ? "Letting them back" : "Let them back"}
-        </button>
+        </Button>
       </form>
 
       {mine && (
@@ -312,30 +311,18 @@ function TradingCard({
           </p>
 
           <div className="mt-heading flex flex-wrap gap-xs">
-            <button
-              type="submit"
-              disabled={pending}
-              className="nf-btn nf-btn--primary nf-btn--sm"
-            >
+            <Button variant="danger" size="sm" type="submit" disabled={pending}>
               {pending ? "Stopping" : "Stop them trading"}
-            </button>
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              className="nf-btn nf-btn--ghost nf-btn--sm"
-            >
+            </Button>
+            <Button variant="quiet" size="sm" type="button" onClick={() => setOpen(false)}>
               Cancel
-            </button>
+            </Button>
           </div>
         </form>
       ) : (
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="nf-btn nf-btn--ghost nf-btn--sm mt-heading"
-        >
+        <Button variant="quiet" size="sm" className="mt-heading" type="button" onClick={() => setOpen(true)}>
           Stop this agent
-        </button>
+        </Button>
       )}
 
       {mine && (
@@ -358,7 +345,10 @@ export function StopsDesk({
   stopped,
   trading,
   closedIds = [],
+  recallCopy,
 }: {
+  /** The recall panel's words, from the server page. */
+  recallCopy: Dictionary["trustVisible"]["desk"];
   stopped: AgentStanding[];
   trading: AgentStanding[];
   /** Withdrawn listings since closed as let or unavailable. They stay closed when a stop lifts. */
@@ -417,6 +407,7 @@ export function StopsDesk({
                 key={agent.agentId}
                 agent={agent}
                 closedIds={closed}
+                recallCopy={recallCopy}
                 action={liftAction}
                 state={liftState}
                 pending={liftPending}

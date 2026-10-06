@@ -24,6 +24,8 @@ import { ageConfirmed, ageRefusal, termsRefusal } from "./terms-gate";
 import { welcomeOnce } from "@/lib/notify/welcome";
 import { authOrigin } from "@/lib/site";
 import { getLocale } from "@/lib/locale";
+import { getDictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import {
   getProviderStates,
   providerAllowed,
@@ -32,7 +34,7 @@ import {
   surfaceFromUserAgent,
 } from "./providers";
 import { HEAR_ABOUT_VALUES, REFERRAL_CODE_RE } from "./signup-options";
-import { CONFIRMATION_CODE_RE, codeLengthWord } from "./confirmation-code";
+import { CONFIRMATION_CODE_LENGTH, CONFIRMATION_CODE_RE } from "./confirmation-code";
 import {
   deactivatedAccountNotice,
   isDeactivatedAccountError,
@@ -79,8 +81,27 @@ const field = (formData: FormData, name: string) => String(formData.get(name) ??
  * When the auth backend is not configured the action says so plainly instead of
  * pretending the account was created.
  */
+type Refusals = Dictionary["experienceEntry"]["refusals"];
+
+/**
+ * THE WORDS OF A REFUSAL ARE THE DICTIONARY'S (U1, 6 October): each one says
+ * what went wrong and the single next action (`experienceEntry.refusals`).
+ * Read in the reader's language; outside a request (a unit test calling an
+ * action directly) there is no cookie to read, and English answers.
+ */
+async function refusals(): Promise<Refusals> {
+  let locale: Awaited<ReturnType<typeof getLocale>> | undefined;
+  try {
+    locale = await getLocale();
+  } catch {
+    locale = undefined;
+  }
+  return getDictionary(locale ?? "en").experienceEntry.refusals;
+}
+
 function validateCredentials(
   formData: FormData,
+  w: Refusals,
   purpose: "sign-in" | "sign-up" = "sign-up",
 ): Partial<Record<AuthField, string>> {
   const email = field(formData, "email").trim();
@@ -88,21 +109,21 @@ function validateCredentials(
 
   const errors: Partial<Record<AuthField, string>> = {};
 
-  if (!email) errors.email = "Enter your email address.";
-  else if (email.length > 254) errors.email = "That email address is too long.";
-  else if (!EMAIL_RE.test(email)) errors.email = "That does not look like a valid email.";
+  if (!email) errors.email = w.emailMissing;
+  else if (email.length > 254) errors.email = w.emailTooLong;
+  else if (!EMAIL_RE.test(email)) errors.email = w.emailInvalid;
 
-  if (!password) errors.password = "Enter your password.";
+  if (!password) errors.password = w.passwordMissing;
   /* UX-28: the length rule is a sign-up rule. On sign-in a short password is
      simply a wrong one, and the server says so in the same words as any other. */
-  else if (purpose === "sign-up" && password.length < 8) errors.password = "Use at least 8 characters.";
-  else if (password.length > 200) errors.password = "That password is too long.";
+  else if (purpose === "sign-up" && password.length < 8) errors.password = w.passwordShort;
+  else if (password.length > 200) errors.password = w.passwordTooLong;
 
   return errors;
 }
 
-function validateSignUp(formData: FormData): Partial<Record<AuthField, string>> {
-  const errors = validateCredentials(formData);
+function validateSignUp(formData: FormData, w: Refusals): Partial<Record<AuthField, string>> {
+  const errors = validateCredentials(formData, w);
 
   const firstName = field(formData, "firstName").trim();
   const surname = field(formData, "surname").trim();
@@ -127,7 +148,7 @@ function validateSignUp(formData: FormData): Partial<Record<AuthField, string>> 
      field is gone (show and hide, and the reset flow, cover the typo it
      guarded against). A post that still carries one is held to it. */
   if (!errors.password && confirmPassword && confirmPassword !== field(formData, "password")) {
-    errors.confirmPassword = "Passwords do not match.";
+    errors.confirmPassword = w.passwordsDiffer;
   }
 
   /* The English value, never the translated label. The select posts the one
@@ -196,8 +217,7 @@ function emailConfigured(): boolean {
   return getProviderStates().some((p) => p.id === "email" && p.configured);
 }
 
-const NOT_CONNECTED_MESSAGE =
-  "We cannot reach accounts right now. Nothing you typed was lost.";
+/* "We cannot reach accounts right now", now `refusals.notConnected`. */
 
 /**
  * Translate a Supabase auth error into something a person can act on.
@@ -206,26 +226,26 @@ const NOT_CONNECTED_MESSAGE =
  * email addresses exist, and that is the right behaviour to preserve, so the
  * credentials case stays deliberately non-specific about which half was wrong.
  */
-function authMessage(raw: string): string {
+function authMessage(raw: string, w: Refusals): string {
   const text = raw.toLowerCase();
   if (text.includes("invalid login credentials")) {
     /* One neutral sentence whether or not an account uses the address (F-08):
        the password step never says which it was. */
-    return "That email and password do not match. Check both, or reset your password.";
+    return w.credentials;
   }
   if (text.includes("email not confirmed")) {
-    return "Confirm your email first. Open the link we sent you, then sign in.";
+    return w.unconfirmed;
   }
   if (text.includes("already registered") || text.includes("already been registered")) {
-    return "An account already uses that email address. Sign in instead, or reset your password.";
+    return w.taken;
   }
   if (text.includes("rate limit") || text.includes("too many")) {
-    return "Too many attempts just now. Wait a minute, then try again.";
+    return w.rateLimited;
   }
   if (text.includes("password")) {
-    return "That password was refused. Use at least 8 characters, mixing letters and numbers.";
+    return w.passwordRefused;
   }
-  return "We could not complete that just now. Please try again in a moment.";
+  return w.generic;
 }
 
 /* -------------------------------------------------------------- throttling */
@@ -287,7 +307,7 @@ async function throttle(
   if (verdict.allowed) return null;
   return {
     ok: false,
-    message: `Too many attempts just now. Try again ${verdict.retryIn}.`,
+    message: (await refusals()).tooMany.replace("{when}", verdict.retryIn),
   };
 }
 
@@ -326,10 +346,11 @@ export async function signInWithEmail(
   _prev: AuthFormState,
   formData: FormData,
 ): Promise<AuthFormState> {
-  const fieldErrors = validateCredentials(formData, "sign-in");
+  const w = await refusals();
+  const fieldErrors = validateCredentials(formData, w, "sign-in");
   if (Object.keys(fieldErrors).length > 0) return { ok: false, fieldErrors };
 
-  if (!emailConfigured()) return { ok: false, message: NOT_CONNECTED_MESSAGE };
+  if (!emailConfigured()) return { ok: false, message: w.notConnected };
 
   // Ten guesses a minute from one place is far more than a person mistyping a
   // password and far less than a stuffing run is worth mounting.
@@ -363,7 +384,7 @@ export async function signInWithEmail(
     });
     return {
       ok: false,
-      message: `Too many attempts just now. Try again ${perAddress.retryIn}.`,
+      message: (await refusals()).tooMany.replace("{when}", perAddress.retryIn),
     };
   }
 
@@ -380,7 +401,7 @@ export async function signInWithEmail(
     if (isDeactivatedAccountError(error.message)) {
       return { ok: false, ...deactivatedAccountNotice() };
     }
-    return { ok: false, message: authMessage(error.message) };
+    return { ok: false, message: authMessage(error.message, w) };
   }
 
   // The session cookies are set. Drop every cached render so the shell picks
@@ -394,10 +415,11 @@ export async function signUpWithEmail(
   _prev: AuthFormState,
   formData: FormData,
 ): Promise<AuthFormState> {
-  const fieldErrors = validateSignUp(formData);
+  const w = await refusals();
+  const fieldErrors = validateSignUp(formData, w);
   if (Object.keys(fieldErrors).length > 0) return { ok: false, fieldErrors };
 
-  if (!emailConfigured()) return { ok: false, message: NOT_CONNECTED_MESSAGE };
+  if (!emailConfigured()) return { ok: false, message: w.notConnected };
 
   // An account and a confirmation email per attempt, so this is the cheapest
   // of the three to abuse and the tightest of the three to allow. A household
@@ -450,7 +472,7 @@ export async function signUpWithEmail(
     },
   });
 
-  if (error) return { ok: false, message: authMessage(error.message) };
+  if (error) return { ok: false, message: authMessage(error.message, w) };
 
   /*
    * THE ADDRESS ALREADY HAS AN ACCOUNT, and Supabase will not say so.
@@ -632,14 +654,15 @@ export async function verifySignUpCode(
   const email = field(formData, "email").trim().toLowerCase();
   const token = field(formData, "code").replace(/\s+/g, "");
 
+  const w = await refusals();
   const fieldErrors: Partial<Record<AuthField, string>> = {};
-  if (!EMAIL_RE.test(email)) fieldErrors.email = "Enter the email address you signed up with.";
+  if (!EMAIL_RE.test(email)) fieldErrors.email = w.signUpEmail;
   if (!CONFIRMATION_CODE_RE.test(token)) {
-    fieldErrors.code = `The code is the ${codeLengthWord()} digits in the email we sent you.`;
+    fieldErrors.code = w.codeShape.replace("{count}", String(CONFIRMATION_CODE_LENGTH));
   }
   if (Object.keys(fieldErrors).length > 0) return { ok: false, fieldErrors };
 
-  if (!emailConfigured()) return { ok: false, message: NOT_CONNECTED_MESSAGE };
+  if (!emailConfigured()) return { ok: false, message: w.notConnected };
 
   /* Ten a minute per address and twenty a minute per connection. A million
      codes against one address is the attack, and a person mistyping the code
@@ -655,9 +678,9 @@ export async function verifySignUpCode(
   if (error || !data.session) {
     return {
       ok: false,
-      fieldErrors: {
-        code: `That code did not match. Check the ${codeLengthWord()} digits in the email, or send a new one.`,
-      },
+      /* The whole code is refused, never a digit (the server cannot say
+         which one), and the field selects it for typing again (`CodeInput`). */
+      fieldErrors: { code: w.codeWrong },
     };
   }
 
@@ -926,12 +949,9 @@ export async function resendSignUpCode(
 ): Promise<AuthFormState> {
   const email = field(formData, "email").trim().toLowerCase();
   if (!EMAIL_RE.test(email)) {
-    return {
-      ok: false,
-      fieldErrors: { email: "Enter the email address you signed up with." },
-    };
+    return { ok: false, fieldErrors: { email: (await refusals()).signUpEmail } };
   }
-  if (!emailConfigured()) return { ok: false, message: NOT_CONNECTED_MESSAGE };
+  if (!emailConfigured()) return { ok: false, message: (await refusals()).notConnected };
 
   /* One email per attempt, so this is metered like the sign-up it follows. */
   const paced = await throttle("sign_up_resend", subjectForEmail(email), 3, 900);
@@ -952,7 +972,7 @@ export async function resendSignUpCode(
   await recordFunnelStep("code_resent");
   return {
     ok: true,
-    message: "If that address is waiting on a code, a new one is on its way. It lasts an hour.",
+    message: (await refusals()).resendSent,
   };
 }
 
@@ -1016,7 +1036,7 @@ export async function startOAuth(
     },
   });
 
-  if (error || !data.url) return { ok: false, message: authMessage(error?.message ?? "") };
+  if (error || !data.url) return { ok: false, message: authMessage(error?.message ?? "", await refusals()) };
   redirect(data.url);
 }
 
@@ -1050,7 +1070,7 @@ export async function signInWithAppleIdToken(input: {
     token: input.idToken,
     nonce: input.nonce,
   });
-  if (error) return { ok: false, message: authMessage(error.message) };
+  if (error) return { ok: false, message: authMessage(error.message, await refusals()) };
   const { data } = await supabase.auth.getUser();
   if (data.user) await welcomeOnce(data.user.id);
   revalidatePath("/", "layout");
@@ -1096,7 +1116,7 @@ export async function finishSocialSetup(
   if (underAge) fieldErrors.ageConfirmed = underAge;
   if (Object.keys(fieldErrors).length > 0) return { ok: false, fieldErrors };
 
-  if (!emailConfigured()) return { ok: false, message: NOT_CONNECTED_MESSAGE };
+  if (!emailConfigured()) return { ok: false, message: (await refusals()).notConnected };
 
   const supabase = await createClient();
   const { data: userData } = await supabase.auth.getUser();
@@ -1158,22 +1178,21 @@ export async function finishSocialSetup(
  * below is returned for a match, for no match, and for a Supabase refusal
  * alike, and it is worded so it stays true in every one of those cases.
  */
-const RESET_SENT_MESSAGE =
-  "If that email has an account, a reset link is on its way. It expires in an hour, and it can only be used once.";
 
 export async function requestPasswordReset(
   _prev: AuthFormState,
   formData: FormData,
 ): Promise<AuthFormState> {
   const email = field(formData, "email").trim();
+  const w = await refusals();
 
-  if (!email) return { ok: false, fieldErrors: { email: "Enter your email address." } };
-  if (email.length > 254) return { ok: false, fieldErrors: { email: "That email address is too long." } };
+  if (!email) return { ok: false, fieldErrors: { email: w.emailMissing } };
+  if (email.length > 254) return { ok: false, fieldErrors: { email: w.emailTooLong } };
   if (!EMAIL_RE.test(email)) {
-    return { ok: false, fieldErrors: { email: "That does not look like a valid email." } };
+    return { ok: false, fieldErrors: { email: w.emailInvalid } };
   }
 
-  if (!emailConfigured()) return { ok: false, message: NOT_CONNECTED_MESSAGE };
+  if (!emailConfigured()) return { ok: false, message: w.notConnected };
 
   /*
    * Counted twice, and both counts are spent before Supabase is asked
@@ -1204,10 +1223,10 @@ export async function requestPasswordReset(
    * returns the same sentence as success.
    */
   if (error && /rate limit|too many/i.test(error.message)) {
-    return { ok: false, message: "Too many requests just now. Wait a minute, then try again." };
+    return { ok: false, message: w.resetBusy };
   }
 
-  return { ok: true, message: RESET_SENT_MESSAGE };
+  return { ok: true, message: w.resetSent };
 }
 
 /**
@@ -1237,17 +1256,18 @@ export async function verifyPasswordResetCode(
   const email = field(formData, "email").trim().toLowerCase();
   const token = field(formData, "code").replace(/\s+/g, "");
 
+  const w = await refusals();
   const fieldErrors: Partial<Record<AuthField, string>> = {};
-  if (!email) fieldErrors.email = "Enter your email address.";
+  if (!email) fieldErrors.email = w.emailMissing;
   else if (email.length > 254 || !EMAIL_RE.test(email)) {
-    fieldErrors.email = "That does not look like a valid email.";
+    fieldErrors.email = w.emailInvalid;
   }
   if (!CONFIRMATION_CODE_RE.test(token)) {
-    fieldErrors.code = `The code is the ${codeLengthWord()} digits in the reset email.`;
+    fieldErrors.code = w.resetCodeShape.replace("{count}", String(CONFIRMATION_CODE_LENGTH));
   }
   if (Object.keys(fieldErrors).length > 0) return { ok: false, fieldErrors };
 
-  if (!emailConfigured()) return { ok: false, message: NOT_CONNECTED_MESSAGE };
+  if (!emailConfigured()) return { ok: false, message: w.notConnected };
 
   /* The connection first, so one place walking many addresses is stopped
      without spending each address's own allowance. */
@@ -1262,9 +1282,8 @@ export async function verifyPasswordResetCode(
   if (error || !data.session) {
     return {
       ok: false,
-      fieldErrors: {
-        code: "That code did not match or has run out. Check the digits in the email, or ask for a new one.",
-      },
+      /* The same sentence as every refused code (`CodeInput` selects it). */
+      fieldErrors: { code: w.codeWrong },
     };
   }
 
@@ -1292,16 +1311,17 @@ export async function updatePassword(
   const password = field(formData, "password");
   const confirmPassword = field(formData, "confirmPassword");
 
+  const w = await refusals();
   const fieldErrors: Partial<Record<AuthField, string>> = {};
-  if (!password) fieldErrors.password = "Enter a new password.";
-  else if (password.length < 8) fieldErrors.password = "Use at least 8 characters.";
-  else if (password.length > 200) fieldErrors.password = "That password is too long.";
+  if (!password) fieldErrors.password = w.newPasswordMissing;
+  else if (password.length < 8) fieldErrors.password = w.passwordShort;
+  else if (password.length > 200) fieldErrors.password = w.passwordTooLong;
   if (password && confirmPassword !== password) {
-    fieldErrors.confirmPassword = "Passwords do not match.";
+    fieldErrors.confirmPassword = w.passwordsDiffer;
   }
   if (Object.keys(fieldErrors).length > 0) return { ok: false, fieldErrors };
 
-  if (!emailConfigured()) return { ok: false, message: NOT_CONNECTED_MESSAGE };
+  if (!emailConfigured()) return { ok: false, message: w.notConnected };
 
   /* The recovery session is the authorisation, and it is a real one, so this
      is the lightest of the four doors. It is still a door: every submit is a
@@ -1315,8 +1335,7 @@ export async function updatePassword(
   if (!userData.user) {
     return {
       ok: false,
-      message:
-        "That reset link has expired or was already used. Ask for a new one and open it from the same device.",
+      message: w.resetLinkSpent,
     };
   }
 
@@ -1324,23 +1343,22 @@ export async function updatePassword(
   if (proof === "link-only") {
     return {
       ok: false,
-      message:
-        "To set a password on this account, ask for a reset link and open it within half an hour. The link is the proof it is you.",
+      message: w.resetLinkOnly,
     };
   }
   if (proof === "current-password") {
     const currentPassword = field(formData, "currentPassword");
     if (!currentPassword) {
-      return { ok: false, fieldErrors: { currentPassword: "Enter your current password." } };
+      return { ok: false, fieldErrors: { currentPassword: w.currentMissing } };
     }
     const itIsThem = await reauthenticate(userData.user, { password: currentPassword });
     if (!itIsThem) {
-      return { ok: false, fieldErrors: { currentPassword: "That is not your current password." } };
+      return { ok: false, fieldErrors: { currentPassword: w.currentWrong } };
     }
   }
 
   const { error } = await supabase.auth.updateUser({ password });
-  if (error) return { ok: false, message: authMessage(error.message) };
+  if (error) return { ok: false, message: authMessage(error.message, w) };
 
   /*
    * SEC-08: a new password ends every OTHER session. A reset is what somebody

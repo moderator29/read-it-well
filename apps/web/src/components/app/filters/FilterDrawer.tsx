@@ -9,6 +9,8 @@ import type { Anchor } from "@/lib/listings/commute";
 import { shelfActiveCount, type ShelfQuery } from "@/components/app/search/shelf-query";
 import { ICON } from "@/components/app/Screen";
 import { useLazySheet } from "@/lib/ui/lazy-sheet";
+import { PendingRing } from "@/components/ui/PendingRing";
+import "@/app/css/catalogue.css";
 
 /**
  * The filter sheet's TRIGGER: the sliders square on the shelf, with the count
@@ -40,6 +42,8 @@ export type FilterDrawerProps = {
   /** V-43: the anchors a renter can pick, and the words for the group. */
   anchors?: Anchor[];
   commuteCopy: Dictionary["shape"]["commute"];
+  /** The kinds' names and counted nouns in the reader's language (`t.experienceLabels`). */
+  kindCopy: Pick<Dictionary["experienceLabels"], "kinds" | "anyKind">;
   /** V-41: the "No flooding reported" switch's words. */
   noFloodLabel?: { label: string; hint: string };
   /** V-12: the sentence under the "Lowest fees on top of rent" order. */
@@ -93,7 +97,7 @@ export function FilterDrawer({
         className="nf-shelf-square relative"
       >
         {pending ? (
-          <span className="nf-spinner" aria-hidden="true" data-testid="filters-pending" />
+          <PendingRing size={ICON.inline} data-testid="filters-pending" />
         ) : (
           <UiIcon name="sliders" size={ICON.inline} />
         )}

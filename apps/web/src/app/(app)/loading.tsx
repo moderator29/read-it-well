@@ -1,4 +1,5 @@
 import { CardRowsSkeleton, LoadingShell, PageHeaderSkeleton } from "@/components/app/ScreenSkeleton";
+import { ListingHandoffGate } from "@/components/app/listing/ListingHandoffShell";
 
 /**
  * The wait, for every in-app screen that has no skeleton of its own (SPEED-2).
@@ -17,10 +18,18 @@ import { CardRowsSkeleton, LoadingShell, PageHeaderSkeleton } from "@/components
  * then panel-card rows. Any route with a closer `loading.tsx` keeps its own.
  */
 export default function LoadingAppScreen() {
+  /* A listing opened from a card waits in its own shape, with the card's
+     photo and facts (ListingHandoffGate, round 5): this boundary, not the
+     listing's, is the one the router has prefetched. */
   return (
-    <LoadingShell label="Loading" className="mx-auto w-full max-w-2xl">
-      <PageHeaderSkeleton subtitle />
-      <CardRowsSkeleton rows={3} />
-    </LoadingShell>
+    <ListingHandoffGate
+      verifiedLabel="Verified"
+      fallback={
+        <LoadingShell label="Loading" className="mx-auto w-full max-w-2xl">
+          <PageHeaderSkeleton subtitle />
+          <CardRowsSkeleton rows={3} />
+        </LoadingShell>
+      }
+    />
   );
 }

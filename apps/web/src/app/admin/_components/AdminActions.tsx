@@ -3,7 +3,7 @@
 import { useEffect, useState, useTransition, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { DEFAULT_LOCALE, formatMoney, getDictionary, type Locale } from "@vallo/i18n";
+import { formatMoney, type Locale } from "@vallo/i18n/core";
 import { CANCELLATION_REASONS, type CancellationReason } from "@/lib/trust/cancellation";
 import { cancelBookingAsAdmin, previewCancellation } from "@/lib/admin/bookings-actions";
 import { recordVerificationCheck } from "@/lib/admin/verification-actions";
@@ -253,7 +253,11 @@ export function AlertResolve({
   return (
     <>
       <Row>
-        <Button variant="primary" onClick={() => setOpen(true)}>
+        {/* SECONDARY, NOT PRIMARY: this opener sits on every card in a queue,
+            and four lit primaries on one phone screen is four glows where the
+            north star allows one (checklist point 1, measured on /admin/alerts
+            in the C1 sweep). The commit in the sheet is the primary. */}
+        <Button variant="secondary" onClick={() => setOpen(true)}>
           {copy.resolve}
         </Button>
       </Row>
@@ -283,20 +287,22 @@ export function ReportDecision({
   status,
   copy,
   common,
+  reporterNoteLabel,
 }: {
   reportId: string;
   status: string;
   copy: AdminCopy["reports"];
   common: AdminCommon;
+  /** The reporter-note field's label, from the server page, so this client file never imports the dictionary. */
+  reporterNoteLabel: string;
 }) {
   const [sheet, setSheet] = useState<null | "reviewing" | "resolved" | "dismissed">(null);
   /* V-89: the one line the reporter is shown on /settings/help. */
   const [reporterNote, setReporterNote] = useState("");
-  const noteCopy = getDictionary(DEFAULT_LOCALE).platform.queueDesk;
   const reporterField = (
     <label className="mt-md block">
       <span className="nf-label">
-        {noteCopy.reporterNoteLabel} {common.optional}
+        {reporterNoteLabel} {common.optional}
       </span>
       <input
         value={reporterNote}
@@ -694,7 +700,7 @@ export function TicketStatusControl({
             value={closingNote}
             onChange={(e) => setClosingNote(e.target.value)}
           />
-          <div className="flex gap-xs">
+          <div className="flex flex-wrap gap-xs">
             <Button
               variant="primary"
               size="sm"

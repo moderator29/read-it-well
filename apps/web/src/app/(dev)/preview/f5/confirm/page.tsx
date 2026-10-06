@@ -1,3 +1,4 @@
+import { getDictionary } from "@vallo/i18n";
 import { ConfirmPanel } from "@/components/app/confirm/ConfirmPanel";
 import { RoomRequestAnswer } from "@/app/host/bookings/RoomRequestAnswer";
 import { bookingAcceptedPreview } from "@/lib/email/everyone-gets";
@@ -69,7 +70,7 @@ export default function ConfirmPreview() {
       <div className="nf-panel nf-panel--card mx-auto w-full max-w-[32rem] p-card" data-testid="confirm-live">
         <p className="font-semibold">Deluxe king · Grand Vista Hotel</p>
         <p className="nf-caption">Sat 4 Oct to Mon 6 Oct · Seyi Omojuni</p>
-        <RoomRequestAnswer bookingId="00000000-0000-4000-8000-00000000c001" summary={SUMMARY} />
+        <RoomRequestAnswer bookingId="00000000-0000-4000-8000-00000000c001" summary={SUMMARY} words={getDictionary("en").experienceHost.bookings.answer} />
       </div>
     </main>
   );

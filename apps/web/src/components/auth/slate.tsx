@@ -2,170 +2,102 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ComponentProps, MouseEventHandler, ReactNode } from "react";
 import { Button, ButtonLink } from "@/components/ui/Button";
+import { VectorMark, VectorWordmark } from "./VectorMark";
+import "@/app/css/auth.css";
 
 /**
  * THE SLATE SYSTEM: the pieces every door into Vallo is built from.
  *
- * To the references of 29 September (`docs/design/references/2026-09-29`,
- * 12 and 14): a full-bleed top block whose bottom edge is one wide concave
- * arc, the wordmark in spaced capitals inside it with a line under it, and
- * below the arc a big title, labelled fields drawn as soft full-width cards,
- * a full-width pill, an "Or" rule and round provider buttons.
+ * Born from the references of 29 September (`docs/design/references/
+ * 2026-09-29`, 12 and 14): a full-bleed block at the top whose bottom edge is
+ * one wide bowl, the wordmark in it with a line under it, and below the bowl a
+ * big title, labelled fields drawn as soft full-width cards, a full-width
+ * button, an "Or" rule and round provider buttons.
  *
- * THE FOUNDER'S THEME RULE, and every colour below follows it through the
- * `--nf-slate-*` roles in `app/css/auth.css`:
+ * REBUILT ON 6 OCTOBER (W11, reference 7044 and the north star's "one Island
+ * per auth screen on a photographic or brand ground"), KEEPING THE SHAPE A
+ * MEMBER KNOWS (D28). The bowl is still there, the wordmark is still in it and
+ * the object still sits across its edge; what changed is the material. The
+ * bowl now holds a PHOTOGRAPH (or the brand's own blue ground on a recovery)
+ * under a navy scrim instead of a flat bright blue, the wordmark is the
+ * vector mark rather than a raster, and everything below the bowl lives in
+ * one Island (`.nf-island`) rather than loose on the page. The glossy glass
+ * fields and glowing ring of 30 September are gone with the rest of the
+ * glass (D2, D15): fields are plates, the object is matte clay.
  *
- *   light  what is black in the reference is the BRAND: the top block, the
- *          pill and the focus outline run deep navy to the neon brand blue;
- *          the page is white and the field cards are white on a pale ground.
- *   dark   inverted: the top block is a light surface with a navy wordmark,
- *          the pill is white with navy text, the focus outline is white, and
- *          the page and the cards are dark navy.
+ * THEME. The bowl is always night: a dark photograph under a navy scrim is a
+ * dark thing in either theme, so its ink is the on-brand white in both. The
+ * Island below it follows the member's theme (navy glass at night, white
+ * with the blue-tinted shadow on Paper) except on the sign-up flow, which is
+ * a night door whatever they chose (`AuthMain`).
  *
- * So the top block carries the artwork for the ground it is on, not for the
- * document: the NIGHT mark on the navy block in light mode, the DAY mark on
- * the paper block in dark mode. Both images are in the markup and the
- * stylesheet shows one; they are pictures only, and the name is on the link.
- *
- * Exported for the other doors (the passcode "Welcome back" screen shares
- * them). Nothing here holds state, so every piece renders on the server.
- * Everything visual lives in `app/css/auth.css` under "THE SLATE SYSTEM";
- * the pieces only need to sit inside an element with the `nf-auth` class,
- * or carry `nf-slate` themselves, for the roles to resolve.
+ * Exported for the other doors. Nothing here holds state, so every piece
+ * renders on the server. Everything visual lives in `app/css/auth.css`; the
+ * pieces only need to sit inside an element with the `nf-auth` class, or
+ * carry `nf-slate` themselves, for the roles to resolve.
  */
-
-/* The block's bottom edge, in a 390 x 260 box stretched to any width. THE 3D
-   GLASS DOOR (30 September, the founder's passcode reference): one
-   symmetric bowl, high at both edges and lowest in the middle, where the
-   focal object (the avatar ring, the Vallo mark, a 3D icon) sits across it.
-   The morph (auth.css, `nf-slate-morph`) starts from a shallower bowl. */
-export const SLATE_CURVE_PATH = "M0 0H390V150C340 226 270 256 195 256C120 256 50 226 0 150Z";
-const SLATE_EDGE_PATH = "M390 150C340 226 270 256 195 256C120 256 50 226 0 150";
 
 /**
- * The top block. `start` and `end` are the toolbar cells (the auth screens
- * put the way back in `start` and nothing in `end`: language is changed in
- * Settings only); `line` is the sentence under the wordmark.
+ * The bowl. `start` is the toolbar's one cell (the way back; language is
+ * changed in Settings only, so there is no end cell, only an equal spacer so
+ * the wordmark stays centred); `line` is the sentence under the wordmark;
+ * `ground` is the picture; `focal` is the object across the bowl's edge.
  *
- * `compact` draws the short version, for a screen whose content is the whole
- * point (the passcode keypad). The block also shortens itself on any auth
- * screen while a field has focus, so the primary button stays above the
- * keyboard (auth.css, "THE KEYBOARD").
+ * It also shortens itself on a touch screen while a field has focus (auth.css,
+ * "THE KEYBOARD") so the primary button stays above the keys.
  */
-export function AuthCurveBlock({
+export function AuthCap({
   line,
   start,
-  end,
   brandHref = "/",
   brandLabel,
-  wordmark,
-  compact = false,
-  focal,
+  ground,
   id,
 }: {
   line?: ReactNode;
   start?: ReactNode;
-  end?: ReactNode;
   /** Where the wordmark goes. Null draws it as plain text, not a link. */
   brandHref?: string | null;
   /** The link's accessible name, from the dictionary (`a11y.logoHome`). */
   brandLabel: string;
-  /** The spaced-capitals name, from the dictionary (`auth.wordmark`). */
-  wordmark: string;
-  compact?: boolean;
-  /**
-   * The object that sits across the bottom of the bowl in its glowing glass
-   * ring: the member's face on the passcode, the Vallo mark or a 3D icon on
-   * the doors. Decorative (the screen's title names the place).
-   */
-  focal?: ReactNode;
+  /** The photograph (or the brand ground) in the bowl. */
+  ground: ReactNode;
   id?: string;
 }) {
-  const word = (
+  const lockup = (
     <>
-      <Image
-        src="/brand/vallo-mark.png"
-        alt=""
-        aria-hidden
-        width={614}
-        height={587}
-        sizes="32px"
-        priority
-        className="nf-slate-top__mark nf-slate-top__mark--on-navy"
-      />
-      <Image
-        src="/brand/vallo-mark-light.png"
-        alt=""
-        aria-hidden
-        width={614}
-        height={587}
-        sizes="32px"
-        priority
-        className="nf-slate-top__mark nf-slate-top__mark--on-paper"
-      />
-      <span className="nf-slate-top__word" aria-hidden="true">
-        {wordmark}
-      </span>
+      <VectorMark size={28} className="nf-auth-cap__mark" />
+      <VectorWordmark height={14} className="nf-auth-cap__word" />
     </>
   );
-
   return (
-    <header
-      id={id}
-      className={`nf-slate-top${compact ? " nf-slate-top--compact" : ""}${focal ? " nf-slate-top--focal" : ""}`}
-    >
-      <svg
-        className="nf-slate-top__ground"
-        viewBox="0 0 390 260"
-        preserveAspectRatio="none"
-        aria-hidden="true"
-        focusable="false"
-      >
-        <defs>
-          <linearGradient id="nf-slate-fill" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" className="nf-slate-top__stop-a" />
-            <stop offset="0.55" className="nf-slate-top__stop-b" />
-            <stop offset="1" className="nf-slate-top__stop-c" />
-          </linearGradient>
-        </defs>
-        <path className="nf-slate-top__shape" d={SLATE_CURVE_PATH} fill="url(#nf-slate-fill)" />
-        <path className="nf-slate-top__edge" d={SLATE_EDGE_PATH} fill="none" />
-      </svg>
-
-      {/* DEPTH: two soft lights drifting inside the block, clipped by the
-          bowl. Decorative; gone while a field has focus on a phone. The
-          glass objects that floated here retired on 30 September: the one
-          object is now the focal ring across the curve. */}
-      {compact ? null : (
-        <div className="nf-slate-top__depth" aria-hidden="true">
-          <span className="nf-slate-top__light nf-slate-top__light--a" />
-          <span className="nf-slate-top__light nf-slate-top__light--b" />
-        </div>
-      )}
-
-      <div className="nf-slate-top__inner">
-        <div className="nf-slate-top__bar">
-          <div className="nf-slate-top__start">{start}</div>
-          <div className="nf-slate-top__end">{end}</div>
-        </div>
-        {brandHref ? (
-          /* `nf-tap`: the drawn link is 29px tall; the target is 44 (WCAG
-             2.5.8 / the platform's own floor), painted nowhere. */
-          <Link href={brandHref} aria-label={brandLabel} className="nf-slate-top__brand nf-tap">
-            {word}
-          </Link>
-        ) : (
-          <span role="img" aria-label={brandLabel} className="nf-slate-top__brand">
-            {word}
-          </span>
-        )}
-        {line ? <p className="nf-slate-top__line">{line}</p> : null}
+    <header id={id} className="nf-auth-cap">
+      <div className="nf-auth-cap__ground" aria-hidden="true">
+        {ground}
+        <span className="nf-auth-cap__scrim" />
       </div>
-      {focal ? (
-        <div className="nf-slate-focal" aria-hidden="true">
-          <span className="nf-slate-focal__ring">{focal}</span>
+      <div className="nf-auth-cap__inner">
+        <div className="nf-auth-cap__bar">
+          <div className="nf-auth-cap__start">{start}</div>
+          {brandHref ? (
+            /* `nf-tap`: the drawn link is 29px tall; the target is 44 (WCAG
+               2.5.8 / the platform's own floor), painted nowhere. Not
+               prefetched (C6, R3-18 round 2): the wordmark is a way out of
+               sign-in, rarely taken, and prefetching it loaded the whole
+               landing page's styles and code into every auth screen. */
+            <Link href={brandHref} prefetch={false} aria-label={brandLabel} className="nf-auth-cap__brand nf-tap">
+              {lockup}
+            </Link>
+          ) : (
+            <span role="img" aria-label={brandLabel} className="nf-auth-cap__brand">
+              {lockup}
+            </span>
+          )}
+          {/* An equal cell, so the lockup is centred on the screen. */}
+          <div className="nf-auth-cap__start" aria-hidden="true" />
         </div>
-      ) : null}
+        {line ? <p className="nf-auth-cap__line">{line}</p> : null}
+      </div>
     </header>
   );
 }

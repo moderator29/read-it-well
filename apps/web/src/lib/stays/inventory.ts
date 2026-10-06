@@ -30,8 +30,9 @@
  * model, so "for ever" is not available; something has to say how far ahead
  * the hotel is taking bookings. A year is the industry's own answer and it is
  * the number a Nigerian hotel quotes for a wedding block. Nothing here rolls
- * it forward, and that is stated rather than hidden: see `HORIZON_NOTE`, which
- * is the sentence shown to the host, and the ledger entry beside it.
+ * it forward, and that is stated rather than hidden: see
+ * `experienceHost.roomNights.horizonNote`, the sentence shown to the host, and
+ * the ledger entry beside it.
  *
  * The date arithmetic is UTC throughout, because `room_inventory.date` is a
  * `date` and a local-midnight Date in Lagos (UTC+1) renders as the previous
@@ -41,9 +42,6 @@
 /** How many nights ahead a newly published room type is offered. */
 export const INVENTORY_HORIZON_NIGHTS = 365;
 
-/** What the host is told, in the words the surface uses. */
-export const HORIZON_NOTE =
-  "Every room you told us about is offered on every night for the next year. Close the nights you are not taking, and open more when you are.";
 
 /** A night on sale: the shape `room_inventory` takes on insert. */
 export type InventoryNight = {

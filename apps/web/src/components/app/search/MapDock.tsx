@@ -8,7 +8,6 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { MapCopy, MapListing } from "./mapTypes";
 import { Amount } from "@/components/ui/Amount";
 import { MediaFrame } from "@/components/app/MediaFrame";
-import { ExampleNotice } from "@/components/app/listing/ExampleNotice";
 import { useClientCopy } from "@/lib/i18n/client-copy";
 
 /**
@@ -24,6 +23,13 @@ import { useClientCopy } from "@/lib/i18n/client-copy";
  *
  * It is dismissable three ways: the control, a downward swipe, and Escape
  * (handled by the map, which owns the selection).
+ *
+ * THE CARD AND ITS PIN ARE ONE THING (round 5 craft). The chosen pin lifts
+ * 6px and takes the selected fill and edge; this card rises 12px into the
+ * frame from the edge it docks to (240ms, `land`) and carries the same
+ * selected edge, so the eye reads the pair as one object in two places.
+ * The map keys it by place, so choosing another pin lands a new card.
+ * Reduced motion: no rise; the card fades in over 160ms. See map.css.
  */
 
 /** How far down the card must travel before the swipe counts as a dismissal. */
@@ -98,7 +104,7 @@ export function MapDock({
   return (
     <div
       data-testid="map-dock"
-      className="pointer-events-auto px-row pb-row"
+      className="nf-map-dock pointer-events-auto px-row pb-row"
       role="group"
       aria-label={`Chosen place: ${listing.title}`}
     >
@@ -112,7 +118,7 @@ export function MapDock({
           transition: drag ? "none" : "transform var(--nf-duration-fast) var(--nf-ease-standard)",
           boxShadow: "var(--nf-elev-2)",
         }}
-        className="nf-panel nf-panel--card relative touch-pan-y overflow-hidden p-0"
+        className="nf-panel nf-panel--card nf-map-dock__card relative touch-pan-y overflow-hidden p-0"
       >
         {/* Swipe handle. Decorative, the controls carry the real affordance. */}
         <span
@@ -128,23 +134,12 @@ export function MapDock({
           className="flex flex-wrap items-stretch gap-row p-inline pt-row"
         >
           {/*
-            THE DISCLOSURE, ON THE ONE CARD THAT DOES NOT GO THROUGH
-            `ListingCard`.
-
-            This dock is a property card by every measure that matters: a
-            photograph, a title, a place, a rating and a price, arrived at by
-            tapping a pin. It is not built from `ListingCard`, so putting the
-            example statement on that component alone would have left the map
-            as the single surface where somebody meets an invented property
-            with a real Lekki address and a real naira figure and is told
-            nothing.
-
-            Full width above the photograph and the price, for the same reason
-            it sits above them in a grid card: it corrects a belief before the
-            belief forms. `basis-full` because the row it lives in is a flex
-            row built for the thumbnail and the text column beside it.
+            D24 (the founder, 6 October): the example statement came off this
+            card as it came off every other card. What stays is the half that
+            mattered all along: an example listing carries no trust it did not
+            earn, so the rating and the Verified mark below are withheld on
+            one (`isDemo`), whatever its row says.
           */}
-          {listing.isDemo && <ExampleNotice className="basis-full" />}
           <div className="relative h-[86px] w-[86px] shrink-0 overflow-hidden rounded-[var(--nf-plate-radius-sm)]">
             <MediaFrame hue={listing.hue} kind={listing.kind} drawn={listing.drawn} />
             {listing.photo && (
@@ -172,7 +167,7 @@ export function MapDock({
             </p>
 
             <div className="mt-inline flex flex-wrap items-center gap-x-inline gap-y-inline-tight">
-              {listing.rating > 0 && (
+              {!listing.isDemo && listing.rating > 0 && listing.reviewCount > 0 && (
                 <span className="nf-numeric nf-body-sm flex items-center gap-inline-tight font-semibold text-[var(--nf-content-primary)]">
                   <UiIcon name="star" size={16} className="text-[var(--nf-rating)]" />
                   {formatRating(listing.rating, locale)}
@@ -181,7 +176,7 @@ export function MapDock({
                   </span>
                 </span>
               )}
-              {listing.verified && (
+              {listing.verified && !listing.isDemo && (
                 <span className="nf-badge nf-badge--verified">
                   <UiIcon name="verified" size={16} />
                   {copy.verified}
@@ -198,7 +193,7 @@ export function MapDock({
                   glance
                   suffix={`/ ${per}`}
                   className="text-[length:var(--nf-text-body-lg)] font-bold leading-none tracking-tight text-[var(--nf-content-primary)]"
-                  secondaryClassName="text-[0.65em] font-semibold opacity-60"
+                  secondaryClassName="text-[length:max(0.65em,0.75rem)] font-semibold opacity-60"
                 />
               ) : (
                 <span className="nf-body-sm font-semibold text-[var(--nf-content-secondary)]">

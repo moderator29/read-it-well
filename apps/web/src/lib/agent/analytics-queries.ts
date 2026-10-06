@@ -63,7 +63,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../supabase/database.types";
 import type { AgentContext, ListingStatus } from "./listings-queries";
 import { readAgentEarnings, type AgentEarnings, type EarningsMonth } from "./earnings-queries";
-import { HOLD_WINDOW_HOURS } from "./bookings-schema";
+import { HOLD_WINDOW_HOURS } from "./bookings-model";
 import { lagosToday } from "./calendar-schema";
 
 type Db = SupabaseClient<Database>;

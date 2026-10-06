@@ -36,7 +36,11 @@ describe("niceTicks", () => {
     const ticks = niceTicks(52_780_000);
     expect(ticks[0]).toBe(0);
     expect(ticks.at(-1)!).toBeGreaterThanOrEqual(52_780_000);
-    expect(ticks).toEqual([0, 20_000_000, 40_000_000, 60_000_000, 80_000_000]);
+    expect(ticks).toEqual([0, 20_000_000, 40_000_000, 60_000_000]);
+  });
+  it("stops at the first tick that covers the maximum, so the plot is not half empty", () => {
+    expect(niceTicks(107)).toEqual([0, 50, 100, 150]);
+    expect(niceTicks(10, 5)).toEqual([0, 2, 4, 6, 8, 10]);
   });
   it("gives a zero series a readable axis rather than a collapsed one", () => {
     expect(niceTicks(0)).toEqual([0, 0.25, 0.5, 0.75, 1]);

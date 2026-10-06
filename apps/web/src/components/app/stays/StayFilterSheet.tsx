@@ -7,6 +7,8 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { activeFilterCount, type StaysQuery } from "@/lib/stays/query";
 import { ICON } from "@/components/app/Screen";
 import { useLazySheet } from "@/lib/ui/lazy-sheet";
+import { PendingRing } from "@/components/ui/PendingRing";
+import "@/app/css/catalogue.css";
 
 /**
  * The stays filter sheet's TRIGGER: the sliders square with the count of
@@ -70,7 +72,7 @@ export function StayFilterSheet({
         aria-label={activeCount === 0 ? copy.filters.title : `${copy.filters.title}, ${activeCount}`}
         onClick={openSheet} {...sheet.warmProps} className="nf-shelf-square relative">
         {pending ? (
-          <span className="nf-spinner" aria-hidden="true" data-testid="stay-filters-pending" />
+          <PendingRing size={ICON.inline} data-testid="stay-filters-pending" />
         ) : (
           <UiIcon name="sliders" size={ICON.inline} />
         )}

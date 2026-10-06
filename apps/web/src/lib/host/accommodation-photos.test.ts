@@ -1,8 +1,12 @@
 import { describe, expect, it } from "vitest";
+import { getDictionary } from "@vallo/i18n";
 
 import { accommodationPhotoIdSchema, accommodationPhotoSchema } from "./schema";
 import { documentPathBelongsTo, emptyHostDraft, missingFrom } from "./onboarding";
 import { nextPhotoPosition } from "./photos";
+
+/* The field messages the server action builds the schema from, in English. */
+const W = getDictionary("en").experienceHost.refusals.schema;
 
 /**
  * THE GATE THAT COULD NOT BE PASSED.
@@ -86,7 +90,7 @@ describe("the accommodation photograph gate", () => {
 
 describe("accommodationPhotoSchema", () => {
   it("takes the property and the stored path", () => {
-    const parsed = accommodationPhotoSchema.safeParse({
+    const parsed = accommodationPhotoSchema(W).safeParse({
       accommodationId: UUID,
       storagePath: `${OWNER}/${UUID}/a.jpg`,
     });
@@ -94,7 +98,7 @@ describe("accommodationPhotoSchema", () => {
   });
 
   it("refuses a property that is not an id", () => {
-    const parsed = accommodationPhotoSchema.safeParse({
+    const parsed = accommodationPhotoSchema(W).safeParse({
       accommodationId: "the one with the blue door",
       storagePath: `${OWNER}/${UUID}/a.jpg`,
     });
@@ -102,7 +106,7 @@ describe("accommodationPhotoSchema", () => {
   });
 
   it("refuses an empty path rather than recording a row pointing at nothing", () => {
-    const parsed = accommodationPhotoSchema.safeParse({
+    const parsed = accommodationPhotoSchema(W).safeParse({
       accommodationId: UUID,
       storagePath: "   ",
     });
@@ -110,8 +114,8 @@ describe("accommodationPhotoSchema", () => {
   });
 
   it("names a photograph for removal by its id only", () => {
-    expect(accommodationPhotoIdSchema.safeParse({ photoId: UUID }).success).toBe(true);
-    expect(accommodationPhotoIdSchema.safeParse({ photoId: "p1" }).success).toBe(false);
+    expect(accommodationPhotoIdSchema(W).safeParse({ photoId: UUID }).success).toBe(true);
+    expect(accommodationPhotoIdSchema(W).safeParse({ photoId: "p1" }).success).toBe(false);
   });
 });
 

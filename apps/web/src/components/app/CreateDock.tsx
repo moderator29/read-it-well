@@ -34,6 +34,7 @@ export function CreateDock({
   listHref,
   isHost = false,
   signedIn = false,
+  socialOn = true,
 }: {
   t: ShellDictionary;
   /** Where "List a property" goes: the agent wizard for an agent, the chooser otherwise. */
@@ -44,6 +45,8 @@ export function CreateDock({
    * no workspace, and the sheet it opens would be a list of nothing.
    */
   signedIn?: boolean;
+  /** The `social` switch: off, the feed's composer is not offered. */
+  socialOn?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const copy = t.nav.create;
@@ -54,7 +57,9 @@ export function CreateDock({
     { id: "list", href: listHref, icon: "house", title: copy.list, sub: copy.listSub },
     /* The feed's own composer, opened on arrival (`/around?compose=1`,
        read by the Around page and passed to `CreateBloom`). */
-    { id: "post", href: "/around?compose=1", icon: "chat-bubble", title: copy.post, sub: copy.postSub },
+    ...(socialOn
+      ? [{ id: "post", href: "/around?compose=1", icon: "chat-bubble" as const, title: copy.post, sub: copy.postSub }]
+      : []),
     { id: "viewing", href: "/search", icon: "calendar-booking", title: copy.viewing, sub: copy.viewingSub },
     ...(isHost
       ? [{ id: "stay", href: "/host/rooms", icon: "bed" as const, title: copy.stay, sub: copy.staySub }]
@@ -78,8 +83,17 @@ export function CreateDock({
         className="nf-tab__link nf-tab__link--create"
         data-dock-create=""
       >
+        {/* THE CENTRE TURNS INTO ITS OWN CLOSE (north star 6.1): the disc
+            rotates 90 degrees as its sheet opens while the plus crossfades
+            to a close mark, so the control that opened the sheet visibly
+            becomes the one that shuts it (nav-island.css). */}
         <span className="nf-dock-plus" aria-hidden="true">
-          <UiIcon name="plus" size="md" />
+          <span className="nf-dock-plus__glyph nf-dock-plus__glyph--open">
+            <UiIcon name="plus" size="md" />
+          </span>
+          <span className="nf-dock-plus__glyph nf-dock-plus__glyph--close">
+            <UiIcon name="close" size="md" />
+          </span>
         </span>
       </button>
 

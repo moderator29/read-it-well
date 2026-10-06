@@ -62,10 +62,19 @@
     }
   }
 
+  /* 2x2 on a phone, four across from 768 (north star 7: figure tiles in a
+     2x2). minmax(200px) stacked the four figures one per row at 390, so the
+     desk opened with a screen of tiles before the first queue row (C1 sweep). */
   .nf-rv-kpis {
     display: grid;
-    gap: var(--nf-space-md);
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--nf-space-sm);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  @media (min-width: 768px) {
+    .nf-rv-kpis {
+      gap: var(--nf-space-md);
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
   }
 
   /* ------------------------------------------------------------ the head */
@@ -141,10 +150,10 @@
     border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
     background: var(--nf-btn-glass-fill);
     font-size: 0.9375rem; /* cap 7.5 image px / 0.72 x1.5 = 15.6 (R-A) */
-    font-weight: 500;
+    font-weight: 600;
     color: var(--nf-content-primary);
     white-space: nowrap;
-    transition: border-color 160ms ease, background 160ms ease;
+    transition: border-color var(--nf-duration-fast) var(--nf-ease-standard), background var(--nf-duration-fast) var(--nf-ease-standard);
     box-shadow: var(--nf-btn-glass-shadow);
   }
 
@@ -266,7 +275,7 @@
     padding: var(--nf-space-sm) var(--nf-space-sm);
     text-align: left;
     font-size: var(--nf-text-overline);
-    font-weight: 500;
+    font-weight: 600;
     color: var(--nf-brand-secondary);
     border-bottom: 1px solid var(--nf-brand-edge-soft);
     white-space: nowrap;
@@ -310,7 +319,7 @@
 
   .nf-rv-ref {
     display: block;
-    font-weight: 500;
+    font-weight: 400;
     letter-spacing: 0.02em;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
@@ -327,7 +336,7 @@
     border-radius: var(--nf-radius-xs);
     border: 1px dashed var(--nf-border-brand);
     font-size: var(--nf-text-overline);
-    font-weight: 500;
+    font-weight: 400;
     letter-spacing: 0;
     color: var(--nf-content-secondary);
     vertical-align: middle;
@@ -374,7 +383,7 @@
 
   .nf-rv-rows__head {
     font-size: var(--nf-text-overline);
-    font-weight: 500;
+    font-weight: 600;
     color: var(--nf-brand-secondary);
     border-bottom: 1px solid var(--nf-brand-edge-soft);
   }
@@ -439,13 +448,19 @@
     min-height: 26px;
     padding: 0 var(--nf-space-sm);
     border-radius: var(--nf-radius-xs);
-    border: 1px solid var(--rv-ink, var(--nf-brand-primary));
-    background: color-mix(in oklab, var(--rv-ink, var(--nf-brand-primary)) 42%, var(--nf-surface-primary));
-    color: color-mix(in oklab, var(--rv-ink, var(--nf-brand-primary)) 45%, var(--nf-content-on-brand));
+    /* ONE EDGE AND INK THAT READS IN BOTH THEMES. The fill mixed the tone
+       with the surface and the ink mixed it with the on-brand white, which is
+       white on paper too: on the light theme every badge measured 1.04 to
+       1.05 to 1 (axe colour-contrast, 16 badges on the verification desk, C1
+       sweep), and a glow sat on top of the ring as a second edge. The ink now
+       mixes the tone toward the theme's own primary text, the fill is a quiet
+       tint, and the ring is the only edge. */
+    border: 1px solid color-mix(in oklab, var(--rv-ink, var(--nf-brand-primary)) 55%, transparent);
+    background: color-mix(in oklab, var(--rv-ink, var(--nf-brand-primary)) 16%, var(--nf-surface-primary));
+    color: color-mix(in oklab, var(--rv-ink, var(--nf-brand-primary)) 55%, var(--nf-content-primary));
     font-size: var(--nf-text-overline);
     font-weight: 600;
     white-space: nowrap;
-    box-shadow: 0 0 14px -4px color-mix(in oklab, var(--rv-ink, var(--nf-brand-primary)) 70%, transparent);
   }
 
   .nf-rv-badge--success { --rv-ink: var(--nf-state-success); }
@@ -466,7 +481,7 @@
     background: color-mix(in oklab, var(--nf-brand-primary) 22%, transparent);
     color: var(--nf-brand-secondary);
     font-size: var(--nf-text-overline);
-    font-weight: 500;
+    font-weight: 600;
   }
 
   /* ------------------------------------------------------------ KPI card */
@@ -533,7 +548,7 @@
 
   .nf-rv-kpi__figure--quiet {
     font-size: var(--nf-text-body);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--nf-content-muted);
   }
 
@@ -760,14 +775,20 @@
 
   .nf-rv-facts > div {
     display: grid;
-    grid-template-columns: 24px minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
     gap: var(--nf-space-xs);
     min-height: 34px;
     font-size: var(--nf-text-caption);
   }
 
+  /* The glyph sits in its own 24px cell on the label's line, as it did when it
+     was a sibling of the label. */
   .nf-rv-facts dt {
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr);
+    align-items: center;
+    gap: var(--nf-space-xs);
     color: var(--nf-brand-secondary);
   }
 
@@ -915,6 +936,15 @@
     }
   }
 
+  /* The strip and the walkthrough draw the console's ring under the keyboard;
+     the video's own controls drew none (Tab walk, C1 sweep). The video takes
+     :focus, not :focus-visible: focus sits in its shadow controls, so the
+     host never matches :focus-visible. */
+  .nf-rv-media:focus-visible,
+  .nf-rv-media video:focus {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
   .nf-rv-media > * {
     position: relative;
     min-height: 64px;
@@ -1028,7 +1058,8 @@
     position: absolute;
     right: var(--nf-space-2xs);
     bottom: var(--nf-space-3xs);
-    font-size: 10px;
+    /* The 12px floor holds for an attribution too (it drew 10px; C1 sweep). */
+    font-size: var(--nf-text-overline);
     color: var(--nf-content-muted);
   }
 
@@ -1135,7 +1166,7 @@
     box-shadow:
       inset 0 1px 0 color-mix(in oklab, var(--nf-content-on-brand) 55%, transparent),
       0 10px 24px -10px color-mix(in oklab, var(--rv-btn) 85%, transparent);
-    transition: transform 120ms ease;
+    transition: transform var(--nf-duration-press) var(--nf-ease-press);
   }
 
   .nf-rv-btn:hover:not(:disabled) {

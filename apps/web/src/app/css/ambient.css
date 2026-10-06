@@ -158,17 +158,20 @@
    * eased so it feels like the nebula reacting rather than a spotlight.
    * Coordinates come from the LivingCanvas director; hidden on touch.
    */
+  /* It moves on `translate`, never `left` and `top` (round 5, W1): the
+     layer is the viewport (`inset: 0` above), so a percentage of it is the
+     same distance in `vw`/`vh`, and the trail runs on the compositor at the
+     cinematic rung instead of laying the bloom out on every pointer move. */
   .nf-ambient > span:nth-child(4) {
     inset: auto;
-    left: calc(var(--nf-px, 50) * 1% - 23vmax);
-    top: calc(var(--nf-py, 38) * 1% - 23vmax);
+    left: -23vmax;
+    top: -23vmax;
     width: 46vmax;
     height: 46vmax;
     border-radius: var(--nf-radius-circle);
     background: radial-gradient(circle, var(--nf-glow-wash) 0%, transparent 60%);
-    transition:
-      left 1100ms var(--nf-ease-standard),
-      top 1100ms var(--nf-ease-standard);
+    translate: calc(var(--nf-px, 50) * 1vw) calc(var(--nf-py, 38) * 1vh);
+    transition: translate var(--nf-duration-cinematic) var(--nf-ease-standard);
     display: none;
   }
   @media (pointer: fine) {
@@ -357,11 +360,6 @@
     syntax: "<angle>";
     inherits: false;
     initial-value: 152deg;
-  }
-  @keyframes nf-spin {
-    to {
-      --nf-spin: 512deg;
-    }
   }
   .nf-card--live {
     background:

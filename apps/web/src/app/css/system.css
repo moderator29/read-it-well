@@ -190,7 +190,9 @@
     font-size: var(--nf-text-caption);
     font-variant-numeric: tabular-nums;
     color: var(--nf-content-muted);
-    word-break: break-all;
+    /* The code may break anywhere it must; the words around it break as words
+       (it was break-all, which split "quote" across two lines). */
+    overflow-wrap: anywhere;
   }
   .nf-system__actions {
     display: flex;
@@ -288,11 +290,29 @@
   .nf-system__aside {
     animation-delay: 180ms;
   }
+  /*
+   * BAD NEWS ARRIVES AT ONCE (W2, round 5; CRAFT_DOCTRINE 5: an error is
+   * immediate, 160ms, never a slow reveal). The settle above is right for the
+   * offline and missing screens, which are places; a screen that failed rose
+   * in over 520ms after a 90ms wait, so the reader watched the bad news
+   * arrive for most of a second. A failure is a cut: one opacity fade on the
+   * fast rung, everything at once, nothing travelling.
+   */
+  .nf-system:has([data-state-kind="error"]) :is(.nf-system__brand, .nf-system__card, .nf-system__podium, .nf-system__aside) {
+    animation: nf-fade-in var(--nf-duration-fast) var(--nf-ease-standard) both;
+    animation-delay: 0ms;
+  }
+  /* The failure's small mark, above the overline, on the card's axis. */
+  .nf-system__mark {
+    margin-bottom: var(--nf-space-sm);
+    vertical-align: top;
+  }
   @media (prefers-reduced-motion: reduce) {
     .nf-system__brand,
     .nf-system__card,
     .nf-system__podium,
-    .nf-system__aside {
+    .nf-system__aside,
+    .nf-system:has([data-state-kind="error"]) :is(.nf-system__brand, .nf-system__card, .nf-system__podium, .nf-system__aside) {
       animation: none;
     }
     .nf-system__search-glyph {
@@ -390,17 +410,20 @@
   /* --------------------------------------------------------- legal reader */
   /*
    * A legal document read from inside the product: the page header with the
-   * back flow, the last-updated line, a glass table of contents, then the
-   * sections as measured prose on the canvas with hairlines between them.
-   * The prose is not boxed: a card around twelve sections of terms reads as
-   * a form to be filled in, and this is a text to be read.
+   * back flow on the member's theme, then the document itself on the shared
+   * paper (`DocumentSheet`, `.nf-doc`, R3-03), the same material as the
+   * public /terms, /privacy and /disclaimer: the last-updated line, the
+   * contents as a numbered index, then the sections as measured prose with
+   * hairlines between them. Inside `.nf-doc` the content, divider and link
+   * tokens are already the paper inks (document.css), so everything below
+   * reads them and never names a night value.
    */
   .nf-legal__meta {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: var(--nf-gap-inline);
-    margin-top: var(--nf-space-sm);
+    margin-top: 0;
     font-size: var(--nf-text-caption);
     color: var(--nf-content-muted);
   }
@@ -408,13 +431,13 @@
     color: var(--nf-content-secondary);
     font-variant-numeric: tabular-nums;
   }
-  /* The contents card is the shared panel (`LegalDocument` draws it as
-     `.nf-panel`, platform sweep, 23 September); it drew its own brand edge,
-     glass fill, blur, `--nf-glow-edge`, specular sheet and xl corner. */
-  .nf-panel.nf-legal__toc {
+  /* The contents are part of the document, so they are on the paper as an
+     index under a hairline, not a glass card floating on it. */
+  .nf-legal__toc {
     display: block;
-    margin-top: var(--nf-space-lg);
-    padding: var(--nf-space-md);
+    margin-top: var(--nf-space-md);
+    padding-bottom: var(--nf-space-md);
+    border-bottom: var(--nf-border-width) solid var(--nf-divider);
   }
   .nf-legal__toc-title {
     margin: 0 var(--nf-space-xs);
@@ -448,12 +471,14 @@
       background-color var(--nf-duration-fast) var(--nf-ease-standard),
       color var(--nf-duration-fast) var(--nf-ease-standard);
   }
+  /* The night hover and press fills are tuned for a dark canvas; on paper
+     the row answers with the paper hairline as its fill. */
   .nf-legal__toc a:active {
-    background: var(--nf-interactive-active);
+    background: var(--nf-divider);
   }
   @media (hover: hover) {
     .nf-legal__toc a:hover {
-      background: var(--nf-interactive-hover);
+      background: var(--nf-divider);
       color: var(--nf-content-primary);
     }
   }
@@ -467,7 +492,8 @@
     font-size: var(--nf-text-caption);
     font-weight: 600;
     font-variant-numeric: tabular-nums;
-    color: var(--nf-brand-secondary);
+    /* The paper accent: the night brand ink is too light on white. */
+    color: var(--nf-content-link);
   }
 
   .nf-legal__body {
@@ -482,10 +508,14 @@
     padding-top: var(--nf-space-xl);
     border-top: 1px solid var(--nf-divider);
   }
+  /* The section heading in the display face, as the public sheet sets it
+     (`.nf-legal-sheet h2`), so the two routes read as one document. */
   .nf-legal__heading {
     display: flex;
     align-items: baseline;
     gap: var(--nf-space-sm);
+    font-family: var(--nf-font-display);
+    color: var(--nf-content-primary);
   }
   .nf-legal__heading .nf-legal__num {
     font-size: var(--nf-text-body-sm);
@@ -512,7 +542,7 @@
     margin-top: var(--nf-space-2xs);
   }
   .nf-legal__prose li::marker {
-    color: var(--nf-brand-secondary);
+    color: var(--nf-content-link);
   }
   .nf-legal__prose a {
     color: var(--nf-content-link);

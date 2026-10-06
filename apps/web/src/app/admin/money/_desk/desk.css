@@ -176,7 +176,7 @@
   /* Render: ascender height 7 render px = 11 CSS, a 15px label. */
   .nf-md-kpi__label {
     font-size: 0.9375rem;
-    font-weight: 500;
+    font-weight: 600;
     color: var(--nf-brand-quiet);
   }
   .nf-md-kpi__value {
@@ -190,7 +190,7 @@
   }
   .nf-md-kpi__value--quiet {
     font-size: var(--nf-text-body);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--nf-content-muted);
   }
   .nf-md-delta {
@@ -318,6 +318,7 @@
     overflow: hidden;
     font-size: var(--nf-text-overline);
     font-weight: 600;
+    font-variant-numeric: tabular-nums;
     white-space: nowrap;
     color: var(--nf-surface-canvas);
   }
@@ -371,7 +372,7 @@
     padding: 0 var(--nf-space-xs) var(--nf-space-sm);
     text-align: left;
     font-size: var(--nf-text-caption);
-    font-weight: 500;
+    font-weight: 600;
     color: var(--nf-brand-quiet);
     border-bottom: var(--nf-border-width) solid var(--nf-brand-edge-soft);
     white-space: nowrap;
@@ -400,7 +401,7 @@
   }
   .nf-md-table .nf-md-strong {
     color: var(--nf-content-primary);
-    font-weight: 500;
+    font-weight: 600;
   }
   .nf-md-table .nf-md-date {
     white-space: nowrap;
@@ -412,12 +413,12 @@
   .nf-md-credit,
   .nf-md-table .nf-md-credit {
     color: var(--nf-state-success);
-    font-weight: 500;
+    font-weight: 600;
   }
   .nf-md-debit,
   .nf-md-table .nf-md-debit {
     color: var(--nf-content-primary);
-    font-weight: 500;
+    font-weight: 600;
   }
   .nf-md-countdown {
     color: var(--nf-state-success);
@@ -530,7 +531,7 @@
     /* Render: the page number's cap 9 render px = 14 CSS, 20px, in a box the
        render draws at 25 render px = 39 CSS and R-B lifts to 44. */
     font-size: 1.25rem;
-    font-weight: 500;
+    font-weight: 600;
     color: var(--nf-content-secondary);
     text-decoration: none;
     font-variant-numeric: tabular-nums;
@@ -572,15 +573,50 @@
   .nf-md-chart {
     position: relative;
     width: 100%;
+    container-type: inline-size;
+  }
+  /* The axis words (charts.tsx, SeriesChart): HTML over a box with the
+     drawing's aspect ratio, so they hold the 12px floor at any width. */
+  .nf-md-chart__ticks {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    pointer-events: none;
+  }
+  .nf-md-chart__tick {
+    position: absolute;
+    font-size: var(--nf-text-overline);
+    line-height: 1;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-brand-quiet);
+  }
+  .nf-md-chart__tick--y {
+    transform: translate(var(--nf-space-3xs), calc(-100% - var(--nf-space-3xs)));
+  }
+  .nf-md-chart__tick--x {
+    transform: translate(-50%, var(--nf-space-2xs));
+  }
+  .nf-md-chart__tick--start {
+    transform: translate(0, var(--nf-space-2xs));
+  }
+  .nf-md-chart__tick--end {
+    transform: translate(-100%, var(--nf-space-2xs));
+  }
+  .nf-md-chart__tick--series {
+    transform: translate(-100%, -100%);
+  }
+  @container (max-width: 30rem) {
+    .nf-md-chart__tick--minor,
+    .nf-md-chart__tick--series {
+      display: none;
+    }
   }
   .nf-md-chart svg {
     display: block;
     width: 100%;
     overflow: visible;
-  }
-  .nf-md-chart__axis {
-    font-size: var(--nf-text-overline);
-    fill: var(--nf-brand-quiet);
   }
   .nf-md-chart__grid {
     stroke: var(--nf-border-subtle);
@@ -605,7 +641,7 @@
     border-radius: var(--nf-radius-circle);
   }
   .nf-md-swatch--square {
-    border-radius: 0.125rem;
+    border-radius: 0;
   }
 
   /* The hover readout: a thin client layer over a server-drawn chart. */
@@ -716,7 +752,7 @@
   .nf-md-ring__when {
     margin-top: var(--nf-space-3xs);
     font-size: var(--nf-text-body-sm);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--nf-content-primary);
   }
 
@@ -818,7 +854,7 @@
   }
   .nf-md-stage__label {
     font-size: var(--nf-text-caption);
-    font-weight: 500;
+    font-weight: 600;
     color: var(--nf-content-secondary);
   }
   .nf-md-stage__count {
@@ -962,8 +998,10 @@
     text-decoration: none;
   }
   /* On: the platform's shared selected state (the console tab's), not a
-     local navy recipe (audit S2). */
-  .nf-md-toggle[aria-pressed="true"] {
+     local navy recipe (audit S2). A toggle that is a link says so with
+     aria-current, since aria-pressed is not allowed on a link (axe
+     aria-allowed-attr, C1 sweep); a toggle that is a button keeps aria-pressed. */
+  .nf-md-toggle:is([aria-pressed="true"], [aria-current="true"]) {
     border-color: var(--nf-selected-edges);
     color: var(--nf-content-on-brand);
     background: var(--nf-selected-fill);
@@ -973,7 +1011,7 @@
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
     outline-offset: 2px;
   }
-  .nf-md-toggle[aria-pressed="true"]:focus-visible {
+  .nf-md-toggle:is([aria-pressed="true"], [aria-current="true"]):focus-visible {
     --nf-focus-ring: var(--nf-content-on-brand);
   }
 
@@ -1068,7 +1106,7 @@
   }
   .nf-md-evidence__who {
     color: var(--nf-brand-quiet);
-    font-weight: 500;
+    font-weight: 600;
   }
   .nf-md-evidence__what {
     min-width: 0;

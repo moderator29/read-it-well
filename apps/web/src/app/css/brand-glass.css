@@ -85,7 +85,6 @@
    * itself (every user is a night island or the night document, so the
    * inks resolve to the night's), used by:
    *
-   *   - `.nf-navy-glass`, for any new dark block;
    *   - every `HeroBand` (`.nf-hero-band`: Home's "Good morning" top, the
    *     workspace "Today" band, the money summaries, the status headers,
    *     the profile identity, the landing app band), in BOTH themes: in
@@ -97,8 +96,17 @@
    *
    * The moving edge light stays where edge-m.css allows it (the drawer, the
    * hero band); nothing here animates.
+   *
+   * `.nf-navy-glass` USED TO BE HERE, "for any new dark block", and no block
+   * ever took it. It is now a name for the Island tier (glass.css), the one
+   * generic hero container, so a new dark block reaches for the tier rather
+   * than a fifth material; inside light mode it carries `data-theme="dark"`
+   * as `HeroBand` does, and the tier tokens resolve to the night's. Nothing
+   * drew it, so nothing changes on screen. The hero band keeps this material:
+   * the Island's 28px corner, its brand edge and its 72 per cent fill over a
+   * blur would each move a box members already know (D28.2).
    */
-  :is(.nf-navy-glass, .nf-hero-band, .nf-drawer--left, .nf-nav--rail) {
+  :is(.nf-hero-band, .nf-drawer--left, .nf-nav--rail) {
     --nf-navy-glass-bloom:
       radial-gradient(110% 60% at 0% 0%, color-mix(in oklab, var(--nf-container-ink) 30%, transparent), transparent 72%),
       radial-gradient(80% 40% at 100% 100%, color-mix(in oklab, var(--nf-container-ink) 10%, transparent), transparent 70%);
@@ -114,7 +122,6 @@
       0 0 28px -12px color-mix(in oklab, var(--nf-glow-ink) 40%, transparent),
       0 18px 36px -24px color-mix(in oklab, var(--nf-surface-artwork) 70%, transparent);
   }
-  .nf-navy-glass,
   :root[data-theme="light"] .nf-hero-band[data-theme="dark"] {
     border: 1px solid var(--nf-navy-glass-edge);
     background: var(--nf-navy-glass-fill);
@@ -293,14 +300,19 @@
   /* ------------------------------------------------------------ sheets
      Fixed chrome over live content: the raised glass over a dense ground,
      the luminous edge on its three open sides, the backdrop blur it already
-     had (overlays.css) kept. */
+     had (overlays.css) kept.
+
+     ONE EDGE (north star 4, the hairline rule; Session 3, W10). The night
+     sheet wore the luminous edge, an inset top catchlight, the raised glow
+     AND the rung-3 drop: three edges on one object. The Sheet tier's night
+     edge is the hairline, here the luminous one, because a shadow cast
+     upwards onto a near-black page reads as nothing and the 56 per cent
+     scrim already separates the sheet from the page. So the shadow is the
+     tier's, which at night is flat. */
   :root:not([data-theme="light"]) .nf-sheet {
     border-color: var(--nf-night-glass-raised-edge);
     background: var(--nf-night-glass-sheet-fill);
-    box-shadow:
-      inset 0 1px 0 color-mix(in oklab, var(--nf-content-primary) 10%, transparent),
-      var(--nf-night-glass-raised-glow),
-      var(--nf-elev-3);
+    box-shadow: var(--nf-tier-sheet-shadow);
   }
 
   /* ------------------------------------------------------ conversation

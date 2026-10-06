@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { getDictionary } from "@vallo/i18n";
 import { PageHeader } from "@/components/app/PageHeader";
 import { resolveSession } from "@/lib/actions/session";
 import { getLocale } from "@/lib/locale";
@@ -12,7 +13,9 @@ import { InboxEmpty } from "../../../Inbox";
 import { resolveCard } from "../../../[id]/cards";
 import { ShareIntoThread, ShareToThread, type ShareItem, type ShareThread } from "../../SharePicker";
 
-export const metadata: Metadata = { title: "Share to chat" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: getDictionary(await getLocale()).experienceInbox.share.title };
+}
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -43,6 +46,7 @@ export default async function SharePage({
   if (kind !== "listing" && kind !== "booking" && kind !== "stay" && kind !== "into") notFound();
 
   const session = await resolveSession();
+  const words = getDictionary(await getLocale()).experienceInbox.share;
   const back =
     kind === "into"
       ? `/messages/${id}`
@@ -56,11 +60,11 @@ export default async function SharePage({
     const next = returnHref(`/messages/share/${kind}/${id}`, "", "message");
     return (
       <div className="mx-auto max-w-2xl">
-        <PageHeader title="Share to chat" fallback={back} />
+        <PageHeader title={words.title} fallback={back} />
         <InboxEmpty
-          title="Sign in to share this"
-          body="Sharing sends a card into one of your conversations, so it needs your account. You will come straight back here."
-          action={{ href: authHref(next, "sign-in"), label: "Sign in" }}
+          title={words.signedOutTitle}
+          body={words.signedOutBody}
+          action={{ href: authHref(next, "sign-in"), label: words.signIn }}
         />
       </div>
     );
@@ -69,11 +73,11 @@ export default async function SharePage({
   if (!(await isFeatureEnabled("messaging"))) {
     return (
       <div className="mx-auto max-w-2xl">
-        <PageHeader title="Share to chat" fallback={back} />
+        <PageHeader title={words.title} fallback={back} />
         <InboxEmpty
-          title="Messaging is paused for maintenance"
-          body="Nothing has been lost. Try again in a few minutes."
-          action={{ href: back, label: "Back" }}
+          title={words.pausedTitle}
+          body={words.pausedBody}
+          action={{ href: back, label: words.back }}
         />
       </div>
     );
@@ -139,8 +143,8 @@ export default async function SharePage({
 
     return (
       <div className="mx-auto max-w-2xl">
-        <PageHeader title="Share into this chat" fallback={back} />
-        <ShareIntoThread conversationId={id} counterpartName={target.counterpartName} items={items} />
+        <PageHeader title={words.intoTitle} fallback={back} />
+        <ShareIntoThread conversationId={id} counterpartName={target.counterpartName} items={items} copy={words.picker} />
       </div>
     );
   }
@@ -163,8 +167,8 @@ export default async function SharePage({
 
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeader title="Share to chat" subtitle={card.title} fallback={back} />
-      <ShareToThread card={card} target={ref} threads={threads} />
+      <PageHeader title={words.title} subtitle={card.title} fallback={back} />
+      <ShareToThread card={card} target={ref} threads={threads} copy={words.picker} />
     </div>
   );
 }

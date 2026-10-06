@@ -10,6 +10,8 @@ import {
 } from "@/lib/trust/standards";
 import { TIER_NAME, VERIFICATION_ORDER } from "@/lib/trust/verification";
 import { RankingExplained } from "@/components/site/RankingExplained";
+import { DocumentSheet } from "@/components/app/money/DocumentSheet";
+import "@/components/site/guides/policy-sheet.css";
 
 /* A10: the title and description in the page's own language, with its
    canonical and hreflang (lib/i18n/public-metadata.ts; words in publicMeta). */
@@ -113,35 +115,40 @@ export default function StandardsPage() {
     <div className="nf-shell pb-section">
       <div className="mx-auto max-w-3xl">
 
+        {/* THE STANDARDS ON PAPER (D28.1; Session 3, W1b): one document sheet in
+            the reader's theme; the cards the parts used to be are rows, and the
+            ranking section's own cards are rowed by policy-sheet.css. Every word
+            is as it was. */}
+        <DocumentSheet kind="document" printable className="nf-policy mt-block">
         {/* ------------------------------------------- response times first */}
-        <section className="mt-section" aria-labelledby="response-times">
-          <h2 id="response-times" className="nf-h2 text-[1.375rem]">
+        <section aria-labelledby="response-times">
+          <h2 id="response-times">
             How long we take
           </h2>
-          <p className="mt-inline text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mt-inline text-[length:var(--nf-text-row)] leading-relaxed text-[var(--nf-content-secondary)]">
             Measured from the moment your report is filed, not from the moment
             somebody opens it. The console our staff work in puts the same clock
             on every row and marks it late when it passes, so these are numbers
             we are held to internally and not a line of marketing.
           </p>
-          <ul className="mt-group space-y-row">
+          <ul className="nf-policy__list mt-group">
             {RESPONSE_ORDER.map((grade) => {
               const commitment = RESPONSE_COMMITMENTS[grade];
               return (
-                <li key={grade} className="nf-panel nf-panel--card block p-card-sm">
+                <li key={grade} className="nf-policy__item">
                   <div className="flex flex-wrap items-baseline gap-x-row gap-y-inline-tight">
-                    <span className="nf-numeric text-[1.0625rem] font-semibold text-[var(--nf-content-primary)]">
+                    <span className="nf-numeric text-[length:var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
                       {commitment.label}
                     </span>
                   </div>
-                  <p className="mt-inline text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+                  <p className="mt-inline text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                     {commitment.covers}
                   </p>
                 </li>
               );
             })}
           </ul>
-          <p className="mt-row text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+          <p className="mt-row text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
             Answering does not always mean finishing. It means a person has read
             it, told you what is happening, and taken any step that stops harm
             continuing while the rest is worked out.
@@ -149,17 +156,17 @@ export default function StandardsPage() {
         </section>
 
         {/* ------------------------------------------------- not allowed */}
-        <section className="mt-section" aria-labelledby="not-allowed">
-          <h2 id="not-allowed" className="nf-h2 text-[1.375rem]">
+        <section aria-labelledby="not-allowed">
+          <h2 id="not-allowed">
             What is not allowed
           </h2>
-          <ul className="mt-group space-y-row">
+          <ul className="nf-policy__list mt-group">
             {NOT_ALLOWED.map((item) => (
-              <li key={item.title} className="nf-panel nf-panel--card block p-card-sm">
-                <h3 className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
+              <li key={item.title} className="nf-policy__item">
+                <h3 className="text-[length:var(--nf-text-row)] font-semibold text-[var(--nf-content-primary)]">
                   {item.title}
                 </h3>
-                <p className="mt-inline text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+                <p className="mt-inline text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                   {item.body}
                 </p>
               </li>
@@ -168,20 +175,20 @@ export default function StandardsPage() {
         </section>
 
         {/* ------------------------------------------------- enforcement */}
-        <section className="mt-section" aria-labelledby="enforcement">
-          <h2 id="enforcement" className="nf-h2 text-[1.375rem]">
+        <section aria-labelledby="enforcement">
+          <h2 id="enforcement">
             How we enforce it
           </h2>
-          <ol className="mt-group space-y-row">
+          <ol className="nf-policy__list mt-group">
             {ENFORCEMENT.map((item, index) => (
-              <li key={item.title} className="nf-panel nf-panel--card block p-card-sm">
+              <li key={item.title} className="nf-policy__item">
                 <span className="nf-overline">
                   Step <span className="nf-numeric">{index + 1}</span>
                 </span>
-                <h3 className="mt-inline-tight text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
+                <h3 className="mt-inline-tight text-[length:var(--nf-text-row)] font-semibold text-[var(--nf-content-primary)]">
                   {item.title}
                 </h3>
-                <p className="mt-inline text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+                <p className="mt-inline text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                   {item.body}
                 </p>
               </li>
@@ -190,17 +197,17 @@ export default function StandardsPage() {
         </section>
 
         {/* ------------------------------------------------ consequences */}
-        <section className="mt-section" aria-labelledby="consequences">
-          <h2 id="consequences" className="nf-h2 text-[1.375rem]">
+        <section aria-labelledby="consequences">
+          <h2 id="consequences">
             What happens when a standard is broken
           </h2>
-          <ul className="mt-group space-y-row">
+          <ul className="nf-policy__list mt-group">
             {CONSEQUENCES.map((item) => (
-              <li key={item.title} className="nf-panel nf-panel--card block p-card-sm">
-                <h3 className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
+              <li key={item.title} className="nf-policy__item">
+                <h3 className="text-[length:var(--nf-text-row)] font-semibold text-[var(--nf-content-primary)]">
                   {item.title}
                 </h3>
-                <p className="mt-inline text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+                <p className="mt-inline text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                   {item.body}
                 </p>
               </li>
@@ -209,11 +216,11 @@ export default function StandardsPage() {
         </section>
 
         {/* --------------------------------------------- the agent ladder */}
-        <section className="mt-section" aria-labelledby="agent-ladder">
-          <h2 id="agent-ladder" className="nf-h2 text-[1.375rem]">
+        <section aria-labelledby="agent-ladder">
+          <h2 id="agent-ladder">
             How far the person behind a listing has been checked
           </h2>
-          <p className="mt-inline text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mt-inline text-[length:var(--nf-text-row)] leading-relaxed text-[var(--nf-content-secondary)]">
             Approval is where somebody starts, not where they finish. Four checks
             sit above it, in this order, and each one is a decision a named member
             of our team recorded. Nobody skips a step: passing the last one while
@@ -222,27 +229,27 @@ export default function StandardsPage() {
             host who lets rooms by the night and a restaurant that takes tables,
             because it is the person being checked and not the product.
           </p>
-          <ol className="mt-group space-y-row">
+          <ol className="nf-policy__list mt-group">
             {VERIFICATION_ORDER.map((rung) => (
-              <li key={rung.kind} className="nf-panel nf-panel--card block p-card-sm">
+              <li key={rung.kind} className="nf-policy__item">
                 <div className="flex flex-wrap items-baseline gap-x-row gap-y-inline-tight">
                   <span className="nf-overline">
                     Level <span className="nf-numeric">{rung.step}</span>
                   </span>
-                  <span className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
+                  <span className="text-[length:var(--nf-text-row)] font-semibold text-[var(--nf-content-primary)]">
                     {TIER_NAME[rung.step]}
                   </span>
                 </div>
-                <p className="mt-inline text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+                <p className="mt-inline text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                   {rung.meaning}
                 </p>
-                <p className="mt-inline text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+                <p className="mt-inline text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
                   What we look at: {rung.evidence}
                 </p>
               </li>
             ))}
           </ol>
-          <p className="mt-row text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+          <p className="mt-row text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
             A level can go down as well as up. If something stops checking out, the
             check is recorded as failed, the level drops to the step below it, and
             the agent is told why.
@@ -253,12 +260,12 @@ export default function StandardsPage() {
         <RankingExplained />
 
         {/* ---------------------------------------------------- appeals */}
-        <section className="mt-section" aria-labelledby="appeals">
-          <h2 id="appeals" className="nf-h2 text-[1.375rem]">
+        <section aria-labelledby="appeals">
+          <h2 id="appeals">
             If you think we got it wrong
           </h2>
-          <div className="nf-panel nf-panel--card block mt-group p-card">
-            <p className="text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
+          <div className="mt-group">
+            <p className="text-[length:var(--nf-text-row)] leading-relaxed text-[var(--nf-content-secondary)]">
               Every decision can be appealed, and an appeal is read by somebody
               who did not make the original call. Write to support with what was
               removed and why you think the decision was wrong. Appeals are
@@ -280,7 +287,9 @@ export default function StandardsPage() {
           </div>
         </section>
 
-        <p className="mt-block text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+        </DocumentSheet>
+
+        <p className="mt-block text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
           These standards sit alongside the{" "}
           <Link
             href="/terms"

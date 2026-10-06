@@ -2,15 +2,15 @@ import type { BrandIconName } from "@/design-system/icons/BrandIcon";
 import { SUPPORT_SENTENCE } from "@/lib/support-email";
 import { doorsSentence } from "@/lib/supply/roles";
 import {
-  GUARANTEE_CONTRIBUTION_NOTE,
-  GUARANTEE_SCOPE,
-  GUARANTEE_SENTENCE,
+  DIRECT_RAIL_STANDING,
+  LEGACY_GUARANTEE_CLAIM,
   NO_CUSTODY_SENTENCE,
   NO_INSPECTION_FEE,
   OFF_PLATFORM_SENTENCE,
   PAYMENT_GATE_SENTENCE,
   PAYOUT_ANSWER,
   REFUND_ROUTE,
+  WHO_PAYS_SENTENCE,
 } from "@/lib/money/copy";
 
 /**
@@ -93,12 +93,15 @@ export const FAQS: Faq[] = [
   {
     category: "Property and Stays",
     q: "Does Vallo hold my money?",
-    a: `No. ${NO_CUSTODY_SENTENCE} There is no Vallo wallet or balance, nothing to top up and nothing to withdraw. ${PAYMENT_GATE_SENTENCE}`,
+    /* The answer read NO_CUSTODY_SENTENCE and then said it again in a sentence
+       written here, naming a wallet (C6, the route sweep): the money sentence
+       is lib/money/copy.ts's alone. */
+    a: `No. ${NO_CUSTODY_SENTENCE} ${PAYMENT_GATE_SENTENCE}`,
   },
   {
     category: "Payments and refunds",
-    q: "What is the Vallo Guarantee?",
-    a: `${GUARANTEE_SENTENCE} ${GUARANTEE_SCOPE}`,
+    q: "What stands behind my payment?",
+    a: `${DIRECT_RAIL_STANDING} The Vallo Guarantee has been retired, and no contribution is taken from a new payment. If you paid while it was running: ${LEGACY_GUARANTEE_CLAIM}`,
   },
   {
     category: "Payments and refunds",
@@ -195,7 +198,7 @@ export const FAQS: Faq[] = [
   {
     category: "Listing your property",
     q: "Does it cost anything to list?",
-    a: "No. Listing is free, and it stays free. Vallo charges no fees to list or to book. The one amount set aside from each payment is the Vallo Guarantee contribution, between 1 and 2 percent, which goes to a separate reserve that protects both sides and never to Vallo.",
+    a: `No. Listing is free: there is no fee to publish. ${WHO_PAYS_SENTENCE}`,
   },
   {
     category: "Listing your property",
@@ -227,7 +230,7 @@ export const FAQS: Faq[] = [
   {
     category: "Verification and trust",
     q: "Does Vallo charge any fees?",
-    a: `No. Vallo charges you no fees: not to book and not to list, in any market on the platform. ${GUARANTEE_CONTRIBUTION_NOTE} The total you see before you commit is the agent's own number: the move-in total on a yearly tenancy, the nights and any cleaning charge on a shortlet, the asking price on a sale, a shop, an office or land. Nothing of ours sits on top of it. An agency fee or a caution fee can be a real part of what a landlord asks for, and when it is, it is named on the listing and counted into the move-in total. Anyone presenting an inspection fee, a holding fee or a platform fee as ours is lying, and you should report them.`,
+    a: `Not to a renter or a guest. ${WHO_PAYS_SENTENCE} The total you see before you commit is the agent's own number: the move-in total on a yearly tenancy, the nights and any cleaning charge on a shortlet, the asking price on a sale, a shop, an office or land. Nothing of ours sits on top of it. An agency fee or a caution fee can be a real part of what a landlord asks for, and when it is, it is named on the listing and counted into the move-in total. Anyone presenting an inspection fee, a holding fee or a platform fee as ours is lying, and you should report them.`,
   },
   {
     category: "Verification and trust",

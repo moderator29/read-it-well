@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { panelClass } from "@/components/ui/Panel";
 
 /**
@@ -158,4 +158,34 @@ export function SkeletonCard({ className }: { className?: string }) {
       </div>
     </div>
   );
+}
+
+/**
+ * SKELETON TO CONTENT, AS A CROSSFADE (Session 3; north star motion 16,
+ * MOTION_SYSTEM.md "Skeleton to content": `glide` 160ms, never a spinner).
+ *
+ * For a client surface that loads in place (a sheet's list, a tab's figures):
+ * the shaped skeleton while `ready` is false, then the content fading in over
+ * it on `.nf-fade-swap` (motion-kit.css). Server-safe and stateless, so the
+ * content fades whenever it mounts: use it where something is genuinely
+ * waited on, not around content that is always ready.
+ *
+ * A ROUTE needs nothing from this: its `loading.tsx` is the skeleton (131 of
+ * them, shaped per route family), and when the page replaces it the first six
+ * sections already rise and fade in through `.nf-page-stage` (route-motion.css).
+ */
+export function SkeletonSwap({
+  ready,
+  skeleton,
+  className,
+  children,
+}: {
+  ready: boolean;
+  /** The shaped stand-in: `SkeletonCard`, `SkeletonText`, a row of `Skeleton`. */
+  skeleton: ReactNode;
+  className?: string;
+  children: ReactNode;
+}) {
+  if (!ready) return <>{skeleton}</>;
+  return <div className={["nf-fade-swap", className ?? ""].filter(Boolean).join(" ")}>{children}</div>;
 }

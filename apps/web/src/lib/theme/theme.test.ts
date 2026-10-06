@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { DEFAULT_THEME, THEME_BOOT_SCRIPT, parseThemeChoice, resolveTheme, serverTheme } from "./theme";
 import { CHROME_COLOUR, CHROME_COLOUR_LIGHT } from "./chrome";
 import { isNightDoorPath } from "./night-door";
@@ -151,5 +153,22 @@ describe("device settings before paint", () => {
   it("marks Increase contrast only when it is on", () => {
     expect(bootSettings(JSON.stringify({ increaseContrast: true })).dataset.contrast).toBe("more");
     expect(bootSettings(JSON.stringify({ increaseContrast: false })).dataset.contrast).toBeUndefined();
+  });
+});
+
+describe("Reduce transparency before paint", () => {
+  it("marks the root reduced only when it is on, as applyTransparency does", () => {
+    expect(bootSettings(JSON.stringify({ reduceTransparency: true })).dataset.transparency).toBe("reduced");
+    for (const raw of [JSON.stringify({ reduceTransparency: false }), JSON.stringify({ reduceTransparency: "true" }), null, "{not json"]) {
+      expect(bootSettings(raw).dataset.transparency).toBeUndefined();
+    }
+  });
+
+  it("writes the value a11y-prefs.css reads, alongside contrast and text size", () => {
+    const { dataset, style } = bootSettings(JSON.stringify({ reduceTransparency: true, increaseContrast: true, textSize: "l" }));
+    expect(dataset).toMatchObject({ transparency: "reduced", contrast: "more", textSize: "l", theme: "dark" });
+    expect(style.fontSize).toBe("106.25%");
+    const css = readFileSync(join(__dirname, "../../app/css/a11y-prefs.css"), "utf8");
+    expect(css).toContain(`html:root[data-transparency="${dataset.transparency}"]`);
   });
 });

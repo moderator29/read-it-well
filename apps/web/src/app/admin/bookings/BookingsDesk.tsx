@@ -161,7 +161,7 @@ export function BookingsDesk({
                   desk.table.rows.map((stay) => (
                     <tr key={stay.id}>
                       <td className="nf-md-lead" data-label="">
-                        <Link href={`/admin/bookings/${stay.id}`} className="block font-medium text-[var(--nf-content-primary)] underline-offset-2 hover:underline">
+                        <Link href={`/admin/bookings/${stay.id}`} className="flex min-h-11 min-w-11 items-center font-semibold text-[var(--nf-content-primary)] underline-offset-2 hover:underline">
                           {stay.listingTitle ?? "A listing that is no longer there"}
                         </Link>
                         <span className="block text-[length:var(--nf-text-caption)]">
@@ -243,7 +243,9 @@ function VolumePanel({ desk, locale }: { desk: BookingsDeskData | null; locale: 
         xLabels={days.map((d) => dayLabel(d.day, locale))}
         series={[{ name: "Stays booked", values: days.map((d) => d.count), rank: 0, area: true }]}
         label="Stays booked per day, last thirty days"
-        yLabel={(v) => String(Math.round(v))}
+        /* A count is whole: a gridline at 1.25 stays unlabelled rather than
+           read "1" beside a line that is not at one (C1 sweep). */
+        yLabel={(v) => (Number.isInteger(v) ? String(v) : "")}
         readout={days.map((d) => ({ title: dayLabel(d.day, locale, true), rows: [{ label: "Stays booked", value: String(d.count) }] }))}
       />
     </Panel>

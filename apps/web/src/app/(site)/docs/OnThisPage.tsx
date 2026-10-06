@@ -13,6 +13,10 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
  * 240ms (transform only, docs-motion.css). The marker is written straight to
  * the element, so scrolling never re-renders the list. Reduced motion, Calm
  * and Off get the marker without the slide.
+ *
+ * QUIET (Session 3, stage 9): muted ink until a heading is the one being
+ * read, and the lit heading changes colour only, never weight, so a heading
+ * that wraps in the narrow rail never reflows as you scroll.
  */
 export function OnThisPage({ sections }: { sections: { id: string; heading: string }[] }) {
   const [open, setOpen] = useState(false);
@@ -108,7 +112,7 @@ export function OnThisPage({ sections }: { sections: { id: string; heading: stri
                 href={`#${section.id}`}
                 onClick={() => setOpen(false)}
                 aria-current={active === section.id ? "location" : undefined}
-                className="nf-doc-rail__link nf-tap -ml-px flex min-h-11 items-center border-l-2 border-transparent py-inline pl-row text-[length:var(--nf-text-caption)] leading-snug text-[var(--nf-content-secondary)] transition-colors hover:text-[var(--nf-content-primary)]"
+                className="nf-doc-rail__link nf-tap -ml-px flex min-h-11 items-center border-l-2 border-transparent py-inline pl-row text-[length:var(--nf-text-caption)] leading-snug text-[var(--nf-content-muted)] transition-colors hover:text-[var(--nf-content-primary)]"
               >
                 {section.heading}
               </a>

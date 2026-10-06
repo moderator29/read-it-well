@@ -123,7 +123,7 @@ export const TYPE = {
   /** The supporting line under a row title. */
   rowMeta: "nf-body-sm text-[var(--nf-content-muted)]",
   /** Fact labels. Was 0.75rem, and usually shouted in uppercase as well. */
-  label: "nf-body-sm font-medium text-[var(--nf-content-muted)]",
+  label: "nf-body-sm font-semibold text-[var(--nf-content-muted)]",
   /** Micro: timestamps and counters, where small is genuinely correct. */
   caption: "nf-caption",
 } as const;

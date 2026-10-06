@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { getDictionary, LOCALES, type Locale, type PublicPageKey } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { siteUrl } from "@/lib/site";
+import { OWN_CARD, SITE_CARD } from "@/lib/site/site-card";
 import {
   alternateUrls,
   isLocalizablePath,
@@ -72,6 +73,8 @@ export async function publicPageMetadata(key: PublicPageKey, extra: Metadata = {
       ...(page.description ? { description: page.description } : {}),
       ...openGraphLocales(locale),
       ...(alternates?.canonical ? { url: alternates.canonical as string } : {}),
+      /* A page without its own card names the site's, or it unfurls blank. */
+      ...(OWN_CARD.has(key) ? {} : { images: [SITE_CARD] }),
     },
     ...extra,
   };

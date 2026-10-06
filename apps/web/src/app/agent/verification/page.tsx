@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
+import { gateFirstRun } from "@/components/app/feature-onboarding/first-run-store";
 import { AgentShell } from "@/components/agent/AgentShell";
 import { agentProfileFrom, getAgentContext } from "@/lib/agent/listings-queries";
 import { getOwnLadder, type OwnLadder } from "@/lib/agent/verification-queries";
@@ -17,6 +18,7 @@ import {
 } from "@/lib/trust/verification";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { IconPlate } from "@/components/ui/IconPlate";
+import { TrustTierFan } from "@/components/app/artefact/TrustTierFan";
 
 /**
  * /agent/verification: where this agent stands, and what the next rung wants.
@@ -175,7 +177,11 @@ export function Standing({ tier }: { tier: VerificationTier }) {
   );
 }
 
-export default async function Page() {
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const locale = await getLocale();
   const t = getDictionary(locale);
   const context = await getAgentContext();
@@ -204,6 +210,10 @@ export default async function Page() {
     );
   }
 
+  /* The ladder's first run (north star 14.1): what each check looks at and
+     that a person decides it, once, before the ladder is read. */
+  await gateFirstRun("verification", "/agent/verification", await searchParams);
+
   const read = await getOwnLadder(context);
 
   return (
@@ -230,24 +240,48 @@ export default async function Page() {
           reloading usually settles it.
         </p>
       ) : (
-        <div className="grid gap-lg lg:grid-cols-[1fr_20rem]">
-          <div className="lg:order-2">
-            <Standing tier={read.ladder.tier} />
+        <>
+          {/* THE TIERS AS CREDENTIALS (north star 14.4, D14): each tier the
+              ladder defines is something held or not yet, in the ladder's own
+              words, and the stack is how an agent picks one up to read it. It
+              opens on the tier they hold; "Held" is the database's tier. */}
+          <section className="mb-lg">
+            <TrustTierFan
+              tiers={VERIFICATION_ORDER.map((rung) => ({
+                step: rung.step,
+                name: TIER_NAME[rung.step],
+                meaning: rung.meaning,
+                held: read.ladder.tier >= rung.step,
+              }))}
+              current={read.ladder.tier}
+              copy={{
+                selector: t.experienceFeatures.trustTiers.selector,
+                position: t.experienceFeatures.artefact.position,
+                tier: t.experienceFeatures.trustTiers.tier,
+                held: t.experienceFeatures.trustTiers.held,
+                notYet: t.experienceFeatures.trustTiers.notYet,
+              }}
+            />
+          </section>
+          <div className="grid gap-lg lg:grid-cols-[1fr_20rem]">
+            <div className="lg:order-2">
+              <Standing tier={read.ladder.tier} />
+            </div>
+            {/* Where the reviewer's decision notice lands. The same key as
+                /verification, so a level is celebrated once on this device
+                whichever door it is seen through (docs/SUCCESS_MOMENTS.md). */}
+            <SuccessFromFlag
+              copy={t.success}
+              show={read.ladder.tier > 0 && approvedRecently(Object.values(read.ladder.rungs), requestNow())}
+              moment="verificationApproved"
+              seenKey={`verification-approved:tier-${read.ladder.tier}`}
+              haptic={false}
+            />
+            <div className="lg:order-1">
+              <Ladder ladder={read.ladder} />
+            </div>
           </div>
-          {/* Where the reviewer's decision notice lands. The same key as
-              /verification, so a level is celebrated once on this device
-              whichever door it is seen through (docs/SUCCESS_MOMENTS.md). */}
-          <SuccessFromFlag
-            copy={t.success}
-            show={read.ladder.tier > 0 && approvedRecently(Object.values(read.ladder.rungs), requestNow())}
-            moment="verificationApproved"
-            seenKey={`verification-approved:tier-${read.ladder.tier}`}
-            haptic={false}
-          />
-          <div className="lg:order-1">
-            <Ladder ladder={read.ladder} />
-          </div>
-        </div>
+        </>
       )}
     </AgentShell>
   );

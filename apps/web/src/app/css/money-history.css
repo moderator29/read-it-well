@@ -16,6 +16,17 @@
   canvas the same mix is paler, and the one light rule below lowers it further
   so dark text keeps its contrast on the card.
 */
+/*
+ * Loaded by the member layouts (the signed-in app, the agent and host
+ * workspaces, admin and the preview harness), not by globals.css: C6's member
+ * CSS move, 6 October. No signed-out route draws these classes, so signed-out
+ * pages no longer download them. Comments below that still say "global" or "globals.css"
+ * describe where the sheet used to load. This line states the layer order the
+ * document already has from Tailwind, so the order holds whichever chunk the
+ * browser receives first.
+ */
+@layer theme, base, components, utilities;
+
 @layer components {
   /* ------------------------------------------------------------ the glass */
 
@@ -61,7 +72,7 @@
   }
   .nf-history-hero__label {
     font-size: var(--nf-text-body-sm);
-    font-weight: 500;
+    font-weight: 400;
     line-height: 1.25;
     color: var(--nf-content-secondary);
   }
@@ -81,13 +92,13 @@
   }
   /* THE KOBO ARE SMALLER, NOT GREYER. */
   .nf-history-kobo {
-    font-size: 0.68em;
+    font-size: max(0.68em, 0.75rem); /* never under 12px */
     font-weight: 600;
     color: var(--nf-content-primary);
     opacity: 0.74;
   }
   .nf-history-kobo--hero {
-    font-size: 0.6em;
+    font-size: max(0.6em, 0.75rem);
     opacity: 0.9;
   }
   .nf-history-hero__note {
@@ -188,6 +199,24 @@
     line-height: 1.25;
   }
 
+  /* A payer's row that names its booking opens it (HistoryList's
+     `linkToBooking`). The row keeps its look; it gains the press tint every
+     tappable Plate row has and a visible focus ring, and nothing else, so a
+     linked row and a plain one sit in the same list without a seam. */
+  .nf-history-row--link {
+    border-radius: var(--nf-radius-sm);
+    transition: background-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  @media (hover: hover) {
+    .nf-history-row--link:hover {
+      background: var(--nf-surface-secondary);
+    }
+  }
+  .nf-history-row--link:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+
   /* "Show earlier", and the line that says the list has ended. */
   .nf-history-foot {
     display: flex;
@@ -207,7 +236,7 @@
     min-height: 2.75rem;
     padding-inline: var(--nf-space-2xs);
     border-radius: var(--nf-radius-sm);
-    font-weight: 500;
+    font-weight: 600;
     color: var(--nf-content-link);
   }
   @media (hover: hover) {

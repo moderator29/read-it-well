@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import type { Dictionary } from "@vallo/i18n/core";
+import { Button } from "@/components/ui/Button";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { reopenEddReview } from "@/lib/compliance/edd-actions";
 
@@ -11,9 +12,9 @@ export function ReopenEddButton({ userId, copy }: { userId: string; copy: Dictio
   return (
     <form action={run} className="flex flex-wrap items-center gap-xs">
       <input type="hidden" name="userId" value={userId} />
-      <button type="submit" disabled={pending || state?.ok === true} className="nf-btn nf-btn--glass min-h-[44px] disabled:opacity-60">
+      <Button type="submit" variant="secondary" loading={pending} disabled={state?.ok === true}>
         {copy.reopen}
-      </button>
+      </Button>
       {state?.ok ? (
         <span role="status" className="nf-caption text-[var(--nf-content-secondary)]">
           {copy.reopened}

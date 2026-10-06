@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { lagosToday, parseMonth } from "@/lib/host/rate-calendar";
 import { readMonthEarnings } from "@/lib/host/statement-read";
@@ -7,9 +8,14 @@ import { authHref, returnHref } from "@/components/auth/auth-intent";
 import { EmptyState } from "@/components/app/Screen";
 import { ButtonLink } from "@/components/ui/Button";
 import { HostShell } from "@/components/host/HostShell";
+import { HOST_STATEMENT_SIGNED_OUT_BODY } from "@/lib/money/copy";
 import { StatementView } from "@/components/host/StatementView";
+import { HostInnerNav } from "@/components/host/HostInnerNav";
+import { hostInnerNavCopy } from "@/components/host/host-inner-nav";
 
-export const metadata: Metadata = { title: "Payout statement", robots: { index: false, follow: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: getDictionary(await getLocale()).experienceHost.statement.metaTitle, robots: { index: false, follow: false } };
+}
 
 export const dynamic = "force-dynamic";
 
@@ -42,15 +48,16 @@ export default async function HostStatementPage({
   );
 
   if (read.state === "signed-out") {
+    const t = getDictionary(locale);
     return (
       <HostShell fallback="/host/earnings">
         <EmptyState
           icon="ledger-book"
-          title="Your payout statements"
-          body="Sign in to see every payment, what Vallo kept, and what reached your bank."
+          title={t.experienceHost.statement.signedOutTitle}
+          body={HOST_STATEMENT_SIGNED_OUT_BODY}
           action={
             <ButtonLink href={authHref(returnHref("/host/earnings/statement", `?month=${month}`, "list"), "sign-in")} variant="primary" size="lg">
-              Sign in
+              {t.common.signIn}
             </ButtonLink>
           }
         />
@@ -60,6 +67,7 @@ export default async function HostStatementPage({
 
   return (
     <HostShell fallback="/host/earnings" wide>
+      <HostInnerNav active="statements" {...hostInnerNavCopy(getDictionary(locale))} />
       <StatementView
         month={month}
         thisMonth={thisMonth}

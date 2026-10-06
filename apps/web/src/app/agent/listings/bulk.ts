@@ -6,7 +6,7 @@
  * row is exactly what one tap would have produced. The only new write is
  * "still available", which is one call for the lot.
  */
-import type { ListingStatus } from "@/lib/agent/listings-schema";
+import type { ListingStatus } from "@/lib/agent/listings-model";
 
 export type BulkListing = { id: string; status: ListingStatus; intent: string };
 

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { reviewListing } from "@/lib/admin/actions";
 import { Chip } from "@/components/ui/Chip";
 import { REVIEW_REASONS, composeReviewNote } from "@/lib/admin/review-reasons";
+import "../../_components/admin-material.css";
 
 type Decision = "approve" | "publish" | "request_changes" | "reject";
 
@@ -105,7 +106,7 @@ export function ReviewActionBar({
   };
 
   return (
-    <div className="nf-panel nf-rv-panel nf-rv-actionbar">
+    <div className="nf-panel nf-rv-panel nf-rv-actionbar nf-admin-decision">
       <div className="flex flex-wrap gap-2xs" role="group" aria-label="Reasons the lister will read" data-testid="rv-reasons">
         {REVIEW_REASONS.map((r) => (
           <Chip

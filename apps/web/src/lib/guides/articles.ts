@@ -1,6 +1,6 @@
 import { FULL_REFUND_HOURS } from "@/lib/trust/cancellation";
 import { FEE_RULES } from "@/lib/trust/fee-rules";
-import { GUARANTEE_SCOPE, GUARANTEE_SENTENCE, NO_INSPECTION_FEE, PAYMENT_GATE_SENTENCE, REFUND_ROUTE } from "@/lib/money/copy";
+import { DIRECT_RAIL_STANDING, NO_INSPECTION_FEE, PAYMENT_GATE_SENTENCE, REFUND_ROUTE } from "@/lib/money/copy";
 import { bpsLabel } from "@/lib/site/move-in-calculator";
 import type { GuideSlug } from "./slugs";
 
@@ -398,7 +398,7 @@ export const GUIDES: readonly Guide[] = [
         title: "If the place is not what was listed",
         blocks: [
           "If you could not get in, or the place was not what was listed, do not cancel: report it from the booking, and a person at Vallo looks at it.",
-          { tone: "vallo", title: "The Vallo Guarantee", callout: `${GUARANTEE_SENTENCE} ${GUARANTEE_SCOPE}` },
+          { tone: "vallo", title: "What stands behind your payment", callout: DIRECT_RAIL_STANDING },
         ],
       },
       {

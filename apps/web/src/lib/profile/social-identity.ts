@@ -2,7 +2,7 @@ import "server-only";
 
 import { resolveSession } from "../actions/session";
 import { SUPABASE_URL } from "../supabase/env";
-import { coverPublicUrl } from "../social/profiles-schema";
+import { coverPublicUrl } from "../social/profiles-model";
 
 /**
  * The signed-in person's own social identity, for the account profile.

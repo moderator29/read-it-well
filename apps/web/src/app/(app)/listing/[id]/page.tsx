@@ -20,11 +20,8 @@ import {
 } from "@/lib/listings/syndication";
 import { siteUrl } from "@/lib/site";
 import { factsOf, sleeps } from "@/lib/listings/filter";
-import type { Listing, ListingKind } from "@/lib/listings/types";
+import type { Listing } from "@/lib/listings/types";
 import {
-  PERIOD_SUFFIX,
-  FURNISHING_LABEL,
-  CONDITION_LABEL,
   type PricePeriod,
   type RentPeriod,
 } from "@/lib/listings/pricing";
@@ -43,7 +40,8 @@ import { getBlockedDates } from "@/lib/bookings/queries";
 import { getListingReviews } from "@/lib/reviews/queries";
 import { getSavedListings } from "@/lib/saved/queries";
 import { lagosToday } from "@/lib/bookings/schema";
-import { ExampleNotice } from "@/components/app/listing/ExampleNotice";
+import { TrustFacts } from "@/components/app/listing/TrustFacts";
+import { earnedTrust, withEarnedTrust } from "@/components/app/listing/earned-trust";
 import { ListingGallery } from "@/components/app/listing/ListingGallery";
 import { RecordVisit } from "@/components/app/listing/RecordVisit";
 import { cardGlance } from "@/lib/listings/card-glance";
@@ -99,7 +97,14 @@ import { Amount } from "@/components/ui/Amount";
 import type { StatusTone } from "@/components/ui/StatusPill";
 import { Disclosure } from "@/components/app/Disclosure";
 import { publicListingTitle } from "@/lib/listings/public-title";
+import {
+  LISTING_RENT_QUOTED,
+  LISTING_RENTAL_ABOUT,
+  LISTING_SALE_ABOUT,
+  LISTING_STAY_PAY_AFTER,
+} from "@/lib/money/copy";
 import { FactGrid, ICON, Section, Stack, TYPE, type Fact } from "@/components/app/Screen";
+import "@/app/css/catalogue.css";
 
 /**
  * Listing detail.
@@ -149,20 +154,9 @@ import { FactGrid, ICON, Section, Stack, TYPE, type Fact } from "@/components/ap
  * and 4), and nothing on this page is hardcoded inventory.
  */
 
-const KIND_LABEL: Record<ListingKind, string> = {
-  hotel: "hotel",
-  apartment: "apartment",
-  home: "home",
-  shortlet: "shortlet",
-  villa: "villa",
-  restaurant: "restaurant",
-  experience: "experience",
-  // A rental is described by what it is to the reader, not by our enum name.
-  rental: "home to rent",
-  shop: "shop to rent",
-  office: "office to rent",
-  land: "plot of land",
-};
+/* The kind as the description names it now lives in the dictionary
+   (`experienceDetail.listing.kinds`), article included, so "an apartment"
+   no longer reads "a apartment" (Round 3 sweep, C3). */
 
 /**
  * The market pill: the one line of status.
@@ -189,17 +183,17 @@ function rentPeriodOf(value: PricePeriod | null | undefined): RentPeriod {
  * "Dining". Semantic tones, never generic grey: a status pill in a neutral
  * wash reads as an absence of state rather than as a market.
  */
-const MARKET_PILL: Record<ListingMarket, { icon: UiIconName; label: string; tone: StatusTone }> = {
-  tenancy: { icon: "key", label: "For rent", tone: "brand" },
-  sale: { icon: "key", label: "For sale", tone: "brand" },
-  stay: { icon: "calendar-booking", label: "For stays", tone: "success" },
-  dining: { icon: "utensils", label: "Dining", tone: "info" },
-  experience: { icon: "ticket", label: "Experience", tone: "info" },
+const MARKET_PILL: Record<ListingMarket, { icon: UiIconName; tone: StatusTone }> = {
+  tenancy: { icon: "key", tone: "brand" },
+  sale: { icon: "key", tone: "brand" },
+  stay: { icon: "calendar-booking", tone: "success" },
+  dining: { icon: "utensils", tone: "info" },
+  experience: { icon: "ticket", tone: "info" },
 };
 
-/** "Lagos State" reads naturally; the FCT does not take the suffix. */
-function stateLabel(state: string): string {
-  return state === "FCT" ? "the FCT" : `${state} State`;
+/** "Lagos State" reads naturally; the FCT does not take the suffix. The words are the reader's (`experienceLabels`). */
+function stateLabel(state: string, words: { state: string; stateFct: string }): string {
+  return state === "FCT" ? words.stateFct : words.state.replace("{state}", state);
 }
 
 /**
@@ -292,8 +286,21 @@ export default async function ListingDetailPage({
   const locale: Locale = await getLocale();
   const t = getDictionary(locale);
 
-  const listing = await listingById(id);
-  if (!listing) notFound();
+  const raw = await listingById(id);
+  if (!raw) notFound();
+  /*
+   * D24: THE PAGE DRAWS ONLY THE TRUST THIS SPACE EARNED.
+   *
+   * Every component below reads `listing`, and `listing` is the row with its
+   * trust fields passed through `withEarnedTrust`: on an example row the
+   * verified badge, the inspection and address dates and the rating are
+   * cleared before anything can draw them. The row's own label ("example")
+   * is not drawn anywhere on this page either, per the founder's ruling; what
+   * keeps it safe is this, not a word.
+   */
+  const listing = withEarnedTrust(raw);
+  const trust = earnedTrust(raw);
+  const sx = t.experienceDetail;
 
 
   /*
@@ -439,41 +446,38 @@ export default async function ListingDetailPage({
   // An area is only worth naming when it says something the city does not.
   const where =
     listing.area && listing.area !== listing.city
-      ? `${listing.area}, ${listing.city}, ${stateLabel(listing.state)}`
-      : `${listing.city}, ${stateLabel(listing.state)}`;
+      ? `${listing.area}, ${listing.city}, ${stateLabel(listing.state, t.experienceLabels)}`
+      : `${listing.city}, ${stateLabel(listing.state, t.experienceLabels)}`;
 
-  const kind = KIND_LABEL[listing.kind];
-  const market = MARKET_PILL[listingMarket];
+  const L = sx.listing;
+  const kindPhrase = L.kinds[listing.kind];
+  const market = { ...MARKET_PILL[listingMarket], label: L.market[listingMarket] };
 
   /*
    * What the price buys, from the one place that owns that mapping.
    *
    * This was a local ternary that could only ever answer "per year", "per
    * guest" or "per night", so a monthly rent read as nightly and a SALE read
-   * "per night" under its asking price. `PERIOD_SUFFIX` is keyed by the
+   * "per night" under its asking price. The period words are keyed by the
    * period the database actually stated, and carries "asking price" for the
    * case that has no period at all.
    */
+  const periodWords = t.agentListings.pricing.period;
   const perLabel = isSale
-    ? PERIOD_SUFFIX.sale
+    ? periodWords.sale
     : listing.pricePeriod
-      ? PERIOD_SUFFIX[listing.pricePeriod]
+      ? periodWords[listing.pricePeriod]
       : isRental
-        ? PERIOD_SUFFIX.year
-        : PERIOD_SUFFIX.night;
+        ? periodWords.year
+        : periodWords.night;
 
-  const amenityNames: Record<string, string> = {
-    pool: "a swimming pool",
-    wifi: "Wi-Fi",
-    kitchen: "a fitted kitchen",
-    parking: "parking on site",
-  };
+  const amenityNames: Record<string, string> = L.amenities;
   const amenityPhrases = listing.amenities
     .map((a) => amenityNames[a])
     .filter((a): a is string => Boolean(a));
   const amenitySentence =
     amenityPhrases.length > 0
-      ? ` Amenities include ${new Intl.ListFormat(intlTag.en, { type: "conjunction" }).format(amenityPhrases)}.`
+      ? ` ${L.amenitiesInclude.replace("{list}", new Intl.ListFormat(intlTag[locale], { type: "conjunction" }).format(amenityPhrases))}`
       : "";
 
   /*
@@ -481,53 +485,41 @@ export default async function ListingDetailPage({
    * derived from a field that exists, so nothing here can misdescribe the
    * property, and the paragraphs after the first are what Read more reveals.
    */
-  const roomPhrase =
-    listing.bedrooms > 0
-      ? `a ${listing.bedrooms} bedroom, ${listing.bathrooms} bathroom ${kind}`
-      : `a ${kind}`;
+  const firstSentence = (listing.bedrooms > 0 ? (listing.bathrooms > 0 ? L.aboutRooms : L.aboutBeds) : L.aboutKind)
+    .replace("{title}", listing.title)
+    .replace("{kind}", kindPhrase)
+    .replace("{bedrooms}", countOf(listing.bedrooms, "bedrooms", locale))
+    .replace("{bathrooms}", countOf(listing.bathrooms, "bathrooms", locale))
+    .replace("{where}", where);
 
-  const aboutParagraphs: string[] = [
-    `${listing.title} is ${roomPhrase} in ${where}.${amenitySentence}`,
-  ];
+  const aboutParagraphs: string[] = [`${firstSentence}${amenitySentence}`];
 
   if (isSale) {
-    aboutParagraphs.push(
-      "This property is for sale. Message the agent to ask questions and arrange an inspection, and have your own solicitor verify the title before any money changes hands.",
-    );
+    aboutParagraphs.push(LISTING_SALE_ABOUT);
   } else if (isRental) {
-    aboutParagraphs.push(
-      "This home is let on an annual tenancy. Message the agent to ask questions and arrange an inspection, then pay only after you have inspected the property.",
-    );
-    aboutParagraphs.push(
-      `The rent is quoted for a full year and agreed directly with the agent.${
-        listing.verified
-          ? " A person at Vallo checked the ID of the agent behind this listing."
-          : ""
-      }`,
-    );
+    aboutParagraphs.push(LISTING_RENTAL_ABOUT);
+    aboutParagraphs.push(`${LISTING_RENT_QUOTED}${listing.verified ? ` ${L.agentChecked}` : ""}`);
   } else {
     aboutParagraphs.push(
       `${
-        listing.instantBook
-          ? "Instant Book is available on this listing, so your dates confirm as soon as you reserve."
-          : "The agent confirms each booking request personally, so allow a little time for a response."
-      } Reserve online, then arrange an inspection with the agent from your Inbox. Pay only after you have inspected the property.`,
+        listing.instantBook ? L.instantBookOn : L.instantBookOff
+      } ${LISTING_STAY_PAY_AFTER}`,
     );
     const closing: string[] = [];
     const capacity = capacityOf(listing);
     if (capacity !== null) {
-      closing.push(`It sleeps up to ${countOf(capacity, "guests", locale)}.`);
+      closing.push(L.sleeps.replace("{guests}", countOf(capacity, "guests", locale)));
     }
     if (listing.reviewCount > 0) {
       closing.push(
-        `Guests have rated it ${formatRating(listing.rating, locale)} out of 5 across ${formatNumber(
-          listing.reviewCount,
-          locale,
-        )} ${t.common.reviews}.`,
+        L.rated
+          .replace("{rating}", formatRating(listing.rating, locale))
+          .replace("{count}", formatNumber(listing.reviewCount, locale))
+          .replace("{reviews}", t.common.reviews),
       );
     }
     if (listing.verified) {
-      closing.push("A person at Vallo checked the ID of the agent behind this listing.");
+      closing.push(L.agentChecked);
     }
     if (closing.length > 0) aboutParagraphs.push(closing.join(" "));
   }
@@ -574,14 +566,19 @@ export default async function ListingDetailPage({
   /* UX-21: while every listing is an example, "Browse real listings" led back
      to more examples. The honest next step is to be told when a real one
      arrives here: the area's search, where "Save this search" sends alerts. */
-  const realSoonHref = `/search?q=${encodeURIComponent(listing.area || listing.city)}`;
+  /* D24: the page no longer says the row is an example, so its one action
+     no longer says "real" either. What stays true and useful: nothing here
+     takes a request, and the area's search is where "Save this search"
+     tells the reader when a space there does. */
+  const areaName = listing.area || listing.city;
+  const realSoonHref = `/search?q=${encodeURIComponent(areaName)}`;
   const stickyAction: StickyAction | null = isExample
-    ? { label: "Get told when real homes arrive", href: realSoonHref }
+    ? { label: sx.closed.action.replace("{area}", areaName), href: realSoonHref }
     : isBookable
       ? { label: t.catalogue.detail.checkAvailability, href: "#reserve" }
       : isRental
         ? { label: t.catalogue.detail.bookInspection, href: "#reserve" }
-        : { label: "Message agent", href: messageHref };
+        : { label: L.messageAgent, href: messageHref };
 
   const stickySecondary: StickyAction | null = isExample
     ? /*
@@ -599,7 +596,7 @@ export default async function ListingDetailPage({
       ? { label: t.catalogue.detail.calculateBreakdown, href: `/rent/move-in/${listing.id}` }
       : null
     : isBookable
-      ? { label: "Message agent", href: messageHref }
+      ? { label: L.messageAgent, href: messageHref }
       : isRental
         ? { label: t.catalogue.detail.calculateBreakdown, href: `/rent/move-in/${listing.id}` }
         : null;
@@ -624,12 +621,11 @@ export default async function ListingDetailPage({
    */
   const bookingPanel = isExample ? (
     <div className="nf-panel nf-panel--card isolate p-card">
-      <p className={TYPE.rowMeta}>
-        Nothing here can be booked or paid for. Save a search for this area and
-        we will tell you when a real place with an owner you can reach is listed.
+      <p className={TYPE.rowMeta} data-testid="space-closed">
+        {sx.closed.body.replace("{area}", areaName)}
       </p>
       <ButtonLink href={realSoonHref} variant="primary" className="mt-block w-full">
-        Get told when real homes arrive
+        {sx.closed.action.replace("{area}", areaName)}
       </ButtonLink>
     </div>
   ) : isRestaurant ? (
@@ -703,50 +699,50 @@ export default async function ListingDetailPage({
   const facts: Fact[] = [];
   if (listing.sizeSqm !== undefined) {
     facts.push({
-      label: "Floor area",
+      label: L.facts.floorArea,
       value: `${formatNumber(listing.sizeSqm, locale)} m²`,
     });
   }
   if (listing.furnished) {
-    facts.push({ label: "Furnishing", value: FURNISHING_LABEL[listing.furnished] });
+    facts.push({ label: L.facts.furnishing, value: t.experienceLabels.furnishing[listing.furnished] });
   }
   if (listing.condition) {
-    facts.push({ label: "Condition", value: CONDITION_LABEL[listing.condition] });
+    facts.push({ label: L.facts.condition, value: t.experienceLabels.condition[listing.condition] });
   }
   if (listing.yearBuilt !== undefined) {
-    facts.push({ label: "Year built", value: String(listing.yearBuilt) });
+    facts.push({ label: L.facts.yearBuilt, value: String(listing.yearBuilt) });
   }
   if (listing.toilets !== undefined) {
-    facts.push({ label: "Toilets", value: formatNumber(listing.toilets, locale) });
+    facts.push({ label: L.facts.toilets, value: formatNumber(listing.toilets, locale) });
   }
   if (listing.parkingSpaces !== undefined) {
     facts.push({
-      label: "Parking",
+      label: L.facts.parking,
       value:
         listing.parkingSpaces === 0
-          ? "None"
+          ? L.facts.parkingNone
           : countOf(listing.parkingSpaces, "spaces", locale),
     });
   }
   if (listing.floor !== undefined) {
     facts.push({
-      label: "Floor",
+      label: L.facts.floor,
       value:
         listing.floor === 0
-          ? "Ground floor"
-          : `Floor ${formatNumber(listing.floor, locale)}`,
+          ? L.facts.groundFloor
+          : L.facts.floorN.replace("{n}", formatNumber(listing.floor, locale)),
       note:
         listing.totalFloors !== undefined
-          ? `of ${formatNumber(listing.totalFloors, locale)}`
+          ? L.facts.ofN.replace("{n}", formatNumber(listing.totalFloors, locale))
           : undefined,
     });
   }
   if (listing.availableFrom) {
-    facts.push({ label: "Available from", value: dateLabel(listing.availableFrom, locale) });
+    facts.push({ label: L.facts.availableFrom, value: dateLabel(listing.availableFrom, locale) });
   }
   if (listing.minimumTenancyMonths !== undefined) {
     facts.push({
-      label: "Minimum tenancy",
+      label: L.facts.minimumTenancy,
       value: countOf(listing.minimumTenancyMonths, "months", locale),
     });
   }
@@ -761,13 +757,40 @@ export default async function ListingDetailPage({
    * behind the glyphs.
    */
   const marks: { icon: UiIconName; label: string }[] = [];
-  if (listing.verified) marks.push({ icon: "verified", label: t.common.verified });
+  /* TRUST FACTS ARE DATES, NEVER TICKS (north star 12 point 15). The
+     inspection and the address check used to be marks here with no date;
+     they are dated rows in "Why trust this space?" now, and what is left in
+     this run is the listing's terms, which are not checks of anything. */
   if (listing.instantBook && isBookable) {
-    marks.push({ icon: "sparkle", label: "Instant Book" });
+    marks.push({ icon: "sparkle", label: L.instantBook });
   }
-  if (listing.inspectedAt) marks.push({ icon: "home", label: "Inspected by Vallo" });
-  if (listing.addressVerifiedAt) marks.push({ icon: "location", label: "Address checked" });
-  if (listing.negotiable) marks.push({ icon: "chat-bubble", label: "Price negotiable" });
+  if (listing.negotiable) marks.push({ icon: "chat-bubble", label: L.negotiable });
+
+  const proof = proofLines({ ...proofFactsOf(listing), credentials });
+
+  /* The sections, in page order. The row carries the five a reader decides
+     on (and reviews, which it always carried); the InnerNav lists them all. */
+  const hasCost = isRental || isSale;
+  const sectionTabs = [
+    { id: "overview", label: sx.sections.overview },
+    ...(hasCost ? [{ id: "cost", label: sx.sections.costs }] : []),
+    { id: "amenities", label: sx.sections.amenities },
+    { id: "trust", label: sx.sections.trust },
+    { id: "location", label: sx.sections.location },
+    { id: "reviews", label: sx.sections.reviews },
+  ];
+  const sectionIndex: { id: string; label: string; icon: UiIconName }[] = [
+    { id: "overview", label: sx.sections.overview, icon: "home" },
+    ...(hasCost ? [{ id: "cost", label: sx.sections.costs, icon: "receipt" as UiIconName }] : []),
+    { id: "amenities", label: sx.sections.amenities, icon: "sparkle" },
+    { id: "trust", label: sx.sections.trust, icon: "shield-check" },
+    ...(facts.length > 0 ? [{ id: "details", label: sx.sections.details, icon: "clipboard-list" as UiIconName }] : []),
+    ...((listing.videos?.length ?? 0) > 0 ? [{ id: "walkthrough", label: sx.sections.walkthrough, icon: "circle-play" as UiIconName }] : []),
+    ...(listing.photos.length > 1 ? [{ id: "photos", label: sx.sections.photos, icon: "picture" as UiIconName }] : []),
+    { id: "location", label: sx.sections.location, icon: "location" },
+    { id: "agent", label: sx.sections.agent, icon: "user" },
+    { id: "reviews", label: sx.sections.reviews, icon: "star" },
+  ];
 
   /*
    * Structured data, or nothing at all.
@@ -910,7 +933,7 @@ export default async function ListingDetailPage({
 
                   <a
                     href="#location"
-                    className={`mt-inline-tight inline-flex max-w-full items-center gap-inline ${TYPE.body}`}
+                    className={`nf-tap mt-inline-tight inline-flex max-w-full items-center gap-inline ${TYPE.body}`}
                   >
                     <UiIcon name="location" size={ICON.inline} className="shrink-0 text-[var(--nf-brand-secondary)]" />
                     <span className="min-w-0">{where}</span>
@@ -923,12 +946,6 @@ export default async function ListingDetailPage({
                     <Suspense fallback={null}>
                       <ExactPlace listingId={listing.id} />
                     </Suspense>
-                  )}
-
-                  {/* Above the price, and that position is the point: the
-                      disclosure lands before the belief the figure forms. */}
-                  {listing.isDemo && (
-                    <ExampleNotice variant="page" className="mt-row" statement={t.examples.statement} />
                   )}
 
                   {/*
@@ -982,17 +999,16 @@ export default async function ListingDetailPage({
                           minorUnits={listing.priceMinor}
                           locale={locale}
                           currency={listing.currency}
-                          secondaryClassName="text-[0.5em] font-semibold opacity-70"
+                          secondaryClassName="text-[length:max(0.5em,0.75rem)] font-semibold opacity-70"
                         />
                         <span className="nf-detail-price__suffix">/ {perLabel.replace(/^per /, "")}</span>
                       </p>
                     )}
-                    {listing.verified && (
-                      <span className="nf-detail-verified" data-testid="verified-listing">
-                        <UiIcon name="verified" size={ICON.inline} />
-                        {t.catalogue.detail.verifiedListing}
-                      </span>
-                    )}
+                    {/* The "Verified listing" chip that stood here was the
+                        third statement of one check (the photograph's mark,
+                        this, the agent card) and the only one with no date.
+                        The check is said on the photograph and dated in
+                        "Why trust this space?" below. */}
                   </div>
 
                   {/* How old it is (V-22). Never on an example, which
@@ -1014,37 +1030,25 @@ export default async function ListingDetailPage({
                     </div>
                   )}
 
-                  {/* The remaining trust marks: icon and word, no container. */}
-                  {marks.filter((mark) => mark.icon !== "verified").length > 0 && (
+                  {/* The listing's terms (Instant Book, a negotiable price): icon
+                      and word, no container. Not checks, so never a tick. */}
+                  {marks.length > 0 && (
                     <ul className="mt-row flex flex-wrap items-center gap-x-lg gap-y-inline">
                       {marks
-                        .filter((mark) => mark.icon !== "verified")
                         .map((mark) => (
                           <li key={mark.label} className={`flex items-center gap-xs ${TYPE.body}`}>
                             <UiIcon
                               name={mark.icon}
                               size={ICON.inline}
-                              className="shrink-0 text-[var(--nf-status-verified)]"
+                              className="shrink-0 text-[var(--nf-brand-secondary)]"
                             />
-                            <span className="font-medium text-[var(--nf-content-secondary)]">
+                            <span className="font-normal text-[var(--nf-content-secondary)]">
                               {mark.label}
                             </span>
                           </li>
                         ))}
                     </ul>
                   )}
-
-                  {/* V-03, THE PROOF STRIP: the dated facts the database holds,
-                      in a fixed order, each opening what the check is and is
-                      not. It renders nothing at all when there is nothing
-                      dated, which today is every example listing. */}
-                  <ProofStrip
-                    lines={proofLines({ ...proofFactsOf(listing), credentials })}
-                    variant="full"
-                    t={forProofStrip(t)}
-                    locale={locale}
-                    className="mt-md"
-                  />
 
                   {/* The move-in total leads above the price row on a tenancy (see above). */}
 
@@ -1089,13 +1093,12 @@ export default async function ListingDetailPage({
                   )}
                 </Section>
 
+                {/* The anchor row keeps its place (9E8B56ED) and gains the two
+                    sections a reader decides on: what it costs and why to
+                    trust it. The InnerNav at its end lists every section. */}
                 <ListingSectionTabs
-                  tabs={[
-                    { id: "overview", label: t.catalogue.detail.overview },
-                    { id: "amenities", label: t.catalogue.detail.amenities },
-                    { id: "location", label: t.catalogue.detail.location },
-                    { id: "reviews", label: t.catalogue.detail.reviews },
-                  ]}
+                  tabs={sectionTabs}
+                  index={{ label: sx.sections.navLabel, toggle: sx.sections.toggle, items: sectionIndex }}
                 />
 
                 {/* ---------------------------------------- the description */}
@@ -1164,7 +1167,7 @@ export default async function ListingDetailPage({
                 )}
 
                 {isSale && (
-                  <Section title="What you would be buying" divided>
+                  <Section title={L.buyingTitle} divided>
                     <ListingTenure listing={listing} />
                   </Section>
                 )}
@@ -1188,8 +1191,8 @@ export default async function ListingDetailPage({
                 {(listing.utilities || neighbours.state !== "unavailable" || flooding !== undefined) && (
                   <Reveal>
                     <Section
-                      title="Light, water and getting in"
-                      description="The three things worth knowing before you commit: what the agent says, and what residents report where enough have answered."
+                      title={L.utilitiesTitle}
+                      description={L.utilitiesBody}
                       divided
                     >
                       {listing.utilities && (
@@ -1198,6 +1201,7 @@ export default async function ListingDetailPage({
                           utilities={listing.utilities}
                           access={access}
                           bookingConfirmed={bookingConfirmed}
+                          copy={sx.utilities}
                         />
                       )}
                       {/* V-41: the lister's flooding answer, and what residents
@@ -1213,6 +1217,31 @@ export default async function ListingDetailPage({
                     </Section>
                   </Reveal>
                 )}
+
+                {/* ------------------------- WHY TRUST THIS SPACE? (D25) */}
+                {/*
+                  The dated facts, here in summary, with the door to the inner
+                  page that answers the question completely. Every fact is a
+                  date; a check that has not happened is not drawn, so a null
+                  never reads as a negative.
+                */}
+                <Reveal>
+                  <Section id="trust" title={sx.trust.title} divided className="scroll-mt-16">
+                    <TrustFacts
+                      listingId={listing.id}
+                      trust={trust}
+                      strip={
+                        /* V-03, THE PROOF STRIP: each line opens what the
+                           check is and is not. Nothing at all when nothing is
+                           dated, which today is every example listing. */
+                        <ProofStrip lines={proof} variant="full" t={forProofStrip(t)} locale={locale} />
+                      }
+                      proofCount={proof.length}
+                      locale={locale}
+                      t={t}
+                    />
+                  </Section>
+                </Reveal>
 
                 {/* ------------------------- V-43. GETTING TO WORK FROM HERE */}
                 {commute.anchors > 0 && (
@@ -1242,18 +1271,15 @@ export default async function ListingDetailPage({
                 {/* -------------------------------------- 8. THE DETAILS */}
                 {facts.length > 0 && (
                   <Reveal>
-                    <Section title="The details" divided>
+                    <Section id="details" title={L.detailsTitle} divided className="scroll-mt-16">
                       <FactGrid facts={facts} />
                     </Section>
                   </Reveal>
                 )}
 
-                {/* ------------------------------------------------ about */}
-                <Reveal>
-                  <Section title="About this place" divided>
-                    <ListingAbout paragraphs={aboutParagraphs} />
-                  </Section>
-                </Reveal>
+                {/* "About this place" stood here and printed the same
+                    paragraphs as the description above, word for word. One
+                    statement of a thing is enough. */}
 
                 {/* ------------------------------------------ listing code */}
                 {/*
@@ -1296,7 +1322,7 @@ export default async function ListingDetailPage({
                 */}
                 {(listing.videos?.length ?? 0) > 0 && (
                   <Reveal>
-                    <Section title="Walkthrough" divided>
+                    <Section id="walkthrough" title={L.walkthroughTitle} divided className="scroll-mt-16">
                       <ListingWalkthrough videos={listing.videos ?? []} title={listing.title} />
                     </Section>
                   </Reveal>
@@ -1307,7 +1333,7 @@ export default async function ListingDetailPage({
                     {/* No section title: the grid carries its own "Photos"
                         heading beside "Show all", and the page drew the word
                         twice in a row (Track M tidy). */}
-                    <Section divided>
+                    <Section id="photos" divided className="scroll-mt-16">
                       <ListingPhotoGrid
                         photos={listing.photos}
                         hue={listing.hue}
@@ -1343,7 +1369,7 @@ export default async function ListingDetailPage({
 
                 {/* ------------------------------------------ agent card */}
                 <Reveal>
-                  <Section title={t.catalogue.detail.agent} divided>
+                  <Section id="agent" title={t.catalogue.detail.agent} divided className="scroll-mt-16">
                     {/*
                       THE LAST MILE OF TRACK G, AND IT IS ONE PROP.
                       `listings.listing_role` has been live and not null on
@@ -1414,8 +1440,8 @@ export default async function ListingDetailPage({
                   <div className="divide-y divide-[var(--nf-panel-hair)]">
                     {isBookable && (
                       <Disclosure
-                        label="Cancellation policy"
-                        hint="What you get back, and when"
+                        label={L.cancellationTitle}
+                        hint={L.cancellationHint}
                         data-testid="cancellation-disclosure"
                       >
                         <CancellationTimeline locale={locale} headingLevel="h3" />
@@ -1508,8 +1534,8 @@ function RestaurantPanel({
             minorUnits={listing.priceMinor}
             locale={locale}
             currency={listing.currency}
-            className="text-[1.5rem] font-bold leading-none tracking-tight text-[var(--nf-content-primary)]"
-            secondaryClassName="text-[0.54em] font-semibold opacity-60"
+            className="nf-figure leading-none"
+            secondaryClassName="text-[length:max(0.54em,0.75rem)] font-semibold opacity-60"
           />
           <span className={`ml-2xs ${TYPE.body}`}>per head</span>
         </p>

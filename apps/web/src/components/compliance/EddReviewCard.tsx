@@ -2,6 +2,8 @@
 
 import { useActionState } from "react";
 import type { Dictionary } from "@vallo/i18n/core";
+import { Button } from "@/components/ui/Button";
+import { Radio } from "@/components/ui/Check";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { approveEddDecision, decideEddReview } from "@/lib/compliance/edd-actions";
 import type { EddStage } from "@/lib/compliance/edd";
@@ -31,7 +33,7 @@ export function EddReviewCard({ view, copy }: { view: EddCardView; copy: Copy })
   const err = (decideState && !decideState.ok ? decideState : null) ?? (approveState && !approveState.ok ? approveState : null);
 
   return (
-    <li className="nf-panel nf-panel--card block p-card" data-testid="edd-review">
+    <li className="nf-admin-case" data-testid="edd-review">
       <p className="nf-body-sm font-semibold text-[var(--nf-content-primary)]">{view.heading}</p>
       {view.lines.map((line) => (
         <p key={line} className="nf-caption mt-2xs text-[var(--nf-content-muted)]">
@@ -65,14 +67,12 @@ export function EddReviewCard({ view, copy }: { view: EddCardView; copy: Copy })
           <fieldset>
             <legend className="nf-label mb-inline">{copy.outcome}</legend>
             <div className="flex flex-wrap gap-xs">
-              <label className="nf-btn nf-btn--glass min-h-[44px] cursor-pointer">
-                <input type="radio" name="outcome" value="cleared" required className="mr-xs" />
+              <Radio name="outcome" value="cleared" required>
                 {copy.cleared}
-              </label>
-              <label className="nf-btn nf-btn--glass min-h-[44px] cursor-pointer">
-                <input type="radio" name="outcome" value="refer" className="mr-xs" />
+              </Radio>
+              <Radio name="outcome" value="refer">
                 {copy.refer}
-              </label>
+              </Radio>
             </div>
           </fieldset>
           <div>
@@ -81,9 +81,13 @@ export function EddReviewCard({ view, copy }: { view: EddCardView; copy: Copy })
             </label>
             <input id={`${id}-note`} name="note" maxLength={1000} className="nf-field mt-xs min-h-[44px] w-full" />
           </div>
-          <button type="submit" disabled={deciding} className="nf-btn nf-btn--primary min-h-[44px] disabled:opacity-60">
-            {copy.decide}
-          </button>
+          {/* The decision stays one thumb away on a phone while the source of
+              funds above it is read (the console's decision bar). */}
+          <div className="nf-admin-decision">
+            <Button type="submit" variant="primary" full loading={deciding}>
+              {copy.decide}
+            </Button>
+          </div>
         </form>
       ) : null}
 
@@ -91,9 +95,11 @@ export function EddReviewCard({ view, copy }: { view: EddCardView; copy: Copy })
         <form action={approve} className="mt-group">
           <input type="hidden" name="decisionId" value={view.decisionId} />
           <input type="hidden" name="item" value={String(view.item)} />
-          <button type="submit" disabled={approving} className="nf-btn nf-btn--primary min-h-[44px] disabled:opacity-60">
-            {copy.approve}
-          </button>
+          <div className="nf-admin-decision">
+            <Button type="submit" variant="primary" full loading={approving}>
+              {copy.approve}
+            </Button>
+          </div>
         </form>
       ) : null}
 

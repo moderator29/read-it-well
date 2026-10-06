@@ -3,6 +3,7 @@ import { requireSignedInPage } from "@/lib/actions/signed-in-page";
 import { getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { AgentRegisterForm } from "@/components/supply/AgentRegisterForm";
+import { forRegister } from "@/components/supply/supply-copy";
 
 export const metadata: Metadata = {
   title: "Register as an agent",
@@ -32,5 +33,5 @@ export default async function AgentRegistrationPage() {
      its title row. It steps back through the form, and from the first screen
      it leaves to this route's declared parent, `/profile/setup`
      (`RegisterShell`). */
-  return <AgentRegisterForm t={t} locale={locale} />;
+  return <AgentRegisterForm t={forRegister(t)} locale={locale} />;
 }

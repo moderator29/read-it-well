@@ -2,6 +2,8 @@
 
 import { useActionState } from "react";
 import type { Dictionary } from "@vallo/i18n/core";
+import { Button } from "@/components/ui/Button";
+import { Radio } from "@/components/ui/Check";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { overrideRiskClass } from "@/lib/compliance/risk-actions";
 
@@ -23,10 +25,9 @@ export function RiskOverrideForm({ copy }: { copy: Dictionary["complianceRisk"][
         <legend className="sr-only">{copy.overrideTitle}</legend>
         <div className="flex flex-wrap gap-xs">
           {(["high", "medium", "low"] as const).map((value) => (
-            <label key={value} className="nf-btn nf-btn--glass min-h-[44px] cursor-pointer">
-              <input type="radio" name="riskClass" value={value} required className="mr-xs" />
+            <Radio key={value} name="riskClass" value={value} required>
               {copy.class[value]}
-            </label>
+            </Radio>
           ))}
         </div>
       </fieldset>
@@ -48,9 +49,9 @@ export function RiskOverrideForm({ copy }: { copy: Dictionary["complianceRisk"][
           {copy.reasonHelp}
         </p>
       </div>
-      <button type="submit" disabled={pending} className="nf-btn nf-btn--primary min-h-[44px] disabled:opacity-60">
+      <Button type="submit" variant="primary" loading={pending}>
         {copy.set}
-      </button>
+      </Button>
       {state?.ok ? (
         <p role="status" className="nf-caption text-[var(--nf-content-secondary)]">
           {copy.saved}

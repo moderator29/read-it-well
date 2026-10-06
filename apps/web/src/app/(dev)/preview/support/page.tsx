@@ -1,3 +1,4 @@
+import { getDictionary } from "@vallo/i18n";
 import Link from "next/link";
 import { PageHeader } from "@/components/app/PageHeader";
 import { LoadingShell } from "@/components/app/ScreenSkeleton";
@@ -91,8 +92,9 @@ function render(screen: Screen) {
             promise="A person replies within 1 day, and within 4 hours when money or safety is at stake."
             aiConsented
             signedIn
+            copy={getDictionary(locale).experienceInbox.support.home}
           />
-          <MessagesGroup tickets={MY_TICKETS} signedIn />
+          <MessagesGroup tickets={MY_TICKETS} signedIn copy={getDictionary(locale).experienceInbox.support.home} locale={locale} />
           <SupportSearch articles={FAQS} popular={popularArticles(FAQS, POPULAR_QUESTIONS)} />
         </div>
       );
@@ -166,7 +168,7 @@ function render(screen: Screen) {
       return (
         <div className="mx-auto max-w-2xl">
           <PageHeader title="Report a problem" subtitle="A person reads every message" fallback="/support" />
-          <NewQueryForm initialKind="problem" initialTopic="payment" records={RECORDS} />
+          <NewQueryForm initialKind="problem" initialTopic="payment" records={RECORDS} copy={getDictionary(locale).experienceInbox.support.form} />
         </div>
       );
     case "new-offline":
@@ -186,7 +188,7 @@ function render(screen: Screen) {
       return (
         <div className="mx-auto max-w-2xl">
           <PageHeader title="Report a problem" fallback="/support" />
-          <FiledView filed={{ reference: "VAL-SUP-04821", id: WAITING_TICKET.id }} topic="payment" />
+          <FiledView filed={{ reference: "VAL-SUP-04821", id: WAITING_TICKET.id }} topic="payment" copy={getDictionary(locale).experienceInbox.support.form} />
         </div>
       );
   }

@@ -12,7 +12,7 @@ import {
   listOpenAreas,
   listOpenLgaPlaces,
 } from "@/lib/social/areas-queries";
-import { AREA_COPY, type AreaStatus } from "@/lib/social/areas-schema";
+import { AREA_COPY, type AreaStatus } from "@/lib/social/areas-model";
 import { AROUND_UNCONFIGURED } from "../copy";
 import { getPlaceTree } from "@/lib/social/place-tree";
 import { PlacePicker } from "@/components/social/PlacePicker";
@@ -112,7 +112,7 @@ export default async function AroundManagePage({
           reachable only if you already knew it. */}
       <Link
         href="/u"
-        className="mb-lg inline-flex items-center gap-xs text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-brand-secondary)]"
+        className="nf-tap mb-lg inline-flex items-center gap-xs text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-brand-secondary)]"
       >
         <UiIcon name="user" size={15} />
         Find people

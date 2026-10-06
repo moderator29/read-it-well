@@ -9,6 +9,9 @@ import { Button } from "@/components/ui/Button";
 import { SuccessSheet } from "@/components/ui/SuccessSheet";
 import { successCopy, type SuccessWords } from "@/lib/ui/success-moments";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { slotsFor, type ServiceWindow } from "./table-windows";
+import { useClientMount } from "@/lib/ui/client-mount";
+import "@/app/css/catalogue.css";
 
 /**
  * Asking a restaurant to hold a table.
@@ -44,12 +47,10 @@ function lagosDayIso(offset: number): string {
   return lagos.toISOString().slice(0, 10);
 }
 
-/** The times people actually book, rather than a free clock. */
-const SLOTS = [
-  "12:00", "12:30", "13:00", "13:30", "14:00",
-  "17:00", "17:30", "18:00", "18:30", "19:00",
-  "19:30", "20:00", "20:30", "21:00", "21:30",
-];
+/** The current time in Lagos as HH:MM, so today never offers a past table. */
+function lagosClockNow(): string {
+  return new Date(Date.now() + 60 * 60 * 1_000).toISOString().slice(11, 16);
+}
 
 /** "Today", "Tomorrow", then a short weekday. Anchored at midday, see below. */
 function dayLabel(iso: string, todayIso: string): string {
@@ -71,7 +72,17 @@ export function ReserveTable({
   businessId,
   messageHref,
   success,
+  windows,
+  windowCopy,
 }: {
+  /**
+   * The venue's published service windows. With them, the time row offers
+   * only the half hours inside the picked day's windows (`table-windows.ts`);
+   * without them, the familiar times, and the venue confirms.
+   */
+  windows?: readonly ServiceWindow[];
+  /** The picker's two lines (`t.experienceDetail.window`). */
+  windowCopy?: { closedThatDay: string; noTimesLeftToday?: string; withinHours: string };
   /** The page's `t.success`, for "Table request sent". Absent, no sheet. */
   success?: SuccessWords;
   /**
@@ -95,6 +106,22 @@ export function ReserveTable({
 
   const [date, setDate] = useState(todayIso);
   const [time, setTime] = useState("19:00");
+  /* The times on offer for the picked day. A time that is not on offer for
+     the new day moves to the first one that is, so the hidden field never
+     submits a time the picker is not showing. */
+  /* Past times are dropped only once mounted: the server and the phone read
+     the clock at different moments, and the first paint must match. */
+  const mounted = useClientMount();
+  const slots = useMemo(
+    () => slotsFor(date, windows, mounted && date === todayIso ? lagosClockNow() : undefined),
+    [date, windows, todayIso, mounted],
+  );
+  /* Empty with the clock ignored, the venue does not seat on this weekday;
+     empty only with it applied, today's last seating has passed. Those are
+     different news, so they are told apart rather than both saying closed. */
+  const seatsThisWeekday = useMemo(() => slotsFor(date, windows).length > 0, [date, windows]);
+  const shownTime = slots.includes(time) ? time : (slots[0] ?? "");
+  const hasHours = (windows?.length ?? 0) > 0;
   const [party, setParty] = useState(2);
 
   const dateId = useId();
@@ -125,7 +152,7 @@ export function ReserveTable({
           object={words.object}
           title={words.title}
           body={words.body}
-          details={[{ label: success.detail.when, value: `${dayLabel(date, todayIso)}, ${time}` }]}
+          details={[{ label: success.detail.when, value: `${dayLabel(date, todayIso)}, ${shownTime}` }]}
           primary={{ label: success.continue }}
           secondary={{ label: SEE_BOOKINGS, href: "/bookings?side=stays&from=stays" }}
         />
@@ -139,7 +166,7 @@ export function ReserveTable({
             put somebody at a door with no table. */}
         <p className="mt-xs text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           The restaurant has your request for {party} on {dayLabel(date, todayIso)} at{" "}
-          {time}. They will confirm or decline it, and you will see the answer in
+          {shownTime}. They will confirm or decline it, and you will see the answer in
           your bookings.
         </p>
         <Link
@@ -159,7 +186,7 @@ export function ReserveTable({
       {listingId && <input type="hidden" name="listingId" value={listingId} />}
       {businessId && <input type="hidden" name="businessId" value={businessId} />}
       <input type="hidden" name="date" value={date} />
-      <input type="hidden" name="time" value={time} />
+      <input type="hidden" name="time" value={shownTime} />
 
       <p className="text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
         Book a table
@@ -200,8 +227,8 @@ export function ReserveTable({
           aria-labelledby={timeId}
           className="-mx-2xs mt-2xs flex gap-2xs overflow-x-auto px-2xs pb-2xs"
         >
-          {SLOTS.map((slot) => {
-            const active = slot === time;
+          {slots.map((slot) => {
+            const active = slot === shownTime;
             return (
               <button
                 key={slot}
@@ -215,6 +242,15 @@ export function ReserveTable({
             );
           })}
         </div>
+        {slots.length === 0 ? (
+          <p className="mt-2xs text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)]" data-testid="table-closed-day">
+            {seatsThisWeekday
+              ? (windowCopy?.noTimesLeftToday ?? "No times left today. Pick another day.")
+              : (windowCopy?.closedThatDay ?? "Not seating on this day. Pick another day.")}
+          </p>
+        ) : hasHours && windowCopy ? (
+          <p className="mt-2xs text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">{windowCopy.withinHours}</p>
+        ) : null}
       </div>
 
       <div className="mt-md">
@@ -226,15 +262,17 @@ export function ReserveTable({
             a circle survives the shape law only where a governing reference
             draws that control round, and none draws a stepper. */}
         <div className="mt-2xs flex items-center gap-sm">
-          <button
-            type="button"
+          <Button
+            variant="glass"
+            size="sm"
+            iconOnly
             onClick={() => setParty((n) => Math.max(1, n - 1))}
             aria-label="One fewer guest"
-            className="nf-btn nf-btn--glass nf-btn--sm nf-btn--icon grid h-9 w-9 rounded-[var(--nf-radius-sm)] place-items-center text-[var(--nf-content-secondary)] disabled:opacity-40"
+            className="grid h-11 w-11 rounded-[var(--nf-radius-sm)] place-items-center text-[var(--nf-content-secondary)] disabled:opacity-40"
             disabled={party <= 1}
           >
             <UiIcon name="minus" size={16} aria-hidden />
-          </button>
+          </Button>
           <input
             id={partyId}
             name="partySize"
@@ -249,15 +287,17 @@ export function ReserveTable({
             }}
             className="h-11 w-16 nf-glass--well rounded-[var(--nf-radius-sm)] border px-xs py-0 text-center text-[length:var(--nf-text-body-sm)] tabular-nums text-[var(--nf-content-primary)]"
           />
-          <button
-            type="button"
+          <Button
+            variant="glass"
+            size="sm"
+            iconOnly
             onClick={() => setParty((n) => Math.min(MAX_PARTY, n + 1))}
             aria-label="One more guest"
-            className="nf-btn nf-btn--glass nf-btn--sm nf-btn--icon grid h-9 w-9 rounded-[var(--nf-radius-sm)] place-items-center text-[var(--nf-content-secondary)] disabled:opacity-40"
+            className="grid h-11 w-11 rounded-[var(--nf-radius-sm)] place-items-center text-[var(--nf-content-secondary)] disabled:opacity-40"
             disabled={party >= MAX_PARTY}
           >
             <UiIcon name="plus" size={16} aria-hidden />
-          </button>
+          </Button>
         </div>
         {/* Said before somebody counts to fifty and is refused, rather than
             after. The database enforces the same number. */}
@@ -297,7 +337,7 @@ export function ReserveTable({
         </p>
       )}
 
-      <Button type="submit" variant="primary" full className="mt-md" disabled={pending}>
+      <Button type="submit" variant="primary" full className="mt-md" disabled={pending || slots.length === 0}>
         {pending ? "Sending" : "Request a table"}
       </Button>
 

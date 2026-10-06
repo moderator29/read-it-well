@@ -1,4 +1,5 @@
 import type { Dictionary } from "@vallo/i18n/core";
+import { withNext } from "@/lib/auth/next-link";
 import { RowDownload, RowLink, SettingsGroup } from "@/components/app/account/rows";
 
 /**
@@ -19,7 +20,7 @@ export function DataExportCard({ t, signedIn }: { t: Dictionary; signedIn: boole
           testId="settings-data-export"
         />
       ) : (
-        <RowLink href="/sign-in" icon="arrow-down" label={copy.action} sub={copy.signedOut} />
+        <RowLink href={withNext("/sign-in", "/settings/privacy/data")} icon="arrow-down" label={copy.action} sub={copy.signedOut} />
       )}
     </SettingsGroup>
   );

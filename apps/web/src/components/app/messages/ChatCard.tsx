@@ -86,7 +86,7 @@ function Stars({ rating }: { rating: number | null }) {
   if (rating === null || rating <= 0) return null;
   const full = Math.round(Math.min(5, Math.max(0, rating)));
   return (
-    <span className="nf-chat-card__stars" aria-label={`Rated ${rating} out of 5`}>
+    <span className="nf-chat-card__stars" role="img" aria-label={`Rated ${rating} out of 5`}>
       {/* Solid, the way the render draws a rating. `star` is one of the
           glyphs authored as a closed silhouette, so `filled` is real here
           rather than paint poured into an outline. Blue by rule 8. */}
@@ -226,29 +226,29 @@ export function ChatCard({ card, forwardable = true }: { card: ChatCardData; for
 
         <dl className="nf-chat-card__facts">
           <div className="nf-chat-card__fact">
-            <UiIcon name="calendar-booking" size={12} className="nf-chat-card__fact-glyph" />
-            <div className="min-w-0">
-              <dt className="nf-chat-card__fact-label">Check in</dt>
-              <dd className="nf-chat-card__fact-value">{card.checkInLabel}</dd>
-            </div>
+            <dt className="nf-chat-card__fact-label">
+              <UiIcon name="calendar-booking" size={12} className="nf-chat-card__fact-glyph" />
+              Check in
+            </dt>
+            <dd className="nf-chat-card__fact-value">{card.checkInLabel}</dd>
           </div>
           <div className="nf-chat-card__fact">
-            <UiIcon name="calendar-booking" size={12} className="nf-chat-card__fact-glyph" />
-            <div className="min-w-0">
-              <dt className="nf-chat-card__fact-label">Check out</dt>
-              <dd className="nf-chat-card__fact-value">{card.checkOutLabel}</dd>
-            </div>
+            <dt className="nf-chat-card__fact-label">
+              <UiIcon name="calendar-booking" size={12} className="nf-chat-card__fact-glyph" />
+              Check out
+            </dt>
+            <dd className="nf-chat-card__fact-value">{card.checkOutLabel}</dd>
           </div>
           <div className="nf-chat-card__fact">
-            <UiIcon name="user" size={12} className="nf-chat-card__fact-glyph" />
-            <div className="min-w-0">
-              <dt className="nf-chat-card__fact-label">Guests</dt>
-              {card.partyLines.map((line, i) => (
-                <dd key={line} className={i === 0 ? "nf-chat-card__fact-value" : "nf-chat-card__fact-sub"}>
-                  {line}
-                </dd>
-              ))}
-            </div>
+            <dt className="nf-chat-card__fact-label">
+              <UiIcon name="user" size={12} className="nf-chat-card__fact-glyph" />
+              Guests
+            </dt>
+            {card.partyLines.map((line, i) => (
+              <dd key={line} className={i === 0 ? "nf-chat-card__fact-value" : "nf-chat-card__fact-sub"}>
+                {line}
+              </dd>
+            ))}
           </div>
         </dl>
 

@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { getDictionary } from "@vallo/i18n";
+import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
 import { resolveSession } from "@/lib/actions/session";
 import { listMyAreas } from "@/lib/social/areas-queries";
@@ -8,7 +10,9 @@ import { SocialPaused } from "@/components/social/SocialPaused";
 import { isSocialEnabled } from "@/lib/social/flag";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Write a story" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: getDictionary(await getLocale()).experienceSocial.newStory.title };
+}
 
 /**
  * Writing a story.
@@ -18,19 +22,20 @@ export const metadata: Metadata = { title: "Write a story" };
  * cannot write in would be offering them a refusal.
  */
 export default async function NewStoryPage() {
-  if (!(await isSocialEnabled())) return <SocialPaused title="Write a story" />;
+  const words = getDictionary(await getLocale()).experienceSocial.newStory;
+  if (!(await isSocialEnabled())) return <SocialPaused title={words.title} />;
 
   const session = await resolveSession();
 
   if (session.state === "unconfigured") {
     return (
       <div className="mx-auto w-full max-w-2xl pb-4xl pt-md">
-        <PageHeader title="Write a story" fallback="/around" />
+        <PageHeader title={words.title} fallback="/around" />
         <EmptyPanel
           icon="camera"
-          title="We cannot reach stories right now"
-          body="This is on our side, not yours. Nothing can be published from here at the moment. Nothing you have written has been lost, and the rest of the app works as normal."
-          action={{ href: "/home", label: "Back to home" }}
+          title={words.unreachableTitle}
+          body={words.unreachableBody}
+          action={{ href: "/home", label: words.backToHome }}
         />
       </div>
     );
@@ -45,8 +50,8 @@ export default async function NewStoryPage() {
   return (
     <div className="mx-auto w-full max-w-2xl pb-4xl pt-md">
       <PageHeader
-        title="Write a story"
-        subtitle="A picture, a headline, and a line or two. It stays up."
+        title={words.title}
+        subtitle={words.lede}
         fallback="/around"
       />
       <StoryComposer

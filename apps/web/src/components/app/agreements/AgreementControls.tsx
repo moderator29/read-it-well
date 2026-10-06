@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { amendAgreement, cancelAgreement, confirmAgreement, createClaimEvidenceUpload, fileGuaranteeClaim } from "@/lib/agreements/actions";
-import { createClient } from "@/lib/supabase/client";
+import { loadBrowserClient } from "@/lib/supabase/load-client";
 import { withDone, type RecordDoneFlag } from "@/lib/ui/success-moments";
 import { Sheet } from "@/components/ui/Sheet";
 import { Button } from "@/components/ui/Button";
@@ -66,14 +66,9 @@ export function ConfirmTerms({
         <span>I have read these terms (version {version}) and I agree to them.</span>
       </label>
       {error && !asking ? <p role="alert" className="text-[var(--nf-status-error)]">{error}</p> : null}
-      <button
-        type="button"
-        className="nf-btn nf-btn--primary nf-btn--md nf-btn--full"
-        disabled={!read || pending || disabled}
-        onClick={() => setAsking(true)}
-      >
+      <Button variant="primary" full disabled={!read || pending || disabled} onClick={() => setAsking(true)}>
         Confirm these terms
-      </button>
+      </Button>
       <Sheet
         open={asking}
         onOpenChange={(next) => {
@@ -149,9 +144,9 @@ export function AmendTerms({
   const [n, setN] = useState(notes);
   if (!open) {
     return (
-      <button type="button" className="nf-btn nf-btn--ghost nf-btn--md" onClick={() => setOpen(true)}>
+      <Button variant="quiet" onClick={() => setOpen(true)}>
         Change the terms
-      </button>
+      </Button>
     );
   }
   return (
@@ -176,13 +171,13 @@ export function AmendTerms({
         <textarea className="nf-field mt-2xs min-h-[4.5rem] w-full" maxLength={2000} value={n} onChange={(e) => setN(e.target.value)} />
       </label>
       {error ? <p role="alert" className="text-[var(--nf-status-error)]">{error}</p> : null}
-      <div className="flex gap-inline">
-        <button type="submit" className="nf-btn nf-btn--primary nf-btn--md" disabled={pending}>
+      <div className="flex flex-wrap gap-inline">
+        <Button type="submit" variant="primary" disabled={pending}>
           Save the new terms
-        </button>
-        <button type="button" className="nf-btn nf-btn--ghost nf-btn--md" onClick={() => setOpen(false)}>
+        </Button>
+        <Button variant="quiet" onClick={() => setOpen(false)}>
           Keep the current terms
-        </button>
+        </Button>
       </div>
     </form>
   );
@@ -201,13 +196,19 @@ export function CancelAgreement({
   return (
     <div className="grid gap-inline">
       {error && !sure ? <p role="alert" className="text-[var(--nf-status-error)]">{error}</p> : null}
-      <button
-        type="button"
-        className={`nf-btn nf-btn--md ${variant === "secondary" ? "nf-btn--glass text-[var(--nf-state-error)]" : "nf-btn--ghost"}`}
+      <Button
+        variant={variant === "secondary" ? "secondary" : "quiet"}
+        /* DESTRUCTIVE WITHOUT THE ROSE WORD (auditor A7 N4). The label was
+           `--nf-state-error` on the glass secondary, about 3.9:1 at night,
+           under the 4.5:1 a 16px word needs. It keeps the button's own ink,
+           which passes, and says "this one ends the agreement" with a rose
+           edge instead, the way the slide to confirm marks its destructive
+           choice. The Awaiting you card's quiet variant is brand ink already. */
+        className={variant === "secondary" ? "nf-btn--edge-danger" : undefined}
         onClick={() => setSure(true)}
       >
         Cancel this agreement
-      </button>
+      </Button>
       <Sheet
         open={sure}
         onOpenChange={(next) => {
@@ -230,9 +231,14 @@ export function CancelAgreement({
             </Button>
           }
           primary={
+            /* The same destructive edge as the trigger, not a rose word on
+               glass. The solid `danger` button was tried and does not clear
+               4.5:1 for its white label at night (3.8:1 on the light rose
+               fill), so the confirming act wears the rose edge on the
+               secondary's own legible ink. */
             <Button
               variant="secondary"
-              className="text-[var(--nf-state-error)]"
+              className="nf-btn--edge-danger"
               disabled={pending}
               onClick={() => run(() => cancelAgreement({ agreementId }), () => setSure(false))}
             >
@@ -277,7 +283,14 @@ export function ClaimForm({ agreementId, capNaira }: { agreementId: string; capN
         setUploadError(prepared.error);
         return;
       }
-      const supabase = createClient();
+      /* The browser client loads now, when a photo is chosen, not with the
+         page (lib/supabase/load-client.ts). A chunk that cannot be fetched
+         is the same failure the member already reads for an upload. */
+      const supabase = await loadBrowserClient();
+      if (!supabase) {
+        setUploadError("That photo did not upload. Use a JPG, PNG, WEBP, HEIC or PDF under 10 MB, and try again.");
+        return;
+      }
       const { error: upErr } = await supabase.storage
         .from("guarantee-evidence")
         .uploadToSignedUrl(prepared.data.path, prepared.data.token, file, { contentType: file.type });
@@ -366,9 +379,9 @@ export function ClaimForm({ agreementId, capNaira }: { agreementId: string; capN
         <input className="nf-field mt-2xs w-full" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} />
       </label>
       {error ? <p role="alert" className="text-[var(--nf-status-error)]">{error}</p> : null}
-      <button type="submit" className="nf-btn nf-btn--primary nf-btn--md nf-btn--full" disabled={pending || uploading}>
+      <Button type="submit" variant="primary" full disabled={pending || uploading}>
         Send the claim to Vallo
-      </button>
+      </Button>
     </form>
   );
 }

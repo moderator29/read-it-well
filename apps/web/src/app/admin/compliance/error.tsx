@@ -1,6 +1,6 @@
 "use client";
 
-import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
+import { COMPLIANCE_ERROR } from "./error-copy";
 import { Button } from "@/components/ui/Button";
 import { useErrorReport } from "@/lib/observability/use-error-report";
 
@@ -9,7 +9,7 @@ import { useErrorReport } from "@/lib/observability/use-error-report";
  * says so, so a failure can never read as a clean screening.
  */
 export default function ComplianceError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
-  const c = useClientDictionary().compliance.desk;
+  const c = COMPLIANCE_ERROR;
   const reference = useErrorReport(error, "client.compliance_boundary", "[vallo] compliance lane error");
   return (
     <div className="nf-console">

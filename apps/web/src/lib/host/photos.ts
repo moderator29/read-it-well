@@ -34,19 +34,24 @@ export const MAX_BUSINESS_PHOTOS = 10;
  */
 export const PHOTO_ACCEPTED_MIME = ["image/jpeg", "image/png", "image/webp"] as const;
 
-export const PHOTO_ACCEPTED_LABEL = "JPG, PNG or WEBP";
-
 /** The bucket's `file_size_limit`, exactly. */
 export const PHOTO_MAX_BYTES = 10 * 1024 * 1024;
 export const PHOTO_MAX_LABEL = "10MB";
 
+/**
+ * The words `rejectPhoto` says, in the owner's language: the PhotoManager's
+ * `experienceHost.photoManager.controls`, which also names the accepted
+ * formats as a list a person reads ("JPG, PNG or WEBP").
+ */
+export type RejectPhotoWords = { acceptedFormats: string; notAccepted: string; tooLarge: string };
+
 /** Why a chosen file cannot be used, in words, before anything is uploaded. */
-export function rejectPhoto(file: { type: string; size: number }): string | null {
+export function rejectPhoto(file: { type: string; size: number }, words: RejectPhotoWords): string | null {
   if (!(PHOTO_ACCEPTED_MIME as readonly string[]).includes(file.type)) {
-    return `That file is not ${PHOTO_ACCEPTED_LABEL}. A photograph straight from a phone is one of those.`;
+    return words.notAccepted.replace("{formats}", words.acceptedFormats);
   }
   if (file.size > PHOTO_MAX_BYTES) {
-    return `That photograph is over ${PHOTO_MAX_LABEL}. Send it at a smaller size and choose it again.`;
+    return words.tooLarge.replace("{size}", PHOTO_MAX_LABEL);
   }
   return null;
 }

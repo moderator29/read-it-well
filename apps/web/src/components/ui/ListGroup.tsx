@@ -37,6 +37,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
  */
 export function ListGroup({
   label,
+  labelAs: LabelTag = "h3",
   action,
   bare = false,
   className,
@@ -44,6 +45,8 @@ export function ListGroup({
   ...rest
 }: {
   label?: ReactNode;
+  /** The label's heading level: h3 under a page's h2 sections (the default), h2 directly under a page's h1. */
+  labelAs?: "h2" | "h3";
   action?: ReactNode;
   bare?: boolean;
   className?: string;
@@ -60,7 +63,7 @@ export function ListGroup({
   return (
     <section {...rest} className={["nf-list-section", className ?? ""].filter(Boolean).join(" ")}>
       <div className="nf-list-section__head">
-        {label != null ? <h3 className="nf-section-label">{label}</h3> : <span />}
+        {label != null ? <LabelTag className="nf-section-label">{label}</LabelTag> : <span />}
         {action != null ? <span className="nf-list-section__action">{action}</span> : null}
       </div>
       {list}

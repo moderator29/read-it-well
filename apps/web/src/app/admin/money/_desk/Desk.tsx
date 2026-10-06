@@ -5,6 +5,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { CalmNote, type CalmNoteProps } from "../../_components/panels";
 import { fill } from "../../_components/copy";
 import { pagerItems } from "@/lib/admin/reads/money-derive";
+import { NumberedSlidePager } from "../../_components/NumberedSlidePager";
 
 /** The money desks' furniture words. English when a caller (the bookings desk) passes no locale. */
 function deskWords(locale: Locale | undefined) {
@@ -223,8 +224,25 @@ export function NumberedPager({
   const first = total === 0 ? 0 : (page - 1) * pageSize + 1;
   const last = Math.min(total, page * pageSize);
 
+  const ui = getDictionary(locale ?? "en").experienceUi;
+
   return (
-    <nav className="nf-md-pager" aria-label={fill(c.pagerLabel, { noun })}>
+    <div className="nf-md-pager-wrap">
+      {/* From 768 the sliding indicator (W8); the numbered links below are the
+          phone's, where a four-digit page row would not fit. */}
+      {pages > 1 && (
+        <div className="nf-md-pager--wide">
+          <NumberedSlidePager
+            base={base}
+            params={params}
+            param={param}
+            page={page}
+            pages={pages}
+            words={{ label: fill(c.pagerLabel, { noun }), previous: ui.previousPage, next: ui.nextPage, page: ui.page }}
+          />
+        </div>
+      )}
+    <nav className={["nf-md-pager", pages > 1 && "nf-md-pager--phone"].filter(Boolean).join(" ")} aria-label={fill(c.pagerLabel, { noun })}>
       {items.length > 0 && (
         <>
           {page > 1 ? (
@@ -268,6 +286,7 @@ export function NumberedPager({
         {total === 0 ? fill(c.pagerNone, { noun }) : fill(c.pagerCount, { first, last, total, noun })}
       </span>
     </nav>
+    </div>
   );
 }
 

@@ -34,7 +34,10 @@ export const trustDoorsEn = {
     yesRole: { agent: "Agent", owner: "Owner", firm: "Firm" },
     yesIdentity: "Identity checked by Vallo on {date}.",
     yesTalk: "Talk to them on Vallo",
-    yesWhy: "Keep the conversation and any payment inside Vallo, where both of you are protected.",
+    /* "where both of you are protected" was a claim no live rail backs: custody
+       was retired on 25 September and the Guarantee covers a settled booking,
+       never "any payment" and never the agent (claims lint, Session 3). */
+    yesWhy: "Keep the conversation and any payment inside Vallo, so there is a record of both.",
     noTitle: "No agent has registered this number with Vallo",
     noCodeTitle: "No agent on Vallo has this code",
     noBody: "Ask for their Vallo code, and pay only inside Vallo.",

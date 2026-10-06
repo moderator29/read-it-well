@@ -13,6 +13,8 @@ export type AssistantCopy = {
   a11y: Pick<Dictionary["a11y"], "logoHome">;
   catalogue: { card: Pick<Dictionary["catalogue"]["card"], "sqm"> };
   common: Pick<Dictionary["common"], "verified">;
+  /** The streamed answer's words: thinking, stop, copy, the island. */
+  answer: Dictionary["experienceInbox"]["assistant"];
 };
 
 export function assistantCopyOf(t: Dictionary): AssistantCopy {
@@ -21,5 +23,6 @@ export function assistantCopyOf(t: Dictionary): AssistantCopy {
     a11y: { logoHome: t.a11y.logoHome },
     catalogue: { card: { sqm: t.catalogue.card.sqm } },
     common: { verified: t.common.verified },
+    answer: t.experienceInbox.assistant,
   };
 }

@@ -1,0 +1,55 @@
+/*
+ * A LISTER'S LISTING GOES LIVE (round 5, the sixth moment's payoff). Loaded by
+ * the listings workspace only.
+ *
+ * One row at most, once per device per publication, and only when the server
+ * says PUBLISHED (lib/agent/lister-live.ts):
+ *
+ *   240ms   the page has settled (base); the Live mark pops 1.0 to 1.04 to
+ *           1.0 over 180ms, the platform's one payoff curve (success.css,
+ *           `nf-success-payoff`, global, so this costs no keyframes), and the
+ *           heavy haptic is felt as the pop starts
+ *   420ms   the line under the row rises (slow, 380ms, no overshoot): it is
+ *           live, it is in search, and the way to open it
+ *
+ * Nothing after that moves. Reduced motion, Calm and Off: no pop; the line
+ * fades in over 160ms and the haptic is felt at once, the same story settled.
+ */
+@layer theme, base, components, utilities;
+
+@layer components {
+  @keyframes nf-live-rise {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 8px, 0);
+    }
+  }
+  @keyframes nf-live-fade {
+    from {
+      opacity: 0;
+    }
+  }
+  .nf-live-payoff__mark {
+    display: inline-flex;
+    animation: nf-success-payoff 180ms var(--nf-ease-standard) var(--nf-duration-base) both;
+  }
+  .nf-live-payoff__line {
+    animation: nf-live-rise var(--nf-duration-slow) var(--nf-ease-entrance) 420ms both;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-live-payoff__mark {
+      animation: none;
+    }
+    .nf-live-payoff__line {
+      animation: nf-live-fade 160ms var(--nf-ease-standard) both;
+      /* The floor in animation.css would make this fade instant; this opts in. */
+      --nf-reduced-duration: 160ms;
+    }
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-live-payoff__mark {
+    animation: none;
+  }
+  :root[data-motion="calm"] .nf-live-payoff__line {
+    animation: nf-live-fade 160ms var(--nf-ease-standard) both;
+  }
+}

@@ -1,13 +1,12 @@
 import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { formatDate, formatMoney, type Locale } from "@vallo/i18n/core";
+import { formatDate, formatMoney, getDictionary, type Locale } from "@vallo/i18n";
 import type { ChatCardData } from "@/components/app/messages/ChatCard";
 import { parseShare, type SharedRef } from "@/components/app/messages/share";
 import { getListingRepository } from "@/lib/listings/repository";
 import { getStayDetail } from "@/lib/stays/queries";
 import { accommodationPhotoUrl } from "@/lib/stays/photos";
-import { PERIOD_SUFFIX } from "@/lib/listings/pricing";
 import type { Listing, ListingKind } from "@/lib/listings/types";
 import type { Database } from "@/lib/supabase/database.types";
 
@@ -75,7 +74,7 @@ function listingCard(listing: Listing, locale: Locale): ChatCardData {
     listingKind: listing.kind,
     verified: listing.verified,
     priceLabel: formatMoney(minor, locale),
-    periodLabel: sale ? "" : PERIOD_SUFFIX[period],
+    periodLabel: sale ? "" : getDictionary(locale).agentListings.pricing.period[period],
     bedrooms: listing.bedrooms,
     bathrooms: listing.bathrooms,
     rating: listing.reviewCount > 0 ? listing.rating : null,
@@ -167,7 +166,7 @@ async function stayCard(id: string, locale: Locale): Promise<ChatCardData | null
     listingKind: "hotel",
     verified: false,
     priceLabel: cheapest === null ? "" : formatMoney(cheapest, locale),
-    periodLabel: cheapest === null ? "" : PERIOD_SUFFIX.night,
+    periodLabel: cheapest === null ? "" : getDictionary(locale).agentListings.pricing.period.night,
     bedrooms: 0,
     bathrooms: 0,
     rating: null,

@@ -6,6 +6,7 @@ import { saveLocalGovernment, saveOccupation } from "@/lib/admin/reference-actio
 import { matchesSearch, type StateOption } from "@/lib/places/reference";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { TextField, SelectField } from "@/components/ui/Field";
+import { Button } from "@/components/ui/Button";
 
 /**
  * The two reference tables, edited in place.
@@ -132,15 +133,18 @@ function OccupationForm({
         error={errors?.sortOrder}
       />
       <div className="sm:col-span-2">
-        <button type="submit" disabled={pending} className="nf-btn nf-btn--primary h-9 px-md text-[length:var(--nf-text-overline)]">
+        <Button variant="primary" size="sm" type="submit" loading={pending}>
           {pending ? "Saving" : mode === "edit" ? "Save this occupation" : "Add occupation"}
-        </button>
+        </Button>
         <Result state={state} done="Saved. It is on the picker now." />
       </div>
     </form>
   );
 }
 
+/* C1 sweep: a list row is a Plate (north star 4, tier 1), not a Card per row,
+   so the two editors read as lists inside the page rather than a stack of
+   glass panels; each count is the console's own badge. */
 export function OccupationEditor({ rows }: { rows: Occupation[] }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
@@ -164,16 +168,12 @@ export function OccupationEditor({ rows }: { rows: Occupation[] }) {
     <section>
       <div className="mb-sm flex flex-wrap items-center gap-sm">
         <h2 className="text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">Occupations</h2>
-        <span className="nf-numeric rounded-[var(--nf-radius-xs)] border border-[var(--nf-brand-edge)] px-xs py-3xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+        <span className="nf-badge nf-badge--brand nf-numeric">
           {rows.length}
         </span>
-        <button
-          type="button"
-          onClick={() => setAdding((open) => !open)}
-          className="nf-btn nf-btn--ghost ml-auto h-8 px-sm text-[length:var(--nf-text-overline)]"
-        >
+        <Button variant="quiet" size="sm" className="ml-auto" type="button" onClick={() => setAdding((open) => !open)}>
           {adding ? "Close" : "Add one"}
-        </button>
+        </Button>
       </div>
 
       {adding && (
@@ -193,14 +193,14 @@ export function OccupationEditor({ rows }: { rows: Occupation[] }) {
 
       <ul className="flex flex-col gap-xs">
         {filtered.map((row) => (
-          <li key={row.code} className="nf-panel nf-panel--card nf-admin-card p-md">
+          <li key={row.code} className="nf-admin-plate p-md">
             <button
               type="button"
               onClick={() => setOpenCode(openCode === row.code ? null : row.code)}
               className="flex min-h-11 w-full items-center gap-sm text-left"
             >
               <span className="min-w-0 flex-1">
-                <span className="block text-[length:var(--nf-text-body-sm)] font-medium text-[var(--nf-content-primary)]">
+                <span className="block text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
                   {row.name}
                 </span>
                 {/* The code and the sort number are both schema, and both
@@ -297,9 +297,9 @@ function LocalGovernmentForm({
         error={errors?.name}
       />
       <div className="sm:col-span-2">
-        <button type="submit" disabled={pending} className="nf-btn nf-btn--primary h-9 px-md text-[length:var(--nf-text-overline)]">
+        <Button variant="primary" size="sm" type="submit" loading={pending}>
           {pending ? "Saving" : mode === "edit" ? "Save this local government" : "Add local government"}
-        </button>
+        </Button>
         <Result state={state} done="Saved. It is on the picker now." />
       </div>
     </form>
@@ -345,16 +345,12 @@ export function LocalGovernmentEditor({
         <h2 className="text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
           Local governments
         </h2>
-        <span className="nf-numeric rounded-[var(--nf-radius-xs)] border border-[var(--nf-brand-edge)] px-xs py-3xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+        <span className="nf-badge nf-badge--brand nf-numeric">
           {rows.length}
         </span>
-        <button
-          type="button"
-          onClick={() => setAdding((open) => !open)}
-          className="nf-btn nf-btn--ghost ml-auto h-8 px-sm text-[length:var(--nf-text-overline)]"
-        >
+        <Button variant="quiet" size="sm" className="ml-auto" type="button" onClick={() => setAdding((open) => !open)}>
           {adding ? "Close" : "Add one"}
-        </button>
+        </Button>
       </div>
 
       {adding && (
@@ -395,14 +391,14 @@ export function LocalGovernmentEditor({
 
       <ul className="flex flex-col gap-xs">
         {filtered.map((row) => (
-          <li key={row.code} className="nf-panel nf-panel--card nf-admin-card p-md">
+          <li key={row.code} className="nf-admin-plate p-md">
             <button
               type="button"
               onClick={() => setOpenCode(openCode === row.code ? null : row.code)}
               className="flex min-h-11 w-full items-center gap-sm text-left"
             >
               <span className="min-w-0 flex-1">
-                <span className="block text-[length:var(--nf-text-body-sm)] font-medium text-[var(--nf-content-primary)]">
+                <span className="block text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
                   {row.name}
                 </span>
                 <span className="nf-numeric mt-3xs block text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">

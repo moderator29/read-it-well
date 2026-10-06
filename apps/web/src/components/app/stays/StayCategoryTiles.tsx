@@ -1,5 +1,6 @@
 import Link from "next/link";
 /* C12: the tiles' sheet, out of `globals.css` (the host set-up loads it from `app/host/layout.tsx`). */
+import "@/app/css/catalogue.css";
 import "@/app/css/stays.css";
 import type { Dictionary } from "@vallo/i18n/core";
 import type { BrandIconName } from "@/design-system/icons/BrandIcon";

@@ -158,15 +158,15 @@ export function Verifying({
         <span className="flex justify-center">
           <LogoMark size={44} title="Vallo" />
         </span>
-        <h1 className="nf-h2 mt-5">{a.linkFailedTitle}</h1>
-        <p className="mt-3 leading-relaxed text-[var(--nf-content-secondary)]">{said}</p>
-        <p className="mt-3 leading-relaxed text-[var(--nf-content-secondary)]">
+        <h1 className="nf-h2 mt-md">{a.linkFailedTitle}</h1>
+        <p className="mt-sm leading-relaxed text-[var(--nf-content-secondary)]">{said}</p>
+        <p className="mt-sm leading-relaxed text-[var(--nf-content-secondary)]">
           {a.codeStillWorks}
         </p>
-        <ButtonLink href="/sign-up/verify" variant="primary" size="lg" className="mt-7">
+        <ButtonLink href="/sign-up/verify" variant="primary" size="lg" className="mt-lg">
           {a.enterCodeInstead}
         </ButtonLink>
-        <p className="mt-5 text-[0.8125rem] text-[var(--nf-content-muted)]">
+        <p className="mt-md text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">
           <Link
             href="/sign-in"
             className="nf-tap underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"

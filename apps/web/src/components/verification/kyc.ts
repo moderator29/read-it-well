@@ -111,16 +111,32 @@ export const ADDRESS_MAX_AGE_DAYS = 92;
  * Why an address document's date will be refused, or null. `today` is an
  * ISO date so the check is the same on the phone and on the server.
  */
-export function addressDateProblem(issuedOn: string | null | undefined, today: string): string | null {
-  if (!issuedOn || !/^\d{4}-\d{2}-\d{2}$/.test(issuedOn)) return "Enter the date printed on the document.";
+/**
+ * What is wrong with a proof of address's date, as a code the screen words in
+ * the reader's language (`experienceAccount.kyc`, Round 3 sweep). The English
+ * sentences below stay for the server action, which answers in them.
+ */
+export type AddressDateIssue = "missing" | "future" | "old";
+
+export function addressDateIssue(issuedOn: string | null | undefined, today: string): AddressDateIssue | null {
+  if (!issuedOn || !/^\d{4}-\d{2}-\d{2}$/.test(issuedOn)) return "missing";
   const issued = Date.parse(`${issuedOn}T00:00:00Z`);
   const now = Date.parse(`${today}T00:00:00Z`);
-  if (Number.isNaN(issued)) return "Enter the date printed on the document.";
-  if (issued > now) return "That date is in the future. Enter the date printed on the document.";
-  if (now - issued > ADDRESS_MAX_AGE_DAYS * 86_400_000) {
-    return "That document is more than three months old, so it would be refused. Use a more recent one.";
-  }
+  if (Number.isNaN(issued)) return "missing";
+  if (issued > now) return "future";
+  if (now - issued > ADDRESS_MAX_AGE_DAYS * 86_400_000) return "old";
   return null;
+}
+
+const ADDRESS_DATE_EN: Record<AddressDateIssue, string> = {
+  missing: "Enter the date printed on the document.",
+  future: "That date is in the future. Enter the date printed on the document.",
+  old: "That document is more than three months old, so it would be refused. Use a more recent one.",
+};
+
+export function addressDateProblem(issuedOn: string | null | undefined, today: string): string | null {
+  const issue = addressDateIssue(issuedOn, today);
+  return issue ? ADDRESS_DATE_EN[issue] : null;
 }
 
 /** Today in Lagos, as the ISO date both sides compare against. */
@@ -128,12 +144,18 @@ export function lagosToday(now: Date = new Date()): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Lagos" }).format(now);
 }
 
+/** Why a chosen file cannot be used, as a code the screen words. */
+export function rejectFileIssue(file: { type: string; size: number }): "type" | "size" | null {
+  if (!(ACCEPTED_MIME as readonly string[]).includes(file.type)) return "type";
+  if (file.size > MAX_FILE_BYTES) return "size";
+  return null;
+}
+
 /** Why a chosen file cannot be used, in words, before anything is uploaded. */
 export function rejectFile(file: { type: string; size: number }): string | null {
-  if (!(ACCEPTED_MIME as readonly string[]).includes(file.type)) {
-    return `That file is not ${ACCEPTED_LABEL}. Choose one of those instead.`;
-  }
-  if (file.size > MAX_FILE_BYTES) {
+  const issue = rejectFileIssue(file);
+  if (issue === "type") return `That file is not ${ACCEPTED_LABEL}. Choose one of those instead.`;
+  if (issue === "size") {
     return `That file is over ${MAX_FILE_LABEL}. Photograph the document again at a lower resolution, or use a PDF.`;
   }
   return null;
@@ -224,6 +246,8 @@ export type BusinessField = {
 };
 
 export type BusinessSection = {
+  /** Which of the three groups, for the screen's words. */
+  key: "identity" | "contact" | "address";
   /** The heading that turns a stack of boxes into a task. */
   heading: string;
   /** Why these fields are together, in one line. */
@@ -233,6 +257,7 @@ export type BusinessSection = {
 
 export const BUSINESS_SECTIONS: readonly BusinessSection[] = [
   {
+    key: "identity",
     heading: "Business identity",
     note: "What the business is called and how it is registered.",
     fields: [
@@ -251,6 +276,7 @@ export const BUSINESS_SECTIONS: readonly BusinessSection[] = [
     ],
   },
   {
+    key: "contact",
     heading: "Contact",
     note: "How a client, and how we, reach the business.",
     fields: [
@@ -260,6 +286,7 @@ export const BUSINESS_SECTIONS: readonly BusinessSection[] = [
     ],
   },
   {
+    key: "address",
     heading: "Address",
     note: "Where the business actually operates from.",
     fields: [
@@ -344,32 +371,66 @@ export type KycSubmitResult = { ok: true } | { ok: false; message: string };
  * Returns the list rather than a boolean so the review screen can PRINT it.
  * "Complete all required fields" is the least useful sentence in software.
  */
-export function missingFrom(submission: KycSubmission, today: string = lagosToday()): string[] {
-  const missing: string[] = [];
+/**
+ * What is missing, as items the screen can word in the reader's language
+ * (Round 3 sweep). `missingFrom` below is the same list in English, which the
+ * server action answers in.
+ */
+export type MissingItem =
+  | { kind: "document"; document: DocumentKind }
+  | { kind: "which-id" }
+  | { kind: "which-address" }
+  | { kind: "address-date" }
+  | { kind: "field"; name: string }
+  | { kind: "consent"; id: ConsentId };
+
+export function missingItems(submission: KycSubmission, today: string = lagosToday()): MissingItem[] {
+  const missing: MissingItem[] = [];
   const identity = submission.documents.identity;
   const address = submission.documents.address;
-  if (!identity) missing.push(DOCUMENT_SPECS.identity.title);
-  else if (!isSubtypeOf("identity", identity.subtype)) missing.push(WHICH_ID);
-  if (!address) missing.push(DOCUMENT_SPECS.address.title);
+  if (!identity) missing.push({ kind: "document", document: "identity" });
+  else if (!isSubtypeOf("identity", identity.subtype)) missing.push({ kind: "which-id" });
+  if (!address) missing.push({ kind: "document", document: "address" });
   else {
-    if (!isSubtypeOf("address", address.subtype)) missing.push(WHICH_ADDRESS);
-    if (addressDateProblem(address.issuedOn, today)) missing.push(ADDRESS_DATE);
+    if (!isSubtypeOf("address", address.subtype)) missing.push({ kind: "which-address" });
+    if (addressDateIssue(address.issuedOn, today)) missing.push({ kind: "address-date" });
   }
 
   if (submission.business) {
     for (const section of BUSINESS_SECTIONS) {
       for (const field of section.fields) {
         if (field.optional) continue;
-        if (!(submission.businessDetails[field.name] ?? "").trim()) missing.push(field.label);
+        if (!(submission.businessDetails[field.name] ?? "").trim()) missing.push({ kind: "field", name: field.name });
       }
     }
   }
 
   for (const consent of CONSENTS) {
-    if (!submission.consents.includes(consent.id)) missing.push(consent.label);
+    if (!submission.consents.includes(consent.id)) missing.push({ kind: "consent", id: consent.id });
   }
 
   return missing;
+}
+
+export function missingFrom(submission: KycSubmission, today: string = lagosToday()): string[] {
+  const fieldLabel = new Map(BUSINESS_SECTIONS.flatMap((s) => s.fields).map((f) => [f.name, f.label]));
+  const consentLabel = new Map(CONSENTS.map((c) => [c.id, c.label]));
+  return missingItems(submission, today).map((item) => {
+    switch (item.kind) {
+      case "document":
+        return DOCUMENT_SPECS[item.document].title;
+      case "which-id":
+        return WHICH_ID;
+      case "which-address":
+        return WHICH_ADDRESS;
+      case "address-date":
+        return ADDRESS_DATE;
+      case "field":
+        return fieldLabel.get(item.name) ?? item.name;
+      case "consent":
+        return consentLabel.get(item.id) ?? item.id;
+    }
+  });
 }
 
 const WHICH_ID = "Which ID you uploaded";

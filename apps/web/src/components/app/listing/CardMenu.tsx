@@ -11,6 +11,8 @@ import { toast } from "@/lib/ui/toast";
 import { useShare } from "@/lib/ui/use-copy";
 import { useLongPress } from "@/lib/ui/use-long-press";
 import { hideListing, isHidden, subscribeHidden, unhideListing } from "@/lib/ui/hidden-listings";
+import "@/app/css/catalogue.css";
+import "@/app/css/list-views.css";
 
 /**
  * THE LISTING CARD'S LONG-PRESS MENU (details pass, 30 September 2026).

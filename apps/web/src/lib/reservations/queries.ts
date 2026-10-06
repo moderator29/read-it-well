@@ -1,4 +1,5 @@
 import "server-only";
+import { reportReadError } from "@/lib/observability/read-error";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 
@@ -144,6 +145,7 @@ export async function getMyReservations(now: Date = new Date()): Promise<Reserva
     .eq("guest_id", session.user.id)
     .order("reserved_for", { ascending: false })
     .limit(100);
+  await reportReadError("read.reservations.getMyReservations", error);
   if (error || !rows) return "unavailable";
   if (rows.length === 0) return [];
 
@@ -174,6 +176,7 @@ export async function getHostReservations(
     .neq("guest_id", session.user.id)
     .order("reserved_for", { ascending: true })
     .limit(200);
+  await reportReadError("read.reservations.getHostReservations", error);
   if (error || !rows) return "unavailable";
   if (rows.length === 0) return [];
 

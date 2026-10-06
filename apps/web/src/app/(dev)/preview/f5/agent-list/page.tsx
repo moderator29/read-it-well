@@ -2,7 +2,7 @@ import { getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { AgentShell } from "@/components/agent/AgentShell";
 import { ListingWizard } from "@/app/agent/list/ListingWizard";
-import { AMENITY_CHOICES, STATE_CODES } from "@/lib/agent/listings-schema";
+import { AMENITY_CHOICES, STATE_CODES } from "@/lib/agent/listings-model";
 import type { WizardDraft } from "@/lib/agent/listings-queries";
 import { SCENE_PHOTOGRAPHS } from "@/lib/listings/scene-photographs.generated";
 import { AGENT_PROFILE } from "../ops-fixtures";
@@ -118,17 +118,19 @@ const RENTAL_DRAFT: WizardDraft = {
  * harness that only reaches step one can only ever close one of them.
  *
  * `?draft=rental` opens it on a tenancy in progress. See `RENTAL_DRAFT`.
+ * `?draft=rental&sent=1` opens it as it stands once sent (round 5): the card,
+ * its server status and the chain, settled. No date: a harness has no row.
  */
 export const dynamic = "force-dynamic";
 
 export default async function PreviewAgentList({
   searchParams,
 }: {
-  searchParams: Promise<{ step?: string; draft?: string; broadcast?: string }>;
+  searchParams: Promise<{ step?: string; draft?: string; broadcast?: string; sent?: string }>;
 }) {
   const locale: Locale = await getLocale();
   const t = getDictionary(locale);
-  const { step, draft, broadcast } = await searchParams;
+  const { step, draft, broadcast, sent } = await searchParams;
   const startAt = Math.max(0, (Number(step) || 1) - 1);
   /* `?draft=rental` opens on the tenancy above. Without it the wizard opens
      blank, which is the state a first-time lister meets and is worth a
@@ -151,6 +153,9 @@ export default async function PreviewAgentList({
         initial={initial}
         canPersist={false}
         startAt={startAt}
+        success={t.success}
+        listerCopy={t.experienceLister}
+        sentFrom={sent === "1" ? { status: "SUBMITTED", submittedAt: null } : null}
         /* `?broadcast=1` draws V-09's paste panel on step one. */
         broadcastCopy={broadcast === "1" ? t.frontDoor.broadcast : undefined}
       />

@@ -10,6 +10,15 @@
  * token sheet flattens these too; the `[data-reduced]` branch below removes
  * the rotation and the scale outright, because a 1ms rotation still rotates.
  */
+/*
+ * Loaded by the components that draw its classes, not by globals.css (the
+ * CSS-diet move of 6 October). This line states the layer order the document
+ * already has from Tailwind, so the order holds whichever chunk the browser
+ * receives first; without it a chunk that arrived before globals would put
+ * `components` ahead of `base` and `theme`.
+ */
+@layer theme, base, components, utilities;
+
 @layer components {
   /* ------------------------------------------------------------ the stage */
 
@@ -340,14 +349,16 @@
     to { opacity: 1; transform: none; }
   }
   /* Only while the network is behind the flip: the three objects breathe in
-     turn, the skeleton's language, and stop the moment the page lands. */
+     turn, the skeleton's language, three times (principle 10: nothing loops
+     forever but the aurora and the assistant's thinking), and rest at full
+     light, which is also where they stop the moment the page lands. */
   .nf-flip-cover__miniature[data-shimmer] > li {
-    animation: nf-flip-mini-breathe 1.2s var(--nf-ease-standard) infinite;
+    animation: nf-flip-mini-breathe 1.2s var(--nf-ease-standard) 3;
     animation-delay: calc(var(--nf-flip-mini-i, 0) * 200ms);
   }
   @keyframes nf-flip-mini-breathe {
-    0%, 100% { opacity: 0.55; }
-    50% { opacity: 1; }
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.55; }
   }
 
   .nf-flip-cover[data-settled] .nf-flip-cover__name[data-ceremony],
@@ -356,7 +367,7 @@
     clip-path: none;
   }
   .nf-flip-cover[data-settled] .nf-flip-cover__miniature[data-shimmer] > li {
-    animation: nf-flip-mini-breathe 1.2s var(--nf-ease-standard) infinite;
+    animation: nf-flip-mini-breathe 1.2s var(--nf-ease-standard) 3;
     animation-delay: calc(var(--nf-flip-mini-i, 0) * 200ms);
   }
 
@@ -380,7 +391,8 @@
   .nf-flip-stage[data-reduced] .nf-flip-face--back {
     transform: none;
     opacity: 0;
-    transition: opacity var(--nf-duration-fast) linear;
+    /* A crossfade on glide: linear opacity reads as a flicker at its end. */
+    transition: opacity var(--nf-duration-fast) var(--nf-ease-standard);
   }
   .nf-flip-stage[data-reduced][data-phase="turn"] .nf-flip-face--back {
     opacity: 1;

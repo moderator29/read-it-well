@@ -119,7 +119,14 @@ function readView(value: string | undefined): ViewKey {
   return value === "map" || value === "rows" ? value : "list";
 }
 
-/** Singular and plural nouns per category, for honest result counts. */
+/**
+ * Singular and plural nouns per category, IN ENGLISH, for two readers only:
+ * the URL parser below, which takes its set of kinds from these keys, and the
+ * syndication title (`public-title.ts`), which is English with the rest of
+ * the link preview it sits in (`syndication.ts`). A member surface counts in
+ * the reader's language from `t.experienceLabels.kinds` (typed `KindNouns`);
+ * `category.test.ts` pins the two Englishes together.
+ */
 export const KIND_NOUN: Record<ListingKind, { one: string; many: string }> = {
   hotel: { one: "hotel", many: "hotels" },
   apartment: { one: "apartment", many: "apartments" },
@@ -158,9 +165,12 @@ export const KIND_ORDER: ListingKind[] = [
   "experience",
 ];
 
-/** A category as a person reads it: "Hotels", "Plots". */
-export function kindLabel(kind: ListingKind): string {
-  const many = KIND_NOUN[kind].many;
+/** The kinds' nouns in the reader's language (`t.experienceLabels.kinds`). */
+export type KindNouns = Record<ListingKind, { one: string; many: string }>;
+
+/** A category as a person reads it: "Hotels", "Plots", from the reader's own nouns. */
+export function kindLabel(kind: ListingKind, nouns: KindNouns): string {
+  const many = nouns[kind].many;
   return many.charAt(0).toUpperCase() + many.slice(1);
 }
 

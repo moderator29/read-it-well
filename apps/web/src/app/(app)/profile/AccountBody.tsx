@@ -1,5 +1,7 @@
 "use client";
 
+import type { SheetWords } from "@/components/social/sheet-words";
+import { Button } from "@/components/ui/Button";
 import "./profile.css";
 import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -9,9 +11,8 @@ import { ProfilePosts } from "@/components/social/profile/ProfilePosts";
 import type { PostView } from "@/components/social/feed/PostCard";
 import { EmptyState } from "@/components/app/Screen";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
-import { IconPlate } from "@/components/ui/IconPlate";
+import { BrandIcon, type BrandIconProp } from "@/design-system/icons/BrandIcon";
 import {
-  ROW_GLYPH,
   RowButton,
   RowLink,
   RowValue,
@@ -23,7 +24,7 @@ import {
   MAX_NAME_LENGTH,
   MAX_NICKNAME_LENGTH,
   MAX_PHONE_LENGTH,
-} from "@/lib/profile/schema";
+} from "@/lib/profile/model";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { NO_FACTS, rowValue, type BelongingsFacts } from "./belongings";
 import { useClientCopy } from "@/lib/i18n/client-copy";
@@ -83,6 +84,13 @@ type Belonging = {
    * them, the same plate, the same glyph size, stroke and blue.
    */
   glyph: UiIconName;
+  /**
+   * The row's clay mark (north star 10 F: "clay row marks"). A matte tier-B
+   * object at 32px and above sits on a Plate, which is the D2 rule: clay for
+   * content objects from 32px, line glyphs for chrome below it. The line
+   * `glyph` above is what the object stands for and stays as the fallback.
+   */
+  clay: BrandIconProp;
   title: string;
   sub: string;
 };
@@ -95,13 +103,11 @@ type Belonging = {
 function BelongingRow({ row, value }: { row: Belonging; value: string | null }) {
   return (
     <Link href={row.href} className="nf-pf-row" data-testid={`row-${row.key}`}>
-      {/* The shared icon plate every account row uses (`IconPlate`), in
-          its neutral tone: a soft flat square, the glyph at the rows' one
-          size. */}
-      <span className="nf-pf-glyph" aria-hidden="true">
-        <IconPlate size="sm">
-          <UiIcon name={row.glyph} size={ROW_GLYPH} />
-        </IconPlate>
+      {/* A clay mark on a Plate (north star 10 F): the rows that are the
+          member's own belongings carry the matte object, and the "more of
+          your account" rows beneath keep the line glyph on `IconPlate`. */}
+      <span className="nf-pf-glyph nf-pf-glyph--clay" aria-hidden="true">
+        <BrandIcon name={row.clay} size={36} />
       </span>
       <span className="nf-pf-row__body">
         <span className="nf-pf-row__title">{row.title}</span>
@@ -127,6 +133,7 @@ export function AccountBody({
   handle,
   hasBio,
   locale,
+  sheet,
   facts = NO_FACTS,
   switchLine,
   memberSince,
@@ -144,6 +151,8 @@ export function AccountBody({
   hasBio: boolean;
   /** The locale, NOT a formatter: a function cannot cross into a client component. */
   locale: Locale;
+  /** The post action sheet's two lines, from the server (`sheetWordsOf`). */
+  sheet: SheetWords;
   /** What the four rows can honestly say about themselves. */
   facts?: BelongingsFacts;
   /** The line under Switch role, built from the workspaces this account holds. */
@@ -158,6 +167,9 @@ export function AccountBody({
 }) {
   const COPY = useClientCopy().socialProfile.accountPage;
   const [tab, setTab] = useState<Tab>("account");
+  /* The panel crossfades with a 12px lift (`nf-tab-swap`) once a tab has been
+     CHOSEN, never for the tab the page opens on. */
+  const [moved, setMoved] = useState(false);
   const [editing, setEditing] = useState(false);
 
   const tabs: { key: Tab; label: string; icon: UiIconName }[] = [
@@ -175,6 +187,7 @@ export function AccountBody({
       key: "bookings",
       href: "/bookings",
       glyph: "calendar-booking",
+      clay: "calendar-page",
       title: copy.myBookings,
       sub: copy.myBookingsSub,
     },
@@ -182,6 +195,7 @@ export function AccountBody({
       key: "saved",
       href: "/saved",
       glyph: "bookmark",
+      clay: "book-bookmark",
       title: copy.saved,
       sub: copy.savedSub,
     },
@@ -189,6 +203,7 @@ export function AccountBody({
       key: "payments",
       href: "/agreements",
       glyph: "document",
+      clay: "scroll-unrolled",
       title: copy.agreements,
       sub: copy.agreementsSub,
     },
@@ -205,7 +220,10 @@ export function AccountBody({
             id={`account-tab-${entry.key}`}
             aria-selected={tab === entry.key}
             aria-controls={`account-panel-${entry.key}`}
-            onClick={() => setTab(entry.key)}
+            onClick={() => {
+              setMoved(true);
+              setTab(entry.key);
+            }}
             className="nf-pf-tab"
             data-testid={`account-tab-${entry.key}`}
           >
@@ -220,7 +238,7 @@ export function AccountBody({
           role="tabpanel"
           id="account-panel-account"
           aria-labelledby="account-tab-account"
-          className="nf-pf-panel"
+          className={`nf-pf-panel${moved ? " nf-tab-swap" : ""}`}
         >
           {/* Plans, Saved, Agreements and the workspaces: one group, one
               card, inset hairlines (plan item 16). */}
@@ -317,7 +335,7 @@ export function AccountBody({
           role="tabpanel"
           id="account-panel-posts"
           aria-labelledby="account-tab-posts"
-          className="nf-pf-panel"
+          className={`nf-pf-panel${moved ? " nf-tab-swap" : ""}`}
         >
           {handle === null ? (
             <EmptyState
@@ -332,6 +350,7 @@ export function AccountBody({
               posts={posts}
               isOwner
               signedIn
+              sheet={sheet}
               hasBio={hasBio}
               labelledBy="account-tab-posts"
             />
@@ -446,15 +465,16 @@ function DetailsSheet({
       </form>
 
       <div className="pt-2xs">
-        <button
+        <Button
           type="submit"
+          variant="primary"
+          full
           form="account-details-form"
           disabled={pending}
-          className="nf-btn nf-btn--primary w-full"
           data-testid="account-details-save"
         >
           {pending ? "Saving" : "Save"}
-        </button>
+        </Button>
       </div>
     </Sheet>
   );

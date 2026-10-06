@@ -59,10 +59,13 @@ export const THEME_BOOT_SCRIPT =
   "}catch(e){}" +
   /* The device settings that change the first frame, from `nf_settings`
      (components/app/account/settings-store.ts): Text size scales the root
-     font size and Increase contrast marks the root. Applied here, before
-     paint, so neither waits for Settings to be opened and nothing reflows
-     after hydration. The values mirror `applyTextSize` and `applyContrast`. */
+     font size, and Increase contrast and Reduce transparency mark the root
+     (`app/css/member-kit.css`, `app/css/a11y-prefs.css`). Applied here,
+     before paint, so none waits for Settings to be opened and no glass
+     paints blurred for a frame after hydration. The values mirror
+     `applyTextSize`, `applyContrast` and `applyTransparency`. */
   "try{var s=JSON.parse(localStorage.getItem('nf_settings')||'{}'),e=document.documentElement;" +
   "if(s&&(s.textSize==='s'||s.textSize==='l')){e.dataset.textSize=s.textSize;e.style.fontSize=s.textSize==='s'?'93.75%':'106.25%'}" +
-  "if(s&&s.increaseContrast===true)e.dataset.contrast='more'" +
+  "if(s&&s.increaseContrast===true)e.dataset.contrast='more';" +
+  "if(s&&s.reduceTransparency===true)e.dataset.transparency='reduced'" +
   "}catch(e){}";

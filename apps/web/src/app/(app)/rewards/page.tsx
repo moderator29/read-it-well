@@ -1,0 +1,69 @@
+import type { Metadata } from "next";
+import { getDictionary } from "@vallo/i18n";
+import { getLocale } from "@/lib/locale";
+import { siteUrl } from "@/lib/site";
+import { PageHeader } from "@/components/app/PageHeader";
+import { RewardsDashboard } from "@/components/app/referral/RewardsDashboard";
+import { RewardsState } from "@/components/app/referral/RewardsState";
+import { REWARDS_PAUSED_EARNED_LINE } from "@/components/app/referral/money-words";
+import { myInviteCode } from "@/lib/referral/server";
+import { invitePath } from "@/lib/referral/code";
+import { INVITE_HREF, REWARDS_HREFS, rewardsScreen, signInHref } from "./screen";
+
+export const dynamic = "force-dynamic";
+
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: getDictionary(await getLocale()).experienceRewards.title, robots: { index: false, follow: false } };
+}
+
+/**
+ * /rewards: THE REWARDS BALANCE, MEMBER SIDE (D51, Round 3 R3 C3).
+ *
+ * One subject, the balance, with the invite link and two inner pages (the
+ * referral list, the history) and the withdraw flow behind it (D25).
+ *
+ * NOT LINKED FROM MEMBER NAVIGATION, ON PURPOSE. The referral engine and its
+ * read do not exist yet (R-C3-1 to Session 2), so this route draws the honest
+ * not-live state and sends the member to the invite link, which works today.
+ * The dashboard itself is built and seen with fixture data at
+ * `/preview/rewards`. When the read is live and the money sentences are in
+ * `lib/money/copy.ts`, this page draws it with no change here.
+ *
+ * PAUSED (D64): the dashboard draws the pause and offers no invite link, so
+ * the member's code is not even read while the programme is paused.
+ */
+export default async function RewardsPage() {
+  const locale = await getLocale();
+  const t = getDictionary(locale);
+  const copy = t.experienceRewards;
+  const screen = await rewardsScreen();
+  const header = <PageHeader title={copy.title} subtitle={copy.lede} fallback="/settings" />;
+
+  if (screen.kind === "state") {
+    return (
+      <div className="mx-auto max-w-2xl" data-testid="rewards-page">
+        {header}
+        <RewardsState read={screen.read} copy={copy.states} signInHref={signInHref("/rewards")} inviteHref={INVITE_HREF} />
+      </div>
+    );
+  }
+
+  const code = screen.snapshot.programme.state === "paused" ? null : await myInviteCode();
+  const invite = code ? { code, url: `${siteUrl().replace(/\/+$/, "")}${invitePath(code)}` } : null;
+
+  return (
+    <div className="mx-auto max-w-2xl" data-testid="rewards-page">
+      {header}
+      <RewardsDashboard
+        snapshot={screen.snapshot}
+        invite={invite}
+        copy={copy}
+        money={screen.words}
+        pausedEarned={REWARDS_PAUSED_EARNED_LINE}
+        locale={locale}
+        hrefs={REWARDS_HREFS}
+        dismissLabel={t.experienceUi.notNow}
+      />
+    </div>
+  );
+}

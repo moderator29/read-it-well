@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { canGoBackInApp } from "@/lib/ui/history";
-import { chooseBack, parentOf, type BackDecision } from "./resolve";
+import type { Side } from "@/lib/side.constants";
+import { chooseBack, parentOf, sideHome, type BackDecision } from "./resolve";
 import { previousEntry } from "./previous-entry";
 import { animateBack, markNav } from "@/lib/motion/nav-direction";
 
@@ -23,6 +24,17 @@ import { animateBack, markNav } from "@/lib/motion/nav-direction";
 
 type RouterLike = { back(): void; replace(href: string): void };
 
+/**
+ * The side the shell is painted on right now. `SideSync` keeps `data-side`
+ * on <html> in step with the shell after every client navigation, and the
+ * before-paint script in the root layout sets it on the first frame, so this
+ * is the side the person is looking at rather than a guess from the cookie.
+ */
+function paintedSide(): Side | null {
+  if (typeof document === "undefined") return null;
+  return document.documentElement.dataset.side === "stays" ? "stays" : "property";
+}
+
 /** The decision, taken now, against the live history. */
 export function decideBack(path: string, fallback: string, surface: "web" | "android"): BackDecision {
   const previous = previousEntry();
@@ -33,6 +45,7 @@ export function decideBack(path: string, fallback: string, surface: "web" | "and
     previousDistance: previous?.distance ?? 1,
     previousIsInApp: canGoBackInApp(),
     surface,
+    shellSide: paintedSide(),
   });
 }
 
@@ -106,7 +119,9 @@ export function useBackDestination(fallback = "/home"): string {
   const pathname = usePathname();
   const path = pathname ?? "/";
   const target = parentOf(path);
-  const declared = target.kind === "parent" ? target.href : fallback;
+  /* The address's own side only: the shell's side is not readable on the
+     server, and the two renders must match. The live read below adds it. */
+  const declared = sideHome(target.kind === "parent" ? target.href : fallback, path);
   const [live, setLive] = useState<{ path: string; href: string } | null>(null);
 
   useEffect(() => {
@@ -133,6 +148,7 @@ export function useBackDestination(fallback = "/home"): string {
  */
 export function useBackHref(fallback = "/home"): string {
   const pathname = usePathname();
-  const target = parentOf(pathname ?? "/");
-  return target.kind === "parent" ? target.href : fallback;
+  const path = pathname ?? "/";
+  const target = parentOf(path);
+  return sideHome(target.kind === "parent" ? target.href : fallback, path);
 }

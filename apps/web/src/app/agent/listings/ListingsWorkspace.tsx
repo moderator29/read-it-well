@@ -15,7 +15,7 @@ import {
   MIN_PHOTOS,
   MIN_TITLE_LENGTH,
   type ListingStatus,
-} from "@/lib/agent/listings-schema";
+} from "@/lib/agent/listings-model";
 import type { ListingSummary } from "@/lib/agent/listings-queries";
 import { createUndoWindow, type UndoWindow } from "@/lib/ui/undo-window";
 import { withDone } from "@/lib/ui/success-moments";
@@ -29,6 +29,11 @@ import { CloseListingSheet } from "./CloseListingSheet";
 import { OwnerAskStrip } from "./OwnerAskStrip";
 import { BulkBar } from "./BulkBar";
 import { planBulk, rangeToggle } from "./bulk";
+import { livePayoffFor, liveSeenKey } from "@/lib/agent/lister-live";
+import { markSeen, seenOnce } from "@/lib/ui/seen-once";
+import { feedback } from "@/lib/ui/feedback";
+import { motionQuiet } from "@/lib/motion/gate";
+import "@/app/css/lister-live.css";
 
 /**
  * The agent's listings workspace.
@@ -194,7 +199,7 @@ function ConfirmSheet({
       }}
       title={copy.title}
       footer={
-        <div className="flex gap-md">
+        <div className="flex flex-wrap gap-md">
           <Button variant="secondary" className="flex-1" onClick={onClose}>
             {t.workspace.sheets.keep}
           </Button>
@@ -223,7 +228,7 @@ function ConfirmSheet({
 
       {error && (
         <p
-          className="mt-sm rounded-[var(--nf-container-radius)] p-sm text-[length:var(--nf-text-caption)] font-medium"
+          className="mt-sm rounded-[var(--nf-container-radius)] p-sm text-[length:var(--nf-text-caption)] font-semibold"
           style={{
             background: "var(--nf-state-warning-surface)",
             color: "var(--nf-state-warning)",
@@ -316,14 +321,23 @@ function ListingRow({
   boardLabel,
   duplicateCopy,
   statusLabel,
+  healthLabel,
   closedReason,
   closeCopy,
   onCloseListing,
   ownerAsk = false,
   ownerCopy,
   selection,
+  payoff,
 }: {
   t: WorkspaceCopy;
+  /**
+   * Round 5: this listing just went live, by the server's row, and this device
+   * has not seen it yet (lib/agent/lister-live.ts). The row plays the one
+   * payoff: its Live mark pops, the hand feels one heavy beat as it does, and
+   * the line under it says so. Present on one row at most, once.
+   */
+  payoff?: { title: string; body: string; open: string } | null | undefined;
   /** C5: present while selecting; draws the row's checkbox. */
   selection?: { selected: boolean; onToggle: (on: boolean, shift: boolean) => void } | undefined;
   /** V-08: the board action's words, when the board is switched on. */
@@ -332,6 +346,8 @@ function ListingRow({
   duplicateCopy?: Dictionary["frontDoor"]["duplicate"];
   /** V-71: "Share to Status". */
   statusLabel?: string;
+  /** J4: "Health", the door to the listing's health page. */
+  healthLabel?: string;
   /* The listing code's own namespace, shared with the search page and the
      public listing page so one set of words governs the code everywhere. */
   reference: Dictionary["listingReference"];
@@ -357,7 +373,11 @@ function ListingRow({
   const closesWithReason = Boolean(onCloseListing && closeCopy && live && listing.intent === "rent");
 
   return (
-    <li className="nf-panel nf-panel--card block overflow-hidden p-0" data-selected={selection?.selected ? "true" : undefined}>
+    <li
+      className={`nf-panel nf-panel--card block overflow-hidden p-0${payoff ? " nf-live-payoff" : ""}`}
+      data-selected={selection?.selected ? "true" : undefined}
+      data-testid={payoff ? "live-payoff" : undefined}
+    >
       <div className="flex gap-4.5 p-md">
         {selection ? (
           <label className="-m-xs grid h-11 w-11 shrink-0 cursor-pointer place-items-center self-center">
@@ -422,9 +442,14 @@ function ListingRow({
                 )}
               </StatusPill>
             ) : (
-              <StatusPill tone={toneForStatus(listing.status)} className="shrink-0">
-                {t.workspace.status[listing.status]}
-              </StatusPill>
+              <span
+                className={`shrink-0${payoff ? " nf-live-payoff__mark" : ""}`}
+                /* The heavy beat lands with the pop, not before it (CSS delays
+                   the pop until the page has settled). */
+                onAnimationStart={payoff ? (event) => event.animationName === "nf-success-payoff" && feedback("success") : undefined}
+              >
+                <StatusPill tone={toneForStatus(listing.status)}>{t.workspace.status[listing.status]}</StatusPill>
+              </span>
             )}
           </div>
 
@@ -481,6 +506,18 @@ function ListingRow({
         </div>
       </div>
 
+      {payoff && (
+        <div className="nf-live-payoff__line flex flex-wrap items-center justify-between gap-xs border-t border-[var(--nf-border-subtle)] px-md py-sm" role="status">
+          <p className="min-w-0 text-[length:var(--nf-text-body-sm)]">
+            <span className="block font-semibold">{payoff.title}</span>
+            <span className="block text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)]">{payoff.body}</span>
+          </p>
+          <ButtonLink href={`/listing/${listing.id}`} variant="quiet" size="sm" arrow>
+            {payoff.open}
+          </ButtonLink>
+        </div>
+      )}
+
       {listing.reviewNotes && (
         <p className="border-t border-[var(--nf-border-subtle)] px-md py-sm text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-secondary)]">
           {listing.reviewNotes}
@@ -499,6 +536,7 @@ function ListingRow({
         listing.status === "DRAFT" ||
         listing.pricePeriod === "night" ||
         Boolean(duplicateCopy) ||
+        Boolean(healthLabel) ||
         Boolean(listing.listingRole && listing.listingRole !== "owner")) && (
       <div className="flex flex-wrap items-center gap-x-2xs border-t border-[var(--nf-border-subtle)] px-xs py-2xs">
         {editable && (
@@ -533,6 +571,14 @@ function ListingRow({
             {statusLabel}
           </ButtonLink>
         )}
+        {/* J4: every listing the lister owns has a health page: what its
+            record holds and what it is missing. An example listing's page
+            says it is never measured, rather than this row guessing. */}
+        {healthLabel && (
+          <ButtonLink href={`/agent/listings/${listing.id}/health`} variant="quiet" size="sm" leadingIcon="file-search" data-testid="listing-health">
+            {healthLabel}
+          </ButtonLink>
+        )}
         {/* V-08: a board needs a code, and a code needs a published listing. */}
         {boardLabel && listing.reference && listing.status === "PUBLISHED" && (
           <ButtonLink href={`/agent/listings/${listing.id}/board`} variant="quiet" size="sm" leadingIcon="document" data-testid="listing-board">
@@ -552,6 +598,8 @@ function ListingRow({
           <Button
             variant="quiet"
             size="sm"
+            /* min-w-11: in Yoruba the label is "Tì", a 38.8px target (auditFit, C1 sweep). */
+            className="min-w-11"
             onClick={() => onCloseListing?.(listing)}
             data-testid="close-listing"
           >
@@ -608,12 +656,23 @@ export function ListingsWorkspace({
   boardLabel,
   duplicateCopy,
   statusLabel,
+  healthLabel,
   closed = {},
   closeCopy,
   ownerAsks = [],
   ownerCopy,
+  liveCopy,
+  liveArrivalId,
 }: {
   t: WorkspaceCopy;
+  /** Round 5: the live payoff's words. Absent (harnesses), no payoff plays. */
+  liveCopy?: { title: string; body: string; open: string };
+  /**
+   * The listing the page's arrival sheet is announcing as live
+   * (`?done=listing-live`, M4's surface). That sheet says it, so the row does
+   * not say it again under it; it is marked seen all the same.
+   */
+  liveArrivalId?: string | undefined;
   reference: Dictionary["listingReference"];
   listings: ListingSummary[];
   locale: Locale;
@@ -628,6 +687,8 @@ export function ListingsWorkspace({
   duplicateCopy?: Dictionary["frontDoor"]["duplicate"];
   /** V-71, "Share to Status". */
   statusLabel?: string;
+  /** J4, "Health". Absent in harnesses, which then draw no action. */
+  healthLabel?: string;
   /** V-48: closed listings and why, keyed by id. Absent draws what it drew before. */
   closed?: Record<string, string>;
   closeCopy?: CloseCopy;
@@ -714,6 +775,28 @@ export function ListingsWorkspace({
     const scheduled = undoWindow.current;
     return () => scheduled?.flush();
   }, []);
+
+  /*
+   * THE PAYOFF, ONCE (round 5). Decided after mount, from the rows the server
+   * read, and only once per visit: a refresh after any action re-renders this
+   * with new rows and must not decide again. The key is marked seen as it is
+   * decided, so a second visit cannot replay it. A quiet reader (reduced
+   * motion, Calm, Off) gets the settled state and the haptic at once; anyone
+   * else feels it when the pop starts.
+   */
+  const [payoffId, setPayoffId] = useState<string | null>(null);
+  const payoffDecided = useRef(false);
+  useEffect(() => {
+    if (payoffDecided.current || !liveCopy) return;
+    payoffDecided.current = true;
+    const due = livePayoffFor(listings.filter((l) => !(l.id in closed)), Date.now(), seenOnce);
+    if (!due) return;
+    markSeen(liveSeenKey(due));
+    if (due.id === liveArrivalId) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- a latch decided once from the server's rows
+    setPayoffId(due.id);
+    if (motionQuiet()) feedback("success");
+  }, [listings, closed, liveCopy, liveArrivalId]);
 
   if (listings.length === 0) {
     return (
@@ -813,10 +896,12 @@ export function ListingsWorkspace({
                     boardLabel={boardLabel}
                     duplicateCopy={duplicateCopy}
                     statusLabel={statusLabel}
+                    healthLabel={healthLabel}
                     closeCopy={closeCopy}
                     onCloseListing={closeCopy ? setClosing : undefined}
                     ownerAsk={ownerAsks.includes(listing.id)}
                     ownerCopy={ownerCopy}
+                    payoff={payoffId === listing.id ? liveCopy : null}
                     selection={
                       selecting
                         ? { selected: selected.includes(listing.id), onToggle: (on, shift) => toggle(listing.id, on, shift) }

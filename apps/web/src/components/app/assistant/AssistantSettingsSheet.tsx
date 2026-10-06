@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
 import { TYPE } from "@/components/app/Screen";
 import { LANGUAGES, TONES, type Language, type Tone } from "./AssistantSidebar";
+import "@/app/css/home.css";
 
 /**
  * The assistant's settings, behind one row at the foot of the sidebar.

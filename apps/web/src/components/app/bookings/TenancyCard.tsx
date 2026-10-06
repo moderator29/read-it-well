@@ -4,8 +4,9 @@ import { getDictionary, type Locale } from "@vallo/i18n";
 import type { RentChargeView } from "@/lib/bookings/queries";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ButtonLink } from "@/components/ui/Button";
-import { StatusPill } from "@/components/ui/StatusPill";
+import { StatusChip } from "@/components/ui/StatusChip";
 import { ICON, TYPE } from "@/components/app/Screen";
+import "@/app/css/catalogue.css";
 
 /**
  * A TENANCY CHARGE ON THE BOOKINGS SCREEN, AND IT IS NOT A STAY.
@@ -65,9 +66,9 @@ export function TenancyCard({
               vocabulary reads "Requested" for PENDING, which is true of a stay
               somebody has asked for and wrong about a charge that is simply
               waiting to be paid. */}
-          <StatusPill tone={tenancy.paid ? "success" : "warning"}>
+          <StatusChip state={tenancy.paid ? "success" : "pending"}>
             {tenancy.paid ? copy.settled : copy.due}
-          </StatusPill>
+          </StatusChip>
           <h3 className={`mt-xs ${TYPE.rowTitle}`}>{tenancy.title}</h3>
 
           {where && (
@@ -81,7 +82,7 @@ export function TenancyCard({
               a calendar on this card is the first step back towards nights. */}
           <p className={`mt-sm flex items-center gap-xs ${TYPE.body}`}>
             <UiIcon name="key" size={ICON.inline} className="shrink-0" />
-            <span className="font-medium">
+            <span className="font-semibold">
               {copy.moveIn.replace("{date}", tenancy.moveInLabel)}
             </span>
           </p>

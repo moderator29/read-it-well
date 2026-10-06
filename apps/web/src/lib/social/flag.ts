@@ -5,12 +5,16 @@ import { isFeatureEnabled, type FeatureKey } from "../flags";
 /**
  * The kill switch for Around.
  *
- * **The row existed and nothing read it.** `public.feature_flags` carries
- * `social` with `enabled = false`, deliberately, because the social layer is the
- * one surface where strangers write things other strangers read. Every social
- * route and every social write was fully on regardless, which makes the switch
- * a thing somebody would reach for at 2am and find connected to nothing. That is
- * the same shape as a mute that writes a row nobody reads: worse than a missing
+ * **The row existed and nothing read it.** `public.feature_flags` carries a
+ * `social` row. It shipped with `enabled = false`, deliberately (a switch that
+ * ships on has never been tested in the off position), and the owner turned
+ * Around ON in `20260804164236_around_is_on.sql`, so it is on now. It is still
+ * the one surface where strangers write things other strangers read, so the
+ * row stays the kill switch: setting `enabled = false` takes every social
+ * route and write down at once, with no deploy. Before this reader every social
+ * route and write was fully on regardless, which would have made the switch a
+ * thing somebody reaches for at 2am and finds connected to nothing: the same
+ * shape as a mute that writes a row nobody reads, and worse than a missing
  * feature, because the product believes it has one.
  *
  * **One reader, and not a second one beside the platform's.** Two

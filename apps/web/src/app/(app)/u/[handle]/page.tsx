@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { sheetWordsOf } from "@/components/social/sheet-words";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
@@ -9,6 +10,7 @@ import { readUserRecord } from "@/lib/trust/record-read";
 /* ONE empty-state anatomy across the whole product. See EmptyPanel. */
 import { EmptyPanel } from "@/components/social/profile/EmptyPanel";
 import { ProfileMenu } from "@/components/social/profile/ProfileMenu";
+import { reportWordsOf } from "@/components/social/sheet-words";
 import { ProfileShare } from "@/components/social/profile/ProfileShare";
 import { ProfileTabs } from "@/components/social/profile/ProfileTabs";
 /* Plain module, never the client component: a server component importing a
@@ -22,6 +24,7 @@ import {
 import { AroundFab } from "@/components/social/AroundFab";
 import { loadPublicProfile, normaliseHandle } from "@/lib/social/profiles-queries";
 import { siteUrl } from "@/lib/site";
+import { withNext } from "@/lib/auth/next-link";
 import {
   getProfileActivity,
   getProfileFeed,
@@ -35,6 +38,9 @@ import {
 } from "@/lib/social/profile-tabs-queries";
 import { listStories } from "@/lib/social/stories-queries";
 import { SocialPaused } from "@/components/social/SocialPaused";
+import { createClient } from "@/lib/supabase/server";
+import { badgeCopyOf } from "@/components/social/badges/badge-copy";
+import { readProfileBadges } from "@/components/social/profile/badges-read";
 import { isSocialEnabled } from "@/lib/social/flag";
 
 /**
@@ -96,7 +102,8 @@ export async function generateMetadata({
   if (view.state !== "found") return { title };
 
   const name = view.profile.displayLabel || title;
-  const description = view.profile.bio || `${name} on Vallo.`;
+  const description =
+    view.profile.bio || getDictionary(await getLocale()).experienceSocial.profilePage.metaDescription.replace("{name}", name);
   const url = `${siteUrl().replace(/\/+$/, "")}/u/${handle}`;
   const avatar = view.profile.avatarUrl || undefined;
   return {
@@ -138,6 +145,7 @@ export default async function SocialProfilePage({
 
   const locale = await getLocale();
   const t = getDictionary(locale);
+  const words = t.experienceSocial.profilePage;
   const [view, query] = await Promise.all([loadPublicProfile(raw), searchParams]);
 
   if (view.state === "found") {
@@ -151,7 +159,7 @@ export default async function SocialProfilePage({
     const isAgentPage = view.profile.isAgent && Boolean(agentId);
     const tabs = isAgentPage ? AGENT_TABS : MEMBER_TABS;
 
-    const [posts, replies, media, activity, properties, reviews, stories, record] =
+    const [posts, replies, media, activity, properties, reviews, stories, record, badges] =
       await Promise.all([
         isAgentPage ? Promise.resolve([]) : getProfileFeed(userId),
         isAgentPage ? Promise.resolve([]) : getProfileReplies(userId),
@@ -163,10 +171,16 @@ export default async function SocialProfilePage({
         /* V-34: a lister's Record. No row for a member who is not one, or for
            a reader who is signed out, and then nothing is drawn. */
         view.profile.isAgent ? readUserRecord(userId) : Promise.resolve(null),
+        /* Their badges, earned and given, for the row under the hero. Null
+           when the read failed, and then the older chips stand in. */
+        createClient().then((supabase) => readProfileBadges(supabase, userId, locale, view.signedIn)),
       ]);
 
     return (
-      <div className="mx-auto max-w-2xl">
+      /* Room under the tabs' last line for the floating compose button, as
+         the other Around pages keep (`pb-4xl`): a short page's empty state
+         sat under it with no way to scroll it clear (Round 3 sweep). */
+      <div className="mx-auto max-w-2xl pb-4xl">
         <ProfileHeader
           profile={view.profile}
           isOwner={view.isOwner}
@@ -180,6 +194,9 @@ export default async function SocialProfilePage({
           published={view.published}
           trust={view.trust}
           joinedLabel={monthYear(view.profile.claimedAt, locale)}
+          badges={badges}
+          badgeCopy={badgeCopyOf(t)}
+          shareUrl={`${siteUrl().replace(/\/+$/, "")}/u/${view.profile.handle}`}
           follow={
             view.isOwner ? undefined : (
               <FollowButton
@@ -204,6 +221,7 @@ export default async function SocialProfilePage({
               isOwner={view.isOwner}
               signedIn={view.signedIn}
               initialMuted={view.viewerMutes}
+              reportWords={reportWordsOf(t)}
             />
           }
         />
@@ -219,6 +237,7 @@ export default async function SocialProfilePage({
           storyCount={view.storyCount}
           initialTab={tabFrom(query.tab, tabs)}
           labels={t.socialProfile}
+          sheet={sheetWordsOf(t)}
           data={{ posts, replies, media, activity, properties, stories, reviews }}
         />
 
@@ -237,19 +256,19 @@ export default async function SocialProfilePage({
       {view.state === "unconfigured" && (
         <EmptyPanel
           icon="user-check"
-          title="We cannot reach profiles right now"
-          body="This is on our side, not yours. Nobody's page can be read from here at the moment. The rest of the app works as normal."
-          action={{ href: "/home", label: "Back to home" }}
+          title={t.experienceSocial.people.unreachableTitle}
+          body={t.experienceSocial.people.unreachableBody}
+          action={{ href: "/home", label: words.backToHome }}
         />
       )}
 
       {view.state === "malformed" && (
         <EmptyPanel
           icon="home-search"
-          title="That is not a handle"
-          body="A handle is 3 to 20 characters: letters, numbers and underscores, starting with a letter. Check the address and try again."
-          action={{ href: "/home", label: "Back to home" }}
-          secondary={{ href: "/search", label: "Search stays" }}
+          title={words.malformedTitle}
+          body={words.malformedBody}
+          action={{ href: "/home", label: words.backToHome }}
+          secondary={{ href: "/search", label: t.experienceSocial.paused.searchStays }}
         />
       )}
 
@@ -264,28 +283,26 @@ export default async function SocialProfilePage({
       {view.state === "claimable" && (
         <EmptyPanel
           icon="user-verified"
-          title={
-            view.official ? `@${handle} is a Vallo name` : `Nothing to show at @${handle}`
-          }
+          title={(view.official ? words.officialTitle : words.nothingTitle).replace("{handle}", handle)}
           body={
             view.official
-              ? "This name is kept for Vallo itself, so nobody can hold it. @vallo is the assistant you can call into a conversation by naming it in a post."
+              ? words.officialBody
               : view.canClaim
-                ? "Either nobody holds this handle, or its owner is not reachable from your account. If it is going spare, you can take it and it becomes your address on Vallo."
+                ? words.claimableBody
                 : view.signedIn
-                  ? "Either nobody holds this handle, or its owner is not reachable from your account. You already have a page of your own, and a person keeps one handle at a time."
-                  : "Nobody we can show you is at this handle. Sign in to claim it, or to see whose it is."
+                  ? words.ownHandleBody
+                  : words.signedOutBody
           }
           action={
             view.official
-              ? { href: "/around", label: "Go to Around" }
+              ? { href: "/around", label: t.experienceSocial.people.goToAround }
               : view.canClaim
-                ? { href: `/u/${handle}/edit`, label: `Claim @${handle}` }
+                ? { href: `/u/${handle}/edit`, label: words.claim.replace("{handle}", handle) }
                 : view.signedIn
-                  ? { href: "/profile", label: "Go to your account" }
-                  : { href: "/sign-in", label: "Sign in to claim it" }
+                  ? { href: "/profile", label: words.goToAccount }
+                  : { href: withNext("/sign-in", `/u/${handle}`), label: words.signInToClaim }
           }
-          secondary={{ href: "/home", label: "Back to home" }}
+          secondary={{ href: "/home", label: words.backToHome }}
         />
       )}
     </div>

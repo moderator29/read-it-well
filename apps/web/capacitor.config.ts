@@ -184,7 +184,23 @@ const config: CapacitorConfig = {
          manifest reads `CHROME_COLOUR.dark` now; see the note on the iOS
          `backgroundColor` above for why this one is still written out. */
       backgroundColor: "#010118",
-      androidSplashResourceName: "splash",
+      /*
+       * NOTHING ON THE GROUND, on every platform (round 5). The web's first
+       * frame is the startup sequence's frame one, the bare navy ground with
+       * nothing on it yet (MOTION_SYSTEM.md section 3: "navy ground, matching
+       * the native splash exactly so the handoff is invisible"), and the mark
+       * then assembles at the optical centre. A native splash that drew the
+       * glass tile handed over to that frame by taking the tile away, and a
+       * smaller, flat mark appeared 120ms later somewhere else: the jump the
+       * hand-off exists to avoid. So the native side draws the ground only,
+       * as Android 12 and above already did (`styles.xml`): below Android 12
+       * this plugin draws `splash_blank`, a transparent drawable, over
+       * `backgroundColor`, and iOS draws the launch storyboard, which is now
+       * the same navy view with no image. Apple's own guidance for a launch
+       * screen is the same: the app's first frame, not a poster. The glass
+       * tile stays what it is, the app icon.
+       */
+      androidSplashResourceName: "splash_blank",
       showSpinner: false,
     },
     StatusBar: {

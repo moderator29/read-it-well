@@ -49,7 +49,7 @@ export function ConsoleFrame({ t, children }: { t: Dictionary; children: ReactNo
             <span className="nf-icon-btn h-9 w-9 sm:h-10 sm:w-10" aria-hidden="true">
               <UiIcon name="arrow-left" size={20} />
             </span>
-            <Link href="/" className="lg:hidden" aria-label={t.a11y.logoHome}>
+            <Link href="/" className="nf-tap lg:hidden" aria-label={t.a11y.logoHome}>
               <LogoMark size={30} />
             </Link>
             <ConsoleSearch label={t.admin.common.searchLabel} placeholder={t.admin.common.searchPlaceholder} />

@@ -6,6 +6,7 @@ import { EmptyState, TYPE } from "@/components/app/Screen";
 import { ButtonLink } from "@/components/ui/Button";
 import { panelClass } from "@/components/ui/Panel";
 import { resolveSession } from "@/lib/actions/session";
+import { withNext } from "@/lib/auth/next-link";
 import { phoneConfirmationOn } from "@/lib/phone-otp/flag";
 import { PhoneConfirmForm } from "./PhoneConfirmForm";
 
@@ -39,7 +40,7 @@ export default async function PhoneSettingsPage() {
           title={copy.signedOutTitle}
           body={copy.signedOutBody}
           action={
-            <ButtonLink href="/sign-in?next=%2Fsettings%2Fphone" variant="primary" size="lg">
+            <ButtonLink href={withNext("/sign-in", "/settings/phone")} variant="primary" size="lg">
               {copy.signIn}
             </ButtonLink>
           }
@@ -87,7 +88,7 @@ export default async function PhoneSettingsPage() {
                 <p className="nf-body text-[var(--nf-content-primary)]">
                   {copy.confirmed
                     .replace("{last}", data.phone.slice(-4))
-                    .replace("{date}", formatDate(new Date(data.confirmed_at), locale))}
+                    .replace("{date}", formatDate(new Date(data.confirmed_at), locale, { day: "numeric", month: "short", year: "numeric", timeZone: "Africa/Lagos" }))}
                 </p>
               </div>
             )}

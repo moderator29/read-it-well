@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { sheetWordsOf } from "@/components/social/sheet-words";
 import { redirect } from "next/navigation";
 import "./profile.css";
-import { getDictionary } from "@vallo/i18n";
+import { getDictionary, type Locale } from "@vallo/i18n";
+import { intlTag } from "@vallo/i18n/core";
 import { getLocale } from "@/lib/locale";
 import { RowLink, SettingsGroup } from "@/components/app/account/rows";
 import { loadProfileState } from "@/lib/profile/queries";
@@ -17,9 +19,17 @@ import { VerifyPrompt } from "@/components/roles/VerifyPrompt";
 import { roleStateFrom, type AgentFacts, type RoleState } from "@/components/roles/roles";
 import { resolveWorkspaces } from "@/lib/supply/workspaces-queries";
 import { loadBelongings, loadOwnBadgeTier } from "./belongings-queries";
+import { createClient } from "@/lib/supabase/server";
+import { siteUrl } from "@/lib/site";
+import { BadgeRow } from "@/components/social/badges/BadgeRow";
+import { BadgeEarnedHost } from "@/components/social/badges/BadgeEarnedHost";
+import { badgeCopyOf } from "@/components/social/badges/badge-copy";
+import { readProfileBadges } from "@/components/social/profile/badges-read";
 import { switchParamTarget, switchRoleLine } from "./belongings";
 
-export const metadata: Metadata = { title: "Profile" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: getDictionary(await getLocale()).experienceSocial.account.title };
+}
 
 /**
  * What the three roles look like when there is no account behind them.
@@ -120,6 +130,14 @@ export default async function ProfilePage({
   const posts =
     social.state === "claimed" ? await getProfileFeed(social.userId) : [];
 
+  /* The badges on this account, for the row under the hero and the earned
+     moment. Null when the read failed, and then nothing is drawn: the row
+     never guesses. Only a signed-in account has any. */
+  const shareUrl = identity ? `${siteUrl().replace(/\/+$/, "")}/u/${identity.handle}` : undefined;
+  const badges =
+    account.state === "signed-in"
+      ? await readProfileBadges(await createClient(), account.profile.userId, locale)
+      : null;
   const copy = {
     bookings: t.nav.bookings,
     saved: t.nav.saved,
@@ -145,8 +163,7 @@ export default async function ProfilePage({
             role="status"
             className="nf-card mt-sm p-md text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]"
           >
-            We could not load your account profile just now, so this page is showing what is
-            held on this device. Sign out and back in, then open this page again.
+            {t.experienceSocial.account.noRow}
           </p>
         )}
 
@@ -155,8 +172,8 @@ export default async function ProfilePage({
             most likely to be deciding whether to sign up. No counts, because
             there is nothing yet to count. */}
         <div className="mt-lg space-y-lg">
-          <SettingsGroup label="What is here">
-            <RowLink href="/search" icon="search" label="Find a place" />
+          <SettingsGroup label={t.experienceSocial.account.whatIsHere}>
+            <RowLink href="/search" icon="search" label={t.experienceSocial.account.findPlace} />
             <RowLink href="/bookings" icon="calendar-booking" label={t.nav.bookings} />
             <RowLink href="/saved" icon="heart" label={t.nav.saved} />
           </SettingsGroup>
@@ -176,9 +193,9 @@ export default async function ProfilePage({
           */}
           <RoleSwitcher roles={SIGNED_OUT_ROLES} current="renter" variant="row" />
 
-          <SettingsGroup label="More">
+          <SettingsGroup label={t.experienceSocial.account.more}>
             <RowLink href="/settings" icon="settings-gear" label={t.nav.settings} />
-            <RowLink href="/help" icon="ticket" label="Help" />
+            <RowLink href="/help" icon="ticket" label={t.experienceSocial.account.help} />
           </SettingsGroup>
         </div>
       </div>
@@ -212,6 +229,25 @@ export default async function ProfilePage({
         }
         badgeTier={badgeTier}
         locale={locale}
+        postsLabel={t.socialProfile.posts}
+        badges={
+          badges && badges.length > 0 ? (
+            <>
+              <BadgeRow
+                badges={badges}
+                isOwner
+                copy={badgeCopyOf(t)}
+                shareUrl={shareUrl}
+              />
+              <BadgeEarnedHost
+                viewerId={profile.userId}
+                badges={badges}
+                copy={badgeCopyOf(t)}
+                shareUrl={shareUrl}
+              />
+            </>
+          ) : null
+        }
       />
 
       {/*
@@ -240,6 +276,7 @@ export default async function ProfilePage({
         handle={identity?.handle ?? null}
         hasBio={(identity?.bio.length ?? 0) > 0}
         locale={locale}
+        sheet={sheetWordsOf(t)}
         facts={belongings}
         /*
           SWITCH ROLE, the last row. It opens the workspace sheet the dock
@@ -248,17 +285,20 @@ export default async function ProfilePage({
           under it names only what this account actually holds.
         */
         switchLine={switchRoleLine(held.workspaces, t.socialProfile.accountPage)}
-        memberSince={monthAndYear(profile.memberSince)}
+        memberSince={monthAndYear(profile.memberSince, locale)}
       />
     </div>
   );
 }
 
 /** Member-since reads as a month and a year, in Lagos time. */
-function monthAndYear(iso: string): string {
+/* The reader's own locale, not "en-NG" for everybody (Round 3 sweep). An
+   unreadable date draws nothing: the line said "today", in English, which
+   is a claim about the account the page cannot make. */
+function monthAndYear(iso: string, locale: Locale): string {
   const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return "today";
-  return new Intl.DateTimeFormat("en-NG", {
+  if (Number.isNaN(date.getTime())) return "";
+  return new Intl.DateTimeFormat(intlTag[locale], {
     month: "long",
     year: "numeric",
     timeZone: "Africa/Lagos",

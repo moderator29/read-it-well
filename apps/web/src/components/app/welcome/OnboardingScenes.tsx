@@ -1,66 +1,65 @@
 "use client";
 
-import Image from "next/image";
-import type { CSSProperties, ReactNode } from "react";
+import { useState, type CSSProperties, type ReactNode } from "react";
+import { Segmented } from "@/components/ui/Segmented";
 import type { Dictionary } from "@vallo/i18n/core";
+import type { ScenesCopy } from "./welcome-copy";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Icon3D, type Icon3DName } from "@/components/ui/Icon3D";
-import { CountUp } from "@/components/motion/CountUp";
-import { stepPhotoPaths, type StepNumber } from "./step-photos";
+import { ObjectArt } from "@/components/auth/ObjectArt";
 
 /**
- * THE FOUR MOVING SCENES of Get started (30 September, references 51 to 53):
- * the founder's clay art for the step in a rounded card, with UI chips in our
- * components' style arriving over it one after another and then floating
- * gently. Styles and motion are in `app/welcome/onboarding-motion.css`
- * (transform and opacity only; reduced motion, Calm and Off land everything
- * at once, and a still background stops the float).
+ * THE FOUR PAGES OF THE TOUR, AS PICTURES (W11, 6 October 2026; north star
+ * 14.6, reference 36 and the founder's onboarding sheets).
  *
- *   1  two worlds      the home and the hotel; Property and Stays
- *   2  know who        the shield and the ID card under a scanning frame,
- *                      the Verified agent badge and the Vallo Record
- *   3  talk and pay    a conversation, then Pay on Vallo (display only)
- *   4  move in         the arch and the keys, an Example move-in total that
- *                      counts up
+ * ONE IDEA PER PAGE, AND THE IDEA IS AN OBJECT. Where the tour of 30 September
+ * put the founder's clay art in a rounded card with chips floating over it
+ * (and a fifth of the screen was card edge), each page here is a hero object
+ * on the night itself, large, with at most two small pieces of real product
+ * beside it. The objects are the accepted two-tier set (D29): the two hero
+ * SCENES (`scene-house-keys` and `scene-hotel-bell`, the real places of Tier A)
+ * for the two worlds, and matte Tier B symbols for the three ideas (a shield
+ * for verified, a pair of speech bubbles for talk first, an open door for
+ * moving in).
  *
- * TRUTHFUL. Every figure is labelled Example; every other chip is a feature
- * word the product stands behind (the tick is a person seeing the agent's
- * government ID; the Record counts what happened on Vallo). Decorative: the
- * scene is `aria-hidden` and one sentence describes it for a reader.
+ *   1  two worlds      the home and the hotel, one in front at a time, with a
+ *                      sliding pill that brings the other forward. The only
+ *                      interactive piece in the tour, and it is a real choice
+ *                      between two real halves of the product.
+ *   2  verified        a shield with its tick, and the two words the product
+ *                      stands behind: Verified, and the Vallo Record.
+ *   3  talk and pay    a conversation, then Pay on Vallo.
+ *   4  move in         an open door and its key, and what a move-in total is
+ *                      made of, named and not counted.
+ *
+ * NO PROOF BAND AND NO FIGURES (north star 14.6). Vallo has 16 accounts and no
+ * published listing, so nothing here counts anything, and the sheet this was
+ * drawn from shows an invented passport id, invented naira and a held-in-escrow
+ * panel that no screen of ours has: none of it is copied. The one example the
+ * old tour carried, a move-in total with a figure and three proportions, is
+ * gone: a proportion of a number that does not exist is still an invented
+ * number. The conversation is labelled Example because it is one.
+ *
+ * Decorative pieces are `aria-hidden`; the words that ARE content (the chips,
+ * the bubbles, the switch) are real text and the switch is a real group of
+ * buttons. A scene that is not on screen is `inert` (`FirstRun.tsx`), so
+ * nothing in it can take focus. Styles and motion are in
+ * `app/welcome/onboarding-motion.css`: transform and opacity only, nothing
+ * loops, and reduced motion, Calm and Off land everything at once.
  */
 
 type Copy = Dictionary["onboardingMotion"];
 
-/** One arriving piece: `i` is its place in the stagger. */
-function Pop({
-  i,
-  className,
-  children,
-  float = true,
-}: {
-  i: number;
-  className: string;
-  children: ReactNode;
-  float?: boolean;
-}) {
+/** One arriving piece: `i` is its place in the stagger (60ms apart, at most six). */
+function Pop({ i, className, children }: { i: number; className: string; children: ReactNode }) {
   return (
-    <span className={`nf-om-pop ${className}`} style={{ "--nf-om-i": i } as CSSProperties}>
-      {float ? <span className="nf-om-float">{children}</span> : children}
+    <span className={`nf-om-pop ${className}`} style={{ "--nf-om-i": Math.min(i, 6) } as CSSProperties}>
+      {children}
     </span>
   );
 }
 
-function Chip({
-  icon,
-  title,
-  hint,
-  tag,
-}: {
-  icon: Icon3DName;
-  title: string;
-  hint?: string;
-  tag?: string;
-}) {
+function Chip({ icon, title, hint, tag }: { icon: Icon3DName; title: string; hint?: string; tag?: string }) {
   return (
     <span className="nf-om-chip">
       <span className="nf-om-chip__plate">
@@ -77,195 +76,131 @@ function Chip({
   );
 }
 
-/**
- * The step's clay art, cropped to its objects. The art is the brand-blue
- * night in both themes (as the steps have always drawn it), so one file
- * serves both and a light reader does not fetch a second copy; the light
- * files in public/brand/onboarding are the same picture until the founder's
- * light art lands (step-photos.ts).
- */
-function Art({ step, priority }: { step: StepNumber; priority: boolean }) {
+/** The hero: one object, large, landing on its own ground. */
+function Hero({ name, priority, className = "" }: { name: Parameters<typeof ObjectArt>[0]["name"]; priority: boolean; className?: string }) {
   return (
-    <span className="nf-om-art">
-      <Image
-        fill
-        sizes="(min-width: 64rem) 520px, (min-width: 40rem) 480px, 92vw"
-        draggable={false}
-        alt=""
-        src={stepPhotoPaths(step).dark}
-        className="nf-om-art__img"
-        {...(priority ? { priority: true } : { loading: "lazy" as const })}
-      />
+    <span className={`nf-om-hero ${className}`} aria-hidden="true">
+      <span className="nf-om-hero__ground" />
+      <ObjectArt name={name} size={640} priority={priority} className="nf-om-hero__img" />
     </span>
   );
 }
 
-export function WorldsScene({ t, priority }: { t: Dictionary; priority: boolean }) {
+/* ----------------------------------------------------------------- 1 */
+
+type World = "property" | "stays";
+
+export function WorldsScene({ t, priority }: { t: ScenesCopy; priority: boolean }) {
   const w = t.welcomeCards.twoWorlds;
+  const [world, setWorld] = useState<World>("property");
+  const hint = world === "property" ? w.propertyHint : w.staysHint;
   return (
-    <>
-      <Pop i={0} className="nf-om-art-wrap" float={false}>
-        <Art step={1} priority={priority} />
-      </Pop>
-      <Pop i={2} className="nf-om-at nf-om-at--tl">
-        <Chip icon="rent" title={w.property} hint={w.propertyHint} />
-      </Pop>
-      <Pop i={3} className="nf-om-at nf-om-at--br">
-        <Chip icon="hotel" title={w.stays} hint={w.staysHint} />
-      </Pop>
-      <Pop i={4} className="nf-om-at nf-om-at--bc" float={false}>
-        <span className="nf-om-sides">
-          <span className="nf-om-sides__thumb" />
-          <span className="nf-om-sides__side">{w.property}</span>
-          <span className="nf-om-sides__side">{w.stays}</span>
+    <div className="nf-om-worlds" data-world={world}>
+      <Hero name="scene-house-keys" priority={priority} className="nf-om-worlds__a" />
+      <Hero name="scene-hotel-bell" priority={false} className="nf-om-worlds__b" />
+      <Pop i={2} className="nf-om-worlds__control">
+        {/* A real choice between the two halves of the product: the shared
+            Segmented pill slides to the one that is forward (`data-world` on
+            the scene trades the objects), and the line under it names what
+            that half is for. */}
+        <Segmented<World>
+          label={w.titleA + " " + w.titleB}
+          semantics="radio"
+          shape="pill"
+          options={[
+            { value: "property", label: w.property },
+            { value: "stays", label: w.stays },
+          ]}
+          value={world}
+          onChange={setWorld}
+          className="nf-om-sides"
+        />
+        <span key={world} className="nf-om-worlds__hint" aria-live="polite">
+          {hint}
         </span>
       </Pop>
-    </>
+    </div>
   );
 }
 
+/* ----------------------------------------------------------------- 2 */
+
 export function KnowScene({ copy, priority }: { copy: Copy; priority: boolean }) {
   return (
-    <>
-      <Pop i={0} className="nf-om-art-wrap" float={false}>
-        <Art step={2} priority={priority} />
-      </Pop>
-      <Pop i={1} className="nf-om-scan" float={false}>
-        <span className="nf-om-scan__frame">
-          <span className="nf-om-scan__corner nf-om-scan__corner--tl" />
-          <span className="nf-om-scan__corner nf-om-scan__corner--tr" />
-          <span className="nf-om-scan__corner nf-om-scan__corner--bl" />
-          <span className="nf-om-scan__corner nf-om-scan__corner--br" />
-          <span className="nf-om-scan__line" />
-        </span>
-      </Pop>
-      <Pop i={3} className="nf-om-at nf-om-at--tr">
+    <div className="nf-om-know">
+      <Hero name="shield-tick" priority={priority} />
+      <Pop i={3} className="nf-om-know__badge">
         <span className="nf-om-badge">
           <UiIcon name="check" size={16} />
           {copy.know.badge}
         </span>
       </Pop>
-      <Pop i={4} className="nf-om-at nf-om-at--bl">
+      <Pop i={4} className="nf-om-know__record">
         <Chip icon="id-check" title={copy.know.record} hint={copy.know.recordHint} />
       </Pop>
-      <Pop i={5} className="nf-om-at nf-om-at--br2">
-        <span className="nf-om-pill">
-          <span className="nf-om-tag">{copy.example}</span>
-          {copy.know.line}
-          <span className="nf-om-pill__dots" aria-hidden="true">
-            <span />
-            <span />
-            <span />
-          </span>
-        </span>
-      </Pop>
-    </>
+    </div>
   );
 }
 
-export function TalkScene({ copy, priority, tag }: { copy: Copy; priority: boolean; tag: string }) {
-  const amount = new Intl.NumberFormat(tag).format(450000);
+/* ----------------------------------------------------------------- 3 */
+
+export function TalkScene({ copy, priority }: { copy: Copy; priority: boolean }) {
   return (
-    <>
-      <Pop i={0} className="nf-om-art-wrap" float={false}>
-        <Art step={3} priority={priority} />
-      </Pop>
-      <Pop i={2} className="nf-om-at nf-om-at--tl">
-        <span className="nf-om-bubble nf-om-bubble--in">
+    <div className="nf-om-talk">
+      <Hero name="chat-pair" priority={priority} className="nf-om-talk__hero" />
+      <div className="nf-om-talk__thread">
+        <Pop i={2} className="nf-om-bubble nf-om-bubble--in">
           <span className="nf-om-tag">{copy.example}</span>
           {copy.talk.ask}
+        </Pop>
+        <span className="nf-om-typing" aria-hidden="true">
+          <span />
+          <span />
+          <span />
         </span>
-      </Pop>
-      <span className="nf-om-typing nf-om-at nf-om-at--mr" aria-hidden="true">
-        <span />
-        <span />
-        <span />
-      </span>
-      <Pop i={5} className="nf-om-at nf-om-at--mr nf-om-pop--late">
-        <span className="nf-om-bubble nf-om-bubble--out">{copy.talk.reply}</span>
-      </Pop>
-      <Pop i={7} className="nf-om-at nf-om-at--bc nf-om-pop--late">
-        <span className="nf-om-pay">
-          <span className="nf-om-chip__plate">
-            <Icon3D name="pay" size={32} />
+        <Pop i={5} className="nf-om-bubble nf-om-bubble--out nf-om-pop--late">
+          {copy.talk.reply}
+        </Pop>
+        <Pop i={6} className="nf-om-talk__pay nf-om-pop--later">
+          <span className="nf-om-pay">
+            <span className="nf-om-chip__plate">
+              <Icon3D name="pay" size={32} />
+            </span>
+            <span className="nf-om-chip__words">
+              <span className="nf-om-chip__title">{copy.talk.pay}</span>
+              <span className="nf-om-chip__hint">{copy.talk.payHint}</span>
+            </span>
           </span>
-          <span className="nf-om-chip__words">
-            <span className="nf-om-chip__title">{copy.talk.pay}</span>
-            <span className="nf-om-chip__hint">{copy.talk.payHint}</span>
-          </span>
-          <span className="nf-om-pay__amount">
-            <span className="nf-om-tag">{copy.example}</span>
-            <span className="nf-numeric">₦{amount}</span>
-          </span>
-        </span>
-      </Pop>
-    </>
+        </Pop>
+      </div>
+    </div>
   );
 }
 
-export const EXAMPLE_MOVE_IN_TOTAL = 2150000;
+/* ----------------------------------------------------------------- 4 */
 
-export function MoveInScene({
-  t,
-  copy,
-  priority,
-  active,
-  visit,
-  count,
-  tag,
-}: {
-  t: Dictionary;
-  copy: Copy;
-  priority: boolean;
-  /** On screen now: the figure counts only when it arrives. */
-  active: boolean;
-  /** Bumped every arrival, so the count runs again each time. */
-  visit: number;
-  count: boolean;
-  tag: string;
-}) {
-  const fmt = new Intl.NumberFormat(tag);
+export function MoveInScene({ t, copy, priority }: { t: ScenesCopy; copy: Copy; priority: boolean }) {
   return (
-    <>
-      <Pop i={0} className="nf-om-art-wrap" float={false}>
-        <Art step={4} priority={priority} />
+    <div className="nf-om-movein">
+      <Hero name="door-open" priority={priority} className="nf-om-movein__door" />
+      <Pop i={2} className="nf-om-movein__key">
+        <ObjectArt name="key-cushion" size={256} className="nf-om-movein__keyimg" />
       </Pop>
-      <Pop i={2} className="nf-om-at nf-om-at--keys">
-        <span className="nf-om-keys">
-          <Icon3D name="keys" size={72} />
+      <Pop i={3} className="nf-om-movein__parts">
+        {/* What a move-in total is made of, in words. No figure and no
+            proportion: there is no number to show yet. */}
+        <span className="nf-om-parts">
+          <span className="nf-om-parts__head">{copy.moveIn.total}</span>
+          <span className="nf-om-parts__row">
+            <span>{copy.moveIn.rent}</span>
+            <span aria-hidden="true">+</span>
+            <span>{copy.moveIn.agency}</span>
+            <span aria-hidden="true">+</span>
+            <span>{copy.moveIn.caution}</span>
+          </span>
+          <span className="nf-om-parts__line">{t.welcomeCards.intro.chip}</span>
         </span>
       </Pop>
-      <Pop i={3} className="nf-om-at nf-om-at--tl">
-        <span className="nf-om-pill">
-          <UiIcon name="check" size={14} />
-          {t.welcomeCards.intro.chip}
-        </span>
-      </Pop>
-      <Pop i={4} className="nf-om-at nf-om-at--total" float={false}>
-        <span className="nf-om-total">
-          <span className="nf-om-total__head">
-            <span className="nf-om-total__label">{copy.moveIn.total}</span>
-            <span className="nf-om-tag">{copy.example}</span>
-          </span>
-          <span className="nf-om-total__figure">
-            {active && count ? (
-              <CountUp key={visit} value={EXAMPLE_MOVE_IN_TOTAL} prefix="₦" tag={tag} eager />
-            ) : (
-              <span className="nf-numeric">₦{fmt.format(EXAMPLE_MOVE_IN_TOTAL)}</span>
-            )}
-          </span>
-          <span className="nf-om-total__bar" aria-hidden="true">
-            <span className="nf-om-total__part nf-om-total__part--a" />
-            <span className="nf-om-total__part nf-om-total__part--b" />
-            <span className="nf-om-total__part nf-om-total__part--c" />
-          </span>
-          <span className="nf-om-total__legend">
-            <span className="nf-om-total__key nf-om-total__key--a">{copy.moveIn.rent}</span>
-            <span className="nf-om-total__key nf-om-total__key--b">{copy.moveIn.agency}</span>
-            <span className="nf-om-total__key nf-om-total__key--c">{copy.moveIn.caution}</span>
-          </span>
-        </span>
-      </Pop>
-    </>
+    </div>
   );
 }

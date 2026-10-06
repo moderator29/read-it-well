@@ -64,6 +64,146 @@ describe("the global stylesheet (C12)", () => {
     "stays.css": ["host/layout.tsx", "../components/app/stays/StayCategoryTiles.tsx"],
     "map.css": ["../components/app/search/MapCanvas.tsx"],
     "feed-m.css": ["(app)/layout.tsx"],
+    "side-flip.css": [
+      "../components/app/AppRail.tsx",
+      "../components/app/SideSwitch.tsx",
+      "../components/app/flip/SideCover.tsx",
+      "../components/app/flip/SideFlip.tsx",
+    ],
+    "auth.css": [
+      "(auth)/AuthFocal.tsx",
+      "(auth)/AuthGround.tsx",
+      "(auth)/AuthMain.tsx",
+      "(auth)/KeepPillInView.tsx",
+      "(auth)/error.tsx",
+      "(auth)/layout.tsx",
+      "(auth)/reset-password/page.tsx",
+      "../components/auth/AltSignInDoors.tsx",
+      "../components/auth/ArrivalMoment.tsx",
+      "../components/auth/AuthChoices.tsx",
+      "../components/auth/AuthScreenSkeleton.tsx",
+      "../components/auth/CodeInput.tsx",
+      "../components/auth/CodeSignInForm.tsx",
+      "../components/auth/EmailAuthForm.tsx",
+      "../components/auth/FinishSetupForm.tsx",
+      "../components/auth/ForgotPasswordForm.tsx",
+      "../components/auth/NativeAppleSignIn.tsx",
+      "../components/auth/PasskeySignIn.tsx",
+      "../components/auth/ResendClockView.tsx",
+      "../components/auth/ResetCodeForm.tsx",
+      "../components/auth/ResetPasswordForm.tsx",
+      "../components/auth/SignUpOptions.tsx",
+      "../components/auth/VerifyCodeForm.tsx",
+      "../components/auth/fields.tsx",
+      "../components/auth/slate.tsx",
+    ],
+    "home.css": [
+      "(app)/home/loading.tsx",
+      "(app)/stays/page.tsx",
+      "../components/app/assistant/AssistantChat.tsx",
+      "../components/app/assistant/AssistantSettingsSheet.tsx",
+      "../components/app/assistant/AssistantSidebar.tsx",
+      "../components/app/home/CategoryRow.tsx",
+      "../components/app/home/CityRow.tsx",
+      "../components/app/home/FeaturedBand.tsx",
+      "../components/app/home/HomeFigure.tsx",
+      "../components/app/home/HomeHero.tsx",
+      "../components/app/home/HomeScreen.tsx",
+      "../components/app/home/SpaceTypeRow.tsx",
+      "../components/app/home/UpNext.tsx",
+      "../components/app/stays/AreaFigure.tsx",
+    ],
+    "site.css": [
+      "(site)/contact/page.tsx",
+      "(site)/disclaimer/page.tsx",
+      "(site)/eula/page.tsx",
+      "(site)/privacy/page.tsx",
+      "(site)/terms/page.tsx",
+      "../components/site/EdgeLap.tsx",
+      "../components/site/MobileMenu.tsx",
+      "../components/site/NewsletterForm.tsx",
+      "../components/site/SiteFooter.tsx",
+      "../components/site/SiteHead.tsx",
+      "../components/site/SiteHeader.tsx",
+      "../components/site/SupplyPage.tsx",
+      "../components/site/landing/Hero.tsx",
+      "agent/dashboard/RealDashboard.tsx",
+      "host/HostTodayView.tsx",
+    ],
+    "catalogue.css": [
+      "(app)/listing/[id]/ReserveTable.tsx",
+      "(app)/listing/[id]/page.tsx",
+      "(app)/rent/move-in/[listingId]/MoveInLedger.tsx",
+      "(app)/rent/move-in/[listingId]/page.tsx",
+      "(app)/restaurant/[id]/RestaurantFace.tsx",
+      "(app)/saved/SavedBoard.tsx",
+      "(app)/saved/SavedCompare.tsx",
+      "(app)/saved/SwipeToRemove.tsx",
+      "(app)/search/page.tsx",
+      "(app)/stay/[id]/StayDetailView.tsx",
+      "../components/agent/ServiceQuestions.tsx",
+      "../components/agent/UnitQuestions.tsx",
+      "../components/app/ListingCard.tsx",
+      "../components/app/around/PulseCard.tsx",
+      "../components/app/assistant/AssistantChat.tsx",
+      "../components/app/bookings/TenancyCard.tsx",
+      "../components/app/filters/FilterDrawer.tsx",
+      "../components/app/filters/FilterDrawerPanel.tsx",
+      "../components/app/filters/ViewToggle.tsx",
+      "../components/app/listing/CardMenu.tsx",
+      "../components/app/listing/DetailAnatomy.tsx",
+      "../components/app/listing/DetailGlyph.tsx",
+      "../components/app/listing/ListingActions.tsx",
+      "../components/app/listing/ListingAgentCard.tsx",
+      "../components/app/listing/ListingAmenityTiles.tsx",
+      "../components/app/listing/ListingCompound.tsx",
+      "../components/app/listing/ListingGallery.tsx",
+      "../components/app/listing/ListingHandoffShell.tsx",
+      "../components/app/listing/ListingMoveIn.tsx",
+      "../components/app/listing/ListingMoveInBlock.tsx",
+      "../components/app/listing/ListingPhotoGrid.tsx",
+      "../components/app/listing/ListingPurchase.tsx",
+      "../components/app/listing/ListingSectionTabs.tsx",
+      "../components/app/listing/ListingService.tsx",
+      "../components/app/listing/ListingSpecChips.tsx",
+      "../components/app/listing/ListingStickyBar.tsx",
+      "../components/app/listing/PhotoViewer.tsx",
+      "../components/app/listing/VerifiedAgentBadge.tsx",
+      "../components/app/messages/ShowMePanel.tsx",
+      "../components/app/search/CardPhotos.tsx",
+      "../components/app/search/MapListPill.tsx",
+      "../components/app/search/ResultSkeleton.tsx",
+      "../components/app/search/ResultsFade.tsx",
+      "../components/app/search/ShelfBar.tsx",
+      "../components/app/search/ShelfCount.tsx",
+      "../components/app/stays/StayCard.tsx",
+      "../components/app/stays/StayCategoryTiles.tsx",
+      "../components/app/stays/StayFilterSheet.tsx",
+      "../components/app/stays/StayFilterSheetPanel.tsx",
+      "../components/app/stays/StaySearchBar.tsx",
+      "../components/host/FacilitiesPicker.tsx",
+      "../components/host/stays/StaysParts.tsx",
+      "../components/social/profile/ProfileEditor.tsx",
+      "agent/list/ListingSentForReview.tsx",
+      "agent/list/ListingWizard.tsx",
+    ],
+    "list-views.css": [
+      "(app)/saved/SavedBoard.tsx",
+      "(app)/saved/SavedCompare.tsx",
+      "(app)/saved/SwipeToRemove.tsx",
+      "(app)/search/page.tsx",
+      "../components/app/ListingCard.tsx",
+      "../components/app/assistant/AssistantChat.tsx",
+      "../components/app/filters/ViewToggle.tsx",
+      "../components/app/listing/CardMenu.tsx",
+      "../components/app/listing/ListingActions.tsx",
+      "../components/app/listing/ListingGallery.tsx",
+      "../components/app/search/CardPhotos.tsx",
+      "../components/app/search/MapListPill.tsx",
+      "../components/app/search/ResultsFade.tsx",
+      "../components/app/search/ShelfCount.tsx",
+      "../components/app/stays/StayCard.tsx",
+    ],
   };
   const importsOf = (file: string) =>
     [...readFileSync(join(APP, file), "utf8").matchAll(/import\s+"@\/app\/css\/([\w.-]+\.css)"/g)].map((m) => m[1]);
@@ -85,15 +225,97 @@ describe("the global stylesheet (C12)", () => {
     };
     inOrder("(landing)/layout.tsx", ["landing.css", "landing-rooms.css", "public-doors.css"]);
     inOrder("(site)/layout.tsx", ["landing.css", "landing-rooms.css", "public-doors.css"]);
-    inOrder("host/layout.tsx", ["agent.css", "stays.css"]);
+    inOrder("host/layout.tsx", ["agent.css", "catalogue.css", "stays.css"]);
+    /* stays.css answers catalogue.css on its tiles and hero (it used to load
+       after it, when catalogue was global), so an entry that loads both loads
+       catalogue first (auditor A6). */
+    inOrder("../components/app/stays/StayCategoryTiles.tsx", ["catalogue.css", "stays.css"]);
+    /* list-views.css answers catalogue.css at equal specificity on `.nf-pcard`
+       (it used to load after it in globals.css), so every file that draws a
+       list view imports catalogue.css first. */
+    for (const entry of ROUTE_SHEETS["list-views.css"] ?? []) {
+      inOrder(entry, ["catalogue.css", "list-views.css"]);
+    }
+  });
+
+  it("moved the six family sheets out of globals.css (the CSS diet, 6 October)", () => {
+    for (const sheet of ["side-flip", "auth", "home", "site", "catalogue", "list-views"]) {
+      expect(imports, sheet).not.toContain(`./css/${sheet}.css`);
+      expect(readFileSync(join(APP, "css", `${sheet}.css`), "utf8"), sheet).toContain("@layer theme, base, components, utilities;");
+    }
   });
 
   it("keeps the sheets that many routes draw in the global bundle", () => {
-    /* The lock overlays every signed-in tree, a success moment can open on
-       any screen, and social-feed.css carries the round back control. */
-    for (const sheet of ["./css/passcode.css", "./css/success.css", "./social-feed.css"]) {
+    /* A success moment can open on any screen, so success.css stays global.
+       The round back control (`.nf-social-round`) is drawn signed out too, so
+       it stays global in the part of social-feed.css that never left (C6). The
+       passcode lock renders only inside signed-in trees, so passcode.css moved
+       to them; every layout that mounts the lock imports it (checked below). */
+    for (const sheet of ["./css/success.css", "./social-feed.shared.css"]) {
       expect(imports, sheet).toContain(sheet);
     }
+    expect(readFileSync(join(APP, "social-feed.shared.css"), "utf8")).toMatch(/\.nf-social-round\s*\{/);
+    const lockTrees = ["(app)/layout.tsx", "agent/layout.tsx", "host/layout.tsx", "admin/layout.tsx"];
+    for (const tree of lockTrees) {
+      expect(readFileSync(join(APP, tree), "utf8"), tree).toMatch(/import "@\/app\/css\/passcode\.css";/);
+    }
+  });
+
+  /*
+   * C6, the member CSS move (6 October). The sheets no signed-out route draws
+   * load from the member layouts instead of globals.css. Each keeps a
+   * `.shared.css` part in globals.css where a signed-out route draws a rule or
+   * where moving a rule after a later global sheet would flip who wins; the
+   * layouts import the rest first, in the old globals order, so every rule
+   * keeps its old place relative to everything it meets. Paths are relative
+   * to `src/app`, in the old globals order.
+   */
+  const MEMBER_SHEETS: [string, { shared: boolean; entries: string[] }][] = [
+    ["social.css", { shared: true, entries: ["(app)", "agent", "host", "admin", "(dev)/preview", "(dev)/gallery"] }],
+    ["social-feed.css", { shared: true, entries: ["(app)", "agent", "host", "admin", "(dev)/preview", "(dev)/gallery"] }],
+    ["css/motion.css", { shared: true, entries: ["(app)", "agent", "host", "(dev)/preview", "(dev)/gallery"] }],
+    ["css/passcode.css", { shared: false, entries: ["(app)", "agent", "host", "admin", "(dev)/preview", "(dev)/gallery"] }],
+    ["css/photo-viewer.css", { shared: true, entries: ["(app)", "(dev)/preview", "(dev)/gallery"] }],
+    ["css/filter-tiles.css", { shared: false, entries: ["(app)", "(dev)/preview", "(dev)/gallery"] }],
+    ["css/threads.css", { shared: true, entries: ["(app)", "agent", "(dev)/preview", "(dev)/gallery"] }],
+    ["css/member-kit.css", { shared: true, entries: ["(app)", "agent", "(dev)/preview", "(dev)/gallery"] }],
+    ["css/money-history.css", { shared: false, entries: ["(app)", "agent", "host", "admin", "(dev)/preview", "(dev)/gallery"] }],
+    ["css/flow-m.css", { shared: true, entries: ["(app)", "agent", "(dev)/preview", "(dev)/gallery"] }],
+    ["css/detail-m.css", { shared: false, entries: ["(app)", "agent", "host", "admin", "(dev)/preview", "(dev)/gallery"] }],
+    ["css/member-loop.css", { shared: false, entries: ["(app)", "agent", "host", "admin", "(dev)/preview", "(dev)/gallery"] }],
+  ];
+  const memberImportsOf = (layout: string) =>
+    [...readFileSync(join(APP, layout, "layout.tsx"), "utf8").matchAll(/import\s+"@\/app\/([\w./-]+\.css)"/g)].map((m) => m[1]);
+
+  describe("the member-only sheets (C6)", () => {
+    it("leave globals.css, keeping only their shared part in the old place", () => {
+      for (const [sheet, { shared }] of MEMBER_SHEETS) {
+        expect(imports, sheet).not.toContain(`./${sheet}`);
+        const part = `./${sheet.replace(/\.css$/, ".shared.css")}`;
+        if (shared) expect(imports, part).toContain(part);
+        else expect(existsSync(join(APP, part)), part).toBe(false);
+      }
+      const parts = MEMBER_SHEETS.filter(([, m]) => m.shared).map(([s]) => `./${s.replace(/\.css$/, ".shared.css")}`);
+      expect(imports.filter((i) => parts.includes(i))).toEqual(parts);
+    });
+
+    it("load from every member layout that draws them, first and in the old order", () => {
+      const layouts = new Set(MEMBER_SHEETS.flatMap(([, m]) => m.entries));
+      for (const layout of layouts) {
+        const want = MEMBER_SHEETS.filter(([, m]) => m.entries.includes(layout)).map(([s]) => s);
+        const got = memberImportsOf(layout);
+        /* First: nothing a component of this tree imports can land ahead of them. */
+        expect(got.slice(0, want.length), layout).toEqual(want);
+        const head = readFileSync(join(APP, layout, "layout.tsx"), "utf8").split(/\nimport (?!")/)[0] ?? "";
+        expect(head, `${layout}: the member sheets come before any other import`).toContain(`import "@/app/${want.at(-1)}";`);
+      }
+    });
+
+    it("state the layer order, as the other moved sheets do", () => {
+      for (const [sheet] of MEMBER_SHEETS) {
+        expect(readFileSync(join(APP, sheet), "utf8"), sheet).toContain("@layer theme, base, components, utilities;");
+      }
+    });
   });
 
   it("carries none of the dead glass and tile rules", () => {

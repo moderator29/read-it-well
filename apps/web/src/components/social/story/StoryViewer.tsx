@@ -9,8 +9,11 @@ import { Button } from "@/components/ui/Button";
 import { BackChevron } from "@/components/social/profile/BackChevron";
 import { FollowButton } from "@/components/social/profile/FollowButton";
 import { ReportSheet } from "@/components/social/ReportSheet";
+import type { ReportWords } from "@/components/social/sheet-words";
 import { CommentsSheet } from "@/components/social/comments/CommentsSheet";
 import { StoryRail } from "./StoryRail";
+import { markStorySeen } from "./seen";
+import { feedback } from "@/lib/ui/feedback";
 import { StorySequence } from "./StorySequence";
 import type { Face, StoryCard, StoryComment, StoryView } from "@/lib/social/stories-queries";
 import type { CommentRow } from "@/components/social/comments/CommentsSheet";
@@ -24,12 +27,13 @@ import {
   toggleStoryMark,
 } from "@/lib/social/stories-actions";
 import { blockUser, muteTarget, reportProfile } from "@/lib/social/posts-actions";
-import { POST_COPY, PROFILE_REPORT_REASONS } from "@/lib/social/posts-schema";
-import { STORY_COPY } from "@/lib/social/stories-schema";
+import { POST_COPY, PROFILE_REPORT_REASONS } from "@/lib/social/posts-model";
+import { STORY_COPY } from "@/lib/social/stories-model";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import { Toast, useToast } from "@/components/ui/Toast";
 import { countOf } from "@vallo/i18n/core";
 import { useClientLocale } from "@/lib/i18n/use-client-locale";
+import { useSignInHref } from "@/lib/auth/use-sign-in-href";
 
 /**
  * A story, full bleed.
@@ -54,7 +58,9 @@ export function StoryViewer({
   comments,
   more,
   signedIn,
+  viewerId = null,
   viewerFollows,
+  reportWords,
 }: {
   story: StoryView;
   faces: Face[];
@@ -62,8 +68,13 @@ export function StoryViewer({
   comments: StoryComment[];
   more: StoryCard[];
   signedIn: boolean;
+  /** The signed-in reader's id: the seen ring is kept per account on a shared phone. */
+  viewerId?: string | null;
   viewerFollows: boolean;
+  /** The report sheets' reasons and words, from the server (`reportWordsOf`). */
+  reportWords: ReportWords;
 }) {
+  const signInHref = useSignInHref();
   const locale = useClientLocale();
   const router = useRouter();
   const [liked, setLiked] = useState(story.liked);
@@ -111,6 +122,14 @@ export function StoryViewer({
     return () => window.clearTimeout(timer);
   }, [story.id]);
 
+  /* The ring on the feed goes quiet for this story. Kept on this device only
+     (`./seen`), and marked when the story is opened rather than finished: the
+     ring says "you have been here", which a half-watched story has. A run
+     replaces the entry as it steps, so this fires for each story in turn. */
+  useEffect(() => {
+    markStorySeen(story.id, viewerId);
+  }, [story.id, viewerId]);
+
   const who = story.author.label;
   /* B16: this story and the recent run, as the sequence reads them. */
   const current = useMemo(
@@ -120,13 +139,15 @@ export function StoryViewer({
 
   const requireSignIn = () => {
     if (signedIn) return false;
-    router.push("/sign-in");
+    router.push(signInHref);
     return true;
   };
 
   const mark = (kind: "LIKE" | "SAVE") => {
     if (requireSignIn()) return;
     const on = kind === "LIKE" ? !liked : !saved;
+    /* A light tap in the hand when a mark lands; taking one back is quiet. */
+    if (on) feedback("select");
     if (kind === "LIKE") {
       setLiked(on);
       setLikeCount((n) => n + (on ? 1 : -1));
@@ -255,7 +276,7 @@ export function StoryViewer({
 
           <Link
             href={story.author.handle ? `/u/${story.author.handle}` : "#"}
-            className="nf-story__author"
+            className="nf-story__author nf-tap"
             aria-label={`Open ${who}`}
           >
             <span className="nf-story__face">
@@ -350,7 +371,7 @@ export function StoryViewer({
                           setReporting(true);
                         }}
                       >
-                        Report this story
+                        {reportWords.reportStory}
                       </button>
                       <button
                         type="button"
@@ -449,7 +470,7 @@ export function StoryViewer({
                   <Link
                     key={face.userId}
                     href={face.handle ? `/u/${face.handle}` : "#"}
-                    className="nf-story__pileface"
+                    className="nf-story__pileface nf-tap"
                     aria-label={face.label}
                     title={face.label}
                   >
@@ -512,14 +533,16 @@ export function StoryViewer({
           /* B-7b: your own comment can be deleted (soft, like a post). */
           onDelete={(commentId) => deleteStoryComment({ commentId })}
           onReport={(input) => reportStoryComment(input)}
+          reportWords={reportWords}
         />
       ) : null}
 
       {reporting && story.author.id ? (
         <ReportSheet
-          title={`Report ${who}`}
-          subject={`The account behind this story, at @${story.author.handle ?? ""}.`}
+          title={reportWords.reportWho.replace("{who}", () => who)}
+          subject={reportWords.storySubject.replace("{handle}", () => (story.author.handle ?? ""))}
           reasons={PROFILE_REPORT_REASONS}
+          words={reportWords}
           submit={({ reason, detail }) =>
             reportProfile({ userId: story.author.id as string, reason, detail })
           }

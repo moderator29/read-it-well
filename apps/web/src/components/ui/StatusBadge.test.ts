@@ -42,7 +42,7 @@ describe("the shared status badge (SW-C6)", () => {
     const xs = Number(/--nf-radius-xs:\s*(\d+)px/.exec(tokens)?.[1]);
     expect(xs).toBe(6);
     expect(xs / 20).toBeLessThan(0.35);
-    expect(material).toContain("font-size: max(0.6875rem,");
+    expect(material).toContain("font-size: max(0.75rem,");
   });
 
   it("paints the pill through the badge's tone classes, not an inline fill", () => {

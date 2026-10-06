@@ -61,4 +61,18 @@ export type MapCopy = {
   year: string;
   guest: string;
   verified: string;
+  /** "{count} places have no pin yet" (Session 3, W2: the listing with no pin). */
+  noPinOne?: string;
+  noPinMany?: string;
+  /** Opens the same results as a list, where an unplaced place is still drawn. */
+  noPinList?: string;
+  /** The empty viewport's words. */
+  emptyTitle?: string;
+  emptyArea?: string;
+  emptySearch?: string;
+  emptyAction?: string;
+  /** The line under the map: tiles that failed, the credits' joiner, approximate pins. */
+  imageryOffline: string;
+  creditJoin: string;
+  approximate: string;
 };

@@ -2,27 +2,31 @@ import Link from "next/link";
 import { formatMoney, getDictionary, plural, type Locale } from "@vallo/i18n";
 import type { AdminRead } from "@/lib/admin/queries";
 import type { RefundConsole, RefundState, RefundView } from "@/lib/admin/money-queries";
-import type { StatusTone } from "@/components/ui/StatusPill";
 import { CANCELLATION_REASONS } from "@/lib/trust/cancellation";
 import type { AdminUi } from "../_components/ui";
 import { CalmNote } from "../_components/panels";
 import { fill } from "../_components/copy";
-import { UiIcon } from "@/design-system/icons/UiIcon";
-import { IconPlate } from "@/components/ui/IconPlate";
+import { DocHead, DocRow, DocRows, DocumentSheet } from "@/components/app/money/DocumentSheet";
+import { PaperLedger, PaperLedgerRow, PaperStatus, type PaperState } from "../_components/paper";
 
 /**
  * The money desk's rows and the refund console, out of the page so the
  * preview harness draws the same rows the desk draws.
  */
 
-/** Where a refund is, as a tone: back at the card is done, a refusal needs a person. */
-export const REFUND_TONE: Record<RefundState, StatusTone> = {
-  submitted: "success",
-  pending: "warning",
-  failed: "danger",
+const PAPER_STATE: Record<RefundState, PaperState> = {
+  submitted: "done",
+  pending: "waiting",
+  failed: "failed",
   nothing_owed: "neutral",
 };
 
+/**
+ * One refund, as a line of the record. The state is the processor's word with
+ * a shape (filled circle back at the card, hollow circle not yet sent, filled
+ * square refused, a bar for nothing owed), so a submitted refund is never read
+ * as settled and a refused one is never read by its colour alone.
+ */
 export function RefundRow({
   refund,
   locale,
@@ -33,135 +37,117 @@ export function RefundRow({
   ui: AdminUi;
 }) {
   const c = getDictionary(locale).admin.money;
-  const state = { label: c.refundState[refund.state], tone: REFUND_TONE[refund.state] };
+  const reason =
+    CANCELLATION_REASONS.find((r) => r.code === refund.reason)?.label ?? ui.columnLabel("cancellationReason", refund.reason);
   return (
-    <li className="flex flex-wrap items-baseline gap-x-md gap-y-2xs border-t border-[var(--nf-border-subtle)] py-sm">
-      {/* The row's plated glyph: money going back to a person. */}
-      <IconPlate size="sm" className="shrink-0 self-center">
-        <UiIcon name="hand-coins" size={20} />
-      </IconPlate>
-      <span className="min-w-0 flex-1">
-        <span className="block text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-primary)]">
-          {refund.guestName ?? c.noDisplayName}
+    <PaperLedgerRow
+      when={ui.when(refund.createdAt)}
+      title={`${refund.guestName ?? c.noDisplayName} · ${refund.listingTitle ?? c.listingGone} · ${reason}`}
+      sub={
+        <>
+          {/* THE REFERENCE IS NEVER CLIPPED. It is the string the guest quotes
+              and the wallet entry carries. Without one, the stay's id is what
+              an operator opens. */}
+          <span className="font-mono [user-select:all]">{refund.reference ?? refund.bookingId}</span>
           {" · "}
-          {refund.listingTitle ?? c.listingGone}
-          {" · "}
-          {CANCELLATION_REASONS.find((r) => r.code === refund.reason)?.label ??
-            ui.columnLabel("cancellationReason", refund.reason)}
-        </span>
-        {/* THE REFERENCE IS NEVER CLIPPED. It is the string the guest quotes
-            and the wallet entry carries. Without one, the stay's id is what
-            an operator opens. */}
-        <span className="block font-mono text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)] [overflow-wrap:anywhere] [user-select:all]">
-          {refund.reference ?? refund.bookingId}
-        </span>
-        <Link
-          href={`/admin/bookings/${refund.bookingId}`}
-          className="mt-2xs inline-block text-[length:var(--nf-text-caption)] underline"
-        >
-          {c.openStay}
-        </Link>
-      </span>
-      {/* Capped at the row's width: `shrink-0` alone sized this to its
-          max-content, whose right edge reached 476px on a 320 screen (measured
-          on the refunds desk), so its own `flex-wrap` never got a width to wrap in. */}
-      <span className="flex max-w-full shrink-0 flex-wrap items-baseline gap-sm">
-        <ui.StatusChip label={state.label} tone={state.tone} />
-        <span className="nf-numeric text-[length:var(--nf-text-body-sm)] font-semibold">
+          <Link href={`/admin/bookings/${refund.bookingId}`} className="underline">
+            {c.openStay}
+          </Link>
+        </>
+      }
+      amount={
+        <>
           {formatMoney(refund.refundMinor, locale)}
-        </span>
-        {refund.retainedMinor > 0 && (
-          <span className="text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
-            {fill(c.kept, { amount: formatMoney(refund.retainedMinor, locale) })}
-          </span>
-        )}
-        <span className="text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
-          {ui.when(refund.createdAt)}
-        </span>
-      </span>
-    </li>
+          {refund.retainedMinor > 0 && (
+            <span className="block text-[length:var(--nf-text-overline)] font-normal text-[var(--nf-content-muted)]">
+              {fill(c.kept, { amount: formatMoney(refund.retainedMinor, locale) })}
+            </span>
+          )}
+        </>
+      }
+      status={<PaperStatus state={PAPER_STATE[refund.state]}>{c.refundState[refund.state]}</PaperStatus>}
+    />
   );
 }
 
 /**
- * THE REFUND CONSOLE.
+ * THE REFUND RECORD.
  *
- * Two kinds of money go back to a person on this platform and both are
- * decided elsewhere: a stay's refund on the stay's own page, where the
- * published schedule works out the figure and the operator chooses only
- * why, and a disputed escrow on the escrow desk, where an operator rules
- * release or refund with a reason both sides read. This section is where
- * an operator answers "did the guest get it": every refund decided, with
- * the wallet entry's own status beside it. Nothing on this section types
- * an amount.
+ * Two kinds of money go back to a person on this platform and both are decided
+ * elsewhere: a stay's refund on the stay's own page, where the published
+ * schedule works out the figure and the operator chooses only why. This
+ * section is the RECORD of that: every refund decided, with the processor's own
+ * word beside it for where the money is now. It is read only, and it is
+ * drawn as a statement (a light document sheet on the console's theme, D28.1)
+ * because it is exactly what an operator screenshots to show a guest, a
+ * colleague or an auditor. Nothing on this section types an amount and nothing
+ * here offers a way to refund: that path is the stay's own page and no other.
  */
 export function RefundsPanel({
   refunds,
   narrowed,
   locale,
   ui,
-  className = "nf-panel nf-panel--card nf-admin-card mb-md p-md sm:p-lg",
+  className = "nf-admin-doc nf-admin-anchor",
 }: {
   refunds: AdminRead<RefundConsole>;
-  /** The container. The desk passes its own lit panel; the preview keeps the card. */
+  /** The container's classes. The desk passes its own; the preview keeps the default. */
   className?: string;
   /** True when a filter is applied, so an empty list is the filter's answer. */
   narrowed: boolean;
   locale: Locale;
   ui: AdminUi;
 }) {
-  const c = getDictionary(locale).admin.money;
+  const t = getDictionary(locale);
+  const c = t.admin.money;
+  const x = t.experienceAdmin.money;
   return (
-    <section className={className}>
-      <h2 className="text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
-        {c.refundsTitle}
-      </h2>
-      <p className="mt-2xs max-w-[62ch] text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
-        {c.refundsBody}
-      </p>
+    <section className={className} id="refunds">
+      <DocumentSheet aria-labelledby="refunds-title" data-testid="refund-record">
+        <DocHead label={x.refundsOverline} title={c.refundsTitle} id="refunds-title" />
+        <p className="nf-doc__note">{c.refundsBody}</p>
 
-      {refunds.state !== "ok" ? (
-        <div className="mt-sm">
-          <ui.QueueUnavailable />
-        </div>
-      ) : (
-        <>
+        {refunds.state !== "ok" ? (
           <div className="mt-sm">
-            <ui.StatRow>
-              <ui.Stat
-                label={c.returned}
-                value={formatMoney(refunds.data.totals.refundedMinor, locale)}
-                hint={plural(refunds.data.totals.count, c.returnedHint, locale)}
-              />
-              <ui.Stat
-                label={c.notCredited}
-                value={String(refunds.data.totals.notSubmitted)}
-                hint={c.notCreditedHint}
-                tone={refunds.data.totals.notSubmitted === 0 ? "success" : "danger"}
-              />
-            </ui.StatRow>
+            <ui.QueueUnavailable />
           </div>
+        ) : (
+          <>
+            <DocRows>
+              <DocRow label={c.returned} numeric>
+                {formatMoney(refunds.data.totals.refundedMinor, locale)}
+              </DocRow>
+              <DocRow label={c.notCredited} numeric>
+                <PaperStatus state={refunds.data.totals.notSubmitted === 0 ? "done" : "failed"}>
+                  {String(refunds.data.totals.notSubmitted)}
+                </PaperStatus>
+              </DocRow>
+            </DocRows>
+            <p className="nf-doc__note">
+              {plural(refunds.data.totals.count, c.returnedHint, locale)}. {c.notCreditedHint}
+            </p>
 
-          {refunds.data.rows.length === 0 ? (
-            narrowed ? null : (
-              <div className="mt-sm">
-                <CalmNote
-                  title={c.refundsNoneTitle}
-                  fills={c.refundsNoneFills}
-                  creates={c.refundsNoneCreates}
-                  action={{ href: "/admin/bookings", label: c.openBookings }}
-                />
-              </div>
-            )
-          ) : (
-            <ul className="mt-xs">
-              {refunds.data.rows.map((refund) => (
-                <RefundRow key={refund.id} refund={refund} locale={locale} ui={ui} />
-              ))}
-            </ul>
-          )}
-        </>
-      )}
+            {refunds.data.rows.length === 0 ? (
+              narrowed ? null : (
+                <div className="mt-sm">
+                  <CalmNote
+                    title={c.refundsNoneTitle}
+                    fills={c.refundsNoneFills}
+                    creates={c.refundsNoneCreates}
+                    action={{ href: "/admin/bookings", label: c.openBookings }}
+                  />
+                </div>
+              )
+            ) : (
+              <PaperLedger label={c.refundsTitle}>
+                {refunds.data.rows.map((refund) => (
+                  <RefundRow key={refund.id} refund={refund} locale={locale} ui={ui} />
+                ))}
+              </PaperLedger>
+            )}
+          </>
+        )}
+      </DocumentSheet>
     </section>
   );
 }

@@ -192,7 +192,7 @@ console.log("\nDelivery");
 const ctx = await browser.newContext();
 const page = await ctx.newPage();
 for (const name of ["inter-latin", "inter-latin-ext", "inter-vietnamese", "inter-naira", "poppins-600-latin", "poppins-600-latin-ext", "poppins-700-latin", "poppins-700-latin-ext"]) {
-  const res = await page.request.get(`${BASE_URL}/fonts/${name}.woff2`);
+  const res = await page.request.get(`${BASE_URL}/fonts/v2/${name}.woff2`);
   const cache = res.headers()["cache-control"] ?? "";
   check(
     `${name}.woff2 is served, immutable, for a year`,

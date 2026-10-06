@@ -117,7 +117,7 @@ export const GETTING_AROUND: DocChapter = {
             Under Settings, then {look.label}, then {look.motion}, you choose how much the app
             moves. {look.motionNote}
           </p>
-          <ul>
+          <ul role="list">
             <li>
               <strong>{look.motionCinematic}.</strong> {look.motionCinematicSub}
             </li>
@@ -132,7 +132,7 @@ export const GETTING_AROUND: DocChapter = {
             </li>
           </ul>
           <p>Three switches sit under the levels:</p>
-          <ul>
+          <ul role="list">
             <li>
               <strong>{look.motionSplash}.</strong> {look.motionSplashSub}
             </li>
@@ -220,7 +220,7 @@ export const PRICE_CHECK: DocChapter = {
               { object: "report-stats", label: "Asking range" },
             ]}
           />
-          <ul>
+          <ul role="list">
             <li>
               <strong>{pc.result.askingRange}.</strong> What the comparable properties near the
               pin are asking.
@@ -245,7 +245,7 @@ export const PRICE_CHECK: DocChapter = {
             Price Check would rather give no figure than a weak one, and it says which of these
             it has run into:
           </p>
-          <ul>
+          <ul role="list">
             {[
               pc.refusals.noLocation,
               pc.refusals.noComparables,
@@ -303,7 +303,7 @@ export const AI_ASSISTANT: DocChapter = {
       id: "what-it-can-do",
       heading: "What it can do",
       body: (
-        <ul>
+        <ul role="list">
           <li>
             <strong>Search.</strong> Property to rent or buy, somewhere to stay, and restaurants,
             with the figures the listing states.
@@ -329,7 +329,7 @@ export const AI_ASSISTANT: DocChapter = {
       id: "what-it-will-not-do",
       heading: "What it will not do",
       body: (
-        <ul>
+        <ul role="list">
           <li>Invent a listing, a price, a date, a rating or a review.</li>
           <li>
             Tell you a land title is good. It says which document a listing states, says so
@@ -423,7 +423,7 @@ export const LISTING_ON_VALLO: DocChapter = {
               <strong>{SUPPLY_DOORS[key].blurb}</strong> {SUPPLY_DOORS[key].whoItIsFor}
             </p>
             <p>What it asks for:</p>
-            <ul>
+            <ul role="list">
               {SUPPLY_DOORS[key].needs.map((need) => (
                 <li key={need}>{need}</li>
               ))}
@@ -439,7 +439,7 @@ export const LISTING_ON_VALLO: DocChapter = {
       body: (
         <>
           <p>The Vallo Stays side has its own three doors:</p>
-          <ul>
+          <ul role="list">
             {STAYS_DOOR_ORDER.map((id) => (
               <li key={id}>
                 <strong>{STAYS_DOORS[id].title}.</strong> {STAYS_DOORS[id].blurb}
@@ -463,7 +463,7 @@ export const LISTING_ON_VALLO: DocChapter = {
             A lister climbs the same ladder, one rung at a time, and a listing shows how far its
             lister has climbed rather than a single word that could mean anything:
           </p>
-          <ol>
+          <ol role="list">
             {VERIFICATION_ORDER.map((rung) => (
               <li key={rung.label}>
                 <strong>{rung.label}.</strong> {rung.meaning}
@@ -481,7 +481,7 @@ export const LISTING_ON_VALLO: DocChapter = {
       id: "standing",
       heading: "Where your application stands",
       body: (
-        <ul>
+        <ul role="list">
           {STANDINGS.map((s) => (
             <li key={s.key}>
               <strong>{s.label}.</strong> {s.meaning}

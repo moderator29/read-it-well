@@ -8,6 +8,7 @@ import { OfflineNote, useOnline } from "@/components/support/OfflineNote";
 import { PhotoField } from "@/components/support/PhotoField";
 import { uploadTicketPhoto, type PreparedPhoto } from "@/components/support/photo";
 import { replyToMyTicket } from "@/lib/support/ticket-reply";
+import type { Dictionary } from "@vallo/i18n/core";
 
 const draftKey = (ticketId: string) => `nf_support_reply_${ticketId}`;
 
@@ -19,7 +20,7 @@ const draftKey = (ticketId: string) => `nf_support_reply_${ticketId}`;
  * costs the person what they typed. The textarea is the shared `TextArea`,
  * which renders at 16px on a touch screen so iOS does not zoom on focus.
  */
-export function ReplyBox({ ticketId }: { ticketId: string }) {
+export function ReplyBox({ ticketId, copy }: { ticketId: string; copy: Dictionary["experienceInbox"]["support"]["reply"] }) {
   const router = useRouter();
   const online = useOnline();
   const [body, setBody] = useState("");
@@ -50,11 +51,11 @@ export function ReplyBox({ ticketId }: { ticketId: string }) {
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
     if (!body.trim() && !photo) {
-      setError("Write your reply first.");
+      setError(copy.empty);
       return;
     }
     if (!online) {
-      setError("You are offline. Your reply is kept here; send it when you are back online.");
+      setError(copy.offline);
       return;
     }
     setError(undefined);
@@ -72,7 +73,7 @@ export function ReplyBox({ ticketId }: { ticketId: string }) {
         setPhoto(null);
       }
       keep("");
-      if (!photo) setNote("Sent. The team will see it on your ticket.");
+      if (!photo) setNote(copy.sent);
       router.refresh();
     });
   };
@@ -80,7 +81,7 @@ export function ReplyBox({ ticketId }: { ticketId: string }) {
   return (
     <form onSubmit={submit} className="nf-panel nf-panel--card block space-y-row p-card-sm" data-testid="support-reply-form">
       <TextArea
-        label="Reply to support"
+        label={copy.label}
         value={body}
         onChange={(e) => {
           keep(e.target.value);
@@ -89,10 +90,10 @@ export function ReplyBox({ ticketId }: { ticketId: string }) {
         rows={3}
         maxLength={4000}
         error={error}
-        placeholder="Add anything the team should know"
+        placeholder={copy.placeholder}
       />
       {photo && <PhotoField value={photo} onChange={setPhoto} disabled={pending} />}
-      <OfflineNote what="Your reply" />
+      <OfflineNote what={copy.offlineWhat} />
       <div className="flex flex-wrap items-center justify-between gap-row">
         <div className="flex min-w-0 flex-1 items-center gap-row">
           {!photo && <PhotoField value={null} onChange={setPhoto} disabled={pending} compact />}
@@ -101,7 +102,7 @@ export function ReplyBox({ ticketId }: { ticketId: string }) {
           </p>
         </div>
         <Button type="submit" variant="primary" loading={pending} disabled={pending} data-testid="support-reply-send">
-          Send reply
+          {copy.send}
         </Button>
       </div>
     </form>

@@ -6,6 +6,8 @@ import { StatusTrack, type TrackStep } from "@/components/app/status/StatusTrack
 import { trackStates } from "@/components/app/status/tracks";
 import { ICON_PLATE_GLYPH, IconPlate, type IconPlateTone } from "@/components/ui/IconPlate";
 import { Icon3D } from "@/components/ui/Icon3D";
+import { VerifiedPayoff } from "./VerifiedPayoff";
+import "./verified-payoff.css";
 import type { Icon3DName } from "@/components/ui/icon-3d";
 
 /* The status plate takes the state's own tone on the shared plate (orphans
@@ -57,7 +59,17 @@ const PLATE_TONE: Record<"warning" | "success" | "danger", IconPlateTone> = {
 
 export type KycStatusView =
   | { state: "pending"; submittedAt?: string }
-  | { state: "approved" }
+  | {
+      state: "approved";
+      /**
+       * Set by the page only when a rung passed recently enough to be news
+       * (`approvedRecently`) and this device has not been shown this level
+       * (`payoff-seen.ts`): the plate then opens on the waiting object and
+       * becomes the verified plate in place (`VerifiedPayoff`). Absent, the
+       * approved plate is simply drawn, still, with no script.
+       */
+      payoff?: { tier: number };
+    }
   | {
       state: "rejected";
       /** What the reviewer actually wrote. Shown in full, never softened. */
@@ -141,6 +153,7 @@ export function KycStatus({
         pill={w.approvedPill}
         icon="verified"
         art="shield"
+        payoff={status.payoff}
         title={w.approvedTitle}
         body={w.approvedBody}
         track={<ReviewTrack state="approved" w={w} />}
@@ -251,6 +264,7 @@ function Panel({
   pill,
   icon,
   art,
+  payoff,
   title,
   body,
   children,
@@ -264,16 +278,45 @@ function Panel({
   /** The founder's 3D object for a calm state (in review, approved); a
       refusal or a request keeps its tinted glyph. */
   art?: Icon3DName;
+  /** Approved and news to this device only: the plate becomes verified in place (`VerifiedPayoff`). */
+  payoff?: { tier: number };
   title: string;
   body: string;
   children?: React.ReactNode;
   /** The review's stages on the shared status track, under the head. */
   track?: React.ReactNode;
 }) {
-  return (
+  const plate = (
     <section className="nf-panel nf-panel--card block p-lg">
       <div className="flex items-start gap-md">
-        {art ? (
+        {art && payoff ? (
+          /* THE OBJECT SLOT IS ONE PLACE (round 5): the object the member saw
+             while waiting (the pending plate's own) hands over to the shield
+             in the same 56px cell, and the tick embosses on its corner. The
+             waiting object and the disc are invisible at rest and take no
+             space, so the settled plate is the plain one. */
+          <span className="nf-vpass" aria-hidden="true">
+            <span className="nf-vpass__was grid size-14 place-items-center" data-art="calendar-pending">
+              <Icon3D name="calendar-pending" size={56} />
+            </span>
+            <span className="nf-vpass__shield grid size-14 shrink-0 place-items-center" data-art={art}>
+              <Icon3D name={art} size={56} />
+            </span>
+            <span className="nf-vpass__badge">
+              <svg viewBox="0 0 16 16" focusable="false">
+                <path
+                  className="nf-vpass__tick"
+                  d="M4.2 8.4 6.9 11 11.8 5.4"
+                  pathLength={1}
+                  fill="none"
+                  strokeWidth="1.9"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
+          </span>
+        ) : art ? (
           <span className="grid size-14 shrink-0 place-items-center" aria-hidden="true" data-art={art}>
             <Icon3D name={art} size={56} />
           </span>
@@ -282,7 +325,7 @@ function Panel({
             <UiIcon name={icon} size={ICON_PLATE_GLYPH.md} />
           </IconPlate>
         )}
-        <div className="min-w-0 flex-1">
+        <div className={payoff ? "nf-vpass__words min-w-0 flex-1" : "min-w-0 flex-1"}>
           <div className="flex flex-wrap items-center gap-xs">
             <h2 className="text-[length:var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
               {title}
@@ -295,9 +338,14 @@ function Panel({
           {children}
         </div>
       </div>
-      {track ? <div className="mt-lg">{track}</div> : null}
+      {track ? (
+        /* An approved plate's track carries the earned "Verified" step: still
+           on an ordinary visit, arriving with the plate in the payoff. */
+        <div className={payoff ? "nf-vpass__track mt-lg" : tone === "success" ? "nf-vtrack-still mt-lg" : "mt-lg"}>{track}</div>
+      ) : null}
     </section>
   );
+  return payoff ? <VerifiedPayoff tier={payoff.tier}>{plate}</VerifiedPayoff> : plate;
 }
 
 /**

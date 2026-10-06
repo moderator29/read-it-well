@@ -6,7 +6,7 @@ const ALL = Object.fromEntries(ROOM_ITEMS.map((item) => [item, true]));
 describe("the inspection report", () => {
   it("has the render's eight rooms, in the render's order, with its words", () => {
     expect(ROOM_ITEMS).toEqual(["exterior", "interior", "kitchen", "bathrooms", "utilities", "appliances", "safety", "overall"]);
-    expect(ROOM_COPY.overall.title).toBe("Overall Condition");
+    expect(ROOM_COPY.overall.title).toBe("Overall condition");
     expect(ROOM_COPY.utilities.detail).toBe("Power, water, internet, AC");
   });
 

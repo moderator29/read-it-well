@@ -1,4 +1,4 @@
-import { formatDate, type Dictionary, type Locale } from "@vallo/i18n/core";
+import { formatDate, formatMoney, formatNumber, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { fill } from "../_copy";
 import type { AgentEarnings } from "@/lib/agent/earnings-queries";
 import { ButtonLink } from "@/components/ui/Button";
@@ -6,6 +6,17 @@ import { Amount, Figure } from "@/components/ui/Amount";
 import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/Table";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { Icon3D } from "@/components/ui/Icon3D";
+import { PeriodBars } from "@/components/ui/charts/PeriodBars";
+import { CompareBars, type CompareRow } from "@/components/ui/charts/CompareBars";
+import { lagosMonth, monthPoint, moneyTicks } from "@/components/agent/charts/month-points";
+import { settledSeries } from "@/lib/agent/analytics-queries";
+/* North star 12 point 17: a money sentence reads from lib/money/copy.ts. The
+   empty state and the how-it-is-worked-out note were the dictionary's own
+   sentences (agentEarnings.emptyTitle, emptyBody, howBody), and howBody still
+   described a split into "your share, Vallo's platform fee and the payment
+   processor's own fee" beside a file docstring that says the page names no
+   platform cut. copy.ts already holds the lister's sentences for both. */
+import { EARNINGS_EMPTY_BODY, EARNINGS_EMPTY_TITLE, EARNINGS_SETTLEMENT } from "@/lib/money/copy";
 
 /**
  * The host's earnings console: what has actually settled, read straight from
@@ -72,7 +83,7 @@ export function EarningsWorkspace({
   if (!earnings.readable) {
     return (
       <p
-        className="rounded-[var(--nf-container-radius)] p-md text-[length:var(--nf-text-body-sm)] font-medium leading-relaxed"
+        className="rounded-[var(--nf-container-radius)] p-md text-[length:var(--nf-text-body-sm)] font-semibold leading-relaxed"
         style={{ background: "var(--nf-state-warning-surface)", color: "var(--nf-state-warning)" }}
         role="alert"
       >
@@ -88,9 +99,9 @@ export function EarningsWorkspace({
         <span className="grid size-[5.5rem] place-items-center" aria-hidden="true" data-art="earnings">
           <Icon3D name="earnings" size={88} />
         </span>
-        <h2 className="nf-h3">{t.emptyTitle}</h2>
+        <h2 className="nf-h3">{EARNINGS_EMPTY_TITLE}</h2>
         <p className="mx-auto max-w-[40ch] text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
-          {t.emptyBody}
+          {EARNINGS_EMPTY_BODY}
         </p>
         <ButtonLink href="/agent/bookings" variant="primary">
           {t.emptyAction}
@@ -100,6 +111,19 @@ export function EarningsWorkspace({
   }
 
   const thisMonthMinor = earnings.currentMonth?.agentShareMinor ?? 0;
+
+  /*
+   * THE MONTHS AS BARS (reference 7056, chart system B-26). The same rows the
+   * ledger table below prints, laid out as a continuous run by the analytics
+   * read's own rule (`settledSeries`: a quiet month between two settled ones
+   * is a real zero; nothing is padded before the first). The table stays: it
+   * is the record, the bars are how the record reads at a glance.
+   */
+  const nowKey = lagosMonth(new Date());
+  const series = settledSeries(earnings.months, nowKey).map((m) =>
+    monthPoint({ key: m.key, year: m.year, month: m.month, minor: m.agentShareMinor }, locale),
+  );
+  const compare = monthOnMonth(earnings, nowKey, t, locale);
 
   return (
     <div className="space-y-lg">
@@ -144,8 +168,32 @@ export function EarningsWorkspace({
         />
       </div>
 
+      {compare ? (
+        <section className="nf-panel nf-panel--card block p-md sm:p-panel">
+          <CompareBars
+            label={`${compare.currentLabel}, ${compare.previousLabel}`}
+            currentLabel={compare.currentLabel}
+            previousLabel={compare.previousLabel}
+            rows={compare.rows}
+          />
+        </section>
+      ) : null}
+
       <section className="nf-panel nf-panel--card block p-md sm:p-panel">
         <h2 className="nf-h3">{t.byMonth}</h2>
+
+        {series.length > 1 ? (
+          <div className="mt-md">
+            <PeriodBars
+              points={series}
+              yTicks={moneyTicks(series, locale)}
+              label={`${t.byMonth}, ${t.monthShare}`}
+              periodHead={t.byMonth}
+              valueHead={t.monthShare}
+              emphasis="peak"
+            />
+          </div>
+        ) : null}
 
         {/* Phone: stacked cards, so nothing scrolls sideways. */}
         <ul className="mt-sm space-y-sm sm:hidden">
@@ -197,7 +245,7 @@ export function EarningsWorkspace({
             <TBody>
               {earnings.months.map((month) => (
                 <TR key={month.key}>
-                  <TD className="font-medium text-[var(--nf-content-primary)]">
+                  <TD className="font-semibold text-[var(--nf-content-primary)]">
                     {monthLabel(month.year, month.month, locale)}
                   </TD>
                   <TD align="end">{month.stays}</TD>
@@ -217,9 +265,82 @@ export function EarningsWorkspace({
       <section className="nf-panel nf-panel--card block p-md sm:p-panel">
         <h2 className="nf-h3">{t.howTitle}</h2>
         <p className="mt-xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
-          {t.howBody}
+          {EARNINGS_SETTLEMENT}
         </p>
       </section>
     </div>
   );
+}
+
+/**
+ * THIS MONTH AGAINST LAST MONTH (north star 15.3, chart rule 1, compare
+ * bars), from the ledger rows this page already read and nothing else.
+ *
+ * The ledger is the complete record of settled money, so a month with no row
+ * after the first settled month is a real zero and is drawn as one. Before
+ * the first settled month there is no record to compare with, so the previous
+ * side is null and the row says so with a dash rather than a zero that would
+ * read as a bad month. With nothing on either side the comparison is left
+ * out: two empty bars are not a comparison.
+ *
+ * The legend names the two months by name, in the reader's language, which
+ * needs no new copy and is more exact than "this month" and "last month".
+ */
+function monthOnMonth(
+  earnings: AgentEarnings,
+  nowKey: string,
+  t: EarningsCopy,
+  locale: Locale,
+): { currentLabel: string; previousLabel: string; rows: CompareRow[] } | null {
+  const [y, m] = nowKey.split("-").map(Number);
+  if (!y || !m) return null;
+  const prevIndex = y * 12 + (m - 1) - 1;
+  const prevYear = Math.floor(prevIndex / 12);
+  const prevMonth = (prevIndex % 12) + 1;
+  const prevKey = `${prevYear}-${String(prevMonth).padStart(2, "0")}`;
+
+  const byKey = new Map(earnings.months.map((month) => [month.key, month]));
+  const current = byKey.get(nowKey) ?? null;
+  const previous = byKey.get(prevKey) ?? null;
+  const firstKey = [...byKey.keys()].sort()[0];
+  /* Before the first settled month there is nothing on record to compare. */
+  const previousOnRecord = firstKey !== undefined && firstKey <= prevKey;
+  if (!current && !previous) return null;
+
+  const dash = "\u2013";
+  const money = (v: number | null) => (v === null ? dash : formatMoney(v, locale));
+  const count = (v: number | null) => (v === null ? dash : formatNumber(v, locale));
+  const prev = <K extends "agentShareMinor" | "grossMinor" | "stays">(key: K): number | null =>
+    previousOnRecord ? (previous?.[key] ?? 0) : null;
+
+  return {
+    currentLabel: monthLabel(y, m, locale),
+    previousLabel: monthLabel(prevYear, prevMonth, locale),
+    rows: [
+      {
+        key: "share",
+        label: t.monthShare,
+        current: current?.agentShareMinor ?? 0,
+        currentDisplay: money(current?.agentShareMinor ?? 0),
+        previous: prev("agentShareMinor"),
+        previousDisplay: money(prev("agentShareMinor")),
+      },
+      {
+        key: "gross",
+        label: t.monthGross,
+        current: current?.grossMinor ?? 0,
+        currentDisplay: money(current?.grossMinor ?? 0),
+        previous: prev("grossMinor"),
+        previousDisplay: money(prev("grossMinor")),
+      },
+      {
+        key: "stays",
+        label: t.totals.settledStays,
+        current: current?.stays ?? 0,
+        currentDisplay: count(current?.stays ?? 0),
+        previous: prev("stays"),
+        previousDisplay: count(prev("stays")),
+      },
+    ],
+  };
 }

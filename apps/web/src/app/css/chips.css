@@ -136,6 +136,11 @@
   button.nf-chip,
   label.nf-chip {
     position: relative;
+    /* 44px WIDE AS WELL AS TALL. The height has been a floor for a long time; the width never
+       was, so a chip holding one short word (Yoruba "Ilẹ̀", 41.8px) was a target narrower than a
+       thumb. The label stays centred (`justify-content` above). Found by
+       components/locale-fit/controls.dom.test.tsx. */
+    min-inline-size: 2.75rem;
   }
 
   @media (hover: hover) {
@@ -188,181 +193,6 @@
     background: var(--nf-brand-tint-2);
     border-color: var(--nf-border-brand);
     box-shadow: none;
-  }
-
-  /* ------------------------------------------------------- the feed tabs */
-
-  /*
-   * For you, Following, New.
-   *
-   * These were `.nf-chip`, and a chip is the wrong object for them. A chip is a
-   * filter: a pill you switch on and off, sized to be tapped in a row of eight
-   * on /search. These three are the top-level navigation of the whole feed, and
-   * drawn as fat rounded pills at 44px they were the loudest thing above the
-   * reading, which is exactly backwards for a surface whose job is to get out
-   * of the way. The owner said it plainly: smaller, and rectangular, not
-   * circles.
-   *
-   * So: a rectangle at the small radius, 34px of drawn height, the weight of a
-   * label rather than a button. The live one is marked by the brand rule under
-   * it, which is how a tab has said "you are here" since tabs existed, rather
-   * than by a glowing outline around the whole shape.
-   *
-   * The 44pt target is not given up for the smaller drawing. The same centred
-   * ::after overlay the chips use grows the touch region without moving a
-   * pixel of the paint.
-   */
-  /*
-   * FOR YOU, FOLLOWING, NEW.
-   *
-   * Three changes the owner asked for, and each fixes something real.
-   *
-   * GLASS, NOT TRANSPARENT. They were bare text until selected, so two of the
-   * three read as labels rather than as controls and only the active one
-   * looked pressable. Every tab now carries the platform's own glass, which is
-   * the material the rest of the product uses to say "this is a surface you
-   * can act on".
-   *
-   * BIGGER. 34px tall with caption text, which is below the 44px minimum this
-   * codebase holds everywhere else and set two steps under body. They are the
-   * primary way somebody changes what the feed is showing them, so they are
-   * now a full tap target at body-small.
-   *
-   * A BLUE STRIDE ON THE SELECTED ONE. The active tab was distinguished by a
-   * slightly lighter fill, which is nearly invisible on a dark screen. It now
-   * carries the brand border and a brand-tinted fill, so which feed you are
-   * reading is legible at a glance rather than by comparison.
-   */
-  .nf-feedtab {
-    position: relative;
-    display: inline-flex;
-    flex: 1 1 0;
-    align-items: center;
-    justify-content: center;
-    min-height: 2.375rem;
-    padding: 0 var(--nf-space-sm);
-    border-radius: var(--nf-radius-control);
-    font-size: var(--nf-text-body-sm);
-    font-weight: 600;
-    white-space: nowrap;
-    color: var(--nf-content-muted);
-    border: 0;
-    background: transparent;
-    transition:
-      color var(--nf-duration-fast) var(--nf-ease-standard),
-      background var(--nf-duration-base) var(--nf-ease-spring);
-  }
-
-  @media (hover: hover) {
-    .nf-feedtab:hover {
-      color: var(--nf-content-primary);
-    }
-  }
-
-  .nf-feedtab:focus-visible {
-    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
-    outline-offset: -2px;
-  }
-
-  /* The live tab: a filled pill INSIDE the track, which is what makes the row
-     read as one control with a position rather than as three buttons that
-     happen to be next to each other. */
-  /*
-   * THE LIVE FEED TAB IS A BRAND-FILLED OBJECT, SO IT TAKES THE LIGHT.
-   *
-   * It carried `--nf-elev-1`, which is a NEUTRAL grey elevation shadow. On a
-   * blue object on a dark track that reads as a flat blue rectangle with a
-   * smudge under it: the one segment that is supposed to be lit was the only
-   * filled control in the chrome with no light on it at all.
-   *
-   * Same three parts as the primary control, one rung down: the specular
-   * curve, the rim, and `--nf-bloom-lit-soft`, which is the measured bloom at
-   * lower alpha and shorter radius. Both have light twins, so this reads as a
-   * lit object on paper as well as at night, which `--nf-elev-1` never did.
-   */
-  .nf-feedtab[aria-current="page"] {
-    color: var(--nf-content-on-brand);
-    background: var(--nf-selected-fill);
-    box-shadow: var(--nf-selected-shadow-inline);
-  }
-
-  /*
-   * THE ROW IS A SEGMENTED CONTROL NOW, AND IT WAS THREE SEPARATE CHIPS.
-   *
-   * Three glass pills, each with its own border and its own backdrop blur, and
-   * the selected one marked by a tinted fill plus a two-pixel rule underneath
-   * it. Five treatments to answer one question: which of three feeds am I
-   * reading. On a dark screen the tinted fill was nearly the same value as the
-   * untinted one, which is why the rule had to be added, which is why there
-   * were five.
-   *
-   * A segmented control answers it with position. One track, three equal
-   * segments, and the live one carries a solid brand pill that moves along the
-   * track as you switch: the state is the loudest thing in the control instead
-   * of the quietest, the two inactive segments draw nothing at all, and the
-   * whole row is shorter than the three chips it replaces.
-   */
-  /*
-   * THREE OF THESE FIVE DECLARATIONS WERE DOING NOTHING, and the track this
-   * rule exists to draw was not being drawn.
-   *
-   * `--nf-surface-glass` and `--nf-blur-sm` do not exist. There is no such
-   * token in `packages/design-tokens/src/tokens.css` and there never has been;
-   * the glass fill is `--nf-glass-fill` and the blur ladder is
-   * `--nf-glass-blur-thin | -blur | -blur-strong`. A `var()` with no fallback
-   * and no definition makes the whole declaration invalid at computed-value
-   * time, which for `background` means the initial value, so the segmented
-   * track painted TRANSPARENT and the backdrop filter was dropped entirely.
-   *
-   * That is the whole point of the comment above this rule - "one track, three
-   * equal segments, and the live one carries a solid brand pill that moves
-   * along the track" - and there was no track. Three bare labels and a pill.
-   * Nothing reported it: CSS does not warn on an unknown custom property, the
-   * stylesheet parses, the page renders, and the only symptom is a control that
-   * looks slightly wrong to somebody who was not expecting it to look right.
-   *
-   * Found while auditing this file for raw colour literals rather than by
-   * looking for it. `--thin` is the correct rung: this is a small inline track
-   * sitting on a card, not a sheet floating over the page, and the fill and the
-   * blur move together by the rule in glass.css.
-   *
-   * The two hand-written spacing values below are left alone: they are a 2px
-   * gutter and a 3px inset inside a 38px control, which is drawn geometry
-   * rather than rhythm, and changing them is a visual decision that is not this
-   * change's to take.
-   *
-   * THE RADIUS WAS FILED AS A CAPSULE AND MEASURES AS A RECTANGLE, AND THE
-   * REASON THE TWO DISAGREE IS THAT NOTHING RENDERS THIS CLASS.
-   *
-   * A sweep reported this track at 32.8 tall on 14px of corner, two pixels of
-   * flat, which would be ratio 0.427 and worth acting on. It could not be
-   * reproduced, and the reason is the finding itself: `.nf-feedtabs` and
-   * `.nf-feedtab` are both UNREFERENCED. Neither name appears anywhere in
-   * `apps/web/src` outside this file, so there is no route on which to stand
-   * and read a number off, and a 32.8px track cannot be drawn by the markup
-   * these rules were written for: `.nf-feedtab` carries `min-height: 2.375rem`,
-   * which is 38, and the track adds 3px of inset a side.
-   *
-   * Measured instead by putting the designed markup on a running production
-   * page (`/preview/f4/feed`, dark, 390 and 1536) and reading the boxes: the
-   * TRACK draws 46 tall on 14px, ratio 0.304, eighteen pixels of flat edge, and
-   * each SEGMENT draws 38 tall on 14px, ratio 0.368, ten pixels of flat edge.
-   * Both are rounded rectangles. 0.368 is over the 0.35 line that says go and
-   * look, which is what that line is for, and looking is what settled it.
-   *
-   * SO THE RADIUS STAYS. What is actually wrong here is that a segmented
-   * control the register wants exists only as CSS, and deleting it or building
-   * it is a decision about the feed rather than about a corner.
-   */
-  .nf-feedtabs {
-    display: flex;
-    gap: 0.125rem;
-    padding: 0.1875rem;
-    border-radius: var(--nf-radius-control);
-    border: 1px solid var(--nf-border-subtle);
-    background: var(--nf-glass-fill);
-    -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin));
-    backdrop-filter: blur(var(--nf-glass-blur-thin));
   }
 
   /*
@@ -430,7 +260,7 @@
     background: color-mix(in oklab, var(--nf-badge-hue) 18%, var(--nf-surface-primary));
     box-shadow: none;
     color: var(--nf-badge-ink);
-    font-size: max(0.6875rem, var(--nf-text-overline));
+    font-size: max(0.75rem, var(--nf-text-overline));
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
   }
@@ -610,74 +440,11 @@
     min-width: 1.375rem;
     height: 1.375rem;
     padding: var(--nf-space-0) var(--nf-space-2xs);
-    font-weight: 700;
+    /* 600, the scale's top weight (north star 5); it was 700. */
+    font-weight: 600;
     font-variant-numeric: tabular-nums;
     /* The material, corner and ink are the shared badge's (above, the info
        tone): a count is a badge that happens to hold a number. */
-  }
-
-  /*
-   * `.nf-hero-figure` AND `__unit` STOOD HERE AND NOTHING RENDERED THEM.
-   *
-   * The huge tabular number a screen is meant to be built around, at
-   * `clamp(2.75rem, 11vw, 4.25rem)` in weight 800 with tabular figures. Neither
-   * class name appears in the component tree. It also carried the only
-   * hand-rolled fluid type size left outside the scale, which is a second
-   * reason it should not come back in this form: a display number is a rung of
-   * the type ladder or it is a new rung, never a clamp written at one call site.
-   */
-
-  /*
-   * Colour-coded tag pill for a compact identifier a card wants to surface as
-   * data rather than prose ("P2 · ROW F", "Studio · 2BR"). Small, monospaced
-   * rhythm, brand tint by default with state variants for the same shape.
-   */
-  .nf-tag-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--nf-gap-inline-tight);
-    padding: var(--nf-space-2xs) var(--nf-gap-inline);
-    border-radius: var(--nf-radius-sm);
-    font-size: var(--nf-text-overline);
-    font-weight: 700;
-    letter-spacing: var(--nf-tracking-label);
-    text-transform: uppercase;
-    color: var(--nf-brand-secondary);
-    /* Rung 1 for the fill and rung 3 for the edge, which is the pair the ladder
-       exists to make sayable: a 1px line has almost no area, so it needs more
-       strength than the plate behind it to read as the same colour. Was 15 and
-       28, so the edge was already on a rung and the fill was one point off it. */
-    background: var(--nf-brand-tint-1);
-    border: 1px solid var(--nf-brand-tint-3);
-  }
-  .nf-tag-pill--success {
-    color: var(--nf-state-success);
-    background: var(--nf-state-success-surface);
-    border-color: color-mix(in oklab, var(--nf-state-success) 32%, transparent);
-  }
-  .nf-tag-pill--warning {
-    color: var(--nf-state-warning);
-    background: var(--nf-state-warning-surface);
-    border-color: color-mix(in oklab, var(--nf-state-warning) 32%, transparent);
-  }
-  .nf-tag-pill--neutral {
-    color: var(--nf-content-secondary);
-    background: var(--nf-surface-inset);
-    border-color: var(--nf-border-subtle);
-  }
-
-  /*
-   * Sunken well for a live meter or timer, cut into the surface rather than
-   * sitting on it. Near black in the dark theme, near white and inset in
-   * daylight; either way the content inside reads as recessed, not raised.
-   */
-  .nf-panel-sunken {
-    border-radius: var(--nf-radius-lg);
-    padding: var(--nf-space-md) var(--nf-space-lg);
-    background: var(--nf-well-fill-deep);
-    box-shadow:
-      inset 0 2px 10px var(--nf-shade-3),
-      inset 0 0 0 1px var(--nf-wash-1);
   }
 
   /* `.nf-statchart` stood here: a night glow on a chart polyline and a daylight
@@ -888,7 +655,7 @@
     .nf-chip__chevron {
       transition: none;
     }
-  }  @media (hover: hover) {  }
+  }
   /* ----------------------------------------------------- segmented, glass */
 
   /*
@@ -919,6 +686,18 @@
   }
   .nf-segmented--pill .nf-segmented__item {
     border-radius: var(--nf-radius-control);
+  }
+  /* The quiet segment reaches 44 through `nf-tap`; the solid one is drawn 44
+     at `md` but 36 at `sm`, and carried no reach at all (W12). The same
+     transparent, centred hit area, so the capsule keeps the height it draws. */
+  .nf-segmented--pill .nf-segmented__item::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: max(100%, 2.75rem);
+    height: max(100%, 2.75rem);
+    transform: translate(-50%, -50%);
   }
   .nf-segmented--pill .nf-segmented__item[aria-selected="true"],
   .nf-segmented--pill .nf-segmented__item[aria-checked="true"] {
@@ -1139,15 +918,17 @@
     --nf-tag-glyph: var(--nf-state-error);
   }
 
+  /* The solid variant is a pill too (D2, north star 5A; buttons.css "THE
+     PILL"). */
   .nf-segmented--pill {
-    border-radius: var(--nf-act-radius-md);
+    border-radius: var(--nf-radius-segment);
     background: var(--nf-surface-raised);
     border: var(--nf-border-width) solid var(--nf-act-well-edge);
     box-shadow: none;
   }
   .nf-segmented--pill .nf-segmented__capsule,
   .nf-segmented--pill .nf-segmented__link[aria-current="true"] {
-    border-radius: var(--nf-act-radius-sm);
+    border-radius: var(--nf-radius-segment);
     background: var(--nf-act-fill);
     box-shadow: var(--nf-act-shadow);
   }

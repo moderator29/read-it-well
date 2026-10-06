@@ -1,9 +1,12 @@
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
+import type { TieredObjectName } from "@/design-system/icons/object-assets";
 import { DetailGlyph } from "./DetailGlyph";
 import type { Listing } from "@/lib/listings/types";
 import type { ListingAccessView } from "@/lib/listings/access-queries";
 import { ICON, TYPE } from "@/components/app/Screen";
-import { countOf, DEFAULT_LOCALE, type Locale } from "@vallo/i18n/core";
+import { countOf, DEFAULT_LOCALE, type Dictionary, type Locale } from "@vallo/i18n/core";
+import { getDictionary } from "@vallo/i18n";
 
 /**
  * Light, water, and getting through the gate.
@@ -36,15 +39,41 @@ import { countOf, DEFAULT_LOCALE, type Locale } from "@vallo/i18n/core";
  * shared scale in `Screen.tsx`. No object here sits on a tile, a chip or a
  * ring: the mark sits on the surface with its label beside it.
  * ---------------------------------------------------------------------------
+ * THE ROWS ARE MARKED WITH THE REAL THING (Session 3, Stage 5; D29 Tier A).
+ *
+ * A generator, an inverter and its battery, a prepaid meter, a water tank and
+ * a borehole pump are things a Nigerian renter has stood beside, so the row
+ * that states one is marked with that object, realistic, at 40px, rather than
+ * with a line glyph standing in for it. An object is drawn only for what the
+ * agent STATED: a row nobody answered keeps the quiet line glyph, because an
+ * object beside "not answered" would picture a thing nobody claimed. The
+ * prepaid meter, which used to hang under the light as a sentence led by a
+ * tick, is its own row with its own object: a tick is a promise, and this is
+ * a fact about how the light is paid for.
+ * ---------------------------------------------------------------------------
  */
 
-const GRID_LABEL: Record<string, { label: string; detail: string }> = {
-  BAND_A: { label: "Band A", detail: "20 hours a day or more from the grid" },
-  MOSTLY_ON: { label: "Mostly on", detail: "Light most of the day, with gaps" },
-  PATCHY: { label: "Patchy", detail: "On and off through the day" },
-  RARELY: { label: "Rarely on", detail: "A few hours at best" },
-  NONE: { label: "No grid supply", detail: "Nothing from the distribution company" },
+/** The object a stated backup is, when it is a thing with a picture. */
+const BACKUP_OBJECT: Record<string, TieredObjectName> = {
+  GENERATOR: "generator",
+  INVERTER: "inverter-battery",
+  SOLAR: "inverter-battery",
+  GENERATOR_INVERTER: "generator",
 };
+
+/** The object a stated water supply is. Mains and tanker water is stored. */
+const WATER_OBJECT: Record<string, TieredObjectName> = {
+  TREATED_MAINS: "water-tank",
+  BOREHOLE: "borehole-pump",
+  PUMPED_STORAGE: "water-tank",
+  TANKER: "water-tank",
+};
+
+/* The grid, backup and water words live in the dictionary
+   (`experienceDetail.utilities`), with the article reasoning below kept
+   beside them there (Round 3 sweep, C3). */
+type UtilitiesCopy = Dictionary["experienceDetail"]["utilities"];
+type Labelled = Record<string, { label: string; detail: string }>;
 
 /**
  * The backup as it belongs inside a sentence, article and all.
@@ -53,28 +82,16 @@ const GRID_LABEL: Record<string, { label: string; detail: string }> = {
  * day", which is two ANDs doing different jobs in one clause and reads as a
  * mistake. A label list and a sentence list are not the same list.
  */
-const BACKUP_PHRASE: Record<string, string> = {
-  NONE: "no backup",
-  GENERATOR: "a generator",
-  INVERTER: "an inverter",
-  SOLAR: "solar",
-  GENERATOR_INVERTER: "a generator and inverter",
-};
-
-const WATER_LABEL: Record<string, { label: string; detail: string }> = {
-  TREATED_MAINS: { label: "Treated mains", detail: "Running water from the mains" },
-  BOREHOLE: { label: "Borehole", detail: "The property's own borehole" },
-  PUMPED_STORAGE: { label: "Pumped storage", detail: "Tank filled and pumped through" },
-  TANKER: { label: "Tanker delivery", detail: "Water is bought in and stored" },
-  NONE: { label: "No running water", detail: "Water is fetched" },
-};
 
 export function ListingUtilities({
   locale = DEFAULT_LOCALE,
   utilities,
   access,
   bookingConfirmed,
+  copy = getDictionary(DEFAULT_LOCALE).experienceDetail.utilities,
 }: {
+  /** The section's words (`t.experienceDetail.utilities`); English by default. */
+  copy?: UtilitiesCopy;
   locale?: Locale;
   utilities: Listing["utilities"];
   /** The real gate details, or null when the caller may not see them. */
@@ -84,9 +101,9 @@ export function ListingUtilities({
 }) {
   if (!utilities) return null;
 
-  const grid = utilities.powerGrid ? GRID_LABEL[utilities.powerGrid] : undefined;
-  const backup = utilities.powerBackup ? BACKUP_PHRASE[utilities.powerBackup] : undefined;
-  const water = utilities.waterSupply ? WATER_LABEL[utilities.waterSupply] : undefined;
+  const grid = utilities.powerGrid ? (copy.grid as Labelled)[utilities.powerGrid] : undefined;
+  const backup = utilities.powerBackup ? (copy.backup as Record<string, string>)[utilities.powerBackup] : undefined;
+  const water = utilities.waterSupply ? (copy.supply as Labelled)[utilities.waterSupply] : undefined;
   const hours = utilities.powerBackupHours;
 
   const powerAnswered = Boolean(grid || backup);
@@ -94,23 +111,25 @@ export function ListingUtilities({
   if (nothingAnswered) return null;
 
   const runs =
-    backup && backup !== "no backup" && typeof hours === "number"
-      ? `${backup}, running ${countOf(hours, "hours", locale)} a day`
+    backup && utilities.powerBackup !== "NONE" && typeof hours === "number"
+      ? copy.runs.replace("{backup}", backup).replace("{hours}", countOf(hours, "hours", locale))
       : backup;
 
   const powerLine = grid
     ? runs
-      ? `${grid.label}, with ${runs}`
+      ? copy.gridWith.replace("{grid}", grid.label).replace("{runs}", runs)
       : grid.label
     : runs
       ? `${runs.charAt(0).toUpperCase()}${runs.slice(1)}`
-      : "Grid supply not stated";
+      : copy.gridNotStated;
 
   return (
     <dl className="divide-y divide-[var(--nf-panel-hair)]">
       <Row
+        notAnswered={copy.notAnswered}
         icon="bolt"
-        term="Light"
+        object={utilities.powerBackup ? BACKUP_OBJECT[utilities.powerBackup] : undefined}
+        term={copy.light}
         answered={powerAnswered}
         value={
           powerAnswered ? (
@@ -119,26 +138,27 @@ export function ListingUtilities({
                 {powerLine}
               </span>
               {grid && <span className={`mt-2xs block ${TYPE.rowMeta}`}>{grid.detail}</span>}
-              {/*
-                A prepaid meter is a fact about how you pay for the light, so it
-                belongs under the light. Stated as a sentence rather than as a
-                badge: a pill here would be a container around two words sitting
-                inside a row that already has a label.
-              */}
-              {utilities.prepaidMeter && (
-                <span className={`mt-2xs flex items-center gap-xs ${TYPE.rowMeta}`}>
-                  <UiIcon name="verified" size={ICON.inline} className="shrink-0 text-[var(--nf-plate-neutral-ink)]" />
-                  Prepaid meter, so you buy units rather than settle a shared bill
-                </span>
-              )}
             </>
           ) : null
         }
       />
 
+      {utilities.prepaidMeter && (
+        <Row
+          notAnswered={copy.notAnswered}
+          icon="bolt"
+          object="prepaid-meter"
+          term={copy.prepaidMeter}
+          answered
+          value={<span className={`block ${TYPE.body}`}>{copy.prepaidMeterBody}</span>}
+        />
+      )}
+
       <Row
+        notAnswered={copy.notAnswered}
         icon="droplet"
-        term="Water"
+        object={utilities.waterSupply ? WATER_OBJECT[utilities.waterSupply] : undefined}
+        term={copy.water}
         answered={Boolean(water)}
         value={
           water ? (
@@ -153,11 +173,16 @@ export function ListingUtilities({
       />
 
       {utilities.hasEstateAccess && (
-        <div className="flex gap-sm py-md">
-          <DetailGlyph name="gate" />
-          <div className="min-w-0 flex-1">
-            <dt className={TYPE.label}>The gate</dt>
-            <dd className="mt-2xs">
+        /* The same row anatomy as `Row` below: a <dl>'s <div> may hold only
+           <dt> and <dd>, and the object and an inner wrapper sat between them
+           here (axe `definition-list` and `dlitem`, Round 3 sweep). The object
+           floats inside the term, as in every other row. */
+        <div className="flow-root py-md">
+          <dt className={TYPE.label}>
+            <BrandIcon name="estate-gate" size={40} className="nf-utility-object float-left mr-sm" />
+            {copy.gate}
+          </dt>
+          <dd className="mt-2xs min-w-0 overflow-hidden">
               {access ? (
                 <div data-testid="gate-details">
                   {access.estateName && (
@@ -172,7 +197,7 @@ export function ListingUtilities({
                   )}
                   {access.securityPhone && (
                     <p className={`nf-numeric mt-xs ${TYPE.body}`}>
-                      Security desk:{" "}
+                      {copy.securityDesk}{" "}
                       <a
                         href={`tel:${access.securityPhone.replace(/\s+/g, "")}`}
                         className="font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
@@ -183,25 +208,22 @@ export function ListingUtilities({
                   )}
                   {access.accessCode && (
                     <p className={`nf-numeric mt-2xs ${TYPE.body}`}>
-                      Access code: <span className="font-bold">{access.accessCode}</span>
+                      {copy.accessCode} <span className="font-bold">{access.accessCode}</span>
                     </p>
                   )}
                 </div>
               ) : (
                 <div data-testid="gate-withheld">
                   <p className="flex items-center gap-xs text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
-                    <UiIcon name="verified" size={ICON.inline} className="shrink-0 text-[var(--nf-plate-neutral-ink)]" />
-                    Gated, with the details released on confirmation
+                    <UiIcon name="lock" size={ICON.inline} className="shrink-0 text-[var(--nf-plate-neutral-ink)]" />
+                    {copy.gated}
                   </p>
                   <p className={`mt-2xs ${TYPE.body}`}>
-                    {bookingConfirmed
-                      ? "Your booking is confirmed. Open it from your bookings to see the gate details."
-                      : "The estate name, what to tell security, the desk number and any code arrive here the moment your booking is confirmed. They are never shown publicly, which is what stops a listing being used to case a property."}
+                    {bookingConfirmed ? copy.gatedConfirmed : copy.gatedBefore}
                   </p>
                 </div>
               )}
-            </dd>
-          </div>
+          </dd>
         </div>
       )}
     </dl>
@@ -210,11 +232,16 @@ export function ListingUtilities({
 
 function Row({
   icon,
+  object,
   term,
   answered,
   value,
+  notAnswered,
 }: {
+  notAnswered: string;
   icon: UiIconName;
+  /** The real object this row states, drawn only when it was stated. */
+  object?: TieredObjectName;
   term: string;
   answered: boolean;
   value: React.ReactNode;
@@ -233,17 +260,18 @@ function Row({
       <dt className={TYPE.label}>
         {/* The plate's own box, floated, so the term and the answer run
             beside it as they did beside the glass object it replaced. */}
-        <DetailGlyph name={icon} className="float-left mr-sm" />
+        {object && answered ? (
+          <BrandIcon name={object} size={40} className="nf-utility-object float-left mr-sm" />
+        ) : (
+          <DetailGlyph name={icon} className="float-left mr-sm" />
+        )}
         {term}
       </dt>
       <dd className="mt-2xs min-w-0 overflow-hidden">
         {answered ? (
           value
         ) : (
-          <span className={TYPE.body}>
-            The agent has not answered this yet. Ask them before you commit,
-            rather than assuming either way.
-          </span>
+          <span className={TYPE.body}>{notAnswered}</span>
         )}
       </dd>
     </div>

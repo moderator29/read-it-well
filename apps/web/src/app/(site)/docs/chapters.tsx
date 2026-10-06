@@ -7,21 +7,24 @@ import { FULL_REFUND_HOURS } from "@/lib/trust/cancellation";
 import { VERIFICATION_ORDER } from "@/lib/trust/verification";
 import { MAX_MOVE_KOBO, MIN_MOVE_KOBO } from "@/lib/money/amount";
 import {
-  GUARANTEE_SCOPE,
-  GUARANTEE_SENTENCE,
+  DIRECT_RAIL_STANDING,
+  HELD_MONEY_NOT_US,
   NO_CUSTODY_SENTENCE,
   NO_INSPECTION_FEE,
+  NO_PAYMENT_BALANCE,
   OFF_PLATFORM_SENTENCE,
   PAYMENT_GATE_SENTENCE,
   PAYOUT_ANSWER,
   PRIVATE_FEE_NOTE,
+  REFUND_NO_BALANCE,
   REFUND_ROUTE,
-  GUARANTEE_CONTRIBUTION_NOTE,
+  REWARDS_BALANCE_SEPARATE,
+  WHO_PAYS_SENTENCE,
 } from "@/lib/money/copy";
-import { MAX_BLOCK_NIGHTS } from "@/lib/agent/calendar-schema";
+import { MAX_BLOCK_NIGHTS } from "@/lib/agent/calendar-model";
 import { MAX_DAYS_AHEAD, MAX_PARTY } from "@/lib/reservations/schema";
-import { EDIT_WINDOW_MINUTES, POST_MAX, POST_MEDIA_MAX } from "@/lib/social/posts-schema";
-import { MODERATOR_CAN, MODERATOR_CANNOT } from "@/lib/social/areas-schema";
+import { EDIT_WINDOW_MINUTES, POST_MAX, POST_MEDIA_MAX } from "@/lib/social/posts-model";
+import { MODERATOR_CAN, MODERATOR_CANNOT } from "@/lib/social/areas-model";
 import { REPORT_CATEGORY_COPY, REPORT_CATEGORY_ORDER } from "@/lib/reports/schema";
 import { SUPPLY_DOOR_HREF, doorsSentence } from "@/lib/supply/roles";
 import { AI_ASSISTANT, GETTING_AROUND, LISTING_ON_VALLO, MESSAGING_A_BUSINESS, PRICE_CHECK } from "./chapters-more";
@@ -129,7 +132,7 @@ const WRITTEN: DocChapter[] = [
               and booking a room for a night are not the same errand and should not
               share one set of controls.
             </p>
-            <ul>
+            <ul role="list">
               <li>
                 <strong>The Property side.</strong>{" "}
                 <Link href="/search" className={A}>
@@ -177,7 +180,7 @@ const WRITTEN: DocChapter[] = [
         id: "what-you-can-do",
         heading: "What you can do here",
         body: (
-          <ul>
+          <ul role="list">
             <li>
               <strong>Find somewhere.</strong> Search by city or area, filter by budget,
               rooms, guests, amenities, power and water, then look at the results as a
@@ -197,7 +200,7 @@ const WRITTEN: DocChapter[] = [
               <strong>Pay on Vallo, without Vallo holding your money.</strong> Inspect,
               submit the report, confirm the agreement, and pay once Vallo approves it.
               The owner&rsquo;s or agent&rsquo;s share settles straight to them, and the
-              Vallo Guarantee stands behind rentals and stays.
+              price you pay is the price on the listing.
             </li>
             <li>
               <strong>Talk to the agent.</strong> Ask about the road, the generator or
@@ -255,11 +258,10 @@ const WRITTEN: DocChapter[] = [
         body: (
           <>
             <p>
-              Vallo takes no fee to look, to book or to list. There is no service fee,
-              no booking fee and no listing fee, and Vallo&rsquo;s commission is zero, in
-              any market on this platform.
+              Vallo takes no fee from a renter or a guest: not to look, not to book and
+              not to pay. There is no service fee, no booking fee and no listing fee.
             </p>
-            <p>{GUARANTEE_CONTRIBUTION_NOTE}</p>
+            <p>{WHO_PAYS_SENTENCE}</p>
             <p>
               What a total is made of depends on the market, and in every one of them
               it is the agent&rsquo;s number and nothing of ours on top of it. On a
@@ -269,7 +271,7 @@ const WRITTEN: DocChapter[] = [
               get the keys, printed as one figure. On a sale, on land, and on a shop or
               an office, the price on the listing is the asking price, and what is
               finally paid is agreed between you and the agent. Vallo adds nothing to
-              any of them and takes a share of none of them.
+              any of them.
             </p>
             <p>
               This is not a promotion with an end date. It is how the ledger is built:
@@ -295,7 +297,7 @@ const WRITTEN: DocChapter[] = [
         body: (
           <>
             <p>Three surfaces, one account.</p>
-            <ul>
+            <ul role="list">
               <li>
                 <strong>The platform.</strong> Home, Search, Stays, Restaurants,
                 Around, Saved, Plans, Agreements, Inbox, Notifications, the
@@ -362,7 +364,7 @@ const WRITTEN: DocChapter[] = [
               else: a button for a provider that is not connected would send you to an
               error page, so it is not shown.
             </p>
-            <ul>
+            <ul role="list">
               <li>
                 <strong>Email and password.</strong> Your name, email and a password.
                 We send a confirmation email; open it and the account is live.
@@ -423,7 +425,7 @@ const WRITTEN: DocChapter[] = [
               is linked from: bookings, agreements, saved places, reviews, inbox and
               notifications.
             </p>
-            <ul>
+            <ul role="list">
               <li>
                 <strong>Your details.</strong> First name, surname, a nickname if you
                 want one, phone number and a photograph.
@@ -476,7 +478,7 @@ const WRITTEN: DocChapter[] = [
         heading: "Settings worth knowing about",
         body: (
           <>
-            <ul>
+            <ul role="list">
               <li>
                 <strong>Appearance.</strong> Dark or light. Dark is the default and the
                 phone does not override it.
@@ -566,7 +568,7 @@ const WRITTEN: DocChapter[] = [
               </Link>
               , which asks for three things.
             </p>
-            <ul>
+            <ul role="list">
               <li>
                 <strong>Where.</strong> A city, an area or a landmark.
               </li>
@@ -603,7 +605,7 @@ const WRITTEN: DocChapter[] = [
         body: (
           <>
             <p>Open Filters and set as many as you want. The drawer counts what you have switched on.</p>
-            <ul>
+            <ul role="list">
               <li>
                 <strong>Budget.</strong> A minimum, a maximum, or both, typed in whole
                 naira. Type them the wrong way round and they are swapped rather than
@@ -759,7 +761,7 @@ const WRITTEN: DocChapter[] = [
         id: "badges",
         heading: "What the badges mean",
         body: (
-          <ul>
+          <ul role="list">
             <li>
               <strong>Verified.</strong> The agent behind this listing passed identity
               verification and the listing itself was reviewed before publishing. It is
@@ -842,7 +844,7 @@ const WRITTEN: DocChapter[] = [
         body: (
           <>
             <p>One closed list, because four spellings of borehole cannot be filtered on:</p>
-            <ul>
+            <ul role="list">
               <li>
                 <strong>Treated mains.</strong> Running water from the mains.
               </li>
@@ -980,7 +982,7 @@ const WRITTEN: DocChapter[] = [
         id: "the-rules-that-refuse",
         heading: "Why a reservation is sometimes refused",
         body: (
-          <ul>
+          <ul role="list">
             <li>
               <strong>Minimum stay.</strong> If the agent takes bookings of three nights or
               more, a two-night request is refused, and the message names the number so
@@ -1009,7 +1011,7 @@ const WRITTEN: DocChapter[] = [
               passes through this screen. What follows is what the nightly path shows
               you, in naira:
             </p>
-            <ul>
+            <ul role="list">
               <li>
                 <strong>The rate multiplied by the nights.</strong> Written out, so you
                 can check the arithmetic.
@@ -1093,7 +1095,7 @@ const WRITTEN: DocChapter[] = [
         body: (
           <>
             <p>Once the payment settles:</p>
-            <ul>
+            <ul role="list">
               <li>The booking moves to confirmed and the nights are closed for good.</li>
               <li>
                 The gate details unlock on the listing and on your booking: estate,
@@ -1124,7 +1126,7 @@ const WRITTEN: DocChapter[] = [
               </Link>
               .
             </p>
-            <ul>
+            <ul role="list">
               <li>
                 <strong>More than {FULL_REFUND_HOURS} hours before check-in:</strong>{" "}
                 everything back.
@@ -1184,7 +1186,7 @@ const WRITTEN: DocChapter[] = [
               <strong>no money moves for a reservation</strong>. You ask, the
               restaurant answers, and you pay the restaurant when you eat.
             </p>
-            <ol>
+            <ol role="list">
               <li>
                 <strong>Find it.</strong>{" "}
                 <Link href="/restaurants" className={A}>
@@ -1242,14 +1244,15 @@ const WRITTEN: DocChapter[] = [
   /* Track A, 25 September 2026: this chapter was "Your wallet". Vallo no
      longer holds anybody's money, so there is no wallet to describe. It now
      explains how a payment is split, the agreement and approval gate, where a
-     refund goes, and the Vallo Guarantee. Every sentence about money is read
-     from `lib/money/copy.ts`. */
+     refund goes, and what stands behind a payment (the Vallo Guarantee was
+     retired by D51; the slug is kept so old links still open). Every sentence
+     about money is read from `lib/money/copy.ts`. */
   {
     slug: "money-and-the-guarantee",
     number: 6,
-    title: "Money, agreements and the Guarantee",
+    title: "Money and agreements",
     summary:
-      "How a payment is split at the moment you pay, why Vallo never holds your money, the agreement both sides confirm and Vallo approves, where a refund goes, and the Vallo Guarantee.",
+      "How a payment is split at the moment you pay, why Vallo never holds your money, the agreement both sides confirm and Vallo approves, where a refund goes, and what stands behind a payment.",
     icon: "shield-lock",
     sections: [
       {
@@ -1258,10 +1261,11 @@ const WRITTEN: DocChapter[] = [
         body: (
           <>
             <p>{NO_CUSTODY_SENTENCE}</p>
+            {/* "Vallo keeps no balance in your name ... nothing to withdraw"
+                was untrue beside the Rewards Balance (D51); the narrower true
+                thing is lib/money/copy.ts's (A9). */}
             <p>
-              There is no Vallo wallet, no balance, no escrow and no held payment. There is
-              nothing to top up and nothing to withdraw. If anybody tells you that Vallo is
-              holding money for you, or asks you to send money to be held, it is not us.
+              {NO_PAYMENT_BALANCE} {REWARDS_BALANCE_SEPARATE} {HELD_MONEY_NOT_US}
             </p>
           </>
         ),
@@ -1281,7 +1285,7 @@ const WRITTEN: DocChapter[] = [
                   label: "Divided in one transaction",
                   branch: [
                     { object: "bank-column", label: "Their bank account" },
-                    { object: "shield-check", label: "Guarantee reserve" },
+                    { object: "seal-check", label: "Vallo's platform fee" },
                   ],
                 },
               ]}
@@ -1289,16 +1293,14 @@ const WRITTEN: DocChapter[] = [
 
             <p>
               When you pay by card or bank transfer, the payment processor divides that one
-              payment into three parts in the same transaction: the owner&rsquo;s or
-              agent&rsquo;s share, paid to the bank account on their payout details; the
-              Vallo Guarantee contribution, between 1 and 2 percent, paid to a separate
-              reserve; and Vallo&rsquo;s commission, which is zero today. The three always
-              add up exactly to what you paid, and the database refuses a payment row where
-              they do not.
+              payment in the same transaction: the owner&rsquo;s or agent&rsquo;s share,
+              paid to the bank account on their payout details, and Vallo&rsquo;s platform
+              fee. The parts always add up exactly to what you paid, and the database
+              refuses a payment row where they do not.
             </p>
             <p>
-              The Guarantee contribution comes out of the owner&rsquo;s or agent&rsquo;s
-              share. It is never added on top of the price you were shown.
+              The platform fee comes out of the owner&rsquo;s or agent&rsquo;s share. It is
+              never added on top of the price you were shown.
             </p>
             <p>
               Where crypto payment is offered, Yellow Card converts it to naira first and the
@@ -1356,34 +1358,21 @@ const WRITTEN: DocChapter[] = [
         heading: "Where a refund goes",
         body: (
           <p>
-            {REFUND_ROUTE} Because Vallo keeps no balance, a refund can only go back the way
-            the money came. The booking shows its refund and where it stands.
+            {REFUND_ROUTE} {REFUND_NO_BALANCE} The booking shows its refund and where it stands.
           </p>
         ),
       },
       {
-        id: "the-guarantee",
-        heading: "The Vallo Guarantee",
+        id: "what-stands-behind",
+        heading: "What stands behind a payment",
         body: (
           <>
-            <DocsFlow
-              label="A Guarantee claim"
-              steps={[
-                { object: "keys-handover", label: "Move in or check in" },
-                { object: "clock-check", label: "Claim within 72 hours" },
-                { object: "doc-review", label: "A person reviews it" },
-                { object: "payment-received", label: "Paid to your bank" },
-              ]}
-            />
-
-            <p>{GUARANTEE_SENTENCE}</p>
-            <p>{GUARANTEE_SCOPE}</p>
+            <p>{DIRECT_RAIL_STANDING}</p>
             <p>
-              You claim from the agreement, with photographs, in the 72 hours after move-in
-              or check-in. A person checks the claim against the inspection report and the
-              agreement. A claim is capped at what you paid for that booking and by what is
-              in the reserve when it is decided, and an approved claim is paid to your bank
-              account. Anything arranged or paid outside Vallo is not covered.
+              If you could not get in, or the place was not what the agreement says, report
+              it from the booking or the agreement. A person at Vallo compares it with the
+              inspection report and the agreement. Anything arranged or paid outside Vallo
+              is outside what Vallo can act on.
             </p>
           </>
         ),
@@ -1396,8 +1385,8 @@ const WRITTEN: DocChapter[] = [
             <p>{PAYOUT_ANSWER}</p>
             <p>
               Add your bank account under payout details before anybody can pay you. The
-              agreement shows the Guarantee percentage before it is confirmed, so the figure
-              you receive is known in advance.
+              platform fee comes out of your share and is shown to you in naira, beside
+              what you receive.
             </p>
           </>
         ),
@@ -1604,7 +1593,7 @@ const WRITTEN: DocChapter[] = [
               proposed by people who live there and reviewed before they open.
             </p>
             <p>Every place is one of four kinds, and the kind changes nothing but the label:</p>
-            <ul>
+            <ul role="list">
               <li>
                 <strong>City.</strong> A whole city, like Abuja.
               </li>
@@ -1662,7 +1651,7 @@ const WRITTEN: DocChapter[] = [
         body: (
           <>
             <p>Two things you can write, and the difference is what you want back:</p>
-            <ul>
+            <ul role="list">
               <li>
                 <strong>Say something.</strong> Anything worth knowing about the place.
               </li>
@@ -1721,13 +1710,13 @@ const WRITTEN: DocChapter[] = [
               can see it, because they are not one.
             </p>
             <p>A moderator can:</p>
-            <ul>
+            <ul role="list">
               {MODERATOR_CAN.map((line) => (
                 <li key={line}>{line}</li>
               ))}
             </ul>
             <p>A moderator cannot:</p>
-            <ul>
+            <ul role="list">
               {MODERATOR_CANNOT.map((line) => (
                 <li key={line}>{line}</li>
               ))}
@@ -1796,7 +1785,7 @@ const WRITTEN: DocChapter[] = [
               go, so you can put it down and come back. Applying as an agent, the six
               steps are:
             </p>
-            <ol>
+            <ol role="list">
               <li>
                 <strong>Personal details.</strong> Name and phone number.
               </li>
@@ -1843,7 +1832,7 @@ const WRITTEN: DocChapter[] = [
               Approval gets you listing. Verification is a ladder of four rungs on top of
               it, climbed in order, and each one says something specific to a guest:
             </p>
-            <ol>
+            <ol role="list">
               {VERIFICATION_ORDER.map((rung) => (
                 <li key={rung.kind}>
                   <strong>{rung.label}.</strong> {rung.meaning} Checked against:{" "}
@@ -2066,7 +2055,7 @@ const WRITTEN: DocChapter[] = [
               Every listing, profile and post has a report control. It asks one question,
               and the answers are short and concrete on purpose:
             </p>
-            <ul>
+            <ul role="list">
               {REPORT_CATEGORY_ORDER.map((code) => (
                 <li key={code}>
                   <strong>{REPORT_CATEGORY_COPY[code].label}.</strong>{" "}
@@ -2165,7 +2154,7 @@ const WRITTEN: DocChapter[] = [
         heading: "What we hold",
         body: (
           <>
-            <ul>
+            <ul role="list">
               <li>
                 <strong>Account data.</strong> Your name, email, phone number, language,
                 and your password stored only as a hash.
@@ -2176,7 +2165,7 @@ const WRITTEN: DocChapter[] = [
               </li>
               <li>
                 <strong>Payment data.</strong> References, amounts, how each payment
-                was split, refunds, agreements and Guarantee claims. Card details are handled by licensed Nigerian payment
+                was split, refunds, agreements and any claims. Card details are handled by licensed Nigerian payment
                 processors and we never hold your full card number.
               </li>
               <li>
@@ -2233,7 +2222,7 @@ const WRITTEN: DocChapter[] = [
               The Nigeria Data Protection Act 2023 gives you rights over your personal
               data, and they are real rights you can exercise here:
             </p>
-            <ul>
+            <ul role="list">
               <li>Ask for a copy of what we hold about you.</li>
               <li>Ask us to correct anything inaccurate or incomplete.</li>
               <li>Ask us to delete what we have no lawful reason to keep.</li>
@@ -2257,7 +2246,7 @@ const WRITTEN: DocChapter[] = [
         id: "controls",
         heading: "The controls you already have",
         body: (
-          <ul>
+          <ul role="list">
             <li>
               <strong>Hide my activity</strong> keeps your reviews and recent stays off
               your public page.

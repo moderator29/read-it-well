@@ -65,34 +65,88 @@
     justify-items: end;
   }
   .nf-notif__row .nf-list-row__value {
-    font-weight: 500;
+    font-weight: 400;
   }
   .nf-notif__time {
     font-size: var(--nf-text-overline);
     color: var(--nf-content-muted);
   }
   /*
-   * ONE UNREAD MARK, ONE COLOUR, WHEREVER IT IS DRAWN.
+   * THE UNREAD MARK IS CYAN, LIKE EVERY COUNT (north star 6.1 and 16.3).
    *
-   * This was `--nf-brand-secondary` while the header bell's dot was on
-   * `--nf-status-pending`, so the same question, "is there something here I
-   * have not seen", was answered in two different colours on two surfaces one
-   * tap apart, and on paper the bell's was a teal-green, which is the colour
-   * this product uses to say something SUCCEEDED.
-   *
-   * `--nf-mark-unread` exists for exactly this meaning and is rose in both
-   * themes. An unread mark is not a state: nothing is pending, nothing
-   * failed, nothing succeeded, something is simply there and has not been
-   * seen. A thing that genuinely IS pending, a booking waiting on a host or a
-   * verification waiting on review, keeps `--nf-status-pending`.
+   * It was `--nf-mark-unread`, which is the warm spark, and the same question
+   * ("is there something here I have not seen") was answered in a different
+   * colour here than on the dock's badge one tap away. Unread is not an error,
+   * so it is never red or orange: it is the count colour, `--nf-count-fill`,
+   * the one the dock, the side navigation and the inbox badge already use.
+   * Colour is still not the only signal: the title carries weight and the dot
+   * carries a visually hidden word.
    */
   .nf-notif__dot {
     display: block;
     width: 0.625rem;
     height: 0.625rem;
     border-radius: var(--nf-radius-circle);
-    background: var(--nf-mark-unread);
-    box-shadow: 0 0 10px var(--nf-glow-3);
+    background: var(--nf-count-fill);
+  }
+  /* The section count is the shared count badge, so it is cyan too. */
+  .nf-notif__count {
+    background: var(--nf-count-fill);
+    color: var(--nf-count-ink);
+  }
+  /* LIGHT: the shared status-badge rule in light.css
+     (`:root[data-theme="light"] :is(.nf-badge, .nf-count-badge, ...)`) paints a
+     10 per cent tint of the badge hue, and it outranks the plain rule above, so
+     on paper the count was the count ink (white) on a pale blue plate, 1.15:1
+     (W12). Matching its selector keeps the count's own fill and ink: the deep
+     cyan with white, 5:1 or better. */
+  :root[data-theme="light"] .nf-count-badge.nf-notif__count:not(:where([data-theme="dark"] *)) {
+    background: var(--nf-count-fill);
+    color: var(--nf-count-ink);
+  }
+  /* The tools beside the title: mark all read, then the preferences gear. */
+  .nf-notif__tools {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+  }
+  .nf-notif__chips {
+    margin-bottom: var(--nf-space-lg);
+    /* The rail sits in the page gutter, so it bleeds by the gutter in force (16, 24 or 32), not
+       the 20px default: 4px past each edge of a 390px phone otherwise (found by
+       components/locale-fit/members-a.dom.test.tsx), and the same shortfall HostNav fixes. */
+    --nf-chiprow-bleed: var(--nf-pad-shell);
+  }
+  /* The body is the sentence the trigger wrote about the event: two lines, so
+     it can be acted on without opening, then the ellipsis. */
+  .nf-notif__body {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+  }
+  .nf-notif__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--nf-space-2xs) var(--nf-space-sm);
+    margin-top: var(--nf-space-3xs);
+  }
+  .nf-notif__kind {
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    color: var(--nf-content-muted);
+  }
+  /* The one naira figure the words state: tabular, quiet, beside the time. */
+  .nf-notif__figure {
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-notif__chev {
+    flex: none;
+    align-self: center;
+    color: var(--nf-content-muted);
   }
   /* A read or a mark that did not persist, said under the list. */
   .nf-notif__problem {
@@ -121,10 +175,6 @@
     align-items: flex-start;
     gap: var(--nf-space-sm);
     color: inherit;
-  }
-  .nf-notif__needs .nf-notif__time {
-    display: block;
-    margin-top: var(--nf-space-3xs);
   }
   .nf-notif__verb {
     flex: none;

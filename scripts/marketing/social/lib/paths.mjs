@@ -16,7 +16,7 @@ export const SCREENS = join(REPO, "docs", "marketing", "screens");
 export const OUT = join(REPO, "docs", "marketing", "social");
 export const PUBLIC = join(REPO, "apps", "web", "public");
 export const BRAND = join(PUBLIC, "brand");
-export const FONTS = join(PUBLIC, "fonts");
+export const FONTS = join(PUBLIC, "fonts", "v2");
 export const CACHE = process.env.SOCIAL_CACHE || join(tmpdir(), "vallo-social");
 export const CHROMIUM = process.env.SOCIAL_CHROMIUM || "/opt/pw-browsers/chromium";
 

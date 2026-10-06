@@ -28,6 +28,8 @@ import type { ComponentPropsWithoutRef, ElementType, ReactNode } from "react";
  *            from a tablet up and under the text on a phone
  *   children anything below the head: a figure, a KPI row, a stepper
  *   as       the element ("section" by default)
+ *   titleAs  "h2" (default) or "h1": the screen's own title, for a workspace
+ *            home whose band IS the page's heading (a page needs one h1)
  *
  * Server-safe: nothing here holds state.
  */
@@ -35,6 +37,7 @@ type HeroBandOwnProps<E extends ElementType> = {
   as?: E;
   label?: ReactNode;
   title?: ReactNode;
+  titleAs?: "h1" | "h2";
   sub?: ReactNode;
   action?: ReactNode;
   className?: string;
@@ -48,6 +51,7 @@ export function HeroBand<E extends ElementType = "section">({
   as,
   label,
   title,
+  titleAs: TitleTag = "h2",
   sub,
   action,
   className,
@@ -62,7 +66,7 @@ export function HeroBand<E extends ElementType = "section">({
         <div className="nf-hero-band__head">
           <div className="nf-hero-band__text">
             {label != null ? <p className="nf-section-label nf-hero-band__label">{label}</p> : null}
-            {title != null ? <h2 className="nf-hero-band__title">{title}</h2> : null}
+            {title != null ? <TitleTag className="nf-hero-band__title">{title}</TitleTag> : null}
             {sub != null ? <p className="nf-hero-band__sub">{sub}</p> : null}
           </div>
           {action != null ? <div className="nf-hero-band__action">{action}</div> : null}

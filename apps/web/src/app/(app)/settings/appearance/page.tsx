@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { forAppearance, forLanguage, forMotion } from "@/components/app/account/settings-copy";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
@@ -6,6 +7,7 @@ import { AppearanceCard, LanguageRow } from "@/components/app/account/SettingsGr
 import { SettingsGroup } from "@/components/app/account/rows";
 import { ThemeControl } from "@/components/site/ThemeControl";
 import { MotionSettings } from "@/components/app/account/MotionSettings";
+import { SettingsLede } from "@/components/app/account/SettingsLede";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: getDictionary(await getLocale()).settings.appearance.label };
@@ -26,11 +28,16 @@ export default async function AppearanceSettingsPage() {
         subtitle={t.settings.hub.appearanceSub}
         fallback="/settings"
       />
+      <SettingsLede
+        label={t.experienceAccount.settings.lede.what}
+        what={t.experienceAccount.settings.lede.appearance.what}
+        who={t.experienceAccount.settings.lede.appearance.who}
+      />
       {/* THE THEME, first (light mode reintroduced 25 September 2026). The
           same control as the foot of the side navigation, so the choice made
           in either place is the choice shown in both. */}
       <section id="settings-theme" className="mb-block">
-        <SettingsGroup label={t.settings.appearance.theme} note="Dark is the default. System follows your phone.">
+        <SettingsGroup label={t.settings.appearance.theme} note={t.experienceSettings.appearance.themeNote}>
           <div className="px-md py-sm">
             <ThemeControl
               labels={{
@@ -46,11 +53,11 @@ export default async function AppearanceSettingsPage() {
       {/* THE MOTION SETTING (Track M): four levels, three switches and a
           preview. It replaced a "Reduce motion" switch that did nothing. */}
       <section id="settings-motion" className="mb-block scroll-mt-28">
-        <MotionSettings t={t} />
+        <MotionSettings t={forMotion(t)} />
       </section>
       <section id="settings-appearance" className="scroll-mt-28">
-        <AppearanceCard t={t}>
-          <LanguageRow t={t} current={locale} />
+        <AppearanceCard t={forAppearance(t)}>
+          <LanguageRow t={forLanguage(t)} current={locale} />
         </AppearanceCard>
       </section>
     </div>

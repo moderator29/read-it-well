@@ -1,3 +1,4 @@
+import { Skeleton } from "@/components/ui/Skeleton";
 import { LoadingShell, PageHeaderSkeleton, SettingsGroupSkeleton } from "@/components/app/ScreenSkeleton";
 
 /**
@@ -10,6 +11,8 @@ export default function LoadingAccountSettings() {
   return (
     <LoadingShell label="Loading your account" className="mx-auto w-full max-w-2xl">
       <PageHeaderSkeleton subtitle />
+      {/* The explanation plate every settings page opens on (W6, D25). */}
+      <Skeleton height="4.5rem" radius="lg" className="mb-md" />
       <div className="space-y-block">
         <SettingsGroupSkeleton rows={4} />
         <SettingsGroupSkeleton rows={3} />

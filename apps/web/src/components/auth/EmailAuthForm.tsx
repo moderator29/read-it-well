@@ -1,10 +1,12 @@
 "use client";
 
 import { startTransition, useActionState, useEffect, useRef, useState } from "react";
+import { forgetResendSend, noteResendSend } from "./useResendClock";
+import { useRefusalShake } from "./useRefusalShake";
 import { AcceptTerms } from "./AcceptTerms";
 import { withNext } from "@/lib/auth/next-link";
 import Link from "next/link";
-import type { Dictionary } from "@vallo/i18n/core";
+import type { AuthCopy } from "./auth-copy";
 import type { AuthFormState, EmailStatus } from "@/lib/auth/form-state";
 import type { SignInSurface } from "@/lib/auth/providers";
 import { Field, PasswordField, StrengthMeter } from "./fields";
@@ -12,6 +14,7 @@ import { EmailTakenNotice } from "./EmailTakenNotice";
 import { SocialDoors } from "./SocialDoors";
 import { AuthPillButton } from "./slate";
 import { signUpMethodForEmail, startGoogleOAuth } from "@/lib/auth/actions";
+import "@/app/css/auth.css";
 
 const EMPTY: AuthFormState = { ok: false };
 
@@ -70,7 +73,7 @@ export function EmailAuthForm({
   emailReady = true,
 }: {
   mode: "sign-in" | "sign-up";
-  t: Dictionary;
+  t: AuthCopy;
   action: (prev: AuthFormState, formData: FormData) => Promise<AuthFormState>;
   /** Where to land afterwards. Re-validated in the action, never trusted. */
   next?: string | undefined;
@@ -122,6 +125,24 @@ export function EmailAuthForm({
   const formRef = useRef<HTMLFormElement>(null);
   const focusWanted = useRef(false);
   const [refusedLocally, setRefusedLocally] = useState(0);
+  /* The address a sign-up was just sent for, so a refusal can take back the
+     "a code is on its way" note below. */
+  const sentFor = useRef("");
+  useEffect(() => {
+    if (state === initialState || state.ok || !sentFor.current) return;
+    forgetResendSend("signUp", sentFor.current);
+    sentFor.current = "";
+  }, [state, initialState]);
+  /* THE FORM ERROR: the refused field shakes once, its message beneath. A
+     refusal is the server's (field errors, or one sentence for the form) or
+     the browser's own early check. A wrong password is the failure that also
+     earns the error haptic. */
+  const refusedByAnswer =
+    state !== initialState && !state.ok && (Object.keys(state.fieldErrors ?? {}).length > 0 || Boolean(state.message));
+  useRefusalShake(formRef, state, refusedByAnswer, {
+    tick: refusedLocally,
+    felt: !isSignUp && Boolean(state.message),
+  });
   useEffect(() => {
     const refusedByServer =
       state !== initialState && Object.keys(state.fieldErrors ?? {}).length > 0;
@@ -286,6 +307,13 @@ export function EmailAuthForm({
           }
           const data = new FormData(e.currentTarget);
           if (isSignUp) {
+            /* A code is on its way the moment this goes: the code screen
+               that opens next counts its pace from now. */
+            const address = String(data.get("email") ?? "").trim().toLowerCase();
+            if (address) {
+              sentFor.current = address;
+              noteResendSend("signUp", address, "first");
+            }
             try {
               window.sessionStorage.setItem(
                 SIGNUP_DRAFT_KEY,

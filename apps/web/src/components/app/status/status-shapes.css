@@ -1,0 +1,25 @@
+/*
+ * THE STATUS TRACK SPEAKS STATUSCHIP (Session 3, W13).
+ *
+ * A step on a track and a chip on a row are the same fact said twice, so
+ * they use one shape grammar (components/ui/StatusChip.tsx): a filled circle
+ * for done, a hollow circle for the step in hand and the steps ahead, and a
+ * filled SQUARE for where a record stopped. The track used to draw a stop as
+ * a red circle with a cross, which in greyscale was only the cross apart
+ * from done; the square makes it legible at a glance in both, and it is the
+ * same square a member already reads as "Failed" on a payment chip.
+ *
+ * The track's own sheet (app/css/status-track.css) draws everything else;
+ * this one only reshapes the stop, so the two cannot disagree about colour.
+ * Selectors carry the track's root class so this wins on specificity rather
+ * than on load order.
+ *
+ * The layer order is declared first (the wave-2 new-sheet rule).
+ */
+@layer theme, base, components, utilities;
+
+@layer components {
+  .nf-track .nf-track__step[data-state="failed"] .nf-track__node {
+    border-radius: var(--nf-radius-xs);
+  }
+}

@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { SuccessSheet } from "@/components/ui/SuccessSheet";
 import { successCopy, type SuccessWords } from "@/lib/ui/success-moments";
 import { submitTenancyReview } from "@/lib/tenancy/review-actions";
-import { EXTRA_TO } from "@/lib/tenancy/review";
+import { EXTRA_TO } from "@/lib/tenancy/review-model";
 
 type Tri = "yes" | "no" | "not_sure";
 
@@ -63,6 +63,7 @@ export function TenancyReviewForm({
             if (!open) setSuccessClosed(true);
           }}
           variant={sent.variant}
+          haptic={sent.haptic}
           object={sent.object}
           title={sent.title}
           body={sent.body}

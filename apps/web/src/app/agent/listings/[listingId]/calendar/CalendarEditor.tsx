@@ -5,7 +5,7 @@ import { useActionState, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { blockNights, unblockNights } from "@/lib/agent/calendar-actions";
-import { monthGrid, countNights } from "@/lib/agent/calendar-schema";
+import { monthGrid, countNights } from "@/lib/agent/calendar-model";
 import type { CalendarNight, CalendarSubject } from "@/lib/agent/calendar-queries";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { EmptyState } from "@/components/app/Screen";
@@ -147,11 +147,25 @@ export function CalendarEditor({
                 timeZone: "UTC",
               })}
             </h2>
-            <div className="grid grid-cols-7 gap-2xs" role="grid">
+            {/* A GROUP OF NIGHT BUTTONS, NOT AN ARIA GRID. role="grid" promises
+                rows and gridcells and arrow-key movement between them; this
+                month has neither, so axe refused it (aria-required-children,
+                4 findings, C1 sweep). Each button names its own date and
+                state, so the weekday heads are for the eye only. */}
+            <div
+              className="grid grid-cols-7 gap-2xs"
+              role="group"
+              aria-label={new Date(Date.UTC(month.year, month.month, 1)).toLocaleDateString("en-GB", {
+                month: "long",
+                year: "numeric",
+                timeZone: "UTC",
+              })}
+            >
               {WEEKDAYS.map((day) => (
                 <span
+                  aria-hidden="true"
                   key={day}
-                  className="pb-2xs text-center text-[length:var(--nf-text-overline)] font-medium text-[var(--nf-content-muted)]"
+                  className="pb-2xs text-center text-[length:var(--nf-text-overline)] font-normal text-[var(--nf-content-muted)]"
                 >
                   {day}
                 </span>
@@ -179,7 +193,7 @@ export function CalendarEditor({
                             : "open"
                     }`}
                     className={[
-                      "nf-body-sm flex h-11 items-center justify-center rounded-[var(--nf-radius-sm)] font-medium transition-colors",
+                      "nf-body-sm flex h-11 items-center justify-center rounded-[var(--nf-radius-sm)] font-normal transition-colors",
                       mode === "past" && "cursor-default text-[var(--nf-content-muted)] opacity-35",
                       /*
                        * `--nf-content-on-brand`, not `text-white`.
@@ -217,7 +231,7 @@ export function CalendarEditor({
           quiet until there is something to do with it. */}
       {from && to && (
         <div className="nf-panel nf-panel--card block sticky bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] mt-lg p-md">
-          <p className="text-[length:var(--nf-text-body-sm)] font-medium text-[var(--nf-content-primary)]">
+          <p className="text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
             {countOf(selectedCount, "nights", locale)} selected
           </p>
           <p className="nf-numeric mt-3xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
@@ -284,7 +298,7 @@ export function CalendarEditor({
 function Key({ className, label }: { className: string; label: string }) {
   return (
     <li className="flex items-center gap-xs">
-      <span className={`block h-3 w-3 rounded-[3px] ${className}`} aria-hidden="true" />
+      <span className={`block h-3 w-3 rounded-[var(--nf-radius-xs)] ${className}`} aria-hidden="true" />
       {label}
     </li>
   );

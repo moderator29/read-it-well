@@ -38,6 +38,9 @@ export const NEXT_PARAM = "next";
  * `"favourite"` and quietly fall through the copy table into an unlabelled
  * prompt. Adding one means adding its sentence, which is the correct amount of
  * friction.
+ *
+ * There is no `wallet`: Vallo holds no customer money (ADR-0002, D48), so
+ * there is no wallet to return anybody to, and `?do=wallet` reads as nothing.
  */
 export const GATED_ACTIONS = [
   "save",
@@ -45,7 +48,6 @@ export const GATED_ACTIONS = [
   "inspect",
   "pay",
   "list",
-  "wallet",
   "switch-profile",
   "follow",
   "react",

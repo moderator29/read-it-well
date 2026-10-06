@@ -2,7 +2,8 @@
 
 import { useRef, useState, type ReactNode } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { feedback } from "@/lib/ui/feedback";
+import "@/app/css/catalogue.css";
+import "@/app/css/list-views.css";
 
 const REVEAL = 96;
 const OPEN_AT = 56;
@@ -79,8 +80,9 @@ export function SwipeToRemove({
           start.current = null;
           setDragging(false);
           if (!s || s.locked !== "x") return;
-          /* B14: crossing the threshold is felt once, as a confirm. */
-          if (dx <= -OPEN_AT && s.base > -OPEN_AT) feedback("confirm");
+          /* Nothing in a list vibrates (CRAFT_DOCTRINE 6). Opening the row
+             only shows Remove; the removal itself is the commit, and it is
+             felt there. */
           setDx((now) => (now <= -OPEN_AT ? -REVEAL : 0));
         }}
         onPointerCancel={() => {

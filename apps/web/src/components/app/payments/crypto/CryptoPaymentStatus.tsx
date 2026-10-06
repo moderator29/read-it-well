@@ -1,12 +1,14 @@
 "use client";
 
 import { useCopyFlash } from "@/lib/ui/use-copy";
-import { useEffect, useRef, useState } from "react";
-import { getDictionary, type Locale } from "@vallo/i18n";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import type { Locale } from "@vallo/i18n/core";
+import { useScopedCopy } from "@/lib/i18n/copy-scope";
 import { cryptoPaymentStatus } from "@/lib/crypto/actions";
 import { compareAtomic, fromAtomic, toAtomic } from "@/lib/crypto/decimal";
 import { RESTING, STEPS, stepOf, type CryptoState } from "@/lib/crypto/state-machine";
 import type { CryptoPaymentView } from "@/lib/crypto/view";
+import { DocFigure, DocHead, DocPerforation, DocRow, DocRows, DocumentSheet } from "@/components/app/money/DocumentSheet";
 import { Amount } from "@/components/ui/Amount";
 import { Button } from "@/components/ui/Button";
 import { Panel } from "@/components/ui/Panel";
@@ -95,6 +97,18 @@ function useLivePayment(initial: CryptoPaymentView): CryptoPaymentView {
   return view;
 }
 
+/** One fact on the plain card: the label quiet above, the value beneath. */
+function Fact({ label, children, mono = false, numeric = false }: { label: string; children: ReactNode; mono?: boolean; numeric?: boolean }) {
+  return (
+    <div className="min-w-0">
+      <dt className="nf-caption text-[var(--nf-content-muted)]">{label}</dt>
+      <dd className={`nf-body mt-3xs break-all text-[var(--nf-content-primary)] ${mono ? "font-mono" : ""} ${numeric ? "tabular-nums" : ""}`}>
+        {children}
+      </dd>
+    </div>
+  );
+}
+
 function CopyRow({ label, value, copyLabel, copiedLabel, mono = true }: { label: string; value: string; copyLabel: string; copiedLabel: string; mono?: boolean }) {
   const [copied, copyValue] = useCopyFlash();
   return (
@@ -165,8 +179,8 @@ export function CryptoPaymentStatus({
   onNewQuote?: () => void;
   onPayAnotherWay?: () => void;
 }) {
-  const t = getDictionary(locale).cryptoPay;
-  const s = getDictionary(locale).success;
+  const t = useScopedCopy("cryptoPay");
+  const s = useScopedCopy("success");
   const view = useLivePayment(initial);
 
   /*
@@ -255,7 +269,7 @@ export function CryptoPaymentStatus({
               href={view.hostedUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="nf-body-sm text-center font-medium text-[var(--nf-brand-primary)] underline"
+              className="nf-body-sm text-center font-semibold text-[var(--nf-brand-primary)] underline"
             >
               {fill(t.openHosted, p)}
             </a>
@@ -263,23 +277,67 @@ export function CryptoPaymentStatus({
         </Panel>
       )}
 
-      {(view.state === "settled" || view.state === "refunded" || view.state === "overpaid") && (
-        <Panel variant="card">
-          <p className="nf-body font-semibold text-[var(--nf-content-primary)]">{t.receipt}</p>
-          <dl className="mt-row grid gap-sm">
-            <Row label={t.receiptCharge}>
-              <Amount minorUnits={view.amountMinor} locale={locale} showFraction />
-            </Row>
-            <Row label={t.receiptSent}>{`${view.cryptoReceived ?? view.cryptoAmount} ${view.asset}`}</Row>
-            <Row label={t.receiptNetwork}>{view.networkName}</Row>
-            <Row label={t.receiptRate}>{fill(t.rateValue, { rate: view.rate, asset: view.asset })}</Row>
-            {view.txHash && <Row label={t.receiptTx} mono>{view.txHash}</Row>}
-            {view.refundTxHash && <Row label={t.receiptRefundTx} mono>{view.refundTxHash}</Row>}
-            {(view.state === "refunded" || view.state === "overpaid") && view.refundAddress && (
-              <Row label={t.receiptReturnedTo} mono>{view.refundAddress}</Row>
+      {view.state === "settled" && (
+        /* THE RECEIPT IS PAPER (D28.1, reference 7082): the crypto receipt on
+           the same document sheet as every other receipt, with the naira
+           charge as its figure and every fact a person needs to prove the
+           payment as a row. Restyle only: the rows are the ones this panel
+           always drew, from the same view, in the same order.
+
+           ONLY FOR `settled`, the one state in which the charge IS paid
+           (state-machine.ts: settled is "the charge is paid (FINAL)"). A
+           printable document headed "Charge paid" over the naira figure on a
+           refund, or on an overpayment still being converted, would be a
+           paper proof of a payment that has not happened (audit A5). */
+        <DocumentSheet kind="receipt" printable as="section" aria-labelledby="crypto-receipt-title" data-testid="crypto-receipt">
+          <DocHead label={t.receipt} title={t.receiptCharge} id="crypto-receipt-title" />
+          <div className="nf-doc__hero">
+            <DocFigure testId="crypto-receipt-figure">
+              <Amount minorUnits={view.amountMinor} locale={locale} showFraction secondaryClassName="nf-doc__kobo" />
+            </DocFigure>
+          </div>
+          <DocPerforation />
+          <DocRows>
+            <DocRow label={t.receiptSent} numeric>{`${view.cryptoReceived ?? view.cryptoAmount} ${view.asset}`}</DocRow>
+            <DocRow label={t.receiptNetwork}>{view.networkName}</DocRow>
+            <DocRow label={t.receiptRate} numeric>{fill(t.rateValue, { rate: view.rate, asset: view.asset })}</DocRow>
+            {view.txHash && (
+              <DocRow label={t.receiptTx} numeric>
+                <span className="nf-doc__ref">{view.txHash}</span>
+              </DocRow>
             )}
-            <Row label={t.receiptReference} mono>{view.reference}</Row>
-            {view.providerPaymentId && <Row label={fill(t.receiptProviderReference, p)} mono>{view.providerPaymentId}</Row>}
+            {view.refundTxHash && (
+              <DocRow label={t.receiptRefundTx} numeric>
+                <span className="nf-doc__ref">{view.refundTxHash}</span>
+              </DocRow>
+            )}
+            <DocRow label={t.receiptReference} numeric>
+              <span className="nf-doc__ref">{view.reference}</span>
+            </DocRow>
+            {view.providerPaymentId && (
+              <DocRow label={fill(t.receiptProviderReference, p)} numeric>
+                <span className="nf-doc__ref">{view.providerPaymentId}</span>
+              </DocRow>
+            )}
+          </DocRows>
+        </DocumentSheet>
+      )}
+
+      {(view.state === "refunded" || view.state === "overpaid") && (
+        /* A REFUND OR AN OVERPAYMENT: the facts, on the plain card, with no
+           title and no hero figure. The status line above already says what
+           happened in the words `crypto-pay` gives each state; this card only
+           keeps the references a person needs to trace the crypto. */
+        <Panel variant="card" data-testid="crypto-facts">
+          <dl className="grid gap-sm">
+            <Fact label={t.receiptSent} numeric>{`${view.cryptoReceived ?? view.cryptoAmount} ${view.asset}`}</Fact>
+            <Fact label={t.receiptNetwork}>{view.networkName}</Fact>
+            <Fact label={t.receiptRate} numeric>{fill(t.rateValue, { rate: view.rate, asset: view.asset })}</Fact>
+            {view.txHash && <Fact label={t.receiptTx} mono>{view.txHash}</Fact>}
+            {view.refundTxHash && <Fact label={t.receiptRefundTx} mono>{view.refundTxHash}</Fact>}
+            {view.refundAddress && <Fact label={t.receiptReturnedTo} mono>{view.refundAddress}</Fact>}
+            <Fact label={t.receiptReference} mono>{view.reference}</Fact>
+            {view.providerPaymentId && <Fact label={fill(t.receiptProviderReference, p)} mono>{view.providerPaymentId}</Fact>}
           </dl>
         </Panel>
       )}
@@ -315,15 +373,6 @@ export function CryptoPaymentStatus({
         ]}
         primary={{ label: s.continue }}
       />
-    </div>
-  );
-}
-
-function Row({ label, children, mono = false }: { label: string; children: React.ReactNode; mono?: boolean }) {
-  return (
-    <div className="flex items-start justify-between gap-sm">
-      <dt className="nf-caption shrink-0 text-[var(--nf-content-muted)]">{label}</dt>
-      <dd className={`nf-body-sm min-w-0 break-all text-right text-[var(--nf-content-primary)] ${mono ? "font-mono" : ""}`}>{children}</dd>
     </div>
   );
 }

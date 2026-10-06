@@ -28,3 +28,13 @@ export const COMMUTE_FLAG = "commute_by_the_clock";
 export const SHOW_ME_FLAG = "show_me";
 /** ROOM BOOKINGS 1: hotel rooms can be requested and paid for (off until the founder switches it on). */
 export const ROOM_BOOKINGS_FLAG = "room_bookings";
+/**
+ * D60: whether "Send for review" waits for the lister's recorded fee
+ * acceptance (D51, D61). The screen is in the wizard regardless; only the
+ * blocking is behind this, and with no row it reads off, so publishing is
+ * never blocked until Session 2's rate read and acceptance record exist. To
+ * turn it on, the day they do:
+ *   insert into public.feature_flags (key, enabled) values ('lister_fee_gate_blocking', true)
+ *   on conflict (key) do update set enabled = true;
+ */
+export const LISTER_FEE_GATE_BLOCKING_FLAG = "lister_fee_gate_blocking";

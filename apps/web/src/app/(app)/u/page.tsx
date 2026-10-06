@@ -1,6 +1,7 @@
 import { initial } from "@/lib/text/initial";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { withNext } from "@/lib/auth/next-link";
 import { PageHeader } from "@/components/app/PageHeader";
 import { SocialPaused } from "@/components/social/SocialPaused";
 /* ONE empty-state anatomy across the whole product. See EmptyPanel. */
@@ -13,6 +14,9 @@ import { TextField } from "@/components/ui/Field";
 import { isSocialEnabled } from "@/lib/social/flag";
 import { findPeople } from "@/lib/social/people-queries";
 import { RemoteImage } from "@/components/ui/RemoteImage";
+import { TierBadge } from "@/components/trust/TierBadge";
+import { getDictionary } from "@vallo/i18n";
+import { getLocale } from "@/lib/locale";
 
 export const dynamic = "force-dynamic";
 
@@ -43,7 +47,8 @@ export default async function PeoplePage({
 }: {
   searchParams: Promise<{ q?: string | string[] }>;
 }) {
-  if (!(await isSocialEnabled())) return <SocialPaused title="People" />;
+  const w = getDictionary(await getLocale()).experienceSocial.people;
+  if (!(await isSocialEnabled())) return <SocialPaused title={w.title} />;
 
   const params = await searchParams;
   const raw = Array.isArray(params.q) ? params.q[0] : params.q;
@@ -52,12 +57,12 @@ export default async function PeoplePage({
   if (view.state === "unconfigured") {
     return (
       <div className="mx-auto w-full max-w-2xl pb-4xl pt-md">
-        <PageHeader title="People" fallback="/around" />
+        <PageHeader title={w.title} fallback="/around" />
         <EmptyPanel
           icon="user-check"
-          title="We cannot reach profiles right now"
-          body="This is on our side, not yours. Nobody's page can be read from here at the moment. The rest of the app works as normal."
-          action={{ href: "/around", label: "Go to Around" }}
+          title={w.unreachableTitle}
+          body={w.unreachableBody}
+          action={{ href: "/around", label: w.goToAround }}
         />
       </div>
     );
@@ -67,7 +72,7 @@ export default async function PeoplePage({
 
   return (
     <div className="mx-auto w-full max-w-2xl pb-4xl pt-md">
-      <PageHeader title="People" fallback="/around" />
+      <PageHeader title={w.title} fallback="/around" />
 
       {/*
         Still a plain GET form: the query lives in the address, so a search is a
@@ -87,30 +92,30 @@ export default async function PeoplePage({
       <form action="/u" method="get" className="mt-2xs flex items-start gap-xs">
         <TextField
           className="min-w-0 flex-1"
-          label="Search for somebody by name or handle"
+          label={w.searchLabel}
           hideLabel
           leadingIcon="search"
-          clearable="Clear the search"
+          clearable={w.clear}
           name="q"
           type="search"
           defaultValue={view.query}
-          placeholder="A name or a handle"
+          placeholder={w.placeholder}
           autoComplete="off"
         />
         <Button type="submit" variant="primary" className="h-12 shrink-0">
-          Search
+          {w.search}
         </Button>
       </form>
 
       <p className="mt-md nf-section-label">
-        {searching ? `People matching ${view.query}` : "People who just arrived"}
+        {searching ? w.matching.replace("{query}", view.query) : w.arrived}
       </p>
 
       {/* People are found by name and handle only (V-64): occupation and
           place are a member's own facts and are searched by nobody. */}
       {searching && view.people.length > 0 ? (
         <p className="mt-2xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
-          Searched by name and handle.
+          {w.searchedBy}
         </p>
       ) : null}
 
@@ -118,14 +123,14 @@ export default async function PeoplePage({
         <div className="mt-md">
           <EmptyPanel
             icon="home-search"
-            title={searching ? `Nobody here is called ${view.query}` : "Nobody has a page yet"}
+            title={searching ? w.noMatchTitle.replace("{query}", view.query) : w.noneTitle}
             body={
               searching
-                ? "Nobody matched that name or handle. Try a shorter piece of it, or the handle itself."
-                : "The first person to claim a handle appears here. Claim yours and yours is the first name anybody arriving reads."
+                ? w.noMatchBody
+                : w.noneBody
             }
-            action={{ href: "/around", label: "Go to Around" }}
-            secondary={searching ? { href: "/u", label: "See everybody" } : undefined}
+            action={{ href: "/around", label: w.goToAround }}
+            secondary={searching ? { href: "/u", label: w.everybody } : undefined}
           />
         </div>
       ) : (
@@ -151,15 +156,13 @@ export default async function PeoplePage({
                 <span className="min-w-0">
                   <span className="nf-people__name">
                     <span className="truncate-none">{person.displayLabel}</span>
-                    {person.isAgent ? (
-                      <span
-                        className="nf-social-verified"
-                        title="A verified Vallo agent"
-                        aria-label="Verified agent"
-                      >
-                        <UiIcon name="verified" size={15} />
-                      </span>
-                    ) : null}
+                    {/* The mark comes from the published badge only, as on the
+                        profile itself (ProfileHeader). `isAgent` is a role and
+                        draws nothing: an approved agent at tier 0 has had no
+                        check, and a "Verified agent" tick from the role alone
+                        claimed one (lib/trust/badge-tier.ts: no mark without a
+                        check behind it). TierBadge draws nothing for "none". */}
+                    <TierBadge tier={person.badgeTier} size={15} className="nf-social-verified" />
                   </span>
                   <span className="nf-people__handle">@{person.handle}</span>
                   {/* Bios are capped at 240 characters by the database, so there
@@ -207,7 +210,7 @@ export default async function PeoplePage({
 
       {!view.signedIn && view.people.length > 0 ? (
         <p className="mt-md text-center text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
-          <Link href="/sign-in" className="font-semibold text-[var(--nf-brand-secondary)]">
+          <Link href={withNext("/sign-in", "/u")} className="font-semibold text-[var(--nf-brand-secondary)]">
             Sign in
           </Link>{" "}
           to follow anybody here.

@@ -15,6 +15,7 @@ import { PayPanel } from "./PayPanel";
 import { RentSummary } from "./RentSummary";
 import { RentLandlordFact } from "./RentLandlordFact";
 import { chargeRentSavedCardFor } from "./saved-card-action";
+import { withNext } from "@/lib/auth/next-link";
 
 export const metadata: Metadata = { title: "Pay the rent" };
 
@@ -73,11 +74,12 @@ export default async function RentPayPage({
     return (
       <Shell>
         <ResultScreen
-          state="confirmed"
-          mark="shield-check"
+          state="sign-in"
           verdict={c.signInToPayRent}
           consequence={c.signInKeptRent}
-          actions={[{ label: c.signIn, href: "/sign-in", tone: "primary" }]}
+          /* The sentence above promises a return here, so the link carries it:
+             sign-in reads only `next` (Round 3 sweep, C3). */
+          actions={[{ label: c.signIn, href: withNext("/sign-in", `/rent/pay/${encodeURIComponent(inspectionId)}`), tone: "primary" }]}
         />
       </Shell>
     );

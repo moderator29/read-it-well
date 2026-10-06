@@ -19,55 +19,23 @@
  * are three pieces of geometry, declared once so a card, the gap under it and
  * the bar the cover runs behind can never drift apart.
  */
-
-:root {
-  /* The social radius. Softer than --nf-radius-lg, because a post is a spoken
-     thing and it should not read as a panel. */
-  --nf-social-radius: 20px;
-  /* The gap between independent, floating cards. They are not a list, they do
-     not share an edge, and nothing connects them. */
-  --nf-social-gap: 12px;
-  /* How far the cover runs up behind the app's own translucent top bar. */
-  --nf-social-bar: 64px;
-}
 /* In light the app header is a solid navy block (reference 05), so a cover
    running up behind it would be hidden, not seen through glass. */
-:root[data-theme="light"] {
-  --nf-social-bar: 0px;
-}
+
+/*
+ * Loaded by the member layouts (the signed-in app, the agent and host
+ * workspaces, admin and the preview harness), not by globals.css: C6's member
+ * CSS move, 6 October. No signed-out route draws these classes, so signed-out
+ * pages no longer download them. What a signed-out route does draw, and
+ * what must keep its old place in the cascade, stays global in
+ * `social.shared.css`. Comments below that still say "global" or "globals.css"
+ * describe where the sheet used to load. This line states the layer order the
+ * document already has from Tailwind, so the order holds whichever chunk the
+ * browser receives first.
+ */
+@layer theme, base, components, utilities;
 
 @layer components {
-  /* ------------------------------------------------------------- the card */
-
-  /*
-   * A post, a profile panel, a designed empty state. Always worn alongside
-   * .nf-card, never instead of it: the material is the platform's and this
-   * class only changes the geometry. One class, one material, one place to
-   * maintain it.
-   */
-  /*
-   * `.nf-card` is named too, and that is not decoration.
-   *
-   * This file is `@import`ed near the top of `globals.css` and `.nf-card`
-   * declares its own `border-radius` a couple of hundred lines below, in the
-   * same layer at the same specificity. Later wins, so every social card
-   * platform-wide was rendering at the card radius and this line did nothing.
-   * Measured live before the fix: 18px applied against a 20px token.
-   *
-   * Naming both classes lifts the specificity above the thing it is meant to
-   * override, rather than moving the import and hoping nothing else shifts.
-   * Agent 2 found the same defect three times over in `social-feed.css`, where
-   * it had silently made the AI card render byte for byte identical to an
-   * ordinary person's post.
-   */
-  /* `.nf-social-card` is gone (SW-S1, 23 September): the profile and the
-     feed's sheets draw the shared card (`nf-panel nf-panel--card`), whose
-     corner is the container role. */
-
-  /* Independent and floating. No connecting line, no shared edge, no notch. */
-  .nf-social-stack > * + * {
-    margin-top: var(--nf-social-gap);
-  }
 
   /* ---------------------------------------------------------- the cover */
 
@@ -88,7 +56,11 @@
    */
   .nf-social-cover {
     position: relative;
-    margin-inline: -1.25rem;
+    /* Cancels the shell's gutter so the band reaches both edges: exactly the
+       gutter token, which steps 16, 24 and 32. It cancelled 20, then 32 from
+       768px, so a phone's band ran 4px past both screen edges (Round 3 sweep,
+       measured -4 to 394 at 390) and a narrow tablet's 8. */
+    margin-inline: calc(var(--nf-pad-shell) * -1);
     margin-top: calc(-2rem - var(--nf-social-bar));
     height: calc(var(--nf-social-bar) + 132px);
     overflow: hidden;
@@ -111,12 +83,6 @@
     .nf-social-cover {
       margin-top: calc(-2.5rem - var(--nf-social-bar));
       height: calc(var(--nf-social-bar) + 176px);
-    }
-  }
-
-  @media (min-width: 768px) {
-    .nf-social-cover {
-      margin-inline: -2rem;
     }
   }
 
@@ -191,24 +157,6 @@
    * read as behind the person rather than above them. The ring is the canvas
    * colour, so the disc is cut cleanly out of the page in either theme.
    */
-  .nf-social-avatar {
-    position: relative;
-    display: grid;
-    place-items: center;
-    width: 5.5rem;
-    height: 5.5rem;
-    flex-shrink: 0;
-    border-radius: var(--nf-radius-circle);
-    overflow: hidden;
-    background: var(--nf-gradient-brand);
-    color: var(--nf-content-on-brand);
-    font-size: 2rem;
-    font-weight: 700;
-    line-height: 1;
-    box-shadow:
-      0 0 0 3px var(--nf-surface-canvas),
-      0 12px 30px -12px var(--nf-shade-3);
-  }
 
   .nf-social-avatar img {
     width: 100%;
@@ -241,93 +189,58 @@
   }
 
   /*
-   * Pulled up so it sits half on the cover and half on the page.
-   *
-   * It is a row rather than a block because the profile puts the person on the
-   * left and what to DO about them on the right, bottom aligned, which is the
-   * first thing the eye reaches after the picture. The account screen puts only
-   * an avatar in here and is unchanged by that: one flex child at the start of
-   * a row is where a single block child already was.
-   */
-  .nf-social-identity {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 12px;
-    margin-top: -2.75rem;
-  }
-
-  /*
-   * Follow and the overflow, or Edit profile and the overflow. The small
-   * bottom padding lifts them clear of the avatar's own drop shadow so the row
-   * reads as two objects on one line rather than one object with a shadow
-   * falling on the other.
-   */
-  .nf-social-identity__actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding-block-end: 0.25rem;
-  }
-
-  /*
    * The wait.
    *
    * An inset slab with a highlight crossing it, matching the platform's own
    * skeleton language. The sweep is driven by a token duration, so reduced
    * motion collapses it to a still slab rather than needing a second rule.
+   *
+   * It crosses four times and rests (MOTION_SYSTEM principle 10: only the
+   * aurora and the assistant's thinking loop forever). `forwards` holds the
+   * band's last position, one slab-width right of the box, which is also its
+   * base value, so the still slab is the same with the animation running out,
+   * switched off by reduced motion, or never started (data saver). The band is
+   * 61.6% of the slab wide (the app skeleton's geometry), and both ends of the
+   * sweep and the rest are outside the box, so the slab rests as the plain
+   * surface at any height.
    */
+  /* W2, round 5: the band is the slab's ::after, moved by transform alone, as
+     the app skeleton's is (controls.css); the slab paints its still surface
+     once. Same band (36% to 64% of the old 220% tile = 61.6% of the slab),
+     same four passes, same rest outside the box. */
   .nf-social-skeleton {
-    background:
-      linear-gradient(
-          90deg,
-          transparent 0%,
-          color-mix(in oklab, var(--nf-content-muted) 18%, transparent) 50%,
-          transparent 100%
-        )
-        var(--nf-surface-inset);
-    background-size: 200% 100%;
-    animation: nf-social-shimmer 1.4s linear infinite;
+    position: relative;
+    overflow: hidden;
+    background: var(--nf-surface-inset);
+  }
+  .nf-social-skeleton::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      90deg,
+      transparent 19.2%,
+      color-mix(in oklab, var(--nf-content-muted) 18%, transparent) 50%,
+      transparent 80.8%
+    );
+    transform: translateX(100%);
+    animation: nf-social-shimmer 1.4s linear 4 forwards;
   }
 
   @keyframes nf-social-shimmer {
     from {
-      background-position: 140% 0;
+      transform: translateX(-100%);
     }
     to {
-      background-position: -40% 0;
+      transform: translateX(100%);
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .nf-social-skeleton {
+    .nf-social-skeleton::after {
       animation: none;
     }
-  }
-
-  /* ---------------------------------------------------------- the counts */
-
-  /*
-   * Followers, Following, Posts. Public counts, tabular figures so a number
-   * changing does not shuffle the row, and the label is never truncated
-   * because the label is the meaning of the number beside it.
-   */
-  .nf-social-stat {
-    display: inline-flex;
-    align-items: baseline;
-    gap: 0.3rem;
-    white-space: nowrap;
-  }
-
-  .nf-social-stat__value {
-    font-weight: 700;
-    font-size: var(--nf-text-body-lg);
-    color: var(--nf-content-primary);
-  }
-
-  .nf-social-stat__label {
-    font-size: var(--nf-text-caption);
-    color: var(--nf-content-muted);
   }
 
   /* ------------------------------------------------------------ the tabs */
@@ -479,7 +392,7 @@
     block-size: 100%;
     border-radius: var(--nf-radius-circle);
     overflow: hidden;
-    background: var(--nf-gradient-brand);
+    background: var(--nf-gradient-brand-ink);
     color: var(--nf-content-on-brand);
     font-size: 2.6rem;
     font-weight: 700;
@@ -521,9 +434,6 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 2px;
-  }
-  .nf-profile-text .nf-social-count__value {
-    font-size: 1.125rem;
   }
   .nf-profile-text .nf-social-count__rule {
     block-size: 2.25rem;
@@ -609,7 +519,7 @@
     inset-inline: 22%;
     bottom: -1px;
     height: 2px;
-    border-radius: 2px;
+    border-radius: var(--nf-radius-xs);
     background: var(--nf-content-primary);
     transform: scaleX(0);
     transition: transform var(--nf-duration-base) var(--nf-ease-entrance);
@@ -746,13 +656,7 @@
     flex-shrink: 0;
     color: var(--nf-content-secondary);
   }
-  /* The role switch wears the card and keeps its own row inside it. */
-  .nf-belong__switch .nf-row-button {
-    min-block-size: 66px;
-    padding-inline: 10px 14px;
-    background: transparent;
-    border: 0;
-  }}
+  /* The role switch wears the card and keeps its own row inside it. */}
 
 /*
  * THE PUBLIC PROFILE'S TOP BLOCK IN DAYLIGHT (reference 05, 29 September
@@ -764,8 +668,10 @@
  */
 @layer components {
   :root[data-theme="light"] .nf-profile-top[data-theme="dark"] {
-    margin-inline: -1.25rem;
-    padding: 0 1.25rem var(--nf-space-lg);
+    /* The gutter token, as the cover inside it (Round 3 sweep: 20px into a
+       16px gutter ran 4px past both edges of a phone). */
+    margin-inline: calc(var(--nf-pad-shell) * -1);
+    padding: 0 var(--nf-pad-shell) var(--nf-space-lg);
     border-radius: 0 0 var(--nf-radius-2xl) var(--nf-radius-2xl);
     background:
       radial-gradient(80% 40% at 100% 100%, color-mix(in oklab, var(--nf-container-ink) 16%, transparent), transparent 72%),
@@ -773,12 +679,6 @@
     box-shadow:
       inset 0 -1px 0 color-mix(in oklab, var(--nf-container-ink) 45%, transparent),
       0 18px 36px -26px var(--nf-glow-3);
-  }
-  @media (min-width: 768px) {
-    :root[data-theme="light"] .nf-profile-top[data-theme="dark"] {
-      margin-inline: -2rem;
-      padding-inline: 2rem;
-    }
   }
 }
 

@@ -20,18 +20,33 @@
  * A partial of globals.css. The imports there are ordered, and the order is
  * the cascade: do not move this one.
  */
+/*
+ * Loaded by the member layouts (the signed-in app, the agent and host
+ * workspaces, admin and the preview harness), not by globals.css: C6's member
+ * CSS move, 6 October. No signed-out route draws these classes, so signed-out
+ * pages no longer download them. Comments below that still say "global" or "globals.css"
+ * describe where the sheet used to load. This line states the layer order the
+ * document already has from Tailwind, so the order holds whichever chunk the
+ * browser receives first.
+ */
+@layer theme, base, components, utilities;
+
 @layer components {
   .nf-gallery-mark {
     animation: nf-detail-mark var(--nf-duration-slow) var(--nf-ease-entrance) both;
   }
+  /* The marks follow the photograph in as it lands (380ms, the route's
+     `land`; route-motion.css "A LISTING OPENS"), 60ms apart: the motion
+     system's stagger ceiling. They were 100ms apart from 420ms, so the second
+     arrived a full beat after the photo had settled. */
   .nf-gallery-mark:nth-child(1) {
-    animation-delay: calc(var(--nf-splash-hold, 0ms) + 420ms);
+    animation-delay: calc(var(--nf-splash-hold, 0ms) + 380ms);
   }
   .nf-gallery-mark:nth-child(2) {
-    animation-delay: calc(var(--nf-splash-hold, 0ms) + 520ms);
+    animation-delay: calc(var(--nf-splash-hold, 0ms) + 440ms);
   }
   .nf-gallery-mark:nth-child(n + 3) {
-    animation-delay: calc(var(--nf-splash-hold, 0ms) + 620ms);
+    animation-delay: calc(var(--nf-splash-hold, 0ms) + 500ms);
   }
   @keyframes nf-detail-mark {
     from {
@@ -95,8 +110,10 @@
     }
   }
 
+  /* The bar rises on land in 240ms (Session 3, Stage 5): a short, decisive
+     arrival that says where the action lives, a beat after the page. */
   .nf-detail-foot {
-    animation: nf-detail-foot var(--nf-duration-slow) var(--nf-ease-entrance) calc(var(--nf-splash-hold, 0ms) + 350ms) both;
+    animation: nf-detail-foot var(--nf-duration-base) var(--nf-ease-entrance) calc(var(--nf-splash-hold, 0ms) + 280ms) both;
   }
   /* The bar's own glass is already there (ActionBar pins it); what rises is
      its content, a short travel, so nothing leaves the bar's clip. */
@@ -122,8 +139,15 @@
    * float shadow, the same tokens as `.nf-app-header__btn.nf-icon-btn--round`.
    * Opacity and the 4px slide stay theirs.
    */
+  /* The stuck tabs' back repeats its own class: catalogue.css (now imported by
+     the listing components, so it can load after this sheet) styles
+     `.nf-detail-tabs__back:hover` at the specificity this rule had, and on a
+     touch screen, where the hover query below never applies, that hover would
+     win by order and paint a sticky tint where the circle used to stay put.
+     The extra class lifts this one clear of it, and the hover rule below is
+     later and equal, so it still wins where hover exists. */
   .nf-floating-back,
-  .nf-detail-tabs .nf-detail-tabs__back {
+  .nf-detail-tabs .nf-detail-tabs__back.nf-detail-tabs__back {
     border: var(--nf-border-width) solid var(--nf-card-border);
     border-radius: var(--nf-radius-circle);
     background: var(--nf-surface-elevated);
@@ -134,14 +158,183 @@
   }
   @media (hover: hover) and (pointer: fine) {
     .nf-floating-back:hover,
-    .nf-detail-tabs .nf-detail-tabs__back:hover {
+    .nf-detail-tabs .nf-detail-tabs__back.nf-detail-tabs__back:hover {
       border-color: var(--nf-border-default);
       background: linear-gradient(var(--nf-interactive-hover), var(--nf-interactive-hover)), var(--nf-surface-elevated);
     }
   }
 
+
+  /* ================================================== SESSION 3, STAGE 5
+     The space detail upgrade (W3). Everything below is the detail page's
+     own: the move-in hero, the itemised card's total row, the dated trust
+     facts, the infrastructure objects and the section index. Tokens only;
+     transform and opacity only where anything moves. */
+
+  /* THE MOVE-IN TOTAL IS THE HERO FIGURE, THE RENT ITS SECOND LINE. The
+     figure takes the figure-xl step (the one figure on the screen); the rent
+     reads at body size directly beneath it, in the secondary ink, tabular. */
+  .nf-movein-hero .nf-summary__figure {
+    /* THE FIGURE FITS ITS CARD ON ONE LINE (W12): the extra-large rung is wider
+       than a phone's card, and `₦14,700,000` broke as `₦14,7` over `00,000`,
+       which reads as two numbers. It steps down with the viewport instead
+       (10.5vw is 41px at 390), never past the rung, and never wraps. */
+    font-size: min(var(--nf-text-figure-xl), 10.5vw);
+    white-space: nowrap;
+    letter-spacing: var(--nf-tracking-figure-xl);
+    line-height: 1.05;
+  }
+  .nf-movein-hero__rent {
+    display: block;
+    margin-block-start: var(--nf-space-2xs);
+    font-family: var(--nf-font-sans);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 400;
+    letter-spacing: normal;
+    line-height: 1.4;
+    color: var(--nf-content-secondary);
+  }
+  .nf-movein-hero__rent-figure {
+    font-weight: 600;
+    color: var(--nf-content-primary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* 7073: each charge's basis on its own quiet line under the name. */
+  .nf-movein__name > .nf-movein__basis {
+    font-size: var(--nf-text-caption);
+  }
+  /* "Total payable" closes the same card under a heavier rule, at display
+     size, with no glow: the screen's one glow belongs to its primary. */
+  .nf-movein__row.nf-movein__row--total {
+    min-height: 4.25rem;
+    border-block-start: var(--nf-border-width) solid var(--nf-border-default);
+  }
+  .nf-movein__row--total::before {
+    display: none;
+  }
+  .nf-movein__row--total .nf-movein__total-label {
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-movein__row--total .nf-movein__total-figure {
+    margin-top: 0;
+    text-align: end;
+    font-size: var(--nf-text-h3);
+    font-weight: 600;
+    text-shadow: none;
+  }
+
+  /* WHY TRUST THIS SPACE: dated rows on the Plate rhythm, the date on the
+     right in tabular figures, the way a cost row puts its amount. */
+  .nf-trust__rows {
+    display: grid;
+    margin: 0;
+  }
+  .nf-trust__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-space-sm);
+    min-height: 3.25rem;
+    padding-block: var(--nf-space-xs);
+  }
+  .nf-trust__row + .nf-trust__row {
+    border-block-start: var(--nf-border-width) solid var(--nf-divider);
+  }
+  .nf-trust__label {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    min-width: 0;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-trust__date {
+    margin: 0;
+    flex-shrink: 0;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+  }
+  .nf-trust__lede {
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.55;
+    color: var(--nf-content-secondary);
+  }
+  /* The door to the inner page: a Plate row, 44px and up, chevron trailing. */
+  .nf-trust__door {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-space-sm);
+    min-height: 2.75rem;
+    margin-block-start: var(--nf-space-sm);
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    border: var(--nf-border-width) solid var(--nf-tier-plate-edge);
+    border-radius: var(--nf-tier-plate-radius);
+    background: var(--nf-tier-plate-fill);
+    color: var(--nf-content-link);
+    transition: transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  .nf-trust__door-title {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+  }
+  .nf-trust__door:active {
+    transform: scale(var(--nf-press-scale-sm));
+  }
+  .nf-trust__door:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: var(--nf-focus-ring-offset);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .nf-trust__door:hover {
+      background: var(--nf-tier-plate-hover);
+    }
+  }
+
+  /* A stay's lead: the nightly rate, then the total for the dates. */
+  .nf-detail-price__sub {
+    margin-block-start: var(--nf-space-2xs);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+  }
+
+  /* The real objects on the light, water, meter and gate rows. */
+  .nf-utility-object {
+    flex-shrink: 0;
+  }
+
+  /* THE SECTION INDEX at the anchor row's trailing end. Its panel opens from
+     the right edge so it never runs off a phone. */
+  .nf-detail-tabs__index {
+    flex: none;
+    margin-inline-start: var(--nf-space-2xs);
+  }
+  .nf-detail-tabs__index .nf-innernav__panel {
+    inset-inline-start: auto;
+    inset-inline-end: 0;
+  }
+
+  /* The dated rows rise as each one scrolls into view, so the facts arrive
+     in reading order rather than all at once (the view timeline the other
+     detail panels use; visible by default, the motion only enhances). */
+  @supports (animation-timeline: view()) {
+    .nf-trust__row {
+      animation: nf-detail-rise linear forwards;
+      animation-timeline: view();
+      animation-range: entry 0% entry 60%;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce), print {
     .nf-gallery-mark,
+    .nf-trust__row,
+    .nf-trust__door,
     .nf-detail-price,
     .nf-cat-surface .nf-panel:not(.nf-detail-lead),
     .nf-detail-panel,

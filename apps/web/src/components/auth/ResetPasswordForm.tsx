@@ -1,12 +1,14 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useRef, useState } from "react";
 import Link from "next/link";
-import type { Dictionary } from "@vallo/i18n/core";
+import type { AuthCopy } from "./auth-copy";
 import type { AuthFormState } from "@/lib/auth/form-state";
 import { updatePassword } from "@/lib/auth/actions";
 import { PasswordField, StrengthMeter } from "./fields";
 import { AuthPillButton } from "./slate";
+import { useRefusalShake } from "./useRefusalShake";
+import "@/app/css/auth.css";
 
 const EMPTY: AuthFormState = { ok: false };
 
@@ -29,7 +31,7 @@ export function ResetPasswordForm({
   t,
   askCurrent = false,
 }: {
-  t: Dictionary;
+  t: AuthCopy;
   /**
    * The session did not come from a recent recovery link, so the server will
    * ask for the current password; the field is drawn up front rather than
@@ -38,6 +40,9 @@ export function ResetPasswordForm({
   askCurrent?: boolean;
 }) {
   const [state, formAction, pending] = useActionState(updatePassword, EMPTY);
+  /* THE FORM ERROR: the refused field shakes once, its message beneath. */
+  const form = useRef<HTMLFormElement>(null);
+  useRefusalShake(form, state, !state.ok && (Object.keys(state.fieldErrors ?? {}).length > 0 || Boolean(state.message)));
   const [current, setCurrent] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -50,7 +55,7 @@ export function ResetPasswordForm({
       <h1 className="nf-auth__title">{t.auth.newPasswordTitle}</h1>
       <p className="nf-auth__sub">{t.auth.newPasswordLead}</p>
 
-      <form action={formAction} className="nf-auth__form nf-auth__form--fields nf-slate-stagger" noValidate>
+      <form ref={form} action={formAction} className="nf-auth__form nf-auth__form--fields nf-slate-stagger" noValidate>
         {(askCurrent || state.fieldErrors?.currentPassword) && (
           <PasswordField
             t={t}
@@ -88,10 +93,10 @@ export function ResetPasswordForm({
         {state.message && (
           <p
             role="alert"
-            className="rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-warning)_35%,transparent)] bg-[var(--nf-state-warning-surface)] px-md py-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-warning)]"
+            className="nf-auth__alert"
           >
             {state.message}{" "}
-            <Link href="/forgot-password" className="nf-tap font-semibold underline underline-offset-4">
+            <Link href="/forgot-password" className="nf-tap nf-auth__notice-link">
               {t.auth.resetSend}
             </Link>
           </p>

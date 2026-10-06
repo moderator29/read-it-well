@@ -1,0 +1,65 @@
+@layer theme, base, components, utilities;
+
+/*
+ * THE SEARCH ANSWERING (round 5 craft, "a search finds the right place").
+ *
+ * The results shelf is browsing, so it moves at the browsing pace (CRAFT
+ * DOCTRINE 5: 160 to 240ms), not at the 520ms entrance the shared card
+ * entrance uses on other surfaces. Two things move when a search changes,
+ * and each says one thing:
+ *
+ *   the cards   a card that stayed glides to its new place (ResultsFade, FLIP)
+ *               and never re-enters; a card that is new rises 12px and fades
+ *               in, the first six NEWCOMERS 40ms apart (`--nf-arrive-i`,
+ *               written by ResultsFade before paint). "What just changed",
+ *               not "the page reloaded".
+ *   the count   rolls only the digits that changed, and only because the
+ *               server's answer changed it: the figure is a server render,
+ *               so there is no optimistic number to roll (ShelfCount).
+ *
+ * Scoped to the results box, so the shared card rules in list-views.css and
+ * animation.css are untouched for every other shelf. Transform and opacity
+ * only. Reduced motion: no travel at all; a newcomer fades in at 160ms (the
+ * one motion reduced motion keeps, because "these are new" is information),
+ * a survivor is simply where it now is, and the count lands at once.
+ */
+@layer components {
+  /* The first screenful on arrival, and every newcomer after: the base rung. */
+  .nf-results-fade .nf-pcard.nf-card-in {
+    animation-duration: var(--nf-duration-base);
+  }
+  /* A newcomer's place in the stagger is its place among the NEW cards. */
+  .nf-results-fade li[data-arrived] .nf-pcard.nf-card-in {
+    animation-delay: calc(min(var(--nf-arrive-i, 0), 5) * 40ms);
+  }
+  /* A survivor never re-enters, wherever the scroll entry had it. */
+  .nf-results-fade li[data-stayed] .nf-pcard {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  /* The count's wheels at the browsing pace (the odometer's own rung is the
+     money pace, 380ms). Only the duration: every quiet answer in
+     motion-kit.css still removes the animation outright. */
+  .nf-shelf-count .nf-odo__wheel {
+    animation-duration: var(--nf-duration-base);
+  }
+
+  /* The one fade the search keeps under reduced motion, as opacity alone (no
+     travel), because it is the only way a reduced-motion reader sees which
+     cards a filter brought in. The unlayered floor in animation.css collapses
+     every animation to 0.01ms unless the element opts in, which
+     `--nf-reduced-duration` does (it replaced a layered `!important`). */
+  @media (prefers-reduced-motion: reduce) {
+    .nf-results-fade li[data-arrived] .nf-pcard.nf-card-in {
+      animation: nf-results-new 160ms var(--nf-ease-standard) both;
+      --nf-reduced-duration: 160ms;
+    }
+  }
+  @keyframes nf-results-new {
+    from {
+      opacity: 0;
+    }
+  }
+}

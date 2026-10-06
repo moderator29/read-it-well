@@ -65,7 +65,7 @@ export function CloseListingSheet({
       }}
       title={copy.title}
       footer={
-        <div className="flex gap-md">
+        <div className="flex flex-wrap gap-md">
           <Button variant="secondary" className="flex-1" onClick={onClose}>
             {copy.keep}
           </Button>
@@ -100,7 +100,7 @@ export function CloseListingSheet({
       {error && (
         <p
           role="alert"
-          className="mt-sm rounded-[var(--nf-container-radius)] p-sm text-[length:var(--nf-text-caption)] font-medium"
+          className="mt-sm rounded-[var(--nf-container-radius)] p-sm text-[length:var(--nf-text-caption)] font-semibold"
           style={{ background: "var(--nf-state-warning-surface)", color: "var(--nf-state-warning)" }}
         >
           {error}

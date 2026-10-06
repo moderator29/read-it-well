@@ -6,22 +6,24 @@ import { getDictionary } from "@vallo/i18n";
 import { EXAMPLE_STATEMENT } from "@/lib/listings/syndication";
 
 /**
- * UX-09 / UI-P2-01: the shelf card says "Example"; one tap deeper, on the page
- * where a stay is booked or a table held, the example must still say so and
- * must not offer a booking control that checkout then refuses.
+ * UX-09 / UI-P2-01, AS AMENDED BY D24 (the founder, 6 October). The visible
+ * example labelling is off the detail pages. What still holds, and is the
+ * half that mattered: an example stay or restaurant offers no booking control
+ * that checkout would refuse, and draws no trust it did not earn.
  */
 const code = (p: string) => withoutComments(readFileSync(join(process.cwd(), "src", p), "utf8"));
 
 describe("example stays and restaurants are labelled where they would be booked", () => {
   it("a stay reads is_demo from the accommodation and its business", () => {
     expect(code("app/(app)/stay/[id]/page.tsx")).toMatch(
-      /isExample:\s*accommodation\.is_demo === true \|\| detail\.business\.is_demo === true/,
+      /const isExample = accommodation\.is_demo === true \|\| detail\.business\.is_demo === true;/,
     );
   });
 
-  it("an example stay draws the notice and no availability card, rooms or message button", () => {
+  it("an example stay draws no label and no availability card, rooms or message button", () => {
     const view = code("app/(app)/stay/[id]/StayDetailView.tsx");
-    expect(view).toMatch(/detail\.isExample && \(\s*<ExampleNotice variant="page"[^>]*statement=\{t\.examples\.statement\}/);
+    expect(view).not.toMatch(/<ExampleNotice\b/);
+    expect(view).not.toContain("t.examples.");
     expect(view).toMatch(/detail\.isExample \? \([\s\S]*?stay-not-bookable[\s\S]*?\) : \([\s\S]*?<DetailAvailabilityCard/);
     expect(view).toMatch(/detail\.isExample \? \([\s\S]*?rooms-example[\s\S]*?\) : detail\.roomTypes\.length > 0 \? \([\s\S]*?<RoomTypes/);
     /* The stay is messaged through its business now (track F); an example
@@ -29,14 +31,24 @@ describe("example stays and restaurants are labelled where they would be booked"
     expect(view).toMatch(/messageVenue:\s*detail\.isExample \|\| !detail\.businessId\s*\?\s*null/);
   });
 
-  it("an example restaurant draws the notice and no table to hold, from either source", () => {
+  it("an example restaurant draws no label and no table to hold, from either source", () => {
     const page = code("app/(app)/restaurant/[id]/page.tsx");
     expect(page).toMatch(/isExample: listingFace\.isDemo === true/);
     expect(page).toMatch(/isExample: detail!\.business\.is_demo === true/);
     expect(page).toMatch(/isExample=\{venue\.isExample\}/);
     const face = code("app/(app)/restaurant/[id]/RestaurantFace.tsx");
-    expect(face).toMatch(/isExample && <ExampleNotice variant="page"[^>]*statement=\{t\.examples\.statement\}/);
+    expect(face).not.toMatch(/<ExampleNotice\b/);
+    expect(face).not.toContain("t.examples.");
     expect(face).toMatch(/isExample \? \([\s\S]*?restaurant-not-bookable[\s\S]*?\) : \([\s\S]*?<ReserveTable/);
+  });
+
+  it("an example stay or restaurant draws no verified host and no rating", () => {
+    const stay = code("app/(app)/stay/[id]/page.tsx");
+    expect(stay).toMatch(/hostVerified:\s*!isExample &&/);
+    expect(stay).toMatch(/rating:\s*!isExample &&/);
+    const restaurant = code("app/(app)/restaurant/[id]/page.tsx");
+    expect(restaurant).toMatch(/verified:\s*listingFace\.verified && listingFace\.isDemo !== true/);
+    expect(restaurant).toMatch(/rating:\s*listingFace\.isDemo !== true &&/);
   });
 
   it("an unchecked host is not drawn with the verified mark's person-with-a-tick", () => {

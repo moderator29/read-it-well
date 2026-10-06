@@ -192,7 +192,7 @@ export function SignedOutActions({ t, className }: { t: ShellDictionary; classNa
   const suffix = `?next=${encodeURIComponent(back)}`;
 
   return (
-    <div className={`flex shrink-0 items-center gap-2 ${className ?? ""}`}>
+    <div className={`flex shrink-0 items-center gap-xs ${className ?? ""}`}>
       <ButtonLink href={`/sign-in${suffix}`} variant="secondary" size="sm">
         {t.common.signIn}
       </ButtonLink>

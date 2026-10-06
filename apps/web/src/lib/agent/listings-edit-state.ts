@@ -13,7 +13,7 @@
  * database and `listings-actions` enforces in every write.
  */
 
-import type { ListingStatus } from "./listings-schema";
+import type { ListingStatus } from "./listings-model";
 
 export const EDITABLE_STATUSES: readonly ListingStatus[] = ["DRAFT", "MORE_INFO_REQUIRED", "REJECTED"];
 

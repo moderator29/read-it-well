@@ -94,44 +94,28 @@
   /* ----------------------------------------------------------- the splash */
 
   /*
-   * Off unless the before-paint script in app/layout.tsx switched it on, and
-   * gone for good once `ThresholdStage` moves the flag to "done". Its own
-   * last keyframe hides it too, so it clears even if that script never runs.
+   * THE APP OPENING IS `components/startup` (D31): `StartupSequence` draws
+   * the overlay as `.nf-splash.nf-startup`, `startup.css` animates it, and
+   * its inline script moves the root flag from "on" to "done" when the door
+   * has opened. What stays here is the part every page shares: the overlay
+   * is hidden outside "on", `--nf-splash-hold` holds the page's own
+   * entrances until the door, and the page comes forward through it (below).
+   *
+   * The Track M splash this replaced in place (two leaves, the light in the
+   * gap, the assembling raster lockup and its `nf-splash-gone` release
+   * keyframe) had no markup left anywhere, and its rules are gone (Session 3,
+   * W10). The leaf and brand-out keyframes stay: the sign-out threshold
+   * below parts its panels and clears its mark with them.
    */
   .nf-splash {
     display: none;
   }
+  /* The page's own entrances start 100ms into the startup's door, whenever
+     the door opens (`--nf-startup-door`, startup.css: 1150ms on the beats'
+     schedule, moved by a skip or a hold). It was a fixed 1250ms, which a
+     skip at 300ms or a held door at three seconds both contradicted. */
   :root[data-splash="on"] {
-    --nf-splash-hold: 1250ms;
-  }
-  :root[data-splash="on"] .nf-splash {
-    position: fixed;
-    inset: 0;
-    z-index: var(--nf-z-top);
-    display: grid;
-    place-items: center;
-    pointer-events: none;
-    animation: nf-splash-gone 1ms linear 1750ms both;
-  }
-  @keyframes nf-splash-gone {
-    to {
-      visibility: hidden;
-    }
-  }
-  .nf-splash__leaf {
-    position: absolute;
-    inset-block: 0;
-    width: 50.5%;
-    background: var(--nf-surface-canvas);
-    animation: var(--nf-duration-deliberate) var(--nf-ease-entrance) 1120ms both;
-  }
-  .nf-splash__leaf--a {
-    left: 0;
-    animation-name: nf-splash-leaf-a;
-  }
-  .nf-splash__leaf--b {
-    right: 0;
-    animation-name: nf-splash-leaf-b;
+    --nf-splash-hold: calc(var(--nf-startup-door, 1150ms) + 100ms);
   }
   @keyframes nf-splash-leaf-a {
     to {
@@ -143,49 +127,6 @@
       transform: translateX(102%);
     }
   }
-  /* The light in the gap as the door parts. */
-  .nf-splash__glow {
-    position: absolute;
-    inset-block: 0;
-    left: 50%;
-    width: 40vw;
-    margin-left: -20vw;
-    background: radial-gradient(
-      closest-side,
-      color-mix(in oklab, var(--nf-content-on-brand) 70%, transparent),
-      color-mix(in oklab, var(--nf-brand-secondary) 45%, transparent) 55%,
-      transparent
-    );
-    opacity: 0;
-    transform: scaleX(0.02);
-    animation: nf-splash-light var(--nf-duration-deliberate) var(--nf-ease-entrance) 1080ms both;
-  }
-  @keyframes nf-splash-light {
-    0% {
-      opacity: 0;
-      transform: scaleX(0.02);
-    }
-    30% {
-      opacity: 1;
-    }
-    100% {
-      opacity: 0;
-      transform: scaleX(3.2);
-    }
-  }
-  .nf-splash__brand {
-    position: relative;
-    animation:
-      nf-assemble-zoom 1000ms var(--nf-ease-entrance) both,
-      nf-splash-brand-out 380ms var(--nf-ease-exit) 1040ms forwards;
-  }
-  .nf-splash__brand .nf-assemble__mark {
-    animation: nf-assemble-mark 760ms var(--nf-ease-entrance) 40ms both;
-  }
-  .nf-splash__brand .nf-assemble__letter {
-    animation: nf-assemble-letter 420ms var(--nf-ease-entrance) both;
-    animation-delay: calc(300ms + var(--nf-i, 0) * 95ms);
-  }
   @keyframes nf-splash-brand-out {
     to {
       opacity: 0;
@@ -193,9 +134,17 @@
       filter: blur(4px);
     }
   }
-  /* The page comes forward through the opening door. */
+  /* The page comes forward through the opening door. It is keyed to the door,
+     on the door's own clock: the page rests at the animation's first frame
+     (held by `both`) beneath the overlay, and plays at `--nf-startup-door`
+     (startup.css: 1150ms on the beats' schedule, moved by a skip or a hold),
+     for 320ms, inside the door's own 350ms. It used to wait, paused, for the
+     startup's script to set `data-startup="open"`, which on a busy phone
+     arrived late; and before that it started at a fixed 1150ms, which a skip
+     or a hold contradicted. The flag leaves "on" only after the door has
+     ended, so the entrance always finishes before the rule goes. */
   :root[data-splash="on"] #main {
-    animation: nf-threshold-forward 760ms var(--nf-ease-entrance) 1150ms both;
+    animation: nf-threshold-forward 320ms var(--nf-ease-exit) var(--nf-startup-door, 1150ms) both;
   }
   @keyframes nf-threshold-forward {
     from {
@@ -443,6 +392,22 @@
     }
   }
 
+  /* ------------------------------------------- opening: the hook only */
+
+  /*
+   * THE `open` KIND (Session 3, 6 October 2026). The cold-start sequence is
+   * built, and it is CSS keyed on the root flag (`components/startup`), so
+   * nothing needs to dispatch `open` for it: the page beneath comes forward
+   * through `:root[data-splash="on"] #main` above. This hook is the arrival
+   * for a caller that does ask for `open` (unlocking with the passcode, which
+   * MOTION_SYSTEM.md section 6 wants to feel like the same door): the page
+   * comes forward over the last 350ms on the `leave` curve, the final beat of
+   * the opening's table.
+   */
+  :root[data-arrive="open"] #main {
+    animation: nf-threshold-forward 350ms var(--nf-ease-exit) both;
+  }
+
   /* --------------------------------------------- words out of depth */
 
   .nf-depth-word {
@@ -467,6 +432,13 @@
   /* ------------------------------------------------------ reduced motion */
 
   @media (prefers-reduced-motion: reduce) {
+    /* THE STARTUP OVERLAY IS DELIBERATELY NOT HIDDEN HERE. The selector below
+       would hide it (`display: none`), but `startup.css` draws the overlay as
+       `:root[data-splash="on"] .nf-splash.nf-startup`, which is more specific
+       and wins, so under reduced motion the opening still plays, quietly: the
+       still lockup and a 160ms crossfade (MOTION_SYSTEM.md section 3), never
+       the assembly. What this line hides is the old threshold panels and any
+       `.nf-splash` that is not the startup. */
     .nf-splash,
     :root[data-splash="on"] .nf-splash,
     .nf-threshold {
@@ -483,6 +455,19 @@
     }
     .nf-depth-word {
       animation: none;
+    }
+    /* Opening keeps a 160ms crossfade rather than nothing (MOTION_SYSTEM.md
+       section 3): the app still has to appear, it just does not travel. */
+    :root[data-arrive="open"] #main {
+      animation: nf-threshold-open-fade 160ms var(--nf-ease-standard) both;
+      /* The floor in animation.css would make this fade instant; this opts in
+         (registered, not inherited: nothing inside #main is affected). */
+      --nf-reduced-duration: 160ms;
+    }
+    @keyframes nf-threshold-open-fade {
+      from {
+        opacity: 0;
+      }
     }
   }
 }

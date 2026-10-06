@@ -6,6 +6,9 @@ import { paymentInstrumentChanged, type PaymentInstrumentEvent } from "./payment
 import { scamRecall } from "./safety-messages";
 import { staffAccessGranted } from "./staff-messages";
 import { deletionCompleted, deletionStarted } from "../account-deletion/emails";
+import { getDictionary } from "@vallo/i18n";
+import { stayReceiptMessage } from "./receipt";
+import type { StayReceiptSource } from "@/components/app/money/receipt-model";
 
 const INSTRUMENT_EVENTS: PaymentInstrumentEvent[] = [
   "card_saved",
@@ -500,6 +503,44 @@ export const EVERY_MESSAGE: NamedMessage[] = [
  * the catalogue's own exports and fails when a message exists that nothing
  * renders, which is the check that stops an untested email reaching an inbox.
  */
+/**
+ * THE RECEIPT EMAIL (receipt.ts), from a paid stay shaped exactly like the
+ * checkout read: the lines carry kobo so the exactness shows, and there is no
+ * reference because the checkout read does not carry one yet (R-7), so the
+ * receipt prints none rather than an invented one. A stay the host has
+ * confirmed carries both confirmations; one settled before the host answered
+ * carries the payment's alone.
+ */
+const PAID_STAY: StayReceiptSource = {
+  title: LISTING,
+  location: "Yaba, Lagos",
+  dateRange: "Fri 14 Aug to Sun 16 Aug",
+  nights: 2,
+  guests: 3,
+  lines: [
+    { label: "2 nights", minor: 18_000_050 },
+    { label: "Cleaning", minor: 1_500_000 },
+  ],
+  totalMinor: 19_500_050,
+  currency: "NGN",
+  status: "CONFIRMED",
+  paid: true,
+};
+
+EVERY_MESSAGE.push(
+  {
+    name: "paymentReceipt",
+    message: stayReceiptMessage({ source: PAID_STAY, bookingId: "b-fixture", t: getDictionary("en"), locale: "en", name: "Adaeze Chinwe Obi" })!,
+  },
+  {
+    name: "paymentReceipt:awaiting-host",
+    message: stayReceiptMessage({ source: { ...PAID_STAY, status: "PENDING" }, bookingId: "b-fixture", t: getDictionary("en"), locale: "en" })!,
+  },
+);
+
+/** The paid stay the receipt tests draw on screen and in the inbox. */
+export const RECEIPT_FIXTURE: StayReceiptSource = PAID_STAY;
+
 export function coveredBuilders(): Set<string> {
   return new Set(EVERY_MESSAGE.map(({ name }) => name.split(":")[0] ?? name));
 }

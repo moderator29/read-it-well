@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { getDictionary } from "@vallo/i18n";
+import { getLocale } from "@/lib/locale";
 import { FollowListPage } from "@/components/social/profile/FollowListPage";
 import { normaliseHandle } from "@/lib/social/profiles-queries";
 import { SocialPaused } from "@/components/social/SocialPaused";
@@ -10,7 +12,7 @@ export async function generateMetadata({
   params: Promise<{ handle: string }>;
 }): Promise<Metadata> {
   const { handle } = await params;
-  return { title: `Who @${normaliseHandle(handle)} follows` };
+  return { title: getDictionary(await getLocale()).experienceSocial.follows.followingMeta.replace("{handle}", normaliseHandle(handle)) };
 }
 
 /** Who this person follows. The sibling of `followers`, same shell. */

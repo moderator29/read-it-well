@@ -2,6 +2,7 @@ import type { Dictionary } from "@vallo/i18n/core";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ICON } from "@/components/app/Screen";
 import type { ServiceFacts } from "@/lib/listings/service";
+import "@/app/css/catalogue.css";
 
 /**
  * What the service charge covers, on the listing page (V-68).

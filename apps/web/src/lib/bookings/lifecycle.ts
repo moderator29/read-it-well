@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { HOLD_WINDOW_HOURS } from "../agent/bookings-schema";
+import { HOLD_WINDOW_HOURS } from "../agent/bookings-model";
 
 /**
  * The booking lifecycle, as decisions.

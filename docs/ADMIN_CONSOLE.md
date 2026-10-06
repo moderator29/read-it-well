@@ -2,6 +2,8 @@
 
 > **Track A, 25 September 2026.** Vallo no longer holds customer money: the wallet, escrow and held payments are retired. Where this document describes them it describes the past; the current truth is [`docs/MONEY_ARCHITECTURE.md`](/docs/MONEY_ARCHITECTURE.md).
 
+> **Session 3, 6 October 2026.** The console's shell, overview, queue tables, desk sections, rulings and phone drawer were rebuilt on the shared components, and the Money desk, the Agreements gate, the Compliance desk and the console search are described below as they now stand. Session 3 did not add or remove a desk or an address (D28); it gave Lookup, People and Account recovery, which already existed but were reachable only by a typed address, rows on the rail. The money rules and the reads behind each desk are Session 2's; where this document touches them it names the file they live in.
+
 This is the document a new operations person reads on their first day and can
 then run the platform from. Every desk is here: what it shows, where each number
 comes from, what each action does, who may take it, what it changes, and what the
@@ -53,7 +55,12 @@ lives in `lib/admin/staff-positions.ts` and the database
 
 **The staff directory** (`/admin/staff`) lists every admin, super admin and
 staff member, with their position and scopes, who granted and who revoked
-them, and when each was last active.
+them, and when each was last active. Its other panels are in section 15.22.
+
+**What a staff member sees.** Not the operator's rail: a short frame that names
+only the desks their scopes open, plus the handbook, their role and help. Their
+front page at `/admin` lists the same desks. Nothing unlocks until they have
+acknowledged the handbook (section 15.22).
 
 **Queues for a team.**
 - Counts on the rail and the Unified queue count only the work your scopes
@@ -74,8 +81,9 @@ under review carry internal notes (`member_notes`). A note is never shown to
 the member, and it is visible only to the desk it was written on (and to
 admins).
 
-**Team oversight** (`/admin/oversight`, operations scope): who decided what,
-how long each queue waits, and SLA breaches, per person and per desk.
+**Team oversight** (`/admin/oversight`, operations scope): each queue's backlog
+with its oldest waiting item, and each staff member's work over the last 30 days
+(section 15.23).
 
 **CSV exports.** Money (`/admin/money/export`, finance), the audit log
 (`/admin/audit/export`, compliance) and team oversight
@@ -191,44 +199,196 @@ saving). "12m ago" is measured from when the page was read.
 
 ## 2. The shell
 
-**The rail** (left, desktop). The Vallo mark, then twelve rows in the order
-the renders draw them: Overview, Listings, Supply, Verification, Money,
-Escrow, Bookings, Moderation, Support, Operations, Analytics, and Settings at
-the foot above your name and role ("Platform Operator", or "Platform Owner"
-for a super admin). The open row is the lit blue one. A cyan number on a row
-is work waiting on that one desk right now, read by `getQueueCounts()` on
-every page load: listings waiting on a review decision (Listings, the same
-figure as the overview's Open reviews), held posts, stories, comments and bios
-(Moderation), open or pending tickets (Support), open alerts (Operations and
-Alerts), and under their parents applications waiting (Applications),
-flagged messages (Message flags) and open reports (Reports). Hover a number,
-or listen to it, and it says what it counts. Rows without a queue carry none.
+Session 3 rebuilt the console's material (Plate rows, Card panels, Island
+surfaces, Sheet overlays) and added the console search, the desk sections, the
+batch tray and the phone drawer's one-line descriptions. It did not add or remove
+a desk: a person who used the console before finds the same rail, bar and desks
+(D28), with Lookup, People and Account recovery now on the rail. The shell lives in `app/admin/layout.tsx` and
+`app/admin/_components/` (`AdminFrame`, `AdminNav`, `nav.ts`, `ConsolePalette`,
+`palette.ts`).
+
+**The rail** (left, desktop). The Vallo mark, then eleven rows in the order the
+renders draw them: Overview, Listings, Supply, Verification, Money, Agreements,
+Bookings, Moderation, Support, Operations and Analytics. Settings is the
+twelfth row, pinned at the foot above your name and role ("Platform Operator",
+or "Platform Owner" for a super admin); your name opens your profile. The open row
+has a leading bar, a tinted fill and a brighter glyph. The map is one list in
+`nav.ts`, read by the rail, the phone drawer and the console search, so the
+three cannot disagree about what a desk is called or where it is.
+
+**The count badge.** A number on a cyan fill is work waiting on that one desk
+right now, read by `getQueueCounts()` once per request, so the rail, the
+overview figures and the tab counts are the same figure. Hover a number, or
+listen to it, and it says what it counts. These rows carry one:
+
+| Row | What the number counts |
+|---|---|
+| Unified queue (under Overview) | reports, flagged messages and held content together |
+| Listings | listings waiting on a review decision (the same figure as the overview's Open reviews) |
+| Applications (under Supply) | applications waiting on a decision |
+| Agreements | agreements waiting for review before payment opens |
+| Support | support tickets open or pending |
+| Operations, and Alerts under it | alerts open and waiting on a person |
+
+Rows without a queue carry none. The fill and the ink come from the tokens
+`--nf-count-fill` and `--nf-count-ink` in `admin-material.css`, so the number
+keeps its own ink at night instead of the link ink. The same badge is on the
+phone filter control (how many filters are on) and in the console search.
 
 **Desks inside a row.** The console has more desks than twelve. Each lives
-under the row it belongs to and is listed beneath that row while you are in
-it: Overview holds the Unified queue; Supply holds Applications, Businesses
-and Stops; Money holds Payments and Fees; Moderation holds Message flags,
-Reports, Around and Standing; Operations holds Alerts and the Audit log;
-Settings holds Switches, Reference data and Examples. Every one of them is
-also in **All desks** at the foot of the rail, so no desk is ever more than
-one click away.
+under the row it belongs to and is listed beneath that row while you are in it:
 
-**The bar** (top). The search field: type and press Enter to search the desk
-you are on (its own `?q=`); on a page with no search of its own (Overview,
-Operations, Analytics, Settings) it searches the Unified queue. Command-K or
-Control-K jumps to it. Then the Lagos date and time, the bell (your own
-notifications; a rose dot means unread), and you.
+| Row | Desks inside it |
+|---|---|
+| Overview | Unified queue (`/admin/queue`), Lookup (`/admin/lookup`) |
+| Supply | Applications (`/admin/agents`), Businesses, Stops |
+| Verification | Compliance (`/admin/compliance`) |
+| Money | Payments, Fees |
+| Moderation | Around (`/admin/social`), Standing |
+| Support | People, Account recovery |
+| Operations | Alerts, Audit log, Team oversight |
+| Analytics | Front door |
+| Settings | Switches, Reference data, Examples, Staff, Staff handbook, Help and support |
 
-**Keeping current.** Overview, Operations and Analytics re-read themselves
-every minute while the tab is visible, and at once when you come back to the
-tab, without losing your place. Every decision taken on a desk refreshes the
-pages it affects.
+Message flags, Reports and Held content are lanes of the Unified queue, not
+rows (section 15.1); `/admin/flags`, `/admin/reports` and `/admin/moderation`
+redirect there. The Moderation row opens Around. Escrow has no row: its address
+redirects to Agreements (section 9). Listings, Agreements and Bookings have no
+desks inside them. **All desks** follows the rows: a disclosure whose badge is
+the waiting total across the desks inside it, and which lists every one of
+them, so no desk is ever more than one click away. Reservations
+(`/admin/bookings/reservations`) and Field speed (`/admin/field-speed`) have no
+row: Reservations is reached from the Bookings desk and the console search, and
+Field speed from a tab link on Operations.
 
-**Narrow screens.** Below 1024px the rail folds into a drawer behind the menu
-button at the top left (a cyan dot on it means work is waiting). The drawer
-closes when you choose a destination, on Escape, or on a tap outside it.
-Panels stack one per row; tables scroll sideways inside their panel rather
-than the page.
+**The bar** (top, left to right): the menu button on a narrow screen, the back
+arrow, the Vallo mark on a narrow screen, the search field, the search button,
+the Lagos date and time, the bell (your own notifications; a rose dot means
+unread) and you. The back arrow goes up the declared hierarchy (section 1).
+
+**The search field.** Type and press Enter. If what you typed reads as a
+reference (a ticket reference, an id, an email address, a listing code, a
+payment reference or an error reference), it goes to Lookup
+(`/admin/lookup?q=`). Otherwise it searches the desk you are on through that
+desk's own `?q=`, and on a page with no search of its own (Overview,
+Operations, Analytics, Settings) it searches the Unified queue. On a keyboard
+device the field shows the shortcut, Ctrl K or Cmd K.
+
+**The console search** (`ConsolePalette`, reference 7067). Control K or
+Command K opens one box over every desk, from anywhere in the console; on a
+phone the bar shows a search button for it instead of the field. It only
+routes: every row is a link to a desk or to a search, and the search itself runs
+on the desk it lands on, under that desk's own access check. A desk your
+account cannot open is still listed, and opening it answers with the refusal
+that desk always gave.
+
+- **Desks.** Up to eight, each with its glyph, its name, one line saying what it
+  is for, how many are waiting on it (the rail's badge figure) and, where the
+  console has one, its key (`g` then a letter). With nothing typed, the desks with
+  work waiting come first, most first, then the rest in the rail's order. With
+  text typed, a name that starts with it ranks first, then a word that starts
+  with it, then a name that contains it, then a line that mentions it.
+- **Search for.** Below the desks, once something is typed: look it up as a
+  reference (leads the list when you pasted one), search the open desk for the
+  words, search people, and search the Unified queue.
+- **Keys.** Arrow Down and Arrow Up move through the rows and wrap, Enter opens
+  the highlighted one, Escape closes. Tab stays inside, focus returns to what
+  opened it, and a polite line announces how many results there are.
+
+**Keys on every desk** except Support, which has its own (`DeskKeys`,
+`components/app/desk/desk-keys.ts`): `j` and `k` move to the next and previous
+row, Enter opens the focused row, `a` and `x` put focus on Approve or Decline
+(they never press it), `g` then a letter jumps to a desk (`q` Queue, `l`
+Listings, `k` Verification, `s` Support, `b` Bookings, `p` Payments, `a` Alerts,
+`o` Overview), and `?` lists the keys. None of them works while you are typing
+or with Control, Command or Alt held.
+
+**Keeping current.** Overview, Operations, Analytics and Payments re-read
+themselves every minute while the tab is visible, and Listings, the listing under
+review, Verification and the Held lane every thirty seconds, in each case at
+once when you come back to the tab and without losing your place. Every
+decision taken on a desk refreshes the pages it affects.
+
+**Narrow screens: the phone drawer.** Below 1024px the rail becomes a drawer
+behind the menu button at the top left. The button's name says which desk is
+open and how many are waiting, and a cyan dot on it means work is waiting. The
+drawer slides in from the left as a dialog: the Vallo mark and a close button
+at the head, a line saying how many are waiting across the console, the same
+rows as the rail with each desk's one line under its name and the open
+section's desks beneath it, All desks, and Settings with your name at the foot.
+It closes when you choose a destination, on Escape and on a tap on the scrim;
+the page does not scroll behind it, Tab stays inside it and focus returns to the
+menu button.
+
+The rest of the narrow layout: panels stack one per row. Queue tables are card
+rows; a table that is a real table (payments, bookings, supply) stacks into
+labelled cards; a table with nothing else to be scrolls sideways inside its
+panel, never the page. Below 768px a desk's filters open in a bottom sheet from
+one control (the sliders button, with the number of filters on beside it): the
+dates and the status chips together, with Clear filters and Show results at its
+foot. From 768px they are inline. A decision control (approve, send back,
+reject) sticks above the home indicator below 900px so a document can be read
+and decided one-handed. Every header control is a 44px circle.
+
+**A desk's sections.** The Money, Operations and Analytics desks answer several
+questions on one page. Under the bar a quiet glass strip names the section being
+read; pull it down or tap it and the desk's sections unfold, and choosing one
+scrolls to it. The strip sticks under the bar as the page scrolls. A section is
+also an address (`/admin/money#refunds`) that can be sent to a colleague, and
+the page reads top to bottom with scripts off.
+
+| Desk | Sections, in order |
+|---|---|
+| Money | The Guarantee, Cautions, Refunds, Reconciliation, Tenancy charges (only when its read worked), Refund clock, Payments and refunds |
+| Operations | Health, the open tab's name, Recent alerts, Audit log |
+| Analytics | Figures, Demand vs supply, Top areas by price checks, Areas with fewest listings, Price checks vs answered, Top common refusals, and Sent back when there is something to show |
+
+**Desks that only read.** Supply, Operations, Analytics, Audit log, Team
+oversight, Front door and Field speed carry one quiet line under their heading:
+"This desk reads and reports. It changes nothing: decisions are taken on the
+desk each item belongs to."
+
+**Tables, filters and pages.** Every queue uses one dense row (`QueueTable`).
+A row is the type's glyph on its tile with the type word under it, the title
+with the place or person beneath, a detail column on desktop, the reference, the
+status chip, the submitted stamp, then View and a more glyph. A row that carries
+its own detail opens it in place; one that has its own page links to it. The
+status chip draws the status as a word, a shape and a colour, never colour
+alone. Count tabs above a queue (`QueueTabs`) show the live count beside each
+tab and are links. The filters are one search box, a Lagos date range and
+status chips, all in the address, so a narrowed queue can be shared. From 768px
+a desk pages with a sliding indicator: desks that do not know their total
+(`QueueSlidePager`) name only the pages they have evidence for, and desks that
+count their rows (`NumberedSlidePager`: payments, bookings, supply) name every
+page. Below 768px both give way to previous and next or numbered links.
+
+**Documents and slides.** Where the console shows a record it draws a light
+document sheet (`DocumentSheet`) inside the console's own theme: the Guarantee
+reserve statement, the refund record, the payments and refunds ledger, the fee
+revenue statement, a stay's payment record and the STR register. The controls
+sit beside or under the sheet, never on it. Where a ruling is final, it is a
+slide (`DragToConfirm`): the handle slides to the end, the ruling is confirmed
+only after the server has answered, and a refused ruling says "That did not go
+through" with the server's own sentence on the row. A slide marked as money does
+not spring back once confirmed. Guarantee claims, caution rulings and the STR
+approval and release are slides (sections 8 and 15.17). Money rulings are taken
+one at a time and are never in the batch tray.
+
+**The document viewer.** A person's identity, registration or ownership document
+opens in a sheet inside Vallo (`DocumentViewer`), served from
+`/api/documents/<id>` on Vallo's own origin behind the admin check, with one
+audit row per view. Verification, Applications and Businesses use it. An image is
+drawn in the sheet. The console does not draw a PDF yet, so a PDF is offered as a
+file from Vallo's own origin.
+
+**Case history.** On the person file and on a stay, the record of what
+happened is folded into one disclosure with its title and entry count always
+visible. Money, price, trust facts and a decision's state
+stay on the page above it.
+
+**People, Lookup and Account recovery** are on the rail (People and Account
+recovery under Support, Lookup under Overview). They were reachable only by a
+typed address or a link from another desk.
 
 ## 3. Overview
 
@@ -237,12 +397,36 @@ Drawn from the render `5EAA44CB`. Reads: `lib/admin/reads/overview.ts`
 `getNewListingsByRole`), `lib/admin/reads/operations.ts` (`getJobHealth`),
 and the existing `getQueueCounts` and `getRiskAlerts`.
 
+**The page, top to bottom.** A staff member's `/admin` is their own front page
+(section 15.22), not this one. For an admin:
+
+1. A heading, "Console overview", which is read out and not drawn, and, when you
+   were sent here from a desk address, the "You were heading to" link (section 1).
+2. **Waiting on a person.** The first answer: one larger tile with the total ("N in
+   all", or "Nothing waiting on any desk"), then one tile for each of seven
+   queues, in this order: Open message flags, Held content, Open risk alerts,
+   Open reports, Agent applications, Listings in review and Support tickets. A
+   tile shows its glyph, its name, its count (counting up once as the page
+   arrives, not under reduced motion) and a chip that says Waiting or Nothing
+   waiting. A zero is drawn as a zero. Each tile is one link into the desk that
+   clears it: `/admin/queue?tab=flags`, `?tab=held`, `/admin/alerts`,
+   `/admin/queue?tab=reports`, `/admin/agents`, `/admin/listings` and
+   `/admin/support`. The figures are `getQueueCounts`, the reads behind the rail's
+   badges, so they cannot disagree with it. Agreements and Guarantee claims are
+   counted by the rail and have no tile. When the counts cannot be read the section
+   says so and draws no figures.
+3. The pulse strip and the four cards (below).
+4. **Work by desk.** One gauge that shares the same seven counts between the
+   desks. It is drawn only when something is waiting.
+5. Naira transacted over time, Supply by type, New listings per month and Recent
+   alerts (below).
+
 **The pulse strip.**
 
 | Figure | Where it comes from | The change |
 |---|---|---|
 | Listings live | exact count of `listings` with `status = 'PUBLISHED'` and `is_demo = false` | against the same count of listings that were already live seven days ago (`published_at` on or before then) |
-| Sign-ups today | `profiles.created_at` on today's Lagos date | against yesterday |
+| Sign-ups today | `profiles.created_at` on today's Lagos date; a caption gives how many people there are in all, the QA accounts left out | against yesterday |
 | Naira transacted today | money collected today (see below) | against yesterday |
 | Jobs healthy | the share of the Vercel Cron jobs (every one in `VERCEL_JOBS`) whose last run was on time and did not fail (Operations has the table) | none; a job count has no history |
 
@@ -254,11 +438,10 @@ approved and not yet live, from `getQueueCounts`; no change is drawn because
 an open count has no history). Each sparkline is the last fourteen Lagos days
 of the same figure. Each card opens its desk.
 
-**"Naira transacted" means money collected**, counted once on its way in:
-successful charges (`transactions.status = 'SUCCESSFUL'`) plus completed
-wallet top-ups (`wallet_entries.kind = 'deposit'`, `status = 'COMPLETED'`).
-Money moving inside the platform (a wallet paying an escrow, a release, a
-transfer between people) is not counted again.
+**"Naira transacted" means money collected**, counted once on its way in. The
+read (`collectedRows` in `lib/admin/reads/overview.ts`) counts successful
+charges (`transactions.status = 'SUCCESSFUL'`) and nothing else. The comment
+above it still names completed wallet top-ups; the read does not add them.
 
 **Naira transacted over time.** The same money, per day (Last 30 days), per
 week (Last 90 days) or per month (Last 12 months), chosen with the select at
@@ -294,7 +477,8 @@ about searches or views (see Analytics).
 under review). Rail row: Listings. Built to `C1D98B3C` panels 1 and 2, with the
 flow of `docs/design/references/roles/GOVERNING-12` panels 1 and 2.
 
-**Who can use it.** Anyone holding the `admin` or `super_admin` role. The
+**Who can use it.** Anyone holding the `admin` or `super_admin` role, or a staff
+grant with the `listing_approval` scope (section 0). The
 console layout checks the role once on the server (`requireAdmin`,
 `lib/admin/guard.ts`) before any desk renders; every read below repeats the
 check, and every read goes through the admin's own signed-in database client,
@@ -311,7 +495,9 @@ What you see, top to bottom:
   state has a tab; drafts do not, because a draft has not been submitted.
   Each tab's number is an exact count of listings in that status, examples
   included (`getListingStatusCounts`, `lib/admin/reads/listings.ts`, sixteen
-  head-only count reads).
+  head-only count reads). A listing its lister closed with a reason is
+  SUSPENDED underneath but is not a suspension: the count and the Suspended tab
+  leave it out, and its row reads Closed.
 - **Search and dates**: the search matches the title or the city (never the
   street address); From and To narrow by the date the listing was created.
   Both live in the URL, so a narrowed queue can be shared.
@@ -321,7 +507,9 @@ What you see, top to bottom:
   registration), the price with its unit, how long ago it was submitted, and
   the status badge. An **Example** tag marks every example listing
   (`listings.is_demo`): examples exist to show how the product looks and are
-  never real supply. Rows come from `getListingSubmissions`
+  never real supply. A waiting row whose photos also appear on another listing
+  says "Photo seen elsewhere" with how many, and the lister's badge tier sits
+  beside the name. Rows come from `getListingSubmissions`
   (`lib/admin/queries.ts`, Session A's), forty at a time; the pager numbers
   only pages it has evidence for (the read says whether there is another page,
   not how many).
@@ -350,10 +538,17 @@ document is on file and when the mandate expires, and for a refused one the
 reason. Read by `getMandateQueue` (`lib/admin/reads/listings.ts`) under
 `listing_mandates_staff_all`.
 
-**It cannot decide a mandate yet.** Nothing in Session A's `lib/admin` approves
-or refuses one; scope request AR-12 asks for `reviewListingMandate`. Until it
-lands, ring the principal and record the outcome with the engineering team.
-A listing whose mandate was refused cannot be published (Track G migration 6).
+**Deciding a mandate.** A waiting mandate is decided in its own row
+(`MandateDecision`, `decideListingMandate` in
+`lib/compliance/beneficial-ownership-actions.ts`, SCUML item 17). Approving
+records the principal's relationship to the lister, how the reviewer confirmed
+the principal (a call back to the number, in person, a video call or documents),
+when, and against the reviewer's name, with an ID document's reference if one
+was seen; a NIN is refused before it is sent and again by the database. Refusing
+asks for the sentence the lister will read, behind a confirm step. Beside it, the
+principal's consent control for the landlord line says whether anything will be
+sent to that number, and says so when the line is switched off. A listing
+whose mandate was refused cannot be published (Track G migration 6).
 
 ### The listing under review
 
@@ -369,6 +564,17 @@ Lister verification (role, verified or not, tier, which rungs passed), Reason
 for review (the status in words, every admission check that fails, the last
 note sent), the Description, and the full admission checklist. An example
 listing says so above the photos.
+
+A **Review progress** track under the heading draws where the listing stands
+(Submitted, In review, Decision, Live), dating only the steps the record dates
+(`listing-track.ts`); a draft or a suspended listing has none. Under the photos,
+**Photographs that look like others on Vallo** says how many of the photos were
+compared against how many others, lists any that resemble a photo on another
+lister's listing or on one Vallo rejected, each linked, and offers a backfill
+for photos not yet hashed; it is a resemblance for a person to look at, not a
+decision. **Compound** shows the five compound answers as the renter reads them,
+or says they were not answered. The lister's internal notes sit above the
+listing (section 0).
 
 Reads: the listing itself is Session A's `getListingSubmissions` view (so the
 checklist and the costs are computed in one place); the pin, amenities,
@@ -386,10 +592,22 @@ availability, example flag, lister and the next listing are
   listing code, it enters public search, and the lister is told with the code.
 - **Ask for more** calls `reviewListing(decision: "request_changes")`. It needs
   a reason (the field above the buttons); the lister receives it word for word
-  and the listing moves to `MORE_INFO_REQUIRED`.
-- **Reject** asks to be pressed twice, then calls
+  and the listing moves to `MORE_INFO_REQUIRED`. Above the field a row of reason
+  chips (Photos too few or unclear, Price missing a fee, Address does not match,
+  Photos seen on another listing, Description too short, Wrong category) each add
+  one reviewed sentence to what the lister reads, with the free note beneath, and
+  the codes are kept on the `listing.review` audit row so Analytics can count them
+  (`lib/admin/review-reasons.ts`).
+- **Reject** asks to be pressed twice within five seconds, then calls
   `reviewListing(decision: "reject")`: `REJECTED`, the lister is told with
   your reason and can edit and resubmit.
+- **Reopen the listing** appears instead of the decision bar on a listing its
+  lister closed, with a field for why, which goes in the audit log.
+- **Same property?** under the decision bar lists listings that may be the same
+  flat, each with its signals (same or different owner on record, pins close
+  together) and two buttons, Same property and Not the same; a listing already
+  joined can be split. Nothing is joined until you say so, and an example has no
+  panel.
 
 After any decision the next listing waiting in your queue opens by itself; at
 the end of the queue you return to it. A live or rejected listing shows no
@@ -411,20 +629,29 @@ about a listing, a post, a story or a person) are the Reports lane, where the
 reason chips (Payment outside, Scam, Unsafe and the rest) filter with
 `?tab=reports&reason=<category>`.
 
-- **Reason tabs**: All, then the eight reasons a member can choose (payment
-  off the platform, scam, unsafe, not as described, unavailable, offensive,
-  duplicate, other), then Held by the scan. A reason tab filters in the
-  database and pages forty at a time (`getReportsByCategory`).
+- **Tabs**: Held by the scan (open) and Reports, by reason, which opens the
+  Reports lane. The eight reasons a member can choose (payment off the platform,
+  scam, unsafe, not as described, unavailable, offensive, duplicate, other) are
+  chips on the Reports lane (`?tab=reports&reason=`), where they filter in the
+  database and page forty at a time (`getReportsByCategory`).
 - **Total reports**: open plus in review, exact, with new reports this week
   against last and a fourteen-day sparkline of new reports.
 - **Over 24 hours**: reports still open past the 24-hour promise the Community
   rules make, plus held items older than a day.
 - **The table**: item, reporter (or "Safety scan"), reason, age, status. Work
-  still waiting comes first, oldest first; closed reports after. Open a row to
-  read the words, open what was reported, and decide.
+  still waiting comes first, oldest first. Open a row to read the words, open
+  what was held, and decide. A held event can be read and opened but not
+  decided: the row says there is no decision for one yet (request AR-10).
 - **Report breakdown**: waiting reports by reason, on the blue ramp.
 - **Queue health**: open, in review, held, and the median time from filing to
   closing this week against last.
+- **Blocked terms**: says the list cannot be read from the console (request
+  AR-11).
+- **Safety holds**, for admins only, above the table: people whose new
+  inspection requests are paused because somebody pressed "I feel unsafe" after
+  writing to them, soonest to lapse first, each with Clear and Extend 72 hours.
+  A hold lapses on its own. Staff with the moderation scope do not see the
+  panel, because the database refuses them.
 
 All figures: `getModerationSummary` (`lib/admin/reads/moderation.ts`), exact
 counts and complete fourteen-day windows.
@@ -445,6 +672,15 @@ changes the row only while it is HELD, and writes the `moderation.release` or
 `moderation.remove` audit row in the same transaction. Staff holding the
 moderation scope decide here too; the tables' update guards accept the change
 only when it comes through that function (`private.may_moderate`).
+
+**A lister's request about a review.** A lister who asks Vallo to look at a
+review arrives on the Reports lane as a report on that review. Its card shows the
+review's words, its rating, the reason the lister chose and their note, and two
+outcomes, each confirmed in a panel: Keep the review (it stays up and keeps
+counting toward the rating) or Hide the review (hidden behind a public note, never
+deleted, and no longer counted). Either closes the report with your name on it and
+tells the lister and the reviewer (`ContestDecision`, `decideReviewContest` in
+`lib/admin/review-contest-actions.ts`).
 
 **Cannot:** ban a member (Standing), or act on a message flag (Flags).
 
@@ -470,6 +706,8 @@ only when it comes through that function (`private.may_moderate`).
 - **Results by rung**: identity, address, payout account, met in person, each
   counted passed, pending, failed (`agent_verification_checks`).
 - **Recent verifications**: the ten latest decisions.
+- **Recently decided**: under the queue, the people whose documents were just
+  decided.
 
 **Deciding** uses Session A's `DocumentDecision` (`reviewKycDocument`, then the
 database function `review_kyc_document`): approving needs no reason;
@@ -486,6 +724,12 @@ shown, with when each was last given, and any not given named in rose. A
 failed read of the receipt says so rather than "none recorded"
 (`getKycQueue` in `lib/admin/kyc-queries.ts`).
 
+**Two more controls on a person's card.** A form records a LASRERA or ESVARBON
+entry checked by hand on the public register, with the name the register shows;
+it is optional for the lister, never a gate, and only dates a fact the desk
+checked. There is no CAC option, because the free CAC search shows a company and
+not its directors. Beneath the person, their internal notes (section 0).
+
 **The render draws a "match score" and "provider performance" (NIMC, BVN,
 Bank, Selfie). Nothing records a provider or a score**, so the desk shows rungs
 passed and results per rung instead, which are real.
@@ -497,7 +741,12 @@ workspace (lanes, the four-hour and one-day clocks, saved replies, hand-off to
 money, safety or verification, member summary, ticket audit trail, keys), and
 Settings > Staff gained a Support team panel. How to add a support person,
 what they can and cannot see, and the SLA rules: [`docs/SUPPORT_STAFF.md`](/docs/SUPPORT_STAFF.md).
-Some of what follows describes the earlier layout.
+Some of what follows describes the earlier layout. The desk opens on seven
+lanes: All open, New, Waiting on us, Waiting on member, Escalated, Mine and Done
+(each with its count, Done without one), four tiles above them (Late, Due in 4
+hours, With the member, Escalated), and a find-a-ticket box by reference or
+email. An open ticket shows The member, Internal notes and What happened on this
+ticket, with the thread, the escalations and a reply box.
 
 **Where:** `/admin/support`. Tickets filed from the contact form and by the
 assistant when it cannot answer. Search by reference or email, filter by
@@ -526,104 +775,67 @@ An open ticket also shows (`lib/admin/support-desk.ts`):
 A ticket opened by link (`/admin/support?ticket=<id>`: from a notification,
 the member file or a colleague) opens even when it is not on the page of the
 queue on screen; an unknown id says so.
-The Admin Queue (`/admin/queue`) is one table across listings, agents,
-reports, tickets and flags, newest first, each row leading to the desk that
-decides it; it decides nothing itself.
+A support ticket is also a row of the Unified queue (section 15.1), where it
+can be taken, handed on or, if it reads as not a person, closed in bulk.
 
 ## 8. Money
 
-**Route:** `/admin/money`. **Who:** anyone holding `admin` or `super_admin`
-(checked by `requireAdmin()` in the layout and again inside every read and
-action; RLS policies `wallets_select_admin`, `wallet_entries_select_admin`,
-`escrows_select_admin`, `transactions_admin_select`,
-`rent_payments_admin_select`, `bookings_admin_all` and
-`audit_log_admin_select` decide what the reads can see).
+**Route:** `/admin/money`. **Who:** the `finance` scope, which an admin holds
+(`requireAdmin("finance")` in the page; a person without it sees "Your account
+cannot open this desk."). This desk was rebuilt after custody ended (Track A):
+there is no wallet, float, withdrawal or escrow on it. The money rules and the
+reads behind each panel belong to Session 2 and live in
+`docs/MONEY_ARCHITECTURE.md`, `lib/admin/reads/` and `lib/admin/*-actions.ts`;
+this section says what each panel shows and which control it carries.
 
-**What it is for.** Answering "where is this person's money" and "is the
-platform's money where it should be" without asking an engineer to run SQL.
+**What it is for.** The page head says it: watch the Guarantee, refunds to the
+card and the reconciliation job. It is one page with seven sections, reached from
+the desk's section strip (section 2) or by address (`/admin/money#caution`).
 
-**What is on the screen, top to bottom, and where each figure comes from.**
+| Section | What it shows | Source |
+|---|---|---|
+| The Vallo Guarantee (`#guarantee`) | A statement on a document sheet: the figure in the reserve, "Contributions less approved claims", the rows Contributed and Paid out, and a note with the contribution share and the claim window as the read returns them. If the read fails it says so | `readGuaranteeDesk` in `lib/admin/reads/agreements.ts`, asked as the operator because the reserve's figures decide on `auth.uid()` |
+| Claims (`#claims`, under the statement) | Each claim on the Guarantee: listing, claimant, status, the amount asked, the amount approved, the items it cites, the number of new evidence files, the bank reference once paid, the description and the decision reason. A submitted claim carries an amount field, a reason field and two slides, Slide to approve this claim and Slide to reject this claim (reject is enabled once the reason is ten characters). An approved claim carries a bank transfer reference field and Slide to mark it paid (enabled once the reference is four characters) | `decideClaim` and `markClaimPaid` in `lib/admin/agreements-actions.ts`; the database decides what amount it accepts |
+| Cautions (`#caution`) | A note that Vallo never holds a caution and rules on the record of one, then two kinds of ruling. A disputed deduction shows the item, the amount proposed of the caution, the lister's note, a link to the tenancy file (both sides' reports) and the photo if there is one; its controls are the amount that stands (0 allows none), a reason both parties read (ten characters) and Slide to rule. A contested return shows the amount recorded as returned, the date, the method, the reference, the tenant's note and a link to the tenancy file; its controls are a reason and two slides, received and not received | `readCautionDesk` in `lib/admin/reads/caution-desk.ts`; `ruleCautionDispute` and `ruleCautionReturn` in `lib/admin/caution-desk-actions.ts` |
+| Refunds (`#refunds`) | The refund record, on a document sheet: the total returned, how many were not credited, and a ledger of every refund decided, with when, the guest, the listing, the reason, the reference in full, an Open stay link, the amount (and what was kept) and a state with a word and a shape: filled circle for back at the card, hollow circle for not yet sent, filled square for refused, a bar for nothing owed. It has no control: a stay's refund is made on the stay's own page. The bar's search narrows it (`?q=`), and `?from=` and `?to=` narrow it by date | `getRefundConsole` in `lib/admin/money-queries.ts` (Session A's) |
+| Reconciliation (`#reconciliation`) | A check plate and a badge: Healthy, Needs a person, Gone quiet (no run for longer than the 3 hour allowance in `lib/cron/freshness.ts`) or No runs recorded, with the last run and how many recorded runs were clean | `getReconciliationHealth()` in `lib/admin/reads/money.ts`, the `wallet.reconciliation.run` rows in `audit_log` |
+| Tenancy charges (`#rent`) | Drawn only when its read worked: how many move-in charges have been opened, with the note that the latest are listed on each tenancy | `getRentCharges()` in `lib/admin/reads/money.ts` |
+| Refund clock (`#refund-clock`) | Two lists, "Refunds past their due date" and "Refunds due within 24 hours". Each row is the amount, linked to the stay in Bookings, the kind (Guest asked, paid; Decided, not yet sent to Paystack; With Paystack, not yet on the card; Flatmate's share, not yet sent to Paystack; Flatmate's share, with Paystack; Owed by the lister) and the due date. A guest's request carries Decline, with the reason the guest reads. A failed read says it could not be read | `readRefundClockBoard` in `lib/after-gate/refunds.ts` |
+| Payments and refunds (`#history`) | A ledger on a document sheet, platform-wide, read as the caller. First the totals: Paid by renters and guests, Settled to listers, To the Guarantee reserve, Vallo commission, Refunded (processed) and Payments. Then the latest fifty payments and refunds, each with its kind, listing, payer and payee, amount and a state. Under the sheet, Download CSV | `readAdminMoneyHistory` in `lib/money/history.ts`, from `admin_money_summary` and `admin_money_history`; the CSV is `/admin/money/export` |
+
+**Actions on this desk.** Three, each Session A's or Session 2's and unchanged:
+approve, reject or mark paid a Guarantee claim, rule on a caution, and decline a
+guest's refund request on the refund clock. Every ruling is a slide (section 2).
+Reading the desk needs the `finance` scope. Each ruling is checked again in
+its own action: a claim or a caution ruling needs the `guarantee` scope
+(`lib/admin/agreements-actions.ts`, `lib/admin/caution-desk-actions.ts`), and an
+admin holds both. The Download CSV link is a plain link and not a prefetched
+one, because opening it writes an audit row.
+
+## 9. Agreements, and the retired Escrow desk
+
+**Escrow.** There is no Escrow desk. `/admin/escrow` and everything under it
+redirects to `/admin/agreements`, and `/escrow` to `/agreements`
+(`next.config.ts`), because Vallo holds no escrow. The rail has no Escrow row;
+Agreements takes its place as the review gate between an agreement and payment.
+
+**Route:** `/admin/agreements`. **Who:** the `agreements` scope, which an admin
+holds. A person who holds only the `guarantee` scope sees a page headed
+"Guarantee claims" with the claims panel and nothing else, and a person with
+neither sees "Your account cannot open this desk." Where the gate's rules live:
+`readAgreementQueue` in `lib/admin/reads/agreements.ts`, `decideAgreement` in
+`lib/admin/agreements-actions.ts`, and the `deal_agreement_events` and
+`audit_log` records the database writes (Session 2's).
 
 | Panel | What it shows | Source |
 |---|---|---|
-| Stuck, and somebody is waiting | PENDING debits older than 30 minutes. Only drawn when there are any. | `getMoneyConsole()` in `lib/admin/money-queries.ts` (Session A) |
-| Wallet float | Settled credits minus settled debits across every wallet, and the change against the float a week ago | `getMoneyDesk()` in `lib/admin/reads/money.ts`, every `wallet_entries` row |
-| In escrow | Money in HELD, RELEASE_REQUESTED and DISPUTED escrows, and the change against what was held a week ago (worked out from `held_at` and the settle timestamps) | `getMoneyDesk()`, every `escrows` row |
-| Settled this week | Value of COMPLETED wallet entries in the last 7 days, both directions, against the 7 days before | `getMoneyDesk()` |
-| Failed charges | FAILED card charges (`transactions`) plus FAILED wallet top-ups (`wallet_entries`, kind `deposit`) in the last 7 days, with the count; a rise is drawn in rose because more failures is worse | `getMoneyDesk()` |
-| Money in vs money out | Settled money into wallets against settled money out, per Lagos month, from the first month that had any money, for up to 12 months. Hover a month to read both figures. With fewer than two months there is no line, and the panel says so | `getMoneyDesk()` |
-| Reconciliation health | The share of payment reconciliation runs in the last 7 days that came back clean, the last clean run, and a badge: Healthy, Needs a person, Gone quiet (no run for longer than the 3 hour allowance in `lib/cron/freshness.ts`) or No runs recorded | `getReconciliationHealth()` in `lib/admin/reads/money.ts`, `audit_log` rows with action `wallet.reconciliation.run` |
-| Transaction summary | Money in, money out and the net over the last 30 days | `getMoneyDesk()` |
-| Tenancy charges | Every move-in charge (`rent_payments`: what a tenant pays to take the keys after the lister accepted an inspection), by where it stands, on one status bar with a word and a count per state: Awaiting payment (its booking is PENDING and nothing has settled), Paid (a SUCCESSFUL transaction settled against its booking), Cancelled or did not move in (the booking was cancelled, including by the 48 hour sweep of unpaid holds, or marked no-show), Needs a look (a confirmed or completed booking with no settled payment, or a charge whose booking was not found: never guessed at). Then what is paid and what is awaited in naira, and the six newest charges: opened, listing and tenant, the carrying booking id, move-in day and period, the frozen total, the state. Whole-platform: the filter below never narrows it. With no charge it keeps its bar, key and table head and says what fills it, what creates a charge, and links to bookings | `getRentCharges()` in `lib/admin/reads/money.ts`: every `rent_payments` row against an exact count, every carrying booking's status and every SUCCESSFUL transaction on those bookings; titles and names only for the rows printed |
-| Filter | One search box (a person's name, a wallet id or an entry reference) and a Lagos date range. It narrows the ledger, the wallets and the refunds together. It never changes the four cards, the chart or the summary, which always answer for the whole platform | `QueueFilters`, URL parameters `q`, `from`, `to` |
-| Ledger | Every wallet entry, newest first: date, description (the entry's note, or its kind, and the owner), the reference in full, Credit or Debit, amount, and the platform float straight after that entry. Unsettled entries carry a status badge and leave the balance unchanged. Numbered pages of 10 (`?page=`) | `getMoneyDesk()` |
-| Wallets | Newest forty wallets with settled and held figures, narrowed by the filter | `getMoneyConsole()` |
-| Refunds | Every refund decided on the console and where its money is now | `getRefundConsole()` (Session A) |
-| Disputed holds waiting on a ruling | Disputed escrows, with everything each side has filed shown above the ruling control (see Escrow, "Evidence filed") | `getEscrowConsole({ status: "DISPUTED" })` (Session A); evidence `getDisputeEvidence()` in `lib/admin/reads/escrow.ts` |
+| Waiting for review (N) | One row per agreement. The listing, linked to its subject, with a Rental or Stay tag and, on a rental with no mandate behind it, a "No mandate on file" tag. Then renter and owner, the amount, the move-in or check-in date and the end date, the keys date where it differs, the number of inspection photos, the terms version, how long it has waited and the members' notes. Approve is one tap. Reject opens a reason field on the same row, with four common reasons as chips, a Send back button (enabled once the reason is ten characters) and Cancel. A decided row says what happened ("Approved. Both parties told; payment is open." or "Sent back. Both parties told with your reason."). Tab moves between a row's controls, and Enter in the reason field sends it | `readAgreementQueue` |
+| Recently decided | The decided agreements, each with the parties, the amount and its status or, for a rejection, the reason it was sent back with | same |
+| Guarantee claims (`#claims`) | For a person who holds the `guarantee` scope without being an admin: the same claim controls as on Money (section 8). An admin decides claims on the Money desk | `readGuaranteeDesk` |
 
-**How the totals are kept honest.** PostgREST aggregates are not switched on
-for this project, so sums are taken over rows. `readEvery` pages through each
-table in chunks of 1,000 until it runs out and the count reached is checked
-against an exact count. Above 50,000 rows it stops and the page prints "the
-figures above are at least these amounts rather than totals". No figure on
-this desk is the total of a capped list.
-
-**The balance column is only shown unfiltered.** It is the platform float, so
-a running balance over a filtered subset would be a number that means
-nothing. Filtered, the column is dropped and the panel says why.
-
-**Actions on this desk.** One, and it is Session A's: the escrow ruling
-(release to the payee or refund to the payer, with a written reason of at
-least 20 characters). It calls `resolveEscrow` in `lib/admin/money-actions.ts`,
-which calls `public.escrow_admin_resolve`. That function repeats the admin
-role check, refuses anything not DISPUTED, settles through
-`private.escrow_settle`, writes the transition to `audit_log` through the
-`escrows_guard_transition` trigger, and sends both people an in-app
-notification (`private.notify`, kind `wallet`) carrying the ruling word for
-word. Nothing else on this desk writes.
-
-**Today's reality (22 September).** One wallet, two entries (one completed
-₦1,000 top-up, one failed ₦1,000 withdrawal), no escrows, no failed card
-charges, no tenancy charges (`rent_payments` held 0 rows on 23 September),
-reconciliation clean on every recorded run. The desk draws exactly
-that: a float of ₦1,000, zeros elsewhere, no trend line (one month of money
-is not a trend), and a two row ledger.
-
-## 9. Escrow
-
-**Route:** `/admin/escrow`. **Who:** `admin` or `super_admin`, as above.
-
-**What it is for.** Seeing every naira the platform is holding between two
-people, and ruling on the ones where somebody objected.
-
-| Panel | What it shows | Source |
-|---|---|---|
-| The pipeline | Six tiles: Funded, Held, Release requested, Released, Refunded, Disputed, each with the count of escrows in that state across the platform. Each tile is a link that narrows the table to that state; pressing the lit one clears it. Disputed turns rose when it is not zero | `getEscrowDesk()` in `lib/admin/reads/escrow.ts`, every `escrows` row |
-| Filter | Search by property title, a status chip for every escrow state (all nine in the live schema, including Cancelled), a Lagos date range | `QueueFilters`, URL `q`, `status`, `from`, `to` |
-| Waiting on a ruling | Every dispute on the platform, never paged, oldest first: both people, the property, both confirmations (and whether the payer's came from an inspection), the objection in the objector's words, the platform share, and the ruling control | `getEscrowDesk().disputes` |
-| Evidence filed (on each ruling) | Everything either side has filed on that dispute, oldest first, above the ruling so nobody rules without reading it: which side filed it (Payer or Payee, and the name; "Neither party" if someone else did), what it is (one of the thirteen closed facts in words, with its date or amount, or a file with its name, caption, type and size), when it was filed, and for a file an "Open file" link: a ten-minute signed link into the private `escrow-evidence` bucket that opens in the browser's own viewer (the console has no document viewer to reuse). A file that could not be signed says so. A failed read says "The evidence could not be read", never "nothing filed". With nothing filed it says so and that each side files from their own held payment page. Also drawn on the Money desk's disputed holds | `getDisputeEvidence()` in `lib/admin/reads/escrow.ts`: `escrow_evidence` under `escrow_evidence_select_admin`, the escrow's payer and payee, names from `profiles`, links signed under `escrow_evidence_objects_admin_read` |
-| Live escrows | Every escrow not yet settled (or, with a state chosen, every escrow in that state): short id (the first eight characters of its id, full id on hover), property, amount, payer to payee, purpose, whole days since it was held, and the time left until it releases on its own, in the render's "4d 12h" form (it reads "due" once the moment has passed; the sweeper releases on its own schedule). Settled rows show their state instead of a countdown. Numbered pages of 10 | `getEscrowDesk().table` |
-| Float total | HELD plus RELEASE_REQUESTED plus DISPUTED money, and how many escrows are still running | `getEscrowDesk()` |
-| Reconciliation check | The same reconciliation read as the money desk, as a check plate and a badge | `getReconciliationHealth()` |
-| Float, booked daily | The escrow float as the daily job books it (`escrow_float_snapshots`, one row a day) beside the float the ledger books, as two lines, with a hover readout of both, the difference and the escrow count. Under it the invariant the table records: the difference between the two, where zero is Balanced (emerald) and anything else Does not balance (rose), the latest day's figures, how many days balanced and the last day that did not. With one day there is no line and the panel says so; the verdict is still printed | `getEscrowFloatHistory()` in `lib/admin/reads/escrow.ts`, every snapshot against an exact count, under `escrow_float_snapshots_select_admin` |
-| Escrow by purpose | Every escrow split by purpose: rent deposit, first rent, purchase deposit, purchase balance and agency fee (`agency_fee`, in the live schema since 23 September and not yet in the generated types; the desk counts it and any purpose added later rather than failing), on the blue ramp, largest first, with share and count beside every slice | `getEscrowDesk().pipeline.byPurpose` |
-| Recent activity | The newest six transitions across all escrows, from the seven timestamp columns (funded, held, release requested, released, refunded, disputed, ruled on) plus opened | `getEscrowDesk().pipeline.recent` |
-
-**The action.** The ruling, exactly as described under Money: Session A's
-`resolveEscrow`, unchanged.
-
-**What this desk cannot do.** Release or refund an escrow that is not
-disputed (the database refuses it; the parties or the auto release sweeper
-move those), change an amount, or open an escrow. It cannot add, edit or
-remove evidence either: `escrow_evidence` is append only by trigger, and only
-the parties file.
-
-**Today's reality.** `escrows` holds no rows. Every tile reads 0, the table
-says the platform is not holding anybody's money, the donut and the activity
-list say nothing has happened yet. `escrow_evidence` holds no rows.
-`escrow_float_snapshots` holds one: 23 September, a float of ₦0 against a
-ledger float of ₦0, Balanced; the float panel says one day is booked and
-draws no line.
+**What this desk cannot do.** Change an amount, a date or the terms, or open an
+agreement. A rejection's reason is read by both parties, so it must be written;
+the page head says so.
 
 ## 10. Supply
 
@@ -710,6 +922,13 @@ queue and are not counted in these cards.
 **Today's reality.** No stay and no reservation has ever been made; every
 card reads 0 and every panel says what will fill it.
 
+**One stay's page** (`/admin/bookings/<id>`) heads with the listing's title and
+chips for what was paid and refunded, then the acting-for answer for the stay
+(who the lister was acting for, staff only, with the lookup audited), the Stay and
+People sections, the payment record on a document sheet (the price lines, what
+settled, what was returned, each payment and each refund), the Cancel and refund
+control, and the stay's history, folded (section 2).
+
 **Hotel rooms (ROOM BOOKINGS 1, 29 September 2026).** A booking can now be
 for a hotel room instead of a listing: `accommodation_id`, `room_type_id`,
 `rate_plan_id` and `rooms` are set and `listing_id` is null. The desk shows it
@@ -741,6 +960,8 @@ reconcile job settles any that did).
 | Every payment | Every attempt, newest first: when it started, the provider reference in full, the kind (a checkout links to its stay), the channel, the outcome and the amount. Narrow by outcome and by kind; numbered pages of 12 | same |
 | Health | Money frozen by stuck holds and money waiting on the provider; the stuck withdrawal holds with the release control, and payments the provider has not settled. The overdrawn-wallets table and its shortfall figure were removed with custody (`admin_payment_health` still returns an always-empty `overdrawn`) | `getPaymentHealth()` (Session A), calling `public.admin_payment_health` |
 | Look up a person | Saved cards and bank accounts (masked) and their terms standing, with removal | `findAdminSubject`, `getSavedMethods`, `getTermsStanding` (Session A) |
+| Which Paystack | A line under the heading saying which Paystack account this deployment is talking to, so a sandbox deployment is never mistaken for the live one | `currentPaystack()`, read only |
+| Acting for | A `?acting=` lookup that answers, for a transaction, who the lister was acting for (staff only, audited) | `ActingFor`, SCUML item 17 |
 
 **Actions, all Session A's, unchanged.** Release stuck holds
 (`expireStaleWithdrawalHolds`, calling `admin_expire_stale_withdrawal_holds`)
@@ -764,8 +985,10 @@ August); no booking checkout has been attempted; nothing is stuck.
 
 ## 13. Operations: scheduled jobs, alerts, audit log, notifications
 
-Drawn from the render `01F7DFC7`, panel two. `/admin/operations`, with four
-tabs in the address (`?tab=alerts`, `?tab=audit`, `?tab=notifications`).
+Drawn from the render `01F7DFC7`, panel two. `/admin/operations`, with six
+tabs in the address (Jobs by default, then `?tab=alerts`, `?tab=audit`,
+`?tab=notifications`, `?tab=inflight` and `?tab=store`) and a seventh link, Field
+speed (section 15.21). The desk's sections strip is in section 2.
 Reads: `lib/admin/reads/operations.ts` (`getJobHealth`, `getRunDays`,
 `getAlertTrend`) and the existing `getRiskAlerts`, `getAuditLog` and
 `getAuditActivity`. Nothing on this desk changes anything; it reads.
@@ -892,6 +1115,16 @@ with the eight newest requests. Beside them, panels for account deletions
 and the money reconciliation watch (admin-money's request 10), each saying
 what it needs because no admin can read those rows yet.
 
+**Store tab.** Eight of the checks an App Store or Play reviewer runs by hand,
+run against the live platform when the tab is opened (against the origin the
+request came in on), plus one manual step, native versions, that a server cannot
+read. Each check shows a word with a shape and a tone, Ready, Fix or Not run, what
+it saw and, when it is not ready, the one thing to do. A summary line counts how
+many are ready, how many need fixing and how many could not run, and "Run the
+checks again" reopens the tab. The same checks run every night (the
+`store-readiness` job) and raise an alert when one turns red. The tab does not
+refresh itself, because its checks sign the reviewer account in.
+
 **Recent alerts and Audit log** sit beneath every tab: the four newest alerts
 and the five newest audit entries.
 
@@ -923,6 +1156,11 @@ names its figures as price checks and does not call them searches.
 | Price checks vs answered | checks submitted and checks answered per bucket | real |
 | Top common refusals | the platform's refusals of a price check by `refusal_code`, in words | real; a person's decline of an inspection or reservation still carries no reason (A11) |
 
+**Why listings were sent back.** When any listing was sent back or rejected with
+reason codes in the last 30 days, a further panel counts each code, since reason
+codes began on 30 September 2026; a review can carry several. It has an entry in
+the desk's sections strip.
+
 Every row of the range is read whole (the pager refuses rather than returns a
 prefix past 50,000 rows), so no total is capped.
 
@@ -936,30 +1174,76 @@ register (panel material, page head, status badges, calm empty states)
 without changing what they do. Each is reached from its parent row or from
 All desks.
 
-**Who may act, on every desk below.** Any account holding `admin` or
-`super_admin` in `user_roles`. Every action first calls `requireAdmin()`
-(`lib/admin/guard.ts`) and refuses anyone else with "This area is for the
-Vallo operations team"; no action on these desks is reserved to
-`super_admin`. Where an action goes through a database function, the function
+**Who may act, on every desk from 15.1 to 15.16.** Any account holding `admin`
+or `super_admin` in `user_roles`, or for a queue the staff scope that opens it.
+Every action first calls `requireAdmin()` (`lib/admin/guard.ts`) and refuses
+anyone else with "This area is for the Vallo operations team"; no action on
+these desks is reserved to `super_admin`. The desks from 15.17 on say who may
+act on each, and Account recovery and Staff reserve some actions to a super
+admin. Where an action goes through a database function, the function
 repeats the role check itself. Every action writes one `audit_log` row with
 your user id (`lib/admin/audit.ts: writeAudit`), which the Audit log desk
-shows. Every list pages forty rows at a time and says when there are more;
-no desk offers bulk actions or export.
+shows. Every list pages forty rows at a time and says when there are more.
+Bulk decisions are on the Unified queue only (section 15.1); exports are the
+three CSV downloads in section 0.
 
 ### 15.1 Unified queue (Overview > Unified queue, `/admin/queue`)
 
-- **Shows** every item waiting on a person across five queues in one table:
-  listings to review, agent applications, open reports, open message flags,
-  open support tickets, with tabs per kind, search and dates.
+- **Shows** one table across five queues: listings to review, agent
+  applications, open reports, open support tickets and open message flags. The
+  tabs are All, Listings, Agents, Reports, Support, Flags and Held, each with its
+  live count, and a staff member sees only the tabs their scopes open
+  (`listing_approval`, `kyc_review`, `moderation`, `support`). The heading counts
+  the five queues. The Reports, Flags and Held tabs draw the desk's own working
+  view under the same tabs, with every decision control it had (sections 5, 15.7
+  and 15.8). Under the table a link to Alerts carries its count.
+- **Lanes** (V-89), a second row of chips above the table: Everything, Late, Mine,
+  Nobody has it, and Probably not a person (offered on All and Support only). On
+  Reports and Flags, Everything is the desk's working view and the other lanes are
+  this table narrowed to that kind. Held has no lanes.
+- **Rows** waiting on a decision carry the promise they are under: "Due in 5h",
+  "Due within the hour" or "Late by 3h" (`lib/trust/standards.ts`), and the table
+  is ordered by when it falls due, not by newest; decided rows follow, newest
+  first. A report also shows why it is weighted as it is (an attended inspection,
+  a confirmed phone, its reporter's record of upheld reports, or "First report from
+  this person"). A support ticket from no account that carries a link or a domain
+  pitch sits in Probably not a person, off the clock. Only the first forty rows
+  show.
+- **Owner slot.** Each row waiting on a decision has Take it, which claims it
+  (`queue_take`), then shows "Yours" with Let it go. Another operator's live claim
+  shows "Taken by" their name. A claim lapses after thirty minutes without work.
+- **Batch tray.** Every row has a checkbox (a 44px target). Once one is ticked a
+  tray rises with the count and the verbs: Take, Approve, Send back, Hand to and
+  Close as not a person. Approve, Send back and Close as not a person open a
+  confirmation sheet ("Apply to the selected rows?") first. Send back needs a
+  reason chosen in the bulk form (a reviewed sentence for a listing or an
+  application), and Hand to needs an operator chosen there; a verb that cannot run
+  yet says what it is waiting for and takes you to the field. A select-all
+  control and a clear control sit with it. The tray goes inert while the form is
+  being sent, so a second tap cannot run the batch twice. The form, "Decide the
+  selected rows", is in the page and works without scripts.
+- **Saved views.** Name the tab, lane and search you use and save them, optionally
+  shared with the desk; your own can be deleted. A view is a link.
 - **Sources** the same reads as each desk (`getListingSubmissions`,
-  `getAgentApplications`, `getReports`, `getMessageFlags`,
-  `getSupportTickets` in `lib/admin/queries.ts`).
-- **Actions** none of its own: View opens the item on its desk.
-- **Effects** none: the queue reads and routes; every change happens, and is
-  audited, on the desk that owns the item.
-- **Limits** each tab is the first page of that desk's queue, newest first.
-- **Rejected** acting from the table: every decision needs the desk's
-  context (evidence, history), so the queue only routes.
+  `getAgentApplications`, `getReports`, `getMessageFlags`, `getSupportTickets` in
+  `lib/admin/queries.ts`), plus the claims, views and report signals from
+  `lib/admin/reads/queue-desk.ts`. The rules are in `lib/admin/queue-desk.ts`.
+- **Actions** Take it and Let it go; the five bulk verbs; save and delete a view
+  (`lib/admin/queue-desk-actions.ts`). View on a row opens the desk that decides
+  it. Open to anyone holding one of the scopes `moderation`, `listing_approval`,
+  `kyc_review` or `support`; each per-item action checks its own scope again.
+- **Effects** a bulk verb calls the same per-item action the desk uses (Approve is
+  the listing's or application's approve, Send back is its request for changes,
+  Close as not a person closes the ticket after the server re-checks that it
+  reads as one), at most fifty rows at a time, and writes one `queue.bulk` audit
+  row per item under one batch id. Take and Hand to write their own rows in the
+  database. A verb that does not apply to a kind (approving a ticket) and any row
+  another operator holds are skipped and counted. The page then says "N done, N
+  did not apply, N did not go through. One batch in the audit log."
+- **Limits** money is never in this queue: a refund or a payout is decided one at
+  a time, as a slide, on its own desk.
+- **Rejected** a bulk write that skips the desk's own guards: every bulk verb is
+  the desk's action called N times, never a second path.
 
 ### 15.2 Applications (Supply > Applications, `/admin/agents`)
 
@@ -1048,7 +1332,11 @@ Owned by admin-money; handbook section 12.
 - **Shows** reports people filed (`reports`), with category, target and the
   response clock (`REPORT_RESPONSE_HOURS`, overdue count via
   `countOverdueReports`).
-- **Actions** Reviewing, Resolved, Dismissed (`resolveReport`).
+- **Actions** Reviewing, Resolved, Dismissed (`resolveReport`), each with a
+  note and, for the reporter, an optional line they will read. A report on a
+  review carries the lister's request instead, decided with Keep the review or
+  Hide the review (section 5). A line above the list says whether anything has
+  waited longer than the 24-hour promise, and a row of reason chips filters it.
 - **Effects** the report's status moves and the reporter is told. Audit:
   `report.review`.
 - **Limits** a resolved or dismissed report is final on this desk.
@@ -1088,7 +1376,11 @@ Owned by admin-money; handbook section 12.
 
 - **Shows** every risk alert (`risk_alerts`, via `getRiskAlerts`) by status
   and severity, and inventory drift alerts (`getInventoryDriftAlerts`).
-- **Actions** Resolve (`resolveRiskAlert`).
+- **Actions** Resolve (`resolveRiskAlert`, with a note), and I have this
+  (`acknowledgeRiskAlert`), which puts your name on an open alert so nobody else
+  chases the same fault and decides nothing about it. An inventory drift finding
+  from the nightly sweep is drawn above the general queue, with the same resolve
+  control; resolving says a person looked and does not move inventory.
 - **Effects** the alert goes to `resolved` with your id and the time; the
   rail and Operations counts fall. Audit: `risk_alert.resolve`.
 - **Limits** resolving does not fix the cause; a job that keeps failing
@@ -1103,7 +1395,11 @@ Owned by admin-money; handbook section 12.
   with actions per day and by kind (`getAuditActivity`, up to 5,000 rows
   and it says so when it hits that).
 - **Actions** none; the log is read only, and identity documents and
-  credentials in a row's detail are withheld (`safeAuditMetadata`).
+  credentials in a row's detail are withheld (`safeAuditMetadata`). The page also
+  has three charts (actions per day, by kind and by actor), two tabs for who
+  wrote it (People, and Everything with scheduled jobs), tabs by kind, and a
+  Download CSV link for the period (the last 30 days unless a date range is set;
+  the download is itself recorded, section 0).
 - **Effects** none: reading the log writes nothing, not even a view record.
 - **Limits** forty entries a page (`QUEUE_PAGE_SIZE`), newest first; the
   search matches an exact id or words in the action and the target id, not
@@ -1182,16 +1478,141 @@ Owned by admin-money; handbook section 12.
 - **Who** admins and super admins. Scoped staff are refused: the person file
   is admin-only in the database, and the search is the widest read in the
   console.
+- **Also on the file**: Consider an STR (opens a case on the Compliance desk,
+  section 15.17); a standing stop, with, for a senior reviewer, **Uphold this
+  stop as fraud** (a sentence of at least ten characters, which a later match
+  reads out and which puts the person's identity keys on the deny-list until the
+  stop is lifted; other reviewers are told who can); **Matches an upheld fraud
+  stop**; **Linked accounts** (a shared device, mailbox pattern, phone number,
+  payout account or NIN, compared inside the database and never shown); and the
+  timeline, folded under "Everything, newest first" with a link to the audit
+  trail (section 2).
 - **Limits** a section whose read failed says "could not be read", never
-  "none". Lists stop at twenty with the total where one is counted. The route
-  needs `"/admin/people": "/admin"` in `lib/nav/route-parents.ts` (not yet
-  declared), and has no rail row yet; it is linked from Stops and from every
-  member file.
+  "none". Lists stop at twenty with the total where one is counted. The route is
+  declared in `lib/nav/route-parents.ts` (People under the console, a member file
+  under People) and People is on the rail under Support.
 - **Not built** suspending or reinstating a member who is not a lister (only
   lister stops exist, `agent_suspensions`), a read-only "view as", and
   per-session sign-out (sessions live in GoTrue; the console sees devices).
 
-### 15.17 What no desk shows yet
+### 15.17 Compliance (Verification > Compliance, `/admin/compliance`)
+
+The AML/CFT desk, one lane per SCUML checklist item, as tabs (`?tab=`). Staff
+only: the compliance scope opens it (`requireAdmin("compliance")` in each lane),
+and nothing on it is ever shown to a member. Each lane reads its own data and
+draws three states: the work, an honest empty, and a failure that says the check
+could not run, never "none waiting". The item number is printed under the tabs.
+The lane table is one line per lane in `app/admin/compliance/page.tsx`; the rules
+and reads are in `lib/compliance/` and `lib/admin/str*.ts` and are not Session 3's.
+
+| Lane (tab) | Item | What it shows | Controls |
+|---|---|---|---|
+| STRs (default) | 6, 19 | Suspicious Transaction Report cases: the source, the due date (marked overdue), the state, when it opened, the grounds, the linked transactions and people, and the file or do not file decision with its reasons. Releases waiting on a second person. A register of filed reports on a document sheet: the goAML reference, when it was filed, the case and the people who decided and approved | Open a case (other screens link in, prefilled: the person file, an alert, a sanctions hit); decide, link, hold a person's money, record the filing; a second person's approval is Slide to approve this decision, and ending a hold is Slide to approve the release. A decision bar sticks above the home indicator on a phone |
+| Threshold reports | 7 | Each movement above the threshold, or a run of smaller ones for one party over the same limit within a week: the amount, the kind, the party and counterparty with their class, the threshold, the date, a due clock chip, and the recorded decision | Record that it was reported (with the goAML reference and date) or is not reportable (with a reason), then a second person approves. A monitor fault is shown as an alarm, never as "nothing to report" |
+| Sanctions | 8, 9 | The lists in force (UN Consolidated and Nigeria) with their version date and entries, a list waiting to be activated, the matches waiting on a decision (exact first, close matches with their score, and a lower group for close matches on common names), confirmed matches with whether money is held, and the latest screenings | Load a list file (the UN list as XML or the Nigeria list as CSV, up to 4 MB; it loads inactive and a second person activates it, which re-screens everyone); decide a match, with a second person; a link to open an STR case |
+| Risk | 15 | The counts by class (high, medium, low, reviews due), the open enhanced due diligence reviews, class changes waiting for a second person, and each person's class with its reasons, factors, whether derived or set by hand, and when its review is due | Decide an open review, with a second person; approve a class change proposed by someone else; set a class by hand with a reason; reopen a cleared review |
+| Acting for | 17 | For agent and firm listings: how many are live with a mandate and without, the awaiting and taken-down counts, the mandates waiting, the grace date, and the listings still missing a mandate with a link to decide on Listings | A lookup: given a transaction, booking, rent payment or listing, who the lister was acting for (`ActingFor`); the lookup is staff only and writes an audit row |
+| PEP | 20 | How many listers have not been asked, the open reviews of politically exposed persons' transactions, the people flagged (declared or flagged by staff), clears waiting on a second person, and the settled reviews | Flag a person; record the source of funds on a review and approve it as a second person; approve a clear proposed by someone else |
+
+An approval that is final (a second person approving a recorded decision) is a
+slide, and sending it back reopens the case, so that stays a button. The same
+two-person rule applies on every lane (item 19): nobody approves their own
+proposal, and the card says so.
+
+### 15.18 Lookup (Overview > Lookup, `/admin/lookup`)
+
+- **Shows** one search box (Control K opens the console search, which sends a
+  reference here) and, once something is searched, "Results for" the kind it read
+  as: a ticket reference, an id, an email address, a listing code, a payment
+  reference or an error reference. Each hit has its kind, a link to the desk that
+  holds it and a line of detail. A plain word is told it reads as a word and to
+  search a desk instead; a reference with no hit says "Nothing matched on the
+  desks you can open"; the desks your access does not include are named as not
+  searched. An error reference carries a note about finding the crash report.
+- **Sources** `lookup` in `lib/admin/lookup-reads.ts`, classified by
+  `lib/admin/lookup-classify.ts`, each desk read under its own scope.
+- **Actions** none.
+
+### 15.19 Account recovery (Support > Account recovery, `/admin/account-recovery`)
+
+- **Shows** the latest fifty requests to move an account to a new address when its
+  owner has lost the mailbox (`email_recovery_requests`): the old and new address,
+  the state (cooling off, completing, completed or cancelled), when it opened, the
+  earliest time it may move, the evidence reference, whether the old address has
+  been told, and for a completed one when it moved. The page head states the
+  sequence, and the database enforces it (SEC-15): the NIN must match an approved
+  identity on file, the cooling-off period counts from the notice to the old
+  address, and a different super admin from the one who opened it completes the
+  move.
+- **Actions** Open a request (account id, new email address, the NIN the person
+  gave, a ticket or evidence reference; super admins only), Send the notice again,
+  Move the account (super admins only), and Cancel with a reason (any admin)
+  (`lib/admin/email-recovery-actions.ts`). A person who is not a super admin is
+  told only a super admin can open or complete one.
+- **Effects** every step is in the audit log; completing signs the account out
+  everywhere.
+
+### 15.20 Front door (Analytics > Front door, `/admin/front-door`)
+
+- **Shows** how many visits reach each step of joining, over 7 and 30 days, with
+  the conversion from the step before, in one table; landing views by language
+  over 30 days; and confirmed sign-ups by invite code over 30 days. It is first
+  party only (`public.funnel_events`, kept 90 days). Until the migrations for the
+  funnel or for invite codes are applied, the panel says it is not recorded yet
+  rather than printing zeros.
+- **Sources** `getFunnel(7)`, `getFunnel(30)` and `getReferralCounts(30)` in
+  `lib/admin/reads/front-door.ts`. **Actions** none.
+
+### 15.21 Field speed (Operations > Field speed, `/admin/field-speed`)
+
+- **Shows** a table per route and connection class over the last seven days:
+  samples, 75th percentile Largest Contentful Paint (seconds), Interaction to Next
+  Paint (milliseconds), layout shift and page weight (KB). The samples are one page
+  view in ten on real phones, with nothing that identifies a person
+  (`components/app/VitalsReporter.tsx`). With no samples it says so instead of
+  drawing a zero.
+- **Sources** the `admin_field_speed()` function, which refuses anybody who is not
+  staff. **Actions** none. It has no rail row; it is the last tab link on
+  Operations.
+
+### 15.22 Staff, the handbook and Settings
+
+- **Staff** (Settings > Staff, `/admin/staff`) opens only for the founder's super
+  admin account; the database refuses a grant from anybody else. Its panels:
+  Give access (a person, a position and the scopes it brings), Support team,
+  Everybody who can act in the console (name, position, the desks they hold or
+  "Every desk", when and by whom it was given, the handbook acknowledgement, last
+  active, actions in 30 days, and for a staff member a revoke control; admin roles
+  change only through the founder's database runbook), Console keys (each
+  person's keys with their label, when added and last proved, a warning where
+  someone could be locked out, and a control to clear a person's keys), Left out
+  of figures (anyone marked as internal, so they are left out of analytics, the
+  overview and the view counter; staff and the QA accounts are left out
+  automatically), and What staff did, last 30 days.
+- **Staff handbook** (Settings > Staff handbook, `/admin/handbook`) shows the
+  handbook by version, with a panel per section, then Your role and Acknowledge.
+  A staff member's desks unlock when they acknowledge it. **Your role**
+  (`/admin/handbook/position`) shows what the position is, what you are
+  responsible for, what is expected of you and when to escalate.
+- **Settings** (`/admin/settings`) reads nothing. It is one door to the desks
+  under it: a panel per desk (Switches, Reference data, Examples, Staff, Staff
+  handbook, Help and support), each a link.
+- **What a staff member sees.** Not the operator's rail: a short frame with their
+  position, Console, Handbook, Your role, Help and support, and one link per desk
+  their scopes open once they have acknowledged the handbook
+  (`app/admin/_components/StaffFrame.tsx`). Their front page lists those desks.
+
+### 15.23 Team oversight (Operations > Team oversight, `/admin/oversight`)
+
+- **Shows** two tables read from the records themselves. Backlog by queue: the
+  queue, the desk that owns it, how many are waiting and the age of the oldest
+  waiting item. Work by staff member, last 30 days: the person, their number of
+  actions, the three they did most often and their last action. Each table has a
+  Download CSV link (`/admin/oversight/export?kind=backlog` and `kind=throughput`).
+  It is for admins and the `operations` scope, and carries the read-only line.
+- **Actions** none.
+
+### 15.24 What no desk shows yet
 
 Inspections are on Operations > In flight, push notifications on Operations >
 Notifications, price checks on Analytics. Account deletions (A12), business
@@ -1200,9 +1621,9 @@ money reconciliation watch (admin-money's request 10) each have a panel on
 In flight that says what it needs; in-app notification volumes (A6) and the
 email outbox (A14) have theirs on Notifications. Held events and the safety
 scan's blocked terms are admin-review's (section 5). Mandates
-(`listing_mandates`), firm members (`firm_members`), escrow evidence
-(`escrow_evidence`) and the daily float snapshots (`escrow_float_snapshots`)
-are shown on the desks that own them (sections 5 to 12).
+(`listing_mandates`) and firm members (`firm_members`) are shown on the desks
+that own them (sections 4 and 10). Escrow and the daily float snapshots have no
+desk: the escrow desk is retired (section 9).
 
 **The badge (B-BADGE).** Wherever the console draws a person's name (the
 operator in the rail and bar, the people named in audit and alert rows, and
@@ -1259,39 +1680,55 @@ instead. Their ladder and tier update when the rung's documents are decided.
 
 ### Money desks (admin-money)
 
-**Reading an empty panel.** On money, escrow, supply, bookings and payments an
+**Reading an empty panel.** On money, supply, bookings and payments an
 empty panel keeps its frame (axes, legend, table head) and shows a calm note:
 the first line says what fills the panel, the second what creates that data,
 and the link goes to the desk where that happens. A red note means the read
 did not answer, not that there is nothing; reload.
 
-**Ruling on a disputed escrow.** Open `/admin/escrow` (or the money desk's
-"Disputed holds" panel). Read both confirmations and the objection. Decide
-release (the payee is paid) or refund (the payer is paid back). Write what you
-decided and why, at least 20 characters: both people are sent it word for
-word. Choose the direction; the control shows exactly what moves and to whom
-before anything happens. Confirm. The escrow leaves the Disputed tile and the
-transition is in the audit log.
+**Ruling on a Guarantee claim.** Open `/admin/money#claims` (staff with the
+`guarantee` scope open it at `/admin/agreements#claims`). Read what the claim
+asked, what it cites, how many new evidence files there are and the description.
+To approve, check the amount to pay from the Guarantee and slide to approve; to
+reject, write a reason of at least ten characters and slide to reject, and the
+claimant reads it. An approved claim then asks for the bank transfer reference:
+pay it from the reserve account, enter the reference (at least four characters)
+and slide to mark it paid. If the server refuses, the track says "That did not go
+through" and the row carries the server's sentence. What amount the database
+accepts is Session 2's rule (`docs/MONEY_ARCHITECTURE.md`).
 
-**Investigating a failed charge.** On `/admin/money`, the Failed charges card
-counts this week's failures. Search the person's name or the reference in the
-filter; the ledger shows their entries with a Failed badge and the full
-reference. Give that reference to Paystack support. A failed top-up moved no
-money, so the balance column does not change beside it.
+**Ruling on a caution.** Open `/admin/money#caution`. For a disputed deduction,
+open the tenancy file to read both sides' reports, enter the amount that stands
+(0 allows none) and a reason both parties read (at least ten characters), and
+slide to rule. For a contested return, write the reason and slide received or
+not received.
 
-**Reading a reconciliation failure.** The Reconciliation health badge reads:
-Healthy (the newest run was clean and the job ran inside its 3 hour
-allowance), Needs a person (the newest run reported a gap, an overdrawn wallet
-or a hold it could not release; open Risk alerts for the
-`cron.reconcile.needs_attention` alert with the counts), Gone quiet (no run
-for more than 3 hours: the scheduler or the site origin in Vault is broken;
-tell an engineer, this is how the job failed silently for three weeks in
-August), or No runs recorded.
+**Deciding an agreement.** Open `/admin/agreements`. Read the row (the
+inspection photos, the dates, the amount, whether a mandate stands behind the
+owner), then Approve, or Reject with a reason both parties read, using one of the
+four quick reasons if it fits.
 
-**Answering "where is my money".** Search the person on `/admin/money`. Stuck
-first: a PENDING debit older than 30 minutes is at the top. Then the ledger
-narrowed to them, their wallet in Wallets, any refund in Refunds, and any
-escrow they are party to on `/admin/escrow` (search by the property).
+**Declining a refund request.** On `/admin/money#refund-clock`, find the guest's
+request in the due or overdue list, press Decline and write the reason the guest
+reads. A refund itself is made on the stay's own page, never here.
+
+**Investigating a failed charge.** On `/admin/payments`, narrow Every payment by
+the Failed outcome, or look the person up. The row gives the provider reference
+in full; give it to Paystack support.
+
+**Reading a reconciliation failure.** The Reconciliation check badge reads:
+Healthy (the newest run was clean and the job ran inside its 3 hour allowance),
+Needs a person (the newest run reported something to look at; open Alerts for
+the `cron.reconcile.needs_attention` alert with the counts), Gone quiet (no run
+for more than 3 hours: the scheduler or the site origin in Vault is broken; tell
+an engineer, this is how the job failed silently for three weeks in August), or
+No runs recorded.
+
+**Answering "where is my money".** Find the person on People, or the stay on
+Bookings (search the booking id or the guest). The stay's payment record lists
+each payment and refund; the refund's state is on `/admin/money#refunds`; the
+platform-wide ledger is `/admin/money#history`, and Payments looks up a person's
+saved methods.
 
 ### Operations runbooks (admin-shell)
 
@@ -1350,10 +1787,11 @@ console needs and does not have yet)
 - **The desks decide nothing of their own.** Approve, Publish, Ask for more,
   Reject, report decisions, held-item decisions and document decisions all
   call Session A's existing actions, unchanged.
-- Open requests: AR-10 (deciding a held event), AR-11 (reading the blocked
-  terms list), AR-12 (deciding a listing mandate). AR-1 to AR-9 were withdrawn
-  when Session B wrote the reads itself (`lib/admin/reads/listings.ts`,
-  `moderation.ts`, `verification.ts`).
+- Open requests: AR-10 (deciding a held event) and AR-11 (reading the blocked
+  terms list). AR-12 (deciding a listing mandate) is met by the decision control
+  in the mandate row (section 4).
+  AR-1 to AR-9 were withdrawn when Session B wrote the reads itself
+  (`lib/admin/reads/listings.ts`, `moderation.ts`, `verification.ts`).
 
 ### Money desks (admin-money)
 
@@ -1366,15 +1804,14 @@ console needs and does not have yet)
   count). Above 50,000 rows a desk says its figures are floors. A database
   side aggregate would lift this; it is a migration, not requested yet
   because the platform is five orders of magnitude below it.
-- **The wallets list is still the newest forty** (`getMoneyConsole`, Session
-  A's). The ledger and the cards are not capped.
 - **Supply cannot yet say who owns versus who agents a particular property.**
   The role is per account; `lib/supply/roles.ts` records that ownership is a
   property of a person and a property together, and that pair is not in the
   schema yet.
-- **Nothing on these desks writes except the escrow ruling,** which is
-  Session A's mutation, and on bookings and payments Session A's cancel,
-  reservation decision, hold release and saved method removal.
+- **What these desks write.** On Money, the Guarantee claim, caution and
+  refund-request decisions; on Agreements, the agreement decision; on bookings and
+  payments, Session A's cancel, reservation decision, hold release and saved
+  method removal. Supply, Operations and Analytics write nothing.
 - **Bookings has no "checked in".** The schema has no such status; the card
   is "In stay now", from a confirmed stay's dates.
 - **Payments cannot name a checkout's channel.** `transactions` does not
@@ -1466,7 +1903,7 @@ part four belong here)
 - **One status palette slot per payment outcome.** Five outcomes, four status
   colours: Abandoned and Failed share rose and are told apart by their words
   on the bar and in the key.
-- **A cursor pager on escrow.** The shared queue pager offers only next and
+- **A cursor pager on escrow** (a desk since retired, section 9). The shared queue pager offers only next and
   previous because the old read had no total. The render draws numbered
   pages, and `getEscrowDesk` has an exact total, so the desk uses numbered
   pages.
@@ -1500,3 +1937,26 @@ part four belong here)
 - **Putting the pulse strip in the top bar**, as the overview render does:
   rejected in favour of the three-panel renders' bar (search, bell, operator)
   shared by every desk; the strip leads the overview page instead.
+
+### Session 3 additions (the shell and the rulings)
+
+- **A tray that decides money.** Rejected: the batch tray holds only verbs that
+  the queue already ran in bulk. A refund, a payout or a ruling on money is one
+  slide on its own desk, one at a time, and is never in the queue.
+- **A command palette that reads records.** Rejected: the console search only
+  routes. Every row is a link to a desk or a search, and the search runs on the
+  desk it lands on, under that desk's own access check, so the palette adds no
+  new way to read a record.
+- **A page count the pager cannot stand behind.** Rejected: the queues page by
+  offset and do not know their total, so the sliding pager names only the pages it
+  has evidence for, and the desks that count their rows name every page.
+- **Filters inline on a phone.** Rejected: the dates push the queue down the
+  screen and a long chip row scrolls sideways under a thumb, so below 768px the
+  filters are one sheet with its actions above the home indicator. The inline
+  form stays in the page, so nothing is lost with scripts off.
+- **A reason-free ruling.** Rejected: a slide is only confirmed once the server
+  has answered, so the track never claims a decision that was refused.
+- **Drawing a PDF in the document viewer.** Not done: the console has no in-app
+  PDF renderer, and the two ways to add one need a content security policy change
+  that belongs to whoever holds `lib/security/csp.ts`. A PDF is offered as a file
+  from Vallo's own origin instead.

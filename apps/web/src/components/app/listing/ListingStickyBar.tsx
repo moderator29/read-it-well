@@ -8,6 +8,7 @@ import { useStayDatesOptional } from "./StayDates";
 import { ButtonLink } from "@/components/ui/Button";
 import { AuthGate } from "@/components/auth/AuthGate";
 import { ActionBar } from "@/components/ui/ActionBar";
+import "@/app/css/catalogue.css";
 
 /**
  * The listing's pinned action bar.

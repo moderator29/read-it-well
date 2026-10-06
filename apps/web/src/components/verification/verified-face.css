@@ -1,0 +1,58 @@
+@layer theme, base, components, utilities;
+
+/*
+ * A CHECK THAT PASSED WHILE THE MEMBER WATCHED: THE PANEL'S CONFIRMED FACE
+ * (round 5; `PhoneConfirmForm`). The payoff itself is the Confirm control's
+ * own morph (buttons.css, "THE ACTION MORPH": ring, tick, the one pop). Once
+ * it has settled, the same panel turns to this face: the small mark and the
+ * words, rising 8px on `land` (240ms). Quiet readers: a 160ms fade, written
+ * out because the duration tokens fall to 1ms. Off: there, still.
+ */
+@layer components {
+  .nf-vface {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+  }
+  .nf-vface__mark {
+    display: block;
+    flex-shrink: 0;
+    inline-size: 1.75rem;
+    block-size: 1.75rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+  }
+  .nf-vface__mark svg {
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+    stroke: currentColor;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    :root:not([data-motion="calm"], [data-motion="off"], [data-save-data="on"], [data-motion-lite="on"]) .nf-vface {
+      animation: nf-vface-rise var(--nf-duration-base) var(--nf-ease-entrance) both;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :root:not([data-motion="off"]) .nf-vface {
+      animation: nf-vface-in 160ms var(--nf-ease-standard) both;
+      /* Opts in past the reduced-motion floor (animation.css, W2). */
+      --nf-reduced-duration: 160ms;
+    }
+  }
+  :root:is([data-motion="calm"], [data-save-data="on"], [data-motion-lite="on"]):not([data-motion="off"]) .nf-vface {
+    animation: nf-vface-in 160ms var(--nf-ease-standard) both;
+  }
+  @keyframes nf-vface-rise {
+    from {
+      opacity: 0;
+      transform: translateY(0.5rem);
+    }
+  }
+  @keyframes nf-vface-in {
+    from {
+      opacity: 0;
+    }
+  }
+}

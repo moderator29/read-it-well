@@ -1,4 +1,5 @@
 import "server-only";
+import { reportReadError } from "@/lib/observability/read-error";
 
 import { formatMoney, type Locale } from "@vallo/i18n/core";
 import { getDictionary, plural } from "@vallo/i18n";
@@ -40,6 +41,7 @@ export async function getBlockedDates(listingId: string): Promise<string[]> {
       .in("status", ["booked", "unavailable"])
       .order("date", { ascending: true })
       .limit(400);
+    await reportReadError("read.bookings.getBlockedDates", error);
     if (error || !data) return [];
     return data.map((row) => row.date);
   } catch {
@@ -204,6 +206,7 @@ export async function getMyBookings(
    * could not load your trips, rather than you have none, and rather than here
    * are some.
    */
+  await reportReadError("read.bookings.getMyBookings", error);
   if (error || !rows) return "unavailable";
 
   /*

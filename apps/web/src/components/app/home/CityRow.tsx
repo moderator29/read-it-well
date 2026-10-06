@@ -1,5 +1,9 @@
 import Link from "next/link";
+import { getDictionary } from "@vallo/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { getLocale } from "@/lib/locale";
+import { withNext } from "@/lib/auth/next-link";
+import "@/app/css/home.css";
 
 /**
  * The location row under the greeting (UIUX item 15): a QUIET row, no box,
@@ -11,7 +15,9 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
  * where they are, the line says so plainly and the chip becomes the invitation
  * to answer, rather than the product guessing Lagos at somebody in Kano.
  */
-export function CityRow({
+/* A server component that reads its own words, so its four callers (home,
+   stays and two harnesses) pass nothing new (Round 3 sweep, C3). */
+export async function CityRow({
   label,
   context,
   isOwn,
@@ -22,14 +28,15 @@ export function CityRow({
   isOwn: boolean;
   signedIn: boolean;
 }) {
-  const changeHref = signedIn ? "/settings/place" : "/sign-in";
-  const shown = label || "Choose your city";
+  const words = getDictionary(await getLocale()).experienceDiscover.home;
+  const changeHref = signedIn ? "/settings/place" : withNext("/sign-in", "/settings/place");
+  const shown = label || words.chooseCity;
 
   return (
     <Link
       href={changeHref}
       aria-label={
-        isOwn ? `Your city is ${shown}. Change it.` : `Choose the city you explore from.`
+        isOwn ? words.yourCityAria.replace("{city}", shown) : words.chooseCityAria
       }
       className="nf-home__loc nf-home__loc--quiet nf-tap mt-inline"
     >
@@ -38,7 +45,7 @@ export function CityRow({
         {shown}
         {isOwn && context ? `, ${context}` : ""}
         {!isOwn && (
-          <span className="nf-home__loc-sub">Set yours to see what is happening around you</span>
+          <span className="nf-home__loc-sub">{words.setYours}</span>
         )}
       </span>
       <UiIcon name="chevron-down" size={20} className="nf-home__loc-chev" />

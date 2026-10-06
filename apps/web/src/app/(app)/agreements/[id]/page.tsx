@@ -1,13 +1,19 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { formatMoney } from "@vallo/i18n/core";
+import { formatMoney, intlTag, type Locale } from "@vallo/i18n/core";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
-import { readAgreement } from "@/lib/agreements/queries";
+import { readAgreement, UNNAMED_OWNER, UNNAMED_RENTER } from "@/lib/agreements/queries";
 import { readChangesSinceConfirmed } from "@/lib/agreements/changes-read";
 import type { TermChange } from "@/lib/agreements/terms-diff";
 import { AgreementChanges, type WordedChange } from "@/components/app/agreements/AgreementChanges";
+import { AgreementVersions } from "@/components/app/agreements/AgreementVersions";
+import { AgreementHistory } from "@/components/app/agreements/AgreementHistory";
+import { AgreementTrackMotion } from "@/components/app/agreements/AgreementTrackMotion";
+import { readAgreementRecord } from "@/components/app/agreements/record-read";
+import { previousVersionDiff, versionRegister, type RecordEvent } from "@/components/app/agreements/version-register";
+import { termDay, termValue } from "@/components/app/agreements/term-words";
 import { PageHeader } from "@/components/app/PageHeader";
 import { HeroBand } from "@/components/ui/HeroBand";
 import { DecisionCard } from "@/components/app/confirm/DecisionCard";
@@ -18,59 +24,51 @@ import { agreementArrival } from "@/lib/ui/arrival-moments";
 import { Section, TYPE } from "@/components/app/Screen";
 import { AGREEMENT_STATUS_LABEL, CLAIM_STATUS_LABEL } from "@/components/app/agreements/status";
 import { StatusTrack, type TrackStep } from "@/components/app/status/StatusTrack";
+import { DocActions, DocHead, DocNote, DocRow, DocRows, DocState, DocumentSheet } from "@/components/app/money/DocumentSheet";
+import { PrintDocumentTile } from "@/components/app/money/PrintDocumentTile";
 import { agreementTrack, type AgreementStepKey } from "@/components/app/status/tracks";
 import { AmendTerms, CancelAgreement, ClaimForm, ConfirmTerms } from "@/components/app/agreements/AgreementControls";
+import { bpsAsPercentText } from "@/lib/money/percent";
 import {
-  GUARANTEE_SCOPE,
-  GUARANTEE_SENTENCE,
+  AGREEMENT_IN_REVIEW,
+  AGREEMENT_PAYMENT_OPEN_TITLE,
+  agreementOwnerApproved,
+  agreementPayLabel,
+  LEGACY_GUARANTEE_CLAIM,
+  legacyReserveSentence,
   NO_CUSTODY_SENTENCE,
   NO_INSPECTION_FEE,
   OFF_PLATFORM_SENTENCE,
 } from "@/lib/money/copy";
 
-export const metadata: Metadata = { title: "Agreement" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: getDictionary(await getLocale()).experienceMoney.agreements.page.title };
+}
 export const dynamic = "force-dynamic";
 
-const LINES: { key: string; label: string }[] = [
-  { key: "rent_minor", label: "Rent" },
-  { key: "caution_minor", label: "Caution deposit" },
-  { key: "service_minor", label: "Service charge" },
-  { key: "agency_minor", label: "Agency fee" },
-  { key: "legal_minor", label: "Legal fee" },
-  { key: "agreement_fee_minor", label: "Agreement fee" },
-  { key: "price_per_night_minor", label: "Per night" },
-  { key: "cleaning_fee_minor", label: "Cleaning" },
-];
+/* The terms' money lines, labelled from the dictionary: the move-in ledger's
+   own words where it has them, the agreement page's for a stay's two
+   (Round 3 sweep, C3). */
+type Dict = ReturnType<typeof getDictionary>;
+function termLines(t: Dict): { key: string; label: string }[] {
+  const m = t.moveIn;
+  const p = t.experienceMoney.agreements.page;
+  return [
+    { key: "rent_minor", label: m.rent },
+    { key: "caution_minor", label: m.cautionDeposit },
+    { key: "service_minor", label: m.serviceCharge },
+    { key: "agency_minor", label: m.agencyFee },
+    { key: "legal_minor", label: m.legalFee },
+    { key: "agreement_fee_minor", label: m.agreementFee },
+    { key: "price_per_night_minor", label: p.perNight },
+    { key: "cleaning_fee_minor", label: p.cleaning },
+  ];
+}
 
 function str(terms: Record<string, unknown>, key: string): string | null {
   const v = terms[key];
   return typeof v === "string" && v.length > 0 ? v : null;
 }
-
-/** A terms date (`YYYY-MM-DD`, a Lagos calendar day) in words. */
-function day(value: string | null): string | null {
-  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
-  return new Date(`${value}T12:00:00+01:00`).toLocaleDateString("en-NG", {
-    weekday: "short",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    timeZone: "Africa/Lagos",
-  });
-}
-
-/** `deal_agreement_events.action`, as the person reads it. */
-const EVENT_LABEL: Record<string, string> = {
-  opened: "Drawn up",
-  confirmed: "Confirmed",
-  amended: "Terms changed",
-  submitted: "Sent to Vallo for review",
-  released: "Its inspection was used for a new agreement",
-  approved: "Approved by Vallo",
-  rejected: "Sent back by Vallo",
-  cancelled: "Cancelled",
-  paid: "Paid",
-};
 
 function num(terms: Record<string, unknown>, key: string): number | null {
   const v = terms[key];
@@ -108,6 +106,8 @@ export default async function AgreementPage({
   const cap = Math.max(0, a.amountMinor - claimedApproved);
   const payHref = a.kind === "rent" && a.inspectionId ? `/rent/pay/${a.inspectionId}` : a.bookingId ? `/checkout/${a.bookingId}` : null;
   const guaranteeBps = num(a.terms, "guarantee_bps");
+  /* A contribution was really taken only while the Guarantee ran (D51). */
+  const legacyContribution = guaranteeBps !== null && guaranteeBps > 0;
   /* Staff read every agreement under RLS but are not a party to it: they see
      the record and none of the parties' controls. */
   const party = a.role !== null;
@@ -115,7 +115,7 @@ export default async function AgreementPage({
   const awaitingYou = party && a.status === "awaiting_parties" && !a.youConfirmedCurrent;
   const lastEvent = a.events.length > 0 ? a.events[a.events.length - 1] : undefined;
   const lastEventAt = lastEvent
-    ? new Date(lastEvent.at).toLocaleString("en-NG", { timeZone: "Africa/Lagos", day: "numeric", month: "short" })
+    ? new Date(lastEvent.at).toLocaleString(intlTag[locale], { timeZone: "Africa/Lagos", day: "numeric", month: "short" })
     : null;
 
   /*
@@ -128,22 +128,61 @@ export default async function AgreementPage({
   /* B9: what moved since this party last confirmed. Null (today's page)
      until the versions migration is applied, and whenever there is nothing
      to show. */
-  const kit = getDictionary(locale).memberKit.agreementDiff;
-  const since =
+  const t = getDictionary(locale);
+  const kit = t.memberKit.agreementDiff;
+  const words = t.experienceMoney.agreements;
+  const pw = words.page;
+  const LINES = termLines(t);
+  const [since, record] = await Promise.all([
     party && (a.status === "awaiting_parties" || a.status === "rejected") && !a.youConfirmedCurrent
-      ? await readChangesSinceConfirmed({
+      ? readChangesSinceConfirmed({
           agreementId: a.id,
           currentVersion: a.termsVersion,
           currentTerms: a.terms,
           currentAmountMinor: a.amountMinor,
         })
-      : null;
+      : Promise.resolve(null),
+    readAgreementRecord(a.id),
+  ]);
   const worded: WordedChange[] = (since?.changes ?? []).map((c: TermChange) => ({
     key: c.key,
     label: c.label,
     before: termValue(c, c.before, locale, kit.notStated),
     after: termValue(c, c.after, locale, kit.notStated),
   }));
+
+  /*
+   * M2: THE DOCUMENT'S VERSIONS AND ITS RECORD. The sided events (who did
+   * what, on which version) and B9's kept snapshots, read under the
+   * reader's own RLS. A party sees every kept version, the line-by-line
+   * change from the one before, and which side confirmed which version;
+   * when the snapshots cannot be read (a failed read, or staff, who are no
+   * party) the sheet is the current version alone, as it was.
+   */
+  const names = { renter: a.renterName, owner: a.ownerName };
+  const confirmedNow = {
+    renter: a.role === "renter" ? a.youConfirmedCurrent : a.role === "owner" ? a.otherConfirmedCurrent : false,
+    owner: a.role === "owner" ? a.youConfirmedCurrent : a.role === "renter" ? a.otherConfirmedCurrent : false,
+  };
+  const kept = party && record?.versions ? record.versions : null;
+  const versionEntries = kept
+    ? versionRegister({ current: a.termsVersion, stored: kept.map((v) => v.version), events: record?.events ?? [], confirmedNow })
+    : [];
+  const versionDiff = kept ? previousVersionDiff({ current: a.termsVersion, versions: kept }) : null;
+  const history: RecordEvent[] =
+    record?.events ?? a.events.map((e) => ({ at: e.at, action: e.action, note: e.note, side: null, version: null }));
+
+  /* The approval state's one payoff: the pop on the approval node, only
+     for a party, only when the record holds a dated approval and the
+     agreement stands approved now (a later payment is its own moment; a
+     send-back or a cancellation is not a payoff; staff reviewing the
+     record are not being paid off). */
+  const steps = agreementSteps(a.status, a.events, pw.track, locale);
+  const approvedStep = steps.findIndex((step) => step.key === "approved");
+  const popAt =
+    party && a.status === "approved" && approvedStep >= 0 && steps[approvedStep]!.state === "done" && steps[approvedStep]!.when
+      ? approvedStep + 1
+      : null;
 
   const arrival = agreementArrival(a, done);
   const moment: SuccessMomentId | null = arrival && !arrival.seenOnce ? arrival.moment : null;
@@ -161,12 +200,12 @@ export default async function AgreementPage({
         details={[{ label: getDictionary(locale).success.detail.for, value: a.listingTitle }]}
         primary={
           !moment && approvedMoment && a.role === "renter" && payHref
-            ? { label: `Pay ${formatMoney(a.amountMinor, locale)}`, href: payHref }
+            ? { label: agreementPayLabel(formatMoney(a.amountMinor, locale)), href: payHref }
             : undefined
         }
         haptic={moment ? undefined : false}
       />
-      <PageHeader title="Agreement" />
+      <PageHeader title={pw.title} />
       {/* Where it stands, on the shared status track (spec section 14): drawn
           up, both confirmed, approved, paid, each dated from this agreement's
           own events. Sent back or cancelled stops the track where it stood.
@@ -175,16 +214,18 @@ export default async function AgreementPage({
           the track with the kind and the status word under it. */}
       <HeroBand
         className="nf-status-band mt-inline"
-        label="Live status"
+        label={pw.liveStatus}
         title={a.listingTitle}
         sub={
           <>
-            {a.kind === "rent" ? "Rental" : "Stay"} ·{" "}
+            {a.kind === "rent" ? pw.rental : pw.stay} ·{" "}
             <span data-testid="agreement-status">{AGREEMENT_STATUS_LABEL[a.status] ?? a.status}</span>
           </>
         }
       >
-        <StatusTrack label="Agreement progress" steps={agreementSteps(a.status, a.events)} testId="agreement-track" />
+        <AgreementTrackMotion popAt={popAt} seenKey={`agreement-approved-track:${a.id}`}>
+          <StatusTrack label={pw.progress} steps={steps} testId="agreement-track" />
+        </AgreementTrackMotion>
       </HeroBand>
 
       {/* AWAITING YOU (plan item 22; spec section 14, reference 36). Drawn
@@ -196,14 +237,14 @@ export default async function AgreementPage({
         <DecisionCard
           className="mt-block"
           testId="agreement-awaiting-you"
-          label="Awaiting you"
-          when={lastEventAt ? `Since ${lastEventAt}` : undefined}
-          title={`Confirm version ${a.termsVersion} of the terms`}
+          label={pw.awaitingYou}
+          when={lastEventAt ? pw.since.replace("{date}", lastEventAt) : undefined}
+          title={pw.confirmVersion.replace("{n}", String(a.termsVersion))}
           lines={LINES.flatMap((line) => {
             const amount = num(a.terms, line.key);
             return amount ? [{ label: line.label, amount: formatMoney(amount, locale) }] : [];
           })}
-          total={{ label: "Total", amount: formatMoney(a.amountMinor, locale) }}
+          total={{ label: pw.total, amount: formatMoney(a.amountMinor, locale) }}
           primary={
             <ConfirmTerms
               agreementId={a.id}
@@ -214,7 +255,7 @@ export default async function AgreementPage({
           }
           secondary={[
             <ButtonLink key="terms" variant="secondary" href="#agreement-terms">
-              Read the terms
+              {pw.readTerms}
             </ButtonLink>,
             <CancelAgreement key="cancel" agreementId={a.id} variant="secondary" />,
           ]}
@@ -223,13 +264,9 @@ export default async function AgreementPage({
 
       {a.status === "rejected" && a.decisionReason ? (
         <div className="nf-card mt-block p-card" role="note">
-          <p className="font-semibold">Vallo sent this back</p>
+          <p className="font-semibold">{pw.sentBack}</p>
           <p className={TYPE.body}>{a.decisionReason}</p>
-          <p className={TYPE.rowMeta}>
-            {a.kind === "rent"
-              ? "Change the terms below and both of you confirm again."
-              : "A stay's terms are its booking, so they cannot be changed here. Message the host about the reason, or cancel this agreement."}
-          </p>
+          <p className={TYPE.rowMeta}>{a.kind === "rent" ? pw.sentBackRent : pw.sentBackStay}</p>
         </div>
       ) : null}
 
@@ -241,67 +278,125 @@ export default async function AgreementPage({
             since.by && since.at
               ? kit.by
                   .replace("{who}", since.by === "you" ? kit.you : kit.other)
-                  .replace("{date}", new Date(since.at).toLocaleString("en-NG", { timeZone: "Africa/Lagos", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }))
+                  .replace("{date}", new Date(since.at).toLocaleString(intlTag[locale], { timeZone: "Africa/Lagos", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }))
               : kit.byUndated
           }
           versionsLine={kit.versions.replace("{from}", String(since.fromVersion)).replace("{to}", String(since.toVersion))}
         />
       ) : null}
 
-      <Section id="agreement-terms" title={`The terms (version ${a.termsVersion})`}>
-        <dl className="grid grid-cols-[auto_1fr] gap-x-md gap-y-2xs">
-          <dt className={TYPE.rowMeta}>Between</dt>
-          <dd>
-            {a.renterName} ({a.kind === "rent" ? "renter" : "guest"}) and {a.ownerName} (owner or agent)
-          </dd>
-          {str(a.terms, "move_in") ? (
-            <>
-              <dt className={TYPE.rowMeta}>Move in</dt>
-              <dd>{day(str(a.terms, "move_in"))}</dd>
-              <dt className={TYPE.rowMeta}>Keys handed over</dt>
-              <dd>{day(str(a.terms, "handover_on") ?? str(a.terms, "move_in"))}</dd>
-            </>
+      {/*
+        THE TERMS, ON THE DOCUMENT SHEET (D28.1). The agreement is the record
+        of exactly what both sides committed to, and it is what gets printed
+        and taken to a lawyer, so it is drawn as paper on the member's own
+        theme: who it is between, the dates, every line to the kobo, the total
+        they add up to, and where each party stands on THIS version. The two
+        confirmation rows are the record's own (`youConfirmedCurrent` and
+        `otherConfirmedCurrent`, read against the current terms version), in
+        the sentences this page already used, so a lapsed confirmation after
+        an amendment reads as not confirmed rather than as a tick. Staff read
+        the record without being a party, so they see no confirmation rows.
+      */}
+      <Section id="agreement-terms">
+        <DocumentSheet printable aria-labelledby="agreement-terms-title" data-testid="agreement-terms">
+          <DocHead label={a.listingTitle} title={pw.termsTitle.replace("{n}", String(a.termsVersion))} id="agreement-terms-title" />
+          <DocRows>
+            <DocRow label={pw.between} variant="prose">
+              {pw.between2
+                .replace(
+                  "{first}",
+                  a.renterName === UNNAMED_RENTER
+                    ? a.kind === "rent"
+                      ? pw.partyRenterUnnamed
+                      : pw.partyGuestUnnamed
+                    : (a.kind === "rent" ? pw.partyRenter : pw.partyGuest).replace("{name}", a.renterName),
+                )
+                .replace(
+                  "{second}",
+                  a.ownerName === UNNAMED_OWNER ? pw.partyOwnerUnnamed : pw.partyOwner.replace("{name}", a.ownerName),
+                )}
+            </DocRow>
+            {str(a.terms, "move_in") ? (
+              <>
+                <DocRow label={pw.moveIn} numeric>
+                  {termDay(str(a.terms, "move_in"), locale)}
+                </DocRow>
+                <DocRow label={pw.keys} numeric>
+                  {termDay(str(a.terms, "handover_on") ?? str(a.terms, "move_in"), locale)}
+                </DocRow>
+              </>
+            ) : null}
+            {str(a.terms, "check_in") ? (
+              <DocRow label={pw.stay} numeric>
+                {pw.stayDates
+                  .replace("{from}", termDay(str(a.terms, "check_in"), locale) ?? "")
+                  .replace("{to}", termDay(str(a.terms, "check_out"), locale) ?? "")}
+              </DocRow>
+            ) : null}
+            {LINES.map((line) =>
+              num(a.terms, line.key) ? (
+                <DocRow key={line.key} label={line.label} numeric>
+                  {formatMoney(num(a.terms, line.key)!, locale)}
+                </DocRow>
+              ) : null,
+            )}
+            <DocRow label={pw.inspectionFee} variant="prose">
+              {NO_INSPECTION_FEE}
+            </DocRow>
+            <DocRow label={pw.total} variant="total" numeric>
+              {formatMoney(a.amountMinor, locale)}
+            </DocRow>
+            {str(a.terms, "notes") ? (
+              <DocRow label={pw.alsoAgreed} variant="prose">
+                {str(a.terms, "notes")}
+              </DocRow>
+            ) : null}
+            {party ? (
+              <>
+                <DocRow label={a.role === "renter" ? a.renterName : a.ownerName} variant="prose">
+                  <DocState done={a.youConfirmedCurrent}>
+                    {a.youConfirmedCurrent ? pw.youConfirmed : pw.youNotConfirmed}
+                  </DocState>
+                </DocRow>
+                <DocRow label={a.role === "renter" ? a.ownerName : a.renterName} variant="prose">
+                  <DocState done={a.otherConfirmedCurrent}>
+                    {a.otherConfirmedCurrent ? pw.otherConfirmed : pw.otherNotConfirmed}
+                  </DocState>
+                </DocRow>
+              </>
+            ) : null}
+          </DocRows>
+          {versionDiff ? (
+            <AgreementVersions
+              diff={versionDiff}
+              entries={versionEntries}
+              names={names}
+              locale={locale}
+              copy={words}
+              diffCopy={kit}
+            />
           ) : null}
-          {str(a.terms, "check_in") ? (
-            <>
-              <dt className={TYPE.rowMeta}>Stay</dt>
-              <dd>
-                {day(str(a.terms, "check_in"))} to {day(str(a.terms, "check_out"))}
-              </dd>
-            </>
-          ) : null}
-          {LINES.map((line) =>
-            num(a.terms, line.key) ? (
-              <FragmentLine key={line.key} label={line.label} value={formatMoney(num(a.terms, line.key)!, locale)} />
-            ) : null,
-          )}
-          <dt className={TYPE.rowMeta}>Inspection fee</dt>
-          <dd>{NO_INSPECTION_FEE}</dd>
-          <dt className="font-semibold">Total</dt>
-          <dd className="font-semibold nf-numeric">{formatMoney(a.amountMinor, locale)}</dd>
-          {str(a.terms, "notes") ? (
-            <>
-              <dt className={TYPE.rowMeta}>Also agreed</dt>
-              <dd>{str(a.terms, "notes")}</dd>
-            </>
-          ) : null}
-        </dl>
-        <p className={`${TYPE.rowMeta} mt-block`}>
-          {NO_CUSTODY_SENTENCE}
-          {guaranteeBps !== null
-            ? ` ${guaranteeBps / 100}% of the total goes to the Vallo Guarantee reserve from the same payment.`
-            : ""}
-        </p>
+          <DocNote>
+            {NO_CUSTODY_SENTENCE}
+            {/* D51: nothing about a fee is said to the renter or guest. The
+                lister alone is told what came out of their share, and only
+                while a Guarantee contribution was really in the terms. */}
+            {a.role === "owner" && legacyContribution && guaranteeBps !== null
+              ? ` ${legacyReserveSentence(bpsAsPercentText(guaranteeBps))}`
+              : ""}
+          </DocNote>
+        </DocumentSheet>
+        <DocActions label={pw.theTerms}>
+          <PrintDocumentTile label={t.afterTheGate.complaint.print} testId="agreement-print" />
+        </DocActions>
       </Section>
 
       {party && (a.status === "awaiting_parties" || a.status === "rejected") ? (
-        <Section title={a.status === "rejected" ? "What happens next" : "Confirm"}>
-          <p className={TYPE.body}>
-            {a.youConfirmedCurrent ? "You confirmed this version." : "You have not confirmed this version yet."}{" "}
-            {a.otherConfirmedCurrent ? "The other side confirmed it." : "The other side has not confirmed it yet."}
-          </p>
-          {/* Confirming, when it is this reader's move, is the Awaiting you
-              card at the top of the page. */}
+        <Section title={a.status === "rejected" ? pw.whatNext : pw.confirm}>
+          {/* Where each side stands on this version is said once, on the
+              terms sheet above, rather than repeated here. Confirming, when
+              it is this reader's move, is the Awaiting you card at the top
+              of the page. */}
           {a.kind === "rent" ? (
             <AmendTerms
               agreementId={a.id}
@@ -316,35 +411,35 @@ export default async function AgreementPage({
       ) : null}
 
       {a.status === "in_review" ? (
-        <Section title="With Vallo">
-          <p className={TYPE.body}>
-            Both of you confirmed. A person at Vallo is reviewing the agreement. You will get an email and a notification
-            the moment it is decided. Payment opens only after approval.
-          </p>
+        <Section title={pw.withVallo}>
+          <p className={TYPE.body}>{AGREEMENT_IN_REVIEW}</p>
           {party ? <CancelAgreement agreementId={a.id} /> : null}
         </Section>
       ) : null}
 
       {a.status === "approved" ? (
-        <Section title="Payment is open">
+        <Section title={AGREEMENT_PAYMENT_OPEN_TITLE}>
           {a.role === "renter" && payHref ? (
             <Link href={payHref} className="nf-btn nf-btn--primary nf-btn--md nf-btn--full" data-testid="agreement-pay">
-              Pay {formatMoney(a.amountMinor, locale)}
+              {agreementPayLabel(formatMoney(a.amountMinor, locale))}
             </Link>
           ) : a.role === "owner" ? (
             <p className={TYPE.body} data-testid="agreement-awaiting-payment">
-              Vallo approved the agreement. The {a.kind === "rent" ? "renter" : "guest"} can pay now, and your share
-              settles straight to your bank account from the same payment.
+              {agreementOwnerApproved(a.kind)}
             </p>
           ) : null}
           {party ? <CancelAgreement agreementId={a.id} /> : null}
         </Section>
       ) : null}
 
-      {a.status === "paid" ? (
-        <Section title="The Vallo Guarantee">
-          <p className={TYPE.body}>{GUARANTEE_SENTENCE}</p>
-          <p className={TYPE.rowMeta}>{GUARANTEE_SCOPE}</p>
+      {/* THE GUARANTEE IS RETIRED (D51, guarantee_bps = 0). A payment made
+          while it ran carried a contribution, frozen into the agreement's
+          terms, and its claim is honoured; a new payment carries none, so the
+          section is drawn only where a contribution was really taken or a
+          claim already exists. */}
+      {a.status === "paid" && (legacyContribution || a.claims.length > 0) ? (
+        <Section title="A claim on this payment">
+          <p className={TYPE.body}>{LEGACY_GUARANTEE_CLAIM}</p>
           {a.claimWindow ? (
             <p className={TYPE.rowMeta}>
               Claim window: {new Date(a.claimWindow.opens).toLocaleString("en-NG", { timeZone: "Africa/Lagos" })} to{" "}
@@ -372,15 +467,8 @@ export default async function AgreementPage({
         </Section>
       ) : null}
 
-      <Section title="History">
-        <ol className="grid gap-2xs">
-          {a.events.map((e, i) => (
-            <li key={`${e.at}-${i}`} className={TYPE.rowMeta}>
-              {new Date(e.at).toLocaleString("en-NG", { timeZone: "Africa/Lagos" })}: {EVENT_LABEL[e.action] ?? e.action}
-              {e.note ? ` · ${e.note}` : ""}
-            </li>
-          ))}
-        </ol>
+      <Section title={words.historyTitle}>
+        <AgreementHistory events={history} names={names} locale={locale} copy={words} />
       </Section>
 
       <p className={`${TYPE.rowMeta} mt-block`}>{OFF_PLATFORM_SENTENCE}</p>
@@ -388,24 +476,24 @@ export default async function AgreementPage({
   );
 }
 
-const TRACK_LABEL: Record<AgreementStepKey, string> = {
-  drawn: "Drawn up",
-  confirmed: "Both confirmed",
-  approved: "Vallo approved",
-  paid: "Paid",
-};
+type TrackWords = Record<AgreementStepKey, string> & { sentBack: string; cancelled: string };
 
-function agreementSteps(status: string, events: { at: string; action: string }[]): TrackStep[] {
+function agreementSteps(
+  status: string,
+  events: { at: string; action: string }[],
+  track: TrackWords,
+  locale: Locale,
+): TrackStep[] {
   return agreementTrack({ status, events }).map((step) => ({
     key: step.key,
     label:
       step.state === "failed"
         ? status === "rejected"
-          ? "Sent back by Vallo"
-          : "Cancelled"
-        : TRACK_LABEL[step.key],
+          ? track.sentBack
+          : track.cancelled
+        : track[step.key],
     when: step.at
-      ? new Date(step.at).toLocaleString("en-NG", {
+      ? new Date(step.at).toLocaleString(intlTag[locale], {
           day: "numeric",
           month: "short",
           hour: "2-digit",
@@ -415,28 +503,6 @@ function agreementSteps(status: string, events: { at: string; action: string }[]
       : null,
     state: step.state,
   }));
-}
-
-/** One side of a changed line, in words: money, a day, or the text itself. */
-function termValue(
-  c: TermChange,
-  v: TermChange["before"],
-  locale: Parameters<typeof formatMoney>[1],
-  notStated: string,
-): string {
-  if (v === null) return notStated;
-  if (c.kind === "money" && typeof v === "number") return formatMoney(v, locale);
-  if (c.kind === "date" && typeof v === "string") return day(v) ?? v;
-  return String(v);
-}
-
-function FragmentLine({ label, value }: { label: string; value: string }) {
-  return (
-    <>
-      <dt className={TYPE.rowMeta}>{label}</dt>
-      <dd className="nf-numeric">{value}</dd>
-    </>
-  );
 }
 
 /** The request's clock, read once so every time on the page agrees. */

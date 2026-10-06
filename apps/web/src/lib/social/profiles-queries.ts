@@ -12,7 +12,7 @@ import {
   isOfficialHandle,
   type BioStatus,
   type ContactPolicy,
-} from "./profiles-schema";
+} from "./profiles-model";
 import {
   readAgentId,
   readAgentTrust,

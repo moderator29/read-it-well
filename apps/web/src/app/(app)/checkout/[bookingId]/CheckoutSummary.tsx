@@ -3,7 +3,10 @@ import { bpsAsPercentText } from "@/lib/money/percent";
 import type { CheckoutView } from "@/lib/bookings/checkout-view";
 import { Amount } from "@/components/ui/Amount";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { Panel } from "@/components/ui/Panel";
+import { DocActions } from "@/components/app/money/DocumentSheet";
+import { ReceiptSheet } from "@/components/app/money/ReceiptSheet";
+import { stayReceipt } from "@/components/app/money/receipt-model";
+import { PrintDocumentTile } from "@/components/app/money/PrintDocumentTile";
 import { formatMoneyDate } from "@/lib/money/dates";
 import { PLATFORM_TERMS_V1, cancelStanding } from "@/lib/trust/cancellation";
 
@@ -44,8 +47,22 @@ export function CheckoutSummary({
       : standing.kind === "share"
         ? cancelCopy.shareNow.replace("{percent}", bpsAsPercentText(standing.refundBps))
         : cancelCopy.nonRefundable;
-  return (
-    <Panel aria-labelledby="nf-checkout-summary" variant="card">
+  /*
+   * TWO CONTAINERS, ONE CONTENT, AND THE MONEY DECIDES WHICH.
+   *
+   * Before payment this is the screen's hero: the Island tier (north star
+   * section 4, reference 7038), the one per screen, holding what is being
+   * bought and the total before the action that incurs it.
+   *
+   * Once a payment has settled against this booking (`view.paid`, which is a
+   * SUCCESSFUL transaction row and nothing else) the same lines are a record
+   * of money that moved, so they are drawn as a receipt on the document
+   * sheet (D28.1) with a print action under it, and the total is called what
+   * it now is: paid, not "to pay".
+   */
+  const paid = view.paid;
+  const body = (
+    <>
       <h2 id="nf-checkout-summary" className="nf-h3">
         {view.title}
       </h2>
@@ -59,39 +76,47 @@ export function CheckoutSummary({
       <dl className="mt-md grid gap-xs border-t border-[var(--nf-panel-hair)] pt-md">
         <div className="flex items-start justify-between gap-md">
           <dt className="text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">{c.dates}</dt>
-          <dd className="text-right text-[length:var(--nf-text-caption)] font-medium text-[var(--nf-content-secondary)]">
+          <dd className="text-right text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-secondary)]">
             {view.dateRange}
           </dd>
         </div>
         <div className="flex items-start justify-between gap-md">
           <dt className="text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">{c.guests}</dt>
-          <dd className="text-right text-[length:var(--nf-text-caption)] font-medium text-[var(--nf-content-secondary)]">
+          <dd className="text-right text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-secondary)]">
             {plural(view.guests, counts.guests, locale)} &middot; {plural(view.nights, counts.nights, locale)}
           </dd>
         </div>
         {view.lines.map((line) => (
           <div key={line.label} className="flex items-start justify-between gap-md">
             <dt className="text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">{line.label}</dt>
-            <dd className="text-right text-[length:var(--nf-text-caption)] font-medium text-[var(--nf-content-secondary)]">
+            <dd className="text-right text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-secondary)]">
               {/* A receipt line, so the kobo is stated rather than rounded
-                  away: this column has to add up to the total below it. */}
-              <Amount minorUnits={line.minor} locale={locale} currency={view.currency} showFraction />
+                  away: this column has to add up to the total below it. The kobo
+                  keeps the line's own ink: Amount's default 60% fade on this
+                  secondary ink measured 2.97:1 on paper (axe). */}
+              <Amount
+                minorUnits={line.minor}
+                locale={locale}
+                currency={view.currency}
+                showFraction
+                secondaryClassName="text-[length:max(0.75rem,0.62em)] font-semibold"
+              />
             </dd>
           </div>
         ))}
       </dl>
 
       <div className="mt-md border-t border-[var(--nf-panel-hair)] pt-md">
-        <p className="nf-overline text-[var(--nf-content-muted)]">{c.totalToPay}</p>
+        <p className="nf-overline text-[var(--nf-content-muted)]">{paid ? t.afterTheGate.tenancy.totalPaid : c.totalToPay}</p>
         <p className="mt-2xs">
           <Amount
             minorUnits={view.totalMinor}
             locale={locale}
             currency={view.currency}
             showFraction
-            suffix={c.inFull}
-            className="text-[clamp(2.5rem,10vw,3.75rem)] font-extrabold leading-none tracking-[-0.03em] text-[var(--nf-content-primary)]"
-            secondaryClassName="text-[0.34em] font-bold text-[var(--nf-content-muted)]"
+            suffix={paid ? undefined : c.inFull}
+            className="text-[clamp(2.5rem,10vw,3.75rem)] font-bold leading-none tracking-[-0.03em] text-[var(--nf-content-primary)]"
+            secondaryClassName="text-[length:max(0.34em,0.75rem)] font-bold text-[var(--nf-content-muted)]"
           />
         </p>
         {cancelLine && (
@@ -102,12 +127,36 @@ export function CheckoutSummary({
             {cancelLine}
           </p>
         )}
-        {view.platformTakesNothing && (
-          <p className="mt-xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
-            {c.takesNothing}
-          </p>
-        )}
+        {/* No line about fees, not even "Vallo adds nothing": D51 gives the
+            guest the advertised price and no footnote at all. */}
       </div>
-    </Panel>
+    </>
+  );
+
+  /*
+   * THE RECEIPT IS THE ONE RECEIPT MODEL (W9). Once paid, these lines are no
+   * longer drawn here: `stayReceipt` turns the same view into finished words
+   * and `ReceiptSheet` draws them, and the receipt email draws the very same
+   * model, so the receipt on screen and the one in the inbox cannot differ.
+   */
+  const receipt = paid ? stayReceipt(view, t, locale) : null;
+  if (receipt) {
+    return (
+      <ReceiptSheet
+        receipt={receipt}
+        headingId="nf-checkout-summary"
+        testId="checkout-receipt"
+        actions={
+          <DocActions label={view.title}>
+            <PrintDocumentTile label={t.afterTheGate.complaint.print} testId="checkout-receipt-print" />
+          </DocActions>
+        }
+      />
+    );
+  }
+  return (
+    <section aria-labelledby="nf-checkout-summary" className="nf-island p-card" data-testid="checkout-summary">
+      {body}
+    </section>
   );
 }

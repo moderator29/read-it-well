@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { formatDate, getDictionary, type Locale } from "@vallo/i18n";
+import { formatDate, type Locale } from "@vallo/i18n/core";
+import { useScopedCopy } from "@/lib/i18n/copy-scope";
 import { Panel } from "@/components/ui/Panel";
 import { Icon3D } from "@/components/ui/Icon3D";
 
@@ -100,7 +101,7 @@ export function HoldCountdown({
   expiresAt: string;
   locale: Locale;
 }) {
-  const c = getDictionary(locale).checkout;
+  const c = useScopedCopy("checkout");
   const target = Date.parse(expiresAt);
   // First paint matches the server: no clock reading during hydration, so the
   // markup cannot disagree with itself.

@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
-import { EmptyState, TYPE } from "@/components/app/Screen";
+import { TYPE } from "@/components/app/Screen";
+import { State } from "@/components/ui/State";
 import { ButtonLink } from "@/components/ui/Button";
 import { ValloRecord } from "@/components/app/trust/ValloRecord";
 import { readRecordCode, recordLines } from "@/lib/trust/record";
@@ -37,21 +38,33 @@ export default async function RecordLookupPage({ params }: { params: Promise<{ c
     </ButtonLink>
   );
 
-  if (lookup.state === "missing") {
-    return (
-      <div className="mx-auto max-w-2xl">
-        <PageHeader title={copy.lookupTitle} fallback="/search" />
-        <EmptyState icon="shield-check" title={copy.lookupMissingTitle} body={copy.lookupMissingBody} action={back} />
-      </div>
-    );
-  }
+  /* A code that matches nobody is the neutral not-found (UI-15): the empty
+     kit's search glyph, never the shield with a tick, which reads as a Record
+     that checked out (Round 3 sweep, C3). */
+  const missing = (
+    <div className="mx-auto max-w-2xl">
+      <PageHeader title={copy.lookupTitle} fallback="/search" />
+      <State kind="empty" art={false} title={copy.lookupMissingTitle} body={copy.lookupMissingBody} action={back} />
+    </div>
+  );
+  if (lookup.state === "missing") return missing;
   if (lookup.state === "limited" || lookup.state === "failed") {
     return (
       <div className="mx-auto max-w-2xl">
         <PageHeader title={copy.lookupTitle} fallback="/search" />
-        <p role="alert" className={`${TYPE.body} mt-block`}>
-          {lookup.state === "limited" ? copy.lookupLimited : copy.lookupFailed}
-        </p>
+        {/* The same designed empty state as a code that matches nobody, so a
+            refusal is a screen with a way on rather than a bare line of text
+            under the header (restyle only: the words are unchanged). */}
+        {/* A failed read is an error and says so (`role="alert"` is the
+            kit's); too many lookups is a pause, said politely, with the
+            neutral glyph. Neither wears the verified shield. */}
+        {lookup.state === "failed" ? (
+          <State kind="error" title={copy.lookupTitle} body={copy.lookupFailed} action={back} />
+        ) : (
+          <div role="status">
+            <State kind="offline" title={copy.lookupTitle} body={copy.lookupLimited} action={back} />
+          </div>
+        )}
       </div>
     );
   }
@@ -59,14 +72,7 @@ export default async function RecordLookupPage({ params }: { params: Promise<{ c
   const record = lookup.record;
   /* A Record with no line at all (a stop the database cannot date) is
      answered exactly as a code that matches nobody. */
-  if (recordLines(record, copy, locale).length === 0) {
-    return (
-      <div className="mx-auto max-w-2xl">
-        <PageHeader title={copy.lookupTitle} fallback="/search" />
-        <EmptyState icon="shield-check" title={copy.lookupMissingTitle} body={copy.lookupMissingBody} action={back} />
-      </div>
-    );
-  }
+  if (recordLines(record, copy, locale).length === 0) return missing;
   const title = record.displayName ?? copy.lookupTitle;
   /* Only the joining month counted so far: say so rather than draw a Record
      that looks empty. */

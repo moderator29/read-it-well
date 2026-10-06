@@ -98,7 +98,8 @@ export const SUCCESS_OBJECT: Readonly<Record<SuccessMomentId, Icon3DName>> = {
   rentPaid: "keys",
   sharePaid: "earnings",
   moveInPaid: "keys",
-  cryptoPaid: "coin",
+  // Not "coin" (D29 bans coins): the receipt is on the page, so the matte clipboard.
+  cryptoPaid: "checklist",
   inspectionRequested: "calendar-pending",
   inspectionBooked: "calendar-booked",
   inspectionReportSubmitted: "checklist",
@@ -160,7 +161,51 @@ export const SUCCESS_FEEL: Readonly<Record<SuccessVariant, FeedbackKind>> = {
   approved: "success",
 };
 
-export type SuccessCopy = { variant: SuccessVariant; object: Icon3DName; title: string; body: string };
+/**
+ * THE PAYOFFS: THE ONLY MOMENTS THAT FEEL HEAVY (CRAFT_DOCTRINE 6).
+ *
+ * "Heavy, rare: a payoff: payment confirmed, escrow released, verification
+ * passed, badge earned." The variant decides what a moment LOOKS like (the
+ * seal lands on success and approved alike); this list decides what it FEELS
+ * like, and the two are not the same question. A saved card, a changed
+ * password, a posted review or dates held are done and deserve the seal, but
+ * they are housekeeping or a step on the way, and a heavy beat on each of
+ * them is the product that buzzes at everything. They feel as the commit
+ * they are: `confirm`, the medium beat.
+ *
+ * What is here: money that settled (every *Paid), a viewing that is booked,
+ * the decisions somebody else made in the member's favour (approved, live,
+ * matched), and the two arrivals (the account, the confirmed email).
+ * `haptic-census.test.ts` holds every moment to this list.
+ */
+export const PAYOFF_MOMENTS: ReadonlySet<SuccessMomentId> = new Set<SuccessMomentId>([
+  "stayPaid",
+  "stayPaidRecorded",
+  "rentPaid",
+  "sharePaid",
+  "moveInPaid",
+  "cryptoPaid",
+  "inspectionBooked",
+  "agreementApprovedRenter",
+  "agreementApprovedOwner",
+  "listingApproved",
+  "listingLive",
+  "identityMatched",
+  "verificationApproved",
+  "agentApproved",
+  "hostApproved",
+  "hostLive",
+  "accountCreated",
+  "emailVerified",
+]);
+
+/** What one moment says through the hand: heavy for a payoff, medium for everything else. */
+export function momentFeel(id: SuccessMomentId): FeedbackKind {
+  return PAYOFF_MOMENTS.has(id) ? "success" : "confirm";
+}
+
+/** `haptic` is the moment's own feel (`momentFeel`): pass it to the sheet. */
+export type SuccessCopy = { variant: SuccessVariant; object: Icon3DName; title: string; body: string; haptic: FeedbackKind };
 
 type MomentWords = { title: string; body: string };
 
@@ -180,7 +225,13 @@ export function successCopy<M extends Partial<Record<SuccessMomentId, MomentWord
   const words = copy.moments[id] as MomentWords;
   const fill = (text: string) =>
     Object.entries(values).reduce((out, [key, value]) => out.split(`{${key}}`).join(value), text);
-  return { variant: SUCCESS_VARIANT[id], object: SUCCESS_OBJECT[id], title: fill(words.title), body: fill(words.body) };
+  return {
+    variant: SUCCESS_VARIANT[id],
+    object: SUCCESS_OBJECT[id],
+    title: fill(words.title),
+    body: fill(words.body),
+    haptic: momentFeel(id),
+  };
 }
 
 /* ------------------------------------------------------ the one-shot flag */

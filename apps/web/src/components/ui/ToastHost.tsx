@@ -25,10 +25,14 @@ import {
  *     an error is announced at once, everything else politely. The two live
  *     regions are always in the page, so the announcement is reliable.
  *
- * Motion is transform and opacity only, and the entrance rides the press
- * tokens, which collapse under reduced motion and the Motion setting.
+ * Motion is transform and opacity only (Session 3, north star motion 8): a
+ * dark pill rising 16px on `land` 240ms, out on `leave` 160ms; the material
+ * and curves are `.nf-toast-host .nf-toast` in overlays.css, and every
+ * duration collapses under reduced motion and the Motion setting.
  */
-const EXIT_MS = 180;
+/** `leave` 160ms: how long a leaving toast stays mounted (`--nf-duration-fast`). */
+export const TOAST_EXIT_MS = 160;
+const EXIT_MS = TOAST_EXIT_MS;
 
 function useToastItem(): ToastItem | null {
   return useSyncExternalStore(subscribeToast, currentToast, () => null);

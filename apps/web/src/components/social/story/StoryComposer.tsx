@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { reencodeToJpeg } from "@/components/social/profile/reencode";
-import { createClient } from "@/lib/supabase/client";
+import { loadBrowserClient } from "@/lib/supabase/load-client";
 import { publishStory } from "@/lib/social/stories-actions";
 import {
   STORY_COPY,
@@ -17,8 +17,9 @@ import {
   STORY_IMAGE_MAX_EDGE,
   STORY_PLACE_MAX,
   STORY_STANDFIRST_MAX,
-} from "@/lib/social/stories-schema";
+} from "@/lib/social/stories-model";
 import { IconPlate } from "@/components/ui/IconPlate";
+import { useSignInHref } from "@/lib/auth/use-sign-in-href";
 
 /**
  * Writing a story.
@@ -51,6 +52,7 @@ export function StoryComposer({
   userId: string | null;
   signedIn: boolean;
 }) {
+  const signInHref = useSignInHref();
   const router = useRouter();
   const fileInput = useRef<HTMLInputElement>(null);
 
@@ -76,7 +78,7 @@ export function StoryComposer({
           A story is a picture, a headline and a line or two about a place. It
           stays up, so it needs to belong to somebody.
         </p>
-        <Link href="/sign-in" className="nf-btn nf-btn--primary mt-lg">
+        <Link href={signInHref} className="nf-btn nf-btn--primary mt-lg">
           Sign in
         </Link>
       </div>
@@ -162,7 +164,11 @@ export function StoryComposer({
     setError(null);
 
     startTransition(async () => {
-      const supabase = createClient();
+      const supabase = await loadBrowserClient();
+      if (!supabase) {
+        setError(STORY_FAILURE.upload);
+        return;
+      }
       /* The post id is not known yet, so the object goes under a fresh uuid in
          the person's own folder. The bucket's insert policy only checks the
          first path segment; the read policy resolves the post id out of the
@@ -193,7 +199,7 @@ export function StoryComposer({
         setHeld(true);
         return;
       }
-      router.push(`/stories/${result.data.storyId}`);
+      router.replace(`/stories/${result.data.storyId}`);
     });
   };
 
@@ -296,9 +302,9 @@ export function StoryComposer({
         </p>
       ) : null}
 
-      <button type="submit" className="nf-btn nf-btn--primary w-full" disabled={!canPublish}>
+      <Button type="submit" variant="primary" full disabled={!canPublish}>
         {pending ? STORY_COPY.publishing : STORY_COPY.publish}
-      </button>
+      </Button>
 
       <input
         ref={fileInput}

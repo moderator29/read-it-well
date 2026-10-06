@@ -1,5 +1,6 @@
 "use client";
 
+import type { Dictionary } from "@vallo/i18n/core";
 import { useState } from "react";
 import Link from "next/link";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
@@ -7,6 +8,10 @@ import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
 import { SupportChat } from "@/components/app/account/SupportChat";
 import { Icon3D } from "@/components/ui/Icon3D";
+import { withNext } from "@/lib/auth/next-link";
+
+/** The hero's words, from the dictionary through the page (W13: never a client dictionary read). */
+export type SupportHomeCopy = Dictionary["experienceInbox"]["support"]["home"];
 
 /**
  * The top of the support home.
@@ -28,8 +33,13 @@ export function SupportHero({
   promise,
   aiConsented,
   signedIn,
+  assistantCopy,
+  copy,
 }: {
   greeting: string;
+  copy: SupportHomeCopy;
+  /** Handed to the helper so it never reads a client dictionary. */
+  assistantCopy?: Dictionary["experienceInbox"]["assistant"];
   promise: string;
   aiConsented: boolean;
   signedIn: boolean;
@@ -67,27 +77,27 @@ export function SupportHero({
         aria-haspopup="dialog"
         data-testid="support-ask"
       >
-        Ask a question
+        {copy.ask}
       </Button>
 
-      <ul className="mt-block grid grid-cols-3 gap-xs" aria-label="Other ways to get help">
+      <ul className="mt-block grid grid-cols-3 gap-xs" aria-label={copy.otherWays}>
         <RoundAction
-          href={signedIn ? "/support/new?kind=problem" : "/sign-in?next=%2Fsupport%2Fnew%3Fkind%3Dproblem"}
+          href={signedIn ? "/support/new?kind=problem" : withNext("/sign-in", "/support/new?kind=problem")}
           icon="flag"
-          label="Report a problem"
+          label={copy.reportProblem}
           testId="support-report"
         />
         <RoundAction
           href={signedIn ? "/support/new" : "/contact"}
           icon="mail"
-          label="Write to us"
+          label={copy.writeToUs}
           testId="support-write"
         />
-        <RoundAction href="/help" icon="info" label="Help centre" testId="support-help-centre" />
+        <RoundAction href="/help" icon="info" label={copy.helpCentre} testId="support-help-centre" />
       </ul>
 
-      <Sheet open={open} onOpenChange={setOpen} title="Ask a question" closeLabel="Close" detents={[0.92]}>
-        <SupportChat aiConsented={aiConsented} signedIn={signedIn} defaultOpen embedded />
+      <Sheet open={open} onOpenChange={setOpen} title={copy.ask} closeLabel={copy.close} detents={[0.92]}>
+        <SupportChat aiConsented={aiConsented} signedIn={signedIn} defaultOpen embedded assistantCopy={assistantCopy} />
       </Sheet>
     </section>
   );
@@ -104,7 +114,7 @@ function RoundAction({ href, icon, label, testId }: { href: string; icon: UiIcon
         <span className="nf-support-hero__round nf-glass grid h-14 w-14 place-items-center rounded-full border border-[var(--nf-border-subtle)] text-[var(--nf-content-primary)]">
           <UiIcon name={icon} size={24} />
         </span>
-        <span className="nf-caption font-medium leading-tight text-[var(--nf-content-secondary)]">{label}</span>
+        <span className="nf-caption font-normal leading-tight text-[var(--nf-content-secondary)]">{label}</span>
       </Link>
     </li>
   );

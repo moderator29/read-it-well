@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { BackControl } from "@/components/ui/BackControl";
 import { useClientCopy } from "@/lib/i18n/client-copy";
@@ -10,8 +10,11 @@ import type { SavePlaceTarget } from "@/components/app/SaveControl";
 import type { SharedKind } from "@/components/app/messages/share";
 import type { ListingKind } from "@/lib/listings/types";
 import { PhotoFrame } from "./PhotoFrame";
-import { isPhotoMorphFor } from "@/lib/motion/photo-morph";
+import { aimPhotoMorph } from "@/lib/motion/photo-morph";
+import { handoffFor } from "@/lib/listings/handoff";
 import { usePhotoViewer } from "./PhotoViewer";
+import "@/app/css/catalogue.css";
+import "@/app/css/list-views.css";
 
 /**
  * The immersive media hero.
@@ -141,6 +144,19 @@ export function ListingGallery({
     [panes.length],
   );
 
+  /* The lightbox closes onto the photo the reader ended on: the hero jumps to
+     it out of sight, under the viewer, so the fold lands on the same picture
+     (PhotoViewer, `follow`). Instant, not smooth: nobody sees it move. */
+  const show = useCallback((index: number) => {
+    const el = track.current;
+    if (!el) return;
+    el.scrollTo({ left: index * el.clientWidth, behavior: "instant" });
+    setActive(index);
+    /* Focus comes back to the photo the reader is on, not the one first
+       tapped: returning it there would scroll the hero back as well. */
+    el.querySelectorAll<HTMLElement>("[data-testid=gallery-open]")[index]?.focus({ preventScroll: true });
+  }, []);
+
   /*
      The listing's back control is the shared `BackControl`, on the photograph
      and again, fixed, once the photograph has scrolled away. A listing opened
@@ -159,17 +175,40 @@ export function ListingGallery({
    */
   const heroBack = useRef<HTMLDivElement | null>(null);
   /*
-   * The lead pane answers to the card's photo name only while this page is
-   * arriving (motion sweep, 29 September 2026). Named for good, it was lifted
-   * out of the page on every LATER transition too, so leaving the listing
-   * slid the text away and left the photograph fading in place on its own.
-   * And only when a card really started the flight (lib/motion/photo-morph.ts).
+   * THE HERO ANSWERS TO THE CARD'S PHOTO NAME only while this page is
+   * arriving (motion sweep, 29 September 2026; round 5). Named for good, it
+   * was lifted out of the page on every LATER transition too, so leaving the
+   * listing slid the text away and left the photograph fading in place on its
+   * own. And only when a card really started the flight: `aimPhotoMorph`
+   * says no otherwise (lib/motion/photo-morph.ts).
+   *
+   * The WHOLE hero takes the name now, not the lead pane: the scrims, the
+   * round controls and the counter ride in with the photograph and are
+   * there when it lands. Named on the pane alone they sat under the flying
+   * group and appeared in one frame once it had landed.
+   *
+   * A layout effect, so the name and the flight's start are written inside
+   * the view transition's update, before the browser captures this page.
    */
-  const [arriving, setArriving] = useState(() => isPhotoMorphFor(listingId));
-  useEffect(() => {
-    const done = window.setTimeout(() => setArriving(false), 1000);
-    return () => window.clearTimeout(done);
-  }, []);
+  const hero = useRef<HTMLElement | null>(null);
+  useLayoutEffect(() => {
+    aimPhotoMorph(hero.current, listingId);
+  }, [listingId]);
+  /*
+   * CAME FROM A CARD ON THIS TAB (round 5). The card left its glance and its
+   * drawn photo (lib/listings/handoff.ts). Two things follow:
+   *   - `data-arrival="card"`: the title and the price were already on
+   *     screen (the loading shell painted them, or the transition carried
+   *     them), so the lead card does not rise a second time when the page
+   *     streams in over the shell (route-motion.css).
+   *   - the photo the card drew sits under the lead pane while the hero's
+   *     larger file arrives, so the photograph never drops to the drawn
+   *     frame between the card and the hero. The browser has it already:
+   *     no second download.
+   * Read once: a cold open (a shared link, a refresh) has no handoff, here
+   * or on the server, so the two renders agree.
+   */
+  const [arrival] = useState(() => handoffFor(listingId));
   const [heroBackGone, setHeroBackGone] = useState(false);
   useEffect(() => {
     const node = heroBack.current;
@@ -184,8 +223,11 @@ export function ListingGallery({
   return (
     <>
     <section
+      ref={hero}
       aria-label={`${title} photos`}
       data-testid="listing-gallery"
+      data-morph-hero={listingId}
+      data-arrival={arrival ? "card" : undefined}
       /* The hero is a photograph: its controls, chips and scrims keep the
          night material in both themes. */
       data-theme="dark"
@@ -214,7 +256,7 @@ export function ListingGallery({
        * Once the shell stops welding its 64px header onto this route the same
        * rule puts the hero under the status bar with no further change here.
        */
-      className="relative -mx-gutter -mt-xl sm:-mt-2xl"
+      className="nf-vt-morph relative -mx-gutter -mt-xl sm:-mt-2xl"
     >
       <div
         ref={track}
@@ -231,17 +273,13 @@ export function ListingGallery({
         {panes.map((photo, i) => (
           <div
             key={photo ?? `pane-${i}`}
-            className={`relative h-full w-full shrink-0 snap-center snap-always overflow-hidden${i === 0 ? " nf-vt-morph" : ""}`}
-            /*
-             * The lead pane carries the same view-transition-name the listing
-             * card tagged its photo box with, so a browser that supports the
-             * View Transitions API morphs the card's photo into this frame
-             * instead of cutting to it. Every other browser just never reads
-             * this property: no feature check needed on the receiving end.
-             */
-            style={i === 0 && arriving ? { viewTransitionName: `listing-photo-${listingId}` } : undefined}
+            className="relative h-full w-full shrink-0 snap-center snap-always overflow-hidden"
           >
             <PhotoFrame hue={hue} index={i} kind={kind} drawn={drawn} />
+            {i === 0 && arrival?.drawn && photo && !broken[i] && (
+              // eslint-disable-next-line @next/next/no-img-element -- the exact URL the card drew, already cached; an optimiser URL would be a second download
+              <img src={arrival.drawn} alt="" className="absolute inset-0 h-full w-full object-cover" />
+            )}
             {photo && !broken[i] && (
               <Image
                 src={photo}
@@ -261,7 +299,7 @@ export function ListingGallery({
             {photo && viewer && (
               <button
                 type="button"
-                onClick={() => viewer.open(i)}
+                onClick={(event) => viewer.open(i, event.currentTarget.getBoundingClientRect(), { follow: show })}
                 aria-label={`View photo ${i + 1} full screen`}
                 data-testid="gallery-open"
                 className="absolute inset-0 z-[1] cursor-zoom-in"
@@ -354,7 +392,7 @@ export function ListingGallery({
              Nothing else sits at the centre (the arrows are at the sides from
              `sm`, the dots are hidden for stand-in plates), and it lets a tap
              through to the lightbox under it. */
-          className="pointer-events-none absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-[var(--nf-radius-xs)] nf-media-chip nf-media-chip--muted px-sm py-2xs font-medium"
+          className="pointer-events-none absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-[var(--nf-radius-xs)] nf-media-chip nf-media-chip--muted px-sm py-2xs font-semibold"
         >
           {t.catalogue.card.noPhotos}
         </p>
@@ -416,7 +454,9 @@ export function ListingGallery({
             {panes.map((photo, i) => (
               <li
                 key={photo ?? `dot-${i}`}
-                className={`h-1.5 rounded-full transition-all motion-reduce:transition-none ${
+                /* The colour eases; the width steps. A width that animates is
+                   a layout every frame (CRAFT-PRINCIPLES 2.2). */
+                className={`h-1.5 rounded-full transition-colors duration-[var(--nf-duration-fast)] motion-reduce:transition-none ${
                   i === active
                     ? "w-4 bg-[var(--nf-content-on-media)]"
                     : "w-1.5 bg-[var(--nf-content-on-media-muted)]"

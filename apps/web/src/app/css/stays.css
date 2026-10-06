@@ -164,7 +164,7 @@
   .nf-stays-plate__label {
     display: block;
     font-size: var(--nf-text-body-sm);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--nf-content-secondary);
   }
   .nf-stays-plate__note {
@@ -494,7 +494,7 @@
     background: var(--nf-btn-glass-fill);
     box-shadow: var(--nf-btn-glass-shadow);
     font-size: var(--nf-text-body-sm);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--nf-content-secondary);
     transition:
       border-color var(--nf-duration-fast) var(--nf-ease-standard),

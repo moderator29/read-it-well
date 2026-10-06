@@ -1,8 +1,8 @@
-import { formatNumber } from "@vallo/i18n";
+import { formatNumber, localeMeta, type Locale } from "@vallo/i18n/core";
 import { getLocale } from "@/lib/locale";
 import { getFunnel, getReferralCounts } from "@/lib/admin/reads/front-door";
 import { byLocale, conversion, DESK_LABELS, DESK_ORDER, totals } from "@/lib/funnel/summary";
-import { PageHead, Panel } from "../_components/panels";
+import { PageHead, Panel, ReadOnlyNote } from "../_components/panels";
 
 export const dynamic = "force-dynamic";
 
@@ -22,19 +22,20 @@ export default async function FrontDoorDeskPage() {
   const monthTotals = month.state === "ok" ? totals(month.data) : null;
 
   return (
-    <>
+    <div className="nf-admin-stack">
       <PageHead
         title="Front door"
         lede="How many visits reach each step of joining Vallo, first party and without trackers. Visits are counted once per step; accounts come from sign-in records."
       />
+      <ReadOnlyNote locale={locale} />
       <Panel title="The funnel" id="front-door-funnel" flush>
         {monthTotals === null ? (
           <p className="nf-body-sm nf-admin-panel__pad text-[var(--nf-content-secondary)]">
             The funnel is not recorded yet. It starts when the pending migration for the front door funnel is applied.
           </p>
         ) : (
-          <div className="nf-admin-dt-wrap">
-            <table className="nf-admin-dt">
+          <div className="nf-admin-dt-wrap" tabIndex={0} role="region" aria-label="The funnel">
+            <table className="nf-admin-dt nf-admin-dt--stack">
               <thead>
                 <tr>
                   <th scope="col">Step</th>
@@ -47,15 +48,16 @@ export default async function FrontDoorDeskPage() {
               <tbody>
                 {DESK_ORDER.map((step, index) => {
                   const prev = index > 0 ? DESK_ORDER[index - 1] : undefined;
-                  const w = conversion(prev ? weekTotals?.get(prev) : undefined, weekTotals?.get(step));
-                  const m = conversion(prev ? monthTotals.get(prev) : undefined, monthTotals.get(step));
+                  /* A step nobody reached is 0 of the step before, not a blank: the count beside it says 0. */
+                  const w = conversion(prev ? weekTotals?.get(prev) : undefined, weekTotals ? (weekTotals.get(step) ?? 0) : undefined);
+                  const m = conversion(prev ? monthTotals.get(prev) : undefined, monthTotals.get(step) ?? 0);
                   return (
                     <tr key={step}>
                       <th scope="row">{DESK_LABELS[step]}</th>
-                      <td className="nf-numeric text-right">{n(weekTotals?.get(step) ?? 0)}</td>
-                      <td className="nf-numeric text-right">{w === null ? "" : `${w}%`}</td>
-                      <td className="nf-numeric text-right">{n(monthTotals.get(step) ?? 0)}</td>
-                      <td className="nf-numeric text-right">{m === null ? "" : `${m}%`}</td>
+                      <td className="nf-numeric text-right" data-label="7 days">{n(weekTotals?.get(step) ?? 0)}</td>
+                      <td className="nf-numeric text-right" {...(w === null ? {} : { "data-label": "7 days, from the step before" })}>{w === null ? "" : `${w}%`}</td>
+                      <td className="nf-numeric text-right" data-label="30 days">{n(monthTotals.get(step) ?? 0)}</td>
+                      <td className="nf-numeric text-right" {...(m === null ? {} : { "data-label": "30 days, from the step before" })}>{m === null ? "" : `${m}%`}</td>
                     </tr>
                   );
                 })}
@@ -70,7 +72,7 @@ export default async function FrontDoorDeskPage() {
           <ul className="grid gap-xs">
             {byLocale(month.data, "landing_view").map(([code, visits]) => (
               <li key={code} className="flex justify-between">
-                <span>{code.toUpperCase()}</span>
+                <span>{localeMeta[code as Locale]?.label ?? code}</span>
                 <span className="nf-numeric">{n(visits)}</span>
               </li>
             ))}
@@ -98,6 +100,6 @@ export default async function FrontDoorDeskPage() {
           </ul>
         )}
       </Panel>
-    </>
+    </div>
   );
 }

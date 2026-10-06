@@ -20,6 +20,8 @@ export type Message = {
   listings?: AssistantListingItem[];
   /** The turn failed and the bubble should offer a retry. */
   error?: boolean;
+  /** The person stopped this answer (or sent again) while it streamed. What arrived is kept. */
+  stopped?: boolean;
   /**
    * When the turn was sent or first arrived, epoch milliseconds. The
    * governing render stamps every bubble with its time; a message stored

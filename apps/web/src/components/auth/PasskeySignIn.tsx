@@ -3,7 +3,8 @@
 import { useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
-import { passkeyClient, passkeySignInEnabled } from "@/lib/auth/passkey-client";
+import { passkeySignInEnabled } from "@/lib/auth/passkey-flag";
+import "@/app/css/auth.css";
 
 /**
  * A3. "Sign in with a passkey", drawn only when the flag is on and the
@@ -18,7 +19,11 @@ export function PasskeySignIn({ label, next, failed }: { label: string; next?: s
   const supported = useSyncExternalStore(
     () => () => {},
     () => "PublicKeyCredential" in window,
-    () => false,
+    /* Drawn from the server (U1, the first 400ms): every browser this
+       platform supports has passkeys, so the server answers yes and the rare
+       one without takes the door away after hydration, rather than every
+       browser growing the door in late and pushing the screen down. */
+    () => true,
   );
   if (!passkeySignInEnabled() || !supported) return null;
   return (
@@ -34,6 +39,10 @@ export function PasskeySignIn({ label, next, failed }: { label: string; next?: s
           setBusy(true);
           setError(false);
           try {
+            /* Fetched now, not with the screen: supabase-js is about 65KB
+               gzipped, and every visit to sign in paid for it whether or not
+               passkeys were switched on (R3-18). */
+            const { passkeyClient } = await import("@/lib/auth/passkey-client");
             const auth = passkeyClient().auth as unknown as {
               signInWithPasskey: () => Promise<{ error: { name?: string } | null }>;
             };
@@ -52,7 +61,7 @@ export function PasskeySignIn({ label, next, failed }: { label: string; next?: s
         {label}
       </Button>
       {error && (
-        <p role="alert" className="nf-auth__notice">
+        <p role="alert" className="nf-auth__alert">
           {failed}
         </p>
       )}

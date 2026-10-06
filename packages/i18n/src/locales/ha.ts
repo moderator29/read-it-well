@@ -394,18 +394,15 @@ export const ha: Dictionary = withFallback({
          * THE HEADLINE IS ABSENT HERE ON PURPOSE AND FALLS BACK TO ENGLISH.
          *
          * The three keys that stood here (`title1`, `title2`, `subtitle`)
-         * carried the old positioning: "Real Estate / reimagined." and a line
-         * about discovering, verifying and managing a home. The founder's new
-         * headline replaces all three and it names the same three actions as
-         * the search control below it, so a translation has to reach BOTH at
-         * once, in this language, or the page says one thing in the heading
-         * and another on the control.
+         * carried the old positioning. Since D1 (6 October) the hero reads the
+         * brand's own lines instead: `landing.slogan`, which is English in
+         * every locale like the wordmark, and `landing.explanation`, which
+         * falls back to English until it is written in this language.
          *
          * Nobody on this build writes Hausa. An invented translation of a
          * founder approved positioning line is worse than none, so the keys
          * come out and `withFallback` serves the English until a native
-         * speaker writes them. When they are written, `buy`, `rent` and `stay`
-         * in `search` below are the three words the headline must use.
+         * speaker writes them.
          */
         explore: "Bincika gidaje",
       },
@@ -498,10 +495,13 @@ export const ha: Dictionary = withFallback({
         restaurants: "Gidajen abinci",
       },
     },
-    slogan: "Real Estate reimagined!",
-    /* Not translated, like the slogan and for the same reason: it is the
-       approved position and it carries the same three words as the search
-       control on every locale. */
+    /* THE BRAND LINES (D1) ARE NOT DECLARED HERE, ON PURPOSE. `slogan` stays
+       English in every locale, like the wordmark, so `withFallback` serves
+       the English and this file carries no English sentence for the
+       completeness gate to count. `positioning`, `explanation` and
+       `shortForm` fall back to English until a native speaker writes them:
+       an invented translation of a founder approved brand line is worse
+       than none. See the note on `landing.slogan` in en.ts. */
     card: {
       moveIn: "don shiga",
       rent: "Haya",
@@ -509,9 +509,6 @@ export const ha: Dictionary = withFallback({
       market: { rent: "Don haya", sale: "Don sayarwa", night: "Kowane dare", head: "Kowane mutum" },
     },
     hero: {
-      overline: "Kasuwar gidaje da filaye ta Najeriya",
-      title1: "Real Estate,",
-      title2: "reimagined.",
       searchPlaceholder: "Ina kake son zuwa?",
       searchLabel: "Fara bincike",
       popularLabel: "Sanannu yanzu",

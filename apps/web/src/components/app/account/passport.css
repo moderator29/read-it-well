@@ -1,0 +1,88 @@
+@layer theme, base, components, utilities;
+
+/*
+ * THE SPACE PASSPORT (W6). The credential is the screen's one Island (navy
+ * glass at night, white and elevated on Paper, by the tier tokens), so this
+ * sheet only lays out what is inside it. Every colour is a token.
+ */
+@layer components {
+  .nf-credential {
+    display: grid;
+    gap: var(--nf-space-md);
+    padding: var(--nf-space-lg);
+  }
+  .nf-credential__head {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-md);
+    min-inline-size: 0;
+  }
+  .nf-credential__object {
+    display: grid;
+    place-items: center;
+    flex: none;
+    inline-size: 5.5rem;
+    block-size: 5.5rem;
+  }
+  .nf-credential__text {
+    display: grid;
+    justify-items: start;
+    gap: var(--nf-space-xs);
+    min-inline-size: 0;
+  }
+  .nf-credential__title {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h3);
+    font-weight: 600;
+    letter-spacing: var(--nf-tracking-tight);
+    color: var(--nf-content-primary);
+  }
+  .nf-credential__since {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-credential__tier {
+    min-inline-size: 0;
+  }
+  .nf-credential__action {
+    display: grid;
+  }
+
+  /* The evidence page's hero figure: the date or the count, large, with its
+     quiet label above. */
+  .nf-evidence {
+    display: grid;
+    gap: var(--nf-space-xs);
+    padding: var(--nf-space-lg);
+  }
+  .nf-evidence__label {
+    font-size: var(--nf-text-label);
+    font-weight: 400;
+    color: var(--nf-content-muted);
+  }
+  .nf-evidence__value {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h1);
+    font-weight: 600;
+    line-height: var(--nf-leading-figure);
+    letter-spacing: var(--nf-tracking-figure);
+    color: var(--nf-content-primary);
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+  }
+  .nf-evidence__body {
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.55;
+    color: var(--nf-content-secondary);
+  }
+  .nf-evidence__block {
+    display: grid;
+    gap: var(--nf-space-xs);
+    padding: var(--nf-space-md);
+  }
+  .nf-evidence__heading {
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+}

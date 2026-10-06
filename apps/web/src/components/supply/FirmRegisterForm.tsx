@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useBack } from "@/lib/nav/use-back";
-import type { Dictionary } from "@vallo/i18n/core";
+import type { RegisterCopy } from "./supply-copy";
 import { TYPE } from "@/components/app/Screen";
 import { TextField } from "@/components/ui/Field";
 import { Button } from "@/components/ui/Button";
@@ -15,7 +15,7 @@ import {
   REGISTER_STEPS,
   earliestStep,
   type AssociationProof,
-} from "@/lib/supply/registration";
+} from "@/lib/supply/registration-model";
 import { submitSupplyRegistration } from "@/lib/supply/registration-actions";
 import { RegField, RegFieldGroup } from "./RegisterField";
 import { CalmPanel, RegisterDone, RegisterShell } from "./RegisterShell";
@@ -73,7 +73,7 @@ export function FirmRegisterForm({
   t,
   startAt = 0,
 }: {
-  t: Dictionary;
+  t: RegisterCopy;
   /** The preview harness only. See the note on the owner form. */
   startAt?: number;
 }) {
@@ -467,7 +467,7 @@ export function FirmDoneScreen({
   t,
   filed,
 }: {
-  t: Dictionary;
+  t: RegisterCopy;
   filed: { reference: string; attached: boolean };
 }) {
   const router = useRouter();
@@ -486,9 +486,9 @@ export function FirmDoneScreen({
       onBack={() => router.replace("/home")}
       primary={{
         label: copy.trackIt,
-        onClick: () => router.push("/profile/application"),
+        onClick: () => router.replace("/profile/application"),
       }}
-      secondary={{ label: copy.backHome, onClick: () => router.push("/home") }}
+      secondary={{ label: copy.backHome, onClick: () => router.replace("/home") }}
     >
       <RegisterDone
         object="cluster-home"

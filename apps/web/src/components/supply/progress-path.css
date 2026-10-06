@@ -1,0 +1,102 @@
+@layer theme, base, components, utilities;
+
+/*
+ * THE PROGRESS PATH (reference 7110). Rows are Plates at the 44px floor; the
+ * nodes sit on one hairline running down the leading edge, so the steps read
+ * as a path rather than a list. Done is a filled brand node with a tick,
+ * current a 2px brand ring, upcoming a hollow node in the border ink. A done
+ * row is a button and presses like one (0.985, `press` 120ms).
+ */
+@layer components {
+  .nf-path {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .nf-path__step {
+    position: relative;
+  }
+  /* The hairline from this node to the next. */
+  .nf-path__step:not(:last-child)::before {
+    content: "";
+    position: absolute;
+    inset-block: 2.25rem -0.25rem;
+    inset-inline-start: calc(var(--nf-space-sm) + 0.75rem - 0.5px);
+    inline-size: 1px;
+    background: var(--nf-divider);
+    pointer-events: none;
+  }
+  .nf-path__row {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    inline-size: 100%;
+    min-block-size: 2.75rem;
+    padding: var(--nf-space-2xs) var(--nf-space-sm);
+    border: 0;
+    border-radius: var(--nf-tier-plate-radius);
+    background: none;
+    color: var(--nf-content-primary);
+    font: inherit;
+    text-align: start;
+  }
+  button.nf-path__row {
+    cursor: pointer;
+    transition:
+      background-color var(--nf-duration-fast) var(--nf-ease-standard),
+      transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  button.nf-path__row:hover {
+    background: var(--nf-tier-plate-hover);
+  }
+  button.nf-path__row:active {
+    transform: scale(0.985);
+  }
+  button.nf-path__row:focus-visible {
+    outline: 2px solid var(--nf-brand-primary);
+    outline-offset: -2px;
+  }
+  .nf-path__node {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    flex: none;
+    place-items: center;
+    inline-size: 1.5rem;
+    block-size: 1.5rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-surface-canvas);
+    box-shadow: inset 0 0 0 1.5px var(--nf-border-default);
+  }
+  .nf-path__step[data-state="done"] .nf-path__node {
+    background: var(--nf-brand-primary);
+    box-shadow: none;
+    color: var(--nf-content-on-brand);
+  }
+  .nf-path__step[data-state="current"] .nf-path__node {
+    box-shadow: inset 0 0 0 2px var(--nf-brand-primary);
+  }
+  .nf-path__text {
+    display: grid;
+    min-inline-size: 0;
+  }
+  .nf-path__label {
+    font-size: var(--nf-text-row);
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+  .nf-path__step[data-state="upcoming"] .nf-path__label {
+    color: var(--nf-content-secondary);
+  }
+  .nf-path__state {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    button.nf-path__row {
+      transition: none;
+    }
+  }
+}

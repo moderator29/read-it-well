@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { formatMoney } from "@vallo/i18n/core";
+import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
+import { rulingWords } from "../_components/rulings";
 import { requireAdmin } from "@/lib/admin/guard";
 import { readAgreementQueue, readGuaranteeDesk } from "@/lib/admin/reads/agreements";
 import { GuaranteeClaims } from "../money/GuaranteeDesk";
@@ -47,7 +49,7 @@ export default async function AgreementsDeskPage() {
       {claimsDesk.state !== "ok" ? (
         <p className="nf-body">The claims could not be read just now. Refresh to try again.</p>
       ) : (
-        <GuaranteeClaims claims={claimsDesk.claims} locale={locale} />
+        <GuaranteeClaims claims={claimsDesk.claims} locale={locale} words={rulingWords(getDictionary(locale))} />
       )}
     </Panel>
   ) : null;
@@ -86,7 +88,7 @@ export default async function AgreementsDeskPage() {
                     <span className="text-[var(--nf-content-secondary)]">
                       {" "}
                       · {row.renterName} ← {row.ownerName} · {formatMoney(row.amountMinor, locale)} ·{" "}
-                      {row.status === "rejected" ? `sent back: ${row.decisionReason ?? ""}` : row.status}
+                      {row.status === "rejected" ? `Sent back: ${row.decisionReason ?? ""}` : (DECIDED_WORDS[row.status] ?? row.status)}
                     </span>
                   </li>
                 ))}
@@ -99,6 +101,9 @@ export default async function AgreementsDeskPage() {
     </div>
   );
 }
+
+/* The decided list printed the database's status ("approved", "paid") at the operator. */
+const DECIDED_WORDS: Record<string, string> = { approved: "Approved", paid: "Paid" };
 
 /** The request's clock, read once so every time on the page agrees. */
 function requestTime(): number {

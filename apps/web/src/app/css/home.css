@@ -11,6 +11,15 @@
   (GOVERNING-feed-plus-bloom). Notifications and the assistant have no image
   and inherit this register, so their rules live here too.
 */
+/*
+ * Loaded by the components that draw its classes, not by globals.css (the
+ * CSS-diet move of 6 October). This line states the layer order the document
+ * already has from Tailwind, so the order holds whichever chunk the browser
+ * receives first; without it a chunk that arrived before globals would put
+ * `components` ahead of `base` and `theme`.
+ */
+@layer theme, base, components, utilities;
+
 @layer components {
   /* --------------------------------------------------------------- home */
 
@@ -55,11 +64,14 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+  /* The invitation under "Choose your city" wraps: it is a sentence, and
+     its row's one-line ellipsis cut it off at 390 (Round 3 sweep). */
   .nf-home__loc-sub {
     display: block;
+    white-space: normal;
     margin-top: var(--nf-space-3xs);
     font-size: var(--nf-text-overline);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--nf-content-muted);
   }
   .nf-home__loc-chev {
@@ -94,7 +106,9 @@
   two up, the thinking pill, the suggestion chips and the sparkle composer.
 */
 @layer components {
-  .nf-ai {
+  /* The assistant page's wrapper. It was `.nf-ai`, which collided with
+     AIResponse's root card (ported.css), so it is its own name now. */
+  .nf-assistant {
     display: flex;
     min-height: 0;
     flex: 1;
@@ -280,10 +294,15 @@
     white-space: nowrap;
   }
   .nf-ai__bubble--mine .nf-ai__stamp {
-    color: var(--nf-content-secondary);
+    /* On the blue sent bubble: the on-brand ink. The secondary ink was 1.5:1
+       on it in paper. */
+    color: var(--nf-content-on-brand);
   }
   .nf-ai__ticks {
-    color: var(--nf-brand-secondary);
+    /* The only place the tick is drawn is on the blue sent bubble, where the
+       brand-secondary blue measured 2.2:1 at night and 1.3:1 in paper (a
+       graphic needs 3:1). The on-brand ink is the bubble's own white. */
+    color: var(--nf-content-on-brand);
   }
 
   /* The inline results: two up on a phone, the thread's own width. */
@@ -453,60 +472,16 @@
     box-shadow: var(--nf-selected-shadow-inline);
   }
 
-  /* The thinking state: the ring and the word, as one plate.
-
-     The ring inside it stays a circle (a spinner is not a control), but the
-     plate around it carries a word, so the plate is a rounded rectangle on
-     the founder's shape law of 19 September. It sits in a row with chips and
-     would be the only capsule on the surface otherwise. */
-  /* The plate, the chips and the bubbles were all the same black material.
-     `BF49B814` samples its Thinking plate at `#001F65` and its suggestion
-     chips at `#002A84` against a `#000514` ground: lit blue glass, not the
-     canvas. Rung 2 of the tint ladder puts both on the blue without letting
-     the furniture out-shout the bubbles above it. The reference draws the
-     chips brighter than anything else on the surface, which would want a rung
-     between 4 and the edge tokens; adding one is a change to the ladder in
-     `packages/design-tokens/`, so it is reported rather than invented here. */
-  .nf-ai__thinking {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--nf-gap-row);
-    padding: var(--nf-space-xs) var(--nf-space-md) var(--nf-space-xs) var(--nf-space-xs);
-    border-radius: var(--nf-radius-control);
-    font-size: var(--nf-text-body-sm);
-    color: var(--nf-content-secondary);
-    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
-    background: var(--nf-btn-glass-fill);
-    -webkit-backdrop-filter: var(--nf-btn-glass-backdrop);
-    backdrop-filter: var(--nf-btn-glass-backdrop);
-    box-shadow: var(--nf-btn-glass-shadow);
-  }
-  .nf-ai__ring {
-    position: relative;
-    width: 1.75rem;
-    height: 1.75rem;
-    border-radius: var(--nf-radius-circle);
-    border: 3px solid var(--nf-brand-edge-strong);
-    border-top-color: var(--nf-content-primary);
-    box-shadow:
-      0 0 0 1px var(--nf-glow-2),
-      0 0 14px var(--nf-glow-3),
-      inset 0 0 8px var(--nf-glow-2);
-    animation: nf-ai-spin var(--nf-duration-cinematic) linear infinite;
-  }
-  @keyframes nf-ai-spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .nf-ai__ring {
-      animation: none;
-      border-top-color: var(--nf-brand-secondary);
-      border-right-color: var(--nf-brand-secondary);
-    }
-  }
-
+  /* The chips and the bubbles were the same black material. `BF49B814` samples
+     its suggestion chips at `#002A84` against a `#000514` ground: lit blue
+     glass, not the canvas. Rung 2 of the tint ladder puts both on the blue
+     without letting the furniture out-shout the bubbles above it. The
+     reference draws the chips brighter than anything else on the surface,
+     which would want a rung between 4 and the edge tokens; adding one is a
+     change to the ladder in `packages/design-tokens/`, so it is reported
+     rather than invented here. (The thinking plate and its spinning ring that
+     once sat beside them are gone: the assistant's thinking state is
+     `AIResponse`'s breathing skeleton and the orb in `assistant-answer.css`.) */
   /*
    * Suggestion chips: rectangles with a glyph, on a rail above the composer.
    *
@@ -527,7 +502,7 @@
     overflow-x: auto;
     padding-block: var(--nf-space-sm);
     scrollbar-width: none;
-    /* The bleed is the CONTAINER's gutter, not the shell's. `.nf-ai` pads
+    /* The bleed is the CONTAINER's gutter, not the shell's. `.nf-assistant` pads
        itself with `px-md` at phone width, and pulling back by the wider
        `--nf-pad-shell` pushed the rail 8px past both screen edges, which is
        the opposite of the fix (measured: left -8, right 398 at 390). */
@@ -580,7 +555,7 @@
     padding: var(--nf-space-xs) var(--nf-space-sm);
     color: var(--nf-content-primary);
     font-size: var(--nf-text-caption);
-    font-weight: 500;
+    font-weight: 600;
     line-height: 1.25;
     text-align: left;
     transition:
@@ -928,7 +903,7 @@
     padding: var(--nf-space-xs) var(--nf-space-3xs) var(--nf-space-2xs);
     background: var(--nf-surface-primary);
     border-color: color-mix(in oklab, var(--nf-brand-primary) 26%, transparent);
-    box-shadow: 0 1px 2px var(--nf-shade-1);
+    box-shadow: var(--nf-elevation-raised);
   }
   @media (hover: hover) {
     :root[data-theme="light"] .nf-cat-tile:not(:where([data-theme="dark"] *)):hover {
@@ -939,10 +914,10 @@
     width: 2.5rem;
     height: 2.5rem;
   }
-  :root[data-theme="light"] .nf-cat-tile__plate :is(.nf-brand-icon-ground, .nf-icon-tile):not(:where([data-theme="dark"] *)) {
-    background: none;
-    box-shadow: none;
-  }
+  /* No rule strips the glyph's ground here: when home.css was global, light.css
+     loaded after it and kept the tinted ground plate, which is what members
+     have seen. Loading home.css later (the CSS diet) would have let a
+     stripping rule win and changed the tiles (D28, auditor A7). */
   :root[data-theme="light"] .nf-cat-row[data-columns="2"] .nf-cat-tile:not(:where([data-theme="dark"] *)) {
     padding: var(--nf-space-xs) var(--nf-space-xs) var(--nf-space-sm);
   }
@@ -1015,7 +990,7 @@
   .nf-home__loc--quiet .nf-home__loc-name {
     flex: 0 1 auto;
     font-size: 0.9375rem;
-    font-weight: 500;
+    font-weight: 400;
     color: var(--nf-content-secondary);
   }
   .nf-home__loc--quiet .nf-home__loc-pin,
@@ -1073,13 +1048,14 @@
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
     outline-offset: 2px;
   }
+  /* The whole word, on two lines when it needs them: a quarter of a 390
+     screen cut "Depụta ụlọ" to an ellipsis in Igbo (Round 3 sweep). */
   .nf-home-door__label {
     max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow-wrap: anywhere;
+    line-height: 1.25;
     font-size: var(--nf-text-body-sm);
-    font-weight: 500;
+    font-weight: 600;
   }
   @media (prefers-reduced-motion: reduce) {
     .nf-home-door .nf-plate,
@@ -1110,5 +1086,185 @@
     font-size: var(--nf-text-caption);
     font-weight: 400;
     color: var(--nf-content-muted);
+  }
+}
+
+/*
+ * HOME, SESSION 3 (W2): the lead figure, the tiered doors, the space types
+ * row and the sections' stagger. North star 10 B; MOTION_SYSTEM motion 4 and
+ * "List stagger".
+ */
+@layer components {
+  /*
+   * THE LEAD FIGURE. A label above, quiet and small (checklist 8); the figure
+   * at the figure size, tabular, Poppins 600; the unit beside it at body
+   * size so the number is the subject; one quiet way onward. No container of
+   * its own: it sits on the hero band, which is already the screen's Island,
+   * and a card inside an Island would be a second edge.
+   */
+  .nf-home-figure {
+    display: grid;
+    gap: var(--nf-space-3xs);
+    margin-top: var(--nf-space-md);
+  }
+  .nf-home-figure__caption {
+    font-size: var(--nf-text-label, 0.8125rem);
+    font-weight: 400;
+    color: var(--nf-content-secondary);
+  }
+  .nf-home-figure__line {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: var(--nf-space-xs);
+  }
+  .nf-home-figure__value {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-figure);
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: var(--nf-content-primary);
+  }
+  .nf-home-figure__unit {
+    font-size: var(--nf-text-body);
+    color: var(--nf-content-secondary);
+  }
+  .nf-home-figure__go {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-3xs);
+    min-height: 2.75rem;
+    width: fit-content;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-link);
+  }
+
+  /* The door's tiered object: 48px, sinking with the press like the plate. */
+  .nf-home-door__object {
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    transition: transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  .nf-home-door:active .nf-home-door__object {
+    transform: scale(var(--nf-press-scale-sm));
+  }
+
+  /*
+   * THE SPACE TYPES ROW. Plate-tier doors (flat, radius 14, one hairline),
+   * because they are rows of choices, not content; the object is the
+   * subject of each. A type the person named carries a quiet "You said"
+   * under its word, by label and never by colour alone.
+   */
+  .nf-space-types__row {
+    display: flex;
+    gap: var(--nf-gap-inline);
+    margin-inline: calc(-1 * var(--nf-pad-shell));
+    padding-block: var(--nf-space-2xs);
+  }
+  .nf-space-types__item {
+    flex: 0 0 auto;
+  }
+  .nf-space-type {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    width: 6.5rem;
+    min-height: 7.75rem;
+    padding: var(--nf-space-xs) var(--nf-space-2xs) var(--nf-space-sm);
+    border-radius: var(--nf-tier-plate-radius);
+    background: var(--nf-tier-plate-fill);
+    border: var(--nf-border-width) solid var(--nf-tier-plate-edge);
+    color: var(--nf-content-primary);
+    text-align: center;
+    transition:
+      scale var(--nf-duration-press) var(--nf-ease-press),
+      background var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .nf-space-type:hover {
+      background: var(--nf-tier-plate-hover);
+    }
+  }
+  .nf-space-type:active {
+    scale: var(--nf-press-scale-lg);
+    background: var(--nf-tier-plate-press);
+  }
+  .nf-space-type:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  .nf-space-type[data-mine] {
+    border-color: var(--nf-selected-edge);
+  }
+  .nf-space-type__object {
+    display: grid;
+    place-items: center;
+    width: 4rem;
+    height: 4rem;
+  }
+  .nf-space-type__label {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+  }
+  .nf-space-type__mine {
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    color: var(--nf-content-link);
+  }
+
+  /*
+   * THE SECTIONS ARRIVE AS ONE ORGANISM (MOTION_SYSTEM "List stagger"): the
+   * first six sections of home, 40ms apart, a 12px lift and fade on `land`.
+   * This is home's own entrance, so the route's shared 50ms stagger
+   * (route-motion.css, written at no specificity so a block with its own
+   * entrance keeps it) steps aside. `backwards`, never `both`, and never on a
+   * section that holds a fixed layer, for the reason route-motion.css gives:
+   * a finished transform would make it the containing block of that layer.
+   */
+  .nf-home > :nth-child(-n + 6):not(:has(.fixed, .nf-sheet, .nf-sheet-backdrop, dialog)) {
+    animation: nf-home-section var(--nf-duration-slow) var(--nf-ease-entrance) backwards;
+    animation-delay: var(--nf-splash-hold, 0s);
+  }
+  .nf-home > :nth-child(2) {
+    animation-delay: calc(var(--nf-splash-hold, 0s) + 40ms);
+  }
+  .nf-home > :nth-child(3) {
+    animation-delay: calc(var(--nf-splash-hold, 0s) + 80ms);
+  }
+  .nf-home > :nth-child(4) {
+    animation-delay: calc(var(--nf-splash-hold, 0s) + 120ms);
+  }
+  .nf-home > :nth-child(5) {
+    animation-delay: calc(var(--nf-splash-hold, 0s) + 160ms);
+  }
+  .nf-home > :nth-child(6) {
+    animation-delay: calc(var(--nf-splash-hold, 0s) + 200ms);
+  }
+  @keyframes nf-home-section {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 12px, 0);
+    }
+  }
+  :root:is([data-motion="calm"], [data-save-data="on"]) .nf-home > * {
+    animation-name: nf-home-calm;
+    animation-duration: 160ms;
+    animation-delay: 0ms;
+  }
+  @keyframes nf-home-calm {
+    from {
+      opacity: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-space-type,
+    .nf-home-door__object {
+      transition: none;
+    }
   }
 }

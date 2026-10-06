@@ -4,7 +4,8 @@ import { PhoneField } from "@/components/app/PhoneField";
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useBack } from "@/lib/nav/use-back";
-import { formatMoney, intlTag, type Dictionary, type Locale } from "@vallo/i18n/core";
+import { formatMoney, intlTag, type Locale } from "@vallo/i18n/core";
+import type { RegisterCopy } from "./supply-copy";
 import { TYPE } from "@/components/app/Screen";
 import { SelectField, TextField } from "@/components/ui/Field";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -17,7 +18,7 @@ import {
   stepFee,
   tenantTotal,
   type ExperienceBand,
-} from "@/lib/supply/registration";
+} from "@/lib/supply/registration-model";
 import { submitSupplyRegistration } from "@/lib/supply/registration-actions";
 import { RegField, RegFieldGroup } from "./RegisterField";
 import { CalmPanel, RegisterDone, RegisterShell } from "./RegisterShell";
@@ -69,7 +70,7 @@ export function AgentRegisterForm({
   locale,
   startAt = 0,
 }: {
-  t: Dictionary;
+  t: RegisterCopy;
   /** For the money and the percentage, both of which are formatted, not built. */
   locale: Locale;
   /** The preview harness only. See the note on the owner form. */
@@ -511,7 +512,7 @@ function FeeStepper({
       {error ? (
         <p
           role="alert"
-          className="nf-arrive mt-xs text-[length:var(--nf-text-caption)] font-medium text-[var(--nf-state-error)]"
+          className="nf-arrive mt-xs text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-state-error)]"
         >
           {error}
         </p>
@@ -532,7 +533,7 @@ export function AgentDoneScreen({
   t,
   filed,
 }: {
-  t: Dictionary;
+  t: RegisterCopy;
   filed: { reference: string; attached: boolean };
 }) {
   const router = useRouter();
@@ -551,9 +552,9 @@ export function AgentDoneScreen({
       onBack={() => router.replace("/home")}
       primary={{
         label: copy.trackIt,
-        onClick: () => router.push("/profile/application"),
+        onClick: () => router.replace("/profile/application"),
       }}
-      secondary={{ label: copy.backHome, onClick: () => router.push("/home") }}
+      secondary={{ label: copy.backHome, onClick: () => router.replace("/home") }}
     >
       <RegisterDone
         object="keys-tag"

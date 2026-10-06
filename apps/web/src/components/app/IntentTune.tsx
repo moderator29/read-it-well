@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { adjustInterest } from "@/lib/interests/actions";
-import type { IntentDirection, PropertyType } from "@/lib/interests/schema";
+import type { IntentDirection, PropertyType } from "@/lib/interests/model";
 
 /**
  * "More like this" / "Not for me", on the card itself.

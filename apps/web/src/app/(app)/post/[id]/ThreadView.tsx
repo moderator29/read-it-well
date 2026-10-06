@@ -1,8 +1,10 @@
 "use client";
 
+import type { SheetWords } from "@/components/social/sheet-words";
 import { useEffect, useState, useTransition } from "react";
 import { Button } from "@/components/ui/Button";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { withNext } from "@/lib/auth/next-link";
 import { PostCard, type PostView } from "@/components/social/feed/PostCard";
 import { Composer } from "@/components/social/feed/Composer";
 import { ReportSheet } from "@/components/social/ReportSheet";
@@ -10,6 +12,8 @@ import { ActionSheet, actionsForPost } from "@/components/social/ActionSheet";
 import { PostEditor } from "@/components/social/feed/PostEditor";
 import { ViewportPost } from "@/components/social/feed/ViewportPost";
 import { Tombstone } from "@/components/social/feed/Tombstone";
+import { leadProps } from "@/components/social/feed/lead";
+import { feedback } from "@/lib/ui/feedback";
 import {
   blockUser,
   muteTarget,
@@ -18,7 +22,7 @@ import {
   toggleMark,
   toggleRepost,
 } from "@/lib/social/posts-actions";
-import { POST_COPY, POST_REPORT_REASONS } from "@/lib/social/posts-schema";
+import { POST_COPY, POST_REPORT_REASONS } from "@/lib/social/posts-model";
 import { countOf } from "@vallo/i18n/core";
 import { useClientLocale } from "@/lib/i18n/use-client-locale";
 
@@ -45,14 +49,18 @@ export function ThreadView({
   thread,
   signedIn,
   openReply = false,
+  sheet,
 }: {
   thread: Thread;
   signedIn: boolean;
+  /** The post action sheet's two lines, from the server (`sheetWordsOf`). */
+  sheet: SheetWords;
   /** Arrived from a card's comment glyph: open addressed to the root. */
   openReply?: boolean;
 }) {
   const locale = useClientLocale();
   const router = useRouter();
+  const pathname = usePathname();
   const [root, setRoot] = useState(thread.root);
   const [replies, setReplies] = useState(thread.replies);
   const [replyingTo, setReplyingTo] = useState<string | null>(
@@ -103,13 +111,16 @@ export function ThreadView({
 
   const requireSignIn = () => {
     if (signedIn) return false;
-    router.push("/sign-in");
+    /* Back to this thread after signing in: sign-in reads only `next`. */
+    router.push(withNext("/sign-in", pathname));
     return true;
   };
 
   const onLike = (post: PostView) => {
     if (requireSignIn()) return;
     const liked = !post.liked;
+    /* One light tap when a like lands; taking it back is quiet. */
+    if (liked) feedback("select");
     patch(post.id, { liked, likeCount: post.likeCount + (liked ? 1 : -1) });
     startTransition(async () => {
       const result = await toggleMark({ postId: post.id, mark: "LIKE" });
@@ -371,12 +382,16 @@ export function ThreadView({
         </p>
       )}
 
-      {replies.map((reply) => (
+      {replies.map((reply, index) => {
+        /* The first six replies arrive 40ms apart (motion 10), the way the
+           feed's first six do; the rest are simply there. */
+        const lead = leadProps(index);
+        return (
         <div
           key={reply.id}
           // One step of indent per level, capped by the depth cap at three.
-          style={{ marginInlineStart: `${Math.min(reply.depth, 3) * 14}px` }}
-          className="flex flex-col gap-[var(--nf-feed-gap)]"
+          style={{ ...lead.style, marginInlineStart: `${Math.min(reply.depth, 3) * 14}px` }}
+          className={["flex flex-col gap-[var(--nf-feed-gap)]", lead.className ?? ""].filter(Boolean).join(" ")}
         >
           {reply.mutedAuthor && !unfolded.includes(reply.id) ? (
             <MutedReply
@@ -398,7 +413,8 @@ export function ThreadView({
             </>
           ) : null}
         </div>
-      ))}
+        );
+      })}
 
       {sheetFor ? (
         <ActionSheet
@@ -412,22 +428,25 @@ export function ThreadView({
             repostCount: sheetFor.repostCount,
             editable: sheetFor.editable,
             hasAuthor: Boolean(sheetFor.author?.id),
-            who: sheetFor.author?.handle ? `@${sheetFor.author.handle}` : "this person",
-          })}
+            who: sheetFor.author?.handle ? `@${sheetFor.author.handle}` : sheet.thisPerson,
+          }, sheet.menu)}
           onChoose={(key) => onMenuAction(sheetFor, key)}
           onClose={() => setSheetFor(null)}
+          body={sheet.body}
+          dismissLabel={sheet.dismissLabel}
         />
       ) : null}
 
       {reporting ? (
         <ReportSheet
-          title="Report this post"
+          title={sheet.reportTitle}
           subject={
             reporting.author?.handle
-              ? `Posted by @${reporting.author.handle}`
-              : "Posted on Around"
+              ? sheet.reportPostedBy.replace("{handle}", reporting.author.handle)
+              : sheet.reportPostedOnAround
           }
           reasons={POST_REPORT_REASONS}
+          words={sheet.report}
           submit={({ reason, detail }) =>
             reportPost({ postId: reporting.id, reason, detail })
           }

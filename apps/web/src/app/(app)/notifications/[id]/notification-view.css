@@ -1,0 +1,231 @@
+@layer theme, base, components, utilities;
+
+/*
+  One notification in full (north star 16.3). Every colour is a token and every
+  container is one of the four tiers: the hero is the Island (one per screen),
+  the detail rows and the timeline are Cards, the action row is a Plate.
+  Motion is transform and opacity only, each block arrives 60ms after the one
+  before it (six at most), and reduced motion and Calm and Off collapse it.
+*/
+@layer components {
+  .nf-nview {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-lg);
+  }
+  .nf-nview > * {
+    animation: nf-nview-in var(--nf-duration-entrance) var(--nf-ease-entrance) both;
+    animation-delay: calc(var(--i, 0) * 60ms);
+  }
+  @keyframes nf-nview-in {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+  }
+
+  /* ------------------------------------------------------------ the hero */
+  .nf-nview__hero {
+    display: grid;
+    gap: var(--nf-space-md);
+    padding: var(--nf-space-lg);
+    justify-items: start;
+  }
+  .nf-nview__object {
+    display: grid;
+    place-items: center;
+    width: 4.5rem;
+    height: 4.5rem;
+    border-radius: var(--nf-tier-plate-radius);
+    background: var(--nf-brand-tint-2);
+  }
+  .nf-nview__family {
+    margin: 0;
+    color: var(--nf-content-muted);
+  }
+  .nf-nview__title {
+    margin: 0;
+    overflow-wrap: anywhere;
+    color: var(--nf-content-primary);
+  }
+  .nf-nview__when {
+    margin: 0;
+    color: var(--nf-content-muted);
+  }
+
+  /* The money family leads with its figure, large and tabular. */
+  .nf-nview__figure {
+    display: grid;
+    gap: var(--nf-space-3xs);
+  }
+  .nf-nview__figure-label {
+    margin: 0;
+    color: var(--nf-content-muted);
+  }
+  .nf-nview__figure-value {
+    margin: 0;
+    font-family: var(--nf-font-display);
+    font-size: clamp(2.25rem, 9vw, 3rem);
+    font-weight: 600;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: var(--nf-content-primary);
+  }
+
+  /* ----------------------------------------------- the family's lead block */
+  .nf-nview__lead {
+    margin: 0;
+    padding: var(--nf-space-md);
+    border-radius: var(--nf-tier-card-radius);
+    border: var(--nf-border-width) solid var(--nf-tier-card-edge);
+    background: var(--nf-surface-primary);
+    box-shadow: var(--nf-tier-card-shadow);
+    color: var(--nf-content-secondary);
+    overflow-wrap: anywhere;
+  }
+  /* A message reads as a quoted line, the way the thread draws a reply. */
+  .nf-nview__lead--quote {
+    border-inline-start: 3px solid var(--nf-brand-primary);
+    border-start-start-radius: var(--nf-radius-xs);
+    border-end-start-radius: var(--nf-radius-xs);
+  }
+  /* An account notice is calm: no tint, a quiet label above it. */
+  .nf-nview__lead--calm {
+    background: var(--nf-tier-plate-fill);
+  }
+
+  /* ------------------------------------------------------ key-value rows */
+  .nf-nview__card {
+    display: grid;
+    padding: var(--nf-space-xs) var(--nf-space-md);
+  }
+  .nf-nview__rows {
+    display: grid;
+    margin: 0;
+  }
+  .nf-nview__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--nf-space-md);
+    padding-block: var(--nf-space-sm);
+  }
+  .nf-nview__row + .nf-nview__row {
+    border-top: var(--nf-border-width) solid var(--nf-divider);
+  }
+  .nf-nview__row dt {
+    flex: none;
+    color: var(--nf-content-muted);
+  }
+  .nf-nview__row dd {
+    margin: 0;
+    min-width: 0;
+    text-align: end;
+    overflow-wrap: anywhere;
+    color: var(--nf-content-primary);
+  }
+
+  /* ---------------------------------------------------------- the action */
+  .nf-nview__action {
+    display: grid;
+    gap: var(--nf-space-sm);
+  }
+  .nf-nview__action-label {
+    margin: 0;
+    color: var(--nf-content-muted);
+  }
+  .nf-nview__nothing {
+    margin: 0;
+    color: var(--nf-content-secondary);
+  }
+  .nf-nview__object-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-space-sm);
+    min-height: 2.75rem;
+    padding: var(--nf-space-xs) var(--nf-space-md);
+    border-radius: var(--nf-tier-plate-radius);
+    border: var(--nf-border-width) solid var(--nf-tier-plate-edge);
+    background: var(--nf-tier-plate-fill);
+    color: var(--nf-content-primary);
+    transition: background var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .nf-nview__object-link:hover {
+      background: var(--nf-tier-plate-hover);
+    }
+  }
+  .nf-nview__object-link:active {
+    background: var(--nf-tier-plate-press);
+  }
+
+  /* ----------------------------------------------------------- timeline */
+  .nf-nview__timeline {
+    list-style: none;
+    margin: 0;
+    padding: var(--nf-space-xs) 0;
+    display: grid;
+  }
+  .nf-nview__step {
+    position: relative;
+    display: grid;
+    gap: var(--nf-space-3xs);
+    padding: var(--nf-space-xs) 0 var(--nf-space-xs) var(--nf-space-lg);
+  }
+  /* The rail, and the node on it. The current notice is a filled node and is
+     also named in words, so state is never colour alone. */
+  .nf-nview__step::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: 0.3125rem;
+    inset-block: 0;
+    width: 1px;
+    background: var(--nf-divider);
+  }
+  .nf-nview__step:first-child::before {
+    inset-block-start: 1.125rem;
+  }
+  .nf-nview__step:last-child::before {
+    inset-block-end: calc(100% - 1.125rem);
+  }
+  .nf-nview__step::after {
+    content: "";
+    position: absolute;
+    inset-inline-start: 0;
+    inset-block-start: 0.875rem;
+    width: 0.625rem;
+    height: 0.625rem;
+    border-radius: var(--nf-radius-circle);
+    border: 2px solid var(--nf-brand-primary);
+    background: var(--nf-surface-primary);
+  }
+  .nf-nview__step[aria-current="step"]::after {
+    background: var(--nf-brand-primary);
+  }
+  .nf-nview__step-title {
+    margin: 0;
+    color: var(--nf-content-secondary);
+    overflow-wrap: anywhere;
+  }
+  .nf-nview__step[aria-current="step"] .nf-nview__step-title {
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-nview__step-time {
+    margin: 0;
+    color: var(--nf-content-muted);
+  }
+  .nf-nview__step a {
+    color: inherit;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-nview > * {
+      animation: none;
+    }
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-nview > * {
+    animation: none;
+  }
+}

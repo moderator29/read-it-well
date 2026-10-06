@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
+import { forAccount, forSearchCard } from "@/components/app/account/settings-copy";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
 import { SearchCard } from "@/components/app/account/SettingsGroups";
+import { SettingsLede } from "@/components/app/account/SettingsLede";
+import { SettingsInnerNav } from "@/components/app/account/SettingsInnerNav";
 import { loadSettingsState } from "@/lib/profile/queries";
 import { loadInterestsState } from "@/lib/interests/queries";
 import { daysLeft } from "@/lib/account-deletion/constants";
@@ -33,6 +36,7 @@ export default async function AccountSettingsPage() {
     readDeletionScreen(),
   ]);
   const signedIn = account.state === "signed-in";
+  const copy = t.experienceAccount.settings;
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -41,10 +45,21 @@ export default async function AccountSettingsPage() {
         subtitle={t.settings.hub.accountInfoSub}
         fallback="/settings"
       />
+      <SettingsLede label={copy.lede.what} what={copy.lede.account.what} who={copy.lede.account.who} />
+      <SettingsInnerNav
+        label={copy.nav.label}
+        toggleLabel={copy.nav.toggle}
+        currentLabel={t.settings.hub.accountInfo}
+        sections={[
+          { id: "settings-account", label: copy.account.navAccount, icon: "user" },
+          { id: "settings-place", label: copy.account.navPlace, icon: "location" },
+          { id: "settings-search", label: copy.account.navSearch, icon: "search" },
+        ]}
+      />
       <div className="space-y-block">
         <section id="settings-account" className="scroll-mt-28">
           <AccountSection
-            t={t}
+            t={forAccount(t)}
             locale={locale}
             state={account.state}
             email={account.state === "signed-in" ? account.email : ""}
@@ -74,7 +89,7 @@ export default async function AccountSettingsPage() {
           </PlaceCard>
         </section>
         <section id="settings-search" className="scroll-mt-28">
-          <SearchCard t={t} />
+          <SearchCard t={forSearchCard(t)} />
         </section>
       </div>
     </div>

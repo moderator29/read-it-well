@@ -1,6 +1,6 @@
 import { ButtonLink } from "@/components/ui/Button";
 import type { ListingReview, ReviewSubject } from "@/lib/reviews/queries";
-import { RATING_LABELS } from "@/lib/reviews/schema";
+import { RATING_LABELS } from "@/lib/reviews/model";
 import { ICON } from "@/components/app/Screen";
 import { Reveal } from "@/components/site/Reveal";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -62,7 +62,7 @@ export function AlreadyReviewedPanel({
                   />
                 ))}
               </span>
-              <span className="nf-body-sm font-medium text-[var(--nf-content-secondary)]">
+              <span className="nf-body-sm font-normal text-[var(--nf-content-secondary)]">
                 {review.rating} out of 5, {RATING_LABELS[review.rating]}
               </span>
             </p>

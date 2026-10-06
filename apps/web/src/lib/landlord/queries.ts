@@ -1,4 +1,5 @@
 import "server-only";
+import { reportReadError } from "@/lib/observability/read-error";
 
 import { isSupabaseConfigured } from "../supabase/env";
 import { createClient } from "../supabase/server";
@@ -28,6 +29,7 @@ export async function readReplyByToken(token: string): Promise<ReplyView> {
   try {
     const db = await createClient();
     const { data, error } = await callLandlordRpc(db, "landlord_line_read", { p_token: token });
+    await reportReadError("read.landlord.readReplyByToken", error);
     if (error) return { state: "failed" };
     return readReply(data);
   } catch {
@@ -41,6 +43,7 @@ export async function readListingFactsFor(ids: readonly string[]): Promise<Map<s
   try {
     const db = await createClient();
     const { data, error } = await callLandlordRpc(db, "listing_landlord_facts", { p_listings: ids.slice(0, 200) });
+    await reportReadError("read.landlord.readListingFactsFor", error);
     if (error) return new Map();
     return readListingFacts(data);
   } catch {
@@ -69,6 +72,7 @@ export async function readPropertyOffers(listingId: string): Promise<PropertyOff
   try {
     const db = await createClient();
     const { data, error } = await callLandlordRpc(db, "property_offers", { p_listing: listingId });
+    await reportReadError("read.landlord.readPropertyOffers", error);
     if (error) return null;
     if (!Array.isArray(data)) return [];
     return data.flatMap((raw): PropertyOffer[] => {
@@ -100,6 +104,7 @@ export async function readRentFactFor(inspectionId: string): Promise<RentFact | 
   try {
     const db = await createClient();
     const { data, error } = await callLandlordRpc(db, "rent_landlord_fact", { p_inspection: inspectionId });
+    await reportReadError("read.landlord.readRentFactFor", error);
     if (error) return null;
     return readRentFact(data);
   } catch {
@@ -117,6 +122,7 @@ export async function landlordLineIsOpen(): Promise<boolean> {
   try {
     const db = await createClient();
     const { data, error } = await db.from("feature_flags").select("enabled").eq("key", "landlord_line").maybeSingle();
+    await reportReadError("read.landlord.landlordLineIsOpen", error);
     if (error) return false;
     return data?.enabled === true;
   } catch {
@@ -141,6 +147,7 @@ export async function readMandateConsents(ids: readonly string[]): Promise<Map<s
   try {
     const db = await createClient();
     const { data, error } = await callLandlordRpc(db, "mandate_consents", { p_mandates: ids.slice(0, 200) });
+    await reportReadError("read.landlord.readMandateConsents", error);
     if (error || !Array.isArray(data)) return null;
     const out = new Map<string, MandateConsent>();
     for (const raw of data) {
@@ -182,6 +189,7 @@ export async function readPropertyCandidates(listingId: string): Promise<Propert
   try {
     const db = await createClient();
     const { data, error } = await callLandlordRpc(db, "property_candidates", { p_listing: listingId });
+    await reportReadError("read.landlord.readPropertyCandidates", error);
     if (error || !Array.isArray(data)) return null;
     return data.flatMap((raw): PropertyCandidate[] => {
       const row = raw as Record<string, unknown>;
@@ -224,6 +232,7 @@ export async function readListingPropertyId(listingId: string): Promise<string |
       .select("property_id")
       .eq("id", listingId)
       .maybeSingle();
+    await reportReadError("read.landlord.readListingPropertyId", error);
     if (error || !data) return null;
     return typeof data.property_id === "string" ? data.property_id : null;
   } catch {
@@ -252,6 +261,7 @@ export async function readClosedReasons(ids: readonly string[]): Promise<Record<
       .select("id, close_reason")
       .in("id", ids.slice(0, 500))
       .not("closed_at", "is", null);
+    await reportReadError("read.landlord.readClosedReasons", error);
     if (error || !data) return {};
     const out: Record<string, string> = {};
     for (const row of data) {
@@ -269,6 +279,7 @@ export async function readOpenOwnerHeartbeats(): Promise<string[]> {
   try {
     const db = await createClient();
     const { data, error } = await callLandlordRpc(db, "owner_heartbeats_open", {});
+    await reportReadError("read.landlord.readOpenOwnerHeartbeats", error);
     if (error || !Array.isArray(data)) return [];
     return data.flatMap((row) =>
       row && typeof (row as { listing_id?: unknown }).listing_id === "string" ? [(row as { listing_id: string }).listing_id] : [],

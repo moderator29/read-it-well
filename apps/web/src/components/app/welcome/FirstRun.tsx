@@ -4,7 +4,7 @@ import "@/app/welcome/onboarding-motion.css";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { ComponentProps, CSSProperties, ReactNode } from "react";
-import type { Dictionary } from "@vallo/i18n/core";
+import type { FirstRunCopy } from "./welcome-copy";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { BackControl } from "@/components/ui/BackControl";
 import { isInPageStep } from "@/lib/nav/in-page-step";
@@ -12,9 +12,11 @@ import { Button, ButtonLink } from "@/components/ui/Button";
 import { markWelcomeSeen, skipInterests } from "@/lib/interests/actions";
 import { useMotionGate } from "@/components/motion/useMotionGate";
 import { releaseVelocity } from "@/components/site/landing/spring";
-import { InterestChoices } from "./InterestChoices";
-import { ArrivalAsks } from "./ArrivalAsks";
-import { Lockup, RiseWords } from "./StepArt";
+import { QuestionBeat } from "./QuestionBeat";
+import type { InterestChoices } from "./InterestChoices";
+import type { ArrivalAsks } from "./ArrivalAsks";
+import { VectorMark, VectorWordmark } from "@/components/auth/VectorMark";
+import { TourPager } from "./TourPager";
 import {
   forgetFirstInterest,
   rememberFirstInterest,
@@ -30,7 +32,6 @@ import {
   dragPose,
   keyStep,
   motionPlan,
-  progressFills,
   sceneState,
   skipPlan,
   swipeStep,
@@ -124,7 +125,7 @@ export function FirstRun({
   fromSignUpForm = false,
   asks = null,
 }: {
-  t: Dictionary;
+  t: FirstRunCopy;
   interests: ComponentProps<typeof InterestChoices>["initial"];
   /* False for a member who has already been shown the steps, on this
      device or another: they go straight to the question. */
@@ -521,36 +522,10 @@ export function FirstRun({
   const signInFirst = wall ? wall.primary === "sign-in" : signInHref !== "/sign-in";
 
   if (beat === "question") {
-    return (
-      <div className="nf-gs-col nf-gs-col--question" data-testid="first-run">
-        <div className="nf-gs-question__sky" aria-hidden="true">
-          <span className="nf-gs-orb nf-gs-orb--a" />
-          <span className="nf-gs-orb nf-gs-orb--b" />
-        </div>
-        <Lockup onCanvas />
-        <div className="nf-gs-question">
-          <h1 className="nf-gs-title nf-gs-title--question">
-            <RiseWords text={t.interests.question} />
-          </h1>
-          <p className="nf-gs-sub nf-gs-rise">
-            {t.interests.screenSubtitle}. {t.interests.note}
-          </p>
-          <p className="nf-gs-note nf-gs-rise">{t.welcomeCards.three.body}</p>
-          <div className="nf-gs-question__choices nf-gs-rise">
-            <InterestChoices
-              initial={interests}
-              t={t}
-              extra={asks ? <ArrivalAsks t={t} {...asks} /> : undefined}
-            />
-          </div>
-        </div>
-      </div>
-    );
+    return <QuestionBeat t={t} interests={interests} asks={asks} />;
   }
 
   const stepName = (n: number) => w.step.replace("{n}", String(n + 1)).replace("{total}", String(total));
-  const fills = progressFills(index, total);
-  const tag = "en-NG";
 
   const primaryDoor = signInFirst
     ? { href: signInHref, label: f.choice.signIn, testId: "welcome-sign-in" }
@@ -567,19 +542,9 @@ export function FirstRun({
       case "verified":
         return <KnowScene copy={m} priority={priority} />;
       case "safe":
-        return <TalkScene copy={m} priority={priority} tag={tag} />;
+        return <TalkScene copy={m} priority={priority} />;
       default:
-        return (
-          <MoveInScene
-            t={t}
-            copy={m}
-            priority={priority}
-            active={i === index}
-            visit={visit}
-            count={motion.count}
-            tag={tag}
-          />
-        );
+        return <MoveInScene t={t} copy={m} priority={priority} />;
     }
   };
 
@@ -623,8 +588,12 @@ export function FirstRun({
             />
           )}
         </span>
-        {/* Always dark (the founder, 30 September): the night lockup. */}
-        <Lockup />
+        {/* Always dark (the founder, 30 September): the lockup is the vector
+            mark and wordmark in the night's ink, so it is sharp at any scale. */}
+        <span className="nf-om-lockup" role="img" aria-label="Vallo">
+          <VectorMark size={22} />
+          <VectorWordmark height={11} />
+        </span>
         <span className="nf-om-top__side nf-om-top__side--end">
           {!onLast && (
             <button
@@ -640,27 +609,7 @@ export function FirstRun({
         </span>
       </div>
 
-      <div className="nf-om-progress" role="group" aria-label={m.progress}>
-        {slides.map((s, i) => (
-          <button
-            key={s.key}
-            type="button"
-            className="nf-om-seg"
-            data-filled={fills[i] ? "" : undefined}
-            data-current={i === index ? "" : undefined}
-            aria-label={stepName(i)}
-            aria-current={i === index ? "step" : undefined}
-            onClick={() => goTo(i)}
-            data-testid={`welcome-dot-${i + 1}`}
-          >
-            <span className="nf-om-seg__track">
-              <span className="nf-om-seg__fill" />
-            </span>
-          </button>
-        ))}
-      </div>
-
-      <div className="nf-om-stage" aria-hidden="true">
+      <div className="nf-om-stage">
         {slides.map((s, i) => {
           const state = sceneState(i, index);
           return (
@@ -670,6 +619,9 @@ export function FirstRun({
               data-om-scene={i}
               data-state={state}
               data-scene={s.key}
+              /* A page that is not on screen takes no focus and is not read. */
+              inert={state !== "active"}
+              aria-hidden={state !== "active" ? true : undefined}
               style={{ visibility: Math.abs(i - index) >= 2 ? "hidden" : undefined } as CSSProperties}
             >
               {scene(s.key, i)}
@@ -713,6 +665,8 @@ export function FirstRun({
       </p>
 
       <div className="nf-om-foot">
+        {/* The pager, a sliding pill: where you are, and a way to any page. */}
+        <TourPager total={total} index={index} label={m.progress} stepName={stepName} onGo={goTo} />
         {!onLast ? (
           <Button
             variant="primary"

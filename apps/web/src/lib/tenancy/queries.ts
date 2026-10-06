@@ -1,4 +1,5 @@
 import "server-only";
+import { reportReadError } from "@/lib/observability/read-error";
 
 import { firstNameAndInitial } from "../after-gate/public-place-model";
 
@@ -10,7 +11,9 @@ import { formatMoneyDate } from "../money/dates";
 import { ledgerFromCharge } from "../rent/ledger";
 import { lagosToday } from "../rent/schema";
 import {
+  canAskGuarantee,
   cautionState,
+  guaranteeBpsOf,
   keptUntil,
   moveOutOpensOn,
   reportStatus,
@@ -268,6 +271,7 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
 
   try {
     const { data: rp, error } = await db.from("rent_payments").select("*").eq("id", id).maybeSingle();
+    await reportReadError("read.tenancy.getTenancyFile", error);
     if (error) return { state: "unavailable" };
     if (!rp) return { state: "missing" };
 
@@ -301,6 +305,7 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
         .limit(1),
       loose.rpc("tenancy_is_void", { p_rent_payment: id }),
     ]);
+    await reportReadError("read.tenancy.getTenancyFile", listingRead.error, txRead.error, snapshotRead.error, obligationRead.error, reportsRead.error, viewingRead.error, pinsRead.error, codeRead.error, voidRead.error);
 
     const listing = listingRead.data;
     let listerName: string | null = null;
@@ -325,13 +330,18 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
     const amountMinor = obligation ? kobo(obligation.amount_minor) : null;
     const dueOn = obligation ? str(obligation.due_on) : null;
     if (obligationId && amountMinor !== null && dueOn) {
-      const [deductionsRead, returnsRead, claimsRead] = await Promise.all([
+      const [deductionsRead, returnsRead, claimsRead, termsRead] = await Promise.all([
         loose.from("caution_deductions").select("*").eq("obligation_id", obligationId).order("created_at"),
         loose.from("caution_returns").select("*").eq("obligation_id", obligationId).order("recorded_at"),
         // Readable by the claimant and both parties to the agreement (and admins) under
         // `guarantee_claims_read`, so tenant and lister see the same Guarantee position.
         loose.from("guarantee_claims").select("status, approved_minor").eq("caution_obligation_id", obligationId),
+        // The payment's frozen terms: a Guarantee is offered only where they
+        // carried a contribution (D51), as the agreement page gates its claim.
+        // One agreement per inspection (`rent_charge_needs_approved_agreement`).
+        loose.from("deal_agreements").select("terms").eq("inspection_id", rp.inspection_id).maybeSingle(),
       ]);
+      await reportReadError("read.tenancy.getTenancyFile", deductionsRead.error, returnsRead.error, claimsRead.error, termsRead.error);
       const deductionRows = rows(deductionsRead.data);
       const returnRows = rows(returnsRead.data);
       const deductionIds = deductionRows.map((row) => String(row.id));
@@ -439,8 +449,17 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
         claimable: money(reading.claimableMinor),
         claimableMinor: reading.claimableMinor,
         claimOpen: claimRows.some((row) => row.status === "submitted"),
-        // The database decides for real (escalate_caution_to_guarantee); this only offers the button.
-        canEscalate: viewer === "tenant" && today > dueOn && reading.claimableMinor > 0 && !claimRows.some((row) => row.status === "submitted"),
+        // The database decides for real (escalate_caution_to_guarantee); this only offers the
+        // button, and only on a payment that carried a Guarantee contribution (D51).
+        canEscalate: canAskGuarantee({
+          viewer,
+          today,
+          dueOn,
+          claimableMinor: reading.claimableMinor,
+          guaranteeBps: guaranteeBpsOf(termsRead.error ? null : termsRead.data),
+          claimFiled: claimRows.length > 0,
+          claimOpen: claimRows.some((row) => row.status === "submitted"),
+        }),
         deductions,
         returns,
       };
@@ -542,6 +561,7 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
       // Readable by the successor's owner only, so only the lister sees it.
       loose.from("listing_lineage").select("successor_listing_id").eq("predecessor_rent_payment_id", id).maybeSingle(),
     ]);
+    await reportReadError("read.tenancy.getTenancyFile", offerRead.error, answerRead.error, exitRead.error, lineageRead.error);
     const offerRow = offerRead.error ? null : (rows(offerRead.data)[0] ?? null);
     const offerRent = offerRow ? kobo(offerRow.rent_minor) : null;
     const offer =
@@ -597,6 +617,7 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
 
     /* ---------------------------------------------------------- flatmates */
     const contributorsRead = await loose.from("rent_payment_contributors").select("id, user_id, share_minor").eq("rent_payment_id", id).order("added_at");
+    await reportReadError("read.tenancy.getTenancyFile", contributorsRead.error);
     const contributorRows = contributorsRead.error ? [] : rows(contributorsRead.data);
     const coShares = contributorRows.flatMap((row) => {
       const share = kobo(row.share_minor);

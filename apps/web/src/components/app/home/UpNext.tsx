@@ -11,6 +11,7 @@ import { IconPlate } from "@/components/ui/IconPlate";
 import { ListGroup, ListRow } from "@/components/ui/ListGroup";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { hasUpNext, pickUpNext, viewingWhen, type UpNext as UpNextData } from "./up-next";
+import "@/app/css/home.css";
 
 /**
  * "UP NEXT" ON HOME (plan item 15). A `ListGroup` under the hero band with a

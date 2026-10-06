@@ -9,11 +9,18 @@ import { adminUi } from "../../_components/ui";
 import { UpholdControl } from "./UpholdControl";
 import { ConsiderStr } from "../../_components/ConsiderStr";
 import { InternalNotes } from "../../_components/InternalNotes";
+import { CaseHistory } from "../../_components/CaseHistory";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: "Person file", robots: { index: false, follow: false } };
+}
+
+/* The workspaces a person holds, in words: the file printed the role column ("user", "agent"). */
+function roleWord(role: string): string {
+  const words: Record<string, string> = { user: "Member", agent: "Lister", admin: "Admin", super_admin: "Super admin" };
+  return words[role] ?? role.charAt(0).toUpperCase() + role.slice(1).replace(/_/g, " ");
 }
 
 function when(iso: string | null, locale: Locale): string {
@@ -47,7 +54,9 @@ const LEDE =
 export default async function PersonFilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const locale = await getLocale();
-  const ui = adminUi(getDictionary(locale), locale);
+  const t = getDictionary(locale);
+  const x = t.experienceAdmin;
+  const ui = adminUi(t, locale);
   const file = await readPerson(id);
 
   if (file.state !== "ready") {
@@ -79,7 +88,7 @@ export default async function PersonFilePage({ params }: { params: Promise<{ id:
       {/* SCUML item 6: open an STR case about this person. */}
       <ConsiderStr from="person" id={id} />
 
-      <section className="nf-panel nf-panel--card nf-admin-card p-card" aria-label="Who">
+      <section className="mt-section-tight nf-panel nf-panel--card nf-admin-card p-card" aria-label="Who">
         <dl className="grid gap-xs text-[length:var(--nf-text-body-sm)] sm:grid-cols-2">
           {person.handle && (
             <div>
@@ -89,17 +98,19 @@ export default async function PersonFilePage({ params }: { params: Promise<{ id:
           )}
           <div>
             <dt className="nf-caption text-[var(--nf-content-muted)]">Joined</dt>
-            <dd>{when(person.joinedAt, locale)}</dd>
+            <dd>{when(person.joinedAt, locale) || "Not recorded"}</dd>
           </div>
           <div>
             <dt className="nf-caption text-[var(--nf-content-muted)]">Workspaces</dt>
-            <dd>{person.roles.join(", ") || "member"}</dd>
+            <dd>{person.roles.map(roleWord).join(", ") || "Member"}</dd>
           </div>
           {person.agent && (
             <div>
               <dt className="nf-caption text-[var(--nf-content-muted)]">As a lister</dt>
               <dd>
-                {person.agent.name ?? "Agent"} · {ui.statusLabel(person.agent.status ?? "")} · verification tier {person.agent.tier}
+                {[person.agent.name ?? "Agent", person.agent.status ? ui.statusLabel(person.agent.status) : null, `verification tier ${person.agent.tier}`]
+                  .filter(Boolean)
+                  .join(" · ")}
               </dd>
             </div>
           )}
@@ -117,7 +128,7 @@ export default async function PersonFilePage({ params }: { params: Promise<{ id:
         {person.stop && (
           <div className="mt-row border-t border-[var(--nf-divider)] pt-row" data-testid="person-stop">
             <p className="font-semibold text-[var(--nf-status-rejected)]">
-              Stopped since {when(person.stop.since, locale)}
+              {person.stop.since ? `Stopped since ${when(person.stop.since, locale)}` : "Stopped"}
               {person.stop.fraudUpheldAt ? ` · upheld as fraud on ${when(person.stop.fraudUpheldAt, locale)}` : ""}
             </p>
             <p className="mt-inline-tight nf-body-sm text-[var(--nf-content-secondary)]">{person.stop.fraudNote ?? person.stop.reason}</p>
@@ -178,23 +189,38 @@ export default async function PersonFilePage({ params }: { params: Promise<{ id:
         </section>
       )}
 
-      <section className="mt-section-tight nf-panel nf-panel--card nf-admin-card p-card" aria-label="Timeline" data-testid="person-timeline">
-        <h2 className="nf-h4">Everything, newest first</h2>
-        {file.timeline.length === 0 ? (
-          <p className="mt-row nf-body-sm text-[var(--nf-content-muted)]">Nothing recorded yet.</p>
-        ) : (
-          <ol className="mt-row space-y-inline">
-            {file.timeline.map((e, i) => (
-              <li key={i} className="flex flex-wrap items-baseline gap-x-xs border-t border-[var(--nf-divider)] pt-inline nf-body-sm">
-                <span className="nf-numeric nf-caption text-[var(--nf-content-muted)]">{when(e.at, locale)}</span>
-                <span className="min-w-0 flex-1 break-words">{e.title}</span>
-                <Link href={e.href} className="nf-caption inline-flex min-h-11 items-center text-[var(--nf-content-secondary)] underline underline-offset-2">
-                  {e.desk}
-                </Link>
-              </li>
-            ))}
-          </ol>
-        )}
+      {/* The timeline is this file's second job: the facts above it are what a
+          reviewer needs to decide, and the record of everything is one tap
+          away, folded (D25, and COMPONENT_LIBRARY's "admin case history"). */}
+      <section className="mt-section-tight" aria-label="Timeline" data-testid="person-timeline">
+        <CaseHistory
+          title="Everything, newest first"
+          hint={x.cases.historyCount.replace("{count}", String(file.timeline.length))}
+        >
+          {file.timeline.length === 0 ? (
+            <p className="nf-body-sm text-[var(--nf-content-muted)]">Nothing recorded yet.</p>
+          ) : (
+            <ol className="space-y-inline">
+              {file.timeline.map((e, i) => (
+                <li key={i} className="flex flex-wrap items-baseline gap-x-xs border-t border-[var(--nf-divider)] pt-inline nf-body-sm">
+                  <span className="nf-numeric nf-caption text-[var(--nf-content-muted)]">{when(e.at, locale)}</span>
+                  <span className="min-w-0 flex-1 break-words">{e.title}</span>
+                  <Link href={e.href} className="nf-caption inline-flex min-h-11 items-center text-[var(--nf-content-secondary)] underline underline-offset-2">
+                    {e.desk}
+                  </Link>
+                </li>
+              ))}
+            </ol>
+          )}
+        </CaseHistory>
+        <p className="mt-sm">
+          <Link
+            href={`/admin/audit?who=all&q=${id}`}
+            className="inline-flex min-h-11 items-center nf-caption font-semibold underline underline-offset-2"
+          >
+            {x.cases.trailLink}
+          </Link>
+        </p>
       </section>
 
       <InternalNotes subjectId={id} path={`/admin/people/${id}`} />

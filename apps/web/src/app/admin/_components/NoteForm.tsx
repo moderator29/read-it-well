@@ -22,7 +22,10 @@ export function NoteForm({
   const router = useRouter();
   return (
     <form
-      className="mt-xs grid gap-2xs"
+      /* One column that may shrink below its content: in the support desk's
+         narrow side column the scope select's longest option set the grid's
+         width and the field ran 8px past its card at 1440 (C1 sweep). */
+      className="mt-xs grid grid-cols-[minmax(0,1fr)] gap-2xs"
       onSubmit={(e) => {
         e.preventDefault();
         setError(null);
@@ -49,7 +52,7 @@ export function NoteForm({
         onChange={(e) => setBody(e.target.value)}
       />
       <div className="flex flex-wrap items-center gap-xs">
-        <select className="nf-field w-auto" value={scope} onChange={(e) => setScope(e.target.value)} aria-label="Who can read it">
+        <select className="nf-field w-auto min-w-0 max-w-full" value={scope} onChange={(e) => setScope(e.target.value)} aria-label="Who can read it">
           <option value="">Every member of staff can read it</option>
           {scopes.map((s) => (
             <option key={s.value} value={s.value}>

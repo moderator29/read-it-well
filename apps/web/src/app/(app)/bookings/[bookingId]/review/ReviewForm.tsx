@@ -6,7 +6,7 @@ import type { ActionResult } from "@/lib/actions/envelope";
 import { submitReview, type ReviewWritten } from "@/lib/reviews/actions";
 import { sendOrKeep } from "@/lib/offline/send-or-keep";
 import { useClientCopy } from "@/lib/i18n/client-copy";
-import { BODY_MAX, RATING_LABELS, RATING_MAX, RATING_MIN } from "@/lib/reviews/schema";
+import { BODY_MAX, RATING_LABELS, RATING_MAX, RATING_MIN } from "@/lib/reviews/model";
 import type { ReviewSubject } from "@/lib/reviews/queries";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { SuccessSheet } from "@/components/ui/SuccessSheet";
@@ -99,6 +99,7 @@ export function ReviewForm({
           if (!open) setSuccessClosed(true);
         }}
         variant={posted.variant}
+        haptic={posted.haptic}
         object={posted.object}
         title={posted.title}
         body={posted.body}
@@ -190,7 +191,7 @@ export function ReviewForm({
             when the first star is picked. */}
         <p
           aria-live="polite"
-          className="mt-row min-h-[1.25rem] nf-body-sm font-medium text-[var(--nf-content-secondary)]"
+          className="mt-row min-h-[1.25rem] nf-body-sm font-normal text-[var(--nf-content-secondary)]"
         >
           {rating > 0 ? RATING_LABELS[rating] : ""}
         </p>

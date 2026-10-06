@@ -14,7 +14,7 @@ import {
   MODERATOR_CANNOT,
   MODERATOR_REASON_MIN,
   MODERATOR_REASON_MAX,
-} from "@/lib/social/areas-schema";
+} from "@/lib/social/areas-model";
 
 /**
  * Apply to look after a place.
@@ -171,7 +171,7 @@ export function ModeratorApply({
         </p>
       ) : null}
 
-      <div className="flex gap-xs">
+      <div className="flex flex-wrap gap-xs">
         <Button
           type="submit"
           variant="primary"

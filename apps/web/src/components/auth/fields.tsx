@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import type { Dictionary } from "@vallo/i18n/core";
+import type { FieldsCopy } from "./auth-copy";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import "@/app/css/auth.css";
 
 /**
  * The form furniture the auth screens share.
@@ -19,38 +20,6 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
  * cookie and hands the dictionary down, which is why `t` appears on three of
  * the four components below rather than being reached for inside them.
  */
-
-/** One headed group inside the sign-up form. */
-export function FormGroup({
-  title,
-  step,
-  note,
-  children,
-}: {
-  title: string;
-  step: string;
-  note?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="border-t border-[var(--nf-panel-hair)] pt-5 first:border-t-0 first:pt-0 [&+section]:mt-7">
-      <div className="mb-md flex items-baseline justify-between gap-3">
-        <h2 className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
-          {title}
-        </h2>
-        <span className="nf-numeric shrink-0 text-[length:var(--nf-text-label)] font-semibold uppercase tracking-[var(--nf-tracking-label)] text-[var(--nf-content-muted)]">
-          {step}
-        </span>
-      </div>
-      {note && (
-        <p className="mb-4 text-[0.75rem] leading-relaxed text-[var(--nf-content-muted)]">
-          {note}
-        </p>
-      )}
-      <div className="space-y-md">{children}</div>
-    </section>
-  );
-}
 
 /**
  * Label row with an optional marker chip for non-required fields.
@@ -69,13 +38,13 @@ function LabelRow({
   optional?: string;
 }) {
   return (
-    <span className="flex items-center justify-between gap-2">
+    <span className="flex items-center justify-between gap-xs">
       <label htmlFor={htmlFor} className="nf-label">
         {label}
       </label>
       {/* A plain word, not a chip: a chip at the tap floor read as a button. */}
       {optional && (
-        <span className="mb-xs text-[0.8125rem] text-[var(--nf-content-muted)]">{optional}</span>
+        <span className="mb-xs text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">{optional}</span>
       )}
     </span>
   );
@@ -84,7 +53,7 @@ function LabelRow({
 function FieldError({ id, error }: { id: string; error?: string }) {
   if (!error) return null;
   return (
-    <p id={id} role="alert" className="mt-xs text-[0.75rem] text-[var(--nf-state-error)]">
+    <p id={id} role="alert" className="nf-slate-field__error">
       {error}
     </p>
   );
@@ -117,7 +86,7 @@ export function Field({
   optional?: boolean;
   /* Optional, because a controlled field needs no dictionary for the one word
      this component would use it for. */
-  t?: Dictionary;
+  t?: FieldsCopy;
   /*
    * Controlled, optionally.
    *
@@ -227,7 +196,7 @@ export function SelectField({
           defaultValue=""
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? errorId : undefined}
-          className="nf-field nf-field--glass appearance-none pr-11"
+          className="nf-field nf-field--glass appearance-none pr-2xl"
         >
           <option value="" disabled>
             {placeholder}
@@ -278,7 +247,7 @@ export function PasswordField({
   error?: string;
   value: string;
   onChange: (next: string) => void;
-  t: Dictionary;
+  t: FieldsCopy;
   /** True when this is the one field left to fill, as on the email-first
       sign-in where the address arrived from the screen before. */
   autoFocus?: boolean;
@@ -309,7 +278,7 @@ export function PasswordField({
           autoCorrect="off"
           spellCheck={false}
           enterKeyHint={enterKeyHint}
-          className="nf-field nf-field--glass pr-12"
+          className="nf-field nf-field--glass pr-2xl"
         />
         <button
           type="button"
@@ -349,7 +318,7 @@ function scorePassword(pw: string): StrengthScore {
  * locale: an empty field has no strength to report and a word there would be a
  * verdict on nothing.
  */
-function strengthLabel(score: StrengthScore, t: Dictionary): string {
+function strengthLabel(score: StrengthScore, t: FieldsCopy): string {
   switch (score) {
     case 0:
       return "";
@@ -373,13 +342,13 @@ const STRENGTH_COLOURS: Record<StrengthScore, string> = {
 };
 
 /** Four-segment strength bar with a text label, announced politely. */
-export function StrengthMeter({ password, t }: { password: string; t: Dictionary }) {
+export function StrengthMeter({ password, t }: { password: string; t: FieldsCopy }) {
   const score = scorePassword(password);
   const colour = STRENGTH_COLOURS[score];
 
   return (
     <div className="-mt-xs">
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-sm">
         <div className="flex flex-1 gap-xs">
           {([1, 2, 3, 4] as const).map((segment) => (
             <span

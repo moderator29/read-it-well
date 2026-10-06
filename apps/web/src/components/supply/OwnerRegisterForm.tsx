@@ -4,7 +4,7 @@ import { PhoneField } from "@/components/app/PhoneField";
 import { useCallback, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useBack } from "@/lib/nav/use-back";
-import type { Dictionary } from "@vallo/i18n/core";
+import type { OwnerCopy } from "./supply-copy";
 import { TYPE } from "@/components/app/Screen";
 import { TextField } from "@/components/ui/Field";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -16,7 +16,7 @@ import {
   REGISTER_STEPS,
   earliestStep,
   type OwnershipAnswer,
-} from "@/lib/supply/registration";
+} from "@/lib/supply/registration-model";
 import { submitSupplyRegistration } from "@/lib/supply/registration-actions";
 import { RegField, RegFieldGroup } from "./RegisterField";
 import { CalmPanel, RegisterDone, RegisterShell } from "./RegisterShell";
@@ -79,7 +79,7 @@ export function OwnerRegisterForm({
   states,
   startAt = 0,
 }: {
-  t: Dictionary;
+  t: OwnerCopy;
   states: StateOption[];
   /**
    * WHICH SCREEN TO OPEN ON, AND THE ONLY CALLER IS THE PREVIEW HARNESS.
@@ -448,7 +448,7 @@ export function OwnerDoneScreen({
   t,
   filed,
 }: {
-  t: Dictionary;
+  t: OwnerCopy;
   filed: { reference: string; mark: boolean; attached: boolean };
 }) {
   const router = useRouter();
@@ -467,9 +467,9 @@ export function OwnerDoneScreen({
       onBack={() => router.replace("/home")}
       primary={{
         label: copy.trackIt,
-        onClick: () => router.push("/profile/application"),
+        onClick: () => router.replace("/profile/application"),
       }}
-      secondary={{ label: copy.backHome, onClick: () => router.push("/home") }}
+      secondary={{ label: copy.backHome, onClick: () => router.replace("/home") }}
     >
       <RegisterDone
         object="home-check"

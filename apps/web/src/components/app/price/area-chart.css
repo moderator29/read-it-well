@@ -1,0 +1,36 @@
+@layer theme, base, components, utilities;
+
+/*
+ * THE AREA FIGURE AND CHART (`AreaAskingChart.tsx`, Session 3, W2). The
+ * figure leads at the figure size (north star 5: Poppins 600, tabular), a
+ * quiet label above it; the segments sit above both because they are the
+ * question being asked. No container of its own: it lives inside the area
+ * report's section, which is already the Card.
+ */
+@layer components {
+  .nf-area-chart {
+    display: grid;
+    gap: var(--nf-space-md);
+    margin-bottom: var(--nf-space-lg);
+  }
+  .nf-area-chart__figure {
+    display: grid;
+    gap: var(--nf-space-3xs);
+  }
+  .nf-area-chart__caption {
+    font-size: var(--nf-text-label);
+    font-weight: 400;
+    color: var(--nf-content-secondary);
+  }
+  .nf-area-chart__value {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-figure);
+    font-weight: 600;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: var(--nf-content-primary);
+  }
+  .nf-area-chart__range {
+    color: var(--nf-content-secondary);
+  }
+}

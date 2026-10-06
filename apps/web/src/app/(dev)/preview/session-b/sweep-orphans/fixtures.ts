@@ -1,4 +1,4 @@
-import type { OpenPlace, PlaceTree } from "@/lib/social/places-schema";
+import type { OpenPlace, PlaceTree } from "@/lib/social/places-model";
 import type { AreaDetail, AreaProposal, AreaSummary } from "@/lib/social/areas-queries";
 import type { RentPayView } from "@/lib/rent/queries";
 import type { ListingReview, ReviewSubject } from "@/lib/reviews/queries";

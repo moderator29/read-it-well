@@ -6,7 +6,9 @@ import type { BrandIconName } from "@/design-system/icons/BrandIcon";
 import { ButtonLink } from "@/components/ui/Button";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { IconPlate } from "@/components/ui/IconPlate";
+import "@/components/site/guides/docs-type.css";
 import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
+import { NO_RENTER_FEES_LINE } from "@/lib/money/copy";
 
 /* A10: the title and description in the page's own language, with its
    canonical and hreflang (lib/i18n/public-metadata.ts; words in publicMeta). */
@@ -50,11 +52,14 @@ export default function AboutPage() {
       /* This card used to say "we earn only when a booking completes", which
          promised a commission the platform does not charge. The fee position
          (PRODUCT.md section 3) is that Vallo's commission is zero, and since
-         Track A the card also names the Guarantee contribution, which comes
-         out of the lister's share. */
-      icon: "wallet-secure",
+         Track A the card also named the Guarantee contribution. D51 retired the
+         Guarantee and moved the platform fee to the lister's share, so the card
+         reads the one sentence that says so, NO_RENTER_FEES_LINE in
+         lib/money/copy.ts, and its picture is no longer a wallet, which Vallo
+         never keeps for anybody (C6, the route sweep). */
+      icon: "keys-handover",
       title: "Fair to both sides",
-      body: "Listing is free and Vallo charges no fee to look, to book or to list, in any market here. What anybody pays reaches the lister, less the payment processor's own charge and the Vallo Guarantee contribution of 1 to 2 percent, which goes to a separate reserve and never to Vallo. Where an agent charges a fee of their own, it is theirs and it is stated on the listing rather than met at the door.",
+      body: `${NO_RENTER_FEES_LINE} Where an agent charges a fee of their own, it is theirs and it is stated on the listing rather than met at the door.`,
     },
     {
       icon: "house-sparkle",
@@ -94,16 +99,19 @@ export default function AboutPage() {
 
         {/* ----------------------------------------------------- mission */}
         <Reveal as="section" className="mt-section">
-          <div className="nf-panel nf-panel--card block p-card-lg">
+          {/* The mission is the page's one Island (Session 3, stage 9), and its
+              first paragraph is set as the statement it is: the display face
+              at lead size, with the supporting paragraph at reading size. */}
+          <div className="nf-island p-card-lg">
             <h2 className="nf-overline">Our mission</h2>
-            <p className="mt-row text-[1.0625rem] font-medium leading-relaxed sm:text-[1.125rem]">
+            <p className="nf-lead-statement mt-row">
               To make finding a place in Nigeria as simple as messaging a
               friend, whether it is a flat for the year, a house to buy, a hotel room
               for Friday or a table for six, so that nobody pays for a room that does
               not exist, queues for an agent who never shows, or settles for less
               because the good options were hidden.
             </p>
-            <p className="mt-row text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
+            <p className="mt-row text-[length:var(--nf-text-row)] leading-[1.6] text-[var(--nf-content-secondary)]">
               Too much of Nigerian renting still runs on hearsay, a chain of agents on
               one property and a cost nobody will state until you are standing in the
               flat. We are not removing the agent, who holds most of the supply in this
@@ -119,7 +127,7 @@ export default function AboutPage() {
         <Reveal as="section" className="mt-heading">
           <div className="nf-panel nf-panel--card block p-card-lg">
             <h2 className="nf-overline">Our vision</h2>
-            <p className="mt-row text-[1.0625rem] font-medium leading-relaxed sm:text-[1.125rem]">
+            <p className="nf-lead-statement mt-row">
               A Nigeria where anyone can find a place, see the whole cost of it and
               deal with whoever is actually behind it, from a Lagos flat let for the
               year to a Calabar kitchen held for one evening, in their own language
@@ -139,7 +147,7 @@ export default function AboutPage() {
                     <UiIcon name={lineGlyphFor(c.icon)} size={20} />
                   </IconPlate>
                   <span className="font-semibold">{c.title}</span>
-                  <span className="text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+                  <span className="text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
                     {c.body}
                   </span>
                 </div>
@@ -160,7 +168,7 @@ export default function AboutPage() {
                   </IconPlate>
                   <span className="min-w-0">
                     <span className="block font-semibold">{v.title}</span>
-                    <span className="mt-inline-tight block text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+                    <span className="mt-inline-tight block text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                       {v.body}
                     </span>
                   </span>
@@ -174,7 +182,7 @@ export default function AboutPage() {
         <Reveal as="section" className="mt-section">
           <div className="nf-panel nf-panel--card block p-card text-center-lg">
             <h2 className="nf-h2 mx-auto max-w-[22ch]">Come and build this with us</h2>
-            <p className="mx-auto mt-row max-w-[48ch] text-[0.9375rem] text-[var(--nf-content-secondary)]">
+            <p className="mx-auto mt-row max-w-[48ch] text-[length:var(--nf-text-row)] text-[var(--nf-content-secondary)]">
               Whether you are looking for your next place, want to list a property you
               own or manage, want to let a room by the night, or want to join the team,
               there is a place for you here.

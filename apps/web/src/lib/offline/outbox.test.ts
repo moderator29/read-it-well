@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { asEntry, backoff, due, entryKey, makeEntry, OUTBOX_KINDS } from "./outbox";
+import { asEntry, backoff, due, entryKey, hasAuthCookie, makeEntry, OUTBOX_KINDS } from "./outbox";
 import { INFLIGHT_MAX_AGE_MS, readInflight } from "./inflight";
 
 const ID = "3653d202-e498-4db0-ab71-882649f7f446";
@@ -73,5 +73,23 @@ describe("creates in the outbox (V-40)", () => {
     expect(makeCreateEntry("send_message", ID, { conversationId: "c", body: "   " }, 1)).toBeNull();
     expect(makeCreateEntry("send_message", "not-a-uuid", { conversationId: "c", body: "x" }, 1)).toBeNull();
     expect(asEntry({ kind: "drop_post", target: ID, want: true, payload: { kind: "GIST", body: 5 } })).toBeNull();
+  });
+});
+
+/* R3-18: a page with no auth cookie answers "nobody" without fetching
+   supabase-js, so the cookie test must find the cookie in every shape the
+   SSR client writes it, and nothing else. */
+describe("the auth cookie, read without the client", () => {
+  it("finds the session cookie whole or chunked, anywhere in the header", () => {
+    expect(hasAuthCookie("sb-abcd-auth-token=base64-xyz")).toBe(true);
+    expect(hasAuthCookie("vallo_first_run=seen; sb-abcd-auth-token.0=base64-a; sb-abcd-auth-token.1=b")).toBe(true);
+    expect(hasAuthCookie("nf_theme=dark;sb-proj-ref-auth-token=x")).toBe(true);
+  });
+
+  it("is not fooled by anything else", () => {
+    expect(hasAuthCookie("")).toBe(false);
+    expect(hasAuthCookie("vallo_first_run=seen; nf_theme=dark")).toBe(false);
+    expect(hasAuthCookie("sb-abcd-auth-token-code-verifier=x")).toBe(false);
+    expect(hasAuthCookie("not-sb-abcd-auth-token=x")).toBe(false);
   });
 });

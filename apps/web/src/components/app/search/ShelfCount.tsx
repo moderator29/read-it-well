@@ -3,7 +3,11 @@ import { formatNumber, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { SORTS, sortBasisOf } from "@/lib/listings/search-params";
 import { ViewToggle } from "@/components/app/filters/ViewToggle";
+import { Odometer } from "@/components/ui/Odometer";
 import { toShelfHref, toShelfViewHref, type ShelfQuery } from "./shelf-query";
+import "@/app/css/catalogue.css";
+import "@/app/css/list-views.css";
+import "./results-motion.css";
 
 /**
  * "342 properties found" and the sort control beside it, to 3EB3E2A9.
@@ -11,6 +15,14 @@ import { toShelfHref, toShelfViewHref, type ShelfQuery } from "./shelf-query";
  * The count is a live region so a screen reader hears a filter land. The
  * sort is a native disclosure of links: an ordering stays a URL the back
  * button can walk, and nothing has to hydrate for the menu to open.
+ *
+ * THE FIGURE ROLLS WHEN THE SERVER ANSWERS, AND ONLY THEN (round 5 craft).
+ * The number sits in an odometer, so a filter that takes 342 to 128 turns
+ * the wheels that changed (240ms, the browsing pace in results-motion.css)
+ * instead of swapping the line. It cannot roll early: this is a server
+ * render, and the new count only exists once the new page has arrived, in
+ * the same commit as the new cards. Nothing on the client guesses it. On
+ * first paint it prints still (the odometer never rolls on mount).
  */
 export function ShelfCount({
   query,
@@ -43,14 +55,21 @@ export function ShelfCount({
           : currentBasis === "fees"
             ? t.trustVisible.fees.sortBasis
           : null;
+  /* "{count} properties found" around the rolling figure: the words are the
+     dictionary's, split at the placeholder, so the sentence reads the same. */
+  const [before, after = ""] = copy.found.split("{count}");
   const line =
-    count === 0
-      ? narrowed
-        ? copy.foundNone
-        : ""
-      : count === 1
-        ? copy.foundOne
-        : copy.found.replace("{count}", formatNumber(count, locale));
+    count === 0 ? (
+      narrowed ? copy.foundNone : ""
+    ) : count === 1 ? (
+      copy.foundOne
+    ) : (
+      <>
+        {before}
+        <Odometer value={formatNumber(count, locale)} />
+        {after}
+      </>
+    );
 
   return (
     <div className="nf-shelf-count">
@@ -60,7 +79,7 @@ export function ShelfCount({
           data-count={count}
           aria-live="polite"
           aria-atomic="true"
-          className="nf-body-sm min-w-0 whitespace-nowrap font-medium text-[var(--nf-content-secondary)]"
+          className="nf-body-sm min-w-0 whitespace-nowrap font-normal text-[var(--nf-content-secondary)]"
         >
           {line}
         </p>

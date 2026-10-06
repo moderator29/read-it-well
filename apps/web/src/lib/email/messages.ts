@@ -45,6 +45,7 @@ import {
   compose,
   dateRange,
   dayMonth,
+  figure,
   fitSubject,
   greetingName,
   heading,
@@ -60,7 +61,7 @@ import {
   type Block,
   type ReceiptRow,
 } from "./render";
-import type { EmailKind } from "./icons";
+import type { EmailGlyph, EmailKind } from "./icons";
 import { countOf, DEFAULT_LOCALE, type Locale } from "@vallo/i18n/core";
 import { mailEn, type MailCopy } from "@vallo/i18n/mail";
 
@@ -181,18 +182,18 @@ function stayRows(data: {
   const locale = data.locale ?? DEFAULT_LOCALE;
   const label = (data.copy ?? mailEn).common.rows;
   const list: ReceiptRow[] = [
-    { label: label.stay, value: data.listingTitle },
-    { label: label.dates, value: dateRange(data.checkIn, data.checkOut) },
-    { label: label.length, value: nightsLine(data.nights, locale) },
+    { label: label.stay, value: data.listingTitle, icon: "home" },
+    { label: label.dates, value: dateRange(data.checkIn, data.checkOut), icon: "calendar" },
+    { label: label.length, value: nightsLine(data.nights, locale), icon: "time" },
   ];
   const party = partyLine(data.adults, data.children, locale, data.copy ?? mailEn);
-  if (party) list.push({ label: label.guests, value: party });
+  if (party) list.push({ label: label.guests, value: party, icon: "people" });
   if (data.arriving) {
-    list.push({ label: label.arriving, value: data.arriving.name });
-    list.push({ label: label.theirNumber, value: data.arriving.phone });
+    list.push({ label: label.arriving, value: data.arriving.name, icon: "people" });
+    list.push({ label: label.theirNumber, value: data.arriving.phone, icon: "phone" });
   }
   if (typeof data.totalMinor === "number") {
-    list.push({ label: label.totalForStay, value: money(data.totalMinor), strong: true });
+    list.push({ label: label.totalForStay, value: money(data.totalMinor), strong: true, icon: "money" });
   }
   return list;
 }
@@ -208,16 +209,16 @@ function accessRows(access?: ArrivalAccess | null, copy: MailCopy = mailEn): Rec
   if (!access) return [];
   const label = copy.common.rows;
   const list: ReceiptRow[] = [];
-  const push = (label: string, value: string | null | undefined, strong?: boolean) => {
+  const push = (label: string, value: string | null | undefined, icon: EmailGlyph, strong?: boolean) => {
     const trimmed = (value ?? "").trim();
     if (trimmed.length > 0) {
-      list.push(strong ? { label, value: trimmed, strong } : { label, value: trimmed });
+      list.push(strong ? { label, value: trimmed, strong, icon } : { label, value: trimmed, icon });
     }
   };
-  push(label.estate, access.estateName);
-  push(label.gettingIn, access.gateDirections);
-  push(label.securityDesk, access.securityPhone);
-  push(label.gateCode, access.accessCode, true);
+  push(label.estate, access.estateName, "place");
+  push(label.gettingIn, access.gateDirections, "info");
+  push(label.securityDesk, access.securityPhone, "phone");
+  push(label.gateCode, access.accessCode, "key", true);
   return list;
 }
 
@@ -384,9 +385,9 @@ function securityRows(
   const when = [data.date ? prettyDate(data.date) : null, data.time?.trim() || null]
     .filter(Boolean)
     .join(", ");
-  if (when) list.push({ label: label.when, value: when });
-  if (data.device?.trim()) list.push({ label: label.device, value: data.device.trim() });
-  if (data.place?.trim()) list.push({ label: label.near, value: data.place.trim() });
+  if (when) list.push({ label: label.when, value: when, icon: "time" });
+  if (data.device?.trim()) list.push({ label: label.device, value: data.device.trim(), icon: "shield" });
+  if (data.place?.trim()) list.push({ label: label.near, value: data.place.trim(), icon: "place" });
   return list;
 }
 
@@ -1252,9 +1253,9 @@ export function bookingCancelled(data: BookingCancelledData): EmailMessage {
       heading(m.heading),
       paragraph(fill(m.lead, { hello: helloIn(copy, data.guestName) })),
       rows([
-        { label: label.stay, value: data.listingTitle },
-        { label: label.dates, value: dateRange(data.checkIn, data.checkOut) },
-        { label: label.status, value: m.status, strong: true },
+        { label: label.stay, value: data.listingTitle, icon: "home" },
+        { label: label.dates, value: dateRange(data.checkIn, data.checkOut), icon: "calendar" },
+        { label: label.status, value: m.status, strong: true, icon: "status" },
       ]),
       paragraph(m.nothingLeft),
       button(m.button, appUrl("/search")),
@@ -1298,13 +1299,13 @@ export function bookingRefunded(data: BookingRefundedData): EmailMessage {
   const label = copy.common.rows;
   const returned = data.refundMinor > 0;
   const list: ReceiptRow[] = [
-    { label: label.stay, value: data.listingTitle },
-    { label: label.dates, value: dateRange(data.checkIn, data.checkOut) },
-    { label: m.paid, value: money(data.paidMinor) },
-    { label: m.goingBack, value: money(data.refundMinor), strong: true },
+    { label: label.stay, value: data.listingTitle, icon: "home" },
+    { label: label.dates, value: dateRange(data.checkIn, data.checkOut), icon: "calendar" },
+    { label: m.paid, value: money(data.paidMinor), icon: "money" },
+    { label: m.goingBack, value: money(data.refundMinor), strong: true, icon: "money" },
   ];
   if (data.retainedMinor > 0) {
-    list.push({ label: m.kept, value: money(data.retainedMinor) });
+    list.push({ label: m.kept, value: money(data.retainedMinor), icon: "money" });
   }
 
   return message(
@@ -1325,6 +1326,9 @@ export function bookingRefunded(data: BookingRefundedData): EmailMessage {
     [
       heading(returned ? m.headingRefund : m.headingCancelled),
       paragraph(fill(m.lead, { hello: helloIn(copy, data.guestName) })),
+      /* The figure the email is about, large and tabular (16.5): what is
+         going back, under the label the rows use for it. */
+      returned ? figure(m.goingBack, money(data.refundMinor)) : null,
       paragraph(data.reasonLine),
       rows(list),
       /* English reads the one money constant; another language reads its

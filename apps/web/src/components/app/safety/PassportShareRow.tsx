@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import type { Dictionary } from "@vallo/i18n/core";
 import { shareRenterPassport } from "@/lib/trust/passport-actions";
+import { Button } from "@/components/ui/Button";
 
 /**
  * V-100 IN A THREAD, FOR THE RENTER: show the passport to this lister, or take
@@ -37,13 +38,11 @@ export function PassportShareRow({
 
   return (
     <div className="mt-md grid gap-2xs" data-testid="passport-share">
-      {/* `nf-btn--glass` is what `<Button variant="secondary">` renders. The
-          class written here was a "secondary" modifier no stylesheet defines,
-          so the button drew no surface, only the bare button's sheen: a bar
-          over an invisible box (`button-classes.test.ts`). */}
-      <button type="button" onClick={flip} disabled={pending} className="nf-btn nf-btn--glass min-h-[44px] w-full">
+      {/* The one Button primitive (Session 3, W13), which is what the classes
+          written here by hand were imitating (`button-classes.test.ts`). */}
+      <Button variant="secondary" full onClick={flip} disabled={pending}>
         {pending ? copy.working : shared ? copy.unshare : copy.share}
-      </button>
+      </Button>
       <p className="nf-caption text-[var(--nf-content-muted)]" role="status">
         {shared ? copy.shared : copy.shareHint}
       </p>

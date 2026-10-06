@@ -45,7 +45,7 @@ import { STATE_TONE, stateRole, type StateKind } from "@/lib/design/voice";
 export const STATE_TITLE_CLASS = "nf-h3 text-[var(--nf-content-primary)]";
 export const STATE_BODY_CLASS = "nf-body text-[var(--nf-content-secondary)]";
 
-const KIND_GLYPH: Record<Exclude<StateKind, "loading">, UiIconName> = {
+export const KIND_GLYPH: Record<Exclude<StateKind, "loading">, UiIconName> = {
   empty: "search",
   offline: "info",
   error: "shield-stop",

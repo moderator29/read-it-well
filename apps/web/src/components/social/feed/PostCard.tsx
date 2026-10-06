@@ -3,8 +3,11 @@
 import { initial as initialOf } from "@/lib/text/initial";
 import { DEFAULT_LOCALE, formatNumber, type Locale } from "@vallo/i18n/core";
 import { useClientCopy } from "@/lib/i18n/client-copy";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { motionQuiet } from "@/lib/motion/gate";
+import { isPhotoMorphFor, startPhotoMorph } from "@/lib/motion/photo-morph";
 import { AuthGate } from "@/components/auth/AuthGate";
 import { PostBody } from "./PostBody";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -200,6 +203,15 @@ function ActionRow({
   onRepost: () => void;
   onShare: () => void;
 }) {
+  /*
+   * WHICH CONTROL WAS JUST TAPPED ON, for the pop in `feed-m.css`.
+   *
+   * `data-pop` is set only on the tap that turns a mark ON and only while the
+   * mark is on, so a post somebody liked last week does not throw its heart
+   * as the feed loads. The haptic for a like is the handler's (`Feed`), where
+   * the optimistic write is.
+   */
+  const [popped, setPopped] = useState<"like" | "repost" | null>(null);
   return (
     <div className="nf-post__actions">
       {/*
@@ -223,7 +235,11 @@ function ActionRow({
           type="button"
           className="nf-post__act nf-post__act--like"
           aria-pressed={post.liked}
-          onClick={onLike}
+          data-pop={popped === "like" && post.liked ? "" : undefined}
+          onClick={() => {
+            if (!post.liked) setPopped("like");
+            onLike();
+          }}
         >
           <UiIcon name="heart" size={20} filled={post.liked} />
           <span className="nf-numeric">{compact(post.likeCount, locale)}</span>
@@ -236,8 +252,12 @@ function ActionRow({
           type="button"
           className="nf-post__act nf-post__act--repost"
           aria-pressed={post.reposted}
-          onClick={onRepost}
           data-active={post.reposted ? "" : undefined}
+          data-pop={popped === "repost" && post.reposted ? "" : undefined}
+          onClick={() => {
+            if (!post.reposted) setPopped("repost");
+            onRepost();
+          }}
         >
           <LineGlyph name="repost" size={20} />
           <span className="nf-numeric">{compact(post.repostCount, locale)}</span>
@@ -299,6 +319,43 @@ export function PostCard({
 }) {
   /* Read before the early return below: a hook runs on every render. */
   const aroundLine = useClientCopy().uiCommon.around;
+  /*
+   * THE PHOTOGRAPH TRAVELS (motion 18, photo open).
+   *
+   * Tapping a card names its picture block for the View Transitions API and
+   * the thread's own card claims the same name when it mounts, so the browser
+   * carries the picture from the feed into the thread instead of cutting. The
+   * name is lent on the tap and given back (`ListingCard` is the precedent and
+   * explains why a permanent name would abort every transition on a page that
+   * shows one post twice). `arriving` is true only inside the 1.5s window
+   * `startPhotoMorph` opens, so a hard load names nothing.
+   */
+  const mediaRef = useRef<HTMLDivElement>(null);
+  /* The overlay link that opens the post. The picture hands its own tap to it
+     (`openFromPicture`) so the picture can stay a real, pressable image. */
+  const openRef = useRef<HTMLAnchorElement>(null);
+  const openFromPicture = (event: React.MouseEvent<HTMLElement>) => {
+    /* Anything inside the media that is itself a link or a button keeps its own
+       tap. A plain picture opens the post, as the card always did. */
+    if ((event.target as HTMLElement).closest("a, button")) return;
+    const link = openRef.current;
+    if (!link) return;
+    /*
+     * A cmd or ctrl click, or the middle button, means "in a new tab", as it
+     * does on the link itself. Forwarding it with `link.click()` dropped the
+     * modifier and opened the post in THIS tab (audit A7), so it is opened
+     * where the person asked, from inside their own gesture. Shift and alt
+     * (a new window, a download) are the browser's to answer and are left
+     * alone rather than guessed at.
+     */
+    if (event.metaKey || event.ctrlKey || event.button === 1) {
+      window.open(link.href, "_blank", "noopener");
+      return;
+    }
+    if (event.shiftKey || event.altKey || event.button !== 0) return;
+    link.click();
+  };
+  const [arriving] = useState(() => isPhotoMorphFor(`post-${post.id}`));
   /*
    * A post that was taken down draws NOTHING here (founder, item 4: "a deleted
    * post is deleted"). Every listing read excludes removed rows at the query,
@@ -450,7 +507,13 @@ export function PostCard({
         * jump when the pictures arrive.
         */}
       {post.media.length > 0 ? (
-        <div className={`nf-post__media nf-post__media--${Math.min(post.media.length, 4)}`}>
+        <div
+          ref={mediaRef}
+          onClick={openFromPicture}
+          onAuxClick={openFromPicture}
+          className={`nf-post__media nf-post__media--${Math.min(post.media.length, 4)}`}
+          style={arriving ? { viewTransitionName: `post-photo-${post.id}` } : undefined}
+        >
           {post.media.slice(0, 4).map((picture, index) => (
             <RemoteImage
               key={picture.url}
@@ -502,7 +565,7 @@ export function PostCard({
             <Link key={item.id} href={`/listing/${item.id}`}>
               <span className="nf-post__cited-title truncate-none">{item.title}</span>
               <span className="nf-post__cited-price nf-numeric">
-                {item.priceLabel} <span className="font-medium">{item.periodLabel}</span>
+                {item.priceLabel} <span className="font-normal">{item.periodLabel}</span>
               </span>
             </Link>
           ))}
@@ -516,7 +579,7 @@ export function PostCard({
       ) : null}
 
       {post.listing && hasPlate ? (
-        <div className="nf-post__media nf-post__media--1">
+        <div className="nf-post__media nf-post__media--1" onClick={openFromPicture} onAuxClick={openFromPicture}>
           <Image
             src={post.listing.photoUrl as string}
             alt={post.listing.title}
@@ -578,9 +641,29 @@ export function PostCard({
       */}
       {editor ? null : (
         <Link
+          ref={openRef}
           href={`/post/${post.id}`}
           className="nf-post__open"
           aria-label="Open post and replies"
+          onClick={(event) => {
+            if (
+              event.defaultPrevented ||
+              event.button !== 0 ||
+              event.metaKey ||
+              event.ctrlKey ||
+              event.shiftKey ||
+              event.altKey
+            ) {
+              return;
+            }
+            const media = mediaRef.current;
+            if (!media || motionQuiet()) return;
+            media.style.viewTransitionName = `post-photo-${post.id}`;
+            startPhotoMorph(`post-${post.id}`);
+            window.setTimeout(() => {
+              media.style.viewTransitionName = "";
+            }, 1500);
+          }}
         />
       )}
       {body}
@@ -618,9 +701,9 @@ function ListingFacts({ listing }: { listing: PostListing }) {
         ) : null}
       </p>
       <div className="mt-sm flex flex-wrap items-center justify-between gap-sm">
-        <p className="nf-numeric text-[length:var(--nf-text-body-lg)] font-extrabold tracking-[-0.03em] text-[var(--nf-content-primary)]">
+        <p className="nf-numeric text-[length:var(--nf-text-body-lg)] font-bold tracking-[-0.03em] text-[var(--nf-content-primary)]">
           {listing.priceLabel}{" "}
-          <span className="text-[length:var(--nf-text-overline)] font-medium tracking-normal text-[var(--nf-brand-secondary)]">
+          <span className="text-[length:var(--nf-text-overline)] font-semibold tracking-normal text-[var(--nf-brand-secondary)]">
             {listing.periodLabel}
           </span>
         </p>

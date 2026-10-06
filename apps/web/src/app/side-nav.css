@@ -160,9 +160,32 @@
   }
   /* A mouse or trackpad on the same short screen: rows at 40. A touch
      laptop or a tablet in landscape keeps the 44 floor above. */
+  /*
+   * THE ROW DRAWS 40 AND IS A 44 TARGET (W12: "nav rows at 40px"). The pointer
+   * rail's density stays: the plate, the glyph, the bar and the list's rhythm
+   * are what they were. The row's box is 44 tall, with a 2px transparent
+   * border above and below it and a -2px margin that gives the two back to the
+   * list, and `background-clip: padding-box` keeps the hover and press plate
+   * on the 40px inside that border: the old row painted its full 40 (a 1px
+   * transparent border inside the default border-box clip), so the plate is
+   * the same height (auditor A8; the first version clipped it to 38). The 2px
+   * of the box that overlaps each neighbour is hit area only; the later row
+   * takes a tap in the overlap, which is a tap on a row either way.
+   */
   @media (min-width: 64rem) and (max-height: 60rem) and (pointer: fine) {
-    .nf-nav--rail .nf-nav__row {
-      min-height: 2.5rem;
+    /* Three classes: shell-m.css's `.nf-nav .nf-nav__row` sets the 1px border
+       later in the cascade at two, and won (the first version's 3px never
+       applied). */
+    .nf-nav.nf-nav--rail .nf-nav__row {
+      min-height: 2.75rem;
+      margin-block: -2px;
+      border-block-width: 2px;
+      background-clip: padding-box;
+    }
+    /* Its list item holds the negative margins, so neighbouring rows' margins
+       cannot collapse into each other and eat the pitch. */
+    .nf-nav--rail li:has(> .nf-nav__row) {
+      display: flow-root;
     }
   }
 
@@ -298,10 +321,10 @@
        law. The token rather than a raw 50%: rule 9, and `--nf-radius-circle`
        is what every other avatar in the tree reads. */
     border-radius: var(--nf-radius-circle);
-    background: var(--nf-gradient-brand);
+    background: var(--nf-gradient-brand-ink);
     color: var(--nf-content-on-brand);
     font-size: 0.75rem;
-    font-weight: 700;
+    font-weight: 600;
   }
 
   .nf-nav__avatar img {
@@ -392,7 +415,7 @@
     align-items: center;
     gap: 0.375rem;
     font-size: 1.125rem;
-    font-weight: 700;
+    font-weight: 600;
     white-space: normal;
   }
   /* The tick beside the name in the drawer render. Nothing sets `verified`
@@ -653,7 +676,7 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     font-size: var(--nf-text-overline);
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: 0.1em;
     color: var(--nf-brand-secondary);
   }
@@ -730,7 +753,8 @@
   .nf-nav__heading {
     padding: 0 var(--nf-space-sm) var(--nf-space-xs);
     font-size: 0.75rem;
-    font-weight: 700;
+    /* The overline: 12px at 600 (north star 5); it was 700. */
+    font-weight: 600;
     letter-spacing: var(--nf-tracking-label);
     text-transform: uppercase;
     color: var(--nf-content-muted);
@@ -764,7 +788,7 @@
     padding: 0 var(--nf-space-sm);
     border-radius: var(--nf-radius-control);
     font-size: 1rem;
-    font-weight: 500;
+    font-weight: 400;
     color: var(--nf-content-secondary);
     transition:
       background-color var(--nf-duration-fast) var(--nf-ease-standard),

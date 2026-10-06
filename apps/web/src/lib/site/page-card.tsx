@@ -1,6 +1,8 @@
 import { ImageResponse } from "next/og";
-import { ogShareCard, type OgCheck } from "@/components/share/og-share-card";
-import { interRegular } from "@/app/s/[token]/door-image";
+import type { OgCheck } from "@/components/share/og-share-card";
+import { ogCentredCard } from "@/components/share/og-centred-card";
+import { asJpeg, ogFonts } from "@/app/s/[token]/door-image";
+import { BRAND_DOMAIN } from "@/lib/brand-domain";
 
 /**
  * A13. ONE SHARE CARD PER PUBLIC PAGE FAMILY.
@@ -16,7 +18,7 @@ import { interRegular } from "@/app/s/[token]/door-image";
  * default locale; the page itself follows the reader's choice.
  */
 export const PAGE_CARD_SIZE = { width: 1200, height: 630 };
-export const PAGE_CARD_TYPE = "image/png";
+export const PAGE_CARD_TYPE = "image/jpeg";
 
 export type PageCard = {
   title: string;
@@ -27,20 +29,30 @@ export type PageCard = {
   honest?: string;
 };
 
-export async function pageCardImage(card: PageCard): Promise<ImageResponse> {
-  const fonts = [{ name: "Inter", data: await interRegular(), weight: 400 as const, style: "normal" as const }];
-  return new ImageResponse(
-    ogShareCard({
-      ...PAGE_CARD_SIZE,
-      title: card.title,
-      chip: card.chip,
-      figure: card.figure,
-      checks: card.checks,
-      honest: card.honest ?? null,
-      footRight: "vallospaces.com",
+/**
+ * W3 (round 5): CENTRED, FOR THE SQUARE WHATSAPP CUTS, AND ONE IDEA.
+ *
+ * The card was the share card frame, laid out from the left, with up to
+ * three green ticks in its well. Cut to WhatsApp's centre square it kept the
+ * middle of the headline and the ticks, which at 88pt read as "verified":
+ * a trust mark beside a sentence such as "Paste a number or a VA- code",
+ * which is a feature, not a state anybody earned (CRAFT-PRINCIPLES 1.5: a
+ * semantic colour only on the element whose state it describes). Now: the
+ * chip as the eyebrow, the page's question in the display face, and ONE
+ * supporting line (the honest line, else the first point), centred. The
+ * rest of the list is the page's job. The words are the same fixed words.
+ */
+export async function pageCardImage(card: PageCard): Promise<Response> {
+  const image = new ImageResponse(
+    ogCentredCard({
+      eyebrow: card.chip,
+      display: card.figure,
+      sub: card.honest ?? card.checks?.[0]?.label ?? null,
+      footRight: BRAND_DOMAIN,
     }),
-    { ...PAGE_CARD_SIZE, fonts },
+    { ...PAGE_CARD_SIZE, fonts: await ogFonts() },
   );
+  return asJpeg(image, false);
 }
 
 /** The fixed cards, by page family. */
@@ -96,7 +108,8 @@ export const PAGE_CARDS = {
   about: {
     title: "About Vallo",
     chip: "About",
-    figure: "Rent, buy or stay, without the runaround",
+    /* D1: the slogan, which retired "Rent, buy or stay, without the runaround". */
+    figure: "Space, without the runaround.",
     checks: [{ tone: "success", label: "The move-in cost written down before you call" }],
   },
   agents: {

@@ -19,6 +19,10 @@ const NOW = Date.parse("2026-06-18T18:00:00.000Z");
 const hours = (n: number) => new Date(NOW + n * 3_600_000).toISOString();
 
 /** One trading business, one quiet one, so both halves of the screen draw. */
+/* The offers carry `PENDING`, the database's word for an open offer
+   (`business_transfers.status`, migration 20260919210000). They said
+   "OFFERED", which is not a status the table allows, so the screen never
+   drew the outgoing offer: it filters on PENDING. */
 export const TRANSFER_BUSINESSES: TransferableBusiness[] = [
   {
     id: "00000000-0000-4000-8000-00000000h001",
@@ -47,7 +51,7 @@ export const TRANSFER_OUTGOING: TransferOffer[] = [
     transferId: "00000000-0000-4000-8000-00000000t001",
     businessId: "00000000-0000-4000-8000-00000000h002",
     businessName: "Ikoyi Guest House",
-    status: "OFFERED",
+    status: "PENDING",
     offeredAt: hours(-48),
     expiresAt: hours(120),
     note: null,
@@ -60,7 +64,7 @@ export const TRANSFER_INCOMING: TransferOffer[] = [
     transferId: "00000000-0000-4000-8000-00000000t002",
     businessId: "00000000-0000-4000-8000-00000000h003",
     businessName: "Grand Vista Hotel",
-    status: "OFFERED",
+    status: "PENDING",
     offeredAt: hours(-6),
     expiresAt: hours(162),
     note: "Taking it on means taking on its bookings.",

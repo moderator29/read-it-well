@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { useAuthPath } from "./useAuthPath";
 import { BackButton } from "@/components/site/BackButton";
 import { parentOf } from "@/lib/nav/resolve";
 
@@ -20,8 +20,7 @@ import { parentOf } from "@/lib/nav/resolve";
  * draws nothing, so the wordmark under it never moves.
  */
 export function AuthBackBar() {
-  const pathname = usePathname();
-  const target = parentOf(pathname ?? "/");
+  const target = parentOf(useAuthPath());
   if (target.kind !== "parent") return null;
 
   return <BackButton fallback={target.href} className="nf-auth__back-btn" />;

@@ -10,7 +10,8 @@ import { LivingCanvas } from "@/components/site/LivingCanvas";
 import { ThemeSync } from "@/components/site/ThemeControl";
 import { ServiceWorkerRegistrar } from "@/components/app/ServiceWorkerRegistrar";
 import { NativeRuntime } from "@/components/app/NativeRuntime";
-import { BrandAssemble } from "@/components/motion/BrandAssemble";
+import { StartupSequence } from "@/components/startup/StartupSequence";
+import { STARTUP_GATE_SCRIPT } from "@/components/startup/startup-script";
 import { ThresholdStage } from "@/components/motion/ThresholdStage";
 import { MOTION_COOKIE, motionAttributes, parseMotion } from "@/lib/motion/motion-pref";
 import "./globals.css";
@@ -54,11 +55,18 @@ import { DetailsHost } from "@/components/ui/DetailsHost";
  * sign's own 1.2 KB face, `inter-naira` (V-78), is not preloaded either: the
  * stylesheet fetches it the first time a price is drawn, so English no longer
  * pulls the 85 KB latin-ext file for one glyph.
+ *
+ * THE HEADING FACE IS POPPINS 600 NOW, NOT 700 (C6, R3-18 round 2). The three
+ * weights pass made headings 600, and measured on the eight signed-out routes
+ * the first screen draws Poppins 600 on six of them and Poppins 700 on two
+ * (the plate head of /move-in-cost and /for-agents). Preloading 700 fetched
+ * an 8 KB face six pages never painted, while the 600 they did paint waited
+ * for the stylesheet. The files live under /fonts/v2/ (fonts.css says why).
  */
 const PRELOADED_FONTS: Record<string, readonly string[]> = {
   yo: ["inter-latin", "inter-vietnamese"],
   ig: ["inter-latin", "inter-vietnamese"],
-  default: ["inter-latin", "poppins-700-latin"],
+  default: ["inter-latin", "poppins-600-latin"],
 };
 
 const baseMetadata: Metadata = {
@@ -153,11 +161,17 @@ const baseMetadata: Metadata = {
     locale: "en_NG",
     type: "website",
   },
+  /*
+   * THE CARD TYPE ONLY (W3, round 5). A title and description here were
+   * inherited by every page that set its own Open Graph words and no Twitter
+   * ones, which is every page: /terms, /check, a share door all unfurled on X,
+   * Telegram and Slack as "Vallo. Space, without the runaround." over their
+   * own picture. With only the card type here, Next fills the Twitter title,
+   * description and image from each page's own Open Graph (`postProcessMetadata`),
+   * so the two can never disagree again.
+   */
   twitter: {
     card: "summary_large_image",
-    title: "Vallo. Rent, buy or stay, without the runaround.",
-    description:
-      "Homes, land, hotels and shortlets across Nigeria, with the cost of moving in written down before you call anybody. Hotels, apartments and restaurant tables on Vallo Stays. One account, one inbox.",
   },
   /* UI-16: no site-wide robots tag. Indexable is the default with no tag at
      all; stating "index, follow" here put it beside the "noindex" that a
@@ -230,7 +244,7 @@ export async function generateMetadata(): Promise<Metadata> {
       description: site.shareDescription,
       ...openGraphLocales(locale),
     },
-    twitter: { ...baseMetadata.twitter, title: site.title, description: site.shareDescription },
+    twitter: { ...baseMetadata.twitter },
   };
 }
 
@@ -321,7 +335,7 @@ export default async function RootLayout({
             rel="preload"
             as="font"
             type="font/woff2"
-            href={`/fonts/${name}.woff2`}
+            href={`/fonts/v2/${name}.woff2`}
             crossOrigin="anonymous"
           />
         ))}
@@ -428,10 +442,11 @@ export default async function RootLayout({
           The app opening is the first threshold: the mark turns, the wordmark
           assembles letter by letter, and a door opens on the page. It plays
           once per browser session, which on the native shell is once per cold
-          start, and never under reduced motion, never with data saving on,
+          start; under reduced motion, quietly: the still lockup and a 160ms
+          crossfade (MOTION_SYSTEM section 3). Never with data saving on,
           never when the motion setting is Calm or Off or the splash is
-          switched off,
-          and never on the console, the auth callback or a shared link. It is
+          switched off, and never on the console, the auth callback or a shared
+          link. The gate is STARTUP_GATE_SCRIPT, tested beside the sequence. It is
           decided here, before the first frame, because deciding it after
           hydration would show the page and then cover it.
         */}
@@ -439,8 +454,7 @@ export default async function RootLayout({
           nonce={nonce}
           suppressHydrationWarning
           dangerouslySetInnerHTML={{
-            __html:
-              "try{var d=document.documentElement;if(!sessionStorage.getItem('nf_entered')&&d.dataset.saveData!=='on'&&d.dataset.motionSplash!=='off'&&d.dataset.motion!=='calm'&&d.dataset.motion!=='off'&&!matchMedia('(prefers-reduced-motion: reduce)').matches&&!/^\\/(admin|auth|api|offline|open|s|r)(\\/|$)/.test(location.pathname))d.dataset.splash='on';sessionStorage.setItem('nf_entered','1')}catch(e){}",
+            __html: STARTUP_GATE_SCRIPT,
           }}
         />
         {/*
@@ -492,6 +506,9 @@ export default async function RootLayout({
             language, so no route ships the whole dictionary for them
             (`lib/i18n/client-copy.tsx`). */}
         <ClientCopyProvider copy={clientCopyOf(t)}>
+          {/* No framer-motion provider (D49.1): nothing renders an `m`
+              element, and the hooks the ported components use (motion
+              values, `animate`) need no feature bundle. */}
           {children}
           {/* The account's success moments (sign-up, email, password,
               passcode), wherever they land: docs/SUCCESS_MOMENTS.md. */}
@@ -499,14 +516,11 @@ export default async function RootLayout({
           {/* The one toast, the connection line and back to top. */}
           <DetailsHost />
         </ClientCopyProvider>
-        {/* The splash itself: hidden unless the script above said so, gone
-            for good once its door has opened. Pure CSS; see threshold.css. */}
-        <div className="nf-splash" aria-hidden="true">
-          <div className="nf-splash__leaf nf-splash__leaf--a" />
-          <div className="nf-splash__leaf nf-splash__leaf--b" />
-          <div className="nf-splash__glow" />
-          <BrandAssemble size={68} className="nf-splash__brand" />
-        </div>
+        {/* THE STARTUP SEQUENCE (D31, MOTION_SYSTEM section 3): hidden
+            unless the before-paint script above said so, gone for good once
+            its door has opened. CSS, plus one inline script that only decides
+            when the door opens; see components/startup. */}
+        <StartupSequence nonce={nonce} />
         <ThresholdStage welcome={t.authFlow.welcomeThrough} />
       </body>
     </html>

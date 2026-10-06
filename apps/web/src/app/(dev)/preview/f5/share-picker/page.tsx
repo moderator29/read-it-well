@@ -1,3 +1,4 @@
+import { getDictionary } from "@vallo/i18n";
 import { ShareToThread } from "@/app/(app)/messages/share/SharePicker";
 import { PageHeader } from "@/components/app/PageHeader";
 import { LISTING_CARD, LISTING_ID } from "../fixtures";
@@ -21,6 +22,7 @@ export default function PreviewSharePicker() {
         <ShareToThread
           card={LISTING_CARD}
           target={{ kind: "listing", id: LISTING_ID }}
+          copy={getDictionary("en").experienceInbox.share.picker}
           threads={[
             {
               id: "00000000-0000-4000-8000-00000000c001",

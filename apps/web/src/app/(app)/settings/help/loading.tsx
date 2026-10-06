@@ -11,6 +11,8 @@ export default function LoadingHelpSettings() {
   return (
     <LoadingShell label="Loading help" className="mx-auto w-full max-w-2xl">
       <PageHeaderSkeleton subtitle />
+      {/* The explanation plate every settings page opens on (W6, D25). */}
+      <Skeleton height="4.5rem" radius="lg" className="mb-md" />
       <div className="space-y-block">
         <div aria-hidden="true" className="nf-panel nf-panel--card block p-md">
           <Skeleton width="45%" height="1.0625rem" radius="sm" />

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { ButtonLink } from "@/components/ui/Button";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { readMyPepAnswer } from "@/lib/compliance/pep-queries";
@@ -17,9 +17,9 @@ export async function PepBanner() {
   return (
     <div className="nf-panel nf-panel--card mb-block flex flex-wrap items-center gap-sm p-card" role="status" data-testid="pep-banner">
       <p className="nf-body-sm min-w-0 flex-1 text-[var(--nf-content-secondary)]">{copy.banner}</p>
-      <Link href="/verification" className="nf-btn nf-btn--primary min-h-[44px]">
+      <ButtonLink href="/verification" variant="primary">
         {copy.bannerLink}
-      </Link>
+      </ButtonLink>
     </div>
   );
 }

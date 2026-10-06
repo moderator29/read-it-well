@@ -41,7 +41,11 @@ export function SwitchRow({
 }) {
   const labels = copy.labels as Record<string, string | undefined>;
   const consequences = copy.consequences as Record<string, string | undefined>;
-  const label = labels[flag.key] ?? flag.key;
+  /* A key the dictionary has not met yet is still drawn in sentence case
+     ("room_bookings" reads "Room bookings"), never as a raw lower-case column
+     value beside the named switches (C1 sweep, checklist point 6). */
+  const spoken = flag.key.replace(/_/g, " ");
+  const label = labels[flag.key] ?? spoken.charAt(0).toUpperCase() + spoken.slice(1);
 
   return (
     /*

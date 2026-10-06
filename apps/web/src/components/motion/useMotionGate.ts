@@ -14,7 +14,10 @@ import { MOTION_EVENT } from "@/lib/motion/motion-pref";
  *
  * Both come from `lib/motion/gate.ts`, the one answer the stylesheets and
  * the cinema kit also use, and are re-read when the setting changes
- * (`MOTION_EVENT`) or the system preference flips, with no reload. The
+ * (`MOTION_EVENT`), when the root's own motion or data-saver attributes
+ * change by any hand (a `MutationObserver`, so a reader the event does not
+ * reach is still right, D49.3), or the system preference flips, with no
+ * reload. The
  * server snapshot is "may move", so the first paint is the normal page and
  * a quiet reader's client settles it on hydration.
  */
@@ -30,13 +33,19 @@ function read(): Gate {
   return cached;
 }
 
+/** The root attributes `gate.ts` reads. */
+const GATE_ATTRIBUTES = ["data-motion", "data-motion-ambient", "data-save-data"];
+
 function subscribe(onChange: () => void): () => void {
   const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
   window.addEventListener(MOTION_EVENT, onChange);
   mq.addEventListener("change", onChange);
+  const observer = new MutationObserver(onChange);
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: GATE_ATTRIBUTES });
   return () => {
     window.removeEventListener(MOTION_EVENT, onChange);
     mq.removeEventListener("change", onChange);
+    observer.disconnect();
   };
 }
 

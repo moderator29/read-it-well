@@ -2,8 +2,7 @@ import { getDictionary } from "@vallo/i18n";
 import { describe, expect, it } from "vitest";
 import { unbackedClaim } from "@/lib/trust/claims";
 import {
-  GUARANTEE_SCOPE,
-  GUARANTEE_SENTENCE,
+  DIRECT_RAIL_STANDING,
   NO_CUSTODY_SENTENCE,
   NO_INSPECTION_FEE,
   PAYMENT_GATE_SENTENCE,
@@ -49,7 +48,8 @@ describe("the landing rooms' copy", () => {
     const answer = (key: string) => faqItems(t).find((item) => item.key === key)?.a;
     expect(answer("pay")).toBe(`${PAYMENT_GATE_SENTENCE} ${NO_CUSTODY_SENTENCE}`);
     expect(answer("inspection")).toBe(`${NO_INSPECTION_FEE} ${PRIVATE_FEE_NOTE}`);
-    expect(answer("guarantee")).toBe(`${GUARANTEE_SENTENCE} ${GUARANTEE_SCOPE}`);
+    expect(answer("standing")).toBe(DIRECT_RAIL_STANDING);
+    expect(answer("guarantee")).toBeUndefined();
     expect(answer("payout")).toBe(PAYOUT_ANSWER);
     expect(answer("refund")).toBe(REFUND_ROUTE);
   });

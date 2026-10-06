@@ -6,7 +6,10 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterAll, describe, expect, it } from "vitest";
 import { axe, closeAxe, hasBrowser } from "@/lib/a11y/axe";
+import { getDictionary } from "@vallo/i18n";
 import { DocumentUploader } from "./DocumentUploader";
+
+const copy = getDictionary("en").experienceAccount.kyc;
 
 afterAll(closeAxe);
 
@@ -14,7 +17,7 @@ describe.skipIf(!hasBrowser && !process.env.CI)("DocumentUploader (axe)", () => 
   const page = (body: string) => `<h1>Verify your identity</h1>${body}`;
 
   it("names the file input by its document title, with no axe violations", async () => {
-    const html = renderToStaticMarkup(<DocumentUploader kind="identity" batchId="b" file={null} onChange={() => undefined} />);
+    const html = renderToStaticMarkup(<DocumentUploader kind="identity" copy={copy} batchId="b" file={null} onChange={() => undefined} />);
     expect(await axe(page(html))).toEqual([]);
     expect(html).toMatch(/type="file"[^>]*aria-labelledby="[^"]+-title"/);
   });
@@ -23,6 +26,7 @@ describe.skipIf(!hasBrowser && !process.env.CI)("DocumentUploader (axe)", () => 
     const html = renderToStaticMarkup(
       <DocumentUploader
         kind="address"
+        copy={copy}
         batchId="b"
         file={{ name: "bill.pdf", size: 120_000, type: "application/pdf", path: "u/kyc-b/address-1.pdf", subtype: "utility_bill", issuedOn: "2026-09-01" }}
         onChange={() => undefined}

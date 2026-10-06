@@ -7,6 +7,7 @@ import type { Anchor } from "@/lib/listings/commute";
 import { kindLabel } from "@/lib/listings/search-params";
 import { ICON } from "@/components/app/Screen";
 import { RecentSearches } from "./RecentSearches";
+import { PillLanding, PillOrigin } from "./SearchPillMorph";
 import {
   MARKET_PARAM,
   shelfActiveCount,
@@ -14,6 +15,7 @@ import {
   toShelfHref,
   type ShelfQuery,
 } from "./shelf-query";
+import "@/app/css/catalogue.css";
 
 /**
  * The top of the results shelf, to 3EB3E2A9: the glass field with its
@@ -71,7 +73,7 @@ export function ShelfBar({
     query.intent === "sale"
       ? copy.marketBuy
       : query.kind
-        ? kindLabel(query.kind)
+        ? kindLabel(query.kind, t.experienceLabels.kinds)
         : query.intent === "rent"
           ? copy.marketRent
           : copy.anyMarket;
@@ -107,7 +109,9 @@ export function ShelfBar({
     <div className="nf-shelf-bar nf-glass--chrome">
       <div className="mx-auto flex max-w-3xl items-center gap-inline">
         {leading}
-        <form action="/search" method="get" role="search" className="nf-shelf-field">
+        {/* The results header's field lands from the pill that sent the
+            search (`SearchPillMorph.tsx`); it is the same GET form either way. */}
+        <PillLanding path="/search" action="/search" method="get" role="search" className="nf-shelf-field">
           <UiIcon name="search" size={ICON.inline} />
           <label htmlFor="shelf-q" className="sr-only">
             {copy.search}
@@ -128,7 +132,8 @@ export function ShelfBar({
           <button type="submit" aria-label={copy.search} className="nf-shelf-field__go">
             <UiIcon name="arrow-right" size={ICON.inline} />
           </button>
-        </form>
+          <PillOrigin path="/search" />
+        </PillLanding>
         <FilterDrawer
           query={query}
           facts={facts}
@@ -142,6 +147,7 @@ export function ShelfBar({
           unitCopy={t.shape.unit}
           anchors={anchors}
           commuteCopy={t.shape.commute}
+          kindCopy={t.experienceLabels}
           noFloodLabel={{ label: t.shape.neighbours.filterNoFlood, hint: t.shape.neighbours.filterNoFloodHint }}
           feesBasis={t.trustVisible.fees.sortBasis}
           openOnMount={openFilters}

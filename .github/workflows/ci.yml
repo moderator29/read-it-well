@@ -120,7 +120,10 @@ jobs:
   checks:
     name: Typecheck, lint, test
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # The suite passed 10,900 tests (unit plus Chromium dom tests with axe) and
+    # was still green when the 20-minute limit cancelled it on 6 October; the
+    # budget covers the whole suite with room, so a passing run is never cut.
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v5
         with:

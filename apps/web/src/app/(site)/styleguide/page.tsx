@@ -73,10 +73,12 @@ function SwatchRow({
   name,
   note,
   kind,
+  on,
 }: {
   name: string;
   note: string;
   kind: "surface" | "text" | "border";
+  on?: string;
 }) {
   return (
     <li className="flex items-center gap-group border-b border-[var(--nf-border-subtle)] py-row last:border-b-0">
@@ -88,7 +90,7 @@ function SwatchRow({
             ? { background: `var(${name})` }
             : kind === "border"
               ? { borderColor: `var(${name})`, borderWidth: 3 }
-              : { background: "var(--nf-surface-secondary)", color: `var(${name})` }
+              : { background: `var(${on ?? "--nf-surface-secondary"})`, color: `var(${name})` }
         }
       >
         {kind === "text" ? (
@@ -304,7 +306,7 @@ export default function StyleguidePage() {
               className="flex flex-col items-center gap-inline rounded-[var(--nf-radius-md)] bg-[var(--nf-surface-secondary)] px-inline py-row text-center"
             >
               <UiIcon name={name} size={20} />
-              <code className="text-[0.6875rem] leading-tight text-[var(--nf-content-muted)]">
+              <code className="text-[0.75rem] leading-tight text-[var(--nf-content-muted)]">
                 {name}
               </code>
             </li>
@@ -341,7 +343,7 @@ export default function StyleguidePage() {
         blurb="Every interactive element is at least 44px in both directions. A control may be painted smaller than that, and several are, but the target it accepts a press on never is: the extra area comes from a pseudo-element rather than from inflating the box, so a 36px chip still catches a thumb."
       >
         <div className="nf-panel nf-panel--card flex flex-row flex-wrap items-center gap-group p-card-sm">
-          <span className="grid h-11 w-11 place-items-center rounded-[var(--nf-radius-md)] border border-dashed border-[var(--nf-border-strong)] text-[0.6875rem] text-[var(--nf-content-muted)]">
+          <span className="grid h-11 w-11 place-items-center rounded-[var(--nf-radius-md)] border border-dashed border-[var(--nf-border-strong)] text-[0.75rem] text-[var(--nf-content-muted)]">
             44
           </span>
           <p className="max-w-[46ch] text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">

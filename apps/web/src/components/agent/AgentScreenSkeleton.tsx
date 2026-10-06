@@ -26,9 +26,12 @@ import { LoadingShell } from "@/components/app/ScreenSkeleton";
 export function AgentScreenSkeleton({
   label,
   children,
+  inner = true,
 }: {
   label: string;
   children: ReactNode;
+  /** False for an immersive page (the assistant), which draws no inner navigation. */
+  inner?: boolean;
 }) {
   return (
     <div className="flex min-h-dvh">
@@ -66,6 +69,10 @@ export function AgentScreenSkeleton({
           label={label}
           className="px-md pb-[calc(2.5rem+env(safe-area-inset-bottom))] pt-lg sm:px-5 md:px-xl md:pt-7 lg:pb-10"
         >
+          {/* The inner navigation's 44px toggle, which AgentShell draws above
+              every page (R3-08): held here so the title does not drop by a row
+              when the page lands. */}
+          {inner ? <Skeleton circle width="2.75rem" className="mb-xs" /> : null}
           {children}
         </LoadingShell>
       </main>

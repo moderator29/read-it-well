@@ -24,11 +24,13 @@ import type {
   RentPeriod,
 } from "@/lib/price-check/types";
 import { AreaReport, NeighbourhoodFacts } from "./AreaPanel";
+import { AreaAskingChart, type AreaChartCopy } from "./AreaAskingChart";
 import { PinMap } from "./PinMap";
 import { ShareAreaButton } from "./ShareAreaButton";
 import { NextActions } from "./NextActions";
 import { shareAreaCopy } from "./share-copy";
 import { AnsweredResult, ComparablesRail, Disclaimer, RefusalPanel, StripPlot } from "./ResultPanel";
+import { useSignInHref } from "@/lib/auth/use-sign-in-href";
 
 /**
  * PRICE CHECK, THE WHOLE SCREEN.
@@ -94,6 +96,12 @@ export type PriceCheckScreenProps = {
   signedIn: boolean;
   /** Minted per page load on the server, so one check is one id. */
   checkId: string;
+  /**
+   * The area figure and chart's words (Session 3, W2), handed in from the
+   * server because they live in `experienceDiscover` and this screen's
+   * dictionary is the `priceCheck` slice. Without them the report has no chart.
+   */
+  chartCopy?: AreaChartCopy;
 };
 
 export function PriceCheckScreen(props: PriceCheckScreenProps) {
@@ -570,6 +578,11 @@ export function PriceCheckScreen(props: PriceCheckScreenProps) {
           locale={locale}
           copy={copy.area}
           typeNames={typeNames}
+          chart={
+            props.chartCopy && areaRows && areaRows.length > 0 ? (
+              <AreaAskingChart rows={areaRows} locale={locale} typeNames={typeNames} copy={props.chartCopy} />
+            ) : null
+          }
           renderShare={(row) => (
             <ShareAreaButton
               stateCode={stateCode}
@@ -644,6 +657,7 @@ function RefusalActions({
   onNotify(): void;
   onAnnualRent(): void;
 }) {
+  const signInHref = useSignInHref();
   if (!spec) return null;
 
   const rendered: React.ReactNode[] = [];
@@ -666,7 +680,7 @@ function RefusalActions({
             {watched === "saved" ? copy.notify.saved : copy.actions.notifyMe}
           </Button>
         ) : (
-          <ButtonLink key="notify" href="/sign-in" variant="ghost" full>
+          <ButtonLink key="notify" href={signInHref} variant="ghost" full>
             {copy.actions.notifyMeSignedOut}
           </ButtonLink>
         ),

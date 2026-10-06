@@ -15,11 +15,15 @@ function nowSeconds(): number {
   return Math.floor(Date.now() / 1000);
 }
 
-export const metadata: Metadata = {
-  title: "Email preferences",
-  robots: { index: false, follow: false },
-  referrer: "no-referrer",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  // `metaTitle` was written for this tab and never read: it said English to
+  // every reader.
+  return {
+    title: getDictionary(await getLocale()).publicDoors.prefs.metaTitle,
+    robots: { index: false, follow: false },
+    referrer: "no-referrer",
+  };
+}
 
 /**
  * A12. `/email/preferences?token=`: the member's email switches with no

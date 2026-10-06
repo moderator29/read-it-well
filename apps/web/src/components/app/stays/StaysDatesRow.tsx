@@ -1,4 +1,5 @@
 import { TYPE } from "@/components/app/Screen";
+import { Button } from "@/components/ui/Button";
 
 export { carriedParams } from "./stays-dates-carried";
 
@@ -47,9 +48,13 @@ export function StaysDatesRow({
       {/* The whole row on a phone: at 390 the button had half of it, and
           "Show prices for these dates" ran out of both sides, clipped. It may
           still wrap in a longer locale rather than clip. */}
-      <button type="submit" className="nf-btn nf-btn--primary col-span-2 h-auto min-h-11 whitespace-normal text-center leading-tight sm:col-span-1">
+      <Button
+        type="submit"
+        variant="primary"
+        className="col-span-2 h-auto min-h-11 whitespace-normal text-center leading-tight sm:col-span-1"
+      >
         {copy.submit}
-      </button>
+      </Button>
     </form>
   );
 }
