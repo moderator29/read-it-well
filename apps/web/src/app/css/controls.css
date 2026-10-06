@@ -64,6 +64,7 @@
        thumb box is now 44px with a 10px transparent border (clipped out of the background), and
        the old 3px surface ring is an inset shadow on the 24px disc, so nothing visible changes
        and the track stays centred. Found by components/locale-fit/members-b.dom.test.tsx. */
+    box-sizing: border-box;
     height: 2.75rem;
     width: 2.75rem;
     border-radius: var(--nf-radius-circle);
@@ -81,6 +82,7 @@
        thumb box is now 44px with a 10px transparent border (clipped out of the background), and
        the old 3px surface ring is an inset shadow on the 24px disc, so nothing visible changes
        and the track stays centred. Found by components/locale-fit/members-b.dom.test.tsx. */
+    box-sizing: border-box;
     height: 2.75rem;
     width: 2.75rem;
     border-radius: var(--nf-radius-circle);
@@ -93,14 +95,18 @@
   }
   /* The thumb is filled with --nf-brand-primary, so a ring in the same colour
      was a blue ring on a blue disc: focus on the price slider was invisible in
-     both themes. The ring takes the focus token like everything else. */
+     both themes. The ring takes the focus token like everything else. It sits
+     3px off the drawn 24px disc, not the 44px target box around it: the offset
+     reaches back in through the 10px transparent border (auditor A8). The
+     thumbs set box-sizing themselves, because preflight does not reach a
+     pseudo-element thumb and the geometry must not depend on an engine's UA. */
   .nf-range__input:focus-visible::-webkit-slider-thumb {
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
-    outline-offset: 3px;
+    outline-offset: calc(3px - 0.625rem);
   }
   .nf-range__input:focus-visible::-moz-range-thumb {
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
-    outline-offset: 3px;
+    outline-offset: calc(3px - 0.625rem);
   }
 
   /*
