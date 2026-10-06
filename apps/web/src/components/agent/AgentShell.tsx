@@ -7,6 +7,7 @@ import { agentTitleFor } from "./agent-nav-model";
 import { WorkspaceHeader } from "@/components/workspace/WorkspaceHeader";
 import { getShellIdentity } from "@/lib/app/shell-queries";
 import { PepBanner } from "@/components/compliance/PepBanner";
+import { ProSwitch } from "@/components/app/pro/ProSwitch";
 
 /**
  * Agent Mode shell: the rail plus a top bar, wrapping every agent page so the
@@ -79,6 +80,9 @@ export async function AgentShell({
             />
           }
           title={agentTitleFor(t, active)}
+          /* The Pro switch (D12): present only for a member the server says
+             holds a plan, and absent, not locked, for everybody else. */
+          end={<ProSwitch scope="agent" />}
           /* The workspace's own notifications route, so the bell does not
              drop an agent into the consumer shell. */
           bell={{
