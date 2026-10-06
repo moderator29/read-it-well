@@ -790,7 +790,7 @@
   margin: var(--nf-space-row, 0.75rem) 0;
   padding: var(--nf-space-row, 0.75rem) var(--nf-space-card, 1rem);
   border: 1px solid var(--nf-border-subtle);
-  border-radius: var(--nf-radius-card, 0.875rem);
+  border-radius: var(--nf-radius-card);
   background: var(--nf-surface-raised);
   color: var(--nf-content-secondary);
   font-size: var(--nf-text-caption);

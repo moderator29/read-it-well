@@ -133,14 +133,14 @@
   .nf-exchange__entry[data-mark="disputed"] .nf-exchange__mark {
     color: var(--nf-state-warning);
     background: currentColor;
-    border-radius: 1px;
+    border-radius: 0;
     transform: rotate(45deg) scale(0.86);
   }
 
   .nf-exchange__entry[data-mark="stopped"] .nf-exchange__mark {
     color: var(--nf-state-error);
     background: currentColor;
-    border-radius: 1px;
+    border-radius: 0;
   }
 
   .nf-exchange__body {

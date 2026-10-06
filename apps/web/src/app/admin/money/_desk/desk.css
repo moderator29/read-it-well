@@ -641,7 +641,7 @@
     border-radius: var(--nf-radius-circle);
   }
   .nf-md-swatch--square {
-    border-radius: 0.125rem;
+    border-radius: 0;
   }
 
   /* The hover readout: a thin client layer over a server-drawn chart. */

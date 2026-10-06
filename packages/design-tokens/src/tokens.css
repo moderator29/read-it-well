@@ -2156,8 +2156,25 @@
   --nf-radius-md: 14px;
   --nf-radius-lg: 18px;
   --nf-radius-xl: 22px;
+  /* The Island's corner (north star 4: 26 to 32), named on the scale rather
+     than written as 1.75rem in the tier (round 5, RADII THAT AGREE). */
+  --nf-radius-island: 28px;
   --nf-radius-2xl: 32px;
   --nf-radius-pill: 999px;
+  /*
+   * THE NESTED RADIUS (round 5; CRAFT-PRINCIPLES 1.4): a corner inside a
+   * padded container is the container's corner less the inset, floored at
+   * the smallest rung, so the gap between the two curves is constant. A
+   * container that holds rounded children states it for them:
+   *
+   *   --nf-radius-inner: max(var(--nf-radius-xs), calc(<its corner> - <its inset>));
+   *
+   * and the child reads `var(--nf-radius-inner)`. It is declared ON the
+   * container, never here as a formula: a custom property resolves where it
+   * is declared, so a formula on :root would compute against :root's corner.
+   * This is the floor a child sees outside any container that states it.
+   */
+  --nf-radius-inner: var(--nf-radius-xs);
 
   /*
    * THE CORNER OF ANYTHING YOU PRESS. One token, platform wide.
@@ -2228,7 +2245,7 @@
   --nf-radius-well: var(--nf-radius-md);
   --nf-radius-control-sm: var(--nf-radius-sm);
   --nf-radius-badge: var(--nf-radius-xs);
-  /* 10px on a 36px plate; `--nf-plate-radius-md` is the 12px on 44. */
+  /* 10px on a 36px plate; `--nf-plate-radius-md` is the 14px on 44. */
   --nf-radius-plate: var(--nf-radius-sm);
 
   /* --------------------------------------------------------------------
@@ -3308,14 +3325,14 @@
      section 4): a soft flat square behind a lean line glyph, neutral by
      default. No fill gradient, no edge, no rim, no inner light, no glow and
      no sheen in either theme, so the roughly fifteen ad-hoc tiles that read
-     the legacy names flatten with it. Sizes 36 / 44 / 56 on radii 10 / 12 /
-     14. The tones are the `--nf-plate-{neutral,brand,solid}-*` pairs. */
+     the legacy names flatten with it. Sizes 36 / 44 / 56 on radii 10 / 14 /
+     14: the 44 plate's 12px was the one corner off the scale (round 5). The tones are the `--nf-plate-{neutral,brand,solid}-*` pairs. */
   --nf-plate-size-sm: 2.25rem;
   --nf-plate-size-md: 2.75rem;
   --nf-plate-size-lg: 3.5rem;
   --nf-plate-radius: var(--nf-radius-sm);
   --nf-plate-radius-sm: var(--nf-radius-xs);
-  --nf-plate-radius-md: 0.75rem;
+  --nf-plate-radius-md: var(--nf-radius-md);
   --nf-plate-radius-lg: var(--nf-radius-md);
   --nf-plate-neutral-fill: rgb(255 255 255 / 0.07);
   --nf-plate-neutral-ink: var(--nf-mist-200);
@@ -4401,7 +4418,7 @@
   --nf-tier-plate-radius: var(--nf-radius-md);
   --nf-tier-card-radius: var(--nf-radius-lg);
   --nf-tier-card-radius-figure: var(--nf-radius-xl);
-  --nf-tier-island-radius: 1.75rem;
+  --nf-tier-island-radius: var(--nf-radius-island);
   --nf-tier-sheet-radius: var(--nf-radius-2xl);
 
   /* Plate: a 2% wash with a 6% hairline at night; hover and press tint only. */

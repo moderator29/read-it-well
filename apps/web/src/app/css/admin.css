@@ -2287,7 +2287,7 @@
   .nf-chart__bar {
     width: min(0.75rem, 26%);
     min-height: 1px;
-    border-radius: 3px 3px 0 0;
+    border-radius: var(--nf-radius-xs) var(--nf-radius-xs) 0 0;
   }
   .nf-chart__bar--s0 {
     background: linear-gradient(180deg, var(--nf-brand-secondary), var(--nf-brand-primary));
@@ -2354,7 +2354,7 @@
     display: inline-block;
     width: 0.75rem;
     height: 0.75rem;
-    border-radius: 3px;
+    border-radius: var(--nf-radius-xs);
   }
 
   /* The glow identity's per-side edges, applied over every container's
@@ -2641,7 +2641,7 @@
     width: 4px;
     height: 4px;
     margin-top: -2px;
-    border-radius: 9999px;
+    border-radius: var(--nf-radius-pill);
     background: var(--nf-brand-primary);
   }
   .nf-admin-nav__row--on .nf-admin-nav__count {

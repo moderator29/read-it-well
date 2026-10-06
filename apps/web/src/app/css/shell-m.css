@@ -678,7 +678,7 @@
     height: 4px;
     margin-top: -2px;
     border: 0;
-    border-radius: 9999px;
+    border-radius: var(--nf-radius-pill);
     transform: none;
     opacity: 1;
     background: var(--nf-brand-primary);

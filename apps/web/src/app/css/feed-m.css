@@ -213,7 +213,7 @@
     inset-inline-start: -1px;
     inline-size: calc(50% + 1px);
     border: 1px solid transparent;
-    border-radius: 8px;
+    border-radius: var(--nf-radius-xs);
     background: var(--nf-selected-fill);
     border-color: var(--nf-selected-edges);
     box-shadow: var(--nf-selected-shadow-inline);

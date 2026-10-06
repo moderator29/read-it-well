@@ -609,7 +609,7 @@
     height: 8px;
     margin-top: -4px;
     /* Half its height: a capsule by arithmetic, an indicator and not a control. */
-    border-radius: 4px;
+    border-radius: var(--nf-radius-xs);
     background: var(--nf-brand-quiet);
     transform: translate3d(calc(var(--om-i, 0) * var(--om-cell)), 0, 0);
     transition: transform var(--nf-duration-base) var(--nf-ease-spring);

@@ -297,7 +297,7 @@
     width: 12px;
     height: 12px;
     border: var(--nf-border-width) solid var(--nf-border-strong);
-    border-radius: 3px;
+    border-radius: var(--nf-radius-xs);
     background: var(--nf-surface-primary);
   }
   .nf-rcal__key[data-tone="override"] {

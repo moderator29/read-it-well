@@ -949,7 +949,7 @@
     line-height: 1.55;
   }
   .nf-step__chip {
-    border-radius: var(--nf-radius-badge, 6px);
+    border-radius: var(--nf-radius-badge);
     border: 0;
     background: var(--nf-surface-raised);
   }
@@ -1116,7 +1116,7 @@
     flex: none;
     min-height: 1.375rem;
     padding: 0 0.5rem;
-    border-radius: var(--nf-radius-badge, 6px);
+    border-radius: var(--nf-radius-badge);
     font-size: 0.75rem;
     font-weight: 600;
   }
@@ -1180,7 +1180,7 @@
     flex-direction: column;
     gap: 0.125rem;
     padding: 0.5rem 0.625rem;
-    border-radius: var(--nf-radius-control-sm, 10px);
+    border-radius: var(--nf-radius-control-sm);
     background: var(--nf-surface-raised);
     font-size: var(--nf-text-caption);
     color: var(--nf-state-success);
@@ -1260,7 +1260,7 @@
   .nf-mo__bar > span {
     height: 6px;
     min-width: 6px;
-    border-radius: 3px;
+    border-radius: var(--nf-radius-xs);
   }
   .nf-mo [data-part="rent"] {
     --nf-part: var(--nf-brand-primary);
@@ -1336,7 +1336,7 @@
     max-width: 36rem;
     margin-inline: auto;
     padding: 1.75rem 1.5rem;
-    border-radius: 1.75rem;
+    border-radius: var(--nf-radius-island);
     border: var(--nf-border-width) solid var(--nf-card-border);
     background: var(--nf-surface-primary);
     box-shadow:
@@ -1360,7 +1360,7 @@
     place-items: center;
     width: 3.5rem;
     height: 3.5rem;
-    border-radius: var(--nf-radius-plate-lg, 1rem);
+    border-radius: var(--nf-plate-radius-lg);
     border: var(--nf-border-width) solid var(--nf-card-border);
     background: var(--nf-surface-primary);
     box-shadow: var(--nf-float-shadow, var(--nf-elev-2));
@@ -1658,7 +1658,7 @@
   }
   .nf-landing-movein__bar > span {
     min-width: 6px;
-    border-radius: 3px;
+    border-radius: var(--nf-radius-xs);
     background: var(--nf-landing-movein-seg, var(--nf-brand-primary));
     transform-origin: left center;
     transition: opacity var(--nf-duration-fast) var(--nf-ease-standard);
@@ -1712,7 +1712,7 @@
   .nf-landing-movein__dot {
     width: 0.625rem;
     height: 0.625rem;
-    border-radius: 3px;
+    border-radius: var(--nf-radius-xs);
     background: var(--nf-landing-movein-seg, var(--nf-brand-primary));
   }
   /* Pointing at a line lifts its segment and quiets the rest. */

@@ -13,6 +13,9 @@
     margin-block-start: var(--nf-space-sm);
     padding: var(--nf-space-3xs);
     border-radius: var(--nf-radius-control);
+    /* The nested radius (tokens.css): the option's corner is the track's less
+       the track's inset, so the two curves keep one gap. */
+    --nf-radius-inner: max(var(--nf-radius-xs), calc(var(--nf-radius-control) - var(--nf-space-3xs)));
     border: var(--nf-border-width) solid var(--nf-border-default);
     background: var(--nf-glass-fill-thin);
   }
@@ -23,7 +26,7 @@
     gap: var(--nf-space-3xs);
     min-height: 3.25rem;
     padding-inline: var(--nf-space-2xs);
-    border-radius: calc(var(--nf-radius-control) - 2px);
+    border-radius: var(--nf-radius-inner);
     color: var(--nf-content-secondary);
     font-size: var(--nf-text-caption);
     font-weight: 600;

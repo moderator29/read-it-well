@@ -160,7 +160,7 @@
     flex-shrink: 0;
     width: 0.75rem;
     height: 0.75rem;
-    border-radius: 3px;
+    border-radius: var(--nf-radius-xs);
   }
   .nf-viz-key--line {
     width: 1rem;
@@ -209,7 +209,7 @@
     margin-inline: auto;
     width: min(1.5rem, calc(100% - 4px));
     height: 100%;
-    border-radius: 4px 4px 0 0;
+    border-radius: var(--nf-radius-xs) var(--nf-radius-xs) 0 0;
     background: var(--nf-chart-series);
     transform: translateY(calc(100% - max(2px, var(--nf-viz-v, 0) * 100%)));
     transition:
@@ -243,7 +243,7 @@
     margin-inline: auto;
     width: min(1.5rem, calc(100% - 4px));
     height: 100%;
-    border-radius: 4px 4px 0 0;
+    border-radius: var(--nf-radius-xs) var(--nf-radius-xs) 0 0;
     box-shadow: inset 0 0 0 1px var(--nf-chart-grid);
     background: repeating-linear-gradient(
       135deg,
@@ -444,7 +444,7 @@
     inset-block: 0;
     inset-inline-start: 0;
     width: 100%;
-    border-radius: 0 4px 4px 0;
+    border-radius: 0 var(--nf-radius-xs) var(--nf-radius-xs) 0;
     /* The same arrangement as the column bar, turned on its side: full
        width, translated back until only its value shows, so the end radius
        stays true. */

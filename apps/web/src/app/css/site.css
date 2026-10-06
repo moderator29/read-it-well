@@ -571,7 +571,7 @@
     min-height: 3.75rem;
     padding: 0.5rem;
     padding-inline-end: 0.5rem;
-    border-radius: 1.875rem;
+    border-radius: var(--nf-radius-pill);
     border: var(--nf-border-width) solid var(--nf-card-border);
     background: color-mix(in oklab, var(--nf-surface-elevated) 90%, transparent);
     -webkit-backdrop-filter: blur(18px) saturate(1.4);
@@ -593,7 +593,7 @@
     gap: 0.625rem;
     min-height: 2.75rem;
     padding-inline-end: var(--nf-space-xs);
-    border-radius: 1.375rem;
+    border-radius: var(--nf-radius-pill);
     color: var(--nf-content-primary);
   }
   .nf-cap__brand:focus-visible {
