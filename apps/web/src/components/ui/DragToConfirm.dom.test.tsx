@@ -146,26 +146,52 @@ describe.skipIf(!hasBrowser && !process.env.CI)("DragToConfirm", () => {
     const { page, close } = await mountInBrowser({ entry: entry(), css: PORTED_CSS });
     try {
       const handle = page.getByRole("button", { name: "Confirm the action" });
-      const box = (await handle.boundingBox())!;
-      await page.mouse.move(box.x + 24, box.y + 24);
-      await page.mouse.down();
-      await page.mouse.move(box.x + 24 + 150, box.y + 24, { steps: 4 });
-      await page.waitForTimeout(150);
-      await page.mouse.up();
-      /* Mid-return: somewhere between the drop point and the start. */
-      await page.waitForTimeout(30);
-      const grabAt = (await handle.boundingBox())!;
-      await page.mouse.move(grabAt.x + 24, grabAt.y + 24);
-      await page.mouse.down();
+      /*
+       * The press has to land on the handle WHILE it is mid-return, and a moving
+       * target read over CDP can be somewhere else by the time the press arrives
+       * when the machine is busy. So an attempt only counts once the component
+       * itself says it was grabbed (`data-state="dragging"`, set by its own
+       * pointerdown) with the handle still away from rest; any attempt that
+       * missed (the spring had finished, or carried the handle out from under
+       * the press) is released and made again. Nothing below is loosened: the
+       * assertions run, with the same tolerances, only on a genuine mid-flight
+       * grab.
+       */
+      let grabAt: { x: number; y: number } | null = null;
+      let held = 0;
+      for (let attempt = 0; attempt < 12 && !grabAt; attempt += 1) {
+        const start = (await handle.boundingBox())!;
+        await page.mouse.move(start.x + 24, start.y + 24);
+        await page.mouse.down();
+        await page.mouse.move(start.x + 24 + 150, start.y + 24, { steps: 4 });
+        await page.waitForTimeout(150);
+        await page.mouse.up();
+        /* Mid-return: somewhere between the drop point and the start. */
+        const box = (await handle.boundingBox())!;
+        await page.mouse.move(box.x + 24, box.y + 24);
+        await page.mouse.down();
+        const grabbed = (await page.getByTestId("dtc").getAttribute("data-state")) === "dragging";
+        const x = await handleX(page);
+        if (grabbed && x > 0.5 && x < 150) {
+          grabAt = { x: box.x, y: box.y };
+          held = x;
+        } else {
+          await page.mouse.up();
+          await page.waitForFunction(
+            () => new DOMMatrix(getComputedStyle(document.querySelector(".nf-dtc__handle")!).transform).m41 < 0.5,
+          );
+        }
+      }
+      expect(grabAt, "never managed a mid-flight grab").not.toBeNull();
+      const at = grabAt!;
       /* Grabbed: the return stops dead where it was, neither jumping to the
          start nor carrying on. */
-      const held = await handleX(page);
       await page.waitForTimeout(120);
       expect(Math.abs((await handleX(page)) - held)).toBeLessThan(0.5);
       expect(held).toBeGreaterThan(0.5);
       expect(held).toBeLessThan(150);
       /* And the drag continues from there, one to one. */
-      await page.mouse.move(grabAt.x + 24 + 10, grabAt.y + 24, { steps: 2 });
+      await page.mouse.move(at.x + 24 + 10, at.y + 24, { steps: 2 });
       expect(Math.abs((await handleX(page)) - (held + 10))).toBeLessThan(1);
       await page.mouse.up();
     } finally {
