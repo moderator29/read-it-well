@@ -371,6 +371,14 @@
     line-height: 1.55;
     color: var(--nf-landing-fg-2);
   }
+  /* On a phone in Light the lede stands on the head's blue wash, where the
+     secondary ink measured 3.7:1. The primary ink clears 4.5. From 64rem it is
+     on the photograph's scrim and keeps its on-ink white. */
+  @media (max-width: 63.999rem) {
+    :root[data-theme="light"] .nf-site-head:not(:where([data-theme="dark"] *)) .nf-site-head-lede {
+      color: var(--nf-content-primary);
+    }
+  }
 
   /*
    * The social row under the newsletter field: X and Telegram, as small lit
