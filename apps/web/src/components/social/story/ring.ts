@@ -20,6 +20,16 @@ export function ringSegments(total: number): number {
   return Math.max(1, Math.min(RING_MAX_SEGMENTS, Math.floor(total)));
 }
 
+/**
+ * The stories a ring draws: the NEWEST six. `seen` is oldest first, so the
+ * newest are the tail; taking the head drew the oldest six, which on a person
+ * with eight stories left the two latest out of the ring that exists to say
+ * "there is something new" (auditor A2).
+ */
+export function ringWindow<T>(items: readonly T[]): T[] {
+  return items.slice(-RING_MAX_SEGMENTS);
+}
+
 /** Whether every story in the ring has been opened. Nothing to open counts as seen. */
 export function allSeen(seen: readonly boolean[]): boolean {
   return seen.length > 0 && seen.every(Boolean);
@@ -31,8 +41,9 @@ export function allSeen(seen: readonly boolean[]): boolean {
  * `seen[i]` is true.
  */
 export function ringGradient(seen: readonly boolean[]): string {
-  const n = ringSegments(seen.length || 1);
-  const flags = Array.from({ length: n }, (_, i) => Boolean(seen[i]));
+  const windowed = ringWindow(seen);
+  const n = ringSegments(windowed.length || 1);
+  const flags = Array.from({ length: n }, (_, i) => Boolean(windowed[i]));
   const lit = (i: number) => {
     const p = n === 1 ? 0 : Math.round((i / (n - 1)) * 100);
     return p === 0

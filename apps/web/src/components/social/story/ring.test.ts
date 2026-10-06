@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { allSeen, ringGradient, ringSegments, RING_GAP_DEG, RING_MAX_SEGMENTS } from "./ring";
+import { allSeen, ringGradient, ringSegments, ringWindow, RING_GAP_DEG, RING_MAX_SEGMENTS } from "./ring";
 
 /** The story ring is a status: a segment per live story, quiet once opened (reference 7128). */
 describe("the story ring", () => {
@@ -8,6 +8,19 @@ describe("the story ring", () => {
     expect(ringSegments(3)).toBe(3);
     expect(ringSegments(40)).toBe(RING_MAX_SEGMENTS);
     expect(ringSegments(0)).toBe(1);
+  });
+
+  it("draws the newest six stories, not the oldest (the list is oldest first)", () => {
+    const ids = ["a", "b", "c", "d", "e", "f", "g", "h"];
+    expect(ringWindow(ids)).toEqual(["c", "d", "e", "f", "g", "h"]);
+    /* Only the oldest two are opened: the six drawn are all still lit. */
+    const flags = ids.map((id) => id === "a" || id === "b");
+    const g = ringGradient(flags);
+    expect(g).not.toContain("--nf-ring-seen");
+    /* The newest is opened and the rest are not: exactly one quiet segment. */
+    const newestOpened = ringGradient(ids.map((id) => id === "h"));
+    expect(newestOpened.match(/--nf-ring-seen/g)).toHaveLength(1);
+    expect(ringWindow(["a", "b"])).toEqual(["a", "b"]);
   });
 
   it("one story is a full circle with no gap", () => {
