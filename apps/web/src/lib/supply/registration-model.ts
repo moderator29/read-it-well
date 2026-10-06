@@ -320,3 +320,45 @@ export function tenantTotal({
 export const EXAMPLE_RENT_MINOR = 250_000_000;
 
 /* ------------------------------------------------------------ the schemas */
+
+/**
+ * Which screen a field belongs to, so a refusal can send somebody back to it.
+ *
+ * `missingFrom`-style honesty, in the spirit `kyc.ts` argues for: "complete all
+ * required fields" is the least useful sentence in software, and a form that
+ * knows a field failed and not WHERE it is has only half the answer.
+ */
+export const FIELD_STEP: Record<string, number> = {
+  fullName: 0,
+  phone: 0,
+  experience: 0,
+  businessName: 0,
+  rcNumber: 0,
+  officeAddress: 0,
+  lasreraNumber: 0,
+  stateCode: 1,
+  lgaCode: 1,
+  area: 1,
+  nin: 1,
+  idPath: 1,
+  selfiePath: 1,
+  associationProof: 1,
+  principalEmail: 1,
+  letterPath: 1,
+  ownershipDocument: 2,
+  agencyFeeBps: 2,
+  legalFeeBps: 2,
+  team: 2,
+};
+
+/** The earliest screen carrying any of these refusals, for the walk back. */
+export function earliestStep(fieldErrors: Record<string, string> | undefined): number | null {
+  if (!fieldErrors) return null;
+  let earliest: number | null = null;
+  for (const key of Object.keys(fieldErrors)) {
+    const step = FIELD_STEP[key.split(".")[0] ?? ""];
+    if (step === undefined) continue;
+    if (earliest === null || step < earliest) earliest = step;
+  }
+  return earliest;
+}

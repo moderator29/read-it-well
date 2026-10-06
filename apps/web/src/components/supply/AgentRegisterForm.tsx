@@ -18,7 +18,7 @@ import {
   stepFee,
   tenantTotal,
   type ExperienceBand,
-} from "@/lib/supply/registration";
+} from "@/lib/supply/registration-model";
 import { submitSupplyRegistration } from "@/lib/supply/registration-actions";
 import { RegField, RegFieldGroup } from "./RegisterField";
 import { CalmPanel, RegisterDone, RegisterShell } from "./RegisterShell";
