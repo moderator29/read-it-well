@@ -864,3 +864,13 @@ reader should know that the log does not say at a glance:
   swept another agent's uncommitted skeleton lines in `controls.css` (they belonged
   to `4bef1e2a6`, which says so) because the file was staged whole. When `git diff`
   shows lines that are not the unit's, stage by hunk.
+- Do not read a green gate from a shell exit code. `da99eebd1` was pushed with 2
+  failing tests (`env-documented`: `FIT_DUMP` had no `.env.example` line and no
+  ENVIRONMENT.md row). The gate printed "test 1", but the command's exit code was 0
+  and it was read as green. `dd2694c02` documents `FIT_DUMP` and
+  `CONTROL_CONTRAST_REPORT`. Read the gate's three numbers, never an exit code; the
+  gate script now ends with GATE GREEN or GATE RED and exits non-zero on red. A new
+  test-only environment variable needs its `.env.example` line and its
+  ENVIRONMENT.md row in the same commit.
+- Do not trust the exit code of a pipe. `tsc | head` reports `head`'s exit code, not
+  tsc's, so a failing typecheck reads as success. Read tsc's output.
