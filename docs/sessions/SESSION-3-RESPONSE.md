@@ -68,6 +68,24 @@ audited and ready: W1 to W12, the auditor and B5 (re-opened to make one test
 race-free), with the shell agent, the auth agent and the sweep added in the same
 turn. `components/supply/**` went to W7 for the listing wizard.
 
+**Wave 3 (fourteen held active as wave 2 agents finished).** Each took over a
+finished owner's files, so no file had two holders:
+
+| Agent | Owns |
+|---|---|
+| **A2 to A7 Auditors** | Read-only, one commit range each; A7 rolls over every range landing after it starts |
+| **F1 Startup and passcode** | `components/startup/**`, `components/passcode/**`, `css/passcode.css` |
+| **J1 Wiring** | First-run gates on invite and passport, SupportChat through AIResponse, the host wizard path |
+| **G1 Gallery** | `app/(dev)/gallery/**`, `docs/design/COMPONENTS.md` |
+| **H1 Claims lint** | `lib/trust/claims.ts` and its test |
+| **W1b Docs and help** | `app/(site)/{docs,help,check,about,contact}/**`, `components/site/guides/**`, `SupplyPage.tsx`, then the policy pages |
+| **W8b Admin depth** | W8's former area |
+| **I1 Listing health and analytics** | The host and agent listing-health surfaces |
+| **M2 Agreements and caution register** | B2's agreement files |
+| **R1, R2 Raw-button migration** | Member areas (R1); discovery, detail and workspaces (R2), then A4's findings |
+| **C1 Cleanup** | Agents' leftovers and the small items audits routed to nobody else |
+| **T1 Dom tests** | New `*.dom.test.tsx` for W5, W7 and W8 surfaces |
+
 **Copy without collisions.** Each wave-2 owner writes English only into its own
 `packages/i18n/src/locales/experience-<area>.en.ts`, created and wired once by the
 lead, so nine agents never edit `en.ts` at once. `experienceUi` holds the ported
@@ -228,6 +246,17 @@ content only. **Verdict: HOLD, on one blocker, now fixed.**
   wording is Session 4's to settle. The toast dwell of 2,400ms matches the motion
   inventory and pauses while touched, but deserves a screen-reader check.
 
+### Later audits (A2 to A7), one commit range each
+
+| Auditor | Range | Verdict | Deciding finding and resolution |
+|---|---|---|---|
+| A2 | W4 social, B5's fix, W6 account | PUSH | Twelve SHOULDs and NITs routed to R1 |
+| A3 | W5 inbox, W7 features, W8 admin | HOLD | **B1:** Skip on a first run could land back on the first run for up to 30s (the router cache's stale window served the old redirect). **Fixed** in `043c4d1ff`: both exits replace the document. **S2:** `/host` showed the host first run to guests and marked it seen; now gated after the businesses read, hosts only (same commit). S1, S7, S9 to W8b; S3, S4, S6 to R1; S5, S8 to C1 |
+| A4 | W2 discovery, W3 detail | PUSH | No blocker. Five SHOULDs to R2: the search pill morph drawn through `m.form` before features load, "Not seating on this day" when only today's times have passed, the area chart vanishing on an area change, home's three extra catalogue reads, a stay total with no button that opens it |
+| A5 | W9 money and email, F1, W11, H1 | pending | |
+| A6 | W10, J1, G1, W1, the deleted rooms | pending | |
+| A7 | R2, the type fixes, `043c4d1ff`, then every later range | pending | |
+
 ## Completed
 
 - Verified starting state; ownership declared before parallel work.
@@ -257,10 +286,21 @@ never colours the result. Results per push are appended below.
 
 ## Remaining
 
-In progress: B1 foundations and navigation, B3 entry/brand/passcode/startup, B5 the
-component port, B6 assets and clay. Then: the audit sweep at 390, 768 and 1440 in
-both themes and four locales; the move-in ledger (7073) and `/bookings/[id]` on the
-document sheet; money email in Paper; host analytics once R-8 lands.
+- **In progress:**
+  - R1: member buttons and A2's and A3's findings.
+  - R2: A4's findings.
+  - C1: cleanup and A3's S5 and S8.
+  - W8b: admin depth and A3's S1, S7 and S9.
+  - I1: listing health and analytics.
+  - M2: the agreements and the caution register.
+  - W1b: the policy pages on the document sheet.
+  - B5: Button's non-morph `loading`, which still draws a spinner, plus the gallery index links.
+  - T1: dom tests.
+  - W12: the sweep at 390, 768 and 1440.
+  - W13: the built app's per-route cost and framer-motion's cost after the ports.
+  - A5, A6 and A7: audits.
+- **Then:** the merge of `main` once Session 4's source-map-js fix lands (D46), the PR
+  body rewrite Session 4 asked for, and host analytics once R-8 lands.
 
 ## Decisions
 
@@ -280,6 +320,18 @@ document sheet; money email in Paper; host analytics once R-8 lands.
 6. **A comparison series is grey plus a pattern, never a second blue.** The dataviz
    validator rejected the best blue pair on the normal-vision floor (B4).
 7. **The startup sequence waited for R-1 and started the moment it was verified.**
+8. **`nf-icon-btn` stays.** About 56 icon controls in discovery and the workspaces
+   already share one class with a 44px target. Moving them onto `Button iconOnly`
+   would only change the wrapper and risk their round glass, so R2 converted
+   only what is a button role.
+9. **BatchTray is not an overlay.** It docks over the list it acts on and leaves
+   the page scrollable. It does not take the overlay registry's scroll lock.
+10. **Chips that are actions stay raw.** `Chip behaviour="filter"` adds
+   `aria-pressed`, which would announce "All places" or "Undo" as a toggle.
+11. **Compare shows two at a time** (north star). A member who compared three
+   earlier keeps their saved spaces but sees them two at a time (A4 NIT).
+12. **The guides index keeps its cards** (W1b): each card carries a "Last
+   reviewed" date, a trust fact a row would have dropped.
 
 ## Risks
 
@@ -295,8 +347,9 @@ document sheet; money email in Paper; host analytics once R-8 lands.
 - The perforation notches are painted in the canvas colour; on a page whose ground
   is not the bare canvas they read as dots rather than holes (B2).
 - `print.css` relies on `:has()`, fine in current browsers, absent in very old ones.
-- An unused four-hue `DonutChart.tsx` remains in `components/agent/charts` with no
-  caller; it is the refused pattern and should be deleted by its owner.
+- First-run exits are now full document loads. They are slower than a soft navigation by
+  one server render, and they happen once per feature per device. A3 ruled a
+  dead-looking Skip the worse failure.
 
 ## Next Session
 
