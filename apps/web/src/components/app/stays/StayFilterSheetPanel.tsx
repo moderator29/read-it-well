@@ -17,6 +17,7 @@ import { ICON } from "@/components/app/Screen";
 import { Button } from "@/components/ui/Button";
 import { Switch } from "@/components/ui/Switch";
 import type { StayFilterSheetProps } from "./StayFilterSheet";
+import { useSelectPop } from "@/lib/motion/select-pop";
 import "@/app/css/catalogue.css";
 
 /**
@@ -225,6 +226,8 @@ export function StayFilterSheetPanel({
   onClose: () => void;
 }) {
   const router = useRouter();
+  /* A chosen tile gives the small push the chip spec asks for (`select-pop.ts`). */
+  useSelectPop();
   const copy = t.catalogue;
   const [draft, setDraft] = useState<Draft>(() => draftFrom(query));
 
@@ -298,7 +301,7 @@ export function StayFilterSheetPanel({
         </div>
       }
     >
-          <div className="mx-auto max-w-2xl">
+          <div className="mx-auto max-w-2xl" data-select-pop="">
             {/* ------------------------------------------- dates and party */}
             <Group id="stay-dates" title={copy.stays.checkIn} clearLabel={copy.filters.clear}
               onClear={draft.checkIn || draft.checkOut ? () => setDraft((c) => ({ ...c, checkIn: "", checkOut: "" })) : undefined}>

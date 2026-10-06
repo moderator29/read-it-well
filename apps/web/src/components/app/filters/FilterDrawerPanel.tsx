@@ -54,6 +54,7 @@ import type { FilterDrawerProps } from "./FilterDrawer";
 import { Button } from "@/components/ui/Button";
 import { Switch } from "@/components/ui/Switch";
 import { isDataSaver } from "@/lib/ui/data-saver";
+import { useSelectPop } from "@/lib/motion/select-pop";
 import "@/app/css/catalogue.css";
 
 /**
@@ -401,6 +402,8 @@ export function FilterDrawerPanel({
   onClose: () => void;
 }) {
   const router = useRouter();
+  /* A chosen tile gives the small push the chip spec asks for (`select-pop.ts`). */
+  useSelectPop();
   const [draft, setDraft] = useState<Draft>(() => draftFrom(query));
 
   const [lastQuery, setLastQuery] = useState(query);
@@ -671,7 +674,7 @@ export function FilterDrawerPanel({
         </div>
       }
     >
-          <div className="mx-auto max-w-2xl">
+          <div className="mx-auto max-w-2xl" data-select-pop="">
             {/* ------------------------------------------- property type */}
             {kindOptions.length > 0 && (
               <Group
