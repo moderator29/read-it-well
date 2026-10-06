@@ -66,14 +66,9 @@ export function ConfirmTerms({
         <span>I have read these terms (version {version}) and I agree to them.</span>
       </label>
       {error && !asking ? <p role="alert" className="text-[var(--nf-status-error)]">{error}</p> : null}
-      <button
-        type="button"
-        className="nf-btn nf-btn--primary nf-btn--md nf-btn--full"
-        disabled={!read || pending || disabled}
-        onClick={() => setAsking(true)}
-      >
+      <Button variant="primary" full disabled={!read || pending || disabled} onClick={() => setAsking(true)}>
         Confirm these terms
-      </button>
+      </Button>
       <Sheet
         open={asking}
         onOpenChange={(next) => {
@@ -149,9 +144,9 @@ export function AmendTerms({
   const [n, setN] = useState(notes);
   if (!open) {
     return (
-      <button type="button" className="nf-btn nf-btn--ghost nf-btn--md" onClick={() => setOpen(true)}>
+      <Button variant="quiet" onClick={() => setOpen(true)}>
         Change the terms
-      </button>
+      </Button>
     );
   }
   return (
@@ -177,12 +172,12 @@ export function AmendTerms({
       </label>
       {error ? <p role="alert" className="text-[var(--nf-status-error)]">{error}</p> : null}
       <div className="flex gap-inline">
-        <button type="submit" className="nf-btn nf-btn--primary nf-btn--md" disabled={pending}>
+        <Button type="submit" variant="primary" disabled={pending}>
           Save the new terms
-        </button>
-        <button type="button" className="nf-btn nf-btn--ghost nf-btn--md" onClick={() => setOpen(false)}>
+        </Button>
+        <Button variant="quiet" onClick={() => setOpen(false)}>
           Keep the current terms
-        </button>
+        </Button>
       </div>
     </form>
   );
@@ -201,13 +196,13 @@ export function CancelAgreement({
   return (
     <div className="grid gap-inline">
       {error && !sure ? <p role="alert" className="text-[var(--nf-status-error)]">{error}</p> : null}
-      <button
-        type="button"
-        className={`nf-btn nf-btn--md ${variant === "secondary" ? "nf-btn--glass text-[var(--nf-state-error)]" : "nf-btn--ghost"}`}
+      <Button
+        variant={variant === "secondary" ? "secondary" : "quiet"}
+        className={variant === "secondary" ? "text-[var(--nf-state-error)]" : undefined}
         onClick={() => setSure(true)}
       >
         Cancel this agreement
-      </button>
+      </Button>
       <Sheet
         open={sure}
         onOpenChange={(next) => {
@@ -373,9 +368,9 @@ export function ClaimForm({ agreementId, capNaira }: { agreementId: string; capN
         <input className="nf-field mt-2xs w-full" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} />
       </label>
       {error ? <p role="alert" className="text-[var(--nf-status-error)]">{error}</p> : null}
-      <button type="submit" className="nf-btn nf-btn--primary nf-btn--md nf-btn--full" disabled={pending || uploading}>
+      <Button type="submit" variant="primary" full disabled={pending || uploading}>
         Send the claim to Vallo
-      </button>
+      </Button>
     </form>
   );
 }
