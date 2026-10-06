@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, type ReactNode } from "react";
 import {
   cancelEmailRecovery,
   completeEmailRecovery,
@@ -113,7 +113,16 @@ function RowActions({ row, isSuperAdmin }: { row: RecoveryRow; isSuperAdmin: boo
   );
 }
 
-export function RecoveryDesk({ rows, isSuperAdmin }: { rows: RecoveryRow[]; isSuperAdmin: boolean }) {
+export function RecoveryDesk({
+  rows,
+  isSuperAdmin,
+  empty,
+}: {
+  rows: RecoveryRow[];
+  isSuperAdmin: boolean;
+  /** The console's empty state, from the page: why the list is empty and what starts it. */
+  empty?: ReactNode;
+}) {
   return (
     <>
       {isSuperAdmin ? (
@@ -122,14 +131,15 @@ export function RecoveryDesk({ rows, isSuperAdmin }: { rows: RecoveryRow[]; isSu
         <p className="mt-md text-[length:var(--nf-text-body-sm)]">Only a super admin can open or complete a request.</p>
       )}
       <ul className="mt-lg grid gap-sm">
-        {rows.length === 0 && <li className="text-[length:var(--nf-text-body-sm)]">No requests.</li>}
+        {rows.length === 0 && <li>{empty ?? "No requests."}</li>}
         {rows.map((row) => (
           <li key={row.id} className="nf-panel nf-panel--card p-card text-[length:var(--nf-text-body-sm)]">
             <p className="font-semibold">
               {row.old_email} → {row.new_email}
             </p>
             <p className="mt-3xs text-[var(--nf-content-secondary)]">
-              {row.status.replace("_", " ")} · opened {when(row.opened_at)} · earliest {when(row.eligible_at)} ·
+              {/* Sentence case: the status was the raw column value, lower case, opening the line. */}
+              {row.status.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase())} · opened {when(row.opened_at)} · earliest {when(row.eligible_at)} ·
               evidence {row.evidence_ref}
             </p>
             <p className="mt-3xs text-[var(--nf-content-secondary)]">
