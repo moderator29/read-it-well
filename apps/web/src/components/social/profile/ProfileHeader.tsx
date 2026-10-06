@@ -335,7 +335,7 @@ export function ProfileHeader({
       {badges && badges.length > 0 && badgeCopy ? (
         <>
           <BadgeRow badges={badges} isOwner={isOwner} copy={badgeCopy} shareUrl={shareUrl} />
-          {isOwner ? <BadgeEarnedHost badges={badges} copy={badgeCopy} shareUrl={shareUrl} /> : null}
+          {isOwner ? <BadgeEarnedHost viewerId={profile.userId} badges={badges} copy={badgeCopy} shareUrl={shareUrl} /> : null}
         </>
       ) : null}
 

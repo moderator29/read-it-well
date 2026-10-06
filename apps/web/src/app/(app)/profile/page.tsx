@@ -237,6 +237,7 @@ export default async function ProfilePage({
                 shareUrl={shareUrl}
               />
               <BadgeEarnedHost
+                viewerId={profile.userId}
                 badges={badges}
                 copy={badgeCopyOf(t)}
                 shareUrl={shareUrl}

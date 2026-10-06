@@ -21,28 +21,40 @@ const KEY = "nf_seen_stories";
 const CAP = 200;
 const EVENT = "nf-seen-stories";
 
-let cache: readonly string[] | null = null;
+/*
+ * SCOPED TO THE VIEWER (auditor A2). One phone, two accounts: a single key
+ * meant account B saw rings already quiet from what A had opened. The key
+ * carries the viewer's id (passed from the server); a signed-out reader has
+ * the "anon" scope, which is what they always had.
+ */
+const scope = (viewerId: string | null) => `${KEY}:${viewerId ?? "anon"}`;
 
-function read(): readonly string[] {
-  if (cache) return cache;
+const caches = new Map<string, readonly string[]>();
+
+function read(viewerId: string | null): readonly string[] {
+  const key = scope(viewerId);
+  const hit = caches.get(key);
+  if (hit) return hit;
+  let list: readonly string[];
   try {
-    const raw = window.localStorage.getItem(KEY);
+    const raw = window.localStorage.getItem(key);
     const parsed: unknown = raw ? JSON.parse(raw) : [];
-    cache = Array.isArray(parsed) ? parsed.filter((id): id is string => typeof id === "string") : [];
+    list = Array.isArray(parsed) ? parsed.filter((id): id is string => typeof id === "string") : [];
   } catch {
-    cache = [];
+    list = [];
   }
-  return cache;
+  caches.set(key, list);
+  return list;
 }
 
-export function markStorySeen(id: string): void {
+export function markStorySeen(id: string, viewerId: string | null): void {
   try {
-    const current = read();
+    const current = read(viewerId);
     if (current.includes(id)) return;
     const next = [...current, id].slice(-CAP);
-    cache = next;
+    caches.set(scope(viewerId), next);
     try {
-      window.localStorage.setItem(KEY, JSON.stringify(next));
+      window.localStorage.setItem(scope(viewerId), JSON.stringify(next));
     } catch {
       /* Kept in memory for this page at least. */
     }
@@ -56,7 +68,7 @@ const EMPTY: readonly string[] = [];
 
 function subscribe(onChange: () => void): () => void {
   const reset = () => {
-    cache = null;
+    caches.clear();
     onChange();
   };
   window.addEventListener(EVENT, onChange);
@@ -67,7 +79,11 @@ function subscribe(onChange: () => void): () => void {
   };
 }
 
-/** The ids opened on this device. The server snapshot is "none", so the first paint is every ring lit. */
-export function useSeenStories(): readonly string[] {
-  return useSyncExternalStore(subscribe, read, () => EMPTY);
+/** The ids opened on this device by this viewer. The server snapshot is "none", so the first paint is every ring lit. */
+export function useSeenStories(viewerId: string | null): readonly string[] {
+  return useSyncExternalStore(
+    subscribe,
+    () => read(viewerId),
+    () => EMPTY,
+  );
 }

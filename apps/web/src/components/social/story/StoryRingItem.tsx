@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import Link from "next/link";
 import { initial } from "@/lib/text/initial";
 import { RemoteImage } from "@/components/ui/RemoteImage";
-import { allSeen, ringGradient } from "./ring";
+import { allSeen, ringGradient, ringWindow } from "./ring";
 import { useSeenStories } from "./seen";
 
 /**
@@ -31,6 +31,7 @@ export function StoryRingItem({
   imageUrl,
   storyIds,
   seenWord,
+  viewerId,
 }: {
   href: string;
   title: string;
@@ -39,12 +40,15 @@ export function StoryRingItem({
   imageUrl: string | null;
   storyIds: readonly string[];
   seenWord: string;
+  /** The signed-in reader's id, or null; the seen list is kept per account. */
+  viewerId: string | null;
 }) {
   /* The server snapshot is "nothing opened", so the first paint is every ring
      lit, the same as the server drew, and the device's list takes over right
      after hydration with no flash. */
-  const seenIds = useSeenStories();
-  const flags = useMemo(() => storyIds.map((id) => seenIds.includes(id)), [storyIds, seenIds]);
+  const seenIds = useSeenStories(viewerId);
+  /* The ring draws the newest six, so "all seen" is asked of those six too. */
+  const flags = useMemo(() => ringWindow(storyIds.map((id) => seenIds.includes(id))), [storyIds, seenIds]);
   const done = allSeen(flags);
 
   return (

@@ -210,6 +210,7 @@ export default async function AroundPage({
           you={you}
           yourStoryLabel={t.social.yourStory}
           seenWord={t.experienceSocial.feed.storySeen}
+          viewerId={profile?.userId ?? null}
         />
       )}
 

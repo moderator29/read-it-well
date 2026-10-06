@@ -65,6 +65,7 @@ export default async function StoryPage({
       comments={comments}
       more={more}
       signedIn={session.state === "signed-in"}
+      viewerId={session.state === "signed-in" ? session.user.id : null}
       viewerFollows={author?.state === "found" ? author.viewerFollows : false}
     />
   );

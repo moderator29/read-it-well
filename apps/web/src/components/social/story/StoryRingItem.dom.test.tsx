@@ -21,16 +21,17 @@ afterAll(closeBrowser);
 
 const CSS = [PORTED_CSS, readFileSync(join(process.cwd(), "src/app/css/feed-m.css"), "utf8")].join("\n");
 
-const entry = `
+const entryFor = (viewerId: string | null) => `
   import { StoryRingItem } from "@/components/social/story/StoryRingItem";
   import { mount } from "@/lib/testing/browser-root";
   mount(
     <div className="nf-story-ring">
       <StoryRingItem href="/stories/c" title="Ada Obi" name="Ada" headline="The lift works again" imageUrl={null}
-        storyIds={["a", "b", "c"]} seenWord="seen" />
+        storyIds={["a", "b", "c"]} seenWord="seen" viewerId={${JSON.stringify(viewerId)}} />
     </div>,
   );
 `;
+const entry = entryFor("viewer-1");
 
 describe.skipIf(!hasBrowser && !process.env.CI)("StoryRingItem", () => {
   it("draws every segment lit when nothing has been opened, and says nothing about seen", async () => {
@@ -52,7 +53,7 @@ describe.skipIf(!hasBrowser && !process.env.CI)("StoryRingItem", () => {
     const some = await mountInBrowser({
       entry,
       css: CSS,
-      init: `localStorage.setItem("nf_seen_stories", JSON.stringify(["a"]))`,
+      init: `localStorage.setItem("nf_seen_stories:viewer-1", JSON.stringify(["a"]))`,
     });
     try {
       const disc = some.page.locator(".nf-story-ring__disc");
@@ -65,7 +66,7 @@ describe.skipIf(!hasBrowser && !process.env.CI)("StoryRingItem", () => {
     const all = await mountInBrowser({
       entry,
       css: CSS,
-      init: `localStorage.setItem("nf_seen_stories", JSON.stringify(["a","b","c"]))`,
+      init: `localStorage.setItem("nf_seen_stories:viewer-1", JSON.stringify(["a","b","c"]))`,
     });
     try {
       const disc = all.page.locator(".nf-story-ring__disc");
@@ -74,6 +75,22 @@ describe.skipIf(!hasBrowser && !process.env.CI)("StoryRingItem", () => {
       expect(await disc.evaluate((el) => getComputedStyle(el).boxShadow)).toBe("none");
     } finally {
       await all.close();
+    }
+  });
+
+  it("keeps the seen list per account: another viewer on the same phone sees every ring lit", async () => {
+    const { page, close } = await mountInBrowser({
+      entry: entryFor("viewer-2"),
+      css: CSS,
+      init: `localStorage.setItem("nf_seen_stories:viewer-1", JSON.stringify(["a","b","c"]))`,
+    });
+    try {
+      const disc = page.locator(".nf-story-ring__disc");
+      await disc.waitFor();
+      expect(await disc.getAttribute("style")).not.toContain("--nf-ring-seen");
+      expect(await disc.getAttribute("data-seen")).toBeNull();
+    } finally {
+      await close();
     }
   });
 

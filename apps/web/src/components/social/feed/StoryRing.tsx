@@ -35,6 +35,7 @@ export function StoryRing({
   you,
   yourStoryLabel,
   seenWord = "seen",
+  viewerId = null,
 }: {
   stories: StoryCard[];
   /** The signed-in person, or null when there is nobody to draw. */
@@ -42,6 +43,8 @@ export function StoryRing({
   yourStoryLabel: string;
   /** Said after a name whose stories have all been opened. */
   seenWord?: string;
+  /** The signed-in reader's id, so the seen list is kept per account on a shared phone. */
+  viewerId?: string | null;
 }) {
   /* One ring per person, on their newest story (the list is newest first),
      carrying every live story that person has, oldest first, so the ring can
@@ -89,6 +92,7 @@ export function StoryRing({
               imageUrl={newest.imageUrl}
               storyIds={ids}
               seenWord={seenWord}
+              viewerId={viewerId}
             />
           </li>
         ))}

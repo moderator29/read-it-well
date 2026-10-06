@@ -56,6 +56,7 @@ export function StoryViewer({
   comments,
   more,
   signedIn,
+  viewerId = null,
   viewerFollows,
 }: {
   story: StoryView;
@@ -64,6 +65,8 @@ export function StoryViewer({
   comments: StoryComment[];
   more: StoryCard[];
   signedIn: boolean;
+  /** The signed-in reader's id: the seen ring is kept per account on a shared phone. */
+  viewerId?: string | null;
   viewerFollows: boolean;
 }) {
   const locale = useClientLocale();
@@ -118,8 +121,8 @@ export function StoryViewer({
      ring says "you have been here", which a half-watched story has. A run
      replaces the entry as it steps, so this fires for each story in turn. */
   useEffect(() => {
-    markStorySeen(story.id);
-  }, [story.id]);
+    markStorySeen(story.id, viewerId);
+  }, [story.id, viewerId]);
 
   const who = story.author.label;
   /* B16: this story and the recent run, as the sequence reads them. */

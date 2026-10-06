@@ -4,11 +4,18 @@ import { useEffect, useState } from "react";
 import { BadgeMoment, type BadgeMomentCopy } from "./BadgeMoment";
 import { badgeToCelebrate, quietlySeen, type ProfileBadge } from "./badge-model";
 
+/*
+ * SCOPED TO THE ACCOUNT (auditor A2). A phone shared between two people has one
+ * localStorage, so a single key meant account B was never shown a moment account
+ * A had already seen, and A's list leaked into B's. The key carries the viewer's
+ * id, passed down from the server, so each account keeps its own list.
+ */
 const KEY = "nf_badges_shown";
+const keyFor = (viewerId: string) => `${KEY}:${viewerId}`;
 
-function readSeen(): string[] {
+function readSeen(viewerId: string): string[] {
   try {
-    const raw = window.localStorage.getItem(KEY);
+    const raw = window.localStorage.getItem(keyFor(viewerId));
     const parsed: unknown = raw ? JSON.parse(raw) : [];
     return Array.isArray(parsed) ? parsed.filter((c): c is string => typeof c === "string") : [];
   } catch {
@@ -16,9 +23,9 @@ function readSeen(): string[] {
   }
 }
 
-function writeSeen(codes: string[]): void {
+function writeSeen(viewerId: string, codes: string[]): void {
   try {
-    window.localStorage.setItem(KEY, JSON.stringify(codes.slice(-64)));
+    window.localStorage.setItem(keyFor(viewerId), JSON.stringify(codes.slice(-64)));
   } catch {
     /* Storage can be blocked. The worst case is the moment shows again. */
   }
@@ -46,7 +53,10 @@ export function BadgeEarnedHost({
   badges,
   copy,
   shareUrl,
+  viewerId,
 }: {
+  /** The signed-in owner's id, so "shown" is kept per account on a shared phone. */
+  viewerId: string;
   badges: readonly ProfileBadge[];
   copy: BadgeMomentCopy;
   shareUrl?: string;
@@ -55,14 +65,14 @@ export function BadgeEarnedHost({
 
   useEffect(() => {
     const now = Date.now();
-    const seen = readSeen();
+    const seen = readSeen(viewerId);
     const old = quietlySeen(badges, seen, now);
-    if (old.length > 0) writeSeen([...seen, ...old]);
+    if (old.length > 0) writeSeen(viewerId, [...seen, ...old]);
     const next = badgeToCelebrate(badges, seen, now);
     if (!next) return;
     const timer = window.setTimeout(() => setCurrent(next), 600);
     return () => window.clearTimeout(timer);
-  }, [badges]);
+  }, [badges, viewerId]);
 
   if (!current) return null;
   return (
@@ -71,7 +81,7 @@ export function BadgeEarnedHost({
       copy={copy}
       shareUrl={shareUrl}
       onClose={() => {
-        writeSeen([...readSeen(), current.code]);
+        writeSeen(viewerId, [...readSeen(viewerId), current.code]);
         setCurrent(null);
       }}
     />
