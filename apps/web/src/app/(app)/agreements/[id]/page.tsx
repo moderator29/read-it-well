@@ -18,6 +18,8 @@ import { agreementArrival } from "@/lib/ui/arrival-moments";
 import { Section, TYPE } from "@/components/app/Screen";
 import { AGREEMENT_STATUS_LABEL, CLAIM_STATUS_LABEL } from "@/components/app/agreements/status";
 import { StatusTrack, type TrackStep } from "@/components/app/status/StatusTrack";
+import { DocActions, DocHead, DocNote, DocRow, DocRows, DocState, DocumentSheet } from "@/components/app/money/DocumentSheet";
+import { PrintDocumentTile } from "@/components/app/money/PrintDocumentTile";
 import { agreementTrack, type AgreementStepKey } from "@/components/app/status/tracks";
 import { AmendTerms, CancelAgreement, ClaimForm, ConfirmTerms } from "@/components/app/agreements/AgreementControls";
 import {
@@ -248,60 +250,91 @@ export default async function AgreementPage({
         />
       ) : null}
 
-      <Section id="agreement-terms" title={`The terms (version ${a.termsVersion})`}>
-        <dl className="grid grid-cols-[auto_1fr] gap-x-md gap-y-2xs">
-          <dt className={TYPE.rowMeta}>Between</dt>
-          <dd>
-            {a.renterName} ({a.kind === "rent" ? "renter" : "guest"}) and {a.ownerName} (owner or agent)
-          </dd>
-          {str(a.terms, "move_in") ? (
-            <>
-              <dt className={TYPE.rowMeta}>Move in</dt>
-              <dd>{day(str(a.terms, "move_in"))}</dd>
-              <dt className={TYPE.rowMeta}>Keys handed over</dt>
-              <dd>{day(str(a.terms, "handover_on") ?? str(a.terms, "move_in"))}</dd>
-            </>
-          ) : null}
-          {str(a.terms, "check_in") ? (
-            <>
-              <dt className={TYPE.rowMeta}>Stay</dt>
-              <dd>
+      {/*
+        THE TERMS, ON THE DOCUMENT SHEET (D28.1). The agreement is the record
+        of exactly what both sides committed to, and it is what gets printed
+        and taken to a lawyer, so it is drawn as paper on the member's own
+        theme: who it is between, the dates, every line to the kobo, the total
+        they add up to, and where each party stands on THIS version. The two
+        confirmation rows are the record's own (`youConfirmedCurrent` and
+        `otherConfirmedCurrent`, read against the current terms version), in
+        the sentences this page already used, so a lapsed confirmation after
+        an amendment reads as not confirmed rather than as a tick. Staff read
+        the record without being a party, so they see no confirmation rows.
+      */}
+      <Section id="agreement-terms">
+        <DocumentSheet printable aria-labelledby="agreement-terms-title" data-testid="agreement-terms">
+          <DocHead label={a.listingTitle} title={`The terms (version ${a.termsVersion})`} id="agreement-terms-title" />
+          <DocRows>
+            <DocRow label="Between" variant="prose">
+              {a.renterName} ({a.kind === "rent" ? "renter" : "guest"}) and {a.ownerName} (owner or agent)
+            </DocRow>
+            {str(a.terms, "move_in") ? (
+              <>
+                <DocRow label="Move in" numeric>
+                  {day(str(a.terms, "move_in"))}
+                </DocRow>
+                <DocRow label="Keys handed over" numeric>
+                  {day(str(a.terms, "handover_on") ?? str(a.terms, "move_in"))}
+                </DocRow>
+              </>
+            ) : null}
+            {str(a.terms, "check_in") ? (
+              <DocRow label="Stay" numeric>
                 {day(str(a.terms, "check_in"))} to {day(str(a.terms, "check_out"))}
-              </dd>
-            </>
-          ) : null}
-          {LINES.map((line) =>
-            num(a.terms, line.key) ? (
-              <FragmentLine key={line.key} label={line.label} value={formatMoney(num(a.terms, line.key)!, locale)} />
-            ) : null,
-          )}
-          <dt className={TYPE.rowMeta}>Inspection fee</dt>
-          <dd>{NO_INSPECTION_FEE}</dd>
-          <dt className="font-semibold">Total</dt>
-          <dd className="font-semibold nf-numeric">{formatMoney(a.amountMinor, locale)}</dd>
-          {str(a.terms, "notes") ? (
-            <>
-              <dt className={TYPE.rowMeta}>Also agreed</dt>
-              <dd>{str(a.terms, "notes")}</dd>
-            </>
-          ) : null}
-        </dl>
-        <p className={`${TYPE.rowMeta} mt-block`}>
-          {NO_CUSTODY_SENTENCE}
-          {guaranteeBps !== null
-            ? ` ${guaranteeBps / 100}% of the total goes to the Vallo Guarantee reserve from the same payment.`
-            : ""}
-        </p>
+              </DocRow>
+            ) : null}
+            {LINES.map((line) =>
+              num(a.terms, line.key) ? (
+                <DocRow key={line.key} label={line.label} numeric>
+                  {formatMoney(num(a.terms, line.key)!, locale)}
+                </DocRow>
+              ) : null,
+            )}
+            <DocRow label="Inspection fee" variant="prose">
+              {NO_INSPECTION_FEE}
+            </DocRow>
+            <DocRow label="Total" variant="total" numeric>
+              {formatMoney(a.amountMinor, locale)}
+            </DocRow>
+            {str(a.terms, "notes") ? (
+              <DocRow label="Also agreed" variant="prose">
+                {str(a.terms, "notes")}
+              </DocRow>
+            ) : null}
+            {party ? (
+              <>
+                <DocRow label={a.role === "renter" ? a.renterName : a.ownerName} variant="prose">
+                  <DocState done={a.youConfirmedCurrent}>
+                    {a.youConfirmedCurrent ? "You confirmed this version." : "You have not confirmed this version yet."}
+                  </DocState>
+                </DocRow>
+                <DocRow label={a.role === "renter" ? a.ownerName : a.renterName} variant="prose">
+                  <DocState done={a.otherConfirmedCurrent}>
+                    {a.otherConfirmedCurrent ? "The other side confirmed it." : "The other side has not confirmed it yet."}
+                  </DocState>
+                </DocRow>
+              </>
+            ) : null}
+          </DocRows>
+          <DocNote>
+            {NO_CUSTODY_SENTENCE}
+            {guaranteeBps !== null
+              ? ` ${guaranteeBps / 100}% of the total goes to the Vallo Guarantee reserve from the same payment.`
+              : ""}
+          </DocNote>
+        </DocumentSheet>
+        <DocActions label="The terms">
+          <PrintDocumentTile label={getDictionary(locale).afterTheGate.complaint.print} testId="agreement-print" />
+        </DocActions>
       </Section>
 
       {party && (a.status === "awaiting_parties" || a.status === "rejected") ? (
         <Section title={a.status === "rejected" ? "What happens next" : "Confirm"}>
-          <p className={TYPE.body}>
-            {a.youConfirmedCurrent ? "You confirmed this version." : "You have not confirmed this version yet."}{" "}
-            {a.otherConfirmedCurrent ? "The other side confirmed it." : "The other side has not confirmed it yet."}
-          </p>
-          {/* Confirming, when it is this reader's move, is the Awaiting you
-              card at the top of the page. */}
+          {/* Where each side stands on this version is said once, on the
+              terms sheet above, rather than repeated here. Confirming, when
+              it is this reader's move, is the Awaiting you card at the top
+              of the page. */}
           {a.kind === "rent" ? (
             <AmendTerms
               agreementId={a.id}
@@ -428,15 +461,6 @@ function termValue(
   if (c.kind === "money" && typeof v === "number") return formatMoney(v, locale);
   if (c.kind === "date" && typeof v === "string") return day(v) ?? v;
   return String(v);
-}
-
-function FragmentLine({ label, value }: { label: string; value: string }) {
-  return (
-    <>
-      <dt className={TYPE.rowMeta}>{label}</dt>
-      <dd className="nf-numeric">{value}</dd>
-    </>
-  );
 }
 
 /** The request's clock, read once so every time on the page agrees. */
