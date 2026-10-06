@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useBack } from "@/lib/nav/use-back";
-import type { Dictionary } from "@vallo/i18n/core";
+import type { RegisterCopy } from "./supply-copy";
 import { TYPE } from "@/components/app/Screen";
 import { TextField } from "@/components/ui/Field";
 import { Button } from "@/components/ui/Button";
@@ -73,7 +73,7 @@ export function FirmRegisterForm({
   t,
   startAt = 0,
 }: {
-  t: Dictionary;
+  t: RegisterCopy;
   /** The preview harness only. See the note on the owner form. */
   startAt?: number;
 }) {
@@ -467,7 +467,7 @@ export function FirmDoneScreen({
   t,
   filed,
 }: {
-  t: Dictionary;
+  t: RegisterCopy;
   filed: { reference: string; attached: boolean };
 }) {
   const router = useRouter();

@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useRef, useState } from "react";
-import type { Dictionary } from "@vallo/i18n/core";
+import type { UploadCopy } from "./supply-copy";
 import type { BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { TYPE } from "@/components/app/Screen";
@@ -66,7 +66,7 @@ export function UploadCard({
   accept = "image/png,image/jpeg,application/pdf",
   error,
 }: {
-  t: Dictionary;
+  t: UploadCopy;
   object: BrandIconName;
   title: string;
   body: string;

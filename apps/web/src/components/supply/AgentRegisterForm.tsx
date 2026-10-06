@@ -4,7 +4,8 @@ import { PhoneField } from "@/components/app/PhoneField";
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useBack } from "@/lib/nav/use-back";
-import { formatMoney, intlTag, type Dictionary, type Locale } from "@vallo/i18n/core";
+import { formatMoney, intlTag, type Locale } from "@vallo/i18n/core";
+import type { RegisterCopy } from "./supply-copy";
 import { TYPE } from "@/components/app/Screen";
 import { SelectField, TextField } from "@/components/ui/Field";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -69,7 +70,7 @@ export function AgentRegisterForm({
   locale,
   startAt = 0,
 }: {
-  t: Dictionary;
+  t: RegisterCopy;
   /** For the money and the percentage, both of which are formatted, not built. */
   locale: Locale;
   /** The preview harness only. See the note on the owner form. */
@@ -532,7 +533,7 @@ export function AgentDoneScreen({
   t,
   filed,
 }: {
-  t: Dictionary;
+  t: RegisterCopy;
   filed: { reference: string; attached: boolean };
 }) {
   const router = useRouter();

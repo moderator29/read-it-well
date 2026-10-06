@@ -25,13 +25,29 @@ export function forChooser(t: Dictionary): ChooserCopy {
   return { supply: { chooser: t.supply.chooser, doors: t.supply.doors } };
 }
 
-/** The owner's registration (`OwnerRegisterForm`, its done screen and the pickers on screen two). */
-export type OwnerCopy = {
+/** The upload card (`UploadCard`), which reads only the register's own lines. */
+export type UploadCopy = {
   supply: Pick<Dictionary["supply"], "register">;
+};
+
+/**
+ * A registration form, its done screen and the filed sheet: the register's
+ * lines and the success words. The agent's and the firm's forms read exactly
+ * this (and hand `UploadCard` the part it needs).
+ */
+export type RegisterCopy = UploadCopy & {
   success: Dictionary["success"];
+};
+
+export function forRegister(t: Dictionary): RegisterCopy {
+  return { supply: { register: t.supply.register }, success: t.success };
+}
+
+/** The owner's registration: the same, plus the pickers on screen two. */
+export type OwnerCopy = RegisterCopy & {
   pickers: Dictionary["pickers"];
 };
 
 export function forOwner(t: Dictionary): OwnerCopy {
-  return { supply: { register: t.supply.register }, success: t.success, pickers: t.pickers };
+  return { ...forRegister(t), pickers: t.pickers };
 }
