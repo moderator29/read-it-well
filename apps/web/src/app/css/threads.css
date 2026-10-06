@@ -587,18 +587,10 @@
    */
   .nf-chat-card__fact {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    align-items: center;
-    column-gap: var(--nf-space-2xs);
+    grid-template-columns: minmax(0, 1fr);
     align-content: start;
     min-width: 0;
     padding-inline: var(--nf-space-2xs);
-  }
-  .nf-chat-card__fact > div {
-    display: contents;
-  }
-  .nf-chat-card__fact dd {
-    grid-column: 1 / -1;
   }
   .nf-chat-card__fact + .nf-chat-card__fact {
     border-left: var(--nf-border-width) solid var(--nf-panel-hair);
@@ -610,8 +602,12 @@
     color: var(--nf-brand-secondary);
     flex-shrink: 0;
   }
+  /* The glyph is inside the label (a dt can hold it; a group div cannot hold
+     a sibling svg), so it sits on the label's line exactly as it did. */
   .nf-chat-card__fact-label {
-    display: block;
+    display: flex;
+    align-items: center;
+    column-gap: var(--nf-space-2xs);
     font-size: var(--nf-text-overline);
     color: var(--nf-content-muted);
     white-space: nowrap;
