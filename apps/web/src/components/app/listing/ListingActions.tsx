@@ -25,6 +25,7 @@ import { nativeShare } from "@/lib/native/device";
 import { feedback } from "@/lib/ui/feedback";
 import "@/app/css/catalogue.css";
 import "@/app/css/list-views.css";
+import { useSignInHref } from "@/lib/auth/use-sign-in-href";
 
 /**
  * The two controls that float over the gallery: share and save.
@@ -112,6 +113,7 @@ export function ListingActions({
    */
   shareKind?: SharedKind;
 }) {
+  const signInHref = useSignInHref();
   /*
    * The device's answer, from the one store every heart reads.
    *
@@ -368,7 +370,7 @@ export function ListingActions({
         >
           {message}
           {signInPrompt && (
-            <Link href="/sign-in" className="ml-2xs font-semibold underline underline-offset-2">
+            <Link href={signInHref} className="ml-2xs font-semibold underline underline-offset-2">
               Sign in
             </Link>
           )}

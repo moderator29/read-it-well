@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { publicPageMetadata } from "@/lib/i18n/public-metadata";
 import Link from "next/link";
 import { ButtonLink } from "@/components/ui/Button";
+import { withNext } from "@/lib/auth/next-link";
 import { SiteHead } from "@/components/site/SiteHead";
 import { SUPPORT_HREF, SUPPORT_LABEL } from "@/lib/support-email";
 import { GRACE_WINDOW_DAYS } from "@/lib/account-deletion/constants";
@@ -99,7 +100,7 @@ export default function DeleteAccountPage() {
               <ButtonLink href="/settings/account" variant="primary">
                 Open Settings
               </ButtonLink>
-              <ButtonLink href="/sign-in" variant="secondary">
+              <ButtonLink href={withNext("/sign-in", "/settings/account")} variant="secondary">
                 Sign in first
               </ButtonLink>
             </div>

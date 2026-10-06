@@ -15,6 +15,7 @@ import {
   MAX_NAME,
   useDeviceIdentity,
 } from "@/components/app/account/device-identity";
+import { useSignInHref } from "@/lib/auth/use-sign-in-href";
 
 /**
  * The profile before you sign in.
@@ -40,6 +41,7 @@ import {
  * no counts: nothing here has been checked or counted.
  */
 export function SignedOutHero({ unconfigured }: { unconfigured: boolean }) {
+  const signInHref = useSignInHref();
   const [editing, setEditing] = useState(false);
 
   /*
@@ -117,7 +119,7 @@ export function SignedOutHero({ unconfigured }: { unconfigured: boolean }) {
             : "Sign in and this page shows what you have actually booked, saved and reviewed, on every device you use, along with a handle, a cover and somewhere for what you write to live."}
         </p>
         {!unconfigured && (
-          <ButtonLink href="/sign-in" variant="primary" size="lg" full className="mt-md">
+          <ButtonLink href={signInHref} variant="primary" size="lg" full className="mt-md">
             Sign in
           </ButtonLink>
         )}

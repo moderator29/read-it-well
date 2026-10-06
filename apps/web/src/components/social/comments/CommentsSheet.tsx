@@ -22,6 +22,7 @@ import { RemoteImage } from "@/components/ui/RemoteImage";
 import { pruneDeleted } from "@/lib/social/deleted-posts";
 import { countOf } from "@vallo/i18n/core";
 import { useClientLocale } from "@/lib/i18n/use-client-locale";
+import { useSignInHref } from "@/lib/auth/use-sign-in-href";
 
 /**
  * Comments, as a sheet.
@@ -101,6 +102,7 @@ export function CommentsSheet({
   /** The report sheet's reasons and words, from the server (`reportWordsOf`). */
   reportWords: ReportWords;
 }) {
+  const signInHref = useSignInHref();
   const locale = useClientLocale();
   const router = useRouter();
   const [rows, setRows] = useState(comments);
@@ -166,7 +168,7 @@ export function CommentsSheet({
 
   const requireSignIn = () => {
     if (signedIn) return false;
-    router.push("/sign-in");
+    router.push(signInHref);
     return true;
   };
 

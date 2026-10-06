@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { withNext } from "@/lib/auth/next-link";
 import type { Dictionary } from "@vallo/i18n/core";
 import { Logo } from "@/design-system/brand/Logo";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -35,7 +36,8 @@ export function AccessScreen({
         ? {
             title: a.signedOutTitle,
             body: a.signedOutBody,
-            action: { href: "/sign-in", label: a.signIn },
+            /* Back to the console after signing in (the layout has no path to hand in). */
+            action: { href: withNext("/sign-in", "/admin"), label: a.signIn },
           }
         : {
             title: a.notAdminTitle,
@@ -98,7 +100,7 @@ export function AccessScreen({
 
         {state !== "signed-out" && (
           <Link
-            href="/sign-in"
+            href={withNext("/sign-in", "/admin")}
             className="mx-auto mt-sm block w-fit text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
           >
             {a.otherAccount}

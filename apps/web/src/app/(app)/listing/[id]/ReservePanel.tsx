@@ -2,6 +2,7 @@
 
 import { useActionState, useId, useState, useMemo } from "react";
 import Link from "next/link";
+import { withNext } from "@/lib/auth/next-link";
 import { plural, type Locale } from "@vallo/i18n/core";
 import { useClientCopy } from "@/lib/i18n/client-copy";
 import { reserve, type ReserveReceipt } from "@/lib/bookings/actions";
@@ -722,7 +723,7 @@ export function ReservePanel({
             {state.error}
             {state.error.startsWith("Sign in") && (
               <Link
-                href="/sign-in"
+                href={withNext("/sign-in", `/listing/${encodeURIComponent(listingId)}`)}
                 className="mt-row inline-flex min-h-11 items-center font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
               >
                 Sign in

@@ -12,6 +12,7 @@ import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
 import { RespondToReview } from "@/components/agent/RespondToReview";
 import { StatusTrack, type TrackStep } from "@/components/app/status/StatusTrack";
 import { applicationTrack } from "@/components/app/status/tracks";
+import { withNext } from "@/lib/auth/next-link";
 
 export const metadata: Metadata = {
   title: "Your application",
@@ -62,7 +63,7 @@ export default async function ProfileApplicationPage() {
         icon: "user-check" as const,
         title: s.signedOutTitle,
         body: s.signedOutBody,
-        cta: { href: "/sign-in", label: s.signIn },
+        cta: { href: withNext("/sign-in", "/profile/application"), label: s.signIn },
       },
       none: {
         icon: "doc-shield" as const,

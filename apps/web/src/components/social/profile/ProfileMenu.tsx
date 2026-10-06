@@ -20,6 +20,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Toast, useToast } from "@/components/ui/Toast";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import "./social-profile.css";
+import { useSignInHref } from "@/lib/auth/use-sign-in-href";
 
 /**
  * The `…` on a person's page. The sibling of the one on every card.
@@ -67,6 +68,7 @@ export function ProfileMenu({
   /** The report sheet's reasons and words, from the server (`reportWordsOf`). */
   reportWords: ReportWords;
 }) {
+  const signInHref = useSignInHref();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [muted, setMuted] = useState(initialMuted);
@@ -151,7 +153,7 @@ export function ProfileMenu({
 
   const requireSignIn = () => {
     if (signedIn) return false;
-    router.push("/sign-in");
+    router.push(signInHref);
     return true;
   };
 

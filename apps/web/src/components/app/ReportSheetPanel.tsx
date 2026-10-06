@@ -22,6 +22,7 @@ import { successCopy } from "@/lib/ui/success-moments";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { IconPlate } from "@/components/ui/IconPlate";
 import { Icon3D } from "@/components/ui/Icon3D";
+import { useSignInHref } from "@/lib/auth/use-sign-in-href";
 
 /**
  * The report sheet's BODY: the categories, the details, the send, the "we have
@@ -59,6 +60,7 @@ export function ReportSheetPanel({
   /** Closes the sheet and hands focus back to the trigger. */
   onClose: () => void;
 }) {
+  const signInHref = useSignInHref();
   const noun = REPORT_TARGET_NOUN[targetType];
   const reportCopy = useClientCopy().trustVisible.report;
   const uid = useId();
@@ -143,7 +145,7 @@ export function ReportSheetPanel({
                       with noise and what lets us come back to you about it. The host is
                       never told who reported them.
                     </p>
-                    <Link href="/sign-in" className="nf-btn nf-btn--primary mt-md">
+                    <Link href={signInHref} className="nf-btn nf-btn--primary mt-md">
                       Sign in
                     </Link>
                   </div>

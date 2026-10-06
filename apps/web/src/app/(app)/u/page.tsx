@@ -1,6 +1,7 @@
 import { initial } from "@/lib/text/initial";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { withNext } from "@/lib/auth/next-link";
 import { PageHeader } from "@/components/app/PageHeader";
 import { SocialPaused } from "@/components/social/SocialPaused";
 /* ONE empty-state anatomy across the whole product. See EmptyPanel. */
@@ -209,7 +210,7 @@ export default async function PeoplePage({
 
       {!view.signedIn && view.people.length > 0 ? (
         <p className="mt-md text-center text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
-          <Link href="/sign-in" className="font-semibold text-[var(--nf-brand-secondary)]">
+          <Link href={withNext("/sign-in", "/u")} className="font-semibold text-[var(--nf-brand-secondary)]">
             Sign in
           </Link>{" "}
           to follow anybody here.

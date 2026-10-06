@@ -30,6 +30,7 @@ import { ShareAreaButton } from "./ShareAreaButton";
 import { NextActions } from "./NextActions";
 import { shareAreaCopy } from "./share-copy";
 import { AnsweredResult, ComparablesRail, Disclaimer, RefusalPanel, StripPlot } from "./ResultPanel";
+import { useSignInHref } from "@/lib/auth/use-sign-in-href";
 
 /**
  * PRICE CHECK, THE WHOLE SCREEN.
@@ -656,6 +657,7 @@ function RefusalActions({
   onNotify(): void;
   onAnnualRent(): void;
 }) {
+  const signInHref = useSignInHref();
   if (!spec) return null;
 
   const rendered: React.ReactNode[] = [];
@@ -678,7 +680,7 @@ function RefusalActions({
             {watched === "saved" ? copy.notify.saved : copy.actions.notifyMe}
           </Button>
         ) : (
-          <ButtonLink key="notify" href="/sign-in" variant="ghost" full>
+          <ButtonLink key="notify" href={signInHref} variant="ghost" full>
             {copy.actions.notifyMeSignedOut}
           </ButtonLink>
         ),

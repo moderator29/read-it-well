@@ -19,6 +19,7 @@ import {
   STORY_STANDFIRST_MAX,
 } from "@/lib/social/stories-model";
 import { IconPlate } from "@/components/ui/IconPlate";
+import { useSignInHref } from "@/lib/auth/use-sign-in-href";
 
 /**
  * Writing a story.
@@ -51,6 +52,7 @@ export function StoryComposer({
   userId: string | null;
   signedIn: boolean;
 }) {
+  const signInHref = useSignInHref();
   const router = useRouter();
   const fileInput = useRef<HTMLInputElement>(null);
 
@@ -76,7 +78,7 @@ export function StoryComposer({
           A story is a picture, a headline and a line or two about a place. It
           stays up, so it needs to belong to somebody.
         </p>
-        <Link href="/sign-in" className="nf-btn nf-btn--primary mt-lg">
+        <Link href={signInHref} className="nf-btn nf-btn--primary mt-lg">
           Sign in
         </Link>
       </div>

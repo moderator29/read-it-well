@@ -36,6 +36,7 @@ import type { BrandIconName } from "@/design-system/icons/BrandIcon";
 import type { FeedPage } from "@/lib/social/posts-queries";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { POST_COPY, POST_REPORT_REASONS } from "@/lib/social/posts-model";
+import { useSignInHref } from "@/lib/auth/use-sign-in-href";
 
 /**
  * The heading when a caller has not given one.
@@ -154,6 +155,7 @@ export function Feed({
     join?: React.ReactNode;
   };
 }) {
+  const signInHref = useSignInHref();
   const router = useRouter();
   const [posts, setPosts] = useState(initial);
   const [notice, setNotice] = useState<string | null>(null);
@@ -298,7 +300,7 @@ export function Feed({
    */
   const onRepost = (post: PostView) => {
     if (!signedIn) {
-      router.push("/sign-in");
+      router.push(signInHref);
       return;
     }
     const reposted = !post.reposted;
@@ -316,7 +318,7 @@ export function Feed({
 
   const onLike = (post: PostView) => {
     if (!signedIn) {
-      router.push("/sign-in");
+      router.push(signInHref);
       return;
     }
     const liked = !post.liked;
@@ -374,7 +376,7 @@ export function Feed({
       return;
     }
     if (!signedIn) {
-      router.push("/sign-in");
+      router.push(signInHref);
       return;
     }
     /* The one row this sheet offers that already had a handler and no way to

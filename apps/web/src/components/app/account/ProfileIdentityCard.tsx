@@ -12,6 +12,7 @@ import {
   MAX_NAME,
   useDeviceIdentity,
 } from "./device-identity";
+import { useSignInHref } from "@/lib/auth/use-sign-in-href";
 
 /**
  * Identity card for the profile surface, before there is an account.
@@ -39,6 +40,7 @@ import {
  * opened the card, not when anybody joined.
  */
 export function ProfileIdentityCard() {
+  const signInHref = useSignInHref();
   const [editing, setEditing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const nameId = useId();
@@ -180,7 +182,7 @@ export function ProfileIdentityCard() {
           Sign in and this card shows what you have actually booked, saved and
           reviewed, on every device you use.
         </p>
-        <ButtonLink href="/sign-in" variant="primary" size="sm" className="mt-heading">
+        <ButtonLink href={signInHref} variant="primary" size="sm" className="mt-heading">
           Sign in
         </ButtonLink>
       </div>

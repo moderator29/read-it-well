@@ -33,6 +33,7 @@ import { RemoteImage } from "@/components/ui/RemoteImage";
 import { Toast, useToast } from "@/components/ui/Toast";
 import { countOf } from "@vallo/i18n/core";
 import { useClientLocale } from "@/lib/i18n/use-client-locale";
+import { useSignInHref } from "@/lib/auth/use-sign-in-href";
 
 /**
  * A story, full bleed.
@@ -73,6 +74,7 @@ export function StoryViewer({
   /** The report sheets' reasons and words, from the server (`reportWordsOf`). */
   reportWords: ReportWords;
 }) {
+  const signInHref = useSignInHref();
   const locale = useClientLocale();
   const router = useRouter();
   const [liked, setLiked] = useState(story.liked);
@@ -137,7 +139,7 @@ export function StoryViewer({
 
   const requireSignIn = () => {
     if (signedIn) return false;
-    router.push("/sign-in");
+    router.push(signInHref);
     return true;
   };
 

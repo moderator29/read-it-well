@@ -20,6 +20,7 @@ import { ButtonLink } from "@/components/ui/Button";
 import { SUPPLY_DOOR_HREF } from "@/components/agent/agent-doors";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { IconPlate } from "@/components/ui/IconPlate";
+import { withNext } from "@/lib/auth/next-link";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
@@ -129,7 +130,7 @@ export default async function AgentDashboardPage({
           cta: t.common.back,
         }
       : context.state === "signed-out"
-        ? { title: a.signedOutTitle, body: a.signedOutBody, href: "/sign-in", cta: t.common.signIn }
+        ? { title: a.signedOutTitle, body: a.signedOutBody, href: withNext("/sign-in", "/agent/dashboard"), cta: t.common.signIn }
         : {
             title: a.notAgentTitle,
             body: a.notAgentBody,

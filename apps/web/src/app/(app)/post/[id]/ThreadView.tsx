@@ -3,7 +3,8 @@
 import type { SheetWords } from "@/components/social/sheet-words";
 import { useEffect, useState, useTransition } from "react";
 import { Button } from "@/components/ui/Button";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { withNext } from "@/lib/auth/next-link";
 import { PostCard, type PostView } from "@/components/social/feed/PostCard";
 import { Composer } from "@/components/social/feed/Composer";
 import { ReportSheet } from "@/components/social/ReportSheet";
@@ -59,6 +60,7 @@ export function ThreadView({
 }) {
   const locale = useClientLocale();
   const router = useRouter();
+  const pathname = usePathname();
   const [root, setRoot] = useState(thread.root);
   const [replies, setReplies] = useState(thread.replies);
   const [replyingTo, setReplyingTo] = useState<string | null>(
@@ -109,7 +111,8 @@ export function ThreadView({
 
   const requireSignIn = () => {
     if (signedIn) return false;
-    router.push("/sign-in");
+    /* Back to this thread after signing in: sign-in reads only `next`. */
+    router.push(withNext("/sign-in", pathname));
     return true;
   };
 

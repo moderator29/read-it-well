@@ -9,6 +9,7 @@ import { ProfilePhotos } from "@/components/social/profile/ProfilePhotos";
 import { loadProfileEditor, normaliseHandle } from "@/lib/social/profiles-queries";
 import { SocialPaused } from "@/components/social/SocialPaused";
 import { isSocialEnabled } from "@/lib/social/flag";
+import { withNext } from "@/lib/auth/next-link";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: getDictionary(await getLocale()).experienceSocial.editProfile.title };
@@ -60,7 +61,7 @@ export default async function EditSocialProfilePage({
           icon="user-check"
           title={w.signedOutTitle}
           body={h(w.signedOutBody)}
-          action={{ href: "/sign-in", label: w.signIn }}
+          action={{ href: withNext("/sign-in", `/u/${encodeURIComponent(handle)}/edit`), label: w.signIn }}
           secondary={{ href: `/u/${handle}`, label: w.seeProfile }}
         />
       )}

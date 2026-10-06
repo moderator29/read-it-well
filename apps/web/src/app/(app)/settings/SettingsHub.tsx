@@ -5,6 +5,7 @@ import { clearListingDrafts } from "@/lib/agent/listing-draft-storage";
 import { initial } from "@/lib/text/initial";
 import { useState, useTransition } from "react";
 import Link from "next/link";
+import { withNext } from "@/lib/auth/next-link";
 import { useRouter } from "next/navigation";
 import { plural, type Locale } from "@vallo/i18n/core";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
@@ -85,7 +86,7 @@ function ProfileRow({
   const hub = t.settings.hub;
   if (!person) {
     return (
-      <Link href="/sign-in" className="nf-panel nf-panel--card nf-hub-profile" data-testid="settings-profile-row">
+      <Link href={withNext("/sign-in", "/settings")} className="nf-panel nf-panel--card nf-hub-profile" data-testid="settings-profile-row">
         <span className="nf-hub-profile__avatar" aria-hidden="true">
           <UiIcon name="user" size={24} />
         </span>
