@@ -128,7 +128,7 @@ export async function appCss(...sheets: string[]): Promise<string> {
  */
 export function layoutSheets(layout: string): string[] {
   const source = readFileSync(join(SRC, layout), "utf8");
-  return [...source.matchAll(/^import\s+["']@\/([^"']+\.css)["'];?\s*$/gm)].map((m) => m[1]);
+  return [...source.matchAll(/^import\s+["']@\/([^"']+\.css)["'];?\s*$/gm)].flatMap((m) => (m[1] ? [m[1]] : []));
 }
 
 /** The cascade a screen inside `layout`'s tree gets, plus its own sheets. */
