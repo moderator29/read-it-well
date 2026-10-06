@@ -28,7 +28,8 @@ export const experienceRewardsEn = {
     label: "Rewards Balance",
     available: "Available",
     pending: "Pending",
-    pendingHint: "Waiting for referrals to qualify",
+    /** Pending is already qualified and waits only to become withdrawable (D62's lifecycle). */
+    pendingHint: "Qualified, not ready to withdraw yet",
     lifetime: "Earned in total",
     lifetimeHint: "Everything added since you started",
   },

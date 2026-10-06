@@ -37,7 +37,14 @@ export type RewardsPolicy = {
   withdrawMinimumMinor: number;
 };
 
-/** Three figures, never mixed: what can be withdrawn, what is waiting to qualify, and everything ever earned. */
+/**
+ * Three figures, never mixed: what can be withdrawn, what is pending, and
+ * everything ever earned. PENDING IS ALREADY QUALIFIED (D62's lifecycle,
+ * REFERRAL_ARCHITECTURE section 2: QUALIFIED, then REWARD PENDING through the
+ * campaign's review window, then AVAILABLE). It is earned and waits only to
+ * become withdrawable, so a budget pause (D64) never touches it. A referral
+ * that has not qualified adds nothing to any of these figures.
+ */
 export type RewardsBalance = {
   availableMinor: number;
   pendingMinor: number;
