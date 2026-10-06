@@ -80,8 +80,13 @@ export type ResultState =
  * The screen form also says "missing" (UI-15): the thing is not there, or not
  * yours. Neither a failure the person can act on nor good news, so it is
  * neutral: never rose, never a success mark. The sheet never shows it.
+ *
+ * It also says "sign-in": the page needs the person signed in before it can
+ * show anything (a payment, a stay's checkout). Nothing has happened yet, so
+ * it is neutral too: a lock on the neutral plate, never the brand "verified"
+ * shield that `confirmed` draws (Round 3 sweep, C3).
  */
-export type ResultScreenState = ResultState | "missing";
+export type ResultScreenState = ResultState | "missing" | "sign-in";
 
 export type ResultAction = {
   label: string;
@@ -172,6 +177,7 @@ const PLATE: Record<ResultScreenState, { tone: IconPlateTone; glyph: UiIconName 
   failed: { tone: "error", glyph: "close" },
   expired: { tone: "info", glyph: "history" },
   missing: { tone: "info", glyph: "search" },
+  "sign-in": { tone: "neutral", glyph: "lock" },
 };
 
 function ResultPlate({ state }: { state: ResultScreenState }) {
@@ -207,6 +213,7 @@ const STATE: Record<ResultScreenState, { ink: string }> = {
   failed: { ink: "var(--nf-state-error)" },
   expired: { ink: "var(--nf-content-muted)" },
   missing: { ink: "var(--nf-content-muted)" },
+  "sign-in": { ink: "var(--nf-content-muted)" },
 };
 
 export function ResultSheet(props: ResultSheetProps) {

@@ -37,7 +37,7 @@ export default async function CryptoPaymentPage({ params }: { params: Promise<{ 
     return (
       <Shell title={t.pageTitle}>
         <ResultScreen
-          state="confirmed"
+          state="sign-in"
           verdict={c.signIn}
           consequence={t.signedOutBody}
           /* Back to this payment after signing in: the bare /sign-in left the

@@ -93,8 +93,7 @@ export default async function CheckoutPage({
     return (
       <Shell>
         <ResultScreen
-          state="confirmed"
-          mark="shield-check"
+          state="sign-in"
           verdict={c.signInToPayStay}
           consequence={c.signInKeptStay}
           /* The sentence above promises a return here, so the link carries it:

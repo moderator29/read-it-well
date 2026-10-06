@@ -74,8 +74,7 @@ export default async function RentPayPage({
     return (
       <Shell>
         <ResultScreen
-          state="confirmed"
-          mark="shield-check"
+          state="sign-in"
           verdict={c.signInToPayRent}
           consequence={c.signInKeptRent}
           /* The sentence above promises a return here, so the link carries it:
