@@ -363,8 +363,13 @@ export const experienceHostEn = {
       uploading: "Uploading",
       addFirst: "Add the first photograph",
       addAnother: "Add another",
-      /** `{formats}` is "JPG, PNG or WEBP", `{size}` is "10MB". */
+      /** `{formats}` is `acceptedFormats`, `{size}` is "10MB". */
       formats: "{formats}, up to {size} each. One at a time.",
+      /** The three types the picker takes (`PHOTO_ACCEPTED_MIME`), as a list a person reads. */
+      acceptedFormats: "JPG, PNG or WEBP",
+      /** `rejectPhoto` (lib/host/photos.ts), before anything is uploaded. `{formats}` is `acceptedFormats`, `{size}` is "10MB". */
+      notAccepted: "That file is not {formats}. A photograph straight from a phone is one of those.",
+      tooLarge: "That photograph is over {size}. Send it at a smaller size and choose it again.",
       uploadFailed: "The upload did not finish. Check your connection and choose the photograph again.",
     },
     venue: {
@@ -660,6 +665,51 @@ export const experienceHostEn = {
       placeTypeMissing:
         "This database does not know that kind of place yet. The migration that adds it, 20260922190000_imgc_a_shortlet_is_not_a_hotel_room, has not been applied.",
     },
+    /*
+     * lib/host/schema.ts: what the wizard's fields say when a value is the
+     * wrong shape, beside the box (C9, moved word for word). The schemas are
+     * built per request from these. `{time}` is an example clock time.
+     */
+    schema: {
+      phoneBad: "That does not look like a Nigerian mobile number. Enter it as 0803 123 4567.",
+      emailBad: "Enter an email address we can actually write to.",
+      cacBad: "That is not an RC or BN number. It is the one on your CAC certificate, like RC 1234567.",
+      tinBad: "A TIN is digits, with or without dashes.",
+      applicationUnknown: "That application could not be identified.",
+      documentKind: "That is not a document we ask for.",
+      uploadUnknown: "That upload could not be identified.",
+      propertyName: "Give the property a name.",
+      timeLike: "Use a time like {time}.",
+      propertyUnknown: "That property could not be identified.",
+      roomTypeName: "Name the room type, for example Deluxe Double.",
+      roomCategory: "Pick what kind of room this is.",
+      roomSleepsOne: "A room sleeps at least one.",
+      unitsOne: "You have at least one of this room.",
+      rateNegative: "A rate cannot be negative.",
+      roomTypeUnknown: "That room type could not be identified.",
+      rateName: "Name the rate, for example Standard.",
+      policy: "Pick a cancellation policy.",
+      coversSay: "Say how many people you can seat.",
+      closesAfterOpens: "A service closes after it opens.",
+      lastSeatingInside: "The last seating falls inside the service.",
+      menuHttps: "A menu link starts with https://",
+      venueUnknown: "That venue could not be identified.",
+      photoUnknown: "That photograph could not be identified.",
+      facilityUnknown: "That is not a facility we can record.",
+      facilitiesTooMany: "That is more facilities than there are.",
+      notADate: "That is not a date. Use the date picker.",
+      wholeRooms: "Rooms come in whole numbers.",
+      fewerThanNone: "That cannot be fewer than none.",
+      roomsTooMany: "That is more rooms than any one type holds.",
+      lastBeforeFirst: "The last night cannot come before the first.",
+      placeType: "Pick what kind of place this is.",
+      placeName: "Give the place a name.",
+      bedOne: "A place has at least one bed.",
+      placeSleepsOne: "A place sleeps at least one.",
+      sevenDays: "There are seven days in a week.",
+      wholeSeats: "Seats come in whole numbers.",
+      seatsTooMany: "That is more seats than any one room holds.",
+    },
     /* lib/host/review-actions.ts: answering a review, asking Vallo to look at one. */
     reviews: {
       notReady: "Reviews of hotel stays are not open yet. Nothing was saved.",
@@ -712,6 +762,16 @@ export const experienceHostEn = {
       alreadyLinked: "That calendar is already linked to this room.",
       alreadyLinkedField: "Already linked.",
       fiveMax: "A room can have up to five linked calendars. Remove one first.",
+      /* Why a pasted calendar link was refused (`checkFeedUrl`, lib/host/ical.ts), by its key. */
+      feed: {
+        notALink: "That is not a link. Copy the calendar link from the other site and paste it here.",
+        notHttps: "The link has to start with https://.",
+        unusable: "That link cannot be used. Copy the calendar export link from the other site.",
+        address: "Use the calendar link the site gives you, not an address.",
+        notASite:
+          "We can read calendars from Airbnb, Booking.com, Vrbo, Expedia, Google and Outlook calendars, and the main channel managers. Paste the export link from one of those.",
+        tooLong: "That link is too long to be a calendar link.",
+      },
     },
     /* lib/host/room-booking-actions.ts: accepting or declining a room request. */
     roomRequests: {

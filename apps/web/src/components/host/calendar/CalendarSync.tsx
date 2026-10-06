@@ -180,7 +180,7 @@ export function CalendarSync({
                 <SelectField label={w.from} value={source} onChange={(event) => setSource(event.target.value as FeedSource)}>
                   {FEED_SOURCES.map((s) => (
                     <option key={s.value} value={s.value}>
-                      {s.label}
+                      {s.label ?? w.anotherSite}
                     </option>
                   ))}
                 </SelectField>

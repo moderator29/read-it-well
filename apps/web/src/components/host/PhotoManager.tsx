@@ -8,7 +8,6 @@ import { RemoteImage } from "@/components/ui/RemoteImage";
 import type { ActionResult } from "@/lib/actions/envelope";
 import {
   MAX_BUSINESS_PHOTOS,
-  PHOTO_ACCEPTED_LABEL,
   PHOTO_ACCEPTED_MIME,
   PHOTO_MAX_LABEL,
   rejectPhoto,
@@ -85,7 +84,7 @@ export function PhotoManager({
 
   async function pick(chosen: File | undefined) {
     if (!chosen) return;
-    const refusal = rejectPhoto(chosen);
+    const refusal = rejectPhoto(chosen, w);
     if (refusal) {
       setError(refusal);
       return;
@@ -209,7 +208,7 @@ export function PhotoManager({
               {busy ? w.uploading : photos.length === 0 ? w.addFirst : w.addAnother}
             </span>
             <span className="block nf-caption">
-              {w.formats.replace("{formats}", PHOTO_ACCEPTED_LABEL).replace("{size}", PHOTO_MAX_LABEL)}
+              {w.formats.replace("{formats}", w.acceptedFormats).replace("{size}", PHOTO_MAX_LABEL)}
             </span>
           </span>
         </label>

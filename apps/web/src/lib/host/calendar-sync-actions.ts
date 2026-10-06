@@ -100,7 +100,7 @@ export async function addCalendarImport(input: unknown): Promise<ActionResult<nu
   const parsed = validate(importSchema(w), input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   const checked = checkFeedUrl(parsed.data.url);
-  if (!checked.ok) return fail(checked.reason, { url: checked.reason });
+  if (!checked.ok) return fail(w.feed[checked.reason], { url: w.feed[checked.reason] });
   const got = await client();
   if (!got.ok) return got.result;
   const { error } = await got.db

@@ -54,42 +54,46 @@ export const ALLOWED_FEED_HOSTS: readonly string[] = [
 
 export type FeedSource = "airbnb" | "booking_com" | "other";
 
-export const FEED_SOURCES: readonly { value: FeedSource; label: string }[] = [
+/** The sites by name. "other" has none: the host's own words name it (`experienceHost.calendarUi.anotherSite`). */
+export const FEED_SOURCES: readonly { value: FeedSource; label: string | null }[] = [
   { value: "airbnb", label: "Airbnb" },
   { value: "booking_com", label: "Booking.com" },
-  { value: "other", label: "Another site" },
+  { value: "other", label: null },
 ];
 
-/** A feed link a host may add, or the sentence that says why not. */
-export function checkFeedUrl(raw: string): { ok: true; url: string } | { ok: false; reason: string } {
+/**
+ * Why a feed link was refused, as a key. The sentence is the host's, in their
+ * own language (`experienceHost.refusals.sync.feed`), chosen by the action
+ * that answers them; the nightly pull only needs to know it was refused.
+ */
+export type FeedRefusal = "notALink" | "notHttps" | "unusable" | "address" | "notASite" | "tooLong";
+
+/** A feed link a host may add, or the key of the sentence that says why not. */
+export function checkFeedUrl(raw: string): { ok: true; url: string } | { ok: false; reason: FeedRefusal } {
   const trimmed = raw.trim().replace(/^webcal:\/\//i, "https://");
   let parsed: URL;
   try {
     parsed = new URL(trimmed);
   } catch {
-    return { ok: false, reason: "That is not a link. Copy the calendar link from the other site and paste it here." };
+    return { ok: false, reason: "notALink" };
   }
   if (parsed.protocol !== "https:") {
-    return { ok: false, reason: "The link has to start with https://." };
+    return { ok: false, reason: "notHttps" };
   }
   if (parsed.username || parsed.password || parsed.port) {
-    return { ok: false, reason: "That link cannot be used. Copy the calendar export link from the other site." };
+    return { ok: false, reason: "unusable" };
   }
   const host = parsed.hostname.toLowerCase().replace(/\.$/, "");
   /* An address, not a name, is never a calendar site: refused before the list,
      so no private or internal address can be reached by typing it. */
   if (isIpLiteral(host)) {
-    return { ok: false, reason: "Use the calendar link the site gives you, not an address." };
+    return { ok: false, reason: "address" };
   }
   const allowed = ALLOWED_FEED_HOSTS.some((h) => host === h || host.endsWith(`.${h}`));
   if (!allowed) {
-    return {
-      ok: false,
-      reason:
-        "We can read calendars from Airbnb, Booking.com, Vrbo, Expedia, Google and Outlook calendars, and the main channel managers. Paste the export link from one of those.",
-    };
+    return { ok: false, reason: "notASite" };
   }
-  if (trimmed.length > 2000) return { ok: false, reason: "That link is too long to be a calendar link." };
+  if (trimmed.length > 2000) return { ok: false, reason: "tooLong" };
   return { ok: true, url: parsed.toString() };
 }
 

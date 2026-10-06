@@ -306,10 +306,14 @@ export function toneOf(cell: NightCell): CellTone {
   return "open";
 }
 
-/** "1 held by Airbnb", "2 held by Airbnb, Booking.com": what another site holds. */
-export function heldWords(cell: Pick<NightCell, "held" | "imported">): string | null {
+/**
+ * "1 held by Airbnb", "2 held by Airbnb, Booking.com": what another site
+ * holds, in the host's words (`experienceHost.calendarUi.heldBy`, with
+ * `{count}` and `{site}`). Null when no other site holds a room.
+ */
+export function heldWords(cell: Pick<NightCell, "held" | "imported">, template: string): string | null {
   if (!cell.imported || cell.held <= 0) return null;
-  return `${cell.held} held by ${cell.imported}`;
+  return template.replace("{count}", String(cell.held)).replace("{site}", cell.imported);
 }
 
 /** Naira typed by a person ("45,000", "₦45000", "45000.50") to kobo, or null. */

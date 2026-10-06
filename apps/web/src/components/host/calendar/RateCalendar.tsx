@@ -15,6 +15,7 @@ import {
   addMonths,
   cellFor,
   describeSelection,
+  heldWords,
   monthGrid,
   presetNights,
   primaryPlan,
@@ -96,8 +97,7 @@ function monthTitle(month: string, locale: Locale): string {
 
 /** "2 held by Airbnb", in the reader's words; null when no other site holds a room. */
 function heldBy(cell: NightCell, w: CalendarWords): string | null {
-  if (!cell.imported || cell.held <= 0) return null;
-  return w.heldBy.replace("{count}", String(cell.held)).replace("{site}", cell.imported);
+  return heldWords(cell, w.heldBy);
 }
 
 function cellWords(cell: NightCell, locale: Locale, w: CalendarWords): string {

@@ -172,9 +172,12 @@ describe("naira typed by a person", () => {
 
 describe("rooms another site holds (C2b)", () => {
   it("says how many and by whom, and nothing when none", () => {
-    expect(heldWords({ held: 1, imported: "Airbnb" })).toBe("1 held by Airbnb");
-    expect(heldWords({ held: 2, imported: "Airbnb, Booking.com" })).toBe("2 held by Airbnb, Booking.com");
-    expect(heldWords({ held: 0, imported: null })).toBeNull();
+    /* The host's own words (`experienceHost.calendarUi.heldBy`); English byte for byte as before. */
+    const heldBy = getDictionary("en").experienceHost.calendarUi.heldBy;
+    expect(heldWords({ held: 1, imported: "Airbnb" }, heldBy)).toBe("1 held by Airbnb");
+    expect(heldWords({ held: 2, imported: "Airbnb, Booking.com" }, heldBy)).toBe("2 held by Airbnb, Booking.com");
+    expect(heldWords({ held: 0, imported: null }, heldBy)).toBeNull();
+    expect(heldWords({ held: 2, imported: "Airbnb" }, "{site}: {count}")).toBe("Airbnb: 2");
   });
 
   it("counts one room per linked calendar when the read gives no count", () => {

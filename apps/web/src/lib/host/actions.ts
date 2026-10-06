@@ -72,6 +72,9 @@ type BusinessKind = Database["public"]["Enums"]["business_kind"];
    (`experienceHost.refusals.application`), read per call. */
 type Words = Awaited<ReturnType<typeof hostRefusals>>["application"];
 const words = async (): Promise<Words> => (await hostRefusals()).application;
+/* What a field says beside the box when its value is the wrong shape
+   (`experienceHost.refusals.schema`), in the same request's language. */
+const schemaWords = async () => (await hostRefusals()).schema;
 
 /** The statuses in which a host may still edit their own application. */
 const EDITABLE: readonly Database["public"]["Enums"]["listing_status"][] = [
@@ -150,7 +153,7 @@ export async function saveHostDraft(input: unknown): Promise<ActionResult<HostDr
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
   if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
 
-  const parsed = validate(hostDraftSchema, input);
+  const parsed = validate(hostDraftSchema(await schemaWords()), input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   const data = parsed.data;
 
@@ -302,7 +305,7 @@ export async function uploadHostDocumentPath(input: unknown): Promise<ActionResu
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
   if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
 
-  const parsed = validate(hostDocumentSchema, input);
+  const parsed = validate(hostDocumentSchema(await schemaWords()), input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
   if (!documentPathBelongsTo(session.user.id, parsed.data.storagePath)) {
@@ -421,7 +424,7 @@ export async function addAccommodationDraft(
   const guarded = await editableBusiness();
   if (!guarded.ok) return guarded.result;
 
-  const parsed = validate(accommodationDraftSchema, input);
+  const parsed = validate(accommodationDraftSchema(await schemaWords()), input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   const data = parsed.data;
   const session = await resolveSession();
@@ -488,7 +491,7 @@ export async function addRoomTypeDraft(
   const guarded = await editableBusiness();
   if (!guarded.ok) return guarded.result;
 
-  const parsed = validate(roomTypeDraftSchema, input);
+  const parsed = validate(roomTypeDraftSchema(await schemaWords()), input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   const data = parsed.data;
   const session = await resolveSession();
@@ -535,7 +538,7 @@ export async function addRatePlanDraft(
   const guarded = await editableBusiness();
   if (!guarded.ok) return guarded.result;
 
-  const parsed = validate(ratePlanDraftSchema, input);
+  const parsed = validate(ratePlanDraftSchema(await schemaWords()), input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   const data = parsed.data;
   const session = await resolveSession();
@@ -578,7 +581,7 @@ export async function addServiceWindowDraft(
   const guarded = await editableBusiness();
   if (!guarded.ok) return guarded.result;
 
-  const parsed = validate(serviceWindowDraftSchema, input);
+  const parsed = validate(serviceWindowDraftSchema(await schemaWords()), input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   const data = parsed.data;
   const session = await resolveSession();
@@ -616,7 +619,7 @@ export async function setRestaurantProfileDraft(input: unknown): Promise<ActionR
   const guarded = await editableBusiness();
   if (!guarded.ok) return guarded.result;
 
-  const parsed = validate(restaurantProfileDraftSchema, input);
+  const parsed = validate(restaurantProfileDraftSchema(await schemaWords()), input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   const data = parsed.data;
   const session = await resolveSession();
@@ -693,7 +696,7 @@ async function ownedBusiness(
  * this person.
  */
 export async function addBusinessPhoto(input: unknown): Promise<ActionResult<{ id: string }>> {
-  const parsed = validate(businessPhotoSchema, input);
+  const parsed = validate(businessPhotoSchema(await schemaWords()), input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
   const guarded = await ownedBusiness(parsed.data.businessId);
@@ -759,7 +762,7 @@ export async function addBusinessPhoto(input: unknown): Promise<ActionResult<{ i
  * moves.
  */
 export async function removeBusinessPhoto(input: unknown): Promise<ActionResult<null>> {
-  const parsed = validate(businessPhotoIdSchema, input);
+  const parsed = validate(businessPhotoIdSchema(await schemaWords()), input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
   const session = await resolveSession();
@@ -837,7 +840,7 @@ async function ownedAccommodation(
 export async function addAccommodationPhoto(
   input: unknown,
 ): Promise<ActionResult<{ id: string }>> {
-  const parsed = validate(accommodationPhotoSchema, input);
+  const parsed = validate(accommodationPhotoSchema(await schemaWords()), input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
   const guarded = await ownedAccommodation(parsed.data.accommodationId);
@@ -898,7 +901,7 @@ export async function addAccommodationPhoto(
  * up with a broken image. What a guest sees is decided by the rows.
  */
 export async function removeAccommodationPhoto(input: unknown): Promise<ActionResult<null>> {
-  const parsed = validate(accommodationPhotoIdSchema, input);
+  const parsed = validate(accommodationPhotoIdSchema(await schemaWords()), input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
   const session = await resolveSession();
@@ -974,7 +977,7 @@ async function ownedRoomType(
  * the wrong number, not at a bug.
  */
 export async function setRoomNights(input: unknown): Promise<ActionResult<{ nights: number }>> {
-  const parsed = validate(roomNightsSchema, input);
+  const parsed = validate(roomNightsSchema(await schemaWords()), input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   const { roomTypeId, from, to, unitsOpen } = parsed.data;
 
@@ -1052,7 +1055,7 @@ export async function setRoomNights(input: unknown): Promise<ActionResult<{ nigh
 export async function setAccommodationFacilities(
   input: unknown,
 ): Promise<ActionResult<{ codes: string[] }>> {
-  const parsed = validate(accommodationFacilitiesSchema, input);
+  const parsed = validate(accommodationFacilitiesSchema(await schemaWords()), input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   const { accommodationId } = parsed.data;
   const codes = orderFacilities(parsed.data.codes);
@@ -1128,7 +1131,7 @@ export async function setShortletPlaceDraft(
   const guarded = await editableBusiness();
   if (!guarded.ok) return guarded.result;
 
-  const parsed = validate(shortletPlaceDraftSchema, input);
+  const parsed = validate(shortletPlaceDraftSchema(await schemaWords()), input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   const data = parsed.data;
   const session = await resolveSession();
@@ -1237,7 +1240,7 @@ export async function setOpeningHoursDraft(
   const guarded = await editableBusiness();
   if (!guarded.ok) return guarded.result;
 
-  const parsed = validate(openingHoursDraftSchema, input);
+  const parsed = validate(openingHoursDraftSchema(await schemaWords()), input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   const data = parsed.data;
   const session = await resolveSession();
