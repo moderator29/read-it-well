@@ -88,6 +88,7 @@ export function BusinessReviewDecision({
       <textarea
         id={`note-${businessId}`}
         className="nf-field mt-inline-tight min-h-[64px] w-full resize-y"
+        rows={4}
         value={note}
         maxLength={400}
         disabled={pending}
@@ -236,6 +237,7 @@ export function RungDecision({
       <textarea
         id={`rung-${businessId}-${rung}`}
         className="nf-field min-h-[44px] w-full resize-y"
+        rows={3}
         value={note}
         maxLength={400}
         disabled={pending}
