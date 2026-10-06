@@ -590,6 +590,8 @@ export function AnalyticsWorkspace({
   locale,
   funnels = null,
   viewsLine,
+  absent = [],
+  hero = null,
 }: {
   t: AnalyticsCopy;
   hours: HoursCopy;
@@ -600,6 +602,19 @@ export function AnalyticsWorkspace({
   funnels?: React.ReactNode;
   /** V-73: replaces the "views are not counted" line once they are. */
   viewsLine?: string;
+  /**
+   * J3 (Space Analytics): the register's metrics no table counts (unique
+   * viewers, engaged views, shares, contact reveals), named in the same panel
+   * as the other absences so there is one place that says what is not here.
+   */
+  absent?: string[];
+  /**
+   * J3: the Space Analytics card (period, headline figure, one chart, every
+   * figure as a row to its own page), drawn first: the overview's answer to
+   * "how am I doing" before the lifetime tiles. Never drawn over the
+   * whole-screen empty state, which says the truer thing to a new lister.
+   */
+  hero?: React.ReactNode;
 }) {
   const { earnings, requests, listings, calendar, reviews } = analytics;
 
@@ -641,6 +656,8 @@ export function AnalyticsWorkspace({
 
   return (
     <div className="space-y-lg">
+      {hero}
+
       <div className="nf-figure-tiles">
         <Tile
           icon="wallet"
@@ -764,7 +781,7 @@ export function AnalyticsWorkspace({
       <section className="nf-panel nf-panel--card block p-md sm:p-panel">
         <h2 className="nf-h3">{t.notCounted.title}</h2>
         <ul className="mt-sm space-y-sm">
-          {[viewsLine ?? t.notCounted.views, t.notCounted.saves, t.notCounted.occupancy].map((line) => (
+          {[viewsLine ?? t.notCounted.views, t.notCounted.saves, t.notCounted.occupancy, ...absent].map((line) => (
             <li
               key={line}
               className="max-w-[76ch] text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]"

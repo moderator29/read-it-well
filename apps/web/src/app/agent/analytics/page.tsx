@@ -13,8 +13,11 @@ import { readAgentAnalytics } from "@/lib/agent/analytics-queries";
 import { ButtonLink } from "@/components/ui/Button";
 import { ListingPitch } from "../list/ListingPitch";
 import { AnalyticsWorkspace } from "./AnalyticsWorkspace";
-import { readFunnelBoard } from "@/lib/agent/funnel-queries";
-import { ListingFunnels } from "@/components/agent/ListingFunnels";
+import { ListingWeeks } from "@/components/agent/intel/ListingWeeks";
+import { RangeSwitch } from "@/components/agent/intel/RangeSwitch";
+import { NOT_COUNTED, parseRange } from "@/components/agent/intel/space-model";
+import { readFunnels, readRequests } from "../_intel/space-read";
+import { overviewViews } from "../_intel/space-views";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { IconPlate } from "@/components/ui/IconPlate";
 
@@ -78,7 +81,8 @@ export default async function Page({
 
   /* The analytics first run (north star 14.1): what these figures count and
      what they leave out, once, before the first read. */
-  await gateFirstRun("analytics", "/agent/analytics", await searchParams);
+  const query = await searchParams;
+  await gateFirstRun("analytics", "/agent/analytics", query);
 
   /*
    * A throw here would take the whole screen down, and every individual read
@@ -88,13 +92,44 @@ export default async function Page({
    * page falls through to the same "we could not read this" rendering rather
    * than to an error boundary.
    */
-  const [analytics, funnels, demand, stages, lost] = await Promise.all([
+  const [analytics, funnels, requests, demand, stages, lost] = await Promise.all([
     readAgentAnalytics(context).catch(() => null),
-    readFunnelBoard(context.supabase, context.agent.id),
+    /* J3: every published listing's week (not only the ten most recent), so
+       the seven-day figures on the Space Analytics card can be true totals. */
+    readFunnels(context.supabase, context.agent.id),
+    readRequests(context.supabase, context.agent.id),
     readDemandBoard(4),
     readDeskStages(),
     readLostReasonsByArea(12),
   ]);
+
+  /*
+   * SPACE ANALYTICS (feature register J3, north star 16.6): the period, the
+   * headline figure and one chart, then every counted figure as a row that
+   * opens its own page. Built for every period on the server so a change of
+   * period is instant on the phone. When the requests cannot be read the card
+   * says so in its place rather than drawing zeroes.
+   */
+  const views = overviewViews(requests.state === "ok" ? requests : null, funnels, t, locale);
+  const a = t.experienceFeatures.analytics;
+  const hero = views ? (
+    <RangeSwitch
+      views={views}
+      initial={parseRange(query.range)}
+      periodLabel={a.period}
+      caption={a.metrics.requests.title}
+      rowsLabel={a.metricsTitle}
+      testId="space-analytics"
+    />
+  ) : (
+    <p
+      className="rounded-[var(--nf-container-radius)] p-md text-[length:var(--nf-text-caption)] font-medium leading-relaxed"
+      style={{ background: "var(--nf-state-warning-surface)", color: "var(--nf-state-warning)" }}
+      role="status"
+    >
+      {a.requestsUnavailable}
+    </p>
+  );
 
   return (
     <AgentShell
@@ -121,31 +156,28 @@ export default async function Page({
           /* V-73: once the funnel is counting, the "views are not counted"
              line would be false, so it is replaced by what is counted. */
           {...(funnels.state === "ok" ? { viewsLine: t.shape.funnel.viewsCounted } : {})}
+          hero={hero}
+          absent={NOT_COUNTED.map((key) => a.absent[key])}
           funnels={
-            funnels.state === "ok" ? (
-              <section className="nf-panel nf-panel--card block p-md sm:p-panel">
-                <h2 className="nf-h3">{t.shape.funnel.title}</h2>
-                <p className="mt-2xs text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
-                  {t.shape.funnel.blurb}
-                </p>
-                <div className="mt-md">
-                  <ListingFunnels board={funnels} copy={t.shape.funnel} locale={locale} />
-                </div>
-              </section>
-            ) : null
+            funnels.state === "ok" ? <ListingWeeks listings={funnels.listings} t={t} locale={locale} /> : null
           }
         />
       ) : (
-        <p
-          className="rounded-[var(--nf-container-radius)] p-md text-[length:var(--nf-text-body-sm)] font-medium leading-relaxed"
-          style={{
-            background: "var(--nf-state-warning-surface)",
-            color: "var(--nf-state-warning)",
-          }}
-          role="alert"
-        >
-          {t.agentAnalytics.unavailable}
-        </p>
+        <div className="space-y-lg">
+          {/* The card has its own read, so it still answers when the rest of
+              the page cannot. */}
+          {hero}
+          <p
+            className="rounded-[var(--nf-container-radius)] p-md text-[length:var(--nf-text-body-sm)] font-medium leading-relaxed"
+            style={{
+              background: "var(--nf-state-warning-surface)",
+              color: "var(--nf-state-warning)",
+            }}
+            role="alert"
+          >
+            {t.agentAnalytics.unavailable}
+          </p>
+        </div>
       )}
 
       {/* V-10: what renters asked for and could not find, by neighbourhood. */}
