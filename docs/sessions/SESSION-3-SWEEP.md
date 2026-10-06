@@ -6,17 +6,23 @@ component with the fixture named in its row. **P** pass, **X** failed and fixed 
 sweep, **F** failed and still open, **·** does not apply. The denominator is 213 real routes
 (every `page.tsx` under `apps/web/src/app`, excluding `(dev)` and `api`).
 
-**Routes audited: 14 of 213.**
+**Routes audited: 27 of 213.**
 
 | Family | Audited |
 |---|---|
-| admin | 11 |
+| admin | 17 |
+| around | 1 |
 | assistant | 1 |
+| bookings | 1 |
 | inspections | 1 |
-| messages | 1 |
+| messages | 2 |
+| profile | 1 |
+| rent | 2 |
+| stories | 1 |
 
 | Route | By | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| `/admin/account-recovery` | C1 | P | · | P | P | X | X | · | · | · | P | P | P | P | · | P | P | · | X | P | P | P | P | P | P |
 | `/admin/agents` | C1 | P | · | P | X | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/admin/alerts` | C1 | X | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/admin/bookings` | C1 | P | P | P | P | P | X | X | P | P | P | P | P | P | · | P | P | · | P | P | P | X | X | P | P |
@@ -24,15 +30,33 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | `/admin/examples` | C1 | P | P | P | P | P | P | X | P | P | P | P | P | P | · | P | P | · | P | P | P | P | X | P | X |
 | `/admin/handbook` | C1 | P | · | P | P | X | P | · | · | · | P | P | P | P | · | P | P | · | · | P | P | P | P | P | X |
 | `/admin/handbook/position` | C1 | P | · | P | P | X | P | · | · | · | P | P | P | P | · | · | P | · | · | P | P | P | P | P | P |
+| `/admin/kyc` | C1 | P | P | P | X | X | P | P | P | P | P | P | P | P | · | P | P | · | P | P | X | P | P | P | P |
+| `/admin/payments` | C1 | P | X | P | P | X | P | P | P | P | P | P | P | P | · | P | P | P | P | P | P | X | X | P | P |
+| `/admin/reference` | C1 | P | · | P | X | P | P | P | · | · | P | P | P | P | · | · | P | · | P | P | P | P | P | P | X |
 | `/admin/settings` | C1 | P | · | P | P | P | P | · | · | X | P | P | P | P | · | · | P | · | · | P | P | P | P | P | P |
+| `/admin/social` | C1 | P | · | P | X | X | X | P | · | · | P | P | P | P | · | X | P | · | P | P | P | X | P | P | P |
 | `/admin/staff` | C1 | P | · | P | X | X | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | X | X | P | X |
 | `/admin/standing` | C1 | P | · | P | X | X | P | · | · | P | P | P | P | P | · | P | P | · | X | P | P | P | P | P | P |
+| `/admin/support` | C1 | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | P | · | P | X | P | P | P | P | P |
 | `/admin/switches` | C1 | P | · | P | P | P | X | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | X |
+| `/around/manage` | C3 | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | P | · | · | · | · | · | · | · | P |
 | `/assistant` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | P | P | X | P | P | P | P |
+| `/bookings/[bookingId]/review` | C3 | P | · | P | P | P | P | · | P | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/inspections/gate/[id]` | C3 | P | · | P | P | P | P | · | P | · | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
+| `/messages/new` | C3 | P | · | P | P | P | P | · | · | · | P | P | P | P | · | · | P | · | P | P | P | P | X | P | P |
 | `/messages/share/[kind]/[id]` | C3 | P | · | P | P | P | P | · | P | P | P | P | P | P | · | P | P | · | P | P | P | P | X | P | P |
+| `/profile/setup/firm` | C3 | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | P | · | · | · | · | · | · | · | P |
+| `/rent/pay/[inspectionId]` | C3 | P | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | X | · | P | P | P | P | P | P |
+| `/rent/review/[paymentId]` | C3 | P | · | P | P | P | P | · | · | · | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
+| `/stories/new` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | P | P | P | P | X | P | P |
 
 ## What failed, and what was done
+
+**`/admin/account-recovery`** (the real page inside the real AdminFrame; requireAdmin mocked to a super admin whose client is lib/testing/fake-supabase answering no request (no fixture of a recovery request exists))
+
+- 5 (fixed): The header's sub-line carried the whole eleven-sentence procedure, a wall of text above the form at 390. The sub-line now says what the desk is for, and the procedure, same words, is a numbered list in a "How a recovery runs" Card above the form.
+- 6 (fixed): Each request's status opened its line as the raw lower-case column value; sentence case now.
+- 18 (fixed): The empty list said "No requests." and nothing else; it is the console's empty state now, saying who opens a request and with what.
 
 **`/admin/agents`** (the real page inside the real AdminFrame. No fixture of an agent application exists in the repository, so the desk is measured in its honest empty state (getAgentApplications mocked to no rows); the application card and ladder were read in code)
 
@@ -64,9 +88,35 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 
 - 5 (fixed): Panels edge to edge; the console-wide gap now separates them.
 
+**`/admin/kyc`** (the repository's own preview of this desk (session-b/admin-review/[desk] with desk=kyc, its fixture rows and summary), which renders the real VerificationDesk in the real AdminFrame; the page's own filters and subject cards were read in code)
+
+- 4 (fixed): Each review badge drew a ring and a glow (two edges); the ring alone now.
+- 5 (fixed): The four figure tiles stacked one per row at 390, a whole screen before the first queue row; 2x2 on a phone and four across from 768.
+- 20 (fixed): In light every review badge measured 1.04 to 1.05 to 1 (axe colour-contrast, 16 badges at 390): its ink mixed toward the on-brand white, which is white on paper too. It mixes toward the theme's primary text now: 0 violations in both themes.
+
+**`/admin/payments`** (the real page inside the real AdminFrame; the attempts from lib/admin/reads/payments.test.ts through the real buildPayments; bd/fixtures LOOKUP and SAVED_METHODS for the lookup; a health read with nothing unsettled (no fixture of an unsettled payment exists))
+
+- 2 (fixed): The health figure (waiting on the provider) sat under the whole payments table; it opens the page now, with the unsettled detail beside it.
+- 5 (fixed): Health, then the week's figures, the charts, every payment, the lookup.
+- 21 (fixed): The outcome filters are links carrying aria-pressed, which axe refuses on a link (aria-allowed-attr, 3 nodes at 390); they say aria-current now, styled the same (the supply desk's examples toggle too).
+- 22 (fixed): Saved card, account and terms rows held the words and the remove action on one line and squeezed the words to one a line at 390; the words keep 12rem and the action wraps.
+
+**`/admin/reference`** (the real page inside the real AdminFrame; the reference reads mocked to f5/ops-fixtures ADMIN_OCCUPATIONS, ADMIN_LOCAL_GOVERNMENTS, ADMIN_STATES)
+
+- 4 (fixed): Every list row was a full glass Card (a stack of panels for a list); rows are the Plate tier now (.nf-admin-plate). The hand-drawn count boxes are the console's badge.
+- 24 (fixed): Went back to /admin past Settings; now /admin/settings (batch 1, route-parents).
+
 **`/admin/settings`** (the real page component inside the real AdminFrame (it reads nothing))
 
 - 9 (fixed): Beside a two-line lede the trailing chevron was squeezed to a sliver (visible on 3 of 6 rows at 390); it is shrink-0 now. Icons are line glyphs in an IconPlate.
+
+**`/admin/social`** (the real page inside the real AdminFrame; getSocialQueue mocked to nothing waiting (no fixture of a proposed place or a moderator application exists); the row markup was read in code)
+
+- 4 (fixed): Three hand-drawn bordered count boxes and a hand-drawn uppercase Paused box; now the console badge and the shared StatusChip.
+- 5 (fixed): This desk wrote its own header at h4 in a bare column, so it sat at a different width and two type tiers below every other desk; it is on the console frame now (nf-console, QueueHeader with the waiting count).
+- 6 (fixed): The Paused label was uppercase by class; the StatusChip draws it in sentence case.
+- 15 (fixed): "Nobody is watching this place" was in --nf-state-warning, the pending cyan, which says "on its way"; it is the error ink now.
+- 21 (fixed): Each open place's name link was a 20px line; it is a 44px row with the name truncating inside it.
 
 **`/admin/staff`** (the real page inside the real AdminFrame; readStaffDesk mocked to ok with no rows (no fixture of a staff row exists), key roster empty, internal-accounts table not installed)
 
@@ -82,6 +132,10 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 - 5 (fixed): The record's search sat above the grant form it does not narrow; now it sits under the record heading with the capped-search note beside it.
 - 18 (fixed): With no grant on record the page drew only the empty state, and the grant form lives in the desk, so the first badge could never be granted from the desk whose empty copy says to grant it here. The form now always draws; the empty state is the record's and points at the form above.
 
+**`/admin/support`** (the real page inside the real AdminFrame; getSupportQueue and getSupportTicketDetail mocked to support-staff/fixtures ROWS and detailFor (the refund ticket open, escalations installed))
+
+- 19 (fixed): At 1440 the internal-note form ran 8px past its card in the narrow side column (4 overflow findings, the scope select's longest option set the grid's width); the form's column shrinks now (shared NoteForm, used on every desk with notes).
+
 **`/admin/switches`** (the real page component inside the real AdminFrame (AdminPreviewFrame), getFeatureFlags mocked to f5/ops-fixtures ADMIN_SWITCHES)
 
 - 6 (fixed): A flag key the dictionary has not met was drawn raw and lower case ("social"); now sentence-cased from the key. Console-wide fourth weight (500) removed in the same batch.
@@ -91,7 +145,19 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 
 - 20 (fixed): axe aria-prohibited-attr on arrival (1 at dark.390 and light.390): the thread was a div carrying aria-label with no role. It is a named region now.
 
+**`/messages/new`** (the real page signed in with findConversationForListing answering no thread yet, the listing repository returning f3 RENTAL, no viewing slots; and the signed-out bridge)
+
+- 22 (fixed): Overflow 0 in all four, but every page and form string was an English literal in ha, ig and yo. They are in experienceInbox.newMessage now.
+
 **`/messages/share/[kind]/[id]`** (the real page signed in, loadConversationSummaries mocked to the three threads the f5 share-picker deck draws, resolveCard to f5 LISTING_CARD; and the signed-out door)
 
 - 22 (fixed): Overflow was 0 in all four, but the page's eight strings were English literals in ha, ig and yo. They are in experienceInbox.share now.
+
+**`/rent/pay/[inspectionId]`** (the real page with getRentPayView mocked to session-b/sweep-orphans RENT_VIEW, no saved card, crypto off)
+
+- 17 (fixed): checkout.onPlatformRent said Money moves inside Vallo directly under NO_CUSTODY_SENTENCE (D48, D50). It is C2's copy, so it went as patch checkout-no-custody-onplatform.patch; the lead applied it.
+
+**`/stories/new`** (the real page with social on and listMyAreas mocked to session-b/sweep-orphans AREAS)
+
+- 22 (fixed): Overflow 0 in all four, but the page's strings were English literals. They are in experienceSocial.newStory now.
 
