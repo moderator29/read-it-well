@@ -81,8 +81,11 @@ export function AuthCap({
           <div className="nf-auth-cap__start">{start}</div>
           {brandHref ? (
             /* `nf-tap`: the drawn link is 29px tall; the target is 44 (WCAG
-               2.5.8 / the platform's own floor), painted nowhere. */
-            <Link href={brandHref} aria-label={brandLabel} className="nf-auth-cap__brand nf-tap">
+               2.5.8 / the platform's own floor), painted nowhere. Not
+               prefetched (C6, R3-18 round 2): the wordmark is a way out of
+               sign-in, rarely taken, and prefetching it loaded the whole
+               landing page's styles and code into every auth screen. */
+            <Link href={brandHref} prefetch={false} aria-label={brandLabel} className="nf-auth-cap__brand nf-tap">
               {lockup}
             </Link>
           ) : (

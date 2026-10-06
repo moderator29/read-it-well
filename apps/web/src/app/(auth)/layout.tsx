@@ -69,12 +69,19 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
         screen, because a person who makes an account with Google from here
         passes no tick.
       */}
+      {/*
+        NOT PREFETCHED (C6, R3-18 round 2). The small print sits on the first
+        screen of every auth page, and a link in view prefetches its route:
+        the three documents pulled the public site's stylesheets and scripts
+        into a sign-in that will almost never open them. They load when
+        tapped.
+      */}
       <p className="nf-auth__legal">
-        {t.auth.termsNotice} <Link href="/terms">{t.safety.termsLink}</Link>
+        {t.auth.termsNotice} <Link href="/terms" prefetch={false}>{t.safety.termsLink}</Link>
         {" · "}
-        <Link href="/privacy">{t.safety.privacyLink}</Link>
+        <Link href="/privacy" prefetch={false}>{t.safety.privacyLink}</Link>
         {" · "}
-        <Link href="/eula">{t.safety.rulesLink}</Link>
+        <Link href="/eula" prefetch={false}>{t.safety.rulesLink}</Link>
       </p>
     </AuthMain>
   );
