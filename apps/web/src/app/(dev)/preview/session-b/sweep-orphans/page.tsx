@@ -1,4 +1,5 @@
 import { Suspense, type ReactNode } from "react";
+import { sheetWordsOf } from "@/components/social/sheet-words";
 import { getDictionary } from "@vallo/i18n";
 import { AppShell } from "@/components/app/AppShell";
 import { PageHeader } from "@/components/app/PageHeader";
@@ -302,7 +303,7 @@ function View({ v, s }: { v: string; s?: string }) {
     case "post":
       return (
         <Frame title="Thread">
-          <ThreadView thread={THREAD} signedIn openReply={false} />
+          <ThreadView thread={THREAD} signedIn openReply={false} sheet={sheetWordsOf(t)} />
         </Frame>
       );
     case "inspection-rows":

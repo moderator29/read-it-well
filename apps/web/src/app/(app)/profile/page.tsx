@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { sheetWordsOf } from "@/components/social/sheet-words";
 import { redirect } from "next/navigation";
 import "./profile.css";
 import { getDictionary } from "@vallo/i18n";
@@ -273,6 +274,7 @@ export default async function ProfilePage({
         handle={identity?.handle ?? null}
         hasBio={(identity?.bio.length ?? 0) > 0}
         locale={locale}
+        sheet={sheetWordsOf(t)}
         facts={belongings}
         /*
           SWITCH ROLE, the last row. It opens the workspace sheet the dock

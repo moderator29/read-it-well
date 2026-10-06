@@ -1,5 +1,6 @@
 "use client";
 
+import type { SheetWords } from "@/components/social/sheet-words";
 import { useEffect, useState, useTransition } from "react";
 import { Button } from "@/components/ui/Button";
 import { useRouter } from "next/navigation";
@@ -47,9 +48,12 @@ export function ThreadView({
   thread,
   signedIn,
   openReply = false,
+  sheet,
 }: {
   thread: Thread;
   signedIn: boolean;
+  /** The post action sheet's two lines, from the server (`sheetWordsOf`). */
+  sheet: SheetWords;
   /** Arrived from a card's comment glyph: open addressed to the root. */
   openReply?: boolean;
 }) {
@@ -425,6 +429,8 @@ export function ThreadView({
           })}
           onChoose={(key) => onMenuAction(sheetFor, key)}
           onClose={() => setSheetFor(null)}
+          body={sheet.body}
+          dismissLabel={sheet.dismissLabel}
         />
       ) : null}
 

@@ -1,5 +1,6 @@
 "use client";
 
+import type { SheetWords } from "@/components/social/sheet-words";
 import { Button } from "@/components/ui/Button";
 import "./profile.css";
 import { useActionState, useEffect, useState } from "react";
@@ -132,6 +133,7 @@ export function AccountBody({
   handle,
   hasBio,
   locale,
+  sheet,
   facts = NO_FACTS,
   switchLine,
   memberSince,
@@ -149,6 +151,8 @@ export function AccountBody({
   hasBio: boolean;
   /** The locale, NOT a formatter: a function cannot cross into a client component. */
   locale: Locale;
+  /** The post action sheet's two lines, from the server (`sheetWordsOf`). */
+  sheet: SheetWords;
   /** What the four rows can honestly say about themselves. */
   facts?: BelongingsFacts;
   /** The line under Switch role, built from the workspaces this account holds. */
@@ -340,6 +344,7 @@ export function AccountBody({
               posts={posts}
               isOwner
               signedIn
+              sheet={sheet}
               hasBio={hasBio}
               labelledBy="account-tab-posts"
             />

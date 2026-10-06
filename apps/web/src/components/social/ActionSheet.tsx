@@ -3,7 +3,6 @@
 import type { UiIconName } from "@/design-system/icons/UiIcon";
 import { ActionSheetIllustrated, type ActionSheetRow } from "@/components/ui/ActionSheetIllustrated";
 import { countOf } from "@vallo/i18n/core";
-import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
 
 /**
  * The sheet behind a card's `…`.
@@ -54,15 +53,11 @@ export function ActionSheet({
   actions: SheetAction[];
   onChoose: (key: string) => void;
   onClose: () => void;
-  /** The one line under the title. Defaults to the locale's own sentence. */
-  body?: string;
-  /** The single quiet dismiss. Defaults to the locale's "Not now". */
-  dismissLabel?: string;
+  /** The one line under the title, in the reader's language (`sheetWordsOf`). */
+  body: string;
+  /** The single quiet dismiss, the locale's "Not now" (`sheetWordsOf`). */
+  dismissLabel: string;
 }) {
-  /* The defaults were English literals, so a Yorùbá, Hausa or Igbo reader got an
-     English dismiss under a translated sheet (auditor A2). They are read from the
-     dictionary now: the shared "Not now" and a line in the social module. */
-  const t = useClientDictionary();
   const rows: ActionSheetRow[] = actions.map((action) => ({
     id: action.key,
     label: action.title,
@@ -79,10 +74,10 @@ export function ActionSheet({
         if (!next) onClose();
       }}
       title={label}
-      body={body ?? t.experienceSocial.feed.sheetBody}
+      body={body}
       object="local-talks"
       rows={rows}
-      dismissLabel={dismissLabel ?? t.experienceUi.notNow}
+      dismissLabel={dismissLabel}
       testId="post-action-sheet"
     />
   );

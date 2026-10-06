@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { sheetWordsOf } from "@/components/social/sheet-words";
 import { getDictionary, type Locale } from "@vallo/i18n";
 import { AppShell } from "@/components/app/AppShell";
 import { getLocale } from "@/lib/locale";
@@ -192,6 +193,7 @@ async function Face({ f, tab, member, empty }: { f: string; tab?: string; member
             initialTab={(tab as TabKey) ?? tabs[0]}
             storyCount={0}
             labels={t.socialProfile}
+            sheet={sheetWordsOf(t)}
             data={{
               posts: empty ? [] : FEED_POSTS,
               replies: [],

@@ -1,5 +1,6 @@
 "use client";
 
+import type { SheetWords } from "@/components/social/sheet-words";
 import type { BrandIconName } from "@/design-system/icons/BrandIcon";
 import { Feed } from "@/components/social/feed/Feed";
 import { ButtonLink } from "@/components/ui/Button";
@@ -86,6 +87,7 @@ export function ProfilePosts({
   posts,
   isOwner,
   signedIn,
+  sheet,
   hasBio,
   labelledBy,
 }: {
@@ -94,6 +96,8 @@ export function ProfilePosts({
   posts: PostView[];
   isOwner: boolean;
   signedIn: boolean;
+  /** The post action sheet's two lines, from the server. */
+  sheet: SheetWords;
   /** Drives the owner's first useful action while the page is empty. */
   hasBio: boolean;
   /** The id of the tab this panel belongs to. */
@@ -144,6 +148,7 @@ export function ProfilePosts({
       <Feed
         key={tab}
         initial={posts}
+        sheet={sheet}
         signedIn={signedIn}
         emptyMessage={
           isOwner ? feedEmpty.mine : feedEmpty.theirs.replace("{handle}", handle)

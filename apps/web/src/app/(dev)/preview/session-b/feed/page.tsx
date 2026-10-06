@@ -1,4 +1,5 @@
 import { getDictionary } from "@vallo/i18n";
+import { sheetWordsOf } from "@/components/social/sheet-words";
 import { Feed } from "@/components/social/feed/Feed";
 import { FeedTabs, isFeedTab } from "@/components/social/feed/FeedMasthead";
 import { LocationChip } from "@/components/social/feed/LocationChip";
@@ -88,6 +89,7 @@ export default async function FeedHarness({
           <Feed
             initial={empty ? [] : FEED_POSTS}
             locale="en"
+            sheet={sheetWordsOf(t)}
             signedIn
             canCompose
             emptyMessage={

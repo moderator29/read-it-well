@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import { getDictionary } from "@vallo/i18n";
+import { getLocale } from "@/lib/locale";
+import { sheetWordsOf } from "@/components/social/sheet-words";
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/app/PageHeader";
 import { resolveSession } from "@/lib/actions/session";
@@ -88,7 +91,12 @@ export default async function PostPage({
         subtitle={thread.root.areaName ? `Around ${thread.root.areaName}` : undefined}
         fallback={thread.root.areaSlug ? `/around/${thread.root.areaSlug}` : "/around"}
       />
-      <ThreadView thread={thread} signedIn={signedIn} openReply={wantsReply} />
+      <ThreadView
+        thread={thread}
+        signedIn={signedIn}
+        openReply={wantsReply}
+        sheet={sheetWordsOf(getDictionary(await getLocale()))}
+      />
       <AroundFab />
     </div>
   );

@@ -1,5 +1,6 @@
 "use client";
 
+import type { SheetWords } from "@/components/social/sheet-words";
 import { useCallback, useRef, useState } from "react";
 import { Feed } from "@/components/social/feed/Feed";
 import type { PostView } from "@/components/social/feed/PostCard";
@@ -92,6 +93,7 @@ export function ProfileTabs({
   storyCount,
   initialTab,
   labels,
+  sheet,
 }: {
   handle: string;
   isOwner: boolean;
@@ -103,6 +105,8 @@ export function ProfileTabs({
   labels: TabLabels;
   /** Printed beside Stories. Only an agent's bar carries it. */
   storyCount: number;
+  /** The post action sheet's two lines, from the server. */
+  sheet: SheetWords;
   initialTab?: TabKey;
 }) {
   const first = tabs[0] ?? "posts";
@@ -209,6 +213,7 @@ export function ProfileTabs({
           signedIn={signedIn}
           hasBio={hasBio}
           data={data}
+          sheet={sheet}
         />
       </div>
     </>
@@ -222,6 +227,7 @@ function Panel({
   signedIn,
   hasBio,
   data,
+  sheet,
 }: {
   tab: TabKey;
   handle: string;
@@ -229,6 +235,7 @@ function Panel({
   signedIn: boolean;
   hasBio: boolean;
   data: ProfileTabData;
+  sheet: SheetWords;
 }) {
   if (tab === "posts" || tab === "replies") {
     const posts = tab === "posts" ? data.posts : data.replies;
@@ -268,6 +275,7 @@ function Panel({
       <Feed
         key={tab}
         initial={posts}
+        sheet={sheet}
         signedIn={signedIn}
         emptyMessage={
           isOwner
@@ -283,7 +291,7 @@ function Panel({
   }
 
   if (tab === "activity") {
-    return <ActivityList entries={data.activity} handle={handle} isOwner={isOwner} signedIn={signedIn} />;
+    return <ActivityList entries={data.activity} handle={handle} isOwner={isOwner} signedIn={signedIn} sheet={sheet} />;
   }
 
   if (tab === "properties") {

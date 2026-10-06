@@ -1,4 +1,5 @@
 import { getDictionary } from "@vallo/i18n";
+import { sheetWordsOf } from "@/components/social/sheet-words";
 import { AccountHero } from "@/app/(app)/profile/AccountHero";
 import { AccountBody } from "@/app/(app)/profile/AccountBody";
 import { SignedOutHero } from "@/app/(app)/profile/SignedOutHero";
@@ -61,6 +62,7 @@ export function ProfileHarness({ v = "full" }: { v?: string }) {
         locale="en"
       />
       <AccountBody
+        sheet={sheetWordsOf(t)}
         counts={{ trips: 3, saved: 12, reviews: 2 }}
         copy={{
           bookings: t.nav.bookings,

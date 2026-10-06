@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { sheetWordsOf } from "@/components/social/sheet-words";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
@@ -228,6 +229,7 @@ export default async function SocialProfilePage({
           storyCount={view.storyCount}
           initialTab={tabFrom(query.tab, tabs)}
           labels={t.socialProfile}
+          sheet={sheetWordsOf(t)}
           data={{ posts, replies, media, activity, properties, stories, reviews }}
         />
 

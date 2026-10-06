@@ -1,5 +1,6 @@
 "use client";
 
+import type { SheetWords } from "@/components/social/sheet-words";
 import { Button } from "@/components/ui/Button";
 import { DEFAULT_LOCALE, type Locale } from "@vallo/i18n/core";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
@@ -68,6 +69,7 @@ const MORE_COPY = {
 export function Feed({
   initial,
   locale = DEFAULT_LOCALE,
+  sheet,
   signedIn,
   areaName,
   emptyMessage,
@@ -90,6 +92,8 @@ export function Feed({
   /* Only the counts need it, but they are on every card, so it rides down from
      the server component that resolved it rather than each card guessing. */
   locale?: Locale;
+  /** The action sheet's two lines, from the server (`sheetWordsOf`), so the browser never loads a dictionary for them. */
+  sheet: SheetWords;
   signedIn: boolean;
   /**
    * Whether this timeline is one somebody can write into.
@@ -660,6 +664,8 @@ export function Feed({
           })}
           onChoose={(key) => onMenuAction(sheetFor, key)}
           onClose={() => setSheetFor(null)}
+          body={sheet.body}
+          dismissLabel={sheet.dismissLabel}
         />
       ) : null}
 

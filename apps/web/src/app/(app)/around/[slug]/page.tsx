@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { sheetWordsOf } from "@/components/social/sheet-words";
 import { getDictionary } from "@vallo/i18n";
 import { PulseCard } from "@/components/app/around/PulseCard";
 import { nextQuestion } from "@/lib/around/pulse";
@@ -175,6 +176,7 @@ export default async function AreaPage({
           /* The place's own timeline pages through BB's `loadMoreFeed`, the
              same read `getAreaFeed` made for the first page. */
           loadMore={loadMoreAround.bind(null, { kind: "area", areaId: area.id })}
+          sheet={sheetWordsOf(getDictionary(locale))}
           signedIn={viewer.signedIn}
           canCompose
           areaId={area.status === "ACTIVE" ? area.id : undefined}

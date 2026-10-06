@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { sheetWordsOf } from "@/components/social/sheet-words";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { resolveSession } from "@/lib/actions/session";
@@ -224,6 +225,7 @@ export default async function AroundPage({
              here, so the client supplies a cursor and nothing else. */
           loadMore={loadMoreAround.bind(null, feedMode)}
           locale={locale}
+          sheet={sheetWordsOf(t)}
           signedIn={signedIn}
           canCompose
           areaId={activeArea}

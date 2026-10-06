@@ -510,8 +510,6 @@ const config = [
     files: ["src/**/*.{ts,tsx}"],
     ignores: [
       /* Held by F1. Read `cryptoPay` through useScopedCopy("cryptoPay"). */
-      /* The last-resort hook itself; its one caller is components/social/ActionSheet.tsx (W4). */
-      "src/lib/i18n/use-client-dictionary.ts",
       /* Development harnesses, never in a production route. */
       "src/app/(dev)/**",
     ],
