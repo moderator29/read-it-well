@@ -84,12 +84,20 @@ export default async function HostPage({
     );
   }
 
-  /* THE BUSINESSES FIRST, THEN THE GATE, THEN THE OTHER FOUR READS. The first
-     run can redirect (below), and a redirect is decided from the businesses
-     alone, so the room bookings, the table board, the draft and the unread
-     count (four reads, two of them whole boards) start only once we know the
-     desk is going to be drawn. The cost is the only difference: the businesses
-     read was already the first thing the page waited for. */
+  /* ONE WAVE OF READS, THE GATE DECIDED FROM THE BUSINESSES ALONE. All five
+     reads start together, as they always did, so a returning host waits for
+     one round trip, not two (auditor A7). The first run can redirect, and that
+     is decided from the businesses read; a redirect simply discards the other
+     four, which keep running and are never awaited (the catch below only stops
+     an abandoned rejection from being reported; the await further down still
+     sees any failure). */
+  const rest = Promise.all([
+    getMyHostDraft(),
+    readHostRoomBookings(),
+    readHostTableBoard(),
+    loadUnreadCounts(session.supabase).then((counts) => counts?.total ?? null, () => null),
+  ]);
+  rest.catch(() => {});
   const businesses = await getMyBusinesses();
   /* THE DESK'S FIRST RUN (north star 14.1, D11): once, for a member who
      hosts, so a first-time host meets what the figure at the top means. A
@@ -97,14 +105,9 @@ export default async function HostPage({
      (A3-S2). At most once per device until Session 2's record lands (W7-R1),
      never a block: the gate fails towards drawing the desk. */
   if (businesses.length > 0) await gateFirstRun("host", "/host", await searchParams);
-  /* The workspace home's figures (plan item 14): the host's own rows, read
-     together. A read that fails comes back as null and its tile is left out. */
-  const [draft, rooms, tables, unread] = await Promise.all([
-    getMyHostDraft(),
-    readHostRoomBookings(),
-    readHostTableBoard(),
-    loadUnreadCounts(session.supabase).then((counts) => counts?.total ?? null, () => null),
-  ]);
+  /* The workspace home's figures (plan item 14): the host's own rows. A read
+     that fails comes back as null and its tile is left out. */
+  const [draft, rooms, tables, unread] = await rest;
   const openDraft = draft.businessId ? draft : null;
   const today = hostToday({
     now: new Date(requestNow()),
