@@ -1,7 +1,8 @@
 import { requireAdmin } from "@/lib/admin/guard";
 import { lagosTime, strCasesFrom, strPrefill, strRegisterFrom, strReleasesFrom, type StrCase } from "@/lib/admin/str";
 import type { ComplianceLane, ComplianceLaneProps } from "./lane";
-import { StrApproveRelease, StrCaseControls, StrOpenForm } from "./StrControls";
+import { StrApproveRelease, StrCaseControls, StrOpenForm, type StrSlideWords } from "./StrControls";
+import { DocHead, DocRow, DocRows, DocSection, DocumentSheet } from "@/components/app/money/DocumentSheet";
 
 /**
  * SCUML item 6: SUSPICIOUS TRANSACTION REPORTS TO THE NFIU (with item 19,
@@ -28,6 +29,13 @@ type RpcCaller = { rpc(fn: string): Promise<{ data: unknown; error: unknown }> }
 
 async function StrLaneView({ t, params }: ComplianceLaneProps) {
   const copy = t.complianceStr;
+  const slide: StrSlideWords = {
+    slideApprove: t.experienceAdmin.compliance.slideApprove,
+    confirming: t.experienceUi.confirming,
+    confirmed: t.experienceUi.confirmed,
+    error: t.experienceAdmin.compliance.refused,
+    decisionBar: t.experienceAdmin.compliance.decisionBar,
+  };
   const access = await requireAdmin("compliance");
   let cases: StrCase[] | null = null;
   let register: ReturnType<typeof strRegisterFrom> = null;
@@ -90,7 +98,7 @@ async function StrLaneView({ t, params }: ComplianceLaneProps) {
                     {c.decision.reasons}
                   </p>
                 )}
-                <StrCaseControls copy={copy} c={c} />
+                <StrCaseControls copy={copy} c={c} words={slide} />
               </li>
             ))}
           </ul>
@@ -118,26 +126,41 @@ async function StrLaneView({ t, params }: ComplianceLaneProps) {
         </section>
       ) : null}
 
+      {/* THE REGISTER IS A RECORD, so it is the one thing on this lane drawn as
+          a document: what was filed, when, and by whom, on paper, append-only.
+          The cases above it are controls, so they stay in the console's own
+          material (D28.1). */}
       <section aria-labelledby="str-register-title">
-        <h2 id="str-register-title" className="nf-h3">{copy.registerTitle}</h2>
         {register === null ? (
-          <p role="alert" className="mt-row nf-body text-[var(--nf-state-error)]">{copy.registerFailed}</p>
+          <>
+            <h2 id="str-register-title" className="nf-h3">{copy.registerTitle}</h2>
+            <p role="alert" className="mt-row nf-body text-[var(--nf-state-error)]">{copy.registerFailed}</p>
+          </>
         ) : register.length === 0 ? (
-          <p className="mt-row nf-body text-[var(--nf-content-secondary)]">{copy.registerEmpty}</p>
+          <>
+            <h2 id="str-register-title" className="nf-h3">{copy.registerTitle}</h2>
+            <p className="mt-row nf-body text-[var(--nf-content-secondary)]">{copy.registerEmpty}</p>
+          </>
         ) : (
-          <ul className="mt-row grid gap-inline" data-testid="str-register">
+          <DocumentSheet aria-labelledby="str-register-title" data-testid="str-register">
+            <DocHead title={copy.registerTitle} id="str-register-title" />
             {register.map((f) => (
-              <li key={f.caseId} className="nf-panel nf-panel--card p-card nf-body-sm">
-                <p className="font-semibold">{copy.registerRef}: {f.goamlReference}</p>
-                <p className="nf-caption mt-inline-tight">
-                  {copy.registerFiled}: {lagosTime(f.filedAt)}. {copy.registerCase}: {f.caseId.slice(0, 8)}
-                </p>
-                <p className="nf-caption mt-inline-tight break-all">
-                  {copy.registerPeople}: {f.decidedBy.slice(0, 8)}, {f.approverId ? f.approverId.slice(0, 8) : ""}
-                </p>
-              </li>
+              <DocSection key={f.caseId} title={`${copy.registerRef}: ${f.goamlReference}`}>
+                <DocRows>
+                  <DocRow label={copy.registerFiled} numeric>
+                    {lagosTime(f.filedAt)}
+                  </DocRow>
+                  <DocRow label={copy.registerCase} numeric>
+                    {f.caseId.slice(0, 8)}
+                  </DocRow>
+                  <DocRow label={copy.registerPeople} numeric>
+                    {f.decidedBy.slice(0, 8)}
+                    {f.approverId ? `, ${f.approverId.slice(0, 8)}` : ""}
+                  </DocRow>
+                </DocRows>
+              </DocSection>
             ))}
-          </ul>
+          </DocumentSheet>
         )}
       </section>
     </div>

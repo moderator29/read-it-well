@@ -6,6 +6,7 @@ import {
   type ActingForKind,
   type ActingForMandate,
 } from "@/lib/compliance/beneficial-ownership";
+import { Button } from "@/components/ui/Button";
 import { fill } from "./copy";
 
 /**
@@ -182,9 +183,9 @@ export function ActingForLookup({
           spellCheck={false}
         />
       </label>
-      <button type="submit" className="nf-chip nf-chip--active shrink-0">
+      <Button type="submit" variant="secondary" className="shrink-0">
         {copy.find}
-      </button>
+      </Button>
     </form>
   );
 }

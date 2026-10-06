@@ -79,7 +79,7 @@ async function PepLaneBody({ t, locale }: ComplianceLaneProps) {
         ) : (
           <ul className="grid gap-sm" data-testid="pep-pending">
             {desk.pendingClears.map((c) => (
-              <li key={c.id} className="nf-panel nf-panel--card block p-card">
+              <li key={c.id} className="nf-admin-case">
                 <p className="nf-body-sm">
                   {l.pendingRow
                     .replace("{name}", c.name)
