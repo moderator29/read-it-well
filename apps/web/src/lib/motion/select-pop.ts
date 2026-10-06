@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { motionQuiet } from "./gate";
+import { isDataSaver } from "@/lib/ui/data-saver";
 
 /**
  * A CHIP OR TILE THAT HAS JUST BEEN CHOSEN GIVES A SMALL PUSH BACK (Session 3,
@@ -37,7 +38,7 @@ function tokenMs(root: HTMLElement, name: string, fallback: number): number {
 }
 
 export function popOnce(el: HTMLElement): void {
-  if (motionQuiet() || typeof el.animate !== "function") return;
+  if (motionQuiet() || isDataSaver() || typeof el.animate !== "function") return;
   const root = document.documentElement;
   const duration = tokenMs(root, "--nf-duration-fast", 160);
   const easing = getComputedStyle(root).getPropertyValue("--nf-ease-entrance").trim() || "cubic-bezier(0.16, 1, 0.3, 1)";
@@ -56,13 +57,19 @@ export function useSelectPop(): void {
     const onClick = (event: MouseEvent) => {
       const target = event.target instanceof Element ? event.target.closest<HTMLElement>(CHOOSABLE) : null;
       if (!target || !target.closest(`[${SELECT_POP_ATTR}]`)) return;
+      /* Read BEFORE React's own handler runs: this listener is in the capture
+         phase on the document, which fires ahead of React's root listener, so
+         the state here is the tile's state before the tap. (In the bubble
+         phase React has already re-rendered, the tile reads as chosen, and
+         "became chosen" is never true.) A keyboard Enter or Space on a button
+         is a click too, so one listener covers both. */
       const wasChosen = chosen(target);
-      /* One frame: React has applied the new `aria-pressed` by then. */
+      /* One frame later React has applied the new `aria-pressed`. */
       requestAnimationFrame(() => {
         if (target.isConnected && !wasChosen && chosen(target)) popOnce(target);
       });
     };
-    document.addEventListener("click", onClick);
-    return () => document.removeEventListener("click", onClick);
+    document.addEventListener("click", onClick, { capture: true });
+    return () => document.removeEventListener("click", onClick, { capture: true });
   }, []);
 }
