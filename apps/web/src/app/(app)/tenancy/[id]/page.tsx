@@ -1,3 +1,4 @@
+import { gateFirstRun } from "@/components/app/feature-onboarding/first-run-store";
 import type { Metadata } from "next";
 import { Fragment } from "react";
 import { getDictionary, type Locale } from "@vallo/i18n";
@@ -103,6 +104,11 @@ export default async function TenancyPage({
   }
 
   const file = read.file;
+  /* THE TENANT'S FIRST RUN (north star 14.1, R3-12): once, for the tenant
+     only, after the file is known to be theirs and before it is drawn. A
+     lister opening the same file is never sent, and neither is a tenant
+     coming back from Paystack, whose reference the gate would drop. */
+  if (file.viewer === "tenant" && !returnedRef) await gateFirstRun("tenancy", `/tenancy/${id}`, query);
   const mates = t.afterTheGate.flatmates;
   return shell(
     <Stack>

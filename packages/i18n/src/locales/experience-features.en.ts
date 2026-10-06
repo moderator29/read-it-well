@@ -131,6 +131,44 @@ export const experienceFeaturesEn = {
       p3Body: "These figures come from your own listings, read under your own sign-in, and nothing here changes anything.",
       action: "See my figures",
     },
+
+    /**
+     * THE TENANT'S COMMAND CENTRE, AS IT EXISTS TODAY: the tenancy file
+     * (`/tenancy/[id]`, R3-12, north star 14.1 "what this surface is for").
+     * Shown to the tenant only. The first two bodies are the file's own
+     * published sentences (`afterTheGate.tenancy.lede` and `.cautionNotHeld`),
+     * placed by the registry; the third is true per `RenewalSection` and
+     * `TenancyHead`: the end date is on the page, and a renewal offer is shown
+     * with its figures when the lister makes one.
+     */
+    tenancy: {
+      name: "your tenancy",
+      p1Title: "Your whole tenancy, on one page",
+      p2Title: "Your caution, on the record",
+      p3Title: "When it ends, and what comes next",
+      p3Body: "The day your tenancy ends is on this page, and so is any renewal your landlord or agent offers, with its figures beside it.",
+      action: "Open my tenancy file",
+    },
+
+    /**
+     * THE OWNER'S COMMAND CENTRE, AS IT EXISTS TODAY: the owner's buildings on
+     * `/agent/portfolio` (V-42, R3-12). Shown only to somebody who lists at
+     * least one unit as its owner. True per that page: units grouped by place
+     * with let-until and the figure achieved (`readMyBuildings`), who else
+     * lists the unit and whom the mandate was given to, and invitations that
+     * verified agents in the same place answer with a note and their record,
+     * never seeing the address (`landlord.portfolio.inviteLede`).
+     */
+    portfolio: {
+      name: "your buildings",
+      p1Title: "Every unit you own, by place",
+      p1Body: "Each unit you list as its owner, grouped by where it is: whether it is let, until when, and what it achieved.",
+      p2Title: "Who is letting it for you",
+      p2Body: "Each unit says who else lists it on Vallo, and which agent you gave the mandate to.",
+      p3Title: "Ask verified agents to pitch",
+      p3Body: "For a unit that is not let, invite verified agents who already list in its area. They see its place, bedrooms and your asking range, never the address.",
+      action: "Open my buildings",
+    },
   },
 
   /**

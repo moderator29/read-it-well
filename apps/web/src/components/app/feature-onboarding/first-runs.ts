@@ -33,6 +33,10 @@ export const MOUNTED_FIRST_RUNS = [
   "invite",
   "passport",
   "analytics",
+  /* R3-12: the Owner and Tenant command centres, as the two surfaces that do
+     that job today (the tenancy file and the owner's buildings). */
+  "tenancy",
+  "portfolio",
 ] as const;
 
 export type MountedFirstRun = (typeof MOUNTED_FIRST_RUNS)[number];
@@ -50,6 +54,11 @@ export const FIRST_RUN_HOME: Readonly<Record<MountedFirstRun, string>> = {
   invite: "/settings/invite",
   passport: "/settings/passport",
   analytics: "/agent/analytics",
+  /* A tenancy is reached by its own id, carried in `next`; without one the
+     member lands where their tenancies are listed, the tenancy file's own
+     declared parent. */
+  tenancy: "/bookings",
+  portfolio: "/agent/portfolio",
 };
 
 export function isMountedFirstRun(value: string | null | undefined): value is MountedFirstRun {
@@ -161,6 +170,30 @@ export function firstRunContent(feature: FirstRunFeature, t: Dictionary): FirstR
           { object: "bars-chart", title: c.analytics.p1Title, body: c.analytics.p1Body },
           { object: "frame-empty", title: c.analytics.p2Title, body: c.analytics.p2Body },
           { object: "padlock", title: c.analytics.p3Title, body: c.analytics.p3Body },
+        ],
+      };
+    case "tenancy":
+      /* The tenancy file's own published sentences, placed rather than
+         paraphrased, then the one line about its end and renewal. */
+      return {
+        feature,
+        name: c.tenancy.name,
+        action: c.tenancy.action,
+        panels: [
+          { object: "house-heart", title: c.tenancy.p1Title, body: t.afterTheGate.tenancy.lede },
+          { object: "book-bookmark", title: c.tenancy.p2Title, body: t.afterTheGate.tenancy.cautionNotHeld },
+          { object: "calendar-page", title: c.tenancy.p3Title, body: c.tenancy.p3Body },
+        ],
+      };
+    case "portfolio":
+      return {
+        feature,
+        name: c.portfolio.name,
+        action: c.portfolio.action,
+        panels: [
+          { object: "map-pin", title: c.portfolio.p1Title, body: c.portfolio.p1Body },
+          { object: "key-ring", title: c.portfolio.p2Title, body: c.portfolio.p2Body },
+          { object: "paper-plane", title: c.portfolio.p3Title, body: c.portfolio.p3Body },
         ],
       };
   }
