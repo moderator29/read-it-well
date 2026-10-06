@@ -3,7 +3,7 @@
 import { initial } from "@/lib/text/initial";
 import Link from "next/link";
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
-import { adoptBubble, arrivalClass, bubbleKey } from "./thread-arrival";
+import { adoptBubble, arrivalClass, bubbleKey, mergeEcho } from "./thread-arrival";
 import type { Dictionary, Locale } from "@vallo/i18n/core";
 import { ThreadContextBanner, type ThreadRole } from "@/components/app/threads/ThreadContextBanner";
 import { reservationLine } from "@/components/app/threads/ReservationFace";
@@ -372,8 +372,10 @@ export function ThreadView({
   /* The messages the thread opened with. Only a message that arrives AFTER
      this (sent or received while the thread is open) plays the arrival
      motion; the history the thread opened with is simply there, so opening a
-     long conversation is not forty bubbles sliding in at once. */
-  const [openedWith, setOpenedWith] = useState<ReadonlySet<string>>(() => new Set(messages.map((m) => m.id)));
+     long conversation is not forty bubbles sliding in at once. It is never
+     added to: a bubble's class must not change under it (the realtime echo of
+     my own send is merged by `mergeEcho`, not by marking its id as seen). */
+  const [openedWith] = useState<ReadonlySet<string>>(() => new Set(messages.map((m) => m.id)));
   const threadWords = useInboxPart("thread", inboxThreadCopy);
   /* The unread divider is fixed at arrival: reading the thread marks it read
      and the page may re-render with nothing unread, but the divider stays
@@ -488,23 +490,21 @@ export function ThreadView({
      is on screen. A share arriving live draws as its words and its path
      until the next server render expands it, which is honest and opens. */
   useThreadRealtime(live ? conversationId : null, (row: LiveMessageRow) => {
-    /* My own send echoing back before its result lands: the optimistic bubble
-       already arrived, so this one must not arrive a second time. */
-    if (row.sender_id === meId) setOpenedWith((prev) => new Set(prev).add(row.id));
-    setItems((prev) => {
-      if (prev.some((m) => m.id === row.id)) return prev;
-      return [
-        ...prev,
-        {
-          id: row.id,
-          mine: row.sender_id === meId,
-          body: row.body,
-          timeLabel: lagosTimeLabel(row.created_at),
-          imageUrl: null,
-          createdAt: row.created_at,
-        },
-      ];
-    });
+    /* One merge for every order (`mergeEcho`, thread-arrival.ts): the send
+       result landed first, so the bubble is already here and stays as it is;
+       my own send echoing first, so the row takes the optimistic bubble's
+       place and key (same element, the arrival keeps playing); a message from
+       my other device or the other side, which arrives like any new one. */
+    setItems((prev) =>
+      mergeEcho(prev, {
+        id: row.id,
+        mine: row.sender_id === meId,
+        body: row.body,
+        timeLabel: lagosTimeLabel(row.created_at),
+        imageUrl: null,
+        createdAt: row.created_at,
+      }),
+    );
     if (row.sender_id !== meId) void markThreadRead({ conversationId });
   });
 

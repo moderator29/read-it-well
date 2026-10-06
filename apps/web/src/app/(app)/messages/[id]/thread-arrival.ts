@@ -11,9 +11,15 @@
  *     (the temporary id it was born with) that survives the id change, so the
  *     element is the same element and its animation is never restarted;
  *   - `arrivalClass` is decided against the ids the thread had when it opened
- *     (`opened`), plus any id whose bubble is already on screen by another
- *     road (the realtime echo of my own send), which are added to that set.
+ *     (`opened`) and nothing else. The set is never added to, so a bubble's
+ *     class cannot change under it when the realtime echo of my own send
+ *     lands (which used to take the class off and cut the arrival short);
+ *   - the echo is merged by `mergeEcho`, which keeps the bubble that is
+ *     already on screen, whichever of the send result and the echo came first.
  */
+
+/** The prefix of the id an optimistic bubble is born with. */
+export const LOCAL_PREFIX = "local-";
 
 export type ArrivalBubble = {
   id: string;
@@ -52,4 +58,39 @@ export function adoptBubble<T extends ArrivalBubble & { state?: unknown; timeLab
       ? { ...m, id: realId, clientKey: m.clientKey ?? tempId, state: undefined, timeLabel: timeLabel ?? m.timeLabel }
       : m,
   );
+}
+
+/**
+ * A message row arriving over realtime joins the list.
+ *
+ *   - The send result landed first: the bubble already has the row's id, so
+ *     the echo changes nothing (and the bubble's arrival is left alone).
+ *   - The echo landed first and it is mine: the row takes the place of my
+ *     optimistic bubble (the oldest still sending or waiting with the same
+ *     words) AND its `clientKey`, so React keeps the element and the arrival
+ *     already playing on it. The result, when it lands, finds the real id
+ *     present and has nothing left to adopt.
+ *   - Anything else, a message from the other side or from another device of
+ *     mine, is appended and arrives like any new message.
+ */
+export function mergeEcho<
+  T extends ArrivalBubble & { body: string; imageUrl: string | null; state?: "sending" | "failed" | "waiting" },
+>(prev: readonly T[], echo: T): T[] {
+  if (prev.some((m) => m.id === echo.id)) return [...prev];
+  if (echo.mine) {
+    const at = prev.findIndex(
+      (m) =>
+        m.mine &&
+        m.id.startsWith(LOCAL_PREFIX) &&
+        (m.state === "sending" || m.state === "waiting") &&
+        m.imageUrl === null &&
+        m.body === echo.body,
+    );
+    if (at !== -1) {
+      const next = [...prev];
+      next[at] = { ...echo, clientKey: bubbleKey(prev[at]!) };
+      return next;
+    }
+  }
+  return [...prev, echo];
 }
