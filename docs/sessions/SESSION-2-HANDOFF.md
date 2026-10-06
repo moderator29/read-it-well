@@ -709,3 +709,123 @@ question 3 called out; every migration with what it does and whether it is appli
 both review passes per money change; anything built plainly for Session 3 to dress,
 with routes; the classification of everything you touched; and what is blocked on the
 founder with the exact value needed.
+
+---
+
+## ROUND 2, added 6 October 2026
+
+**Read `docs/sessions/ROUND-2-2026-10-06.md` in full before continuing.** It
+measures what each session actually built, lists what is missing after reading the
+tree rather than the response files, and carries thirty numbered recommendations.
+
+**Your share is R2-01 to R2-12**, money, trust and correctness.
+
+**R2-01, the wrong-payer refund (D40), is first and nothing else starts before it.** Then R2-02 to R2-12: the refund dry run, scheduled reconciliation, the chargeback path, an auditable Guarantee reserve, idempotency on every money write, tax as a mechanism with a null rate, the phone gate and referral qualification, SMS for the six moments that matter, an entitlement model for Pro mode, promotion as a schema the ranking cannot see, and an admin referral desk.
+
+**The standing rule this round adds: "done" means the brief, not the session.**
+Report what you finished and what remains, in those words. Never report completion
+while your own Remaining section is non-empty. If you believe the brief is
+finished, say so against this handoff's acceptance criteria one by one, with
+evidence for each.
+
+---
+
+## ROUND 3, added 6 October 2026
+
+**Read `docs/sessions/ROUND-3-2026-10-06.md` in full.** Four audits were run
+against the branches rather than the response files, and they found what the
+reports did not.
+
+**Your share is R3-19 to R3-32.**
+
+**Four agents this round**, with declared file ownership, never two on one file:
+B1 D40, refunds and chargebacks. B2 wiring the rail router and the provider seam, then the ledger. B3 tax, entitlements and promotion. B4 the phone gate, referral qualification, the notification backbone and SMS.
+
+**D48 outranks everything on every branch.** Shipped copy tells members Vallo holds
+their money, in a dictionary that is wired to live panels and gated only by three
+keys not being mounted.
+
+**The rule for this round: a number, not an adjective.** Every claim of progress
+carries a count and a denominator. Routes audited of 213. Sections done of 18.
+Matrix rows run of 34. "Upgraded", "swept" and "done" are not reportable without
+one, and a surface edited by five lines is not a surface that was audited.
+
+### Your share of the financial layer (D50)
+
+**Wire what you already built.** Sections 6 and 19 of the founder's brief are the
+rail router and the provider seam, and neither has a call site. That is the highest
+leverage task you have after D40.
+
+Then, in order: **the Vallo status vocabulary** (eleven statuses, a provider
+mapping table, and a rule that no raw provider status reaches a member); **error
+abstraction**, so `PAYLUK_ERR_4827` becomes a sentence; **the ledger with revenue
+separation**, which on the escrow rail is the only thing keeping customer money and
+Vallo money apart because **Payluk cannot do a three-way split**; **the dispute
+endpoints**, because the only route from a funded escrow back to a buyer is a
+dispute resolved as `REFUNDED`, so this is the cancellation path; **payment
+requests and links**; **payment schedules**; **provider health and failover that
+cannot double-charge**; **the support transaction view**; **the financial audit
+view**; and **multi-currency modelling** with a real timestamped rate, never a
+fabricated one.
+
+**Three constraints bound all of it.** Payluk takes 2 percent on top of the
+Guarantee, so True Cost must carry it. There is no plain cancel and refund. Ten
+requests per minute per key, so nothing calls Payluk per listing, per render or in
+a loop, and every sweep is paced against it.
+
+**Members become Payluk merchant-customers** (`create merchant customer`, carrying
+phone and BVN with their own verification state). `GET /v1/wallet` returns their
+main and escrow balances. That is the data behind Session 3's money centre, and it
+is yours to expose as a Vallo concept, never a Payluk one.
+
+### Pricing and referral (D51): yours to build
+
+**Rates are policy rows in `money_policy`, never constants.** Set
+`commission_bps = 50`, `guarantee_bps = 0`, `vat_bps = 0`, `vat_registered = false`.
+The commission leg already exists in the split at zero.
+
+**Verify, do not assume, that `PAYSTACK_GUARANTEE_SUBACCOUNT` stops blocking** once
+`guarantee_bps = 0`: the split currently refuses a charge whose reserve leg is
+missing, and if it still does at zero the founder is blocked for no reason.
+
+**Withdrawals: never compute from a table.** Payluk's fee is variable and
+unpublished. Create the intent, read `fee` back, add Vallo's band, return one
+total. Reconcile against the figure read back. Payluk's 2 percent is **escrow
+only**; withdrawals, deposits and transfers carry separate fees, and deposits run
+through Paystack underneath with a 100 naira minimum.
+
+**The referral engine, in full.** Attribution server-side, never browser storage.
+The lifecycle through pending, qualified, approved, available, processing, paid,
+reversed, under review. **Qualification is phone verified AND a real action**, never
+a signup. A rewards **ledger**, append only, never `balance += 70`: a reversal is a
+new entry with a reason and an actor, never a deletion. A **platform-wide monthly
+budget cap** server-side, alongside the 1,500 per-member cap. A **risk engine** on
+device, network, velocity, payout-account reuse and referral-graph clustering,
+where shared Wi-Fi and shared devices raise risk and never auto-ban. Payouts through
+**Paystack transfers from Vallo's marketing float**, with account-name resolution
+before sending, and never marked paid before the provider confirms.
+
+**Three pots separated in the schema**: customer funds at the provider, Vallo
+revenue, the marketing float. Not three columns on one table.
+
+### The 2 percent, the agreement gate, and the sweep (D51 final)
+
+`commission_bps = 200`. **Escrow total 4 percent** (Payluk 2 + Vallo 2), **direct
+rail 2 percent** plus Paystack's capped fee, **`whoPays: "seller"`** on both.
+
+**The agreement gate is server-side and it is yours.** A listing cannot publish
+until its owner has accepted the figures. Store the member, the timestamp and
+**the rate version**. A rate change never applies retroactively: the lister keeps
+the accepted rate until they accept a new one. Enforce it in the publish path, not
+in the UI, because a UI-only gate is not a gate.
+
+**Build the Payluk commission sweep.** Vallo's 2 percent on escrow is a merchant
+dashboard setting and accrues in Vallo's Payluk merchant wallet; unlike Paystack it
+does not arrive by itself. Read the merchant balance, withdraw to Vallo's bank,
+record it as **Vallo revenue and never customer funds**, surface the balance, the
+last sweep and any failure on the Money desk, and pace it against ten requests per
+minute.
+
+**Per-space-type rates.** Four percent of a land sale is unsellable. Make
+`commission_bps` resolvable per space type with an absolute cap above a threshold,
+even if every type starts at 200 today.
