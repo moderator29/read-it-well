@@ -890,3 +890,42 @@ errors in the nine silent server reads. Then the dead exports and the missing
 tests. The review also found zero `any`, zero hardcoded strings and zero D39
 violations across 290 new modules, which is a high standard and is why these are
 worth fixing rather than a reason to doubt the work.
+
+### Your share of the financial layer (D50)
+
+**Read `docs/payments/VALLO_FINANCIAL_LAYER.md` before you touch a money surface.**
+
+**The one sentence that governs every word you write:** Vallo uses regulated
+financial infrastructure partners to process and protect eligible transactions.
+**Vallo does not hold customer funds.** The provider holds; Vallo presents. Never
+imply otherwise, never guarantee an outcome, never say money is 100 percent safe.
+
+**D48 still comes first**, and it is not contradicted by this: the `wallet`,
+`escrow` and `withdrawal` strings in `experience-features.en.ts` describe custody
+**by Vallo** on a rail that does not exist, so they come out now. The surfaces
+below are built against a live rail with different copy, and ship only when
+ADR-0003 is accepted and the merchant account is live.
+
+**Build, in this order.** The **Vallo checkout that understands the transaction**:
+space, agreement, parties, amount, protection, conditions, release condition, not a
+generic payment screen. The **transaction timeline in human sentences**, never
+`ESCROW_STATUS = OPENED`. The **money centre** with **Available and Protected as
+two clearly different numbers**, because misreading them costs somebody money. The
+**protected-payment experience**, using "protected" with members and reserving
+"escrow" for legal and technical contexts. The **dispute centre as a member
+surface**, which is also the cancellation path, so its words cannot say "dispute"
+to two people who simply agreed to stop. The **receipt vault** with search,
+filters, download, share and a privacy-safe view. The **activity centre**, the
+**financial security centre**, **payment health** for landlords and agents, and the
+**transaction passport** as the permanent record.
+
+**The reference system is a design problem, not a backend one.** Transaction,
+receipt, agreement, space, provider reference and chain hash are six different
+things and must never be confused on a screen. A fiat payment shows no chain hash
+and no provider reference dressed as one.
+
+**Provider never leads.** Buttons say "Continue securely", "Protect payment", not
+"Pay with Payluk". But the founder's own line holds: **clean abstraction, not
+deceptive concealment.** Where a provider must be named by a rule, a receipt, the
+Terms or a KYC step, name it. A hosted checkout you cannot embed is explained and
+handed off, never dressed as Vallo's page.

@@ -373,3 +373,22 @@ keys not being mounted.
 carries a count and a denominator. Routes audited of 213. Sections done of 18.
 Matrix rows run of 34. "Upgraded", "swept" and "done" are not reportable without
 one, and a surface edited by five lines is not a surface that was audited.
+
+### Your share of the financial layer (D50)
+
+**Everything in D50 is money, so it is all second-audit work and it is all yours.**
+
+Specifically: verify that **no raw provider status, error or identifier reaches a
+member** on any surface; that **no fiat transaction shows a fabricated chain hash**
+or a provider reference relabelled as one; that **"Processing" is never shown as
+"Successful"** before the provider confirms; that **failover can never
+double-charge**; that **customer money and Vallo revenue are separated in the
+schema**, not only in a report, since Payluk cannot do a three-way split; and that
+**legally required provider disclosures are present** where a rule, a receipt, the
+Terms or a KYC step requires them, because the abstraction governs the product
+surface and never the legal one.
+
+**Also audit the rate limit as a design property**, not a runtime surprise: ten
+requests per minute per key across all routes means any call per listing, per
+render or in a loop is a defect, and every reconciliation sweep must be paced
+against it. Find them before production does.

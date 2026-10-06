@@ -808,6 +808,98 @@ committed and pushed as it is done, cleanly, without sessions conflicting.
 | Reading a cancelled check as anything other than "did not run" | D47 |
 | Treating retired custody language as a naming tidy-up | D48 |
 | **D39's LazyMotion requirement** | **D49: it is dead weight here and comes out** |
+| **D48's reading that no balance may ever exist** | **D50: a balance held by a licensed provider may be presented, under four conditions** |
+
+---
+
+## D50. Vallo presents, the provider holds. The financial layer is Vallo's product
+
+**The founder's brief of 6 October, and it corrects Session 1.** Full translation
+in `docs/payments/VALLO_FINANCIAL_LAYER.md`; read it before any money surface.
+
+### The sentence, which is the founder's own and is now the platform's
+
+> **Vallo uses regulated financial infrastructure partners to process and protect
+> eligible transactions. Vallo does not hold customer funds.**
+
+Shorter, for a screen: **"Payments are processed through Vallo's financial
+infrastructure partners."** For a protected payment: **"Your payment is protected
+through Vallo's transaction infrastructure."**
+
+### What Session 1 got wrong, stated plainly
+
+This morning Session 1 told the founder there is no wallet and there can never be
+one, and read his request for a premium wallet surface as meaning only the
+existing money screens. **That was half right and the wrong half was asserted most
+firmly.** ADR-0002 forbids **Vallo** holding client funds, because that is CBN
+regulated and outside the objects clause. It says nothing about a licensed third
+party holding them, and Payluk is one. Under the Paystack-only rail nobody held
+anything, so "no balance anywhere" was true by accident rather than by rule.
+
+**Verified against Payluk's own API:** `GET /v1/wallet` returns a customer's
+**main balance** and **escrow balance**; withdrawals run through a payment intent
+with a bank code; **verify account number** resolves the account name before the
+withdrawal is created; payment history covers deposits, withdrawals, transfers,
+wallet transfers and escrow payments. **Every surface the founder described has a
+real endpoint behind it.**
+
+### The four conditions, all of which must hold
+
+A balance surface ships only when:
+
+1. **The money is held by the licensed provider**, in that member's own account
+   there, never by Vallo.
+2. **No Vallo sentence says or implies Vallo holds, keeps, owns or guarantees
+   it.** "Your money is 100 percent safe" is forbidden; so is any guarantee of an
+   outcome Vallo cannot deliver.
+3. **ADR-0003 is accepted, not proposed**, and the merchant account is live.
+4. **The words come from `lib/money/copy.ts`, per rail**, so Terms, help centre,
+   emails and screens cannot drift.
+
+**D48 is unchanged in the meantime.** The `wallet`, `escrow` and `withdrawal`
+strings in `experience-features.en.ts` describe custody by Vallo on a rail that
+does not exist, and they come out now. What replaces them later is different copy,
+written against a live rail, naming who actually holds the money.
+
+### Provider abstraction, and the line the founder drew himself
+
+**Vallo is the product; the provider is infrastructure.** The frontend consumes
+`Payment`, `Protected`, `Withdrawal`, `Receipt`, never `PaylukEscrow` or
+`PaystackCheckout`. Provider vocabulary, statuses and errors stay inside the
+adapter, behind a Vallo status vocabulary and Vallo error language.
+
+**And the founder's own limit is binding: "clean abstraction, not deceptive
+concealment."** Where a provider name is required by a card-network rule, a
+banking rule, a provider agreement, a receipt, a KYC flow, the Terms or a
+transaction disclosure, **it is shown**. The abstraction governs the product
+surface, never the legal surface. A hosted checkout that cannot be embedded is an
+infrastructure boundary to be explained, not dressed up as Vallo's own page.
+
+**Never fabricate**, which this repository already bans for figures and now states
+for status: no invented chain hash on a fiat payment, no provider reference
+relabelled as a transaction hash, and never "Payment successful" before the
+provider has confirmed it. "Processing" must be real.
+
+### The three constraints that shape every design here
+
+1. **Payluk charges 2 percent** of the escrow amount, on top of the Guarantee's 1
+   to 2 percent. The escrow rail costs more than the direct rail and **True Cost
+   must show it.** Who absorbs it is the founder's decision and is not made.
+2. **There is no plain cancel and refund.** The only route from a funded escrow
+   back to a buyer is a dispute resolved as `REFUNDED`, so the dispute surface
+   **is** the cancellation path. It cannot be called "dispute" to two people who
+   simply agreed to stop.
+3. **Ten requests per minute per key.** Routing, health checks, search and every
+   reconciliation sweep are bounded by it. Any call per listing or per render is
+   already broken.
+
+### And the one that is purely architectural
+
+**Payluk cannot do a three-way split.** Paystack divides lister, Guarantee and
+Vallo in a single transaction; Payluk does not. On the escrow rail the Guarantee
+contribution and Vallo's commission are separate recorded movements, which makes
+the brief's revenue separation the only thing keeping customer money and Vallo
+money apart on that rail. It is a ledger requirement, not bookkeeping taste.
 
 ---
 

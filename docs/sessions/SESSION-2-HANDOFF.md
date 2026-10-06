@@ -749,3 +749,31 @@ keys not being mounted.
 carries a count and a denominator. Routes audited of 213. Sections done of 18.
 Matrix rows run of 34. "Upgraded", "swept" and "done" are not reportable without
 one, and a surface edited by five lines is not a surface that was audited.
+
+### Your share of the financial layer (D50)
+
+**Wire what you already built.** Sections 6 and 19 of the founder's brief are the
+rail router and the provider seam, and neither has a call site. That is the highest
+leverage task you have after D40.
+
+Then, in order: **the Vallo status vocabulary** (eleven statuses, a provider
+mapping table, and a rule that no raw provider status reaches a member); **error
+abstraction**, so `PAYLUK_ERR_4827` becomes a sentence; **the ledger with revenue
+separation**, which on the escrow rail is the only thing keeping customer money and
+Vallo money apart because **Payluk cannot do a three-way split**; **the dispute
+endpoints**, because the only route from a funded escrow back to a buyer is a
+dispute resolved as `REFUNDED`, so this is the cancellation path; **payment
+requests and links**; **payment schedules**; **provider health and failover that
+cannot double-charge**; **the support transaction view**; **the financial audit
+view**; and **multi-currency modelling** with a real timestamped rate, never a
+fabricated one.
+
+**Three constraints bound all of it.** Payluk takes 2 percent on top of the
+Guarantee, so True Cost must carry it. There is no plain cancel and refund. Ten
+requests per minute per key, so nothing calls Payluk per listing, per render or in
+a loop, and every sweep is paced against it.
+
+**Members become Payluk merchant-customers** (`create merchant customer`, carrying
+phone and BVN with their own verification state). `GET /v1/wallet` returns their
+main and escrow balances. That is the data behind Session 3's money centre, and it
+is yours to expose as a Vallo concept, never a Payluk one.
