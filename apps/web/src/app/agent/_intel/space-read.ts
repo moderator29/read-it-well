@@ -3,7 +3,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
 import { fixFor, funnelFrom, type Fix, type Funnel, type FunnelRpcRow } from "@/lib/agent/funnel";
-import { lagosToday } from "@/lib/agent/calendar-schema";
+import { lagosToday } from "@/lib/agent/calendar-model";
 import { lagosDayOf, type CountContext, type RequestRow } from "@/components/agent/intel/space-model";
 
 /**
@@ -12,13 +12,12 @@ import { lagosDayOf, type CountContext, type RequestRow } from "@/components/age
  * Nothing new is asked of the database. Every read here is one the lister's
  * own RLS-bound client already answers, in the shape the existing reads use:
  * `lib/agent/analytics-queries.ts` (bookings by the joined listing's
- * agent_id, two thousand rows at most) and `lib/agent/funnel-queries.ts`
- * (`public.listing_funnel` per published listing, which answers only the
- * listing's own lister and returns no median unless five other listers'
- * listings exist: the privacy floor is the database's, not this file's).
- * They are restated here, not imported, only because those two keep their
- * row reads private and shape them for a different screen; the queries and
- * the ceilings are the same.
+ * agent_id, two thousand rows at most, restated here because that file keeps
+ * its row read private) and `public.listing_funnel` per published listing,
+ * which answers only the listing's own lister and returns no median unless
+ * five other listers' listings exist: the privacy floor is the database's,
+ * not this file's. This file is now the only reader of the funnel; the old
+ * ten-listing board read it replaced has been removed.
  *
  * Every read resolves to a value or to "unavailable"; none throws. A page
  * that cannot read says so in its own words, inside its own shell, rather
@@ -136,8 +135,8 @@ function withFix(row: FunnelListingRow, funnel: Funnel): ListingFunnelRead {
 /**
  * The week of every published listing, up to the ceiling, eight at a time.
  * One failed call means the counting is not running (the migration is not
- * applied, or the function errored) and the whole board is unavailable, as
- * `readFunnelBoard` decides: half a board would read as "the rest had none".
+ * applied, or the function errored) and the whole board is unavailable:
+ * half a board would read as "the rest had none".
  */
 export async function readFunnels(supabase: Db, agentId: string): Promise<FunnelsRead> {
   try {
@@ -228,7 +227,7 @@ export async function readListingTitles(supabase: Db, agentId: string): Promise<
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-/** Whole days since an instant, zero when unknown or in the future (as `funnel-queries.ts`). */
+/** Whole days since an instant, zero when unknown or in the future. */
 function daysSince(iso: string | null): number {
   if (!iso) return 0;
   const at = Date.parse(iso);

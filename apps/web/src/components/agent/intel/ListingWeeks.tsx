@@ -1,7 +1,7 @@
 import { formatNumber, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { ListGroup, ListRow } from "@/components/ui/ListGroup";
 import { fill } from "@/app/agent/_copy";
-import type { ListingFunnelView } from "@/lib/agent/funnel-queries";
+import type { ListingFunnelRead } from "@/app/agent/_intel/space-read";
 import { stageOf } from "./space-model";
 
 /**
@@ -22,7 +22,7 @@ export function ListingWeeks({
   t,
   locale,
 }: {
-  listings: readonly Pick<ListingFunnelView, "id" | "title" | "funnel">[];
+  listings: readonly Pick<ListingFunnelRead, "id" | "title" | "funnel">[];
   t: Dictionary;
   locale: Locale;
 }) {
