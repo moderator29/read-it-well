@@ -746,6 +746,90 @@ reader should know that the log does not say at a glance:
 6. Run the Playwright specs, the TalkBack pass on the arrival moment and the toast
    dwell, and the startup on a real mid-range Android.
 7. Update the README for the test-harness name (`W6_APP_CSS`).
+8. Wire AR-11 once `origin/claude/vallo-backend-money-trust` is on main. Plan only;
+   nothing below is built. The signatures are read from that branch
+   (`apps/web/src/lib/admin/blocked-terms-actions.ts` and `blocked-terms-rules.ts`),
+   and no argument here is invented.
+   - Before starting, merge the branch and settle its five known conflicts
+     (`.env.example`, `docs/ENVIRONMENT.md`, `PasscodeSetup.tsx` and the
+     PasscodeFrame and PasscodeGate dom tests), then confirm `database.types.ts`
+     carries `staff_blocked_terms`, `staff_blocked_term_put` and
+     `staff_blocked_term_retire`. If the branch is not on main, stop: the panel
+     stays the `CalmNote kind="unwired"` it is today.
+   - Reads and writes, as the branch defines them:
+     - `listBlockedTerms()` takes no arguments and returns
+       `ActionResult<BlockedTermRow[]>`. A row has `term`, `category`, `action`
+       (`hold`, `flag` or `refuse`), `severity` (`low`, `medium` or `high`),
+       `reason`, `refusal_reason` (or null), and the retired fields `retired_at`,
+       `retired_by` and `retired_reason`. Live terms come first.
+     - `putBlockedTerm(input: unknown)` takes `{ term, category, action, severity,
+       reason, refusalReason? }` and returns `ActionResult<null>`. It adds a term,
+       changes a live one, or brings a retired one back. The term is lower-cased and
+       limited to letters, digits and single spaces, 2 to 100 characters. The
+       category is one of the twelve in `BLOCKED_TERM_CATEGORIES`. `reason` needs 12
+       characters. `refusalReason` is needed, at 12 characters, only for `refuse`,
+       and `refuse` is allowed only for `abuse.*` categories.
+     - `retireBlockedTerm(input: unknown)` takes `{ term, reason }` (reason at 12
+       characters) and returns `ActionResult<null>`. A term that is not live
+       returns the sentence "That term is not on the live list. Refresh to see the
+       current list."
+     - All three call `requireAdmin("moderation")` themselves, so the panel adds no
+       second gate. Import `BLOCKED_TERM_CATEGORIES`, `BLOCKED_TERM_ACTIONS` and
+       `BLOCKED_TERM_SEVERITIES` from `blocked-terms-rules` for the selects, so the
+       form and the database cannot disagree.
+   - The admin panel, in `apps/web/src/app/admin/_lanes/ModerationDesk.tsx`:
+     - `HeldLane.tsx` already gates on `requireAdmin("moderation")`. Add
+       `listBlockedTerms()` to its existing parallel reads and pass the result to
+       `ModerationDesk` as a new prop. Replace the unwired `CalmNote` in the
+       Blocked terms panel with the live panel, and keep a `CalmNote` for the case
+       where the read fails (the `ActionResult` error is the sentence).
+     - Show live terms first, then retired terms under an Unfold, each with who
+       retired it, when and why. The list is long (144 live terms today), so give
+       it a filter by category and by action, and do not render it all open.
+     - A put form built from `Field`, with native selects styled as `nf-field`
+       for category, action and severity (there is no Select component in
+       `components/ui`), and the reason as a required field. Show the refusal reason field
+       only when the action is `refuse` and the category starts `abuse.`. Field
+       errors come from the result's `fieldErrors`, shown by `Field`. Both writes
+       change what every member can post, so settle with the founder whether they
+       need a confirmation step; the desk has no such step in ModerationDesk today.
+     - A retire control on each live row that asks for the reason. Retire is
+       reversible (put reinstates), so it needs no second confirmation beyond the
+       reason.
+     - Panel words go in `experienceAdmin`. Afterwards update
+       `docs/ADMIN_CONSOLE.md` section 5 (the Blocked terms bullet) and section 17
+       (the AR-11 line), and run `jobs.test.ts` if the job table is touched.
+   - The composers' sentence for `content_refused:`:
+     - The migration raises `content_refused:` from `private.content_verdict`
+       with code 23514, the same code the generic check-violation branches already
+       map. The mapper must test for the `content_refused:` prefix before the
+       generic 23514 branch, or the member reads the wrong sentence. The places to
+       change are `messageForPostError` in `lib/social/posts-actions.ts`,
+       `lib/social/stories-model.ts` (about line 112) and
+       `lib/social/profiles-actions.ts` (about line 293). Then audit the other
+       mappers for every surface the scanner covers (posts, social profiles,
+       stories, story comments, events, reviews, review responses, messages,
+       profile names, catalogue text) and list any that still show a raw or generic
+       message.
+     - The sentence belongs in Session 3's i18n modules, not in
+       `lib/money/copy.ts`. That file is the money module and is owned by Session
+       2; this is a member-facing moderation sentence. Put it in
+       `packages/i18n/src/locales/experience-social.en.ts` for posts, stories and
+       comments, and in the owning surface's module for reviews, messages and
+       events. English only, with `withFallback` for the other locales; the locale
+       files are added by B3 or the lead.
+     - The sentence is one plain line that says the words could not be posted and
+       asks the member to change them. It must not name the category, the matched
+       term or the refusal reason, because naming the term teaches how to get round
+       it. It must follow VOICE.md and pass the claims lint, and the founder
+       approves the wording before it ships.
+     - No term is set to `refuse` today, so this sentence cannot appear until the
+       founder approves a refusing term. The mapper change and its test can land
+       first and stay dormant.
+   - Tests: a unit test for each mapper that a `content_refused:` error at code
+     23514 returns the new sentence and that a different 23514 still returns its
+     old one; a dom test of the panel (list, filter, put with a field error,
+     retire, empty and failed reads) with axe, run only when the load is under 20.
 
 ## Do Not Repeat
 
