@@ -12,7 +12,7 @@ import {
 import { PageHeader } from "@/components/app/PageHeader";
 import { EmptyState, TYPE } from "@/components/app/Screen";
 import { ButtonLink } from "@/components/ui/Button";
-import { authHref } from "@/components/auth/auth-intent";
+import { withNext } from "@/lib/auth/next-link";
 import { HistoryEmpty, HistoryUnavailable } from "@/components/app/money-history/HistoryStates";
 import { HistoryHero } from "@/components/app/money-history/HistoryHero";
 import { PayoutList } from "@/components/money/PayoutList";
@@ -50,7 +50,7 @@ export default async function PayoutsPage({
           title="Sign in to see your payouts"
           body={PAYOUTS_LEDE}
           action={
-            <ButtonLink href={authHref("/payouts", "sign-in")} variant="primary" size="lg">
+            <ButtonLink href={withNext("/sign-in", "/payouts")} variant="primary" size="lg">
               Sign in
             </ButtonLink>
           }
