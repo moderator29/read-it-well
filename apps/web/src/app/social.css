@@ -276,6 +276,12 @@
    * An inset slab with a highlight crossing it, matching the platform's own
    * skeleton language. The sweep is driven by a token duration, so reduced
    * motion collapses it to a still slab rather than needing a second rule.
+   *
+   * It crosses four times and rests (MOTION_SYSTEM principle 10: only the
+   * aurora and the assistant's thinking loop forever). `forwards` holds the
+   * last position, `-40%`, which is also the base value, so the still slab is
+   * the same with the animation running out, switched off by reduced motion,
+   * or never started (data saver).
    */
   .nf-social-skeleton {
     background:
@@ -287,7 +293,8 @@
         )
         var(--nf-surface-inset);
     background-size: 200% 100%;
-    animation: nf-social-shimmer 1.4s linear infinite;
+    background-position: -40% 0;
+    animation: nf-social-shimmer 1.4s linear 4 forwards;
   }
 
   @keyframes nf-social-shimmer {

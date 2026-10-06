@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -87,5 +87,69 @@ describe("pull to refresh: the mark turns with the drag and spins once on releas
   it("is still under reduced motion, Calm and Off", () => {
     expect(details).toMatch(/prefers-reduced-motion: reduce\) \{\s*\.nf-ptr\[data-refreshing\] \.nf-ptr__ring \{\s*animation: none;/);
     expect(details).toMatch(/\[data-motion="calm"\], \[data-motion="off"\]\) \.nf-ptr\[data-refreshing\] \.nf-ptr__ring \{\s*animation: none;/);
+  });
+});
+
+describe("principle 10, the marketing and loading loops (Session 3, C1)", () => {
+  it("the skeleton sweeps four times and rests on the still tint, in the app and the social slab", () => {
+    const controls = strip(css("controls.css"));
+    expect(controls).toContain("animation: nf-shimmer 1.4s linear 4 forwards;");
+    expect(controls).not.toMatch(/nf-shimmer[^;]*infinite/);
+    /* The base value is the resting end of the sweep, in the glass slab too (its shorthand resets the position). */
+    expect(controls.match(/background-position: 117\.3% 0;/g)).toHaveLength(3); // the keyframe end, the slab, the glass slab
+    expect(controls).toMatch(/@keyframes nf-shimmer \{\s*from \{\s*background-position: -17\.3% 0;\s*\}\s*to \{\s*background-position: 117\.3% 0;/);
+    const social = strip(src("app/social.css"));
+    expect(social).toContain("animation: nf-social-shimmer 1.4s linear 4 forwards;");
+    expect(social).toContain("background-position: -40% 0;");
+  });
+
+  it("the landing columns turn twice and the docs flow pulse walks twice, then both rest", () => {
+    const cinema = strip(css("cinema.css"));
+    expect(cinema).toContain("animation: nf-vcol-up 48s linear 2 forwards;");
+    expect(cinema).not.toMatch(/infinite/);
+    const docs = strip(css("docs-motion.css"));
+    expect(docs).toContain("animation: nf-flow-pulse 5.6s var(--nf-ease-standard) 1.4s 2;");
+    expect(docs).not.toMatch(/infinite/);
+  });
+
+  it("data saver stops the slabs and the columns (the pulse already answered to it)", () => {
+    const saver = strip(css("data-saver.css"));
+    for (const sel of [".nf-skeleton", ".nf-social-skeleton", ".nf-vcols__strip"]) {
+      expect(saver).toContain(`:root[data-save-data="on"] ${sel}`);
+    }
+    expect(strip(css("docs-motion.css"))).toContain('[data-save-data="on"]) .nf-flow__pulse');
+  });
+
+  /*
+   * THE INVENTORY. Every `infinite` left in the product's stylesheets is named
+   * here with the reason it may stay; a new one fails this test until somebody
+   * decides (principle 10: nothing loops forever except the aurora and the
+   * assistant's thinking).
+   */
+  it("every remaining infinite animation is a listed exception", () => {
+    const KEPT: Record<string, number> = {
+      "app/css/ported.css": 1, // the assistant's thinking lines (spec)
+      "components/app/assistant/assistant-answer.css": 1, // the assistant's thinking orb (spec)
+      "app/welcome/get-started.css": 2, // the aurora's drift (spec)
+      "app/css/side-flip.css": 2, // the cover's three objects while the network is behind the flip
+      "app/css/motion.css": 1, // the counterpart's typing dots, a live signal
+      "app/css/auth.css": 1, // the waiting cell's caret
+      "app/css/animation.css": 1, // the verifying bar, indeterminate while the request runs
+      "app/css/symbols.css": 1, // `.nf-sym--loop`, opt in
+    };
+    const root = join(process.cwd(), "src");
+    const found: Record<string, number> = {};
+    const walk = (dir: string) => {
+      for (const entry of readdirSync(dir, { withFileTypes: true })) {
+        const full = join(dir, entry.name);
+        if (entry.isDirectory()) walk(full);
+        else if (entry.name.endsWith(".css")) {
+          const n = (strip(readFileSync(full, "utf8")).match(/infinite/g) ?? []).length;
+          if (n) found[full.slice(root.length + 1)] = n;
+        }
+      }
+    };
+    walk(root);
+    expect(found).toEqual(KEPT);
   });
 });
