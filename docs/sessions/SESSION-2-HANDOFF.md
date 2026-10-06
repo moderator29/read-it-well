@@ -223,7 +223,7 @@ others request), `lib/money/copy.ts` (A1, and see 7.14), `supabase/migrations/`
 | Provider abstraction (7.3) | Payluk adapter, rail router |
 | Financial schema (7.4) | Everything in E |
 | Ledger (7.5) | Any money movement |
-| `PAYSTACK_GUARANTEE_SUBACCOUNT` from the founder | Any payment opening at all |
+| `PAYSTACK_GUARANTEE_SUBACCOUNT` from the founder | Any **live** payment opening. **Not a blocker on your work:** test mode reads `PAYSTACK_TEST_GUARANTEE_SUBACCOUNT`, so prove the whole rail end to end on the sandbox account and leave live mode waiting on the founder's value. Say in your response file that you did |
 | Termii keys from the founder | Phone gate switch-on, so referral qualification |
 | Counsel on tax rates | Tax rates. **The mechanism is built regardless** |
 | ADR-0003 | Escrow switch-on |
