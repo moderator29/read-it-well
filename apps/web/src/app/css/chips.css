@@ -435,7 +435,7 @@
     background: color-mix(in oklab, var(--nf-badge-hue) 18%, var(--nf-surface-primary));
     box-shadow: none;
     color: var(--nf-badge-ink);
-    font-size: max(0.6875rem, var(--nf-text-overline));
+    font-size: max(0.75rem, var(--nf-text-overline));
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
   }

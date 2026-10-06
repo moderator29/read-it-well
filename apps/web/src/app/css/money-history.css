@@ -81,13 +81,13 @@
   }
   /* THE KOBO ARE SMALLER, NOT GREYER. */
   .nf-history-kobo {
-    font-size: 0.68em;
+    font-size: max(0.68em, 0.75rem); /* never under 12px */
     font-weight: 600;
     color: var(--nf-content-primary);
     opacity: 0.74;
   }
   .nf-history-kobo--hero {
-    font-size: 0.6em;
+    font-size: max(0.6em, 0.75rem);
     opacity: 0.9;
   }
   .nf-history-hero__note {

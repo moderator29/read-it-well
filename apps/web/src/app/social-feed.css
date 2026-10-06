@@ -1687,7 +1687,7 @@
     overflow: hidden;
     background: var(--nf-gradient-brand);
     color: var(--nf-content-on-media);
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     font-weight: 700;
     box-shadow: 0 0 0 2px var(--nf-surface-on-media);
   }
@@ -1712,7 +1712,7 @@
     border-radius: var(--nf-radius-xs);
     background: var(--nf-wash-on-media-2);
     color: var(--nf-content-on-media);
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     font-weight: 700;
   }
   .nf-story__pilelabel {
@@ -2594,7 +2594,7 @@
 
   .nf-enter__chip-state,
   .nf-enter__chip-count {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     font-weight: 600;
     color: var(--nf-content-muted);
   }

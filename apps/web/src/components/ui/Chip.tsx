@@ -210,7 +210,7 @@ function ChipInner({
       ) : null}
       <span className="whitespace-nowrap">{children}</span>
       {typeof count === "number" ? (
-        <span className="nf-numeric text-[0.8em] opacity-70">{count}</span>
+        <span className="nf-numeric text-[length:max(0.8em,0.75rem)] opacity-70">{count}</span>
       ) : null}
       {chevron ? (
         <span className="nf-chip__chevron" aria-hidden="true">

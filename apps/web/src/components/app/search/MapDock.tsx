@@ -186,7 +186,7 @@ export function MapDock({
                   glance
                   suffix={`/ ${per}`}
                   className="text-[length:var(--nf-text-body-lg)] font-bold leading-none tracking-tight text-[var(--nf-content-primary)]"
-                  secondaryClassName="text-[0.65em] font-semibold opacity-60"
+                  secondaryClassName="text-[length:max(0.65em,0.75rem)] font-semibold opacity-60"
                 />
               ) : (
                 <span className="nf-body-sm font-semibold text-[var(--nf-content-secondary)]">

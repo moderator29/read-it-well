@@ -495,7 +495,7 @@ export function PayPanel({
               currency={view.currency}
               showFraction
               className="text-[length:var(--nf-text-body-lg)] font-bold leading-none tracking-[-0.02em] text-[var(--nf-content-primary)]"
-              secondaryClassName="text-[0.62em] font-semibold text-[var(--nf-content-muted)]"
+              secondaryClassName="text-[length:max(0.62em,0.75rem)] font-semibold text-[var(--nf-content-muted)]"
             />
           </span>
         </p>

@@ -180,12 +180,12 @@ function CryptoSheet({
                 locale={locale}
                 showFraction
                 className="nf-display mt-inline block font-bold leading-none"
-                secondaryClassName="text-[0.55em] font-semibold opacity-70"
+                secondaryClassName="text-[length:max(0.55em,0.75rem)] font-semibold opacity-70"
               />
             ) : (
               <>
                 <p className="nf-display mt-inline break-all font-bold leading-none">
-                  {step.view.cryptoAmount} <span className="text-[0.55em] font-semibold opacity-80">{step.view.asset}</span>
+                  {step.view.cryptoAmount} <span className="text-[length:max(0.55em,0.75rem)] font-semibold opacity-80">{step.view.asset}</span>
                 </p>
                 <p className="nf-body-sm mt-inline opacity-80">
                   {fill(t.worth, { amount: "" })}

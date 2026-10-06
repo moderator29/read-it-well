@@ -833,7 +833,7 @@
   .nf-sec-head .nf-eyebrow {
     display: block;
     gap: 0;
-    font-size: var(--nf-text-label, 0.6875rem);
+    font-size: var(--nf-text-label, 0.75rem);
     letter-spacing: var(--nf-tracking-label, 0.06em);
     font-weight: 600;
     color: var(--nf-content-muted);

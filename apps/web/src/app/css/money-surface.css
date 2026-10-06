@@ -29,7 +29,8 @@
     color: var(--nf-content-primary);
   }
   .nf-money-kobo {
-    font-size: 0.68em;
+    /* Never under 12px, whatever the figure beside it (the product's floor). */
+    font-size: max(0.68em, 0.75rem);
     font-weight: 600;
     color: var(--nf-content-primary);
     opacity: 0.74;

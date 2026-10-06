@@ -1022,7 +1022,7 @@ export default async function ListingDetailPage({
                           minorUnits={listing.priceMinor}
                           locale={locale}
                           currency={listing.currency}
-                          secondaryClassName="text-[0.5em] font-semibold opacity-70"
+                          secondaryClassName="text-[length:max(0.5em,0.75rem)] font-semibold opacity-70"
                         />
                         <span className="nf-detail-price__suffix">/ {perLabel.replace(/^per /, "")}</span>
                       </p>
@@ -1558,7 +1558,7 @@ function RestaurantPanel({
             locale={locale}
             currency={listing.currency}
             className="nf-figure leading-none"
-            secondaryClassName="text-[0.54em] font-semibold opacity-60"
+            secondaryClassName="text-[length:max(0.54em,0.75rem)] font-semibold opacity-60"
           />
           <span className={`ml-2xs ${TYPE.body}`}>per head</span>
         </p>

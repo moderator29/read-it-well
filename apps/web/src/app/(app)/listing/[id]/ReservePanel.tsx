@@ -355,7 +355,7 @@ export function ReservePanel({
             */
             suffix="/ night"
             className="text-[1.5rem] font-bold leading-none tracking-tight text-[var(--nf-content-primary)]"
-            secondaryClassName="text-[0.54em] font-semibold opacity-60"
+            secondaryClassName="text-[length:max(0.54em,0.75rem)] font-semibold opacity-60"
           />
         </p>
 

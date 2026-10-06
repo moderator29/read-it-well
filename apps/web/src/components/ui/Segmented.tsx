@@ -323,7 +323,7 @@ export function Segmented<T extends string>({
               {o.label}
             </span>
             {typeof o.count === "number" ? (
-              <span className="nf-numeric text-[length:max(0.75em,0.6875rem)] opacity-70">{o.count}</span>
+              <span className="nf-numeric text-[length:max(0.75em,0.75rem)] opacity-70">{o.count}</span>
             ) : null}
           </button>
         );

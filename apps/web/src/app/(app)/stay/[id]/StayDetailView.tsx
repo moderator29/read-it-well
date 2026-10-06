@@ -308,7 +308,7 @@ export function StayDetailView({
                   <Amount
                     minorUnits={from}
                     locale={locale}
-                    secondaryClassName="text-[0.6em] font-semibold opacity-70"
+                    secondaryClassName="text-[length:max(0.6em,0.75rem)] font-semibold opacity-70"
                   />
                 </span>
               }

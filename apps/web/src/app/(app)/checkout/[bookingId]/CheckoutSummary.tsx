@@ -108,7 +108,7 @@ export function CheckoutSummary({
             showFraction
             suffix={paid ? undefined : c.inFull}
             className="text-[clamp(2.5rem,10vw,3.75rem)] font-bold leading-none tracking-[-0.03em] text-[var(--nf-content-primary)]"
-            secondaryClassName="text-[0.34em] font-bold text-[var(--nf-content-muted)]"
+            secondaryClassName="text-[length:max(0.34em,0.75rem)] font-bold text-[var(--nf-content-muted)]"
           />
         </p>
         {cancelLine && (

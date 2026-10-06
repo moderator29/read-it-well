@@ -84,7 +84,7 @@ export function ListingMini({
               glance
               suffix={listing.suffix}
               className="nf-numeric"
-              secondaryClassName="text-[max(0.7em,0.6875rem)] font-semibold opacity-70"
+              secondaryClassName="text-[length:max(0.7em,0.75rem)] font-semibold opacity-70"
             />
           </span>
         </div>

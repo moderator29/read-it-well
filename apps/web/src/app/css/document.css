@@ -299,7 +299,7 @@
   /* Kobo beside a naira figure: the same ink, half the size, so the whole
      reads first and the exact tail is still there to check. */
   .nf-doc__kobo {
-    font-size: 0.5em;
+    font-size: max(0.5em, 0.75rem); /* never under 12px */
     font-weight: 600;
     color: var(--nf-content-muted);
   }

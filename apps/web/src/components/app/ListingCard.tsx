@@ -579,7 +579,7 @@ export function ListingCard({
                 locale={locale}
                 currency={listing.currency}
                 glance
-                secondaryClassName={fractionClass(price.minor, "text-[0.6em] font-semibold opacity-70")}
+                secondaryClassName={fractionClass(price.minor, "text-[length:max(0.6em,0.75rem)] font-semibold opacity-70")}
               />
               {suffix && <span className="nf-pcard__price-suffix">{suffix}</span>}
             </p>
@@ -614,7 +614,7 @@ export function ListingCard({
                     locale={locale}
                     currency={listing.currency}
                     glance
-                    secondaryClassName={fractionClass(price.minor, "text-[0.6em] font-semibold opacity-70")}
+                    secondaryClassName={fractionClass(price.minor, "text-[length:max(0.6em,0.75rem)] font-semibold opacity-70")}
                   />
                 </CountUpMoney>
                 <span className="nf-pcard__price-suffix">{copy.moveIn}</span>
