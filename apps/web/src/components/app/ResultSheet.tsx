@@ -317,7 +317,7 @@ export function ResultSheet(props: ResultSheetProps) {
             a reader who sees no hue at all still gets the same answer. */}
         <p
           role={state === "failed" ? "alert" : undefined}
-          className="nf-h2 mt-block max-w-[18ch] font-extrabold tracking-[-0.02em] [text-wrap:balance]"
+          className="nf-h2 mt-block max-w-[18ch] font-bold tracking-[-0.02em] [text-wrap:balance]"
           style={{
             color: state === "failed" ? "var(--nf-result-ink)" : "var(--nf-content-primary)",
           }}
@@ -328,7 +328,7 @@ export function ResultSheet(props: ResultSheetProps) {
         {fact && (
           <div className="mt-row">
             {fact.amountMinor !== undefined && (
-              <p className="nf-numeric text-[clamp(2rem,9vw,2.75rem)] font-extrabold leading-none tracking-[-0.03em] text-[var(--nf-content-primary)]">
+              <p className="nf-numeric text-[clamp(2rem,9vw,2.75rem)] font-bold leading-none tracking-[-0.03em] text-[var(--nf-content-primary)]">
                 <Amount
                   minorUnits={fact.amountMinor}
                   locale={locale}
@@ -485,7 +485,7 @@ export function ResultScreen({
       */}
       <p
         role={bad ? "alert" : undefined}
-        className="nf-h2 mt-block max-w-[18ch] font-extrabold tracking-[-0.02em] [text-wrap:balance]"
+        className="nf-h2 mt-block max-w-[18ch] font-bold tracking-[-0.02em] [text-wrap:balance]"
         style={{ color: bad ? "var(--nf-result-ink)" : "var(--nf-content-primary)" }}
       >
         {verdict}
