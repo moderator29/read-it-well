@@ -228,7 +228,10 @@ export function TicketThreadView({
             });
             const divider = (i: number) =>
               starts[i] ? (
-                <li role="none">
+                /* A plain item: role="none" on an <li> left the <ol> with a
+                   child that is not a list item (axe "list"), and the day
+                   heading is worth hearing between messages anyway. */
+                <li>
                   <DayDivider label={dayHeading(instants[i]!, locale, words.thread.day, now)} />
                 </li>
               ) : null;

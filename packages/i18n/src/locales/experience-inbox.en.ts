@@ -248,6 +248,38 @@ export const experienceInboxEn = {
 
   /* --------------------------------------------------------------- support */
   support: {
+    /**
+     * The three member support routes' own page words (`/support/messages`,
+     * `/support/messages/[id]`, `/support/new`), moved out of the pages in the
+     * Round 3 sweep (C3). The forms' and the thread's words are still in their
+     * components.
+     */
+    pages: {
+      listMeta: "Support messages",
+      listTitle: "Messages",
+      listSub: "Your support conversations",
+      listSignedOutTitle: "Sign in to see your conversations",
+      listSignedOutBody: "Tickets you file while signed in, and every reply from the team, are kept here.",
+      signIn: "Sign in",
+      helpCentre: "Open the help centre",
+      listUnreadableTitle: "Your conversations could not be loaded",
+      listUnreadableBody: "Nothing is lost. Check your connection and try again.",
+      contactInstead: "Use the contact form instead",
+      listEmptyTitle: "No support conversations yet",
+      listEmptyBody: "When you write to the team while signed in, the ticket and every reply appear here. A ticket filed while signed out is answered by email instead.",
+      writeToSupport: "Write to support",
+      ticketTitle: "Support conversation",
+      ticketSignedOutTitle: "Sign in to read this conversation",
+      ticketSignedOutBody: "Support conversations are kept on your account, so only you can open them.",
+      ticketUnreadableTitle: "This conversation could not be loaded",
+      ticketUnreadableBody: "Nothing is lost: every message is kept on your ticket. Check your connection and try again.",
+      backToMessages: "Back to messages",
+      reportProblem: "Report a problem",
+      newSignedOutTitle: "Sign in to write to support",
+      newSignedOutBody: "Signed in, your message and every reply are kept on your account. You can also use the contact form without an account.",
+      contactForm: "Use the contact form",
+      newSub: "A person reads every message",
+    },
     palette: {
       heading: "Search for help",
       placeholder: "Refunds, inspections, verification",
