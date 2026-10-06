@@ -1,0 +1,1150 @@
+/*
+ * The ported component library: DragToConfirm, Unfold, SlidePagination,
+ * LiveIsland, InnerNav, BatchTray, the illustrated action sheet, ParticleDelete,
+ * BookCallButton and AIResponse.
+ *
+ * Not part of globals.css (B1 owns that file, and these are not on every
+ * page). Each component imports this sheet itself, the way MapCanvas imports
+ * map.css; the build dedupes it, so a page that draws three of them pays once.
+ *
+ * Spec: docs/design/COMPONENT_LIBRARY.md, written for a different design
+ * system and ported here to Vallo's. The rules this file keeps:
+ *
+ *   - every colour is a --nf-* token, in both themes, by the token alone;
+ *   - radii: 14 for controls, 18 for cards, 26 to 32 for islands, and 999
+ *     only for a segmented track, a segment's indicator and a circle;
+ *   - motion splits as D34 and D39 say. GESTURE-DRIVEN, interruptible or
+ *     size-changing motion is framer-motion in the component (the drag in
+ *     DragToConfirm, the pull in InnerNav, the sliding indicator, the tray's
+ *     grip, the island morph, the accordion panel), so no transform or
+ *     transition for those lives here. KNOWN-TRACK motion is CSS and lives
+ *     here, on the named curves (`land` is --nf-ease-entrance, `leave` is
+ *     --nf-ease-exit, `glide` is --nf-ease-standard, `drift` is
+ *     --nf-ease-spring): the chevrons, the call capsule, the thinking
+ *     skeleton, the particle keyframe. Transform and opacity only, except
+ *     where a panel or an island changes SIZE, which is framer-motion's
+ *     height or width on a spring (the same compromise `.nf-disclosure` in
+ *     list-group.css makes, so every disclosure opens alike);
+ *   - reduced motion: the duration tokens collapse to 1ms (tokens.css) and the
+ *     blocks below also switch transitions and entrances off outright, so the
+ *     result does not depend on that alone. Data saver drops every blur;
+ *   - focus is always visible, and every target is at least 44px.
+ */
+@layer components {
+
+  /* ===================================================== DRAG TO CONFIRM */
+
+  /*
+   * The track is a control (radius 14, the knob the inner 10), laid out so the
+   * knob's travel is `track width - 2 * 4px - 48px`. DragToConfirm.tsx mirrors
+   * those three numbers (PAD, HANDLE) in script; change them together.
+   *
+   * The gesture itself is framer-motion's: one motion value for the handle's
+   * offset, with the fill and the label derived from it (DragToConfirm.tsx).
+   */
+  .nf-dtc {
+    --nf-dtc-fill: var(--nf-gradient-cta);
+    --nf-dtc-on-fill: var(--nf-content-on-brand);
+    position: relative;
+    display: block;
+    box-sizing: border-box;
+    inline-size: 100%;
+    block-size: calc(3.5rem + 2 * var(--nf-border-width));
+    overflow: hidden;
+    border-radius: var(--nf-radius-control);
+    border: var(--nf-border-width) solid var(--nf-act-track-off-edge);
+    background: var(--nf-act-track-off);
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .nf-dtc[data-tone="danger"] {
+    --nf-dtc-fill: var(--nf-state-error);
+    /* White on the night rose is too faint; the canvas ink flips with the
+       theme and holds contrast against the rose in both. */
+    --nf-dtc-on-fill: var(--nf-surface-primary);
+  }
+
+  /* The fill, the label and the handle are positioned by framer-motion motion
+     values (DragToConfirm.tsx): no transform and no transition is written here,
+     because a CSS transition on top of a motion value would fight it. */
+  .nf-dtc__fill {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: var(--nf-dtc-fill);
+  }
+
+  .nf-dtc__label {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding-inline: 4rem 1rem;
+    text-align: center;
+    text-wrap: balance;
+    overflow-wrap: anywhere;
+    pointer-events: none;
+    font-family: var(--nf-font-sans);
+    font-size: var(--nf-text-row);
+    font-weight: 500;
+    line-height: 1.2;
+    color: var(--nf-content-secondary);
+  }
+  /* Confirming and confirmed: the track is wholly filled, the handle rests at
+     the end, and the words sit on the fill, clear of the handle. */
+  .nf-dtc__label--status {
+    padding-inline: 1rem 4rem;
+    color: var(--nf-dtc-on-fill);
+  }
+  .nf-dtc[data-failed] .nf-dtc__label:not(.nf-dtc__label--status) {
+    color: var(--nf-state-error);
+  }
+
+  .nf-dtc__handle {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0.25rem;
+    margin-block: auto;
+    inline-size: 3rem;
+    block-size: 3rem;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    border-radius: var(--nf-radius-sm);
+    background: var(--nf-act-knob);
+    color: var(--nf-act-ink);
+    box-shadow: var(--nf-elev-2);
+    cursor: grab;
+    /* The handle is dragged by a thumb: the browser must not scroll the page
+       out from under it. */
+    touch-action: none;
+  }
+  .nf-dtc__handle:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    /* Inside the handle: the track clips anything drawn outside a 4px margin. */
+    outline-offset: -3px;
+  }
+  .nf-dtc[data-state="dragging"] .nf-dtc__handle {
+    cursor: grabbing;
+  }
+  .nf-dtc[data-state="confirming"] .nf-dtc__handle,
+  .nf-dtc[data-state="confirmed"] .nf-dtc__handle {
+    cursor: default;
+  }
+  .nf-dtc[data-state="confirmed"] .nf-dtc__handle {
+    color: var(--nf-state-success);
+  }
+  .nf-dtc[data-disabled] {
+    opacity: 0.55;
+  }
+  .nf-dtc[data-disabled] .nf-dtc__handle {
+    cursor: not-allowed;
+  }
+
+  /* ================================================================ UNFOLD */
+
+  /* A Card (radius 18) with one hairline edge. Dividers between items are
+     internal rules, not a second edge. */
+  .nf-unfold {
+    overflow: hidden;
+    border-radius: var(--nf-radius-card);
+    border: var(--nf-border-width) solid var(--nf-card-border);
+    background: var(--nf-surface-elevated);
+  }
+  .nf-unfold__item + .nf-unfold__item {
+    border-block-start: var(--nf-border-width) solid var(--nf-divider);
+  }
+  .nf-unfold__heading {
+    margin: 0;
+    font: inherit;
+  }
+  .nf-unfold__trigger {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    inline-size: 100%;
+    min-block-size: 3.5rem;
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    border: 0;
+    background: none;
+    text-align: start;
+    cursor: pointer;
+    color: var(--nf-content-primary);
+    font-family: var(--nf-font-sans);
+    font-size: var(--nf-text-row);
+    font-weight: 500;
+    line-height: var(--nf-leading-row);
+  }
+  .nf-unfold__trigger:disabled {
+    cursor: not-allowed;
+    color: var(--nf-content-muted);
+  }
+  .nf-unfold__trigger:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: -2px;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .nf-unfold__trigger:hover:not(:disabled) {
+      background: var(--nf-surface-secondary);
+    }
+  }
+  .nf-unfold__glyph {
+    flex-shrink: 0;
+    color: var(--nf-content-muted);
+  }
+  .nf-unfold__text {
+    flex: 1 1 auto;
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
+  }
+  .nf-unfold__title {
+    display: block;
+  }
+  .nf-unfold__hint {
+    display: block;
+    margin-block-start: var(--nf-space-3xs);
+    font-size: var(--nf-text-caption);
+    font-weight: 400;
+    color: var(--nf-content-muted);
+  }
+  .nf-unfold__chevron {
+    flex-shrink: 0;
+    color: var(--nf-content-muted);
+    transition: transform var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  .nf-unfold__item[data-open] .nf-unfold__chevron {
+    transform: rotate(180deg);
+  }
+
+  /* The panel's height and the content's lift are framer-motion's (Unfold.tsx);
+     only the clip and the type live here. */
+  .nf-unfold__panel {
+    overflow: hidden;
+  }
+  .nf-unfold__content {
+    padding: 0 var(--nf-space-md) var(--nf-space-md);
+    color: var(--nf-content-secondary);
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+  }
+
+  /* ========================================================= SLIDE PAGINATION */
+
+  /* Desktop tables only: on a phone the list scrolls and this has no place. */
+  .nf-slidepag {
+    display: none;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    max-inline-size: 100%;
+  }
+  @media (min-width: 48rem) {
+    .nf-slidepag {
+      display: inline-flex;
+    }
+  }
+
+  /* The segmented track, with the lit segment travelling inside it. The track
+     is a Card radius (18) wrapping 14 segments at a 4px inset, so the corners
+     stay concentric. D2 names segments as a place a pill is allowed, but
+     check-css-tokens rule 10 ("a capsule on a control") is stricter and still
+     enforced: every segment that carries text is a radius-14 rectangle, so
+     that is what ships. */
+  .nf-slidepag__track {
+    position: relative;
+    display: flex;
+    margin: 0;
+    padding: var(--nf-space-2xs);
+    list-style: none;
+    border-radius: var(--nf-radius-card);
+    border: var(--nf-border-width) solid var(--nf-border-subtle);
+    background: var(--nf-surface-inset);
+  }
+  /* One indicator, one size: every slot is 44px wide, so it only ever moves,
+     and its x is framer-motion's (SlidePagination.tsx), measured from the
+     track's padding edge, which already includes the 4px padding. */
+  .nf-slidepag__thumb {
+    position: absolute;
+    inset-block-start: var(--nf-space-2xs);
+    inset-inline-start: 0;
+    z-index: 0;
+    inline-size: 2.75rem;
+    block-size: 2.75rem;
+    border-radius: var(--nf-radius-control);
+    background: var(--nf-gradient-cta);
+  }
+  .nf-slidepag__slot {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    inline-size: 2.75rem;
+    block-size: 2.75rem;
+  }
+  .nf-slidepag__gap {
+    color: var(--nf-content-muted);
+    font-size: var(--nf-text-row);
+  }
+  .nf-slidepag__page {
+    inline-size: 100%;
+    block-size: 100%;
+    padding: 0;
+    border: 0;
+    border-radius: var(--nf-radius-control);
+    background: none;
+    cursor: pointer;
+    color: var(--nf-content-secondary);
+    font-family: var(--nf-font-sans);
+    font-size: var(--nf-text-row);
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    transition: color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-slidepag__page[aria-current="page"] {
+    color: var(--nf-content-on-brand);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .nf-slidepag__page:hover:not([aria-current="page"]) {
+      color: var(--nf-content-primary);
+    }
+  }
+  .nf-slidepag__page:focus-visible,
+  .nf-slidepag__step:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: var(--nf-focus-ring-offset);
+  }
+  /* Previous and next are circular icon controls. */
+  .nf-slidepag__step {
+    display: grid;
+    place-items: center;
+    inline-size: 2.75rem;
+    block-size: 2.75rem;
+    padding: 0;
+    border-radius: var(--nf-radius-circle);
+    border: var(--nf-border-width) solid var(--nf-elev-2-border);
+    box-shadow: var(--nf-elev-2);
+    background: var(--nf-surface-elevated);
+    color: var(--nf-content-primary);
+    cursor: pointer;
+  }
+  .nf-slidepag__step:disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
+  }
+
+  /* ============================================================ LIVE ISLAND */
+
+  /*
+   * A fixed Island: the sheet's glass panel, radius 32, one hairline edge, the
+   * sheet's lift (rung 3). It deliberately omits the panel glow, because the
+   * view's one glow belongs to its primary and an island that persists across
+   * screens must not add a second.
+   *
+   * It never covers the dock. Top placement sits below the header; bottom
+   * placement uses the dock clearance the toast host uses.
+   */
+  .nf-live {
+    --nf-live-top: calc(env(safe-area-inset-top, 0px) + var(--nf-header-height-sm) + var(--nf-space-xs));
+    position: fixed;
+    inset-inline: 0;
+    inset-block-start: var(--nf-live-top);
+    margin-inline: auto;
+    z-index: var(--nf-z-overlay);
+    /* The first paint's width. LiveIsland.tsx then morphs it between the two
+       sizes on a spring (the same two formulas, in px). */
+    inline-size: min(18rem, calc(100% - 2rem));
+    box-sizing: border-box;
+    border-radius: var(--nf-radius-2xl);
+    background: var(--nf-panel-fill);
+    -webkit-backdrop-filter: blur(var(--nf-panel-blur));
+    backdrop-filter: blur(var(--nf-panel-blur));
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    box-shadow: var(--nf-panel-rim), var(--nf-elev-3);
+    color: var(--nf-content-primary);
+    animation: nf-live-in var(--nf-duration-slow) var(--nf-ease-entrance) both;
+  }
+  @media (min-width: 64rem) {
+    .nf-live {
+      --nf-live-top: calc(var(--nf-header-height) + var(--nf-space-xs));
+    }
+  }
+  .nf-live[data-placement="bottom"] {
+    inset-block-start: auto;
+    inset-block-end: calc(env(safe-area-inset-bottom, 0px) + 1rem);
+    --nf-live-from: 0.75rem;
+  }
+  :root:has(.nf-main--docked) .nf-live[data-placement="bottom"] {
+    inset-block-end: calc(var(--nf-tabbar-clearance) + 0.25rem);
+  }
+  @media (min-width: 64rem) {
+    :root:has(.nf-main--docked) .nf-live[data-placement="bottom"],
+    .nf-live[data-placement="bottom"] {
+      inset-block-end: 1.5rem;
+    }
+  }
+  .nf-live[data-open] {
+    inline-size: min(26rem, calc(100% - 2rem));
+  }
+  @keyframes nf-live-in {
+    from {
+      opacity: 0;
+      transform: translateY(var(--nf-live-from, -0.75rem));
+    }
+  }
+
+  .nf-live__head {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    min-block-size: 3.5rem;
+    padding: var(--nf-space-sm);
+  }
+  .nf-live__text {
+    flex: 1 1 auto;
+    min-inline-size: 0;
+  }
+  .nf-live__title,
+  .nf-live__detail {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+  .nf-live__title {
+    font-family: var(--nf-font-sans);
+    font-size: var(--nf-text-row);
+    font-weight: 600;
+    line-height: var(--nf-leading-row);
+  }
+  .nf-live__detail {
+    margin-block-start: var(--nf-space-3xs);
+    font-size: var(--nf-text-caption);
+    line-height: 1.4;
+    color: var(--nf-content-secondary);
+  }
+  .nf-live__toggle {
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    inline-size: 2.75rem;
+    block-size: 2.75rem;
+    padding: 0;
+    border: 0;
+    border-radius: var(--nf-radius-circle);
+    background: none;
+    color: var(--nf-content-secondary);
+    cursor: pointer;
+  }
+  .nf-live__toggle:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: -2px;
+  }
+  .nf-live__chevron {
+    transition: transform var(--nf-duration-base) var(--nf-ease-spring);
+  }
+  .nf-live[data-open] .nf-live__chevron {
+    transform: rotate(180deg);
+  }
+
+  /* The panel's height and opacity are framer-motion's (LiveIsland.tsx). */
+  .nf-live__panel {
+    overflow: hidden;
+  }
+  .nf-live__body {
+    display: grid;
+    /* minmax(0, 1fr): the one column may not grow past the island, whatever a
+       locale's longest action label wants. */
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--nf-space-sm);
+    padding: 0 var(--nf-space-md) var(--nf-space-md);
+  }
+
+  /* The action wraps rather than overflowing: Hausa and Yoruba labels run long. */
+  .nf-live .nf-btn {
+    white-space: normal;
+    text-align: center;
+    block-size: auto;
+    min-block-size: 2.75rem;
+  }
+
+  /* Determinate only: a bar that is told a fraction. Transform only. */
+  .nf-live__bar {
+    overflow: hidden;
+    block-size: 0.25rem;
+    border-radius: var(--nf-radius-xs);
+    background: var(--nf-border-default);
+  }
+  .nf-live__fill {
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+    background: var(--nf-gradient-cta);
+    transform-origin: left center;
+    transform: scaleX(var(--nf-live-p, 0));
+    transition: transform var(--nf-duration-base) var(--nf-ease-standard);
+  }
+
+  .nf-live__steps {
+    display: grid;
+    gap: var(--nf-space-xs);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .nf-live__step {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-muted);
+  }
+  .nf-live__step[data-state="done"] {
+    color: var(--nf-content-secondary);
+  }
+  .nf-live__step[data-state="current"] {
+    color: var(--nf-content-primary);
+    font-weight: 500;
+  }
+  .nf-live__mark {
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
+    border-radius: var(--nf-radius-circle);
+    border: var(--nf-border-width-strong) solid var(--nf-border-strong);
+  }
+  /* A step's state is the mark's SHAPE as well as its colour: an empty ring,
+     a ring with a core, a filled disc with a tick. Nothing here rotates. */
+  .nf-live__step[data-state="current"] .nf-live__mark {
+    border-color: var(--nf-brand-primary);
+  }
+  .nf-live__step[data-state="current"] .nf-live__mark::after {
+    content: "";
+    inline-size: 0.5rem;
+    block-size: 0.5rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-brand-primary);
+  }
+  .nf-live__step[data-state="done"] .nf-live__mark {
+    border-color: var(--nf-state-success);
+    background: var(--nf-state-success);
+    color: var(--nf-surface-primary);
+    animation: nf-live-tick var(--nf-duration-base) var(--nf-ease-entrance) both;
+  }
+  @keyframes nf-live-tick {
+    from {
+      opacity: 0.4;
+    }
+  }
+  .nf-live__step-label {
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
+  }
+  .nf-live__meta {
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ============================================================== INNER NAV */
+
+  /*
+   * The pull is framer-motion's (InnerNav.tsx): one motion value for how open
+   * the panel is, with the panel's opacity, lift, scale and visibility and the
+   * two glyphs all derived from it. No transform, opacity or transition on
+   * those is written here; a CSS transition would fight the motion value.
+   */
+  .nf-innernav {
+    position: relative;
+    display: inline-block;
+  }
+  .nf-innernav__bar {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+  }
+  .nf-innernav__toggle {
+    position: relative;
+    display: grid;
+    place-items: center;
+    inline-size: 2.75rem;
+    block-size: 2.75rem;
+    padding: 0;
+    /* A circular icon control. */
+    border-radius: var(--nf-radius-circle);
+    border: var(--nf-border-width) solid var(--nf-elev-2-border);
+    box-shadow: var(--nf-elev-2);
+    background: var(--nf-surface-elevated);
+    color: var(--nf-content-primary);
+    cursor: grab;
+    touch-action: none;
+  }
+  .nf-innernav__toggle:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: var(--nf-focus-ring-offset);
+  }
+  .nf-innernav__glyph {
+    grid-area: 1 / 1;
+    display: grid;
+    place-items: center;
+  }
+  .nf-innernav__current {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h4);
+    font-weight: 600;
+    letter-spacing: var(--nf-tracking-tight);
+    color: var(--nf-content-primary);
+    overflow-wrap: anywhere;
+  }
+
+  /* The panel: the sheet's glass at radius 32, one hairline, brighter on the
+     leading side (the edge light). Hidden until opened or being pulled. */
+  .nf-innernav__panel {
+    position: absolute;
+    inset-block-start: calc(100% + var(--nf-space-xs));
+    inset-inline-start: 0;
+    z-index: var(--nf-z-overlay);
+    box-sizing: border-box;
+    inline-size: min(20rem, calc(100vw - 2rem));
+    padding: var(--nf-space-xs);
+    border-radius: var(--nf-radius-2xl);
+    background: var(--nf-panel-fill);
+    -webkit-backdrop-filter: blur(var(--nf-panel-blur));
+    backdrop-filter: blur(var(--nf-panel-blur));
+    border: var(--nf-border-width) solid var(--nf-container-edge);
+    border-inline-start-color: var(--nf-container-edge-lit);
+    box-shadow: var(--nf-panel-rim), var(--nf-elev-3);
+    transform-origin: top left;
+  }
+  .nf-innernav[data-pulling] .nf-innernav__toggle {
+    cursor: grabbing;
+  }
+
+  .nf-innernav__list {
+    display: grid;
+    gap: var(--nf-space-3xs);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .nf-innernav__item {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    inline-size: 100%;
+    min-block-size: 2.75rem;
+    padding: var(--nf-space-xs) var(--nf-space-sm);
+    /* A Plate: radius 14. */
+    border-radius: var(--nf-radius-md);
+    border: 0;
+    background: none;
+    color: var(--nf-content-secondary);
+    font-family: var(--nf-font-sans);
+    font-size: var(--nf-text-row);
+    font-weight: 500;
+    text-align: start;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .nf-innernav__item[aria-current] {
+    background: var(--nf-brand-tint-2);
+    color: var(--nf-content-primary);
+  }
+  .nf-innernav__item[aria-current] .nf-innernav__icon {
+    color: var(--nf-plate-brand-ink);
+  }
+  .nf-innernav__item:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: -2px;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .nf-innernav__item:hover:not([aria-current]) {
+      background: var(--nf-brand-tint-1);
+      color: var(--nf-content-primary);
+    }
+  }
+  .nf-innernav__icon {
+    flex-shrink: 0;
+  }
+  .nf-innernav__label {
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
+  }
+
+  /* ============================================================ BATCH TRAY */
+
+  /* The wrapper only positions: fixed, centred, clear of the dock. Its rise and
+     exit are framer-motion's (BatchTray.tsx). The visible tray is the surface
+     inside it, which is also what the grip drags. */
+  .nf-batch {
+    position: fixed;
+    inset-inline: 0;
+    inset-block-end: calc(env(safe-area-inset-bottom, 0px) + 1rem);
+    margin-inline: auto;
+    z-index: var(--nf-z-overlay);
+    box-sizing: border-box;
+    inline-size: min(40rem, calc(100% - 2rem));
+  }
+  :root:has(.nf-main--docked) .nf-batch {
+    inset-block-end: calc(var(--nf-tabbar-clearance) + 0.25rem);
+  }
+  @media (min-width: 64rem) {
+    :root:has(.nf-main--docked) .nf-batch,
+    .nf-batch {
+      inset-block-end: 1.5rem;
+    }
+  }
+  .nf-batch__surface {
+    border-radius: var(--nf-radius-2xl);
+    background: var(--nf-panel-fill);
+    -webkit-backdrop-filter: blur(var(--nf-panel-blur));
+    backdrop-filter: blur(var(--nf-panel-blur));
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    box-shadow: var(--nf-panel-rim), var(--nf-elev-3);
+    color: var(--nf-content-primary);
+  }
+  .nf-batch__grip {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    block-size: 1.5rem;
+    cursor: grab;
+    touch-action: none;
+  }
+  .nf-batch__grip::before {
+    content: "";
+    inline-size: 2.25rem;
+    block-size: 0.25rem;
+    /* A 4px grip bar carrying no text: the same exception `.nf-sheet__grip`
+       documents for the pill radius. */
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-content-muted);
+    opacity: 0.5;
+  }
+  .nf-batch[data-dragging] .nf-batch__grip {
+    cursor: grabbing;
+  }
+  .nf-batch__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    padding: 0 var(--nf-space-sm) var(--nf-space-sm);
+  }
+  /* The count may wrap onto its own line (a long locale sentence), and the
+     actions then take the next; the clear control stays on the end. */
+  .nf-batch__count {
+    flex: 1 1 8rem;
+    min-inline-size: 0;
+    margin: 0;
+    overflow-wrap: anywhere;
+    font-family: var(--nf-font-sans);
+    font-size: var(--nf-text-row);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-content-primary);
+  }
+  /* Many actions scroll sideways inside the tray rather than wrapping it into
+     a second row; the vertical padding keeps focus rings from being clipped. */
+  .nf-batch__actions {
+    flex: 1 1 12rem;
+    min-inline-size: 0;
+    display: flex;
+    gap: var(--nf-space-xs);
+    overflow-x: auto;
+    padding-block: var(--nf-space-2xs);
+    scrollbar-width: none;
+    scroll-snap-type: x proximity;
+  }
+  .nf-batch__actions::-webkit-scrollbar {
+    display: none;
+  }
+  .nf-batch__actions > * {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+  }
+
+  /* ================================================ ILLUSTRATED ACTION SHEET */
+
+  /* Everything about being a sheet is Sheet's. These rules dress what is inside:
+     the clay object on a soft radial ground, the title, one line, hairline
+     rows, one quiet dismiss (north star 15.2). */
+  .nf-asi__head {
+    display: grid;
+    justify-items: center;
+    gap: var(--nf-space-xs);
+    padding-block-end: var(--nf-space-md);
+    text-align: center;
+  }
+  .nf-asi__ground {
+    display: grid;
+    place-items: center;
+    inline-size: 100%;
+    block-size: 9.5rem;
+    background: radial-gradient(ellipse 40% 50% at 50% 50%, var(--nf-brand-tint-3), transparent);
+  }
+  .nf-asi__title,
+  .nf-asi__body {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+  .nf-asi__title {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h3);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: var(--nf-tracking-display-sm);
+    color: var(--nf-content-primary);
+  }
+  .nf-asi__body {
+    max-inline-size: 28rem;
+    font-size: var(--nf-text-body);
+    line-height: 1.55;
+    color: var(--nf-content-secondary);
+  }
+  .nf-asi__rows {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-block-start: var(--nf-border-width) solid var(--nf-divider);
+  }
+  .nf-asi__li + .nf-asi__li {
+    border-block-start: var(--nf-border-width) solid var(--nf-divider);
+  }
+  .nf-asi__row {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-md);
+    inline-size: 100%;
+    min-block-size: 3.5rem;
+    padding: var(--nf-space-xs) var(--nf-space-2xs);
+    border: 0;
+    border-radius: var(--nf-radius-md);
+    background: none;
+    text-align: start;
+    text-decoration: none;
+    cursor: pointer;
+    color: var(--nf-content-primary);
+  }
+  .nf-asi__row:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: -2px;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .nf-asi__row:hover {
+      background: var(--nf-brand-tint-1);
+    }
+  }
+  .nf-asi__text {
+    flex: 1 1 auto;
+    min-inline-size: 0;
+  }
+  .nf-asi__label {
+    display: block;
+    font-family: var(--nf-font-sans);
+    font-size: var(--nf-text-row);
+    font-weight: 500;
+    line-height: var(--nf-leading-row);
+    overflow-wrap: anywhere;
+  }
+  .nf-asi__row[data-danger] .nf-asi__label {
+    color: var(--nf-state-error);
+  }
+  .nf-asi__hint {
+    display: block;
+    margin-block-start: var(--nf-space-3xs);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+    overflow-wrap: anywhere;
+  }
+  .nf-asi__chevron {
+    flex-shrink: 0;
+    color: var(--nf-content-muted);
+  }
+  .nf-asi__dismiss {
+    padding-block-start: var(--nf-space-sm);
+  }
+
+  /* ================================================================ PARTICLES */
+
+  /*
+   * The dissolve layer (particle-delete.ts): a fixed, click-through layer laid
+   * over the element being removed, holding a grid of small squares. Each piece
+   * runs one keyframe, a translate with a shrink and a fade: transform and
+   * opacity only. Direction, distance, delay and duration are inline custom
+   * properties from a seeded generator, so a run is reproducible.
+   */
+  .nf-particles {
+    position: fixed;
+    z-index: var(--nf-z-toast);
+    pointer-events: none;
+    contain: layout;
+  }
+  .nf-particle {
+    position: absolute;
+    border-radius: var(--nf-radius-xs);
+    opacity: 0.85;
+    animation-name: nf-particle;
+    animation-timing-function: var(--nf-ease-exit);
+    animation-fill-mode: both;
+  }
+  .nf-particle--0 {
+    background: var(--nf-brand-tint-4);
+  }
+  .nf-particle--1 {
+    background: var(--nf-content-muted);
+  }
+  .nf-particle--2 {
+    background: var(--nf-border-strong);
+  }
+  @keyframes nf-particle {
+    to {
+      opacity: 0;
+      transform: translate(var(--nf-dx), var(--nf-dy)) scale(0.2);
+    }
+  }
+
+  /* ============================================================ BOOK A CALL */
+
+  /*
+   * Marketing only. A pill at Island radius (32 on a 64px height is a full
+   * capsule, with no 999 anywhere) holding a brand capsule that widens on hover,
+   * focus and press. The widening is a clip-path inset: paint only, no layout.
+   */
+  .nf-callcap {
+    position: relative;
+    display: block;
+    box-sizing: border-box;
+    inline-size: min(100%, 18rem);
+    block-size: 4rem;
+    padding: 0;
+    overflow: hidden;
+    cursor: pointer;
+    text-align: start;
+    text-decoration: none;
+    border-radius: var(--nf-radius-2xl);
+    /* The lit blue outline every resting control carries, not a grey hairline. */
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
+    box-shadow: var(--nf-glow-edge);
+    background: var(--nf-surface-raised);
+    color: var(--nf-content-primary);
+  }
+  .nf-callcap:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: var(--nf-focus-ring-offset);
+  }
+  .nf-callcap__capsule {
+    position: absolute;
+    inset: 0.375rem;
+    background: var(--nf-gradient-cta);
+    border-radius: var(--nf-radius-2xl);
+    clip-path: inset(0 64% 0 0 round var(--nf-radius-2xl));
+    transition: clip-path var(--nf-duration-slow) var(--nf-ease-spring);
+  }
+  .nf-callcap__rest {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    transition:
+      opacity var(--nf-duration-base) var(--nf-ease-standard),
+      transform var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  /* The leading 36% is the capsule, and carries the arrow. */
+  .nf-callcap__lead {
+    display: grid;
+    place-items: center;
+    flex: 0 0 36%;
+    block-size: 100%;
+    color: var(--nf-content-on-brand);
+  }
+  .nf-callcap__label {
+    min-inline-size: 0;
+    padding-inline-end: var(--nf-space-sm);
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-body-lg);
+    font-weight: 500;
+    line-height: 1.15;
+    letter-spacing: var(--nf-tracking-tight);
+    overflow-wrap: anywhere;
+  }
+  .nf-callcap__call {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: var(--nf-content-on-brand);
+    opacity: 0;
+    transform: scale(0.5) rotate(-8deg);
+    transition:
+      opacity var(--nf-duration-base) var(--nf-ease-standard),
+      transform var(--nf-duration-slow) var(--nf-ease-spring);
+  }
+  .nf-callcap:focus-visible .nf-callcap__capsule,
+  .nf-callcap:active .nf-callcap__capsule {
+    clip-path: inset(0 0 0 0 round var(--nf-radius-2xl));
+  }
+  .nf-callcap:focus-visible .nf-callcap__rest,
+  .nf-callcap:active .nf-callcap__rest {
+    opacity: 0;
+    transform: translateX(1.125rem);
+  }
+  .nf-callcap:focus-visible .nf-callcap__call,
+  .nf-callcap:active .nf-callcap__call {
+    opacity: 1;
+    transform: none;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .nf-callcap:hover .nf-callcap__capsule {
+      clip-path: inset(0 0 0 0 round var(--nf-radius-2xl));
+    }
+    .nf-callcap:hover .nf-callcap__rest {
+      opacity: 0;
+      transform: translateX(1.125rem);
+    }
+    .nf-callcap:hover .nf-callcap__call {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* ============================================================== AI RESPONSE */
+
+  /* A Card (18) with one hairline. */
+  .nf-ai {
+    display: grid;
+    /* One column that may not outgrow the card, whatever a locale's longest
+       action label wants. */
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-md);
+    border-radius: var(--nf-radius-card);
+    border: var(--nf-border-width) solid var(--nf-card-border);
+    background: var(--nf-surface-elevated);
+    color: var(--nf-content-primary);
+  }
+  .nf-ai__head {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+  }
+  .nf-ai__who {
+    flex: 1 1 auto;
+    min-inline-size: 0;
+    margin: 0;
+    font-family: var(--nf-font-sans);
+    font-size: var(--nf-text-row);
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+  .nf-ai__body {
+    font-size: var(--nf-text-body);
+    line-height: 1.55;
+    color: var(--nf-content-primary);
+    overflow-wrap: anywhere;
+    /* The skeleton gives way to the first words: a 160ms crossfade. */
+    animation: nf-ai-in var(--nf-duration-fast) var(--nf-ease-standard) both;
+  }
+  @keyframes nf-ai-in {
+    from {
+      opacity: 0;
+    }
+  }
+  /* A still caret: only the thinking state may loop. */
+  .nf-ai__caret {
+    display: inline-block;
+    inline-size: 0.125rem;
+    block-size: 1.1em;
+    margin-inline-start: 0.125rem;
+    vertical-align: text-bottom;
+    background: var(--nf-brand-primary);
+  }
+  /* The thinking state, and the ONE loop in this component: three shaped lines
+     breathing. Opacity only. */
+  .nf-ai__skeleton {
+    display: grid;
+    gap: var(--nf-space-xs);
+    padding-block: var(--nf-space-2xs);
+  }
+  .nf-ai__skeleton > span {
+    display: block;
+    block-size: 0.75rem;
+    border-radius: var(--nf-radius-xs);
+    background: var(--nf-border-default);
+    animation: nf-ai-breathe 1600ms var(--nf-ease-standard) infinite;
+  }
+  .nf-ai__skeleton > span:nth-child(1) {
+    inline-size: 92%;
+  }
+  .nf-ai__skeleton > span:nth-child(2) {
+    inline-size: 78%;
+    animation-delay: 160ms;
+  }
+  .nf-ai__skeleton > span:nth-child(3) {
+    inline-size: 56%;
+    animation-delay: 320ms;
+  }
+  @keyframes nf-ai-breathe {
+    0%,
+    100% {
+      opacity: 0.45;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+  .nf-ai__error {
+    margin: 0;
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-state-error);
+    overflow-wrap: anywhere;
+  }
+  .nf-ai__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--nf-space-xs);
+  }
+  /* Labels wrap rather than overflow: Hausa and Yoruba run long. */
+  .nf-ai .nf-btn {
+    max-inline-size: 100%;
+    white-space: normal;
+    text-align: center;
+    block-size: auto;
+    min-block-size: 2.75rem;
+  }
+
+  /* ============================================ DATA SAVER, REDUCED MOTION */
+
+  /* Data saver: real blur is the costliest thing here, so every surface that
+     uses it falls back to its own opaque fill. */
+  :root[data-save-data="on"] .nf-live,
+  :root[data-save-data="on"] .nf-innernav__panel,
+  :root[data-save-data="on"] .nf-batch__surface {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  /* Reduced motion collapses every transition and entrance here to nothing.
+     The drag still tracks the finger: that is direct manipulation. */
+  @media (prefers-reduced-motion: reduce) {
+    .nf-unfold__chevron,
+    .nf-slidepag__page,
+    .nf-live,
+    .nf-live__chevron,
+    .nf-live__fill,
+    .nf-live__mark,
+    .nf-callcap__capsule,
+    .nf-callcap__rest,
+    .nf-callcap__call,
+    .nf-ai__body,
+    .nf-particle {
+      transition: none;
+      animation: none;
+    }
+    /* The thinking state is still a skeleton, only not a moving one. */
+    .nf-ai__skeleton > span {
+      animation: none;
+      opacity: 0.7;
+    }
+  }
+}
