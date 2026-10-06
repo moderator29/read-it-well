@@ -55,11 +55,18 @@ import { DetailsHost } from "@/components/ui/DetailsHost";
  * sign's own 1.2 KB face, `inter-naira` (V-78), is not preloaded either: the
  * stylesheet fetches it the first time a price is drawn, so English no longer
  * pulls the 85 KB latin-ext file for one glyph.
+ *
+ * THE HEADING FACE IS POPPINS 600 NOW, NOT 700 (C6, R3-18 round 2). The three
+ * weights pass made headings 600, and measured on the eight signed-out routes
+ * the first screen draws Poppins 600 on six of them and Poppins 700 on two
+ * (the plate head of /move-in-cost and /for-agents). Preloading 700 fetched
+ * an 8 KB face six pages never painted, while the 600 they did paint waited
+ * for the stylesheet. The files live under /fonts/v2/ (fonts.css says why).
  */
 const PRELOADED_FONTS: Record<string, readonly string[]> = {
   yo: ["inter-latin", "inter-vietnamese"],
   ig: ["inter-latin", "inter-vietnamese"],
-  default: ["inter-latin", "poppins-700-latin"],
+  default: ["inter-latin", "poppins-600-latin"],
 };
 
 const baseMetadata: Metadata = {
@@ -322,7 +329,7 @@ export default async function RootLayout({
             rel="preload"
             as="font"
             type="font/woff2"
-            href={`/fonts/${name}.woff2`}
+            href={`/fonts/v2/${name}.woff2`}
             crossOrigin="anonymous"
           />
         ))}
