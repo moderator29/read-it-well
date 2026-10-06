@@ -434,7 +434,7 @@ export const REWARDS_QUALIFY =
   "Each referral that qualifies adds {reward} to your Rewards Balance, for up to {cap} qualified referrals a month. Signing up alone does not qualify: the person must confirm their phone number and use Vallo for real.";
 
 /** Stated before anybody starts earning. `{minimum}` is formatted money. */
-export const REWARDS_WITHDRAW_MINIMUM = "You can withdraw once your available balance reaches {minimum}.";
+export const REWARDS_WITHDRAW_MINIMUM = "You can withdraw once your Rewards Balance reaches {minimum}.";
 
 /** On the withdraw screen, before anything is prepared. */
 export const REWARDS_FEE_SHOWN_FIRST =

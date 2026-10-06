@@ -48,8 +48,8 @@ export const dynamic = "force-dynamic";
  * that came back to their card or bank account.
  *
  * A RECORD, NOT AN ACCOUNT. Vallo never holds anybody's money: when somebody
- * pays, Paystack splits the charge in the same transaction, the lister's share
- * to the lister's bank, the Guarantee contribution to its reserve. So there is
+ * pays, Paystack splits the charge in the same transaction: the lister's share
+ * to the lister's bank and any platform fee to Vallo. So there is
  * nothing on this screen to top up, spend or withdraw, and the figure at the
  * top is the sum of what was paid, said as that. Every row is read from
  * `my_payments_history` under the person's own session, at the moment of

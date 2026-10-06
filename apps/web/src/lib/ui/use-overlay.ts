@@ -47,6 +47,8 @@ let lockCount = 0;
 /** The body's own inline styles before the first lock, put back by the last release. */
 let restore: Partial<Record<LockedStyle, string>> = {};
 let restoreScrollY = 0;
+/** The address the first lock was taken on: the scroll is put back only on the same page. */
+let restoreHref = "";
 
 const LOCKED_STYLES = ["overflow", "position", "top", "left", "right", "width", "paddingRight"] as const;
 type LockedStyle = (typeof LOCKED_STYLES)[number];
@@ -62,10 +64,11 @@ type LockedStyle = (typeof LOCKED_STYLES)[number];
  * the top. Where the page had a classic scrollbar, its width is padded back
  * so the content does not shift sideways when it disappears.
  */
-function lockBody(): () => void {
+export function lockBody(): () => void {
   if (lockCount === 0) {
     const body = document.body;
     restoreScrollY = window.scrollY;
+    restoreHref = window.location.href;
     restore = Object.fromEntries(LOCKED_STYLES.map((name) => [name, body.style[name]]));
     const scrollbar = window.innerWidth - document.documentElement.clientWidth;
     body.style.overflow = "hidden";
@@ -85,7 +88,10 @@ function lockBody(): () => void {
     if (lockCount > 0) return;
     const body = document.body;
     for (const name of LOCKED_STYLES) body.style[name] = restore[name] ?? "";
-    window.scrollTo(0, restoreScrollY);
+    /* Only on the page it was taken from (A9). A sheet closed by a link
+       inside it releases after the route has changed, and scrolling the new
+       page to the old page's position dropped the person mid-page. */
+    if (window.location.href === restoreHref) window.scrollTo(0, restoreScrollY);
   };
 }
 
