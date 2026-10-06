@@ -1,0 +1,170 @@
+/**
+ * Mobile rows 23 and 24 (49.04 to 54.23), storyboard v3.2, on the mist.
+ *   23  "Going out" in navy, "tonight?" in electric (round 5), centred on
+ *       the frame's axis in the electric ring; it holds 1.25 s, then lifts
+ *       and fades as the phone rises.
+ *   24  restaurant-light at the left (cx 400), its notice readable; on
+ *       "reserve" the Table for 2 card arrives with its Example chip on the
+ *       mist at the right, off the page; it holds to 53.56 and flies off by
+ *       53.90; the phone turns away as the chapter ends.
+ */
+import { LAYOUT } from "./layout.js";
+import { NAVY, INK2, ELECTRIC, ramp, mix, screenPage, showDuring, glassCard, iconPlate, exampleChip, measure, ringOut } from "./b-kit.js";
+
+const SVGNS = "http://www.w3.org/2000/svg";
+const svgEl = (tag, attrs, parent) => {
+  const n = document.createElementNS(SVGNS, tag);
+  for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, String(v));
+  if (parent) parent.appendChild(n);
+  return n;
+};
+
+/**
+ * The row 23 title, shared by both films: "Going out" (navy) over
+ * "tonight?" (the photo), in a ring, pushed through the "o" of "tonight?".
+ */
+export function goingTitle(ctx, layer, T, { id, CX, CY, R, maxSize, feather, tPush }) {
+  const { tl } = ctx;
+  const PH = { w: 1448 * 1.3, h: 1086 * 1.3 };
+  const svg = svgEl("svg", { width: ctx.W, height: ctx.H, viewBox: `0 0 ${ctx.W} ${ctx.H}`, style: "position:absolute;left:0;top:0;overflow:visible" }, layer);
+  const defs = svgEl("defs", {}, svg);
+  /* the letters of "tonight?" are the windows */
+  const mask = svgEl("mask", { id: `${id}-letters`, maskUnits: "userSpaceOnUse", x: 0, y: 0, width: ctx.W, height: ctx.H }, defs);
+  svgEl("rect", { x: 0, y: 0, width: ctx.W, height: ctx.H, fill: "black" }, mask);
+  const gMask = svgEl("g", {}, mask);
+  /* the photo's edges feathered, so its rectangle never shows as the letters grow */
+  const fx = feather.x / PH.w;
+  const fy = feather.y / PH.h;
+  const lgV = svgEl("linearGradient", { id: `${id}-fv`, x1: 0, y1: 0, x2: 0, y2: 1 }, defs);
+  [[0, 0], [fy, 1], [1 - fy, 1], [1, 0]].forEach(([o, a]) => svgEl("stop", { offset: o, "stop-color": "white", "stop-opacity": a }, lgV));
+  const lgH = svgEl("linearGradient", { id: `${id}-fh`, x1: 0, y1: 0, x2: 1, y2: 0 }, defs);
+  [[0, 0], [fx, 1], [1 - fx, 1], [1, 0]].forEach(([o, a]) => svgEl("stop", { offset: o, "stop-color": "white", "stop-opacity": a }, lgH));
+  const px = CX - PH.w / 2;
+  const py = CY - PH.h / 2;
+  const fMask = svgEl("mask", { id: `${id}-feather`, maskUnits: "userSpaceOnUse", x: px, y: py, width: PH.w, height: PH.h }, defs);
+  const fMaskIn = svgEl("mask", { id: `${id}-featherH`, maskUnits: "userSpaceOnUse", x: px, y: py, width: PH.w, height: PH.h }, defs);
+  svgEl("rect", { x: px, y: py, width: PH.w, height: PH.h, fill: `url(#${id}-fh)` }, fMaskIn);
+  svgEl("rect", { x: px, y: py, width: PH.w, height: PH.h, fill: `url(#${id}-fv)`, ...(fx > 0 ? { mask: `url(#${id}-featherH)` } : {}) }, fMask);
+  const shown = svgEl("g", { mask: `url(#${id}-letters)` }, svg);
+  const photoG = svgEl("g", { mask: `url(#${id}-feather)` }, shown);
+  /* round 5: "tonight?" in electric (the photo fill read brown at this size) */
+  const lgE = svgEl("linearGradient", { id: `${id}-el`, x1: 0, y1: 0, x2: 1, y2: 1 }, defs);
+  [[0, "#3d8bff"], [0.55, ELECTRIC], [1, "#0050d0"]].forEach(([o, c]) => svgEl("stop", { offset: o, "stop-color": c }, lgE));
+  svgEl("rect", { x: px, y: py, width: PH.w, height: PH.h, fill: `url(#${id}-el)` }, photoG);
+  /* "Going out" in navy, live */
+  const gNavy = svgEl("g", {}, svg);
+  const mk = (parent, text, fill) => {
+    const n = svgEl("text", { x: 0, y: 0, fill, "font-family": "Poppins", "font-weight": 800, "letter-spacing": "-0.035em", opacity: 0 }, parent);
+    n.textContent = text;
+    return n;
+  };
+  const words = [
+    /* round 4: the three words land close together, so the title is complete by 49.35 and holds 1.25 s */
+    { node: mk(gNavy, "Going", NAVY), t: T.going - 0.04, line: 0 },
+    { node: mk(gNavy, "out", NAVY), t: T.going - 0.01, line: 0 },
+    { node: mk(gMask, "tonight?", "white"), t: T.going + 0.02, line: 1 },
+  ];
+  let L = null;
+  const doLayout = () => {
+    const w100 = (s) => measure(s, "800 100px Poppins");
+    const wide = Math.max(w100("Going out"), w100("tonight?")) / 100;
+    let size = maxSize;
+    while (Math.hypot((wide * size) / 2, 0.99 * size) > R - 34) size -= 1;
+    const font = `800 ${size}px Poppins`;
+    const sp = measure("Going out", font) - measure("Going", font) - measure("out", font);
+    const w1 = measure("Going out", font);
+    const w2 = measure("tonight?", font);
+    const base1 = CY - 0.25 * size;
+    const base2 = base1 + size;
+    const pos = [[CX - w1 / 2, base1], [CX - w1 / 2 + measure("Going", font) + sp, base1], [CX - w2 / 2, base2]];
+    words.forEach((w, i) => {
+      w.node.setAttribute("font-size", size.toFixed(1));
+      w.node.setAttribute("x", pos[i][0].toFixed(1));
+      w.node.setAttribute("y", pos[i][1].toFixed(1));
+    });
+    /* the counter of the "o" in "tonight?" */
+    const tW = measure("t", font);
+    const toW = measure("to", font);
+    L = { o: { x: pos[2][0] + tW + (toW - tW) / 2 - size * 0.02, y: base2 - 0.28 * size } };
+  };
+  /* no iris (it led nowhere): the title holds, then lifts a little and fades as the device rises under it */
+  const tEnd = tPush + 0.15;
+  ctx.onFrame((t) => {
+    if (t < T.r23 - 0.05 || t > tEnd + 0.05) return;
+    if (!L) doLayout();
+    words.forEach((w) => {
+      const k = ramp(ctx, t, w.t - 0.04, w.t + 0.3, "land");
+      w.node.setAttribute("opacity", Math.min(1, k * 1.6).toFixed(3));
+      w.node.setAttribute("transform", `translate(0 ${((1 - k) * 50).toFixed(2)})`);
+    });
+    const p = ramp(ctx, t, tPush, tEnd, "power2.in");
+    /* round 5: a 2% drift while the complete title holds, so it is never still */
+    const s = (1 + 0.02 * ramp(ctx, t, T.going + 0.32, tPush, "none")) * (1 + 0.1 * p);
+    const tr = `translate(${CX} ${CY}) scale(${s.toFixed(4)}) translate(${-CX} ${(-CY + 40 * p).toFixed(2)})`;
+    gMask.setAttribute("transform", tr);
+    gNavy.setAttribute("transform", tr);
+    svg.style.opacity = (1 - p).toFixed(3);
+  });
+  showDuring(ctx, svg, [[T.r23 - 0.05, tEnd]]);
+  /* the ring: electric, round the words, its particles outside it */
+  const ringWrap = ctx.el("div", { class: "fill" }, layer);
+  layer.insertBefore(ringWrap, svg);
+  ringOut(ctx, ringWrap, { cx: CX, cy: CY, r: R, t: T.going - 0.06, dots: 8, seed: 23, stroke: 4, dur: 0.38 });
+  ringWrap.style.transformOrigin = `${CX}px ${CY}px`;
+  tl.fromTo(ringWrap, { opacity: 1, scale: 1 }, { opacity: 0, scale: 1.1, duration: 0.15, ease: "power2.in", immediateRender: false }, tPush);
+  tl.fromTo(ringWrap, { rotation: 0 }, { rotation: 6 * (tPush + 0.15 - T.going), duration: tPush + 0.15 - T.going, ease: "none", immediateRender: false }, T.going); // its particles turn at 6 deg/s
+  showDuring(ctx, ringWrap, [[T.going - 0.08, tPush + 0.15]]);
+  return { tEnd };
+}
+
+export async function goingOut(ctx, S, T) {
+  const L = LAYOUT.mobile;
+
+  /* ==================== row 23 ==================== */
+  const layer = ctx.scene("b-m-going", T.r23 - 0.05, T.r24 + 0.3, { z: 30 });
+  ctx.sfx("whoosh_short", T.r23, { offset: -2 });
+  const tPush = 50.6;              // round 4: complete from 49.35, held 1.25 s
+  goingTitle(ctx, layer, T, { id: "b-m-going", CX: ctx.W / 2, CY: 780, R: 400, maxSize: 170, feather: { x: 0, y: 240 }, tPush });
+
+  /* ==================== row 24 ==================== */
+  const pL = S.pL;
+  const HIGH = { cx: L.PHONE_HIGH.cx, cy: L.PHONE_HIGH.cy, height: L.PHONE_HIGH.height };
+  const tRise = 50.55;             // rises under the title's fade (50.60-50.75)
+  const tOff = ctx.beat(93.36);    // 53.86
+  const tTurn = ctx.beat(93.43);   // 53.90
+  const pose = S.pLpose;
+  /* round 5: at the left (cx 400), so "Table for 2" lands on the mist beside it, never on a page whose notice
+     says no such property is available */
+  const SIDE = { ...HIGH, cx: 400 };
+  pose.to(tRise - 0.01, 0.001, { ...SIDE, cy: 2600, rx: 0, ry: 0, opacity: 1 }, "none");
+  pose.to(tRise, 0.58, SIDE, "glide");                                             // rises under the title
+  pose.to(tRise + 0.6, tTurn - tRise - 0.6, { cy: HIGH.cy - 12 }, "drift");        // a slow rise while the card holds
+  pose.to(tTurn, 0.33, { cx: 200, ry: -64, opacity: 0 }, "power2.in");            // turns away as the chapter ends
+  const page = screenPage(ctx, pL, ctx.src.display("restaurant-light"));
+  showDuring(ctx, page.el, [[tRise - 0.02, T.r25 + 0.1]]);
+
+  /* The table card: a body on the mist right of the phone (x 720-1040), off the restaurant page. */
+  const cards = ctx.scene("b-m-table", T.r24, T.r25 + 0.1, { z: 20 });
+  const CWd = 320;
+  const X = 720;
+  const Y = 560;
+  const card = glassCard(ctx, cards, { w: CWd, radius: 28, shadow: "l", style: { display: "flex", flexDirection: "column", gap: "12px", padding: "22px 22px 20px", visibility: "hidden" } });
+  const top = ctx.el("div", { style: { display: "flex", alignItems: "center", gap: "14px" } }, card);
+  iconPlate(ctx, top, "utensils", { size: 52 });
+  ctx.el("div", { text: "Table for 2", style: { font: "600 31px/1.05 Poppins, Inter, sans-serif", letterSpacing: "-0.025em", color: NAVY, whiteSpace: "nowrap" } }, top);
+  ctx.el("div", { html: "Tonight, 8:00 PM<br>Harbour Lights Kitchen", style: { font: "500 22px/1.36 Inter, sans-serif", color: INK2, whiteSpace: "nowrap" } }, card);
+  exampleChip(ctx, ctx.el("div", {}, card), { size: 17 });
+  const tIn = T.reserve;
+  ctx.sfx("pop", tIn);
+  showDuring(ctx, card, [[tIn, tOff + 0.04]]);
+  ctx.onFrame((t) => {
+    if (t < tIn || t > tOff + 0.05) return;
+    const k = ramp(ctx, t, tIn, tIn + 0.45, "back.out(1.4)");
+    /* round 4: fully out of frame by 53.90, no sliver on the edge as the chips begin */
+    const off = ramp(ctx, t, tOff - 0.3, tOff + 0.04, "power3.in");
+    const x = mix(ctx.W + 40, X, k) + off * 980;
+    const y = Y - off * 760;
+    card.style.transform = `translate(${x.toFixed(2)}px, ${y.toFixed(2)}px) rotate(${(mix(6, 0, k) + off * 16).toFixed(2)}deg)`;
+    card.style.opacity = String((1 - off * 0.3).toFixed(3));
+  });
+}

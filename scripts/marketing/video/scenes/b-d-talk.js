@@ -1,0 +1,359 @@
+/**
+ * Desktop rows 14 to 19 (30.58 to 42.69), storyboard v3.1.
+ *   D14  d-thread-lt at WINDOW_LEFT: the villa card lands on the thread's
+ *        Maitama card; "owner", "landlord", "agent" land in RIGHT_PANEL; a
+ *        2.5x push onto the composer.
+ *   D15  the composer, echoed large at the bottom of RIGHT_PANEL, types the
+ *        member's real message; the pointer clicks send; the bubble flies
+ *        into the thread.
+ *   D16  d-listing-share-lt: a 2.5x push onto "Send in a Vallo chat"; the
+ *        click; the Maitama villa (what the sheet shares) flies off; the
+ *        sheet closes onto the listing (d-listing-lt).
+ *   D17  the day card in RIGHT_PANEL turns to Saturday, 11:00 AM stamps.
+ *   D18  d-messages-lt at WINDOW_HERO: the day card docks as the unread dot;
+ *        the camera pushes toward the sidebar's FLIP "Switch to Stays".
+ *   D19  the click on "Planning": the window turns over to d-stays-lt as the
+ *        warm light blooms from the click; "Planning a trip?" lands in its
+ *        ring at the left, then shrinks into the pill ("Book a room").
+ */
+import { NAVY, ELECTRIC, SHADOW, ramp, kf, mix, showDuring, box, cropBody, quadDriver, rectQuad, lerpQuad, shiftQuad, pressAt, dayCard, measure, ringOut } from "./b-kit.js";
+import { CW, CH } from "./b-desktop.js";
+
+/* d-thread-lt (CSS px of the 1440 x 900 page); crops are in capture px (2880 wide). */
+const MAITAMA = { x: 942, y: 490, w: 398, h: 269 };
+const MAITAMA_CROP = { x: 1884, y: 980, w: 796, h: 538 };
+const BUBBLE = { x: 857, y: 764, w: 483, h: 59 };
+const BUBBLE_CROP = { x: 1714, y: 1528, w: 966, h: 118 };
+const TICK = { x: 1308.5, y: 800.5, w: 14, h: 11 }; // the tick only, clear of "02:42"
+/* d-listing-share-lt: the sheet and its "Send in a Vallo chat" row. */
+const SHEET = { x: 448, y: 617, w: 543, h: 283 };
+const SENDROW = { x: 474, y: 726, w: 492, h: 80 };
+const SENDCHEV = { x: 951, y: 765 };
+/* d-messages-lt: the unread dot; the sidebar's FLIP card and its chevron. */
+const DOT = { x: 458.6, y: 376.6 };
+const FLIP_C = { x: 131, y: 822 };
+const FLIP_CHEV = { x: 229, y: 820 };
+
+/* Section a's last frame on desktop (A -> B in handoffs.md). */
+const A_VILLA = { x: 1206, y: 330, w: 600, h: 405.5 };
+
+const MESSAGE = "I like these two as well. Could we view all three on Saturday morning?";
+
+export async function deskTalk(ctx, S, T) {
+  const { tl } = ctx;
+  const { L } = S;
+  const RP = L.RIGHT_PANEL;
+  const cam = S.camT;
+  const wvT = S.wvT;
+  const cards = S.cards;
+  const type = S.type;
+  const thread = ctx.src.capture("d-thread-lt");
+
+  /* ---------- the window's pages ---------- */
+  const tLandBubble = T.app + 0.4;
+  const tClose0 = T.chat + 0.11;             // 36.26: the sheet closes after the press on "chat"
+  const tClose1 = T.chat + 0.4;
+  const tBack = T.r18 + 0.05;                // 38.70: to the inbox, at the hero scale
+  const tClick = T.planning - 0.3;           // 41.24: pressed before the word, so the frame is clear as "Planning" rises
+  const tTurn0 = T.planning + 0.3;               // 41.84: the window turns over at TURN
+  S.tSwap = tTurn0 + 0.26;                   // 42.10: its back is d-stays-lt
+  const pThread = S.page("d-thread-lt", [[T.r14, T.share + 0.2]]);
+  const pShare = S.page("d-listing-share-lt", [[T.share, tClose1 + 0.1]]);
+  const pListing = S.page("d-listing-lt", [[tClose0, tBack + 0.5]]);
+  const pMsgs = S.page("d-messages-lt", [[tBack, S.tSwap]]);
+  S.pMsgs = pMsgs;
+  /* the member's bubble is not sent yet */
+  /* (clear of the Maitama card's shadow just above the bubble) */
+  const patch = box(ctx, pThread, { x: BUBBLE.x - 6, y: BUBBLE.y - 1, w: BUBBLE.w + 12, h: BUBBLE.h + 5, style: { background: "#f3f4f1" } });
+  showDuring(ctx, patch, [[0, tLandBubble]]); // at full opacity from the cut (section a covers it from 29.39)
+  const tick = box(ctx, pThread, { ...TICK, style: { background: "rgb(0 96 232)", borderRadius: "4px" } });
+  showDuring(ctx, tick, [[tLandBubble, T.r16 + 0.2]]);
+  tl.fromTo(tick, { scale: 1, opacity: 1 }, { scale: 0, opacity: 0, duration: 0.16, ease: "power2.in", immediateRender: false }, tLandBubble + 0.08);
+  /* the sheet: the page's backdrop with a notch where the sheet sits, and the sheet sliding up */
+  const shareImg = pShare.querySelector("img");
+  shareImg.style.clipPath = `polygon(0px 0px, ${CW}px 0px, ${CW}px ${CH}px, ${SHEET.x + SHEET.w}px ${CH}px, ${SHEET.x + SHEET.w}px ${SHEET.y}px, ${SHEET.x}px ${SHEET.y}px, ${SHEET.x}px ${CH}px, 0px ${CH}px)`;
+  const notch = box(ctx, pShare, { x: SHEET.x, y: SHEET.y, w: SHEET.w, h: SHEET.h, style: { background: "#9fa1a8" } });
+  pShare.insertBefore(notch, shareImg);
+  const sheet = ctx.img(ctx.src.capture("d-listing-share-lt"), { class: "abs", style: { left: "0px", top: "0px", width: `${CW}px`, height: `${CH}px`, clipPath: `inset(${SHEET.y}px ${CW - SHEET.x - SHEET.w}px 0px ${SHEET.x}px round 16px 16px 0px 0px)` } }, pShare);
+  const sheetY = (t) => kf(ctx, t, [[T.share, SHEET.h + 10], [T.share + 0.26, 0, "power3.out"], [tClose0, 0], [tClose1, SHEET.h + 10, "power2.in"]]);
+  const rowFlash = box(ctx, pShare, { ...SENDROW, style: { background: "rgb(0 105 254 / 0.1)", borderRadius: "12px", opacity: "0" } });
+  ctx.onFrame((t) => {
+    if (t < T.share || t > tClose1 + 0.1) return;
+    const y = sheetY(t);
+    sheet.style.transform = `translateY(${y.toFixed(2)}px)`;
+    rowFlash.style.transform = `translateY(${y.toFixed(2)}px)`;
+    pShare.style.opacity = String(ramp(ctx, t, T.share, T.share + 0.16, "power1.out").toFixed(3));
+  });
+  tl.fromTo(rowFlash, { opacity: 0 }, { opacity: 1, duration: 0.06, ease: "power1.out", immediateRender: false }, T.chat);
+  tl.fromTo(rowFlash, { opacity: 1 }, { opacity: 0, duration: 0.3, ease: "power1.in", immediateRender: false }, T.chat + 0.08);
+  /* the listing comes back unblurred as the sheet closes */
+  ctx.gsap.set(pListing, { opacity: 0 });
+  tl.fromTo(pListing, { opacity: 0 }, { opacity: 1, duration: 0.26, ease: "power1.inOut", immediateRender: false }, tClose0);
+
+  /* ==================== D14 ==================== */
+  /* round 4: the window eases from section a's hero (where it is at rest at the cut) to 0.85 of the frame
+     (x 60-1240) as the villa card lands, so the words and the echo have bare mist at the right; it returns to the
+     hero once the bubble has landed */
+  wvT.to(T.r14, 0.52, { cx: S.WIN85.cx, cy: S.WIN85.cy, s: S.WIN85.s }, "glide");
+  wvT.to(T.r14 + 0.52, tLandBubble - T.r14 - 0.5, { cx: S.WIN85.cx - 6, cy: S.WIN85.cy - 6, s: S.WIN85.s * 1.012 }, "drift");
+  wvT.to(tLandBubble + 0.04, 0.3, { cx: S.HERO.cx, cy: S.HERO.cy, s: S.HERO.s }, "power2.inOut");
+  const tLand = T.r14 + 0.27;               // round 5: 30.85, the flown card reaches its twin's rect and swaps on one frame
+  /* the thread's own Maitama card stays covered until the flown card lands on it: never two of it at once */
+  const twin = box(ctx, pThread, { x: MAITAMA.x - 8, y: MAITAMA.y - 8, w: MAITAMA.w + 16, h: MAITAMA.h + 12, style: { background: "#f3f4f1" } });
+  showDuring(ctx, twin, [[0, tLand]]);
+  const villa = cropBody(ctx, cards, { src: thread, crop: MAITAMA_CROP, iw: 2880, radius: 26, shadow: SHADOW.l, canvas: true });
+  quadDriver(ctx, villa, MAITAMA_CROP.w, MAITAMA_CROP.h, {
+    t0: T.r14, t1: tLand + 0.16,
+    quadAt: (t) => {
+      const k = ramp(ctx, t, T.r14, tLand, "glide");
+      const q = lerpQuad(rectQuad(A_VILLA), S.rectQuad(MAITAMA), k);
+      return shiftQuad(q, 0, -50 * Math.sin(Math.PI * k));
+    },
+    opacityAt: (t) => (t < tLand ? 1 : 0),
+  });
+  ctx.sfx("card_slide", ctx.beat(53.4)); // 30.81
+
+  /* Card 1: round 5, section a flies it out by 30.50 on desktop too, so nothing of it is left at the cut. */
+
+  /* round 4: owner, landlord, agent on bare mist at the right (x 1300-1860), baselines 420 / 600 / 780, 120 px */
+  const WX = 1300;
+  const words = [
+    { text: "owner", blue: true, t: T.owner, y: 420, k: 1, dx: 0 },
+    { text: "landlord", blue: false, t: T.landlord, y: 600, k: 1, dx: 0 },
+    { text: "agent", blue: false, t: T.agent, y: 780, k: 1, dx: 0 },
+  ].map((w) => {
+    const mask = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", overflow: "hidden", padding: "0.1em 0.06em 0.18em", visibility: "hidden" } }, type);
+    const el = ctx.el("div", { text: w.text, style: { font: "700 120px/1 Poppins, Inter, sans-serif", letterSpacing: "-0.035em", color: w.blue ? ELECTRIC : NAVY, whiteSpace: "nowrap" } }, mask);
+    return { ...w, mask, el };
+  });
+  let wSize = null;
+  const tFly = 33.85;                         // round 5: they fade out together over 33.85-34.00, before the echo
+  ctx.onFrame((t) => {
+    if (t < T.r14 || t > tFly + 0.4) {
+      words.forEach((w) => (w.mask.style.visibility = "hidden"));
+      return;
+    }
+    if (!wSize) {
+      wSize = Math.min(120, (556 / measure("landlord", "700 100px Poppins", "-0.035em")) * 100);
+      words.forEach((w) => (w.el.style.fontSize = `${(wSize * w.k).toFixed(1)}px`));
+    }
+    words.forEach((w, i) => {
+      const k = ramp(ctx, t, w.t - 0.06, w.t + 0.34, "land");
+      const out = ramp(ctx, t, tFly, tFly + 0.15, "power1.in");
+      const on = t >= w.t - 0.06 && out < 0.999;
+      w.mask.style.visibility = on ? "inherit" : "hidden";
+      if (!on) return;
+      w.el.style.transform = `translateY(${((1 - k) * 110).toFixed(2)}%)`;
+      w.mask.style.transform = `translate(${(WX - 0.06 * wSize + w.dx).toFixed(2)}px, ${(w.y - 0.95 * wSize + 30 * out - 8 * ramp(ctx, t, w.t + 0.34, tFly, "none")).toFixed(2)}px)`; // baseline at w.y, floating up 8 px while held
+      w.mask.style.opacity = (1 - out).toFixed(3);
+    });
+  });
+  words.forEach((w) => ctx.sfx("pop_low", w.t, { offset: -4 }));
+
+  /* (no push onto the empty composer: the echo in RIGHT_PANEL is the close-up) */
+
+  /* ==================== D15: the echo, in the words' column ==================== */
+  const EW = 560;
+  const echo = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${EW}px`, display: "flex", alignItems: "flex-end", gap: "12px", padding: "14px", borderRadius: "32px", background: "#f3f4f1", boxShadow: SHADOW.l, visibility: "hidden" } }, cards);
+  const eImg = ctx.el("div", { style: { flex: "none", width: "54px", height: "54px", borderRadius: "50%", background: "#fff", display: "grid", placeItems: "center", color: "#0066fe", boxShadow: "0 4px 12px -6px rgb(16 32 80 / 0.25)" } }, echo);
+  ctx.icon("image", { size: 25, stroke: 2 }, eImg);
+  const eField = ctx.el("div", { style: { flex: "1", minHeight: "54px", borderRadius: "20px", background: "#fff", padding: "12px 16px", font: "400 22px/30px Inter, sans-serif", color: NAVY, letterSpacing: "-0.01em", boxShadow: "0 4px 12px -8px rgb(16 32 80 / 0.2)" } }, echo);
+  const ePh = ctx.el("span", { text: "Type a message", style: { color: "#6b7280" } }, eField);
+  const eText = ctx.el("span", {}, eField);
+  /* a zero-width caret, so it never wraps to a line of its own */
+  const eCaret = ctx.el("span", { style: { display: "inline-block", width: "0px", height: "30px", verticalAlign: "-7px", position: "relative" } }, eField);
+  ctx.el("span", { style: { position: "absolute", left: "2px", top: "0px", width: "3px", height: "30px", background: ELECTRIC, borderRadius: "2px" } }, eCaret);
+  const eSend = ctx.el("div", { style: { flex: "none", width: "54px", height: "54px", borderRadius: "16px", background: "#0042a2", display: "grid", placeItems: "center", color: "rgb(210 225 255 / 0.85)" } }, echo);
+  ctx.icon("arrow-up-right", { size: 27, stroke: 2.2 }, eSend);
+  const tEcho = 34.0;                       // round 5: only once the words have gone
+  const tType0 = tEcho + 0.06;
+  const tType1 = T.app - 0.1;
+  const tSend = T.app;
+  const tEchoOut = tLandBubble + 0.02;
+  const ECHO_BOTTOM = 990; // in the words' column, under "agent"; the caption is centred and short, clear to its left
+  let eH = null;
+  showDuring(ctx, echo, [[tEcho, tEchoOut + 0.3]]);
+  ctx.onFrame((t) => {
+    if (t < tEcho || t > tEchoOut + 0.3) return;
+    const n = t < tType0 ? 0 : t >= tSend ? 0 : Math.round(MESSAGE.length * ramp(ctx, t, tType0, tType1, "power1.inOut"));
+    eText.textContent = MESSAGE.slice(0, n);
+    ePh.style.display = n > 0 || (t >= tType0 && t < tSend) ? "none" : "inline";
+    eCaret.style.visibility = t >= tType0 && t < tSend && (t < tType1 || Math.floor((t - tType1) * 4) % 2 === 0) ? "inherit" : "hidden";
+    eH = echo.offsetHeight;
+    const k = ramp(ctx, t, tEcho, tEcho + 0.4, "land");
+    const out = ramp(ctx, t, tEchoOut, tEchoOut + 0.28, "power2.in");
+    echo.style.transform = `translate(${WX}px, ${(ECHO_BOTTOM - eH + (1 - k) * 90 + out * 60).toFixed(2)}px)`;
+    echo.style.opacity = String((Math.min(1, k * 1.6) * (1 - out)).toFixed(3));
+  });
+  tl.fromTo(eSend, { scale: 1 }, { scale: 0.88, duration: 0.08, ease: "power2.out", immediateRender: false }, T.the7 - 0.02);
+  tl.fromTo(eSend, { scale: 0.88 }, { scale: 1, duration: 0.3, ease: "back.out(2.2)", immediateRender: false }, T.the7 + 0.07);
+  for (let k = 0; k < 8; k += 1) ctx.sfx(`type_key_${(k % 6) + 1}`, tType0 + ((tType1 - tType0) * k) / 7.4, { offset: -6 });
+
+  /* the bubble: from the echo's field into its place in the thread */
+  const bubble = cropBody(ctx, cards, { src: thread, crop: BUBBLE_CROP, iw: 2880, shadow: SHADOW.m });
+  bubble.style.borderRadius = "36px 36px 10px 36px";
+  box(ctx, bubble, { x: (TICK.x - BUBBLE.x) * 2, y: (TICK.y - BUBBLE.y) * 2, w: TICK.w * 2, h: TICK.h * 2, style: { background: "rgb(0 96 232)" } });
+  quadDriver(ctx, bubble, BUBBLE_CROP.w, BUBBLE_CROP.h, {
+    t0: tSend, t1: tLandBubble + 0.1,
+    quadAt: (t) => {
+      const r = eField.getBoundingClientRect();
+      const from = rectQuad({ x: r.x, y: r.y, w: r.width, h: r.height });
+      const k = ramp(ctx, t, tSend, tLandBubble, "glide");
+      return shiftQuad(lerpQuad(from, S.rectQuad(BUBBLE), k), 0, -50 * Math.sin(Math.PI * k));
+    },
+    opacityAt: (t) => ramp(ctx, t, tSend, tSend + 0.06) * (1 - ramp(ctx, t, tLandBubble, tLandBubble + 0.08)),
+  });
+  ctx.sfx("bubble_send", tSend);
+
+  /* ==================== D16: the share ==================== */
+  const heroWv0 = { ...S.wv, cx: S.HERO.cx, cy: S.HERO.cy, s: S.HERO.s };
+  const rowW = S.toStageAt(heroWv0, { s: 1, fx: 960, fy: 540, tx: 960, ty: 540 }, SENDROW.x + SENDROW.w / 2, SENDROW.y + SENDROW.h / 2);
+  /* 1.8 x the hero's 1.111 = 2.0: the capture's own pixels */
+  const PUSH16 = { s: 1.8, fx: rowW.x, fy: rowW.y, tx: 900, ty: 520 };
+  cam.to(T.share, 0.5, PUSH16, "power3.inOut"); // after the echo has gone; settled by 35.75
+  cam.to(T.chat + 0.15, 0.46, { s: 1, tx: rowW.x, ty: rowW.y }, "power2.inOut");
+  const chev = S.toStageAt(heroWv0, PUSH16, SENDCHEV.x, SENDCHEV.y);
+  ctx.hidePill(T.share, T.chat + 0.61);
+  const flyer = cropBody(ctx, cards, { src: thread, crop: MAITAMA_CROP, iw: 2880, radius: 26, shadow: SHADOW.l });
+  const tFly0 = T.chat + 0.08;
+  const tFly1 = T.chat + 0.55;
+  quadDriver(ctx, flyer, MAITAMA_CROP.w, MAITAMA_CROP.h, {
+    t0: tFly0, t1: tFly1,
+    quadAt: (t) => {
+      /* after the press, it rises from the top edge of the sheet and arcs away along the top: never over the sheet's text */
+      const k = ramp(ctx, t, tFly0, tFly1, "power2.in");
+      const up = ramp(ctx, t, tFly0, tFly0 + 0.3, "power3.out");
+      const w = mix(160, 320, up);
+      const x = mix(chev.x - 260, 2150, k) - w / 2;
+      const y = mix(mix(230, 130, up), -380, k) - (w * 0.676) / 2;
+      return rectQuad({ x, y, w, h: w * (MAITAMA_CROP.h / MAITAMA_CROP.w), rot: mix(-3, 10, k) });
+    },
+    opacityAt: (t) => ramp(ctx, t, tFly0, tFly0 + 0.06),
+  });
+  ctx.sfx("card_slide", tFly0, { offset: -2 });
+
+  /* ==================== D17: the day card in RIGHT_PANEL ==================== */
+  /* round 4: a low card docked over the photo's upper right (x 1300-1760, y 160-430), clear of the notice panel;
+     the window rises 90 px for rows 17-18 so "₦26,100,000" clears the caption */
+  wvT.to(T.r17 - 0.42, 0.4, { cy: S.HERO.cy - 90 }, "power2.inOut");
+  wvT.to(T.r17 - 0.02, tBack - T.r17 + 0.02, { cy: S.HERO.cy - 100, s: S.HERO.s * 1.008 }, "drift");
+  const DX = 1300;
+  const DY = 160;
+  const day = dayCard(ctx, cards, T, { X: DX, Y: DY, k: 1, layout: "land", chipAt: { x: DX + 230, y: DY + 135 }, tIn: T.r17 - 0.1, tOut0: T.r18, tOut1: T.r18 + 0.42 });
+  ctx.sfx("card_slide", ctx.beat(64.05), { offset: -2 }); // 36.95
+  ctx.sfx("stamp", T.inspection);
+
+  /* ==================== D18: the inbox, the dock, the push toward FLIP ==================== */
+  wvT.to(tBack, 0.5, { cx: S.HERO.cx, cy: S.HERO.cy, s: S.HERO.s }, "power2.inOut");
+  ctx.gsap.set(pMsgs, { opacity: 0 });
+  tl.fromTo(pMsgs, { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power1.inOut", immediateRender: false }, tBack);
+  const tDock = ctx.beat(68.3); // 39.40
+  const heroCam = { s: 1, fx: 960, fy: 540, tx: 960, ty: 540 };
+  const dotAt = S.toStageAt({ ...S.wv, cx: S.HERO.cx, cy: S.HERO.cy, s: S.HERO.s }, heroCam, DOT.x, DOT.y);
+  const chip = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: "100px", height: "100px", borderRadius: "30px", background: `linear-gradient(160deg, #3d8bff, ${ELECTRIC} 60%, #0050d0)`, display: "grid", placeItems: "center", color: "#fff", transformOrigin: "0 0", visibility: "hidden", boxShadow: SHADOW.s } }, cards);
+  const chipIcon = ctx.el("div", { style: { display: "grid", placeItems: "center" } }, chip);
+  ctx.icon("calendar-check", { size: 50, stroke: 2.2 }, chipIcon);
+  quadDriver(ctx, chip, 100, 100, {
+    t0: day.tOut1 - 0.02, t1: tDock + 0.04,
+    quadAt: (t) => {
+      const k = ramp(ctx, t, day.tOut1, tDock, "glide");
+      const size = mix(day.chipSize, 12, k);
+      const x = mix(day.chipAt.x, dotAt.x, k);
+      const y = mix(day.chipAt.y, dotAt.y, k) - 120 * Math.sin(Math.PI * k);
+      return rectQuad({ x: x - size / 2, y: y - size / 2, w: size, h: size });
+    },
+  });
+  ctx.onFrame((t) => {
+    if (t < day.tOut1 - 0.02 || t > tDock + 0.05) return;
+    chip.style.borderRadius = `${mix(30, 50, ramp(ctx, t, day.tOut1 + 0.1, tDock - 0.05, "power2.in")).toFixed(1)}px`;
+    chipIcon.style.opacity = String((1 - ramp(ctx, t, day.tOut1 + 0.1, day.tOut1 + 0.35)).toFixed(3));
+  });
+  /* (no ring at the dot: v3.1 keeps rings to rows 04, 19 and 23) */
+  ctx.sfx("pop", tDock, { offset: -2 });
+  /* the push toward FLIP */
+  const flipW = { x: S.HERO.cx + (FLIP_C.x - CW / 2) * S.HERO.s, y: S.HERO.cy + (56 + FLIP_C.y - (CH + 56) / 2) * S.HERO.s };
+  /* round 5: 1.25 x 1.111 = 1.39; FLIP low at x 700, the sidebar whole and the inbox list across the right, the mist at
+     the left where the title lands (at x 960 and 2x the page there is empty) */
+  const PUSH18 = { s: 1.25, fx: flipW.x, fy: flipW.y, tx: 700, ty: 900 }; // round 5: a wider push, so the inbox fills the right
+  /* never still: a slow push about the unread dot from 39.22, so the chip still docks on it exactly */
+  cam.to(tBack + 0.52, T.place + 0.18 - (tBack + 0.52), { s: 1.03, fx: dotAt.x, fy: dotAt.y, tx: dotAt.x, ty: dotAt.y }, "drift");
+  ctx.hidePill(T.place + 0.18, T.r19 + 0.02);
+  cam.to(T.place + 0.18, 0.66, PUSH18, "power2.inOut");
+
+  /* ==================== D19: the switch ==================== */
+  const heroWv = { ...S.wv, cx: S.HERO.cx, cy: S.HERO.cy, s: S.HERO.s };
+  const chevAt = S.toStageAt(heroWv, PUSH18, FLIP_CHEV.x, FLIP_CHEV.y);
+  ctx.sfx("whoosh_long", T.r19, { offset: -2 });
+  ctx.sfx("toggle_on", tClick, { offset: 0.5 }); // round 4: the bed check caps it at +0.5 dB
+  /* the camera pulls back as the window turns over to Stays and moves right, clear of the title */
+  cam.to(tClick + 0.04, 0.32, { s: 1, tx: flipW.x, ty: flipW.y }, "power2.inOut");   // back to 1x by 41.60
+  /* the side scale (as in D14, D16 and D26), at the right: clear of the title at the left */
+  const TURN = { cx: 1920 - 80 - (CW / 2) * S.LEFT.s, cy: S.LEFT.cy, s: S.LEFT.s };
+  wvT.to(tClick + 0.04, 0.26, TURN, "power2.inOut");                                  // at TURN by 41.54
+  wvT.to(tTurn0, 0.26, { ry: 90 }, "power2.in");                                        // the turn, in place, 41.84-42.36
+  wvT.to(S.tSwap, 0.001, { ry: -90 }, "none");
+  wvT.to(S.tSwap + 0.001, 0.26, { ry: 0 }, "power2.out");
+  const tHold = 43.15;                                                                   // held 1.25 s from 41.90 (round 4)
+  wvT.to(tHold + 0.04, 0.5, { cx: S.HERO.cx, cy: S.HERO.cy, s: S.HERO.s }, "glide");    // rises to the hero at 43.19-43.69
+
+  /* "Planning / a trip?" at the left, over the mist, in a ring that circles the words only */
+  const TC = { x: 350, y: 560 };
+  const RR = 300;
+  const title = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: "700px", textAlign: "center", fontFamily: "Poppins, Inter, sans-serif", fontWeight: "700", letterSpacing: "-0.035em", lineHeight: "1.06", color: NAVY, whiteSpace: "nowrap", visibility: "hidden" } }, type);
+  const l1 = ctx.el("div", {}, title);
+  const l2 = ctx.el("div", {}, title);
+  const wordEl = (parent, text, color, t, gap = false, dur = 0.34) => {
+    const mask = ctx.el("span", { style: { display: "inline-block", overflow: "hidden", verticalAlign: "top", padding: "0.06em 0.04em 0.39em", margin: "-0.06em -0.04em -0.39em", marginLeft: gap ? "0.22em" : "0" } }, parent);
+    const w = ctx.el("span", { text, style: { display: "inline-block", color } }, mask);
+    ctx.gsap.set(w, { yPercent: 118 });
+    tl.fromTo(w, { yPercent: 118 }, { yPercent: 0, duration: dur, ease: "land", immediateRender: false }, t);
+  };
+  wordEl(l1, "Planning", NAVY, T.planning);
+  /* the second line close behind: complete by 41.90 */
+  wordEl(l2, "a", NAVY, T.planning + 0.08, false, 0.28);
+  wordEl(l2, "trip?", ELECTRIC, T.planning + 0.1, true, 0.26);
+  let tSize = null;
+  const tShrink1 = tHold + 0.3;
+  showDuring(ctx, title, [[T.planning - 0.02, tShrink1 + 0.04]]);
+  ctx.onFrame((t) => {
+    if (t < T.planning - 0.02 || t > tShrink1 + 0.05) return;
+    if (!tSize) {
+      const wP = measure("Planning", "700 100px Poppins") / 100;
+      tSize = Math.min(120, 440 / wP);
+      while (Math.hypot((wP * tSize) / 2, 1.06 * tSize) > RR - 34) tSize -= 1;
+      title.style.fontSize = `${tSize.toFixed(1)}px`;
+    }
+    const k = ramp(ctx, t, tHold, tShrink1, "power3.inOut");
+    const cx = mix(TC.x, 960, k);
+    const cy = mix(TC.y, 66, k);
+    title.style.transformOrigin = "350px 50%";
+    title.style.transform = `translate(${(cx - 350).toFixed(2)}px, ${(cy - tSize * 1.06).toFixed(2)}px) scale(${mix(1, 0.2, k).toFixed(4)})`;
+    title.style.opacity = String((1 - ramp(ctx, t, tShrink1 - 0.06, tShrink1 + 0.02)).toFixed(3));
+  });
+  const ringWrap = ctx.el("div", { class: "fill" }, type);
+  ringOut(ctx, ringWrap, { cx: TC.x, cy: TC.y, r: RR, t: T.planning, dots: 8, seed: 19, stroke: 4, dur: 0.36 });
+  ringWrap.style.transformOrigin = `${TC.x}px ${TC.y}px`;
+  tl.fromTo(ringWrap, { opacity: 1, scale: 1 }, { opacity: 0, scale: 0.9, duration: 0.28, ease: "power2.in", immediateRender: false }, tHold - 0.04);
+  showDuring(ctx, ringWrap, [[T.planning, tHold + 0.26]]);
+  /* round 5: never still. The lines drift 2% while held; the ring's particles turn at 6 deg/s */
+  for (const ln of [l1, l2]) {
+    ctx.gsap.set(ln, { transformOrigin: "50% 50%" });
+    tl.fromTo(ln, { scale: 1 }, { scale: 1.02, duration: tHold - 41.9, ease: "none", immediateRender: false }, 41.9);
+  }
+  tl.fromTo(ringWrap, { rotation: 0 }, { rotation: 6 * (tHold + 0.26 - T.planning), duration: tHold + 0.26 - T.planning, ease: "none", immediateRender: false }, T.planning);
+
+  /* ==================== the pointer ==================== */
+  const o = S.orbT;
+  const sendAt = { x: WX + EW - 14 - 27, y: ECHO_BOTTOM - 14 - 27 };
+  o.to(T.right + 0.1, 0.14, { opacity: 1 }, "power1.out");
+  o.to(T.right + 0.1, 0.46, { x: sendAt.x + 14, y: sendAt.y + 12 }, "glide");
+  pressAt(ctx, S.orb, T.the7, { ringParent: S.pointer, x: sendAt.x, y: sendAt.y, sound: "tap" });
+  o.to(T.share + 0.05, 0.5, { x: chev.x + 16, y: chev.y + 12 }, "glide");     // there by 35.80
+  pressAt(ctx, S.orb, T.chat, { ringParent: S.pointer, x: chev.x, y: chev.y, sound: "tap" });
+  o.to(T.chat + 0.14, 0.4, { x: 1700, y: 860 }, "glide");
+  o.to(T.chat + 0.3, 0.2, { opacity: 0 }, "power1.in");
+  o.to(T.r19 - 0.4, 0.16, { opacity: 1 }, "power1.out");
+  o.to(T.r19 - 0.4, 0.6, { x: chevAt.x + 16, y: chevAt.y + 12 }, "glide");
+  pressAt(ctx, S.orb, tClick, { ringParent: S.pointer, x: chevAt.x, y: chevAt.y, sound: null });
+  o.to(tClick + 0.14, 0.34, { x: chevAt.x + 260, y: chevAt.y + 260, opacity: 0 }, "power2.in");
+}

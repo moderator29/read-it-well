@@ -804,6 +804,157 @@ committed and pushed as it is done, cleanly, without sessions conflicting.
 | **D1's per-surface theme lead** | **D28.1: the member's theme governs; Paper becomes a document treatment within it** |
 | Session 4's "needs from the founder first" on the live reserve subaccount | D38 |
 | Session 3's decision not to add framer-motion in this pass | D39 |
+| Session 1's own claim that the repository's status documents are reliable | D40 |
+| "CI green before every push" as written in D37 | D42 |
+
+---
+
+## D40. R1, the wrong-payer refund, is the first thing Session 2 does. Verified by Session 1
+
+Session 4 reported a probable wrong-payer refund. **Session 1 verified it on 6
+October and it is real.** This is the most serious defect anyone has found, it is
+ahead of everything else in Session 2's queue, and Session 4 was right not to touch
+it.
+
+**The defect.** `submitBookingRefund` (`apps/web/src/lib/payments/refund.ts:181`)
+selects the charge to refund with `booking_id`, `status = 'SUCCESSFUL'`,
+`order by created_at desc`, `limit 1`, and no payer filter. But V-86 made one
+successful charge per payer legitimate on a single booking: the unique index
+`transactions_one_share_success_per_payer`
+(`20260929004131_money_v86_flatmates_pay_their_own_shares_by_split.sql:90`) is on
+`(booking_id, share_payer_id) where status = 'SUCCESSFUL' and share_payer_id is not
+null`, replacing the older one-per-booking index precisely so several can exist.
+
+**Reachability, checked at every layer.** Both admin callers
+(`lib/admin/bookings-actions.ts:244` and `:399`) pass only a booking id and an
+amount. Neither knows a payer exists. Nothing between the desk and the query filters
+a booking with shares out. So an admin refunding a flatmate-split booking from the
+desk submits the refund against **whichever flatmate paid most recently**, and
+Paystack sends that person's card the money. It is silent: the refund row records
+the booking, the processor accepts it, and nothing compares the payer it paid
+against the payer it was for.
+
+**The codebase already knows the distinction**, which is what makes this an
+oversight rather than a design position. `lib/payments/attempt-rules.ts:152` filters
+on `share_payer_id`. `lib/tenancy/share-refunds.ts` and
+`lib/cron/jobs/rent-share-refunds.ts` refund a share correctly, keyed on
+`transaction_id` through `rent_share_refunds`. Only the **admin** path is blind.
+
+**Session 2 owns this.** Not Session 4, which was right to stop at money logic with
+no contract naming an owner, and not Session 3. Required: the admin path carries the
+payer, or refuses a booking that has share charges and routes the desk to the share
+refund path; both admin callers updated; a regression test with two successful
+charges on one booking proving the right card is refunded; and the double review pass
+D13 requires on a money change, both passes in the response file. **Do not close
+this by adding a guard that merely throws:** an admin refunding a flatmate booking is
+a thing that has to work, not a thing to forbid.
+
+## D41. The repository's own status documents overstate how blocked the project is. Measure, never quote
+
+Session 4 found nine false claims in the repository's status documents, all drifting
+the same way: describing the project as more blocked than it is. Verified examples.
+
+- **A signed iOS build already reached App Store Connect**, run `37103086939` on
+  3 October: both jobs green, all four Apple secrets present, the IPA exported with
+  `destination=upload`. Four documents here say the archive was never run and Apple
+  is blocked.
+- **`docs/store/FOUNDER_STEPS.md` told the founder to replace an Apple Team ID
+  placeholder that is already the real value** (`X74KD52994`, in both the
+  association file and `project.pbxproj`). It could have had him paying for an
+  enrolment he holds. Corrected 6 October; the Android fingerprints in the same step
+  are still genuinely outstanding.
+- **Two gates look green and measure nothing.** All fifteen weight budgets are
+  `null`, so the weight check cannot fail whatever ships. The desk accessibility scan
+  runs against `/preview/f5/*`, a harness, and not the real desks.
+
+**The rule, binding on every session.** A status document is a claim, not evidence.
+Before you build on one, treat it the way Session 4 treated the archive claim: read
+the run, the file or the index yourself. When a document and the code disagree,
+**the code is right and the document gets fixed in the same commit as the work**. A
+gate that cannot fail is worse than no gate, because it spends the credibility of a
+green tick, so a null budget or a harness-only scan is reported as a finding and
+not read as a pass.
+
+This cuts against Session 1 too. Four premises in Session 4's brief were wrong,
+including a 1.5 second startup sequence it was asked to verify on hardware that
+**no session has built yet** (`MOTION_SYSTEM.md` section 3 specifies it as work for
+Session 3, and the native splash currently has no duration at all), and an escrow
+rail it was asked to test that **does not exist today** (custody was retired on
+25 September; Payluk is the target, not the state). A handoff must separate what the
+repository does today from what the session is being asked to bring about, and
+Session 1's did not. Where a handoff names an acceptance criterion against something
+unbuilt, the criterion is deferred and said so plainly, not reported as a failure.
+
+## D42. CI does not run on a session branch. D37's "green CI before every push" was unachievable as written
+
+`.github/workflows/ci.yml` triggers on `push` to `main`, `pull_request` targeting
+`main`, and `workflow_dispatch`. **A push to `claude/vallo-...` matches none of
+them.** So every commit all three sessions have pushed is verified only by the local
+gate, and D37 asked for something the repository cannot give. Session 4 found this
+and was right to flag it rather than claim CI green.
+
+Until the founder chooses, two things hold.
+
+1. **The local full gate is the standard and it is not optional.** Typecheck, lint
+   and the whole suite from the repository root, green, on the exact tree being
+   pushed, before every push. Session 4 ran it three times and caught its own
+   response file breaking the em dash rule, which is the gate earning its place.
+2. **A lockfile change is not provable locally** and must be confirmed on a clean
+   runner, because `npm audit` and the local suite both read an already-populated
+   `node_modules`. Session 4's `source-map-js` fix (`GHSA-68fv-2mgg-jv7q`, high, the
+   one red check on main) is exactly this case: the root override alone did not take,
+   npm kept the locked 1.2.1 and it needed `npm update` as well. That fix is
+   currently unverified by any runner.
+
+**The fix, and it is Session 4's to make since it owns CI:** add the active session
+branches to the `push` trigger, narrowly, as `claude/vallo-**` rather than
+`claude/**`, so the eighteen dormant branches stay quiet. A draft pull request per
+session branch is the better long-run answer, because `pull_request` already
+triggers and a clean-runner `npm ci` is what proves a lockfile, but opening one is
+the founder's call and not a session's.
+
+## D43. Ship iOS to TestFlight now. Zero of thirty-four native rows have been run
+
+Session 4's verdict is no, and Session 1 accepts it: zero of 34 native matrix rows
+run, ten of them P0, no staging database, and no session can test on hardware from a
+Linux container with no device, no Xcode and no App Store Connect access. That is a
+limit of the environment and not of anybody's effort, and no amount of further
+session work changes it.
+
+Its recommendation stands and is now the ranked next action: **ship iOS to TestFlight
+and spend one afternoon with one iPhone on the ten P0 rows.** The signed archive
+already uploaded once on 3 October, so this is a step the project has taken before.
+It buys more than every other open item combined, and the precedent is specific: the
+last time this gap mattered, a component that was never mounted broke the app for
+every tester while 8,791 tests passed, and that fix still has no regression test.
+
+## D44. A session's own branch is the one in its kickoff prompt, and it reports a harness mismatch
+
+Session 4's environment was configured for `claude/bold-babbage-7fkjar` while its
+brief said `claude/vallo-qa-release`. It used the brief's name and said so, which was
+right on both counts. The kickoff prompt's branch wins, because it is the one the
+other sessions and this document name. A session that finds its harness pointing
+somewhere else says so in its response file rather than silently following either.
+
+The three session branches are `claude/vallo-backend-money-trust`,
+`claude/vallo-experience-upgrade` and `claude/vallo-qa-release`.
+
+## D45. Fetch before concluding something does not exist
+
+Session 4 reported that the five documents in its reading list "have never existed at
+any commit on any branch", having surveyed the repository and git history. The
+conclusion was wrong: they are on `claude/rentme-v2-platform-audit-xuvg0a`, and
+Sessions 2 and 3 both found and read them. The container's clone predated the branch
+and nothing had fetched since.
+
+**So: `git fetch origin` before concluding that anything is absent.** A survey of
+`git log --all` in a stale clone proves what the container knew when it started and
+nothing more. Then merge Session 1's branch into your own, per D39 section 6, rather
+than reading a specification across branches or deciding it was never written.
+
+Session 4 lost real time to this and then did the right thing anyway, which is worth
+saying: it documented the absence precisely and proceeded with everything that did
+not depend on it, rather than stopping. That is the behaviour D9 asks for.
 
 ---
 

@@ -1,0 +1,7 @@
+# Python 3.11. Also needs ffmpeg/ffprobe on PATH (decoding, AAC encoding, EBU R128 cross-check).
+numpy>=1.26
+scipy>=1.11
+soundfile>=0.12
+pyloudnorm==0.2.0
+pocketsphinx==5.0.3   # ships its own US-English acoustic model, LM and CMU dictionary (offline)
+rapidfuzz>=3.0        # optional: fast edit distance for the script-to-audio mapping (difflib fallback)
