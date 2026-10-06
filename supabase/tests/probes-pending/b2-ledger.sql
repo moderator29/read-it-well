@@ -10,8 +10,12 @@
 -- Also: a correction of a correction, or on another transaction, is refused;
 -- escrow commission is refused on a payment that has not succeeded; an
 -- escrow-rail ledger_entries row posts nothing; a refund row (negative, no
--- transaction) posts REFUND_* entries netting customer funds to zero and
--- reversing the commission out of revenue.
+-- transaction) posts REFUND_* entries, status 'pending' and attributed to no
+-- charge (transaction_id and provider_reference NULL, booking and charge ids
+-- in metadata), netting customer funds to zero and reversing the commission
+-- out of revenue; pending refunds move no confirmed balance; a booking with
+-- a successful escrow charge posts no refund here; service_role has no
+-- MAINTAIN on any pot or on the balance view.
 --
 -- Live fixtures: every hotel listing is is_demo and bookings refuse a demo
 -- listing, so the probe clears is_demo on its listing first. The block always
@@ -24,6 +28,11 @@ declare
   tx_direct uuid := gen_random_uuid();
   tx_escrow uuid := gen_random_uuid();
   tx_escrow_pending uuid := gen_random_uuid();
+  b2 uuid := gen_random_uuid();
+  tx_d1 uuid := gen_random_uuid();
+  tx_d2 uuid := gen_random_uuid();
+  bal_cf bigint;
+  bal_rev bigint;
   le_refund uuid;
   e1 uuid;
   e2 uuid;
@@ -152,24 +161,67 @@ begin
     raise exception 'PROBE_FAIL b2-ledger: an escrow-rail row was posted as a direct settlement';
   end if;
 
-  -- A refund row (negative, no transaction, as the refund writers insert it)
-  -- reaches the pots against the booking's settled direct charge.
+  -- A refund row (negative, no transaction, as the refund writers insert it).
+  -- The booking b has a successful escrow charge, so it posts nothing here.
   insert into public.ledger_entries (booking_id, transaction_id, gross_minor, platform_fee_minor, agent_share_minor,
                                      processor_fee_minor, guarantee_reserve_minor, net_settlement_minor)
   values (b, null, -1000, -20, -965, -15, 0, -1000)
   returning id into le_refund;
+  if exists (select 1 from public.ledger_customer_funds where idempotency_key like 'refund:' || b::text || ':%')
+     or exists (select 1 from public.ledger_vallo_revenue where idempotency_key like 'refund:' || b::text || ':%') then
+    raise exception 'PROBE_FAIL b2-ledger: a refund on a booking with an escrow charge was posted';
+  end if;
+
+  -- A direct-only booking with two cards (flatmates): the refund posts
+  -- pending, attributed to neither charge.
+  update public.listings set is_demo = false where id = v_listing;
+  insert into public.bookings (id, listing_id, guest_id, check_in, check_out, nights, price_per_night_minor, subtotal_minor, total_minor)
+  values (b2, v_listing, v_guest, current_date + 430, current_date + 431, 1, 10000, 10000, 10000);
+  perform set_config('vallo.recording_unknown_charge', 'on', true);
+  insert into public.transactions (id, booking_id, provider, provider_ref, amount_minor, currency, status, rail, created_at)
+  values (tx_d1, b2, 'paystack', 'probe-b2-ledger-d1-' || b2::text, 5000, 'NGN', 'SUCCESSFUL', 'direct', now() - interval '1 minute'),
+         (tx_d2, b2, 'paystack', 'probe-b2-ledger-d2-' || b2::text, 5000, 'NGN', 'SUCCESSFUL', 'direct', now());
+  perform set_config('vallo.recording_unknown_charge', '', true);
+  select coalesce(sum(balance_minor) filter (where pot = 'customer_funds'), 0),
+         coalesce(sum(balance_minor) filter (where pot = 'vallo_revenue'), 0)
+    into bal_cf, bal_rev from public.ledger_pot_balances where currency = 'NGN';
+  insert into public.ledger_entries (booking_id, transaction_id, gross_minor, platform_fee_minor, agent_share_minor,
+                                     processor_fee_minor, guarantee_reserve_minor, net_settlement_minor)
+  values (b2, null, -1000, -20, -965, -15, 0, -1000)
+  returning id into le_refund;
   select coalesce(sum(case direction when 'in' then amount_minor else -amount_minor end), 0) into net
-    from public.ledger_customer_funds where idempotency_key like 'refund:' || b::text || ':' || le_refund::text || ':%';
+    from public.ledger_customer_funds where idempotency_key like 'refund:' || b2::text || ':' || le_refund::text || ':%';
   if net <> 0 or not exists (select 1 from public.ledger_customer_funds
-                              where idempotency_key = 'refund:' || b::text || ':' || le_refund::text || ':refunded'
+                              where idempotency_key = 'refund:' || b2::text || ':' || le_refund::text || ':refunded'
                                 and event_type = 'REFUND_COMPLETED' and direction = 'out' and amount_minor = 1000) then
     raise exception 'PROBE_FAIL b2-ledger: a refund did not reach customer funds netting to zero (net %)', net;
   end if;
   if not exists (select 1 from public.ledger_vallo_revenue
-                  where idempotency_key = 'refund:' || b::text || ':' || le_refund::text || ':commission'
+                  where idempotency_key = 'refund:' || b2::text || ':' || le_refund::text || ':commission'
                     and event_type = 'REFUND_COMPLETED' and direction = 'out' and amount_minor = 20) then
     raise exception 'PROBE_FAIL b2-ledger: a refund did not reverse the commission in revenue';
   end if;
+  if exists (select 1 from (select transaction_id, provider_reference, status, metadata from public.ledger_customer_funds
+                             where idempotency_key like 'refund:' || b2::text || ':%'
+                            union all
+                            select transaction_id, provider_reference, status, metadata from public.ledger_vallo_revenue
+                             where idempotency_key like 'refund:' || b2::text || ':%') r
+              where r.transaction_id is not null or r.provider_reference is not null or r.status <> 'pending'
+                 or r.metadata->>'booking_id' is distinct from b2::text
+                 or not (r.metadata->'charges' @> jsonb_build_array(tx_d1, tx_d2))) then
+    raise exception 'PROBE_FAIL b2-ledger: a refund entry was attributed to a charge, not pending, or lacks booking/charges metadata';
+  end if;
+  if (select coalesce(sum(balance_minor) filter (where pot = 'customer_funds'), 0) from public.ledger_pot_balances where currency = 'NGN') <> bal_cf
+     or (select coalesce(sum(balance_minor) filter (where pot = 'vallo_revenue'), 0) from public.ledger_pot_balances where currency = 'NGN') <> bal_rev then
+    raise exception 'PROBE_FAIL b2-ledger: a pending refund moved a confirmed balance';
+  end if;
+
+  -- No MAINTAIN for service_role (PG17 default ACL).
+  foreach t in array array['ledger_customer_funds', 'ledger_vallo_revenue', 'ledger_marketing_float', 'ledger_pot_balances'] loop
+    if has_table_privilege('service_role', 'public.' || t, 'maintain') then
+      raise exception 'PROBE_FAIL b2-ledger: service_role holds MAINTAIN on %', t;
+    end if;
+  end loop;
 
   -- Append-only, in every pot: one real row each, then update, delete and truncate.
   perform public.ledger_record('marketing_float', 'probe-b2-float-1', 'DEPOSIT_CONFIRMED', 'in', 1000, 'NGN', 'vallo');

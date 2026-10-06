@@ -6,7 +6,7 @@ declare
   referrer constant uuid := gen_random_uuid();
   referred constant uuid := gen_random_uuid();
   other    constant uuid := gen_random_uuid();
-  rid uuid; rid2 uuid; rid3 uuid; pid uuid; ok boolean; bal bigint; res jsonb; st text;
+  rid uuid; rid2 uuid; rid3 uuid; rid4 uuid; rid5 uuid; tx constant uuid := gen_random_uuid(); n int; pid uuid; ok boolean; bal bigint; res jsonb; st text;
 begin
   if (private.referral_policy_now()).reward_minor is distinct from 7000
      or (private.referral_policy_now()).member_monthly_cap is distinct from 1500
@@ -106,6 +106,46 @@ begin
   perform private.referral_reverse(rid3, 'probe: chargeback while under review', null);
   select coalesce(sum(amount_minor), 0) into bal from public.rewards_ledger where member_id = other;
   if bal <> 0 then raise exception 'PROBE_FAIL b4-referral: an under_review reversal left % in the balance', bal; end if;
+
+  -- SHOULD-FIX 1: a chargeback reaches the reversal through the public
+  -- wrapper, which only the service role may call.
+  if has_function_privilege('anon', 'public.referral_reverse_for_chargeback(uuid,text)', 'EXECUTE')
+     or has_function_privilege('authenticated', 'public.referral_reverse_for_chargeback(uuid,text)', 'EXECUTE')
+     or not has_function_privilege('service_role', 'public.referral_reverse_for_chargeback(uuid,text)', 'EXECUTE') then
+    raise exception 'PROBE_FAIL b4-referral: the chargeback wrapper is not service-role only';
+  end if;
+  insert into public.referrals (referrer_id, referred_id, code) values (other, gen_random_uuid(), 'PROBE4') returning id into rid4;
+  update public.referrals set status = 'qualified', reward_minor = 7000, month = private.lagos_month(now()),
+         qualifying_tx_id = tx where id = rid4;
+  update public.referrals set status = 'approved', approved_at = now() - interval '30 days' where id = rid4;
+  perform public.referral_release_due();
+  n := public.referral_reverse_for_chargeback(tx, 'probe: chargeback');
+  select status into st from public.referrals where id = rid4;
+  if n <> 1 or st <> 'reversed' then
+    raise exception 'PROBE_FAIL b4-referral: the chargeback wrapper reversed % (status %)', n, st;
+  end if;
+  select coalesce(sum(amount_minor), 0) into bal from public.rewards_ledger where member_id = other;
+  if bal <> 0 then raise exception 'PROBE_FAIL b4-referral: after a chargeback the balance is %', bal; end if;
+
+  -- SHOULD-FIX 3: a zero reward never reaches the ledger and never breaks
+  -- the release; a zero-reward policy row is refused.
+  ok := false;
+  begin
+    insert into public.referral_policy (reward_minor, member_monthly_cap, platform_monthly_budget_minor, withdrawal_min_minor,
+                                        effective_from, reason)
+    values (0, 1500, 0, 100000, now() + interval '100 years', 'probe: a zero reward row');
+  exception when check_violation then ok := sqlerrm ilike '%reward_minor%' or sqlerrm ilike '%referral_policy_reward%';
+  end;
+  if not ok then raise exception 'PROBE_FAIL b4-referral: a zero-reward policy row was accepted'; end if;
+  insert into public.referrals (referrer_id, referred_id, code) values (other, gen_random_uuid(), 'PROBE5') returning id into rid5;
+  update public.referrals set status = 'qualified', reward_minor = 0, month = private.lagos_month(now()) where id = rid5;
+  update public.referrals set status = 'approved', approved_at = now() - interval '30 days' where id = rid5;
+  perform public.referral_release_due();
+  select status into st from public.referrals where id = rid5;
+  if st <> 'available' then raise exception 'PROBE_FAIL b4-referral: a zero reward left the referral %', st; end if;
+  if exists (select 1 from public.rewards_ledger where referral_id = rid5) then
+    raise exception 'PROBE_FAIL b4-referral: a zero reward reached the ledger';
+  end if;
 
   -- Payouts are off by default: nothing is held or opened.
   res := public.rewards_payout_open(referrer, '058', '0123456789', 'PROBE NAME', 'RCP_probe');

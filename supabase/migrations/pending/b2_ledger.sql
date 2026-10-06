@@ -52,13 +52,50 @@
 --  - REFUNDS. The refund writers (private.refund_and_cancel_booking,
 --    private.refund_booking_payment, private.rent_split_cancel) insert a
 --    negative ledger_entries row with transaction_id NULL. The same trigger
---    posts it, keyed 'refund:<booking>:<ledger_entries.id>', against the
---    booking's settled direct (or legacy null-rail) Paystack transaction:
---    each leg comes back IN to customer funds (REFUND_INITIATED: lister,
---    processor, reserve, commission) and the whole refund goes OUT to the
---    customer (REFUND_COMPLETED), netting to zero; the commission reversal
---    is a REFUND_COMPLETED OUT of revenue. A booking with no such settled
---    transaction (escrow, or none) posts nothing and raises no alert.
+--    posts it, keyed 'refund:<booking>:<ledger_entries.id>:<leg>': each leg
+--    comes back IN to customer funds (REFUND_INITIATED: lister, processor,
+--    reserve, commission) and the whole refund goes OUT to the customer
+--    (REFUND_COMPLETED), netting to zero; the commission reversal is a
+--    REFUND_COMPLETED OUT of revenue.
+--    ATTRIBUTION: a refund is decided for the whole booking and, since D40
+--    (booking_refund_parts), split across every card that paid; rent_split_cancel
+--    writes one row per share. A ledger_entries row carries no refund id, and
+--    the booking_refund_parts plan is written after the decision, so a
+--    refund row cannot be tied reliably to a booking_refunds row or a part.
+--    Refund entries therefore carry transaction_id NULL and provider_reference
+--    NULL, never the booking's latest charge (the pots are append-only and a
+--    correction must keep the transaction, so a wrong charge could never be
+--    put right). metadata carries booking_id, ledger_entry_id and 'charges'
+--    (every SUCCESSFUL Paystack charge id on the booking). Card-level
+--    attribution lives in booking_refund_parts and rent_share_refunds, which
+--    carry transaction_id. A booking with ANY successful escrow-rail charge,
+--    or with no successful direct/legacy null-rail Paystack charge, posts
+--    nothing and raises no alert (escrow refunds belong to the Payluk path).
+--    STATUS (append-only design): at decision time the card refund has not
+--    happened (booking_refunds.processor_status is 'pending' and can fail),
+--    so every refund entry, in both pots, is written status 'pending'.
+--    ledger_pot_balances counts only 'confirmed', so a pending refund moves
+--    no balance. No row is ever updated to confirm it (the append-only
+--    trigger forbids it). FOLLOW-UP, NOT BUILT HERE: when the Paystack refund
+--    webhook outcome lands (public.record_processor_refund_outcome), it
+--    appends, through private.ledger_append, a confirming copy of each
+--    pending leg: same pot, event, direction, amount and currency, status
+--    'confirmed', key '<pending key>:confirmed', metadata 'confirms' = the
+--    pending entry id. On a failed card refund it appends nothing confirmed
+--    (optionally a 'failed' copy keyed '<pending key>:failed' for the audit
+--    trail), so the pots never say money went out that did not. Until that
+--    follow-up ships, refunds sit pending and the confirmed balances show
+--    the commission still in revenue.
+--  - S3, A PRODUCT DECISION FOR THE FOUNDER, NOT CHANGED HERE:
+--    rent_split_cancel inserts platform_fee_minor = 0 and agent_share_minor =
+--    -amount, so a fully refunded share comes back entirely through the
+--    lister leg (mirroring rent_refunds_owed, where the lister owes the gross
+--    back) and the 200 bps commission booked at settlement is NOT reversed:
+--    revenue keeps commission on a share refunded in full. The posting is
+--    consistent with the writer; whether Vallo returns that commission is
+--    for the founder to decide.
+--  - public.ledger_record (service_role only) lets the server write any pot
+--    with any provider, rail or event; accepted for the app's event writers.
 --
 -- Additive, idempotent, RLS on.
 -- Probe: supabase/tests/probes-pending/b2-ledger.sql (promote with the migration).
@@ -166,7 +203,9 @@ alter table public.ledger_customer_funds enable row level security;
 alter table public.ledger_vallo_revenue enable row level security;
 alter table public.ledger_marketing_float enable row level security;
 revoke all on public.ledger_customer_funds, public.ledger_vallo_revenue, public.ledger_marketing_float from public, anon, authenticated;
-revoke insert, update, delete, truncate, references, trigger on public.ledger_customer_funds, public.ledger_vallo_revenue, public.ledger_marketing_float from service_role;
+-- revoke ALL (not a list): PG17's default ACL also grants MAINTAIN, which
+-- allows LOCK ... ACCESS EXCLUSIVE, VACUUM FULL and CLUSTER on a pot.
+revoke all on public.ledger_customer_funds, public.ledger_vallo_revenue, public.ledger_marketing_float from service_role;
 grant select on public.ledger_customer_funds, public.ledger_vallo_revenue, public.ledger_marketing_float to service_role;
 
 -- APPEND-ONLY. private.history_is_fixed already exists (guarantee_reserve_entries).
@@ -378,7 +417,7 @@ grant execute on function public.ledger_record_escrow_commission(uuid, bigint, t
 -- Only rail 'direct', or a legacy Paystack row with a NULL rail (see header).
 --
 -- REFUNDS (gross < 0, transaction_id NULL): keyed on the ledger_entries row,
--- posted against the booking's latest settled direct/legacy Paystack charge.
+-- posted 'pending' with transaction_id and provider_reference NULL (see header).
 create or replace function private.ledger_post_direct_settlement(p_entry public.ledger_entries)
 returns void
 language plpgsql
@@ -395,6 +434,12 @@ begin
   if p_entry.transaction_id is not null then
     select * into tx from public.transactions where id = p_entry.transaction_id;
   elsif p_entry.gross_minor < 0 then
+    -- Any successful escrow charge on the booking: not ours to post.
+    if exists (select 1 from public.transactions t where t.booking_id = p_entry.booking_id
+                 and t.status = 'SUCCESSFUL' and t.rail = 'escrow') then
+      return;
+    end if;
+    -- Used ONLY for currency, rail label and existence; never for attribution.
     select * into tx from public.transactions t
      where t.booking_id = p_entry.booking_id and t.provider = 'paystack' and t.status = 'SUCCESSFUL'
        and (t.rail = 'direct' or t.rail is null)
@@ -412,27 +457,29 @@ begin
 
   if p_entry.gross_minor < 0 then
     k := 'refund:' || p_entry.booking_id::text || ':' || p_entry.id::text || ':';
-    v_meta := v_meta || jsonb_build_object('booking_id', p_entry.booking_id, 'ledger_entry_id', p_entry.id);
+    v_meta := v_meta || jsonb_build_object('booking_id', p_entry.booking_id, 'ledger_entry_id', p_entry.id,
+      'charges', (select coalesce(jsonb_agg(t.id order by t.created_at), '[]'::jsonb) from public.transactions t
+                   where t.booking_id = p_entry.booking_id and t.status = 'SUCCESSFUL' and t.provider = 'paystack'));
     if p_entry.agent_share_minor < 0 then
       perform private.ledger_append('customer_funds', k || 'lister', 'REFUND_INITIATED', 'in', -p_entry.agent_share_minor,
-        tx.currency, 'paystack', ref, tx.id, v_rail, 'confirmed', v_meta || jsonb_build_object('leg', 'lister'));
+        tx.currency, 'paystack', null, null, v_rail, 'pending', v_meta || jsonb_build_object('leg', 'lister'));
     end if;
     if p_entry.processor_fee_minor < 0 then
       perform private.ledger_append('customer_funds', k || 'processor', 'REFUND_INITIATED', 'in', -p_entry.processor_fee_minor,
-        tx.currency, 'paystack', ref, tx.id, v_rail, 'confirmed', v_meta || jsonb_build_object('leg', 'processor_fee'));
+        tx.currency, 'paystack', null, null, v_rail, 'pending', v_meta || jsonb_build_object('leg', 'processor_fee'));
     end if;
     if p_entry.guarantee_reserve_minor < 0 then
       perform private.ledger_append('customer_funds', k || 'reserve', 'REFUND_INITIATED', 'in', -p_entry.guarantee_reserve_minor,
-        tx.currency, 'paystack', ref, tx.id, v_rail, 'confirmed', v_meta || jsonb_build_object('leg', 'guarantee_reserve'));
+        tx.currency, 'paystack', null, null, v_rail, 'pending', v_meta || jsonb_build_object('leg', 'guarantee_reserve'));
     end if;
     if p_entry.platform_fee_minor < 0 then
       perform private.ledger_append('customer_funds', k || 'commission', 'REFUND_INITIATED', 'in', -p_entry.platform_fee_minor,
-        tx.currency, 'paystack', ref, tx.id, v_rail, 'confirmed', v_meta || jsonb_build_object('leg', 'commission'));
+        tx.currency, 'paystack', null, null, v_rail, 'pending', v_meta || jsonb_build_object('leg', 'commission'));
       perform private.ledger_append('vallo_revenue', k || 'commission', 'REFUND_COMPLETED', 'out', -p_entry.platform_fee_minor,
-        tx.currency, 'paystack', ref, tx.id, v_rail, 'confirmed', v_meta || jsonb_build_object('leg', 'commission'));
+        tx.currency, 'paystack', null, null, v_rail, 'pending', v_meta || jsonb_build_object('leg', 'commission'));
     end if;
     perform private.ledger_append('customer_funds', k || 'refunded', 'REFUND_COMPLETED', 'out', -p_entry.gross_minor,
-      tx.currency, 'paystack', ref, tx.id, v_rail, 'confirmed', v_meta || jsonb_build_object('leg', 'refund'));
+      tx.currency, 'paystack', null, null, v_rail, 'pending', v_meta || jsonb_build_object('leg', 'refund'));
     return;
   end if;
 
@@ -514,6 +561,7 @@ with (security_invoker = true) as
     from public.ledger_marketing_float where status = 'confirmed' group by currency;
 
 revoke all on public.ledger_pot_balances from public, anon, authenticated;
+revoke all on public.ledger_pot_balances from service_role;
 grant select on public.ledger_pot_balances to service_role;
 
 -- READ-BACK: fails the migration if anything did not land as intended.
@@ -539,7 +587,8 @@ begin
        or has_table_privilege('service_role', 'public.' || t, 'delete')
        or has_table_privilege('service_role', 'public.' || t, 'truncate')
        or has_table_privilege('service_role', 'public.' || t, 'references')
-       or has_table_privilege('service_role', 'public.' || t, 'trigger') then
+       or has_table_privilege('service_role', 'public.' || t, 'trigger')
+       or has_table_privilege('service_role', 'public.' || t, 'maintain') then
       raise exception '% is writable by service_role directly; only the ledger functions write', t;
     end if;
     foreach trg in array array[t || '_fixed', t || '_no_truncate', t || '_00_correction'] loop
@@ -578,5 +627,15 @@ begin
   if has_table_privilege('authenticated', 'public.ledger_pot_balances', 'select') or has_table_privilege('anon', 'public.ledger_pot_balances', 'select') then
     raise exception 'pot balances readable by an app role';
   end if;
+  if has_table_privilege('service_role', 'public.ledger_pot_balances', 'maintain')
+     or has_table_privilege('service_role', 'public.ledger_pot_balances', 'insert')
+     or not has_table_privilege('service_role', 'public.ledger_pot_balances', 'select') then
+    raise exception 'service_role must only read pot balances';
+  end if;
+  foreach t in array array['ledger_customer_funds', 'ledger_vallo_revenue', 'ledger_marketing_float'] loop
+    if not has_table_privilege('service_role', 'public.' || t, 'select') then
+      raise exception '% is not readable by service_role', t;
+    end if;
+  end loop;
 end;
 $check$;

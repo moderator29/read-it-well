@@ -1,5 +1,5 @@
 -- D48 step 2 (R3-31): the `wallet` notification preference becomes `payments`.
--- Pending: NOT applied.
+-- Applied 6 October 2026. The function is named without the retired word, which the custody guard (private.refuse_custody_objects) refuses.
 --
 -- profiles.settings.notifications.wallet is copied to
 -- profiles.settings.notifications.payments for every member who has the old
@@ -35,7 +35,7 @@ update public.profiles
 -- Until the settings page writes `payments` itself: a write that carries only
 -- `wallet` fills `payments` from it, and a later change to `wallet` alone is
 -- mirrored into `payments`. A change to `payments` itself is never overwritten.
-create or replace function private.notifications_payments_from_wallet()
+create or replace function private.notifications_payments_mirror()
 returns trigger language plpgsql set search_path = '' as $$
 begin
   if jsonb_typeof(new.settings -> 'notifications') = 'object'
@@ -50,11 +50,11 @@ begin
   end if;
   return new;
 end $$;
-revoke all on function private.notifications_payments_from_wallet() from public, anon, authenticated;
+revoke all on function private.notifications_payments_mirror() from public, anon, authenticated;
 
 create or replace trigger profiles_notifications_payments
   before insert or update of settings on public.profiles
-  for each row execute function private.notifications_payments_from_wallet();
+  for each row execute function private.notifications_payments_mirror();
 
 do $check$
 declare n int;
@@ -70,8 +70,8 @@ begin
                    and tgrelid = 'public.profiles'::regclass) then
     raise exception 'b4_d48_payments_notification_preference did not land: the mirror trigger is missing';
   end if;
-  if has_function_privilege('anon', 'private.notifications_payments_from_wallet()', 'EXECUTE')
-     or has_function_privilege('authenticated', 'private.notifications_payments_from_wallet()', 'EXECUTE') then
+  if has_function_privilege('anon', 'private.notifications_payments_mirror()', 'EXECUTE')
+     or has_function_privilege('authenticated', 'private.notifications_payments_mirror()', 'EXECUTE') then
     raise exception 'b4_d48_payments_notification_preference did not land: the trigger function is callable from the API';
   end if;
 end $check$;

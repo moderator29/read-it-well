@@ -29,7 +29,7 @@
 --
 -- REVERSAL: the qualifying transaction going REFUNDED, a refund recorded in
 -- public.booking_refunds for the qualifying booking, or a chargeback reported
--- through private.referral_reverse_for_transaction(...).
+-- by the service role through public.referral_reverse_for_chargeback(tx, reason).
 --
 -- RISK: device, network, velocity, payout-account reuse and referral-graph
 -- clustering raise a score. A score at or above the policy threshold routes
@@ -79,7 +79,7 @@ set local lock_timeout = '5s';
 
 create table if not exists public.referral_policy (
   id                            uuid primary key default gen_random_uuid(),
-  reward_minor                  bigint not null check (reward_minor >= 0),
+  reward_minor                  bigint not null check (reward_minor > 0),
   member_monthly_cap            int    not null check (member_monthly_cap >= 0),
   platform_monthly_budget_minor bigint not null check (platform_monthly_budget_minor >= 0),
   withdrawal_min_minor          bigint not null check (withdrawal_min_minor > 0),
@@ -625,6 +625,12 @@ begin
          and not exists (select 1 from public.referrals r where r.referred_id = au.id)
     ) u
     where exists (select 1 from public.confirmed_phones c where c.user_id = u.id)
+      -- Only members with a settled payment can qualify; the rest would hold
+      -- the batch forever and starve real qualifiers.
+      and exists (select 1 from public.transactions t left join public.bookings b on b.id = t.booking_id
+                   where t.status = 'SUCCESSFUL' and t.amount_minor > 0
+                     and coalesce(t.share_payer_id, b.guest_id) = u.id)
+    order by u.id
     limit greatest(1, least(coalesce(p_limit, 500), 5000))
   loop
     n := n + 1;
@@ -690,6 +696,14 @@ begin
   return n;
 end $$;
 
+-- The chargeback hook. private is not reachable over the API, so the service
+-- role reports a chargeback through this wrapper. Service role only.
+create or replace function public.referral_reverse_for_chargeback(p_tx uuid, p_reason text)
+returns int language sql security definer set search_path = '' as $$
+  select private.referral_reverse_for_transaction(p_tx, p_reason, null) $$;
+revoke all on function public.referral_reverse_for_chargeback(uuid, text) from public, anon, authenticated;
+grant execute on function public.referral_reverse_for_chargeback(uuid, text) to service_role;
+
 create or replace function private.referral_after_transaction()
 returns trigger language plpgsql security definer set search_path = '' set lock_timeout = '500ms' as $$
 declare v_payer uuid;
@@ -751,9 +765,12 @@ begin
             where status = 'approved'
               and approved_at <= now() - make_interval(days => coalesce(pol.hold_days, 7))
             for update skip locked loop
-    insert into public.rewards_ledger (member_id, kind, amount_minor, referral_id, reason, idempotency_key)
-    values (r.referrer_id, 'reward_earned', r.reward_minor, r.id, 'referral reward after the hold', 'earn:' || r.id)
-    on conflict (idempotency_key) do nothing;
+    -- A zero reward never reaches the ledger (it requires amount_minor <> 0).
+    if coalesce(r.reward_minor, 0) > 0 then
+      insert into public.rewards_ledger (member_id, kind, amount_minor, referral_id, reason, idempotency_key)
+      values (r.referrer_id, 'reward_earned', r.reward_minor, r.id, 'referral reward after the hold', 'earn:' || r.id)
+      on conflict (idempotency_key) do nothing;
+    end if;
     perform private.referral_move(r.id, 'available', 'hold window passed', null);
     n := n + 1;
   end loop;
@@ -1034,6 +1051,9 @@ grant execute on function public.admin_referral_decide(uuid, text, text) to auth
 
 -- Staff decide a payout held for review: release it to the transfer queue or
 -- refuse it (which puts the money back in the balance).
+-- 'fail_unsent': a payout claimed for sending (processing or unknown, over 24
+-- hours old) that staff have confirmed in the Paystack dashboard was never
+-- sent. It is failed with the reason, the money goes back, and it is audited.
 create or replace function public.admin_rewards_payout_decide(p_payout uuid, p_decision text, p_reason text)
 returns text language plpgsql security definer set search_path = '' as $$
 declare p public.rewards_payouts;
@@ -1041,7 +1061,21 @@ begin
   if not private.is_staff() then raise exception 'Staff only.' using errcode = '42501'; end if;
   if coalesce(length(btrim(p_reason)), 0) < 8 then raise exception 'Say why, in a sentence.' using errcode = '22023'; end if;
   select * into p from public.rewards_payouts where id = p_payout for update;
-  if p.id is null or p.status <> 'under_review' then return 'refused'; end if;
+  if p.id is null then return 'refused'; end if;
+  if p_decision = 'fail_unsent' then
+    if p.status not in ('processing','unknown') or p.created_at > now() - interval '24 hours' then
+      return 'refused';
+    end if;
+    if length(btrim(p_reason)) < 20 then
+      raise exception 'Say what the provider dashboard showed.' using errcode = '22023';
+    end if;
+    perform public.rewards_payout_settle(p.reference, 'failed', null, null, null, 'never sent (staff): ' || p_reason);
+    insert into public.audit_log (actor_id, action, entity_type, entity_id, metadata)
+    values ((select auth.uid()), 'rewards_payout_failed_unsent', 'rewards_payout', p.id::text,
+            jsonb_build_object('reason', p_reason, 'prior_status', p.status, 'transfer_initiated_at', p.transfer_initiated_at));
+    return 'failed';
+  end if;
+  if p.status <> 'under_review' then return 'refused'; end if;
   if p_decision = 'release' then
     if p.recipient_code is null then return 'no_recipient'; end if;
     -- The sweep (rewards_payouts_to_send) sends it.
@@ -1143,7 +1177,6 @@ begin
     execute format('revoke all on function %s from public, anon, authenticated', f.sig);
   end loop;
 end $rv$;
-grant execute on function private.referral_reverse_for_transaction(uuid, text, uuid) to service_role;
 
 -- Public functions: default privileges grant anon EXECUTE, so each is closed
 -- to anon (and to PUBLIC) explicitly; the per-function lines above set the rest.
@@ -1159,7 +1192,7 @@ begin
     'public.rewards_payout_claim_send(text)', 'public.rewards_payouts_stuck(int)',
     'public.admin_referral_decide(uuid,text,text)', 'public.admin_rewards_payout_decide(uuid,text,text)',
     'public.admin_referral_graph(uuid,int)', 'public.admin_referral_clusters(int)',
-    'public.admin_referral_liability()']
+    'public.admin_referral_liability()', 'public.referral_reverse_for_chargeback(uuid,text)']
   loop
     execute format('revoke all on function %s from public, anon', f);
   end loop;
@@ -1227,7 +1260,7 @@ begin
     'public.rewards_payout_claim_send(text)', 'public.rewards_payouts_stuck(int)',
     'public.admin_referral_decide(uuid,text,text)', 'public.admin_rewards_payout_decide(uuid,text,text)',
     'public.admin_referral_graph(uuid,int)', 'public.admin_referral_clusters(int)',
-    'public.admin_referral_liability()'] loop
+    'public.admin_referral_liability()', 'public.referral_reverse_for_chargeback(uuid,text)'] loop
     if has_function_privilege('anon', f, 'EXECUTE') then missing := missing || ' anon_exec:' || f; end if;
   end loop;
   foreach f in array array[
@@ -1235,7 +1268,8 @@ begin
     'public.rewards_payout_open(uuid,text,text,text,text)',
     'public.rewards_payout_settle(text,text,text,text,text,text)',
     'public.rewards_payouts_to_verify(int)', 'public.rewards_payouts_to_send(int)',
-    'public.rewards_payout_claim_send(text)', 'public.rewards_payouts_stuck(int)'] loop
+    'public.rewards_payout_claim_send(text)', 'public.rewards_payouts_stuck(int)',
+    'public.referral_reverse_for_chargeback(uuid,text)'] loop
     if has_function_privilege('authenticated', f, 'EXECUTE') then missing := missing || ' member_exec:' || f; end if;
     if not has_function_privilege('service_role', f, 'EXECUTE') then missing := missing || ' service_exec:' || f; end if;
   end loop;
@@ -1246,6 +1280,13 @@ begin
       missing := missing || ' private_exec:' || f;
     end if;
   end loop;
+  if (select prosecdef is not true from pg_proc where oid = 'public.referral_reverse_for_chargeback(uuid,text)'::regprocedure) then
+    missing := missing || ' chargeback_not_definer';
+  end if;
+  if exists (select 1 from pg_constraint where conrelid = 'public.referral_policy'::regclass and contype = 'c'
+               and pg_get_constraintdef(oid) like '%reward_minor >= 0%') then
+    missing := missing || ' policy_allows_zero_reward';
+  end if;
   -- The trigger functions never wait long.
   foreach f in array array['private.referral_try_qualify(uuid)','private.referral_after_phone()',
                            'private.referral_after_transaction()','private.referral_after_booking_refund()'] loop

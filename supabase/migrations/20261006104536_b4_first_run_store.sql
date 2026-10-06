@@ -1,5 +1,5 @@
 -- W7-R1 / W7-R2 (R3-32): the server-side first-run store Session 3 is
--- blocked on. Pending: NOT applied.
+-- blocked on. Applied 6 October 2026.
 --
 -- One row per member per feature whose first run they have been shown. The
 -- device cookie (`first-run-device.ts`) stays as the fallback; this is the
