@@ -38,7 +38,7 @@ afterAll(closeBrowser);
 
 const CSS = productCss(GLASS_CSS, "app/css/typography.css", "app/css/controls.css", "app/admin/_components/admin-material.css");
 
-/* The page's own verbs, in its own order (queue/page.tsx). */
+/* The page's own verbs, in its own order (../queue/page.tsx). */
 const ENTRY = `
   import { getDictionary } from "@vallo/i18n";
   import { QueueSelection } from "@/app/admin/_components/QueueSelection";

@@ -4,7 +4,7 @@
  *
  * `PORTED_CSS` is the floor every browser test reads (tokens, the sheet, the
  * button system, the ported components' own sheet). A component that ships its
- * own stylesheet imports it with `import "./x.css"`, which the harness replaces
+ * own stylesheet imports it with a relative CSS import, which the harness replaces
  * with nothing, so the test hands the same file in here instead of copying any
  * of it. Paths are relative to `apps/web/src`.
  *
