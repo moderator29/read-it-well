@@ -46,13 +46,15 @@
     animation-duration: var(--nf-duration-base);
   }
 
-  /* Layered `!important` on purpose: the unlayered reduced-motion floor in
-     animation.css collapses every animation to 0.01ms, and this is the one
-     the search keeps, as opacity alone (no travel), because it is the only
-     way a reduced-motion reader sees which cards a filter brought in. */
+  /* The one fade the search keeps under reduced motion, as opacity alone (no
+     travel), because it is the only way a reduced-motion reader sees which
+     cards a filter brought in. The unlayered floor in animation.css collapses
+     every animation to 0.01ms unless the element opts in, which
+     `--nf-reduced-duration` does (it replaced a layered `!important`). */
   @media (prefers-reduced-motion: reduce) {
     .nf-results-fade li[data-arrived] .nf-pcard.nf-card-in {
-      animation: nf-results-new 160ms var(--nf-ease-standard) both !important;
+      animation: nf-results-new 160ms var(--nf-ease-standard) both;
+      --nf-reduced-duration: 160ms;
     }
   }
   @keyframes nf-results-new {

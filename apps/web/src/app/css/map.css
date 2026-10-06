@@ -232,12 +232,14 @@
   .nf-map-dock > .nf-map-dock__card.nf-panel.nf-panel--card {
     border-color: var(--nf-selected-edge);
   }
-  /* Reduced motion keeps the arrival as opacity alone, 160ms, over the
-     unlayered 0.01ms floor (animation.css): without it a new choice swaps the
-     card's words in place and nothing says the card is a different place. */
+  /* Reduced motion keeps the arrival as opacity alone, 160ms, opted in over
+     the 0.01ms floor (animation.css, `--nf-reduced-duration`): without it a
+     new choice swaps the card's words in place and nothing says the card is
+     a different place. */
   @media (prefers-reduced-motion: reduce) {
     .nf-map-dock {
-      animation: nf-map-dock-fade 160ms var(--nf-ease-standard) backwards !important;
+      animation: nf-map-dock-fade 160ms var(--nf-ease-standard) backwards;
+      --nf-reduced-duration: 160ms;
     }
   }
   @keyframes nf-map-dock-fade {

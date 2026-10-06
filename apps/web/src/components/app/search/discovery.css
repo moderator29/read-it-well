@@ -131,6 +131,8 @@
       animation-name: nf-dempty-copy;
       animation-duration: 160ms;
       animation-delay: 0ms;
+      /* The floor in animation.css would make this fade instant; this opts in. */
+      --nf-reduced-duration: 160ms;
     }
   }
 }

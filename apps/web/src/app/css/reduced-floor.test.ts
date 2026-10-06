@@ -26,12 +26,7 @@ import { describe, expect, it } from "vitest";
 
 const SRC = join(__dirname, "..", "..");
 
-const PENDING = new Set<string>([
-  "components/app/search/discovery.css",
-  "components/app/search/results-motion.css",
-  "app/css/map.css",
-  "app/css/pay-stage.css",
-]);
+const PENDING = new Set<string>([]);
 
 function cssFiles(dir: string, out: string[] = []): string[] {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
