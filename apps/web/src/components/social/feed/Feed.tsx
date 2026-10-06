@@ -660,7 +660,7 @@ export function Feed({
             repostCount: sheetFor.repostCount,
             editable: sheetFor.editable,
             hasAuthor: Boolean(sheetFor.author?.id),
-            who: sheetFor.author?.handle ? `@${sheetFor.author.handle}` : "this person",
+            who: sheetFor.author?.handle ? `@${sheetFor.author.handle}` : sheet.thisPerson,
           })}
           onChoose={(key) => onMenuAction(sheetFor, key)}
           onClose={() => setSheetFor(null)}
@@ -671,11 +671,11 @@ export function Feed({
 
       {reporting ? (
         <ReportSheet
-          title="Report this post"
+          title={sheet.reportTitle}
           subject={
             reporting.author?.handle
-              ? `Posted by @${reporting.author.handle}`
-              : "Posted on Around"
+              ? sheet.reportPostedBy.replace("{handle}", reporting.author.handle)
+              : sheet.reportPostedOnAround
           }
           reasons={POST_REPORT_REASONS}
           submit={({ reason, detail }) =>

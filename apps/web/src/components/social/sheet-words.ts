@@ -16,8 +16,22 @@ export type SheetWords = {
   body: string;
   /** The single quiet dismiss, the locale's "Not now". */
   dismissLabel: string;
+  /** The report sheet's title and its subject line (`{handle}` in `reportPostedBy`). */
+  reportTitle: string;
+  reportPostedBy: string;
+  reportPostedOnAround: string;
+  /** The author in the menu's sentences when they have no handle. */
+  thisPerson: string;
 };
 
 export function sheetWordsOf(t: Dictionary): SheetWords {
-  return { body: t.experienceSocial.feed.sheetBody, dismissLabel: t.experienceUi.notNow };
+  const feed = t.experienceSocial.feed;
+  return {
+    body: feed.sheetBody,
+    dismissLabel: t.experienceUi.notNow,
+    reportTitle: feed.reportTitle,
+    reportPostedBy: feed.reportPostedBy,
+    reportPostedOnAround: feed.reportPostedOnAround,
+    thisPerson: feed.thisPerson,
+  };
 }

@@ -17,6 +17,13 @@ export const experienceSocialEn = {
     storySeen: "seen",
     /* The one line under the title of a post's action sheet (`ActionSheet`). */
     sheetBody: "Choose one. Nothing happens until you do.",
+    /* The report sheet a post's menu opens, on the feed and on a thread
+       (Round 3 sweep, C3). `{handle}` is the author's handle. */
+    reportTitle: "Report this post",
+    reportPostedBy: "Posted by @{handle}",
+    reportPostedOnAround: "Posted on Around",
+    /* The author, in the menu's sentences, when they have no handle. */
+    thisPerson: "this person",
   },
   profile: {
     /* The badge row, the badge sheet and the earned moment (W4). */
@@ -103,6 +110,37 @@ export const experienceSocialEn = {
     metaDescription: "What is happening around {name}, {city}.",
     unreachable: "We cannot reach this place right now. This is on our side, not yours. Nothing has been lost, and the rest of the app works as normal.",
     partOf: "Part of {name}",
+  },
+  /**
+   * `/post/[id]`, one thread: the page's own words (Round 3 sweep, C3).
+   * `{place}` is the place the post sits in, `{who}` its author.
+   */
+  post: {
+    title: "Post",
+    thread: "Thread",
+    aroundPlace: "Around {place}",
+    metaTitle: "{who} on Around",
+    metaDescription: "A post on Around, on Vallo.",
+  },
+  /**
+   * `/u/[handle]` when there is no page to draw, and the share line when
+   * there is (Round 3 sweep, C3). `{handle}` without its @, `{name}` the
+   * person. The unreachable screen reuses `people`'s words.
+   */
+  profilePage: {
+    metaDescription: "{name} on Vallo.",
+    malformedTitle: "That is not a handle",
+    malformedBody: "A handle is 3 to 20 characters: letters, numbers and underscores, starting with a letter. Check the address and try again.",
+    officialTitle: "@{handle} is a Vallo name",
+    nothingTitle: "Nothing to show at @{handle}",
+    officialBody: "This name is kept for Vallo itself, so nobody can hold it. @vallo is the assistant you can call into a conversation by naming it in a post.",
+    claimableBody: "Either nobody holds this handle, or its owner is not reachable from your account. If it is going spare, you can take it and it becomes your address on Vallo.",
+    ownHandleBody: "Either nobody holds this handle, or its owner is not reachable from your account. You already have a page of your own, and a person keeps one handle at a time.",
+    signedOutBody: "Nobody we can show you is at this handle. Sign in to claim it, or to see whose it is.",
+    claim: "Claim @{handle}",
+    goToAccount: "Go to your account",
+    signInToClaim: "Sign in to claim it",
+    backToHome: "Back to home",
   },
   /** `/around`, the feed: its empty state's words (Round 3 sweep, C3). `{name}` is the chosen place. */
   around: {
