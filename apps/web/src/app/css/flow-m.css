@@ -107,20 +107,17 @@
 
   /* ------------------------------------------------------- the step bars */
 
-  .nf-steprow__bar,
-  .nf-lw-rail__seg {
+  .nf-steprow__bar {
     position: relative;
     overflow: hidden;
     transform-origin: left center;
   }
-  .nf-steprow__bar[data-on],
-  .nf-lw-rail__seg[data-done] {
+  .nf-steprow__bar[data-on] {
     animation: nf-flow-fill var(--nf-duration-slow) var(--nf-ease-entrance) both;
   }
-  /* The bar you are on: the last lit one in the register flows, the one the
-     wizard marks with data-at. */
-  .nf-steprow__bar[data-on]:not(:has(+ .nf-steprow__bar[data-on]))::after,
-  .nf-lw-rail__seg[data-at]::after {
+  /* The bar you are on: the last lit one in the register flows. (The listing
+     wizard's rail moves in lister-publish.css, round 5.) */
+  .nf-steprow__bar[data-on]:not(:has(+ .nf-steprow__bar[data-on]))::after {
     content: "";
     position: absolute;
     inset: 0;
@@ -163,23 +160,15 @@
 
   /* ----------------------------------------------------------- a step */
 
-  .nf-flow-title,
-  .nf-lw-head__title {
+  .nf-flow-title {
     transform-origin: left center;
     animation: nf-in-depth var(--nf-duration-entrance) var(--nf-ease-entrance) both;
   }
-  .nf-flow-sub,
-  .nf-lw-head__sub {
+  .nf-flow-sub {
     animation: nf-in-rise var(--nf-duration-entrance) var(--nf-ease-entrance) 90ms both;
   }
-  .nf-flow-step,
-  .nf-lw-body > * {
+  .nf-flow-step {
     animation: nf-flow-in var(--nf-duration-entrance) var(--nf-ease-entrance) 120ms both;
-  }
-  .nf-lw-head__object {
-    animation:
-      nf-flow-pop var(--nf-duration-deliberate) var(--nf-ease-spring) 160ms both,
-      nf-flow-float 6s var(--nf-ease-standard) 1s 2;
   }
 
   /* ------------------------------------------------------------- doors */
@@ -190,12 +179,10 @@
 
   /* ------------------------------------------------------ done screens */
 
-  .nf-regobject > :not(style),
-  .nf-lw-done__object {
+  .nf-regobject > :not(style) {
     animation: nf-flow-pop var(--nf-duration-cinematic) var(--nf-ease-spring) both;
   }
-  .nf-regobject::after,
-  .nf-lw-done__object::after {
+  .nf-regobject::after {
     content: "";
     position: absolute;
     left: 50%;
@@ -209,61 +196,18 @@
     opacity: 0;
     animation: nf-flow-ring 1.4s var(--nf-ease-entrance) 450ms 2 both;
   }
-  .nf-lw-id {
-    position: relative;
-    overflow: hidden;
-    animation: nf-in-rise var(--nf-duration-entrance) var(--nf-ease-entrance) 300ms both;
-  }
-  .nf-lw-id::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      100deg,
-      transparent 30%,
-      color-mix(in oklab, var(--nf-brand-secondary) 22%, transparent) 50%,
-      transparent 70%
-    );
-    transform: translateX(-120%);
-    animation: nf-flow-sheen 1.8s var(--nf-ease-standard) 900ms 1 both;
-    pointer-events: none;
-  }
-  .nf-lw-next__row {
-    animation: nf-in-rise var(--nf-duration-entrance) var(--nf-ease-entrance) both;
-  }
-  .nf-lw-next__row:nth-of-type(1) {
-    animation-delay: 500ms;
-  }
-  .nf-lw-next__row:nth-of-type(2) {
-    animation-delay: 580ms;
-  }
-  .nf-lw-next__row:nth-of-type(3) {
-    animation-delay: 660ms;
-  }
-
   /* ------------------------------------------------------ reduced motion */
 
   @media (prefers-reduced-motion: reduce) {
     .nf-steprow__bar[data-on],
-    .nf-lw-rail__seg[data-done],
     .nf-steprow__bar::after,
-    .nf-lw-rail__seg::after,
     .nf-flow-title,
-    .nf-lw-head__title,
     .nf-flow-sub,
-    .nf-lw-head__sub,
     .nf-flow-step,
-    .nf-lw-body > *,
-    .nf-lw-head__object,
     .nf-lw-choice[aria-pressed="true"],
     .nf-lw-choice[aria-checked="true"],
     .nf-regobject > :not(style),
-    .nf-lw-done__object,
-    .nf-regobject::after,
-    .nf-lw-done__object::after,
-    .nf-lw-id,
-    .nf-lw-id::after,
-    .nf-lw-next__row {
+    .nf-regobject::after {
       animation: none;
     }
   }

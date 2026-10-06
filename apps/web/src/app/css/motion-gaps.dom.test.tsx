@@ -61,8 +61,9 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the five motion gaps", () => {
       expect(await style(page, "#summary", "animationIterationCount", "::before")).toBe("2");
       expect(await style(page, "#hero", "animationFillMode", "::before")).toBe("both");
       expect(await style(page, "#bar", "animationIterationCount", "::after")).toBe("2");
-      /* The head object runs its pop once and its float twice. */
-      expect(await style(page, "#obj", "animationIterationCount")).toBe("1, 2");
+      /* The listing wizard's head object no longer floats at all: it settles
+         once, in 160ms, in lister-publish.css (round 5, M6). */
+      expect(await style(page, "#obj", "animationName")).toBe("none");
     } finally {
       await close();
     }
