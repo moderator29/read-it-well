@@ -42,6 +42,15 @@ describe("the action morph", () => {
     expect(html).toContain('aria-busy="true"');
   });
 
+  it("keeps a caller's own aria-busy rather than overwriting it", () => {
+    /* `rest` is spread before the computed props, so the computed one must
+       carry the caller's along (audit A7). */
+    expect(renderToString(<Button aria-busy>Load more</Button>)).toContain('aria-busy="true"');
+    expect(renderToString(<Button aria-busy="true">Load more</Button>)).toContain('aria-busy="true"');
+    expect(renderToString(<Button>Load more</Button>)).not.toContain("aria-busy");
+    expect(renderToString(<Button loading aria-busy={false}>Load more</Button>)).toContain('aria-busy="true"');
+  });
+
   it("is done, and inert, until it settles", () => {
     const html = renderToString(<Button variant="primary" morph done>Pay</Button>);
     expect(html).toContain('data-morph="done"');

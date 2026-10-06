@@ -440,7 +440,11 @@ export const Button = forwardRef(function Button(
       disabled={disabled || loading || (morph && morphState === "done")}
       data-loading={loading || undefined}
       data-morph={morphState}
-      aria-busy={loading || undefined}
+      /* The caller's own busy state survives: `rest` is spread first, so
+         writing only `loading` here erased an `aria-busy` the caller passed
+         for work of its own (audit A7: "This was not me" and the feed's
+         "Load more" went silent to a screen reader while pending). */
+      aria-busy={loading || rest["aria-busy"] || undefined}
       onPointerDown={(event) => {
         if (!disabled && !loading) pulse(wantsHaptic);
         onPointerDown?.(event);
