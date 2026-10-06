@@ -141,11 +141,10 @@ export const en = {
     cardUnavailableStayNote:
       "Your dates stay held and nothing has been charged. Try the card again from here, or pay by bank transfer.",
     cardUnavailableRentNote: "Nothing has been charged. Try the card again from here, or pay by bank transfer.",
-    addMoney: "Add money",
     onPlatformStay:
-      "Money moves inside Vallo, so the stay and the payment stay attached to each other. Keep every conversation and every payment on the platform.",
+      "Paying here keeps the stay and the payment attached to each other. Keep every conversation and every payment on Vallo.",
     onPlatformRent:
-      "Money moves inside Vallo, so the tenancy and the payment stay attached to each other. Keep every conversation and every payment on the platform.",
+      "Paying here keeps the tenancy and the payment attached to each other. Keep every conversation and every payment on Vallo.",
     rentTotalStated: "Move-in total, as stated by the lister",
     rentTotalFromParts: "Move-in total, from the parts the lister stated",
     rentPeriod: { month: "monthly", quarter: "quarterly", year: "yearly" },
