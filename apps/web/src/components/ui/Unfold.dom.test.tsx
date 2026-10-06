@@ -39,8 +39,12 @@ describe.skipIf(!hasBrowser && !process.env.CI)("Unfold", () => {
       const t = page.getByRole("button", { name: /Row one/ });
       expect(await t.getAttribute("aria-expanded")).toBe("false");
       const controls = await t.getAttribute("aria-controls");
+      // Closed panels are not landmarks: no empty named regions in the list.
+      expect(await page.locator(`#${controls}`).getAttribute("role")).toBeNull();
+      expect(await page.getByRole("region").count()).toBe(0);
       await t.click();
       expect(await page.locator(`#${controls}`).getAttribute("role")).toBe("region");
+      expect(await page.getByRole("region").count()).toBe(1);
       expect(await page.getByRole("heading", { level: 3 }).count()).toBe(4);
     } finally {
       await close();

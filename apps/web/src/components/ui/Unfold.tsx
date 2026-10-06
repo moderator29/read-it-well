@@ -27,7 +27,10 @@ import { cn } from "@/lib/cn";
  * the right way to use a breakdown; the Unfold holds only the extra detail.
  *
  * ARIA AND KEYBOARD. Each item is a heading containing one button
- * (`aria-expanded`, `aria-controls`), and each panel is a labelled region. Up
+ * (`aria-expanded`, `aria-controls`), and each OPEN panel is a labelled region
+ * (a closed one is a plain, inert box, so a screen reader's landmark list does
+ * not gain an empty named region per closed item; the grid reveal below still
+ * animates from the closed state, which is why the panel stays mounted). Up
  * and Down move between triggers, Home and End jump to the first and last, and
  * Enter or Space toggle (a native button gives that). A closed panel is `inert`,
  * so nothing inside it is reachable by Tab or read out while it is closed.
@@ -151,7 +154,12 @@ export function Unfold({
                 <UiIcon name="chevron-down" size={20} className="nf-unfold__chevron" />
               </button>
             </Heading>
-            <div id={panelId} role="region" aria-labelledby={triggerId} className="nf-unfold__panel">
+            <div
+              id={panelId}
+              role={isOpen ? "region" : undefined}
+              aria-labelledby={isOpen ? triggerId : undefined}
+              className="nf-unfold__panel"
+            >
               <div className="nf-unfold__clip" inert={!isOpen}>
                 <div className="nf-unfold__content">{item.content}</div>
               </div>
