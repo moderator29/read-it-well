@@ -160,7 +160,12 @@
      figure takes the figure-xl step (the one figure on the screen); the rent
      reads at body size directly beneath it, in the secondary ink, tabular. */
   .nf-movein-hero .nf-summary__figure {
-    font-size: var(--nf-text-figure-xl);
+    /* THE FIGURE FITS ITS CARD ON ONE LINE (W12): the extra-large rung is wider
+       than a phone's card, and `₦14,700,000` broke as `₦14,7` over `00,000`,
+       which reads as two numbers. It steps down with the viewport instead
+       (10.5vw is 41px at 390), never past the rung, and never wraps. */
+    font-size: min(var(--nf-text-figure-xl), 10.5vw);
+    white-space: nowrap;
     letter-spacing: var(--nf-tracking-figure-xl);
     line-height: 1.05;
   }
