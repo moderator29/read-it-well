@@ -30,6 +30,11 @@ const entry = `
     window.__setBad = setBad;
     return <input id="f" className="nf-field" aria-invalid={bad || undefined} />;
   }
+  function Many() {
+    const [bad, setBad] = useState(false);
+    window.__setMany = setBad;
+    return <>{["m1", "m2", "m3", "m4"].map((id) => <input key={id} id={id} className="nf-field" aria-invalid={bad || undefined} />)}</>;
+  }
   mount(<div>
     <div id="hero" className="nf-hero-band" style={{ width: 300, height: 120 }} />
     <div id="summary" className="nf-summary" style={{ width: 300, height: 120 }} />
@@ -37,6 +42,7 @@ const entry = `
     <div className="nf-lw-head__object" id="obj" />
     <nav className="nf-tabbar"><a className="nf-tab"><span className="nf-tab__link" id="link" aria-current="page"><span className="nf-tab__label" id="label">Home</span></span></a></nav>
     <Form />
+    <Many />
     <input id="born" className="nf-field" aria-invalid="true" defaultValue="" />
     <div className="nf-auth"><input id="authf" className="nf-field" aria-invalid="true" /></div>
     <div className="nf-ptr" data-refreshing="" id="ptr"><svg className="nf-ptr__ring" id="ring" viewBox="0 0 24 24" style={{ "--nf-ptr-a": "200deg", transform: "rotate(200deg)" }}><circle className="nf-ptr__track" cx="12" cy="12" r="9" /><circle id="arc" cx="12" cy="12" r="9" /></svg></div>
@@ -116,6 +122,29 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the five motion gaps", () => {
       await expect.poll(() => shaking(page)).toBe(1);
       /* The auth screens keep their own shake: the shared one is not stacked on it. */
       expect(await style(page, "#authf", "animationName")).not.toBe("nf-field-refuse");
+    } finally {
+      await close();
+    }
+  });
+
+  it("fields refused together in one batch all shake once, and all replay when refused again", async () => {
+    const { page, close } = await mountInBrowser({ entry, css: CSS });
+    try {
+      const many = (v: boolean) => page.evaluate((x) => (window as unknown as { __setMany: (v: boolean) => void }).__setMany(x), v);
+      const states = () =>
+        page.evaluate(() =>
+          ["m1", "m2", "m3", "m4"].map((id) => {
+            const el = document.getElementById(id)!;
+            return { marked: el.hasAttribute("data-refused"), shaking: el.getAnimations().filter((a) => (a as CSSAnimation).animationName === "nf-field-refuse").length };
+          }),
+        );
+      await many(true);
+      await expect.poll(states).toEqual(Array(4).fill({ marked: true, shaking: 1 }));
+      /* Once each: the markers clear as the shakes end. */
+      await expect.poll(states).toEqual(Array(4).fill({ marked: false, shaking: 0 }));
+      await many(false);
+      await many(true);
+      await expect.poll(states).toEqual(Array(4).fill({ marked: true, shaking: 1 }));
     } finally {
       await close();
     }

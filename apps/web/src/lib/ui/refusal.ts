@@ -27,6 +27,7 @@ export const REFUSED_ATTRIBUTE = "data-refused";
 export function watchRefusals(doc: Document = document): () => void {
   if (typeof MutationObserver === "undefined" || !doc.body) return () => {};
   const observer = new MutationObserver((records) => {
+    const fresh = new Set<HTMLElement>();
     for (const record of records) {
       const target = record.target;
       if (!(target instanceof HTMLElement) || !target.classList.contains("nf-field")) continue;
@@ -35,15 +36,28 @@ export function watchRefusals(doc: Document = document): () => void {
         continue;
       }
       if (record.oldValue === "true") continue;
-      /* Off and on in one frame restarts the animation if one is still running. */
-      target.removeAttribute(REFUSED_ATTRIBUTE);
-      void target.offsetWidth;
-      target.setAttribute(REFUSED_ATTRIBUTE, "");
-      /* Where motion is off (reduced motion, Calm, Off) the attribute starts
-         nothing, and nothing would clear it: take it back at once, so it cannot
-         start a shake later if the setting changes while the field is invalid.
-         Only the shake counts: under Calm the invalid border's colour
-         transition still runs, and it is in getAnimations() too (auditor A8). */
+      fresh.add(target);
+    }
+    if (fresh.size === 0) return;
+    /*
+     * ONE FLUSH FOR THE WHOLE BATCH, NOT TWO PER FIELD. A submit can refuse
+     * twenty fields in one callback, and removing, reading a layout property,
+     * setting and reading the animations field by field forced a style
+     * recalculation each time round (about forty). So: take the marker off all
+     * of them, flush once, put it on all of them, then look at what started.
+     * Off and on across one flush restarts a shake that is still running.
+     */
+    for (const target of fresh) target.removeAttribute(REFUSED_ATTRIBUTE);
+    void [...fresh][0]!.offsetWidth;
+    for (const target of fresh) target.setAttribute(REFUSED_ATTRIBUTE, "");
+    /* Where motion is off (reduced motion, Calm, Off) the attribute starts
+       nothing, and nothing would clear it: take it back at once, so it cannot
+       start a shake later if the setting changes while the field is invalid.
+       Only the shake counts: under Calm the invalid border's colour
+       transition still runs, and it is in getAnimations() too (auditor A8).
+       The first read recalculates style for every field at once; the rest are
+       answered from that. */
+    for (const target of fresh) {
       if (
         typeof target.getAnimations === "function" &&
         !target.getAnimations().some((a) => (a as CSSAnimation).animationName === "nf-field-refuse")
