@@ -11,6 +11,16 @@
 --     (read from the function body; no transaction row is written)
 --  8. the gate also fires on price edits; acceptances cannot be truncated;
 --     the split reads the acceptance as of the agreement (S1)
+--  9. BLOCKER-1: for a listing booking the acceptance (200 bps) wins over a
+--     higher terms.commission_bps (9000); terms are ignored for listings
+-- 10. SF-1: APPROVED -> PUBLISHED with a new policy version landed during
+--     review passes on the acceptance of the version in force at submission
+-- 11. SF-2: a staff-style SUSPENDED -> PUBLISHED with an older-version
+--     acceptance at the current price passes; a lister DRAFT -> SUBMITTED on
+--     the same old-version acceptance is refused (current version required)
+-- Fixture rows for 9-11 (status jumps, booking, agreement) are written with
+-- session_replication_role = replica so unrelated triggers stay out of the way;
+-- the gate itself always runs with triggers on.
 -- The DRAFT fixture is priced INSIDE the probe (rate_minor + rate_period, or
 -- sale_price_minor for a sale); rent_amount_minor is never set without
 -- rent_period. Everything is rolled back by the final raise.
@@ -21,6 +31,11 @@ declare
   price bigint;
   q jsonb;
   acc public.listing_rate_acceptances%rowtype;
+  p2 bigint;
+  bk_id uuid;
+  ag_id uuid;
+  v2 bigint;
+  c jsonb;
   stranger constant uuid := '957b3bd2-cce3-425d-bba9-5cd876ca3d62';
 begin
   select l.id, a.user_id, l.listing_intent, l.sale_price_minor, l.rent_amount_minor, l.rate_minor
@@ -105,6 +120,76 @@ begin
   exception when insufficient_privilege then
     if sqlerrm not like 'rate_agreement_required%' then
       raise exception 'PROBE_FAIL b3-rate-gate 5: refused by another gate: %', sqlerrm;
+    end if;
+  end;
+
+  -- Re-accept on the stored (re-priced) price, on the version in force now (v1).
+  p2 := private.b3_listing_price_minor(lst.id);
+  perform set_config('request.jwt.claims', json_build_object('sub', lst.user_id, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  q := public.accept_listing_rate(lst.id, v.id, p2);
+  reset role;
+  if q->>'status' <> 'ok' then raise exception 'PROBE_FAIL b3-rate-gate 9: re-accept failed: %', q; end if;
+
+  -- 9. BLOCKER-1.
+  set local session_replication_role = replica;
+  insert into public.bookings (listing_id, guest_id, check_in, check_out, nights,
+                               price_per_night_minor, subtotal_minor, total_minor)
+  values (lst.id, stranger, current_date + 30, current_date + 31, 1, p2, p2, p2)
+  returning id into bk_id;
+  insert into public.deal_agreements (kind, listing_id, booking_id, renter_id, owner_id, amount_minor, terms)
+  values ('stay', lst.id, bk_id, stranger, lst.user_id, p2, jsonb_build_object('commission_bps', 9000))
+  returning id into ag_id;
+  set local session_replication_role = origin;
+  c := private.b3_commission_for_booking(bk_id, 1000000, ag_id);
+  if c->>'status' <> 'ok' or c->>'source' <> 'acceptance'
+     or (c->>'commission_bps')::int <> v.commission_bps
+     or (c->>'commission_minor')::bigint <> (1000000 * v.commission_bps) / 10000 then
+    raise exception 'PROBE_FAIL b3-rate-gate 9: terms beat the acceptance on a listing booking: %', c;
+  end if;
+
+  -- 10. SF-1: in review (APPROVED, submitted an hour ago), then a new version lands.
+  set local session_replication_role = replica;
+  update public.listings set status = 'APPROVED', submitted_at = now() - interval '1 hour' where id = lst.id;
+  set local session_replication_role = origin;
+  insert into public.money_policy_versions (version, effective_from, commission_bps, guarantee_bps, vat_bps,
+                                            vat_registered, withdrawal_min_minor, note)
+  values ('probe-b3-rate-gate', now(), v.commission_bps + 100, v.guarantee_bps, v.vat_bps,
+          v.vat_registered, v.withdrawal_min_minor, 'probe fixture, rolled back')
+  returning id into v2;
+  if (public.money_policy_at(now())).id <> v2 then
+    raise exception 'PROBE_FAIL b3-rate-gate 10: fixture version is not in force';
+  end if;
+  begin
+    update public.listings set status = 'PUBLISHED' where id = lst.id;
+  exception when others then
+    if sqlerrm like 'rate_agreement_required%' then
+      raise exception 'PROBE_FAIL b3-rate-gate 10: APPROVED -> PUBLISHED stranded by a version change during review';
+    end if;
+    -- another publish gate may refuse; the rate gate passed.
+  end;
+
+  -- 11. SF-2: staff reinstate (SUSPENDED -> PUBLISHED) on the old-version acceptance.
+  set local session_replication_role = replica;
+  update public.listings set status = 'SUSPENDED' where id = lst.id;
+  set local session_replication_role = origin;
+  begin
+    update public.listings set status = 'PUBLISHED' where id = lst.id;
+  exception when others then
+    if sqlerrm like 'rate_agreement_required%' then
+      raise exception 'PROBE_FAIL b3-rate-gate 11a: staff re-entry to PUBLISHED refused on an old-version acceptance';
+    end if;
+  end;
+  -- ... but a lister-driven DRAFT -> SUBMITTED needs the current version (v2).
+  set local session_replication_role = replica;
+  update public.listings set status = 'DRAFT' where id = lst.id;
+  set local session_replication_role = origin;
+  begin
+    update public.listings set status = 'SUBMITTED', submitted_at = now() where id = lst.id;
+    raise exception 'PROBE_FAIL b3-rate-gate 11b: a lister submitted on an old-version acceptance';
+  exception when insufficient_privilege then
+    if sqlerrm not like 'rate_agreement_required%' then
+      raise exception 'PROBE_FAIL b3-rate-gate 11b: refused by another gate: %', sqlerrm;
     end if;
   end;
 

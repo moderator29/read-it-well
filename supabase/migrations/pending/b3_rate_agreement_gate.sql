@@ -25,29 +25,41 @@
 --   public.crypto_open_attempt          same: reserve required only for a non-zero leg
 --
 -- THE SPLIT PRECEDENCE (commission and Guarantee for one booking), first match wins:
---  1. The commission_bps / guarantee_bps saved in deal_agreements.terms at agreement
---     time, when present (each key read on its own). The deal keeps its own numbers.
---  2. Booking WITH a listing: the listing's latest acceptance with
+--  1. Booking WITH a listing: the listing's latest acceptance with
 --     accepted_at <= the agreement's created_at (never one accepted after the deal).
---     No such acceptance -> status 'rate_not_accepted'.
---  3. Booking with NO listing (hotel / accommodation rooms, which have no acceptance
---     surface): the money policy version in force at the agreement's created_at, so
---     hotels stay payable. No version in force then -> 'no_policy'.
---  The Guarantee leg: terms guarantee_bps if saved, else the policy in force at the
---  agreement's created_at (0 under D51), else 0.
+--     No such acceptance -> status 'rate_not_accepted'. terms.commission_bps is
+--     IGNORED here: rent_terms / agreement_open_for_stay snapshot the current
+--     policy, not the lister's acceptance, so honouring it would make every rate
+--     change retroactive (D51). On listing deals terms.commission_bps is display only.
+--  2. Booking with NO listing (hotel / accommodation rooms, which have no acceptance
+--     surface): the commission_bps saved in deal_agreements.terms, when present.
+--  3. Booking with NO listing and no terms figure: the money policy version in force
+--     at the agreement's created_at, so hotels stay payable. None -> 'no_policy'.
+--  The Guarantee leg (unchanged): terms guarantee_bps if saved, else the policy in
+--  force at the agreement's created_at (0 under D51), else 0.
 --
 -- DECISIONS, stated so a reviewer can disagree:
 --  * Which price: sale -> sale_price_minor; otherwise rent_amount_minor, else rate_minor.
---  * PRICE EDITS. Changing the price of a PUBLISHED non-demo listing is refused unless
---    the lister's latest acceptance is on the version in force AND on the new price.
---    To make that possible, accept_listing_rate on a PUBLISHED listing accepts a price
---    different from the stored one (the price the lister is about to set); the figures
---    are computed and recorded on that price. Price edits on DRAFT/SUBMITTED rows are
+--  * WHICH VERSION. Lister-driven moves (INSERT, or from DRAFT / MORE_INFO_REQUIRED /
+--    REJECTED) need an acceptance on the version in force now (or, see REVIEW WINDOW,
+--    at submission) AND on the current price. Staff/system moves back into PUBLISHED
+--    (reinstate_agent, reopen_listing, decide_listing_mandate, APPROVED -> PUBLISHED)
+--    need an acceptance on the current price, ANY version: the lister keeps the old
+--    rate until they accept the new one (D51), and a reinstatement never aborts.
+--  * PRICE EDITS. A price change on a PUBLISHED non-demo listing is refused unless some
+--    acceptance exists at the new price. accept_listing_rate always records on the
+--    STORED price (no "future price" exception), so an owner has no path to this:
+--    guard_owner_write forbids owners changing anything on a PUBLISHED row. The gate
+--    is defence in depth against a staff/service edit; a staff price-edit flow, if
+--    ever needed, must be added explicitly. Price edits on DRAFT/SUBMITTED rows are
 --    not gated themselves; the next move into SUBMITTED/PUBLISHED re-checks.
---  * REVIEW WINDOW (S6). SUBMITTED -> PUBLISHED accepts an acceptance on the version
---    in force now OR on the version that was in force when the listing was submitted
---    (listings.submitted_at), so a rate change landing during review does not strand
---    a listing. No staff override exists; staff never accept on a lister's behalf.
+--  * REVIEW WINDOW (S6). SUBMITTED or APPROVED -> PUBLISHED (staff publish is
+--    SUBMITTED -> APPROVED -> PUBLISHED) also accepts an acceptance on the version
+--    that was in force when the listing was submitted (listings.submitted_at), so a
+--    rate change landing during review does not strand a listing. No staff override
+--    exists; staff never accept on a lister's behalf.
+--  * NIT-5: an INSERT already in SUBMITTED/PUBLISHED of a non-demo listing can never
+--    pass (no acceptance can exist for an id not yet inserted). No app path does it.
 --  * Existing PUBLISHED listings (all 64 are is_demo today) are untouched: same-status
 --    updates that do not change the price return early.
 --  * Unpriced listings (price null or 0, "price on request") can never be accepted
@@ -157,10 +169,8 @@ $$;
 
 -- The only write. The client names the version and the price it SHOWED, so a
 -- rate or price that moved between showing and tapping is refused, never
--- silently accepted at a figure the lister did not see. Exception: on a
--- PUBLISHED listing the lister may accept the NEW price they are about to set
--- (the price-edit gate then requires exactly that price). Only the lister
--- accepts; staff cannot accept on their behalf.
+-- silently accepted at a figure the lister did not see. Always on the stored
+-- price. Only the lister accepts; staff cannot accept on their behalf.
 create or replace function public.accept_listing_rate(p_listing uuid, p_policy_version bigint, p_amount_minor bigint)
 returns jsonb language plpgsql volatile security definer set search_path to '' as $$
 declare
@@ -183,9 +193,6 @@ begin
   end if;
   price := private.b3_listing_price_minor(l.id);
   if price is null or price <= 0 then return jsonb_build_object('status', 'no_price'); end if;
-  if l.status = 'PUBLISHED' and p_amount_minor is not null and p_amount_minor > 0 then
-    price := p_amount_minor;   -- a price edit on a live listing, accepted before it is saved
-  end if;
   if p_amount_minor is distinct from price then
     return jsonb_build_object('status', 'price_changed', 'amount_minor', price);
   end if;
@@ -224,6 +231,7 @@ declare
   v_sub public.money_policy_versions%rowtype;
   new_price bigint;
   old_price bigint;
+  need_current boolean;
 begin
   if new.status not in ('SUBMITTED', 'PUBLISHED') then return new; end if;
   if coalesce(new.is_demo, false) then return new; end if;
@@ -237,15 +245,17 @@ begin
       return new;
     end if;
   end if;
-  acc := private.b3_latest_acceptance(new.id);
   v := public.money_policy_at(now());
-  -- S6: moving SUBMITTED -> PUBLISHED also honours the version in force at submission.
-  if tg_op = 'UPDATE' and old.status = 'SUBMITTED' and new.status = 'PUBLISHED' then
+  -- S6: SUBMITTED/APPROVED -> PUBLISHED also honours the version in force at submission.
+  if tg_op = 'UPDATE' and old.status in ('SUBMITTED', 'APPROVED') and new.status = 'PUBLISHED' then
     v_sub := public.money_policy_at(coalesce(new.submitted_at, old.submitted_at, now()));
   end if;
-  if acc.id is null or v.id is null
-     or (acc.policy_version_id <> v.id and acc.policy_version_id is distinct from v_sub.id)
-     or acc.amount_minor is distinct from new_price then
+  -- Lister-driven moves need the current version; staff/system re-entry any version.
+  need_current := tg_op = 'INSERT' or old.status in ('DRAFT', 'MORE_INFO_REQUIRED', 'REJECTED');
+  if v.id is null or not exists (
+       select 1 from public.listing_rate_acceptances a
+        where a.listing_id = new.id and a.amount_minor = new_price
+          and (not need_current or a.policy_version_id = v.id or a.policy_version_id = v_sub.id)) then
     raise exception 'rate_agreement_required: the lister has not accepted the current fee on this price'
       using errcode = '42501', hint = 'accept_listing_rate';
   end if;
@@ -259,9 +269,9 @@ create or replace trigger listings_zz_b3_rate_agreement_gate
   on public.listings
   for each row execute function private.b3_rate_agreement_gate();
 
--- Commission for a booking under THE SPLIT PRECEDENCE (header): terms snapshot,
--- else the acceptance in force at agreement time, else (no listing) the policy
--- in force at agreement time.
+-- Commission for a booking under THE SPLIT PRECEDENCE (header): listing bookings
+-- read the acceptance in force at agreement time (terms ignored); no-listing
+-- bookings read the terms snapshot, else the policy in force at agreement time.
 create or replace function private.b3_commission_for_booking(p_booking uuid, p_amount_minor bigint, p_agreement uuid)
 returns jsonb language plpgsql stable security definer set search_path to '' as $$
 declare
@@ -275,12 +285,7 @@ begin
   select * into bk from public.bookings where id = p_booking;
   select * into ag from public.deal_agreements where id = p_agreement;
   if bk.id is null or ag.id is null then return jsonb_build_object('status', 'not_found'); end if;
-  if ag.terms ? 'commission_bps' and jsonb_typeof(ag.terms->'commission_bps') = 'number' then
-    bps := (ag.terms->>'commission_bps')::integer;
-    if bps < 0 or bps > 10000 then return jsonb_build_object('status', 'amount_mismatch'); end if;
-    return jsonb_build_object('status', 'ok', 'commission_bps', bps, 'source', 'terms',
-                              'commission_minor', (p_amount_minor * bps) / 10000, 'acceptance_id', null);
-  end if;
+  -- 1. Listing bookings: the acceptance in force at the agreement (D51), never terms.
   if bk.listing_id is not null then
     acc := private.b3_latest_acceptance(bk.listing_id, ag.created_at);
     if acc.id is null then return jsonb_build_object('status', 'rate_not_accepted'); end if;
@@ -291,7 +296,14 @@ begin
     return jsonb_build_object('status', 'ok', 'commission_bps', acc.commission_bps, 'source', 'acceptance',
                               'commission_minor', fee, 'acceptance_id', acc.id);
   end if;
-  -- No listing: a hotel / accommodation room. The policy at agreement time.
+  -- 2. No listing (hotel / accommodation room): the terms snapshot, else
+  -- 3. the policy at agreement time.
+  if ag.terms ? 'commission_bps' and jsonb_typeof(ag.terms->'commission_bps') = 'number' then
+    bps := (ag.terms->>'commission_bps')::integer;
+    if bps < 0 or bps > 10000 then return jsonb_build_object('status', 'amount_mismatch'); end if;
+    return jsonb_build_object('status', 'ok', 'commission_bps', bps, 'source', 'terms',
+                              'commission_minor', (p_amount_minor * bps) / 10000, 'acceptance_id', null);
+  end if;
   v := public.money_policy_at(ag.created_at);
   if v.id is null then return jsonb_build_object('status', 'no_policy'); end if;
   return jsonb_build_object('status', 'ok', 'commission_bps', v.commission_bps, 'source', 'policy',
@@ -589,6 +601,20 @@ begin
   if not has_function_privilege('authenticated', 'public.accept_listing_rate(uuid,bigint,bigint)', 'execute')
      or has_function_privilege('anon', 'public.accept_listing_rate(uuid,bigint,bigint)', 'execute') then
     raise exception 'b3_rate_agreement_gate: accept_listing_rate grants are wrong';
+  end if;
+  -- BLOCKER-1: listing bookings read the acceptance before any terms figure.
+  if position('rate_not_accepted' in pg_get_functiondef('private.b3_commission_for_booking(uuid,bigint,uuid)'::regprocedure))
+     > position('''terms''' in pg_get_functiondef('private.b3_commission_for_booking(uuid,bigint,uuid)'::regprocedure)) then
+    raise exception 'b3_rate_agreement_gate: listing bookings must read the acceptance before terms';
+  end if;
+  -- SF-1 / SF-2: the review grace covers APPROVED, and staff re-entry accepts any version.
+  if position('''APPROVED''' in pg_get_functiondef('private.b3_rate_agreement_gate()'::regprocedure)) = 0
+     or position('need_current' in pg_get_functiondef('private.b3_rate_agreement_gate()'::regprocedure)) = 0 then
+    raise exception 'b3_rate_agreement_gate: the gate lacks the APPROVED grace or the need_current rule';
+  end if;
+  -- SF-3: no future-price acceptance.
+  if position('price := p_amount_minor' in pg_get_functiondef('public.accept_listing_rate(uuid,bigint,bigint)'::regprocedure)) > 0 then
+    raise exception 'b3_rate_agreement_gate: accept_listing_rate still accepts a price other than the stored one';
   end if;
 end $$;
 
