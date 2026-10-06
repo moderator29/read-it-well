@@ -213,6 +213,11 @@ export function FirstRunPanels({
               size="lg"
               full
               onClick={(event) => {
+                /* Only a plain primary click is ours to carry: a cmd, ctrl,
+                   shift or alt click, or a middle click, is the browser's
+                   "open this in another tab", and taking it over would
+                   replace the page the person meant to keep. */
+                if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
                 event.preventDefault();
                 leave();
               }}
