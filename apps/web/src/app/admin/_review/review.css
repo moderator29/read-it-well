@@ -760,14 +760,20 @@
 
   .nf-rv-facts > div {
     display: grid;
-    grid-template-columns: 24px minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
     gap: var(--nf-space-xs);
     min-height: 34px;
     font-size: var(--nf-text-caption);
   }
 
+  /* The glyph sits in its own 24px cell on the label's line, as it did when it
+     was a sibling of the label. */
   .nf-rv-facts dt {
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr);
+    align-items: center;
+    gap: var(--nf-space-xs);
     color: var(--nf-brand-secondary);
   }
 

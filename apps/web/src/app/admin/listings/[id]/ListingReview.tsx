@@ -380,11 +380,14 @@ function num(value: number | null): string | null {
   return value === null ? null : String(value);
 }
 
-function Fact({ icon, label, value }: { icon: UiIconName; label: string; value: string | null }) {
+export function Fact({ icon, label, value }: { icon: UiIconName; label: string; value: string | null }) {
   return (
     <div>
-      <UiIcon name={icon} size={16} />
-      <dt>{label}</dt>
+      {/* The glyph is inside the dt: a group div may hold only dt and dd. */}
+      <dt>
+        <UiIcon name={icon} size={16} />
+        {label}
+      </dt>
       <dd>{value ?? <span style={{ color: "var(--nf-content-muted)" }}>Not given</span>}</dd>
     </div>
   );

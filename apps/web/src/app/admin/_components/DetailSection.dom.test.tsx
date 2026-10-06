@@ -68,6 +68,21 @@ const moneyEntry = `
   );
 `;
 
+/* The listing review's property facts: a glyph, a label and a value per row. */
+const factsEntry = `
+  import { Fact } from "@/app/admin/listings/[id]/ListingReview";
+  import { mount } from "@/lib/testing/browser-root";
+  mount(
+    <div style={{ width: 360, padding: 16 }}>
+      <dl className="nf-rv-facts">
+        <Fact icon="house" label="A label slot" value="A value slot" />
+        <Fact icon="bed" label="A second label slot" value={null} />
+      </dl>
+      <span id="probe" style={{ display: "block", width: "var(--nf-space-xs)", height: 1 }} />
+    </div>,
+  );
+`;
+
 describe.skipIf(!hasBrowser && !process.env.CI)("the console's detail sections", () => {
   it("never put a list inside a definition list, and axe finds nothing", async () => {
     const { page, close } = await mountInBrowser({ entry, css: productCss() });
@@ -110,6 +125,42 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the console's detail sections",
       expect(shape[1]!.groups).toEqual([["DT", "DD"]]);
       /* The note still sits directly under the last row, as it did inside the grid. */
       expect(shape.map((row) => row.noteJustBelow)).toEqual([true, true]);
+      expect(await axeViolations(page)).toEqual([]);
+    } finally {
+      await close();
+    }
+  });
+
+  it("holds the listing review's property facts as groups of dt and dd only, with the glyph on the label's line", async () => {
+    const { page, close } = await mountInBrowser({ entry: factsEntry, css: productCss("app/admin/_review/review.css") });
+    try {
+      const shape = await page.evaluate(() => {
+        const gap = document.getElementById("probe")!.getBoundingClientRect().width;
+        const rows = [...document.querySelectorAll(".nf-rv-facts > div")].map((row) => {
+          const box = row.getBoundingClientRect();
+          const dtEl = row.querySelector("dt")!;
+          /* The label's own text, wherever the dt starts: the glyph is inside it now. */
+          const range = document.createRange();
+          range.selectNodeContents([...dtEl.childNodes].filter((node) => node.nodeType === 3).pop()!);
+          const text = range.getBoundingClientRect();
+          const dd = row.querySelector("dd")!.getBoundingClientRect();
+          const svg = row.querySelector("svg")!.getBoundingClientRect();
+          return {
+            children: [...row.children].map((child) => child.tagName),
+            /* The glyph starts at the row's edge, the label one 24px cell and one gap in. */
+            glyphAtEdge: Math.abs(svg.left - box.left) <= 1,
+            labelIndent: Math.abs(text.left - box.left - 24 - gap) <= 1,
+            glyphOnLabelLine: Math.abs(svg.top + svg.height / 2 - (text.top + text.height / 2)) <= 1.5,
+            valueAtRightEdge: Math.abs(dd.right - box.right) <= 1,
+          };
+        });
+        return rows;
+      });
+      expect(shape.map((row) => row.children.every((tag) => tag === "DT" || tag === "DD"))).toEqual([true, true]);
+      expect(shape.map((row) => [row.glyphAtEdge, row.labelIndent, row.glyphOnLabelLine, row.valueAtRightEdge])).toEqual([
+        [true, true, true, true],
+        [true, true, true, true],
+      ]);
       expect(await axeViolations(page)).toEqual([]);
     } finally {
       await close();
