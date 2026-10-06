@@ -604,8 +604,12 @@
   .nf-md-chart__tick--end {
     transform: translate(-100%, var(--nf-space-2xs));
   }
+  .nf-md-chart__tick--series {
+    transform: translate(-100%, -100%);
+  }
   @container (max-width: 30rem) {
-    .nf-md-chart__tick--minor {
+    .nf-md-chart__tick--minor,
+    .nf-md-chart__tick--series {
       display: none;
     }
   }
@@ -613,10 +617,6 @@
     display: block;
     width: 100%;
     overflow: visible;
-  }
-  .nf-md-chart__axis {
-    font-size: var(--nf-text-overline);
-    fill: var(--nf-brand-quiet);
   }
   .nf-md-chart__grid {
     stroke: var(--nf-border-subtle);

@@ -196,6 +196,13 @@ export function SeriesChart({
   const y = (v: number) => PAD.top + plotH - (v / max) * plotH;
   const ticks = [0, 0.25, 0.5, 0.75, 1].map((f) => f * max);
   const labelEvery = n > 8 ? Math.ceil(n / 8) : 1;
+  const drawnSeries = series.filter((s) => s.values.length > 0);
+  const labelYs = spreadLabels(
+    drawnSeries.map((d) => y(d.values[n - 1] ?? 0) - 8),
+    14,
+    PAD.top + 8,
+    PAD.top + plotH - 2,
+  );
 
   return (
     <figure className="nf-md-chart">
@@ -213,13 +220,7 @@ export function SeriesChart({
           <line key={t} x1={PAD.left} x2={W - PAD.right} y1={y(t)} y2={y(t)} className="nf-md-chart__grid" strokeWidth="1" />
         ))}
 
-        {series.filter((s) => s.values.length > 0).map((s, si, drawn) => {
-          const labelYs = spreadLabels(
-            drawn.map((d) => y(d.values[n - 1] ?? 0) - 8),
-            14,
-            PAD.top + 8,
-            PAD.top + plotH - 2,
-          );
+        {drawnSeries.map((s) => {
           const line = smoothPath(s.values.map((v, i) => [x(i), y(v)] as [number, number]));
           const area = `${line} L${x(n - 1).toFixed(1)},${y(0)} L${x(0).toFixed(1)},${y(0)} Z`;
           const colour = rampColor(s.rank);
@@ -246,16 +247,6 @@ export function SeriesChart({
                   style={{ fill: colour }}
                 />
               ))}
-              {directLabels && n > 0 && (
-                <text
-                  x={x(n - 1) - 4}
-                  y={labelYs[si]}
-                  textAnchor="end"
-                  className="nf-md-chart__axis"
-                >
-                  {s.name}
-                </text>
-              )}
             </g>
           );
         })}
@@ -295,6 +286,19 @@ export function SeriesChart({
               {l}
             </span>
           ))}
+        {/* Each series' name at its last point, as HTML for the same reason as
+            the axis; on a narrow card the legend beside the chart names them. */}
+        {directLabels && n > 0
+          ? drawnSeries.map((s, si) => (
+              <span
+                key={s.name}
+                className="nf-md-chart__tick nf-md-chart__tick--series"
+                style={{ left: `${((x(n - 1) - 4) / W) * 100}%`, top: `${((labelYs[si] ?? 0) / H) * 100}%` }}
+              >
+                {s.name}
+              </span>
+            ))
+          : null}
       </div>
       {!ghost && <ChartReadout columns={readout} plotLeft={PAD.left / W} plotRight={(W - PAD.right) / W} />}
       {/* The table is for a screen reader. A table sizes to its content
@@ -429,7 +433,9 @@ export function Donut({
             ) : null,
           )}
         </g>
-        <text x="70" y="62" textAnchor="middle" fontSize="11" className="nf-md-donut__caption">
+        {/* 12 in the drawing's units: the donut is drawn 152px for a 140 box, so
+            this lands at 13px; at 11 it drew 11.9px, under the floor (C1 sweep). */}
+        <text x="70" y="62" textAnchor="middle" fontSize="12" className="nf-md-donut__caption">
           {totalLabel}
         </text>
         <text x="70" y="84" textAnchor="middle" fontSize="22" className="nf-md-donut__total">

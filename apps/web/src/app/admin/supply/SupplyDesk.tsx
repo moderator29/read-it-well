@@ -202,9 +202,11 @@ export function SupplyDesk({
                             <UiIcon name="verified" size={16} /> {c.yes}
                           </span>
                         ) : (
-                          <span className="nf-md-mark nf-md-mark--no">
-                            <UiIcon name="close" size={16} /> {c.no}
-                          </span>
+                          /* Not verified yet is not a failure: a red cross drew
+                             an unverified agent as if a check had been failed
+                             (north star 12, point 15: a null never looks
+                             negative; C1 sweep). Quiet words, no glyph. */
+                          <span className="text-[var(--nf-content-muted)]">{c.no}</span>
                         )}
                       </td>
                       <td className="nf-md-num nf-md-strong" data-label={c.transacted}>
@@ -474,7 +476,8 @@ function GrowthPanel({ supply, locale, now }: { supply: SupplyConsole | null; lo
         width={380}
         height={300}
         label={c.growthLabel}
-        yLabel={(v) => String(Math.round(v))}
+        /* Whole counts only: a quarter gridline stays unlabelled (C1 sweep). */
+        yLabel={(v) => (Number.isInteger(v) ? String(v) : "")}
         readout={supply.growth.map((g) => ({
           title: label(g.month, true),
           rows: SUPPLY_ROLE_KEYS.map((role) => ({ label: ROLE_LABEL[role].many, value: String(g.counts[role]) })),
