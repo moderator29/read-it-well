@@ -334,6 +334,38 @@ describe.skipIf(!hasBrowser && !process.env.CI)("DragToConfirm", () => {
     }
   });
 
+  it("passes axe in both themes and both tones once the action has been refused, the refusal on the track", async () => {
+    for (const tone of ["brand", "danger"]) {
+      for (const theme of ["dark", "light"]) {
+        const { page, close } = await mountInBrowser({
+          entry: entry({ tone, behaviour: "async () => false" }),
+          css: PORTED_CSS,
+        });
+        try {
+          await page.evaluate((t) => document.documentElement.setAttribute("data-theme", t), theme);
+          await slide(page, 1);
+          await page.waitForFunction(() => document.querySelector("[data-testid=dtc]")?.hasAttribute("data-failed"));
+          expect(await page.getByTestId("dtc").textContent()).toContain("Not confirmed");
+          /* Past the settle, so axe reads the resting colours, not a blend. */
+          await page.waitForTimeout(700);
+          expect(await axeViolations(page), `${tone} ${theme} refused`).toEqual([]);
+          /* The failure is carried by the edge as well as the words. */
+          const edge = await page.getByTestId("dtc").evaluate((el) => {
+            const probe = document.createElement("i");
+            probe.style.color = "var(--nf-state-error)";
+            document.body.append(probe);
+            const want = getComputedStyle(probe).color;
+            probe.remove();
+            return getComputedStyle(el).borderTopColor === want;
+          });
+          expect(edge, `${tone} ${theme} edge`).toBe(true);
+        } finally {
+          await close();
+        }
+      }
+    }
+  });
+
   it("passes axe in both themes and both tones, rested and confirmed", async () => {
     for (const tone of ["brand", "danger"]) {
       for (const theme of ["dark", "light"]) {

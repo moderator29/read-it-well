@@ -110,8 +110,17 @@
       transform: translateY(4px);
     }
   }
+  /* A refusal is said in WORDS on the track (the error label) and shown by the
+     track's own edge, never by tinting small text: `--nf-state-error` on the
+     navy track is about 3.9:1 at night, under the 4.5:1 small text needs, and no
+     lighter error ink exists. So the label takes the primary ink (it clears
+     contrast in both themes) and the edge, which only has to clear the 3:1 a
+     non-text mark needs, carries the failure. */
+  .nf-dtc[data-failed] {
+    border-color: var(--nf-state-error);
+  }
   .nf-dtc[data-failed] .nf-dtc__label:not(.nf-dtc__label--status) {
-    color: var(--nf-state-error);
+    color: var(--nf-content-primary);
   }
 
   .nf-dtc__handle {

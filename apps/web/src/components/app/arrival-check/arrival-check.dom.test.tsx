@@ -217,12 +217,9 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the console's arrival ruling", 
       expect(await slide(page).getByRole("button").getAttribute("aria-disabled")).toBeNull();
       expect(await page.getByTestId("arrival-ruling-cancel").isDisabled()).toBe(false);
       await page.waitForTimeout(400);
-      /* KNOWN FINDING, reported to the lead and deliberately not asserted here: the
-         refusal sentence on the slide's track is `--nf-state-error` on the navy
-         track, about 3.9:1 at night (ported.css, `.nf-dtc[data-failed] .nf-dtc__label`),
-         under the 4.5:1 that small text needs. Everything else must pass. */
-      const found = (await axeViolations(page)).filter((v) => !v.startsWith('color-contrast: <span class="nf-dtc__label"'));
-      expect(found).toEqual([]);
+      /* The refusal words on the track clear contrast: they take the primary ink and the
+         track's edge carries the failure (ported.css, `.nf-dtc[data-failed]`). */
+      expect(await axeViolations(page)).toEqual([]);
     } finally {
       await close();
     }

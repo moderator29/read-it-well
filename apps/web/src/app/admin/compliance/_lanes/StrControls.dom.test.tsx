@@ -165,10 +165,9 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the STR lane's second-person ap
       /* It can be tried again: the handle is live. */
       expect(await slide(page).getByRole("button").getAttribute("aria-disabled")).toBeNull();
       await page.waitForTimeout(400);
-      /* KNOWN FINDING, reported and deliberately not asserted: the refusal words on the
-         track are `--nf-state-error` on navy, about 3.9:1 at night (ported.css). */
-      const found = (await axeViolations(page)).filter((v) => !v.startsWith('color-contrast: <span class="nf-dtc__label"'));
-      expect(found).toEqual([]);
+      /* The refusal words on the track clear contrast: they take the primary ink and the
+         track's edge carries the failure (ported.css, `.nf-dtc[data-failed]`). */
+      expect(await axeViolations(page)).toEqual([]);
     } finally {
       await close();
     }
