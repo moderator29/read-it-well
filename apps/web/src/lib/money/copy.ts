@@ -131,6 +131,20 @@ export const PRIVATE_FEE_NOTE =
 export const OFF_PLATFORM_SENTENCE =
   "Keep every message, agreement and payment on Vallo. Vallo is not responsible for anything arranged, discussed or paid outside the platform.";
 
+/* The space detail's sentences about paying (/listing/[id]'s description),
+   moved out of the page (Round 3 sweep, C3). The words are the page's own. */
+/** A sale: inspect, then have the title checked before money moves. */
+export const LISTING_SALE_ABOUT =
+  "This property is for sale. Message the agent to ask questions and arrange an inspection, and have your own solicitor verify the title before any money changes hands.";
+/** A rental: inspect before paying. */
+export const LISTING_RENTAL_ABOUT =
+  "This home is let on an annual tenancy. Message the agent to ask questions and arrange an inspection, then pay only after you have inspected the property.";
+/** How a rent figure is quoted. */
+export const LISTING_RENT_QUOTED = "The rent is quoted for a full year and agreed directly with the agent.";
+/** A stay: reserve, inspect, then pay. */
+export const LISTING_STAY_PAY_AFTER =
+  "Reserve online, then arrange an inspection with the agent from your Inbox. Pay only after you have inspected the property.";
+
 /** What has to happen before payment is available. */
 export const PAYMENT_GATE_SENTENCE =
   "Payment opens only after the inspection report is submitted, both of you confirm the agreement, and Vallo approves it.";

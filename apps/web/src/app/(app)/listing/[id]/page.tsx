@@ -100,6 +100,12 @@ import { Amount } from "@/components/ui/Amount";
 import type { StatusTone } from "@/components/ui/StatusPill";
 import { Disclosure } from "@/components/app/Disclosure";
 import { publicListingTitle } from "@/lib/listings/public-title";
+import {
+  LISTING_RENT_QUOTED,
+  LISTING_RENTAL_ABOUT,
+  LISTING_SALE_ABOUT,
+  LISTING_STAY_PAY_AFTER,
+} from "@/lib/money/copy";
 import { FactGrid, ICON, Section, Stack, TYPE, type Fact } from "@/components/app/Screen";
 import "@/app/css/catalogue.css";
 
@@ -491,23 +497,15 @@ export default async function ListingDetailPage({
   const aboutParagraphs: string[] = [`${firstSentence}${amenitySentence}`];
 
   if (isSale) {
-    aboutParagraphs.push(
-      "This property is for sale. Message the agent to ask questions and arrange an inspection, and have your own solicitor verify the title before any money changes hands.",
-    );
+    aboutParagraphs.push(LISTING_SALE_ABOUT);
   } else if (isRental) {
-    aboutParagraphs.push(
-      "This home is let on an annual tenancy. Message the agent to ask questions and arrange an inspection, then pay only after you have inspected the property.",
-    );
-    aboutParagraphs.push(
-      `The rent is quoted for a full year and agreed directly with the agent.${
-        listing.verified ? ` ${L.agentChecked}` : ""
-      }`,
-    );
+    aboutParagraphs.push(LISTING_RENTAL_ABOUT);
+    aboutParagraphs.push(`${LISTING_RENT_QUOTED}${listing.verified ? ` ${L.agentChecked}` : ""}`);
   } else {
     aboutParagraphs.push(
       `${
         listing.instantBook ? L.instantBookOn : L.instantBookOff
-      } Reserve online, then arrange an inspection with the agent from your Inbox. Pay only after you have inspected the property.`,
+      } ${LISTING_STAY_PAY_AFTER}`,
     );
     const closing: string[] = [];
     const capacity = capacityOf(listing);
