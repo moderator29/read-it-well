@@ -8,6 +8,7 @@ import { IconPlate } from "@/components/ui/IconPlate";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Gauge, type GaugeStage } from "@/components/ui/charts/Gauge";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { TodayHero } from "@/components/workspace/TodayHero";
 import { HOST_STATUS_WORD, type HostToday, type TodayAttention } from "./today";
 
 /**
@@ -21,6 +22,15 @@ import { HOST_STATUS_WORD, type HostToday, type TodayAttention } from "./today";
  * the host's own rows; a tile whose source could not be read is not drawn,
  * a gauge with nothing to count is left out, and no tile carries a delta
  * chip because no figure here has a measured previous period.
+ *
+ * REFERENCE 7033, FIGURE HERO PLUS LIST (Session 3, 6 October). The band now
+ * leads with one figure, "Needs you today": the sum of the three queue tiles
+ * that were read (requests waiting, arriving today, unread), which is
+ * `hostToday().needsYou` and nothing else. Under it, the oldest thing still
+ * waiting is promoted to the one next action, and it leaves the "Needs
+ * attention" list so nothing is listed twice. The four tiles stay where they
+ * were (the 2x2 count cards of north star 15.4, each a door into its queue),
+ * and so do the list and the gauge: D28, nobody's furniture moves.
  */
 
 const KPI_ICON: Record<string, UiIconName> = {
@@ -78,7 +88,12 @@ export function HostTodayView({
             : "neutral",
   }));
 
-  const shown = today.attention.slice(0, 5);
+  /* The oldest waiting item becomes the next action; the list carries the
+     rest. With one item, the list is left out entirely. */
+  const [first, ...rest] = today.attention;
+  const shown = rest.slice(0, 5);
+  /* No queue was read at all: no figure, rather than a 0 nobody counted. */
+  const readQueues = today.kpis.some((k) => k.key === "arriving" || k.key === "requests" || k.key === "unread");
 
   return (
     <div className="nf-desk-home">
@@ -86,6 +101,14 @@ export function HostTodayView({
           29 September); `.nf-edge-lap` settles to a steady rim under reduced
           motion, data saver, Calm and Off. */}
       <HeroBand className="nf-edge-lap" label={dateLine} title={d.today.title} sub={sub} action={action}>
+        <TodayHero
+          caption={d.today.needsYou}
+          count={readQueues ? today.needsYou : null}
+          busy={d.today.sumLine}
+          idle={d.today.nothing}
+          tag={tag}
+          next={first ? attentionRowProps(first, t, tag) : null}
+        />
         {today.kpis.length > 0 ? (
           <div className="nf-desk-kpis">
             {today.kpis.map((kpi) => (
@@ -109,7 +132,7 @@ export function HostTodayView({
             <ListGroup
               label={d.today.needsAttention}
               action={
-                today.attention.length > shown.length ? (
+                rest.length > shown.length ? (
                   <Link href="/host/decide" className="nf-link-quiet">
                     {d.today.viewAll.replace("{count}", String(today.attention.length))}
                   </Link>
@@ -139,7 +162,8 @@ export function HostTodayView({
   );
 }
 
-function AttentionRow({ item, t, tag }: { item: TodayAttention; t: Dictionary; tag: string }) {
+/** One waiting item as a row's parts: the list row and the next action share it. */
+function attentionRowProps(item: TodayAttention, t: Dictionary, tag: string) {
   const a = t.desk.host.attention;
   let title = item.title;
   let sub = item.sub;
@@ -171,18 +195,29 @@ function AttentionRow({ item, t, tag }: { item: TodayAttention; t: Dictionary; t
       </StatusBadge>
     );
   }
+  return {
+    href: item.href,
+    leading: (
+      <IconPlate size="sm" shape="round" tone={item.tone === "neutral" ? "neutral" : item.tone}>
+        <UiIcon name={ATTENTION_ICON[item.kind]} size={20} />
+      </IconPlate>
+    ),
+    title,
+    sub,
+    status: badge ?? undefined,
+  };
+}
+
+function AttentionRow({ item, t, tag }: { item: TodayAttention; t: Dictionary; tag: string }) {
+  const row = attentionRowProps(item, t, tag);
   return (
     <ListRow
-      href={item.href}
-      leading={
-        <IconPlate size="sm" shape="round" tone={item.tone === "neutral" ? "neutral" : item.tone}>
-          <UiIcon name={ATTENTION_ICON[item.kind]} size={20} />
-        </IconPlate>
-      }
-      title={title}
-      sub={sub}
-      status={badge}
-      chevron={badge === null}
+      href={row.href}
+      leading={row.leading}
+      title={row.title}
+      sub={row.sub}
+      status={row.status}
+      chevron={row.status === undefined}
     />
   );
 }
