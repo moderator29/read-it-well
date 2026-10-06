@@ -627,6 +627,190 @@ navy ground, one Island, one pill action, and copy that says what is happening.
 
 ---
 
+## 14. Feature onboarding, Pro mode, plans and premium artefacts
+
+Added 6 October from founder directives D11 to D16 and five further references.
+
+### 14.1 The feature onboarding system
+
+**Every significant feature gets a designed first run.** Not fifteen bespoke screens:
+**one reusable system** with a consistent shape, so a person learns the grammar once
+and every later feature feels familiar rather than novel.
+
+**The shape.** One to three full-page panels, never a tooltip tour. Each panel is one
+idea: a short headline in display type, one line of body, one piece of art or one real
+product moment, and nothing else. A dot pager. A skip that is always reachable and
+never hidden. A final panel whose action is the thing itself, not "Done".
+
+**The rules.**
+
+- **Once, remembered, dismissible.** Keyed per feature, per member, server-side so it
+  survives a device change. Never re-shown because a cache cleared.
+- **It must teach something true.** A first run that only decorates is deleted. The
+  wallet's first run explains what Available and In Escrow mean; escrow's explains who
+  holds the money and what releases it; the referral hub's explains what qualifies.
+- **It never blocks.** Skip lands on the working feature, not a dead end.
+- **It respects reduced motion**, collapsing to a 160ms fade.
+- **It is a route, not a modal**, so back behaves and a deep link can reach it.
+
+**Where it is required**, each with the one true thing it must teach:
+
+| Feature | What the first run must make clear |
+|---|---|
+| Wallet | Available against In Escrow, and that Vallo never holds it |
+| Escrow and protected payment | Who holds the money, what releases it, what happens in a dispute |
+| Withdrawal | Where it lands, what the fee is, how long it takes |
+| Referral hub | What qualifies a referral, when the reward lands, and that it is not an investment scheme |
+| Space Passport | What is on it, who can see it, how to share it |
+| Verification | What each rung actually checks |
+| Space Analytics | What the figures count and who can see them |
+| Promotion | What is bought, what is not bought, and that rank is never for sale |
+| Host and agent workspace | The one thing to do today |
+| Owner and Tenant command centre | What this surface is for |
+| Agreements and inspections | What has to happen before payment opens |
+
+**Where it is forbidden:** sign-in, search, the feed, and anything a person reaches
+more than weekly. Teaching someone how to scroll is how a premium product becomes
+annoying.
+
+### 14.2 Pro mode
+
+When a member holds a paid plan or paid feature, a **Pro switch** appears and flips
+the surface into its Pro state. **A member holding nothing never sees the switch.**
+
+| State | What is shown |
+|---|---|
+| **No entitlement** | No switch, anywhere. The ordinary surface, complete and unapologetic. At most **one** honest route to the plan, placed where the need is felt, never a banner on every screen |
+| **Entitled, Pro off** | The switch, off, in the workspace header beside the existing controls |
+| **Entitled, Pro on** | The switch, on, and the surface in its Pro state |
+
+**The switch itself:** a segmented control or a labelled toggle, 999px, carrying the
+word Pro, never a crown, never a diamond, never gold. **Never a locked padlock
+control**: a disabled Pro switch is an advertisement pretending to be an interface,
+and it is banned.
+
+**Fails closed.** No entitlement resolved means no switch, and the entitlement is
+checked on the server on every render, never inferred in the browser.
+
+**What Pro changes** is depth, not access to the truth: more history, more comparison,
+export, bulk actions, deeper analytics. **A Pro state never hides a fact a free
+member needs to transact safely.** Price, fees, trust facts and money state are never
+behind a plan.
+
+### 14.3 Plan and paywall screens
+
+From references 7034, 7126, 34 and 35. The honest version of a pattern that is usually
+dishonest.
+
+**The anatomy**, in order: the artefact (14.4) or a single clay object; the promise in
+one line; **three to five benefit rows**, each a line glyph plus a concrete benefit,
+never an adjective; the plans as **two cards, monthly and annual**, annual showing its
+real saving as a figure rather than a shout; the price large and tabular; **what
+happens next as a three-step timeline** when there is a trial, which is reference
+7034's best idea; one primary action; and beneath it, in plain small type, exactly what
+is charged and when, and how to cancel.
+
+**Forbidden, and all four appear in the references:** "80% OFF FOREVER" and any
+permanent-discount claim; countdown timers and "1 day only" on anything that is not a
+real deadline; confetti on a purchase; and a preselected annual plan the person did
+not choose. A person who feels hurried into a plan will not trust the same product
+with their rent.
+
+### 14.4 Premium artefact cards
+
+Reference 38's fanned metallic cards with "Select your tier" is the treatment for
+every tier, credential and membership Vallo has: the Space Passport, trust tiers, Pro
+plans, promotion tiers.
+
+**The artefact.** A flat rounded rectangle at radius 18, in the plate proportion, with
+a quiet material difference per tier rather than a colour change: matte navy, then
+royal, then matte navy with one thin warm edge line. Floating level at a slight
+three-quarter angle so its thickness reads. **Matte, never glossy**, which is the one
+place this specification departs from reference 38, whose cards are mirror-finished
+and would read as a crypto product here.
+
+**The fan.** Three artefacts overlapping with the active one forward, the others
+receding in scale and opacity. Tapping or swiping brings one forward on a spring at
+380ms. The stack itself is the selector: there is no separate list.
+
+**The one hard limit.** **Vallo issues no payment card.** An artefact must never look
+like a debit or credit card, must never carry a network mark or a chip or a long
+number, and must never imply a card product exists. It is a credential. If it could be
+mistaken for a bank card at a glance, it is wrong.
+
+**Where it is used:** the Space Passport tier, trust tiers, Pro plan selection,
+promotion tier selection, and a badge or milestone at the moment it is earned.
+**Where it is not:** anywhere there is no tier. A card artefact on a screen with one
+option is decoration.
+
+### 14.5 Get Started, monotone
+
+**The first screen after the startup animation**, which makes it the most seen screen
+in the product and the first real impression after the brand moment.
+
+**Monotone**, in the spirit of reference 37: a single hue, no secondary colour, no
+glow, no gradient beyond one soft ground wash. Restraint is the message, and it is the
+opposite of the busy launch screens most products ship.
+
+**The composition:** generous top air; the mark, small; one display line that says what
+Vallo is; one quiet line beneath it; then the doors. **The doors are the only
+contrast on the screen**: the primary action solid, the secondary outlined, both
+rectangles at radius 14 per D2. Legal consent in small honest type. Nothing else.
+
+**What it must not have:** a carousel, a phone mock, a feature list, social proof, an
+animation that loops, or more than one route onward besides sign in.
+
+The handoff from the animation is a 240ms crossfade from the lockup's final frame into
+this page with the mark already in position, so the two read as one movement.
+
+### 14.6 Full-page onboarding
+
+Beyond Get Started, onboarding uses full-page compositions in the spirit of reference
+36: **one idea per page**, large display type, a real illustration or product moment,
+generous air.
+
+**Proof is allowed only where it is legitimate.** Reference 36 carries "1 Million
+Creators" and press logos. Vallo has 16 accounts and no published listing. **Until the
+numbers are real, there is no proof band**, and the space is given to the product
+instead. Inventing one would breach the honesty rules the whole platform rests on and
+would be caught by the claims lint.
+
+### 14.7 The light-mode icon fix
+
+The founder reports the 3D icons still read poorly on light. This is material, not
+rendering: **glass needs a dark ground to resolve**, and on white it goes muddy and
+loses its edges.
+
+**Two changes, both required.**
+
+1. **The clay migration**, already decided in D2. A matte deep-royal-blue object has
+   genuine contrast on white, where a glass one has almost none. This is the real fix
+   and it is why the decision was taken.
+2. **The ground.** On paper, a clay object sits on a plate: radius 14, a very light
+   blue-grey fill at about 4% brand, with a soft blue contact shadow beneath the
+   object so it never floats on pure white. On night the plate is unnecessary and the
+   object sits directly on the surface.
+
+**The acceptance rule: no clay asset is accepted until it has been viewed on paper at
+390px as well as on night.** An object approved only on navy will fail on white, which
+is exactly how the current set reached this state.
+
+**For any glass mark that survives**, in the logo lockup and the role-switch coin, the
+existing rule stands and is correct: give it a dark ground in light mode rather than
+letting it sit on white.
+
+### 14.8 App Store screenshots
+
+Reference 36 is the structure: a bold three-word headline, one device, one idea per
+frame, a consistent ground across the set so it reads as a series.
+
+Six frames: Space, without the runaround. The whole move-in cost, up front. Verified
+by a real person. Protected payment. Your space, managed. Built for Nigeria.
+
+**No invented press logos, no invented awards, no invented counts.**
+
+---
+
 ## 11. Asset generation
 
 What has to be produced, and prompts for generating it. **House rules for every

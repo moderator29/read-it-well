@@ -141,6 +141,22 @@ continue on everything else.
 **Never route money-facing copy, the chart system or the startup sequence to the
 cheapest model.** A wrong figure or a misleading animation is worse than an ugly one.
 
+### 5.3a You research the references yourself
+
+**Founder directive D16.** Before you design a surface, **open the reference images
+for it.** Session 1's classification in north star section 9 is a map, not a
+substitute for looking. Many references are frames from videos, so read a run of
+consecutive files as a motion study rather than six stills.
+
+More references are being added to `docs/design/references/`. **Read whatever is in
+that directory on the day you run**, not only what Session 1 catalogued, and record in
+your response file which references drove which surface.
+
+You also have research latitude generally: if a surface needs a pattern nobody has
+specified, find a good one, classify it BORROW, ADAPT or AVOID the way Session 1 did,
+and write down the reasoning. **Extract patterns, never clone a platform. Vallo must
+emerge as its own product.**
+
 ### 5.4 The breadth mandate
 
 **Do not leave an existing screen untouched because it was not named.** Classify
@@ -266,6 +282,23 @@ handoff**: cold-start sign-up never carries `next`, so the interests and arrival
 questions are skipped; and `/home` must actually use the answers, which it ignores
 today. Session 2 provides the personalised query.
 
+**Get Started becomes monotone and becomes the first screen after the animation**
+(D13, north star 14.5). One hue, no secondary colour, no glow, no gradient beyond one
+soft ground wash, in the spirit of reference 37. Generous top air, the mark small, one
+display line saying what Vallo is, one quiet line beneath, then the doors, which are
+**the only contrast on the screen**. No carousel, no phone mock, no feature list, no
+social proof, no looping animation. The handoff is a 240ms crossfade from the startup
+lockup's final frame with the mark already in position, so the two read as one
+movement. This becomes the most seen screen in the product, so it carries the first
+real impression after the brand moment.
+
+**Onboarding beyond it is full-page** (14.6), in the spirit of reference 36: one idea
+per page, large display type, a real illustration or product moment, generous air.
+**No proof band until the numbers are real.** Reference 36 carries "1 Million
+Creators" and press logos; Vallo has 16 accounts and no published listing, and
+inventing proof would breach the honesty rules the platform rests on and be caught by
+the claims lint.
+
 **The offline card** gets the real logo instead of the inline building glyph.
 
 ### Stage 4: Money and documents, in Paper (B2)
@@ -336,6 +369,54 @@ communicated by colour alone: success, pending, failed, protected, disputed.
 No excessive glass, no giant rounded containers everywhere, no gaming dashboard, no
 clutter, no meaningless animation, no unnecessary gradients, no fake security
 graphics. **And no second design system.**
+
+### Stage 4B: Feature onboarding, Pro mode, plans and artefacts (B2 and B4)
+
+Founder directives D11 to D15, specified in north star section 14. **Read that section
+before starting this stage**, and look at references 34, 36, 37 and 38 yourself.
+
+**The feature onboarding system (14.1).** One reusable system, not fifteen bespoke
+screens: one to three full pages, one idea each, a dot pager, an always-reachable skip,
+and a final action that is the thing itself rather than "Done". A route and never a
+modal, so back behaves and a deep link reaches it. Once per member, remembered
+server-side so it survives a device change. **It must teach something true**: the
+table in 14.1 gives the one fact each feature's first run has to land. Build the system
+first, then the eleven first runs on top of it. **Forbidden on sign-in, search and the
+feed**: teaching somebody to scroll is how a premium product becomes annoying.
+
+**Pro mode (14.2).** A member holding no entitlement **never sees the switch at all**.
+Not greyed, not locked, not a padlock: absent. A disabled Pro control is an
+advertisement pretending to be an interface. Entitled members get the switch in the
+workspace header, carrying the word Pro, never a crown or a diamond or gold. Resolved
+on the server every render, failing closed. **Pro changes depth, never access to the
+truth**: price, fees, trust facts and money state are never behind a plan. Session 2
+owns the entitlement check; you own its presence rule.
+
+**Plan and paywall screens (14.3).** The anatomy in order: artefact, promise in one
+line, three to five concrete benefit rows, two plan cards with the annual saving as a
+real figure, a three-step "what happens next" timeline where there is a trial, one
+primary action, and plain small type saying exactly what is charged, when, and how to
+cancel. **Forbidden, and all four are in the references you were sent:** permanent
+discount claims like "80% OFF FOREVER", countdowns on anything that is not a real
+deadline, confetti on a purchase, and a preselected annual plan. A person hurried into
+a plan will not trust the same product with their rent.
+
+**Premium artefact cards (14.4).** Reference 38's fanned tier cards, as matte clay
+credentials rather than mirror-finished cards, which is the one place we depart from
+that reference because a mirror finish reads as a crypto product. Three artefacts
+overlapping, the active one forward, a spring at 380ms bringing one forward, the stack
+itself being the selector. Used for the Space Passport tier, trust tiers, Pro plans,
+promotion tiers and an earned badge moment. **The hard limit: Vallo issues no payment
+card.** No chip, no network mark, no long number. If it could be mistaken for a bank
+card at a glance it is wrong.
+
+**The light-mode icon fix (14.7).** The founder reports the current 3D icons still read
+poorly on light, and the cause is material: glass needs a dark ground and goes muddy on
+white. Two required changes: the clay migration already decided, and a ground on paper,
+being a radius-14 plate at about 4% brand with a soft blue contact shadow so an object
+never floats on pure white. **Acceptance rule: no clay asset ships until it has been
+viewed on paper at 390px as well as on night.** The current set reached this state
+precisely because assets were approved only on navy.
 
 ### Stage 5: Discovery and detail (B3)
 
@@ -484,7 +565,15 @@ ranking formula.
 12. Every page in every stage passed the 24-point checklist, recorded.
 13. No horizontal scroll at 390, checked at 390, 768 and 1440, both themes, four
     locales.
-14. Typecheck and lint green. The glow count reduced and the lint ratcheted.
+14. The feature onboarding system exists once and carries all eleven first runs.
+15. Pro mode is absent for unentitled members, verified by signing in as one.
+16. Plan screens carry no countdown, no permanent-discount claim, no confetti and no
+    preselected plan.
+17. Artefact cards exist as matte credentials and could not be mistaken for a bank card.
+18. Get Started is monotone and is the first screen after the animation.
+19. **Every clay asset checked on paper at 390px as well as on night**, with any whose
+    edges disappear on white rejected and regenerated.
+20. Typecheck and lint green. The glow count reduced and the lint ratcheted.
 
 ## 12. YOUR RESPONSE FILE
 
@@ -499,5 +588,6 @@ inventory as actually built with shipped durations against the 24 moments;
 surface**, because the founder studies before-and-after and two of his references are
 literally redesign comparisons; every asset generated and every asset still needed;
 anything you could not build for want of data, with the route, for Session 2; which
-end-to-end specs you knowingly broke, for Session 4; and what you would do next with
-another week.
+end-to-end specs you knowingly broke, for Session 4; **which reference images drove
+which surface**; the light-mode check result per clay asset; and what you would do next
+with another week.

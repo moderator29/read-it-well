@@ -1105,6 +1105,186 @@ floor shadow.
 
 ---
 
+# 9A. Premium artefact cards (tiers and credentials)
+
+North star 14.4. For the Space Passport, trust tiers, Pro plans and promotion tiers.
+Rendered as a fan of three, so generate all three with identical geometry and lighting
+so they stack cleanly.
+
+**The hard limit: Vallo issues no payment card.** No chip, no network mark, no long
+number, no magnetic stripe, nothing that could be mistaken for a bank card.
+
+### 9A.1 Tier one credential
+
+```
+A single 3D object: a flat rounded rectangular credential card with a completely blank
+face, softly chamfered edges, floating level and seen from a slightly raised
+three-quarter angle so its thin depth reads. Proportions of a standard card but with
+no chip, no magnetic stripe, no numbers and no markings of any kind. Rendered in matte
+clay with a soft velvety finish, deep matte navy #0A1231, subtle rounded bevels. Soft
+diffused key light from the upper left, gentle ambient occlusion along the lower edges,
+no specular highlights. Fully transparent background. Centred with generous even
+padding. Square 1:1. Restrained and quiet.
+Do not include: gloss, shine, mirror finish, reflection, chrome, metal, holograms,
+iridescence, neon, rim light, glow, chip, magnetic stripe, card numbers, network logos,
+text, letters, numbers, patterns, gradient background, floor shadow.
+```
+
+### 9A.2 Tier two credential
+
+```
+A single 3D object: a flat rounded rectangular credential card with a completely blank
+face, softly chamfered edges, slightly thicker than a standard card, floating level and
+seen from a slightly raised three-quarter angle. No chip, no stripe, no numbers, no
+markings. Rendered in matte clay with a soft velvety finish, royal blue #2B3FE0, subtle
+rounded bevels. Soft diffused key light from the upper left, gentle ambient occlusion
+along the lower edges, no specular highlights. Fully transparent background. Centred
+with generous even padding. Square 1:1. Confident but restrained.
+Do not include: gloss, shine, mirror finish, reflection, chrome, metal, holograms,
+iridescence, neon, rim light, glow, chip, magnetic stripe, card numbers, network logos,
+text, letters, numbers, patterns, gradient background, floor shadow.
+```
+
+### 9A.3 Tier three credential, top
+
+```
+A single 3D object: a flat rounded rectangular credential card with a completely blank
+face, softly chamfered edges, the thickest of a set, floating level and seen from a
+slightly raised three-quarter angle. No chip, no stripe, no numbers, no markings.
+Rendered in matte clay with a soft velvety finish, deep matte navy #0A1231, with one
+single thin warm orange #FF6A3D line inset along its top edge only and no other colour
+anywhere. Subtle rounded bevels. Soft diffused key light from the upper left, gentle
+ambient occlusion along the lower edges, no specular highlights. Fully transparent
+background. Centred with generous even padding. Square 1:1. Quietly premium.
+Do not include: gloss, shine, mirror finish, reflection, chrome, metal, holograms,
+iridescence, neon, rim light, glow, chip, magnetic stripe, card numbers, network logos,
+text, letters, numbers, patterns, gradient background, floor shadow.
+```
+
+### 9A.4 The passport credential
+
+```
+A single 3D object: a closed passport-style credential booklet with a completely blank
+cover, softly rounded corners, standing at a slight angle with its pages visible as a
+thin striated edge, and a small blank embossed rectangle recessed into the cover where
+a crest would normally sit. Rendered in matte clay with a soft velvety finish, deep
+royal blue #2B3FE0, subtle rounded bevels. Soft diffused key light from the upper left,
+gentle ambient occlusion, no specular highlights. Fully transparent background. Centred
+with generous even padding. Square 1:1.
+Do not include: gloss, shine, reflection, chrome, metal, gold, neon, rim light, glow,
+crests, emblems, text, letters, numbers, logos, gradient background, floor shadow.
+```
+
+---
+
+# 9B. Feature onboarding illustrations
+
+North star 14.1. One per feature first run, **3:2 landscape**, a small scene rather
+than a single icon, shallow depth of field.
+
+```
+A small 3D scene in 3:2 landscape: a shield with a soft rounded face standing upright,
+with a small stack of three blank banknotes resting in front of it and slightly
+overlapping its base. Rendered in matte clay with a soft velvety finish, deep royal
+blue #2B3FE0, subtle rounded bevels. Soft diffused key light from the upper left,
+gentle ambient occlusion where the objects meet, no specular highlights. Shallow depth
+of field with the shield sharpest. Fully transparent background. Composed slightly left
+of centre with generous padding. Calm and reassuring.
+Do not include: gloss, shine, reflection, chrome, metal, neon, rim light, glow, text,
+letters, numbers, currency symbols, logos, people, gradient background, floor shadow.
+```
+*(Escrow and protected payment first run.)*
+
+```
+A small 3D scene in 3:2 landscape: a closed wallet lying flat with a small padlock
+resting upright beside it, slightly behind and to the right. Rendered in matte clay
+with a soft velvety finish, deep royal blue #2B3FE0, subtle rounded bevels. Soft
+diffused key light from the upper left, gentle ambient occlusion, no specular
+highlights. Shallow depth of field with the wallet sharpest. Fully transparent
+background. Composed slightly left of centre with generous padding.
+Do not include: gloss, shine, reflection, chrome, metal, neon, rim light, glow, coins,
+cards sticking out, text, letters, numbers, logos, gradient background, floor shadow.
+```
+*(Wallet first run.)*
+
+```
+A small 3D scene in 3:2 landscape: a paper plane in gentle flight at an upward angle
+with a ticket bearing one perforated edge resting below and behind it. Rendered in
+matte clay with a soft velvety finish, deep royal blue #2B3FE0, with the ticket's
+perforated edge picked out in warm orange #FF6A3D and everything else deep royal blue.
+Subtle rounded bevels. Soft diffused key light from the upper left, gentle ambient
+occlusion, no specular highlights. Shallow depth of field with the plane sharpest.
+Fully transparent background. Composed centrally with generous padding.
+Do not include: gloss, shine, reflection, chrome, metal, neon, rim light, glow, motion
+trails, dotted flight lines, confetti, text, letters, numbers, logos, gradient
+background, floor shadow.
+```
+*(Referral hub first run.)*
+
+```
+A small 3D scene in 3:2 landscape: an upward bar chart of three bars of increasing
+height on a thin base, with a magnifying glass resting at an angle against the tallest
+bar. Rendered in matte clay with a soft velvety finish, deep royal blue #2B3FE0,
+subtle rounded bevels, the magnifier's lens a flat recessed panel of the same clay.
+Soft diffused key light from the upper left, gentle ambient occlusion, no specular
+highlights. Shallow depth of field with the chart sharpest. Fully transparent
+background. Composed slightly right of centre with generous padding.
+Do not include: gloss, shine, reflection, chrome, glass, transparency, metal, neon, rim
+light, glow, axis labels, gridlines, text, letters, numbers, logos, gradient background,
+floor shadow.
+```
+*(Space Analytics first run.)*
+
+```
+A small 3D scene in 3:2 landscape: a closed passport booklet standing upright at a
+slight angle with a shield bearing one embossed tick resting flat in front of it.
+Rendered in matte clay with a soft velvety finish, deep royal blue #2B3FE0, subtle
+rounded bevels. Soft diffused key light from the upper left, gentle ambient occlusion,
+no specular highlights. Shallow depth of field with the passport sharpest. Fully
+transparent background. Composed slightly left of centre with generous padding.
+Do not include: gloss, shine, reflection, chrome, metal, gold, neon, rim light, glow,
+crests, emblems, text, letters, numbers, logos, gradient background, floor shadow.
+```
+*(Space Passport and verification first run.)*
+
+```
+A small 3D scene in 3:2 landscape: a clipboard with three blank checklist rows standing
+at a slight angle, with a small house resting beside it and slightly forward. Rendered
+in matte clay with a soft velvety finish, deep royal blue #2B3FE0, subtle rounded
+bevels. Soft diffused key light from the upper left, gentle ambient occlusion, no
+specular highlights. Shallow depth of field with the clipboard sharpest. Fully
+transparent background. Composed centrally with generous padding.
+Do not include: gloss, shine, reflection, chrome, metal, neon, rim light, glow, ticks in
+the boxes, writing, text, letters, numbers, logos, gradient background, floor shadow.
+```
+*(Host and agent workspace first run.)*
+
+---
+
+# 9C. Light mode: the acceptance rule
+
+North star 14.7. **The founder reports the current 3D icons read poorly on light, and
+the cause is material rather than rendering: glass needs a dark ground to resolve and
+goes muddy on white.**
+
+Everything in this file is already specified as **matte clay**, which is the fix: a
+matte deep-royal-blue object has real contrast on white where a glass one has almost
+none.
+
+**The acceptance rule for every asset generated from this file:**
+
+1. View it on the night canvas `#010118` **and** on the paper canvas `#F4F4F1`, at
+   390px wide, before accepting it.
+2. On paper it sits on a plate: radius 14, a very light blue-grey fill at about 4%
+   brand, with a soft blue contact shadow beneath the object so it never floats on pure
+   white.
+3. **Reject any asset whose edges disappear on white.** That is the exact failure the
+   current set has, and it happened because assets were approved only on navy.
+4. Reject any asset with a visible specular highlight: that is gloss, and gloss is
+   banned.
+
+---
+
 # 10. What NOT to generate
 
 Reject any output showing these. Each appears somewhere in the 79 reference images

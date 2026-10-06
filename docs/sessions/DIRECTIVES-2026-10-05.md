@@ -207,6 +207,72 @@ parallel independent work; worktrees for isolation where a change is broad;
 background execution for long builds and test runs; and repository hooks where a
 check should be automatic rather than remembered.
 
+## D11. Every significant feature gets its own onboarding
+
+**New, 6 October.** Not one onboarding at the front door and nothing afterwards. A
+person meeting the wallet, escrow, the referral hub, analytics, the Space Passport,
+promotion, a Pro workspace or the host desk for the first time meets a **designed
+first run for that feature**, once, dismissible, remembered.
+
+The pattern is one reusable system, not fifteen bespoke screens. North star section
+14 defines it.
+
+## D12. Pro mode is a toggle, and it only exists when it is paid for
+
+**New, 6 October.** When a member holds a paid plan or a paid feature, a **Pro
+switch** appears and flips the surface into its Pro state. **A member who holds
+nothing never sees the switch at all.** It is not a locked control, not a greyed
+toggle, not an upsell dressed as a feature: it is simply absent, and what they see
+instead is the ordinary surface plus, where appropriate, a single honest route to the
+plan.
+
+This is an entitlement-driven presence rule, so the entitlement system (feature
+register F1) is its dependency, and it must fail closed: no entitlement, no switch.
+
+## D13. Get Started becomes monotone, and it is the first screen after the animation
+
+**New, 6 October.** The Get Started page is rebuilt **monotone**: one hue, cleaner,
+smarter, stronger, in the spirit of reference image 37. It becomes **the first screen
+the platform shows once the startup animation completes**, which makes it the single
+most seen screen in the product and the first real impression after the brand moment.
+
+Onboarding beyond it uses **full-page** compositions in the spirit of reference image
+36: one idea per page, large type, generous air, a real illustration or product
+moment, and legitimate proof only.
+
+## D14. Premium artefact cards
+
+**New, 6 October.** Reference image 38's fanned metallic cards with "Select your
+tier" is the treatment for anywhere Vallo has a tier, a credential or a membership:
+the Space Passport, trust tiers, Pro plans, and promotion tiers. A tier should feel
+like an object a person holds, not a row in a pricing table.
+
+**One hard limit:** Vallo issues no payment card, so a card artefact must never look
+like a debit or credit card, carry a network mark, or imply a card product exists.
+It is a credential, and it reads as one.
+
+## D15. The 3D icons must be clean in light mode
+
+**New, 6 October.** The founder reports the current 3D icons still read poorly on
+light. They are glass, and glass needs a dark ground to resolve: on white it goes
+muddy and loses its edges. This is a material problem, not a rendering accident.
+
+The fix is the clay migration already decided in D2 of the four locked decisions,
+plus a ground. North star section 15 specifies both, and no clay asset is accepted
+until it has been checked on paper at 390px as well as on night.
+
+## D16. Sessions research the references themselves
+
+**New, 6 October.** The founder's instruction: the agents should have the power to
+research, and should look at the reference images themselves whenever they need the
+sentiment for a surface they are building.
+
+So every implementation session is told, in its prompt, to open the relevant
+references before designing a surface rather than working only from a written
+description of them. Session 1's classification is a map, not a substitute. More
+references are being added to the repository and the sessions read whatever is there
+on the day they run.
+
 ---
 
 ## What this file supersedes, explicitly
@@ -219,3 +285,8 @@ check should be automatic rather than remembered.
 | Blind spot B-01's staging-database requirement | D5 |
 | The claim that phone verification needs building | D6 |
 | `PRODUCT.md` section 7's "Listing" as the user-facing noun | D8 |
+| One onboarding at the front door only | D11 |
+| Any locked or greyed Pro control shown to a member without entitlement | D12 |
+| The current Get Started page, and the first-screen-after-startup being `/home` or `/welcome` as they stand | D13 |
+| Tier and plan presented as a pricing table row | D14 |
+| Glass 3D marks on light surfaces | D15 |
