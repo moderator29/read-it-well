@@ -12,12 +12,11 @@ import "./verification-path.css";
  * anything: the model (`verification-path.ts`) is built from the reviewer's own
  * decisions, and a rung with no decision behind it is never drawn as passed.
  *
- * MOTION. The rungs arrive 60ms apart (four of them, well inside the six-item
- * stagger cap), each tick draws once after its rung lands, and each connector
- * fills down to the next reached rung. It plays once, on mount. Nothing pops
- * here: the route's payoffs are the approval sheet (`SuccessFromFlag`) and the
- * approved plate's shield (`VerifiedPayoff`, played once when verification
- * turns passed), which this does not duplicate.
+ * STILL, ON PURPOSE (round 5). Every passed rung is an earned mark, and a
+ * verified mark is quiet everywhere except the one moment it is earned: that
+ * moment belongs to the approved plate (`VerifiedPayoff`, once per device per
+ * level, only when the server says a rung just passed). The path is the
+ * standing record, so it is simply there on every view.
  *
  * Server-safe: nothing here holds state.
  */
@@ -87,7 +86,6 @@ export function VerificationPath({
               className="nf-vpath__rung"
               data-state={rung.state}
               data-link={next ? link : "none"}
-              style={{ "--i": index } as React.CSSProperties}
               data-testid={`path-rung-${rung.key}`}
             >
               <span className="nf-vpath__node" aria-hidden="true">

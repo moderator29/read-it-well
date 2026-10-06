@@ -8,11 +8,12 @@
  * brand tint and edge rather than a glow; there is no glow on this screen. State is a
  * word and a shape as well as a colour: a tick, a cross, a ring, a number.
  *
- * It plays once on mount: rungs arrive 60ms apart on `land`, each tick draws
- * after its rung, each connector fills downward. Transform and opacity move;
- * the tick's draw is `stroke-dashoffset` on its own SVG path (paint only, the
- * same technique the button's tick uses). Every duration is a token, so reduced
- * motion, Calm and Off collapse it to the final frame.
+ * IT IS STILL (round 5). Each passed rung carries an earned mark: a tick and
+ * the date a reviewer decided it. It used to arrive on every page view (rungs
+ * 60ms apart, each tick drawing, each connector filling), which animated those
+ * marks into existence every time somebody opened their own record. A
+ * verified mark is quiet everywhere except the one moment it is earned, and
+ * that moment is the approved plate's (`verified-payoff.css`), played once.
  */
 @layer components {
   .nf-vpath-wrap {
@@ -55,8 +56,6 @@
     grid-template-columns: 2rem minmax(0, 1fr);
     column-gap: var(--nf-space-sm);
     padding-block-end: var(--nf-space-sm);
-    animation: nf-vpath-in var(--nf-duration-slow) var(--nf-ease-entrance) both;
-    animation-delay: calc(var(--nf-splash-hold, 0s) + var(--i, 0) * 60ms);
   }
   .nf-vpath__rung:last-child {
     padding-block-end: 0;
@@ -70,15 +69,12 @@
     inset-block-start: 2rem;
     inset-block-end: 0;
     inline-size: 2px;
-    transform-origin: top;
   }
   .nf-vpath__rung[data-link="none"]::after {
     display: none;
   }
   .nf-vpath__rung[data-link="solid"]::after {
     background: var(--nf-brand-primary);
-    animation: nf-vpath-link var(--nf-duration-slow) var(--nf-ease-standard) both;
-    animation-delay: calc(var(--nf-splash-hold, 0s) + var(--i, 0) * 60ms + 200ms);
   }
   .nf-vpath__rung[data-link="dashed"]::after {
     background: repeating-linear-gradient(to bottom, var(--nf-border-strong) 0 4px, transparent 4px 8px);
@@ -119,12 +115,6 @@
     border-color: transparent;
     background: var(--nf-state-error);
     color: var(--nf-content-on-brand);
-  }
-  .nf-vpath__tick {
-    stroke-dasharray: 1;
-    stroke-dashoffset: 0;
-    animation: nf-vpath-tick var(--nf-duration-slow) var(--nf-ease-standard) both;
-    animation-delay: calc(var(--nf-splash-hold, 0s) + var(--i, 0) * 60ms + 240ms);
   }
 
   /* ------------------------------------------------------------ the plate */
@@ -194,40 +184,5 @@
   .nf-vpath__note > span {
     font-weight: 600;
     color: var(--nf-content-primary);
-  }
-
-  @keyframes nf-vpath-in {
-    from {
-      opacity: 0;
-      transform: translateY(0.75rem);
-    }
-  }
-  @keyframes nf-vpath-link {
-    from {
-      transform: scaleY(0);
-    }
-  }
-  @keyframes nf-vpath-tick {
-    from {
-      stroke-dashoffset: 1;
-    }
-  }
-
-  /*
-   * REDUCED MOTION AND THE MOTION LEVELS. The duration tokens already fall to
-   * 1ms, but the 60ms stagger delays and the 240ms tick delay are literals, so a
-   * reader who asked for less motion still waited for the last rung to appear.
-   * Every delay goes and the rungs are simply there.
-   */
-  @media (prefers-reduced-motion: reduce) {
-    .nf-vpath__rung,
-    .nf-vpath__rung[data-link="solid"]::after,
-    .nf-vpath__tick {
-      animation-delay: 0s;
-    }
-  }
-  :root:is([data-motion="calm"], [data-motion="off"]) :is(.nf-vpath__rung, .nf-vpath__tick),
-  :root:is([data-motion="calm"], [data-motion="off"]) .nf-vpath__rung[data-link="solid"]::after {
-    animation-delay: 0s;
   }
 }
