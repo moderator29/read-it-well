@@ -29,8 +29,6 @@ const LABELS = `[...new Set([
 
 /* The key is "<surface> <locale>"; the value is the report line. Empty until a finding is reported. */
 const KNOWN: Record<string, string> = {
-  "Button, every variant and size, full width and inline en":
-    "an inline Button has no max-width, so the longest real label (frontDoor.door.signInArea, 'Sign in to run your own Price Check') makes it 378px in a 358px row",
   "Chip, filter, choice, link and static yo":
     "an interactive md Chip has no min-width: the Yoruba nav.land word 'Ilẹ̀' is 41.8px wide",
 };

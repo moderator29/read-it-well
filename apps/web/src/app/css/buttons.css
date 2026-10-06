@@ -87,6 +87,23 @@
   }
 
   /*
+   * AN INLINE BUTTON NEVER OUTGROWS ITS ROW (T1's locale-fit finding 3).
+   * `white-space: nowrap` with no `max-width` meant the longest real label
+   * ("Sign in to run your own Price Check") drew a 378px button in a 358px row
+   * at 390px, and the page scrolled sideways. An inline button now stops at
+   * its container's width and lets the label wrap, centred; the minimum height
+   * is the size's own variable, so two lines grow the button and one line is
+   * exactly what it was. A label that fits is untouched. Full-width buttons
+   * already fill the row, and icon-only ones carry no words, so neither takes
+   * this.
+   */
+  .nf-btn:not(.nf-btn--full, .nf-btn--icon) {
+    max-width: 100%;
+    white-space: normal;
+    text-align: center;
+  }
+
+  /*
    * Specular sheen across the upper half, AND IT REACHES TWO OF THE FIVE
    * VARIANTS. That was never written down and it should have been, because it
    * is a decision and it currently looks like a collision.
