@@ -81,7 +81,7 @@ export const publicMetaEn = {
     docs: {
       title: "Documentation",
       description:
-        "The full Vallo documentation, both sides: property search and its power and water filters, the stays journey from dated search to Plans, holding a restaurant table, the wallet, Around, the agent workspace, trust and safety, and your rights under the NDPA.",
+        "The full Vallo documentation, both sides: property search and its power and water filters, the stays journey from dated search to Plans, holding a restaurant table, money and agreements, Around, the agent workspace, trust and safety, and your rights under the NDPA.",
     },
     receiptCheck: {
       title: "Check a receipt",
