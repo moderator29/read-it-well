@@ -1,6 +1,14 @@
 import Link from "next/link";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { getDictionary } from "@vallo/i18n";
+import { getLocale } from "@/lib/locale";
 import type { AdminCommon } from "./copy";
+import { QueueSlidePager } from "./QueueSlidePager";
+import { queueHref, type QueueQuery } from "./queue-href";
+
+export { queueHref, type QueueQuery };
+import { QueueFilterSheet } from "./QueueFilterSheet";
+import "./admin-material.css";
 
 /**
  * The console's one queue frame: find a row, narrow to it, page through.
@@ -58,14 +66,6 @@ export type QueueStatusOption = {
   label: string;
 };
 
-export type QueueQuery = {
-  q?: string;
-  status?: string;
-  from?: string;
-  to?: string;
-  offset?: number;
-};
-
 /** Read the queue's own parameters out of a Next `searchParams` bag. */
 export function readQueueQuery(
   params: Record<string, string | string[] | undefined>,
@@ -84,20 +84,6 @@ export function readQueueQuery(
     /* A negative or unparseable offset is a hand-edited URL, not a page. */
     ...(Number.isFinite(offset) && offset > 0 ? { offset } : {}),
   };
-}
-
-/** The same query as a link, with one field changed. */
-export function queueHref(base: string, query: QueueQuery, over: Partial<QueueQuery>): string {
-  const next = { ...query, ...over };
-  const search = new URLSearchParams();
-  if (next.q) search.set("q", next.q);
-  if (next.status) search.set("status", next.status);
-  if (next.from) search.set("from", next.from);
-  if (next.to) search.set("to", next.to);
-  if (next.offset && next.offset > 0) search.set("offset", String(next.offset));
-  const tail = search.toString();
-  /* A lane of the unified queue carries its own `?tab=` (V-88). */
-  return tail.length > 0 ? `${base}${base.includes("?") ? "&" : "?"}${tail}` : base;
 }
 
 /** A base split into the path a GET form posts to and the fields it must keep. */
@@ -128,7 +114,7 @@ export function queueNoMatch(common: AdminCommon): { title: string; body: string
   return { title: common.noMatchTitle, body: common.noMatchBody };
 }
 
-export function QueueFilters({
+export async function QueueFilters({
   base,
   query,
   statuses,
@@ -185,6 +171,11 @@ export function QueueFilters({
 }) {
   const narrowed = queueNarrowed(query);
   const f = common.filters;
+  /* The phone's filter sheet (W8): the same dates and the same statuses, in a
+     bottom sheet. Its words are Session 3's, the shared ones are the console's. */
+  const x = getDictionary(await getLocale()).experienceAdmin.shell;
+  const narrowedCount = [query.status, query.from, query.to].filter(Boolean).length;
+  const showSheet = dateable || Boolean(statuses && statuses.length > 0);
 
   return (
     <div className="nf-admin-filters">
@@ -255,6 +246,38 @@ export function QueueFilters({
             </div>
           )}
             </details>
+          )}
+          {showSheet && (
+            <QueueFilterSheet
+              base={formTarget(base).action}
+              keep={formTarget(base).keep}
+              {...(query.q ? { q: query.q } : {})}
+              {...(query.status ? { status: query.status } : {})}
+              {...(query.from ? { from: query.from } : {})}
+              {...(query.to ? { to: query.to } : {})}
+              statuses={(statuses ?? []).map((option) => ({
+                value: option.value,
+                label: option.label,
+                tone: chipTone(option.value),
+                on: query.status === option.value,
+                href: queueHref(base, query, { status: query.status === option.value ? undefined : option.value, offset: undefined }),
+              }))}
+              statusLinks={{ all: queueHref(base, query, { status: undefined, offset: undefined }), allOn: !query.status }}
+              dateable={dateable}
+              narrowedCount={narrowedCount}
+              words={{
+                open: x.filtersOpen,
+                title: x.filtersTitle,
+                from: f.from,
+                to: f.to,
+                status: f.status,
+                all: "All",
+                apply: x.filtersApply,
+                reset: x.filtersReset,
+                on: x.filtersCount,
+                off: x.filtersNone,
+              }}
+            />
           )}
         </div>
         {/* The status travels with the search so a submit does not silently
@@ -328,7 +351,7 @@ export function chipTone(value: string): string {
  * second count query per load and a console that is wrong about how much work
  * is waiting is worse than one that does not say.
  */
-export function QueuePager({
+export async function QueuePager({
   base,
   query,
   pageSize,
@@ -345,9 +368,27 @@ export function QueuePager({
   const offset = query.offset ?? 0;
   if (offset === 0 && !full) return null;
   const page = Math.floor(offset / pageSize) + 1;
+  /* Desktop gets the sliding indicator (W8, COMPONENT_LIBRARY "Slide
+     pagination"); the phone keeps the two links below, where the numbered row
+     would not fit. The words are the shared ones in `experienceUi`. */
+  const ui = getDictionary(await getLocale()).experienceUi;
 
   return (
-    <nav aria-label="Queue pages" className="nf-admin-pager">
+    <div className="nf-admin-pager-wrap">
+      <div className="nf-admin-pager nf-admin-pager--wide">
+        <QueueSlidePager
+          base={base}
+          query={query}
+          pageSize={pageSize}
+          page={page}
+          full={full}
+          words={{ label: "Queue pages", previous: ui.previousPage, next: ui.nextPage, page: ui.page }}
+        />
+        <p className="nf-admin-pager__count">
+          Showing {count === 0 ? 0 : offset + 1} to {offset + count}
+        </p>
+      </div>
+    <nav aria-label="Queue pages" className="nf-admin-pager nf-admin-pager--phone">
       <div className="nf-admin-pager__pages">
         {offset > 0 ? (
           <Link
@@ -391,5 +432,6 @@ export function QueuePager({
         Showing {count === 0 ? 0 : offset + 1} to {offset + count}
       </p>
     </nav>
+    </div>
   );
 }
