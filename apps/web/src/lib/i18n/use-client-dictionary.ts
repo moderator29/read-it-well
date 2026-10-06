@@ -29,6 +29,18 @@ import { useClientLocale } from "./use-client-locale";
  * in a plain cookie whose name was split into `locale.constants.ts` precisely
  * so the client could read it (Settings' `LanguageRow` already writes it there).
  *
+ * ## MEASURED, 6 OCTOBER (Session 3, W13): DO NOT ADD A CALLER
+ *
+ * On the production build this hook's module carries the whole dictionary
+ * into the first load of every route that renders a caller: 1,351,758 bytes
+ * raw, 398,654 gzipped (`.next/diagnostics/route-bundle-stats.json`). `PageHeader`
+ * and `BackButton` no longer use it; its last caller is
+ * `components/social/ActionSheet.tsx`. Client words now come from the server:
+ * a prop, `<CopyScope>` / `useScopedCopy` (`copy-scope.tsx`), or
+ * `useClientCopy()`. `nf/no-dictionary-in-client` refuses a new import of
+ * `@vallo/i18n` in a client module, and this file is on its shrinking
+ * allow-list until ActionSheet moves off it.
+ *
  * ## THIS IS A LAST RESORT, NOT THE NEW WAY TO READ COPY
  *
  * Reach for it only when ALL of these hold:

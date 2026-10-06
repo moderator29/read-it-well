@@ -5,6 +5,7 @@ import nfColour from "./eslint-rules/no-raw-colour.mjs";
 import nfSpacing from "./eslint-rules/no-raw-spacing.mjs";
 import nfFontSize from "./eslint-rules/no-arbitrary-font-size.mjs";
 import nfServerActions from "./eslint-rules/server-actions-export-only-actions.mjs";
+import nfDictionary from "./eslint-rules/no-dictionary-in-client.mjs";
 
 /**
  * The three design-system rules and one outage rule, under one plugin
@@ -30,6 +31,7 @@ const nf = {
     ...nfSpacing.rules,
     ...nfFontSize.rules,
     ...nfServerActions.rules,
+    ...nfDictionary.rules,
   },
 };
 
@@ -491,6 +493,30 @@ const config = [
     files: ["src/**/*.{ts,tsx}"],
     plugins: { nf },
     rules: { "nf/server-actions-export-only-actions": "error" },
+  },
+
+  /* ------------------------------------------------------------------
+   * NO DICTIONARY IN A CLIENT MODULE (Session 3, W13, measured).
+   *
+   * A "use client" module that imports `@vallo/i18n` ships the whole
+   * dictionary, 398KB gzipped, in its route's first load. See
+   * eslint-rules/no-dictionary-in-client.mjs for what to do instead.
+   *
+   * THE ALLOW-LIST ONLY SHRINKS. Each file below still breaks the rule and has
+   * a named owner fixing it; delete its line in the same change that fixes
+   * it. Never add one: fix the import instead.
+   * ------------------------------------------------------------------ */
+  {
+    files: ["src/**/*.{ts,tsx}"],
+    ignores: [
+      /* Held by F1. Read `cryptoPay` through useScopedCopy("cryptoPay"). */
+      /* The last-resort hook itself; its one caller is components/social/ActionSheet.tsx (W4). */
+      "src/lib/i18n/use-client-dictionary.ts",
+      /* Development harnesses, never in a production route. */
+      "src/app/(dev)/**",
+    ],
+    plugins: { nf },
+    rules: { "nf/no-dictionary-in-client": "error" },
   },
 ];
 
