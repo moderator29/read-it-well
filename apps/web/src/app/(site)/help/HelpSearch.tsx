@@ -33,6 +33,10 @@ export function HelpSearch({ faqs }: { faqs: Faq[] }) {
    */
   useEffect(() => {
     const onClick = (event: MouseEvent) => {
+      /* Only a plain primary click is ours to carry: a cmd, ctrl, shift or alt
+         click, or a middle click, is the browser's "open this in another tab",
+         and taking it over would replace the page the person meant to keep. */
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
       const link = (event.target as Element | null)?.closest?.('a[href^="#help-"]');
       if (!link || !query) return;
       const hash = link.getAttribute("href") ?? "";
