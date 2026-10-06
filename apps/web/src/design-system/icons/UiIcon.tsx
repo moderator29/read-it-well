@@ -1585,6 +1585,7 @@ export function UiIcon({
   /** Accessible name. Omit when a text label sits beside the glyph. */
   label?: string;
   effect?: SymbolEffect;
+  /** Repeats the effect three times and rests (not forever; principle 10). */
   effectLoop?: boolean;
   /**
    * Draws the glyph's filled twin: a selected tab, a saved heart, a rated

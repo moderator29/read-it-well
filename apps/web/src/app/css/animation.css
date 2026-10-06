@@ -420,6 +420,14 @@
    * round trip that either lets somebody into their new account or does not.
    * A spinner says something is happening; a bar travelling in one direction
    * says it is going somewhere.
+   *
+   * IT IS BOUNDED (principle 10: only the aurora and the assistant's thinking
+   * loop forever, and this is "never a spinner" territory). The segment sweeps
+   * three times, then settles to the middle of the track and is HELD there, the
+   * way the pending ring draws its arc once and holds it: still, part-way, so
+   * it keeps reading as working however long the wait runs. `nf-verify-settle`
+   * waits out the three sweeps (3 x 1.15s) and fills forwards only, so it never
+   * shows through them. Calm runs one sweep and settles, Off settles at once.
    */
   @keyframes nf-verify-sweep {
     0% {
@@ -429,8 +437,22 @@
       transform: translateX(310%);
     }
   }
+  @keyframes nf-verify-settle {
+    from {
+      transform: translateX(-110%);
+    }
+    to {
+      transform: translateX(100%);
+    }
+  }
   .nf-verify-sweep {
-    animation: nf-verify-sweep 1.15s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+    animation:
+      nf-verify-sweep 1.15s cubic-bezier(0.65, 0, 0.35, 1) 3,
+      nf-verify-settle var(--nf-duration-deliberate) var(--nf-ease-entrance) 3.45s forwards;
+  }
+  /* Calm: no sweeps, it just settles into its held place. */
+  :root[data-motion="calm"] .nf-verify-sweep {
+    animation: nf-verify-settle var(--nf-duration-deliberate) var(--nf-ease-entrance) forwards;
   }
   /* Still, and filled, when motion is unwelcome. The sentence above it is what
      carries the meaning either way. */

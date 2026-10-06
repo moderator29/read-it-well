@@ -349,14 +349,16 @@
     to { opacity: 1; transform: none; }
   }
   /* Only while the network is behind the flip: the three objects breathe in
-     turn, the skeleton's language, and stop the moment the page lands. */
+     turn, the skeleton's language, three times (principle 10: nothing loops
+     forever but the aurora and the assistant's thinking), and rest at full
+     light, which is also where they stop the moment the page lands. */
   .nf-flip-cover__miniature[data-shimmer] > li {
-    animation: nf-flip-mini-breathe 1.2s var(--nf-ease-standard) infinite;
+    animation: nf-flip-mini-breathe 1.2s var(--nf-ease-standard) 3;
     animation-delay: calc(var(--nf-flip-mini-i, 0) * 200ms);
   }
   @keyframes nf-flip-mini-breathe {
-    0%, 100% { opacity: 0.55; }
-    50% { opacity: 1; }
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.55; }
   }
 
   .nf-flip-cover[data-settled] .nf-flip-cover__name[data-ceremony],
@@ -365,7 +367,7 @@
     clip-path: none;
   }
   .nf-flip-cover[data-settled] .nf-flip-cover__miniature[data-shimmer] > li {
-    animation: nf-flip-mini-breathe 1.2s var(--nf-ease-standard) infinite;
+    animation: nf-flip-mini-breathe 1.2s var(--nf-ease-standard) 3;
     animation-delay: calc(var(--nf-flip-mini-i, 0) * 200ms);
   }
 

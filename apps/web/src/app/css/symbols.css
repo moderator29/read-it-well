@@ -48,7 +48,9 @@
    * Each effect plays once by default, on mount, which is the right behaviour
    * for a state change - the bell rings when the notification ARRIVES, it does
    * not ring forever. --loop is for genuinely continuous states such as a
-   * syncing indicator. Every effect collapses to nothing under reduced motion.
+   * syncing indicator, and even then it repeats a fixed three times and rests
+   * (principle 10: only the aurora and the assistant's thinking loop forever).
+   * Every effect collapses to nothing under reduced motion.
    */
   .nf-sym {
     transform-origin: center;
@@ -57,7 +59,7 @@
     animation-fill-mode: both;
   }
   .nf-sym--loop {
-    animation-iteration-count: infinite;
+    animation-iteration-count: 3;
     animation-timing-function: linear;
   }
 

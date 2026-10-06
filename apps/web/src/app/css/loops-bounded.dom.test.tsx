@@ -28,6 +28,10 @@ const CSS = productCss(
   "app/css/animation.css",
   "app/css/data-saver.css",
   "app/css/motion-pref.css",
+  "app/css/side-flip.css",
+  "app/css/symbols.css",
+  "app/css/motion.css",
+  "app/css/auth.css",
 );
 
 const entryWith = (saver: boolean) => `
@@ -113,6 +117,102 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the last loops are bounded", ()
         }
         const rest = await settle(page);
         expect(rest, name).toEqual({ sk: "117.3% 0px", skg: "117.3% 0px", soc: "-40% 0px" });
+      } finally {
+        await close();
+      }
+    }
+  });
+});
+
+/*
+ * THE LOADING AND PRESENCE MARKS (the lead's ruling, Session 3): the verifying
+ * bar, the flip cover's breathing and the opt-in symbol loop are bounded; the
+ * counterpart's typing dots and the code caret keep looping as live signals and
+ * must stop under every quiet mode.
+ */
+const marksEntry = (saver: boolean) => `
+  import { mount } from "@/lib/testing/browser-root";
+  ${saver ? `document.documentElement.setAttribute("data-save-data", "on");` : ""}
+  const sheet = document.createElement("style");
+  sheet.textContent = "@layer utilities { .w3 { width: 33.333%; } }";
+  document.head.append(sheet);
+  mount(<div>
+    <span id="track" style={{ display: "block", width: 120, height: 4, overflow: "hidden" }}>
+      <span id="sweep" className="nf-verify-sweep w3" style={{ display: "block", height: "100%" }} />
+    </span>
+    <ul className="nf-flip-cover__miniature" data-shimmer=""><li id="mini" style={{ width: 20, height: 20 }} /></ul>
+    <svg id="sym" className="nf-sym nf-sym--bounce nf-sym--loop" width="20" height="20" />
+    <span id="dot" className="nf-typing-dot" style={{ display: "block", width: 6, height: 6 }} />
+    <div className="nf-code__cell" data-next="" id="cell" style={{ width: 40, height: 40 }} />
+  </div>);
+`;
+
+const MARKS = ["#sweep", "#mini", "#sym", "#dot"] as const;
+
+describe.skipIf(!hasBrowser && !process.env.CI)("the loading marks are bounded and the presence signals stop when quiet", () => {
+  it("runs a fixed number of times, except the two kept signals", async () => {
+    const { page, close } = await mountInBrowser({ entry: marksEntry(false), css: CSS, viewport: VIEW });
+    try {
+      expect(await style(page, "#sweep", "animationIterationCount")).toBe("3, 1");
+      expect(await style(page, "#mini", "animationIterationCount")).toBe("3");
+      expect(await style(page, "#sym", "animationIterationCount")).toBe("3");
+      expect(await style(page, "#dot", "animationIterationCount")).toBe("infinite");
+      const caret = await page.evaluate(() => getComputedStyle(document.getElementById("cell")!, "::after").animationIterationCount);
+      expect(caret).toBe("infinite");
+    } finally {
+      await close();
+    }
+  });
+
+  it("the verifying bar settles part-way along its track and holds there, and the flip objects rest at full light", async () => {
+    const { page, close } = await mountInBrowser({ entry: marksEntry(false), css: CSS, viewport: VIEW });
+    try {
+      const rest = await page.evaluate(() => {
+        for (const a of document.getAnimations()) {
+          if (a.effect?.getTiming().iterations === Infinity) continue;
+          a.finish();
+        }
+        const track = document.getElementById("track")!.getBoundingClientRect();
+        const seg = document.getElementById("sweep")!.getBoundingClientRect();
+        return {
+          offset: Math.round(seg.left - track.left),
+          third: Math.round(track.width / 3),
+          mini: getComputedStyle(document.getElementById("mini")!).opacity,
+        };
+      });
+      expect(rest.offset).toBe(rest.third);
+      expect(rest.mini).toBe("1");
+    } finally {
+      await close();
+    }
+  });
+
+  it("data saver starts none of the marks, and still draws the verifying bar full", async () => {
+    const { page, close } = await mountInBrowser({ entry: marksEntry(true), css: CSS, viewport: VIEW });
+    try {
+      for (const sel of MARKS.filter((m) => m !== "#sym")) expect(await style(page, sel, "animationName"), sel).toBe("none");
+      expect(await page.evaluate(() => getComputedStyle(document.getElementById("cell")!, "::after").animationName)).toBe("none");
+      expect(await style(page, "#sweep", "width")).toBe(await style(page, "#track", "width"));
+    } finally {
+      await close();
+    }
+  });
+
+  it("reduced motion, Calm and Off stop the typing dots and the caret (one pass at most)", async () => {
+    const quiet: { name: string; opts: Record<string, unknown> }[] = [
+      { name: "reduced", opts: { reducedMotion: true } },
+      { name: "calm", opts: { motion: "calm" } },
+      { name: "off", opts: { motion: "off" } },
+    ];
+    for (const { name, opts } of quiet) {
+      const { page, close } = await mountInBrowser({ entry: marksEntry(false), css: CSS, viewport: VIEW, ...opts });
+      try {
+        expect(await style(page, "#dot", "animationIterationCount"), name).toMatch(/^1$|^none$|^0$/);
+        const caret = await page.evaluate(() => getComputedStyle(document.getElementById("cell")!, "::after").animationName);
+        expect(caret, name).toBe("none");
+        for (const sel of ["#sweep", "#mini"]) {
+          expect(await style(page, sel, "animationIterationCount"), `${name} ${sel}`).not.toMatch(/infinite|3/);
+        }
       } finally {
         await close();
       }
