@@ -42,8 +42,39 @@
 name: CI
 
 on:
+  # D42. `main` plus the ACTIVE SESSION BRANCHES, and nothing else. Until 6
+  # October this said `[main]` alone, so a push to `claude/vallo-...` matched no
+  # trigger at all and every commit the sessions pushed was verified only by the
+  # local gate. D37 asked for green CI before every push and the repository
+  # could not give it.
+  #
+  # `claude/vallo-**` and never `claude/**`: there are eighteen dormant `claude/`
+  # branches in this repository, and the wide pattern would start a run on every
+  # one of them the next time anything touched them. The three live session
+  # branches (D44) are `claude/vallo-backend-money-trust`,
+  # `claude/vallo-experience-upgrade` and `claude/vallo-qa-release`, and the
+  # prefix covers exactly those plus any later session that follows the naming.
+  #
+  # The reason this matters more than tidiness: A LOCKFILE CHANGE CANNOT BE
+  # PROVED LOCALLY. `npm audit` and the local suite both read an already
+  # populated `node_modules`, so only a clean-runner `npm ci` proves that a
+  # lockfile resolves to what was intended. That is what the `source-map-js`
+  # advisory fix needed and did not have.
+  #
+  # A draft pull request per session branch is the better long-run answer, since
+  # `pull_request` already triggers; this trigger is what works without one.
+  #
+  # ONE CONSEQUENCE TO KNOW ABOUT: `db-probes` runs on every push and it runs
+  # against the real database, one at a time and never cancelled
+  # (`concurrency: db-probes`). Three session branches pushing therefore queue
+  # behind each other and behind `main`. That is the intended trade: every probe
+  # rolls back, and a migration that revokes a grant an RLS policy needs is
+  # worth catching on the branch rather than after a merge. If the queue ever
+  # becomes the bottleneck, narrow that job rather than this trigger.
   push:
-    branches: [main]
+    branches:
+      - main
+      - 'claude/vallo-**'
   pull_request:
     branches: [main]
   # By hand (Actions, CI, Run workflow): re-check the whole accumulated state
@@ -53,7 +84,9 @@ on:
 
 # DOC-23: a pull request cancels its own superseded runs; a push to main never
 # does, so every commit on main gets its verdict and a regression can be
-# bisected to the commit that brought it.
+# bisected to the commit that brought it. A push to a session branch is a push,
+# so it keeps that same no-cancel rule: the branches whose commits most need an
+# individual verdict are the ones nobody has reviewed yet.
 concurrency:
   group: ci-${{ github.ref }}-${{ github.event_name == 'push' && github.sha || 'pr' }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
