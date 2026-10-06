@@ -470,7 +470,9 @@ export function HostWizard({
               hint: [
                 pathWords.stepOf.replace("{n}", String(at + 1)).replace("{total}", String(steps.length)),
                 draft.businessId ? pathWords.savedHost : pathWords.savedDevice,
-              ].join(" "),
+                /* Two sentences, the first with no full stop of its own ("Step 1 of 11"):
+                   a plain space ran them together as "Step 1 of 11 Saved on this device". */
+              ].join(" · "),
               content: (
                 <ProgressPath
                   steps={steps.map((s) => ({ id: s.id, label: s.title }))}
