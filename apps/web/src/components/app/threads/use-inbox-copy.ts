@@ -11,9 +11,9 @@ import { useClientLocale } from "@/lib/i18n/use-client-locale";
  * `experienceInbox` down, and the client component reads that. That is the
  * path every real route takes, and it costs the page only the words it uses.
  *
- * WHY THIS NO LONGER FALLS BACK TO `useClientDictionary` (Session 3, W13,
- * measured on a production build). The old fallback called the dictionary
- * hook unconditionally, so every route that drew a thread, the inbox, the
+ * WHY THIS NO LONGER FALLS BACK TO A CLIENT-SIDE DICTIONARY HOOK (Session 3,
+ * W13, measured on a production build; that hook has since been deleted). The old fallback called the dictionary hook
+ * unconditionally, so every route that drew a thread, the inbox, the
  * notification list or the support search shipped the whole `@vallo/i18n`
  * index in its first load: 1,351,758 bytes raw, 398,654 gzipped. It took
  * `/messages/[id]` from 343 to 750KB gzipped, with the page already passing

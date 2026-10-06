@@ -10,15 +10,16 @@
  * Igbo phone the one control every single screen carries was in English.
  *
  * They are `"use client"` components with no server parent to hand them a
- * dictionary, so they read the locale cookie through
- * `lib/i18n/use-client-dictionary.ts`. That hook is the thing this spec really
- * guards, because it has two failure modes that no page would ever show as an
- * error:
+ * dictionary, so they read their words from the root layout's context
+ * (`lib/i18n/client-copy.tsx`, which replaced the old client-side dictionary
+ * hook) and the locale cookie through
+ * `lib/i18n/use-client-locale.ts`. That path is what this spec really guards,
+ * because it has two failure modes that no page would ever show as an error:
  *
  *   1. It resolves the wrong dictionary, and the label silently stays English.
  *   2. It reads `document` during the render that must match the server's, and
  *      React quietly patches a hydration mismatch in production while shouting
- *      about it in dev. The hook returns `DEFAULT_LOCALE` from
+ *      about it in dev. `use-client-locale.ts` returns `DEFAULT_LOCALE` from
  *      `getServerSnapshot` precisely so this cannot happen, and a spec that
  *      only looked at the settled DOM would never notice if that broke.
  *
