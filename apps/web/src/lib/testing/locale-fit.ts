@@ -119,6 +119,24 @@ export async function appCss(...sheets: string[]): Promise<string> {
 }
 
 /**
+ * The stylesheets a layout imports, in its order (paths under `src`).
+ *
+ * Member-only sheets left globals for the member layouts (58962be03), so a
+ * signed-in screen's cascade is the globals plus whatever its tree's layout
+ * imports. Read from the layout itself, so the harness can never drift from
+ * what the app loads.
+ */
+export function layoutSheets(layout: string): string[] {
+  const source = readFileSync(join(SRC, layout), "utf8");
+  return [...source.matchAll(/^import\s+["']@\/([^"']+\.css)["'];?\s*$/gm)].map((m) => m[1]);
+}
+
+/** The cascade a screen inside `layout`'s tree gets, plus its own sheets. */
+export async function layoutCss(layout: string, ...sheets: string[]): Promise<string> {
+  return appCss(...layoutSheets(layout), ...sheets);
+}
+
+/**
  * Mount `body` (JSX that may use `t`, the locale's dictionary, and `locale`)
  * at a phone's width, in `locale`. `imports` is the import lines the body needs.
  */

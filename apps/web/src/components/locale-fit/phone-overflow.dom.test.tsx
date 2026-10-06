@@ -43,7 +43,7 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import type { Page } from "playwright-core";
 import { BROWSER_TEST_TIMEOUT, closeBrowser, hasBrowser, mountInBrowser, warmBrowser } from "@/lib/testing/mount-in-browser";
-import { appCss } from "@/lib/testing/locale-fit";
+import { layoutCss } from "@/lib/testing/locale-fit";
 import { LOCALE_COOKIE } from "@/lib/locale.constants";
 
 vi.setConfig({ testTimeout: BROWSER_TEST_TIMEOUT });
@@ -82,7 +82,8 @@ const inShell = (children: string, signedIn = true) => `
     ${children}
   </AppShell>`;
 
-const MEMBER_CSS = () => appCss();
+/* A signed-in screen gets the globals plus the member sheets its layout imports. */
+const MEMBER_CSS = () => layoutCss("app/(app)/layout.tsx");
 
 const CASES: OverflowCase[] = [
   {
@@ -136,7 +137,7 @@ const CASES: OverflowCase[] = [
           database={{ checkedAt: new Date(NOW - 4 * 60_000).toISOString(), failures: 1, recovered: 1, neverRan: 4, stale: 0 }}
           runDays={null} trend={null} alerts={REAL_ALERTS} audit={[]} activity={null} notifications={null} />
       </AdminFrame>`,
-    css: () => appCss("app/css/admin.css", "app/admin/_components/admin-material.css"),
+    css: () => layoutCss("app/admin/layout.tsx", "app/admin/_components/admin-material.css"),
     fits: ".nf-admin-dt-wrap",
   },
   {
@@ -154,7 +155,7 @@ const CASES: OverflowCase[] = [
             statusLabels={t.agentListings.workspace.status} analytics={AGENT_ANALYTICS} locale={locale} />
         </div>
       </main></div>`,
-    css: () => appCss("app/css/agent.css"),
+    css: () => layoutCss("app/agent/layout.tsx"),
     locale: "ha",
   },
   {
