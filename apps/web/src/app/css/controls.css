@@ -483,6 +483,13 @@
    * rather than as a generic grey placeholder, and it is small enough that the
    * slab underneath stays neutral.
    *
+   * THE SWEEP IS DRAWN AT 90 DEGREES, NOT AT THE LIGHT ANGLE (A8, fourth
+   * audit). A slanted gradient on a TALL slab covers the box even where the
+   * band is "off" it, so the slab froze with a sheen across it. A band that
+   * crosses left to right is a vertical stripe whatever the slab's height, so
+   * the rest position below is clean at any size. (This replaces the
+   * `--nf-light-angle` this comment used to argue for.)
+   *
    * IT IS NOT A LOOP. MOTION_SYSTEM principle 10 names two things that may
    * loop forever, the aurora and the assistant's thinking state, and a
    * skeleton is neither, so the sweep crosses four times (1.4s a pass) and the
@@ -507,7 +514,7 @@
     border-radius: var(--nf-radius-md);
     background:
       linear-gradient(
-        var(--nf-light-angle),
+        90deg,
         var(--nf-wash-1) 36%,
         var(--nf-glow-1) 48%,
         var(--nf-wash-4) 52%,
@@ -1034,7 +1041,7 @@
   .nf-skeleton--glass {
     background:
       linear-gradient(
-        var(--nf-light-angle),
+        90deg,
         var(--nf-glass-fill-thin) 36%,
         var(--nf-glow-2) 48%,
         var(--nf-glass-fill-strong) 52%,

@@ -279,30 +279,35 @@
    *
    * It crosses four times and rests (MOTION_SYSTEM principle 10: only the
    * aurora and the assistant's thinking loop forever). `forwards` holds the
-   * last position, `-40%`, which is also the base value, so the still slab is
+   * last position, `117.3%`, which is also the base value, so the still slab is
    * the same with the animation running out, switched off by reduced motion,
-   * or never started (data saver).
+   * or never started (data saver). The highlight is a band of 36% to 64% of a
+   * 220%-wide tile with the rest transparent (the app skeleton's geometry), and
+   * both ends of the sweep and the rest are outside the box, so the slab rests
+   * as the plain surface at any height.
    */
   .nf-social-skeleton {
     background:
       linear-gradient(
           90deg,
           transparent 0%,
+          transparent 36%,
           color-mix(in oklab, var(--nf-content-muted) 18%, transparent) 50%,
+          transparent 64%,
           transparent 100%
         )
         var(--nf-surface-inset);
-    background-size: 200% 100%;
-    background-position: -40% 0;
+    background-size: 220% 100%;
+    background-position: 117.3% 0;
     animation: nf-social-shimmer 1.4s linear 4 forwards;
   }
 
   @keyframes nf-social-shimmer {
     from {
-      background-position: 140% 0;
+      background-position: -17.3% 0;
     }
     to {
-      background-position: -40% 0;
+      background-position: 117.3% 0;
     }
   }
 

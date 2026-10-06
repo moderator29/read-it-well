@@ -101,7 +101,12 @@ describe("principle 10, the marketing and loading loops (Session 3, C1)", () => 
     expect(controls).toMatch(/@keyframes nf-shimmer \{\s*from \{\s*background-position: -17\.3% 0;\s*\}\s*to \{\s*background-position: 117\.3% 0;/);
     const social = strip(src("app/social.css"));
     expect(social).toContain("animation: nf-social-shimmer 1.4s linear 4 forwards;");
-    expect(social).toContain("background-position: -40% 0;");
+    expect(social).toContain("background-position: 117.3% 0;");
+    expect(social).toContain("background-size: 220% 100%;");
+    expect(social).toMatch(/transparent 36%,\s*color-mix\(in oklab, var\(--nf-content-muted\) 18%, transparent\) 50%,\s*transparent 64%/);
+    /* Drawn at 90 degrees, so the band is a vertical stripe and rests clean on a tall slab. */
+    expect(controls).not.toMatch(/nf-skeleton[^}]*var\(--nf-light-angle\)/);
+    expect(controls.match(/linear-gradient\(\s*90deg,\s*var\(--nf-(wash-1|glass-fill-thin)\) 36%/g)).toHaveLength(2);
   });
 
   it("the landing columns turn twice and the docs flow pulse walks twice, then both rest", () => {

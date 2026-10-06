@@ -41,6 +41,9 @@ const entryWith = (saver: boolean) => `
     <div id="sk" className="nf-skeleton" style={{ width: 300, height: 24 }} />
     <div id="skg" className="nf-skeleton nf-skeleton--glass" style={{ width: 300, height: 24 }} />
     <div id="soc" className="nf-social-skeleton" style={{ width: 300, height: 24 }} />
+    <div id="tall" className="nf-skeleton" style={{ width: 300, height: 200 }} />
+    <div id="tallglass" className="nf-skeleton nf-skeleton--glass" style={{ width: 300, height: 200 }} />
+    <div id="tallsoc" className="nf-social-skeleton" style={{ width: 300, height: 200 }} />
     <div className="nf-vcols"><div className="nf-vcols__col" data-col="0"><div id="strip" className="nf-vcols__strip" /></div></div>
     <div style={{ position: "relative", width: 600, height: 40 }}><span id="pulse" className="nf-flow__pulse" /></div>
   </div>);
@@ -87,7 +90,7 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the last loops are bounded", ()
       expect(ran).toEqual(still);
       expect(still.sk).toBe("117.3% 0px");
       expect(still.skg).toBe("117.3% 0px");
-      expect(still.soc).toBe("-40% 0px");
+      expect(still.soc).toBe("117.3% 0px");
     } finally {
       await standard.close();
       await saver.close();
@@ -116,7 +119,7 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the last loops are bounded", ()
           expect(await style(page, sel, "animationIterationCount"), `${name} ${sel}`).toMatch(/^1$|^none$/);
         }
         const rest = await settle(page);
-        expect(rest, name).toEqual({ sk: "117.3% 0px", skg: "117.3% 0px", soc: "-40% 0px" });
+        expect(rest, name).toEqual({ sk: "117.3% 0px", skg: "117.3% 0px", soc: "117.3% 0px" });
       } finally {
         await close();
       }
@@ -216,6 +219,69 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the loading marks are bounded a
       } finally {
         await close();
       }
+    }
+  });
+});
+
+/*
+ * A SLAB AT REST IS THE PLAIN SURFACE, AT ANY HEIGHT (A8, fourth audit). The
+ * shimmer used to be drawn at the 152 degree light angle, so on a tall slab
+ * the frozen band still crossed the box; and the social ramp filled its whole
+ * tile. The pixels are read back from a screenshot: the spread (darkest to
+ * brightest RGB sum) over the slab's interior must be nothing at rest, and a
+ * mid-sweep frame must show a band, or the sampler would prove nothing.
+ */
+const SLABS = ["#tall", "#tallglass", "#tallsoc"] as const;
+
+/** The spread of RGB sums over the slab's interior (8px in from every edge). */
+const spread = async (page: Page, sel: string): Promise<number> => {
+  const png = (await page.locator(sel).screenshot()).toString("base64");
+  return page.evaluate(async (data) => {
+    const blob = await (await fetch(`data:image/png;base64,${data}`)).blob();
+    const bitmap = await createImageBitmap(blob);
+    const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
+    const ctx = canvas.getContext("2d")!;
+    ctx.drawImage(bitmap, 0, 0);
+    const m = 8;
+    const { data: px } = ctx.getImageData(m, m, bitmap.width - 2 * m, bitmap.height - 2 * m);
+    let lo = Infinity;
+    let hi = -Infinity;
+    for (let i = 0; i < px.length; i += 4) {
+      const sum = px[i]! + px[i + 1]! + px[i + 2]!;
+      if (sum < lo) lo = sum;
+      if (sum > hi) hi = sum;
+    }
+    return hi - lo;
+  }, png);
+};
+
+describe.skipIf(!hasBrowser && !process.env.CI)("a tall slab rests as the plain surface", () => {
+  it("shows a band mid-sweep, and nothing once it has settled (the app, glass and social slabs)", async () => {
+    const { page, close } = await mountInBrowser({ entry: entryWith(false), css: CSS, viewport: VIEW });
+    try {
+      /* Mid-sweep: hold each slab's animation a third of the way through a pass. */
+      await page.evaluate((sels) => {
+        for (const sel of sels) {
+          for (const a of document.querySelector(sel)!.getAnimations()) {
+            a.pause();
+            a.currentTime = 1400 * 0.4;
+          }
+        }
+      }, [...SLABS]);
+      for (const sel of SLABS) expect(await spread(page, sel), `${sel} mid-sweep`).toBeGreaterThan(12);
+      await page.evaluate(() => document.getAnimations().forEach((a) => a.finish()));
+      for (const sel of SLABS) expect(await spread(page, sel), `${sel} at rest`).toBeLessThanOrEqual(3);
+    } finally {
+      await close();
+    }
+  });
+
+  it("is the same plain surface under data saver, where none of it runs", async () => {
+    const { page, close } = await mountInBrowser({ entry: entryWith(true), css: CSS, viewport: VIEW });
+    try {
+      for (const sel of SLABS) expect(await spread(page, sel), `${sel} data saver`).toBeLessThanOrEqual(3);
+    } finally {
+      await close();
     }
   });
 });
