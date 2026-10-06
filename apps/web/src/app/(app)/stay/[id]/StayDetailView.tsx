@@ -315,9 +315,12 @@ export function StayDetailView({
               /* THE NIGHTLY RATE LEADS AND THE TOTAL FOR THE DATES SITS
                  BENEATH IT (north star 10 C): the same total Book now opens,
                  never the cheapest rate on the property, so the figure and
-                 the button cannot disagree. Absent until dates are picked. */
+                 the button cannot disagree. Absent until dates are picked,
+                 and absent when nothing can be booked for them: the total
+                 then falls back to the property's own, which no button
+                 opens, so it is not said under the nightly rate. */
               sub={
-                bookNowTotal !== null && nights !== null && nights > 0 && !detail.isExample
+                bookable !== null && bookNowTotal !== null && nights !== null && nights > 0 && !detail.isExample
                   ? sx.stay.forDates
                       .replace("{total}", formatMoney(bookNowTotal, locale))
                       .replace("{nights}", countOf(nights, "nights", locale))
