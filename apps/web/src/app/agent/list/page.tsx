@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { flagIsOn, NEIGHBOURS_FLAG } from "@/lib/flags/read";
+import { flagIsOn, LISTER_FEE_GATE_BLOCKING_FLAG, NEIGHBOURS_FLAG } from "@/lib/flags/read";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { AgentShell } from "@/components/agent/AgentShell";
@@ -166,6 +166,8 @@ export default async function Page({
         unitCopy={t.shape.unit}
         floodCopy={t.shape.neighbours}
         floodOpen={await flagIsOn(NEIGHBOURS_FLAG)}
+        /* D60: only the blocking is flagged, fail closed; the fee screen is drawn either way. */
+        feeGateBlocking={await flagIsOn(LISTER_FEE_GATE_BLOCKING_FLAG)}
         remainderCopy={t.afterTheGate.remainder}
         moneyMapCopy={t.afterTheGate.moneyMap}
         pathCopy={t.experienceFeatures.wizard}

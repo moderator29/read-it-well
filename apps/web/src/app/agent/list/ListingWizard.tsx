@@ -8,6 +8,15 @@ import { fill } from "../_copy";
 import { loadBrowserClient } from "@/lib/supabase/load-client";
 import { canCapturePhoto, capturePhoto } from "@/lib/native/device";
 import { Switch } from "@/components/ui/Switch";
+import { ListerFeeGate } from "@/components/money/ListerFeeGate";
+import {
+  acceptanceMatches,
+  feeGateHoldsSend,
+  listerFeeFigures,
+  type ListerFeeAcceptance,
+  type ListerFeePolicy,
+} from "@/lib/money/lister-fee";
+import { fetchListerFeePolicy, recordListerFeeAcceptance } from "@/lib/money/lister-fee-actions";
 import {
   addPhoto,
   removePhoto,
@@ -911,6 +920,8 @@ export function ListingWizard({
   unitCopy,
   floodCopy,
   floodOpen = false,
+  feeGateBlocking = false,
+  initialFeePolicy,
   remainderCopy,
   moneyMapCopy,
   locale,
@@ -974,6 +985,18 @@ export function ListingWizard({
   floodCopy: Dictionary["shape"]["neighbours"];
   /** V-41 is behind a fail-closed flag; the question shows only when it is on. */
   floodOpen?: boolean;
+  /**
+   * D60: whether Send for review waits for a recorded fee acceptance
+   * (`lister_fee_gate_blocking`, read fail closed). The fee screen is drawn on
+   * the last step either way; off, which is the default, nothing waits.
+   */
+  feeGateBlocking?: boolean;
+  /**
+   * The fee rates as already read, for the harnesses that draw the last step
+   * without a server (the `startAt` pattern). The product passes nothing and
+   * the step reads them when it opens.
+   */
+  initialFeePolicy?: ListerFeePolicy | null;
   /** V-13: the sentence that refuses an unexplained remainder in the total. */
   remainderCopy?: Dictionary["afterTheGate"]["remainder"];
   /** V-46: the captions that say who each move-in line is paid to. */
@@ -1081,6 +1104,13 @@ export function ListingWizard({
     };
   }, []);
   const [submitted, setSubmitted] = useState(false);
+  /* D51, D60, D61: THE FEE SCREEN. The rates in force for this listing are
+     read when the submit step opens, and the screen is drawn above Send for
+     review. `undefined` is "not read yet"; null is "could not be read", which
+     the screen says in words. The acceptance is held here only while the
+     blocking flag is on: with it off there is no accept to hold. */
+  const [feePolicy, setFeePolicy] = useState<ListerFeePolicy | null | undefined>(initialFeePolicy);
+  const [feeAcceptance, setFeeAcceptance] = useState<ListerFeeAcceptance | null>(null);
   /* The success sheet over the "sent for review" screen, opened by the
      action's own ok and closed by the person; the screen stays under it. */
   const [celebrate, setCelebrate] = useState(false);
@@ -1129,6 +1159,22 @@ export function ListingWizard({
   /* The headline figure, resolved exactly the way the catalogue resolves it, so
      the preview card on step 7 shows the number a renter will see. */
   const priceMinor = forSale ? saleMinor : tenancy ? rentMinor : rateMinor;
+  const feeKind = forSale ? "sale" : tenancy ? "rent" : "stay";
+  /* Void the moment the price, the rate or the terms move: an acceptance is of figures. */
+  const feeAccepted = acceptanceMatches(feeAcceptance, listerFeeFigures(priceMinor, feePolicy ?? null), feePolicy ?? null);
+  const feeHolds = feeGateHoldsSend(feeGateBlocking, feeAccepted);
+  useEffect(() => {
+    if (step !== 7 || !listingId) return;
+    let live = true;
+    void fetchListerFeePolicy(listingId)
+      .catch(() => null)
+      .then((policy) => {
+        if (live) setFeePolicy(policy);
+      });
+    return () => {
+      live = false;
+    };
+  }, [step, listingId]);
 
   /* V-74: what similar homes in the area are asking, on the pricing step only. */
   const guideSubject = useMemo<GuideSubject>(
@@ -1997,6 +2043,18 @@ export function ListingWizard({
       if (!id) {
         setNotice(canPersist ? copy.submit.needsTitle : copy.submit.needsKeys);
         return;
+      }
+      /* D60: ONLY WITH THE BLOCKING FLAG ON is the acceptance recorded first,
+         and a listing whose acceptance was not recorded is not sent (D51).
+         With it off nothing is recorded and nothing waits. */
+      if (feeGateBlocking) {
+        if (!feeAcceptance || !feeAccepted) return;
+        const recorded = await recordListerFeeAcceptance({ listingId: id, ...feeAcceptance }).catch(() => null);
+        if (!recorded || !recorded.ok) {
+          setNotice(recorded && !recorded.ok ? recorded.error : copy.wizard.saveUnreached);
+          if (recorded && !recorded.ok) setFeeAcceptance(null);
+          return;
+        }
       }
       let result: Awaited<ReturnType<typeof submitListing>>;
       try {
@@ -3893,12 +3951,28 @@ export function ListingWizard({
                 </p>
               </div>
             )}
+            {/* Drawn once the read has answered (or when there is no saved
+                listing to read for), so "cannot show" never flashes first. */}
+            {(feePolicy !== undefined || !listingId) && (
+              <div className="mt-heading">
+                <ListerFeeGate
+                  kind={feeKind}
+                  priceMinor={priceMinor > 0 ? priceMinor : null}
+                  policy={feePolicy ?? null}
+                  locale={locale}
+                  blocking={feeGateBlocking}
+                  accepted={feeAcceptance}
+                  onAcceptedChange={setFeeAcceptance}
+                />
+              </div>
+            )}
             <Button
               variant="primary"
               full
               className="mt-heading"
               onClick={send}
-              disabled={unmet.length > 0 || unconfirmedMoney.length > 0 || marksUnread}
+              disabled={unmet.length > 0 || unconfirmedMoney.length > 0 || marksUnread || feeHolds}
+              data-testid="listing-send"
               loading={pending}
             >
               {copy.submit.action}
