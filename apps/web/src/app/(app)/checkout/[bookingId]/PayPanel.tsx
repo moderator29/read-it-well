@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getDictionary } from "@vallo/i18n";
+import { useScopedCopy } from "@/lib/i18n/copy-scope";
 import { startCardCheckout } from "@/lib/bookings/checkout";
 import { PaymentGate } from "@/components/app/agreements/PaymentGate";
 import { GUARANTEE_SENTENCE, NO_CUSTODY_SENTENCE } from "@/lib/money/copy";
@@ -210,8 +210,9 @@ export function PayPanel({
    */
   chargeSavedCard?: (methodId: string) => Promise<ActionResult<ChargeSavedCardOutcome>>;
 }) {
-  const c = getDictionary(view.locale).checkout;
-  const s = getDictionary(view.locale).success;
+  /* From the route's CopyScope (W13): no client dictionary read. */
+  const c = useScopedCopy("checkout");
+  const s = useScopedCopy("success");
   const paid = successCopy(s, "stayPaidRecorded");
   const router = useRouter();
   const [phase, setPhase] = useState<Phase>({ kind: "idle" });
@@ -702,6 +703,7 @@ export function PayPanel({
         consequence={failureConsequence(
           phase.kind === "error" ? phase.message : null,
           c.nothingTaken,
+          c,
         )}
         actions={[
           { label: c.tryAgain, onClick: () => setPhase({ kind: "idle" }), tone: "primary" },

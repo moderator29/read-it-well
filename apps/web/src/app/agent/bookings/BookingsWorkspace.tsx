@@ -6,11 +6,12 @@ import {
   formatMoney,
   formatDate,
   formatParty,
-  getDictionary,
   plural,
   type Dictionary,
   type Locale,
-} from "@vallo/i18n";
+} from "@vallo/i18n/core";
+import { useClientCopy } from "@/lib/i18n/client-copy";
+import { useScopedCopy } from "@/lib/i18n/copy-scope";
 import { fill } from "../_copy";
 import { acceptBooking, declineBooking } from "@/lib/agent/bookings-actions";
 import { HOLD_WINDOW_HOURS } from "@/lib/agent/bookings-model";
@@ -216,8 +217,11 @@ function BookingCard({
      `Intl.PluralRules` for the host's own locale, and the shared `counts` block
      at the root of the dictionary means the agent surfaces and the console say
      the same words for the same number. */
-  const dictionary = getDictionary(locale);
-  const counts = dictionary.counts;
+  /* `counts` is in the root layout's client copy and `hostWorkspace` in the
+     page's CopyScope (W13): no client dictionary read, which shipped the
+     whole dictionary, 398KB gzipped, with this page. */
+  const counts = useClientCopy().counts;
+  const doors = useScopedCopy("hostWorkspace").doors;
   const nightsLabel = plural(booking.nights, counts.nights, locale);
   const guestsLabel = plural(booking.guests, counts.guests, locale);
   const compositionLabel = formatParty(booking.adults, booking.children, counts, locale);
@@ -286,7 +290,7 @@ function BookingCard({
               {/* The accept sheet asks the host to check the property is
                   genuinely free; this is the door to that check, on the
                   listing's own calendar. */}
-              {dictionary.hostWorkspace.doors.checkCalendar}
+              {doors.checkCalendar}
             </ButtonLink>,
           ]}
         />

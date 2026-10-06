@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { DEFAULT_LOCALE, getDictionary, type Locale } from "@vallo/i18n";
+import type { Locale } from "@vallo/i18n/core";
+import { useScopedCopy } from "@/lib/i18n/copy-scope";
 import { settleCardPayment } from "@/lib/bookings/checkout";
 import { ResultSheet } from "@/components/app/ResultSheet";
 import { SuccessSheet } from "@/components/ui/SuccessSheet";
@@ -93,9 +94,9 @@ export function PaymentReturn({
   /** Where "done" sends somebody, in the dictionary's words (V-76 review). */
   plansAction: { label: string; href: string };
 }) {
-  const dictionary = getDictionary(locale ?? DEFAULT_LOCALE);
-  const c = dictionary.checkout;
-  const s = dictionary.success;
+  /* From the route's CopyScope (W13): no client dictionary read. */
+  const c = useScopedCopy("checkout");
+  const s = useScopedCopy("success");
   const [phase, setPhase] = useState<Phase>({ kind: "checking" });
   const [open, setOpen] = useState(true);
   const router = useRouter();
@@ -263,6 +264,7 @@ export function PaymentReturn({
       consequence={failureConsequence(
         phase.message,
         c.returnFailed,
+        c,
       )}
       actions={[
         { label: c.tryAgain, href: retryHref, tone: "primary" },

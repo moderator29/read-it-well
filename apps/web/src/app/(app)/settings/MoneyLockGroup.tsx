@@ -2,7 +2,8 @@
 
 import { useEffect, useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { formatDate, getDictionary, plural, type Locale } from "@vallo/i18n";
+import { formatDate, plural, type Locale } from "@vallo/i18n/core";
+import { useScopedCopy } from "@/lib/i18n/copy-scope";
 import { RowButton, RowValue, SettingsGroup } from "@/components/app/account/rows";
 import { Sheet } from "@/components/ui/Sheet";
 import { Button } from "@/components/ui/Button";
@@ -27,9 +28,9 @@ import type { MoneyCredentialList } from "@/lib/security/money-step-up";
  * nothing it cannot do.
  */
 export function MoneyLockGroup({ list, locale }: { list: MoneyCredentialList; locale: Locale }) {
-  const copy = getDictionary(locale).platform.moneyLock;
+  const copy = useScopedCopy("moneyLock");
   const router = useRouter();
-  const lock = useMoneyStepUp(locale);
+  const lock = useMoneyStepUp();
   const [supported, setSupported] = useState<boolean | null>(null);
   const [enrolling, setEnrolling] = useState(false);
   const [password, setPassword] = useState("");

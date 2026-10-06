@@ -2,7 +2,8 @@
 
 import { useCopyFlash } from "@/lib/ui/use-copy";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { getDictionary, type Locale } from "@vallo/i18n";
+import type { Locale } from "@vallo/i18n/core";
+import { useScopedCopy } from "@/lib/i18n/copy-scope";
 import { cryptoPaymentStatus } from "@/lib/crypto/actions";
 import { compareAtomic, fromAtomic, toAtomic } from "@/lib/crypto/decimal";
 import { RESTING, STEPS, stepOf, type CryptoState } from "@/lib/crypto/state-machine";
@@ -178,8 +179,8 @@ export function CryptoPaymentStatus({
   onNewQuote?: () => void;
   onPayAnotherWay?: () => void;
 }) {
-  const t = getDictionary(locale).cryptoPay;
-  const s = getDictionary(locale).success;
+  const t = useScopedCopy("cryptoPay");
+  const s = useScopedCopy("success");
   const view = useLivePayment(initial);
 
   /*

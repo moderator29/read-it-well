@@ -2,7 +2,6 @@
 
 import { useActionState, useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { useClientLocale } from "@/lib/i18n/use-client-locale";
 import { useLockRecovery, useMoneyStepUp } from "@/components/app/money/MoneyStepUp";
 import { useRouter } from "next/navigation";
 import { SuccessSheet } from "@/components/ui/SuccessSheet";
@@ -57,7 +56,7 @@ export function PayoutAccounts({
     FormData
   >(resolvePayoutAccount, null);
   /* V-81: where payouts go asks for the phone lock, when there is one. */
-  const addLock = useMoneyStepUp(useClientLocale(), (form) => ({
+  const addLock = useMoneyStepUp((form) => ({
     kind: "payout_add",
     target: `${String(form.get("bankCode") ?? "")}:${String(form.get("accountNumber") ?? "")}`,
   }));
@@ -275,8 +274,7 @@ export function PayoutAccounts({
 /** One saved account, with the two things an agent can do to it. */
 function AccountRow({ account }: { account: PayoutAccount }) {
   const router = useRouter();
-  const locale = useClientLocale();
-  const defaultLock = useMoneyStepUp(locale, (form) => ({ kind: "payout_default", target: String(form.get("accountId") ?? "") }));
+  const defaultLock = useMoneyStepUp((form) => ({ kind: "payout_default", target: String(form.get("accountId") ?? "") }));
   const [defaultState, defaultAction, settingDefault] = useActionState<
     ActionResult<null> | null,
     FormData
@@ -286,7 +284,7 @@ function AccountRow({ account }: { account: PayoutAccount }) {
     FormData
   >(removePayoutAccount, null);
   /* V-81: removing the account payouts go to promotes another one. */
-  const removeLock = useMoneyStepUp(locale, (form) => ({ kind: "payout_remove", target: `payout:${String(form.get("accountId") ?? "")}` }));
+  const removeLock = useMoneyStepUp((form) => ({ kind: "payout_remove", target: `payout:${String(form.get("accountId") ?? "")}` }));
   useLockRecovery(defaultLock, defaultState);
   useLockRecovery(removeLock, removeState);
 

@@ -24,7 +24,8 @@ import { ActionBar } from "@/components/ui/ActionBar";
 import { Amount } from "@/components/ui/Amount";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { getDictionary, type Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
+import { useScopedCopy } from "@/lib/i18n/copy-scope";
 import { CryptoPayOption } from "@/components/app/payments/crypto/CryptoPayOption";
 import type { CryptoOffer } from "@/components/app/payments/crypto/offer";
 
@@ -130,8 +131,9 @@ export function PayPanel({
    */
   chargeSavedCard?: (methodId: string) => Promise<ActionResult<ChargeSavedCardOutcome>>;
 }) {
-  const c = getDictionary(view.locale).checkout;
-  const s = getDictionary(view.locale).success;
+  /* From the route's CopyScope (W13): no client dictionary read. */
+  const c = useScopedCopy("checkout");
+  const s = useScopedCopy("success");
   const paid = successCopy(s, "rentPaid");
   const router = useRouter();
   const [phase, setPhase] = useState<Phase>({ kind: "idle" });
@@ -519,6 +521,7 @@ export function PayPanel({
         consequence={failureConsequence(
           phase.kind === "error" ? phase.message : null,
           c.nothingTaken,
+          c,
         )}
         actions={[
           { label: c.tryAgain, onClick: () => setPhase({ kind: "idle" }), tone: "primary" },

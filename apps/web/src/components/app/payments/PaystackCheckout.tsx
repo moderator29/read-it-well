@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { DEFAULT_LOCALE, getDictionary, type Locale } from "@vallo/i18n";
+import type { Locale } from "@vallo/i18n/core";
+import { useScopedCopy } from "@/lib/i18n/copy-scope";
+import { useClientCopy } from "@/lib/i18n/client-copy";
 import { ResultSheet } from "@/components/app/ResultSheet";
 import { PaymentSteps, cardPaymentSteps } from "./PaymentSteps";
 import { clearInflight, noteInflight } from "@/lib/offline/inflight";
@@ -418,8 +420,10 @@ export function PaystackCheckout({
      Paystack's window reported that it loaded (only then can a settle run),
      "confirming" is done once our own transaction record says paid, at which
      point the caller swaps this sheet for the receipt. The words are the
-     checkout dictionary's own. */
-  const stepWords = getDictionary(locale ?? DEFAULT_LOCALE).checkout;
+     checkout dictionary's own, from the route's CopyScope (W13: a client
+     dictionary read here shipped the whole dictionary with the payment). */
+  const stepWords = useScopedCopy("checkout");
+  const offlineWord = useClientCopy().platform.inflight.offline;
   const steps = (at: "opening" | "settling") => (
     <PaymentSteps
       label={stepWords.confirmingPayment}
@@ -485,7 +489,7 @@ export function PaystackCheckout({
         }}
         state="failed"
         verdict="Cannot pay here"
-        consequence={`${phase.offline ? getDictionary(locale ?? DEFAULT_LOCALE).platform.inflight.offline : phase.message} You can try again in a moment, or open the payment page on Paystack's own site, which will take you off Vallo until it is done.`}
+        consequence={`${phase.offline ? offlineWord : phase.message} You can try again in a moment, or open the payment page on Paystack's own site, which will take you off Vallo until it is done.`}
         fact={fact}
         locale={locale}
         actions={

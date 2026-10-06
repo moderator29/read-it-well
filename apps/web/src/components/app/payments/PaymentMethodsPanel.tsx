@@ -2,8 +2,8 @@
 
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { getDictionary, type Dictionary } from "@vallo/i18n";
-import { useClientLocale } from "@/lib/i18n/use-client-locale";
+import type { Dictionary } from "@vallo/i18n/core";
+import { useScopedCopy } from "@/lib/i18n/copy-scope";
 import { useMoneyStepUp } from "@/components/app/money/MoneyStepUp";
 import { RowButton, Sheet } from "@/components/app/account/rows";
 import { TYPE } from "@/components/app/Screen";
@@ -89,17 +89,16 @@ export function PaymentMethodsPanel({
   copy: PaymentsCopy;
 }) {
   const router = useRouter();
-  const locale = useClientLocale();
-  const dict = getDictionary(locale);
-  const moneyLock = useMoneyStepUp(locale);
+  /* The route's CopyScope carries these (W13): no client dictionary read. */
+  const success = useScopedCopy("success");
+  const lockWords = useScopedCopy("moneyLock");
+  const moneyLock = useMoneyStepUp();
   const [openCard, setOpenCard] = useState<PaymentMethod | null>(null);
   const [openAccount, setOpenAccount] = useState<BankAccount | null>(null);
   const [chooser, setChooser] = useState(false);
   const [addingAccount, setAddingAccount] = useState(false);
   /* The account was saved: `addBankAccount`'s own ok, after the step-up. */
   const [accountAdded, setAccountAdded] = useState(false);
-  /* This panel already carries the dictionary for its locale. */
-  const success = dict.success;
   const addedWords = successCopy(success, "bankAccountAdded");
   const cardSavedWords = successCopy(success, "cardSaved");
   /* B-6: set only when `confirmCardSetup` answered `saved`. */
@@ -448,7 +447,7 @@ export function PaymentMethodsPanel({
                       const result = await moneyLock.guard({ kind: "bank_default", target: openAccount.id }, (stepUp) =>
                         setDefaultBankAccount(openAccount.id, stepUp),
                       );
-                      return result ?? { ok: false, error: dict.platform.moneyLock.notConfirmed };
+                      return result ?? { ok: false, error: lockWords.notConfirmed };
                     }, close)
                   }
                   disabled={pending}
@@ -479,7 +478,7 @@ export function PaymentMethodsPanel({
                           const result = await moneyLock.guard({ kind: "payout_remove", target: `bank:${openAccount.id}` }, (stepUp) =>
                             removeBankAccount(openAccount.id, stepUp),
                           );
-                          return result ?? { ok: false, error: dict.platform.moneyLock.notConfirmed };
+                          return result ?? { ok: false, error: lockWords.notConfirmed };
                         }, close)
                       }
                     >

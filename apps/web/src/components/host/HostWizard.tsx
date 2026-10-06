@@ -5,8 +5,8 @@ import { useCallback, useEffect, useMemo, useState, useTransition } from "react"
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useBack } from "@/lib/nav/use-back";
-import { countOf, getDictionary, type Locale } from "@vallo/i18n";
-import { useClientLocale } from "@/lib/i18n/use-client-locale";
+import { countOf, type Locale } from "@vallo/i18n/core";
+import { useScopedCopy } from "@/lib/i18n/copy-scope";
 import { useMoneyStepUp } from "@/components/app/money/MoneyStepUp";
 import type { BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -263,13 +263,11 @@ export function HostWizard({
     setWasSubmitted(submitted);
     if (submitted) setCelebrate(true);
   }
-  /* This wizard already carries the dictionary for its locale. */
-  const dictionary = getDictionary(useClientLocale());
-  const successWords = dictionary.success;
+  /* The page's CopyScope carries these (W13): no client dictionary read. */
+  const successWords = useScopedCopy("success");
   /* The progress path's words: the same ones the agent's listing wizard uses
-     (`experienceFeatures.wizard`), read here from the reader's dictionary
-     because this component is the client island and its page passes none. */
-  const pathWords = dictionary.experienceFeatures.wizard;
+     (`experienceFeatures.wizard`). */
+  const pathWords = useScopedCopy("featuresWizard");
 
   const set = useCallback(<K extends keyof HostDraft>(key: K, value: HostDraft[K]) => {
     setDraft((current) => {
@@ -896,15 +894,15 @@ function PayoutStep({ draft, pending, run, setNotice, set }: StepProps) {
   };
 
   /* V-81: a new account to be paid into asks for the phone lock, when there is one. */
-  const viewerLocale = useClientLocale();
-  const lock = useMoneyStepUp(viewerLocale);
+  const lockWords = useScopedCopy("moneyLock");
+  const lock = useMoneyStepUp();
   const save = () =>
     run(
       async () => {
         const result = await lock.guard({ kind: "bank_add", target: `${bank}:${number.replace(/\D/g, "")}` }, (stepUp) =>
           addBankAccount({ bankCode: bank, accountNumber: number, stepUp }),
         );
-        return result ?? { ok: false as const, error: getDictionary(viewerLocale).platform.moneyLock.notConfirmed };
+        return result ?? { ok: false as const, error: lockWords.notConfirmed };
       },
       () => {
         set("hasBankAccount", true);

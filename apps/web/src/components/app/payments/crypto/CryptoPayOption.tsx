@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { getDictionary, type Locale } from "@vallo/i18n";
+import type { Locale } from "@vallo/i18n/core";
+import { useScopedCopy } from "@/lib/i18n/copy-scope";
 import { getCryptoQuote, startCryptoPayment } from "@/lib/crypto/actions";
 import { refundAddressLooksValid } from "@/lib/crypto/assets";
 import type { CryptoPaymentView } from "@/lib/crypto/view";
@@ -55,7 +56,7 @@ export function CryptoPayOption({
   totalMinor: number;
   locale: Locale;
 }) {
-  const t = getDictionary(locale).cryptoPay;
+  const t = useScopedCopy("cryptoPay");
   const [open, setOpen] = useState(false);
 
   if (offer.kind === "kyc") {
@@ -124,7 +125,7 @@ function CryptoSheet({
   locale: Locale;
   onClose: () => void;
 }) {
-  const t = getDictionary(locale).cryptoPay;
+  const t = useScopedCopy("cryptoPay");
   const assets = useMemo(() => [...new Set(offer.pairs.map((pair) => pair.asset))], [offer.pairs]);
   const [asset, setAsset] = useState(assets[0] ?? "");
   const networks = offer.pairs.filter((pair) => pair.asset === asset);
@@ -336,7 +337,7 @@ function QuoteCard({
   onConfirm: () => void;
   onRequote: () => void;
 }) {
-  const t = getDictionary(locale).cryptoPay;
+  const t = useScopedCopy("cryptoPay");
   const left = useCountdown(view.expiresAt);
   const expired = left <= 0;
   return (

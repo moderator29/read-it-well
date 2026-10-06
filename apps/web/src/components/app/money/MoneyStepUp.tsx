@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { flushSync } from "react-dom";
-import { getDictionary, type Locale } from "@vallo/i18n";
+import { useScopedCopy } from "@/lib/i18n/copy-scope";
 import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
 import { TextField } from "@/components/ui/Field";
@@ -23,7 +23,7 @@ import { assertPlatformKey, platformLockAvailable } from "@/lib/security/webauth
  * Two ways to use it.
  *
  * A FORM (add or remove a payout account):
- *   const lock = useMoneyStepUp(locale, (form) => ({ kind: "payout_add", target: String(form.get("accountNumber") ?? "") }));
+ *   const lock = useMoneyStepUp((form) => ({ kind: "payout_add", target: String(form.get("accountNumber") ?? "") }));
  *   <form onSubmit={(e) => { if (!lock.pass(e)) return; ... }}>
  *     <input type="hidden" name="stepUp" value={lock.token} />
  *     {lock.sheet}
@@ -43,7 +43,6 @@ import { assertPlatformKey, platformLockAvailable } from "@/lib/security/webauth
  * without a matching proof regardless (`lib/security/money-lock-guard.ts`).
  */
 export function useMoneyStepUp(
-  locale: Locale,
   intentOf?: (form: FormData) => MoneyIntent,
 ): {
   pass: (event: FormEvent<HTMLFormElement>) => boolean;
@@ -53,7 +52,10 @@ export function useMoneyStepUp(
   token: string;
   sheet: ReactNode;
 } {
-  const copy = getDictionary(locale).platform.moneyLock;
+  /* The words come from the route's CopyScope (`moneyLock`), never from a
+     client dictionary read: that read put the whole dictionary, 398KB
+     gzipped, in every money route's first load (W13, measured). */
+  const copy = useScopedCopy("moneyLock");
   const [token, setToken] = useState("");
   const [open, setOpen] = useState(false);
   const [status, setStatus] = useState<StepUpStatus | null>(null);

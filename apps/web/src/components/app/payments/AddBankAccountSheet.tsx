@@ -1,10 +1,9 @@
 "use client";
 
-import { getDictionary } from "@vallo/i18n";
-import { useClientLocale } from "@/lib/i18n/use-client-locale";
+import { useScopedCopy } from "@/lib/i18n/copy-scope";
 import { useMoneyStepUp } from "@/components/app/money/MoneyStepUp";
 import { useEffect, useState, useTransition } from "react";
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import { RowButton, Sheet } from "@/components/app/account/rows";
 import { ICON, TYPE } from "@/components/app/Screen";
 import { Button } from "@/components/ui/Button";
@@ -97,8 +96,8 @@ export function AddBankAccountSheet({
     });
   };
 
-  const viewerLocale = useClientLocale();
-  const lock = useMoneyStepUp(viewerLocale);
+  const lockWords = useScopedCopy("moneyLock");
+  const lock = useMoneyStepUp();
 
   const save = () => {
     if (!bank) return;
@@ -109,7 +108,7 @@ export function AddBankAccountSheet({
         addBankAccount({ bankCode: bank.code, accountNumber: digits, idempotencyKey, stepUp }),
       );
       if (result === null) {
-        setError(getDictionary(viewerLocale).platform.moneyLock.notConfirmed);
+        setError(lockWords.notConfirmed);
         return;
       }
       if (!result.ok) {

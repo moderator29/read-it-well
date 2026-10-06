@@ -16,6 +16,9 @@ import type { CryptoPaymentView } from "@/lib/crypto/view";
 
 vi.mock("@/lib/crypto/actions", () => ({ cryptoPaymentStatus: async () => ({ ok: false }) }));
 
+import { getDictionary } from "@vallo/i18n";
+import { CopyScope } from "@/lib/i18n/copy-scope";
+import { copyScopeOf } from "@/lib/i18n/copy-scope-of";
 import { CryptoPaymentStatus } from "./CryptoPaymentStatus";
 
 const view = (state: string): CryptoPaymentView =>
@@ -52,7 +55,12 @@ const view = (state: string): CryptoPaymentView =>
   }) as unknown as CryptoPaymentView;
 
 const draw = (state: string) =>
-  renderToStaticMarkup(<CryptoPaymentStatus initial={view(state)} locale="en" providerName="Provider" />);
+  /* The route's layout provides these words (RouteCopy); the test does the same. */
+  renderToStaticMarkup(
+    <CopyScope copy={copyScopeOf(getDictionary("en"), ["cryptoPay", "success"])}>
+      <CryptoPaymentStatus initial={view(state)} locale="en" providerName="Provider" />
+    </CopyScope>,
+  );
 
 describe("the crypto receipt", () => {
   it("is the printable document headed Charge paid when the charge is settled", () => {
