@@ -52,6 +52,42 @@ entitlements, promotion, status vocabulary. B4: the referral engine, D48 wallet
 channel migration, W7-R1 first-run store, phone gate, SMS policy. Agents write
 migrations, they do not apply them; each is reviewed twice before I apply it.
 
+**Merged this round, code live on the branch, migrations NOT yet applied (9 pending):**
+- B2: every Paystack call site behind the provider seam (`fiatProvider`, capability
+  checks, kill switch before anything that starts money); the rail router now runs
+  inside `quoteSplit` before any attempt row, and the attempt records `rail` and
+  `rail_policy_id`. **Decision for the founder: a payment the policy routes to escrow
+  is refused, not opened on Paystack**, because a Paystack split pays the lister at
+  the charge and would silently drop the hold. Until the escrow rail is built and
+  switched on, payable types are hotels, restaurants, serviced apartments and a
+  business's apartment for rent; 8 of 10 property types plus every sale and every
+  individual's apartment are refused with a plain sentence. Live effect today: none
+  (0 bookings, 0 transactions). Pending: `b2_rail_at_open` (the rail re-checked at
+  insert) and `b2_ledger` (three append-only pots as three tables:
+  `ledger_customer_funds`, `ledger_vallo_revenue`, `ledger_marketing_float`).
+- B3: pricing as dated policy (`money_policy_versions`, 200 bps for every type, cap
+  structure in place), the rate agreement gate on publish in the database, the Payluk
+  commission sweep (reads the merchant balance, paced; Payluk documents no merchant
+  withdrawal route, so it alerts a person rather than pretending), tax lines with
+  NULL rates, entitlements at zero, promotion in a schema ranking cannot see, the Vallo
+  status vocabulary. Pending: four migrations, first review found blockers (fixing).
+- B4: the referral engine (dated policy, eight-state lifecycle enforced by trigger,
+  append-only Rewards Balance ledger, both caps under a lock, risk routing to review,
+  never a ban; Paystack transfer payouts marked paid only on verify), the D48
+  `wallet` to `payments` preference migration, the W7-R1 first-run store, the phone
+  gate, one SMS channel-policy table. Pending: three migrations, in review.
+- **D51 verified, not assumed:** `guarantee_bps = 0` did NOT unblock payment. Gates
+  found: `split-attempt.ts` and `share-checkout.ts` demanded the reserve before asking
+  the database; the database payment gate required a reserve code on every row;
+  `crypto_open_attempt` refused without it; Yellow Card's destinations still need
+  reserve bank details. Fixed so far: `split-attempt.ts` (`ea878138a`). The two
+  database gates are fixed in B3's pending migration. Still open: `share-checkout.ts`
+  and the Yellow Card destinations.
+- **Founder values needed:** the top withdrawal band (2,000,000 naira and above:
+  percentage and cap); the platform-wide referral budget (seeded 1,000,000 naira a
+  month as a placeholder); rate acceptance wording; mapping guest houses, resorts and
+  shortlet operators to a rail.
+
 **Paystack's docs are blocked here** (`paystack.com` refused by the egress proxy), so
 the chargeback webhook intake is not written: its payload fields would be guessed.
 The chargeback core (record, state machine, recovery, payout hold) is in review.
