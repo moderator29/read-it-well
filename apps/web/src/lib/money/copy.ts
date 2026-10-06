@@ -569,6 +569,23 @@ export const RECEIPT_PRIVACY_TITLE = "Sharing a receipt";
 export const RECEIPT_PRIVACY_BODY =
   "A rent receipt can be shared with a code instead of the document. Whoever checks the code sees the amount, the month, first names and the area, and never the address, a phone number or an email.";
 export const RECEIPT_PRIVACY_ACTION = "Check a receipt code";
+/**
+ * The complaint pack's receipt-code line while the move-in is not paid in
+ * full (a flatmate's share settled, the rest not). `create_receipt_code`
+ * answers `not_paid` until `private.tenancy_paid`, and the tenancy file draws
+ * the code panel only on a paid file, so "make a receipt code" was untrue.
+ */
+export const RECEIPT_CODE_AFTER_FULL_PAYMENT =
+  "A receipt code can be made in the tenancy file once the move-in is paid in full.";
+/**
+ * The same line once the charge is void (cancelled, refunded or reversed):
+ * `create_receipt_code` answers `not_paid` and `verify_receipt` answers
+ * `not_found` for a void tenancy, so no code can be made or checked.
+ */
+export const RECEIPT_CODE_VOID =
+  "A receipt code cannot be made or checked for a move-in that was cancelled, refunded or reversed.";
+/** The complaint pack's money section on a void charge: the state said, under the total. */
+export const TENANCY_VOID_STATEMENT = "This move-in was cancelled, refunded or reversed, so nothing is owed on it.";
 
 export const REFUNDS_TITLE = "Refunds";
 export const REFUNDS_LEDE =

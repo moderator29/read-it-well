@@ -7,6 +7,7 @@ import { lagosToday } from "@/lib/rent/schema";
 import { addDays } from "@/lib/tenancy/model";
 import { RESPOND_WITHIN_DAYS, type LetterFacts } from "@/lib/tenancy/letter";
 import { formatMoneyDate } from "@/lib/money/dates";
+import { RECEIPT_CODE_AFTER_FULL_PAYMENT, RECEIPT_CODE_VOID, TENANCY_VOID_STATEMENT } from "@/lib/money/copy";
 import { ROOM_COPY, ROOM_ITEMS } from "@/lib/inspections/report";
 import { PageHeader } from "@/components/app/PageHeader";
 import { EmptyState, FactGrid, Section, Stack, TYPE } from "@/components/app/Screen";
@@ -68,7 +69,10 @@ export default async function ComplaintPage({ params }: { params: Promise<{ id: 
   const hint = file.receiptCode?.hint ?? null;
   const verifyUrl = hint && origin ? `${origin}/r` : null;
   const caution = file.caution;
-  const owed = caution !== null && caution.outstandingMinor > 0;
+  const receipted = file.paid && !file.void;
+  // A void charge owes no caution (the tenancy file's rule), so the pack
+  // neither states one owed nor opens a demand letter for it.
+  const owed = !file.void && caution !== null && caution.outstandingMinor > 0;
   const letterOpen = owed && caution !== null && today > caution.dueOn;
 
   const facts: LetterFacts | null =
@@ -132,12 +136,18 @@ export default async function ComplaintPage({ params }: { params: Promise<{ id: 
               </div>
             ))}
             <div className="flex justify-between gap-md font-semibold">
-              {/* "Paid in total" only when it is: an unpaid or part-paid
-                  tenancy reached this page saying it was paid. */}
-              <dt className="nf-body-sm">{file.paid ? t.afterTheGate.tenancy.totalPaid : copy.totalUnpaid}</dt>
+              {/* "Paid in total" only when it is, by the tenancy file's own rule
+                  (paid and not void): an unpaid or part-paid tenancy reached
+                  this page saying it was paid, and a cancelled, refunded or
+                  reversed one still does. A void charge is the move-in total,
+                  with its state said under it. */}
+              <dt className="nf-body-sm">
+                {receipted ? t.afterTheGate.tenancy.totalPaid : file.void ? t.checkout.moveInTotal : copy.totalUnpaid}
+              </dt>
               <dd className="nf-body-sm nf-numeric">{file.total}</dd>
             </div>
           </dl>
+          {file.void ? <p className="nf-body-sm mt-xs">{TENANCY_VOID_STATEMENT}</p> : null}
           <h3 className="nf-h4 mt-md">{copy.receipts}</h3>
           {file.receipts.length === 0 ? (
             <p className="nf-body-sm mt-xs">{t.afterTheGate.tenancy.noReceipt}</p>
@@ -150,10 +160,18 @@ export default async function ComplaintPage({ params }: { params: Promise<{ id: 
               </li>
             ))}
           </ul>
-          {/* A receipt code checks a payment, so it is offered only once one exists. */}
+          {/* A receipt code checks a payment, so it is offered only once one
+              exists, and made only once the move-in is paid in full: a
+              part-paid pack said "Make a receipt code" the tenant could not make. */}
           {file.receipts.length > 0 ? (
             <p className="nf-caption mt-xs">
-              {hint && verifyUrl ? copy.verify.replace("{hint}", hint).replace("{url}", verifyUrl) : copy.noCode}
+              {file.void
+                ? RECEIPT_CODE_VOID
+                : !file.paid
+                  ? RECEIPT_CODE_AFTER_FULL_PAYMENT
+                  : hint && verifyUrl
+                    ? copy.verify.replace("{hint}", hint).replace("{url}", verifyUrl)
+                    : copy.noCode}
             </p>
           ) : null}
         </Section>
@@ -194,7 +212,13 @@ export default async function ComplaintPage({ params }: { params: Promise<{ id: 
           )}
         </Section>
 
-        {caution && (
+        {/* Void: the tenancy file's own sentence, never "still owed". */}
+        {file.void && (caution || file.cautionPending) ? (
+          <Section title={copy.caution} divided>
+            <p className="nf-body-sm">{t.afterTheGate.tenancy.cautionVoid}</p>
+          </Section>
+        ) : null}
+        {caution && !file.void && (
           <Section title={copy.caution} divided>
             <p className="nf-body-sm nf-numeric">
               {copy.cautionLine
