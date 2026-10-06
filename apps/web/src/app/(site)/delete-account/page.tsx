@@ -7,6 +7,8 @@ import { SUPPORT_HREF, SUPPORT_LABEL } from "@/lib/support-email";
 import { GRACE_WINDOW_DAYS } from "@/lib/account-deletion/constants";
 import { DESTROYED_TABLES, RETAINED_TABLES } from "@/lib/account-deletion/plan";
 import { RestoreForm } from "./RestoreForm";
+import { DocumentSheet } from "@/components/app/money/DocumentSheet";
+import "@/components/site/guides/policy-sheet.css";
 
 /* A10: the title and description in the page's own language, with its
    canonical and hreflang (lib/i18n/public-metadata.ts; words in publicMeta). */
@@ -49,9 +51,16 @@ export default function DeleteAccountPage() {
 
       <div className="nf-shell pb-section">
         <div className="mx-auto max-w-3xl">
+          {/* THE PAGE ON PAPER (D28.1; Session 3, W1b): one document sheet in the
+              reader's theme in place of five stacked cards, sections separated
+              by a hairline. The restore form sits on the paper and keeps its
+              field and button (policy-sheet.css re-points their night surfaces
+              at the sheet's). It is not printable: it holds a form. Every word
+              is as it was. */}
+          <DocumentSheet kind="document" className="nf-policy mt-block">
           {/* ------------------------------------------------------ how to */}
-          <section className="nf-panel nf-panel--card block mt-block p-lg">
-            <h2 className="nf-h3">How to start it</h2>
+          <section>
+            <h2>How to start it</h2>
             <ol className="mt-sm space-y-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
               <li>
                 <span className="font-semibold text-[var(--nf-content-primary)]">
@@ -97,8 +106,8 @@ export default function DeleteAccountPage() {
           </section>
 
           {/* --------------------------------------------------- the window */}
-          <section className="nf-panel nf-panel--card block mt-block p-lg">
-            <h2 className="nf-h3">What happens next, and when</h2>
+          <section>
+            <h2>What happens next, and when</h2>
             <p className="mt-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
               The moment you confirm, your account is signed out everywhere and deactivated. You
               cannot sign in and nobody can reach your profile. Nothing has been destroyed yet.
@@ -111,8 +120,8 @@ export default function DeleteAccountPage() {
           </section>
 
           {/* ------------------------------------------------- what is gone */}
-          <section className="nf-panel nf-panel--card block mt-block p-lg">
-            <h2 className="nf-h3">What is destroyed</h2>
+          <section>
+            <h2>What is destroyed</h2>
             <p className="mt-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
               Your profile, your photograph and cover picture, your posts, comments, stories and
               drafts, your saved items, interests and searches, your devices and notifications,
@@ -138,8 +147,8 @@ export default function DeleteAccountPage() {
           </section>
 
           {/* ------------------------------------------------- what is kept */}
-          <section className="nf-panel nf-panel--card block mt-block p-lg">
-            <h2 className="nf-h3">What is kept, and why</h2>
+          <section>
+            <h2>What is kept, and why</h2>
             <p className="mt-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
               Vallo is registered with the Special Control Unit against Money Laundering, and
               Nigerian anti-money-laundering rules require a platform that moves money to retain
@@ -183,8 +192,8 @@ export default function DeleteAccountPage() {
           </section>
 
           {/* ---------------------------------------------------- the way back */}
-          <section className="nf-panel nf-panel--card block mt-block p-lg" id="restore">
-            <h2 className="nf-h3">Stop a deletion you have started</h2>
+          <section id="restore">
+            <h2>Stop a deletion you have started</h2>
             <p className="mt-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
               Your account is deactivated while the {GRACE_WINDOW_DAYS} days run, so you cannot
               sign in to change your mind. Use the code from the email we sent instead. It puts
@@ -194,8 +203,8 @@ export default function DeleteAccountPage() {
           </section>
 
           {/* ------------------------------------------------------ nowhere else */}
-          <section className="nf-panel nf-panel--card block mt-block p-lg">
-            <h2 className="nf-h3">If you cannot get in at all</h2>
+          <section>
+            <h2>If you cannot get in at all</h2>
             <p className="mt-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
               If you have lost access to the email address on the account and cannot sign in, write
               to us at{" "}
@@ -210,6 +219,7 @@ export default function DeleteAccountPage() {
               need us.
             </p>
           </section>
+          </DocumentSheet>
         </div>
       </div>
     </>
