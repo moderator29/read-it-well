@@ -1,3 +1,5 @@
+@layer theme, base, components, utilities;
+
 /*
  * The live map: price pins, cluster drops, and the small amount of Leaflet
  * chrome that has to be restyled rather than replaced.
@@ -48,15 +50,50 @@
    * and run, then gets out of the way, so a later selection's own scale
    * (Tailwind's `scale-110`) is never left fighting a lingering animation.
    */
+  /*
+   * THE PIN DROP, TO THE INVENTORY (motion 19, MOTION_SYSTEM "Map pin drop";
+   * Session 3, W2): each mark falls 12px and settles on `drift`, 520ms, the
+   * first six 40ms apart and every later one with the sixth (principle 3: one
+   * organism, not a queue of eighty). It was a 22px fall from 0.4 scale over
+   * 620ms at 26ms a pin, which on a full result set was two seconds of pins
+   * still landing after the reader had started reading.
+   *
+   * TRANSFORM ONLY, AND NOT THE PIN'S OWN TRANSLATE. The mark is placed by
+   * Tailwind's `-translate-x-1/2 -translate-y-full`, which in v4 is the
+   * individual `translate` property; the keyframes animate `transform`, which
+   * composes with it, so the tip stays exactly on its point throughout. (The
+   * old keyframes also wrote the centring translate into `transform`, which
+   * doubled the offset for the length of the drop.)
+   */
   .nf-map-pin-drop {
-    animation: nf-map-pin-drop var(--nf-duration-deliberate) var(--nf-ease-spring) backwards;
-    animation-delay: calc(var(--pin-i, 0) * 26ms);
+    animation: nf-map-pin-drop var(--nf-duration-entrance) var(--nf-ease-spring) backwards;
+    animation-delay: calc(min(var(--pin-i, 0), 5) * 40ms);
+    transition:
+      transform var(--nf-duration-base) var(--nf-ease-spring),
+      border-color var(--nf-duration-fast) var(--nf-ease-standard);
   }
   @keyframes nf-map-pin-drop {
-    0% { opacity: 0; transform: translate(-50%, -100%) translateY(-22px) scale(0.4); }
-    60% { opacity: 1; transform: translate(-50%, -100%) translateY(3px) scale(1.08); }
-    100% { opacity: 1; transform: translate(-50%, -100%) scale(1); }
+    from {
+      opacity: 0;
+      transform: translate3d(0, -12px, 0);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
   }
+  /* The chosen pin LIFTS (motion 19), 6px on the spring, above the rest by its
+     z-index; hover on a pointer lifts it 2px, so a hovered pin and a chosen
+     one differ by height as well as by fill, never by colour alone. */
+  .nf-map-pin-drop[data-selected="true"] {
+    transform: translate3d(0, -6px, 0);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .nf-map-pin-drop:not([data-selected="true"]):hover {
+      transform: translate3d(0, -2px, 0);
+    }
+  }
+
   /*
    * THE 44PX FLOOR FOR A PRICE PIN, WITHOUT MOVING WHERE IT POINTS.
    *
@@ -80,13 +117,18 @@
     border-radius: inherit;
   }
   .nf-map-cluster-drop {
-    animation: nf-map-cluster-drop var(--nf-duration-deliberate) var(--nf-ease-spring) backwards;
-    animation-delay: calc(var(--pin-i, 0) * 26ms);
+    animation: nf-map-cluster-drop var(--nf-duration-entrance) var(--nf-ease-spring) backwards;
+    animation-delay: calc(min(var(--pin-i, 0), 5) * 40ms);
   }
   @keyframes nf-map-cluster-drop {
-    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.4); }
-    60% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
-    100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    from {
+      opacity: 0;
+      transform: translate3d(0, -12px, 0);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
   }
 
   /*
@@ -151,6 +193,7 @@
     .nf-map-cluster-drop,
     .nf-map-pin-breathe {
       animation: none;
+      transition: none;
     }
     .nf-map-pin-drop[data-hero]::after {
       animation: none;

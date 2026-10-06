@@ -24,8 +24,9 @@ import {
   type ScreenPoint,
 } from "./mapGeo";
 import type { MapCopy, MapListing } from "./mapTypes";
-import { countOf } from "@vallo/i18n/core";
-import { IconPlate } from "@/components/ui/IconPlate";
+import { countOf, formatNumber } from "@vallo/i18n/core";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
+import "./discovery.css";
 
 /**
  * The discovery map.
@@ -90,6 +91,8 @@ export function MapCanvas({
   locale,
   copy,
   wholeMapHref,
+  unplaced = 0,
+  listHref,
 }: {
   listings: MapListing[];
   cities: MapCity[];
@@ -99,6 +102,10 @@ export function MapCanvas({
   copy: MapCopy;
   /** Where "show every place" goes when a query has emptied the map. */
   wholeMapHref: string;
+  /** Results with no honest place on the map (their city has no coordinate). */
+  unplaced?: number;
+  /** The same results as a list, where an unplaced place is still drawn. */
+  listHref?: string;
 }) {
   const frameRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -719,9 +726,9 @@ export function MapCanvas({
                  takes the control radius. It read `--nf-radius-pill`.
                  `nf-map-pin-hit` gives it the 44px hit area (map.css) on a
                  pseudo element, so the painted pin and its tip stay put. */
-              className={`nf-numeric nf-map-pin-hit nf-map-pin-drop pointer-events-auto absolute -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-[var(--nf-radius-control)] px-sm py-xs text-[length:var(--nf-text-overline)] font-bold transition-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--nf-focus-ring)] active:scale-95 motion-reduce:transition-none ${
+              className={`nf-numeric nf-map-pin-hit nf-map-pin-drop pointer-events-auto absolute -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-[var(--nf-radius-control)] px-sm py-xs text-[length:var(--nf-text-overline)] font-bold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--nf-focus-ring)] active:scale-95 motion-reduce:transition-none ${
                 chosen
-                  ? "scale-110 border border-[var(--nf-selected-edge)] text-[var(--nf-content-on-brand)]"
+                  ? "border border-[var(--nf-selected-edge)] text-[var(--nf-content-on-brand)]"
                   : "nf-btn--glass text-[var(--nf-content-primary)] hover:border-[var(--nf-selected-edge)]"
               }`}
             >
@@ -731,7 +738,8 @@ export function MapCanvas({
               <span
                 className={`inline-flex items-center gap-2xs ${chosen ? "" : "nf-map-pin-breathe"}`}
               >
-                {pin.verified && (
+                {/* D24: the tick only on a checked place that is not an example. */}
+                {pin.verified && !pin.isDemo && (
                   <UiIcon
                     name="verified"
                     size={12}
@@ -804,29 +812,49 @@ export function MapCanvas({
           )}
         </div>
 
-        {/* Empty state. Honest about why, and it offers the way back. */}
+        {/* THE LISTING WITH NO PIN (B-27): counted, never guessed onto the
+            map, and one tap from the list where it is drawn. */}
+        {unplaced > 0 && listHref && copy.noPinOne && copy.noPinMany && (
+          <a
+            href={listHref}
+            data-testid="map-no-pin"
+            className="nf-chip pointer-events-auto mx-sm min-h-11 w-fit max-w-[86%] text-[length:var(--nf-text-overline)]"
+          >
+            <UiIcon name="info" size={12} className="shrink-0 opacity-70" />
+            <span>
+              {(unplaced === 1 ? copy.noPinOne : copy.noPinMany).replace("{count}", formatNumber(unplaced, locale))}
+              {copy.noPinList ? `. ${copy.noPinList}` : ""}
+            </span>
+          </a>
+        )}
+
+        {/*
+          THE EMPTY VIEWPORT (B-27). Honest about why, and it offers the way
+          back. The matte map pin settles into the frame the way every empty
+          shelf's object does (motion 21, `discovery.css`), so an empty map
+          reads as the same product as an empty list.
+        */}
         {visible.length === 0 && (
           <div
-            className="nf-panel nf-panel--card isolate pointer-events-auto mx-auto mt-lg w-[min(20rem,86%)] items-center p-lg text-center"
+            data-testid="map-empty"
+            className="nf-panel nf-panel--card isolate pointer-events-auto mx-auto mt-lg flex w-[min(20rem,86%)] flex-col items-center p-lg text-center"
           >
-            <IconPlate size="md">
-              <UiIcon name="location" size={20} />
-            </IconPlate>
-            <p className="mt-sm font-semibold text-[var(--nf-content-primary)]">
-              No places here
-            </p>
+            <span className="nf-dempty__object" aria-hidden="true">
+              <BrandIcon name="map-pin" size={56} />
+            </span>
+            <p className="mt-sm font-semibold text-[var(--nf-content-primary)]">{copy.emptyTitle ?? "No places here"}</p>
             <p className="mt-2xs text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">
               {areaBox
-                ? "No place sits inside this part of the map."
-                : "This search matched no place we can put on the map."}
+                ? (copy.emptyArea ?? "No place sits inside this part of the map.")
+                : (copy.emptySearch ?? "This search matched no place we can put on the map.")}
             </p>
             {areaBox ? (
               <Button variant="secondary" onClick={clearArea} className="mt-md">
-                Show every place
+                {copy.emptyAction ?? "Show every place"}
               </Button>
             ) : (
               <ButtonLink href={wholeMapHref} variant="secondary" className="mt-md">
-                Show every place
+                {copy.emptyAction ?? "Show every place"}
               </ButtonLink>
             )}
           </div>

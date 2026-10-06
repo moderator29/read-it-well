@@ -63,9 +63,12 @@ export async function RealMap({
   pins,
   active,
   listings,
+  listHref,
 }: {
   pins: CityPin[];
   active?: string;
+  /** The same results as a list, where a place with no pin is still drawn (Session 3, W2). */
+  listHref?: string;
   /** Escape hatch for a caller that has already resolved the result set. */
   listings?: Listing[];
 }) {
@@ -120,8 +123,20 @@ export async function RealMap({
     count: pin.count,
   }));
 
+  /*
+   * THE LISTING WITH NO PIN (B-27). A place whose city has no coordinate is
+   * not guessed onto the map: it is counted, and the map says how many are
+   * not on it and opens them as a list, where they are drawn like any other.
+   * Silently dropping them would make the map's count disagree with the
+   * results' count with nothing to say why.
+   */
+  const unplaced = catalogue.length - placed.length;
+  const dm = t.experienceDiscover.map;
+
   return (
     <MapCanvas
+      unplaced={unplaced}
+      {...(listHref ? { listHref } : {})}
       listings={mapListings}
       cities={cities}
       {...(active ? { active } : {})}
@@ -131,6 +146,13 @@ export async function RealMap({
         year: t.common.year,
         guest: "guest",
         verified: t.common.verified,
+        noPinOne: dm.noPinOne,
+        noPinMany: dm.noPinMany,
+        noPinList: dm.noPinList,
+        emptyTitle: dm.emptyTitle,
+        emptyArea: dm.emptyArea,
+        emptySearch: dm.emptySearch,
+        emptyAction: dm.emptyAction,
       }}
       wholeMapHref="/search?view=map"
     />
