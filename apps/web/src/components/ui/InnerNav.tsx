@@ -50,11 +50,10 @@ import { SPRING_SETTLE, clamp, springFor, useDrive } from "./ported-motion";
  * `useTransform`, so everything tracks the finger together. On release `animate`
  * settles it on a spring with the finger's momentum (interruptible: put a finger
  * back on it mid-settle and it carries on from where it is). Pointer events
- * rather than framer's `drag` prop, because `drag` is in the `domMax` bundle and
- * the platform loads `domAnimation` only (MotionProvider). Those values are
- * written into the elements by `useDrive` (ported-motion.ts), not through `m`
- * elements, because `m` renders nothing but its first frame until the lazily
- * loaded features arrive: a tap would "open" a panel that stayed invisible. Open
+ * rather than framer's `drag` prop, because `drag` needs a feature bundle and
+ * the platform loads none (D49.1). Those values are written into the elements
+ * by `useDrive` (ported-motion.ts), not through `m` elements, which need a
+ * feature bundle to render anything past their first frame. Open
  * and closed are React state and a data attribute, the panel is hidden by CSS
  * until it is open or being pulled, and the motion values only add the
  * continuous flourish on top, so the control works from its first frame. Quiet

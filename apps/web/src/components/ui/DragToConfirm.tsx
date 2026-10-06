@@ -57,11 +57,10 @@ import { SPRING_SETTLE, SPRING_SNAP, clamp, springFor, useDrive } from "./ported
  * back on it while it is returning and the drag picks up from where it
  * currently is, with no jump. A CSS transition cannot do that. Drag itself is
  * written with pointer events rather than framer's `drag` prop, because `drag`
- * lives in the `domMax` feature bundle and the platform loads `domAnimation`
- * only (MotionProvider). Nothing here is an `m` element: those depend on
- * features that arrive after first paint, and a handle that did not follow the
- * finger in that window would be broken, so `useDrive` (ported-motion.ts)
- * writes the values into the elements itself and the control is fully usable
+ * lives in a feature bundle and the platform loads none (D49.1). Nothing here
+ * is an `m` element, which needs a feature bundle too, so `useDrive`
+ * (ported-motion.ts) writes the values into the elements itself and the
+ * control is fully usable
  * from its first frame. Reduced motion turns every settle into an instant jump
  * (`springFor`); the drag still tracks the finger, because that is direct
  * manipulation and not decoration.

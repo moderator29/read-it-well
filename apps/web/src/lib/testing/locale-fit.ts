@@ -139,7 +139,6 @@ export async function fitMount(opts: {
   const entry = `
     import { createRoot } from "react-dom/client";
     import { getDictionary } from "@vallo/i18n";
-    import { MotionProvider } from "@/components/app/MotionProvider";
     import { ClientCopyProvider } from "@/lib/i18n/client-copy";
     import { clientCopyOf } from "@/lib/i18n/client-copy-of";
     ${opts.imports}
@@ -148,11 +147,9 @@ export async function fitMount(opts: {
     ${opts.setup ?? ""}
     createRoot(document.getElementById("root")).render(
       <ClientCopyProvider copy={clientCopyOf(t)}>
-        <MotionProvider>
-          <div id="stage" style={{ width: ${(opts.viewport ?? FIT_VIEWPORT).width}, boxSizing: "border-box", padding: ${JSON.stringify(opts.bleed ? "0" : "0 16px 16px")} }}>
-            ${opts.body}
-          </div>
-        </MotionProvider>
+        <div id="stage" style={{ width: ${(opts.viewport ?? FIT_VIEWPORT).width}, boxSizing: "border-box", padding: ${JSON.stringify(opts.bleed ? "0" : "0 16px 16px")} }}>
+          ${opts.body}
+        </div>
       </ClientCopyProvider>,
     );
     requestAnimationFrame(() => { window.__mounted = true; });

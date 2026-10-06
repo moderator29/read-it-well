@@ -12,7 +12,7 @@ import {
   mountInBrowser,
   warmBrowser,
 } from "@/lib/testing/mount-in-browser";
-import { PORTED_CSS, axeViolations, withoutFeatures } from "./ported-test-css";
+import { PORTED_CSS, axeViolations } from "./ported-test-css";
 
 vi.setConfig({ testTimeout: BROWSER_TEST_TIMEOUT });
 beforeAll(warmBrowser);
@@ -20,11 +20,10 @@ afterAll(closeBrowser);
 
 const entry = `
   import { InnerNav } from "@/components/ui/InnerNav";
-  import { MotionProvider } from "@/components/app/MotionProvider";
   import { mount } from "@/lib/testing/browser-root";
   window.__selected = [];
   mount(
-    <MotionProvider><div style={{ padding: 16, minHeight: 500 }}>
+    <div style={{ padding: 16, minHeight: 500 }}>
       <button id="outside">outside</button>
       <InnerNav
         label="Section navigation"
@@ -38,7 +37,7 @@ const entry = `
         ]}
         data-testid="nav"
       />
-    </div></MotionProvider>
+    </div>
   );
 `;
 
@@ -126,8 +125,8 @@ describe.skipIf(!hasBrowser && !process.env.CI)("InnerNav", () => {
     }
   });
 
-  it("is fully usable with framer-motion's features never loaded: a tap opens it visibly, the keyboard lands focus in it, and the pull follows the finger", async () => {
-    const { page, close } = await mountInBrowser({ entry: withoutFeatures(entry), css: PORTED_CSS });
+  it("is fully usable with no framer-motion feature bundle, as production ships it (D49.1): a tap opens it visibly, the keyboard lands focus in it, and the pull follows the finger", async () => {
+    const { page, close } = await mountInBrowser({ entry: entry, css: PORTED_CSS });
     try {
       const toggle = page.getByRole("button", { name: "Sections" });
       await toggle.click();

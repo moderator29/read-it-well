@@ -12,7 +12,7 @@ import {
   mountInBrowser,
   warmBrowser,
 } from "@/lib/testing/mount-in-browser";
-import { PORTED_CSS, axeViolations, withoutFeatures } from "./ported-test-css";
+import { PORTED_CSS, axeViolations } from "./ported-test-css";
 
 vi.setConfig({ testTimeout: BROWSER_TEST_TIMEOUT });
 beforeAll(warmBrowser);
@@ -21,14 +21,13 @@ afterAll(closeBrowser);
 const entry = (initial = 2) => `
   import { useState } from "react";
   import { BatchTray } from "@/components/ui/BatchTray";
-  import { MotionProvider } from "@/components/app/MotionProvider";
   import { mount } from "@/lib/testing/browser-root";
   function Harness() {
     const [count, setCount] = useState(${initial});
     window.__count = count;
     window.__ran = window.__ran || [];
     return (
-      <MotionProvider><div style={{ minHeight: 600, padding: 16 }}>
+      <div style={{ minHeight: 600, padding: 16 }}>
         <button id="select" onClick={() => setCount((c) => c + 1)}>select one more</button>
         <BatchTray
           count={count}
@@ -43,7 +42,7 @@ const entry = (initial = 2) => `
           ]}
           data-testid="tray"
         />
-      </div></MotionProvider>
+      </div>
     );
   }
   mount(<Harness />);
@@ -112,8 +111,8 @@ describe.skipIf(!hasBrowser && !process.env.CI)("BatchTray", () => {
     }
   });
 
-  it("is fully usable with framer-motion's features never loaded: visible, focusable, and the grip follows the finger", async () => {
-    const { page, close } = await mountInBrowser({ entry: withoutFeatures(entry()), css: PORTED_CSS });
+  it("is fully usable with no framer-motion feature bundle, as production ships it (D49.1): visible, focusable, and the grip follows the finger", async () => {
+    const { page, close } = await mountInBrowser({ entry: entry(), css: PORTED_CSS });
     try {
       await page.waitForTimeout(700);
       expect(await page.getByRole("toolbar", { name: "Bulk actions" }).isVisible()).toBe(true);

@@ -51,10 +51,10 @@ import { SPRING_SETTLE, springFor, useDrive } from "./ported-motion";
  * drag: a `useMotionValue` that the surface follows one to one, and a release
  * short of the threshold springs back from wherever the finger left it
  * (interruptible). The value is written into the surface by `useDrive`
- * (ported-motion.ts) rather than through an `m` element, because `m` shows
- * nothing but its first frame until the lazily loaded features arrive, and the
- * tray must be fully usable from its first frame. Pointer events, not framer's
- * `drag` prop, which is in the `domMax` bundle the platform does not load.
+ * (ported-motion.ts) rather than through an `m` element, which needs a feature
+ * bundle the platform does not load (D49.1), and the tray must be fully usable
+ * from its first frame. Pointer events, not framer's `drag` prop, for the same
+ * reason.
  * Quiet readers (system reduced motion, Calm, Off) get an instant appear,
  * disappear and snap-back.
  *

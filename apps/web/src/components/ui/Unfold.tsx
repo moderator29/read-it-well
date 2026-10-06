@@ -38,9 +38,9 @@ import { cn } from "@/lib/cn";
  * MOTION, AND WHY IT IS CSS. The founder's `unfold-accordion.tsx` springs the
  * panel's height with framer-motion and unmounts the content when closed. A
  * disclosure is a known track with a known end, so by the platform's split
- * (D34, D39) it is CSS, and it has a second reason: framer's `m` elements show
- * nothing but their first frame until the lazily loaded features arrive, which
- * would leave a panel that opened and stayed invisible. Here open and closed
+ * (D34, D39) it is CSS, and it has a second reason: framer's `m` elements need
+ * a feature bundle the platform does not load (D49.1), without which a panel
+ * would open and stay invisible. Here open and closed
  * are React state and a data attribute, so an accordion works from its first
  * frame. The panel grows with the one disclosure motion the product already has
  * (`.nf-disclosure` in list-group.css): a `grid-template-rows` reveal and a

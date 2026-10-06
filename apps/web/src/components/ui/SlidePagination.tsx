@@ -19,16 +19,16 @@ import { paginationRange } from "./slide-pagination";
  *
  * WHY IT IS NOT `layoutId`. The original gets the travel from framer-motion's
  * shared `layoutId`, which is a layout-animation feature and lives in the
- * `domMax` bundle. The platform loads `domAnimation` only (MotionProvider, D39),
- * so a `layoutId` here would render and never animate. The indicator is instead
+ * largest feature bundle. The platform loads no feature bundle (D39, D49.1), so
+ * a `layoutId` here would render and never animate. The indicator is instead
  * ONE absolutely positioned element whose `x` is a motion value, measured
  * against the real page buttons and moved with `animate()` on a snappy spring.
  * That keeps what `layoutId` gave (a shared element travelling between slots,
  * interruptible mid-flight: click page 9 while it is still moving to page 4 and
  * it turns round from where it is) with no layout measurement per frame and no
  * extra bundle. The value is written into the element by `useDrive`
- * (ported-motion.ts), not through an `m` element, because `m` shows nothing but
- * its first frame until the lazily loaded features arrive. Every slot is the same 44px width, so the indicator never has to
+ * (ported-motion.ts), not through an `m` element, which needs a feature bundle
+ * to show anything past its first frame. Every slot is the same 44px width, so the indicator never has to
  * change size, only position.
  *
  * WHERE: desktop tables. Admin tables, transaction history, search results on a

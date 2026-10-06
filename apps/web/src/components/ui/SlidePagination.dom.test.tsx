@@ -12,7 +12,7 @@ import {
   mountInBrowser,
   warmBrowser,
 } from "@/lib/testing/mount-in-browser";
-import { PORTED_CSS, axeViolations, withoutFeatures } from "./ported-test-css";
+import { PORTED_CSS, axeViolations } from "./ported-test-css";
 
 vi.setConfig({ testTimeout: BROWSER_TEST_TIMEOUT });
 beforeAll(warmBrowser);
@@ -21,13 +21,12 @@ afterAll(closeBrowser);
 const entry = (opts: { count?: number; start?: number } = {}) => `
   import { useState } from "react";
   import { SlidePagination } from "@/components/ui/SlidePagination";
-  import { MotionProvider } from "@/components/app/MotionProvider";
   import { mount } from "@/lib/testing/browser-root";
   function Harness() {
     const [page, setPage] = useState(${opts.start ?? 1});
     window.__page = page;
     return (
-      <MotionProvider><div style={{ padding: 24 }}>
+      <div style={{ padding: 24 }}>
         <SlidePagination
           page={page}
           pageCount={${opts.count ?? 20}}
@@ -37,7 +36,7 @@ const entry = (opts: { count?: number; start?: number } = {}) => `
           nextLabel="Next page"
           pageLabel={(n) => "Page " + n}
         />
-      </div></MotionProvider>
+      </div>
     );
   }
   mount(<Harness />);
@@ -116,8 +115,8 @@ describe.skipIf(!hasBrowser && !process.env.CI)("SlidePagination", () => {
     }
   });
 
-  it("is fully usable with framer-motion's features never loaded: the indicator is under the page and travels", async () => {
-    const { page, close } = await mountInBrowser({ entry: withoutFeatures(entry({ start: 3 })), css: PORTED_CSS, viewport: DESKTOP });
+  it("is fully usable with no framer-motion feature bundle, as production ships it (D49.1): the indicator is under the page and travels", async () => {
+    const { page, close } = await mountInBrowser({ entry: entry({ start: 3 }), css: PORTED_CSS, viewport: DESKTOP });
     try {
       expect(await page.locator(".nf-slidepag__thumb").evaluate((el) => getComputedStyle(el).visibility)).toBe("visible");
       let box = (await page.getByRole("button", { name: "Page 3" }).boundingBox())!;

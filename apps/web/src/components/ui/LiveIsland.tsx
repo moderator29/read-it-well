@@ -56,11 +56,10 @@ import { SPRING_GENTLE, springFor, useDrive } from "./ported-motion";
  * object has become a larger version of itself. The widening is framer-motion's
  * job and CSS cannot do it as well: the spring is interruptible (collapse it
  * mid-widen and it turns round from where it is). The original gets the morph
- * from the `layout` prop, which lives in the `domMax` bundle; the platform loads
- * `domAnimation` only (MotionProvider), so the width is a motion value in
- * pixels measured from the viewport, written into the island by `useDrive`
- * (ported-motion.ts) rather than through an `m` element, because `m` shows
- * nothing but its first frame until the lazily loaded features arrive.
+ * from the `layout` prop, which needs a feature bundle; the platform loads none
+ * (D49.1), so the width is a motion value in pixels measured from the
+ * viewport, written into the island by `useDrive` (ported-motion.ts) rather
+ * than through an `m` element, which needs a feature bundle as well.
  *
  * OPEN AND CLOSED ARE STATE AND CSS, NOT MOTION. `data-open` sets the island's
  * width and opens the body in the stylesheet, so with no script beyond React the

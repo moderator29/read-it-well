@@ -46,23 +46,3 @@ export async function axeViolations(page: Page): Promise<string[]> {
     return out.violations.map((v) => `${v.id}: ${v.nodes[0]?.html.slice(0, 160) ?? ""}`);
   });
 }
-
-/**
- * Re-wrap a test entry so it mounts inside a `LazyMotion` whose features NEVER
- * load, which is what a person gets in the window between first paint and the
- * lazily loaded `domAnimation` chunk (MotionProvider, motion-features.ts). In
- * that window an `m` element shows only its first frame and ignores every
- * change, so a component that leaned on one would be broken. Every ported
- * component is tested here to prove it does not: open, visible, focusable and
- * following the finger with the features absent.
- */
-export function withoutFeatures(entry: string): string {
-  return entry
-    .replace(
-      'import { MotionProvider } from "@/components/app/MotionProvider";',
-      `import { LazyMotion } from "framer-motion";
-       const NeverLoaded = ({ children }) => <LazyMotion features={() => new Promise(() => {})} strict>{children}</LazyMotion>;`,
-    )
-    .replace(/<MotionProvider>/g, "<NeverLoaded>")
-    .replace(/<\/MotionProvider>/g, "</NeverLoaded>");
-}

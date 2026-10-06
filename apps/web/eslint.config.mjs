@@ -196,19 +196,23 @@ const config = [
    * question is what the remaining sites are FOR, not how to excuse them.
    * ------------------------------------------------------------------ */
   /* ------------------------------------------------------------------
-   * FRAMER-MOTION ONLY THROUGH LAZYMOTION (D34, D39).
+   * FRAMER-MOTION ONLY AS HOOKS (D34, D39, D49.1).
    *
    * The top-level `motion` component pulls roughly 50KB where `LazyMotion`
    * with `domAnimation` and the `m` namespace costs about 18, and this app
    * runs in a WebView on budget Android over Nigerian mobile data. So
-   * `motion`, `domMax` and the provider pieces are refused everywhere except
-   * the one provider, `components/app/MotionProvider.tsx`, and the chunk it
-   * loads its features from, `components/app/motion-features.ts`. A component that
-   * imports `motion` has not been ported, whatever it looks like on screen.
+   * `motion`, `domMax` and the provider pieces are refused everywhere. A
+   * component that imports `motion` has not been ported, whatever it looks
+   * like on screen.
+   *
+   * D49.1: there is no provider either. Nothing renders an `m` element and
+   * the ported components use only hooks and `animate`, which need no feature
+   * bundle, so `LazyMotion` and `domAnimation` cost 31KB gz per route for
+   * nothing. If an `m` element is ever genuinely wanted, the provider comes
+   * back with it, with this rule's exemption, in the same commit.
    * ------------------------------------------------------------------ */
   {
     files: ["src/**/*.{ts,tsx}"],
-    ignores: ["src/components/app/MotionProvider.tsx", "src/components/app/motion-features.ts"],
     rules: {
       "no-restricted-imports": [
         "error",
@@ -218,13 +222,13 @@ const config = [
               name: "framer-motion",
               importNames: ["motion", "domMax", "LazyMotion", "domAnimation"],
               message:
-                "Use the `m` namespace and hooks. LazyMotion is mounted once in components/app/MotionProvider.tsx (D39).",
+                "Use framer-motion's hooks and animate(). No LazyMotion or feature bundle is mounted (D39, D49.1).",
             },
           ],
           patterns: [
             {
               regex: "^(framer-motion/|motion(/|$))",
-              message: "Import from \"framer-motion\" only, through the `m` namespace (D39).",
+              message: "Import from \"framer-motion\" only, its hooks and animate() (D39, D49.1).",
             },
           ],
         },

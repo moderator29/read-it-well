@@ -21,23 +21,20 @@ import type { MotionValue, Transition } from "framer-motion";
  *            released short of its threshold.
  *   GENTLE   a surface changing size: the island morphing, a panel opening.
  *
- * WHY THESE COMPONENTS DO NOT USE `m` ELEMENTS. `MotionProvider` loads the
- * `domAnimation` features in a chunk after first paint (LazyMotion), and the
- * renderer that writes a motion value into an `m` element's style is one of
- * those features. Until it arrives, an `m.div` shows its first-render style and
- * ignores every change: a panel that was meant to open would stay invisible and
- * a handle would not follow the finger. A component must be fully usable the
- * moment it is on screen, so framer-motion here is the VALUE and SPRING ENGINE
- * only (`useMotionValue`, `useTransform`, `animate`, none of which needs the
- * features), and the small `useDrive` below writes the value into the element's
+ * WHY THESE COMPONENTS DO NOT USE `m` ELEMENTS. The renderer that writes a
+ * motion value into an `m` element's style lives in framer-motion's feature
+ * bundles, and the platform loads none (D49.1: it cost 31KB gz per route for
+ * no `m` element). So framer-motion here is the VALUE and SPRING ENGINE only
+ * (`useMotionValue`, `useTransform`, `animate`, none of which needs a feature
+ * bundle), and the small `useDrive` below writes the value into the element's
  * style itself. Open, visible and focusable are React state and CSS, never a
- * motion value. The dom tests mount every component inside a LazyMotion whose
- * features never load, to prove it.
+ * motion value, so every component is fully usable from its first frame. The
+ * dom tests mount them exactly as production does, with no provider.
  *
  * Reduced motion: pass the result through `springFor(quiet, ...)` with the
- * answer from `useMotionGate()`, which collapses it to an instant jump. (The
- * `m` components under `MotionProvider` already follow the same gate; the
- * standalone `animate()` does not, which is why this exists.)
+ * answer from `useMotionGate()`, which collapses it to an instant jump. The
+ * standalone `animate()` follows no global reduced-motion setting, which is why
+ * this exists.
  */
 export const SPRING_SNAP: Transition = { type: "spring", stiffness: 420, damping: 34, mass: 0.8 };
 export const SPRING_SETTLE: Transition = { type: "spring", stiffness: 300, damping: 30, mass: 0.9 };

@@ -11,7 +11,7 @@ import {
   mountInBrowser,
   warmBrowser,
 } from "@/lib/testing/mount-in-browser";
-import { PORTED_CSS, axeViolations, withoutFeatures } from "./ported-test-css";
+import { PORTED_CSS, axeViolations } from "./ported-test-css";
 
 vi.setConfig({ testTimeout: BROWSER_TEST_TIMEOUT });
 beforeAll(warmBrowser);
@@ -20,7 +20,6 @@ afterAll(closeBrowser);
 /* Structural fixtures only: labels that say what slot they are. */
 const entry = (props = "") => `
   import { Unfold } from "@/components/ui/Unfold";
-  import { MotionProvider } from "@/components/app/MotionProvider";
   import { mount } from "@/lib/testing/browser-root";
   const items = [
     { id: "a", title: "Row one", hint: "Hint", content: <p>Content one <a href="#x">link</a></p> },
@@ -29,7 +28,7 @@ const entry = (props = "") => `
     { id: "d", title: "Row four", content: <p>Content four</p> },
   ];
   window.__changes = [];
-  mount(<MotionProvider><div style={{ width: 360, padding: 16 }}><Unfold items={items} onValueChange={(v) => window.__changes.push(v)} ${props} /></div></MotionProvider>);
+  mount(<div style={{ width: 360, padding: 16 }}><Unfold items={items} onValueChange={(v) => window.__changes.push(v)} ${props} /></div>);
 `;
 
 describe.skipIf(!hasBrowser && !process.env.CI)("Unfold", () => {
@@ -104,8 +103,8 @@ describe.skipIf(!hasBrowser && !process.env.CI)("Unfold", () => {
     }
   });
 
-  it("is fully usable with framer-motion's features never loaded: opens, shows, is focusable", async () => {
-    const { page, close } = await mountInBrowser({ entry: withoutFeatures(entry()), css: PORTED_CSS });
+  it("is fully usable with no framer-motion feature bundle, as production ships it (D49.1): opens, shows, is focusable", async () => {
+    const { page, close } = await mountInBrowser({ entry: entry(), css: PORTED_CSS });
     try {
       await page.getByRole("button", { name: /Row one/ }).click();
       expect(await page.getByRole("button", { name: /Row one/ }).getAttribute("aria-expanded")).toBe("true");

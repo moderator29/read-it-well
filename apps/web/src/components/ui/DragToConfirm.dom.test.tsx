@@ -12,7 +12,7 @@ import {
   mountInBrowser,
   warmBrowser,
 } from "@/lib/testing/mount-in-browser";
-import { PORTED_CSS, axeViolations, withoutFeatures } from "./ported-test-css";
+import { PORTED_CSS, axeViolations } from "./ported-test-css";
 
 vi.setConfig({ testTimeout: BROWSER_TEST_TIMEOUT });
 beforeAll(warmBrowser);
@@ -22,7 +22,6 @@ afterAll(closeBrowser);
 function entry(opts: { money?: boolean; autoResetDelay?: number; behaviour?: string; tone?: string } = {}): string {
   return `
     import { DragToConfirm } from "@/components/ui/DragToConfirm";
-    import { MotionProvider } from "@/components/app/MotionProvider";
     import { mount } from "@/lib/testing/browser-root";
     window.__confirms = 0;
     const onConfirm = ${opts.behaviour ?? "() => { window.__confirms += 1; }"};
@@ -32,7 +31,7 @@ function entry(opts: { money?: boolean; autoResetDelay?: number; behaviour?: str
       ...(opts.tone ? { tone: opts.tone } : {}),
     })};
     mount(
-      <MotionProvider><div style={{ width: 340, padding: 16 }}>
+      <div style={{ width: 340, padding: 16 }}>
         <DragToConfirm
           label="Slide to confirm"
           confirmingLabel="Confirming"
@@ -43,7 +42,7 @@ function entry(opts: { money?: boolean; autoResetDelay?: number; behaviour?: str
           data-testid="dtc"
           {...extra}
         />
-      </div></MotionProvider>
+      </div>
     );
   `;
 }
@@ -120,8 +119,8 @@ describe.skipIf(!hasBrowser && !process.env.CI)("DragToConfirm", () => {
     }
   });
 
-  it("is fully usable with framer-motion's features never loaded: follows the finger, confirms, and works from the keyboard", async () => {
-    const { page, close } = await mountInBrowser({ entry: withoutFeatures(entry()), css: PORTED_CSS });
+  it("is fully usable with no framer-motion feature bundle, as production ships it (D49.1): follows the finger, confirms, and works from the keyboard", async () => {
+    const { page, close } = await mountInBrowser({ entry: entry(), css: PORTED_CSS });
     try {
       const handle = page.getByRole("button", { name: "Confirm the action" });
       const box = (await handle.boundingBox())!;
@@ -140,7 +139,7 @@ describe.skipIf(!hasBrowser && !process.env.CI)("DragToConfirm", () => {
     } finally {
       await close();
     }
-    const kb = await mountInBrowser({ entry: withoutFeatures(entry()), css: PORTED_CSS });
+    const kb = await mountInBrowser({ entry: entry(), css: PORTED_CSS });
     try {
       await kb.page.getByRole("button", { name: "Confirm the action" }).focus();
       await kb.page.keyboard.press("Enter");

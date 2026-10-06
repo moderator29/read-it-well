@@ -30,12 +30,11 @@ const entry = `
   import { BatchTray } from "@/components/ui/BatchTray";
   import { AIResponse } from "@/components/ui/AIResponse";
   import { BookCallButton } from "@/components/ui/BookCallButton";
-  import { MotionProvider } from "@/components/app/MotionProvider";
   import { mount } from "@/lib/testing/browser-root";
   const LONG = ${JSON.stringify(LONG)};
   const VERY_LONG = ${JSON.stringify(VERY_LONG)};
   mount(
-    <MotionProvider><div style={{ padding: 16 }}>
+    <div style={{ padding: 16 }}>
       <div data-fit="dtc"><DragToConfirm label={LONG} confirmingLabel={LONG} confirmedLabel={LONG} onConfirm={() => {}} /></div>
       <div data-fit="unfold" style={{ marginTop: 16 }}>
         <Unfold defaultValue={["a"]} items={[{ id: "a", title: LONG, hint: LONG, icon: "info", content: <p>{LONG} {VERY_LONG}</p> }]} />
@@ -56,7 +55,7 @@ const entry = `
         action={{ label: LONG, onClick: () => {} }} expandLabel={LONG} collapseLabel={LONG} data-testid="island" />
       <BatchTray count={12} countLabel={LONG} label={LONG} clearLabel={LONG} onClear={() => {}}
         actions={[{ id: "a", label: LONG, onSelect: () => {} }, { id: "b", label: LONG, onSelect: () => {} }]} data-testid="tray" />
-    </div></MotionProvider>
+    </div>
   );
 `;
 

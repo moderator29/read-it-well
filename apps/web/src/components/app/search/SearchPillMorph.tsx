@@ -30,9 +30,9 @@ import { EASE } from "@/lib/motion/ease";
  * reading its own computed transform back. Everything else on this surface
  * (the chips' crossfade, the results' stagger) is CSS on a known track.
  *
- * NO `m` ELEMENT. LazyMotion's features arrive in a later chunk, and an `m`
- * element draws only its first frame until they do (the Session 3 audit; the
- * ported components were moved off it in the same way). The form is a plain
+ * NO `m` ELEMENT. An `m` element draws only its first frame without a feature
+ * bundle, and the platform loads none (D49.1; the ported components were
+ * moved off it in the same way). The form is a plain
  * `<form>`; the motion values are plain objects that need no features, and
  * their changes are written to the element's own style from the layout
  * effect, so the first painted frame is already the origin's and the flight
