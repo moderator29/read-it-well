@@ -8,6 +8,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { IconPlate } from "@/components/ui/IconPlate";
 import "@/components/site/guides/docs-type.css";
 import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
+import { NO_RENTER_FEES_LINE } from "@/lib/money/copy";
 
 /* A10: the title and description in the page's own language, with its
    canonical and hreflang (lib/i18n/public-metadata.ts; words in publicMeta). */
@@ -51,11 +52,14 @@ export default function AboutPage() {
       /* This card used to say "we earn only when a booking completes", which
          promised a commission the platform does not charge. The fee position
          (PRODUCT.md section 3) is that Vallo's commission is zero, and since
-         Track A the card also names the Guarantee contribution, which comes
-         out of the lister's share. */
-      icon: "wallet-secure",
+         Track A the card also named the Guarantee contribution. D51 retired the
+         Guarantee and moved the platform fee to the lister's share, so the card
+         reads the one sentence that says so, NO_RENTER_FEES_LINE in
+         lib/money/copy.ts, and its picture is no longer a wallet, which Vallo
+         never keeps for anybody (C6, the route sweep). */
+      icon: "keys-handover",
       title: "Fair to both sides",
-      body: "Listing is free and Vallo charges no fee to look, to book or to list, in any market here. What anybody pays reaches the lister, less the payment processor's own charge and the Vallo Guarantee contribution of 1 to 2 percent, which goes to a separate reserve and never to Vallo. Where an agent charges a fee of their own, it is theirs and it is stated on the listing rather than met at the door.",
+      body: `${NO_RENTER_FEES_LINE} Where an agent charges a fee of their own, it is theirs and it is stated on the listing rather than met at the door.`,
     },
     {
       icon: "house-sparkle",
