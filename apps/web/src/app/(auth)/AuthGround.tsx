@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { useAuthPath } from "./useAuthPath";
 import { groundForPath } from "@/components/auth/ground";
 import "@/app/css/auth.css";
 
@@ -22,7 +22,7 @@ import "@/app/css/auth.css";
  * crossfades (auth.css, `nf-auth-ground`) rather than swapping.
  */
 export function AuthGround() {
-  const ground = groundForPath(usePathname() ?? "");
+  const ground = groundForPath(useAuthPath());
   return (
     <Image
       key={ground.name}

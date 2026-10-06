@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { useAuthPath } from "./useAuthPath";
 
 /**
  * The line under the wordmark in the curved top block, chosen by the screen.
@@ -14,7 +14,7 @@ export function AuthHeroLine({
 }: {
   lines: { signIn: string; signUp: string; verify: string; reset: string };
 }) {
-  const path = usePathname() ?? "";
+  const path = useAuthPath();
   if (path.startsWith("/sign-up/verify")) return <>{lines.verify}</>;
   if (path.startsWith("/sign-up")) return <>{lines.signUp}</>;
   if (path.startsWith("/forgot-password") || path.startsWith("/reset-password")) {

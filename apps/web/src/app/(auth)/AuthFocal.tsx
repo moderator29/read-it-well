@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { useAuthPath } from "./useAuthPath";
 import { ObjectArt } from "@/components/auth/ObjectArt";
 import { focalForPath } from "@/components/auth/focal-art";
 import "@/app/css/auth.css";
@@ -16,7 +16,7 @@ import "@/app/css/auth.css";
  * envelope) lands the new one with the settle rather than swapping in place.
  */
 export function AuthFocal() {
-  const art = focalForPath(usePathname() ?? "");
+  const art = focalForPath(useAuthPath());
   return (
     <span key={art.name} className="nf-auth-focal__object" data-focal={art.name}>
       <ObjectArt name={art.name} size={art.size * 2} priority />
