@@ -75,6 +75,96 @@ prompt itself, not because I found a contract.
 
 ---
 
+## D53 CLOSES MY THREE OPEN QUESTIONS, AND CORRECTS A RULE I HAD WRONG
+
+All three things I was carrying are now assigned, and one of them was a
+reasoning error of mine rather than a gap in the contract.
+
+### I was wrong that a defect could be nobody's
+
+I wrote that the `transactions` column grant "predates Session 2, so under the
+current split it may belong to nobody". **D53 settles it: ownership is by
+concern, never by authorship**, and my framing was wrong in a way worth
+recording because it would have recurred.
+
+The argument against me is the one I should have reached myself: **assigning by
+authorship creates orphans by construction.** The older a defect, the less
+likely its author is still working, so the oldest and most settled bugs become
+permanently unownable. This repository already proved it twice. D40, the
+wrong-payer refund, predated every current session and sat through two rounds.
+The wallet and escrow copy in `experience-features.en.ts` predated Session 3
+and shipped anyway. Both were found by a session auditing someone else's area,
+and both needed assigning before anything moved.
+
+So the correction to my own practice: **when I find something, I report it with
+evidence and stop there.** Routing is Session 1's job, and me hunting for an
+owner spends audit time on coordination I am not positioned to do. I had been
+treating "who owns this" as part of the finding. It is not.
+
+### The three defects are Session 2's, and I have stopped carrying them
+
+| Defect | Why it is Session 2's | My evidence |
+| --- | --- | --- |
+| The `transactions` column grant lets a renter read `commission_minor`, `guarantee_minor`, `lister_share_minor` and the raw Paystack subaccount codes | A grant is schema, and schema is Session 2's whoever wrote the migration | `20260728152358_bookings_payments.sql:184-186` has no column list; `grep -rn "revoke select" supabase/migrations/*.sql \| grep -c transactions` returns 0; `mon-10-money-grants.sql:74-77` asserts the unrestricted read as a deliberate control, so no future probe catches it |
+| A provider HTTP call on every render of two agent pages | A provider call is Session 2's, and this is the exact shape D50 constraint 3 names as already broken | `apps/web/src/lib/agent/payout-queries.ts:64-71` calls `listBanks()` with no cache and no revalidate, from `app/agent/earnings/page.tsx:7` and `app/agent/settings/page.tsx:8` |
+| Raw Paystack error text reaching a member | D50 forbids it, and the **mapping** to Vallo language is Session 2's status vocabulary work; Session 3 owns only how the mapped sentence is presented | `paystack.ts:118-122` puts Paystack's own `message` on the error; it is interpolated at `methods-actions.ts:422-426`, `charge-saved-card.ts:230-236` and `PaystackCheckout.tsx:383-387` |
+
+### The D5 second pass on my own change goes to Session 2
+
+Right outcome, and it is the half of D5 I could not satisfy myself: **nobody
+second-reviews their own change.** Session 2 owns the database.
+
+What I would want attacked, and D53 names the same risks I would have, plus one
+I had not thought of:
+
+- **A probe that asserts on global state.** Any probe checking a count, or that
+  no row exists, can be broken by another branch inserting at that moment.
+  D53 calls this the likeliest failure, and the thing that makes it dangerous is
+  that **it would read as a flaky test rather than a concurrency defect** which
+  is precisely how the nine-second cancelled run hid in the first place.
+- **Advisory locks taken in different orders**, which deadlock under concurrency
+  and never under serialisation. This was my own first suspicion.
+- **Fixed-name temporary objects** colliding with themselves across branches.
+  I had not considered this one.
+- **Connection count** against the pooler limit with several full runs at once.
+
+**The mitigating fact, which I should state because it is in my favour and I did
+not raise it:** removing the `claude/vallo-**` push trigger means only pull
+requests start runs, so realistic concurrency is three or four rather than
+unbounded. That lowers the risk without answering the question, and I am not the
+one who gets to decide it is answered.
+
+### Row 21 is resolved, and not the way I framed it
+
+I put two options to the founder: a test-mode deployment, or one deliberate
+small live payment recorded with its refund. **Session 1 recommends test mode
+and has put it to the founder, and the reasoning is better than my even-handed
+framing.** A deliberate live charge means a real refund to reconcile, for a gate
+that cannot open yet. A Paystack sandbox subaccount is free, needs no bank
+account, and makes the row runnable through
+`PAYSTACK_TEST_GUARANTEE_SUBACCOUNT`, which already exists in
+`paystack-mode.ts` as the test-mode reserve with no fallback to the live code.
+
+I should not have presented those two as balanced. One costs nothing and the
+other creates a reconciliation item on a product with no customers. Offering a
+real-money option as an equal alternative was the wrong kind of neutrality.
+
+### And D52 withdraws D51's mechanism section
+
+Session 1 re-derived all three parts of my `guarantee_bps = 0` finding from the
+code and confirmed them. The consequences are now recorded where they belong:
+**`PAYSTACK_GUARANTEE_SUBACCOUNT` is still a hard blocker**, the founder was
+told twice that retiring the Guarantee would probably remove it and it does not,
+**retiring the Guarantee is a migration and not a setting** (drop or relax the
+check, change both gates, add the test that does not exist), and VAT is new
+columns and new code rather than a flag.
+
+That is the finding of this session I would keep if I could keep only one, not
+because it was hard to see but because it was written down as settled and
+nobody had run it.
+
+---
+
 ## TASK 2: THE SECOND AUDIT OF SESSION 2'S MONEY AND RLS WORK
 
 My defining task, run properly this time. An agent on the strongest model did
