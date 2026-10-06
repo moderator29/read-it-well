@@ -261,13 +261,15 @@ describe("every statement has evidence in the code", () => {
 });
 
 describe("it is built to survive a mail client", () => {
-  it.each(ALL)("$role is a table layout, 600px and fluid, with a designed dark scheme", ({ message }) => {
+  /* D23 made the inline layer white and the dark a scheme (W9): the welcome
+     declares both and carries the designed dark for a dark-mode reader. */
+  it.each(ALL)("$role is a table layout, 600px and fluid, white with a designed dark scheme", ({ message }) => {
     const html = message.html;
     expect(html).toContain('<table role="presentation"');
     expect(html).not.toMatch(/display\s*:\s*(flex|grid|inline-flex|inline-grid)/);
     expect(html).toContain(`max-width:${MAX_WIDTH}px;width:100%;`);
     expect(html).toContain(`<table role="presentation" width="${MAX_WIDTH}"`);
-    expect(html).toContain('name="color-scheme" content="dark"');
+    expect(html).toContain('name="color-scheme" content="light dark"');
     expect(html).toContain("@media (prefers-color-scheme: dark)");
     expect(html).toContain("@media only screen and (max-width: 480px)");
     expect((html.match(/<style\b/g) ?? []).length).toBe(1);
@@ -276,10 +278,11 @@ describe("it is built to survive a mail client", () => {
 
   it.each(ALL)("$role puts no words in a picture and gives every image alt text", ({ message }) => {
     const images = message.html.match(/<img\b[^>]*>/g) ?? [];
-    // The lockup and the role's 3D mark above the hero (icons.ts).
+    // The lockup and the role's Tier B object above the hero (icons.ts),
+    // whose alt is its family word so a blocked image still says something.
     expect(images).toHaveLength(2);
-    expect(images[1]).toContain("/brand/3d/email/");
-    expect(images[1]).toContain('alt=""');
+    expect(images[1]).toContain("/brand/email/objects/");
+    expect(images[1]).toContain('alt="Welcome"');
     for (const image of images) {
       expect(image).toMatch(/\balt="[^"]*"/);
       expect(image).toMatch(/\bwidth="\d+"/);
