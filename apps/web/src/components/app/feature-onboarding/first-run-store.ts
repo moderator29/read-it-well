@@ -1,4 +1,5 @@
 import "server-only";
+import { reportError } from "@/lib/observability/report";
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -85,8 +86,11 @@ export async function gateFirstRun(
     const deviceSeen = parseFeatureRuns(jar.get(FEATURE_RUNS_COOKIE)?.value).has(feature);
     const server = passed || deviceSeen ? "unknown" : await store.read(feature);
     show = shouldShowFirstRun({ server, deviceSeen, passed });
-  } catch {
-    /* A read that failed is not a reason to interrupt somebody. */
+  } catch (error) {
+    /* A read that failed is not a reason to interrupt somebody, but it is
+       a reason to know (D49.3). `redirect` is outside this try, so its own
+       control-flow throw never lands here. */
+    await reportError({ error, context: { kind: "read.first_run" } });
     show = false;
   }
   if (show) redirect(firstRunHref(feature, here));

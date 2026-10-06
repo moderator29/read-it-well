@@ -1,4 +1,5 @@
 import "server-only";
+import { reportError } from "@/lib/observability/report";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
@@ -129,7 +130,8 @@ export async function readListingHealth(supabase: Db, agentId: string, listingId
         now: Date.now(),
       },
     };
-  } catch {
+  } catch (error) {
+    await reportError({ error, context: { kind: "read.agent_listing_health" } });
     return { state: "unavailable" };
   }
 }

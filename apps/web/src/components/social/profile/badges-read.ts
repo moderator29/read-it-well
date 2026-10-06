@@ -1,4 +1,5 @@
 import "server-only";
+import { reportError } from "@/lib/observability/report";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { intlTag, type Locale } from "@vallo/i18n/core";
@@ -102,7 +103,8 @@ export async function readProfileBadges(
           manualOnly: row.badges.manual_only,
         }),
       }));
-  } catch {
+  } catch (error) {
+    await reportError({ error, context: { kind: "read.profile_badges" } });
     return null;
   }
 }

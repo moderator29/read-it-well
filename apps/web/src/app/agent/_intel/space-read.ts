@@ -1,4 +1,5 @@
 import "server-only";
+import { reportError } from "@/lib/observability/report";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
@@ -76,7 +77,8 @@ export async function readRequests(supabase: Db, agentId: string): Promise<Reque
         horizonKey: raw.length >= MAX_REQUEST_ROWS && oldest ? lagosDayOf(oldest) : null,
       },
     };
-  } catch {
+  } catch (error) {
+    await reportError({ error, context: { kind: "read.agent_requests" } });
     return { state: "unavailable" };
   }
 }
@@ -169,7 +171,8 @@ export async function readFunnels(supabase: Db, agentId: string): Promise<Funnel
     });
     const published = count ?? rows.length;
     return { state: "ok", listings, complete: published <= rows.length && listings.length === rows.length, published };
-  } catch {
+  } catch (error) {
+    await reportError({ error, context: { kind: "read.agent_funnels" } });
     return { state: "unavailable" };
   }
 }
@@ -204,7 +207,8 @@ export async function readOneFunnel(supabase: Db, agentId: string, listingId: st
     const funnel = funnelFrom(call.rows);
     if (!funnel) return { state: "unavailable" };
     return { state: "ok", listing: withFix(row, funnel) };
-  } catch {
+  } catch (error) {
+    await reportError({ error, context: { kind: "read.agent_one_funnel" } });
     return { state: "unavailable" };
   }
 }
@@ -220,7 +224,8 @@ export async function readListingTitles(supabase: Db, agentId: string): Promise<
       .limit(MAX_REQUEST_ROWS);
     if (error) return null;
     return new Map(((data ?? []) as { id: string; title: string }[]).map((l) => [l.id, l.title]));
-  } catch {
+  } catch (error) {
+    await reportError({ error, context: { kind: "read.agent_listing_titles" } });
     return null;
   }
 }

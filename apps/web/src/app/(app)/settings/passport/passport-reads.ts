@@ -1,4 +1,5 @@
 import "server-only";
+import { reportError } from "@/lib/observability/report";
 
 import { resolveSession } from "@/lib/actions/session";
 
@@ -27,7 +28,8 @@ export async function readPhoneConfirmedAt(): Promise<string | null> {
       .eq("user_id", session.user.id)
       .maybeSingle();
     return data?.confirmed_at ?? null;
-  } catch {
+  } catch (error) {
+    await reportError({ error, context: { kind: "read.passport_phone" } });
     return null;
   }
 }

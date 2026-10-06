@@ -1,6 +1,7 @@
 import "server-only";
 
 import { resolveSession } from "@/lib/actions/session";
+import { reportError } from "@/lib/observability/report";
 import type { RecordEvent, StoredVersion } from "./version-register";
 
 /**
@@ -115,7 +116,8 @@ export async function readAgreementRecord(agreementId: string): Promise<Agreemen
           });
 
     return { versions: kept, events: sided };
-  } catch {
+  } catch (error) {
+    await reportError({ error, context: { kind: "read.agreement_record" } });
     return null;
   }
 }
@@ -141,7 +143,8 @@ export async function readKeptVersions(agreementIds: readonly string[]): Promise
       out.set(r.agreement_id, [...(out.get(r.agreement_id) ?? []), version]);
     }
     return out;
-  } catch {
+  } catch (error) {
+    await reportError({ error, context: { kind: "read.agreement_versions" } });
     return null;
   }
 }

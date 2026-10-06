@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
 import type { NotificationRow } from "@/lib/notify/inbox";
 import { objectKeyOf } from "../family";
+import { reportError } from "@/lib/observability/report";
 
 /**
  * ONE NOTIFICATION AND WHAT CAME BEFORE IT ON THE SAME RECORD.
@@ -56,7 +57,10 @@ export async function loadNotificationView(
       before: rows.slice(0, at),
       after: rows.slice(mine === -1 ? rows.length : mine + 1),
     };
-  } catch {
+  } catch (error) {
+    /* A throw here is schema drift or a policy refusing, not "no notice":
+       report it so it is visible, then show the error state (D49.3). */
+    await reportError({ error, context: { kind: "read.notification_view" } });
     return { state: "error" };
   }
 }

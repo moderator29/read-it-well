@@ -1,4 +1,5 @@
 import "server-only";
+import { reportError } from "@/lib/observability/report";
 
 /**
  * WHETHER THIS MEMBER HOLDS A PLAN, ASKED ON THE SERVER, EVERY RENDER.
@@ -71,7 +72,9 @@ export async function presentEntitlement(
   let entitlement: ProEntitlement | null = null;
   try {
     entitlement = await resolve(scope);
-  } catch {
+  } catch (error) {
+    /* Drawn as nothing, which is the safe answer, but never silently. */
+    await reportError({ error, context: { kind: "read.pro_entitlement" } });
     return null;
   }
   return isCurrentEntitlement(entitlement, scope, now) ? entitlement : null;
