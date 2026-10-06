@@ -32,6 +32,7 @@ import {
   type Weight,
 } from "@/lib/admin/queue-desk";
 import { loadDesk } from "@/lib/admin/reads/queue-desk";
+import { QueueSelection } from "../_components/QueueSelection";
 import { bulkAct, deleteView, releaseRow, saveView, takeRow } from "@/lib/admin/queue-desk-actions";
 
 export const dynamic = "force-dynamic";
@@ -523,7 +524,9 @@ export default async function AdminQueuePage({
       })()}
 
       {/* V-89: decide the selected rows. The boxes on each row belong to this form. */}
-      <form id="queue-bulk" action={bulkAct} className="mt-inline flex flex-wrap items-end gap-xs" aria-label={desk.bulkLabel}>
+      <details className="nf-admin-bulk mt-inline">
+      <summary className="nf-admin-bulk__summary">{desk.bulkLabel}</summary>
+      <form id="queue-bulk" action={bulkAct} className="nf-admin-bulk__form flex flex-wrap items-end gap-xs" aria-label={desk.bulkLabel}>
         {hidden}
         <label className="nf-caption flex flex-col gap-3xs">
           {desk.bulkVerb}
@@ -565,6 +568,30 @@ export default async function AdminQueuePage({
           {desk.bulkApply}
         </button>
       </form>
+      </details>
+
+      {/* W8: once a row is ticked, a tray rises with the verbs. It fills this
+          same form and submits it; the form above still works without scripts. */}
+      <QueueSelection
+        verbs={[
+          { id: "take", label: desk.verbs.take, icon: "user-check" },
+          { id: "approve", label: desk.verbs.approve, icon: "verified" },
+          { id: "send_back", label: desk.verbs.send_back, icon: "arrow-left", needs: "reason", confirm: true },
+          { id: "assign", label: desk.verbs.assign, icon: "user", needs: "to" },
+          { id: "close_spam", label: desk.verbs.close_spam, icon: "block", confirm: true },
+        ]}
+        words={{
+          label: t.experienceAdmin.cases.bulkLabel,
+          count: t.experienceAdmin.cases.selected,
+          clear: t.experienceUi.clearSelection,
+          selectAll: t.experienceAdmin.cases.selectAll,
+          selectNone: t.experienceAdmin.cases.selectNone,
+          confirmTitle: t.experienceAdmin.cases.bulkConfirmTitle,
+          confirmBody: t.experienceAdmin.cases.bulkConfirmBody,
+          confirmApply: t.experienceAdmin.cases.bulkConfirmApply,
+          notNow: t.experienceUi.notNow,
+        }}
+      />
 
       {shown.length === 0 ? (
         <ui.QueueEmpty
