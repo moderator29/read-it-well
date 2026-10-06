@@ -128,8 +128,11 @@ export default async function StaysSearchPage({
           className="mt-section-tight"
           data-testid="stays-search-empty"
           object="suitcase"
-          title={t.stays.emptyTitle}
-          body={t.stays.emptyBody}
+          /* "Nothing here for those dates" is said only when dates were asked
+             for; a search with no dates that finds nothing says no stay
+             matches, and why a shelf fills (Round 3 sweep, C1). */
+          title={query.checkIn ? t.stays.emptyTitle : copy.resultsNone}
+          body={query.checkIn ? t.stays.emptyBody : t.stays.shelfEmptyBody}
           primary={
             query.checkIn
               ? { href: toStaysHref({ ...query, checkIn: undefined, checkOut: undefined }, "/stays/search"), label: t.stays.clearDates }
