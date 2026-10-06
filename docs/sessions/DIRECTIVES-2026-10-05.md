@@ -870,10 +870,17 @@ verified. It means the shape is right and the behaviour is unproven.**
 
 1. Fix db-06 first (D54). It blocks every branch.
 2. Then run the b2-ledger probe to a recorded verdict. If the MCP tool times out again,
-   run it through the CI probe suite instead of the tool, which is where the other 70
-   probes run and which does not time out at a tool boundary.
-3. Keep the probe in `probes-pending` until it has passed once. A pending probe on an
-   applied ledger migration is the single highest item on that branch after db-06.
+   run it through the probe runner instead of the tool: the runner does not time out at
+   a tool boundary, and it accepts `--dir supabase/tests/probes-pending` to run the
+   probe where it currently sits.
+3. **Precision, added after checking the runner rather than assuming it.** The probe is
+   at `supabase/tests/probes-pending/b2-ledger.sql`, and `scripts/db-probes/run.mjs`
+   reads only `supabase/tests/probes/*.sql`. **CI will never run it where it is.**
+   Saying "run it in CI" without saying this would have cost Session 2 a cycle. Run it
+   locally with `--dir` first, and move the file into `supabase/tests/probes/` in the
+   same change that records it as passing, so CI keeps running it forever after.
+4. A pending probe on an applied ledger migration is the single highest item on that
+   branch after db-06.
 
 ### The standing rule, from three instances in two days
 
