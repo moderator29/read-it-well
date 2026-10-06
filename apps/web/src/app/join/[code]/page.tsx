@@ -39,24 +39,30 @@ export default async function JoinPage({ params }: { params: Promise<{ code: str
   const title = known && door?.firstName ? copy.doorTitle.replace("{name}", door.firstName) : copy.doorTitleNoName;
 
   return (
-    <main id="main" className="nf-shell">
+    <main id="main" className="nf-shell nf-join">
       <div className="nf-door-page">
         <Logo size={40} wordSize={18} />
-        {/* The founder's 3D gift (30 September): somebody sent an invite. */}
-        <span className="grid size-[5.5rem] place-items-center" aria-hidden="true" data-art="gift">
-          <Icon3D name="gift" size={88} priority />
-        </span>
-        <h1 className="nf-door-page__title">{title}</h1>
-        <p className="nf-door-page__lede">{copy.doorBody}</p>
-        {!keep && <p className="nf-caption text-[var(--nf-content-muted)]">{copy.doorUnknown}</p>}
-        <div className="nf-door-page__actions">
-          <ButtonLink href={keep && code ? `/join/${code}/start` : "/sign-up"} variant="primary" size="lg" full trailingIcon="arrow-right">
-            {copy.doorStart}
-          </ButtonLink>
-          <ButtonLink href="/sign-in" variant="secondary" size="lg" full>
-            {copy.doorSignIn}
-          </ButtonLink>
-        </div>
+        {/* The screen's one Island (join.css): the gift, who sent it, the
+            two doors. The mark stays outside it, still, as on the share door. */}
+        <section className="nf-island nf-join__island" aria-labelledby="join-title">
+          {/* The founder's 3D gift (30 September): somebody sent an invite. */}
+          <span className="nf-join__gift grid size-[5.5rem] place-items-center" aria-hidden="true" data-art="gift">
+            <Icon3D name="gift" size={88} priority />
+          </span>
+          <h1 id="join-title" className="nf-door-page__title">
+            {title}
+          </h1>
+          <p className="nf-door-page__lede">{copy.doorBody}</p>
+          {!keep && <p className="nf-caption text-[var(--nf-content-muted)]">{copy.doorUnknown}</p>}
+          <div className="nf-door-page__actions">
+            <ButtonLink href={keep && code ? `/join/${code}/start` : "/sign-up"} variant="primary" size="lg" full trailingIcon="arrow-right">
+              {copy.doorStart}
+            </ButtonLink>
+            <ButtonLink href="/sign-in" variant="secondary" size="lg" full>
+              {copy.doorSignIn}
+            </ButtonLink>
+          </div>
+        </section>
         <p className="nf-caption text-[var(--nf-content-muted)]">{copy.noReward}</p>
       </div>
     </main>
