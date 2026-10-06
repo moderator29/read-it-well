@@ -17,6 +17,7 @@ import { startPhotoMorph } from "@/lib/motion/photo-morph";
 import { drawnSrcIn, handOff } from "@/lib/listings/handoff";
 import { cardGlance } from "@/lib/listings/card-glance";
 import { SaveButton, useSaveControl } from "@/components/app/SaveControl";
+import { useScrollEntry } from "@/lib/motion/scroll-entry";
 import { cardFacts, cardMarket, cardMessageHref, cardPrice, cardUtility } from "./listing-card-model";
 import { ButtonLink } from "@/components/ui/Button";
 import { isModestExample } from "@/lib/listings/example-imagery";
@@ -216,6 +217,8 @@ export function ListingCard({
    * A card scrolled past is never fetched.
    */
   const cardRef = useRef<HTMLElement | null>(null);
+  /* Below the fold on arrival: floats in once as it scrolls into view. */
+  useScrollEntry(cardRef, index);
   useEffect(() => {
     const el = cardRef.current;
     if (!el || typeof IntersectionObserver === "undefined") return;

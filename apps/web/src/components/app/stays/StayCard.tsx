@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useRef } from "react";
 import Link from "next/link";
 import { formatRating, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
@@ -8,6 +9,7 @@ import { Amount } from "@/components/ui/Amount";
 import { MediaFrame } from "@/components/app/MediaFrame";
 import { panelClass } from "@/components/ui/Panel";
 import { SaveButton, useSaveControl } from "@/components/app/SaveControl";
+import { useScrollEntry } from "@/lib/motion/scroll-entry";
 import { amenityLabel } from "@/components/app/filters/amenities";
 import type { StayCardData } from "./stay-card-model";
 import "@/app/css/catalogue.css";
@@ -64,9 +66,13 @@ export function StayCard({
   const showSave = stay.place ? canSavePlaces : true;
   const chips = stay.amenities.slice(0, 4);
   const style = index !== undefined ? ({ "--card-i": Math.min(index, 5) } as React.CSSProperties) : undefined;
+  const cardRef = useRef<HTMLElement | null>(null);
+  /* Below the fold on arrival: floats in once as it scrolls into view. */
+  useScrollEntry(cardRef, index);
 
   return (
     <article
+      ref={cardRef}
       className={panelClass({
         variant: "card",
         className: `nf-pcard nf-pcard--wide ${index !== undefined ? "nf-card-in" : ""}`,

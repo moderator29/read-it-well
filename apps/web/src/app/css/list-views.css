@@ -210,6 +210,50 @@
     }
   }
 
+  /*
+   * CARD ENTRY ON SCROLL (MOTION_SYSTEM "Card entry on scroll"; Session 3, R2;
+   * `lib/motion/scroll-entry.ts`). A card that was below the fold when it
+   * mounted is held (`pending`: faded, floated 50 to 90px by its seeded
+   * `--nf-entry-float`, and without the list stagger it would have played
+   * unseen) and released by the observer (`in`) as it scrolls into view: 520ms
+   * on `land`, `--nf-entry-delay` staggering a row 60ms a card. Opacity and
+   * transform only. The observer already declines under reduced motion, Calm,
+   * Off and data saving; the rules below repeat it for a root attribute that
+   * changes after the page loaded, and for print, so no card is ever left
+   * hidden.
+   */
+  .nf-pcard[data-entry="pending"] {
+    animation: none;
+    opacity: 0;
+    transform: translate3d(0, var(--nf-entry-float, 60px), 0);
+  }
+  .nf-pcard[data-entry="in"] {
+    animation: nf-scroll-in var(--nf-duration-entrance) var(--nf-ease-entrance) both;
+    animation-delay: var(--nf-entry-delay, 0ms);
+  }
+  @keyframes nf-scroll-in {
+    from {
+      opacity: 0;
+      transform: translate3d(0, var(--nf-entry-float, 60px), 0);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @media (prefers-reduced-motion: reduce), print {
+    .nf-pcard[data-entry] {
+      animation: none;
+      opacity: 1;
+      transform: none;
+    }
+  }
+  :root:is([data-motion="calm"], [data-motion="off"], [data-save-data="on"]) .nf-pcard[data-entry] {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
   /* The heart's spring: only on the tap that saves (ListingCard.tsx). */
   /* 1, 1.2, 1 on `land` at 240ms (MOTION_SYSTEM "Favourite toggle"; it was
      1.22 over 380ms on the spring, plan item 28). Browsing is quick, so the
