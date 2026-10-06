@@ -52,7 +52,7 @@ export function AgreementTrackMotion({
   useEffect(() => {
     if (popAt === null || quiet || seenOnce(seenKey)) return;
     let observer: MutationObserver | null = null;
-    const covered = () => document.querySelector('[role="dialog"][aria-modal="true"]') !== null;
+    const covered = () => document.querySelector('[aria-modal="true"]:not([data-closing])') !== null;
     const play = () => {
       markSeen(seenKey);
       setPop(true);
@@ -68,7 +68,7 @@ export function AgreementTrackMotion({
         observer = null;
         play();
       });
-      observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["aria-modal"] });
+      observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["aria-modal", "data-closing"] });
     }, TRACK_FILL_MS);
     return () => {
       window.clearTimeout(timer);
