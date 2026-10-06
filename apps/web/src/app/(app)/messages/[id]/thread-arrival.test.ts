@@ -90,8 +90,29 @@ describe("a sent message arrives once across adoption", () => {
       expect(arrivalClass(opened, merged[1]!)).toBe(" nf-msg-in--mine");
     });
 
-    it("does not pair with a failed bubble, an image bubble or someone else's message", () => {
-      expect(mergeEcho([{ ...sent, state: "failed" }], row()).map((m) => m.id)).toEqual(["local-1", "db-9"]);
+    it("pairs a bubble that FAILED client-side after the row was inserted, which becomes delivered", () => {
+      const failed: Bubble = { ...sent, state: "failed" };
+      const merged = mergeEcho([failed], row());
+      /* No failed bubble left beside a delivered duplicate: one bubble, the row, same key, no state. */
+      expect(merged.map((m) => m.id)).toEqual(["db-9"]);
+      expect(bubbleKey(merged[0]!)).toBe("local-1");
+      expect(merged[0]!.state).toBeUndefined();
+      /* A bubble still in flight is paired before one that failed with the same words. */
+      const second: Bubble = { ...sent, id: "local-2" };
+      const both = mergeEcho([failed, second], row());
+      expect(both.map((m) => [m.id, bubbleKey(m)])).toEqual([
+        ["local-1", "local-1"],
+        ["db-9", "local-2"],
+      ]);
+      expect(both[0]!.state).toBe("failed");
+    });
+
+    it("compares the words trimmed (the send path's one change), and only the words", () => {
+      expect(mergeEcho([sent], row({ body: "  Hi \n" })).map((m) => m.id)).toEqual(["db-9"]);
+      expect(mergeEcho([sent], row({ body: "Hi there" })).map((m) => m.id)).toEqual(["local-1", "db-9"]);
+    });
+
+    it("does not pair with an image bubble or someone else's message", () => {
       expect(mergeEcho([{ ...sent, imageUrl: "blob:x" }], row()).map((m) => m.id)).toEqual(["local-1", "db-9"]);
       const theirs = mergeEcho([sent], row({ mine: false }));
       expect(theirs.map((m) => m.id)).toEqual(["local-1", "db-9"]);

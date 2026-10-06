@@ -83,6 +83,7 @@ const echoEntry = `
       setItems((prev) => [...prev, { id: tempId, mine: true, body, imageUrl: null, state: "sending" }]);
     window.__adopt = (tempId, realId) => setItems((prev) => adoptBubble(prev, tempId, realId, "10:02"));
     window.__echo = (row) => setItems((prev) => mergeEcho(prev, { imageUrl: null, ...row }));
+    window.__fail = (id) => setItems((prev) => prev.map((m) => (m.id === id ? { ...m, state: "failed" } : m)));
     return (
       <div>
         {items.map((m) => (
@@ -102,6 +103,7 @@ type Hooks = {
   __send: (id: string, body: string) => void;
   __adopt: (temp: string, real: string) => void;
   __echo: (row: { id: string; mine: boolean; body: string }) => void;
+  __fail: (id: string) => void;
   __node: Element | null;
 };
 const hooks = (page: Page) => ({
@@ -111,6 +113,7 @@ const hooks = (page: Page) => ({
     page.evaluate(([a, b]) => (window as unknown as Hooks).__adopt(a!, b!), [temp, real]),
   echo: (row: { id: string; mine: boolean; body: string }) =>
     page.evaluate((r) => (window as unknown as Hooks).__echo(r), row),
+  fail: (id: string) => page.evaluate((m) => (window as unknown as Hooks).__fail(m), id),
   hold: (id: string) =>
     page.evaluate((m) => {
       (window as unknown as Hooks).__node = document.querySelector(`[data-msg-id="${m}"]`);
@@ -257,6 +260,26 @@ describe.skipIf(!hasBrowser && !process.env.CI)("a sent message arrives once", (
       await expect.poll(() => arrivals(page, "db-12")).toHaveLength(1);
       expect(await page.locator('[data-msg-id="db-12"]').getAttribute("class")).toContain("nf-msg-in--mine");
       expect(await page.locator(".nf-msg").count()).toBe(3);
+    } finally {
+      await close();
+    }
+  });
+
+  it("a send that failed client-side after the row was inserted: the echo makes that very bubble delivered", async () => {
+    const { page, close } = await mountInBrowser({ entry: echoEntry, css: CSS, init: LOG });
+    try {
+      const h = hooks(page);
+      await h.send("local-1", "Sent");
+      await expect.poll(() => arrivals(page, "local-1")).toHaveLength(1);
+      await h.hold("local-1");
+      await h.fail("local-1");
+      await h.echo({ id: "db-9", mine: true, body: "Sent" });
+      await frames(page);
+      /* One bubble, the same node, under the row's id; no failed copy beside a delivered one. */
+      expect(await h.sameAs("db-9")).toEqual({ identical: true, attached: true });
+      expect(await page.locator(".nf-msg").count()).toBe(3);
+      expect(await page.locator('[data-msg-id="local-1"]').count()).toBe(0);
+      expect(await arrivals(page, "local-1", "db-9")).toHaveLength(1);
     } finally {
       await close();
     }

@@ -67,11 +67,18 @@ export function adoptBubble<T extends ArrivalBubble & { state?: unknown; timeLab
  *     the echo changes nothing (and the bubble's arrival is left alone).
  *   - The echo landed first and it is mine: the row takes the place of my
  *     optimistic bubble (the oldest still sending or waiting with the same
- *     words) AND its `clientKey`, so React keeps the element and the arrival
- *     already playing on it. The result, when it lands, finds the real id
+ *     words, else the oldest that failed with them) AND its `clientKey`, so
+ *     React keeps the element and the arrival already playing on it. The result, when it lands, finds the real id
  *     present and has nothing left to adopt.
  *   - Anything else, a message from the other side or from another device of
  *     mine, is appended and arrives like any new message.
+ *
+ * THE WORDS ARE COMPARED TRIMMED, AND NOTHING ELSE. The send path changes a
+ * body in exactly one way, `sendMessageSchema` trims it (the composer trims
+ * too); no contact-detail masking or redaction rewrites it (the messages
+ * triggers only record a flag for a ten digit run or a payment word, they do
+ * not edit `body`). If the server ever starts to mask a body, pairing by words
+ * breaks, and this should pair the oldest pending bubble when exactly one is.
  *
  * KNOWN EDGE, ACCEPTED: the pairing is by words, since an echo carries no
  * client id. If my other device sends the same words while my own send is
@@ -84,14 +91,15 @@ export function mergeEcho<
 >(prev: readonly T[], echo: T): T[] {
   if (prev.some((m) => m.id === echo.id)) return [...prev];
   if (echo.mine) {
-    const at = prev.findIndex(
-      (m) =>
-        m.mine &&
-        m.id.startsWith(LOCAL_PREFIX) &&
-        (m.state === "sending" || m.state === "waiting") &&
-        m.imageUrl === null &&
-        m.body === echo.body,
-    );
+    const words = echo.body.trim();
+    const mineLocal = (m: T) => m.mine && m.id.startsWith(LOCAL_PREFIX) && m.imageUrl === null && m.body.trim() === words;
+    /* In flight first. A bubble that FAILED is paired too, after those: a
+       client-side failure (a dropped response, a timeout) after the row was
+       inserted would otherwise leave a "failed" bubble beside the delivered
+       copy. The row is the truth, so the bubble becomes delivered (the row
+       carries no `state`). */
+    let at = prev.findIndex((m) => mineLocal(m) && (m.state === "sending" || m.state === "waiting"));
+    if (at === -1) at = prev.findIndex((m) => mineLocal(m) && m.state === "failed");
     if (at !== -1) {
       const next = [...prev];
       next[at] = { ...echo, clientKey: bubbleKey(prev[at]!) };
