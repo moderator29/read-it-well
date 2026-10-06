@@ -1,5 +1,8 @@
+import { Fragment } from "react";
 import Link from "next/link";
-import { formatDate, type Locale } from "@vallo/i18n";
+import { formatDate, getDictionary, type Locale } from "@vallo/i18n";
+import { DayDivider } from "@/components/app/messages/ThreadDividers";
+import { dayHeading, dayKeyOf } from "@/components/app/threads/day";
 import { PageHeader } from "@/components/app/PageHeader";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -73,43 +76,48 @@ function Photos({ items }: { items: TicketAttachment[] }) {
   );
 }
 
+/**
+ * A support message, on the same two materials as every other thread
+ * (`.nf-bubble--mine` the lit primary, `.nf-bubble--theirs` the blue glass), so
+ * a conversation with the team reads as a conversation and not as a form.
+ */
 function Bubble({
   message,
   at,
   photos,
+  youLabel,
 }: {
   message: Pick<TicketMessage, "senderRole" | "body" | "staffName">;
   at: string;
   photos: TicketAttachment[];
+  youLabel: string;
 }) {
   if (message.senderRole === "user") {
     return (
       <li className="flex flex-col items-end gap-3xs">
-        <div className="max-w-[85%] rounded-2xl rounded-br-md bg-[var(--nf-brand-primary)] px-sm py-xs">
-          <p className="nf-body-sm whitespace-pre-wrap break-words leading-relaxed text-[var(--nf-content-on-brand)]">
-            {message.body}
-          </p>
+        <div className="nf-bubble nf-bubble--mine max-w-[85%]">
+          <p className="nf-bubble__body break-words">{message.body}</p>
           <Photos items={photos} />
         </div>
-        <span className="nf-caption text-[var(--nf-content-muted)]">You · {at}</span>
+        <span className="nf-caption text-[var(--nf-content-muted)]">
+          {youLabel} · <span className="nf-numeric">{at}</span>
+        </span>
       </li>
     );
   }
   return (
     <li className="flex flex-col items-start gap-3xs" data-testid="support-reply-admin">
       <div className="flex max-w-[85%] items-end gap-row">
-        <IconPlate size="sm" className="shrink-0">
+        <IconPlate size="sm" shape="round" tone="brand" className="shrink-0">
           <UiIcon name="headset" size={20} />
         </IconPlate>
-        <div className="min-w-0 rounded-2xl rounded-bl-md border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-inset)] px-sm py-xs">
-          <p className="nf-body-sm whitespace-pre-wrap break-words leading-relaxed text-[var(--nf-content-primary)]">
-            {message.body}
-          </p>
+        <div className="nf-bubble nf-bubble--theirs min-w-0">
+          <p className="nf-bubble__body break-words">{message.body}</p>
           <Photos items={photos} />
         </div>
       </div>
-      <span className="nf-caption ps-[calc(1.625rem+var(--nf-gap-row))] text-[var(--nf-content-muted)]">
-        {staffByline(message.staffName)} · {at}
+      <span className="nf-caption ps-[calc(2.25rem+var(--nf-gap-row))] text-[var(--nf-content-muted)]">
+        {staffByline(message.staffName)} · <span className="nf-numeric">{at}</span>
       </span>
     </li>
   );
@@ -207,27 +215,59 @@ export function TicketThreadView({
         </section>
 
         <ol className="space-y-group" aria-label="Conversation" data-testid="support-thread">
-          <Bubble
-            message={{ senderRole: "user", body: ticket.body, staffName: null }}
-            at={stamp(ticket.createdAt, locale)}
-            photos={photosFor(null)}
-          />
-          {transcripts.map((message) => (
-            <li key={message.id}>
-              <details className="nf-panel nf-panel--card block p-card-sm" data-testid="support-transcript">
-                <summary className="nf-body-sm flex min-h-11 cursor-pointer items-center gap-inline font-semibold text-[var(--nf-content-primary)]">
-                  <UiIcon name="chat-bubble" size={16} className="shrink-0" />
-                  Your chat with the AI helper
-                </summary>
-                <p className="nf-caption mt-row whitespace-pre-wrap break-words leading-relaxed text-[var(--nf-content-secondary)]">
-                  {message.body}
-                </p>
-              </details>
-            </li>
-          ))}
-          {conversation.map((message) => (
-            <Bubble key={message.id} message={message} at={stamp(message.createdAt, locale)} photos={photosFor(message.id)} />
-          ))}
+          {(() => {
+            /* A divider where the Lagos day changes, from the instants the
+               rows carry: the opening message first, then each reply. The
+               flags are worked out up front so nothing is reassigned while
+               rows are drawn. */
+            const words = getDictionary(locale).experienceInbox;
+            const instants = [ticket.createdAt, ...conversation.map((m) => m.createdAt)];
+            const starts = instants.map((iso, i) => {
+              const key = dayKeyOf(iso);
+              return key !== null && key !== instants.slice(0, i).map(dayKeyOf).filter((k) => k !== null).at(-1);
+            });
+            const divider = (i: number) =>
+              starts[i] ? (
+                <li role="none">
+                  <DayDivider label={dayHeading(instants[i]!, locale, words.thread.day, now)} />
+                </li>
+              ) : null;
+            return (
+              <>
+                {divider(0)}
+                <Bubble
+                  message={{ senderRole: "user", body: ticket.body, staffName: null }}
+                  at={stamp(ticket.createdAt, locale)}
+                  photos={photosFor(null)}
+                  youLabel={words.support.thread.you}
+                />
+                {transcripts.map((message) => (
+                  <li key={message.id}>
+                    <details className="nf-panel nf-panel--card block p-card-sm" data-testid="support-transcript">
+                      <summary className="nf-body-sm flex min-h-11 cursor-pointer items-center gap-inline font-semibold text-[var(--nf-content-primary)]">
+                        <UiIcon name="chat-bubble" size={16} className="shrink-0" />
+                        Your chat with the AI helper
+                      </summary>
+                      <p className="nf-caption mt-row whitespace-pre-wrap break-words leading-relaxed text-[var(--nf-content-secondary)]">
+                        {message.body}
+                      </p>
+                    </details>
+                  </li>
+                ))}
+                {conversation.map((message, i) => (
+                  <Fragment key={message.id}>
+                    {divider(i + 1)}
+                    <Bubble
+                      message={message}
+                      at={stamp(message.createdAt, locale)}
+                      photos={photosFor(message.id)}
+                      youLabel={words.support.thread.you}
+                    />
+                  </Fragment>
+                ))}
+              </>
+            );
+          })()}
         </ol>
 
         {replyable && summary.supportReplies === 0 && (

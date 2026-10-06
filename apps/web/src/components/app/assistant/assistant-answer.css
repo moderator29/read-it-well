@@ -1,0 +1,75 @@
+@layer theme, base, components, utilities;
+
+/*
+  The assistant's answer, drawn by `AIResponse` (components/ui). That component
+  owns the card; this sheet only fits it into the assistant thread and adds the
+  thinking orb.
+
+  `AIResponse`'s root class is `nf-ai`, and so is the assistant page's own
+  wrapper (home.css), which is a flex column that fills the screen. A card
+  inside that wrapper would inherit "fill the screen", so the rule below
+  restates the card's own layout one specificity step above both.
+*/
+@layer components {
+  .nf-ai .nf-ai.nf-ai-answer {
+    display: grid;
+    flex: 1 1 auto;
+    min-height: 0;
+    min-width: 0;
+    max-width: 100%;
+    padding: var(--nf-space-md);
+  }
+  /* The words keep the line breaks the model wrote. */
+  .nf-ai-answer .nf-ai__body {
+    white-space: pre-wrap;
+  }
+  .nf-ai-answer__stopped {
+    display: block;
+    margin-top: var(--nf-space-xs);
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-muted);
+  }
+  .nf-ai-answer .nf-ai__stamp {
+    display: block;
+    margin-top: var(--nf-space-2xs);
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-muted);
+  }
+
+  /*
+   * THE THINKING ORB (reference 7116, adapted). While the model has said
+   * nothing yet, the card's round plate becomes a soft orb of the brand
+   * colour that swells and eases back, in step with the three breathing lines
+   * beneath. Transform and opacity only; it is the ONE loop the assistant is
+   * allowed (motion system, principle 10) and it is gone the moment the first
+   * words arrive. It is never a spinner: nothing rotates.
+   */
+  .nf-ai-answer[data-status="thinking"] .nf-ai__head .nf-plate {
+    background: radial-gradient(
+      circle at 35% 30%,
+      var(--nf-brand-secondary),
+      var(--nf-brand-primary) 58%,
+      var(--nf-brand-tint-3) 100%
+    );
+    animation: nf-orb-breathe 2400ms var(--nf-ease-standard) infinite;
+  }
+  @keyframes nf-orb-breathe {
+    0%,
+    100% {
+      transform: scale(1);
+      opacity: 0.85;
+    }
+    50% {
+      transform: scale(1.1);
+      opacity: 1;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-ai-answer[data-status="thinking"] .nf-ai__head .nf-plate {
+      animation: none;
+    }
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-ai-answer[data-status="thinking"] .nf-ai__head .nf-plate {
+    animation: none;
+  }
+}
