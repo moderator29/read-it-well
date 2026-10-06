@@ -3,6 +3,8 @@ import { PasscodeLayer } from "@/components/passcode/PasscodeLayer";
 /* C12: the workspace sheets, out of `globals.css`. stays.css inherits
    agent.css's `nf-host-*` register, so it comes second. */
 import "@/app/css/agent.css";
+/* catalogue before stays, as when catalogue was global: stays overrides its tiles. */
+import "@/app/css/catalogue.css";
 import "@/app/css/stays.css";
 
 /**

@@ -182,7 +182,6 @@ describe("the global stylesheet (C12)", () => {
       "../components/app/stays/StaySearchBar.tsx",
       "../components/host/FacilitiesPicker.tsx",
       "../components/host/stays/StaysParts.tsx",
-      "../components/site/landing/MoveInBand.tsx",
       "../components/social/profile/ProfileEditor.tsx",
       "agent/list/ListingSentForReview.tsx",
       "agent/list/ListingWizard.tsx",
@@ -225,7 +224,11 @@ describe("the global stylesheet (C12)", () => {
     };
     inOrder("(landing)/layout.tsx", ["landing.css", "landing-rooms.css", "public-doors.css"]);
     inOrder("(site)/layout.tsx", ["landing.css", "landing-rooms.css", "public-doors.css"]);
-    inOrder("host/layout.tsx", ["agent.css", "stays.css"]);
+    inOrder("host/layout.tsx", ["agent.css", "catalogue.css", "stays.css"]);
+    /* stays.css answers catalogue.css on its tiles and hero (it used to load
+       after it, when catalogue was global), so an entry that loads both loads
+       catalogue first (auditor A6). */
+    inOrder("../components/app/stays/StayCategoryTiles.tsx", ["catalogue.css", "stays.css"]);
     /* list-views.css answers catalogue.css at equal specificity on `.nf-pcard`
        (it used to load after it in globals.css), so every file that draws a
        list view imports catalogue.css first. */

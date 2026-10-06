@@ -8,7 +8,6 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { Door } from "./doors";
 import { SectionHead } from "./SectionHead";
 import { EXAMPLE_MOVE_IN, MOVE_IN_PARTS, partMinor, type MoveInPart } from "./example-move-in";
-import "@/app/css/catalogue.css";
 
 /**
  * THE MOVE-IN ARGUMENT, AS ITS OWN BAND (north star 10 A; the handoff's Stage
