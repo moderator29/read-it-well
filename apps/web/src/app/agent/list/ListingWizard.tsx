@@ -875,16 +875,17 @@ function FromMessageMark({
   return (
     <span className="ml-inline-tight inline-flex flex-wrap items-center gap-2xs align-middle" data-testid="from-message">
       <span className="nf-badge nf-badge--info">{tag}</span>
-      <button
-        type="button"
-        className="nf-btn nf-btn--ghost nf-btn--sm min-h-11"
+      <Button
+        variant="quiet"
+        size="sm"
+        className="min-h-11"
         onClick={(event) => {
           event.preventDefault();
           onConfirm();
         }}
       >
         {confirm}
-      </button>
+      </Button>
     </span>
   );
 }

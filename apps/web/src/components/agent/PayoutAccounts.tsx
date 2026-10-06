@@ -203,13 +203,15 @@ export function PayoutAccounts({
             <form action={resolveAction} className="mt-md">
               <input type="hidden" name="bankCode" value={bankCode} />
               <input type="hidden" name="accountNumber" value={digitsOnly(accountNumber)} />
-              <button
+              <Button
                 type="submit"
+                variant="secondary"
+                full
                 disabled={!complete || resolving}
-                className="nf-btn nf-btn--glass w-full disabled:opacity-55"
+                className="disabled:opacity-55"
               >
                 {resolving ? "Checking with the bank..." : "Confirm account name"}
-              </button>
+              </Button>
             </form>
           ) : (
             <form action={addAction} className="mt-md" onSubmit={(event) => void addLock.pass(event)}>
@@ -236,13 +238,9 @@ export function PayoutAccounts({
                 </span>
               </p>
 
-              <button
-                type="submit"
-                disabled={adding}
-                className="nf-btn nf-btn--primary mt-sm w-full disabled:opacity-60"
-              >
+              <Button type="submit" variant="primary" full disabled={adding} className="mt-sm disabled:opacity-60">
                 {adding ? "Saving..." : "Save this account"}
-              </button>
+              </Button>
               <Button variant="quiet" size="sm" full className="mt-xs" onClick={() => setConfirmed(null)}>
                 Not my account, change it
               </Button>
