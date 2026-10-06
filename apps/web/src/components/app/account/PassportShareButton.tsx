@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import type { Dictionary } from "@vallo/i18n/core";
 import { Button } from "@/components/ui/Button";
 import { ActionSheetIllustrated } from "@/components/ui/ActionSheetIllustrated";
@@ -28,18 +28,31 @@ export function PassportShareButton({
   dismissLabel: string;
 }) {
   const [open, setOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [, startTransition] = useTransition();
+  /* True from the tap on "Turn it off" until the server has answered. The sheet
+     closes itself on any row (`ActionSheetIllustrated`), so while this is set we
+     ignore that close and decide it ourselves: shut on success, held open with a
+     quiet line on failure. It used to close at once, so a failed "Turn it off"
+     looked exactly like a successful one while the passport stayed on (auditor A2). */
+  const turningOff = useRef(false);
+
+  const onOpenChange = (next: boolean) => {
+    if (!next && turningOff.current) return;
+    if (next) setError(null);
+    setOpen(next);
+  };
 
   return (
     <>
-      <Button type="button" variant="secondary" size="lg" full leadingIcon="share" onClick={() => setOpen(true)} data-testid="passport-share">
+      <Button type="button" variant="secondary" size="lg" full leadingIcon="share" onClick={() => onOpenChange(true)} data-testid="passport-share">
         {copy.cardShare}
       </Button>
       <ActionSheetIllustrated
         open={open}
-        onOpenChange={setOpen}
+        onOpenChange={onOpenChange}
         title={copy.sheetTitle}
-        body={copy.sheetBody}
+        body={error ?? copy.sheetBody}
         object="shield"
         dismissLabel={dismissLabel}
         testId="passport-share-sheet"
@@ -51,8 +64,13 @@ export function PassportShareButton({
             hint: copy.sheetTurnOffHint,
             icon: "eye-off",
             onSelect: () => {
+              turningOff.current = true;
+              setError(null);
               startTransition(async () => {
-                await setRenterPassport({ enabled: false });
+                const result = await setRenterPassport({ enabled: false });
+                turningOff.current = false;
+                if (result.ok) setOpen(false);
+                else setError(result.error);
               });
             },
           },
