@@ -10,6 +10,13 @@ import { PeriodBars } from "@/components/ui/charts/PeriodBars";
 import { CompareBars, type CompareRow } from "@/components/ui/charts/CompareBars";
 import { lagosMonth, monthPoint, moneyTicks } from "@/components/agent/charts/month-points";
 import { settledSeries } from "@/lib/agent/analytics-queries";
+/* North star 12 point 17: a money sentence reads from lib/money/copy.ts. The
+   empty state and the how-it-is-worked-out note were the dictionary's own
+   sentences (agentEarnings.emptyTitle, emptyBody, howBody), and howBody still
+   described a split into "your share, Vallo's platform fee and the payment
+   processor's own fee" beside a file docstring that says the page names no
+   platform cut. copy.ts already holds the lister's sentences for both. */
+import { EARNINGS_EMPTY_BODY, EARNINGS_EMPTY_TITLE, EARNINGS_SETTLEMENT } from "@/lib/money/copy";
 
 /**
  * The host's earnings console: what has actually settled, read straight from
@@ -92,9 +99,9 @@ export function EarningsWorkspace({
         <span className="grid size-[5.5rem] place-items-center" aria-hidden="true" data-art="earnings">
           <Icon3D name="earnings" size={88} />
         </span>
-        <h2 className="nf-h3">{t.emptyTitle}</h2>
+        <h2 className="nf-h3">{EARNINGS_EMPTY_TITLE}</h2>
         <p className="mx-auto max-w-[40ch] text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
-          {t.emptyBody}
+          {EARNINGS_EMPTY_BODY}
         </p>
         <ButtonLink href="/agent/bookings" variant="primary">
           {t.emptyAction}
@@ -258,7 +265,7 @@ export function EarningsWorkspace({
       <section className="nf-panel nf-panel--card block p-md sm:p-panel">
         <h2 className="nf-h3">{t.howTitle}</h2>
         <p className="mt-xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
-          {t.howBody}
+          {EARNINGS_SETTLEMENT}
         </p>
       </section>
     </div>
