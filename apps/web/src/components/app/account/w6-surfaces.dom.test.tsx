@@ -167,6 +167,9 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the verification path", () => {
       expect(await page.locator(".nf-vpath__when").allTextContents()).toEqual(["Passed on 1 Mar 2026"]);
       expect(await page.locator(".nf-vpath__evidence").count()).toBe(4);
       expect(await page.locator(".nf-vpath-head__count").textContent()).toBe("1 of 4 steps passed");
+      /* The rungs fade in one after another; contrast is judged once they have
+         arrived, not on a rung caught mid-fade on a loaded machine. */
+      await page.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished)));
       expect(await axeViolations(page)).toEqual([]);
     } finally {
       await close();

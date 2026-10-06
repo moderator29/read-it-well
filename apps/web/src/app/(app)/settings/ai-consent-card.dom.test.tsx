@@ -48,7 +48,7 @@ describe("AiConsentCard", () => {
      has its own, under Privacy. */
   it("stands on its own privacy page", () => {
     const source = readFileSync(join(process.cwd(), "src/app/(app)/settings/privacy/ai/page.tsx"), "utf8");
-    expect(source).toMatch(/<AiConsentCard t=\{t\} consented=\{consented\} \/>/);
+    expect(source).toMatch(/<AiConsentCard t=\{forAiConsent\(t\)\} consented=\{consented\} \/>/);
     expect(source).toMatch(/aiConsentForViewer\(\)/);
   });
 
