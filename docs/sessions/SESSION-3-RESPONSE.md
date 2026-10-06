@@ -210,6 +210,21 @@ gzipped, React external:
 | `domAnimation` feature bundle | 24,089 |
 | `LazyMotion` + `m` + hooks + `AnimatePresence` + `MotionConfig` | 28,385 |
 
+**In the built application (W13, `next build`, Turbopack, gzip -9):**
+
+| What | Bytes gzipped |
+|---|---|
+| First load on every route: the motion-dom value layer plus `LazyMotion` and `MotionConfig` | about 13,200 |
+| The `domAnimation` feature chunk, fetched after paint on every route | 18,071 |
+| Routes whose first load also carries the animation engine through a top-level `animate` import (InnerNav and the drag and pill components) | 36 routes, about +17,800 each |
+
+The esbuild estimate of 7KB was low: Turbopack ships the whole value layer
+wherever the provider mounts. After B5's fix no component renders an `m`
+element, so the feature chunk is fetched on every page for nothing. **Raised
+with the founder (see Decisions):** keep the one provider and load the
+features only where an `m` component mounts, or drop `LazyMotion` until one
+does.
+
 The spec's "around 18KB" is not what 12.43 costs. **So the provider fetches
 `domAnimation` in its own chunk after first paint** (`components/app/motion-features.ts`):
 first load carries about 7KB, and `m` components render their initial state without
@@ -253,8 +268,8 @@ content only. **Verdict: HOLD, on one blocker, now fixed.**
 | A2 | W4 social, B5's fix, W6 account | PUSH | Twelve SHOULDs and NITs routed to R1 |
 | A3 | W5 inbox, W7 features, W8 admin | HOLD | **B1:** Skip on a first run could land back on the first run for up to 30s (the router cache's stale window served the old redirect). **Fixed** in `043c4d1ff`: both exits replace the document. **S2:** `/host` showed the host first run to guests and marked it seen; now gated after the businesses read, hosts only (same commit). S1, S7, S9 to W8b; S3, S4, S6 to R1; S5, S8 to C1 |
 | A4 | W2 discovery, W3 detail | PUSH | No blocker. Five SHOULDs to R2: the search pill morph drawn through `m.form` before features load, "Not seating on this day" when only today's times have passed, the area chart vanishing on an area change, home's three extra catalogue reads, a stay total with no button that opens it |
-| A5 | W9 money and email, F1, W11, H1 | pending | |
-| A6 | W10, J1, G1, W1, the deleted rooms | pending | |
+| A5 | W9 money and email, F1, W11, H1 | PUSH | No blocker. To F1: the code screen read a *verify* limit as a spent *send* (and did not count the first send); the refunded crypto payment printed as "Charge paid"; the shell behind a waiting lock was open to TalkBack; `/offline` reloaded itself forever |
+| A6 | W10, J1, G1, W1, the deleted rooms | PUSH | No blocker. To B5: InnerNav took the overlay scroll lock and focus trap of a modal. To W1b: the example passport printed identity checks about an invented person; the mega menu dropped focus on Escape. To R1: the paused social screen sent a Stays member to Property |
 | A7 | R2, the type fixes, `043c4d1ff`, then every later range | pending | |
 
 ## Completed
@@ -334,6 +349,15 @@ never colours the result. Results per push are appended below.
    reviewed" date, a trust fact a row would have dropped.
 
 ## Risks
+
+- **Speed, measured by W13 against the built app.**
+  - **A regression this session caused, being fixed:** `/messages/[id]` went from 343 to 750KB gz first load, because the thread's copy hook began pulling the whole client dictionary (8311e70f2, 213033eb4).
+  - **The same pattern, earlier:** the full English dictionary (399KB gz) ships to 26 routes through client imports of `@vallo/i18n`. W13 and W8b are moving those to server-passed slices, behind a lint rule.
+  - **Remaining, routed:**
+    - the auth pages serialise the whole dictionary into their RSC payload;
+    - `globals.css` is 113KB gz on every route and only 11 to 19% of its rules are used;
+    - supabase-js (65KB gz) and zod (64KB gz) sit in first load on most routes.
+  - **The weight check cannot fail:** every budget in `perf-budget.json` is null, and CI never sends `WEIGHT_COOKIE`. That is for Session 4.
 
 - **The machine, not the work, became the limit.** Fourteen agents plus the
   gate on 4 cores and 15GB drove the load average to about 90 and the
