@@ -163,6 +163,11 @@
 /* The brand pass (30 September): the 3D icons, the one navy glass material,
    the blue lean icons in light. After pixel.css so it wins by position. */
 @import "./css/brand-glass.css";
+/* Session 3, Stage 2: the dock and the side navigation upgraded in place
+   (the Island material, the spring, the counts, the collapsed rail). After
+   brand-glass.css, light.css and shell-m.css, whose rules it answers by
+   position; before data-saver.css, whose opt-outs must still win. */
+@import "./css/nav-island.css";
 /*
  * `light.css` WAS IMPORTED HERE AND WAS DELETED (history). The founder removed light mode
  * from the platform on 23 September 2026. It was 1,200 lines of paper twins for

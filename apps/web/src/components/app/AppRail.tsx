@@ -2,7 +2,7 @@
 
 import type { ShellDictionary } from "@/lib/i18n/shell-dictionary";
 import { Button } from "@/components/ui/Button";
-import { useMemo } from "react";
+import { useEffect, useMemo, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { ThemeRow } from "@/components/site/ThemeControl";
 import { Logo } from "@/design-system/brand/Logo";
@@ -43,6 +43,52 @@ import type { Side } from "@/lib/side.constants";
  * every row 17px semibold and a 44px tile: the owner asked for it smaller, and
  * with sub-navigation underneath it, it has to be.
  */
+
+/*
+ * THE COLLAPSED RAIL (Session 3; north star 6.2: "desktop gains a collapsed
+ * 72px icon-only mode with tooltips, remembered per member").
+ *
+ * REMEMBERED PER DEVICE, NOT PER ACCOUNT, and that is a stated compromise:
+ * per member would need a profile field Session 2 owns, and a rail width is
+ * a convenience of one screen rather than a fact about a person (a member
+ * who collapses it on a 13-inch laptop may want it open on a 27-inch
+ * monitor). So it is one `localStorage` key, every read and write in
+ * try/catch, and a private window or blocked storage simply gets the open
+ * rail. The cost: it is applied after hydration, so a member who keeps it
+ * collapsed sees the open rail for the first frame of a cold load.
+ *
+ * Read through `useSyncExternalStore`, so the toggle, a second tab and the
+ * page all agree without an effect writing state.
+ */
+const RAIL_KEY = "nf-rail-collapsed";
+const RAIL_EVENT = "nf:rail";
+
+function readCollapsed(): boolean {
+  try {
+    return window.localStorage.getItem(RAIL_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function subscribeCollapsed(onChange: () => void) {
+  window.addEventListener(RAIL_EVENT, onChange);
+  window.addEventListener("storage", onChange);
+  return () => {
+    window.removeEventListener(RAIL_EVENT, onChange);
+    window.removeEventListener("storage", onChange);
+  };
+}
+
+function writeCollapsed(next: boolean) {
+  try {
+    if (next) window.localStorage.setItem(RAIL_KEY, "1");
+    else window.localStorage.removeItem(RAIL_KEY);
+  } catch {
+    /* Storage refused: the choice lasts for this page only. */
+  }
+  window.dispatchEvent(new Event(RAIL_EVENT));
+}
 
 export function AppRail({
   t,
@@ -95,10 +141,21 @@ export function AppRail({
     [t, side, unreadNotifications, unreadConversations, isAgent, isAdmin, isHost, signedIn],
   );
   const drawer = variant === "drawer";
+  const stored = useSyncExternalStore(subscribeCollapsed, readCollapsed, () => false);
+  const collapsed = !drawer && stored;
+  /* The root carries it too, so anything laid out beside the rail (a pinned
+     footer reading `--nf-rail-width`) moves with it (side-nav.css). */
+  useEffect(() => {
+    if (drawer) return;
+    const root = document.documentElement;
+    if (collapsed) root.dataset.rail = "collapsed";
+    else delete root.dataset.rail;
+  }, [collapsed, drawer]);
 
   return (
     <aside
       className={drawer ? "nf-nav nf-nav--drawer" : "nf-nav nf-nav--rail"}
+      data-collapsed={collapsed || undefined}
       aria-label={t.nav.primaryLabel}
     >
       {/*
@@ -114,6 +171,18 @@ export function AppRail({
         )}
         {onClose && (
           <Button variant="icon" round leadingIcon="close" onClick={onClose} aria-label={t.a11y.closeMenu} className="ms-auto" />
+        )}
+        {!drawer && (
+          <Button
+            variant="icon"
+            round
+            leadingIcon="panel-left"
+            onClick={() => writeCollapsed(!collapsed)}
+            aria-label={collapsed ? t.a11y.expand : t.a11y.collapse}
+            aria-expanded={!collapsed}
+            title={collapsed ? t.a11y.expand : t.a11y.collapse}
+            className="nf-nav__collapse ms-auto"
+          />
         )}
       </div>
 
@@ -188,6 +257,7 @@ export function AppRail({
         label={t.a11y.railNav}
         onNavigate={onNavigate}
         whole={drawer}
+        collapsed={collapsed}
       />
 
       {/*

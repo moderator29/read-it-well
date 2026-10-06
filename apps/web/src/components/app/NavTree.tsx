@@ -54,6 +54,7 @@ export function NavTree({
   accent = "brand",
   onNavigate,
   whole = false,
+  collapsed = false,
 }: {
   sections: NavSection[];
   active: string;
@@ -69,6 +70,12 @@ export function NavTree({
    * screen and would fetch every page on every load.
    */
   whole?: boolean;
+  /**
+   * The desktop rail's 72px icon-only mode (AppRail). The labels stay in the
+   * markup, visually hidden, so every row keeps its accessible name, and each
+   * row carries its label as a `title`, the tooltip a pointer gets.
+   */
+  collapsed?: boolean;
 }) {
   const Row = whole ? WholePrefetchLink : Link;
 
@@ -103,6 +110,7 @@ export function NavTree({
           href={item.href}
           onClick={onNavigate}
           aria-current={current ? "page" : undefined}
+          title={collapsed ? item.label : undefined}
           className={`nf-nav__row${current ? " nf-nav__row--on" : ""}`}
         >
           <span className="nf-nav__glyph" aria-hidden="true">

@@ -78,8 +78,17 @@ export function CreateDock({
         className="nf-tab__link nf-tab__link--create"
         data-dock-create=""
       >
+        {/* THE CENTRE TURNS INTO ITS OWN CLOSE (north star 6.1): the disc
+            rotates 90 degrees as its sheet opens while the plus crossfades
+            to a close mark, so the control that opened the sheet visibly
+            becomes the one that shuts it (nav-island.css). */}
         <span className="nf-dock-plus" aria-hidden="true">
-          <UiIcon name="plus" size="md" />
+          <span className="nf-dock-plus__glyph nf-dock-plus__glyph--open">
+            <UiIcon name="plus" size="md" />
+          </span>
+          <span className="nf-dock-plus__glyph nf-dock-plus__glyph--close">
+            <UiIcon name="close" size="md" />
+          </span>
         </span>
       </button>
 

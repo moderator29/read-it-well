@@ -1,0 +1,281 @@
+/*
+ * THE NAVIGATION, UPGRADED IN PLACE (Session 3, 6 October 2026; north star
+ * sections 6 and 15.5, handoff Stage 2; references 7033 and 7064).
+ *
+ * The dock and the side navigation keep their slots, their order, their
+ * behaviour and their structure (D28.2). What changes is material, type and
+ * motion, and every rule here is one of those three:
+ *
+ *   the dock     a true floating Island: the 16px blur, navy glass at night,
+ *                white on the blue-tinted shadow by day with no outline; the
+ *                pill springs to a tapped slot on `drift` 240ms (it already
+ *                arrives before the route, on `data-on`); the chosen slot's
+ *                word at 12px/600; the centre action a 52px disc with a soft
+ *                ambient shadow under it, turning 90 degrees into its own
+ *                close; every count cyan, never red, at 12px/600.
+ *   the rail     a continuous Island: the edge light on its border at night,
+ *                a soft blue shadow cast sideways by day; Plate rows; the
+ *                current row a 3px leading bar, a tint and a brighter glyph,
+ *                never a glow; counts cyan, tabular, right-aligned; the
+ *                workspace coin on its own dark ground by day; and the
+ *                collapsed 72px desktop mode (`AppRail`).
+ *
+ * WHY A PARTIAL OF ITS OWN. The dock's material is written in shell-m.css
+ * and answered for daylight in light.css, the rail's night glass in
+ * brand-glass.css, and all three load after side-nav.css and chrome.css.
+ * The cascade order is the mechanism this tree uses for an override
+ * ("overridden by position rather than by a specificity race", shell-m.css),
+ * so this partial is imported straight after brand-glass.css and states
+ * each rule at the same weight as the one it answers. It edits none of them.
+ *
+ * Transform and opacity only, except the slot's share of the row, which was
+ * already a flex transition and is only retimed here. A partial of
+ * globals.css; the order there is the cascade.
+ */
+@layer components {
+  /* ================================================================ dock */
+
+  /* ---------------------------------------------------- the Island material */
+  .nf-tabbar,
+  .nf-dock-island,
+  .nf-dockmore__tray {
+    -webkit-backdrop-filter: blur(var(--nf-tier-island-blur)) saturate(var(--nf-glass-saturate));
+    backdrop-filter: blur(var(--nf-tier-island-blur)) saturate(var(--nf-glass-saturate));
+  }
+  /* By day: white, elevated on the blue-tinted floating shadow, and ONE
+     edge, the shadow, so the hairline light.css drew beside it goes. */
+  :root[data-theme="light"] :is(.nf-tabbar, .nf-dock-island, .nf-dockmore__tray):not(:where([data-theme="dark"] *)) {
+    border-color: transparent;
+    box-shadow: var(--nf-tier-island-shadow);
+  }
+
+  /* -------------------------------------------- the pill, on the spring */
+  .nf-tabbar .nf-tab {
+    transition: flex-grow var(--nf-duration-base) var(--nf-ease-spring);
+  }
+  .nf-tabbar .nf-tab__link::before {
+    transition:
+      opacity var(--nf-duration-fast) var(--nf-ease-standard),
+      transform var(--nf-duration-base) var(--nf-ease-spring);
+  }
+  /* The chosen slot's word: 12px at 600 (the overline rung, north star 5;
+     it was the 13px caption, and 11px on a narrow phone). */
+  .nf-tabbar .nf-tab__label {
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    transition:
+      max-width var(--nf-duration-base) var(--nf-ease-spring),
+      margin var(--nf-duration-base) var(--nf-ease-spring),
+      opacity var(--nf-duration-fast) var(--nf-ease-standard),
+      transform var(--nf-duration-base) var(--nf-ease-spring);
+  }
+
+  /* ------------------------------------------------- the centre action */
+  /*
+   * 52px, and it was 50: the slot is 52 (`.nf-tab--switch`), so the disc now
+   * fills it. It keeps its brand fill, its rim and its glow (one of the two
+   * glows the north star permits besides the view's primary), and gains the
+   * one thing reference 39 shows that it lacked: a soft ambient shadow under
+   * it, so it reads as lifted rather than merely coloured (15.5).
+   */
+  .nf-dock-plus {
+    width: 3.25rem;
+    height: 3.25rem;
+    box-shadow:
+      inset 0 1px 0 color-mix(in oklab, var(--nf-content-on-brand) 42%, transparent),
+      0 0 18px -2px color-mix(in oklab, var(--nf-glow-ink) 60%, transparent),
+      0 10px 20px -10px var(--nf-shade-3);
+    transition:
+      transform var(--nf-duration-base) var(--nf-ease-spring),
+      box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  :root[data-theme="light"] .nf-dock-plus:not(:where([data-theme="dark"] *)) {
+    box-shadow:
+      inset 0 1px 0 color-mix(in oklab, var(--nf-content-on-brand) 42%, transparent),
+      0 0 16px -3px color-mix(in oklab, var(--nf-brand-primary) 55%, transparent),
+      var(--nf-elevation-floating);
+  }
+  /* The plus and the close are stacked; the disc turns a quarter as its
+     sheet opens and the one mark crossfades into the other. A plus turned
+     45 degrees was a close by accident of geometry; this is a close by
+     intent, and the quarter turn is what the north star specifies. */
+  .nf-tab__link--create[aria-expanded="true"] .nf-dock-plus {
+    transform: rotate(90deg);
+  }
+  .nf-dock-plus__glyph {
+    position: relative;
+    z-index: 2;
+    grid-area: 1 / 1;
+    display: grid;
+    place-items: center;
+    transition: opacity var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-dock-plus__glyph > svg {
+    width: 1.625rem;
+    height: 1.625rem;
+    stroke-width: 2.6;
+  }
+  .nf-dock-plus__glyph--close,
+  .nf-tab__link--create[aria-expanded="true"] .nf-dock-plus__glyph--open {
+    opacity: 0;
+  }
+  .nf-tab__link--create[aria-expanded="true"] .nf-dock-plus__glyph--close {
+    opacity: 1;
+  }
+
+  /* ------------------------------------------------------------ counts */
+  /*
+   * CYAN, NEVER RED, AND NEVER BELOW 12PX. The More button's count was the
+   * warm spark at 11px and weight 750; red and orange are for a genuine
+   * error (north star 6.1), and the type scale has no 11 and no 750. A 16px
+   * plate holding a 12px numeral at 600, tabular.
+   */
+  .nf-dockmore__unread {
+    min-width: 1rem;
+    height: 1rem;
+    padding: 0 0.25rem;
+    background: var(--nf-count-fill);
+    color: var(--nf-count-ink);
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+  }
+  .nf-dockmore .nf-dockmore__count,
+  .nf-nav .nf-nav__badge {
+    background: var(--nf-count-fill);
+    color: var(--nf-count-ink);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    box-shadow: none;
+  }
+  .nf-nav .nf-nav__badge {
+    margin-inline-start: auto;
+  }
+
+  /* ================================================================ rail */
+
+  /*
+   * A CONTINUOUS ISLAND. At night the rail keeps brand-glass.css's navy
+   * glass, and its one edge is the light along the border that faces the
+   * content. By day it is white with no border and a soft blue shadow cast
+   * sideways onto the page, which is what separates it.
+   */
+  .nf-nav--rail {
+    border-inline-end-color: var(--nf-tier-island-edge);
+    box-shadow: var(--nf-tier-island-shadow-side);
+  }
+  :root[data-theme="light"] .nf-nav--rail {
+    border-inline-end-color: transparent;
+    background: var(--nf-tier-island-fill);
+  }
+
+  /* ------------------------------------------------------- Plate rows */
+  .nf-nav .nf-nav__row {
+    border-radius: var(--nf-tier-plate-radius);
+  }
+  .nf-nav a.nf-nav__row:hover {
+    background: var(--nf-tier-plate-hover);
+  }
+  .nf-nav a.nf-nav__row:active {
+    background: var(--nf-tier-plate-press);
+  }
+
+  /*
+   * THE CURRENT ROW: a 3px leading bar in the brand blue, a tinted fill and
+   * a brighter glyph (north star 6.2). Never a glow: the lit gradient pill
+   * with its inline shadow, and the drawer's 650 weight, both go. The word
+   * stays in the ink at 600, so the row reads by bar, tint, glyph and weight
+   * and never by colour alone.
+   */
+  .nf-nav .nf-nav__row--on,
+  .nf-nav--drawer .nf-nav__row--on {
+    background: var(--nf-brand-tint-2);
+    color: var(--nf-content-primary);
+    font-weight: 600;
+    box-shadow: none;
+  }
+  .nf-nav .nf-nav__row--on::before {
+    content: "";
+    position: absolute;
+    inset-block: 0.75rem;
+    inset-inline-start: 0;
+    width: 3px;
+    border-radius: 0 var(--nf-radius-xs) var(--nf-radius-xs) 0;
+    background: var(--nf-brand-primary);
+  }
+  .nf-nav .nf-nav__row--on .nf-nav__glyph,
+  .nf-nav--drawer .nf-nav__row--on .nf-nav__glyph {
+    color: var(--nf-brand-quiet);
+  }
+  /* Three weights in the navigation, 400, 500 and 600: the headings and the
+     drawer's name were 700, the drawer's current row 650. */
+  .nf-nav .nf-nav__heading,
+  .nf-nav__who--hero .nf-nav__whoname {
+    font-weight: 600;
+  }
+
+  /* The workspace coin keeps its dark ground by day, so the mark inside it
+     never sits on white (north star 6.2). */
+  :root[data-theme="light"] .nf-nav .nf-side-switch__coin {
+    background: var(--nf-surface-artwork);
+    box-shadow: none;
+  }
+
+  /* --------------------------------------------- the collapsed rail */
+  /*
+   * 72px, icon only, with the label as each row's tooltip (`NavTree` writes
+   * `title`) and still in the markup for a screen reader. The root carries
+   * `data-rail` so anything laid out against `--nf-rail-width` follows.
+   */
+  :root[data-rail="collapsed"] {
+    --nf-rail-width: 4.5rem;
+  }
+  .nf-nav--rail[data-collapsed] {
+    width: 4.5rem;
+    padding-inline: 0.5rem;
+  }
+  .nf-nav--rail[data-collapsed] .nf-nav__head {
+    justify-content: center;
+  }
+  .nf-nav--rail[data-collapsed] .nf-nav__brand {
+    display: none;
+  }
+  .nf-nav--rail[data-collapsed] .nf-nav__collapse {
+    margin-inline: auto;
+  }
+  .nf-nav--rail[data-collapsed] :is(.nf-nav__row, .nf-nav__who, .nf-theme-row__head) {
+    justify-content: center;
+    padding-inline: 0;
+  }
+  .nf-nav--rail[data-collapsed]
+    :is(
+      .nf-nav__label,
+      .nf-nav__heading,
+      .nf-nav__whobody,
+      .nf-nav__whochev,
+      .nf-side-switch__label,
+      .nf-side-switch__over,
+      .nf-side-switch__sub,
+      .nf-side-switch__chev,
+      .nf-theme-row__label,
+      .nf-theme-row__value,
+      .nf-theme-row__chev
+    ) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  /* A count rides the glyph's corner rather than the row's end. */
+  .nf-nav--rail[data-collapsed] .nf-nav__badge {
+    position: absolute;
+    inset-block-start: 0.25rem;
+    inset-inline-end: 0.25rem;
+    margin: 0;
+  }
+  .nf-nav--rail[data-collapsed] .nf-side-switch {
+    justify-content: center;
+    padding-inline: 0;
+  }
+}
