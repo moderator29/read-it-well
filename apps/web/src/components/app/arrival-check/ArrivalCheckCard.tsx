@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import type { Dictionary } from "@vallo/i18n/core";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
-import { createClient } from "@/lib/supabase/client";
 import { answerArrivalCheck } from "@/lib/stays/arrival-check-actions";
 import {
   MAX_ARRIVAL_PHOTOS,
@@ -23,6 +22,11 @@ import {
  * only until they answer. Nothing leaves Vallo: the camera is the device's,
  * the upload is Vallo's, and the report is filed in the same tap as the
  * answer.
+ *
+ * The storage client is imported when the first photo is chosen, not with
+ * the card (Session 3, W13, measured): `@supabase/supabase-js` is 64.7KB
+ * gzipped in the built client, and most guests answer "Yes" and never need
+ * it, so it stays off the booking page's first load from here.
  */
 export function ArrivalCheckCard({
   bookingId,
@@ -64,20 +68,27 @@ export function ArrivalCheckCard({
     if (!files || files.length === 0) return;
     setError(null);
     setUploading(true);
+    const added: string[] = [];
     try {
+      const { createClient } = await import("@/lib/supabase/client");
+      const storage = createClient().storage.from("arrival-evidence");
       const room = MAX_ARRIVAL_PHOTOS - photos.length;
-      const added: string[] = [];
       for (const file of Array.from(files).slice(0, Math.max(0, room))) {
         const path = arrivalPhotoPath(bookingId, file.name, crypto.randomUUID());
-        const uploaded = await createClient().storage.from("arrival-evidence").upload(path, file, { contentType: file.type });
+        const uploaded = await storage.upload(path, file, { contentType: file.type });
         if (uploaded.error) {
           setError(copy.uploadFailed);
           break;
         }
         added.push(path);
       }
-      setPhotos((now) => [...now, ...added].slice(0, MAX_ARRIVAL_PHOTOS));
+    } catch {
+      /* The client could not load or the network dropped mid-upload: the
+         same honest line as a refused upload, and the photos already sent
+         stay counted. */
+      setError(copy.uploadFailed);
     } finally {
+      setPhotos((now) => [...now, ...added].slice(0, MAX_ARRIVAL_PHOTOS));
       setUploading(false);
       if (input.current) input.current.value = "";
     }

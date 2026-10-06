@@ -12,7 +12,8 @@ import { ArrivalRuling } from "./ArrivalRuling";
 export async function ArrivalCheckRecord({ bookingId, locale }: { bookingId: string; locale: Locale }) {
   const record = await readArrivalCheckRecord(bookingId);
   if (record === null || record === "unavailable") return null;
-  const copy = getDictionary(locale).arrivalCheck;
+  const t = getDictionary(locale);
+  const copy = t.arrivalCheck;
   const when = formatDate(new Date(record.answeredAt), locale, {
     day: "numeric",
     month: "short",
@@ -47,7 +48,7 @@ export async function ArrivalCheckRecord({ bookingId, locale }: { bookingId: str
             )}
           </p>
         ) : (
-          <ArrivalRuling bookingId={bookingId} copy={copy.admin} />
+          <ArrivalRuling bookingId={bookingId} copy={copy.admin} slide={t.experienceUi} />
         ))}
       {record.photoUrls.length > 0 && (
         <ul className="mt-sm grid grid-cols-3 gap-xs">
@@ -57,6 +58,8 @@ export async function ArrivalCheckRecord({ bookingId, locale }: { bookingId: str
               <img
                 src={url}
                 alt={copy.admin.photos.replace("{n}", String(index + 1))}
+                loading="lazy"
+                decoding="async"
                 className="aspect-square w-full rounded-[var(--nf-container-radius)] object-cover"
               />
             </li>
