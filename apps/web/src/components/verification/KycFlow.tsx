@@ -489,8 +489,9 @@ function Submitted({ copy }: { copy: KycCopy }) {
 /* The words are the dictionary's (`experienceAccount.kyc`). A business field
    and a gap are looked up by their key; a consent keeps its recorded English
    label (kyc.ts). */
-function fieldWords(name: string, copy: KycCopy): { label: string; hint: string } {
-  return (copy.fields as Record<string, { label: string; hint: string }>)[name] ?? { label: name, hint: "" };
+/* A field with nothing to add under its label has no `hint` at all, rather than an empty one. */
+function fieldWords(name: string, copy: KycCopy): { label: string; hint?: string } {
+  return (copy.fields as Record<string, { label: string; hint?: string }>)[name] ?? { label: name };
 }
 
 function gapWords(item: MissingItem, copy: KycCopy): string {

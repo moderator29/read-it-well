@@ -127,7 +127,7 @@ export function RateResolution({
             type="button"
             role="radio"
             aria-checked={stars === n}
-            aria-label={copy.starLabel.replace("{n}", String(n)).replace("{word}", (starWords[n] ?? "").toLowerCase())}
+            aria-label={copy.starLabel.replace("{n}", String(n)).replace("{word}", (starWords[n - 1] ?? "").toLowerCase())}
             onClick={() => setStars(n)}
             className="inline-flex h-11 w-11 cursor-pointer items-center justify-center rounded-[var(--nf-radius-control)]"
             data-testid={`support-star-${n}`}
@@ -140,7 +140,7 @@ export function RateResolution({
           </button>
         ))}
         <span className="nf-caption ms-xs text-[var(--nf-content-secondary)]" aria-live="polite">
-          {starWords[stars]}
+          {stars > 0 ? starWords[stars - 1] : null}
         </span>
       </div>
       <TextArea

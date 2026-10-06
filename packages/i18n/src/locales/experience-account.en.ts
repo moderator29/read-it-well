@@ -282,15 +282,15 @@ export const experienceAccountEn = {
       address: { heading: "Address", note: "Where the business actually operates from." },
     },
     fields: {
-      businessName: { label: "Registered business name", hint: "" },
+      businessName: { label: "Registered business name" },
       rcNumber: { label: "CAC registration number", hint: "The RC or BN number on your certificate." },
       tin: { label: "Tax identification number", hint: "If you have one. It is not required to be approved." },
-      businessPhone: { label: "Business phone", hint: "" },
-      businessEmail: { label: "Business email", hint: "" },
-      website: { label: "Website or social page", hint: "" },
-      street: { label: "Street address", hint: "" },
-      city: { label: "City or town", hint: "" },
-      state: { label: "State", hint: "" },
+      businessPhone: { label: "Business phone" },
+      businessEmail: { label: "Business email" },
+      website: { label: "Website or social page" },
+      street: { label: "Street address" },
+      city: { label: "City or town" },
+      state: { label: "State" },
     },
     documents: {
       identity: {

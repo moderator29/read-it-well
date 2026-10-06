@@ -525,7 +525,8 @@ export const experienceInboxEn = {
       howDid: "How did we do?",
       /** `{n}` is a number and `{word}` the word for it, lower case. */
       starLabel: "{n} of 5, {word}",
-      starWords: ["", "Very poor", "Poor", "Okay", "Good", "Excellent"],
+      /* One to five stars, in order: `starWords[stars - 1]`. */
+      starWords: ["Very poor", "Poor", "Okay", "Good", "Excellent"],
       addLabel: "Anything to add?",
       optional: "Optional",
       addPlaceholder: "What went well, or what we could do better",
