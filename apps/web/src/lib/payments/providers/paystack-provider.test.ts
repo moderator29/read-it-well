@@ -33,7 +33,7 @@ describe("paystack behind the fiat seam", () => {
   it("verifyByReference keeps the provider's own status and amount", async () => {
     ps.verifyTransaction.mockResolvedValue({ reference: "r1", status: "abandoned", amountMinor: 5000, paidAt: null });
     expect(await paystackProvider.verifyByReference("r1")).toEqual({
-      reference: "r1", status: "failed", providerStatus: "abandoned", amountMinor: 5000, paidAt: null,
+      reference: "r1", status: "pending", providerStatus: "abandoned", amountMinor: 5000, paidAt: null,
     });
     expect(ps.verifyTransaction).toHaveBeenLastCalledWith("r1");
   });
@@ -41,7 +41,8 @@ describe("paystack behind the fiat seam", () => {
   it("maps every Paystack status, and never maps an in-flight one to failed", () => {
     expect(paystackStatus("success")).toBe("success");
     expect(paystackStatus("failed")).toBe("failed");
-    expect(paystackStatus("abandoned")).toBe("failed");
+    // An abandoned checkout can still be paid: never final.
+    expect(paystackStatus("abandoned")).toBe("pending");
     expect(paystackStatus("reversed")).toBe("reversed");
     for (const s of ["ongoing", "pending", "processing", "queued"] as const) expect(paystackStatus(s)).toBe("pending");
   });

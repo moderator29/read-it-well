@@ -26,8 +26,10 @@ export function paystackStatus(status: VerifiedTransactionStatus): CollectionSta
     case "success":
       return "success";
     case "failed":
-    case "abandoned":
       return "failed";
+    /* Paystack says "abandoned" of any checkout opened and not yet paid, even
+       while the payer is still on it, and a late payment still settles
+       (`attempt-rules.ts`, judgeAttempt). It is never final. */
     case "reversed":
       return "reversed";
     default:
@@ -41,6 +43,7 @@ export const paystackProvider = defineFiatProvider(
     id: "paystack",
     displayName: "Paystack",
     isConfigured: isPaystackConfigured,
+    /* For a charge that is not split. Every payment one person makes to another uses collectWithSplit. */
     async collect(input) {
       const done = await initializeTransaction(input);
       return { reference: done.reference, redirectUrl: done.authorizationUrl };
@@ -49,6 +52,7 @@ export const paystackProvider = defineFiatProvider(
       const done = await initializeTransaction(input);
       return { reference: done.reference, redirectUrl: done.authorizationUrl };
     },
+    /* A timeout throws `PaystackUnknownOutcome`, exactly as paystack.ts does; it is never mapped to failed. */
     async verifyByReference(reference) {
       const v = await verifyTransaction(reference);
       return { reference: v.reference, status: paystackStatus(v.status), providerStatus: v.status, amountMinor: v.amountMinor, paidAt: v.paidAt };

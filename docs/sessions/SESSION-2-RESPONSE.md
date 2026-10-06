@@ -125,9 +125,13 @@ Also run live: the existing `s1-owner-writes-keep-working` probe (listing insert
   settlements); the Paystack refund-from-main-balance behaviour documented; a kill
   switch and a registry added; the tautological signature test replaced with a real
   HMAC round trip.
-- Pass 2: the rebuilt seam has not had a second independent review yet. It moves no
-  call site, so nothing reaches money until one does. **Before the first call site
-  moves, a second pass is owed.** `/open` is an auth-routing fix, not money; it was still checked
+- Pass 2 (a different agent): **1 blocker**. The adapter mapped Paystack's
+  `abandoned` to `failed`, but Paystack says `abandoned` of any open, unpaid checkout
+  and a late payment still settles (the repo's own `judgeAttempt` rule). A caller
+  trusting `failed` would have closed a live payment. Fixed (`abandoned` is pending)
+  with a test. Everything else confirmed: identical pass-through, the type guarantees
+  hold under strict mode, the kill switch behaves outside a request. Owed when call
+  sites move: each money-starting call goes through `assertProviderEnabled`. `/open` is an auth-routing fix, not money; it was still checked
 twice: the new test passes 5/5 against the new route and fails 3/5 against the old
 one (the three deadline cases time out at 5 s), proving it catches the hang.
 
@@ -178,6 +182,9 @@ one (the three deadline cases time out at 5 s), proving it catches the hang.
   seam; call-site migration remaining). `a24552d62`.
 - Generated types regenerated from live; six drift errors fixed; 19 money tables the
   stale types hid are now documented in `docs/schema/NAMES.md`. `b5760fe4c`.
+- **ADR-0003 drafted** (`docs/adr/0003-two-rails-provider-held-escrow.md`), status
+  proposed: Vallo still never holds money; Payluk may, on the escrow rail, after
+  counsel's opinion, the cancellation decision and approved per-rail copy.
 - Housekeeping (7.18): dead `/wallet` revalidations removed; `MONEY_ARCHITECTURE.md`
   and `NAMES.md` corrected (custody retirement is applied); four documents describing
   virtual accounts as a plan marked superseded. `42280c8fd`.
