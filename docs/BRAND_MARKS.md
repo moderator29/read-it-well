@@ -1,5 +1,13 @@
 # Brand marks: the glass system
 
+> **SUPERSEDED on 5 October 2026 by [`docs/design/VISUAL_NORTH_STAR_2026-10-05.md`](/docs/design/VISUAL_NORTH_STAR_2026-10-05.md).**
+> That document carries the founder's four locked decisions for the
+> platform-wide next-generation upgrade: theme leading by surface, matte clay 3D
+> for content with line glyphs for chrome (glossy 3D banned), full redesign
+> surface by surface, and oversized live figures as the signature. Where this
+> file disagrees with it, this file is history. It is kept because code comments
+> cite it. Do not take icon, container, glow or motion direction from here.
+
 > **Track A, 25 September 2026.** Vallo no longer holds customer money: the wallet, escrow and held payments are retired. Where this document describes them it describes the past; the current truth is [`docs/MONEY_ARCHITECTURE.md`](/docs/MONEY_ARCHITECTURE.md).
 
 **Rewritten 16 September 2026, and the thing it used to say is now wrong.**
