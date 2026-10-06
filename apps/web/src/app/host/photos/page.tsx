@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { countOf, getDictionary, type Dictionary } from "@vallo/i18n";
+import { countOf, getDictionary, type Dictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { resolveSession } from "@/lib/actions/session";
 import {
@@ -21,10 +21,9 @@ import { HostShell } from "@/components/host/HostShell";
 import { BusinessPhotoManager } from "@/components/host/BusinessPhotoManager";
 import { AccommodationPhotoManager } from "@/components/host/AccommodationPhotoManager";
 
-export const metadata: Metadata = {
-  title: "Photographs",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: getDictionary(await getLocale()).experienceHost.screens.photos, robots: { index: false, follow: false } };
+}
 
 export const dynamic = "force-dynamic";
 
@@ -74,7 +73,7 @@ export default async function HostPhotosPage({
           body={t.hostWorkspace.photos.signedOutBody}
           action={
             <ButtonLink href={authHref(next, "sign-in")} variant="primary" size="lg">
-              Sign in
+              {t.common.signIn}
             </ButtonLink>
           }
         />
@@ -107,6 +106,8 @@ export default async function HostPhotosPage({
     <HostShell logoLabel={t.a11y.logoHome} fallback="/host">
       <HostPhotosBody
         copy={t.hostWorkspace}
+        words={t.experienceHost}
+        locale={locale}
         userId={session.user.id}
         businesses={businesses}
         chosen={chosen}
@@ -130,6 +131,8 @@ export function HostPhotosBody({
   accommodation = null,
   propertyPhotos = [],
   copy = getDictionary("en").hostWorkspace,
+  words = getDictionary("en").experienceHost,
+  locale = "en",
 }: {
   userId: string;
   businesses: MyBusiness[];
@@ -142,6 +145,10 @@ export function HostPhotosBody({
   propertyPhotos?: AccommodationPhoto[];
   /** The host workspace words in the reader's language; English in the previews. */
   copy?: Dictionary["hostWorkspace"];
+  /** The page's own words in the reader's language; English in the previews. */
+  words?: Dictionary["experienceHost"];
+  /** The reader's language, for the count; English in the previews. */
+  locale?: Locale;
 }) {
   if (!chosen) {
     return (
@@ -168,12 +175,9 @@ export function HostPhotosBody({
     <>
       <div className="nf-agent-head">
         <div>
-          <h1 className="nf-agent-head__title">Photographs</h1>
+          <h1 className="nf-agent-head__title">{words.screens.photos}</h1>
           <p className={`mt-row ${TYPE.bodyLg}`}>
-            {subjectName}
-            {onRecord === 0
-              ? " has no photographs yet, so its page shows a Vallo plate with a label saying so."
-              : countOf(onRecord, "photographsOnRecord")}
+            {onRecord === 0 ? words.photosNone.replace("{name}", subjectName) : `${subjectName}${countOf(onRecord, "photographsOnRecord", locale)}`}
           </p>
         </div>
       </div>
