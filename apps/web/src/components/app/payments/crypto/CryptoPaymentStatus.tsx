@@ -1,7 +1,7 @@
 "use client";
 
 import { useCopyFlash } from "@/lib/ui/use-copy";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { getDictionary, type Locale } from "@vallo/i18n";
 import { cryptoPaymentStatus } from "@/lib/crypto/actions";
 import { compareAtomic, fromAtomic, toAtomic } from "@/lib/crypto/decimal";
@@ -94,6 +94,18 @@ function useLivePayment(initial: CryptoPaymentView): CryptoPaymentView {
     };
   }, [view.reference, view.state, tick]);
   return view;
+}
+
+/** One fact on the plain card: the label quiet above, the value beneath. */
+function Fact({ label, children, mono = false, numeric = false }: { label: string; children: ReactNode; mono?: boolean; numeric?: boolean }) {
+  return (
+    <div className="min-w-0">
+      <dt className="nf-caption text-[var(--nf-content-muted)]">{label}</dt>
+      <dd className={`nf-body mt-3xs break-all text-[var(--nf-content-primary)] ${mono ? "font-mono" : ""} ${numeric ? "tabular-nums" : ""}`}>
+        {children}
+      </dd>
+    </div>
+  );
 }
 
 function CopyRow({ label, value, copyLabel, copiedLabel, mono = true }: { label: string; value: string; copyLabel: string; copiedLabel: string; mono?: boolean }) {
@@ -264,12 +276,18 @@ export function CryptoPaymentStatus({
         </Panel>
       )}
 
-      {(view.state === "settled" || view.state === "refunded" || view.state === "overpaid") && (
+      {view.state === "settled" && (
         /* THE RECEIPT IS PAPER (D28.1, reference 7082): the crypto receipt on
            the same document sheet as every other receipt, with the naira
            charge as its figure and every fact a person needs to prove the
            payment as a row. Restyle only: the rows are the ones this panel
-           always drew, from the same view, in the same order. */
+           always drew, from the same view, in the same order.
+
+           ONLY FOR `settled`, the one state in which the charge IS paid
+           (state-machine.ts: settled is "the charge is paid (FINAL)"). A
+           printable document headed "Charge paid" over the naira figure on a
+           refund, or on an overpayment still being converted, would be a
+           paper proof of a payment that has not happened (audit A5). */
         <DocumentSheet kind="receipt" printable as="section" aria-labelledby="crypto-receipt-title" data-testid="crypto-receipt">
           <DocHead label={t.receipt} title={t.receiptCharge} id="crypto-receipt-title" />
           <div className="nf-doc__hero">
@@ -292,11 +310,6 @@ export function CryptoPaymentStatus({
                 <span className="nf-doc__ref">{view.refundTxHash}</span>
               </DocRow>
             )}
-            {(view.state === "refunded" || view.state === "overpaid") && view.refundAddress && (
-              <DocRow label={t.receiptReturnedTo} numeric>
-                <span className="nf-doc__ref">{view.refundAddress}</span>
-              </DocRow>
-            )}
             <DocRow label={t.receiptReference} numeric>
               <span className="nf-doc__ref">{view.reference}</span>
             </DocRow>
@@ -307,6 +320,25 @@ export function CryptoPaymentStatus({
             )}
           </DocRows>
         </DocumentSheet>
+      )}
+
+      {(view.state === "refunded" || view.state === "overpaid") && (
+        /* A REFUND OR AN OVERPAYMENT: the facts, on the plain card, with no
+           title and no hero figure. The status line above already says what
+           happened in the words `crypto-pay` gives each state; this card only
+           keeps the references a person needs to trace the crypto. */
+        <Panel variant="card" data-testid="crypto-facts">
+          <dl className="grid gap-sm">
+            <Fact label={t.receiptSent} numeric>{`${view.cryptoReceived ?? view.cryptoAmount} ${view.asset}`}</Fact>
+            <Fact label={t.receiptNetwork}>{view.networkName}</Fact>
+            <Fact label={t.receiptRate} numeric>{fill(t.rateValue, { rate: view.rate, asset: view.asset })}</Fact>
+            {view.txHash && <Fact label={t.receiptTx} mono>{view.txHash}</Fact>}
+            {view.refundTxHash && <Fact label={t.receiptRefundTx} mono>{view.refundTxHash}</Fact>}
+            {view.refundAddress && <Fact label={t.receiptReturnedTo} mono>{view.refundAddress}</Fact>}
+            <Fact label={t.receiptReference} mono>{view.reference}</Fact>
+            {view.providerPaymentId && <Fact label={fill(t.receiptProviderReference, p)} mono>{view.providerPaymentId}</Fact>}
+          </dl>
+        </Panel>
       )}
 
       {(view.state === "expired" || view.state === "failed" || view.state === "refunded" || (view.state === "awaiting_payment" && left <= 0)) && (
