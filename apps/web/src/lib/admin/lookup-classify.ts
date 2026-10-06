@@ -16,7 +16,9 @@ export function classifyLookup(raw: string): { kind: LookupKind; value: string }
   if (/^VAL-SUP-\d+$/i.test(value)) return { kind: "ticket", value: value.toUpperCase() };
   if (UUID.test(value)) return { kind: "uuid", value: value.toLowerCase() };
   if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return { kind: "email", value: value.toLowerCase() };
-  if (/^(LST|VAL|STY|RST)-[A-Z0-9-]{3,}$/i.test(value)) return { kind: "listing", value: value.toUpperCase() };
+  /* VL- is the code the database mints for a listing (20260922110000, "VL-" and six characters); the
+     classifier only knew the older prefixes, so the code a caller reads off a listing came back as a word. */
+  if (/^(VL|LST|VAL|STY|RST)-[A-Z0-9-]{3,}$/i.test(value)) return { kind: "listing", value: value.toUpperCase() };
   /* The short reference an error screen shows (lib/observability/reference.ts). */
   if (/^(C-[A-Z2-9]{6}|[0-9A-F]{8})$/i.test(value) && /\d/.test(value)) return { kind: "error", value: value.toUpperCase() };
   /* Paystack references are long mixed tokens with no spaces. */

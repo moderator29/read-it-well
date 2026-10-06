@@ -57,7 +57,7 @@ export default async function LookupPage({ searchParams }: { searchParams: Promi
                 <li key={`${hit.kind}-${hit.href}`} className="nf-admin-queue-row">
                   <p className="flex flex-wrap items-center gap-xs">
                     <StatusBadge tone="neutral">{hit.kind}</StatusBadge>
-                    <Link href={hit.href} className="font-semibold text-[var(--nf-content-link)] underline-offset-2 hover:underline">
+                    <Link href={hit.href} className="inline-flex min-h-11 items-center font-semibold text-[var(--nf-content-link)] underline-offset-2 hover:underline">
                       {hit.title}
                     </Link>
                   </p>
