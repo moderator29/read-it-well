@@ -195,7 +195,12 @@ export function useOverlay({
       if (!modal) return;
       // Only take focus back if it is still somewhere in the overlay we are
       // tearing down; a close that deliberately moved focus elsewhere wins.
-      const panelNow = panelRef.current;
+      /* The panel as it was opened when the ref has already been let go: an
+         overlay that unmounts as it closes detaches its ref before this runs,
+         and reading only the ref made every such close take focus back,
+         including one that had deliberately moved it (the photo viewer
+         handing focus to the photo the reader ended on). */
+      const panelNow = panelRef.current ?? panel;
       const active = document.activeElement;
       if (!panelNow || !active || panelNow.contains(active) || active === document.body) {
         opener?.focus?.();

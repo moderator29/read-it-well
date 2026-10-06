@@ -53,12 +53,23 @@ import "@/app/css/catalogue.css";
  * the morph entirely) are honoured without a second code path.
  */
 
+type ViewerOptions = {
+  /** False when the opener is about to disappear (the "Show all" sheet). */
+  foldBack?: boolean;
+  /**
+   * The opener can show any photo in the tapped frame (the hero's own track).
+   * On close the viewer asks it to show the photo the reader ended on, and
+   * folds into the frame even when that is not the photo first tapped.
+   */
+  follow?: (index: number) => void;
+};
+
 type ViewerApi = {
   /**
    * Opens the viewer on a given photo index. No-op when there is nothing to
    * show. `origin` is the tapped thumbnail's rectangle, for the zoom.
    */
-  open(index: number, origin?: DOMRect | null, options?: { foldBack?: boolean }): void;
+  open(index: number, origin?: DOMRect | null, options?: ViewerOptions): void;
 };
 
 const PhotoViewerContext = createContext<ViewerApi | null>(null);
@@ -90,13 +101,15 @@ export function PhotoViewerProvider({
   const [index, setIndex] = useState<number | null>(null);
   const [origin, setOrigin] = useState<DOMRect | null>(null);
   const [foldBack, setFoldBack] = useState(true);
+  const [follow, setFollow] = useState<{ to: (index: number) => void } | null>(null);
 
   const api = useMemo<ViewerApi>(
     () => ({
-      open(next: number, from?: DOMRect | null, options?: { foldBack?: boolean }) {
+      open(next: number, from?: DOMRect | null, options?: ViewerOptions) {
         if (photos.length === 0) return;
         setOrigin(from ?? null);
         setFoldBack(options?.foldBack !== false);
+        setFollow(options?.follow ? { to: options.follow } : null);
         setIndex(Math.max(0, Math.min(photos.length - 1, next)));
       },
     }),
@@ -115,6 +128,7 @@ export function PhotoViewerProvider({
           startIndex={index}
           origin={origin}
           foldBack={foldBack}
+          follow={follow?.to ?? null}
           onClose={() => setIndex(null)}
         />
       )}
@@ -132,6 +146,7 @@ function Lightbox({
   startIndex,
   origin,
   foldBack,
+  follow,
   onClose,
 }: {
   title: string;
@@ -143,6 +158,8 @@ function Lightbox({
   origin: DOMRect | null;
   /** False when the opener is about to disappear (the "Show all" sheet). */
   foldBack: boolean;
+  /** The opener shows a given photo in the tapped frame, or null. */
+  follow: ((index: number) => void) | null;
   onClose(): void;
 }) {
   const track = useRef<HTMLDivElement | null>(null);
@@ -235,21 +252,33 @@ function Lightbox({
     return () => window.removeEventListener("popstate", onPop);
   }, [mounted]);
 
-  /* Closing from inside folds the photograph back into its thumbnail when
-     it is still the one that was tapped and nothing is mid-drag; the history
-     pop that does the real close waits for the fold. */
+  /* Closing from inside folds the photograph back into its thumbnail; the
+     history pop that does the real close waits for the fold.
+
+     ROUND 5. It folded only while the photo on screen was the one first
+     tapped and nothing was mid-drag; otherwise the viewer vanished in one
+     frame, which is most closes (people swipe, then close; or swipe down).
+     Now:
+       - a frame that can follow (the hero's own track) is first moved to the
+         photo the reader ended on, out of sight under the viewer, and the
+         photograph folds into it: the same picture lands where it goes;
+       - a dismissing drag folds FROM WHERE THE FINGER LEFT IT. The track is
+         still carrying the drag's transform, so the pane's fold is written
+         relative to it, and the two compose into one move to the frame,
+         with the ground fading on from wherever the drag had taken it. */
   const folding = useRef(false);
   /* The zoom out of the thumbnail still running, and the fold back into it:
      held so a close mid-open measures the pane at rest, and so nothing is
      left animating (or calling back) once the viewer has gone. */
   const opening = useRef<Animation[]>([]);
   const folds = useRef<Animation[]>([]);
-  const fold = useCallback((then: () => void) => {
-    const pane = track.current?.children[startIndex];
+  const fold = useCallback((then: () => void, held?: { dy: number; scale: number; fade: number }) => {
     const ground = surface.current;
     const el = track.current;
-    const onTapped = el !== null && Math.round(el.scrollLeft / Math.max(1, el.clientWidth)) === startIndex;
-    if (!morph || !foldBack || !origin || !onTapped || !(pane instanceof HTMLElement) || !ground || folding.current) {
+    const at = el ? Math.round(el.scrollLeft / Math.max(1, el.clientWidth)) : startIndex;
+    const pane = el?.children[at];
+    const canLand = at === startIndex || follow !== null;
+    if (!morph || !foldBack || !origin || !canLand || !(pane instanceof HTMLElement) || !ground || folding.current) {
       then();
       return;
     }
@@ -258,14 +287,20 @@ function Lightbox({
        translated box, and the fold would then fly back from the wrong place. */
     for (const run of opening.current) run.cancel();
     opening.current = [];
-    const to = flight(origin, pane.getBoundingClientRect());
+    if (at !== startIndex) follow?.(at);
+    /* The pane at rest is the viewer's own box (fixed, full screen); measured
+       there rather than on the pane, which may be carrying the drag. */
+    const f = flightOf(origin, ground.getBoundingClientRect());
+    const to = held
+      ? `translate(${f.dx / held.scale}px, ${(f.dy - held.dy) / held.scale}px) scale(${f.scale / held.scale})`
+      : `translate(${f.dx}px, ${f.dy}px) scale(${f.scale})`;
     const timing = motionToken("--nf-duration-base", "240ms", "--nf-ease-exit", "cubic-bezier(0.4, 0, 1, 1)");
-    const fade = ground.animate([{ opacity: 1 }, { opacity: 0 }], { ...timing, fill: "forwards", pseudoElement: "::before" });
+    const fade = ground.animate([{ opacity: held?.fade ?? 1 }, { opacity: 0 }], { ...timing, fill: "forwards", pseudoElement: "::before" });
     const back = pane.animate([{ transform: "none", opacity: 1 }, { transform: to, opacity: 0.6 }], { ...timing, fill: "forwards" });
     folds.current = [fade, back];
     back.onfinish = then;
     back.oncancel = then;
-  }, [morph, foldBack, origin, startIndex]);
+  }, [morph, foldBack, origin, startIndex, follow]);
   /* Gone mid-fold (a route change under the viewer): stop the fold without
      letting its cancel call the close that already happened. */
   useEffect(
@@ -289,13 +324,14 @@ function Lightbox({
     }
     onClose();
   }, [onClose]);
-  /* A dismissing drag already moved the photograph; folding it from there
-     would jump, so a drag closes directly. Read through a ref so this
-     callback keeps one identity while the finger moves. */
-  const dragging = useRef(false);
+  /* Where a dismissing drag has the photograph, read through a ref so this
+     callback keeps one identity while the finger moves; the fold starts
+     from there (above). */
+  const dragAt = useRef(0);
   const close = useCallback(() => {
-    if (morph && foldBack && !dragging.current) {
-      fold(closeNow);
+    if (morph && foldBack) {
+      const dy = dragAt.current;
+      fold(closeNow, dy > 0 ? dragPose(dy) : undefined);
       return;
     }
     closeNow();
@@ -316,7 +352,7 @@ function Lightbox({
    */
   const [drag, setDrag] = useState(0);
   useEffect(() => {
-    dragging.current = drag > 0;
+    dragAt.current = drag;
   }, [drag]);
   const gesture = useRef<{ x: number; y: number; t: number; axis: "x" | "y" | null } | null>(null);
   const reduced = useRef(false);
@@ -454,8 +490,8 @@ function Lightbox({
         drag > 0
           ? ({
               "--nf-viewer-drag": `${drag}px`,
-              "--nf-viewer-fade": String(1 - Math.min(drag / 520, 0.75)),
-              "--nf-viewer-scale": String(1 - Math.min(drag / 3000, 0.12)),
+              "--nf-viewer-fade": String(dragPose(drag).fade),
+              "--nf-viewer-scale": String(dragPose(drag).scale),
             } as CSSProperties)
           : undefined
       }
@@ -463,8 +499,10 @@ function Lightbox({
         // Above the Sheet primitive's 80/81, so a photo opened from the
         // "Show all" sheet is never painted behind the sheet it came from.
         "nf-photo-viewer fixed inset-0 z-[90] outline-none",
-        "transition-opacity duration-200 ease-out motion-reduce:transition-none",
-        "motion-safe:transition-[opacity,transform] motion-safe:duration-200",
+        /* The plain fade (no thumbnail to grow from) on the motion tokens,
+           not Tailwind's own 200ms and curve (CRAFT-PRINCIPLES 2.1). */
+        "transition-opacity duration-[var(--nf-duration-base)] ease-[var(--nf-ease-standard)] motion-reduce:transition-none",
+        "motion-safe:transition-[opacity,transform]",
         entered ? "opacity-100 motion-safe:scale-100" : "opacity-0 motion-safe:scale-[0.98]",
       ].join(" ")}
     >
@@ -549,12 +587,24 @@ function Lightbox({
  * one uniform scale (never squashed) about the pane's centre, and the move
  * between the two centres. Measured on both ends, so it is right at any width.
  */
+function flightOf(from: DOMRect, pane: DOMRect): { dx: number; dy: number; scale: number } {
+  if (pane.width === 0 || pane.height === 0) return { dx: 0, dy: 0, scale: 1 };
+  return {
+    scale: Math.max(from.width / pane.width, from.height / pane.height),
+    dx: from.left + from.width / 2 - (pane.left + pane.width / 2),
+    dy: from.top + from.height / 2 - (pane.top + pane.height / 2),
+  };
+}
+
 function flight(from: DOMRect, pane: DOMRect): string {
   if (pane.width === 0 || pane.height === 0) return "none";
-  const scale = Math.max(from.width / pane.width, from.height / pane.height);
-  const dx = from.left + from.width / 2 - (pane.left + pane.width / 2);
-  const dy = from.top + from.height / 2 - (pane.top + pane.height / 2);
-  return `translate(${dx}px, ${dy}px) scale(${scale})`;
+  const f = flightOf(from, pane);
+  return `translate(${f.dx}px, ${f.dy}px) scale(${f.scale})`;
+}
+
+/** Where a dismissing drag of `dy` pixels has the photograph and its ground. */
+function dragPose(dy: number): { dy: number; scale: number; fade: number } {
+  return { dy, scale: 1 - Math.min(dy / 3000, 0.12), fade: 1 - Math.min(dy / 520, 0.75) };
 }
 
 /**
