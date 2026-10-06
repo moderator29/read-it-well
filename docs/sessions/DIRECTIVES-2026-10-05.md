@@ -11,6 +11,11 @@ Every session reads this file first.
 
 ## D1. Brand: the three-layer hierarchy
 
+> **Amended by D28.1 on 6 October.** The theme half of the original D1, which had
+> money surfaces leading Paper, is superseded: the member's chosen theme governs
+> everywhere and Dark stays the default. Paper is now a treatment for the document
+> itself rather than the screen around it. The brand hierarchy below is unchanged.
+
 **Locked. Supersedes "Real Estate reimagined!" and supersedes the Master Prompt's
 own "FIND YOUR SPACE. WITHOUT THE RUNAROUND."**
 
@@ -360,6 +365,180 @@ past the action.** The dark pattern was never preselection; it was hiding what h
 next. The three-step trial timeline is the mechanism that makes it honest and it is
 required wherever a trial exists.
 
+## D22. Notifications across three channels, including SMS
+
+**New, 6 October.** Notifications become a first-class system on **three channels: in
+app, push, and email, plus SMS** for the narrow set that earns it.
+
+**SMS is already built and paid for.** The Termii transport behind `OtpTransport`
+delivers authentication codes today, with WhatsApp first and the DND route so MTN and
+Airtel do-not-disturb numbers still receive messages. The same transport carries
+notification SMS, so this is a routing change rather than a new integration.
+
+**SMS costs money per message and interrupts a person at any hour, so it is rationed.
+It is permitted only for:**
+
+1. **Money that moved, or failed to move**: a payment settled, a refund processed, a
+   withdrawal landed or failed, escrow funded or released, a chargeback.
+2. **A deadline with consequences**: rent due or overdue, an agreement about to lapse,
+   a check-in today, a dispute response window closing.
+3. **Security**: a new device, a payout account changed, a password or passcode reset.
+
+**SMS is never used for anything social**, never for marketing, and never for
+something that can wait until the person next opens the app. A member can turn
+non-security SMS off, and the preference is honoured everywhere.
+
+**Every notification has a preview and a full view.** The preview is the row in the
+list, the push body and the email subject line, and it carries enough to act on
+without opening. Opening it goes to **a designed full screen for that event**, not a
+generic detail page and never a dead end. North star section 16 specifies both.
+
+**Coverage is broad and the sessions must extend it.** Section 16.2 lists the events
+Session 1 found across money, trust, supply, bookings, tenancy, social, relations,
+account and staff. **It is a floor, not a ceiling**: every session adds the events it
+discovers in its own area and records them.
+
+## D23. Emails rebuilt
+
+**New, 6 October.** The founder's assessment of the current emails is that they look
+like nothing. They become a designed surface with the same material system as the
+app: premium containers, real buttons, clean icons and **more** icons, and proper
+components rather than paragraphs of text.
+
+**In light mode every email is a white background.** No grey wash, no dark card on
+light. Receipts, statements and anything that is a document follow the Paper register.
+
+Full specification in north star section 16.5.
+
+## D24. No demo content, and an honest Beta badge
+
+**New, 6 October.** The founder wants demo and example labelling gone from listings.
+
+**The resolution is to remove the content, not the label.** This repository once
+shipped 23 invented places, 22 of them marked verified, on addresses that do not
+exist, and that is why `demo`, `sample` and `preview` are banned words with a test
+enforcing the ban. Stripping the label from demo content would recreate exactly that
+incident.
+
+So: **demo listings are never served to a real member in production.** They are gated
+out of every read path rather than labelled, which means no label is needed because no
+member ever meets one. They remain reachable in the admin examples surface and in the
+development harness, where their status is obvious from context. When real supply
+arrives, the demo rows are deleted.
+
+**Beta badges are permitted and are different.** Beta is an honest statement about a
+feature's maturity, unlike `demo` or `coming soon`, which describe something that is
+not there. A small Beta chip may sit beside a feature that is live, works, and is
+still settling. It is never applied to anything touching money, trust or verification:
+a person deciding whether to send rent does not want to read that the payment flow is
+in beta. The word joins the allowed vocabulary with that constraint, and the banned
+list is otherwise unchanged.
+
+## D25. Inner pages, so nothing is jammed into one screen
+
+**New, 6 October.** Too much currently lives on single screens. The platform gains
+**depth**: an area has a clean overview, and the detail lives on its own inner page
+with its own motion, its own back destination and its own empty, loading and error
+states.
+
+**The rule of thumb:** when a screen carries more than one job, the second job becomes
+an inner page. An overview answers "what needs me and how am I doing"; an inner page
+answers one question completely.
+
+This is not more clicks for their own sake. It is the difference between a dashboard a
+person can read in three seconds and a wall they scroll past. Session 3 owns the
+information architecture and has authority to split surfaces.
+
+## D26. Sessions keep the repository and their environment clean
+
+**New, 6 October.** Professionalism, in the founder's words. Scratch files, experiments
+and one-off scripts live in the scratchpad and are never committed. Commits are
+focused, with real messages that say why. Generated files are not hand-edited.
+Branches are tidy. The working tree is clean when a session finishes, lint and
+typecheck are green before any push, and nothing is left half-applied. A session that
+creates a mess for the next session has not finished its work.
+
+## D27. Sessions use the current Claude Code tooling, including mods
+
+**New, 6 October.** Sessions work as engineers with modern tooling rather than as a
+plain editor.
+
+**Mods**, Claude Code's plugin system, are used where a check should be automatic
+rather than remembered: a hook that runs lint and typecheck before a commit, a status
+line showing the current session and the per-page audit progress, a pane for the
+checklist Session 3 must run on every page. **Session 4 owns the shared mods** so
+three sessions do not each build their own, and it records what it created so the
+others can enable them.
+
+Also used: skills where one exists for the job, and **the `dataviz` skill is loaded
+before the first line of chart code**; subagents for parallel independent work under
+declared ownership; worktrees where a change is broad; background execution for long
+builds and test runs.
+
+## D28. It stays Vallo. Evolution, not a new platform
+
+**New, 6 October, and it amends D1. This is the governing instruction for the whole
+sweep.**
+
+The founder's words: the default mode does not change, the current containers and flow
+stay as they are but upgraded, and **he does not want the platform to look like a
+different platform**. A legendary upgrade **of Vallo**, not a replacement for it.
+
+**This outranks any individual design decision in this file or the north star.** Where
+something below would make a returning member feel they had opened an unfamiliar
+product, it is wrong, however good it looks in isolation.
+
+### D28.1 The theme default does not change
+
+**Dark stays the default.** Light, Dark and System remain the choice, painted from the
+`nf_theme` cookie, defaulting to Dark, exactly as today.
+
+**This amends D1**, which said money and document surfaces would *lead* Paper. Taken
+literally, that meant a member on Dark walking from a dark home into a white checkout,
+and that is precisely the jarring, different-platform feeling the founder is refusing.
+
+**The resolution, which keeps both intentions.** The member's chosen theme governs the
+application, always and everywhere. **Paper becomes a treatment for the document
+itself, not for the screen around it.** On a dark canvas, a receipt, a statement, an
+agreement or a transaction detail renders as **a light document sheet sitting on the
+dark surface**, the way a real receipt sits on a desk: elevated, bounded, unmistakably
+a document, with the chrome and navigation around it staying in the member's theme.
+
+That gives the receipt its "worth screenshotting as proof" quality, which was the point
+of D1, without ever flipping the application out from under somebody. A member who
+chooses Light gets the same document on a light ground, where it reads as paper on
+paper and needs only its border and elevation to separate it.
+
+### D28.2 Containers and flow are evolved, not replaced
+
+The four container tiers are **a formalisation of what the product already does**, not
+a new system imposed over it. Plate, Card, Island and Sheet are names for shapes
+already in use, with their radii, elevation and edge treatment made consistent and
+their behaviour in both themes made deliberate. **The radii, the navy glass material,
+the edge light and the blue family all stay.**
+
+**Flow stays.** The dock keeps its slots. The side navigation keeps its structure. The
+listing, checkout, agreement and workspace flows keep their steps. The inner-page work
+in D25 **splits screens that carry two jobs; it does not reorder a flow a member
+already knows.**
+
+### D28.3 The test every change must pass
+
+> **Would a member who used Vallo last week open it and feel they are in the same
+> product, only better?**
+
+If the honest answer is no, the change is wrong and is reworked. Upgrade the material,
+the type, the figures, the motion, the depth and the craft. **Do not move somebody's
+furniture.**
+
+### D28.4 What this does not soften
+
+The upgrade is still thorough: every page audited, the motion system, the figure
+signature, the matte clay migration off glass, feature onboarding, the notification
+and email rebuild, the money surfaces, the admin mobile rebuild. **The standard is
+unchanged; the identity is preserved.** Those are not in tension, and a session that
+treats D28 as permission to do less has misread it.
+
 ---
 
 ## What this file supersedes, explicitly
@@ -380,3 +559,8 @@ required wherever a trial exists.
 | The blanket anti-streak rule, for earned standing only | D17 |
 | `DEFAULT_PASSCODE_LENGTH = 6` | D18 |
 | North star 14.3's ban on a preselected plan | D21 |
+| Notifications as a two-channel afterthought | D22 |
+| The current email design | D23 |
+| Demo listings being labelled rather than gated out | D24 |
+| Single screens carrying several jobs | D25 |
+| **D1's per-surface theme lead** | **D28.1: the member's theme governs; Paper becomes a document treatment within it** |

@@ -80,6 +80,28 @@ actually work. Three conditions: it connects or completes rather than starting a
 unrelated area; it is inside your boundary under the contract; and it is recorded in
 your response file with what it connects and why.
 
+
+### Repository and environment hygiene (D26)
+
+Professionalism, in the founder's words. Scratch files, experiments and one-off scripts
+live in the scratchpad and are **never committed**. Commits are focused with messages
+that say why, not what. Generated files are not hand-edited. The working tree is clean
+when you finish, lint and typecheck are green before any push, and nothing is left
+half-applied. **A session that leaves a mess for the next session has not finished.**
+
+### Use the current tooling, including mods (D27)
+
+Work as an engineer with modern tooling, not a plain editor. **Mods**, Claude Code's
+plugin system, are for checks that should be automatic rather than remembered: a hook
+running lint and typecheck before a commit, a status line showing audit progress, a
+pane for a checklist. **Session 4 owns the shared mods** so three sessions do not each
+build their own, and records what it created so the others enable them.
+
+Also: skills where one exists for the job, and **the `dataviz` skill is loaded before
+the first line of chart code**; subagents for parallel independent work under declared
+ownership; worktrees where a change is broad; background execution for long builds and
+test runs.
+
 ### 2.4 Hard rules
 
 **Never skip, disable or quarantine a test to get green.** If a test fails, either the

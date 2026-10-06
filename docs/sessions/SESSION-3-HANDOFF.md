@@ -82,9 +82,52 @@ instead of the logo.
 Every page redesigned and audited. One coherent product across app, website, docs,
 legal, email and admin. Motion as the personality rather than a finishing pass.
 
+## 3A. THE GOVERNING RULE: it stays Vallo (D28)
+
+**Read this before the locked decisions, because it qualifies them.**
+
+The founder's words: the default mode does not change, the current containers and flow
+stay but are upgraded, and **he does not want the platform to look like a different
+platform.** A legendary upgrade **of Vallo**, not a replacement for it.
+
+**This outranks every individual design decision in your brief.** Where something would
+make a returning member feel they had opened an unfamiliar product, it is wrong,
+however good it looks alone.
+
+- **Dark stays the default.** Light, Dark and System remain the choice from the
+  `nf_theme` cookie. **You never flip the application out from under somebody.**
+- **Paper is a document treatment, not a screen register.** On a dark canvas a receipt,
+  statement, agreement or transaction detail is **a light document sheet on the dark
+  surface**, the way a receipt sits on a desk, with the chrome around it in the
+  member's theme. That is what makes it worth screenshotting as proof, which was the
+  whole point.
+- **Containers are formalised, not replaced.** The radii, the navy glass, the edge
+  light and the blue family stay. Elevation and edge treatment become consistent.
+- **Flow stays.** The dock keeps its slots, the side nav its structure, and the
+  listing, checkout, agreement and workspace flows their steps. The inner-page work
+  splits screens carrying two jobs; **it does not reorder a flow a member knows.**
+
+**The test for every change you make:**
+
+> Would a member who used Vallo last week open it and feel they are in the same
+> product, only better?
+
+If the honest answer is no, rework it. **Upgrade the material, the type, the figures,
+the motion, the depth and the craft. Do not move somebody's furniture.**
+
+**This does not soften the standard.** Every page is still audited, the motion system
+still ships, the clay migration still happens, feature onboarding, notifications,
+email, the money surfaces and admin mobile are all still built. Identity is preserved
+and ambition is not reduced. A session treating D28 as permission to do less has
+misread it.
+
 ## 4. THE FOUR LOCKED DECISIONS
 
-**D1 Theme leads by surface.** Night for landing, startup, auth, home, search, stays,
+**D1 Theme, as amended by D28.1.** The member's theme governs everywhere, Dark stays
+the default, and Paper is a document treatment within it. The list below names which
+surfaces are **documents**, not which flip the app.
+
+**Originally:** Night for landing, startup, auth, home, search, stays,
 restaurants, detail, Around, profile, saved, notifications, assistant and the lister
 dashboards. **Paper** for checkout, pay, receipts, payments history, earnings,
 statements, agreements, the move-in ledger, tenancy, the caution register, the Money
@@ -179,6 +222,28 @@ features to old ones**, make a flow whole, or add the tool that makes a named fe
 actually work. Three conditions: it connects or completes rather than starting an
 unrelated area; it is inside your boundary under the contract; and it is recorded in
 your response file with what it connects and why.
+
+
+### Repository and environment hygiene (D26)
+
+Professionalism, in the founder's words. Scratch files, experiments and one-off scripts
+live in the scratchpad and are **never committed**. Commits are focused with messages
+that say why, not what. Generated files are not hand-edited. The working tree is clean
+when you finish, lint and typecheck are green before any push, and nothing is left
+half-applied. **A session that leaves a mess for the next session has not finished.**
+
+### Use the current tooling, including mods (D27)
+
+Work as an engineer with modern tooling, not a plain editor. **Mods**, Claude Code's
+plugin system, are for checks that should be automatic rather than remembered: a hook
+running lint and typecheck before a commit, a status line showing audit progress, a
+pane for a checklist. **Session 4 owns the shared mods** so three sessions do not each
+build their own, and records what it created so the others enable them.
+
+Also: skills where one exists for the job, and **the `dataviz` skill is loaded before
+the first line of chart code**; subagents for parallel independent work under declared
+ownership; worktrees where a change is broad; background execution for long builds and
+test runs.
 
 ### 5.4 The breadth mandate
 
@@ -561,6 +626,54 @@ shrink desktop tables onto a phone.** Design mobile workflows.
 Cover the eight required area groups in feature register H2, and **do not assume a
 usable control surface exists because a table does.**
 
+### Stage 8B: Notifications, email, and inner-page depth (B2, B3)
+
+North star section 16. Founder directives D22, D23, D25.
+
+**Notification preview and full view.** Every notification has both and both are
+designed. The preview is the list row, the push body and the email subject, and **it
+must be actionable without opening**: "Rent of ₦1,200,000 is due on 14 October", never
+"You have a new notification". The full view is **a designed screen per event family**,
+reached by a route so back behaves and a deep link lands, carrying what happened, when,
+who, the figure and its breakdown, the one action the event asks for, a link to the
+object, and the timeline before it. It is never a generic detail page and it never
+dead-ends. Several events on one object group into one expandable row. Counts are
+cyan, never red.
+
+**The notification centre** with filter chips for All, Money, Trust, Spaces, Messages
+and Account; unread first then chronological with day dividers; mark all read; and
+per-family preferences two taps away, so somebody who wants money SMS but not social
+push can say so.
+
+**Email, rebuilt (16.5).** The founder's assessment of the current emails is that they
+look like nothing. **In light mode every email is a white background**, no grey wash,
+no dark card on light. Money and document emails follow Paper; a receipt is always
+Paper. The anatomy in order: wordmark with the slogan quiet beneath, a **clay object**
+naming the family, the subject as a display line, the consequence in one sentence, the
+**figure large and tabular** where there is money, detail as **key-value rows** rather
+than prose, **one primary button as a rounded rectangle at radius 14, never a pill**,
+with a plain-text link beneath for clients that strip buttons, then a quiet footer.
+
+**Build the components**, because the founder asked for components rather than text:
+figure block, key-value table, itemised breakdown with a total rule, status chip,
+timeline, space card with photograph and move-in total, person row, receipt block with
+dual confirmation rows, verification code block, quiet callout. **Icons at last**: the
+clay object in the header plus line glyphs in the rows, every image with alt text and a
+fallback so a client that blocks images still leaves a readable email. **A receipt
+email matches the on-screen receipt exactly**, because one that differs looks forged.
+
+**Inner pages (16.6).** **When a screen carries more than one job, the second job
+becomes an inner page.** An overview answers "what needs me and how am I doing"; an
+inner page answers one question completely, with its own motion, back destination, and
+empty, loading and error states. The table in 16.6 gives the split for wallet, escrow,
+referrals, analytics, passport, workspaces, settings and admin. **You own the
+information architecture and have authority to split any surface.** Not clicks for
+their own sake: it is the difference between a dashboard read in three seconds and a
+wall a person scrolls past.
+
+**Beta chips (D24)** where Session 2's maturity flag says so, small and quiet, and
+**never on anything touching money, trust or verification**.
+
 ### Stage 9: One product (B3, B4)
 
 **App, website, docs, legal and admin must not look like five unrelated products.**
@@ -645,7 +758,11 @@ ranking formula.
 21. The illustrated action sheet replaces the generic list sheet everywhere.
 22. Inbox carries quoted replies, unread dividers and voice-note waveforms.
 23. Every trial screen carries the three-step timeline including the reminder step.
-24. Typecheck and lint green. The glow count reduced and the lint ratcheted.
+24. Every notification has an actionable preview and a designed full view per family.
+25. Emails are white in light mode, component-built, with a clay object and line
+    glyphs, and a receipt email matches its screen exactly.
+26. No screen carries two jobs: the second became an inner page.
+27. Typecheck and lint green. The glow count reduced and the lint ratcheted.
 
 ## 12. YOUR RESPONSE FILE
 

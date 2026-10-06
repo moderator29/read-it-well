@@ -1339,3 +1339,226 @@ entire plan.
 8. **Onboarding**, section 8.
 9. **Tier plaques**, section 7.
 10. **Actions**, section 4.
+
+---
+
+# 13. THE GLASS REPLACEMENT PROGRAMME
+
+**Measured on 6 October 2026, not estimated.**
+
+| | Count |
+|---|---|
+| Glass assets in `public/brand/glass/` | **144** |
+| Clay assets in `public/brand/3d/` | **53** |
+| **Glass objects with no clay equivalent at all** | **68** |
+| Code files using `BrandIcon` | **64** |
+
+This is the gap behind the founder's report that the icons still read badly on light.
+Glass needs a dark ground to resolve, and 144 glass objects are still in the product
+while only 53 clay objects exist to replace them.
+
+**The 68 below have no clay equivalent and are generated from scratch.** The other 76
+have a plausible clay match that must still be **checked by eye on paper at 390px**
+before it is accepted as a replacement, because a name match is not a visual match.
+
+**Every prompt in this section follows the house rules in section 0 and the light-mode
+acceptance rule in 9C: matte clay, deep royal blue `#2B3FE0`, soft key light upper
+left, no gloss, transparent background, and checked on `#F4F4F1` as well as `#010118`
+before it is accepted.**
+
+## 13.1 The shared clause
+
+Append this to every prompt in 13.2 onward. It is written once here so the subject
+lines stay readable.
+
+```
+Rendered in matte clay with a soft velvety finish, deep royal blue #2B3FE0, subtle
+rounded bevels. Soft diffused key light from the upper left, gentle ambient occlusion,
+no specular highlights. Fully transparent background. Centred with generous even
+padding. Square 1:1. Clean studio product render, premium and understated.
+Do not include: gloss, shine, reflection, chrome, glass, metal, neon, rim light, glow,
+gradient background, floor shadow, text, letters, numbers, logos, people.
+```
+
+## 13.2 Space types, 22 missing
+
+These carry discovery, the category rows and the flip pages. Nigerian and
+international forms both appear because the spec names fifteen categories.
+
+```
+A single 3D object: a single-storey bungalow with a low pitched roof, a central front door and one window each side.
+A single 3D object: a two-storey duplex, symmetrical, with two separate front doors side by side under one roof.
+A single 3D object: a terraced house, one unit of a row, with a shared wall edge visible on each side and a single front door.
+A single 3D object: a townhouse, three narrow storeys, with a stepped entrance and tall windows stacked vertically.
+A single 3D object: a twin house, two mirrored halves joined at the centre under one roofline, with a door on each half.
+A single 3D object: a modern house with a flat roof, a wide glazed front and a cantilevered upper floor.
+A single 3D object: a grand mansion with a central portico, two symmetrical wings and a stepped entrance.
+A single 3D object: a penthouse, the top two floors of a tower cropped at the base, with a wraparound terrace and a railing.
+A single 3D object: a loft apartment, a converted industrial block with tall arched windows and an exposed roof beam.
+A single 3D object: a mini flat, a small single-room dwelling with one door and one window, compact and modest.
+A single 3D object: a serviced apartment block, six storeys, with uniform balconies and a canopied ground entrance.
+A single 3D object: a guest house, two storeys, with a small reception canopy and a row of identical upper windows.
+A single 3D object: a beach house raised on short stilts with a veranda and a shallow pitched roof.
+A single 3D object: a lake house with a pitched roof and a short wooden jetty extending from its base.
+A single 3D object: a mountain cabin with a steep pitched roof, a stone chimney and a small porch.
+A single 3D object: a tree house resting in the fork of a thick trunk, with a short ladder and a railed platform.
+A single 3D object: a houseboat, a flat-bottomed hull with a small cabin and a railed deck.
+A single 3D object: a farm house with a pitched roof, a small barn beside it and a fenced edge.
+A single 3D object: a coworking space, a wide low building with a glazed front and an open-plan interior implied by regular mullions.
+A single 3D object: an office suite, a single floor of a building cropped top and bottom, with an even run of windows and a door.
+A single 3D object: a retail shop front with a wide display window, a central door and a short awning.
+A single 3D object: a warehouse with a shallow curved roof, a large roller shutter and a small personnel door beside it.
+```
+
+## 13.3 Wallet and money, 12 missing
+
+```
+A single 3D object: a closed bifold wallet standing upright on its folded edge, soft and slightly rounded.
+A single 3D object: a closed wallet lying flat with a small blank card protruding slightly from its top edge.
+A single 3D object: a closed wallet with a small upward arrow rising from its top edge, indicating money leaving.
+A single 3D object: a closed wallet with a small plus sign resting on its face, indicating money added.
+A single 3D object: a closed wallet set inside a thin open ring that surrounds it without touching.
+A single 3D object: a closed wallet resting on a flat rounded square tile slightly larger than itself.
+A single 3D object: an open upturned palm with a small stack of three completely blank banknotes resting on it.
+A single 3D object: a rounded savings pot with a narrow slot in its lid and a soft bulging body.
+A single 3D object: a folded paper bill resting on a flat rounded square tile slightly larger than itself.
+A single 3D object: a thick ledger book lying closed with a ribbon marker emerging from its pages.
+A single 3D object: two curved arrows forming a circle, one pointing left and one pointing right, indicating transfer.
+A single 3D object: a coin standing on edge, completely blank on both faces, mid-rotation at a slight tilt.
+```
+
+## 13.4 Charts, progress and reputation, 4 missing
+
+```
+A single 3D object: a rising line chart of four connected points on a thin base, the last point highest and slightly raised.
+A single 3D object: a circular ring chart about three quarters complete, with a clean gap where the remainder would be.
+A single 3D object: a thin circular progress ring about two thirds complete with softly rounded stroke ends.
+A single 3D object: five small five-pointed stars in a gentle arc, evenly spaced and all identical.
+```
+
+## 13.5 Communication, 5 missing
+
+```
+A single 3D object: two overlapping rounded speech bubbles of slightly different sizes, both solid, each with a small tail.
+A single 3D object: a single rounded speech bubble set inside a thin open ring that surrounds it without touching.
+A single 3D object: a pair of over-ear headphones with a padded band and a slim boom microphone.
+A single 3D object: a paper plane in gentle upward flight resting on a flat rounded square tile slightly larger than itself.
+A single 3D object: a small friendly robot head, a rounded cube with two simple recessed circular eyes and a short antenna.
+```
+
+## 13.6 Trust, documents and people, 6 missing
+
+```
+A single 3D object: a single sheet of paper with a bold cross mark embossed on its face.
+A single 3D object: a single sheet of paper with a magnifying glass resting diagonally across it, the lens a flat recessed panel of the same clay.
+A single 3D object: a circular wax-style seal with a bold cross embossed in its centre and two short ribbon tails.
+A single 3D object: a magnifying glass set inside a thin open ring that surrounds it without touching.
+A single 3D object: three simple rounded human figures standing together, set inside a thin open ring.
+A single 3D object: a sliding control with three horizontal tracks and a round handle on each, set inside a thin open ring.
+```
+
+## 13.7 Place, travel and view, 6 missing
+
+```
+A single 3D object: a globe with simple raised continental shapes and two faint latitude bands, no text.
+A single 3D object: a globe with a small square microchip resting against its lower right edge.
+A single 3D object: a globe with a single rounded map pin planted upright on its upper surface.
+A single 3D object: a single palm tree with a slightly curved trunk and five fronds, on a small rounded mound of sand.
+A single 3D object: a wheeled suitcase standing upright with a small paper plane flying above and behind it.
+A single 3D object: a circular arrow loop forming a complete ring around a small empty centre, indicating a 360 degree view.
+```
+
+## 13.8 Intelligence, 2 missing
+
+```
+A single 3D object: a simplified brain form with one small square microchip embedded in its surface.
+A single 3D object: a simplified brain form set inside a thin open ring that surrounds it without touching.
+```
+
+## 13.9 States and system, 6 missing
+
+```
+A single 3D object: a rounded equilateral triangle standing on its base with a bold exclamation mark embossed in its centre.
+A single 3D object: a circle with a bold lowercase letter i embossed in its centre, the letter formed as raised geometry rather than printed type.
+A single 3D object: an hourglass with a narrow waist and a small quantity of sand settled in the lower bulb.
+A single 3D object: a lightning bolt resting against a small rounded calendar block, indicating an instant booking.
+A single 3D object: a double bed seen from a raised three-quarter angle, set inside a thin open ring that surrounds it without touching.
+A single 3D object: a ribbon bookmark hanging from the top edge of a closed book, its tail cut in a notch.
+```
+
+## 13.10 Keys, workspace and craft, 5 missing
+
+```
+A single 3D object: a single key bent into a closed loop so its tip meets its bow, forming a continuous cycle.
+A single 3D object: a plain circular split ring holding one simple key.
+A single 3D object: a tall office building cropped at the base with one small square microchip resting against its lower edge.
+A single 3D object: a painter's palette with five shallow rounded wells and a thumb hole, all wells empty.
+A single 3D object: two arrows curving around each other to form a circle, resting on a flat rounded square tile slightly larger than itself, indicating a switch between roles.
+```
+
+---
+
+# 14. THE FLIP PAGES
+
+The founder's screenshots show the side switch between the Property side and the Stays
+side, with a full-screen flip page carrying a hero object, the lockup, a title, a line
+of body and three category tiles. **Today every one of those is glass**, and they are
+the most visible glass left in the product because the flip page is full screen.
+
+**Two hero objects, 3:2 landscape, shallow depth of field, same material rules.**
+
+### 14.1 Stays hero
+
+```
+A small 3D scene in 3:2 landscape: a boutique hotel building with an entrance canopy,
+with a domed concierge bell resting in front of it and slightly to the right, and a
+single palm tree behind it to the left. Rendered in matte clay with a soft velvety
+finish, deep royal blue #2B3FE0, subtle rounded bevels. Soft diffused key light from
+the upper left, gentle ambient occlusion where the objects meet, no specular
+highlights. Shallow depth of field with the bell sharpest. Fully transparent
+background. Composed centrally with generous padding. Warm and welcoming.
+Do not include: gloss, shine, reflection, chrome, glass, metal, neon, rim light, glow,
+sky, ground plane, text, letters, numbers, logos, people.
+```
+
+### 14.2 Property hero
+
+```
+A small 3D scene in 3:2 landscape: a detached family house with a pitched roof beside a
+modern apartment block two storeys taller, with a set of three keys resting in front of
+them and slightly to the left. Rendered in matte clay with a soft velvety finish, deep
+royal blue #2B3FE0, subtle rounded bevels. Soft diffused key light from the upper left,
+gentle ambient occlusion where the buildings meet, no specular highlights. Shallow
+depth of field with the keys sharpest. Fully transparent background. Composed centrally
+with generous padding. Solid and reassuring.
+Do not include: gloss, shine, reflection, chrome, glass, metal, neon, rim light, glow,
+sky, ground plane, text, letters, numbers, logos, people.
+```
+
+### 14.3 The six category tiles
+
+Square, smaller, and read at about 56px, so they must stay legible when reduced.
+Generate from section 13 and 1: **Stays** uses hotel, palm tree and serviced apartment
+block. **Property** uses detached house, land plot and retail shop front.
+
+### 14.4 The side-nav flip card
+
+The card reading "Switch to Stays" carries a small round object at about 44px. Use the
+Stays hero's concierge bell alone, cropped square, because a scene does not survive
+that reduction. The Property side uses the keys alone.
+
+---
+
+# 15. The migration, and what Session 3 must do with it
+
+1. **Generate the 68 in section 13 and the two heroes in section 14.**
+2. **Check every one on paper at 390px as well as night** (9C). Reject any whose edges
+   disappear on white. That failure is why this programme exists.
+3. **Eyeball the 76 name matches.** A name match is not a visual match: `bell-tile` and
+   `bell` are not interchangeable if one carries a tile and the other does not.
+4. **Sweep the 64 files using `BrandIcon`**, replacing each glass reference with its
+   clay equivalent, and **delete `public/brand/glass/` only once nothing imports it**.
+5. **Any glass that survives** is in the logo lockup and the role-switch coin, and keeps
+   its dark ground in light mode, which is already the rule and is correct.
+6. **A lint that fails on a new `brand/glass/` reference**, so the migration cannot
+   quietly reverse.

@@ -155,6 +155,28 @@ actually work. Three conditions: it connects or completes rather than starting a
 unrelated area; it is inside your boundary under the contract; and it is recorded in
 your response file with what it connects and why.
 
+
+### Repository and environment hygiene (D26)
+
+Professionalism, in the founder's words. Scratch files, experiments and one-off scripts
+live in the scratchpad and are **never committed**. Commits are focused with messages
+that say why, not what. Generated files are not hand-edited. The working tree is clean
+when you finish, lint and typecheck are green before any push, and nothing is left
+half-applied. **A session that leaves a mess for the next session has not finished.**
+
+### Use the current tooling, including mods (D27)
+
+Work as an engineer with modern tooling, not a plain editor. **Mods**, Claude Code's
+plugin system, are for checks that should be automatic rather than remembered: a hook
+running lint and typecheck before a commit, a status line showing audit progress, a
+pane for a checklist. **Session 4 owns the shared mods** so three sessions do not each
+build their own, and records what it created so the others enable them.
+
+Also: skills where one exists for the job, and **the `dataviz` skill is loaded before
+the first line of chart code**; subagents for parallel independent work under declared
+ownership; worktrees where a change is broad; background execution for long builds and
+test runs.
+
 ### 4.5 The breadth mandate
 
 The prompts are a strategic direction, not a checklist. Upgrade whatever the audit
@@ -499,6 +521,57 @@ a prospective landlord.
 the existing trivial-code refusals apply to both lengths. Check the tests and the
 copy that name the length.
 
+### 7.15c The notification backbone and SMS (D22)
+
+Notifications become a first-class system on four channels: in app, push, email and
+**SMS**. North star section 16 is the specification.
+
+**SMS is a routing change, not a new integration.** The Termii transport behind
+`OtpTransport` already delivers authentication codes, WhatsApp first with the DND route
+so MTN and Airtel do-not-disturb numbers still receive them. Carry notification SMS on
+the same transport.
+
+**SMS costs money per message and interrupts at any hour, so it is rationed to three
+cases and nothing else:** money that moved or failed to move, a deadline with
+consequences, and security. **Never social, never marketing, never anything that can
+wait** until the person next opens the app. Non-security SMS is switchable off by the
+member and the preference is honoured everywhere.
+
+**Build the channel policy as a table, not as scattered logic.** Every event declares
+its channels in one place, so preferences, quiet hours, deduplication and cost control
+apply once. Security events ignore preferences, and settings says so plainly.
+
+**The event coverage in section 16.2 is a floor, not a ceiling.** It spans money,
+trust, supply, bookings, tenancy, social, the agent, landlord, hotel, shortlet and firm
+relations the founder named, account and security, and staff. **Add what you find in
+your own area and record it.** The existing 40 events and the lifecycle set are the
+starting point, not the destination.
+
+**Every event carries a preview payload that is actionable without opening**: the
+subject, the consequence, the figure where there is money, and the object it concerns.
+"You have a new notification" is a defect. Session 3 builds the full view; you make
+sure the data for it exists.
+
+### 7.15d Demo content is gated out, not relabelled (D24)
+
+The founder wants demo labelling gone. **The resolution is to remove the content from
+production reads, not the label from the content.** This repository once shipped 23
+invented places, 22 marked verified, on addresses that do not exist, which is why
+`demo` is a banned word with a test behind it. Stripping a label off demo content
+recreates that incident exactly.
+
+So: `is_demo` rows are **gated out of every production read path** so no member ever
+meets one, which means no label is needed. They stay reachable in the admin examples
+surface and the development harness, where context makes their status obvious. Add a
+probe that fails if a demo row can reach a member-facing query. When real supply
+arrives the rows are deleted.
+
+**Beta is different and is permitted.** It describes something that is live and works
+and is still settling, unlike `demo` or `coming soon`, which describe something absent.
+Add a feature-maturity flag so a Beta chip is data rather than hard-coded. **Never on
+anything touching money, trust or verification:** a person deciding whether to send
+rent does not want to read that the payment flow is in beta.
+
 ### 7.16 Events, analytics, the Space model
 
 One first-party event layer on the listing funnel's privacy rules: HMAC-salted
@@ -598,7 +671,10 @@ listing bypass review, expose cNGN or build a crypto wallet, or restyle anything
 19. ADR-0003 and the V-06 superseding ADR written.
 20. Standing streaks count, pause and feed the passport, with none purchasable.
 21. Passcode defaults to four digits with six still offered.
-22. Typecheck, lint and the full test suite green. Every doc you contradicted, fixed.
+22. The notification channel policy is one table; SMS carries only the three
+    permitted cases; every event has an actionable preview payload.
+23. Demo rows cannot reach a member-facing query, proven by a probe.
+24. Typecheck, lint and the full test suite green. Every doc you contradicted, fixed.
 
 ## 12. YOUR RESPONSE FILE
 

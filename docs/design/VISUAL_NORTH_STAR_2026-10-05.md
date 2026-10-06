@@ -23,6 +23,14 @@ Settled by the founder, 5 October 2026. Not reopenable by a later session.
 
 ### D1. Theme leads by surface
 
+> **AMENDED BY FOUNDER DIRECTIVE D28.1, 6 OCTOBER.** The member's chosen theme governs
+> the whole application and **Dark stays the default**. Paper is no longer a screen
+> register: it is **a treatment for the document itself**. On a dark canvas a receipt,
+> statement, agreement or transaction detail renders as a light document sheet sitting
+> on the dark surface, the way a receipt sits on a desk, with the chrome and navigation
+> around it staying in the member's theme. The table below therefore says which
+> surfaces are **documents**, not which flip the application.
+
 Both themes continue to work on every screen. What changes is which one **leads**.
 
 | Register | Surfaces | Leads |
@@ -147,6 +155,13 @@ hero band. Everything else is flat or ringed. The current count of 134 glow and
 ---
 
 ## 4. The premium container system
+
+> **Founder directive D28.2.** These four tiers are **a formalisation of shapes the
+> product already uses**, not a new system imposed over it. The radii, the navy glass
+> material, the edge light and the blue family all stay. What changes is that
+> elevation, edge treatment and two-theme behaviour become consistent and deliberate.
+> **The test: a member who used Vallo last week should open it and feel they are in the
+> same product, only better.**
 
 Four tiers. Nothing invents a fifth. This is the thing that will make 200 pages
 feel like one product.
@@ -911,6 +926,165 @@ happens next. A "no charge today" marker is permitted because it is true.
 
 **Still forbidden:** permanent-discount claims, countdowns on anything that is not a
 real deadline, and confetti on a purchase.
+
+---
+
+## 16. Notifications, email, and inner-page depth
+
+Added 6 October from founder directives D22 to D25.
+
+### 16.1 Four channels, and which earns which
+
+| Channel | Carries |
+|---|---|
+| **In app** | Everything. The notification list is the complete record |
+| **Push** | Anything time-sensitive or conversational, subject to quiet hours |
+| **Email** | Anything with a document, a decision, a receipt, or a long explanation. Always for money |
+| **SMS** | **Only money that moved or failed, a deadline with consequences, or security** |
+
+**SMS costs money per message and interrupts at any hour, so it is rationed to three
+cases** and is never social, never marketing, and never for something that can wait
+until the person next opens the app. The Termii transport that already delivers
+authentication codes carries it, WhatsApp first with the DND route so do-not-disturb
+numbers still receive it, which makes this a routing change rather than a new
+integration.
+
+**Every event declares its channels in one table**, so a channel decision is data
+rather than scattered logic, and a member's preferences and quiet hours are applied in
+one place. Security notifications ignore preferences, which is said plainly in
+settings.
+
+### 16.2 The event coverage
+
+**A floor, not a ceiling.** Every session adds what it finds in its own area and
+records it.
+
+**Money.** Payment opened, processing, succeeded, failed. Refund initiated, processed,
+delayed. Escrow funded, condition satisfied, release requested, released, expired.
+Dispute opened, responded, evidence requested, resolved. Withdrawal initiated,
+completed, failed, returned. Deposit received. Transfer sent and received. Chargeback
+opened and resolved. Payout settled. Statement ready. Receipt ready. Rent due, due
+soon, overdue. Caution deduction proposed, disputed, ruled, returned. Flatmate
+invited, paid, short, cancelled. Referral qualified, reward available, reward expiring,
+reward reversed. Plan renewing, payment failed, cancelled.
+
+**Trust.** Verification submitted, approved, rejected, more information needed.
+Document expiring. Mandate expiring. Badge earned. **Streak milestone, streak paused.**
+Passport shared, passport viewed. Identity check result.
+
+**Supply.** Listing submitted, approved, rejected, more information needed, published,
+expiring. Availability confirmation due. Listing Health dropped. Photo rejected.
+Promotion started, ending, report ready. Price change on a saved space. Back on
+market. Saved search match. Space Watch triggered.
+
+**Bookings and stays.** Requested, accepted, declined, cancelled. Check-in tomorrow,
+today. Arrival instructions. Check-out tomorrow. Review request, review received,
+review response. Restaurant reservation confirmed and reminder.
+
+**Tenancy.** Inspection requested, accepted, scheduled, reminder, report submitted.
+Agreement drafted, confirmed by the other party, amended, approved, rejected. Move-in
+approaching. Renewal window opening. Tenancy ending.
+
+**Social.** Message received, message request, reply. Follow, mutual follow. Post
+reply, comment, **mention or tag**, share received, story reply. Area or place
+activity.
+
+**Relations**, which the founder named specifically. Agent: lead assigned, client
+message, viewing scheduled, mandate requested. Landlord: landlord line reply, mandate
+request, rent remitted. Hotel and shortlet: reservation, housekeeping task, rate plan
+expiring, calendar conflict from another site. Firm: member invited, member joined,
+role changed.
+
+**Account and security.** Sign-in from a new device, passcode changed, email change
+requested, phone confirmed, payout account added or changed, suspicious activity,
+support ticket updated, data export ready, deletion scheduled and cancelled.
+
+**Staff.** Queue over threshold, alert raised, dispute waiting, STR nudge, threshold
+event, sanctions hit, provider health degraded, job failed.
+
+### 16.3 Preview and full view
+
+**Every notification has both**, and both are designed.
+
+**The preview**, which is the list row, the push body and the email subject: a clay
+glyph on a tinted plate carrying the event's family; the subject in one line; the
+consequence in one more; the figure where money is involved, tabular; a relative time;
+and an unread mark. **It must be actionable without opening**: "Rent of ₦1,200,000 is
+due on 14 October" rather than "You have a new notification".
+
+**The full view is a designed screen for that event family**, reached by a route so
+back behaves and a deep link lands. It carries what happened, when, who was involved,
+the figure and its breakdown where there is money, **the one action the event asks
+for**, a link to the underlying object, and the timeline of what came before. It is
+never a generic detail page, and it never dead-ends: when there is nothing to do, it
+says so and offers the object.
+
+**Grouping.** Several events of one kind on one object collapse into one row that
+expands. Counts are cyan, never red; red is reserved for genuine error.
+
+### 16.4 The notification centre
+
+Filter chips for All, Money, Trust, Spaces, Messages and Account. Unread first, then
+chronological, with day dividers. Mark all read. Per-family preferences reachable from
+the top, so a person who wants money SMS but not social push can say so in two taps.
+
+### 16.5 Email, rebuilt
+
+The founder's assessment of the current emails is that they look like nothing. They
+become a designed surface using the app's own material system.
+
+**The frame.** **In light mode every email is a white background**, with no grey wash
+and no dark card floating on light. The body is a single centred column at 600px with
+generous padding. Money and document emails follow the **Paper** register; notification
+and lifecycle emails may use the dark shell, and a receipt is always Paper.
+
+**The anatomy**, in order: the wordmark, small, with the slogan beneath it at a quiet
+size; a **clay object** naming the email's family; the subject as a display line; the
+consequence in one sentence; **the figure, large and tabular**, where money is
+involved; the detail as key-value rows separated by hairlines, never a paragraph of
+prose; **one primary button**, a rounded rectangle at radius 14, never a pill, with a
+plain-text link beneath it for clients that strip buttons; a quiet footer carrying the
+company, the one-click unsubscribe where the law requires it, and the preference link.
+
+**Components to build**, because the founder asked for components rather than text:
+the figure block, the key-value table, the itemised breakdown with a total rule, the
+status chip, the timeline for a multi-step process, the space card with a photograph
+and the move-in total, the person row with an avatar and a role, the receipt block with
+dual confirmation rows, the code block for a verification code, and the quiet callout
+for a warning.
+
+**Icons.** The clay object in the header plus line glyphs in the key-value rows, which
+is the first time email has had any. Every image carries alt text and a sensible
+fallback, because a mail client that blocks images must still leave the email
+readable.
+
+**The rules.** Legible with images off. Legible in dark-mode mail clients, which is
+already tested. One job per email. Plain text alternative for every send. Never a
+money sentence not from `lib/money/copy.ts`. **A receipt email matches the on-screen
+receipt exactly**, because a receipt that differs looks forged.
+
+### 16.6 Inner pages
+
+Founder directive D25. **When a screen carries more than one job, the second job
+becomes an inner page.**
+
+An overview answers "what needs me, and how am I doing". An inner page answers one
+question completely, with its own motion, its own back destination, and its own empty,
+loading and error states.
+
+| Area | Overview | Inner pages |
+|---|---|---|
+| Wallet | Balance, one next action, recent activity | Transaction detail, deposit, withdrawal, transfer, methods, statements |
+| Escrow | What is held and what it waits on | Conditions, milestones, evidence, dispute, release |
+| Referrals | Earned, qualified, pending, the code | Each referral's state, payout history, campaign detail, how it works |
+| Analytics | Headline figure, period, one chart | Per-metric breakdown, per-listing funnel, promotion report |
+| Passport | Tier, the facts, share | Each fact's evidence, streak history, share settings |
+| Host and agent | Today and what needs me | Each queue, calendar, decide, reviews, earnings, statements |
+| Settings | Grouped rows | One page per setting with its explanation |
+| Admin desk | Queue counts | Each queue, each case, each audit trail |
+
+**Not clicks for their own sake.** It is the difference between a dashboard read in
+three seconds and a wall a person scrolls past.
 
 ---
 
