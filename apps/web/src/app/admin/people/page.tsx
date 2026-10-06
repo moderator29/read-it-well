@@ -93,6 +93,11 @@ export default async function PeoplePage({
                 Looking up an email address is not switched on in this database. Search by name or handle instead.
               </p>
             )}
+            {!q && read.data.hits.length === 0 && (
+              <p className="mt-row nf-body-sm text-[var(--nf-content-muted)]">
+                Nobody has signed up yet. Each new member appears here, newest first, the moment their account exists.
+              </p>
+            )}
             {read.data.term && read.data.hits.length === 0 && !read.data.emailUnavailable && (
               <p className="mt-row nf-body-sm text-[var(--nf-content-muted)]">Nobody matches that {BY_WORD[read.data.term.by]}.</p>
             )}
