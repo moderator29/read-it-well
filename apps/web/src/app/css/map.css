@@ -65,8 +65,11 @@
    * old keyframes also wrote the centring translate into `transform`, which
    * doubled the offset for the length of the drop.)
    */
+  /* At the browsing pace since round 5 (CRAFT_DOCTRINE 5: browsing is 160
+     to 240ms): a pan or a zoom mounts new marks, and a 520ms settle on each
+     was the map still landing while the reader was already looking. */
   .nf-map-pin-drop {
-    animation: nf-map-pin-drop var(--nf-duration-entrance) var(--nf-ease-spring) backwards;
+    animation: nf-map-pin-drop var(--nf-duration-base) var(--nf-ease-spring) backwards;
     animation-delay: calc(min(var(--pin-i, 0), 5) * 40ms);
     transition:
       transform var(--nf-duration-base) var(--nf-ease-spring),
@@ -118,7 +121,7 @@
     border-radius: inherit;
   }
   .nf-map-cluster-drop {
-    animation: nf-map-cluster-drop var(--nf-duration-entrance) var(--nf-ease-spring) backwards;
+    animation: nf-map-cluster-drop var(--nf-duration-base) var(--nf-ease-spring) backwards;
     animation-delay: calc(min(var(--pin-i, 0), 5) * 40ms);
   }
   @keyframes nf-map-cluster-drop {
@@ -198,6 +201,47 @@
     }
     .nf-map-pin-drop[data-hero]::after {
       animation: none;
+      opacity: 0;
+    }
+  }
+
+  /*
+   * THE CHOSEN PLACE'S CARD (MapDock), round 5 craft. It is the chosen pin's
+   * other half: it rises from the frame's foot, the edge it docks to, 12px on
+   * `land` at the base rung, and wears the chosen pin's edge ink, so pin and
+   * card read as one object. Keyed per place, so a new choice lands a new
+   * card. Transform and opacity only, on the wrapper: the card's own
+   * transform belongs to the swipe that dismisses it. `backwards`, like the
+   * pins, so nothing is held on the wrapper once it has landed.
+   */
+  .nf-map-dock {
+    animation: nf-map-dock-in var(--nf-duration-base) var(--nf-ease-entrance) backwards;
+  }
+  @keyframes nf-map-dock-in {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 12px, 0);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  /* Four classes: the night glass (brand-glass.css) paints every panel's
+     edge at three, and this edge is the point of the card. */
+  .nf-map-dock > .nf-map-dock__card.nf-panel.nf-panel--card {
+    border-color: var(--nf-selected-edge);
+  }
+  /* Reduced motion keeps the arrival as opacity alone, 160ms, over the
+     unlayered 0.01ms floor (animation.css): without it a new choice swaps the
+     card's words in place and nothing says the card is a different place. */
+  @media (prefers-reduced-motion: reduce) {
+    .nf-map-dock {
+      animation: nf-map-dock-fade 160ms var(--nf-ease-standard) backwards !important;
+    }
+  }
+  @keyframes nf-map-dock-fade {
+    from {
       opacity: 0;
     }
   }

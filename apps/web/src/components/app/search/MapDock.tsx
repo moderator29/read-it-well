@@ -23,6 +23,13 @@ import { useClientCopy } from "@/lib/i18n/client-copy";
  *
  * It is dismissable three ways: the control, a downward swipe, and Escape
  * (handled by the map, which owns the selection).
+ *
+ * THE CARD AND ITS PIN ARE ONE THING (round 5 craft). The chosen pin lifts
+ * 6px and takes the selected fill and edge; this card rises 12px into the
+ * frame from the edge it docks to (240ms, `land`) and carries the same
+ * selected edge, so the eye reads the pair as one object in two places.
+ * The map keys it by place, so choosing another pin lands a new card.
+ * Reduced motion: no rise; the card fades in over 160ms. See map.css.
  */
 
 /** How far down the card must travel before the swipe counts as a dismissal. */
@@ -97,7 +104,7 @@ export function MapDock({
   return (
     <div
       data-testid="map-dock"
-      className="pointer-events-auto px-row pb-row"
+      className="nf-map-dock pointer-events-auto px-row pb-row"
       role="group"
       aria-label={`Chosen place: ${listing.title}`}
     >
@@ -111,7 +118,7 @@ export function MapDock({
           transition: drag ? "none" : "transform var(--nf-duration-fast) var(--nf-ease-standard)",
           boxShadow: "var(--nf-elev-2)",
         }}
-        className="nf-panel nf-panel--card relative touch-pan-y overflow-hidden p-0"
+        className="nf-panel nf-panel--card nf-map-dock__card relative touch-pan-y overflow-hidden p-0"
       >
         {/* Swipe handle. Decorative, the controls carry the real affordance. */}
         <span

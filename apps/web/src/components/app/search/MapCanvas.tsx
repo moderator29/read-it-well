@@ -1010,7 +1010,10 @@ export function MapCanvas({
             </ul>
           </div>
         ) : selected ? (
+          /* Keyed by the place, so choosing another pin lands a new card
+             (map.css, `.nf-map-dock`) rather than changing words in place. */
           <MapDock
+            key={selected.id}
             listing={selected}
             locale={locale}
             copy={copy}
