@@ -77,10 +77,10 @@ export function PassportShareButton({
                   if (result.ok) setOpen(false);
                   else setError(result.error);
                 } catch {
-                  /* No sentence for a thrown action exists in this screen's
-                     copy and none is invented here: the sheet stays open on
-                     its own line, the row stops working, and the switch on
-                     the page still reads On, which is the truth. */
+                  /* A thrown action (a dropped request) says so on the sheet's own
+                     line, the same place a refusal does: the passport is still
+                     on, and the sheet stays open so the member can try again. */
+                  setError(copy.sheetTurnOffFailed);
                 } finally {
                   turningOff.current = false;
                 }

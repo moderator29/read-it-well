@@ -166,6 +166,8 @@ export const experienceAccountEn = {
     sheetOpenHint: "Choose the lister you want to show it to",
     sheetTurnOff: "Turn it off",
     sheetTurnOffHint: "Takes it back from every conversation",
+    /** Shown on the share sheet when "Turn it off" throws (a dropped request). */
+    sheetTurnOffFailed: "That did not go through. Your passport is still on.",
     evidenceBack: "Back to your passport",
     evidenceCheckedLabel: "How it was checked",
     evidenceDateLabel: "Date",

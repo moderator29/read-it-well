@@ -56,6 +56,10 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the passport share sheet", () =
       await page.waitForFunction(() =>
         [...document.querySelectorAll("button")].some((b) => b.textContent?.includes("Turn it off") && !b.disabled),
       );
+      /* And it says so, on the sheet's own line, rather than closing silently. */
+      expect(await page.getByTestId("passport-share-sheet").innerText()).toContain(
+        "That did not go through. Your passport is still on.",
+      );
       await page.getByRole("button", { name: "Not now" }).click();
       await page.waitForFunction(() => document.querySelector('[data-testid="passport-share-sheet"]') === null, null, { timeout: 5000 });
     } finally {
