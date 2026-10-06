@@ -579,6 +579,19 @@
     background: color-mix(in oklab, var(--nf-content-primary) 24%, transparent);
     transition: background-color var(--nf-duration-base) var(--nf-ease-standard);
   }
+  /* The 44px target the comments above promise (W12 measured the button at 32
+     by 36). ::before is the visible dot, so the reach is a transparent,
+     centred ::after; the dots stay 32px apart, so neighbouring reaches overlap
+     by the 6px per side that 44 needs and no dot moves (D28). */
+  .nf-om-pager__dot::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: max(100%, 2.75rem);
+    height: max(100%, 2.75rem);
+    transform: translate(-50%, -50%);
+  }
   .nf-om-pager__dot[data-reached]::before {
     background: color-mix(in oklab, var(--nf-brand-quiet) 60%, transparent);
   }
