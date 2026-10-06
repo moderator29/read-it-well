@@ -24,8 +24,9 @@ labels into the dictionary).
 **The sweep, as a number.** The per-route record is
 [`SESSION-3-SWEEP.md`](SESSION-3-SWEEP.md), generated from each agent's own 24-point
 result, run in Chromium at 390, 768 and 1440 in both themes on the route's real page
-component. **Routes audited with all 24 points recorded: 80 of 213** at this edit
-(23 admin, every admin route whose page was untouched; 14 agent, all but earnings of the 15 untouched; 33 member, two of them redirects; 10 host, one a redirect). The rows in section 3 below predate this and leave points
+component. **Routes audited with all 24 points recorded: 97 of 213** at this edit
+(23 admin, every admin route whose page was untouched; 24 agent and 17 host, every
+route in both trees, one host route a redirect; 33 member, two of them redirects). The rows in section 3 below predate this and leave points
 19, 22 and 23 at N; they are not counted. The measured starting point (C1, at
 `6376453df` against the session base): 88 of 213 `page.tsx` files untouched, 46 of
 125 edits five lines or fewer, 54 routes whose own files are untouched; admin 23
@@ -107,6 +108,16 @@ draws its honest not-live or empty state):
 | R-C2-11 | FX | A timestamped rate for any converted display (FL §4.10); none is shown until then |
 | R-C3-1 | The Rewards read | One read returning `RewardsSnapshot`: policy from `money_policy`, available, pending, lifetime, referrals (first name, status, dates, **no reason field**), history, campaign, payout |
 | R-C3-2 | Rewards withdrawal | `WithdrawActions.quote` (prepare, read the provider fee back) and `.confirm` |
+
+**A conflict between two rules, recorded rather than resolved by losing a language.**
+Money sentences belong in `lib/money/copy.ts`, and `copy.ts` is English only. The
+agent earnings page's empty state and its how-your-share-is-worked-out note
+(`agentEarnings.emptyTitle`, `emptyBody`, `howBody`) are dictionary sentences
+already translated into Hausa, Igbo and Yorùbá; moving them to `copy.ts` would turn
+three money sentences back into English for those readers, so they stay where they
+are and point 17 is recorded as failing on `/agent/earnings`. The fix is for
+`copy.ts` to carry a sentence per locale (request R3-C1 to Session 2, which owns
+the money copy).
 
 **Decisions waiting on the founder:**
 - **The lister's fee gate in the listing wizard.** It is built (`ListerFeeGate`) and

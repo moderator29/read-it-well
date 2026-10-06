@@ -6,16 +6,16 @@ component with the fixture named in its row. **P** pass, **X** failed and fixed 
 sweep, **F** failed and still open, **·** does not apply. The denominator is 213 real routes
 (every `page.tsx` under `apps/web/src/app`, excluding `(dev)` and `api`).
 
-**Routes audited: 80 of 213.**
+**Routes audited: 97 of 213.**
 
 | Family | Audited |
 |---|---|
 | admin | 23 |
-| agent | 14 |
+| agent | 24 |
 | around | 3 |
 | assistant | 1 |
 | bookings | 2 |
-| host | 10 |
+| host | 17 |
 | inspections | 1 |
 | legal | 3 |
 | messages | 2 |
@@ -54,13 +54,21 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | `/admin/supply` | C1 | P | P | P | P | P | X | X | P | P | P | P | P | P | · | X | P | · | P | P | P | P | P | P | P |
 | `/admin/support` | C1 | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | P | · | P | X | P | P | P | P | P |
 | `/admin/switches` | C1 | P | · | P | P | P | X | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | X |
+| `/agent/analytics` | C1 | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | P | · | P | X | P | P | P | P | P |
+| `/agent/analytics/[metric]` | C1 | P | P | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
+| `/agent/analytics/listings/[listingId]` | C1 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/agent/assistant` | C1 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/agent/bookings` | C1 | P | P | P | P | P | P | P | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
+| `/agent/dashboard` | C1 | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
+| `/agent/earnings` | C1 | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | F | P | P | P | P | P | P | P |
 | `/agent/firm` | C1 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/agent/inspections` | C1 | X | · | P | P | P | X | · | · | P | P | P | P | P | · | P | P | P | P | P | P | X | P | P | P |
+| `/agent/list` | C1 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | X | P | P | P |
+| `/agent/listings` | C1 | P | · | P | P | P | P | P | · | P | P | P | P | P | · | P | P | · | P | P | P | P | X | P | P |
 | `/agent/listings/[listingId]/arrival` | C1 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/agent/listings/[listingId]/board` | C1 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | X | P | P | P |
 | `/agent/listings/[listingId]/calendar` | C1 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | X | P | P | P |
+| `/agent/listings/[listingId]/health` | C1 | P | P | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | P | P | P | P |
 | `/agent/listings/[listingId]/mandate` | C1 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/agent/listings/[listingId]/status` | C1 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | X | P | P | P |
 | `/agent/messages` | C1 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
@@ -68,20 +76,29 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | `/agent/notifications` | C1 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/agent/portfolio` | C1 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/agent/reviews` | C1 | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
+| `/agent/settings` | C1 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
+| `/agent/verification` | C1 | P | P | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/around/manage` | C3 | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | P | · | · | · | · | · | · | · | P |
 | `/around/new` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | P | P | P | P |
 | `/around/settings` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | X | P | P | P |
 | `/assistant` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | P | P | X | P | P | P | P |
 | `/bookings` | C3 | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P |
 | `/bookings/[bookingId]/review` | C3 | P | · | P | P | P | P | · | P | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
+| `/host` | C5 | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | P | · | P | P | P | X | X | P | P |
 | `/host/apply` | C5 | P | · | P | P | X | P | · | · | P | P | P | P | P | · | · | P | · | P | P | P | P | X | P | P |
 | `/host/arrival` | C5 | P | · | P | X | P | P | P | P | · | P | P | P | P | P | P | P | · | P | P | P | P | X | P | P |
 | `/host/assistant` | C5 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | P | P | P | P | X | P | P |
 | `/host/bookings` | C5 | P | · | P | P | X | P | P | · | P | P | P | P | P | P | P | P | X | P | P | P | P | X | P | P |
+| `/host/calendar` | C5 | P | · | P | P | P | P | P | · | P | P | P | P | P | P | P | P | · | P | P | P | P | X | P | P |
+| `/host/decide` | C5 | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | X | P | P |
+| `/host/earnings` | C5 | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | P | X | P | P | P | P | X | P | P |
+| `/host/earnings/statement` | C5 | P | P | P | X | P | P | P | P | P | P | P | X | P | P | P | X | X | P | X | X | P | X | P | P |
 | `/host/notifications` | C5 | P | P | P | P | P | P | P | · | P | P | P | P | P | · | P | P | · | P | P | P | P | X | P | P |
 | `/host/photos` | C5 | P | P | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | P | P | P | P | X | P | P |
 | `/host/reservations` | C5 | P | P | P | P | P | P | P | · | P | P | P | P | P | P | P | P | · | P | P | P | P | X | P | P |
 | `/host/reviews` | C5 | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | P | · | P | P | P | P | X | P | P |
+| `/host/rooms` | C5 | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | P | · | P | P | P | P | X | P | P |
+| `/host/settings` | C5 | P | · | P | P | P | P | · | · | P | P | P | X | P | · | P | P | · | P | P | P | P | X | P | P |
 | `/host/start` | C5 | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | P | · | · | · | · | · | · | · | P |
 | `/host/transfer` | C5 | P | P | P | P | P | P | · | · | P | P | P | P | P | · | X | P | · | P | P | P | P | X | P | P |
 | `/inspections/gate/[id]` | C3 | P | · | P | P | P | P | · | P | · | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
@@ -229,11 +246,27 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 - 6 (fixed): A flag key the dictionary has not met was drawn raw and lower case ("social"); now sentence-cased from the key. Console-wide fourth weight (500) removed in the same batch.
 - 24 (fixed): Went back to /admin past Settings, the door it is filed under in nav.ts ADMIN_SETTINGS; now /admin/settings (route-parents).
 
+**`/agent/analytics`** (The real page inside the real AgentShell (now with AgentInnerNav), a signed-in approved agent from f5/ops-fixtures AGENT_PROFILE, every read without a fixture answered empty by lib/testing/fake-supabase; readAgentAnalytics mocked to AGENT_ANALYTICS; funnels, requests, demand and stages answered empty)
+
+- 19 (fixed): In Hausa the money-per-month chart's screen-reader table ran 76px past a 390px window (10 overflow findings): a table sizes to its content whatever width sr-only gives it. The shared ChartTable now sits inside a 1px sr-only box when hidden, as the admin charts' tables do.
+
+**`/agent/earnings`** (The real page inside the real AgentShell (now with AgentInnerNav), a signed-in approved agent from f5/ops-fixtures AGENT_PROFILE, every read without a fixture answered empty by lib/testing/fake-supabase; readAgentEarnings mocked to AGENT_EARNINGS (audit only: C2's surface))
+
+- 17 (open): The empty state (agentEarnings.emptyTitle, emptyBody) and the how-it-works note (howBody) are money sentences in the dictionary, not lib/money/copy.ts, and howBody contradicts the file's docstring. Handed to the lead as c1/agent-earnings-money-copy.patch (EARNINGS_EMPTY_TITLE, EARNINGS_EMPTY_BODY, EARNINGS_SETTLEMENT); not applied, C2's file.
+
 **`/agent/inspections`** (The real page inside the real AgentShell (now with AgentInnerNav), a signed-in approved agent from f5/ops-fixtures AGENT_PROFILE, every read without a fixture answered empty by lib/testing/fake-supabase; readInspectionsForLister mocked to AGENT_INSPECTIONS)
 
 - 1 (fixed): Before a time was agreed the sheet drew two lit primaries (Confirm and Add photos, two glows at 390). Add photos is secondary until the report opens; Confirm is the one primary.
 - 6 (fixed): Title case in the shared inspection sheet: Inspection Date, Inspection Checklist, Overall Condition, Add Photos, Submit Inspection Report, "0 / 8 Completed" and the hero's "Property Inspection"; all sentence case now (and "0 of 8 done").
 - 21 (fixed): The facts block was a dl whose groups held a glyph and a nested div (axe definition-list and dlitem, 9 findings at 390); it is label and value cells now. The hidden photo input had no name (axe label); it is named.
+
+**`/agent/list`** (The real page inside the real AgentShell (now with AgentInnerNav), a signed-in approved agent from f5/ops-fixtures AGENT_PROFILE, every read without a fixture answered empty by lib/testing/fake-supabase; a new listing (no draft))
+
+- 21 (fixed): The unit-shape tiles ("Flat") measured 33.1px wide in every run (40.6 in Hausa), under the 44px target; the agent wizard's question tiles keep 44px now (UnitQuestions and ServiceQuestions).
+
+**`/agent/listings`** (The real page inside the real AgentShell (now with AgentInnerNav), a signed-in approved agent from f5/ops-fixtures AGENT_PROFILE, every read without a fixture answered empty by lib/testing/fake-supabase; readMyListings mocked to AGENT_LISTINGS)
+
+- 22 (fixed): In Yoruba the row's close action reads "Tì" and measured a 38.8px target at 390; the button keeps 44px whatever its label.
 
 **`/agent/listings/[listingId]/board`** (The real page inside the real AgentShell (now with AgentInnerNav), a signed-in approved agent from f5/ops-fixtures AGENT_PROFILE, every read without a fixture answered empty by lib/testing/fake-supabase; the board switch mocked on; no board fixture exists, so the owned-subject read answers empty)
 
@@ -255,6 +288,11 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 
 - 20 (fixed): axe aria-prohibited-attr on arrival (1 at dark.390 and light.390): the thread was a div carrying aria-label with no role. It is a named region now.
 
+**`/host`** (the real page in the real HostShell; the f5 host-landing deck verbatim (Grand Vista Hotel live, The Harbour Kitchen needing more with its reviewer's note, Ikoyi Guest House in progress, its room rows built relative to now by the deck's own row(), table board unread, three unread messages); the f5 host-empty state (no business); signed out (json host-f5-* and host-signed-out))
+
+- 21 (fixed): 'Contact us' under a stopped business measured 32px wide for 82px of words (auditFit: label spills out of its control). Root cause, found with a style probe: the theme's `--spacing-block` makes Tailwind's `inline-block` ALSO emit `inline-size: var(--nf-gap-block)`, so every inline-block element is 32px wide. The link is `block w-fit` now. The collision is repo wide (17 files; AccessScreen.tsx records the same thing) and is reported to the lead.
+- 22 (fixed): Overflow 0 in all four. The page wrote about 25 strings in English (metadata, Sign in, the draft's group and lines, 'Your businesses', the tier line, the three stopped-business explanations, the reviewer line, Contact us, the four doors); the status words were an English table in today.ts shared with HostTodayView. All in experienceHost now (businessStatus, businessDoors, home); the today.ts table is gone.
+
 **`/host/apply`** (the real page inside its real RouteCopy layout and HostShell; readMyHostDraft mocked to the f5 host-wizard deck's draft (emptyHostDraft as a hotel) and the cancellation_policies read to its one Flexible policy; and signed out)
 
 - 5 (fixed): The step summary read 'Step 1 of 11 Saved on this device as you type.': two sentences joined by a bare space. Joined with a middle dot now.
@@ -275,6 +313,29 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 - 17 (fixed): Three money sentences were written in the route (the lede's payment sentence, 'Total the guest pays', 'The guest pays by card once it is approved.'). They are HOST_ROOM_BOOKING_PAYMENT, HOST_ROOM_TOTAL_LABEL and HOST_ROOM_GUEST_PAYS_NEXT in lib/money/copy.ts.
 - 22 (fixed): Overflow 0 in all four. The page and RoomRequestAnswer were English throughout (about 40 strings: heading, lede, sections, status and agreement words, the accept and decline sheets, metadata). experienceHost.bookings now, threaded to the sheet as `words`; host-copy.test.ts's bookings ceiling (7) went to zero and the row was deleted.
 
+**`/host/calendar`** (the real page in the real HostShell; readRateCalendar mocked to the host-c calendar deck (ROOMS, calendarRows(today), SYNC_READY) on c2 C2_HOTEL / C2_HOTEL_PROPERTY, because the host-c deck names no business record; signed out)
+
+- 22 (fixed): Overflow 0 in all four. Metadata, the signed-out door, the title, the picker's label, the unreadable line and the no-room-types state were English; experienceHost.calendar now. host-copy.test.ts's ceiling (6) went to zero and the row was deleted.
+
+**`/host/decide`** (the real page in the real HostShell; room requests from the host-c decide deck verbatim and its table request (tableRequest t1); and nothing waiting)
+
+- 22 (fixed): Overflow 0 in all four. Metadata and the signed-out door were English; experienceHost.decide now. Ceiling (2) to zero, row deleted.
+
+**`/host/earnings`** (the real page in the real HostShell; readMyEarnings answered with nothing paid (a zero summary and no rows), because no fixture of a host's earnings summary (my_earnings_summary) exists; and signed out. The populated rows are measured on /host/earnings/statement from host-c EARNINGS)
+
+- 17 (fixed): 'No guest has paid yet' and the statement row's 'Every payment, line by line, with a CSV' were money sentences in the page; HOST_EARNINGS_EMPTY_TITLE and HOST_STATEMENT_ROW_SUB in lib/money/copy.ts now.
+- 22 (fixed): Overflow 0 in all four. Metadata, the title, the signed-out title, Sign in, the next door and the statements label were English; experienceHost.earnings now. Ceiling (3) to zero, row deleted.
+
+**`/host/earnings/statement`** (the real page in the real HostShell; readMonthEarnings mocked to host-c EARNINGS for September 2026 (the host-c statement deck) and to a month with none)
+
+- 4 (fixed): The line cards (and the wide table's box) inside the paper sheet were painted with the theme's surface and edge: at night a navy card under the sheet's paper ink. They take the sheet's paper and its hairline now.
+- 12 (fixed): No loading.tsx: it borrowed earnings' list-shaped wait. statement/loading.tsx now draws the month bar, the sheet and the actions.
+- 16 (fixed): The signed-out door and the empty month said 'what Vallo kept', which reads as Vallo keeping money; they name the platform fee now (HOST_STATEMENT_SIGNED_OUT_BODY, HOST_STATEMENT_EMPTY_BODY).
+- 17 (fixed): Those two sentences and the empty title were written in the route; lib/money/copy.ts now.
+- 19 (fixed): At 768 the wide table lent its width to the sheet, so the sheet, the month bar and the actions ran 21px past the window (5 findings). The table box is `width: 0; min-width: 100%` and scrolls inside itself.
+- 20 (fixed): axe at night: 52 colour-contrast failures, every line card's words at 1.04:1 (dark ink on the navy card). 0 now in both themes.
+- 22 (fixed): Overflow 0 in all four. Metadata, the signed-out title and Sign in were English; experienceHost.statement. Ceiling (2) to zero, row deleted; StatementView's ceiling fell 6 to 3.
+
 **`/host/notifications`** (the real page (HostShell around the (app) notifications page); loadNotificationPage mocked to (dev)/preview/f4 NOTIFICATIONS, which are already in the client's item shape, so toNotificationItem passes them through; unread counts none)
 
 - 22 (fixed): Overflow 0 in all four. The route's only own string, the metadata title, was English; nav.notifications now.
@@ -290,6 +351,15 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 **`/host/reviews`** (the real page in the real HostShell; readHostReviews mocked to (dev)/preview/host-c REVIEWS (four reviews: a replied one, an asked-Vallo one, a hidden one, a wordless one), to not-ready, and signed out)
 
 - 22 (fixed): Overflow 0 in all four. The page and HostReviewsView wrote 16 strings in English (metadata, the signed-out door, the header, the empty and not-ready states, the rating card). They are in experienceHost now; host-copy.test.ts's ceilings for both files went to zero and the rows were deleted.
+
+**`/host/rooms`** (the real page inside its RouteCopy layout and HostShell; getMyRoomTypes mocked to c2 C2_ROOM_TYPES and C2_ROOM_TYPES_NO_NIGHTS (the two c2 decks) on C2_HOTEL / C2_HOTEL_PROPERTY)
+
+- 22 (fixed): Overflow 0 in all four. Metadata, Sign in, the title, the three count sentences and 'Add a room type' were English; experienceHost.rooms now, the counted phrase still through countOf in the reader's locale.
+
+**`/host/settings`** (the real page in the real HostShell; the f5 host-settings deck's two businesses and notification answers; no ladder (no fixture of a business ladder exists, so the tier fan is not drawn))
+
+- 12 (fixed): No loading.tsx; settings/loading.tsx now draws the head, the businesses card, the notifications card and the two doors.
+- 22 (fixed): Overflow 0 in all four. Two English tables (kind and status words), the head, the doors, the unreachable line, the assistant door, the everything-else card and the metadata; experienceHost now (businessKind, businessStatus, businessDoors, settingsPage).
 
 **`/host/transfer`** (the real page inside its real RouteCopy layout and HostShell; readTransferScreen mocked to f5 new-surfaces-fixtures (one business trading, one quiet with an offer out, one offer in))
 
