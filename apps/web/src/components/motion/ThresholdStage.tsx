@@ -32,6 +32,9 @@ const GIVE_UP_MS = 5000;
 const RETURN_AFTER_MS = 10 * 60 * 1000;
 const RETURN_MS = 900;
 const SPLASH_GIVE_UP_MS = 4000;
+/* The startup's door: its leaves part over 350ms (`startup.css`, `leave`),
+   with a margin for a slow frame. Only the backstop below waits on it. */
+const STARTUP_DOOR_MS = 450;
 
 export function ThresholdStage({ welcome }: { welcome: string }) {
   const pathname = usePathname();
@@ -75,41 +78,48 @@ export function ThresholdStage({ welcome }: { welcome: string }) {
     const done = () => {
       root.dataset.splash = "done";
     };
-    /* Released by the splash's own last keyframe, so a slow first frame can
-       never cut it short; the timer only covers a splash that never paints. */
-    const onEnd = (event: Event) => {
-      if ((event as AnimationEvent).animationName === "nf-splash-gone") done();
-    };
     /*
-     * A PAGE THAT HYDRATES LATE MISSES THE EVENT. On a slow phone (or a cold
-     * dev compile) the splash's last keyframe can end before this listener
-     * exists, and the flag then stayed "on" for the life of the page. That
-     * is not only a stuck flag: the page's own `both`-filled entrance leaves
-     * `#main` holding a transform and a filter, and every `position: fixed`
-     * child (the listing's pinned price bar, sheets) was laid out against
-     * `#main` instead of the screen, a whole page down. So the state is read
-     * as well as listened for: a finished (or absent) last keyframe releases
-     * now. Filled animations still count in `getAnimations`, which is why
-     * the old "no animations left" fallback never fired.
+     * THE STARTUP SEQUENCE RELEASES ITSELF (D31, `components/startup`). Its
+     * inline script decides when the door opens (the breath has finished AND
+     * the document has arrived, or a tap) and moves the flag to "done" on the
+     * door's own last keyframe, so this stage must not release it at
+     * hydration: a breathing lockup held for a page that has not arrived is
+     * the honest wait, and releasing it here would cut it short. It used to
+     * need a 600-second placeholder animation on the overlay to stop exactly
+     * that; reading the class makes the placeholder unnecessary.
+     *
+     * The stage stays the BACKSTOP for one failure only: a startup script
+     * that never ran (blocked, or thrown before it could listen). Then the
+     * overlay would hold, tappable, for the life of the page. So if the flag
+     * is still "on" well after hydration, the door is opened here and the
+     * flag released once the leaves have had their time to part.
      */
-    const settled = () => {
-      const gone = splash
-        ?.getAnimations()
-        .find((a) => (a as CSSAnimation).animationName === "nf-splash-gone");
-      return !gone || gone.playState === "finished";
-    };
-    if (!splash || settled()) {
-      done();
-      return;
+    if (splash?.classList.contains("nf-startup")) {
+      let release = 0;
+      const backstop = window.setTimeout(() => {
+        if (root.dataset.splash !== "on") return;
+        root.dataset.startup = "open";
+        release = window.setTimeout(() => {
+          if (root.dataset.splash === "on") done();
+        }, STARTUP_DOOR_MS);
+      }, SPLASH_GIVE_UP_MS);
+      return () => {
+        window.clearTimeout(backstop);
+        window.clearTimeout(release);
+      };
     }
-    splash.addEventListener("animationend", onEnd);
-    const timer = window.setTimeout(() => {
-      if (settled()) done();
-    }, SPLASH_GIVE_UP_MS);
-    return () => {
-      splash?.removeEventListener("animationend", onEnd);
-      window.clearTimeout(timer);
-    };
+    /*
+     * ANY OTHER SPLASH IS GONE. The Track M splash (leaves, glow and the
+     * assembling raster lockup, released by its `nf-splash-gone` keyframe)
+     * was replaced in place by the startup sequence and its rules deleted
+     * from threshold.css, so a flag left "on" with no startup overlay (a page
+     * that switched it on by hand) is released at once. Releasing promptly
+     * matters beyond the flag: while it is "on", `#main` runs a filled
+     * entrance, and a filled transform makes `#main` the containing block of
+     * every `position: fixed` child (the pinned price bar, sheets), which
+     * then sit a whole page down.
+     */
+    done();
   }, []);
 
   /* Coming back to the app. */
@@ -137,10 +147,10 @@ export function ThresholdStage({ welcome }: { welcome: string }) {
     };
   }, []);
 
-  /* `open` is the cold-start sequence, which is not built yet (see the note
-     on OPEN_BEATS in lib/motion/threshold.ts). Nothing dispatches it today;
-     if something does, the stage draws nothing rather than the sign-out
-     panels, which are the fallback branch below. */
+  /* `open` is the passcode unlock asking for the startup's door: the
+     arrival is CSS (`:root[data-arrive="open"]`), and the stage draws
+     nothing for it rather than the sign-out panels, which are the fallback
+     branch below. The cold start itself never dispatches it (threshold.ts). */
   if (play === null || play.kind === "open") return null;
 
   return (

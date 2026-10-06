@@ -94,44 +94,24 @@
   /* ----------------------------------------------------------- the splash */
 
   /*
-   * Off unless the before-paint script in app/layout.tsx switched it on, and
-   * gone for good once `ThresholdStage` moves the flag to "done". Its own
-   * last keyframe hides it too, so it clears even if that script never runs.
+   * THE APP OPENING IS `components/startup` (D31): `StartupSequence` draws
+   * the overlay as `.nf-splash.nf-startup`, `startup.css` animates it, and
+   * its inline script moves the root flag from "on" to "done" when the door
+   * has opened. What stays here is the part every page shares: the overlay
+   * is hidden outside "on", `--nf-splash-hold` holds the page's own
+   * entrances until the door, and the page comes forward through it (below).
+   *
+   * The Track M splash this replaced in place (two leaves, the light in the
+   * gap, the assembling raster lockup and its `nf-splash-gone` release
+   * keyframe) had no markup left anywhere, and its rules are gone (Session 3,
+   * W10). The leaf and brand-out keyframes stay: the sign-out threshold
+   * below parts its panels and clears its mark with them.
    */
   .nf-splash {
     display: none;
   }
   :root[data-splash="on"] {
     --nf-splash-hold: 1250ms;
-  }
-  :root[data-splash="on"] .nf-splash {
-    position: fixed;
-    inset: 0;
-    z-index: var(--nf-z-top);
-    display: grid;
-    place-items: center;
-    pointer-events: none;
-    animation: nf-splash-gone 1ms linear 1750ms both;
-  }
-  @keyframes nf-splash-gone {
-    to {
-      visibility: hidden;
-    }
-  }
-  .nf-splash__leaf {
-    position: absolute;
-    inset-block: 0;
-    width: 50.5%;
-    background: var(--nf-surface-canvas);
-    animation: var(--nf-duration-deliberate) var(--nf-ease-entrance) 1120ms both;
-  }
-  .nf-splash__leaf--a {
-    left: 0;
-    animation-name: nf-splash-leaf-a;
-  }
-  .nf-splash__leaf--b {
-    right: 0;
-    animation-name: nf-splash-leaf-b;
   }
   @keyframes nf-splash-leaf-a {
     to {
@@ -142,49 +122,6 @@
     to {
       transform: translateX(102%);
     }
-  }
-  /* The light in the gap as the door parts. */
-  .nf-splash__glow {
-    position: absolute;
-    inset-block: 0;
-    left: 50%;
-    width: 40vw;
-    margin-left: -20vw;
-    background: radial-gradient(
-      closest-side,
-      color-mix(in oklab, var(--nf-content-on-brand) 70%, transparent),
-      color-mix(in oklab, var(--nf-brand-secondary) 45%, transparent) 55%,
-      transparent
-    );
-    opacity: 0;
-    transform: scaleX(0.02);
-    animation: nf-splash-light var(--nf-duration-deliberate) var(--nf-ease-entrance) 1080ms both;
-  }
-  @keyframes nf-splash-light {
-    0% {
-      opacity: 0;
-      transform: scaleX(0.02);
-    }
-    30% {
-      opacity: 1;
-    }
-    100% {
-      opacity: 0;
-      transform: scaleX(3.2);
-    }
-  }
-  .nf-splash__brand {
-    position: relative;
-    animation:
-      nf-assemble-zoom 1000ms var(--nf-ease-entrance) both,
-      nf-splash-brand-out 380ms var(--nf-ease-exit) 1040ms forwards;
-  }
-  .nf-splash__brand .nf-assemble__mark {
-    animation: nf-assemble-mark 760ms var(--nf-ease-entrance) 40ms both;
-  }
-  .nf-splash__brand .nf-assemble__letter {
-    animation: nf-assemble-letter 420ms var(--nf-ease-entrance) both;
-    animation-delay: calc(300ms + var(--nf-i, 0) * 95ms);
   }
   @keyframes nf-splash-brand-out {
     to {
@@ -446,20 +383,14 @@
   /* ------------------------------------------- opening: the hook only */
 
   /*
-   * THE `open` KIND, NAMED AND UNMOUNTED (Session 3, 6 October 2026).
-   *
-   * MOTION_SYSTEM.md section 3 specifies the cold-start sequence and
-   * lib/motion/threshold.ts carries its beats as `OPEN_BEATS`. Nothing
-   * dispatches `open` yet: the sequence waits on Session 2's deadline on
-   * `app/open/route.ts`, because a brand moment laid over an unbounded call is
-   * only a nicer-looking hang. These two rules are the place it will be built
-   * from, so whoever builds it starts with a name rather than a blank file.
-   *
-   * The hook is the arrival: the page beneath comes forward through the door
-   * on the `leave` curve over the last 350ms of the 1,500, which is the final
-   * beat of the table. Everything before it (ground, mark, wordmark, edge
-   * light, breath) belongs to `BrandAssemble` and `DepthWords`, which already
-   * exist for exactly this.
+   * THE `open` KIND (Session 3, 6 October 2026). The cold-start sequence is
+   * built, and it is CSS keyed on the root flag (`components/startup`), so
+   * nothing needs to dispatch `open` for it: the page beneath comes forward
+   * through `:root[data-splash="on"] #main` above. This hook is the arrival
+   * for a caller that does ask for `open` (unlocking with the passcode, which
+   * MOTION_SYSTEM.md section 6 wants to feel like the same door): the page
+   * comes forward over the last 350ms on the `leave` curve, the final beat of
+   * the opening's table.
    */
   :root[data-arrive="open"] #main {
     animation: nf-threshold-forward 350ms var(--nf-ease-exit) both;

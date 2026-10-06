@@ -26,17 +26,16 @@ export const THRESHOLD_GOING_MS: Record<ThresholdKind, number> = {
 };
 
 /**
- * THE `open` KIND: THE APP OPENING, NAMED AHEAD OF ITS SEQUENCE (Session 3).
+ * THE `open` KIND: THE APP OPENING (Session 3).
  *
  * MOTION_SYSTEM.md section 3 specifies a 1,500ms cold-start sequence and says
- * this file "gains an `open` kind beside `door` and `leave`". The kind lands
- * now and the sequence does not, deliberately: the eight-second splash the
- * founder reported is an unbounded `resolveSession()` in `app/open/route.ts`,
- * Session 2 owns the deadline that fixes it, and an animation laid over an
- * unbounded call is a longer hang with better production values. Until that
- * deadline lands nothing dispatches `open` and `ThresholdStage` draws nothing
- * for it; the CSS hook (`.nf-threshold--open`, `:root[data-arrive="open"]`)
- * exists in threshold.css so the builder starts from a named place.
+ * this file "gains an `open` kind beside `door` and `leave`". The sequence is
+ * built (`components/startup`, after Session 2 bounded `app/open/route.ts`)
+ * and it is CSS keyed on the root flag, so it never dispatches this kind: it
+ * starts on the first painted frame, before any script could ask. The kind is
+ * for a caller that wants the same door later (the passcode unlock), and the
+ * stage draws nothing for it: the arrival is threshold.css's
+ * `:root[data-arrive="open"]` hook.
  *
  * The beats are written here as data rather than only as keyframe delays, so
  * the sequence the spec describes and the sequence that ships can be compared
