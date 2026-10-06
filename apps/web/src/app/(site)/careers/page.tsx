@@ -80,7 +80,7 @@ export default function CareersPage() {
                     <UiIcon name={lineGlyphFor(c.icon)} size={20} />
                   </IconPlate>
                   <span className="font-semibold">{c.title}</span>
-                  <span className="text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+                  <span className="text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                     {c.body}
                   </span>
                 </div>
@@ -92,22 +92,25 @@ export default function CareersPage() {
         {/* -------------------------------------- open roles, empty state */}
         <Reveal as="section" className="mt-section">
           <h2 className="nf-overline text-center">Open roles</h2>
-          <div className="nf-panel nf-panel--card block mt-group p-card text-center-lg">
+          {/* The empty state is the page's one subject, so it is its one Island
+              (Session 3, W1b), and the list of what to send is a Plate row inside
+              it, not a second card: one edge per container. */}
+          <div className="nf-island mt-group p-card text-center-lg">
             <IconPlate size="lg" className="mx-auto">
               <UiIcon name="search" size={24} />
             </IconPlate>
             <h3 className="nf-h3 mx-auto mt-group max-w-[26ch]">
               No advertised openings right now
             </h3>
-            <p className="mx-auto mt-row max-w-[52ch] text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
+            <p className="mx-auto mt-row max-w-[52ch] text-[length:var(--nf-text-row)] leading-relaxed text-[var(--nf-content-secondary)]">
               We hire in small, deliberate waves, and the next one has not been posted
               yet. But we always read speculative applications, and several people on
               the team arrived exactly that way.
             </p>
 
-            <div className="mx-auto mt-heading max-w-md nf-panel nf-panel--card block p-card-sm text-left">
+            <div className="mx-auto mt-heading block max-w-md rounded-[var(--nf-tier-plate-radius)] border border-[var(--nf-tier-plate-edge)] bg-[var(--nf-tier-plate-fill)] p-card-sm text-left">
               <p className="nf-overline">Send us</p>
-              <ul className="mt-inline space-y-inline text-[0.875rem] text-[var(--nf-content-secondary)]">
+              <ul className="mt-inline space-y-inline text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]">
                 <li className="flex items-start gap-inline">
                   <UiIcon name="arrow-right" size={16} className="mt-inline-tight shrink-0 text-[var(--nf-brand-primary)]" />
                   A short note on what you would improve about Vallo
@@ -136,7 +139,7 @@ export default function CareersPage() {
                 Send your application
               </ButtonLink>
             </div>
-            <p className="mt-row text-[0.8125rem] text-[var(--nf-content-muted)]">
+            <p className="mt-row text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">
               We reply to every serious application, usually within a week.
             </p>
           </div>
@@ -152,7 +155,7 @@ export default function CareersPage() {
                   <IconPlate size="md" className="shrink-0">
                     <UiIcon name="user-check" size={20} />
                   </IconPlate>
-                  <span className="text-[0.9375rem] font-medium leading-snug">{w}</span>
+                  <span className="text-[length:var(--nf-text-row)] font-medium leading-snug">{w}</span>
                 </div>
               </Reveal>
             ))}
@@ -167,7 +170,7 @@ export default function CareersPage() {
                 we offered them was marked with somebody else's job title. The
                 destination is the chooser, which offers all three doors and
                 puts the owner first. */}
-            <p className="text-[0.9375rem] text-[var(--nf-content-secondary)]">
+            <p className="text-[length:var(--nf-text-row)] text-[var(--nf-content-secondary)]">
               Not looking for a job, but want to earn on Vallo?
             </p>
             <div className="mt-group flex justify-center">
