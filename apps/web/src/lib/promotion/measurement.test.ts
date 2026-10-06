@@ -54,7 +54,9 @@ describe("the results screen", () => {
   it("is not linked from anywhere: it waits for Session 2's reads", () => {
     const SRC = join(__dirname, "..", "..");
     const PAGE = join("app", "agent", "listings", "[listingId]", "promotion", "page.tsx");
-    /* A literal path to the screen, outside the screen itself and the route map. */
+    /* A literal path to the screen, outside the screen itself and the route maps
+       (route-parents for the back link, route-labels for the page name); a
+       map entry names the route, it does not link to it. */
     const LINK = /["'`][^"'`\n]*listings\/[^"'`\n]*\/promotion\b[^"'`\n]*["'`]/;
     const offenders: string[] = [];
     const walk = (dir: string) => {
@@ -63,7 +65,7 @@ describe("the results screen", () => {
         const path = join(dir, entry);
         if (statSync(path).isDirectory()) walk(path);
         else if (/\.tsx?$/.test(entry) && !/\.test\.tsx?$/.test(entry)) {
-          if (path.endsWith(PAGE) || path.endsWith(join("lib", "nav", "route-parents.ts"))) continue;
+          if (path.endsWith(PAGE) || /lib\/nav\/route-(parents|labels)\.ts$/.test(path)) continue;
           if (LINK.test(withoutComments(readFileSync(path, "utf8")))) offenders.push(path.slice(SRC.length));
         }
       }
