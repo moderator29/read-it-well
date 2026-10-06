@@ -168,7 +168,7 @@ export default async function SocialProfilePage({
         view.profile.isAgent ? readUserRecord(userId) : Promise.resolve(null),
         /* Their badges, earned and given, for the row under the hero. Null
            when the read failed, and then the older chips stand in. */
-        createClient().then((supabase) => readProfileBadges(supabase, userId, locale)),
+        createClient().then((supabase) => readProfileBadges(supabase, userId, locale, view.signedIn)),
       ]);
 
     return (

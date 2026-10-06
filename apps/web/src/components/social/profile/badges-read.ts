@@ -33,7 +33,8 @@ import { isEarnedGrant, type ProfileBadge } from "../badges/badge-model";
 type BadgeRow = {
   badge_code: string;
   granted_at: string;
-  granted_by: string | null;
+  /** Absent on the signed-out read, which may not select it. */
+  granted_by?: string | null;
   badges: {
     code: string;
     name: string;
@@ -44,15 +45,40 @@ type BadgeRow = {
   } | null;
 };
 
+/*
+ * THE SIGNED-OUT READ (auditor A2, 6 October 2026).
+ *
+ * Migration 20260924020430 took `granted_by` away from the anonymous role
+ * (a signed-out reader learns which badge a person holds, not which staff
+ * account gave it); anon keeps user_id, badge_code, granted_at and
+ * revoked_at. Selecting `granted_by` as anon is therefore a permission error,
+ * which this read turned into null, so a signed-out visitor to /u/[handle]
+ * never saw an earned badge.
+ *
+ * Without `granted_by`, "earned" is derived from `manual_only` alone. That is
+ * sound because the database refuses a manual badge with no granter (RM021,
+ * `private.guard_manual_badge`) and awards every other badge from a recorded
+ * event with `granted_by` null: a `manual_only` badge is always a hand-given
+ * one, and a badge that is not manual_only is awarded by the sweep. The one
+ * case it cannot tell apart is an admin hand-granting an automatic badge,
+ * which no code path does today; the signed-in read keeps the exact test.
+ * Session 2 request R-60 asks for a definer view that exposes
+ * (user_id, badge_code, granted_at, earned) so the anonymous read can stop
+ * inferring.
+ */
 export async function readProfileBadges(
   supabase: SupabaseClient<Database>,
   userId: string,
   locale: Locale,
+  /** False for a signed-out reader, who may not select `granted_by`. */
+  signedIn = true,
 ): Promise<ProfileBadge[] | null> {
   try {
     const { data, error } = await supabase
       .from("user_badges")
-      .select("badge_code, granted_at, granted_by, badges ( code, name, description, object_name, tier, manual_only )")
+      .select(
+        `badge_code, granted_at, ${signedIn ? "granted_by, " : ""}badges ( code, name, description, object_name, tier, manual_only )`,
+      )
       .eq("user_id", userId)
       .is("revoked_at", null)
       .order("granted_at", { ascending: false })
@@ -70,7 +96,11 @@ export async function readProfileBadges(
         tier: row.badges.tier,
         grantedAt: row.granted_at,
         grantedLabel: date.format(new Date(row.granted_at)),
-        earned: isEarnedGrant({ grantedBy: row.granted_by, manualOnly: row.badges.manual_only }),
+        earned: isEarnedGrant({
+          /* Signed out: no granter column, so a non-manual badge counts as earned (see above). */
+          grantedBy: signedIn ? (row.granted_by ?? null) : null,
+          manualOnly: row.badges.manual_only,
+        }),
       }));
   } catch {
     return null;
