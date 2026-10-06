@@ -1,12 +1,13 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useRef, useState } from "react";
 import Link from "next/link";
 import type { Dictionary } from "@vallo/i18n/core";
 import type { AuthFormState } from "@/lib/auth/form-state";
 import { updatePassword } from "@/lib/auth/actions";
 import { PasswordField, StrengthMeter } from "./fields";
 import { AuthPillButton } from "./slate";
+import { useRefusalShake } from "./useRefusalShake";
 
 const EMPTY: AuthFormState = { ok: false };
 
@@ -38,6 +39,9 @@ export function ResetPasswordForm({
   askCurrent?: boolean;
 }) {
   const [state, formAction, pending] = useActionState(updatePassword, EMPTY);
+  /* THE FORM ERROR: the refused field shakes once, its message beneath. */
+  const form = useRef<HTMLFormElement>(null);
+  useRefusalShake(form, state, !state.ok && (Object.keys(state.fieldErrors ?? {}).length > 0 || Boolean(state.message)));
   const [current, setCurrent] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -50,7 +54,7 @@ export function ResetPasswordForm({
       <h1 className="nf-auth__title">{t.auth.newPasswordTitle}</h1>
       <p className="nf-auth__sub">{t.auth.newPasswordLead}</p>
 
-      <form action={formAction} className="nf-auth__form nf-auth__form--fields nf-slate-stagger" noValidate>
+      <form ref={form} action={formAction} className="nf-auth__form nf-auth__form--fields nf-slate-stagger" noValidate>
         {(askCurrent || state.fieldErrors?.currentPassword) && (
           <PasswordField
             t={t}

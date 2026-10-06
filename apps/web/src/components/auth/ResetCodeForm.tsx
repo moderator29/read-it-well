@@ -7,6 +7,7 @@ import type { AuthFormState } from "@/lib/auth/form-state";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Field } from "./fields";
 import { AuthPillButton } from "./slate";
+import { useRefusalShake } from "./useRefusalShake";
 import {
   CONFIRMATION_CODE_PLACEHOLDER,
   readCode,
@@ -46,6 +47,8 @@ export function ResetCodeForm({
   const [code, setCode] = useState("");
   const [surplus, setSurplus] = useState<string | null>(null);
   const form = useRef<HTMLFormElement>(null);
+  /* THE FORM ERROR: the refused field shakes once, its message beneath. */
+  useRefusalShake(form, state, !state.ok && (Object.keys(state.fieldErrors ?? {}).length > 0 || Boolean(state.message)), { felt: Boolean(state.fieldErrors?.code) });
 
   function onCode(value: string) {
     const reading = readCode(value);
@@ -61,7 +64,9 @@ export function ResetCodeForm({
       <h1 className="nf-auth__title">{t.auth.resetCodeTitle}</h1>
       <p className="nf-auth__sub">{t.auth.resetCodeLead}</p>
 
-      <form ref={form} action={formAction} className="nf-auth__form nf-auth__form--fields nf-slate-stagger" noValidate>
+      <form
+        ref={form}
+        action={formAction} className="nf-auth__form nf-auth__form--fields nf-slate-stagger" noValidate>
         <Field
           t={t}
           id="reset-email"

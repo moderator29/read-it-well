@@ -7,6 +7,7 @@ import { signOut } from "@/lib/profile/actions";
 import { AcceptTerms } from "./AcceptTerms";
 import { Field } from "./fields";
 import { AuthPillButton } from "./slate";
+import { useRefusalShake } from "./useRefusalShake";
 
 const EMPTY: AuthFormState = { ok: false };
 
@@ -46,6 +47,8 @@ export function FinishSetupForm({
   const [refused, setRefused] = useState(0);
   const [leaving, startLeaving] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
+  /* THE FORM ERROR: every refused field shakes once, its message beneath. */
+  useRefusalShake(formRef, state, !state.ok && (Object.keys(state.fieldErrors ?? {}).length > 0 || Boolean(state.message)), { tick: refused });
 
   /* F-12: a refused submit puts the cursor on the first thing to fix. */
   useEffect(() => {
