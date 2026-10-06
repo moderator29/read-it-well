@@ -2,12 +2,14 @@ import { describe, expect, it } from "vitest";
 
 import {
   floatTransferDeps,
+  recordTransferWebhook,
   runRewardsPayout,
   sendOpenedPayout,
   settleFromProvider,
   type OpenResult,
   type PayoutDb,
   type SettleInput,
+  type TransferWebhookInput,
 } from "./referral-payout-core";
 import { isRewardsReference, outcomeForEvent, payoutOutcome } from "./referral-transfer";
 
@@ -15,6 +17,7 @@ const REF = "vallo-rw-0123456789abcdef0123456789abcdef";
 
 function fakeDb(open: OpenResult, claim = true) {
   const settled: SettleInput[] = [];
+  const hooks: TransferWebhookInput[] = [];
   const opens: unknown[] = [];
   const db: PayoutDb = {
     open: async (i) => {
@@ -25,9 +28,13 @@ function fakeDb(open: OpenResult, claim = true) {
       settled.push(s);
       return true;
     },
+    webhook: async (w) => {
+      hooks.push(w);
+      return { status: w.event === "transfer.success" ? "paid" : "failed", duplicate: hooks.length > 1 };
+    },
     claimSend: async () => claim,
   };
-  return { db, settled, opens };
+  return { db, settled, opens, hooks };
 }
 
 type Reply = { status: number; body?: unknown } | "throw";
@@ -50,14 +57,14 @@ const member = { memberId: "m1", bankCode: "058", accountNumber: "0123456789", a
 const recipientOk = { status: 200, body: { status: true, data: { recipient_code: "RCP_1" } } };
 
 describe("rewards payout", () => {
-  it("sends with the documented fields and is processing, never paid, on acceptance", async () => {
+  it("sends with the documented fields and is sent, never paid, on acceptance", async () => {
     const { db, settled } = fakeDb(opened);
     const { fetcher, calls } = fakeFetch({
       "/transferrecipient": recipientOk,
       "/transfer": { status: 200, body: { status: true, data: { transfer_code: "TRF_1", status: "success" } } },
     });
     const out = await runRewardsPayout({ db, transfer: { secretKey: "sk_test_x", fetcher } }, member);
-    expect(out).toMatchObject({ kind: "ok", status: "processing", amountMinor: 105000 });
+    expect(out).toMatchObject({ kind: "ok", status: "sent", amountMinor: 105000 });
     expect(calls[0]?.body).toEqual({ type: "nuban", name: "ADA OBI", account_number: "0123456789", bank_code: "058", currency: "NGN" });
     expect(calls[1]?.body).toEqual({
       source: "balance",
@@ -125,7 +132,7 @@ describe("rewards payout", () => {
       "/transfer": { status: 200, body: { status: true, data: { transfer_code: "TRF_2", status: "pending" } } },
     });
     const payout = { reference: REF, amountMinor: 7000, recipientCode: "RCP_9" };
-    expect(await sendOpenedPayout({ db, transfer: { secretKey: "k", fetcher } }, payout)).toBe("processing");
+    expect(await sendOpenedPayout({ db, transfer: { secretKey: "k", fetcher } }, payout)).toBe("sent");
     expect(calls[0]?.body).toMatchObject({ recipient: "RCP_9", reference: REF, amount: 7000 });
     expect(settled.map((s) => s.outcome)).toEqual(["processing"]);
 
@@ -150,10 +157,11 @@ describe("rewards payout", () => {
     }
   });
 
-  it("verify settles paid only on success, and leaves an unanswered question alone", async () => {
+  it("verify never pays and never releases: success waits for the webhook, a failure only alerts staff", async () => {
     const cases: [Reply, string | null][] = [
-      [{ status: 200, body: { status: true, data: { status: "success", transfer_code: "T" } } }, "paid"],
-      [{ status: 200, body: { status: true, data: { status: "reversed" } } }, "failed"],
+      [{ status: 200, body: { status: true, data: { status: "success", transfer_code: "T" } } }, null],
+      [{ status: 200, body: { status: true, data: { status: "reversed" } } }, "verify_failed"],
+      [{ status: 200, body: { status: true, data: { status: "failed" } } }, "verify_failed"],
       [{ status: 200, body: { status: true, data: { status: "pending" } } }, null],
       [{ status: 200, body: { status: true, data: { status: "something-new" } } }, null],
       [{ status: 404, body: { status: false, message: "not found" } }, null],
@@ -166,6 +174,32 @@ describe("rewards payout", () => {
       expect(calls[0]?.url).toBe(`/transfer/verify/${REF}`);
       expect(settled[0]?.outcome ?? null).toBe(expected);
     }
+  });
+
+  it("the webhook alone records a payment, with the provider's amount, and ignores what is not ours", async () => {
+    const { db, settled, hooks } = fakeDb(opened);
+    const data = { reference: REF, amount: 105000, transfer_code: "TRF_1", status: "success", recipient: { name: "x" } };
+    expect(await recordTransferWebhook(db, "transfer.success", data)).toBe("recorded");
+    expect(hooks[0]).toEqual({
+      reference: REF,
+      event: "transfer.success",
+      amountMinor: 105000,
+      transferCode: "TRF_1",
+      payload: { reference: REF, status: "success", amount: 105000, transfer_code: "TRF_1" },
+    });
+    expect(await recordTransferWebhook(db, "transfer.success", data)).toBe("duplicate");
+    expect(settled).toEqual([]);
+    expect(await recordTransferWebhook(db, "transfer.success", { ...data, reference: "rm-wd-1" })).toBe("ignored");
+    expect(await recordTransferWebhook(db, "charge.success", data)).toBe("ignored");
+    expect(hooks).toHaveLength(2);
+    for (const outcome of ["amount_mismatch", "conflict", "unknown_reference"]) {
+      const incident: Pick<PayoutDb, "webhook"> = { webhook: async () => ({ status: "sent", outcome, duplicate: false }) };
+      expect(await recordTransferWebhook(incident, "transfer.failed", data)).toBe("incident");
+    }
+    const applied: Pick<PayoutDb, "webhook"> = { webhook: async () => ({ status: "failed", outcome: "applied_failed" }) };
+    expect(await recordTransferWebhook(applied, "transfer.reversed", data)).toBe("recorded");
+    const broken: Pick<PayoutDb, "webhook"> = { webhook: async () => null };
+    expect(await recordTransferWebhook(broken, "transfer.failed", data)).toBe("error");
   });
 
   it("maps statuses and events conservatively", () => {

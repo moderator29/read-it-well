@@ -22,6 +22,8 @@ import { handleRefundEvent, readRefundEvent } from "@/lib/payments/refund-events
 import { REFUND_ALREADY_CLAIMED } from "@/lib/payments/refund-outcomes";
 import { PROMOTION_PREFIX } from "@/lib/promotion/reference";
 import { handlePromotionChargeFailed, handlePromotionChargeSuccess } from "@/lib/promotion/webhook";
+import { settleRewardsTransferEvent } from "@/lib/payouts/referral-payout";
+import { isRewardsReference } from "@/lib/payouts/referral-transfer";
 
 /**
  * Paystack webhook.
@@ -74,7 +76,9 @@ import { handlePromotionChargeFailed, handlePromotionChargeSuccess } from "@/lib
  *  - rm-fund-<uuid>: a wallet top-up from before the wallet was retired. If
  *    one ever arrives, it is refunded to the card in full; it is never
  *    credited anywhere.
- *  - transfer.* events are acknowledged and ignored: Vallo sends no transfers.
+ *  - transfer.* events for a Rewards Balance payout (`vallo-rw-`, from the
+ *    marketing float) go to `settleRewardsTransferEvent`, the only path that
+ *    marks one paid (D62). Every other transfer.* is acknowledged and ignored.
  *
  * Completion notifications fire from the database trigger, never from here.
  */
@@ -329,6 +333,15 @@ async function dispatch(
   }
 
   if (event.startsWith("transfer.")) {
+    if (isRewardsReference(reference)) {
+      const rewards = await settleRewardsTransferEvent(event, data);
+      if (rewards === "error") return verdict("failed", "rewards_transfer_not_recorded", 500);
+      if (rewards === "duplicate") return verdict("duplicate", "rewards_transfer", 200);
+      // Recorded, not applied (amount mismatch, contradiction, unknown
+      // reference): an incident for staff, never "posted".
+      if (rewards === "incident") return verdict("rejected", "rewards_transfer_incident", 200);
+      return verdict(rewards === "recorded" ? "posted" : "ignored", `rewards_transfer:${rewards}`, 200);
+    }
     return verdict("ignored", "transfers_retired", 200);
   }
 

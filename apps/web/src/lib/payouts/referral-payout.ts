@@ -9,8 +9,14 @@ import { resolveBankAccountName } from "../payments/bank-resolve";
 import { consume, subjectForUser } from "../security/rate-limit";
 import { hasServiceRole } from "../security/service-rpc";
 import { createAdminClient } from "../supabase/admin";
-import { floatTransferDeps, runRewardsPayout, sendOpenedPayout, settleFromProvider, type PayoutDb } from "./referral-payout-core";
-import { isRewardsReference, outcomeForEvent } from "./referral-transfer";
+import {
+  floatTransferDeps,
+  recordTransferWebhook,
+  runRewardsPayout,
+  sendOpenedPayout,
+  settleFromProvider,
+  type PayoutDb,
+} from "./referral-payout-core";
 
 /**
  * THE REWARDS BALANCE PAYOUT (D51): server action, webhook settlement, sweep.
@@ -21,8 +27,12 @@ import { isRewardsReference, outcomeForEvent } from "./referral-transfer";
  *      ledger and mints an idempotent reference, or routes to review;
  *   3. a Paystack transfer recipient and a transfer from the MARKETING FLOAT
  *      account's balance under that reference;
- *   4. PAID ONLY WHEN PAYSTACK CONFIRMS: the `transfer.success` webhook, or the
- *      sweep's `/transfer/verify`. A timeout is `unknown`, never `failed`.
+ *   4. "sent" once the transfer is initiated; PAID ONLY on the signed
+ *      `transfer.success` webhook (`public.rewards_payout_webhook`), never on
+ *      the transfer API's answer or `/transfer/verify` (D62). Failed only on
+ *      the `transfer.failed`/`transfer.reversed` webhook or a staff decision;
+ *      the sweep's verify alerts staff and releases nothing. A timeout is
+ *      `unknown`, never `failed`.
  *
  * PAYOUTS ARE OFF BY DEFAULT. The float is Vallo's own money and must not be
  * the main Paystack balance, which holds customer settlement money. No
@@ -33,9 +43,8 @@ import { isRewardsReference, outcomeForEvent } from "./referral-transfer";
  * `rewards_payout_open`). The verify route still needs confirming against
  * Paystack's docs before that flag is turned on (see `referral-transfer.ts`).
  *
- * The webhook route (`app/api/paystack/webhook/route.ts`, not this file's
- * owner) currently acknowledges and ignores every `transfer.*` event; it must
- * call `settleRewardsTransferEvent` for references that start `vallo-rw-`.
+ * The webhook route (`app/api/paystack/webhook/route.ts`) hands every
+ * `transfer.*` event for a `vallo-rw-` reference to `settleRewardsTransferEvent`.
  */
 
 type Rpc = { rpc: (fn: string, args?: Record<string, unknown>) => PromiseLike<{ data: unknown; error: unknown }> };
@@ -65,6 +74,17 @@ function adminDb(): PayoutDb {
       });
       return !error;
     },
+    async webhook(input) {
+      const { data, error } = await admin.rpc("rewards_payout_webhook", {
+        p_reference: input.reference,
+        p_event: input.event,
+        p_amount_minor: input.amountMinor,
+        p_transfer_code: input.transferCode,
+        p_payload: input.payload,
+      });
+      if (error || !data || typeof data !== "object") return null;
+      return data as { status: string; outcome?: string; duplicate?: boolean };
+    },
     async claimSend(reference) {
       const { data, error } = await admin.rpc("rewards_payout_claim_send", { p_reference: reference });
       return !error && data === true;
@@ -91,7 +111,8 @@ const MESSAGES = {
   invalid: "Your withdrawal could not be started. Nothing was sent.",
 } as const;
 
-export type RewardsPayoutResult = { status: "processing" | "under_review" | "unknown"; amountMinor: number };
+/** "sent" until the webhook confirms; the member is never told "paid" here. */
+export type RewardsPayoutResult = { status: "sent" | "under_review" | "unknown"; amountMinor: number };
 
 /** The member asks for their Rewards Balance to be paid to a bank account. */
 export async function requestRewardsPayout(input: unknown): Promise<ActionResult<RewardsPayoutResult>> {
@@ -134,18 +155,17 @@ export async function requestRewardsPayout(input: unknown): Promise<ActionResult
 }
 
 /**
- * For the Paystack webhook, after its signature check. Returns false for an
- * event this file does not own, so the route can carry on as before.
+ * For the Paystack webhook, after its signature check. "ignored" for an event
+ * or reference this file does not own, so the route can carry on as before.
+ * Needs only the service role, not the float key: recording what the provider
+ * says never moves money.
  */
-export async function settleRewardsTransferEvent(event: string, data: unknown): Promise<boolean> {
-  const row = (data && typeof data === "object" ? data : {}) as Record<string, unknown>;
-  if (!isRewardsReference(row.reference)) return false;
-  const outcome = outcomeForEvent(event);
-  if (!outcome) return true;
-  const transfer = floatTransferDeps();
-  if (!transfer) return true;
-  // A webhook is a claim; the provider's own verify is the confirmation for a payment.
-  return settleFromProvider({ db: adminDb(), transfer }, row.reference);
+export async function settleRewardsTransferEvent(
+  event: string,
+  data: unknown,
+): Promise<"recorded" | "incident" | "duplicate" | "ignored" | "error"> {
+  if (!hasServiceRole()) return "error";
+  return recordTransferWebhook(adminDb(), event, data);
 }
 
 /**

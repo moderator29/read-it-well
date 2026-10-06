@@ -1,15 +1,17 @@
 import "server-only";
 
 import { createClient } from "@/lib/supabase/server";
-import { isReferralStatus, type ReferralStatus } from "../referral/lifecycle";
+import { isMemberReferralStatus, type MemberReferralStatus } from "../referral/lifecycle";
 import { toRewardsSummary, type RewardsSummary } from "./summary";
 
 /**
- * THE MEMBER'S REWARDS BALANCE, READ (D51). Never called a wallet.
+ * THE MEMBER'S REWARDS BALANCE, READ (D51, D62). Never called a wallet.
  *
  * Both reads go through security-definer functions in
- * `b4_referral_rewards_engine.sql` that answer only for the signed-in member;
- * neither names who was referred beyond a first name. Null or empty when
+ * `b4_referral_rewards_engine.sql` and `b4_referral_campaigns.sql` that answer only for the signed-in member;
+ * neither names who was referred beyond a first name, and statuses arrive in
+ * member words (under review reads as pending; "sent" until the webhook
+ * confirms, then "paid"). Null or empty when
  * signed out or when the migration is not applied yet.
  */
 
@@ -27,7 +29,7 @@ export async function myRewardsSummary(): Promise<RewardsSummary | null> {
 
 export type MyReferral = {
   id: string;
-  status: ReferralStatus;
+  status: MemberReferralStatus;
   firstName: string | null;
   rewardMinor: number | null;
   attributedAt: string;
@@ -40,10 +42,10 @@ export async function myReferrals(limit = 50): Promise<MyReferral[]> {
     const { data, error } = await (supabase.rpc as unknown as Rpc)("my_referrals", { p_limit: limit });
     if (error || !Array.isArray(data)) return [];
     return (data as Record<string, unknown>[])
-      .filter((r) => isReferralStatus(r.status))
+      .filter((r) => isMemberReferralStatus(r.status))
       .map((r) => ({
         id: String(r.id),
-        status: r.status as ReferralStatus,
+        status: r.status as MemberReferralStatus,
         firstName: typeof r.first_name === "string" ? r.first_name.slice(0, 40) : null,
         rewardMinor: typeof r.reward_minor === "number" ? r.reward_minor : null,
         attributedAt: String(r.attributed_at),
