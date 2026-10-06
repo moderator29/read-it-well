@@ -807,6 +807,107 @@ committed and pushed as it is done, cleanly, without sessions conflicting.
 | D39 section 4's single owner for the lockfile | D46 |
 | Reading a cancelled check as anything other than "did not run" | D47 |
 | Treating retired custody language as a naming tidy-up | D48 |
+| **D39's LazyMotion requirement** | **D49: it is dead weight here and comes out** |
+
+---
+
+## D49. The code review, and the directive of mine that cost 31 KB on every route
+
+A fourth audit reviewed Session 3's 290 new non-test modules. Its findings, with
+the two Session 1 verified directly, and one correction Session 1 owes.
+
+### D49.1. Remove `MotionProvider`. D39 was wrong for this codebase
+
+**Verified 6 October:** `grep -cE '<m\.[a-z]'` across `apps/web/src` returns
+**zero**. Not one `m` element exists. Yet `app/layout.tsx:500` mounts
+`MotionProvider`, which wraps the whole app in `LazyMotion features={loadFeatures}
+strict` and imports `domAnimation`.
+
+By the component's own measurements that is **7.0 KB gz for `LazyMotion` and
+`MotionConfig`, plus a 24.1 KB gz `motion-features` chunk fetched after first paint
+on every route**, for nothing. `strict` is meaningless without `m` elements, and
+`MotionConfig reducedMotion` is redundant because every ported component already
+routes through `springFor(quiet, ...)`.
+
+**This is Session 1's mistake, not Session 3's.** D39 section 2 said framer-motion
+is installed "as D34 set out: `LazyMotion` with `domAnimation` and the `m`
+namespace". Session 3 complied exactly. But the components it then built use
+`useMotionValue`, `useTransform` and `animate` through its own `useDrive`
+(`ported-motion.ts:83`), and **all three of those are renderer-independent**: they
+never needed `domAnimation` at all. The directive specified a delivery mechanism
+for a renderer the work does not use, and compliance cost 31 KB on every route.
+
+**So: delete `MotionProvider` from `layout.tsx:500` and delete
+`motion-features.ts`.** D39's real rule survives and is unchanged: **never a
+top-level `motion` import**, which `eslint.config.mjs:209-233` enforces and which
+the branch satisfies with zero violations. If an `m` element is ever genuinely
+wanted, `LazyMotion` comes back with it and not before.
+
+### D49.2. Money moves on one keystroke, and a test pins it
+
+**Verified:** `components/ui/DragToConfirm.tsx:319-326`. `onClick` treats
+`e.detail === 0`, which is how Enter, Space and a screen reader's activate arrive,
+as a completed confirmation and calls `commit()` at once. A pointer user must cover
+**90 percent** of the track (`THRESHOLD = 0.9`). A keyboard or assistive-technology
+user gets the same irreversible `money: true` transfer **from a single Enter**, and
+`DragToConfirm.dom.test.tsx:249` cements it as intended.
+
+The handle is a plain `<button>`: no `role="slider"`, no `aria-valuenow`, no Arrow
+handling. **Fix:** make it a real slider advanced by Arrow keys, or require a second
+explicit keypress when `money` is true. The whole point of this control is that
+money should be hard to move by accident, and today it is hard for exactly the
+people who can use a pointer.
+
+Related, same file, lines 266 to 278: the `catch` discards the exception and a
+**declined** result and a **crashed** request land in the same branch with nothing
+reported. Use `reportError` from `lib/observability/report.ts:214`.
+
+### D49.3. The rest, by severity
+
+- **A toast that lies.** `social/badges/BadgeMoment.tsx:87-90` shows "Copied"
+  unconditionally, before and regardless of the clipboard promise. It is also the
+  nineteenth hand-rolled clipboard path in a repository whose `lib/ui/clipboard.ts`
+  exists precisely because eighteen others did this. Use `shareOrCopy` and branch on
+  its outcome.
+- **A celebration that can be farmed.** `app/streaks/EarnedMoment.tsx:66` replays on
+  every click with a heavy haptic each time, contradicting its own doc comment and
+  the `replayed` latch its twin `BadgeMoment.tsx:73-77` uses with the note that "a
+  celebration that can be farmed by tapping is a slot machine". The two components
+  are the same spec built twice, with two stylesheets, two medal sizes and two
+  different motion gates. Add the latch, then collapse them into one.
+- **A chart that re-renders 23 times per animation.** `charts/TrendLine.tsx:351`
+  calls `setDrawn` inside the animation frame loop, reconciling both SVG paths and
+  an unmemoized `ChartTable` with a freshly built `rows` array on every frame. It is
+  the only per-frame `setState` in the new work and it contradicts the no-render-per
+  -frame rule its siblings document.
+- **Nine server reads swallow exceptions silently**, returning "unavailable"
+  forever with no `reportError`, so schema drift or an RLS misconfiguration is
+  invisible in production. Listed in the audit; all take one line each.
+- **The gallery's motion switch does not reach the components it exists to judge.**
+  `motion-pref.ts:89-95` sets attributes without dispatching `MOTION_EVENT`, and
+  `useMotionGate` never observes `data-motion`, so every primitive on the review
+  board keeps a stale gate until remount.
+- **48 dead exports and 14 dead copy keys**, including half of
+  `agent/intel/space-model.ts` and all three of `ported-motion.ts`'s ease constants.
+- **Thirteen stateful or money-arithmetic components with no test**, including
+  `AreaAskingChart` (money), `MoveInBand` (money), `SearchPillMorph` (motion state)
+  and `OsTabs` (keyboard).
+- **`ConsolePalette.tsx:127-136`** hijacks Ctrl/Cmd+K inside any admin textarea and
+  stacks a second `aria-modal` dialog over an open sheet.
+- **`use-overlay.ts:47-60`** locks scroll with `body.overflow` alone, which does not
+  hold on iOS Safari, and every new sheet inherits it.
+
+### D49.4. What the review found clean, which is worth stating
+
+**Zero `any` in new code. Zero hardcoded user-facing strings**: every new component
+takes a `copy` or `words` prop with no defaults, checked against aria-label, alt,
+title, placeholder and JSX text. D39's real rule satisfied with zero violations and
+a lint enforcing it. The thirteen non-null assertions are all index accesses behind
+a bounds check. No file over roughly 400 lines. One unused CSS class across every
+new stylesheet.
+
+That is a high standard, and it is why the findings above are worth fixing rather
+than a reason to doubt the work.
 
 ---
 

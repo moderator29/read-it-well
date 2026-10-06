@@ -881,3 +881,12 @@ keys not being mounted.
 carries a count and a denominator. Routes audited of 213. Sections done of 18.
 Matrix rows run of 34. "Upgraded", "swept" and "done" are not reportable without
 one, and a surface edited by five lines is not a surface that was audited.
+
+**D49 adds a fifth strand to C4, and it is small but urgent:** remove
+`MotionProvider` (31 KB gz per route for a renderer nothing uses, and Session 1's
+error not yours), fix `DragToConfirm`'s one-keystroke money confirm, fix the
+clipboard toast that lies, add the replay latch to `EarnedMoment`, and report
+errors in the nine silent server reads. Then the dead exports and the missing
+tests. The review also found zero `any`, zero hardcoded strings and zero D39
+violations across 290 new modules, which is a high standard and is why these are
+worth fixing rather than a reason to doubt the work.
