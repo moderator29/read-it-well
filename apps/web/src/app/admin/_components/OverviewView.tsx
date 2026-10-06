@@ -29,6 +29,7 @@ import { RangeSelect } from "./RangeSelect";
 import { currentDestination, labelFor, type ShellCopy } from "./nav";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { QueueByDesk } from "./QueueByDesk";
+import { QueueFigures } from "./QueueFigures";
 import type { OverviewCounts } from "./ConsoleOverview";
 
 /** "You were heading to Money": the desk the address asked for, one tap away. */
@@ -128,6 +129,8 @@ export function OverviewView(props: OverviewProps) {
       icon: { tier: "admin", name: "clipboard" },
       label: c.listingsLive,
       value: pulse ? n(pulse.listingsLive) : null,
+      count: pulse?.listingsLive,
+      locale,
       delta: pulse ? periodDelta(pulse.listingsLive, pulse.listingsLiveWeekAgo) : null,
       spark: spark("strip-live", (d) => d.liveAtClose, "Live listings, last 14 days"),
       pending: pending("This figure"),
@@ -137,6 +140,8 @@ export function OverviewView(props: OverviewProps) {
       icon: { tier: "ui", name: "user" },
       label: c.signupsToday,
       value: pulse ? n(pulse.signupsToday) : null,
+      count: pulse?.signupsToday,
+      locale,
       delta: pulse ? periodDelta(pulse.signupsToday, pulse.signupsYesterday) : null,
       spark: spark("strip-signups", (d) => d.signups, "Sign-ups, last 14 days"),
       caption:
@@ -150,6 +155,8 @@ export function OverviewView(props: OverviewProps) {
       icon: { tier: "admin", name: "naira" },
       label: c.collectedToday,
       value: pulse ? money(pulse.collectedTodayMinor) : null,
+      minor: pulse?.collectedTodayMinor,
+      locale,
       delta: pulse ? periodDelta(pulse.collectedTodayMinor, pulse.collectedYesterdayMinor) : null,
       spark: spark("strip-collected", (d) => d.collectedMinor, "Naira collected, last 14 days"),
       pending: pending("This figure"),
@@ -170,6 +177,8 @@ export function OverviewView(props: OverviewProps) {
       icon: { tier: "ui", name: "home" },
       label: c.liveListings,
       value: pulse ? n(pulse.listingsLive) : null,
+      count: pulse?.listingsLive,
+      locale,
       delta: pulse ? periodDelta(pulse.listingsLive, pulse.listingsLiveWeekAgo) : null,
       caption: pulse ? c.vsLastWeek : c.examplesNotCounted,
       spark: spark("card-live", (d) => d.liveAtClose, "Live listings, last 14 days"),
@@ -181,6 +190,8 @@ export function OverviewView(props: OverviewProps) {
       icon: { tier: "ui", name: "plus" },
       label: c.newSupply,
       value: pulse ? n(pulse.newSupplyWeek) : null,
+      count: pulse?.newSupplyWeek,
+      locale,
       delta: pulse ? periodDelta(pulse.newSupplyWeek, pulse.newSupplyPrevWeek) : null,
       caption: c.vsLastWeek,
       spark: spark("card-supply", (d) => d.submitted, "Listings submitted, last 14 days"),
@@ -192,6 +203,8 @@ export function OverviewView(props: OverviewProps) {
       icon: { tier: "admin", name: "naira" },
       label: c.collected,
       value: pulse ? money(pulse.collectedWeekMinor) : null,
+      minor: pulse?.collectedWeekMinor,
+      locale,
       delta: pulse ? periodDelta(pulse.collectedWeekMinor, pulse.collectedPrevWeekMinor) : null,
       caption: c.vsLastWeek,
       spark: spark("card-collected", (d) => d.collectedMinor, "Naira collected, last 14 days"),
@@ -203,6 +216,8 @@ export function OverviewView(props: OverviewProps) {
       icon: { tier: "ui", name: "document" },
       label: c.openReviews,
       value: props.openReviews === null ? null : n(props.openReviews),
+      ...(props.openReviews === null ? {} : { count: props.openReviews }),
+      locale,
       /* No delta: an open count has no history to compare against until
          something snapshots it. The caption says what the number is instead. */
       delta: null,
@@ -217,6 +232,8 @@ export function OverviewView(props: OverviewProps) {
     <div className="nf-admin-stack">
       <h1 className="sr-only">{c.title}</h1>
       {props.headingTo && <HeadingTo href={props.headingTo} copy={shell.entry} shell={shell} />}
+      {/* The overview's first answer: what is waiting on a person, as figures. */}
+      <QueueFigures t={getDictionary(locale)} locale={locale} counts={props.queue ?? null} />
       <KpiStrip items={strip} label={c.pulse} />
       <KpiGrid items={cards} label={c.week} />
 
