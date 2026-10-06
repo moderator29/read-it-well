@@ -1042,14 +1042,35 @@
     min-width: 1.375rem;
     height: 1.375rem;
     padding-inline: var(--nf-space-2xs);
-    /* The spec's count (section 6): 12/600 tabular on the brand tint. */
+    /* The spec's count (north star 6.1 and 15.4): 12/600 tabular on the
+       platform's count colour, CYAN and never red, the same fill the dock's
+       badge uses, so a count reads as one thing wherever it is drawn. */
     border-radius: var(--nf-radius-badge, 6px);
-    background: var(--nf-brand-tint-2);
+    background: var(--nf-count-fill);
     box-shadow: none;
-    color: var(--nf-brand-primary);
+    color: var(--nf-count-ink);
     font-size: 0.75rem;
     font-weight: 600;
     font-variant-numeric: tabular-nums;
+  }
+  /*
+   * THE PRESENCE DOT, drawn only when there is presence data. It sits on the
+   * avatar's lower trailing corner in the success colour with a ring of the
+   * surface colour round it, so it reads on any photograph. It is a status, so
+   * it also carries a visually hidden word in the markup.
+   */
+  .nf-inbox-row__ring {
+    position: relative;
+  }
+  .nf-inbox-row__presence {
+    position: absolute;
+    inset-inline-end: -1px;
+    inset-block-end: -1px;
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-state-success);
+    border: 2px solid var(--nf-surface-primary);
   }
 
   /* The share picker: a row per destination thread or item, glass on tap. */
@@ -1518,5 +1539,235 @@
     border: var(--nf-border-width) solid transparent;
     background: var(--nf-brand-primary);
     box-shadow: var(--nf-card-shadow);
+  }
+}
+
+/* ============================================================== THE THREAD, 15.4
+   Quoted replies, day and unread dividers, attachments and voice notes. Every
+   colour is a token, every container is a tier (Plate for the quote and the
+   attachment, one hairline each), and nothing here animates on its own. */
+@layer components {
+  /* ------------------------------------------------------- quoted reply */
+  .nf-quote {
+    display: grid;
+    gap: var(--nf-space-3xs);
+    width: 100%;
+    max-width: 100%;
+    margin-bottom: var(--nf-space-2xs);
+    padding: var(--nf-space-xs) var(--nf-space-sm);
+    border-radius: var(--nf-tier-plate-radius);
+    border: var(--nf-border-width) solid var(--nf-tier-plate-edge);
+    border-inline-start: 3px solid var(--nf-brand-primary);
+    background: var(--nf-tier-plate-fill);
+    text-align: start;
+    color: var(--nf-content-secondary);
+    font: inherit;
+  }
+  button.nf-quote {
+    cursor: pointer;
+    min-height: 2.75rem;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    button.nf-quote:hover {
+      background: var(--nf-tier-plate-hover);
+    }
+  }
+  button.nf-quote:active {
+    background: var(--nf-tier-plate-press);
+  }
+  .nf-quote__who {
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    color: var(--nf-content-link);
+  }
+  .nf-quote__text {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    font-size: var(--nf-text-body-sm);
+    overflow-wrap: anywhere;
+  }
+  .nf-quote--gone {
+    border-inline-start-color: var(--nf-divider);
+    color: var(--nf-content-muted);
+  }
+  /* The message a quote jumped to: its bubble holds a brand ring for a moment. */
+  .nf-msg[data-jumped] .nf-bubble {
+    outline: 2px solid var(--nf-brand-primary);
+    outline-offset: 2px;
+  }
+
+  /* ----------------------------------------------------------- dividers */
+  .nf-divider-day,
+  .nf-divider-unread {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    margin-block: var(--nf-space-2xs);
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+  }
+  .nf-divider-day {
+    color: var(--nf-content-muted);
+  }
+  .nf-divider-day::before,
+  .nf-divider-day::after,
+  .nf-divider-unread::before,
+  .nf-divider-unread::after {
+    content: "";
+    flex: 1 1 0;
+    height: 1px;
+    background: var(--nf-divider);
+  }
+  .nf-divider-unread::before,
+  .nf-divider-unread::after {
+    background: var(--nf-count-fill);
+  }
+  /* The count: the shared count colour, as a text plate on the badge radius. */
+  .nf-divider-unread > span {
+    padding: var(--nf-space-3xs) var(--nf-space-xs);
+    border-radius: var(--nf-radius-badge, 6px);
+    background: var(--nf-count-fill);
+    color: var(--nf-count-ink);
+  }
+
+  /* --------------------------------------------------------- attachments */
+  .nf-attach {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    width: 100%;
+    min-height: 2.75rem;
+    padding: var(--nf-space-xs) var(--nf-space-sm);
+    border-radius: var(--nf-tier-plate-radius);
+    border: var(--nf-border-width) solid var(--nf-tier-plate-edge);
+    background: var(--nf-tier-plate-fill);
+    color: var(--nf-content-primary);
+    transition: background var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .nf-attach:hover {
+      background: var(--nf-tier-plate-hover);
+    }
+  }
+  .nf-attach:active {
+    background: var(--nf-tier-plate-press);
+  }
+  .nf-attach__glyph {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 2rem;
+    height: 2rem;
+    border-radius: var(--nf-radius-sm);
+    background: var(--nf-brand-tint-2);
+    color: var(--nf-brand-primary);
+  }
+  .nf-attach__text {
+    display: grid;
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+  .nf-attach__name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+  }
+  .nf-attach__size {
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-muted);
+  }
+  .nf-attach__go {
+    flex: none;
+    color: var(--nf-content-muted);
+  }
+
+  /* ---------------------------------------------------------- voice note */
+  .nf-voice {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    min-width: 13.5rem;
+  }
+  .nf-voice__play {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--nf-radius-circle);
+    color: inherit;
+  }
+  .nf-voice__wave {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 2rem;
+  }
+  .nf-voice__bars {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2px;
+    height: 100%;
+  }
+  .nf-voice__bar {
+    flex: 1 1 0;
+    min-width: 2px;
+    max-width: 4px;
+    border-radius: var(--nf-radius-xs);
+    background: currentColor;
+    opacity: 0.4;
+  }
+  .nf-voice__bar[data-played] {
+    opacity: 1;
+  }
+  /* No bars known: a plain track, which is what is true. */
+  .nf-voice__track {
+    position: absolute;
+    inset-inline: 0;
+    inset-block-start: 50%;
+    height: 4px;
+    margin-block-start: -2px;
+    overflow: hidden;
+    border-radius: var(--nf-radius-xs);
+    background: color-mix(in oklab, currentColor 35%, transparent);
+  }
+  .nf-voice__fill {
+    display: block;
+    height: 100%;
+    background: currentColor;
+    transform-origin: left;
+  }
+  .nf-voice__seek {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+  .nf-voice__seek:focus-visible {
+    opacity: 1;
+    outline: 2px solid var(--nf-focus-ring, var(--nf-brand-primary));
+  }
+  .nf-voice__time {
+    flex: none;
+    min-width: 2.5rem;
+    text-align: end;
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+  }
+  .nf-voice__failed {
+    font-size: var(--nf-text-overline);
+    color: var(--nf-state-error);
+  }
+  .nf-voice audio {
+    display: none;
   }
 }

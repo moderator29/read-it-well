@@ -110,6 +110,32 @@ async function readIds(
   return new Set((data ?? []).map((row) => row.id));
 }
 
+/**
+ * What this reader had not read when they arrived: how many messages from the
+ * other side have no `read_at`, and which one is first (for the unread divider).
+ *
+ * Read on the server BEFORE the thread's own mark-read runs in the browser,
+ * which is the only moment the answer exists: one bounded select under the
+ * caller's own RLS, ids in time order. Null when nothing is unread, and on any
+ * failed read, because a divider that is wrong is worse than none.
+ */
+async function readUnread(
+  supabase: Parameters<typeof loadThread>[0],
+  conversationId: string,
+  me: string,
+): Promise<{ count: number; firstId: string } | null> {
+  const { data, error } = await supabase
+    .from("messages")
+    .select("id")
+    .eq("conversation_id", conversationId)
+    .neq("sender_id", me)
+    .is("read_at", null)
+    .order("created_at", { ascending: true })
+    .limit(200);
+  if (error || !data || data.length === 0) return null;
+  return { count: data.length, firstId: data[0]!.id };
+}
+
 export default async function ConversationPage({
   params,
   searchParams,
@@ -137,11 +163,12 @@ export default async function ConversationPage({
     if (!UUID_RE.test(id)) notFound();
     const locale = await getLocale();
     const t = getDictionary(locale);
-    const [thread, contextRead, role, read] = await Promise.all([
+    const [thread, contextRead, role, read, unread] = await Promise.all([
       loadThread(session.supabase, session.user, id),
       getThreadContext(id),
       viewerRole(session.supabase, session.user.id, id),
       readIds(session.supabase, id),
+      readUnread(session.supabase, id, session.user.id),
     ]);
     if (!thread) notFound();
     /*
@@ -341,6 +368,8 @@ export default async function ConversationPage({
           ) : null
         }
         personLabel={t.trustVisible.person.label}
+        unread={unread}
+        nowMs={Date.parse(renderedAt())}
         accountCopy={t.trustVisible.account}
         scamCopy={t.memberKit.scam}
         dayKitCopy={t.memberKit.dayKit}

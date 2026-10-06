@@ -15,6 +15,10 @@ import { VerifiedAvatar } from "@/components/messages/VerifiedAvatar";
 import type { Dictionary } from "@vallo/i18n/core";
 import type { ThreadContextKind } from "@/lib/messages/db";
 import { Segmented } from "@/components/ui/Segmented";
+import { Chip, ChipRow } from "@/components/ui/Chip";
+import { useInboxCopy } from "@/components/app/threads/use-inbox-copy";
+import { plural } from "@vallo/i18n/core";
+import { useClientLocale } from "@/lib/i18n/use-client-locale";
 import { TextField } from "@/components/ui/Field";
 import { EmptyState, ICON, TYPE } from "@/components/app/Screen";
 import { sharePreview } from "@/components/app/messages/share";
@@ -65,6 +69,13 @@ export type InboxRow = {
   archived?: boolean;
   /** This reader reported the conversation, a message in it or the person. */
   reported?: boolean;
+  /**
+   * Whether the counterpart is on Vallo right now. Drawn as a presence dot on
+   * the avatar ONLY when this is "online": there is no presence data today
+   * (request W5-4), so no row carries it and no dot is ever drawn that was not
+   * earned. Absent never means "offline", it means "not known".
+   */
+  presence?: "online";
 };
 
 const CONTEXT_GLYPH: Partial<Record<ThreadContextKind, UiIconName>> = {
@@ -88,14 +99,8 @@ const CONTEXT_GLYPH: Partial<Record<ThreadContextKind, UiIconName>> = {
  * list of everything mixed requests back in, which is what Requests exists to
  * stop.
  */
-type View = "recent" | "requests" | "archived" | "reported";
-const VIEW_ORDER: View[] = ["recent", "requests", "archived", "reported"];
-const VIEW_LABEL: Record<View, string> = {
-  recent: "Recent",
-  requests: "Requests",
-  archived: "Archived",
-  reported: "Reported",
-};
+type View = "recent" | "unread" | "requests" | "archived" | "reported";
+const VIEW_ORDER: View[] = ["recent", "unread", "requests", "archived", "reported"];
 const SIDE_ORDER: Side[] = ["property", "stays"];
 const SIDE_LABEL: Record<Side, string> = { property: "Property", stays: "Stays" };
 
@@ -103,6 +108,9 @@ function inView(row: InboxRow, view: View): boolean {
   if (view === "reported") return row.reported === true;
   if (view === "archived") return row.archived === true;
   if (row.archived) return false;
+  /* Unread is a filter over the main list: a stranger's request waits in its
+     own place and is never counted into what needs answering here. */
+  if (view === "unread") return !row.isRequest && row.unread > 0;
   return view === "requests" ? row.isRequest : !row.isRequest;
 }
 
@@ -111,9 +119,14 @@ function Row({
   typing,
   onArchive,
   archivePending,
+  presenceWord,
+  unreadWord,
 }: {
   row: InboxRow;
   typing: boolean;
+  /** "Online now" and "3 unread messages", already worded and counted. */
+  presenceWord: string;
+  unreadWord: string;
   /** Absent where archiving is not open (signed out, or the table is not live). */
   onArchive?: (row: InboxRow) => void;
   archivePending?: boolean;
@@ -138,6 +151,12 @@ function Row({
             kind={row.counterpartKind}
             size="md"
           />
+          {row.presence === "online" ? (
+            <>
+              <span className="nf-inbox-row__presence" aria-hidden="true" data-testid="inbox-presence" />
+              <span className="sr-only">{presenceWord}</span>
+            </>
+          ) : null}
         </span>
 
         <span className="min-w-0 flex-1 leading-tight">
@@ -173,7 +192,7 @@ function Row({
         <span className="flex shrink-0 flex-col items-end gap-inline-tight self-stretch">
           <span className="nf-inbox-row__when nf-numeric">{row.whenLabel}</span>
           {row.unread > 0 ? (
-            <span className="nf-inbox-row__count" aria-label={`${row.unread} unread`}>
+            <span className="nf-inbox-row__count" aria-label={unreadWord}>
               {row.unread}
             </span>
           ) : (
@@ -285,6 +304,8 @@ export function Inbox({
    */
   const clientInbox = useClientCopy().uiCommon.inbox;
   const tabLabels = labels ?? clientInbox;
+  const inbox = useInboxCopy().inbox;
+  const locale = useClientLocale();
 
   const typing = useInboxTyping(
     rows.map((r) => r.id),
@@ -298,6 +319,8 @@ export function Inbox({
   const onSide = useMemo(() => live.filter((r) => (r.side ?? "property") === side), [live, side]);
   const requests = useMemo(() => onSide.filter((r) => inView(r, "requests")), [onSide]);
   const unreadTotal = rows.reduce((sum, r) => sum + r.unread, 0);
+  /* How many CONVERSATIONS on this side wait on a reply, for the Unread chip. */
+  const unreadThreads = useMemo(() => onSide.filter((r) => inView(r, "unread")).length, [onSide]);
   const unreadBySide = useMemo(() => {
     const out: Record<Side, number> = { property: 0, stays: 0 };
     for (const r of live) if (!r.archived && r.unread > 0) out[r.side ?? "property"] += 1;
@@ -449,29 +472,28 @@ export function Inbox({
         />
       </div>
       <div className="mt-sm" data-testid="inbox-views">
-        {/* The four views as the quiet segmented control (plan item 19):
-            one track, the four words whole at 390 (a count beside "Requests"
-            cut the word, so the waiting requests are counted in a quiet line
-            under it). Radio semantics: it filters the list below. */}
-        <Segmented<View>
-          label={tabLabels.filterLabel}
-          semantics="radio"
-          variant="quiet"
-          size="sm"
-          full
-          options={VIEW_ORDER.map((key) => ({
-            value: key,
-            label: key === "requests" ? tabLabels.requests : VIEW_LABEL[key],
-          }))}
-          value={view}
-          onChange={setView}
-          itemIdPrefix="inbox-view"
-        />
-        {view !== "requests" && requests.length > 0 ? (
-          <p className="nf-caption mt-xs text-[var(--nf-content-muted)]" data-testid="inbox-requests-waiting">
-            <span className="nf-numeric">{requests.length}</span> waiting in {tabLabels.requests}
-          </p>
-        ) : null}
+        {/* The views as filter chips (north star 15.4): one rail, radio
+            semantics because it filters the list below, the waiting counts
+            on the two chips that have a queue. Chips have room for a count
+            where the old segmented track cut the word. */}
+        <ChipRow label={tabLabels.filterLabel} radiogroup bleed={false}>
+          {VIEW_ORDER.map((key) => {
+            const count = key === "unread" ? unreadThreads : key === "requests" ? requests.length : 0;
+            return (
+              <Chip
+                key={key}
+                behaviour="choice"
+                size="md"
+                selected={view === key}
+                onSelectedChange={() => setView(key)}
+                {...(count > 0 ? { count } : {})}
+                data-testid={`inbox-view-${key}`}
+              >
+                {key === "requests" ? tabLabels.requests : inbox.filters[key]}
+              </Chip>
+            );
+          })}
+        </ChipRow>
       </div>
 
       {archiveNote && (
@@ -510,6 +532,8 @@ export function Inbox({
                 typing={typing.has(row.id)}
                 onArchive={archiveOpen && view !== "reported" ? toggleArchive : undefined}
                 archivePending={archiving}
+                presenceWord={inbox.presence.online}
+                unreadWord={plural(row.unread, inbox.unreadBadge, locale)}
               />
             ))}
           </ul>
@@ -517,6 +541,11 @@ export function Inbox({
           <Empty
             title="Nothing matches that"
             body={`No conversation mentions "${query.trim()}". Try a host's name, a listing or a word from the message.`}
+          />
+        ) : view === "unread" ? (
+          <Empty
+            title={inbox.emptyUnread.title}
+            body={inbox.emptyUnread.body}
           />
         ) : view === "requests" ? (
           <Empty
