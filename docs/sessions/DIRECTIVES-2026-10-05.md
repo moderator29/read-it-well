@@ -410,29 +410,50 @@ light. Receipts, statements and anything that is a document follow the Paper reg
 
 Full specification in north star section 16.5.
 
-## D24. No demo content, and an honest Beta badge
+## D24. Demo listings stay. The visible demo labels go
 
-**New, 6 October.** The founder wants demo and example labelling gone from listings.
+**Founder instruction, 6 October, and it is his call, not engineering's.**
 
-**The resolution is to remove the content, not the label.** This repository once
-shipped 23 invented places, 22 of them marked verified, on addresses that do not
-exist, and that is why `demo`, `sample` and `preview` are banned words with a test
-enforcing the ban. Stripping the label from demo content would recreate exactly that
-incident.
+Session 1 initially answered this by gating demo listings out of production reads
+instead. **That was wrong of me: it substituted my judgement for an instruction the
+founder had already given, and then described it as what he meant.** The founder's
+instruction stands, and it is this:
 
-So: **demo listings are never served to a real member in production.** They are gated
-out of every read path rather than labelled, which means no label is needed because no
-member ever meets one. They remain reachable in the admin examples surface and in the
-development harness, where their status is obvious from context. When real supply
-arrives, the demo rows are deleted.
+1. **The demo listings stay in place.** They are not removed, not gated out, not
+   hidden from reads.
+2. **The visible "demo" and "example" labelling comes off the listing surfaces.** No
+   "this is a demo" text, no example badge, nothing on a card or a detail page telling
+   a viewer the listing is an example.
+3. **The founder removes the demo rows himself when the platform goes live**, which is
+   his stated plan and his decision to time.
 
-**Beta badges are permitted and are different.** Beta is an honest statement about a
-feature's maturity, unlike `demo` or `coming soon`, which describe something that is
-not there. A small Beta chip may sit beside a feature that is live, works, and is
-still settling. It is never applied to anything touching money, trust or verification:
-a person deciding whether to send rent does not want to read that the payment flow is
-in beta. The word joins the allowed vocabulary with that constraint, and the banned
-list is otherwise unchanged.
+### What engineering does alongside this, because it is engineering's job
+
+These are not conditions on the instruction above. They are the things that make it
+safe, and none of them re-adds a label or removes a listing.
+
+**A demo listing may never carry a trust signal it has not earned.** This is the part
+that actually matters, and it is worth being precise about why. The 2026 incident was
+not bad because content lacked a label: it was bad because 22 invented places carried
+`verified: true` with fabricated ratings on addresses that do not exist. **The danger
+was never the missing word "demo". It was fabricated trust.** So:
+
+- No verified badge on a demo listing.
+- No `address_verified_at`, `physically_inspected_at` or `verified_by` timestamp.
+- No fabricated review score, review count or rating.
+- No agent presented as verified behind it.
+
+A demo listing can look like a real listing. It must never look like a *checked* one.
+
+**`is_demo` stays in the database.** The founder asked for the labels to come off the
+screen, not for the flag to come out of the schema. Staff still see it in the admin
+console, the flag still drives the admin examples surface, and it is what makes point
+three possible: **one switch removes every demo row on launch day.** Build that switch
+so the founder can act on his own timing in one action rather than hunting rows.
+
+**The claims and banned-phrase lints are unaffected**, because they govern invented
+trust and the words `demo`, `sample` and `preview` in product copy. Removing a demo
+badge from a card does not touch either.
 
 ## D25. Inner pages, so nothing is jammed into one screen
 
@@ -561,6 +582,6 @@ treats D28 as permission to do less has misread it.
 | North star 14.3's ban on a preselected plan | D21 |
 | Notifications as a two-channel afterthought | D22 |
 | The current email design | D23 |
-| Demo listings being labelled rather than gated out | D24 |
+| Session 1's own proposal to gate demo listings out of production reads | D24: the listings stay, the visible labels come off, the founder removes the rows at launch |
 | Single screens carrying several jobs | D25 |
 | **D1's per-surface theme lead** | **D28.1: the member's theme governs; Paper becomes a document treatment within it** |

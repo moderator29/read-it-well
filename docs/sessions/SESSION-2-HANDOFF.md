@@ -552,25 +552,40 @@ subject, the consequence, the figure where there is money, and the object it con
 "You have a new notification" is a defect. Session 3 builds the full view; you make
 sure the data for it exists.
 
-### 7.15d Demo content is gated out, not relabelled (D24)
+### 7.15d Demo listings stay, the visible labels come off (D24)
 
-The founder wants demo labelling gone. **The resolution is to remove the content from
-production reads, not the label from the content.** This repository once shipped 23
-invented places, 22 marked verified, on addresses that do not exist, which is why
-`demo` is a banned word with a test behind it. Stripping a label off demo content
-recreates that incident exactly.
+**Founder instruction. It is his call.** The demo listings are **not** removed, **not**
+gated out of reads, and **not** hidden. What comes off is the **visible demo and
+example labelling on listing surfaces**: no "this is a demo" text, no example badge,
+nothing on a card or detail page telling a viewer the listing is an example. The
+founder removes the rows himself when the platform goes live.
 
-So: `is_demo` rows are **gated out of every production read path** so no member ever
-meets one, which means no label is needed. They stay reachable in the admin examples
-surface and the development harness, where context makes their status obvious. Add a
-probe that fails if a demo row can reach a member-facing query. When real supply
-arrives the rows are deleted.
+**What you build alongside it**, which adds no label and removes no listing:
 
-**Beta is different and is permitted.** It describes something that is live and works
-and is still settling, unlike `demo` or `coming soon`, which describe something absent.
-Add a feature-maturity flag so a Beta chip is data rather than hard-coded. **Never on
-anything touching money, trust or verification:** a person deciding whether to send
-rent does not want to read that the payment flow is in beta.
+- **A demo listing may never carry a trust signal it has not earned.** No verified
+  badge, no `address_verified_at`, `physically_inspected_at` or `verified_by`
+  timestamp, no fabricated review score or count, no agent presented as verified. The
+  2026 incident was not caused by a missing label: it was 22 invented places carrying
+  `verified: true` on addresses that do not exist. **Fabricated trust was the danger,
+  not the absent word.** A demo listing may look like a real listing; it must never
+  look like a checked one. Add a probe that fails if a demo row can carry any of those.
+- **`is_demo` stays in the schema.** The instruction was about the screen, not the
+  database. Staff keep seeing it in the console and it still drives the admin examples
+  surface.
+- **Build the launch switch**: one admin action that removes every demo row, so the
+  founder can act on his own timing without hunting rows.
+
+**Beta chips are a separate thing and are permitted.** Beta honestly describes
+something that is live and works and is still settling, unlike `demo` or `coming soon`
+which describe something absent. Add a feature-maturity flag so the chip is data rather
+than hard-coded.
+
+**To be unambiguous, because the wording in an earlier draft was poor: money, trust and
+verification are all fully built.** Escrow, the wallet, withdrawals, transfers,
+disputes, the nineteen financial tables, vNIN, the Space Passport and the trust ladder
+are all in this brief and are built completely. The only rule is that **those features
+do not wear a Beta chip**, because a person about to send rent should not read "Beta"
+beside the Pay button. The feature is complete; it simply is not labelled as settling.
 
 ### 7.16 Events, analytics, the Space model
 
@@ -673,7 +688,8 @@ listing bypass review, expose cNGN or build a crypto wallet, or restyle anything
 21. Passcode defaults to four digits with six still offered.
 22. The notification channel policy is one table; SMS carries only the three
     permitted cases; every event has an actionable preview payload.
-23. Demo rows cannot reach a member-facing query, proven by a probe.
+23. Demo listings remain and carry no visible demo label and no unearned trust
+    signal, proven by a probe. The one-action launch switch exists.
 24. Typecheck, lint and the full test suite green. Every doc you contradicted, fixed.
 
 ## 12. YOUR RESPONSE FILE

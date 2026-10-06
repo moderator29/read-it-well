@@ -671,8 +671,18 @@ information architecture and have authority to split any surface.** Not clicks f
 their own sake: it is the difference between a dashboard read in three seconds and a
 wall a person scrolls past.
 
-**Beta chips (D24)** where Session 2's maturity flag says so, small and quiet, and
-**never on anything touching money, trust or verification**.
+**Demo labelling comes off (D24).** Remove the visible demo and example labelling from
+listing cards and detail pages: no "this is a demo" text, no example badge. **The
+listings themselves stay**, and the founder removes the rows at launch. What you must
+not draw on a demo listing is any trust signal it has not earned: no verified badge,
+no inspection date, no fabricated rating. A demo listing may look like a real listing;
+it must never look like a checked one.
+
+**Beta chips** where Session 2's maturity flag says so: small, quiet, honest about
+something live and still settling. **The chip does not go on money, trust or
+verification surfaces**, because a person about to send rent should not read "Beta"
+beside the Pay button. **That is about the label only. Those features are fully
+built**, and their screens are in your Stage 4 and Stage 4B work.
 
 ### Stage 9: One product (B3, B4)
 
