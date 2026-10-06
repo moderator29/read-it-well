@@ -1099,6 +1099,14 @@
       background: var(--nf-glass-fill-thin);
     }
   }
+  /* A row is one slice of the table's card, and a shrinking slice tears the
+     hairlines above and below it, so the press LIGHTS it (the settings rows
+     do the same, press-motion.css) rather than sinking it: the universal
+     floor's scale is overridden here. */
+  .nf-admin-row > summary:active {
+    scale: none;
+    background: var(--nf-glass-fill-thin);
+  }
   .nf-admin-row__id {
     display: block;
     font-size: var(--nf-text-overline);

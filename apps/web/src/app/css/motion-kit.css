@@ -414,6 +414,13 @@
  *               adds it only after the first change, so a page that opens on
  *               a tab does not animate its own panel.
  *
+ * THE WORKSPACES USE IT TOO (the host desk's lists and decide rows, the agent
+ * desk's lists, the admin console's lists and its queue table). The console
+ * is a working tool, so its rows take the quicker rung (`--nf-arrive-d` is
+ * `fast`, 160ms, set on `.nf-admin` below): the same first six, 40ms apart,
+ * and the desk is never waiting on its own entrance. Money tables (the
+ * statement) are not in the list.
+ *
  * Transform and opacity only, nothing loops, nothing sits on a money figure
  * (a row's amount arrives with its row; no value counts or rolls). Reduced
  * motion lands everything at once (the tokens are 1ms and the stagger delays
@@ -421,10 +428,21 @@
  * (motion-pref.css names them), and Off lands the final state.
  */
 @layer components {
-  :is(.nf-inbox-list, .nf-notif__group .nf-list-group, .nf-pf-rows, .nf-arrive-list) {
+  .nf-admin {
+    --nf-arrive-d: var(--nf-duration-fast);
+  }
+  :is(
+    .nf-inbox-list,
+    .nf-notif__group .nf-list-group,
+    .nf-pf-rows,
+    .nf-arrive-list,
+    .nf-host :is(.nf-list-group, .nf-decide__list),
+    .nf-agent .nf-list-group,
+    .nf-admin :is(.nf-list-group, .nf-admin-table > ul)
+  ) {
     & > * {
       --nf-arrive-i: 5;
-      animation: nf-arrive-in var(--nf-duration-base) var(--nf-ease-entrance) both;
+      animation: nf-arrive-in var(--nf-arrive-d, var(--nf-duration-base)) var(--nf-ease-entrance) both;
       animation-delay: calc(var(--nf-splash-hold, 0s) + var(--nf-arrive-i) * 40ms);
     }
     & > :nth-child(1) {
@@ -461,12 +479,28 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    :is(.nf-inbox-list, .nf-notif__group .nf-list-group, .nf-pf-rows, .nf-arrive-list) > *,
+    :is(
+      .nf-inbox-list,
+      .nf-notif__group .nf-list-group,
+      .nf-pf-rows,
+      .nf-arrive-list,
+      .nf-host :is(.nf-list-group, .nf-decide__list),
+      .nf-agent .nf-list-group,
+      .nf-admin :is(.nf-list-group, .nf-admin-table > ul)
+    ) > *,
     .nf-tab-swap {
       animation: none;
     }
   }
-  :root[data-motion="off"] :is(:is(.nf-inbox-list, .nf-notif__group .nf-list-group, .nf-pf-rows, .nf-arrive-list) > *, .nf-tab-swap) {
+  :root[data-motion="off"] :is(:is(
+      .nf-inbox-list,
+      .nf-notif__group .nf-list-group,
+      .nf-pf-rows,
+      .nf-arrive-list,
+      .nf-host :is(.nf-list-group, .nf-decide__list),
+      .nf-agent .nf-list-group,
+      .nf-admin :is(.nf-list-group, .nf-admin-table > ul)
+    ) > *, .nf-tab-swap) {
     animation: none;
   }
 }

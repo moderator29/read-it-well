@@ -108,7 +108,15 @@
   :root[data-motion="calm"] .nf-sgroup,
   :root[data-motion="calm"] .nf-notif__list > li,
   :root[data-motion="calm"] [data-testid="inbox-row"],
-  :root[data-motion="calm"] :is(.nf-inbox-list, .nf-notif__group .nf-list-group, .nf-pf-rows, .nf-arrive-list) > *,
+  :root[data-motion="calm"] :is(
+      .nf-inbox-list,
+      .nf-notif__group .nf-list-group,
+      .nf-pf-rows,
+      .nf-arrive-list,
+      .nf-host :is(.nf-list-group, .nf-decide__list),
+      .nf-agent .nf-list-group,
+      .nf-admin :is(.nf-list-group, .nf-admin-table > ul)
+    ) > *,
   :root[data-motion="calm"] .nf-tab-swap,
   :root[data-motion="calm"] .nf-nav--drawer .nf-nav__section,
   :root[data-motion="calm"] .nf-nav--drawer .nf-nav__who--hero,

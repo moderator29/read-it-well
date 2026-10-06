@@ -128,6 +128,17 @@
     background: var(--nf-tier-sheet-scrim);
     -webkit-backdrop-filter: blur(var(--nf-tier-sheet-blur));
     backdrop-filter: blur(var(--nf-tier-sheet-blur));
+    animation: nf-admin-scrim-in var(--nf-duration-base) var(--nf-ease-standard) both;
+  }
+  /* MOTION_SYSTEM "Modal backdrop": a blur FADE on `glide` 240ms. The blur is
+     on the layer, so fading the layer ramps the blur from 0 to its token
+     without animating the filter (which would repaint the page behind it
+     every frame); data saver sets the token to 0. The scrim used to arrive
+     all at once, a flash. */
+  @keyframes nf-admin-scrim-in {
+    from {
+      opacity: 0;
+    }
   }
   .nf-admin-drawer__panel {
     width: min(21rem, 88vw);
@@ -187,6 +198,7 @@
     background: var(--nf-tier-sheet-scrim);
     -webkit-backdrop-filter: blur(var(--nf-tier-sheet-blur));
     backdrop-filter: blur(var(--nf-tier-sheet-blur));
+    animation: nf-admin-scrim-in var(--nf-duration-base) var(--nf-ease-standard) both;
   }
   .nf-admin-palette__panel {
     position: relative;
@@ -204,7 +216,9 @@
     }
   }
   @media (prefers-reduced-motion: reduce) {
-    .nf-admin-palette__panel {
+    .nf-admin-palette__panel,
+    .nf-admin-palette__scrim,
+    .nf-admin-drawer__scrim {
       animation: none;
     }
   }
