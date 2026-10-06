@@ -6,7 +6,9 @@ component with the fixture named in its row. **P** pass, **X** failed and fixed 
 sweep, **F** failed and still open, **·** does not apply. The denominator is 213 real routes
 (every `page.tsx` under `apps/web/src/app`, excluding `(dev)` and `api`).
 
-**Routes audited: 199 of the 213** measured at the start of the sweep, plus 4 routes added since (`/join/[code]/start`, `/s/[token]/status`, `/settings/accessibility`, `/settings/region`): 203 records in all.
+**Routes audited: 199 of the 213** measured at the start of the sweep, plus 4 routes added since (`/join/[code]/start`, `/s/[token]/status`, `/settings/accessibility`, `/settings/region`): 204 records in all.
+
+Recorded but not counted, because a point could not be measured (no fixture holds the found state): `/agreements/[id]`.
 
 Not yet audited: `/agreements/[id]`, `/checkout/[bookingId]`, `/checkout`, `/home`, `/listing/[id]`, `/listing/[id]/trust`, `/payments`, `/price/area/[id]`, `/rent/share/[id]`, `/restaurants`, `/search`, `/stays`, `/stays/search`, `/tenancy/[id]`.
 
@@ -16,7 +18,7 @@ Not yet audited: `/agreements/[id]`, `/checkout/[bookingId]`, `/checkout`, `/hom
 | about | 1 |
 | admin | 38 |
 | agent | 24 |
-| agreements | 1 |
+| agreements | 2 |
 | areas | 1 |
 | around | 5 |
 | assistant | 1 |
@@ -142,6 +144,7 @@ Not yet audited: `/agreements/[id]`, `/checkout/[bookingId]`, `/checkout`, `/hom
 | `/agent/settings` | C1 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/agent/verification` | C1 | P | P | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/agreements` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | X | P | P | P | P | P | P | P | P |
+| `/agreements/[id]` | C3 | N | N | N | N | N | N | P | N | N | N | N | N | N | P | P | X | X | N | N | N | N | X | N | N |
 | `/areas/[state]/[area]` | C6 | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | P | P | P | P | P | P | P | P | P |
 | `/around` | C3 | P | · | P | P | P | P | P | · | P | P | P | P | P | · | · | X | · | P | P | P | X | P | P | P |
 | `/around/[slug]` | C3 | P | · | P | P | P | P | P | P | P | P | P | P | P | · | P | X | · | P | X | P | P | P | P | P |
@@ -517,6 +520,12 @@ Not yet audited: `/agreements/[id]`, `/checkout/[bookingId]`, `/checkout`, `/hom
 **`/agreements`** (no agreement fixture exists anywhere in the repository, so the two honest answers the read gives: none yet, and unreadable)
 
 - 16 (fixed): The title, the section label and the empty state were English literals; they come from nav.agreements and experienceMoney.agreements (listTitle, emptyTitle, emptyBody).
+
+**`/agreements/[id]`** (none (read from the source only))
+
+- 16 (fixed): About forty English literals (the header, the band, the track's six labels, Awaiting you, the terms sheet's labels and confirmation sentences, the section titles, the money line labels) now come from experienceMoney.agreements.page and the move-in ledger's own words (t.moveIn).
+- 17 (fixed): Four money lines were written in the page (Pay {amount} twice, the review paragraph, Payment is open, the lister's approved sentence). They move to lib/money/copy.ts in the patch c3/agreement-money-copy.patch, for the lead. The Guarantee claim section is unchanged (counsel).
+- 22 (fixed): Three dates were formatted "en-NG" for every reader (Since, the changes' byline, each track step); they use the reader's locale (intlTag). The Guarantee claim window is unchanged.
 
 **`/around`** (the real page signed in with no place joined, so the everywhere feed: f4 FEED_POSTS (placed nowhere) and f4 FEED_STORIES; author tiers left as the fixture has them)
 
