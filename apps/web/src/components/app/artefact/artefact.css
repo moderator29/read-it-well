@@ -24,7 +24,7 @@
  * custom properties `fanPose` computes (x, y, scale, turn) plus its opacity.
  * The forward one also tilts to a slight three-quarter angle so its thickness
  * reads. A change of pose travels on the spring at 380ms (`drift`). Quiet
- * readers get the pose at once. Transform and opacity only.
+ * readers (reduced motion, Calm, Off, data saver) get the pose at once. Transform and opacity only.
  */
 @layer components {
   .nf-cred {
@@ -175,10 +175,14 @@
       transition: none;
     }
   }
+  /* Data saver is a reader asking for less, and gets the same instant pose
+     as reduced motion (north star 9: both collapse to instant). */
   :root[data-motion="calm"] .nf-fan__slot,
   :root[data-motion="off"] .nf-fan__slot,
+  :root[data-save-data="on"] .nf-fan__slot,
   :root[data-motion="calm"] .nf-fan__slot .nf-fan__card,
-  :root[data-motion="off"] .nf-fan__slot .nf-fan__card {
+  :root[data-motion="off"] .nf-fan__slot .nf-fan__card,
+  :root[data-save-data="on"] .nf-fan__slot .nf-fan__card {
     transition: none;
   }
 }

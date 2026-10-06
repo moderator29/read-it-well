@@ -6,9 +6,12 @@
  *   Credential       one matte credential, server-safe
  *   CredentialFan    the fanned stack that is its own selector (client)
  *   TrustTierFan     the verification ladder's tiers as credentials (client)
+ *   BusinessTierFan  a host business's ladder, from `getMyBusinessLadder`
  *   fanPose, materialForStep   the fan's geometry and a ladder's materials
  */
 export { Credential, type CredentialFace, type CredentialMaterial } from "./Credential";
 export { CredentialFan, type FanItem } from "./CredentialFan";
 export { TrustTierFan, type TrustTierItem } from "./TrustTierFan";
+export { BusinessTierFan } from "./BusinessTierFan";
+export { businessTierItems, type BusinessLadderInput } from "./business-tiers";
 export { fanPose, materialForStep, type FanPose } from "./fan-pose";

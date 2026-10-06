@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getDictionary, type Dictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { resolveSession } from "@/lib/actions/session";
-import { getMyBusinesses, type MyBusiness } from "@/lib/host/queries";
+import { getMyBusinessLadder, getMyBusinesses, type MyBusiness, type MyBusinessLadder } from "@/lib/host/queries";
 import { loadSettingsState } from "@/lib/profile/queries";
 import type { ResolvedProfileSettings } from "@/lib/profile/model";
 import { authHref, returnHref } from "@/components/auth/auth-intent";
@@ -12,6 +12,7 @@ import { ButtonLink } from "@/components/ui/Button";
 import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { HostShell } from "@/components/host/HostShell";
+import { BusinessTierFan } from "@/components/app/artefact/BusinessTierFan";
 import { AccountNotificationsCard } from "../../(app)/settings/AccountToggles";
 
 export const metadata: Metadata = {
@@ -78,12 +79,17 @@ export default async function HostSettingsPage() {
   }
 
   const [businesses, account] = await Promise.all([getMyBusinesses(), loadSettingsState()]);
+  /* Each business's verification ladder, read back from the tier the database
+     computed (north star 14.4: trust tiers as credentials). A failed read is
+     null and that business simply draws no fan. */
+  const ladders = await Promise.all(businesses.map((business) => getMyBusinessLadder(business.id)));
 
   return (
     <HostShell fallback="/host">
       <HostSettingsBody
         t={t}
         businesses={businesses}
+        ladders={ladders}
         notifications={account.state === "signed-in" ? account.settings.notifications : null}
       />
     </HostShell>
@@ -97,10 +103,13 @@ export default async function HostSettingsPage() {
 export function HostSettingsBody({
   t,
   businesses,
+  ladders = [],
   notifications,
 }: {
   t: Dictionary;
   businesses: MyBusiness[];
+  /** Each business's ladder, in the same order, or null where the read failed. */
+  ladders?: (MyBusinessLadder | null)[];
   /** Null when the preference document could not be read. */
   notifications: ResolvedProfileSettings["notifications"] | null;
 }) {
@@ -169,6 +178,21 @@ export function HostSettingsBody({
             </RowList>
           )}
         </Section>
+
+        {ladders.some(Boolean) ? (
+          <Section title={t.experienceFeatures.trustTiers.selector}>
+            <div className="grid gap-lg">
+              {ladders.map((ladder) =>
+                ladder ? (
+                  <div key={ladder.businessId} className="grid gap-xs">
+                    {ladders.filter(Boolean).length > 1 ? <p className={TYPE.rowTitle}>{ladder.name}</p> : null}
+                    <BusinessTierFan ladder={ladder} businessName={ladder.name} t={t} />
+                  </div>
+                ) : null,
+              )}
+            </div>
+          </Section>
+        ) : null}
 
         {notifications ? (
           <AccountNotificationsCard t={t} initial={notifications} variant="host" />
