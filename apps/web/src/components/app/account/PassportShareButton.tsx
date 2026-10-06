@@ -29,7 +29,7 @@ export function PassportShareButton({
 }) {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [, startTransition] = useTransition();
+  const [pending, startTransition] = useTransition();
   /* True from the tap on "Turn it off" until the server has answered. The sheet
      closes itself on any row (`ActionSheetIllustrated`), so while this is set we
      ignore that close and decide it ourselves: shut on success, held open with a
@@ -63,14 +63,27 @@ export function PassportShareButton({
             label: copy.sheetTurnOff,
             hint: copy.sheetTurnOffHint,
             icon: "eye-off",
+            /* The pending cue while the server answers (the row's held ring). */
+            pending,
             onSelect: () => {
               turningOff.current = true;
               setError(null);
               startTransition(async () => {
-                const result = await setRenterPassport({ enabled: false });
-                turningOff.current = false;
-                if (result.ok) setOpen(false);
-                else setError(result.error);
+                /* `finally`, so an action that THROWS (a dropped request)
+                   also hands the sheet its own dismiss back; it used to stay
+                   set and the sheet ignored "Not now" for good (audit A7). */
+                try {
+                  const result = await setRenterPassport({ enabled: false });
+                  if (result.ok) setOpen(false);
+                  else setError(result.error);
+                } catch {
+                  /* No sentence for a thrown action exists in this screen's
+                     copy and none is invented here: the sheet stays open on
+                     its own line, the row stops working, and the switch on
+                     the page still reads On, which is the truth. */
+                } finally {
+                  turningOff.current = false;
+                }
               });
             },
           },

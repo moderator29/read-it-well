@@ -5,6 +5,7 @@ import "@/app/css/ported.css";
 import { Button } from "@/components/ui/Button";
 import { Icon3D, type Icon3DName } from "@/components/ui/Icon3D";
 import { IconPlate, type IconPlateTone } from "@/components/ui/IconPlate";
+import { PendingRing } from "@/components/ui/PendingRing";
 import { Sheet } from "@/components/ui/Sheet";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { cn } from "@/lib/cn";
@@ -61,6 +62,9 @@ export type ActionSheetRow = {
   href?: string;
   onSelect?: () => void;
   danger?: boolean;
+  /** The row's own work is under way: it says so (`aria-busy`, the held
+      pending ring in the chevron's place) and takes no second tap. */
+  pending?: boolean;
 };
 
 export function ActionSheetIllustrated({
@@ -120,7 +124,11 @@ export function ActionSheetIllustrated({
                 <span className="nf-asi__label">{row.label}</span>
                 {row.hint ? <span className="nf-asi__hint">{row.hint}</span> : null}
               </span>
-              <UiIcon name="chevron-right" size={20} className="nf-asi__chevron" />
+              {row.pending ? (
+                <PendingRing size={20} className="nf-asi__chevron" data-testid={`asi-pending-${row.id}`} />
+              ) : (
+                <UiIcon name="chevron-right" size={20} className="nf-asi__chevron" />
+              )}
             </>
           );
           return (
@@ -139,6 +147,8 @@ export function ActionSheetIllustrated({
                   type="button"
                   className="nf-asi__row"
                   data-danger={row.danger || undefined}
+                  disabled={row.pending || undefined}
+                  aria-busy={row.pending || undefined}
                   onClick={() => choose(row)}
                 >
                   {inner}
