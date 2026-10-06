@@ -40,7 +40,9 @@ export function AttachmentRow({
       target="_blank"
       rel="noopener noreferrer"
       className="nf-attach"
-      aria-label={fill(copy.open, { name: title })}
+      /* The name holds everything the row shows, the size too (WCAG 2.5.3,
+         label in name), so a voice-control user can say what they see. */
+      aria-label={size ? `${fill(copy.open, { name: title })} ${size}` : fill(copy.open, { name: title })}
       data-kind={kind}
       data-testid="attachment-row"
     >
@@ -49,7 +51,9 @@ export function AttachmentRow({
       </span>
       <span className="nf-attach__text">
         <span className="nf-attach__name">{title}</span>
-        {size ? <span className="nf-attach__size nf-numeric">{size}</span> : null}
+        {/* A real space between the name and the size, so the row's text reads
+            "name size" and its accessible name can contain it. */}
+        {size ? <> <span className="nf-attach__size nf-numeric">{size}</span></> : null}
       </span>
       <UiIcon name="arrow-down" size={16} className="nf-attach__go" />
     </a>
