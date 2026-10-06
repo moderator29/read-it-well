@@ -926,6 +926,18 @@
   .nf-segmented--pill .nf-segmented__item {
     border-radius: var(--nf-radius-control);
   }
+  /* The quiet segment reaches 44 through `nf-tap`; the solid one is drawn 44
+     at `md` but 36 at `sm`, and carried no reach at all (W12). The same
+     transparent, centred hit area, so the capsule keeps the height it draws. */
+  .nf-segmented--pill .nf-segmented__item::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: max(100%, 2.75rem);
+    height: max(100%, 2.75rem);
+    transform: translate(-50%, -50%);
+  }
   .nf-segmented--pill .nf-segmented__item[aria-selected="true"],
   .nf-segmented--pill .nf-segmented__item[aria-checked="true"] {
     color: var(--nf-content-on-brand);
