@@ -18,6 +18,7 @@ import { readSheetMarker } from "@/lib/ui/use-sheet-history";
 import type { ListingKind } from "@/lib/listings/types";
 import { PhotoFrame } from "./PhotoFrame";
 import { useClientMount } from "@/lib/ui/client-mount";
+import { useMotionGate } from "@/components/motion/useMotionGate";
 
 /**
  * The listing lightbox.
@@ -34,11 +35,28 @@ import { useClientMount } from "@/lib/ui/client-mount";
  * frames, Escape closes, page scroll is locked while it is open, and focus goes
  * back to whatever opened it. The entrance is a fade plus a small scale, and
  * under `prefers-reduced-motion` it collapses to the fade alone.
+ *
+ * PHOTO OPEN IS A SHARED-ELEMENT ZOOM (MOTION_SYSTEM "Content and feed",
+ * north star motion 18). When the opener hands over the rectangle of the
+ * thumbnail that was tapped, the photograph grows OUT OF THAT THUMBNAIL into
+ * the viewer rather than fading up in the middle of the screen, while the dark
+ * ground fades in behind it; closing from inside folds it back into the same
+ * rectangle. The person never loses the photograph: that is what the motion
+ * says. It is measured, not guessed (`getBoundingClientRect` on both ends),
+ * one uniform scale so the photograph is never squashed, on the `land` curve
+ * in, `leave` out, transform and opacity only, through the Web Animations API
+ * because it is a known track with a known end. Durations and curves are READ
+ * FROM THE TOKENS at run time, so reduced motion (which collapses the tokens
+ * to 1ms) and the Calm and Off settings (`useMotionGate().quiet`, which skips
+ * the morph entirely) are honoured without a second code path.
  */
 
 type ViewerApi = {
-  /** Opens the viewer on a given photo index. No-op when there is nothing to show. */
-  open(index: number): void;
+  /**
+   * Opens the viewer on a given photo index. No-op when there is nothing to
+   * show. `origin` is the tapped thumbnail's rectangle, for the zoom.
+   */
+  open(index: number, origin?: DOMRect | null, options?: { foldBack?: boolean }): void;
 };
 
 const PhotoViewerContext = createContext<ViewerApi | null>(null);
@@ -68,11 +86,15 @@ export function PhotoViewerProvider({
   children: ReactNode;
 }) {
   const [index, setIndex] = useState<number | null>(null);
+  const [origin, setOrigin] = useState<DOMRect | null>(null);
+  const [foldBack, setFoldBack] = useState(true);
 
   const api = useMemo<ViewerApi>(
     () => ({
-      open(next: number) {
+      open(next: number, from?: DOMRect | null, options?: { foldBack?: boolean }) {
         if (photos.length === 0) return;
+        setOrigin(from ?? null);
+        setFoldBack(options?.foldBack !== false);
         setIndex(Math.max(0, Math.min(photos.length - 1, next)));
       },
     }),
@@ -89,6 +111,8 @@ export function PhotoViewerProvider({
           hue={hue}
           kind={kind}
           startIndex={index}
+          origin={origin}
+          foldBack={foldBack}
           onClose={() => setIndex(null)}
         />
       )}
@@ -104,6 +128,8 @@ function Lightbox({
   hue,
   kind,
   startIndex,
+  origin,
+  foldBack,
   onClose,
 }: {
   title: string;
@@ -111,6 +137,10 @@ function Lightbox({
   hue: number;
   kind: ListingKind;
   startIndex: number;
+  /** The tapped thumbnail's rectangle, or null for a plain fade. */
+  origin: DOMRect | null;
+  /** False when the opener is about to disappear (the "Show all" sheet). */
+  foldBack: boolean;
   onClose(): void;
 }) {
   const track = useRef<HTMLDivElement | null>(null);
@@ -120,7 +150,12 @@ function Lightbox({
      which is a second render scheduled for a fact React already knew. See
      `client-mount.ts`. */
   const mounted = useClientMount();
-  const [entered, setEntered] = useState(false);
+  const { quiet } = useMotionGate();
+  /* Decided once, on open: a zoom needs a rectangle to grow from and a reader
+     who has not asked for less motion. Otherwise the existing fade. */
+  const [morph] = useState(() => origin !== null && origin.width > 0 && !quiet);
+  /* The zoom carries the entrance itself, so the surface starts opaque. */
+  const [entered, setEntered] = useState(morph);
   const [active, setActive] = useState(startIndex);
   const [broken, setBroken] = useState<Record<number, true>>({});
 
@@ -198,7 +233,29 @@ function Lightbox({
     return () => window.removeEventListener("popstate", onPop);
   }, [mounted]);
 
-  const close = useCallback(() => {
+  /* Closing from inside folds the photograph back into its thumbnail when
+     it is still the one that was tapped and nothing is mid-drag; the history
+     pop that does the real close waits for the fold. */
+  const folding = useRef(false);
+  const fold = useCallback((then: () => void) => {
+    const pane = track.current?.children[startIndex];
+    const ground = surface.current;
+    const el = track.current;
+    const onTapped = el !== null && Math.round(el.scrollLeft / Math.max(1, el.clientWidth)) === startIndex;
+    if (!morph || !foldBack || !origin || !onTapped || !(pane instanceof HTMLElement) || !ground || folding.current) {
+      then();
+      return;
+    }
+    folding.current = true;
+    const to = flight(origin, pane.getBoundingClientRect());
+    const timing = motionToken("--nf-duration-base", "240ms", "--nf-ease-exit", "cubic-bezier(0.4, 0, 1, 1)");
+    ground.animate([{ opacity: 1 }, { opacity: 0 }], { ...timing, fill: "forwards", pseudoElement: "::before" });
+    const back = pane.animate([{ transform: "none", opacity: 1 }, { transform: to, opacity: 0.6 }], { ...timing, fill: "forwards" });
+    back.onfinish = then;
+    back.oncancel = then;
+  }, [morph, foldBack, origin, startIndex]);
+
+  const closeNow = useCallback(() => {
     if (pushed.current && (window.history.state as { nfPhotoViewer?: boolean } | null)?.nfPhotoViewer) {
       pushed.current = false;
       /* popstate above does the actual close, so there is one path out. */
@@ -207,6 +264,17 @@ function Lightbox({
     }
     onClose();
   }, [onClose]);
+  /* A dismissing drag already moved the photograph; folding it from there
+     would jump, so a drag closes directly. Read through a ref so this
+     callback keeps one identity while the finger moves. */
+  const dragging = useRef(false);
+  const close = useCallback(() => {
+    if (morph && foldBack && !dragging.current) {
+      fold(closeNow);
+      return;
+    }
+    closeNow();
+  }, [fold, morph, foldBack, closeNow]);
   useOverlay({ open: mounted, onClose: close, panelRef: surface, autoFocus: false });
 
   /*
@@ -222,6 +290,9 @@ function Lightbox({
    * animate on the way.
    */
   const [drag, setDrag] = useState(0);
+  useEffect(() => {
+    dragging.current = drag > 0;
+  }, [drag]);
   const gesture = useRef<{ x: number; y: number; t: number; axis: "x" | "y" | null } | null>(null);
   const reduced = useRef(false);
   useEffect(() => {
@@ -283,6 +354,24 @@ function Lightbox({
     if (!el) return;
     el.scrollLeft = startIndex * el.clientWidth;
   }, [mounted, startIndex]);
+
+  /* The zoom out of the thumbnail. Runs once, after the track has been
+     scrolled to the tapped photo, so the pane it measures is the one shown. */
+  useEffect(() => {
+    if (!mounted || !morph || !origin) return;
+    const pane = track.current?.children[startIndex];
+    const ground = surface.current;
+    if (!(pane instanceof HTMLElement) || !ground) return;
+    const from = flight(origin, pane.getBoundingClientRect());
+    const timing = motionToken("--nf-duration-slow", "380ms", "--nf-ease-entrance", "cubic-bezier(0.16, 1, 0.3, 1)");
+    const zoom = pane.animate([{ transform: from, opacity: 0.6 }, { transform: "none", opacity: 1 }], timing);
+    const fade = ground.animate([{ opacity: 0 }, { opacity: 1 }], { ...timing, pseudoElement: "::before" });
+    return () => {
+      zoom.cancel();
+      fade.cancel();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per opening, by design
+  }, [mounted]);
 
   const go = useCallback((next: number) => {
     const el = track.current;
@@ -420,4 +509,33 @@ function Lightbox({
     </div>,
     document.body,
   );
+}
+
+/**
+ * The transform that puts a full-screen pane over the thumbnail it came from:
+ * one uniform scale (never squashed) about the pane's centre, and the move
+ * between the two centres. Measured on both ends, so it is right at any width.
+ */
+function flight(from: DOMRect, pane: DOMRect): string {
+  if (pane.width === 0 || pane.height === 0) return "none";
+  const scale = Math.max(from.width / pane.width, from.height / pane.height);
+  const dx = from.left + from.width / 2 - (pane.left + pane.width / 2);
+  const dy = from.top + from.height / 2 - (pane.top + pane.height / 2);
+  return `translate(${dx}px, ${dy}px) scale(${scale})`;
+}
+
+/**
+ * A duration and a curve READ FROM THE MOTION TOKENS, for the Web Animations
+ * API, which cannot read a CSS variable itself. Reduced motion collapses the
+ * duration tokens to 1ms in tokens.css, and that reaches this too. The
+ * fallbacks are the tokens' own values, for a document where they are absent.
+ */
+function motionToken(duration: string, durationFallback: string, ease: string, easeFallback: string): KeyframeAnimationOptions {
+  const root = getComputedStyle(document.documentElement);
+  const raw = root.getPropertyValue(duration).trim() || durationFallback;
+  const ms = raw.endsWith("ms") ? Number.parseFloat(raw) : Number.parseFloat(raw) * 1000;
+  return {
+    duration: Number.isFinite(ms) ? ms : Number.parseFloat(durationFallback),
+    easing: root.getPropertyValue(ease).trim() || easeFallback,
+  };
 }

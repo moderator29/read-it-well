@@ -261,7 +261,7 @@ export function ListingGallery({
             {photo && viewer && (
               <button
                 type="button"
-                onClick={() => viewer.open(i)}
+                onClick={(event) => viewer.open(i, event.currentTarget.getBoundingClientRect())}
                 aria-label={`View photo ${i + 1} full screen`}
                 data-testid="gallery-open"
                 className="absolute inset-0 z-[1] cursor-zoom-in"

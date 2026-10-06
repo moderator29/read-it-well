@@ -56,9 +56,11 @@ export function ListingPhotoGrid({
   const preview = photos.slice(0, PREVIEW);
   const remainder = photos.length - preview.length;
 
-  function open(index: number) {
+  /* The tapped tile's rectangle travels with the index, so the photograph
+     grows out of the tile it was (PhotoViewer, motion 18). */
+  function open(index: number, from?: Element | null, foldBack = true) {
     setShowAll(false);
-    viewer?.open(index);
+    viewer?.open(index, from ? from.getBoundingClientRect() : null, { foldBack });
   }
 
   return (
@@ -77,7 +79,7 @@ export function ListingPhotoGrid({
             <li key={`${photo}-${i}`}>
               <button
                 type="button"
-                onClick={() => open(i)}
+                onClick={(event) => open(i, event.currentTarget)}
                 aria-label={
                   last
                     ? `View all ${photos.length} photos`
@@ -103,7 +105,7 @@ export function ListingPhotoGrid({
             <li key={`all-${photo}-${i}`}>
               <button
                 type="button"
-                onClick={() => open(i)}
+                onClick={(event) => open(i, event.currentTarget, false)}
                 aria-label={`View photo ${i + 1} of ${photos.length} full screen`}
                 className="relative block aspect-[4/3] w-full overflow-hidden rounded-[var(--nf-container-radius)] transition-transform active:scale-[0.97] motion-reduce:transition-none"
               >
