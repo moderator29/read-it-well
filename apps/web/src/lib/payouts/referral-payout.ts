@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../actions/session";
+import { PHONE_REQUIRED_MESSAGE, confirmedPhoneLookup, requireConfirmedPhone } from "../identity/phone-gate";
 import { resolveBankAccountName } from "../payments/bank-resolve";
 import { currentPaystack } from "../payments/paystack-mode";
 import { consume, subjectForUser } from "../security/rate-limit";
@@ -98,6 +99,9 @@ export async function requestRewardsPayout(input: unknown): Promise<ActionResult
     windowSeconds: 3600,
   });
   if (!verdict.allowed || verdict.degraded) return fail("Too many attempts. Please wait an hour and try again.");
+
+  const phone = await requireConfirmedPhone(confirmedPhoneLookup(createAdminClient()), session.user.id);
+  if (!phone.ok) return fail(phone.reason === "phone_required" ? PHONE_REQUIRED_MESSAGE : MESSAGES.error);
 
   const resolved = await resolveBankAccountName(parsed.data);
   if (!resolved.ok) {
