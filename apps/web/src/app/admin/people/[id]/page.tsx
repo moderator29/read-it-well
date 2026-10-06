@@ -9,6 +9,7 @@ import { adminUi } from "../../_components/ui";
 import { UpholdControl } from "./UpholdControl";
 import { ConsiderStr } from "../../_components/ConsiderStr";
 import { InternalNotes } from "../../_components/InternalNotes";
+import { CaseHistory } from "../../_components/CaseHistory";
 
 export const dynamic = "force-dynamic";
 
@@ -47,7 +48,9 @@ const LEDE =
 export default async function PersonFilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const locale = await getLocale();
-  const ui = adminUi(getDictionary(locale), locale);
+  const t = getDictionary(locale);
+  const x = t.experienceAdmin;
+  const ui = adminUi(t, locale);
   const file = await readPerson(id);
 
   if (file.state !== "ready") {
@@ -178,23 +181,38 @@ export default async function PersonFilePage({ params }: { params: Promise<{ id:
         </section>
       )}
 
-      <section className="mt-section-tight nf-panel nf-panel--card nf-admin-card p-card" aria-label="Timeline" data-testid="person-timeline">
-        <h2 className="nf-h4">Everything, newest first</h2>
-        {file.timeline.length === 0 ? (
-          <p className="mt-row nf-body-sm text-[var(--nf-content-muted)]">Nothing recorded yet.</p>
-        ) : (
-          <ol className="mt-row space-y-inline">
-            {file.timeline.map((e, i) => (
-              <li key={i} className="flex flex-wrap items-baseline gap-x-xs border-t border-[var(--nf-divider)] pt-inline nf-body-sm">
-                <span className="nf-numeric nf-caption text-[var(--nf-content-muted)]">{when(e.at, locale)}</span>
-                <span className="min-w-0 flex-1 break-words">{e.title}</span>
-                <Link href={e.href} className="nf-caption inline-flex min-h-11 items-center text-[var(--nf-content-secondary)] underline underline-offset-2">
-                  {e.desk}
-                </Link>
-              </li>
-            ))}
-          </ol>
-        )}
+      {/* The timeline is this file's second job: the facts above it are what a
+          reviewer needs to decide, and the record of everything is one tap
+          away, folded (D25, and COMPONENT_LIBRARY's "admin case history"). */}
+      <section className="mt-section-tight" aria-label="Timeline" data-testid="person-timeline">
+        <CaseHistory
+          title="Everything, newest first"
+          hint={x.cases.historyCount.replace("{count}", String(file.timeline.length))}
+        >
+          {file.timeline.length === 0 ? (
+            <p className="nf-body-sm text-[var(--nf-content-muted)]">Nothing recorded yet.</p>
+          ) : (
+            <ol className="space-y-inline">
+              {file.timeline.map((e, i) => (
+                <li key={i} className="flex flex-wrap items-baseline gap-x-xs border-t border-[var(--nf-divider)] pt-inline nf-body-sm">
+                  <span className="nf-numeric nf-caption text-[var(--nf-content-muted)]">{when(e.at, locale)}</span>
+                  <span className="min-w-0 flex-1 break-words">{e.title}</span>
+                  <Link href={e.href} className="nf-caption inline-flex min-h-11 items-center text-[var(--nf-content-secondary)] underline underline-offset-2">
+                    {e.desk}
+                  </Link>
+                </li>
+              ))}
+            </ol>
+          )}
+        </CaseHistory>
+        <p className="mt-sm">
+          <Link
+            href={`/admin/audit?who=all&q=${id}`}
+            className="inline-flex min-h-11 items-center nf-caption font-medium underline underline-offset-2"
+          >
+            {x.cases.trailLink}
+          </Link>
+        </p>
       </section>
 
       <InternalNotes subjectId={id} path={`/admin/people/${id}`} />
