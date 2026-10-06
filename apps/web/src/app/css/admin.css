@@ -1105,6 +1105,9 @@
      floor's scale is overridden here. */
   .nf-admin-row > summary:active {
     scale: none;
+    /* The floor also rounds a pressed control; a slice of the table's card
+       stays square, or the hairlines above and below it tear (A8 N10). */
+    border-radius: 0;
     background: var(--nf-glass-fill-thin);
   }
   .nf-admin-row__id {
