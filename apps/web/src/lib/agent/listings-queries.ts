@@ -8,6 +8,7 @@ import { SUPABASE_URL } from "../supabase/env";
 import { resolveSession } from "../actions/session";
 import { loadUnreadCounts } from "../messages/unread";
 import type { AgentProfile } from "./types";
+import { hasBadge, toBadgeTier } from "../trust/badge-tier";
 import {
   AMENITY_CHOICES,
   type BuildCondition,
@@ -86,6 +87,12 @@ export type AgentContext =
       agent: AgentIdentity;
     };
 
+/** The published tier off an embedded `agent_badges` row, which PostgREST may hand back as an object or a one-row list. */
+function publishedTier(embed: unknown): unknown {
+  const row = Array.isArray(embed) ? embed[0] : embed;
+  return row && typeof row === "object" ? (row as { tier?: unknown }).tier : undefined;
+}
+
 /**
  * Who is asking, and are they an approved agent?
  *
@@ -99,7 +106,7 @@ export async function getAgentContext(): Promise<AgentContext> {
 
   const { data, error } = await session.supabase
     .from("agents")
-    .select("id, display_name, status, type, verification_tier")
+    .select("id, display_name, status, type, verification_tier, agent_badges(tier)")
     .eq("user_id", session.user.id)
     .maybeSingle();
 
@@ -117,17 +124,18 @@ export async function getAgentContext(): Promise<AgentContext> {
       status: data.status,
       type: data.type,
       /*
-       * THE RAIL'S "VERIFIED AGENT" CHIP, DERIVED FROM THE LADDER AND NOT FROM
-       * A COLUMN SOMEBODY SET.
+       * THE RAIL'S "VERIFIED AGENT" CHIP, READ FROM THE PUBLISHED BADGE.
        *
-       * This used to read `agents.verified`, which the application approval
-       * wrote as true at tier 0. So an agent who had not sent us a single
-       * document was addressed as a verified agent in their own workspace
-       * chrome while `/agent/verification`, three centimetres away, told them
-       * they were at tier 0 and had not started. Tier 1 is the identity rung,
-       * and the identity rung is the badge.
+       * It first read `agents.verified`, which the application approval wrote
+       * as true at tier 0. It then derived the chip here from the ladder
+       * (`verification_tier >= 1`), which is the rule `lib/trust/badge-tier.ts`
+       * says may live nowhere in `src`: a second derivation that can disagree
+       * with the badge every other surface draws (audit A9, 6 October). So it
+       * reads `agent_badges.tier`, the same published answer a listing and a
+       * thread read, through `toBadgeTier`; a missing row or an unknown value
+       * is no chip. `lib/trust/promotion-trust.test.ts` holds the shape.
        */
-      verified: (data.verification_tier ?? 0) >= 1,
+      verified: hasBadge(toBadgeTier(publishedTier(data.agent_badges))),
       verificationTier: data.verification_tier ?? 0,
     },
   };
