@@ -149,7 +149,7 @@ export function ConsoleStepUp({ name }: { name: string }) {
                 Email me a code
               </Button>
             )}
-            <ButtonLink href="/settings/privacy" variant="quiet" size="md">
+            <ButtonLink href="/settings/privacy/money-lock" variant="quiet" size="md">
               Or set it up in your privacy settings
             </ButtonLink>
           </div>

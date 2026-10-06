@@ -32,8 +32,9 @@ import {
   type Weight,
 } from "@/lib/admin/queue-desk";
 import { loadDesk } from "@/lib/admin/reads/queue-desk";
-import { QueueSelection } from "../_components/QueueSelection";
+import { BulkSubmit, QueueSelection } from "../_components/QueueSelection";
 import { bulkAct, deleteView, releaseRow, saveView, takeRow } from "@/lib/admin/queue-desk-actions";
+import { Button } from "@/components/ui/Button";
 
 export const dynamic = "force-dynamic";
 
@@ -455,9 +456,9 @@ export default async function AdminQueuePage({
             <form action={claim ? releaseRow : takeRow} className="inline">
               <input type="hidden" name="item" value={key} />
               {hidden}
-              <button type="submit" className="nf-link-quiet inline-flex min-h-11 items-center px-2xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-link)]">
+              <Button type="submit" variant="quiet" size="sm">
                 {claim ? desk.release : desk.take}
-              </button>
+              </Button>
             </form>
           )}
           {row.weight && <span className="min-w-0 truncate">{weightLine(row.weight)}</span>}
@@ -564,9 +565,7 @@ export default async function AdminQueuePage({
             ))}
           </select>
         </label>
-        <button type="submit" className="nf-btn nf-btn--glass nf-btn--sm">
-          {desk.bulkApply}
-        </button>
+        <BulkSubmit>{desk.bulkApply}</BulkSubmit>
       </form>
       </details>
 
@@ -575,7 +574,7 @@ export default async function AdminQueuePage({
       <QueueSelection
         verbs={[
           { id: "take", label: desk.verbs.take, icon: "user-check" },
-          { id: "approve", label: desk.verbs.approve, icon: "verified" },
+          { id: "approve", label: desk.verbs.approve, icon: "verified", confirm: true },
           { id: "send_back", label: desk.verbs.send_back, icon: "arrow-left", needs: "reason", confirm: true },
           { id: "assign", label: desk.verbs.assign, icon: "user", needs: "to" },
           { id: "close_spam", label: desk.verbs.close_spam, icon: "block", confirm: true },
@@ -590,6 +589,9 @@ export default async function AdminQueuePage({
           confirmBody: t.experienceAdmin.cases.bulkConfirmBody,
           confirmApply: t.experienceAdmin.cases.bulkConfirmApply,
           notNow: t.experienceUi.notNow,
+          needsReason: t.experienceAdmin.cases.bulkNeedsReason,
+          needsTo: t.experienceAdmin.cases.bulkNeedsTo,
+          needsOpen: t.experienceAdmin.cases.bulkNeedsOpen,
         }}
       />
 
@@ -624,9 +626,9 @@ export default async function AdminQueuePage({
                   <form action={deleteView}>
                     <input type="hidden" name="id" value={view.id} />
                     {hidden}
-                    <button type="submit" className="nf-link-quiet nf-caption text-[var(--nf-content-link)]">
+                    <Button type="submit" variant="quiet" size="sm">
                       {desk.viewDelete}
-                    </button>
+                    </Button>
                   </form>
                 )}
               </li>
@@ -642,9 +644,9 @@ export default async function AdminQueuePage({
           <label className="nf-caption flex items-center gap-3xs">
             <input type="checkbox" name="shared" /> {desk.viewShared}
           </label>
-          <button type="submit" className="nf-btn nf-btn--glass nf-btn--sm">
+          <Button variant="secondary" size="sm" type="submit">
             {desk.viewSave}
-          </button>
+          </Button>
         </form>
       </section>
 

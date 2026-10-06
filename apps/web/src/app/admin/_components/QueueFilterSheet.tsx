@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { Sheet } from "@/components/ui/Sheet";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import "./admin-material.css";
+import { Button } from "@/components/ui/Button";
+import { queueHref } from "./queue-href";
 
 /**
  * A DESK'S FILTERS, IN A BOTTOM SHEET ON A PHONE.
@@ -65,6 +67,8 @@ export function QueueFilterSheet({
     to: string;
     status: string;
     all: string;
+    /** The close control's accessible name (not the sheet's title). */
+    close: string;
     apply: string;
     reset: string;
     on: string;
@@ -77,27 +81,34 @@ export function QueueFilterSheet({
   const id = useId();
   return (
     <>
-      <button
-        type="button"
-        className="nf-icon-btn nf-icon-btn--round nf-admin-filter-open"
-        aria-haspopup="dialog"
-        aria-label={`${words.open}, ${narrowedCount > 0 ? words.on.replace("{count}", String(narrowedCount)) : words.off}`}
-        onClick={() => setOpen(true)}
-      >
-        <UiIcon name="sliders" size={20} />
+      {/* The wrapper owns where the control sits and when it is shown (below
+          768 only), so the Button keeps its own geometry untouched. */}
+      <span className="nf-admin-filter-open">
+        <Button
+          type="button"
+          variant="icon"
+          round
+          aria-haspopup="dialog"
+          aria-label={`${words.open}, ${narrowedCount > 0 ? words.on.replace("{count}", String(narrowedCount)) : words.off}`}
+          onClick={() => setOpen(true)}
+        >
+          <UiIcon name="sliders" size={20} />
+        </Button>
         {narrowedCount > 0 && <span className="nf-admin-filter-open__dot nf-numeric" aria-hidden="true">{narrowedCount}</span>}
-      </button>
+      </span>
       <Sheet
         open={open}
         onOpenChange={setOpen}
         title={words.title}
         detents={[0.7]}
-        closeLabel={words.title}
+        closeLabel={words.close}
         reset={{
           label: words.reset,
           onClick: () => {
             setOpen(false);
-            router.push(base);
+            /* Clearing the filters keeps the lane the person is in: the desk's own
+               `?tab=` is rebuilt through `queueHref`, never dropped for a bare path. */
+            router.push(queueHref(keep.length > 0 ? `${base}?${new URLSearchParams(keep).toString()}` : base, {}, {}));
           },
           disabled: narrowedCount === 0,
         }}

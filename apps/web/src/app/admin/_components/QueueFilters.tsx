@@ -9,6 +9,7 @@ import { queueHref, type QueueQuery } from "./queue-href";
 export { queueHref, type QueueQuery };
 import { QueueFilterSheet } from "./QueueFilterSheet";
 import "./admin-material.css";
+import { Button } from "@/components/ui/Button";
 
 /**
  * The console's one queue frame: find a row, narrow to it, page through.
@@ -212,9 +213,9 @@ export async function QueueFilters({
             </label>
           )}
           {!dateable && (
-            <button type="submit" className="nf-icon-btn" aria-label={f.apply}>
+            <Button type="submit" variant="icon" aria-label={f.apply}>
               <UiIcon name="arrow-right" size={20} />
-            </button>
+            </Button>
           )}
           {dateable && (
             <details className="nf-admin-more" open={Boolean(query.from || query.to)}>
@@ -235,9 +236,9 @@ export async function QueueFilters({
                 <span className="nf-label">{f.to}</span>
                 <input type="date" name="to" defaultValue={query.to ?? ""} className="nf-field mt-inline-tight w-full" />
               </label>
-              <button type="submit" className="nf-btn nf-btn--primary nf-btn--md shrink-0">
+              <Button variant="primary" className="shrink-0" type="submit">
                 {f.apply}
-              </button>
+              </Button>
               {narrowed && (
                 <Link href={base} className="nf-btn nf-btn--ghost nf-btn--md shrink-0">
                   {f.clear}
@@ -271,7 +272,8 @@ export async function QueueFilters({
                 from: f.from,
                 to: f.to,
                 status: f.status,
-                all: "All",
+                all: x.filtersAll,
+                close: x.filtersClose,
                 apply: x.filtersApply,
                 reset: x.filtersReset,
                 on: x.filtersCount,

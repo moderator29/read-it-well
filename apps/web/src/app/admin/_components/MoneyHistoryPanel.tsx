@@ -28,7 +28,8 @@ import { CalmNote } from "./panels";
  * words through `statusFor`, so a submitted refund is never read as settled.
  *
  * The CSV link is a plain anchor, not a `Link`: it is a file, and a prefetch
- * of it would write an audit row nobody asked for.
+ * of it would write an audit row nobody asked for. It sits under the sheet, on
+ * the panel, not on the paper.
  */
 const PANEL_ROWS = 50;
 
@@ -93,12 +94,15 @@ export async function MoneyHistoryPanel({
             )}
           </>
         )}
-        <p className="nf-doc__note">
-          <a href="/admin/money/export" download className="underline" data-testid="money-history-csv">
-            Download CSV
-          </a>
-        </p>
       </DocumentSheet>
+      {/* The way out to a spreadsheet is a control, so it sits on the panel
+          beside the sheet and never on the paper (D28.1); a statement that is
+          printed or screenshotted carries no link. */}
+      <p className="nf-admin-doc__action">
+        <a href="/admin/money/export" download className="underline" data-testid="money-history-csv">
+          Download CSV
+        </a>
+      </p>
     </section>
   );
 }
