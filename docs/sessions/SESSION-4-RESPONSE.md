@@ -75,6 +75,188 @@ prompt itself, not because I found a contract.
 
 ---
 
+## TASK 2: THE SECOND AUDIT OF SESSION 2'S MONEY AND RLS WORK
+
+My defining task, run properly this time. An agent on the strongest model did
+the sweep; **every finding below I re-derived myself from the code before
+writing it down**, because D5's whole point is that the author is the wrong
+reviewer and because D51 says of the central one "Session 2 verifies that, never
+assumes it."
+
+### DEFECT A: D51's pricing plan rests on a false premise. `guarantee_bps = 0` is impossible today
+
+This is the most consequential thing I found in the whole session, because a
+founder decision is built on it.
+
+D51 states: "At `guarantee_bps = 0` the reserve leg is skipped entirely
+(`if (split.guaranteeMinor > 0)`), which is the evidence the
+`PAYSTACK_GUARANTEE_SUBACCOUNT` blocker lifts. **Verify, do not assume.**"
+
+I verified. **All three parts fail**, and these are my own greps, not a report:
+
+1. **The rate cannot be set to 0 at all.** `money_policy.guarantee_bps` is
+   declared
+   `integer not null default 150 check (guarantee_bps between 100 and 200)`
+   (`supabase/migrations/20260925121219_track_a2_split_settlement_guarantee_agreements_claims.sql:49`).
+   Zero violates the check. I searched every migration that mentions
+   `guarantee_bps` for a `drop constraint` or a relaxed range: **nothing
+   relaxes it.** So "the Guarantee is retired, `guarantee_bps = 0`" needs a new
+   migration that does not exist, and D51's "changing a price is a row, never a
+   deploy" is **false for this rate**.
+2. **The application refuses every payment without the reserve subaccount,
+   whatever the rate.** `apps/web/src/lib/payments/split-attempt.ts` opens
+   `quoteSplit` with
+   `const reserve = guaranteeReserveSubaccount(); if (!reserve) return { refused: true, ... }`
+   **before** it calls `payment_split_for_booking`, and it is not conditioned on
+   the rate. While `PAYSTACK_GUARANTEE_SUBACCOUNT` is unset, every payment is
+   refused.
+3. **The database refuses it too.** The payment gate requires
+   `reserve_subaccount_code is null` to be false
+   (`20260925121219...sql:694`), on a `before insert` trigger. Even with the
+   app check removed, the insert fails.
+
+The `if (split.guaranteeMinor > 0)` that D51 cites is inside `splitBody()` in
+`paystack.ts`. It decides only whether the reserve subaccount appears in the
+**Paystack payload**. It touches neither gate.
+
+**So `PAYSTACK_GUARANTEE_SUBACCOUNT` is still a hard blocker on two independent
+gates, and the Guarantee cannot be retired by a row.** Nothing anywhere covers
+the zero case: there is no `split-attempt.test.ts` at all. I ran the money
+suites (20 files, 189 tests, all green) and none of them exercises a zero
+reserve leg.
+
+**Two more D51 premises that do not match the schema**, both verified by me:
+
+- **`money_policy` has no `commission_bps` column.** Its data columns are
+  exactly `guarantee_bps`, `claim_window_hours`, `min_inspection_photos`
+  (`:49-51`). Commission lives in `fee_rates`, read via
+  `private.current_fee_bps('commission')`, which returns **0 when no row
+  exists**. Setting commission to 200 bps is a `fee_rates` row, not a
+  `money_policy` one.
+- **VAT is not modelled anywhere.** `grep -rni "vat_bps|vat_registered"` over
+  `supabase/` and `apps/web/src` returns **0 hits**. D51's
+  `vat_bps = 0, vat_registered = false` describes fields that do not exist.
+
+### DEFECT B: raw Paystack error text is shown to members, in three places
+
+D50 says provider errors stay inside the adapter. They do not. `PaystackError`
+carries Paystack's own `message`, and it is interpolated into member-facing
+copy at `apps/web/src/lib/payments/methods-actions.ts:422-426`
+("The payment service said: ..."), the same pattern in
+`charge-saved-card.ts:230-236`, and client-side in
+`components/app/payments/PaystackCheckout.tsx:383-387`. The wrapper hides the
+provider's **name**; the payload is the provider's **error language**. This is
+the product surface, so no legal exemption applies.
+
+### DEFECT C: a renter can read Vallo's commission and raw Paystack subaccount codes
+
+The largest hole against D50 and D51, and it is **pre-existing, not Session
+2's**. Verified myself:
+
+`supabase/migrations/20260728152358_bookings_payments.sql:184-186` is
+`create policy transactions_guest_select on public.transactions for select
+using (exists (... b.guest_id = auth.uid()))` with **no column list**, and
+`grep -rn "revoke select" supabase/migrations/*.sql | grep -c transactions`
+returns **0**: `transactions` is never column-narrowed, unlike `listings`,
+`businesses` and `accommodations` which are.
+
+So a paying guest, on their own rows, can read `commission_minor`,
+`guarantee_minor` and `lister_share_minor`, which is exactly what D51's
+`whoPays: "seller"` forbids ("the renter sees exactly the advertised price, no
+line item, no footnote"), plus `payee_subaccount_code` and
+`reserve_subaccount_code`, which are raw provider identifiers on a
+member-reachable payload.
+
+**The rendered UI is clean** and `my_payments_history` is correctly sided: it
+returns no fee columns at all. The leak is in the payload, which is precisely
+what the brief told me to check.
+
+**And the probe enshrines it.** `supabase/tests/probes/mon-10-money-grants.sql`
+sweeps every money table for **write** privileges and then asserts, as a
+deliberate control, that a member **can** select from `transactions`. No probe
+asserts which **columns**. So no future probe will catch this.
+
+### The remaining findings, in brief
+
+- **DEFECT D: a provider HTTP call on every page render.**
+  `apps/web/src/lib/agent/payout-queries.ts:64-71` calls `listBanks()` with no
+  cache and no revalidate, from two server pages (`agent/earnings`,
+  `agent/settings`). D50 constraint 3 says a call per render "is already
+  broken". With a 10-per-minute key budget this is the first thing that will
+  break in production.
+- **DEFECT E: an unknown outcome is classified as a decline.**
+  `charge-saved-card.ts:178-180` catches `PaystackError` and treats it as
+  `declined`, but `PaystackUnknownOutcome extends PaystackError`, so a timeout
+  or 5xx lands in the decline branch. It cannot double-charge (the reference is
+  already used), but it is a misclassification on a money path, and Session 2's
+  own seam states the opposite rule.
+- **DEFECT F: `lib/money/copy.ts` still sells the retired Guarantee** and names
+  Paystack on the product surface. D51 requires every Guarantee sentence out of
+  that file; none of that work is done.
+- **DEFECT: the three pots are not separated in the schema.** `platform_revenue`
+  exists but is **orphaned**, written only by the retired escrow path. The
+  marketing float does not exist (`grep` for it returns 0 hits). On the live
+  rail Vallo's revenue is a **column inside the customer's transaction row**.
+  The only constraint in the area, `ledger_balances_chk`, asserts the parts sum
+  to the whole, which is the mathematical opposite of separation. D51's
+  requirement is prose.
+- **DEFECT: the pricing table is not continuous.** Two boundaries reward
+  splitting a withdrawal. At 2,000,000 one withdrawal costs 2,500 and two of
+  1,000,000 cost 600, a 76 percent saving. The 100,000 boundary is gameable too
+  and **nothing in the documents mentions it**: closing the coverage gap made
+  the table cover every amount, which is not the same as making the price
+  continuous.
+- **DEFECT: no test for the agreement gate or non-retroactivity.** The gate and
+  the rate freeze are both real and server-side (the trigger plus
+  `agreement_terms_*` freezing rates into `deal_agreements.terms`). But no test
+  and no probe asserts either, and the brief said this needs a test rather than
+  an inspection. The audit specifies the seven assertions a probe would have to
+  make; it belongs in `supabase/tests/probes/` because the guarantees live in a
+  trigger and a definer, which vitest cannot reach.
+- **CANNOT DETERMINE: the referral budget cap.** There is no referral reward
+  engine, no qualification function, no per-member counter and no platform
+  budget row. There is nothing to race. D51's requirement is unimplemented, and
+  the obvious shape (read the total, compare, insert) is a read-modify-write
+  race that nothing in the repository would currently prevent.
+- **SAFE, verified:** no fabricated chain data (the fiat table has nowhere to
+  put a hash); "processing" is never shown as successful early (the guard is
+  `payment-state.ts:93`, reading Vallo's own row, and all three call sites pass
+  `confirm`); failover cannot double-charge (no failover and no retries exist,
+  and the key is `provider_ref` with four enforcement points); legally required
+  provider disclosures ARE present and the abstraction has **not** been
+  over-applied to a legal surface; no fraud signal, risk score or staff note is
+  member-reachable (the whole compliance stack is born locked with no policy).
+- **No applied migration was edited.** All 582 recorded sha256 hashes in
+  `APPLIED.txt` were recomputed and matched.
+
+### And the finding that frames all of it: Session 2's work is not on my branch
+
+I verified this myself and it is a release fact, not a nitpick:
+
+- `git merge-base --is-ancestor origin/claude/vallo-backend-money-trust HEAD`
+  reports **NOT MERGED**. There are **13 commits** on Session 2's branch absent
+  from mine.
+- **There is no migration dated 2026-10-06 on this branch.** The newest is
+  `20260930140451`.
+- `apps/web/src/lib/payments/router.ts` and `provider.ts` **do not exist here**.
+
+So the two migrations and the rail seam I was asked to audit had to be read out
+of Session 2's branch with `git show`. **The QA branch does not contain the work
+being signed off**, which means #83 going green says nothing whatever about
+Session 2's money changes. That is worth stating plainly to whoever merges.
+
+### On the seam itself, which is the one piece of good news
+
+**Zero non-test call sites, confirmed independently** rather than taken from
+Session 1. Every one of the 19 exported symbols from `router.ts` and
+`provider.ts` was grepped across `apps/web/src`, and every hit is inside those
+files or in a `*.test.ts`. That matches Session 2's stated intent ("NOT WIRED
+INTO PAYMENT OPENING YET, on purpose") and it is why the seam's
+`providerStatus` field and its provider-named error strings are **latent rather
+than live**: they leak the moment a call site forwards them.
+
+---
+
 ## The number, and the one P0 row that cannot safely be run at all
 
 **Matrix rows run: 0 of 34. P0 rows run: 0 of 9.**
