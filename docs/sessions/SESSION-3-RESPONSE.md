@@ -433,8 +433,9 @@ content only. **Verdict: HOLD, on one blocker, now fixed.**
   - A sent message slides in once, its bubble keeping its key when it adopts the
     real id (`403061c4b`), proved in Chromium (`c56f43c23`); my own realtime echo
     takes over the sent bubble in place instead of stripping its arrival
-    mid-flight (`c7bb49cc7`, `451423294`); Calm turns the arrival into a plain
-    fade (`6b11bacd7`).
+    mid-flight (`c7bb49cc7`, `451423294`), and it also replaces a bubble that
+    failed on the client after its row was inserted (`f5e2a5b2a`); Calm turns the
+    arrival into a plain fade (`6b11bacd7`).
   - A sheet's leave is seen: it stays mounted, inert and click-through until its
     exit ends (`e9212951c`).
   - Card entry leaves no card held (`89b7c701e`, with `073c21d95` and `177ec135a`
@@ -484,12 +485,14 @@ content only. **Verdict: HOLD, on one blocker, now fixed.**
     exact `min()` relative-colour form the fill uses, so an engine that accepts
     only part of it cannot draw the fill transparent under a white label
     (`a83255268`).
-  - Nothing loops, continued: skeletons sweep four times and settle to a still
-    tint, and data saver stops them (`4bef1e2a6`); the landing columns and the
+  - Nothing loops, continued: skeletons sweep four times and data saver stops
+    them (`4bef1e2a6`); that bounded the passes but left a diagonal sheen at rest,
+    and they settle on the plain surface only since `f1f40f0cf` (a vertical band,
+    including the social ramp); the landing columns and the
     docs flow pulse run twice and rest (`4f5e3f334`).
   - Fixes from A8: the pull-to-refresh angle (`039053657`), the inline Button
     (`750728149`), the switch turning on (`31c33bb67`), my own echo (`c7bb49cc7`,
-    `451423294`), a sheet that is leaving no longer counts as an open modal
+    `451423294`, `f5e2a5b2a`), a sheet that is leaving no longer counts as an open modal
     (`9bfc464de`), a console row stays square when pressed (`5db31f09c`), a held
     card the keyboard reaches is released at rest and not replayed (`600d87437`),
     and the sheet leave, tile pop and message arrival tests read events and not the
@@ -511,6 +514,28 @@ content only. **Verdict: HOLD, on one blocker, now fixed.**
     clears the mark on animation end or when the field turns valid, so a second
     refusal replays; mounted from `DetailsHost` (`119a4de1e`, over `f42b4b64e`).
   - The danger fill's `@supports` guard tests the exact form it uses (`a83255268`).
+  - C1's fixes: skeletons rest on the plain surface at any height, drawn at 90deg,
+    with the social band added (`f1f40f0cf`); the verified shield no longer blinks
+    out before it assembles, because the assembly is rise and scale only and a frame
+    sampler asserts its opacity stays 1 (`46a0e9837`); my echo also replaces a bubble
+    that failed on the client after its row was inserted (`f5e2a5b2a`).
+  - T1's fixes: the notifications chip row bleeds by `--nf-pad-shell` (`85102390e`);
+    the listing's location link and Calculate breakdown are 44px targets
+    (`5f0d1844c`); the filters footer lets its Apply label wrap, so Hausa and Igbo
+    fit at 390px (`fcb900834`); the landing's move-in band is
+    `.nf-landing-movein`, so it can never restyle a listing's costs (`2d2ba9611`);
+    the filters price slider is a 44px target with its 24px thumb drawn as before
+    (`cc81e42c5`).
+  - R2's rows and rail: rows of buttons wrap instead of overflowing their card
+    (`52b9cfda6`), the console's three button rows do the same (`a2ac91ee9`), and
+    the desktop rail's rows are 44px targets that still draw at a 40px pitch
+    (`0097dfd81`).
+  - `FIT_DUMP` and `CONTROL_CONTRAST_REPORT` are documented in `.env.example` and
+    `docs/ENVIRONMENT.md`, so `env-documented` passes again (`dd2694c02`).
+  - The dock pill dom test expects the label's fifth, discrete transition
+    (`5e47ef544`).
+  - The refusal observer counts only the shake when it decides motion is off, so a
+    colour transition under Calm cannot leave `data-refused` set (`3e2655ab3`).
 
 ## Changed
 
@@ -584,9 +609,10 @@ reader should know that the log does not say at a glance:
 
 - **In progress:**
   - R1: member buttons and A2's and A3's findings.
-  - R2: A4's findings, and the two-button rows overflowing.
-  - C1: cleanup, A3's S5 and S8, the skeleton sheen at rest, and the shield flash
-    before the verification payoff.
+  - R2: A4's findings, the old blue ramp (see Open below) and the recent-searches
+    list. The two-button rows are fixed (`52b9cfda6`, `a2ac91ee9`).
+  - C1: cleanup and A3's S5 and S8. The skeleton sheen at rest (`f1f40f0cf`) and the
+    shield flash before the payoff (`46a0e9837`) are fixed.
   - B5: the gallery index links.
   - T1: dom tests.
   - W12: the sweep at 390, 768 and 1440; its results are not in the repository yet.
@@ -599,8 +625,11 @@ reader should know that the log does not say at a glance:
     ran after React, in `dc323dcbb` (capture phase, with a Chromium test that fails
     without it); a sent message's arrival playing twice on id adoption, in
     `403061c4b` (proved in `c56f43c23`), and my own echo stripping the arrival
-    mid-flight, in `c7bb49cc7` (with `451423294`); `nf-msg-in` missing from the
-    Calm list, in `6b11bacd7`. The message arrival is fully fixed.
+    mid-flight, in `c7bb49cc7` (with `451423294`); a bubble that failed on the
+    client after its row was inserted staying beside the delivered echo, in
+    `f5e2a5b2a`; `nf-msg-in` missing from the Calm list, in `6b11bacd7`. The
+    message arrival is fully fixed, and `403061c4b`, `c7bb49cc7`, `451423294` and
+    `f5e2a5b2a` are the four commits that did it.
   - The switch (`8d702aaaf`) is fixed: `6d143ee3b` made the on fill crossfade
     turning off, and `31c33bb67` removed the stale lit background that made turning
     on snap, so it crossfades both ways.
@@ -614,6 +643,15 @@ reader should know that the log does not say at a glance:
     value in MOTION_SYSTEM. Its commit message overstated it (see Completed); the
     angle is fixed in `039053657`.
   - The escrow release moments wait on Session 2 (R-4).
+  - Open at the tip, from A8's fifth audit:
+    - The old blue ramp still paints selected segments, the pill segmented control
+      and the switch's on layer, through `--nf-act-fill` (R2 is fixing it).
+    - The recent-searches list is unreachable by keyboard and is not announced
+      (R2).
+    - NITs: the `KNOWN_BOUNDARY` ratios are compared by key only; the refusal
+      reflows are not batched; the figure under text zoom.
+    - The verifying bar's held middle segment may read as stalled. That is a
+      MOTION_SYSTEM note for the founder, not a code fix.
 - **Session 4's, by decision:** Advisories (D46), the merge of `main` once the
   `source-map-js` fix lands, the Playwright specs, the weight budgets (every budget
   in `perf-budget.json` is null and CI never sends `WEIGHT_COOKIE`), legal wording
@@ -682,7 +720,8 @@ reader should know that the log does not say at a glance:
 17. **What may loop.** The skeleton shimmer, the verify sweep, the flip cover's
     breath and the symbol loop are bounded to a few passes (MOTION principle 10:
     nothing loops; loading is a crossfade, never a spinner): the skeletons sweep
-    four times and settle to a still tint (`4bef1e2a6`); the verifying segment
+    four times (`4bef1e2a6`, which bounded the passes but left a diagonal sheen at
+    rest) and settle on the plain surface only since `f1f40f0cf`; the verifying segment
     sweeps three times, the flip cover breathes three passes and the symbol loop
     runs three times (`8043cfc93`). The counterpart's typing dots and the caret
     blink stay as live presence signals, because they say a person is there now,
@@ -730,9 +769,11 @@ reader should know that the log does not say at a glance:
 
 ## Next Session
 
-1. Close the open findings on the latest motion units: the skeleton sheen at rest,
-   the shield flash before the payoff, the two-button rows overflowing, the data
-   saver claim of `5318408ed`, and a place for the progress ring in MOTION_SYSTEM.
+1. Close the open findings on the latest motion units: the data saver claim of
+   `5318408ed`, a place for the progress ring in MOTION_SYSTEM, and the open items
+   from A8's fifth audit (the blue ramp, the recent-searches list, the three NITs,
+   and the founder's note on the verifying bar's held segment). The skeleton sheen,
+   the shield flash and the two-button rows are fixed.
 2. Run the lead's full gate on the tip, then merge `main` after Session 4's
    `source-map-js` fix (D46); settle Advisories.
 3. Land Session 2's requests in the order the screens wait on them: R-3 to R-5
