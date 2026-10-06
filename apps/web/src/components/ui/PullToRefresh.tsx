@@ -145,9 +145,12 @@ export function PullToRefresh({
   const progress = Math.min(1, pull / PULL_THRESHOLD_PX);
   const armed = !refreshing && pull >= PULL_THRESHOLD_PX;
   const CIRC = 2 * Math.PI * 9;
-  /* A quarter turn and a half over the whole pull: it is turning the whole
-     way down, and the release spin starts from where the finger left it. */
-  const turn = Math.round(progress * 270);
+  /* Three quarters of a turn over the whole pull: it is turning the whole
+     way down. A release only refreshes from a full pull, and the sheet then
+     springs back to its resting depth, so while refreshing the angle holds at
+     the full pull's 270 degrees and the spin starts where the finger left it,
+     not from the shorter resting depth (auditor A8). */
+  const turn = Math.round((refreshing ? 1 : progress) * 270);
 
   return (
     <div
@@ -165,8 +168,8 @@ export function PullToRefresh({
         aria-label={refreshing ? words.refreshing : armed ? words.release : undefined}
         aria-hidden={refreshing || armed ? undefined : true}
       >
-        {/* The mark turns with the drag (a direct response to the finger, a
-            quarter turn and a half over the pull), and on release spins ONCE
+        {/* The mark turns with the drag (a direct response to the finger,
+            three quarters of a turn over the pull), and on release spins ONCE
             (`.nf-ptr[data-refreshing]`, details.css) before the held arc: the
             brand mark's own pull, MOTION_SYSTEM "Pull to refresh". */}
         <svg

@@ -251,7 +251,8 @@
   }
   /* The brand's ring: an arc that fills as the pull grows, then, while the
      refresh runs, is drawn once to three quarters and held (the same arc a
-     loading Button and `PendingRing` draw). Nothing turns or loops. */
+     loading Button and `PendingRing` draw). It turns with the pull and spins
+     once on release (`nf-ptr-spin` below); nothing loops. */
   .nf-ptr__ring {
     inline-size: 1.375rem;
     block-size: 1.375rem;

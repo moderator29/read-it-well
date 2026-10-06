@@ -73,7 +73,7 @@ describe("pull to refresh: the mark turns with the drag and spins once on releas
   const tsx = src("components/ui/PullToRefresh.tsx");
 
   it("rotates the ring from the pull, as a direct response to the finger", () => {
-    expect(tsx).toContain("const turn = Math.round(progress * 270)");
+    expect(tsx).toContain("const turn = Math.round((refreshing ? 1 : progress) * 270)");
     expect(tsx).toContain("transform: `rotate(${turn}deg)`");
     expect(tsx).toContain('"--nf-ptr-a": `${turn}deg`');
   });
