@@ -154,7 +154,7 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the STR lane's second-person ap
       await inState(page, "confirming");
       await release(page, { ok: false, error: "The refusal's own sentence, slot." });
       await inState(page, "idle");
-      expect(await slide(page).getAttribute("data-failed")).toBe("true");
+      expect(await slide(page).getAttribute("data-failed")).toBe("declined");
       /* The track says it did not happen; it never claimed it did. */
       expect(await slide(page).textContent()).toContain(f.words.error!);
       expect(await slide(page).textContent()).not.toContain(f.words.confirmed!);
