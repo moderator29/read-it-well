@@ -3073,6 +3073,16 @@
     letter-spacing: -0.045em;
     color: var(--nf-content-primary);
   }
+  /* THE AUTHOR'S NAME IS A 44PX TARGET AND STILL DRAWS ONE LINE (W12: 18px
+     tall). The link keeps `overflow: hidden` for its ellipsis, which would clip
+     a pseudo-element hit area, so the 13px above and below are PADDING with
+     the same amount of negative margin: the box is 44 tall, the line's height
+     in the layout is what it was, and the ellipsis still clips inside the
+     padding. The overlap onto the handle line below is hit area only. */
+  a.nf-post__name {
+    padding-block: 13px;
+    margin-block: -13px;
+  }
   .nf-post__tick {
     display: inline-grid;
     place-items: center;
