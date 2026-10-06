@@ -429,7 +429,9 @@ function MediaStrip({ listing, copy }: { listing: ListingReviewView; copy: Admin
 
   return (
     <div className="nf-panel nf-rv-panel" style={{ padding: "var(--nf-space-sm)" }}>
-      <ul className="nf-rv-media" role="list" aria-label="Photos and walkthrough">
+      {/* Focusable: on a phone the strip scrolls sideways, and a keyboard must
+          be able to scroll it (axe scrollable-region-focusable, C1 sweep). */}
+      <ul className="nf-rv-media" role="list" aria-label="Photos and walkthrough" tabIndex={0}>
         {lead ? (
           <li className="nf-rv-media__lead">
             <RemoteImage

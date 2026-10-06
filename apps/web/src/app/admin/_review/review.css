@@ -936,6 +936,15 @@
     }
   }
 
+  /* The strip and the walkthrough draw the console's ring under the keyboard;
+     the video's own controls drew none (Tab walk, C1 sweep). The video takes
+     :focus, not :focus-visible: focus sits in its shadow controls, so the
+     host never matches :focus-visible. */
+  .nf-rv-media:focus-visible,
+  .nf-rv-media video:focus {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
   .nf-rv-media > * {
     position: relative;
     min-height: 64px;
@@ -1049,7 +1058,8 @@
     position: absolute;
     right: var(--nf-space-2xs);
     bottom: var(--nf-space-3xs);
-    font-size: 10px;
+    /* The 12px floor holds for an attribution too (it drew 10px; C1 sweep). */
+    font-size: var(--nf-text-overline);
     color: var(--nf-content-muted);
   }
 
