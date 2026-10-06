@@ -7,6 +7,12 @@ import { resolveSession } from "../actions/session";
  * The agreements a person is a party to, read under their own RLS.
  */
 
+/* What the read calls a party whose profile carries no name. Exported so a
+   page can tell "no name" from a name, and not print "The owner or agent
+   (owner or agent)" (Round 3 sweep, C3). */
+export const UNNAMED_RENTER = "The renter";
+export const UNNAMED_OWNER = "The owner or agent";
+
 export type AgreementSummary = {
   id: string;
   kind: "rent" | "stay";
@@ -139,8 +145,8 @@ export async function readAgreement(id: string): Promise<AgreementDetail | null>
     terms,
     inspectionId: a.inspection_id,
     bookingId: a.booking_id,
-    renterName: name.get(a.renter_id) || "The renter",
-    ownerName: name.get(a.owner_id) || "The owner or agent",
+    renterName: name.get(a.renter_id) || UNNAMED_RENTER,
+    ownerName: name.get(a.owner_id) || UNNAMED_OWNER,
     youConfirmedCurrent: mine === a.terms_version,
     otherConfirmedCurrent: theirs === a.terms_version,
     decisionReason: a.decision_reason,

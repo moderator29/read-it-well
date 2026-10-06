@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { formatMoney, intlTag, type Locale } from "@vallo/i18n/core";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
-import { readAgreement } from "@/lib/agreements/queries";
+import { readAgreement, UNNAMED_OWNER, UNNAMED_RENTER } from "@/lib/agreements/queries";
 import { readChangesSinceConfirmed } from "@/lib/agreements/changes-read";
 import type { TermChange } from "@/lib/agreements/terms-diff";
 import { AgreementChanges, type WordedChange } from "@/components/app/agreements/AgreementChanges";
@@ -301,7 +301,19 @@ export default async function AgreementPage({
           <DocHead label={a.listingTitle} title={pw.termsTitle.replace("{n}", String(a.termsVersion))} id="agreement-terms-title" />
           <DocRows>
             <DocRow label={pw.between} variant="prose">
-              {(a.kind === "rent" ? pw.betweenRent : pw.betweenStay).replace("{renter}", a.renterName).replace("{owner}", a.ownerName)}
+              {pw.between2
+                .replace(
+                  "{first}",
+                  a.renterName === UNNAMED_RENTER
+                    ? a.kind === "rent"
+                      ? pw.partyRenterUnnamed
+                      : pw.partyGuestUnnamed
+                    : (a.kind === "rent" ? pw.partyRenter : pw.partyGuest).replace("{name}", a.renterName),
+                )
+                .replace(
+                  "{second}",
+                  a.ownerName === UNNAMED_OWNER ? pw.partyOwnerUnnamed : pw.partyOwner.replace("{name}", a.ownerName),
+                )}
             </DocRow>
             {str(a.terms, "move_in") ? (
               <>

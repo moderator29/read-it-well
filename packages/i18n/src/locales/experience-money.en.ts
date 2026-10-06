@@ -92,8 +92,15 @@ export const experienceMoneyEn = {
       sentBackStay: "A stay's terms are its booking, so they cannot be changed here. Message the host about the reason, or cancel this agreement.",
       termsTitle: "The terms (version {n})",
       between: "Between",
-      betweenRent: "{renter} (renter) and {owner} (owner or agent)",
-      betweenStay: "{renter} (guest) and {owner} (owner or agent)",
+      /* The two parties, each by name and role, or by role alone when the
+         read has no name for them. Joined by `between`. */
+      between2: "{first} and {second}",
+      partyRenter: "{name} (renter)",
+      partyRenterUnnamed: "The renter",
+      partyGuest: "{name} (guest)",
+      partyGuestUnnamed: "The guest",
+      partyOwner: "{name} (owner or agent)",
+      partyOwnerUnnamed: "the owner or agent",
       moveIn: "Move in",
       keys: "Keys handed over",
       stayDates: "{from} to {to}",
