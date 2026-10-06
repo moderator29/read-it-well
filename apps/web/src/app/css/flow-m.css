@@ -128,7 +128,9 @@
       color-mix(in oklab, var(--nf-content-on-brand) 60%, transparent),
       transparent
     );
-    animation: nf-flow-sheen 2.6s var(--nf-ease-standard) 600ms infinite;
+    /* Two passes of light, then still (MOTION_SYSTEM principle 10: nothing
+       loops forever). It looped for as long as the step was open. */
+    animation: nf-flow-sheen 2.6s var(--nf-ease-standard) 600ms 2 both;
   }
 
   /* ----------------------------------------------------------- a step */
@@ -149,7 +151,7 @@
   .nf-lw-head__object {
     animation:
       nf-flow-pop var(--nf-duration-deliberate) var(--nf-ease-spring) 160ms both,
-      nf-flow-float 6s var(--nf-ease-standard) 1s infinite;
+      nf-flow-float 6s var(--nf-ease-standard) 1s 2;
   }
 
   /* ------------------------------------------------------------- doors */
