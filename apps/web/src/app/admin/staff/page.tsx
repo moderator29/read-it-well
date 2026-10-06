@@ -54,7 +54,9 @@ export default async function StaffPage() {
     );
   }
   return (
-    <div className="nf-console" data-testid="staff-desk">
+    /* nf-admin-stack: six panels sat edge to edge with no air between them
+       (C1 sweep, 390 and 1440); the console's stack gap separates them. */
+    <div className="nf-console nf-admin-stack" data-testid="staff-desk">
       <PageHead
         title="Staff"
         lede="Give a person access to named desks only. They are told by email and in the app exactly what they were given, nothing unlocks until they acknowledge the handbook, and every action they take is in the audit log."

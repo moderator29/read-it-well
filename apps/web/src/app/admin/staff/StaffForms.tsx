@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
+import { Checkbox } from "@/components/ui/Check";
 import { grantStaff, revokeStaff } from "@/lib/admin/staff-actions";
 
 export type PositionOption = { value: string; label: string; summary: string; scopes: string[] };
@@ -72,17 +73,19 @@ export function GrantStaffForm({
       </label>
       <fieldset className="grid gap-2xs">
         <legend className="nf-body">Access areas{position ? " (the position's defaults, adjust if needed)" : ""}</legend>
+        {/* The shared Checkbox: its label is the 44px row (`.nf-check`); the
+            hand-built label here was the text's height, so each access area was
+            a 20px target (C1 sweep, measured). */}
         {scopes.map((s) => (
-          <label key={s.value} className="flex items-center gap-xs nf-body">
-            <input
-              type="checkbox"
-              checked={picked.includes(s.value)}
-              onChange={(e) =>
-                setPicked((prev) => (e.target.checked ? [...prev, s.value] : prev.filter((v) => v !== s.value)))
-              }
-            />
-            <span>{s.label}</span>
-          </label>
+          <Checkbox
+            key={s.value}
+            checked={picked.includes(s.value)}
+            onChange={(e) =>
+              setPicked((prev) => (e.target.checked ? [...prev, s.value] : prev.filter((v) => v !== s.value)))
+            }
+          >
+            {s.label}
+          </Checkbox>
         ))}
       </fieldset>
       <label className="grid gap-2xs nf-body">
