@@ -7,6 +7,7 @@ import {
   openEmailRecovery,
   resendRecoveryNotice,
 } from "@/lib/admin/email-recovery-actions";
+import { Button } from "@/components/ui/Button";
 
 export type RecoveryRow = {
   id: string;
@@ -69,9 +70,9 @@ function OpenForm() {
         Support ticket or evidence reference
         <input name="evidenceRef" required className="nf-field" />
       </label>
-      <button type="submit" className="nf-btn nf-btn--primary" disabled={pending}>
+      <Button variant="primary" type="submit" disabled={pending}>
         Open request
-      </button>
+      </Button>
       <Result state={state ? (state.ok ? { ok: true } : { ok: false, error: state.error }) : null} />
     </form>
   );
@@ -86,26 +87,26 @@ function RowActions({ row, isSuperAdmin }: { row: RecoveryRow; isSuperAdmin: boo
     <div className="mt-xs flex flex-wrap items-end gap-sm">
       <form action={resend}>
         <input type="hidden" name="requestId" value={row.id} />
-        <button type="submit" className="nf-btn nf-btn--glass nf-btn--sm" disabled={resending}>
+        <Button variant="secondary" size="sm" type="submit" disabled={resending}>
           Send the notice again
-        </button>
+        </Button>
         <Result state={resent ? (resent.ok ? { ok: true } : { ok: false, error: resent.error }) : null} />
       </form>
       {isSuperAdmin && (
         <form action={complete}>
           <input type="hidden" name="requestId" value={row.id} />
-          <button type="submit" className="nf-btn nf-btn--primary nf-btn--sm" disabled={completing}>
+          <Button variant="primary" size="sm" type="submit" disabled={completing}>
             Move the account (a second super admin, 72 hours after the notice)
-          </button>
+          </Button>
           <Result state={completed ? (completed.ok ? { ok: true } : { ok: false, error: completed.error }) : null} />
         </form>
       )}
       <form action={cancel} className="flex items-end gap-xs">
         <input type="hidden" name="requestId" value={row.id} />
         <input name="reason" placeholder="Why cancel" required className="nf-field" />
-        <button type="submit" className="nf-btn nf-btn--glass nf-btn--sm" disabled={cancelling}>
+        <Button variant="secondary" size="sm" type="submit" disabled={cancelling}>
           Cancel
-        </button>
+        </Button>
         <Result state={cancelled ? (cancelled.ok ? { ok: true } : { ok: false, error: cancelled.error }) : null} />
       </form>
     </div>

@@ -10,6 +10,7 @@ import { NavIcon } from "./AdminGlyph";
 import { currentDestination, labelFor, type ShellCopy } from "./nav";
 import { deskIndex, paletteActions, rankDesks } from "./palette";
 import "./admin-material.css";
+import { Button } from "@/components/ui/Button";
 
 /**
  * THE CONSOLE SEARCH: A COMMAND PALETTE OVER THE DESK INDEX (reference 7067).
@@ -250,9 +251,9 @@ export function ConsolePalette({
                 }}
                 onKeyDown={onInputKey}
               />
-              <button type="button" className="nf-admin-palette__close nf-icon-btn nf-icon-btn--round" aria-label={copy.close} onClick={close}>
+              <Button type="button" variant="icon" round className="nf-admin-palette__close" aria-label={copy.close} onClick={close}>
                 <UiIcon name="close" size={20} />
-              </button>
+              </Button>
             </div>
             <p className="sr-only" role="status" aria-live="polite">
               {status}

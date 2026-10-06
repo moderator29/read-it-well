@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { lookup } from "@/lib/admin/lookup-reads";
 import { PageHead, Panel } from "../_components/panels";
 import { StatusBadge } from "@/components/ui/StatusBadge";
+import { Button } from "@/components/ui/Button";
 
 export const metadata: Metadata = { title: "Lookup", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -38,9 +39,9 @@ export default async function LookupPage({ searchParams }: { searchParams: Promi
           What to look up
         </label>
         <input id="lookup-q" name="q" type="search" defaultValue={q} className="nf-field min-w-0 flex-1" autoFocus />
-        <button type="submit" className="nf-btn nf-btn--primary nf-btn--md">
+        <Button type="submit" variant="primary">
           Look up
-        </button>
+        </Button>
       </form>
       {result ? (
         <Panel title={`Results for ${KIND_WORD[result.kind] ?? "this"}`}>

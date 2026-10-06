@@ -6,6 +6,7 @@ import { saveLocalGovernment, saveOccupation } from "@/lib/admin/reference-actio
 import { matchesSearch, type StateOption } from "@/lib/places/reference";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { TextField, SelectField } from "@/components/ui/Field";
+import { Button } from "@/components/ui/Button";
 
 /**
  * The two reference tables, edited in place.
@@ -132,9 +133,9 @@ function OccupationForm({
         error={errors?.sortOrder}
       />
       <div className="sm:col-span-2">
-        <button type="submit" disabled={pending} className="nf-btn nf-btn--primary h-9 px-md text-[length:var(--nf-text-overline)]">
+        <Button variant="primary" size="sm" type="submit" loading={pending}>
           {pending ? "Saving" : mode === "edit" ? "Save this occupation" : "Add occupation"}
-        </button>
+        </Button>
         <Result state={state} done="Saved. It is on the picker now." />
       </div>
     </form>
@@ -167,13 +168,9 @@ export function OccupationEditor({ rows }: { rows: Occupation[] }) {
         <span className="nf-numeric rounded-[var(--nf-radius-xs)] border border-[var(--nf-brand-edge)] px-xs py-3xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           {rows.length}
         </span>
-        <button
-          type="button"
-          onClick={() => setAdding((open) => !open)}
-          className="nf-btn nf-btn--ghost ml-auto h-8 px-sm text-[length:var(--nf-text-overline)]"
-        >
+        <Button variant="quiet" size="sm" className="ml-auto" type="button" onClick={() => setAdding((open) => !open)}>
           {adding ? "Close" : "Add one"}
-        </button>
+        </Button>
       </div>
 
       {adding && (
@@ -297,9 +294,9 @@ function LocalGovernmentForm({
         error={errors?.name}
       />
       <div className="sm:col-span-2">
-        <button type="submit" disabled={pending} className="nf-btn nf-btn--primary h-9 px-md text-[length:var(--nf-text-overline)]">
+        <Button variant="primary" size="sm" type="submit" loading={pending}>
           {pending ? "Saving" : mode === "edit" ? "Save this local government" : "Add local government"}
-        </button>
+        </Button>
         <Result state={state} done="Saved. It is on the picker now." />
       </div>
     </form>
@@ -348,13 +345,9 @@ export function LocalGovernmentEditor({
         <span className="nf-numeric rounded-[var(--nf-radius-xs)] border border-[var(--nf-brand-edge)] px-xs py-3xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           {rows.length}
         </span>
-        <button
-          type="button"
-          onClick={() => setAdding((open) => !open)}
-          className="nf-btn nf-btn--ghost ml-auto h-8 px-sm text-[length:var(--nf-text-overline)]"
-        >
+        <Button variant="quiet" size="sm" className="ml-auto" type="button" onClick={() => setAdding((open) => !open)}>
           {adding ? "Close" : "Add one"}
-        </button>
+        </Button>
       </div>
 
       {adding && (

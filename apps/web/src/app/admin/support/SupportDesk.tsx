@@ -3,6 +3,7 @@ import Link from "next/link";
 import { countOf } from "@vallo/i18n/core";
 import type { ReactNode } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { Button, ButtonLink } from "@/components/ui/Button";
 import { StatusPill, type StatusTone } from "@/components/ui/StatusPill";
 import { TICKET_STATUS, type TicketStatus } from "@/lib/support/tickets";
 import { supportTopicLabel } from "@/lib/trust/support-topics";
@@ -569,14 +570,13 @@ export function SupportDesk({ now, tab, q, queue, selected, missing, copy }: Sup
                   aria-label="Find a ticket by reference or email address"
                 />
               </label>
-              <button type="submit" className="nf-admin-seg__item">
-                <UiIcon name="search" size={16} />
+              <Button type="submit" variant="secondary" leadingIcon="search">
                 Find
-              </button>
+              </Button>
               {q ? (
-                <Link href={supportHref({ tab, q: "" })} className="nf-admin-seg__item">
+                <ButtonLink href={supportHref({ tab, q: "" })} variant="quiet">
                   Clear
-                </Link>
+                </ButtonLink>
               ) : null}
             </form>
           </div>

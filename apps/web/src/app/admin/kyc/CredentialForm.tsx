@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { getDictionary } from "@vallo/i18n";
 import { recordCredential } from "@/lib/trust/credentials-actions";
+import { Button } from "@/components/ui/Button";
 
 /**
  * V-87: record a LASRERA or ESVARBON entry checked by hand on the public
@@ -62,9 +63,9 @@ export function CredentialForm({ subjectId }: { subjectId: string }) {
           className="nf-field min-h-[44px] w-full"
         />
       </label>
-      <button type="button" onClick={submit} disabled={pending || !ready} className="nf-btn nf-btn--glass nf-btn--sm">
+      <Button variant="secondary" size="sm" type="button" onClick={submit} disabled={pending || !ready}>
         {pending ? desk.credentialRecording : desk.credentialSubmit}
-      </button>
+      </Button>
       {note && (
         <p
           role={note.ok ? "status" : "alert"}

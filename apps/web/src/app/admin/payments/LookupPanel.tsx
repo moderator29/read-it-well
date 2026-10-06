@@ -7,6 +7,7 @@ import { fill } from "../_components/copy";
 import { RemoveSavedMethod } from "./MethodLookup";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { IconPlate } from "@/components/ui/IconPlate";
+import { Button } from "@/components/ui/Button";
 
 /**
  * The payment-method lookup panel.
@@ -60,9 +61,9 @@ export function LookupPanel({
             className="nf-field mt-inline-tight w-full"
           />
         </label>
-        <button type="submit" className="nf-chip nf-chip--active shrink-0">
+        <Button type="submit" variant="secondary" className="shrink-0">
           {c.submit}
-        </button>
+        </Button>
       </form>
 
       {term.length > 0 && (

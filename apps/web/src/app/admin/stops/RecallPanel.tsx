@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { getDictionary } from "@vallo/i18n";
 import { previewRecall, sendRecall } from "@/lib/admin/recall-actions";
 import { recallReason, reportRef, willTell, type RecallPreview } from "@/lib/admin/recall";
+import { Button } from "@/components/ui/Button";
 
 /**
  * V-60 ON THE STOPS DESK: recall a standing stop for fraud.
@@ -100,15 +101,15 @@ export function RecallPanel({ suspensionId }: { suspensionId: string }) {
                 {willTell(preview.audience, desk)}
               </p>
               {preview.audience > 0 && preview.report && (
-                <button type="button" onClick={send} disabled={pending} className="nf-btn nf-btn--danger nf-btn--sm">
+                <Button variant="danger" size="sm" type="button" onClick={send} disabled={pending}>
                   {pending ? desk.recallSending : desk.recallConfirm}
-                </button>
+                </Button>
               )}
             </>
           ) : (
-            <button type="button" onClick={count} disabled={pending} className="nf-btn nf-btn--glass nf-btn--sm">
+            <Button variant="secondary" size="sm" type="button" onClick={count} disabled={pending}>
               {pending ? desk.recallCounting : desk.recallCount}
-            </button>
+            </Button>
           )}
         </div>
       )}

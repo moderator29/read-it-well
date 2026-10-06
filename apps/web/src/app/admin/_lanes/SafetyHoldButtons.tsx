@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { getDictionary } from "@vallo/i18n";
 import { decideSafetyHold } from "@/lib/admin/safety-holds";
+import { Button } from "@/components/ui/Button";
 
 const desk = getDictionary("en").trustVisible.desk;
 
@@ -21,12 +22,12 @@ export function SafetyHoldButtons({ holdId }: { holdId: string }) {
 
   return (
     <span className="flex flex-wrap items-center gap-xs">
-      <button type="button" disabled={pending} onClick={() => act("clear")} className="nf-btn nf-btn--glass nf-btn--sm">
+      <Button variant="secondary" size="sm" type="button" disabled={pending} onClick={() => act("clear")}>
         {pending ? desk.holdsWorking : desk.holdsClear}
-      </button>
-      <button type="button" disabled={pending} onClick={() => act("extend")} className="nf-btn nf-btn--ghost nf-btn--sm">
+      </Button>
+      <Button variant="quiet" size="sm" type="button" disabled={pending} onClick={() => act("extend")}>
         {desk.holdsExtend}
-      </button>
+      </Button>
       {error && (
         <span role="alert" className="nf-caption text-[var(--nf-state-error)]">
           {error}

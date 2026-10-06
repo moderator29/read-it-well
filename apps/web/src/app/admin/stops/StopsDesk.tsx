@@ -14,6 +14,7 @@ import type { ActionResult } from "@/lib/actions/envelope";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { RecallPanel } from "./RecallPanel";
 import { countOf } from "@vallo/i18n/core";
+import { Button } from "@/components/ui/Button";
 
 /**
  * The stops desk.
@@ -224,13 +225,9 @@ function StoppedCard({
             className="nf-field"
           />
         </label>
-        <button
-          type="submit"
-          disabled={pending}
-          className="nf-btn nf-btn--primary nf-btn--sm mt-heading"
-        >
+        <Button variant="primary" size="sm" className="mt-heading" type="submit" disabled={pending}>
           {pending ? "Letting them back" : "Let them back"}
-        </button>
+        </Button>
       </form>
 
       {mine && (
@@ -312,30 +309,18 @@ function TradingCard({
           </p>
 
           <div className="mt-heading flex flex-wrap gap-xs">
-            <button
-              type="submit"
-              disabled={pending}
-              className="nf-btn nf-btn--primary nf-btn--sm"
-            >
+            <Button variant="danger" size="sm" type="submit" disabled={pending}>
               {pending ? "Stopping" : "Stop them trading"}
-            </button>
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              className="nf-btn nf-btn--ghost nf-btn--sm"
-            >
+            </Button>
+            <Button variant="quiet" size="sm" type="button" onClick={() => setOpen(false)}>
               Cancel
-            </button>
+            </Button>
           </div>
         </form>
       ) : (
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="nf-btn nf-btn--ghost nf-btn--sm mt-heading"
-        >
+        <Button variant="quiet" size="sm" className="mt-heading" type="button" onClick={() => setOpen(true)}>
           Stop this agent
-        </button>
+        </Button>
       )}
 
       {mine && (

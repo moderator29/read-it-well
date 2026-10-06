@@ -4,6 +4,7 @@ import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { searchPeople } from "@/lib/admin/member-queries";
 import { adminUi } from "../_components/ui";
+import { Button, ButtonLink } from "@/components/ui/Button";
 
 export const dynamic = "force-dynamic";
 
@@ -54,13 +55,13 @@ export default async function PeoplePage({
             spellCheck={false}
             className="nf-field min-h-11 min-w-0 flex-1 basis-60"
           />
-          <button type="submit" className="nf-btn nf-btn--primary nf-btn--md min-h-11">
+          <Button type="submit" variant="primary">
             Search
-          </button>
+          </Button>
           {q && (
-            <Link href="/admin/people" className="nf-btn nf-btn--ghost nf-btn--md inline-flex min-h-11 items-center">
+            <ButtonLink href="/admin/people" variant="quiet">
               Clear
-            </Link>
+            </ButtonLink>
           )}
         </div>
       </form>
