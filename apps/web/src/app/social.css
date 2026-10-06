@@ -197,40 +197,48 @@
    *
    * It crosses four times and rests (MOTION_SYSTEM principle 10: only the
    * aurora and the assistant's thinking loop forever). `forwards` holds the
-   * last position, `117.3%`, which is also the base value, so the still slab is
-   * the same with the animation running out, switched off by reduced motion,
-   * or never started (data saver). The highlight is a band of 36% to 64% of a
-   * 220%-wide tile with the rest transparent (the app skeleton's geometry), and
-   * both ends of the sweep and the rest are outside the box, so the slab rests
-   * as the plain surface at any height.
+   * band's last position, one slab-width right of the box, which is also its
+   * base value, so the still slab is the same with the animation running out,
+   * switched off by reduced motion, or never started (data saver). The band is
+   * 61.6% of the slab wide (the app skeleton's geometry), and both ends of the
+   * sweep and the rest are outside the box, so the slab rests as the plain
+   * surface at any height.
    */
+  /* W2, round 5: the band is the slab's ::after, moved by transform alone, as
+     the app skeleton's is (controls.css); the slab paints its still surface
+     once. Same band (36% to 64% of the old 220% tile = 61.6% of the slab),
+     same four passes, same rest outside the box. */
   .nf-social-skeleton {
-    background:
-      linear-gradient(
-          90deg,
-          transparent 0%,
-          transparent 36%,
-          color-mix(in oklab, var(--nf-content-muted) 18%, transparent) 50%,
-          transparent 64%,
-          transparent 100%
-        )
-        var(--nf-surface-inset);
-    background-size: 220% 100%;
-    background-position: 117.3% 0;
+    position: relative;
+    overflow: hidden;
+    background: var(--nf-surface-inset);
+  }
+  .nf-social-skeleton::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      90deg,
+      transparent 19.2%,
+      color-mix(in oklab, var(--nf-content-muted) 18%, transparent) 50%,
+      transparent 80.8%
+    );
+    transform: translateX(100%);
     animation: nf-social-shimmer 1.4s linear 4 forwards;
   }
 
   @keyframes nf-social-shimmer {
     from {
-      background-position: -17.3% 0;
+      transform: translateX(-100%);
     }
     to {
-      background-position: 117.3% 0;
+      transform: translateX(100%);
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .nf-social-skeleton {
+    .nf-social-skeleton::after {
       animation: none;
     }
   }

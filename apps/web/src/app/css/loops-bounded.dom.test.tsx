@@ -52,22 +52,28 @@ const entryWith = (saver: boolean) => `
 const VIEW = { width: 1000, height: 800 };
 const SELECTORS = ["#sk", "#skg", "#soc", "#strip", "#pulse"] as const;
 
-/* The app slabs sweep on their `::after` (W2, round 5: a translated band, not a repainted
-   background); the social slab still sweeps its own background. */
-const PSEUDO: Record<string, string | undefined> = { "#sk": "::after", "#skg": "::after", "#tall": "::after", "#tallglass": "::after" };
+/* The app and social slabs sweep on their `::after` (W2, round 5: a translated band, not a
+   repainted background). */
+const PSEUDO: Record<string, string | undefined> = {
+  "#sk": "::after",
+  "#skg": "::after",
+  "#soc": "::after",
+  "#tall": "::after",
+  "#tallglass": "::after",
+  "#tallsoc": "::after",
+};
 const style = (page: Page, sel: string, prop: string) =>
   page.evaluate(
     ([s, p, pseudo]) => (getComputedStyle(document.querySelector(s!)!, pseudo ?? null) as unknown as Record<string, string>)[p!],
     [sel, prop, PSEUDO[sel]] as const,
   );
 
-/* The resting place of each sweep: the app band's transform (one slab-width right of the box,
-   300px), the social slab's background position. */
-const REST = { sk: "matrix(1, 0, 0, 1, 300, 0)", skg: "matrix(1, 0, 0, 1, 300, 0)", soc: "117.3% 0px" };
+/* The resting place of each sweep: the band's transform, one slab-width (300px) right of the box. */
+const REST = { sk: "matrix(1, 0, 0, 1, 300, 0)", skg: "matrix(1, 0, 0, 1, 300, 0)", soc: "matrix(1, 0, 0, 1, 300, 0)" };
 const rest = (page: Page) =>
   page.evaluate(() => {
     const band = (s: string) => getComputedStyle(document.querySelector(s)!, "::after").transform;
-    return { sk: band("#sk"), skg: band("#skg"), soc: getComputedStyle(document.querySelector("#soc")!).backgroundPosition };
+    return { sk: band("#sk"), skg: band("#skg"), soc: band("#soc") };
   });
 
 /** Run every animation to its end now, as the clock would, and report where each sweep rests. */
@@ -107,11 +113,11 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the last loops are bounded", ()
     }
   });
 
-  it("moves the app slab's band with transform alone, so the sweep repaints nothing (W2, round 5)", async () => {
+  it("moves the app and social slabs' band with transform alone, so the sweep repaints nothing (W2, round 5)", async () => {
     const { page, close } = await mountInBrowser({ entry: entryWith(false), css: CSS, viewport: VIEW });
     try {
       const sweeps = await page.evaluate(() =>
-        ["#sk", "#skg", "#tall"].map((sel) =>
+        ["#sk", "#skg", "#tall", "#soc", "#tallsoc"].map((sel) =>
           document
             .querySelector(sel)!
             .getAnimations({ subtree: true })
@@ -125,7 +131,9 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the last loops are bounded", ()
       );
       for (const list of sweeps) expect(list).toEqual([{ pseudo: "::after", props: ["transform"] }]);
       /* The slab itself runs nothing: it paints its still tint once. */
-      expect(await page.evaluate(() => getComputedStyle(document.querySelector("#sk")!).animationName)).toBe("none");
+      for (const sel of ["#sk", "#soc"]) {
+        expect(await page.evaluate((s) => getComputedStyle(document.querySelector(s)!).animationName, sel), sel).toBe("none");
+      }
     } finally {
       await close();
     }

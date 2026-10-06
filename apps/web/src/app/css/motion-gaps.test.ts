@@ -108,10 +108,12 @@ describe("principle 10, the marketing and loading loops (Session 3, C1)", () => 
     expect(controls).toMatch(/\.nf-skeleton::after \{[^}]*transform: translateX\(100%\);[^}]*animation: nf-shimmer 1\.4s linear 4 forwards;/);
     expect(controls).not.toMatch(/(nf-skeleton|nf-shimmer)[^}]*background-position/);
     const social = strip(src("app/social.css"));
-    expect(social).toContain("animation: nf-social-shimmer 1.4s linear 4 forwards;");
-    expect(social).toContain("background-position: 117.3% 0;");
-    expect(social).toContain("background-size: 220% 100%;");
-    expect(social).toMatch(/transparent 36%,\s*color-mix\(in oklab, var\(--nf-content-muted\) 18%, transparent\) 50%,\s*transparent 64%/);
+    /* The social slab sweeps the same way (W2, round 5): its band is the ::after, moved by transform alone,
+       resting one slab-width right of the box, and the slab itself sets no background position. */
+    expect(social).toMatch(/\.nf-social-skeleton::after \{[^}]*transform: translateX\(100%\);[^}]*animation: nf-social-shimmer 1\.4s linear 4 forwards;/);
+    expect(social).toMatch(/@keyframes nf-social-shimmer \{\s*from \{\s*transform: translateX\(-100%\);\s*\}\s*to \{\s*transform: translateX\(100%\);/);
+    expect(social).not.toMatch(/(nf-social-skeleton|nf-social-shimmer)[^}]*background-(position|size)/);
+    expect(social).toMatch(/transparent 19\.2%,\s*color-mix\(in oklab, var\(--nf-content-muted\) 18%, transparent\) 50%,\s*transparent 80\.8%/);
     /* Drawn at 90 degrees, so the band is a vertical stripe and rests clean on a tall slab. */
     expect(controls).not.toMatch(/nf-skeleton[^}]*var\(--nf-light-angle\)/);
     expect(controls.match(/linear-gradient\(\s*90deg,\s*transparent 19\.2%/g)).toHaveLength(1);
@@ -128,7 +130,7 @@ describe("principle 10, the marketing and loading loops (Session 3, C1)", () => 
 
   it("data saver stops the slabs and the columns (the pulse already answered to it)", () => {
     const saver = strip(css("data-saver.css"));
-    for (const sel of [".nf-skeleton::after", ".nf-social-skeleton", ".nf-vcols__strip"]) {
+    for (const sel of [".nf-skeleton::after", ".nf-social-skeleton::after", ".nf-vcols__strip"]) {
       expect(saver).toContain(`:root[data-save-data="on"] ${sel}`);
     }
     expect(strip(css("docs-motion.css"))).toContain('[data-save-data="on"]) .nf-flow__pulse');
