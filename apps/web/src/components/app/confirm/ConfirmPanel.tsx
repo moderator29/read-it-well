@@ -133,9 +133,12 @@ export function ConfirmPanel({
         </p>
       ) : null}
 
+      {/* The two section labels are h2: the panel's own title is a paragraph, and
+          the container above it (a sheet, a dialog or a page) owns the h1 or the
+          dialog's title, so an h3 here skipped a level (axe heading-order). */}
       {next && next.length > 0 ? (
         <section className="nf-confirm__section">
-          <h3 className="nf-section-label">{nextLabel}</h3>
+          <h2 className="nf-section-label">{nextLabel}</h2>
           <ol className="nf-confirm__steps">
             {next.map((step, index) => (
               <li key={index}>
@@ -149,7 +152,7 @@ export function ConfirmPanel({
 
       {everyone && everyone.length > 0 ? (
         <section className="nf-confirm__section">
-          <h3 className="nf-section-label">{everyoneLabel}</h3>
+          <h2 className="nf-section-label">{everyoneLabel}</h2>
           <ul className="nf-confirm__people">
             {everyone.map((person, index) => (
               <li key={`${person.role}-${index}`} className="nf-confirm__person">
