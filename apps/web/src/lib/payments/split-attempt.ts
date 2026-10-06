@@ -41,6 +41,8 @@ export const PAYMENT_NOT_AVAILABLE: Record<string, string> = {
   reserve_not_set_up:
     "Payments are paused while Vallo finishes setting up the Guarantee reserve account. Nothing has been charged.",
   not_found: "We could not find that booking on your account.",
+  rate_not_accepted:
+    "Payment is not open yet because the lister is still confirming Vallo's fee for this listing. Nothing has been charged.",
 };
 
 type SplitAnswer = {
@@ -87,9 +89,6 @@ export async function quoteSplit(
   if (gate.rail !== "direct") return { refused: true, message: PAYMENT_NOT_AVAILABLE.not_found! };
   const railPolicyId = gate.policyId;
 
-  const reserve = guaranteeReserveSubaccount();
-  if (!reserve) return { refused: true, message: PAYMENT_NOT_AVAILABLE.reserve_not_set_up! };
-
   const { data, error } = await admin.rpc("payment_split_for_booking" as never, { p_booking: booking.id } as never);
   if (error) {
     return { refused: true, message: "Payment is temporarily unavailable. Nothing has been charged." };
@@ -116,6 +115,11 @@ export async function quoteSplit(
   ) {
     return { refused: true, message: PAYMENT_NOT_AVAILABLE.amount_mismatch! };
   }
+  /* D51: the Guarantee is retired at guarantee_bps = 0. The reserve account is
+     demanded only when the split actually has a reserve leg, so a missing
+     PAYSTACK_GUARANTEE_SUBACCOUNT no longer closes payment at zero. */
+  const reserve = guarantee > 0 ? guaranteeReserveSubaccount() : null;
+  if (guarantee > 0 && !reserve) return { refused: true, message: PAYMENT_NOT_AVAILABLE.reserve_not_set_up! };
 
   return {
     amountMinor,
