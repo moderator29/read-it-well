@@ -651,34 +651,6 @@
     }
   }
 
-  /* --------------------------------------------------- the bento */
-
-  /* The scenes: a stage of about 7rem, drawn in the brand's light. */
-  .nf-scene {
-    position: relative;
-    display: grid;
-    place-items: center;
-    height: 7rem;
-    color: var(--nf-brand-secondary);
-  }
-
-  /*
-   * THE SCENES ARE STILL (the clean pass, 29 September). Each used to loop
-   * every 4.8 seconds (the tag swung, the calendar turned, the assistant
-   * bobbed, a light crossed the shield, two messages traded places), which
-   * made the grid the busiest thing on the page. Each card now holds one
-   * still glass object at one size (Bento.tsx).
-   */
-  .nf-scene__obj {
-    position: relative;
-    z-index: 1;
-    display: inline-grid;
-    place-items: center;
-    filter: drop-shadow(0 6px 14px var(--nf-glow-1));
-  }
-
-  /* ------------------------------------------------ the two worlds */
-
   /* --------------------------------------------------------- the map */
 
   .nf-map-room {

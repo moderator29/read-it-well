@@ -504,7 +504,9 @@
       var(--nf-edge-lap-ink-2) 357deg,
       transparent 360deg
     );
-    animation: nf-logo-lap var(--nf-edge-lap-speed) linear infinite;
+    /* Two laps, then it rests at the end angle (the dock's lap does the same):
+       nothing loops forever but the aurora and the assistant's thinking. */
+    animation: nf-logo-lap var(--nf-edge-lap-speed) linear 2 both;
   }
   /* THE BLUE-TO-ORANGE LAP (the warm spark, spec section 18): on the landing
      capsule, the hero's eyebrow capsule and the one band that opens each
