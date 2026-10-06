@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { formatMoney } from "@vallo/i18n/core";
+import { formatMoney, intlTag, type Locale } from "@vallo/i18n/core";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { readAgreement } from "@/lib/agreements/queries";
@@ -36,19 +36,29 @@ import {
   OFF_PLATFORM_SENTENCE,
 } from "@/lib/money/copy";
 
-export const metadata: Metadata = { title: "Agreement" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: getDictionary(await getLocale()).experienceMoney.agreements.page.title };
+}
 export const dynamic = "force-dynamic";
 
-const LINES: { key: string; label: string }[] = [
-  { key: "rent_minor", label: "Rent" },
-  { key: "caution_minor", label: "Caution deposit" },
-  { key: "service_minor", label: "Service charge" },
-  { key: "agency_minor", label: "Agency fee" },
-  { key: "legal_minor", label: "Legal fee" },
-  { key: "agreement_fee_minor", label: "Agreement fee" },
-  { key: "price_per_night_minor", label: "Per night" },
-  { key: "cleaning_fee_minor", label: "Cleaning" },
-];
+/* The terms' money lines, labelled from the dictionary: the move-in ledger's
+   own words where it has them, the agreement page's for a stay's two
+   (Round 3 sweep, C3). */
+type Dict = ReturnType<typeof getDictionary>;
+function termLines(t: Dict): { key: string; label: string }[] {
+  const m = t.moveIn;
+  const p = t.experienceMoney.agreements.page;
+  return [
+    { key: "rent_minor", label: m.rent },
+    { key: "caution_minor", label: m.cautionDeposit },
+    { key: "service_minor", label: m.serviceCharge },
+    { key: "agency_minor", label: m.agencyFee },
+    { key: "legal_minor", label: m.legalFee },
+    { key: "agreement_fee_minor", label: m.agreementFee },
+    { key: "price_per_night_minor", label: p.perNight },
+    { key: "cleaning_fee_minor", label: p.cleaning },
+  ];
+}
 
 function str(terms: Record<string, unknown>, key: string): string | null {
   const v = terms[key];
@@ -100,7 +110,7 @@ export default async function AgreementPage({
   const awaitingYou = party && a.status === "awaiting_parties" && !a.youConfirmedCurrent;
   const lastEvent = a.events.length > 0 ? a.events[a.events.length - 1] : undefined;
   const lastEventAt = lastEvent
-    ? new Date(lastEvent.at).toLocaleString("en-NG", { timeZone: "Africa/Lagos", day: "numeric", month: "short" })
+    ? new Date(lastEvent.at).toLocaleString(intlTag[locale], { timeZone: "Africa/Lagos", day: "numeric", month: "short" })
     : null;
 
   /*
@@ -113,8 +123,11 @@ export default async function AgreementPage({
   /* B9: what moved since this party last confirmed. Null (today's page)
      until the versions migration is applied, and whenever there is nothing
      to show. */
-  const kit = getDictionary(locale).memberKit.agreementDiff;
-  const words = getDictionary(locale).experienceMoney.agreements;
+  const t = getDictionary(locale);
+  const kit = t.memberKit.agreementDiff;
+  const words = t.experienceMoney.agreements;
+  const pw = words.page;
+  const LINES = termLines(t);
   const [since, record] = await Promise.all([
     party && (a.status === "awaiting_parties" || a.status === "rejected") && !a.youConfirmedCurrent
       ? readChangesSinceConfirmed({
@@ -159,7 +172,7 @@ export default async function AgreementPage({
      agreement stands approved now (a later payment is its own moment; a
      send-back or a cancellation is not a payoff; staff reviewing the
      record are not being paid off). */
-  const steps = agreementSteps(a.status, a.events);
+  const steps = agreementSteps(a.status, a.events, pw.track, locale);
   const approvedStep = steps.findIndex((step) => step.key === "approved");
   const popAt =
     party && a.status === "approved" && approvedStep >= 0 && steps[approvedStep]!.state === "done" && steps[approvedStep]!.when
@@ -187,7 +200,7 @@ export default async function AgreementPage({
         }
         haptic={moment ? undefined : false}
       />
-      <PageHeader title="Agreement" />
+      <PageHeader title={pw.title} />
       {/* Where it stands, on the shared status track (spec section 14): drawn
           up, both confirmed, approved, paid, each dated from this agreement's
           own events. Sent back or cancelled stops the track where it stood.
@@ -196,17 +209,17 @@ export default async function AgreementPage({
           the track with the kind and the status word under it. */}
       <HeroBand
         className="nf-status-band mt-inline"
-        label="Live status"
+        label={pw.liveStatus}
         title={a.listingTitle}
         sub={
           <>
-            {a.kind === "rent" ? "Rental" : "Stay"} ·{" "}
+            {a.kind === "rent" ? pw.rental : pw.stay} ·{" "}
             <span data-testid="agreement-status">{AGREEMENT_STATUS_LABEL[a.status] ?? a.status}</span>
           </>
         }
       >
         <AgreementTrackMotion popAt={popAt} seenKey={`agreement-approved-track:${a.id}`}>
-          <StatusTrack label="Agreement progress" steps={steps} testId="agreement-track" />
+          <StatusTrack label={pw.progress} steps={steps} testId="agreement-track" />
         </AgreementTrackMotion>
       </HeroBand>
 
@@ -219,14 +232,14 @@ export default async function AgreementPage({
         <DecisionCard
           className="mt-block"
           testId="agreement-awaiting-you"
-          label="Awaiting you"
-          when={lastEventAt ? `Since ${lastEventAt}` : undefined}
-          title={`Confirm version ${a.termsVersion} of the terms`}
+          label={pw.awaitingYou}
+          when={lastEventAt ? pw.since.replace("{date}", lastEventAt) : undefined}
+          title={pw.confirmVersion.replace("{n}", String(a.termsVersion))}
           lines={LINES.flatMap((line) => {
             const amount = num(a.terms, line.key);
             return amount ? [{ label: line.label, amount: formatMoney(amount, locale) }] : [];
           })}
-          total={{ label: "Total", amount: formatMoney(a.amountMinor, locale) }}
+          total={{ label: pw.total, amount: formatMoney(a.amountMinor, locale) }}
           primary={
             <ConfirmTerms
               agreementId={a.id}
@@ -237,7 +250,7 @@ export default async function AgreementPage({
           }
           secondary={[
             <ButtonLink key="terms" variant="secondary" href="#agreement-terms">
-              Read the terms
+              {pw.readTerms}
             </ButtonLink>,
             <CancelAgreement key="cancel" agreementId={a.id} variant="secondary" />,
           ]}
@@ -246,13 +259,9 @@ export default async function AgreementPage({
 
       {a.status === "rejected" && a.decisionReason ? (
         <div className="nf-card mt-block p-card" role="note">
-          <p className="font-semibold">Vallo sent this back</p>
+          <p className="font-semibold">{pw.sentBack}</p>
           <p className={TYPE.body}>{a.decisionReason}</p>
-          <p className={TYPE.rowMeta}>
-            {a.kind === "rent"
-              ? "Change the terms below and both of you confirm again."
-              : "A stay's terms are its booking, so they cannot be changed here. Message the host about the reason, or cancel this agreement."}
-          </p>
+          <p className={TYPE.rowMeta}>{a.kind === "rent" ? pw.sentBackRent : pw.sentBackStay}</p>
         </div>
       ) : null}
 
@@ -264,7 +273,7 @@ export default async function AgreementPage({
             since.by && since.at
               ? kit.by
                   .replace("{who}", since.by === "you" ? kit.you : kit.other)
-                  .replace("{date}", new Date(since.at).toLocaleString("en-NG", { timeZone: "Africa/Lagos", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }))
+                  .replace("{date}", new Date(since.at).toLocaleString(intlTag[locale], { timeZone: "Africa/Lagos", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }))
               : kit.byUndated
           }
           versionsLine={kit.versions.replace("{from}", String(since.fromVersion)).replace("{to}", String(since.toVersion))}
@@ -285,24 +294,26 @@ export default async function AgreementPage({
       */}
       <Section id="agreement-terms">
         <DocumentSheet printable aria-labelledby="agreement-terms-title" data-testid="agreement-terms">
-          <DocHead label={a.listingTitle} title={`The terms (version ${a.termsVersion})`} id="agreement-terms-title" />
+          <DocHead label={a.listingTitle} title={pw.termsTitle.replace("{n}", String(a.termsVersion))} id="agreement-terms-title" />
           <DocRows>
-            <DocRow label="Between" variant="prose">
-              {a.renterName} ({a.kind === "rent" ? "renter" : "guest"}) and {a.ownerName} (owner or agent)
+            <DocRow label={pw.between} variant="prose">
+              {(a.kind === "rent" ? pw.betweenRent : pw.betweenStay).replace("{renter}", a.renterName).replace("{owner}", a.ownerName)}
             </DocRow>
             {str(a.terms, "move_in") ? (
               <>
-                <DocRow label="Move in" numeric>
+                <DocRow label={pw.moveIn} numeric>
                   {termDay(str(a.terms, "move_in"), locale)}
                 </DocRow>
-                <DocRow label="Keys handed over" numeric>
+                <DocRow label={pw.keys} numeric>
                   {termDay(str(a.terms, "handover_on") ?? str(a.terms, "move_in"), locale)}
                 </DocRow>
               </>
             ) : null}
             {str(a.terms, "check_in") ? (
-              <DocRow label="Stay" numeric>
-                {termDay(str(a.terms, "check_in"), locale)} to {termDay(str(a.terms, "check_out"), locale)}
+              <DocRow label={pw.stay} numeric>
+                {pw.stayDates
+                  .replace("{from}", termDay(str(a.terms, "check_in"), locale) ?? "")
+                  .replace("{to}", termDay(str(a.terms, "check_out"), locale) ?? "")}
               </DocRow>
             ) : null}
             {LINES.map((line) =>
@@ -312,14 +323,14 @@ export default async function AgreementPage({
                 </DocRow>
               ) : null,
             )}
-            <DocRow label="Inspection fee" variant="prose">
+            <DocRow label={pw.inspectionFee} variant="prose">
               {NO_INSPECTION_FEE}
             </DocRow>
-            <DocRow label="Total" variant="total" numeric>
+            <DocRow label={pw.total} variant="total" numeric>
               {formatMoney(a.amountMinor, locale)}
             </DocRow>
             {str(a.terms, "notes") ? (
-              <DocRow label="Also agreed" variant="prose">
+              <DocRow label={pw.alsoAgreed} variant="prose">
                 {str(a.terms, "notes")}
               </DocRow>
             ) : null}
@@ -327,12 +338,12 @@ export default async function AgreementPage({
               <>
                 <DocRow label={a.role === "renter" ? a.renterName : a.ownerName} variant="prose">
                   <DocState done={a.youConfirmedCurrent}>
-                    {a.youConfirmedCurrent ? "You confirmed this version." : "You have not confirmed this version yet."}
+                    {a.youConfirmedCurrent ? pw.youConfirmed : pw.youNotConfirmed}
                   </DocState>
                 </DocRow>
                 <DocRow label={a.role === "renter" ? a.ownerName : a.renterName} variant="prose">
                   <DocState done={a.otherConfirmedCurrent}>
-                    {a.otherConfirmedCurrent ? "The other side confirmed it." : "The other side has not confirmed it yet."}
+                    {a.otherConfirmedCurrent ? pw.otherConfirmed : pw.otherNotConfirmed}
                   </DocState>
                 </DocRow>
               </>
@@ -358,13 +369,13 @@ export default async function AgreementPage({
               : ""}
           </DocNote>
         </DocumentSheet>
-        <DocActions label="The terms">
-          <PrintDocumentTile label={getDictionary(locale).afterTheGate.complaint.print} testId="agreement-print" />
+        <DocActions label={pw.theTerms}>
+          <PrintDocumentTile label={t.afterTheGate.complaint.print} testId="agreement-print" />
         </DocActions>
       </Section>
 
       {party && (a.status === "awaiting_parties" || a.status === "rejected") ? (
-        <Section title={a.status === "rejected" ? "What happens next" : "Confirm"}>
+        <Section title={a.status === "rejected" ? pw.whatNext : pw.confirm}>
           {/* Where each side stands on this version is said once, on the
               terms sheet above, rather than repeated here. Confirming, when
               it is this reader's move, is the Awaiting you card at the top
@@ -383,7 +394,7 @@ export default async function AgreementPage({
       ) : null}
 
       {a.status === "in_review" ? (
-        <Section title="With Vallo">
+        <Section title={pw.withVallo}>
           <p className={TYPE.body}>
             Both of you confirmed. A person at Vallo is reviewing the agreement. You will get an email and a notification
             the moment it is decided. Payment opens only after approval.
@@ -452,24 +463,24 @@ export default async function AgreementPage({
   );
 }
 
-const TRACK_LABEL: Record<AgreementStepKey, string> = {
-  drawn: "Drawn up",
-  confirmed: "Both confirmed",
-  approved: "Vallo approved",
-  paid: "Paid",
-};
+type TrackWords = Record<AgreementStepKey, string> & { sentBack: string; cancelled: string };
 
-function agreementSteps(status: string, events: { at: string; action: string }[]): TrackStep[] {
+function agreementSteps(
+  status: string,
+  events: { at: string; action: string }[],
+  track: TrackWords,
+  locale: Locale,
+): TrackStep[] {
   return agreementTrack({ status, events }).map((step) => ({
     key: step.key,
     label:
       step.state === "failed"
         ? status === "rejected"
-          ? "Sent back by Vallo"
-          : "Cancelled"
-        : TRACK_LABEL[step.key],
+          ? track.sentBack
+          : track.cancelled
+        : track[step.key],
     when: step.at
-      ? new Date(step.at).toLocaleString("en-NG", {
+      ? new Date(step.at).toLocaleString(intlTag[locale], {
           day: "numeric",
           month: "short",
           hour: "2-digit",
