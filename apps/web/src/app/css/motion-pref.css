@@ -118,6 +118,7 @@
       .nf-admin :is(.nf-list-group, .nf-admin-table > ul)
     ) > *,
   :root[data-motion="calm"] .nf-tab-swap,
+  :root[data-motion="calm"] :is(.nf-msg-in--mine, .nf-msg-in--theirs),
   :root[data-motion="calm"] .nf-nav--drawer .nf-nav__section,
   :root[data-motion="calm"] .nf-nav--drawer .nf-nav__who--hero,
   :root[data-motion="calm"] .nf-nav--drawer .nf-nav__foot,

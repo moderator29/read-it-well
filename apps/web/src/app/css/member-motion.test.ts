@@ -108,6 +108,12 @@ describe("the toggle", () => {
   });
 });
 
+describe("Calm", () => {
+  it("makes a message arrival a plain fade", () => {
+    expect(strip(css("motion-pref.css"))).toContain(':root[data-motion="calm"] :is(.nf-msg-in--mine, .nf-msg-in--theirs)');
+  });
+});
+
 describe("nothing in these moments loops", () => {
   it("has no infinite animation in the new rules", () => {
     const kit = strip(css("motion-kit.css"));
