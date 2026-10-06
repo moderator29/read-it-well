@@ -131,7 +131,9 @@ export default async function TenancyPage({
       {file.viewer === "tenant" && (!file.void || file.flatmates.locked) && (
         <FlatmatesSection file={file} copy={mates} locale={locale} success={t.success} />
       )}
-      {file.viewer === "tenant" && file.paid && (
+      {/* Not on a void charge: create_receipt_code answers not_paid and
+          verify_receipt not_found once it is cancelled, refunded or reversed. */}
+      {file.viewer === "tenant" && file.paid && !file.void && (
         <Section>
           <ReceiptCodePanel tenancyId={file.id} live={file.receiptCode} copy={t.afterTheGate.receipt} />
         </Section>
