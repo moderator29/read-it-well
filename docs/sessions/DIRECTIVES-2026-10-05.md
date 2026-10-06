@@ -821,6 +821,96 @@ committed and pushed as it is done, cleanly, without sessions conflicting.
 | **D54's assignment of the db-06 row to Session 2** | **D59: Session 1 took it after two hours of no movement** |
 | **Any reading that paid promotion was removed** | **D60: D3 built it on 5 October; the gap was the tier detail, now written** |
 | **The flat "keeps 96 percent" on the fee screen** | **D61: wrong, rail dependent, and Session 1 wrote it. A range now** |
+| **D58 on the referral engine, and Session 1's "apply it" on b4_referral_rewards_engine** | **D62: architecture locked by the founder; hold the migration until campaigns are in it** |
+
+---
+
+## D62. The referral engine's architecture is locked, and the pending migration must not be applied yet
+
+**The founder locked the referral architecture on 6 October.** It is
+**`docs/referral/REFERRAL_ARCHITECTURE.md`**, and it **supersedes D58 and
+`REFERRAL_ADMIN_CENTRE.md` wherever they differ.** The admin screens and detectors in that
+earlier document still stand; the engine, lifecycle and configuration model now come from here.
+
+**The rule everything serves, in the founder's words:** *Vallo rewards genuine network growth,
+not account creation.*
+
+### The refinement that resolves three open questions at once
+
+**No reward amount, threshold, window or cap is a product rule. All of them are campaign
+configuration.** D51 set the reward at 70 naira and the founder's latest note says 76; an
+earlier instruction set the withdrawal minimum at 1,000 naira and the latest mentions 80.
+**None of those need settling before implementation any more**, because each is a row in a
+campaign rather than a constant in code.
+
+**What may never be configuration:** append-only accounting, the separation of referral money
+from customer money, payment only on webhook confirmation, and a reward's amount frozen on its
+row at qualification. **A guardrail that can be switched off in a dashboard is not a
+guardrail.**
+
+### Three things in the founder's brief that Session 1's spec got wrong or missed
+
+**A review window between QUALIFIED and AVAILABLE.** A qualified reward is PENDING, waits the
+campaign's window while the risk graph keeps correlating, and only then becomes withdrawable.
+**That one delay defeats most economically rational attacks**, because fraud at scale needs the
+money out fast. D58 had no such state.
+
+**PAID only on webhook confirmation**, never on the transfer API's response. A transfer that
+returns 200 and then fails is a reward Vallo believes it paid and did not. So: an idempotent
+handler keyed on the transfer reference, a reconciliation sweep for transfers that reach no
+terminal state, and **the member sees "sent" rather than "paid" until the webhook lands.**
+
+**Qualification is a policy engine, per campaign**, not a hard-coded rule. Consumer at 76
+naira, business at 150, supply at 300, each with its own requirements. **Build it as a fixed
+registry of named, individually tested requirement checks, and never as an expression
+language.** A predicate table parsed at runtime becomes a small programming language with no
+type checking inside a money path. A campaign stores an array of registry keys; adding a
+campaign type must not require a new key.
+
+### The arithmetic nobody had done, and it needs the founder
+
+**Different rewards per campaign multiply against a cap that was set once, globally.** At 1,500
+qualified referrals a month: 114,000 naira per member under the consumer campaign, 225,000
+under business, **450,000 under supply.** So one global cap means something four times more
+expensive under the 300 naira campaign. **The cap must be per campaign**, and the platform
+budget cap must be the real ceiling. A hard-to-fake requirement is a good defence; it is not a
+budget.
+
+### The risk graph, and the constraint that protects honest members
+
+The founder's caveat is the most important engineering constraint in his brief: identify the
+cluster **without automatically accusing every shared-network user.** In Nigeria shared
+networks are the normal case: carrier NAT puts thousands behind one address, and shared Wi-Fi,
+cybercafes, campuses and offices do the rest. **A system that treats a shared network as
+evidence will spend its life accusing honest people in Lagos.**
+
+So edges are weighted and unequal. **Strongest: a shared payout destination**, because a ring
+must converge to collect. Strong: shared device, and mutual or circular referral. Moderate:
+sequential phone patterns in a tight window, near-identical activity. **Weak, and never
+sufficient alone: the same network.** No single edge triggers anything, clusters rank by naira
+exposure rather than member count, and flagging moves rewards to UNDER REVIEW, which is
+reversible. **Nobody is told they committed fraud by a graph.**
+
+### The migration: Session 1 reverses its own instruction to apply it
+
+**`supabase/migrations/pending/b4_referral_rewards_engine.sql` must not be applied as it
+stands.** Session 1 told Session 2 to apply it earlier today. That was before this
+architecture was locked, and it is now the wrong call.
+
+Checked: the file creates `referral_policy`, `referrals`, `referral_events`, `rewards_payouts`
+and `rewards_ledger`, and already contains risk scoring, reversal, cluster and velocity work,
+all of which is good and is kept. **It has no trace of campaigns, a budget period, or a cap in
+naira.** Those are not edge additions: under this architecture **the campaign is the organising
+dimension**, so qualification policy hangs off it, the reward comes from it, the per-member cap
+belongs to it and the review window is its setting. **Applying a referral spine without its
+organising dimension means restructuring the spine later, in a money area, after rows exist.**
+
+**And nothing is lost by waiting.** The feature register records that phone verification is
+built and switched off pending an SMS provider, and `phone_verified` is a requirement in every
+campaign the founder listed. **Not one referral can qualify until that provider exists**, so
+there is no cost to getting the schema right first. Add campaigns, the budget period, the
+requirement registry and the full lifecycle states to the file, then apply once, probe once,
+record once.
 
 ---
 
