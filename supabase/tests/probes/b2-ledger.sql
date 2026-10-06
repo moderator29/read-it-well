@@ -23,6 +23,7 @@
 do $$
 declare
   v_guest uuid;
+  v_guest2 uuid;
   v_listing uuid;
   b uuid := gen_random_uuid();
   tx_direct uuid := gen_random_uuid();
@@ -44,8 +45,9 @@ declare
   tg name;
 begin
   select id into v_guest from auth.users order by created_at limit 1;
+  select id into v_guest2 from auth.users where id <> v_guest order by created_at limit 1;
   select l.id into v_listing from public.listings l where l.property_type = 'hotel' limit 1;
-  if v_guest is null or v_listing is null then
+  if v_guest is null or v_guest2 is null or v_listing is null then
     raise exception 'PROBE_FAIL b2-ledger: fixtures missing (a user, a hotel listing)';
   end if;
   -- Rolled back with the block: bookings refuse a demo listing, and the
@@ -61,10 +63,12 @@ begin
   insert into public.bookings (id, listing_id, guest_id, check_in, check_out, nights, price_per_night_minor, subtotal_minor, total_minor)
   values (b, v_listing, v_guest, current_date + 420, current_date + 421, 1, 10000, 10000, 10000);
   perform set_config('vallo.recording_unknown_charge', 'on', true);
-  insert into public.transactions (id, booking_id, provider, provider_ref, amount_minor, currency, status, rail)
-  values (tx_direct, b, 'paystack', 'probe-b2-ledger-d-' || b::text, 10000, 'NGN', 'SUCCESSFUL', 'direct'),
-         (tx_escrow, b, 'paystack', 'probe-b2-ledger-e-' || b::text, 10000, 'NGN', 'SUCCESSFUL', 'escrow'),
-         (tx_escrow_pending, b, 'paystack', 'probe-b2-ledger-ep-' || b::text, 10000, 'NGN', 'PENDING', 'escrow');
+  -- One whole success per booking (transactions_one_whole_success_per_booking),
+  -- so the escrow charge is a flatmate share of the same booking.
+  insert into public.transactions (id, booking_id, provider, provider_ref, amount_minor, currency, status, rail, share_payer_id)
+  values (tx_direct, b, 'paystack', 'probe-b2-ledger-d-' || b::text, 10000, 'NGN', 'SUCCESSFUL', 'direct', null),
+         (tx_escrow, b, 'paystack', 'probe-b2-ledger-e-' || b::text, 10000, 'NGN', 'SUCCESSFUL', 'escrow', v_guest),
+         (tx_escrow_pending, b, 'paystack', 'probe-b2-ledger-ep-' || b::text, 10000, 'NGN', 'PENDING', 'escrow', null);
   perform set_config('vallo.recording_unknown_charge', '', true);
 
   -- Idempotent on the key; a disagreeing replay is refused.
@@ -186,9 +190,10 @@ begin
   insert into public.bookings (id, listing_id, guest_id, check_in, check_out, nights, price_per_night_minor, subtotal_minor, total_minor)
   values (b2, v_listing, v_guest, current_date + 430, current_date + 431, 1, 10000, 10000, 10000);
   perform set_config('vallo.recording_unknown_charge', 'on', true);
-  insert into public.transactions (id, booking_id, provider, provider_ref, amount_minor, currency, status, rail, created_at)
-  values (tx_d1, b2, 'paystack', 'probe-b2-ledger-d1-' || b2::text, 5000, 'NGN', 'SUCCESSFUL', 'direct', now() - interval '1 minute'),
-         (tx_d2, b2, 'paystack', 'probe-b2-ledger-d2-' || b2::text, 5000, 'NGN', 'SUCCESSFUL', 'direct', now());
+  -- Two flatmates' shares: one success per payer (transactions_one_share_success_per_payer).
+  insert into public.transactions (id, booking_id, provider, provider_ref, amount_minor, currency, status, rail, created_at, share_payer_id)
+  values (tx_d1, b2, 'paystack', 'probe-b2-ledger-d1-' || b2::text, 5000, 'NGN', 'SUCCESSFUL', 'direct', now() - interval '1 minute', v_guest),
+         (tx_d2, b2, 'paystack', 'probe-b2-ledger-d2-' || b2::text, 5000, 'NGN', 'SUCCESSFUL', 'direct', now(), v_guest2);
   perform set_config('vallo.recording_unknown_charge', '', true);
   select coalesce(sum(balance_minor) filter (where pot = 'customer_funds'), 0),
          coalesce(sum(balance_minor) filter (where pot = 'vallo_revenue'), 0)
