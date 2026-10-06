@@ -110,8 +110,12 @@
   .nf-splash {
     display: none;
   }
+  /* The page's own entrances start 100ms into the startup's door, whenever
+     the door opens (`--nf-startup-door`, startup.css: 1150ms on the beats'
+     schedule, moved by a skip or a hold). It was a fixed 1250ms, which a
+     skip at 300ms or a held door at three seconds both contradicted. */
   :root[data-splash="on"] {
-    --nf-splash-hold: 1250ms;
+    --nf-splash-hold: calc(var(--nf-startup-door, 1150ms) + 100ms);
   }
   @keyframes nf-splash-leaf-a {
     to {
@@ -130,24 +134,17 @@
       filter: blur(4px);
     }
   }
-  /* The page comes forward through the opening door. It is keyed to the door
-     and not to the clock: the page rests at the animation's first frame
-     (paused, held by `both`) beneath the overlay, and plays when the startup's
-     script opens the door (`data-startup="open"`), for 320ms, a little inside
-     the door's own 350ms (`startup.css`). It used to start at a fixed 1150ms
-     and run 760ms, but the flag leaves "on" when the door ends (about 1500ms
-     on the unhurried path, much sooner on a tap), and a rule keyed on "on"
-     vanishes with it, so the page snapped through the last 400ms of its
-     entrance. Now the entrance always finishes before the flag is released,
-     whenever the door opens: a held door holds the page too. The extra
-     attribute is under `:where()` so this rule stays the same specificity as
-     the base one and the lock's and reduced motion's `animation: none` below
-     still beat it. */
+  /* The page comes forward through the opening door. It is keyed to the door,
+     on the door's own clock: the page rests at the animation's first frame
+     (held by `both`) beneath the overlay, and plays at `--nf-startup-door`
+     (startup.css: 1150ms on the beats' schedule, moved by a skip or a hold),
+     for 320ms, inside the door's own 350ms. It used to wait, paused, for the
+     startup's script to set `data-startup="open"`, which on a busy phone
+     arrived late; and before that it started at a fixed 1150ms, which a skip
+     or a hold contradicted. The flag leaves "on" only after the door has
+     ended, so the entrance always finishes before the rule goes. */
   :root[data-splash="on"] #main {
-    animation: nf-threshold-forward 320ms var(--nf-ease-exit) both paused;
-  }
-  :root[data-splash="on"]:where([data-startup="open"]) #main {
-    animation-play-state: running;
+    animation: nf-threshold-forward 320ms var(--nf-ease-exit) var(--nf-startup-door, 1150ms) both;
   }
   @keyframes nf-threshold-forward {
     from {
