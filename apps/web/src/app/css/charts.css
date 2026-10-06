@@ -7,9 +7,10 @@
   value here follows are written once, at the top of `chart-rules.ts`;
   this file only carries them out.
 
-  Every colour is a role token. The four `--nf-chart-*` roles are requested
-  from Foundations and do not exist yet, so each reference falls back to the
-  role it would be defined as (the same arrangement `palette.ts` documents).
+  Every colour is a role token. The `--nf-chart-*` roles (series, context,
+  axis, grid, track, hatch) are defined in `packages/design-tokens/src/
+  tokens.css` on every themed element, so each reference reads the role
+  directly with no fallback.
 
   Motion is transform and opacity only, on the duration and ease tokens, and
   every animation here has a quiet answer at the foot of the file.
@@ -52,7 +53,7 @@
   }
   .nf-viz__plot {
     position: relative;
-    border-bottom: 1px solid var(--nf-chart-axis, var(--nf-border-default));
+    border-bottom: 1px solid var(--nf-chart-axis);
     /* A finger dragging across the plot reads it; a vertical drag still
        scrolls the page. */
     touch-action: pan-y;
@@ -75,11 +76,11 @@
     position: absolute;
     inset-inline: 0;
     height: 0;
-    border-top: 1px solid var(--nf-chart-grid, var(--nf-border-subtle));
+    border-top: 1px solid var(--nf-chart-grid);
     pointer-events: none;
   }
   .nf-viz-svg-grid {
-    stroke: var(--nf-chart-grid, var(--nf-border-subtle));
+    stroke: var(--nf-chart-grid);
     stroke-width: 1;
   }
   .nf-viz-svg-axis {
@@ -165,16 +166,16 @@
     width: 1rem;
     height: 0;
     border-radius: 0;
-    border-top: 2px solid var(--nf-chart-series, var(--nf-brand-primary));
+    border-top: 2px solid var(--nf-chart-series);
   }
   .nf-viz-key--context {
-    border-top: 2px dashed var(--nf-chart-context, var(--nf-content-muted));
+    border-top: 2px dashed var(--nf-chart-context);
   }
   .nf-viz-key--hatch {
-    box-shadow: inset 0 0 0 1px var(--nf-chart-context, var(--nf-content-muted));
+    box-shadow: inset 0 0 0 1px var(--nf-chart-context);
     background: repeating-linear-gradient(
       135deg,
-      var(--nf-chart-context, var(--nf-content-muted)) 0 1px,
+      var(--nf-chart-context) 0 1px,
       transparent 1px 4px
     );
   }
@@ -209,7 +210,7 @@
     width: min(1.5rem, calc(100% - 4px));
     height: 100%;
     border-radius: 4px 4px 0 0;
-    background: var(--nf-chart-series, var(--nf-brand-primary));
+    background: var(--nf-chart-series);
     transform: translateY(calc(100% - max(2px, var(--nf-viz-v, 0) * 100%)));
     transition:
       transform var(--nf-duration-slow) var(--nf-ease-standard),
@@ -243,10 +244,10 @@
     width: min(1.5rem, calc(100% - 4px));
     height: 100%;
     border-radius: 4px 4px 0 0;
-    box-shadow: inset 0 0 0 1px var(--nf-chart-grid, var(--nf-border-subtle));
+    box-shadow: inset 0 0 0 1px var(--nf-chart-grid);
     background: repeating-linear-gradient(
       135deg,
-      var(--nf-chart-hatch, var(--nf-border-default)) 0 1px,
+      var(--nf-chart-hatch) 0 1px,
       transparent 1px 6px
     );
   }
@@ -313,7 +314,7 @@
     pointer-events: none;
     background: repeating-linear-gradient(
       135deg,
-      var(--nf-chart-hatch, var(--nf-border-default)) 0 1px,
+      var(--nf-chart-hatch) 0 1px,
       transparent 1px 6px
     );
     opacity: 0.6;
@@ -326,14 +327,14 @@
     height: 0.5rem;
     margin: -0.25rem 0 0 -0.25rem;
     border-radius: var(--nf-radius-circle);
-    background: var(--nf-chart-series, var(--nf-brand-primary));
+    background: var(--nf-chart-series);
     box-shadow: 0 0 0 2px var(--nf-surface-primary);
     pointer-events: none;
   }
   .nf-viz-dot--context {
     background: var(--nf-surface-primary);
     box-shadow:
-      inset 0 0 0 2px var(--nf-chart-context, var(--nf-content-muted)),
+      inset 0 0 0 2px var(--nf-chart-context),
       0 0 0 2px var(--nf-surface-primary);
   }
   .nf-viz-endlabel {
@@ -357,7 +358,7 @@
     top: 0;
     bottom: 0;
     width: 0;
-    border-inline-start: 1px solid var(--nf-chart-axis, var(--nf-border-default));
+    border-inline-start: 1px solid var(--nf-chart-axis);
     pointer-events: none;
   }
 

@@ -63,11 +63,6 @@
     /* A tap anywhere is the skip (startup-script.ts). */
     pointer-events: auto;
     cursor: default;
-    /* No placeholder animation: `ThresholdStage` recognises this overlay by
-       its class and leaves its release to the script (whose ceiling and
-       release timer mean the flag can never stay "on"). The 600-second
-       `nf-splash-gone` placeholder that stood here defeated the stage's own
-       four-second give-up, and is gone. */
   }
 
   .nf-startup__leaf {
