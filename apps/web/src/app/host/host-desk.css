@@ -793,13 +793,19 @@
     padding: 0;
     list-style: none;
   }
+  /* The line cards and the wide table sit INSIDE the paper sheet, so they take
+     the sheet's paper rather than the theme's surface: on night
+     `--nf-surface-primary` is navy while `.nf-doc` re-answers the inks for
+     paper, and every line drew dark ink on a dark card (axe, 52 contrast
+     failures at 390). Their edge is the sheet's hairline (`--nf-divider`,
+     re-answered by `.nf-doc`). */
   .nf-stmt-line {
     display: grid;
     gap: var(--nf-space-2xs);
     padding: var(--nf-space-md);
-    border: var(--nf-border-width) solid var(--nf-card-border);
+    border: var(--nf-border-width) solid var(--nf-divider);
     border-radius: var(--nf-radius-card);
-    background: var(--nf-surface-primary);
+    background: transparent;
   }
   .nf-stmt-line__split {
     display: grid;
@@ -822,12 +828,18 @@
     display: none;
   }
   @media (min-width: 768px) {
+    /* `width: 0; min-width: 100%`: the table scrolls inside its own box and
+       never lends its six columns' width to the sheet. Without it the sheet,
+       the month bar and the actions all grew to 765px and ran 21px past a
+       768px window. */
     .nf-stmt-wide {
       display: block;
+      width: 0;
+      min-width: 100%;
       overflow-x: auto;
-      border: var(--nf-border-width) solid var(--nf-card-border);
+      border: var(--nf-border-width) solid var(--nf-divider);
       border-radius: var(--nf-radius-card);
-      background: var(--nf-surface-primary);
+      background: transparent;
     }
     .nf-stmt-narrow {
       display: none;
@@ -905,6 +917,7 @@
     }
     .nf-stmt-wide {
       display: block;
+      width: auto;
       overflow: visible;
       border: 0;
     }

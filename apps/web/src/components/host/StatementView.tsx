@@ -2,7 +2,7 @@ import Link from "next/link";
 import { countOf, formatMoney, getDictionary, type Locale } from "@vallo/i18n";
 import { addMonths } from "@/lib/host/rate-calendar";
 import { statementTotals, type StatementLine } from "@/lib/host/statement";
-import { EARNINGS_SETTLEMENT, HISTORY_NOT_A_BALANCE } from "@/lib/money/copy";
+import { EARNINGS_SETTLEMENT, HISTORY_NOT_A_BALANCE, HOST_STATEMENT_EMPTY_BODY, HOST_STATEMENT_EMPTY_TITLE } from "@/lib/money/copy";
 import { COMPANY_FORMAL_NAME, COMPANY_REGISTERED_OFFICE } from "@/lib/legal/company";
 import { EmptyState } from "@/components/app/Screen";
 import { PageHeader } from "@/components/app/PageHeader";
@@ -78,8 +78,8 @@ export function StatementView({
         ) : lines.length === 0 ? (
           <EmptyState
             icon="ledger-book"
-            title="No payments this month"
-            body="When a guest pays, the payment appears here line by line: what they paid, what Vallo kept, and your share."
+            title={HOST_STATEMENT_EMPTY_TITLE}
+            body={HOST_STATEMENT_EMPTY_BODY}
             action={
               <ButtonLink href="/host/earnings" variant="secondary" size="lg">
                 Back to earnings
