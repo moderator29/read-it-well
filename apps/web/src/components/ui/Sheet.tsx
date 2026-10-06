@@ -6,6 +6,8 @@ import type { ReactNode, RefObject } from "react";
 import { useOverlay } from "@/lib/ui/use-overlay";
 import { useSheetHistory } from "@/lib/ui/use-sheet-history";
 import { useClientMount } from "@/lib/ui/client-mount";
+import { motionQuiet } from "@/lib/motion/gate";
+import { isDataSaver } from "@/lib/ui/data-saver";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
 
@@ -235,12 +237,64 @@ export function Sheet({
    * below also closes the gap where a fast reopen could have committed
    * `entered: true` from the previous cycle before the reset ran.
    */
+  /*
+   * THE LEAVE HAS TO BE SEEN (MOTION_SYSTEM "Sheet exit": `leave` 240ms;
+   * Session 3, R2, auditor A7 N1). The sheet used to return null the instant
+   * `open` turned false, so the exit transition the stylesheet declares had no
+   * element to run on. `leaving` keeps it mounted, closed, while it plays:
+   *
+   *   - set when `open` goes true to false, in the same render-time adjustment
+   *     as `entered`, and only when motion is allowed: reduced motion, Calm,
+   *     Off and data saving unmount at once, as before;
+   *   - cleared when `open` comes back (a re-open during the leave takes the
+   *     same node back up from where it is), or when the panel's transform
+   *     transition ends, or a fallback timer equal to the longest transition
+   *     it is running plus a margin fires, so a missed event never strands a
+   *     sheet on screen (the effect further down).
+   *
+   * While it is leaving it is `inert` and its scrim lets clicks through: focus
+   * and the screen reader are already back on the page (the overlay hook
+   * returns focus to the opener at the moment `open` changes, not when this
+   * ends), and the person can act on the page behind a sheet that is still
+   * sliding away.
+   */
+  const [leaving, setLeaving] = useState(false);
   const [prevOpen, setPrevOpen] = useState(open);
   if (prevOpen !== open) {
     setPrevOpen(open);
     setEntered(false);
     setOffset(0);
+    setLeaving(!open && !motionQuiet() && !isDataSaver());
   }
+  const closing = !open && leaving;
+
+  useEffect(() => {
+    if (open || !leaving) return;
+    const panel = sheetRef.current;
+    const finish = () => setLeaving(false);
+    if (!panel) {
+      const now = window.setTimeout(finish, 0);
+      return () => window.clearTimeout(now);
+    }
+    /* The longest the panel will run: each property's duration plus its delay,
+       read from the computed style (this effect runs after the closed state is
+       applied), so a card sheet's 240ms and a page sheet's 240ms are both
+       honoured without this file knowing either. */
+    const style = getComputedStyle(panel);
+    const seconds = (list: string) => list.split(",").map((part) => Number.parseFloat(part) || 0);
+    const durations = seconds(style.transitionDuration);
+    const delays = seconds(style.transitionDelay);
+    const longest = Math.max(0, ...durations.map((d, i) => d + (delays[i % delays.length] ?? 0))) * 1000;
+    const onEnd = (event: TransitionEvent) => {
+      if (event.target === panel && event.propertyName === "transform") finish();
+    };
+    panel.addEventListener("transitionend", onEnd);
+    const timer = window.setTimeout(finish, Math.min(1500, longest + 80));
+    return () => {
+      panel.removeEventListener("transitionend", onEnd);
+      window.clearTimeout(timer);
+    };
+  }, [open, leaving]);
 
   useEffect(() => {
     if (!open) return;
@@ -437,13 +491,15 @@ export function Sheet({
     setOffset(nearest);
   };
 
-  if (!mounted || !open) return null;
+  if (!mounted || (!open && !leaving)) return null;
 
   return createPortal(
     <>
       <div
         className="nf-sheet-backdrop"
         data-open={entered}
+        data-closing={closing || undefined}
+        inert={closing || undefined}
         onClick={() => onOpenChange(false)}
         aria-hidden="true"
       />
@@ -465,6 +521,8 @@ export function Sheet({
           .join(" ")}
         data-testid={testId}
         data-open={entered}
+        data-closing={closing || undefined}
+        inert={closing || undefined}
         data-dragging={dragging || undefined}
         /*
          * The upward resistance above is REAL now, and it was dead code.

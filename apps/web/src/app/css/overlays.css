@@ -198,6 +198,13 @@
      */
     transition: opacity var(--nf-duration-base) var(--nf-ease-exit);
   }
+  /* A sheet that is leaving is already out of the way: it is inert, and its
+     scrim and panel let a tap through to the page behind while they slide
+     off (Sheet.tsx, "THE LEAVE HAS TO BE SEEN"). */
+  .nf-sheet-backdrop[data-closing],
+  .nf-sheet[data-closing] {
+    pointer-events: none;
+  }
   .nf-sheet-backdrop[data-open="true"] {
     transition: opacity var(--nf-duration-base) var(--nf-ease-entrance);
     opacity: 1;

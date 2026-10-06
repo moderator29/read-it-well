@@ -108,7 +108,11 @@ describe.skipIf(!hasBrowser && !process.env.CI)("SuccessSheet", () => {
       await page.getByTestId("success-primary").click();
       await page.waitForFunction(() => (window as unknown as { __open: boolean }).__open === false);
       expect(await page.evaluate(() => (window as unknown as { __continued: number }).__continued)).toBe(1);
-      expect(await page.getByRole("dialog").count()).toBe(0);
+      /* The sheet now plays its leave before it unmounts (Sheet.tsx, A7 N1),
+         so it is gone a moment after the state says closed, not in the same
+         frame. */
+      await page.locator("[role=dialog]").waitFor({ state: "detached" });
+      expect(await page.locator("[role=dialog]").count()).toBe(0);
     } finally {
       await close();
     }
