@@ -113,18 +113,19 @@ export function UnsafeSheet({
         <UiIcon name="chevron-right" size={16} className="shrink-0 text-[var(--nf-content-muted)]" />
       </button>
     ) : (
-      <button
-        type="button"
+      <Button
+        variant="quiet"
+        size="sm"
+        leadingIcon="shield-stop"
         onClick={() => {
           onOpen?.();
           setOpen(true);
         }}
         data-testid="unsafe-opener"
-        className="nf-btn nf-btn--ghost nf-btn--sm min-h-[44px]"
+        className="min-h-[44px]"
       >
-        <UiIcon name="shield-stop" size={16} className="shrink-0" />
         {copy.opener}
-      </button>
+      </Button>
     );
 
   return (

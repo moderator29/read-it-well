@@ -118,17 +118,19 @@ function Stepper({
           </span>
         </button>
         <span className="nf-numeric w-5 text-center nf-body font-semibold">{value}</span>
-        <button
-          type="button"
+        <Button
+          variant="glass"
+          size="sm"
+          iconOnly
           aria-label={`More ${label.toLowerCase()}`}
           disabled={value >= max}
           onClick={() => onChange(Math.min(max, value + 1))}
-          className="nf-btn nf-btn--glass nf-btn--sm nf-btn--icon h-9 w-9 rounded-[var(--nf-radius-sm)] disabled:opacity-40"
+          className="h-9 w-9 rounded-[var(--nf-radius-sm)] disabled:opacity-40"
         >
           <span aria-hidden="true" className="text-[length:var(--nf-text-body)] leading-none">
             +
           </span>
-        </button>
+        </Button>
       </span>
       <input type="hidden" name={name} value={value} />
     </div>

@@ -9,6 +9,7 @@ import { thresholdAllowed } from "@/lib/motion/threshold";
 import type { LockMode } from "@/lib/passcode/decide";
 import { fill, herePath, markTabUnlocked } from "@/lib/passcode/tab";
 import { feedback } from "@/lib/ui/feedback";
+import { Button } from "@/components/ui/Button";
 import { Keypad, PasscodeDots } from "./Keypad";
 import { PasskeyUnlockKey } from "./PasskeyUnlockKey";
 import { PasscodeFrame } from "./PasscodeFrame";
@@ -372,15 +373,27 @@ export function PasscodeLock({
         </>
       )}
       <div className="nf-passcode__foot">
-        <button
-          type="button"
-          className={passwordOnly ? "nf-btn nf-btn--primary nf-passcode__cta" : "nf-passcode__link"}
-          onClick={usePassword}
-          disabled={leaving || opening}
-          data-testid="passcode-use-password"
-        >
-          {passwordOnly ? copy.signInAgain : copy.usePassword}
-        </button>
+        {passwordOnly ? (
+          <Button
+            variant="primary"
+            className="nf-passcode__cta"
+            onClick={usePassword}
+            disabled={leaving || opening}
+            data-testid="passcode-use-password"
+          >
+            {copy.signInAgain}
+          </Button>
+        ) : (
+          <button
+            type="button"
+            className="nf-passcode__link"
+            onClick={usePassword}
+            disabled={leaving || opening}
+            data-testid="passcode-use-password"
+          >
+            {copy.usePassword}
+          </button>
+        )}
       </div>
     </PasscodeFrame>
   );

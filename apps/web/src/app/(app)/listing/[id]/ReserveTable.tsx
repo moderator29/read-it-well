@@ -262,15 +262,17 @@ export function ReserveTable({
             a circle survives the shape law only where a governing reference
             draws that control round, and none draws a stepper. */}
         <div className="mt-2xs flex items-center gap-sm">
-          <button
-            type="button"
+          <Button
+            variant="glass"
+            size="sm"
+            iconOnly
             onClick={() => setParty((n) => Math.max(1, n - 1))}
             aria-label="One fewer guest"
-            className="nf-btn nf-btn--glass nf-btn--sm nf-btn--icon grid h-11 w-11 rounded-[var(--nf-radius-sm)] place-items-center text-[var(--nf-content-secondary)] disabled:opacity-40"
+            className="grid h-11 w-11 rounded-[var(--nf-radius-sm)] place-items-center text-[var(--nf-content-secondary)] disabled:opacity-40"
             disabled={party <= 1}
           >
             <UiIcon name="minus" size={16} aria-hidden />
-          </button>
+          </Button>
           <input
             id={partyId}
             name="partySize"
@@ -285,15 +287,17 @@ export function ReserveTable({
             }}
             className="h-11 w-16 nf-glass--well rounded-[var(--nf-radius-sm)] border px-xs py-0 text-center text-[length:var(--nf-text-body-sm)] tabular-nums text-[var(--nf-content-primary)]"
           />
-          <button
-            type="button"
+          <Button
+            variant="glass"
+            size="sm"
+            iconOnly
             onClick={() => setParty((n) => Math.min(MAX_PARTY, n + 1))}
             aria-label="One more guest"
-            className="nf-btn nf-btn--glass nf-btn--sm nf-btn--icon grid h-11 w-11 rounded-[var(--nf-radius-sm)] place-items-center text-[var(--nf-content-secondary)] disabled:opacity-40"
+            className="grid h-11 w-11 rounded-[var(--nf-radius-sm)] place-items-center text-[var(--nf-content-secondary)] disabled:opacity-40"
             disabled={party >= MAX_PARTY}
           >
             <UiIcon name="plus" size={16} aria-hidden />
-          </button>
+          </Button>
         </div>
         {/* Said before somebody counts to fifty and is refused, rather than
             after. The database enforces the same number. */}
