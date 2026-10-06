@@ -7,7 +7,7 @@ import { PARTNERS_SHORT, RECEIPTS_EMPTY_BODY, RECEIPTS_EMPTY_TITLE, RECEIPTS_LED
 import { PageHeader } from "@/components/app/PageHeader";
 import { EmptyState, TYPE } from "@/components/app/Screen";
 import { ButtonLink } from "@/components/ui/Button";
-import { authHref } from "@/components/auth/auth-intent";
+import { withNext } from "@/lib/auth/next-link";
 import { HistoryEmpty, HistoryUnavailable } from "@/components/app/money-history/HistoryStates";
 import { ReceiptVault } from "@/components/money/ReceiptVault";
 
@@ -46,7 +46,7 @@ export default async function ReceiptsPage({
           title="Sign in to see your receipts"
           body={RECEIPTS_LEDE}
           action={
-            <ButtonLink href={authHref("/receipts", "sign-in")} variant="primary" size="lg">
+            <ButtonLink href={withNext("/sign-in", "/receipts")} variant="primary" size="lg">
               Sign in
             </ButtonLink>
           }
