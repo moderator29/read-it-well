@@ -1,6 +1,6 @@
 /*
  * Component motion. A message arriving, a header verifying, the assistant
- * thinking, a listing folding in, onboarding, the odometer, a balance moving,
+ * thinking, a listing folding in, onboarding, the odometer,
  * and the scroll driven entrances on the landing page.
  *
  * A partial of globals.css. The imports there are ordered, and the order is
@@ -230,60 +230,6 @@
   @media (prefers-reduced-motion: reduce) {
     .nf-odometer__strip {
       transition: none;
-    }
-  }
-
-  /*
-   * Wallet balance pulse. A band of light travels through the card the
-   * moment the balance actually changes: upward and success-tinted for a
-   * deposit landing, downward and brand-tinted for a spend leaving. The
-   * component sets and clears data-pulse itself, so this only ever plays
-   * once per real change, never on a loop.
-   */
-  .nf-balance-pulse {
-    position: relative;
-  }
-  .nf-balance-pulse::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    pointer-events: none;
-    border-radius: inherit;
-    opacity: 0;
-  }
-  .nf-balance-pulse[data-pulse="up"]::before {
-    background: linear-gradient(
-      0deg,
-      transparent 0%,
-      color-mix(in oklab, var(--nf-state-success) 35%, transparent) 45%,
-      transparent 85%
-    );
-    animation: nf-balance-pulse-up 1.1s var(--nf-ease-standard) both;
-  }
-  .nf-balance-pulse[data-pulse="down"]::before {
-    background: linear-gradient(
-      180deg,
-      transparent 0%,
-      color-mix(in oklab, var(--nf-brand-primary) 32%, transparent) 45%,
-      transparent 85%
-    );
-    animation: nf-balance-pulse-down 1.1s var(--nf-ease-standard) both;
-  }
-  @keyframes nf-balance-pulse-up {
-    0% { transform: translateY(22%); opacity: 0; }
-    35% { opacity: 1; }
-    100% { transform: translateY(-10%); opacity: 0; }
-  }
-  @keyframes nf-balance-pulse-down {
-    0% { transform: translateY(-22%); opacity: 0; }
-    35% { opacity: 1; }
-    100% { transform: translateY(10%); opacity: 0; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .nf-balance-pulse[data-pulse]::before {
-      animation: none !important;
-      display: none;
     }
   }
 
