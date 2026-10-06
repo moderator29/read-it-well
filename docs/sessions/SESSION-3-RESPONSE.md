@@ -24,9 +24,10 @@ labels into the dictionary).
 **The sweep, as a number.** The per-route record is
 [`SESSION-3-SWEEP.md`](SESSION-3-SWEEP.md), generated from each agent's own 24-point
 result, run in Chromium at 390, 768 and 1440 in both themes on the route's real page
-component. **Routes audited with all 24 points recorded: 118 of 213** at this edit
-(33 admin, every admin route whose page was untouched and ten more; 24 agent and 17 host, every
-route in both trees, one host route a redirect; 44 member, two of them redirects). The rows in section 3 below predate this and leave points
+component. **Routes audited with all 24 points recorded: 157 of 213** at this edit
+(33 admin, every admin route whose page was untouched and ten more; 24 agent and 17
+host, every route in both trees, one host route a redirect; 44 member, two of them
+redirects; 39 public site, auth and landing, every route in those three groups). The rows in section 3 below predate this and leave points
 19, 22 and 23 at N; they are not counted. The measured starting point (C1, at
 `6376453df` against the session base): 88 of 213 `page.tsx` files untouched, 46 of
 125 edits five lines or fewer, 54 routes whose own files are untouched; admin 23
@@ -118,6 +119,12 @@ three money sentences back into English for those readers, so they stay where th
 are and point 17 is recorded as failing on `/agent/earnings`. The fix is for
 `copy.ts` to carry a sentence per locale (request R3-C1 to Session 2, which owns
 the money copy).
+
+**Recorded and left, with the reason.** The landing's drawn App Store and Google
+Play badges letter at 7.9 to 8.4px in weight 500; the fix is each store's official
+badge artwork, which is not in the repository. `/delete-account` lists the raw table
+names it erases (`wallet_entries`, `escrows` among them), a technical disclosure where
+the D48 rule keeps those words.
 
 **Decisions waiting on the founder:**
 - **The lister's fee gate in the listing wizard.** It is built (`ListerFeeGate`) and

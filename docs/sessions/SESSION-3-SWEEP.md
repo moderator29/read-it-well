@@ -6,35 +6,66 @@ component with the fixture named in its row. **P** pass, **X** failed and fixed 
 sweep, **F** failed and still open, **·** does not apply. The denominator is 213 real routes
 (every `page.tsx` under `apps/web/src/app`, excluding `(dev)` and `api`).
 
-**Routes audited: 118 of 213.**
+**Routes audited: 157 of 213.**
 
 | Family | Audited |
 |---|---|
+|  | 1 |
+| about | 1 |
 | admin | 33 |
 | agent | 24 |
+| areas | 1 |
 | around | 5 |
 | assistant | 1 |
 | bookings | 2 |
+| cancellations | 1 |
+| careers | 1 |
+| check | 1 |
+| contact | 1 |
+| delete-account | 1 |
+| disclaimer | 1 |
+| docs | 2 |
+| eula | 1 |
+| for-agents | 1 |
+| for-hosts | 1 |
+| for-landlords | 1 |
+| forgot-password | 2 |
+| guides | 2 |
+| help | 1 |
 | host | 17 |
 | inspections | 1 |
+| landlord | 1 |
 | legal | 3 |
 | messages | 3 |
+| move-in-cost | 1 |
 | pay | 1 |
 | post | 1 |
 | price | 1 |
+| privacy | 1 |
 | profile | 6 |
+| r | 2 |
 | record | 1 |
 | rent | 3 |
+| reset-password | 1 |
 | restaurant | 1 |
+| safe | 1 |
+| safety | 1 |
 | settings | 2 |
+| sign-in | 4 |
+| sign-up | 4 |
+| standards | 1 |
 | stay | 1 |
 | stories | 2 |
+| styleguide | 1 |
 | support | 4 |
 | tenancy | 1 |
+| terms | 1 |
 | u | 5 |
 
 | Route | By | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| `/` | C6 | P | P | P | P | P | F | P | F | P | P | P | P | P | · | P | P | P | · | P | P | P | P | P | P |
+| `/about` | C6 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | X | · | P | P | P | P | P | P |
 | `/admin` | C1 | P | P | P | P | P | P | X | P | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/admin/account-recovery` | C1 | P | · | P | P | X | X | · | · | · | P | P | P | P | · | P | P | · | X | P | P | P | P | P | P |
 | `/admin/agents` | C1 | P | · | P | X | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
@@ -92,6 +123,7 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | `/agent/reviews` | C1 | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/agent/settings` | C1 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/agent/verification` | C1 | P | P | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
+| `/areas/[state]/[area]` | C6 | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | P | P | P | P | P | P | P | P | P |
 | `/around` | C3 | P | · | P | P | P | P | P | · | P | P | P | P | P | · | · | X | · | P | P | P | X | P | P | P |
 | `/around/[slug]` | C3 | P | · | P | P | P | P | P | P | P | P | P | P | P | · | P | X | · | P | X | P | P | P | P | P |
 | `/around/manage` | C3 | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | P | · | · | · | · | · | · | · | P |
@@ -100,6 +132,23 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | `/assistant` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | P | P | X | P | P | P | P |
 | `/bookings` | C3 | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P |
 | `/bookings/[bookingId]/review` | C3 | P | · | P | P | P | P | · | P | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
+| `/cancellations` | C6 | P | · | P | P | P | P | P | P | P | P | P | P | P | P | P | P | F | · | P | P | P | P | P | P |
+| `/careers` | C6 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | P | P | P | P | P | P | P |
+| `/check` | C6 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
+| `/contact` | C6 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | P | P | P | P |
+| `/delete-account` | C6 | P | · | P | P | P | P | P | · | P | P | P | P | P | · | P | X | · | · | P | P | P | P | P | P |
+| `/disclaimer` | C6 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | F | · | P | P | P | P | P | P |
+| `/docs` | C6 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | · | P | P | P | P | P | P |
+| `/docs/[slug]` | C6 | P | · | P | P | P | P | · | · | P | X | P | P | P | · | · | P | P | · | P | P | P | P | P | P |
+| `/eula` | C6 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | P | P | P | P |
+| `/for-agents` | C6 | P | · | P | P | P | P | P | P | P | P | P | P | P | · | P | P | X | P | P | P | P | P | P | P |
+| `/for-hosts` | C6 | P | · | P | P | P | P | P | P | P | P | P | P | P | · | P | P | X | P | P | P | P | P | P | P |
+| `/for-landlords` | C6 | P | · | P | P | P | P | P | P | P | P | P | P | P | · | P | P | X | P | P | P | P | P | P | P |
+| `/forgot-password` | C6 | P | · | P | P | P | P | · | · | P | F | P | P | P | · | · | P | · | · | P | P | P | P | P | P |
+| `/forgot-password/code` | C6 | P | · | P | P | P | P | · | · | P | F | P | P | P | · | · | P | · | · | P | P | P | P | P | P |
+| `/guides` | C6 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | P | P | P | P |
+| `/guides/[slug]` | C6 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | P | P | P | P |
+| `/help` | C6 | P | · | P | P | P | P | · | · | P | X | P | P | P | · | P | X | X | P | P | P | P | P | P | P |
 | `/host` | C5 | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | P | · | P | P | P | X | X | P | P |
 | `/host/apply` | C5 | P | · | P | P | X | P | · | · | P | P | P | P | P | · | · | P | · | P | P | P | P | X | P | P |
 | `/host/arrival` | C5 | P | · | P | X | P | P | P | P | · | P | P | P | P | P | P | P | · | P | P | P | P | X | P | P |
@@ -118,36 +167,55 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | `/host/start` | C5 | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | P | · | · | · | · | · | · | · | P |
 | `/host/transfer` | C5 | P | P | P | P | P | P | · | · | P | P | P | P | P | · | X | P | · | P | P | P | P | X | P | P |
 | `/inspections/gate/[id]` | C3 | P | · | P | P | P | P | · | P | · | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
+| `/landlord/[token]` | C6 | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/legal/disclaimer` | C3 | P | · | P | P | P | P | · | · | · | P | P | P | P | · | P | P | F | · | P | P | P | P | P | P |
 | `/legal/privacy` | C3 | P | · | P | P | P | P | · | · | · | P | P | P | P | · | P | P | F | · | P | P | P | P | P | P |
 | `/legal/terms` | C3 | P | · | P | P | P | P | · | · | · | P | P | P | P | · | P | P | F | · | P | P | P | P | P | P |
 | `/messages` | C3 | P | · | P | P | P | P | P | · | P | P | P | P | P | · | P | X | · | P | P | P | X | P | P | P |
 | `/messages/new` | C3 | P | · | P | P | P | P | · | · | · | P | P | P | P | · | · | P | · | P | P | P | P | X | P | P |
 | `/messages/share/[kind]/[id]` | C3 | P | · | P | P | P | P | · | P | P | P | P | P | P | · | P | P | · | P | P | P | P | X | P | P |
+| `/move-in-cost` | C6 | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | P | P | P | P | P | P |
 | `/pay/crypto/[reference]` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | X | P | P | P | P | P | P |
 | `/post/[id]` | C3 | P | · | P | P | P | P | P | · | P | P | P | P | P | · | · | X | · | · | P | P | P | P | P | P |
 | `/price` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | X | P | P | P |
+| `/privacy` | C6 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | F | · | P | P | P | P | P | P |
 | `/profile/application` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/profile/setup` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | P | P | P | P |
 | `/profile/setup/[role]` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | P | P | P | P |
 | `/profile/setup/agent` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | P | P | P | P |
 | `/profile/setup/firm` | C3 | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | P | · | · | · | · | · | · | · | P |
 | `/profile/setup/owner` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | P | P | P | P |
+| `/r` | C6 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | P | P | P | P |
+| `/r/[code]` | C6 | X | P | P | P | P | P | P | P | P | P | P | X | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/record/[code]` | C3 | P | · | P | P | P | P | · | · | X | P | P | P | P | · | X | P | · | P | P | P | P | P | P | P |
 | `/rent/move-in/[listingId]` | C3 | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | P | P | X | P | P | P |
 | `/rent/pay/[inspectionId]` | C3 | P | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | X | · | P | P | P | P | P | P |
 | `/rent/review/[paymentId]` | C3 | P | · | P | P | P | P | · | · | · | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
+| `/reset-password` | C6 | P | · | P | P | P | P | · | · | P | F | P | P | P | · | · | P | · | P | P | P | P | P | P | P |
 | `/restaurant/[id]` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | P | P | X | P | P | P | P | X | P | P | P |
+| `/safe/[token]` | C6 | P | · | P | P | P | P | · | · | P | P | P | X | P | · | P | P | · | P | P | P | P | P | P | P |
+| `/safety` | C6 | P | · | P | P | X | P | · | · | P | P | P | P | P | P | P | P | F | · | P | P | P | P | P | P |
 | `/settings/accessibility` | C3 | P | · | P | P | P | X | · | · | P | P | P | X | P | · | · | P | · | · | P | X | P | P | P | P |
 | `/settings/region` | C3 | P | · | P | P | P | P | · | · | P | P | P | X | P | · | · | P | · | · | P | P | P | P | P | P |
+| `/sign-in` | C6 | P | · | P | P | P | P | · | · | P | F | P | P | P | · | · | P | · | P | P | P | P | P | P | P |
+| `/sign-in/code` | C6 | P | · | P | P | P | P | · | · | P | F | P | P | P | · | · | P | · | · | P | P | P | P | P | P |
+| `/sign-in/email` | C6 | P | · | P | P | · | P | · | · | · | · | P | P | P | · | · | P | · | · | P | P | P | P | P | P |
+| `/sign-in/phone` | C6 | P | · | P | P | P | P | · | · | P | F | P | P | P | · | · | P | · | · | P | P | P | P | P | P |
+| `/sign-up` | C6 | P | · | P | P | P | P | · | · | P | F | P | P | P | · | · | P | · | · | P | X | P | P | P | P |
+| `/sign-up/email` | C6 | P | · | P | P | P | P | · | · | P | F | P | P | P | · | · | P | · | · | P | X | P | P | P | P |
+| `/sign-up/finish` | C6 | P | · | P | P | P | P | · | · | P | F | P | P | P | · | · | P | · | · | P | X | P | P | P | P |
+| `/sign-up/verify` | C6 | P | · | P | P | P | P | · | · | P | F | P | P | P | · | · | P | · | P | P | X | P | P | P | P |
+| `/standards` | C6 | P | · | P | P | P | P | P | · | P | P | P | P | P | · | P | P | P | · | P | P | P | P | P | P |
 | `/stay/[id]` | C3 | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | X | P | · | P | P | P | P | P | P |
 | `/stories/[id]` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | X | X | X | P | P | P |
 | `/stories/new` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | P | P | P | P | X | P | P |
+| `/styleguide` | C6 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | · | P | X | P | P | P | P |
 | `/support` | C3 | P | · | P | P | P | P | · | · | P | P | P | X | P | · | P | X | · | X | P | P | X | P | P | P |
 | `/support/messages` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | X | P | P |
 | `/support/messages/[id]` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | X | P | X | P | P |
 | `/support/new` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | X | P | P |
 | `/tenancy/[id]/complaint` | C3 | P | P | P | P | P | P | P | · | P | P | P | P | P | · | X | P | · | P | P | P | P | P | P | P |
+| `/terms` | C6 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | F | · | P | P | P | P | P | P |
 | `/u` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | X | P | · | P | P | P | P | X | P | P |
 | `/u/[handle]` | C3 | P | · | P | P | P | P | P | P | P | P | X | P | P | · | P | X | · | P | X | P | X | P | X | P |
 | `/u/[handle]/edit` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | P | P | P | P | P | X | P | P |
@@ -155,6 +223,15 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | `/u/[handle]/following` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | P | P | P | P | P | X | P | P |
 
 ## What failed, and what was done
+
+**`/`** (the REAL (landing) page; landingData answers the f2 preview's PREVIEW_STATS and PREVIEW_COUNTS (the fixtures that preview proves the same tree on), social on, a web surface)
+
+- 6 (open): The map's city names were drawn in the map's own units and measured 7.2px at 768 and 10.2px at 1440; they are 16 units now (12.5px at the 24rem drawing) and drawn only from 64rem, where the drawing is that size; under it the city chips carry the names (fixed). Still failing: the drawn App Store and Google Play badges letter 'Download on the' and 'GET IT ON' at 7.2 to 7.6 units (7.9 to 8.4px) in weight 500, the fourth weight on the page. They copy the stores' own badge lettering; the fix is the stores' badge files as images, an asset decision (remaining).
+- 8 (open): The community band prints each count over its label (64 / Listings), the governing render's layout; the move-in band's label is above its figure. Remaining: a layout decision on the founder's governing image.
+
+**`/about`** (the REAL page in the REAL (site) layout; no read (the words are the page's own, lib/trust and lib/legal))
+
+- 17 (fixed): The 'Fair to both sides' card still described the Guarantee D51 retired ('the Vallo Guarantee contribution of 1 to 2 percent, which goes to a separate reserve') and said a payment reaches the lister 'less the payment processor's own charge', not naming the platform fee. It reads NO_RENTER_FEES_LINE from lib/money/copy.ts now, and its picture is keys handed over, not a wallet.
 
 **`/admin`** (the repository's own preview of the overview (session-b/admin/overview), the real OverviewView in the real AdminFrame from its fixtures)
 
@@ -364,6 +441,48 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 
 - 20 (fixed): axe aria-prohibited-attr on arrival (1 at dark.390 and light.390): the thread was a div carrying aria-label with no role. It is a named region now.
 
+**`/cancellations`** (the REAL page in the REAL (site) layout; no read (the words are the page's own, lib/trust and lib/legal))
+
+- 17 (open): The refund route reads REFUND_ROUTE and NO_CUSTODY_SENTENCE from copy.ts, then a sentence written on the page ('There is no Vallo balance for a refund to sit in...'), and the tier sentences live in lib/trust/CancellationTimeline. Policy wording, left as written (the policy pages keep their words, 1cb345a77); moving them into copy.ts needs copy.ts, which has another agent's uncommitted changes.
+
+**`/delete-account`** (the REAL page in the REAL (site) layout; no read (the words are the page's own, lib/trust and lib/legal))
+
+- 16 (fixed): The 'what is kept' sentence listed 'wallet entries' among the records kept: Vallo keeps no wallet for anybody. The sentence no longer names it; the table list under it still names every retained table exactly.
+
+**`/disclaimer`** (the REAL page in the REAL (site) layout; no read (the words are the page's own, lib/trust and lib/legal))
+
+- 17 (open): Five Guarantee mentions inside the legal text: needs counsel (known; not changed). The custody line itself reads NO_CUSTODY_SENTENCE.
+
+**`/docs/[slug]`** (the REAL page in the REAL (site) layout inside the REAL docs layout; chapters what-vallo-is (the longest title) and understanding-a-listing)
+
+- 10 (fixed): The title and every section heading arrive word by word on the shared .nf-depth-word (560ms a word, 70ms apart): an eight-word title measured 1,170ms first word to last. In the docs a heading now takes the landing headline's timing (nf-hero-word, 420ms, 35ms apart, held after the fifth word): 620ms at most, measured. The gate still holds a section's words until it is on screen; reduced motion and Calm unchanged (0 long animations).
+
+**`/for-agents`** (the REAL page in the REAL (site) layout; readListerFees answers null as it does with no service key (no fee tiles: the honest who-pays sentence))
+
+- 17 (fixed): The payout card printed PAYOUT_ANSWER and then NO_CUSTODY_SENTENCE (the payer's sentence, to the person being paid), and 'what Vallo does not do' said it a third time in a sentence written in supply-doors.ts, naming a wallet. The card prints PAYOUT_ANSWER alone and the third sentence is gone; 'Does Vallo hold the money?' still answers with NO_CUSTODY_SENTENCE.
+
+**`/for-hosts`** (the REAL page in the REAL (site) layout; readListerFees answers null as it does with no service key (no fee tiles: the honest who-pays sentence))
+
+- 17 (fixed): The payout card printed PAYOUT_ANSWER and then NO_CUSTODY_SENTENCE (the payer's sentence, to the person being paid), and 'what Vallo does not do' said it a third time in a sentence written in supply-doors.ts, naming a wallet. The card prints PAYOUT_ANSWER alone and the third sentence is gone; 'Does Vallo hold the money?' still answers with NO_CUSTODY_SENTENCE. The host door's cancellation sentence (lines in notDone and the FAQ) is still written in supply-doors.ts; see remaining.
+
+**`/for-landlords`** (the REAL page in the REAL (site) layout; readListerFees answers null as it does with no service key (no fee tiles: the honest who-pays sentence))
+
+- 17 (fixed): The payout card printed PAYOUT_ANSWER and then NO_CUSTODY_SENTENCE (the payer's sentence, to the person being paid), and 'what Vallo does not do' said it a third time in a sentence written in supply-doors.ts, naming a wallet. The card prints PAYOUT_ANSWER alone and the third sentence is gone; 'Does Vallo hold the money?' still answers with NO_CUSTODY_SENTENCE.
+
+**`/forgot-password`** (the REAL page inside the REAL (auth) layout, signed out, no cookie, a web surface; with no auth provider configured in this environment)
+
+- 10 (open): Each piece rises 520ms, but the island's stagger ends at 770ms (nf-slate-rise, 250ms delay on the last piece) and the bowl's photograph settles over --nf-duration-cinematic, 900ms. Family-wide auth.css motion that C4 just set; recorded, not changed (remaining).
+
+**`/forgot-password/code`** (the REAL page inside the REAL (auth) layout, signed out, no cookie, a web surface; with no auth provider configured in this environment)
+
+- 10 (open): Each piece rises 520ms, but the island's stagger ends at 770ms (nf-slate-rise, 250ms delay on the last piece) and the bowl's photograph settles over --nf-duration-cinematic, 900ms. Family-wide auth.css motion that C4 just set; recorded, not changed (remaining).
+
+**`/help`** (the REAL page in the REAL (site) layout; the viewer signed out (resolveSession answers signed-out), so SupportChat draws its signed-out state; FAQs from lib/support/help-articles.ts)
+
+- 10 (fixed): The assistant block rose at 160ms for 520ms, ending at 680ms; it rises with the list above it at 100ms now (620ms, measured).
+- 16 (fixed): 'Does Vallo hold my money?' answered NO_CUSTODY_SENTENCE and then said it again in a sentence written in help-articles.ts, naming a wallet. It reads NO_CUSTODY_SENTENCE and PAYMENT_GATE_SENTENCE only; 0 banned words measured.
+- 17 (fixed): See point 16: the answer's extra custody sentence is gone; its money sentences are copy.ts's.
+
 **`/host`** (the real page in the real HostShell; the f5 host-landing deck verbatim (Grand Vista Hotel live, The Harbour Kitchen needing more with its reviewer's note, Ikoyi Guest House in progress, its room rows built relative to now by the deck's own row(), table board unread, three unread messages); the f5 host-empty state (no business); signed out (json host-f5-* and host-signed-out))
 
 - 21 (fixed): 'Contact us' under a stopped business measured 32px wide for 82px of words (auditFit: label spills out of its control). Root cause, found with a style probe: the theme's `--spacing-block` makes Tailwind's `inline-block` ALSO emit `inline-size: var(--nf-gap-block)`, so every inline-block element is 32px wide. The link is `block w-fit` now. The collision is repo wide (17 files; AccessScreen.tsx records the same thing) and is reported to the lead.
@@ -479,6 +598,15 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 
 - 21 (fixed): The map's credit links (OpenStreetMap, CARTO) drew 20px tall: 2 targets under 44 at every width and locale. They take nf-tap now (target grows, the credit line keeps its size): 0 under 44.
 
+**`/privacy`** (the REAL page in the REAL (site) layout; no read (the words are the page's own, lib/trust and lib/legal))
+
+- 17 (open): Six Guarantee mentions inside the legal text: needs counsel (known; not changed).
+
+**`/r/[code]`** (the REAL page in the REAL (site) layout; verify_receipt's answer is lib/receipts/code.test.ts's own `ok` row read through readVerifyAnswer (genuine), and its not_found answer)
+
+- 1 (fixed): One verdict, one way on. The way on read 'Check', the lookup form's submit, on a page with no field: a button promising an action it does not do. It reads 'Check another receipt' now (experienceSite.receipt.checkAnother).
+- 12 (fixed): The page waits on verify_receipt and showed the group's article skeleton (a wide title and prose) for a narrow answer and a receipt. r/[code]/loading.tsx draws the answer's own shape: label, code, the verdict card, the receipt sheet with figure, tear and rows, the way back.
+
 **`/record/[code]`** (no fixture of a Record exists anywhere in the repository, so the three honest answers the read gives: missing, rate limited, failed)
 
 - 9 (fixed): Every answer drew the clay shield with a tick, the verified mark, over "No Record has that code" and over a failed read (UI-15: a not-found never wears a success mark). Missing is the empty kit's search glyph now, a failed read the error kit, too many lookups the neutral pause.
@@ -492,10 +620,23 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 
 - 17 (fixed): checkout.onPlatformRent said Money moves inside Vallo directly under NO_CUSTODY_SENTENCE (D48, D50). It is C2's copy, so it went as patch checkout-no-custody-onplatform.patch; the lead applied it.
 
+**`/reset-password`** (the REAL page inside the REAL (auth) layout, signed out, no cookie, a web surface; with no auth provider configured in this environment; no session (the expired screen, the honest default) and a recovery session ('link-only' proof) so the form is drawn; the session prints nothing)
+
+- 10 (open): Each piece rises 520ms, but the island's stagger ends at 770ms (nf-slate-rise, 250ms delay on the last piece) and the bowl's photograph settles over --nf-duration-cinematic, 900ms. Family-wide auth.css motion that C4 just set; recorded, not changed (remaining).
+
 **`/restaurant/[id]`** (the real page with listingById answering f3 RESTAURANTS[0] (The Lagoon Kitchen) as a catalogue listing built only from that card's own fields (title, area and city from its where, kind, amenities, hue); no stated price, no reviews, no photographs; getRestaurantDetail null (no business-grade fixture exists), so the hours card says there are none)
 
 - 16 (fixed): The about sentence was assembled from English fragments ("is in", "and serves") and the share card's line was English; both come from experienceDetail.restaurant now, one whole sentence per case.
 - 21 (fixed): The Restaurants link in Getting there drew 21.7px tall; it takes nf-tap now, 0 under 44.
+
+**`/safe/[token]`** (the REAL page in the REAL (site) layout; readSafetyShareByToken answers the landlord preview's live, overdue view verbatim (Ada, Ikoyi), and unknown)
+
+- 12 (fixed): The page reads the share by token and waited in the group's prose skeleton; safe/[token]/loading.tsx draws the status's own shape now (title, times, the state card with its action, the footnote).
+
+**`/safety`** (the REAL page in the REAL (site) layout; no read (the words are the page's own, lib/trust and lib/legal))
+
+- 5 (fixed): The rule that matters most prints NO_FEES_LINE, and step 2 of 'How paying on Vallo works' opened with the same sentence word for word a screen later. The step now starts at its own sentence.
+- 17 (open): NO_CUSTODY_SENTENCE and NO_FEES_LINE come from copy.ts, but the step bodies continue in money sentences written on the page ('Every payment on Vallo goes through the checkout screen with a licensed Nigerian payment processor...'). Left as written; their home is copy.ts (remaining).
 
 **`/settings/accessibility`** (the real page and its new loading.tsx inside the real settings layout (SettingsAreaNav); it reads only the dictionary and the device's settings store)
 
@@ -506,6 +647,38 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 **`/settings/region`** (the real page and its new loading.tsx inside the real settings layout)
 
 - 12 (fixed): No loading.tsx; it has its own now: header with line, Language (one row), Money display (three rows), under the settings nav.
+
+**`/sign-in`** (the REAL page inside the REAL (auth) layout, signed out, no cookie, a web surface; with no auth provider configured in this environment; and the session-b sign-in preview's own refusals (refused, fields, deactivated) through EmailAuthForm's initialState, in the same layout)
+
+- 10 (open): Each piece rises 520ms, but the island's stagger ends at 770ms (nf-slate-rise, 250ms delay on the last piece) and the bowl's photograph settles over --nf-duration-cinematic, 900ms. Family-wide auth.css motion that C4 just set; recorded, not changed (remaining).
+
+**`/sign-in/code`** (the REAL page inside the REAL (auth) layout, signed out, no cookie, a web surface; with no auth provider configured in this environment)
+
+- 10 (open): Each piece rises 520ms, but the island's stagger ends at 770ms (nf-slate-rise, 250ms delay on the last piece) and the bowl's photograph settles over --nf-duration-cinematic, 900ms. Family-wide auth.css motion that C4 just set; recorded, not changed (remaining).
+
+**`/sign-in/phone`** (the REAL page inside the REAL (auth) layout, signed out, no cookie, a web surface; with no auth provider configured in this environment; phoneSignInEnabled on (off, the route is a 404))
+
+- 10 (open): Each piece rises 520ms, but the island's stagger ends at 770ms (nf-slate-rise, 250ms delay on the last piece) and the bowl's photograph settles over --nf-duration-cinematic, 900ms. Family-wide auth.css motion that C4 just set; recorded, not changed (remaining).
+
+**`/sign-up`** (the REAL page inside the REAL (auth) layout, signed out, no cookie, a web surface; with no auth provider configured in this environment)
+
+- 10 (open): Each piece rises 520ms, but the island's stagger ends at 770ms (nf-slate-rise, 250ms delay on the last piece) and the bowl's photograph settles over --nf-duration-cinematic, 900ms. Family-wide auth.css motion that C4 just set; recorded, not changed (remaining).
+- 20 (fixed): In Light, the sign-up screens (a night door, data-theme=dark on the screen) still took the paper slate inks from ':root[data-theme=light] .nf-slate': the 'Sign in' swap link measured 1.73 to 1 on the navy island (axe), the focus ink was navy on navy and the pinned pill's bar a pale band. The rule now skips a screen that carries data-theme=dark, so the island alone keeps the door dark (night-door.ts layer 1). axe 0 in both themes.
+
+**`/sign-up/email`** (the REAL page inside the REAL (auth) layout, signed out, no cookie, a web surface; with no auth provider configured in this environment)
+
+- 10 (open): Each piece rises 520ms, but the island's stagger ends at 770ms (nf-slate-rise, 250ms delay on the last piece) and the bowl's photograph settles over --nf-duration-cinematic, 900ms. Family-wide auth.css motion that C4 just set; recorded, not changed (remaining).
+- 20 (fixed): In Light, the sign-up screens (a night door, data-theme=dark on the screen) still took the paper slate inks from ':root[data-theme=light] .nf-slate': the 'Sign in' swap link measured 1.73 to 1 on the navy island (axe), the focus ink was navy on navy and the pinned pill's bar a pale band. The rule now skips a screen that carries data-theme=dark, so the island alone keeps the door dark (night-door.ts layer 1). axe 0 in both themes.
+
+**`/sign-up/finish`** (the REAL page inside the REAL (auth) layout, signed out, no cookie, a web surface; with no auth provider configured in this environment; finishSetupView answers 'owed' with the session-b preview's own names (Ada Obi); signed out the page only redirects)
+
+- 10 (open): Each piece rises 520ms, but the island's stagger ends at 770ms (nf-slate-rise, 250ms delay on the last piece) and the bowl's photograph settles over --nf-duration-cinematic, 900ms. Family-wide auth.css motion that C4 just set; recorded, not changed (remaining).
+- 20 (fixed): In Light, the sign-up screens (a night door, data-theme=dark on the screen) still took the paper slate inks from ':root[data-theme=light] .nf-slate': the 'Sign in' swap link measured 1.73 to 1 on the navy island (axe), the focus ink was navy on navy and the pinned pill's bar a pale band. The rule now skips a screen that carries data-theme=dark, so the island alone keeps the door dark (night-door.ts layer 1). axe 0 in both themes.
+
+**`/sign-up/verify`** (the REAL page inside the REAL (auth) layout, signed out, no cookie, a web surface; with no auth provider configured in this environment; no pending address cookie (the field asks for it))
+
+- 10 (open): Each piece rises 520ms, but the island's stagger ends at 770ms (nf-slate-rise, 250ms delay on the last piece) and the bowl's photograph settles over --nf-duration-cinematic, 900ms. Family-wide auth.css motion that C4 just set; recorded, not changed (remaining).
+- 20 (fixed): In Light, the sign-up screens (a night door, data-theme=dark on the screen) still took the paper slate inks from ':root[data-theme=light] .nf-slate': the 'Sign in' swap link measured 1.73 to 1 on the navy island (axe), the focus ink was navy on navy and the pinned pill's bar a pale band. The rule now skips a screen that carries data-theme=dark, so the island alone keeps the door dark (night-door.ts layer 1). axe 0 in both themes.
 
 **`/stay/[id]`** (the real page with getStayDetail answering f3 STAY turned back into the rows the read returns (every value read from STAY; the photo path is the fixture's url and the url builder is mocked to hand it back unchanged))
 
@@ -520,6 +693,10 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 **`/stories/new`** (the real page with social on and listMyAreas mocked to session-b/sweep-orphans AREAS)
 
 - 22 (fixed): Overflow 0 in all four, but the page's strings were English literals. They are in experienceSocial.newStory now.
+
+**`/styleguide`** (the REAL page in the REAL (site) layout)
+
+- 20 (fixed): On paper the --nf-content-on-brand specimen drew white 'Aa' on the light panel, 1.04 to 1 (axe colour-contrast). A text token may name its own ground now, and on-brand is painted on the brand fill; axe 0 in both themes.
 
 **`/support`** (the real page and its new loading.tsx inside the support layout, signed in: support fixtures MY_TICKETS, the shell identity named from _fixtures/people PERSON's first name, no reports filed, no AI consent)
 
@@ -544,6 +721,10 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 **`/tenancy/[id]/complaint`** (the real page three ways: the pack for f3 TENANCIES[0] as preview/f3/tenancy-file.ts derives it (every value read from a committed fixture or computed by product code: ledgerFromListing on its own listing RENTAL, tenancyEnd, keptUntil, firstNameAndInitial; listStates mocked to sweep-orphans STATES so the real publicPlace runs), and the two honest states the read returns (not the tenant's file, read failed))
 
 - 15 (fixed): Three untrue lines for an unpaid tenancy: the total was labelled Paid in total; Payments offered a receipt code to check a payment that does not exist; an unnamed lister read "the lister, lister." The label now follows file.paid (Move-in total, not paid in full), no receipts says No payment has settled against this tenancy yet with the code hint only once a payment exists, and an unnamed lister has its own sentence.
+
+**`/terms`** (the REAL page in the REAL (site) layout; no read (the words are the page's own, lib/trust and lib/legal))
+
+- 17 (open): Section 14 'The Vallo Guarantee' and the Guarantee sentences in sections 4 and 9: legal text, needs counsel (known; not changed).
 
 **`/u`** (the real page with findPeople's own ready answer: no query and nobody, and a query naming _fixtures/people PERSON and COUNTERPART (no badge, no occupation, no place, so nothing is claimed beyond the fixture))
 
