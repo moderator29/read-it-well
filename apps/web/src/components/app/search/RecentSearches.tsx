@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
-import { useEffect, useId, useState, useSyncExternalStore } from "react";
+import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import {
   clearRecentSearches,
@@ -21,6 +21,17 @@ import {
  * searches" list opens under it; each row reruns its search in one tap, and a
  * quiet Clear forgets them. Typing closes it (the field is then a new search),
  * and so do Escape and leaving the field.
+ *
+ * KEYBOARD AND SCREEN READER (W12). The field is a plain search field and the
+ * list is a list of links, not a combobox, so nothing here claims otherwise.
+ * What a keyboard reader needs is a way in: the submit button sits between the
+ * field and the list in document order, so Tab leaves the field for the button
+ * and the list closes behind it. ArrowDown from the field therefore moves focus
+ * to the first row (ArrowDown and ArrowUp then walk the rows; ArrowUp off the
+ * first returns to the field), and Escape from any of them closes the list and
+ * puts focus back in the field. While the list is shown the field's
+ * `aria-describedby` names its title, so "Recent searches" is read with the
+ * field the moment it appears.
  *
  * It attaches to an existing field by id rather than owning one, so the
  * three search fields (the results bar, the Stays bar and the Home hero) stay
@@ -46,30 +57,54 @@ export function RecentSearches({
   const entries = searchesFor(all, path);
   const [open, setOpen] = useState(false);
   const listId = useId();
+  const titleId = useId();
+  /* Set when focus is sent back to the field on purpose (Escape, Clear): the
+     field's own focus handler would otherwise read "focused and empty" and
+     open the list again at once. Typing or leaving the field ends it. */
+  const dismissed = useRef(false);
 
   useEffect(() => {
     const input = document.getElementById(inputId);
     if (!(input instanceof HTMLInputElement)) return;
     const panel = () => document.getElementById(listId);
-    const sync = () => setOpen(document.activeElement === input && input.value.trim() === "");
+    const rows = () => Array.from(panel()?.querySelectorAll<HTMLElement>("a.nf-recent__row") ?? []);
+    const sync = () => {
+      if (dismissed.current) {
+        dismissed.current = false;
+        return;
+      }
+      setOpen(document.activeElement === input && input.value.trim() === "");
+    };
+    const onInput = () => {
+      dismissed.current = false;
+      sync();
+    };
     const onFocusOut = (event: FocusEvent) => {
       const next = event.relatedTarget as Node | null;
       if (next && panel()?.contains(next)) return;
+      dismissed.current = false;
       setOpen(false);
     };
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") setOpen(false);
+      if (event.key === "ArrowDown" && !event.altKey && !event.metaKey && !event.ctrlKey) {
+        /* Only while the list is on screen: a closed list has nothing to enter. */
+        const first = panel()?.hidden ? undefined : rows()[0];
+        if (!first) return;
+        event.preventDefault();
+        first.focus();
+      }
     };
     input.setAttribute("aria-controls", listId);
     /* Focused before hydration (a fast tap, autofocus): answer it now. */
     if (document.activeElement === input) sync();
     input.addEventListener("focus", sync);
-    input.addEventListener("input", sync);
+    input.addEventListener("input", onInput);
     input.addEventListener("focusout", onFocusOut);
     input.addEventListener("keydown", onKey);
     return () => {
       input.removeEventListener("focus", sync);
-      input.removeEventListener("input", sync);
+      input.removeEventListener("input", onInput);
       input.removeEventListener("focusout", onFocusOut);
       input.removeEventListener("keydown", onKey);
     };
@@ -81,6 +116,29 @@ export function RecentSearches({
      `hidden` while it is closed, and the input keeps `aria-controls`. */
 
   const shown = open && entries.length > 0;
+
+  /* The field describes itself with the list's title while the list is shown.
+     The title only exists while it is shown, so the reference is added and
+     taken away with it, and any description the page already gave the field
+     is kept. */
+  useEffect(() => {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    const others = (input.getAttribute("aria-describedby") ?? "").split(/\s+/).filter((id) => id && id !== titleId);
+    const next = shown ? [...others, titleId] : others;
+    if (next.length) input.setAttribute("aria-describedby", next.join(" "));
+    else input.removeAttribute("aria-describedby");
+  }, [inputId, titleId, shown]);
+
+  const backToField = () => {
+    dismissed.current = true;
+    setOpen(false);
+    const input = document.getElementById(inputId);
+    input?.focus();
+    /* Already focused (nothing to fire): do not leave the flag armed. */
+    if (document.activeElement === input) dismissed.current = false;
+  };
+
   return (
     <div
       id={listId}
@@ -95,23 +153,32 @@ export function RecentSearches({
       }}
       onKeyDown={(event) => {
         if (event.key === "Escape") {
-          setOpen(false);
-          document.getElementById(inputId)?.focus();
+          backToField();
+          return;
         }
+        if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+        const links = Array.from(event.currentTarget.querySelectorAll<HTMLElement>("a.nf-recent__row"));
+        const at = links.indexOf(document.activeElement as HTMLElement);
+        if (at < 0) return;
+        event.preventDefault();
+        if (event.key === "ArrowDown") links[Math.min(at + 1, links.length - 1)]?.focus();
+        else if (at === 0) document.getElementById(inputId)?.focus();
+        else links[at - 1]?.focus();
       }}
     >
       {shown ? (
         <>
           <div className="nf-recent__head">
-            <p className="nf-section-label">{copy.title}</p>
+            <p id={titleId} className="nf-section-label">
+              {copy.title}
+            </p>
             <Button
               variant="quiet"
               size="sm"
               aria-label={copy.clearLabel}
               onClick={() => {
                 clearRecentSearches();
-                setOpen(false);
-                document.getElementById(inputId)?.focus();
+                backToField();
               }}
             >
               {copy.clear}
