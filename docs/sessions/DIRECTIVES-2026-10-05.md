@@ -816,6 +816,73 @@ committed and pushed as it is done, cleanly, without sessions conflicting.
 | Chasing the production dependency advisory inside a feature branch | D55 |
 | **Any probe recorded as "pending" on an applied migration** | **D56: a check that did not run is a check that failed** |
 | **Session 1's "nothing else is hiding behind the red"** | **D57: false. A third failure was hiding in a cancelled job** |
+| Any plan for referral payouts that opens before the detectors exist | D58 |
+
+---
+
+## D58. The referral admin centre, specified
+
+The founder asked for it in as many words: *"admin panel for referral need to be
+detailed clean big that covers and help us detect more dangers too"*. The specification
+is **`docs/referral/REFERRAL_ADMIN_CENTRE.md`**, 317 lines, and it is the authority on
+this area. What follows is only what a session needs to know before opening it.
+
+**What exists today, measured.** One migration,
+`20260930084741_a5_invite_codes_a_member_can_share.sql`: a `referral_codes` table, a
+select-own policy, `my_referral_code()`, `referral_door(text)`, `admin_referral_counts(int)`.
+That is all. No attribution record, no qualification, no balance, no payout, no
+detection, no console. Everything in the specification is new work and none of it
+conflicts with what is there.
+
+**Why it is a centre and not a page.** At D51's ceiling one member earns 105,000 naira a
+month, so a thousand members at the ceiling is 105 million a month. Referral programmes
+are not defrauded gradually: they are defrauded the week somebody finds the cheapest
+qualifying action and scripts it. **Every screen shows naira and risk in the same view**,
+because a console that counts referrals teaches its reader to think in counts while the
+fraud is denominated in naira.
+
+**Five new objects**, named to avoid `wallet`, `pot` and `escrow` as whole words, since
+`private.refuse_custody_objects` would reject the migration outright (the mistake that
+cost Session 2 an hour on 6 October): `referral_attributions` as the spine,
+`referral_balances`, `referral_payouts`, `referral_budget_periods` for D51's
+platform-wide cap, and `referral_campaigns` so a push can be measured without editing
+the global rate.
+
+**Qualification is a four-state machine**, not a flag: `pending`, `qualified`,
+`rejected`, `reversed`. Reversal is first class and `reversed_minor` sits beside
+`paid_minor` rather than being netted into it, so money already paid on a reversed
+attribution stays visible as a loss. **The rate is stored on the attribution row at
+qualification and never read live**, so no rate change can retroactively alter an
+accrued liability.
+
+**Four detectors**, in descending order of value: payout concentration (many referrers,
+one bank account, which is where a ring is forced to converge), cluster detection by
+shared device, IP, bank and phone window, velocity against a member's own trailing
+baseline rather than a global threshold, and behavioural sameness. **Clusters are ranked
+by naira exposure, not by size.** Twelve accounts worth 840 naira is noise; three worth
+90,000 is not.
+
+**Order, and it matters more than the content.** The engine and its caps land before any
+screen is drawn, and **payouts land last, after the detectors**. A console over an engine
+that cannot refuse displays a problem it cannot stop, and a payout rail that opens before
+detection exists is the most expensive ordering mistake available in this area. Session 2
+owns the engine, the detection and the probes; Session 3 owns all five screens and the
+risk graph; Session 4 reviews against the document.
+
+**Eight probes are specified and probe 4 is the one that will be skipped**: two
+qualifications racing for the last slot under the platform cap. The check and the write
+happen in one statement or the cap is decorative.
+
+**This is not urgent relative to the launch blockers.** No referral money moves until a
+referral qualifies, and nothing qualifies until the engine exists. The red CI, the db-06
+allowlist row (D54) and the unverified ledger probe (D56) all come first.
+
+**Four decisions are the founder's** and are listed at the end of the document: the
+ambassador threshold (recommended 200 a month, with payout approval above it), the
+platform monthly cap in naira, the qualifying action set at launch (recommended: a
+completed booking, or a listing published and passing review, nothing cheaper), and
+whether a single flat 70 naira survives section 4.5's economics, since a referral that
+produces a lister is worth far more than one that produces a dormant account.
 
 ---
 
