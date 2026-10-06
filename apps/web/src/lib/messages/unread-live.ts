@@ -20,13 +20,21 @@
  * always the database's own answer. It also re-reads when the tab comes back
  * into view and when the route changes (leaving a thread you just read).
  *
+ * THE CLIENT ARRIVES AFTER FIRST PAINT. This store is imported by the dock and
+ * the rail, which every signed-in route carries, and a static import of the
+ * browser client here put `@supabase/supabase-js` (about 65KB gzipped) in the
+ * first load of all of them. The client is loaded with `import()` when the
+ * first reader mounts (`start`), so the shell paints without it and the
+ * subscription begins a moment later; the figure is `null` until then, which
+ * is what it already was until the first read answered.
+ *
  * HONEST WHEN IT CANNOT READ: the figure is `null` until the first read
  * answers, and stays at its last good value when a read fails. Nothing draws
  * a count it does not have.
  */
 import { useEffect, useSyncExternalStore } from "react";
 import { isSupabaseConfigured } from "../supabase/env";
-import { createClient } from "../supabase/client";
+import type { createClient } from "../supabase/client";
 import { unreadFromRows } from "./unread";
 
 type Listener = () => void;
@@ -72,26 +80,40 @@ export function refreshUnreadConversations(delay = 350) {
 
 function start() {
   if (!isSupabaseConfigured()) return;
-  client = createClient();
-  const supabase = client;
-  void read();
-  const channel = supabase
-    .channel("unread-conversations")
-    .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, () => {
-      refreshUnreadConversations();
-    })
-    .subscribe();
-  const onVisible = () => {
-    if (document.visibilityState === "visible") refreshUnreadConversations(0);
-  };
-  document.addEventListener("visibilitychange", onVisible);
+  /* Released before the client chunk arrives: nothing is ever started. */
+  let live = true;
+  let stop: (() => void) | null = null;
   teardown = () => {
-    document.removeEventListener("visibilitychange", onVisible);
-    void supabase.removeChannel(channel);
+    live = false;
+    stop?.();
     if (timer) clearTimeout(timer);
     timer = null;
     client = null;
   };
+  void import("../supabase/client")
+    .then(({ createClient: make }) => {
+      if (!live) return;
+      client = make();
+      const supabase = client;
+      void read();
+      const channel = supabase
+        .channel("unread-conversations")
+        .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, () => {
+          refreshUnreadConversations();
+        })
+        .subscribe();
+      const onVisible = () => {
+        if (document.visibilityState === "visible") refreshUnreadConversations(0);
+      };
+      document.addEventListener("visibilitychange", onVisible);
+      stop = () => {
+        document.removeEventListener("visibilitychange", onVisible);
+        void supabase.removeChannel(channel);
+      };
+    })
+    .catch(() => {
+      /* A chunk that cannot load leaves the figure unknown, as a failed read does. */
+    });
 }
 
 function acquire() {
