@@ -11,19 +11,20 @@ const ps = vi.hoisted(() => ({
   verifyWebhookSignature: vi.fn(),
   refundTransaction: vi.fn(),
   listSuccessfulCharges: vi.fn(),
+  chargeAuthorization: vi.fn(),
   isPaystackConfigured: vi.fn(() => true),
 }));
 vi.mock("../paystack", () => ps);
 
 const { paystackProvider, paystackStatus } = await import("./paystack");
 const { can, requireCapability, FiatCapabilityMissing } = await import("../provider");
-const { fiatProvider } = await import("./index");
+const { fiatProvider, openCheckout } = await import("./index");
 
 describe("paystack behind the fiat seam", () => {
   it("collect and collectWithSplit pass the input through untouched", async () => {
     ps.initializeTransaction.mockResolvedValue({ reference: "r1", authorizationUrl: "https://pay", accessCode: "a" });
     const input = { reference: "r1", amountMinor: 5000, email: "a@b.c", callbackUrl: "https://cb" };
-    expect(await paystackProvider.collect(input)).toEqual({ reference: "r1", redirectUrl: "https://pay" });
+    expect(await paystackProvider.collect(input)).toEqual({ reference: "r1", redirectUrl: "https://pay", accessCode: "a" });
     expect(ps.initializeTransaction).toHaveBeenLastCalledWith(input);
     const split = { listerSubaccount: "ACCT_1", listerShareMinor: 4000, reserveSubaccount: "ACCT_R", guaranteeMinor: 75 };
     await paystackProvider.collectWithSplit({ ...input, split });
@@ -56,9 +57,29 @@ describe("paystack behind the fiat seam", () => {
     expect(ps.verifyWebhookSignature).toHaveBeenLastCalledWith("{raw}", "");
   });
 
-  it("refund and the charge list are the existing functions themselves", () => {
-    expect(paystackProvider.refund).toBe(ps.refundTransaction);
-    expect(paystackProvider.listSuccessfulCharges).toBe(ps.listSuccessfulCharges);
+  it("refund, the charge list, the saved-card charge and the full record reach the existing functions with the same arguments and answers", async () => {
+    ps.refundTransaction.mockResolvedValue({ refundId: "rf", status: "pending" });
+    const refundIn = { reference: "r1", amountMinor: 10 };
+    expect(await paystackProvider.refund(refundIn)).toEqual({ refundId: "rf", status: "pending" });
+    expect(ps.refundTransaction).toHaveBeenLastCalledWith(refundIn);
+    ps.listSuccessfulCharges.mockResolvedValue([{ reference: "c1" }]);
+    expect(await paystackProvider.listSuccessfulCharges({ from: "2026-10-01" })).toEqual([{ reference: "c1" }]);
+    expect(ps.listSuccessfulCharges).toHaveBeenLastCalledWith({ from: "2026-10-01" });
+    const charged = { status: "success", reference: "r2", amountMinor: 5, gatewayResponse: null, authorization: null };
+    ps.chargeAuthorization.mockResolvedValue(charged);
+    const chargeIn = { authorizationCode: "AUTH", email: "a@b.c", amountMinor: 5, reference: "r2" };
+    expect(await paystackProvider.chargeSavedCard(chargeIn)).toBe(charged);
+    expect(ps.chargeAuthorization).toHaveBeenLastCalledWith(chargeIn);
+    const record = { reference: "r3", status: "abandoned" };
+    ps.verifyTransaction.mockResolvedValue(record);
+    expect(await paystackProvider.verifyRecord("r3")).toBe(record);
+  });
+
+  it("openCheckout splits only when given a split, and hands back the checkout handle", async () => {
+    ps.initializeTransaction.mockResolvedValue({ reference: "r1", authorizationUrl: "https://pay", accessCode: "a" });
+    const input = { reference: "r1", amountMinor: 5000, email: "a@b.c", callbackUrl: "https://cb", channels: ["card"] };
+    expect(await openCheckout(fiatProvider("paystack")!, input)).toEqual({ reference: "r1", authorizationUrl: "https://pay", accessCode: "a" });
+    expect(ps.initializeTransaction).toHaveBeenLastCalledWith(input);
   });
 
   it("declares what it can do, and narrows only on what it declared", () => {

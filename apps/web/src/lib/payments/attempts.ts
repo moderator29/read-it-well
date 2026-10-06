@@ -10,9 +10,9 @@ import {
   PaystackError,
   PaystackUnknownOutcome,
   currentPaystackMode,
-  verifyTransaction,
   type VerifiedTransaction,
 } from "./paystack";
+import { paystackSeam, verifyRecord } from "./providers";
 import {
   decideReuse,
   isAttemptInFlight,
@@ -58,7 +58,7 @@ export async function askPaystack(
   reference: string,
 ): Promise<{ answer: VerifyAnswer; tx: VerifiedTransaction | null }> {
   try {
-    const tx = await verifyTransaction(reference);
+    const tx = await verifyRecord(paystackSeam(), reference);
     return { answer: { kind: "status", status: String(tx.status ?? "") }, tx };
   } catch (error) {
     if (isReferenceNotFound(error)) return { answer: { kind: "not-found" }, tx: null };

@@ -2,6 +2,7 @@ import "server-only";
 
 import { defineFiatProvider, type CollectionStatus } from "../provider";
 import {
+  chargeAuthorization,
   initializeTransaction,
   isPaystackConfigured,
   listSuccessfulCharges,
@@ -37,30 +38,44 @@ export function paystackStatus(status: VerifiedTransactionStatus): CollectionSta
   }
 }
 
+/*
+ * Every method reaches its `paystack.ts` function AT CALL TIME, never by
+ * capturing the function when this module loads. Behaviour is identical, and
+ * a test that mocks `paystack.ts` with only the functions it exercises keeps
+ * working once its call site goes through the seam.
+ */
 export const paystackProvider = defineFiatProvider(
-  ["split_at_charge", "refund_without_dispute", "list_successful_charges"] as const,
+  [
+    "split_at_charge",
+    "refund_without_dispute",
+    "list_successful_charges",
+    "charge_saved_card",
+    "verify_with_record",
+  ] as const,
   {
     id: "paystack",
     displayName: "Paystack",
-    isConfigured: isPaystackConfigured,
+    isConfigured: () => isPaystackConfigured(),
     /* For a charge that is not split. Every payment one person makes to another uses collectWithSplit. */
     async collect(input) {
       const done = await initializeTransaction(input);
-      return { reference: done.reference, redirectUrl: done.authorizationUrl };
+      return { reference: done.reference, redirectUrl: done.authorizationUrl, accessCode: done.accessCode };
     },
     async collectWithSplit(input) {
       const done = await initializeTransaction(input);
-      return { reference: done.reference, redirectUrl: done.authorizationUrl };
+      return { reference: done.reference, redirectUrl: done.authorizationUrl, accessCode: done.accessCode };
     },
     /* A timeout throws `PaystackUnknownOutcome`, exactly as paystack.ts does; it is never mapped to failed. */
     async verifyByReference(reference) {
       const v = await verifyTransaction(reference);
       return { reference: v.reference, status: paystackStatus(v.status), providerStatus: v.status, amountMinor: v.amountMinor, paidAt: v.paidAt };
     },
+    verifyRecord: (reference) => verifyTransaction(reference),
     verifyWebhook(rawBody, headers) {
       return verifyWebhookSignature(rawBody, headers.get("x-paystack-signature") ?? "");
     },
-    refund: refundTransaction,
-    listSuccessfulCharges,
+    refund: (input) => refundTransaction(input),
+    listSuccessfulCharges: (input) => listSuccessfulCharges(input),
+    chargeSavedCard: (input) => chargeAuthorization(input),
   },
 );

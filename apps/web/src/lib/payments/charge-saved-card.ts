@@ -30,10 +30,10 @@ import { logMoney } from "./observability";
 import {
   PaystackError,
   type PaystackSplit,
-  chargeAuthorization,
-  initializeTransaction,
   isPaystackConfigured,
 } from "./paystack";
+import { requireCapability } from "./provider";
+import { assertProviderEnabled, openCheckout, paystackSeam } from "./providers";
 
 export type ChargeSavedCardOutcome =
   /*
@@ -144,9 +144,18 @@ export async function chargeSavedCard(params: {
     saved_card: true,
   };
 
+  // The per-provider kill switch, read before the card is touched.
+  try {
+    await assertProviderEnabled("paystack");
+  } catch {
+    return fail("Card payments are paused for a short while. Nothing has been charged.");
+  }
+  const paystack = paystackSeam();
+  requireCapability(paystack, "charge_saved_card");
+
   let declined: string;
   try {
-    const charge = await chargeAuthorization({
+    const charge = await paystack.chargeSavedCard({
       authorizationCode: method.authorization_code,
       email: method.email_used,
       amountMinor: params.amountMinor,
@@ -213,7 +222,7 @@ export async function chargeSavedCard(params: {
     return fail("Your account has no email address, which the card processor needs. Add one to your profile and try again.");
   }
   try {
-    const tx = await initializeTransaction({
+    const tx = await openCheckout(paystack, {
       email,
       amountMinor: params.amountMinor,
       reference: params.reference,
