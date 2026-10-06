@@ -504,7 +504,7 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
    * link reaches it). So each one's way up is the feature's own way up, not
    * the feature: back from a first run the member did not want returns to
    * where the feature sits, never into the feature they declined to start.
-   * Seven literals rather than one pattern, because the parent differs per
+   * Nine literals rather than one pattern, because the parent differs per
    * feature (`LITERAL_EXPANSIONS` below). Its exits replace the page
    * (`FirstRunPanels`), and `resolve.ts` lists it as a flow, so it is never
    * returned to through history once seen.
@@ -516,6 +516,10 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/first-run/invite": "/settings",
   "/first-run/passport": "/settings",
   "/first-run/analytics": "/agent/dashboard",
+  /* R3-12's two: a tenancy file sits under `/bookings`, the owner's
+     buildings under the agent dashboard. */
+  "/first-run/tenancy": "/bookings",
+  "/first-run/portfolio": "/agent/dashboard",
 
   /* ------------------------------------------------- the design harnesses
    *
@@ -588,6 +592,8 @@ export const LITERAL_EXPANSIONS: Readonly<Record<string, readonly string[]>> = {
     "/first-run/invite",
     "/first-run/passport",
     "/first-run/analytics",
+    "/first-run/tenancy",
+    "/first-run/portfolio",
   ],
   "/messages/share/[kind]/[id]": [
     "/messages/share/into/[id]",

@@ -21,10 +21,11 @@ import { resolveSession } from "@/lib/actions/session";
 import { listStates } from "@/lib/places/queries";
 import { WelcomeIntro } from "./WelcomeIntro";
 
-export const metadata: Metadata = {
-  title: "Two worlds. One platform.",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  // The tab reads the reader's language, as the opener's headline does.
+  const w = getDictionary(await getLocale()).welcomeCards.twoWorlds;
+  return { title: `${w.titleA} ${w.titleB}`, robots: { index: false, follow: false } };
+}
 
 /**
  * Get started: the first thing a person sees.

@@ -11,10 +11,14 @@ import {
   isMountedFirstRun,
 } from "@/components/app/feature-onboarding/first-runs";
 
-export const metadata: Metadata = {
-  title: "Getting started",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata({ params }: { params: Promise<{ feature: string }> }): Promise<Metadata> {
+  // The tab names the feature in the reader's language, as the region does.
+  const { feature } = await params;
+  const t = getDictionary(await getLocale());
+  const robots = { index: false, follow: false };
+  if (!isMountedFirstRun(feature)) return { robots };
+  return { title: t.experienceFeatures.firstRun.region.replace("{feature}", firstRunContent(feature, t).name), robots };
+}
 
 /**
  * /first-run/[feature]: ONE FEATURE'S FIRST RUN, AS A PAGE (north star 14.1).
@@ -31,7 +35,7 @@ export const metadata: Metadata = {
  * without it, or when it is not safe, both exits land on the feature's home.
  *
  * Its back destination is declared per feature in `lib/nav/route-parents.ts`
- * (request to the lead: the seven literal `/first-run/<key>` parents and the
+ * (the nine literal `/first-run/<key>` parents and the
  * `LITERAL_EXPANSIONS` entry), the feature's own parent, because the first
  * run stands in front of the feature rather than inside it.
  */
