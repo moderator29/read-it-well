@@ -61,6 +61,7 @@ before wave 2 started, so ownership transferred cleanly:
 | **W10 Foundations and navigation audit** | strongest | B1's former area: `tokens.css`, `globals.css`, the shared partials, the existing `components/ui/*` primitives (not SuccessSheet, not the B5 ports), `components/ui/charts/**`, `components/motion/**`, `lib/motion/**`, `lib/nav/**`, `lib/testing/browser-root.tsx`, the shell components, `experience-shell.en.ts`. The token owner from here |
 | **W11 Auth and onboarding** | mid | `app/(auth)/**`, `components/auth/**`, `components/app/welcome/**`, `app/welcome/**` beyond Get Started, `app/offline/**`, `native-shell/**`, `css/auth.css`, the passcode settings frame, `experience-entry.en.ts` |
 | **W12 Audit sweep** | mid | Read-only: the 24-point checklist on every route at 390, 768 and 1440 in both themes, findings routed per owner |
+| **W13 Speed and the unowned surfaces** | strongest | Measures the production build (per-route first load, the framer-motion cost in the built client, the weight budgets D41 found null) and routes fixes per owner; owns `app/join/**`, `app/s/**`, `components/app/{briefs,doors,flip,status,arrival-check,after-gate,safety,offline}/**`, `components/roles/**`, `experience-speed.en.ts`. Added when B5 finished, to hold fourteen active |
 
 **The founder then asked for fourteen agents active** until every surface is built,
 audited and ready: W1 to W12, the auditor and B5 (re-opened to make one test
