@@ -1129,6 +1129,14 @@
     opacity: 1;
     transform: none;
     transition-delay: 0s, 0s, 60ms, 0s;
+    /* THE CHOSEN SLOT'S WORD WRAPS TO TWO LINES RATHER THAN BEING CUT. The slot does not
+       grow (D28: the dock keeps its slots) and the word is the dictionary's, so a long one
+       (Hausa "Bayanan martaba", 101px against this 70px label) takes a second line at the same
+       12px step: two lines are 29px inside the 44px link, and a one-word label is unchanged.
+       Resting tabs keep their nowrap and stay hidden. Found by
+       components/locale-fit/cards.dom.test.tsx. */
+    white-space: normal;
+    text-wrap: balance;
   }
   /* While a tapped tab loads, the old one steps back at once. */
   .nf-dockrow[data-dock-pending] .nf-tabbar .nf-tab__link[aria-current="page"]:not([data-on]) {

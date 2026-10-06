@@ -21,8 +21,6 @@ const CSS = () => appCss();
 
 /* The key is "<surface> <locale>"; the value is the report line. */
 const KNOWN: Record<string, string> = {
-  "Dock with /profile chosen (property side, signed in) ha":
-    "the chosen Profile tab's word in Hausa, 'Bayanan martaba', is 101px in a 70px label that hides its overflow",
 };
 
 const DOCK_IMPORTS = `
