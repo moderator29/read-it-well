@@ -36,4 +36,12 @@ export const experienceSocialEn = {
     backToHome: "Back to home",
     searchStays: "Search stays",
   },
+  /** `/stories/new`: the page's own words, moved out of the code (Round 3 sweep, C3). */
+  newStory: {
+    title: "Write a story",
+    lede: "A picture, a headline, and a line or two. It stays up.",
+    unreachableTitle: "We cannot reach stories right now",
+    unreachableBody: "This is on our side, not yours. Nothing can be published from here at the moment. Nothing you have written has been lost, and the rest of the app works as normal.",
+    backToHome: "Back to home",
+  },
 };
