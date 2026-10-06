@@ -67,6 +67,29 @@ const FACT_ICON: Record<string, UiIconName> = {
   instant: "bolt",
 };
 
+/*
+ * THE PRICE COUNTS UP WITH ITS PAGE, NOT WHENEVER A CARD HAPPENS TO MOUNT.
+ *
+ * `CountUpMoney eager` counts from nought on first view. That is right for the
+ * cards a navigation brings in together, and wrong for a card that joins a
+ * list somebody is already reading (the next page of results, a filter
+ * swapping the rows): the price on screen would drop to nought and climb
+ * again under a thumb that has read it. So a card counts only when no card is
+ * alive yet (a navigation has just replaced the list) or when it mounts
+ * within the arrival window of the first one (the rest of the same batch);
+ * otherwise it shows its figure as it is. Read in render, written in an
+ * effect: every card of one commit renders before any of them is counted, so
+ * the whole batch agrees. Markup never depends on it, only the count does.
+ */
+const ARRIVAL_WINDOW_MS = 400;
+let cardsAlive = 0;
+let arrivalStartedAt = 0;
+
+function arrivesWithItsPage(): boolean {
+  if (typeof performance === "undefined") return false;
+  return cardsAlive === 0 || performance.now() - arrivalStartedAt < ARRIVAL_WINDOW_MS;
+}
+
 export function ListingCard({
   listing,
   locale,
@@ -136,6 +159,14 @@ export function ListingCard({
   eager?: boolean;
 }) {
   const photo = listing.photos[0];
+  const [countsOnArrival] = useState(arrivesWithItsPage);
+  useEffect(() => {
+    if (cardsAlive === 0) arrivalStartedAt = performance.now();
+    cardsAlive += 1;
+    return () => {
+      cardsAlive -= 1;
+    };
+  }, []);
   /* Track M: several photographs swipe (CardPhotos.tsx); the arrows drawn
      outside the link scroll the same track on a pointer. */
   const photoTrack = useRef<HTMLDivElement | null>(null);
@@ -571,7 +602,7 @@ export function ListingCard({
                   locale={locale}
                   currency={listing.currency}
                   glance
-                  eager
+                  eager={countsOnArrival}
                 >
                   <Amount
                     minorUnits={price.minor}
