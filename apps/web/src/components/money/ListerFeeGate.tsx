@@ -2,25 +2,34 @@
 
 import { useId } from "react";
 import { formatMoney, type Locale } from "@vallo/i18n/core";
-import { Amount } from "@/components/ui/Amount";
 import { Checkbox } from "@/components/ui/Check";
 import {
+  ESCROW_PROTECTION_WHEN,
   FEE_ACCEPT_LABEL,
   FEE_ACCEPT_RECORD,
   FEE_GATE_TITLE,
   FEE_NEEDS_FIGURE,
+  FEE_PREVIEW_NOTE,
   FEE_UNREADABLE_BODY,
+  FEE_UNREADABLE_BODY_OPEN,
   FEE_UNREADABLE_TITLE,
   LISTER_FIGURE_LABEL,
   LISTER_RECEIVE_LABEL,
-  keepMoreSentence,
-  platformFeeLabel,
+  PLATFORM_FEE_LABEL,
+  PROCESSOR_FEE_LABEL,
+  PROCESSOR_FEE_WHEN,
+  escrowProtectionLabel,
+  feeRangeText,
+  rangeUpperText,
+  receiveRangeNote,
   renterSeesSentence,
+  upToText,
+  valloFeeLabel,
   type ListerFigureKind,
 } from "@/lib/money/copy";
 import {
   acceptanceMatches,
-  keepMore,
+  acceptanceOf,
   listerFeeFigures,
   type ListerFeeAcceptance,
   type ListerFeePolicy,
@@ -28,55 +37,71 @@ import {
 import "@/app/css/money-layer.css";
 
 /**
- * THE LISTER SEES THE ARITHMETIC AND ACCEPTS IT BEFORE PUBLISHING (D51).
+ * THE LISTER SEES WHAT THEY WILL RECEIVE BEFORE PUBLISHING (D51, D60, D61).
  *
- *   Rent you set            1,800,000
- *   Platform fee (4%)          72,000
- *   You receive             1,728,000
+ *   Rent you set                          1,800,000
+ *   Platform fee                     36,000 to 72,000
+ *     Vallo, 2%                           36,000
+ *     Escrow protection, 2%
+ *     when a buyer pays into escrow       36,000
+ *   You receive                   1,728,000 to 1,764,000
  *
- * On the listing's own figure, in naira, never a bare percentage. The one
- * subject is "You receive": it is the largest figure and the only one in full
- * ink. Under it, what the renter sees (exactly the price, nothing added) and
- * the sales line framed as what the lister keeps against an agent.
+ * A RANGE, BECAUSE THE RAIL IS NOT KNOWN AT ACCEPTANCE (D61): it is chosen per
+ * booking by how the buyer pays. The worst case is the headline, the largest
+ * figure in full ink; the top of the range is set small beside it. The second
+ * fee is named as escrow protection, which is the escrow partner's and applies
+ * only when a buyer pays into escrow, never as a Vallo fee. When the policy
+ * says the lister bears the processor's fee on a direct payment (the split's
+ * bearer is the lister today), that is its own line, "up to" its cap, and the
+ * top of the range already has it taken off. No "you keep N percent" and no
+ * comparison with what anybody else charges: the naira is the point.
  *
- * The accept is an explicit checkbox and nothing else accepts: the parent
- * (the listing wizard's submit step) holds the acceptance and sends it with
- * the publish request, where Session 2 records member, timestamp and rate
- * version. A price edit or a new rate version voids it on the next render,
- * because `acceptanceMatches` compares every figure.
+ * TWO MODES, ONE SCREEN (D60). `blocking` is the `lister_fee_gate_blocking`
+ * flag, read fail closed by the page. Off (its state with no row), the screen
+ * is drawn in full and says plainly that nothing is recorded and that sending
+ * for review does not wait for it: there is no checkbox, because ticking a box
+ * that records nothing would pretend an acceptance was stored. On, the
+ * explicit checkbox is the only accept; the wizard sends the acceptance to be
+ * recorded before the listing, and a price edit, a new rate or new terms void
+ * it on the next render because `acceptanceMatches` compares every figure.
  *
- * Honest states: no policy read (the gate says so and cannot be accepted, so
- * publishing waits), and no price yet (a sentence, never a zero).
+ * Honest states: no policy read (the gate says so, and says whether publishing
+ * waits), and no price yet (a sentence, never a zero).
  */
 export type ListerFeeGateProps = {
   kind: ListerFigureKind;
   /** The lister's own figure in kobo, or null before one is typed. */
   priceMinor: number | null;
-  /** The rate in force from the server read, or null when it could not be read. */
+  /** The rates in force from the server read, or null when they could not be read. */
   policy: ListerFeePolicy | null;
   locale: Locale;
+  /** Whether sending for review waits on an acceptance (the fail-closed flag). */
+  blocking: boolean;
   accepted: ListerFeeAcceptance | null;
   onAcceptedChange: (next: ListerFeeAcceptance | null) => void;
 };
 
-export function ListerFeeGate({ kind, priceMinor, policy, locale, accepted, onAcceptedChange }: ListerFeeGateProps) {
+export function ListerFeeGate({ kind, priceMinor, policy, locale, blocking, accepted, onAcceptedChange }: ListerFeeGateProps) {
   const headingId = useId();
   const figures = listerFeeFigures(priceMinor, policy);
+  const mode = blocking ? "blocking" : "preview";
 
   if (policy === null) {
     return (
-      <section className="nf-panel nf-panel--card nf-feegate" aria-labelledby={headingId} data-testid="fee-gate" data-state="unreadable">
+      <section className="nf-panel nf-panel--card nf-feegate" aria-labelledby={headingId} data-testid="fee-gate" data-state="unreadable" data-mode={mode}>
         <h3 id={headingId} className="nf-body font-semibold text-[var(--nf-content-primary)]">
           {FEE_UNREADABLE_TITLE}
         </h3>
-        <p className="nf-body-sm mt-inline text-[var(--nf-content-secondary)]">{FEE_UNREADABLE_BODY}</p>
+        <p className="nf-body-sm mt-inline text-[var(--nf-content-secondary)]">
+          {blocking ? FEE_UNREADABLE_BODY : FEE_UNREADABLE_BODY_OPEN}
+        </p>
       </section>
     );
   }
 
   if (figures === null) {
     return (
-      <section className="nf-panel nf-panel--card nf-feegate" aria-labelledby={headingId} data-testid="fee-gate" data-state="no-figure">
+      <section className="nf-panel nf-panel--card nf-feegate" aria-labelledby={headingId} data-testid="fee-gate" data-state="no-figure" data-mode={mode}>
         <h3 id={headingId} className="nf-overline text-[var(--nf-content-muted)]">
           {FEE_GATE_TITLE}
         </h3>
@@ -85,69 +110,81 @@ export function ListerFeeGate({ kind, priceMinor, policy, locale, accepted, onAc
     );
   }
 
-  const isAccepted = acceptanceMatches(accepted, figures, policy);
-  const more = keepMore(figures, policy);
-  const priceText = formatMoney(figures.priceMinor, locale);
+  const money = (minor: number) => formatMoney(minor, locale);
+  const isAccepted = blocking && acceptanceMatches(accepted, figures, policy);
+  const priceText = money(figures.priceMinor);
+  const ranged = figures.receiveLowMinor !== figures.receiveHighMinor;
+  const state = !blocking ? "preview" : isAccepted ? "accepted" : "open";
 
   return (
-    <section className="nf-panel nf-panel--card nf-feegate" aria-labelledby={headingId} data-testid="fee-gate" data-state={isAccepted ? "accepted" : "open"}>
+    <section className="nf-panel nf-panel--card nf-feegate" aria-labelledby={headingId} data-testid="fee-gate" data-state={state} data-mode={mode}>
       <h3 id={headingId} className="nf-overline text-[var(--nf-content-muted)]">
         {FEE_GATE_TITLE}
       </h3>
       <dl className="nf-feegate__rows">
         <div className="nf-feegate__row">
           <dt>{LISTER_FIGURE_LABEL[kind]}</dt>
-          <dd data-testid="fee-gate-price">
-            <Amount minorUnits={figures.priceMinor} locale={locale} />
-          </dd>
+          <dd data-testid="fee-gate-price">{priceText}</dd>
         </div>
         <div className="nf-feegate__row">
-          <dt>{platformFeeLabel(figures.feePercentText)}</dt>
-          <dd data-testid="fee-gate-fee">
-            <Amount minorUnits={figures.feeMinor} locale={locale} />
-          </dd>
+          <dt>{PLATFORM_FEE_LABEL}</dt>
+          <dd data-testid="fee-gate-fee">{feeRangeText(money(figures.platformFeeLowMinor), money(figures.platformFeeHighMinor))}</dd>
         </div>
+        <div className="nf-feegate__row nf-feegate__row--part">
+          <dt>{valloFeeLabel(figures.valloPercentText, figures.valloCapped)}</dt>
+          <dd data-testid="fee-gate-vallo">{money(figures.valloMinor)}</dd>
+        </div>
+        {figures.escrowProtectionMinor > 0 && (
+          <div className="nf-feegate__row nf-feegate__row--part">
+            <dt>
+              {escrowProtectionLabel(figures.escrowProtectionPercentText)}
+              <span className="nf-feegate__when">{ESCROW_PROTECTION_WHEN}</span>
+            </dt>
+            <dd data-testid="fee-gate-escrow">{money(figures.escrowProtectionMinor)}</dd>
+          </div>
+        )}
+        {figures.processorUpToMinor > 0 && (
+          <div className="nf-feegate__row nf-feegate__row--part">
+            <dt>
+              {PROCESSOR_FEE_LABEL}
+              <span className="nf-feegate__when">{PROCESSOR_FEE_WHEN}</span>
+            </dt>
+            <dd data-testid="fee-gate-processor">{upToText(money(figures.processorUpToMinor))}</dd>
+          </div>
+        )}
         <div className="nf-feegate__row nf-feegate__row--total">
           <dt>{LISTER_RECEIVE_LABEL}</dt>
           <dd data-testid="fee-gate-receive">
-            <Amount minorUnits={figures.receiveMinor} locale={locale} />
+            <span className="nf-feegate__headline">{money(figures.receiveLowMinor)}</span>
+            {ranged && <span className="nf-feegate__upper"> {rangeUpperText(money(figures.receiveHighMinor))}</span>}
           </dd>
         </div>
       </dl>
 
-      <p className="nf-body-sm mt-row text-[var(--nf-content-secondary)]">{renterSeesSentence(priceText)}</p>
-      {more && (
-        <p className="nf-body-sm mt-inline font-semibold text-[var(--nf-state-success)]" data-testid="fee-gate-keep">
-          {keepMoreSentence({
-            agentPercentText: more.agentPercentText,
-            keepPercentText: more.keepPercentText,
-            agentKeepPercentText: more.agentKeepPercentText,
-            moreText: formatMoney(more.moreMinor, locale),
-            priceText,
-          })}
+      {ranged && (
+        <p className="nf-body-sm mt-row text-[var(--nf-content-secondary)]" data-testid="fee-gate-range-note">
+          {receiveRangeNote(figures.escrowIsLowest)}
         </p>
       )}
+      <p className="nf-body-sm mt-inline text-[var(--nf-content-secondary)]">{renterSeesSentence(priceText)}</p>
 
-      <Checkbox
-        className="mt-row"
-        checked={isAccepted}
-        data-testid="fee-gate-accept"
-        onChange={(event) =>
-          onAcceptedChange(
-            event.currentTarget.checked
-              ? {
-                  rateVersion: policy.rateVersion,
-                  priceMinor: figures.priceMinor,
-                  feeMinor: figures.feeMinor,
-                  receiveMinor: figures.receiveMinor,
-                }
-              : null,
-          )
-        }
-      >
-        {FEE_ACCEPT_LABEL}
-      </Checkbox>
-      <p className="nf-caption mt-inline text-[var(--nf-content-muted)]">{FEE_ACCEPT_RECORD}</p>
+      {blocking ? (
+        <>
+          <Checkbox
+            className="mt-row"
+            checked={isAccepted}
+            data-testid="fee-gate-accept"
+            onChange={(event) => onAcceptedChange(event.currentTarget.checked ? acceptanceOf(figures, policy) : null)}
+          >
+            {FEE_ACCEPT_LABEL}
+          </Checkbox>
+          <p className="nf-caption mt-inline text-[var(--nf-content-muted)]">{FEE_ACCEPT_RECORD}</p>
+        </>
+      ) : (
+        <p className="nf-caption mt-row text-[var(--nf-content-muted)]" role="note" data-testid="fee-gate-preview">
+          {FEE_PREVIEW_NOTE}
+        </p>
+      )}
     </section>
   );
 }

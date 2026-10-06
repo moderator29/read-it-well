@@ -9,11 +9,21 @@ import type { Balances, TimelineEvent, WithdrawalQuote } from "@/lib/money/vallo
  * Nothing here is read by a product route: the product reads go through
  * `lib/money/partner-reads.ts`, which has no fixture path.
  *
- * The figures are the founder's own worked examples from D51 (1,800,000 at a
- * 4 percent fee; a 1,000,000 withdrawal with a 300 fee), so a reviewer can
+ * The figures are the founder's own worked examples from D51 and D61 (1,800,000
+ * at Vallo 2 percent plus escrow protection 2 percent; a 1,000,000 withdrawal with a 300 fee), so a reviewer can
  * check the arithmetic against the directive.
  */
-export const FIXTURE_POLICY: ListerFeePolicy = { rateVersion: "fixture-1", rail: "protected", feeBps: 400, capMinor: null };
+/* D61's worked example: Vallo 2 percent and escrow protection 2 percent
+   (VALLO_PRICING.md section 2), and the processor's fee on a direct payment at
+   the 2,000 naira cap that document names, borne by the lister as the split's
+   bearer. Fixture values, not a read. */
+export const FIXTURE_POLICY: ListerFeePolicy = {
+  rateVersion: "fixture-1",
+  valloBps: 200,
+  escrowProtectionBps: 200,
+  directProcessorFeeCapMinor: 2_000_00,
+  capMinor: null,
+};
 
 export const FIXTURE_BALANCES: Balances = {
   availableMinor: 245_000_00,

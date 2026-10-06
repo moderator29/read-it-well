@@ -34,8 +34,9 @@ export default function MoneyDeck() {
 
         <section className="grid gap-sm">
           <h2 className="nf-h3">The lister&apos;s fee, before publishing</h2>
-          <FeeGateFixture />
-          <ListerFeeGate kind="stay" priceMinor={45_000_00} policy={null} locale="en" accepted={null} onAcceptedChange={() => undefined} />
+          <FeeGateFixture blocking={false} />
+          <FeeGateFixture blocking />
+          <ListerFeeGate kind="stay" priceMinor={45_000_00} policy={null} locale="en" blocking={false} accepted={null} onAcceptedChange={() => undefined} />
         </section>
 
         <section className="grid gap-sm">

@@ -46,6 +46,23 @@
   .nf-feegate__row--total dd {
     font-size: var(--nf-text-h3);
   }
+  /* The two parts of the platform fee, set in under it (D61). */
+  .nf-feegate__row--part {
+    padding-inline-start: var(--nf-space-md);
+    font-size: var(--nf-text-body-sm);
+  }
+  /* When a part applies: "when a buyer pays into escrow". */
+  .nf-feegate__when {
+    display: block;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  /* The worst case is the headline; the top of the range sits small beside it. */
+  .nf-feegate__upper {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 400;
+    color: var(--nf-content-secondary);
+  }
   .nf-feegate[data-state="accepted"] {
     border-color: var(--nf-state-success);
   }

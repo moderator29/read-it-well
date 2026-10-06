@@ -216,14 +216,66 @@ export const LISTER_FIGURE_LABEL: Record<ListerFigureKind, string> = {
   sale: "Price you set",
 };
 
-/** "Platform fee (4%)". The percentage is the policy's, handed in as text. */
-export function platformFeeLabel(percentText: string): string {
-  return `Platform fee (${percentText}%)`;
+/**
+ * THE WORDING'S VERSION, recorded with every acceptance (D61: the record
+ * stores the terms version). Change any sentence in this block that the
+ * lister reads on the fee screen and this changes with it, so a record can
+ * always say which words were accepted.
+ */
+export const LISTER_FEE_TERMS_VERSION = "lister-fee-2026-10-06";
+
+/**
+ * D61. The rail is not knowable when the lister accepts, so the fee is a
+ * range anchored on the worst case, and the second two percent is named for
+ * what it buys. "Escrow" is used here, against the member-copy habit of
+ * "protected payment", because this screen forms part of an agreement and
+ * D61 sets these words. No sentence here says "you keep N percent" or
+ * compares Vallo with what anybody else charges.
+ */
+export const PLATFORM_FEE_LABEL = "Platform fee";
+
+/** "Vallo, 2%". The percentage is the policy's, handed in as text. */
+export function valloFeeLabel(percentText: string, capped: boolean): string {
+  return capped ? `Vallo, ${percentText}%, capped` : `Vallo, ${percentText}%`;
+}
+
+/** "Escrow protection, 2%": the escrow partner's fee, never called Vallo's. */
+export function escrowProtectionLabel(percentText: string): string {
+  return `Escrow protection, ${percentText}%`;
+}
+export const ESCROW_PROTECTION_WHEN = "when a buyer pays into escrow";
+
+/**
+ * The payment processor's fee, which the lister bears on a direct payment
+ * (the split's bearer). Worded as the payout record words it
+ * (`PAYOUT_PROCESSING_LABEL`), so the line the lister accepted is the line
+ * they later find on their payout.
+ */
+export const PROCESSOR_FEE_LABEL = "Payment processing, by Paystack";
+export const PROCESSOR_FEE_WHEN = "when a buyer pays directly";
+export function upToText(amountText: string): string {
+  return `up to ${amountText}`;
+}
+
+/** "36,000 to 72,000", or the one figure when both ends are the same. */
+export function feeRangeText(lowText: string, highText: string): string {
+  return lowText === highText ? lowText : `${lowText} to ${highText}`;
+}
+/** The top of "You receive", set small beside the headline figure. */
+export function rangeUpperText(highText: string): string {
+  return `to ${highText}`;
 }
 
 export const LISTER_RECEIVE_LABEL = "You receive";
 
-export const FEE_GATE_TITLE = "What you keep";
+export const FEE_GATE_TITLE = "What you receive";
+
+/** Under the range: which figure to count on. The lower one, always. */
+export function receiveRangeNote(escrowIsLowest: boolean): string {
+  return escrowIsLowest
+    ? "Count on the lower figure: it is what you receive when a buyer pays into escrow. When a buyer pays directly, you receive more."
+    : "Count on the lower figure: it is the least you receive, however the buyer pays.";
+}
 
 /** Under the arithmetic: what the renter sees. The renter's side, said to the lister. */
 export function renterSeesSentence(priceText: string): string {
@@ -231,18 +283,11 @@ export function renterSeesSentence(priceText: string): string {
 }
 
 /**
- * The sales line (D51): framed as what the lister keeps against an agent,
- * never as what Vallo takes. All three figures are computed and handed in.
+ * D60: the screen while the blocking flag is off. There is no checkbox, and
+ * this says why: nothing is recorded, and sending does not wait.
  */
-export function keepMoreSentence(input: {
-  agentPercentText: string;
-  keepPercentText: string;
-  agentKeepPercentText: string;
-  moreText: string;
-  priceText: string;
-}): string {
-  return `Against a ${input.agentPercentText} percent agent, you keep ${input.keepPercentText} percent instead of ${input.agentKeepPercentText}: ${input.moreText} more on ${input.priceText}.`;
-}
+export const FEE_PREVIEW_NOTE =
+  "Nothing is recorded yet. Accepting these figures is not open, and sending your listing for review does not wait for it.";
 
 export const FEE_ACCEPT_LABEL = "I accept these figures for this listing";
 export const FEE_ACCEPT_ACTION = "Accept and continue";
@@ -250,12 +295,15 @@ export const FEE_ACCEPTED = "Accepted";
 
 /** What accepting records, and the promise about a rate change. */
 export const FEE_ACCEPT_RECORD =
-  "Vallo records your acceptance with the date and the rate in force today. If the rate changes, we ask you again, and you keep this rate until you accept the new one. The same figures appear on your payout.";
+  "Vallo records your acceptance with the date, both rates and these figures. If a rate changes, we ask you again, and you keep the rates you accepted until you accept new ones.";
 
 /** The policy could not be read: the gate says so and does not guess a rate. */
 export const FEE_UNREADABLE_TITLE = "We cannot show your fee figures just now";
 export const FEE_UNREADABLE_BODY =
   "Publishing waits until we can show you, in naira, exactly what you receive. Nothing about your listing has changed. Try again in a moment.";
+/** The same, while the blocking flag is off (D60): nothing waits on it. */
+export const FEE_UNREADABLE_BODY_OPEN =
+  "Nothing about your listing has changed, nothing is recorded, and sending it for review does not wait for these figures.";
 
 /** The acceptance could not be recorded: nothing was sent for review. */
 export const FEE_ACCEPT_UNRECORDED =
@@ -609,7 +657,7 @@ export const PAYOUT_REVERSED_LABEL = "Reversed by a refund";
 export const PAYOUT_FEE_UNRECORDED = "Not on this record";
 export const PAYOUTS_EMPTY_TITLE = "No payouts yet";
 export const PAYOUTS_SAME_FIGURES =
-  "Each payout shows the same three figures a lister sees before publishing: what was paid, the platform fee, and what you received.";
+  "Each payout shows the lines a lister sees before publishing, for the way that buyer paid: what was paid, the platform fee, payment processing where it applies, and what you received.";
 /** The processor's own fee on a direct-rail payout, borne by the lister and named. */
 export const PAYOUT_PROCESSING_LABEL = "Payment processing, by Paystack";
 
