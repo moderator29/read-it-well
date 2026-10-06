@@ -765,6 +765,251 @@ platform that is actually close.
 
 ---
 
+## The second round: D42, D45, D47 and the two blind gates
+
+### D45. I was wrong about the missing documents, and the evidence was in my own output
+
+I reported that the five documents in my reading list "have never existed at any
+commit on any branch". They exist, on
+`claude/rentme-v2-platform-audit-xuvg0a`, and Sessions 2 and 3 both read them.
+I have merged that branch into mine and read D37 to D47.
+
+The correction I want on the record is sharper than "my clone was stale". **My
+own survey printed the branch name and I did not follow it up.** I ran
+`git ls-remote --heads origin`, and `claude/rentme-v2-platform-audit-xuvg0a`
+is in its output, in this session, before I wrote the conclusion. I then
+searched `git ls-tree` across four local refs and `git log --all`, both of
+which only see fetched objects, and declared absence. One `git fetch origin`
+would have settled it, and the thing that should have prompted it was already
+on my screen.
+
+So the lesson is not only "fetch first". It is that I treated a survey of what
+my container had as a survey of what exists, while holding a list that said
+otherwise. `git log --all` in a stale clone answers a different question than
+the one I was asking.
+
+### D42, then D47.1. I added a CI trigger, and then removed it
+
+**What I did first.** `.github/workflows/ci.yml` triggered on push to `main`,
+pull requests to `main`, and `workflow_dispatch`, so a push to
+`claude/vallo-...` matched nothing and no session commit had ever been seen by
+a runner. I added `claude/vallo-**` to the push trigger, narrowly rather than
+`claude/**` so the fifteen other `claude/` branches stay excluded. It worked:
+run `37406320445` was the first CI run on a session branch, it was green, and
+it gave the `source-map-js` lockfile fix the clean-runner verdict that is the
+only thing which can prove a lockfile.
+
+**Then it was removed, and the reasoning against it was partly mine.** Once
+draft pull requests existed for all three branches, `pull_request` already
+fired on every push to a branch with an open PR, so both triggers were live at
+once. Verified with my own tool call rather than from a report: commit
+`c2a8a5fd` produced **two runs on the same sha**, run `37406320445`
+(`push`, `success`) and run `37406373075` (`pull_request`, `cancelled`). Two
+Builds, two full suites, two probe runs per push. My own comment in that file
+had already named the answer, that a draft PR per branch is the better
+long-run answer and the trigger is what works without one, and the PRs now
+exist. The trigger is gone and `main`, `pull_request` and `workflow_dispatch`
+remain. A branch that needs a verdict without a PR can use
+`workflow_dispatch`.
+
+**And I had the concurrency mechanics wrong in writing.** I wrote that three
+session branches pushing would "queue behind each other" because
+`cancel-in-progress: false` meant runs were "never cancelled". That is not what
+that setting does. It protects the run that is already executing; GitHub keeps
+only the **most recent pending run** in a group and cancels the others. So
+superseded runs do not queue, they vanish. The per-commit guarantee on `main`
+comes from `github.sha` being in the group key, not from `cancel-in-progress`.
+The file now says so, in the place where I got it wrong, because that sentence
+is what made a bad trade look like a considered one.
+
+### D47. The third blind gate, and the one that mattered most
+
+This is the one I did not find, and it is worse than the two I did. The
+`db-probes` job used a **global** concurrency group, the bare string
+`db-probes`, not keyed on the ref, so every open pull request contended for one
+slot. With `cancel-in-progress: false` protecting only the executing run, the
+middle pending runs were evicted. On PR 84, the single branch carrying this
+round's migrations and money changes, the probe run concluded `cancelled` after
+**nine seconds** against the 92 to 95 a real run takes, with no successful
+companion. The database was never checked there, and the check never read red
+while that was true.
+
+**What I changed:** the group is now `db-probes-${{ github.ref }}`.
+
+**The judgement, recorded here because D47 asks for it rather than a one-line
+diff.** Per-ref grouping means a push only ever evicts its own superseded run,
+which is correct. The cost is real and is about production: there is no staging
+database, so several branches can now hold connections to the **production**
+database at once. I accept that on three grounds.
+
+1. Every probe runs in a transaction and rolls back. None of them writes.
+2. Arbitrating concurrent transactions is Postgres's job, not a workflow's.
+   Lock contention there is a solved problem; silent eviction in GitHub's
+   scheduler is not.
+3. The alternative is the status quo, in which the gate silently did not run on
+   the pull request that most needed it. **A silent gap is worse than
+   contention**, and this is the same principle the job's author already
+   applied when they made it fail outright on a missing
+   `PROBES_DATABASE_URL`.
+
+`cancel-in-progress` stays `false`. That reason was always right: a probe killed
+mid-transaction leaves its locks to time out.
+
+**What I could not fix from inside the workflow, stated plainly.** Making a
+`cancelled` run block a merge is not a workflow property. A conclusion of
+`cancelled` satisfies nothing in branch protection, but it only actually blocks
+if this check is in the **required** list for `main`, which is a repository
+setting and the founder's to make. Until it is, a cancelled probe run is still
+a gap that reads as neither pass nor fail. That is the remaining half of D47
+item 1 and it needs one click, not a commit.
+
+**On re-running PR 84's probes (D47 item 3): no re-run was needed, and here is
+the evidence.** I did not press re-run on the nine-second cancelled run,
+because it would have checked the wrong commit. Session 2 is pushing actively,
+and `84`'s head had already moved to `45956c4d`. Instead I read the probe job on
+that current head, which is the thing D47 actually wants to be true:
+
+| | |
+| --- | --- |
+| PR | 84, head `45956c4d` |
+| Run | `37408295484`, job `112090967817`, "Database probes" |
+| Conclusion | **`success`** |
+| "Run every probe" step | 03:19:08Z to 03:20:47Z, **99 seconds** |
+
+99 seconds against the 92 to 95 a real run takes, so the probes genuinely
+executed. **Session 2's migrations are checked on its current head.** That is
+the D47 condition met by a real run rather than by a button press on a stale
+sha, and the duration is the part that proves it, which is the whole lesson of
+D47.
+
+One thing I noticed while reading that run, and it is not a defect:
+`Advisories (production dependencies)` is **red on 84**. That is
+`GHSA-68fv-2mgg-jv7q`, the advisory I fixed, and 84 does not carry the fix yet.
+It will clear the moment that branch takes in the lockfile change, which is
+D46's ordering question and Session 2's call, not something to fix from here.
+
+### The general rule I am adopting from D47
+
+**A check has three outcomes, not two, and the third one means it did not
+run.** `cancelled`, `skipped` and `neutral` are not passes, and a job that
+finishes far faster than its usual run did not do its usual work. I found two
+blind gates by reading files instead of logs; this one was found by reading a
+duration. In the gate tables in this file I now say which outcome I saw rather
+than writing "pass".
+
+---
+
+## The two blind gates are fixed, and both now demonstrably fail
+
+### Gate one: the fifteen null weight budgets
+
+**Eight of fifteen are now real numbers. Seven are still `null`, deliberately,
+and I will not pretend otherwise.**
+
+The eight public routes carry budgets measured from a production build. The
+proof the gate works is that I broke it on purpose: dropping `/`'s budget to
+100 KB made the script print `OVER` and **exit 1**, and dropping `/welcome`'s to
+200 KB did the same. Before this, the check printed `weight: within budget`
+against fifteen nulls and could not fail at all.
+
+**How the numbers were arrived at, because the obvious way was wrong and I
+nearly shipped it.** My first pass set each budget to CI's single measurement
+plus 25 KB. Then I measured the same build five times against the same server
+and found this:
+
+| Route | Five local readings (KB) | Spread | CI | Budget set |
+| --- | --- | --- | --- | --- |
+| `/` | 497, 500, 500, 525, 500 | 28 | 505 | 555 |
+| `/welcome` | 737, 660, 660, 734, 664 | **77** | 658 | 815 |
+| `/sign-in` | 668, 663, 664, 662, 651 | 17 | 657 | 690 |
+| `/sign-up/email` | 656, 665, 661, 658, 677 | 21 | 658 | 700 |
+| `/check` | 596, 601, 592, 597, 610 | 18 | 590 | 630 |
+| `/move-in-cost` | 468, 464, 462, 475, 475 | 13 | 458 | 495 |
+| `/for-agents` | 483, 491, 492, 497, 484 | 14 | **552** | 575 |
+| `/guides/avoiding-rental-scams` | 454, 458, 452, 454, 452 | 6 | 452 | 480 |
+
+My 25 KB headroom would have put `/welcome` at 685 against readings of 734 and
+737. **The gate would have gone red on its second run, and the lesson everyone
+would have drawn is that the budget should be raised.** A flaky gate spends the
+same credibility a vacuous one does. Each budget is now the highest weight seen
+across five local passes and CI's own run, plus the larger of 20 KB and that
+route's observed spread. Four consecutive runs then passed, and the deliberate
+breakages still failed.
+
+**Two findings that fell out of measuring rather than reading:**
+
+- **The variance is itself a defect, and these budgets are looser than they
+  should have to be.** A 77 KB swing on `/welcome` between runs of the same
+  build is not the page changing. The likeliest cause is
+  `waitUntil: "networkidle"` in `check-weight.mjs` settling at different points
+  while lazy assets are still arriving, which would make the spread an artefact
+  of the instrument. Fix that and every budget here can come down. I have not
+  done it: it is a change to how the measurement works and wanted more care
+  than I could give it after the rest of this round.
+- **`/for-agents` reads 552 in CI and 483 to 497 here, on the same commit.** A
+  55 KB gap with no known cause. Its budget follows CI's figure, because CI is
+  where the gate runs.
+
+**I did not use `check-weight.mjs --record`.** It writes each budget as the
+measured weight **minus 20 percent**, which would have put all eight routes
+over budget on the first run and turned CI red with no fix attached. Reducing
+page weight is not the release session's work to do unasked. The 20 percent diet
+is still the right target for whoever owns page weight, and I would rather say
+that than ship eight red routes and call it a ratchet.
+
+**Why the seven signed-in routes stay `null`.** CI skips them for want of a
+`WEIGHT_COOKIE`, and the only cookie obtainable without credentials comes from
+`tests/gate-stub-session.mjs`, whose stub serves nothing: the pages render their
+empty and not-found states, so a weight measured through it is not the weight of
+the page. Recording that number would be the exact fault I was sent to fix,
+dressed as progress. They can be budgeted the first time CI mints a
+`WEIGHT_COOKIE` from real QA credentials, and not before.
+
+### Gate two: the desk accessibility scan looked at a fixture
+
+`tests/a11y-desks.spec.mjs` scanned only `app/(dev)/preview/f5/*` and printed
+`a11y desks: pass`, which reads as a verdict on the product. It now scans the
+**real** host and agent desks whenever `QA_MEMBER_EMAIL` and
+`QA_MEMBER_PASSWORD` are set, reusing `signInAsQa` from `_gate.mjs` and
+`passcodeReady` from `_passcode.mjs`, which already existed. The CI step passes
+those two secrets through, the same way `host.spec.mjs` in that job already
+did.
+
+Three things I want on the record about it.
+
+- **A desk that was not reached is now a failure, not a quiet skip.** If a route
+  answers the sign-in door, or the passcode lock is still covering the page, the
+  spec records a failure saying the real desk was never scanned.
+- **A trap I only found by running it.** With no `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+  the proxy has **no sign-in wall at all**, so `/host` answers **200 signed
+  out**. I checked this directly against a production server in this container.
+  Scanning that page would have measured a desk with no session and no data
+  behind an absent gate and reported it as the real desk, which is the same
+  fault wearing a better costume. The real scan therefore requires the QA
+  credentials **and** that variable, and says which of the two is missing.
+- **The admin console cannot be scanned this way at any price, and the verdict
+  says so.** `lib/admin/guard.ts` requires a session that has proved a security
+  key, and no spec can prove one. The two `admin-*` harness routes remain the
+  only measurement of the console. That is a real remaining gap, not something
+  my change closed.
+
+The verdict line is no longer a bare pass. It names the surface it measured, and
+when the real desks were not scanned it says so in capitals. Tested both skip
+paths and the harness path against a real production build in this container;
+it reproduced the same three findings CI reports, which is how I know the change
+did not quietly stop scanning something.
+
+### What is still mine and not done
+
+- `check-weight.mjs`'s `networkidle` measurement, which is the root cause of the
+  variance that forced loose budgets.
+- The seven signed-in weight budgets, blocked on a `WEIGHT_COOKIE` in CI.
+- The real desks have still never actually been scanned, because the two QA
+  secrets do not exist. The capability is in place; the measurement is not. I
+  will not record a capability as a measurement.
+
+---
+
 ## Completed
 
 - Established, conclusively, that the five documents my brief ordered me to

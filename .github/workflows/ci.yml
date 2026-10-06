@@ -42,39 +42,29 @@
 name: CI
 
 on:
-  # D42. `main` plus the ACTIVE SESSION BRANCHES, and nothing else. Until 6
-  # October this said `[main]` alone, so a push to `claude/vallo-...` matched no
-  # trigger at all and every commit the sessions pushed was verified only by the
-  # local gate. D37 asked for green CI before every push and the repository
-  # could not give it.
+  # `main` ONLY, plus pull requests and by hand.
   #
-  # `claude/vallo-**` and never `claude/**`: there are eighteen dormant `claude/`
-  # branches in this repository, and the wide pattern would start a run on every
-  # one of them the next time anything touched them. The three live session
-  # branches (D44) are `claude/vallo-backend-money-trust`,
-  # `claude/vallo-experience-upgrade` and `claude/vallo-qa-release`, and the
-  # prefix covers exactly those plus any later session that follows the naming.
+  # On 6 October this briefly also carried `claude/vallo-**`, because a push to
+  # a session branch matched no trigger at all and D37's "green CI before every
+  # push" was unachievable as written (D42). It did its job: it got the
+  # `source-map-js` lockfile fix onto a clean runner, which is the only thing
+  # that proves a lockfile, since `npm audit` and the local suite both read an
+  # already-populated `node_modules`.
   #
-  # The reason this matters more than tidiness: A LOCKFILE CHANGE CANNOT BE
-  # PROVED LOCALLY. `npm audit` and the local suite both read an already
-  # populated `node_modules`, so only a clean-runner `npm ci` proves that a
-  # lockfile resolves to what was intended. That is what the `source-map-js`
-  # advisory fix needed and did not have.
+  # IT IS GONE AGAIN BECAUSE DRAFT PULL REQUESTS NOW EXIST for all three
+  # session branches (83, 84, 85), and `pull_request` already fires on every
+  # push to a branch with an open PR. With both triggers live, ONE PUSH STARTED
+  # TWO FULL SUITES: commit c2a8a5f produced run 867 (`push`, success) and run
+  # 868 (`pull_request`, cancelled) on the same sha. Two `Build`, two
+  # `Typecheck, lint, test`, two `Database probes`. That is double the minutes
+  # and, worse, double the eviction pressure on the single `db-probes` slot that
+  # D47 is about.
   #
-  # A draft pull request per session branch is the better long-run answer, since
-  # `pull_request` already triggers; this trigger is what works without one.
-  #
-  # ONE CONSEQUENCE TO KNOW ABOUT: `db-probes` runs on every push and it runs
-  # against the real database, one at a time and never cancelled
-  # (`concurrency: db-probes`). Three session branches pushing therefore queue
-  # behind each other and behind `main`. That is the intended trade: every probe
-  # rolls back, and a migration that revokes a grant an RLS policy needs is
-  # worth catching on the branch rather than after a merge. If the queue ever
-  # becomes the bottleneck, narrow that job rather than this trigger.
+  # So: a session branch is covered by its pull request. If a branch ever needs
+  # a verdict without one, use `workflow_dispatch` rather than bringing the
+  # branch trigger back.
   push:
-    branches:
-      - main
-      - 'claude/vallo-**'
+    branches: [main]
   pull_request:
     branches: [main]
   # By hand (Actions, CI, Run workflow): re-check the whole accumulated state
@@ -84,9 +74,16 @@ on:
 
 # DOC-23: a pull request cancels its own superseded runs; a push to main never
 # does, so every commit on main gets its verdict and a regression can be
-# bisected to the commit that brought it. A push to a session branch is a push,
-# so it keeps that same no-cancel rule: the branches whose commits most need an
-# individual verdict are the ones nobody has reviewed yet.
+# bisected to the commit that brought it.
+#
+# WHAT `cancel-in-progress: false` ACTUALLY DOES, since this was got wrong once
+# on 6 October and the mistake cost a real check: it protects the run that is
+# ALREADY EXECUTING. It does not make GitHub hold a line of waiting runs.
+# GitHub keeps only the MOST RECENT PENDING run in a group and cancels the
+# others, so superseded runs do not queue, they disappear. Writing "they queue
+# behind each other" in this file led to a trade being accepted that bought
+# nothing (D47.1). The per-commit guarantee above comes from the group key
+# including `github.sha`, not from `cancel-in-progress`.
 concurrency:
   group: ci-${{ github.ref }}-${{ github.event_name == 'push' && github.sha || 'pr' }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -338,8 +335,16 @@ jobs:
           cat next-start.log
           exit 1
 
+      # The two QA variables are passed here for the same reason `host.spec.mjs`
+      # below gets them: with them the spec scans the REAL host and agent desks,
+      # and without them it scans only the fixture harness and says so. They are
+      # not set today, so this job currently measures the harness; the spec's
+      # verdict line states that outright rather than printing a bare pass.
       - name: Desks accessibility (axe, focus, keyboard)
         working-directory: apps/web
+        env:
+          QA_MEMBER_EMAIL: ${{ secrets.QA_MEMBER_EMAIL }}
+          QA_MEMBER_PASSWORD: ${{ secrets.QA_MEMBER_PASSWORD }}
         run: node tests/a11y-desks.spec.mjs
 
       - name: Host routes answer
@@ -358,10 +363,43 @@ jobs:
     name: Database probes
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    # One run at a time against the database, never cancelled halfway: every
-    # probe rolls back, but a killed client leaves its locks to time out.
+    # PER REF, NOT GLOBAL. D47: the group used to be the bare string
+    # `db-probes`, shared by every open pull request and every push. The
+    # intent was sound ("one run at a time against the database, never
+    # cancelled halfway: every probe rolls back, but a killed client leaves its
+    # locks to time out") and `cancel-in-progress: false` does protect a run
+    # that is already executing. What it does NOT do is hold a queue: GitHub
+    # keeps only the most recent PENDING run in a group and cancels the rest.
+    # With four pull requests open, the middle ones were evicted.
+    #
+    # It did exactly that to PR 84, the one branch carrying this round's
+    # migrations and money changes: its probe run concluded `cancelled` after
+    # NINE SECONDS, against the 92 to 95 seconds a real run takes, with no
+    # successful companion. So the database was never checked on that PR, and
+    # the check did not read red while that was true. `cancelled` is not a
+    # pass, and it is not a failure either, which is how it hid.
+    #
+    # Keying on the ref means a push only ever evicts its own superseded run,
+    # which is correct. THE COST, STATED BECAUSE IT IS A JUDGEMENT ABOUT
+    # PRODUCTION AND NOT A TIDY-UP: there is no staging database, so several
+    # branches can now hold connections to the PRODUCTION database at the same
+    # time. That is accepted on three grounds. Every probe runs in a
+    # transaction and rolls back, so none of them writes. Postgres, not this
+    # workflow, is the right thing to arbitrate concurrent transactions. And
+    # the alternative is the status quo, where the gate silently did not run on
+    # the pull request that needed it most. A silent gap is worse than
+    # contention.
+    #
+    # `cancel-in-progress` stays false: a probe killed mid-transaction leaves
+    # its locks to time out, and that reason was always correct.
+    #
+    # ONE THING THIS CANNOT FIX FROM INSIDE THE WORKFLOW: making a `cancelled`
+    # run block a merge. A conclusion of `cancelled` is not `success`, so it
+    # satisfies nothing in branch protection, but it only actually blocks if
+    # this check is in the REQUIRED list for `main`. That is a repository
+    # setting (Settings, Branches, branch protection) and the founder's to make.
     concurrency:
-      group: db-probes
+      group: db-probes-${{ github.ref }}
       cancel-in-progress: false
     env:
       DATABASE_URL: ${{ secrets.PROBES_DATABASE_URL }}
