@@ -2,7 +2,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
 import { stringLiterals, withoutComments } from "@/lib/copy/source-scan";
-import { BACKED_CLAIMS, claimMatches, unbackedClaim } from "./claims";
+import { BACKED_CLAIMS, KNOWN_UNBACKED_PENDING_REWORD, claimMatches, unbackedClaim } from "./claims";
 
 /**
  * V-02: THE CLAIMS RULE AS A BUILD CHECK.
@@ -14,7 +14,9 @@ import { BACKED_CLAIMS, claimMatches, unbackedClaim } from "./claims";
  * mechanism itself. Also the copy outside the app bundle: the auth emails in
  * supabase/templates (html and text), the native shell's offline page, the
  * iOS permission strings in Info.plist and the Android strings.xml. Wired
- * into `npm run lint` and `prebuild`.
+ * into `npm run lint` and `prebuild`. The English locale modules
+ * (packages/i18n/src/locales/*.en.ts) are read too, since 6 October: the
+ * catalogues spread them in, so their sentences were never literals in en.ts.
  */
 const WEB = process.cwd();
 const REPO = join(WEB, "..", "..");
@@ -113,9 +115,20 @@ function copyIn(file: string): Copy[] {
   return found;
 }
 
+/* The English modules the catalogues are assembled from (passcode.en.ts,
+   front-door.en.ts, trust-visible.en.ts, experience-*.en.ts and the rest).
+   en.ts spreads them in, so a sentence written into a module never appears
+   as a literal in en.ts: without these the module copy escaped the sweep. */
+const LOCALES = join(REPO, "packages/i18n/src/locales");
+const ENGLISH_MODULES = readdirSync(LOCALES)
+  .filter((name) => /\.en\.ts$/.test(name))
+  .sort()
+  .map((name) => join(LOCALES, name));
+
 const FILES = [
   ...walk(join(WEB, "src"), []),
-  ...["en", "ha", "ig", "yo"].map((locale) => join(REPO, "packages/i18n/src/locales", `${locale}.ts`)),
+  ...["en", "ha", "ig", "yo"].map((locale) => join(LOCALES, `${locale}.ts`)),
+  ...ENGLISH_MODULES,
 ].filter((file) => !SKIPPED.test(file.split("\\").join("/")));
 
 /** Readable text in a markup or plain-text file: element text, alt/title/aria-label, and plist/xml string values. */
@@ -157,6 +170,16 @@ const MARKUP_FILES = [
 
 const COPY = [...FILES.flatMap(copyIn), ...MARKUP_FILES.flatMap(copyInMarkup)];
 
+/** The file part of a `where` ("path:line"), with forward slashes. */
+function fileOf(copy: Copy): string {
+  return copy.where.slice(0, copy.where.lastIndexOf(":")).split("\\").join("/");
+}
+
+/** Accepted only in the one file its entry names, and only for its sentence. */
+function pendingReword(copy: Copy): boolean {
+  return KNOWN_UNBACKED_PENDING_REWORD.some((entry) => fileOf(copy) === entry.file && entry.phrase.test(copy.text));
+}
+
 describe("every claim in the product names its mechanism", () => {
   it("reads enough of the product to mean something", () => {
     expect(FILES.length).toBeGreaterThan(800);
@@ -164,11 +187,39 @@ describe("every claim in the product names its mechanism", () => {
     expect(MARKUP_FILES.flatMap(copyInMarkup).length).toBeGreaterThan(40);
   });
 
+  it("reads every English locale module, not only the catalogues", () => {
+    expect(ENGLISH_MODULES.length).toBeGreaterThan(30);
+    /* In the sweep, not filtered out: a module that has no copy yet (an
+       empty namespace waiting for its owner) is still read the day it does. */
+    const unread = ENGLISH_MODULES.filter((file) => !FILES.includes(file)).map((file) => relative(REPO, file));
+    expect(unread, unread.join("\n")).toEqual([]);
+  });
+
   it("finds no claim word that nothing backs", () => {
     const unbacked = COPY.map((copy) => ({ ...copy, word: unbackedClaim(copy.text) }))
       .filter((copy) => copy.word !== null)
+      .filter((copy) => !pendingReword(copy))
       .map((copy) => `${copy.where}  "${copy.word}"  in: ${copy.text.slice(0, 140)}`);
     expect(unbacked, unbacked.join("\n")).toEqual([]);
+  });
+
+  /* The temporary list must shrink, never rot: an entry whose sentence has
+     been reworded (or moved) fails here so it is deleted, and the list
+     reaches empty as owners reword. */
+  it("keeps no pending-reword entry whose sentence has gone (reworded: delete the entry)", () => {
+    const gone = KNOWN_UNBACKED_PENDING_REWORD.filter(
+      (entry) => !COPY.some((copy) => fileOf(copy) === entry.file && entry.phrase.test(copy.text)),
+    ).map((entry) => `${entry.file}  ${String(entry.phrase)}  (owner: ${entry.owner})`);
+    expect(gone, gone.join("\n")).toEqual([]);
+  });
+
+  it("holds only sentences that really are unbacked in the pending-reword list", () => {
+    const backed = KNOWN_UNBACKED_PENDING_REWORD.flatMap((entry) =>
+      COPY.filter((copy) => fileOf(copy) === entry.file && entry.phrase.test(copy.text) && unbackedClaim(copy.text) === null).map(
+        (copy) => `${copy.where}  ${copy.text}`,
+      ),
+    );
+    expect(backed, backed.join("\n")).toEqual([]);
   });
 
   it("keeps no allowlist entry that no longer matches anything", () => {

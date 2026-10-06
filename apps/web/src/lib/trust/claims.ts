@@ -26,7 +26,8 @@
  * The check runs under vitest, so `prebuild` needs the web app's
  * devDependencies installed (a production-only install cannot build).
  *
- * Scope: the app's copy, the four locale catalogues, the auth email templates
+ * Scope: the app's copy, the four locale catalogues and the English modules
+ * they are assembled from (packages/i18n/src/locales/*.en.ts), the auth email templates
  * in supabase/templates, the native shell's offline page and the iOS and
  * Android native strings.
  *
@@ -121,9 +122,123 @@ export const BACKED_CLAIMS: readonly BackedClaim[] = [
   },
   { phrase: /\bI answer instantly\b/i, mechanism: "the support assistant answers from its local notes (lib/support/faq.ts) in the same request; anything beyond them goes to the human team, who reply by email" },
 
+  /* The English locale modules (6 October). These sentences live in
+     packages/i18n/src/locales/*.en.ts, which the sweep did not read until
+     now: en.ts spreads the modules in, so their copy was never a literal in
+     any file the check opened. Each entry below was read against its
+     mechanism before it was added; anything that could not be backed is in
+     KNOWN_UNBACKED_PENDING_REWORD instead, never here. */
+
+  /* V-87 dated credentials (trust-visible.en.ts proof strip, its explainer and
+     the staff desk's form). Only a member of staff writes one, a check older
+     than a year is not shown, and a CAC directorship row is accepted only
+     from the identity aggregator, so no CAC sentence renders today. */
+  {
+    phrase: /\bchecked on the (?:LASRERA|ESVARBON) register\b|\bchecked with the CAC\b|\bchecked this registration against the public register\b|\bcredential checked on the public register\b/i,
+    mechanism:
+      "public.credentials written only through public.record_credential (staff, guarded, audited), read through public.listing_credentials with the date; checks older than a year are not returned (supabase/migrations/20260928224407_v87_lasrera_esvarbon_and_cac_as_dated_credentials.sql)",
+  },
+  /* trust-doors.en.ts, the public "Is this a Vallo agent?" door. */
+  {
+    phrase: /\bidentity checked by vallo on \{date\}/i,
+    mechanism:
+      "private.identity_checked_at: the latest reviewed_at of an APPROVED identity row in agent_documents; app/(site)/check/CheckForm.tsx prints the sentence only when that date exists",
+  },
+  /* experience-account.en.ts, the renter passport's identity fact. */
+  {
+    phrase: /\bvirtual NIN was checked with NIMC\b/i,
+    mechanism:
+      "public.record_vnin_check (lib/identity/actions.ts, lib/identity/vnin-check.ts) stamps nimc_matched_at; the passport fact exists only when nimcMatchedAt is set (app/(app)/settings/passport/passport-facts.ts factViews)",
+  },
+  /* experience-account.en.ts, headings on the passport evidence page and the
+     verification path. Each sits over a record, never instead of one. */
+  {
+    phrase: /^how it was checked$|^what was checked$|^what will be checked$/i,
+    mechanism:
+      "headings: the evidence page renders only facts Vallo recorded (passport-facts.ts factViews); 'What was checked' heads only a rung whose state is passed and 'What will be checked' one still ahead (components/verification/VerificationPath.tsx)",
+  },
+  /* front-door.en.ts briefs (V-95). */
+  {
+    phrase: /\bverified listers (?:who have homes|with homes|only)\b/i,
+    mechanism:
+      "private.is_verified_lister (approved, verification_tier >= 1, not an example row) gates briefs_for_me and the answer function, which raises 42501 'verified listers only' (supabase/migrations/20260924110055_v95_the_brief_answered_only_with_a_listing.sql)",
+  },
+  /* landlord.en.ts, an owner inviting agents to pitch (V-42). */
+  {
+    phrase: /\bverified agents (?:who already list in|to pitch)\b|\bonly verified agents see these\b/i,
+    mechanism:
+      "private.my_verified_agent (verified or verification_tier > 0, trading, not an example row) gates the invitations an agent can read and the pitch function (supabase/migrations/20260924104919_an_owner_sees_their_units_and_agents_pitch_on_their_record.sql)",
+  },
+  /* trust-visible.en.ts, the card over an account number in a thread (V-04). */
+  {
+    phrase: /\bbelongs to the verified lister\b/i,
+    mechanism:
+      "lib/messages/account-check.ts: the card says 'belongs' only on outcome match, the provider-resolved holder name against the names Vallo verified for that lister; with no verified name on record it prints nothing (no_verified_name)",
+  },
+  /* host-workspace.en.ts, the start of a host application. */
+  {
+    phrase: /\bthe badge only ever means a human was checked\b/i,
+    mechanism: `catalogue_entries.verified for an accommodation is first party, not is_demo, and its owning agent carries the verified badge (lib/stays/types.ts, the M9 triggers): ${AGENT_KYC}`,
+  },
+  /* experience-admin.en.ts, the business desk's line in the staff palette. */
+  {
+    phrase: /\bwhat each has been checked for\b/i,
+    mechanism: "the host ladder's rungs (identity, registration, payout, on site), each decided by a reviewer on the admin business desk (lib/admin/business-ladder.ts, private.business_tier)",
+  },
+  /* compliance*.en.ts: staff desks, where "checked" is the reviewer's own
+     work or the event that queued a screening. */
+  {
+    phrase: /\bwhat you checked (?:and what it showed|\(date of birth)|^identity checked$/i,
+    mechanism:
+      "staff copy on the compliance desks: the reviewer's own note of what they checked, and the sanctions screening trigger 'identity' that a write to agent_verification_checks queues (supabase/migrations/20260929010407_scuml_8_sanctions_screening_on_live_tables.sql)",
+  },
+  /* Process descriptions, not a claim about a listing or a person. */
+  {
+    phrase: /\bwhile a change to your account is checked\b|^checked just now, against \{origin\}$/i,
+    mechanism:
+      "a process: an account hold placed while staff review a change (lib/security/account-hold.ts, not-me-copy.ts), and the store readiness checks run on request against the live platform (app/admin/operations/StorePanel.tsx)",
+  },
+  /* Everyday senses: the member's own action, never Vallo's verdict. */
+  {
+    phrase: /\byou have checked a lot of numbers\b|\bwhere you checked\b|\bsays you checked in\b/i,
+    mechanism: "the member's own action: lookups on the agent door (a rate limit), the area the member priced (price-check), and the safety share's I'm done tap (check in)",
+  },
+  {
+    phrase: /\bthe person you told knows you are safe\b/i,
+    mechanism:
+      "the member's own signal: the safety share records only that they tapped I'm done and when (trust-doors safetyShare.pageDone); Vallo asserts nothing about anybody's safety",
+  },
+
   /* Sentences deleted on the release branch by another change. */
   { phrase: /^secure and fast$/i, mechanism: "none", pendingRemoval: "STORE-06, fix/a4 b36e00e2 (already integrated)" },
 ];
+
+/**
+ * KNOWN UNBACKED CLAIMS, WAITING ON THEIR OWNER TO REWORD (temporary).
+ *
+ * A sentence here is NOT backed: nothing in the codebase makes it true. It is
+ * listed, rather than left failing, only because it sits in a locale module
+ * whose owner is not the person who found it, and the gate has to stay green
+ * while the owner rewords it. The sweep accepts an entry only in the one file
+ * it names and only for the sentence it matches; `claims.test.ts` fails the
+ * moment an entry stops matching (the owner reworded: delete the entry), and
+ * the list is meant to reach empty. Never add a sentence here to dodge a claim
+ * in copy you own: reword it, or back it in BACKED_CLAIMS with its mechanism.
+ */
+export type PendingReword = {
+  /** Matches the unbacked sentence, and only it. */
+  phrase: RegExp;
+  /** The module, relative to the repository root. */
+  file: string;
+  /** Who rewords it. */
+  owner: string;
+  /** Why it is unbacked. */
+  reason: string;
+  /** A wording that says only what is true. */
+  proposed: string;
+};
+
+export const KNOWN_UNBACKED_PENDING_REWORD: readonly PendingReword[] = [];
 
 /**
  * "Checked" said of a PERSON'S identity BY A PERSON: a sentence that has
