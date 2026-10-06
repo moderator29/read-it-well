@@ -22,9 +22,10 @@ import { isDataSaver } from "@/lib/ui/data-saver";
  * never measures an element: an IntersectionObserver reports visibility and the
  * rectangles it needs (for the row order) itself, off the main thread's layout
  * path. (No inset on the root: the float already offsets a held card, so the
-observer sees it a little late without one.) Cards that arrive in one callback are ordered top to bottom, left to
- * right, and take 0, 60, 120ms and so on, capped at six, so a row lands as one
- * organism and a long jump does not queue.
+ * observer sees it a little late without one.) Cards that arrive in one
+ * callback are ordered top to bottom, left to right, and take 0, 60, 120ms and
+ * so on, capped at six, so a row lands as one organism and a long jump does
+ * not queue.
  *
  * THE FLOAT IS SEEDED, NOT RANDOM: 50, 70 or 90px by the card's index (MOTION
  * principle 7), so the same list lands the same way on every visit.
@@ -55,7 +56,16 @@ function observer(): IntersectionObserver {
           } else el.dataset.entry = "pending";
           continue;
         }
-        if (entry.isIntersecting && el.dataset.entry === "pending") arriving.push(entry);
+        if (entry.isIntersecting && el.dataset.entry === "pending") {
+          /* Real keyboard focus scrolls a held card into view, and the
+             stylesheet already shows it (`:focus-within`); releasing it now
+             would replay the float from opacity 0 under the person's focus.
+             So a focused card is shown, not released: drop the hold. */
+          if (el.matches(":focus-within")) {
+            delete el.dataset.entry;
+            shared?.unobserve(el);
+          } else arriving.push(entry);
+        }
       }
       arriving
         .sort(
