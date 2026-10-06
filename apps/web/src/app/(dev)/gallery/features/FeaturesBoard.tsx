@@ -122,7 +122,6 @@ export function FeaturesBoard({
           ]}
           preselectedId="annual"
           trial={trial}
-          terms={{}}
           locale={locale}
           copy={{
             choose: f.plans.choose,

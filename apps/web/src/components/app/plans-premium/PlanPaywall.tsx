@@ -27,6 +27,13 @@ import { initialPlan, termsComplete, type PlanTerms } from "./plan-rules";
  * immediately above the button at the body-small size, never caption. And a
  * plan is preselected only when all four exist (`initialPlan`).
  *
+ * THE TERMS BELONG TO A PLAN. Monthly and annual charge on different dates and
+ * renew differently, so each `PlanOption` carries its own four sentences and
+ * the foot shows the CHOSEN plan's, changing as the choice does. A plan with
+ * no complete set has no foot and no action when it is chosen, and is never
+ * preselected; nothing here fills a gap from another plan's sentences or
+ * composes one, so no price or period is ever invented.
+ *
  * WHAT THIS COMPONENT CANNOT DRAW, BY CONSTRUCTION: a countdown, a "% off
  * forever", a strike-through anchor price, confetti, a padlock. There is no
  * prop for any of them. The plan cards are a radio group, never a toggle that
@@ -45,6 +52,8 @@ export type PlanOption = {
   priceMinor: number | null;
   /** The annual plan's real saving over twelve months of monthly, in kobo. Shown only when present. */
   savingMinor?: number | null;
+  /** This plan's four money sentences, from `lib/money/copy.ts`. Missing lines mean no foot and no preselection for it. */
+  terms?: Partial<PlanTerms>;
 };
 
 export type Benefit = { icon: UiIconName; text: string };
@@ -56,7 +65,6 @@ export function PlanPaywall({
   plans,
   preselectedId,
   trial,
-  terms,
   locale,
   copy,
   action,
@@ -65,12 +73,10 @@ export function PlanPaywall({
   promise: string;
   benefits: readonly Benefit[];
   plans: readonly PlanOption[];
-  /** The recommended plan. Honoured only when the four terms lines exist (D21). */
+  /** The recommended plan. Honoured only when that plan's four terms lines exist (D21). */
   preselectedId?: string | null;
   /** The `TrialTimeline`, where there is a trial. */
   trial?: ReactNode;
-  /** The four money sentences, from `lib/money/copy.ts`. Missing lines cancel preselection. */
-  terms: Partial<PlanTerms>;
   locale: Locale;
   copy: {
     choose: string;
@@ -86,7 +92,8 @@ export function PlanPaywall({
   action: (planId: string | null) => ReactNode;
 }) {
   const ids = plans.map((plan) => plan.id);
-  const recommended = initialPlan(preselectedId, ids, terms);
+  const termsOf = (id: string | null | undefined) => plans.find((plan) => plan.id === id)?.terms;
+  const recommended = initialPlan(preselectedId, ids, termsOf(preselectedId));
   const [chosen, setChosen] = useState<string | null>(recommended);
 
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
@@ -100,7 +107,9 @@ export function PlanPaywall({
     el?.focus();
   };
 
-  const lines = termsComplete(terms) ? terms : null;
+  /* The foot speaks for the plan that is chosen, in that plan's own words. */
+  const chosenTerms = termsOf(chosen);
+  const lines = termsComplete(chosenTerms) ? chosenTerms : null;
 
   return (
     <div className="nf-paywall">
@@ -162,7 +171,8 @@ export function PlanPaywall({
 
       {/* NO TERMS, NO ACTION. A plan that cannot say what it charges, when,
           how it renews and how to cancel has nothing honest to sell, so the
-          foot is not drawn at all until all four sentences exist. */}
+          foot is not drawn at all until the chosen plan's four sentences
+          exist (and with no plan chosen there are none to show). */}
       {lines ? (
         <div className="nf-paywall__foot">
           <ul className="nf-paywall__terms">
