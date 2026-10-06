@@ -6,7 +6,7 @@ import { verifyReceiptCode } from "@/lib/receipts/verify";
 import { formatReceiptCode, normaliseReceiptCode } from "@/lib/receipts/code";
 import { ButtonLink } from "@/components/ui/Button";
 import { IconPlate } from "@/components/ui/IconPlate";
-import { DocFigure, DocHead, DocNote, DocPerforation, DocRow, DocRows, DocSection, DocState, DocumentSheet } from "@/components/app/money/DocumentSheet";
+import { DocFigure, DocHead, DocNote, DocPerforation, DocRow, DocRows, DocState, DocumentSheet } from "@/components/app/money/DocumentSheet";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 
 /** Never indexed: a receipt is shown to whoever holds the code, not to a crawler. */
@@ -110,7 +110,13 @@ export default async function ReceiptCheckPage({ params }: { params: Promise<{ c
       {parts.length > 0 ? (
         <>
           <DocPerforation />
-          <DocSection title={copy.partsHeading} id="receipt-parts">
+          {/* Not `DocSection`, which draws an h3: this page's h1 is the verdict, so
+              the ledger's heading is an h2 (no skipped level), in the sheet's
+              own section classes. */}
+          <section className="nf-doc__section" aria-labelledby="receipt-parts">
+            <h2 id="receipt-parts" className="nf-doc__section-title">
+              {copy.partsHeading}
+            </h2>
             <DocRows>
               {parts.map(([key, minor]) => (
                 <DocRow key={key} label={copy.parts[key]} numeric>
@@ -118,7 +124,7 @@ export default async function ReceiptCheckPage({ params }: { params: Promise<{ c
                 </DocRow>
               ))}
             </DocRows>
-          </DocSection>
+          </section>
         </>
       ) : null}
       <DocNote>{copy.footnote}</DocNote>
