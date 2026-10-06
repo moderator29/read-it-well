@@ -47,12 +47,10 @@ export const dynamic = "force-dynamic";
  * Started in the page's first wave and chained on `readIntentTuning()`, so the
  * (at most three) kind reads run in parallel with each other and with the
  * overview, the recommended shelf and the rest, instead of as a second wave
- * after all of them. Each read asks for eighteen rows, not the catalogue's
- * two hundred: the shelf shows six cards and `rankRecommended` only has to
- * choose among a handful per kind. The kind filter is applied in SQL, so the
- * ceiling never trims away matches the way it can for a free-text search.
- * The formula and the partition are untouched; this decides only how many
- * rows are read to feed them.
+ * after all of them. Each read keeps the catalogue's own ceiling: the search
+ * orders by publication date before it caps, so a smaller limit would hand
+ * `rankRecommended` only the newest rows and change what ranking sees, which
+ * is Session 2's to decide (a ranked SQL read is request W2-R2).
  */
 async function readStatedKinds(
   repo: ReturnType<typeof getListingRepository>,
@@ -62,7 +60,7 @@ async function readStatedKinds(
     .filter((kind): kind is SpaceTypeKey => (PROPERTY_SPACE_TYPES as readonly string[]).includes(kind))
     .slice(0, 3);
   if (stated.length === 0) return { tuning, stated, forThem: [] };
-  const rows = await Promise.all(stated.map((kind) => repo.search({ kind, propertySide: true }, { limit: 18 })));
+  const rows = await Promise.all(stated.map((kind) => repo.search({ kind, propertySide: true })));
   return { tuning, stated, forThem: rows.flat() };
 }
 
