@@ -6,13 +6,13 @@ component with the fixture named in its row. **P** pass, **X** failed and fixed 
 sweep, **F** failed and still open, **·** does not apply. The denominator is 213 real routes
 (every `page.tsx` under `apps/web/src/app`, excluding `(dev)` and `api`).
 
-**Routes audited: 97 of 213.**
+**Routes audited: 103 of 213.**
 
 | Family | Audited |
 |---|---|
 | admin | 23 |
 | agent | 24 |
-| around | 3 |
+| around | 5 |
 | assistant | 1 |
 | bookings | 2 |
 | host | 17 |
@@ -21,11 +21,12 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | messages | 2 |
 | pay | 1 |
 | price | 1 |
-| profile | 4 |
+| profile | 6 |
 | rent | 3 |
+| restaurant | 1 |
 | settings | 2 |
 | stories | 2 |
-| support | 3 |
+| support | 4 |
 | tenancy | 1 |
 | u | 4 |
 
@@ -78,6 +79,8 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | `/agent/reviews` | C1 | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/agent/settings` | C1 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/agent/verification` | C1 | P | P | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
+| `/around` | C3 | P | · | P | P | P | P | P | · | P | P | P | P | P | · | · | X | · | P | P | P | X | P | P | P |
+| `/around/[slug]` | C3 | P | · | P | P | P | P | P | P | P | P | P | P | P | · | P | X | · | P | X | P | P | P | P | P |
 | `/around/manage` | C3 | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | P | · | · | · | · | · | · | · | P |
 | `/around/new` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | P | P | P | P |
 | `/around/settings` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | X | P | P | P |
@@ -112,14 +115,18 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | `/profile/application` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/profile/setup` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | P | P | P | P |
 | `/profile/setup/[role]` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | P | P | P | P |
+| `/profile/setup/agent` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | P | P | P | P |
 | `/profile/setup/firm` | C3 | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | P | · | · | · | · | · | · | · | P |
+| `/profile/setup/owner` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | P | P | P | P |
 | `/rent/move-in/[listingId]` | C3 | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | P | P | X | P | P | P |
 | `/rent/pay/[inspectionId]` | C3 | P | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | X | · | P | P | P | P | P | P |
 | `/rent/review/[paymentId]` | C3 | P | · | P | P | P | P | · | · | · | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
+| `/restaurant/[id]` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | P | P | X | P | P | P | P | X | P | P | P |
 | `/settings/accessibility` | C3 | P | · | P | P | P | X | · | · | P | P | P | X | P | · | · | P | · | · | P | X | P | P | P | P |
 | `/settings/region` | C3 | P | · | P | P | P | P | · | · | P | P | P | X | P | · | · | P | · | · | P | P | P | P | P | P |
 | `/stories/[id]` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | X | X | X | P | P | P |
 | `/stories/new` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | P | P | P | P | X | P | P |
+| `/support` | C3 | P | · | P | P | P | P | · | · | P | P | P | X | P | · | P | X | · | X | P | P | X | P | P | P |
 | `/support/messages` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | X | P | P |
 | `/support/messages/[id]` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | X | P | X | P | P |
 | `/support/new` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | X | P | P |
@@ -280,6 +287,16 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 
 - 21 (fixed): The rail's "Apply to list" link (drawn when no agent profile reads) measured a 32px box with the words broken over two lines at 1440; it is a block as wide as its words now (components/agent/AgentNav.tsx, every agent page).
 
+**`/around`** (the real page signed in with no place joined, so the everywhere feed: f4 FEED_POSTS (placed nowhere) and f4 FEED_STORIES; author tiers left as the fixture has them)
+
+- 16 (fixed): The empty state's title and action were English literals in the page; they come from experienceSocial.around now.
+- 21 (fixed): The location bar's tap target came to 42px: its ::after assumed the 33.4px border box but measures from the padding box inside the 1px edge. It is a centred 44 now (social-feed.css).
+
+**`/around/[slug]`** (the real page with getArea answering sweep-orphans AREAS[1] (Surulere: just opened, one member, no posts, no blurb, no moderators), the state the page is designed around, once as a member and once signed out, with the empty feed, stories and reviews the reads return for a place with no posts (no fixture holds posts placed in Surulere, so none were borrowed); and the unconfigured answer)
+
+- 16 (fixed): Four English literals in the page (the title, the unreachable sentence, "Part of {name}" and the metadata) now come from experienceSocial.place.
+- 19 (fixed): The district chip row bled 20px into a 16px gutter: at 390 it ran from -4 to 394, past both screen edges. It bleeds by the shell's gutter token now (social-feed.css), so 0 at 390.
+
 **`/around/settings`** (the real page with session-b/sweep-orphans AREAS (open and mine), PROPOSALS, PICKER_TREE and PICKER_OPEN)
 
 - 21 (fixed): Find people drew 21.7px tall: it takes nf-tap now, 0 under 44.
@@ -402,6 +419,11 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 
 - 17 (fixed): checkout.onPlatformRent said Money moves inside Vallo directly under NO_CUSTODY_SENTENCE (D48, D50). It is C2's copy, so it went as patch checkout-no-custody-onplatform.patch; the lead applied it.
 
+**`/restaurant/[id]`** (the real page with listingById answering f3 RESTAURANTS[0] (The Lagoon Kitchen) as a catalogue listing built only from that card's own fields (title, area and city from its where, kind, amenities, hue); no stated price, no reviews, no photographs; getRestaurantDetail null (no business-grade fixture exists), so the hours card says there are none)
+
+- 16 (fixed): The about sentence was assembled from English fragments ("is in", "and serves") and the share card's line was English; both come from experienceDetail.restaurant now, one whole sentence per case.
+- 21 (fixed): The Restaurants link in Getting there drew 21.7px tall; it takes nf-tap now, 0 under 44.
+
 **`/settings/accessibility`** (the real page and its new loading.tsx inside the real settings layout (SettingsAreaNav); it reads only the dictionary and the device's settings store)
 
 - 6 (fixed): Weights were 400/600/650: the motion level names set 650, outside the system's 400, 600 and 700. They are 600 now (motion-pref.css).
@@ -421,6 +443,13 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 **`/stories/new`** (the real page with social on and listMyAreas mocked to session-b/sweep-orphans AREAS)
 
 - 22 (fixed): Overflow 0 in all four, but the page's strings were English literals. They are in experienceSocial.newStory now.
+
+**`/support`** (the real page and its new loading.tsx inside the support layout, signed in: support fixtures MY_TICKETS, the shell identity named from _fixtures/people PERSON's first name, no reports filed, no AI consent)
+
+- 12 (fixed): No loading.tsx: it fell back to the (app) skeleton (a header over three cards). support/loading.tsx now draws the round back, the hero card with its action and three doors, the Messages group, the search panel and the rows.
+- 16 (fixed): The greeting, the reply promise, the group labels, the legal rows, the hero's action and doors and the Messages row's words were English literals; all come from experienceInbox.support.home now (the hero and the row take a copy prop).
+- 18 (fixed): Your reports with none filed drew an empty lit card, a 4px sliver, above its sentence. SettingsGroup draws no card when it has no rows (components/app/account/rows.tsx).
+- 21 (fixed): Two sign-in links were hand-encoded; they use withNext (lib/auth/next-link) now. Measured targets were already 44.
 
 **`/support/messages`** (the real page inside its real layout, loadMyTickets mocked to preview/support MY_TICKETS)
 
