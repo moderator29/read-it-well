@@ -2073,7 +2073,14 @@
     background: var(--nf-act-track-off);
     border: var(--nf-border-width) solid var(--nf-act-track-off-edge);
     box-shadow: none;
-    transition: none;
+    /* The track crossfades on `glide` while the knob springs on `drift`
+       (Switch.tsx), so the two read as one event: it said `none` here, which
+       snapped the colour under a travelling knob. The tokens are 1ms under
+       reduced motion, and Off zeroes every transition (motion-pref.css). */
+    transition:
+      background-color var(--nf-duration-base) var(--nf-ease-standard),
+      border-color var(--nf-duration-base) var(--nf-ease-standard),
+      box-shadow var(--nf-duration-base) var(--nf-ease-standard);
   }
   .nf-switch[aria-checked="true"] {
     background: var(--nf-act-fill);
