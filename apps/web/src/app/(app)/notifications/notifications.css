@@ -94,6 +94,16 @@
     background: var(--nf-count-fill);
     color: var(--nf-count-ink);
   }
+  /* LIGHT: the shared status-badge rule in light.css
+     (`:root[data-theme="light"] :is(.nf-badge, .nf-count-badge, ...)`) paints a
+     10 per cent tint of the badge hue, and it outranks the plain rule above, so
+     on paper the count was the count ink (white) on a pale blue plate, 1.15:1
+     (W12). Matching its selector keeps the count's own fill and ink: the deep
+     cyan with white, 5:1 or better. */
+  :root[data-theme="light"] .nf-count-badge.nf-notif__count:not(:where([data-theme="dark"] *)) {
+    background: var(--nf-count-fill);
+    color: var(--nf-count-ink);
+  }
   /* The tools beside the title: mark all read, then the preferences gear. */
   .nf-notif__tools {
     display: flex;
