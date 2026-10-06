@@ -24,12 +24,12 @@ labels into the dictionary).
 **The sweep, as a number.** The per-route record is
 [`SESSION-3-SWEEP.md`](SESSION-3-SWEEP.md), generated from each agent's own 24-point
 result, run in Chromium at 390, 768 and 1440 in both themes on the route's real page
-component. **Routes audited with all 24 points recorded: 212 of the 213** at this edit, plus
-four routes added since (217 records; a route whose found state no fixture holds is
-recorded but not counted, and its unmeasured points show as N). 38 admin, 24 agent and 17 host: every route
+component. **Routes audited with all 24 points recorded: 213 of the 213** at this edit, plus
+four routes added since (217 records). Every route has a measured record; a
+state no fixture holds is listed in its route's remaining items, never counted as
+measured. 38 admin, 24 agent and 17 host: every route
 in those trees. 39 public site, auth and landing: every route in those groups. The
-member routes and the top-level pages make up the rest; the 25 not yet audited are
-listed in the sweep file. The rows in section 3 below predate this and leave points
+member routes and the top-level pages make up the rest. The rows in section 3 below predate this and leave points
 19, 22 and 23 at N; they are not counted. The measured starting point (C1, at
 `6376453df` against the session base): 88 of 213 `page.tsx` files untouched, 46 of
 125 edits five lines or fewer, 54 routes whose own files are untouched; admin 23

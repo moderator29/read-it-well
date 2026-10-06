@@ -6,11 +6,7 @@ component with the fixture named in its row. **P** pass, **X** failed and fixed 
 sweep, **F** failed and still open, **·** does not apply. The denominator is 213 real routes
 (every `page.tsx` under `apps/web/src/app`, excluding `(dev)` and `api`).
 
-**Routes audited: 212 of the 213** measured at the start of the sweep, plus 4 routes added since (`/join/[code]/start`, `/s/[token]/status`, `/settings/accessibility`, `/settings/region`): 217 records in all.
-
-Recorded but not counted, because a point could not be measured (no fixture holds the found state): `/agreements/[id]`.
-
-Not yet audited: `/agreements/[id]`.
+**Routes audited: 213 of the 213** measured at the start of the sweep, plus 4 routes added since (`/join/[code]/start`, `/s/[token]/status`, `/settings/accessibility`, `/settings/region`): 217 records in all.
 
 | Family | Audited |
 |---|---|
@@ -151,7 +147,7 @@ Not yet audited: `/agreements/[id]`.
 | `/agent/settings` | C1 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/agent/verification` | C1 | P | P | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/agreements` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | X | P | P | P | P | P | P | P | P |
-| `/agreements/[id]` | C3 | N | N | N | N | N | N | P | N | N | N | N | N | N | P | P | X | X | N | N | N | N | X | N | N |
+| `/agreements/[id]` | C3 | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | X | X | P | P | P | P | X | P | P |
 | `/areas/[state]/[area]` | C6 | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | P | P | P | P | P | P | P | P | P |
 | `/around` | C3 | P | · | P | P | P | P | P | · | P | P | P | P | P | · | · | X | · | P | P | P | X | P | P | P |
 | `/around/[slug]` | C3 | P | · | P | P | P | P | P | P | P | P | P | P | P | · | P | X | · | P | X | P | P | P | P | P |
@@ -541,11 +537,11 @@ Not yet audited: `/agreements/[id]`.
 
 - 16 (fixed): The title, the section label and the empty state were English literals; they come from nav.agreements and experienceMoney.agreements (listTitle, emptyTitle, emptyBody).
 
-**`/agreements/[id]`** (none (read from the source only))
+**`/agreements/[id]`** (the real page with readAgreement answering f3/agreement AGREEMENT, derived only from committed fixtures (f3 TENANCIES[0] is payable, so approved and both confirmed by the payment gate; RENTAL's fee fields as the terms and its move-in total as the amount; PERSON as the renter; the read's own fallback for the unnamed lister; no events, one version), viewed by its renter, no kept versions)
 
-- 16 (fixed): About forty English literals (the header, the band, the track's six labels, Awaiting you, the terms sheet's labels and confirmation sentences, the section titles, the money line labels) now come from experienceMoney.agreements.page and the move-in ledger's own words (t.moveIn).
-- 17 (fixed): Four money lines were written in the page (Pay {amount} twice, the review paragraph, Payment is open, the lister's approved sentence). They move to lib/money/copy.ts in the patch c3/agreement-money-copy.patch, for the lead. The Guarantee claim section is unchanged (counsel).
-- 22 (fixed): Three dates were formatted "en-NG" for every reader (Since, the changes' byline, each track step); they use the reader's locale (intlTag). The Guarantee claim window is unchanged.
+- 16 (fixed): About forty English literals came from the page; they come from experienceMoney.agreements.page and t.moveIn (committed in the earlier unit). Measured here: the page draws them. And Between read "Seyi Omojuni (renter) and The owner or agent (owner or agent)" when the lister's profile has no name (the read's fallback printed with the role again); the read exports UNNAMED_RENTER and UNNAMED_OWNER and the page names an unnamed party by role alone ("and the owner or agent").
+- 17 (fixed): Four money lines move to lib/money/copy.ts (the lead's patch, committed).
+- 22 (fixed): Dates through the reader's locale (earlier unit). Measured: 0 overflow, 0 clipped in four locales.
 
 **`/around`** (the real page signed in with no place joined, so the everywhere feed: f4 FEED_POSTS (placed nowhere) and f4 FEED_STORIES; author tiers left as the fixture has them)
 
