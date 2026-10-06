@@ -4,9 +4,10 @@ import { formatMoney, getDictionary, intlTag } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { verifyReceiptCode } from "@/lib/receipts/verify";
 import { formatReceiptCode, normaliseReceiptCode } from "@/lib/receipts/code";
-import { EmptyState } from "@/components/app/Screen";
 import { ButtonLink } from "@/components/ui/Button";
-import { UiIcon } from "@/design-system/icons/UiIcon";
+import { IconPlate } from "@/components/ui/IconPlate";
+import { DocFigure, DocHead, DocNote, DocPerforation, DocRow, DocRows, DocSection, DocState, DocumentSheet } from "@/components/app/money/DocumentSheet";
+import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 
 /** Never indexed: a receipt is shown to whoever holds the code, not to a crawler. */
 export const metadata: Metadata = { title: "Receipt check", robots: { index: false, follow: false } };
@@ -26,6 +27,15 @@ export const dynamic = "force-dynamic";
  *
  * Four answers, each in words: genuine, no such code (which is also what a
  * stopped code answers), too many checks, or could not check.
+ *
+ * ONE CONFIDENT ANSWER (north star 10 J, Session 3). The answer is the page's
+ * heading: "Genuine Vallo receipt", or "No receipt matches that code", set
+ * large with its glyph on a round plate (so it is never colour alone), the
+ * same answer card `/check` gives. A genuine receipt is then drawn as what it
+ * is, a receipt: the Paper document sheet on the reader's theme (D28.1), the
+ * amount as its one figure, the parties and the area as rows, the parts of
+ * the payment as its ledger, and the area-only footnote at its foot. Nothing
+ * on it is added: every line is one `verify_receipt` returned.
  */
 export default async function ReceiptCheckPage({ params }: { params: Promise<{ code: string }> }) {
   const { code } = await params;
@@ -34,13 +44,14 @@ export default async function ReceiptCheckPage({ params }: { params: Promise<{ c
   const outcome = await verifyReceiptCode(decodeURIComponent(code));
   const normal = normaliseReceiptCode(decodeURIComponent(code));
 
-  const frame = (children: React.ReactNode) => (
+  const frame = (answer: React.ReactNode, children?: React.ReactNode) => (
     <div className="nf-shell py-section">
       <div className="mx-auto max-w-md">
-        <h1 className="nf-h2">{copy.pageTitle}</h1>
+        <p className="nf-section-label">{copy.pageTitle}</p>
         {normal && <p className="nf-caption nf-numeric mt-2xs">{formatReceiptCode(normal)}</p>}
-        <div className="mt-md">{children}</div>
-        <p className="nf-caption mt-md">{copy.footnote}</p>
+        <div className="mt-md">{answer}</div>
+        {children ? <div className="mt-md">{children}</div> : null}
+        {children ? null : <p className="nf-caption mt-md">{copy.footnote}</p>}
         <div className="mt-md">
           <ButtonLink href="/r" variant="secondary" full>
             {copy.formSubmit}
@@ -50,14 +61,26 @@ export default async function ReceiptCheckPage({ params }: { params: Promise<{ c
     </div>
   );
 
+  const verdict = (tone: "success" | "warning" | "neutral", icon: UiIconName, title: string, body: string | null, testId: string) => (
+    <div className="nf-check-answer nf-receipt-verdict" data-tone={tone} data-testid={testId}>
+      <h1 className="nf-check-answer__title">
+        <IconPlate size="sm" shape="round" tone={tone}>
+          <UiIcon name={icon} size={20} />
+        </IconPlate>
+        {title}
+      </h1>
+      {body ? <p className="nf-check-answer__body">{body}</p> : null}
+    </div>
+  );
+
   if (outcome.state === "not_found") {
-    return frame(<EmptyState icon="seal-cross" title={copy.notFoundTitle} body={copy.notFoundBody} data-testid="receipt-not-found" />);
+    return frame(verdict("warning", "shield-stop", copy.notFoundTitle, copy.notFoundBody, "receipt-not-found"));
   }
   if (outcome.state === "rate_limited") {
-    return frame(<EmptyState icon="calendar-clock" title={copy.limitedTitle} body={copy.limitedBody} data-testid="receipt-limited" />);
+    return frame(verdict("neutral", "calendar-clock", copy.limitedTitle, copy.limitedBody, "receipt-limited"));
   }
   if (outcome.state === "unavailable") {
-    return frame(<EmptyState icon="alert-triangle" title={copy.unavailableTitle} body={copy.unavailableBody} data-testid="receipt-unavailable" />);
+    return frame(verdict("neutral", "alert-triangle", copy.unavailableTitle, copy.unavailableBody, "receipt-unavailable"));
   }
 
   const receipt = outcome.receipt;
@@ -70,35 +93,35 @@ export default async function ReceiptCheckPage({ params }: { params: Promise<{ c
     receipt.rentPeriod === "month" ? copy.periodMonth : receipt.rentPeriod === "quarter" ? copy.periodQuarter : copy.periodYear;
   // Rule 10: through the closed lists, never the lister's spelling.
   const where = await publicPlace(receipt.area, receipt.city, receipt.stateCode);
+  const parts = Object.entries(receipt.parts) as [keyof typeof copy.parts, number][];
 
   return frame(
-    <section className="nf-panel nf-panel--card block p-md" data-testid="receipt-genuine">
-      <p className="flex items-center gap-xs font-semibold text-[var(--nf-state-success)]">
-        <UiIcon name="verified" size={20} />
-        <span>{copy.genuine}</span>
-      </p>
-      <p className="nf-h3 nf-numeric mt-sm">
+    verdict("success", "verified-badge", copy.genuine, null, "receipt-genuine"),
+    <DocumentSheet kind="receipt" printable aria-labelledby="receipt-paid">
+      <DocHead label={<DocState done>{copy.genuine}</DocState>} />
+      <DocFigure>{formatMoney(receipt.paidMinor, locale)}</DocFigure>
+      <p id="receipt-paid" className="nf-doc__note">
         {copy.paidLine.replace("{amount}", formatMoney(receipt.paidMinor, locale)).replace("{month}", month)}
+        {receipt.tenant
+          ? ` ${copy.byLine.replace("{tenant}", receipt.tenant).replace("{lister}", receipt.lister ?? getDictionary(locale).afterTheGate.moneyMap.theLister)}`
+          : ""}
+        {where ? ` ${copy.forLine.replace("{period}", period).replace("{area}", where)}` : ""}
       </p>
-      {receipt.tenant && (
-        <p className="nf-body mt-xs">
-          {copy.byLine.replace("{tenant}", receipt.tenant).replace("{lister}", receipt.lister ?? getDictionary(locale).afterTheGate.moneyMap.theLister)}
-        </p>
-      )}
-      {where && <p className="nf-body mt-2xs">{copy.forLine.replace("{period}", period).replace("{area}", where)}</p>}
-      {Object.keys(receipt.parts).length > 0 && (
+      {parts.length > 0 ? (
         <>
-          <h2 className="nf-h4 mt-md">{copy.partsHeading}</h2>
-          <dl className="mt-xs grid gap-2xs">
-            {(Object.entries(receipt.parts) as [keyof typeof copy.parts, number][]).map(([key, minor]) => (
-              <div key={key} className="flex items-baseline justify-between gap-md">
-                <dt className="nf-body-sm text-[var(--nf-content-secondary)]">{copy.parts[key]}</dt>
-                <dd className="nf-body-sm nf-numeric font-semibold">{formatMoney(minor, locale)}</dd>
-              </div>
-            ))}
-          </dl>
+          <DocPerforation />
+          <DocSection title={copy.partsHeading} id="receipt-parts">
+            <DocRows>
+              {parts.map(([key, minor]) => (
+                <DocRow key={key} label={copy.parts[key]} numeric>
+                  {formatMoney(minor, locale)}
+                </DocRow>
+              ))}
+            </DocRows>
+          </DocSection>
         </>
-      )}
-    </section>,
+      ) : null}
+      <DocNote>{copy.footnote}</DocNote>
+    </DocumentSheet>,
   );
 }

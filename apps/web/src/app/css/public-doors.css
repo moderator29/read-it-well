@@ -133,14 +133,55 @@
   .nf-check-answer[data-tone="success"] {
     background: color-mix(in oklab, var(--nf-state-success) 6%, var(--nf-surface-primary));
   }
+  /*
+   * ONE CONFIDENT ANSWER (north star 10 J; Session 3). The answer is the
+   * subject of the page once it arrives, so its title is set in the display
+   * face at title size rather than as one more row, and the card arrives on
+   * `land` 240ms (it came from the check that was just pressed). A checked
+   * identity is a payoff (MOTION_SYSTEM "verification passed"): its plate
+   * pops once, 1.0 to 1.04 to 1.0 over 180ms, and nothing else here moves.
+   * A "no" never pops and never shakes: bad news arrives at once, plainly.
+   */
+  .nf-check-answer {
+    animation: nf-check-in var(--nf-duration-base) var(--nf-ease-entrance) both;
+  }
+  .nf-check-answer[data-tone="warning"] {
+    animation-duration: var(--nf-duration-fast);
+  }
+  @keyframes nf-check-in {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 8px, 0);
+    }
+  }
+  .nf-check-answer[data-tone="success"] .nf-check-answer__title > :first-child {
+    animation: nf-check-pop 180ms var(--nf-ease-spring) var(--nf-duration-base) both;
+  }
+  @keyframes nf-check-pop {
+    50% {
+      transform: scale(1.04);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-check-answer,
+    .nf-check-answer[data-tone="success"] .nf-check-answer__title > :first-child {
+      animation: none;
+    }
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) :is(.nf-check-answer, .nf-check-answer__title > :first-child) {
+    animation: none;
+  }
   .nf-check-answer__title {
     display: flex;
     align-items: center;
     gap: var(--nf-space-sm);
-    font-size: var(--nf-text-row);
+    font-family: var(--nf-font-display);
+    font-size: clamp(1.125rem, 1rem + 0.5vw, 1.375rem);
     font-weight: 600;
-    line-height: 1.35;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
     color: var(--nf-content-primary);
+    text-wrap: balance;
   }
   .nf-check-answer__body {
     font-size: var(--nf-text-body-sm);
@@ -176,15 +217,62 @@
     grid-template-columns: minmax(0, 1fr);
     gap: var(--nf-space-md);
   }
+  /*
+   * IT LEADS WITH ITS FIGURE (Session 3; north star 10 J). From 60rem the
+   * result card is the first column, sticky beside the form, so the total
+   * is the first thing read and stays in view as the fees are typed. The
+   * DOM keeps the form first (the order a keyboard fills it); the columns
+   * are placed, not reordered.
+   */
   @media (min-width: 60rem) {
     .nf-calc {
-      grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
       align-items: start;
     }
     .nf-calc__result {
+      grid-column: 1;
+      grid-row: 1;
       position: sticky;
-      top: calc(var(--nf-space-2xl) + env(safe-area-inset-top, 0px));
+      top: calc(var(--nf-header-height) + var(--nf-space-md) + env(safe-area-inset-top, 0px));
     }
+    .nf-calc__form {
+      grid-column: 2;
+      grid-row: 1;
+    }
+    .nf-calc__lead {
+      display: none;
+    }
+  }
+  /* The phone's leading strip: the total, sticky under the bar while the
+     form below is typed into (Plate material, one hairline). */
+  .nf-calc__lead {
+    position: sticky;
+    top: calc(var(--nf-header-height-sm) + var(--nf-space-2xs) + env(safe-area-inset-top, 0px));
+    z-index: 3;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--nf-space-sm);
+    min-height: 3.25rem;
+    padding: var(--nf-space-xs) var(--nf-space-md);
+    border-radius: var(--nf-tier-plate-radius);
+    border: var(--nf-border-width) solid var(--nf-card-border);
+    background: var(--nf-surface-primary);
+  }
+  .nf-calc__lead-label {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-calc__lead-figure {
+    font-family: var(--nf-font-display);
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--nf-content-primary);
+  }
+  .nf-calc__lead-empty {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
   }
   .nf-calc__form {
     gap: var(--nf-space-md);
@@ -273,9 +361,10 @@
   .nf-calc__caption {
     text-align: center;
   }
+  /* The hero figure (north star 5: 56 to 72 on a wide screen). */
   .nf-calc__total {
     font-family: var(--nf-font-display);
-    font-size: var(--nf-text-figure);
+    font-size: clamp(2.5rem, 1.6rem + 2.6vw, 3.75rem);
     font-weight: 600;
     line-height: 1.05;
     letter-spacing: -0.02em;
@@ -312,25 +401,28 @@
     border-top: 0;
   }
   .nf-calc__dot {
-    inline-size: 0.5rem;
-    block-size: 0.5rem;
-    border-radius: 50%;
-    background: var(--nf-brand-primary);
+    inline-size: 0.625rem;
+    block-size: 0.625rem;
+    border-radius: 3px;
+    background: var(--nf-calc-step, var(--nf-brand-primary));
   }
-  .nf-calc__dot[data-tone="info"] {
-    background: var(--nf-state-info);
+  /* ONE HUE IN STEPS (MoveInCalculator.tsx says why): the rent strongest,
+     each later line a quieter step of the same blue. */
+  .nf-calc [data-step="0"] { --nf-calc-step: var(--nf-brand-primary); }
+  .nf-calc [data-step="1"] { --nf-calc-step: color-mix(in oklab, var(--nf-brand-primary) 76%, var(--nf-surface-canvas)); }
+  .nf-calc [data-step="2"] { --nf-calc-step: color-mix(in oklab, var(--nf-brand-primary) 60%, var(--nf-surface-canvas)); }
+  .nf-calc [data-step="3"] { --nf-calc-step: color-mix(in oklab, var(--nf-brand-primary) 46%, var(--nf-surface-canvas)); }
+  .nf-calc [data-step="4"] { --nf-calc-step: color-mix(in oklab, var(--nf-brand-primary) 34%, var(--nf-surface-canvas)); }
+  .nf-calc [data-step="5"] { --nf-calc-step: color-mix(in oklab, var(--nf-brand-primary) 24%, var(--nf-surface-canvas)); }
+  .nf-calc__bar {
+    display: flex;
+    gap: 4px;
+    height: 0.625rem;
   }
-  .nf-calc__dot[data-tone="neutral"] {
-    background: var(--nf-content-muted);
-  }
-  .nf-calc__dot[data-tone="success"] {
-    background: var(--nf-state-success);
-  }
-  .nf-calc__dot[data-tone="warning"] {
-    background: var(--nf-state-warning);
-  }
-  .nf-calc__dot[data-tone="error"] {
-    background: var(--nf-state-error);
+  .nf-calc__bar > span {
+    min-width: 6px;
+    border-radius: 3px;
+    background: var(--nf-calc-step, var(--nf-brand-primary));
   }
   .nf-calc__line-label {
     color: var(--nf-content-secondary);
@@ -873,5 +965,50 @@
   .nf-door-page__actions {
     display: grid;
     gap: var(--nf-space-xs);
+  }
+}
+
+/*
+ * THE LEGAL DOCUMENTS ON PAPER (Session 3, W1; D28.1 and north star 10 J:
+ * "legal pages in Paper as documents"). The privacy policy, the terms, the
+ * EULA and the disclaimer sit on the shared document sheet
+ * (DocumentSheet.tsx), which unrolls once and prints on its own. What this
+ * adds is the typographic hierarchy of a document: each section's heading in
+ * the display face, and a hairline between sections so a long policy reads
+ * as numbered parts rather than one grey wall. The words are not touched.
+ */
+@layer components {
+  .nf-legal-sheet h2 {
+    font-family: var(--nf-font-display);
+    font-size: clamp(1.125rem, 1rem + 0.4vw, 1.3125rem);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--nf-content-primary);
+  }
+  .nf-legal-sheet section + section {
+    padding-top: var(--nf-space-lg);
+    border-top: var(--nf-border-width) solid var(--nf-divider);
+  }
+  .nf-legal-sheet :is(p, li) {
+    max-width: 68ch;
+  }
+}
+
+/* The area page's asking ranges as figures (areas/[state]/[area]/page.tsx). */
+@layer components {
+  .nf-area-ranges {
+    display: grid;
+    gap: var(--nf-space-sm);
+  }
+  .nf-area-range {
+    gap: var(--nf-space-2xs);
+  }
+  .nf-area-range__figure {
+    font-family: var(--nf-font-display);
+    font-size: clamp(1.5rem, 1.2rem + 1vw, 2rem);
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: var(--nf-content-primary);
   }
 }
