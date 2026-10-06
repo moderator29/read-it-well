@@ -3,7 +3,6 @@
 import "./feature-onboarding.css";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import type { KeyboardEvent, PointerEvent as ReactPointerEvent } from "react";
-import { useRouter } from "next/navigation";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { useMotionGate } from "@/components/motion/useMotionGate";
@@ -60,7 +59,6 @@ export function FirstRunPanels({
   next: string;
   copy: { skip: string; next: string; page: string; pager: string; region: string };
 }) {
-  const router = useRouter();
   const { quiet } = useMotionGate();
   const [at, setAt] = useState(0);
   /* Whether the device record stuck. A ref, not state: it only decides where
@@ -76,6 +74,12 @@ export function FirstRunPanels({
     recorded.current = rememberFeatureRun(feature);
   }, [feature]);
   const exitTo = () => (recorded.current ? next : withFeatureRunPassed(next));
+  /* A HARD navigation out (A3-B1): the router cache may still hold the gated
+     feature as a redirect back here for its stale window, so a soft replace
+     could land on this page again and Skip would look dead. Replacing the
+     document makes the server read the cookie just written, and keeps this
+     page out of history as before. */
+  const leave = () => window.location.replace(exitTo());
 
   const go = useCallback(
     (index: number) => {
@@ -140,7 +144,7 @@ export function FirstRunPanels({
           variant="quiet"
           size="md"
           className="nf-frun__skip"
-          onClick={() => router.replace(exitTo())}
+          onClick={leave}
         >
           {copy.skip}
         </Button>
@@ -209,9 +213,8 @@ export function FirstRunPanels({
               size="lg"
               full
               onClick={(event) => {
-                if (recorded.current) return;
                 event.preventDefault();
-                router.replace(exitTo());
+                leave();
               }}
             >
               {action}
