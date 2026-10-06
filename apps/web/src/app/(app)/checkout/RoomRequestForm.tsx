@@ -50,7 +50,10 @@ export function RoomRequestForm({
             setError(result.error);
             return;
           }
-          router.push(`/checkout/${result.data.bookingId}`);
+          /* Replace, not push (navigation audit): the request is made, so
+             browser, Android and iOS back never re-enter the submitted form
+             and offer to ask for the same room twice. */
+          router.replace(`/checkout/${result.data.bookingId}`);
         });
       }}
     >

@@ -7,6 +7,7 @@ import { cryptoPaymentStatus } from "@/lib/crypto/actions";
 import { compareAtomic, fromAtomic, toAtomic } from "@/lib/crypto/decimal";
 import { RESTING, STEPS, stepOf, type CryptoState } from "@/lib/crypto/state-machine";
 import type { CryptoPaymentView } from "@/lib/crypto/view";
+import { DocFigure, DocHead, DocPerforation, DocRow, DocRows, DocumentSheet } from "@/components/app/money/DocumentSheet";
 import { Amount } from "@/components/ui/Amount";
 import { Button } from "@/components/ui/Button";
 import { Panel } from "@/components/ui/Panel";
@@ -264,24 +265,48 @@ export function CryptoPaymentStatus({
       )}
 
       {(view.state === "settled" || view.state === "refunded" || view.state === "overpaid") && (
-        <Panel variant="card">
-          <p className="nf-body font-semibold text-[var(--nf-content-primary)]">{t.receipt}</p>
-          <dl className="mt-row grid gap-sm">
-            <Row label={t.receiptCharge}>
-              <Amount minorUnits={view.amountMinor} locale={locale} showFraction />
-            </Row>
-            <Row label={t.receiptSent}>{`${view.cryptoReceived ?? view.cryptoAmount} ${view.asset}`}</Row>
-            <Row label={t.receiptNetwork}>{view.networkName}</Row>
-            <Row label={t.receiptRate}>{fill(t.rateValue, { rate: view.rate, asset: view.asset })}</Row>
-            {view.txHash && <Row label={t.receiptTx} mono>{view.txHash}</Row>}
-            {view.refundTxHash && <Row label={t.receiptRefundTx} mono>{view.refundTxHash}</Row>}
-            {(view.state === "refunded" || view.state === "overpaid") && view.refundAddress && (
-              <Row label={t.receiptReturnedTo} mono>{view.refundAddress}</Row>
+        /* THE RECEIPT IS PAPER (D28.1, reference 7082): the crypto receipt on
+           the same document sheet as every other receipt, with the naira
+           charge as its figure and every fact a person needs to prove the
+           payment as a row. Restyle only: the rows are the ones this panel
+           always drew, from the same view, in the same order. */
+        <DocumentSheet kind="receipt" printable as="section" aria-labelledby="crypto-receipt-title" data-testid="crypto-receipt">
+          <DocHead label={t.receipt} title={t.receiptCharge} id="crypto-receipt-title" />
+          <div className="nf-doc__hero">
+            <DocFigure testId="crypto-receipt-figure">
+              <Amount minorUnits={view.amountMinor} locale={locale} showFraction secondaryClassName="nf-doc__kobo" />
+            </DocFigure>
+          </div>
+          <DocPerforation />
+          <DocRows>
+            <DocRow label={t.receiptSent} numeric>{`${view.cryptoReceived ?? view.cryptoAmount} ${view.asset}`}</DocRow>
+            <DocRow label={t.receiptNetwork}>{view.networkName}</DocRow>
+            <DocRow label={t.receiptRate} numeric>{fill(t.rateValue, { rate: view.rate, asset: view.asset })}</DocRow>
+            {view.txHash && (
+              <DocRow label={t.receiptTx} numeric>
+                <span className="nf-doc__ref">{view.txHash}</span>
+              </DocRow>
             )}
-            <Row label={t.receiptReference} mono>{view.reference}</Row>
-            {view.providerPaymentId && <Row label={fill(t.receiptProviderReference, p)} mono>{view.providerPaymentId}</Row>}
-          </dl>
-        </Panel>
+            {view.refundTxHash && (
+              <DocRow label={t.receiptRefundTx} numeric>
+                <span className="nf-doc__ref">{view.refundTxHash}</span>
+              </DocRow>
+            )}
+            {(view.state === "refunded" || view.state === "overpaid") && view.refundAddress && (
+              <DocRow label={t.receiptReturnedTo} numeric>
+                <span className="nf-doc__ref">{view.refundAddress}</span>
+              </DocRow>
+            )}
+            <DocRow label={t.receiptReference} numeric>
+              <span className="nf-doc__ref">{view.reference}</span>
+            </DocRow>
+            {view.providerPaymentId && (
+              <DocRow label={fill(t.receiptProviderReference, p)} numeric>
+                <span className="nf-doc__ref">{view.providerPaymentId}</span>
+              </DocRow>
+            )}
+          </DocRows>
+        </DocumentSheet>
       )}
 
       {(view.state === "expired" || view.state === "failed" || view.state === "refunded" || (view.state === "awaiting_payment" && left <= 0)) && (
@@ -315,15 +340,6 @@ export function CryptoPaymentStatus({
         ]}
         primary={{ label: s.continue }}
       />
-    </div>
-  );
-}
-
-function Row({ label, children, mono = false }: { label: string; children: React.ReactNode; mono?: boolean }) {
-  return (
-    <div className="flex items-start justify-between gap-sm">
-      <dt className="nf-caption shrink-0 text-[var(--nf-content-muted)]">{label}</dt>
-      <dd className={`nf-body-sm min-w-0 break-all text-right text-[var(--nf-content-primary)] ${mono ? "font-mono" : ""}`}>{children}</dd>
     </div>
   );
 }

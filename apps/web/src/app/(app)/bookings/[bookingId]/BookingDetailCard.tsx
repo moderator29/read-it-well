@@ -3,7 +3,8 @@ import Link from "next/link";
 import { getDictionary, plural, type Locale } from "@vallo/i18n";
 import type { BookingView } from "@/lib/bookings/queries";
 import { ButtonLink } from "@/components/ui/Button";
-import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
+import { StatusChip } from "@/components/ui/StatusChip";
+import { bookingChip } from "@/components/app/bookings/booking-chip";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ICON, TYPE } from "@/components/app/Screen";
 import { CancelBookingControl } from "@/components/app/bookings/CancelBookingSheet";
@@ -36,9 +37,9 @@ export function BookingDetailCard({ booking, locale }: { booking: BookingView; l
         </Link>
 
         <div className="min-w-0 flex-1 leading-tight">
-          <StatusPill tone={toneForStatus(booking.status)}>
-            {statusWords[booking.status]}
-          </StatusPill>
+          {/* Word, shape and colour together (reference 7071), never colour
+              alone; a cancelled stay is neutral, not the rose of a failure. */}
+          <StatusChip state={bookingChip(booking.status)}>{statusWords[booking.status]}</StatusChip>
           <h1 className={`mt-xs ${TYPE.rowTitle}`}>{booking.title}</h1>
           {where && (
             <p className={`mt-2xs flex items-start gap-xs ${TYPE.rowMeta}`}>

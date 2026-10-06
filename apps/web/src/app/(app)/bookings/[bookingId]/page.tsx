@@ -16,6 +16,11 @@ import { ArrivalChargesLine } from "@/components/stays/ArrivalChargesLine";
 import { DoorChargeReport } from "@/components/stays/DoorChargeReport";
 import { bookingChargeKind } from "@/lib/after-gate/is-rent-charge";
 import { lagosToday } from "@/lib/rent/schema";
+import { getCheckoutView } from "@/lib/bookings/checkout-view";
+import { stayReceipt } from "@/components/app/money/receipt-model";
+import { ReceiptSheet } from "@/components/app/money/ReceiptSheet";
+import { DocActions } from "@/components/app/money/DocumentSheet";
+import { PrintDocumentTile } from "@/components/app/money/PrintDocumentTile";
 
 /** A receipt for one commitment. Never indexed, and never in a tab title. */
 export const metadata: Metadata = {
@@ -138,6 +143,17 @@ export default async function BookingDetailPage({
     );
   }
 
+  /*
+   * THE BOOKING'S RECEIPT, ON THE DOCUMENT SHEET (reference 7071's third
+   * screen, 7082). Read through the checkout view, the one read that knows
+   * whether a SUCCESSFUL transaction exists against this booking, under the
+   * reader's own RLS; drawn from the one receipt model the email uses. An
+   * unpaid stay, or a read that could not complete, draws no receipt at all:
+   * a receipt is only ever for money that moved.
+   */
+  const checkout = await getCheckoutView(booking.id, locale);
+  const receipt = checkout.state === "ready" ? stayReceipt(checkout.view, t, locale) : null;
+
   return shell(
     <>
       {/* Where the stay is, on the shared status track (spec section 14),
@@ -155,6 +171,21 @@ export default async function BookingDetailPage({
       <div className="mt-md">
         <BookingDetailCard booking={booking} locale={locale} />
       </div>
+      {receipt && (
+        <div className="mt-lg" data-testid="booking-receipt">
+          <h2 className="nf-overline mb-sm text-[var(--nf-content-muted)]">{t.experienceMoney.bookings.receiptTitle}</h2>
+          <ReceiptSheet
+            receipt={receipt}
+            headingId="booking-receipt-title"
+            testId="booking-receipt-sheet"
+            actions={
+              <DocActions label={receipt.title}>
+                <PrintDocumentTile label={t.afterTheGate.complaint.print} testId="booking-receipt-print" />
+              </DocActions>
+            }
+          />
+        </div>
+      )}
       {/* V-20 and V-24: the terms this stay was paid under, and every refund
           with the date it is due by. Nothing at all for an unpaid stay. */}
       <BookingMoneyRecord

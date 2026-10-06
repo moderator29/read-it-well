@@ -49,9 +49,17 @@ export default async function RecordLookupPage({ params }: { params: Promise<{ c
     return (
       <div className="mx-auto max-w-2xl">
         <PageHeader title={copy.lookupTitle} fallback="/search" />
-        <p role="alert" className={`${TYPE.body} mt-block`}>
-          {lookup.state === "limited" ? copy.lookupLimited : copy.lookupFailed}
-        </p>
+        {/* The same designed empty state as a code that matches nobody, so a
+            refusal is a screen with a way on rather than a bare line of text
+            under the header (restyle only: the words are unchanged). */}
+        <div role="alert">
+          <EmptyState
+            icon="shield-check"
+            title={copy.lookupTitle}
+            body={lookup.state === "limited" ? copy.lookupLimited : copy.lookupFailed}
+            action={back}
+          />
+        </div>
       </div>
     );
   }

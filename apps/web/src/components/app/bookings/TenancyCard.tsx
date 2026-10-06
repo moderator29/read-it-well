@@ -4,7 +4,7 @@ import { getDictionary, type Locale } from "@vallo/i18n";
 import type { RentChargeView } from "@/lib/bookings/queries";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ButtonLink } from "@/components/ui/Button";
-import { StatusPill } from "@/components/ui/StatusPill";
+import { StatusChip } from "@/components/ui/StatusChip";
 import { ICON, TYPE } from "@/components/app/Screen";
 
 /**
@@ -65,9 +65,9 @@ export function TenancyCard({
               vocabulary reads "Requested" for PENDING, which is true of a stay
               somebody has asked for and wrong about a charge that is simply
               waiting to be paid. */}
-          <StatusPill tone={tenancy.paid ? "success" : "warning"}>
+          <StatusChip state={tenancy.paid ? "success" : "pending"}>
             {tenancy.paid ? copy.settled : copy.due}
-          </StatusPill>
+          </StatusChip>
           <h3 className={`mt-xs ${TYPE.rowTitle}`}>{tenancy.title}</h3>
 
           {where && (
