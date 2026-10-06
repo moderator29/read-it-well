@@ -17,7 +17,9 @@ import { withoutComments } from "@/lib/copy/source-scan";
 const SRC = join(__dirname, "..", "..");
 
 const WIRED: [file: string, gate: RegExp][] = [
-  ["app/agent/list/ListingWizard.tsx", /setSubmitted\(true\);\s*setCelebrate\(true\)/],
+  /* Round 5: no sheet. The last step becomes the sent chain under the card,
+     in place, and only from the action's ok (ListingWizard.publish.dom.test). */
+  ["app/agent/list/ListingWizard.tsx", /if \(!result\.ok\) \{[\s\S]{0,800}\}\s*setNotice\(null\);\s*setFieldErrors\(\{\}\);\s*setSent\(\{ status: result\.data\.status/],
   ["components/agent/ApplyWizard.tsx", /open=\{state\.ok && !successClosed\}/],
   ["components/host/HostWizard.tsx", /if \(submitted\) setCelebrate\(true\)/],
   ["components/supply/OwnerRegisterForm.tsx", /if \(step === 3 && filed\)[\s\S]{0,200}RegistrationFiledSheet/],
@@ -43,7 +45,7 @@ const WIRED: [file: string, gate: RegExp][] = [
 describe("the success sheet is wired, and gated on ok, in every flow the DOM suite does not drive", () => {
   it.each(WIRED)("%s", (file, gate) => {
     const code = withoutComments(readFileSync(join(SRC, file), "utf8"));
-    expect(code).toMatch(/SuccessSheet|PaymentStage|RegistrationFiledSheet|KycSentSheet|TicketFiledSheet|withDone|rememberSuccess/);
+    expect(code).toMatch(/SuccessSheet|PaymentStage|RegistrationFiledSheet|KycSentSheet|TicketFiledSheet|withDone|rememberSuccess|ListingSentForReview/);
     expect(code).toMatch(gate);
   });
 

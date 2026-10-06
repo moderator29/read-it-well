@@ -44,6 +44,7 @@ import { experienceUiEn } from "./experience-ui.en";
 import { experienceEntryEn } from "./experience-entry.en";
 import { experienceShellEn } from "./experience-shell.en";
 import { experienceSpeedEn } from "./experience-speed.en";
+import { experienceListerEn } from "./experience-lister.en";
 import { experienceSettingsEn } from "./experience-settings.en";
 import { experienceHostEn } from "./experience-host.en";
 import { experienceSiteEn } from "./experience-site.en";
@@ -5801,6 +5802,7 @@ export const en = {
   experienceEntry: experienceEntryEn,
   experienceShell: experienceShellEn,
   experienceSpeed: experienceSpeedEn,
+  experienceLister: experienceListerEn,
   /* C5, Round 3: the settings area nav, notification matrix, Accessibility and Language and currency. */
   experienceSettings: experienceSettingsEn,
   /* C5, the route sweep: the host pages' remaining words (English only; see the module for why not hostWorkspace). */

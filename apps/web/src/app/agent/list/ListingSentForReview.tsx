@@ -1,101 +1,91 @@
-import type { Dictionary } from "@vallo/i18n/core";
+import type { Dictionary, Locale } from "@vallo/i18n/core";
+import { formatDate } from "@vallo/i18n/core";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { ButtonLink } from "@/components/ui/Button";
-import { IconPlate } from "@/components/ui/IconPlate";
-import { Icon3D } from "@/components/ui/Icon3D";
-import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
+import type { ListingStatus } from "@/lib/agent/listings-queries";
+import { fill } from "../_copy";
 import "@/app/css/catalogue.css";
 
 type WizardCopy = Dictionary["agentListings"];
 
 /**
- * SENT FOR REVIEW: GOVERNING-08 SCREEN FOUR, DRAWN.
+ * SENT FOR REVIEW, AS A CHAIN UNDER THE CARD (round 5, a lister publishing).
  *
- * Exported and standalone rather than inlined in the wizard's `submitted`
- * branch, for a plain reason: a screen that only appears after a real listing
- * has been sent to a real queue is a screen nobody can photograph, and an
- * unphotographable surface is one a sweep cannot close. It has no state of
- * its own, so lifting it out costs nothing and gives the preview harness a
- * door.
+ * This used to be a page of its own that replaced the wizard: a 3D calendar,
+ * a verdict, a panel about the listing ID and three promises, with a success
+ * sheet opened over it and a ring of light going out from the object twice.
+ * It celebrated a listing nobody had looked at yet, and it took the thing the
+ * lister had just made off the screen to do it.
  *
- * It replaces a `ResultScreen`, which is the platform's one confirmation
- * component and was the right call when the choice was between it and a
- * forty-fourth bespoke moment screen. It is not the right call against this
- * render, which is not a generic confirmation: it is the object with its
- * tick, the verdict, a panel about the LISTING ID, and three promises under
- * "What happens next". None of those exist on `ResultScreen`, and adding them
- * there would push this one screen's anatomy onto forty-three others.
+ * Now the wizard's last step keeps the member card where it was, and this is
+ * what arrives beneath it: three links of one honest chain (reference 7118,
+ * and CRAFT-PRINCIPLES moment 6), each in the workspace's own status words.
  *
- * THE LISTING ID, AND WHY THERE IS NO CODE IN THE BOX.
+ *   Submitted     done, with the date the server wrote (`submitted_at`)
+ *   Under review  the next thing, with how long it takes and that the lister
+ *                 hears either way; "happening now" only once the server says
+ *                 a reviewer has it (UNDER_REVIEW)
+ *   Live          not yet, and what arrives with it: a notification and the
+ *                 listing ID, which is minted at publish and so is not printed
+ *                 here (rule 15: no figure the database cannot produce)
  *
- * The render prints `VL-7K4M-92` under "Your listing ID". Ours cannot, and
- * this is the one place in the three images where the drawing and the
- * database disagree about a FACT rather than about a shape. The `VL-` code is
- * minted by trigger at PUBLISH and never at draft, because a code is a public
- * handle and a listing in review has no public existence. Rule 15 forbids
- * printing a figure the database cannot produce, so the panel keeps the
- * render's anatomy, its heading and its sentence, and says the true thing in
- * the place the code will occupy. It is not an empty box and it is not an
- * invented code.
- *
- * `reference.copy` and `reference.copied` are therefore still undrawn, and
- * still worth keeping: they are the Copy control for the "your listing is
- * live" surface, which nobody has built yet.
+ * A link ticks only when it has happened. The state is said in words beside
+ * each node, never by colour alone. The payoff is not here: it belongs to the
+ * day the listing is live (`lib/agent/lister-live.ts`).
  */
 export function ListingSentForReview({
   copy,
   reference,
+  lister,
+  status = "SUBMITTED",
+  submittedAt = null,
+  locale = "en",
 }: {
   copy: WizardCopy;
   reference: Dictionary["listingReference"];
+  lister?: Dictionary["experienceLister"] | undefined;
+  /** The server's status for the listing: SUBMITTED or UNDER_REVIEW. */
+  status?: ListingStatus;
+  /** When the review team received it, as stored. */
+  submittedAt?: string | null;
+  locale?: Locale;
 }) {
+  const words = copy.workspace.status;
+  const received = submittedAt ? new Date(submittedAt) : null;
+  const date = received && Number.isFinite(received.getTime()) ? formatDate(received, locale) : null;
+  const reviewing = status === "UNDER_REVIEW";
+  const rows = [
+    {
+      key: "sent",
+      state: "done" as const,
+      name: words.SUBMITTED,
+      sub: date ? (lister ? fill(lister.publish.sentOn, { date }) : date) : null,
+    },
+    { key: "review", state: reviewing ? ("now" as const) : ("next" as const), name: words.UNDER_REVIEW, sub: copy.submit.note },
+    { key: "live", state: "next" as const, name: words.PUBLISHED, sub: reference.issuedWhenLive },
+  ];
+  const said = { done: lister?.publish.stateDone, now: lister?.publish.stateNow, next: lister?.publish.stateNext };
+
   return (
-      <div className="mx-auto max-w-2xl px-gutter py-3xl">
-        <div className="nf-lw-done">
-          <span className="grid size-[5.5rem] shrink-0 place-items-center" aria-hidden="true" data-art="calendar-pending">
-            <Icon3D name="calendar-pending" size={88} />
-          </span>
-          <h1 className="nf-lw-done__verdict">{copy.submitted.title}</h1>
-          <p className="nf-lw-done__body">{copy.submitted.body}</p>
-
-          <div className="nf-lw-id">
-            <p className="nf-lw-id__label">{reference.yours}</p>
-            <p className="nf-lw-id__body">
-              {reference.issuedWhenLive} {reference.explain}
-            </p>
-          </div>
-
-          <div className="nf-lw-next">
-            <p className="nf-label">{copy.drawn.done.nextTitle}</p>
-            {(
-              [
-                { key: "one", object: "doc-review", text: copy.drawn.done.one },
-                { key: "two", object: "id-card-check", text: copy.drawn.done.two },
-                { key: "three", object: "bell-badge", text: copy.drawn.done.three },
-              ] as const
-            ).map((row) => (
-              <p key={row.key} className="nf-lw-next__row">
-                <IconPlate size="sm" className="nf-lw-next__plate">
-                  <UiIcon name={lineGlyphFor(row.object)} size={20} />
-                </IconPlate>
-                <span>{row.text}</span>
-              </p>
-            ))}
-          </div>
-
-          <div className="mt-heading grid w-full gap-row">
-            <ButtonLink href="/agent/listings" variant="primary" full>
-              {copy.submitted.goToListings}
-            </ButtonLink>
-            {/* "List another" is the one control on the platform that means a
-                blank wizard and nothing else, so it says so. Bare /agent/list
-                resumes an open draft now, which is right for the navigation
-                entry and would be wrong here. */}
-            <ButtonLink href="/agent/list?new=1" variant="secondary" full>
-              {copy.submitted.another}
-            </ButtonLink>
-          </div>
-        </div>
-      </div>
+    <section className="nf-lw-chain mt-heading" aria-labelledby="listing-chain-title" data-testid="listing-chain">
+      <h2 id="listing-chain-title" className="nf-label">
+        {lister?.publish.chainTitle ?? copy.drawn.done.nextTitle}
+      </h2>
+      <ol className="nf-lw-chain__list">
+        {rows.map((row) => (
+          <li key={row.key} className="nf-lw-chain__row" data-state={row.state}>
+            <span className="nf-lw-chain__node" aria-hidden="true">
+              {row.state === "done" ? <UiIcon name="check" size={12} /> : null}
+            </span>
+            <span className="nf-lw-chain__text">
+              <span className="nf-lw-chain__name">
+                {row.name}
+                {said[row.state] ? <span className="sr-only">, {said[row.state]}</span> : null}
+              </span>
+              {row.sub ? <span className="nf-lw-chain__sub">{row.sub}</span> : null}
+            </span>
+          </li>
+        ))}
+      </ol>
+    </section>
   );
 }

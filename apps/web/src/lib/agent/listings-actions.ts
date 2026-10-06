@@ -1302,7 +1302,8 @@ export async function setListingAccess(
 
 /* --------------------------------------------------------------- submit */
 
-export type SubmitOutcome = { id: string; status: ListingStatus };
+/** `submittedAt` is the stored `submitted_at`, which the wizard's chain prints. */
+export type SubmitOutcome = { id: string; status: ListingStatus; submittedAt: string | null };
 
 /**
  * Send a listing for review, but only if it clears the quality gate.
@@ -1393,7 +1394,7 @@ export async function submitListing(input: {
     .update({ status: "SUBMITTED", submitted_at: new Date().toISOString() })
     .eq("id", listingId)
     .eq("agent_id", gate.agentId)
-    .select("id, status")
+    .select("id, status, submitted_at")
     .single();
 
   if (isClosedListingRefusal(error)) return fail(CLOSED_LISTING_MESSAGE);
@@ -1402,7 +1403,8 @@ export async function submitListing(input: {
   }
 
   refreshAgentSurfaces();
-  return ok({ id: updated.id, status: updated.status });
+  /* The stored time, so the wizard's chain prints the day the server wrote. */
+  return ok({ id: updated.id, status: updated.status, submittedAt: updated.submitted_at });
 }
 
 /* -------------------------------------------------------- state changes */

@@ -93,6 +93,7 @@ export default async function Page({
           remainderCopy={t.afterTheGate.remainder}
           moneyMapCopy={t.afterTheGate.moneyMap}
           pathCopy={t.experienceFeatures.wizard}
+          listerCopy={t.experienceLister}
           locale={locale}
           userId={null}
           states={STATE_CODES.map((code) => ({ code, name: code }))}
@@ -116,9 +117,17 @@ export default async function Page({
 
   /* A live or reviewing listing is not opened as a form that refuses every
      save, and an id that names nothing does not open a blank form whose
-     first save files a new listing. */
+     first save files a new listing. ONE EXCEPTION (round 5): a listing with
+     the review team opens as the wizard's own "sent" chain, under its card,
+     settled. Sending revalidates this route while the lister is still on it,
+     so this is also what keeps the screen they just sent from being swapped
+     for a lock screen under their thumb. */
   const opening = wizardOpening(id, draft);
-  if (opening.kind !== "edit" || draft === "read-failed") {
+  const inReview =
+    opening.kind === "locked" && draft && draft !== "read-failed" && (draft.status === "SUBMITTED" || draft.status === "UNDER_REVIEW")
+      ? { status: draft.status, submittedAt: draft.submittedAt ?? null }
+      : null;
+  if (!inReview && (opening.kind !== "edit" || draft === "read-failed")) {
     const failed = opening.kind === "failed";
     const retry = id ? `/agent/list?id=${encodeURIComponent(id)}` : "/agent/list";
     return (
@@ -146,7 +155,8 @@ export default async function Page({
 
   /* V-09: which figures from a pasted message are still unchecked, as the
      server holds them for this draft. */
-  const unconfirmed = draft?.id ? await readBroadcastMarks(context.supabase, draft.id) : [];
+  const shown = draft === "read-failed" ? null : draft;
+  const unconfirmed = shown?.id ? await readBroadcastMarks(context.supabase, shown.id) : [];
 
   return (
     <AgentShell
@@ -171,11 +181,13 @@ export default async function Page({
         remainderCopy={t.afterTheGate.remainder}
         moneyMapCopy={t.afterTheGate.moneyMap}
         pathCopy={t.experienceFeatures.wizard}
+        listerCopy={t.experienceLister}
+        sentFrom={inReview}
         locale={locale}
         userId={context.user.id}
         states={states.length > 0 ? states : STATE_CODES.map((code) => ({ code, name: code }))}
         amenities={amenities}
-        initial={draft}
+        initial={shown}
         canPersist
         broadcastCopy={t.frontDoor.broadcast}
         guideCopy={t.frontDoor.guide}

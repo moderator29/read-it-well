@@ -203,6 +203,8 @@ export type ListingSummary = {
   coverUrl: string | null;
   updatedAt: string;
   submittedAt: string | null;
+  /** When it last went live. Optional so older fixtures still type. */
+  publishedAt?: string | null;
   reviewNotes: string | null;
   /** SCUML item 17: owner, agent or firm. Optional so older fixtures still type. */
   listingRole?: "owner" | "agent" | "firm" | null;
@@ -215,6 +217,11 @@ export type OwnAnswers = "compound" | "service" | "unit" | "flood";
 export type WizardDraft = {
   id: string;
   status: ListingStatus;
+  /**
+   * When the review team received it, for a listing reopened in review (the
+   * wizard's "sent" chain prints the date). Optional so older fixtures type.
+   */
+  submittedAt?: string | null;
   title: string;
   description: string;
   propertyType: PropertyType | null;
@@ -305,7 +312,7 @@ const LISTING_SELECT =
   "sale_status, year_built, condition, size_sqm, toilets, parking_spaces, floor, total_floors, " +
   "sale_agency_fee_minor, sale_legal_fee_minor, governors_consent_fee_minor, " +
   "stamp_duty_minor, survey_registration_fee_minor, total_purchase_cost_minor, " +
-  "state_code, city, area, address, landmark, bedrooms, bathrooms, submitted_at, " +
+  "state_code, city, area, address, landmark, bedrooms, bathrooms, submitted_at, published_at, " +
   "review_notes, listing_role, updated_at, power_grid, power_backup, power_backup_hours, water_supply, " +
   "prepaid_meter, listing_photos(id, storage_path, position), " +
   "listing_videos(id, storage_path, poster_path, duration_seconds, position), " +
@@ -381,6 +388,8 @@ type ListingWithChildren = {
   bedrooms: number;
   bathrooms: number;
   submitted_at: string | null;
+  /** When it last went live: the lister's payoff reads it (lib/agent/lister-live.ts). */
+  published_at?: string | null;
   review_notes: string | null;
   /** SCUML item 17: who the lister is on this listing; an agent or firm files a mandate. */
   listing_role?: "owner" | "agent" | "firm" | null;
@@ -497,6 +506,7 @@ function toSummary(row: ListingWithChildren): ListingSummary {
     coverUrl: cover ? cover.url : null,
     updatedAt: row.updated_at,
     submittedAt: row.submitted_at,
+    publishedAt: row.published_at ?? null,
     reviewNotes: row.review_notes,
     listingRole: row.listing_role ?? null,
   };
@@ -578,6 +588,7 @@ async function toDraft(
     photos: sortedPhotos(row),
     videos: await sortedVideos(supabase, row),
     reviewNotes: row.review_notes,
+    submittedAt: row.submitted_at,
   };
 }
 

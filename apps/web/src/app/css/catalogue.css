@@ -3033,83 +3033,11 @@
     color: var(--nf-content-link);
   }
 
-  /* ----------------------------------------------------- sent for review
-     08 screen four. The object with its tick, the verdict, the panel that
-     answers "where is my listing ID", and what happens next. */
-  .nf-lw-done {
-    display: grid;
-    justify-items: center;
-    text-align: center;
-  }
-  .nf-lw-done__object {
-    position: relative;
-    display: block;
-    width: 8rem;
-    height: 8rem;
-  }
-  /* `.nf-lw-done__tick` STOOD HERE AND IS GONE. The render puts a tick badge
-     at the house's shoulder; our `home-check` object is drawn WITH one, so a
-     badge on top of it was two ticks on one object. The object says it. */
-  .nf-lw-done__verdict {
-    margin-top: var(--nf-space-md);
-    font-family: var(--nf-font-display);
-    font-size: var(--nf-text-h2);
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    color: var(--nf-content-primary);
-  }
-  .nf-lw-done__body {
-    margin-top: var(--nf-space-xs);
-    font-size: var(--nf-text-body-sm);
-    line-height: 1.55;
-    color: var(--nf-content-secondary);
-  }
-  /* The listing ID panel. The render prints a code here. Ours cannot: the
-     database mints `VL-` at PUBLISH and a listing in review has none, so the
-     panel keeps the render's anatomy and says what is true instead of
-     drawing an invented code or an empty box. */
-  .nf-lw-id {
-    width: 100%;
-    margin-top: var(--nf-space-lg);
-    padding: var(--nf-space-lg) var(--nf-space-md);
-    border: var(--nf-border-width) solid var(--nf-panel-edge);
-    border-color: var(--nf-panel-edges);
-    border-radius: var(--nf-container-radius);
-    background: var(--nf-panel-fill-card);
-    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
-  }
-  .nf-lw-id__label {
-    font-size: var(--nf-text-body-sm);
-    font-weight: 600;
-    color: var(--nf-content-secondary);
-  }
-  .nf-lw-id__body {
-    margin-top: var(--nf-space-xs);
-    font-size: var(--nf-text-body-sm);
-    line-height: 1.55;
-    color: var(--nf-content-muted);
-  }
-  .nf-lw-next {
-    display: grid;
-    gap: var(--nf-space-sm);
-    width: 100%;
-    margin-top: var(--nf-space-lg);
-    text-align: start;
-  }
-  .nf-lw-next__row {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    align-items: center;
-    gap: var(--nf-space-sm);
-    font-size: var(--nf-text-body-sm);
-    color: var(--nf-content-secondary);
-  }
-  .nf-lw-next__plate {
-    display: block;
-    width: 2.25rem;
-    height: 2.25rem;
-    flex-shrink: 0;
-  }}
+  /* The sent-for-review screen's rules (`.nf-lw-done`, `.nf-lw-id`,
+     `.nf-lw-next`) are gone with the screen (round 5): the wizard's last
+     step becomes the chain under the card, in lister-publish.css, which only
+     the wizard loads. */
+}
 
 /*
  * SEARCH TO RESULTS (Session 3, W2; MOTION_SYSTEM section 5). The field lands
