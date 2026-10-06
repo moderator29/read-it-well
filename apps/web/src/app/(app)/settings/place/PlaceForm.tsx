@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/Button";
 import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PlaceFields, type PlaceValues } from "@/components/app/place/PlaceFields";
@@ -89,9 +90,9 @@ export function PlaceForm({
         </p>
       )}
 
-      <button type="submit" disabled={pending} className="nf-btn nf-btn--primary mt-md w-full">
+      <Button type="submit" variant="primary" full disabled={pending} className="mt-md">
         {pending ? "Saving..." : "Save"}
-      </button>
+      </Button>
 
       <p className="mt-sm text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
         Your state and local government decide which places home opens on. Your

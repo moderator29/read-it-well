@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/Button";
 import { useRef, useState, useTransition, type RefObject } from "react";
 import { useRouter } from "next/navigation";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -154,9 +155,10 @@ export function Composer({
         <p className="mt-2xs text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
           {POST_COPY.held}
         </p>
-        <button
-          type="button"
-          className="nf-btn nf-btn--ghost mt-sm inline-flex h-9 items-center px-md text-[length:var(--nf-text-overline)]"
+        <Button
+          variant="ghost"
+          size="sm"
+          className="mt-sm"
           onClick={() => {
             setHeld(false);
             setBody("");
@@ -164,7 +166,7 @@ export function Composer({
           }}
         >
           Write another
-        </button>
+        </Button>
       </div>
     );
   }
@@ -491,17 +493,12 @@ export function Composer({
           <p className="leading-relaxed">{error}</p>
           {strandedPost ? (
             <div className="mt-xs flex flex-wrap gap-xs">
-              <button
-                type="button"
-                className="nf-btn nf-btn--primary inline-flex h-9 items-center px-md text-[length:var(--nf-text-overline)]"
-                onClick={retry}
-                disabled={pending}
-              >
+              <Button variant="primary" size="sm" onClick={retry} disabled={pending}>
                 {pending ? "Sending" : "Send the picture again"}
-              </button>
-              <button
-                type="button"
-                className="nf-btn nf-btn--ghost inline-flex h-9 items-center px-md text-[length:var(--nf-text-overline)]"
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => {
                   forget();
                   setStrandedPost(null);
@@ -512,7 +509,7 @@ export function Composer({
                 disabled={pending}
               >
                 Leave it as words
-              </button>
+              </Button>
             </div>
           ) : null}
         </div>
@@ -547,27 +544,18 @@ export function Composer({
           </span>
         ) : null}
         {onDone ? (
-          <button
-            type="button"
-            className="nf-btn nf-btn--ghost h-10 px-md text-[length:var(--nf-text-body-sm)]"
-            onClick={onDone}
-            disabled={pending}
-          >
+          <Button variant="ghost" size="sm" onClick={onDone} disabled={pending}>
             Cancel
-          </button>
+          </Button>
         ) : null}
         {/* `nf-composer__send` keeps the brand fill while the field is empty.
             See the rule in social-feed.css: a composer's send is off because
             nobody has typed yet, which is its resting state, not a fault, and
             the platform's flat grey disabled reads as a broken control on the
             one primary the screen has (R1 A26). */}
-        <button
-          type="submit"
-          className="nf-btn nf-btn--primary nf-composer__send h-10 px-lg text-[length:var(--nf-text-body-sm)]"
-          disabled={!canSend}
-        >
+        <Button type="submit" variant="primary" size="sm" className="nf-composer__send" disabled={!canSend}>
           {pending ? "Sending" : isReply ? "Reply" : "Post"}
-        </button>
+        </Button>
       </div>
 
       <input

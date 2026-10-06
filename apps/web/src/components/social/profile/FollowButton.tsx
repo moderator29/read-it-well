@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/Button";
 import { useRequireAuth } from "@/components/auth/AuthGate";
 import { toggleFollow } from "@/lib/social/follows-actions";
 
@@ -115,8 +116,9 @@ export function FollowButton({
 
   return (
     <div className={compact ? "shrink-0" : "flex flex-col items-end gap-2xs"}>
-      <button
-        type="button"
+      <Button
+        variant={following ? "secondary" : "primary"}
+        size={compact ? "sm" : "md"}
         onClick={onClick}
         disabled={pending}
         aria-pressed={following}
@@ -124,14 +126,10 @@ export function FollowButton({
           "{handle}",
           handle,
         )}
-        className={
-          compact
-            ? `${shape}${following ? " nf-btn--glass" : ""}`
-            : `nf-btn ${following ? "nf-btn--glass" : "nf-btn--primary"} min-w-[6.5rem]`
-        }
+        className={compact ? "shrink-0" : "min-w-[6.5rem]"}
       >
         {following ? labels.following : labels.follow}
-      </button>
+      </Button>
       {error && (
         <p
           role="alert"

@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/Button";
 import { useState, useTransition } from "react";
 import { plural, type Locale } from "@vallo/i18n/core";
 import type { Dictionary } from "@vallo/i18n/core";
@@ -88,16 +89,18 @@ export function NotMePanel({
     <div className="nf-panel nf-panel--card block p-card" data-testid="not-me-panel">
       <p className="nf-body font-semibold text-content">{title}</p>
       <p className="nf-body-sm mt-row text-content-2">{body}</p>
-      <button
-        type="button"
+      <Button
+        variant={armed ? "danger" : "dangerQuiet"}
+        size="sm"
+        full
         onClick={press}
         disabled={pending}
         aria-busy={pending || undefined}
         data-testid="not-me"
-        className={`nf-btn nf-btn--sm mt-group w-full ${armed ? "nf-btn--danger" : "nf-btn--danger-quiet"}`}
+        className="mt-group"
       >
         {pending ? button.working : armed ? button.confirm : button.idle}
-      </button>
+      </Button>
 
       {outcome?.kind === "held" && (
         <ResultSheet

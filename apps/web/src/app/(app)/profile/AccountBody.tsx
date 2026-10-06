@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/Button";
 import "./profile.css";
 import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -453,15 +454,16 @@ function DetailsSheet({
       </form>
 
       <div className="pt-2xs">
-        <button
+        <Button
           type="submit"
+          variant="primary"
+          full
           form="account-details-form"
           disabled={pending}
-          className="nf-btn nf-btn--primary w-full"
           data-testid="account-details-save"
         >
           {pending ? "Saving" : "Save"}
-        </button>
+        </Button>
       </div>
     </Sheet>
   );

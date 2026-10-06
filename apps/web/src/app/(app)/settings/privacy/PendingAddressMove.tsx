@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/Button";
 import { useActionState } from "react";
 import type { Dictionary } from "@vallo/i18n/core";
 import { ownerCancelEmailRecovery } from "@/lib/admin/email-recovery-actions";
@@ -48,13 +49,9 @@ export function PendingAddressMove({
         {copy.ifYou}
       </p>
       <input type="hidden" name="requestId" value={move.id} />
-      <button
-        type="submit"
-        className="nf-btn nf-btn--primary"
-        disabled={pending}
-      >
+      <Button type="submit" variant="primary" disabled={pending}>
         {copy.cancel}
-      </button>
+      </Button>
       {state && !state.ok && (
         <p role="status" className="text-[length:var(--nf-text-caption)]">
           {state.error}

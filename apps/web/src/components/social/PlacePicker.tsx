@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/Button";
 import { useCallback, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -214,15 +215,16 @@ export function PlacePicker({
 
       {selectedState ? (
         <div className="nf-enter__crumb">
-          <button
-            type="button"
+          <Button
+            variant="secondary"
+            size="sm"
+            leadingIcon="arrow-left"
             onClick={() => chooseState(null)}
-            className="nf-chip nf-enter__back"
+            className="nf-enter__back"
             data-testid="place-picker-back"
           >
-            <UiIcon name="arrow-left" size={15} />
             {PLACE_COPY.backToStates}
-          </button>
+          </Button>
           <span className="nf-enter__state" data-testid="place-picker-state">
             {selectedState.name}
           </span>

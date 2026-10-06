@@ -891,19 +891,18 @@ export function ThreadView({
           {/* One glass control on the right, the way the render keeps its
               right edge quiet. The property itself opens from the options
               sheet and from the context card, so nothing is lost here. */}
-          <button
+          <Button
             ref={sheetTriggerRef}
-            type="button"
+            variant="icon"
             aria-label="Conversation options"
             aria-haspopup="dialog"
             aria-expanded={sheetOpen}
             onClick={() => setSheetOpen(true)}
-            className="nf-icon-btn"
           >
             {/* Upright, as GOVERNING-chat-booking-card.png draws the header's
                 options control: the shared three nodes turned a quarter. */}
             <UiIcon name="more" size={ICON.inline} className="rotate-90" />
-          </button>
+          </Button>
         </div>
       </header>
 
@@ -1258,14 +1257,13 @@ export function ThreadView({
           <p className="min-w-0 flex-1 nf-body-sm leading-relaxed text-[var(--nf-content-secondary)]">
             {SAFETY_EDUCATION_COPY}
           </p>
-          <button
-            type="button"
+          <Button
+            variant="icon"
+            leadingIcon="close"
             aria-label="Dismiss safety note"
             onClick={() => setEducationOpen(false)}
-            className="nf-icon-btn shrink-0"
-          >
-            <UiIcon name="close" size={ICON.inline} />
-          </button>
+            className="shrink-0"
+          />
         </div>
       )}
 
@@ -1328,14 +1326,12 @@ export function ThreadView({
           tabIndex={-1}
           onChange={(e) => pickImage(e.target.files?.[0])}
         />
-        <button
-          type="button"
+        <Button
+          variant="icon"
+          leadingIcon="picture"
           aria-label="Attach a photo"
           onClick={() => fileRef.current?.click()}
-          className="nf-icon-btn"
-        >
-          <UiIcon name="picture" size={ICON.inline} />
-        </button>
+        />
         <label htmlFor="thread-input" className="sr-only">
           Message {counterpartName}
         </label>

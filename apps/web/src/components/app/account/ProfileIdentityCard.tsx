@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/Button";
 import { initial as initialOf } from "@/lib/text/initial";
 import { useEffect, useId, useRef, useState } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -107,15 +108,15 @@ export function ProfileIdentityCard() {
           </p>
         </div>
 
-        <button
-          type="button"
+        <Button
+          variant="secondary"
+          size="sm"
           onClick={() => setEditing((v) => !v)}
           aria-expanded={editing}
-          /* `.nf-chip` sets the caption tier and the 44px floor itself. */
-          className="nf-chip shrink-0 cursor-pointer font-semibold"
+          className="shrink-0"
         >
           {editing ? "Done" : "Edit"}
-        </button>
+        </Button>
       </div>
 
       {editing && (

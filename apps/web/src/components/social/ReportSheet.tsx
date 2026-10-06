@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
 import { REPORT_REASON_LABEL, type ReportReason } from "@/lib/social/posts-schema";
 import type { ActionResult } from "@/lib/actions/envelope";
@@ -91,13 +92,9 @@ export function ReportSheet({
               block them from the same menu. Neither of those tells them
               anything.
             </p>
-            <button
-              type="button"
-              onClick={onClose}
-              className="nf-btn nf-btn--primary mt-lg w-full"
-            >
+            <Button variant="primary" onClick={onClose} full className="mt-lg">
               Done
-            </button>
+            </Button>
           </>
         ) : (
           <>
@@ -140,22 +137,22 @@ export function ReportSheet({
             ) : null}
 
             <div className="mt-lg flex flex-col gap-xs sm:flex-row-reverse">
-              <button
-                type="button"
+              <Button
+                variant="primary"
                 onClick={send}
                 disabled={!reason || pending}
-                className="nf-btn nf-btn--primary flex-1"
+                className="flex-1"
               >
                 {pending ? "Sending" : "Send report"}
-              </button>
-              <button
-                type="button"
+              </Button>
+              <Button
+                variant="ghost"
                 onClick={onClose}
                 disabled={pending}
-                className="nf-btn nf-btn--ghost flex-1"
+                className="flex-1"
               >
                 Cancel
-              </button>
+              </Button>
             </div>
           </>
         )}

@@ -294,14 +294,16 @@ export function CommentsSheet({
               aria-label="Write a comment"
               onChange={(event) => setBody(event.target.value)}
             />
-            <button
+            <Button
               type="submit"
-              className="nf-comments__send"
+              variant="primary"
+              size="sm"
+              iconOnly
+              leadingIcon="share"
+              className="shrink-0"
               disabled={pending || body.trim().length === 0}
               aria-label="Send"
-            >
-              <UiIcon name="share" size={19} />
-            </button>
+            />
           </div>
           {left < 240 ? (
             <span className="nf-comments__count nf-numeric">{left}</span>

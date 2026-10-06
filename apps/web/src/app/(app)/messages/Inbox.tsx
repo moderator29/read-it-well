@@ -201,17 +201,16 @@ function Row({
         </span>
       </Link>
       {onArchive && (
-        <button
-          type="button"
+        <Button
+          variant="icon"
+          leadingIcon={row.archived ? "arrow-up" : "archive"}
           onClick={() => onArchive(row)}
           disabled={archivePending}
           aria-label={`${row.archived ? "Move back to Recent" : "Archive"}: ${row.counterpartName}`}
           title={row.archived ? "Move back to Recent" : "Archive"}
           data-testid="inbox-archive"
-          className="nf-icon-btn h-11 w-11 shrink-0 disabled:opacity-60"
-        >
-          <UiIcon name={row.archived ? "arrow-up" : "archive"} size={ICON.row} />
-        </button>
+          className="shrink-0"
+        />
       )}
     </li>
   );

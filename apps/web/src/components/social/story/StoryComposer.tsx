@@ -296,9 +296,9 @@ export function StoryComposer({
         </p>
       ) : null}
 
-      <button type="submit" className="nf-btn nf-btn--primary w-full" disabled={!canPublish}>
+      <Button type="submit" variant="primary" full disabled={!canPublish}>
         {pending ? STORY_COPY.publishing : STORY_COPY.publish}
-      </button>
+      </Button>
 
       <input
         ref={fileInput}

@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/Button";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { startConversationWithMessage } from "@/lib/messages/actions";
@@ -94,9 +95,9 @@ export function FirstMessage({
           {error}
         </p>
       )}
-      <button type="submit" className="nf-btn nf-btn--primary nf-btn--full" disabled={pending || body.trim().length === 0}>
+      <Button type="submit" variant="primary" full disabled={pending || body.trim().length === 0}>
         Send
-      </button>
+      </Button>
     </form>
   );
 }

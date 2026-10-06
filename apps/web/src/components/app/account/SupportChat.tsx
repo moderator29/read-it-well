@@ -522,18 +522,17 @@ export function SupportChat({
             An AI helper that reads your own bookings and hands you to a person when it should.
           </p>
         </div>
-        <button
-          type="button"
+        <Button
+          variant="secondary"
+          size="sm"
           data-testid="support-open"
           aria-expanded={open}
           aria-controls={panelId}
           onClick={() => setOpen((v) => !v)}
-          /* `.nf-chip` already paints at the caption tier and carries the 44px
-             floor, so the size was one more copy of a decision the class owns. */
-          className="nf-chip shrink-0 cursor-pointer font-semibold"
+          className="shrink-0"
         >
           {open ? "Close" : "Open chat"}
-        </button>
+        </Button>
       </div>
       )}
 

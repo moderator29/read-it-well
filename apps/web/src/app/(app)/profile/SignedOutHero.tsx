@@ -5,7 +5,7 @@ import "./profile.css";
 import { useState } from "react";
 import Image from "next/image";
 import { Panel } from "@/components/ui/Panel";
-import { ButtonLink } from "@/components/ui/Button";
+import { Button, ButtonLink } from "@/components/ui/Button";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { RowButton, RowValue, SettingsGroup, Sheet } from "@/components/app/account/rows";
 import {
@@ -254,14 +254,14 @@ function DeviceDetailsSheet({
       </div>
 
       <div className="pt-md">
-        <button
-          type="button"
+        <Button
+          variant="primary"
+          full
           onClick={() => onSave(draftName, draftEmail)}
-          className="nf-btn nf-btn--primary w-full"
           data-testid="device-name-save"
         >
           Save
-        </button>
+        </Button>
       </div>
     </Sheet>
   );
