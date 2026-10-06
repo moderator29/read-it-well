@@ -338,15 +338,16 @@ export const en = {
    * a chance to break it.
    */
   welcomeCards: {
-    /* The intro a stranger meets first (the Slate pass, 29 September): the
-       name, one line, a small moving scene and the two doors. Not
-       skippable and with no tour door (the founder, 29 September). */
+    /* Get Started, the intro a stranger meets first. Monotone since 6
+       October (D13): the mark, the slogan as the one display line, the
+       product explanation as the quiet line (both read from `landing`, D1),
+       and these two doors. Not skippable and with no tour door (the founder,
+       29 September). The old one-line tagline and the scene's label went with
+       the scene. `chip` is still the label on the tour's receipt scene. */
     intro: {
-      tagline: "Homes to rent, buy and stay in, from agents a person has checked.",
       chip: "Your move-in total, printed",
       getStarted: "Get started",
       signIn: "Sign in",
-      sceneLabel: "A house and its keys, with the move-in total printed on a receipt",
     },
     label: "What Vallo is",
     skip: "Skip",
@@ -838,38 +839,24 @@ export const en = {
       },
       hero: {
         /*
-         * THE HEADLINE IS THE FOUNDER'S, WORD FOR WORD, AND IT IS COUPLED TO
-         * THE SEARCH CONTROL. DO NOT EDIT EITHER ONE ALONE.
+         * THE HEADLINE IS NOT HERE ANY MORE, AND THAT IS THE BRAND HIERARCHY
+         * (founder directive D1, 5 October 2026).
          *
-         * `title1` names the same three actions as the segments of the landing
-         * search control, and that is not a coincidence to be tidied away:
-         * the headline teaches the control and the control proves the
-         * headline. The headline reads them rent,
-         * buy, stay and the control draws them buy, rent, stay, which is the
-         * founder's own wording of each kept as he approved it: the rule is
-         * the same three words, never the same sequence. The segments are
-         * declared in `components/site/landing/segments.ts`. IF ONE CHANGES,
-         * THE OTHER CHANGES IN THE SAME COMMIT, and
-         * `components/site/landing/headline-coupling.test.ts` fails the build
-         * if they ever drift apart.
+         * `title1`, `title2` and `subtitle` held "Rent, buy or stay. / Without
+         * the runaround." and a one-line sub. D1 sets the landing hero to the
+         * brand's own two layers instead: the SLOGAN as the line
+         * (`landing.slogan`) and the PRODUCT EXPLANATION as the subtitle
+         * (`landing.explanation`). Both live once, directly under `landing`,
+         * so the hero, the auth lockup, Get Started and anything else that
+         * says what Vallo is read the same strings rather than copies of them.
+         * The POSITIONING line is deliberately not on this page's first
+         * screen: D1 says it is never the primary consumer line.
          *
-         * The line it replaced was "Real Estate / reimagined.", which is the
-         * old positioning: it told a first time visitor nothing about what
-         * Vallo helps them do. The position now is one sentence. VALLO DOES
-         * NOT REMOVE THE AGENT. VALLO REMOVES THE RUNAROUND.
-         *
-         * NIGERIA, NOT AFRICA, and the word changes when the fact changes.
-         *
-         * THE SUB-LINE IS ONE LINE (the clean pass, 29 September). It used to
-         * run four, naming the lister and dealing with the owner "where there
-         * is one"; the hero now says where you can look and the one thing
-         * Vallo shows you first, and the owner clause, which is conditional
-         * on owner listings existing, is left to the pages that can show one.
+         * The search control's Buy, Rent and Stay segments still sit under the
+         * headline; `components/site/landing/headline-coupling.test.ts` now
+         * holds the part of the old coupling that survives (the hero promises
+         * nothing the control cannot do) and says why the rest went.
          */
-        title1: "Rent, buy or stay.",
-        title2: "Without the runaround.",
-        subtitle:
-          "Homes, land and stays across Nigeria, with the real cost up front.",
         explore: "Explore properties",
         /* THE DOOR WHILE THE CATALOGUE IS CLOSED TO STRANGERS (UIUX item
            12). `/search` answers a signed-out visitor with a sign-in wall
@@ -1033,25 +1020,43 @@ export const en = {
       },
     },
     /*
-     * The slogan, deliberately not translated, one form in every locale the
-     * way Nike never translates Just Do It.
+     * THE BRAND HIERARCHY, FOUR STRINGS WITH FOUR JOBS (founder directive D1,
+     * 5 October 2026; it supersedes "Real Estate reimagined!" and the Master
+     * Prompt's "FIND YOUR SPACE. WITHOUT THE RUNAROUND."). They are four keys
+     * and not one because each has a different place to be and a different
+     * place it must NOT be, and a single string cannot be in two of those at
+     * once:
      *
-     * IT IS NOW READ BY EXACTLY ONE SURFACE: the lockup on the auth screens.
-     * It used to be read by three. The metadata moved to the approved position
-     * on 22 September, and the landing's phone mock moved to a key of its own,
-     * because that mock was a picture OF THE APP on the marketing front page
-     * and the last place the retired positioning still showed to a visitor.
-     * The mock and its key were deleted on 29 September with the phones.
+     *   slogan        The line beside the wordmark: the app's first screen,
+     *                 the landing hero, receipts, emails, store listings.
+     *                 "Space" rather than "find your space" because the
+     *                 platform is no longer only a search: it is finding,
+     *                 checking, paying, moving in and managing, all without
+     *                 the runaround.
+     *   positioning   The category, for investors, partners and press. NEVER
+     *                 the primary consumer line (D1: it reads corporate as a
+     *                 first impression), so no first screen prints it.
+     *   explanation   The answer to "what is Vallo": the landing subtitle,
+     *                 Get Started's quiet line, the store description.
+     *   shortForm     The four-beat rhythm, for bands, footers and step
+     *                 headings.
      *
-     * WHETHER THE AUTH LOCKUP KEEPS IT IS THE FOUNDER'S CALL AND IT IS IN THE
-     * LEDGER. "Real Estate reimagined!" is the OLD positioning line, and this
-     * comment used to say so in those words. The new one is "Rent, buy or
-     * stay. Without the runaround." A slogan beside a wordmark is a brand
-     * decision rather than a copy fix, so it is not changed here as a copy
-     * edit; splitting the key is what lets it change in one line when he
-     * rules, without dragging the auth screen along by accident.
+     * THE SLOGAN IS ENGLISH IN EVERY LOCALE, the way the wordmark is and the
+     * way Nike never translates Just Do It. Yoruba, Hausa and Igbo do not
+     * declare it: `withFallback` serves this string, which is the mechanism
+     * doing exactly what the rule asks, and it keeps an English sentence out
+     * of those files where the completeness gate would rightly count it.
+     *
+     * THE OTHER THREE FALL BACK TO ENGLISH FOR NOW, and that is the package's
+     * convention rather than an oversight: nobody on this build writes
+     * Yoruba, Hausa or Igbo, and an invented translation of a founder
+     * approved brand line is worse than none (see the note on
+     * `landing.face.hero` in each locale file). A native speaker writes them.
      */
-    slogan: "Real Estate reimagined!",
+    slogan: "Space, without the runaround.",
+    positioning: "The operating system for physical spaces.",
+    explanation: "Discover, verify, transact, and manage spaces in one place.",
+    shortForm: "Discover. Verify. Transact. Manage.",
     /*
      * The property card's own words. Small on purpose: a card is read at a
      * glance and every one of these is one or two words on a 390px grid cell.
@@ -1066,44 +1071,17 @@ export const en = {
     },
     hero: {
       /*
-       * SUPERSEDED ON 22 SEPTEMBER, AND ONLY `searchLabel` IS STILL READ.
+       * SUPERSEDED ON 22 SEPTEMBER, AND ONLY `searchLabel` IS STILL READ, by
+       * the signed-in home screen (`components/app/home/HomeScreen.tsx`).
        *
-       * This block is the landing page BEFORE the rebuild to the founder's
-       * governing images; the live landing reads `landing.face` above. The
-       * one key anything still reads is `searchLabel`, which the signed-in
-       * home screen uses (`components/app/home/HomeScreen.tsx`). Every other
-       * key here, including the "Real Estate, / reimagined." headline and the
-       * "Nigeria's real estate marketplace" overline, is dead copy carrying
-       * the OLD POSITIONING and is left rather than deleted only because the
-       * three other locales mirror this shape and a namespace removal is a
-       * change to all four at once, not a copy edit. IF YOU
-       * ARE ABOUT TO COPY A LINE OUT OF HERE, DO NOT. The position is
-       * "Rent, buy or stay. Without the runaround." and it lives in
-       * `landing.face.hero` above.
-       *
-       * The historical reasoning is kept below because it explains why the
-       * overline, the h1 and the subtitle were split across three jobs.
-       *
-       * THE SLOGAN IS THE HEADLINE, AND THAT IS THE FOUNDER'S DIRECT CALL.
-       *
-       * The first rebuild made the h1 the offer ("Rent, buy or sell. The
-       * move-in total, printed.") on the argument that a slogan as a headline
-       * says nothing. The founder read it and asked for the brand line
-       * instead, steered toward "real estate marketplace". So the three jobs
-       * are dealt differently now, and nothing is lost: the OVERLINE names
-       * what this is (Nigeria's real estate marketplace), the H1 is the brand
-       * making its one claim, and the SUBTITLE carries the offer and the
-       * proof. The move-in argument still gets a whole band of its own two
-       * scrolls down.
-       *
-       * The h1 stays in English in every locale, like the wordmark; the
-       * overline and subtitle translate.
+       * This block was the landing page before the rebuild to the founder's
+       * governing images. It also carried the retired positioning ("Real
+       * Estate, / reimagined." under "Nigeria's real estate marketplace"),
+       * which D1 retires everywhere it could render, so those keys came out of
+       * all four locales on 6 October rather than waiting for somebody to copy
+       * a line out of here. The brand's words are directly under `landing`
+       * (`slogan`, `positioning`, `explanation`, `shortForm`).
        */
-      overline: "Nigeria's real estate marketplace",
-      title1: "Real Estate,",
-      title2: "reimagined.",
-      subtitle:
-        "Somewhere for a night, somewhere for the year, a house to buy, a shop to trade from, or the land itself. Nine markets, agents checked by real people, and payments Vallo never holds.",
       searchPlaceholder: "Where do you want to go?",
       searchLabel: "Start exploring",
       popularLabel: "Popular right now",
@@ -1258,18 +1236,16 @@ export const en = {
       secondary: "Become an agent",
     },
     footer: {
-      /* The slogan, not a summary. One form in every locale, per the note on
-         `landing.slogan`. */
       /*
        * A DESCRIPTION, NOT THE SLOGAN AGAIN.
        *
-       * This key held "Real Estate reimagined!" and so does `landing.slogan`,
-       * which the footer prints beside the copyright about 200px below it. The
-       * same eight words twice on every page of the site, once as though it
-       * were a summary of the company and once as the signature it actually
-       * is. The signature stays where a signature belongs. This slot says what
-       * Vallo is, which is the thing somebody scrolling to the bottom of a
-       * page is usually still trying to work out.
+       * This key once held the retired slogan, the same words `landing.slogan`
+       * held, so the foot of every page said the brand line as though it were
+       * a summary of the company. This slot says what Vallo is, which is the
+       * thing somebody scrolling to the bottom of a page is usually still
+       * trying to work out. Moving it onto the D1 hierarchy (the explanation
+       * and the short form) is part of the landing's later pass, not the hero
+       * change of 6 October.
        */
       tagline: "Rent, buy or stay across Nigeria, without the runaround. Homes, land, hotels and shortlets, in one account.",
       rights: "All rights reserved.",

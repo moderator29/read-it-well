@@ -11,6 +11,13 @@ export const passcodeEn = {
   enterCode: "Enter your passcode",
   lockedTitle: "Vallo is locked",
   wrong: "That is not your passcode.",
+  /*
+   * THE COUNT IS SHOWN ONLY WHEN IT IS THE LAST ONE (MOTION_SYSTEM section 6:
+   * never "a count of remaining attempts shown before the final one"). A
+   * wrong code says `wrong` and nothing more until exactly one try is left
+   * before the short pause or before the sign-out; then it says so, once,
+   * because that is the one moment the count changes what somebody does.
+   */
   wrongLeft: {
     one: "That is not your passcode. 1 more try before a short pause.",
     other: "That is not your passcode. {count} more tries before a short pause.",
@@ -26,6 +33,10 @@ export const passcodeEn = {
   signInAgain: "Sign in again",
   error: "That did not go through. Check your connection and try again.",
   usePassword: "Use your password instead",
+  /** C14 and MOTION_SYSTEM section 6: the biometric door, offered before the keypad where the member has a platform key. */
+  passkeyUnlock: "Unlock with Face ID or fingerprint",
+  passkeyFailed: "That did not work. Enter your passcode instead.",
+  usePasscode: "Enter your passcode instead",
   signOut: "Sign out",
   checking: "Checking",
 

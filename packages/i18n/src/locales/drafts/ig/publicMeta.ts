@@ -5,7 +5,10 @@ import type { Translation } from "../../fallback";
    plain, and with no claim the English does not make. */
 export const publicMetaIg = {
   site: {
-    title: "Vallo. Gbazite, zụta ma ọ bụ nọrọ, na-enweghị nsogbu.",
+    /* `title` is not declared: since D1 (6 October) it is "Vallo." and the
+       slogan, which stays English in every locale like the wordmark, so the
+       English falls through. The draft that stood here translated the
+       retired "rent, buy or stay" line. */
     description:
       "Ụlọ, ala, họtel na shortlet n'ofe Naịjirịa. Hụ ihe ị ga-akwụ n'ezie tupu ị kpọọ onye ọ bụla, mara onye nọ n'azụ ndepụta ọ bụla, ma debe ndekọ. Vallo Stays nwere họtel, flat, ụlọ ọbịa, ebe ezumike na tebụl ụlọ nri n'otu akaụntụ na otu igbe ozi.",
     shareDescription:

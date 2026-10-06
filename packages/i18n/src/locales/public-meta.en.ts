@@ -11,7 +11,7 @@
 export const publicMetaEn = {
   /** The site's own title and description: the landing page and the default. */
   site: {
-    title: "Vallo. Rent, buy or stay, without the runaround.",
+    title: "Vallo. Space, without the runaround.",
     description:
       "Homes, land, hotels and shortlets across Nigeria. See what you will actually pay before you call anybody, know who is behind every listing, and keep the record. Vallo Stays carries hotels, apartments, guest houses, resorts and restaurant tables on the same account and the same inbox.",
     shareDescription:

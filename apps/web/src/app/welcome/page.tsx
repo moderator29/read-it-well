@@ -39,9 +39,12 @@ export const metadata: Metadata = {
  * REACHABLE SIGNED OUT. `planFirstRun` in `./plan.ts` (a pure function with
  * its own test) chooses between skipping and which ending to show.
  *
- * A COLD START OPENS ON THE INTRO (`WelcomeIntro`, 29 September): the name,
- * one line, a small scene of the glass objects and the two doors, Get
- * started and Sign in. The four slides are the tour behind it (`?tour=1`).
+ * A COLD START OPENS ON THE INTRO (`WelcomeIntro`): since 6 October the
+ * monotone Get Started (D13), the mark where the startup's lockup settles,
+ * the slogan, the product explanation and the two doors, Get started and
+ * Sign in. Get started carries `next=/welcome`, so a new account lands on the
+ * question beat below rather than relying on `/home` to send it back here
+ * (`doors.ts`). The four slides are the tour behind it (`?tour=1`), unchanged.
  *
  * AN ARRIVAL WITH A DESTINATION SKIPS THE SLIDES (V-18). A stranger who was
  * stopped on the way to a search, a listing or a stay opens on the account
@@ -76,8 +79,8 @@ export default async function WelcomePage({
   /* Seen once, then out of the way (the founder, 29 September). */
   if (plan.kind === "skip") redirect(plan.to);
 
-  /* THE INTRO (the Slate pass, 29 September): a stranger on a cold start
-     meets one screen, the name, a moving scene and the two doors, with the
+  /* THE INTRO (monotone since 6 October, D13): a stranger on a cold start
+     meets one screen, the mark, the slogan and the two doors, with the
      four slides one tap away as the tour (`?tour=1`). An arrival with a
      destination still opens on the slides' account choice, headed with what
      they asked for (V-18). */

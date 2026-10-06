@@ -7,6 +7,7 @@ import { catalogueIsOpen, type Door } from "./doors";
 import { HeroSurface } from "./HeroSurface";
 import { ObjectField } from "./ObjectField";
 import { HERO_OBJECTS } from "./landing-objects";
+import { heroCopy } from "./hero-copy";
 
 /**
  * The hero, to the founder's reference 39 (29 September 2026): a clean
@@ -17,12 +18,19 @@ import { HERO_OBJECTS } from "./landing-objects";
  * themes (the warm paper in light, the night at night), and the photographs
  * live further down where they show places.
  *
- * THE HEADLINE AND THE SEARCH SAY THE SAME THREE WORDS, AND THAT IS NOT A
- * COINCIDENCE TO BE TIDIED AWAY. "Rent, buy or stay. Without the
- * runaround." names the search's Buy, Rent and Stay segments on purpose: the
- * headline teaches the control and the control proves the headline. IF ONE
- * CHANGES, THE OTHER CHANGES IN THE SAME COMMIT (`segments.ts`,
- * `headline-coupling.test.ts`).
+ * THE HEADLINE IS THE SLOGAN AND THE SUB IS THE EXPLANATION (founder
+ * directive D1, 6 October 2026). The brand has four lines with four jobs
+ * (`landing.slogan`, `positioning`, `explanation`, `shortForm` in the
+ * dictionary): the slogan, "Space, without the runaround.", is the line, set
+ * on two lines with the second in the brand blue as the old headline was;
+ * the explanation says what Vallo does underneath it; the positioning line is
+ * NOT on this screen, because D1 rules it is never the primary consumer line.
+ * The headline used to be "Rent, buy or stay. Without the runaround.", built
+ * to name the search's three segments; D1 supersedes that line, and
+ * `headline-coupling.test.ts` keeps the part of the old rule that still holds
+ * (the hero promises nothing the control cannot do). Only the hero's copy and
+ * its structure changed in this pass; the rest of the landing waits for its
+ * own.
  *
  * THE ONE ACTION IS HONEST ABOUT WHERE IT GOES (UIUX item 12). While the
  * catalogue is closed to strangers, `/search` answers a signed-out visitor
@@ -43,6 +51,8 @@ import { HERO_OBJECTS } from "./landing-objects";
 export function Hero({ t, door }: { t: Dictionary; door: Door }) {
   const face = t.landing.face;
   const hero = face.hero;
+  const copy = heroCopy(t);
+  const [lead, accent] = copy.lines;
   const open = catalogueIsOpen(door);
   const facts = [hero.facts.inspect, hero.facts.moveIn, hero.facts.agree];
 
@@ -50,7 +60,7 @@ export function Hero({ t, door }: { t: Dictionary; door: Door }) {
     <section className="nf-landing-hero" data-chapter="hero" aria-labelledby="nf-landing-title">
       <div className="nf-hero-grid" aria-hidden="true" />
       <div className="nf-shell nf-landing-hero-body">
-        {/* THE HERO'S OBJECTS: the headline's three words as the founder's
+        {/* THE HERO'S OBJECTS: the search control's three words as the founder's
             3D objects (rent, buy, stay) and the map pin, floating at the
             stage's edges, leaning toward a desktop pointer (ObjectField). */}
         <ObjectField objects={HERO_OBJECTS} className="nf-o3--hero" pointer />
@@ -63,13 +73,15 @@ export function Hero({ t, door }: { t: Dictionary; door: Door }) {
             so the heading still reads as written. */}
         <h1 id="nf-landing-title" className="nf-landing-title nf-depth">
           <span className="nf-depth-line">
-            <DepthWords text={hero.title1} />
+            <DepthWords text={lead} />
           </span>
-          <span className="nf-depth-line nf-depth-line--accent">
-            <DepthWords text={hero.title2} start={wordCount(hero.title1)} />
-          </span>
+          {accent ? (
+            <span className="nf-depth-line nf-depth-line--accent">
+              <DepthWords text={accent} start={wordCount(lead)} />
+            </span>
+          ) : null}
         </h1>
-        <p className="nf-rise nf-rise-3 nf-landing-sub">{hero.subtitle}</p>
+        <p className="nf-rise nf-rise-3 nf-landing-sub">{copy.subtitle}</p>
         <div className="nf-rise nf-rise-4 nf-hero-action">
           <ButtonLink href={door("/search")} variant="primary" size="lg" trailingIcon="arrow-right">
             {open ? hero.explore : hero.getStarted}
