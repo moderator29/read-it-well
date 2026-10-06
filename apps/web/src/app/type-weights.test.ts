@@ -12,10 +12,16 @@ import { describe, expect, it } from "vitest";
  *
  * AND NOTHING DRAWS 500 (Session 3 ruling on CRAFT_DOCTRINE "three weights
  * maximum"): `font-medium`, `font-[500]`, `font-weight: 500` and
- * `fontWeight: 500` are the fourth weight, and every site went to 400 or 600
- * by its role (labels, titles, links, figures, errors and the selected state
- * 600; muted or secondary text, inputs and unselected tabs 400). The few files
- * that still carry one are named in `ALLOWED_500` below with the reason.
+ * `fontWeight: 500` (a JSX attribute, `fontWeight="500"`, included) and a
+ * `font:` shorthand with a 500 are the fourth weight, and every site went to
+ * 400 or 600 by its role: labels, titles, links, figures, errors, and the
+ * selected or current state at 600; muted or secondary text, inputs and
+ * sentences at 400; and a tab or nav row that has its own 600 selected state
+ * at 400 when it is not selected. Not every control separates its states by
+ * weight: the Segmented items are 600 in BOTH states and are told apart by the
+ * capsule behind the chosen one, and so is the feed's segment link (a fill).
+ * The few files that still carry a 500 are named in `ALLOWED_500` below with
+ * the reason.
  *
  * Not held to it: the admin console and the dev previews (`app/admin`,
  * `app/(dev)`), which are staff and harness surfaces with their own pass, and
@@ -41,11 +47,18 @@ const strip = (text: string) => text.replace(/\/\*[\s\S]*?\*\//g, "");
  * longer has a 500) fails the second test, so this list can only shrink.
  */
 const ALLOWED_500: Record<string, string> = {
+  "components/site/landing/StoreBadges.tsx": "the official store-badge artwork (SVG text), drawn to each store's own spec",
   "lib/email/render.ts": "email has its own type rules (ruling: the one inline 500 stays)",
   "app/css/admin.css": "the console's stylesheet has its own owner (ruling: out of this pass)",
 };
 
-const WEIGHT_500 = [/\bfont-medium\b/, /font-\[500\]/, /font-weight:\s*500\b/, /fontWeight:\s*["']?500\b/];
+const WEIGHT_500 = [
+  /\bfont-medium\b/,
+  /font-\[500\]/,
+  /font-weight:\s*500\b/,
+  /fontWeight(?::\s*|=\{?\s*)["']?500\b/,
+  /font:\s*[^;{}"'`]*\b500\b/,
+];
 
 const BANNED = [
   /font-extrabold/,

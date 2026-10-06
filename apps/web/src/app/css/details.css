@@ -94,7 +94,8 @@
     min-inline-size: 0;
     font-size: var(--nf-text-row);
     line-height: 1.35;
-    font-weight: 600;
+    /* A sentence, so 400: the toast has no separate title or lead element to carry a 600. */
+    font-weight: 400;
   }
   .nf-toast__action {
     flex-shrink: 0;
