@@ -1,5 +1,6 @@
 import { isAncestor, isAppRoot, normalisePath } from "@/lib/nav/resolve";
 import { prepareReturn, returnPending } from "./nav-origin";
+import { bindPhotoMorph, liftReturnPhoto } from "./photo-morph";
 
 /**
  * WHICH WAY A NAVIGATION MOVES (motion sweep, 29 September 2026).
@@ -139,13 +140,21 @@ export function animateBack(go: () => void): void {
   } catch {
     reduce = true;
   }
-  if (off || reduce || typeof doc.startViewTransition !== "function" || !typedTransitionsSupported()) {
+  const leaving = window.location.pathname;
+  /* Reduced motion still crossfades back into the card or row this page was
+     opened from (nav-origin.ts, "quiet-return"); with nothing to return
+     into, it stays the cut it always was. */
+  const quietReturn = reduce && returnPending(leaving);
+  if (off || (reduce && !quietReturn) || typeof doc.startViewTransition !== "function" || !typedTransitionsSupported()) {
     go();
     return;
   }
   markNav("back");
-  const leaving = window.location.pathname;
-  doc.startViewTransition({
+  /* A listing opened from a card: its hero is named now, before the browser
+     captures this page, so the photograph can fold back into the card
+     (photo-morph.ts). Only when there is a card to fold into. */
+  const lifted = !reduce && returnPending(leaving) && liftReturnPhoto();
+  const vt = doc.startViewTransition({
     types: ["nf-back"],
     update: () =>
       new Promise<void>((resolve) => {
@@ -178,4 +187,5 @@ export function animateBack(go: () => void): void {
         go();
       }),
   });
+  if (lifted) bindPhotoMorph(vt);
 }

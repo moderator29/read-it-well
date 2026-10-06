@@ -14,6 +14,7 @@ import { isPropertyType, type PropertyType } from "@/lib/interests/property-type
 import { isDataSaver } from "@/lib/ui/data-saver";
 import { motionQuiet } from "@/lib/motion/gate";
 import { startPhotoMorph } from "@/lib/motion/photo-morph";
+import { pressFrom } from "@/lib/motion/press-start";
 import { drawnSrcIn, handOff } from "@/lib/listings/handoff";
 import { cardGlance } from "@/lib/listings/card-glance";
 import { SaveButton, useSaveControl } from "@/components/app/SaveControl";
@@ -275,13 +276,28 @@ export function ListingCard({
        shell (lib/listings/handoff.ts), which paints them at once. */
     handOff(cardGlance(listing, locale, copy), drawnSrcIn(media, listing.photos[0]));
     if (!media || motionQuiet()) return;
-    media.style.viewTransitionName = `listing-photo-${listing.id}`;
-    startPhotoMorph(listing.id);
-    /* If this card is still on screen after the navigation (it was
-       refused, or it opened in place), it gives the name back. */
-    window.setTimeout(() => {
-      media.style.viewTransitionName = "";
-    }, 1500);
+    /* Measured and named here; the hero aims the flight when it commits,
+       and the module gives the name back when the transition is over (or
+       at a ceiling, if the navigation was refused). */
+    startPhotoMorph(listing.id, media);
+  };
+
+  /*
+   * THE PRESS STARTS WHEN THE THUMB LANDS (round 5). `:active` alone waited
+   * on the browser: Chrome on Android shows it only once it is sure the touch
+   * is a tap (on a quick tap, at the lift, with the click), and Safari not at
+   * all without a touch listener. So the card sank as the next page was
+   * already on its way, or never. Now the finger coming down writes
+   * `data-pressed` on the card directly (no React render on the hot path) and
+   * the card sinks on the press token at once; lifting, a scroll taking the
+   * touch (`pointercancel`) or leaving releases it. Never blocks the tap: the
+   * listeners are passive and nothing is prevented.
+   */
+  const pressCard = (event: React.PointerEvent<HTMLAnchorElement>) => {
+    warm();
+    if (!event.isPrimary || event.button !== 0) return;
+    const card = cardRef.current;
+    if (card) pressFrom(card);
   };
 
   // "Lagos, Lagos" reads as a bug, so a place stated twice collapses.
@@ -467,7 +483,7 @@ export function ListingCard({
         href={href}
         prefetch={warmed ? true : undefined}
         onClick={handleClick}
-        onPointerDown={warm}
+        onPointerDown={pressCard}
         onPointerEnter={warm}
         onFocus={warm}
         className="nf-pcard__link"
@@ -475,6 +491,7 @@ export function ListingCard({
         <div
           ref={mediaRef}
           className="nf-pcard__media nf-vt-morph"
+          data-morph-id={listing.id}
           data-theme="dark"
         >
           <div className="nf-pcard__photo">

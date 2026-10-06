@@ -25,10 +25,25 @@
  * duplicate aborts every view transition on the page. The name goes on at the
  * tap and comes off once the next page has settled, or after a ceiling.
  *
- * Nothing here runs under Calm, Off, the operating system's reduced motion or
+ * Nothing travels under Calm, Off, the operating system's reduced motion or
  * data saver: `originAllowed` says no and the route falls back to its plain
- * fade (Calm) or to nothing (Off, reduced).
+ * fade (Calm) or to nothing (Off).
+ *
+ * REDUCED MOTION STILL SAYS WHERE (round 5, the listing opens). A reader who
+ * asked the operating system for less motion used to get a cut: the page was
+ * simply replaced. Now, when nothing else holds motion back (`originQuiet`),
+ * the tapped card or row is still lent the name, but nothing moves: the page
+ * crossfades in 160ms and the tapped element is the last thing to leave
+ * (`data-nav-origin="quiet"`), and going back it is the first thing to come
+ * back (`"quiet-return"`). Opacity only (route-motion.css).
+ *
+ * A LISTING CARD'S PHOTOGRAPH flies on its own (lib/motion/photo-morph.ts),
+ * so the card is never lent `nf-origin` while its photo travels; going back,
+ * `prepareReturn` hands the card to `landReturnPhoto` so the photo folds back
+ * into the very box it left.
  */
+
+import { landReturnPhoto } from "./photo-morph";
 
 export type Rect = { x: number; y: number; width: number; height: number };
 export type Viewport = { width: number; height: number };
@@ -98,10 +113,29 @@ export function originAllowed(): boolean {
   return true;
 }
 
+/**
+ * The operating system asks for less motion, and nothing else is holding
+ * motion back (Calm keeps its own short fade, Off and data saver keep
+ * nothing). The origin is still lent, for a crossfade that does not travel.
+ */
+export function originQuiet(): boolean {
+  if (typeof window === "undefined" || typeof document === "undefined") return false;
+  const root = document.documentElement;
+  const level = root.dataset.motion;
+  if (level === "calm" || level === "off" || root.dataset.saveData === "on") return false;
+  try {
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  } catch {
+    return false;
+  }
+}
+
 /* -------------------------------------------------------------- the state */
 
 type Pending = {
   kind: OriginKind;
+  /** Lent under reduced motion: it marks where, and does not move. */
+  quiet?: boolean;
   rect: Rect;
   /** The path the tap happened on and the href it went to. */
   from: string;
@@ -137,12 +171,13 @@ function unname(): void {
   named = null;
 }
 
-function lend(el: HTMLElement): void {
+function lend(el: HTMLElement, quiet = false): void {
   unname();
   /* A card whose photograph has a morph of its own (the listing card and
      the gallery, `.nf-vt-morph`) keeps that one: two lifts from one card
-     read as the card coming apart. It still opens from its point. */
-  if (el.style.viewTransitionName || el.querySelector(".nf-vt-morph")) return;
+     read as the card coming apart. It still opens from its point. Under
+     reduced motion no photograph flies, so the card itself is the mark. */
+  if (el.style.viewTransitionName || (!quiet && el.querySelector(".nf-vt-morph"))) return;
   el.style.setProperty("view-transition-name", ORIGIN_NAME);
   named = el;
 }
@@ -179,15 +214,16 @@ export function noteTap(target: Element): void {
  * router starts, so the name is on the element when the old page is captured.
  */
 export function captureOrigin(anchor: HTMLAnchorElement, url: URL): void {
-  if (!originAllowed()) return;
+  const quiet = !originAllowed() && originQuiet();
+  if (!originAllowed() && !quiet) return;
   if (url.pathname === window.location.pathname) return;
   const el = originElement(anchor);
   if (!el) return;
   const rect = rectOf(el);
   if (rect.width === 0 || rect.height === 0) return;
   const kind = originKind(rect, viewport());
-  pending = { kind, rect, from: window.location.pathname, href: anchor.getAttribute("href") ?? url.pathname, at: Date.now() };
-  if (kind === "expand") lend(el);
+  pending = { kind, rect, quiet, from: window.location.pathname, href: anchor.getAttribute("href") ?? url.pathname, at: Date.now() };
+  if (kind === "expand") lend(el, quiet);
   else unname();
   clearAfter(NAME_CEILING_MS);
 }
@@ -226,7 +262,16 @@ export function applyOrigin(path: string, direction: string | undefined): void {
   lastTap = null;
   /* No origin this time: the record of where the last page opened from is
      kept, because `prepareReturn` checks both ends of it before using it. */
-  if (!p || p.from === path || !originAllowed() || direction === "back" || direction === "tab") return;
+  if (!p || p.from === path || direction === "back" || direction === "tab") return;
+  if (p.quiet) {
+    /* Reduced motion: no point, no travel; only which element to keep. */
+    if (p.kind !== "expand" || !originQuiet()) return;
+    root.setAttribute(ATTR, "quiet");
+    opened = { from: p.from, to: path, href: p.href };
+    clearAfter(NAME_CEILING_MS);
+    return;
+  }
+  if (!originAllowed()) return;
   const vp = viewport();
   setVars(originPoint(p.rect, vp), p.kind === "expand" ? expandMove(p.rect, vp) : null);
   root.setAttribute(ATTR, p.kind);
@@ -254,12 +299,13 @@ export function settleOrigin(): void {
  * the new state and the stylesheet shrinks the old page into it.
  */
 export function returnPending(leaving: string): boolean {
-  return opened !== null && opened.to === leaving && originAllowed();
+  return opened !== null && opened.to === leaving && (originAllowed() || originQuiet());
 }
 
 export function prepareReturn(leaving: string): boolean {
   const o = opened;
-  if (!o || o.to !== leaving || !originAllowed()) return false;
+  const quiet = !originAllowed() && originQuiet();
+  if (!o || o.to !== leaving || (!originAllowed() && !quiet)) return false;
   if (window.location.pathname !== o.from) return false;
   let el: HTMLElement | null = null;
   for (const a of document.querySelectorAll<HTMLAnchorElement>("a[href]")) {
@@ -278,8 +324,17 @@ export function prepareReturn(leaving: string): boolean {
   const rect = rectOf(el);
   const vp = viewport();
   const kind = originKind(rect, vp);
+  if (quiet) {
+    if (kind === "expand") {
+      lend(el, true);
+      document.documentElement.setAttribute(ATTR, "quiet-return");
+      clearAfter(SETTLE_MS + 400);
+    }
+    return true;
+  }
   setVars(originPoint(rect, vp), kind === "expand" ? expandMove(rect, vp) : null);
-  if (kind === "expand") lend(el);
+  /* A listing card takes its photograph back instead (photo-morph.ts). */
+  if (kind === "expand" && !landReturnPhoto(el)) lend(el);
   document.documentElement.setAttribute(ATTR, kind === "expand" ? "return" : "return-point");
   clearAfter(SETTLE_MS + 400);
   return true;

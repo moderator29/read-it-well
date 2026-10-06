@@ -249,10 +249,17 @@ html:active-view-transition-type(nf-flip)::view-transition-new(root) {
  * that holds a fixed layer (a sheet, a floating back, the map pill) is left
  * still for the same reason. On the first paint it waits for the splash, as
  * every entrance does.
+ *
+ * THE LISTING'S PHOTOGRAPH IS NEVER IN THE QUEUE (`[data-morph-hero]`, round
+ * 5). It is the page's subject and its largest paint: held at opacity 0 for
+ * a stagger step (and for the whole splash on a cold open), it made the
+ * largest contentful paint wait on an animation. It is there on the first
+ * frame; arriving from a card it is the thing that flies (photo-morph.ts).
  */
 @layer components {
   :where(.nf-page-stage > * > :nth-child(-n + 6)):where(
       :not(
+          [data-morph-hero],
           :has(
               .fixed,
               .nf-sheet,
@@ -311,6 +318,89 @@ html:active-view-transition-type(nf-flip)::view-transition-new(root) {
   view-transition-class: nf-morph;
 }
 
+/*
+ * A LISTING OPENS (round 5). One continuous space: the card's photograph is
+ * the thing that travels, so nothing else does.
+ *
+ *   0ms     the thumb lands: the card has already sunk (list-views.css,
+ *           `[data-pressed]`)
+ *   0       the photograph lifts out of the card and flies to the hero on
+ *           ONE transform (translate and a uniform scale, from the card's box
+ *           that photo-morph.ts writes as `--nf-morph-*`), `land` over the
+ *           route's 380ms. The browser's own pair animated width and height,
+ *           on the main thread, for 250ms on its default curve: the photo
+ *           landed before the page it belonged to and stuttered on a busy
+ *           phone. The hero's controls and scrims ride inside it and fade up
+ *           as it grows, so nothing appears in one frame when it lands.
+ *   0       the page behind recedes as every push does; the listing fades up
+ *           where it is (`glide`, 240ms). It does not also grow out of the
+ *           card's point: two things saying "from here" at once is one too many
+ *   60      the lead card (title, place, the price) settles 12px into place
+ *           above the photograph's foot, `land`, so the type arrives rather
+ *           than appearing; it is its own group so the flying photograph
+ *           passes under it, as the page will have it
+ *   380     the photograph lands; the marks on its foot follow (detail-m.css)
+ *
+ * BACK folds it home: the hero is named before the listing is captured and
+ * the card's photo box once the page under it has drawn, and the same
+ * keyframe flies the photograph back into the box it left while the listing
+ * shrinks into the card (`return`, above).
+ *
+ * A photograph whose partner never arrived (the card scrolled out, the page
+ * slower than the transition) fades where it is instead of flying from a box
+ * nobody measured: the flight runs only once the root says `open` or
+ * `return`, never on `lift`.
+ */
+::view-transition-group(.nf-morph) {
+  z-index: 2;
+}
+:root:is([data-nav-morph="open"], [data-nav-morph="return"])::view-transition-group(.nf-morph) {
+  transform-origin: 0 0;
+  animation: nf-morph-fly var(--nf-route-in) var(--nf-ease-entrance) both;
+}
+/* Both images fill the hero's box, so a card cut at 4:3 and a hero at 16:9
+   meet as one crop rather than two heights; the crossfade is quicker than
+   the flight, so the hero is whole well before it lands. */
+::view-transition-old(.nf-morph),
+::view-transition-new(.nf-morph) {
+  block-size: 100%;
+  object-fit: cover;
+  animation-duration: var(--nf-duration-base);
+  animation-timing-function: var(--nf-ease-standard);
+}
+::view-transition-old(.nf-morph):only-child {
+  animation: nf-route-fade-out var(--nf-duration-fast) var(--nf-ease-exit) both;
+}
+::view-transition-new(.nf-morph):only-child {
+  animation: nf-route-fade-in var(--nf-duration-base) var(--nf-ease-standard) both;
+}
+:root[data-nav-morph="open"]::view-transition-new(root) {
+  animation: nf-route-fade-in var(--nf-duration-base) var(--nf-ease-standard) both;
+}
+:root[data-nav-morph="open"] .nf-detail-lead {
+  view-transition-name: nf-detail-lead;
+}
+::view-transition-group(nf-detail-lead) {
+  z-index: 3;
+}
+::view-transition-new(nf-detail-lead):only-child {
+  animation: nf-lead-settle var(--nf-route-in) var(--nf-ease-entrance) 60ms both;
+}
+
+/*
+ * NOTHING ARRIVES TWICE. A listing opened from a card on this tab
+ * (`data-arrival="card"`, ListingGallery) had its title and price on screen
+ * already, in the loading shell or carried by the transition above. When the
+ * page then streamed in over the shell, the lead card rose from nothing a
+ * second time and the price zoomed out of depth: the type the reader was
+ * reading jumped. Here the page simply takes the shell's place.
+ * Unlayered, so it outranks the layered entrances it stands down.
+ */
+.nf-cat-surface:has(> [data-arrival="card"]) > *,
+.nf-cat-surface:has(> [data-arrival="card"]) :is(.nf-detail-lead, .nf-detail-price) {
+  animation: none;
+}
+
 /* --------------------------------------------------------------------- calm */
 
 /* Calm: a short crossfade whichever way you went, and nothing travels. */
@@ -325,6 +415,36 @@ html[data-motion="calm"]:active-view-transition-type(nf-back)::view-transition-n
 :root[data-motion="calm"]::view-transition-old(nf-origin),
 :root[data-motion="calm"]::view-transition-new(nf-origin) {
   animation: none;
+}
+
+/* ----------------------------------------------------------- reduced motion */
+
+/*
+ * NOTHING TRAVELS, AND THE PAGE STILL SAYS WHERE IT CAME FROM (round 5).
+ * base.css stops every view-transition animation under reduced motion. A move
+ * with a quiet origin (nav-origin.ts, `originQuiet`) keeps a 160ms crossfade,
+ * opacity only: forward, the page dissolves around the card that was tapped
+ * and the card leaves last; back, the card returns first and the page fills
+ * in around it. 160ms is the reduced-motion fade the motion system names
+ * (the duration tokens collapse to 1ms here, so it is written out, as the
+ * startup's is in threshold.css).
+ */
+@media (prefers-reduced-motion: reduce) {
+  :root[data-nav-origin^="quiet"]::view-transition-old(root) {
+    animation: nf-route-fade-out 160ms var(--nf-ease-standard) both !important;
+  }
+  :root[data-nav-origin^="quiet"]::view-transition-new(root) {
+    animation: nf-route-fade-in 160ms var(--nf-ease-standard) both !important;
+  }
+  :root[data-nav-origin="quiet"]::view-transition-old(nf-origin) {
+    animation: nf-route-fade-out 160ms var(--nf-ease-standard) 80ms both !important;
+  }
+  :root[data-nav-origin="quiet-return"]::view-transition-new(root) {
+    animation-delay: 80ms !important;
+  }
+  :root[data-nav-origin="quiet-return"]::view-transition-new(nf-origin) {
+    animation: nf-route-fade-in 160ms var(--nf-ease-standard) both !important;
+  }
 }
 
 /* ---------------------------------------------------------------------- off */
@@ -392,6 +512,17 @@ html[data-motion="calm"]:active-view-transition-type(nf-back)::view-transition-n
   to {
     translate: var(--nf-origin-dx, 0) var(--nf-origin-dy, 0);
     scale: var(--nf-origin-scale, 1);
+  }
+}
+@keyframes nf-morph-fly {
+  from {
+    transform: translate(var(--nf-morph-x), var(--nf-morph-y)) scale(var(--nf-morph-s));
+  }
+}
+@keyframes nf-lead-settle {
+  from {
+    opacity: 0;
+    translate: 0 var(--nf-route-lift);
   }
 }
 @keyframes nf-origin-settle {

@@ -181,7 +181,13 @@
   /* 0.985 since Session 3 (north star motion 11, MOTION_SYSTEM "Card
      press"): the large-surface press scale from the token, so the card and
      every other large tappable surface sink by the same amount. */
-  .nf-pcard:active {
+  /* `[data-pressed]` (round 5, lib/motion/press-start.ts): the card sinks
+     the moment the thumb lands, not when the browser decides the touch was
+     a tap. `:active` stays for the mouse and the keyboard. A thumb that
+     stays down hands over to the hold (details.css, `holding`, 0.97 on the
+     slow curve), so the long press still deepens into its menu. */
+  .nf-pcard:active,
+  .nf-pcard[data-pressed]:not([data-long-press]) {
     transform: none;
     scale: var(--nf-pcard-press, var(--nf-press-scale-lg));
   }
@@ -438,7 +444,8 @@
       transition: none;
     }
     .nf-pcard:hover,
-    .nf-pcard:active {
+    .nf-pcard:active,
+    .nf-pcard[data-pressed] {
       translate: none;
       scale: none;
     }
