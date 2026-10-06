@@ -560,6 +560,48 @@ and email rebuild, the money surfaces, the admin mobile rebuild. **The standard 
 unchanged; the identity is preserved.** Those are not in tension, and a session that
 treats D28 as permission to do less has misread it.
 
+## D29. The two-tier material rule for 3D assets
+
+**New, 6 October, founder approved. This amends D2 of the four locked decisions.**
+
+D2 said matte clay for every content object. **That was over-applied.** The no-gloss
+rule exists because coins, gems and glossy abstract objects read as a betting or crypto
+product in this market. **A building with glass windows is not that**, and a property
+platform is better served by places that look like places.
+
+The corrected rule has two tiers, and **the tier is decided by what the object is, not
+by its size**:
+
+| Tier | What belongs | Material |
+|---|---|---|
+| **A. Real things** | Buildings, land, estates, and real Nigerian infrastructure: the prepaid meter, water tank, inverter, generator, borehole pump, estate gate, ceiling fan | **Rich and realistic.** Warm interior light, foliage, real materials, a dominant blue palette with natural accents. Recognisable by sight |
+| **B. Symbols** | Anything standing for an idea: shield for trust, chart for analytics, bell for notification, wallet, padlock, key, receipt, tick, map pin, speech bubble, medal, credential card | **Simple and matte.** Deep royal blue, minimal geometry, **no gloss, no reflection, no gem or coin aesthetic**. Legible at 32px |
+
+**The test:** does a person recognise it because they have seen one in the world, or
+because it stands for a concept? The first is Tier A. The second is Tier B.
+
+**Why the split is enforced rather than loose.** A set that mixes materials inside one
+tier looks cheap the moment two of them share a screen. Within a tier, every object
+must match every other object exactly: same angle, same lighting, same finish.
+
+**Tier B keeps the casino prohibitions in full.** No coins, no gold, no gems, no
+tokens, no glossy abstract forms. Those were never about buildings.
+
+**Hard rule for both tiers: no text, letters, words or signage baked into any asset.**
+Vallo ships in English, Yorùbá, Hausa and Igbo, and an icon with English welded into it
+is wrong in three of four locales and can never be translated. Signage boards render
+blank.
+
+**Both tiers must survive a light background.** Every asset is checked on `#F4F4F1` at
+390px as well as on `#010118`. An asset whose edges disappear on white is rejected,
+which is the failure that made the existing glass set unusable.
+
+**Assets arrive as sheets.** The founder generates them in grids rather than one at a
+time, because image-generation limits make 130 separate generations impractical.
+Session 3 slices them. `scripts/build-icon-assets.py` already does this for the
+original brand sheets and is the precedent. Resolution per object is the constraint
+that sets the grid size, not the generation limit.
+
 ---
 
 ## What this file supersedes, explicitly
@@ -577,6 +619,7 @@ treats D28 as permission to do less has misread it.
 | The current Get Started page, and the first-screen-after-startup being `/home` or `/welcome` as they stand | D13 |
 | Tier and plan presented as a pricing table row | D14 |
 | Glass 3D marks on light surfaces | D15 |
+| **D2's matte clay for every content object** | **D29: two tiers, realistic for real things, matte for symbols** |
 | The blanket anti-streak rule, for earned standing only | D17 |
 | `DEFAULT_PASSCODE_LENGTH = 6` | D18 |
 | North star 14.3's ban on a preselected plan | D21 |

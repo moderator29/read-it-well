@@ -1,3 +1,30 @@
+# Vallo asset generation
+
+> **AMENDED 6 OCTOBER BY D29, FOUNDER APPROVED. READ THIS BEFORE ANYTHING BELOW.**
+>
+> **The matte-clay-for-everything rule in sections 0 to 14 is superseded by a two-tier
+> rule.** Those sections remain useful for their subject descriptions, which are still
+> correct; their material clause is not.
+>
+> | Tier | What | Material |
+> |---|---|---|
+> | **A. Real things** | Buildings, land, estates, and Nigerian infrastructure: prepaid meter, water tank, inverter, generator, borehole pump, estate gate, ceiling fan | **Rich and realistic.** Warm interior light, foliage, real materials, blue-dominant with natural accents |
+> | **B. Symbols** | Anything standing for an idea: shield, chart, bell, wallet, padlock, key, receipt, tick, map pin, speech bubble, medal, credential | **Simple and matte**, royal blue, **no gloss**, legible at 32px |
+>
+> The tier is decided by what the object **is**, not its size: recognised from the
+> world is Tier A, stands for a concept is Tier B. The coin, gem and gloss
+> prohibitions apply in full to Tier B, where they always belonged.
+>
+> **No text, letters or signage baked into any asset, in either tier.** Vallo ships in
+> four locales and welded English cannot be translated. Signage renders blank.
+>
+> **Every asset is checked on `#F4F4F1` as well as `#010118`.** Edges that vanish on
+> white are rejected: that failure is why the glass set is being replaced.
+>
+> **Assets are generated as grids and sliced**, not one at a time.
+> `scripts/build-icon-assets.py` is the existing precedent. Resolution per object sets
+> the grid size: 16 per sheet for symbols used small, up to 32 for places used large.
+
 # ChatGPT image prompts for every Vallo asset
 
 **From Session 1, 5 October 2026.** Every prompt below is **complete and

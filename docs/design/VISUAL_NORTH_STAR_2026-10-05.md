@@ -50,6 +50,14 @@ lead applies to System and to first visit.
 
 ### D2. Icons: matte clay for content, line glyphs for chrome
 
+> **AMENDED BY D29, 6 OCTOBER, FOUNDER APPROVED.** The clay rule was over-applied.
+> Two tiers now: **real things** (buildings, land, estates, Nigerian infrastructure)
+> render **rich and realistic**; **symbols** (shield, chart, bell, wallet, padlock,
+> key, receipt, tick) render **simple and matte** in royal blue with no gloss. The tier
+> is decided by what the object is, not its size. The casino prohibitions apply in full
+> to Tier B, where they always belonged. Line glyphs for chrome below 32px are
+> unchanged. No text baked into any asset, in any tier.
+
 | Tier | What | Where | Rule |
 |---|---|---|---|
 | **Clay** | Matte royal-blue 3D objects, warm-spark accent permitted on one detail | Content objects at 32px and above: property and space types, categories, success moments, empty states, onboarding art, email headers, tier and badge art | **Matte only. Never glossy, bevelled, chrome, neon-rimmed or glass.** |
