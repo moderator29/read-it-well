@@ -119,7 +119,8 @@ export default async function RentSharePage({
   return shell(
     <div className="grid gap-md" data-testid="rent-share">
       <DocumentSheet kind="document" as="section" aria-labelledby="share-sheet-title" data-testid="share-sheet">
-        <DocHead label={copy.shareTitle} title={area || copy.shareTitle} id="share-sheet-title" />
+        {/* With no place on the row the title already is "Your share of a move-in", so the overline is not drawn above it a second time. */}
+        <DocHead label={area ? copy.shareTitle : undefined} title={area || copy.shareTitle} id="share-sheet-title" />
         <div className="nf-doc__hero">
           <p className="nf-doc__label">{x.yours}</p>
           <DocFigure testId="share-figure">{formatMoney(share, locale)}</DocFigure>
