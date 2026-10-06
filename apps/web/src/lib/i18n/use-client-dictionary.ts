@@ -33,7 +33,7 @@ import { useClientLocale } from "./use-client-locale";
  *
  * On the production build this hook's module carries the whole dictionary
  * into the first load of every route that renders a caller: 1,351,758 bytes
- * raw, 398,654 gzipped (`.next/diagnostics/route-bundle-stats.json`). `PageHeader`
+ * raw, 398,654 gzipped (the build's route bundle stats). `PageHeader`
  * and `BackButton` no longer use it; its last caller is
  * `components/social/ActionSheet.tsx`. Client words now come from the server:
  * a prop, `<CopyScope>` / `useScopedCopy` (`copy-scope.tsx`), or
