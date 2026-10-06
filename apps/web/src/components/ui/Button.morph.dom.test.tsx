@@ -17,7 +17,19 @@ describe("the action morph", () => {
     const html = renderToString(<Button variant="primary" loading>Pay</Button>);
     expect(html).not.toContain("nf-btn--morph");
     expect(html).not.toContain("data-morph");
-    expect(html).toContain("nf-spinner");
+    /* A plain loading button draws the held ring, never a spinner. */
+    expect(html).not.toContain("nf-spinner");
+    expect(html).toContain("nf-btn__ring");
+    expect(html).toContain("nf-btn__arc");
+    expect(html).toContain('aria-busy="true"');
+    expect(html).toContain("Pay");
+  });
+
+  it("bounds a plain loading button too: the ring and the line draw once and hold, nothing loops", () => {
+    const plain = buttons.slice(buttons.indexOf('.nf-btn[data-loading="true"]::after {'), buttons.indexOf("THE ACTION MORPH"));
+    expect(plain).toMatch(/nf-btn-loading var\(--nf-duration-deliberate\) var\(--nf-ease-standard\) both/);
+    expect(plain).not.toMatch(/infinite|alternate/);
+    expect(plain).toMatch(/\.nf-btn\[data-loading="true"\] \.nf-btn__ring \.nf-btn__arc \{\s*animation: nf-btn-arc-draw/);
   });
 
   it("collapses to the ring when loading, with no spinner and the label kept for the ear", () => {

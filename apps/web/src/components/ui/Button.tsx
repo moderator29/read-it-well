@@ -143,8 +143,13 @@ type CommonProps = {
   /** Fills its container. Pinned-footer CTAs are always full. */
   full?: boolean;
   /**
-   * Shows a spinner in the leading slot and dims the label. The label stays put,
-   * so the button never changes width mid-press.
+   * The button is waiting on an answer. The leading slot draws a ring ONCE and
+   * holds it still, and a 2px line along the bottom edge sweeps across once and
+   * holds full width; nothing spins or loops, however long the wait, because
+   * a spinner says "working" whether or not anything is (the platform bans
+   * them). The label stays put, so the button never changes width mid-press,
+   * and `aria-busy` says the state to a screen reader. A caller that wants the
+   * wait to be a deliberate moment passes `morph` (below).
    */
   loading?: boolean;
   /**
@@ -357,7 +362,13 @@ function Content({
   return (
     <>
       {loading ? (
-        <span className="nf-spinner" aria-hidden="true" />
+        /* The morph's own ring, small, in the leading slot: drawn once to
+           three quarters and held (buttons.css, "loading, bounded"). */
+        <span className="nf-btn__ring" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width={icon} height={icon}>
+            <circle className="nf-btn__arc" cx="12" cy="12" r="10" pathLength={1} />
+          </svg>
+        </span>
       ) : done ? (
         <DoneCheck size={icon} />
       ) : leadingIcon ? (

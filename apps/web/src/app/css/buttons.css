@@ -709,9 +709,12 @@
    * centred in a 44 to 56px box, so they never meet. Positive is the simpler
    * answer and it does not depend on the isolation staying put.
    *
-   * THE LOOP IS LEGAL under "nothing loops for its own sake": it reports
-   * something that is genuinely still happening and it stops when the answer
-   * arrives, which is the same licence the skeleton shimmer holds.
+   * THE LINE IS BOUNDED NOW (6 October). It used to loop under "nothing loops
+   * for its own sake", reasoning that it reported something genuinely still
+   * happening. The platform's rule is stricter: nothing loops forever except
+   * the aurora and the assistant's thinking state, because a loop says
+   * "working" whether or not anything is. It sweeps across ONCE, `deliberate`
+   * long, and holds at full width. A long wait stays still, which is honest.
    * ===================================================================== */
   /* The 2px sweep keeps its round ends: it is a progress indicator, not a
      control, and it carries no letters. The founder's shape law exempts this
@@ -727,27 +730,33 @@
     pointer-events: none;
     z-index: 1;
     transform-origin: left center;
-    /*
-     * `alternate`, so the segment sweeps out and back rather than jumping to the
-     * left edge every cycle. A restart is a discontinuity, and a discontinuity on
-     * a progress indicator reads as the request having failed and begun again.
-     */
-    animation: nf-btn-loading var(--nf-duration-deliberate) var(--nf-ease-standard)
-      infinite alternate;
+    /* One pass, then it holds: `both` keeps the final, full-width, state. */
+    animation: nf-btn-loading var(--nf-duration-deliberate) var(--nf-ease-standard) both;
   }
-  /*
-   * 65%, and the number is derived rather than eyeballed. Transforms apply right
-   * to left, so the segment is scaled to 35% of the button's width about its
-   * left edge and then translated by a percentage OF THAT SAME UNSCALED WIDTH.
-   * To finish flush with the right edge it has to travel 100% - 35% = 65%.
-   */
+  /* The segment grows from a third of the width to all of it, once. */
   @keyframes nf-btn-loading {
     from {
-      transform: translateX(0) scaleX(0.35);
+      transform: scaleX(0.35);
     }
     to {
-      transform: translateX(65%) scaleX(0.35);
+      transform: scaleX(1);
     }
+  }
+  /*
+   * The leading ring of a loading button: the morph's arc, drawn once to three
+   * quarters and held. It takes the icon slot, inherits currentColor, and the
+   * box never moves. (The same `nf-btn-arc-draw` keyframe as the morph.)
+   */
+  .nf-btn__ring {
+    display: inline-flex;
+    flex-shrink: 0;
+  }
+  .nf-btn__ring svg {
+    display: block;
+    overflow: visible;
+  }
+  .nf-btn[data-loading="true"] .nf-btn__ring .nf-btn__arc {
+    animation: nf-btn-arc-draw var(--nf-duration-deliberate) var(--nf-ease-standard) both;
   }
   /*
    * Reduced motion, and the state is still STATED. The line stops travelling and
@@ -783,8 +792,8 @@
    * MOTION_SYSTEM.md "Primary action morph"; reference 7061).
    *
    * Opt-in: `<Button morph loading>` / `<Button morph done>`. A button that
-   * does not ask keeps the leading-slot spinner and check it always had, so
-   * no existing call site changes. The four states:
+   * does not ask keeps its leading slot (a held ring while loading, a check
+   * when done), so no existing call site changes meaning. The four states:
    *
    *   idle     the button.
    *   press    sinks 1px with its bloom pulled in (the rules above and the
@@ -947,6 +956,7 @@
   }
   @media (prefers-reduced-motion: reduce) {
     .nf-btn--morph[data-morph] .nf-btn__arc,
+    .nf-btn[data-loading="true"] .nf-btn__ring .nf-btn__arc,
     .nf-btn--morph[data-morph] .nf-btn__tick {
       animation-duration: 1ms;
       animation-delay: 0ms;
