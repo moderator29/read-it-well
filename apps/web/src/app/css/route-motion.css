@@ -191,14 +191,17 @@ html:active-view-transition-type(nf-back)::view-transition-new(root) {
     nf-page-shrink var(--nf-route-out) var(--nf-ease-standard) both;
 }
 
-/* Tab: sideways, nothing pushed. */
+/* Tab: sideways, nothing pushed. MOTION_SYSTEM "Tab change": a crossfade
+   plus a 12px lift, `glide` 240ms, both on the one clock (W2, round 5: the
+   lift ran on `land` over the slow rung, 380ms, so it was still travelling
+   140ms after the fade had landed; a tab is browsing, 160 to 240ms). */
 :root[data-nav-dir="tab"]::view-transition-old(root) {
   animation: nf-route-fade-out var(--nf-duration-fast) var(--nf-ease-exit) both;
 }
 :root[data-nav-dir="tab"]::view-transition-new(root) {
   animation:
     nf-route-fade-in var(--nf-duration-base) var(--nf-ease-standard) both,
-    nf-route-lift var(--nf-route-in) var(--nf-ease-entrance) both;
+    nf-route-lift var(--nf-duration-base) var(--nf-ease-standard) both;
 }
 
 /* The side flip turns the whole screen itself: the swap under it is instant. */
