@@ -249,7 +249,9 @@
       transform var(--nf-duration-base) var(--nf-ease-spring),
       opacity var(--nf-duration-fast) var(--nf-ease-standard);
   }
-  /* The brand's ring: an arc that fills as the pull grows, then turns. */
+  /* The brand's ring: an arc that fills as the pull grows, then, while the
+     refresh runs, is drawn once to three quarters and held (the same arc a
+     loading Button and `PendingRing` draw). Nothing turns or loops. */
   .nf-ptr__ring {
     inline-size: 1.375rem;
     block-size: 1.375rem;
@@ -263,15 +265,22 @@
   .nf-ptr__ring .nf-ptr__track {
     stroke: var(--nf-brand-tint-2);
   }
-  .nf-ptr[data-refreshing] .nf-ptr__ring {
-    animation: nf-spin var(--nf-duration-deliberate) linear infinite;
+  .nf-ptr[data-refreshing] .nf-ptr__ring circle:not(.nf-ptr__track) {
+    animation: nf-ptr-hold var(--nf-duration-deliberate) var(--nf-ease-standard) both;
+  }
+  /* The circle is r=9, a circumference of about 56.55, so 14.14 leaves the
+     three quarters showing. It starts from where the pull left the arc. */
+  @keyframes nf-ptr-hold {
+    to {
+      stroke-dashoffset: 14.14px;
+    }
   }
   .nf-ptr[data-armed] .nf-ptr__mark {
     background: var(--nf-brand-tint-1);
   }
   @media (prefers-reduced-motion: reduce) {
-    .nf-ptr[data-refreshing] .nf-ptr__ring {
-      animation: none;
+    .nf-ptr[data-refreshing] .nf-ptr__ring circle:not(.nf-ptr__track) {
+      animation-duration: 1ms;
     }
   }
 

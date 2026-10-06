@@ -113,7 +113,7 @@
       color-mix(in oklab, var(--nf-glow-ink) 50%, var(--nf-content-on-brand)) 356deg,
       transparent 360deg
     );
-    animation: nf-logo-lap 7.5s linear infinite;
+    animation: nf-logo-lap 7.5s linear 2 both;
   }
   :root[data-theme="light"] .nf-logo > * {
     position: relative;

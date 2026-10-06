@@ -158,9 +158,6 @@
   }
 
   /*
-   * The `nf-spin` keyframe stays for the pull-to-refresh mark (details.css),
-   * which turns only while a refresh is really running.
-   *
    * THE PENDING RING (replaces the looping `.nf-spinner`; rules: no spinners).
    * A control that is not a `Button` (an icon square, a row, a text link) and
    * is waiting on its sheet to arrive draws the same ring a loading Button
