@@ -232,7 +232,7 @@ export const LISTER_FIGURE_LABEL: Record<ListerFigureKind, string> = {
  * lister reads on the fee screen and this changes with it, so a record can
  * always say which words were accepted.
  */
-export const LISTER_FEE_TERMS_VERSION = "lister-fee-2026-10-06";
+export const LISTER_FEE_TERMS_VERSION = "lister-fee-2026-10-06.2";
 
 /**
  * D61. The rail is not knowable when the lister accepts, so the fee is a
@@ -285,6 +285,21 @@ export function receiveRangeNote(escrowIsLowest: boolean): string {
   return escrowIsLowest
     ? "Count on the lower figure: it is what you receive when a buyer pays into escrow. When a buyer pays directly, you receive more."
     : "Count on the lower figure: it is the least you receive, however the buyer pays.";
+}
+
+/**
+ * WHO PAYS THE SECOND FEE, SAID PLAINLY (VALLO_PRICING sections 2 and 6, as
+ * corrected on 6 October): Payluk's whoPays is `seller`, and the lister is the
+ * split's bearer on a direct payment, so the lister bears it on both rails,
+ * always. The arithmetic already takes it off the lister's side; this says so
+ * in words, so nobody reads the "when" lines as a fee the buyer might pay.
+ */
+export function listerBearsFeesSentence(escrow: boolean, processor: boolean): string | null {
+  if (escrow && processor)
+    return "You pay escrow protection when a buyer pays into escrow, and payment processing when a buyer pays directly. The buyer pays neither.";
+  if (escrow) return "You pay escrow protection when a buyer pays into escrow. The buyer never pays it.";
+  if (processor) return "You pay payment processing when a buyer pays directly. The buyer never pays it.";
+  return null;
 }
 
 /** Under the arithmetic: what the renter sees. The renter's side, said to the lister. */

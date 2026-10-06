@@ -21,6 +21,7 @@ import {
   escrowProtectionLabel,
   feeRangeText,
   rangeUpperText,
+  listerBearsFeesSentence,
   receiveRangeNote,
   renterSeesSentence,
   upToText,
@@ -114,6 +115,7 @@ export function ListerFeeGate({ kind, priceMinor, policy, locale, blocking, acce
   const isAccepted = blocking && acceptanceMatches(accepted, figures, policy);
   const priceText = money(figures.priceMinor);
   const ranged = figures.receiveLowMinor !== figures.receiveHighMinor;
+  const bears = listerBearsFeesSentence(figures.escrowProtectionMinor > 0, figures.processorUpToMinor > 0);
   const state = !blocking ? "preview" : isAccepted ? "accepted" : "open";
 
   return (
@@ -164,6 +166,11 @@ export function ListerFeeGate({ kind, priceMinor, policy, locale, blocking, acce
       {ranged && (
         <p className="nf-body-sm mt-row text-[var(--nf-content-secondary)]" data-testid="fee-gate-range-note">
           {receiveRangeNote(figures.escrowIsLowest)}
+        </p>
+      )}
+      {bears && (
+        <p className="nf-body-sm mt-inline text-[var(--nf-content-secondary)]" data-testid="fee-gate-bearer">
+          {bears}
         </p>
       )}
       <p className="nf-body-sm mt-inline text-[var(--nf-content-secondary)]">{renterSeesSentence(priceText)}</p>

@@ -43,6 +43,16 @@ describe("the lister's fee screen (D61)", () => {
     expect(text).toContain("Count on the lower figure");
   });
 
+  it("says plainly that the lister pays the second fee on both rails, never the buyer", () => {
+    /* VALLO_PRICING, corrected on 6 October: whoPays is seller, always. */
+    expect(words(gate())).toContain("You pay escrow protection when a buyer pays into escrow. The buyer never pays it.");
+    expect(words(gate({ policy: bearer }))).toContain(
+      "You pay escrow protection when a buyer pays into escrow, and payment processing when a buyer pays directly. The buyer pays neither.",
+    );
+    const none = gate({ policy: { ...policy, escrowProtectionBps: 0 } });
+    expect(none).not.toContain("fee-gate-bearer");
+  });
+
   it("says no 'you keep N percent', makes no comparison and calls no second fee Vallo's", () => {
     const html = gate({ policy: bearer });
     const text = words(html);
