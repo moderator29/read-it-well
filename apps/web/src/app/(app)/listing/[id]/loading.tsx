@@ -22,7 +22,7 @@ export default function LoadingListing() {
      (ListingHandoffShell); a cold open keeps this skeleton. */
   return (
     <LoadingShell label="Loading this place" className="mx-auto w-full max-w-5xl">
-      <ListingHandoffShell exampleLabel="Example" verifiedLabel="Verified" fallback={<ListingSkeleton />} />
+      <ListingHandoffShell verifiedLabel="Verified" fallback={<ListingSkeleton />} />
     </LoadingShell>
   );
 }

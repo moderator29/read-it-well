@@ -43,7 +43,8 @@ import { getBlockedDates } from "@/lib/bookings/queries";
 import { getListingReviews } from "@/lib/reviews/queries";
 import { getSavedListings } from "@/lib/saved/queries";
 import { lagosToday } from "@/lib/bookings/schema";
-import { ExampleNotice } from "@/components/app/listing/ExampleNotice";
+import { TrustFacts } from "@/components/app/listing/TrustFacts";
+import { earnedTrust, withEarnedTrust } from "@/components/app/listing/earned-trust";
 import { ListingGallery } from "@/components/app/listing/ListingGallery";
 import { RecordVisit } from "@/components/app/listing/RecordVisit";
 import { cardGlance } from "@/lib/listings/card-glance";
@@ -292,8 +293,21 @@ export default async function ListingDetailPage({
   const locale: Locale = await getLocale();
   const t = getDictionary(locale);
 
-  const listing = await listingById(id);
-  if (!listing) notFound();
+  const raw = await listingById(id);
+  if (!raw) notFound();
+  /*
+   * D24: THE PAGE DRAWS ONLY THE TRUST THIS SPACE EARNED.
+   *
+   * Every component below reads `listing`, and `listing` is the row with its
+   * trust fields passed through `withEarnedTrust`: on an example row the
+   * verified badge, the inspection and address dates and the rating are
+   * cleared before anything can draw them. The row's own label ("example")
+   * is not drawn anywhere on this page either, per the founder's ruling; what
+   * keeps it safe is this, not a word.
+   */
+  const listing = withEarnedTrust(raw);
+  const trust = earnedTrust(raw);
+  const sx = t.experienceDetail;
 
 
   /*
@@ -574,9 +588,14 @@ export default async function ListingDetailPage({
   /* UX-21: while every listing is an example, "Browse real listings" led back
      to more examples. The honest next step is to be told when a real one
      arrives here: the area's search, where "Save this search" sends alerts. */
-  const realSoonHref = `/search?q=${encodeURIComponent(listing.area || listing.city)}`;
+  /* D24: the page no longer says the row is an example, so its one action
+     no longer says "real" either. What stays true and useful: nothing here
+     takes a request, and the area's search is where "Save this search"
+     tells the reader when a space there does. */
+  const areaName = listing.area || listing.city;
+  const realSoonHref = `/search?q=${encodeURIComponent(areaName)}`;
   const stickyAction: StickyAction | null = isExample
-    ? { label: "Get told when real homes arrive", href: realSoonHref }
+    ? { label: sx.closed.action.replace("{area}", areaName), href: realSoonHref }
     : isBookable
       ? { label: t.catalogue.detail.checkAvailability, href: "#reserve" }
       : isRental
@@ -624,12 +643,11 @@ export default async function ListingDetailPage({
    */
   const bookingPanel = isExample ? (
     <div className="nf-panel nf-panel--card isolate p-card">
-      <p className={TYPE.rowMeta}>
-        Nothing here can be booked or paid for. Save a search for this area and
-        we will tell you when a real place with an owner you can reach is listed.
+      <p className={TYPE.rowMeta} data-testid="space-closed">
+        {sx.closed.body.replace("{area}", areaName)}
       </p>
       <ButtonLink href={realSoonHref} variant="primary" className="mt-block w-full">
-        Get told when real homes arrive
+        {sx.closed.action.replace("{area}", areaName)}
       </ButtonLink>
     </div>
   ) : isRestaurant ? (
@@ -761,13 +779,40 @@ export default async function ListingDetailPage({
    * behind the glyphs.
    */
   const marks: { icon: UiIconName; label: string }[] = [];
-  if (listing.verified) marks.push({ icon: "verified", label: t.common.verified });
+  /* TRUST FACTS ARE DATES, NEVER TICKS (north star 12 point 15). The
+     inspection and the address check used to be marks here with no date;
+     they are dated rows in "Why trust this space?" now, and what is left in
+     this run is the listing's terms, which are not checks of anything. */
   if (listing.instantBook && isBookable) {
     marks.push({ icon: "sparkle", label: "Instant Book" });
   }
-  if (listing.inspectedAt) marks.push({ icon: "home", label: "Inspected by Vallo" });
-  if (listing.addressVerifiedAt) marks.push({ icon: "location", label: "Address checked" });
   if (listing.negotiable) marks.push({ icon: "chat-bubble", label: "Price negotiable" });
+
+  const proof = proofLines({ ...proofFactsOf(listing), credentials });
+
+  /* The sections, in page order. The row carries the five a reader decides
+     on (and reviews, which it always carried); the InnerNav lists them all. */
+  const hasCost = isRental || isSale;
+  const sectionTabs = [
+    { id: "overview", label: sx.sections.overview },
+    ...(hasCost ? [{ id: "cost", label: sx.sections.costs }] : []),
+    { id: "amenities", label: sx.sections.amenities },
+    { id: "trust", label: sx.sections.trust },
+    { id: "location", label: sx.sections.location },
+    { id: "reviews", label: sx.sections.reviews },
+  ];
+  const sectionIndex: { id: string; label: string; icon: UiIconName }[] = [
+    { id: "overview", label: sx.sections.overview, icon: "home" },
+    ...(hasCost ? [{ id: "cost", label: sx.sections.costs, icon: "receipt" as UiIconName }] : []),
+    { id: "amenities", label: sx.sections.amenities, icon: "sparkle" },
+    { id: "trust", label: sx.sections.trust, icon: "shield-check" },
+    ...(facts.length > 0 ? [{ id: "details", label: sx.sections.details, icon: "clipboard-list" as UiIconName }] : []),
+    ...((listing.videos?.length ?? 0) > 0 ? [{ id: "walkthrough", label: sx.sections.walkthrough, icon: "circle-play" as UiIconName }] : []),
+    ...(listing.photos.length > 1 ? [{ id: "photos", label: sx.sections.photos, icon: "picture" as UiIconName }] : []),
+    { id: "location", label: sx.sections.location, icon: "location" },
+    { id: "agent", label: sx.sections.agent, icon: "user" },
+    { id: "reviews", label: sx.sections.reviews, icon: "star" },
+  ];
 
   /*
    * Structured data, or nothing at all.
@@ -925,12 +970,6 @@ export default async function ListingDetailPage({
                     </Suspense>
                   )}
 
-                  {/* Above the price, and that position is the point: the
-                      disclosure lands before the belief the figure forms. */}
-                  {listing.isDemo && (
-                    <ExampleNotice variant="page" className="mt-row" statement={t.examples.statement} />
-                  )}
-
                   {/*
                     THE MOVE-IN TOTAL LEADS ON A TENANCY, AS IT DOES ON THE CARD.
 
@@ -987,12 +1026,11 @@ export default async function ListingDetailPage({
                         <span className="nf-detail-price__suffix">/ {perLabel.replace(/^per /, "")}</span>
                       </p>
                     )}
-                    {listing.verified && (
-                      <span className="nf-detail-verified" data-testid="verified-listing">
-                        <UiIcon name="verified" size={ICON.inline} />
-                        {t.catalogue.detail.verifiedListing}
-                      </span>
-                    )}
+                    {/* The "Verified listing" chip that stood here was the
+                        third statement of one check (the photograph's mark,
+                        this, the agent card) and the only one with no date.
+                        The check is said on the photograph and dated in
+                        "Why trust this space?" below. */}
                   </div>
 
                   {/* How old it is (V-22). Never on an example, which
@@ -1014,17 +1052,17 @@ export default async function ListingDetailPage({
                     </div>
                   )}
 
-                  {/* The remaining trust marks: icon and word, no container. */}
-                  {marks.filter((mark) => mark.icon !== "verified").length > 0 && (
+                  {/* The listing's terms (Instant Book, a negotiable price): icon
+                      and word, no container. Not checks, so never a tick. */}
+                  {marks.length > 0 && (
                     <ul className="mt-row flex flex-wrap items-center gap-x-lg gap-y-inline">
                       {marks
-                        .filter((mark) => mark.icon !== "verified")
                         .map((mark) => (
                           <li key={mark.label} className={`flex items-center gap-xs ${TYPE.body}`}>
                             <UiIcon
                               name={mark.icon}
                               size={ICON.inline}
-                              className="shrink-0 text-[var(--nf-status-verified)]"
+                              className="shrink-0 text-[var(--nf-brand-secondary)]"
                             />
                             <span className="font-medium text-[var(--nf-content-secondary)]">
                               {mark.label}
@@ -1033,18 +1071,6 @@ export default async function ListingDetailPage({
                         ))}
                     </ul>
                   )}
-
-                  {/* V-03, THE PROOF STRIP: the dated facts the database holds,
-                      in a fixed order, each opening what the check is and is
-                      not. It renders nothing at all when there is nothing
-                      dated, which today is every example listing. */}
-                  <ProofStrip
-                    lines={proofLines({ ...proofFactsOf(listing), credentials })}
-                    variant="full"
-                    t={forProofStrip(t)}
-                    locale={locale}
-                    className="mt-md"
-                  />
 
                   {/* The move-in total leads above the price row on a tenancy (see above). */}
 
@@ -1089,13 +1115,12 @@ export default async function ListingDetailPage({
                   )}
                 </Section>
 
+                {/* The anchor row keeps its place (9E8B56ED) and gains the two
+                    sections a reader decides on: what it costs and why to
+                    trust it. The InnerNav at its end lists every section. */}
                 <ListingSectionTabs
-                  tabs={[
-                    { id: "overview", label: t.catalogue.detail.overview },
-                    { id: "amenities", label: t.catalogue.detail.amenities },
-                    { id: "location", label: t.catalogue.detail.location },
-                    { id: "reviews", label: t.catalogue.detail.reviews },
-                  ]}
+                  tabs={sectionTabs}
+                  index={{ label: sx.sections.navLabel, toggle: sx.sections.toggle, items: sectionIndex }}
                 />
 
                 {/* ---------------------------------------- the description */}
@@ -1198,6 +1223,7 @@ export default async function ListingDetailPage({
                           utilities={listing.utilities}
                           access={access}
                           bookingConfirmed={bookingConfirmed}
+                          copy={sx.utilities}
                         />
                       )}
                       {/* V-41: the lister's flooding answer, and what residents
@@ -1213,6 +1239,31 @@ export default async function ListingDetailPage({
                     </Section>
                   </Reveal>
                 )}
+
+                {/* ------------------------- WHY TRUST THIS SPACE? (D25) */}
+                {/*
+                  The dated facts, here in summary, with the door to the inner
+                  page that answers the question completely. Every fact is a
+                  date; a check that has not happened is not drawn, so a null
+                  never reads as a negative.
+                */}
+                <Reveal>
+                  <Section id="trust" title={sx.trust.title} divided className="scroll-mt-16">
+                    <TrustFacts
+                      listingId={listing.id}
+                      trust={trust}
+                      strip={
+                        /* V-03, THE PROOF STRIP: each line opens what the
+                           check is and is not. Nothing at all when nothing is
+                           dated, which today is every example listing. */
+                        <ProofStrip lines={proof} variant="full" t={forProofStrip(t)} locale={locale} />
+                      }
+                      proofCount={proof.length}
+                      locale={locale}
+                      t={t}
+                    />
+                  </Section>
+                </Reveal>
 
                 {/* ------------------------- V-43. GETTING TO WORK FROM HERE */}
                 {commute.anchors > 0 && (
@@ -1242,18 +1293,15 @@ export default async function ListingDetailPage({
                 {/* -------------------------------------- 8. THE DETAILS */}
                 {facts.length > 0 && (
                   <Reveal>
-                    <Section title="The details" divided>
+                    <Section id="details" title="The details" divided className="scroll-mt-16">
                       <FactGrid facts={facts} />
                     </Section>
                   </Reveal>
                 )}
 
-                {/* ------------------------------------------------ about */}
-                <Reveal>
-                  <Section title="About this place" divided>
-                    <ListingAbout paragraphs={aboutParagraphs} />
-                  </Section>
-                </Reveal>
+                {/* "About this place" stood here and printed the same
+                    paragraphs as the description above, word for word. One
+                    statement of a thing is enough. */}
 
                 {/* ------------------------------------------ listing code */}
                 {/*
@@ -1296,7 +1344,7 @@ export default async function ListingDetailPage({
                 */}
                 {(listing.videos?.length ?? 0) > 0 && (
                   <Reveal>
-                    <Section title="Walkthrough" divided>
+                    <Section id="walkthrough" title="Walkthrough" divided className="scroll-mt-16">
                       <ListingWalkthrough videos={listing.videos ?? []} title={listing.title} />
                     </Section>
                   </Reveal>
@@ -1307,7 +1355,7 @@ export default async function ListingDetailPage({
                     {/* No section title: the grid carries its own "Photos"
                         heading beside "Show all", and the page drew the word
                         twice in a row (Track M tidy). */}
-                    <Section divided>
+                    <Section id="photos" divided className="scroll-mt-16">
                       <ListingPhotoGrid
                         photos={listing.photos}
                         hue={listing.hue}
@@ -1343,7 +1391,7 @@ export default async function ListingDetailPage({
 
                 {/* ------------------------------------------ agent card */}
                 <Reveal>
-                  <Section title={t.catalogue.detail.agent} divided>
+                  <Section id="agent" title={t.catalogue.detail.agent} divided className="scroll-mt-16">
                     {/*
                       THE LAST MILE OF TRACK G, AND IT IS ONE PROP.
                       `listings.listing_role` has been live and not null on
@@ -1508,7 +1556,7 @@ function RestaurantPanel({
             minorUnits={listing.priceMinor}
             locale={locale}
             currency={listing.currency}
-            className="text-[1.5rem] font-bold leading-none tracking-tight text-[var(--nf-content-primary)]"
+            className="nf-figure leading-none"
             secondaryClassName="text-[0.54em] font-semibold opacity-60"
           />
           <span className={`ml-2xs ${TYPE.body}`}>per head</span>

@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { BackControl } from "@/components/ui/BackControl";
+import { InnerNav } from "@/components/ui/InnerNav";
+import type { UiIconName } from "@/design-system/icons/UiIcon";
 
 /**
  * Overview / Amenities / Location / Reviews, as anchors.
@@ -10,7 +12,25 @@ import { BackControl } from "@/components/ui/BackControl";
  * moves the underline as the page scrolls. Reduced motion changes nothing
  * here because nothing here moves on its own.
  */
-export type SectionTab = { id: string; label: string };
+export type SectionTab = { id: string; label: string; icon?: UiIconName };
+
+/*
+ * EVERY SECTION, ONE PULL AWAY (COMPONENT_LIBRARY "Glass navigation": space
+ * detail across overview, costs, amenities, trust, location).
+ *
+ * The anchor row is furniture a member already knows (9E8B56ED draws it), so
+ * it stays exactly where it was and still works before hydration. What it
+ * could never hold is the page's long tail: the details, the walkthrough, the
+ * photographs, who lists it. The InnerNav sits at the row's trailing end as a
+ * 44px circle and lists every section on the page, with the one in view
+ * marked, and its pull opens the list the way the founder likes. It is
+ * second-level navigation inside the space, never the dock or the side nav.
+ */
+export type SectionIndex = {
+  label: string;
+  toggle: string;
+  items: SectionTab[];
+};
 
 /*
  * THE WAY OUT TRAVELS WITH THE READER.
@@ -27,9 +47,12 @@ export type SectionTab = { id: string; label: string };
 export function ListingSectionTabs({
   tabs,
   backFallback = "/search",
+  index,
 }: {
   tabs: SectionTab[];
   backFallback?: string;
+  /** Every section on the page, for the InnerNav at the row's end. */
+  index?: SectionIndex;
 }) {
   const [active, setActive] = useState(tabs[0]?.id ?? "");
   const sentinel = useRef<HTMLSpanElement | null>(null);
@@ -48,9 +71,12 @@ export function ListingSectionTabs({
     return () => observer.disconnect();
   }, []);
 
+  /* The spy watches every section the index names, not only the tabs, so
+     the InnerNav marks the long-tail section in view too. */
+  const watched = index ? index.items : tabs;
   useEffect(() => {
     if (typeof IntersectionObserver === "undefined") return;
-    const nodes = tabs
+    const nodes = watched
       .map((tab) => document.getElementById(tab.id))
       .filter((node): node is HTMLElement => node !== null);
     if (nodes.length === 0) return;
@@ -65,7 +91,7 @@ export function ListingSectionTabs({
     );
     for (const node of nodes) observer.observe(node);
     return () => observer.disconnect();
-  }, [tabs]);
+  }, [watched]);
 
   return (
     <>
@@ -96,6 +122,22 @@ export function ListingSectionTabs({
         </a>
       ))}
       </div>
+      {index && index.items.length > 0 && (
+        <InnerNav
+          label={index.label}
+          toggleLabel={index.toggle}
+          className="nf-detail-tabs__index"
+          activeId={active}
+          data-testid="section-index"
+          items={index.items.map((item) => ({
+            id: item.id,
+            label: item.label,
+            icon: item.icon,
+            href: `#${item.id}`,
+            onSelect: () => setActive(item.id),
+          }))}
+        />
+      )}
     </nav>
     </>
   );

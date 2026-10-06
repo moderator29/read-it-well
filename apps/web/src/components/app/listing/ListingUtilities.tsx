@@ -1,4 +1,6 @@
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
+import type { TieredObjectName } from "@/design-system/icons/object-assets";
 import { DetailGlyph } from "./DetailGlyph";
 import type { Listing } from "@/lib/listings/types";
 import type { ListingAccessView } from "@/lib/listings/access-queries";
@@ -36,7 +38,35 @@ import { countOf, DEFAULT_LOCALE, type Locale } from "@vallo/i18n/core";
  * shared scale in `Screen.tsx`. No object here sits on a tile, a chip or a
  * ring: the mark sits on the surface with its label beside it.
  * ---------------------------------------------------------------------------
+ * THE ROWS ARE MARKED WITH THE REAL THING (Session 3, Stage 5; D29 Tier A).
+ *
+ * A generator, an inverter and its battery, a prepaid meter, a water tank and
+ * a borehole pump are things a Nigerian renter has stood beside, so the row
+ * that states one is marked with that object, realistic, at 40px, rather than
+ * with a line glyph standing in for it. An object is drawn only for what the
+ * agent STATED: a row nobody answered keeps the quiet line glyph, because an
+ * object beside "not answered" would picture a thing nobody claimed. The
+ * prepaid meter, which used to hang under the light as a sentence led by a
+ * tick, is its own row with its own object: a tick is a promise, and this is
+ * a fact about how the light is paid for.
+ * ---------------------------------------------------------------------------
  */
+
+/** The object a stated backup is, when it is a thing with a picture. */
+const BACKUP_OBJECT: Record<string, TieredObjectName> = {
+  GENERATOR: "generator",
+  INVERTER: "inverter-battery",
+  SOLAR: "inverter-battery",
+  GENERATOR_INVERTER: "generator",
+};
+
+/** The object a stated water supply is. Mains and tanker water is stored. */
+const WATER_OBJECT: Record<string, TieredObjectName> = {
+  TREATED_MAINS: "water-tank",
+  BOREHOLE: "borehole-pump",
+  PUMPED_STORAGE: "water-tank",
+  TANKER: "water-tank",
+};
 
 const GRID_LABEL: Record<string, { label: string; detail: string }> = {
   BAND_A: { label: "Band A", detail: "20 hours a day or more from the grid" },
@@ -74,7 +104,10 @@ export function ListingUtilities({
   utilities,
   access,
   bookingConfirmed,
+  copy = { prepaidMeter: "Prepaid meter", prepaidMeterBody: "You buy units rather than settle a shared bill" },
 }: {
+  /** The meter row's words (`t.experienceDetail.utilities`); English by default. */
+  copy?: { prepaidMeter: string; prepaidMeterBody: string };
   locale?: Locale;
   utilities: Listing["utilities"];
   /** The real gate details, or null when the caller may not see them. */
@@ -110,6 +143,7 @@ export function ListingUtilities({
     <dl className="divide-y divide-[var(--nf-panel-hair)]">
       <Row
         icon="bolt"
+        object={utilities.powerBackup ? BACKUP_OBJECT[utilities.powerBackup] : undefined}
         term="Light"
         answered={powerAnswered}
         value={
@@ -119,25 +153,24 @@ export function ListingUtilities({
                 {powerLine}
               </span>
               {grid && <span className={`mt-2xs block ${TYPE.rowMeta}`}>{grid.detail}</span>}
-              {/*
-                A prepaid meter is a fact about how you pay for the light, so it
-                belongs under the light. Stated as a sentence rather than as a
-                badge: a pill here would be a container around two words sitting
-                inside a row that already has a label.
-              */}
-              {utilities.prepaidMeter && (
-                <span className={`mt-2xs flex items-center gap-xs ${TYPE.rowMeta}`}>
-                  <UiIcon name="verified" size={ICON.inline} className="shrink-0 text-[var(--nf-plate-neutral-ink)]" />
-                  Prepaid meter, so you buy units rather than settle a shared bill
-                </span>
-              )}
             </>
           ) : null
         }
       />
 
+      {utilities.prepaidMeter && (
+        <Row
+          icon="bolt"
+          object="prepaid-meter"
+          term={copy.prepaidMeter}
+          answered
+          value={<span className={`block ${TYPE.body}`}>{copy.prepaidMeterBody}</span>}
+        />
+      )}
+
       <Row
         icon="droplet"
+        object={utilities.waterSupply ? WATER_OBJECT[utilities.waterSupply] : undefined}
         term="Water"
         answered={Boolean(water)}
         value={
@@ -154,7 +187,7 @@ export function ListingUtilities({
 
       {utilities.hasEstateAccess && (
         <div className="flex gap-sm py-md">
-          <DetailGlyph name="gate" />
+          <BrandIcon name="estate-gate" size={40} className="nf-utility-object shrink-0" />
           <div className="min-w-0 flex-1">
             <dt className={TYPE.label}>The gate</dt>
             <dd className="mt-2xs">
@@ -190,7 +223,7 @@ export function ListingUtilities({
               ) : (
                 <div data-testid="gate-withheld">
                   <p className="flex items-center gap-xs text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
-                    <UiIcon name="verified" size={ICON.inline} className="shrink-0 text-[var(--nf-plate-neutral-ink)]" />
+                    <UiIcon name="lock" size={ICON.inline} className="shrink-0 text-[var(--nf-plate-neutral-ink)]" />
                     Gated, with the details released on confirmation
                   </p>
                   <p className={`mt-2xs ${TYPE.body}`}>
@@ -210,11 +243,14 @@ export function ListingUtilities({
 
 function Row({
   icon,
+  object,
   term,
   answered,
   value,
 }: {
   icon: UiIconName;
+  /** The real object this row states, drawn only when it was stated. */
+  object?: TieredObjectName;
   term: string;
   answered: boolean;
   value: React.ReactNode;
@@ -233,7 +269,11 @@ function Row({
       <dt className={TYPE.label}>
         {/* The plate's own box, floated, so the term and the answer run
             beside it as they did beside the glass object it replaced. */}
-        <DetailGlyph name={icon} className="float-left mr-sm" />
+        {object && answered ? (
+          <BrandIcon name={object} size={40} className="nf-utility-object float-left mr-sm" />
+        ) : (
+          <DetailGlyph name={icon} className="float-left mr-sm" />
+        )}
         {term}
       </dt>
       <dd className="mt-2xs min-w-0 overflow-hidden">
