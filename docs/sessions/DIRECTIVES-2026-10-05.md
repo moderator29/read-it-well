@@ -804,6 +804,48 @@ committed and pushed as it is done, cleanly, without sessions conflicting.
 | **D1's per-surface theme lead** | **D28.1: the member's theme governs; Paper becomes a document treatment within it** |
 | Session 4's "needs from the founder first" on the live reserve subaccount | D38 |
 | Session 3's decision not to add framer-motion in this pass | D39 |
+| D39 section 4's single owner for the lockfile | D46 |
+
+---
+
+## D46. The lockfile has two legitimate owners, and the order they land in is fixed
+
+D39 section 4 gave Session 3 sole ownership of `package.json` and
+`package-lock.json`, to stop six agents fighting over one file. That rule was right
+and it was incomplete: Session 4 had already changed the lockfile to clear
+`GHSA-68fv-2mgg-jv7q`, a high-severity advisory in `source-map-js`, before it could
+read D39 at all. Both changes are correct and neither should be reverted.
+
+**So the rule is split by reason, not by file.**
+
+- **Session 3 owns the lockfile for adding, removing or upgrading a dependency.**
+- **Session 4 owns it for a security advisory**, because the advisory job is its
+  gate and a high-severity fix does not wait for another session's queue.
+- Nobody else touches either file without saying so in their response file first.
+
+**Landing order, which is not negotiable because it decides who resolves a
+conflict.** Session 4's advisory fix lands on `main` first. It is one real version
+change, it is already proved (`Advisories` passes on PR 83 and fails on 84 and 85
+for exactly this reason), and every other branch goes green by merging `main`
+afterwards rather than by porting it. Session 3 then merges `main` into its branch
+and resolves the lockfile in favour of **both** changes: `framer-motion` added and
+`source-map-js` at 1.2.2. Regenerate with the repository's own tooling, never by
+hand, and note that the override alone does not take: npm kept the locked 1.2.1 and
+it needed `npm update` as well.
+
+**The `Advisories` check is not a required check.** PR 82 merged with it red, which
+settles it. So a red advisory on Session 2's or Session 3's branch does not block
+that branch and must not be treated as this-branch work: the fix exists, it is in
+Session 4's PR, and the answer is to merge `main` once it lands. Saying it is
+somebody else's failure is only allowed because it has been established here; a
+session that has not established it says what is failing rather than nothing.
+
+**The follow-up this exposed, and it is Session 4's.** `scripts/marketing`, merged
+to `main` in PR 82, carries its own `package.json` and lockfile and **nothing gates
+it**: the root workspaces are `apps/*` and `packages/*`, and every CI step runs with
+`working-directory: apps/web`. That is a second dependency tree with no typecheck,
+no lint and no `npm audit`, in the same repository where the audit job just caught a
+real high-severity advisory. Add it to the audit job.
 | Session 1's own claim that the repository's status documents are reliable | D40 |
 | "CI green before every push" as written in D37 | D42 |
 
