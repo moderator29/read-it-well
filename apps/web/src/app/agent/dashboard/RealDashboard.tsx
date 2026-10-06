@@ -216,7 +216,7 @@ export function RealDashboard({
               <section className="nf-list-section">
                 <div className="nf-list-section__head">
                   <h2 className="nf-section-label">{t.desk.today.needsAttention}</h2>
-                  <Link href="/agent/inspections" className="nf-list-section__action nf-link-quiet">
+                  <Link href="/agent/inspections" className="nf-list-section__action nf-link-quiet nf-tap">
                     {t.common.viewAll}
                   </Link>
                 </div>
@@ -227,7 +227,7 @@ export function RealDashboard({
               <section className="nf-list-section">
                 <div className="nf-list-section__head">
                   <h2 className="nf-section-label">{k.pipeline}</h2>
-                  <Link href="/agent/listings" className="nf-list-section__action nf-link-quiet">
+                  <Link href="/agent/listings" className="nf-list-section__action nf-link-quiet nf-tap">
                     {t.common.viewAll}
                   </Link>
                 </div>
@@ -247,7 +247,7 @@ export function RealDashboard({
         <ListGroup
           label={d.upcomingStays}
           action={
-            <Link href="/agent/bookings" className="nf-link-quiet">
+            <Link href="/agent/bookings" className="nf-link-quiet nf-tap">
               {t.common.viewAll}
             </Link>
           }

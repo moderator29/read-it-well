@@ -41,16 +41,7 @@ afterAll(closeBrowser);
 const CSS = () => appCss();
 
 /* The key is "<surface> <locale>"; the value is the report line. */
-const KNOWN: Record<string, string> = {
-  "Agent dashboard, fixture numbers en":
-    "the dashboard's three 'View all' links (t.common.viewAll, nf-link-quiet; RealDashboard.tsx lines 219, 230, 250) are 21.7px tall in every locale: widths 52.6 (en), 72.5 (ha), 76 (ig), 95 (yo)",
-  "Agent dashboard, fixture numbers ha":
-    "the dashboard's three 'View all' links (t.common.viewAll, nf-link-quiet; RealDashboard.tsx lines 219, 230, 250) are 21.7px tall in every locale: widths 52.6 (en), 72.5 (ha), 76 (ig), 95 (yo)",
-  "Agent dashboard, fixture numbers ig":
-    "the dashboard's three 'View all' links (t.common.viewAll, nf-link-quiet; RealDashboard.tsx lines 219, 230, 250) are 21.7px tall in every locale: widths 52.6 (en), 72.5 (ha), 76 (ig), 95 (yo)",
-  "Agent dashboard, fixture numbers yo":
-    "the dashboard's three 'View all' links (t.common.viewAll, nf-link-quiet; RealDashboard.tsx lines 219, 230, 250) are 21.7px tall in every locale: widths 52.6 (en), 72.5 (ha), 76 (ig), 95 (yo)",
-};
+const KNOWN: Record<string, string> = {};
 
 describe.skipIf(!hasBrowser && !process.env.CI)("locale fit: host and agent workspaces at 390px", () => {
   fitCases(
