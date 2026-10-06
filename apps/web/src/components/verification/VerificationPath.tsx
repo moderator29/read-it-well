@@ -15,8 +15,9 @@ import "./verification-path.css";
  * MOTION. The rungs arrive 60ms apart (four of them, well inside the six-item
  * stagger cap), each tick draws once after its rung lands, and each connector
  * fills down to the next reached rung. It plays once, on mount. Nothing pops
- * here: the one payoff on this route is the approval moment
- * (`SuccessFromFlag`), which this does not duplicate.
+ * here: the route's payoffs are the approval sheet (`SuccessFromFlag`) and the
+ * approved plate's shield (`VerifiedPayoff`, played once when verification
+ * turns passed), which this does not duplicate.
  *
  * Server-safe: nothing here holds state.
  */

@@ -6,6 +6,7 @@ import { StatusTrack, type TrackStep } from "@/components/app/status/StatusTrack
 import { trackStates } from "@/components/app/status/tracks";
 import { ICON_PLATE_GLYPH, IconPlate, type IconPlateTone } from "@/components/ui/IconPlate";
 import { Icon3D } from "@/components/ui/Icon3D";
+import { VerifiedPayoff } from "./VerifiedPayoff";
 import type { Icon3DName } from "@/components/ui/icon-3d";
 
 /* The status plate takes the state's own tone on the shared plate (orphans
@@ -57,7 +58,16 @@ const PLATE_TONE: Record<"warning" | "success" | "danger", IconPlateTone> = {
 
 export type KycStatusView =
   | { state: "pending"; submittedAt?: string }
-  | { state: "approved" }
+  | {
+      state: "approved";
+      /**
+       * Set by the page only when verification turned passed recently enough
+       * to be news (`approvedRecently`): the shield's one-time payoff
+       * (`VerifiedPayoff`) plays once per device under this key. Absent, the
+       * shield and its tick are simply drawn.
+       */
+      payoff?: { seenKey: string };
+    }
   | {
       state: "rejected";
       /** What the reviewer actually wrote. Shown in full, never softened. */
@@ -141,6 +151,7 @@ export function KycStatus({
         pill={w.approvedPill}
         icon="verified"
         art="shield"
+        payoff={{ play: status.payoff !== undefined, seenKey: status.payoff?.seenKey ?? "verification-passed:none" }}
         title={w.approvedTitle}
         body={w.approvedBody}
         track={<ReviewTrack state="approved" w={w} />}
@@ -251,6 +262,7 @@ function Panel({
   pill,
   icon,
   art,
+  payoff,
   title,
   body,
   children,
@@ -264,6 +276,8 @@ function Panel({
   /** The founder's 3D object for a calm state (in review, approved); a
       refusal or a request keeps its tinted glyph. */
   art?: Icon3DName;
+  /** Approved only: the shield carries the passed tick and plays the payoff once (`VerifiedPayoff`). */
+  payoff?: { play: boolean; seenKey: string };
   title: string;
   body: string;
   children?: React.ReactNode;
@@ -273,7 +287,13 @@ function Panel({
   return (
     <section className="nf-panel nf-panel--card block p-lg">
       <div className="flex items-start gap-md">
-        {art ? (
+        {art && payoff ? (
+          <VerifiedPayoff play={payoff.play} seenKey={payoff.seenKey}>
+            <span className="grid size-14 shrink-0 place-items-center" aria-hidden="true" data-art={art}>
+              <Icon3D name={art} size={56} />
+            </span>
+          </VerifiedPayoff>
+        ) : art ? (
           <span className="grid size-14 shrink-0 place-items-center" aria-hidden="true" data-art={art}>
             <Icon3D name={art} size={56} />
           </span>

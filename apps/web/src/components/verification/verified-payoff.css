@@ -1,0 +1,43 @@
+@layer theme, base, components, utilities;
+
+/*
+ * THE VERIFICATION-PASSED MARK (Session 3, C1; MOTION_SYSTEM "Verification
+ * passed: shield assembles, tick embosses, pop"). The shield is the screen's
+ * own object (`KycStatus`, the approved plate) and the plate is NOT changed:
+ * the tick disc on its corner exists only while the payoff plays. At rest, and
+ * in every quiet mode, it is `opacity: 0` and absolutely placed, so the plate
+ * looks and lays out exactly as it did without this file. The motion is
+ * `VerifiedPayoff.tsx`'s (Web Animations, from the duration tokens): the disc
+ * fades in, holds through the pop, and fades out again.
+ */
+@layer components {
+  .nf-vpass {
+    position: relative;
+    display: grid;
+    flex-shrink: 0;
+  }
+  .nf-vpass__badge {
+    position: absolute;
+    inset-inline-end: -0.125rem;
+    inset-block-end: -0.125rem;
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+    box-shadow: 0 0 0 2px var(--nf-surface-primary);
+    /* Only the payoff shows it (no new furniture on the plate). */
+    opacity: 0;
+    pointer-events: none;
+  }
+  .nf-vpass__badge svg {
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+    stroke: currentColor;
+  }
+  .nf-vpass__tick {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+  }
+}

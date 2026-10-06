@@ -211,7 +211,12 @@ export default async function VerificationPage({
         fix: "Send the document again through the steps below. Anything already approved stays approved.",
       };
     } else if (ladder.ladder.tier > 0) {
-      status = { state: "approved" };
+      /* The shield's one-time payoff plays only when a rung passed recently
+         enough to be news, once per device and per level, the same test and
+         the same key family as the approval sheet below. */
+      status = approvedRecently(Object.values(ladder.ladder.rungs), requestNow())
+        ? { state: "approved", payoff: { seenKey: `verification-passed:tier-${ladder.ladder.tier}` } }
+        : { state: "approved" };
     } else if (
       /* The application states that mean "a person is looking at this".
          Spelled from `agent_application_status` rather than guessed: DRAFT is
