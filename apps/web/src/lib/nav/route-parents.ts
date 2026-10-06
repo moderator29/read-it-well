@@ -453,7 +453,13 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/agent/assistant": "/agent/dashboard",
 
   /* ----------------------------------------------------- the host console */
-  "/host": "/home",
+  /* The host workspace is a STAYS address (`lib/side.constants.ts` paints
+     it in the Stays shell), so its way up is the Stays home. It named
+     `/home`, the Property home, and a host who opened the workspace cold
+     and pressed back had the whole shell turn over to Property under them
+     (Session 3 navigation audit, 6 October 2026). The agent workspace is
+     Property's and keeps `/home`. */
+  "/host": "/stays",
   "/host/apply": "/host",
   "/host/photos": "/host",
   "/host/reservations": "/host",
@@ -603,7 +609,6 @@ export const NON_NAVIGABLE: Readonly<Record<string, string>> = {
   "/api/passcode/touch": "POST only, the passcode unlock's heartbeat (docs/PASSCODE.md).",
   "/api/vitals": "the browser's field speed beacon (V-80).",
   "/gallery/ported": "a development harness for the ported component library (Session 3, D34), behind the preview flag like /gallery; not product, so it has no place in the hierarchy.",
-  "/gallery/features": "a development harness for W7's components and first runs (Session 3), behind the preview flag like /gallery/ported; not product.",
   "/api/cron/account-purge": "scheduled job, bearer token.",
   "/api/cron/canary": "scheduled job, bearer token.",
   "/api/cron/calendar-sync": "scheduled job, bearer token (C2, behind CALENDAR_SYNC_ENABLED).",

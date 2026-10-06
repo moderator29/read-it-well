@@ -1,7 +1,8 @@
 /**
  * Turning a path into the screen above it, and deciding what Back does.
  *
- * This module reads `route-parents.ts` and nothing else. It touches no DOM, no
+ * This module reads `route-parents.ts` and, for which home is which, the pure
+ * half of `lib/side.constants.ts`, and nothing else. It touches no DOM, no
  * router and no browser global, which is what lets every rule below be proved
  * in `resolve.test.ts` without a browser: the whole decision a back control
  * takes is a pure function of a handful of facts, and `chooseBack` is that
@@ -58,8 +59,25 @@
  * candidate is the nearest entry at a DIFFERENT address (`previous-entry.ts`
  * measures the distance), so one press leaves the screen rather than undoing
  * a filter.
+ *
+ * THE HOME IS THE HOME OF THE SIDE YOU ARE ON (Session 3 navigation audit,
+ * 6 October 2026). The product has two homes, `/home` for Property and
+ * `/stays` for Stays (`lib/side.constants.ts`), and every screen the two
+ * sides share (Messages, Notifications, Plans, Saved, Settings, Profile, the
+ * feed, the assistant, support) declared `/home` as its parent. A Stays
+ * member who opened a conversation from a push and pressed back landed on
+ * the PROPERTY home, and because `/home` is a Property-owned address the
+ * whole shell turned over under them: a screen they had not asked for, on a
+ * side they had not chosen, which is the founder's complaint in its purest
+ * form. So when the decision lands on a home (`/home`, or the
+ * `/home-or-landing` redirect that answers `/home` for a member), it lands on
+ * the home of the side the screen is painted on: the side the address owns
+ * when it owns one (`sideOfPath`), otherwise the side the shell is showing,
+ * which the caller reads off the document (`use-back.ts`). Property, and any
+ * caller that cannot say, keep the declared answer unchanged.
  */
 
+import { sideOfPath, SIDE_HOME, type Side } from "@/lib/side.constants";
 import { ROUTE_PARENTS, type ParentRoute } from "./route-parents";
 
 /** Where a route sits in the hierarchy. */
@@ -377,29 +395,54 @@ export type BackInput = {
    * `"web"` is every drawn back control, where a root has no back at all.
    */
   surface: "web" | "android";
+  /**
+   * The side the shell is painted on (`data-side` on the document), when the
+   * caller can read it. Decides which home a shared screen returns to. Omitted,
+   * the declared home stands.
+   */
+  shellSide?: Side | null;
 };
+
+/** The addresses that mean "the home", before the side is known. */
+const HOMES: ReadonlySet<string> = new Set(["/home", "/home-or-landing"]);
+
+/**
+ * The home of the side this screen is painted on, in place of a declared
+ * home; any other destination is returned untouched. The address's own side
+ * wins over the shell's, exactly as it does for the shell itself
+ * (`sideOfPath`): a Property-owned screen never returns to `/stays`, and a
+ * Stays-owned one never to `/home`.
+ */
+export function sideHome(href: string, path: string, shellSide?: Side | null): string {
+  if (!HOMES.has(normalisePath(href))) return href;
+  const side = sideOfPath(normalisePath(path)) ?? shellSide ?? null;
+  return side === "stays" ? SIDE_HOME.stays : href;
+}
 
 /** The whole decision, as one pure function. */
 export function chooseBack(input: BackInput): BackDecision {
   const target = parentOf(input.path);
 
   if (target.kind === "no-parent-declared") {
-    return { action: "replace", href: input.fallback, reason: "no-parent-declared" };
+    return { action: "replace", href: sideHome(input.fallback, input.path, input.shellSide), reason: "no-parent-declared" };
   }
 
   if (target.kind === "root") {
     if (input.surface === "android") return { action: "exit", reason: "root" };
-    return { action: "replace", href: input.fallback, reason: "root-fallback" };
+    return { action: "replace", href: sideHome(input.fallback, input.path, input.shellSide), reason: "root-fallback" };
   }
 
   const delta = Math.max(1, Math.floor(input.previousDistance ?? 1));
   const previous = input.previousPath === null ? null : normalisePath(input.previousPath);
+  /* The parent this person meets: the declared one, with a home answered for
+     the side they are on. */
+  const parent = sideHome(target.href, input.path, input.shellSide);
 
   /* The declared parent, sitting right behind: always the best answer, because
      it restores the scroll, the filters and the list exactly. */
   const receipt = input.previousPath !== null && SUCCESS_FLAG.test(input.previousPath);
-  if (input.previousIsInApp && previous !== null && previous === target.href && !receipt) {
-    return { action: "back", href: target.href, delta, reason: "history-is-parent" };
+  if (input.previousIsInApp && previous !== null && previous === parent && !receipt) {
+    return { action: "back", href: parent, delta, reason: "history-is-parent" };
   }
 
   const refused = refuseHistory(input.path, input.previousPath, input.previousIsInApp);
@@ -408,7 +451,7 @@ export function chooseBack(input: BackInput): BackDecision {
   }
 
   if (refused === null || refused === "no-previous") {
-    return { action: "replace", href: target.href, reason: "declared-parent" };
+    return { action: "replace", href: parent, reason: "declared-parent" };
   }
-  return { action: "replace", href: target.href, reason: "declared-parent", refused };
+  return { action: "replace", href: parent, reason: "declared-parent", refused };
 }
