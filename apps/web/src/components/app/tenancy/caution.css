@@ -60,7 +60,7 @@
 
   .nf-exchange__n {
     font-size: var(--nf-text-overline);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--nf-content-muted);
   }
 
@@ -151,7 +151,7 @@
 
   .nf-exchange__what {
     font-size: var(--nf-text-body-sm);
-    font-weight: 500;
+    font-weight: 600;
     line-height: 1.45;
     color: var(--nf-content-primary);
     overflow-wrap: anywhere;
@@ -183,7 +183,7 @@
 
   .nf-exchange-answer__label {
     font-size: var(--nf-text-body-sm);
-    font-weight: 500;
+    font-weight: 600;
     color: var(--nf-content-primary);
   }
 }

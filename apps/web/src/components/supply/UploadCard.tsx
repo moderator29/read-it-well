@@ -180,7 +180,7 @@ export function UploadCard({
       </p>
 
       {failure || error ? (
-        <p role="alert" className="nf-arrive mt-xs text-[length:var(--nf-text-caption)] font-medium text-[var(--nf-state-error)]">
+        <p role="alert" className="nf-arrive mt-xs text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-state-error)]">
           {failure ?? error}
         </p>
       ) : null}

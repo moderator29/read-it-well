@@ -141,7 +141,7 @@ export function AssistantSidebar({
                     }`}
                   >
                     <span
-                      className={`block truncate text-[length:var(--nf-text-caption)] font-medium ${
+                      className={`block truncate text-[length:var(--nf-text-caption)] font-semibold ${
                         active
                           ? "text-[var(--nf-content-primary)]"
                           : "text-[var(--nf-content-secondary)]"
@@ -190,7 +190,7 @@ export function AssistantSidebar({
           className="nf-tap flex w-full items-center gap-md rounded-[var(--nf-radius-control)] px-sm py-sm text-left text-[var(--nf-content-secondary)] transition-colors hover:bg-[image:var(--nf-btn-glass-fill)] hover:text-[var(--nf-content-primary)]"
         >
           <UiIcon name="settings-gear" size={20} className="shrink-0" />
-          <span className="flex-1 text-[length:var(--nf-text-caption)] font-medium">Settings</span>
+          <span className="flex-1 text-[length:var(--nf-text-caption)] font-semibold">Settings</span>
           {/* The current reply style, on the row. A settings entry that says
               only "Settings" makes somebody open it to find out what it is
               set to; naming the one they are most likely to be checking

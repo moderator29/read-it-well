@@ -62,7 +62,7 @@ export function ShelfCount({
           data-count={count}
           aria-live="polite"
           aria-atomic="true"
-          className="nf-body-sm min-w-0 whitespace-nowrap font-medium text-[var(--nf-content-secondary)]"
+          className="nf-body-sm min-w-0 whitespace-nowrap font-normal text-[var(--nf-content-secondary)]"
         >
           {line}
         </p>

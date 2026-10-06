@@ -221,7 +221,7 @@ export function ChoicePicker({
         <p
           id={errorId}
           role="alert"
-          className="mt-2xs text-[length:var(--nf-text-overline)] font-medium text-[var(--nf-state-error)]"
+          className="mt-2xs text-[length:var(--nf-text-overline)] font-semibold text-[var(--nf-state-error)]"
         >
           {error}
         </p>

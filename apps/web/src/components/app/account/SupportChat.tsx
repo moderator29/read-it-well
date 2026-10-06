@@ -729,7 +729,7 @@ export function SupportChat({
                 <Link
                   href="/support/new"
                   data-testid="support-write-instead"
-                  className="inline-flex min-h-11 items-center nf-caption font-medium text-[var(--nf-content-muted)] transition-colors hover:text-[var(--nf-content-primary)]"
+                  className="inline-flex min-h-11 items-center nf-caption font-normal text-[var(--nf-content-muted)] transition-colors hover:text-[var(--nf-content-primary)]"
                 >
                   Write to the team instead
                 </Link>

@@ -195,7 +195,7 @@ export function ArrivalCheckCard({
       )}
 
       {error && (
-        <p role="alert" className="nf-body-sm mt-sm font-medium text-[var(--nf-state-error)]">
+        <p role="alert" className="nf-body-sm mt-sm font-semibold text-[var(--nf-state-error)]">
           {error}
         </p>
       )}

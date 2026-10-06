@@ -19,7 +19,7 @@
   }
   .nf-area-chart__caption {
     font-size: var(--nf-text-label);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--nf-content-secondary);
   }
   .nf-area-chart__value {

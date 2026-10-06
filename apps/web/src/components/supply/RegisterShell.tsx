@@ -129,7 +129,7 @@ export function RegisterShell({
       {error ? (
         <p
           role="alert"
-          className="nf-arrive mt-heading text-[length:var(--nf-text-body-sm)] font-medium text-[var(--nf-state-error)]"
+          className="nf-arrive mt-heading text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-state-error)]"
         >
           {error}
         </p>

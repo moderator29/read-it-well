@@ -338,7 +338,7 @@ export function KycFlow({
                       className="mt-3xs h-5 w-5 shrink-0 accent-[var(--nf-brand-primary)]"
                     />
                     <span className="min-w-0">
-                      <span className="block text-[length:var(--nf-text-body-sm)] font-medium leading-snug text-[var(--nf-content-primary)]">
+                      <span className="block text-[length:var(--nf-text-body-sm)] font-semibold leading-snug text-[var(--nf-content-primary)]">
                         {consent.label}
                       </span>
                       <span className="mt-2xs block text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">

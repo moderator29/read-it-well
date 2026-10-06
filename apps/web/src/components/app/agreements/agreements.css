@@ -202,7 +202,7 @@
 
   .nf-agr-version__tag {
     font-size: var(--nf-text-overline);
-    font-weight: 500;
+    font-weight: 600;
     line-height: 1.5;
     padding: 0 var(--nf-space-xs);
     border-radius: var(--nf-radius-xs);
@@ -294,7 +294,7 @@
 
   .nf-agr-history__what {
     font-size: var(--nf-text-body-sm);
-    font-weight: 500;
+    font-weight: 600;
     line-height: 1.45;
     color: var(--nf-content-primary);
     overflow-wrap: anywhere;

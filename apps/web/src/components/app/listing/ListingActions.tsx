@@ -364,7 +364,7 @@ export function ListingActions({
         <p
           role="status"
           data-testid="listing-action-message"
-          className="max-w-[15rem] rounded-[var(--nf-radius-xs)] nf-media-chip px-sm py-xs text-right font-medium leading-snug"
+          className="max-w-[15rem] rounded-[var(--nf-radius-xs)] nf-media-chip px-sm py-xs text-right font-semibold leading-snug"
         >
           {message}
           {signInPrompt && (

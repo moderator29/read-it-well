@@ -83,7 +83,7 @@
   }
   .nf-path__label {
     font-size: var(--nf-text-row);
-    font-weight: 500;
+    font-weight: 600;
     overflow-wrap: anywhere;
   }
   .nf-path__step[data-state="upcoming"] .nf-path__label {

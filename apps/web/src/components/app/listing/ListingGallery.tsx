@@ -356,7 +356,7 @@ export function ListingGallery({
              Nothing else sits at the centre (the arrows are at the sides from
              `sm`, the dots are hidden for stand-in plates), and it lets a tap
              through to the lightbox under it. */
-          className="pointer-events-none absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-[var(--nf-radius-xs)] nf-media-chip nf-media-chip--muted px-sm py-2xs font-medium"
+          className="pointer-events-none absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-[var(--nf-radius-xs)] nf-media-chip nf-media-chip--muted px-sm py-2xs font-semibold"
         >
           {t.catalogue.card.noPhotos}
         </p>

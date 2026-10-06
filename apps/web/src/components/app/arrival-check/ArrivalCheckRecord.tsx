@@ -35,13 +35,13 @@ export async function ArrivalCheckRecord({ bookingId, locale }: { bookingId: str
       </p>
       {record.note && (
         <p className="nf-body-sm mt-xs">
-          <span className="font-medium">{copy.admin.note}: </span>
+          <span className="font-semibold">{copy.admin.note}: </span>
           {record.note}
         </p>
       )}
       {record.answer !== "as_listed" &&
         (record.ruling && record.ruledAt ? (
-          <p className="nf-body-sm mt-xs font-medium">
+          <p className="nf-body-sm mt-xs font-semibold">
             {(record.ruling === "upheld" ? copy.admin.ruledUpheld : copy.admin.ruledDeclined).replace(
               "{when}",
               formatDate(new Date(record.ruledAt), locale, { day: "numeric", month: "short", timeZone: "Africa/Lagos" }),

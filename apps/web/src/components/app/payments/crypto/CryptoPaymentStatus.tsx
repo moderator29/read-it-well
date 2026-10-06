@@ -269,7 +269,7 @@ export function CryptoPaymentStatus({
               href={view.hostedUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="nf-body-sm text-center font-medium text-[var(--nf-brand-primary)] underline"
+              className="nf-body-sm text-center font-semibold text-[var(--nf-brand-primary)] underline"
             >
               {fill(t.openHosted, p)}
             </a>

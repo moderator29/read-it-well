@@ -82,7 +82,7 @@ export function TenancyCard({
               a calendar on this card is the first step back towards nights. */}
           <p className={`mt-sm flex items-center gap-xs ${TYPE.body}`}>
             <UiIcon name="key" size={ICON.inline} className="shrink-0" />
-            <span className="font-medium">
+            <span className="font-semibold">
               {copy.moveIn.replace("{date}", tenancy.moveInLabel)}
             </span>
           </p>

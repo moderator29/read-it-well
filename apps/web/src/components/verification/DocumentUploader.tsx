@@ -188,7 +188,7 @@ export function DocumentUploader({
             <UiIcon name="document" size={ICON_PLATE_GLYPH.md} />
           </IconPlate>
           <span className="min-w-0 flex-1">
-            <span className="block truncate text-[length:var(--nf-text-body-sm)] font-medium text-[var(--nf-content-primary)]">
+            <span className="block truncate text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
               {file.name}
             </span>
             <span className="nf-numeric block text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">

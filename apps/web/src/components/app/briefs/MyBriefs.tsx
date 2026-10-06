@@ -96,7 +96,7 @@ export function MyBriefs({
         );
       })}
       {error && (
-        <li className="nf-body-sm font-medium text-[var(--nf-state-error)]" role="alert">
+        <li className="nf-body-sm font-semibold text-[var(--nf-state-error)]" role="alert">
           {error}
         </li>
       )}

@@ -70,7 +70,7 @@ export function CryptoPayOption({
         <div className="min-w-0 flex-1">
           <p className="nf-body font-semibold text-[var(--nf-content-primary)]">{t.kycTitle}</p>
           <p className="nf-body-sm mt-inline-tight leading-relaxed text-[var(--nf-content-secondary)]">{t.kycBody}</p>
-          <Link href="/verification"className="nf-body-sm mt-row inline-block font-medium text-[var(--nf-brand-primary)] underline">
+          <Link href="/verification"className="nf-body-sm mt-row inline-block font-semibold text-[var(--nf-brand-primary)] underline">
             {t.kycAction}
           </Link>
         </div>

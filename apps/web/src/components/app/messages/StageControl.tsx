@@ -124,7 +124,7 @@ export function StageControl({
       )}
 
       {error && (
-        <p className="mt-inline nf-body-sm font-medium text-[var(--nf-state-error)]" role="alert">
+        <p className="mt-inline nf-body-sm font-semibold text-[var(--nf-state-error)]" role="alert">
           {error}
         </p>
       )}
