@@ -2,7 +2,7 @@ import { formatNumber } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getFunnel, getReferralCounts } from "@/lib/admin/reads/front-door";
 import { byLocale, conversion, DESK_LABELS, DESK_ORDER, totals } from "@/lib/funnel/summary";
-import { PageHead, Panel } from "../_components/panels";
+import { PageHead, Panel, ReadOnlyNote } from "../_components/panels";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +27,7 @@ export default async function FrontDoorDeskPage() {
         title="Front door"
         lede="How many visits reach each step of joining Vallo, first party and without trackers. Visits are counted once per step; accounts come from sign-in records."
       />
+      <ReadOnlyNote locale={locale} />
       <Panel title="The funnel" id="front-door-funnel" flush>
         {monthTotals === null ? (
           <p className="nf-body-sm nf-admin-panel__pad text-[var(--nf-content-secondary)]">

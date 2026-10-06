@@ -547,6 +547,17 @@
   .nf-admin-selectall {
     margin: var(--nf-space-2xs) 0;
   }
+  /* What a verb is waiting for, said in a line beside the control that opens
+     the field (never a silent disabled button). */
+  .nf-admin-bulk__hint {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    margin: var(--nf-space-2xs) 0;
+    color: var(--nf-content-secondary);
+    font-size: var(--nf-text-caption);
+  }
 }
 
 /* ----------------------------------------------------- paper pieces */
@@ -783,5 +794,61 @@
     .nf-admin-chip {
       min-height: 2.75rem;
     }
+  }
+}
+
+/* ------------------------------------- compliance: Plate rows, quiet notes */
+@layer components {
+  /*
+   * A case inside a lane's Card panel (an EDD review, a pending clear, a
+   * person's risk class) is a Plate row: radius 14, the plate's fill and one
+   * hairline, so a Card never nests inside a Card. Its decision bar, when it
+   * has one, is the console's own `.nf-admin-decision` above.
+   */
+  .nf-admin-case {
+    display: block;
+    padding: var(--nf-space-md);
+    border: var(--nf-border-width) solid var(--nf-tier-plate-edge);
+    border-radius: var(--nf-tier-plate-radius);
+    background: var(--nf-tier-plate-fill);
+  }
+
+  /* A desk that only reads says so once: a quiet line, no control. */
+  .nf-admin-readonly {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nf-space-xs);
+    margin: 0;
+    color: var(--nf-content-muted);
+    font-size: var(--nf-text-caption);
+    line-height: 1.45;
+  }
+  .nf-admin-readonly svg {
+    flex-shrink: 0;
+    margin-top: 0.125rem;
+  }
+}
+
+/* The compliance figures: the same Card figure the overview uses, smaller. */
+@layer components {
+  .nf-admin-figure--count {
+    min-height: 0;
+    padding: var(--nf-space-sm);
+    gap: var(--nf-space-3xs);
+  }
+  .nf-admin-figure--count .nf-admin-figure__value {
+    font-size: clamp(1.5rem, 4vw, 2rem);
+  }
+}
+
+@layer components {
+  /* The document's controls sit beside it, on the desk, never on the paper. */
+  .nf-admin-doc__action {
+    display: flex;
+    align-items: center;
+    min-height: 2.75rem;
+    margin: var(--nf-space-xs) 0 0;
+    color: var(--nf-content-link);
+    font-size: var(--nf-text-body-sm);
   }
 }

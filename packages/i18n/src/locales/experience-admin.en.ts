@@ -102,6 +102,10 @@ export const experienceAdminEn = {
     filtersReset: "Clear filters",
     filtersCount: "{count} filters on",
     filtersNone: "No filters on",
+    /** The sheet's status row: the chip with no status. */
+    filtersAll: "All",
+    /** The sheet's close control, named for what it does. */
+    filtersClose: "Close the filters",
     /** The overview's lead. */
     overviewLead: "Waiting on a person",
     overviewLeadBody: "Each count is read from the desk it opens, the same figure as the rail.",
@@ -124,6 +128,10 @@ export const experienceAdminEn = {
     tenancy: "Tenancy charges",
     refundClock: "Refund clock",
     history: "Payments and refunds",
+    /** Operations and Analytics, in the same glass pull as the Money desk. */
+    health: "Health",
+    figures: "Figures",
+    sentBack: "Sent back",
   },
   /** The money desk read as documents. Labels and slide prompts only; a money
       sentence is never written here. */
@@ -147,6 +155,42 @@ export const experienceAdminEn = {
     refused: "That did not go through",
     readOnlyDesk: "This desk is read only for your access.",
   },
+  /**
+   * The compliance desk's rulings. Only the one ruling that cannot be taken
+   * back is a slide: a second person approving a recorded decision (the
+   * approval is final; sending it back reopens the case, so that stays a
+   * button). No money sentence lives here.
+   */
+  compliance: {
+    slideApprove: "Slide to approve this decision",
+    /** Said on the track when the server refused; the refusal's own sentence is under it. */
+    refused: "That did not go through",
+    /** The desk's decision bar, named for a screen reader. */
+    decisionBar: "Decision",
+  },
+  /**
+   * A desk that only reads says so once, quietly, instead of leaving a table
+   * that looks as if it should have a control. It states what the desk does
+   * (reads and reports), never what is currently in it.
+   */
+  readOnly: {
+    line: "This desk reads and reports. It changes nothing: decisions are taken on the desk each item belongs to.",
+  },
+  /**
+   * Where a listing stands, as steps (reference 7118). Every step is a status
+   * the record really has; a time is printed only where the record stores one.
+   */
+  listingTrack: {
+    label: "Where this listing stands",
+    title: "Review progress",
+    submitted: "Submitted",
+    review: "In review",
+    decision: "Decision",
+    live: "Live",
+    sentBack: "Sent back to the lister for more information",
+    notYetLive: "Approved, not yet live",
+    rejected: "Rejected",
+  },
   /** Case history and audit trails. */
   cases: {
     historyOpen: "Show the history",
@@ -167,6 +211,10 @@ export const experienceAdminEn = {
     bulkConfirmTitle: "Apply to the selected rows?",
     bulkConfirmBody: "{verb} will be applied to {count} selected rows. One batch is written to the audit log, and rows another operator holds are skipped.",
     bulkConfirmApply: "Apply",
+    /** A verb that cannot run yet says what it is waiting for. */
+    bulkNeedsReason: "{verb} needs a reason, chosen in the bulk form.",
+    bulkNeedsTo: "{verb} needs a person to hand to, chosen in the bulk form.",
+    bulkNeedsOpen: "Choose it",
   },
   /** Status words for the console's own chips, by state, never colour alone. */
   chips: {

@@ -11,9 +11,11 @@ import {
   PageHead,
   Panel,
   PanelUnavailable,
+  ReadOnlyNote,
   type KpiItem,
 } from "../_components/panels";
 import { RangeSelect } from "../_components/RangeSelect";
+import { DeskSections } from "../_components/DeskSections";
 
 /**
  * ANALYTICS, drawn from 01F7DFC7 panel three: four KPI cards, demand against
@@ -35,6 +37,8 @@ export type AnalyticsProps = {
   supply: { start: string; listings: number }[] | null;
   thin: ThinAreas | null;
   demand: PriceCheckDemand | null;
+  /** Why listings were sent back, counted from reason codes; only reasons with a count. Null when there is nothing to show. */
+  sentBack?: { code: string; label: string; count: number }[] | null;
 };
 
 /** Which buckets carry a date under the axis: every month, every third week, every seventh day. */
@@ -51,8 +55,9 @@ function bucketLabel(start: string, monthly: boolean, withYear: boolean, locale:
   });
 }
 
-export function AnalyticsView({ locale, range, bookings, supply, thin, demand }: AnalyticsProps) {
+export function AnalyticsView({ locale, range, bookings, supply, thin, demand, sentBack }: AnalyticsProps) {
   const shell = getDictionary(locale).admin.shell;
+  const x = getDictionary(locale).experienceAdmin;
   const c = shell.analytics;
   const notRecorded = (request: string) => ({ value: null, missingWord: shell.states.notRecorded, pending: `Nothing records this yet. Request ${request}.` });
   const period = { "30d": c.vsPrev30, "90d": c.vsPrev90, "12m": c.vsPrev12 }[range];
@@ -90,6 +95,15 @@ export function AnalyticsView({ locale, range, bookings, supply, thin, demand }:
     },
   ];
   const monthly = range === "12m";
+  const sections = [
+    { id: "an-figures", label: x.sections.figures, icon: "chart-bar" as const },
+    { id: "an-demand", label: c.demandSupply, icon: "trending-up" as const },
+    { id: "an-top-areas", label: c.topAreasChecks, icon: "location" as const },
+    { id: "an-thin", label: c.thinAreas, icon: "map" as const },
+    { id: "an-results", label: c.checksVsAnswered, icon: "search" as const },
+    { id: "an-refusals", label: c.refusalsTitle, icon: "alert-triangle" as const },
+    ...(sentBack && sentBack.length > 0 ? [{ id: "an-sent-back", label: x.sections.sentBack, icon: "flag" as const }] : []),
+  ];
 
   return (
     <div className="nf-admin-stack">
@@ -104,23 +118,27 @@ export function AnalyticsView({ locale, range, bookings, supply, thin, demand }:
           />
         }
       />
-      <KpiGrid items={kpis} label={c.title} />
+      <ReadOnlyNote locale={locale} />
+      <DeskSections sections={sections} label={x.sections.navLabel} toggleLabel={x.sections.toggle} />
+      <div id="an-figures" className="nf-admin-anchor">
+        <KpiGrid items={kpis} label={c.title} />
+      </div>
 
-      <Panel id="an-demand" title={c.demandSupply}>
+      <Panel id="an-demand" className="nf-admin-anchor" title={c.demandSupply}>
         <DemandSupply supply={supply} demand={demand} range={range} locale={locale} />
       </Panel>
 
       <div className="nf-admin-grid nf-admin-grid--halves">
-        <Panel id="an-top-areas" title={c.topAreasChecks}>
+        <Panel id="an-top-areas" className="nf-admin-anchor" title={c.topAreasChecks}>
           <TopAreas demand={demand} locale={locale} />
         </Panel>
-        <Panel id="an-thin" title={c.thinAreas}>
+        <Panel id="an-thin" className="nf-admin-anchor" title={c.thinAreas}>
           <ThinAreasTable thin={thin} locale={locale} />
         </Panel>
       </div>
 
       <div className="nf-admin-grid nf-admin-grid--halves">
-        <Panel id="an-results" title={c.checksVsAnswered}>
+        <Panel id="an-results" className="nf-admin-anchor" title={c.checksVsAnswered}>
           {!demand ? (
             <PanelUnavailable what={c.priceChecks} locale={locale} />
           ) : demand.checks === 0 ? (
@@ -149,10 +167,25 @@ export function AnalyticsView({ locale, range, bookings, supply, thin, demand }:
             />
           )}
         </Panel>
-        <Panel id="an-refusals" title={c.refusalsTitle}>
+        <Panel id="an-refusals" className="nf-admin-anchor" title={c.refusalsTitle}>
           <Refusals demand={demand} locale={locale} />
         </Panel>
       </div>
+
+      {/* C8: why listings were sent back, counted from the reason codes. */}
+      {sentBack && sentBack.length > 0 ? (
+        <Panel id="an-sent-back" className="nf-admin-anchor" title="Why listings were sent back, last 30 days">
+          <ul className="nf-body-sm grid gap-2xs">
+            {sentBack.map((r) => (
+              <li key={r.code} className="flex justify-between gap-md">
+                <span>{r.label}</span>
+                <span className="nf-numeric font-semibold">{r.count}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="nf-caption mt-xs">Counted since reason codes began on 30 September 2026. A review can carry several.</p>
+        </Panel>
+      ) : null}
     </div>
   );
 }

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { getDictionary, formatNumber } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { resolveSession } from "@/lib/actions/session";
-import { PageHead, Panel, PanelEmpty, PanelUnavailable } from "../_components/panels";
+import { PageHead, Panel, PanelEmpty, PanelUnavailable, ReadOnlyNote } from "../_components/panels";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
@@ -57,6 +57,7 @@ export default async function FieldSpeedPage() {
   return (
     <div className="nf-admin-stack" data-testid="field-speed">
       <PageHead title={copy.title} lede={copy.lede} />
+      <ReadOnlyNote locale={locale} />
       <Panel title={copy.panel} id="field-speed" flush>
         {rows === null ? (
           <PanelUnavailable what={copy.what} locale={locale} />

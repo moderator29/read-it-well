@@ -17,6 +17,7 @@ import {
   type DatabaseJobsSummary,
 } from "@/lib/admin/reads/jobs";
 import { niceTicks, periodDelta, sinceLabel } from "../_components/metrics";
+import { DeskSections } from "../_components/DeskSections";
 import { alertRows } from "../_components/OverviewView";
 import {
   AlertList,
@@ -26,6 +27,7 @@ import {
   KpiGrid,
   NotWired,
   PageHead,
+  ReadOnlyNote,
   Panel,
   PanelLink,
   PanelUnavailable,
@@ -155,38 +157,52 @@ export function OperationsView(props: OperationsProps) {
   /* V-80: field speed is its own desk; Operations is where it is found. */
   tabs.push({ key: "field-speed", label: getDictionary(locale).platform.fieldSpeed.title, href: "/admin/field-speed", active: false });
 
+  /* The desk's sections in the glass pull, as the Money desk has them: the
+     figures, whichever tab is open, then the two records every tab shares. */
+  const x = getDictionary(locale).experienceAdmin;
+  const sections = [
+    { id: "ops-health", label: x.sections.health, icon: "bolt" as const },
+    { id: "ops-detail", label: tabs.find((t) => t.active)?.label ?? c.tabJobs, icon: "clipboard-list" as const },
+    { id: "ops-recent-alerts", label: shell.overview.alertsTitle, icon: "bell" as const },
+    { id: "ops-recent-audit", label: c.tabAudit, icon: "history" as const },
+  ];
+
   return (
     <div className="nf-admin-stack">
       <PageHead title={c.title} lede={c.lede} />
-      <div className="nf-admin-ops-kpis">
+      <ReadOnlyNote locale={locale} />
+      <DeskSections sections={sections} label={x.sections.navLabel} toggleLabel={x.sections.toggle} />
+      <div id="ops-health" className="nf-admin-ops-kpis nf-admin-anchor">
         <KpiGrid items={kpis} label={c.lede} />
       </div>
       <TabRow items={tabs} label={c.title} />
 
-      {props.tab === "jobs" && <JobsPanel {...props} />}
-      {props.tab === "alerts" && (
-        <Panel id="ops-alerts-all" title={tx(locale, "opsAlerts")} action={<PanelLink href="/admin/alerts">{tx(locale, "opsOpenTheAlertDesk")}</PanelLink>}>
-          <AlertsBody alerts={props.alerts} now={props.now} locale={locale} limit={40} />
-        </Panel>
-      )}
-      {props.tab === "audit" && <AuditPanel {...props} />}
-      {props.tab === "notifications" && (
-        <>
-          <PushActivityPanels push={props.push ?? null} locale={locale} />
-          <div className="nf-admin-grid nf-admin-grid--halves">
-            <NotificationsPanel activity={props.notifications} locale={locale} />
-            <EmailOutboxPanel locale={locale} />
-          </div>
-        </>
-      )}
-      {props.tab === "inflight" && <InFlight locale={locale} inspections={props.inspections ?? null} />}
-      {props.tab === "store" && <StorePanel run={props.store ?? null} locale={locale} />}
+      <div id="ops-detail" className="nf-admin-stack nf-admin-anchor">
+        {props.tab === "jobs" && <JobsPanel {...props} />}
+        {props.tab === "alerts" && (
+          <Panel id="ops-alerts-all" title={tx(locale, "opsAlerts")} action={<PanelLink href="/admin/alerts">{tx(locale, "opsOpenTheAlertDesk")}</PanelLink>}>
+            <AlertsBody alerts={props.alerts} now={props.now} locale={locale} limit={40} />
+          </Panel>
+        )}
+        {props.tab === "audit" && <AuditPanel {...props} />}
+        {props.tab === "notifications" && (
+          <>
+            <PushActivityPanels push={props.push ?? null} locale={locale} />
+            <div className="nf-admin-grid nf-admin-grid--halves">
+              <NotificationsPanel activity={props.notifications} locale={locale} />
+              <EmailOutboxPanel locale={locale} />
+            </div>
+          </>
+        )}
+        {props.tab === "inflight" && <InFlight locale={locale} inspections={props.inspections ?? null} />}
+        {props.tab === "store" && <StorePanel run={props.store ?? null} locale={locale} />}
+      </div>
 
       <div className="nf-admin-grid nf-admin-grid--halves">
-        <Panel id="ops-recent-alerts" title={shell.overview.alertsTitle} action={<PanelLink href="/admin/alerts">{shell.states.viewAll}</PanelLink>}>
+        <Panel id="ops-recent-alerts" className="nf-admin-anchor" title={shell.overview.alertsTitle} action={<PanelLink href="/admin/alerts">{shell.states.viewAll}</PanelLink>}>
           <AlertsBody alerts={props.alerts} now={props.now} locale={locale} limit={4} />
         </Panel>
-        <Panel id="ops-recent-audit" title={c.tabAudit} action={<PanelLink href="/admin/audit">{shell.states.viewAll}</PanelLink>}>
+        <Panel id="ops-recent-audit" className="nf-admin-anchor" title={c.tabAudit} action={<PanelLink href="/admin/audit">{shell.states.viewAll}</PanelLink>}>
           {props.audit === "unavailable" ? (
             <PanelUnavailable what={tx(locale, "opsTheAuditLog")} locale={locale} />
           ) : props.audit.length === 0 ? (

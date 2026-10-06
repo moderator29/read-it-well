@@ -73,6 +73,21 @@ export function Panel({
   );
 }
 
+/**
+ * A desk that only reads says so once, in a quiet line, instead of leaving a
+ * table that looks as if it should carry a control. It states what the desk
+ * does (reads and reports), never what is currently in it, and it draws no
+ * dead button.
+ */
+export function ReadOnlyNote({ locale }: { locale: Locale }) {
+  return (
+    <p className="nf-admin-readonly" data-testid="desk-readonly">
+      <UiIcon name="info" size={16} />
+      <span>{getDictionary(locale).experienceAdmin.readOnly.line}</span>
+    </p>
+  );
+}
+
 /** "View all ->", the renders' quiet panel link. */
 export function PanelLink({ href, children }: { href: string; children: ReactNode }) {
   return (

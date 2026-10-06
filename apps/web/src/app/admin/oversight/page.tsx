@@ -3,7 +3,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { STAFF_SCOPE_LABEL } from "@/lib/admin/guard";
 import { readOversight } from "@/lib/admin/oversight";
-import { PageHead, Panel } from "../_components/panels";
+import { PageHead, Panel, ReadOnlyNote } from "../_components/panels";
+import { getLocale } from "@/lib/locale";
 
 export const metadata: Metadata = { title: "Team oversight", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -24,6 +25,7 @@ function age(iso: string | null, now: number): string {
 export default async function OversightPage() {
   const read = await readOversight();
   const now = requestTime();
+  const locale = await getLocale();
   if (read.state === "forbidden") {
     return (
       <div className="nf-console">
@@ -44,6 +46,7 @@ export default async function OversightPage() {
         title="Team oversight"
         lede="Every queue's backlog and its oldest item, and each staff member's work over the last 30 days, read from the records themselves."
       />
+      <ReadOnlyNote locale={locale} />
       <Panel title="Backlog by queue">
         <p className="nf-caption">
           <Link className="text-[var(--nf-content-link)] underline" href="/admin/oversight/export?kind=backlog">
