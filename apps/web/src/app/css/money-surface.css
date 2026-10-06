@@ -91,7 +91,7 @@
     width: 4.25rem;
     height: 2.75rem;
     border-radius: var(--nf-radius-sm);
-    background: var(--nf-gradient-brand);
+    background: var(--nf-gradient-brand-ink);
     color: var(--nf-content-on-brand);
     font-size: var(--nf-text-caption);
     font-weight: 700;

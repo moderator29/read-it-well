@@ -436,7 +436,7 @@
     block-size: 100%;
     border-radius: var(--nf-radius-circle);
     object-fit: cover;
-    background: var(--nf-gradient-brand);
+    background: var(--nf-gradient-brand-ink);
   }
   .nf-hub-profile__text {
     flex: 1 1 0;

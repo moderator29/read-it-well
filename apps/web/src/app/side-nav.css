@@ -321,7 +321,7 @@
        law. The token rather than a raw 50%: rule 9, and `--nf-radius-circle`
        is what every other avatar in the tree reads. */
     border-radius: var(--nf-radius-circle);
-    background: var(--nf-gradient-brand);
+    background: var(--nf-gradient-brand-ink);
     color: var(--nf-content-on-brand);
     font-size: 0.75rem;
     font-weight: 600;

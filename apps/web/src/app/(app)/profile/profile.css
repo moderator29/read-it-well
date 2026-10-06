@@ -240,7 +240,7 @@
     block-size: 100%;
     border-radius: var(--nf-radius-circle);
     overflow: hidden;
-    background: var(--nf-gradient-brand);
+    background: var(--nf-gradient-brand-ink);
     color: var(--nf-content-on-brand);
     font-family: var(--nf-font-display);
     font-size: 2.25rem;

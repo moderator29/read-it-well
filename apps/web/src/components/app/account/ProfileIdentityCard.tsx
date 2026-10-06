@@ -91,7 +91,7 @@ export function ProfileIdentityCard() {
           <span className="block rounded-full bg-[var(--nf-surface-canvas)] p-3xs">
             <span
               className="flex h-[3.75rem] w-[3.75rem] items-center justify-center rounded-full text-2xl font-bold text-[var(--nf-content-on-brand)] sm:h-16 sm:w-16"
-              style={{ background: "var(--nf-gradient-brand)" }}
+              style={{ background: "var(--nf-gradient-brand-ink)" }}
             >
               {initial}
             </span>

@@ -1561,11 +1561,19 @@
    * product resolve `var()` and `currentColor` in a stop without any mirror at
    * all.
    */
-  /* The brand ramp, with white on it in mind: every stop is held to 4.5:1 against white, because this is the
-     fill of every avatar and brand tile that carries an initial or a glyph in `--nf-content-on-brand`. The old
-     top stop, #5C9FFF, was 2.7:1 (the nav avatar's "S" measured 3.6:1 at the middle of the disc, W12). The top
-     is now the act ramp's own lit stop, so the avatar and the primary button are one blue. */
-  --nf-gradient-brand: linear-gradient(135deg, color-mix(in oklab, var(--nf-act-blue) 97%, white) 0%, var(--nf-electric-400) 100%);
+  /* THE BRAND SWEEP, AS SHIPPED (D28). Pale electric to the deep primary: the progress bar, the range fill and
+     the avatar rings carry it, and it is how the product is recognised at night. W12 once flattened it (its top
+     stop moved to the act ramp's lit blue, a few points off the foot) so a white initial on an avatar would
+     clear 4.5:1; the auditor ruled the sweep comes back (A8). The legibility it bought is kept by the token
+     below, not by flattening this one. `brand-gradient.test.ts` pins both. */
+  --nf-gradient-brand: linear-gradient(135deg, #5C9FFF 0%, var(--nf-electric-400) 100%);
+  /* THE SAME SWEEP, MADE SAFE UNDER WHITE. The light end of `--nf-gradient-brand` is 2.7:1 under
+     `--nf-content-on-brand`: right for a fill that carries no word, wrong for one that does. Every stop of this
+     one is held to 4.5:1 under white (the nav avatar's "S" measured 3.6:1 on the old top stop, W12): the top
+     is the act ramp's own lit stop, so the avatar and the primary button are one blue, and the foot deepens
+     to #0050D0 so the disc still sweeps. Use it wherever a monogram, an initial or a glyph sits on the fill;
+     `small-text-contrast.dom.test` measures the avatar on it. */
+  --nf-gradient-brand-ink: linear-gradient(135deg, color-mix(in oklab, var(--nf-act-blue) 97%, white) 0%, #0050D0 100%);
   /*
    * THE LIT PRIMARY, MEASURED OFF `GOVERNING-03` RATHER THAN EYEBALLED, and
    * corrected once against the ledger's own first reading.
@@ -3940,6 +3948,9 @@
   --nf-focus-ring: var(--nf-brand-quiet);
   --nf-rating: var(--nf-spark);
   --nf-gradient-brand: linear-gradient(135deg, color-mix(in oklab, var(--nf-act-blue) 97%, white) 0%, #0050D0 100%);
+  /* See the night block. In paper the plain sweep already holds 4.5:1 under white at every stop, so the
+     word-safe one is the same ramp. */
+  --nf-gradient-brand-ink: linear-gradient(135deg, color-mix(in oklab, var(--nf-act-blue) 97%, white) 0%, #0050D0 100%);
   --nf-gradient-agent: linear-gradient(135deg, #1F7BFF 0%, #0050D0 100%);
   --nf-gradient-cta: linear-gradient(180deg, #0A6CF5 0%, #005FE8 100%);
   --nf-gradient-text: linear-gradient(135deg, #005FE8 0%, #0040B0 100%);

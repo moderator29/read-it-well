@@ -734,7 +734,7 @@
     flex-shrink: 0;
     border-radius: var(--nf-radius-circle);
     overflow: hidden;
-    background: var(--nf-gradient-brand);
+    background: var(--nf-gradient-brand-ink);
     color: var(--nf-content-on-brand);
     font-size: 1.1rem;
     font-weight: 700;
@@ -919,7 +919,7 @@
     block-size: 100%;
     border-radius: var(--nf-radius-circle);
     overflow: hidden;
-    background: var(--nf-gradient-brand);
+    background: var(--nf-gradient-brand-ink);
     color: var(--nf-content-on-brand);
     font-size: 2.1rem;
     font-weight: 700;
@@ -1467,7 +1467,7 @@
     flex-shrink: 0;
     border-radius: var(--nf-radius-circle);
     overflow: hidden;
-    background: var(--nf-gradient-brand);
+    background: var(--nf-gradient-brand-ink);
     color: var(--nf-content-on-media);
     font-weight: 700;
     box-shadow: 0 0 0 2px var(--nf-border-on-media);
@@ -1685,7 +1685,7 @@
     block-size: 28px;
     border-radius: var(--nf-radius-circle);
     overflow: hidden;
-    background: var(--nf-gradient-brand);
+    background: var(--nf-gradient-brand-ink);
     color: var(--nf-content-on-media);
     font-size: 0.75rem;
     font-weight: 700;
@@ -1976,7 +1976,7 @@
     flex-shrink: 0;
     border-radius: var(--nf-radius-circle);
     overflow: hidden;
-    background: var(--nf-gradient-brand);
+    background: var(--nf-gradient-brand-ink);
     color: var(--nf-content-on-brand);
     font-size: 0.8rem;
     font-weight: 700;
@@ -2388,7 +2388,7 @@
     flex-shrink: 0;
     border-radius: var(--nf-radius-circle);
     overflow: hidden;
-    background: var(--nf-gradient-brand);
+    background: var(--nf-gradient-brand-ink);
     color: var(--nf-content-on-brand);
     font-weight: 600;
   }
@@ -2886,7 +2886,7 @@
   .nf-story-ring__monogram {
     display: grid;
     place-items: center;
-    background: var(--nf-gradient-brand);
+    background: var(--nf-gradient-brand-ink);
     color: var(--nf-content-on-brand);
     font-size: 1.125rem;
     font-weight: 700;
@@ -3042,7 +3042,7 @@
   .nf-post__monogram {
     display: grid;
     place-items: center;
-    background: var(--nf-gradient-brand);
+    background: var(--nf-gradient-brand-ink);
     color: var(--nf-content-on-brand);
     font-size: var(--nf-text-body);
     font-weight: 700;

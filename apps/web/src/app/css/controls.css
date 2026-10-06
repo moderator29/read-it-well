@@ -266,7 +266,7 @@
     background: var(--nf-glass-fill);
   }
   .nf-auth-row__mark--email {
-    background: var(--nf-gradient-brand);
+    background: var(--nf-gradient-brand-ink);
     color: var(--nf-content-on-brand);
   }
 
