@@ -124,8 +124,15 @@
    * float shadow, the same tokens as `.nf-app-header__btn.nf-icon-btn--round`.
    * Opacity and the 4px slide stay theirs.
    */
+  /* The stuck tabs' back repeats its own class: catalogue.css (now imported by
+     the listing components, so it can load after this sheet) styles
+     `.nf-detail-tabs__back:hover` at the specificity this rule had, and on a
+     touch screen, where the hover query below never applies, that hover would
+     win by order and paint a sticky tint where the circle used to stay put.
+     The extra class lifts this one clear of it, and the hover rule below is
+     later and equal, so it still wins where hover exists. */
   .nf-floating-back,
-  .nf-detail-tabs .nf-detail-tabs__back {
+  .nf-detail-tabs .nf-detail-tabs__back.nf-detail-tabs__back {
     border: var(--nf-border-width) solid var(--nf-card-border);
     border-radius: var(--nf-radius-circle);
     background: var(--nf-surface-elevated);
@@ -136,7 +143,7 @@
   }
   @media (hover: hover) and (pointer: fine) {
     .nf-floating-back:hover,
-    .nf-detail-tabs .nf-detail-tabs__back:hover {
+    .nf-detail-tabs .nf-detail-tabs__back.nf-detail-tabs__back:hover {
       border-color: var(--nf-border-default);
       background: linear-gradient(var(--nf-interactive-hover), var(--nf-interactive-hover)), var(--nf-surface-elevated);
     }
