@@ -179,3 +179,106 @@ Now buildable. Four screens, and the honest framing is the whole point:
 
 **Do not write a fifth screen explaining why promotion is good value.** The tiers either
 justify themselves on screen two or the pricing is wrong.
+
+---
+
+## 11. Confirmed on 6 October, and the measurement question answered from the database
+
+### The name and the prices are confirmed
+
+**The fourth tier is "Everywhere".** `prime` stays as the slug so nothing in the schema moves.
+
+| Tier | Price | Duration | Naira per day |
+|---|---|---|---|
+| **Boost** | **2,500** | 7 days | 357 |
+| **Spotlight** | **7,500** | 14 days | 536 |
+| **Featured** | **20,000** | 30 days | 667 |
+| **Everywhere** | **50,000** | 30 days | 1,667 |
+
+**What the prices mean, and why they rise the way they do.** The per-day column is the honest
+way to read them: **the ladder does not reward buying longer, it charges more for reaching
+further.** Boost is seven days in one area; Everywhere is thirty days across the platform plus
+the digests and the map. A lister comparing them is choosing reach, not duration, and the
+pricing says so.
+
+Against Vallo's own 2 percent commission the scale is deliberate: **Boost at 2,500 naira is
+less than the commission on a 125,000 naira booking**, which is the point. It must be cheap
+enough to try without deliberation, because it is the tier that teaches people the product
+exists. Everywhere at 50,000 is roughly the commission on a 2.5m naira transaction, so it only
+makes sense for property where that is in view, which is exactly who it is for.
+
+### Front door inventory: one rail, six positions, and scarcity is the premium
+
+**The gap was real: the spec required a published slot count and never gave one. It is six.**
+
+> **One labelled promoted rail per city, six positions per day. Everywhere may occupy at most
+> two of them. Featured may occupy at most four.**
+
+**Why six and not more.** The front door has to look like Vallo, not like an advertising page.
+Six is enough inventory to sell and few enough that the rail stays a rail rather than becoming
+the page. **And the cap is what makes the tier feel premium**: a thing you can always buy is
+not special, and a lister who finds the day full and books next Tuesday instead has just
+learned the slot is worth having.
+
+**Everywhere is scarcer than Featured on purpose**, two against four, even though both reach
+the front door. The higher tier must be harder to get, not merely more expensive, or the price
+difference reads as arbitrary.
+
+**The design, so it feels premium rather than busy:** one rail, generous spacing, the largest
+photography on the page, the label legible but quiet, and **never a seventh card**. If the day
+is not sold out the rail shows fewer cards. It never pads with organic listings to look full,
+because a promoted rail that silently contains unpaid listings is a lie in both directions.
+
+**Enforced, not merely documented:** the sale refuses when the day is full, names the reason,
+and offers the next available date. Six is in the policy table, not in code.
+
+### The ten metrics: nine are already tracked, and the tenth thing is missing
+
+**Checked against production rather than assumed.** This answers "has it been built that all
+listings have views and all the stats".
+
+| Metric | Where it already lives |
+|---|---|
+| Impressions | `listing_daily_stats.impressions` |
+| Views | `listing_daily_stats.opens` |
+| Unique viewers | `listing_view_marks.viewer_hash`, distinct per day |
+| Saves | `saved_items` |
+| Shares | `share_links` |
+| Inquiries | `conversations`, by `listing_id` |
+| Contacts | `enquiry_stages` |
+| Viewings | `inspection_requests`, with `state`, `outcome` and `completed_at` |
+| Bookings | `bookings` |
+| Transactions | `transactions` |
+
+**So every listing on Vallo already accumulates its own numbers, every day, today.** Nothing
+needs building to measure a listing. That is a better starting position than the spec assumed.
+
+**What is missing is the one thing promotion specifically needs.** `listing_daily_stats` is
+`listing_id, day, impressions, opens`. **There is no column recording where an impression came
+from**, so nothing in the database can distinguish an impression served from a promoted slot
+from one served organically.
+
+**That breaks D3's central guardrail**, which requires the organic versus promoted comparison,
+and it is the whole reason the analytics screen exists. Without it the screen can say "your
+listing got 4,000 impressions" and cannot say "2,700 of them came from the promoted rail",
+which is the only number that tells a lister whether their 20,000 naira did anything.
+
+**So the one schema change promotion needs is a source dimension on the daily stats**: the same
+counters, keyed additionally by where the impression was served, with organic as the default so
+existing rows stay meaningful. **Session 2, in the same change that creates the promotion
+tables.** It is small, and it is the difference between selling promotion and selling it
+honestly.
+
+### Screen 3's "real example" needs no promotion to have run
+
+A session noted that the real example on the measurement screen can only exist once a promotion
+has run. **That is true of promoted numbers and false of the screen.**
+
+Every listing already has thirty days of its own real organic history. **So screen 3 shows the
+lister their own listing's actual last thirty days** and says, in plain words, this is what it
+did without promotion. Nothing is fabricated, nothing is modelled, no promotion needs to have
+run anywhere, and it is far more persuasive than a generic example because it is about the
+property they are standing in.
+
+**And it sets the baseline the comparison will later be measured against**, which is the
+honest way round: the lister sees the before, buys, and is shown the after beside it.
