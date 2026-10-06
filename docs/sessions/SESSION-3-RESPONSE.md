@@ -2,14 +2,111 @@
 
 **Branch:** `claude/vallo-experience-upgrade`, cut from `main` at `ef1265135`.
 **Started:** 6 October 2026. **Status:** in progress, kept current as work lands.
-As of this edit: `origin/claude/vallo-experience-upgrade` is at `da99eebd1`, which
-was pushed with two failing tests (`env-documented`, fixed in `dd2694c02`), and this
-branch is 35 commits ahead of it, unpushed. The draft PR #85 is open. `main` is at
-`d685f5e04`, which this branch contains. Session 2's branch is not merged. The
-independent audits, the W12 sweep and R2's work are still running, and the gate's
-result for the commits since `da99eebd1` is not asserted here.
+As of this edit: `origin/claude/vallo-experience-upgrade` is at `c3108386d` (gate
+green: typecheck, lint and 10,065 tests), and the commits after it are pushed only
+once the clean-worktree gate is green on the tip. The draft PR #85 is open. `main`
+is at `d685f5e04`, which this branch contains. Round 3's work is below.
 
 This file is Session 3's only voice. It is written as work happens, not at the end.
+
+---
+
+## Round 3 (D40 to D51, VALLO_FINANCIAL_LAYER, VALLO_PRICING, ROUND-2, ROUND-3)
+
+The audit's verdict is accepted as stated: a strong foundation release wearing a
+platform-sweep label. 213 real routes, 93 untouched, 41 of 120 page edits five lines
+or fewer, and the 24-point checklist run on 14 of 213. This round is four agents:
+C1 the sweep, C2 the financial layer, C3 referral and the missing features, C4 D48
+then D49 then auth, legal and weight. C2 finished; its slot went to C5 (the dark
+brand gradient D28 asks back, the reduce-transparency first frame, and the settings
+labels into the dictionary).
+
+**The sweep, as a number.** The per-route record is
+[`SESSION-3-SWEEP.md`](SESSION-3-SWEEP.md), generated from each agent's own 24-point
+result, run in Chromium at 390, 768 and 1440 in both themes on the route's real page
+component. **Routes audited with all 24 points recorded: 14 of 213** at this edit
+(11 admin, 3 member). The rows in section 3 below predate this and leave points
+19, 22 and 23 at N; they are not counted. The measured starting point (C1, at
+`6376453df` against the session base): 88 of 213 `page.tsx` files untouched, 46 of
+125 edits five lines or fewer, 54 routes whose own files are untouched; admin 23
+untouched of 38, agent 15 of 24.
+
+**Landed this round** (one commit per unit):
+- **D48:** the wallet, escrow and withdrawal strings out of the experience
+  dictionary and the first-run wiring; a guard test that fails on a custody word
+  in member copy; the notification screen says Payments while the stored key stays
+  `wallet` until R3-31; InnerNav's docstring no longer names the wallet.
+- **D49:** `MotionProvider` and `motion-features.ts` deleted, with a test that keeps
+  framer-motion's door shut. `DragToConfirm` no longer commits money on a keyboard
+  or screen-reader activation (`e.detail === 0`): it asks for a second press, and a
+  test pins it. `BadgeMoment` says Copied only after the clipboard resolves;
+  `EarnedMoment` has its replay latch; the nine silent server reads report their
+  errors. A motion preference change reaches every gate without a remount, an open
+  sheet pins the page on iOS Safari, the console palette leaves Ctrl/Cmd+K to a
+  textarea.
+- **D51 and the renter price:** every Guarantee sentence out of member copy; the
+  renter sees exactly the advertised price, with no fee line and no footnote.
+- **The financial layer (C2):** a checkout that names the space, the agreement, the
+  parties, the conditions and the release condition; the transaction timeline in
+  sentences, never a status enum; the money centre with Available and Protected as
+  two visibly different numbers; `/receipts`, `/refunds` and `/payouts`; the lister's
+  arithmetic gate (Rent you set / Platform fee (4%) / You receive, in naira, the same
+  figures at payout); withdrawal maths that waits for the provider's fee and never
+  shows an estimate; six distinct reference labels, and no chain hash on a fiat
+  payment. Every partner read answers "absent" while the protected rail is off
+  (`PROTECTED_RAIL_LIVE = false`, D50), so balance and withdrawal surfaces are
+  reachable only in the labelled preview.
+- **Settings:** InnerNav on every settings route; the notification matrix wired to
+  the push policy's real readers (a test proves the screen writes what delivery
+  reads); `/settings/accessibility` (contrast, reduce transparency, text size,
+  motion); `/settings/region` (the language, "Naira (₦, NGN)" with the reason no
+  other currency is offered, today's date in Lagos time).
+- **Referral (C3):** `/rewards`, a Rewards Balance, never a wallet: available,
+  pending, lifetime; invite link with copy, share sheet and QR; the referral list
+  (joined, qualified, pending, under review) with no risk reason or fraud signal;
+  rewards history; withdrawal stating the ₦1,000 minimum and the fee before
+  confirmation. It draws the not-live state until R-C3-1 and R-C3-2 land, and is
+  not linked. The business tier artefact cards, the two missing onboardings
+  (tenancy and portfolio), and streaks: built, never mounted, **deleted**.
+- **Legal:** the in-app terms, privacy and disclaimer on `DocumentSheet`, the same
+  paper as the public documents. No word of legal text changed.
+
+**Requests to Session 2 from this round** (none blocks what is built; each screen
+draws its honest not-live or empty state):
+
+| # | Need | Shape |
+|---|---|---|
+| R3-31 | Rename the stored notification key | `profiles.settings.notifications.wallet` to `payments`, by a migration that carries each member's value; then `STORED.payments` in `AccountToggles.tsx` and the matrix follow |
+| R-C2-1 | The lister's fee | `lister_fee_policy(p_listing, p_property_type, p_listing_intent)` returning `rate_version, rail, fee_bps, cap_minor` from `money_policy` and the rail router; on the escrow rail the platform fee includes the provider's 2 percent |
+| R-C2-2 | The lister's acceptance | `lister_fee_accept(p_listing, p_rate_version, p_price_minor, p_fee_minor, p_receive_minor)`: re-derive, record member, time and rate version; return `recorded`, `rate_moved` or `mismatch` |
+| R-C2-3 | Member balances | Available and Protected, the holder's legal name, an as-of time (R-3) |
+| R-C2-4 | Withdrawal intent | Create it and read back the fee, intent id, expiry and the destination resolved by account verification (R-4, R-5) |
+| R-C2-5 | Withdrawal confirm | Against that intent, idempotent |
+| R-C2-6 | Receipts and refunds, whole | Reads across every page, with server-side search and receipt numbers (R-6) |
+| R-C2-7 | The rounding rule | Agree it; Session 3 uses floor in kobo, matching `payment_split_for_booking` |
+| R-C2-8 | Earnings rows | Carry the processor's fee explicitly, not as a remainder |
+| R-C2-9 | Payment timeline events | The status normalisation (FL §8) mapped onto `TimelineEventKind` |
+| R-C2-10 | Push policy | Bring `lib/push/policy`'s urgent kinds in line with "Payments still reach you" once R3-31 lands |
+| R-C2-11 | FX | A timestamped rate for any converted display (FL §4.10); none is shown until then |
+| R-C3-1 | The Rewards read | One read returning `RewardsSnapshot`: policy from `money_policy`, available, pending, lifetime, referrals (first name, status, dates, **no reason field**), history, campaign, payout |
+| R-C3-2 | Rewards withdrawal | `WithdrawActions.quote` (prepare, read the provider fee back) and `.confirm` |
+
+**Decisions waiting on the founder:**
+- **The lister's fee gate in the listing wizard.** It is built (`ListerFeeGate`) and
+  shown in the preview, but not wired into `ListingWizard`: wired, it would block
+  "Send for review" for every lister until R-C2-1 and R-C2-2 land. Hotel rooms are
+  published by a reviewer, so their acceptance belongs at that review, not in the
+  wizard.
+- **The Guarantee in the Terms and Disclaimer** (section 14, `GUARANTEE_SCOPE`)
+  needs counsel and a new Terms version; not touched. The caution register's
+  "escalate to the Vallo Guarantee" strings and the claim-decision emails serve
+  legacy claims; whether they stay is the founder's call. The staff scope label
+  "Guarantee claims" and the handbook line are left as they are, by ruling.
+
+**Open in this round:** C1 continues admin then agent (InnerNav across the agent
+tree) then host; C3 the member routes; C4 the auth redesign, then the weight diet,
+measured in bytes; C5 as above. The settings labels are English only until C5's
+move lands.
 
 ---
 
