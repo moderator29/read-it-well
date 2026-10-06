@@ -86,8 +86,16 @@
   }
   /* Light: the page is pale, the island is white (the Island's own Paper
      treatment), the plates are the pale ground with a clear edge, and the
-     focus ink is the brand. */
-  :root[data-theme="light"] .nf-slate {
+     focus ink is the brand.
+
+     NOT ON A NIGHT DOOR (C6, the route sweep). The sign-up flow's screen
+     carries `data-theme="dark"` (AuthMain, lib/theme/night-door.ts layer 1),
+     but this rule keyed on the root alone, so wherever the root still said
+     Light (before the door's script, or without it) the night island took
+     the paper inks: the "Sign in" swap link measured 1.73 to 1 on the navy
+     island, the focus ring was navy on navy and the pinned pill's bar a pale
+     band. The island alone now keeps the door dark, as layer 1 promises. */
+  :root[data-theme="light"] .nf-slate:not([data-theme="dark"]) {
     --nf-slate-page: var(--nf-surface-secondary);
     --nf-slate-card: var(--nf-surface-secondary);
     --nf-slate-card-edge: color-mix(in oklab, var(--nf-content-primary) 20%, transparent);
