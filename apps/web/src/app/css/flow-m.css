@@ -133,6 +133,32 @@
     animation: nf-flow-sheen 2.6s var(--nf-ease-standard) 600ms 2 both;
   }
 
+  /*
+   * THE JUMP-BACK ROW'S TARGETS (W12). The wizard lays a transparent button
+   * over each 10px bar, and at 390 each one measured 34 by 10. The hit area
+   * grows on a transparent, centred ::after to at least 44 in each axis; no
+   * bar moves. The bars sit 4px apart, so a 44px area overlaps its neighbour
+   * by only the 3px per side that 44 needs, and a step not reached yet (a
+   * disabled button) gives up its overflow so it never swallows a tap meant
+   * for the step beside it. The rail's own padding holds the 17px above and
+   * below.
+   */
+  .nf-lw-rail ol > li > button {
+    position: relative;
+  }
+  .nf-lw-rail ol > li > button::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: max(100%, 2.75rem);
+    height: max(100%, 2.75rem);
+    transform: translate(-50%, -50%);
+  }
+  .nf-lw-rail ol > li > button:disabled::after {
+    pointer-events: none;
+  }
+
   /* ----------------------------------------------------------- a step */
 
   .nf-flow-title,
