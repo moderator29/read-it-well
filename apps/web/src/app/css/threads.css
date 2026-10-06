@@ -1105,7 +1105,7 @@
   }
   .nf-insp-hero__title {
     font-family: var(--nf-font-display);
-    font-weight: 800;
+    font-weight: 700;
     font-size: var(--nf-text-h1);
     line-height: 1.1;
     letter-spacing: var(--nf-tracking-tight);

@@ -107,7 +107,7 @@ export function CheckoutSummary({
             currency={view.currency}
             showFraction
             suffix={paid ? undefined : c.inFull}
-            className="text-[clamp(2.5rem,10vw,3.75rem)] font-extrabold leading-none tracking-[-0.03em] text-[var(--nf-content-primary)]"
+            className="text-[clamp(2.5rem,10vw,3.75rem)] font-bold leading-none tracking-[-0.03em] text-[var(--nf-content-primary)]"
             secondaryClassName="text-[0.34em] font-bold text-[var(--nf-content-muted)]"
           />
         </p>

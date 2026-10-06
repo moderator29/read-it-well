@@ -701,7 +701,7 @@ function ListingFacts({ listing }: { listing: PostListing }) {
         ) : null}
       </p>
       <div className="mt-sm flex flex-wrap items-center justify-between gap-sm">
-        <p className="nf-numeric text-[length:var(--nf-text-body-lg)] font-extrabold tracking-[-0.03em] text-[var(--nf-content-primary)]">
+        <p className="nf-numeric text-[length:var(--nf-text-body-lg)] font-bold tracking-[-0.03em] text-[var(--nf-content-primary)]">
           {listing.priceLabel}{" "}
           <span className="text-[length:var(--nf-text-overline)] font-medium tracking-normal text-[var(--nf-brand-secondary)]">
             {listing.periodLabel}
