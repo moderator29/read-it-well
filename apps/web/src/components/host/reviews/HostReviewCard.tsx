@@ -168,7 +168,7 @@ export function HostReviewCard({ review, when }: { review: HostReview; when: str
         title="Ask Vallo to look at this review"
         detents={[0.92]}
         footer={
-          <div className="flex gap-sm">
+          <div className="flex flex-wrap gap-sm">
             <Button variant="secondary" size="lg" full disabled={pending} onClick={() => setContesting(false)}>
               Cancel
             </Button>

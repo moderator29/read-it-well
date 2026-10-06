@@ -516,7 +516,7 @@ export function Composer({
         </div>
       ) : null}
 
-      <div className="mt-sm flex items-center justify-end gap-sm">
+      <div className="mt-sm flex flex-wrap items-center justify-end gap-sm">
         <button
           type="button"
           className="nf-post__act me-auto"

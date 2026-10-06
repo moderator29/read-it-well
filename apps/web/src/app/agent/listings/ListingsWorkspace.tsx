@@ -194,7 +194,7 @@ function ConfirmSheet({
       }}
       title={copy.title}
       footer={
-        <div className="flex gap-md">
+        <div className="flex flex-wrap gap-md">
           <Button variant="secondary" className="flex-1" onClick={onClose}>
             {t.workspace.sheets.keep}
           </Button>

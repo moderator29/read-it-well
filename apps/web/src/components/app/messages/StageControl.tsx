@@ -112,7 +112,7 @@ export function StageControl({
               </div>
             </fieldset>
           )}
-          <div className="flex gap-sm">
+          <div className="flex flex-wrap gap-sm">
             <Button variant="primary" loading={pending} disabled={next === "lost" && reason === null} onClick={save}>
               {copy.save}
             </Button>

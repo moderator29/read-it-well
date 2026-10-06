@@ -68,7 +68,7 @@ export function RatePlanSheet({
       title={`Edit ${plan.name}`}
       detents={[0.8]}
       footer={
-        <div className="flex gap-sm">
+        <div className="flex flex-wrap gap-sm">
           <Button variant="secondary" size="lg" full disabled={pending} onClick={() => onOpenChange(false)}>
             Cancel
           </Button>

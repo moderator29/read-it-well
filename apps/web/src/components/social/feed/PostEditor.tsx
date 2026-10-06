@@ -88,7 +88,7 @@ export function PostEditor({
         </p>
       ) : null}
 
-      <div className="mt-sm flex items-center justify-end gap-sm">
+      <div className="mt-sm flex flex-wrap items-center justify-end gap-sm">
         {left < 240 ? (
           <span
             className={`nf-numeric text-[length:var(--nf-text-overline)] ${

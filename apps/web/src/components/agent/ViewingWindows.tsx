@@ -158,7 +158,7 @@ export function ViewingWindows({
                     ))}
                   </div>
                 </fieldset>
-                <div className="flex gap-sm">
+                <div className="flex flex-wrap gap-sm">
                   <Button variant="primary" loading={pending} onClick={save}>
                     {pending ? copy.saving : copy.save}
                   </Button>

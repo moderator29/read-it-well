@@ -171,7 +171,7 @@ export function AmendTerms({
         <textarea className="nf-field mt-2xs min-h-[4.5rem] w-full" maxLength={2000} value={n} onChange={(e) => setN(e.target.value)} />
       </label>
       {error ? <p role="alert" className="text-[var(--nf-status-error)]">{error}</p> : null}
-      <div className="flex gap-inline">
+      <div className="flex flex-wrap gap-inline">
         <Button type="submit" variant="primary" disabled={pending}>
           Save the new terms
         </Button>

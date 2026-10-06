@@ -106,7 +106,7 @@ function DecisionSheet({
       }}
       title={copy.title}
       footer={
-        <div className="flex gap-md">
+        <div className="flex flex-wrap gap-md">
           <Button variant="secondary" className="flex-1" onClick={onClose}>
             {t.actions.back}
           </Button>
@@ -419,7 +419,7 @@ function BookingCard({
           <span className="text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">{t.card.total}</span>
         </p>
         {pending && (
-          <span className="flex items-center gap-sm">
+          <span className="flex flex-wrap items-center gap-sm">
             <Button variant="secondary" size="sm" onClick={() => onDecide("decline", booking)}>
               {t.actions.decline}
             </Button>

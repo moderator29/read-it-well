@@ -171,7 +171,7 @@ export function ModeratorApply({
         </p>
       ) : null}
 
-      <div className="flex gap-xs">
+      <div className="flex flex-wrap gap-xs">
         <Button
           type="submit"
           variant="primary"

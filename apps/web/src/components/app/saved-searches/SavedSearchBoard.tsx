@@ -201,7 +201,7 @@ function SavedSearchRow({
             onChange={(event) => setDraft(event.target.value)}
             data-testid="saved-search-name"
           />
-          <div className="flex gap-sm">
+          <div className="flex flex-wrap gap-sm">
             <Button
               variant="primary"
               size="sm"

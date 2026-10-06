@@ -65,7 +65,7 @@ export function CloseListingSheet({
       }}
       title={copy.title}
       footer={
-        <div className="flex gap-md">
+        <div className="flex flex-wrap gap-md">
           <Button variant="secondary" className="flex-1" onClick={onClose}>
             {copy.keep}
           </Button>
