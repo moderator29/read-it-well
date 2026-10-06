@@ -683,6 +683,99 @@ and scale across a sheet is what makes an automated slice produce assets that al
 optically rather than merely geometrically. `scripts/build-icon-assets.py` is the
 existing precedent.
 
+## D34. The component library is adopted, and ported
+
+**New, 6 October.** The founder supplied a component library and asked that it be used
+widely, in Vallo's style. **`docs/design/COMPONENT_LIBRARY.md` is the spec.**
+
+They are good engineering and **written for a different design system**. Dropped in as
+they are, they fail this repository's own checks on the first commit: every colour is
+hardcoded and `check-css-tokens.mjs` fails the build on a raw colour, they import an
+icon family Vallo does not use, they carry invented data the claims lint exists to
+prevent, and they contain infinite spinners which Vallo bans. The porting checklist in
+section 2 is not optional.
+
+**`framer-motion` is added, through `LazyMotion` with `domAnimation` only**, roughly
+18KB rather than 50, justified by three things CSS genuinely cannot do: shared-element
+`layoutId` transitions, drag with spring-on-release, and interruptible springs.
+**Everything else stays CSS.** `lucide-react`, `clsx` and `tailwind-merge` are not
+added: Vallo has `UiIcon` and a two-line `cn` helper. **This does not reopen GSAP**,
+which stays out of the bundle.
+
+**The glass navigation is for inner areas, not the main navigation.** The dock and side
+navigation are settled by D28. This is second-level navigation inside admin desks,
+workspaces, settings, the wallet, escrow, space detail, analytics and support, and the
+pull on the hamburger is the part worth keeping.
+
+**Drag-to-confirm is for genuinely irreversible actions only**: releasing escrow,
+confirming a withdrawal, sending a transfer, deleting an account, an admin ruling. **Its
+auto-reset is disabled on anything that moves money**, because a confirmed transfer must
+never return to looking unconfirmed.
+
+**The receipt printer keeps the paper and loses the chassis.** The extrusion, serrated
+edge, perforation and monospace ledger feel are right, because a receipt a guest can
+screenshot as proof is a real requirement. A simulated POS terminal with LEDs is a toy
+on a property platform. **No drawn barcode unless it encodes a real reference, and no
+invented transaction ids.**
+
+**Particle delete is never used on money**, a payout method, a transaction record or an
+account. A playful dissolve on a consequential deletion is the wrong emotional register.
+
+## D35. The craft doctrine governs taste
+
+**New, 6 October.** The founder supplied the premium-branding principles behind Apple's
+work and asked that the platform follow them. **`docs/design/CRAFT_DOCTRINE.md`
+translates them to a product**, where they get sharper rather than softer, because a
+product is used a thousand times where a video is watched once.
+
+The eight: intention behind every choice; rules kept deliberately so the product feels
+decided; **the negative discipline of not doing what makes it feel cheap**, which is
+actionable by subtraction and therefore free; one screen one idea with space to breathe;
+smoothness, **overlap**, and transitions that carry rather than cut; **adaptive rhythm**,
+so startup is slow, browsing is quick, money is deliberate and error is immediate;
+**haptics as the product's sound design**, since Vallo is used in public on mute; and
+design decided before the component is written.
+
+**Its section 8 is seven questions every surface answers before it is called done.**
+
+## D36. Session 3 may use six agents
+
+**New, 6 October.** The frontend and experience session may run **up to six agents**
+rather than four, because its scope is the largest: 200 pages, the motion system, the
+component library, the asset slicing and the per-page audit.
+
+**Ownership discipline tightens rather than loosens with six.** Every agent declares its
+files before any parallel work, two agents never hold one file, and the shared files in
+the cross-session contract keep their single named owner. **Six agents without declared
+ownership is slower than four, not faster**, because the time goes into reconciling
+conflicting edits.
+
+Sessions 2 and 4 stay at four.
+
+## D37. Clean work: CI, commits, and pushing to main
+
+**New, 6 October.** The founder's instruction: the work should be organised, audited,
+committed and pushed as it is done, cleanly, without sessions conflicting.
+
+- **Commit as you finish a unit**, not in one enormous commit at the end. A unit is a
+  thing that works and passes the checks.
+- **Green before every push, without exception**: `npm run typecheck`, `npm run lint`
+  and `npm test`. A push that reddens CI costs the other sessions their ability to
+  trust the branch.
+- **Scratch files, experiments and one-off scripts are never committed.** They live in
+  the scratchpad.
+- **Pull before you push.** Three sessions share this repository, and the cross-session
+  contract's file ownership is what keeps a merge trivial.
+- **A conflict means somebody crossed a boundary.** Resolve it by the contract, and
+  record it in your response file so it is not repeated.
+- **Commit messages say why**, not what. The diff already says what.
+- **Never force-push a shared branch.** Never rewrite history another session has
+  pulled.
+- **The working tree is clean when you finish.** Nothing half-applied, nothing
+  uncommitted, nothing left for the next session to discover.
+- **Keep CI green as a shared asset.** A session that finds CI red from another
+  session's push says so in its response file rather than working around it.
+
 ---
 
 ## What this file supersedes, explicitly

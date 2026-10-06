@@ -19,7 +19,13 @@ animation. **Audit every single page as part of the upgrade.**
    the noun.
 2. **`docs/design/VISUAL_NORTH_STAR_2026-10-05.md`**: in full. Your specification.
    The four locked decisions in its section 1 are not reopenable.
-3. **`docs/design/MOTION_SYSTEM.md`** in full. **Read its section 0 first**: the GSAP
+3. **`docs/design/CRAFT_DOCTRINE.md`** in full. It governs taste where the other
+   documents govern specification, and its section 8 is seven questions every surface
+   answers before it is called done.
+4. **`docs/design/COMPONENT_LIBRARY.md`** in full. The founder's component library,
+   where each piece goes, and the porting checklist that must pass before any of it
+   ships.
+5. **`docs/design/MOTION_SYSTEM.md`** in full. **Read its section 0 first**: the GSAP
    engine the motion designer's brief points at **does not exist in this repository**,
    and section 0 reconciles his brief with what is actually here so you do not spend an
    hour looking for it. Sections 3, 4 and 6 are the startup sequence, the deep Get
@@ -267,8 +273,15 @@ Never assume Session 2 did what it said. Check the code.
 
 ## 6. AGENT OWNERSHIP
 
-Four agents. **Declare ownership before parallel work. Two agents never hold the same
-stylesheet.**
+**Up to six agents** (D36), because this session's scope is the largest. **Ownership
+discipline tightens rather than loosens with six: declare every agent's files before any
+parallel work, and two agents never hold the same file or stylesheet.** Six agents
+without declared ownership is slower than four, because the time goes into reconciling
+conflicting edits.
+
+Suggested split beyond the four below: **B5** takes the component library port and
+`components/ui/`, **B6** takes asset slicing, the clay migration across the 64
+`BrandIcon` files, and the per-page audit sweep.
 
 | Agent | Owns |
 |---|---|
@@ -801,7 +814,10 @@ ranking formula.
     the specified ones, and verified under reduced motion and data saver on a real
     mid-range Android.
 31. No GSAP in the application bundle. No Three.js in the product.
-32. Typecheck and lint green. The glow count reduced and the lint ratcheted.
+32. The component library ported: every colour a token, every icon `UiIcon`, no
+    invented data, no spinner, framer-motion only via `LazyMotion`.
+33. The craft doctrine's seven questions answered for every flagship surface.
+34. Typecheck and lint green. The glow count reduced and the lint ratcheted.
 
 ## 12. YOUR RESPONSE FILE
 
