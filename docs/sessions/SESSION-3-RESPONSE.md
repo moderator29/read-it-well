@@ -5,9 +5,90 @@
 As of this edit: commits are pushed to `origin/claude/vallo-experience-upgrade` only
 once the clean-worktree gate (typecheck, lint, test) is green on the tip. PR #85 is
 open. `main` is at `d685f5e04`, which this branch contains; #86 (the db-06 row and
-the source-map-js pin) is not merged yet. Round 4 is first below, then Round 3.
+the source-map-js pin) is not merged yet. Round 5 is first below, then Rounds 4 and 3.
 
 This file is Session 3's only voice. It is written as work happens, not at the end.
+
+---
+
+## Round 5 (craft: six moments, and the quiet forty-four)
+
+The brief: a frontend that feels like a hundred-million-dollar platform, crafted rather
+than decorated, on mid-range Android over congested networks. Six moments carry the
+brand and get the craft budget; everywhere else restraint is the premium signal. Motion
+on transform and opacity only, CSS-driven, no new library, a real reduced-motion
+alternative, and every flourish's bytes counted. Not merged to main, by instruction.
+
+The 132 files in `docs/design/references/` (53 at the top, 79 in the dated folder; the
+brief said 136) and the nine recovered components were read for principles, and the
+platform was audited against them before anything was built.
+
+### The six moments
+
+| Moment | What changed | Commits |
+|---|---|---|
+| **First open** | The startup door runs on the stylesheet's clock, so a busy phone never opens it late (42 to 59ms late before); the mark rises out of the parting ground and lands on Get Started's own mark, so one mark is ever on screen. The native splash is bare navy on iOS and every Android, the same frame the web paints first (older Android stretched the splash tile about 33%). Throttled median to a usable Get Started: 4,266 to 4,000ms web, 4,140 to 3,976ms native. D31 holds: the sequence always completes. | `c5190b52c`, `7fcee23f6`, `2b3518cc7` |
+| **A listing opens** | The card sinks on touch, its photo flies into the hero on one transform, the title settles once, Back folds the hero into the card. Measured in a production build, every join was broken before. The hero is out of the route stagger: LCP median 656 to 240ms (with the splash 1.7s to under 0.31s). | `6191f2337`, `d73b66e0b`, `746d1a8ab` |
+| **Money committed** | One dialog from the tapped Pay to the receipt, where a card payment used up to five containers; one medium haptic when the server accepts (it used to buzz a warning at commit), steps tick only when complete, the paid face reachable only from a confirmed status, failure a 160ms cut with Try again focused. The amount never counts. | `289be69f4`, `19e002e8f`, `e007f4ae4` |
+| **Something verified** | The approved plate becomes verified in place, decided by the server and played once per device and level (a sheet used to cover it); earned marks never animate on a page view; phone confirmation turns in the same panel. | `30b81e003`, `f1b7911de`, `f35a6669b` |
+| **A search finds the place** | Cards that stayed slide, new ones rise, the count rolls only when the server answers; the chosen pin and its card read as one object; an empty result names the one change that brings places back; the page holds still while typing. | `b602819f6`, `97c78b664`, `af6487acd`, `449a47dc2`, `7c3c69f4d` |
+| **A lister publishes** | Steps change at browsing pace; Send keeps the card on screen as it goes to review, honest about what happens next; the payoff plays once when the server says live. | `3f067c9ab`, `4c0d52b72`, `140a1618e` |
+
+### The system, and the quiet forty-four
+
+- **One light** (`391c94055`): one elevation scale, one shadow ink per theme; Paper had
+  about ten inks across two scales. **Radii that agree** (`10c6f8643`, `d6c2e22e0`): one
+  scale and the nested rule as a token. **Easing on the ladder** (`48436f7e9`,
+  `a721740ef`): no browser-default or hand-written curves; Tailwind's own utilities now
+  resolve to Vallo's tokens. **No layout animation on frequent paths** (`86bad6c45`): the
+  dock re-laid out on every tab tap; now transform only. Each has a guard test.
+- **Reduced motion is a real alternative** (`4b024ec5b`, `6b4fd7c31`): the global floor
+  had made ten intended reduced-motion fades instant; components now opt in with one
+  registered property.
+- **Type that settles** (`79c3ebdcd`, `218200dc1`): Android had no fallback face, so a
+  paragraph set 6 lines then 7; metric-matched fallbacks bring layout shift on the
+  listing fixture from 0.054 to 0.0007, and the naira sign never draws in a fallback.
+- **Waits shaped like their screens** on five money routes, and a compositor-only
+  shimmer (`1cea5d775`). **Failure screens** that say what happened, what is safe and
+  what to do next, never "Something went wrong" (`4a854fe2e`). **Tab change** on its
+  specified 240ms (`2367fe61b`).
+- **Haptics** audited against the grammar (`fcde91969`): an unlock was heavy three
+  times a day, pull to refresh and a list row vibrated, and a background delivery
+  buzzed; all fixed, with a census test.
+- **Share cards for WhatsApp** (`4409a92f8`, `487b9fca8`): centred on the thumbnail's
+  square, Vallo's type, JPEG under 100 KB (a listing card was 477 KB); every public page
+  now unfurls with a picture and its own words.
+- **Weight** (`58962be03`): member-only CSS leaves the signed-out routes, about 19 KB of
+  stylesheet off each; a TTI check on a throttled mid-range Android profile
+  (`a0c72319c`). D49 confirmed: no LazyMotion or feature bundle ships anywhere.
+
+### For the founder
+
+- **Short prices round down.** The glance format truncates on purpose (UI-13, so
+  ₦999,999 never reads "₦1m"), which makes a ₦3,250,000 move-in cost read "₦3.2m",
+  ₦50,000 under. It is the shared formatter for every short price; your call whether
+  costs should round up or show another digit.
+- **Front door TTI is set by prefetching, not CSS.** On a throttled Android profile `/`
+  is bimodal, about 5s or 12 to 15s, because links prefetch `/sign-up` and compile late.
+  Turning that prefetch off is a product decision.
+- **No haptics setting.** Reduced motion, Calm and Off reduce haptics to success and
+  error, but there is no on/off switch; recommended as a settings row.
+- **Pro unlock and the invite ticket's first reveal** keep a heavy haptic as payoffs;
+  confirm.
+- **Translators:** the failure screens' two new lines need ha, yo and ig.
+- **Not checked on devices:** the native splash hand-off, real keyboards, haptics, and
+  real WhatsApp (simulated crop and compression).
+
+### Left open
+
+- The ID-check "Identity matched" sheet, the bank's 3-D Secure sheet and the rent pay
+  panel are still sheets over the page; the shared review track still animates done
+  nodes on every view (a still state needs a small client island across ten callers).
+- Map pins move by left and top on every frame of a pan.
+- `animate()` from framer-motion still loads a 21 KB gz runtime on 129 signed-in routes.
+- `/settings` scrolls sideways at 390 (512 to 531px wide), before this round.
+- A listing's own Open Graph image on `/listing/<id>` still uses the raw first photo
+  when the public catalogue is on.
 
 ---
 
