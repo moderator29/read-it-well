@@ -288,6 +288,9 @@ const FLOWS: readonly string[] = [
   "/host/apply",
   "/host/start",
   "/host/transfer",
+  /* A feature's first run: seen once, left by replacing itself, and never
+     returned to through history (north star 14.1). */
+  "/first-run/[feature]",
 ];
 
 /** A redirect's receipt (`?done=<flag>`). Never returned to, not even as the parent. */

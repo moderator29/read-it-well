@@ -20,6 +20,7 @@ import { readHostTableBoard } from "./reservations/board";
 import { HostTodayView } from "./HostTodayView";
 import { HOST_STATUS_WORD, hostToday, type HostToday } from "./today";
 import { IconPlate } from "@/components/ui/IconPlate";
+import { gateFirstRun } from "@/components/app/feature-onboarding/first-run-store";
 
 export const metadata: Metadata = {
   title: "Host",
@@ -56,7 +57,11 @@ const NO_REASON_ON_FILE = "No reason was written on the business. Contact us and
  * verification ladder's meaning is written on the row rather than as a
  * tick, per the research (section 3.6): a tier is rungs passed with no gap.
  */
-export default async function HostPage() {
+export default async function HostPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const locale = await getLocale();
   const t = getDictionary(locale);
   const session = await resolveSession();
@@ -78,6 +83,12 @@ export default async function HostPage() {
       </HostShell>
     );
   }
+
+  /* THE DESK'S FIRST RUN (north star 14.1, D11): once, before anything is
+     read, so a first-time host meets what the figure at the top means. At
+     most once per device until Session 2's record lands (W7-R1), never a
+     block: the gate fails towards drawing the desk. */
+  await gateFirstRun("host", "/host", await searchParams);
 
   /* The workspace home's figures (plan item 14): the host's own rows, read
      together. A read that fails comes back as null and its tile is left out. */

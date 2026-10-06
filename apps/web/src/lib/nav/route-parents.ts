@@ -468,6 +468,26 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/host/settings": "/host",
   "/host/notifications": "/host",
 
+  /* ------------------------------------------- a feature's first run (D11)
+   *
+   * `/first-run/[feature]` stands IN FRONT of a feature rather than inside
+   * it (north star 14.1: a route, never a modal, so back behaves and a deep
+   * link reaches it). So each one's way up is the feature's own way up, not
+   * the feature: back from a first run the member did not want returns to
+   * where the feature sits, never into the feature they declined to start.
+   * Seven literals rather than one pattern, because the parent differs per
+   * feature (`LITERAL_EXPANSIONS` below). Its exits replace the page
+   * (`FirstRunPanels`), and `resolve.ts` lists it as a flow, so it is never
+   * returned to through history once seen.
+   */
+  "/first-run/host": "/stays",
+  "/first-run/agent": "/home",
+  "/first-run/verification": "/agent/dashboard",
+  "/first-run/agreements": "/home",
+  "/first-run/invite": "/settings",
+  "/first-run/passport": "/settings",
+  "/first-run/analytics": "/agent/dashboard",
+
   /* ------------------------------------------------- the design harnesses
    *
    * `/preview` and `/gallery` are development surfaces, not product. They are
@@ -529,6 +549,17 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
  * parent fails.
  */
 export const LITERAL_EXPANSIONS: Readonly<Record<string, readonly string[]>> = {
+  /* `components/app/feature-onboarding/first-runs.ts` MOUNTED_FIRST_RUNS:
+     the page 404s on any other key. */
+  "/first-run/[feature]": [
+    "/first-run/host",
+    "/first-run/agent",
+    "/first-run/verification",
+    "/first-run/agreements",
+    "/first-run/invite",
+    "/first-run/passport",
+    "/first-run/analytics",
+  ],
   "/messages/share/[kind]/[id]": [
     "/messages/share/into/[id]",
     "/messages/share/listing/[id]",
@@ -569,6 +600,7 @@ export const NON_NAVIGABLE: Readonly<Record<string, string>> = {
   "/api/passcode/touch": "POST only, the passcode unlock's heartbeat (docs/PASSCODE.md).",
   "/api/vitals": "the browser's field speed beacon (V-80).",
   "/gallery/ported": "a development harness for the ported component library (Session 3, D34), behind the preview flag like /gallery; not product, so it has no place in the hierarchy.",
+  "/gallery/features": "a development harness for W7's components and first runs (Session 3), behind the preview flag like /gallery/ported; not product.",
   "/api/cron/account-purge": "scheduled job, bearer token.",
   "/api/cron/canary": "scheduled job, bearer token.",
   "/api/cron/calendar-sync": "scheduled job, bearer token (C2, behind CALENDAR_SYNC_ENABLED).",

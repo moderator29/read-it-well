@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
+import { gateFirstRun } from "@/components/app/feature-onboarding/first-run-store";
 import { AgentShell } from "@/components/agent/AgentShell";
 import {
   agentProfileFrom,
@@ -53,13 +54,21 @@ function requestTime(): number {
   return Date.now();
 }
 
-export default async function AgentDashboardPage() {
+export default async function AgentDashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const locale = await getLocale();
   const t = getDictionary(locale);
   const a = t.agent.dashboard;
 
   const context = await getAgentContext();
   if (context.state === "agent") {
+    /* The workspace's first run (north star 14.1, D11): once, for an agent,
+       before anything is read. Fails towards drawing the workspace. */
+    await gateFirstRun("agent", "/agent/dashboard", await searchParams);
+
     /* Two independent reads, so they cost one round trip rather than two.
        On the connections this product is built for that is the difference
        between a dashboard and a wait. */

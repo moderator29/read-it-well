@@ -6,6 +6,7 @@ import { readDeskStages, readLostReasonsByArea } from "@/lib/enquiry/queries";
 import { countByStage } from "@/lib/enquiry/stage";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
+import { gateFirstRun } from "@/components/app/feature-onboarding/first-run-store";
 import { AgentShell } from "@/components/agent/AgentShell";
 import { agentProfileFrom, getAgentContext } from "@/lib/agent/listings-queries";
 import { readAgentAnalytics } from "@/lib/agent/analytics-queries";
@@ -39,7 +40,11 @@ export async function generateMetadata(): Promise<Metadata> {
  * workspace stays a server component with no client JavaScript to ship, and
  * there is no revalidation path to think about.
  */
-export default async function Page() {
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const locale = await getLocale();
   const t = getDictionary(locale);
   const context = await getAgentContext();
@@ -70,6 +75,10 @@ export default async function Page() {
       </AgentShell>
     );
   }
+
+  /* The analytics first run (north star 14.1): what these figures count and
+     what they leave out, once, before the first read. */
+  await gateFirstRun("analytics", "/agent/analytics", await searchParams);
 
   /*
    * A throw here would take the whole screen down, and every individual read
