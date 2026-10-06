@@ -230,7 +230,7 @@
       );
   }
 
-  /* THE PICTURES (`step-photos.ts`): the founder's scene for the step, one
+  /* THE PICTURES (the old step art, unused since 6 October; see the tour in onboarding-motion.css): the founder's scene for the step, one
      per theme, filling the art. It is a little wider than the screen so the
      gentle parallax (12vw a step, a hair of scale as it leaves) never shows
      its edge; the art's own fade, the blur of its foot and the haze above
@@ -743,7 +743,7 @@
      face, so the streak stays on the rim as it turns; the two outermost
      discs carry the lips. */
   .nf-gs-coin__edge {
-    transform: translateZ(calc(var(--nf-gs-layer) * 1px));
+    transform: translateZ(calc(var(--nf-gs-layer, 0) * 1px));
     --nf-gs-rim: color-mix(in srgb, color-mix(in srgb, var(--nf-brand-primary) 78%, var(--nf-state-warning)) 88%, var(--nf-content-on-brand));
     --nf-gs-rim-deep: color-mix(in srgb, var(--nf-brand-primary) 94%, var(--nf-state-warning));
     background: conic-gradient(
@@ -842,52 +842,47 @@
     padding: calc(env(safe-area-inset-top, 0px) + var(--nf-space-lg)) max(1.25rem, env(safe-area-inset-right, 0px))
       max(var(--nf-space-xl), env(safe-area-inset-bottom, 0px)) max(1.25rem, env(safe-area-inset-left, 0px));
   }
+  /* One soft wash of the brand's blue behind the object: the only gradient on
+     the page, and it never moves. */
   .nf-gs-question__sky {
     position: absolute;
     top: 0;
     left: 50%;
     z-index: -1;
     width: 100vw;
-    height: 17rem;
+    height: 22rem;
     translate: -50% 0;
-    overflow: hidden;
     pointer-events: none;
-    background:
-      radial-gradient(60% 70% at 70% 0%, color-mix(in oklab, var(--nf-brand-primary) 55%, transparent), transparent 70%),
-      linear-gradient(
-        180deg,
-        color-mix(in oklab, color-mix(in oklab, var(--nf-brand-primary) 55%, var(--nf-brand-primary-strong)) 42%, var(--nf-surface-canvas)) 0%,
-        var(--nf-surface-canvas) 100%
-      );
-    mask-image: linear-gradient(180deg, black 30%, transparent 100%);
-    -webkit-mask-image: linear-gradient(180deg, black 30%, transparent 100%);
-  }
-  .nf-gs-orb {
-    position: absolute;
-    border-radius: var(--nf-radius-circle);
     background: radial-gradient(
-      circle at 34% 30%,
-      color-mix(in oklab, var(--nf-content-on-brand) 70%, transparent) 0%,
-      color-mix(in oklab, var(--nf-brand-primary) 60%, transparent) 38%,
-      transparent 72%
+      60% 60% at 50% 30%,
+      color-mix(in oklab, var(--nf-brand-primary) 22%, transparent),
+      transparent 74%
     );
-    animation: nf-gs-bob 7s var(--nf-ease-standard) infinite alternate;
   }
-  .nf-gs-orb--a {
-    top: 0.5rem;
-    left: 4%;
-    width: 3.5rem;
-    height: 3.5rem;
-    opacity: 0.75;
+  .nf-gs-qlockup {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--nf-space-xs);
+    color: var(--nf-content-primary);
   }
-  .nf-gs-orb--b {
-    top: 1.25rem;
-    right: 6%;
-    width: 2.25rem;
-    height: 2.25rem;
-    opacity: 0.75;
-    animation-duration: 5.4s;
-    animation-delay: -2s;
+  .nf-gs-question__object {
+    display: block;
+    width: 7rem;
+    margin: 0 auto var(--nf-space-sm);
+    animation: nf-gs-rise var(--nf-duration-entrance) var(--nf-ease-entrance) both;
+  }
+  .nf-gs-question__objectimg {
+    display: block;
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 12px 14px color-mix(in oklab, var(--nf-surface-artwork) 60%, transparent));
+  }
+  .nf-interest__object {
+    display: block;
+    width: 3rem;
+    height: 3rem;
+    object-fit: contain;
   }
   .nf-gs-col--question > .nf-gs-lockup {
     position: static;
@@ -906,7 +901,8 @@
     display: none;
   }
   .nf-gs-question {
-    margin-top: var(--nf-space-2xl);
+    margin-top: var(--nf-space-lg);
+    text-align: center;
   }
   .nf-gs-title--question {
     font-size: clamp(1.75rem, 7vw, 2.5rem);
