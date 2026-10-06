@@ -1225,13 +1225,14 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: 1.25rem;
-    /* Cancels the shell's padding so the picture reaches both edges. */
-    margin-inline: -1.25rem;
+    /* Cancels the shell's padding so the picture reaches both edges: exactly
+       the gutter token, which steps 16, 24 and 32. It cancelled 20 and then 32,
+       so a phone scrolled sideways by 4px and a tablet by 8 (Round 3 sweep). */
+    margin-inline: calc(var(--nf-pad-shell) * -1);
     margin-block-start: calc(-2rem - var(--nf-social-bar));
   }
   @media (min-width: 768px) {
     .nf-story {
-      margin-inline: -2rem;
       margin-block-start: calc(-2.5rem - var(--nf-social-bar));
     }
   }
@@ -1246,6 +1247,10 @@
   .nf-story__stage {
     position: relative;
     isolation: isolate;
+    /* The ground under the picture, ink in both themes like the wash. Until
+       the photograph arrives (or if it never does on a slow network) the
+       white words floated over paper: axe measured 1.08:1 in light. */
+    background-color: var(--nf-overlay-media-deep);
     min-block-size: 100dvh;
     display: flex;
     flex-direction: column;

@@ -270,7 +270,7 @@ export function StoryViewer({
 
           <Link
             href={story.author.handle ? `/u/${story.author.handle}` : "#"}
-            className="nf-story__author"
+            className="nf-story__author nf-tap"
             aria-label={`Open ${who}`}
           >
             <span className="nf-story__face">
@@ -464,7 +464,7 @@ export function StoryViewer({
                   <Link
                     key={face.userId}
                     href={face.handle ? `/u/${face.handle}` : "#"}
-                    className="nf-story__pileface"
+                    className="nf-story__pileface nf-tap"
                     aria-label={face.label}
                     title={face.label}
                   >
