@@ -15,6 +15,11 @@ import { useDeviceIdentity } from "./device-identity";
 import { AiConsentSheet } from "@/components/app/ai/AiConsentSheet";
 import { AI_CONSENT_REQUIRED_CODE } from "@/lib/ai/consent";
 import { IconPlate } from "@/components/ui/IconPlate";
+import { AIResponse, type AIResponseStatus } from "@/components/ui/AIResponse";
+import { useInboxCopy } from "@/components/app/threads/use-inbox-copy";
+/* The answer card's fit (the words keep the line breaks, the stopped note, the
+   thinking orb) is the assistant's; support's answers are the same card. */
+import "@/components/app/assistant/assistant-answer.css";
 
 /**
  * Help and support, AI first.
@@ -53,6 +58,8 @@ type Message = {
   /** The question an escalation from this bubble files as the ticket body. */
   question?: string;
   error?: boolean;
+  /** The person pressed Stop: what arrived is kept and the card says so. */
+  stopped?: boolean;
 };
 
 const THREAD_KEY = "nf_support_thread";
@@ -189,6 +196,10 @@ export function SupportChat({
    * `./device-identity`.
    */
   const { identity } = useDeviceIdentity();
+  /* The answer card's words are the assistant's (experienceInbox.assistant):
+     one voice for "thinking", "stop", "copy" and what each state announces. */
+  const answerWords = useInboxCopy().assistant;
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -389,7 +400,12 @@ export function SupportChat({
             : { ...m, text: ESCALATION_TEXT, escalating: true, question: text },
         );
       } catch {
-        if (controller.signal.aborted) return;
+        if (controller.signal.aborted) {
+          /* Stop keeps what arrived. With nothing yet there is no card to
+             keep, and the thinking card simply goes. */
+          patch(replyId, (m) => ({ ...m, stopped: true }));
+          return;
+        }
         patch(replyId, (m) => ({ ...m, text: NETWORK_ERROR_MESSAGE, error: true }));
       } finally {
         setStreaming(false);
@@ -439,7 +455,46 @@ export function SupportChat({
     }
   };
 
+  /** What an answer earned or filed, drawn under it: places to go, the receipt, the escalation. */
+  const extras = (m: Message) => (
+    <>
+      {m.actions && m.actions.length > 0 && (
+        <div className="mt-row flex flex-wrap gap-xs">
+          {m.actions.map((action) => (
+            <Link
+              key={action.kind}
+              href={action.href}
+              /* 12px was a step BELOW the chip's own caption
+                 size, on the one element in a reply that is a
+                 place to go. The class already sets it. */
+              className="nf-chip max-w-full cursor-pointer font-semibold"
+            >
+              <UiIcon name={ACTION_GLYPH[action.kind]} size={12} />
+              <span className="min-w-0 break-words">{action.label}</span>
+            </Link>
+          ))}
+        </div>
+      )}
+
+      {m.reference ? (
+        <TicketReceipt reference={m.reference} ticketId={m.ticketId} />
+      ) : (
+        m.escalating && (
+          <EscalationCard
+            defaultName={identity.name}
+            defaultEmail={identity.email}
+            signedIn={signedIn}
+            question={m.question ?? m.text}
+            summary={transcriptSummary(messages)}
+            onFiled={(reference, ticketId) => markFiled(m.id, reference, ticketId)}
+          />
+        )
+      )}
+    </>
+  );
+
   const empty = hydrated && messages.length === 0;
+  const lastId = messages[messages.length - 1]?.id;
   const awaitingFirstToken =
     streaming && messages[messages.length - 1]?.text.trim().length === 0;
 
@@ -491,7 +546,9 @@ export function SupportChat({
             <div
               ref={scrollerRef}
               className={embedded ? "min-h-52 space-y-group pb-group" : "max-h-96 min-h-52 space-y-group overflow-y-auto p-card-sm"}
-              aria-live="polite"
+              /* Not live while an answer streams: reading every token aloud
+                 makes it unusable. The answer card announces its own state. */
+              aria-live={streaming ? "off" : "polite"}
               aria-label="Support conversation"
             >
               <AgentBubble text={GREETING} />
@@ -525,63 +582,71 @@ export function SupportChat({
                       {m.text}
                     </p>
                   </div>
-                ) : m.text.trim() || m.escalating || m.reference ? (
-                  <AgentBubble key={m.id} text={m.text} error={m.error}>
-                    {m.actions && m.actions.length > 0 && (
-                      <div className="mt-row flex flex-wrap gap-xs">
-                        {m.actions.map((action) => (
-                          <Link
-                            key={action.kind}
-                            href={action.href}
-                            /* 12px was a step BELOW the chip's own caption
-                               size, on the one element in a reply that is a
-                               place to go. The class already sets it. */
-                            className="nf-chip max-w-full cursor-pointer font-semibold"
-                          >
-                            <UiIcon name={ACTION_GLYPH[action.kind]} size={12} />
-                            <span className="min-w-0 break-words">{action.label}</span>
-                          </Link>
-                        ))}
-                      </div>
-                    )}
-
-                    {m.reference ? (
-                      <TicketReceipt reference={m.reference} ticketId={m.ticketId} />
-                    ) : (
-                      m.escalating && (
-                        <EscalationCard
-                          defaultName={identity.name}
-                          defaultEmail={identity.email}
-                          signedIn={signedIn}
-                          question={m.question ?? m.text}
-                          summary={transcriptSummary(messages)}
-                          onFiled={(reference, ticketId) => markFiled(m.id, reference, ticketId)}
-                        />
-                      )
-                    )}
+                ) : m.text.trim() ? (
+                  /* An answer is drawn by the shared answer card, with the
+                     places it earned and any receipt or escalation under it. */
+                  <div key={m.id} className="nf-rise space-y-row">
+                    <AIResponse
+                      className="nf-ai-answer"
+                      status={answerStatus(m, streaming && m.id === lastId)}
+                      label={answerWords.answerLabel}
+                      thinkingLabel={answerWords.thinking}
+                      statusLabels={{
+                        done: answerWords.statusDone,
+                        stopped: answerWords.statusStopped,
+                        error: answerWords.statusError,
+                      }}
+                      stopLabel={answerWords.stop}
+                      onStop={() => abortRef.current?.abort()}
+                      {...(m.error ? { errorMessage: m.text } : {})}
+                      actions={[
+                        {
+                          id: "copy",
+                          label: copiedId === m.id ? answerWords.copied : answerWords.copy,
+                          icon: copiedId === m.id ? "check" : "clipboard-list",
+                          onSelect: () => {
+                            void navigator.clipboard
+                              ?.writeText(m.text)
+                              .then(() => {
+                                setCopiedId(m.id);
+                                window.setTimeout(() => setCopiedId((id) => (id === m.id ? null : id)), 1600);
+                              })
+                              .catch(() => undefined);
+                          },
+                        },
+                      ]}
+                      data-testid="support-reply"
+                    >
+                      {m.error ? null : m.text}
+                      {m.stopped ? <span className="nf-ai-answer__stopped">{answerWords.stoppedNote}</span> : null}
+                    </AIResponse>
+                    {extras(m)}
+                  </div>
+                ) : m.escalating || m.reference ? (
+                  <AgentBubble key={m.id} text="" error={m.error}>
+                    {extras(m)}
                   </AgentBubble>
                 ) : null,
               )}
 
               {awaitingFirstToken && (
-                <div className="nf-rise flex items-end gap-row">
-                  <IconPlate size="sm" className="shrink-0">
-                    <UiIcon name="bot" size={20} />
-                  </IconPlate>
-                  <div
-                    className="rounded-2xl rounded-bl-md border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-inset)] px-sm py-row"
-                    aria-label="Support is typing"
-                  >
-                    <span className="flex items-center gap-inline-tight" aria-hidden="true">
-                      {[0, 1, 2].map((i) => (
-                        <span
-                          key={i}
-                          className="h-1.5 w-1.5 rounded-full bg-[var(--nf-content-muted)] motion-safe:animate-bounce"
-                          style={{ animationDelay: `${i * 140}ms` }}
-                        />
-                      ))}
-                    </span>
-                  </div>
+                /* THE ONE PERMITTED LOOP: three shaped lines breathing, until
+                   the first words arrive. Never a spinner, never bouncing dots. */
+                <div className="nf-rise">
+                  <AIResponse
+                    className="nf-ai-answer"
+                    status="thinking"
+                    label={answerWords.answerLabel}
+                    thinkingLabel={answerWords.thinking}
+                    statusLabels={{
+                      done: answerWords.statusDone,
+                      stopped: answerWords.statusStopped,
+                      error: answerWords.statusError,
+                    }}
+                    stopLabel={answerWords.stop}
+                    onStop={() => abortRef.current?.abort()}
+                    data-testid="support-thinking"
+                  />
                 </div>
               )}
             </div>
@@ -673,6 +738,17 @@ export function SupportChat({
       </div>
     </section>
   );
+}
+
+/**
+ * The answer card's state is a fact about the turn, never a guess: streaming
+ * while this reply's stream is open, error when the turn failed, stopped when
+ * the person cut it, done otherwise.
+ */
+function answerStatus(m: Message, streamingHere: boolean): AIResponseStatus {
+  if (m.error) return "error";
+  if (streamingHere) return "streaming";
+  return m.stopped ? "stopped" : "done";
 }
 
 /** Navigation glyphs for the quick actions; content icons never go here. */
