@@ -34,7 +34,7 @@ export default async function FrontDoorDeskPage() {
             The funnel is not recorded yet. It starts when the pending migration for the front door funnel is applied.
           </p>
         ) : (
-          <div className="nf-admin-dt-wrap">
+          <div className="nf-admin-dt-wrap" tabIndex={0} role="region" aria-label="The funnel">
             <table className="nf-admin-dt">
               <thead>
                 <tr>

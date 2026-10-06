@@ -262,8 +262,8 @@ function JobsPanel({ jobs, database, locale, now }: OperationsProps) {
           <PanelUnavailable what={tx(locale, "opsTheScheduledJobRuns")} locale={locale} />
         </div>
       ) : (
-        <div className="nf-admin-dt-wrap">
-          <table className="nf-admin-dt">
+        <div className="nf-admin-dt-wrap" tabIndex={0} role="region" aria-label="Scheduled jobs">
+          <table className="nf-admin-dt nf-admin-dt--stack">
             <caption className="sr-only">Scheduled jobs, their schedule in Lagos time, last run, duration and status</caption>
             <thead>
               <tr>
@@ -283,8 +283,8 @@ function JobsPanel({ jobs, database, locale, now }: OperationsProps) {
                       {jobTitle(job.name)}
                       <span className="nf-admin-dt__sub">Vercel Cron · {job.cron}</span>
                     </th>
-                    <td>{job.schedule}</td>
-                    <td className="nf-numeric">
+                    <td data-label={c.schedule}>{job.schedule}</td>
+                    <td className="nf-numeric" data-label={c.lastRun}>
                       {stamp(job.lastRunAt, locale)}
                       {job.lastRunAt && (
                         <span className="nf-admin-dt__sub">
@@ -292,8 +292,8 @@ function JobsPanel({ jobs, database, locale, now }: OperationsProps) {
                         </span>
                       )}
                     </td>
-                    <td className="nf-numeric">{durationLabel(job.lastDurationMs)}</td>
-                    <td>
+                    <td className="nf-numeric" data-label={c.duration}>{durationLabel(job.lastDurationMs)}</td>
+                    <td data-label={c.status}>
                       <Badge tone={status.tone} solid={status.word === "Failed"}>
                         {word[status.word] ?? status.word}
                       </Badge>
@@ -306,12 +306,12 @@ function JobsPanel({ jobs, database, locale, now }: OperationsProps) {
                   {c.databaseJobs}
                   <span className="nf-admin-dt__sub">pg_cron, {PG_CRON_JOBS.length} scheduled in the database</span>
                 </th>
-                <td colSpan={3} className="nf-admin-dt__muted">
+                <td colSpan={3} className="nf-admin-dt__muted" data-label={c.lastRun}>
                   {database
                     ? `Watched ${stamp(database.checkedAt, locale)}: ${database.failures} failed in the last day${database.recovered > 0 ? ` (${database.recovered} recovered since)` : ""}, ${database.neverRan} not yet run, ${database.stale} overdue. One row per job needs Request A5.`
                     : "The watch job has not reported yet. One row per job needs Request A5."}
                 </td>
-                <td>
+                <td data-label={c.status}>
                   {database ? (
                     database.failures - database.recovered > 0 || database.stale > 0 ? (
                       <Badge tone="error">{c.attention}</Badge>
@@ -414,7 +414,7 @@ function NotificationsPanel({ activity, locale }: { activity: NotificationActivi
       ) : activity.total === 0 ? (
         <CalmNote title={tx(locale, "opsNoNotificationsSentInThis")} fills={tx(locale, "opsEachNotificationThePlatformSends")} />
       ) : (
-        <div className="nf-admin-dt-wrap">
+        <div className="nf-admin-dt-wrap" tabIndex={0} role="region" aria-label="Notifications sent">
           <table className="nf-admin-dt">
             <thead>
               <tr>

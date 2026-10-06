@@ -1469,7 +1469,8 @@
     border-radius: var(--nf-radius-xs);
     border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-admin-badge-hue) 65%, var(--nf-surface-canvas));
     background: color-mix(in oklab, var(--nf-admin-badge-hue) 40%, var(--nf-surface-canvas));
-    box-shadow: 0 0 6px -1px color-mix(in oklab, var(--nf-admin-badge-hue) 35%, transparent);
+    /* One edge: the ring. The 6px glow under it was a second edge on every
+       status badge in the console (north star 4, the hairline rule; C1 sweep). */
     color: var(--nf-admin-badge-ink, color-mix(in oklab, var(--nf-admin-badge-hue) 70%, white));
     font-size: var(--nf-text-overline);
     font-weight: 600;
@@ -1495,6 +1496,12 @@
     color: var(--nf-content-on-brand);
     background: color-mix(in oklab, var(--nf-state-error) 58%, var(--nf-surface-canvas));
     border-color: var(--nf-state-error);
+  }
+  /* On paper the 58% mix with the light canvas is a pale rose under white
+     words: 2.67 to 1 (axe colour-contrast on the operations desk, C1 sweep).
+     Paper's error ink is already the deep rose, so it fills at full strength. */
+  :root[data-theme="light"] .nf-admin-badge--solid.nf-admin-badge--error {
+    background: var(--nf-state-error);
   }
 
   /* The strip: four figures in one lit pane, 88px tall (measured 88), split
@@ -1730,9 +1737,16 @@
 
   /* The data table: a real table, a quiet header row, brand-tinted
      hairlines, 13.5px cells, 44px rows (measured 31 at the panel's scale). */
+  /* A table that scrolls sideways inside its panel is a focusable region, so
+     a keyboard can scroll it (axe scrollable-region-focusable, C1 sweep), and
+     it shows where focus is. */
   .nf-admin-dt-wrap {
     overflow-x: auto;
     scrollbar-width: thin;
+  }
+  .nf-admin-dt-wrap:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
   }
   .nf-admin-dt {
     width: 100%;
@@ -1766,6 +1780,59 @@
   .nf-admin-dt tr:last-child td,
   .nf-admin-dt tr:last-child th {
     border-bottom: 0;
+  }
+
+  /*
+    ON A PHONE A STACKING TABLE BECOMES SELF-NAMING ROWS (north star 8: "do
+    not simply shrink desktop tables onto a phone"). The jobs table squeezed
+    five columns into 358px, broke every cell a word a line and put the status
+    past the edge (C1 sweep, 390). Below 768 each row is a block: the row's
+    name first, then one line per cell with its column's name from data-label,
+    the way the money desk's tables already do.
+  */
+  @media (max-width: 767px) {
+    .nf-admin-dt--stack thead {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+    .nf-admin-dt--stack,
+    .nf-admin-dt--stack tbody,
+    .nf-admin-dt--stack tr,
+    .nf-admin-dt--stack th,
+    .nf-admin-dt--stack td {
+      display: block;
+    }
+    .nf-admin-dt--stack tr {
+      padding: var(--nf-space-xs) 0;
+      border-bottom: var(--nf-border-width) solid var(--nf-panel-hair);
+    }
+    .nf-admin-dt--stack tr:last-child {
+      border-bottom: 0;
+    }
+    .nf-admin-dt--stack th,
+    .nf-admin-dt--stack td {
+      border-bottom: 0;
+      padding-block: var(--nf-space-3xs);
+    }
+    .nf-admin-dt--stack td[data-label] {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: var(--nf-space-sm);
+      min-height: 0;
+      text-align: right;
+    }
+    .nf-admin-dt--stack td[data-label]::before {
+      content: attr(data-label);
+      flex-shrink: 0;
+      text-align: left;
+      font-size: var(--nf-text-caption);
+      color: var(--nf-content-secondary);
+    }
   }
   .nf-admin-dt__num {
     text-align: right;
