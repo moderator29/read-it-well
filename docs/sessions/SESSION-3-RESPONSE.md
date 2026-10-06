@@ -2,6 +2,12 @@
 
 **Branch:** `claude/vallo-experience-upgrade`, cut from `main` at `ef1265135`.
 **Started:** 6 October 2026. **Status:** in progress, kept current as work lands.
+As of this edit: `origin/claude/vallo-experience-upgrade` is at `da99eebd1`, which
+was pushed with two failing tests (`env-documented`, fixed in `dd2694c02`), and this
+branch is 35 commits ahead of it, unpushed. The draft PR #85 is open. `main` is at
+`d685f5e04`, which this branch contains. Session 2's branch is not merged. The
+independent audits, the W12 sweep and R2's work are still running, and the gate's
+result for the commits since `da99eebd1` is not asserted here.
 
 This file is Session 3's only voice. It is written as work happens, not at the end.
 
@@ -368,13 +374,13 @@ content only. **Verdict: HOLD, on one blocker, now fixed.**
 - Verified starting state; ownership declared before parallel work.
 - Session 1's branch merged (D39.6); framer-motion 12.43.0 installed alone; one
   LazyMotion provider with features loaded after first paint, an eslint guard and a
-  test (`0eb727889`, `00790354d`).
+  test (`bfab37d1c`, `5ab80babf`).
 - Foundations: figures that count once and roll only what changed, buttons that
   morph, a toast, `StatusChip`, one edge per container tier (`bfdb252c1`,
   `62b12d914`); the dock and rail kept and upgraded (`2e3d7eee7`); no looping
   spinner left on any control (`c40c975e4`, `02f287a7c`).
-- Components: the ten founder components ported and tested at four widths in both
-  themes (`002e7557b`); a gallery of every primitive family (`8e37d88a0`).
+- Components: the ten founder components ported (`00790354d`, `0eb727889`) and
+  tested at four widths in both themes (`002e7557b`); a gallery of every primitive family (`8e37d88a0`).
 - Assets: 93 accepted objects, the clay migration through one map (64 call sites), a
   vector mark and wordmark (`b5df870cb`, `bcc867aad`, `0304c710c`).
 - Entry: Get Started, the passcode, the 1.5-second startup, the auth screens, the
@@ -404,7 +410,7 @@ content only. **Verdict: HOLD, on one blocker, now fixed.**
   dictionary in a client module (`fe443bf41`).
 - Six auditors' ranges (A2 to A7) and the pre-push audit; every blocker found was
   fixed.
-- Landed since `937e9a788`, the last pushed head:
+- Landed since `937e9a788`, an earlier pushed head:
   - The host home's sections are h2 under its h1; `ListGroup` can label at either
     level (`ac04868e8`).
   - `/host` starts its five reads in one wave again; the first run is still decided
@@ -551,8 +557,9 @@ reader should know that the log does not say at a glance:
   code, the client dictionary hook, `nf-spinner` and its rules.
 - **Schema modules** now keep only zod schemas and re-export a zod-free `*-model`
   file; server validation is word for word the same.
-- **One new environment name:** `W6_APP_CSS`, a test-harness name, in `.env.example`
-  and `docs/ENVIRONMENT.md`.
+- **Three new environment names:** `W6_APP_CSS`, `FIT_DUMP` and
+  `CONTROL_CONTRAST_REPORT`, all test-harness names, in `.env.example` and
+  `docs/ENVIRONMENT.md` (the last two documented in `dd2694c02`).
 - **No migration, no database type, no `lib/money/copy.ts` and no ranking change.**
 - **Motion timings changed since the last push:** sheets land 380ms and leave 240ms
   (`70cf24adc`); a filter tile pops 1 to 1.03 once (`af8b69be2`); an empty state
@@ -560,7 +567,7 @@ reader should know that the log does not say at a glance:
   `6d143ee3b`, `31c33bb67`); a message slides in on arrival
   (`19e23b42c`, `403061c4b`); cards float in once on scroll (`d1e63fc67`); the edge
   light, supplier flows and the landing's 3D object stop after two laps
-  (`da38bc78f`, `c10c887ab`, `1c688f798`); a refused field shakes once (`f42b4b64e`);
+  (`da38bc78f`, `c10c887ab`, `1c688f798`); a refused field shakes once, and only when it turns invalid after it is in the page (`f42b4b64e`, `119a4de1e`);
   the dock moves on 240ms (`e262dde82`); pull to refresh spins once from the full pull's angle (`b0847870f`, `039053657`);
   skeletons, the landing columns and the docs flow pulse stop after a few passes
   (`4bef1e2a6`, `4f5e3f334`); the startup hold breathes twice (`58a715fda`).
@@ -579,7 +586,8 @@ reader should know that the log does not say at a glance:
 ## Tested
 
 - Baseline on `main`: typecheck, lint and 8,791 tests green.
-- Last pushed head, `937e9a788`: 9,683 tests passed in 793 files.
+- An earlier pushed head, `937e9a788`: 9,683 tests passed in 793 files. The head
+  pushed since, `da99eebd1`, failed two `env-documented` tests until `dd2694c02`.
 - Chromium tests with axe, added this session: the ten ports at four widths in two
   themes; the wave-2 components (`42a2257db`); the arrival ruling, share and invite
   doors, IndexRows, the held ring and the STR slide (`b7302e7c2`); Listing Health on
@@ -736,7 +744,7 @@ reader should know that the log does not say at a glance:
 
 - **Speed, measured by W13 against the built app.**
   - **A regression this session caused, now fixed:** `/messages/[id]` went from 343 to
-    750KB gz first load, because the thread's copy hook began pulling the whole client
+    759KB gz first load, because the thread's copy hook began pulling the whole client
     dictionary (8311e70f2, 213033eb4). `3563a97b1` takes the inbox words from the
     server page, and the route is back under 360KB gz.
   - **The same pattern, earlier:** the full English dictionary (399KB gz) shipped to 26
@@ -881,10 +889,11 @@ reader should know that the log does not say at a glance:
 - Do not kill processes by pattern in a shared tree; another agent's test run is
   collateral.
 - Do not commit a whole file because its reporting agent owns it: two agents
-  can hold hunks in one file at once. b373f6889 and ebd47c30c committed W13's
-  unfinished copy-scope hunks inside HostWizard with R2's chips, and the tree
-  stopped building until 75e2f8345 and 339424273 took them back out (auditors A6
-  and A7). Before staging, read the file's diff for lines the report does not
+  can hold hunks in one file at once. b373f6889 swept W13's unfinished
+  copy-scope hunks into HostWizard with R2's chips, and ebd47c30c carried W13's
+  uncommitted `useMoneyStepUp` call without its argument. The tree stopped building
+  until 75e2f8345 reverted the copy-scope hunks and 339424273 passed the locale
+  (auditors A6 and A7). Before staging, read the file's diff for lines the report does not
   describe, and stage by hunk when another agent is active in the same file.
 - Do not make a prop required without grepping every caller, previews
   included (4707bdcb5).
