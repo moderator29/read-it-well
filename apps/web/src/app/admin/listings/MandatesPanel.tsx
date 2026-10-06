@@ -64,7 +64,7 @@ export function MandatesPanel({
         <Empty
           title="No mandate has been filed"
           body="An agent or a firm listing a property they do not own files the owner's written instruction here, with the owner's name and a number to ring."
-          cause="Deciding one needs an action Session A has not written yet (scope request AR-12); until then this desk shows the queue."
+          cause="Once one is filed, a reviewer approves or refuses it in its own row here."
         />
       ) : rows.length > 0 ? (
         <div className="nf-rv-rows" style={{ ["--rv-cols" as string]: COLS }}>
@@ -148,8 +148,7 @@ function MandateLine({
           decide
         ) : row.status === "pending" ? (
           <p className="nf-rv-panel__note">
-            There is no decision for a mandate in the console yet: approving or refusing one needs an
-            action Session A has not written (scope request AR-12).
+            This row draws no decision control, so a decision is not taken from here.
           </p>
         ) : (
           <p className="nf-rv-panel__note">Decided {day(row.reviewedAt)}.</p>
