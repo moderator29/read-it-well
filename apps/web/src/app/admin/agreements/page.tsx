@@ -88,7 +88,7 @@ export default async function AgreementsDeskPage() {
                     <span className="text-[var(--nf-content-secondary)]">
                       {" "}
                       · {row.renterName} ← {row.ownerName} · {formatMoney(row.amountMinor, locale)} ·{" "}
-                      {row.status === "rejected" ? `sent back: ${row.decisionReason ?? ""}` : row.status}
+                      {row.status === "rejected" ? `Sent back: ${row.decisionReason ?? ""}` : (DECIDED_WORDS[row.status] ?? row.status)}
                     </span>
                   </li>
                 ))}
@@ -101,6 +101,9 @@ export default async function AgreementsDeskPage() {
     </div>
   );
 }
+
+/* The decided list printed the database's status ("approved", "paid") at the operator. */
+const DECIDED_WORDS: Record<string, string> = { approved: "Approved", paid: "Paid" };
 
 /** The request's clock, read once so every time on the page agrees. */
 function requestTime(): number {
