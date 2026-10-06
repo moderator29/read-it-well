@@ -40,6 +40,7 @@ export const PAYMENT_NOT_AVAILABLE: Record<string, string> = {
     "The amount on this booking does not match the approved agreement, so payment is paused. Contact support and a person will sort it out.",
   reserve_not_set_up:
     "Payments are paused while Vallo finishes setting up the Guarantee reserve account. Nothing has been charged.",
+  rate_not_accepted: "This listing's fees are being confirmed by the lister, so payment is not open yet.",
   not_found: "We could not find that booking on your account.",
 };
 
@@ -87,9 +88,6 @@ export async function quoteSplit(
   if (gate.rail !== "direct") return { refused: true, message: PAYMENT_NOT_AVAILABLE.not_found! };
   const railPolicyId = gate.policyId;
 
-  const reserve = guaranteeReserveSubaccount();
-  if (!reserve) return { refused: true, message: PAYMENT_NOT_AVAILABLE.reserve_not_set_up! };
-
   const { data, error } = await admin.rpc("payment_split_for_booking" as never, { p_booking: booking.id } as never);
   if (error) {
     return { refused: true, message: "Payment is temporarily unavailable. Nothing has been charged." };
@@ -116,6 +114,11 @@ export async function quoteSplit(
   ) {
     return { refused: true, message: PAYMENT_NOT_AVAILABLE.amount_mismatch! };
   }
+
+  /* D51: guarantee_bps = 0, so the reserve leg is usually zero and needs no
+     reserve subaccount. It is demanded only when there is a leg to route. */
+  const reserve = guarantee > 0 ? guaranteeReserveSubaccount() : null;
+  if (guarantee > 0 && !reserve) return { refused: true, message: PAYMENT_NOT_AVAILABLE.reserve_not_set_up! };
 
   return {
     amountMinor,

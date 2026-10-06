@@ -317,7 +317,7 @@ export async function reuseLiveAttempt(
     mode: "live" | "test";
     /** A flatmate share's payer; omit or null for a whole-booking charge. */
     sharePayerId?: string | null;
-    split: { listerSubaccount: string; listerShareMinor: number; reserveSubaccount: string; guaranteeMinor: number };
+    split: { listerSubaccount: string; listerShareMinor: number; reserveSubaccount: string | null; guaranteeMinor: number };
   },
   actor: MoneyActor = { kind: "sweep" },
 ): Promise<ReuseOutcome> {

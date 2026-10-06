@@ -154,7 +154,7 @@ export type InitializedTransaction = {
 export type PaystackSplit = {
   listerSubaccount: string;
   listerShareMinor: number;
-  reserveSubaccount: string;
+  reserveSubaccount: string | null;
   guaranteeMinor: number;
 };
 
@@ -162,7 +162,7 @@ function splitBody(split: PaystackSplit): Record<string, unknown> {
   const subaccounts: { subaccount: string; share: number }[] = [
     { subaccount: split.listerSubaccount, share: split.listerShareMinor },
   ];
-  if (split.guaranteeMinor > 0) {
+  if (split.guaranteeMinor > 0 && split.reserveSubaccount) {
     subaccounts.push({ subaccount: split.reserveSubaccount, share: split.guaranteeMinor });
   }
   return {

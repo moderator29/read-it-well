@@ -81,7 +81,7 @@ export type FiatCore = {
 export type ChargeSplit = {
   listerSubaccount: string;
   listerShareMinor: number;
-  reserveSubaccount: string;
+  reserveSubaccount: string | null;
   guaranteeMinor: number;
 };
 
