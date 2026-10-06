@@ -6,11 +6,11 @@ component with the fixture named in its row. **P** pass, **X** failed and fixed 
 sweep, **F** failed and still open, **·** does not apply. The denominator is 213 real routes
 (every `page.tsx` under `apps/web/src/app`, excluding `(dev)` and `api`).
 
-**Routes audited: 103 of 213.**
+**Routes audited: 108 of 213.**
 
 | Family | Audited |
 |---|---|
-| admin | 23 |
+| admin | 28 |
 | agent | 24 |
 | around | 5 |
 | assistant | 1 |
@@ -36,8 +36,11 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | `/admin/account-recovery` | C1 | P | · | P | P | X | X | · | · | · | P | P | P | P | · | P | P | · | X | P | P | P | P | P | P |
 | `/admin/agents` | C1 | P | · | P | X | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/admin/alerts` | C1 | X | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
+| `/admin/analytics` | C1 | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | P | · | P | X | X | X | P | P | P |
+| `/admin/audit` | C1 | P | P | P | P | P | P | X | P | P | P | P | P | P | · | P | P | · | P | X | P | P | P | P | P |
 | `/admin/bookings` | C1 | P | P | P | P | P | X | X | P | P | P | P | P | P | · | P | P | · | P | P | P | X | X | P | P |
 | `/admin/bookings/reservations` | C1 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
+| `/admin/businesses` | C1 | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | X | · | P | P | P | X | P | P | P |
 | `/admin/compliance` | C1 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/admin/examples` | C1 | P | P | P | P | P | P | X | P | P | P | P | P | P | · | P | P | · | P | P | P | P | X | P | X |
 | `/admin/handbook` | C1 | P | · | P | P | X | P | · | · | · | P | P | P | P | · | P | P | · | · | P | P | P | P | P | X |
@@ -47,11 +50,13 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | `/admin/listings/[id]` | C1 | P | · | P | P | P | X | P | P | P | P | P | P | P | · | P | P | · | P | P | P | X | P | P | P |
 | `/admin/operations` | C1 | P | P | P | X | P | P | P | P | P | P | P | P | P | · | P | P | · | P | X | X | X | P | P | P |
 | `/admin/payments` | C1 | P | X | P | P | X | P | P | P | P | P | P | P | P | · | P | P | P | P | P | P | X | X | P | P |
+| `/admin/queue` | C1 | P | P | P | P | P | P | P | P | P | P | P | X | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/admin/reference` | C1 | P | · | P | X | P | P | P | · | · | P | P | P | P | · | · | P | · | P | P | P | P | P | P | X |
 | `/admin/settings` | C1 | P | · | P | P | P | P | · | · | X | P | P | P | P | · | · | P | · | · | P | P | P | P | P | P |
 | `/admin/social` | C1 | P | · | P | X | X | X | P | · | · | P | P | P | P | · | X | P | · | P | P | P | X | P | P | P |
 | `/admin/staff` | C1 | P | · | P | X | X | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | X | X | P | X |
 | `/admin/standing` | C1 | P | · | P | X | X | P | · | · | P | P | P | P | P | · | P | P | · | X | P | P | P | P | P | P |
+| `/admin/stops` | C1 | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/admin/supply` | C1 | P | P | P | P | P | X | X | P | P | P | P | P | P | · | X | P | · | P | P | P | P | P | P | P |
 | `/admin/support` | C1 | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | P | · | P | X | P | P | P | P | P |
 | `/admin/switches` | C1 | P | · | P | P | P | X | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | X |
@@ -156,12 +161,28 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 
 - 1 (fixed): Every card's Mark resolved was a lit primary: 4 glows on one phone screen at 390. The opener is secondary now; the commit inside the sheet stays the primary.
 
+**`/admin/analytics`** (the real page in the real AdminFrame; the four analytics reads answer the session-b/admin/analytics preview's own props (read off that page's element); send-back reasons and internal ids read through their unconfigured paths)
+
+- 19 (fixed): At 390 the refusals table set its reasons one word a line with the share pressed against the meter ("Comparables / too / old 8%"), and the thin-areas city sat against the bar. A long name now wraps on its own width with its state, city or share under it. 0 overflow, 0 clipped at 390, 768 and 1440.
+- 20 (fixed): Both themes, 0 axe violations. The bar charts drew all four tick steps whatever the data, so a peak of 107 sat under a 200 line with the top half of the plot empty; niceTicks stops at the first tick that covers the peak (0, 50, 100, 150).
+- 21 (fixed): The Count, Checks and Listings column heads sat over the meter's end instead of over the numbers: the visually hidden Share head was taken out of the grid, so the next head moved one column left. The Share head keeps its cell and hides only its words.
+
+**`/admin/audit`** (the real page in the real AdminFrame; getAuditLog mocked to bc/fixtures AUDIT_ROWS (10 rows, one full page) and getAuditActivity counted from the same 10 rows over the reader's 30-day window)
+
+- 7 (fixed): The day chart printed its ISO keys ("2026-09-18") on the axis, the peak and the tooltip: no other date on the console looks like that, and at 390 the axis label broke at its hyphen ("2026-09-" over "18"). TimeSeries now writes a Lagos day through formatDate in the reader's locale ("18 Sept"), each label kept whole. Counts are integers.
+- 19 (fixed): At 390 the newest day's tooltip ("10 · 18 Sept") ran from 308 to 395px in a 390px window (auditFit overflow). A tip in the outer quarter of the plot now opens inwards from its column's edge: 0 overflow at 390, 768 and 1440. The 2 to 3 "cut by nf-panel" findings per run are the closed rows' JSON bodies (a closed <details> keeps its hidden layout): with every row opened (OPEN=1) the same runs measure 0 clipped.
+
 **`/admin/bookings`** (the real page inside the real AdminFrame; getBookingsDesk mocked to the real buildBookings over the six rows lib/admin/reads/bookings.test.ts builds its desk from; the waiting count from bd/fixtures RESERVATION_REQUESTS)
 
 - 6 (fixed): The per-day chart drew its axis words as SVG text in a 720-wide drawing, so at 390 every axis figure rendered at about 5px (seen on the screenshot; the size metric now multiplies SVG text by its drawing scale). The axis words are HTML at 12px now, placed by the same fractions, with every other x label stepping aside on a narrow card. Shared by the payments and supply desks' charts.
 - 7 (fixed): The chart's y axis printed Math.round of quarter gridlines ("1" beside the 1.25 line, "3" beside 2.5): it now labels only whole counts. Figures tabular; money through formatMoney.
 - 21 (fixed): Each stay's link was a 20px tall line (6 targets under 44 in every run); it is a 44px row now, at least 44 wide.
 - 22 (fixed): The status bar wrote each state's word inside its segment and 3 of 3 were clipped at 390 and at 1440 in every locale; it now prints the count (the key under the bar names each state).
+
+**`/admin/businesses`** (the real page in the real AdminFrame; getBusinessQueue mocked to p3/fixtures P3_BUSINESS (SUBMITTED) and P3_BUSINESS_APPROVED, waitingCount 1 (the SUBMITTED row))
+
+- 16 (fixed): 0 banned phrases. Three rung details spoke database ("because the column refuses a zero", "The table trigger accepts this venue's spine", "fact strip renders empty") and the ladder note said "a restaurant on this spine"; now plain operator words with the same meaning.
+- 21 (fixed): Labels present (each note has a label); the rung note's placeholder ran to a third line in a two-row field at 390 ("fail registration" cut at the field's bottom) and the decision note's to a fourth. The rung note has 3 rows and the decision note 4; both read whole at 390.
 
 **`/admin/examples`** (the real page component inside the real AdminFrame, getExamplesConsole mocked to f5/ops-fixtures ADMIN_EXAMPLES with totals derived from those rows)
 
@@ -206,6 +227,10 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 - 5 (fixed): Health, then the week's figures, the charts, every payment, the lookup.
 - 21 (fixed): The outcome filters are links carrying aria-pressed, which axe refuses on a link (aria-allowed-attr, 3 nodes at 390); they say aria-current now, styled the same (the supply desk's examples toggle too).
 - 22 (fixed): Saved card, account and terms rows held the words and the remove action on one line and squeezed the words to one a line at 390; the words keep 12rem and the action wraps.
+
+**`/admin/queue`** (the repository's f5/admin-queue preview: the real QueueTable, QueueTabs and QueueFilters on ADMIN_ROWS inside AdminPreviewFrame (the real page reads eleven sources through requireConsole))
+
+- 12 (fixed): The queue had no loading file and fell back to the overview's strip and KPI cards, a different shape from the table it becomes. queue/loading.tsx draws the console's QueueSkeleton (8 rows).
 
 **`/admin/reference`** (the real page inside the real AdminFrame; the reference reads mocked to f5/ops-fixtures ADMIN_OCCUPATIONS, ADMIN_LOCAL_GOVERNMENTS, ADMIN_STATES)
 
