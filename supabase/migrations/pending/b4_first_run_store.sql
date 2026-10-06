@@ -21,8 +21,10 @@ comment on table public.first_runs_seen is
   'W7-R1: which feature first runs a member has been shown. Member reads and writes own rows only; the cookie is the fallback.';
 
 alter table public.first_runs_seen enable row level security;
-revoke all on public.first_runs_seen from public, anon, authenticated;
+revoke all on public.first_runs_seen from public, anon, authenticated, service_role;
 grant select, insert on public.first_runs_seen to authenticated;
+-- Service role reads and writes rows but never truncates.
+grant select, insert, update, delete on public.first_runs_seen to service_role;
 
 do $p$ begin
   if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'first_runs_seen' and policyname = 'first_runs_seen_read_own') then
@@ -58,7 +60,19 @@ begin
     raise exception 'b4_first_run_store did not land: expected two policies';
   end if;
   if has_table_privilege('anon', 'public.first_runs_seen', 'SELECT')
-     or has_table_privilege('authenticated', 'public.first_runs_seen', 'DELETE') then
+     or has_table_privilege('anon', 'public.first_runs_seen', 'INSERT')
+     or has_table_privilege('authenticated', 'public.first_runs_seen', 'UPDATE')
+     or has_table_privilege('authenticated', 'public.first_runs_seen', 'DELETE')
+     or has_table_privilege('authenticated', 'public.first_runs_seen', 'TRUNCATE')
+     or has_table_privilege('service_role', 'public.first_runs_seen', 'TRUNCATE') then
     raise exception 'b4_first_run_store did not land: grants are wider than read and insert';
+  end if;
+  if not has_table_privilege('authenticated', 'public.first_runs_seen', 'SELECT')
+     or not has_table_privilege('authenticated', 'public.first_runs_seen', 'INSERT') then
+    raise exception 'b4_first_run_store did not land: members cannot read or record a first run';
+  end if;
+  if has_function_privilege('anon', 'public.mark_first_run_seen(text)', 'EXECUTE')
+     or not has_function_privilege('authenticated', 'public.mark_first_run_seen(text)', 'EXECUTE') then
+    raise exception 'b4_first_run_store did not land: mark_first_run_seen grants are wrong';
   end if;
 end $check$;

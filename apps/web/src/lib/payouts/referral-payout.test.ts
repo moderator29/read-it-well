@@ -1,20 +1,33 @@
 import { describe, expect, it } from "vitest";
 
-import { runRewardsPayout, settleFromProvider, type OpenResult, type PayoutDb, type SettleInput } from "./referral-payout-core";
+import {
+  floatTransferDeps,
+  runRewardsPayout,
+  sendOpenedPayout,
+  settleFromProvider,
+  type OpenResult,
+  type PayoutDb,
+  type SettleInput,
+} from "./referral-payout-core";
 import { isRewardsReference, outcomeForEvent, payoutOutcome } from "./referral-transfer";
 
 const REF = "vallo-rw-0123456789abcdef0123456789abcdef";
 
-function fakeDb(open: OpenResult) {
+function fakeDb(open: OpenResult, claim = true) {
   const settled: SettleInput[] = [];
+  const opens: unknown[] = [];
   const db: PayoutDb = {
-    open: async () => open,
+    open: async (i) => {
+      opens.push(i);
+      return open;
+    },
     settle: async (s) => {
       settled.push(s);
       return true;
     },
+    claimSend: async () => claim,
   };
-  return { db, settled };
+  return { db, settled, opens };
 }
 
 type Reply = { status: number; body?: unknown } | "throw";
@@ -65,24 +78,61 @@ describe("rewards payout", () => {
     expect(settled.map((s) => s.outcome)).toEqual(["unknown"]);
   });
 
-  it("a 5xx is unknown; a 4xx refusal is failed", async () => {
-    for (const [status, expected] of [
-      [502, "unknown"],
-      [400, "failed"],
-    ] as const) {
+  it("any non-success from /transfer is unknown, never failed", async () => {
+    for (const status of [502, 400, 409]) {
       const { db, settled } = fakeDb(opened);
       const { fetcher } = fakeFetch({ "/transferrecipient": recipientOk, "/transfer": { status, body: { status: false, message: "x" } } });
       await runRewardsPayout({ db, transfer: { secretKey: "k", fetcher } }, member);
-      expect(settled[0]?.outcome).toBe(expected);
+      expect(settled[0]?.outcome).toBe("unknown");
     }
   });
 
-  it("a recipient that cannot be made fails cleanly, before any transfer", async () => {
-    const { db, settled } = fakeDb(opened);
+  it("a recipient that cannot be made opens nothing and sends nothing", async () => {
+    const { db, settled, opens } = fakeDb(opened);
     const { fetcher, calls } = fakeFetch({ "/transferrecipient": "throw" });
-    await runRewardsPayout({ db, transfer: { secretKey: "k", fetcher } }, member);
+    const out = await runRewardsPayout({ db, transfer: { secretKey: "k", fetcher } }, member);
+    expect(out).toEqual({ kind: "refused", reason: "error" });
     expect(calls.map((c) => c.url)).toEqual(["/transferrecipient"]);
-    expect(settled[0]?.outcome).toBe("failed");
+    expect(opens).toEqual([]);
+    expect(settled).toEqual([]);
+  });
+
+  it("without the float key nothing is opened or sent", async () => {
+    const { db, opens } = fakeDb(opened);
+    const out = await runRewardsPayout({ db, transfer: null }, member);
+    expect(out).toEqual({ kind: "refused", reason: "not_available" });
+    expect(opens).toEqual([]);
+  });
+
+  it("the policy flag off answers not available", async () => {
+    const { db, settled } = fakeDb({ status: "not_available" });
+    const { fetcher, calls } = fakeFetch({ "/transferrecipient": recipientOk });
+    const out = await runRewardsPayout({ db, transfer: { secretKey: "k", fetcher } }, member);
+    expect(out).toEqual({ kind: "refused", reason: "not_available" });
+    expect(calls.map((c) => c.url)).toEqual(["/transferrecipient"]);
+    expect(settled).toEqual([]);
+  });
+
+  it("the float key is never the main merchant key", () => {
+    expect(floatTransferDeps({})).toBeNull();
+    expect(floatTransferDeps({ PAYSTACK_FLOAT_SECRET_KEY: "sk_a", PAYSTACK_SECRET_KEY: "sk_a" })).toBeNull();
+    expect(floatTransferDeps({ PAYSTACK_FLOAT_SECRET_KEY: "sk_b", PAYSTACK_SECRET_KEY: "sk_a" })).toEqual({ secretKey: "sk_b" });
+  });
+
+  it("a released payout is sent from the stored recipient, once", async () => {
+    const { db, settled } = fakeDb(opened);
+    const { fetcher, calls } = fakeFetch({
+      "/transfer": { status: 200, body: { status: true, data: { transfer_code: "TRF_2", status: "pending" } } },
+    });
+    const payout = { reference: REF, amountMinor: 7000, recipientCode: "RCP_9" };
+    expect(await sendOpenedPayout({ db, transfer: { secretKey: "k", fetcher } }, payout)).toBe("processing");
+    expect(calls[0]?.body).toMatchObject({ recipient: "RCP_9", reference: REF, amount: 7000 });
+    expect(settled.map((s) => s.outcome)).toEqual(["processing"]);
+
+    const claimed = fakeDb(opened, false);
+    const second = fakeFetch({});
+    expect(await sendOpenedPayout({ db: claimed.db, transfer: { secretKey: "k", fetcher: second.fetcher } }, payout)).toBe("skipped");
+    expect(second.calls).toEqual([]);
   });
 
   it("under review and refusals send nothing", async () => {
@@ -92,9 +142,10 @@ describe("rewards payout", () => {
       { status: "phone_required" as const },
     ]) {
       const { db, settled } = fakeDb(open);
-      const { fetcher, calls } = fakeFetch({});
+      const { fetcher, calls } = fakeFetch({ "/transferrecipient": recipientOk });
       await runRewardsPayout({ db, transfer: { secretKey: "k", fetcher } }, member);
-      expect(calls).toEqual([]);
+      // Only the recipient (no money moves); never a transfer.
+      expect(calls.map((c) => c.url)).toEqual(["/transferrecipient"]);
       expect(settled).toEqual([]);
     }
   });

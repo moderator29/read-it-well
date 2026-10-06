@@ -36,7 +36,42 @@
 -- the referral (or payout) to under_review. NOTHING HERE BANS ANYONE: shared
 -- Wi-Fi is how a family or an office looks, so it is a review, not a verdict.
 --
--- No `drop trigger`, no `delete from` (the lead's tooling hangs on both).
+-- TRIGGER SAFETY. The triggers on live tables (transactions, confirmed_phones,
+-- booking_refunds) can never abort the host transaction: risk is computed
+-- before any lock; the referral row is taken with SKIP LOCKED and the
+-- platform-budget lock with pg_try_advisory_xact_lock, so a busy lock leaves
+-- the referral pending instead of waiting; each function carries a short
+-- lock_timeout (a lock_not_available is caught); every body is wrapped in an
+-- exception handler. public.referral_qualify_pending() (service role) retries
+-- whatever a trigger skipped. CRON WIRING IS NOT IN THIS FILE: the scheduler
+-- must call referral_qualify_pending() and referral_release_due() (e.g. every
+-- 15 minutes) and the app sweep sweepRewardsPayouts(); owner: the cron lane.
+--
+-- PARTIAL REFUNDS (D51: the reward is released after the protection window).
+-- A reward is reversed only when the qualifying payment is FULLY refunded
+-- (booking_refunds.refund_minor >= paid_minor, or the transaction itself
+-- going REFUNDED). A partial goodwill refund never claws a reward back.
+--
+-- REVERSAL decides by whether the `earn:` ledger entry exists, never by the
+-- referral's status, so a reward moved to under_review after it was earned is
+-- still taken back.
+--
+-- PAYOUTS ARE OFF BY DEFAULT. The marketing float is Vallo's own money and
+-- must not be the main Paystack balance (which holds customer settlement
+-- money). No separate float account is configured yet, so the dated policy
+-- flag referral_policy.payouts_enabled starts false, and the app also needs
+-- PAYSTACK_FLOAT_SECRET_KEY (the float account's own key). With either
+-- missing, a withdrawal answers 'not_available' and nothing is held or sent.
+--
+-- `paid` on a referral means its reward was in a payout the provider
+-- confirmed: a payout includes whole referrals only, as many as the ledger
+-- balance covers, and its amount is exactly their sum.
+--
+-- PRIVACY: members never read risk_score, risk_reasons, account_key,
+-- recipient_code or the policy thresholds and budget (column grants; the
+-- member-facing figures come through my_rewards_summary()).
+--
+-- No trigger or row removal statements (the lead's tooling hangs on them).
 
 set local lock_timeout = '5s';
 
@@ -51,6 +86,9 @@ create table if not exists public.referral_policy (
   hold_days                     int    not null default 7 check (hold_days between 0 and 120),
   review_risk_score             int    not null default 40 check (review_risk_score between 1 and 1000),
   velocity_per_day              int    not null default 50 check (velocity_per_day > 0),
+  -- Payouts stay off until a dated row turns them on, once a separate
+  -- marketing-float Paystack account exists (see the header).
+  payouts_enabled               boolean not null default false,
   effective_from                timestamptz not null default now(),
   effective_to                  timestamptz,
   reason                        text not null check (length(btrim(reason)) >= 12),
@@ -63,14 +101,10 @@ comment on table public.referral_policy is
   'Referral rates as dated rows (D51). The current row is the latest effective_from with no effective_to in the past. Retire a row by setting effective_to; never rewrite it.';
 
 alter table public.referral_policy enable row level security;
-revoke all on public.referral_policy from public, anon, authenticated;
-grant select on public.referral_policy to authenticated;
-
-do $p$ begin
-  if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'referral_policy' and policyname = 'referral_policy_read') then
-    create policy referral_policy_read on public.referral_policy for select to authenticated using (true);
-  end if;
-end $p$;
+-- Members never read thresholds or the budget; my_rewards_summary() hands
+-- them the member-facing figures. Service role reads only.
+revoke all on public.referral_policy from public, anon, authenticated, service_role;
+grant select on public.referral_policy to service_role;
 
 create or replace function private.referral_policy_frozen()
 returns trigger language plpgsql set search_path = '' as $$
@@ -93,13 +127,13 @@ create or replace trigger referral_policy_frozen
 -- figure the founder has not set; it is a row, so it is changed by adding one.
 insert into public.referral_policy
   (reward_minor, member_monthly_cap, platform_monthly_budget_minor, withdrawal_min_minor,
-   hold_days, review_risk_score, velocity_per_day, effective_from, reason)
-select 7000, 1500, 100000000, 100000, 7, 40, 50, '2026-10-06T00:00:00Z',
-       'D51 founder rates: 70 naira, 1,500 a month, 1,000 naira minimum. Platform budget 1,000,000 naira a month is a placeholder pending the founder.'
+   hold_days, review_risk_score, velocity_per_day, payouts_enabled, effective_from, reason)
+select 7000, 1500, 100000000, 100000, 7, 40, 50, false, '2026-10-06T00:00:00Z',
+       'D51 founder rates: 70 naira, 1,500 a month, 1,000 naira minimum. Platform budget 1,000,000 naira a month is a placeholder pending the founder. Payouts off until a separate marketing-float account exists.'
 where not exists (select 1 from public.referral_policy);
 
 create or replace function private.referral_policy_now()
-returns public.referral_policy language sql stable security definer set search_path = '' as $$
+returns public.referral_policy language sql stable set search_path = '' as $$
   select p.* from public.referral_policy p
    where p.effective_from <= now() and (p.effective_to is null or p.effective_to > now())
    order by p.effective_from desc
@@ -107,7 +141,7 @@ returns public.referral_policy language sql stable security definer set search_p
 $$;
 
 create or replace function private.lagos_month(p_at timestamptz default now())
-returns date language sql immutable set search_path = '' as $$
+returns date language sql stable set search_path = '' as $$
   select date_trunc('month', p_at at time zone 'Africa/Lagos')::date;
 $$;
 
@@ -152,7 +186,8 @@ create unique index if not exists referrals_one_per_phone
   where referred_phone_key is not null and status <> 'reversed';
 
 alter table public.referrals enable row level security;
-revoke all on public.referrals from public, anon, authenticated;
+revoke all on public.referrals from public, anon, authenticated, service_role;
+grant select on public.referrals to service_role;
 -- Members read their referrals through public.my_referrals(), which never
 -- hands back who was referred; staff read through the admin functions.
 
@@ -168,9 +203,11 @@ create table if not exists public.referral_events (
 );
 create index if not exists referral_events_referral on public.referral_events (referral_id, created_at);
 alter table public.referral_events enable row level security;
-revoke all on public.referral_events from public, anon, authenticated;
+revoke all on public.referral_events from public, anon, authenticated, service_role;
+grant select on public.referral_events to service_role;
 
-create or replace function private.refuse_rewrite()
+-- Row and statement level: TRUNCATE skips row triggers, so it is refused too.
+create or replace function private.referral_refuse_rewrite()
 returns trigger language plpgsql set search_path = '' as $$
 begin
   raise exception '% is append-only: add a new entry instead.', tg_table_name using errcode = 'RM402';
@@ -178,7 +215,16 @@ end $$;
 
 create or replace trigger referral_events_append_only
   before update or delete on public.referral_events
-  for each row execute function private.refuse_rewrite();
+  for each row execute function private.referral_refuse_rewrite();
+create or replace trigger referral_events_no_truncate
+  before truncate on public.referral_events
+  for each statement execute function private.referral_refuse_rewrite();
+create or replace trigger referrals_no_truncate
+  before truncate on public.referrals
+  for each statement execute function private.referral_refuse_rewrite();
+create or replace trigger referral_policy_no_truncate
+  before truncate on public.referral_policy
+  for each statement execute function private.referral_refuse_rewrite();
 
 -- The transitions a referral may make. Anything else is a bug and refused.
 create or replace function private.referral_transition_ok(p_from text, p_to text)
@@ -232,6 +278,9 @@ create table if not exists public.rewards_payouts (
   account_name           text not null,
   recipient_code         text,
   transfer_code          text,
+  -- Set when the transfer is claimed for sending (once); a payout with a
+  -- recipient and no initiation is sent by the sweep (e.g. after release).
+  transfer_initiated_at  timestamptz,
   provider_status        text,
   risk_score             int not null default 0,
   risk_reasons           jsonb not null default '[]'::jsonb,
@@ -246,8 +295,11 @@ create index if not exists rewards_payouts_member on public.rewards_payouts (mem
 create index if not exists rewards_payouts_open on public.rewards_payouts (status) where status in ('processing','unknown','under_review');
 create index if not exists rewards_payouts_account on public.rewards_payouts (account_key) where account_key is not null;
 alter table public.rewards_payouts enable row level security;
-revoke all on public.rewards_payouts from public, anon, authenticated;
-grant select on public.rewards_payouts to authenticated;
+revoke all on public.rewards_payouts from public, anon, authenticated, service_role;
+-- Members see their own payouts without the fraud signals or provider handles.
+grant select (id, member_id, amount_minor, status, account_last4, account_name, created_at, settled_at)
+  on public.rewards_payouts to authenticated;
+grant select on public.rewards_payouts to service_role;
 do $p$ begin
   if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'rewards_payouts' and policyname = 'rewards_payouts_own') then
     create policy rewards_payouts_own on public.rewards_payouts for select to authenticated
@@ -282,6 +334,9 @@ end $$;
 create or replace trigger rewards_payouts_guard
   before update or delete on public.rewards_payouts
   for each row execute function private.rewards_payouts_guard();
+create or replace trigger rewards_payouts_no_truncate
+  before truncate on public.rewards_payouts
+  for each statement execute function private.referral_refuse_rewrite();
 
 create table if not exists public.rewards_ledger (
   id              uuid primary key default gen_random_uuid(),
@@ -303,8 +358,10 @@ comment on table public.rewards_ledger is
   'The Rewards Balance, append-only (D51). Balance = sum(amount_minor). A reversal is a new negative entry with reason and actor. Not a wallet: Vallo owes this money, it does not hold the member''s money.';
 create index if not exists rewards_ledger_member on public.rewards_ledger (member_id, created_at);
 alter table public.rewards_ledger enable row level security;
-revoke all on public.rewards_ledger from public, anon, authenticated;
-grant select on public.rewards_ledger to authenticated;
+revoke all on public.rewards_ledger from public, anon, authenticated, service_role;
+grant select (id, member_id, kind, amount_minor, referral_id, payout_id, reason, created_at)
+  on public.rewards_ledger to authenticated;
+grant select on public.rewards_ledger to service_role;
 do $p$ begin
   if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'rewards_ledger' and policyname = 'rewards_ledger_own') then
     create policy rewards_ledger_own on public.rewards_ledger for select to authenticated
@@ -314,7 +371,10 @@ end $p$;
 
 create or replace trigger rewards_ledger_append_only
   before update or delete on public.rewards_ledger
-  for each row execute function private.refuse_rewrite();
+  for each row execute function private.referral_refuse_rewrite();
+create or replace trigger rewards_ledger_no_truncate
+  before truncate on public.rewards_ledger
+  for each statement execute function private.referral_refuse_rewrite();
 
 -- --------------------------------------------------------------- helpers
 
@@ -366,7 +426,7 @@ end $$;
 
 -- A score and the reasons for it. Never a ban: the caller routes a high score
 -- to under_review for a person to decide.
-create or replace function private.referral_risk(p_referral uuid)
+create or replace function private.referral_risk(p_referral uuid, p_phone_key text default null)
 returns jsonb language plpgsql stable security definer set search_path = '' as $$
 declare
   r public.referrals; pol public.referral_policy;
@@ -428,8 +488,9 @@ begin
   end if;
 
   -- IDENTITY: the referred phone matches an identity stopped for fraud.
-  if r.referred_phone_key is not null and exists (
-       select 1 from private.identity_denylist d where d.key_kind = 'phone' and d.key_hmac = r.referred_phone_key) then
+  if coalesce(p_phone_key, r.referred_phone_key) is not null and exists (
+       select 1 from private.identity_denylist d where d.key_kind = 'phone'
+          and d.key_hmac = coalesce(p_phone_key, r.referred_phone_key)) then
     score := score + 100; reasons := reasons || '"identity_denylisted"'::jsonb;
   end if;
 
@@ -438,19 +499,44 @@ end $$;
 
 -- ----------------------------------------------------------- qualification
 
+-- The two caps for one referral, read under the platform-budget lock the
+-- caller holds. Null when within both caps, else the reason.
+create or replace function private.referral_cap_reason(p_id uuid)
+returns text language plpgsql stable security definer set search_path = '' as $$
+declare r public.referrals; pol public.referral_policy; v_member_n int; v_spent bigint;
+begin
+  select * into r from public.referrals where id = p_id;
+  if r.id is null then return 'not_found'; end if;
+  select * into pol from public.referral_policy where id = r.policy_id;
+  if pol.id is null then pol := private.referral_policy_now(); end if;
+  select count(*) into v_member_n from public.referrals
+   where referrer_id = r.referrer_id and month = r.month and id <> r.id
+     and status in ('qualified','approved','available','processing','paid');
+  select coalesce(sum(reward_minor), 0) into v_spent from public.referrals
+   where month = r.month and id <> r.id and status in ('approved','available','processing','paid');
+  if v_member_n >= pol.member_monthly_cap then return 'member monthly cap reached'; end if;
+  if v_spent + coalesce(r.reward_minor, pol.reward_minor) > pol.platform_monthly_budget_minor then
+    return 'platform monthly budget reached';
+  end if;
+  return null;
+end $$;
+
 -- Qualify when BOTH conditions hold: the referred phone is confirmed and a
--- payment of theirs has settled. Safe to call any number of times.
+-- payment of theirs has settled. Safe to call any number of times. NEVER
+-- WAITS: a referral row or budget lock someone else holds leaves it pending
+-- ('pending_lock') for referral_qualify_pending() to retry.
 create or replace function private.referral_try_qualify(p_user uuid)
-returns text language plpgsql security definer set search_path = '' as $$
+returns text language plpgsql security definer set search_path = '' set lock_timeout = '500ms' as $$
 declare
   v_id uuid; r public.referrals; pol public.referral_policy;
   v_phone text; v_key text; v_tx uuid; v_booking uuid;
   v_month date := private.lagos_month(now());
-  v_member_n int; v_spent bigint; risk jsonb; v_to text; v_reason text;
+  risk jsonb; v_to text; v_reason text;
 begin
   v_id := private.referral_attribute(p_user);
   if v_id is null then return 'not_referred'; end if;
-  select * into r from public.referrals where id = v_id for update;
+  select * into r from public.referrals where id = v_id for update skip locked;
+  if r.id is null then return 'pending_lock'; end if;
   if r.status <> 'pending' then return r.status; end if;
 
   select phone into v_phone from public.confirmed_phones where user_id = p_user;
@@ -465,41 +551,41 @@ begin
    limit 1;
   if v_tx is null then return 'pending_action'; end if;
 
+  -- One reward per verified identity FAILS CLOSED: without the vault secret
+  -- there is no key to check, so nothing qualifies until it is back.
   v_key := private.identity_key('phone', v_phone);
+  if v_key is null then return 'pending_identity_key'; end if;
   pol := private.referral_policy_now();
   if pol.id is null then return 'pending_policy'; end if;
 
-  -- One reward per verified identity.
-  if v_key is not null and exists (select 1 from public.referrals o
-       where o.referred_phone_key = v_key and o.status <> 'reversed' and o.id <> r.id) then
+  if exists (select 1 from public.referrals o
+              where o.referred_phone_key = v_key and o.status <> 'reversed' and o.id <> r.id) then
     perform private.referral_move(r.id, 'reversed', 'this phone already earned a referral reward', null,
                                   jsonb_build_object('rule', 'one_per_identity'));
     return 'reversed';
   end if;
 
+  -- Risk first, outside any lock: it is the expensive part.
+  risk := private.referral_risk(r.id, v_key);
+
+  -- The platform cap is read under one lock so two qualifications at once
+  -- cannot both fit into the last 70 naira. TRY only: if it is busy, stay
+  -- pending and let the sweep come back.
+  if not pg_try_advisory_xact_lock(hashtext('referral_platform_budget'), hashtext(v_month::text)) then
+    return 'pending_lock';
+  end if;
+
   update public.referrals
      set status = 'qualified', qualified_at = now(), qualifying_tx_id = v_tx, qualifying_booking_id = v_booking,
-         referred_phone_key = v_key, policy_id = pol.id, reward_minor = pol.reward_minor, month = v_month
+         referred_phone_key = v_key, policy_id = pol.id, reward_minor = pol.reward_minor, month = v_month,
+         risk_score = (risk ->> 'score')::int, risk_reasons = risk -> 'reasons'
    where id = r.id;
   perform private.referral_log(r.id, 'pending', 'qualified', 'phone confirmed and a payment settled', null,
                                jsonb_build_object('transaction_id', v_tx));
 
-  -- The two caps. The platform cap is taken under one lock so two
-  -- qualifications at once cannot both fit into the last 70 naira.
-  perform pg_advisory_xact_lock(hashtext('referral_platform_budget'), hashtext(v_month::text));
-  select count(*) into v_member_n from public.referrals
-   where referrer_id = r.referrer_id and month = v_month and id <> r.id
-     and status in ('qualified','approved','available','processing','paid');
-  select coalesce(sum(reward_minor), 0) into v_spent from public.referrals
-   where month = v_month and id <> r.id and status in ('approved','available','processing','paid');
-
-  risk := private.referral_risk(r.id);
-  update public.referrals set risk_score = (risk ->> 'score')::int, risk_reasons = risk -> 'reasons' where id = r.id;
-
-  if v_member_n >= pol.member_monthly_cap then
-    v_to := 'under_review'; v_reason := 'member monthly cap reached';
-  elsif v_spent + pol.reward_minor > pol.platform_monthly_budget_minor then
-    v_to := 'under_review'; v_reason := 'platform monthly budget reached';
+  v_reason := private.referral_cap_reason(r.id);
+  if v_reason is not null then
+    v_to := 'under_review';
   elsif (risk ->> 'score')::int >= pol.review_risk_score then
     v_to := 'under_review'; v_reason := 'risk score at or above the review threshold';
   else
@@ -510,12 +596,12 @@ begin
 end $$;
 
 create or replace function private.referral_after_phone()
-returns trigger language plpgsql security definer set search_path = '' as $$
+returns trigger language plpgsql security definer set search_path = '' set lock_timeout = '500ms' as $$
 begin
   perform private.referral_try_qualify(new.user_id);
   return new;
 exception when others then
-  -- A referral must never stop a phone being confirmed.
+  -- A referral must never stop a phone being confirmed; the sweep retries.
   raise warning 'referral qualification skipped: %', sqlerrm;
   return new;
 end $$;
@@ -524,19 +610,70 @@ create or replace trigger confirmed_phones_referral
   after insert or update of phone on public.confirmed_phones
   for each row execute function private.referral_after_phone();
 
+-- The retry for anything a trigger skipped (a busy lock, a swallowed error, a
+-- missing vault secret since restored). Service role; the cron lane wires it.
+create or replace function public.referral_qualify_pending(p_limit int default 500)
+returns jsonb language plpgsql security definer set search_path = '' set lock_timeout = '2s' as $$
+declare v_user uuid; v_out text; n int := 0; moved int := 0; failed int := 0;
+begin
+  for v_user in
+    select u.id from (
+      select r.referred_id as id from public.referrals r where r.status = 'pending'
+      union
+      select au.id from auth.users au
+       where nullif(btrim(au.raw_user_meta_data ->> 'referral_code'), '') is not null
+         and not exists (select 1 from public.referrals r where r.referred_id = au.id)
+    ) u
+    where exists (select 1 from public.confirmed_phones c where c.user_id = u.id)
+    limit greatest(1, least(coalesce(p_limit, 500), 5000))
+  loop
+    n := n + 1;
+    begin
+      v_out := private.referral_try_qualify(v_user);
+      if v_out in ('approved','under_review','reversed') then moved := moved + 1; end if;
+    exception when others then
+      failed := failed + 1;
+      raise warning 'referral_qualify_pending: % for %', sqlerrm, v_user;
+    end;
+  end loop;
+
+  -- Reversals a trigger skipped: a fully refunded qualifying payment.
+  for v_user in
+    select r.id from public.referrals r
+     where r.status <> 'reversed' and (
+       exists (select 1 from public.transactions t where t.id = r.qualifying_tx_id and t.status = 'REFUNDED')
+       or exists (select 1 from public.booking_refunds br where br.booking_id = r.qualifying_booking_id
+                    and br.paid_minor is not null and br.refund_minor >= br.paid_minor and br.refund_minor > 0))
+     limit 500
+  loop
+    begin
+      perform private.referral_reverse(v_user, 'the qualifying payment was fully refunded (sweep)', null);
+      moved := moved + 1;
+    exception when others then
+      failed := failed + 1;
+      raise warning 'referral_qualify_pending reversal: % for %', sqlerrm, v_user;
+    end;
+  end loop;
+  return jsonb_build_object('checked', n, 'moved', moved, 'failed', failed);
+end $$;
+revoke all on function public.referral_qualify_pending(int) from public, anon, authenticated;
+grant execute on function public.referral_qualify_pending(int) to service_role;
+
 -- ---------------------------------------------------------------- reversal
 
--- Reverse a referral and, if its reward was already in the balance, write the
--- negative entry. Reason and actor are always recorded.
+-- Reverse a referral and, if its reward ever entered the balance (an `earn:`
+-- entry exists, whatever the status says now), write the negative entry.
+-- Reason and actor are always recorded.
 create or replace function private.referral_reverse(p_id uuid, p_reason text, p_actor uuid)
-returns void language plpgsql security definer set search_path = '' as $$
+returns void language plpgsql security definer set search_path = '' set lock_timeout = '500ms' as $$
 declare r public.referrals;
 begin
   select * into r from public.referrals where id = p_id for update;
   if r.id is null or r.status = 'reversed' then return; end if;
-  if r.status in ('available','processing','paid') and coalesce(r.reward_minor, 0) > 0 then
+  if exists (select 1 from public.rewards_ledger where idempotency_key = 'earn:' || r.id) then
     insert into public.rewards_ledger (member_id, kind, amount_minor, referral_id, reason, actor_id, idempotency_key)
-    values (r.referrer_id, 'reward_reversed', -r.reward_minor, r.id, p_reason, p_actor, 'reverse:' || r.id)
+    select r.referrer_id, 'reward_reversed', -e.amount_minor, r.id, p_reason, p_actor, 'reverse:' || r.id
+      from public.rewards_ledger e where e.idempotency_key = 'earn:' || r.id
     on conflict (idempotency_key) do nothing;
   end if;
   perform private.referral_move(r.id, 'reversed', p_reason, p_actor);
@@ -554,7 +691,7 @@ begin
 end $$;
 
 create or replace function private.referral_after_transaction()
-returns trigger language plpgsql security definer set search_path = '' as $$
+returns trigger language plpgsql security definer set search_path = '' set lock_timeout = '500ms' as $$
 declare v_payer uuid;
 begin
   if new.status = 'SUCCESSFUL' and new.amount_minor > 0
@@ -563,11 +700,12 @@ begin
       from (select 1) one left join public.bookings b on b.id = new.booking_id;
     if v_payer is not null then perform private.referral_try_qualify(v_payer); end if;
   elsif tg_op = 'UPDATE' and new.status = 'REFUNDED' and old.status is distinct from new.status then
+    -- The transaction itself going REFUNDED is a full refund of it.
     perform private.referral_reverse_for_transaction(new.id, 'the qualifying payment was refunded');
   end if;
   return new;
 exception when others then
-  -- A referral must never stop a payment settling.
+  -- A referral must never stop a payment settling; the sweep retries.
   raise warning 'referral step skipped: %', sqlerrm;
   return new;
 end $$;
@@ -576,14 +714,18 @@ create or replace trigger transactions_referral
   after insert or update of status on public.transactions
   for each row execute function private.referral_after_transaction();
 
+-- Only a FULL refund of the qualifying booking reverses (D51: the reward is
+-- released after the protection window; a partial goodwill refund is not a
+-- clawback).
 create or replace function private.referral_after_booking_refund()
-returns trigger language plpgsql security definer set search_path = '' as $$
+returns trigger language plpgsql security definer set search_path = '' set lock_timeout = '500ms' as $$
 declare v_id uuid;
 begin
-  if coalesce(new.refund_minor, 0) > 0 then
+  if coalesce(new.refund_minor, 0) > 0 and new.paid_minor is not null
+     and new.refund_minor >= new.paid_minor then
     for v_id in select id from public.referrals
                  where qualifying_booking_id = new.booking_id and status <> 'reversed' loop
-      perform private.referral_reverse(v_id, 'the qualifying booking was refunded', new.decided_by);
+      perform private.referral_reverse(v_id, 'the qualifying booking was fully refunded', new.decided_by);
     end loop;
   end if;
   return new;
@@ -637,7 +779,8 @@ returns jsonb language sql stable security definer set search_path = '' as $$
                               and month = private.lagos_month(now()) and status not in ('pending','reversed')),
     'reward_minor',        (select reward_minor from pol),
     'member_monthly_cap',  (select member_monthly_cap from pol),
-    'withdrawal_min_minor',(select withdrawal_min_minor from pol)
+    'withdrawal_min_minor',(select withdrawal_min_minor from pol),
+    'payouts_enabled',     coalesce((select payouts_enabled from pol), false)
   ) end;
 $$;
 revoke all on function public.my_rewards_summary() from public, anon;
@@ -662,15 +805,23 @@ grant execute on function public.my_referrals(int) to authenticated;
 
 -- Open a payout of everything available. Service role only: the server
 -- action has already resolved the account name with the bank.
+-- p_recipient_code is the Paystack recipient the app made on the FLOAT
+-- account before opening (no money moves when a recipient is made), so a
+-- payout released from review later can be sent without the account number.
+-- OFF unless the policy row in force has payouts_enabled.
 create or replace function public.rewards_payout_open(
-  p_member uuid, p_bank_code text, p_account_number text, p_account_name text)
-returns jsonb language plpgsql security definer set search_path = '' as $$
+  p_member uuid, p_bank_code text, p_account_number text, p_account_name text, p_recipient_code text)
+returns jsonb language plpgsql security definer set search_path = '' set lock_timeout = '2s' as $$
 declare
   pol public.referral_policy := private.referral_policy_now();
   v_amount bigint; v_balance bigint; v_key text; v_id uuid; v_ref text;
-  v_score int := 0; v_reasons jsonb := '[]'::jsonb; v_status text := 'processing';
+  v_score int := 0; v_reasons jsonb := '[]'::jsonb; v_status text := 'processing'; v_ids uuid[];
 begin
-  if p_member is null or coalesce(btrim(p_account_name), '') = '' or p_account_number !~ '^\d{10}$' then
+  if pol.id is null or not pol.payouts_enabled then
+    return jsonb_build_object('status', 'not_available');
+  end if;
+  if p_member is null or coalesce(btrim(p_account_name), '') = '' or p_account_number !~ '^\d{10}$'
+     or coalesce(btrim(p_recipient_code), '') = '' then
     return jsonb_build_object('status', 'invalid');
   end if;
   if not exists (select 1 from public.confirmed_phones where user_id = p_member) then
@@ -682,12 +833,16 @@ begin
   end if;
   perform public.referral_release_due();
 
-  select coalesce(sum(reward_minor), 0) into v_amount from public.referrals
-   where referrer_id = p_member and status = 'available';
   select coalesce(sum(amount_minor), 0) into v_balance from public.rewards_ledger where member_id = p_member;
-  -- Never pay more than the ledger says is owed (a reversal after payment is
-  -- recovered from what is available next).
-  v_amount := least(v_amount, v_balance);
+  -- WHOLE REFERRALS ONLY, oldest first, as many as the ledger balance covers
+  -- (a reversal after payment is recovered by leaving later rewards unpaid).
+  -- The payout amount is exactly their sum, so `paid` on a referral means its
+  -- reward was paid.
+  select coalesce(array_agg(x.id), '{}'::uuid[]), coalesce(sum(x.reward_minor), 0) into v_ids, v_amount from (
+    select id, reward_minor,
+           sum(reward_minor) over (order by available_at, id rows between unbounded preceding and current row) as run
+      from public.referrals where referrer_id = p_member and status = 'available'
+  ) x where x.run <= v_balance;
   if v_amount < pol.withdrawal_min_minor then
     return jsonb_build_object('status', 'below_minimum', 'available_minor', greatest(v_amount, 0),
                               'withdrawal_min_minor', pol.withdrawal_min_minor);
@@ -700,28 +855,29 @@ begin
   if v_key is not null and exists (select 1 from private.identity_denylist where key_kind = 'payout' and key_hmac = v_key) then
     v_score := v_score + 100; v_reasons := v_reasons || '"payout_account_denylisted"'::jsonb;
   end if;
+  if v_key is null then
+    -- No vault secret, so account reuse cannot be checked: a person looks.
+    v_score := v_score + pol.review_risk_score; v_reasons := v_reasons || '"identity_key_unavailable"'::jsonb;
+  end if;
   if v_score >= pol.review_risk_score then v_status := 'under_review'; end if;
 
   v_id := gen_random_uuid();
   v_ref := 'vallo-rw-' || replace(v_id::text, '-', '');
   insert into public.rewards_payouts (id, member_id, amount_minor, reference, status, bank_code, account_last4,
-                                      account_key, account_name, risk_score, risk_reasons)
+                                      account_key, account_name, recipient_code, risk_score, risk_reasons)
   values (v_id, p_member, v_amount, v_ref, v_status, btrim(p_bank_code), right(p_account_number, 4),
-          v_key, btrim(p_account_name), v_score, v_reasons);
+          v_key, btrim(p_account_name), btrim(p_recipient_code), v_score, v_reasons);
   insert into public.rewards_ledger (member_id, kind, amount_minor, payout_id, reason, idempotency_key)
   values (p_member, 'payout_hold', -v_amount, v_id, 'held for a Rewards Balance payout', 'hold:' || v_id);
-  with chosen as (
-    select id from public.referrals where referrer_id = p_member and status = 'available' order by available_at, id
-  )
-  update public.referrals set status = 'processing', payout_id = v_id where id in (select id from chosen);
+  update public.referrals set status = 'processing', payout_id = v_id where id = any(v_ids);
   insert into public.referral_events (referral_id, from_status, to_status, reason, detail)
   select id, 'available', 'processing', 'included in a payout', jsonb_build_object('payout_id', v_id)
     from public.referrals where payout_id = v_id;
 
   return jsonb_build_object('status', v_status, 'payout_id', v_id, 'reference', v_ref, 'amount_minor', v_amount);
 end $$;
-revoke all on function public.rewards_payout_open(uuid, text, text, text) from public, anon, authenticated;
-grant execute on function public.rewards_payout_open(uuid, text, text, text) to service_role;
+revoke all on function public.rewards_payout_open(uuid, text, text, text, text) from public, anon, authenticated;
+grant execute on function public.rewards_payout_open(uuid, text, text, text, text) to service_role;
 
 -- Record what the provider said. Idempotent: settling a settled payout to the
 -- same outcome is a no-op; to another outcome it is refused. `unknown` is a
@@ -781,30 +937,89 @@ end $$;
 revoke all on function public.rewards_payout_settle(text, text, text, text, text, text) from public, anon, authenticated;
 grant execute on function public.rewards_payout_settle(text, text, text, text, text, text) to service_role;
 
--- Payouts the sweep should ask the provider about.
+-- Payouts the sweep should ask the provider about: only ones whose transfer
+-- was actually initiated (Paystack has never seen the others).
 create or replace function public.rewards_payouts_to_verify(p_older_than_minutes int default 10)
 returns table (reference text, status text, created_at timestamptz)
 language sql stable security definer set search_path = '' as $$
   select reference, status, created_at from public.rewards_payouts
-   where status in ('processing','unknown')
+   where status in ('processing','unknown') and transfer_initiated_at is not null
      and updated_at < now() - make_interval(mins => greatest(1, coalesce(p_older_than_minutes, 10)))
    order by created_at limit 100;
 $$;
 revoke all on function public.rewards_payouts_to_verify(int) from public, anon, authenticated;
 grant execute on function public.rewards_payouts_to_verify(int) to service_role;
 
+-- Payouts to SEND: processing, with a recipient, never initiated (the normal
+-- path initiates at once; this catches a release from review and a crash
+-- between opening and sending).
+create or replace function public.rewards_payouts_to_send(p_older_than_minutes int default 2)
+returns table (reference text, amount_minor bigint, recipient_code text)
+language sql stable security definer set search_path = '' as $$
+  select reference, amount_minor, recipient_code from public.rewards_payouts
+   where status = 'processing' and transfer_initiated_at is null and recipient_code is not null
+     and updated_at < now() - make_interval(mins => greatest(0, coalesce(p_older_than_minutes, 2)))
+   order by created_at limit 100;
+$$;
+revoke all on function public.rewards_payouts_to_send(int) from public, anon, authenticated;
+grant execute on function public.rewards_payouts_to_send(int) to service_role;
+
+-- Claim one payout for sending, exactly once. True only for the caller that
+-- set transfer_initiated_at; anyone else must not send.
+create or replace function public.rewards_payout_claim_send(p_reference text)
+returns boolean language plpgsql security definer set search_path = '' as $$
+declare v_id uuid;
+begin
+  update public.rewards_payouts set transfer_initiated_at = now()
+   where reference = p_reference and status = 'processing'
+     and transfer_initiated_at is null and recipient_code is not null
+  returning id into v_id;
+  return v_id is not null;
+end $$;
+revoke all on function public.rewards_payout_claim_send(text) from public, anon, authenticated;
+grant execute on function public.rewards_payout_claim_send(text) to service_role;
+
+-- No payout sits in flight forever unseen: anything processing or unknown
+-- past the age is returned for an alert (the sweep raises it to ops).
+create or replace function public.rewards_payouts_stuck(p_older_than_hours int default 24)
+returns table (reference text, status text, created_at timestamptz, initiated boolean)
+language sql stable security definer set search_path = '' as $$
+  select reference, status, created_at, transfer_initiated_at is not null from public.rewards_payouts
+   where status in ('processing','unknown')
+     and created_at < now() - make_interval(hours => greatest(1, coalesce(p_older_than_hours, 24)))
+   order by created_at limit 200;
+$$;
+revoke all on function public.rewards_payouts_stuck(int) from public, anon, authenticated;
+grant execute on function public.rewards_payouts_stuck(int) to service_role;
+
 -- -------------------------------------------------------------------- staff
 
 create or replace function public.admin_referral_decide(p_referral uuid, p_decision text, p_reason text)
 returns text language plpgsql security definer set search_path = '' as $$
-declare r public.referrals; actor uuid := (select auth.uid());
+declare r public.referrals; actor uuid := (select auth.uid()); v_cap text;
 begin
   if not private.is_staff() then raise exception 'Staff only.' using errcode = '42501'; end if;
   if coalesce(length(btrim(p_reason)), 0) < 8 then raise exception 'Say why, in a sentence.' using errcode = '22023'; end if;
   select * into r from public.referrals where id = p_referral for update;
   if r.id is null then return 'not_found'; end if;
-  if p_decision = 'approve' and r.status = 'under_review' then
-    perform private.referral_move(r.id, 'approved', p_reason, actor);
+  if p_decision in ('approve','approve_over_cap') and r.status = 'under_review' then
+    -- Both caps are rechecked under the budget lock. Exceeding one needs the
+    -- explicit 'approve_over_cap' decision and a fuller reason, logged.
+    perform pg_advisory_xact_lock(hashtext('referral_platform_budget'), hashtext(coalesce(r.month, private.lagos_month(now()))::text));
+    v_cap := private.referral_cap_reason(r.id);
+    if v_cap is not null and p_decision <> 'approve_over_cap' then
+      return 'over_cap';
+    end if;
+    if v_cap is not null and length(btrim(p_reason)) < 20 then
+      raise exception 'An approval over a cap needs the reason for the override.' using errcode = '22023';
+    end if;
+    perform private.referral_move(r.id, 'approved', p_reason, actor,
+      case when v_cap is null then '{}'::jsonb
+           else jsonb_build_object('cap_override', v_cap, 'override_reason', p_reason) end);
+    if v_cap is not null then
+      insert into public.audit_log (actor_id, action, entity_type, entity_id, metadata)
+      values (actor, 'referral_cap_override', 'referral', r.id::text, jsonb_build_object('cap', v_cap, 'reason', p_reason));
+    end if;
   elsif p_decision = 'reverse' then
     perform private.referral_reverse(r.id, p_reason, actor);
   elsif p_decision = 'review' and r.status in ('approved','available') then
@@ -828,6 +1043,8 @@ begin
   select * into p from public.rewards_payouts where id = p_payout for update;
   if p.id is null or p.status <> 'under_review' then return 'refused'; end if;
   if p_decision = 'release' then
+    if p.recipient_code is null then return 'no_recipient'; end if;
+    -- The sweep (rewards_payouts_to_send) sends it.
     update public.rewards_payouts set status = 'processing' where id = p.id;
     insert into public.audit_log (actor_id, action, entity_type, entity_id, metadata)
     values ((select auth.uid()), 'rewards_payout_released', 'rewards_payout', p.id::text, jsonb_build_object('reason', p_reason));
@@ -905,35 +1122,53 @@ begin
     'platform_monthly_budget_minor', pol.platform_monthly_budget_minor,
     'under_review', (select count(*) from public.referrals where status = 'under_review'),
     'payouts_under_review', (select count(*) from public.rewards_payouts where status = 'under_review'),
-    'payouts_unknown', (select count(*) from public.rewards_payouts where status = 'unknown'));
+    'payouts_unknown', (select count(*) from public.rewards_payouts where status = 'unknown'),
+    'payouts_stuck', (select count(*) from public.rewards_payouts where status in ('processing','unknown')
+                        and created_at < now() - interval '24 hours'),
+    'payouts_enabled', coalesce(pol.payouts_enabled, false));
 end $$;
 revoke all on function public.admin_referral_liability() from public, anon;
 grant execute on function public.admin_referral_liability() to authenticated;
 
--- Private helpers are not callable from the API.
-revoke all on function private.referral_try_qualify(uuid) from public, anon, authenticated;
-revoke all on function private.referral_reverse(uuid, text, uuid) from public, anon, authenticated;
-revoke all on function private.referral_reverse_for_transaction(uuid, text, uuid) from public, anon, authenticated;
-grant execute on function private.referral_reverse_for_transaction(uuid, text, uuid) to service_role;
-
--- `authenticated` has USAGE on schema private, so every helper this file
--- made there is closed to the API explicitly.
+-- `authenticated` has USAGE on schema private and private has no default ACL
+-- (PUBLIC gets EXECUTE), so every helper this file made there is closed to
+-- the API explicitly.
 do $rv$
 declare f record;
 begin
   for f in select p.oid::regprocedure as sig from pg_proc p join pg_namespace n on n.oid = p.pronamespace
             where n.nspname = 'private'
-              and (p.proname like 'referral\_%' or p.proname in ('refuse_rewrite','rewards_payouts_guard','lagos_month'))
+              and (p.proname like 'referral\_%' or p.proname in ('rewards_payouts_guard','lagos_month'))
   loop
     execute format('revoke all on function %s from public, anon, authenticated', f.sig);
   end loop;
 end $rv$;
 grant execute on function private.referral_reverse_for_transaction(uuid, text, uuid) to service_role;
 
+-- Public functions: default privileges grant anon EXECUTE, so each is closed
+-- to anon (and to PUBLIC) explicitly; the per-function lines above set the rest.
+do $rp$
+declare f text;
+begin
+  foreach f in array array[
+    'public.referral_release_due()', 'public.referral_qualify_pending(int)',
+    'public.my_rewards_summary()', 'public.my_referrals(int)',
+    'public.rewards_payout_open(uuid,text,text,text,text)',
+    'public.rewards_payout_settle(text,text,text,text,text,text)',
+    'public.rewards_payouts_to_verify(int)', 'public.rewards_payouts_to_send(int)',
+    'public.rewards_payout_claim_send(text)', 'public.rewards_payouts_stuck(int)',
+    'public.admin_referral_decide(uuid,text,text)', 'public.admin_rewards_payout_decide(uuid,text,text)',
+    'public.admin_referral_graph(uuid,int)', 'public.admin_referral_clusters(int)',
+    'public.admin_referral_liability()']
+  loop
+    execute format('revoke all on function %s from public, anon', f);
+  end loop;
+end $rp$;
+
 -- ---------------------------------------------------------------- read back
 
 do $check$
-declare missing text := '';
+declare missing text := ''; t text; f text;
 begin
   if to_regclass('public.referral_policy') is null then missing := missing || ' referral_policy'; end if;
   if to_regclass('public.referrals') is null then missing := missing || ' referrals'; end if;
@@ -941,13 +1176,84 @@ begin
   if to_regclass('public.rewards_ledger') is null then missing := missing || ' rewards_ledger'; end if;
   if to_regclass('public.rewards_payouts') is null then missing := missing || ' rewards_payouts'; end if;
   if (private.referral_policy_now()).reward_minor is distinct from 7000 then missing := missing || ' policy_row'; end if;
-  if not exists (select 1 from pg_trigger where tgname = 'rewards_ledger_append_only') then missing := missing || ' ledger_trigger'; end if;
-  if not exists (select 1 from pg_trigger where tgname = 'transactions_referral') then missing := missing || ' tx_trigger'; end if;
-  if not exists (select 1 from pg_trigger where tgname = 'confirmed_phones_referral') then missing := missing || ' phone_trigger'; end if;
-  if not exists (select 1 from pg_trigger where tgname = 'booking_refunds_referral') then missing := missing || ' refund_trigger'; end if;
+  if (select bool_or(payouts_enabled) from public.referral_policy) then missing := missing || ' payouts_must_start_off'; end if;
+  foreach t in array array['rewards_ledger_append_only','rewards_ledger_no_truncate','referral_events_append_only',
+                           'referral_events_no_truncate','referrals_no_truncate','referral_policy_no_truncate',
+                           'rewards_payouts_no_truncate','transactions_referral','confirmed_phones_referral',
+                           'booking_refunds_referral'] loop
+    if not exists (select 1 from pg_trigger where tgname = t) then missing := missing || ' trigger:' || t; end if;
+  end loop;
   if exists (select 1 from pg_class where relname in ('referrals','rewards_ledger','rewards_payouts','referral_events','referral_policy')
                and relnamespace = 'public'::regnamespace and not relrowsecurity) then
     missing := missing || ' rls';
   end if;
+
+  -- Table grants.
+  foreach t in array array['public.referral_policy','public.referrals','public.referral_events',
+                           'public.rewards_ledger','public.rewards_payouts'] loop
+    if has_table_privilege('anon', t, 'SELECT') then missing := missing || ' anon_select:' || t; end if;
+    if has_table_privilege('authenticated', t, 'INSERT') or has_table_privilege('authenticated', t, 'UPDATE')
+       or has_table_privilege('authenticated', t, 'DELETE') or has_table_privilege('authenticated', t, 'TRUNCATE') then
+      missing := missing || ' member_write:' || t;
+    end if;
+    if has_table_privilege('service_role', t, 'TRUNCATE') or has_table_privilege('service_role', t, 'INSERT')
+       or has_table_privilege('service_role', t, 'UPDATE') or has_table_privilege('service_role', t, 'DELETE') then
+      missing := missing || ' service_write:' || t;
+    end if;
+  end loop;
+  if has_table_privilege('authenticated', 'public.referral_policy', 'SELECT')
+     or has_table_privilege('authenticated', 'public.referrals', 'SELECT')
+     or has_table_privilege('authenticated', 'public.referral_events', 'SELECT') then
+    missing := missing || ' member_reads_internal_table';
+  end if;
+  -- Members never see the fraud signals or the provider handles.
+  foreach t in array array['risk_score','risk_reasons','account_key','recipient_code','transfer_code','bank_code','failure_reason'] loop
+    if has_column_privilege('authenticated', 'public.rewards_payouts', t, 'SELECT') then
+      missing := missing || ' member_column:' || t;
+    end if;
+  end loop;
+  if has_column_privilege('authenticated', 'public.rewards_ledger', 'actor_id', 'SELECT')
+     or has_column_privilege('authenticated', 'public.rewards_ledger', 'idempotency_key', 'SELECT') then
+    missing := missing || ' member_column:ledger';
+  end if;
+
+  -- Function grants.
+  foreach f in array array[
+    'public.referral_release_due()', 'public.referral_qualify_pending(int)',
+    'public.my_rewards_summary()', 'public.my_referrals(int)',
+    'public.rewards_payout_open(uuid,text,text,text,text)',
+    'public.rewards_payout_settle(text,text,text,text,text,text)',
+    'public.rewards_payouts_to_verify(int)', 'public.rewards_payouts_to_send(int)',
+    'public.rewards_payout_claim_send(text)', 'public.rewards_payouts_stuck(int)',
+    'public.admin_referral_decide(uuid,text,text)', 'public.admin_rewards_payout_decide(uuid,text,text)',
+    'public.admin_referral_graph(uuid,int)', 'public.admin_referral_clusters(int)',
+    'public.admin_referral_liability()'] loop
+    if has_function_privilege('anon', f, 'EXECUTE') then missing := missing || ' anon_exec:' || f; end if;
+  end loop;
+  foreach f in array array[
+    'public.referral_release_due()', 'public.referral_qualify_pending(int)',
+    'public.rewards_payout_open(uuid,text,text,text,text)',
+    'public.rewards_payout_settle(text,text,text,text,text,text)',
+    'public.rewards_payouts_to_verify(int)', 'public.rewards_payouts_to_send(int)',
+    'public.rewards_payout_claim_send(text)', 'public.rewards_payouts_stuck(int)'] loop
+    if has_function_privilege('authenticated', f, 'EXECUTE') then missing := missing || ' member_exec:' || f; end if;
+    if not has_function_privilege('service_role', f, 'EXECUTE') then missing := missing || ' service_exec:' || f; end if;
+  end loop;
+  for f in select p.oid::regprocedure::text from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+            where n.nspname = 'private'
+              and (p.proname like 'referral\_%' or p.proname in ('rewards_payouts_guard','lagos_month')) loop
+    if has_function_privilege('anon', f, 'EXECUTE') or has_function_privilege('authenticated', f, 'EXECUTE') then
+      missing := missing || ' private_exec:' || f;
+    end if;
+  end loop;
+  -- The trigger functions never wait long.
+  foreach f in array array['private.referral_try_qualify(uuid)','private.referral_after_phone()',
+                           'private.referral_after_transaction()','private.referral_after_booking_refund()'] loop
+    if not exists (select 1 from pg_proc where oid = f::regprocedure
+                     and proconfig::text like '%lock_timeout%') then
+      missing := missing || ' lock_timeout:' || f;
+    end if;
+  end loop;
+
   if missing <> '' then raise exception 'b4_referral_rewards_engine did not land:%', missing; end if;
 end $check$;

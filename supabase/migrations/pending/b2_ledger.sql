@@ -39,9 +39,29 @@
 --    that function being rewritten. A direct charge is split at the moment of
 --    payment, so its customer-funds entries net to zero: the ledger itself
 --    shows that nothing is held on the direct rail. A posting failure never
---    blocks a settlement of money already taken: it raises a risk alert.
+--    blocks a settlement of money already taken: it raises a risk alert, and
+--    the alert insert is itself guarded so it cannot abort settlement either.
+--    Caveat: `when others` does not catch query_canceled (57014, a statement
+--    timeout); lock_timeout (55P03) is caught. Accepted.
+--    Only DIRECT-rail Paystack transactions post here, plus legacy Paystack
+--    rows with a NULL rail (opened before the rail was written, or recorded
+--    by the unknown-charge path), which can only be direct because Paystack
+--    cannot hold; those are labelled rail 'direct' with legacy_null_rail in
+--    metadata. Escrow-rail rows never post here: their movements are recorded
+--    by the escrow writers (ledger_record_escrow_commission, the Payluk path).
+--  - REFUNDS. The refund writers (private.refund_and_cancel_booking,
+--    private.refund_booking_payment, private.rent_split_cancel) insert a
+--    negative ledger_entries row with transaction_id NULL. The same trigger
+--    posts it, keyed 'refund:<booking>:<ledger_entries.id>', against the
+--    booking's settled direct (or legacy null-rail) Paystack transaction:
+--    each leg comes back IN to customer funds (REFUND_INITIATED: lister,
+--    processor, reserve, commission) and the whole refund goes OUT to the
+--    customer (REFUND_COMPLETED), netting to zero; the commission reversal
+--    is a REFUND_COMPLETED OUT of revenue. A booking with no such settled
+--    transaction (escrow, or none) posts nothing and raises no alert.
 --
--- Additive, idempotent, RLS on. Probe: supabase/tests/probes/b2-ledger.sql.
+-- Additive, idempotent, RLS on.
+-- Probe: supabase/tests/probes-pending/b2-ledger.sql (promote with the migration).
 
 set local lock_timeout = '5s';
 
@@ -61,6 +81,8 @@ as $function$
     'FEE_CHARGED',
     'DISPUTE_OPENED', 'DISPUTE_RESOLVED')
 $function$;
+
+revoke all on function private.is_ledger_event(text) from public, anon, authenticated;
 
 -- One shape, three tables. Written out three times on purpose: a pot is its
 -- own object with its own grants, never a filtered view of a shared table.
@@ -178,15 +200,27 @@ declare
   o_direction text;
   o_amount bigint;
   o_currency text;
+  o_tx uuid;
+  o_corrects uuid;
   already bigint;
 begin
   if new.corrects_entry_id is null then
     return new;
   end if;
-  execute format('select direction, amount_minor, currency from %I.%I where id = $1', tg_table_schema, tg_table_name)
-    into o_direction, o_amount, o_currency using new.corrects_entry_id;
+  -- Serialise corrections of one entry, so two concurrent ones cannot both
+  -- read the same running total and together exceed the original.
+  perform pg_advisory_xact_lock(hashtextextended(tg_table_name || ':' || new.corrects_entry_id::text, 0));
+  execute format('select direction, amount_minor, currency, transaction_id, corrects_entry_id from %I.%I where id = $1',
+                 tg_table_schema, tg_table_name)
+    into o_direction, o_amount, o_currency, o_tx, o_corrects using new.corrects_entry_id;
   if o_direction is null then
     raise exception 'a correction must name an entry in the same pot' using errcode = '23503';
+  end if;
+  if o_corrects is not null then
+    raise exception 'a correction cannot itself be corrected; correct the original entry' using errcode = '23514';
+  end if;
+  if new.transaction_id is distinct from o_tx then
+    raise exception 'a correction carries the transaction of the entry it corrects' using errcode = '23514';
   end if;
   if new.direction = o_direction or new.currency <> o_currency then
     raise exception 'a correction moves the opposite way, in the same currency' using errcode = '23514';
@@ -200,6 +234,8 @@ begin
 end;
 $function$;
 
+revoke all on function private.ledger_correction_guard() from public, anon, authenticated;
+
 create or replace trigger ledger_customer_funds_00_correction
   before insert on public.ledger_customer_funds
   for each row execute function private.ledger_correction_guard();
@@ -212,7 +248,10 @@ create or replace trigger ledger_marketing_float_00_correction
 
 -- THE ONE DOOR. Idempotent on the key: a replay returns the entry already
 -- written and writes nothing. A replay that disagrees with what was written
--- under the same key is an error, never silently accepted.
+-- under the same key is an error, never silently accepted. The comparison
+-- covers the fields that move a pot (event, direction, amount, currency,
+-- transaction); provider, rail, status and metadata are descriptive and are
+-- not compared.
 create or replace function private.ledger_append(
   p_pot text,
   p_key text,
@@ -313,6 +352,9 @@ begin
   if tx.rail is distinct from 'escrow' then
     raise exception 'escrow commission is recorded only on the escrow rail' using errcode = '42501';
   end if;
+  if tx.status is distinct from 'SUCCESSFUL' then
+    raise exception 'escrow commission is recorded only on a payment that succeeded' using errcode = '42501';
+  end if;
   if p_amount is null or p_amount <= 0 or p_amount > tx.amount_minor then
     raise exception 'the commission must be positive and no more than the payment' using errcode = '22023';
   end if;
@@ -333,6 +375,10 @@ grant execute on function public.ledger_record_escrow_commission(uuid, bigint, t
 -- money comes in and goes straight out to the lister, the processor, the
 -- reserve (zero today) and Vallo's commission: it nets to zero, and the
 -- commission lands in revenue. Keyed on the transaction, so a replay is a no-op.
+-- Only rail 'direct', or a legacy Paystack row with a NULL rail (see header).
+--
+-- REFUNDS (gross < 0, transaction_id NULL): keyed on the ledger_entries row,
+-- posted against the booking's latest settled direct/legacy Paystack charge.
 create or replace function private.ledger_post_direct_settlement(p_entry public.ledger_entries)
 returns void
 language plpgsql
@@ -343,37 +389,75 @@ declare
   tx public.transactions%rowtype;
   k text;
   ref text;
+  v_rail text;
+  v_meta jsonb;
 begin
-  if p_entry.transaction_id is null then
+  if p_entry.transaction_id is not null then
+    select * into tx from public.transactions where id = p_entry.transaction_id;
+  elsif p_entry.gross_minor < 0 then
+    select * into tx from public.transactions t
+     where t.booking_id = p_entry.booking_id and t.provider = 'paystack' and t.status = 'SUCCESSFUL'
+       and (t.rail = 'direct' or t.rail is null)
+     order by t.created_at desc
+     limit 1;
+  else
     return;
   end if;
-  select * into tx from public.transactions where id = p_entry.transaction_id;
-  if tx.id is null or tx.provider <> 'paystack' then
+  if tx.id is null or tx.provider <> 'paystack' or tx.rail is not distinct from 'escrow' then
     return;
   end if;
-  k := 'settle:' || tx.id::text || ':';
+  v_rail := coalesce(tx.rail, 'direct');
+  v_meta := case when tx.rail is null then jsonb_build_object('legacy_null_rail', true) else '{}'::jsonb end;
   ref := tx.provider_ref;
+
+  if p_entry.gross_minor < 0 then
+    k := 'refund:' || p_entry.booking_id::text || ':' || p_entry.id::text || ':';
+    v_meta := v_meta || jsonb_build_object('booking_id', p_entry.booking_id, 'ledger_entry_id', p_entry.id);
+    if p_entry.agent_share_minor < 0 then
+      perform private.ledger_append('customer_funds', k || 'lister', 'REFUND_INITIATED', 'in', -p_entry.agent_share_minor,
+        tx.currency, 'paystack', ref, tx.id, v_rail, 'confirmed', v_meta || jsonb_build_object('leg', 'lister'));
+    end if;
+    if p_entry.processor_fee_minor < 0 then
+      perform private.ledger_append('customer_funds', k || 'processor', 'REFUND_INITIATED', 'in', -p_entry.processor_fee_minor,
+        tx.currency, 'paystack', ref, tx.id, v_rail, 'confirmed', v_meta || jsonb_build_object('leg', 'processor_fee'));
+    end if;
+    if p_entry.guarantee_reserve_minor < 0 then
+      perform private.ledger_append('customer_funds', k || 'reserve', 'REFUND_INITIATED', 'in', -p_entry.guarantee_reserve_minor,
+        tx.currency, 'paystack', ref, tx.id, v_rail, 'confirmed', v_meta || jsonb_build_object('leg', 'guarantee_reserve'));
+    end if;
+    if p_entry.platform_fee_minor < 0 then
+      perform private.ledger_append('customer_funds', k || 'commission', 'REFUND_INITIATED', 'in', -p_entry.platform_fee_minor,
+        tx.currency, 'paystack', ref, tx.id, v_rail, 'confirmed', v_meta || jsonb_build_object('leg', 'commission'));
+      perform private.ledger_append('vallo_revenue', k || 'commission', 'REFUND_COMPLETED', 'out', -p_entry.platform_fee_minor,
+        tx.currency, 'paystack', ref, tx.id, v_rail, 'confirmed', v_meta || jsonb_build_object('leg', 'commission'));
+    end if;
+    perform private.ledger_append('customer_funds', k || 'refunded', 'REFUND_COMPLETED', 'out', -p_entry.gross_minor,
+      tx.currency, 'paystack', ref, tx.id, v_rail, 'confirmed', v_meta || jsonb_build_object('leg', 'refund'));
+    return;
+  end if;
+
+  k := 'settle:' || tx.id::text || ':';
   if p_entry.gross_minor > 0 then
     perform private.ledger_append('customer_funds', k || 'collected', 'DEPOSIT_CONFIRMED', 'in', p_entry.gross_minor,
-      tx.currency, 'paystack', ref, tx.id, tx.rail, 'confirmed', jsonb_build_object('leg', 'charge', 'booking_id', p_entry.booking_id));
+      tx.currency, 'paystack', ref, tx.id, v_rail, 'confirmed', v_meta || jsonb_build_object('leg', 'charge', 'booking_id', p_entry.booking_id));
   end if;
   if p_entry.agent_share_minor > 0 then
     perform private.ledger_append('customer_funds', k || 'lister', 'TRANSFER_COMPLETED', 'out', p_entry.agent_share_minor,
-      tx.currency, 'paystack', ref, tx.id, tx.rail, 'confirmed', jsonb_build_object('leg', 'lister', 'subaccount', tx.payee_subaccount_code));
+      tx.currency, 'paystack', ref, tx.id, v_rail, 'confirmed', v_meta || jsonb_build_object('leg', 'lister', 'subaccount', tx.payee_subaccount_code));
   end if;
   if p_entry.processor_fee_minor > 0 then
     perform private.ledger_append('customer_funds', k || 'processor', 'FEE_CHARGED', 'out', p_entry.processor_fee_minor,
-      tx.currency, 'paystack', ref, tx.id, tx.rail, 'confirmed', jsonb_build_object('leg', 'processor_fee'));
+      tx.currency, 'paystack', ref, tx.id, v_rail, 'confirmed', v_meta || jsonb_build_object('leg', 'processor_fee'));
   end if;
   if p_entry.guarantee_reserve_minor > 0 then
     perform private.ledger_append('customer_funds', k || 'reserve', 'TRANSFER_COMPLETED', 'out', p_entry.guarantee_reserve_minor,
-      tx.currency, 'paystack', ref, tx.id, tx.rail, 'confirmed', jsonb_build_object('leg', 'guarantee_reserve', 'subaccount', tx.reserve_subaccount_code));
+      tx.currency, 'paystack', ref, tx.id, v_rail, 'confirmed', v_meta || jsonb_build_object('leg', 'guarantee_reserve', 'subaccount', tx.reserve_subaccount_code));
   end if;
   if p_entry.platform_fee_minor > 0 then
     perform private.ledger_append('customer_funds', k || 'commission', 'FEE_CHARGED', 'out', p_entry.platform_fee_minor,
-      tx.currency, 'paystack', ref, tx.id, tx.rail, 'confirmed', jsonb_build_object('leg', 'commission'));
+      tx.currency, 'paystack', ref, tx.id, v_rail, 'confirmed', v_meta || jsonb_build_object('leg', 'commission'));
     perform private.ledger_append('vallo_revenue', k || 'commission', 'FEE_CHARGED', 'in', p_entry.platform_fee_minor,
-      tx.currency, 'paystack', ref, tx.id, tx.rail, 'confirmed', jsonb_build_object('leg', 'commission'));
+      tx.currency, 'paystack', ref, tx.id, v_rail, 'confirmed', v_meta || jsonb_build_object('leg', 'commission'));
   end if;
 end;
 $function$;
@@ -390,16 +474,23 @@ begin
   begin
     perform private.ledger_post_direct_settlement(new);
   exception when others then
-    -- Money already taken is never refused because its bookkeeping failed.
-    insert into public.risk_alerts (severity, status, title, description, entity_type, entity_id)
-    values ('high', 'open', 'A settled charge could not be written to the ledger pots',
-            format('Transaction %s settled but its pot entries failed (%s). Post them by hand as new entries.',
-                   new.transaction_id, sqlerrm),
-            'booking', new.booking_id::text);
+    -- Money already taken is never refused because its bookkeeping failed,
+    -- nor because the alert about it failed.
+    begin
+      insert into public.risk_alerts (severity, status, title, description, entity_type, entity_id)
+      values ('high', 'open', 'A settled charge could not be written to the ledger pots',
+              format('Ledger entry %s (transaction %s) could not be posted to the pots (%s). Post it by hand as new entries.',
+                     new.id, new.transaction_id, sqlerrm),
+              'booking', new.booking_id::text);
+    exception when others then
+      raise warning 'ledger pots: %', sqlerrm;
+    end;
   end;
   return new;
 end;
 $function$;
+
+revoke all on function private.ledger_entries_post_pots() from public, anon, authenticated;
 
 create or replace trigger ledger_entries_zz_post_pots
   after insert on public.ledger_entries
@@ -445,7 +536,10 @@ begin
     end if;
     if has_table_privilege('service_role', 'public.' || t, 'insert')
        or has_table_privilege('service_role', 'public.' || t, 'update')
-       or has_table_privilege('service_role', 'public.' || t, 'delete') then
+       or has_table_privilege('service_role', 'public.' || t, 'delete')
+       or has_table_privilege('service_role', 'public.' || t, 'truncate')
+       or has_table_privilege('service_role', 'public.' || t, 'references')
+       or has_table_privilege('service_role', 'public.' || t, 'trigger') then
       raise exception '% is writable by service_role directly; only the ledger functions write', t;
     end if;
     foreach trg in array array[t || '_fixed', t || '_no_truncate', t || '_00_correction'] loop
@@ -456,7 +550,7 @@ begin
     end loop;
   end loop;
   if not exists (select 1 from pg_trigger where tgname = 'ledger_entries_zz_post_pots'
-                  and tgrelid = 'public.ledger_entries'::regclass and tgenabled = 'O') then
+                  and tgrelid = 'public.ledger_entries'::regclass and not tgisinternal and tgenabled = 'O') then
     raise exception 'settlement posting trigger missing';
   end if;
   if (select count(*) from unnest(array['DEPOSIT_INITIATED','DEPOSIT_CONFIRMED','WITHDRAWAL_INITIATED','WITHDRAWAL_COMPLETED',
@@ -468,8 +562,18 @@ begin
   if has_function_privilege('authenticated', 'public.ledger_record(text, text, text, text, bigint, text, text, text, uuid, text, text, jsonb, uuid, uuid)', 'execute')
      or has_function_privilege('anon', 'public.ledger_record(text, text, text, text, bigint, text, text, text, uuid, text, text, jsonb, uuid, uuid)', 'execute')
      or has_function_privilege('authenticated', 'public.ledger_record_escrow_commission(uuid, bigint, text, uuid)', 'execute')
-     or has_function_privilege('authenticated', 'private.ledger_append(text, text, text, text, bigint, text, text, text, uuid, text, text, jsonb, uuid, uuid)', 'execute') then
-    raise exception 'a ledger writer is callable by an app role';
+     or has_function_privilege('anon', 'public.ledger_record_escrow_commission(uuid, bigint, text, uuid)', 'execute')
+     or has_function_privilege('authenticated', 'private.ledger_append(text, text, text, text, bigint, text, text, text, uuid, text, text, jsonb, uuid, uuid)', 'execute')
+     or has_function_privilege('anon', 'private.ledger_append(text, text, text, text, bigint, text, text, text, uuid, text, text, jsonb, uuid, uuid)', 'execute')
+     or has_function_privilege('anon', 'private.ledger_post_direct_settlement(public.ledger_entries)', 'execute')
+     or has_function_privilege('authenticated', 'private.ledger_post_direct_settlement(public.ledger_entries)', 'execute')
+     or has_function_privilege('anon', 'private.ledger_entries_post_pots()', 'execute')
+     or has_function_privilege('authenticated', 'private.ledger_entries_post_pots()', 'execute')
+     or has_function_privilege('anon', 'private.ledger_correction_guard()', 'execute')
+     or has_function_privilege('authenticated', 'private.ledger_correction_guard()', 'execute')
+     or has_function_privilege('anon', 'private.is_ledger_event(text)', 'execute')
+     or has_function_privilege('authenticated', 'private.is_ledger_event(text)', 'execute') then
+    raise exception 'a ledger function is callable by an app role';
   end if;
   if has_table_privilege('authenticated', 'public.ledger_pot_balances', 'select') or has_table_privilege('anon', 'public.ledger_pot_balances', 'select') then
     raise exception 'pot balances readable by an app role';

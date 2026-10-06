@@ -6,12 +6,11 @@ import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../actions/session";
 import { PHONE_REQUIRED_MESSAGE, confirmedPhoneLookup, requireConfirmedPhone } from "../identity/phone-gate";
 import { resolveBankAccountName } from "../payments/bank-resolve";
-import { currentPaystack } from "../payments/paystack-mode";
 import { consume, subjectForUser } from "../security/rate-limit";
 import { hasServiceRole } from "../security/service-rpc";
 import { createAdminClient } from "../supabase/admin";
-import { runRewardsPayout, settleFromProvider, type PayoutDb } from "./referral-payout-core";
-import { isRewardsReference, outcomeForEvent, type TransferDeps } from "./referral-transfer";
+import { floatTransferDeps, runRewardsPayout, sendOpenedPayout, settleFromProvider, type PayoutDb } from "./referral-payout-core";
+import { isRewardsReference, outcomeForEvent } from "./referral-transfer";
 
 /**
  * THE REWARDS BALANCE PAYOUT (D51): server action, webhook settlement, sweep.
@@ -20,10 +19,19 @@ import { isRewardsReference, outcomeForEvent, type TransferDeps } from "./referr
  *   1. the bank resolves the account name (never the member's typing);
  *   2. `rewards_payout_open` holds the available rewards in the append-only
  *      ledger and mints an idempotent reference, or routes to review;
- *   3. a Paystack transfer recipient and a transfer from the balance (the
- *      marketing float) under that reference;
+ *   3. a Paystack transfer recipient and a transfer from the MARKETING FLOAT
+ *      account's balance under that reference;
  *   4. PAID ONLY WHEN PAYSTACK CONFIRMS: the `transfer.success` webhook, or the
  *      sweep's `/transfer/verify`. A timeout is `unknown`, never `failed`.
+ *
+ * PAYOUTS ARE OFF BY DEFAULT. The float is Vallo's own money and must not be
+ * the main Paystack balance, which holds customer settlement money. No
+ * separate float account exists yet, so a withdrawal answers "not available
+ * yet" and sends nothing unless BOTH hold: `PAYSTACK_FLOAT_SECRET_KEY` (the
+ * float account's own key, never the main key) is set, and the dated policy
+ * row in force has `payouts_enabled = true` (checked in
+ * `rewards_payout_open`). The verify route still needs confirming against
+ * Paystack's docs before that flag is turned on (see `referral-transfer.ts`).
  *
  * The webhook route (`app/api/paystack/webhook/route.ts`, not this file's
  * owner) currently acknowledges and ignores every `transfer.*` event; it must
@@ -41,6 +49,7 @@ function adminDb(): PayoutDb {
         p_bank_code: input.bankCode,
         p_account_number: input.accountNumber,
         p_account_name: input.accountName,
+        p_recipient_code: input.recipientCode,
       });
       if (error || !data || typeof data !== "object") return { status: "error" };
       return data as Awaited<ReturnType<PayoutDb["open"]>>;
@@ -56,11 +65,11 @@ function adminDb(): PayoutDb {
       });
       return !error;
     },
+    async claimSend(reference) {
+      const { data, error } = await admin.rpc("rewards_payout_claim_send", { p_reference: reference });
+      return !error && data === true;
+    },
   };
-}
-
-function transferDeps(): TransferDeps {
-  return { secretKey: currentPaystack().secretKey };
 }
 
 const payoutSchema = z.object({
@@ -77,11 +86,12 @@ const MESSAGES = {
   already_open: "A withdrawal from your Rewards Balance is already on its way.",
   not_confirmed: "We could not confirm that account with the bank. Check the number and the bank.",
   unreachable: "We could not reach the bank just now. Nothing was sent. Please try again.",
+  not_available: "Withdrawals from your Rewards Balance are not available yet. Nothing has left your Rewards Balance and nothing was sent.",
   error: "Your withdrawal could not be started. Nothing was sent.",
   invalid: "Your withdrawal could not be started. Nothing was sent.",
 } as const;
 
-export type RewardsPayoutResult = { status: "processing" | "under_review" | "unknown" | "failed"; amountMinor: number };
+export type RewardsPayoutResult = { status: "processing" | "under_review" | "unknown"; amountMinor: number };
 
 /** The member asks for their Rewards Balance to be paid to a bank account. */
 export async function requestRewardsPayout(input: unknown): Promise<ActionResult<RewardsPayoutResult>> {
@@ -91,6 +101,8 @@ export async function requestRewardsPayout(input: unknown): Promise<ActionResult
   const parsed = validate(payoutSchema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   if (!hasServiceRole()) return fail(NOT_CONFIGURED_MESSAGE);
+  const transfer = floatTransferDeps();
+  if (!transfer) return fail(MESSAGES.not_available);
 
   const verdict = await consume({
     bucket: "rewards_payout",
@@ -109,7 +121,7 @@ export async function requestRewardsPayout(input: unknown): Promise<ActionResult
   }
 
   const outcome = await runRewardsPayout(
-    { db: adminDb(), transfer: transferDeps() },
+    { db: adminDb(), transfer },
     {
       memberId: session.user.id,
       bankCode: parsed.data.bankCode,
@@ -130,17 +142,42 @@ export async function settleRewardsTransferEvent(event: string, data: unknown): 
   if (!isRewardsReference(row.reference)) return false;
   const outcome = outcomeForEvent(event);
   if (!outcome) return true;
+  const transfer = floatTransferDeps();
+  if (!transfer) return true;
   // A webhook is a claim; the provider's own verify is the confirmation for a payment.
-  return settleFromProvider({ db: adminDb(), transfer: transferDeps() }, row.reference);
+  return settleFromProvider({ db: adminDb(), transfer }, row.reference);
 }
 
-/** The cron sweep: ask Paystack about every payout still in flight. */
-export async function sweepRewardsPayouts(): Promise<{ checked: number }> {
-  if (!hasServiceRole()) return { checked: 0 };
+/**
+ * The cron sweep (wiring is the cron lane's): send payouts that were opened
+ * or released from review but never initiated, ask Paystack about every
+ * payout still in flight, and raise an alert for any older than a day so
+ * none sits in processing forever unseen.
+ */
+export async function sweepRewardsPayouts(): Promise<{ sent: number; checked: number; stuck: number }> {
+  if (!hasServiceRole()) return { sent: 0, checked: 0, stuck: 0 };
   const admin = createAdminClient() as unknown as Rpc;
+  const stuckRes = await admin.rpc("rewards_payouts_stuck", { p_older_than_hours: 24 });
+  const stuck = Array.isArray(stuckRes.data) ? stuckRes.data.length : 0;
+  if (stuck > 0) console.error(`rewards payouts: ${stuck} in flight for more than 24 hours; staff must look`);
+  const transfer = floatTransferDeps();
+  if (!transfer) return { sent: 0, checked: 0, stuck };
+  const deps = { db: adminDb(), transfer };
+
+  const toSend = await admin.rpc("rewards_payouts_to_send", { p_older_than_minutes: 2 });
+  const sendRows = Array.isArray(toSend.data)
+    ? (toSend.data as { reference: string; amount_minor: number | string; recipient_code: string }[])
+    : [];
+  let sent = 0;
+  for (const r of sendRows) {
+    const amountMinor = Number(r.amount_minor);
+    if (!Number.isSafeInteger(amountMinor) || !r.recipient_code) continue;
+    const out = await sendOpenedPayout(deps, { reference: r.reference, amountMinor, recipientCode: r.recipient_code });
+    if (out !== "skipped") sent += 1;
+  }
+
   const { data } = await admin.rpc("rewards_payouts_to_verify", { p_older_than_minutes: 10 });
   const rows = Array.isArray(data) ? (data as { reference: string }[]) : [];
-  const deps = { db: adminDb(), transfer: transferDeps() };
   for (const r of rows) await settleFromProvider(deps, r.reference);
-  return { checked: rows.length };
+  return { sent, checked: rows.length, stuck };
 }

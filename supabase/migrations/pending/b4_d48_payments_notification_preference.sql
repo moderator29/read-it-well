@@ -9,7 +9,20 @@
 -- keeps their own choice. Members with no notifications object at all are
 -- left alone: the default applies to them on both keys. Idempotent: a second
 -- run finds nothing to copy. A trigger keeps new writes in step until the
--- settings page writes `payments` itself. No `delete from`, no `drop trigger`.
+-- settings page writes `payments` itself. Additive only; no row or trigger
+-- removal.
+--
+-- THE MIRROR KEEPS FOLLOWING `wallet`. The settings page still writes the old
+-- `wallet` toggle, so whenever an update changes `wallet` and leaves
+-- `payments` as it was, `payments` takes the new `wallet` value: an opt-out
+-- made on the old toggle is never lost. A write that changes `payments`
+-- itself is the member's own choice and is kept. TEMPORARY: retire the
+-- trigger (in its own reviewed change) once the settings page writes
+-- `payments`; target 2026-12-31.
+--
+-- Side effect, accepted: the copy below bumps profiles.updated_at for the 15
+-- members it touches (profiles_set_updated_at); the other profiles triggers
+-- are no-ops for it.
 
 set local lock_timeout = '5s';
 
@@ -19,16 +32,21 @@ update public.profiles
    and (settings -> 'notifications') ? 'wallet'
    and not (settings -> 'notifications') ? 'payments';
 
--- Until the settings page writes `payments` itself, a write that carries only
--- `wallet` (a new member's defaults, or the old toggle) fills `payments` from
--- it. Once `payments` exists the member's own choice is never overwritten.
+-- Until the settings page writes `payments` itself: a write that carries only
+-- `wallet` fills `payments` from it, and a later change to `wallet` alone is
+-- mirrored into `payments`. A change to `payments` itself is never overwritten.
 create or replace function private.notifications_payments_from_wallet()
 returns trigger language plpgsql set search_path = '' as $$
 begin
   if jsonb_typeof(new.settings -> 'notifications') = 'object'
-     and (new.settings -> 'notifications') ? 'wallet'
-     and not (new.settings -> 'notifications') ? 'payments' then
-    new.settings := jsonb_set(new.settings, '{notifications,payments}', new.settings -> 'notifications' -> 'wallet', true);
+     and (new.settings -> 'notifications') ? 'wallet' then
+    if not (new.settings -> 'notifications') ? 'payments' then
+      new.settings := jsonb_set(new.settings, '{notifications,payments}', new.settings -> 'notifications' -> 'wallet', true);
+    elsif tg_op = 'UPDATE'
+       and (new.settings -> 'notifications' -> 'wallet') is distinct from (old.settings -> 'notifications' -> 'wallet')
+       and (new.settings -> 'notifications' -> 'payments') is not distinct from (old.settings -> 'notifications' -> 'payments') then
+      new.settings := jsonb_set(new.settings, '{notifications,payments}', new.settings -> 'notifications' -> 'wallet', true);
+    end if;
   end if;
   return new;
 end $$;
@@ -51,5 +69,9 @@ begin
   if not exists (select 1 from pg_trigger where tgname = 'profiles_notifications_payments'
                    and tgrelid = 'public.profiles'::regclass) then
     raise exception 'b4_d48_payments_notification_preference did not land: the mirror trigger is missing';
+  end if;
+  if has_function_privilege('anon', 'private.notifications_payments_from_wallet()', 'EXECUTE')
+     or has_function_privilege('authenticated', 'private.notifications_payments_from_wallet()', 'EXECUTE') then
+    raise exception 'b4_d48_payments_notification_preference did not land: the trigger function is callable from the API';
   end if;
 end $check$;

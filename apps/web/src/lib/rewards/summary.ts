@@ -12,6 +12,8 @@ export type RewardsSummary = {
   rewardMinor: number | null;
   memberMonthlyCap: number | null;
   withdrawalMinMinor: number | null;
+  /** Off until a separate marketing-float account exists (dated policy flag). */
+  payoutsEnabled: boolean;
 };
 
 const num = (v: unknown): number => {
@@ -37,10 +39,11 @@ export function toRewardsSummary(raw: unknown): RewardsSummary | null {
     rewardMinor: numOrNull(r.reward_minor),
     memberMonthlyCap: numOrNull(r.member_monthly_cap),
     withdrawalMinMinor: numOrNull(r.withdrawal_min_minor),
+    payoutsEnabled: r.payouts_enabled === true,
   };
 }
 
 /** Whether the withdraw button may be offered. */
 export function canWithdraw(s: RewardsSummary): boolean {
-  return s.withdrawalMinMinor !== null && s.availableMinor >= s.withdrawalMinMinor && s.processingMinor === 0;
+  return s.payoutsEnabled && s.withdrawalMinMinor !== null && s.availableMinor >= s.withdrawalMinMinor && s.processingMinor === 0;
 }

@@ -1,4 +1,4 @@
--- B3 (Session 2, round 3). PRICING AS POLICY DATA. DRAFT. NOT APPLIED.
+-- B3 (Session 2, round 3). PRICING AS POLICY DATA. Applied 6 October 2026.
 --
 -- D51: every rate is a dated row, in basis points or kobo, never a constant in
 -- code. Changing a price is a new row, never a deploy and never an edit.
@@ -56,8 +56,6 @@
 -- function, and `revoke ... from public` does not remove that, so every new
 -- function is revoked from public AND anon explicitly, then granted back only
 -- where a public read is intended (money_policy_at, commission_quote).
-
-begin;
 
 alter table public.money_policy drop constraint if exists money_policy_guarantee_bps_check;
 do $$
@@ -379,5 +377,3 @@ begin
     raise exception 'b3_money_policy_versions: members can write policy';
   end if;
 end $$;
-
-commit;

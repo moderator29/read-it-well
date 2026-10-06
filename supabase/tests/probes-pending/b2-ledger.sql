@@ -7,6 +7,15 @@
 -- escrow rail; a direct settlement written to ledger_entries posts pot entries
 -- that net customer funds to zero and put the commission in revenue; members
 -- read nothing, and service_role reads but cannot write directly.
+-- Also: a correction of a correction, or on another transaction, is refused;
+-- escrow commission is refused on a payment that has not succeeded; an
+-- escrow-rail ledger_entries row posts nothing; a refund row (negative, no
+-- transaction) posts REFUND_* entries netting customer funds to zero and
+-- reversing the commission out of revenue.
+--
+-- Live fixtures: every hotel listing is is_demo and bookings refuse a demo
+-- listing, so the probe clears is_demo on its listing first. The block always
+-- ends in a raise, so everything rolls back.
 do $$
 declare
   v_guest uuid;
@@ -14,6 +23,8 @@ declare
   b uuid := gen_random_uuid();
   tx_direct uuid := gen_random_uuid();
   tx_escrow uuid := gen_random_uuid();
+  tx_escrow_pending uuid := gen_random_uuid();
+  le_refund uuid;
   e1 uuid;
   e2 uuid;
   c1 uuid;
@@ -27,12 +38,15 @@ begin
   if v_guest is null or v_listing is null then
     raise exception 'PROBE_FAIL b2-ledger: fixtures missing (a user, a hotel listing)';
   end if;
+  -- Rolled back with the block: bookings refuse a demo listing.
+  update public.listings set is_demo = false where id = v_listing;
   insert into public.bookings (id, listing_id, guest_id, check_in, check_out, nights, price_per_night_minor, subtotal_minor, total_minor)
   values (b, v_listing, v_guest, current_date + 420, current_date + 421, 1, 10000, 10000, 10000);
   perform set_config('vallo.recording_unknown_charge', 'on', true);
   insert into public.transactions (id, booking_id, provider, provider_ref, amount_minor, currency, status, rail)
-  values (tx_direct, b, 'paystack', 'probe-b2-ledger-d-' || b::text, 10000, 'NGN', 'PENDING', 'direct'),
-         (tx_escrow, b, 'paystack', 'probe-b2-ledger-e-' || b::text, 10000, 'NGN', 'PENDING', 'escrow');
+  values (tx_direct, b, 'paystack', 'probe-b2-ledger-d-' || b::text, 10000, 'NGN', 'SUCCESSFUL', 'direct'),
+         (tx_escrow, b, 'paystack', 'probe-b2-ledger-e-' || b::text, 10000, 'NGN', 'SUCCESSFUL', 'escrow'),
+         (tx_escrow_pending, b, 'paystack', 'probe-b2-ledger-ep-' || b::text, 10000, 'NGN', 'PENDING', 'escrow');
   perform set_config('vallo.recording_unknown_charge', '', true);
 
   -- Idempotent on the key; a disagreeing replay is refused.
@@ -60,6 +74,19 @@ begin
   exception when check_violation then refused := true;
   end;
   if c1 is null or not refused then raise exception 'PROBE_FAIL b2-ledger: corrections may exceed the entry'; end if;
+  refused := false;
+  begin
+    perform public.ledger_record('vallo_revenue', 'probe-b2-corr-corr', 'FEE_CHARGED', 'in', 100, 'NGN', 'vallo', p_corrects => c1);
+  exception when check_violation then refused := true;
+  end;
+  if not refused then raise exception 'PROBE_FAIL b2-ledger: a correction of a correction was accepted'; end if;
+  refused := false;
+  begin
+    perform public.ledger_record('vallo_revenue', 'probe-b2-corr-tx', 'FEE_CHARGED', 'out', 1, 'NGN', 'vallo',
+                                 p_transaction => tx_direct, p_corrects => e1);
+  exception when check_violation then refused := true;
+  end;
+  if not refused then raise exception 'PROBE_FAIL b2-ledger: a correction on another transaction was accepted'; end if;
 
   -- The fourteen types, and what each pot may not carry.
   refused := false;
@@ -88,6 +115,12 @@ begin
   exception when insufficient_privilege then refused := true;
   end;
   if not refused then raise exception 'PROBE_FAIL b2-ledger: escrow commission recorded on a direct payment'; end if;
+  refused := false;
+  begin
+    perform public.ledger_record_escrow_commission(tx_escrow_pending, 200);
+  exception when insufficient_privilege then refused := true;
+  end;
+  if not refused then raise exception 'PROBE_FAIL b2-ledger: escrow commission recorded on a payment that has not succeeded'; end if;
   pair := public.ledger_record_escrow_commission(tx_escrow, 200);
   if (select count(*) from public.ledger_customer_funds where transaction_id = tx_escrow and direction = 'out' and amount_minor = 200 and event_type = 'FEE_CHARGED') <> 1
      or (select count(*) from public.ledger_vallo_revenue where transaction_id = tx_escrow and direction = 'in' and amount_minor = 200 and event_type = 'FEE_CHARGED') <> 1 then
@@ -109,6 +142,33 @@ begin
   end if;
   if (select sum(amount_minor) from public.ledger_vallo_revenue where transaction_id = tx_direct and direction = 'in') is distinct from 200 then
     raise exception 'PROBE_FAIL b2-ledger: the direct commission did not land in revenue';
+  end if;
+
+  -- An escrow-rail settlement row posts nothing to the direct path.
+  insert into public.ledger_entries (booking_id, transaction_id, gross_minor, platform_fee_minor, agent_share_minor,
+                                     processor_fee_minor, guarantee_reserve_minor, net_settlement_minor)
+  values (b, tx_escrow, 10000, 200, 9650, 150, 0, 9650);
+  if exists (select 1 from public.ledger_customer_funds where idempotency_key like 'settle:' || tx_escrow::text || ':%') then
+    raise exception 'PROBE_FAIL b2-ledger: an escrow-rail row was posted as a direct settlement';
+  end if;
+
+  -- A refund row (negative, no transaction, as the refund writers insert it)
+  -- reaches the pots against the booking's settled direct charge.
+  insert into public.ledger_entries (booking_id, transaction_id, gross_minor, platform_fee_minor, agent_share_minor,
+                                     processor_fee_minor, guarantee_reserve_minor, net_settlement_minor)
+  values (b, null, -1000, -20, -965, -15, 0, -1000)
+  returning id into le_refund;
+  select coalesce(sum(case direction when 'in' then amount_minor else -amount_minor end), 0) into net
+    from public.ledger_customer_funds where idempotency_key like 'refund:' || b::text || ':' || le_refund::text || ':%';
+  if net <> 0 or not exists (select 1 from public.ledger_customer_funds
+                              where idempotency_key = 'refund:' || b::text || ':' || le_refund::text || ':refunded'
+                                and event_type = 'REFUND_COMPLETED' and direction = 'out' and amount_minor = 1000) then
+    raise exception 'PROBE_FAIL b2-ledger: a refund did not reach customer funds netting to zero (net %)', net;
+  end if;
+  if not exists (select 1 from public.ledger_vallo_revenue
+                  where idempotency_key = 'refund:' || b::text || ':' || le_refund::text || ':commission'
+                    and event_type = 'REFUND_COMPLETED' and direction = 'out' and amount_minor = 20) then
+    raise exception 'PROBE_FAIL b2-ledger: a refund did not reverse the commission in revenue';
   end if;
 
   -- Append-only, in every pot: one real row each, then update, delete and truncate.

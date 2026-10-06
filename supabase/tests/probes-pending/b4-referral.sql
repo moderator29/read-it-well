@@ -6,7 +6,7 @@ declare
   referrer constant uuid := gen_random_uuid();
   referred constant uuid := gen_random_uuid();
   other    constant uuid := gen_random_uuid();
-  rid uuid; rid2 uuid; pid uuid; ok boolean; bal bigint; res jsonb; st text;
+  rid uuid; rid2 uuid; rid3 uuid; pid uuid; ok boolean; bal bigint; res jsonb; st text;
 begin
   if (private.referral_policy_now()).reward_minor is distinct from 7000
      or (private.referral_policy_now()).member_monthly_cap is distinct from 1500
@@ -94,6 +94,34 @@ begin
   if not exists (select 1 from public.rewards_ledger where referral_id = rid and kind = 'reward_reversed'
                    and reason = 'probe: the booking was refunded') then
     raise exception 'PROBE_FAIL b4-referral: the reversal entry carries no reason';
+  end if;
+
+  -- A reward earned and then moved to under_review is still taken back
+  -- (reversal decides by the earn entry, never by status).
+  insert into public.referrals (referrer_id, referred_id, code) values (other, gen_random_uuid(), 'PROBE3') returning id into rid3;
+  update public.referrals set status = 'qualified', reward_minor = 7000, month = private.lagos_month(now()) where id = rid3;
+  update public.referrals set status = 'approved', approved_at = now() - interval '30 days' where id = rid3;
+  perform public.referral_release_due();
+  update public.referrals set status = 'under_review' where id = rid3;
+  perform private.referral_reverse(rid3, 'probe: chargeback while under review', null);
+  select coalesce(sum(amount_minor), 0) into bal from public.rewards_ledger where member_id = other;
+  if bal <> 0 then raise exception 'PROBE_FAIL b4-referral: an under_review reversal left % in the balance', bal; end if;
+
+  -- Payouts are off by default: nothing is held or opened.
+  res := public.rewards_payout_open(referrer, '058', '0123456789', 'PROBE NAME', 'RCP_probe');
+  if res ->> 'status' <> 'not_available' then
+    raise exception 'PROBE_FAIL b4-referral: a payout opened while payouts are off (%)', res;
+  end if;
+
+  -- Members never see fraud signals, provider handles or the policy.
+  if has_column_privilege('authenticated', 'public.rewards_payouts', 'risk_score', 'SELECT')
+     or has_column_privilege('authenticated', 'public.rewards_payouts', 'account_key', 'SELECT')
+     or has_column_privilege('authenticated', 'public.rewards_payouts', 'recipient_code', 'SELECT')
+     or has_table_privilege('authenticated', 'public.referral_policy', 'SELECT') then
+    raise exception 'PROBE_FAIL b4-referral: a member can read risk, account keys or the policy';
+  end if;
+  if has_table_privilege('service_role', 'public.rewards_ledger', 'TRUNCATE') then
+    raise exception 'PROBE_FAIL b4-referral: service_role can truncate the ledger';
   end if;
 
   -- Members cannot write; anon cannot read.

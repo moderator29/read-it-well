@@ -1,23 +1,31 @@
 /**
  * PAYSTACK TRANSFERS FOR THE REWARDS BALANCE (D51), FROM VALLO'S MARKETING FLOAT.
  *
- * Only endpoints and fields this repository has already used are called here
- * (the retired payout client, `lib/payments/paystack.ts` before f0c0592af, and
- * `lib/agent/payout-actions.ts` as recorded in
- * `docs/research/API_INVENTORY_RESEARCH.md`):
+ * The secret key passed in is the FLOAT account's (`PAYSTACK_FLOAT_SECRET_KEY`),
+ * never the main merchant key: `source: "balance"` is the balance of whichever
+ * account the key belongs to, and the main balance holds customer settlement
+ * money.
+ *
+ * Provenance. The first two endpoints and their fields are taken from this
+ * repository's history (the retired payout client, `lib/payments/paystack.ts`
+ * before f0c0592af, and `lib/agent/payout-actions.ts` as recorded in
+ * `docs/research/API_INVENTORY_RESEARCH.md`). The verify route is NOT in the
+ * repository's history: it is Paystack's documented verify endpoint and
+ * MUST BE CONFIRMED AGAINST PAYSTACK'S DOCS before payouts are switched on.
  *
  *   POST /transferrecipient   { type: "nuban", name, account_number, bank_code, currency: "NGN" }
  *                             -> data.recipient_code
  *   POST /transfer            { source: "balance", amount, currency: "NGN", recipient, reference, reason }
  *                             -> data.transfer_code, data.reference, data.status
- *   GET  /transfer/verify/:reference
+ *   GET  /transfer/verify/:reference   (TO CONFIRM against Paystack docs, see above)
  *                             -> data.status, data.transfer_code, data.reference
  *
- * THE THREE OUTCOMES, AND WHY THERE ARE THREE. An explicit refusal (a 4xx, or
- * an envelope with status false) proves nothing moved: `refused`. A network
- * failure, a timeout, a 5xx or an unreadable 2xx may have moved money:
- * `unknown`, which is never treated as failed. Anything else is the
- * provider's answer.
+ * THE OUTCOMES. A network failure, a timeout, a 5xx or an unreadable 2xx may
+ * have moved money: `unknown`. For /transfer specifically, ANY non-success
+ * answer is `unknown` too (a 4xx can be "duplicate reference" for a transfer
+ * that did go): only the provider's verify, or its webhook confirmed by
+ * verify, ever decides `failed`. For /transferrecipient and verify a 4xx is
+ * `refused`; no money moves on either.
  *
  * Pure apart from the injected `fetch`, so the whole file is unit tested.
  */
@@ -85,7 +93,9 @@ export async function createTransferRecipient(
 export async function initiateTransfer(
   deps: TransferDeps,
   input: { amountMinor: number; recipientCode: string; reference: string; reason: string },
-): Promise<CallResult<{ transferCode: string | null; status: string }>> {
+): Promise<
+  { kind: "ok"; data: { transferCode: string | null; status: string } } | { kind: "refused" | "unknown"; message: string; status?: number }
+> {
   if (!Number.isSafeInteger(input.amountMinor) || input.amountMinor <= 0) {
     return { kind: "refused", message: "The amount must be a positive whole number of kobo." };
   }
@@ -97,7 +107,8 @@ export async function initiateTransfer(
     reference: input.reference,
     reason: input.reason,
   });
-  if (r.kind !== "ok") return r;
+  // Never `refused`: whatever /transfer said, only verify decides.
+  if (r.kind !== "ok") return { kind: "unknown", message: r.message, status: r.status };
   return {
     kind: "ok",
     data: {
@@ -107,6 +118,7 @@ export async function initiateTransfer(
   };
 }
 
+/** NEEDS CONFIRMATION against Paystack's docs before payouts are switched on (not in repo history). */
 export async function verifyTransfer(
   deps: TransferDeps,
   reference: string,

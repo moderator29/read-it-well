@@ -45,7 +45,11 @@ begin
 
   reset role;
   if has_table_privilege('anon', 'public.first_runs_seen', 'SELECT')
-     or has_table_privilege('authenticated', 'public.first_runs_seen', 'DELETE') then
+     or has_table_privilege('anon', 'public.first_runs_seen', 'INSERT')
+     or has_table_privilege('authenticated', 'public.first_runs_seen', 'UPDATE')
+     or has_table_privilege('authenticated', 'public.first_runs_seen', 'DELETE')
+     or has_table_privilege('authenticated', 'public.first_runs_seen', 'TRUNCATE')
+     or has_function_privilege('anon', 'public.mark_first_run_seen(text)', 'EXECUTE') then
     raise exception 'PROBE_FAIL b4-first-run: grants are wider than read and insert';
   end if;
 

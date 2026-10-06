@@ -14,11 +14,21 @@ describe("rewards summary", () => {
   });
 
   it("withdrawal is offered only at the policy minimum and with nothing in flight", () => {
-    const at = toRewardsSummary({ balance_minor: 100000, available_minor: 100000, withdrawal_min_minor: 100000 })!;
+    const at = toRewardsSummary({
+      balance_minor: 100000,
+      available_minor: 100000,
+      withdrawal_min_minor: 100000,
+      payouts_enabled: true,
+    })!;
     expect(canWithdraw(at)).toBe(true);
+    expect(canWithdraw({ ...at, payoutsEnabled: false })).toBe(false);
     expect(canWithdraw({ ...at, availableMinor: 99999 })).toBe(false);
     expect(canWithdraw({ ...at, processingMinor: 7000 })).toBe(false);
     expect(canWithdraw({ ...at, withdrawalMinMinor: null })).toBe(false);
+  });
+
+  it("payouts are off unless the policy says so", () => {
+    expect(toRewardsSummary({ balance_minor: 1 })?.payoutsEnabled).toBe(false);
   });
 
   it("null for a signed-out answer", () => {
