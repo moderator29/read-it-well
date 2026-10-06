@@ -12,7 +12,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { setAvatar } from "@/lib/profile/actions";
 import { setSocialCover } from "@/lib/social/profiles-actions";
 import { COVER_MAX_BYTES, COVER_MAX_EDGE } from "@/lib/social/profiles-schema";
-import { createClient } from "@/lib/supabase/client";
+import { loadBrowserClient } from "@/lib/supabase/load-client";
 import { reencodeToJpeg } from "@/components/social/profile/reencode";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import { ButtonLink } from "@/components/ui/Button";
@@ -166,7 +166,11 @@ export function AccountHero({
       const blob = await prepare(file, false);
       if (!blob) return;
 
-      const supabase = createClient();
+      const supabase = await loadBrowserClient();
+      if (!supabase) {
+        setError("We could not upload that photo. Check your connection and try again.");
+        return;
+      }
       const path = `${userId}/${crypto.randomUUID()}.jpg`;
       const upload = await supabase.storage
         .from("social-covers")
@@ -197,7 +201,11 @@ export function AccountHero({
       const blob = await prepare(file, true);
       if (!blob) return;
 
-      const supabase = createClient();
+      const supabase = await loadBrowserClient();
+      if (!supabase) {
+        setError("We could not upload that photo. Check your connection and try again.");
+        return;
+      }
       const path = `${userId}/${crypto.randomUUID()}.jpg`;
       const upload = await supabase.storage
         .from("avatars")

@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Segmented } from "@/components/ui/Segmented";
 import { reencodeToJpeg } from "@/components/social/profile/reencode";
-import { createClient } from "@/lib/supabase/client";
+import { loadBrowserClient } from "@/lib/supabase/load-client";
 import { attachPostMedia, dropPost, replyToPost } from "@/lib/social/posts-actions";
 import { sendOrKeep } from "@/lib/offline/send-or-keep";
 import { useClientCopy } from "@/lib/i18n/client-copy";
@@ -253,7 +253,8 @@ export function Composer({
    */
   async function attach(postId: string, items: Picture[]): Promise<boolean> {
     try {
-      const supabase = createClient();
+      const supabase = await loadBrowserClient();
+      if (!supabase) return false;
       const {
         data: { user },
       } = await supabase.auth.getUser();

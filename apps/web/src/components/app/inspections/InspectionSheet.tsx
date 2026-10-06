@@ -28,7 +28,7 @@ import {
   createInspectionPhotoUpload,
   saveInspectionReport,
 } from "@/lib/inspections/actions";
-import { createClient } from "@/lib/supabase/client";
+import { loadBrowserClient } from "@/lib/supabase/load-client";
 import {
   EMPTY_REPORT,
   ROOM_COPY,
@@ -305,7 +305,12 @@ export function InspectionSheet({
         setError(target.error);
         return;
       }
-      const upload = await createClient()
+      const client = await loadBrowserClient();
+      if (!client) {
+        setError("That photo did not upload. Try again in a moment.");
+        return;
+      }
+      const upload = await client
         .storage.from("inspection-photos")
         .uploadToSignedUrl(target.data.path, target.data.token, file, { contentType: file.type });
       if (upload.error) {

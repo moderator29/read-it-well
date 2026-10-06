@@ -5,7 +5,7 @@ import type { Dictionary } from "@vallo/i18n/core";
 import type { BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { TYPE } from "@/components/app/Screen";
-import { createClient } from "@/lib/supabase/client";
+import { loadBrowserClient } from "@/lib/supabase/load-client";
 import { IconPlate } from "@/components/ui/IconPlate";
 import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
 
@@ -95,7 +95,11 @@ export function UploadCard({
 
     setBusy(true);
     try {
-      const supabase = createClient();
+      const supabase = await loadBrowserClient();
+      if (!supabase) {
+        setFailure(copy.fileFailed);
+        return;
+      }
       const {
         data: { user },
       } = await supabase.auth.getUser();

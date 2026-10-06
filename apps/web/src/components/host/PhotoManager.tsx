@@ -13,7 +13,7 @@ import {
   PHOTO_MAX_LABEL,
   rejectPhoto,
 } from "@/lib/host/photos";
-import { createClient } from "@/lib/supabase/client";
+import { loadBrowserClient } from "@/lib/supabase/load-client";
 
 /**
  * AN OWNER'S PHOTOGRAPHS, ONE SURFACE FOR BOTH SPINES.
@@ -97,7 +97,11 @@ export function PhotoManager({
          public photo bucket for the whole estate; the P3 migration's header
          sets out why the business spine shares it rather than inventing one. */
       const path = `${userId}/${subjectId}/${crypto.randomUUID()}.${ext}`;
-      const supabase = createClient();
+      const supabase = await loadBrowserClient();
+      if (!supabase) {
+        setError("The upload did not finish. Check your connection and choose the photograph again.");
+        return;
+      }
       const { error: uploadError } = await supabase.storage
         .from("accommodation-photos")
         .upload(path, chosen, { contentType: chosen.type });

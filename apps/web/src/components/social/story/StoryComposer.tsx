@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { reencodeToJpeg } from "@/components/social/profile/reencode";
-import { createClient } from "@/lib/supabase/client";
+import { loadBrowserClient } from "@/lib/supabase/load-client";
 import { publishStory } from "@/lib/social/stories-actions";
 import {
   STORY_COPY,
@@ -162,7 +162,11 @@ export function StoryComposer({
     setError(null);
 
     startTransition(async () => {
-      const supabase = createClient();
+      const supabase = await loadBrowserClient();
+      if (!supabase) {
+        setError(STORY_FAILURE.upload);
+        return;
+      }
       /* The post id is not known yet, so the object goes under a fresh uuid in
          the person's own folder. The bucket's insert policy only checks the
          first path segment; the read policy resolves the post id out of the

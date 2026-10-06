@@ -5,7 +5,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
 import { SelectField, TextField } from "@/components/ui/Field";
 import { ICON_PLATE_GLYPH, IconPlate } from "@/components/ui/IconPlate";
-import { createClient } from "@/lib/supabase/client";
+import { loadBrowserClient } from "@/lib/supabase/load-client";
 import {
   ACCEPTED_LABEL,
   ACCEPTED_MIME,
@@ -108,7 +108,11 @@ export function DocumentUploader({
     setError(null);
     setUploading(true);
     try {
-      const supabase = createClient();
+      const supabase = await loadBrowserClient();
+      if (!supabase) {
+        setError(UPLOAD_FAILED);
+        return;
+      }
       const {
         data: { user },
       } = await supabase.auth.getUser();

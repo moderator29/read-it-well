@@ -1,6 +1,6 @@
 "use client";
 
-import { createClient } from "@/lib/supabase/client";
+import { loadBrowserClient } from "@/lib/supabase/load-client";
 import { useCallback, useEffect, useState, useTransition } from "react";
 import { formatDate, plural, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { Button } from "@/components/ui/Button";
@@ -69,7 +69,9 @@ function online(): boolean {
 export async function flushCheckins(): Promise<void> {
   if (!online()) return;
   try {
-    const { data } = await createClient().auth.getSession();
+    const client = await loadBrowserClient();
+    if (!client) return;
+    const { data } = await client.auth.getSession();
     const me = data.session?.user.id;
     if (!me) return;
     const queued = (await readCheckins()).filter((checkin) => checkin.ownerId === me);
