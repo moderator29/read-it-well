@@ -1589,6 +1589,9 @@
     position: relative;
     display: grid;
     min-width: 0;
+    /* The figure sizes to its own card (below), so a long naira figure in a
+       quarter-width tile stays inside it. */
+    container-type: inline-size;
     min-height: 9.25rem;
     grid-template-columns: auto minmax(0, 1fr);
     align-items: start;
@@ -1639,7 +1642,12 @@
   }
   .nf-admin-kpi__value {
     font-family: var(--nf-font-display);
-    font-size: clamp(1.625rem, 1.2rem + 0.9vw, 2.125rem);
+    /* Capped by the tile's width as well as the window's: at 1440 four tiles
+       are about 260px and "N18,450,000" at the viewport size ran past its
+       tile (auditFit, the overview, C1 sweep). 9.5cqi keeps eleven figures
+       inside the column beside the glyph; a phone tile is wide enough that
+       the clamp still decides. */
+    font-size: min(clamp(1.625rem, 1.2rem + 0.9vw, 2.125rem), 9.5cqi);
     font-weight: 700;
     line-height: 1.1;
     letter-spacing: var(--nf-tracking-tight);
