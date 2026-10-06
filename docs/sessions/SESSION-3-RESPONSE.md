@@ -103,6 +103,11 @@ draws its honest not-live or empty state):
   legacy claims; whether they stay is the founder's call. The staff scope label
   "Guarantee claims" and the handbook line are left as they are, by ruling.
 
+- **Two sign-in copy lines, in four languages.** The sign-in card's title "Sign in"
+  repeats the line above it, "Welcome back! Sign in to continue."; and the footer
+  names Terms and Privacy Policy and then repeats them as links. Left as they are
+  until the wording is chosen.
+
 **Open in this round:** C1 continues admin then agent (InnerNav across the agent
 tree) then host; C3 the member routes; C4 the auth redesign, then the weight diet,
 measured in bytes; C5 as above. The settings labels are English only until C5's
