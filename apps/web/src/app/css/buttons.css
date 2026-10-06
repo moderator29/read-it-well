@@ -378,12 +378,11 @@
     content: none;
   }
   @media (hover: hover) {
+    /* Deep enough for the white label on any hover-capable device, not only a
+       fine pointer (the section rule below): a lighter hover than rest fell to
+       about 3.8:1 at night (W12). */
     .nf-btn--danger:hover:not(:disabled) {
-      background: linear-gradient(
-        180deg,
-        color-mix(in oklab, var(--nf-state-error) 100%, white) 0%,
-        color-mix(in oklab, var(--nf-state-error) 88%, black) 100%
-      );
+      background: color-mix(in oklab, var(--nf-state-error) 80%, black);
     }
   }
 
@@ -1171,14 +1170,27 @@
   }
 
   /* ---- danger: the destructive pair ----------------------------------- */
+  /*
+   * THE DESTRUCTIVE FILL IS DEEP ENOUGH FOR ITS WHITE LABEL (W12). The error
+   * token at night is the bright rose, and white on it measured 3.84:1, under
+   * the 4.5:1 a 16px label needs. The fill is the error colour with its
+   * lightness held at or below a ceiling (`oklch(from ... min(l, ...))`), so
+   * the bright night rose deepens and the light theme's already-deep red is
+   * left exactly as it was; `@supports` below applies that where relative
+   * colours exist, and these `color-mix`-with-black fills are the same idea,
+   * theme-blind and slightly deeper, for a browser that lacks them. Rest,
+   * hover and press each get their own ceiling, so none of the three falls
+   * under 4.5:1 (`Button.danger.dom.test.tsx` measures all three on the paint,
+   * in both themes).
+   */
   .nf-btn--danger {
     color: var(--nf-act-on);
-    background: var(--nf-state-error);
+    background: color-mix(in oklab, var(--nf-state-error) 74%, black);
     border: var(--nf-border-width) solid transparent;
     box-shadow: var(--nf-act-rim);
   }
   .nf-btn--danger:active:not(:disabled, [aria-disabled="true"]) {
-    background: color-mix(in oklab, var(--nf-state-error) 78%, var(--nf-act-press-edge));
+    background: color-mix(in oklab, var(--nf-state-error) 62%, black);
   }
   .nf-btn--danger-quiet {
     color: var(--nf-state-error);
@@ -1272,10 +1284,23 @@
       color: var(--nf-act-outline-hover-ink);
     }
     .nf-btn--danger:hover:not(:disabled, [aria-disabled="true"], :active) {
-      background: color-mix(in oklab, var(--nf-state-error) 90%, var(--nf-act-press-edge));
+      background: color-mix(in oklab, var(--nf-state-error) 80%, black);
     }
     .nf-btn--danger-quiet:hover:not(:disabled, [aria-disabled="true"], :active) {
       background: color-mix(in oklab, var(--nf-state-error) 16%, transparent);
+    }
+  }
+  @supports (color: oklch(from red l c h)) {
+    .nf-btn--danger {
+      background: oklch(from var(--nf-state-error) min(l, 0.54) c h);
+    }
+    .nf-btn--danger:active:not(:disabled, [aria-disabled="true"]) {
+      background: oklch(from var(--nf-state-error) min(l, 0.46) c h);
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .nf-btn--danger:hover:not(:disabled, [aria-disabled="true"], :active) {
+        background: oklch(from var(--nf-state-error) min(l, 0.5) c h);
+      }
     }
   }
   @media (prefers-reduced-motion: reduce) {
