@@ -90,5 +90,10 @@ export const experienceLandingEn = {
       answers: "{count} answers",
       answerOne: "1 answer",
     },
+    docs: {
+      /** `{count}` sections in a chapter. */
+      sections: "{count} sections",
+      sectionOne: "1 section",
+    },
   },
 };

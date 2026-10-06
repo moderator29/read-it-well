@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { publicPageMetadata } from "@/lib/i18n/public-metadata";
+import { getDictionary } from "@vallo/i18n";
+import { getLocale } from "@/lib/locale";
 import { ButtonLink } from "@/components/ui/Button";
 import { CHAPTERS, CHAPTER_INDEX } from "./chapters";
 import { IndexRows } from "@/components/site/guides/IndexRows";
@@ -24,7 +26,8 @@ export async function generateMetadata(): Promise<Metadata> {
  * policies. Documentation that restates a policy is documentation that will one
  * day contradict it.
  */
-export default function DocsHomePage() {
+export default async function DocsHomePage() {
+  const x = getDictionary(await getLocale()).experienceLanding.docs.docs;
   const first = CHAPTER_INDEX[0];
 
   return (
@@ -69,7 +72,7 @@ export default function DocsHomePage() {
           icon: lineGlyphFor(chapter.icon),
           title: `${chapter.number}. ${chapter.title}`,
           line: chapter.summary,
-          meta: `${chapter.sections.length} sections`,
+          meta: chapter.sections.length === 1 ? x.sectionOne : x.sections.replace("{count}", String(chapter.sections.length)),
         }))}
       />
 
