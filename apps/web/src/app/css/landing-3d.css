@@ -150,10 +150,11 @@
   }
 
   /* The float: a slow bob and a few degrees of turn, each object out of
-     step with the next. Only once ObjectField says motion is allowed, and
+     step with the next, twice and then at rest (nothing loops forever but the
+     aurora and the assistant's thinking). Only once ObjectField says motion is allowed, and
      paused while the field is off screen. */
   .nf-o3[data-on] .nf-o3__lean > .nf-icon3d {
-    animation: nf-o3-float 6.4s var(--nf-ease-standard) infinite alternate both;
+    animation: nf-o3-float 6.4s var(--nf-ease-standard) 2 alternate both;
     animation-delay: calc(var(--o3-i, 0) * -1.9s);
     animation-play-state: paused;
   }
