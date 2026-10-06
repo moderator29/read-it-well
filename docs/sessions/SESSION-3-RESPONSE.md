@@ -175,7 +175,7 @@ banned words, 17 money copy, 18 empty states, 20 both themes, 21 keyboard and la
 | Email | W9 | 16, 17, alt text on every image; the receipt email held by test to the on-screen sequence (`9ac40a79b`) | Rendering in real clients |
 | Share door, join, briefs, status tracks, arrival check, safety, after-gate | W13 | 7 (`3c0611d7c`: figure leads, never counts), 11 and 21 (`a87736af8` 44px, `3e9624fcb`, `c4ebb89f0`: the arrival moment cannot hold the screen and takes focus), 12, 15 (`30664866b`: steps differ by shape) | 19, 22, 23; TalkBack pass on the arrival moment (Session 4) |
 | Admin console (shell, overview, queue, desks, compliance, money desk) | W8, W8b | 4 (Plate rows, `.nf-admin-case`), 6 (44px controls), 11 and 12 (Button morph, no spinner), 15 and 18 (zero reads as zero; unreadable draws no figure; read-only desks say so once), 17 (no money sentence written), 21 (palette, decision bars, one h1 per desk, Radio primitives); structural checks by unit and Chromium tests with axe | 3, 5 and 20 in a browser (nothing was rendered under the resource rule), 19, 22, 23; stickiness of the phone decision bar on a real device |
-| Shared controls and overlays | W10, C1 | Sheets land 380ms in and leave 240ms out (`70cf24adc`); an empty state's picture settles once and its words follow (`f7b42550d`); cards below the fold float in once on scroll (`d1e63fc67`); a switch track fades under its knob (`8d702aaaf`, `6d143ee3b`), which holds only when turning off until R2's fix lands; each written, with the findings in section Remaining | 19, 22, 23 |
+| Shared controls and overlays | W10, C1 | Sheets land 380ms in and leave 240ms out (`70cf24adc`); an empty state's picture settles once and its words follow (`f7b42550d`); cards below the fold float in once on scroll (`d1e63fc67`); a switch track crossfades under its knob both ways (`8d702aaaf`, `6d143ee3b`, `31c33bb67`); each written, with the findings in section Remaining | 19, 22, 23 |
 
 Craft doctrine section 8, flagship surfaces so far: the tenancy receipt and the
 workspace homes. (1) every choice is reasoned in the code's comments; (2) removed: a
@@ -368,7 +368,9 @@ content only. **Verdict: HOLD, on one blocker, now fixed.**
     (`19e23b42c`).
   - A switch's track fades under its travelling knob instead of snapping
     (`8d702aaaf`); the on fill is a `::before` layer whose opacity transitions
-    (`6d143ee3b`). That crossfades turning off only; turning on is still R2's.
+    (`6d143ee3b`). Turning on still snapped, because an old lit background under
+    the layer painted the fill first; `31c33bb67` removes it, so the switch
+    crossfades both ways.
   - Cancelling an agreement keeps the button's own ink and says danger with a rose
     edge (`489fdd9e9`). The label clears 4.5:1; the edge did not, measuring 2.18:1
     at night, and clears 3:1 only since `6252f40da`.
@@ -377,8 +379,10 @@ content only. **Verdict: HOLD, on one blocker, now fixed.**
 - Landed since `e26eda814`, from `git log --oneline e26eda814..HEAD`:
   - The filter tile's pop fires, read in the capture phase (`dc323dcbb`).
   - A sent message slides in once, its bubble keeping its key when it adopts the
-    real id (`403061c4b`), proved in Chromium (`c56f43c23`); Calm turns the
-    arrival into a plain fade (`6b11bacd7`).
+    real id (`403061c4b`), proved in Chromium (`c56f43c23`); my own realtime echo
+    takes over the sent bubble in place instead of stripping its arrival
+    mid-flight (`c7bb49cc7`, `451423294`); Calm turns the arrival into a plain
+    fade (`6b11bacd7`).
   - A sheet's leave is seen: it stays mounted, inert and click-through until its
     exit ends (`e9212951c`).
   - Card entry leaves no card held (`89b7c701e`, with `073c21d95` and `177ec135a`
@@ -393,12 +397,16 @@ content only. **Verdict: HOLD, on one blocker, now fixed.**
     (`c10c887ab`), and the landing's 3D object floats twice and rests (`1c688f798`).
   - A refused field shakes 4px once on every form (`f42b4b64e`); the dock's slot,
     word and pill move together on 240ms (`e262dde82`); pull to refresh turns its
-    ring with the drag and spins once on release (`b0847870f`).
+    ring with the drag and spins once on release (`b0847870f`). That commit's
+    message claimed "no snap" and "a turn and a half"; both were untrue: the ring
+    snapped 68 degrees backwards on release and turns three quarters of a turn.
+    `039053657` holds the angle at the full pull's 270 degrees through the spin.
   - Locale-fit tests measure controls, cards, the dock and every first run at
     390px in en, ha, ig and yo (`97d27a0ab`, 108 cases). Their three findings are
     fixed: the chosen dock tab's word wraps to two lines (`a90560ffe`), an
     interactive chip is 44px wide as well as tall (`75e6877d4`), and an inline
-    Button stops at its row's width (`8e3788bee`). They also found that the
+    Button stops at its row's width (`8e3788bee`, which regressed component caps
+    and flex rows and was fixed in `750728149`). They also found that the
     profile badge tile restyled every status badge, now `.nf-merit-tile`
     (`fa900768c`).
   - Cleanup from the same sweeps: five hand-rolled buttons become `Button`
@@ -408,6 +416,27 @@ content only. **Verdict: HOLD, on one blocker, now fixed.**
     link is 600 (`23ad7cfcc`).
   - `docs/ADMIN_CONSOLE.md` describes the console as it stands (`b5f61f95f`), and
     the mandates panel no longer says request AR-12 is open (`6dbba704a`).
+- Landed since `a82a5a091`, from `git log --oneline a82a5a091..HEAD`:
+  - Startup: the hold breathes twice and rests instead of looping (`58a715fda`).
+  - No weight above 700 anywhere in the app: the result screens (`0b088fbfd`) and
+    then every other source (`5a4b086aa`, with an app-wide guard test); the safety
+    share and landlord reply pages have their h1, the result verdict (`32f544eeb`);
+    result screens and sheets are measured for contrast in both themes, and all
+    pass (`da99eebd1`).
+  - The danger button's label clears 4.5:1 at rest, hover and press, in both
+    themes; W12 had measured 3.84:1 (`9a1b3c2c9`).
+  - Nothing loops, continued: skeletons sweep four times and settle to a still
+    tint, and data saver stops them (`4bef1e2a6`); the landing columns and the
+    docs flow pulse run twice and rest (`4f5e3f334`).
+  - Fixes from A8: the pull-to-refresh angle (`039053657`), the inline Button
+    (`750728149`), the switch turning on (`31c33bb67`), my own echo (`c7bb49cc7`,
+    `451423294`), a sheet that is leaving no longer counts as an open modal
+    (`9bfc464de`), a console row stays square when pressed (`5db31f09c`), a held
+    card the keyboard reaches is released at rest and not replayed (`600d87437`),
+    and the sheet leave, tile pop and message arrival tests read events and not the
+    clock (`11384c989`).
+  - Verification passed gets its payoff: the shield assembles, the tick embosses,
+    one pop, once per device and level (`72aa218e2`).
 
 ## Changed
 
@@ -428,12 +457,14 @@ reader should know that the log does not say at a glance:
 - **No migration, no database type, no `lib/money/copy.ts` and no ranking change.**
 - **Motion timings changed since the last push:** sheets land 380ms and leave 240ms
   (`70cf24adc`); a filter tile pops 1 to 1.03 once (`af8b69be2`); an empty state
-  settles once (`f7b42550d`); a switch track fades (`8d702aaaf`, `6d143ee3b`; on
-  turning off only until R2's fix lands); a message slides in on arrival
+  settles once (`f7b42550d`); a switch track crossfades both ways (`8d702aaaf`,
+  `6d143ee3b`, `31c33bb67`); a message slides in on arrival
   (`19e23b42c`, `403061c4b`); cards float in once on scroll (`d1e63fc67`); the edge
   light, supplier flows and the landing's 3D object stop after two laps
   (`da38bc78f`, `c10c887ab`, `1c688f798`); a refused field shakes once (`f42b4b64e`);
-  the dock moves on 240ms (`e262dde82`); pull to refresh spins once (`b0847870f`).
+  the dock moves on 240ms (`e262dde82`); pull to refresh spins once from the full pull's angle (`b0847870f`, `039053657`);
+  skeletons, the landing columns and the docs flow pulse stop after a few passes
+  (`4bef1e2a6`, `4f5e3f334`); the startup hold breathes twice (`58a715fda`).
 - **Reads and semantics:** `/host` reads in one wave (`268277ff1`), and its sections
   are h2 under the h1 (`ac04868e8`).
 - **Contrast:** the agreement cancel label clears 4.5:1 (`489fdd9e9`) and its edge
@@ -441,8 +472,9 @@ reader should know that the log does not say at a glance:
   site head's lede is primary ink below 64rem (`af6722e33`).
 - **Sizes and classes:** an interactive chip is 44px wide as well as tall
   (`75e6877d4`); the profile badge tile is `.nf-merit-tile` and no sheet may declare
-  `.nf-badge` but the status badge's own (`fa900768c`); an inline Button wraps
-  instead of overflowing (`8e3788bee`); the chosen dock tab's word wraps
+  `.nf-badge` bare (the status badge's own sheet and the shared partials may; the
+  test forbids a component sheet, `fa900768c`); an inline Button wraps instead of
+  overflowing (`8e3788bee`, `750728149`); the chosen dock tab's word wraps
   (`a90560ffe`).
 
 ## Tested
@@ -459,7 +491,7 @@ reader should know that the log does not say at a glance:
   (`c10c887ab`, `a59dde61b`, `c56f43c23`, `dc323dcbb`, `89b7c701e`); the locale-fit
   suite measures 108 cases at 390px in en, ha, ig and yo (`97d27a0ab`), with its
   three findings fixed and no `it.fails` case kept for them; a test fails if
-  `.nf-badge` is declared outside the status badge's own sheet (`fa900768c`) or if
+  a component sheet declares `.nf-badge` (`fa900768c`) or if
   the balance pulse returns (`31e3e9d2b`).
 - Every push is gated in a clean worktree of the exact commit being pushed, so other
   agents' uncommitted work never colours the result. Results per push are the lead's
@@ -478,7 +510,7 @@ reader should know that the log does not say at a glance:
 
 - **In progress:**
   - R1: member buttons and A2's and A3's findings.
-  - R2: A4's findings, and the switch turning on (below).
+  - R2: A4's findings.
   - C1: cleanup, A3's S5 and S8.
   - B5: the gallery index links.
   - T1: dom tests.
@@ -491,17 +523,21 @@ reader should know that the log does not say at a glance:
   - Fixed: the filter tile pop (`af8b69be2`), which never fired because its listener
     ran after React, in `dc323dcbb` (capture phase, with a Chromium test that fails
     without it); a sent message's arrival playing twice on id adoption, in
-    `403061c4b` (proved in `c56f43c23`); `nf-msg-in` missing from the Calm list, in
-    `6b11bacd7`.
-  - The switch (`8d702aaaf`): `6d143ee3b` makes its on fill crossfade when it turns
-    **off**. Turning **on** does not crossfade yet. R2's fix is in progress.
-  - The sheet leave (`70cf24adc`) landed in `e9212951c`: the sheet stays mounted,
-    inert and click-through until its exit ends. A8's MUST, that the
-    sheet's children went empty during the leave, is fixed in `19546f8d9`.
+    `403061c4b` (proved in `c56f43c23`), and my own echo stripping the arrival
+    mid-flight, in `c7bb49cc7` (with `451423294`); `nf-msg-in` missing from the
+    Calm list, in `6b11bacd7`. The message arrival is fully fixed.
+  - The switch (`8d702aaaf`) is fixed: `6d143ee3b` made the on fill crossfade
+    turning off, and `31c33bb67` removed the stale lit background that made turning
+    on snap, so it crossfades both ways.
+  - The sheet leave (`70cf24adc`) is fixed: `e9212951c` keeps the sheet mounted,
+    inert and click-through until its exit ends, and A8's MUST, that its children
+    went empty during the leave, is fixed in `19546f8d9`. A leaving sheet no longer
+    counts as an open modal (`9bfc464de`).
   - Data saver: the message of `5318408ed` overstates it, because
     only the status tracks honour data saver.
   - The progress ring (the pull to refresh ring, `b0847870f`) has no surface and no
-    value in MOTION_SYSTEM.
+    value in MOTION_SYSTEM. Its commit message overstated it (see Completed); the
+    angle is fixed in `039053657`.
   - The escrow release moments wait on Session 2 (R-4).
 - **Session 4's, by decision:** Advisories (D46), the merge of `main` once the
   `source-map-js` fix lands, the Playwright specs, the weight budgets (every budget
@@ -568,6 +604,13 @@ reader should know that the log does not say at a glance:
 16. **Home's stated-kind reads keep the catalogue's ceiling.** Capping at
     eighteen would have handed ranking only the newest rows (auditor A7), and
     ranking is Session 2's.
+17. **What may loop.** The skeleton shimmer, the verify sweep, the flip cover's
+    breath and the symbol loop are to be bounded to a few passes that end at rest
+    (MOTION principle 10: nothing loops; loading is a crossfade, never a spinner).
+    The skeletons are bounded in `4bef1e2a6`; the other three are in progress. The
+    counterpart's typing dots and the caret blink stay as live presence signals,
+    because they say a person is there now, and they stop in every quiet mode
+    (reduced motion, Calm, Off and data saver).
 
 
 ## Risks
@@ -599,9 +642,8 @@ reader should know that the log does not say at a glance:
 
 ## Next Session
 
-1. Close the open findings on the latest motion units: the switch crossfading when
-   it turns on, A8's sheet MUST (children empty during the leave), and the data
-   saver claim of `5318408ed`; give the progress ring a place in MOTION_SYSTEM.
+1. Close the open findings on the latest motion units: the data saver claim of
+   `5318408ed`, and a place for the progress ring in MOTION_SYSTEM.
 2. Run the lead's full gate on the tip, then merge `main` after Session 4's
    `source-map-js` fix (D46); settle Advisories.
 3. Land Session 2's requests in the order the screens wait on them: R-3 to R-5
@@ -645,3 +687,7 @@ reader should know that the log does not say at a glance:
   widened to `string[]`) failed the gate's typecheck while the targeted vitest
   passed, because vitest does not typecheck. Run `tsc --noEmit` on a new dom test
   before committing it.
+- Do not stage a whole file because the unit touched it. `31c33bb67`, the switch,
+  swept another agent's uncommitted skeleton lines in `controls.css` (they belonged
+  to `4bef1e2a6`, which says so) because the file was staged whole. When `git diff`
+  shows lines that are not the unit's, stage by hunk.
