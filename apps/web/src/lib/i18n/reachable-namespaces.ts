@@ -71,6 +71,11 @@ function reachableSources(root: string): Map<string, string> {
   return seen;
 }
 
+/** Every local module a root's run-time import graph reaches (relative to `src`), comment-free source included. */
+export function reachableModules(root: string): Map<string, string> {
+  return new Map([...reachableSources(root)].map(([file, source]) => [relative(SRC, file), source]));
+}
+
 export function reachableNamespaces(root: string): Set<string> {
   const used = new Set<string>();
   for (const source of reachableSources(root).values()) {

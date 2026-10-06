@@ -7,6 +7,7 @@ import { StayCard } from "@/components/app/stays/StayCard";
 import { InspectionRows } from "@/components/app/inspections/InspectionRows";
 import { KycStatus, type KycStatusView } from "@/components/verification/KycStatus";
 import { SavedSearchBoard } from "@/components/app/saved-searches/SavedSearchBoard";
+import { searchChipCopyOf } from "@/lib/saved/searches";
 import { ModeratorApply } from "@/app/(app)/around/[slug]/ModeratorApply";
 import { ModeratorNote, PlaceAbout, PlaceNotes } from "@/app/(app)/around/[slug]/PlacePanels";
 import { ProposeAreaForm } from "@/app/(app)/around/new/ProposeAreaForm";
@@ -295,7 +296,7 @@ function View({ v, s }: { v: string; s?: string }) {
     case "saved-searches":
       return (
         <Frame title="Saved searches">
-          <SavedSearchBoard initial={SAVED_SEARCHES} locale={locale} />
+          <SavedSearchBoard initial={SAVED_SEARCHES} locale={locale} chipCopy={searchChipCopyOf(t.shape)} />
         </Frame>
       );
     case "post":

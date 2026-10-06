@@ -13,7 +13,12 @@ import {
   renameSavedSearch,
   setSavedSearchAlert,
 } from "@/lib/saved/searches-actions";
-import { SAVED_SEARCH_LABEL_MAX, summariseSearch, type SavedSearchView } from "@/lib/saved/searches";
+import {
+  SAVED_SEARCH_LABEL_MAX,
+  summariseSearch,
+  type SavedSearchView,
+  type SearchChipCopy,
+} from "@/lib/saved/searches";
 
 /**
  * THE KEPT SEARCHES, AND EVERY WRITE THAT CAN REACH THEM.
@@ -55,9 +60,12 @@ type Note = { text: string; tone: "ok" | "error" } | null;
 export function SavedSearchBoard({
   initial,
   locale,
+  chipCopy,
 }: {
   initial: SavedSearchView[];
   locale: Locale;
+  /** The dictionary's lines for the chips, read on the server (`searchChipCopyOf`). */
+  chipCopy: SearchChipCopy;
 }) {
   const [rows, setRows] = useState(initial);
 
@@ -77,6 +85,7 @@ export function SavedSearchBoard({
             key={row.id}
             row={row}
             locale={locale}
+            chipCopy={chipCopy}
             onReplace={replace}
             onDrop={drop}
           />
@@ -89,11 +98,13 @@ export function SavedSearchBoard({
 function SavedSearchRow({
   row,
   locale,
+  chipCopy,
   onReplace,
   onDrop,
 }: {
   row: SavedSearchView;
   locale: Locale;
+  chipCopy: SearchChipCopy;
   onReplace: (next: SavedSearchView) => void;
   onDrop: (id: string) => void;
 }) {
@@ -108,7 +119,7 @@ function SavedSearchRow({
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const alertOn = alertOverride ?? row.alertEnabled;
-  const chips = summariseSearch(row.params, locale);
+  const chips = summariseSearch(row.params, locale, chipCopy);
 
   /* The timer is cleared on unmount, because a row that has just been removed
      is unmounted while its note is still counting down. */

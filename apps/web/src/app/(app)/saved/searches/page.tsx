@@ -8,6 +8,7 @@ import { Reveal } from "@/components/site/Reveal";
 import { SavedSearchBoard } from "@/components/app/saved-searches/SavedSearchBoard";
 import { getLocale } from "@/lib/locale";
 import { listSavedSearches } from "@/lib/saved/searches-queries";
+import { searchChipCopyOf } from "@/lib/saved/searches";
 import { getDictionary } from "@vallo/i18n";
 import { readMyBriefs } from "@/lib/briefs/queries";
 import { briefDraftFrom } from "@/lib/briefs/brief";
@@ -119,7 +120,7 @@ export default async function SavedSearchesPage({
         />
       ) : (
         <Reveal>
-          <SavedSearchBoard initial={state.searches} locale={locale} />
+          <SavedSearchBoard initial={state.searches} locale={locale} chipCopy={searchChipCopyOf(t.shape)} />
         </Reveal>
       )}
 
