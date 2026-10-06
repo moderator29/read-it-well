@@ -24,18 +24,60 @@ written here as a separate file and noted.
 
 ## Payluk: what Session 1 got wrong
 
-Open, and **blocked by this environment**: `docs.payluk.ng` is refused by the cloud
-environment's egress proxy (CONNECT 403 from curl, EGRESS_BLOCKED from the fetch
-tool), the same wall Session 1 hit. No Payluk code has been written, as 7.2 requires.
-**Needed:** add `docs.payluk.ng` (and the API host, once known) to Allowed domains
-in the environment's Network access settings, or paste the five pages
-(`/llms.txt`, `/introduction`, `/api-reference`, `/guides/ai-agent-skill`,
-`/guides/payluk-test-bank`) into `docs/payments/payluk-source/`.
+Read in full from the live docs on 6 October 2026 (92 pages plus `openapi.json`) once
+the founder opened `docs.payluk.ng`. Full evidence, with a page citation per claim:
+**`docs/payments/PAYLUK_LIVE_DOCS_FINDINGS.md`**. Bluntly:
+
+1. **"No failure webhooks exist."** False. Every `payment.*` event has `.failed` and
+   `.reversed` counterparts. Only `escrow.*` has none. The whole "reconciliation is
+   the only way to see a failure" premise was built on a missing page.
+2. **"The fee is undocumented."** False since 2 October: Payluk takes 2% of a merchant
+   escrow, plus any commission Vallo sets, split by `whoPays`.
+3. **"No cNGN."** False. cNGN (BEP-20 on BSC) is a live deposit and checkout rail.
+   The founder's "stay off Payluk cNGN" ruling is a real constraint, not a moot one.
+4. **Missed the rate limit entirely: 10 requests per minute per secret key, every
+   route.** This is the largest design constraint in the integration. Reconciliation
+   polling, refunds and webhooks-driven reads all share that budget.
+5. **Understated the super-admin scope.** Only the escrow, milestone and category
+   routes accept an ordinary business key; everything else needs super-admin.
+6. **Claim timing wrong:** a seller may claim only one day after the delivery window.
+7. **Dispute flow wrong:** resolve appears not to need the seller's reply (inferred
+   from the official example; to confirm on staging). Milestones release strictly in
+   order, and each may name its own beneficiary.
+8. **`pk_live_` prefix** is not in the docs. It came from npm.
+
+What Session 1 got right: hosts and key prefixes, the IP allowlist, Payluk not
+arbitrating disputes, no idempotency key, the HMAC-SHA512 signature in
+`x-payluk-signature`, `mainBalance` and `escrowBalance`, and virtual accounts now
+answering `410 Gone`.
 
 ## The twelve questions (architecture section 7)
 
-Open. **Question 3 (can a funded escrow be refunded without a dispute?) is still
-unanswered**, and the cancellation path is not being built until it is.
+Answered: 2, 3, 4 (largely), 8, 11, 12. Partly: 1, 5, 7, 9. Open: 6 (payout timing and
+limits) and 10 (KYC tiers), each needing Payluk in writing. Detail per question in the
+findings file, section 2.
+
+### Question 3, called out: NO
+
+**A funded standard or milestone escrow cannot be refunded without a dispute.** There
+is no refund or cancel route (the only cancel is for vault escrows), and a funded
+escrow cannot be edited or deleted. The only way money returns to a guest is: Vallo
+opens a dispute **as the guest** (`submit-dispute` with the guest's `customer-id`),
+then resolves it `REFUNDED`. Consequences:
+
+- every routine cancellation notifies the host of a "dispute";
+- on the majority reading of contradictory docs, **the guest loses Payluk's fee on
+  every refund** whatever `whoPays` says, unless Vallo makes them whole;
+- each refund spends at least 2 of the 10 requests a minute;
+- after `COMPLETED` or `CLAIMED`, no refund is possible through the escrow at all.
+
+**Recommendation (Decisions, for the founder):** do not fund a booking's escrow until
+its free-cancellation window has closed. An unfunded escrow can be deleted freely, so
+a cancellation inside the frozen terms never touches Payluk's dispute path. Collect
+on Paystack at booking as today and move into escrow when the window closes, or hold
+the booking unpaid until then. The cancellation path is **not** being built until the
+founder picks. Two staging tests close the remaining doubt: resolving from `DISPUTED`
+without a seller reply, and the fee actually returned on a refund for each `whoPays`.
 
 ## Migrations
 
@@ -56,20 +98,33 @@ Nothing yet.
 - `PAYSTACK_GUARANTEE_SUBACCOUNT` (live). Not blocking: test mode reads
   `PAYSTACK_TEST_GUARANTEE_SUBACCOUNT`.
 - Termii keys, for the phone gate switch-on.
-- Network access to `docs.payluk.ng` (see the Payluk section). Blocks 7.2 to 7.9
-  and question 3.
+- **Question 3 design choice** (see above): fund escrow after the free-cancellation
+  window, or accept dispute-shaped cancellations and the guest fee loss. Blocks the
+  escrow cancellation path only.
+- **A Payluk staging secret key (`sk_test_...`)** in the environment as
+  `PAYLUK_TEST_SECRET_KEY`, for the staging tests and acceptance criterion 10.
 
 ## Classification of what was touched
 
 | Item | Class |
 |---|---|
 | `app/open/route.ts` | HARDEN |
+| `lib/passcode/rules.ts` default | UPGRADE |
+| Supply unblocking (SUP-05) | KEEP, verified |
+| `blocked_terms` | COMPLETE (retire, refuse tier, staff surface) |
 
 ---
 
 ## Completed
 
 - `/open` deadline with a test (acceptance criterion 1). Commit `0bf5a642e`.
+- Passcode defaults to four digits, six one tap away (criterion 21). `b1afcbef4`.
+- Payluk live documentation read; Session 1's architecture corrected in
+  `docs/payments/PAYLUK_LIVE_DOCS_FINDINGS.md`; question 3 answered (no).
+- Supply unblocking: **already built** (SUP-05, migration `20260924001655`). An
+  applicant answers at `/profile/application`, the row returns to SUBMITTED, and the
+  admin agents desk shows the answer. The brief was out of date. **VL-AGT-10016 is
+  waiting on the founder to answer it there**, not on code.
 
 ## Changed
 
@@ -84,13 +139,11 @@ Nothing yet.
 
 ## Failed
 
-- Passcode default to four (7.15b) was made and **backed out, not pushed**: two DOM
-  tests (`PasscodeFrame.dom.test.tsx`, `PasscodeGate.dom.test.tsx`) assert the
-  six-digit default and need updating, and re-running them was refused by this
-  session's permission classifier. The change is four lines: `DEFAULT_PASSCODE_LENGTH`
-  to 4 in `lib/passcode/rules.ts`, the comment in `PasscodeSetup.tsx`, two lines of
-  `docs/PASSCODE.md`, and `tests/_passcode.mjs` must click
-  `passcode-length-switch` before typing its six-digit spec code.
+- Passcode, first attempt: backed out when a test re-run was refused; the founder
+  then cleared the tests and it landed (`b1afcbef4`).
+- The live re-run of the listing-insert probe (`s1-owner-writes-keep-working`) timed
+  out at the MCP's 60 s limit with no result. Verified afterwards: nothing recorded,
+  no residue. To be re-run.
 
 ## Remaining
 
