@@ -5,14 +5,17 @@ import { resolveSession } from "../actions/session";
 import { parseListerFeePolicy, type ListerFeePolicy } from "./lister-fee";
 
 /**
- * THE RATE IN FORCE FOR ONE LISTING, READ ON THE SERVER (D51).
+ * THE RATES IN FORCE FOR ONE LISTING, READ ON THE SERVER (D51, D61).
  *
- * The lister's platform fee is policy data in `money_policy`, in basis points,
- * with a version recorded against every acceptance. That read does not exist
- * yet: it is C2 REQUEST 1 to Session 2, `public.lister_fee_policy(p_listing,
+ * The lister's fees are policy data, in basis points and kobo, with a version
+ * recorded against every acceptance. That read does not exist yet: it is C2
+ * REQUEST 1 to Session 2, revised by D61, `public.lister_fee_policy(p_listing,
  * p_property_type, p_listing_intent)` returning one row of `rate_version`,
- * `rail` ('escrow' | 'direct'), `fee_bps` and `cap_minor`, resolved by the
- * rail router and readable by the listing's own lister.
+ * `commission_bps` (Vallo, both rails), `escrow_protection_bps` (the escrow
+ * partner's fee the lister bears), `direct_processor_fee_cap_minor` (the most
+ * the processor's fee can be on a direct payment, borne by the lister as the
+ * split's bearer; 0 if not) and `cap_minor` (a cap on Vallo's commission, or
+ * null). No `rail`: the rail is not knowable when the lister accepts.
  *
  * Until it lands the call fails and this answers null, and the fee gate says
  * it cannot show the figures. It never falls back to a typed rate: a guessed
