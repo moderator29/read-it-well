@@ -256,7 +256,10 @@ begin
     refused := false;
     begin
       execute format('truncate public.%I', t);
-    exception when insufficient_privilege then refused := true;
+    -- Refused either by the no-truncate trigger (42501) or, for a pot another
+    -- table references (promotion.purchases -> ledger_vallo_revenue), by
+    -- Postgres itself before any trigger runs (0A000). Both are a refusal.
+    exception when insufficient_privilege or feature_not_supported then refused := true;
     end;
     if not refused then raise exception 'PROBE_FAIL b2-ledger: % accepted a truncate', t; end if;
   end loop;
