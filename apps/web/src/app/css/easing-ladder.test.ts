@@ -39,13 +39,6 @@ const LINEAR: Record<string, [number, string]> = {
   "app/css/landing-rooms.css": [3, "the steps' draw is a view timeline (scroll is the clock)"],
   "app/css/landing-3d.css": [1, "the object's pop rides the steps' view timeline"],
   "app/css/motion.css": [1, "the card entry is a view timeline (scroll is the clock)"],
-  /* PENDING: reduced-motion crossfades that belong on `glide`, in files that
-     carry another agent's uncommitted work or belong to the money agent;
-     the change is scratchpad/W1/r5/patches/calm-crossfades.patch. Remove each
-     line when it lands. */
-  "app/css/document.css": [2, "PENDING patch: the document's reduced-motion fade"],
-  "app/css/threshold.css": [1, "PENDING patch: the door's reduced-motion fade"],
-  "app/css/pay-stage.css": [3, "PENDING patch (M3): the pay stage's calm cut and fades"],
   "app/css/edge-m.css": [3, "the edge light's runners travel the rim at constant speed (two laps)"],
   "app/css/light.css": [1, "the logo's rim light turns at constant speed (two laps)"],
   "app/css/shell-m.css": [1, "the dock plus's rim light turns at constant speed (two laps)"],
@@ -118,13 +111,7 @@ describe("the curves in the stylesheets", () => {
   });
 
   it("never write a cubic-bezier by hand: the curve is a token", () => {
-    /* PENDING: animation.css carries another agent's uncommitted work; the
-       verifying sweep's move onto `whip` is scratchpad/W1/r5/patches/
-       animation-verify-sweep.patch. Remove this line when it lands. */
-    const pending = new Set(["app/css/animation.css: nf-verify-sweep 1.15s cubic-bezier(0.65, 0, 0.35, 1) 3"]);
-    const wrong = sheets.flatMap(([file, found]) =>
-      found.filter((f) => f.kind === "bezier").map((f) => `${file}: ${f.item}`).filter((key) => !pending.has(key)),
-    );
+    const wrong = sheets.flatMap(([file, found]) => found.filter((f) => f.kind === "bezier").map((f) => `${file}: ${f.item}`));
     expect(wrong).toEqual([]);
   });
 
@@ -160,12 +147,7 @@ describe("the curves in the components", () => {
   const files = [...walk(SRC, ".tsx"), ...walk(SRC, ".ts")].map((file) => [relative(SRC, file), code(readFileSync(file, "utf8"))] as const);
 
   it("use no Tailwind ease-* or numeric duration-* utility (Tailwind's numbers, not ours)", () => {
-    /* M2's uncommitted work in PhotoViewer.tsx already moves its two
-       `duration-200 ease-out` utilities onto the tokens; until it lands the
-       committed file still carries them. Remove this line when it does. */
-    const PENDING = new Set(["components/app/listing/PhotoViewer.tsx"]);
     const wrong = files
-      .filter(([file]) => !PENDING.has(file))
       .flatMap(([file, text]) => [...text.matchAll(/(?<![\w[-])(?:ease-(?:in|out|in-out|linear)|duration-\d+)(?![\w-])/g)].map((m) => `${file}: ${m[0]}`));
     expect(wrong).toEqual([]);
   });

@@ -33,7 +33,7 @@
   .nf-sheet.nf-sheet--card.nf-success-card.nf-pay-stage--cut,
   .nf-sheet.nf-sheet--card.nf-success-card.nf-pay-stage--cut[data-open="true"] {
     transform: none;
-    transition: opacity var(--nf-duration-fast) linear;
+    transition: opacity var(--nf-duration-fast) var(--nf-ease-standard);
   }
 
   /*
@@ -77,12 +77,12 @@
      card itself fades in rather than appearing. Off is instant. */
   @media (prefers-reduced-motion: reduce) {
     :root:not([data-motion="off"]) :is(.nf-pay-stage__face:not([data-at="failed"]) .nf-pay-stage__title, .nf-success[data-staged] .nf-success__title) {
-      animation: nf-pay-fade 160ms linear both;
+      animation: nf-pay-fade 160ms var(--nf-ease-standard) both;
       /* The floor in animation.css would make this fade instant; this opts in. */
       --nf-reduced-duration: 160ms;
     }
     :root:not([data-motion="off"]) .nf-sheet.nf-sheet--card.nf-pay-stage {
-      transition: opacity 160ms linear;
+      transition: opacity 160ms var(--nf-ease-standard);
       --nf-reduced-transition: 160ms;
     }
   }

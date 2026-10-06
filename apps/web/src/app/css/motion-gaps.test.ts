@@ -167,7 +167,7 @@ describe("principle 10, the marketing and loading loops (Session 3, C1)", () => 
 
   it("the verifying bar, the flip cover's breathing and the opt-in symbol loop are bounded, with a held rest", () => {
     const anim = strip(css("animation.css"));
-    expect(anim).toContain("nf-verify-sweep 1.15s cubic-bezier(0.65, 0, 0.35, 1) 3,");
+    expect(anim).toContain("nf-verify-sweep 1.15s var(--nf-ease-whip) 3,");
     expect(anim).toContain("nf-verify-settle var(--nf-duration-deliberate) var(--nf-ease-entrance) 3.45s forwards;");
     expect(anim).toMatch(/@keyframes nf-verify-settle \{\s*from \{\s*transform: translateX\(-110%\);\s*\}\s*to \{\s*transform: translateX\(100%\);/);
     const flip = strip(css("side-flip.css"));

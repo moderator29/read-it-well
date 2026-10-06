@@ -465,12 +465,12 @@
       animation: nf-doc-unroll var(--nf-duration-slow) var(--nf-ease-standard) both;
     }
     :root[data-motion="calm"] .nf-doc {
-      animation: nf-doc-fade 160ms linear both;
+      animation: nf-doc-fade 160ms var(--nf-ease-standard) both;
     }
   }
   @media (prefers-reduced-motion: reduce) {
     :root:not([data-motion="off"]) .nf-doc {
-      animation: nf-doc-fade 160ms linear both;
+      animation: nf-doc-fade 160ms var(--nf-ease-standard) both;
       /* The floor in animation.css would make this fade instant; this opts in. */
       --nf-reduced-duration: 160ms;
     }

@@ -449,7 +449,7 @@
   }
   .nf-verify-sweep {
     animation:
-      nf-verify-sweep 1.15s cubic-bezier(0.65, 0, 0.35, 1) 3,
+      nf-verify-sweep 1.15s var(--nf-ease-whip) 3,
       nf-verify-settle var(--nf-duration-deliberate) var(--nf-ease-entrance) 3.45s forwards;
   }
   /* Calm: no sweeps, it just settles into its held place. */

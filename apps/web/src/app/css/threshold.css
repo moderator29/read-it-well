@@ -459,7 +459,7 @@
     /* Opening keeps a 160ms crossfade rather than nothing (MOTION_SYSTEM.md
        section 3): the app still has to appear, it just does not travel. */
     :root[data-arrive="open"] #main {
-      animation: nf-threshold-open-fade 160ms linear both;
+      animation: nf-threshold-open-fade 160ms var(--nf-ease-standard) both;
       /* The floor in animation.css would make this fade instant; this opts in
          (registered, not inherited: nothing inside #main is affected). */
       --nf-reduced-duration: 160ms;
