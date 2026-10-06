@@ -62,8 +62,8 @@ let compiled: Promise<string> | null = null;
  * `globals.css` does not carry: the harness drops every CSS import, so a surface
  * whose rules live in such a sheet (the drag handle's size, the card grid) would
  * be measured unstyled. Taken as the union over the whole source tree, minus the
- * staff console and the development harness, whose sheets are scoped to their
- * own classes.
+ * staff console, the development harness and the public site, which are other
+ * routes' sheets.
  */
 function componentSheets(): string[] {
   const globals = readFileSync(join(SRC, "app", "globals.css"), "utf8");
@@ -73,7 +73,10 @@ function componentSheets(): string[] {
       if (entry.name === "node_modules" || entry.name.startsWith(".")) continue;
       const path = join(dir, entry.name);
       if (entry.isDirectory()) {
-        if (entry.name === "admin" || entry.name === "(dev)") continue;
+        /* The staff console, the development harness and the public site are other routes' sheets, loaded on
+           other routes: every route group but `(app)` (the site's and the landing's `landing-rooms.css`, for one, also names `.nf-movein__figure`), and a member's
+           listing page never loads them. */
+        if (entry.name === "admin" || entry.name === "(dev)" || (entry.name.startsWith("(") && entry.name !== "(app)") || path.endsWith(join("components", "site"))) continue;
         walk(path);
         continue;
       }
@@ -234,7 +237,13 @@ export async function auditFit(page: Page, scope = "#stage"): Promise<FitFinding
 
     /* 2. A label cut off where the design wraps it. */
     const clipped: string[] = [];
-    const interactiveLabel = (el: Element) => !!el.closest("button, a, [role='tab'], [role='radio'], [role='switch'], [role='button'], .nf-chip, .nf-seg");
+    /* A control's own LABEL: the control holds nothing but these words. A row that is a link around several lines
+       (a conversation, a notification) truncates its preview line by design; that is content, not a label. */
+    const squash = (text: string | null) => (text ?? "").replace(/\s+/g, " ").trim();
+    const interactiveLabel = (el: Element) => {
+      const control = el.closest("button, a, [role='tab'], [role='radio'], [role='switch'], [role='button'], .nf-chip, .nf-seg");
+      return !!control && squash(control.textContent) === squash(el.textContent);
+    };
     for (const el of everything) {
       if (!shown(el) || el.closest(".sr-only")) continue;
       const own = [...el.childNodes].some((n) => n.nodeType === 3 && (n.textContent ?? "").trim().length > 0);
