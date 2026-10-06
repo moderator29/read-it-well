@@ -77,7 +77,9 @@ describe("message arrival", () => {
 
   it("is only added to a message that arrives after the thread opened", () => {
     const thread = readFileSync(join(process.cwd(), "src/app/(app)/messages/[id]/ThreadView.tsx"), "utf8");
-    expect(thread).toContain("openedWith.has(m.id)");
+    expect(thread).toContain("arrivalClass(openedWith, m)");
+    /* ...and keyed by a key that survives adopting the real id (thread-arrival.ts). */
+    expect(thread).toContain("<Fragment key={bubbleKey(m)}>");
   });
 });
 

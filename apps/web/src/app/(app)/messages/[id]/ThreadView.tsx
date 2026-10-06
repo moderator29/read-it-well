@@ -3,6 +3,7 @@
 import { initial } from "@/lib/text/initial";
 import Link from "next/link";
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
+import { adoptBubble, arrivalClass, bubbleKey } from "./thread-arrival";
 import type { Dictionary, Locale } from "@vallo/i18n/core";
 import { ThreadContextBanner, type ThreadRole } from "@/components/app/threads/ThreadContextBanner";
 import { reservationLine } from "@/components/app/threads/ReservationFace";
@@ -83,6 +84,8 @@ import { useInboxPart } from "@/components/app/threads/use-inbox-copy";
 
 export type ThreadBubble = {
   id: string;
+  /** The id a sent bubble was born with; survives adoption of the real id (`thread-arrival.ts`). */
+  clientKey?: string;
   mine: boolean;
   body: string;
   timeLabel: string;
@@ -370,7 +373,7 @@ export function ThreadView({
      this (sent or received while the thread is open) plays the arrival
      motion; the history the thread opened with is simply there, so opening a
      long conversation is not forty bubbles sliding in at once. */
-  const [openedWith] = useState(() => new Set(messages.map((m) => m.id)));
+  const [openedWith, setOpenedWith] = useState<ReadonlySet<string>>(() => new Set(messages.map((m) => m.id)));
   const threadWords = useInboxPart("thread", inboxThreadCopy);
   /* The unread divider is fixed at arrival: reading the thread marks it read
      and the page may re-render with nothing unread, but the divider stays
@@ -485,6 +488,9 @@ export function ThreadView({
      is on screen. A share arriving live draws as its words and its path
      until the next server render expands it, which is honest and opens. */
   useThreadRealtime(live ? conversationId : null, (row: LiveMessageRow) => {
+    /* My own send echoing back before its result lands: the optimistic bubble
+       already arrived, so this one must not arrive a second time. */
+    if (row.sender_id === meId) setOpenedWith((prev) => new Set(prev).add(row.id));
     setItems((prev) => {
       if (prev.some((m) => m.id === row.id)) return prev;
       return [
@@ -520,15 +526,10 @@ export function ThreadView({
 
   const adoptResult = useCallback((tempId: string, realId: string, timeLabel?: string) => {
     retryPayloads.current.delete(tempId);
-    setItems((prev) => {
-      // Realtime may have delivered the real row already; drop the temp then.
-      if (prev.some((m) => m.id === realId)) return prev.filter((m) => m.id !== tempId);
-      return prev.map((m) =>
-        m.id === tempId
-          ? { ...m, id: realId, state: undefined, timeLabel: timeLabel ?? m.timeLabel }
-          : m,
-      );
-    });
+    /* Realtime may have delivered the real row already; the temp is dropped
+       then. Otherwise the temp takes the real id and KEEPS ITS KEY, so the
+       bubble is the same element and its arrival does not play again. */
+    setItems((prev) => adoptBubble(prev, tempId, realId, timeLabel));
   }, []);
 
   const markFailed = useCallback((tempId: string) => {
@@ -1075,7 +1076,7 @@ export function ThreadView({
               ? run.map((p) => ({ p, ask: offPlatformAsk(p.body) })).find((x) => x.ask)
               : undefined;
           return (
-            <Fragment key={m.id}>
+            <Fragment key={bubbleKey(m)}>
             {dayBreaks.has(index) && m.createdAt && (
               <DayDivider label={dayHeading(m.createdAt, locale, threadWords.day, nowMs)} />
             )}
@@ -1085,9 +1086,7 @@ export function ThreadView({
             <div
               data-msg-id={m.id}
               {...(jumpedId === m.id ? { "data-jumped": "" } : {})}
-              className={`nf-msg ${m.mine ? "nf-msg--mine" : ""}${
-                openedWith.has(m.id) ? "" : m.mine ? " nf-msg-in--mine" : " nf-msg-in--theirs"
-              }${
+              className={`nf-msg ${m.mine ? "nf-msg--mine" : ""}${arrivalClass(openedWith, m)}${
                 wide ? " nf-msg--card" : ""
               }${continues ? " nf-msg--cont" : ""}`}
             >
