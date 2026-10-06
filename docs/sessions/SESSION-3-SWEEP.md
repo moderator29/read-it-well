@@ -6,22 +6,23 @@ component with the fixture named in its row. **P** pass, **X** failed and fixed 
 sweep, **F** failed and still open, **·** does not apply. The denominator is 213 real routes
 (every `page.tsx` under `apps/web/src/app`, excluding `(dev)` and `api`).
 
-**Routes audited: 68 of 213.**
+**Routes audited: 73 of 213.**
 
 | Family | Audited |
 |---|---|
 | admin | 23 |
 | agent | 14 |
-| around | 1 |
+| around | 2 |
 | assistant | 1 |
 | bookings | 1 |
 | host | 10 |
 | inspections | 1 |
 | legal | 3 |
 | messages | 2 |
-| profile | 1 |
+| price | 1 |
+| profile | 3 |
 | rent | 2 |
-| stories | 1 |
+| stories | 2 |
 | support | 3 |
 | tenancy | 1 |
 | u | 4 |
@@ -66,6 +67,7 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | `/agent/portfolio` | C1 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/agent/reviews` | C1 | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/around/manage` | C3 | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | P | · | · | · | · | · | · | · | P |
+| `/around/settings` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | X | P | P | P |
 | `/assistant` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | P | P | X | P | P | P | P |
 | `/bookings/[bookingId]/review` | C3 | P | · | P | P | P | P | · | P | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/host/apply` | C5 | P | · | P | P | X | P | · | · | P | P | P | P | P | · | · | P | · | P | P | P | P | X | P | P |
@@ -84,9 +86,13 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | `/legal/terms` | C3 | P | · | P | P | P | P | · | · | · | P | P | P | P | · | P | P | F | · | P | P | P | P | P | P |
 | `/messages/new` | C3 | P | · | P | P | P | P | · | · | · | P | P | P | P | · | · | P | · | P | P | P | P | X | P | P |
 | `/messages/share/[kind]/[id]` | C3 | P | · | P | P | P | P | · | P | P | P | P | P | P | · | P | P | · | P | P | P | P | X | P | P |
+| `/price` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | X | P | P | P |
+| `/profile/setup` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | P | P | P | P |
+| `/profile/setup/[role]` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | P | P | P | P |
 | `/profile/setup/firm` | C3 | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | P | · | · | · | · | · | · | · | P |
 | `/rent/pay/[inspectionId]` | C3 | P | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | X | · | P | P | P | P | P | P |
 | `/rent/review/[paymentId]` | C3 | P | · | P | P | P | P | · | · | · | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
+| `/stories/[id]` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | X | X | X | P | P | P |
 | `/stories/new` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | P | P | P | P | X | P | P |
 | `/support/messages` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | X | P | P |
 | `/support/messages/[id]` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | X | P | X | P | P |
@@ -232,6 +238,10 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 
 - 21 (fixed): The rail's "Apply to list" link (drawn when no agent profile reads) measured a 32px box with the words broken over two lines at 1440; it is a block as wide as its words now (components/agent/AgentNav.tsx, every agent page).
 
+**`/around/settings`** (the real page with session-b/sweep-orphans AREAS (open and mine), PROPOSALS, PICKER_TREE and PICKER_OPEN)
+
+- 21 (fixed): Find people drew 21.7px tall: it takes nf-tap now, 0 under 44.
+
 **`/assistant`** (the real page with readAssistantViewer mocked to _fixtures/people PERSON's initial and aiConsentForViewer both true and false; no thread (threads live on the device, so a first visit is empty))
 
 - 20 (fixed): axe aria-prohibited-attr on arrival (1 at dark.390 and light.390): the thread was a div carrying aria-label with no role. It is a named region now.
@@ -297,9 +307,19 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 
 - 22 (fixed): Overflow was 0 in all four, but the page's eight strings were English literals in ha, ig and yo. They are in experienceInbox.share now.
 
+**`/price`** (the real page before an address is chosen, its one read (listStates) mocked to session-b/sweep-orphans STATES)
+
+- 21 (fixed): The map's credit links (OpenStreetMap, CARTO) drew 20px tall: 2 targets under 44 at every width and locale. They take nf-tap now (target grows, the credit line keeps its size): 0 under 44.
+
 **`/rent/pay/[inspectionId]`** (the real page with getRentPayView mocked to session-b/sweep-orphans RENT_VIEW, no saved card, crypto off)
 
 - 17 (fixed): checkout.onPlatformRent said Money moves inside Vallo directly under NO_CUSTODY_SENTENCE (D48, D50). It is C2's copy, so it went as patch checkout-no-custody-onplatform.patch; the lead applied it.
+
+**`/stories/[id]`** (the real page with f4 STORY, STORY_FACES and STORY_COMMENTS (the f4 story deck), measured inside the shell it is drawn in)
+
+- 19 (fixed): The story cancelled the shell gutter with -1.25rem then -2rem, but the gutter token is 16, 24 and 32: a phone scrolled sideways by 4px and 768 to 1279 by 8px (the stage measured -4 to 394 at 390). It now cancels exactly var(--nf-pad-shell): 0 overflow at every width.
+- 20 (fixed): Light: axe colour-contrast x7 at 1.08:1. The stage had no ground of its own, so until the photograph arrives (or if it never does on a slow network) the white words sat on paper. It takes --nf-overlay-media-deep, ink in both themes like the wash: axe 0.
+- 21 (fixed): The author link measured 41.8px tall and the three liker faces 28px: they take nf-tap now, 0 under 44.
 
 **`/stories/new`** (the real page with social on and listMyAreas mocked to session-b/sweep-orphans AREAS)
 
