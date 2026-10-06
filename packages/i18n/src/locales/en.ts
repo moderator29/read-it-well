@@ -30,6 +30,16 @@ import { complianceRiskEn } from "./compliance-risk.en";
 import { complianceBeneficialOwnershipEn } from "./compliance-17.en";
 /* The passcode lock (docs/PASSCODE.md), in its own module like the rest. */
 import { passcodeEn } from "./passcode.en";
+import { experienceLandingEn } from "./experience-landing.en";
+import { experienceDiscoverEn } from "./experience-discover.en";
+import { experienceDetailEn } from "./experience-detail.en";
+import { experienceSocialEn } from "./experience-social.en";
+import { experienceInboxEn } from "./experience-inbox.en";
+import { experienceAccountEn } from "./experience-account.en";
+import { experienceFeaturesEn } from "./experience-features.en";
+import { experienceAdminEn } from "./experience-admin.en";
+import { experienceMoneyEn } from "./experience-money.en";
+import { experienceUiEn } from "./experience-ui.en";
 /* The workspace desks and the confirm panel (UI/UX plan items 14, 20, 22). */
 import { deskEn } from "./desk.en";
 /* The public pages' titles and descriptions, per language (A10). */
@@ -5945,6 +5955,18 @@ export const en = {
   complianceBeneficialOwnership: complianceBeneficialOwnershipEn,
 
   passcode: passcodeEn,
+
+  /* Session 3, the experience upgrade: one module per owner (docs/sessions/SESSION-3-RESPONSE.md). */
+  experienceLanding: experienceLandingEn,
+  experienceDiscover: experienceDiscoverEn,
+  experienceDetail: experienceDetailEn,
+  experienceSocial: experienceSocialEn,
+  experienceInbox: experienceInboxEn,
+  experienceAccount: experienceAccountEn,
+  experienceFeatures: experienceFeaturesEn,
+  experienceAdmin: experienceAdminEn,
+  experienceMoney: experienceMoneyEn,
+  experienceUi: experienceUiEn,
 
   desk: deskEn,
 
