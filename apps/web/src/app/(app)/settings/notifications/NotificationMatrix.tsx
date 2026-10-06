@@ -5,24 +5,7 @@ import { Switch } from "@/components/ui/Switch";
 import { Button } from "@/components/ui/Button";
 import { updateSettings } from "@/lib/profile/actions";
 import type { NotificationTopic, ResolvedProfileSettings } from "@/lib/profile/model";
-import {
-  MATRIX_CAPTION,
-  MATRIX_COL_EMAIL,
-  MATRIX_COL_EVENT,
-  MATRIX_COL_PUSH,
-  MATRIX_NOTE,
-  MATRIX_NOT_EMAILED,
-  MATRIX_ROWS,
-  MATRIX_SAVED,
-  MATRIX_TITLE,
-  QUIET_FROM,
-  QUIET_SAVE,
-  QUIET_SUB,
-  QUIET_SWITCH,
-  QUIET_TITLE,
-  QUIET_TO,
-  QUIET_ZONE,
-} from "@/lib/settings/notifications-copy";
+import type { Dictionary } from "@vallo/i18n/core";
 
 /**
  * NOTIFICATION SETTINGS AS A REAL MATRIX (R3-14): event by channel, and quiet
@@ -44,7 +27,12 @@ import {
  *
  * Price drops are push-only (B13), so their email cell is a sentence, not a
  * switch. Optimistic, reverting on refusal, like every settings toggle.
+ *
+ * Its words are `experienceSettings.notifications`, handed down by the page.
+ * The `wallet` above is the storage key only (D48); the row reads "Payments".
  */
+export type NotificationMatrixCopy = Dictionary["experienceSettings"]["notifications"];
+
 type Row = "bookings" | "messages" | "payments" | "savedPriceDrops" | "marketing";
 type Flags = ResolvedProfileSettings["notifications"];
 
@@ -63,7 +51,7 @@ export function pushFor(row: Row, flags: Flags): boolean {
   return row !== "marketing";
 }
 
-export function NotificationMatrix({ initial }: { initial: Flags }) {
+export function NotificationMatrix({ initial, copy }: { initial: Flags; copy: NotificationMatrixCopy }) {
   const [flags, setFlags] = useState<Flags>(initial);
   const [quiet, setQuiet] = useState(initial.quiet_hours ?? { enabled: false, from: "22:00", to: "07:00", timezone: "Africa/Lagos" });
   const [note, setNote] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
@@ -75,7 +63,7 @@ export function NotificationMatrix({ initial }: { initial: Flags }) {
       const result = await updateSettings(patch);
       if (result.ok) {
         setFlags(result.data.notifications);
-        setNote({ tone: "ok", text: MATRIX_SAVED });
+        setNote({ tone: "ok", text: copy.saved });
         return;
       }
       revert();
@@ -106,20 +94,20 @@ export function NotificationMatrix({ initial }: { initial: Flags }) {
     <div className="space-y-block" data-testid="notification-matrix">
       <section className="nf-panel nf-panel--card" aria-labelledby="nf-matrix-title">
         <h2 id="nf-matrix-title" className="nf-body font-semibold text-[var(--nf-content-primary)]">
-          {MATRIX_TITLE}
+          {copy.title}
         </h2>
         <table className="mt-row w-full border-collapse">
-          <caption className="sr-only">{MATRIX_CAPTION}</caption>
+          <caption className="sr-only">{copy.caption}</caption>
           <thead>
             <tr className="nf-caption text-[var(--nf-content-muted)]">
-              <th scope="col" className="py-inline text-left font-semibold">{MATRIX_COL_EVENT}</th>
-              <th scope="col" className="py-inline text-center font-semibold">{MATRIX_COL_EMAIL}</th>
-              <th scope="col" className="py-inline text-center font-semibold">{MATRIX_COL_PUSH}</th>
+              <th scope="col" className="py-inline text-left font-semibold">{copy.colEvent}</th>
+              <th scope="col" className="py-inline text-center font-semibold">{copy.colEmail}</th>
+              <th scope="col" className="py-inline text-center font-semibold">{copy.colPush}</th>
             </tr>
           </thead>
           <tbody>
             {ROWS.map((row) => {
-              const words = MATRIX_ROWS[row];
+              const words = copy.rows[row];
               const headId = `nf-matrix-${row}`;
               return (
                 <tr key={row} className="border-t border-[var(--nf-panel-hair)]" data-testid={`matrix-row-${row}`}>
@@ -129,13 +117,13 @@ export function NotificationMatrix({ initial }: { initial: Flags }) {
                   </th>
                   <td className="py-row text-center align-middle">
                     {row === "savedPriceDrops" ? (
-                      <span className="nf-caption text-[var(--nf-content-muted)]">{MATRIX_NOT_EMAILED}</span>
+                      <span className="nf-caption text-[var(--nf-content-muted)]">{copy.notEmailed}</span>
                     ) : (
                       <span className="inline-flex justify-center">
                         <Switch
                           checked={flags[STORED_FLAG[row]] ?? row !== "marketing"}
                           onCheckedChange={(next) => setEmail(row, next)}
-                          aria-label={`${words.label}: ${MATRIX_COL_EMAIL}`}
+                          aria-label={`${words.label}: ${copy.colEmail}`}
                           disabled={pending}
                           data-testid={`matrix-${row}-email`}
                         />
@@ -147,7 +135,7 @@ export function NotificationMatrix({ initial }: { initial: Flags }) {
                       <Switch
                         checked={pushFor(row, flags)}
                         onCheckedChange={(next) => setPush(row, next)}
-                        aria-label={`${words.label}: ${MATRIX_COL_PUSH}`}
+                        aria-label={`${words.label}: ${copy.colPush}`}
                         disabled={pending}
                         data-testid={`matrix-${row}-push`}
                       />
@@ -158,17 +146,17 @@ export function NotificationMatrix({ initial }: { initial: Flags }) {
             })}
           </tbody>
         </table>
-        <p className="nf-caption mt-row text-[var(--nf-content-muted)]">{MATRIX_NOTE}</p>
+        <p className="nf-caption mt-row text-[var(--nf-content-muted)]">{copy.note}</p>
       </section>
 
       <section className="nf-panel nf-panel--card" aria-labelledby="nf-quiet-title" data-testid="quiet-hours">
         <h2 id="nf-quiet-title" className="nf-body font-semibold text-[var(--nf-content-primary)]">
-          {QUIET_TITLE}
+          {copy.quiet.title}
         </h2>
         <div className="mt-row">
           <Switch
-            label={QUIET_SWITCH}
-            description={QUIET_SUB}
+            label={copy.quiet.switch}
+            description={copy.quiet.sub}
             checked={quiet.enabled}
             onCheckedChange={(next) => setQuiet({ ...quiet, enabled: next })}
             disabled={pending}
@@ -176,15 +164,15 @@ export function NotificationMatrix({ initial }: { initial: Flags }) {
         </div>
         <div className="mt-row grid grid-cols-2 gap-sm">
           <label className="grid gap-2xs">
-            <span className="nf-caption text-[var(--nf-content-muted)]">{QUIET_FROM}</span>
+            <span className="nf-caption text-[var(--nf-content-muted)]">{copy.quiet.from}</span>
             <input type="time" className="nf-field" value={quiet.from} onChange={(e) => setQuiet({ ...quiet, from: e.currentTarget.value })} disabled={pending} />
           </label>
           <label className="grid gap-2xs">
-            <span className="nf-caption text-[var(--nf-content-muted)]">{QUIET_TO}</span>
+            <span className="nf-caption text-[var(--nf-content-muted)]">{copy.quiet.to}</span>
             <input type="time" className="nf-field" value={quiet.to} onChange={(e) => setQuiet({ ...quiet, to: e.currentTarget.value })} disabled={pending} />
           </label>
         </div>
-        <p className="nf-caption mt-inline text-[var(--nf-content-muted)]">{QUIET_ZONE}</p>
+        <p className="nf-caption mt-inline text-[var(--nf-content-muted)]">{copy.quiet.zone}</p>
         <div className="mt-row">
           <Button
             variant="secondary"
@@ -198,7 +186,7 @@ export function NotificationMatrix({ initial }: { initial: Flags }) {
             }}
             data-testid="quiet-save"
           >
-            {QUIET_SAVE}
+            {copy.quiet.save}
           </Button>
         </div>
       </section>

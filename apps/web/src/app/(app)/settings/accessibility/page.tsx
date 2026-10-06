@@ -4,10 +4,11 @@ import { getLocale } from "@/lib/locale";
 import { forMotion } from "@/components/app/account/settings-copy";
 import { PageHeader } from "@/components/app/PageHeader";
 import { MotionSettings } from "@/components/app/account/MotionSettings";
-import { A11Y_LEDE, A11Y_SUB, A11Y_TITLE } from "@/lib/settings/accessibility-copy";
 import { AccessibilitySettings } from "./AccessibilitySettings";
 
-export const metadata: Metadata = { title: A11Y_TITLE };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: getDictionary(await getLocale()).experienceSettings.accessibility.title };
+}
 
 /**
  * /settings/accessibility (R3-15): contrast, reduced transparency, text size
@@ -17,12 +18,13 @@ export const metadata: Metadata = { title: A11Y_TITLE };
  */
 export default async function AccessibilitySettingsPage() {
   const t = getDictionary(await getLocale());
+  const copy = t.experienceSettings.accessibility;
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeader title={A11Y_TITLE} subtitle={A11Y_SUB} fallback="/settings" />
-      <p className="nf-body-sm mb-block text-[var(--nf-content-secondary)]">{A11Y_LEDE}</p>
+      <PageHeader title={copy.title} subtitle={copy.sub} fallback="/settings" />
+      <p className="nf-body-sm mb-block text-[var(--nf-content-secondary)]">{copy.lede}</p>
       <section id="settings-seeing" className="mb-block scroll-mt-28">
-        <AccessibilitySettings />
+        <AccessibilitySettings copy={copy} />
       </section>
       <section id="settings-motion" className="scroll-mt-28">
         <MotionSettings t={forMotion(t)} />

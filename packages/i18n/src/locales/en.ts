@@ -44,6 +44,7 @@ import { experienceUiEn } from "./experience-ui.en";
 import { experienceEntryEn } from "./experience-entry.en";
 import { experienceShellEn } from "./experience-shell.en";
 import { experienceSpeedEn } from "./experience-speed.en";
+import { experienceSettingsEn } from "./experience-settings.en";
 /* The workspace desks and the confirm panel (UI/UX plan items 14, 20, 22). */
 import { deskEn } from "./desk.en";
 /* The public pages' titles and descriptions, per language (A10). */
@@ -5797,6 +5798,8 @@ export const en = {
   experienceEntry: experienceEntryEn,
   experienceShell: experienceShellEn,
   experienceSpeed: experienceSpeedEn,
+  /* C5, Round 3: the settings area nav, notification matrix, Accessibility and Language and currency. */
+  experienceSettings: experienceSettingsEn,
 
   desk: deskEn,
 

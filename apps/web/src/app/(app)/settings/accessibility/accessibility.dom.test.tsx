@@ -1,12 +1,15 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterAll, describe, expect, it } from "vitest";
 import { axe, closeAxe, hasBrowser } from "@/lib/a11y/axe";
+import { getDictionary } from "@vallo/i18n";
 import { AccessibilitySettings } from "./AccessibilitySettings";
+
+const copy = getDictionary("en").experienceSettings.accessibility;
 
 afterAll(closeAxe);
 
 describe("Settings > Accessibility (R3-15)", () => {
-  const html = renderToStaticMarkup(<AccessibilitySettings />);
+  const html = renderToStaticMarkup(<AccessibilitySettings copy={copy} />);
 
   it("holds contrast, transparency and text size together", () => {
     expect(html).toContain('data-testid="a11y-contrast"');
@@ -22,5 +25,5 @@ describe.skipIf(!hasBrowser && !process.env.CI)("Settings > Accessibility (axe)"
 });
 
 function html(): string {
-  return renderToStaticMarkup(<AccessibilitySettings />);
+  return renderToStaticMarkup(<AccessibilitySettings copy={copy} />);
 }

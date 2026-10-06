@@ -97,7 +97,7 @@ export default async function NotificationsSettingsPage() {
         {account.state === "signed-in" ? (
           /* R3-14: event by channel, and quiet hours, each cell a preference
              delivery reads (NotificationMatrix's header says which). */
-          <NotificationMatrix initial={account.settings.notifications} />
+          <NotificationMatrix initial={account.settings.notifications} copy={t.experienceSettings.notifications} />
         ) : (
           <NotificationsCard t={forNotificationsCard(t)} />
         )}
@@ -105,7 +105,7 @@ export default async function NotificationsSettingsPage() {
 
       {push.state === "signed-in" && (
         <section id="settings-push" className="mt-block scroll-mt-28 space-y-block">
-          <h2 className="nf-title-sm text-content">On your phone</h2>
+          <h2 className="nf-title-sm text-content">{copy.notificationsNav.navPhone}</h2>
           {/* The same live rows the list below draws, by `device_ref`. The
               control reads on only when THIS device's ref is among them: see
               `components/app/push/device-state.ts`. */}

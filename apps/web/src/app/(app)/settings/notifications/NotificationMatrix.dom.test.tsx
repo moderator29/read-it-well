@@ -3,7 +3,10 @@ import { afterAll, describe, expect, it } from "vitest";
 import { axe, closeAxe, hasBrowser } from "@/lib/a11y/axe";
 import { wantsPush } from "@/lib/push/preferences";
 import { SETTINGS_DEFAULTS } from "@/lib/profile/model";
+import { getDictionary } from "@vallo/i18n";
 import { NotificationMatrix, pushFor } from "./NotificationMatrix";
+
+const copy = getDictionary("en").experienceSettings.notifications;
 
 afterAll(closeAxe);
 
@@ -27,7 +30,7 @@ describe("the notification matrix (R3-14)", () => {
   });
 
   it("draws an event by channel table, a sentence where a channel is not offered, and quiet hours", () => {
-    const html = renderToStaticMarkup(<NotificationMatrix initial={base} />);
+    const html = renderToStaticMarkup(<NotificationMatrix initial={base} copy={copy} />);
     expect(html).toMatch(/<table[\s\S]*<caption[^>]*>Notifications by event and channel/);
     for (const row of ["bookings", "messages", "payments", "savedPriceDrops", "marketing"]) {
       expect(html).toContain(`data-testid="matrix-row-${row}"`);
@@ -42,6 +45,6 @@ describe("the notification matrix (R3-14)", () => {
 
 describe.skipIf(!hasBrowser && !process.env.CI)("the notification matrix (axe)", () => {
   it("has no axe violations", async () => {
-    expect(await axe(`<h1>Notifications</h1>${renderToStaticMarkup(<NotificationMatrix initial={base} />)}`)).toEqual([]);
+    expect(await axe(`<h1>Notifications</h1>${renderToStaticMarkup(<NotificationMatrix initial={base} copy={copy} />)}`)).toEqual([]);
   });
 });

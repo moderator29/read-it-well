@@ -1,36 +1,36 @@
+import type { Dictionary } from "@vallo/i18n/core";
 import type { UiIconName } from "@/design-system/icons/UiIcon";
 
 /**
  * THE SETTINGS AREA'S DESTINATIONS, for the glass inner navigation every
  * settings route carries (R3-08, settings half).
  *
- * English-only constants for now, like `lib/money/copy.ts`: `en.ts` is held by
- * another agent this round, so the dictionary keys for these labels are in the
- * C2 report as a patch. Client-safe.
+ * Where each one goes and what it is drawn with. The words are in the
+ * dictionary (`experienceSettings.area`, keyed by `id`), so the menu reads the
+ * reader's language; the settings layout hands them to `SettingsAreaNav`.
+ * Type-only import of the dictionary shape, so this stays client-safe.
  */
-export type SettingsDestination = { id: string; href: string; label: string; icon: UiIconName };
-
-export const SETTINGS_NAV_LABEL = "Settings";
-export const SETTINGS_NAV_TOGGLE = "Settings sections";
-export const SETTINGS_ON_THIS_PAGE = "On this page";
+export type SettingsAreaCopy = Dictionary["experienceSettings"]["area"];
+export type SettingsDestinationId = keyof SettingsAreaCopy["destinations"];
+export type SettingsDestination = { id: SettingsDestinationId; href: string; icon: UiIconName };
 
 export const SETTINGS_DESTINATIONS: readonly SettingsDestination[] = [
-  { id: "home", href: "/settings", label: "All settings", icon: "settings-gear" },
-  { id: "account", href: "/settings/account", label: "Account information", icon: "user" },
-  { id: "notifications", href: "/settings/notifications", label: "Notifications", icon: "bell" },
-  { id: "appearance", href: "/settings/appearance", label: "Appearance", icon: "sun" },
-  { id: "accessibility", href: "/settings/accessibility", label: "Accessibility", icon: "eye" },
-  { id: "region", href: "/settings/region", label: "Language and currency", icon: "globe" },
-  { id: "payments", href: "/settings/payments", label: "Payment methods", icon: "credit-card" },
-  { id: "privacy", href: "/settings/privacy", label: "Privacy and security", icon: "shield-lock" },
-  { id: "passcode", href: "/settings/passcode", label: "Passcode", icon: "lock" },
-  { id: "phone", href: "/settings/phone", label: "Phone number", icon: "phone" },
-  { id: "devices", href: "/settings/devices", label: "Devices", icon: "key" },
-  { id: "passport", href: "/settings/passport", label: "Space Passport", icon: "id-card" },
-  { id: "place", href: "/settings/place", label: "Your place", icon: "location" },
-  { id: "interests", href: "/settings/interests", label: "Interests", icon: "heart" },
-  { id: "invite", href: "/settings/invite", label: "Invite", icon: "share" },
-  { id: "help", href: "/settings/help", label: "Help and support", icon: "headset" },
+  { id: "home", href: "/settings", icon: "settings-gear" },
+  { id: "account", href: "/settings/account", icon: "user" },
+  { id: "notifications", href: "/settings/notifications", icon: "bell" },
+  { id: "appearance", href: "/settings/appearance", icon: "sun" },
+  { id: "accessibility", href: "/settings/accessibility", icon: "eye" },
+  { id: "region", href: "/settings/region", icon: "globe" },
+  { id: "payments", href: "/settings/payments", icon: "credit-card" },
+  { id: "privacy", href: "/settings/privacy", icon: "shield-lock" },
+  { id: "passcode", href: "/settings/passcode", icon: "lock" },
+  { id: "phone", href: "/settings/phone", icon: "phone" },
+  { id: "devices", href: "/settings/devices", icon: "key" },
+  { id: "passport", href: "/settings/passport", icon: "id-card" },
+  { id: "place", href: "/settings/place", icon: "location" },
+  { id: "interests", href: "/settings/interests", icon: "heart" },
+  { id: "invite", href: "/settings/invite", icon: "share" },
+  { id: "help", href: "/settings/help", icon: "headset" },
 ];
 
 /** The destination a pathname sits under: the longest href that prefixes it. */

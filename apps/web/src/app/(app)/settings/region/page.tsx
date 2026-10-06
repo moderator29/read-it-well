@@ -6,21 +6,10 @@ import { PageHeader } from "@/components/app/PageHeader";
 import { LanguageRow } from "@/components/app/account/SettingsGroups";
 import { RowValue, SettingsGroup } from "@/components/app/account/rows";
 import { formatMoneyDate } from "@/lib/money/dates";
-import {
-  REGION_CURRENCY,
-  REGION_CURRENCY_SUB,
-  REGION_CURRENCY_VALUE,
-  REGION_DATES,
-  REGION_DATES_SUB,
-  REGION_LANGUAGE,
-  REGION_MONEY,
-  REGION_NUMBERS,
-  REGION_NUMBERS_SUB,
-  REGION_SUB,
-  REGION_TITLE,
-} from "@/lib/settings/region-copy";
 
-export const metadata: Metadata = { title: REGION_TITLE };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: getDictionary(await getLocale()).experienceSettings.region.title };
+}
 /* Today's date is printed, so the page is rendered per request. */
 export const dynamic = "force-dynamic";
 
@@ -39,19 +28,20 @@ export default async function RegionSettingsPage() {
   const locale = await getLocale();
   const t = getDictionary(locale);
   const today = formatMoneyDate(new Date(), locale) ?? "";
+  const copy = t.experienceSettings.region;
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeader title={REGION_TITLE} subtitle={REGION_SUB} fallback="/settings" />
+      <PageHeader title={copy.title} subtitle={copy.sub} fallback="/settings" />
       <section id="settings-language" className="mb-block scroll-mt-28">
-        <SettingsGroup label={REGION_LANGUAGE}>
+        <SettingsGroup label={copy.language}>
           <LanguageRow t={forLanguage(t)} current={locale} />
         </SettingsGroup>
       </section>
       <section id="settings-money-display" className="scroll-mt-28">
-        <SettingsGroup label={REGION_MONEY}>
-          <RowValue icon="banknote" label={REGION_CURRENCY} sub={REGION_CURRENCY_SUB} value={REGION_CURRENCY_VALUE} testId="region-currency" />
-          <RowValue icon="calendar-check" label={REGION_DATES} sub={`${REGION_DATES_SUB} ${today}.`} testId="region-dates" />
-          <RowValue icon="coins" label={REGION_NUMBERS} sub={REGION_NUMBERS_SUB} />
+        <SettingsGroup label={copy.money}>
+          <RowValue icon="banknote" label={copy.currency} sub={copy.currencySub} value={copy.currencyValue} testId="region-currency" />
+          <RowValue icon="calendar-check" label={copy.dates} sub={copy.datesSub.replace("{date}", today)} testId="region-dates" />
+          <RowValue icon="coins" label={copy.numbers} sub={copy.numbersSub} />
         </SettingsGroup>
       </section>
     </div>

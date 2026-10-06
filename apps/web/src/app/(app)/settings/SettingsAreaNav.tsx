@@ -4,13 +4,7 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import { usePathname } from "next/navigation";
 import { InnerNav, type InnerNavItem } from "@/components/ui/InnerNav";
 import type { UiIconName } from "@/design-system/icons/UiIcon";
-import {
-  SETTINGS_DESTINATIONS,
-  SETTINGS_NAV_LABEL,
-  SETTINGS_NAV_TOGGLE,
-  SETTINGS_ON_THIS_PAGE,
-  activeDestination,
-} from "@/lib/settings/area";
+import { SETTINGS_DESTINATIONS, activeDestination, type SettingsAreaCopy } from "@/lib/settings/area";
 
 /**
  * ONE GLASS INNER NAVIGATION ON EVERY SETTINGS ROUTE (R3-08).
@@ -20,6 +14,10 @@ import {
  * one marked `aria-current`. A page with sections of its own (account,
  * privacy, notifications) registers them through `useSettingsSections`, and
  * they lead the list as anchors, so a screen never shows two pull menus.
+ *
+ * Its words are `experienceSettings.area`, handed down by the settings layout
+ * (a server component that already holds the reader's dictionary), so the
+ * menu reads the reader's language and the bundle carries no dictionary.
  */
 type Section = { id: string; label: string; icon?: UiIconName };
 
@@ -38,26 +36,26 @@ export function useSettingsSections(sections: readonly Section[]): boolean {
   return register !== null;
 }
 
-export function SettingsAreaNav({ children }: { children: ReactNode }) {
+export function SettingsAreaNav({ copy, children }: { copy: SettingsAreaCopy; children: ReactNode }) {
   const pathname = usePathname() ?? "/settings";
   const [sections, setSections] = useState<readonly Section[] | null>(null);
   const active = activeDestination(pathname);
   const items = useMemo<InnerNavItem[]>(
     () => [
-      ...(sections ?? []).map((s) => ({ id: `section-${s.id}`, label: `${SETTINGS_ON_THIS_PAGE}: ${s.label}`, href: `#${s.id}`, ...(s.icon ? { icon: s.icon } : {}) })),
-      ...SETTINGS_DESTINATIONS.map((d) => ({ id: d.id, label: d.label, icon: d.icon, href: d.href })),
+      ...(sections ?? []).map((s) => ({ id: `section-${s.id}`, label: `${copy.onThisPage}: ${s.label}`, href: `#${s.id}`, ...(s.icon ? { icon: s.icon } : {}) })),
+      ...SETTINGS_DESTINATIONS.map((d) => ({ id: d.id, label: copy.destinations[d.id], icon: d.icon, href: d.href })),
     ],
-    [sections],
+    [sections, copy],
   );
   return (
     <SectionsContext.Provider value={setSections}>
       <div className="nf-settings-nav mx-auto flex max-w-2xl justify-end px-gutter pt-inline" data-testid="settings-area-nav">
         <InnerNav
-          label={SETTINGS_NAV_LABEL}
-          toggleLabel={SETTINGS_NAV_TOGGLE}
+          label={copy.label}
+          toggleLabel={copy.toggle}
           items={items}
           activeId={active?.id}
-          currentLabel={active?.label ?? SETTINGS_NAV_LABEL}
+          currentLabel={active ? copy.destinations[active.id] : copy.label}
         />
       </div>
       {children}
