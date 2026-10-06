@@ -3,7 +3,7 @@ import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { readMyEarnings } from "@/lib/money/history";
 import { parseBefore } from "@/lib/money/history-model";
-import { HOST_EARNINGS_EMPTY_BODY, PAYOUT_ANSWER } from "@/lib/money/copy";
+import { HOST_EARNINGS_EMPTY_BODY, HOST_EARNINGS_EMPTY_TITLE, HOST_STATEMENT_ROW_SUB, PAYOUT_ANSWER } from "@/lib/money/copy";
 import { authHref, returnHref } from "@/components/auth/auth-intent";
 import { EmptyState, TYPE } from "@/components/app/Screen";
 import { ButtonLink } from "@/components/ui/Button";
@@ -16,7 +16,9 @@ import { monthsWithLines } from "@/lib/host/statement";
 import { HostInnerNav } from "@/components/host/HostInnerNav";
 import { hostInnerNavCopy } from "@/components/host/host-inner-nav";
 
-export const metadata: Metadata = { title: "Earnings", robots: { index: false, follow: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: getDictionary(await getLocale()).experienceHost.earnings.title, robots: { index: false, follow: false } };
+}
 
 export const dynamic = "force-dynamic";
 
@@ -51,16 +53,16 @@ export default async function HostEarningsPage({
     <HostShell logoLabel={t.a11y.logoHome} fallback="/host">
       <div className="mx-auto max-w-2xl">
         <HostInnerNav active="earnings" {...hostInnerNavCopy(t)} />
-        <h1 className="nf-h2">Earnings</h1>
+        <h1 className="nf-h2">{t.experienceHost.earnings.title}</h1>
         <p className={`mt-xs mb-block ${TYPE.body}`}>{PAYOUT_ANSWER}</p>
         {read.state === "signed-out" ? (
           <EmptyState
             icon="bank-column"
-            title="Sign in to see your earnings"
+            title={t.experienceHost.earnings.signedOutTitle}
             body={HOST_EARNINGS_EMPTY_BODY}
             action={
               <ButtonLink href={authHref(returnHref("/host/earnings", "", "list"), "sign-in")} variant="primary" size="lg">
-                Sign in
+                {t.common.signIn}
               </ButtonLink>
             }
           />
@@ -70,13 +72,13 @@ export default async function HostEarningsPage({
             before={before}
             basePath="/host/earnings"
             locale={locale}
-            emptyTitle="No guest has paid yet"
+            emptyTitle={HOST_EARNINGS_EMPTY_TITLE}
             emptyBody={HOST_EARNINGS_EMPTY_BODY}
-            next={{ href: "/host/reservations", label: "See your reservations" }}
+            next={{ href: "/host/reservations", label: t.experienceHost.earnings.seeReservations }}
           />
         )}
         {months.length > 0 ? (
-          <ListGroup label="Statements" className="mt-block" data-testid="host-statements">
+          <ListGroup label={t.experienceHost.earnings.statements} className="mt-block" data-testid="host-statements">
             {months.map((month) => (
               <ListRow
                 key={month}
@@ -86,7 +88,7 @@ export default async function HostEarningsPage({
                   </IconPlate>
                 }
                 title={monthName.format(new Date(`${month}-01T12:00:00Z`))}
-                sub="Every payment, line by line, with a CSV"
+                sub={HOST_STATEMENT_ROW_SUB}
                 href={`/host/earnings/statement?month=${month}`}
                 chevron
               />
