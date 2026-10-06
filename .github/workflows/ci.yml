@@ -320,6 +320,9 @@ jobs:
         run: npm ci
 
       - name: Browser
+        # From the app's workspace, so the browser build is the one the app's
+        # own playwright-core asks for (npm may keep it under apps/web).
+        working-directory: apps/web
         run: npx playwright-core install --with-deps chromium
 
       - name: Build
@@ -381,6 +384,9 @@ jobs:
         run: npm ci
 
       - name: Browser
+        # From the app's workspace, so the browser build is the one the app's
+        # own playwright-core asks for (npm may keep it under apps/web).
+        working-directory: apps/web
         run: npx playwright-core install --with-deps chromium
 
       - name: Build
