@@ -111,6 +111,7 @@ export default async function VerificationPage({
      checked, built only from the reviewers' own decisions and the documents'
      own review state. See `components/verification/verification-path.ts`. */
   const t = getDictionary(locale);
+  const v = t.experienceAccount.verification;
   /* `getOwnLadder` answers "unavailable" both for somebody who is not an agent
      (no ladder exists, which is true and draws the path from their documents)
      and for an agent whose read failed (a ladder exists and could not be read).
@@ -169,7 +170,7 @@ export default async function VerificationPage({
         state: "suspended",
         reason:
           failed?.note ??
-          "Our team stopped this account. The reason was not recorded here, so they will have to tell you what it was.",
+          v.suspendedNoReason,
       };
     } else if (failed) {
       status = {
@@ -179,8 +180,8 @@ export default async function VerificationPage({
            inventing a reason nobody wrote. */
         reason:
           failed.note ??
-          "The reviewer did not record a reason. Send the documents again and our team will look at them within one working day.",
-        fix: "Replace the document that was refused and send it again. Everything you have already had approved stays approved.",
+          v.rejectedNoReason,
+        fix: v.rejectedFix,
       };
     } else if (agentStatus === "MORE_INFO_REQUIRED") {
       /*
@@ -207,8 +208,8 @@ export default async function VerificationPage({
         state: "more_info",
         request:
           asking?.note ??
-          "A reviewer has asked for something more before they can finish checking this account. What they asked for was not recorded here, so our team will have to tell you.",
-        fix: "Send the document again through the steps below. Anything already approved stays approved.",
+          v.moreInfoNoNote,
+        fix: v.moreInfoFix,
       };
     } else if (ladder.ladder.tier > 0) {
       /* The shield's one-time payoff plays only when a rung passed recently
@@ -243,8 +244,8 @@ export default async function VerificationPage({
       state: "rejected",
       reason:
         documents.reason ??
-        "The reviewer did not record a reason. Send the documents again and our team will look at them within one working day.",
-      fix: "Replace the document that was refused and send it again. Everything you have already had approved stays approved.",
+        v.rejectedNoReason,
+      fix: v.rejectedFix,
     };
   } else if (status === null && documents.state === "pending") {
     status = { state: "pending" };
@@ -293,7 +294,7 @@ export default async function VerificationPage({
         {whatWasSaid && (
           <p className="nf-panel nf-panel--card mb-block block p-card text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
             <span className="block font-semibold text-[var(--nf-content-primary)]">
-              What the reviewer said
+              {v.reviewerSaidHeading}
             </span>
             <span className="mt-inline-tight block">{whatWasSaid}</span>
           </p>

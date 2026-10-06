@@ -228,5 +228,13 @@ export const experienceAccountEn = {
     stepsOf: "{done} of {total} steps passed",
     /** Drawn instead of the path when an agent's verification could not be read. */
     unreadable: "We could not read your verification right now.",
+    /* `/verification`'s own sentences where the reviewer recorded nothing,
+       and the line above their words (Round 3 sweep, C3). */
+    suspendedNoReason: "Our team stopped this account. The reason was not recorded here, so they will have to tell you what it was.",
+    rejectedNoReason: "The reviewer did not record a reason. Send the documents again and our team will look at them within one working day.",
+    rejectedFix: "Replace the document that was refused and send it again. Everything you have already had approved stays approved.",
+    moreInfoNoNote: "A reviewer has asked for something more before they can finish checking this account. What they asked for was not recorded here, so our team will have to tell you.",
+    moreInfoFix: "Send the document again through the steps below. Anything already approved stays approved.",
+    reviewerSaidHeading: "What the reviewer said",
   },
 };
