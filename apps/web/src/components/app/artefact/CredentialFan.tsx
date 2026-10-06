@@ -140,9 +140,18 @@ export function CredentialFan({
               type="button"
               role="radio"
               aria-checked={index === at}
-              aria-label={`${item.title}, ${positionLabel
-                .replace("{n}", String(index + 1))
-                .replace("{total}", String(items.length))}`}
+              /* The card's face is aria-hidden (a radio's name is its label),
+                 so what the face says in words (a tier's "Held" or "Not yet")
+                 must be in the name, or a screen reader hears which credential
+                 is up but never whether it is held. Which one is SELECTED is
+                 `aria-checked`, not part of the name. */
+              aria-label={[
+                item.title,
+                typeof item.state === "string" || typeof item.state === "number" ? String(item.state) : null,
+                positionLabel.replace("{n}", String(index + 1)).replace("{total}", String(items.length)),
+              ]
+                .filter(Boolean)
+                .join(", ")}
               tabIndex={index === at ? 0 : -1}
               className="nf-fan__slot"
               data-forward={index === at ? "" : undefined}
