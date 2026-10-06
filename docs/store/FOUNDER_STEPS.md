@@ -80,9 +80,14 @@ complete): `VALLO_SOCIAL_SIGN_IN=google` in Vercel.
 `npm run cap:sync` refuses to sync a native build until these are real, and CI
 marks every run with them.
 
-- **Apple Team ID** into `apps/web/public/.well-known/apple-app-site-association`:
-  replace `PLACEHOLDER_REPLACE_WITH_APPLE_TEAM_ID` with the ten-character Team
-  ID (Membership details), so the entry reads `ABCDE12345.com.vallospaces.app`.
+- **Apple Team ID: already done. Do not do this again.** The association file
+  reads `X74KD52994.com.vallospaces.app` and `project.pbxproj` carries the same
+  `DevelopmentTeam`, so the Apple enrolment this step waited on is held and
+  paid for. This instruction outlived the value landing and still told you to
+  replace a placeholder that is not in the file, which could have had you
+  buying an enrolment you already have. Session 4 found it on 6 October 2026.
+  **The Android fingerprints below are still genuinely outstanding**: only the
+  Apple half of this step is finished.
 - **Two SHA-256 fingerprints** into `apps/web/public/.well-known/assetlinks.json`:
   Play Console → the app → Test and release → Setup → App signing → "App
   signing key certificate" SHA-256, and the "Upload key certificate" SHA-256.
