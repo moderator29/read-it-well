@@ -2,27 +2,48 @@
 
 import { useCallback, useEffect, useId, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { plural, type Dictionary, type Locale } from "@vallo/i18n/core";
+import type { Dictionary, Locale } from "@vallo/i18n/core";
 import { forgotPasscodeAction, verifyPasscodeAction, type VerifyResult } from "@/lib/passcode/actions";
-import { ATTEMPTS_PER_COOLDOWN, cooldownRemaining, type PasscodeLength } from "@/lib/passcode/rules";
+import { cooldownRemaining, type PasscodeLength } from "@/lib/passcode/rules";
+import { thresholdAllowed } from "@/lib/motion/threshold";
 import type { LockMode } from "@/lib/passcode/decide";
 import { fill, herePath, markTabUnlocked } from "@/lib/passcode/tab";
 import { feedback } from "@/lib/ui/feedback";
 import { Keypad, PasscodeDots } from "./Keypad";
 import { PasskeyUnlockKey } from "./PasskeyUnlockKey";
 import { PasscodeFrame } from "./PasscodeFrame";
+import { wrongCodeMessage } from "./wrong-message";
+import { OPEN_HOLD_MS, OPEN_LEAVE_MS, arriveThroughOpenDoor } from "./open-door";
 
 export type PasscodeCopy = Dictionary["passcode"];
+
+/** How long an accepted unlock waits for the page before loading it outright. */
+const UNLOCK_GIVE_UP_MS = 6000;
 
 /**
  * "WELCOME BACK": the lock. docs/PASSCODE.md.
  *
  * The code is sent the moment its last digit is typed, checked by
  * `passcode_verify` in the database, and forgotten here as soon as the answer
- * arrives. A wrong code shakes the dots and says how many tries are left
- * before the pause and before the sign-out; a cooldown disables the keypad
- * and counts down; the tenth wrong try signs this browser out and lands on
- * sign-in with the reason.
+ * arrives. MOTION_SYSTEM.md section 6 is the motion:
+ *
+ *   wrong     the dots shake once and clear (`Keypad.tsx`), one quiet line
+ *             beneath says so, and a count appears only when it is the last
+ *             one (`wrong-message.ts`). No red, no dialog.
+ *   right     the last dot is already full; it holds 80ms, the contents
+ *             leave through the door, and the app comes forward through the
+ *             startup's own `open` arrival (`open-door.ts`), so unlocking and
+ *             launching are the same gesture. The 80ms is a hold on a code the
+ *             server has ALREADY accepted, never a wait dressed as checking.
+ *   cooldown  the keypad disables and counts down, in real seconds.
+ *
+ * BIOMETRIC FIRST. A member with a platform key is offered it before the
+ * keypad (`PasskeyUnlockKey`, the door), with "Enter your passcode instead"
+ * beneath; choosing the keypad, a failed biometric or typing a digit on a
+ * keyboard brings the keypad, which keeps the biometric in its corner key.
+ *
+ * The tenth wrong try signs this browser out and lands on sign-in with the
+ * reason.
  */
 export function PasscodeLock({
   copy,
@@ -63,6 +84,46 @@ export function PasscodeLock({
   const [now, setNow] = useState(() => Date.now());
   const [leaving, startLeaving] = useTransition();
   const sending = useRef(false);
+  /* Biometric first where the member has a platform key; the keypad after. */
+  const [door, setDoor] = useState<"biometric" | "keypad">(passkey ? "biometric" : "keypad");
+  /* The right code has landed and the door is opening. */
+  const [opening, setOpening] = useState(false);
+  const opened = useRef(false);
+
+  /* The far side of the door: when this lock leaves the screen after a right
+     code (the page replaces it, or the guard lets go), the app comes forward
+     through the `open` arrival. */
+  const stuck = useRef(0);
+  useEffect(
+    () => () => {
+      window.clearTimeout(stuck.current);
+      if (opened.current) arriveThroughOpenDoor();
+    },
+    [],
+  );
+
+  /* The lock is unlocked: hold the full row, open the door, then hand over. */
+  const unlock = useCallback(() => {
+    markTabUnlocked();
+    setMessage(null);
+    opened.current = true;
+    const finish = () => {
+      if (onUnlocked) onUnlocked();
+      router.refresh();
+      /* The server has already accepted the code. If the refreshed page has
+         not replaced the lock in a few seconds (a dropped request), load it
+         outright rather than leave somebody at an open door. */
+      stuck.current = window.setTimeout(() => window.location.reload(), UNLOCK_GIVE_UP_MS);
+    };
+    if (!thresholdAllowed()) {
+      finish();
+      return;
+    }
+    window.setTimeout(() => {
+      setOpening(true);
+      window.setTimeout(finish, OPEN_LEAVE_MS);
+    }, OPEN_HOLD_MS);
+  }, [onUnlocked, router]);
 
   const cooling = waitUntil > now;
   const secondsLeft = cooling ? Math.ceil((waitUntil - now) / 1000) : 0;
@@ -91,19 +152,13 @@ export function PasscodeLock({
         switch (result.status) {
           case "ok":
             feedback("success");
-            markTabUnlocked();
-            setMessage(null);
-            if (onUnlocked) onUnlocked();
-            router.refresh();
+            unlock();
+            /* The row stays full through the hold and the door. */
             return;
           case "wrong":
             feedback("error");
             setShake((n) => n + 1);
-            setMessage(
-              result.beforeSignOut <= ATTEMPTS_PER_COOLDOWN
-                ? plural(result.beforeSignOut, copy.wrongLastBeforeSignOut, locale)
-                : plural(result.beforeCooldown, copy.wrongLeft, locale),
-            );
+            setMessage(wrongCodeMessage(result, copy, locale));
             break;
           case "cooldown":
           case "paced": {
@@ -129,17 +184,24 @@ export function PasscodeLock({
       } catch {
         setMessage(copy.error);
       } finally {
-        sending.current = false;
         setBusy(false);
-        setCode("");
+        /* A right code keeps its full row and the send lock through the
+           door; anything else clears for the next try. */
+        if (!opened.current) {
+          sending.current = false;
+          setCode("");
+        }
       }
     },
-    [copy, locale, onUnlocked, router, verify],
+    [copy, locale, router, unlock, verify],
   );
 
   const onDigit = useCallback(
     (digit: string) => {
       if (sending.current) return;
+      /* A digit typed on a keyboard while the biometric door is offered is
+         the person choosing the keypad. */
+      setDoor("keypad");
       setCode((current) => (current.length >= length ? current : current + digit));
     },
     [length],
@@ -158,6 +220,12 @@ export function PasscodeLock({
   const passwordOnly = mode === "password-only";
   const status = cooling ? fill(copy.cooldown, { seconds: secondsLeft }) : message;
 
+  const biometricFirst = passkey && door === "biometric" && !cooling;
+  const onPasskeyFailed = () => {
+    setDoor("keypad");
+    setMessage(copy.passkeyFailed);
+  };
+
   return (
     <PasscodeFrame
       overlay
@@ -168,6 +236,7 @@ export function PasscodeLock({
       name={name}
       avatarUrl={avatarUrl}
       testId="passcode-lock"
+      opening={opening}
     >
       {passwordOnly ? (
         <p className="nf-passcode__message nf-passcode__message--block" role="status">
@@ -184,28 +253,49 @@ export function PasscodeLock({
           <p className="nf-passcode__message" role="status" aria-live="polite" data-testid="passcode-message">
             {status ?? (busy ? copy.checking : "")}
           </p>
-          <Keypad
-            onDigit={onDigit}
-            onDelete={onDelete}
-            disabled={busy || cooling || leaving}
-            label={copy.keypadLabel}
-            deleteLabel={copy.deleteKey}
-            accessory={
-              passkey && !cooling ? (
-                <PasskeyUnlockKey
-                  disabled={busy || leaving}
-                  onUnlocked={() => {
-                    feedback("success");
-                    markTabUnlocked();
-                    setMessage(null);
-                    if (onUnlocked) onUnlocked();
-                    router.refresh();
-                  }}
-                  onFailed={() => setMessage("That did not work. Enter your passcode instead.")}
-                />
-              ) : undefined
-            }
-          />
+          {biometricFirst ? (
+            <div className="nf-passcode__offer">
+              <PasskeyUnlockKey
+                variant="door"
+                label={copy.passkeyUnlock}
+                disabled={busy || leaving || opening}
+                onUnlocked={() => {
+                  feedback("success");
+                  unlock();
+                }}
+                onFailed={onPasskeyFailed}
+              />
+              <button
+                type="button"
+                className="nf-passcode__link"
+                onClick={() => setDoor("keypad")}
+                data-testid="passcode-use-keypad"
+              >
+                {copy.usePasscode}
+              </button>
+            </div>
+          ) : (
+            <Keypad
+              onDigit={onDigit}
+              onDelete={onDelete}
+              disabled={busy || cooling || leaving || opening}
+              label={copy.keypadLabel}
+              deleteLabel={copy.deleteKey}
+              accessory={
+                passkey && !cooling ? (
+                  <PasskeyUnlockKey
+                    label={copy.passkeyUnlock}
+                    disabled={busy || leaving || opening}
+                    onUnlocked={() => {
+                      feedback("success");
+                      unlock();
+                    }}
+                    onFailed={onPasskeyFailed}
+                  />
+                ) : undefined
+              }
+            />
+          )}
         </>
       )}
       <div className="nf-passcode__foot">
@@ -213,7 +303,7 @@ export function PasscodeLock({
           type="button"
           className={passwordOnly ? "nf-btn nf-btn--primary nf-passcode__cta" : "nf-passcode__link"}
           onClick={usePassword}
-          disabled={leaving}
+          disabled={leaving || opening}
           data-testid="passcode-use-password"
         >
           {passwordOnly ? copy.signInAgain : copy.usePassword}

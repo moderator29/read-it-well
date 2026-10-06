@@ -8,6 +8,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { getDictionary } from "@vallo/i18n";
 import type { GateView } from "@/lib/passcode/decide";
+import { DEFAULT_PASSCODE_LENGTH } from "@/lib/passcode/rules";
 import { axe, closeAxe, hasBrowser } from "@/lib/a11y/axe";
 
 const s = vi.hoisted(() => ({ view: { kind: "open" } as GateView }));
@@ -84,13 +85,17 @@ describe("PasscodeGate", () => {
     expect(html).toContain(t.passcode.usePassword);
   });
 
-  it("draws setup instead of the page for a member with no passcode, six digits by default", async () => {
+  /* The default length is business config (`DEFAULT_PASSCODE_LENGTH`;
+     directive D18 moves it from six to four, in Session 2's branch), so this
+     reads the constant rather than naming a number: it passes before and
+     after that change, and the other length is always the one-tap offer. */
+  it("draws setup instead of the page for a member with no passcode, at the default length", async () => {
     const html = await draw({ kind: "setup", mode: "first" });
     expect(html).not.toContain("Secret page content");
     expect(html).toContain('data-testid="passcode-setup-enter"');
     expect(html).toContain(t.passcode.setupTitle);
-    expect(html.match(/nf-passcode__dot(?!s)/g)?.length).toBe(6);
-    expect(html).toContain(t.passcode.useFour);
+    expect(html.match(/nf-passcode__dot(?!s)/g)?.length).toBe(DEFAULT_PASSCODE_LENGTH);
+    expect(html).toContain(DEFAULT_PASSCODE_LENGTH === 6 ? t.passcode.useFour : t.passcode.useSix);
   });
 
   it("draws the reset flavour after a fresh sign-in", async () => {
