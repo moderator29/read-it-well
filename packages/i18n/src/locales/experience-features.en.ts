@@ -275,33 +275,13 @@ export const experienceFeaturesEn = {
   },
 
   /**
-   * Standing streaks (north star 15.1, D17). A streak counts a real-world
-   * behaviour with a counterparty; nothing here may describe an app-open.
+   * Standing streaks (north star 15.1, D17). Only the earned moment's words
+   * remain: the streak tile and its words were deleted in Round 3 (R3-07)
+   * because no real streak read exists (Session 2, W7-R6). A streak counts a
+   * real-world behaviour with a counterparty; nothing here may describe an
+   * app-open.
    */
   streaks: {
-    paused: "Paused",
-    /** Under a paused count. */
-    pausedWhy: "Paused while there is nothing to count. Your record is kept.",
-    /** `{count}` is a number. The best run, quietly beside the current one. */
-    best: "Best {count}",
-    /** The window marks' accessible name. `{kept}` and `{total}` are numbers. */
-    window: "{kept} of the last {total} kept",
-    unit: {
-      payments: "payments on time",
-      weeks: "weeks replied in time",
-      months: "months without a dispute",
-      confirmations: "weeks confirmed available",
-      inspections: "inspections attended",
-      healthMonths: "months at full health",
-    },
-    name: {
-      onTimeRent: "On-time rent",
-      replyTime: "Reply time",
-      disputeFree: "Dispute-free",
-      freshness: "Listing freshness",
-      inspections: "Inspection follow-through",
-      completeListing: "Complete listing",
-    },
     earned: {
       share: "Share",
       back: "Back",

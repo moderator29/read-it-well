@@ -6,7 +6,6 @@ import { TIER_NAME, VERIFICATION_ORDER } from "@/lib/trust/verification";
 import { FirstRunPanels } from "@/components/app/feature-onboarding/FirstRunPanels";
 import { FIRST_RUN_HOME, firstRunContent, isMountedFirstRun } from "@/components/app/feature-onboarding/first-runs";
 import { TrialTimeline } from "@/components/app/plans-premium/TrialTimeline";
-import { StreakTile } from "@/components/app/streaks/StreakTile";
 import { FeaturesBoard } from "./FeaturesBoard";
 
 /**
@@ -47,7 +46,6 @@ export default async function FeaturesGalleryPage({
   }
 
   const f = t.experienceFeatures;
-  const tag = locale === "en" ? "en-NG" : locale;
   return (
     <FeaturesBoard
       t={t}
@@ -75,20 +73,6 @@ export default async function FeaturesGalleryPage({
             dateUnknown: f.plans.dateUnknown,
           }}
         />
-      }
-      streaks={
-        <div className="grid gap-md sm:grid-cols-2">
-          <StreakTile
-            t={t}
-            tag={tag}
-            streak={{ kind: "onTimeRent", current: 0, best: 0, state: "running", window: ["kept", "missed", "open"], since: null }}
-          />
-          <StreakTile
-            t={t}
-            tag={tag}
-            streak={{ kind: "replyTime", current: 0, best: 0, state: "paused", window: ["kept", "open"], since: null }}
-          />
-        </div>
       }
     />
   );

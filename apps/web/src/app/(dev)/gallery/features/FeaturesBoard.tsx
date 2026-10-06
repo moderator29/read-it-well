@@ -39,14 +39,12 @@ export function FeaturesBoard({
   locale,
   tiers,
   trial,
-  streaks,
 }: {
   t: Dictionary;
   locale: Locale;
   tiers: TrustTierItem[];
-  /** The server-rendered timeline and tiles, passed through. */
+  /** The server-rendered timeline, passed through. */
   trial: ReactNode;
-  streaks: ReactNode;
 }) {
   const f = t.experienceFeatures;
   const [pro, setPro] = useState(false);
@@ -59,7 +57,7 @@ export function FeaturesBoard({
 
   return (
     <div className="mx-auto max-w-3xl px-md pb-section pt-lg">
-      <h1 className="nf-h1">Feature onboarding, Pro, plans, artefacts, streaks</h1>
+      <h1 className="nf-h1">Feature onboarding, Pro, plans, artefacts, the earned moment</h1>
       <p className="mt-xs text-[var(--nf-content-secondary)]">
         The first runs are pages: open them at /gallery/features?run=host (and agent, verification, agreements, invite, passport, analytics).
       </p>
@@ -136,10 +134,6 @@ export function FeaturesBoard({
           }}
           action={() => null}
         />
-      </Section>
-
-      <Section title="Streak tiles" note="Running and paused. Breaking is quiet: a missed window is a hollow mark in the same ink.">
-        {streaks}
       </Section>
 
       <Section title="Earned moment" note="Tap the medal to replay it once. Nothing replays by itself.">
