@@ -19,6 +19,12 @@ const LEDES: Record<string, string> = {
   switches: "Turn a surface of the product off in an incident, and back on. Every change is written to the audit log.",
   reference: "The occupations and local governments every profile picks from.",
   examples: "The example listings that show the product before real supply arrives, and the date each is due to retire.",
+  /* The three doors that had no line, so three of the six rows read as a
+     different kind of row (C1 sweep). Each line is what its desk says of
+     itself: the staff desk's lede, the handbook's docstring, the help route. */
+  staff: "Who holds access to which desks. Only the founder's super admin account can change it.",
+  handbook: "What every staff member reads and acknowledges before any desk unlocks.",
+  help: "The help centre and support, as a member reaches them.",
 };
 
 export default async function AdminSettingsPage() {
@@ -35,9 +41,10 @@ export default async function AdminSettingsPage() {
               </IconPlate>
               <span className="nf-admin-hub__text">
                 <span className="nf-admin-panel__title">{labelFor(desk, shell)}</span>
-                <span className="nf-admin-hub__lede">{LEDES[desk.key] ?? ""}</span>
+                {LEDES[desk.key] && <span className="nf-admin-hub__lede">{LEDES[desk.key]}</span>}
               </span>
-              <UiIcon name="chevron-right" size={20} />
+              {/* shrink-0: beside a two-line lede the chevron was squeezed to a sliver. */}
+              <UiIcon name="chevron-right" size={20} className="shrink-0" />
             </Link>
           </Panel>
         ))}
