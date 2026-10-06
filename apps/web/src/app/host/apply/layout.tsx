@@ -7,5 +7,5 @@ import { RouteCopy } from "@/lib/i18n/route-copy";
  * 398KB gzipped in this route's first load). See `lib/i18n/route-copy.tsx`.
  */
 export default function Layout({ children }: { children: ReactNode }) {
-  return <RouteCopy keys={["success", "featuresWizard", "moneyLock", "hostWorkspace"]}>{children}</RouteCopy>;
+  return <RouteCopy keys={["success", "featuresWizard", "moneyLock", "hostWorkspace", "experienceHost"]}>{children}</RouteCopy>;
 }
