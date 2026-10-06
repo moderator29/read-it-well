@@ -86,6 +86,8 @@ export const experienceAccountEn = {
     notificationsNav: {
       navChannels: "What reaches you",
       navPhone: "On your phone",
+      /** The link at the foot of one notification: the generic settings page, which has no per-category choice. */
+      fromNotice: "Change what reaches you",
     },
   },
 
@@ -112,16 +114,8 @@ export const experienceAccountEn = {
     linkLabel: "Your link",
     groupLabel: "Your invites",
     referralsTitle: "Who joined with your code",
-    referralsSub: "Each person, and where their referral stands",
     howTitle: "How invites work",
     howSub: "What is recorded, and what is not",
-    /** Figures, drawn only when Vallo has real numbers to put in them. */
-    earnedLabel: "Earned so far",
-    progressLabel: "Towards your next reward",
-    /** `{done}` and `{total}` are whole numbers. */
-    progressOf: "{done} of {total}",
-    /** The muted tail beside the counted figure; `{total}` is a whole number. */
-    progressSuffix: "of {total}",
     /** `/settings/invite/how-it-works`. */
     how: {
       lede: "Invites are a way to bring somebody you know to Vallo. This is everything they do, and everything they do not.",
@@ -135,27 +129,17 @@ export const experienceAccountEn = {
       notBody: "Nothing here is an investment. There is nothing to pay in, only the person you invite is counted, and nothing builds up from the people they invite.",
       back: "Back to your code",
     },
-    /** `/settings/invite/referrals` and one referral. */
+    /**
+     * `/settings/invite/referrals` and one referral. Vallo records a sign-up that
+     * comes from a code, but a member has no way to read that list, so both pages
+     * say so plainly. No reward, stage or earnings wording lives here: the
+     * founder has not decided on a reward, and none is promised.
+     */
     referrals: {
-      lede: "Each person who joined with your code appears here, with where their referral stands.",
-      emptyTitle: "Referrals are not listed here yet",
-      emptyBody: "When somebody joins with your code and Vallo records it, they will appear on this page with where their referral stands. Until then your code and link are all you need.",
+      lede: "Vallo records a sign-up that comes from your code.",
+      emptyTitle: "This list is not shown here",
+      emptyBody: "Vallo records when somebody signs up with your code, but this page cannot show you who. Your code and link are all you need.",
       emptyAction: "Back to your code",
-      notFoundTitle: "We could not find that referral",
-      notFoundBody: "It may have been removed, or it may not be yours. Your other referrals are one step back.",
-      /** The person, when they chose to be named. */
-      someone: "Somebody",
-      /** `{date}` is a date. */
-      joinedOn: "Joined on {date}",
-      stageLabel: "Where it stands",
-      steps: {
-        joined: "Joined with your code",
-        confirmed: "Confirmed their phone",
-        qualified: "Qualified",
-        rewarded: "Reward added",
-        reversed: "Reward taken back",
-      },
-      noteLabel: "What Vallo recorded",
     },
   },
 
@@ -240,5 +224,7 @@ export const experienceAccountEn = {
     tierLabel: "Where you are",
     /** `{done}` and `{total}` are whole numbers. */
     stepsOf: "{done} of {total} steps passed",
+    /** Drawn instead of the path when an agent's verification could not be read. */
+    unreadable: "We could not read your verification right now.",
   },
 };

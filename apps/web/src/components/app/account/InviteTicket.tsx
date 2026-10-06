@@ -72,10 +72,14 @@ export function InviteTicket({
   const [round, setRound] = useState(autoplay ? 1 : 0);
   const [sheet, setSheet] = useState(false);
 
-  /* The one payoff haptic, on the pop's own clock. */
+  /* The one payoff haptic, on the pop's own clock. The stylesheet lands the
+     reveal at once for system reduced motion, Calm, Off AND data saver
+     (`--nf-gift-k: 0`), so the haptic asks the same question: it used to wait
+     the full 1160ms under data saver, where the pop had already happened. */
   useEffect(() => {
     if (round === 0) return;
-    const timer = window.setTimeout(() => feedback("success"), quiet ? 0 : POP_AT_MS);
+    const landsAtOnce = quiet || document.documentElement.dataset.saveData === "on";
+    const timer = window.setTimeout(() => feedback("success"), landsAtOnce ? 0 : POP_AT_MS);
     return () => window.clearTimeout(timer);
   }, [round, quiet]);
 
@@ -139,13 +143,17 @@ export function InviteTicket({
             </svg>
 
             <p className="nf-ticket__label">{copy.codeLabel}</p>
-            <p className="nf-ticket__code nf-numeric" data-testid="invite-code" aria-label={code}>
+            <p className="nf-ticket__code nf-numeric" data-testid="invite-code">
               {characters.map((character, index) => (
                 <span key={`${index}-${character}`} aria-hidden="true" style={{ "--i": index } as React.CSSProperties}>
                   {character}
                 </span>
               ))}
             </p>
+            {/* An aria-label on a paragraph is ignored, so the code is read from
+                real text. It is a sibling, not a child, because the stylesheet
+                animates every direct span of `.nf-ticket__code` as a character. */}
+            <span className="sr-only">{code}</span>
             <div className="nf-ticket__perf" aria-hidden="true" />
             <div className="nf-ticket__actions">
               <Button

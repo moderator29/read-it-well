@@ -9,12 +9,10 @@ import { RowLink, RowValue, SettingsGroup } from "@/components/app/account/rows"
 import { SettingsLede } from "@/components/app/account/SettingsLede";
 import { InviteTicket } from "@/components/app/account/InviteTicket";
 import { INVITE_SEEN_COOKIE } from "@/components/app/account/invite-cookie";
-import { ReferralFigures } from "@/components/app/account/ReferralFigures";
 import { gateFirstRun } from "@/components/app/feature-onboarding/first-run-store";
 import { resolveSession } from "@/lib/actions/session";
 import { myInviteCode } from "@/lib/referral/server";
 import { invitePath } from "@/lib/referral/code";
-import { readReferralSummary } from "./referral-reads";
 
 export const dynamic = "force-dynamic";
 
@@ -27,18 +25,18 @@ export async function generateMetadata(): Promise<Metadata> {
  * first visit, revealed as a gift: a sealed gift, then a dashed ticket that
  * unfolds with the code on it (`InviteTicket`).
  *
- * WHAT IS ON IT, AND WHY NOTHING ELSE. The code and the link are real. The
- * earned figure and the progress to a next reward are drawn only from real
- * data (`ReferralFigures`), and today there is none: no reward or ledger exists
- * and members cannot read who joined (`referral-reads.ts`, requests R-W6-1 and
- * R-W6-2). So the hub draws the honest rows instead (who joined, how invites
- * work) and says under the ticket that there is no reward for inviting, in the
- * words the invite door already uses. No investment framing, no downline, no
- * passive-income language: the how-it-works page says what is and is not
- * recorded.
+ * WHAT IS ON IT, AND WHY NOTHING ELSE. The code and the link are real. Vallo
+ * records a sign-up that comes from a code, but a member cannot read that list,
+ * and the founder has not decided on any reward, so nothing here is reward
+ * shaped: no earned figure, no progress, no "who joined" row (auditor A2, 6
+ * October 2026). The page says under the ticket that there is no reward for
+ * inviting, in the words the invite door already uses. No investment framing,
+ * no downline, no passive-income language: the how-it-works page says what is
+ * and is not recorded.
  *
- * It is a hub with two inner pages (D25): `/settings/invite/referrals` (each
- * person, and each referral's state) and `/settings/invite/how-it-works`.
+ * It is a hub with inner pages (D25): `/settings/invite/how-it-works`, and the
+ * two declared referral routes, which draw the honest unavailable state until
+ * Session 2 lets a member read their own referrals (R-W6-1, R-W6-2).
  */
 export default async function InviteSettingsPage({
   searchParams,
@@ -63,7 +61,6 @@ export default async function InviteSettingsPage({
   const code = await myInviteCode();
   const url = code ? `${siteUrl().replace(/\/+$/, "")}${invitePath(code)}` : null;
   const seen = code ? (await cookies()).get(INVITE_SEEN_COOKIE)?.value === code : true;
-  const summary = code ? await readReferralSummary() : null;
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -85,28 +82,12 @@ export default async function InviteSettingsPage({
             {door.noReward}
           </p>
 
-          {summary ? (
-            <ReferralFigures
-              copy={copy}
-              locale={locale}
-              earnedMinor={summary.earnedMinor}
-              progress={summary.progress}
-            />
-          ) : null}
-
           <SettingsGroup label={copy.groupLabel}>
             <RowValue
               icon="link"
               label={copy.linkLabel}
               value={<span className="nf-numeric break-all">{url.replace(/^https?:\/\//, "")}</span>}
               testId="invite-url"
-            />
-            <RowLink
-              href="/settings/invite/referrals"
-              icon="users"
-              label={copy.referralsTitle}
-              sub={copy.referralsSub}
-              testId="invite-referrals-row"
             />
             <RowLink
               href="/settings/invite/how-it-works"

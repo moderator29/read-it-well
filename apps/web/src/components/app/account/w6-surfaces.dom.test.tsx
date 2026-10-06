@@ -53,7 +53,8 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the referral hub's gift", () =>
     try {
       const gift = page.getByTestId("invite-gift");
       expect(await gift.getAttribute("data-reveal")).toBe("settled");
-      expect(await page.getByTestId("invite-code").getAttribute("aria-label")).toBe("K7M2QX");
+      expect(await page.locator(".nf-ticket > .sr-only").textContent()).toBe("K7M2QX");
+      expect(await page.getByTestId("invite-code").getAttribute("aria-label")).toBeNull();
       expect(await page.locator(".nf-ticket__code > span").allTextContents()).toEqual(["K", "7", "M", "2", "Q", "X"]);
       /* The ticket is already there: nothing is waiting to be revealed. */
       expect(await page.locator(".nf-ticket").evaluate((el) => getComputedStyle(el).opacity)).toBe("1");
@@ -139,7 +140,7 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the referral hub's gift", () =>
   });
 });
 
-describe.skipIf(!hasBrowser && !process.env.CI)("the verification path and the figures", () => {
+describe.skipIf(!hasBrowser && !process.env.CI)("the verification path", () => {
   it("draws four rungs that each name what is checked, with a date only on a decided one", async () => {
     const { page, close } = await mountInBrowser({
       css: W6_CSS,
@@ -167,44 +168,6 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the verification path and the f
       expect(await page.locator(".nf-vpath__evidence").count()).toBe(4);
       expect(await page.locator(".nf-vpath-head__count").textContent()).toBe("1 of 4 steps passed");
       expect(await axeViolations(page)).toEqual([]);
-    } finally {
-      await close();
-    }
-  });
-
-  it("draws no figure at all without real numbers, and never an invented zero", async () => {
-    const { page, close } = await mountInBrowser({
-      css: W6_CSS,
-      entry: `
-        import { getDictionary } from "@vallo/i18n";
-        import { ReferralFigures } from "@/components/app/account/ReferralFigures";
-        import { mount } from "@/lib/testing/browser-root";
-        const t = getDictionary("en");
-        mount(<div id="host"><ReferralFigures copy={t.experienceAccount.invite} locale="en" earnedMinor={null} progress={null} /></div>);
-      `,
-    });
-    try {
-      expect(await page.locator("#host").innerHTML()).toBe("");
-    } finally {
-      await close();
-    }
-  });
-
-  it("draws the earned figure and the progress when Vallo has them", async () => {
-    const { page, close } = await mountInBrowser({
-      css: W6_CSS,
-      entry: `
-        import { getDictionary } from "@vallo/i18n";
-        import { ReferralFigures } from "@/components/app/account/ReferralFigures";
-        import { mount } from "@/lib/testing/browser-root";
-        const t = getDictionary("en");
-        mount(<ReferralFigures copy={t.experienceAccount.invite} locale="en" earnedMinor={150000} progress={{ done: 2, total: 3 }} />);
-      `,
-    });
-    try {
-      await page.getByTestId("referral-figures").waitFor();
-      expect(await page.getByRole("progressbar").getAttribute("aria-valuetext")).toBe("2 of 3");
-      expect(await page.getByTestId("referral-figures").textContent()).toContain("1,500");
     } finally {
       await close();
     }

@@ -111,7 +111,23 @@ export default async function VerificationPage({
      checked, built only from the reviewers' own decisions and the documents'
      own review state. See `components/verification/verification-path.ts`. */
   const t = getDictionary(locale);
-  const path = (
+  /* `getOwnLadder` answers "unavailable" both for somebody who is not an agent
+     (no ladder exists, which is true and draws the path from their documents)
+     and for an agent whose read failed (a ladder exists and could not be read).
+     Told apart here by the context: for an agent the read failed, and drawing
+     "0 of 4 steps passed" would tell an approved agent they had passed nothing.
+     So on a failed read no path is drawn, only a quiet line saying so (auditor
+     A2, 6 October 2026). */
+  const ladderReadFailed = context.state === "agent" && ladder.state === "unavailable";
+  const path = ladderReadFailed ? (
+    <p
+      role="status"
+      className="text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]"
+      data-testid="verification-path-unreadable"
+    >
+      {t.experienceAccount.verification.unreadable}
+    </p>
+  ) : (
     <VerificationPath
       rungs={buildPath({
         ladder: ladder.state === "ok" ? { rungs: ladder.ladder.rungs } : null,
