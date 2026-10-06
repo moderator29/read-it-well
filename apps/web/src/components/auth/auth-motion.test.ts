@@ -38,9 +38,9 @@ describe("auth.css", () => {
     expect(loops[0]).toContain("nf-code-caret");
   });
 
-  it("keeps to three weights: 400, 500 and 600", () => {
+  it("keeps to the type system's weights (no 500: the three-weight rule)", () => {
     const weights = new Set([...css.matchAll(/font-weight:\s*(\d+)/g)].map((m) => m[1]));
-    for (const w of weights) expect(["400", "500", "600"]).toContain(w);
+    for (const w of weights) expect(["400", "600"]).toContain(w);
   });
 
   it("holds the arrival at the specified beats: 620ms land, then the 180ms-class pop", () => {
@@ -53,7 +53,7 @@ describe("the tour's stylesheet", () => {
   it("loops nothing, and keeps to the weights", () => {
     expect(ofTour).not.toMatch(/animation:[^;]*\binfinite\b/);
     const weights = new Set([...ofTour.matchAll(/font-weight:\s*(\d+)/g)].map((m) => m[1]));
-    for (const w of weights) expect(["400", "500", "600"]).toContain(w);
+    for (const w of weights) expect(["400", "600"]).toContain(w);
   });
 
   it("has no proof band and no invented figure: no naira, no counts, no press names", () => {

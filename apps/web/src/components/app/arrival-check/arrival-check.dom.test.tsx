@@ -437,7 +437,7 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the console's arrival record", 
       try {
         const card = page.getByTestId("admin-arrival-check");
         expect(await card.getByRole("button").count(), ruling).toBe(0);
-        expect(compact(await card.locator("p.font-medium").textContent()), ruling).toMatch(/8 Oct/);
+        expect(compact(await card.locator("p.font-semibold").textContent()), ruling).toMatch(/8 Oct/);
       } finally {
         await close();
       }
