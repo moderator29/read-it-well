@@ -14,13 +14,16 @@
  * Money is integer kobo throughout. Nothing here divides.
  */
 
-/* The enums were dropped with the custody retirement (Track A1, 25 September);
-   the values are kept here because historical rows and the escrow desk still
-   name them. */
-export type EscrowState =
-  | "INITIATED" | "FUNDED" | "HELD" | "RELEASE_REQUESTED" | "RELEASED"
-  | "REFUNDED" | "DISPUTED" | "RESOLVED" | "CANCELLED";
-export type EscrowPurpose = "rent_deposit" | "first_rent" | "purchase_deposit" | "purchase_balance" | "agency_fee";
+/* The enums moved to the `retired_custody` schema with the custody retirement
+   (Track A1, 25 September), which type generation does not cover. The values
+   are derived from these arrays, and `money-enums.test.ts` holds them equal to
+   the migrations that define the enums, so they cannot drift by hand. */
+export const ESCROW_STATES = [
+  "INITIATED", "FUNDED", "HELD", "RELEASE_REQUESTED", "RELEASED", "REFUNDED", "DISPUTED", "RESOLVED", "CANCELLED",
+] as const;
+export const ESCROW_PURPOSES = ["rent_deposit", "first_rent", "purchase_deposit", "purchase_balance", "agency_fee"] as const;
+export type EscrowState = (typeof ESCROW_STATES)[number];
+export type EscrowPurpose = (typeof ESCROW_PURPOSES)[number];
 
 /** Request 2. The four KPI cards on `/admin/money`. */
 export type MoneyPulse = {
