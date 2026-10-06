@@ -75,6 +75,31 @@ For setup, architecture and the repository layout, start with the [repository RE
 | [email/AUTH_EMAILS.md](email/AUTH_EMAILS.md) | The authentication emails: the Send Email Hook route, the templates and their design |
 | [../supabase/README.md](../supabase/README.md) | The auth email templates: how to generate and apply them |
 
+## The October 2026 upgrade (read these first)
+
+| Document | What it is for |
+|---|---|
+| [sessions/SESSION-1-RESPONSE.md](sessions/SESSION-1-RESPONSE.md) | The 5 October platform audit, architecture, the founder's four locked visual decisions, priorities, risk register and what only the founder can do. **Start here** |
+| [design/VISUAL_NORTH_STAR_2026-10-05.md](design/VISUAL_NORTH_STAR_2026-10-05.md) | The governing visual, material and motion specification for the full-platform upgrade: container tiers, the motion inventory, the surface-by-surface sweep, all 79 references classified, the asset prompts, and the per-page audit checklist |
+| [payments/VALLO_PAYMENTS_ARCHITECTURE.md](payments/VALLO_PAYMENTS_ARCHITECTURE.md) | Paystack, Payluk and Yellow Card: the provider interface, the ledger, the two tracks, and the legal gate. Its section 0 is an evidence warning that must be read before any Payluk code |
+| [sessions/DIRECTIVES-2026-10-05.md](sessions/DIRECTIVES-2026-10-05.md) | **The founder's current rulings, which supersede every earlier spec they touch.** Brand hierarchy, rectangles by default, paid promotion, tax, no staging database with double-audit discipline, the phone gate, Space as the noun, autonomy and model routing. Every session reads this first |
+| [sessions/CROSS-SESSION-CONTRACT.md](sessions/CROSS-SESSION-CONTRACT.md) | Who owns what, so two sessions never build the same thing. The test that resolves almost every case: does it decide what is true, or present what is true |
+| [sessions/FEATURE-REGISTER.md](sessions/FEATURE-REGISTER.md) | **The complete inventory**: 1,547 requirements extracted line by line from the founder's Master Prompt, three addendums and the Payments and Payluk prompt, with status and owner on each, and a conflict register resolving five places where the spec and the code oppose each other |
+| [sessions/BLIND-SPOTS.md](sessions/BLIND-SPOTS.md) | 39 gaps the spec itself does not cover, verified against the codebase: no staging database, no tax position, no chargeback handling, no chart system, and the phone-verification dependency that blocks the referral engine |
+| [design/MOTION_SYSTEM.md](design/MOTION_SYSTEM.md) | **The complete motion specification**: the moment inventory, the 1.5 second startup sequence, the deep Get Started reference and the passcode rebuild. Its section 0 reconciles the motion designer's brief with what this repository actually contains |
+| [design/CHATGPT_ASSET_PROMPTS.md](design/CHATGPT_ASSET_PROMPTS.md) | A complete standalone image prompt for every asset the upgrade needs: property types, Nigerian specifics, empty states, success and reward, tiers, onboarding and email |
+| [design/COMPONENT_LIBRARY.md](design/COMPONENT_LIBRARY.md) | The component library the founder supplied, with the porting rules that make each piece Vallo's: which dependency is allowed, which is refused, where the glass navigation belongs, and the twelve point checklist every ported component passes |
+| [design/CRAFT_DOCTRINE.md](design/CRAFT_DOCTRINE.md) | The taste standard: intention, negative discipline, one screen one idea, adaptive rhythm, haptics as sound design, and the seven questions a screen answers before it ships |
+| [design/component-library-source/](design/component-library-source/) | The founder's nine components as he supplied them, one file per component, with a README on what is wrong with each. Reference material: it sits outside every gate in this repository and none of it compiles |
+| [sessions/SESSION-2-HANDOFF.md](sessions/SESSION-2-HANDOFF.md) | Backend, money and trust execution brief |
+| [sessions/SESSION-3-HANDOFF.md](sessions/SESSION-3-HANDOFF.md) | The platform-wide experience upgrade execution brief |
+| [sessions/SESSION-4-HANDOFF.md](sessions/SESSION-4-HANDOFF.md) | QA, release and store execution brief |
+
+Six design documents are superseded by the north star and carry a banner saying
+so: `DESIGN_DIRECTION.md`, `design/GLOW_IDENTITY.md`, `BRAND_MARKS.md`,
+`ICON_UPGRADE_2026-09-29.md` and the two `ICONS_3D_*` files. They are kept
+because code comments cite them, and they govern nothing.
+
 ## Design
 
 | Document | What it is for |
