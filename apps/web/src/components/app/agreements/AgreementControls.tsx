@@ -198,7 +198,13 @@ export function CancelAgreement({
       {error && !sure ? <p role="alert" className="text-[var(--nf-status-error)]">{error}</p> : null}
       <Button
         variant={variant === "secondary" ? "secondary" : "quiet"}
-        className={variant === "secondary" ? "text-[var(--nf-state-error)]" : undefined}
+        /* DESTRUCTIVE WITHOUT THE ROSE WORD (auditor A7 N4). The label was
+           `--nf-state-error` on the glass secondary, about 3.9:1 at night,
+           under the 4.5:1 a 16px word needs. It keeps the button's own ink,
+           which passes, and says "this one ends the agreement" with a rose
+           edge instead, the way the slide to confirm marks its destructive
+           choice. The Awaiting you card's quiet variant is brand ink already. */
+        className={variant === "secondary" ? "nf-btn--edge-danger" : undefined}
         onClick={() => setSure(true)}
       >
         Cancel this agreement

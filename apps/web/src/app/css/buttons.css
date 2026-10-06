@@ -1166,6 +1166,19 @@
     background: color-mix(in oklab, var(--nf-state-error) 22%, transparent);
   }
 
+  /*
+   * THE DESTRUCTIVE EDGE ON A SECONDARY (auditor A7 N4, Session 3).
+   * `<Button variant="secondary" className="nf-btn--edge-danger">`: a glass
+   * button that keeps its own ink, which clears 4.5:1, and says "this one ends
+   * something" with a rose hairline instead of a rose word (the error colour on
+   * glass measured about 3.9:1 at night). Compound selector, so it beats the
+   * glass edge and its hover and press edges without a specificity fight.
+   */
+  .nf-btn--glass.nf-btn--edge-danger,
+  .nf-btn--glass.nf-btn--edge-danger:active:not(:disabled, [aria-disabled="true"]) {
+    border-color: color-mix(in oklab, var(--nf-state-error) 60%, transparent);
+  }
+
   /* ---- disabled: one calm grey for every kind ------------------------- */
   /* The guide's disabled is the grey family (Gray #94A3B8) on a pale fill,
      for every kind: present, legible, plainly not answering. The primary
@@ -1206,6 +1219,10 @@
     :is(.nf-btn--quiet, .nf-btn--ghost):hover:not(:disabled, [aria-disabled="true"], :active) {
       color: var(--nf-act-ink);
       background: var(--nf-act-tint);
+    }
+    /* The destructive edge survives the glass hover's brand edge. */
+    .nf-btn--glass.nf-btn--edge-danger:hover:not(:disabled, [aria-disabled="true"], :active) {
+      border-color: color-mix(in oklab, var(--nf-state-error) 60%, transparent);
     }
     .nf-btn--surface:hover:not(:disabled, [aria-disabled="true"], :active) {
       color: var(--nf-act-on);
