@@ -41,14 +41,23 @@ declare
   t text;
   pair jsonb;
   net bigint;
+  tg name;
 begin
   select id into v_guest from auth.users order by created_at limit 1;
   select l.id into v_listing from public.listings l where l.property_type = 'hotel' limit 1;
   if v_guest is null or v_listing is null then
     raise exception 'PROBE_FAIL b2-ledger: fixtures missing (a user, a hotel listing)';
   end if;
-  -- Rolled back with the block: bookings refuse a demo listing.
+  -- Rolled back with the block: bookings refuse a demo listing, and the
+  -- supply-proof gate (SCUML item 17) refuses to un-demo an agent listing, so
+  -- it is lifted for this transaction only, as crypto-pay-2 and chargebacks do.
+  for tg in select tgname from pg_trigger where tgrelid = 'public.listings'::regclass and tgfoid = 'private.listing_supply_proof_gate'::regproc loop
+    execute format('alter table public.listings disable trigger %I', tg);
+  end loop;
   update public.listings set is_demo = false where id = v_listing;
+  for tg in select tgname from pg_trigger where tgrelid = 'public.listings'::regclass and tgfoid = 'private.listing_supply_proof_gate'::regproc loop
+    execute format('alter table public.listings enable trigger %I', tg);
+  end loop;
   insert into public.bookings (id, listing_id, guest_id, check_in, check_out, nights, price_per_night_minor, subtotal_minor, total_minor)
   values (b, v_listing, v_guest, current_date + 420, current_date + 421, 1, 10000, 10000, 10000);
   perform set_config('vallo.recording_unknown_charge', 'on', true);
@@ -174,7 +183,6 @@ begin
 
   -- A direct-only booking with two cards (flatmates): the refund posts
   -- pending, attributed to neither charge.
-  update public.listings set is_demo = false where id = v_listing;
   insert into public.bookings (id, listing_id, guest_id, check_in, check_out, nights, price_per_night_minor, subtotal_minor, total_minor)
   values (b2, v_listing, v_guest, current_date + 430, current_date + 431, 1, 10000, 10000, 10000);
   perform set_config('vallo.recording_unknown_charge', 'on', true);
