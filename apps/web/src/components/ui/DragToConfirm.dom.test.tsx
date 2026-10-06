@@ -1,7 +1,8 @@
 /**
  * DragToConfirm, mounted for real in Chromium with the product's own
- * stylesheet: the slide, the keyboard path, the rules that make it safe for
- * money, and what a person who asked for less motion is shown.
+ * stylesheet: the slide, the keyboard path (two presses for money, D49.2), the
+ * rules that make it safe for money, a decline told from a crash, and what a
+ * person who asked for less motion is shown.
  */
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import type { Page } from "playwright-core";
@@ -19,14 +20,26 @@ beforeAll(warmBrowser);
 afterAll(closeBrowser);
 
 /* `behaviour` is function source: what onConfirm does in this test. */
-function entry(opts: { money?: boolean; autoResetDelay?: number; behaviour?: string; tone?: string } = {}): string {
+function entry(
+  opts: { money?: boolean; autoResetDelay?: number; behaviour?: string; tone?: string } = {},
+): string {
   return `
     import { DragToConfirm } from "@/components/ui/DragToConfirm";
     import { mount } from "@/lib/testing/browser-root";
     window.__confirms = 0;
+    /* Every crash report the component sends, by address, answered locally. */
+    window.__reports = [];
+    const realFetch = window.fetch.bind(window);
+    window.fetch = (url, init) => {
+      if (String(url).includes("/api/client-error")) {
+        window.__reports.push(JSON.parse(String(init && init.body)).kind);
+        return Promise.resolve(new Response(null, { status: 204 }));
+      }
+      return realFetch(url, init);
+    };
     const onConfirm = ${opts.behaviour ?? "() => { window.__confirms += 1; }"};
     const extra = ${JSON.stringify({
-      ...(opts.money ? { money: true } : {}),
+      ...(opts.money ? { money: true, armedLabel: "Press again to confirm" } : {}),
       ...(opts.autoResetDelay ? { autoResetDelay: opts.autoResetDelay } : {}),
       ...(opts.tone ? { tone: opts.tone } : {}),
     })};
@@ -66,6 +79,8 @@ const handleX = (page: Page) =>
   page.getByRole("button", { name: "Confirm the action" }).evaluate((el) => new DOMMatrix(getComputedStyle(el).transform).m41);
 const state = (page: Page) => page.getByTestId("dtc").getAttribute("data-state");
 const confirms = (page: Page) => page.evaluate(() => (window as unknown as { __confirms: number }).__confirms);
+const reports = (page: Page) => page.evaluate(() => (window as unknown as { __reports: string[] }).__reports);
+const armed = (page: Page) => page.getByTestId("dtc").evaluate((el) => el.hasAttribute("data-armed"));
 
 describe.skipIf(!hasBrowser && !process.env.CI)("DragToConfirm", () => {
   it("rests with its prompt, a labelled focusable handle and nothing confirmed", async () => {
@@ -245,7 +260,7 @@ describe.skipIf(!hasBrowser && !process.env.CI)("DragToConfirm", () => {
     }
   });
 
-  it("confirms from the keyboard", async () => {
+  it("confirms a non-money action from the keyboard in one press", async () => {
     const { page, close } = await mountInBrowser({ entry: entry(), css: PORTED_CSS });
     try {
       const handle = page.getByRole("button", { name: "Confirm the action" });
@@ -255,6 +270,119 @@ describe.skipIf(!hasBrowser && !process.env.CI)("DragToConfirm", () => {
       expect(await confirms(page)).toBe(1);
     } finally {
       await close();
+    }
+  });
+
+  /*
+   * D49.2. A pointer has to carry the handle across 90 percent of the track
+   * before money moves; one Enter used to do the same. For money the first
+   * keyboard or screen-reader activation now only arms the control, and says
+   * so; a second, separate activation confirms.
+   */
+  it("does not move money on one keystroke: Enter arms and says so, a second Enter confirms", async () => {
+    const { page, close } = await mountInBrowser({ entry: entry({ money: true }), css: PORTED_CSS });
+    try {
+      const handle = page.getByRole("button", { name: "Confirm the action" });
+      await handle.focus();
+      await page.keyboard.press("Enter");
+      await page.waitForFunction(() => document.querySelector("[data-testid=dtc]")?.hasAttribute("data-armed"));
+      await page.waitForTimeout(300);
+      expect(await state(page)).toBe("idle");
+      expect(await confirms(page)).toBe(0);
+      expect(await page.locator('[role="status"]').textContent()).toBe("Press again to confirm");
+      expect(await page.getByTestId("dtc").textContent()).toContain("Press again to confirm");
+      await page.keyboard.press("Enter");
+      await page.waitForFunction(() => document.querySelector("[data-testid=dtc]")?.getAttribute("data-state") === "confirmed");
+      expect(await confirms(page)).toBe(1);
+      expect(await armed(page)).toBe(false);
+    } finally {
+      await close();
+    }
+  });
+
+  it("takes two screen-reader activations for money, the same as two key presses", async () => {
+    const { page, close } = await mountInBrowser({ entry: entry({ money: true }), css: PORTED_CSS });
+    try {
+      const handle = page.getByRole("button", { name: "Confirm the action" });
+      /* `el.click()` is what an assistive activate arrives as: detail 0. */
+      await handle.evaluate((el: HTMLElement) => el.click());
+      await page.waitForTimeout(200);
+      expect(await armed(page)).toBe(true);
+      expect(await confirms(page)).toBe(0);
+      await handle.evaluate((el: HTMLElement) => el.click());
+      await page.waitForFunction(() => document.querySelector("[data-testid=dtc]")?.getAttribute("data-state") === "confirmed");
+      expect(await confirms(page)).toBe(1);
+    } finally {
+      await close();
+    }
+  });
+
+  it("does not count a held Enter as a second press, and lets Escape and leaving the handle disarm it", async () => {
+    const { page, close } = await mountInBrowser({ entry: entry({ money: true }), css: PORTED_CSS });
+    try {
+      const handle = page.getByRole("button", { name: "Confirm the action" });
+      await handle.focus();
+      /* Held: the second and third keydowns arrive with repeat set. */
+      await page.keyboard.down("Enter");
+      await page.keyboard.down("Enter");
+      await page.keyboard.down("Enter");
+      await page.keyboard.up("Enter");
+      await page.waitForTimeout(300);
+      expect(await armed(page)).toBe(true);
+      expect(await confirms(page)).toBe(0);
+      await page.keyboard.press("Escape");
+      await page.waitForFunction(() => !document.querySelector("[data-testid=dtc]")?.hasAttribute("data-armed"));
+      /* Armed again, then focus leaves: the next press starts over. */
+      await page.keyboard.press("Enter");
+      await page.waitForFunction(() => document.querySelector("[data-testid=dtc]")?.hasAttribute("data-armed"));
+      await handle.evaluate((el: HTMLElement) => el.blur());
+      await page.waitForFunction(() => !document.querySelector("[data-testid=dtc]")?.hasAttribute("data-armed"));
+      await handle.focus();
+      await page.keyboard.press("Enter");
+      await page.waitForTimeout(300);
+      expect(await state(page)).toBe("idle");
+      expect(await confirms(page)).toBe(0);
+    } finally {
+      await close();
+    }
+  });
+
+  it("still lets a pointer slide confirm money in one gesture", async () => {
+    const { page, close } = await mountInBrowser({ entry: entry({ money: true }), css: PORTED_CSS });
+    try {
+      await slide(page, 1);
+      await page.waitForFunction(() => document.querySelector("[data-testid=dtc]")?.getAttribute("data-state") === "confirmed");
+      expect(await confirms(page)).toBe(1);
+    } finally {
+      await close();
+    }
+  });
+
+  it("tells a declined action from a crashed one, and reports only the crash", async () => {
+    const declined = await mountInBrowser({ entry: entry({ money: true, behaviour: "async () => false" }), css: PORTED_CSS });
+    try {
+      await slide(declined.page, 1);
+      await declined.page.waitForFunction(() => document.querySelector("[data-testid=dtc]")?.hasAttribute("data-failed"));
+      expect(await declined.page.getByTestId("dtc").getAttribute("data-failed")).toBe("declined");
+      await declined.page.waitForTimeout(200);
+      expect(await reports(declined.page)).toEqual([]);
+    } finally {
+      await declined.close();
+    }
+    const crashed = await mountInBrowser({
+      entry: entry({ money: true, behaviour: 'async () => { throw new Error("the request broke"); }' }),
+      css: PORTED_CSS,
+    });
+    try {
+      await slide(crashed.page, 1);
+      await crashed.page.waitForFunction(() => document.querySelector("[data-testid=dtc]")?.hasAttribute("data-failed"));
+      expect(await crashed.page.getByTestId("dtc").getAttribute("data-failed")).toBe("crashed");
+      expect(await state(crashed.page)).toBe("idle");
+      expect(await confirms(crashed.page)).toBe(0);
+      await crashed.page.waitForFunction(() => (window as unknown as { __reports: string[] }).__reports.length > 0);
+      expect(await reports(crashed.page)).toEqual(["client.drag_to_confirm.money"]);
+    } finally {
+      await crashed.close();
     }
   });
 

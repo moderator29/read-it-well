@@ -12,6 +12,8 @@ export const experienceUiEn = {
   slideToConfirm: "Slide to confirm",
   confirming: "Confirming",
   confirmed: "Confirmed",
+  /** DragToConfirm with money, after the first keyboard or screen-reader activation (D49.2). */
+  pressAgain: "Press again to confirm",
   previousPage: "Previous page",
   nextPage: "Next page",
   page: "Page {n}",

@@ -32,7 +32,7 @@ export function ArrivalRuling({
   bookingId: string;
   copy: Dictionary["arrivalCheck"]["admin"];
   /** The shared slide labels (`experienceUi`). */
-  slide: Pick<Dictionary["experienceUi"], "slideToConfirm" | "confirming" | "confirmed">;
+  slide: Pick<Dictionary["experienceUi"], "slideToConfirm" | "confirming" | "confirmed" | "pressAgain">;
 }) {
   const router = useRouter();
   const [asking, setAsking] = useState<Ruling | null>(null);
@@ -79,6 +79,7 @@ export function ArrivalRuling({
           <DragToConfirm
             key={asking}
             money
+            armedLabel={slide.pressAgain}
             label={slide.slideToConfirm}
             keyboardLabel={asking === "upheld" ? copy.uphold : copy.decline}
             confirmingLabel={slide.confirming}

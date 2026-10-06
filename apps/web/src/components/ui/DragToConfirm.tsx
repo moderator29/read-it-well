@@ -1,13 +1,18 @@
 "use client";
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from "react";
+import type {
+  KeyboardEvent as ReactKeyboardEvent,
+  MouseEvent as ReactMouseEvent,
+  PointerEvent as ReactPointerEvent,
+} from "react";
 import { animate, useMotionValue, useTransform } from "framer-motion";
 import type { AnimationPlaybackControls } from "framer-motion";
 import "@/app/css/ported.css";
 import { useMotionGate } from "@/components/motion/useMotionGate";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { cn } from "@/lib/cn";
+import { reportClientError } from "@/lib/observability/client";
 import { feedback } from "@/lib/ui/feedback";
 import { SPRING_SETTLE, SPRING_SNAP, clamp, springFor, useDrive } from "./ported-motion";
 
@@ -20,9 +25,9 @@ import { SPRING_SETTLE, SPRING_SNAP, clamp, springFor, useDrive } from "./ported
  * 14. Its twelve-point list is in docs/design/COMPONENT_LIBRARY.md section 2.
  *
  * WHEN TO USE IT, AND WHEN NOT TO. A slide is a deliberate piece of friction, so
- * it is spent only where the action is genuinely irreversible: releasing escrow,
- * confirming a withdrawal, sending a wallet transfer, deleting an account, an
- * admin ruling on a dispute. Never a form submit, navigation, saving a draft or
+ * it is spent only where the action is genuinely irreversible: releasing a
+ * protected payment, confirming a payout, deleting an account, an admin ruling
+ * on a dispute. Never a form submit, navigation, saving a draft or
  * anything a tap should do. A product that makes people slide for everything has
  * made a toll booth of itself.
  *
@@ -37,16 +42,36 @@ import { SPRING_SETTLE, SPRING_SNAP, clamp, springFor, useDrive } from "./ported
  *   2. THE CONFIRMED STATE PERSISTS. Once `onConfirm` has resolved the control
  *      stays confirmed, locked at the end of the track with a tick, until the
  *      owner unmounts it or (a non-money action only) the reset delay fires.
- *   3. THE KEYBOARD PATH IS A BUTTON. The handle is a real, focusable `<button>`.
- *      Enter or Space (a click with `detail === 0`) confirm directly, and so
- *      does a screen reader's activate. A pointer click does not confirm; it
- *      nudges the handle along its track, which teaches the gesture instead of
- *      punishing a tap. The founder's original put the fallback in a hidden
- *      second button; one real control with one name is cleaner for everybody.
+ *   3. THE KEYBOARD PATH IS A BUTTON, AND FOR MONEY IT TAKES TWO PRESSES. The
+ *      handle is a real, focusable `<button>`. Enter, Space and a screen
+ *      reader's activate arrive as a click with `detail === 0`. For a
+ *      non-money action that confirms. For `money` it only ARMS the control:
+ *      the handle steps forward, the track and the live region say
+ *      `armedLabel` ("Press again to confirm"), and a second, separate
+ *      activation confirms. Holding Enter does not count (its repeats are
+ *      refused), and arming lapses after `ARM_MS`, on blur, on Escape or on a
+ *      pointer. A pointer user has to cover 90 percent of the track, so one
+ *      keystroke must not be easier than that (D49.2).
+ *
+ *      WHY A SECOND PRESS AND NOT `role="slider"`. A slider advanced by Arrow
+ *      keys would match the pointer gesture more literally, but an ARIA slider
+ *      on a `div` or `button` cannot be adjusted by VoiceOver on iOS, which
+ *      only adjusts a native range input, and this product ships as an iOS
+ *      app. A second activation works the same way for a keyboard, a switch
+ *      device and every screen reader, and it says what it wants in words.
+ *
+ *      A pointer click does not confirm; it nudges the handle along its
+ *      track, which teaches the gesture instead of punishing a tap. The
+ *      founder's original put the fallback in a hidden second button; one real
+ *      control with one name is cleaner for everybody.
  *   4. THE CONFIRMED STATE IS ONLY EVER TRUE. The handle slides under the
  *      person's own finger, but the track does not claim "confirmed" until
  *      `onConfirm` has resolved. Resolve `false`, or throw, and the control
- *      springs back with the error haptic: nothing happened, and it says so.
+ *      springs back with the error haptic. The two are told apart: `false` is
+ *      a DECLINE (the caller decided, nothing to report, `data-failed=
+ *      "declined"`); a throw is a CRASH, reported through
+ *      `reportClientError`, which ends at `reportError` on the server
+ *      (`lib/observability/report.ts`), and marked `data-failed="crashed"`.
  *      For money, resolve only after the server has confirmed (MOTION_SYSTEM,
  *      "Money, where motion must never mislead").
  *
@@ -84,9 +109,15 @@ type MoneyOrNot =
       /** This action moves money. Auto-reset is then impossible. */
       money: true;
       autoResetDelay?: never;
+      /**
+       * Said on the track and in the live region after the first keyboard or
+       * screen-reader activation, which only arms a money action (rule 3).
+       */
+      armedLabel: string;
     }
   | {
       money?: false;
+      armedLabel?: never;
       /**
        * Milliseconds after confirming before the control returns to rest. Only
        * for a non-money action that is genuinely repeatable; omit it and the
@@ -131,8 +162,11 @@ const PAD = 4;
 const THRESHOLD = 0.9;
 /** How far a plain tap nudges the handle to show which way it goes. */
 const NUDGE = 14;
+/** How long a money action stays armed after its first keyboard activation. */
+export const ARM_MS = 6000;
 
 type View = "idle" | "dragging" | "confirming" | "confirmed";
+type Failure = "declined" | "crashed";
 
 type FillDrive = { x: number; opacity: number };
 /* Module level and stable, as `useDrive` requires. */
@@ -161,13 +195,17 @@ export function DragToConfirm(props: DragToConfirmProps) {
     className,
   } = props;
   const isMoney = props.money === true;
+  const armedLabel = props.money === true ? props.armedLabel : undefined;
   /* A money action never resets, whatever a loosely typed caller passed. */
   const autoResetDelay = isMoney ? undefined : props.autoResetDelay;
 
   const { quiet } = useMotionGate();
   const rootRef = useRef<HTMLDivElement | null>(null);
   const [state, setState] = useState<View>("idle");
-  const [failed, setFailed] = useState(false);
+  const [failure, setFailure] = useState<Failure | null>(null);
+  const failed = failure !== null;
+  const [armed, setArmed] = useState(false);
+  const armedRef = useRef(false);
   const view: View = confirmedProp ? "confirmed" : state;
 
   const x = useMotionValue(0);
@@ -258,24 +296,48 @@ export function DragToConfirm(props: DragToConfirmProps) {
     return () => window.clearTimeout(t);
   }, [state, autoResetDelay, fly]);
 
+  /* Arming, for a money action's keyboard path (rule 3). */
+  const disarm = useCallback(
+    (settle: boolean) => {
+      if (!armedRef.current) return;
+      armedRef.current = false;
+      setArmed(false);
+      if (settle) fly(0);
+    },
+    [fly],
+  );
+  useEffect(() => {
+    if (!armed) return;
+    const t = window.setTimeout(() => disarm(true), ARM_MS);
+    return () => window.clearTimeout(t);
+  }, [armed, disarm]);
+
   const commit = useCallback(async () => {
-    setFailed(false);
+    armedRef.current = false;
+    setArmed(false);
+    setFailure(null);
     setState("confirming");
     fly(maxRef.current || measure(), SPRING_SNAP);
+    let outcome: "confirmed" | Failure;
     try {
-      const result = await onConfirmRef.current();
-      if (result === false) throw new Error("not confirmed");
-      if (!live.current) return;
+      outcome = (await onConfirmRef.current()) === false ? "declined" : "confirmed";
+    } catch (error) {
+      /* A crash is not a decline: nobody decided anything, something broke,
+         and for money it is worth knowing about. */
+      reportClientError(error, { kind: isMoney ? "client.drag_to_confirm.money" : "client.drag_to_confirm" });
+      outcome = "crashed";
+    }
+    if (!live.current) return;
+    if (outcome === "confirmed") {
       setState("confirmed");
       feedback("success");
-    } catch {
-      if (!live.current) return;
-      setState("idle");
-      setFailed(true);
-      fly(0);
-      feedback("error");
+      return;
     }
-  }, [fly, measure]);
+    setState("idle");
+    setFailure(outcome);
+    fly(0);
+    feedback("error");
+  }, [fly, measure, isMoney]);
 
   const locked = disabled || view === "confirming" || view === "confirmed";
 
@@ -287,9 +349,15 @@ export function DragToConfirm(props: DragToConfirmProps) {
        the handle currently is, so grabbing it mid-return never jumps. */
     flight.current?.stop();
     measure();
+    /* A finger takes over from an armed keyboard path, from the start. */
+    if (armedRef.current) {
+      armedRef.current = false;
+      setArmed(false);
+      x.jump(0);
+    }
     moved.current = false;
     drag.current = { startX: e.clientX, from: x.get() };
-    setFailed(false);
+    setFailure(null);
     setState("dragging");
   };
 
@@ -319,6 +387,17 @@ export function DragToConfirm(props: DragToConfirmProps) {
     if (locked) return;
     /* Enter, Space and a screen reader's activate arrive as `detail === 0`. */
     if (e.detail === 0) {
+      /* Money: the first activation arms, the second confirms (rule 3). */
+      if (isMoney && !armedRef.current) {
+        armedRef.current = true;
+        setArmed(true);
+        setFailure(null);
+        measure();
+        /* A small step, so the track still reads `armedLabel` in full. */
+        fly(Math.min(NUDGE, maxRef.current), SPRING_SNAP);
+        feedback("select");
+        return;
+      }
       feedback("confirm");
       void commit();
       return;
@@ -332,14 +411,28 @@ export function DragToConfirm(props: DragToConfirmProps) {
     }
   };
 
+  /* Holding Enter repeats the click; a held key is one press, not two. */
+  const onKeyDown = (e: ReactKeyboardEvent<HTMLButtonElement>) => {
+    if (e.repeat && (e.key === "Enter" || e.key === " ")) {
+      e.preventDefault();
+      return;
+    }
+    if (e.key === "Escape" && armedRef.current) {
+      e.preventDefault();
+      disarm(true);
+    }
+  };
+
   const statusLabel =
     view === "confirmed"
       ? confirmedLabel
       : view === "confirming"
         ? confirmingLabel
-        : failed && errorLabel
-          ? errorLabel
-          : "";
+        : armed && armedLabel
+          ? armedLabel
+          : failed && errorLabel
+            ? errorLabel
+            : "";
   const showRest = view === "idle" || view === "dragging";
 
   return (
@@ -349,14 +442,15 @@ export function DragToConfirm(props: DragToConfirmProps) {
       data-state={view}
       data-tone={tone}
       data-money={isMoney || undefined}
-      data-failed={failed || undefined}
+      data-failed={failure ?? undefined}
+      data-armed={armed || undefined}
       data-disabled={disabled || undefined}
       aria-busy={view === "confirming" || undefined}
       data-testid={props["data-testid"]}
     >
       <span ref={fillRef} className="nf-dtc__fill" aria-hidden="true" />
       <span ref={labelRef} className="nf-dtc__label" aria-hidden="true" hidden={!showRest}>
-        {failed && errorLabel ? errorLabel : label}
+        {armed && armedLabel ? armedLabel : failed && errorLabel ? errorLabel : label}
       </span>
       {statusLabel && !showRest ? (
         <span key={view} className="nf-dtc__label nf-dtc__label--status" aria-hidden="true">
@@ -374,6 +468,8 @@ export function DragToConfirm(props: DragToConfirmProps) {
         onPointerUp={() => release(false)}
         onPointerCancel={() => release(true)}
         onClick={onClick}
+        onKeyDown={onKeyDown}
+        onBlur={() => disarm(true)}
       >
         <UiIcon name={view === "confirmed" ? "check" : "arrow-right"} size={24} />
       </button>

@@ -43,13 +43,14 @@ function DragSection() {
   return (
     <Section
       title="Drag to confirm"
-      note="For genuinely irreversible actions only. The money one never resets; the other does, once, after a beat. Press Enter on the handle for the keyboard path."
+      note="For genuinely irreversible actions only. The money one never resets; the other does, once, after a beat. Press Enter on the handle for the keyboard path: once for the non-money one, twice for money."
     >
       <div className="grid gap-group md:grid-cols-2">
         <div className="grid gap-inline">
           <p className="nf-overline">Money action (never resets)</p>
           <DragToConfirm
             money
+            armedLabel="Press again to confirm"
             label="Slide to confirm"
             confirmingLabel="Confirming"
             confirmedLabel="Confirmed"
@@ -73,6 +74,7 @@ function DragSection() {
           <p className="nf-overline">Danger tone</p>
           <DragToConfirm
             money
+            armedLabel="Press again to confirm"
             tone="danger"
             label="Slide to confirm"
             confirmingLabel="Confirming"

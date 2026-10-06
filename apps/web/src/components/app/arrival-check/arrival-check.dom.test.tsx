@@ -179,13 +179,17 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the console's arrival ruling", 
     }
   });
 
-  it("confirms from the keyboard on the handle itself, and sends the ruling that was asked for", async () => {
+  it("confirms from the keyboard on the handle itself in two presses, and sends the ruling that was asked for", async () => {
     const { page, close } = await mountInBrowser({ entry: RULING_ENTRY, css: CSS, actions: HELD });
     try {
       const f = await facts(page);
       await page.getByRole("button", { name: f.admin.decline!, exact: true }).click();
       expect(await page.getByTestId("arrival-ruling-confirm").locator("p").first().textContent()).toBe(f.admin.confirmDecline);
       await slide(page).getByRole("button", { name: f.admin.decline!, exact: true }).focus();
+      /* Money: the first press only arms the slide (D49.2). */
+      await page.keyboard.press("Enter");
+      await page.waitForFunction(() => document.querySelector("[data-testid=arrival-ruling-slide]")?.hasAttribute("data-armed"));
+      expect(await calls(page)).toEqual([]);
       await page.keyboard.press("Enter");
       await page.waitForFunction(() => document.querySelector("[data-testid=arrival-ruling-slide]")?.getAttribute("data-state") === "confirming");
       expect(await calls(page)).toEqual([["ruleArrivalCheck", { bookingId: "booking-slot", ruling: "declined" }]]);
@@ -202,12 +206,15 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the console's arrival ruling", 
       const f = await facts(page);
       await page.getByRole("button", { name: f.admin.uphold!, exact: true }).click();
       await slide(page).getByRole("button").focus();
+      /* Money: the first press only arms the slide (D49.2). */
+      await page.keyboard.press("Enter");
+      await page.waitForFunction(() => document.querySelector("[data-testid=arrival-ruling-slide]")?.hasAttribute("data-armed"));
       await page.keyboard.press("Enter");
       await page.waitForFunction(() => document.querySelector("[data-testid=arrival-ruling-slide]")?.getAttribute("data-state") === "confirming");
       /* No server sentence: the component's own words for a failed ruling. */
       await release(page, { ok: false, error: "" });
       await page.waitForFunction(() => document.querySelector("[data-testid=arrival-ruling-slide]")?.getAttribute("data-state") === "idle");
-      expect(await slide(page).getAttribute("data-failed")).toBe("true");
+      expect(await slide(page).getAttribute("data-failed")).toBe("declined");
       expect(await page.getByRole("status").filter({ hasText: f.admin.ruleFailed! }).count()).toBeGreaterThanOrEqual(1);
       expect(await slide(page).textContent()).toContain(f.admin.ruleFailed!);
       expect(await slide(page).textContent()).not.toContain(f.slide.confirmed);
@@ -231,6 +238,9 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the console's arrival ruling", 
       const f = await facts(own.page);
       await own.page.getByRole("button", { name: f.admin.uphold!, exact: true }).click();
       await slide(own.page).getByRole("button").focus();
+      /* Money: the first press only arms the slide (D49.2). */
+      await own.page.keyboard.press("Enter");
+      await own.page.waitForFunction(() => document.querySelector("[data-testid=arrival-ruling-slide]")?.hasAttribute("data-armed"));
       await own.page.keyboard.press("Enter");
       await own.page.waitForFunction(() => document.querySelector("[data-testid=arrival-ruling-slide]")?.getAttribute("data-state") === "confirming");
       await release(own.page, { ok: false, error: "The server's own sentence, slot." });
@@ -245,6 +255,9 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the console's arrival ruling", 
       const f = await facts(none.page);
       await none.page.getByRole("button", { name: f.admin.decline!, exact: true }).click();
       await slide(none.page).getByRole("button").focus();
+      /* Money: the first press only arms the slide (D49.2). */
+      await none.page.keyboard.press("Enter");
+      await none.page.waitForFunction(() => document.querySelector("[data-testid=arrival-ruling-slide]")?.hasAttribute("data-armed"));
       await none.page.keyboard.press("Enter");
       await none.page.waitForFunction(() => document.querySelector("[data-testid=arrival-ruling-slide]")?.getAttribute("data-state") === "confirming");
       await release(none.page, { ok: true, data: { state: "none" } });

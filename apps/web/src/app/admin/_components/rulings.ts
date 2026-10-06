@@ -16,6 +16,8 @@ export type RulingWords = {
   slidePaid: string;
   confirming: string;
   confirmed: string;
+  /** A money slide's keyboard path arms first and says this (DragToConfirm, D49.2). */
+  armed: string;
   /** Said if the server refused the ruling. The refusal's own sentence is on the row. */
   error: string;
 };
@@ -30,6 +32,7 @@ export function rulingWords(t: Dictionary): RulingWords {
     slidePaid: t.experienceAdmin.money.slidePaid,
     confirming: t.experienceUi.confirming,
     confirmed: t.experienceUi.confirmed,
+    armed: t.experienceUi.pressAgain,
     error: t.experienceAdmin.money.refused,
   };
 }

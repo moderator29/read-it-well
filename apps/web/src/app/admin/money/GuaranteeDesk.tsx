@@ -87,6 +87,7 @@ function ClaimItem({ claim, locale, words }: { claim: ClaimRow; locale: Locale; 
             <div className="grid gap-inline">
               <DragToConfirm
                 money
+                armedLabel={words.armed}
                 label={words.slideApprove}
                 confirmingLabel={words.confirming}
                 confirmedLabel={words.confirmed}
@@ -120,6 +121,7 @@ function ClaimItem({ claim, locale, words }: { claim: ClaimRow; locale: Locale; 
             </label>
             <DragToConfirm
               money
+              armedLabel={words.armed}
               label={words.slidePaid}
               confirmingLabel={words.confirming}
               confirmedLabel={words.confirmed}

@@ -87,6 +87,7 @@ function DisputeItem({ row, locale, words }: { row: CautionDispute; locale: Loca
               the ruling is a money slide: it never resets once confirmed. */}
           <DragToConfirm
             money
+            armedLabel={words.armed}
             label={words.slideRule}
             confirmingLabel={words.confirming}
             confirmedLabel={words.confirmed}

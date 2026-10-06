@@ -179,7 +179,7 @@ describe.skipIf(!hasBrowser && !process.env.CI)("locale fit: the shared controls
               confirmingLabel={t.experienceUi.confirming} confirmedLabel={t.experienceUi.confirmed}
               errorLabel={t.experienceUi.stop} onConfirm={() => true} />
           ))}
-          <DragToConfirm money label={t.frontDoor.door.signInArea} keyboardLabel={t.common.continue}
+          <DragToConfirm money armedLabel={t.experienceUi.pressAgain} label={t.frontDoor.door.signInArea} keyboardLabel={t.common.continue}
             confirmingLabel={t.experienceUi.confirming} confirmedLabel={t.experienceUi.confirmed} onConfirm={() => true} />
         </div>`,
       css: CSS,
