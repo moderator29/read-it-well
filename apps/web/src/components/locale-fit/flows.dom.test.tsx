@@ -60,7 +60,7 @@ describe.skipIf(!hasBrowser && !process.env.CI)("locale fit: first runs and the 
         import { PlanPaywall } from "@/components/app/plans-premium/PlanPaywall";
         import { Credential } from "@/components/app/artefact/Credential";
         import { Button } from "@/components/ui/Button";
-        import { NO_INSPECTION_FEE, OFF_PLATFORM_SENTENCE, PAYMENT_GATE_SENTENCE, GUARANTEE_SENTENCE } from "@/lib/money/copy";`,
+        import { NO_INSPECTION_FEE, OFF_PLATFORM_SENTENCE, PAYMENT_GATE_SENTENCE, DIRECT_RAIL_STANDING } from "@/lib/money/copy";`,
       setup: `const f = t.experienceFeatures.plans;`,
       body: `
         <PlanPaywall
@@ -74,7 +74,7 @@ describe.skipIf(!hasBrowser && !process.env.CI)("locale fit: first runs and the 
           ]}
           plans={[{ id: "monthly", period: "monthly", priceMinor: null }, { id: "annual", period: "annual", priceMinor: null }]}
           preselectedId="annual"
-          terms={{ chargeToday: NO_INSPECTION_FEE, chargeOn: OFF_PLATFORM_SENTENCE, renewal: PAYMENT_GATE_SENTENCE, cancel: GUARANTEE_SENTENCE }}
+          terms={{ chargeToday: NO_INSPECTION_FEE, chargeOn: OFF_PLATFORM_SENTENCE, renewal: PAYMENT_GATE_SENTENCE, cancel: DIRECT_RAIL_STANDING }}
           locale={locale}
           copy={{ choose: f.choose, monthly: f.monthly, annual: f.annual, perMonth: f.perMonth, perYear: f.perYear, recommended: f.recommended, saving: f.saving, benefits: f.benefits }}
           action={() => <Button variant="primary" size="lg" full>{t.frontDoor.door.signInArea}</Button>}

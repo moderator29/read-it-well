@@ -108,6 +108,17 @@ export const BACKED_CLAIMS: readonly BackedClaim[] = [
     mechanism:
       "public.guarantee_reserve_entries (append-only ledger funded by the split at settle_booking_charge) and public.admin_decide_guarantee_claim, which caps each claim by the amount paid and the reserve balance under an advisory lock; scope and window in public.money_policy",
   },
+  /* The protected rail (D50): "protected" names a payment a licensed
+     partner holds in escrow until the payer confirms. Every such sentence
+     lives in lib/money/copy.ts (RAIL_COPY.protected, PROTECTED_*, the money
+     centre's Protected figure) and is drawn only where railIsLive("protected")
+     is true (lib/money/rails.ts), which is false until ADR-0003 is accepted and
+     the merchant account is live; the dev previews that draw it are fixtures. */
+  {
+    phrase: /\bpayment is protected through Vallo's transaction infrastructure\b|^protected$|\bprotected payments?\b/i,
+    mechanism:
+      "the protected rail: funds held by the licensed provider's escrow until release (docs/payments/VALLO_FINANCIAL_LAYER.md), surfaces gated by PROTECTED_RAIL_LIVE in apps/web/src/lib/money/rails.ts (false until ADR-0003 is accepted and the merchant account is live)",
+  },
   { phrase: /^; Secure$/, mechanism: "the Secure attribute of the theme cookie (lib/theme/theme-client.ts), an HTTP cookie flag, not copy" },
 
   /* "Instant" (29 September): the word promises speed, so it is a claim word

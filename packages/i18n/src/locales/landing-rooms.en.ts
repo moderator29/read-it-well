@@ -8,7 +8,7 @@
  * thousand lines and several builders write to it at once.
  *
  * WHAT IS NOT HERE, ON PURPOSE: any sentence about money. The payment gate,
- * the Guarantee, the inspection fee, refunds and payouts are answered by the
+ * what stands behind a payment, the inspection fee, refunds and payouts are answered by the
  * constants in `apps/web/src/lib/money/copy.ts`, and the landing components
  * read them from there, so a money sentence exists once and cannot drift
  * between the FAQ and the checkout. The FAQ below carries only the QUESTION
@@ -70,7 +70,7 @@ export const landingRoomsEn = {
       },
       { key: "pay", q: "How does paying work?" },
       { key: "inspection", q: "Do I pay to inspect a property?" },
-      { key: "guarantee", q: "What is the Vallo Guarantee?" },
+      { key: "standing", q: "What stands behind my payment?" },
       {
         key: "lister",
         q: "How do I know who is behind a listing?",
@@ -213,7 +213,7 @@ export const landingRoomsEn = {
         chips: ["English", "Yorùbá", "Hausa", "Igbo"],
       },
       price: { title: "Price Check", body: "What similar places nearby are advertised for, or a plain \"not enough to tell\"." },
-      agree: { title: "Agreements and the Guarantee", body: "Both of you confirm the agreement before any payment opens." },
+      agree: { title: "Agreements", body: "Both of you confirm the agreement before any payment opens." },
       messages: { title: "Messages", body: "Every conversation with the lister stays on the platform, so there is a record." },
       feed: { title: "Around", body: "Places, posts and people near you, from the same account." },
     },

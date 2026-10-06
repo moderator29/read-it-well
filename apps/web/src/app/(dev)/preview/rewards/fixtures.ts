@@ -9,28 +9,19 @@
  *   - The withdrawal fee is invented for the layout. In the product the fee
  *     exists only once the payout provider has prepared the withdrawal and
  *     read it back; nothing ever computes one.
- *   - MONEY_WORDS are the sentences PROPOSED to C2 for `lib/money/copy.ts` in
- *     the patch `rewards-money-copy.patch`, copied here so the deck shows the
- *     words in place. The product route never reads this file; once C2 lands
- *     the constants, this object is replaced by them.
+ *   - The money sentences are the product's own, from `lib/money/copy.ts`.
  */
-import type { RewardsMoneyWords } from "@/components/app/referral/money-words";
+import { REWARDS_MONEY_WORDS } from "@/components/app/referral/money-words";
 import type { RewardsSnapshot } from "@/lib/referral/rewards";
 
 export const FIXTURE_INVITE = { code: "K7M2QX", url: "https://vallospaces.com/join/K7M2QX" };
 
-export const FIXTURE_MONEY_WORDS: RewardsMoneyWords = {
-  notHeld:
-    "Your Rewards Balance is what Vallo owes you for referrals that qualified. It is not money held for you, and it does not expire.",
-  qualify:
-    "Each referral that qualifies adds {reward} to your Rewards Balance, for up to {cap} qualified referrals a month. Signing up alone does not qualify: the person must confirm their phone number and use Vallo for real.",
-  minimum: "You can withdraw once your available balance reaches {minimum}.",
-  feeFirst:
-    "The processing fee is set by our payout partner when your withdrawal is prepared. You see it, and what you will receive, before you confirm.",
-  paidFrom: "Rewards are paid from Vallo's own funds to the bank account you choose, through Paystack.",
-  notInvestment:
-    "Rewards are not an investment. There is nothing to pay in, and only the people you invite yourself are counted.",
-};
+/**
+ * The product's own money sentences (`lib/money/copy.ts`), never a copy of
+ * them. Null would mean a constant was withdrawn; the deck then refuses to
+ * draw, exactly as the product route does.
+ */
+export const FIXTURE_MONEY_WORDS = REWARDS_MONEY_WORDS;
 
 export const FIXTURE_DESTINATION = { bankName: "Fixture Bank", accountLast4: "4821", accountName: "Seyi Omojuni" };
 

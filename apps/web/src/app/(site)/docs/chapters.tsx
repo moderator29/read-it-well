@@ -7,8 +7,7 @@ import { FULL_REFUND_HOURS } from "@/lib/trust/cancellation";
 import { VERIFICATION_ORDER } from "@/lib/trust/verification";
 import { MAX_MOVE_KOBO, MIN_MOVE_KOBO } from "@/lib/money/amount";
 import {
-  GUARANTEE_SCOPE,
-  GUARANTEE_SENTENCE,
+  DIRECT_RAIL_STANDING,
   NO_CUSTODY_SENTENCE,
   NO_INSPECTION_FEE,
   OFF_PLATFORM_SENTENCE,
@@ -16,7 +15,7 @@ import {
   PAYOUT_ANSWER,
   PRIVATE_FEE_NOTE,
   REFUND_ROUTE,
-  GUARANTEE_CONTRIBUTION_NOTE,
+  WHO_PAYS_SENTENCE,
 } from "@/lib/money/copy";
 import { MAX_BLOCK_NIGHTS } from "@/lib/agent/calendar-model";
 import { MAX_DAYS_AHEAD, MAX_PARTY } from "@/lib/reservations/schema";
@@ -197,7 +196,7 @@ const WRITTEN: DocChapter[] = [
               <strong>Pay on Vallo, without Vallo holding your money.</strong> Inspect,
               submit the report, confirm the agreement, and pay once Vallo approves it.
               The owner&rsquo;s or agent&rsquo;s share settles straight to them, and the
-              Vallo Guarantee stands behind rentals and stays.
+              price you pay is the price on the listing.
             </li>
             <li>
               <strong>Talk to the agent.</strong> Ask about the road, the generator or
@@ -255,11 +254,10 @@ const WRITTEN: DocChapter[] = [
         body: (
           <>
             <p>
-              Vallo takes no fee to look, to book or to list. There is no service fee,
-              no booking fee and no listing fee, and Vallo&rsquo;s commission is zero, in
-              any market on this platform.
+              Vallo takes no fee from a renter or a guest: not to look, not to book and
+              not to pay. There is no service fee, no booking fee and no listing fee.
             </p>
-            <p>{GUARANTEE_CONTRIBUTION_NOTE}</p>
+            <p>{WHO_PAYS_SENTENCE}</p>
             <p>
               What a total is made of depends on the market, and in every one of them
               it is the agent&rsquo;s number and nothing of ours on top of it. On a
@@ -269,7 +267,7 @@ const WRITTEN: DocChapter[] = [
               get the keys, printed as one figure. On a sale, on land, and on a shop or
               an office, the price on the listing is the asking price, and what is
               finally paid is agreed between you and the agent. Vallo adds nothing to
-              any of them and takes a share of none of them.
+              any of them.
             </p>
             <p>
               This is not a promotion with an end date. It is how the ledger is built:
@@ -1242,14 +1240,15 @@ const WRITTEN: DocChapter[] = [
   /* Track A, 25 September 2026: this chapter was "Your wallet". Vallo no
      longer holds anybody's money, so there is no wallet to describe. It now
      explains how a payment is split, the agreement and approval gate, where a
-     refund goes, and the Vallo Guarantee. Every sentence about money is read
-     from `lib/money/copy.ts`. */
+     refund goes, and what stands behind a payment (the Vallo Guarantee was
+     retired by D51; the slug is kept so old links still open). Every sentence
+     about money is read from `lib/money/copy.ts`. */
   {
     slug: "money-and-the-guarantee",
     number: 6,
-    title: "Money, agreements and the Guarantee",
+    title: "Money and agreements",
     summary:
-      "How a payment is split at the moment you pay, why Vallo never holds your money, the agreement both sides confirm and Vallo approves, where a refund goes, and the Vallo Guarantee.",
+      "How a payment is split at the moment you pay, why Vallo never holds your money, the agreement both sides confirm and Vallo approves, where a refund goes, and what stands behind a payment.",
     icon: "shield-lock",
     sections: [
       {
@@ -1281,7 +1280,7 @@ const WRITTEN: DocChapter[] = [
                   label: "Divided in one transaction",
                   branch: [
                     { object: "bank-column", label: "Their bank account" },
-                    { object: "shield-check", label: "Guarantee reserve" },
+                    { object: "seal-check", label: "Vallo's platform fee" },
                   ],
                 },
               ]}
@@ -1289,16 +1288,14 @@ const WRITTEN: DocChapter[] = [
 
             <p>
               When you pay by card or bank transfer, the payment processor divides that one
-              payment into three parts in the same transaction: the owner&rsquo;s or
-              agent&rsquo;s share, paid to the bank account on their payout details; the
-              Vallo Guarantee contribution, between 1 and 2 percent, paid to a separate
-              reserve; and Vallo&rsquo;s commission, which is zero today. The three always
-              add up exactly to what you paid, and the database refuses a payment row where
-              they do not.
+              payment in the same transaction: the owner&rsquo;s or agent&rsquo;s share,
+              paid to the bank account on their payout details, and Vallo&rsquo;s platform
+              fee. The parts always add up exactly to what you paid, and the database
+              refuses a payment row where they do not.
             </p>
             <p>
-              The Guarantee contribution comes out of the owner&rsquo;s or agent&rsquo;s
-              share. It is never added on top of the price you were shown.
+              The platform fee comes out of the owner&rsquo;s or agent&rsquo;s share. It is
+              never added on top of the price you were shown.
             </p>
             <p>
               Where crypto payment is offered, Yellow Card converts it to naira first and the
@@ -1362,28 +1359,16 @@ const WRITTEN: DocChapter[] = [
         ),
       },
       {
-        id: "the-guarantee",
-        heading: "The Vallo Guarantee",
+        id: "what-stands-behind",
+        heading: "What stands behind a payment",
         body: (
           <>
-            <DocsFlow
-              label="A Guarantee claim"
-              steps={[
-                { object: "keys-handover", label: "Move in or check in" },
-                { object: "clock-check", label: "Claim within 72 hours" },
-                { object: "doc-review", label: "A person reviews it" },
-                { object: "payment-received", label: "Paid to your bank" },
-              ]}
-            />
-
-            <p>{GUARANTEE_SENTENCE}</p>
-            <p>{GUARANTEE_SCOPE}</p>
+            <p>{DIRECT_RAIL_STANDING}</p>
             <p>
-              You claim from the agreement, with photographs, in the 72 hours after move-in
-              or check-in. A person checks the claim against the inspection report and the
-              agreement. A claim is capped at what you paid for that booking and by what is
-              in the reserve when it is decided, and an approved claim is paid to your bank
-              account. Anything arranged or paid outside Vallo is not covered.
+              If you could not get in, or the place was not what the agreement says, report
+              it from the booking or the agreement. A person at Vallo compares it with the
+              inspection report and the agreement. Anything arranged or paid outside Vallo
+              is outside what Vallo can act on.
             </p>
           </>
         ),
@@ -1396,8 +1381,8 @@ const WRITTEN: DocChapter[] = [
             <p>{PAYOUT_ANSWER}</p>
             <p>
               Add your bank account under payout details before anybody can pay you. The
-              agreement shows the Guarantee percentage before it is confirmed, so the figure
-              you receive is known in advance.
+              platform fee comes out of your share and is shown to you in naira, beside
+              what you receive.
             </p>
           </>
         ),
@@ -2176,7 +2161,7 @@ const WRITTEN: DocChapter[] = [
               </li>
               <li>
                 <strong>Payment data.</strong> References, amounts, how each payment
-                was split, refunds, agreements and Guarantee claims. Card details are handled by licensed Nigerian payment
+                was split, refunds, agreements and any claims. Card details are handled by licensed Nigerian payment
                 processors and we never hold your full card number.
               </li>
               <li>

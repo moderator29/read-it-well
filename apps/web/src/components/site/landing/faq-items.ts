@@ -1,14 +1,14 @@
 import type { Dictionary } from "@vallo/i18n/core";
 import {
-  GUARANTEE_SCOPE,
-  GUARANTEE_SENTENCE,
   NO_CUSTODY_SENTENCE,
   NO_INSPECTION_FEE,
   PAYMENT_GATE_SENTENCE,
   PAYOUT_ANSWER,
   PRIVATE_FEE_NOTE,
+  RAIL_COPY,
   REFUND_ROUTE,
 } from "@/lib/money/copy";
+import { LIVE_RAIL } from "@/lib/money/rails";
 
 /**
  * EVERY MONEY ANSWER IS A CONSTANT FROM `lib/money/copy.ts`, joined and never
@@ -19,7 +19,7 @@ import {
 const MONEY_ANSWERS: Record<string, string> = {
   pay: `${PAYMENT_GATE_SENTENCE} ${NO_CUSTODY_SENTENCE}`,
   inspection: `${NO_INSPECTION_FEE} ${PRIVATE_FEE_NOTE}`,
-  guarantee: `${GUARANTEE_SENTENCE} ${GUARANTEE_SCOPE}`,
+  standing: RAIL_COPY[LIVE_RAIL].standing,
   payout: PAYOUT_ANSWER,
   refund: REFUND_ROUTE,
 };

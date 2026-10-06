@@ -119,11 +119,8 @@ export function CheckoutSummary({
             {cancelLine}
           </p>
         )}
-        {view.platformTakesNothing && (
-          <p className="mt-xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
-            {c.takesNothing}
-          </p>
-        )}
+        {/* No line about fees, not even "Vallo adds nothing": D51 gives the
+            guest the advertised price and no footnote at all. */}
       </div>
     </>
   );

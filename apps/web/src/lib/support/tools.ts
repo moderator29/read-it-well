@@ -16,7 +16,7 @@ import {
 import { RESPONSE_COMMITMENTS } from "../trust/standards";
 import { SUPPORT_TOPICS, gradeForTopic, supportTopicLabel, type SupportTopic } from "../trust/support-topics";
 import { AGREEMENT_STATUS_LABEL } from "@/components/app/agreements/status";
-import { GUARANTEE_SENTENCE, NO_CUSTODY_SENTENCE, PAYMENT_GATE_SENTENCE } from "../money/copy";
+import { DIRECT_RAIL_STANDING, NO_CUSTODY_SENTENCE, PAYMENT_GATE_SENTENCE } from "../money/copy";
 import { searchFaq } from "./faq";
 import { fileSupportTicket } from "./actions";
 import type { SupportAction } from "./types";
@@ -141,7 +141,7 @@ export const SUPPORT_TOOLS = [
   {
     name: "search_help",
     description:
-      "Search Vallo's canonical help notes: how bookings, payments, agreements, the Vallo Guarantee, listing a property, verification, cancellations, refunds, reviews, reporting, languages, privacy and messaging safety actually work. Call this before answering any question about policy or how the platform works, and answer from what it returns rather than from memory.",
+      "Search Vallo's canonical help notes: how bookings, payments, agreements, listing a property, verification, cancellations, refunds, reviews, reporting, languages, privacy and messaging safety actually work. Call this before answering any question about policy or how the platform works, and answer from what it returns rather than from memory.",
     input_schema: {
       type: "object",
       properties: {
@@ -629,7 +629,7 @@ async function runMyAgreements(session: SignedIn): Promise<ToolOutcome> {
         updated: instantLabel(r.updated_at),
       })),
       ...(rows.length === 0 ? { note: "This person has no agreements yet. One is drawn up after an inspection report is submitted, or when a host accepts a stay." } : {}),
-      howMoneyWorks: `${NO_CUSTODY_SENTENCE} ${PAYMENT_GATE_SENTENCE} ${GUARANTEE_SENTENCE}`,
+      howMoneyWorks: `${NO_CUSTODY_SENTENCE} ${PAYMENT_GATE_SENTENCE} ${DIRECT_RAIL_STANDING}`,
     },
     actions: [AGREEMENTS_ACTION],
   };

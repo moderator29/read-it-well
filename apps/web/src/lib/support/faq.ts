@@ -16,13 +16,14 @@
  * for how fast a person answers.
  */
 import {
-  GUARANTEE_SCOPE,
-  GUARANTEE_SENTENCE,
+  DIRECT_RAIL_STANDING,
+  LEGACY_GUARANTEE_CLAIM,
   NO_CUSTODY_SENTENCE,
   NO_INSPECTION_FEE,
   OFF_PLATFORM_SENTENCE,
   PAYMENT_GATE_SENTENCE,
   REFUND_ROUTE,
+  WHO_PAYS_SENTENCE,
 } from "../money/copy";
 
 export type FaqEntry = {
@@ -73,7 +74,7 @@ export const SUPPORT_FAQ: FaqEntry[] = [
     id: "charges",
     keywords: [CHARGE_WORD, "charge", "commission", "cost to use", "hidden", "how much does vallo"],
     answer:
-      `Vallo charges nothing to use. Searching, booking, inspecting and messaging agents cost you nothing extra; the price you see on a listing is the price you pay. ${NO_INSPECTION_FEE} Between 1 and 2 percent of each payment goes to the Vallo Guarantee reserve out of the owner's or agent's share, never added on top.`,
+      `Vallo charges nothing to use. Searching, booking, inspecting and messaging agents cost you nothing extra; the price you see on a listing is the price you pay. ${NO_INSPECTION_FEE} ${WHO_PAYS_SENTENCE}`,
   },
   {
     id: "wallet",
@@ -84,7 +85,7 @@ export const SUPPORT_FAQ: FaqEntry[] = [
   {
     id: "guarantee",
     keywords: ["guarantee", "claim", "reserve"],
-    answer: `${GUARANTEE_SENTENCE} ${GUARANTEE_SCOPE} File a claim from the agreement, with photos, inside the window.`,
+    answer: `The Vallo Guarantee has been retired, and no contribution is taken from a new payment. ${DIRECT_RAIL_STANDING} If you paid while it was running: ${LEGACY_GUARANTEE_CLAIM} File it from the agreement, with photos.`,
   },
   {
     id: "verified-badge",
@@ -198,7 +199,7 @@ export const SUPPORT_FAQ: FaqEntry[] = [
     id: "greeting",
     keywords: ["hello", "hi", "hey", "good morning", "good afternoon", "good evening", "how far"],
     answer:
-      "Hello. I can help with bookings, payments, agreements, the Vallo Guarantee, listing a property, verification, cancellations and more. What would you like to know?",
+      "Hello. I can help with bookings, payments, agreements, listing a property, verification, cancellations and more. What would you like to know?",
   },
 ];
 

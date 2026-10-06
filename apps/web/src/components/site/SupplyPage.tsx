@@ -10,7 +10,7 @@ import { EdgeLap } from "@/components/site/EdgeLap";
 import { DisclosureInline } from "@/components/app/DisclosureInline";
 import { LogoMark } from "@/design-system/brand/Logo";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { GUARANTEE_CONTRIBUTION_NOTE } from "@/lib/money/copy";
+import { WHO_PAYS_SENTENCE } from "@/lib/money/copy";
 import type { ListerFees } from "@/lib/site/lister-fees";
 import { bpsLabel } from "@/lib/site/move-in-calculator";
 import { breadcrumbLd, faqLd, webPageLd } from "@/lib/site/structured-data";
@@ -37,7 +37,9 @@ export function feeRows(fees: ListerFees | null): { title: string; value: string
       value: free(fees.commissionBps, fees.commissionFlatMinor) ? "None" : bpsLabel(fees.commissionBps),
       sub: "On a payment through Vallo",
     },
-    ...(fees.guaranteeBps !== null
+    /* The Guarantee was retired (D51, guarantee_bps = 0): its row prints only
+       while a non-zero contribution is still being taken. */
+    ...(fees.guaranteeBps !== null && fees.guaranteeBps > 0
       ? [
           {
             title: "Guarantee",
@@ -152,10 +154,10 @@ export function SupplyPage({ door, fees, t }: { door: SupplyDoor; fees: ListerFe
                     </li>
                   ))}
                 </ul>
-                {fees?.guaranteeBps != null ? <p className="nf-supply__note">{GUARANTEE_TILE_NOTE}</p> : null}
+                {fees?.guaranteeBps != null && fees.guaranteeBps > 0 ? <p className="nf-supply__note">{GUARANTEE_TILE_NOTE}</p> : null}
               </>
             ) : (
-              <p className="nf-pd-card nf-supply__body">{GUARANTEE_CONTRIBUTION_NOTE}</p>
+              <p className="nf-pd-card nf-supply__body">{WHO_PAYS_SENTENCE}</p>
             )}
           </MotionReveal>
 

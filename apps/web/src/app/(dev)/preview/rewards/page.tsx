@@ -1,6 +1,7 @@
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { RewardsDashboard } from "@/components/app/referral/RewardsDashboard";
+import { RewardsState } from "@/components/app/referral/RewardsState";
 import { FixtureFrame } from "./FixtureFrame";
 import { FIXTURE_INVITE, FIXTURE_MONEY_WORDS, FIXTURE_SNAPSHOT } from "./fixtures";
 
@@ -9,6 +10,13 @@ export default async function PreviewRewards() {
   const locale = await getLocale();
   const t = getDictionary(locale);
   const copy = t.experienceRewards;
+  if (!FIXTURE_MONEY_WORDS) {
+    return (
+      <FixtureFrame title={copy.title} subtitle={copy.lede}>
+        <RewardsState read={{ state: "not-live" }} copy={copy.states} signInHref="/sign-in" inviteHref="/settings/invite" />
+      </FixtureFrame>
+    );
+  }
   return (
     <FixtureFrame title={copy.title} subtitle={copy.lede}>
       <RewardsDashboard

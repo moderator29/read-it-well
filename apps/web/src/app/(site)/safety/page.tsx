@@ -6,7 +6,8 @@ import { ButtonLink } from "@/components/ui/Button";
 import { CancellationTimeline } from "@/lib/trust/CancellationTimeline";
 import { NEVER_ASK, NO_FEES_LINE, RESPONSE_COMMITMENTS } from "@/lib/trust/standards";
 import { REPORT_CATEGORY_COPY, REPORT_CATEGORY_ORDER } from "@/lib/reports/schema";
-import { GUARANTEE_SENTENCE, NO_CUSTODY_SENTENCE, NO_INSPECTION_FEE, OFF_PLATFORM_SENTENCE, REFUND_ROUTE } from "@/lib/money/copy";
+import { NO_CUSTODY_SENTENCE, NO_INSPECTION_FEE, OFF_PLATFORM_SENTENCE, RAIL_COPY, REFUND_ROUTE } from "@/lib/money/copy";
+import { LIVE_RAIL } from "@/lib/money/rails";
 import { DEFAULT_LOCALE, getDictionary } from "@vallo/i18n";
 import { e164 } from "@/lib/notify/whatsapp";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -52,8 +53,8 @@ const PAYING_STEPS: { title: string; body: string }[] = [
     body: `${REFUND_ROUTE} Vallo keeps no balance for you, so there is nothing to withdraw and nothing sitting with us.`,
   },
   {
-    title: "The Vallo Guarantee",
-    body: GUARANTEE_SENTENCE,
+    title: "What stands behind a payment",
+    body: RAIL_COPY[LIVE_RAIL].standing,
   },
   {
     title: "A table costs nothing to hold",
@@ -72,7 +73,7 @@ const INSPECTION_STEPS: { title: string; body: string }[] = [
   },
   {
     title: "Submit the inspection report",
-    body: "The inspection report is eight items with photographs: the outside, the inside, the kitchen, the bathrooms, the utilities, the appliances, safety and an overall verdict. You submit it from the inspection itself. It is the record of what the place was like, and it is what any Guarantee claim is compared with.",
+    body: "The inspection report is eight items with photographs: the outside, the inside, the kitchen, the bathrooms, the utilities, the appliances, safety and an overall verdict. You submit it from the inspection itself. It is the record of what the place was like, and it is what any later question about the place is compared with.",
   },
   {
     title: "Both of you confirm the agreement, and Vallo approves it",
@@ -107,9 +108,9 @@ export default function SafetyCentrePage() {
             {NO_FEES_LINE}
           </h2>
           <p className="mt-row text-[length:var(--nf-text-row)] leading-relaxed text-[var(--nf-content-secondary)]">
-            We take nothing from your booking and nothing from an agent&apos;s
-            earnings. So there is no honest reason for anyone to send you an
-            account number, and if somebody does, they are not doing platform
+            We add nothing to the price you are shown, and every payment
+            happens inside the platform. So there is no honest reason for
+            anyone to send you an account number, and if somebody does, they are not doing platform
             business. Report them and stop replying.
           </p>
           {whatsapp && (

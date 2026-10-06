@@ -150,7 +150,7 @@ export const en = {
     rentTotalFromParts: "Move-in total, from the parts the lister stated",
     rentPeriod: { month: "monthly", quarter: "quarterly", year: "yearly" },
     rentTerms:
-      "Rent is {period}, moving in from {moveIn}. Vallo charges nothing on this payment; a card processor may show its own charge on the payment page.",
+      "Rent is {period}, moving in from {moveIn}.",
     rentStepOpen:
       "This payment step stays open for 48 hours from when you opened it. If it closes unpaid, open it again from here.",
     holdRunOut: "Hold has run out",
@@ -1975,7 +1975,7 @@ export const en = {
            Session 2 renames the key (D48 step 2); the words never say wallet. */
         payments: "Payments",
         paymentsSub:
-          "Emails when you pay, when a refund is on its way, your receipts, and decisions on your agreements and Guarantee claims. Anything about your money's safety still appears in the app.",
+          "Emails when you pay, when a refund is on its way, your receipts, and decisions on your agreements. Anything about your money's safety still appears in the app.",
         marketing: "Ideas and offers",
         marketingSub: "Occasional highlights from around Nigeria. Off by default.",
         /* B13: the push for a price drop on a place you saved. */
@@ -3062,7 +3062,7 @@ export const en = {
     emptyAction: "See your bookings",
     howTitle: "How your share is worked out",
     howBody:
-      "A settled payment is split two ways: your share and what the payment processor takes. Vallo takes nothing from it. The two always add up to what the guest paid, which is why every line here reconciles.",
+      "A settled payment is split into your share, Vallo's platform fee and the payment processor's own fee. They always add up to what the guest paid, which is why every line here reconciles.",
   },
 
   /**
@@ -4729,17 +4729,15 @@ export const en = {
     removeCardBody: "It is forgotten here and cannot be charged by Vallo again. Your bank is not involved.",
     removeCardConfirm: "Yes, remove it",
     banksLabel: "Bank accounts",
-    banksNote: "Where a Vallo Guarantee payout is sent if a claim is approved. We confirm the name with the bank before saving anything.",
-    banksNoteBeforePayouts:
-      "Withdrawal to a bank is not available yet. An account saved here is where withdrawals will go once bank payouts open. We confirm the name with the bank before saving anything.",
+    banksNote: "Where your share of a payment settles, and where an approved claim is paid. We confirm the name with the bank before saving anything.",
     accountsEmptyTitle: "No bank account yet",
-    accountsEmptyBody: "Add the account your share of a payment, or an approved Guarantee claim, should reach. The first one becomes your default.",
+    accountsEmptyBody: "Add the account your share of a payment should reach. The first one becomes your default.",
     addAccount: "Add a bank account",
     defaultPayouts: "Default for payouts",
     accountSheetTitle: "This account",
     makeDefaultAccount: "Use for payouts",
     removeAccount: "Remove this account",
-    removeAccountBody: "Payments and Guarantee payouts can no longer go here. Nothing already sent is affected.",
+    removeAccountBody: "Payments can no longer settle here. Nothing already sent is affected.",
     removeAccountConfirm: "Yes, remove it",
     addSheetTitle: "Add a bank account",
     pickBank: "Bank",

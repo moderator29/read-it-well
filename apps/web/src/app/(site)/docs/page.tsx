@@ -42,8 +42,8 @@ export default async function DocsHomePage() {
           Stays: searching against dates and guests, how a booking holds your nights,
           asking a restaurant for a table, and where it all lands in Plans. Then the
           way paying works on both, how Around works, and what happens when something
-          goes wrong. Vallo&rsquo;s commission is zero, the one amount set aside from a
-          payment is the Vallo Guarantee contribution, and this document says so
+          goes wrong. A renter or guest pays exactly the price on the listing; the
+          platform fee comes out of the lister&rsquo;s share, and this document says so
           wherever it matters.
         </p>
         {first && (

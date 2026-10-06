@@ -4,7 +4,7 @@ import { VERIFICATION_ORDER } from "@/lib/trust/verification";
 import { STAYS_DOORS } from "@/lib/host/doors";
 import { FULL_REFUND_HOURS } from "@/lib/trust/cancellation";
 import {
-  GUARANTEE_SCOPE,
+  WHO_PAYS_SENTENCE,
   HOST_EARNINGS_EMPTY_BODY,
   NO_CUSTODY_SENTENCE,
   NO_INSPECTION_FEE,
@@ -159,7 +159,6 @@ export const SUPPLY_DOORS: Record<SupplyRole, SupplyDoor> = {
     checks: [...LADDER_LINES, LISTING_REVIEW],
     notDone: [
       `Guests who cancel more than ${FULL_REFUND_HOURS} hours before check-in get everything back, under the platform terms. Your listing shows the terms that apply.`,
-      GUARANTEE_SCOPE,
       "Vallo does not hold any money for you or for the guest. There is no wallet and nothing to withdraw.",
     ],
     example: [
@@ -175,7 +174,7 @@ export const SUPPLY_DOORS: Record<SupplyRole, SupplyDoor> = {
         q: "What happens when a guest cancels?",
         a: `Guests who cancel more than ${FULL_REFUND_HOURS} hours before check-in get everything back, under the platform terms. Your listing shows the terms that apply.`,
       },
-      { q: "What does the Vallo Guarantee cover?", a: GUARANTEE_SCOPE },
+      { q: "What does a guest pay?", a: WHO_PAYS_SENTENCE },
       { q: "Can I rent or book stays with the same account?", a: ONE_ACCOUNT },
     ],
   },

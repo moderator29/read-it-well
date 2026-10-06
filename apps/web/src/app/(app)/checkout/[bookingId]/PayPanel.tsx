@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { useScopedCopy } from "@/lib/i18n/copy-scope";
 import { startCardCheckout } from "@/lib/bookings/checkout";
 import { PaymentGate } from "@/components/app/agreements/PaymentGate";
-import { GUARANTEE_SENTENCE, NO_CUSTODY_SENTENCE } from "@/lib/money/copy";
+import { NO_CUSTODY_SENTENCE, RAIL_COPY } from "@/lib/money/copy";
+import { LIVE_RAIL } from "@/lib/money/rails";
 import type { CheckoutView } from "@/lib/bookings/checkout-view";
 import { ResultSheet } from "@/components/app/ResultSheet";
 import { SuccessSheet } from "@/components/ui/SuccessSheet";
@@ -450,7 +451,7 @@ export function PayPanel({
       </ul>
       {/* Where the money goes, said before the tap. Vallo never holds it. */}
       <p className="nf-caption mt-block leading-relaxed text-[var(--nf-content-muted)]" data-testid="checkout-no-custody">
-        {NO_CUSTODY_SENTENCE} {GUARANTEE_SENTENCE}
+        {NO_CUSTODY_SENTENCE} {RAIL_COPY[LIVE_RAIL].standing}
       </p>
       {/* `UiIcon` at 16 rather than a 16px `BrandIcon`. `docs/ICON_SYSTEM.md`
           says below 24 the plinth in the brand artwork collapses into a

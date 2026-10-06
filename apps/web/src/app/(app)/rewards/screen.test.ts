@@ -18,14 +18,20 @@ const WORDS = { notHeld: "a", qualify: "b", minimum: "c", feeFirst: "d", paidFro
  * /rewards IS NOT LIVE, AND SAYS SO RATHER THAN DRAWING A ZERO BALANCE.
  *
  * The referral engine and its read do not exist (R-C3-1), and the money
- * sentences are proposed, not landed. These tests are the ones to change,
+ * sentences have landed in lib/money/copy.ts (C2). These tests are the ones to change,
  * deliberately, when either arrives.
  */
 describe("the rewards routes today", () => {
   it("have no source and no withdraw actions yet", async () => {
     expect(await rewardsSource.read()).toEqual({ state: "not-live" });
     expect(withdrawActions).toBeNull();
-    expect(REWARDS_MONEY_WORDS).toBeNull();
+  });
+
+  it("carry the six money sentences from lib/money/copy.ts, none of them a wallet", () => {
+    expect(REWARDS_MONEY_WORDS).not.toBeNull();
+    const words = Object.values(REWARDS_MONEY_WORDS ?? {});
+    expect(words).toHaveLength(6);
+    for (const sentence of words) expect(sentence).not.toMatch(new RegExp(["wal", "let"].join(""), "i"));
   });
 
   it("draw a snapshot only when its money sentences exist", () => {

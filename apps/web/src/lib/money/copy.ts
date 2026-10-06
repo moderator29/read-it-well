@@ -1,18 +1,49 @@
 /**
  * THE SENTENCES THAT DESCRIBE HOW MONEY MOVES ON VALLO.
  *
- * Founder directive, 25 September 2026: Vallo never holds customer money.
- * There is no wallet, no balance, no held payment and nothing to withdraw.
- * When somebody pays, the processor splits the charge in the same
- * transaction: the owner's or agent's share to their own bank account, a
- * Guarantee contribution to a separate reserve, and Vallo's fee (zero today)
- * to Vallo. Every surface that explains money reads its words from here, so
- * the Terms, the help centre, the emails and the screens cannot drift apart.
+ * The governing sentence (D50, the founder's own, 6 October 2026):
  *
- * Client-safe: constants only.
+ *   Vallo uses regulated financial infrastructure partners to process and
+ *   protect eligible transactions. Vallo does not hold customer funds.
+ *
+ * Every surface that explains money reads its words from here, so the Terms,
+ * the help centre, the emails and the screens cannot drift apart. The rules
+ * every sentence below keeps:
+ *
+ *   - Never imply Vallo holds, keeps, owns or guarantees money. Never "100
+ *     percent safe". Never a payment called successful before the provider has
+ *     confirmed it.
+ *   - Per rail. The DIRECT rail is live: the processor splits the charge in the
+ *     same transaction and nothing is held by anybody. The PROTECTED rail (a
+ *     licensed partner holds the payment until the payer confirms) is not live
+ *     until ADR-0003 is accepted and the merchant account is live (D50
+ *     condition 3), so its sentences are written and wait in `RAIL_COPY`; a
+ *     live surface reads the rail it is actually on (`lib/money/rails.ts`).
+ *   - "Protected payment" with members; "escrow" only in legal and technical
+ *     text. The provider never leads a button; it is named where a rule, a
+ *     receipt, the Terms or a KYC step requires it.
+ *   - The Vallo Guarantee is retired (D51, guarantee_bps = 0). No sentence here
+ *     offers it. What replaces it is what is true on the rail in use.
+ *   - The lister pays the fee (whoPays: seller). A renter or guest sees exactly
+ *     the advertised price: no fee line, no footnote, no asterisk.
+ *   - Rates are policy data (basis points), never typed into a sentence: a
+ *     sentence that needs a figure is a function that is handed it.
+ *
+ * Client-safe: constants and pure functions only.
  */
 
-/** The one-line promise. */
+/* -------------------------------------------------------------------------- */
+/* THE GOVERNING SENTENCE                                                     */
+/* -------------------------------------------------------------------------- */
+
+/** The founder's sentence, verbatim. The Terms, the help centre and the footer of every money screen. */
+export const GOVERNING_SENTENCE =
+  "Vallo uses regulated financial infrastructure partners to process and protect eligible transactions. Vallo does not hold customer funds.";
+
+/** The same sentence, shortened for a screen. */
+export const PARTNERS_SHORT = "Payments are processed through Vallo's financial infrastructure partners.";
+
+/** The one-line promise on the live (direct) rail. */
 export const NO_CUSTODY_SENTENCE =
   "Vallo never holds your money. When you pay, the owner's or agent's share goes straight to their bank account through our payment processor, in the same transaction.";
 
@@ -24,13 +55,62 @@ export const REFUND_ROUTE =
 export const PAYOUT_ANSWER =
   "Your share of a payment settles straight to the bank account on your payout details, through Paystack, at the moment the renter or guest pays. Vallo never holds it, so there is nothing to withdraw. Paystack pays settled money into your bank on its normal settlement schedule.";
 
-/** The Vallo Guarantee, in one paragraph. */
-export const GUARANTEE_SENTENCE =
-  "The Vallo Guarantee: between 1 and 2 percent of every payment is set aside in a separate reserve, kept apart from Vallo's own money. If something covered goes wrong, you can claim from it in the 72 hours after you move in or check in, up to what you paid for that booking. A person at Vallo reviews every claim before anything is paid.";
+/* -------------------------------------------------------------------------- */
+/* WHAT STANDS BEHIND A PAYMENT, PER RAIL (what replaced the Guarantee)       */
+/* -------------------------------------------------------------------------- */
 
-/** What the Guarantee covers at launch. */
-export const GUARANTEE_SCOPE =
-  "At launch the Guarantee covers rentals and stays paid through Vallo. It does not cover property purchases.";
+/** The two rails, in Vallo's own words. Never a provider's name. */
+export type MoneyRail = "direct" | "protected";
+
+/**
+ * What stands behind a payment on the DIRECT rail, which is live. Said where
+ * the Guarantee sentence used to be: the gate that opened the payment, the
+ * terms fixed on the booking, and where a refund goes. Nothing is held.
+ */
+export const DIRECT_RAIL_STANDING =
+  "What stands behind this payment: payment opened only after the agreement was confirmed and approved, the cancellation terms are fixed on your booking, and a refund due to you goes back to the card or account you paid with.";
+
+/**
+ * What stands behind a payment on the PROTECTED rail (not live). The
+ * replacement trust story D51 names, with who holds the money said plainly.
+ */
+export const HELD_UNTIL_YOU_CONFIRM =
+  "Your payment is held by Vallo's licensed payment partner until you confirm. It is released to the owner or agent only when you confirm, or when the agreed release condition is met. Vallo does not hold it.";
+
+/** The protected rail's line for a screen, per D50. */
+export const PROTECTED_SHORT = "Your payment is protected through Vallo's transaction infrastructure.";
+
+export type RailCopy = {
+  /** What a member is told stands behind the payment. */
+  standing: string;
+  /** How the money moves, in one sentence. */
+  howItMoves: string;
+  /** When the owner or agent receives it. */
+  releaseCondition: string;
+  /** Where a refund goes. */
+  refund: string;
+};
+
+/** The words for each rail. A live surface picks the rail it is on, never the one it wishes it were. */
+export const RAIL_COPY: Record<MoneyRail, RailCopy> = {
+  direct: {
+    standing: DIRECT_RAIL_STANDING,
+    howItMoves: NO_CUSTODY_SENTENCE,
+    releaseCondition: "Paid to the owner or agent at the moment you pay, through our payment processor.",
+    refund: REFUND_ROUTE,
+  },
+  protected: {
+    standing: HELD_UNTIL_YOU_CONFIRM,
+    howItMoves: `${PROTECTED_SHORT} ${GOVERNING_SENTENCE}`,
+    releaseCondition: "Released to the owner or agent when you confirm, or when the agreed release condition is met.",
+    refund:
+      "If the payment does not go ahead, it goes back to you from the partner holding it, once the cancellation is agreed or decided.",
+  },
+};
+
+/* -------------------------------------------------------------------------- */
+/* INSPECTION, THE OFF-PLATFORM RULE, THE GATE                                */
+/* -------------------------------------------------------------------------- */
 
 /** Stated on the inspection screen itself, not only in a policy. */
 export const NO_INSPECTION_FEE =
@@ -47,19 +127,112 @@ export const PRIVATE_FEE_NOTE =
 export const OFF_PLATFORM_SENTENCE =
   "Keep every message, agreement and payment on Vallo. Vallo is not responsible for anything arranged, discussed or paid outside the platform.";
 
-/**
- * The one amount taken from a payment, said wherever "no fees" is said.
- * Vallo's own commission is zero today, and the Guarantee contribution is not
- * Vallo's money: but it does come out of the lister's share, so "Vallo charges
- * nothing, not to be paid" was not true for a lister and every such sentence
- * now carries this one beside it.
- */
-export const GUARANTEE_CONTRIBUTION_NOTE =
-  "The one amount set aside from a payment is the Vallo Guarantee contribution: between 1 and 2 percent, taken from the lister's share into a separate reserve. It is never added to the price a renter or guest pays, and it is never Vallo's own money.";
-
 /** What has to happen before payment is available. */
 export const PAYMENT_GATE_SENTENCE =
   "Payment opens only after the inspection report is submitted, both of you confirm the agreement, and Vallo approves it.";
+
+/* -------------------------------------------------------------------------- */
+/* WHO PAYS THE FEE (D51: the lister; the renter sees exactly the price)      */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * The whole fee story in one sentence, for the help centre, the supply pages
+ * and the assistant. Rate-free, so it is true whatever the policy row says.
+ * NOT for a renter's checkout or a listing's price: there the price is the
+ * price, and nothing is said about fees at all.
+ */
+export const WHO_PAYS_SENTENCE =
+  "Renters and guests pay exactly the price on the listing, with nothing added. Listing is free; when a payment is made, Vallo's platform fee comes out of the lister's share and is shown to the lister in naira.";
+
+/**
+ * Vallo's charges, said to anybody: the renter side first, because that is
+ * the promise. Replaces the line that called the commission zero and offered
+ * the Guarantee contribution (lib/trust/standards.ts reads this).
+ */
+export const NO_RENTER_FEES_LINE =
+  "Vallo charges renters and guests nothing: no fee to look, to book or to pay, and nothing added to the price on the listing. Listing is free. When a payment is made, Vallo's platform fee comes out of the lister's share.";
+
+/**
+ * Retired with the Guarantee (D51), kept ONLY because the published Terms and
+ * Disclaimer still carry their Guarantee sections and must not change without
+ * counsel and a new Terms version. No other surface may read this. The patch
+ * that retires it is in the C2 report (terms-guarantee.patch).
+ */
+export const GUARANTEE_SCOPE =
+  "At launch the Guarantee covers rentals and stays paid through Vallo. It does not cover property purchases.";
+
+/**
+ * A payment made BEFORE the Guarantee was retired carried a contribution, and
+ * its claim window is honoured: shown only on an agreement whose frozen terms
+ * carry a non-zero `guarantee_bps`. Never on a new payment.
+ */
+export const LEGACY_GUARANTEE_CLAIM =
+  "This payment was made while the Vallo Guarantee was running, and a contribution was set aside from the lister's share. You can still claim on it inside the window below. A person at Vallo reviews every claim before anything is paid.";
+
+/* -------------------------------------------------------------------------- */
+/* THE LISTER'S FEE, BEFORE PUBLISHING (D51, the agreement gate)              */
+/* -------------------------------------------------------------------------- */
+
+/** What the lister's figure is called, by what they are listing. */
+export type ListerFigureKind = "rent" | "stay" | "sale";
+
+export const LISTER_FIGURE_LABEL: Record<ListerFigureKind, string> = {
+  rent: "Rent you set",
+  stay: "Nightly price you set",
+  sale: "Price you set",
+};
+
+/** "Platform fee (4%)". The percentage is the policy's, handed in as text. */
+export function platformFeeLabel(percentText: string): string {
+  return `Platform fee (${percentText}%)`;
+}
+
+export const LISTER_RECEIVE_LABEL = "You receive";
+
+export const FEE_GATE_TITLE = "What you keep";
+
+/** Under the arithmetic: what the renter sees. The renter's side, said to the lister. */
+export function renterSeesSentence(priceText: string): string {
+  return `Renters and guests see ${priceText}, exactly. Nothing is added to it.`;
+}
+
+/**
+ * The sales line (D51): framed as what the lister keeps against an agent,
+ * never as what Vallo takes. All three figures are computed and handed in.
+ */
+export function keepMoreSentence(input: {
+  agentPercentText: string;
+  keepPercentText: string;
+  agentKeepPercentText: string;
+  moreText: string;
+  priceText: string;
+}): string {
+  return `Against a ${input.agentPercentText} percent agent, you keep ${input.keepPercentText} percent instead of ${input.agentKeepPercentText}: ${input.moreText} more on ${input.priceText}.`;
+}
+
+export const FEE_ACCEPT_LABEL = "I accept these figures for this listing";
+export const FEE_ACCEPT_ACTION = "Accept and continue";
+export const FEE_ACCEPTED = "Accepted";
+
+/** What accepting records, and the promise about a rate change. */
+export const FEE_ACCEPT_RECORD =
+  "Vallo records your acceptance with the date and the rate in force today. If the rate changes, we ask you again, and you keep this rate until you accept the new one. The same figures appear on your payout.";
+
+/** The policy could not be read: the gate says so and does not guess a rate. */
+export const FEE_UNREADABLE_TITLE = "We cannot show your fee figures just now";
+export const FEE_UNREADABLE_BODY =
+  "Publishing waits until we can show you, in naira, exactly what you receive. Nothing about your listing has changed. Try again in a moment.";
+
+/** The acceptance could not be recorded: nothing was sent for review. */
+export const FEE_ACCEPT_UNRECORDED =
+  "Your acceptance could not be recorded just now, so the listing has not been sent. Nothing has changed. Try again in a moment.";
+
+/** The rate version moved between reading and accepting. */
+export const FEE_RATE_MOVED =
+  "The rate changed while you were reading. Check the new figures and accept them again.";
+
+/** The lister has not typed a figure yet. */
+export const FEE_NEEDS_FIGURE = "Set your price above and the figures appear here.";
 
 /* -------------------------------------------------------------------------- */
 /* THE HISTORY SCREENS: /payments, the earnings history, the Money desk.      */
@@ -76,7 +249,7 @@ export const HISTORY_NOT_A_BALANCE =
 
 /** For a lister, under their earnings total. */
 export const EARNINGS_SETTLEMENT =
-  "Your share of each payment settled to the bank account on your payout details through Paystack, in the same transaction the renter or guest paid. The Guarantee contribution went to its separate reserve at the same moment.";
+  "Your share of each payment settled to the bank account on your payout details through Paystack, in the same transaction the renter or guest paid.";
 
 /** The payer's total card. */
 export const PAYMENTS_TOTAL_LABEL = "Paid through Vallo";
@@ -117,3 +290,298 @@ export const ADMIN_HISTORY_NOTE =
   "Every payment and refund on the platform, read from the transaction and refund records at the moment of asking. Vallo holds none of it: each payment was split by Paystack in the same transaction.";
 export const ADMIN_HISTORY_UNAVAILABLE =
   "The platform history could not be read just now. This does not mean there were no payments.";
+
+/* -------------------------------------------------------------------------- */
+/* THE CHECKOUT THAT UNDERSTANDS THE TRANSACTION (D50 section 3)              */
+/* -------------------------------------------------------------------------- */
+
+export const CHECKOUT_TX_TITLE = "What this payment is";
+
+export const CHECKOUT_TX_LABEL = {
+  space: "For",
+  agreement: "Agreement",
+  payer: "Paid by",
+  payee: "Paid to",
+  amount: "Amount",
+  standing: "What stands behind it",
+  conditions: "Conditions",
+  release: "When the owner or agent receives it",
+  references: "References",
+} as const;
+
+export const CHECKOUT_PAYER_YOU = "You";
+/** The payee's name could not be read: said as the role, never invented. */
+export const CHECKOUT_PAYEE_ROLE = "The owner or agent on the agreement";
+/** The agreement does not exist yet (a request the host has not accepted). */
+export const CHECKOUT_NO_AGREEMENT = "No agreement yet. Payment opens once there is one and Vallo has approved it.";
+/** The amount, said as the advertised price and nothing else (D51). */
+export const CHECKOUT_AMOUNT_NOTE = "The price on the listing, in full.";
+
+/* -------------------------------------------------------------------------- */
+/* THE REFERENCE SYSTEM                                                       */
+/* -------------------------------------------------------------------------- */
+
+export const REFERENCES_NOTE =
+  "Each reference names a different record. Quote the transaction reference to Vallo, and the partner reference to your bank.";
+
+/** The checkout's conditions, said only when each is true of this booking. */
+export const CHECKOUT_CONDITION_APPROVED = "Vallo approved the agreement before payment opened.";
+export const CHECKOUT_CONDITION_CANCEL = "The cancellation terms below are fixed on this booking.";
+
+/* -------------------------------------------------------------------------- */
+/* THE REWARDS BALANCE (D51). Requested by Session 3 C3 for the referral      */
+/* dashboard (`app/(app)/rewards`, `components/app/referral`).                */
+/*                                                                            */
+/* A Rewards Balance is Vallo owing a member money for referrals that         */
+/* qualified: a debt, not custody, paid from Vallo's marketing float through  */
+/* Paystack transfers. It is never called a wallet. No rate is written here:  */
+/* `{reward}`, `{cap}` and `{minimum}` are filled from `money_policy`.         */
+/* -------------------------------------------------------------------------- */
+
+/** Under the Rewards Balance figures. */
+export const REWARDS_NOT_HELD =
+  "Your Rewards Balance is what Vallo owes you for referrals that qualified. It is not money held for you, and it does not expire.";
+
+/** How a referral earns. `{reward}` is formatted money, `{cap}` a number. Must match Session 2's qualification rule. */
+export const REWARDS_QUALIFY =
+  "Each referral that qualifies adds {reward} to your Rewards Balance, for up to {cap} qualified referrals a month. Signing up alone does not qualify: the person must confirm their phone number and use Vallo for real.";
+
+/** Stated before anybody starts earning. `{minimum}` is formatted money. */
+export const REWARDS_WITHDRAW_MINIMUM = "You can withdraw once your available balance reaches {minimum}.";
+
+/** On the withdraw screen, before anything is prepared. */
+export const REWARDS_FEE_SHOWN_FIRST =
+  "The processing fee is set by our payout partner when your withdrawal is prepared. You see it, and what you will receive, before you confirm.";
+
+/** Where a reward withdrawal is paid from. */
+export const REWARDS_PAID_FROM =
+  "Rewards are paid from Vallo's own funds to the bank account you choose, through Paystack.";
+
+/** The scheme question, answered plainly. */
+export const REWARDS_NOT_INVESTMENT =
+  "Rewards are not an investment. There is nothing to pay in, and only the people you invite yourself are counted.";
+
+/* -------------------------------------------------------------------------- */
+/* THE TRANSACTION TIMELINE, IN SENTENCES (never a status name on screen)     */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * One sentence per thing that happened, from each side. `{amount}` is the
+ * figure formatted once by the caller. A partner is "our payment partner" in
+ * the product's voice and is named on a receipt, never in a timeline row.
+ */
+export const TIMELINE_SENTENCE: Record<
+  | "agreement_approved"
+  | "payment_started"
+  | "payment_confirmed"
+  | "protected"
+  | "release_requested"
+  | "released"
+  | "settled_to_payee"
+  | "refund_requested"
+  | "refund_sent"
+  | "refund_arrived"
+  | "review_opened"
+  | "review_closed"
+  | "payment_failed"
+  | "cancelled",
+  { payer: string; payee: string }
+> = {
+  agreement_approved: {
+    payer: "Vallo approved the agreement, and payment opened.",
+    payee: "Vallo approved the agreement, and payment opened for the renter or guest.",
+  },
+  payment_started: {
+    payer: "You started a payment of {amount}.",
+    payee: "The renter or guest started a payment of {amount}.",
+  },
+  payment_confirmed: {
+    payer: "Our payment partner confirmed your payment of {amount}.",
+    payee: "Our payment partner confirmed a payment of {amount} to you.",
+  },
+  protected: {
+    payer: "Your payment of {amount} is held by our licensed payment partner until you confirm.",
+    payee: "The payment of {amount} is held by our licensed payment partner until the renter or guest confirms.",
+  },
+  release_requested: {
+    payer: "You confirmed, so the payment is being released to the owner or agent.",
+    payee: "The renter or guest confirmed, so the payment is being released to you.",
+  },
+  released: {
+    payer: "The payment was released to the owner or agent.",
+    payee: "The payment was released to you.",
+  },
+  settled_to_payee: {
+    payer: "The owner's or agent's share was paid to their bank account.",
+    payee: "Your share of {amount} was paid to your bank account.",
+  },
+  refund_requested: {
+    payer: "You asked for a refund of {amount}.",
+    payee: "A refund of {amount} was asked for.",
+  },
+  refund_sent: {
+    payer: "Your refund of {amount} was sent to the card or account you paid with.",
+    payee: "A refund of {amount} was sent to the person who paid.",
+  },
+  refund_arrived: {
+    payer: "Our payment partner completed your refund of {amount}. Your bank may take a few days to show it.",
+    payee: "The refund of {amount} was completed.",
+  },
+  review_opened: {
+    payer: "A person at Vallo is looking at this payment.",
+    payee: "A person at Vallo is looking at this payment.",
+  },
+  review_closed: {
+    payer: "The review is closed, and its outcome is on the agreement.",
+    payee: "The review is closed, and its outcome is on the agreement.",
+  },
+  payment_failed: {
+    payer: "The payment did not go through.",
+    payee: "The renter's or guest's payment did not go through.",
+  },
+  cancelled: {
+    payer: "The payment was cancelled.",
+    payee: "The payment was cancelled.",
+  },
+};
+
+export const TIMELINE_TITLE = "What has happened";
+export const TIMELINE_NEXT = "Next";
+export const TIMELINE_EMPTY = "Nothing has happened to this payment yet.";
+
+/* -------------------------------------------------------------------------- */
+/* THE MONEY CENTRE: AVAILABLE AND PROTECTED (protected rail; not live)        */
+/*                                                                            */
+/* Both figures are the member's own account at the licensed partner, read   */
+/* from the partner. Vallo holds neither, and every sentence says who does.   */
+/* -------------------------------------------------------------------------- */
+
+export const MONEY_CENTRE_TITLE = "Your money";
+export const AVAILABLE_LABEL = "Available";
+export const AVAILABLE_WORD = "Yours to withdraw to your bank.";
+export const PROTECTED_LABEL = "Protected";
+export const PROTECTED_WORD =
+  "Held in protected payments until each one's release condition is met. Not yours to withdraw yet.";
+
+/** Who holds both figures, named, with the governing sentence. */
+export function heldBySentence(heldBy: string): string {
+  return `Both figures are held in your own account at ${heldBy}, a licensed payment partner. ${GOVERNING_SENTENCE}`;
+}
+
+/** When the partner said so. A balance without a time is never shown. */
+export function balanceAsOf(heldBy: string, when: string): string {
+  return `As ${heldBy} reported it, ${when}.`;
+}
+
+/** The honest state while the protected rail is not live, or the read is absent. */
+export const MONEY_CENTRE_ABSENT_TITLE = "There is no balance to show";
+export const MONEY_CENTRE_ABSENT_BODY =
+  "Payments on Vallo go straight to the owner's or agent's bank account in the same transaction, so nothing waits in an account for you. Your payments and refunds are below.";
+
+/* -------------------------------------------------------------------------- */
+/* WITHDRAWAL: THE MATHS BEFORE THE CONFIRM (D51)                              */
+/*                                                                            */
+/* The fee is READ BACK from the partner's payment intent, never computed     */
+/* from a table, and the screen waits for it. No estimate is ever dressed as  */
+/* a total.                                                                   */
+/* -------------------------------------------------------------------------- */
+
+export const WITHDRAW_TITLE = "Withdraw to your bank";
+export const WITHDRAW_AMOUNT = "Amount";
+export const WITHDRAW_FEE = "Processing fee";
+export const WITHDRAW_RECEIVE = "You'll receive";
+export const WITHDRAW_WAITING_FEE = "Being set by our payment partner";
+export const WITHDRAW_WAITING_BODY =
+  "Our payment partner sets the fee on this withdrawal when it is prepared. The total appears here once they have, and you confirm only after you have seen it.";
+export const WITHDRAW_FEE_NOTE =
+  "This fee was set by our payment partner on this withdrawal and read back from it. It is not an estimate.";
+export const WITHDRAW_EXPIRED =
+  "This withdrawal was not confirmed in time, so its fee no longer holds. Prepare it again to see the current fee.";
+export const WITHDRAW_FAILED =
+  "We could not prepare this withdrawal, so no fee was set and nothing has moved. Try again in a moment.";
+export const WITHDRAW_CONFIRM = "Confirm withdrawal";
+
+export function withdrawDestination(accountName: string, bankName: string, last4: string): string {
+  return `To ${accountName}, ${bankName}, account ending ${last4}.`;
+}
+
+/** The minimum, from policy (D51: 1,000 naira today), handed in already formatted. */
+export function withdrawMinimum(minimumText: string): string {
+  return `The smallest withdrawal is ${minimumText}.`;
+}
+
+/* -------------------------------------------------------------------------- */
+/* THE RECEIPT VAULT, MEMBER REFUNDS, PAYOUTS (R3-05)                          */
+/* -------------------------------------------------------------------------- */
+
+export const RECEIPTS_TITLE = "Receipts";
+export const RECEIPTS_LEDE =
+  "Every payment you made through Vallo and every refund that came back, each with its receipt. Open one to print or save it.";
+export const RECEIPTS_SEARCH_LABEL = "Search your receipts";
+export const RECEIPTS_SEARCH_HINT = "A place, or a reference";
+export const RECEIPTS_FILTER = { all: "All", payment: "Payments", refund: "Refunds" } as const;
+export const RECEIPTS_EMPTY_TITLE = "No receipts yet";
+export const RECEIPTS_EMPTY_BODY =
+  "A receipt is issued when a payment through Vallo is confirmed by our payment partner, and when a refund comes back to you.";
+export const RECEIPTS_NO_MATCH = "No receipt matches that search.";
+/** Honest about scope: the search runs over the receipts this page read. */
+export function receiptsSearchScope(count: number): string {
+  /* No English plural branch (the no-english-plurals rule): the count is a
+     figure beside a fixed noun phrase, true at any number. */
+  return `Searching the records on this page (${count}). Show earlier to search further back.`;
+}
+export const RECEIPT_OPEN = "Open receipt";
+export const RECEIPT_PRIVACY_TITLE = "Sharing a receipt";
+export const RECEIPT_PRIVACY_BODY =
+  "A rent receipt can be shared with a code instead of the document. Whoever checks the code sees the amount, the month, first names and the area, and never the address, a phone number or an email.";
+export const RECEIPT_PRIVACY_ACTION = "Check a receipt code";
+
+export const REFUNDS_TITLE = "Refunds";
+export const REFUNDS_LEDE =
+  "Every refund on a payment you made, and where each one is. A refund goes back the way the money came.";
+export const REFUNDS_EMPTY_TITLE = "No refunds";
+export const REFUNDS_EMPTY_BODY =
+  "If a stay is cancelled or a payment has to come back to you, the refund appears here with where it stands.";
+export const REFUNDS_HOW_TITLE = "Asking for a refund";
+export const REFUNDS_HOW_BODY =
+  "Ask from the booking itself, so the request is dated and tied to the payment. The booking shows the cancellation terms that apply.";
+export const REFUNDS_SCOPE = "Refunds among the payments and refunds on this page.";
+
+export const PAYOUTS_TITLE = "Payouts";
+export const PAYOUTS_LEDE =
+  "What renters and guests paid for your spaces, the platform fee, and what reached your bank, payment by payment.";
+export const PAYOUT_PAID_LABEL = "Renter or guest paid";
+export const PAYOUT_FEE_LABEL = "Platform fee";
+export const PAYOUT_RECEIVED_LABEL = "You received";
+export const PAYOUT_REVERSED_LABEL = "Reversed by a refund";
+/** A row whose fee parts the record does not carry: said, never computed. */
+export const PAYOUT_FEE_UNRECORDED = "Not on this record";
+export const PAYOUTS_EMPTY_TITLE = "No payouts yet";
+export const PAYOUTS_SAME_FIGURES =
+  "Each payout shows the same three figures a lister sees before publishing: what was paid, the platform fee, and what you received.";
+/** The processor's own fee on a direct-rail payout, borne by the lister and named. */
+export const PAYOUT_PROCESSING_LABEL = "Payment processing, by Paystack";
+
+/* -------------------------------------------------------------------------- */
+/* /payments, THE PAYER'S OWN MONEY SCREEN (R3-04)                             */
+/* -------------------------------------------------------------------------- */
+
+export const PAYMENTS_DOORS_LABEL = "Your records";
+export const PAYMENTS_DOOR = {
+  receipts: { title: "Receipts", sub: "Search, open, print or save every receipt" },
+  refunds: { title: "Refunds", sub: "Every refund and where it stands" },
+  methods: { title: "Payment methods", sub: "Saved cards and bank accounts" },
+  agreements: { title: "Agreements", sub: "What each payment rests on" },
+} as const;
+
+/* -------------------------------------------------------------------------- */
+/* /settings/payments (R3-04)                                                  */
+/* -------------------------------------------------------------------------- */
+
+export const SETTINGS_PAY_RECORDS = "Records";
+export const SETTINGS_PAY_PAID_TITLE = "How you are paid";
+export const SETTINGS_PAY_DOOR = {
+  receipts: { title: "Receipts", sub: "Every payment and refund, with its receipt" },
+  refunds: { title: "Refunds", sub: "Where each refund stands" },
+  payouts: { title: "Payouts", sub: "What you received, with the platform fee in naira" },
+} as const;

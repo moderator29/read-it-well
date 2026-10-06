@@ -4,7 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { startCardCheckout } from "@/lib/bookings/checkout";
 import { PaymentGate } from "@/components/app/agreements/PaymentGate";
-import { GUARANTEE_SENTENCE, NO_CUSTODY_SENTENCE } from "@/lib/money/copy";
+import { NO_CUSTODY_SENTENCE, RAIL_COPY } from "@/lib/money/copy";
+import { LIVE_RAIL } from "@/lib/money/rails";
 import { startRentPayment } from "@/lib/rent/actions";
 import type { RentPayView } from "@/lib/rent/queries";
 import { ResultSheet } from "@/components/app/ResultSheet";
@@ -327,7 +328,7 @@ export function PayPanel({
         )}
       </ul>
       <p className="nf-caption mt-block leading-relaxed text-[var(--nf-content-muted)]" data-testid="rent-no-custody">
-        {NO_CUSTODY_SENTENCE} {GUARANTEE_SENTENCE}
+        {NO_CUSTODY_SENTENCE} {RAIL_COPY[LIVE_RAIL].standing}
       </p>
       <p className="nf-caption mt-block flex items-start gap-inline leading-relaxed text-[var(--nf-content-muted)]">
         <UiIcon name="verified" size="xs" className="mt-3xs shrink-0" />

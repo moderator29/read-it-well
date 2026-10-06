@@ -28,9 +28,9 @@ import { DocActions, DocHead, DocNote, DocRow, DocRows, DocState, DocumentSheet 
 import { PrintDocumentTile } from "@/components/app/money/PrintDocumentTile";
 import { agreementTrack, type AgreementStepKey } from "@/components/app/status/tracks";
 import { AmendTerms, CancelAgreement, ClaimForm, ConfirmTerms } from "@/components/app/agreements/AgreementControls";
+import { bpsAsPercentText } from "@/lib/money/percent";
 import {
-  GUARANTEE_SCOPE,
-  GUARANTEE_SENTENCE,
+  LEGACY_GUARANTEE_CLAIM,
   NO_CUSTODY_SENTENCE,
   NO_INSPECTION_FEE,
   OFF_PLATFORM_SENTENCE,
@@ -91,6 +91,8 @@ export default async function AgreementPage({
   const cap = Math.max(0, a.amountMinor - claimedApproved);
   const payHref = a.kind === "rent" && a.inspectionId ? `/rent/pay/${a.inspectionId}` : a.bookingId ? `/checkout/${a.bookingId}` : null;
   const guaranteeBps = num(a.terms, "guarantee_bps");
+  /* A contribution was really taken only while the Guarantee ran (D51). */
+  const legacyContribution = guaranteeBps !== null && guaranteeBps > 0;
   /* Staff read every agreement under RLS but are not a party to it: they see
      the record and none of the parties' controls. */
   const party = a.role !== null;
@@ -348,8 +350,11 @@ export default async function AgreementPage({
           ) : null}
           <DocNote>
             {NO_CUSTODY_SENTENCE}
-            {guaranteeBps !== null
-              ? ` ${guaranteeBps / 100}% of the total goes to the Vallo Guarantee reserve from the same payment.`
+            {/* D51: nothing about a fee is said to the renter or guest. The
+                lister alone is told what came out of their share, and only
+                while a Guarantee contribution was really in the terms. */}
+            {a.role === "owner" && legacyContribution && guaranteeBps !== null
+              ? ` Under the terms you agreed, ${bpsAsPercentText(guaranteeBps)}% of the total was set aside from your share for the Vallo Guarantee reserve.`
               : ""}
           </DocNote>
         </DocumentSheet>
@@ -403,10 +408,14 @@ export default async function AgreementPage({
         </Section>
       ) : null}
 
-      {a.status === "paid" ? (
-        <Section title="The Vallo Guarantee">
-          <p className={TYPE.body}>{GUARANTEE_SENTENCE}</p>
-          <p className={TYPE.rowMeta}>{GUARANTEE_SCOPE}</p>
+      {/* THE GUARANTEE IS RETIRED (D51, guarantee_bps = 0). A payment made
+          while it ran carried a contribution, frozen into the agreement's
+          terms, and its claim is honoured; a new payment carries none, so the
+          section is drawn only where a contribution was really taken or a
+          claim already exists. */}
+      {a.status === "paid" && (legacyContribution || a.claims.length > 0) ? (
+        <Section title="A claim on this payment">
+          <p className={TYPE.body}>{LEGACY_GUARANTEE_CLAIM}</p>
           {a.claimWindow ? (
             <p className={TYPE.rowMeta}>
               Claim window: {new Date(a.claimWindow.opens).toLocaleString("en-NG", { timeZone: "Africa/Lagos" })} to{" "}
