@@ -233,7 +233,8 @@ export async function rateMyTicket(id: string, input: { rating: number; comment?
     client.rpc("support_ticket_member_rate", {
       p_ticket: id,
       p_rating: parsed.data.rating,
-      p_comment: parsed.data.comment || null,
+      /* The generated Args type every parameter as non-null; the function takes a null comment. */
+      p_comment: (parsed.data.comment || null) as string,
     }),
   );
 }

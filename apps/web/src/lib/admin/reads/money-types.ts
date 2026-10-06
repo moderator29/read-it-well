@@ -1,4 +1,3 @@
-import type { Database } from "@/lib/supabase/database.types";
 
 /**
  * THE SHAPES THE MONEY DESKS ARE BUILT AGAINST, AND NOTHING ELSE.
@@ -15,8 +14,13 @@ import type { Database } from "@/lib/supabase/database.types";
  * Money is integer kobo throughout. Nothing here divides.
  */
 
-export type EscrowState = Database["public"]["Enums"]["escrow_state"];
-export type EscrowPurpose = Database["public"]["Enums"]["escrow_purpose"];
+/* The enums were dropped with the custody retirement (Track A1, 25 September);
+   the values are kept here because historical rows and the escrow desk still
+   name them. */
+export type EscrowState =
+  | "INITIATED" | "FUNDED" | "HELD" | "RELEASE_REQUESTED" | "RELEASED"
+  | "REFUNDED" | "DISPUTED" | "RESOLVED" | "CANCELLED";
+export type EscrowPurpose = "rent_deposit" | "first_rent" | "purchase_deposit" | "purchase_balance" | "agency_fee";
 
 /** Request 2. The four KPI cards on `/admin/money`. */
 export type MoneyPulse = {
