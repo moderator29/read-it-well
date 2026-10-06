@@ -338,7 +338,22 @@ export function PostCard({
     /* Anything inside the media that is itself a link or a button keeps its own
        tap. A plain picture opens the post, as the card always did. */
     if ((event.target as HTMLElement).closest("a, button")) return;
-    openRef.current?.click();
+    const link = openRef.current;
+    if (!link) return;
+    /*
+     * A cmd or ctrl click, or the middle button, means "in a new tab", as it
+     * does on the link itself. Forwarding it with `link.click()` dropped the
+     * modifier and opened the post in THIS tab (audit A7), so it is opened
+     * where the person asked, from inside their own gesture. Shift and alt
+     * (a new window, a download) are the browser's to answer and are left
+     * alone rather than guessed at.
+     */
+    if (event.metaKey || event.ctrlKey || event.button === 1) {
+      window.open(link.href, "_blank", "noopener");
+      return;
+    }
+    if (event.shiftKey || event.altKey || event.button !== 0) return;
+    link.click();
   };
   const [arriving] = useState(() => isPhotoMorphFor(`post-${post.id}`));
   /*
@@ -495,6 +510,7 @@ export function PostCard({
         <div
           ref={mediaRef}
           onClick={openFromPicture}
+          onAuxClick={openFromPicture}
           className={`nf-post__media nf-post__media--${Math.min(post.media.length, 4)}`}
           style={arriving ? { viewTransitionName: `post-photo-${post.id}` } : undefined}
         >
@@ -563,7 +579,7 @@ export function PostCard({
       ) : null}
 
       {post.listing && hasPlate ? (
-        <div className="nf-post__media nf-post__media--1" onClick={openFromPicture}>
+        <div className="nf-post__media nf-post__media--1" onClick={openFromPicture} onAuxClick={openFromPicture}>
           <Image
             src={post.listing.photoUrl as string}
             alt={post.listing.title}
