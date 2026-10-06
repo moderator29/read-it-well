@@ -14,7 +14,7 @@ import { memberStateCopy, previewText } from "@/lib/support/tickets";
 export function TicketListView({ tickets, locale }: { tickets: TicketSummary[]; locale: Locale }) {
   return (
     <section className="nf-sgroup" aria-label="Support conversations">
-      <ul className="nf-sgroup__body nf-panel nf-panel--card" data-testid="support-ticket-list">
+      <ul className="nf-sgroup__body nf-panel nf-panel--card nf-arrive-list" data-testid="support-ticket-list">
         {tickets.map((ticket) => {
           const state = memberStateCopy(ticket.status, ticket.thread.supportSpokeLast);
           const last = ticket.thread.last;

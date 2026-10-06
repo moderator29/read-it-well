@@ -550,8 +550,15 @@
       background: var(--nf-surface-secondary);
     }
   }
+  /* A row is one slice of a grouped card, and a shrinking slice tears the
+     hairlines above and below it, so it does not scale (the settings rows,
+     press-motion.css, say the same). The press lights the row on the shared
+     `--nf-duration-press` and overrides the universal floor's `scale`, which
+     this row's transition list never carried, so the floor's sink used to
+     snap while the rest eased. */
   .nf-pf-row:active {
-    transform: scale(var(--nf-press-scale-lg));
+    scale: none;
+    background: var(--nf-glass-fill-thin);
   }
   .nf-pf-row:focus-visible {
     outline: 2px solid var(--nf-focus-ring);

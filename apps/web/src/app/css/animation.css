@@ -152,19 +152,17 @@
    * was either capping the stagger at five or writing nf-rise-6 upwards
    * forever. The index comes from the caller as --nf-rise-i.
    *
-   * The step is 50ms, the same as the hero's, because there is only one
-   * stagger in the product and a row of peers and a stack of lines should not
-   * arrive at two different speeds.
-   *
-   * CAPPED AT THREE, WHICH IS FOUR STEPS. It was capped at eight, and eight
-   * steps at 60ms is half a second of a reader watching a row assemble. The cap
-   * is the point: a rail of twelve categories does not stagger twelve times, it
-   * staggers four and the rest arrive with the fourth. Nobody can count past
-   * four in a sweep and nobody tries.
+   * THE LIST STAGGER, TO THE INVENTORY (MOTION_SYSTEM "List stagger", north
+   * star 7.1 number 10): the FIRST SIX only, 40ms apart. The seventh arrives
+   * with the sixth, because nobody counts past six in a sweep and a long rail
+   * must not take a second to assemble. (It was 50ms capped at four steps,
+   * the hero's own rhythm; a list is not a hero, and the spec's list number is
+   * the one every list in the product now shares: `nf-arrive-list` in
+   * motion-kit.css and the results grid's `nf-list-in`.)
    */
   .nf-rise-seq {
     animation: nf-rise var(--nf-duration-entrance) var(--nf-ease-entrance) both;
-    animation-delay: calc(var(--nf-splash-hold, 0s) + min(var(--nf-rise-i, 0), 3) * 50ms);
+    animation-delay: calc(var(--nf-splash-hold, 0s) + min(var(--nf-rise-i, 0), 5) * 40ms);
   }
 
   /*

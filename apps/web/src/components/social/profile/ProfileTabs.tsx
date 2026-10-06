@@ -114,9 +114,13 @@ export function ProfileTabs({
     initialTab && tabs.includes(initialTab) ? initialTab : first,
   );
   const listRef = useRef<HTMLDivElement>(null);
+  /* The panel crossfades with a 12px lift (`nf-tab-swap`) once a tab has been
+     CHOSEN, never for the tab the page opens on. */
+  const [moved, setMoved] = useState(false);
 
   const select = useCallback(
     (next: TabKey) => {
+      setMoved(true);
       setTab(next);
       /* Next.js supports writing the browser's own history entry directly for
          exactly this case: state the page already holds, reflected in the URL,
@@ -200,11 +204,12 @@ export function ProfileTabs({
       </div>
 
       <div
+        key={tab}
         id={`nf-panel-${tab}`}
         role="tabpanel"
         aria-labelledby={`nf-tab-${tab}`}
         tabIndex={-1}
-        className="mt-md"
+        className={`mt-md${moved ? " nf-tab-swap" : ""}`}
       >
         <Panel
           tab={tab}

@@ -167,6 +167,9 @@ export function AccountBody({
 }) {
   const COPY = useClientCopy().socialProfile.accountPage;
   const [tab, setTab] = useState<Tab>("account");
+  /* The panel crossfades with a 12px lift (`nf-tab-swap`) once a tab has been
+     CHOSEN, never for the tab the page opens on. */
+  const [moved, setMoved] = useState(false);
   const [editing, setEditing] = useState(false);
 
   const tabs: { key: Tab; label: string; icon: UiIconName }[] = [
@@ -217,7 +220,10 @@ export function AccountBody({
             id={`account-tab-${entry.key}`}
             aria-selected={tab === entry.key}
             aria-controls={`account-panel-${entry.key}`}
-            onClick={() => setTab(entry.key)}
+            onClick={() => {
+              setMoved(true);
+              setTab(entry.key);
+            }}
             className="nf-pf-tab"
             data-testid={`account-tab-${entry.key}`}
           >
@@ -232,7 +238,7 @@ export function AccountBody({
           role="tabpanel"
           id="account-panel-account"
           aria-labelledby="account-tab-account"
-          className="nf-pf-panel"
+          className={`nf-pf-panel${moved ? " nf-tab-swap" : ""}`}
         >
           {/* Plans, Saved, Agreements and the workspaces: one group, one
               card, inset hairlines (plan item 16). */}
@@ -329,7 +335,7 @@ export function AccountBody({
           role="tabpanel"
           id="account-panel-posts"
           aria-labelledby="account-tab-posts"
-          className="nf-pf-panel"
+          className={`nf-pf-panel${moved ? " nf-tab-swap" : ""}`}
         >
           {handle === null ? (
             <EmptyState

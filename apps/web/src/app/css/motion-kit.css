@@ -397,3 +397,76 @@
     transform: translateY(-50%);
   }
 }
+
+/*
+ * THE MEMBER AREAS' ARRIVALS (Session 3, C1; MOTION_SYSTEM section 2,
+ * "List stagger" and "Tab change", north star 7.1 numbers 3 and 10).
+ *
+ *   .nf-arrive-list  a list's rows: the FIRST SIX only, 40ms apart, each a
+ *               12px lift and fade on `land` 240ms (the seventh arrives with
+ *               the sixth). A row that joins later (a new notification
+ *               prepended while the page is open, a filter showing more)
+ *               plays the same arrival, so "a notice arrived" and "the list
+ *               arrived" are one motion. Written for the containers below by
+ *               their own class, so no component needed editing.
+ *   .nf-tab-swap  the panel under a tab strip when the tab CHANGES: a
+ *               crossfade with a 12px lift on `glide` 240ms. The component
+ *               adds it only after the first change, so a page that opens on
+ *               a tab does not animate its own panel.
+ *
+ * Transform and opacity only, nothing loops, nothing sits on a money figure
+ * (a row's amount arrives with its row; no value counts or rolls). Reduced
+ * motion lands everything at once (the tokens are 1ms and the stagger delays
+ * are dropped), Calm makes each a plain fade with no delay
+ * (motion-pref.css names them), and Off lands the final state.
+ */
+@layer components {
+  :is(.nf-inbox-list, .nf-notif__group .nf-list-group, .nf-pf-rows, .nf-arrive-list) {
+    & > * {
+      --nf-arrive-i: 5;
+      animation: nf-arrive-in var(--nf-duration-base) var(--nf-ease-entrance) both;
+      animation-delay: calc(var(--nf-splash-hold, 0s) + var(--nf-arrive-i) * 40ms);
+    }
+    & > :nth-child(1) {
+      --nf-arrive-i: 0;
+    }
+    & > :nth-child(2) {
+      --nf-arrive-i: 1;
+    }
+    & > :nth-child(3) {
+      --nf-arrive-i: 2;
+    }
+    & > :nth-child(4) {
+      --nf-arrive-i: 3;
+    }
+    & > :nth-child(5) {
+      --nf-arrive-i: 4;
+    }
+  }
+  @keyframes nf-arrive-in {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 12px, 0);
+    }
+  }
+
+  .nf-tab-swap {
+    animation: nf-tab-swap var(--nf-duration-base) var(--nf-ease-standard) both;
+  }
+  @keyframes nf-tab-swap {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 12px, 0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :is(.nf-inbox-list, .nf-notif__group .nf-list-group, .nf-pf-rows, .nf-arrive-list) > *,
+    .nf-tab-swap {
+      animation: none;
+    }
+  }
+  :root[data-motion="off"] :is(:is(.nf-inbox-list, .nf-notif__group .nf-list-group, .nf-pf-rows, .nf-arrive-list) > *, .nf-tab-swap) {
+    animation: none;
+  }
+}
