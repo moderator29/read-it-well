@@ -98,7 +98,7 @@ export function BookingDetailCard({ booking, locale }: { booking: BookingView; l
           {booking.reviewed && (
             <Link
               href={`/bookings/${booking.id}/review`}
-              className="flex items-center gap-2xs text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
+              className="nf-tap flex items-center gap-2xs text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
             >
               <UiIcon name="star" size={16} className="text-[var(--nf-rating)]" />
               {copy.yourReview}
@@ -107,7 +107,7 @@ export function BookingDetailCard({ booking, locale }: { booking: BookingView; l
           {booking.cancellable && <CancelBookingControl booking={booking} label={copy.cancel} />}
           <Link
             href={booking.stayHref}
-            className="flex items-center gap-2xs text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+            className="nf-tap flex items-center gap-2xs text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
           >
             {copy.viewDetails}
             <UiIcon name="arrow-right" size={16} />

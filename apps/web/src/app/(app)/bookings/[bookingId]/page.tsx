@@ -21,12 +21,15 @@ import { stayReceipt } from "@/components/app/money/receipt-model";
 import { ReceiptSheet } from "@/components/app/money/ReceiptSheet";
 import { DocActions } from "@/components/app/money/DocumentSheet";
 import { PrintDocumentTile } from "@/components/app/money/PrintDocumentTile";
+import { withNext } from "@/lib/auth/next-link";
 
 /** A receipt for one commitment. Never indexed, and never in a tab title. */
-export const metadata: Metadata = {
-  title: "Booking",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: getDictionary(await getLocale()).shape.plans.kinds.stay,
+    robots: { index: false, follow: false },
+  };
+}
 
 export const dynamic = "force-dynamic";
 
@@ -109,7 +112,7 @@ export default async function BookingDetailPage({
         body={copy.signedOutBody}
         action={
           <EmptyActions
-            primary={{ label: copy.signIn, href: "/sign-in" }}
+            primary={{ label: copy.signIn, href: withNext("/sign-in", `/bookings/${bookingId}`) }}
             secondary={{ label: copy.findStay, href: "/search" }}
           />
         }
