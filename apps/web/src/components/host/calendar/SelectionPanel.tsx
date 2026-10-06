@@ -98,7 +98,7 @@ export function SelectionPanel({
       <div className="nf-rcal-panel__head">
         <div className="min-w-0">
           <p className="nf-rcal-panel__title">{nights}</p>
-          <p className="nf-caption">{describeSelection(dates)}</p>
+          <p className="nf-caption">{describeSelection(dates, w.selection)}</p>
         </div>
         <Button variant="quiet" size="sm" onClick={onClear} disabled={pending}>
           {w.clear}

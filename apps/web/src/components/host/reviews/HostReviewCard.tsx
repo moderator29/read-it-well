@@ -102,7 +102,7 @@ export function HostReviewCard({ review, when }: { review: HostReview; when: str
           <StatusBadge tone={openContest ? "pending" : review.contest.status === "hidden" ? "success" : "neutral"} kind="dot">
             {openContest ? w.askedVallo : w.decided}
           </StatusBadge>{" "}
-          {contestWords(review.contest.status, review.contest.publicNote)}
+          {contestWords(review.contest.status, review.contest.publicNote, w.contestStatus)}
         </p>
       ) : null}
 
@@ -184,19 +184,19 @@ export function HostReviewCard({ review, when }: { review: HostReview; when: str
           <p className="nf-body">{w.contestBody}</p>
           <fieldset className="grid gap-xs">
             <legend className="nf-section-label mb-xs">{w.whichStandard}</legend>
-            {CONTEST_CRITERIA.map((c) => (
-              <label key={c.value} className="nf-hreview-choice">
+            {CONTEST_CRITERIA.map((value) => (
+              <label key={value} className="nf-hreview-choice">
                 <input
                   type="radio"
                   name={`contest-${review.id}`}
-                  value={c.value}
-                  checked={criterion === c.value}
-                  onChange={() => setCriterion(c.value)}
+                  value={value}
+                  checked={criterion === value}
+                  onChange={() => setCriterion(value)}
                   className="nf-hreview-choice__input"
                 />
                 <span className="min-w-0">
-                  <span className="block font-semibold">{c.label}</span>
-                  <span className="nf-caption block">{c.hint}</span>
+                  <span className="block font-semibold">{w.criteria[value].label}</span>
+                  <span className="nf-caption block">{w.criteria[value].hint}</span>
                 </span>
               </label>
             ))}

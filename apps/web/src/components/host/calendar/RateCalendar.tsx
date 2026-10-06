@@ -555,7 +555,7 @@ export function RateCalendar(props: RateCalendarProps) {
       <BatchTray
         className="nf-rcal-tray"
         count={selected.size}
-        countLabel={`${countOf(selected.size, "nights", locale)}, ${describeSelection(selectedDates)}`}
+        countLabel={`${countOf(selected.size, "nights", locale)}, ${describeSelection(selectedDates, w.selection)}`}
         label={w.selectedNights}
         clearLabel={props.clearSelectionLabel ?? w.clearSelection}
         onClear={() => {

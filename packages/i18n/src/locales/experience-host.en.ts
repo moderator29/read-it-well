@@ -246,6 +246,36 @@ export const experienceHostEn = {
     whichStandard: "Which standard does it break?",
     noteLabel: "Anything we should know (optional)",
     noteHint: "Only Vallo reads this.",
+    /**
+     * The five published reasons (`lib/host/review-contest.ts` holds their
+     * values, the database's `review_contests_criterion_chk`). The console and
+     * the stored public note keep the English label there, which a test holds
+     * equal to these.
+     */
+    criteria: {
+      personal_data: {
+        label: "Shares personal information",
+        hint: "A phone number, an address, a full name or anything else that identifies someone.",
+      },
+      threats: { label: "Threats or abuse", hint: "Threats, insults, or hate towards a person or a group." },
+      not_about_the_stay: {
+        label: "Not about the stay",
+        hint: "It is about something else, such as a different place or a dispute that is not the stay.",
+      },
+      conflict_of_interest: {
+        label: "Conflict of interest",
+        hint: "Written by a competitor, a relative, or someone paid to write it.",
+      },
+      off_topic: { label: "Off topic", hint: "Politics, religion, or anything that does not help a guest decide." },
+    },
+    /** Where a contest stands, after its badge (`contestWords`). `{note}` is the public note staff wrote. */
+    contestStatus: {
+      open: "With Vallo. The review stays up while we look.",
+      hiddenWithNote: "Hidden by Vallo: \u201c{note}\u201d",
+      hidden: "Hidden by Vallo.",
+      kept: "Vallo looked and kept it: it meets the review standards.",
+      withdrawn: "You withdrew the request. The review stays up.",
+    },
   },
   tables: {
     answered: "Answered. The guest has been told.",
@@ -320,6 +350,23 @@ export const experienceHostEn = {
   },
   /** PhotoManager's words, per spine. `{max}` is the ceiling on photographs. */
   photoManager: {
+    /** `PhotoManager`'s own controls and lines, the same for a venue and a property. `{n}` and `{max}` are whole numbers. */
+    controls: {
+      coverNote:
+        "The first photograph is the one guests see on your card and at the top of your page. Take it down and the next one takes its place. Up to {max}.",
+      coverAlt: "The photograph guests see first",
+      /** `{subject}` is `ofSubject` below: "Photograph 2 of your venue". */
+      photoAlt: "Photograph {n} {subject}",
+      cover: "Cover",
+      photo: "Photograph {n}",
+      takeDown: "Take down",
+      uploading: "Uploading",
+      addFirst: "Add the first photograph",
+      addAnother: "Add another",
+      /** `{formats}` is "JPG, PNG or WEBP", `{size}` is "10MB". */
+      formats: "{formats}, up to {size} each. One at a time.",
+      uploadFailed: "The upload did not finish. Check your connection and choose the photograph again.",
+    },
     venue: {
       title: "Photographs of the venue",
       guidance:
@@ -371,6 +418,16 @@ export const experienceHostEn = {
   /* The rate calendar's islands (RateCalendar, SelectionPanel, CalendarSync, RatePlanSheet). */
   calendarUi: {
     weekdays: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    /**
+     * The selected nights in words (`describeSelection`): "3 Dec to 5 Dec,
+     * 12 Dec", at most three runs, then "and N more". `{from}` and `{to}` are
+     * dates, `{list}` the runs so far, `{count}` a whole number.
+     */
+    selection: {
+      none: "No nights",
+      run: "{from} to {to}",
+      more: "{list} and {count} more",
+    },
     roomTypes: "Room types",
     notOnShelf: "Not on the shelf yet",
     /** "Room only: ₦45,000 a night unless a night says otherwise". */
@@ -502,6 +559,9 @@ export const experienceHostEn = {
   },
   /* RoomNightsEditor, on /host/rooms. */
   roomNights: {
+    /** Under the editor: how far ahead a published room is offered (`INVENTORY_HORIZON_NIGHTS`, a year). */
+    horizonNote:
+      "Every room you told us about is offered on every night for the next year. Close the nights you are not taking, and open more when you are.",
     closedDone: "Closed for {nights}.",
     onSaleDone: "{units} on sale for {nights}.",
     /** "4 rooms · sleeps 2 · from ₦45,000 a night". */
@@ -544,5 +604,122 @@ export const experienceHostEn = {
     downloadCsv: "Download CSV",
     lineGuarantee: "Guarantee contribution",
     lineShare: "Your share",
+  },
+
+  /*
+   * THE HOST SERVER ACTIONS' REFUSALS (lib/host/*-actions.ts), moved here
+   * word for word so a host reads them in their own language. Only what is
+   * SAID to the host lives here: a note an action writes into a record (the
+   * booking's state events) stays English in the action. `{max}`, `{count}`,
+   * `{total}` and `{open}` are whole numbers.
+   */
+  refusals: {
+    /* lib/host/actions.ts: the application, its rooms, photographs and nights. */
+    application: {
+      serviceDown: "We could not save that just now. Nothing you typed was lost, so try again in a moment.",
+      noDraft: "There is no application open on your account yet. Start one and we will keep it as you go.",
+      notEditable:
+        "This application is with our team, so it cannot be changed right now. We will write to you when it has been read.",
+      notYours: "That is not on your account. Open your properties to see the ones that are.",
+      nameFirst: "Give your business a name to start.",
+      nameField: "Give your business a name.",
+      kindFirst: "Say what kind of business this is.",
+      kindField: "Pick what this business is.",
+      slugTaken: "A business with that web address already exists. Change the name slightly and save again.",
+      phoneBad: "That phone number is not one we can ring. Enter it as 0803 123 4567.",
+      emailBad: "That email address is not one we can write to.",
+      cacBad: "That is not an RC or BN number. It is the one on your CAC certificate, like RC 1234567.",
+      uploadNotYoursFile:
+        "That upload did not come from your own account, so we did not file it. Please choose the file again.",
+      documentNotAttached: "That document did not attach. Choose the file again.",
+      alreadyWithTeam: "This application is already with our team. We will write to you when it is read.",
+      alreadySent: "This application has already been sent. Refresh to see where it is.",
+      propertySlugTaken: "A property with that web address already exists. Change the name slightly.",
+      roomTypeNameTaken: "You already have a room type with that name.",
+      differentName: "Give this one a different name.",
+      ratePlanNameTaken: "That room type already has a rate with that name.",
+      policyFromList: "Pick a cancellation policy from the list.",
+      policyField: "Pick a cancellation policy.",
+      serviceClash: "You already have a service starting at that time on that day.",
+      uploadNotYoursPhoto:
+        "That upload did not come from your own account, so we did not file it. Please choose the photograph again.",
+      venuePhotosFull: "A venue carries up to {max} photographs. Take one down and add this in its place.",
+      propertyPhotosFull: "A property carries up to {max} photographs. Take one down and add this in its place.",
+      photoRace: "That photograph landed at the same moment as another. Try it again.",
+      photoNotAttached: "That photograph did not attach. Choose the file again.",
+      roomsOverTotal:
+        "You told us there are {total} of these, so {open} cannot be on sale. Change the room type first if you have more.",
+      atMost: "At most {total}.",
+      lastBeforeFirst: "The last night cannot come before the first. Pick a last night on or after the first.",
+      tooManyNights: "That is {count} nights. Set up to {max} at a time so nothing is lost part way.",
+      moreRoomsThanType:
+        "That is more rooms than this type has. Change how many of this room there are first, then set the nights.",
+      moreThanTypeHolds: "More than the room type holds.",
+      bookedOverOpen:
+        "One of those nights already has more rooms booked than you are leaving open. Open at least as many as are sold, or pick a different run of nights.",
+      placeTypeMissing:
+        "This database does not know that kind of place yet. The migration that adds it, 20260922190000_imgc_a_shortlet_is_not_a_hotel_room, has not been applied.",
+    },
+    /* lib/host/review-actions.ts: answering a review, asking Vallo to look at one. */
+    reviews: {
+      notReady: "Reviews of hotel stays are not open yet. Nothing was saved.",
+      serviceDown: "We could not save that just now. Nothing was lost, so try again in a moment.",
+      notYours: "That review is not of one of your places. Refresh your reviews and answer one of your own.",
+      reviewUnknown: "This review could not be identified.",
+      writeFirst: "Write a reply first.",
+      replyTooLong: "Keep your reply under {max} characters.",
+      pickReason: "Pick the reason that fits.",
+      keepItUnder: "Keep it under {max} characters.",
+      noteTooLong: "Keep the note under {max} characters.",
+      alreadyOpen: "You have already asked us about this review. We will tell you what we decide.",
+      rateLimited: "You have asked about a lot of reviews today. Try again tomorrow.",
+    },
+    /* lib/host/calendar-actions.ts: prices, closures and rooms across nights. */
+    calendar: {
+      serviceDown: "We could not save that just now. Nothing changed, so try again in a moment.",
+      notYours: "That room is not on your account. Open your calendar again to see the ones that are.",
+      past: "Pick nights from today onwards. A night that has gone cannot be priced or closed.",
+      notADate: "That is not a date.",
+      pickOne: "Pick at least one night.",
+      tooMany: "Pick up to {max} nights at a time so nothing is lost part way.",
+      wholeKobo: "Prices are in whole kobo.",
+      atLeast: "A night costs at least \u20a61.",
+      tooHigh: "That is more than \u20a650,000,000 a night. Check the number.",
+      roomUnknown: "That room could not be identified.",
+      rateUnknown: "That rate could not be identified.",
+      wholeRooms: "Rooms come in whole numbers.",
+      minOneNight: "At least one night.",
+      maxNinety: "At most 90 nights.",
+      longestShorter: "The longest stay cannot be shorter than the shortest.",
+      noRateToClose: "This room has no rate yet, so there is nothing to close. Add a rate in your application first.",
+      roomsOverTotal: "You told us there are {total} of these, so {open} cannot be on sale.",
+      atMost: "At most {total}.",
+      moreRoomsThanType: "That is more rooms than this type has. Change the room type first.",
+      bookedOverOpen:
+        "One of those nights already has more rooms booked than you are leaving open. Leave at least as many open as are booked.",
+      fewerThanBooked: "Fewer than are already booked.",
+    },
+    /* lib/host/calendar-sync-actions.ts: the feed out and the calendars in. */
+    sync: {
+      notReady: "Calendar sync is not switched on yet. Nothing about your nights changed; set them by hand until it is.",
+      serviceDown: "We could not save that just now. Nothing changed, so try again in a moment.",
+      notYours: "That room is not on your account. Refresh the calendar and pick one of your own rooms.",
+      roomUnknown: "That room could not be identified.",
+      calendarUnknown: "That calendar could not be identified.",
+      pickSite: "Pick the site this calendar comes from.",
+      pasteLink: "Paste the calendar link.",
+      linkExists: "This room already has a link. Refresh to see it.",
+      alreadyLinked: "That calendar is already linked to this room.",
+      alreadyLinkedField: "Already linked.",
+      fiveMax: "A room can have up to five linked calendars. Remove one first.",
+    },
+    /* lib/host/room-booking-actions.ts: accepting or declining a room request. */
+    roomRequests: {
+      notYours: "This request is not at one of your hotels. Refresh your requests to see the ones that are.",
+      movedOn: "This request has already been answered or has lapsed. Refresh to see where it stands.",
+      down: "That did not go through. The request is unchanged. Try again in a moment.",
+      requestUnknown: "This request could not be identified.",
+      reasonTooLong: "Keep the reason under 500 characters.",
+    },
   },
 };

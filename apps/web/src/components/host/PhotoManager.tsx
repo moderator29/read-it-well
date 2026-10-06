@@ -14,6 +14,7 @@ import {
   rejectPhoto,
 } from "@/lib/host/photos";
 import { loadBrowserClient } from "@/lib/supabase/load-client";
+import { useHostPageCopy } from "./host-copy";
 
 /**
  * AN OWNER'S PHOTOGRAPHS, ONE SURFACE FOR BOTH SPINES.
@@ -72,6 +73,7 @@ export function PhotoManager({
   add: (input: { storagePath: string }) => Promise<ActionResult<{ id: string }>>;
   remove: (input: { photoId: string }) => Promise<ActionResult<null>>;
 }) {
+  const w = useHostPageCopy().photoManager.controls;
   const router = useRouter();
   const inputId = useId();
   const input = useRef<HTMLInputElement | null>(null);
@@ -99,14 +101,14 @@ export function PhotoManager({
       const path = `${userId}/${subjectId}/${crypto.randomUUID()}.${ext}`;
       const supabase = await loadBrowserClient();
       if (!supabase) {
-        setError("The upload did not finish. Check your connection and choose the photograph again.");
+        setError(w.uploadFailed);
         return;
       }
       const { error: uploadError } = await supabase.storage
         .from("accommodation-photos")
         .upload(path, chosen, { contentType: chosen.type });
       if (uploadError) {
-        setError("The upload did not finish. Check your connection and choose the photograph again.");
+        setError(w.uploadFailed);
         return;
       }
       const result = await add({ storagePath: path });
@@ -137,10 +139,7 @@ export function PhotoManager({
     <section className="nf-panel nf-panel--card block nf-host-group">
       <h2 className="nf-host-group__title">{copy.title}</h2>
       <p className="nf-host-group__note">{copy.guidance}</p>
-      <p className="nf-caption mt-inline">
-        The first photograph is the one guests see on your card and at the top of your page. Take
-        it down and the next one takes its place. Up to {MAX_BUSINESS_PHOTOS}.
-      </p>
+      <p className="nf-caption mt-inline">{w.coverNote.replace("{max}", String(MAX_BUSINESS_PHOTOS))}</p>
 
       {photos.length > 0 && (
         <ul className="mt-group grid grid-cols-2 gap-row sm:grid-cols-3">
@@ -150,8 +149,8 @@ export function PhotoManager({
                 src={photo.url}
                 alt={
                   index === 0
-                    ? "The photograph guests see first"
-                    : `Photograph ${index + 1} ${copy.ofSubject}`
+                    ? w.coverAlt
+                    : w.photoAlt.replace("{n}", String(index + 1)).replace("{subject}", copy.ofSubject)
                 }
                 width={400}
                 height={300}
@@ -165,7 +164,7 @@ export function PhotoManager({
                   remove it are a stack at every width. */}
               <div className="mt-inline">
                 <span className="nf-overline block">
-                  {index === 0 ? "Cover" : `Photograph ${index + 1}`}
+                  {index === 0 ? w.cover : w.photo.replace("{n}", String(index + 1))}
                 </span>
                 {/* GLASS, NOT GHOST. A ghost button is transparent and
                     borderless by design, so under a photograph and beside a
@@ -183,7 +182,7 @@ export function PhotoManager({
                   disabled={removing || busy}
                   onClick={() => takeDown(photo.id)}
                 >
-                  Take down
+                  {w.takeDown}
                 </Button>
               </div>
             </li>
@@ -207,10 +206,10 @@ export function PhotoManager({
           <UiIcon name="picture" size={20} className="shrink-0" />
           <span className="min-w-0 flex-1">
             <span className="block nf-body-sm font-semibold">
-              {busy ? "Uploading" : photos.length === 0 ? "Add the first photograph" : "Add another"}
+              {busy ? w.uploading : photos.length === 0 ? w.addFirst : w.addAnother}
             </span>
             <span className="block nf-caption">
-              {PHOTO_ACCEPTED_LABEL}, up to {PHOTO_MAX_LABEL} each. One at a time.
+              {w.formats.replace("{formats}", PHOTO_ACCEPTED_LABEL).replace("{size}", PHOTO_MAX_LABEL)}
             </span>
           </span>
         </label>

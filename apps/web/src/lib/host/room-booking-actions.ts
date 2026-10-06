@@ -19,15 +19,18 @@ import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../actions/session";
 import { createAdminClient } from "../supabase/admin";
 import { ensureHostSubaccount } from "../payments/payee-subaccount";
+import { hostRefusals } from "./refusals";
 
-const NOT_YOURS = "This request is not at one of your hotels. Refresh your requests to see the ones that are.";
-const MOVED_ON = "This request has already been answered or has lapsed. Refresh to see where it stands.";
-const DOWN = "That did not go through. The request is unchanged. Try again in a moment.";
+/* What the host is told (`experienceHost.refusals.roomRequests`), read per
+   call. The note written into `booking_state_events` below stays English: it
+   is a stored record, not a sentence said to this host. */
+type Words = Awaited<ReturnType<typeof hostRefusals>>["roomRequests"];
 
-const answerSchema = z.object({
-  bookingId: z.string().uuid("This request could not be identified."),
-  reason: z.string().trim().max(500, "Keep the reason under 500 characters.").optional(),
-});
+const answerSchema = (w: Words) =>
+  z.object({
+    bookingId: z.string().uuid(w.requestUnknown),
+    reason: z.string().trim().max(500, w.reasonTooLong).optional(),
+  });
 
 type Owned = { id: string; status: string };
 
@@ -57,13 +60,14 @@ async function answer(
   const session = await resolveSession();
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
   if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
-  const parsed = validate(answerSchema, input);
+  const w = (await hostRefusals()).roomRequests;
+  const parsed = validate(answerSchema(w), input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
   const owned = await ownedRequest(parsed.data.bookingId, session.user.id);
-  if (owned === "down") return fail(DOWN);
-  if (owned === "not-yours") return fail(NOT_YOURS);
-  if (owned.status !== "PENDING") return fail(MOVED_ON);
+  if (owned === "down") return fail(w.down);
+  if (owned === "not-yours") return fail(w.notYours);
+  if (owned.status !== "PENDING") return fail(w.movedOn);
 
   const admin = createAdminClient();
   const { data: moved, error } = await admin
@@ -72,8 +76,8 @@ async function answer(
     .eq("id", owned.id)
     .eq("status", "PENDING")
     .select("id");
-  if (error) return fail(DOWN);
-  if (!moved || moved.length === 0) return fail(MOVED_ON);
+  if (error) return fail(w.down);
+  if (!moved || moved.length === 0) return fail(w.movedOn);
 
   await admin.from("booking_state_events").insert({
     booking_id: owned.id,

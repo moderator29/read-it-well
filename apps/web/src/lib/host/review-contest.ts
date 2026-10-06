@@ -11,52 +11,59 @@
  * deleted. The wording of the criteria is the founder's to confirm.
  */
 
+/** The five reasons, as the database spells them. Their words are the host's (`experienceHost.reviewCard.criteria`). */
 export const CONTEST_CRITERIA = [
-  {
-    value: "personal_data",
-    label: "Shares personal information",
-    hint: "A phone number, an address, a full name or anything else that identifies someone.",
-  },
-  {
-    value: "threats",
-    label: "Threats or abuse",
-    hint: "Threats, insults, or hate towards a person or a group.",
-  },
-  {
-    value: "not_about_the_stay",
-    label: "Not about the stay",
-    hint: "It is about something else, such as a different place or a dispute that is not the stay.",
-  },
-  {
-    value: "conflict_of_interest",
-    label: "Conflict of interest",
-    hint: "Written by a competitor, a relative, or someone paid to write it.",
-  },
-  {
-    value: "off_topic",
-    label: "Off topic",
-    hint: "Politics, religion, or anything that does not help a guest decide.",
-  },
+  "personal_data",
+  "threats",
+  "not_about_the_stay",
+  "conflict_of_interest",
+  "off_topic",
 ] as const;
 
-export type ContestCriterion = (typeof CONTEST_CRITERIA)[number]["value"];
+export type ContestCriterion = (typeof CONTEST_CRITERIA)[number];
 
 export const CONTEST_NOTE_MAX = 1000;
 
 export function isContestCriterion(value: unknown): value is ContestCriterion {
-  return CONTEST_CRITERIA.some((c) => c.value === value);
+  return (CONTEST_CRITERIA as readonly unknown[]).includes(value);
 }
+
+/**
+ * THE STAFF CONSOLE'S AND THE STORED NOTE'S LABEL, ENGLISH BY DECISION.
+ *
+ * The console reads in English, and the public note staff are offered when
+ * hiding a review ("Removed by Vallo: ...", `suggestedPublicNote`) is stored
+ * on the review and shown to every reader as written. So this one label stays
+ * here, in English; `review-contest.test.ts` holds it equal to the English
+ * dictionary's, which is what the host reads.
+ */
+const STAFF_LABEL: Record<ContestCriterion, string> = {
+  personal_data: "Shares personal information",
+  threats: "Threats or abuse",
+  not_about_the_stay: "Not about the stay",
+  conflict_of_interest: "Conflict of interest",
+  off_topic: "Off topic",
+};
 
 export function criterionLabel(value: string): string {
-  return CONTEST_CRITERIA.find((c) => c.value === value)?.label ?? "Other";
+  return isContestCriterion(value) ? STAFF_LABEL[value] : "Other";
 }
 
+/** The host's words for where a contest stands (`experienceHost.reviewCard.contestStatus`). */
+export type ContestStatusWords = {
+  open: string;
+  hiddenWithNote: string;
+  hidden: string;
+  kept: string;
+  withdrawn: string;
+};
+
 /** What the host reads about a contest's state. */
-export function contestWords(status: string, publicNote: string | null): string {
-  if (status === "open") return "With Vallo. The review stays up while we look.";
-  if (status === "hidden") return publicNote ? `Hidden by Vallo: “${publicNote}”` : "Hidden by Vallo.";
-  if (status === "kept") return "Vallo looked and kept it: it meets the review standards.";
-  if (status === "withdrawn") return "You withdrew the request. The review stays up.";
+export function contestWords(status: string, publicNote: string | null, words: ContestStatusWords): string {
+  if (status === "open") return words.open;
+  if (status === "hidden") return publicNote ? words.hiddenWithNote.replace("{note}", publicNote) : words.hidden;
+  if (status === "kept") return words.kept;
+  if (status === "withdrawn") return words.withdrawn;
   return "";
 }
 

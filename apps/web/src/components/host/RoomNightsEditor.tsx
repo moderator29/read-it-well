@@ -10,7 +10,7 @@ import { TYPE } from "@/components/app/Screen";
 import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
 import { setRoomNights } from "@/lib/host/actions";
 import type { MyRoomType } from "@/lib/host/queries";
-import { HORIZON_NOTE, isoDate } from "@/lib/stays/inventory";
+import { isoDate } from "@/lib/stays/inventory";
 
 /**
  * HOW MANY ROOMS ARE ON SALE, AND FOR WHICH NIGHTS.
@@ -41,9 +41,10 @@ export function RoomNightsEditor({
   rooms: MyRoomType[];
   locale: Locale;
 }) {
+  const w = useHostPageCopy().roomNights;
   return (
     <div className="flex flex-col gap-block">
-      <p className="nf-caption">{HORIZON_NOTE}</p>
+      <p className="nf-caption">{w.horizonNote}</p>
       {rooms.map((room) => (
         <RoomCard key={room.id} room={room} locale={locale} />
       ))}

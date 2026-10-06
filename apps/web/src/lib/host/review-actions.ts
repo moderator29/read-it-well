@@ -18,11 +18,12 @@ import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../actions/session";
 import { contentRefusal } from "../safety/content-refusal";
 import { CONTEST_NOTE_MAX, isContestCriterion } from "./review-contest";
+import { fill, hostRefusals } from "./refusals";
 
 const REPLY_MAX = 1200;
-const NOT_READY = "Reviews of hotel stays are not open yet. Nothing was saved.";
-const SERVICE_DOWN = "We could not save that just now. Nothing was lost, so try again in a moment.";
-const NOT_YOURS = "That review is not of one of your places. Refresh your reviews and answer one of your own.";
+
+/* The words are the host's (`experienceHost.refusals.reviews`), read per call. */
+type Words = Awaited<ReturnType<typeof hostRefusals>>["reviews"];
 
 type DbError = { code?: string | null; message?: string | null };
 type Untyped = {
@@ -40,14 +41,16 @@ async function client() {
   return { ok: true as const, db: s.supabase as unknown as Untyped };
 }
 
-const replySchema = z.object({
-  reviewId: z.uuid("This review could not be identified."),
-  body: z.string().trim().min(1, "Write a reply first.").max(REPLY_MAX, `Keep your reply under ${REPLY_MAX} characters.`),
-});
+const replySchema = (w: Words) =>
+  z.object({
+    reviewId: z.uuid(w.reviewUnknown),
+    body: z.string().trim().min(1, w.writeFirst).max(REPLY_MAX, fill(w.replyTooLong, { max: REPLY_MAX })),
+  });
 
 /** Write or correct the one public answer to a review. */
 export async function answerHotelReview(input: unknown): Promise<ActionResult<{ body: string }>> {
-  const parsed = validate(replySchema, input);
+  const w = (await hostRefusals()).reviews;
+  const parsed = validate(replySchema(w), input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   const got = await client();
   if (!got.ok) return got.result;
@@ -56,11 +59,11 @@ export async function answerHotelReview(input: unknown): Promise<ActionResult<{ 
     .from("review_responses")
     .upsert({ review_id: parsed.data.reviewId, body: parsed.data.body }, { onConflict: "review_id" });
   if (error) {
-    if (error.code === "42703" || error.code === "PGRST204" || error.code === "23502") return fail(NOT_READY);
-    if (error.code === "42501") return fail(NOT_YOURS);
+    if (error.code === "42703" || error.code === "PGRST204" || error.code === "23502") return fail(w.notReady);
+    if (error.code === "42501") return fail(w.notYours);
     const refused = contentRefusal(error);
     if (refused) return fail(refused, { body: refused });
-    return fail(SERVICE_DOWN);
+    return fail(w.serviceDown);
   }
   revalidatePath("/host/reviews");
   return ok({ body: parsed.data.body });
@@ -73,29 +76,33 @@ export async function withdrawHotelReviewAnswer(input: unknown): Promise<ActionR
   const got = await client();
   if (!got.ok) return got.result;
   const { error } = await got.db.from("review_responses").delete().eq("review_id", parsed.data.reviewId);
-  if (error) return fail(SERVICE_DOWN);
+  if (error) return fail((await hostRefusals()).reviews.serviceDown);
   revalidatePath("/host/reviews");
   return ok(null);
 }
 
-const contestSchema = z.object({
-  reviewId: z.uuid("This review could not be identified."),
-  criterion: z.string().refine(isContestCriterion, "Pick the reason that fits."),
-  note: z.string().trim().max(CONTEST_NOTE_MAX, `Keep it under ${CONTEST_NOTE_MAX} characters.`).optional(),
-});
+const contestSchema = (w: Words) =>
+  z.object({
+    reviewId: z.uuid(w.reviewUnknown),
+    criterion: z.string().refine(isContestCriterion, w.pickReason),
+    note: z.string().trim().max(CONTEST_NOTE_MAX, fill(w.keepItUnder, { max: CONTEST_NOTE_MAX })).optional(),
+  });
 
-const CONTEST_REFUSED: Record<string, string> = {
+/** The contest function's refusals, by the status it returned. */
+const contestRefused = (w: Words): Record<string, string> => ({
   signed_out: SIGNED_OUT_MESSAGE,
-  not_yours: NOT_YOURS,
-  bad_criterion: "Pick the reason that fits.",
-  note_too_long: `Keep the note under ${CONTEST_NOTE_MAX} characters.`,
-  already_open: "You have already asked us about this review. We will tell you what we decide.",
-  rate_limited: "You have asked about a lot of reviews today. Try again tomorrow.",
-};
+  not_yours: w.notYours,
+  bad_criterion: w.pickReason,
+  note_too_long: fill(w.noteTooLong, { max: CONTEST_NOTE_MAX }),
+  already_open: w.alreadyOpen,
+  rate_limited: w.rateLimited,
+});
 
 /** Ask Vallo to look at a review against the published criteria. */
 export async function contestHotelReview(input: unknown): Promise<ActionResult<null>> {
-  const parsed = validate(contestSchema, input);
+  const w = (await hostRefusals()).reviews;
+  const refusedFor = contestRefused(w);
+  const parsed = validate(contestSchema(w), input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   const got = await client();
   if (!got.ok) return got.result;
@@ -105,12 +112,12 @@ export async function contestHotelReview(input: unknown): Promise<ActionResult<n
     p_note: parsed.data.note ?? null,
   });
   if (error) {
-    if (error.code === "PGRST202" || error.code === "42883") return fail(NOT_READY);
+    if (error.code === "PGRST202" || error.code === "42883") return fail(w.notReady);
     const limited = /limit/i.test(error.message ?? "");
-    return fail(limited ? CONTEST_REFUSED.rate_limited ?? SERVICE_DOWN : SERVICE_DOWN);
+    return fail(limited ? w.rateLimited : w.serviceDown);
   }
   const status = (data as { status?: string } | null)?.status ?? "";
-  if (status !== "ok") return fail(CONTEST_REFUSED[status] ?? SERVICE_DOWN);
+  if (status !== "ok") return fail(refusedFor[status] ?? w.serviceDown);
   revalidatePath("/host/reviews");
   return ok(null);
 }
