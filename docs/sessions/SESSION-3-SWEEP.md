@@ -6,13 +6,13 @@ component with the fixture named in its row. **P** pass, **X** failed and fixed 
 sweep, **F** failed and still open, **·** does not apply. The denominator is 213 real routes
 (every `page.tsx` under `apps/web/src/app`, excluding `(dev)` and `api`).
 
-**Routes audited: 157 of 213.**
+**Routes audited: 162 of 213.**
 
 | Family | Audited |
 |---|---|
 |  | 1 |
 | about | 1 |
-| admin | 33 |
+| admin | 38 |
 | agent | 24 |
 | areas | 1 |
 | around | 5 |
@@ -87,8 +87,13 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | `/admin/kyc` | C1 | P | P | P | X | X | P | P | P | P | P | P | P | P | · | P | P | · | P | P | X | P | P | P | P |
 | `/admin/listings` | C1 | P | P | P | X | P | P | P | P | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/admin/listings/[id]` | C1 | P | · | P | P | P | X | P | P | P | P | P | P | P | · | P | P | · | P | P | P | X | P | P | P |
+| `/admin/lookup` | C1 | P | · | P | P | P | P | · | P | P | P | P | X | P | · | X | P | · | P | P | P | X | P | P | P |
+| `/admin/money` | C1 | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | F | P | X | P | X | P | P | P |
 | `/admin/operations` | C1 | P | P | P | X | P | P | P | P | P | P | P | P | P | · | P | P | · | P | X | X | X | P | P | P |
+| `/admin/oversight` | C1 | P | P | P | P | P | X | P | P | P | P | P | X | P | · | X | P | · | P | X | P | P | P | P | P |
 | `/admin/payments` | C1 | P | X | P | P | X | P | P | P | P | P | P | P | P | · | P | P | P | P | P | P | X | X | P | P |
+| `/admin/people` | C1 | P | · | P | P | P | P | · | P | P | P | P | X | P | · | P | P | · | X | P | P | P | P | P | P |
+| `/admin/people/[id]` | C1 | P | · | P | X | P | X | · | P | P | P | P | X | P | · | X | X | · | P | P | P | P | P | P | P |
 | `/admin/queue` | C1 | P | P | P | P | P | P | P | P | P | P | P | X | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/admin/reference` | C1 | P | · | P | X | P | P | P | · | · | P | P | P | P | · | · | P | · | P | P | P | P | P | P | X |
 | `/admin/settings` | C1 | P | · | P | P | P | P | · | · | X | P | P | P | P | · | · | P | · | · | P | P | P | P | P | P |
@@ -325,6 +330,18 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 - 6 (fixed): The map's attribution drew at 10px (a raw size in review.css); it is the 12px overline token now.
 - 21 (fixed): The photo strip scrolls sideways on a phone and could not be reached by keyboard (axe scrollable-region-focusable); it is focusable with the console's ring now. The walkthrough video's focus sits in its native controls, which draw their own ring; the walk reads the host and reports no ring, recorded rather than hidden.
 
+**`/admin/lookup`** (the real page in the real AdminFrame, q=VL-7K4MQP; the listings read answers f5/ops-fixtures AGENT_LISTINGS[0] (its code, id, title and status) for that code, every other read empty)
+
+- 12 (fixed): No loading file: it fell back to the overview's strip and KPI cards. lookup/loading.tsx draws the heading, the box and the results panel.
+- 15 (fixed): The box told an operator that a real listing code was "a word, not a reference": the database mints listing codes as VL- and six characters (20260922110000), and the classifier only knew LST, VAL, STY and RST. VL- codes classify as listing codes now (lookup-classify.test.ts holds it), so VL-7K4MQP finds its listing.
+- 21 (fixed): Labels present (the box has one). A hit's link was 24.8px tall at 768 and 1440 (auditFit targets); it is a 44px target now.
+
+**`/admin/money`** (the real page in the real AdminFrame; getRefundConsole answers bd/fixtures REFUNDS (as the bd/refunds preview draws it), admin_guarantee_reserve the empty reserve exactly as the RPC builds it with money_policy's defaults; cautions, the refund clock and the payment history read through an empty client and draw their unavailable states)
+
+- 17 (open): The desk still states the retired Guarantee ("1.5% of each settled charge. Claims are raised within 72 hours"; D51 retired it, copy.ts keeps only LEGACY_GUARANTEE_CLAIM) and its lede restates no-custody in its own words; held by the lead's Guarantee ruling, not changed.
+- 19 (fixed): At 390 each refund's state ("Not yet sent to the processor") sat in the amount's column and set that column to its own width, so the title beside it broke a word a line and the reference wrapped every few characters. Below 768 the state takes its own line under the date. 0 overflow, 0 clipped at 390, 768 and 1440.
+- 21 (fixed): The history's Download CSV link was 21.7px tall at every width (auditFit targets); it is a 44px target now.
+
 **`/admin/operations`** (the repository's own preview of the desk (session-b/admin/operations), the real OperationsView from its fixtures)
 
 - 4 (fixed): Every status badge drew a ring and a 6px glow (two edges); the ring alone now (console-wide).
@@ -332,12 +349,32 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 - 20 (fixed): On paper the solid Failed badge measured 2.67 to 1 (white on a pale rose); it fills with paper's deep error ink now. 0 axe violations in both themes.
 - 21 (fixed): The sideways-scrolling table regions could not be reached by keyboard (axe scrollable-region-focusable); each is a labelled, focusable region with the console's ring now (jobs, notifications, and the front door funnel).
 
+**`/admin/oversight`** (the real page in the real AdminFrame; the fixture admin (PERSON) is the one staff role, audit_log answers that admin's bc/fixtures AUDIT_ROWS as actor, action and time, profiles their name; backlog counts answer 0)
+
+- 6 (fixed): "nothing waiting" and "none" began a value in lower case; they read "Nothing waiting" and "None".
+- 12 (fixed): No loading file: it fell back to the overview's strip and KPI cards. oversight/loading.tsx draws the heading, the seven queues and the staff table.
+- 15 (fixed): "Most often" printed raw audit keys ("business.verification_check (2)"); it reads the audit desk's own words (actionLabel: "Business verification check (1)").
+- 19 (fixed): At 390 both tables ran to 416px in a 390px window (7 auditFit overflow findings: the raw keys would not wrap). They are the console's table now, with self-naming rows below 768. 0 overflow at every width; the 8 clipped at 390 are the stacked tables' hidden heads, by design.
+
 **`/admin/payments`** (the real page inside the real AdminFrame; the attempts from lib/admin/reads/payments.test.ts through the real buildPayments; bd/fixtures LOOKUP and SAVED_METHODS for the lookup; a health read with nothing unsettled (no fixture of an unsettled payment exists))
 
 - 2 (fixed): The health figure (waiting on the provider) sat under the whole payments table; it opens the page now, with the unsettled detail beside it.
 - 5 (fixed): Health, then the week's figures, the charts, every payment, the lookup.
 - 21 (fixed): The outcome filters are links carrying aria-pressed, which axe refuses on a link (aria-allowed-attr, 3 nodes at 390); they say aria-current now, styled the same (the supply desk's examples toggle too).
 - 22 (fixed): Saved card, account and terms rows held the words and the remove action on one line and squeezed the words to one a line at 390; the words keep 12rem and the action wraps.
+
+**`/admin/people`** (the real page in the real AdminFrame, no query; profiles answer no rows (the repository has no profile rows with a join date, so hits are not drawn rather than given a made-up date))
+
+- 12 (fixed): No loading file: it fell back to the overview's strip and KPI cards. people/loading.tsx draws the heading, the search card and the list.
+- 18 (fixed): With nothing typed and nobody in the database the results card said "Newest members" over nothing. It says "Nobody has signed up yet. Each new member appears here, newest first, the moment their account exists."
+
+**`/admin/people/[id]`** (the real page in the real AdminFrame; admin_person_file answers the payload of lib/admin/person-file.test.ts verbatim except its user_id "u" is the route's id (the member extras read refuses a non-uuid); every other read empty)
+
+- 4 (fixed): The Consider an STR button sat directly on the Who card with no air between them; the card takes the file's section gap like every card under it.
+- 6 (fixed): Workspaces printed the role column ("user") and an empty one as "member"; they read Member, Lister, Admin, Super admin.
+- 12 (fixed): No loading file: it fell back to the overview's strip and KPI cards. people/[id]/loading.tsx draws the name, the Who card and the sections.
+- 15 (fixed): Three nulls looked like defects: Joined printed nothing, a stop with no date read "Stopped since" and stopped, and a lister with no status read "Agent · · verification tier 1". They read "Not recorded", "Stopped" and "Agent · verification tier 1".
+- 16 (fixed): 0 banned phrases. The reports line ran two sentences together ("They filed 0 reports.None about them"); a space now.
 
 **`/admin/queue`** (the repository's f5/admin-queue preview: the real QueueTable, QueueTabs and QueueFilters on ADMIN_ROWS inside AdminPreviewFrame (the real page reads eleven sources through requireConsole))
 

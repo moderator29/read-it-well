@@ -24,8 +24,8 @@ labels into the dictionary).
 **The sweep, as a number.** The per-route record is
 [`SESSION-3-SWEEP.md`](SESSION-3-SWEEP.md), generated from each agent's own 24-point
 result, run in Chromium at 390, 768 and 1440 in both themes on the route's real page
-component. **Routes audited with all 24 points recorded: 157 of 213** at this edit
-(33 admin, every admin route whose page was untouched and ten more; 24 agent and 17
+component. **Routes audited with all 24 points recorded: 162 of 213** at this edit
+(38 admin, every admin route; 24 agent and 17
 host, every route in both trees, one host route a redirect; 44 member, two of them
 redirects; 39 public site, auth and landing, every route in those three groups). The rows in section 3 below predate this and leave points
 19, 22 and 23 at N; they are not counted. The measured starting point (C1, at
@@ -152,6 +152,11 @@ the D48 rule keeps those words.
   both carry live listings and naira transacted. Merging them is a layout call;
   recorded, not changed.
 
+- **The staff money desk still describes the Guarantee reserve** ("1.5% of each
+  settled charge. Claims are raised within 72 hours") although D51 retired the
+  Guarantee for new payments. It may still be the right description for legacy
+  claims; with the staff scope label and the handbook line, it waits on the
+  founder's word on what the staff console says about legacy Guarantee claims.
 - **An approved business still offers Approve, Ask for a change and Refuse** on
   `/admin/businesses`. Whether a decided business keeps its decision buttons is a
   product call; recorded, not changed.
