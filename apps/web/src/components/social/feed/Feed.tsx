@@ -34,7 +34,7 @@ import {
 import type { BrandIconName } from "@/design-system/icons/BrandIcon";
 import type { FeedPage } from "@/lib/social/posts-queries";
 import type { ActionResult } from "@/lib/actions/envelope";
-import { POST_COPY, POST_REPORT_REASONS } from "@/lib/social/posts-schema";
+import { POST_COPY, POST_REPORT_REASONS } from "@/lib/social/posts-model";
 
 /**
  * The heading when a caller has not given one.

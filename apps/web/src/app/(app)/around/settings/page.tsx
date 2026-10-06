@@ -12,7 +12,7 @@ import {
   listOpenAreas,
   listOpenLgaPlaces,
 } from "@/lib/social/areas-queries";
-import { AREA_COPY, type AreaStatus } from "@/lib/social/areas-schema";
+import { AREA_COPY, type AreaStatus } from "@/lib/social/areas-model";
 import { AROUND_UNCONFIGURED } from "../copy";
 import { getPlaceTree } from "@/lib/social/place-tree";
 import { PlacePicker } from "@/components/social/PlacePicker";

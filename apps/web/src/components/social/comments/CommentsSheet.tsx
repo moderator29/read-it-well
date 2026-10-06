@@ -13,7 +13,7 @@ import {
   POST_MAX,
   POST_REPORT_REASONS,
   type ReportReason,
-} from "@/lib/social/posts-schema";
+} from "@/lib/social/posts-model";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { PostBody } from "@/components/social/feed/PostBody";
 import { UiIcon } from "@/design-system/icons/UiIcon";

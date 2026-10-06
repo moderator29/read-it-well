@@ -17,7 +17,7 @@ import {
   STORY_IMAGE_MAX_EDGE,
   STORY_PLACE_MAX,
   STORY_STANDFIRST_MAX,
-} from "@/lib/social/stories-schema";
+} from "@/lib/social/stories-model";
 import { IconPlate } from "@/components/ui/IconPlate";
 
 /**

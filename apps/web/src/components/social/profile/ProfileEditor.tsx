@@ -24,6 +24,7 @@ import {
   type SocialProfileSaved,
 } from "@/lib/social/profiles-schema";
 import { useDisplayHost } from "@/lib/ui/use-display-host";
+import "@/app/css/catalogue.css";
 
 /**
  * The profile editor, as a full page.

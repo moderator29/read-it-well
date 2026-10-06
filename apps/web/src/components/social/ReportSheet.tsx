@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
-import { REPORT_REASON_LABEL, type ReportReason } from "@/lib/social/posts-schema";
+import { REPORT_REASON_LABEL, type ReportReason } from "@/lib/social/posts-model";
 import type { ActionResult } from "@/lib/actions/envelope";
 
 /**

@@ -20,7 +20,7 @@ import {
   toggleMark,
   toggleRepost,
 } from "@/lib/social/posts-actions";
-import { POST_COPY, POST_REPORT_REASONS } from "@/lib/social/posts-schema";
+import { POST_COPY, POST_REPORT_REASONS } from "@/lib/social/posts-model";
 import { countOf } from "@vallo/i18n/core";
 import { useClientLocale } from "@/lib/i18n/use-client-locale";
 

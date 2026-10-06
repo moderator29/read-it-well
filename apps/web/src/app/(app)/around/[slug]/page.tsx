@@ -16,13 +16,13 @@ import {
   getLgaDoor,
   listPlacesWithinLga,
 } from "@/lib/social/areas-queries";
-import { PLACE_COPY } from "@/lib/social/places-schema";
+import { PLACE_COPY } from "@/lib/social/places-model";
 import { getAreaFeed } from "@/lib/social/posts-queries";
 import { stampAuthorTiers } from "@/lib/social/author-badges";
 import { listStories } from "@/lib/social/stories-queries";
 import { getPlaceReviews } from "@/lib/social/reviews-queries";
 import { listMyAreas } from "@/lib/social/areas-queries";
-import { POST_COPY } from "@/lib/social/posts-schema";
+import { POST_COPY } from "@/lib/social/posts-model";
 import { Feed } from "@/components/social/feed/Feed";
 import { loadMoreAround } from "../feed-actions";
 import { AroundFab } from "@/components/social/AroundFab";

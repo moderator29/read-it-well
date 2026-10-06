@@ -11,7 +11,7 @@ import {
 } from "@/lib/social/posts-queries";
 import { listStories } from "@/lib/social/stories-queries";
 import { stampAuthorTiers } from "@/lib/social/author-badges";
-import { POST_COPY } from "@/lib/social/posts-schema";
+import { POST_COPY } from "@/lib/social/posts-model";
 import { AROUND_UNCONFIGURED } from "./copy";
 import { loadMoreAround } from "./feed-actions";
 import type { FeedMode } from "@/lib/social/posts-actions";

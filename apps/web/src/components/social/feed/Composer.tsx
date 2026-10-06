@@ -26,7 +26,7 @@ import {
   POST_MEDIA_BUCKET,
   POST_MEDIA_MAX,
   type ComposableKind,
-} from "@/lib/social/posts-schema";
+} from "@/lib/social/posts-model";
 
 /**
  * Writing something.

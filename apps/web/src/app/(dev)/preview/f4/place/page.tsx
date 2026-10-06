@@ -4,7 +4,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Feed } from "@/components/social/feed/Feed";
 import { AroundFab } from "@/components/social/AroundFab";
 import { JoinButton } from "@/app/(app)/around/JoinButton";
-import { PLACE_COPY } from "@/lib/social/places-schema";
+import { PLACE_COPY } from "@/lib/social/places-model";
 import { FEED_PLACES, FEED_POSTS, FEED_STORIES, PLACE_REVIEWS } from "../fixtures";
 
 /**

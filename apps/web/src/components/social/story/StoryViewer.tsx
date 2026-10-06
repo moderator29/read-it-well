@@ -26,8 +26,8 @@ import {
   toggleStoryMark,
 } from "@/lib/social/stories-actions";
 import { blockUser, muteTarget, reportProfile } from "@/lib/social/posts-actions";
-import { POST_COPY, PROFILE_REPORT_REASONS } from "@/lib/social/posts-schema";
-import { STORY_COPY } from "@/lib/social/stories-schema";
+import { POST_COPY, PROFILE_REPORT_REASONS } from "@/lib/social/posts-model";
+import { STORY_COPY } from "@/lib/social/stories-model";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import { Toast, useToast } from "@/components/ui/Toast";
 import { countOf } from "@vallo/i18n/core";

@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/Button";
 import { useState, useTransition } from "react";
 import { editPost } from "@/lib/social/posts-actions";
-import { EDIT_WINDOW_MINUTES, POST_MAX } from "@/lib/social/posts-schema";
+import { EDIT_WINDOW_MINUTES, POST_MAX } from "@/lib/social/posts-model";
 
 /**
  * Fixing what you wrote.

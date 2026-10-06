@@ -11,7 +11,7 @@ import {
   type LgaNode,
   type OpenPlace,
   type PlaceTree,
-} from "@/lib/social/places-schema";
+} from "@/lib/social/places-model";
 import { countOf } from "@vallo/i18n/core";
 import { useClientLocale } from "@/lib/i18n/use-client-locale";
 

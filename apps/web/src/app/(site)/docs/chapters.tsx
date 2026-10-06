@@ -18,10 +18,10 @@ import {
   REFUND_ROUTE,
   GUARANTEE_CONTRIBUTION_NOTE,
 } from "@/lib/money/copy";
-import { MAX_BLOCK_NIGHTS } from "@/lib/agent/calendar-schema";
+import { MAX_BLOCK_NIGHTS } from "@/lib/agent/calendar-model";
 import { MAX_DAYS_AHEAD, MAX_PARTY } from "@/lib/reservations/schema";
-import { EDIT_WINDOW_MINUTES, POST_MAX, POST_MEDIA_MAX } from "@/lib/social/posts-schema";
-import { MODERATOR_CAN, MODERATOR_CANNOT } from "@/lib/social/areas-schema";
+import { EDIT_WINDOW_MINUTES, POST_MAX, POST_MEDIA_MAX } from "@/lib/social/posts-model";
+import { MODERATOR_CAN, MODERATOR_CANNOT } from "@/lib/social/areas-model";
 import { REPORT_CATEGORY_COPY, REPORT_CATEGORY_ORDER } from "@/lib/reports/schema";
 import { SUPPLY_DOOR_HREF, doorsSentence } from "@/lib/supply/roles";
 import { AI_ASSISTANT, GETTING_AROUND, LISTING_ON_VALLO, MESSAGING_A_BUSINESS, PRICE_CHECK } from "./chapters-more";

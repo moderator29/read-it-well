@@ -5,7 +5,7 @@ import { useActionState, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { blockNights, unblockNights } from "@/lib/agent/calendar-actions";
-import { monthGrid, countNights } from "@/lib/agent/calendar-schema";
+import { monthGrid, countNights } from "@/lib/agent/calendar-model";
 import type { CalendarNight, CalendarSubject } from "@/lib/agent/calendar-queries";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { EmptyState } from "@/components/app/Screen";
