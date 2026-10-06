@@ -77,4 +77,18 @@ export const experienceLandingEn = {
     careers: "Open roles at Vallo.",
     contact: "Write to the support desk.",
   },
+  /**
+   * THE DOCUMENTS (stage 9, W1b): the few lines the indexes in the help
+   * centre, the guides and the policy pages need that no existing key says.
+   * The rows' own words are the articles' and chapters' (never rewritten).
+   */
+  docs: {
+    help: {
+      topics: "Browse by topic",
+      policies: "Safety and policy",
+      /** `{count}` answers in a topic. */
+      answers: "{count} answers",
+      answerOne: "1 answer",
+    },
+  },
 };

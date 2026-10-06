@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { MotionReveal } from "@/components/motion/Reveal";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ButtonLink } from "@/components/ui/Button";
+import { topicId } from "./topics";
 
 export type Faq = {
   category: string;
@@ -58,7 +59,7 @@ export function HelpSearch({ faqs }: { faqs: Faq[] }) {
           className="nf-field ps-[calc(0.875rem+1.25rem+var(--nf-gap-row))]"
         />
       </div>
-      <p className="mt-inline text-[0.8125rem] text-[var(--nf-content-muted)]" role="status">
+      <p className="mt-inline text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]" role="status">
         {visible.length === faqs.length
           ? `${faqs.length} answers`
           : `${visible.length} of ${faqs.length} answers match`}
@@ -68,7 +69,7 @@ export function HelpSearch({ faqs }: { faqs: Faq[] }) {
       {visible.length > 0 ? (
         <div className="mt-heading space-y-block">
           {categories.map((cat) => (
-            <MotionReveal as="section" key={cat} aria-label={cat}>
+            <MotionReveal as="section" key={cat} id={topicId(cat)} aria-label={cat} className="scroll-mt-28">
               <h2 className="nf-overline mb-row">{cat}</h2>
               <div className="space-y-row">
                 {visible
@@ -83,7 +84,7 @@ export function HelpSearch({ faqs }: { faqs: Faq[] }) {
                           className="nf-m-chevron shrink-0 text-[var(--nf-content-muted)]"
                         />
                       </summary>
-                      <p className="max-w-measure-body px-group pb-group text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)] sm:px-heading sm:pb-heading">
+                      <p className="max-w-measure-body px-group pb-group text-[length:var(--nf-text-row)] leading-[1.6] text-[var(--nf-content-secondary)] sm:px-heading sm:pb-heading">
                         {f.a}
                       </p>
                     </details>
@@ -95,7 +96,7 @@ export function HelpSearch({ faqs }: { faqs: Faq[] }) {
       ) : (
         <div className="nf-panel nf-panel--card block mt-heading p-card text-center-lg">
           <h2 className="nf-h3">Nothing matches that yet</h2>
-          <p className="mx-auto mt-inline max-w-[46ch] text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mx-auto mt-inline max-w-[46ch] text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
             Try a shorter word, or ask us directly. A person reads every message.
           </p>
           <div className="mt-heading flex justify-center">
