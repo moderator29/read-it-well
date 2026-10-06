@@ -12,6 +12,8 @@ import type { BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
 import { SuccessSheet } from "@/components/ui/SuccessSheet";
+import { Unfold } from "@/components/ui/Unfold";
+import { ProgressPath } from "@/components/supply/ProgressPath";
 import { successCopy } from "@/lib/ui/success-moments";
 import { SelectField, TextArea, TextField } from "@/components/ui/Field";
 import { TYPE } from "@/components/app/Screen";
@@ -262,7 +264,12 @@ export function HostWizard({
     if (submitted) setCelebrate(true);
   }
   /* This wizard already carries the dictionary for its locale. */
-  const successWords = getDictionary(useClientLocale()).success;
+  const dictionary = getDictionary(useClientLocale());
+  const successWords = dictionary.success;
+  /* The progress path's words: the same ones the agent's listing wizard uses
+     (`experienceFeatures.wizard`), read here from the reader's dictionary
+     because this component is the client island and its page passes none. */
+  const pathWords = dictionary.experienceFeatures.wizard;
 
   const set = useCallback(<K extends keyof HostDraft>(key: K, value: HostDraft[K]) => {
     setDraft((current) => {
@@ -445,6 +452,43 @@ export function HostWizard({
         label={progressLabel(at, steps.length)}
         onBack={back}
       />
+
+      {/* THE PROGRESS PATH (reference 7110), the same one the agent's listing
+          wizard carries: every step on one path, done ones a tap away, folded
+          under the head so the step stays the subject. It shows the steps this
+          host will be asked for (`steps`, the same list the segments count) in
+          their own words, and says the autosave only as far as it is true: the
+          device keeps the typed fields from the start, the account from the
+          business step on. The steps and the rail are unchanged (D28). */}
+      {steps.length > 1 ? (
+        <Unfold
+          className="mt-md"
+          headingLevel={2}
+          items={[
+            {
+              id: "path",
+              icon: "clipboard-list",
+              title: pathWords.allSteps,
+              hint: [
+                pathWords.stepOf.replace("{n}", String(at + 1)).replace("{total}", String(steps.length)),
+                draft.businessId ? pathWords.savedBoth : pathWords.savedDevice,
+              ].join(" "),
+              content: (
+                <ProgressPath
+                  steps={steps.map((s) => ({ id: s.id, label: s.title }))}
+                  at={at}
+                  onJump={(index) => {
+                    setNotice(null);
+                    setAt(index);
+                  }}
+                  disabled={pending}
+                  copy={{ done: pathWords.done, current: pathWords.current, upcoming: pathWords.upcoming }}
+                />
+              ),
+            },
+          ]}
+        />
+      ) : null}
 
       <div className="mt-lg flex flex-col gap-md" key={step.id}>
         <StepBody
