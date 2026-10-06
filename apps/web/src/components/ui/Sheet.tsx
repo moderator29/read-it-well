@@ -502,16 +502,21 @@ export function Sheet({
               className={
                 hideTitle
                   ? "sr-only"
-                  : "min-w-0 text-[length:var(--nf-text-h4)] font-bold tracking-tight text-[var(--nf-content-primary)]"
+                  : "min-w-0 text-[length:var(--nf-text-h4)] font-semibold tracking-tight text-[var(--nf-content-primary)]"
               }
             >
               {title}
             </h2>
+            {/* The sheet's close is a header control, so it is the 44px round
+                control every header draws (handoff Stage 2, "round header
+                controls"; the same material as `BackControl`): it was the
+                glass square, the one square left in a header. The title is
+                the Title rung at 600, not bold (north star 5). */}
             <button
               type="button"
               aria-label={closeLabel}
               onClick={() => onOpenChange(false)}
-              className="nf-icon-btn nf-icon-btn--glass"
+              className="nf-icon-btn nf-icon-btn--round"
             >
               <UiIcon name="close" size={20} />
             </button>
@@ -522,7 +527,7 @@ export function Sheet({
             className={
               hideTitle
                 ? "sr-only"
-                : "shrink-0 px-gutter pb-sm text-[length:var(--nf-text-body-lg)] font-bold tracking-tight text-[var(--nf-content-primary)]"
+                : "shrink-0 px-gutter pb-sm text-[length:var(--nf-text-body-lg)] font-semibold tracking-tight text-[var(--nf-content-primary)]"
             }
           >
             {title}

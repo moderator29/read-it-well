@@ -115,7 +115,7 @@ export function Progress({
          */
         <div className="relative mb-2xs h-4 w-full" aria-hidden="true">
           <span
-            className="nf-numeric absolute whitespace-nowrap text-[length:var(--nf-text-overline)] font-bold text-[var(--nf-content-secondary)] transition-[left] motion-reduce:transition-none"
+            className="nf-numeric absolute whitespace-nowrap text-[length:var(--nf-text-overline)] font-semibold text-[var(--nf-content-secondary)] transition-[left] motion-reduce:transition-none"
             style={{
               left: `${pct}%`,
               transform: `translateX(${pct < 12 ? "0%" : pct > 88 ? "-100%" : "-50%"})`,
