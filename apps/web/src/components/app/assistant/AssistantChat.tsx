@@ -705,6 +705,10 @@ export function AssistantChat({
           <div
             ref={scrollerRef}
             className="nf-ai__thread"
+            /* A named region, so the label is read (axe aria-prohibited-attr:
+               a plain div may not carry aria-label). Not a live log: the
+               answer streams, and a log would read every token aloud. */
+            role="region"
             aria-label="Conversation"
             onScroll={(e) => {
               const el = e.currentTarget;
