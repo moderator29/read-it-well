@@ -61,7 +61,10 @@ export function fitCases(surface: FitSurface, known: Record<string, string> = {}
           }
           for (const k of ["overflow", "clipped", "targets"] as const) found[k] = [...new Set(found[k])];
           /* A debugging aid: FIT_DUMP=<file> appends every surface's findings, whole, as JSON lines. */
-          if (process.env.FIT_DUMP) appendFileSync(process.env.FIT_DUMP, `${JSON.stringify({ key, ...found })}\n`);
+          if (process.env.FIT_DUMP) appendFileSync(
+            process.env.FIT_DUMP,
+            `${JSON.stringify({ key, ...found, words: await page.evaluate((sel) => ((document.querySelector(sel) as HTMLElement | null) ?? document.body).innerText.length, surface.scope ?? "#stage") })}\n`,
+          );
           expect(found.overflow.join("\n"), "sideways overflow").toBe("");
           expect(found.clipped.join("\n"), "label cut off").toBe("");
           expect(found.targets.join("\n"), "tap target under 44px").toBe("");
