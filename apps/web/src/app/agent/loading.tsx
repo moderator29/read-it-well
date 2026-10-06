@@ -3,9 +3,9 @@ import { AgentScreenSkeleton, AgentTitleSkeleton } from "@/components/agent/Agen
 
 /**
  * The wait, for every agent console screen without a skeleton of its own
- * (SPEED-2): portfolio, notifications, the assistant and inspections had none,
- * so the nearest boundary was the root one and a console page waited on the
- * landing hero. `AgentShell` renders inside each page, so the frame is drawn
+ * (SPEED-2). Portfolio, notifications, the assistant and inspections waited
+ * here on generic rows until R3-17 gave each its own shape (their
+ * `loading.tsx`); what still lands here is a route added later without one. `AgentShell` renders inside each page, so the frame is drawn
  * here too: the rail from lg up, the sticky glass header, the title, rows.
  */
 export default function LoadingAgentScreen() {
