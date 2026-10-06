@@ -375,6 +375,11 @@ export function PayPanel({
                   onClick={payBySavedCard}
                   disabled={busy || chosenCard === null}
                   loading={phase.kind === "saved-card-charging"}
+                  /* Motion 7: the arc while the server is asked, the tick
+                     only once the settlement says paid. Both states are this
+                     panel's own phases, read from the server, never a timer. */
+                  morph
+                  done={phase.kind === "paid"}
                 >
                   {c.payWithThisCard}
                 </Button>
@@ -412,6 +417,8 @@ export function PayPanel({
                 onClick={payByCard}
                 disabled={busy}
                 loading={phase.kind === "card-starting"}
+                morph
+                done={phase.kind === "paid"}
               >
                 {c.payByCard}
               </Button>
@@ -497,6 +504,8 @@ export function PayPanel({
             onClick={payByCard}
             disabled={busy}
             loading={phase.kind === "card-starting"}
+            morph
+            done={phase.kind === "paid"}
             className="shrink-0"
           >
             {c.payByCard}

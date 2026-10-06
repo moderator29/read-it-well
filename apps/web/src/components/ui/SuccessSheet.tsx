@@ -6,6 +6,7 @@ import { Sheet } from "@/components/ui/Sheet";
 import { Amount } from "@/components/ui/Amount";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Icon3D } from "@/components/ui/Icon3D";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { Icon3DName } from "@/components/ui/icon-3d";
 import { feedback, type FeedbackKind } from "@/lib/ui/feedback";
 import { motionQuiet } from "@/lib/motion/gate";
@@ -15,11 +16,13 @@ import { SUCCESS_FEEL, VARIANT_OBJECT, type SuccessVariant } from "@/lib/ui/succ
  * THE "IT WORKED" MOMENT (docs/SUCCESS_MOMENTS.md).
  *
  * Founder reference 54 (30 September 2026,
- * `docs/design/references/2026-09-29/54-success-pin-set.jpg`): the whole
- * screen, a big object in the middle, a title and one line under it, and one
- * full-width pill at the foot. Drawn in our own hand: the soft top (section
- * 17), one of the founder's 3D objects instead of a flat badge, a soft halo
- * ring behind it and a few blue and orange sparks round it (section 18).
+ * `docs/design/references/2026-09-29/54-success-pin-set.jpg`) and reference
+ * 7037 (6 October): the whole screen, a big object in the middle, a title and
+ * one line under it, the amount and who it was for beneath, and one
+ * full-width action at the foot (a rounded rectangle, D2). Drawn in our own
+ * hand: the soft top (section 17), one of the founder's 3D objects instead of
+ * a flat badge, on a radial wash inside a soft halo ring, with a tick seal
+ * that lands on it when the news is finished.
  *
  * TWO SHAPES, ONE BODY.
  *
@@ -40,20 +43,41 @@ import { SUCCESS_FEEL, VARIANT_OBJECT, type SuccessVariant } from "@/lib/ui/succ
  * saves (saved, copied) keep their quiet toasts.
  *
  * ---------------------------------------------------------------------------
- * MOTION, UNDER A SECOND, THEN A GENTLE FLOAT (app/css/success.css).
+ * MOTION 13, THE FULL-SCREEN SUCCESS (north star 7.1, MOTION_SYSTEM section
+ * 2 "payoff moments"; app/css/success.css). Sharp, then settled:
  *
- *   0 to 520ms     the object pops in on a spring, the halo ring opens
- *   80 to 700ms    one ring pulses out and fades
- *   220 to 900ms   the sparks burst out on a stagger and settle
- *   340 to 900ms   the title, the line and the actions rise in
- *   after 900ms    the object floats a few pixels, for a few breaths only
+ *   0 to 620ms     a radial wash opens behind the object, and the object
+ *                  scales in over it (`land`, 620ms)
+ *   at 620ms       the payoff: a tick seal lands on the object with the one
+ *                  permitted pop (1.0 to 1.04 to 1.0 over 180ms), one ring
+ *                  goes out from it, and ONE haptic is felt, at that moment
+ *                  and not on open, so the hand and the eye agree
+ *   380 to 920ms   the title, the line, the amount, the facts and the actions
+ *                  rise in, 60ms apart, so the amount and the counterparty
+ *                  are read beneath the object as it settles
  *
- * Transform and opacity only, on a handful of elements, so it stays cheap on
- * a low-end Android. Under `prefers-reduced-motion`, or the app's Calm or Off
- * setting (`motionQuiet`), the moment lands in its final state and nothing
- * moves. The stylesheet answers the same conditions on its own, so a first
- * paint before this script runs is never the animated one. The float also
- * stays off when ambient motion or data saver is off.
+ * Nothing after that moves. The sparks and the five-breath float the first
+ * version carried are gone: the motion system allows the pop for confirm,
+ * verify, unlock, release and earn and nothing else (principle 5), allows
+ * one warm spark per screen where they drew three, and lets nothing loop but
+ * the aurora and the assistant. A moment that keeps moving after it has said
+ * "done" is decoration, and decoration on a money screen reads as a game.
+ *
+ * THE TICK IS ONLY WHERE THE WORDS ARE FINISHED. A submission waits on a
+ * person, so the "submitted" variant lands its object with no seal and no
+ * pop: the picture never claims more than the words.
+ *
+ * MONEY ARRIVES HERE ONLY AFTER THE SERVER. The caller opens this once a
+ * settlement against the record on screen came back (PaymentReturn, the pay
+ * panels): there is no prop that turns "Confirming your payment" into this
+ * component, and the amount shown is the amount the settlement recorded. The
+ * figure itself never counts: it states money that has already moved.
+ *
+ * Transform and opacity only, on five elements. Under `prefers-reduced-
+ * motion`, or the app's Calm or Off setting (`motionQuiet`), the moment lands
+ * in its final state, the haptic is felt at once, and nothing moves. The
+ * stylesheet answers the same conditions on its own, so a first paint before
+ * this script runs is never the animated one.
  *
  * ---------------------------------------------------------------------------
  * ACCESSIBILITY.
@@ -113,6 +137,12 @@ export type SuccessSheetProps = SuccessMomentProps & {
 };
 
 /**
+ * When the object has landed and the payoff plays: the `deliberate` token,
+ * 620ms, which success.css uses for the same moment. One number, two readers.
+ */
+export const PAYOFF_MS = 620;
+
+/**
  * Decided once per showing, a frame in, so a setting changed mid-animation
  * does not snap the object between states; and the live region is filled on
  * the same frame so it is announced. The haptic is felt once per showing.
@@ -137,8 +167,14 @@ function useMomentState(shown: boolean, variant: SuccessVariant, haptic: Feedbac
   }, [shown]);
 
   const feel = haptic === false ? null : (haptic ?? SUCCESS_FEEL[variant]);
+  /* ONE haptic, felt when the seal lands (PAYOFF_MS) rather than when the
+     sheet opens: the hand is told "done" at the instant the eye is. A quiet
+     reader sees the final state at once, so they feel it at once. */
   useEffect(() => {
-    if (shown && feel) feedback(feel);
+    if (!shown || !feel) return;
+    const delay = motionQuiet() ? 0 : PAYOFF_MS;
+    const id = window.setTimeout(() => feedback(feel), delay);
+    return () => window.clearTimeout(id);
   }, [shown, feel]);
 
   return { quiet, announced };
@@ -244,7 +280,7 @@ function SuccessBody({
   return (
     <div className="nf-success" data-variant={variant} data-layout={layout} data-quiet={quiet ? "true" : "false"}>
       <div className="nf-success__stage">
-        <SuccessObject name={object ?? VARIANT_OBJECT[variant]} />
+        <SuccessObject name={object ?? VARIANT_OBJECT[variant]} sealed={variant !== "submitted"} />
 
         <div className="nf-success__words">
           {layout === "page" ? (
@@ -342,53 +378,31 @@ function ActionButton({
 /* ----------------------------------------------------------- the object */
 
 /**
- * The sparks, placed by hand rather than at random so every opening is the
- * same picture and a screenshot of it is stable. Angle in degrees from the
- * top, distance in px from the centre of the object, size, stagger, and
- * whether it is one of the orange ones (section 18: a spark, never a fill;
- * three of eight).
+ * The object on its wash, and the seal. Decorative: the words say all of it.
+ *
+ * Three layers, each with one job in the motion (success.css): the WASH, a
+ * radial ground that opens behind the object and says "here"; the OBJECT,
+ * which scales in over it; and the SEAL, a tick on a brand disc at the
+ * object's lower right, which is the one thing that pops. The seal is drawn
+ * only when the moment is finished news (`sealed`): a submission waits on a
+ * person, and a tick there would claim what the words do not.
  */
-const SPARKS: readonly { kind: "star" | "dot"; tone: "blue" | "spark"; angle: number; distance: number; size: number; delay: number }[] = [
-  { kind: "star", tone: "blue", angle: -52, distance: 98, size: 14, delay: 0 },
-  { kind: "dot", tone: "spark", angle: -14, distance: 104, size: 7, delay: 50 },
-  { kind: "dot", tone: "blue", angle: 30, distance: 100, size: 6, delay: 100 },
-  { kind: "star", tone: "spark", angle: 66, distance: 94, size: 11, delay: 30 },
-  { kind: "dot", tone: "blue", angle: 128, distance: 102, size: 5, delay: 140 },
-  { kind: "star", tone: "blue", angle: 196, distance: 98, size: 10, delay: 70 },
-  { kind: "dot", tone: "spark", angle: 238, distance: 100, size: 6, delay: 120 },
-  { kind: "dot", tone: "blue", angle: 292, distance: 96, size: 7, delay: 90 },
-];
-
-function SuccessObject({ name }: { name: Icon3DName }) {
+function SuccessObject({ name, sealed }: { name: Icon3DName; sealed: boolean }) {
   return (
-    <div className="nf-success__mark" aria-hidden="true" data-object={name}>
+    <div className="nf-success__mark" aria-hidden="true" data-object={name} data-sealed={sealed ? "true" : "false"}>
+      <span className="nf-success__wash" />
       <span className="nf-success__halo" />
-      <span className="nf-success__pulse" />
       <span className="nf-success__pop">
-        <span className="nf-success__float">
+        <span className="nf-success__payoff">
           <Icon3D name={name} size={144} className="nf-success__object" priority />
+          {sealed ? (
+            <span className="nf-success__seal">
+              <UiIcon name="check" size={20} />
+            </span>
+          ) : null}
         </span>
       </span>
-      {SPARKS.map((bit, i) => {
-        const rad = (bit.angle * Math.PI) / 180;
-        const x = Math.round(Math.sin(rad) * bit.distance);
-        const y = Math.round(-Math.cos(rad) * bit.distance);
-        return (
-          <span
-            key={i}
-            className={`nf-success__bit nf-success__bit--${bit.kind}`}
-            data-tone={bit.tone}
-            style={
-              {
-                "--bit-x": `${x}px`,
-                "--bit-y": `${y}px`,
-                "--bit-size": `${bit.size}px`,
-                "--bit-delay": `${bit.delay}ms`,
-              } as React.CSSProperties
-            }
-          />
-        );
-      })}
+      <span className="nf-success__pulse" />
     </div>
   );
 }

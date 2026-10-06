@@ -275,6 +275,10 @@ export function PayPanel({
                   onClick={payBySavedCard}
                   disabled={busy || chosenCard === null}
                   loading={phase.kind === "saved-card-charging"}
+                  /* Motion 7, on real phases only: the arc while the server is
+                     asked, the tick once the settlement says paid. */
+                  morph
+                  done={phase.kind === "paid"}
                 >
                   {c.payWithThisCard}
                 </Button>
@@ -299,6 +303,8 @@ export function PayPanel({
                 onClick={payByCard}
                 disabled={busy}
                 loading={phase.kind === "card-starting"}
+                morph
+                done={phase.kind === "paid"}
               >
                 {largeLead ? largeLead.largeLead : c.payByCard}
               </Button>
@@ -353,6 +359,8 @@ export function PayPanel({
             onClick={payByCard}
             disabled={busy}
             loading={phase.kind === "card-starting"}
+            morph
+            done={phase.kind === "paid"}
             className="shrink-0"
           >
             {largeLead ? largeLead.largeLead : c.payByCard}
