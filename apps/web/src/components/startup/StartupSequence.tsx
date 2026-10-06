@@ -11,10 +11,11 @@ import { STARTUP_SCRIPT } from "./startup-script";
  * founder saw were an unbounded `resolveSession()`, and an animation over that
  * would have been a longer hang with better production values. This replaces
  * the Track M splash in the same place in the root layout and keeps its gate
- * (the before-paint script there: once per session, which on the native shell
- * is once per cold start; never on the console, the auth callback or a shared
- * link; never under reduced motion, Calm, Off or data saver, where the app
- * simply appears).
+ * (the before-paint script there, `STARTUP_GATE_SCRIPT`: once per session,
+ * which on the native shell is once per cold start; never on the console, the
+ * auth callback or a shared link; never under Calm, Off, the splash switch or
+ * data saver, where the app simply appears; and under the platform's reduced
+ * motion, quietly: the still lockup and a 160ms crossfade).
  *
  * THE SIX BEATS, all CSS (`startup.css`), all transform, opacity and filter:
  *
@@ -44,7 +45,10 @@ import { STARTUP_SCRIPT } from "./startup-script";
  * and Get Started's entrance plays out of the door. On any other first screen
  * the mark leaves with the wordmark.
  *
- * Decorative and `aria-hidden`. A tap anywhere opens the door at once.
+ * Decorative and `aria-hidden`. A tap anywhere or the first key opens the
+ * door at once (the tap's own click is eaten, so it cannot land on what the
+ * door reveals), and it is never on screen past four seconds whatever the
+ * network does (`startup-script.ts`).
  */
 export function StartupSequence({ nonce }: { nonce?: string | undefined }) {
   return (

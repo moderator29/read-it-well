@@ -11,6 +11,7 @@ import { ThemeSync } from "@/components/site/ThemeControl";
 import { ServiceWorkerRegistrar } from "@/components/app/ServiceWorkerRegistrar";
 import { NativeRuntime } from "@/components/app/NativeRuntime";
 import { StartupSequence } from "@/components/startup/StartupSequence";
+import { STARTUP_GATE_SCRIPT } from "@/components/startup/startup-script";
 import { ThresholdStage } from "@/components/motion/ThresholdStage";
 import { MOTION_COOKIE, motionAttributes, parseMotion } from "@/lib/motion/motion-pref";
 import "./globals.css";
@@ -429,10 +430,11 @@ export default async function RootLayout({
           The app opening is the first threshold: the mark turns, the wordmark
           assembles letter by letter, and a door opens on the page. It plays
           once per browser session, which on the native shell is once per cold
-          start, and never under reduced motion, never with data saving on,
+          start; under reduced motion, quietly: the still lockup and a 160ms
+          crossfade (MOTION_SYSTEM section 3). Never with data saving on,
           never when the motion setting is Calm or Off or the splash is
-          switched off,
-          and never on the console, the auth callback or a shared link. It is
+          switched off, and never on the console, the auth callback or a shared
+          link. The gate is STARTUP_GATE_SCRIPT, tested beside the sequence. It is
           decided here, before the first frame, because deciding it after
           hydration would show the page and then cover it.
         */}
@@ -440,8 +442,7 @@ export default async function RootLayout({
           nonce={nonce}
           suppressHydrationWarning
           dangerouslySetInnerHTML={{
-            __html:
-              "try{var d=document.documentElement;if(!sessionStorage.getItem('nf_entered')&&d.dataset.saveData!=='on'&&d.dataset.motionSplash!=='off'&&d.dataset.motion!=='calm'&&d.dataset.motion!=='off'&&!matchMedia('(prefers-reduced-motion: reduce)').matches&&!/^\\/(admin|auth|api|offline|open|s|r)(\\/|$)/.test(location.pathname))d.dataset.splash='on';sessionStorage.setItem('nf_entered','1')}catch(e){}",
+            __html: STARTUP_GATE_SCRIPT,
           }}
         />
         {/*
