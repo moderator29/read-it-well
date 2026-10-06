@@ -39,6 +39,14 @@ export function SiteFooter({ t }: { t: Dictionary }) {
   const columns = [
     {
       title: f.product,
+      /* NOT PREFETCHED (C6, R3-18 round 2). These four open the product,
+         and a footer link in view prefetches its whole route: on a short
+         public page (/check measured) the footer is on the first screen at
+         390, and the Buy link alone pulled the search screen's code, about
+         120 KB, into a stranger's first load. They load when tapped. Every
+         other footer link is a public page of a few KB and keeps its
+         prefetch. */
+      app: true,
       links: [
         /* Markets, not categories (V-26): `type=home` showed houses to let
            under Buy, and `type=rental` missed every flat to let. */
@@ -132,7 +140,7 @@ export function SiteFooter({ t }: { t: Dictionary }) {
               <ul>
                 {col.links.map((l) => (
                   <li key={`${l.href}-${l.label}`}>
-                    <Link href={l.href} className="nf-site-footer-link">
+                    <Link href={l.href} prefetch={"app" in col && col.app ? false : undefined} className="nf-site-footer-link">
                       {l.label}
                     </Link>
                   </li>
