@@ -296,7 +296,10 @@
     color: var(--nf-content-on-brand);
   }
   .nf-ai__ticks {
-    color: var(--nf-brand-secondary);
+    /* The only place the tick is drawn is on the blue sent bubble, where the
+       brand-secondary blue measured 2.2:1 at night and 1.3:1 in paper (a
+       graphic needs 3:1). The on-brand ink is the bubble's own white. */
+    color: var(--nf-content-on-brand);
   }
 
   /* The inline results: two up on a phone, the thread's own width. */

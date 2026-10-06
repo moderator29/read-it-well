@@ -16,6 +16,9 @@
  *   muted words on the warm and info tints (decision card, agreement diff, scam shield)
  *   the initial in a brand avatar
  *
+ * A GRAPHIC (a glyph that carries meaning, such as the "answered" tick) is held to
+ * 3:1 instead, WCAG 1.4.11, and is hidden with `visibility` since it is not text.
+ *
  * The real compiled cascade (Tailwind included), both themes, 390px.
  */
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
@@ -28,13 +31,14 @@ beforeAll(warmBrowser);
 afterAll(closeBrowser);
 
 /** A word to measure: the element's selector within the stage, and whether its ground is a disc. */
-type Probe = { name: string; selector: string; disc?: boolean };
+type Probe = { name: string; selector: string; disc?: boolean; graphic?: boolean };
 
 const IMPORTS = `
   import { AssistantSidebar } from "@/components/app/assistant/AssistantSidebar";
   import { DecisionCard } from "@/components/app/confirm/DecisionCard";
   import { AgreementChanges } from "@/components/app/agreements/AgreementChanges";
   import { ScamShield } from "@/components/app/messages/ScamShield";
+  import { UiIcon } from "@/design-system/icons/UiIcon";
 `;
 
 const BODY = `
@@ -48,7 +52,10 @@ const BODY = `
     <div data-probe="assistant-time" className="nf-ai__turn nf-ai__turn--mine">
       <div className="nf-ai__bubble nf-ai__bubble--mine">
         Show me 2-bed in Lekki under 2m
-        <span className="nf-ai__stamp nf-numeric">07:22</span>
+        <span className="nf-ai__stamp nf-numeric">
+          07:22
+          <span className="nf-ai__ticks" role="img" aria-label="Answered"><UiIcon name="verified" size={12} /></span>
+        </span>
       </div>
     </div>
     <div data-probe="assistant-row" style={{ width: 280 }}>
@@ -81,6 +88,7 @@ const BODY = `
 const PROBES: Probe[] = [
   { name: "the sent bubble's time (chat)", selector: '[data-probe="chat-time"] .nf-bubble__foot .nf-numeric' },
   { name: "the sent bubble's time (assistant)", selector: '[data-probe="assistant-time"] .nf-ai__stamp' },
+  { name: "the assistant's 'answered' tick (graphic, 3:1)", selector: '[data-probe="assistant-time"] .nf-ai__ticks', graphic: true },
   { name: "the chosen history row's title", selector: '[data-probe="assistant-row"] .nf-ai__row--on > span:first-child' },
   { name: "the chosen history row's time", selector: '[data-probe="assistant-row"] .nf-ai__row--on > span:nth-child(2)' },
   { name: "the unread time on an inbox row", selector: '[data-probe="inbox-time"] .nf-inbox-row__when' },
@@ -103,10 +111,16 @@ async function worstRatio(page: Page, probe: Probe): Promise<number> {
       opacity *= Number.parseFloat(getComputedStyle(node).opacity);
     }
     (el as HTMLElement).style.setProperty("-webkit-text-fill-color", "transparent");
+    /* A glyph beside the words (the tick in the stamp) is a child: hidden, it cannot colour the ground, and
+       the box (and the screenshot) stay in place. */
+    for (const child of Array.from(el.children)) (child as HTMLElement | SVGElement).style.visibility = "hidden";
     return { ink: getComputedStyle(el).color, opacity };
   });
   const png = (await target.screenshot()).toString("base64");
-  await target.evaluate((el) => (el as HTMLElement).style.removeProperty("-webkit-text-fill-color"));
+  await target.evaluate((el) => {
+    (el as HTMLElement).style.removeProperty("-webkit-text-fill-color");
+    for (const child of Array.from(el.children)) (child as HTMLElement | SVGElement).style.visibility = "";
+  });
   return page.evaluate(
     async ({ png, info, disc }) => {
       const img = new Image();
@@ -169,7 +183,8 @@ describe.skipIf(!hasBrowser && !process.env.CI)("small text on a coloured ground
             continue;
           }
           const ratio = await worstRatio(page, probe);
-          if (ratio < 4.5) rows.push(`${theme} | ${probe.name} | ${ratio.toFixed(2)}:1 < 4.5`);
+          const need = probe.graphic ? 3 : 4.5;
+          if (ratio < need) rows.push(`${theme} | ${probe.name} | ${ratio.toFixed(2)}:1 < ${need}`);
         }
       }
     } finally {
