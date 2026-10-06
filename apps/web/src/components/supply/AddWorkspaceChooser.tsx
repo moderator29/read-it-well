@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import type { Dictionary } from "@vallo/i18n/core";
+import type { ChooserCopy } from "./supply-copy";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { BrandIconName } from "@/design-system/icons/BrandIcon";
 import { Button } from "@/components/ui/Button";
@@ -151,7 +151,7 @@ const NEED_OBJECTS: Record<string, readonly BrandIconName[]> = {
 };
 const OVERVIEW_FALLBACK: BrandIconName = "doc-shield";
 
-export function AddWorkspaceChooser({ t, side }: { t: Dictionary; side: Side }) {
+export function AddWorkspaceChooser({ t, side }: { t: ChooserCopy; side: Side }) {
   const router = useRouter();
   /*
    * UX-05: BOTH SETS OF DOORS, ALWAYS, in two labelled groups. The chooser

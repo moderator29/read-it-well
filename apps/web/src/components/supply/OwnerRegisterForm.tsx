@@ -4,7 +4,7 @@ import { PhoneField } from "@/components/app/PhoneField";
 import { useCallback, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useBack } from "@/lib/nav/use-back";
-import type { Dictionary } from "@vallo/i18n/core";
+import type { OwnerCopy } from "./supply-copy";
 import { TYPE } from "@/components/app/Screen";
 import { TextField } from "@/components/ui/Field";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -79,7 +79,7 @@ export function OwnerRegisterForm({
   states,
   startAt = 0,
 }: {
-  t: Dictionary;
+  t: OwnerCopy;
   states: StateOption[];
   /**
    * WHICH SCREEN TO OPEN ON, AND THE ONLY CALLER IS THE PREVIEW HARNESS.
@@ -448,7 +448,7 @@ export function OwnerDoneScreen({
   t,
   filed,
 }: {
-  t: Dictionary;
+  t: OwnerCopy;
   filed: { reference: string; mark: boolean; attached: boolean };
 }) {
   const router = useRouter();
