@@ -16,7 +16,10 @@ function sources(dir: string): string[] {
   return readdirSync(dir).flatMap((name) => {
     const path = join(dir, name);
     if (statSync(path).isDirectory()) return name === "node_modules" ? [] : sources(path);
-    return /\.(ts|tsx)$/.test(name) && !/\.test\.tsx?$/.test(name) ? [path] : [];
+    /* Tests and test-only harnesses are not the product: the dom harness
+       deliberately mounts a LazyMotion whose features never load
+       (ported-test-css.ts), to prove the ports work without them. */
+    return /\.(ts|tsx)$/.test(name) && !/\.test\.tsx?$|-test-css\.ts$/.test(name) ? [path] : [];
   });
 }
 
