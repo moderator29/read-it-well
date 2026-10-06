@@ -135,7 +135,20 @@ export type PaystackCheckoutProps = {
   onCancelled: () => void;
   /** It failed, or we stopped being able to tell. The sentence is the truth. */
   onFailed: (message: string) => void;
+  /**
+   * The caller draws the wait itself, in its own pay stage (PaymentStage), so
+   * the card a person tapped into is the card that answers them. With this
+   * set, `opening` and `settling` draw nothing here and are reported through
+   * `onPhase` instead; `unavailable` is still drawn here, because it offers a
+   * choice only this component can make.
+   */
+  staged?: boolean;
+  /** Where the checkout is, every time that changes. */
+  onPhase?: (at: CheckoutAt) => void;
 };
+
+/** The checkout's own phases, as `onPhase` reports them. */
+export type CheckoutAt = "idle" | "opening" | "open" | "settling" | "unavailable";
 
 /**
  * The poll, and why it backs off rather than ticking.
@@ -191,6 +204,8 @@ export function PaystackCheckout({
   onPaid,
   onCancelled,
   onFailed,
+  staged = false,
+  onPhase,
 }: PaystackCheckoutProps) {
   const [phase, setPhase] = useState<Phase>(() =>
     accessCode.trim().length > 0
@@ -201,8 +216,11 @@ export function PaystackCheckout({
   /* Callbacks reach us from an iframe long after the render that created
      them, so they are read through a ref rather than closed over: a stale
      `onPaid` here would settle a payment into a panel that has moved on. */
-  const handlers = useRef({ onPaid, onCancelled, onFailed, confirm });
-  handlers.current = { onPaid, onCancelled, onFailed, confirm };
+  const handlers = useRef({ onPaid, onCancelled, onFailed, confirm, onPhase });
+  handlers.current = { onPaid, onCancelled, onFailed, confirm, onPhase };
+  useEffect(() => {
+    handlers.current.onPhase?.(phase.kind);
+  }, [phase.kind]);
   /* V-40: the figure for the in-flight note, read when the checkout opens. */
   const amountRef = useRef(amountMinor);
   amountRef.current = amountMinor;
@@ -441,6 +459,8 @@ export function PaystackCheckout({
      nothing at all: the page underneath is ours, the URL is ours, and the
      payment is happening on top of it. */
   if (phase.kind === "open") return null;
+  /* Staged: the caller's pay stage draws the wait. */
+  if (staged && (phase.kind === "opening" || phase.kind === "settling")) return null;
 
   if (phase.kind === "opening") {
     return (

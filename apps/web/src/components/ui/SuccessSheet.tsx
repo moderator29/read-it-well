@@ -147,7 +147,7 @@ export const PAYOFF_MS = 620;
  * does not snap the object between states; and the live region is filled on
  * the same frame so it is announced. The haptic is felt once per showing.
  */
-function useMomentState(shown: boolean, variant: SuccessVariant, haptic: FeedbackKind | false | undefined) {
+export function useMomentState(shown: boolean, variant: SuccessVariant, haptic: FeedbackKind | false | undefined) {
   const [quiet, setQuiet] = useState(true);
   const [announced, setAnnounced] = useState(false);
 
@@ -247,7 +247,14 @@ export function SuccessScreen({
   );
 }
 
-function SuccessBody({
+/**
+ * The body on its own, for a container that was already on screen before the
+ * news arrived: the pay stage (components/app/payments/PaymentStage.tsx)
+ * turns its processing face into this one in place. `staged` tells the
+ * stylesheet what was already there (the halo, the amount), so those hold
+ * still while the rest of the payoff plays around them.
+ */
+export function SuccessBody({
   variant,
   object,
   title,
@@ -262,9 +269,11 @@ function SuccessBody({
   onDone,
   primaryRef,
   titleId,
+  staged = false,
 }: Omit<SuccessMomentProps, "haptic" | "testId"> & {
   variant: SuccessVariant;
   layout: "sheet" | "page";
+  staged?: boolean;
   quiet: boolean;
   announced: boolean;
   onDone(): void;
@@ -278,7 +287,13 @@ function SuccessBody({
   };
 
   return (
-    <div className="nf-success" data-variant={variant} data-layout={layout} data-quiet={quiet ? "true" : "false"}>
+    <div
+      className="nf-success"
+      data-variant={variant}
+      data-layout={layout}
+      data-quiet={quiet ? "true" : "false"}
+      data-staged={staged || undefined}
+    >
       <div className="nf-success__stage">
         <SuccessObject name={object ?? VARIANT_OBJECT[variant]} sealed={variant !== "submitted"} />
 

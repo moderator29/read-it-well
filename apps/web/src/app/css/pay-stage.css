@@ -1,0 +1,103 @@
+/*
+ * THE PAY STAGE (components/app/payments/PaymentStage.tsx), round 5: money
+ * being committed. Imported by the component itself, so its weight rides
+ * only with the routes that take a payment, never in the global sheet. It is
+ * layered on success.css (the card geometry and the payoff it reuses).
+ */
+@layer components {
+  /* ------------------------------------------------------- the pay stage */
+
+  /*
+   * THE PAY STAGE (components/app/payments/PaymentStage.tsx): this card,
+   * already up while the payment is committed and processed, whose face turns
+   * into the success body in place. The wait faces reuse the success
+   * geometry, so the halo and the amount are where the payoff will want
+   * them and do not move when it comes.
+   */
+  .nf-pay-stage__steps {
+    width: 100%;
+    max-width: 20rem;
+    margin-top: var(--nf-space-md);
+  }
+  .nf-pay-stage__note {
+    max-width: 32ch;
+    margin: var(--nf-space-sm) auto 0;
+    font-size: var(--nf-text-caption);
+    line-height: 1.5;
+    color: var(--nf-content-muted);
+  }
+  .nf-pay-stage__face[data-at="failed"] .nf-success__title {
+    color: var(--nf-state-error);
+  }
+  /* A failure arrives as a cut: the card fades in (fast) and never travels. */
+  .nf-sheet.nf-sheet--card.nf-success-card.nf-pay-stage--cut,
+  .nf-sheet.nf-sheet--card.nf-success-card.nf-pay-stage--cut[data-open="true"] {
+    transform: none;
+    transition: opacity var(--nf-duration-fast) linear;
+  }
+
+  /*
+   * MONEY IS DELIBERATE, THE PAYOFF SHARP (CRAFT_DOCTRINE 5).
+   *   committing  the face grows out of the tapped control, `land` 620ms
+   *   any wait    a new verdict fades in, `glide` 240ms (Calm shortens it)
+   *   paid        the halo and the amount hold still (they were there); the
+   *               wash, the object, the seal and its one pop play as on any
+   *               payoff; the title crossfades rather than rising; the receipt
+   *               rows print down from under the amount at 800ms, once the
+   *               pop (620 + 180) has settled; the actions follow at 860ms
+   *   failed      nothing animates
+   */
+  @media (prefers-reduced-motion: no-preference) {
+    :root:not([data-motion="calm"], [data-motion="off"]) .nf-pay-stage__face[data-grow] {
+      transform-origin: var(--nf-stage-ox, 50%) var(--nf-stage-oy, 100%);
+      animation: nf-pay-grow var(--nf-duration-deliberate) var(--nf-ease-entrance) both;
+    }
+    :root:not([data-motion="off"]) .nf-pay-stage__face:not([data-at="failed"]) .nf-pay-stage__title,
+    :root[data-motion="calm"] .nf-success[data-staged] .nf-success__title {
+      animation: nf-pay-fade var(--nf-duration-base) var(--nf-ease-standard) both;
+    }
+    :root:not([data-motion="calm"], [data-motion="off"]) .nf-success[data-quiet="false"][data-staged] {
+      & .nf-success__halo,
+      & .nf-success__amount {
+        animation: none;
+      }
+      & .nf-success__title {
+        animation: nf-pay-fade var(--nf-duration-base) var(--nf-ease-standard) both;
+      }
+      & .nf-success__facts {
+        animation: nf-pay-print var(--nf-duration-slow) var(--nf-ease-entrance) 800ms both;
+      }
+      & .nf-success__actions {
+        animation-delay: 860ms;
+      }
+    }
+  }
+  /* THE QUIET ANSWER: the same order, told by a 160ms fade per face (the
+     duration tokens collapse to 1ms here, so the figure is literal), and the
+     card itself fades in rather than appearing. Off is instant. */
+  @media (prefers-reduced-motion: reduce) {
+    :root:not([data-motion="off"]) :is(.nf-pay-stage__face:not([data-at="failed"]) .nf-pay-stage__title, .nf-success[data-staged] .nf-success__title) {
+      animation: nf-pay-fade 160ms linear both;
+    }
+    :root:not([data-motion="off"]) .nf-sheet.nf-sheet--card.nf-pay-stage {
+      transition: opacity 160ms linear;
+    }
+  }
+  @keyframes nf-pay-grow {
+    from {
+      opacity: 0;
+      transform: scale(0.86);
+    }
+  }
+  @keyframes nf-pay-fade {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes nf-pay-print {
+    from {
+      opacity: 0;
+      transform: translateY(-0.75rem);
+    }
+  }
+}

@@ -8,9 +8,16 @@ import { PaymentGate } from "@/components/app/agreements/PaymentGate";
 import { NO_CUSTODY_SENTENCE } from "@/lib/money/copy";
 import type { CheckoutView } from "@/lib/bookings/checkout-view";
 import { ResultSheet } from "@/components/app/ResultSheet";
-import { SuccessSheet } from "@/components/ui/SuccessSheet";
 import { successCopy } from "@/lib/ui/success-moments";
-import { PaystackCheckout } from "@/components/app/payments/PaystackCheckout";
+import { PaystackCheckout, type CheckoutAt } from "@/components/app/payments/PaystackCheckout";
+import {
+  PaymentStage,
+  stageOrigin,
+  type StageFace,
+  type StageOrigin,
+} from "@/components/app/payments/PaymentStage";
+import { cardPaymentSteps } from "@/components/app/payments/payment-steps";
+import { feedback } from "@/lib/ui/feedback";
 import { paymentState } from "@/lib/payments/payment-state";
 import { SavedCardPicker } from "@/components/app/payments/SavedCardPicker";
 import { preselectedCardId } from "@/components/app/payments/format";
@@ -217,6 +224,10 @@ export function PayPanel({
   const router = useRouter();
   const [phase, setPhase] = useState<Phase>({ kind: "idle" });
   const [slow, setSlow] = useState(false);
+  /* Where the in-page checkout is (PaystackCheckout, staged), and the control
+     the pay stage grows out of. */
+  const [checkoutAt, setCheckoutAt] = useState<CheckoutAt>("idle");
+  const [origin, setOrigin] = useState<StageOrigin | null>(null);
   /* Inline arrows rather than `useMemo(newKey, [])`. Passing the function by
      reference works today and the React compiler refuses to see through it, so
      it cannot keep the value stable when it takes over memoisation - which is
@@ -274,8 +285,9 @@ export function PayPanel({
    * there once. This never retries the saved card, because a loop of declined
    * charges is how a card gets blocked and a person gets charged twice.
    */
-  const payBySavedCard = async () => {
+  const payBySavedCard = async (event?: React.MouseEvent<HTMLElement>) => {
     if (!chargeSavedCard || !chosenCard) return;
+    setOrigin(stageOrigin(event?.currentTarget));
     startClocks("card");
     setPhase({ kind: "saved-card-charging" });
     const result = await chargeSavedCard(chosenCard);
@@ -310,7 +322,9 @@ export function PayPanel({
     if (!result.data.settled) router.refresh();
   };
 
-  const payByCard = async () => {
+  const payByCard = async (event?: React.MouseEvent<HTMLElement>) => {
+    setOrigin(stageOrigin(event?.currentTarget));
+    setCheckoutAt("idle");
     startClocks("card");
     setPhase({ kind: "card-starting" });
     const result = await startCardCheckout({
@@ -322,6 +336,9 @@ export function PayPanel({
          navigation; the checkout has its own, and leaving these running would
          declare the payment stalled while the person was typing their PIN. */
       clearTimers();
+      /* The server ACCEPTED the commit: the medium beat (CRAFT_DOCTRINE 6).
+         Not on the tap, which only asked; not on the wait, which is passive. */
+      feedback("confirm");
       setPhase({
         kind: "checkout-open",
         accessCode: result.data.accessCode,
@@ -547,6 +564,110 @@ export function PayPanel({
     subject: view.title,
   };
 
+  /*
+   * THE STAGE'S FACE, FROM THE PHASE THE SERVER PUT US IN. `paid` is written
+   * in exactly one place below, from `phase.kind === "paid"`, which only the
+   * settlement (`settled`) or our own transaction record (`paymentState`)
+   * ever sets. The steps tick from real phases too (cardPaymentSteps).
+   */
+  const steps = (at: "opening" | "settling") =>
+    cardPaymentSteps(at, {
+      opening: c.openingPaymentPage,
+      confirming: c.confirmingPayment,
+      received: c.paymentReceived,
+    });
+  const opening: StageFace = {
+    at: "committing",
+    verdict: c.openingPaymentPage,
+    consequence: slow ? c.slowNothingMoved : c.nothingChargedYet,
+    steps: steps("opening"),
+    note: c.recordedOnce,
+  };
+  const face: StageFace | null =
+    phase.kind === "saved-card-charging"
+      ? {
+          at: "committing",
+          verdict: savedCardMoment({ kind: "charging" }, view.totalDisplay).verdict,
+          consequence: slow
+            ? c.slowNothingMoved
+            : savedCardMoment({ kind: "charging" }, view.totalDisplay).consequence,
+          note: c.recordedOnce,
+        }
+      : phase.kind === "card-starting"
+        ? opening
+        : phase.kind === "checkout-open"
+          ? checkoutAt === "settling"
+            ? {
+                at: "processing",
+                verdict: c.confirmingPayment,
+                consequence: c.returnChecking,
+                steps: steps("settling"),
+                note: c.recordedOnce,
+              }
+            : /* While the bank's window is up, or it could not open (which
+                 PaystackCheckout says itself), the stage steps aside. */
+              checkoutAt === "open" || checkoutAt === "unavailable"
+              ? null
+              : opening
+          : phase.kind === "paid"
+            ? {
+                at: "paid",
+                settled: true,
+                moment: {
+                  variant: paid.variant,
+                  object: paid.object,
+                  title: paid.title,
+                  body: paid.body,
+                  details: [
+                    { label: s.detail.for, value: view.title },
+                    ...(phase.reference ? [{ label: s.detail.reference, value: phase.reference, mono: true }] : []),
+                  ],
+                  primary: { label: plansAction.label, href: plansAction.href },
+                  secondary: { label: c.backToStay, href: view.stayHref },
+                },
+              }
+            : phase.kind === "applying"
+              ? {
+                  at: "unknown",
+                  verdict: c.confirmingPayment,
+                  consequence: c.chargedConfirming,
+                  actions: [{ label: plansAction.label, href: plansAction.href, tone: "primary" }],
+                }
+              : phase.kind === "stalled"
+                ? {
+                    at: "unknown",
+                    verdict: c.notHeardBack,
+                    consequence: c.stalledCardStay,
+                    actions: [
+                      { label: plansAction.label, href: plansAction.href, tone: "primary" },
+                      { label: c.tryAgain, onClick: () => setPhase({ kind: "idle" }), tone: "quiet" },
+                    ],
+                  }
+                : phase.kind === "error"
+                  ? {
+                      at: "failed",
+                      verdict: c.paymentNotCompleted,
+                      /* THE SERVER'S STRING NO LONGER REACHES THE READER
+                         UNFILTERED: `payment-copy` rewrites the jargon, drops
+                         anything that is not prose a person wrote, and always
+                         leaves the money sentence standing. */
+                      consequence: failureConsequence(phase.message, c.nothingTaken, c),
+                      actions: [
+                        { label: c.tryAgain, onClick: () => setPhase({ kind: "idle" }), tone: "primary" },
+                        { label: c.getHelp, href: "/help", tone: "quiet" },
+                      ],
+                    }
+                  : null;
+  const stageAmount = { minorUnits: view.totalMinor, currency: view.currency, locale: view.locale };
+  const closeStage = () => {
+    const wasPaid = phase.kind === "paid";
+    setPhase({ kind: "idle" });
+    /* A settled payment refreshes when its receipt closes: refreshing at the
+       moment it settled would re-render the page down its paid branch and
+       take the receipt away as it arrived. */
+    if (wasPaid) router.refresh();
+  };
+
   /* TRACK A: no button the database would refuse. Payment opens on an approved agreement. */
   if (view.agreement?.status !== "approved") return <PaymentGate agreement={view.agreement} />;
 
@@ -585,66 +706,23 @@ export function PayPanel({
              stays open, so coming back resumes rather than double charges. */
           onCancelled={() => setPhase({ kind: "idle" })}
           onFailed={(message) => setPhase({ kind: "error", message })}
+          staged
+          onPhase={setCheckoutAt}
         />
       )}
 
-      {/* ----------------------------------------------- what just happened */}
-      <SuccessSheet
-        open={phase.kind === "paid"}
-        onOpenChange={() => {
-          setPhase({ kind: "idle" });
-          router.refresh();
-        }}
-        variant={paid.variant}
-        object={paid.object}
-        title={paid.title}
-        body={paid.body}
-        amount={{ minorUnits: view.totalMinor, currency: view.currency, locale: view.locale }}
-        details={[
-          { label: s.detail.for, value: view.title },
-          ...(phase.kind === "paid" && phase.reference
-            ? [{ label: s.detail.reference, value: phase.reference, mono: true }]
-            : []),
-        ]}
-        primary={{ label: plansAction.label, href: plansAction.href }}
-        secondary={{ label: c.backToStay, href: view.stayHref }}
-      />
+      {/*
+        ONE CARD FROM THE TAP TO THE ANSWER (PaymentStage, round 5).
 
-      <ResultSheet
-        open={phase.kind === "applying"}
-        onOpenChange={() => setPhase({ kind: "idle" })}
-        state="pending"
-        verdict={c.confirmingPayment}
-        fact={{ ...fact, ...(phase.kind === "applying" && phase.reference ? { reference: phase.reference } : {}) }}
-        locale={view.locale}
-        consequence={c.chargedConfirming}
-        actions={[{ label: plansAction.label, href: plansAction.href, tone: "primary" }]}
-      />
-
-      <ResultSheet
-        open={busy}
-        onOpenChange={() => undefined}
-        state="pending"
-        /* Blocking on purpose and only here. The outcome is genuinely unknown,
-           and a person who dismisses this and taps Pay again is trying to pay
-           twice. Nothing else in this component blocks. */
-        blocking
-        verdict={
-          phase.kind === "saved-card-charging"
-            ? savedCardMoment({ kind: "charging" }, view.totalDisplay).verdict
-            : c.openingPaymentPage
-        }
-        fact={fact}
-        locale={view.locale}
-        consequence={
-          slow
-            ? c.slowNothingMoved
-            : phase.kind === "saved-card-charging"
-              ? savedCardMoment({ kind: "charging" }, view.totalDisplay).consequence
-              : c.nothingChargedYet
-        }
-      />
-
+        This was five sheets: a blocking pending sheet here, the checkout's
+        own pending sheets stacked on top of it while the bank window loaded,
+        a success card, and separate sheets for "applying", "not heard back"
+        and the failure. The stage is one card whose face changes, so the
+        amount a person just paid never leaves the place they first saw it.
+        It is blocking while the outcome is unknown (a person who dismisses a
+        wait and taps Pay again is trying to pay twice) and only then.
+      */}
+      <PaymentStage face={face} amount={stageAmount} origin={origin} onClose={closeStage} />
       {/*
         THE BANK WANTS TO CHECK, AND THIS IS THE ONE STATE THAT MUST NOT READ
         AS A FAILURE.
@@ -672,6 +750,8 @@ export function PayPanel({
                  Secure challenge on this platform used to be served by
                  throwing the person at a hosted page. */
               if (phase.kind === "saved-card-hosted") {
+                setOrigin(null);
+                setCheckoutAt("idle");
                 setPhase({
                   kind: "checkout-open",
                   accessCode: phase.accessCode,
@@ -683,53 +763,6 @@ export function PayPanel({
             tone: "primary",
           },
           { label: c.payAnotherWay, onClick: () => setPhase({ kind: "idle" }), tone: "quiet" },
-        ]}
-      />
-
-      <ResultSheet
-        open={phase.kind === "stalled"}
-        onOpenChange={() => setPhase({ kind: "idle" })}
-        state="pending"
-        verdict={c.notHeardBack}
-        fact={fact}
-        locale={view.locale}
-        consequence={c.stalledCardStay}
-        actions={[
-          { label: plansAction.label, href: plansAction.href, tone: "primary" },
-          { label: c.tryAgain, onClick: () => setPhase({ kind: "idle" }), tone: "quiet" },
-        ]}
-      />
-
-      {/*
-        A FAILED PAYMENT IS ROSE, IT CARRIES THE AMOUNT, AND IT SAYS WHETHER
-        THE CARD WAS CHARGED.
-
-        It was already rose and already `role="alert"`, from an earlier fix,
-        and it was still 13px of text on a plain card with no heading,
-        no amount and no statement about the money. A person who has just tried
-        to pay rent is asking one question and it was not being answered.
-      */}
-      <ResultSheet
-        open={phase.kind === "error"}
-        onOpenChange={() => setPhase({ kind: "idle" })}
-        state="failed"
-        verdict={c.paymentNotCompleted}
-        fact={fact}
-        locale={view.locale}
-        /* THE SERVER'S STRING NO LONGER REACHES THE READER UNFILTERED. Every
-           refusal in the action, and in the session, flag, idempotency and
-           rate-limit helpers it calls, could put any sentence in front of
-           somebody who has just tried to pay rent. `payment-copy` rewrites the
-           two that carry infrastructure jargon, drops anything that is not
-           prose a person wrote, and always leaves the money sentence standing. */
-        consequence={failureConsequence(
-          phase.kind === "error" ? phase.message : null,
-          c.nothingTaken,
-          c,
-        )}
-        actions={[
-          { label: c.tryAgain, onClick: () => setPhase({ kind: "idle" }), tone: "primary" },
-          { label: c.getHelp, href: "/help", tone: "quiet" },
         ]}
       />
 
