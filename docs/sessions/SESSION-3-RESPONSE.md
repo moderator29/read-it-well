@@ -837,10 +837,11 @@ reader should know that the log does not say at a glance:
     angle is fixed in `039053657`.
   - The escrow release moments wait on Session 2 (R-4).
   - Open at the tip, from A8's fifth audit:
-    - The old blue ramp still paints selected segments, the pill segmented control
-      and the switch's on layer, through `--nf-act-fill` (R2 is fixing it).
-    - The recent-searches list is unreachable by keyboard and is not announced
-      (R2).
+    - Closed: the old blue ramp. `dca3215ff` builds `--nf-act-fill` from
+      `--nf-act-blue`, and `3e1e17f35` adds the tests that hold every selected
+      control to the current ramp at 4.5:1 or better.
+    - Closed: the recent-searches list is reachable by Tab and announced as a named
+      list (`7eb24971b`, with a Chromium test that fails on the old component).
     - NITs: the `KNOWN_BOUNDARY` ratios are compared by key only; the refusal
       reflows are not batched; the figure under text zoom.
     - The verifying bar's held middle segment may read as stalled. That is a
