@@ -141,3 +141,31 @@ export const TONE_FILL: Record<ChartTone, string> = {
 
 /** The unlit tick or empty track in both themes. */
 export const TRACK_FILL = "var(--nf-surface-raised)";
+
+/*
+ * ---------------------------------------------------------------------------
+ * THE CHART SYSTEM'S ROLES (B-26, 6 October 2026). The rules and the
+ * validator results behind every value are in `chart-rules.ts`; this is only
+ * where the values live.
+ */
+
+/**
+ * The comparison or de-emphasised series: the previous period, "everything
+ * else". Grey on purpose (the dataviz emphasis form), and always paired with
+ * a pattern and a label, so it is never told apart by colour alone.
+ */
+export const CHART_CONTEXT = "var(--nf-chart-context, var(--nf-content-muted))";
+
+/**
+ * The ordinal ramp for the new primitives: three stops of the one series ink.
+ * Validated in both themes (light end 2.69:1 on paper, 2.17:1 at night); the
+ * five-stop `RAMP_ALPHA` above fails the night light-end floor and is kept
+ * only for the console's ranked lists, which print a figure on every row.
+ */
+export const ORDINAL_ALPHA = [1, 0.78, 0.6] as const;
+
+/** The ordinal stop for a rank, holding at the last rather than inventing a fourth. */
+export function ordinalAlpha(rank: number): number {
+  const i = Math.min(Math.max(0, Math.trunc(rank)), ORDINAL_ALPHA.length - 1);
+  return ORDINAL_ALPHA[i]!;
+}
