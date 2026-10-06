@@ -95,6 +95,7 @@ export function SuccessFlagHost() {
         if (!open) setFlag(null);
       }}
       variant={words.variant}
+      haptic={words.haptic}
       object={words.object}
       title={words.title}
       body={words.body}

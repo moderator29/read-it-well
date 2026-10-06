@@ -123,6 +123,12 @@ type Common = {
   mark?: BrandIconName;
   /** Small print under the actions. A receipt link, a support route. */
   footnote?: ReactNode;
+  /**
+   * What the hand feels instead of the state's own (`FEEL`). For a done
+   * state that is not a payoff: devices signed out is `confirmed`, and it is
+   * a security step, not good news, so it feels as the commit it was.
+   */
+  haptic?: FeedbackKind | null;
 };
 
 export type ResultSheetProps = Common &
@@ -193,13 +199,19 @@ function ResultPlate({ state }: { state: ResultScreenState }) {
  * V-30: WHAT EACH STATE FEELS LIKE. The outcome is felt when it is known,
  * which is when this sheet opens, not when the button was pressed. `expired`
  * is felt as nothing: a window closing is neither news nor a fault.
+ *
+ * PENDING AND REVIEW ARE FELT AS NOTHING (CRAFT_DOCTRINE 6: "nothing in a
+ * passive state ever vibrates"; one error pattern). They were a third, sharp
+ * "warning" buzz for a payment that is still on its way: the hand was told
+ * something had gone wrong while the words said wait. The commit was already
+ * felt when it was accepted, and the outcome is felt when it arrives.
  */
 const FEEL: Record<ResultState, FeedbackKind | null> = {
   sent: "success",
   received: "success",
   confirmed: "success",
-  pending: "warning",
-  review: "warning",
+  pending: null,
+  review: null,
   failed: "error",
   expired: null,
 };
@@ -243,11 +255,12 @@ export function ResultSheet(props: ResultSheetProps) {
 
   /* Felt once per opening, and again only if the state itself changes while
      open (pending becoming sent is a second piece of news). */
+  const override = props.haptic;
   useEffect(() => {
     if (!open) return;
-    const kind = FEEL[state];
+    const kind = override === undefined ? FEEL[state] : override;
     if (kind) feedback(kind);
-  }, [open, state]);
+  }, [open, state, override]);
 
   return (
     <Sheet

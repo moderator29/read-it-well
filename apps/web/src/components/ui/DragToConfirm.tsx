@@ -330,7 +330,10 @@ export function DragToConfirm(props: DragToConfirmProps) {
     if (!live.current) return;
     if (outcome === "confirmed") {
       setState("confirmed");
-      feedback("success");
+      /* Heavy only for a payoff (CRAFT_DOCTRINE 6): money that moved. Any
+         other slide (an admin's rejection) was already felt as the medium
+         beat on release, which is the commit; a second beat says nothing. */
+      if (isMoney) feedback("success");
       return;
     }
     setState("idle");

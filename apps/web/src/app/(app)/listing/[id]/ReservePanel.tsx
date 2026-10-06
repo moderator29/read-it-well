@@ -251,6 +251,7 @@ export function ReservePanel({
             if (!open) setSuccessClosed(true);
           }}
           variant={words.variant}
+          haptic={words.haptic}
           object={words.object}
           title={words.title}
           body={words.body}

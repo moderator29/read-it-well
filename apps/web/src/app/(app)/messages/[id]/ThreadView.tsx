@@ -533,8 +533,9 @@ export function ThreadView({
   }, []);
 
   const markFailed = useCallback((tempId: string) => {
-    /* B14: a message that failed and was kept is felt as a warning. */
-    feedback("warning");
+    /* B14: a message that failed and was kept is a genuine failure, felt
+       as the one error pattern (CRAFT_DOCTRINE 6). */
+    feedback("error");
     setItems((prev) => prev.map((m) => (m.id === tempId ? { ...m, state: "failed" } : m)));
   }, []);
 
@@ -567,8 +568,10 @@ export function ThreadView({
       if (!tempId) return;
       waitingKeys.current.delete(detail.key);
       const sent = detail.data as { id: string; createdAt: string };
-      /* B14: delivered from the outbox, felt as a confirm (on delivery, not on the tap). */
-      feedback("confirm");
+      /* Delivered from the outbox, which happens whenever the network comes
+         back, often with the phone in a pocket or on another screen: a
+         passive state, so it is seen (the bubble takes its time) and never
+         felt (CRAFT_DOCTRINE 6). */
       adoptResult(tempId, sent.id, lagosTimeLabel(sent.createdAt));
     };
     window.addEventListener(OUTBOX_SENT_EVENT, onSent);

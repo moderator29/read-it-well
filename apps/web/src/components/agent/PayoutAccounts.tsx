@@ -101,6 +101,7 @@ export function PayoutAccounts({
           if (!open) setAcknowledged(addState);
         }}
         variant={addedWords.variant}
+        haptic={addedWords.haptic}
         object={addedWords.object}
         title={addedWords.title}
         body={addedWords.body}

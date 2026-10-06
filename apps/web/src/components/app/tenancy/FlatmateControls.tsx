@@ -126,6 +126,7 @@ export function AddFlatmate({
             router.refresh();
           }}
           variant={words.variant}
+          haptic={words.haptic}
           object={words.object}
           title={words.title}
           body={words.body}
@@ -279,6 +280,7 @@ export function SettleShareOnReturn({
             if (!open) close();
           }}
           variant={words.variant}
+          haptic={words.haptic}
           object={words.object}
           title={words.title}
           body={words.body}

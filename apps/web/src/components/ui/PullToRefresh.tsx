@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState, useTransition, type CSSProperties, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useClientCopy } from "@/lib/i18n/client-copy";
-import { feedback } from "@/lib/ui/feedback";
 import { PULL_THRESHOLD_PX, pullDistance } from "@/lib/ui/small-rules";
 
 /**
@@ -89,10 +88,9 @@ export function PullToRefresh({
       event.preventDefault();
       distance = pullDistance(dy);
       const armed = distance >= PULL_THRESHOLD_PX;
-      if (armed !== armedRef.current) {
-        armedRef.current = armed;
-        if (armed) feedback("select");
-      }
+      /* Armed is said by the mark and the words, not the hand: nothing in a
+         scroll vibrates (CRAFT_DOCTRINE 6), and this is a scroll. */
+      if (armed !== armedRef.current) armedRef.current = armed;
       setPull(distance);
     };
     const onEnd = () => {

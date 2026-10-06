@@ -63,6 +63,7 @@ export function TenancyReviewForm({
             if (!open) setSuccessClosed(true);
           }}
           variant={sent.variant}
+          haptic={sent.haptic}
           object={sent.object}
           title={sent.title}
           body={sent.body}

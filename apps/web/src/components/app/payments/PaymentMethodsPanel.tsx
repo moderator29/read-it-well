@@ -538,6 +538,7 @@ export function PaymentMethodsPanel({
         open={accountAdded}
         onOpenChange={setAccountAdded}
         variant={addedWords.variant}
+        haptic={addedWords.haptic}
         object={addedWords.object}
         title={addedWords.title}
         body={addedWords.body}
@@ -548,6 +549,7 @@ export function PaymentMethodsPanel({
         open={cardSaved}
         onOpenChange={setCardSaved}
         variant={cardSavedWords.variant}
+        haptic={cardSavedWords.haptic}
         object={cardSavedWords.object}
         title={cardSavedWords.title}
         body={cardSavedWords.body}

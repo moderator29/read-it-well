@@ -167,7 +167,10 @@ export function PasscodeLock({
         const result = await verify(attempt);
         switch (result.status) {
           case "ok":
-            feedback("success");
+            /* An unlock is a commit accepted, felt as the medium beat. It
+               happens every day: a heavy payoff beat on each one is the
+               product that buzzes at everything (CRAFT_DOCTRINE 6). */
+            feedback("confirm");
             unlock();
             /* The row stays full through the hold and the door. */
             return;
@@ -334,7 +337,7 @@ export function PasscodeLock({
                 label={copy.passkeyUnlock}
                 disabled={busy || leaving || opening}
                 onUnlocked={() => {
-                  feedback("success");
+                  feedback("confirm");
                   unlock();
                 }}
                 onFailed={onPasskeyFailed}
@@ -361,7 +364,7 @@ export function PasscodeLock({
                     label={copy.passkeyUnlock}
                     disabled={busy || leaving || opening}
                     onUnlocked={() => {
-                      feedback("success");
+                      feedback("confirm");
                       unlock();
                     }}
                     onFailed={onPasskeyFailed}

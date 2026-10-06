@@ -109,6 +109,7 @@ export function NotMePanel({
             if (!open) setOutcome(null);
           }}
           state="confirmed"
+          haptic="confirm"
           verdict={outcome.result.holdUntil || outcome.result.holdPlaced ? copy.heldVerdict : copy.signedOutVerdict}
           consequence={heldConsequence(outcome.result).replace("{until}", until).replace("{ended}", endedLine).trim()}
           actions={[

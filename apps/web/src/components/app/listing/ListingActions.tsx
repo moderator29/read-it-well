@@ -233,7 +233,7 @@ export function ListingActions({
         // A catalogue id can never be a row, so the device owns this save.
         if (next) addLocalSave(listingId);
         else removeLocalSave(listingId);
-        if (next) feedback("confirm");
+        if (next) feedback("select");
         /* And the store is told, so every other heart for this listing on the
            page behind this one moves with it rather than waiting for a reload. */
         deviceSavesChanged();
@@ -241,10 +241,10 @@ export function ListingActions({
         return;
       }
       setSaved(result.data.saved);
-      /* B14: a save accepted by the server is a CONFIRM. "success" is kept
-         for money and confirmed viewings, so a heart never feels like a
-         settled payment. */
-      if (result.data.saved) feedback("confirm");
+      /* B14: a save is felt once the server ACCEPTS it, as the toggle it
+         is: the light beat (CRAFT_DOCTRINE 6: light for a toggle). "success"
+         is kept for payoffs, so a heart never feels like a settled payment. */
+      if (result.data.saved) feedback("select");
       say(result.data.saved ? "Saved to your shortlist" : "Removed from saved");
     });
   }

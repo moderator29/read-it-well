@@ -875,6 +875,7 @@ export function InspectionSheet({
           if (!next) setDone(null);
         }}
         variant={doneWords.variant}
+        haptic={doneWords.haptic}
         object={doneWords.object}
         title={doneWords.title}
         body={doneWords.body}

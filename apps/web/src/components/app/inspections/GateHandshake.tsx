@@ -432,7 +432,9 @@ function CheckCode({ pack, copy }: { pack: InspectionPack; copy: Copy }) {
         className="mt-row"
         onClick={() => {
           setVerdict("skipped");
-          feedback("warning");
+          /* The member committed a record: the medium beat, not a second
+             sharp pattern beside the one error (CRAFT_DOCTRINE 6). */
+          feedback("confirm");
           record("skipped");
         }}
         data-testid="gate-no-code"
