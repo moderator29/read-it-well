@@ -120,6 +120,8 @@ state until they land.
 | R-55 | Counters for shares and contact reveals | | Space Analytics | No: named as not counted |
 | R-56 | Funnel totals in one read | `agent_funnel_totals(p_days)` | Overview for agents with more than 40 live listings | No: no total is printed past 40 |
 | R-60 | Earned badges readable by a signed-out visitor | A definer view `(user_id, badge_code, granted_at, earned)` | Profiles | No |
+| R-61 | A failed refund said as failed | `refunds.ts` maps `processorStatus === "failed"` to the "on its way" sentence; a failed refund needs its own line in `lib/money/copy.ts` | The booking money record | No, but it is an honesty gap (auditor A7) |
+| R-40 to R-43 | Agreement and caution dates, a ruling-only sentence, staff read of versions, and version reads in `lib/agreements` | As in M2's report | Agreements and the caution register | No |
 
 ---
 
@@ -420,3 +422,10 @@ never colours the result. Results per push are appended below.
   describe, and stage by hunk when another agent is active in the same file.
 - Do not make a prop required without grepping every caller, previews
   included (4707bdcb5).
+- Do not assume a commit only carries its agent's lines: 03b4b1ce4 (the funnel
+  retirement) also carried W8b's `calendar-model` import in `space-read.ts`,
+  so it and the six commits after it do not build alone until 3ad213d95 adds
+  that module; and 3ad213d95 carried B5's `catalogue.css` import lines in
+  PulseCard and ProfileEditor (auditor A7). The tip builds; bisecting across
+  that stretch does not. Recorded rather than rewritten, because the history is
+  shared.
