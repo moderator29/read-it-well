@@ -5,7 +5,8 @@ import { DetailGlyph } from "./DetailGlyph";
 import type { Listing } from "@/lib/listings/types";
 import type { ListingAccessView } from "@/lib/listings/access-queries";
 import { ICON, TYPE } from "@/components/app/Screen";
-import { countOf, DEFAULT_LOCALE, type Locale } from "@vallo/i18n/core";
+import { countOf, DEFAULT_LOCALE, type Dictionary, type Locale } from "@vallo/i18n/core";
+import { getDictionary } from "@vallo/i18n";
 
 /**
  * Light, water, and getting through the gate.
@@ -68,13 +69,11 @@ const WATER_OBJECT: Record<string, TieredObjectName> = {
   TANKER: "water-tank",
 };
 
-const GRID_LABEL: Record<string, { label: string; detail: string }> = {
-  BAND_A: { label: "Band A", detail: "20 hours a day or more from the grid" },
-  MOSTLY_ON: { label: "Mostly on", detail: "Light most of the day, with gaps" },
-  PATCHY: { label: "Patchy", detail: "On and off through the day" },
-  RARELY: { label: "Rarely on", detail: "A few hours at best" },
-  NONE: { label: "No grid supply", detail: "Nothing from the distribution company" },
-};
+/* The grid, backup and water words live in the dictionary
+   (`experienceDetail.utilities`), with the article reasoning below kept
+   beside them there (Round 3 sweep, C3). */
+type UtilitiesCopy = Dictionary["experienceDetail"]["utilities"];
+type Labelled = Record<string, { label: string; detail: string }>;
 
 /**
  * The backup as it belongs inside a sentence, article and all.
@@ -83,31 +82,16 @@ const GRID_LABEL: Record<string, { label: string; detail: string }> = {
  * day", which is two ANDs doing different jobs in one clause and reads as a
  * mistake. A label list and a sentence list are not the same list.
  */
-const BACKUP_PHRASE: Record<string, string> = {
-  NONE: "no backup",
-  GENERATOR: "a generator",
-  INVERTER: "an inverter",
-  SOLAR: "solar",
-  GENERATOR_INVERTER: "a generator and inverter",
-};
-
-const WATER_LABEL: Record<string, { label: string; detail: string }> = {
-  TREATED_MAINS: { label: "Treated mains", detail: "Running water from the mains" },
-  BOREHOLE: { label: "Borehole", detail: "The property's own borehole" },
-  PUMPED_STORAGE: { label: "Pumped storage", detail: "Tank filled and pumped through" },
-  TANKER: { label: "Tanker delivery", detail: "Water is bought in and stored" },
-  NONE: { label: "No running water", detail: "Water is fetched" },
-};
 
 export function ListingUtilities({
   locale = DEFAULT_LOCALE,
   utilities,
   access,
   bookingConfirmed,
-  copy = { prepaidMeter: "Prepaid meter", prepaidMeterBody: "You buy units rather than settle a shared bill" },
+  copy = getDictionary(DEFAULT_LOCALE).experienceDetail.utilities,
 }: {
-  /** The meter row's words (`t.experienceDetail.utilities`); English by default. */
-  copy?: { prepaidMeter: string; prepaidMeterBody: string };
+  /** The section's words (`t.experienceDetail.utilities`); English by default. */
+  copy?: UtilitiesCopy;
   locale?: Locale;
   utilities: Listing["utilities"];
   /** The real gate details, or null when the caller may not see them. */
@@ -117,9 +101,9 @@ export function ListingUtilities({
 }) {
   if (!utilities) return null;
 
-  const grid = utilities.powerGrid ? GRID_LABEL[utilities.powerGrid] : undefined;
-  const backup = utilities.powerBackup ? BACKUP_PHRASE[utilities.powerBackup] : undefined;
-  const water = utilities.waterSupply ? WATER_LABEL[utilities.waterSupply] : undefined;
+  const grid = utilities.powerGrid ? (copy.grid as Labelled)[utilities.powerGrid] : undefined;
+  const backup = utilities.powerBackup ? (copy.backup as Record<string, string>)[utilities.powerBackup] : undefined;
+  const water = utilities.waterSupply ? (copy.supply as Labelled)[utilities.waterSupply] : undefined;
   const hours = utilities.powerBackupHours;
 
   const powerAnswered = Boolean(grid || backup);
@@ -127,24 +111,25 @@ export function ListingUtilities({
   if (nothingAnswered) return null;
 
   const runs =
-    backup && backup !== "no backup" && typeof hours === "number"
-      ? `${backup}, running ${countOf(hours, "hours", locale)} a day`
+    backup && utilities.powerBackup !== "NONE" && typeof hours === "number"
+      ? copy.runs.replace("{backup}", backup).replace("{hours}", countOf(hours, "hours", locale))
       : backup;
 
   const powerLine = grid
     ? runs
-      ? `${grid.label}, with ${runs}`
+      ? copy.gridWith.replace("{grid}", grid.label).replace("{runs}", runs)
       : grid.label
     : runs
       ? `${runs.charAt(0).toUpperCase()}${runs.slice(1)}`
-      : "Grid supply not stated";
+      : copy.gridNotStated;
 
   return (
     <dl className="divide-y divide-[var(--nf-panel-hair)]">
       <Row
+        notAnswered={copy.notAnswered}
         icon="bolt"
         object={utilities.powerBackup ? BACKUP_OBJECT[utilities.powerBackup] : undefined}
-        term="Light"
+        term={copy.light}
         answered={powerAnswered}
         value={
           powerAnswered ? (
@@ -160,6 +145,7 @@ export function ListingUtilities({
 
       {utilities.prepaidMeter && (
         <Row
+          notAnswered={copy.notAnswered}
           icon="bolt"
           object="prepaid-meter"
           term={copy.prepaidMeter}
@@ -169,9 +155,10 @@ export function ListingUtilities({
       )}
 
       <Row
+        notAnswered={copy.notAnswered}
         icon="droplet"
         object={utilities.waterSupply ? WATER_OBJECT[utilities.waterSupply] : undefined}
-        term="Water"
+        term={copy.water}
         answered={Boolean(water)}
         value={
           water ? (
@@ -193,7 +180,7 @@ export function ListingUtilities({
         <div className="flow-root py-md">
           <dt className={TYPE.label}>
             <BrandIcon name="estate-gate" size={40} className="nf-utility-object float-left mr-sm" />
-            The gate
+            {copy.gate}
           </dt>
           <dd className="mt-2xs min-w-0 overflow-hidden">
               {access ? (
@@ -210,7 +197,7 @@ export function ListingUtilities({
                   )}
                   {access.securityPhone && (
                     <p className={`nf-numeric mt-xs ${TYPE.body}`}>
-                      Security desk:{" "}
+                      {copy.securityDesk}{" "}
                       <a
                         href={`tel:${access.securityPhone.replace(/\s+/g, "")}`}
                         className="font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
@@ -221,7 +208,7 @@ export function ListingUtilities({
                   )}
                   {access.accessCode && (
                     <p className={`nf-numeric mt-2xs ${TYPE.body}`}>
-                      Access code: <span className="font-bold">{access.accessCode}</span>
+                      {copy.accessCode} <span className="font-bold">{access.accessCode}</span>
                     </p>
                   )}
                 </div>
@@ -229,12 +216,10 @@ export function ListingUtilities({
                 <div data-testid="gate-withheld">
                   <p className="flex items-center gap-xs text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
                     <UiIcon name="lock" size={ICON.inline} className="shrink-0 text-[var(--nf-plate-neutral-ink)]" />
-                    Gated, with the details released on confirmation
+                    {copy.gated}
                   </p>
                   <p className={`mt-2xs ${TYPE.body}`}>
-                    {bookingConfirmed
-                      ? "Your booking is confirmed. Open it from your bookings to see the gate details."
-                      : "The estate name, what to tell security, the desk number and any code arrive here the moment your booking is confirmed. They are never shown publicly, which is what stops a listing being used to case a property."}
+                    {bookingConfirmed ? copy.gatedConfirmed : copy.gatedBefore}
                   </p>
                 </div>
               )}
@@ -251,7 +236,9 @@ function Row({
   term,
   answered,
   value,
+  notAnswered,
 }: {
+  notAnswered: string;
   icon: UiIconName;
   /** The real object this row states, drawn only when it was stated. */
   object?: TieredObjectName;
@@ -284,10 +271,7 @@ function Row({
         {answered ? (
           value
         ) : (
-          <span className={TYPE.body}>
-            The agent has not answered this yet. Ask them before you commit,
-            rather than assuming either way.
-          </span>
+          <span className={TYPE.body}>{notAnswered}</span>
         )}
       </dd>
     </div>

@@ -128,7 +128,7 @@ export const BACKED_CLAIMS: readonly BackedClaim[] = [
      queue in front of it. Anything else "instant" (notifications, payouts,
      approvals) has to name its mechanism here first. */
   {
-    phrase: /^instant(?: book)?(?: available| only| against a request)?\.?$|\binstant book only\b/i,
+    phrase: /^instant(?: book)?(?: available| only| against a request)?\.?$|\binstant book only\b|^instant book is available on this listing, so your dates confirm as soon as you reserve\.$/i,
     mechanism: "listings.instant_book (supabase/migrations/20260728152229_listings_core.sql), set by the lister; with it on a guest pays without waiting for the lister to accept",
   },
   { phrase: /\bI answer instantly\b/i, mechanism: "the support assistant answers from its local notes (lib/support/faq.ts) in the same request; anything beyond them goes to the human team, who reply by email" },

@@ -20,7 +20,7 @@ import {
 } from "@/lib/listings/syndication";
 import { siteUrl } from "@/lib/site";
 import { factsOf, sleeps } from "@/lib/listings/filter";
-import type { Listing, ListingKind } from "@/lib/listings/types";
+import type { Listing } from "@/lib/listings/types";
 import {
   PERIOD_SUFFIX,
   FURNISHING_LABEL,
@@ -151,20 +151,9 @@ import "@/app/css/catalogue.css";
  * and 4), and nothing on this page is hardcoded inventory.
  */
 
-const KIND_LABEL: Record<ListingKind, string> = {
-  hotel: "hotel",
-  apartment: "apartment",
-  home: "home",
-  shortlet: "shortlet",
-  villa: "villa",
-  restaurant: "restaurant",
-  experience: "experience",
-  // A rental is described by what it is to the reader, not by our enum name.
-  rental: "home to rent",
-  shop: "shop to rent",
-  office: "office to rent",
-  land: "plot of land",
-};
+/* The kind as the description names it now lives in the dictionary
+   (`experienceDetail.listing.kinds`), article included, so "an apartment"
+   no longer reads "a apartment" (Round 3 sweep, C3). */
 
 /**
  * The market pill: the one line of status.
@@ -191,12 +180,12 @@ function rentPeriodOf(value: PricePeriod | null | undefined): RentPeriod {
  * "Dining". Semantic tones, never generic grey: a status pill in a neutral
  * wash reads as an absence of state rather than as a market.
  */
-const MARKET_PILL: Record<ListingMarket, { icon: UiIconName; label: string; tone: StatusTone }> = {
-  tenancy: { icon: "key", label: "For rent", tone: "brand" },
-  sale: { icon: "key", label: "For sale", tone: "brand" },
-  stay: { icon: "calendar-booking", label: "For stays", tone: "success" },
-  dining: { icon: "utensils", label: "Dining", tone: "info" },
-  experience: { icon: "ticket", label: "Experience", tone: "info" },
+const MARKET_PILL: Record<ListingMarket, { icon: UiIconName; tone: StatusTone }> = {
+  tenancy: { icon: "key", tone: "brand" },
+  sale: { icon: "key", tone: "brand" },
+  stay: { icon: "calendar-booking", tone: "success" },
+  dining: { icon: "utensils", tone: "info" },
+  experience: { icon: "ticket", tone: "info" },
 };
 
 /** "Lagos State" reads naturally; the FCT does not take the suffix. */
@@ -457,8 +446,9 @@ export default async function ListingDetailPage({
       ? `${listing.area}, ${listing.city}, ${stateLabel(listing.state)}`
       : `${listing.city}, ${stateLabel(listing.state)}`;
 
-  const kind = KIND_LABEL[listing.kind];
-  const market = MARKET_PILL[listingMarket];
+  const L = sx.listing;
+  const kindPhrase = L.kinds[listing.kind];
+  const market = { ...MARKET_PILL[listingMarket], label: L.market[listingMarket] };
 
   /*
    * What the price buys, from the one place that owns that mapping.
@@ -477,18 +467,13 @@ export default async function ListingDetailPage({
         ? PERIOD_SUFFIX.year
         : PERIOD_SUFFIX.night;
 
-  const amenityNames: Record<string, string> = {
-    pool: "a swimming pool",
-    wifi: "Wi-Fi",
-    kitchen: "a fitted kitchen",
-    parking: "parking on site",
-  };
+  const amenityNames: Record<string, string> = L.amenities;
   const amenityPhrases = listing.amenities
     .map((a) => amenityNames[a])
     .filter((a): a is string => Boolean(a));
   const amenitySentence =
     amenityPhrases.length > 0
-      ? ` Amenities include ${new Intl.ListFormat(intlTag.en, { type: "conjunction" }).format(amenityPhrases)}.`
+      ? ` ${L.amenitiesInclude.replace("{list}", new Intl.ListFormat(intlTag[locale], { type: "conjunction" }).format(amenityPhrases))}`
       : "";
 
   /*
@@ -496,14 +481,14 @@ export default async function ListingDetailPage({
    * derived from a field that exists, so nothing here can misdescribe the
    * property, and the paragraphs after the first are what Read more reveals.
    */
-  const roomPhrase =
-    listing.bedrooms > 0
-      ? `a ${listing.bedrooms} bedroom, ${listing.bathrooms} bathroom ${kind}`
-      : `a ${kind}`;
+  const firstSentence = (listing.bedrooms > 0 ? (listing.bathrooms > 0 ? L.aboutRooms : L.aboutBeds) : L.aboutKind)
+    .replace("{title}", listing.title)
+    .replace("{kind}", kindPhrase)
+    .replace("{bedrooms}", countOf(listing.bedrooms, "bedrooms", locale))
+    .replace("{bathrooms}", countOf(listing.bathrooms, "bathrooms", locale))
+    .replace("{where}", where);
 
-  const aboutParagraphs: string[] = [
-    `${listing.title} is ${roomPhrase} in ${where}.${amenitySentence}`,
-  ];
+  const aboutParagraphs: string[] = [`${firstSentence}${amenitySentence}`];
 
   if (isSale) {
     aboutParagraphs.push(
@@ -515,34 +500,30 @@ export default async function ListingDetailPage({
     );
     aboutParagraphs.push(
       `The rent is quoted for a full year and agreed directly with the agent.${
-        listing.verified
-          ? " A person at Vallo checked the ID of the agent behind this listing."
-          : ""
+        listing.verified ? ` ${L.agentChecked}` : ""
       }`,
     );
   } else {
     aboutParagraphs.push(
       `${
-        listing.instantBook
-          ? "Instant Book is available on this listing, so your dates confirm as soon as you reserve."
-          : "The agent confirms each booking request personally, so allow a little time for a response."
+        listing.instantBook ? L.instantBookOn : L.instantBookOff
       } Reserve online, then arrange an inspection with the agent from your Inbox. Pay only after you have inspected the property.`,
     );
     const closing: string[] = [];
     const capacity = capacityOf(listing);
     if (capacity !== null) {
-      closing.push(`It sleeps up to ${countOf(capacity, "guests", locale)}.`);
+      closing.push(L.sleeps.replace("{guests}", countOf(capacity, "guests", locale)));
     }
     if (listing.reviewCount > 0) {
       closing.push(
-        `Guests have rated it ${formatRating(listing.rating, locale)} out of 5 across ${formatNumber(
-          listing.reviewCount,
-          locale,
-        )} ${t.common.reviews}.`,
+        L.rated
+          .replace("{rating}", formatRating(listing.rating, locale))
+          .replace("{count}", formatNumber(listing.reviewCount, locale))
+          .replace("{reviews}", t.common.reviews),
       );
     }
     if (listing.verified) {
-      closing.push("A person at Vallo checked the ID of the agent behind this listing.");
+      closing.push(L.agentChecked);
     }
     if (closing.length > 0) aboutParagraphs.push(closing.join(" "));
   }
@@ -601,7 +582,7 @@ export default async function ListingDetailPage({
       ? { label: t.catalogue.detail.checkAvailability, href: "#reserve" }
       : isRental
         ? { label: t.catalogue.detail.bookInspection, href: "#reserve" }
-        : { label: "Message agent", href: messageHref };
+        : { label: L.messageAgent, href: messageHref };
 
   const stickySecondary: StickyAction | null = isExample
     ? /*
@@ -619,7 +600,7 @@ export default async function ListingDetailPage({
       ? { label: t.catalogue.detail.calculateBreakdown, href: `/rent/move-in/${listing.id}` }
       : null
     : isBookable
-      ? { label: "Message agent", href: messageHref }
+      ? { label: L.messageAgent, href: messageHref }
       : isRental
         ? { label: t.catalogue.detail.calculateBreakdown, href: `/rent/move-in/${listing.id}` }
         : null;
@@ -722,50 +703,50 @@ export default async function ListingDetailPage({
   const facts: Fact[] = [];
   if (listing.sizeSqm !== undefined) {
     facts.push({
-      label: "Floor area",
+      label: L.facts.floorArea,
       value: `${formatNumber(listing.sizeSqm, locale)} m²`,
     });
   }
   if (listing.furnished) {
-    facts.push({ label: "Furnishing", value: FURNISHING_LABEL[listing.furnished] });
+    facts.push({ label: L.facts.furnishing, value: FURNISHING_LABEL[listing.furnished] });
   }
   if (listing.condition) {
-    facts.push({ label: "Condition", value: CONDITION_LABEL[listing.condition] });
+    facts.push({ label: L.facts.condition, value: CONDITION_LABEL[listing.condition] });
   }
   if (listing.yearBuilt !== undefined) {
-    facts.push({ label: "Year built", value: String(listing.yearBuilt) });
+    facts.push({ label: L.facts.yearBuilt, value: String(listing.yearBuilt) });
   }
   if (listing.toilets !== undefined) {
-    facts.push({ label: "Toilets", value: formatNumber(listing.toilets, locale) });
+    facts.push({ label: L.facts.toilets, value: formatNumber(listing.toilets, locale) });
   }
   if (listing.parkingSpaces !== undefined) {
     facts.push({
-      label: "Parking",
+      label: L.facts.parking,
       value:
         listing.parkingSpaces === 0
-          ? "None"
+          ? L.facts.parkingNone
           : countOf(listing.parkingSpaces, "spaces", locale),
     });
   }
   if (listing.floor !== undefined) {
     facts.push({
-      label: "Floor",
+      label: L.facts.floor,
       value:
         listing.floor === 0
-          ? "Ground floor"
-          : `Floor ${formatNumber(listing.floor, locale)}`,
+          ? L.facts.groundFloor
+          : L.facts.floorN.replace("{n}", formatNumber(listing.floor, locale)),
       note:
         listing.totalFloors !== undefined
-          ? `of ${formatNumber(listing.totalFloors, locale)}`
+          ? L.facts.ofN.replace("{n}", formatNumber(listing.totalFloors, locale))
           : undefined,
     });
   }
   if (listing.availableFrom) {
-    facts.push({ label: "Available from", value: dateLabel(listing.availableFrom, locale) });
+    facts.push({ label: L.facts.availableFrom, value: dateLabel(listing.availableFrom, locale) });
   }
   if (listing.minimumTenancyMonths !== undefined) {
     facts.push({
-      label: "Minimum tenancy",
+      label: L.facts.minimumTenancy,
       value: countOf(listing.minimumTenancyMonths, "months", locale),
     });
   }
@@ -785,9 +766,9 @@ export default async function ListingDetailPage({
      they are dated rows in "Why trust this space?" now, and what is left in
      this run is the listing's terms, which are not checks of anything. */
   if (listing.instantBook && isBookable) {
-    marks.push({ icon: "sparkle", label: "Instant Book" });
+    marks.push({ icon: "sparkle", label: L.instantBook });
   }
-  if (listing.negotiable) marks.push({ icon: "chat-bubble", label: "Price negotiable" });
+  if (listing.negotiable) marks.push({ icon: "chat-bubble", label: L.negotiable });
 
   const proof = proofLines({ ...proofFactsOf(listing), credentials });
 
@@ -1190,7 +1171,7 @@ export default async function ListingDetailPage({
                 )}
 
                 {isSale && (
-                  <Section title="What you would be buying" divided>
+                  <Section title={L.buyingTitle} divided>
                     <ListingTenure listing={listing} />
                   </Section>
                 )}
@@ -1214,8 +1195,8 @@ export default async function ListingDetailPage({
                 {(listing.utilities || neighbours.state !== "unavailable" || flooding !== undefined) && (
                   <Reveal>
                     <Section
-                      title="Light, water and getting in"
-                      description="The three things worth knowing before you commit: what the agent says, and what residents report where enough have answered."
+                      title={L.utilitiesTitle}
+                      description={L.utilitiesBody}
                       divided
                     >
                       {listing.utilities && (
@@ -1294,7 +1275,7 @@ export default async function ListingDetailPage({
                 {/* -------------------------------------- 8. THE DETAILS */}
                 {facts.length > 0 && (
                   <Reveal>
-                    <Section id="details" title="The details" divided className="scroll-mt-16">
+                    <Section id="details" title={L.detailsTitle} divided className="scroll-mt-16">
                       <FactGrid facts={facts} />
                     </Section>
                   </Reveal>
@@ -1345,7 +1326,7 @@ export default async function ListingDetailPage({
                 */}
                 {(listing.videos?.length ?? 0) > 0 && (
                   <Reveal>
-                    <Section id="walkthrough" title="Walkthrough" divided className="scroll-mt-16">
+                    <Section id="walkthrough" title={L.walkthroughTitle} divided className="scroll-mt-16">
                       <ListingWalkthrough videos={listing.videos ?? []} title={listing.title} />
                     </Section>
                   </Reveal>
@@ -1463,8 +1444,8 @@ export default async function ListingDetailPage({
                   <div className="divide-y divide-[var(--nf-panel-hair)]">
                     {isBookable && (
                       <Disclosure
-                        label="Cancellation policy"
-                        hint="What you get back, and when"
+                        label={L.cancellationTitle}
+                        hint={L.cancellationHint}
                         data-testid="cancellation-disclosure"
                       >
                         <CancellationTimeline locale={locale} headingLevel="h3" />
