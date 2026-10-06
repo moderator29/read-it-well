@@ -149,7 +149,15 @@
   .nf-auth-ground {
     object-fit: cover;
     transform-origin: 50% 40%;
-    animation: nf-auth-ground-in var(--nf-duration-cinematic) var(--nf-ease-standard) both;
+    /* THE ENTRANCE FITS 620ms (C6, the route sweep; north star 12, point 10).
+       Measured before: the picture settled over 900ms (cinematic) and the
+       island's last piece started at 425ms for 520ms, so a screen was still
+       arriving at 945ms. Now the picture settles over the deliberate rung
+       (620ms), every piece rises over the slow rung (380ms), and the stagger
+       starts sooner, steps 30ms and stops stepping after the fifth piece, so
+       the last one lands by 620ms. Order and travel are unchanged; reduced
+       motion and Calm are unchanged (the rules at the foot of the file). */
+    animation: nf-auth-ground-in var(--nf-duration-deliberate) var(--nf-ease-standard) both;
   }
   /* The scrim: navy over the picture so white type reads on any part of it, a
      little lighter in the middle where the picture is allowed to be seen and
@@ -221,7 +229,7 @@
     text-wrap: balance;
     color: var(--nf-slate-top-ink);
     transition: opacity var(--nf-duration-fast) var(--nf-ease-standard);
-    animation: nf-slate-rise var(--nf-duration-entrance) var(--nf-ease-entrance) 120ms both;
+    animation: nf-slate-rise var(--nf-duration-slow) var(--nf-ease-entrance) 120ms both;
   }
 
   /* The way back, as a quiet round chip on the bowl (44px, the platform's
@@ -281,7 +289,7 @@
     width: 100%;
     height: 100%;
     filter: drop-shadow(0 10px 14px color-mix(in oklab, var(--nf-surface-artwork) 55%, transparent));
-    animation: nf-auth-focal-in var(--nf-duration-entrance) var(--nf-ease-spring) 180ms both;
+    animation: nf-auth-focal-in var(--nf-duration-slow) var(--nf-ease-spring) 180ms both;
   }
   .nf-auth-focal__object > img {
     display: block;
@@ -294,7 +302,7 @@
        the island's top padding, so the title never sits under it. */
     margin-top: calc(var(--nf-focal-half) * 0.35);
     padding: calc(var(--nf-focal-half) + var(--nf-space-xs)) var(--nf-space-md) var(--nf-space-lg);
-    animation: nf-auth-island-in var(--nf-duration-entrance) var(--nf-ease-entrance) 80ms both;
+    animation: nf-auth-island-in var(--nf-duration-slow) var(--nf-ease-entrance) 80ms both;
   }
   /* The title and the line under it sit on the object's axis. */
   .nf-auth__screen > :is(.nf-auth__title, .nf-auth__sub),
@@ -1284,15 +1292,17 @@
       transform: none;
     }
   }
+  /* 60ms, 120ms nested, 30ms a step, held after the fifth: the last piece
+     starts by 240ms and lands by 620ms (see .nf-auth-ground). */
   .nf-slate-stagger {
-    --nf-slate-base: 140ms;
+    --nf-slate-base: 60ms;
   }
   .nf-slate-stagger .nf-slate-stagger {
-    --nf-slate-base: 260ms;
+    --nf-slate-base: 120ms;
   }
   .nf-slate-stagger > :not(.nf-slate-stagger, input[type="hidden"], h2.sr-only) {
-    animation: nf-slate-rise var(--nf-duration-entrance) var(--nf-ease-entrance) both;
-    animation-delay: calc(var(--nf-slate-base) + var(--nf-slate-i, 0) * 55ms);
+    animation: nf-slate-rise var(--nf-duration-slow) var(--nf-ease-entrance) both;
+    animation-delay: calc(var(--nf-slate-base) + min(var(--nf-slate-i, 0), 4) * 30ms);
   }
   .nf-slate-stagger > :nth-child(2) {
     --nf-slate-i: 1;
