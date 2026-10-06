@@ -1,32 +1,33 @@
 import Link from "next/link";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
-import { AuthCurveBlock } from "@/components/auth/slate";
+import { AuthCap } from "@/components/auth/slate";
 import { AuthBackBar } from "./AuthBackBar";
 import { AuthFocal } from "./AuthFocal";
+import { AuthGround } from "./AuthGround";
 import { AuthHeroLine } from "./AuthHeroLine";
 import { KeepPillInView } from "./KeepPillInView";
 import { AuthMain } from "./AuthMain";
 import { ForgetOnSignOut } from "@/components/app/offline/ForgetOnSignOut";
 
 /**
- * Auth shell: one full-height screen, to the Slate references of 29
- * September (`docs/design/references/2026-09-29`, 12 and 14).
+ * Auth shell: one full-height screen, one Island (W11, 6 October 2026).
  *
- * Top to bottom: the CURVED TOP BLOCK, full bleed at every width (the way
- * back in its toolbar; language lives in Settings only, the founder's rule
- * of 29 September, the wordmark in spaced
- * capitals, one line under it chosen by the screen), then the screen's own
- * content in one centred column on the page colour, and the small print at
- * the foot. Every auth screen renders inside the same shell, so sign in, sign
- * up, the code, the reset and the recovery read as the same place.
+ * Top to bottom: the BOWL, full bleed at every width (the way back in its
+ * toolbar, the vector wordmark centred, one line under it chosen by the
+ * screen, all over a photograph of a place or the brand's own blue, under a
+ * navy scrim: `AuthCap`, `AuthGround`); the OBJECT sitting across the bowl's
+ * edge (`AuthFocal`); the screen's own content in ONE ISLAND (`.nf-island`,
+ * navy glass at night, white with the blue shadow on Paper); and the small
+ * print at the foot. Every auth screen renders inside the same shell, so
+ * sign in, sign up, the code, the reset and the recovery read as the same
+ * place, as they have since 29 September (D28: the bowl, the object and the
+ * order are the ones a member already knows; the material is what changed).
  *
- * THE 3D GLASS DOOR (the founder, 30 September, after the passcode
- * reference): a bright blue bowl in both themes with the Vallo lockup, one
- * object in a glowing ring across its curve (`AuthFocal`), glass fields and
- * a glossy blue pill; the page is warm paper in light and night in dark,
- * except the sign-up flow, which is night in both (`AuthMain`). The block and its pieces are
- * `components/auth/slate.tsx`; the whole surface is `app/css/auth.css`.
+ * The island is the only container on the screen, which is the north star's
+ * rule that an Island is one per view; the fields inside it are plates, not
+ * further cards. The pieces are `components/auth/slate.tsx`; the whole
+ * surface is `app/css/auth.css`.
  */
 export default async function AuthLayout({ children }: { children: React.ReactNode }) {
   const locale = await getLocale();
@@ -37,11 +38,10 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
       {/* V-35, V-77: a phone at the way in keeps nobody's gate code or shortlist. */}
       <ForgetOnSignOut />
       <KeepPillInView />
-      <AuthCurveBlock
+      <AuthCap
         brandLabel={t.a11y.logoHome}
-        wordmark={t.auth.wordmark}
         start={<AuthBackBar />}
-        focal={<AuthFocal />}
+        ground={<AuthGround />}
         line={
           <AuthHeroLine
             lines={{
@@ -54,7 +54,14 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
         }
       />
 
-      <div className="nf-auth__body">{children}</div>
+      <div className="nf-auth__body">
+        <div className="nf-auth__stage">
+          <div className="nf-auth__focal" aria-hidden="true">
+            <AuthFocal />
+          </div>
+          <section className="nf-island nf-auth__island">{children}</section>
+        </div>
+      </div>
 
       {/*
         The small print, at the foot of every auth screen. It has to be on the
