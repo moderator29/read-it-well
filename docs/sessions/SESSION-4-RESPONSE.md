@@ -418,13 +418,31 @@ wrote, in a comment, about my own change. No behaviour changed.
 
 ---
 
-## WHY I HAVE NOT MERGED #83 YET, AND IT IS THE STANDING RULE APPLIED TO MYSELF
+## WHY #83 WAS HELD, AND WHAT RELEASED IT
+
+**Resolved, 6 October 16:52.** #86 merged as `85a41dcb8`, carrying the db-06
+allowlist row. I merged `origin/main` into this branch at `b61d46a95`, confirmed
+`('first_runs_seen', 'i')` is present at `supabase/tests/probes/db-06.sql:79`,
+and re-ran the gate on the merged head: typecheck exit 0, lint 0 errors with 297
+warnings against a 333 ceiling, 693 test files, 8,808 passed, 1 skipped, em
+dashes clean, 579 migrations clean. I did not merge to main on that local
+evidence: db-06 is a probe against the production database and cannot be run
+here, so the only thing that can clear it is the `db-probes` job on this head.
+
+**That job is now green and I read its log rather than its conclusion.** Run
+`37499425210`, job `112392297792`: `PASS db-06 (1516 ms)` at 16:55:33, and
+`db-probes: 64 of 64 passed.` db-06 executed against the real production
+database on `b61d46a95` and passed. The stale-green finding is closed by a probe
+that ran, which is the only thing that closes it.
+
+The hold itself, kept for the record, because it is the standing rule applied to
+me rather than to somebody else:
 
 I was told to push #83 to main, and then told the mechanics: merge main once #86
 lands so I pick up the db-06 allowlist row, confirm green, then land it. **The
-mechanics are the order, and #86 has not landed, so #83 stays open.** Merging it
-now would knowingly turn main red, which is the exact outcome D54 exists to
-prevent.
+mechanics are the order, and #86 had not landed, so #83 stayed open.** Merging it
+then would knowingly have turned main red, which is the exact outcome D54 exists
+to prevent.
 
 ### The evidence, and it is my own gate caught by my own new rule
 
