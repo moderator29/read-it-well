@@ -106,6 +106,20 @@ when they land, not before.
   statement that accrues a reward; at 100% new qualification pauses, never refuses,
   and nothing already qualified is touched. The 75% alert is staff-side only and
   never appears in the member read. Pending means qualified and in the review window.
+- **R4-6, promotion measurement (P2).** (1) A source dimension on
+  `listing_daily_stats`: the same counters keyed by where an impression was served,
+  organic by default, in the same change as the promotion tables; `bySource` in
+  `lib/promotion/measurement.ts` is ready for it. (2) A thirty-day lister read of
+  impressions and views: the table has no client grant and `listing_funnel` covers
+  seven days, so a `p_days` argument or a lister-scoped per-day function. (3) Lister
+  counts of saves, of share doors to their listing, and of transactions on their own
+  listing: none is readable by the lister today, and the app does not route around
+  that with the service role. (4) Regenerated types: `enquiry_stages`, `share_links`,
+  `listing_daily_stats`, `listing_funnel` and `inspection_requests.completed_at` are
+  missing.
+- **R4-7, rewards copy (R2).** The campaign's review window in days on
+  `RewardsPolicy`, so Pending can say roughly how long; and `REWARDS_QUALIFY` must be
+  reworded to the launch campaign's qualification rule once campaigns define it.
 - **R4-4, receipt codes.** A probe that `create_receipt_code` returns `not_paid` and
   `verify_receipt` returns `not_found` for part-paid and void tenancies.
 - **R4-5, from the audit fixes.** `private.caution_escalate` still accepts an
@@ -127,12 +141,20 @@ when they land, not before.
   with organic listings. Nine of the ten metrics already exist in production, so the
   results screen reads them now and shows totals only; the promoted-versus-organic split
   waits on Session 2's source dimension. Screen 3 shows the lister's own last thirty
-  days as the baseline. In progress.
+  days as the baseline. Built in `0536f79ec`.
 - **The invite hub: rewrite it now for the live state**, behind the gate that already
-  decides the rewards surface. In progress.
+  decides the rewards surface. Built in `ccf67ad3a`; a failed read now says nothing
+  about a reward either way, where it used to say "no reward".
 - **Terms and the disclaimer: left untouched, by instruction.** A referral reward is
   Vallo owing a member money, a different object from Vallo holding a member's money,
   and the Terms need to say so in a new version. The founder takes it to counsel.
+- **Promotion measurement, for the founder.** Unique viewers cannot be counted over
+  thirty days by design: `listing_view_marks` keeps one Lagos day under a salt
+  deleted every hour, so it shows No data with that reason. The stored impressions
+  and opens are already unique viewers per day, not raw counts. Four of the ten
+  metrics are readable by a lister today (inquiries, contacts, viewings, bookings);
+  the rest wait on R4-6. Naira a day is floored in kobo and rounded half up to the
+  naira, which gives exactly 357, 536, 667 and 1,667.
 - Still open: the account deletion notices name the "wallets" table as a retained
   record; confirm that wording. Not checked: a tenancy paid in one payment may still
   show "Your share" and "Add a flatmate" on the tenancy file.
