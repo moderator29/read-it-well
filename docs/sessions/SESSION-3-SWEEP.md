@@ -6,7 +6,7 @@ component with the fixture named in its row. **P** pass, **X** failed and fixed 
 sweep, **F** failed and still open, **·** does not apply. The denominator is 213 real routes
 (every `page.tsx` under `apps/web/src/app`, excluding `(dev)` and `api`).
 
-**Routes audited: 78 of 213.**
+**Routes audited: 80 of 213.**
 
 | Family | Audited |
 |---|---|
@@ -23,6 +23,7 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | price | 1 |
 | profile | 4 |
 | rent | 3 |
+| settings | 2 |
 | stories | 2 |
 | support | 3 |
 | tenancy | 1 |
@@ -98,6 +99,8 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | `/rent/move-in/[listingId]` | C3 | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | P | P | X | P | P | P |
 | `/rent/pay/[inspectionId]` | C3 | P | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | X | · | P | P | P | P | P | P |
 | `/rent/review/[paymentId]` | C3 | P | · | P | P | P | P | · | · | · | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
+| `/settings/accessibility` | C3 | P | · | P | P | P | X | · | · | P | P | P | X | P | · | · | P | · | · | P | X | P | P | P | P |
+| `/settings/region` | C3 | P | · | P | P | P | P | · | · | P | P | P | X | P | · | · | P | · | · | P | P | P | P | P | P |
 | `/stories/[id]` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | X | X | X | P | P | P |
 | `/stories/new` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | P | P | P | P | X | P | P |
 | `/support/messages` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | X | P | P |
@@ -328,6 +331,16 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 **`/rent/pay/[inspectionId]`** (the real page with getRentPayView mocked to session-b/sweep-orphans RENT_VIEW, no saved card, crypto off)
 
 - 17 (fixed): checkout.onPlatformRent said Money moves inside Vallo directly under NO_CUSTODY_SENTENCE (D48, D50). It is C2's copy, so it went as patch checkout-no-custody-onplatform.patch; the lead applied it.
+
+**`/settings/accessibility`** (the real page and its new loading.tsx inside the real settings layout (SettingsAreaNav); it reads only the dictionary and the device's settings store)
+
+- 6 (fixed): Weights were 400/600/650: the motion level names set 650, outside the system's 400, 600 and 700. They are 600 now (motion-pref.css).
+- 12 (fixed): No loading.tsx: the route fell back to the generic (app) skeleton. It has its own now: header with line, lede, Seeing (three rows), Motion (three rows and its note), under the settings nav the layout keeps drawn.
+- 20 (fixed): axe nested-interactive (1 at dark.390 and light.390): the replay button sat inside the preview's role=img. The image role is on the picture alone now, the button beside it: axe 0.
+
+**`/settings/region`** (the real page and its new loading.tsx inside the real settings layout)
+
+- 12 (fixed): No loading.tsx; it has its own now: header with line, Language (one row), Money display (three rows), under the settings nav.
 
 **`/stories/[id]`** (the real page with f4 STORY, STORY_FACES and STORY_COMMENTS (the f4 story deck), measured inside the shell it is drawn in)
 
