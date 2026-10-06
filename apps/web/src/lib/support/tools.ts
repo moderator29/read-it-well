@@ -167,7 +167,7 @@ export const SUPPORT_TOOLS = [
   {
     name: "my_agreements",
     description:
-      "Read the signed-in caller's own agreements: each rental or stay agreement they are a party to, its status (waiting for the parties, with Vallo for review, approved, sent back with a reason, paid), the total and their side. Use it for questions about paying for a rental, why payment is not open yet, an approval, or a Guarantee claim. Vallo keeps no wallet or balance, so there is no balance to read. Returns unavailable when nobody is signed in.",
+      "Read the signed-in caller's own agreements: each rental or stay agreement they are a party to, its status (waiting for the parties, with Vallo for review, approved, sent back with a reason, paid), the total and their side. Use it for questions about paying for a rental, why payment is not open yet, an approval, or a Guarantee claim. No Vallo balance holds a payment, so there is no balance to read. Returns unavailable when nobody is signed in.",
     input_schema: {
       type: "object",
       properties: {},

@@ -8,13 +8,17 @@ import { VERIFICATION_ORDER } from "@/lib/trust/verification";
 import { MAX_MOVE_KOBO, MIN_MOVE_KOBO } from "@/lib/money/amount";
 import {
   DIRECT_RAIL_STANDING,
+  HELD_MONEY_NOT_US,
   NO_CUSTODY_SENTENCE,
   NO_INSPECTION_FEE,
+  NO_PAYMENT_BALANCE,
   OFF_PLATFORM_SENTENCE,
   PAYMENT_GATE_SENTENCE,
   PAYOUT_ANSWER,
   PRIVATE_FEE_NOTE,
+  REFUND_NO_BALANCE,
   REFUND_ROUTE,
+  REWARDS_BALANCE_SEPARATE,
   WHO_PAYS_SENTENCE,
 } from "@/lib/money/copy";
 import { MAX_BLOCK_NIGHTS } from "@/lib/agent/calendar-model";
@@ -1257,10 +1261,11 @@ const WRITTEN: DocChapter[] = [
         body: (
           <>
             <p>{NO_CUSTODY_SENTENCE}</p>
+            {/* "Vallo keeps no balance in your name ... nothing to withdraw"
+                was untrue beside the Rewards Balance (D51); the narrower true
+                thing is lib/money/copy.ts's (A9). */}
             <p>
-              Vallo keeps no balance in your name and holds no payment. There is
-              nothing to top up and nothing to withdraw. If anybody tells you that Vallo is
-              holding money for you, or asks you to send money to be held, it is not us.
+              {NO_PAYMENT_BALANCE} {REWARDS_BALANCE_SEPARATE} {HELD_MONEY_NOT_US}
             </p>
           </>
         ),
@@ -1353,8 +1358,7 @@ const WRITTEN: DocChapter[] = [
         heading: "Where a refund goes",
         body: (
           <p>
-            {REFUND_ROUTE} Because Vallo keeps no balance, a refund can only go back the way
-            the money came. The booking shows its refund and where it stands.
+            {REFUND_ROUTE} {REFUND_NO_BALANCE} The booking shows its refund and where it stands.
           </p>
         ),
       },

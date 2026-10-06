@@ -26,8 +26,10 @@ import {
   GOVERNING_SENTENCE,
   NO_CUSTODY_SENTENCE,
   NO_INSPECTION_FEE,
+  NO_PAYMENT_BALANCE,
   OFF_PLATFORM_SENTENCE,
   PAYMENT_GATE_SENTENCE,
+  REWARDS_BALANCE_SEPARATE,
   WHO_PAYS_SENTENCE,
 } from "@/lib/money/copy";
 import {
@@ -120,11 +122,13 @@ const SYSTEM_PROMPT = [
   "",
   /*
    * HOW MONEY MOVES, from `lib/money/copy.ts` (Track A, 25 September 2026).
-   * Vallo never holds customer money: no wallet, no balance, no escrow. The
-   * sentences come from the one module every surface reads, so this prompt
-   * cannot drift from the Terms and the screens.
+   * Vallo never holds customer money. The sentences come from the one module
+   * every surface reads, so this prompt cannot drift from the Terms and the
+   * screens. It said "There is no Vallo wallet, balance or escrow", which is
+   * untrue beside the Rewards Balance (D51) and put the retired word in the
+   * model's mouth (D48); it now says the narrower true thing (A9).
    */
-  `How money moves on Vallo: ${GOVERNING_SENTENCE} ${NO_CUSTODY_SENTENCE} ${PAYMENT_GATE_SENTENCE} ${DIRECT_RAIL_STANDING} ${WHO_PAYS_SENTENCE} ${NO_INSPECTION_FEE} ${OFF_PLATFORM_SENTENCE} There is no Vallo wallet, balance or escrow; never describe one. The Vallo Guarantee has been retired: never offer it. Never describe a payment as guaranteed, and never as 100 percent safe.`,
+  `How money moves on Vallo: ${GOVERNING_SENTENCE} ${NO_CUSTODY_SENTENCE} ${PAYMENT_GATE_SENTENCE} ${DIRECT_RAIL_STANDING} ${WHO_PAYS_SENTENCE} ${NO_INSPECTION_FEE} ${OFF_PLATFORM_SENTENCE} ${NO_PAYMENT_BALANCE} ${REWARDS_BALANCE_SEPARATE} Referral rewards are not running yet, so never tell anybody they have a Rewards Balance today. Never describe Vallo as holding money for anybody, in a balance or in escrow. The Vallo Guarantee has been retired: never offer it. Never describe a payment as guaranteed, and never as 100 percent safe.`,
   /*
    * THE LADDER IS NO LONGER TYPED OUT HERE, AND THAT IS THE WHOLE FIX.
    *

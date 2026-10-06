@@ -125,7 +125,10 @@ describe("matching a question", () => {
 
 describe("faqAnswerById", () => {
   it("returns the canonical answer, and null for an id that is gone", () => {
-    expect(faqAnswerById("wallet")).toContain("no wallet");
+    expect(faqAnswerById("wallet")).toContain("No Vallo balance holds your rent");
+    /* A9: "nothing to withdraw" was untrue beside the Rewards Balance, and the
+       answer never names a wallet, even to deny one. */
+    expect(faqAnswerById("wallet")).not.toMatch(/\bwallet\b|nothing to withdraw/i);
     expect(faqAnswerById("no-such-entry")).toBeNull();
   });
 });

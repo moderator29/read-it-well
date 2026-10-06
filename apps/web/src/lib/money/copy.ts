@@ -731,6 +731,27 @@ export const HOST_STATEMENT_EMPTY_BODY =
 export const REFUND_NO_BALANCE =
   "There is no Vallo balance for a refund to sit in, so it always goes back the way the money came.";
 
+/*
+ * WHAT NO BALANCE HOLDS (A9, 6 October). /docs, the FAQ and both assistant
+ * prompts said "Vallo keeps no balance in your name ... nothing to top up and
+ * nothing to withdraw" and "There is no Vallo wallet, balance or escrow".
+ * Beside the Rewards Balance (D51, a debt Vallo owes and pays out) the broad
+ * version is untrue. This is the narrower thing that is: no balance holds a
+ * payment. The Rewards Balance is named as separate, and never a wallet.
+ */
+
+/** /docs chapter 6 and the FAQ: no Vallo balance holds a payment. */
+export const NO_PAYMENT_BALANCE =
+  "No Vallo balance holds your rent or any other payment, so there is nothing to top up before you pay, and no payment of yours waits with Vallo to be withdrawn.";
+
+/** After NO_PAYMENT_BALANCE, wherever somebody may be asking about rewards. */
+export const REWARDS_BALANCE_SEPARATE =
+  "Referral rewards are separate: where they run, they are counted as a Rewards Balance, which is what Vallo owes you and never money held for you.";
+
+/** /docs chapter 6: who it is when somebody claims Vallo is holding money. */
+export const HELD_MONEY_NOT_US =
+  "If anybody tells you that Vallo is holding money for you, or asks you to send money to be held, it is not us.";
+
 /** /cancellations, the lede: the terms are fixed when the stay is paid. */
 export const CANCEL_LEDE =
   "A stay listed by an owner or agent follows the three steps below; a hotel room shows its own rate's terms before you choose it. Either way the terms are fixed on your booking when you pay, so they cannot change afterwards.";
