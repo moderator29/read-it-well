@@ -48,14 +48,19 @@ const ENTRY = `
   import { getDictionary } from "@vallo/i18n";
   import { ConsolePalette } from "@/app/admin/_components/ConsolePalette";
   import { mount } from "@/lib/testing/browser-root";
+  import { joinOverlay, leaveOverlay } from "@/lib/ui/overlay-registry";
   const t = getDictionary("en");
   /* Every request the page makes after mount is counted: a palette that routes asks for nothing. */
   window.__requests = 0;
   const realFetch = window.fetch.bind(window);
   window.fetch = (...args) => { window.__requests += 1; return realFetch(...args); };
+  /* Stands in for a sheet that is already open: it joins the overlay stack. */
+  window.__openSheet = () => joinOverlay();
+  window.__closeSheet = (token) => leaveOverlay(token);
   mount(
     <div style={{ minHeight: 1400, padding: 16 }}>
       <button id="other" type="button">Something else on the page</button>
+      <textarea id="note" aria-label="A note" defaultValue="A reviewer's draft" />
       <ConsolePalette
         copy={t.experienceAdmin.palette}
         ledes={t.experienceAdmin.deskLedes}
@@ -99,6 +104,46 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the console search palette", ()
       expect(await box(page).evaluate((el) => el === document.activeElement)).toBe(true);
       await page.keyboard.press("Control+k");
       expect(await dialog(page).count()).toBe(0);
+    } finally {
+      await close();
+    }
+  });
+
+  /* D49.3: the chord used to be taken from inside any admin textarea. */
+  it("leaves Control K and Command K to a textarea being written in", async () => {
+    const { page, close } = await mountInBrowser({ entry: ENTRY, css: CSS });
+    try {
+      await page.locator("#note").focus();
+      /* One chord at a time: two in a row would toggle a palette open and shut. */
+      for (const chord of ["Control+k", "Meta+k"]) {
+        await page.keyboard.press(chord);
+        await page.waitForTimeout(200);
+        expect(await dialog(page).count(), chord).toBe(0);
+        expect(await page.evaluate(() => document.activeElement?.id), chord).toBe("note");
+      }
+      /* From anywhere else on the page it still opens. */
+      await page.locator("#other").focus();
+      await openByKeyboard(page);
+    } finally {
+      await close();
+    }
+  });
+
+  /* D49.3: it used to stack a second aria-modal dialog over an open sheet. */
+  it("does not open a second modal dialog over a sheet that is already open", async () => {
+    const { page, close } = await mountInBrowser({ entry: ENTRY, css: CSS });
+    try {
+      const token = await page.evaluateHandle(() => (window as unknown as { __openSheet: () => symbol }).__openSheet());
+      await page.keyboard.press("Control+k");
+      await page.waitForTimeout(200);
+      expect(await dialog(page).count()).toBe(0);
+      expect(await page.locator("[aria-modal=true]").count()).toBe(0);
+      await page.evaluate(
+        (t) => (window as unknown as { __closeSheet: (token: symbol) => void }).__closeSheet(t),
+        token,
+      );
+      await openByKeyboard(page);
+      expect(await page.locator("[aria-modal=true]").count()).toBe(1);
     } finally {
       await close();
     }

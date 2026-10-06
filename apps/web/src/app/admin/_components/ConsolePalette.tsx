@@ -4,6 +4,7 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState, useSyncExtern
 import { usePathname, useRouter } from "next/navigation";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { useOverlay } from "@/lib/ui/use-overlay";
+import { overlayIsOpen } from "@/lib/ui/overlay-registry";
 import { feedback } from "@/lib/ui/feedback";
 import { CONSOLE_JUMPS } from "@/components/app/desk/desk-keys";
 import { NavIcon } from "./AdminGlyph";
@@ -121,15 +122,26 @@ export function ConsolePalette({
   useOverlay({ open, onClose: close, panelRef: panel });
 
   /* The one shortcut. The bar's field used to take Control K for itself; it now
-     opens this, which is a field and more. Never while another overlay owns
-     the keyboard is not needed: the overlay stack answers Escape and Tab, and
-     this only opens. */
+     opens this, which is a field and more.
+
+     TWO PLACES IT DOES NOT ANSWER (D49.3). Inside a textarea or an editable
+     region the chord is the writer's: Control K deletes to the end of the line
+     on a Mac, and a reviewer drafting a note must not lose the line to a
+     dialog. And while another overlay is open (a sheet, a drawer) it does not
+     open a second modal dialog on top: two `aria-modal` dialogs at once leave
+     a screen reader in neither. It still closes itself. */
+  const openRef = useRef(open);
+  useEffect(() => {
+    openRef.current = open;
+  }, [open]);
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
-        event.preventDefault();
-        setOpen((value) => !value);
-      }
+      if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== "k") return;
+      const target = event.target;
+      if (target instanceof HTMLTextAreaElement || (target instanceof HTMLElement && target.isContentEditable)) return;
+      if (!openRef.current && overlayIsOpen()) return;
+      event.preventDefault();
+      setOpen((value) => !value);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
