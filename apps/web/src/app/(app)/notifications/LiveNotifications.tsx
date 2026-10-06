@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import "./notifications.css";
 import type { Dictionary, Locale } from "@vallo/i18n/core";
-import { formatMoney, plural } from "@vallo/i18n/core";
+import { formatMoney, intlTag, plural } from "@vallo/i18n/core";
 import { PageHeader } from "@/components/app/PageHeader";
 import { EmptyState } from "@/components/app/Screen";
 import { Button, ButtonLink } from "@/components/ui/Button";
@@ -362,6 +362,12 @@ function Section({
   needs?: boolean;
 }) {
   if (entries.length === 0) return null;
+  /* THE CYAN BADGE COUNTS UNREAD, and only unread (north star 15.4: cyan
+     unread counts). It counted every row, so a day whose two notices were both
+     read said "2" in the unread colour, under an English label. It now draws
+     the unread count with the dictionary's "{count} unread", and nothing at
+     all when the group is read (Round 3 sweep, C5's finding). */
+  const unread = entries.filter((e) => !e.row.read).length;
   const verdicts = new Map(entries.map((e) => [e.row.id, e.verdict]));
   const groups = groupByObject(entries.map((e) => e.row));
   return (
@@ -371,9 +377,15 @@ function Section({
       aria-label={label}
       label={label}
       action={
-        <span className="nf-count-badge nf-numeric nf-notif__count" aria-label={`${entries.length} ${label}`}>
-          {entries.length}
-        </span>
+        unread > 0 ? (
+          <span
+            className="nf-count-badge nf-numeric nf-notif__count"
+            aria-label={c.unread.replace("{count}", new Intl.NumberFormat(intlTag[locale]).format(unread))}
+            data-testid={`notifications-${id}-unread`}
+          >
+            {unread}
+          </span>
+        ) : undefined
       }
       className={`nf-notif__group${needs ? " nf-notif__group--needs" : ""}`}
       data-testid={`notifications-${id}`}
