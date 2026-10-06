@@ -75,10 +75,10 @@ export function RecentSearches({
     };
   }, [inputId, listId]);
 
-  useEffect(() => {
-    const input = document.getElementById(inputId);
-    if (input) input.setAttribute("aria-expanded", open && entries.length > 0 ? "true" : "false");
-  }, [inputId, open, entries.length]);
+  /* No `aria-expanded` on the input: it is a plain search field, not a combobox
+     (the panel is a list of links, not options), and `aria-expanded` is not
+     allowed on a textbox (axe `aria-allowed-attr`, W12). The panel carries
+     `hidden` while it is closed, and the input keeps `aria-controls`. */
 
   const shown = open && entries.length > 0;
   return (
