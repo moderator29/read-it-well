@@ -224,7 +224,7 @@ function ConfirmSend({
         setError(result.error);
         return;
       }
-      router.push(`/messages/${conversationId}`);
+      router.replace(`/messages/${conversationId}`);
     });
   };
 

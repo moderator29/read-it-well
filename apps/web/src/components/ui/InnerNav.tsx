@@ -9,6 +9,7 @@ import { useMotionGate } from "@/components/motion/useMotionGate";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { cn } from "@/lib/cn";
 import { feedback } from "@/lib/ui/feedback";
+import { useOverlay } from "@/lib/ui/use-overlay";
 import { SPRING_SETTLE, clamp, springFor, useDrive } from "./ported-motion";
 
 /**
@@ -279,6 +280,18 @@ export function InnerNav({
     settle(0);
     toggleRef.current?.focus();
   };
+
+  /* THE MENU IS AN OVERLAY LIKE EVERY OTHER. Registering it with the shared
+     hook lets the Android back button and the browser's back close the menu
+     instead of leaving the page (`lib/native/back-button.ts` asks the body
+     lock this holds whether an overlay is up), as `DockMore` does. It keeps
+     its own focus: opening it does not move the cursor into the list. */
+  const closeFromBack = useCallback(() => {
+    setOpen(false);
+    settle(0);
+    toggleRef.current?.focus();
+  }, [setOpen, settle, toggleRef]);
+  useOverlay({ open, onClose: closeFromBack, panelRef: rootRef, autoFocus: false });
 
   /* A press outside closes it. */
   useEffect(() => {

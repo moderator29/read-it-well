@@ -551,9 +551,9 @@ export function AgentDoneScreen({
       onBack={() => router.replace("/home")}
       primary={{
         label: copy.trackIt,
-        onClick: () => router.push("/profile/application"),
+        onClick: () => router.replace("/profile/application"),
       }}
-      secondary={{ label: copy.backHome, onClick: () => router.push("/home") }}
+      secondary={{ label: copy.backHome, onClick: () => router.replace("/home") }}
     >
       <RegisterDone
         object="keys-tag"

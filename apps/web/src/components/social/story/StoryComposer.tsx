@@ -193,7 +193,7 @@ export function StoryComposer({
         setHeld(true);
         return;
       }
-      router.push(`/stories/${result.data.storyId}`);
+      router.replace(`/stories/${result.data.storyId}`);
     });
   };
 

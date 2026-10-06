@@ -190,7 +190,7 @@ export function PlacePicker({
         setError(result.error);
         return;
       }
-      router.push(`/around/${result.data.slug}`);
+      router.replace(`/around/${result.data.slug}`);
     });
   };
 
