@@ -30,19 +30,19 @@ animation. **Audit every single page as part of the upgrade.**
    and section 0 reconciles his brief with what is actually here so you do not spend an
    hour looking for it. Sections 3, 4 and 6 are the startup sequence, the deep Get
    Started reference and the passcode rebuild.
-4. **`docs/sessions/FEATURE-REGISTER.md`**: section I is yours, plus every screen in
+6. **`docs/sessions/FEATURE-REGISTER.md`**: section I is yours, plus every screen in
    E2, E3, E4, E6, D9, D10, F, G, H3 and J3 to J9.
-4. **`docs/sessions/BLIND-SPOTS.md`**: B-26 no chart system, B-27 no map design,
+7. **`docs/sessions/BLIND-SPOTS.md`**: B-26 no chart system, B-27 no map design,
    B-28 no print and PDF design, B-29 email as a surface, B-30 photography, B-31
    localisation, B-32 density, B-33 the component gallery. All yours.
-5. **`docs/design/CHATGPT_ASSET_PROMPTS.md`**: a complete standalone prompt per
+8. **`docs/design/CHATGPT_ASSET_PROMPTS.md`**: a complete standalone prompt per
    asset.
-6. **The 79 reference images** in `docs/design/references/2026-10-05/`. **Look at
+9. **The 79 reference images** in `docs/design/references/2026-10-05/`. **Look at
    the twelve canonical ones yourself** before designing the surface each maps to.
    Many are frames from videos, so read sequences as motion, not as stills.
-7. `docs/design/CLEAN_UNIFIED_DIRECTION.md` and `docs/TRACK_M_MOTION_PLAN.md`, both
+10. `docs/design/CLEAN_UNIFIED_DIRECTION.md` and `docs/TRACK_M_MOTION_PLAN.md`, both
    still live. `docs/PRODUCT.md` section 7 for terminology, as amended by D8.
-8. Session 2's response file. **Verify what it claims rather than trusting it.**
+11. Session 2's response file. **Verify what it claims rather than trusting it.**
 
 ---
 
