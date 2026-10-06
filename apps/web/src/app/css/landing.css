@@ -1231,7 +1231,10 @@
   }
   .nf-hero-tab[aria-selected="true"] {
     background: color-mix(in oklab, var(--nf-brand-primary) 12%, var(--nf-surface-primary));
-    color: var(--nf-brand-primary);
+    /* The link ink, the light theme's brand colour for text: the brand blue on
+       its own wash fell under 4.5:1 at 14px (front door a11y, light). Night
+       answers below with its own brand ink. */
+    color: var(--nf-content-link);
     font-weight: 600;
   }
   :root:not([data-theme="light"]) .nf-hero-tab[aria-selected="true"] {
