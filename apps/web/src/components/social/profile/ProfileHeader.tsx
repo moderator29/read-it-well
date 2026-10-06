@@ -212,6 +212,7 @@ export function ProfileHeader({
             {mod ? (
               <span
                 className="nf-social-role"
+                role="img"
                 aria-label={copy.moderatorOf.replace("{place}", mod.name)}
                 data-testid="profile-role-badge"
               >

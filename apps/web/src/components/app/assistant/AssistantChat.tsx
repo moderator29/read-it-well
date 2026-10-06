@@ -752,7 +752,7 @@ export function AssistantChat({
                         <span className="nf-ai__stamp nf-numeric">
                           {stamp}
                           {answered && (
-                            <span className="nf-ai__ticks" aria-label="Answered">
+                            <span className="nf-ai__ticks" role="img" aria-label="Answered">
                               <UiIcon name="verified" size={12} />
                             </span>
                           )}
