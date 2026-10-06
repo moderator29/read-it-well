@@ -1,29 +1,32 @@
 "use client";
 
-import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
-import { Sheet } from "@/components/ui/Sheet";
-import { countOf } from "@vallo/i18n/core";
+import type { UiIconName } from "@/design-system/icons/UiIcon";
+import { ActionSheetIllustrated, type ActionSheetRow } from "@/components/ui/ActionSheetIllustrated";
 
 /**
  * The sheet behind a card's `…`.
  *
- * A bottom sheet rather than a popover, and that is not a style choice. Every
- * row carries a title AND the sentence that says what it actually does, because
+ * It is the platform's illustrated action sheet (north star 15.2, reference
+ * 43): a clay object on a soft ground, a title, one line, then hairline rows
+ * each with a round glyph plate, the action and the sentence that says what it
+ * actually does, and one quiet dismiss. It used to be a generic list in a plain
+ * `Sheet`, which is exactly the pattern 15.2 says this component replaces.
+ *
+ * Every row carries a title AND the sentence that says what it does, because
  * "Hide" and "Not interested" and "Mute" are three words people cannot tell
  * apart and the difference between them matters: one is about a post, one is
- * about a feed, one is about a person. Five rows of two lines do not fit in a
- * popover on a 390px screen.
+ * about a feed, one is about a person. The sentence rides in the row's `hint`.
  *
  * **The rows change with what was tapped.** A person's post does not offer
  * "Contact Agent", because there is no agent to contact, and a control that
  * cannot work should not be there to press. What is offered is decided by the
  * caller and passed in, so this component holds no knowledge of what a post is.
  *
- * The surface is the platform's `Sheet`: drag or flick down to close, Escape,
- * Back, the focus trap and return, the counted scroll lock, the home-indicator
- * inset and a body that scrolls when eight two-line rows are taller than a
- * phone held sideways. It used to build its own panel, which had none of the
- * gestures and pushed its top rows off a landscape screen.
+ * Everything about being a sheet (drag or flick to close, Escape, Back, the
+ * focus trap and return, the counted scroll lock, the home-indicator inset, a
+ * body that scrolls when ten two-line rows are taller than a phone held
+ * sideways) is `Sheet`'s, inherited through `ActionSheetIllustrated`. A danger
+ * row takes the rose plate and label and never glows.
  */
 
 export type SheetAction = {
@@ -41,49 +44,41 @@ export function ActionSheet({
   actions,
   onChoose,
   onClose,
+  body = "Choose one. Nothing happens until you do.",
+  dismissLabel = "Not now",
 }: {
-  /** What this sheet is about, for a screen reader. */
+  /** What this sheet is about: the title, and the dialog's accessible name. */
   label: string;
   actions: SheetAction[];
   onChoose: (key: string) => void;
   onClose: () => void;
+  /** The one line under the title. */
+  body?: string;
+  /** The single quiet dismiss. */
+  dismissLabel?: string;
 }) {
+  const rows: ActionSheetRow[] = actions.map((action) => ({
+    id: action.key,
+    label: action.title,
+    hint: action.note,
+    icon: action.glyph ?? action.icon ?? "sliders",
+    danger: action.danger,
+    onSelect: () => onChoose(action.key),
+  }));
+
   return (
-    <Sheet
+    <ActionSheetIllustrated
       open
       onOpenChange={(next) => {
         if (!next) onClose();
       }}
       title={label}
-      hideTitle
-    >
-      <div role="menu" aria-label={label} className="nf-actions__list">
-        {actions.map((action) => (
-          <button
-            key={action.key}
-            type="button"
-            role="menuitem"
-            className={`nf-actions__row${action.danger ? " nf-actions__row--danger" : ""}`}
-            onClick={() => {
-              onClose();
-              onChoose(action.key);
-            }}
-          >
-            <span className="nf-actions__icon">
-              {action.glyph ? (
-                <UiIcon name={action.glyph} size={19} />
-              ) : (
-                <UiIcon name={action.icon ?? "sliders"} size={19} />
-              )}
-            </span>
-            <span className="min-w-0">
-              <span className="nf-actions__title">{action.title}</span>
-              <span className="nf-actions__note">{action.note}</span>
-            </span>
-          </button>
-        ))}
-      </div>
-    </Sheet>
+      body={body}
+      object="local-talks"
+      rows={rows}
+      dismissLabel={dismissLabel}
+      testId="post-action-sheet"
+    />
   );
 }
 

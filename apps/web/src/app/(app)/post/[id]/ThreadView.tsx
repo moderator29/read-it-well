@@ -10,6 +10,8 @@ import { ActionSheet, actionsForPost } from "@/components/social/ActionSheet";
 import { PostEditor } from "@/components/social/feed/PostEditor";
 import { ViewportPost } from "@/components/social/feed/ViewportPost";
 import { Tombstone } from "@/components/social/feed/Tombstone";
+import { leadProps } from "@/components/social/feed/lead";
+import { feedback } from "@/lib/ui/feedback";
 import {
   blockUser,
   muteTarget,
@@ -110,6 +112,8 @@ export function ThreadView({
   const onLike = (post: PostView) => {
     if (requireSignIn()) return;
     const liked = !post.liked;
+    /* One light tap when a like lands; taking it back is quiet. */
+    if (liked) feedback("select");
     patch(post.id, { liked, likeCount: post.likeCount + (liked ? 1 : -1) });
     startTransition(async () => {
       const result = await toggleMark({ postId: post.id, mark: "LIKE" });
@@ -371,12 +375,16 @@ export function ThreadView({
         </p>
       )}
 
-      {replies.map((reply) => (
+      {replies.map((reply, index) => {
+        /* The first six replies arrive 40ms apart (motion 10), the way the
+           feed's first six do; the rest are simply there. */
+        const lead = leadProps(index);
+        return (
         <div
           key={reply.id}
           // One step of indent per level, capped by the depth cap at three.
-          style={{ marginInlineStart: `${Math.min(reply.depth, 3) * 14}px` }}
-          className="flex flex-col gap-[var(--nf-feed-gap)]"
+          style={{ ...lead.style, marginInlineStart: `${Math.min(reply.depth, 3) * 14}px` }}
+          className={["flex flex-col gap-[var(--nf-feed-gap)]", lead.className ?? ""].filter(Boolean).join(" ")}
         >
           {reply.mutedAuthor && !unfolded.includes(reply.id) ? (
             <MutedReply
@@ -398,7 +406,8 @@ export function ThreadView({
             </>
           ) : null}
         </div>
-      ))}
+        );
+      })}
 
       {sheetFor ? (
         <ActionSheet

@@ -4,14 +4,15 @@
  * The founder: "in the feed add many animations". What moves, and why each
  * is quiet enough to scroll past a hundred times:
  *
- *   posts        rise into place as they enter the screen, driven by the
- *                scroll itself (a view timeline), so a fast flick shows
- *                them already settled and a slow read watches them arrive
- *   photographs  settle from a slight zoom as their post comes in
- *   the heart    pops on a spring and throws a ring of light when liked
- *   repost       the arrows turn half a circle when reposted
- *   stories      each ring's light travels round it slowly, the way a
- *                story waiting to be seen should look alive
+ *   the first six  arrive in order, 40ms apart (motion 10), once per screen
+ *   later posts    rise into place as they enter the screen, driven by the
+ *                  scroll itself (a view timeline), so a fast flick shows
+ *                  them already settled and a slow read watches them arrive
+ *   photographs    settle from a slight zoom as their post comes in
+ *   the heart      pops 1.0 to 1.2 to 1.0 in 240ms on the tap that likes
+ *   repost         the arrows turn half a circle on the tap that reposts
+ *   stories        a still ring: a segment per live story, opened ones quiet.
+ *                  It used to turn for ever; nothing loops here any more
  *
  * The post and the photo animate `translate` and `scale`, the individual
  * transform properties, never `transform`: the card already moves on press
@@ -23,14 +24,44 @@
  * A partial of globals.css. The imports there are ordered, and the order is
  * the cascade: do not move this one.
  */
-@property --nf-ring-a {
-  syntax: "<angle>";
-  inherits: false;
-  initial-value: 160deg;
-}
-
 @layer components {
   /* ------------------------------------------------------------- posts */
+
+  /*
+   * THE FIRST SIX ARRIVE IN ORDER (motion 10, list stagger): 12px lift and
+   * fade, 40ms apart, `land` 240ms. Only the first six, because a feed that
+   * staggers forty posts is a queue; the seventh would arrive with the sixth,
+   * and in practice everything past the fold is scroll-driven below.
+   *
+   * It plays once, on the mount of a screen, and never again: the wrapper's
+   * key is the post id, so a like, a refresh or a chip change does not replay
+   * it. `--nf-i` is written inline by `Feed` and `ThreadView` (0 to 5), so the
+   * order is data, not a nth-child ladder. `both` holds the first frame during
+   * the delay, which is at most 200ms.
+   *
+   * `translate`, not `transform`: the card moves on press with `transform`
+   * and the two must add up.
+   */
+  .nf-feed-lead {
+    animation: nf-feed-stagger var(--nf-duration-base) var(--nf-ease-entrance) both;
+    animation-delay: calc(var(--nf-i, 0) * 40ms);
+  }
+  @keyframes nf-feed-stagger {
+    from {
+      opacity: 0;
+      translate: 0 12px;
+    }
+    to {
+      opacity: 1;
+      translate: none;
+    }
+  }
+  /* A lead post is already being arrived by its wrapper; the scroll-driven
+     entrance below is for the posts after them, so the two never stack. */
+  .nf-feed-lead .nf-post,
+  .nf-feed-lead .nf-post__media img {
+    animation: none;
+  }
 
   @supports (animation-timeline: view()) {
     /* `forwards`, not `both`: a post not yet reached is shown, not held at
@@ -56,8 +87,8 @@
   @keyframes nf-feed-arrive {
     from {
       opacity: 0;
-      translate: 0 28px;
-      scale: 0.975;
+      translate: 0 20px;
+      scale: 0.985;
     }
     to {
       opacity: 1;
@@ -75,10 +106,29 @@
   }
   .nf-post__media {
     overflow: hidden;
+    /* A picture is not a control, and it sat above the card's open link
+       (`social-feed.css` raises the block), so tapping a photograph did
+       nothing at all. Letting the tap through opens the post, which is what
+       a photograph on a card is for, and the photo travels (motion 18). */
+    pointer-events: none;
   }
 
   /* ------------------------------------------------------------- heart */
 
+  /*
+   * THE FAVOURITE POP (motion inventory, "Favourite toggle"): the heart goes
+   * 1.0 to 1.2 to 1.0, `land` 240ms, with one light haptic from the handler.
+   *
+   * IT PLAYS ON THE TAP AND ONLY ON THE TAP. This used to key off
+   * `aria-pressed="true"`, so every post the reader had already liked threw
+   * the pop on every mount: a feed of twenty hearts, five of them flashing as
+   * the page loaded, which is the opposite of "every animation says what
+   * changed". `data-pop` is set by the control for one tap that turns a like
+   * ON and by nothing else, so a heart that was already red simply is.
+   *
+   * The ring of light is kept, smaller and shorter: it is the same
+   * acknowledgement, and it is the only thing on the card that travels.
+   */
   .nf-post__act--like svg,
   .nf-post__act--repost svg {
     transition: scale var(--nf-duration-fast) var(--nf-ease-spring);
@@ -87,15 +137,15 @@
   .nf-post__act--repost:active svg {
     scale: 0.82;
   }
-  .nf-post__act--like[aria-pressed="true"] svg {
-    animation: nf-feed-heart var(--nf-duration-deliberate) var(--nf-ease-spring) both;
+  .nf-post__act--like[data-pop] svg {
+    animation: nf-feed-heart var(--nf-duration-base) var(--nf-ease-entrance) both;
   }
   @keyframes nf-feed-heart {
     0% {
-      scale: 0.6;
+      scale: 0.82;
     }
-    45% {
-      scale: 1.3;
+    55% {
+      scale: 1.2;
     }
     100% {
       scale: none;
@@ -114,24 +164,24 @@
     opacity: 0;
     pointer-events: none;
   }
-  .nf-post__act--like[aria-pressed="true"]::after {
-    animation: nf-feed-burst var(--nf-duration-deliberate) var(--nf-ease-entrance) both;
+  .nf-post__act--like[data-pop]::after {
+    animation: nf-feed-burst var(--nf-duration-slow) var(--nf-ease-entrance) both;
   }
   @keyframes nf-feed-burst {
     0% {
       opacity: 0.9;
-      scale: 0.4;
+      scale: 0.5;
     }
     100% {
       opacity: 0;
-      scale: 1.7;
+      scale: 1.6;
     }
   }
 
   /* ------------------------------------------------------------ repost */
 
-  .nf-post__act--repost[data-active] svg {
-    animation: nf-feed-turn var(--nf-duration-deliberate) var(--nf-ease-spring) both;
+  .nf-post__act--repost[data-pop] svg {
+    animation: nf-feed-turn var(--nf-duration-slow) var(--nf-ease-entrance) both;
   }
   @keyframes nf-feed-turn {
     from {
@@ -142,26 +192,82 @@
     }
   }
 
+  /* ----------------------------------------------- the For you / Following pill */
+
+  /*
+   * THE SEGMENTED PILL SLIDES (motion 6, `drift` 240ms). The track is two
+   * equal halves now (it was 297 to 315 in the founder's render, a 3 per cent
+   * difference nobody can see, and a sliding thumb needs equal halves to
+   * travel by exactly its own width), the lit fill is the `__thumb`, and the
+   * current link only lifts its label above it. Transform only.
+   */
+  .nf-feed-seg {
+    grid-template-columns: 1fr 1fr;
+    position: relative;
+  }
+  .nf-feed-seg .nf-feed-seg__thumb {
+    position: absolute;
+    inset-block: -1px;
+    inset-inline-start: -1px;
+    inline-size: calc(50% + 1px);
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: var(--nf-selected-fill);
+    border-color: var(--nf-selected-edges);
+    box-shadow: var(--nf-selected-shadow-inline);
+    pointer-events: none;
+    transition: translate var(--nf-duration-base) var(--nf-ease-spring);
+  }
+  .nf-feed-seg[data-live="following"] .nf-feed-seg__thumb {
+    translate: 100% 0;
+  }
+  .nf-feed-seg[data-live="following"] .nf-feed-seg__thumb:dir(rtl) {
+    translate: -100% 0;
+  }
+  /* The fill moved to the thumb; the current link keeps only its label. */
+  .nf-feed-seg .nf-feed-seg__link[aria-current="page"] {
+    background: none;
+    border-color: transparent;
+    box-shadow: none;
+    z-index: 1;
+  }
+  .nf-feed-seg .nf-feed-seg__link {
+    z-index: 1;
+  }
+
   /* ----------------------------------------------------------- stories */
 
-  .nf-story-ring__disc:not(.nf-story-ring__disc--you) {
+  /*
+   * THE RING SAYS HOW MUCH THERE IS AND WHAT YOU HAVE SEEN (reference 7128).
+   *
+   * It used to turn for ever, a conic gradient on a six second loop. That is
+   * motion that answers nothing, and the product allows exactly two things to
+   * loop (the aurora and the assistant thinking). A status ring carries two
+   * true facts instead: one segment per live story the person has, and which
+   * of those this reader has already opened.
+   *
+   * `StoryRing` writes the whole conic gradient into `--nf-ring` from the two
+   * facts, in tokens only: a lit segment is the info blue running into the
+   * brand, an opened one is the muted ink at low strength, so a seen story is
+   * quieter without being a different shape. Never colour alone: a ring with
+   * everything opened loses its glow and `StoryRingItem` says "seen" aloud.
+   * One story is a full circle with no gap. The disc stays still; opening a story is the only time it changes.
+   */
+  .nf-story-ring {
+    --nf-ring-lit: var(--nf-state-info);
+    --nf-ring-lit-end: var(--nf-brand-primary);
+    --nf-ring-seen: color-mix(in oklab, var(--nf-content-muted) 55%, transparent);
+  }
+  .nf-story-ring__disc[style*="--nf-ring"] {
     background:
       linear-gradient(var(--nf-surface-canvas), var(--nf-surface-canvas)) padding-box,
-      conic-gradient(
-          from var(--nf-ring-a),
-          var(--nf-state-info) 0deg,
-          color-mix(in oklab, var(--nf-state-info) 60%, var(--nf-brand-primary)) 120deg,
-          var(--nf-brand-primary) 220deg,
-          var(--nf-state-info) 360deg
-        )
-        border-box;
-    animation: nf-feed-ring 6s linear infinite;
+      var(--nf-ring) border-box;
   }
-  @keyframes nf-feed-ring {
-    to {
-      --nf-ring-a: 520deg;
-    }
+  /* Everything opened: no glow, the ring has nothing left to say. */
+  .nf-story-ring__disc[data-seen="all"] {
+    box-shadow: none;
   }
+
   .nf-story-ring__item {
     transition: scale var(--nf-duration-fast) var(--nf-ease-spring);
   }
@@ -169,19 +275,110 @@
     scale: 0.94;
   }
 
+  /* ------------------------------------------------ the story sequence */
+
+  /*
+   * A STORY ARRIVES IN THE ORDER YOU READ IT (motion 10 and 18, "sequence
+   * motion"). Stepping through a run replaces the route, so each story mounts
+   * fresh and this plays once per story: the picture settles from a slight
+   * push (the only thing that moves slowly, 520ms `land`), then the header
+   * fades in, then the headline card lifts, then the actions, then the comment
+   * bar, each 60ms after the one before it and never more than 12px of travel.
+   * One organism, not a queue.
+   *
+   * The progress bars do not animate in at all: they are the one honest clock
+   * on the screen, a linear fill over the real six seconds (`StorySequence`)
+   * that pauses while a finger holds the picture, and decoration around a
+   * clock makes it harder to read. `translate` and `opacity` only.
+   */
+  .nf-story--seq .nf-story__image {
+    animation: nf-story-settle var(--nf-duration-entrance) var(--nf-ease-entrance) both;
+  }
+  @keyframes nf-story-settle {
+    from {
+      scale: 1.05;
+      opacity: 0.6;
+    }
+    to {
+      scale: none;
+      opacity: 1;
+    }
+  }
+  .nf-story--seq .nf-story__top,
+  .nf-story--seq .nf-story__card,
+  .nf-story--seq .nf-story__actions,
+  .nf-story--seq .nf-story__pile,
+  .nf-story--seq .nf-story__commentbar {
+    animation: nf-story-rise var(--nf-duration-base) var(--nf-ease-entrance) both;
+  }
+  .nf-story--seq .nf-story__top {
+    animation-name: nf-story-fade;
+    animation-delay: 60ms;
+  }
+  .nf-story--seq .nf-story__card {
+    animation-delay: 120ms;
+  }
+  .nf-story--seq .nf-story__actions {
+    animation-delay: 180ms;
+  }
+  .nf-story--seq .nf-story__pile {
+    animation-delay: 240ms;
+  }
+  .nf-story--seq .nf-story__commentbar {
+    animation-delay: 300ms;
+  }
+  @keyframes nf-story-rise {
+    from {
+      opacity: 0;
+      translate: 0 12px;
+    }
+    to {
+      opacity: 1;
+      translate: none;
+    }
+  }
+  @keyframes nf-story-fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
   /* ------------------------------------------------------ reduced motion */
 
   @media (prefers-reduced-motion: reduce) {
     .nf-post,
     .nf-post__media img,
-    .nf-post__act--like[aria-pressed="true"] svg,
-    .nf-post__act--like[aria-pressed="true"]::after,
-    .nf-post__act--repost[data-active] svg,
-    .nf-story-ring__disc:not(.nf-story-ring__disc--you) {
+    .nf-post__act--like[data-pop] svg,
+    .nf-post__act--like[data-pop]::after,
+    .nf-post__act--repost[data-pop] svg,
+    .nf-story--seq .nf-story__image,
+    .nf-story--seq .nf-story__top,
+    .nf-story--seq .nf-story__card,
+    .nf-story--seq .nf-story__actions,
+    .nf-story--seq .nf-story__pile,
+    .nf-story--seq .nf-story__commentbar {
       animation: none;
+    }
+    /* The lead six keep a 160ms fade and lose the lift: the order is still
+       readable, nothing travels. */
+    .nf-feed-lead {
+      animation: nf-feed-fade var(--nf-duration-fast) linear both;
+      animation-delay: 0ms;
+    }
+    @keyframes nf-feed-fade {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
     }
     .nf-post__act--like svg,
     .nf-post__act--repost svg,
+    .nf-feed-seg .nf-feed-seg__thumb,
     .nf-story-ring__item {
       transition: none;
     }
@@ -190,8 +387,5 @@
     .nf-story-ring__item:active {
       scale: none;
     }
-  }
-  :root[data-save-data="on"] .nf-story-ring__disc:not(.nf-story-ring__disc--you) {
-    animation: none;
   }
 }

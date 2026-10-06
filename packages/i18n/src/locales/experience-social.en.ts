@@ -6,6 +6,27 @@
  * `withFallback` until a translator supplies a line, because an invented
  * translation of a new line is worse than none. Money sentences never live
  * here; they come from `lib/money/copy.ts` (Session 2).
+ *
+ * Two sections, one per working area, so the two never edit the same lines:
+ * `feed` (Around, posts, stories) and `profile` (/u and /profile).
  */
 export const experienceSocialEn = {
+  feed: {
+    /* Said after a name whose stories this reader has all opened (the ring's
+       quiet state must never be the only way to learn it). */
+    storySeen: "seen",
+  },
+  profile: {
+    /* The badge row, the badge sheet and the earned moment (W4). */
+    badgesTitle: "Badges",
+    badgeGivenBy: "Given by the Vallo team",
+    badgeEarnedOn: "Earned on {date}",
+    badgeMeans: "What it means",
+    momentOverline: "Badge earned",
+    momentShare: "Share",
+    momentBack: "Back",
+    momentShareText: "I earned {badge} on Vallo.",
+    momentCopied: "Copied. Paste it anywhere.",
+    momentReplayHint: "Tap the medal to see it again",
+  },
 };

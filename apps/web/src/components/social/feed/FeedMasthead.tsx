@@ -39,7 +39,18 @@ export function FeedTabs({ active, t }: { active: FeedTab; t: Dictionary }) {
   const live: FeedTab = active === "new" ? "for-you" : active;
 
   return (
-    <nav aria-label={t.social.tabsLabel} className="nf-feed-seg" data-testid="feed-tabs">
+    <nav aria-label={t.social.tabsLabel} className="nf-feed-seg" data-testid="feed-tabs" data-live={live}>
+      {/*
+        THE LIT HALF IS A THUMB THAT SLIDES (motion 6, the segmented pill).
+
+        The track used to light whichever link was current, so changing tab
+        swapped a fill in place. The fill is now its own element and the nav
+        says which half it belongs under (`data-live`); `feed-m.css` moves it
+        with a transform on the spring, 240ms. The two links are still links,
+        so nothing here needs script, and the thumb survives a tab change
+        because the route's search params change, not its tree.
+      */}
+      <span className="nf-feed-seg__thumb" aria-hidden="true" />
       {segments.map((segment) => (
         <Link
           key={segment.tab}

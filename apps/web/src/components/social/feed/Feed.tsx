@@ -19,6 +19,8 @@ import { EmptyPanel } from "../profile/EmptyPanel";
 import type { StoryCard } from "@/lib/social/stories-queries";
 import type { ReviewCard } from "@/lib/social/profile-tabs-queries";
 import { PostEditor } from "./PostEditor";
+import { leadProps } from "./lead";
+import { feedback } from "@/lib/ui/feedback";
 import { ViewportPost } from "./ViewportPost";
 import {
   blockUser,
@@ -305,6 +307,9 @@ export function Feed({
       return;
     }
     const liked = !post.liked;
+    /* One light tap in the hand when a like lands. Un-liking is quiet: a
+       haptic on every toggle would buzz at a person taking something back. */
+    if (liked) feedback("select");
     patch(post.id, { liked, likeCount: post.likeCount + (liked ? 1 : -1) });
     startTransition(async () => {
       const result = await toggleMark({ postId: post.id, mark: "LIKE" });
@@ -542,8 +547,14 @@ export function Feed({
         />
       ) : null}
 
-      {(chip === "stories" || chip === "reviews" ? [] : shown).map((post) => (
-        <div key={post.id} className="flex flex-col gap-[var(--nf-feed-gap)]">
+      {(chip === "stories" || chip === "reviews" ? [] : shown).map((post, index) => {
+        const lead = leadProps(index);
+        return (
+        <div
+          key={post.id}
+          className={["flex flex-col gap-[var(--nf-feed-gap)]", lead.className ?? ""].filter(Boolean).join(" ")}
+          style={lead.style}
+        >
           <ViewportPost postId={post.id}>
             <PostCard
               post={post}
@@ -592,7 +603,8 @@ export function Feed({
             replying to.
           */}
         </div>
-        ))}
+        );
+      })}
 
         {loadMore && shown.length > 0 && chip !== "stories" && chip !== "reviews" ? (
           <div className="nf-feed-more" data-testid="feed-more">
