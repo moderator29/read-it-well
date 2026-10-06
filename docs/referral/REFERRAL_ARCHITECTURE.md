@@ -245,33 +245,45 @@ Four rules for it:
 
 ---
 
-## 7. The consequence for the migration waiting to be applied
+## 7. The migration: apply it, and gate the payout path on the cap
 
-**`supabase/migrations/pending/b4_referral_rewards_engine.sql` should not be applied as it
-stands, and Session 1 is reversing its own earlier instruction to apply it.**
+> **Reversed on 6 October, after the founder challenged it. Session 1 had said hold the
+> migration. That was wrong, and both of its reasons failed.**
+>
+> **Reason one is dead.** It argued nothing is lost by waiting because phone verification is
+> off pending an SMS provider. **The founder is obtaining the Termii API key now**, and the
+> Termii integration is already built: `OtpTransport` with WhatsApp first and Termii's DND
+> route for MTN and Airtel, the Supabase send hook, and a single switch
+> `PHONE_SIGNIN_ENABLED`. The eight setup steps are in `docs/PHONE_SIGNIN.md` and are all
+> founder-side. So qualification is days away, not blocked indefinitely, and "there is no
+> hurry" was never a strong argument anyway.
+>
+> **Reason two was overstated.** It called adding campaigns later "restructuring the spine in
+> a money area after rows exist". **It is not a restructure.** A `referral_campaigns` table, a
+> `referral_budget_periods` table and a nullable `campaign_id` on `referrals` are additive
+> DDL. With zero rows in every referral table, extending the schema costs nothing beyond one
+> ordinary migration. Session 1 reached for the strongest available word rather than the
+> accurate one.
 
-Checked against this architecture: the file creates `referral_policy`, `referrals`,
-`referral_events`, `rewards_payouts` and `rewards_ledger`, and it already contains risk
-scoring, reversal, cluster and velocity work, which is good and should be kept. **What it has
-no trace of is campaigns, a budget period, or a cap in naira.** Those are not additions at the
-edge: under the architecture above, **the campaign is the organising dimension.** Qualification
-policy hangs off it, the reward amount comes from it, the per-member cap belongs to it, and the
-review window is its setting.
+**So: apply `b4_referral_rewards_engine.sql`.** It already carries risk scoring, reversal,
+cluster and velocity work, and it has had two review passes. Applying schema does not start
+paying anybody: the payout path needs application code that does not exist yet.
 
-**Applying a referral spine without its organising dimension means restructuring the spine
-later, in a money area, after rows exist.** That is the expensive order.
+**One hard gate remains, and it is the only thing here worth being stubborn about:**
 
-**And nothing is lost by waiting**, which is what makes this easy: the feature register records
-that **phone verification is built and switched off pending an SMS provider**, and
-`phone_verified` is a requirement in every campaign the founder listed. **Not one referral can
-qualify until that provider exists.** There is no cost to getting the schema right first.
+> **No payout path goes live until the platform budget cap exists and is enforced
+> server-side.**
 
-So: add to the file, then apply once. Campaigns, with their reward, caps, window and
-requirement-key array. A budget period per month with a cap in naira and a committed total. The
-requirement registry as a set of named checks. The lifecycle states from section 2 in place of
-a shorter set. Then one application, one probe run, one recorded verdict.
+That is not caution about schema; it is the difference between a bounded and an unbounded
+liability. The moment `PHONE_SIGNIN_ENABLED` is true, referrals can qualify. Without a
+platform cap, one viral moment creates a debt Vallo has not agreed to and cannot fund. **The
+per-member cap does not protect against this**, because the exposure is the number of members
+multiplied by their cap.
 
----
+**So the order is:** apply the migration now, then the very next migration adds campaigns,
+the budget period with its cap in naira, the requirement registry and the review window.
+Qualification may run before campaigns exist, defaulting to the launch policy. **Payout may
+not run before the cap does.**
 
 ## 8. Probes
 

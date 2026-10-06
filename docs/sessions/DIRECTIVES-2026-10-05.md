@@ -822,6 +822,76 @@ committed and pushed as it is done, cleanly, without sessions conflicting.
 | **Any reading that paid promotion was removed** | **D60: D3 built it on 5 October; the gap was the tier detail, now written** |
 | **The flat "keeps 96 percent" on the fee screen** | **D61: wrong, rail dependent, and Session 1 wrote it. A range now** |
 | **D58 on the referral engine, and Session 1's "apply it" on b4_referral_rewards_engine** | **D62: architecture locked by the founder; hold the migration until campaigns are in it** |
+| **D62's hold on b4_referral_rewards_engine** | **D63: wrong on both reasons. Apply it. Only the payout path waits, on the budget cap** |
+
+---
+
+## D63. Apply the referral migration after all, and nobody was ever told to switch phone verification off
+
+**Two corrections, both prompted by the founder challenging D62 on 6 October. He was right on
+one and the other was a misreading worth clearing up precisely.**
+
+### Nobody told Session 2 to switch phone verification off, and Termii is already built
+
+D62 and the architecture document said **"phone verification is built and switched off pending
+an SMS provider"**. That is a **report of the current state**, taken from the feature register's
+own D4 row, not an instruction to anybody. **No session has been told to disable anything**, and
+Session 1 would have no business telling them to.
+
+**And the provider was never an open question: Termii is already chosen and already built.**
+Measured in the tree rather than assumed:
+
+- `apps/web/src/lib/auth/phone-sign-in.ts`, `phone-sign-in-flag.ts`, and the Supabase send hook
+  at `apps/web/src/app/api/auth/sms-hook/route.ts`.
+- The transport sends **WhatsApp first when `TERMII_WHATSAPP_ENABLED=true`, then Termii's DND
+  route so MTN and Airtel numbers on do-not-disturb still receive codes.** That DND detail is
+  the part most integrations get wrong in this market, and it is already handled.
+- **One switch closes or opens every part at once:** `PHONE_SIGNIN_ENABLED`. The door, the
+  actions and the hook all read it.
+
+**So there is nothing for a session to build here.** The eight remaining steps are in
+`docs/PHONE_SIGNIN.md` and every one is founder-side: the Termii account and KYC, an approved
+sender ID, the optional WhatsApp template, a cost ceiling per code, the Supabase dashboard
+settings, the Vercel variables (`TERMII_API_KEY`, `TERMII_SENDER_ID`,
+`TERMII_WHATSAPP_ENABLED`, then `PHONE_SIGNIN_ENABLED=true` **last**, after a test code has
+actually arrived), the privacy notice naming Termii as a recipient of phone numbers, and a test
+on a real MTN and a real Airtel number with one on DND.
+
+**What Session 2 should do:** read that document, confirm every step still matches the code, and
+fix anything stale. **Not rebuild what exists.**
+
+### Apply the referral migration. D62's hold was wrong on both of its reasons
+
+**Reason one is dead.** D62 argued nothing is lost by waiting, because nothing can qualify
+until an SMS provider exists. **The founder is obtaining the Termii key now.** Qualification is
+days away. And "there is no hurry" was a weak argument even while it was true: it justifies
+delay without demonstrating any benefit from it.
+
+**Reason two was overstated, and that is the more useful admission.** D62 called adding
+campaigns later **"restructuring the spine in a money area after rows exist"**. It is not a
+restructure. A `referral_campaigns` table, a `referral_budget_periods` table and a nullable
+`campaign_id` on `referrals` are **additive DDL**, and with zero rows in every referral table
+the extension costs one ordinary migration. **Session 1 reached for the strongest available
+word rather than the accurate one, and a directive built on an inflated word is a directive
+that stops real work for no return.**
+
+**So: apply `b4_referral_rewards_engine.sql`.** It carries risk scoring, reversal, cluster and
+velocity work, and it has had two review passes. **Applying schema pays nobody**: the payout
+path needs application code that does not exist yet.
+
+### The one line that does not move
+
+> **No payout path goes live until the platform budget cap exists and is enforced
+> server-side.**
+
+This is not caution about schema. The moment `PHONE_SIGNIN_ENABLED` is true, referrals can
+qualify, and **without a platform cap one viral moment creates a debt Vallo has not agreed to
+and cannot fund.** The per-member cap does not protect against it, because the exposure is the
+member count multiplied by the cap.
+
+**Order:** apply now; the next migration adds campaigns, the budget period with its cap in
+naira, the requirement registry and the review window. **Qualification may run before campaigns
+exist, defaulting to the launch policy. Payout may not run before the cap does.**
 
 ---
 
