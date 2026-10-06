@@ -132,7 +132,7 @@ export function SubjectCard({
       {decidable && subject.userId && <CredentialForm subjectId={subject.userId} desk={DESK} />}
 
       {subject.business && (
-        <dl className="mt-sm">
+        <div className="mt-sm">
           <ui.DetailRow label="Business" value={subject.business.name} />
           <ui.DetailRow label="RC number" value={subject.business.registrationNumber} />
           <ui.DetailRow label="Tax id" value={subject.business.taxId} />
@@ -140,7 +140,7 @@ export function SubjectCard({
           <ui.DetailRow label="Business phone" value={subject.business.phone} />
           <ui.DetailRow label="Established" value={ui.day(subject.business.establishedOn)} />
           <ui.DetailRow label="Business address" value={subject.business.address} />
-        </dl>
+        </div>
       )}
 
       <ul className="mt-sm space-y-sm">

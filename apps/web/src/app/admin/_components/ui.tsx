@@ -518,10 +518,15 @@ export function adminUi(t: Dictionary, locale: Locale) {
     );
   }
 
-  /** Label and value, stacked on a phone, paired on wider screens. */
+  /**
+   * Label and value, stacked on a phone, paired on wider screens. Each row is
+   * its own `dl` with the `dt` and `dd` as direct children, so a section can
+   * hold a list or a paragraph between rows without a `ul` ever sitting inside
+   * a `dl` (axe: definition-list, W12 F28).
+   */
   function DetailRow({ label, value }: { label: string; value: ReactNode }) {
     return (
-      <div className="flex flex-col gap-inline-tight border-t border-[var(--nf-brand-edge-soft)] py-row sm:flex-row sm:gap-group">
+      <dl className="flex flex-col gap-inline-tight border-t border-[var(--nf-brand-edge-soft)] py-row sm:flex-row sm:gap-group">
         <dt className="nf-overline shrink-0 sm:w-48">{label}</dt>
         <dd className="nf-body min-w-0 break-words text-content">
           {value === null || value === "" ? (
@@ -530,7 +535,7 @@ export function adminUi(t: Dictionary, locale: Locale) {
             value
           )}
         </dd>
-      </div>
+      </dl>
     );
   }
 
@@ -538,7 +543,7 @@ export function adminUi(t: Dictionary, locale: Locale) {
     return (
       <section className="mt-group first:mt-0">
         <h3 className="nf-overline">{title}</h3>
-        <dl className="mt-inline">{children}</dl>
+        <div className="mt-inline">{children}</div>
       </section>
     );
   }

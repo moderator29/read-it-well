@@ -254,7 +254,7 @@ export default async function AdminBookingPage({
           hint={t.experienceAdmin.cases.historyCount.replace("{count}", String(stay.events.length))}
           testId="booking-history"
         >
-          <dl>
+          <div>
           {stay.events.map((event) => (
             <ui.DetailRow
               key={event.id}
@@ -275,7 +275,7 @@ export default async function AdminBookingPage({
               }
             />
           ))}
-          </dl>
+          </div>
         </CaseHistory>
         <p className="mt-sm">
           <Link
