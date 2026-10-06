@@ -1067,16 +1067,52 @@ the measurement first would be a mistake.
 552 that I had wrongly written up as a CI-versus-local gap. Two readings agree
 and the outlier stands alone.
 
-| Route | CI run 1 | CI run 2 | Budget |
-| --- | --- | --- | --- |
-| `/` | 510 | 505 | 555 |
-| `/welcome` | 658 | **728** | 815 |
-| `/sign-in` | 653 | 663 | 690 |
-| `/sign-up/email` | 678 | 652 | 700 |
-| `/check` | 590 | 592 | 630 |
-| `/move-in-cost` | 462 | 460 | 495 |
-| `/for-agents` | 482 | 482 | 575 |
-| `/guides/avoiding-rental-scams` | 458 | 450 | 480 |
+### Four CI runs in, and two budgets had to be widened while green
+
+| Route | Four CI readings | Max | Spread | Budget | Margin |
+| --- | --- | --- | --- | --- | --- |
+| `/` | 505, 510, 505, 510 | 510 | 5 | 555 | 45 |
+| `/welcome` | 658, 658, 728, **735** | 735 | **77** | 815 | 80 |
+| `/sign-in` | 657, 653, 663, 649 | 663 | 14 | 690 | 27 |
+| `/sign-up/email` | 658, 678, 652, 656 | 678 | 26 | **700 to 705** | 27 |
+| `/check` | 590, 590, 592, 599 | 599 | 9 | 630 | 31 |
+| `/move-in-cost` | 458, 462, 460, 458 | 462 | 4 | 495 | 33 |
+| `/for-agents` | 552, 482, 482, **561** | 561 | **79** | **575 to 640** | 79 |
+| `/guides/avoiding-rental-scams` | 452, 458, 450, 450 | 458 | 8 | 480 | 22 |
+
+**`/for-agents` had 14 KB of margin against a 79 KB spread.** It was green, and
+it was a red gate waiting for a commit that changes nothing. I widened it to
+640 and `/sign-up/email` to 705, both while passing.
+
+I want to be exact about why that is not the thing I told everyone never to do.
+Widening a budget to turn a red check green hides a regression. Widening it
+because the route's own measured spread has outgrown its margin is the ratchet
+working: the number was set on three readings and four readings showed it was
+wrong. The other six routes were left alone, and the rule reproduced
+`/welcome`'s 815 to the kilobyte, which is some evidence the rule itself is
+sound rather than fitted after the fact.
+
+### This is the second widening, and that is the finding
+
+I have now adjusted these budgets twice in one session, both times upward,
+both times because new readings outran the old spread. That pattern is not
+about page weight at all.
+
+**A route whose transferred bytes move 79 KB between runs of identical code is
+not being measured, it is being sampled.** Every widening buys quiet at the
+cost of sensitivity: at 640, `/for-agents` would no longer notice a 70 KB
+regression, which is a real library arriving. Carry on this way and the
+budgets converge on useless while staying green, which is a slower version of
+the fault I was sent to fix.
+
+So I am escalating my own recommendation. Fixing `waitUntil: "networkidle"` in
+`check-weight.mjs` is no longer a tidy-up to do eventually; **it is the only
+thing that makes this gate worth having.** Replace it with something
+deterministic, re-baseline every route against the quiet instrument, and every
+number in `perf-budget.json` should fall a long way. I did not do it in this
+pass because changing how a gate measures, while three sessions push against
+it, deserves its own piece of work with its own re-baselining rather than
+being tacked onto a check-in. It is the first thing I would pick up next.
 
 ### What is still mine and not done
 
