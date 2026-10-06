@@ -76,7 +76,7 @@ export default async function ContactPage({
                 <p className="nf-overline">Support email</p>
                 <a
                   href={`mailto:${SUPPORT_EMAIL}`}
-                  className="nf-tap mt-inline inline-block break-all text-[1.25rem] font-bold text-[var(--nf-content-link)] hover:underline sm:text-[1.5rem]"
+                  className="nf-tap mt-inline inline-block break-all text-[length:var(--nf-text-h4)] font-bold text-[var(--nf-content-link)] hover:underline sm:text-[length:var(--nf-text-h3)]"
                 >
                   {SUPPORT_EMAIL}
                 </a>
@@ -84,7 +84,7 @@ export default async function ContactPage({
             ) : (
               <>
                 <p className="nf-overline">Talk to a person</p>
-                <p className="mt-inline text-[1.25rem] font-bold text-[var(--nf-content-primary)] sm:text-[1.5rem]">
+                <p className="mt-inline text-[length:var(--nf-text-h4)] font-bold text-[var(--nf-content-primary)] sm:text-[length:var(--nf-text-h3)]">
                   Send us a message
                 </p>
               </>
@@ -101,7 +101,7 @@ export default async function ContactPage({
               the ones where somebody is standing outside a door are answered
               before the ones that can wait.
             */}
-            <p className="mx-auto mt-group max-w-[48ch] text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
+            <p className="mx-auto mt-group max-w-[48ch] text-[length:var(--nf-text-row)] leading-relaxed text-[var(--nf-content-secondary)]">
               A person reads every message that arrives here. Urgent problems, a
               payment that has gone wrong or a door you cannot get through today,
               are answered before anything else.
@@ -120,7 +120,7 @@ export default async function ContactPage({
               <IconPlate size="md" className="shrink-0">
                 <UiIcon name="headset" size={20} />
               </IconPlate>
-              <p className="text-[0.9375rem] leading-snug text-[var(--nf-content-secondary)]">
+              <p className="text-[length:var(--nf-text-row)] leading-snug text-[var(--nf-content-secondary)]">
                 Many questions already have written answers: the switch between
                 the two sides, booking a stay, holding a table, payments, refunds
                 and listing.
@@ -139,7 +139,7 @@ export default async function ContactPage({
               <IconPlate size="md" className="shrink-0">
                 <UiIcon name="shield-check" size={20} />
               </IconPlate>
-              <p className="text-[0.9375rem] leading-snug text-[var(--nf-content-secondary)]">
+              <p className="text-[length:var(--nf-text-row)] leading-snug text-[var(--nf-content-secondary)]">
                 Asked to pay into an account, or to move the conversation off
                 Vallo? Say so in the form below and we answer within{" "}
                 <span className="nf-numeric">{RESPONSE_COMMITMENTS.urgent.hours}</span>{" "}
@@ -165,7 +165,7 @@ export default async function ContactPage({
           <div className="grid gap-heading sm:grid-cols-2">
             <div className="nf-panel nf-panel--card block p-card">
               <p className="nf-overline">Careers</p>
-              <p className="mt-inline text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+              <p className="mt-inline text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                 Applications and anything hiring related go through the form
                 above. Put Careers in the topic and it reaches the same queue.
               </p>
@@ -176,7 +176,7 @@ export default async function ContactPage({
                   every one of them to a page marked with an agent's job title.
                   The chooser is the door and it offers all three. */}
               <p className="nf-overline">Listing with us</p>
-              <p className="mt-inline text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+              <p className="mt-inline text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                 Listing a property you own, working as an agent, running a firm,
                 or letting a place by the night? Start at{" "}
                 <Link href={SUPPLY_DOOR_HREF} className="font-semibold text-[var(--nf-content-link)] hover:underline">

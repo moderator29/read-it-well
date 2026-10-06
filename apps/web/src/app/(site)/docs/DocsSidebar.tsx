@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useId, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -28,12 +28,11 @@ import type { DocChapterIndexEntry } from "./chapters";
  */
 export function DocsSidebar({ items }: { items: DocChapterIndexEntry[] }) {
   const pathname = usePathname();
-  const [open, setOpen] = useState(false);
+  /* Open for the path it was opened on: choosing a chapter (or a back
+     gesture) changes the path, which closes it with no effect to do so. */
+  const [openAt, setOpenAt] = useState<string | null>(null);
+  const open = openAt === pathname;
   const panelId = useId();
-
-  useEffect(() => {
-    setOpen(false);
-  }, [pathname]);
 
   const current = items.find((item) => pathname === `/docs/${item.slug}`);
   const onContents = pathname === "/docs";
@@ -50,7 +49,7 @@ export function DocsSidebar({ items }: { items: DocChapterIndexEntry[] }) {
       {!onContents && (
         <button
           type="button"
-          onClick={() => setOpen((was) => !was)}
+          onClick={() => setOpenAt(open ? null : pathname)}
           aria-expanded={open}
           aria-controls={panelId}
           className="nf-tap flex min-h-11 w-full items-center justify-between gap-row rounded-[var(--nf-radius-control)] border border-[var(--nf-btn-glass-edge)] bg-[image:var(--nf-btn-glass-fill)] shadow-[var(--nf-rim-lit)] px-group py-inline text-left lg:hidden"

@@ -103,10 +103,10 @@ export default function SafetyCentrePage() {
         {/* ------------------------------------------------- the one rule */}
         <section className="nf-panel nf-panel--card block mt-section p-card" aria-labelledby="one-rule">
           <span className="nf-overline">The rule that matters most</span>
-          <h2 id="one-rule" className="nf-h2 mt-inline text-[1.375rem]">
+          <h2 id="one-rule" className="nf-h2 mt-inline text-[length:var(--nf-text-h3)]">
             {NO_FEES_LINE}
           </h2>
-          <p className="mt-row text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mt-row text-[length:var(--nf-text-row)] leading-relaxed text-[var(--nf-content-secondary)]">
             We take nothing from your booking and nothing from an agent&apos;s
             earnings. So there is no honest reason for anyone to send you an
             account number, and if somebody does, they are not doing platform
@@ -129,20 +129,20 @@ export default function SafetyCentrePage() {
 
         {/* -------------------------------------- what we never ask you for */}
         <section className="mt-section" aria-labelledby="never-ask">
-          <h2 id="never-ask" className="nf-h2 text-[1.375rem]">
+          <h2 id="never-ask" className="nf-h2 text-[length:var(--nf-text-h3)]">
             What Vallo will never ask you for
           </h2>
-          <p className="mt-inline text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mt-inline text-[length:var(--nf-text-row)] leading-relaxed text-[var(--nf-content-secondary)]">
             Four things. If a message, a call or an email asks you for any of
             them, it is not us, whatever it looks like.
           </p>
           <ul className="mt-group space-y-row">
             {NEVER_ASK.map((item) => (
               <li key={item.title} className="nf-panel nf-panel--card block p-card-sm">
-                <h3 className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
+                <h3 className="text-[length:var(--nf-text-row)] font-semibold text-[var(--nf-content-primary)]">
                   {item.title}
                 </h3>
-                <p className="mt-inline text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+                <p className="mt-inline text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                   {item.body}
                 </p>
               </li>
@@ -152,7 +152,7 @@ export default function SafetyCentrePage() {
 
         {/* -------------------------------------------- how payments work */}
         <section className="mt-section" aria-labelledby="how-payments">
-          <h2 id="how-payments" className="nf-h2 text-[1.375rem]">
+          <h2 id="how-payments" className="nf-h2 text-[length:var(--nf-text-h3)]">
             How paying on Vallo works
           </h2>
           <ol className="mt-group space-y-row">
@@ -161,10 +161,10 @@ export default function SafetyCentrePage() {
                 <span className="nf-overline">
                   Step <span className="nf-numeric">{index + 1}</span>
                 </span>
-                <h3 className="mt-inline-tight text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
+                <h3 className="mt-inline-tight text-[length:var(--nf-text-row)] font-semibold text-[var(--nf-content-primary)]">
                   {step.title}
                 </h3>
-                <p className="mt-inline text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+                <p className="mt-inline text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                   {step.body}
                 </p>
               </li>
@@ -174,10 +174,10 @@ export default function SafetyCentrePage() {
 
         {/* ----------------------------------------- how inspections work */}
         <section className="mt-section" aria-labelledby="how-inspections">
-          <h2 id="how-inspections" className="nf-h2 text-[1.375rem]">
+          <h2 id="how-inspections" className="nf-h2 text-[length:var(--nf-text-h3)]">
             How inspections work
           </h2>
-          <p className="mt-inline text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mt-inline text-[length:var(--nf-text-row)] leading-relaxed text-[var(--nf-content-secondary)]">
             Renting a place you have never seen is how most people lose money in
             this market. The order below is the whole defence on the Property
             side, and it costs nothing.
@@ -188,10 +188,10 @@ export default function SafetyCentrePage() {
                 <span className="nf-overline">
                   Step <span className="nf-numeric">{index + 1}</span>
                 </span>
-                <h3 className="mt-inline-tight text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
+                <h3 className="mt-inline-tight text-[length:var(--nf-text-row)] font-semibold text-[var(--nf-content-primary)]">
                   {step.title}
                 </h3>
-                <p className="mt-inline text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+                <p className="mt-inline text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                   {step.body}
                 </p>
               </li>
@@ -201,13 +201,13 @@ export default function SafetyCentrePage() {
 
         {/* ----------------------------------------------- cancellations */}
         <section className="mt-section" aria-labelledby="cancelling">
-          <h2 id="cancelling" className="nf-h2 text-[1.375rem]">
+          <h2 id="cancelling" className="nf-h2 text-[length:var(--nf-text-h3)]">
             If your plans change
           </h2>
           <div className="mt-group">
             <CancellationTimeline headingLevel="h3" />
           </div>
-          <p className="mt-row text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+          <p className="mt-row text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
             The same schedule is shown on every listing and on your booking,
             against your own dates and your own total.{" "}
             <Link
@@ -222,10 +222,10 @@ export default function SafetyCentrePage() {
 
         {/* --------------------------------------------- how to report */}
         <section className="mt-section" aria-labelledby="how-to-report">
-          <h2 id="how-to-report" className="nf-h2 text-[1.375rem]">
+          <h2 id="how-to-report" className="nf-h2 text-[length:var(--nf-text-h3)]">
             How to report something
           </h2>
-          <p className="mt-inline text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mt-inline text-[length:var(--nf-text-row)] leading-relaxed text-[var(--nf-content-secondary)]">
             Every listing carries a report control, and the contact form reaches
             the same queue. You do not need proof and you will not be charged
             for being wrong. These are the reasons you can choose from, and they
@@ -234,10 +234,10 @@ export default function SafetyCentrePage() {
           <ul className="mt-group space-y-inline">
             {REPORT_CATEGORY_ORDER.map((category) => (
               <li key={category} className="nf-panel nf-panel--card block p-card-sm">
-                <h3 className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
+                <h3 className="text-[length:var(--nf-text-row)] font-semibold text-[var(--nf-content-primary)]">
                   {REPORT_CATEGORY_COPY[category].label}
                 </h3>
-                <p className="mt-inline-tight text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+                <p className="mt-inline-tight text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                   {REPORT_CATEGORY_COPY[category].hint}
                 </p>
               </li>
@@ -246,7 +246,7 @@ export default function SafetyCentrePage() {
 
           <div className="nf-panel nf-panel--card block mt-heading p-card">
             <span className="nf-overline">What happens next</span>
-            <p className="mt-inline text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
+            <p className="mt-inline text-[length:var(--nf-text-row)] leading-relaxed text-[var(--nf-content-secondary)]">
               A report about being asked to pay outside Vallo, or about anything
               unsafe, is answered{" "}
               <span className="font-semibold text-[var(--nf-content-primary)]">
@@ -272,15 +272,15 @@ export default function SafetyCentrePage() {
 
         {/* --------------------------------- if you already paid outside */}
         <section className="mt-section" aria-labelledby="already-paid">
-          <h2 id="already-paid" className="nf-h2 text-[1.375rem]">
+          <h2 id="already-paid" className="nf-h2 text-[length:var(--nf-text-h3)]">
             If you have already paid someone outside Vallo
           </h2>
           <ol className="mt-group space-y-row">
             <li className="nf-panel nf-panel--card block p-card-sm">
-              <h3 className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
+              <h3 className="text-[length:var(--nf-text-row)] font-semibold text-[var(--nf-content-primary)]">
                 Tell your bank today, not tomorrow
               </h3>
-              <p className="mt-inline text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+              <p className="mt-inline text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                 A Nigerian bank can sometimes place a lien on a receiving account
                 if you report a fraudulent transfer quickly. Call your bank first,
                 before anything else, and ask them to raise a dispute on the
@@ -288,10 +288,10 @@ export default function SafetyCentrePage() {
               </p>
             </li>
             <li className="nf-panel nf-panel--card block p-card-sm">
-              <h3 className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
+              <h3 className="text-[length:var(--nf-text-row)] font-semibold text-[var(--nf-content-primary)]">
                 Then report it here
               </h3>
-              <p className="mt-inline text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+              <p className="mt-inline text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                 Send us the listing link, the account details you were given and
                 the messages. We cannot recover money that never came through the
                 platform, and we will not pretend otherwise, but we can remove the
@@ -300,10 +300,10 @@ export default function SafetyCentrePage() {
               </p>
             </li>
             <li className="nf-panel nf-panel--card block p-card-sm">
-              <h3 className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
+              <h3 className="text-[length:var(--nf-text-row)] font-semibold text-[var(--nf-content-primary)]">
                 Keep everything
               </h3>
-              <p className="mt-inline text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+              <p className="mt-inline text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                 Screenshots, the account number, the phone number, the transfer
                 receipt. Do not delete the conversation. If the police or your
                 bank ask, that is the file.
@@ -318,7 +318,7 @@ export default function SafetyCentrePage() {
             <IconPlate size="md" className="shrink-0">
               <UiIcon name="headset" size={20} />
             </IconPlate>
-            <p className="text-[0.9375rem] leading-snug text-[var(--nf-content-secondary)]">
+            <p className="text-[length:var(--nf-text-row)] leading-snug text-[var(--nf-content-secondary)]">
               Not sure whether something is a scam? Ask us before you pay, not
               after.
             </p>

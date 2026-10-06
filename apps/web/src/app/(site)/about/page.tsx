@@ -143,7 +143,7 @@ export default function AboutPage() {
                     <UiIcon name={lineGlyphFor(c.icon)} size={20} />
                   </IconPlate>
                   <span className="font-semibold">{c.title}</span>
-                  <span className="text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+                  <span className="text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
                     {c.body}
                   </span>
                 </div>
@@ -164,7 +164,7 @@ export default function AboutPage() {
                   </IconPlate>
                   <span className="min-w-0">
                     <span className="block font-semibold">{v.title}</span>
-                    <span className="mt-inline-tight block text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+                    <span className="mt-inline-tight block text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                       {v.body}
                     </span>
                   </span>
@@ -178,7 +178,7 @@ export default function AboutPage() {
         <Reveal as="section" className="mt-section">
           <div className="nf-panel nf-panel--card block p-card text-center-lg">
             <h2 className="nf-h2 mx-auto max-w-[22ch]">Come and build this with us</h2>
-            <p className="mx-auto mt-row max-w-[48ch] text-[0.9375rem] text-[var(--nf-content-secondary)]">
+            <p className="mx-auto mt-row max-w-[48ch] text-[length:var(--nf-text-row)] text-[var(--nf-content-secondary)]">
               Whether you are looking for your next place, want to list a property you
               own or manage, want to let a room by the night, or want to join the team,
               there is a place for you here.
