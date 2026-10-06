@@ -21,9 +21,9 @@ import {
 } from "@/lib/saved/places-actions";
 import type { SavePlaceTarget } from "@/components/app/SaveControl";
 import { addLocalSave, readLocalSaves, removeLocalSave, writeLocalSaves } from "@/lib/saved/local";
-import { EmptyActions } from "@/components/app/EmptyActions";
 import { MetaStrip } from "@/components/ui/MetaStrip";
-import { EmptyState, ICON } from "@/components/app/Screen";
+import { ICON } from "@/components/app/Screen";
+import { DiscoveryEmpty } from "@/components/app/search/DiscoveryEmpty";
 import { countOf, formatNumber, intlTag, type Locale } from "@vallo/i18n/core";
 import { CountUp } from "@/components/motion/CountUp";
 import { useClientLocale } from "@/lib/i18n/use-client-locale";
@@ -92,6 +92,7 @@ export function SavedBoard({
   compare,
   copy = { shortlist: "Your shortlist", ready: "Ready to compare" },
   changeCopy,
+  emptyCopy,
 }: {
   items: SavedBoardItem[];
   /** B3: how many saved properties the compare can take as columns. */
@@ -101,6 +102,19 @@ export function SavedBoard({
   copy?: { shortlist: string; ready: string };
   /** B13: the change lines' words; without them no line is drawn. */
   changeCopy?: SavedChangeCopy & { similar: string };
+  /**
+   * The empty shortlist's words (Session 3, W2), from the dictionary. Without
+   * them the board falls back to the English it always drew.
+   */
+  emptyCopy?: {
+    title: string;
+    body: string;
+    hydratingTitle: string;
+    hydratingBody: string;
+    action: string;
+    captureLead: string;
+    capture: string;
+  };
 }) {
   const locale = useClientLocale();
   const router = useRouter();
@@ -279,35 +293,41 @@ export function SavedBoard({
 
   if (items.length === 0 && rendered.length === 0) {
     return (
-      <Reveal>
-        {/* The one platform empty state. Was a `.nf-card` padded to 10 with an
-            80px object: a bordered box drawn around a message whose entire job
-            is to say the box is empty. */}
-        <EmptyState
-          icon="heart-home"
-          title={hydrating ? "Bringing your saves together" : "Nothing saved yet"}
-          body={
-            hydrating
-              ? "Places you hearted on this device are being matched to your account. This takes a moment."
-              /* This said "Tap the heart on any place" about a control the
-                 grid did not have: the heart lived on the detail page, on the
-                 map's dock and nowhere else, so the instruction was true only
-                 for somebody who had already opened a property. The card
-                 carries it now, so the sentence is true, and it says where. */
-              : "Tap the heart on any card and it waits for you here, ready to compare side by side."
-          }
-          action={
-            <EmptyActions primary={{ label: "Find a place", href: "/search" }} />
-          }
-          /* CLEARANCE FOR THE FLOATING DOCK. `/saved` is a tab-bar route and
-             this is the whole page, so without it the action lands underneath
-             the navigation. Same clearance as `/search`, and the same note:
-             this belongs in the empty state itself, which is not this file's
-             to change. */
-          className="pb-4xl"
-          data-testid="saved-empty"
-        />
-      </Reveal>
+      /*
+       * THE EMPTY SHORTLIST (Stage 5: empty states are the current product).
+       * The house with a heart settles in (Tier B, a symbol of a kept place),
+       * the reason says where the heart is, the one action goes to the
+       * shelves, and the want is captured another way: a saved search tells
+       * the person the minute a match goes live, which is the shortlist's
+       * other half and one tap away.
+       *
+       * CLEARANCE FOR THE FLOATING DOCK (`pb-4xl`): `/saved` is a tab-bar route
+       * and this is the whole page, so the action must not land underneath
+       * the navigation.
+       */
+      <DiscoveryEmpty
+        className="pb-4xl"
+        data-testid="saved-empty"
+        object="house-heart"
+        title={hydrating ? (emptyCopy?.hydratingTitle ?? "Bringing your saves together") : (emptyCopy?.title ?? "Nothing saved yet")}
+        body={
+          hydrating
+            ? (emptyCopy?.hydratingBody ??
+              "Places you hearted on this device are being matched to your account. This takes a moment.")
+            : (emptyCopy?.body ?? "Tap the heart on any card and it waits for you here, ready to compare side by side.")
+        }
+        primary={{ label: emptyCopy?.action ?? "Find a place", href: "/search" }}
+        capture={
+          emptyCopy ? (
+            <p>
+              {emptyCopy.captureLead}
+              <Link href="/saved/searches" className="nf-dempty__capture-link nf-link-quiet">
+                {emptyCopy.capture}
+              </Link>
+            </p>
+          ) : undefined
+        }
+      />
     );
   }
 

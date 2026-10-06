@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PageHeader } from "@/components/app/PageHeader";
 import { PageScene } from "@/components/app/PageScene";
-import { EmptyState } from "@/components/app/Screen";
-import { EmptyActions } from "@/components/app/EmptyActions";
+import { DiscoveryEmpty } from "@/components/app/search/DiscoveryEmpty";
 import { Unreachable } from "@/components/app/Unreachable";
 import { Reveal } from "@/components/site/Reveal";
 import { SavedSearchBoard } from "@/components/app/saved-searches/SavedSearchBoard";
@@ -51,6 +50,7 @@ export default async function SavedSearchesPage({
   const locale = await getLocale();
   const state = await listSavedSearches();
   const t = getDictionary(locale);
+  const sv = t.experienceDiscover.saved;
 
   /* V-95: the renter's briefs, the answers' titles, and a draft when they
      came from a search that found nothing (`?brief=1` plus its filters). */
@@ -86,45 +86,37 @@ export default async function SavedSearchesPage({
           />
         </Reveal>
       ) : state.state === "signed-out" ? (
-        <Reveal>
-          <EmptyState
-            icon="search-ring"
-            title="Sign in to keep a search"
-            body="A saved search belongs to an account, so it can follow you between your phone and your laptop and so nobody else can see what you are looking for."
-            action={
-              <EmptyActions
-                primary={{ label: "Sign in", href: "/sign-in" }}
-                secondary={{
-                  label: "Browse without an account",
-                  href: "/search",
-                }}
-              />
-            }
-            data-testid="saved-searches-signed-out"
-          />
-        </Reveal>
+        /* Stage 5 (Session 3, W2): the object settles, the reason is the
+           true one (a search belongs to an account), and both ways onward
+           are offered, the second as a quiet link. */
+        <DiscoveryEmpty
+          data-testid="saved-searches-signed-out"
+          object="search-pin"
+          title={sv.searchesSignedOutTitle}
+          body={sv.searchesSignedOutBody}
+          primary={{ label: sv.searchesSignIn, href: "/sign-in?next=%2Fsaved%2Fsearches" }}
+          secondary={
+            <Link href="/search" className="nf-tap nf-link-quiet nf-body inline-flex min-h-11 items-center text-[var(--nf-content-link)]">
+              {sv.searchesBrowse}
+            </Link>
+          }
+        />
       ) : state.searches.length === 0 ? (
-        <Reveal>
-          <EmptyState
-            icon="search-ring"
-            title="Keep a search and we will watch it"
-            body="Filter the results down to the place you actually want, then save that search. It waits here under the name you give it, and we tell you when something new fits it."
-            action={
-              <EmptyActions
-                primary={{ label: "Start a search", href: "/search" }}
-              />
-            }
-            secondary={
-              <Link
-                href="/saved"
-                className="nf-tap nf-link-quiet nf-body text-[var(--nf-content-link)]"
-              >
-                Your saved places
-              </Link>
-            }
-            data-testid="saved-searches-empty"
-          />
-        </Reveal>
+        /* The main state, written as one: what a saved search is FOR, and the
+           one place the control exists. A brief, the other way to say what
+           you need, sits in its own section below. */
+        <DiscoveryEmpty
+          data-testid="saved-searches-empty"
+          object="search-pin"
+          title={sv.searchesEmptyTitle}
+          body={sv.searchesEmptyBody}
+          primary={{ label: sv.searchesStart, href: "/search" }}
+          secondary={
+            <Link href="/saved" className="nf-tap nf-link-quiet nf-body inline-flex min-h-11 items-center text-[var(--nf-content-link)]">
+              {sv.searchesPlaces}
+            </Link>
+          }
+        />
       ) : (
         <Reveal>
           <SavedSearchBoard initial={state.searches} locale={locale} />

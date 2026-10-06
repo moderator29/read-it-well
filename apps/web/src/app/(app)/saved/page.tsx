@@ -181,6 +181,15 @@ export default async function SavedPage() {
         comparable={compare.columns.length}
         copy={{ shortlist: cc.shortlist, ready: cc.ready }}
         changeCopy={t.catalogue.savedChanges}
+        emptyCopy={{
+          title: t.experienceDiscover.saved.emptyTitle,
+          body: t.experienceDiscover.saved.emptyBody,
+          hydratingTitle: t.experienceDiscover.saved.hydratingTitle,
+          hydratingBody: t.experienceDiscover.saved.hydratingBody,
+          action: t.experienceDiscover.saved.emptyAction,
+          captureLead: t.experienceDiscover.saved.captureLead,
+          capture: t.experienceDiscover.saved.capture,
+        }}
         compare={
           <SavedCompare
             table={compare}
@@ -188,15 +197,14 @@ export default async function SavedPage() {
               open: cc.open,
               openLabel: cc.openLabel,
               title: cc.title,
-              pick: cc.pick,
-              pickLimit: cc.pickLimit,
+              pick: t.experienceDiscover.saved.pickTwo,
+              pickLimit: t.experienceDiscover.saved.pickSwap,
               tooFew: cc.tooFew,
               notStated: cc.notStated,
-              lowest: cc.lowest,
               view: cc.view,
               close: cc.close,
-              example: t.catalogue.card.example,
               verified: t.common.verified,
+              lower: t.experienceDiscover.saved.lower,
             }}
           />
         }
