@@ -47,6 +47,27 @@ const entry = `
   );
 `;
 
+/* The listing review's cost block, in both of its states: with the parts
+   the listing stated, and with only a headline price. */
+const moneyEntry = `
+  import { getDictionary } from "@vallo/i18n";
+  import { MoneyBlock } from "@/app/admin/listings/[id]/ListingReview";
+  import { mount } from "@/lib/testing/browser-root";
+  const t = getDictionary("en");
+  const keepers = { moveIn: t.moveIn, purchase: t.purchase, payee: null };
+  const parts = [
+    { key: "rent", label: "A rent slot", minor: 100 },
+    { key: "agency", label: "An agency slot", minor: 50 },
+  ];
+  const base = { priceMinor: 100, purchase: null };
+  mount(
+    <div style={{ width: 360, padding: 16 }}>
+      <div data-case="parts"><MoneyBlock listing={{ ...base, intent: "rent", moveIn: { parts, totalMinor: 150, totalStated: false } }} locale="en" keepers={keepers} /></div>
+      <div data-case="headline"><MoneyBlock listing={{ ...base, intent: "rent", moveIn: null }} locale="en" keepers={keepers} /></div>
+    </div>,
+  );
+`;
+
 describe.skipIf(!hasBrowser && !process.env.CI)("the console's detail sections", () => {
   it("never put a list inside a definition list, and axe finds nothing", async () => {
     const { page, close } = await mountInBrowser({ entry, css: productCss() });
@@ -59,6 +80,36 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the console's detail sections",
       expect(shape.listsInDl).toBe(0);
       expect(shape.sectionChildren).toEqual(["DIV", "DIV", "DIV"]);
       expect(shape.rows).toEqual([["DT", "DD"], ["DT", "DD"], ["DT", "DD"]]);
+      expect(await axeViolations(page)).toEqual([]);
+    } finally {
+      await close();
+    }
+  });
+
+  it("holds the listing review's cost block as a valid list, its note outside the list, with the layout unchanged", async () => {
+    const { page, close } = await mountInBrowser({ entry: moneyEntry, css: productCss("app/admin/_review/review.css") });
+    try {
+      const shape = await page.evaluate(() =>
+        [...document.querySelectorAll("[data-case]")].map((box) => {
+          const dl = box.querySelector("dl.nf-rv-money")!;
+          const note = box.querySelector(".nf-rv-panel__note")!;
+          const dlBox = dl.getBoundingClientRect();
+          const noteBox = note.getBoundingClientRect();
+          return {
+            case: box.getAttribute("data-case"),
+            dlChildren: [...dl.children].map((child) => child.tagName),
+            noteInDl: dl.contains(note),
+            groups: [...dl.children].map((group) => [...group.children].map((child) => child.tagName)),
+            noteJustBelow: Math.abs(noteBox.top - dlBox.bottom) <= 1,
+          };
+        }),
+      );
+      expect(shape.map((row) => row.dlChildren.every((tag) => tag === "DIV"))).toEqual([true, true]);
+      expect(shape.map((row) => row.noteInDl)).toEqual([false, false]);
+      expect(shape[0]!.groups).toEqual([["DT", "DD"], ["DT", "DD"], ["DT", "DD"]]);
+      expect(shape[1]!.groups).toEqual([["DT", "DD"]]);
+      /* The note still sits directly under the last row, as it did inside the grid. */
+      expect(shape.map((row) => row.noteJustBelow)).toEqual([true, true]);
       expect(await axeViolations(page)).toEqual([]);
     } finally {
       await close();

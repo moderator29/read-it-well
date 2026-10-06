@@ -535,7 +535,7 @@ function LocationMap({
   );
 }
 
-function MoneyBlock({
+export function MoneyBlock({
   listing,
   locale,
   keepers,
@@ -546,38 +546,44 @@ function MoneyBlock({
 }) {
   const block = listing.intent === "sale" ? listing.purchase : listing.moveIn;
   if (!block) {
+    /* The note is a paragraph, which a `dl` cannot hold: it sits under the
+       list in a plain wrapper, with no gap, exactly where it was in the grid. */
     return (
-      <dl className="nf-rv-money">
-        <div className="nf-rv-money__total">
-          <dt>{listing.intent === "sale" ? "Asking price" : "Headline price"}</dt>
-          <dd>{formatMoney(listing.priceMinor, locale)}</dd>
-        </div>
+      <div>
+        <dl className="nf-rv-money">
+          <div className="nf-rv-money__total">
+            <dt>{listing.intent === "sale" ? "Asking price" : "Headline price"}</dt>
+            <dd>{formatMoney(listing.priceMinor, locale)}</dd>
+          </div>
+        </dl>
         <p className="nf-rv-panel__note">The lister stated no other costs.</p>
-      </dl>
+      </div>
     );
   }
   return (
-    <dl className="nf-rv-money">
-      {block.parts.map((part) => {
-        const keeper = part.minor > 0 ? keeperFor(listing.intent, part.key, keepers) : null;
-        return (
-          <div key={part.key}>
-            <dt>
-              {part.label}
-              {keeper ? <span className="nf-rv-keeper">{keeper}</span> : null}
-            </dt>
-            <dd>{formatMoney(part.minor, locale)}</dd>
-          </div>
-        );
-      })}
-      <div className="nf-rv-money__total">
-        <dt>{listing.intent === "sale" ? "Total to buy" : "Total to move in"}</dt>
-        <dd>{formatMoney(block.totalMinor, locale)}</dd>
-      </div>
+    <div>
+      <dl className="nf-rv-money">
+        {block.parts.map((part) => {
+          const keeper = part.minor > 0 ? keeperFor(listing.intent, part.key, keepers) : null;
+          return (
+            <div key={part.key}>
+              <dt>
+                {part.label}
+                {keeper ? <span className="nf-rv-keeper">{keeper}</span> : null}
+              </dt>
+              <dd>{formatMoney(part.minor, locale)}</dd>
+            </div>
+          );
+        })}
+        <div className="nf-rv-money__total">
+          <dt>{listing.intent === "sale" ? "Total to buy" : "Total to move in"}</dt>
+          <dd>{formatMoney(block.totalMinor, locale)}</dd>
+        </div>
+      </dl>
       <p className="nf-rv-panel__note">
         {block.totalStated ? "Total as the lister stated it." : "Total summed from the parts."}
       </p>
-    </dl>
+    </div>
   );
 }
 
