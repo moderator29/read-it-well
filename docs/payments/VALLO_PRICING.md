@@ -79,9 +79,14 @@ because it is remitted to FIRS and was never Vallo's money.
 | Vallo | **2%** |
 | **Total** | **4%**, borne by the lister |
 
-Payluk's `whoPays` field takes `buyer`, `seller` or `both`. **The founder has not
-yet chosen.** Until he does, the rail cannot open, because the field is required
-at escrow creation.
+Payluk's `whoPays` field takes `buyer`, `seller` or `both`. **It is `seller`**, set
+in Payluk's merchant dashboard, and section 6 gives the reasoning.
+
+> **Corrected on 6 October.** This passage used to say the founder had not yet chosen
+> and that the rail could not open until he did, which **contradicted section 6 of this
+> same document**, where the decision is recorded. Session 3 found the contradiction
+> while building the fee screen. **The decision was made; this paragraph was stale.**
+> There is one answer and it is the same on both rails: **the lister bears the fee, always.**
 
 **Direct rail** (hotels, restaurants): Paystack's own fee, which **caps at 2,000
 naira**, plus Vallo's 2 percent. **No provider takes a percentage here, so Vallo
