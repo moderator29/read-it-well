@@ -30,9 +30,8 @@ type Step = "current" | "enter" | "confirm";
  *
  * The code is typed twice. A trivial code (a repeat, a run, the birth year) is
  * refused here before it is sent and again by the database, which is the
- * authority. The default length is `DEFAULT_PASSCODE_LENGTH` (business
- * config in `lib/passcode/rules.ts`; directive D18 moves it to four), and the
- * other length is one visible tap away whichever it is.
+ * authority. Four digits by default (D18, `DEFAULT_PASSCODE_LENGTH` in
+ * `lib/passcode/rules.ts`); one tap switches to six.
  *
  * The screen is the rebuilt frame (`PasscodeFrame`): the mark, the step's
  * title, and the dots as the subject; a refused code shakes and clears the

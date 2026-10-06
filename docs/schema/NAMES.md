@@ -16,7 +16,7 @@ Some schema names say something other than what the column or table holds. Renam
 
 **Track A, 25 September 2026: Vallo never holds customer money.** There is no wallet, no balance, no escrow and no held payment. Every charge is split by Paystack at the moment of payment: the lister's share to their own subaccount, the Guarantee contribution to the reserve's subaccount, and Vallo's commission (zero today) to the main account. The tables below record those movements; none of them is a balance somebody holds with Vallo, except the Guarantee reserve, which is Vallo's own ring-fenced reserve.
 
-The custody tables (`wallets`, `wallet_entries`, `wallet_pots`, `escrows`, `escrow_evidence`, `escrow_rulings`, `escrow_float_snapshots`) are retired. On live they are unreachable: every app role's grants on them and on their functions are revoked (`20260925130904_track_a_custody_unreachable_from_every_app_role.sql`), and the rent-to-wallet trigger is disabled (`20260925130806_…`). The migration that moves them into a `retired_custody` schema with no grants is in `supabase/migrations/pending/` for the founder to apply. They are not in `database.types.ts`, so no app code can name them.
+The custody tables (`wallets`, `wallet_entries`, `wallet_pots`, `escrows`, `escrow_evidence`, `escrow_rulings`, `escrow_float_snapshots`) are retired. On live they are unreachable: every app role's grants on them and on their functions are revoked (`20260925130904_track_a_custody_unreachable_from_every_app_role.sql`), and the rent-to-wallet trigger is disabled (`20260925130806_…`). They were then moved into the `retired_custody` schema with no grants (`20260925163708_track_a1_vallo_never_holds_customer_money_custody_retired.sql`, applied, verified against live 6 October). They are not in `database.types.ts`, so no app code can name them.
 
 | Table | Authoritative for | Written by |
 |---|---|---|
@@ -28,6 +28,17 @@ The custody tables (`wallets`, `wallet_entries`, `wallet_pots`, `escrows`, `escr
 | `deal_agreements` | **what both parties committed to, and whether payment may open**: the terms version, both confirmations, Vallo's decision and reason, and `paid` once settled. | `agreement_open_rent_as`, `agreement_amend_as`, `agreement_confirm_as`, `agreement_cancel_as`, `admin_decide_agreement`, `settle_booking_charge`, `expire_booking_holds` |
 | `guarantee_reserve_entries` | **the Vallo Guarantee reserve**, append-only: contributions in from each settled charge, approved claims out. Its sum is the reserve balance. | `settle_booking_charge`, `admin_decide_guarantee_claim` |
 | `guarantee_claims` | each claim on the Guarantee, capped by what was paid and by the reserve. | `guarantee_claim_file_as`, `admin_decide_guarantee_claim`, `admin_mark_guarantee_claim_paid` |
+| `rent_payment_contributors` | each person sharing a rent charge and the share they owe. | `add_rent_contributor`, `remove_rent_contributor` |
+| `rent_share_refunds` | a refund owed to a contributor whose share was paid but not used, and where it stands. | `record_rent_share_refund`, `claim_rent_share_refund`, `record_processor_refund_outcome`, `rent_split_cancel` |
+| `caution_obligations` | the caution a lister holds for a tenancy and when it is due back. | `open_tenancy_records` |
+| `caution_deductions` | each deduction a lister proposes from the caution, and the renter's answer. | `propose_caution_deduction` |
+| `caution_returns` | what the lister says they paid back of the caution. | `record_caution_return` |
+| `caution_dispute_rulings` | Vallo's ruling on a contested caution deduction or return. | `admin_rule_caution_dispute` |
+| `crypto_payments` | each crypto payment attempt against a booking and its status. | `crypto_open_attempt`, `crypto_payment_apply` |
+| `crypto_aml_records` | the anti-money-laundering record kept for each settled crypto payment. | `crypto_payment_apply` |
+| `aml_ledger_observations` | each money movement as the AML monitor saw it, append-only. | `aml_observe` |
+| `threshold_events` | each movement, or linked set, that crossed a SCUML reporting threshold. | `aml_observe` |
+| `edd_reviews` | enhanced due diligence opened on a person, with the amount that set it off. | `edd_gate`, `risk_open_edd`, `flag_pep` |
 | `platform_revenue` | commission booked by the retired escrow flow. Historical only; nothing writes it now. | nothing since Track A |
 
 How a rent payment settles now:

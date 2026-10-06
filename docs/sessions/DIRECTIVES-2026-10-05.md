@@ -805,6 +805,1673 @@ committed and pushed as it is done, cleanly, without sessions conflicting.
 | Session 4's "needs from the founder first" on the live reserve subaccount | D38 |
 | Session 3's decision not to add framer-motion in this pass | D39 |
 | D39 section 4's single owner for the lockfile | D46 |
+| Reading a cancelled check as anything other than "did not run" | D47 |
+| Treating retired custody language as a naming tidy-up | D48 |
+| **D39's LazyMotion requirement** | **D49: it is dead weight here and comes out** |
+| **D48's reading that no balance may ever exist** | **D50: a balance held by a licensed provider may be presented, under four conditions** |
+| **The Vallo Guarantee at 1 to 2 percent** | **D51: retired to zero, machinery kept** |
+| **D51's claim that zeroing the rate is a row and lifts the blocker** | **D52: false on three counts, corrected** |
+| Any reading that a defect predating a session is nobody's | D53 |
+| **Any reading that db-06's red is branch-local** | **D54: it reads production, so it is red everywhere until the allowlist row lands** |
+| Chasing the production dependency advisory inside a feature branch | D55 |
+| **D55's assignment of the lockfile bump to Session 3** | **D55 itself, amended: Session 1 landed it on PR #86 to get that PR green** |
+| **Any probe recorded as "pending" on an applied migration** | **D56: a check that did not run is a check that failed** |
+| **Session 1's "nothing else is hiding behind the red"** | **D57: false. A third failure was hiding in a cancelled job** |
+| Any plan for referral payouts that opens before the detectors exist | D58 |
+| **D54's assignment of the db-06 row to Session 2** | **D59: Session 1 took it after two hours of no movement** |
+| **Any reading that paid promotion was removed** | **D60: D3 built it on 5 October; the gap was the tier detail, now written** |
+| **The flat "keeps 96 percent" on the fee screen** | **D61: wrong, rail dependent, and Session 1 wrote it. A range now** |
+| **D58 on the referral engine, and Session 1's "apply it" on b4_referral_rewards_engine** | **D62: architecture locked by the founder; hold the migration until campaigns are in it** |
+| **D62's hold on b4_referral_rewards_engine** | **D63: wrong on both reasons. Apply it. Only the payout path waits, on the budget cap** |
+| **"Qualification refuses past the cap with a named reason"** | **D64: it pauses instead, and the cap is 700,000 naira a month** |
+| Suspecting your own diff when Advisories goes red | D65: check the package name first, it is usually a new advisory |
+| **D64's silence on when a pause ends** | **D66: a paused reward releases against the month it is released in, oldest first** |
+
+---
+
+## D66. Session 4's cap review found a hole in D64 that would have left people unpaid, and it is Session 1's
+
+**Session 4 pre-reviewed D64's three rules against the unapplied referral migration at Session
+2's head `257eb1e1f`, tracing the code rather than trusting the comments that assert it. The
+work is correct and three of its findings change what gets built.**
+
+### The one that matters most, and it is a defect in D64 itself
+
+> **"A paused reward never resumes. `month` is written once and the cap always sums spend for
+> that month, so a reward paused in an exhausted month measures against the exhausted budget
+> for ever and needs a hand override."**
+
+**That is a hole in Session 1's design, not in Session 2's code.** D64 said a pause "never
+reaches backwards" and that it "is recoverable by raising the cap". **It never said what
+happens to a paused reward when the next month begins**, and the implementation did the
+reasonable thing with an underspecified rule: it pinned the reward to the month it qualified
+in. The consequence is that a reward paused in a full month is measured against that month's
+exhausted budget for ever.
+
+**So D64, written specifically to stop Vallo breaking a promise to somebody who earned a
+reward, would have produced exactly that**: rewards that are never refused and never paid,
+which is worse than a refusal because nobody is ever told. The irony is the point, and the
+lesson is that **"it pauses rather than refuses" is only true if the pause has a defined end.**
+
+**The rule, now stated:**
+
+> **A paused reward is measured against the budget of the month in which it is being released,
+> never the month it qualified in. When a new month opens with a fresh budget, rewards paused
+> earlier become eligible again, oldest first.**
+
+**Oldest first is load-bearing.** Without it the backlog never clears, because new rewards keep
+arriving and would compete with it every month. A paused reward from two months ago has
+priority over one qualified this morning. And the member surface shows a paused reward as
+waiting for the next month, with a date, not as an indefinite hold.
+
+### The seeded figure contradicts the founder
+
+**The migration seeds 100000000 minor, which is 1,000,000 naira. D64 sets 700,000.** Correct it
+to `70000000` minor before the migration is applied. A seeded default that disagrees with the
+decision is the kind of thing that survives for months because everything appears to work.
+
+### Rule 3 fails, and it is the one the founder cares about
+
+> **"`my_rewards_summary` exposes no budget and no pause flag, `my_referrals` omits
+> `review_reason`, and select on `referrals` is service_role only. A budget pause is
+> byte-identical to a fraud hold on the member's screen."**
+
+**That is the lying by omission D64 named, already present in the code.** A member whose
+reward is waiting because Vallo ran out of monthly budget sees exactly what a member suspected
+of fraud sees. The first is Vallo's own limit and should say so plainly; the second is a
+review and should say that instead.
+
+**So:** `my_rewards_summary` gains a pause state and the date it is expected to lift;
+`my_referrals` surfaces enough of a reason to distinguish the two cases; and **the two cases
+must never render identically.** Session 2 for the reads, Session 3 for the surface.
+
+### Rule 1: accepted, by a different mechanism than D64 prescribed
+
+D64 required the cap "checked before accrual, in the same statement that writes it". **The
+migration closes the race differently**: the write is unconditional, the cap is read after it,
+and what actually prevents double spending is a transaction-scoped
+`pg_try_advisory_xact_lock` on the month key, taken before the write and held to commit, so the
+second qualification cannot read the budget until the first has committed.
+
+**That satisfies the requirement and Session 1 accepts it.** The directive specified a shape
+when it should have specified the property: **two qualifications racing for the last of the
+budget must not both succeed.** The lock achieves it.
+
+**One condition, from Session 4's own caveat:** the check is only correct under `READ
+COMMITTED`, which Supabase defaults to and **the migration does not state.** Assert it or
+document it in the migration, because a silent dependency on an isolation level is exactly the
+kind of assumption that breaks when somebody later wraps a caller in a stricter transaction.
+
+### Rule 2 passes
+
+The cap function mutates nothing, `referral_release_due` does not recheck it, and the only
+route from approved back to under review needs a staff decision and a reason. Nothing further.
+
+### Two notes from the same review, carried rather than acted on
+
+**The b2-ledger probe has now failed a third cancelled apply** and remains invisible to CI,
+correctly recorded under the standing rule as a failed check rather than a pending one. **The
+route past it is still the one in the #84 comment: move the probe into
+`supabase/tests/probes/` and let CI be its first runner**, because CI uses psql and
+`DATABASE_URL` with no tool boundary and no sixty second limit. A fourth cancelled apply will
+tell nobody anything new.
+
+**The referral engine's application code is already on Session 2's branch while the migration
+is unapplied.** Not dangerous, since the calls would error rather than do something wrong, but
+worth knowing: **nothing in that code path should be reachable from a member surface until the
+migration lands.**
+
+---
+
+## D65. A new advisory landed mid-afternoon and it is nobody's change: the pattern, and how to handle the next one
+
+**At 15:14 the Advisories check went red on PR #86 after two documentation-only pushes.** No
+code changed, no dependency was touched, and the failure was real:
+
+```
+sharp  <0.35.5
+Severity: high
+sharp: Vulnerability in librsvg dependency CVE-2026-96889
+       GHSA-wq5f-xc86-pv6w
+```
+
+**A different package from the morning's `source-map-js`, and a CVE published while the
+session was working.** `npm audit` queries the live advisory database rather than anything in
+the repository, so **a newly published advisory turns the check red on every branch
+simultaneously, with nobody having done anything.** That is the second time in one day the
+Advisories job has gone red for a reason no diff explains, and it will not be the last.
+
+### The handling rule, so nobody loses an hour to it again
+
+**Red Advisories after a push that touched no dependency is almost always a new advisory, not
+your change.** Check it in this order, and it takes two minutes:
+
+1. **Read the package name.** If it is not something the push went near, stop suspecting the
+   push.
+2. **Check whether a patched version satisfies the existing range.** If it does, the whole fix
+   is a lockfile bump and no `package.json` changes.
+3. **Check whether it is red on the base branch too.** If it is, it is not that pull request's
+   failure, though somebody still has to fix it.
+
+**Do not reach for the diff first.** Session 1 spent real time this morning suspecting its own
+lockfile change for a Vercel failure that turned out to be transient, which is the same
+mistake in a different costume: **assuming the most recent change is the cause because it is
+the most recent.**
+
+### What was done, and the verification that matters for a native package
+
+`sharp@0.35.5` satisfies the existing `^0.35.4`, so it is a lockfile bump. **A native package
+deserves more care than a parser did**, so:
+
+- `npm audit fix --omit=dev --package-lock-only` changed **nothing but `sharp`, its platform
+  binaries and the `libvips` natives they wrap** (1.3.3 to 1.3.4, which carries the librsvg
+  fix). Added none, removed none, verified by comparing the parsed lockfile before and after.
+- **The native module actually loads:** `require("sharp").versions.vips` reports 8.18.7. For a
+  compiled dependency that check matters more than the audit does, because a lockfile can be
+  perfectly valid while the binary fails to load on the platform.
+- `npm run build` passes, which is the meaningful test: Next.js uses `sharp` for image
+  optimisation at build time.
+- Typecheck and lint pass, audit exits 0.
+
+**One honest note on the first attempt at that check.** Session 1 first ran
+`require("sharp/package.json")`, which threw `ERR_PACKAGE_PATH_NOT_EXPORTED` because `sharp`
+does not export that path. **That was the probe being wrong, not `sharp` being broken**, and
+it is recorded because a thrown error in a verification step is exactly the kind of thing that
+gets misreported as a finding.
+
+### Who fixes it on the other branches
+
+**It is red everywhere right now.** Session 2's and Session 4's branches carry the morning's
+`source-map-js` pin but not this one; Session 3 carries neither. **Nobody should chase it
+separately.** It arrives with main once #86 lands, and each session picks it up in the merge
+they are already going to do. **If a session sees Advisories red on `sharp` before that merge,
+the correct response is to note it as main's and carry on.**
+
+---
+
+## D64. The platform budget cap is 700,000 naira a month, and it pauses rather than refuses
+
+**Decided by the founder on 6 October.** The referral programme's platform-wide ceiling is
+**700,000 naira a month**, one row, enforced server-side before any reward may accrue. Detail
+in `docs/referral/REFERRAL_ARCHITECTURE.md` section 10.
+
+### Why it exists, in one table
+
+The per-member cap limits one person to 1,500 qualified referrals a month. **Vallo's exposure
+is the member count multiplied by that cap**, and the per-member cap is satisfied in every row:
+
+| Members at the ceiling | Consumer campaign, 76 naira | Supply campaign, 300 naira |
+|---|---|---|
+| 10 | 1.14m naira | 4.5m naira |
+| 100 | 11.4m naira | 45m naira |
+| 1,000 | **114m naira** | **450m naira** |
+
+**Nobody broke a rule in the bottom row.** That is the hole the budget cap closes, and it is
+why the per-member cap was never protection. At 700,000 naira with a 76 naira reward the cap
+is roughly **9,200 qualified referrals a month**, which is a great deal of genuine growth
+before anything pauses.
+
+### The correction: it pauses, it does not refuse
+
+**`REFERRAL_ADMIN_CENTRE.md` said qualification "refuses past the cap with a named reason".
+That was wrong.** Refusing is a broken promise: somebody invited a real person who really
+qualified, and Vallo would be telling them no because other referrers reached the cap first.
+**That is the worst possible way to spend a reputation, and it would be spent on the people
+doing exactly what Vallo asked of them.**
+
+- **At 75 percent of the cap, an alert fires**, so the founder sees it coming with time to
+  raise the cap or wind the campaign down deliberately.
+- **At 100 percent, new qualification pauses, visibly**, and the member surface says so in
+  plain words.
+- **Everything already qualified is honoured and paid in full.**
+
+**Pausing is honest and refusing is not.** A pause stops people inviting friends under a
+promise Vallo cannot fund, which is the actual harm. It is recoverable by raising the cap; a
+refusal cannot be taken back.
+
+### Three rules this puts on the engine
+
+1. **The cap is checked before accrual, in the same statement that writes it**, so two
+   qualifications racing for the last of the budget cannot both succeed.
+2. **A pause never reaches backwards.** It changes what happens next and never touches a
+   reward that has already qualified.
+3. **The pause is visible to members, not silent.** A rewards surface still inviting people
+   while the programme is paused is lying by omission.
+
+**And D63's gate still stands:** no payout path goes live until this cap exists and is
+enforced server-side.
+
+---
+
+## D63. Apply the referral migration after all, and nobody was ever told to switch phone verification off
+
+**Two corrections, both prompted by the founder challenging D62 on 6 October. He was right on
+one and the other was a misreading worth clearing up precisely.**
+
+### Nobody told Session 2 to switch phone verification off, and Termii is already built
+
+D62 and the architecture document said **"phone verification is built and switched off pending
+an SMS provider"**. That is a **report of the current state**, taken from the feature register's
+own D4 row, not an instruction to anybody. **No session has been told to disable anything**, and
+Session 1 would have no business telling them to.
+
+**And the provider was never an open question: Termii is already chosen and already built.**
+Measured in the tree rather than assumed:
+
+- `apps/web/src/lib/auth/phone-sign-in.ts`, `phone-sign-in-flag.ts`, and the Supabase send hook
+  at `apps/web/src/app/api/auth/sms-hook/route.ts`.
+- The transport sends **WhatsApp first when `TERMII_WHATSAPP_ENABLED=true`, then Termii's DND
+  route so MTN and Airtel numbers on do-not-disturb still receive codes.** That DND detail is
+  the part most integrations get wrong in this market, and it is already handled.
+- **One switch closes or opens every part at once:** `PHONE_SIGNIN_ENABLED`. The door, the
+  actions and the hook all read it.
+
+**So there is nothing for a session to build here.** The eight remaining steps are in
+`docs/PHONE_SIGNIN.md` and every one is founder-side: the Termii account and KYC, an approved
+sender ID, the optional WhatsApp template, a cost ceiling per code, the Supabase dashboard
+settings, the Vercel variables (`TERMII_API_KEY`, `TERMII_SENDER_ID`,
+`TERMII_WHATSAPP_ENABLED`, then `PHONE_SIGNIN_ENABLED=true` **last**, after a test code has
+actually arrived), the privacy notice naming Termii as a recipient of phone numbers, and a test
+on a real MTN and a real Airtel number with one on DND.
+
+**What Session 2 should do:** read that document, confirm every step still matches the code, and
+fix anything stale. **Not rebuild what exists.**
+
+### Apply the referral migration. D62's hold was wrong on both of its reasons
+
+**Reason one is dead.** D62 argued nothing is lost by waiting, because nothing can qualify
+until an SMS provider exists. **The founder is obtaining the Termii key now.** Qualification is
+days away. And "there is no hurry" was a weak argument even while it was true: it justifies
+delay without demonstrating any benefit from it.
+
+**Reason two was overstated, and that is the more useful admission.** D62 called adding
+campaigns later **"restructuring the spine in a money area after rows exist"**. It is not a
+restructure. A `referral_campaigns` table, a `referral_budget_periods` table and a nullable
+`campaign_id` on `referrals` are **additive DDL**, and with zero rows in every referral table
+the extension costs one ordinary migration. **Session 1 reached for the strongest available
+word rather than the accurate one, and a directive built on an inflated word is a directive
+that stops real work for no return.**
+
+**So: apply `b4_referral_rewards_engine.sql`.** It carries risk scoring, reversal, cluster and
+velocity work, and it has had two review passes. **Applying schema pays nobody**: the payout
+path needs application code that does not exist yet.
+
+### The one line that does not move
+
+> **No payout path goes live until the platform budget cap exists and is enforced
+> server-side.**
+
+This is not caution about schema. The moment `PHONE_SIGNIN_ENABLED` is true, referrals can
+qualify, and **without a platform cap one viral moment creates a debt Vallo has not agreed to
+and cannot fund.** The per-member cap does not protect against it, because the exposure is the
+member count multiplied by the cap.
+
+**Order:** apply now; the next migration adds campaigns, the budget period with its cap in
+naira, the requirement registry and the review window. **Qualification may run before campaigns
+exist, defaulting to the launch policy. Payout may not run before the cap does.**
+
+---
+
+## D62. The referral engine's architecture is locked, and the pending migration must not be applied yet
+
+**The founder locked the referral architecture on 6 October.** It is
+**`docs/referral/REFERRAL_ARCHITECTURE.md`**, and it **supersedes D58 and
+`REFERRAL_ADMIN_CENTRE.md` wherever they differ.** The admin screens and detectors in that
+earlier document still stand; the engine, lifecycle and configuration model now come from here.
+
+**The rule everything serves, in the founder's words:** *Vallo rewards genuine network growth,
+not account creation.*
+
+### The refinement that resolves three open questions at once
+
+**No reward amount, threshold, window or cap is a product rule. All of them are campaign
+configuration.** D51 set the reward at 70 naira and the founder's latest note says 76; an
+earlier instruction set the withdrawal minimum at 1,000 naira and the latest mentions 80.
+**None of those need settling before implementation any more**, because each is a row in a
+campaign rather than a constant in code.
+
+**What may never be configuration:** append-only accounting, the separation of referral money
+from customer money, payment only on webhook confirmation, and a reward's amount frozen on its
+row at qualification. **A guardrail that can be switched off in a dashboard is not a
+guardrail.**
+
+### Three things in the founder's brief that Session 1's spec got wrong or missed
+
+**A review window between QUALIFIED and AVAILABLE.** A qualified reward is PENDING, waits the
+campaign's window while the risk graph keeps correlating, and only then becomes withdrawable.
+**That one delay defeats most economically rational attacks**, because fraud at scale needs the
+money out fast. D58 had no such state.
+
+**PAID only on webhook confirmation**, never on the transfer API's response. A transfer that
+returns 200 and then fails is a reward Vallo believes it paid and did not. So: an idempotent
+handler keyed on the transfer reference, a reconciliation sweep for transfers that reach no
+terminal state, and **the member sees "sent" rather than "paid" until the webhook lands.**
+
+**Qualification is a policy engine, per campaign**, not a hard-coded rule. Consumer at 76
+naira, business at 150, supply at 300, each with its own requirements. **Build it as a fixed
+registry of named, individually tested requirement checks, and never as an expression
+language.** A predicate table parsed at runtime becomes a small programming language with no
+type checking inside a money path. A campaign stores an array of registry keys; adding a
+campaign type must not require a new key.
+
+### The arithmetic nobody had done, and it needs the founder
+
+**Different rewards per campaign multiply against a cap that was set once, globally.** At 1,500
+qualified referrals a month: 114,000 naira per member under the consumer campaign, 225,000
+under business, **450,000 under supply.** So one global cap means something four times more
+expensive under the 300 naira campaign. **The cap must be per campaign**, and the platform
+budget cap must be the real ceiling. A hard-to-fake requirement is a good defence; it is not a
+budget.
+
+### The risk graph, and the constraint that protects honest members
+
+The founder's caveat is the most important engineering constraint in his brief: identify the
+cluster **without automatically accusing every shared-network user.** In Nigeria shared
+networks are the normal case: carrier NAT puts thousands behind one address, and shared Wi-Fi,
+cybercafes, campuses and offices do the rest. **A system that treats a shared network as
+evidence will spend its life accusing honest people in Lagos.**
+
+So edges are weighted and unequal. **Strongest: a shared payout destination**, because a ring
+must converge to collect. Strong: shared device, and mutual or circular referral. Moderate:
+sequential phone patterns in a tight window, near-identical activity. **Weak, and never
+sufficient alone: the same network.** No single edge triggers anything, clusters rank by naira
+exposure rather than member count, and flagging moves rewards to UNDER REVIEW, which is
+reversible. **Nobody is told they committed fraud by a graph.**
+
+### The migration: Session 1 reverses its own instruction to apply it
+
+**`supabase/migrations/pending/b4_referral_rewards_engine.sql` must not be applied as it
+stands.** Session 1 told Session 2 to apply it earlier today. That was before this
+architecture was locked, and it is now the wrong call.
+
+Checked: the file creates `referral_policy`, `referrals`, `referral_events`, `rewards_payouts`
+and `rewards_ledger`, and already contains risk scoring, reversal, cluster and velocity work,
+all of which is good and is kept. **It has no trace of campaigns, a budget period, or a cap in
+naira.** Those are not edge additions: under this architecture **the campaign is the organising
+dimension**, so qualification policy hangs off it, the reward comes from it, the per-member cap
+belongs to it and the review window is its setting. **Applying a referral spine without its
+organising dimension means restructuring the spine later, in a money area, after rows exist.**
+
+**And nothing is lost by waiting.** The feature register records that phone verification is
+built and switched off pending an SMS provider, and `phone_verified` is a requirement in every
+campaign the founder listed. **Not one referral can qualify until that provider exists**, so
+there is no cost to getting the schema right first. Add campaigns, the budget period, the
+requirement registry and the full lifecycle states to the file, then apply once, probe once,
+record once.
+
+---
+
+## D61. Session 3's round in detail, and a wrong number that was Session 1's
+
+Full working-through: **`docs/sessions/SESSION-3-DEEP-2026-10-06.md`**. The headline is a
+correction Session 1 owes.
+
+**The fee acceptance screen shows a figure that is wrong, and Session 3 is not at fault.**
+They built it from `docs/payments/VALLO_PRICING.md` and used its sentence verbatim: "you keep
+96 percent instead of 90: 108,000 naira more on 1,800,000". The arithmetic is right. **The
+figure is not, and the fault is in the pricing document.** Four percent is the escrow rail;
+the direct rail is 2 percent plus a capped Paystack fee, so the lister keeps about 98 percent
+there. Session 1 wrote a flat percentage into a document whose own rail table, forty lines
+below, contradicts it.
+
+**It cannot be fixed by choosing the other number, because the rail is not knowable when the
+lister accepts.** Acceptance happens before publishing; the rail is chosen per booking, later,
+by how the buyer pays. So the screen shows a **range anchored on the worst case**, with the
+second two percent named as escrow protection rather than a Vallo fee:
+
+```
+Rent you set                          1,800,000
+Platform fee                     36,000 to 72,000
+  Vallo, 2%                           36,000
+  Escrow protection, 2%
+  when a buyer pays into escrow       36,000
+You receive                   1,728,000 to 1,764,000
+```
+
+**The worst case is the headline**, because a pleasant surprise is the only acceptable
+direction for a money figure to move. The pricing document is corrected in place with the
+reasoning rather than quietly edited.
+
+**The comparison claim needs dating.** "Instead of 90" asserts what other people charge. Ten
+percent is fair for a typical Nigerian agency fee, so it is defensible, but on a screen
+forming part of an agreement it is a typical market rate **as at a date**, never attributed to
+a named competitor. If an agent charges eight percent, Vallo's screen is false and Vallo put
+it in writing. **Lead with the naira the lister keeps, not the percentage:** competing on
+percentage invites a race against someone charging nothing.
+
+**The acceptance record is a legal artifact.** It stores both rates as numbers, the terms
+version, the exact figures shown including the rent entered, the timestamp and the actor. And
+per D51 a lister **keeps the rate they accepted until they accept a new one**, so a rate change
+re-prompts rather than applying silently. That makes the record versioned by necessity.
+
+**Two of the sweep's bug fixes need probes, not just fixes.** "Paid in total" on an unpaid
+tenancy appeared in the **complaint pack**, a document a member may hand to a landlord or a
+tribunal: Vallo generated a document that misstated whether money had been paid. It needs a
+test across unpaid, part-paid and fully-paid. **False verified ticks** converge with promotion
+guardrail 5, so one test covers both: a badge renders only from an earned verification record,
+and a promoted listing's badges are byte-identical to unpromoted.
+
+**The weight target is the wrong target.** 20 percent off a bundle is a proxy. Vallo's members
+are on mid-range Android on congested Nigerian networks paying by the megabyte, so the real
+measure is **time to interactive on a throttled connection on a mid-range device**. Keep the
+percentage as tracking, add the real one, and confirm D49's LazyMotion removal actually landed
+before a fourth pass hunts smaller wins.
+
+**The i18n move needs three assertions**, because moving hundreds of strings breaks silently:
+every key referenced in code exists in English, no locale value is empty, and any string with
+a placeholder in English has the same placeholders in every locale. Extend
+`slice-coverage.test.ts`.
+
+---
+
+## D60. Promotion was never removed. Session 3 is blocked on a premise D3 overturned, and the three "your call" items are answered here
+
+**Session 3 reported the promotion onboarding as blocked, saying "paid placement was
+removed".** It was not. **D3, 5 October, explicitly supersedes migration V-06 and the
+no-paid-placement doctrine in `PRODUCT.md` and `THE_HUNDRED`**, and the feature register
+carries F2, F3 and F4 for it. Session 3 read the superseded documents rather than the
+superseding directive.
+
+**This is the fourth instance of one pattern in two days** (D41, D45, D47, now this): a
+session concluded something was absent or impossible without checking the layer that
+supersedes. The rule is already written and is repeated here because it keeps costing real
+work: **this directives file wins over every earlier document it touches, and a blocker
+should be verified against it before it is reported.**
+
+**But the founder's annoyance is earned, and not at Session 3 alone.** The decision existed;
+**the product did not.** Nobody ever wrote what Boost gives a lister that Spotlight does not,
+so Session 3 could not write an onboarding without inventing the feature and Session 2 could
+not price a row. That gap was Session 1's, and it is closed:
+**`docs/promotion/VALLO_PROMOTION.md`**, which is now the authority on this area. Four tiers
+with duration, placement, exposure, audience, analytics, price and limitations; seven
+testable statements of what promotion must never do; the measurement surface; where the money
+goes; and the four onboarding screens.
+
+**Three things from it that change other sessions' work:**
+
+- **The money path is already built.** Promotion is Vallo's own revenue and posts to
+  `ledger_vallo_revenue`, which b2_ledger created, because D51 names that pot as "commission,
+  withdrawal fees, promotion". A promotion purchase is a single-party charge: no split, no
+  subaccount, no escrow, no provider holding anything. **It is the simplest money path on the
+  platform and must not be borrowed from the booking flow.**
+- **"Prime" breaks guardrail 4**, D3's own rule that tier names say what you get. Boost,
+  Spotlight and Featured each name a placement; Prime names a rank, which is Gold and
+  Platinum in a different hat. Recommended rename: **"Everywhere"**. The founder's call, and
+  nothing waits on it: key the tier on the slug `prime` and keep the display name in the
+  locale file.
+- **Prices are proposed, not decided**, in the D38 pattern: 2,500 naira for Boost, 7,500 for
+  Spotlight, 20,000 for Featured, 50,000 for Prime. Effective dating makes a change a row.
+
+### The three "your call" items, decided
+
+**1. The fee acceptance screen: connect it now, behind a flag that is off.** Session 3 is
+right that connecting it live would stop every lister from sending a listing for review until
+Session 2 lands the rate and the acceptance record. That is a real production risk and the
+hesitation was correct. It is also not a reason to leave finished work dangling. The repo has
+`feature_flags`. **Wire the screen into the wizard now and gate only the blocking behaviour
+on the flag.** With the flag off the screen is reachable, reviewable and testable, and
+publishing is never blocked; the day Session 2's rate and acceptance record exist, one flag
+flips. Nothing is left on a shelf and nothing breaks.
+
+**2. The auth redesign: Session 3's reading of D28 is correct, and no structural redesign is
+assigned.** The founder's "real redesign" was dissatisfaction with how it looked, not a
+request to restructure sign-in. **Auth is where a product loses people, so restructuring it
+is high risk for low reward.** Keep the containers and flows recognisable. Go further on
+craft instead: motion, spacing, the type scale, the premium feel of the reference images.
+"Consistent" is not the same as "finished", and that gap is where the remaining work is.
+
+**3. The weight diet: continue the third pass.** At minus 11 percent against a 20 percent
+target, with sign-in down 17.5 and `/check` down 25. Moving member-only styles out of the
+stylesheet every page loads is the right lever. **Also confirm D49 actually landed**: that
+directive found LazyMotion costing 31 KB per route. If it is still there, removing it is a
+large share of the remaining nine points on its own.
+
+### What stays blocked, and it is not promotion
+
+The real blocker in this area is unchanged and is the founder's: **the promotion product
+cannot be sold until there is a way to take the money**, which is the Paystack company
+account migration (D38). Promotion needs no subaccount and no split, so it is the **first**
+thing that works the moment that account exists. Worth knowing when deciding what to sort
+first.
+
+---
+
+## D59. Session 1 took the db-06 row itself after two hours, and says plainly why that overrides D54
+
+**D54 assigned the db-06 allowlist row to Session 2 and said it was theirs. Session 1 has
+now done it instead.** That is a reversal of a directive Session 1 wrote four hours
+earlier and told Session 2 twice on their own pull request, so it needs a reason rather
+than a shrug.
+
+**The reason: the owner was absent and the blocker was platform wide.** Session 2's last
+push was `def190bd5` at 10:59. At 12:42 nothing had moved: the allowlist row absent, the
+ledger probe still in `probes-pending`, `events.test.ts` still on the pending path. Two
+hours, three one-line fixes, three directives naming each of them exactly. **D53 exists so
+that no defect is an orphan. A rule whose purpose is that everything has an owner cannot
+be used to justify a blocker sitting still because its owner went quiet.**
+
+**What was changed, and nothing else:** one row in
+`supabase/tests/probes/db-06.sql`, `('first_runs_seen', 'i')`, in alphabetical position
+between `follows` and `inspection_confirmations`, plus the dated note the file's own
+convention requires. **No migration touched, no grant altered, no money code, no
+production change.** A probe allowlist is test infrastructure, which is the narrowest
+thing that could be taken without stepping into Session 2's area.
+
+**Session 2 still owns the other two**, and they are untouched here: the ledger probe
+without a verdict (D56, still the most consequential open item on the platform) and
+`events.test.ts`'s path (D57). If Session 2 adds the same allowlist row independently,
+git resolves it or hands over a one line conflict, which is a cost worth paying over
+leaving every branch red.
+
+### Verified, and the first attempt at verifying was wrong
+
+The claim is that db-06's grant assertions now pass. **Session 1's first verification was
+built on the wrong instrument and would have produced a false report**, so the method
+matters as much as the result.
+
+The first attempt read `information_schema.role_table_grants` and compared it to an
+allowlist pulled out of the file with a regular expression. It returned two lists of
+apparent discrepancies, and **both were artefacts of the verification, not findings**:
+
+1. The regular expression missed `viewing_windows`, the last row, because it has no
+   trailing comma. That produced a phantom "live but not allowlisted".
+2. `role_table_grants` sees only table level grants. **db-06 deliberately counts column
+   level grants too**, through `has_table_privilege(...) or has_column_privilege(...)`.
+   That produced a phantom list of seven "allowlisted but dead" entries, every one of
+   which is granted per column.
+
+Had either been reported as a finding it would have sent a session chasing nothing.
+**The lesson is the same one this file keeps relearning: reproduce the check, do not
+approximate it.**
+
+The second attempt used db-06's own grant expression verbatim, both roles, table and
+column privileges, against production, with the updated allowlist. Result: `extra` null,
+`missing` null. **Both of the probe's grant assertions pass.** The probe's remaining
+sections were already passing and are unaffected.
+
+**The authoritative verdict is still CI's**, for the reason D56 gives: a check Session 1
+reproduced by hand is evidence, not a pass.
+
+---
+
+## D58. The referral admin centre, specified
+
+The founder asked for it in as many words: *"admin panel for referral need to be
+detailed clean big that covers and help us detect more dangers too"*. The specification
+is **`docs/referral/REFERRAL_ADMIN_CENTRE.md`**, 317 lines, and it is the authority on
+this area. What follows is only what a session needs to know before opening it.
+
+**What exists today, measured.** One migration,
+`20260930084741_a5_invite_codes_a_member_can_share.sql`: a `referral_codes` table, a
+select-own policy, `my_referral_code()`, `referral_door(text)`, `admin_referral_counts(int)`.
+That is all. No attribution record, no qualification, no balance, no payout, no
+detection, no console. Everything in the specification is new work and none of it
+conflicts with what is there.
+
+**Why it is a centre and not a page.** At D51's ceiling one member earns 105,000 naira a
+month, so a thousand members at the ceiling is 105 million a month. Referral programmes
+are not defrauded gradually: they are defrauded the week somebody finds the cheapest
+qualifying action and scripts it. **Every screen shows naira and risk in the same view**,
+because a console that counts referrals teaches its reader to think in counts while the
+fraud is denominated in naira.
+
+**Five new objects**, named to avoid `wallet`, `pot` and `escrow` as whole words, since
+`private.refuse_custody_objects` would reject the migration outright (the mistake that
+cost Session 2 an hour on 6 October): `referral_attributions` as the spine,
+`referral_balances`, `referral_payouts`, `referral_budget_periods` for D51's
+platform-wide cap, and `referral_campaigns` so a push can be measured without editing
+the global rate.
+
+**Qualification is a four-state machine**, not a flag: `pending`, `qualified`,
+`rejected`, `reversed`. Reversal is first class and `reversed_minor` sits beside
+`paid_minor` rather than being netted into it, so money already paid on a reversed
+attribution stays visible as a loss. **The rate is stored on the attribution row at
+qualification and never read live**, so no rate change can retroactively alter an
+accrued liability.
+
+**Four detectors**, in descending order of value: payout concentration (many referrers,
+one bank account, which is where a ring is forced to converge), cluster detection by
+shared device, IP, bank and phone window, velocity against a member's own trailing
+baseline rather than a global threshold, and behavioural sameness. **Clusters are ranked
+by naira exposure, not by size.** Twelve accounts worth 840 naira is noise; three worth
+90,000 is not.
+
+**Order, and it matters more than the content.** The engine and its caps land before any
+screen is drawn, and **payouts land last, after the detectors**. A console over an engine
+that cannot refuse displays a problem it cannot stop, and a payout rail that opens before
+detection exists is the most expensive ordering mistake available in this area. Session 2
+owns the engine, the detection and the probes; Session 3 owns all five screens and the
+risk graph; Session 4 reviews against the document.
+
+**Eight probes are specified and probe 4 is the one that will be skipped**: two
+qualifications racing for the last slot under the platform cap. The check and the write
+happen in one statement or the cap is decorative.
+
+**This is not urgent relative to the launch blockers.** No referral money moves until a
+referral qualifies, and nothing qualifies until the engine exists. The red CI, the db-06
+allowlist row (D54) and the unverified ledger probe (D56) all come first.
+
+**Four decisions are the founder's** and are listed at the end of the document: the
+ambassador threshold (recommended 200 a month, with payout approval above it), the
+platform monthly cap in naira, the qualifying action set at launch (recommended: a
+completed booking, or a listing published and passing review, nothing cheaper), and
+whether a single flat 70 naira survives section 4.5's economics, since a referral that
+produces a lister is worth far more than one that produces a dormant account.
+
+---
+
+## D57. A third failure was hiding behind the cancelled runs, and Session 1 said it was not there
+
+**Session 1 was wrong, in writing, ten minutes before this was found.** The claim was
+"nothing else is hiding behind the red" and "no new probe has broken", made on the
+strength of three consecutive probe runs that all reported 69 of 70 with db-06 alone.
+That reasoning covered the *probe* job and was then stated as if it covered the branch.
+**A third failure was there, in a different job, and it was invisible for exactly the
+reason D56 had just finished warning about: the job kept being cancelled by the next
+push before it could report.** The correction is owed plainly, and the lesson is the one
+already written down, now demonstrated at Session 1's own expense.
+
+### The failure
+
+`Typecheck, lint, test` on `def190bd5`. 714 test files pass, one fails:
+
+```
+FAIL  src/lib/ledger/events.test.ts
+      > the ledger vocabulary matches the database
+Error: ENOENT: no such file or directory, open
+  '.../supabase/migrations/pending/b2_ledger.sql'
+```
+
+Two tests, one cause. `apps/web/src/lib/ledger/events.test.ts:9`:
+
+```ts
+const MIGRATION = join(__dirname, "../../../../../supabase/migrations/pending/b2_ledger.sql");
+```
+
+Commit `def190bd5` promoted that migration out of `pending/`:
+`migrations/{pending/b2_ledger.sql => 20261006105326_b2_ledger.sql}`. The test still
+reads the old path. **Session 2's own promotion commit broke Session 2's own test**, and
+the branch had no way to know because the test job was being cancelled.
+
+### The fix, which is to follow the convention this repo already has
+
+**Point `MIGRATION` at the applied filename, `20261006105326_b2_ledger.sql`, and nothing
+more.**
+
+Session 1's first instinct here was to make the test resolve the file from either
+location so it would survive promotion. **That instinct was wrong, and checking the
+repository is what showed it.** Around twenty five tests read migrations by exact,
+version stamped filename, and the convention is deliberate. From
+`src/lib/admin/str.test.ts`, verbatim:
+
+> "readFileSync throws when it is missing, so a renamed or moved file fails the suite."
+
+A test that throws when its migration moves is the point, not a bug: applied migrations
+are never renamed, and `check-migrations.mjs` enforces that on every push, so a throw
+means something happened that should not have. A clever resolver would have traded a
+loud, correct failure for silence, and would have diverged from two dozen tests that all
+read the same way. **Match the house pattern.**
+
+**The rule that actually prevents the recurrence is upstream of the test:** never write
+a test against a path under `migrations/pending/`, because promotion is certain and the
+break is therefore scheduled rather than possible. If a migration is still pending when
+its test is written, the test and the promotion land together.
+
+**Checked, so nobody has to:** `events.test.ts` is the only test in the repository that
+reads a file under `migrations/pending/`. The two other matches,
+`notify/templates.test.ts:88` and `ci/pipeline.test.ts:56`, are a comment and a fixture
+string, neither of which touches the filesystem. Nothing else is waiting to break this
+way.
+
+### The test itself is good and nothing about its intent changes
+
+It asserts that the fourteen event types in TypeScript are exactly the fourteen the SQL
+function allows, and that the three pots are three separate `create table` statements
+with no `drop trigger` or `delete from` anywhere in the migration. That is precisely the
+test the ledger should have: it is the thing that would catch the vocabulary drifting
+away from the database, which is how ledgers quietly stop balancing. Keep it, fix its
+path, and widen it rather than weaken it.
+
+### What the full picture on that branch now is, measured
+
+| Failure | Whose | Size |
+|---|---|---|
+| `db-06`, `first_runs_seen.INSERT` not on the allowlist | Session 2. Platform wide, red on main too | One allowlist row (D54) |
+| `Advisories`, `source-map-js` under GHSA-68fv-2mgg-jv7q | Main's, not the branch's. Session 3 as lockfile owner | One resolved version (D55) |
+| `Test`, `events.test.ts` ENOENT on the promoted migration | Session 2. Caused by their own promotion commit | One path, resolved robustly |
+
+Three failures, three owners, none of them large, and **the b2-ledger probe is still
+without a verdict** (D56), which remains the most consequential open item because it is
+the only one that touches whether money arithmetic is right.
+
+### A method note, because Session 1 nearly got this one wrong too
+
+The job log's visible tail ended in a loud block of red about `assetlinks.json`
+placeholders and `##[error]Process completed with exit code 1`. Reading the tail alone,
+the obvious conclusion was that the deep-link gate failed the job. **It did not.** That
+step carries `continue-on-error: true` deliberately, documented in `ci.yml` since
+2 October: Android's placeholders are absent on purpose because Play Console setup comes
+after Apple, and `npm run cap:sync` runs the same check strictly so a release sync still
+refuses while it is red. The step's own conclusion reads `success`. The real failure was
+`Test`, several steps earlier, with no red left near the end of the log.
+
+**So: read the step conclusions, not the end of the log.** `GET
+/actions/jobs/{id}` returns every step with its own conclusion, which is the only place
+the failing step is unambiguous. This is the same lesson as D47 and D54 in a third
+costume: know what a signal measures before concluding anything from its colour.
+
+### Separately, a real founder item surfaced by that advisory block
+
+`apps/web/public/.well-known/assetlinks.json` still holds
+`PLACEHOLDER_REPLACE_WITH_PLAY_APP_SIGNING_SHA` and
+`PLACEHOLDER_REPLACE_WITH_UPLOAD_KEY_SHA256_SE`. Advisory in CI by design, and **a hard
+block on a Play release**, because `npm run cap:sync` refuses while it is red and Android
+App Links do not verify without the real fingerprints. Until they land, a shared Vallo
+listing link opens the browser rather than the app, and an email confirmation link for an
+account created in the app lands in a browser that cannot complete it. The Apple side is
+already done: the real Team ID `X74KD52994` replaced its placeholder on 2 October.
+
+**Founder only.** Play Console, the app, Release, Setup, App signing, for the app signing
+key; `keytool -list -v -keystore upload-keystore.jks -alias upload` for the upload key.
+Two SHA-256 fingerprints. Drop `continue-on-error` from that step the day they land.
+
+---
+
+## D56. The ledger is live in production with no probe verdict. Session 1 verified it structurally; the probe still has to run
+
+**What happened, from Session 2's own commit message on `def190bd5`, 10:59:**
+
+> "Applied to production verbatim with its read-back block. The live run of the
+> b2-ledger probe timed out in the MCP tool with nothing recorded and no probe rows
+> left behind, so the probe stays in probes-pending."
+
+So the append-only money ledger, `20261006105326_b2_ledger.sql`, 641 lines, three pots,
+is **applied to production and its verification probe has never produced a verdict**.
+The honesty of the commit message is to Session 2's credit. The resting state is not
+acceptable: this is the ledger.
+
+**This is the third instance of one pattern in two days.** D47 was a cancelled check
+read as a pass. D54 was a probe whose scope was misread. This is a probe that did not
+run at all, recorded as "pending" and moved past. The lesson is the same each time and
+it is now a standing rule, below.
+
+### What Session 1 verified directly, because the probe could not
+
+Checked against production rather than against the migration file, on 6 October:
+
+| Claim in the migration's header | Verified in production |
+|---|---|
+| Three separate pot tables, never columns on one table | `ledger_customer_funds`, `ledger_vallo_revenue`, `ledger_marketing_float` all exist as base tables |
+| Row level security on each | `relrowsecurity` true on all three |
+| "Nothing writes these tables directly, not even `service_role`" | `service_role` holds **SELECT only**. No insert, update or delete, on any of the three |
+| Members cannot touch them | `authenticated` and `anon` hold **no grant at all** on any of the three. They do not appear in `role_table_grants` |
+| Append only, no row ever updated or deleted | Each pot carries a `history_is_fixed` trigger and a separate no-truncate trigger |
+| Corrections are new entries (E5.3) | Each pot carries a `ledger_correction_guard` trigger |
+| The settlement path posts without rewriting `settle_booking_charge` | `ledger_entries` carries `ledger_entries_zz_post_pots`, firing `private.ledger_entries_post_books` |
+| The writers exist | `private.ledger_append`, `private.ledger_entries_post_books`, `public.ledger_record_payluk_commission` all present. `ledger_balances_by_book` present as a view |
+| Nothing has posted yet | All three pots at 0 rows |
+
+**The structure landed correctly and matches what the migration says it does.** Nothing
+is at risk: no money has moved through it, and the grant surface is tighter than any
+other money table on the platform. Session 2's design here is good work, and the
+separation of customer funds from Vallo revenue into distinct tables rather than
+distinct columns is the right call for exactly the reason the header gives.
+
+**What a structural check cannot tell you, and the probe must:** that the posting
+trigger produces entries that net to zero on a direct charge; that the refund legs net
+to zero; that a correcting entry is accepted while an update is refused; that
+`ledger_append` is genuinely idempotent on its key; that a posting failure raises a
+risk alert without aborting a settlement of money already taken. Those are behaviours,
+and only running them proves them. **Do not read the table above as the ledger being
+verified. It means the shape is right and the behaviour is unproven.**
+
+### What Session 2 does
+
+1. Fix db-06 first (D54). It blocks every branch.
+2. Then run the b2-ledger probe to a recorded verdict. If the MCP tool times out again,
+   run it through the probe runner instead of the tool: the runner does not time out at
+   a tool boundary, and it accepts `--dir supabase/tests/probes-pending` to run the
+   probe where it currently sits.
+3. **Precision, added after checking the runner rather than assuming it.** The probe is
+   at `supabase/tests/probes-pending/b2-ledger.sql`, and `scripts/db-probes/run.mjs`
+   reads only `supabase/tests/probes/*.sql`. **CI will never run it where it is.**
+   Saying "run it in CI" without saying this would have cost Session 2 a cycle. Run it
+   locally with `--dir` first, and move the file into `supabase/tests/probes/` in the
+   same change that records it as passing, so CI keeps running it forever after.
+4. A pending probe on an applied ledger migration is the single highest item on that
+   branch after db-06.
+
+### The standing rule, from three instances in two days
+
+**A check that did not run is a check that failed.** Cancelled, timed out, skipped,
+"pending", or never triggered: none of these is a pass, and none may be recorded in a
+way that reads like one. Where a probe cannot be run, say that it has not been run,
+in those words, in the status document and in the commit message, and carry it as
+open work rather than as a footnote.
+
+### The pushing pattern, separately
+
+Session 2 pushed four times between 10:45 and 11:00. Each push cancelled the previous
+run's remaining jobs, which is why `46d81338f`'s typecheck and front-door jobs read
+`cancelled` despite the commit being sound, and why no complete verdict existed on
+that branch for over an hour. **Two migrations were applied to production inside that
+window while the probe suite was red.** Nothing broke, and the second of them is good
+work, but a stream of production migrations applied faster than the probes can report
+means that when something does break, nobody will know which change broke it. Land,
+wait for the report, then push again. The minute of waiting is cheaper than the hour
+of not knowing.
+
+### One useful side effect, worth recording as evidence for D54
+
+`63c59ec77` is a merge of Session 1's **documentation-only** branch into Session 2's.
+Its only new content is markdown. db-06 failed on it anyway, identically. That is
+direct proof of D54's central point: db-06 reads the live database, not the branch, so
+its red is platform-wide and no amount of branch content explains it.
+
+---
+
+## D55. The production dependency advisory is main's, not any branch's, and it is one lockfile line
+
+**Measured, 6 October, 10:53.** The "Advisories (production dependencies)" job fails
+on PR #84 and **it fails identically on main's head `d685f5e04`**. It is not that
+pull request's failure. Nobody should chase it inside a feature branch, and nobody
+should widen a money branch to carry it.
+
+The job runs `npm audit --omit=dev --audit-level=high`. One finding:
+
+```
+source-map-js  1.0.0 - 1.2.1
+Severity: high
+source-map-js allows event-loop denial of service through indexed
+source-map section offsets - GHSA-68fv-2mgg-jv7q
+```
+
+**What was checked rather than assumed:**
+
+| Question | Answer |
+|---|---|
+| Is it really a production dependency, or dev leaking through? | Production. `postcss@8.5.23` depends on it and is not marked dev. `@tailwindcss/node` also pulls it, and that one is dev |
+| Is there a patched version? | Yes, `source-map-js@1.2.2`, published and outside the advisory range |
+| Does the patched version satisfy the existing range? | Yes. `postcss` asks for `^1.2.1`, which `1.2.2` satisfies. No major bump, no API change, no `postcss` upgrade needed |
+| What is the actual change? | One resolved version in `package-lock.json`. `npm audit fix` produces it |
+
+So the whole fix is a lockfile bump from `1.2.1` to `1.2.2`. There is no code change
+and nothing to redesign.
+
+### Who does it
+
+> **Superseded in part on 6 October at 13:50, by the same reasoning as D59.** Session 1
+> has landed the bump itself, on PR #86. The rest of this section still holds: **Session 2
+> does not touch the lockfile**, and nobody should chase this failure inside a money
+> branch.
+>
+> **Why the reversal.** This section gave the bump to Session 3 and argued the change was
+> "too small to be worth breaking that rule for". That weighed the conflict risk against
+> the advisory and left out the thing that actually mattered: **PR #86 is the change that
+> unblocks every other branch's CI, and a red check on it makes the founder less likely to
+> merge the one thing everybody is waiting on.** Advisories was the only red left on #86
+> once db-06 went green. Getting it green is worth a resolvable lockfile conflict.
+>
+> **What was verified before pushing**, since a lockfile edit is exactly where a careless
+> push does damage: `npm audit fix --omit=dev --package-lock-only` changed **one package
+> version and nothing else**, proven by comparing the parsed lockfile before and after
+> (added: none, removed: none, version changed: `source-map-js` 1.2.1 to 1.2.2). The
+> `string_decoder` block moves position with identical content, which is npm re-sorting.
+> Then, with `node_modules` synced to the new lockfile: audit exits 0, typecheck passes,
+> lint passes, and **the build passes**, which is the check that matters because `postcss`
+> is what pulls `source-map-js` and the build is the only place it runs.
+>
+> **If Session 3 has already changed the lockfile on their branch**, whoever merges second
+> regenerates it with `npm install` rather than resolving it by hand. That cost was known
+> and accepted, not discovered.
+
+**Session 3** was the single owner of `package-lock.json` under D46, and for the
+framer-motion work still is. Two sessions editing the lockfile on two branches is the
+conflict D46 exists to prevent.
+
+**Session 2 does not touch it.** If Session 4 or Session 2 sees the Advisories job
+red on a money branch, the correct response is to note it as main's and carry on, not
+to fix it locally. A second lockfile edit on a money branch costs more than the
+advisory does.
+
+### Why this is not urgent in the way CI makes it look
+
+The advisory is a denial of service reachable by feeding a crafted source map to the
+parser. Vallo's build runs `postcss` over Vallo's own stylesheets at build time; no
+member input reaches it. The severity rating is correct for the library and
+overstated for this application. **Fix it because a red check trains everyone to
+ignore red checks, not because Vallo is exposed.** Say it that way if it comes up.
+
+---
+
+## D54. Session 2's own migration broke a probe allowlist, and because it is applied to production, it is now red on every branch including main
+
+**The custody rename worked.** This is worth stating plainly because Session 1 spent a
+good while pointed at the wrong thing. On the database probes run against commit
+`46d81338f` at 10:53: `track-a-custody-retired` **passes**, and all three of the day's
+new money migrations pass their own probes, `b3-money-policy`, `b3-payluk-sweep`,
+`b3-tax-entitlements`. `private.refuse_custody_objects` was defending production
+exactly as ADR-0002 intends, Session 2's rename to `ledger_entries_post_books`,
+`ledger_balances_by_book` and `ledger_record_payluk_commission` satisfied it, and
+that half is finished.
+
+**69 of 70 probes pass. The one failure is new and is a different defect:**
+
+```
+FAIL db-06 (815 ms) PROBE_FAIL db-06: write grants not on the
+allowlist: authenticated:first_runs_seen.INSERT
+```
+
+### What this is
+
+`supabase/tests/probes/db-06.sql` holds a checked-in allowlist of every write
+privilege `authenticated` is permitted to hold on a public table. Its own header
+states the contract: *"A new write grant, or one left without a policy, fails this
+probe until it is added here deliberately."*
+
+Migration `20261006104536_b4_first_run_store.sql` adds
+`grant select, insert on public.first_runs_seen to authenticated`. The allowlist was
+not updated. The probe is not wrong; it is doing the single job it was built for.
+
+**The migration itself is good work and nothing about it should change.** Verified
+line by line: the grant is `select, insert` only with no update or delete, the insert
+is behind `first_runs_seen_write_own ... with check (user_id = (select auth.uid()))`,
+the read is behind an equivalent select policy, `service_role` holds the wider set,
+and the migration ends with its own two assertions that the grants did not come out
+wider than intended. This is how a table should be added. The only thing missing is
+the allowlist line that declares the new grant deliberate.
+
+### The part that makes it urgent
+
+**db-06 runs against the live database, and the grant is live in the live database.**
+Confirmed directly against production: `information_schema.role_table_grants` returns
+`authenticated: INSERT` and `authenticated: SELECT` on `public.first_runs_seen` right
+now, because Session 2 applied the migration at 10:45.
+
+The consequence follows mechanically and is easy to miss: **db-06 will now fail on
+every branch, on every pull request, and on main**, because the probe reads production
+state rather than branch state. Main's probes currently show green only because main
+has not re-run CI since 02:57, before the migration was applied. The next push to main
+goes red. Nothing is wrong with production and no data is at risk; the platform's
+grant allowlist and the platform's grants simply disagree, and the probe is correctly
+refusing to let that pass silently.
+
+**This is also the second lesson of the same shape in two days.** D47 was "a cancelled
+check is not a pass." This one is "a probe that reads production is not branch-local."
+Both say: know what the check actually measures before reasoning about what its colour
+means.
+
+### Who does it, and how
+
+**Session 2, before anything else on the branch.** It is their migration, their probe
+area, and it blocks everyone.
+
+1. Add one row to the allowlist in `supabase/tests/probes/db-06.sql`, in alphabetical
+   position: `('first_runs_seen', 'i'),`
+2. Add the dated note the file's convention requires, in the same voice as the
+   29 September block already there: 6 October, `first_runs_seen i`, insert only,
+   behind `first_runs_seen_write_own` scoped to `auth.uid()`, no delete grant by
+   design.
+3. Run the probes once and let the run finish. **Do not push again until it reports.**
+   Four of the last five probe runs on that branch were cancelled by the next push,
+   which is why no clean verdict existed for hours. A cancelled run costs more than
+   the minute of waiting.
+4. Land it on main quickly, ahead of the rest of the branch if the rest needs more
+   review. Every other session's CI is red until this line exists.
+
+### What nobody should do
+
+Do not revoke the grant, do not alter the migration, and do not weaken db-06 to a
+warning. The grant is correct and the probe is correct. One declares what the other
+enforces, and the declaration is what is missing.
+
+---
+
+## D53. Ownership is by concern, never by authorship. And nobody second-reviews their own change
+
+Session 4 asked, on 6 October, who owns three Task 2 defects, noting that one
+"predates Session 2, so it may be nobody's under the current split". **It is not
+nobody's, and the question is worth settling once because it will recur every time
+an audit finds something older than the session that owns its area.**
+
+### The rule
+
+**A defect belongs to whichever session owns the concern, whatever its age and
+whoever wrote it.** The cross-session contract divides the platform by area so that
+every part has an owner, not so that each session owns only what it typed. A rule
+that assigns by authorship creates orphans by construction: the older the defect,
+the less likely its author is still working, so the oldest and most settled bugs
+would become permanently unownable.
+
+**This repository already has the evidence.** D40, the wrong-payer refund, predated
+every current session and sat unfixed through two rounds. The wallet, escrow and
+withdrawal copy in `experience-features.en.ts` predated Session 3 and shipped
+anyway. Both were found by a session auditing someone else's area, and both needed
+an owner assigned before anything happened.
+
+**So the three findings go to Session 2**, because all three are its concerns:
+
+1. **The `transactions` column grant.** A grant is schema, and schema is Session
+   2's, whoever wrote the migration.
+2. **The per-render `listBanks()`.** A provider call is Session 2's, and this one
+   also breaks D50's ten-requests-per-minute constraint directly: a call per render
+   is the exact shape that directive names as already broken. The fix is server
+   side, cached, and shaped to the limit.
+3. **The raw Paystack error text.** D50 forbids a raw provider error reaching a
+   member. The **mapping** to Vallo language is Session 2's, as part of the status
+   vocabulary and error abstraction in its brief. Session 3 owns only how the
+   mapped sentence is presented.
+
+### And the second half, which Session 4 raised against itself
+
+**Nobody second-reviews their own change.** Session 4 keyed `db-probes` per ref,
+which widened concurrency against the production database, and reviewed it itself.
+It flagged that as a D5 breach without being asked twice, which is the behaviour
+D5 exists to produce. **The second pass goes to Session 2**, which owns the
+database.
+
+**The specific thing to attack**, so the review is a review rather than a nod:
+**can sixty-four probes running concurrently from several branches interact in a
+way one serialised run cannot?** Named risks, each checkable:
+
+- **A probe that asserts on global state.** Any probe checking a count, or that no
+  row exists, can be broken by another branch's probe inserting at the same moment.
+  This is the likeliest failure and it would read as a flaky test rather than as a
+  concurrency defect.
+- **Advisory locks.** Two probes taking locks in different orders deadlock under
+  concurrency and never under serialisation.
+- **Fixed-name temporary objects.** A probe creating an object by a constant name
+  collides with itself across branches.
+- **Connection count** against the pooler's limit, with several full runs at once.
+
+**Mitigating context, which the reviewer should weigh rather than assume away:**
+the `claude/vallo-**` push trigger was removed, so only pull requests start runs
+and the realistic concurrency is three or four, not unbounded. That lowers the risk
+without removing the question.
+
+---
+
+## D52. D51 was wrong about the mechanism. Session 4 caught it, Session 1 verified it
+
+**Session 4 ran Task 2, its defining task, and its lead finding breaks a premise of
+a founder decision.** Session 1 re-derived every part from the code before writing
+this. **All three claims are correct and D51's mechanism section is withdrawn.**
+
+### What D51 said, and why each part is false
+
+**D51 said the rates are policy data, so "changing a price is a row, never a
+deploy".** For commission that is true. **For the Guarantee it is false.**
+`money_policy.guarantee_bps` is declared
+`check (guarantee_bps between 100 and 200)`
+(`20260925121219_track_a2_...sql:49`) and no later migration relaxes it.
+**The value 0 is rejected by the database.** Retiring the Guarantee needs a
+migration that does not exist.
+
+**D51 said `commission_bps = 200` in `money_policy`.** There is **no
+`commission_bps` column** in that table: its data columns are `guarantee_bps`,
+`claim_window_hours` and `min_inspection_photos`. Commission lives in **`fee_rates`,
+read through `private.current_fee_bps('commission')`**, which returns 0 when no row
+exists. Setting the 2 percent means a `fee_rates` row, not a `money_policy` update.
+
+**D51 said zeroing the rate lifts the `PAYSTACK_GUARANTEE_SUBACCOUNT` blocker, on
+the evidence of `if (split.guaranteeMinor > 0)`.** It does not. That condition
+lives inside `splitBody()` and only decides whether the reserve appears in the
+Paystack payload. **Two independent gates refuse first, neither conditioned on the
+rate:**
+
+1. **The application.** `split-attempt.ts:74` calls `guaranteeReserveSubaccount()`
+   and returns `refused` at line 75 **before `payment_split_for_booking` is ever
+   called**.
+2. **The database.** The payment gate requires `reserve_subaccount_code` to be
+   non-null on a before-insert trigger (same migration, line 694).
+
+**And nothing covers the zero case: there is no `split-attempt.test.ts` at all.**
+
+### What this changes for the founder
+
+**`PAYSTACK_GUARANTEE_SUBACCOUNT` is still a hard blocker.** Session 1 told the
+founder twice that retiring the Guarantee would probably remove it. **It does not.**
+Either he creates the reserve subaccount anyway, or Session 2 changes both gates so
+a zero rate is a legitimate configuration rather than a refusal.
+
+**Retiring the Guarantee is a migration, not a setting.** It drops or relaxes the
+check constraint, changes the application gate, changes the database gate, and adds
+the test that does not exist. That is real work, and the founder was told it was a
+row.
+
+**VAT is not modelled at all.** `vat_bps` and `vat_registered` return zero hits
+across `supabase/` and `apps/web/src`. D51 wrote them as though they existed. They
+are new columns and new code.
+
+### The standing correction
+
+**D41 said measure, never quote. Session 1 then quoted its own reading of one
+`if` statement and called it evidence**, without following the call path to the two
+gates in front of it, and a founder made pricing decisions on it. The rule applies
+to Session 1 exactly as written: **reading a condition is not reading a code path**,
+and a claim about what a system refuses is only established by finding every place
+it refuses.
+
+Session 4's note on its own method is the standard: *"Every finding was re-derived
+from the code before being written down, because D5's point is that the author is
+the wrong reviewer."*
+
+---
+
+## D51. Pricing, the Guarantee retired, and the referral engine
+
+**Founder decisions, 6 October 2026.** Full detail and the maths in
+`docs/payments/VALLO_PRICING.md`. Every rate is **policy data in `money_policy`**,
+in basis points or kobo. Changing a price is a row, never a deploy.
+
+### The rates
+
+**Vallo commission 2 percent** (`commission_bps = 200`), both rails. The leg
+already exists: `commission_minor` is in the split today, at zero. **Escrow rail
+total is 4 percent**, Payluk's 2 plus Vallo's 2, borne by the lister. **Direct rail
+is 2 percent plus Paystack's capped fee**, and because no provider takes a
+percentage there, Vallo keeps the whole 2 percent and the cost does not scale: the
+direct rail is where the margin is.
+
+**The Guarantee is retired. `guarantee_bps = 0`.** Escrow already holds the money
+until conditions are met, so charging again for the same promise meant 4 percent
+off the lister on a platform with no listers to lose. It also had the shape of
+insurance, which `THE_HUNDRED.md` already refuses elsewhere as NAICOM-regulated,
+and nobody had decided what happens to unclaimed money. **The machinery stays
+built at zero**, switchable per rail in one row if the direct rail later shows
+fraud.
+
+Two pieces of work follow: **every Guarantee sentence comes out** of
+`lib/money/copy.ts`, the Terms, the help centre and the emails, replaced with what
+is now true, *your payment is held until you confirm*; and
+**`PAYSTACK_GUARANTEE_SUBACCOUNT` may stop being a blocker**, since there is no
+reserve leg to route. **Session 2 verifies that, never assumes it**, because the
+split currently refuses a charge whose reserve leg is missing.
+
+**VAT is not charged. `vat_bps = 0`, `vat_registered = false`.** Nigeria's
+threshold is 25 million naira of **turnover, meaning Vallo's own revenue**, which
+is the 2 percent and not the value of transactions facilitated. **Charging VAT
+while unregistered is an offence.** When it is switched on it applies to Vallo's
+fee only, never the rent, and is recorded as its own ledger line because it is
+remitted to FIRS and was never Vallo's money.
+
+### Withdrawals
+
+Minimum **1,000 naira**. Bands as the founder set them, with two Session 1
+corrections, both overridable:
+
+- **The 100,000 to 200,000 gap is closed**: the 200 naira band starts at 100,000,
+  so the table is continuous. A pricing table with a hole is a support ticket.
+- **The 2,000,000 cliff is smoothed.** At 1,999,999 the fee is 300 and at
+  2,000,001 it is 2,500, so anyone withdrawing 2.5 million sends two withdrawals
+  and pays 600. The top band becomes a percentage with a cap.
+
+**And the context the founder asked for: the CBN caps bank NIP transfers at 50
+naira above 50,000, and Paystack's own transfer pricing is 10, 25 and 50 naira.** A
+member's own bank moves 2 million naira for 50. The under-100,000 band at 50 naira
+matches the market exactly; the upper bands are far above it, and they are also
+the ones that will almost never fire at launch, since referral payouts run from
+1,000 to 105,000 naira.
+
+**The operational rule that governs every withdrawal.** Payluk does not publish
+its withdrawal fee and it is not fixed: *"Payluk sets the `fee` on the returned
+intent; you do not send it ... The fee depends on the amount and on which provider
+Payluk currently settles payouts through, and it may include VAT."* So: **create
+the intent, read the provider fee back, add Vallo's band, show one total before
+the member confirms.** Never compute a withdrawal from a hardcoded table, never
+quote before the intent exists, and reconcile against the figure read back.
+
+**Payluk's 2 percent is escrow only.** Withdrawals, deposits and transfers carry
+their own separate, variable fee. Deposits are card top-ups charged through
+Paystack underneath, minimum 100 naira.
+
+### Referral
+
+**70 naira per qualified referral, 1,500 qualified referrals per member per
+month**, which is **105,000 naira per member per month at the ceiling**.
+
+**So the cap is not the fraud control at that level; qualification is.** Three
+requirements follow:
+
+1. **Qualification is phone verified AND a real action** by the referred person,
+   never a signup. A SIM costs less than 70 naira of effort.
+2. **A platform-wide monthly budget cap**, server-side, separate from the
+   per-member cap, so one viral moment cannot create a liability Vallo cannot fund.
+3. **1,500 a month is 50 a day**, which is a professional rather than a member.
+   Consider whether that volume should move somebody into a reviewed ambassador
+   tier instead of accruing automatically.
+
+**It is a Rewards Balance and never a wallet.** Vallo owing a member money is a
+different legal object from Vallo holding a member's money. It accrues as a
+liability from qualification, it never expires, and the threshold is stated before
+anybody starts earning.
+
+**Payout rail is Paystack transfers from a Vallo-funded marketing float**, not
+Payluk: the money is Vallo's own marketing spend, so no custody question arises,
+and it avoids forcing a referrer through provider KYC to collect a small sum.
+
+### The three pots, separated in the schema and not merely in a report
+
+**Customer funds** (the member's, at the provider) · **Vallo revenue** (commission,
+withdrawal fees, promotion) · **the marketing float** (Vallo's, funding referral
+payouts). Payluk cannot do a three-way split, so on the escrow rail Vallo's
+commission is a separate recorded movement, which makes the separation a ledger
+requirement.
+
+### Who pays, and the agreement that records it
+
+**`whoPays: "seller"`, decided 6 October.** The lister bears the fee on both rails
+and the renter sees exactly the advertised price, no line item, no footnote. It is
+the Booking.com, Uber, Amazon and Etsy model; Vallo already publishes "VALLO
+CHARGES NO INSPECTION FEE", so a renter-side charge would contradict a live
+promise; and a Nigerian renter already pays roughly 20 percent in agency and legal
+fees, so charging that side would make Vallo part of the problem it exists to
+solve. For a lister replacing a 10 percent agent, 4 percent is a **reduction**:
+they keep 96 percent instead of 90, which is 108,000 naira more on 1,800,000 of
+rent.
+
+**A lister cannot publish until they accept the figures**, and acceptance is
+recorded server-side with the member, the timestamp and **the rate version in
+force**. Figures in naira, not a bare percentage. A rate change **never** applies
+retroactively to an accepted listing: the lister is asked again and keeps the old
+rate until they accept the new one. The same figures reappear at payout, because a
+deduction a landlord first understands when the money arrives is how a landlord is
+lost permanently.
+
+### Where the commission lands, and the job that is easy to forget
+
+**Paystack: automatic.** The split sets `bearer_subaccount` to the lister, so the
+lister bears the processing fee too; **Vallo's commission is the remainder and
+settles to Vallo's own main account by itself**. At `guarantee_bps = 0` the reserve
+leg is skipped entirely (`if (split.guaranteeMinor > 0)`), which is the evidence
+the `PAYSTACK_GUARANTEE_SUBACCOUNT` blocker lifts. **Verify, do not assume.**
+
+**Payluk: not automatic.** Its documentation: *"plus your own commission, if you
+set one in your merchant settings ... credited to your merchant wallet as a
+`commission` transaction"*. So Vallo's 2 percent on escrow is **a merchant
+dashboard setting** and it **accrues inside Vallo's Payluk merchant wallet** until
+somebody withdraws it. Paystack revenue arrives on its own; **Payluk revenue piles
+up where nobody is watching.** Required: a scheduled sweep reading the merchant
+balance, withdrawing to Vallo's bank, recording the movement as **Vallo revenue and
+never customer funds**, with an admin surface showing the balance, the last sweep
+and any failure, paced against the ten-per-minute limit.
+
+### One rate that should not stay flat
+
+**Sale and land.** Four percent of 80,000,000 naira is 3,200,000, which no seller
+will accept, while 2 percent to Vallo on that sale is the largest single
+transaction the platform will ever see. `money_policy` holds rates in basis points,
+so a per-space-type rate with an absolute cap above a threshold is one row.
+**Decide it before the first land listing.**
+
+---
+
+## D50. Vallo presents, the provider holds. The financial layer is Vallo's product
+
+**The founder's brief of 6 October, and it corrects Session 1.** Full translation
+in `docs/payments/VALLO_FINANCIAL_LAYER.md`; read it before any money surface.
+
+### The sentence, which is the founder's own and is now the platform's
+
+> **Vallo uses regulated financial infrastructure partners to process and protect
+> eligible transactions. Vallo does not hold customer funds.**
+
+Shorter, for a screen: **"Payments are processed through Vallo's financial
+infrastructure partners."** For a protected payment: **"Your payment is protected
+through Vallo's transaction infrastructure."**
+
+### What Session 1 got wrong, stated plainly
+
+This morning Session 1 told the founder there is no wallet and there can never be
+one, and read his request for a premium wallet surface as meaning only the
+existing money screens. **That was half right and the wrong half was asserted most
+firmly.** ADR-0002 forbids **Vallo** holding client funds, because that is CBN
+regulated and outside the objects clause. It says nothing about a licensed third
+party holding them, and Payluk is one. Under the Paystack-only rail nobody held
+anything, so "no balance anywhere" was true by accident rather than by rule.
+
+**Verified against Payluk's own API:** `GET /v1/wallet` returns a customer's
+**main balance** and **escrow balance**; withdrawals run through a payment intent
+with a bank code; **verify account number** resolves the account name before the
+withdrawal is created; payment history covers deposits, withdrawals, transfers,
+wallet transfers and escrow payments. **Every surface the founder described has a
+real endpoint behind it.**
+
+### The four conditions, all of which must hold
+
+A balance surface ships only when:
+
+1. **The money is held by the licensed provider**, in that member's own account
+   there, never by Vallo.
+2. **No Vallo sentence says or implies Vallo holds, keeps, owns or guarantees
+   it.** "Your money is 100 percent safe" is forbidden; so is any guarantee of an
+   outcome Vallo cannot deliver.
+3. **ADR-0003 is accepted, not proposed**, and the merchant account is live.
+4. **The words come from `lib/money/copy.ts`, per rail**, so Terms, help centre,
+   emails and screens cannot drift.
+
+**D48 is unchanged in the meantime.** The `wallet`, `escrow` and `withdrawal`
+strings in `experience-features.en.ts` describe custody by Vallo on a rail that
+does not exist, and they come out now. What replaces them later is different copy,
+written against a live rail, naming who actually holds the money.
+
+### Provider abstraction, and the line the founder drew himself
+
+**Vallo is the product; the provider is infrastructure.** The frontend consumes
+`Payment`, `Protected`, `Withdrawal`, `Receipt`, never `PaylukEscrow` or
+`PaystackCheckout`. Provider vocabulary, statuses and errors stay inside the
+adapter, behind a Vallo status vocabulary and Vallo error language.
+
+**And the founder's own limit is binding: "clean abstraction, not deceptive
+concealment."** Where a provider name is required by a card-network rule, a
+banking rule, a provider agreement, a receipt, a KYC flow, the Terms or a
+transaction disclosure, **it is shown**. The abstraction governs the product
+surface, never the legal surface. A hosted checkout that cannot be embedded is an
+infrastructure boundary to be explained, not dressed up as Vallo's own page.
+
+**Never fabricate**, which this repository already bans for figures and now states
+for status: no invented chain hash on a fiat payment, no provider reference
+relabelled as a transaction hash, and never "Payment successful" before the
+provider has confirmed it. "Processing" must be real.
+
+### The three constraints that shape every design here
+
+1. **Payluk charges 2 percent** of the escrow amount, on top of the Guarantee's 1
+   to 2 percent. The escrow rail costs more than the direct rail and **True Cost
+   must show it.** Who absorbs it is the founder's decision and is not made.
+2. **There is no plain cancel and refund.** The only route from a funded escrow
+   back to a buyer is a dispute resolved as `REFUNDED`, so the dispute surface
+   **is** the cancellation path. It cannot be called "dispute" to two people who
+   simply agreed to stop.
+3. **Ten requests per minute per key.** Routing, health checks, search and every
+   reconciliation sweep are bounded by it. Any call per listing or per render is
+   already broken.
+
+### And the one that is purely architectural
+
+**Payluk cannot do a three-way split.** Paystack divides lister, Guarantee and
+Vallo in a single transaction; Payluk does not. On the escrow rail the Guarantee
+contribution and Vallo's commission are separate recorded movements, which makes
+the brief's revenue separation the only thing keeping customer money and Vallo
+money apart on that rail. It is a ledger requirement, not bookkeeping taste.
+
+---
+
+## D49. The code review, and the directive of mine that cost 31 KB on every route
+
+A fourth audit reviewed Session 3's 290 new non-test modules. Its findings, with
+the two Session 1 verified directly, and one correction Session 1 owes.
+
+### D49.1. Remove `MotionProvider`. D39 was wrong for this codebase
+
+**Verified 6 October:** `grep -cE '<m\.[a-z]'` across `apps/web/src` returns
+**zero**. Not one `m` element exists. Yet `app/layout.tsx:500` mounts
+`MotionProvider`, which wraps the whole app in `LazyMotion features={loadFeatures}
+strict` and imports `domAnimation`.
+
+By the component's own measurements that is **7.0 KB gz for `LazyMotion` and
+`MotionConfig`, plus a 24.1 KB gz `motion-features` chunk fetched after first paint
+on every route**, for nothing. `strict` is meaningless without `m` elements, and
+`MotionConfig reducedMotion` is redundant because every ported component already
+routes through `springFor(quiet, ...)`.
+
+**This is Session 1's mistake, not Session 3's.** D39 section 2 said framer-motion
+is installed "as D34 set out: `LazyMotion` with `domAnimation` and the `m`
+namespace". Session 3 complied exactly. But the components it then built use
+`useMotionValue`, `useTransform` and `animate` through its own `useDrive`
+(`ported-motion.ts:83`), and **all three of those are renderer-independent**: they
+never needed `domAnimation` at all. The directive specified a delivery mechanism
+for a renderer the work does not use, and compliance cost 31 KB on every route.
+
+**So: delete `MotionProvider` from `layout.tsx:500` and delete
+`motion-features.ts`.** D39's real rule survives and is unchanged: **never a
+top-level `motion` import**, which `eslint.config.mjs:209-233` enforces and which
+the branch satisfies with zero violations. If an `m` element is ever genuinely
+wanted, `LazyMotion` comes back with it and not before.
+
+### D49.2. Money moves on one keystroke, and a test pins it
+
+**Verified:** `components/ui/DragToConfirm.tsx:319-326`. `onClick` treats
+`e.detail === 0`, which is how Enter, Space and a screen reader's activate arrive,
+as a completed confirmation and calls `commit()` at once. A pointer user must cover
+**90 percent** of the track (`THRESHOLD = 0.9`). A keyboard or assistive-technology
+user gets the same irreversible `money: true` transfer **from a single Enter**, and
+`DragToConfirm.dom.test.tsx:249` cements it as intended.
+
+The handle is a plain `<button>`: no `role="slider"`, no `aria-valuenow`, no Arrow
+handling. **Fix:** make it a real slider advanced by Arrow keys, or require a second
+explicit keypress when `money` is true. The whole point of this control is that
+money should be hard to move by accident, and today it is hard for exactly the
+people who can use a pointer.
+
+Related, same file, lines 266 to 278: the `catch` discards the exception and a
+**declined** result and a **crashed** request land in the same branch with nothing
+reported. Use `reportError` from `lib/observability/report.ts:214`.
+
+### D49.3. The rest, by severity
+
+- **A toast that lies.** `social/badges/BadgeMoment.tsx:87-90` shows "Copied"
+  unconditionally, before and regardless of the clipboard promise. It is also the
+  nineteenth hand-rolled clipboard path in a repository whose `lib/ui/clipboard.ts`
+  exists precisely because eighteen others did this. Use `shareOrCopy` and branch on
+  its outcome.
+- **A celebration that can be farmed.** `app/streaks/EarnedMoment.tsx:66` replays on
+  every click with a heavy haptic each time, contradicting its own doc comment and
+  the `replayed` latch its twin `BadgeMoment.tsx:73-77` uses with the note that "a
+  celebration that can be farmed by tapping is a slot machine". The two components
+  are the same spec built twice, with two stylesheets, two medal sizes and two
+  different motion gates. Add the latch, then collapse them into one.
+- **A chart that re-renders 23 times per animation.** `charts/TrendLine.tsx:351`
+  calls `setDrawn` inside the animation frame loop, reconciling both SVG paths and
+  an unmemoized `ChartTable` with a freshly built `rows` array on every frame. It is
+  the only per-frame `setState` in the new work and it contradicts the no-render-per
+  -frame rule its siblings document.
+- **Nine server reads swallow exceptions silently**, returning "unavailable"
+  forever with no `reportError`, so schema drift or an RLS misconfiguration is
+  invisible in production. Listed in the audit; all take one line each.
+- **The gallery's motion switch does not reach the components it exists to judge.**
+  `motion-pref.ts:89-95` sets attributes without dispatching `MOTION_EVENT`, and
+  `useMotionGate` never observes `data-motion`, so every primitive on the review
+  board keeps a stale gate until remount.
+- **48 dead exports and 14 dead copy keys**, including half of
+  `agent/intel/space-model.ts` and all three of `ported-motion.ts`'s ease constants.
+- **Thirteen stateful or money-arithmetic components with no test**, including
+  `AreaAskingChart` (money), `MoveInBand` (money), `SearchPillMorph` (motion state)
+  and `OsTabs` (keyboard).
+- **`ConsolePalette.tsx:127-136`** hijacks Ctrl/Cmd+K inside any admin textarea and
+  stacks a second `aria-modal` dialog over an open sheet.
+- **`use-overlay.ts:47-60`** locks scroll with `body.overflow` alone, which does not
+  hold on iOS Safari, and every new sheet inherits it.
+
+### D49.4. What the review found clean, which is worth stating
+
+**Zero `any` in new code. Zero hardcoded user-facing strings**: every new component
+takes a `copy` or `words` prop with no defaults, checked against aria-label, alt,
+title, placeholder and JSX text. D39's real rule satisfied with zero violations and
+a lint enforcing it. The thirteen non-null assertions are all index accesses behind
+a bounds check. No file over roughly 400 lines. One unused CSS class across every
+new stylesheet.
+
+That is a high standard, and it is why the findings above are worth fixing rather
+than a reason to doubt the work.
+
+---
+
+## D48. Shipped copy tells members Vallo holds their money. Remove it before anything else on the experience branch
+
+Found 6 October by audit, verified by Session 1 against
+`origin/claude/vallo-experience-upgrade`. **This is a legal exposure, not a naming
+preference**, and it outranks every other item on Session 3's list.
+
+### What is in the bundle today
+
+`packages/i18n/src/locales/experience-features.en.ts`, lines 149 to 168, ships
+three feature-onboarding entries, verbatim:
+
+```
+wallet:     name: "your wallet"
+            p1Title: "Available and in escrow are different money"
+            action: "Open my wallet"
+escrow:     name: "escrow"
+            p1Title: "Who holds the money"
+            action: "Open escrow"
+withdrawal: name: "withdrawals"
+            action: "Start a withdrawal"
+```
+
+`apps/web/src/lib/money/copy.ts:17` ships, in the same build: **"Vallo never holds
+your money."** Both sentences are in the product. One of them is false, it is the
+one on the Terms and the money screens that is true, and ADR-0002 exists because
+holding client funds between two parties is regulated by the Central Bank of
+Nigeria and the company's objects clause does not cover it.
+
+**It is reachable code, not a dead string.**
+`components/app/feature-onboarding/first-runs.ts:45` holds
+`WAITING_FIRST_RUNS = ["wallet", "escrow", "withdrawal"]` and lines 180 to 209 wire
+`c.wallet.*`, `c.escrow.*` and `c.withdrawal.*` into panel content. It is gated
+only by those keys not being mounted. **One array edit publishes a screen that
+tells a member Vallo is holding their money.**
+
+### Two more, in live code
+
+- `apps/web/src/lib/profile/model.ts:28` declares `wallet: boolean` and line 85
+  defaults it `true`. It is a notification channel named `wallet`, **persisted in
+  `profiles.settings`**, rendered at `settings/AccountToggles.tsx:81, 110, 127,
+  149`. Members have a saved preference for notifications about a thing that
+  cannot exist.
+- `apps/web/src/components/auth/auth-intent.ts:48` lists `"wallet"` as a valid
+  gated action. `/wallet` does not exist, so `?do=wallet` returns a member to a 404
+  after they sign in, and `auth-intent.test.ts:55` **asserts that behaviour**.
+
+### What Session 3 does, first, before any other round-two item
+
+1. Delete the `wallet`, `escrow` and `withdrawal` entries from
+   `experience-features.en.ts` and their wiring in `first-runs.ts`. Not renamed,
+   not commented out: deleted.
+2. Rename the `wallet` notification channel to what it is (`payments`), with a
+   migration that carries each member's existing preference across. **Session 2
+   owns the migration**; Session 3 owns the label and the toggle.
+3. Remove `"wallet"` from `auth-intent.ts` and change the test to assert it is
+   refused rather than that it 404s.
+4. Fix `InnerNav.tsx`'s own docstring, lines 23 to 27, which still names "the
+   wallet (transactions, methods, statements, limits)" and "escrow (conditions,
+   milestones, evidence, dispute)" as destinations the component serves.
+5. Sweep the dictionaries for the rest and delete what no renderer reads:
+   `en.ts:4103-4132`, `4173-4188`, `4320-4347` ("every wallet", "platform float",
+   "spendable balance", "top-up", "withdrawal holds", "Overdrawn wallets"), and
+   `compliance.en.ts:52`, which still lists "held payment" in a scope sentence.
+6. Leave alone what is legitimately named: withdrawing AI consent, withdrawing an
+   inspection request, a guest's own external crypto wallet, and `icon="wallet"`
+   glyph names.
+
+### And the rule this sets
+
+**A retired capability's words are retired with it, in the same commit.** ADR-0002
+is thirteen days old and its language survived in a shipped dictionary, in a
+persisted member preference, and in an auth path with a test pinning it. A
+decision that lives only in an ADR and a schema constraint is not enforced; it has
+to be swept out of the words too, and the sweep is part of retiring it rather than
+a follow-up somebody gets to later.
+
+### On the founder's request for a premium wallet surface
+
+The founder asked on 6 October to "make wallet look amazing with all settings on
+it". **Session 1 read that as the money surfaces**, payments history, earnings,
+receipts, payouts and checkout, made as rich as a wallet without ever implying a
+balance Vallo holds, and that reading governs until the founder says otherwise.
+**No session builds a wallet, a balance or a withdrawal.** Restoring custody is a
+legal decision requiring counsel and an ADR that supersedes 0002; it is not
+something a session infers from a design instruction.
+
+---
+
+## D47. The database probes silently did not run on the one PR that needed them most
+
+A third gate that measures nothing, found on 6 October, in the same class as the
+fifteen null weight budgets and the preview-harness accessibility scan Session 4
+caught. This one is worse, because it hid on a pull request full of migrations.
+
+**The evidence, from the three session pull requests' check runs.**
+
+| PR | Database probes | Started to completed |
+|---|---|---|
+| 83, Session 4 | one `cancelled`, one **`success`** | 19 s, then 92 s |
+| 85, Session 3 | **`success`** | 95 s |
+| **84, Session 2** | **`cancelled`, and nothing else** | **9 s** |
+
+A real run takes 92 to 95 seconds. Session 2's lasted nine, concluded `cancelled`,
+and had no successful companion. **So the pull request carrying this round's
+migrations and money changes was merged-ready with no RLS policy, grant or trigger
+checked at all**, and the check did not read red while that was true.
+
+**The cause.** `ci.yml`'s `db-probes` job declares `concurrency: group: db-probes`
+with `cancel-in-progress: false`. The group is global: it is not keyed on the ref,
+so every open pull request contends for one slot. `cancel-in-progress: false`
+protects the run that is already going, which is what its comment intends ("never
+cancelled halfway: every probe rolls back, but a killed client leaves its locks to
+time out"). It does nothing for a run still queued behind it, and a queued run that
+is superseded is cancelled. With four pull requests open at once, the middle ones
+lose.
+
+**Why this is the serious kind of mistake.** The author of that job already saw this
+exact danger from one direction and handled it well: when `PROBES_DATABASE_URL` is
+unset the job **fails on purpose**, with the comment "a job that passes without
+running is the blind light this job exists to remove, and must never be able to
+satisfy a required check." The cancellation path defeats that same intent by another
+route, because `cancelled` is not red either. The lesson generalises past this job:
+**a check has three outcomes, not two, and the third one means it did not run.**
+
+**Session 4 owns the fix**, since it owns CI. Required:
+
+1. **A cancelled probe run must not read as acceptable.** Whatever else changes,
+   the state where nobody checked the database must be as loud as a failure.
+2. **Key the concurrency group so independent branches do not evict each other**,
+   for example `db-probes-${{ github.ref }}`. Weigh it first and say which way you
+   went: the probes run against the **production** database because there is no
+   staging one, so per-ref grouping trades a silent gap for several branches
+   touching that database at once. Probes roll back and Postgres handles lock
+   contention, so this is likely right, but it is a judgement about production and
+   it belongs in your response file with the reasoning, not in a one-line diff.
+3. **Re-run the probes on PR 84's head** so Session 2's migrations are actually
+   checked before anything merges. Nothing in this directive is satisfied by a green
+   tick on a later commit; this round's migrations are what needed checking.
+
+### D47.1. The premise the trigger change rested on, stated and disproved
+
+Session 4 did not miss this. Its `ci.yml` comment reasons it through explicitly and
+reaches the wrong conclusion on one word: "`db-probes` runs on every push and it
+runs against the real database, **one at a time and never cancelled**
+(`concurrency: db-probes`). Three session branches pushing therefore **queue behind
+each other** and behind `main`. That is the intended trade."
+
+**They do not queue. The middle ones are cancelled.** `cancel-in-progress: false`
+protects the run that is already going; it does not make GitHub hold every waiting
+run. Only the most recent pending run in a group survives. PR 84's nine-second
+`cancelled` is the proof, and it means the stated trade, "a migration that revokes a
+grant an RLS policy needs is worth catching on the branch rather than after a
+merge", bought nothing on the one branch that carried migrations.
+
+**And the trigger now doubles the contention it was weighed against.** Since draft
+pull requests exist for all three session branches, a push to one matches **both**
+`push: claude/vallo-**` and `pull_request: [main]`, so every push starts two full
+check suites. PR 83 shows the duplicate rows plainly: two `Build`, two
+`Typecheck, lint, test`, two `Database probes`. That is double the CI minutes and
+double the eviction pressure on the single `db-probes` slot.
+
+Session 4's own comment already names the resolution: "A draft pull request per
+session branch is the better long-run answer, since `pull_request` already triggers;
+this trigger is what works without one." **The pull requests now exist**, so the
+branch push trigger has done its job and should go, leaving `main`, `pull_request`
+and `workflow_dispatch`. That halves the runs and removes most of the contention
+behind D47 before any change to the concurrency group is even needed. Session 4
+decides and records it; if it keeps the trigger, the concurrency fix in D47 carries
+the whole weight and must be right.
+
+**And the general rule, binding on every session from here.** When you report a
+check as passing, say which outcome you saw. `cancelled`, `skipped` and `neutral`
+are not passes, and a job that finishes far faster than its normal run did not do
+its normal work. Session 4 found two blind gates by reading the files rather than
+the logs; this one was found by reading a duration. Both beat trusting a summary.
 
 ---
 

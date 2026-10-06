@@ -18,7 +18,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import { getDictionary } from "@vallo/i18n";
-import { DEFAULT_PASSCODE_LENGTH } from "@/lib/passcode/rules";
 
 vi.mock("@/lib/passcode/actions", () => ({
   verifyPasscodeAction: async () => ({ status: "error" }),
@@ -81,7 +80,7 @@ describe("the lock and setup screens", () => {
   it("setup draws the title and step one, with the why under the dots", () => {
     const html = renderToStaticMarkup(<PasscodeSetup copy={copy} locale="en" mode="first" name="Ada" overlay />);
     expect(html).toContain(copy.setupTitle);
-    expect(html).toContain(`Step 1 of 2. Choose ${DEFAULT_PASSCODE_LENGTH} digits.`);
+    expect(html).toContain("Step 1 of 2. Choose 4 digits.");
     expect(html).toContain(copy.setupBody);
   });
 

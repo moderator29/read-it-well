@@ -26,7 +26,8 @@ import { loadUnreadCounts } from "./unread";
 
 type Db = SupabaseClient<Database>;
 
-export type NotificationRow = Database["public"]["Tables"]["notifications"]["Row"];
+/* The columns the inbox selects. `severity` exists on the table but is not read here. */
+export type NotificationRow = Omit<Database["public"]["Tables"]["notifications"]["Row"], "severity">;
 
 export type LiveConversationSummary = {
   id: string;

@@ -10,5 +10,7 @@ export const SHARE_NOT_PAYABLE: Record<string, string> = {
   already_paid: "Your share is already paid.",
   payee_not_set_up:
     "Payment cannot open yet because the landlord or agent has not finished setting up where they are paid. They have been told.",
+  rate_not_accepted:
+    "Payment is not open yet because the landlord or agent is still confirming Vallo's fee for this listing. Nothing has been charged.",
   reserve_not_set_up: "Payments are paused while Vallo finishes setting up the Guarantee reserve account. Nothing has been charged.",
 };

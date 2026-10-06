@@ -30,19 +30,28 @@ const PRICES_NOT_MOVEMENTS = new Set([
   "price_check_shares",
   "bot_invocations",
   "bot_settings",
+  "briefs", // a renter's budget for what they want, not a payment
+  "listing_changes", // old and new asking price on a listing edit
+  "mandate_invitations", // the asking range an owner offers an agent
+  "door_charge_reports", // what a lister asked for at the door, as reported; no money moves through Vallo
+  "tenancy_reviews", // an extra charge a renter mentions in a review
+  "move_in_quotes", // a frozen quote of the move-in total; the charge is in rent_payments
+  "tenancy_renewal_offers", // the rent offered for a renewal, before any agreement or charge
+  "deal_agreement_versions", // past terms of an agreement; the live row is deal_agreements
 ]);
 
 /**
  * The newest definition of a function in each of `private` and `public`,
  * joined. A public wrapper often delegates to its private twin, so the write
- * may be in either.
+ * may be in either. Only a `create function` counts: a later
+ * `alter function ... set search_path` is not a definition.
  */
 function latestBody(fn: string): string | null {
   const bodies: string[] = [];
   for (const schema of ["private", "public"]) {
     for (let i = MIGRATIONS.length - 1; i >= 0; i -= 1) {
       const sql = MIGRATIONS[i] ?? "";
-      const at = sql.search(new RegExp(`function\\s+${schema}\\.${fn}\\s*\\(`, "i"));
+      const at = sql.search(new RegExp(`create\\s+(?:or\\s+replace\\s+)?function\\s+${schema}\\.${fn}\\s*\\(`, "i"));
       if (at === -1) continue;
       const open = /as\s+(\$[a-z_]*\$)/i.exec(sql.slice(at));
       if (!open) continue;

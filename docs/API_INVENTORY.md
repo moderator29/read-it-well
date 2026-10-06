@@ -56,6 +56,8 @@ column says so. The founder adds all keys personally.
 | Yellow Card live keys | Prove `createCollection` and `parseWebhook` against the real API | Existing integration, keys only |
 | OSM POI import | Storable landmark and restaurant base layer | Free under ODbL attribution duties |
 
+> **Superseded, 6 October 2026 (Session 2).** Virtual accounts are not a plan. Payluk's virtual-account endpoint answers `410 Gone` since 2 September 2026, citing CBN rules, and the founder's directives forbid building a Vallo-held wallet or account to replace it. Money is held, where it must be, in a provider's escrow; see `docs/payments/PAYLUK_LIVE_DOCS_FINDINGS.md`.
+
 ## 5. Later, and only if earned
 
 Google Places (about $32 per 1,000 for Details Advanced, display rules

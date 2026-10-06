@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import {
   isPaystackConfigured,
   metadataObject,
-  verifyWebhookSignature,
 } from "@/lib/payments/paystack";
+import { paystackSeam } from "@/lib/payments/providers";
 import {
   failureReason,
   logMoney,
@@ -20,6 +20,10 @@ import { BOOKING_PREFIX, FUND_PREFIX, isBookingReference } from "@/lib/payments/
 import { refundChargeToCard } from "@/lib/payments/refund";
 import { handleRefundEvent, readRefundEvent } from "@/lib/payments/refund-events";
 import { REFUND_ALREADY_CLAIMED } from "@/lib/payments/refund-outcomes";
+import { PROMOTION_PREFIX } from "@/lib/promotion/reference";
+import { handlePromotionChargeFailed, handlePromotionChargeSuccess } from "@/lib/promotion/webhook";
+import { settleRewardsTransferEvent } from "@/lib/payouts/referral-payout";
+import { isRewardsReference } from "@/lib/payouts/referral-transfer";
 
 /**
  * Paystack webhook.
@@ -72,7 +76,9 @@ import { REFUND_ALREADY_CLAIMED } from "@/lib/payments/refund-outcomes";
  *  - rm-fund-<uuid>: a wallet top-up from before the wallet was retired. If
  *    one ever arrives, it is refunded to the card in full; it is never
  *    credited anywhere.
- *  - transfer.* events are acknowledged and ignored: Vallo sends no transfers.
+ *  - transfer.* events for a Rewards Balance payout (`vallo-rw-`, from the
+ *    marketing float) go to `settleRewardsTransferEvent`, the only path that
+ *    marks one paid (D62). Every other transfer.* is acknowledged and ignored.
  *
  * Completion notifications fire from the database trigger, never from here.
  */
@@ -293,6 +299,8 @@ async function dispatch(
   if (event === "charge.success") {
     // Two charge families share this event, told apart by their reference.
     if (reference.startsWith(BOOKING_PREFIX)) return handleBookingChargeSuccess(admin, data);
+    // D60: a promotion purchase, Vallo's own revenue. Single-party charge, no split.
+    if (reference.startsWith(PROMOTION_PREFIX)) return handlePromotionChargeSuccess(admin, data);
     if (reference.startsWith(FUND_PREFIX)) {
       // A retired wallet top-up. Nothing credits it: it goes back to the card.
       const refund = await refundChargeToCard(admin, {
@@ -310,6 +318,7 @@ async function dispatch(
 
   if (event === "charge.failed") {
     if (reference.startsWith(BOOKING_PREFIX)) return handleBookingChargeFailed(admin, data);
+    if (reference.startsWith(PROMOTION_PREFIX)) return handlePromotionChargeFailed(admin, data);
     return verdict("ignored", "reference_not_ours", 200);
   }
 
@@ -324,6 +333,15 @@ async function dispatch(
   }
 
   if (event.startsWith("transfer.")) {
+    if (isRewardsReference(reference)) {
+      const rewards = await settleRewardsTransferEvent(event, data);
+      if (rewards === "error") return verdict("failed", "rewards_transfer_not_recorded", 500);
+      if (rewards === "duplicate") return verdict("duplicate", "rewards_transfer", 200);
+      // Recorded, not applied (amount mismatch, contradiction, unknown
+      // reference): an incident for staff, never "posted".
+      if (rewards === "incident") return verdict("rejected", "rewards_transfer_incident", 200);
+      return verdict(rewards === "recorded" ? "posted" : "ignored", `rewards_transfer:${rewards}`, 200);
+    }
     return verdict("ignored", "transfers_retired", 200);
   }
 
@@ -439,8 +457,8 @@ export async function POST(request: Request): Promise<NextResponse> {
     );
   }
 
-  const signature = request.headers.get("x-paystack-signature") ?? "";
-  if (!verifyWebhookSignature(rawBody, signature)) {
+  // x-paystack-signature over the raw body, constant-time, through the provider seam.
+  if (!paystackSeam().verifyWebhook(rawBody, request.headers)) {
     // Deliberately before any database work. An unauthenticated caller must not
     // be able to write rows into audit_log by posting nonsense at this URL.
     //

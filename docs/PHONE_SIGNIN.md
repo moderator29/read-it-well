@@ -97,6 +97,7 @@ Never put a real key in the repository; every value above lives in Vercel.
   Google or Apple account and is otherwise an ordinary account.
 - The per-code cost ceiling and whether WhatsApp is worth the Meta
   verification now.
-- The "Continue with phone number" door on `/sign-up` is left to the
-  onboarding work (their screen); `/sign-in/phone` already creates an account
-  for a new number.
+- The "Continue with phone number" door on `/sign-up` is built too
+  (`components/auth/SignUpOptions.tsx`, shown only while
+  `PHONE_SIGNIN_ENABLED` is on); it opens `/sign-in/phone`, which creates an
+  account for a new number.

@@ -841,3 +841,145 @@ anything you could not build for want of data, with the route, for Session 2; wh
 end-to-end specs you knowingly broke, for Session 4; **which reference images drove
 which surface**; the light-mode check result per clay asset; and what you would do next
 with another week.
+
+---
+
+## ROUND 2, added 6 October 2026
+
+**Read `docs/sessions/ROUND-2-2026-10-06.md` in full before continuing.** It
+measures what each session actually built, lists what is missing after reading the
+tree rather than the response files, and carries thirty numbered recommendations.
+
+**Your share is R2-13 to R2-24**, experience.
+
+**R2-13, finish W12, comes before any claim that the platform is swept:** 390, 768 and 1440 on every route with the 24 point audit recorded per page. Then R2-14 to R2-24: kill the last spinner and lint against its return, Pro mode once Session 2's entitlement lands, the promotion surface, streaks wired to real on-time rent history, a drawn empty state everywhere, error states with words, a reduced-motion pass, offline and slow-network states, the 20 percent weight diet, a component gallery, and admin depth over admin breadth.
+
+**The standing rule this round adds: "done" means the brief, not the session.**
+Report what you finished and what remains, in those words. Never report completion
+while your own Remaining section is non-empty. If you believe the brief is
+finished, say so against this handoff's acceptance criteria one by one, with
+evidence for each.
+
+---
+
+## ROUND 3, added 6 October 2026
+
+**Read `docs/sessions/ROUND-3-2026-10-06.md` in full.** Four audits were run
+against the branches rather than the response files, and they found what the
+reports did not.
+
+**Your share is R3-01 to R3-18.**
+
+**Four agents this round**, with declared file ownership, never two on one file:
+C1 the sweep across the untouched routes. C2 the money and settings surfaces plus the three missing routes. C3 artefact cards, onboarding and streaks. C4 D48, the auth family and the legal pages.
+
+**D48 outranks everything on every branch.** Shipped copy tells members Vallo holds
+their money, in a dictionary that is wired to live panels and gated only by three
+keys not being mounted.
+
+**The rule for this round: a number, not an adjective.** Every claim of progress
+carries a count and a denominator. Routes audited of 213. Sections done of 18.
+Matrix rows run of 34. "Upgraded", "swept" and "done" are not reportable without
+one, and a surface edited by five lines is not a surface that was audited.
+
+**D49 adds a fifth strand to C4, and it is small but urgent:** remove
+`MotionProvider` (31 KB gz per route for a renderer nothing uses, and Session 1's
+error not yours), fix `DragToConfirm`'s one-keystroke money confirm, fix the
+clipboard toast that lies, add the replay latch to `EarnedMoment`, and report
+errors in the nine silent server reads. Then the dead exports and the missing
+tests. The review also found zero `any`, zero hardcoded strings and zero D39
+violations across 290 new modules, which is a high standard and is why these are
+worth fixing rather than a reason to doubt the work.
+
+### Your share of the financial layer (D50)
+
+**Read `docs/payments/VALLO_FINANCIAL_LAYER.md` before you touch a money surface.**
+
+**The one sentence that governs every word you write:** Vallo uses regulated
+financial infrastructure partners to process and protect eligible transactions.
+**Vallo does not hold customer funds.** The provider holds; Vallo presents. Never
+imply otherwise, never guarantee an outcome, never say money is 100 percent safe.
+
+**D48 still comes first**, and it is not contradicted by this: the `wallet`,
+`escrow` and `withdrawal` strings in `experience-features.en.ts` describe custody
+**by Vallo** on a rail that does not exist, so they come out now. The surfaces
+below are built against a live rail with different copy, and ship only when
+ADR-0003 is accepted and the merchant account is live.
+
+**Build, in this order.** The **Vallo checkout that understands the transaction**:
+space, agreement, parties, amount, protection, conditions, release condition, not a
+generic payment screen. The **transaction timeline in human sentences**, never
+`ESCROW_STATUS = OPENED`. The **money centre** with **Available and Protected as
+two clearly different numbers**, because misreading them costs somebody money. The
+**protected-payment experience**, using "protected" with members and reserving
+"escrow" for legal and technical contexts. The **dispute centre as a member
+surface**, which is also the cancellation path, so its words cannot say "dispute"
+to two people who simply agreed to stop. The **receipt vault** with search,
+filters, download, share and a privacy-safe view. The **activity centre**, the
+**financial security centre**, **payment health** for landlords and agents, and the
+**transaction passport** as the permanent record.
+
+**The reference system is a design problem, not a backend one.** Transaction,
+receipt, agreement, space, provider reference and chain hash are six different
+things and must never be confused on a screen. A fiat payment shows no chain hash
+and no provider reference dressed as one.
+
+**Provider never leads.** Buttons say "Continue securely", "Protect payment", not
+"Pay with Payluk". But the founder's own line holds: **clean abstraction, not
+deceptive concealment.** Where a provider must be named by a rule, a receipt, the
+Terms or a KYC step, name it. A hosted checkout you cannot embed is explained and
+handed off, never dressed as Vallo's page.
+
+### Pricing and referral surfaces (D51): yours to build
+
+**Every Guarantee sentence comes out.** `lib/money/copy.ts`, the Terms, the help
+centre, the emails. The replacement trust story is what is now true: **your payment
+is held until you confirm**, which on the escrow rail is a stronger claim than the
+Guarantee ever was.
+
+**Withdrawal must show its maths before the member commits**, because one
+unexplained deduction is how trust is lost:
+
+```
+Amount            1,000,000
+Processing fee          300
+You'll receive      999,700
+```
+
+The figure is read back from the provider per transaction, so the screen waits for
+a real number and never shows an estimate dressed as a total.
+
+**The referral dashboard**, member side: available, pending and lifetime earned;
+the invite link with copy, share sheet and QR; a referral list showing joined,
+qualified, pending and under review **without ever exposing a risk reason or a
+fraud signal**; a rewards history reading like a transaction list; and a withdraw
+flow stating the 1,000 naira minimum and the fee before confirmation.
+
+**Never call it a wallet.** It is a **Rewards Balance**: Vallo owing the member
+money, not Vallo holding it. Progress toward a campaign bonus may be shown; a
+downline, a tree or anything resembling one may not.
+
+**The share message sells the product, not the bounty.** "Join me on Vallo", never
+"join so I can earn".
+
+### The 2 percent and the agreement gate (D51 final)
+
+**The renter and guest see exactly the advertised price.** No fee line, no
+footnote, no asterisk. `whoPays` is the seller on both rails.
+
+**The lister sees the full arithmetic before they publish, and must accept it:**
+
+```
+Rent you set            1,800,000
+Platform fee (4%)          72,000
+You receive             1,728,000
+```
+
+Naira figures on their own numbers, never a bare percentage. The accept action is
+explicit, and **the same figures reappear at payout**: a deduction a landlord first
+understands when the money arrives is how a landlord is lost permanently.
+
+**The sales sentence, which belongs in the lister-facing copy:** a lister
+replacing a 10 percent agent **keeps 96 percent instead of 90**, which is 108,000
+naira more on 1,800,000 of rent. Frame it as what they keep, never as what Vallo
+takes.

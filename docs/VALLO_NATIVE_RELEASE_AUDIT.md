@@ -21,6 +21,40 @@ Still authoritative and not repeated here: `store/FOUNDER_STEPS.md` (console
 click paths), `store/PRIVACY_LABELS.md` (App Privacy and Data safety answers),
 `store/LISTING_COPY.md`, `STORE_SUBMISSION_NOTES.md` (reviewer account).
 
+> **CORRECTION, 6 October 2026 (directive D41, "Measure, never quote").** This
+> audit was written on 28 September and several of its Apple-side statements
+> have since become false, in the direction of overstating how blocked iOS is.
+> Each was re-measured against the repository on 6 October, and the corrections
+> below are marked (D41) with the file and line they rest on:
+>
+> - **The Apple Team ID is real and committed**: `X74KD52994.com.vallospaces.app`
+>   at `apps/web/public/.well-known/apple-app-site-association:6`, and
+>   `DevelopmentTeam = X74KD52994;` at `apps/web/ios/App/App.xcodeproj/project.pbxproj:117`.
+> - **The entitlements file is adopted**: `CODE_SIGN_ENTITLEMENTS = App/App.entitlements`
+>   at `project.pbxproj:305` (Debug) and `:328` (Release).
+> - **A signed App Store archive ran and succeeded on 3 October 2026**: GitHub
+>   Actions run 37103086939, jobs `iOS compile (unsigned, simulator)` and
+>   `iOS signed archive (App Store)` both conclusion `success`, all four Apple
+>   secrets present. `Keep the IPA` was skipped and is gated on
+>   `success() && !inputs.upload` (`.github/workflows/native-ios.yml:272`), so the
+>   export ran with `destination=upload` (`:247` to `:248`): the IPA went to App
+>   Store Connect. Whether it is visible to TestFlight testers is UNKNOWN from the
+>   repository.
+> - **The iOS association file passes its own checker**:
+>   `cd apps/web && node scripts/check-deep-links.mjs --platform=ios` exits 0 and
+>   prints "the iOS association file is real".
+> - **Store screenshots exist**: `docs/store/screenshots/app-store/` holds 35 PNGs
+>   at 1320 x 2868; `docs/store/screenshots/google-play/` holds 35 PNGs at
+>   1440 x 2560 plus `feature-graphic.png` at 1024 x 500; four overview JPEGs sit
+>   beside them (handbook: `store/APP_STORE_SCREENSHOTS_HANDBOOK.md`). They were
+>   composed on 30 September, not from a shipped device build, which is the
+>   remaining gap.
+> - **Android is the genuinely blocked platform**: both fingerprints in
+>   `assetlinks.json` are still `PLACEHOLDER_...` and `google-services.json`
+>   `current_key` (line 18) is still `PASTE_THE_ANDROID_API_KEY_FROM_FIREBASE_HERE`.
+> - **Still true, and stated as a number**: nothing has been tested on a physical
+>   device, ever. 0 of 34 matrix rows are run, 0 of 10 P0 (D43).
+
 > **UPDATE, 30 September 2026 (C15).** This file said below that no Android
 > or iOS build had ever run. That stopped being true on 29 September: GitHub
 > Actions compiles both on every relevant push. `native-android.yml` has 33
@@ -34,11 +68,13 @@ click paths), `store/PRIVACY_LABELS.md` (App Privacy and Data safety answers),
 > target carries a privacy manifest, and an Android emulator smoke job runs
 > after every debug build (screenshots under the run's Artifacts).
 
-**What this session could and could not run.** The container has no macOS and
+**What the 28 September session could and could not run (historical; see the
+6 October correction above for the iOS build and signing).** The container has no macOS and
 no Xcode, and its network policy blocks `dl.google.com` (re-confirmed: HTTP 000),
-so the Android SDK and the Android Gradle Plugin cannot be fetched. **No iOS
-build and no Android build has ever run, including in this session. No
-physical device has ever run the app.** Everything below marked VERIFIED was
+so the Android SDK and the Android Gradle Plugin cannot be fetched. **(D41: "No iOS build and no Android build has ever run" was already
+superseded by C15 and is false: both compile on CI, and a signed iOS archive was
+exported to App Store Connect on 3 October.) No physical device has ever run the
+app: 0 of 34 test rows, 0 of 10 P0.** Everything below marked VERIFIED was
 verified by a static check, a unit test, a production web build or a read of
 the live database, and says which.
 
@@ -57,7 +93,7 @@ the live database, and says which.
 | Capacitor | core, cli, android, ios 8.5.0 | `apps/web/package.json` |
 | Plugins (9, all used) | app 8.1.1, browser 8.0.4, camera 8.2.4, haptics 8.0.2, keyboard 8.0.5, push-notifications 8.1.2, share 8.0.2, splash-screen 8.0.2, status-bar 8.0.3 | `cap sync` output, 28 Sep |
 | Next.js / React / Node | Next ^16.3.6, React ^19.2.0, Node >=20.9 (22.22 here) | `package.json` files |
-| iOS | Deployment target 15.0; iPhone only (`TARGETED_DEVICE_FAMILY = 1`); Swift Package Manager (no CocoaPods); automatic signing, no team set; UIScene lifecycle (Capacitor 8 template) | `ios/App/App.xcodeproj/project.pbxproj`, `CapApp-SPM/Package.swift` |
+| iOS | Deployment target 15.0; iPhone only (`TARGETED_DEVICE_FAMILY = 1`); Swift Package Manager (no CocoaPods); automatic signing with team `X74KD52994` (D41: this row said "no team set"; `project.pbxproj:117`); UIScene lifecycle (Capacitor 8 template) | `ios/App/App.xcodeproj/project.pbxproj`, `CapApp-SPM/Package.swift` |
 | Android | minSdk 24, compileSdk 36, targetSdk 36; AGP 8.13.0; Gradle 8.14.3; google-services 4.4.4; Java `MainActivity` (no Kotlin); R8 on, resource shrinking off (splash looked up by name) | `android/variables.gradle`, `build.gradle` |
 | Versions | 0.1.0 / build 100000 on both, written by `npm run sync:versions` from `apps/web/package.json`; `--check` reports in sync | `scripts/sync-native-versions.mjs` |
 | Runtime modules | `boot` (single entry, two native guards), `splash`, `status-bar`, `keyboard`, `back-button`, `external-links`, `share-bridge` (new), `push-taps`, `deep-links`, `device` (share, haptics, camera), `shell`, `widget` | `apps/web/src/lib/native/` |
@@ -141,8 +177,10 @@ expiry is **unverified on a device**.
 **Deep links.** Paths claimed: `/listing/`, `/stay/`, `/stays/`,
 `/restaurant/`, `/restaurants/`, `/around/`, `/u/`, `/post/`, `/stories/`,
 `/auth/callback`; excluded: `/api/`, `/checkout/`, `/wallet`, `/trips`, the
-rest of `/auth/`. Host: www only (F-06). **BLOCKED** on the Apple Team ID and
-the two Play fingerprints, and on the entitlements file being adopted in Xcode.
+rest of `/auth/`. Host: www only (F-06). (D41) iOS half: **READY in the
+repository**, Team ID real, entitlements adopted (`project.pbxproj:305`, `:328`),
+checker exits 0; Apple's CDN copy and a device are UNVERIFIED. Android half:
+**BLOCKED** on the two Play fingerprints, which are placeholders.
 
 **Push.** Implemented end to end in code; **zero rows in `push_tokens` in
 production** (read 28 Sep), so nothing has ever been delivered to any device.
@@ -151,8 +189,9 @@ to `/notifications`. Android channel `vallo_default` is created at boot.
 Vercel Production already holds `FCM_PROJECT_ID` and
 `FCM_SERVICE_ACCOUNT_JSON` (names read 28 Sep, values not read), so the server
 half of Android push is configured. **BLOCKED** on the Android API key in
-`google-services.json` (client half) and on the APNs key (no `APNS_*` variable
-exists; Apple account pending).
+`google-services.json` (client half). (D41) The Apple account is no longer
+pending; the APNs key is UNKNOWN: no `APNS_*` variable existed on 28 September
+and the repository holds no later reading.
 
 **Permissions.** Location when in use (coarse; fine only up to Android 11,
 reasoning in the manifest), camera and photo library through the system
@@ -186,8 +225,10 @@ in the field will be invisible; that is a founder decision with a privacy cost.
 
 **Store assets.** Icons and splash generated for both platforms (iOS single
 1024 icon, Android adaptive icons in all densities, splash light and dark).
-Store screenshots at store device sizes are **not made**; they need the shipped
-build. Listing copy is drafted in `store/LISTING_COPY.md`.
+(D41) Store screenshots at store device sizes **are made**: 35 at 1320 x 2868 for
+the App Store, 35 at 1440 x 2560 plus a 1024 x 500 feature graphic for Google Play,
+under `docs/store/screenshots/` (composed 30 September; not captured from a shipped
+device build, which remains open). Listing copy is drafted in `store/LISTING_COPY.md`.
 
 ---
 
@@ -199,7 +240,7 @@ build. Listing copy is drafted in `store/LISTING_COPY.md`.
 | `npx tsc --noEmit` | clean |
 | `npm run lint` (eslint within the warning budget, CSS tokens, valuation words, em dashes, claims) | passed |
 | `next build` (production) | passed; generated CSS contains every new inset utility |
-| `CAPACITOR_SERVER_URL=https://www.vallospaces.com npm run cap:sync` | **refused**, correctly: the three association placeholders |
+| `CAPACITOR_SERVER_URL=https://www.vallospaces.com npm run cap:sync` | **refused**, correctly: the three association placeholders (historical, 28 Sep; D41: the Apple one is now real, the two Android fingerprints still refuse the all-platform sync, and `cap:sync:ios` passes) |
 | `... npm run cap:sync:dev` | passed; 9 plugins per platform; tree unchanged |
 | Gradle scripts parsed with Gradle 8.14.3's Groovy 3.0.24 | all six parse |
 | `plistlib` on `Info.plist` and `App.entitlements`; `minidom` on 14 Android XML files and both storyboards | all valid |
@@ -207,7 +248,7 @@ build. Listing copy is drafted in `store/LISTING_COPY.md`.
 | Live `curl` of both association files on apex and www | www 200 JSON; apex 308 (F-06) |
 | Supabase (read only): RLS and columns on `push_tokens`, `push_queue`, `push_deliveries`; token count | RLS on, `device_ref = left(md5(token),12)`; 0 tokens |
 | Vercel (names only, nothing decrypted) | `FCM_*` and VAPID set; no `APNS_*`, no `SENTRY_DSN` |
-| **iOS build (`xcodebuild archive`)** | **UNVERIFIED in this container (no macOS/Xcode).** (C15) The unsigned simulator compile runs on GitHub Actions and succeeds (`native-ios.yml`, 20 runs, latest 36572375519 success). The SIGNED archive still waits on the four Apple secrets |
+| **iOS build (`xcodebuild archive`)** | **UNVERIFIED in this container (no macOS/Xcode).** (C15) The unsigned simulator compile runs on GitHub Actions and succeeds (`native-ios.yml`, 20 runs, latest 36572375519 success). (D41) The SIGNED archive no longer waits: run 37103086939 on 3 October exported a signed IPA to App Store Connect |
 | **Android build (`./gradlew bundleRelease`)** | **UNVERIFIED in this container.** (C15) `./gradlew assembleDebug` runs on GitHub Actions and succeeds (`native-android.yml`, 33 runs, latest 36572375537 success). `bundleRelease` still waits on the keystore and the Firebase key |
 
 ---
@@ -224,7 +265,7 @@ splash path fixed). Not proven on a device.
 
 ## 3. IOS CODEBASE
 COMPILES (C15). The unsigned simulator build succeeds on GitHub Actions on
-every relevant push. Signing is unproven until the Apple secrets exist. The
+every relevant push. (D41) Signing is PROVEN on CI: the signed archive job succeeded on 3 October (run 37103086939). The
 app target now carries `PrivacyInfo.xcprivacy` (no tracking; collected types
 as in `store/PRIVACY_LABELS.md`).
 
@@ -235,10 +276,12 @@ no-account P0 rows. R8 and release signing are unproven until the keystore
 and Firebase key exist.
 
 ## 5. IOS BUILD
-BLOCKED: no Xcode in this environment, and signing needs an Apple Developer
-account. Since 29 September 2026 that is the founder's personal account first
-(no D-U-N-S needed), with a transfer to the VALLO SPACES LTD account later
-(`docs/MOBILE.md` section 7).
+(D41) BUILT AND SIGNED ON CI. Run 37103086939 (3 October 2026) compiled for the
+simulator and produced a signed App Store export that uploaded to App Store
+Connect. Xcode is not available in this container, which is a limit of the
+container. Still open: TestFlight distribution state is UNKNOWN from the
+repository, and no device has run the build. The later transfer to the VALLO
+SPACES LTD account changes the Team ID (`docs/MOBILE.md` section 7).
 
 ## 6. ANDROID BUILD
 DEBUG BUILD VERIFIED ON CI (C15): download `vallo-android-debug-<sha>` from
@@ -246,13 +289,15 @@ the latest `Native Android` run and `adb install` it. A release build still
 needs the Firebase key and the upload keystore.
 
 ## 7. DEEP LINKS
-BLOCKED on the Apple Team ID, the Play app-signing and upload-key fingerprints,
-and Associated Domains on the App ID. Code and claims are ready.
+(D41) iOS: association file real and passing its checker, entitlements adopted;
+Apple's CDN copy UNKNOWN, device test not run. Android: BLOCKED on the Play
+app-signing and upload-key fingerprints. Code and claims are ready.
 
 ## 8. PUSH NOTIFICATIONS
 PARTIAL. Server and client complete and hardened; FCM server credentials are
-set in Vercel. BLOCKED on the Android API key in `google-services.json` and on
-the APNs key. Never delivered to a device.
+set in Vercel. BLOCKED on the Android API key in `google-services.json`. The
+APNs key is UNKNOWN from the repository (D41: it is not blocked on the Apple
+account). Never delivered to a device.
 
 ## 9. AUTHENTICATION
 PARTIAL. Email + password complete in code. Email-link return depends on the
@@ -283,13 +328,17 @@ from the app too, so Diagnostics > Performance Data is YES, not linked to the
 user, App Functionality. The iOS privacy manifest already says so.
 
 ## 15. STORE ASSETS
-PARTIAL. Icons, splash and listing copy exist; store-size screenshots and the
-Play feature graphic do not.
+(D41) MOSTLY DONE. Icons, splash, listing copy, 35 App Store screenshots
+(1320 x 2868), 35 Google Play screenshots (1440 x 2560) and the Play feature
+graphic (1024 x 500) exist under `docs/store/screenshots/`. Open: screenshots
+captured from a real device build, and a founder check of which to submit.
 
 ## 16. APPLE DEVELOPER ACTIONS
-REQUIRES-DEVELOPER-ACCOUNT-ACTION, blocked on the founder's personal Apple
-enrolment (the company account and its D-U-N-S number are only needed for
-the later transfer): see section 7 below, `VALLO_IOS_RELEASE_CHECKLIST.md`
+(D41) NOT BLOCKED ON ENROLMENT. The programme is held (team `X74KD52994`) and
+a signed upload has already happened. What is left on the Apple side is the
+APNs key and Vercel variables (UNKNOWN), App Store Connect record and
+metadata (UNKNOWN), TestFlight distribution (UNKNOWN) and the later transfer to
+the company account. See section 7 below, `VALLO_IOS_RELEASE_CHECKLIST.md`
 and `docs/MOBILE.md` section 7.
 
 ## 17. GOOGLE PLAY ACTIONS
@@ -297,26 +346,27 @@ Status of the Play Console account is unconfirmed; treated as not started. See
 section 7 and `VALLO_ANDROID_RELEASE_CHECKLIST.md`.
 
 ## 18. REAL DEVICE TESTING
-Nothing has been tested on a physical device, by anyone, ever. The full list is
+Nothing has been tested on a physical device, by anyone, ever: 0 of 34 matrix
+rows run, 0 of 10 P0 (D43). The full list is
 `VALLO_NATIVE_TEST_MATRIX.md`; every row reads NOT RUN. (C15) The emulator
 smoke job covers rows 1, 2 and 23 plus a deep link to `/open` on an emulated
 Pixel 6 (Android 14); its screenshots are evidence for an emulator, not a
 phone. The founder's first handset session is section 8.
 
 ## 19. RELEASE BLOCKERS
-1. ~~No native build has compiled (both platforms).~~ Both compile on CI (C15). A signed build of either has not.
-2. Apple Developer enrolment, on the founder's personal account first (no D-U-N-S needed): blocks signing, APNs, Associated Domains, TestFlight. The transfer to the VALLO SPACES LTD account comes later and changes the Team ID (`docs/MOBILE.md` section 7).
-3. Play Console account, upload keystore and Play App Signing: blocks the AAB and App Links.
-4. Association file values (Team ID, two fingerprints): `cap:sync` refuses without them.
-5. Firebase Android API key in `google-services.json` (the FCM service account is already in Vercel): the release build refuses without it.
-6. No device test pass (at minimum the rows marked P0 in the test matrix).
-7. Store-size screenshots from the shipped build.
+1. ~~No native build has compiled (both platforms).~~ FALSE (C15, D41). Both compile on CI, and a SIGNED iOS archive succeeded and uploaded on 3 October (run 37103086939). A signed Android build has not.
+2. ~~Apple Developer enrolment.~~ DONE (D41). Team `X74KD52994` is committed in the project and the association file. Remaining Apple items, none of them enrolment: APNs key and `APNS_*` variables (UNKNOWN), App Store Connect metadata (UNKNOWN), TestFlight distribution (UNKNOWN). The later transfer to the VALLO SPACES LTD account changes the Team ID (`docs/MOBILE.md` section 7).
+3. Play Console account, upload keystore and Play App Signing: blocks the AAB and App Links. GENUINELY OPEN.
+4. Association file values: ~~Team ID~~ DONE; the two Android fingerprints are GENUINELY OPEN (still placeholders) and the all-platform `cap:sync` refuses without them. The iOS file passes its checker.
+5. Firebase Android API key in `google-services.json` (the FCM service account is already in Vercel): the release build refuses without it. GENUINELY OPEN (`current_key` is a placeholder).
+6. No device test pass: 0 of 34 rows, 0 of 10 P0. GENUINELY OPEN and now the highest-value item (D43).
+7. ~~Store-size screenshots.~~ MADE (35 + 35 + feature graphic). Open: captures from a real device build, and a founder check.
 
 ## 20. NEXT ACTIONS
-1. Founder: finish Apple enrolment; create the Play Console account; create the upload keystore; paste the Firebase Android key.
+1. Founder: (D41) Apple enrolment is done, skip it. Ship the existing iOS build to TestFlight testers if not already done (state UNKNOWN) and spend one afternoon on the P0 rows (D43); create the Play Console account; create the upload keystore; paste the Firebase Android key.
 2. On a machine with Android Studio: `npm ci`, `cap:sync:dev`, `./gradlew assembleDebug`, install on a handset, run the P0 rows of the test matrix; fix what breaks.
-3. On a Mac with Xcode: open `ios/App/App.xcodeproj`, build to a device with a free personal team (no capabilities), run the same rows.
-4. Once accounts exist: fill the association files and FCM/APNs secrets, add the three iOS capabilities in Xcode, `cap:sync`, `bundleRelease`, archive.
+3. On an iPhone: install the TestFlight build (or build from a Mac with Xcode), run the same rows.
+4. Once the Play account exists: fill the two Android fingerprints and the FCM/APNs secrets, `cap:sync`, `bundleRelease`. (D41: the iOS capabilities, Team ID and entitlements adoption are already done.)
 5. Internal testing (Play) and TestFlight; run the full matrix on devices; make screenshots from that build.
 6. Submit, with the review notes from `STORE_SUBMISSION_NOTES.md`.
 
@@ -327,12 +377,12 @@ phone. The founder's first handset session is section 8.
 | Area | Status | Evidence | Remaining action |
 |------|--------|----------|------------------|
 | Capacitor | Ready (static) | resolved config, `cap:sync:dev`, 9 plugins | device run |
-| iOS | Compiles (CI) | unsigned simulator build green on `native-ios.yml`; privacy manifest added (C15) | signed archive after Apple enrolment |
+| iOS | Built and signed (CI) | unsigned simulator build green; signed archive green and exported to App Store Connect, run 37103086939, 3 Oct (D41) | TestFlight state UNKNOWN; device run |
 | Android | Compiles (CI) | `assembleDebug` green on `native-android.yml`; emulator smoke job (C15) | release bundle after keystore and Firebase key |
 | Auth | Partial | email flow in code; cookies in web view jar | device lifecycle tests; deep links |
 | Apple Login | Blocked | plugin 7.1.0 pins Capacitor < 8 | wait for a Capacitor 8 plugin; provider terms step |
 | Push | Partial | 0 tokens live; FCM server creds set; F-04, F-05, F-11, F-14, F-15 fixed | Android API key, APNs key, device test |
-| Deep Links | Blocked | www-only claims; gate refuses placeholders | Team ID, two fingerprints, Associated Domains |
+| Deep Links | iOS ready, Android blocked | www-only claims; iOS checker exits 0, Team ID real, entitlements adopted (D41) | two Android fingerprints; Apple CDN check; device test |
 | Camera | Unverified | Camera plugin + capture intents; no CAMERA permission needed | device test |
 | Photos | Unverified | system pickers; iOS purpose strings | device test |
 | Documents | Unverified | file inputs, size limits, server MIME scrub | device test |
@@ -343,22 +393,22 @@ phone. The founder's first handset session is section 8.
 | Security | Ready (static) | section 4 | none open above P3 |
 | Privacy | Needs confirmation | `store/PRIVACY_LABELS.md`; no `SENTRY_DSN` in production | founder confirms forms; decide on crash reporting |
 | Performance | Unverified | no static issue | device profiling |
-| Signing | Blocked | release refuses without keystore; iOS no team | founder accounts |
-| Store Assets | Partial | icons, splash, copy | screenshots, feature graphic |
-| TestFlight | Blocked | needs Apple account and an archive | after enrolment |
+| Signing | iOS done, Android blocked | iOS: team `X74KD52994`, signed export succeeded (D41); Android: release refuses without keystore | Android keystore and Firebase key |
+| Store Assets | Mostly done (D41) | icons, splash, copy, 35 + 35 screenshots, feature graphic | captures from a real build |
+| TestFlight | UNKNOWN (D41) | an archive was uploaded 3 Oct (run 37103086939); the repository cannot show App Store Connect | founder reads App Store Connect |
 | Google Play | Blocked | needs Play account and an AAB | after account + build |
 
 ## 7. Human-action checklist (outside the codebase, genuinely outstanding)
 
-Apple, stage 1 (the founder's personal account; no D-U-N-S needed):
+Apple, stage 1 (the founder's personal account; no D-U-N-S needed). D41: enrolment, App ID capabilities, Team ID, entitlements adoption and the first signed upload are DONE; do not repeat them.
 
-- [ ] Complete Apple Developer Program enrolment as an Individual on the founder's personal account
-- [ ] Register App ID `com.vallospaces.app`; enable Push Notifications, Associated Domains (and Sign In with Apple only when the plugin exists)
-- [ ] Create the APNs key (.p8); set `APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_PRIVATE_KEY`, `APNS_PRODUCTION=true` in Vercel Production
-- [ ] Put the Team ID into `apps/web/public/.well-known/apple-app-site-association`
-- [ ] In Xcode, select the team and add the three capabilities (Xcode adopts `App/App.entitlements`)
-- [ ] Create the App Store Connect app record
-- [ ] Archive, upload, TestFlight
+- [x] DONE: Apple Developer Program enrolment (team `X74KD52994`)
+- [x] DONE in effect: App ID `com.vallospaces.app` with Push Notifications, Associated Domains, Sign In with Apple (the signed export of 3 October succeeded); Sign In with Apple still cannot show until a Capacitor 8 plugin exists (F-10)
+- [ ] OPEN, UNKNOWN: create the APNs key (.p8); set `APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_PRIVATE_KEY`, `APNS_PRODUCTION=true` in Vercel Production
+- [x] DONE: Team ID in `apps/web/public/.well-known/apple-app-site-association`
+- [x] DONE: team selected and `App/App.entitlements` adopted (`project.pbxproj:117`, `:305`, `:328`)
+- [ ] OPEN, UNKNOWN: App Store Connect app record and metadata (an upload implies a record exists; its fields are not visible here)
+- [x] DONE once: archive and upload (run 37103086939). OPEN, UNKNOWN: TestFlight distribution to testers
 
 Apple, stage 2 (after the D-U-N-S number arrives):
 
