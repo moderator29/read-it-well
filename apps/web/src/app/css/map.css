@@ -70,6 +70,7 @@
     animation-delay: calc(min(var(--pin-i, 0), 5) * 40ms);
     transition:
       transform var(--nf-duration-base) var(--nf-ease-spring),
+      scale var(--nf-duration-base) var(--nf-ease-spring),
       border-color var(--nf-duration-fast) var(--nf-ease-standard);
   }
   @keyframes nf-map-pin-drop {
