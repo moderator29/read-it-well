@@ -105,7 +105,7 @@ export function compiledAppCss(): Promise<string> {
     const from = join(SRC, "app", "globals.css");
     const result = await postcss([tailwind()]).process(readFileSync(from, "utf8"), { from });
     const sheets = componentSheets().map((file) => readFileSync(file, "utf8")).join("\n");
-    const css = `${result.css}\n${sheets}`.replace(/url\(["']?\/fonts\/([a-z0-9-]+\.woff2)["']?\)/g, (_m, file: string) => `url("${fontData(file)}")`);
+    const css = `${result.css}\n${sheets}`.replace(/url\(["']?\/fonts\/([a-z0-9/-]+\.woff2)["']?\)/g, (_m, file: string) => `url("${fontData(file)}")`);
     mkdirSync(cacheDir, { recursive: true });
     writeFileSync(cache, css);
     return css;
