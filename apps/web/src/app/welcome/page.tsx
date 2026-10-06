@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getDictionary } from "@vallo/i18n";
+import { forWelcome } from "@/components/auth/auth-copy";
 import { getLocale } from "@/lib/locale";
 import { FirstRun } from "@/components/app/welcome/FirstRun";
 import { WelcomeStage } from "@/components/app/welcome/WelcomeStage";
@@ -85,7 +86,7 @@ export default async function WelcomePage({
      destination still opens on the slides' account choice, headed with what
      they asked for (V-18). */
   if (plan.kind === "guest" && !plan.arrival && !plan.choice && !tour) {
-    return <WelcomeIntro t={t} next={plan.next} />;
+    return <WelcomeIntro t={forWelcome(t)} next={plan.next} />;
   }
 
   if (plan.kind === "guest") {

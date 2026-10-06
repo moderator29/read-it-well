@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { Dictionary } from "@vallo/i18n/core";
+import type { AltDoorsCopy } from "./auth-copy";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { phoneSignInEnabled } from "@/lib/auth/phone-sign-in-flag";
 import { PasskeySignIn } from "./PasskeySignIn";
@@ -10,7 +10,7 @@ import { PasskeySignIn } from "./PasskeySignIn";
  * "Continue with phone number" and the passkey button only when their
  * switches are on.
  */
-export function AltSignInDoors({ t, next, surface }: { t: Dictionary; next?: string; surface: string }) {
+export function AltSignInDoors({ t, next, surface }: { t: AltDoorsCopy; next?: string; surface: string }) {
   const carry = next ? `?next=${encodeURIComponent(next)}` : "";
   return (
     <div className="nf-auth__links grid justify-items-center gap-xs" data-testid="alt-sign-in">

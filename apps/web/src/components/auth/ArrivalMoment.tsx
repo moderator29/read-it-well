@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useSyncExternalStore, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
-import type { Dictionary } from "@vallo/i18n/core";
+import type { ArrivalCopy } from "./auth-copy";
 import { feedback } from "@/lib/ui/feedback";
 import { THRESHOLD_GOING_MS } from "@/lib/motion/threshold";
 import { STARTUP_CEILING_MS } from "@/components/startup/startup-script";
@@ -69,7 +69,7 @@ export function ArrivalMoment({
   name,
   to,
 }: {
-  t: Dictionary;
+  t: ArrivalCopy;
   name?: string | undefined;
   /** Where the person is going: the escape's target if the navigation never lands. */
   to?: string | undefined;

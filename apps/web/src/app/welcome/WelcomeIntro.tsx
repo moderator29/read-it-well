@@ -4,7 +4,7 @@ import "./get-started.css";
 import { useEffect, useRef, type MouseEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { Dictionary } from "@vallo/i18n/core";
+import type { WelcomeCopy } from "@/components/auth/auth-copy";
 import { ButtonLink } from "@/components/ui/Button";
 import { VectorMark } from "@/components/auth/VectorMark";
 import { rememberFirstRunSeen, withPassedFlag } from "@/components/app/welcome/first-run-seen";
@@ -47,7 +47,7 @@ import { useStageMotion } from "./stage-motion";
  * so `/sign-in`'s first-run gate does not send the person back here; when the
  * browser refuses the cookie the doors carry the passed flag instead.
  */
-export function WelcomeIntro({ t, next = null }: { t: Dictionary; next?: string | null }) {
+export function WelcomeIntro({ t, next = null }: { t: WelcomeCopy; next?: string | null }) {
   const c = t.welcomeCards.intro;
   const router = useRouter();
   const stage = useRef<HTMLDivElement>(null);

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Dictionary } from "@vallo/i18n/core";
+import type { FieldsCopy } from "./auth-copy";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /**
@@ -117,7 +117,7 @@ export function Field({
   optional?: boolean;
   /* Optional, because a controlled field needs no dictionary for the one word
      this component would use it for. */
-  t?: Dictionary;
+  t?: FieldsCopy;
   /*
    * Controlled, optionally.
    *
@@ -278,7 +278,7 @@ export function PasswordField({
   error?: string;
   value: string;
   onChange: (next: string) => void;
-  t: Dictionary;
+  t: FieldsCopy;
   /** True when this is the one field left to fill, as on the email-first
       sign-in where the address arrived from the screen before. */
   autoFocus?: boolean;
@@ -349,7 +349,7 @@ function scorePassword(pw: string): StrengthScore {
  * locale: an empty field has no strength to report and a word there would be a
  * verdict on nothing.
  */
-function strengthLabel(score: StrengthScore, t: Dictionary): string {
+function strengthLabel(score: StrengthScore, t: FieldsCopy): string {
   switch (score) {
     case 0:
       return "";
@@ -373,7 +373,7 @@ const STRENGTH_COLOURS: Record<StrengthScore, string> = {
 };
 
 /** Four-segment strength bar with a text label, announced politely. */
-export function StrengthMeter({ password, t }: { password: string; t: Dictionary }) {
+export function StrengthMeter({ password, t }: { password: string; t: FieldsCopy }) {
   const score = scorePassword(password);
   const colour = STRENGTH_COLOURS[score];
 

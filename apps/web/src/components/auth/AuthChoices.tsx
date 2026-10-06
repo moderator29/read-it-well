@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { withNext } from "@/lib/auth/next-link";
-import type { Dictionary } from "@vallo/i18n/core";
+import type { AuthCopy } from "./auth-copy";
 import type { ProviderId, ProviderState, SignInSurface } from "@/lib/auth/providers";
 import { continueWithEmail } from "@/lib/auth/actions";
 import { SocialDoors } from "./SocialDoors";
@@ -50,7 +50,7 @@ export function AuthChoices({
   surface = "web",
 }: {
   mode: "sign-in" | "sign-up";
-  t: Dictionary;
+  t: AuthCopy;
   providers: ProviderState[];
   /** Which surface the server rendered for. The redirect doors are drawn
       only on the website; inside a shell they cannot complete (STORE-03). */

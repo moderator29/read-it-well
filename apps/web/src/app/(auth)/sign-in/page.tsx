@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { FIRST_RUN_COOKIE } from "@/components/app/welcome/first-run-seen";
 import { signInFirstRunRedirect } from "./first-run-gate";
 import { getDictionary } from "@vallo/i18n";
+import { forAuth } from "@/components/auth/auth-copy";
 import { getLocale } from "@/lib/locale";
 import { resolveProviderStates } from "@/lib/auth/providers";
 import { requestSurface } from "@/lib/auth/surface";
@@ -98,7 +99,7 @@ export default async function SignInPage({
     <>
       <EmailAuthForm
         mode="sign-in"
-        t={t}
+        t={forAuth(t)}
         action={signInWithEmail}
         next={next}
         initialEmail={address}
@@ -110,7 +111,7 @@ export default async function SignInPage({
         emailReady={configured("email")}
       />
       {/* A3 and A2: the code-by-email door, and phone and passkey when switched on. */}
-      <AltSignInDoors t={t} next={next} surface={surface} />
+      <AltSignInDoors t={forAuth(t)} next={next} surface={surface} />
     </>
   );
 }

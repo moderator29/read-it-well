@@ -2,7 +2,7 @@
 
 import { useActionState, useRef, useState } from "react";
 import Link from "next/link";
-import type { Dictionary } from "@vallo/i18n/core";
+import type { AuthCopy } from "./auth-copy";
 import type { AuthFormState } from "@/lib/auth/form-state";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Field } from "./fields";
@@ -37,7 +37,7 @@ export function ResetCodeForm({
   initialEmail = "",
   initialState = EMPTY,
 }: {
-  t: Dictionary;
+  t: AuthCopy;
   verify: (prev: AuthFormState, formData: FormData) => Promise<AuthFormState>;
   initialEmail?: string;
   initialState?: AuthFormState;

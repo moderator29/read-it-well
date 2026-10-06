@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import type { Dictionary } from "@vallo/i18n/core";
+import type { TermsCopy } from "./auth-copy";
 import { TERMS_VERSION } from "@/lib/legal/versions";
 
 /**
@@ -56,7 +56,7 @@ export function AcceptTerms({
   onAdultChange,
   showAdultError,
 }: {
-  t: Dictionary;
+  t: TermsCopy;
   accepted: boolean;
   onChange: (next: boolean) => void;
   /** True once a submit has been refused for want of the tick. */

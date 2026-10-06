@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { publicPageMetadata } from "@/lib/i18n/public-metadata";
 import { getDictionary } from "@vallo/i18n";
+import { forAuth } from "@/components/auth/auth-copy";
 import { getLocale } from "@/lib/locale";
 import { resolveProviderStates } from "@/lib/auth/providers";
 import { requestSurface } from "@/lib/auth/surface";
@@ -54,7 +55,7 @@ export default async function SignUpPage({
   const ready = (id: "google" | "apple") => providers.some((p) => p.id === id && p.configured);
   return (
     <SignUpOptions
-      t={t}
+      t={forAuth(t)}
       googleReady={ready("google")}
       appleReady={ready("apple")}
       surface={surface}

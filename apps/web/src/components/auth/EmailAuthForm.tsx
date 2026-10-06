@@ -6,7 +6,7 @@ import { useRefusalShake } from "./useRefusalShake";
 import { AcceptTerms } from "./AcceptTerms";
 import { withNext } from "@/lib/auth/next-link";
 import Link from "next/link";
-import type { Dictionary } from "@vallo/i18n/core";
+import type { AuthCopy } from "./auth-copy";
 import type { AuthFormState, EmailStatus } from "@/lib/auth/form-state";
 import type { SignInSurface } from "@/lib/auth/providers";
 import { Field, PasswordField, StrengthMeter } from "./fields";
@@ -72,7 +72,7 @@ export function EmailAuthForm({
   emailReady = true,
 }: {
   mode: "sign-in" | "sign-up";
-  t: Dictionary;
+  t: AuthCopy;
   action: (prev: AuthFormState, formData: FormData) => Promise<AuthFormState>;
   /** Where to land afterwards. Re-validated in the action, never trusted. */
   next?: string | undefined;

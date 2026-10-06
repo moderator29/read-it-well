@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { publicPageMetadata } from "@/lib/i18n/public-metadata";
 import { getDictionary } from "@vallo/i18n";
+import { forAuth } from "@/components/auth/auth-copy";
 import { getLocale } from "@/lib/locale";
 import { ForgotPasswordForm } from "@/components/auth/ForgotPasswordForm";
 
@@ -12,5 +13,5 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function ForgotPasswordPage() {
   const locale = await getLocale();
-  return <ForgotPasswordForm t={getDictionary(locale)} />;
+  return <ForgotPasswordForm t={forAuth(getDictionary(locale))} />;
 }

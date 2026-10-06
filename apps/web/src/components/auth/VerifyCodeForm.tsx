@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import type { Dictionary } from "@vallo/i18n/core";
+import type { AuthCopy } from "./auth-copy";
 import type { AuthFormState } from "@/lib/auth/form-state";
 import { Button } from "@/components/ui/Button";
 import { Field } from "./fields";
@@ -58,7 +58,7 @@ export function VerifyCodeForm({
   email,
   next,
 }: {
-  t: Dictionary;
+  t: AuthCopy;
   verify: (prev: AuthFormState, formData: FormData) => Promise<AuthFormState>;
   resend: (prev: AuthFormState, formData: FormData) => Promise<AuthFormState>;
   /** Remembered from the sign-up, empty if this was opened on another device. */

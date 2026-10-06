@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import type { Dictionary } from "@vallo/i18n/core";
+import type { AuthCopy } from "./auth-copy";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { CODE_START, type CodeSignInState } from "@/lib/auth/code-sign-in-state";
 import { sendEmailSignInCode, verifyEmailSignInCode } from "@/lib/auth/email-code";
@@ -34,7 +34,7 @@ type Mode = "email" | "phone";
  * refused code, the last digit sending the form, and "Send a new code"
  * counting down its thirty seconds in place. The actions are unchanged.
  */
-export function CodeSignInForm({ mode, t, next }: { mode: Mode; t: Dictionary; next?: string }) {
+export function CodeSignInForm({ mode, t, next }: { mode: Mode; t: AuthCopy; next?: string }) {
   const copy = mode === "email" ? t.publicDoors.emailCode : t.publicDoors.phone;
   const [sent, send, sending] = useActionState<CodeSignInState, FormData>(
     mode === "email" ? sendEmailSignInCode : sendPhoneSignInCode,

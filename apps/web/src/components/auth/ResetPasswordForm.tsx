@@ -2,7 +2,7 @@
 
 import { useActionState, useRef, useState } from "react";
 import Link from "next/link";
-import type { Dictionary } from "@vallo/i18n/core";
+import type { AuthCopy } from "./auth-copy";
 import type { AuthFormState } from "@/lib/auth/form-state";
 import { updatePassword } from "@/lib/auth/actions";
 import { PasswordField, StrengthMeter } from "./fields";
@@ -30,7 +30,7 @@ export function ResetPasswordForm({
   t,
   askCurrent = false,
 }: {
-  t: Dictionary;
+  t: AuthCopy;
   /**
    * The session did not come from a recent recovery link, so the server will
    * ask for the current password; the field is drawn up front rather than

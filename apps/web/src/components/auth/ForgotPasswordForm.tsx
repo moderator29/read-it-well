@@ -2,7 +2,7 @@
 
 import { useActionState, useRef } from "react";
 import Link from "next/link";
-import type { Dictionary } from "@vallo/i18n/core";
+import type { AuthCopy } from "./auth-copy";
 import type { AuthFormState } from "@/lib/auth/form-state";
 import { requestPasswordReset } from "@/lib/auth/actions";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -27,7 +27,7 @@ const EMPTY: AuthFormState = { ok: false };
  * it there invites somebody to hammer the button waiting for a different
  * answer they are never going to get.
  */
-export function ForgotPasswordForm({ t }: { t: Dictionary }) {
+export function ForgotPasswordForm({ t }: { t: AuthCopy }) {
   const [state, formAction, pending] = useActionState(requestPasswordReset, EMPTY);
   const sent = state.ok;
   /* THE FORM ERROR: the refused field shakes once, its message beneath. */

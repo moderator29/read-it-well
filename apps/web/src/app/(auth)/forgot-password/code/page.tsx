@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getDictionary } from "@vallo/i18n";
+import { forAuth } from "@/components/auth/auth-copy";
 import { getLocale } from "@/lib/locale";
 import { chooserEmail, verifyPasswordResetCode } from "@/lib/auth/actions";
 import { ResetCodeForm } from "@/components/auth/ResetCodeForm";
@@ -22,7 +23,7 @@ export default async function ForgotPasswordCodePage() {
   const locale = await getLocale();
   return (
     <ResetCodeForm
-      t={getDictionary(locale)}
+      t={forAuth(getDictionary(locale))}
       verify={verifyPasswordResetCode}
       initialEmail={await chooserEmail()}
     />

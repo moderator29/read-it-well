@@ -1,7 +1,7 @@
 "use client";
 
 import { startTransition, useActionState, useEffect, useRef, useState, useTransition } from "react";
-import type { Dictionary } from "@vallo/i18n/core";
+import type { AuthCopy } from "./auth-copy";
 import type { AuthFormState } from "@/lib/auth/form-state";
 import { signOut } from "@/lib/profile/actions";
 import { AcceptTerms } from "./AcceptTerms";
@@ -31,7 +31,7 @@ export function FinishSetupForm({
   initialFirstName,
   initialSurname,
 }: {
-  t: Dictionary;
+  t: AuthCopy;
   action: (prev: AuthFormState, formData: FormData) => Promise<AuthFormState>;
   next?: string | undefined;
   initialFirstName: string;
