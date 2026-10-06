@@ -97,8 +97,13 @@ draws its honest not-live or empty state):
   "Send for review" for every lister until R-C2-1 and R-C2-2 land. Hotel rooms are
   published by a reviewer, so their acceptance belongs at that review, not in the
   wizard.
-- **The Guarantee in the Terms and Disclaimer** (section 14, `GUARANTEE_SCOPE`)
-  needs counsel and a new Terms version; not touched. The caution register's
+- **The Guarantee in the legal documents** needs counsel and a new accepted Terms
+  version (`lib/legal/versions.ts`), so it is not touched: the Terms mention it 13
+  times (section 14, "The Vallo Guarantee", and the contribution sentences in
+  sections 4 and 9), the privacy notice 6, the disclaimer 5. D51 asks for every
+  Guarantee sentence out; the sweep records point 17 as failing on all three until
+  then. The Terms "updated" date is typed separately in the in-app and public pages;
+  one constant would stop them drifting. The caution register's
   "escalate to the Vallo Guarantee" strings and the claim-decision emails serve
   legacy claims; whether they stay is the founder's call. The staff scope label
   "Guarantee claims" and the handbook line are left as they are, by ruling.
