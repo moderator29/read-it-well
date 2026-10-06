@@ -1090,7 +1090,11 @@
       max-width var(--nf-duration-base) var(--nf-ease-spring),
       margin var(--nf-duration-base) var(--nf-ease-spring),
       opacity var(--nf-duration-base) var(--nf-ease-standard),
-      transform var(--nf-duration-base) var(--nf-ease-spring);
+      transform var(--nf-duration-base) var(--nf-ease-spring),
+      white-space 0s linear;
+    /* `white-space` is discrete, so it only transitions where the browser lets
+       it; where it does not, it flips at once (the old behaviour). */
+    transition-behavior: normal, normal, normal, normal, allow-discrete;
   }
   /* The pill: drawn by the link's own layer, so it scales in rather than
      pushing anything, and no control carries a capsule radius of its own. */
@@ -1128,13 +1132,19 @@
     margin-inline-start: 0.375rem;
     opacity: 1;
     transform: none;
-    transition-delay: 0s, 0s, 60ms, 0s;
+    transition-delay: 0s, 0s, 60ms, 0s, var(--nf-duration-base);
     /* THE CHOSEN SLOT'S WORD WRAPS TO TWO LINES RATHER THAN BEING CUT. The slot does not
        grow (D28: the dock keeps its slots) and the word is the dictionary's, so a long one
        (Hausa "Bayanan martaba", 101px against this 70px label) takes a second line at the same
        12px step: two lines are 29px inside the 44px link, and a one-word label is unchanged.
        Resting tabs keep their nowrap and stay hidden. Found by
-       components/locale-fit/cards.dom.test.tsx. */
+       components/locale-fit/cards.dom.test.tsx.
+       IT WRAPS ONLY ONCE SETTLED (A8 NIT 8). The label grows from 0 to its width over the
+       base rung, and a multi-word label that fits on one line was wrapping to two while it
+       was still narrow and back to one as it grew, so the word jittered. `white-space` is
+       discrete and is the fifth transition of the label, delayed by the base rung, so the
+       label stays nowrap while it animates and is allowed to wrap when it has arrived.
+       Leaving flips it back to nowrap at once, so it never wraps on the way out either. */
     white-space: normal;
     text-wrap: balance;
   }
