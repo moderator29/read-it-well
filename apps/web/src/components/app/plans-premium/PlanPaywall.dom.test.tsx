@@ -75,7 +75,7 @@ function entry(opts: {
         locale="en"
         copy={{
           choose: f.choose, monthly: f.monthly, annual: f.annual, perMonth: f.perMonth,
-          perYear: f.perYear, recommended: f.recommended, saving: f.saving, benefits: f.benefits,
+          perYear: f.perYear, recommended: f.recommended, saving: f.saving, benefits: f.benefits, termsNotReady: f.termsNotReady,
         }}
         action={(id) => <button id="act" type="button" className="nf-btn nf-btn--primary nf-btn--lg" data-plan-id={id ?? ""}>The one action, slot</button>}
       />,
@@ -198,7 +198,15 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the plan screen", () => {
     try {
       expect(await checked(gap.page)).toEqual([false, false]);
       await plans(gap.page).nth(1).click();
-      expect(await gap.page.locator(".nf-paywall__foot").count()).toBe(0);
+      /* A chosen plan with no terms offers no action but says why, in words. */
+      expect(await gap.page.locator(".nf-paywall__terms").count()).toBe(0);
+      expect(await gap.page.locator("#act").count()).toBe(0);
+      expect(await gap.page.locator(".nf-paywall__notready").textContent()).toBe(
+        "This plan's terms are not ready yet, so it cannot be chosen here.",
+      );
+      await plans(gap.page).nth(0).click();
+      expect(await gap.page.locator(".nf-paywall__notready").count()).toBe(0);
+      await plans(gap.page).nth(1).click();
       await plans(gap.page).nth(0).click();
       expect(await gap.page.locator(".nf-paywall__terms li").allTextContents()).toEqual(Object.values(FOUR));
     } finally {

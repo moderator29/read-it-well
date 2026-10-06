@@ -87,6 +87,8 @@ export function PlanPaywall({
     recommended: string;
     saving: string;
     benefits: string;
+    /** Said in the foot when the chosen plan has no complete terms, so a selected plan never leads nowhere in silence. */
+    termsNotReady: string;
   };
   /** The one primary action, given the chosen plan (null until one is chosen). */
   action: (planId: string | null) => ReactNode;
@@ -171,8 +173,9 @@ export function PlanPaywall({
 
       {/* NO TERMS, NO ACTION. A plan that cannot say what it charges, when,
           how it renews and how to cancel has nothing honest to sell, so the
-          foot is not drawn at all until the chosen plan's four sentences
-          exist (and with no plan chosen there are none to show). */}
+          foot carries no terms and no action until the chosen plan's four
+          sentences exist (it says so in one line; with no plan chosen there
+          is nothing to say). */}
       {lines ? (
         <div className="nf-paywall__foot">
           <ul className="nf-paywall__terms">
@@ -182,6 +185,15 @@ export function PlanPaywall({
             <li>{lines.cancel}</li>
           </ul>
           {action(chosen)}
+        </div>
+      ) : chosen ? (
+        /* A plan was picked but cannot say what it charges, so there is no
+           action; say so, in words, rather than leave a selected radio that
+           leads nowhere. (The reason is the plan's, not an error.) */
+        <div className="nf-paywall__foot">
+          <p className="nf-paywall__notready" role="status">
+            {copy.termsNotReady}
+          </p>
         </div>
       ) : null}
     </div>

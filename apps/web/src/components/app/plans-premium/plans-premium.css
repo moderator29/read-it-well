@@ -167,6 +167,12 @@
     padding-block: var(--nf-space-md) calc(env(safe-area-inset-bottom) + var(--nf-space-md));
     background: var(--nf-surface-canvas);
   }
+  .nf-paywall__notready {
+    margin: 0;
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.45;
+    color: var(--nf-content-secondary);
+  }
   .nf-paywall__terms {
     display: grid;
     gap: var(--nf-space-3xs);

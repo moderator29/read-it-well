@@ -132,6 +132,7 @@ export function FeaturesBoard({
             recommended: f.plans.recommended,
             saving: f.plans.saving,
             benefits: f.plans.benefits,
+            termsNotReady: f.plans.termsNotReady,
           }}
           action={() => null}
         />

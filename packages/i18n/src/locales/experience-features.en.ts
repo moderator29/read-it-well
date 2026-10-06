@@ -267,6 +267,8 @@ export const experienceFeaturesEn = {
     endStep: "The trial ends",
     /** Shown in place of a date the server has not supplied. */
     dateUnknown: "Date to be set when you start",
+    /** Shown in the foot in place of the terms and the action when the chosen plan has no complete set of terms. */
+    termsNotReady: "This plan's terms are not ready yet, so it cannot be chosen here.",
   },
 
   /**
