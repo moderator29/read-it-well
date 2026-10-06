@@ -73,7 +73,7 @@ describe("the lock and setup screens", () => {
     const html = renderToStaticMarkup(<PasscodeSetup copy={copy} locale="en" mode="first" name="Ada" overlay />);
     expect(html).toContain('data-ring="padlock"');
     expect(html).toContain(copy.setupTitle);
-    expect(html).toContain("Step 1 of 2. Choose 6 digits.");
+    expect(html).toContain("Step 1 of 2. Choose 4 digits.");
     expect(html).toContain(copy.setupBody);
   });
 

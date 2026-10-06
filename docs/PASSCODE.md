@@ -1,13 +1,13 @@
 # The passcode: "Welcome back"
 
-Every signed-in member has an account passcode: 6 digits by default, or 4. It is an app lock on top of the normal session, in the style of a banking app. It does **not** replace the password, Google or Apple. It decides whether a browser that is already signed in may show the app and move money right now.
+Every signed-in member has an account passcode: 4 digits by default, or 6. It is an app lock on top of the normal session, in the style of a banking app. It does **not** replace the password, Google or Apple. It decides whether a browser that is already signed in may show the app and move money right now.
 
 This document is the design. The code is in `apps/web/src/lib/passcode/`, `apps/web/src/components/passcode/` and the migration `supabase/migrations/20260929034124_passcode_member_app_lock_code_bcrypt_only.sql`.
 
 ## 1. Setup
 
 - **Who.** Every signed-in member. A new member meets it straight after account creation: sign-up lands on `/home`, and the `(app)` layout draws the setup screen instead of the page until a code is set. An existing member meets the same screen on their next visit to any page under `(app)`. It cannot be skipped. The only other way out is **Sign out**.
-- **Length.** 6 digits by default. "Use a 4-digit passcode" on the first screen switches to 4, and back.
+- **Length.** 4 digits by default (D18). "Use a 6-digit passcode" on the first screen switches to 6, and back.
 - **Twice.** The code is typed, then typed again on "Enter it again". A mismatch shakes the dots and starts again.
 - **Trivial codes are refused.** These are refused on the screen before the code is sent (`lib/passcode/rules.ts`), and again by the database, which has the final say (`private.passcode_is_trivial`):
   - one repeated digit, for example `000000` or `1111`;

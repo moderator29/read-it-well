@@ -765,6 +765,8 @@ condition is met, and the trustee moves the money.
 
 ---
 
+> **Superseded, 6 October 2026 (Session 2).** Virtual accounts are not a plan. Payluk's virtual-account endpoint answers `410 Gone` since 2 September 2026, citing CBN rules, and the founder's directives forbid building a Vallo-held wallet or account to replace it. Money is held, where it must be, in a provider's escrow; see `docs/payments/PAYLUK_LIVE_DOCS_FINDINGS.md`.
+
 **Structure C. A licensed escrow or payments provider holds the funds, with
 Vallo as its agent.**
 

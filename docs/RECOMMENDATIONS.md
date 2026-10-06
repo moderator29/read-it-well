@@ -402,6 +402,8 @@ prove the crack was already there". It is also the only version that works when
 the landlord has no account, because evidence does not require them to be a
 party to anything. No competitor in this market has it.
 
+> **Superseded, 6 October 2026 (Session 2).** Virtual accounts are not a plan. Payluk's virtual-account endpoint answers `410 Gone` since 2 September 2026, citing CBN rules, and the founder's directives forbid building a Vallo-held wallet or account to replace it. Money is held, where it must be, in a provider's escrow; see `docs/payments/PAYLUK_LIVE_DOCS_FINDINGS.md`.
+
 **2. Partner-held funds, when money must be held.** The money never touches a
 Vallo account. The payer funds a dedicated account at a licensed institution, a
 virtual account through Paystack, Flutterwave or Monnify, and Vallo is the

@@ -148,7 +148,7 @@ Vallo never receives, holds or forwards crypto, a key, an address of its own, or
 
 | Retired thing | How it is kept retired |
 |---|---|
-| Custody tables: wallets, wallet_entries, wallet_pots, escrows, escrow_evidence, escrow_rulings, escrow_float_snapshots | Unreachable from every app role on live (`20260925130904`). The migration that moves them into a `retired_custody` schema with no grants is in `supabase/migrations/pending/` for the founder to apply. |
+| Custody tables: wallets, wallet_entries, wallet_pots, escrows, escrow_evidence, escrow_rulings, escrow_float_snapshots | Unreachable from every app role on live (`20260925130904`). They were then moved into the `retired_custody` schema with no grants, applied on live as `20260925163708_track_a1_vallo_never_holds_customer_money_custody_retired.sql` (verified against the live catalogue 6 October). |
 | Every custody function | Execute revoked from anon, authenticated and service_role. |
 | The rent-to-wallet trigger | Disabled (`20260925130806`). |
 | The `wallet`, `held_payments` and `held_payments_payouts` flags | Off (`20260925114741`). The pending migration also makes the flag guard refuse to turn them on, and adds an event trigger that refuses any new custody-named object. |

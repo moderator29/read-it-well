@@ -41,7 +41,7 @@
  * English.
  */
 
-import type { Database } from "@/lib/supabase/database.types";
+import type { EscrowState } from "@/lib/admin/reads/money-types";
 
 /* ------------------------------------------------------------------ escrow */
 
@@ -67,10 +67,7 @@ import type { Database } from "@/lib/supabase/database.types";
  * escrow state a compile error in this file instead of `RELEASE_DENIED` in a
  * chip on the dispute desk.
  */
-export const ESCROW_STATE_WORDS: Record<
-  Database["public"]["Enums"]["escrow_state"],
-  string
-> = {
+export const ESCROW_STATE_WORDS: Record<EscrowState, string> = {
   INITIATED: "Agreed, not funded",
   FUNDED: "Funded",
   HELD: "Held",
