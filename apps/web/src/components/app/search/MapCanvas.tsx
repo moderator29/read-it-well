@@ -865,9 +865,7 @@ export function MapCanvas({
         {/* Attribution and the state of the imagery, always clear of the dock. */}
         <p className="pointer-events-auto px-sm pb-2xs text-[length:var(--nf-text-overline)] leading-tight text-[var(--nf-content-muted)]">
           {imagery === "offline" ? (
-            <span data-testid="map-imagery-note">
-              Map imagery could not load. Every place is still placed by its area.
-            </span>
+            <span data-testid="map-imagery-note">{copy.imageryOffline}</span>
           ) : (
             <>
               {/* Whoever the provider's terms name, in the order they ask
@@ -875,12 +873,15 @@ export function MapCanvas({
                   replaces one licence breach with another. */}
               {credits.map((credit, i) => (
                 <span key={credit.href}>
-                  {i > 0 ? " and " : null}
+                  {i > 0 ? copy.creditJoin : null}
+                  {/* A credit is a link a thumb has to be able to hit: the
+                      overline-sized words drew a target about 15px tall. The
+                      target grows, the line does not (as PinMap's credits). */}
                   <a
                     href={credit.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="underline-offset-2 hover:underline"
+                    className="nf-tap underline-offset-2 hover:underline"
                   >
                     {credit.label}
                   </a>
@@ -888,7 +889,7 @@ export function MapCanvas({
               ))}
             </>
           )}
-          {approximate && <span>{" · Pins show the area, not the address."}</span>}
+          {approximate && <span>{copy.approximate}</span>}
         </p>
 
         {/* Controls. They sit above the dock in the same column, so a docked

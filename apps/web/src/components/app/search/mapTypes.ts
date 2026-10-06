@@ -71,4 +71,8 @@ export type MapCopy = {
   emptyArea?: string;
   emptySearch?: string;
   emptyAction?: string;
+  /** The line under the map: tiles that failed, the credits' joiner, approximate pins. */
+  imageryOffline: string;
+  creditJoin: string;
+  approximate: string;
 };

@@ -234,6 +234,14 @@
   .nf-pcard__action {
     padding: 0 var(--nf-space-xs) var(--nf-space-xs);
   }
+  /* The card's one button fills a two-column card, which at 390 is 155px:
+     a full-width button keeps one line by rule, so "Message the agent" in Igbo
+     (193px of words) ran out of the button and the card (Round 3 sweep). Here
+     the label wraps, centred, and the button grows a line instead. */
+  .nf-pcard__action .nf-btn {
+    white-space: normal;
+    text-align: center;
+  }
   .nf-pcard__new {
     padding: 0 var(--nf-space-2xs);
     font-size: var(--nf-text-overline);

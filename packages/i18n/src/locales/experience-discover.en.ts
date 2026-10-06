@@ -40,8 +40,23 @@ export const experienceDiscoverEn = {
       office: "Offices",
     },
     featuredForYou: "The kinds you said you came for come first. Search or filter and the order is everybody's.",
+    /* The greeting for somebody signed out, and the city row under it
+       (HomeScreen, CityRow), moved out of the components (Round 3 sweep, C3).
+       `{city}` is the place. */
+    welcome: "Welcome to Vallo",
+    signIn: "Sign in",
+    signInRest: "and this screen becomes yours: your city, your places, your name.",
+    chooseCity: "Choose your city",
+    setYours: "Set yours to see what is happening around you",
+    yourCityAria: "Your city is {city}. Change it.",
+    chooseCityAria: "Choose the city you explore from.",
   },
   search: {
+    /* The page's one heading, read by assistive tech (Round 3 sweep, C3).
+       `{q}` is what was typed, `{kind}` the kind's plural noun. */
+    headingQuery: "Results for {q}",
+    headingKind: "Explore {kind}",
+    headingAll: "Explore properties",
     noMatchTitle: "No spaces matched",
     noMatchBody: "Your filters are narrower than what is listed right now. Widen them and the results come straight back.",
     noWordsTitle: "Nothing matches those words",
@@ -91,6 +106,12 @@ export const experienceDiscoverEn = {
     emptyArea: "No place sits inside this part of the map. Zoom out or show every place.",
     emptySearch: "This search matched no place we can put on the map.",
     emptyAction: "Show every place",
+    /* The line under the map (MapCanvas), moved out of the component (Round
+       3 sweep, C3): the tiles that did not load, the joiner between two
+       credits, and the pins that mark an area. */
+    imageryOffline: "Map imagery could not load. Every place is still placed by its area.",
+    creditJoin: " and ",
+    approximate: " · Pins show the area, not the address.",
   },
   saved: {
     /* The head-to-head of north star 15.3: two of your own saved spaces. */

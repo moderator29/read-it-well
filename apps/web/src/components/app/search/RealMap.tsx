@@ -153,6 +153,9 @@ export async function RealMap({
         emptyArea: dm.emptyArea,
         emptySearch: dm.emptySearch,
         emptyAction: dm.emptyAction,
+        imageryOffline: dm.imageryOffline,
+        creditJoin: dm.creditJoin,
+        approximate: dm.approximate,
       }}
       wholeMapHref="/search?view=map"
     />

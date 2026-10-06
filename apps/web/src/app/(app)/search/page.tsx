@@ -483,7 +483,11 @@ export default async function SearchPage({
       <ReadAs query={query} said={said} locale={locale} copy={t.shape.unit} />
 
       <h1 className="sr-only">
-        {query.q ? `Results for ${query.q}` : query.kind ? `Explore ${noun.many}` : "Explore properties"}
+        {query.q
+          ? t.experienceDiscover.search.headingQuery.replace("{q}", query.q)
+          : query.kind
+            ? t.experienceDiscover.search.headingKind.replace("{kind}", noun.many)
+            : t.experienceDiscover.search.headingAll}
       </h1>
 
       <ShelfCount query={query} count={listings.length} narrowed={narrowed || Boolean(query.q)} locale={locale} t={t} />
