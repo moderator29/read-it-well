@@ -9,7 +9,7 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Gauge, type GaugeStage } from "@/components/ui/charts/Gauge";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { TodayHero } from "@/components/workspace/TodayHero";
-import { HOST_STATUS_WORD, type HostToday, type TodayAttention } from "./today";
+import type { HostToday, TodayAttention } from "./today";
 import "@/app/css/site.css";
 
 /**
@@ -193,7 +193,7 @@ function attentionRowProps(item: TodayAttention, t: Dictionary, tag: string) {
     sub = a.stopped;
     badge = (
       <StatusBadge tone={item.tone === "error" ? "error" : "warning"}>
-        {HOST_STATUS_WORD[item.sub] ?? item.sub}
+        {t.experienceHost.businessStatus[item.sub as keyof Dictionary["experienceHost"]["businessStatus"]] ?? item.sub}
       </StatusBadge>
     );
   }

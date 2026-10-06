@@ -597,3 +597,19 @@ export const HOST_ROOM_BOOKING_PAYMENT =
 export const HOST_ROOM_TOTAL_LABEL = "Total the guest pays";
 /** The last step after accepting. */
 export const HOST_ROOM_GUEST_PAYS_NEXT = "The guest pays by card once it is approved.";
+
+/* -------------------------------------------------------------------------- */
+/* /host/earnings and /host/earnings/statement (C5, the route sweep)           */
+/* -------------------------------------------------------------------------- */
+
+/** A host's earnings before anybody has paid. */
+export const HOST_EARNINGS_EMPTY_TITLE = "No guest has paid yet";
+/** Under each month in the list of statements. */
+export const HOST_STATEMENT_ROW_SUB = "Every payment, line by line, with a CSV";
+/** The statement's door for somebody signed out. It said "what Vallo kept", which reads as Vallo keeping money. */
+export const HOST_STATEMENT_SIGNED_OUT_BODY =
+  "Sign in to see every payment, the platform fee on it, and what reached your bank.";
+/** A month with no payment in it. Same correction: the fee is named, nothing is "kept". */
+export const HOST_STATEMENT_EMPTY_TITLE = "No payments this month";
+export const HOST_STATEMENT_EMPTY_BODY =
+  "When a guest pays, the payment appears here line by line: what they paid, the platform fee, and your share.";

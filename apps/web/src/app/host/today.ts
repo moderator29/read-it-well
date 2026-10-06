@@ -80,18 +80,7 @@ export type HostToday = {
   needsYou: number;
 };
 
-/** A business's review state, in the words the host reads everywhere. */
-export const HOST_STATUS_WORD: Record<string, string> = {
-  DRAFT: "Draft",
-  SUBMITTED: "With our team",
-  UNDER_REVIEW: "Being read",
-  MORE_INFO_REQUIRED: "Needs more from you",
-  APPROVED: "Approved",
-  PUBLISHED: "Live",
-  REJECTED: "Not approved",
-  SUSPENDED: "Suspended",
-};
-
+/* A business's review state in words is `experienceHost.businessStatus` in the dictionary. */
 const STOPPED = new Set(["SUSPENDED", "REJECTED", "MORE_INFO_REQUIRED"]);
 
 /** The Lagos calendar day for an instant, as YYYY-MM-DD. */

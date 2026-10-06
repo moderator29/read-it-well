@@ -18,45 +18,16 @@ import { loadUnreadCounts } from "@/lib/messages/unread";
 import { ListGroup, ListRow } from "@/components/ui/ListGroup";
 import { readHostTableBoard } from "./reservations/board";
 import { HostTodayView } from "./HostTodayView";
-import { HOST_STATUS_WORD, hostToday, type HostToday } from "./today";
+import { hostToday, type HostToday } from "./today";
 import { IconPlate } from "@/components/ui/IconPlate";
 import { gateFirstRun } from "@/components/app/feature-onboarding/first-run-store";
 
-export const metadata: Metadata = {
-  title: "Host",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: getDictionary(await getLocale()).experienceHost.home.metaTitle, robots: { index: false, follow: false } };
+}
 
 export const dynamic = "force-dynamic";
 
-const STATUS_WORD = HOST_STATUS_WORD;
-
-/**
- * What a stopped business can and cannot do, said on its own row.
- *
- * A refused or suspended host workspace opens here (`makeWorkspace`), so this
- * row is where somebody who has been stopped learns why. The reviewer's words
- * come first when there are any; these sentences say what the state means and
- * stand in for the reason when none was recorded, so a stop is never silent.
- */
-const STOPPED_MEANS: Partial<Record<string, string>> = {
-  SUSPENDED:
-    "Our team has stopped this business. Guests cannot find or book it until the stop is lifted. Bookings already confirmed still stand.",
-  REJECTED: "This application did not pass review, so guests cannot find it.",
-  MORE_INFO_REQUIRED: "A reviewer needs something more before this can go live. Open the application to answer.",
-};
-
-/** Said when a stop carries no reviewer's note, rather than saying nothing. */
-const NO_REASON_ON_FILE = "No reason was written on the business. Contact us and a person will tell you why.";
-
-/**
- * /host: where a host stands.
- *
- * Every business on the account with its state, the reviewer's words where
- * there are any, and the one next thing: start, continue, or answer. The
- * verification ladder's meaning is written on the row rather than as a
- * tick, per the research (section 3.6): a tier is rungs passed with no gap.
- */
 export default async function HostPage({
   searchParams,
 }: {
@@ -76,7 +47,7 @@ export default async function HostPage({
           body={t.hostWorkspace.home.signedOutBody}
           action={
             <ButtonLink href={authHref(next, "sign-in")} variant="primary" size="lg">
-              Sign in
+              {t.common.signIn}
             </ButtonLink>
           }
         />
@@ -161,6 +132,10 @@ export function HostStandingBody({
   t?: ReturnType<typeof getDictionary>;
 }) {
   const missing = open ? missingFrom(open) : [];
+  const words = t.experienceHost;
+  const home = words.home;
+  const statusWord = (status: string) => words.businessStatus[status as keyof typeof words.businessStatus] ?? status;
+  const stoppedMeans = (status: string) => home.stopped[status as keyof typeof home.stopped] as string | undefined;
 
   return (
     <>
@@ -171,7 +146,7 @@ export function HostStandingBody({
         sub={
           businesses.length === 0
             ? t.hostWorkspace.nothingYet.home
-            : `${countOf(businesses.length, "businesses", locale)} on this account.`
+            : home.onAccount.replace("{businesses}", countOf(businesses.length, "businesses", locale))
         }
         action={
           /* A HOST WHO HAS NOT STARTED IS ASKED WHAT THEY ARE, NOT ASKED TO
@@ -187,7 +162,7 @@ export function HostStandingBody({
       <Stack>
         {open && (
           <ListGroup
-            label={open.status === "SUBMITTED" ? "With our team" : "In progress"}
+            label={open.status === "SUBMITTED" ? home.draftWithTeam : home.draftInProgress}
           >
             <ListRow
               href="/host/apply"
@@ -196,17 +171,17 @@ export function HostStandingBody({
                   <UiIcon name="file-text" size={20} />
                 </IconPlate>
               }
-              title={open.name || "Your business"}
+              title={open.name || home.yourBusiness}
               sub={
                 open.status === "SUBMITTED"
-                  ? "A person reads it next. We write to you when it has been read."
+                  ? home.draftReadNext
                   : missing.length === 0
-                    ? "Everything is in. Open it and send it for review."
-                    : `${countOf(missing.length, "things", locale)} still to add before it can be sent.`
+                    ? home.draftReady
+                    : home.draftMissing.replace("{things}", countOf(missing.length, "things", locale))
               }
               status={
                 <StatusPill tone={toneForStatus(open.status ?? "DRAFT")}>
-                  {STATUS_WORD[open.status ?? "DRAFT"] ?? open.status}
+                  {statusWord(open.status ?? "DRAFT")}
                 </StatusPill>
               }
             />
@@ -216,7 +191,7 @@ export function HostStandingBody({
         {businesses.length > 0 && (
           <section className="nf-list-section">
             <div className="nf-list-section__head">
-              <h2 className="nf-section-label">Your businesses</h2>
+              <h2 className="nf-section-label">{home.businessesTitle}</h2>
             </div>
             <RowList boxed>
               {businesses.map((business) => (
@@ -235,34 +210,37 @@ export function HostStandingBody({
                     <span className="min-w-0">
                       <span className={`block ${TYPE.rowTitle}`}>{business.name}</span>
                       <span className={`block ${TYPE.rowMeta}`}>
-                        Tier {business.verificationTier} of 4
-                        {business.verified ? ", verified" : ""}
+                        {(business.verified ? home.tierVerified : home.tier).replace("{tier}", String(business.verificationTier))}
                       </span>
                     </span>
                     <StatusPill
                       tone={toneForStatus(business.status)}
                       className="justify-self-start sm:justify-self-end"
                     >
-                      {STATUS_WORD[business.status] ?? business.status}
+                      {statusWord(business.status)}
                     </StatusPill>
                   </div>
-                  {STOPPED_MEANS[business.status] ? (
+                  {stoppedMeans(business.status) ? (
                     <div
                       className="nf-panel nf-panel--card p-sm"
                       role="status"
                       data-testid="host-business-stopped"
                     >
-                      <p className={TYPE.rowMeta}>{STOPPED_MEANS[business.status]}</p>
+                      <p className={TYPE.rowMeta}>{stoppedMeans(business.status)}</p>
                       <p className={`${TYPE.rowMeta} mt-2xs whitespace-pre-wrap`}>
                         {business.reviewNotes
-                          ? `The reviewer wrote: ${business.reviewNotes}`
-                          : NO_REASON_ON_FILE}
+                          ? home.reviewerWrote.replace("{note}", business.reviewNotes)
+                          : home.noReason}
                       </p>
+                      {/* `block w-fit`, not `inline-block`: the theme's `--spacing-block`
+                          makes Tailwind's `inline-block` also set `inline-size:
+                          var(--nf-gap-block)`, which drew "Contact us" in a 32px box
+                          (AccessScreen.tsx records the same collision). */}
                       <Link
                         href="/contact?topic=verification"
-                        className="nf-tap mt-2xs inline-block whitespace-nowrap text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+                        className="nf-tap mt-2xs block w-fit whitespace-nowrap text-[var(--nf-content-link)] underline-offset-4 hover:underline"
                       >
-                        Contact us
+                        {home.contactUs}
                       </Link>
                     </div>
                   ) : (
@@ -286,7 +264,7 @@ export function HostStandingBody({
                   <div className="flex flex-wrap gap-inline">
                     {business.kind === "restaurant" ? (
                       <Link href="/host/reservations" className="nf-chip">
-                        Tables
+                        {words.businessDoors.tables}
                       </Link>
                     ) : (
                       /* ROOMS AND NIGHTS, for the same reason Tables exists on
@@ -297,16 +275,16 @@ export function HostStandingBody({
                          until now. This is where a host sees how far ahead they
                          are bookable and changes it. */
                       <Link href={`/host/rooms?business=${business.id}`} className="nf-chip">
-                        Rooms and nights
+                        {words.businessDoors.rooms}
                       </Link>
                     )}
                     <Link href={`/host/photos?business=${business.id}`} className="nf-chip">
-                      Photographs
+                      {words.businessDoors.photos}
                     </Link>
                     {/* V-57: every charge a guest can be asked for at the door. */}
                     {business.kind !== "restaurant" && (
                       <Link href={`/host/arrival?business=${business.id}`} className="nf-chip">
-                        Charges at the door
+                        {words.businessDoors.arrival}
                       </Link>
                     )}
                   </div>
