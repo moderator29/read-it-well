@@ -11,6 +11,7 @@ import { PassportShareButton } from "@/components/app/account/PassportShareButto
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { gateFirstRun } from "@/components/app/feature-onboarding/first-run-store";
 import { resolveSession } from "@/lib/actions/session";
+import { withNext } from "@/lib/auth/next-link";
 import { sharedInLine } from "@/lib/trust/passport";
 import { readMyPassport } from "@/lib/trust/passport-read";
 import { PassportSwitch } from "./PassportSwitch";
@@ -71,7 +72,7 @@ export default async function PassportSettingsPage({
           title={legacy.signedOut}
           body={legacy.lede}
           action={
-            <ButtonLink href="/sign-in?next=%2Fsettings%2Fpassport" variant="primary" size="lg">
+            <ButtonLink href={withNext("/sign-in", "/settings/passport")} variant="primary" size="lg">
               {legacy.signIn}
             </ButtonLink>
           }

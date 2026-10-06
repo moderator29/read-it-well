@@ -6,6 +6,7 @@ import { EmptyState, TYPE } from "@/components/app/Screen";
 import { EmptyActions } from "@/components/app/EmptyActions";
 import { PaymentMethodsBlock } from "@/components/app/payments/PaymentMethodsBlock";
 import { resolveSession } from "@/lib/actions/session";
+import { withNext } from "@/lib/auth/next-link";
 import { ListGroup, ListRow } from "@/components/ui/ListGroup";
 import { IconPlate, ICON_PLATE_GLYPH } from "@/components/ui/IconPlate";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
@@ -52,7 +53,7 @@ export default async function PaymentsPage() {
           icon="card-lock"
           title={copy.signInTitle}
           body={copy.signInBody}
-          action={<EmptyActions primary={{ label: "Sign in", href: "/sign-in" }} />}
+          action={<EmptyActions primary={{ label: t.common.signIn, href: withNext("/sign-in", "/settings/payments") }} />}
         />
       </div>
     );

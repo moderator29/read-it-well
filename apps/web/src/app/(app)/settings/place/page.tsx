@@ -5,6 +5,7 @@ import { getLocale } from "@/lib/locale";
 import Link from "next/link";
 import { PageHeader } from "@/components/app/PageHeader";
 import { resolveSession } from "@/lib/actions/session";
+import { withNext } from "@/lib/auth/next-link";
 import { listStates, readLocalGovernment, readOccupation } from "@/lib/places/queries";
 import { PlaceForm } from "./PlaceForm";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -56,7 +57,7 @@ export default async function PlacePage() {
               : copy.accountBodySignedOut}
           </p>
           {session.state === "signed-out" && (
-            <Link href="/sign-in" className="nf-btn nf-btn--primary mt-md w-full sm:w-auto">
+            <Link href={withNext("/sign-in", "/settings/place")} className="nf-btn nf-btn--primary mt-md w-full sm:w-auto">
               {t.common.signIn}
             </Link>
           )}

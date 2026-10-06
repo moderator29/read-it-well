@@ -1,6 +1,7 @@
 "use client";
 
 import type { AccountCopy } from "@/components/app/account/settings-copy";
+import { withNext } from "@/lib/auth/next-link";
 import { clearListingDrafts } from "@/lib/agent/listing-draft-storage";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
@@ -137,7 +138,7 @@ export function AccountSection({
           chevron={false}
         />
       ) : state === "signed-out" ? (
-        <RowLink href="/sign-in" icon="key" label={t.common.signIn} />
+        <RowLink href={withNext("/sign-in", "/settings/account")} icon="key" label={t.common.signIn} />
       ) : null}
 
       {state === "signed-in" && (

@@ -15,6 +15,7 @@ import { loadMoneyHoldUntil, loadPendingAddressMove } from "@/lib/auth/pending-a
 import { PendingAddressMove } from "./PendingAddressMove";
 import { countMyBlocks } from "@/lib/safety/blocks-queries";
 import { RowLink, SettingsGroup } from "@/components/app/account/rows";
+import { withNext } from "@/lib/auth/next-link";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: getDictionary(await getLocale()).settings.hub.privacy };
@@ -96,7 +97,7 @@ export default async function PrivacySettingsPage() {
             <DevicesRow t={t} signedIn={signedIn} count={deviceCount} />
             {/* DB2: the people you blocked, with Unblock, one tap away. */}
             <RowLink
-              href={signedIn ? "/settings/privacy/blocked" : "/sign-in"}
+              href={signedIn ? "/settings/privacy/blocked" : withNext("/sign-in", "/settings/privacy/blocked")}
               icon="block"
               label={t.settings.blocked.rowLabel}
               sub={signedIn ? t.settings.blocked.rowNote : t.settings.blocked.signedOut}

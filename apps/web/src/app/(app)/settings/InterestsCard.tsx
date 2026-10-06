@@ -1,4 +1,5 @@
 import { RowLink } from "@/components/app/account/rows";
+import { withNext } from "@/lib/auth/next-link";
 import type { Dictionary } from "@vallo/i18n/core";
 import { type PropertyType } from "@/lib/interests/model";
 
@@ -53,7 +54,7 @@ export function InterestsRow({
 
   return (
     <RowLink
-      href={signedIn ? "/settings/interests" : "/sign-in"}
+      href={signedIn ? "/settings/interests" : withNext("/sign-in", "/settings/interests")}
       icon="compass"
       label={t.interests.rowLabel}
       sub={signedIn ? t.interests.rowNote : t.interests.rowNoteSignedOut}
