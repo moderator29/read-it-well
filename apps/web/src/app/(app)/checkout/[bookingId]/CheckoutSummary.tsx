@@ -3,7 +3,8 @@ import { bpsAsPercentText } from "@/lib/money/percent";
 import type { CheckoutView } from "@/lib/bookings/checkout-view";
 import { Amount } from "@/components/ui/Amount";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { Panel } from "@/components/ui/Panel";
+import { DocActions, DocumentSheet } from "@/components/app/money/DocumentSheet";
+import { PrintDocumentTile } from "@/components/app/money/PrintDocumentTile";
 import { formatMoneyDate } from "@/lib/money/dates";
 import { PLATFORM_TERMS_V1, cancelStanding } from "@/lib/trust/cancellation";
 
@@ -44,8 +45,22 @@ export function CheckoutSummary({
       : standing.kind === "share"
         ? cancelCopy.shareNow.replace("{percent}", bpsAsPercentText(standing.refundBps))
         : cancelCopy.nonRefundable;
-  return (
-    <Panel aria-labelledby="nf-checkout-summary" variant="card">
+  /*
+   * TWO CONTAINERS, ONE CONTENT, AND THE MONEY DECIDES WHICH.
+   *
+   * Before payment this is the screen's hero: the Island tier (north star
+   * section 4, reference 7038), the one per screen, holding what is being
+   * bought and the total before the action that incurs it.
+   *
+   * Once a payment has settled against this booking (`view.paid`, which is a
+   * SUCCESSFUL transaction row and nothing else) the same lines are a record
+   * of money that moved, so they are drawn as a receipt on the document
+   * sheet (D28.1) with a print action under it, and the total is called what
+   * it now is: paid, not "to pay".
+   */
+  const paid = view.paid;
+  const body = (
+    <>
       <h2 id="nf-checkout-summary" className="nf-h3">
         {view.title}
       </h2>
@@ -82,14 +97,14 @@ export function CheckoutSummary({
       </dl>
 
       <div className="mt-md border-t border-[var(--nf-panel-hair)] pt-md">
-        <p className="nf-overline text-[var(--nf-content-muted)]">{c.totalToPay}</p>
+        <p className="nf-overline text-[var(--nf-content-muted)]">{paid ? t.afterTheGate.tenancy.totalPaid : c.totalToPay}</p>
         <p className="mt-2xs">
           <Amount
             minorUnits={view.totalMinor}
             locale={locale}
             currency={view.currency}
             showFraction
-            suffix={c.inFull}
+            suffix={paid ? undefined : c.inFull}
             className="text-[clamp(2.5rem,10vw,3.75rem)] font-extrabold leading-none tracking-[-0.03em] text-[var(--nf-content-primary)]"
             secondaryClassName="text-[0.34em] font-bold text-[var(--nf-content-muted)]"
           />
@@ -108,6 +123,24 @@ export function CheckoutSummary({
           </p>
         )}
       </div>
-    </Panel>
+    </>
+  );
+
+  if (paid) {
+    return (
+      <>
+        <DocumentSheet kind="receipt" printable as="section" aria-labelledby="nf-checkout-summary" data-testid="checkout-receipt">
+          {body}
+        </DocumentSheet>
+        <DocActions label={view.title}>
+          <PrintDocumentTile label={t.afterTheGate.complaint.print} testId="checkout-receipt-print" />
+        </DocActions>
+      </>
+    );
+  }
+  return (
+    <section aria-labelledby="nf-checkout-summary" className="nf-island p-card" data-testid="checkout-summary">
+      {body}
+    </section>
   );
 }
