@@ -84,11 +84,27 @@ describe("message arrival", () => {
 });
 
 describe("the toggle", () => {
-  it("crossfades its track on the base duration, with the knob's spring beside it", () => {
-    const controls = strip(css("controls.css"));
-    const sweep = controls.slice(controls.lastIndexOf("  .nf-switch {"), controls.lastIndexOf('.nf-switch[aria-checked="true"] {'));
-    expect(sweep).toContain("background-color var(--nf-duration-base) var(--nf-ease-standard)");
+  const controls = strip(css("controls.css"));
+  const sweep = controls.slice(controls.lastIndexOf("  .nf-switch {\n    background: var(--nf-act-track-off)"), controls.lastIndexOf(".nf-switch__thumb,\n  .nf-switch[aria-checked=\"true\"] .nf-switch__thumb"));
+
+  it("crossfades the on fill as OPACITY on a ::before layer, because a gradient background cannot interpolate", () => {
+    expect(sweep).toMatch(/\.nf-switch::before \{[^}]*background: var\(--nf-act-fill\);[^}]*opacity: 0;[^}]*transition: opacity var\(--nf-duration-base\) var\(--nf-ease-standard\)/);
+    expect(sweep).toMatch(/\.nf-switch\[aria-checked="true"\]::before \{\s*opacity: 1;/);
+    /* The checked rule no longer sets the gradient as a background (it would snap). */
+    const checked = sweep.slice(sweep.indexOf('.nf-switch[aria-checked="true"] {'));
+    expect(checked).not.toContain("background");
     expect(sweep).not.toContain("transition: none");
+  });
+
+  it("keeps the edge and rim on the base duration, and a disabled switch stays grey", () => {
+    expect(sweep).toContain("border-color var(--nf-duration-base) var(--nf-ease-standard)");
+    expect(sweep).toMatch(/\.nf-switch:disabled::before \{\s*opacity: 0;/);
+  });
+
+  it("leaves the knob's travel on its own spring (a transform, drift 240ms)", () => {
+    const switchSource = readFileSync(join(process.cwd(), "src/components/ui/Switch.tsx"), "utf8");
+    expect(switchSource).toContain('transitionTimingFunction: "var(--nf-ease-spring)"');
+    expect(switchSource).toContain("transition-transform");
   });
 });
 
