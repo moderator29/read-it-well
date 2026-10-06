@@ -14,6 +14,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { TYPE } from "@/components/app/Screen";
 import { countOf, type Locale } from "@vallo/i18n/core";
 import { useClientLocale } from "@/lib/i18n/use-client-locale";
+import { useHostPageCopy } from "@/components/host/host-copy";
 
 /**
  * The venue's own table board.
@@ -80,18 +81,19 @@ export function Decision({ table }: { table: HostReservationView }) {
      sit in the confirm panel's foot instead of on the card. */
   const [asking, setAsking] = useState<"CONFIRMED" | "CANCELLED" | null>(null);
   const locale = useClientLocale();
+  const w = useHostPageCopy().tables;
 
   if (state?.ok) {
     return (
-      <p className={`mt-row ${TYPE.rowMeta}`}>Answered. The guest has been told.</p>
+      <p className={`mt-row ${TYPE.rowMeta}`}>{w.answered}</p>
     );
   }
 
   const first = table.guestName.split(" ")[0] || table.guestName;
   const facts = [
-    { label: "Guest", value: table.guestName },
-    { label: "When", value: whenLabel(table.reservedFor) },
-    { label: "Party", value: partyLabel(table.partySize, locale) },
+    { label: w.guest, value: table.guestName },
+    { label: w.when, value: whenLabel(table.reservedFor) },
+    { label: w.party, value: partyLabel(table.partySize, locale) },
   ];
   const accept = asking === "CONFIRMED";
 
@@ -99,10 +101,10 @@ export function Decision({ table }: { table: HostReservationView }) {
     <>
       <div className="mt-row flex flex-wrap gap-inline">
         <Button variant="primary" disabled={pending} onClick={() => setAsking("CONFIRMED")}>
-          Accept
+          {w.accept}
         </Button>
         <Button variant="secondary" disabled={pending} onClick={() => setAsking("CANCELLED")}>
-          Decline
+          {w.decline}
         </Button>
       </div>
       <Sheet
@@ -110,7 +112,7 @@ export function Decision({ table }: { table: HostReservationView }) {
         onOpenChange={(next) => {
           if (!next && !pending) setAsking(null);
         }}
-        title={accept ? `Accept ${first}'s table?` : `Decline ${first}'s table?`}
+        title={(accept ? w.acceptTitle : w.declineTitle).replace("{name}", first)}
         hideTitle
         card
         detents={[0.9]}
@@ -119,19 +121,19 @@ export function Decision({ table }: { table: HostReservationView }) {
           <ConfirmPanel
             icon={accept ? "utensils" : "circle-x"}
             tone={accept ? "brand" : "error"}
-            title={accept ? `Accept ${first}'s table?` : `Decline ${first}'s table?`}
+            title={(accept ? w.acceptTitle : w.declineTitle).replace("{name}", first)}
             context={table.listingTitle}
             summary={facts}
             next={
               accept
-                ? [{ icon: "calendar-check", text: "The table is booked for this time." }]
-                : [{ icon: "calendar-check", text: "The request is closed." }]
+                ? [{ icon: "calendar-check", text: w.nextBooked }]
+                : [{ icon: "calendar-check", text: w.nextClosed }]
             }
-            told={`${first} is told at once.`}
+            told={w.told.replace("{name}", first)}
             error={state && !state.ok ? state.error : null}
             cancel={
               <Button variant="secondary" disabled={pending} onClick={() => setAsking(null)}>
-                Cancel
+                {w.cancel}
               </Button>
             }
             primary={
@@ -146,7 +148,7 @@ export function Decision({ table }: { table: HostReservationView }) {
                   disabled={pending}
                   className={accept ? undefined : "text-[var(--nf-state-error)]"}
                 >
-                  {pending ? "Saving" : accept ? "Accept table" : "Decline table"}
+                  {pending ? w.saving : accept ? w.acceptTable : w.declineTable}
                 </Button>
               </form>
             }
@@ -170,14 +172,15 @@ function TableCard({
   decidable: boolean;
 }) {
   const locale = useClientLocale();
+  const w = useHostPageCopy().tables;
   const tone =
     table.status === "CONFIRMED" ? "success" : table.status === "CANCELLED" ? "danger" : "warning";
   const word =
     table.status === "PENDING"
-      ? "Waiting on you"
+      ? w.statusWaiting
       : table.status === "CONFIRMED"
-        ? "Accepted"
-        : "Declined or called off";
+        ? w.statusAccepted
+        : w.statusClosed;
 
   return (
     <li className="nf-panel nf-panel--card block p-card">
@@ -214,7 +217,7 @@ function TableCard({
              not a link. */
           className="nf-tap nf-body-sm mt-row inline-flex items-center gap-inline-tight font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
         >
-          Talk to {table.guestName}
+          {w.talkTo.replace("{name}", table.guestName)}
           <UiIcon name="arrow-right" size={16} />
         </Link>
       )}
@@ -257,21 +260,22 @@ function Group({
 }
 
 export function HostReservationsBoard({ board }: { board: HostTableBoard }) {
+  const w = useHostPageCopy().tables;
   return (
     <>
       <Group
-        title="Waiting on you"
-        empty="No requests to answer."
+        title={w.groupWaiting}
+        empty={w.groupWaitingEmpty}
         tables={board.requests}
         decidable
       />
       <Group
-        title="Coming up"
-        empty="No tables accepted yet."
+        title={w.groupComing}
+        empty={w.groupComingEmpty}
         tables={board.upcoming}
         decidable={false}
       />
-      <Group title="Past" empty="Nothing yet." tables={board.past} decidable={false} />
+      <Group title={w.groupPast} empty={w.groupPastEmpty} tables={board.past} decidable={false} />
     </>
   );
 }
