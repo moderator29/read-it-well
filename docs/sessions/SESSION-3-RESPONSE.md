@@ -2,12 +2,136 @@
 
 **Branch:** `claude/vallo-experience-upgrade`, cut from `main` at `ef1265135`.
 **Started:** 6 October 2026. **Status:** in progress, kept current as work lands.
-As of this edit: `origin/claude/vallo-experience-upgrade` is at `c3108386d` (gate
-green: typecheck, lint and 10,065 tests), and the commits after it are pushed only
-once the clean-worktree gate is green on the tip. The draft PR #85 is open. `main`
-is at `d685f5e04`, which this branch contains. Round 3's work is below.
+As of this edit: commits are pushed to `origin/claude/vallo-experience-upgrade` only
+once the clean-worktree gate (typecheck, lint, test) is green on the tip. PR #85 is
+open. `main` is at `d685f5e04`, which this branch contains; #86 (the db-06 row and
+the source-map-js pin) is not merged yet. Round 4 is first below, then Round 3.
 
 This file is Session 3's only voice. It is written as work happens, not at the end.
+
+---
+
+## Round 4 (SESSION-3-DEEP-2026-10-06, D60 to D64)
+
+The deep review's three "your call" items were decided (D60, D61) and the promotion
+blocker I reported was wrong: D3 superseded the no-paid-placement doctrine on 5
+October. Recorded here so it is not repeated.
+
+### Landed this round, one commit per unit
+
+- **Promotion (D60).** The four tiers as typed data with prices marked proposed
+  (`796422611`); the four-screen onboarding, whose first screen says that promotion
+  does not change where a listing ranks and does not buy a verification badge
+  (`e798028c7`); the labelled slot, fed from inventory only (`ce33b329e`); the
+  results shell, where all ten metrics read "No data" until a promotion has run
+  (`33067d2cd`). Trust: a badge renders only from an earned record, and a promoted
+  listing's trust marks are byte-identical to unpromoted, guardrail 5 (`1a9bb6c05`).
+- **Lister fee screen (D61).** A range anchored on the worst case, never a flat
+  percentage: rent 1,800,000; platform fee 36,000 to 72,000 (Vallo 2%, escrow
+  protection 2% when a buyer pays into escrow); you receive 1,728,000 to 1,764,000
+  (`0b020a46b`). Wired into the listing wizard now; only its blocking waits on
+  `lister_fee_gate_blocking`, a feature_flags row that is off, and with no row it
+  reads off (`b2fbae0d9`, doc `521f5c6b1`).
+- **Rewards pause (D64).** At the 700,000 naira monthly cap every rewards surface
+  says "Rewards are paused this month" and that no new referral can qualify. The
+  invite action is removed, not greyed: copy, share, WhatsApp, QR, link text,
+  ticket, the empty list's "Share your link" and the invite first run. Every earned
+  figure, Withdraw and the minimum stay, with a copy.ts sentence that everything
+  already earned is still paid. A resume day shows only when the read gives a valid
+  one; none is worked out on the client (`d10f74951`). The Pending hint now says
+  what Pending is in the locked lifecycle, qualified and not withdrawable yet
+  (`e929964b4`). Until Session 2's read exists the source answers not-live, so
+  nothing changes in the product today.
+- **D61 dictionary assertions** in slice-coverage: key existence, no empty value,
+  matching placeholders; they found nine empties, fixed (`ba1ef0666`). Four moves
+  into the dictionary before them (`f09a548c2`, `0ef88f356`, `334fc59cd`,
+  `8985a878a`).
+- **Evidence tests.** "Paid in total" on an unpaid tenancy: the complaint pack
+  describes a part-paid or void tenancy truthfully (`e17b1af94`), no receipt code is
+  offered on a void charge (`98608831b`), four-state wording tests (`e6f65c012`).
+  A phone-width horizontal-overflow guard in CI's dom job (`230cc5622`).
+- **Auditor A9's eleven findings, all fixed.** "Wallet" gone from the /docs
+  description, notifications and member lines, with a scan over every dictionary
+  (`5d55f496c`, `2670c6106`); "no balance" said narrowly so it never contradicts the
+  Rewards Balance (`eb3f5da81`); the Guarantee offered on the tenancy caution screen
+  only where a contribution was taken (`5530c8eae`); the stay review's signed-out
+  screen (`728ec00ef`); 25 sign-in links through withNext (`f7556c1f6`); the legacy
+  reserve sentence in copy.ts (`2b0593c3e`); the statement's Guarantee row only when
+  a line carries one (`37de2b216`); "protected payment" allowed only as the three
+  copy.ts sentences, whole (`e2096f6fa`); VA- agent codes in the admin lookup
+  (`d1843bc67`); three nits (`9c6b97254`).
+- **Auditor A8's three nits.** A contrast boundary that improves must be recorded,
+  and refusals batch into one layout (`f3575dc87`); a money total stays on one line
+  inside its column at 200% text (`f3c2a9408`).
+- **D49.3, the half left open.** A read that Supabase refuses with a returned error
+  is now reported: 112 calls across 39 server reads, code and message only, never
+  Postgrest's details, where row values appear (`57cbabc79`).
+
+### Still running when this was written
+
+Auth craft (the first 400ms, code boxes, the email-to-code step, errors that name
+the next action); the TTI measurement on a throttled mid-range Android profile and
+the D49 LazyMotion confirmation; the sweep of the routes added since the count, with
+a re-measure of locale fit now that the fonts inline again. Their results go here
+when they land, not before.
+
+### Requests to Session 2, this round
+
+- **R4-1, lister fee read and acceptance (C2 requests 1 and 2, revised by D61).**
+  `public.lister_fee_policy(p_listing, p_property_type, p_listing_intent)` returning
+  `rate_version`, `commission_bps`, `escrow_protection_bps`,
+  `direct_processor_fee_cap_minor` (0 when the lister bears none) and `cap_minor`
+  (null unless commission is capped), readable by the listing's own lister; drop
+  `rail` and `fee_bps`. `public.lister_fee_accept(...)` re-derives every figure with
+  floor maths, returns `recorded`, `mismatch` or `rate_moved`, and stores both rates
+  as numbers, the terms version, every figure shown, the actor and the time. A rate
+  change re-prompts rather than applying silently. `submit_listing` should refuse
+  without a current acceptance once `lister_fee_gate_blocking` is on; today only the
+  client blocks.
+- **R4-2, promotion.** (1) An inventory read of active slots per surface, city, area
+  and date, returning `{slotId, tier, listingId}`, mapped by the organic mapper, with
+  no promotion field reaching `ranking.ts`. (2) A purchase: a single-party charge to
+  `ledger_vallo_revenue`, zero VAT, not built from the booking flow; effective-dated
+  price rows keyed by slug; start on processor confirmation, end at start plus
+  duration; one active Boost per listing; Everywhere only for a reviewed listing with
+  photos and a complete inspection record; a refund removes the slot in the same
+  transaction; mode recorded per attempt (D38). (3) Slot counts per city per day for
+  front door and map, exposed before payment; a full day refused with a named reason
+  and the next free date. (4) A metrics read: the ten F4 counts as whole numbers or
+  null, never estimated, plus `comparisonValid`, filling
+  `lib/promotion/measurement-read.ts`.
+- **R4-3, rewards pause (D64).** A `programme` field on the member read: running, or
+  paused with `resumesOn` (YYYY-MM-DD) only when the engine knows when qualification
+  reopens, else null. One platform cap row of 700,000 naira a month, checked in the
+  statement that accrues a reward; at 100% new qualification pauses, never refuses,
+  and nothing already qualified is touched. The 75% alert is staff-side only and
+  never appears in the member read. Pending means qualified and in the review window.
+- **R4-4, receipt codes.** A probe that `create_receipt_code` returns `not_paid` and
+  `verify_receipt` returns `not_found` for part-paid and void tenancies.
+- **R4-5, from the audit fixes.** `private.caution_escalate` still accepts an
+  escalation with no contribution (the fix here is UI only). A pre-D51 paid
+  agreement with no `guarantee_bps` in its terms is now treated as having no
+  contribution; please check whether any such rows exist. `agents.public_code` is
+  missing from `database.types.ts`.
+
+### For the founder
+
+- Is the second 2% (escrow protection) always borne by the lister? VALLO_PRICING
+  section 6 says the seller; section 2 says Payluk's `whoPays` is not chosen yet.
+- The lister fee terms version is `lister-fee-2026-10-06` in copy.ts; it changes
+  whenever the screen's words do.
+- Promotion: confirm "Everywhere" for `prime`, the four prices (2,500, 7,500, 20,000,
+  50,000 naira), and Featured's front-door slots per city per day, which the screen
+  promises to show before payment. Screen 3's "real example" cannot exist until a
+  promotion has run, and says so.
+- The invite hub and its first run say "There is no reward for inviting". That
+  becomes untrue the day rewards go live and must be rewritten before then.
+- Terms (`lib/legal/terms.tsx`) and the disclaimer still say Vallo keeps no balance,
+  beside the Rewards Balance. That needs counsel and a new Terms version, so it is
+  untouched. The account deletion notices name the "wallets" table as a retained
+  record; confirm that wording.
+- Not checked: a tenancy paid in one payment may still show "Your share" and "Add a
+  flatmate" on the tenancy file.
 
 ---
 
