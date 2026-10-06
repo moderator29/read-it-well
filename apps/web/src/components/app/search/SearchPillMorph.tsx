@@ -1,6 +1,6 @@
 "use client";
 
-import { animate, m, useMotionValue } from "framer-motion";
+import { animate, motionValue } from "framer-motion";
 import { useEffect, useLayoutEffect, useRef, type FormHTMLAttributes, type ReactNode } from "react";
 import { motionQuiet } from "@/lib/motion/gate";
 import { EASE } from "@/lib/motion/ease";
@@ -29,6 +29,16 @@ import { EASE } from "@/lib/motion/ease";
  * rest on the first pointer or focus, which a CSS animation cannot do without
  * reading its own computed transform back. Everything else on this surface
  * (the chips' crossfade, the results' stagger) is CSS on a known track.
+ *
+ * NO `m` ELEMENT. LazyMotion's features arrive in a later chunk, and an `m`
+ * element draws only its first frame until they do (the Session 3 audit; the
+ * ported components were moved off it in the same way). The form is a plain
+ * `<form>`; the motion values are plain objects that need no features, and
+ * their changes are written to the element's own style from the layout
+ * effect, so the first painted frame is already the origin's and the flight
+ * runs whether or not the renderer has loaded. `data-pill-landed` says a
+ * flight happened, so the chips' crossfade (catalogue.css) runs only after
+ * one.
  *
  * WHAT IT NEVER DOES. It never delays the page: the field is interactive from
  * the first frame and the motion is transform only. A stale record (older than
@@ -91,13 +101,9 @@ export function PillLanding({
   ...form
 }: { path: string; children: ReactNode; className?: string } & Omit<
   FormHTMLAttributes<HTMLFormElement>,
-  "children" | "className" | "style" | "onAnimationStart" | "onDrag" | "onDragEnd" | "onDragStart"
+  "children" | "className" | "style"
 >) {
   const ref = useRef<HTMLFormElement | null>(null);
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-  const scaleX = useMotionValue(1);
-  const scaleY = useMotionValue(1);
 
   /* Layout effect, so the first painted frame is already the origin's. */
   useLayoutEffect(() => {
@@ -109,21 +115,35 @@ export function PillLanding({
     if (!from || motionQuiet()) return;
     const to = el.getBoundingClientRect();
     if (to.width === 0 || to.height === 0) return;
-    x.set(from.x - to.left);
-    y.set(from.y - to.top);
-    scaleX.set(from.w / to.width);
-    scaleY.set(from.h / to.height);
+    const x = motionValue(from.x - to.left);
+    const y = motionValue(from.y - to.top);
+    const scaleX = motionValue(from.w / to.width);
+    const scaleY = motionValue(from.h / to.height);
+    const write = () => {
+      el.style.transformOrigin = "0 0";
+      el.style.transform = `translate(${x.get()}px, ${y.get()}px) scale(${scaleX.get()}, ${scaleY.get()})`;
+    };
+    const unsubscribe = [x, y, scaleX, scaleY].map((value) => value.on("change", write));
+    el.setAttribute("data-pill-landed", "");
+    write();
     const ease = EASE.land;
     const options = { duration: LAND_MS / 1000, ease } as const;
     const runs = [animate(x, 0, options), animate(y, 0, options), animate(scaleX, 1, options), animate(scaleY, 1, options)];
+    /* Back at rest the element carries no transform at all. */
+    let rested = false;
+    const rest = () => {
+      if (rested) return;
+      rested = true;
+      for (const stop of unsubscribe) stop();
+      el.style.transform = "";
+      el.style.transformOrigin = "";
+    };
     /* The first touch or focus ends the flight where the field belongs. */
     const settle = () => {
       for (const run of runs) run.stop();
-      x.set(0);
-      y.set(0);
-      scaleX.set(1);
-      scaleY.set(1);
+      rest();
     };
+    Promise.all(runs).then(rest, rest);
     el.addEventListener("pointerdown", settle, { once: true });
     el.addEventListener("focusin", settle, { once: true });
     return () => {
@@ -136,14 +156,8 @@ export function PillLanding({
   }, []);
 
   return (
-    <m.form
-      ref={ref}
-      {...form}
-      className={className}
-      style={{ x, y, scaleX, scaleY, transformOrigin: "0 0" }}
-      data-pill-landing=""
-    >
+    <form ref={ref} {...form} className={className} data-pill-landing="">
       {children}
-    </m.form>
+    </form>
   );
 }

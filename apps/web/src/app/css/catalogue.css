@@ -3079,10 +3079,13 @@
  * framer's `animate`); the filter chips beneath it crossfade in once it is
  * nearly home, on `glide` at 160ms, so the eye follows the pill first and the
  * row second. Opacity only, so nothing shifts. Reduced motion collapses the
- * token to 1ms; Calm and Off are `motion-pref.css`'s.
+ * token to 1ms; Calm and Off are `motion-pref.css`'s. The fade runs only
+ * when the pill actually flew (`PillLanding` sets `data-pill-landed` on its
+ * form), so a reload, a back navigation or a quiet-motion visit never hides
+ * the row for a moment with no flight to follow.
  */
 @layer components {
-  .nf-shelf-bar .nf-shelf-chips {
+  .nf-shelf-bar:has([data-pill-landed]) .nf-shelf-chips {
     animation: nf-shelf-chips-in var(--nf-duration-fast) var(--nf-ease-standard) both;
     animation-delay: calc(var(--nf-duration-slow) * 0.6);
   }
