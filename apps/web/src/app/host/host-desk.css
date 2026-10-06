@@ -188,6 +188,21 @@
     line-height: 1.2;
     color: var(--nf-content-muted);
   }
+  /* A PHONE'S NIGHT IS 41px WIDE INSIDE, and the state word is the one part of
+     the cell that must be read, not guessed from a tint: "Closed" drew as
+     "Clos…" at 390. Below 480px the cell gives the word 2px more on each side,
+     and a two-word state ("Off sale", "1 held") may take a second line rather
+     than lose its end. One word never breaks inside itself. */
+  @media (max-width: 479.98px) {
+    .nf-rcal__cell {
+      padding-inline: 3px;
+    }
+    .nf-rcal__cell > .nf-rcal__meta {
+      white-space: normal;
+      text-overflow: clip;
+      overflow-wrap: normal;
+    }
+  }
   .nf-rcal__cell[data-tone="override"] .nf-rcal__price {
     font-weight: 700;
     color: var(--nf-content-primary);
