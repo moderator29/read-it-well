@@ -42,6 +42,9 @@ describe("the verification-passed payoff", () => {
     expect(badge).toMatch(/opacity:\s*0;/);
     expect(badge).toContain("position: absolute");
     const code = strip(src("components/verification/VerifiedPayoff.tsx"));
+    /* The shield is already drawn (server rendered): it rises and scales and never fades. */
+    expect(code).toContain('{ transform: "translateY(0.5rem) scale(0.86)" },');
+    expect(code).not.toMatch(/opacity: 0, transform: "translateY/);
     /* The disc fades back out at the end of its one animation. */
     expect(code).toMatch(/opacity: 0, transform: "none", offset: 1/);
     /* A leaving sheet changes the answer, so the observer watches for it. */

@@ -18,7 +18,11 @@ import { markSeen, seenOnce } from "@/lib/ui/seen-once";
  * (`seenKey`, `lib/ui/seen-once.ts`), the mark plays ONCE:
  *
  *    0 to 380ms    the shield assembles: it rises 8px and scales up from 0.86
- *                  on `land` while it fades in
+ *                  on `land`. It does NOT fade in: the page is server
+ *                  rendered, so the shield is already drawn (and may have sat
+ *                  drawn behind the approval sheet for seconds) when this
+ *                  runs, and restarting it from opacity 0 made it vanish and
+ *                  come back. Opacity is held at 1 throughout (A8)
  *   380 to 620ms   the tick embosses: the disc scales in from 0.6 and the
  *                  tick draws along its own path (paint only, the technique
  *                  the path's ticks use)
@@ -86,8 +90,8 @@ export function VerifiedPayoff({
       running.push(
         art.animate(
           [
-            { opacity: 0, transform: "translateY(0.5rem) scale(0.86)" },
-            { opacity: 1, transform: "none" },
+            { transform: "translateY(0.5rem) scale(0.86)" },
+            { transform: "none" },
           ],
           { duration: slow, easing: land, fill: "backwards" },
         ),

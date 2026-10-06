@@ -66,7 +66,8 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the verification-passed payoff"
       /* The shield first, on land at the slow rung; the tick after it; the pop last. */
       expect(shield!.delay).toBe(0);
       expect(shield!.duration).toBe(380);
-      expect(shield!.from.opacity).toBe("0");
+      /* The shield is server rendered, so it is already drawn: it rises and scales, and never fades. */
+      expect(shield!.from.opacity).toBeUndefined();
       expect(shield!.from.transform).toContain("scale(0.86)");
       /* The disc is one animation for its whole life: in, held through the pop, out (960ms end). */
       expect(disc!.delay).toBe(380);
@@ -80,11 +81,28 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the verification-passed payoff"
       for (const part of [shield, disc, pop]) {
         expect(Object.keys(part!.from).filter((k) => !["offset", "easing", "composite", "computedOffset", "opacity", "transform"].includes(k))).toEqual([]);
       }
-      /* While it plays the disc is really there (held at full through the pop)... */
-      await expect
-        .poll(() => page.evaluate(() => getComputedStyle(document.querySelector(".nf-vpass__badge")!).opacity), { timeout: 2000 })
-        .toBe("1");
-      await page.waitForTimeout(1100);
+      /* Across the whole payoff: the shield never drops below full opacity (no flash before it
+         assembles), and the disc is really there (held at full through the pop)... */
+      const seen = await page.evaluate(
+        () =>
+          new Promise<{ shieldMin: number; discMax: number }>((done) => {
+            const shieldEl = document.querySelector(".nf-vpass__shield")!;
+            const discEl = document.querySelector(".nf-vpass__badge")!;
+            let shieldMin = 1;
+            let discMax = 0;
+            const t0 = performance.now();
+            const tick = () => {
+              shieldMin = Math.min(shieldMin, Number(getComputedStyle(shieldEl).opacity));
+              discMax = Math.max(discMax, Number(getComputedStyle(discEl).opacity));
+              if (performance.now() - t0 < 1000) requestAnimationFrame(tick);
+              else done({ shieldMin, discMax });
+            };
+            tick();
+          }),
+      );
+      expect(seen.shieldMin).toBe(1);
+      expect(seen.discMax).toBe(1);
+      await page.waitForTimeout(300);
       expect(await counts(page)).toEqual({ shield: 0, disc: 0, tick: 0, root: 0 });
       const rest = await page.evaluate(() => {
         const s = getComputedStyle(document.querySelector(".nf-vpass__shield")!);
