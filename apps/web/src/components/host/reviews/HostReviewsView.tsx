@@ -1,4 +1,4 @@
-import { countOf, type Locale } from "@vallo/i18n";
+import { countOf, getDictionary, type Locale } from "@vallo/i18n";
 import type { HostReviewsRead } from "@/lib/host/reviews";
 import { RATING_TREND_MIN, averageRating } from "@/lib/host/review-contest";
 import { EmptyState } from "@/components/app/Screen";
@@ -15,6 +15,8 @@ export function HostReviewsView({
   read: Exclude<HostReviewsRead, { state: "signed-out" }>;
   locale: Locale;
 }) {
+  const copy = getDictionary(locale).experienceHost;
+  const words = copy.reviews;
   const tag = locale === "en" ? "en-NG" : locale;
   const when = new Intl.DateTimeFormat(tag, { day: "numeric", month: "short", year: "numeric", timeZone: "Africa/Lagos" });
   const reviews = read.state === "ok" ? read.reviews : [];
@@ -27,12 +29,12 @@ export function HostReviewsView({
       <PageHeader
         variant="large"
         back={false}
-        title="Reviews"
+        title={copy.screens.reviews}
         subtitle={
           read.state !== "ok"
-            ? "What guests wrote about their stay"
+            ? words.subtitle
             : reviews.length === 0
-              ? "No reviews yet"
+              ? words.none
               : countOf(reviews.length, "reviewsOfYourStays", locale)
         }
       />
@@ -41,31 +43,31 @@ export function HostReviewsView({
         {read.state === "not-ready" ? (
           <EmptyState
             icon="reviews"
-            title="Reviews of hotel stays open soon"
-            body="Guests will be able to review a stay at your hotel after they check out, and you will answer them here. Nothing is needed from you."
+            title={words.notReadyTitle}
+            body={words.notReadyBody}
           />
         ) : read.state === "unavailable" ? (
           <p className="nf-body" role="alert">
-            Your reviews could not be read just now. Refresh to try again.
+            {words.unavailable}
           </p>
         ) : reviews.length === 0 ? (
           <EmptyState
             icon="reviews"
-            title="No reviews yet"
-            body="After a guest checks out they can review their stay. It appears here, and you can answer it in public."
+            title={words.none}
+            body={words.emptyBody}
           />
         ) : (
           <>
             {visible.length >= RATING_TREND_MIN && average !== null ? (
               <SummaryCard
-                label="Your rating"
+                label={words.ratingLabel}
                 figure={
                   <span className="nf-numeric">
                     {average.toFixed(1)}
-                    <span className="nf-caption"> of 5</span>
+                    <span className="nf-caption"> {words.ofFive}</span>
                   </span>
                 }
-                sentence={`From ${visible.length} reviews guests can read. A review we hid does not count.`}
+                sentence={words.ratingSentence.replace("{count}", String(visible.length))}
                 segments={counts
                   .filter((c) => c.count > 0)
                   .map((c) => ({
@@ -74,13 +76,10 @@ export function HostReviewsView({
                     count: c.count,
                     tone: c.stars >= 4 ? ("success" as const) : c.stars === 3 ? ("warning" as const) : ("error" as const),
                   }))}
-                barLabel="Reviews by stars"
+                barLabel={words.barLabel}
               />
             ) : (
-              <p className="nf-caption">
-                Your rating shows here once {RATING_TREND_MIN} guests have reviewed a stay. Until then each review speaks
-                for itself.
-              </p>
+              <p className="nf-caption">{words.ratingPending.replace("{min}", String(RATING_TREND_MIN))}</p>
             )}
             <div className="nf-hreview-grid">
               {reviews.map((review) => (

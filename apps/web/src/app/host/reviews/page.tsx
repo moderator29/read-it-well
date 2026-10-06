@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { readHostReviews } from "@/lib/host/reviews";
 import { authHref, returnHref } from "@/components/auth/auth-intent";
@@ -7,7 +8,9 @@ import { ButtonLink } from "@/components/ui/Button";
 import { HostShell } from "@/components/host/HostShell";
 import { HostReviewsView } from "@/components/host/reviews/HostReviewsView";
 
-export const metadata: Metadata = { title: "Reviews", robots: { index: false, follow: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: getDictionary(await getLocale()).experienceHost.screens.reviews, robots: { index: false, follow: false } };
+}
 
 export const dynamic = "force-dynamic";
 
@@ -26,17 +29,18 @@ export const dynamic = "force-dynamic";
 export default async function HostReviewsPage() {
   const locale = await getLocale();
   const read = await readHostReviews();
+  const t = getDictionary(locale);
 
   if (read.state === "signed-out") {
     return (
       <HostShell fallback="/host">
         <EmptyState
           icon="reviews"
-          title="Your reviews"
-          body="Sign in to read what guests wrote about your stays, and to answer them."
+          title={t.experienceHost.reviews.signedOutTitle}
+          body={t.experienceHost.reviews.signedOutBody}
           action={
             <ButtonLink href={authHref(returnHref("/host/reviews", "", "list"), "sign-in")} variant="primary" size="lg">
-              Sign in
+              {t.common.signIn}
             </ButtonLink>
           }
         />

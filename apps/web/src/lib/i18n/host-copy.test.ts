@@ -31,7 +31,6 @@ const STILL_ENGLISH: Record<string, number> = {
   "app/host/earnings/page.tsx": 3,
   "app/host/earnings/statement/page.tsx": 2,
   "app/host/reservations/ReservationsBoard.tsx": 6,
-  "app/host/reviews/page.tsx": 2,
   "components/host/DecideView.tsx": 11,
   "components/host/StatementView.tsx": 6,
   "components/host/calendar/CalendarSync.tsx": 4,
@@ -39,7 +38,6 @@ const STILL_ENGLISH: Record<string, number> = {
   "components/host/calendar/RatePlanSheet.tsx": 3,
   "components/host/calendar/SelectionPanel.tsx": 6,
   "components/host/reviews/HostReviewCard.tsx": 3,
-  "components/host/reviews/HostReviewsView.tsx": 6,
 };
 
 function walk(dir: string, out: string[] = []): string[] {
