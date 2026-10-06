@@ -16,7 +16,7 @@ import {
 import { PageHeader } from "@/components/app/PageHeader";
 import { EmptyState, TYPE } from "@/components/app/Screen";
 import { ButtonLink } from "@/components/ui/Button";
-import { authHref } from "@/components/auth/auth-intent";
+import { withNext } from "@/lib/auth/next-link";
 import { HistoryHero } from "@/components/app/money-history/HistoryHero";
 import { HistoryList } from "@/components/app/money-history/HistoryList";
 import { HistoryEmpty, HistoryUnavailable } from "@/components/app/money-history/HistoryStates";
@@ -72,7 +72,7 @@ export default async function PaymentsPage({
           title="Sign in to see your payments"
           body={HISTORY_NOT_A_BALANCE}
           action={
-            <ButtonLink href={authHref("/payments", "sign-in")} variant="primary" size="lg">
+            <ButtonLink href={withNext("/sign-in", "/payments")} variant="primary" size="lg">
               Sign in
             </ButtonLink>
           }
