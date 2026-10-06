@@ -271,6 +271,44 @@ export function pausedProgramme(read: RewardsRead): PausedProgramme | null {
 }
 
 /**
+ * WHAT THE INVITE HUB, HOW INVITES WORK AND THE INVITE'S FIRST RUN MAY SAY
+ * ABOUT A REWARD. The gate is the one every rewards surface already uses, the
+ * rewards read: there is no feature flag for rewards (no `feature_flags` key
+ * names one), and a second gate would let the two disagree.
+ *
+ *   not-live  there is no programme: "There is no reward for inviting", as before
+ *   running   the reward, written from the read's own policy figures
+ *   paused    D64: the pause notice, and no invite
+ *   unknown   signed out, the read failed, or a snapshot that does not say
+ *             "running" with whole figures. Nothing either way: neither a
+ *             reward promised nor "no reward" said about a programme that may
+ *             exist.
+ *
+ * The four never mix: a surface draws exactly one.
+ */
+export type InviteRewards =
+  | { state: "not-live" }
+  | { state: "running"; policy: RewardsPolicy }
+  | { state: "paused"; programme: PausedProgramme }
+  | { state: "unknown" };
+
+export function inviteRewards(read: RewardsRead): InviteRewards {
+  if (read.state === "not-live") return { state: "not-live" };
+  const paused = pausedProgramme(read);
+  if (paused) return { state: "paused", programme: paused };
+  if (read.state !== "ready" || read.snapshot.programme?.state !== "running") return { state: "unknown" };
+  const policy = read.snapshot.policy;
+  const whole =
+    policy &&
+    isKobo(policy.rewardPerReferralMinor) &&
+    policy.rewardPerReferralMinor > 0 &&
+    Number.isInteger(policy.monthlyCap) &&
+    policy.monthlyCap > 0 &&
+    isKobo(policy.withdrawMinimumMinor);
+  return whole ? { state: "running", policy } : { state: "unknown" };
+}
+
+/**
  * Whether the withdraw screen may offer the flow, and if not, which honest
  * state it draws instead. Order matters: a rail that is not open is said
  * first, because adding a bank account would not help.

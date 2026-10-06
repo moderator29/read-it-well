@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { FirstRunPanels } from "@/components/app/feature-onboarding/FirstRunPanels";
@@ -10,6 +10,8 @@ import {
   firstRunContent,
   isMountedFirstRun,
 } from "@/components/app/feature-onboarding/first-runs";
+import { inviteRewards, type InviteRewards } from "@/lib/referral/rewards";
+import { readMyRewards } from "@/lib/referral/rewards-read";
 
 export async function generateMetadata({ params }: { params: Promise<{ feature: string }> }): Promise<Metadata> {
   // The tab names the feature in the reader's language, as the region does.
@@ -34,6 +36,12 @@ export async function generateMetadata({ params }: { params: Promise<{ feature: 
  * `?next=` is where the member was going, through the one return-path guard;
  * without it, or when it is not safe, both exits land on the feature's home.
  *
+ * The invite's run reads the rewards read, the same gate as every rewards
+ * surface (`inviteRewards`), and says what that state says: no reward while
+ * it is not live, the reward from the read's policy while it runs. While it
+ * is paused there is no run at all (D64): the member is handed straight on
+ * to where they were going, which says the pause and offers no invite.
+ *
  * Its back destination is declared per feature in `lib/nav/route-parents.ts`
  * (the ten literal `/first-run/<key>` parents and the
  * `LITERAL_EXPANSIONS` entry), the feature's own parent, because the first
@@ -51,11 +59,14 @@ export default async function FirstRunPage({
 
   const locale = await getLocale();
   const t = getDictionary(locale);
-  const content = firstRunContent(feature, t, locale);
-  if (!canMount(content)) notFound();
-
+  const invite: InviteRewards | undefined = feature === "invite" ? inviteRewards(await readMyRewards()) : undefined;
   const raw = (await searchParams).next;
   const next = firstRunNext(Array.isArray(raw) ? raw[0] : raw, FIRST_RUN_HOME[feature]);
+  if (invite?.state === "paused") redirect(next);
+
+  const content = firstRunContent(feature, t, locale, invite);
+  if (!canMount(content)) notFound();
+
   const c = t.experienceFeatures.firstRun;
 
   return (

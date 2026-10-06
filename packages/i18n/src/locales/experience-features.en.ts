@@ -88,15 +88,31 @@ export const experienceFeaturesEn = {
     },
 
     /**
-     * The invite link. The bodies reuse `publicDoors.invite.rowSub` and
-     * `.noReward`, which are what `/settings/invite` already says: no reward
-     * is attached to inviting today (A5).
+     * The invite link, in the three states of the rewards read (the same gate
+     * as every rewards surface, `inviteRewards` in `lib/referral/rewards.ts`).
+     *
+     * NOT LIVE: the bodies reuse `publicDoors.invite.rowSub` and `.noReward`,
+     * which are what `/settings/invite` says: no reward is attached (A5).
+     *
+     * RUNNING: titles only. The bodies are the invite door's own claim about
+     * what Vallo does for the person invited (`publicDoors.invite.doorBody`),
+     * then Session 2's money sentences: `REWARDS_QUALIFY` filled from the
+     * read's policy, and `REWARDS_PENDING_THEN_AVAILABLE` with
+     * `REWARDS_MONTHLY_BUDGET` (D62's lifecycle, D64's pause).
+     *
+     * PAUSED: no first run; the route hands the member to the hub, which says
+     * the pause and offers no invite (D64).
      */
     invite: {
       name: "invites",
       p1Title: "Your own invite link",
       p2Title: "Nothing to earn, on purpose",
       action: "Get my link",
+      running: {
+        p1Title: "They get Vallo itself",
+        p2Title: "Earn when they qualify",
+        p3Title: "Pending, then Available",
+      },
     },
 
     /**

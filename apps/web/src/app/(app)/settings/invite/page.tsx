@@ -13,10 +13,11 @@ import { gateFirstRun } from "@/components/app/feature-onboarding/first-run-stor
 import { resolveSession } from "@/lib/actions/session";
 import { myInviteCode } from "@/lib/referral/server";
 import { invitePath } from "@/lib/referral/code";
-import { pausedProgramme } from "@/lib/referral/rewards";
+import { inviteRewards } from "@/lib/referral/rewards";
 import { readMyRewards } from "@/lib/referral/rewards-read";
 import { RewardsPauseNotice } from "@/components/app/referral/RewardsPauseNotice";
 import { REWARDS_PAUSED_EARNED_LINE } from "@/components/app/referral/money-words";
+import { InviteRewardLines } from "@/components/app/referral/InviteRewardLines";
 
 export const dynamic = "force-dynamic";
 
@@ -30,13 +31,24 @@ export async function generateMetadata(): Promise<Metadata> {
  * unfolds with the code on it (`InviteTicket`).
  *
  * WHAT IS ON IT, AND WHY NOTHING ELSE. The code and the link are real. Vallo
- * records a sign-up that comes from a code, but a member cannot read that list,
- * and the founder has not decided on any reward, so nothing here is reward
- * shaped: no earned figure, no progress, no "who joined" row (auditor A2, 6
- * October 2026). The page says under the ticket that there is no reward for
- * inviting, in the words the invite door already uses. No investment framing,
- * no downline, no passive-income language: the how-it-works page says what is
- * and is not recorded.
+ * records a sign-up that comes from a code, but a member cannot read that list
+ * here, so there is no earned figure, no progress and no "who joined" row
+ * (auditor A2, 6 October 2026). No investment framing, no downline, no
+ * passive-income language: the how-it-works page says what is and is not
+ * recorded.
+ *
+ * WHAT IT SAYS ABOUT A REWARD follows the rewards read, the one gate every
+ * rewards surface uses (`inviteRewards`; there is no feature flag for it):
+ *
+ *   not-live  under the ticket, "There is no reward for inviting", in the
+ *             invite door's own words
+ *   running   under the ticket, what the invited person gets, what the member
+ *             earns and when (Pending, then Available) and the monthly budget,
+ *             every money sentence from `lib/money/copy.ts` and the reward
+ *             from the read's policy; and a row to the Rewards Balance. The
+ *             founder: write it for the live state now, because a screen that
+ *             has to be corrected at launch gets forgotten at launch
+ *   unknown   (signed out, or the read failed) neither
  *
  * It is a hub with inner pages (D25): `/settings/invite/how-it-works`, and the
  * two declared referral routes, which draw the honest unavailable state until
@@ -64,7 +76,8 @@ export default async function InviteSettingsPage({
      own (a signed-out visit falls to the "unavailable" state below), so the
      check is made here, and a visitor who is not signed in is never sent to a
      first run. The gate fails towards drawing the page. */
-  const paused = pausedProgramme(await readMyRewards());
+  const rewards = inviteRewards(await readMyRewards());
+  const paused = rewards.state === "paused" ? rewards.programme : null;
   if (!paused && (await resolveSession()).state === "signed-in") {
     await gateFirstRun("invite", "/settings/invite", await searchParams);
   }
@@ -116,9 +129,14 @@ export default async function InviteSettingsPage({
             dismissLabel={t.experienceUi.notNow}
             autoplay={!seen}
           />
-          <p className={`${TYPE.caption} text-center`} data-testid="invite-no-reward">
-            {door.noReward}
-          </p>
+          {rewards.state === "not-live" ? (
+            <p className={`${TYPE.caption} text-center`} data-testid="invite-no-reward">
+              {door.noReward}
+            </p>
+          ) : null}
+          {rewards.state === "running" ? (
+            <InviteRewardLines policy={rewards.policy} t={t} locale={locale} testId="invite-rewards-running" />
+          ) : null}
 
           <SettingsGroup label={copy.groupLabel}>
             <RowValue
@@ -134,6 +152,15 @@ export default async function InviteSettingsPage({
               sub={copy.howSub}
               testId="invite-how-row"
             />
+            {rewards.state === "running" ? (
+              <RowLink
+                href="/rewards"
+                icon="hand-coins"
+                label={t.experienceRewards.inviteHub.balanceRow}
+                sub={t.experienceRewards.inviteHub.balanceRowSub}
+                testId="invite-rewards-row"
+              />
+            ) : null}
           </SettingsGroup>
         </div>
       ) : (

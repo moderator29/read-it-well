@@ -477,6 +477,24 @@ export const REWARDS_NOT_INVESTMENT =
 export const REWARDS_PAUSED_EARNED =
   "The pause does not touch anything you have already earned. Every reward from a referral that qualified is still yours and will be paid as usual.";
 
+/**
+ * D62's lifecycle, said before anybody invites (the invite hub, How invites
+ * work, the invite's first run, while the programme runs). Pending is already
+ * qualified and waits out the campaign's review window; Available is what can
+ * be withdrawn. No length is written: the window is campaign configuration,
+ * and the read does not carry it yet. It promises nothing about a Pending
+ * reward beyond the review, because a review can still take one back.
+ */
+export const REWARDS_PENDING_THEN_AVAILABLE =
+  "A reward is Pending from the day the referral qualifies, while Vallo's review period runs. After that it is Available, and Available is what you can withdraw.";
+
+/**
+ * D64, in one plain line, on the same three surfaces while the programme
+ * runs: the platform budget, and that a pause never reaches backwards.
+ */
+export const REWARDS_MONTHLY_BUDGET =
+  "Rewards have one monthly budget across Vallo. If it is used up, rewards pause and no new referral qualifies until it opens again; what you have already earned is still paid.";
+
 /* -------------------------------------------------------------------------- */
 /* THE TRANSACTION TIMELINE, IN SENTENCES (never a status name on screen)     */
 /* -------------------------------------------------------------------------- */

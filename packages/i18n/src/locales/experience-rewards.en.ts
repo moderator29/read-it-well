@@ -216,6 +216,24 @@ export const experienceRewardsEn = {
     inviteOff: "Your invite link is not offered while rewards are paused.",
   },
 
+  /**
+   * The invite hub (`/settings/invite`) and How invites work, ONLY while the
+   * programme runs. Titles only: every sentence under them that says what is
+   * earned, when it can be withdrawn or what a pause does is a money sentence
+   * from `lib/money/copy.ts`, and what the invited person gets is the invite
+   * door's own claim (`publicDoors.invite.doorBody`), not rephrased. While
+   * rewards are not live the hub keeps "There is no reward for inviting".
+   */
+  inviteHub: {
+    label: "Inviting, while rewards run",
+    theyGetTitle: "What they get",
+    earnTitle: "What you earn",
+    pendingTitle: "Pending, then Available",
+    budgetTitle: "One monthly budget",
+    balanceRow: "Your Rewards Balance",
+    balanceRowSub: "What is Pending, what is Available, and who joined",
+  },
+
   /** The states every rewards route draws in place of its content. */
   states: {
     notLiveTitle: "Rewards are not running yet",

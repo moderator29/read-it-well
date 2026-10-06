@@ -230,7 +230,9 @@ describe("D64: a running month draws what it drew before", () => {
   it("keeps the invite hub's ticket and its first run", async () => {
     const hub = await PAGES.hub();
     expect(hub).toContain('data-testid="invite-ticket"');
-    expect(hub).toContain(door.noReward);
+    /* Running, the hub says what is earned, never "no reward" (R2, round 4). */
+    expect(hub).toContain('data-testid="invite-rewards-running"');
+    expect(hub).not.toContain(door.noReward);
     expect(hub).not.toContain(r.pause.title);
     expect(state.gate).toEqual(["invite"]);
   });

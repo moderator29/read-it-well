@@ -12,6 +12,9 @@ import {
   PROMOTION_STARTS,
 } from "@/lib/money/copy";
 import { PROMOTION_METRICS, promotionTiers } from "@/lib/promotion/tiers";
+import { REWARDS_MONTHLY_BUDGET, REWARDS_PENDING_THEN_AVAILABLE } from "@/lib/money/copy";
+import type { InviteRewards } from "@/lib/referral/rewards";
+import { qualifySentence } from "@/components/app/referral/invite-rewards";
 
 /**
  * THE FEATURE ONBOARDING REGISTRY (north star 14.1, founder directive D11).
@@ -135,8 +138,18 @@ export type FirstRunContent = {
  * The objects are matte symbols (Tier B, D29) from the accepted set, chosen
  * for what each panel says: a clipboard for "what needs you", a key ring for
  * the nights a host opens, a shield for checks, a passport for the passport.
+ *
+ * `invite` is what the rewards read says (`inviteRewards`), and only the
+ * invite's first run reads it. Without it the invite run says nothing either
+ * way about a reward (the "unknown" state), so a caller that forgets it can
+ * never put "nothing to earn" in front of a running programme.
  */
-export function firstRunContent(feature: FirstRunFeature, t: Dictionary, locale?: Locale): FirstRunContent {
+export function firstRunContent(
+  feature: FirstRunFeature,
+  t: Dictionary,
+  locale?: Locale,
+  invite: InviteRewards = { state: "unknown" },
+): FirstRunContent {
   const c = t.experienceFeatures.firstRun;
   switch (feature) {
     case "host":
@@ -185,15 +198,7 @@ export function firstRunContent(feature: FirstRunFeature, t: Dictionary, locale?
         ],
       };
     case "invite":
-      return {
-        feature,
-        name: c.invite.name,
-        action: c.invite.action,
-        panels: [
-          { object: "ticket", title: c.invite.p1Title, body: t.publicDoors.invite.rowSub },
-          { object: "gift-box", title: c.invite.p2Title, body: t.publicDoors.invite.noReward },
-        ],
-      };
+      return { feature, name: c.invite.name, action: c.invite.action, panels: invitePanels(t, invite, locale) };
     case "passport":
       return {
         feature,
@@ -242,6 +247,42 @@ export function firstRunContent(feature: FirstRunFeature, t: Dictionary, locale?
       };
     case "promotion":
       return promotionFirstRun(t, locale);
+  }
+}
+
+/**
+ * THE INVITE'S PANELS, ONE SET PER STATE OF THE REWARDS READ. They never mix.
+ *
+ *   not-live  the link, then "There is no reward for inviting" (A5), as before
+ *   running   what the invited person gets (the invite door's own claim), what
+ *             the member earns and when (`REWARDS_QUALIFY` from the read's
+ *             policy), then Pending and Available with the monthly budget in
+ *             one line (D62, D64). Money sentences are `lib/money/copy.ts`'s
+ *   paused    none: the run cannot mount, and the route hands the member to
+ *             the hub, which says the pause and offers no invite (D64)
+ *   unknown   the link alone. Nothing about a reward, either way
+ */
+function invitePanels(t: Dictionary, invite: InviteRewards, locale?: Locale): FirstRunPanel[] {
+  const c = t.experienceFeatures.firstRun.invite;
+  const door = t.publicDoors.invite;
+  const link: FirstRunPanel = { object: "ticket", title: c.p1Title, body: door.rowSub };
+  switch (invite.state) {
+    case "not-live":
+      return [link, { object: "gift-box", title: c.p2Title, body: door.noReward }];
+    case "running":
+      return [
+        { object: "ticket", title: c.running.p1Title, body: door.doorBody },
+        { object: "gift-box", title: c.running.p2Title, body: qualifySentence(invite.policy, locale ?? "en") },
+        {
+          object: "calendar-page",
+          title: c.running.p3Title,
+          body: `${REWARDS_PENDING_THEN_AVAILABLE} ${REWARDS_MONTHLY_BUDGET}`,
+        },
+      ];
+    case "paused":
+      return [];
+    case "unknown":
+      return [link];
   }
 }
 
