@@ -62,10 +62,19 @@
     }
   }
 
+  /* 2x2 on a phone, four across from 768 (north star 7: figure tiles in a
+     2x2). minmax(200px) stacked the four figures one per row at 390, so the
+     desk opened with a screen of tiles before the first queue row (C1 sweep). */
   .nf-rv-kpis {
     display: grid;
-    gap: var(--nf-space-md);
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--nf-space-sm);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  @media (min-width: 768px) {
+    .nf-rv-kpis {
+      gap: var(--nf-space-md);
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
   }
 
   /* ------------------------------------------------------------ the head */
@@ -439,13 +448,19 @@
     min-height: 26px;
     padding: 0 var(--nf-space-sm);
     border-radius: var(--nf-radius-xs);
-    border: 1px solid var(--rv-ink, var(--nf-brand-primary));
-    background: color-mix(in oklab, var(--rv-ink, var(--nf-brand-primary)) 42%, var(--nf-surface-primary));
-    color: color-mix(in oklab, var(--rv-ink, var(--nf-brand-primary)) 45%, var(--nf-content-on-brand));
+    /* ONE EDGE AND INK THAT READS IN BOTH THEMES. The fill mixed the tone
+       with the surface and the ink mixed it with the on-brand white, which is
+       white on paper too: on the light theme every badge measured 1.04 to
+       1.05 to 1 (axe colour-contrast, 16 badges on the verification desk, C1
+       sweep), and a glow sat on top of the ring as a second edge. The ink now
+       mixes the tone toward the theme's own primary text, the fill is a quiet
+       tint, and the ring is the only edge. */
+    border: 1px solid color-mix(in oklab, var(--rv-ink, var(--nf-brand-primary)) 55%, transparent);
+    background: color-mix(in oklab, var(--rv-ink, var(--nf-brand-primary)) 16%, var(--nf-surface-primary));
+    color: color-mix(in oklab, var(--rv-ink, var(--nf-brand-primary)) 55%, var(--nf-content-primary));
     font-size: var(--nf-text-overline);
     font-weight: 600;
     white-space: nowrap;
-    box-shadow: 0 0 14px -4px color-mix(in oklab, var(--rv-ink, var(--nf-brand-primary)) 70%, transparent);
   }
 
   .nf-rv-badge--success { --rv-ink: var(--nf-state-success); }
