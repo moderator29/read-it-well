@@ -6,22 +6,23 @@ component with the fixture named in its row. **P** pass, **X** failed and fixed 
 sweep, **F** failed and still open, **·** does not apply. The denominator is 213 real routes
 (every `page.tsx` under `apps/web/src/app`, excluding `(dev)` and `api`).
 
-**Routes audited: 73 of 213.**
+**Routes audited: 78 of 213.**
 
 | Family | Audited |
 |---|---|
 | admin | 23 |
 | agent | 14 |
-| around | 2 |
+| around | 3 |
 | assistant | 1 |
-| bookings | 1 |
+| bookings | 2 |
 | host | 10 |
 | inspections | 1 |
 | legal | 3 |
 | messages | 2 |
+| pay | 1 |
 | price | 1 |
-| profile | 3 |
-| rent | 2 |
+| profile | 4 |
+| rent | 3 |
 | stories | 2 |
 | support | 3 |
 | tenancy | 1 |
@@ -67,8 +68,10 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | `/agent/portfolio` | C1 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/agent/reviews` | C1 | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/around/manage` | C3 | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | P | · | · | · | · | · | · | · | P |
+| `/around/new` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | P | P | P | P |
 | `/around/settings` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | X | P | P | P |
 | `/assistant` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | P | P | X | P | P | P | P |
+| `/bookings` | C3 | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P |
 | `/bookings/[bookingId]/review` | C3 | P | · | P | P | P | P | · | P | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/host/apply` | C5 | P | · | P | P | X | P | · | · | P | P | P | P | P | · | · | P | · | P | P | P | P | X | P | P |
 | `/host/arrival` | C5 | P | · | P | X | P | P | P | P | · | P | P | P | P | P | P | P | · | P | P | P | P | X | P | P |
@@ -86,10 +89,13 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | `/legal/terms` | C3 | P | · | P | P | P | P | · | · | · | P | P | P | P | · | P | P | F | · | P | P | P | P | P | P |
 | `/messages/new` | C3 | P | · | P | P | P | P | · | · | · | P | P | P | P | · | · | P | · | P | P | P | P | X | P | P |
 | `/messages/share/[kind]/[id]` | C3 | P | · | P | P | P | P | · | P | P | P | P | P | P | · | P | P | · | P | P | P | P | X | P | P |
+| `/pay/crypto/[reference]` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | X | P | P | P | P | P | P |
 | `/price` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | X | P | P | P |
+| `/profile/application` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/profile/setup` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | P | P | P | P |
 | `/profile/setup/[role]` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | P | P | P | P |
 | `/profile/setup/firm` | C3 | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | P | · | · | · | · | · | · | · | P |
+| `/rent/move-in/[listingId]` | C3 | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | P | P | X | P | P | P |
 | `/rent/pay/[inspectionId]` | C3 | P | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | X | · | P | P | P | P | P | P |
 | `/rent/review/[paymentId]` | C3 | P | · | P | P | P | P | · | · | · | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/stories/[id]` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | X | X | X | P | P | P |
@@ -307,9 +313,17 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 
 - 22 (fixed): Overflow was 0 in all four, but the page's eight strings were English literals in ha, ig and yo. They are in experienceInbox.share now.
 
+**`/pay/crypto/[reference]`** (no fixture of a crypto payment exists, so the honest not-found and signed-out states)
+
+- 18 (fixed): Signed out showed the not-found sentence ("Open the charge from your bookings and start again") under Sign in, and Sign in went to a bare /sign-in, so the payer never came back to the payment. It now says why to sign in (cryptoPay.signedOutBody) and carries next=/pay/crypto/<reference>.
+
 **`/price`** (the real page before an address is chosen, its one read (listStates) mocked to session-b/sweep-orphans STATES)
 
 - 21 (fixed): The map's credit links (OpenStreetMap, CARTO) drew 20px tall: 2 targets under 44 at every width and locale. They take nf-tap now (target grows, the credit line keeps its size): 0 under 44.
+
+**`/rent/move-in/[listingId]`** (the real page with the listing repository returning f3 RENTAL and its peers the f3 SHELF, no open inspection)
+
+- 21 (fixed): The Back link drew 19.5px tall in every locale: it takes nf-tap now, 0 under 44.
 
 **`/rent/pay/[inspectionId]`** (the real page with getRentPayView mocked to session-b/sweep-orphans RENT_VIEW, no saved card, crypto off)
 
