@@ -5,6 +5,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { motionQuiet } from "@/lib/motion/gate";
 import "@/app/css/catalogue.css";
 import "@/app/css/list-views.css";
+import "./results-motion.css";
 
 /**
  * The results dim while the next set is on its way (Track M).
@@ -34,6 +35,18 @@ import "@/app/css/list-views.css";
  * layout effect before paint; only `translate` animates, on the Web
  * Animations API, and only for cards on or near the screen. Not under Calm,
  * Off, reduced motion or data saver.
+ *
+ * WHAT JUST CHANGED, AND NOTHING ELSE (round 5 craft, the search moment).
+ * The list remounts per query, so every card used to replay its entrance on
+ * every filter: the survivors faded to nothing and rose again beside the
+ * newcomers, and a narrowing read as a reload. Now the layout effect marks
+ * each drawn row before paint: `data-stayed` on a card that was on the shelf
+ * before (it never re-enters; it only glides), `data-arrived` and
+ * `--nf-arrive-i` on a card that is new (the first six of the NEWCOMERS
+ * stagger, 40ms apart, at the browsing pace in `results-motion.css`). The
+ * glide is the base rung, 240ms, because this is browsing, not a route.
+ * Reduced motion: survivors are simply in place and newcomers fade in 160ms,
+ * so the story ("these are new") is still told without travel.
  */
 export function ResultsFade({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -45,7 +58,9 @@ export function ResultsFade({ children }: { children: ReactNode }) {
   const updating = dimFrom === current;
   const timer = useRef<number | undefined>(undefined);
   const box = useRef<HTMLDivElement>(null);
-  const before = useRef<Map<string, { left: number; top: number }> | null>(null);
+  /* What the shelf held when the change started: every row's key, and the
+     places of the rows near the screen (null when nothing may travel). */
+  const before = useRef<{ keys: Set<string>; places: Map<string, { left: number; top: number }> | null } | null>(null);
   const here = useRef(current);
   useEffect(() => {
     here.current = current;
@@ -53,7 +68,8 @@ export function ResultsFade({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const start = () => {
-      before.current = motionQuiet() || document.documentElement.dataset.saveData === "on" ? null : places(box.current);
+      const still = motionQuiet() || document.documentElement.dataset.saveData === "on";
+      before.current = { keys: keysOf(box.current), places: still ? null : places(box.current) };
       setDimFrom(here.current);
       window.clearTimeout(timer.current);
       timer.current = window.setTimeout(() => setDimFrom(null), 4000);
@@ -89,13 +105,31 @@ export function ResultsFade({ children }: { children: ReactNode }) {
   useLayoutEffect(() => {
     const was = before.current;
     before.current = null;
-    if (!was || was.size === 0) return;
+    if (!was) return;
+    /* Which rows stayed and which are new, before the first paint, so a
+       survivor's entrance is cancelled before it ever draws a frame. */
+    let arrival = 0;
+    for (const item of rows(box.current)) {
+      const key = item.querySelector("a[href]")?.getAttribute("href");
+      if (!key) continue;
+      if (was.keys.has(key)) {
+        item.dataset.stayed = "";
+        delete item.dataset.arrived;
+      } else if (!("stayed" in item.dataset) && !("arrived" in item.dataset)) {
+        item.dataset.arrived = "";
+        item.style.setProperty("--nf-arrive-i", String(Math.min(arrival, 5)));
+        arrival += 1;
+      }
+    }
+    if (!was.places || was.places.size === 0) return;
     const now = places(box.current);
     const style = getComputedStyle(document.documentElement);
-    const duration = parseFloat(style.getPropertyValue("--nf-duration-slow")) || 380;
-    const easing = style.getPropertyValue("--nf-ease-entrance").trim() || "ease-out";
+    /* The browsing pace: the base rung on `land`. The fallbacks are the
+       tokens' own values, never the browser's `ease-out`. */
+    const duration = parseFloat(style.getPropertyValue("--nf-duration-base")) || 240;
+    const easing = style.getPropertyValue("--nf-ease-entrance").trim() || "cubic-bezier(0.16, 1, 0.3, 1)";
     for (const [key, rect] of now) {
-      const from = was.get(key);
+      const from = was.places.get(key);
       if (!from) continue;
       const dx = from.left - rect.left;
       const dy = from.top - rect.top;
@@ -122,11 +156,25 @@ export function ResultsFade({ children }: { children: ReactNode }) {
  * screen's height of the viewport: a card far below cannot be seen moving,
  * and measuring it would be work for nothing.
  */
+function rows(root: HTMLElement | null): HTMLElement[] {
+  return root ? Array.from(root.querySelectorAll<HTMLElement>("ul > li")) : [];
+}
+
+/** Every row's key (the page it opens), on screen or not: no measuring. */
+function keysOf(root: HTMLElement | null): Set<string> {
+  const out = new Set<string>();
+  for (const item of rows(root)) {
+    const href = item.querySelector("a[href]")?.getAttribute("href");
+    if (href) out.add(href);
+  }
+  return out;
+}
+
 function places(root: HTMLElement | null): Map<string, { left: number; top: number }> {
   const out = new Map<string, { left: number; top: number }>();
   if (!root) return out;
   const reach = window.innerHeight;
-  for (const item of root.querySelectorAll<HTMLElement>("ul > li")) {
+  for (const item of rows(root)) {
     const href = item.querySelector("a[href]")?.getAttribute("href");
     if (!href || out.has(href)) continue;
     const rect = item.getBoundingClientRect();
