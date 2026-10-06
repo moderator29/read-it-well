@@ -2,6 +2,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { panelClass } from "@/components/ui/Panel";
 import { LoadingShell } from "@/components/app/ScreenSkeleton";
 import { ListingHandoffShell } from "@/components/app/listing/ListingHandoffShell";
+import { NairaFacePreload } from "@/components/app/NairaFacePreload";
 
 /**
  * The wait, on a listing.
@@ -22,6 +23,8 @@ export default function LoadingListing() {
      (ListingHandoffShell); a cold open keeps this skeleton. */
   return (
     <LoadingShell label="Loading this place" className="mx-auto w-full max-w-5xl">
+      {/* The move-in total is in the first viewport: its naira sign arrives with the page. */}
+      <NairaFacePreload />
       <ListingHandoffShell verifiedLabel="Verified" fallback={<ListingSkeleton />} />
     </LoadingShell>
   );
