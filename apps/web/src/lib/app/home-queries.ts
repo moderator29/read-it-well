@@ -9,7 +9,7 @@ import { memo } from "../cache/memo";
 import { isSupabaseConfigured } from "../supabase/env";
 import { createClient } from "../supabase/server";
 import { MEDIA_BUCKET } from "../social/posts-media";
-import { knownInterests } from "../interests/schema";
+import { knownInterests } from "../interests/model";
 import { parseSettings } from "../profile/schema";
 
 /**

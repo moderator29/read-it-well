@@ -16,7 +16,7 @@ import { BackChevron } from "./BackChevron";
 import { ButtonLink } from "@/components/ui/Button";
 import type { ModeratorOf, SocialProfileView } from "@/lib/social/profiles-queries";
 import type { AgentTrust, Occupation, ProfilePlace, Standing } from "@/lib/social/profile-extras";
-import { BIO_HELD_DETAIL, BIO_HELD_TITLE, linkLabel } from "@/lib/social/profiles-schema";
+import { BIO_HELD_DETAIL, BIO_HELD_TITLE, linkLabel } from "@/lib/social/profiles-model";
 import { ExternalLinkSheet } from "@/components/ui/ExternalLinkSheet";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import "./social-profile.css";

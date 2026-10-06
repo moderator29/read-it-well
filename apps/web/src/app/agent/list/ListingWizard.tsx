@@ -65,7 +65,7 @@ import {
   type RentPeriod,
   type SaleStatus,
   type WaterSupply,
-} from "@/lib/agent/listings-schema";
+} from "@/lib/agent/listings-model";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { BackControl } from "@/components/ui/BackControl";
 import type { BrandIconName } from "@/design-system/icons/BrandIcon";

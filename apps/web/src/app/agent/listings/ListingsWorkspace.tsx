@@ -15,7 +15,7 @@ import {
   MIN_PHOTOS,
   MIN_TITLE_LENGTH,
   type ListingStatus,
-} from "@/lib/agent/listings-schema";
+} from "@/lib/agent/listings-model";
 import type { ListingSummary } from "@/lib/agent/listings-queries";
 import { createUndoWindow, type UndoWindow } from "@/lib/ui/undo-window";
 import { withDone } from "@/lib/ui/success-moments";

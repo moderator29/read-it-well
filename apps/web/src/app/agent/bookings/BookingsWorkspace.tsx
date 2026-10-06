@@ -13,7 +13,7 @@ import {
 } from "@vallo/i18n";
 import { fill } from "../_copy";
 import { acceptBooking, declineBooking } from "@/lib/agent/bookings-actions";
-import { HOLD_WINDOW_HOURS } from "@/lib/agent/bookings-schema";
+import { HOLD_WINDOW_HOURS } from "@/lib/agent/bookings-model";
 import type { HostBooking, HostBookingBoard } from "@/lib/agent/bookings-queries";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button, ButtonLink } from "@/components/ui/Button";

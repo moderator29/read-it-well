@@ -2,7 +2,7 @@ import "server-only";
 
 import { resolveSession } from "../actions/session";
 import { parseSettings } from "../profile/schema";
-import { knownInterests, type PropertyType } from "./schema";
+import { knownInterests, type PropertyType } from "./model";
 
 /**
  * Server reads for stated intent.

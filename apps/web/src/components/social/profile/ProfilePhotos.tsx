@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { setAvatar } from "@/lib/profile/actions";
 import { setSocialCover } from "@/lib/social/profiles-actions";
-import { COVER_MAX_BYTES, COVER_MAX_EDGE } from "@/lib/social/profiles-schema";
+import { COVER_MAX_BYTES, COVER_MAX_EDGE } from "@/lib/social/profiles-model";
 import { loadBrowserClient } from "@/lib/supabase/load-client";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";

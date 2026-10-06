@@ -12,7 +12,7 @@ import {
   readStates,
   type DraftRead,
 } from "@/lib/agent/listings-queries";
-import { AMENITY_CHOICES, STATE_CODES } from "@/lib/agent/listings-schema";
+import { AMENITY_CHOICES, STATE_CODES } from "@/lib/agent/listings-model";
 import { readBroadcastMarks } from "@/lib/agent/broadcast-marks-queries";
 import {
   DRAFT_READ_FAILED_SENTENCE,

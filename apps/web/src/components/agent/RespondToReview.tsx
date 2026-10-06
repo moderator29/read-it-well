@@ -7,7 +7,7 @@ import { TextArea } from "@/components/ui/Field";
 import { TYPE } from "@/components/app/Screen";
 import { UploadCard, newBatchId, type UploadState } from "@/components/supply/UploadCard";
 import { respondToReview } from "@/lib/agent/application-respond";
-import { RESPONSE_MAX_CHARS } from "@/lib/agent/application-respond-schema";
+import { RESPONSE_MAX_CHARS } from "@/lib/agent/application-respond-model";
 
 /**
  * SUP-05: the way forward from "Needs more information".

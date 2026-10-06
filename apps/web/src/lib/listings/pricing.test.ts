@@ -14,7 +14,7 @@ import {
   RENT_PERIOD_VALUES,
   RATE_PERIOD_VALUES,
 } from "./pricing";
-import { submitRequirements, type SubmitSubject } from "../agent/listings-schema";
+import { submitRequirements, type SubmitSubject } from "../agent/listings-model";
 
 /**
  * The money resolution, tested because it is the one decision every price on

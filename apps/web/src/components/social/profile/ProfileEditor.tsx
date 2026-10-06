@@ -22,7 +22,7 @@ import {
   linkLabel,
   type ContactPolicy,
   type SocialProfileSaved,
-} from "@/lib/social/profiles-schema";
+} from "@/lib/social/profiles-model";
 import { useDisplayHost } from "@/lib/ui/use-display-host";
 import "@/app/css/catalogue.css";
 

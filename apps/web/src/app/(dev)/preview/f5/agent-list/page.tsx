@@ -2,7 +2,7 @@ import { getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { AgentShell } from "@/components/agent/AgentShell";
 import { ListingWizard } from "@/app/agent/list/ListingWizard";
-import { AMENITY_CHOICES, STATE_CODES } from "@/lib/agent/listings-schema";
+import { AMENITY_CHOICES, STATE_CODES } from "@/lib/agent/listings-model";
 import type { WizardDraft } from "@/lib/agent/listings-queries";
 import { SCENE_PHOTOGRAPHS } from "@/lib/listings/scene-photographs.generated";
 import { AGENT_PROFILE } from "../ops-fixtures";

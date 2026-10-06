@@ -27,7 +27,7 @@ import { z } from "zod";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../actions/session";
 import { ROOM_ITEMS } from "../inspections/report";
-import { parseNairaToKobo } from "../agent/listings-schema";
+import { parseNairaToKobo } from "../agent/listings-model";
 
 const SERVICE_DOWN = "That did not go through. Nothing was changed. Try again in a moment.";
 

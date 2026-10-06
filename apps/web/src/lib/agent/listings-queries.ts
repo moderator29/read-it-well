@@ -22,7 +22,7 @@ import {
   type PowerBackup,
   type PowerGrid,
   type WaterSupply,
-} from "./listings-schema";
+} from "./listings-model";
 import { headlinePrice, headlinePeriod, type PricePeriod } from "../listings/pricing";
 import {
   COMPOUND_COLUMNS,
@@ -892,4 +892,4 @@ export async function readAgentNumbers(
 // The status label and tone tables live in listings-schema, which carries no
 // server-only import, because the workspace renders them from a client
 // component. Re-exported here so server callers keep one import site.
-export { STATUS_LABEL, STATUS_TONE } from "./listings-schema";
+export { STATUS_LABEL, STATUS_TONE } from "./listings-model";

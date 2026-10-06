@@ -23,7 +23,7 @@ import {
   MAX_NAME_LENGTH,
   MAX_NICKNAME_LENGTH,
   MAX_PHONE_LENGTH,
-} from "@/lib/profile/schema";
+} from "@/lib/profile/model";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { NO_FACTS, rowValue, type BelongingsFacts } from "./belongings";
 import { useClientCopy } from "@/lib/i18n/client-copy";

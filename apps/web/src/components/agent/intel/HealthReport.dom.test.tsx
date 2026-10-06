@@ -41,7 +41,7 @@ const entry = (theme: "dark" | "light", kind: "needs" | "whole") => `
   import { getDictionary } from "@vallo/i18n";
   import { HealthReport } from "@/components/agent/intel/HealthReport";
   import { listingHealth } from "@/components/agent/intel/health-model";
-  import { MIN_DESCRIPTION_WORDS, MIN_PHOTOS } from "@/lib/agent/listings-schema";
+  import { MIN_DESCRIPTION_WORDS, MIN_PHOTOS } from "@/lib/agent/listings-model";
   import { mount } from "@/lib/testing/browser-root";
   document.documentElement.dataset.theme = "${theme}";
   const NOW = Date.parse("2026-10-06T12:00:00Z");

@@ -11,7 +11,7 @@ import { attachPostMedia, dropPost, replyToPost } from "@/lib/social/posts-actio
 import { sendOrKeep } from "@/lib/offline/send-or-keep";
 import { useClientCopy } from "@/lib/i18n/client-copy";
 import { summonBot } from "@/lib/social/bot-actions";
-import { mentionsBot } from "@/lib/social/bot-schema";
+import { mentionsBot } from "@/lib/social/bot-model";
 import {
   COMPOSABLE_KINDS,
   KIND_HINT,

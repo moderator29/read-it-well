@@ -1,6 +1,6 @@
 import { ButtonLink } from "@/components/ui/Button";
 import type { ListingReview, ReviewSubject } from "@/lib/reviews/queries";
-import { RATING_LABELS } from "@/lib/reviews/schema";
+import { RATING_LABELS } from "@/lib/reviews/model";
 import { ICON } from "@/components/app/Screen";
 import { Reveal } from "@/components/site/Reveal";
 import { UiIcon } from "@/design-system/icons/UiIcon";

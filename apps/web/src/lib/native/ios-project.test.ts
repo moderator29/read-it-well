@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
-import { VIDEO_MIME_TYPES } from "@/lib/agent/listings-schema";
+import { VIDEO_MIME_TYPES } from "@/lib/agent/listings-model";
 
 /**
  * STORE-P2-03 and STORE-13, read from the iOS project the binary is built

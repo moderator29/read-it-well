@@ -7,8 +7,8 @@ import { agentProfileFrom, getAgentContext } from "@/lib/agent/listings-queries"
 import type { AgentProfile } from "@/lib/agent/types";
 import { getPayoutAccounts, type PayoutAccount } from "@/lib/agent/payout-queries";
 import { loadSettingsState } from "@/lib/profile/queries";
-import type { ResolvedProfileSettings } from "@/lib/profile/schema";
-import { groupNuban } from "@/lib/agent/payout-schema";
+import type { ResolvedProfileSettings } from "@/lib/profile/model";
+import { groupNuban } from "@/lib/agent/payout-model";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ListingPitch } from "../list/ListingPitch";
 import { AccountNotificationsCard } from "../../(app)/settings/AccountToggles";

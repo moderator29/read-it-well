@@ -10,7 +10,7 @@ import {
   MAX_VIDEOS,
   VIDEO_MIME_TYPES,
   rejectUpload,
-} from "@/lib/agent/listings-schema";
+} from "@/lib/agent/listings-model";
 import { resumableUpload, type UploadProgress } from "@/lib/agent/resumable-upload";
 import { loadBrowserClient } from "@/lib/supabase/load-client";
 import { SUPABASE_URL } from "@/lib/supabase/env";

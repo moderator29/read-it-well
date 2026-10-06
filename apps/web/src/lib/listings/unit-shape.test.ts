@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { inferShape, matchesUnit, readUnit, shapeFromSlug, shapeSlug, unitLine, unitPayload } from "./unit-shape";
-import { submitRequirements } from "@/lib/agent/listings-schema";
+import { submitRequirements } from "@/lib/agent/listings-model";
 
 const COPY = {
   shapes: {

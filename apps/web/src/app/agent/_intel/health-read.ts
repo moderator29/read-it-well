@@ -3,7 +3,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
 import { readLiveFreshness } from "@/lib/agent/freshness-read";
-import type { SubmitSubject } from "@/lib/agent/listings-schema";
+import type { SubmitSubject } from "@/lib/agent/listings-model";
 import type { HealthFacts } from "@/components/agent/intel/health-model";
 import { readOneFunnel } from "./space-read";
 

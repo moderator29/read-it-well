@@ -16,7 +16,7 @@ import {
   RecordReturn,
 } from "@/components/app/tenancy/CautionControls";
 import { lagosToday } from "@/lib/rent/schema";
-import { koboToNairaInput } from "@/lib/agent/listings-schema";
+import { koboToNairaInput } from "@/lib/agent/listings-model";
 import { TenancyReportCard } from "@/components/app/tenancy/TenancyReportCard";
 import { CautionRegister } from "@/components/app/tenancy/CautionRegister";
 import { ReceiptCodePanel } from "@/components/app/tenancy/ReceiptCodePanel";

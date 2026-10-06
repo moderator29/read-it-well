@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { submitRequirements, type SubmitSubject } from "./listings-schema";
+import { submitRequirements, type SubmitSubject } from "./listings-model";
 
 /**
  * V-13. The quality gate refuses a stated move-in total the named parts do

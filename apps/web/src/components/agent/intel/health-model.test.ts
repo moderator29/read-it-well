@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MIN_DESCRIPTION_WORDS, MIN_PHOTOS, type SubmitSubject } from "@/lib/agent/listings-schema";
+import { MIN_DESCRIPTION_WORDS, MIN_PHOTOS, type SubmitSubject } from "@/lib/agent/listings-model";
 import { HEALTH_ROWS, listingHealth, type HealthFacts } from "./health-model";
 
 /**

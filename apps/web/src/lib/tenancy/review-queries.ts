@@ -3,7 +3,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { resolveSession } from "../actions/session";
 import { lagosToday } from "../bookings/schema";
-import { tenancyReviewOpen } from "./review";
+import { tenancyReviewOpen } from "./review-model";
 
 /**
  * The tenancy a review is about, as its tenant sees it (V-59). Under the

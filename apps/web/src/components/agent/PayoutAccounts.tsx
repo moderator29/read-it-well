@@ -16,7 +16,7 @@ import {
   type ResolvedName,
 } from "@/lib/agent/payout-actions";
 import type { PayoutAccount } from "@/lib/agent/payout-queries";
-import { NUBAN_LENGTH, digitsOnly, groupNuban } from "@/lib/agent/payout-schema";
+import { NUBAN_LENGTH, digitsOnly, groupNuban } from "@/lib/agent/payout-model";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 

@@ -14,7 +14,7 @@ import {
   firstRunNext,
   isSignUpForm,
 } from "@/components/app/welcome/first-run-seen";
-import { isPropertyType } from "@/lib/interests/schema";
+import { isPropertyType } from "@/lib/interests/model";
 import { loadInterestsState } from "@/lib/interests/queries";
 import { planFirstRun } from "./plan";
 import { resolveSession } from "@/lib/actions/session";

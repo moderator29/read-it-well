@@ -15,7 +15,7 @@ import type {
   SettledPoint,
 } from "@/lib/agent/analytics-queries";
 import { CALENDAR_WINDOW_NIGHTS } from "@/lib/agent/analytics-queries";
-import { HOLD_WINDOW_HOURS } from "@/lib/agent/bookings-schema";
+import { HOLD_WINDOW_HOURS } from "@/lib/agent/bookings-model";
 import type { ListingStatus } from "@/lib/agent/listings-queries";
 import { Amount, Figure } from "@/components/ui/Amount";
 import { Progress } from "@/components/ui/Progress";

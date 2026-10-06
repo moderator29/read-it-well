@@ -1,6 +1,6 @@
 import { RowLink } from "@/components/app/account/rows";
 import type { Dictionary } from "@vallo/i18n/core";
-import { type PropertyType } from "@/lib/interests/schema";
+import { type PropertyType } from "@/lib/interests/model";
 
 /**
  * The row that owns what somebody came here for.

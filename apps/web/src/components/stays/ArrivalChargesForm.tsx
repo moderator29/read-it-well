@@ -6,7 +6,7 @@ import type { Dictionary } from "@vallo/i18n/core";
 import { Button } from "@/components/ui/Button";
 import { ARRIVAL_KEYS, ARRIVAL_UNITS, type ArrivalCharges, type ArrivalKey, type ArrivalUnit } from "@/lib/stays/arrival-charges";
 import { declareArrivalCharges } from "@/lib/stays/arrival-actions";
-import { koboToNairaInput } from "@/lib/agent/listings-schema";
+import { koboToNairaInput } from "@/lib/agent/listings-model";
 
 type Copy = Dictionary["afterTheGate"]["arrival"];
 type Row = { mode: "none" | "amount" | null; naira: string; per: ArrivalUnit };

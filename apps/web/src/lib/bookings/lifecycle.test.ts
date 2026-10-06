@@ -27,7 +27,7 @@ import {
   type HoldRow,
   type StayRow,
 } from "./lifecycle";
-import { HOLD_WINDOW_HOURS } from "../agent/bookings-schema";
+import { HOLD_WINDOW_HOURS } from "../agent/bookings-model";
 
 /**
  * The lifecycle rules, proved against a fixed clock.

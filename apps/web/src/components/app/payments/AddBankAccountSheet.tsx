@@ -10,7 +10,7 @@ import { ICON, TYPE } from "@/components/app/Screen";
 import { Button } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/Field";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { NUBAN_LENGTH, digitsOnly, groupNuban } from "@/lib/agent/payout-schema";
+import { NUBAN_LENGTH, digitsOnly, groupNuban } from "@/lib/agent/payout-model";
 import { addBankAccount, listBanks, resolveBankAccount } from "@/lib/payments/bank-accounts-actions";
 
 type PaymentsCopy = Dictionary["paymentsPage"];

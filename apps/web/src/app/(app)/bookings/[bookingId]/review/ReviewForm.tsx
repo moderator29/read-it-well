@@ -6,7 +6,7 @@ import type { ActionResult } from "@/lib/actions/envelope";
 import { submitReview, type ReviewWritten } from "@/lib/reviews/actions";
 import { sendOrKeep } from "@/lib/offline/send-or-keep";
 import { useClientCopy } from "@/lib/i18n/client-copy";
-import { BODY_MAX, RATING_LABELS, RATING_MAX, RATING_MIN } from "@/lib/reviews/schema";
+import { BODY_MAX, RATING_LABELS, RATING_MAX, RATING_MIN } from "@/lib/reviews/model";
 import type { ReviewSubject } from "@/lib/reviews/queries";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { SuccessSheet } from "@/components/ui/SuccessSheet";

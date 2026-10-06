@@ -11,7 +11,7 @@ import { Figure } from "@/components/ui/Amount";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { setAvatar } from "@/lib/profile/actions";
 import { setSocialCover } from "@/lib/social/profiles-actions";
-import { COVER_MAX_BYTES, COVER_MAX_EDGE } from "@/lib/social/profiles-schema";
+import { COVER_MAX_BYTES, COVER_MAX_EDGE } from "@/lib/social/profiles-model";
 import { loadBrowserClient } from "@/lib/supabase/load-client";
 import { reencodeToJpeg } from "@/components/social/profile/reencode";
 import { RemoteImage } from "@/components/ui/RemoteImage";

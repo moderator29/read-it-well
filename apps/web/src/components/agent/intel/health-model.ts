@@ -47,7 +47,7 @@ import {
   countWords,
   submitRequirements,
   type SubmitSubject,
-} from "@/lib/agent/listings-schema";
+} from "@/lib/agent/listings-model";
 import { CONFIRM_EVERY_DAYS, daysSinceConfirmed, dueForConfirmation } from "@/lib/agent/freshness";
 import type { Fix } from "@/lib/agent/funnel";
 

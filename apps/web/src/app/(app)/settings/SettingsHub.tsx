@@ -24,7 +24,7 @@ import { clearAllInflight } from "@/lib/offline/inflight";
 import { signOut } from "@/lib/profile/actions";
 import { clearLocalDevice, readLocalDevice } from "@/components/app/push/device-state";
 import { playThreshold } from "@/lib/motion/threshold";
-import type { ResolvedProfileSettings } from "@/lib/profile/schema";
+import type { ResolvedProfileSettings } from "@/lib/profile/model";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 
 /**

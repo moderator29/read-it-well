@@ -5,7 +5,7 @@ import { getLocale } from "@/lib/locale";
 import { resolveSession } from "@/lib/actions/session";
 import { getMyBusinesses, type MyBusiness } from "@/lib/host/queries";
 import { loadSettingsState } from "@/lib/profile/queries";
-import type { ResolvedProfileSettings } from "@/lib/profile/schema";
+import type { ResolvedProfileSettings } from "@/lib/profile/model";
 import { authHref, returnHref } from "@/components/auth/auth-intent";
 import { EmptyState, Row, RowList, Section, Stack, TYPE } from "@/components/app/Screen";
 import { ButtonLink } from "@/components/ui/Button";

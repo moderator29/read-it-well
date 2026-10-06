@@ -12,7 +12,7 @@ import {
   type InterestsSaved,
 } from "@/lib/interests/actions";
 import type { InterestsCopy } from "./welcome-copy";
-import { PROPERTY_TYPES, type PropertyType } from "@/lib/interests/schema";
+import { PROPERTY_TYPES, type PropertyType } from "@/lib/interests/model";
 import { forgetFirstInterest } from "./first-run-seen";
 import { ObjectArt } from "@/components/auth/ObjectArt";
 import type { TieredObjectName } from "@/design-system/icons/object-assets";
