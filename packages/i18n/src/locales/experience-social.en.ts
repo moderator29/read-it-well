@@ -37,6 +37,28 @@ export const experienceSocialEn = {
     searchStays: "Search stays",
   },
   /** `/stories/new`: the page's own words, moved out of the code (Round 3 sweep, C3). */
+  /**
+   * `/u`, the people directory: the page's own words, moved out of the page
+   * (Round 3 sweep, C3). `{query}` is what was searched for.
+   */
+  people: {
+    title: "People",
+    unreachableTitle: "We cannot reach profiles right now",
+    unreachableBody: "This is on our side, not yours. Nobody's page can be read from here at the moment. The rest of the app works as normal.",
+    goToAround: "Go to Around",
+    searchLabel: "Search for somebody by name or handle",
+    clear: "Clear the search",
+    placeholder: "A name or a handle",
+    search: "Search",
+    matching: "People matching {query}",
+    arrived: "People who just arrived",
+    searchedBy: "Searched by name and handle.",
+    noMatchTitle: "Nobody here is called {query}",
+    noneTitle: "Nobody has a page yet",
+    noMatchBody: "Nobody matched that name or handle. Try a shorter piece of it, or the handle itself.",
+    noneBody: "The first person to claim a handle appears here. Claim yours and yours is the first name anybody arriving reads.",
+    everybody: "See everybody",
+  },
   newStory: {
     title: "Write a story",
     lede: "A picture, a headline, and a line or two. It stays up.",
