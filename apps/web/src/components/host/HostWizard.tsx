@@ -11,6 +11,7 @@ import { useMoneyStepUp } from "@/components/app/money/MoneyStepUp";
 import type { BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
+import { Chip } from "@/components/ui/Chip";
 import { SuccessSheet } from "@/components/ui/SuccessSheet";
 import { Unfold } from "@/components/ui/Unfold";
 import { ProgressPath } from "@/components/supply/ProgressPath";
@@ -675,15 +676,14 @@ function HostTypeStep({ draft, set }: StepProps) {
           <p className="nf-host-group__title">What is it, exactly?</p>
           <div className="mt-sm flex flex-wrap gap-xs" role="group" aria-label={hw.wizard.businessKindLabel}>
             {chosen.kinds.map((kind) => (
-              <button
+              <Chip
                 key={kind}
-                type="button"
-                aria-pressed={draft.kind === kind}
-                className={`nf-chip${draft.kind === kind ? " nf-chip--active" : ""}`}
-                onClick={() => set("kind", kind)}
+                behaviour="filter"
+                selected={draft.kind === kind}
+                onSelectedChange={() => set("kind", kind)}
               >
                 {KIND_LABEL[kind]}
-              </button>
+              </Chip>
             ))}
           </div>
         </div>

@@ -1,4 +1,5 @@
 import { TYPE } from "@/components/app/Screen";
+import { Button } from "@/components/ui/Button";
 import { lagosToday } from "@/lib/bookings/schema";
 
 /**
@@ -58,9 +59,9 @@ export function StayDatesForm({
           className="nf-field"
         />
       </label>
-      <button type="submit" className="nf-btn nf-btn--primary nf-btn--full">
+      <Button type="submit" variant="primary" full>
         {copy.submit}
-      </button>
+      </Button>
     </form>
   );
 }
