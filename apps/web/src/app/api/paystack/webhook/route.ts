@@ -20,6 +20,8 @@ import { BOOKING_PREFIX, FUND_PREFIX, isBookingReference } from "@/lib/payments/
 import { refundChargeToCard } from "@/lib/payments/refund";
 import { handleRefundEvent, readRefundEvent } from "@/lib/payments/refund-events";
 import { REFUND_ALREADY_CLAIMED } from "@/lib/payments/refund-outcomes";
+import { PROMOTION_PREFIX } from "@/lib/promotion/reference";
+import { handlePromotionChargeFailed, handlePromotionChargeSuccess } from "@/lib/promotion/webhook";
 
 /**
  * Paystack webhook.
@@ -293,6 +295,8 @@ async function dispatch(
   if (event === "charge.success") {
     // Two charge families share this event, told apart by their reference.
     if (reference.startsWith(BOOKING_PREFIX)) return handleBookingChargeSuccess(admin, data);
+    // D60: a promotion purchase, Vallo's own revenue. Single-party charge, no split.
+    if (reference.startsWith(PROMOTION_PREFIX)) return handlePromotionChargeSuccess(admin, data);
     if (reference.startsWith(FUND_PREFIX)) {
       // A retired wallet top-up. Nothing credits it: it goes back to the card.
       const refund = await refundChargeToCard(admin, {
@@ -310,6 +314,7 @@ async function dispatch(
 
   if (event === "charge.failed") {
     if (reference.startsWith(BOOKING_PREFIX)) return handleBookingChargeFailed(admin, data);
+    if (reference.startsWith(PROMOTION_PREFIX)) return handlePromotionChargeFailed(admin, data);
     return verdict("ignored", "reference_not_ours", 200);
   }
 
