@@ -74,6 +74,18 @@
   initial-value: 0;
 }
 
+/*
+ * THE BOWL'S DRAWN HEIGHT (round 5, W1; "THE KEYBOARD" below). The bowl's
+ * layout height snaps once when a field takes focus; this registered length
+ * travels to it over the slow rung, and only transforms read it, so the
+ * screen is laid out once rather than on every frame of the 380ms.
+ */
+@property --nf-cap-now {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+
 @layer components {
   /* =========================================================== THE ROLES */
   .nf-slate {
@@ -141,11 +153,17 @@
     overflow-x: clip;
     padding-bottom: max(var(--nf-space-md), env(safe-area-inset-bottom, 0px));
     background: var(--nf-slate-page);
+    /* The bowl's height at rest (the responsive rules below answer it), the
+       height it is laid out at now (short while the keyboard is up), and the
+       height it is DRAWN at, which follows on the slow rung. */
+    --nf-cap-rest: clamp(14rem, 33svh, 23rem);
+    --nf-cap-h: var(--nf-cap-rest);
+    --nf-cap-now: var(--nf-cap-h);
+    transition: --nf-cap-now var(--nf-duration-slow) var(--nf-ease-standard);
   }
 
   /* ============================================================ THE BOWL */
   .nf-auth-cap {
-    --nf-cap-h: clamp(14rem, 33svh, 23rem);
     /* How far the bowl's middle hangs below its edges. */
     --nf-cap-curve: 2.75rem;
     --nf-focus-ring: var(--nf-slate-top-ink);
@@ -155,11 +173,15 @@
     width: 100%;
     height: calc(var(--nf-cap-h) + env(safe-area-inset-top, 0px));
     color: var(--nf-slate-top-ink);
-    transition: height var(--nf-duration-slow) var(--nf-ease-standard);
   }
+  /* The ground keeps its resting height and slides up as the bowl closes, a
+     blind drawn on transform: the bowl's curve rides up with it whole, where
+     a shrinking box re-cropped the picture on every frame. */
   .nf-auth-cap__ground {
     position: absolute;
-    inset: 0;
+    inset: 0 0 auto;
+    height: calc(var(--nf-cap-rest) + env(safe-area-inset-top, 0px));
+    translate: 0 calc(var(--nf-cap-now) - var(--nf-cap-rest));
     overflow: hidden;
     /* The bowl: one wide arc, lowest in the middle, where the object sits. */
     border-radius: 0 0 50% 50% / 0 0 var(--nf-cap-curve) var(--nf-cap-curve);
@@ -368,7 +390,6 @@
     letter-spacing: var(--nf-tracking-display-sm);
     color: var(--nf-content-primary);
     text-wrap: balance;
-    transition: font-size var(--nf-duration-slow) var(--nf-ease-standard);
   }
   /* The sentence under the title: the row size, at a reading measure, so a
      three-line sentence wraps as a paragraph and never leaves one word on
@@ -397,9 +418,20 @@
   }
 
   /* THE KEYBOARD: a touch screen with a field in focus gets the short bowl,
-     and the object steps away with it. */
+     and the object steps away with it. The bowl's box snaps to its new height
+     at once, and everything under it is drawn where the bowl is DRAWN
+     (`--nf-cap-now`), so the form rises with the bowl on the slow rung and
+     the screen re-lays out once, not per frame. The title steps down on
+     `scale`, from the top centre it is set on; its box keeps its size. */
+  .nf-auth-cap ~ * {
+    translate: 0 calc(var(--nf-cap-now) - var(--nf-cap-h));
+  }
+  .nf-auth__title {
+    transform-origin: 50% 0;
+    transition: scale var(--nf-duration-slow) var(--nf-ease-standard);
+  }
   @media (pointer: coarse) {
-    .nf-auth:has(.nf-auth__body :is(input:not([type="checkbox"]), select, textarea):focus) .nf-auth-cap {
+    .nf-auth:has(.nf-auth__body :is(input:not([type="checkbox"]), select, textarea):focus) {
       --nf-cap-h: 8.5rem;
     }
     .nf-auth:has(.nf-auth__body :is(input:not([type="checkbox"]), select, textarea):focus) .nf-auth-cap__line {
@@ -414,7 +446,8 @@
       padding-top: var(--nf-space-md);
     }
     .nf-auth:has(.nf-auth__body :is(input:not([type="checkbox"]), select, textarea):focus) .nf-auth__title {
-      font-size: 1.625rem;
+      /* 26px drawn from the 30px title (1.625rem over --nf-text-title-lg). */
+      scale: 0.8667;
     }
   }
 
@@ -1465,7 +1498,7 @@
     .nf-arrival__body {
       animation: none !important;
     }
-    .nf-auth-cap,
+    .nf-auth,
     .nf-auth__title,
     .nf-auth__focal,
     .nf-auth-cap__line,
@@ -1484,8 +1517,10 @@
   /* Wider than a phone: the same column, the bowl a little taller and still
      full bleed, the island a touch more generous. */
   @media (min-width: 640px) {
+    .nf-auth {
+      --nf-cap-rest: clamp(19rem, 42svh, 26rem);
+    }
     .nf-auth-cap {
-      --nf-cap-h: clamp(19rem, 42svh, 26rem);
       --nf-cap-curve: 3.5rem;
     }
     .nf-auth__island {
@@ -1497,8 +1532,8 @@
     }
   }
   @media (min-width: 1024px) {
-    .nf-auth-cap {
-      --nf-cap-h: clamp(21rem, 46svh, 30rem);
+    .nf-auth {
+      --nf-cap-rest: clamp(21rem, 46svh, 30rem);
     }
   }
   /*
@@ -1509,8 +1544,10 @@
    * screen. Last in the file, so it wins over the heights above.
    */
   @media (max-height: 640px) {
+    .nf-auth {
+      --nf-cap-rest: 11.5rem;
+    }
     .nf-auth-cap {
-      --nf-cap-h: 11.5rem;
       --nf-cap-curve: 2rem;
     }
     .nf-auth__stage {

@@ -114,16 +114,23 @@ export function Progress({
          * overhangs the track it belongs to.
          */
         <div className="relative mb-2xs h-4 w-full" aria-hidden="true">
+          {/* A full-width rail translated by the value (a percentage of its
+              own width is a percentage of the track), carrying the label, so
+              the label travels on transform rather than on `left`. */}
           <span
-            className="nf-numeric absolute whitespace-nowrap text-[length:var(--nf-text-overline)] font-semibold text-[var(--nf-content-secondary)] transition-[left] motion-reduce:transition-none"
+            className="absolute inset-x-0 top-0 block transition-transform motion-reduce:transition-none"
             style={{
-              left: `${pct}%`,
-              transform: `translateX(${pct < 12 ? "0%" : pct > 88 ? "-100%" : "-50%"})`,
+              transform: `translateX(${pct}%)`,
               transitionDuration: "var(--nf-duration-slow)",
               transitionTimingFunction: "var(--nf-ease-entrance)",
             }}
           >
-            {text}
+            <span
+              className="nf-numeric absolute left-0 top-0 whitespace-nowrap text-[length:var(--nf-text-overline)] font-semibold text-[var(--nf-content-secondary)]"
+              style={{ transform: `translateX(${pct < 12 ? "0%" : pct > 88 ? "-100%" : "-50%"})` }}
+            >
+              {text}
+            </span>
           </span>
         </div>
       ) : null}
@@ -156,13 +163,16 @@ export function Progress({
         {indeterminate ? null : (
           <span
             className={[
-              "block h-full rounded-[var(--nf-radius-pill)] transition-[width] motion-reduce:transition-none",
+              "block h-full rounded-[var(--nf-radius-pill)] transition-transform motion-reduce:transition-none",
               glass ? "nf-progress__fill--lit" : "",
             ]
               .filter(Boolean)
               .join(" ")}
             style={{
-              width: `${pct}%`,
+              /* The fill is the track's width and slides in from the left: the
+                 track's rounded clip draws the same bar a growing width drew,
+                 on transform rather than a layout per frame. */
+              transform: `translateX(${pct - 100}%)`,
               background: TONE_FILL[tone],
               transitionDuration: "var(--nf-duration-slow)",
               /* Entrance easing, not linear: the fill should arrive and settle

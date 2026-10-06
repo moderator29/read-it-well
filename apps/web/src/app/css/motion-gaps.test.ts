@@ -44,9 +44,13 @@ describe("the dock pill springs on drift at 240ms", () => {
   const dock = shell.slice(from, from + 3500);
 
   it("the slot, its word and its pill all travel on drift at the base rung", () => {
-    /* flex-grow (the slot), max-width, margin and transform (the word), transform (the pill). */
-    expect(dock.match(/var\(--nf-duration-base\) var\(--nf-ease-spring\)/g)).toHaveLength(5);
-    expect(dock).not.toMatch(/--nf-duration-slow\) var\(--nf-ease-spring\)/);
+    /* flex-grow (the slot), the word's slide, the glyph-and-word body's slide
+       (round 5: transform, where max-width and margin used to grow), and the
+       pill, which is the next rule after the body's. */
+    const through = shell.slice(from, shell.indexOf('.nf-tabbar :is(.nf-tab__link[aria-current="page"], .nf-tab__link[data-on])::after', from));
+    expect(through.match(/var\(--nf-duration-base\) var\(--nf-ease-spring\)/g)).toHaveLength(4);
+    expect(through).not.toMatch(/--nf-duration-slow\) var\(--nf-ease-spring\)/);
+    expect(dock).not.toMatch(/(?:max-width|margin) var\(--nf-duration-base\)/);
   });
 });
 
@@ -96,9 +100,12 @@ describe("principle 10, the marketing and loading loops (Session 3, C1)", () => 
     const controls = strip(css("controls.css"));
     expect(controls).toContain("animation: nf-shimmer 1.4s linear 4 forwards;");
     expect(controls).not.toMatch(/nf-shimmer[^;]*infinite/);
-    /* The base value is the resting end of the sweep, in the glass slab too (its shorthand resets the position). */
-    expect(controls.match(/background-position: 117\.3% 0;/g)).toHaveLength(3); // the keyframe end, the slab, the glass slab
-    expect(controls).toMatch(/@keyframes nf-shimmer \{\s*from \{\s*background-position: -17\.3% 0;\s*\}\s*to \{\s*background-position: 117\.3% 0;/);
+    /* W2, round 5: the band is the slab's ::after and only `transform` moves it, from one slab-width
+       left of the box to one slab-width right; the rest position is the base value. Nothing in the
+       app slab animates or sets `background-position` any more. */
+    expect(controls).toMatch(/@keyframes nf-shimmer \{\s*from \{\s*transform: translateX\(-100%\);\s*\}\s*to \{\s*transform: translateX\(100%\);/);
+    expect(controls).toMatch(/\.nf-skeleton::after \{[^}]*transform: translateX\(100%\);[^}]*animation: nf-shimmer 1\.4s linear 4 forwards;/);
+    expect(controls).not.toMatch(/(nf-skeleton|nf-shimmer)[^}]*background-position/);
     const social = strip(src("app/social.css"));
     expect(social).toContain("animation: nf-social-shimmer 1.4s linear 4 forwards;");
     expect(social).toContain("background-position: 117.3% 0;");
@@ -106,7 +113,7 @@ describe("principle 10, the marketing and loading loops (Session 3, C1)", () => 
     expect(social).toMatch(/transparent 36%,\s*color-mix\(in oklab, var\(--nf-content-muted\) 18%, transparent\) 50%,\s*transparent 64%/);
     /* Drawn at 90 degrees, so the band is a vertical stripe and rests clean on a tall slab. */
     expect(controls).not.toMatch(/nf-skeleton[^}]*var\(--nf-light-angle\)/);
-    expect(controls.match(/linear-gradient\(\s*90deg,\s*var\(--nf-(wash-1|glass-fill-thin)\) 36%/g)).toHaveLength(2);
+    expect(controls.match(/linear-gradient\(\s*90deg,\s*transparent 19\.2%/g)).toHaveLength(1);
   });
 
   it("the landing columns turn twice and the docs flow pulse walks twice, then both rest", () => {
@@ -120,7 +127,7 @@ describe("principle 10, the marketing and loading loops (Session 3, C1)", () => 
 
   it("data saver stops the slabs and the columns (the pulse already answered to it)", () => {
     const saver = strip(css("data-saver.css"));
-    for (const sel of [".nf-skeleton", ".nf-social-skeleton", ".nf-vcols__strip"]) {
+    for (const sel of [".nf-skeleton::after", ".nf-social-skeleton", ".nf-vcols__strip"]) {
       expect(saver).toContain(`:root[data-save-data="on"] ${sel}`);
     }
     expect(strip(css("docs-motion.css"))).toContain('[data-save-data="on"]) .nf-flow__pulse');
@@ -181,7 +188,7 @@ describe("principle 10, the marketing and loading loops (Session 3, C1)", () => 
     const shell = strip(css("shell-m.css"));
     expect(shell).toContain("white-space 0s linear;");
     expect(shell).toContain("transition-behavior: normal, normal, normal, normal, allow-discrete;");
-    expect(shell).toContain("transition-delay: 0s, 0s, 60ms, 0s, var(--nf-duration-base);");
+    expect(shell).toContain("transition-delay: 60ms, 0s, 0s, 0s, var(--nf-duration-base);");
     expect(shell).toMatch(/white-space: normal;\s*text-wrap: balance;/);
   });
 });

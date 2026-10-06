@@ -262,9 +262,12 @@ export function VideoWalkthrough({
             aria-valuemax={100}
             aria-label="Walkthrough upload"
           >
+            {/* The fill is the track's full width and slides in from the
+                left on transform, so the track's rounded clip draws the same
+                bar a growing width drew, without a layout per frame. */}
             <div
-              className="h-full rounded-full bg-[var(--nf-brand-primary)] transition-[width] duration-300"
-              style={{ width: `${percent}%` }}
+              className="h-full rounded-full bg-[var(--nf-brand-primary)] transition-transform duration-[var(--nf-duration-slow)] ease-[var(--nf-ease-entrance)] motion-reduce:transition-none"
+              style={{ transform: `translateX(${percent - 100}%)` }}
             />
           </div>
           <Button

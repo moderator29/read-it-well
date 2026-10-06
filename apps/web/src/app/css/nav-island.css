@@ -75,15 +75,13 @@
       transform var(--nf-duration-base) var(--nf-ease-spring);
   }
   /* The chosen slot's word: 12px at 600 (the overline rung, north star 5;
-     it was the 13px caption, and 11px on a narrow phone). */
+     it was the 13px caption, and 11px on a narrow phone). Its motion is
+     shell-m.css's alone (transform and opacity, round 5): a second
+     `transition` here used to override that one by position, dropping the
+     held `white-space` flip and animating `max-width` and `margin`. */
   .nf-tabbar .nf-tab__label {
     font-size: var(--nf-text-overline);
     font-weight: 600;
-    transition:
-      max-width var(--nf-duration-base) var(--nf-ease-spring),
-      margin var(--nf-duration-base) var(--nf-ease-spring),
-      opacity var(--nf-duration-fast) var(--nf-ease-standard),
-      transform var(--nf-duration-base) var(--nf-ease-spring);
   }
 
   /* ------------------------------------------------- the centre action */

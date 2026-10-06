@@ -452,10 +452,15 @@ export function MobileTabBar({
                     glyph is its SOLID CUTOUT twin, ink at rest and brand blue
                     when chosen; the chosen tab opens into a pill with its
                     word (shell-m.css, "SECOND RULING"). */}
-                <span className="nf-tab__icon">
-                  <UiIcon name={tab.icon} size="md" filled weight="bold" />
+                {/* One body for the glyph and its word, so choosing a tab
+                    slides it on transform rather than re-laying the dock out
+                    (shell-m.css, "THE GLYPH AND ITS WORD, AS ONE BODY"). */}
+                <span className="nf-tab__body">
+                  <span className="nf-tab__icon">
+                    <UiIcon name={tab.icon} size="md" filled weight="bold" />
+                  </span>
+                  <span className="nf-tab__label">{tab.label}</span>
                 </span>
-                <span className="nf-tab__label">{tab.label}</span>
               </Link>
             </li>
           );

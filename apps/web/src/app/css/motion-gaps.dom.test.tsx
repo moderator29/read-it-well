@@ -72,9 +72,11 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the five motion gaps", () => {
     const { page, close } = await mountInBrowser({ entry, css: CSS });
     try {
       expect(await style(page, "#link", "transitionDuration", "::before")).toBe("0.24s, 0.24s");
-      /* Four travel on drift; the fifth is white-space, a discrete flip held
-         until the growth ends (c76109f9a), so it carries no duration. */
-      expect(await style(page, "#label", "transitionDuration")).toBe("0.24s, 0.24s, 0.24s, 0.24s, 0s");
+      /* The word fades on glide 160ms and slides on drift 240ms; its box's
+         max-width and margin are 0s flips (round 5: no layout per frame), and
+         white-space is the discrete flip held until it has arrived. */
+      expect(await style(page, "#label", "transitionProperty")).toBe("opacity, transform, max-width, margin, white-space");
+      expect(await style(page, "#label", "transitionDuration")).toBe("0.16s, 0.24s, 0s, 0s, 0s");
       expect(await style(page, "#label", "transitionBehavior")).toMatch(/allow-discrete$/);
       expect(await style(page, ".nf-tabbar .nf-tab", "transitionDuration")).toBe("0.24s");
     } finally {
