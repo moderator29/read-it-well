@@ -236,6 +236,27 @@ one (the three deadline cases time out at 5 s), proving it catches the hang.
 - A member whose post hits a `refuse` term gets a Postgres `check_violation` whose
   message starts `content_refused:`. The composers should show a plain sentence for it.
   No term is `refuse` today.
+- **Rewards: the review window length** (Session 3's request, 6 October). Served by
+  `20261006154817_b4_referral_campaigns.sql`, live. `my_rewards_summary()` returns
+  `campaign.review_window_hours`, parsed as `RewardsSummary.campaign.reviewWindowHours`
+  in `lib/rewards/summary.ts` (168 for the launch campaign: 7 days). The Pending
+  explanation can say "about 7 days". Per qualified reward, the exact date is
+  `next_available_at` (`nextAvailableAt`), the earliest date a pending reward becomes
+  withdrawable. Use that, not a length, when the member has a pending reward.
+  `campaign` is null when no campaign is live; say nothing about length then.
+- **Rewards: the qualify sentence must follow the campaign** (Session 3's request,
+  6 October). Served by the same migration: `campaign.requirement_keys`, parsed as
+  `campaign.requirementKeys`, in the campaign's order. `requirementLines(keys)` in
+  `lib/referral/requirements.ts` turns them into one plain line each. The launch
+  campaign (`launch-d51`) requires `phone_verified` and `meaningful_activity`, which
+  read "Confirms their own phone number" and "Completes a payment of their own on
+  Vallo". So "confirm their phone number and use Vallo for real" should become
+  "confirm their own phone number and complete a payment of their own on Vallo".
+  Build it from `requirementLines`, never as a fixed string, so a new campaign
+  changes the sentence without a code change.
+- **Rewards: the programme can be paused** (D64). `summary.programme` is
+  `{status: "open"}` or `{status: "paused", reason}`. `programmeLine(summary)` returns
+  `{inviting, text}`. While `inviting` is false the surface must not invite anyone.
 
 ## Blocked on the founder
 
