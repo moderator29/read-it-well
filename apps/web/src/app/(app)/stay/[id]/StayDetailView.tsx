@@ -397,10 +397,17 @@ export function StayDetailView({
             title={detailCopy.checkAvailability}
             fields={fields}
             action={action}
+            /* A total only where a room can be booked for these dates: with
+               dates picked and nothing bookable, `bookNowTotal` is the
+               property's own cheapest figure, which no room offers, so the
+               note says nothing rather than quote it. Without dates it asks
+               for them. */
             note={
-              bookNowTotal !== null && nights !== null
-                ? `${copy.totalFor.replace("{count}", formatNumber(nights, locale))}: ${formatMoney(bookNowTotal, locale)}`
-                : copy.pickDatesForTotal
+              nights === null
+                ? copy.pickDatesForTotal
+                : bookable !== null && bookNowTotal !== null
+                  ? `${copy.totalFor.replace("{count}", formatNumber(nights, locale))}: ${formatMoney(bookNowTotal, locale)}`
+                  : undefined
             }
           />
           <StayDatesForm
