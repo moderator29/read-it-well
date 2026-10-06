@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { publicPageMetadata } from "@/lib/i18n/public-metadata";
 import Link from "next/link";
+import { DocumentSheet } from "@/components/app/money/DocumentSheet";
 import { SiteHead } from "@/components/site/SiteHead";
 import { DISCLAIMER_SECTIONS as sections, DISCLAIMER_UPDATED } from "@/lib/legal/disclaimer";
 
@@ -25,19 +26,23 @@ export default function DisclaimerPage() {
       </SiteHead>
       <div className="nf-shell pb-section">
         <div className="mx-auto max-w-3xl">
-          <div className="nf-panel nf-panel--card block nf-rise mt-block p-card-lg" style={{ animationDelay: "100ms" }}>
+          {/* THE DOCUMENT, ON PAPER (D28.1; Session 3, W1): the shared document
+             sheet is the frame, a light sheet on the reader's theme that prints
+             on its own (print.css). Only the frame changed; every word is the
+             legal text exactly as it was. */}
+          <DocumentSheet kind="document" printable className="mt-block nf-legal-sheet">
             <div className="space-y-block">
               {sections.map((s) => (
                 <section key={s.title}>
                   <h2 className="nf-h3">{s.title}</h2>
-                  <div className="mt-inline space-y-row text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)] [&_li]:mt-inline [&_strong]:text-[var(--nf-content-primary)] [&_ul]:list-disc [&_ul]:space-y-inline [&_ul]:pl-heading">
+                  <div className="mt-inline space-y-row text-[length:var(--nf-text-body)] leading-relaxed text-[var(--nf-content-secondary)] [&_li]:mt-inline [&_strong]:text-[var(--nf-content-primary)] [&_ul]:list-disc [&_ul]:space-y-inline [&_ul]:pl-heading">
                     {s.body}
                   </div>
                 </section>
               ))}
             </div>
-          </div>
-          <p className="mt-block text-center text-[0.875rem] text-[var(--nf-content-muted)]">
+          </DocumentSheet>
+          <p className="mt-block text-center text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
             See also our{" "}
             <Link href="/terms" className="font-semibold text-[var(--nf-content-link)] hover:underline">
               Terms of service
