@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ShowMePanel } from "@/components/app/messages/ShowMePanel";
 import { readShowMe } from "@/lib/messages/show-me-queries";
 import { notFound } from "next/navigation";
+import { withNext } from "@/lib/auth/next-link";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
@@ -86,7 +87,7 @@ export async function generateMetadata({
      a tab title is the one piece of a private page that gets screenshotted,
      read over a shoulder and restored by the browser months later. */
   await params;
-  return { title: "Conversation" };
+  return { title: getDictionary(await getLocale()).experienceInbox.threadPage.title };
 }
 
 /**
@@ -147,14 +148,15 @@ export default async function ConversationPage({
   const { attach, showme: showMeParam } = await searchParams;
   const session = await resolveSession();
 
+  const inboxWords = getDictionary(await getLocale()).experienceInbox;
+
   if (session.state === "signed-in") {
     if (!(await isFeatureEnabled("messaging"))) {
       return (
         <div className="mx-auto max-w-2xl">
-          <PageHeader title="Inbox" fallback="/messages" />
+          <PageHeader title={inboxWords.inbox.title} fallback="/messages" />
           <p className="nf-panel nf-panel--card p-lg text-center text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
-            Messaging is paused for maintenance. Your conversations are stored on
-            your account, not on this device. Try again in a few minutes.
+            {inboxWords.inbox.paused}
           </p>
         </div>
       );
@@ -394,12 +396,14 @@ export default async function ConversationPage({
   // -------------------------------------------------------- nobody signed in
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeader title="Conversation" fallback="/messages" />
+      <PageHeader title={inboxWords.threadPage.title} fallback="/messages" />
+      {/* "Sign in and it opens where you left it": so the link carries this
+          conversation back (it went to a bare /sign-in, Round 3 sweep). */}
       <InboxEmpty
-        title="Sign in to read this conversation"
-        body="A conversation is only ever readable by the two people in it, so this one needs your account. Sign in and it opens where you left it."
-        action={{ href: "/sign-in", label: "Sign in" }}
-        secondary={{ href: "/search", label: "Explore places" }}
+        title={inboxWords.threadPage.signedOutTitle}
+        body={inboxWords.threadPage.signedOutBody}
+        action={{ href: withNext("/sign-in", `/messages/${encodeURIComponent(id)}`), label: inboxWords.inbox.signIn }}
+        secondary={{ href: "/search", label: inboxWords.inbox.explore }}
       />
     </div>
   );

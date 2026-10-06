@@ -138,6 +138,15 @@ export const experienceInboxEn = {
   },
 
   /* ------------------------------------------------------- the thread, 15.4 */
+  /**
+   * `/messages/[id]`, the page's own words around the thread (Round 3 sweep,
+   * C3). The paused sentence is the inbox's.
+   */
+  threadPage: {
+    title: "Conversation",
+    signedOutTitle: "Sign in to read this conversation",
+    signedOutBody: "A conversation is only ever readable by the two people in it, so this one needs your account. Sign in and it opens where you left it.",
+  },
   thread: {
     unreadDivider: {
       one: "{count} unread message",
