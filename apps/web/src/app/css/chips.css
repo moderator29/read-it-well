@@ -136,6 +136,11 @@
   button.nf-chip,
   label.nf-chip {
     position: relative;
+    /* 44px WIDE AS WELL AS TALL. The height has been a floor for a long time; the width never
+       was, so a chip holding one short word (Yoruba "Ilẹ̀", 41.8px) was a target narrower than a
+       thumb. The label stays centred (`justify-content` above). Found by
+       components/locale-fit/controls.dom.test.tsx. */
+    min-inline-size: 2.75rem;
   }
 
   @media (hover: hover) {

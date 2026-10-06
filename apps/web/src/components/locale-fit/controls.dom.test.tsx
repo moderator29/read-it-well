@@ -29,8 +29,6 @@ const LABELS = `[...new Set([
 
 /* The key is "<surface> <locale>"; the value is the report line. Empty until a finding is reported. */
 const KNOWN: Record<string, string> = {
-  "Chip, filter, choice, link and static yo":
-    "an interactive md Chip has no min-width: the Yoruba nav.land word 'Ilẹ̀' is 41.8px wide",
 };
 
 describe.skipIf(!hasBrowser && !process.env.CI)("locale fit: the shared controls at 390px", () => {
