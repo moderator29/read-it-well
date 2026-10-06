@@ -85,15 +85,6 @@
       transform: none;
     }
   }
-  @keyframes nf-flow-float {
-    0%,
-    100% {
-      transform: none;
-    }
-    50% {
-      transform: translateY(-5px);
-    }
-  }
   @keyframes nf-flow-ring {
     from {
       opacity: 0.7;

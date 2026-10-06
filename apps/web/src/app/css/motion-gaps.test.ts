@@ -28,12 +28,13 @@ describe("principle 10: nothing loops forever", () => {
     expect(side.replace(/\s+/g, " ")).toMatch(/100% \{ translate: var\(--nf-edge-xl\) var\(--nf-edge-y0\); scale: 1 0; \}/);
   });
 
-  it("the supplier flows' step-bar sheen and head object float stop after two passes", () => {
+  it("the supplier flows' step-bar sheen stops after two passes, and the head object no longer floats", () => {
     const flow = strip(css("flow-m.css"));
     expect(flow).not.toMatch(/infinite/);
     expect(flow).toContain("animation: nf-flow-sheen 2.6s var(--nf-ease-standard) 600ms 2 both");
-    /* No fill mode on the float: a backwards fill would hold `transform: none` over the pop before it. */
-    expect(flow).toContain("nf-flow-float 6s var(--nf-ease-standard) 1s 2;");
+    /* Round 5 (140a1618e): the wizard's steps change at browsing pace, and the
+       object's float, a motion that answered nothing, is gone with its keyframes. */
+    expect(flow).not.toContain("nf-flow-float");
   });
 });
 

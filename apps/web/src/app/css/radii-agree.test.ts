@@ -29,15 +29,6 @@ const SCALE = new Set(["0", "6px", "10px", "14px", "18px", "22px", "28px", "32px
 const ALLOWED: Record<string, [number, string]> = {
   "app/css/auth.css": [2, "the bowl is a shape (an ellipse on its lower edge), not a corner; the field halo is the control's corner plus the halo's 4px gap (the nested rule, outward)"],
   "app/css/threshold.css": [1, "the door's arch is a shape that scales with the viewport"],
-  /* PENDING: the change is scratchpad/W1/r5/patches/radii-dirty-files.patch;
-     these files carry another agent's uncommitted work. Remove each line when
-     it lands. */
-  "app/css/controls.css": [2, "PENDING patch"],
-  "app/css/list-views.css": [1, "PENDING patch (a stale fallback)"],
-  "app/css/threads.css": [3, "PENDING patch (stale fallbacks)"],
-  "app/social-feed.css": [6, "PENDING patch"],
-  "app/social.css": [1, "PENDING patch"],
-  "app/social.shared.css": [1, "PENDING patch"],
 };
 const ALLOWED_TSX: Record<string, [number, string]> = {
   "components/ui/charts/Bars.tsx": [2, "a 2px corner on an 8px bar: the smallest rung would make it a pill, and the component refuses a pill on purpose (a pill reads as a control)"],
