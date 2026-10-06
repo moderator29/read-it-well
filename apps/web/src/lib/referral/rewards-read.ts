@@ -22,8 +22,20 @@ import type { RewardsRead, WithdrawActions } from "./rewards";
  *   R-C3-2  `WithdrawActions`: prepare a withdrawal and read the provider's
  *           fee back, then confirm the prepared one.
  *
+ *
+ * Request to Session 2 for D64 (the platform budget cap), raised in Session 3
+ * R1's Round 4 report:
+ *   R-R1-1  `RewardsSnapshot.programme`: { state: "running" }, or
+ *           { state: "paused", resumesOn } once the month's qualified rewards
+ *           reach the platform cap, `resumesOn` being the day new
+ *           qualification opens again ONLY if the engine knows it, else null.
+ *           It is read from the platform cap row (700,000 naira a month, one
+ *           row, checked in the same statement that accrues a reward). The
+ *           75 percent alert is staff-side and never reaches this read.
+ *
  * When they land, replace `rewardsSource.read` and `withdrawActions`, not the
- * interface: every screen already draws all four states.
+ * interface: every screen already draws all four states, and the paused
+ * programme inside "ready".
  * ===========================================================================
  */
 export interface RewardsSource {

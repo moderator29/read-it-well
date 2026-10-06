@@ -196,6 +196,25 @@ export const experienceRewardsEn = {
     back: "Back to rewards",
   },
 
+  /**
+   * D64: the programme has a monthly budget, and when it is reached new
+   * referrals stop qualifying until it opens again. A pause, never a refusal.
+   * Said on every rewards surface and on the invite hub, where it takes the
+   * place of the invite link, so nothing invites under a reward while paused.
+   * The sentence that says what is already earned is still paid is a money
+   * sentence and lives in `lib/money/copy.ts`, never here. No date is ever
+   * written in: `{date}` is drawn only when the server's read gives one.
+   */
+  pause: {
+    label: "Rewards paused",
+    title: "Rewards are paused this month",
+    body: "No new referral can qualify while rewards are paused.",
+    /** `{date}` is a formatted date, from the read only. */
+    resumes: "They are due to resume on {date}.",
+    /** Where the invite link would have been. */
+    inviteOff: "Your invite link is not offered while rewards are paused.",
+  },
+
   /** The states every rewards route draws in place of its content. */
   states: {
     notLiveTitle: "Rewards are not running yet",

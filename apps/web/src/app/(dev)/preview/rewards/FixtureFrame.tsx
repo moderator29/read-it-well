@@ -7,6 +7,7 @@ const SCREENS = [
   ["referrals", "Referrals"],
   ["history", "History"],
   ["withdraw", "Withdraw"],
+  ["paused", "Paused (D64)"],
   ["today", "What /rewards draws today"],
 ] as const;
 

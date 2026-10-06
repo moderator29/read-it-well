@@ -5,6 +5,7 @@ import { siteUrl } from "@/lib/site";
 import { PageHeader } from "@/components/app/PageHeader";
 import { RewardsDashboard } from "@/components/app/referral/RewardsDashboard";
 import { RewardsState } from "@/components/app/referral/RewardsState";
+import { REWARDS_PAUSED_EARNED_LINE } from "@/components/app/referral/money-words";
 import { myInviteCode } from "@/lib/referral/server";
 import { invitePath } from "@/lib/referral/code";
 import { INVITE_HREF, REWARDS_HREFS, rewardsScreen, signInHref } from "./screen";
@@ -27,6 +28,9 @@ export async function generateMetadata(): Promise<Metadata> {
  * The dashboard itself is built and seen with fixture data at
  * `/preview/rewards`. When the read is live and the money sentences are in
  * `lib/money/copy.ts`, this page draws it with no change here.
+ *
+ * PAUSED (D64): the dashboard draws the pause and offers no invite link, so
+ * the member's code is not even read while the programme is paused.
  */
 export default async function RewardsPage() {
   const locale = await getLocale();
@@ -44,7 +48,7 @@ export default async function RewardsPage() {
     );
   }
 
-  const code = await myInviteCode();
+  const code = screen.snapshot.programme.state === "paused" ? null : await myInviteCode();
   const invite = code ? { code, url: `${siteUrl().replace(/\/+$/, "")}${invitePath(code)}` } : null;
 
   return (
@@ -55,6 +59,7 @@ export default async function RewardsPage() {
         invite={invite}
         copy={copy}
         money={screen.words}
+        pausedEarned={REWARDS_PAUSED_EARNED_LINE}
         locale={locale}
         hrefs={REWARDS_HREFS}
         dismissLabel={t.experienceUi.notNow}

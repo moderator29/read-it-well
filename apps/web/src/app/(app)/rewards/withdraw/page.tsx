@@ -6,8 +6,9 @@ import { EmptyState } from "@/components/app/Screen";
 import { ButtonLink } from "@/components/ui/Button";
 import { RewardsState } from "@/components/app/referral/RewardsState";
 import { WithdrawFlow } from "@/components/app/referral/WithdrawFlow";
-import { fill } from "@/components/app/referral/money-words";
-import { withdrawGate } from "@/lib/referral/rewards";
+import { RewardsPauseNotice } from "@/components/app/referral/RewardsPauseNotice";
+import { fill, REWARDS_PAUSED_EARNED_LINE } from "@/components/app/referral/money-words";
+import { pausedProgramme, withdrawGate } from "@/lib/referral/rewards";
 import { withdrawActions } from "@/lib/referral/rewards-read";
 import { INVITE_HREF, REWARDS_HREFS, rewardsScreen, signInHref } from "../screen";
 
@@ -25,6 +26,9 @@ export async function generateMetadata(): Promise<Metadata> {
  * withdrawal is prepared (`WithdrawFlow`). Four honest states before the flow:
  * the rewards read not live, withdrawals not open (no `WithdrawActions`,
  * R-C3-2), the available figure under the minimum, and no bank account.
+ *
+ * PAUSED (D64): withdrawing what is already earned carries on exactly as
+ * before; the pause is said above it so nobody reads it as a freeze.
  */
 export default async function RewardsWithdrawPage() {
   const locale = await getLocale();
@@ -51,9 +55,12 @@ export default async function RewardsWithdrawPage() {
     </ButtonLink>
   );
 
+  const paused = pausedProgramme({ state: "ready", snapshot });
+
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="mx-auto max-w-2xl space-y-block">
       {header}
+      {paused ? <RewardsPauseNotice programme={paused} copy={copy.pause} earned={REWARDS_PAUSED_EARNED_LINE} locale={locale} /> : null}
       {gate === "open" && withdrawActions && snapshot.destination ? (
         <WithdrawFlow
           availableMinor={snapshot.balance.availableMinor}

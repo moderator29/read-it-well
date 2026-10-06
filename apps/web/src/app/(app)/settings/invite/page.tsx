@@ -13,6 +13,10 @@ import { gateFirstRun } from "@/components/app/feature-onboarding/first-run-stor
 import { resolveSession } from "@/lib/actions/session";
 import { myInviteCode } from "@/lib/referral/server";
 import { invitePath } from "@/lib/referral/code";
+import { pausedProgramme } from "@/lib/referral/rewards";
+import { readMyRewards } from "@/lib/referral/rewards-read";
+import { RewardsPauseNotice } from "@/components/app/referral/RewardsPauseNotice";
+import { REWARDS_PAUSED_EARNED_LINE } from "@/components/app/referral/money-words";
 
 export const dynamic = "force-dynamic";
 
@@ -37,6 +41,12 @@ export async function generateMetadata(): Promise<Metadata> {
  * It is a hub with inner pages (D25): `/settings/invite/how-it-works`, and the
  * two declared referral routes, which draw the honest unavailable state until
  * Session 2 lets a member read their own referrals (R-W6-1, R-W6-2).
+ *
+ * PAUSED (D64). Once the rewards programme is live and the month's platform
+ * budget is reached, this hub stops inviting: the ticket (copy, share sheet,
+ * WhatsApp) and the link row are not drawn, the invite's first run is not
+ * shown, and the pause notice stands in their place. Today the rewards read
+ * answers not-live, so nothing here changes until it exists.
  */
 export default async function InviteSettingsPage({
   searchParams,
@@ -54,8 +64,36 @@ export default async function InviteSettingsPage({
      own (a signed-out visit falls to the "unavailable" state below), so the
      check is made here, and a visitor who is not signed in is never sent to a
      first run. The gate fails towards drawing the page. */
-  if ((await resolveSession()).state === "signed-in") {
+  const paused = pausedProgramme(await readMyRewards());
+  if (!paused && (await resolveSession()).state === "signed-in") {
     await gateFirstRun("invite", "/settings/invite", await searchParams);
+  }
+
+  if (paused) {
+    return (
+      <div className="mx-auto max-w-2xl">
+        <PageHeader title={door.rowTitle} subtitle={door.rowSub} fallback="/settings" />
+        <SettingsLede label={lede.what} what={lede.invite.what} who={lede.invite.who} />
+        <div className="space-y-block">
+          <RewardsPauseNotice
+            programme={paused}
+            copy={t.experienceRewards.pause}
+            earned={REWARDS_PAUSED_EARNED_LINE}
+            locale={locale}
+            inviteOff
+          />
+          <SettingsGroup label={copy.groupLabel}>
+            <RowLink
+              href="/settings/invite/how-it-works"
+              icon="info"
+              label={copy.howTitle}
+              sub={copy.howSub}
+              testId="invite-how-row"
+            />
+          </SettingsGroup>
+        </div>
+      </div>
+    );
   }
 
   const code = await myInviteCode();

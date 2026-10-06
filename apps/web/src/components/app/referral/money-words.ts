@@ -3,6 +3,7 @@ import {
   REWARDS_NOT_HELD,
   REWARDS_NOT_INVESTMENT,
   REWARDS_PAID_FROM,
+  REWARDS_PAUSED_EARNED,
   REWARDS_QUALIFY,
   REWARDS_WITHDRAW_MINIMUM,
 } from "@/lib/money/copy";
@@ -51,6 +52,17 @@ export const REWARDS_MONEY_WORDS: RewardsMoneyWords | null = {
   paidFrom: REWARDS_PAID_FROM,
   notInvestment: REWARDS_NOT_INVESTMENT,
 };
+
+/**
+ * D64. THE MONEY SENTENCE UNDER A PAUSE: what is already earned is still the
+ * member's and is still paid (a pause never reaches backwards). Its own
+ * constant, `REWARDS_PAUSED_EARNED`, is written for `lib/money/copy.ts` in
+ * Session 3 R1's patch `rewards-pause-copy.patch` (that file had another
+ * agent's uncommitted work, so it was not edited directly), and the patch
+ * points this at it. Until it lands, the pause says the sentence already in
+ * force, REWARDS_PAID_FROM, so a paused screen is never without one.
+ */
+export const REWARDS_PAUSED_EARNED_LINE: string = REWARDS_PAUSED_EARNED;
 
 /** Fill `{name}` placeholders. A placeholder with no value is left as written, so a gap shows in review rather than vanishing. */
 export function fill(template: string, values: Readonly<Record<string, string>>): string {

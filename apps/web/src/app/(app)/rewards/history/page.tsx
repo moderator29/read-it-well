@@ -5,6 +5,9 @@ import { PageHeader } from "@/components/app/PageHeader";
 import { EmptyState } from "@/components/app/Screen";
 import { RewardsHistory } from "@/components/app/referral/RewardsHistory";
 import { RewardsState } from "@/components/app/referral/RewardsState";
+import { RewardsPauseNotice } from "@/components/app/referral/RewardsPauseNotice";
+import { REWARDS_PAUSED_EARNED_LINE } from "@/components/app/referral/money-words";
+import { pausedProgramme } from "@/lib/referral/rewards";
 import { INVITE_HREF, rewardsScreen, signInHref } from "../screen";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +19,8 @@ export async function generateMetadata(): Promise<Metadata> {
 /**
  * /rewards/history: every amount added to the Rewards Balance or taken from
  * it, newest first, read like a statement. Draws the not-live state until
- * R-C3-1 exists.
+ * R-C3-1 exists. Paused (D64), the pause is said above a history that is
+ * otherwise exactly as it was: a pause never reaches backwards.
  */
 export default async function RewardsHistoryPage() {
   const locale = await getLocale();
@@ -33,9 +37,12 @@ export default async function RewardsHistoryPage() {
     );
   }
 
+  const paused = pausedProgramme({ state: "ready", snapshot: screen.snapshot });
+
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="mx-auto max-w-2xl space-y-block">
       {header}
+      {paused ? <RewardsPauseNotice programme={paused} copy={copy.pause} earned={REWARDS_PAUSED_EARNED_LINE} locale={locale} /> : null}
       {screen.snapshot.history.length === 0 ? (
         <EmptyState
           icon="gift"

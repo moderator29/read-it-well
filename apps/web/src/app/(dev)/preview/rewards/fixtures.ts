@@ -27,6 +27,7 @@ export const FIXTURE_DESTINATION = { bankName: "Fixture Bank", accountLast4: "48
 
 export const FIXTURE_SNAPSHOT: RewardsSnapshot = {
   policy: { rewardPerReferralMinor: 7_000, monthlyCap: 1_500, withdrawMinimumMinor: 100_000 },
+  programme: { state: "running" },
   balance: { availableMinor: 420_000, pendingMinor: 70_000, lifetimeMinor: 630_000 },
   referrals: [
     { id: "r1", firstName: "Amaka", status: "qualified", joinedOn: "2026-09-02", qualifiedOn: "2026-09-09" },
@@ -60,6 +61,17 @@ export const FIXTURE_SNAPSHOT: RewardsSnapshot = {
   ],
   campaign: { id: "c1", name: "October invites", target: 20, reached: 12, bonusMinor: 100_000, endsOn: "2026-10-31" },
   destination: FIXTURE_DESTINATION,
+};
+
+/**
+ * D64: the same member in a month whose platform budget is reached. Every
+ * earned figure, row and withdrawal is the running fixture's, untouched,
+ * because a pause never reaches backwards. The resume day is invented for the
+ * layout; in the product it is drawn only when the server's read gives one.
+ */
+export const FIXTURE_PAUSED_SNAPSHOT: RewardsSnapshot = {
+  ...FIXTURE_SNAPSHOT,
+  programme: { state: "paused", resumesOn: "2026-11-01" },
 };
 
 /** The invented fee the deck's fixture withdrawal reads back. Never used by the product. */

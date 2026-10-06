@@ -100,8 +100,30 @@ export type CampaignProgress = {
 /** Where a withdrawal is paid to. */
 export type PayoutDestination = { bankName: string; accountLast4: string; accountName: string };
 
+/**
+ * WHETHER NEW REFERRALS CAN QUALIFY THIS MONTH (D64, REFERRAL_ARCHITECTURE
+ * section 10). The programme has one platform-wide budget a month. When the
+ * rewards that qualified this month reach it, new qualification PAUSES; it
+ * never refuses a referral with a reason.
+ *
+ *   running  as normal
+ *   paused   no new referral qualifies until the budget opens again. Nothing
+ *            already earned changes: a pause never reaches backwards, so the
+ *            balance, the history and withdrawals are drawn exactly as before.
+ *            While paused, no screen offers the invite link under a reward.
+ *
+ * `resumesOn` is YYYY-MM-DD only when the read itself says when new
+ * qualification opens again; null when it does not. The client never works a
+ * date out (not even "the first of next month"), because the founder can
+ * raise the cap mid-month or wind a campaign down instead.
+ */
+export type RewardsProgramme = { state: "running" } | { state: "paused"; resumesOn: string | null };
+export type PausedProgramme = Extract<RewardsProgramme, { state: "paused" }>;
+
 export type RewardsSnapshot = {
   policy: RewardsPolicy;
+  /** D64. Requested of Session 2 as R-R1-1. */
+  programme: RewardsProgramme;
   balance: RewardsBalance;
   referrals: ReferralRow[];
   history: RewardsEntry[];
@@ -224,6 +246,21 @@ export function newestFirst(entries: readonly RewardsEntry[]): RewardsEntry[] {
 /** A campaign's progress, clamped: never more reached than the target, never below zero. */
 export function campaignReached(campaign: CampaignProgress): number {
   return Math.max(0, Math.min(campaign.reached, campaign.target));
+}
+
+const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * The paused programme a read carries, or null when it is running, or when
+ * there is no snapshot at all (not live, signed out, failed). A `resumesOn`
+ * that is not a plain day is dropped rather than drawn, so a malformed date
+ * can never become a promise on screen.
+ */
+export function pausedProgramme(read: RewardsRead): PausedProgramme | null {
+  if (read.state !== "ready") return null;
+  const programme = read.snapshot.programme;
+  if (programme?.state !== "paused") return null;
+  return { state: "paused", resumesOn: programme.resumesOn && DAY_RE.test(programme.resumesOn) ? programme.resumesOn : null };
 }
 
 /**

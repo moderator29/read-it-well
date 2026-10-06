@@ -6,6 +6,9 @@ import { EmptyState } from "@/components/app/Screen";
 import { ButtonLink } from "@/components/ui/Button";
 import { ReferralList } from "@/components/app/referral/ReferralList";
 import { RewardsState } from "@/components/app/referral/RewardsState";
+import { RewardsPauseNotice } from "@/components/app/referral/RewardsPauseNotice";
+import { REWARDS_PAUSED_EARNED_LINE } from "@/components/app/referral/money-words";
+import { pausedProgramme } from "@/lib/referral/rewards";
 import { INVITE_HREF, rewardsScreen, signInHref } from "../screen";
 
 export const dynamic = "force-dynamic";
@@ -18,6 +21,9 @@ export async function generateMetadata(): Promise<Metadata> {
  * /rewards/referrals: the people a member invited and where each stands
  * (joined, pending, under review, qualified). Never a reason for a review and
  * never a second level. Draws the not-live state until R-C3-1 exists.
+ *
+ * PAUSED (D64): the pause is said first, every referral is still listed as it
+ * stands, and the empty state no longer offers "Share your link".
  */
 export default async function RewardsReferralsPage() {
   const locale = await getLocale();
@@ -34,9 +40,14 @@ export default async function RewardsReferralsPage() {
     );
   }
 
+  const paused = pausedProgramme({ state: "ready", snapshot: screen.snapshot });
+
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="mx-auto max-w-2xl space-y-block">
       {header}
+      {paused ? (
+        <RewardsPauseNotice programme={paused} copy={copy.pause} earned={REWARDS_PAUSED_EARNED_LINE} locale={locale} inviteOff />
+      ) : null}
       {screen.snapshot.referrals.length === 0 ? (
         <EmptyState
           icon="gift"
@@ -44,9 +55,11 @@ export default async function RewardsReferralsPage() {
           title={copy.referrals.emptyTitle}
           body={copy.referrals.emptyBody}
           action={
-            <ButtonLink href="/rewards" variant="secondary" size="lg">
-              {copy.referrals.emptyAction}
-            </ButtonLink>
+            paused ? undefined : (
+              <ButtonLink href="/rewards" variant="secondary" size="lg">
+                {copy.referrals.emptyAction}
+              </ButtonLink>
+            )
           }
           data-testid="rewards-referrals-empty"
         />

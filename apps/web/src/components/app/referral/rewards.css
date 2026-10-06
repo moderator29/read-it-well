@@ -87,6 +87,37 @@
     margin-block-start: var(--nf-space-xs);
   }
 
+  /* ---------------------------------------------------------- pause (D64) */
+  .nf-rewards-pause {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    gap: var(--nf-space-md);
+    padding: var(--nf-space-lg);
+  }
+  .nf-rewards-pause__text {
+    display: grid;
+    gap: var(--nf-space-xs);
+    min-inline-size: 0;
+  }
+  .nf-rewards-pause__title {
+    margin: 0;
+    font-size: var(--nf-text-h3);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-rewards-pause__body {
+    margin: 0;
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+  }
+  .nf-rewards-pause__earned {
+    margin: 0;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+
   /* ---------------------------------------------------------- invite */
   .nf-rewards-invite {
     display: grid;

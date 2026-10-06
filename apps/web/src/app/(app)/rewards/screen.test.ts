@@ -6,6 +6,7 @@ import { screenOf } from "./screen";
 
 const SNAPSHOT: RewardsSnapshot = {
   policy: { rewardPerReferralMinor: 1, monthlyCap: 1, withdrawMinimumMinor: 1 },
+  programme: { state: "running" },
   balance: { availableMinor: 0, pendingMinor: 0, lifetimeMinor: 0 },
   referrals: [],
   history: [],

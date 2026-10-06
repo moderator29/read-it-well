@@ -11,6 +11,7 @@ import {
   entryDirection,
   nairaToKobo,
   newestFirst,
+  pausedProgramme,
   quoteAddsUp,
   withdrawGate,
   type RewardsEntry,
@@ -24,6 +25,7 @@ const DEST = { bankName: "Bank", accountLast4: "0001", accountName: "A" };
 function snapshot(over: Partial<RewardsSnapshot> = {}): RewardsSnapshot {
   return {
     policy: POLICY,
+    programme: { state: "running" },
     balance: { availableMinor: 150_000, pendingMinor: 0, lifetimeMinor: 150_000 },
     referrals: [],
     history: [],
@@ -168,5 +170,31 @@ describe("what the rewards screens may never say or carry (D51)", () => {
       expect(source, file).not.toMatch(/\b(7_?000|70|1_?500|100_?000|1,000|1,500)\b/);
       expect(source, file).not.toMatch(/wallet/i);
     }
+  });
+});
+
+describe("D64: the programme pauses at the platform budget, and the screens can tell", () => {
+  it("reads a paused programme only from a ready snapshot, and never draws a malformed day", () => {
+    expect(pausedProgramme({ state: "not-live" })).toBeNull();
+    expect(pausedProgramme({ state: "failed" })).toBeNull();
+    expect(pausedProgramme({ state: "ready", snapshot: snapshot() })).toBeNull();
+    expect(pausedProgramme({ state: "ready", snapshot: snapshot({ programme: { state: "paused", resumesOn: null } }) })).toEqual({
+      state: "paused",
+      resumesOn: null,
+    });
+    expect(
+      pausedProgramme({ state: "ready", snapshot: snapshot({ programme: { state: "paused", resumesOn: "2026-11-01" } }) })?.resumesOn,
+    ).toBe("2026-11-01");
+    expect(
+      pausedProgramme({ state: "ready", snapshot: snapshot({ programme: { state: "paused", resumesOn: "start of next month" } }) })?.resumesOn,
+    ).toBeNull();
+  });
+
+  it("says the pause in plain words, with no date, no wallet and no reward offered", () => {
+    const pause = getDictionary("en").experienceRewards.pause;
+    const text = Object.values(pause).join(" ");
+    expect(pause.title).toBe("Rewards are paused this month");
+    expect(text).not.toMatch(/wallet|refus|\b\d{1,2}(st|nd|rd|th)?\b|november|december|earn up to/i);
+    expect(pause.resumes).toContain("{date}");
   });
 });

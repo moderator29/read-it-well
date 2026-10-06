@@ -8,6 +8,7 @@ import { canWithdraw, type RewardsSnapshot } from "@/lib/referral/rewards";
 import { CampaignCard } from "./CampaignCard";
 import { InviteLinkCard } from "./InviteLinkCard";
 import { RewardsFigures } from "./RewardsFigures";
+import { RewardsPauseNotice } from "./RewardsPauseNotice";
 import { money } from "./format";
 import { fill, type RewardsMoneyWords } from "./money-words";
 
@@ -29,6 +30,16 @@ export type RewardsHrefs = { referrals: string; history: string; withdraw: strin
  *      that say what qualifies and that this is not an investment. The
  *      threshold is stated here before anybody has earned anything (D51).
  *
+ * PAUSED (D64). When the month's platform budget is reached the programme
+ * pauses, and this screen stops inviting under a reward promise. The pause
+ * notice comes first; the invite card (copy, share sheet, QR), the campaign
+ * bonus and the per-referral reward, the monthly count and the qualify
+ * sentence are all withdrawn, because each of them promises a reward for a
+ * referral that cannot qualify now. Everything already earned is untouched:
+ * the three figures, Withdraw, the referral list, the history, the minimum
+ * and the sentence that this is not an investment draw exactly as before, and
+ * `pausedEarned` (from `lib/money/copy.ts`) says it is still paid.
+ *
  * No rate is written in this file. Server-safe; the invite card is the one
  * client leaf.
  */
@@ -37,6 +48,7 @@ export function RewardsDashboard({
   invite,
   copy,
   money: words,
+  pausedEarned,
   locale,
   hrefs,
   dismissLabel,
@@ -45,6 +57,8 @@ export function RewardsDashboard({
   invite: { url: string; code: string } | null;
   copy: Copy;
   money: RewardsMoneyWords;
+  /** The money sentence a pause carries: what is already earned is still paid. */
+  pausedEarned: string;
   locale: Locale;
   hrefs: RewardsHrefs;
   dismissLabel: string;
@@ -53,9 +67,12 @@ export function RewardsDashboard({
   const number = new Intl.NumberFormat(intlTag[locale]);
   const reward = money(policy.rewardPerReferralMinor, locale);
   const minimum = money(policy.withdrawMinimumMinor, locale);
+  const paused = snapshot.programme.state === "paused" ? snapshot.programme : null;
 
   return (
-    <div className="nf-rewards" data-testid="rewards-dashboard">
+    <div className="nf-rewards" data-testid="rewards-dashboard" data-programme={snapshot.programme.state}>
+      {paused ? <RewardsPauseNotice programme={paused} copy={copy.pause} earned={pausedEarned} locale={locale} inviteOff /> : null}
+
       <RewardsFigures
         balance={balance}
         copy={copy}
@@ -74,9 +91,9 @@ export function RewardsDashboard({
         }
       />
 
-      {snapshot.campaign ? <CampaignCard campaign={snapshot.campaign} copy={copy.campaign} locale={locale} /> : null}
+      {snapshot.campaign && !paused ? <CampaignCard campaign={snapshot.campaign} copy={copy.campaign} locale={locale} /> : null}
 
-      {invite ? <InviteLinkCard url={invite.url} code={invite.code} copy={copy.invite} dismissLabel={dismissLabel} /> : null}
+      {invite && !paused ? <InviteLinkCard url={invite.url} code={invite.code} copy={copy.invite} dismissLabel={dismissLabel} /> : null}
 
       <ListGroup>
         <ListRow
@@ -105,16 +122,20 @@ export function RewardsDashboard({
       </ListGroup>
 
       <ListGroup label={copy.policy.label} labelAs="h2">
-        <ListRow title={copy.policy.perReferral} value={<span className="nf-rewards-amount">{reward}</span>} data-testid="rewards-policy-reward" />
-        <ListRow
-          title={copy.policy.monthlyCap}
-          value={<span className="nf-rewards-amount">{number.format(policy.monthlyCap)}</span>}
-          data-testid="rewards-policy-cap"
-        />
+        {paused ? null : (
+          <ListRow title={copy.policy.perReferral} value={<span className="nf-rewards-amount">{reward}</span>} data-testid="rewards-policy-reward" />
+        )}
+        {paused ? null : (
+          <ListRow
+            title={copy.policy.monthlyCap}
+            value={<span className="nf-rewards-amount">{number.format(policy.monthlyCap)}</span>}
+            data-testid="rewards-policy-cap"
+          />
+        )}
         <ListRow title={copy.policy.minimum} value={<span className="nf-rewards-amount">{minimum}</span>} data-testid="rewards-policy-minimum" />
       </ListGroup>
       <div className="grid gap-xs">
-        <p className="nf-rewards-note">{fill(words.qualify, { reward, cap: number.format(policy.monthlyCap) })}</p>
+        {paused ? null : <p className="nf-rewards-note">{fill(words.qualify, { reward, cap: number.format(policy.monthlyCap) })}</p>}
         <p className="nf-rewards-note">{words.notInvestment}</p>
       </div>
     </div>

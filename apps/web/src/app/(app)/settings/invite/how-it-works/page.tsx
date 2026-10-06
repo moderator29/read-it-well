@@ -6,6 +6,10 @@ import { TYPE } from "@/components/app/Screen";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { IconPlate } from "@/components/ui/IconPlate";
 import "@/components/app/account/referral.css";
+import { RewardsPauseNotice } from "@/components/app/referral/RewardsPauseNotice";
+import { REWARDS_PAUSED_EARNED_LINE } from "@/components/app/referral/money-words";
+import { pausedProgramme } from "@/lib/referral/rewards";
+import { readMyRewards } from "@/lib/referral/rewards-read";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: getDictionary(await getLocale()).experienceAccount.invite.howTitle };
@@ -22,9 +26,14 @@ export async function generateMetadata(): Promise<Metadata> {
  * It is deliberately plain: this is the page somebody reads to decide whether
  * this is a scheme, so it states the negatives (nothing to pay in, one level
  * only) as plainly as the positives.
+ *
+ * PAUSED (D64): the closing line becomes the pause notice, so the page never
+ * says "no reward" about a programme that exists and is paused.
  */
 export default async function InviteHowItWorksPage() {
-  const t = getDictionary(await getLocale());
+  const locale = await getLocale();
+  const t = getDictionary(locale);
+  const paused = pausedProgramme(await readMyRewards());
   const copy = t.experienceAccount.invite;
   const how = copy.how;
   const items: { icon: UiIconName; title: string; body: string }[] = [
@@ -50,7 +59,13 @@ export default async function InviteHowItWorksPage() {
           </li>
         ))}
       </ol>
-      <p className={`${TYPE.caption} mt-block text-center`}>{t.publicDoors.invite.noReward}</p>
+      {paused ? (
+        <div className="mt-block">
+          <RewardsPauseNotice programme={paused} copy={t.experienceRewards.pause} earned={REWARDS_PAUSED_EARNED_LINE} locale={locale} />
+        </div>
+      ) : (
+        <p className={`${TYPE.caption} mt-block text-center`}>{t.publicDoors.invite.noReward}</p>
+      )}
     </div>
   );
 }

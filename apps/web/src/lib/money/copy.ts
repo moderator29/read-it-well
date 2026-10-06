@@ -438,6 +438,15 @@ export const REWARDS_PAID_FROM =
 export const REWARDS_NOT_INVESTMENT =
   "Rewards are not an investment. There is nothing to pay in, and only the people you invite yourself are counted.";
 
+/**
+ * D64. Under "Rewards are paused this month", on every rewards surface and the
+ * invite hub. A pause stops new referrals qualifying; it never reaches
+ * backwards, so what is already earned is still the member's and still paid.
+ * "As usual" keeps the review window and the withdrawal rules in force.
+ */
+export const REWARDS_PAUSED_EARNED =
+  "The pause does not touch anything you have already earned. Every reward from a referral that qualified is still yours and will be paid as usual.";
+
 /* -------------------------------------------------------------------------- */
 /* THE TRANSACTION TIMELINE, IN SENTENCES (never a status name on screen)     */
 /* -------------------------------------------------------------------------- */
