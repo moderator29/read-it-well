@@ -602,6 +602,87 @@ Session 3 slices them. `scripts/build-icon-assets.py` already does this for the
 original brand sheets and is the precedent. Resolution per object is the constraint
 that sets the grid size, not the generation limit.
 
+## D30. Motion is cinematic, and the system is specified
+
+**New, 6 October.** The founder's instruction: the platform must feel alive and
+cinematic, with heavy motion in Get Started and onboarding, Pro areas, the wallet, the
+landing page and many more. His motion designer supplied a brief.
+
+**`docs/design/MOTION_SYSTEM.md` is the specification**, and its section 0 contains a
+finding every session must read: **the GSAP engine the designer's brief says to pull
+from does not exist in this repository.** There is no `scripts/marketing/video/`
+directory, no `gsap` dependency and no `CustomEase` match anywhere in the tree or in
+git history. It lives in the separate marketing and video project. A session told to
+reference it would waste an hour and then invent something.
+
+**What the repository does have is substantial** and is used instead: eight duration
+tokens, five ease tokens, and nine motion components including `BrandAssemble` and
+`DepthWords`, which were built for exactly the startup sequence now being specified.
+
+**The designer's five curves are adopted as vocabulary.** Four already exist under
+other names and are aliased; only `whip` is new. **His ten principles are adopted in
+full**: intent, fast entrances and slow exits, 60ms stagger, 0.6x parallax, and the
+payoff pop reserved for confirm, verify, unlock, release and earn.
+
+**GSAP is not added to the application bundle.** Roughly 70KB gzipped, in a Capacitor
+WebView, on budget Android, over Nigerian networks, against a weight budget the
+repository already enforces. It is dynamically imported for two cases only: the Get
+Started scroll choreography and the startup sequence if the existing component cannot
+carry it. **Three.js is refused for the product entirely**: the 3D feeling comes from
+the pre-rendered assets the founder is generating, moved with CSS 3D transforms. The
+marketing video engine may use whatever it likes, because it is not shipped to a phone.
+
+## D31. The startup screen: 1.5 seconds, animated, root-caused
+
+**New, 6 October.** The founder reports the logo screen currently holds for about eight
+seconds before Get Started appears, and that it must become a 1.5 second animated brand
+moment.
+
+**The eight seconds is not an animation duration. It is an unbounded network call**,
+`resolveSession()` in `app/open/route.ts` with no deadline. **Session 2 fixes that
+before Session 3 builds the animation.** The founder's own earlier instruction applies:
+the fix must not be a timer, and the animation must never conceal a broken
+initialisation.
+
+The six-beat sequence is in `MOTION_SYSTEM.md` section 3. **If the app is ready early
+the sequence still completes**, because a brand moment cut short looks broken. **If it
+is not ready by 1,500ms it holds on the settled lockup with the breath continuing**,
+which is the only honest waiting state, and it never pretends to finish.
+
+## D32. Get Started is specified in depth, and the passcode screen is rebuilt
+
+**New, 6 October.** `MOTION_SYSTEM.md` section 4 is the deep reference for Get Started:
+four parallax layers at 0.3x, 0.45x, 0.6x and 1.0x; a seven-beat 900ms entrance that
+**inherits the startup's final frame with the mark already in position**, so the two
+screens are one continuous movement; a breathing aurora and a slow bloom pulse so the
+screen reads as alive rather than looping; pull-down stretch; and press-to-route
+morphing through `nav-origin`.
+
+**The passcode screen is rebuilt** (section 6). The founder's assessment is that it is
+bad, and it is also the screen a returning member sees more than any other. Four digits
+by default per D18. The dots become the subject of the screen. Each digit lands with a
+scale pop and a light haptic, a wrong code shakes once and clears quietly with no red
+flash and no dialog, and the correct code opens **the same door the startup sequence
+uses**, so unlocking and launching feel like one gesture.
+
+## D33. Icon origins and the orange accent
+
+**New, 6 October.** The founder reports that the generated icons now carry consistent
+origins and that the identity is settling around the 3D set with orange present.
+
+**The accent rule is therefore widened slightly and deliberately**: warm orange
+`#FF6A3D` may appear as a small detail within a Tier A or Tier B asset where the
+generated set already carries it, and it remains forbidden as a button fill, as body
+text, as a status colour and as a second primary. **One accent per object, one spark
+per screen.** The enumerated list in north star section 3 stands, with generated assets
+added to it.
+
+**Consistent origins matter for slicing.** The sheets in
+`docs/design/assets-raw/2026-10-06/` are sliced by Session 3, and a consistent origin
+and scale across a sheet is what makes an automated slice produce assets that align
+optically rather than merely geometrically. `scripts/build-icon-assets.py` is the
+existing precedent.
+
 ---
 
 ## What this file supersedes, explicitly

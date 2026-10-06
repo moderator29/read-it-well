@@ -19,7 +19,12 @@ animation. **Audit every single page as part of the upgrade.**
    the noun.
 2. **`docs/design/VISUAL_NORTH_STAR_2026-10-05.md`**: in full. Your specification.
    The four locked decisions in its section 1 are not reopenable.
-3. **`docs/sessions/FEATURE-REGISTER.md`**: section I is yours, plus every screen in
+3. **`docs/design/MOTION_SYSTEM.md`** in full. **Read its section 0 first**: the GSAP
+   engine the motion designer's brief points at **does not exist in this repository**,
+   and section 0 reconciles his brief with what is actually here so you do not spend an
+   hour looking for it. Sections 3, 4 and 6 are the startup sequence, the deep Get
+   Started reference and the passcode rebuild.
+4. **`docs/sessions/FEATURE-REGISTER.md`**: section I is yours, plus every screen in
    E2, E3, E4, E6, D9, D10, F, G, H3 and J3 to J9.
 4. **`docs/sessions/BLIND-SPOTS.md`**: B-26 no chart system, B-27 no map design,
    B-28 no print and PDF design, B-29 email as a surface, B-30 photography, B-31
@@ -327,6 +332,21 @@ notification routing and the destination after an action completes. Every screen
 an intentional model. **Do not mechanically add a back button everywhere.**
 
 ### Stage 3: Startup, entry, brand (B3)
+
+**`MOTION_SYSTEM.md` sections 3, 4 and 6 are the specification for this entire stage.**
+Build from them rather than from the summary below, which predates them.
+
+**Three things govern it.** The startup sequence is **1,500ms in six beats**, and
+**Session 2 must land the `/open` deadline first**, because the eight seconds the
+founder sees today is an unbounded network call rather than an animation duration. Get
+Started **inherits the startup's final frame with the mark already in position**, so
+the two screens are one continuous movement and the mark never re-enters. And the
+**passcode screen is rebuilt**, because it is the screen a returning member sees more
+than any other and the founder's assessment is that it is bad.
+
+**Use `BrandAssemble` and `DepthWords` before writing anything new.** They exist and
+they were built for this.
+
 
 **Do not start until Session 2 has landed the `/open` deadline fix.** An animation
 over an unbounded network call is a longer hang with better production values, and the
@@ -772,7 +792,16 @@ ranking formula.
 25. Emails are white in light mode, component-built, with a clay object and line
     glyphs, and a receipt email matches its screen exactly.
 26. No screen carries two jobs: the second became an inner page.
-27. Typecheck and lint green. The glow count reduced and the lint ratcheted.
+27. The startup sequence runs 1,500ms in six beats, skippable, holding honestly on the
+    settled lockup if the app is not ready, and never starting before the `/open` fix.
+28. Get Started inherits the startup's final frame with no re-entrance of the mark.
+29. The passcode screen is rebuilt: dots as the subject, a pop and haptic per digit, a
+    quiet shake with no red flash, and the same door as the startup on success.
+30. Every moment in the motion inventory built, with shipped durations recorded against
+    the specified ones, and verified under reduced motion and data saver on a real
+    mid-range Android.
+31. No GSAP in the application bundle. No Three.js in the product.
+32. Typecheck and lint green. The glow count reduced and the lint ratcheted.
 
 ## 12. YOUR RESPONSE FILE
 
