@@ -17,7 +17,9 @@ import "../host-desk.css";
 import { HostInnerNav } from "@/components/host/HostInnerNav";
 import { hostInnerNavCopy } from "@/components/host/host-inner-nav";
 
-export const metadata: Metadata = { title: "Calendar", robots: { index: false, follow: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: getDictionary(await getLocale()).experienceHost.calendar.title, robots: { index: false, follow: false } };
+}
 
 export const dynamic = "force-dynamic";
 
@@ -37,6 +39,7 @@ export default async function HostCalendarPage({
 }) {
   const locale = await getLocale();
   const session = await resolveSession();
+  const words = getDictionary(locale).experienceHost.calendar;
   const params = await searchParams;
   const one = (key: string) => {
     const v = params[key];
@@ -48,11 +51,11 @@ export default async function HostCalendarPage({
       <HostShell fallback="/host">
         <EmptyState
           icon="calendar-grid"
-          title="Your rates and nights"
-          body="Sign in to price your nights and open or close them on one calendar."
+          title={words.signedOutTitle}
+          body={words.signedOutBody}
           action={
             <ButtonLink href={authHref(returnHref("/host/calendar", "", "list"), "sign-in")} variant="primary" size="lg">
-              Sign in
+              {getDictionary(locale).common.signIn}
             </ButtonLink>
           }
         />
@@ -93,9 +96,9 @@ export default async function HostCalendarPage({
   return (
     <HostShell fallback="/host" wide>
       <HostInnerNav active="calendar" {...hostInnerNavCopy(getDictionary(locale))} />
-      <PageHeader variant="large" back={false} title="Calendar" subtitle={accommodation.name} />
+      <PageHeader variant="large" back={false} title={words.title} subtitle={accommodation.name} />
       {businesses.length > 1 ? (
-        <nav className="nf-rcal__places" aria-label="Your properties">
+        <nav className="nf-rcal__places" aria-label={words.propertiesLabel}>
           {businesses.map((business) => (
             <Link
               key={business.id}
@@ -111,16 +114,16 @@ export default async function HostCalendarPage({
 
       {read.state === "unavailable" || read.state === "signed-out" ? (
         <p className="nf-body mt-block" role="alert">
-          Your calendar could not be read just now. Nothing has changed. Refresh to try again.
+          {words.unavailable}
         </p>
       ) : read.rooms.length === 0 ? (
         <EmptyState
           icon="hotel-bed"
-          title="No room types yet"
-          body="Add a room type with its rate in your application, and its nights appear here to price."
+          title={words.noRoomTypesTitle}
+          body={words.noRoomTypesBody}
           action={
             <ButtonLink href="/host/apply" variant="primary" size="lg">
-              Add a room type
+              {words.addRoomType}
             </ButtonLink>
           }
         />
