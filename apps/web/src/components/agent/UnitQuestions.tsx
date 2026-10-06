@@ -59,7 +59,7 @@ export function UnitQuestions({
         ))}
       </div>
       {error && (
-        <p role="alert" className="nf-body-sm mt-inline block font-medium text-[var(--nf-state-error)]">
+        <p role="alert" className="nf-body-sm mt-inline block font-semibold text-[var(--nf-state-error)]">
           {error}
         </p>
       )}

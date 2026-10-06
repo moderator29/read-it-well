@@ -154,7 +154,7 @@ function DecisionSheet({
             onChange={(e) => setReason(e.target.value)}
           />
 
-          <p className="mb-xs mt-sm text-[length:var(--nf-text-overline)] font-medium text-[var(--nf-content-muted)]">
+          <p className="mb-xs mt-sm text-[length:var(--nf-text-overline)] font-normal text-[var(--nf-content-muted)]">
             {t.decline.suggestionsLabel}
           </p>
           {/*
@@ -182,7 +182,7 @@ function DecisionSheet({
 
       {error && (
         <p
-          className="mt-sm rounded-[var(--nf-container-radius)] p-sm text-[length:var(--nf-text-caption)] font-medium"
+          className="mt-sm rounded-[var(--nf-container-radius)] p-sm text-[length:var(--nf-text-caption)] font-semibold"
           style={{
             background: "var(--nf-state-warning-surface)",
             color: "var(--nf-state-warning)",
@@ -342,7 +342,7 @@ function BookingCard({
           </StatusPill>
         </div>
 
-        <p className="mt-sm flex items-center gap-xs text-[length:var(--nf-text-caption)] font-medium text-[var(--nf-content-secondary)]">
+        <p className="mt-sm flex items-center gap-xs text-[length:var(--nf-text-caption)] font-normal text-[var(--nf-content-secondary)]">
           <UiIcon name="calendar-booking" size={16} className="shrink-0" />
           {fill(t.card.dates, {
             from: formatDate(dateOnly(booking.checkIn), locale, { day: "numeric", month: "short" }),
@@ -369,7 +369,7 @@ function BookingCard({
         {booking.arrivingName && (
           <p
             data-testid="host-booking-arriving"
-            className="mt-xs flex flex-wrap items-center gap-x-xs text-[length:var(--nf-text-caption)] font-medium text-[var(--nf-content-secondary)]"
+            className="mt-xs flex flex-wrap items-center gap-x-xs text-[length:var(--nf-text-caption)] font-normal text-[var(--nf-content-secondary)]"
           >
             <UiIcon name="verified" size={16} className="shrink-0" />
             {fill(t.card.arriving, { name: booking.arrivingName })}
@@ -397,7 +397,7 @@ function BookingCard({
 
         {booking.status !== "CANCELLED" && !pending && (
           <p
-            className="mt-xs flex items-center gap-xs text-[length:var(--nf-text-overline)] font-medium"
+            className="mt-xs flex items-center gap-xs text-[length:var(--nf-text-overline)] font-semibold"
             style={{
               color:
                 booking.settlement === "settled"

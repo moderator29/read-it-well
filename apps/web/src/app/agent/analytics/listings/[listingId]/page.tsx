@@ -184,7 +184,7 @@ export default async function ListingWeekPage({
             />
           ) : (
             <p
-              className="rounded-[var(--nf-container-radius)] p-md text-[length:var(--nf-text-caption)] font-medium leading-relaxed"
+              className="rounded-[var(--nf-container-radius)] p-md text-[length:var(--nf-text-caption)] font-semibold leading-relaxed"
               style={{ background: "var(--nf-state-warning-surface)", color: "var(--nf-state-warning)" }}
               role="status"
             >

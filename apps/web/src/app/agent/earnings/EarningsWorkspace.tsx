@@ -76,7 +76,7 @@ export function EarningsWorkspace({
   if (!earnings.readable) {
     return (
       <p
-        className="rounded-[var(--nf-container-radius)] p-md text-[length:var(--nf-text-body-sm)] font-medium leading-relaxed"
+        className="rounded-[var(--nf-container-radius)] p-md text-[length:var(--nf-text-body-sm)] font-semibold leading-relaxed"
         style={{ background: "var(--nf-state-warning-surface)", color: "var(--nf-state-warning)" }}
         role="alert"
       >
@@ -238,7 +238,7 @@ export function EarningsWorkspace({
             <TBody>
               {earnings.months.map((month) => (
                 <TR key={month.key}>
-                  <TD className="font-medium text-[var(--nf-content-primary)]">
+                  <TD className="font-semibold text-[var(--nf-content-primary)]">
                     {monthLabel(month.year, month.month, locale)}
                   </TD>
                   <TD align="end">{month.stays}</TD>

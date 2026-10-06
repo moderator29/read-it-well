@@ -286,7 +286,7 @@ export function VideoWalkthrough({
       )}
 
       {notice && (
-        <p role="alert" className="nf-body-sm mt-inline font-medium text-[var(--nf-state-error)]">
+        <p role="alert" className="nf-body-sm mt-inline font-semibold text-[var(--nf-state-error)]">
           {notice}
         </p>
       )}

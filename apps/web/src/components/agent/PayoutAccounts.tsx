@@ -156,7 +156,7 @@ export function PayoutAccounts({
             <div>
               <label
                 htmlFor="payout-bank"
-                className="block text-[length:var(--nf-text-caption)] font-medium text-[var(--nf-content-secondary)]"
+                className="block text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-secondary)]"
               >
                 Bank
               </label>
@@ -178,7 +178,7 @@ export function PayoutAccounts({
             <div>
               <label
                 htmlFor="payout-number"
-                className="block text-[length:var(--nf-text-caption)] font-medium text-[var(--nf-content-secondary)]"
+                className="block text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-secondary)]"
               >
                 Account number
               </label>

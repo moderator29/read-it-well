@@ -123,7 +123,7 @@ export default async function Page({
     />
   ) : (
     <p
-      className="rounded-[var(--nf-container-radius)] p-md text-[length:var(--nf-text-caption)] font-medium leading-relaxed"
+      className="rounded-[var(--nf-container-radius)] p-md text-[length:var(--nf-text-caption)] font-semibold leading-relaxed"
       style={{ background: "var(--nf-state-warning-surface)", color: "var(--nf-state-warning)" }}
       role="status"
     >
@@ -168,7 +168,7 @@ export default async function Page({
               the page cannot. */}
           {hero}
           <p
-            className="rounded-[var(--nf-container-radius)] p-md text-[length:var(--nf-text-body-sm)] font-medium leading-relaxed"
+            className="rounded-[var(--nf-container-radius)] p-md text-[length:var(--nf-text-body-sm)] font-semibold leading-relaxed"
             style={{
               background: "var(--nf-state-warning-surface)",
               color: "var(--nf-state-warning)",

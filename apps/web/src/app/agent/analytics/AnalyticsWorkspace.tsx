@@ -130,7 +130,7 @@ function Unknown({ label }: { label: string }) {
 function Unavailable({ children }: { children: string }) {
   return (
     <p
-      className="rounded-[var(--nf-container-radius)] p-md text-[length:var(--nf-text-caption)] font-medium leading-relaxed"
+      className="rounded-[var(--nf-container-radius)] p-md text-[length:var(--nf-text-caption)] font-semibold leading-relaxed"
       style={{ background: "var(--nf-state-warning-surface)", color: "var(--nf-state-warning)" }}
       role="status"
     >
@@ -548,7 +548,7 @@ function ListingsPanel({
           <TBody>
             {rows.map((row) => (
               <TR key={row.listingId}>
-                <TD className="font-medium text-[var(--nf-content-primary)]">
+                <TD className="font-semibold text-[var(--nf-content-primary)]">
                   {row.title}
                   <span className="block text-[length:var(--nf-text-overline)] font-normal text-[var(--nf-content-muted)]">
                     {statusLabels[row.status]}

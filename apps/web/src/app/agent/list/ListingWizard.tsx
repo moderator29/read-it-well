@@ -413,7 +413,7 @@ function Field({
       </span>
       {children}
       {error ? (
-        <span className="nf-body-sm mt-inline-tight block font-medium text-[var(--nf-state-error)]">
+        <span className="nf-body-sm mt-inline-tight block font-semibold text-[var(--nf-state-error)]">
           {error}
         </span>
       ) : hint ? (
@@ -2414,7 +2414,7 @@ export function ListingWizard({
                     placeholder="150"
                   />
                   {fieldErrors.sizeSqm && (
-                    <span className="nf-body-sm mt-inline-tight block font-medium text-[var(--nf-state-error)]">
+                    <span className="nf-body-sm mt-inline-tight block font-semibold text-[var(--nf-state-error)]">
                       {fieldErrors.sizeSqm}
                     </span>
                   )}
@@ -2466,7 +2466,7 @@ export function ListingWizard({
                     />
                   </div>
                   {(fieldErrors.floor || fieldErrors.totalFloors) && (
-                    <span className="nf-body-sm mt-inline-tight block font-medium text-[var(--nf-state-error)]">
+                    <span className="nf-body-sm mt-inline-tight block font-semibold text-[var(--nf-state-error)]">
                       {fieldErrors.floor ?? fieldErrors.totalFloors}
                     </span>
                   )}
@@ -2732,7 +2732,7 @@ export function ListingWizard({
           <div>
             <Note>{copy.amenities.intro}</Note>
             {fieldErrors.amenities && (
-              <p className="nf-body-sm mt-row font-medium text-[var(--nf-state-error)]">
+              <p className="nf-body-sm mt-row font-semibold text-[var(--nf-state-error)]">
                 {fieldErrors.amenities}
               </p>
             )}
@@ -2855,7 +2855,7 @@ export function ListingWizard({
                   onChange={(v) => set("powerBackupHours", String(v))}
                 />
                 {fieldErrors.powerBackupHours ? (
-                  <span className="nf-body-sm mt-inline-tight block font-medium text-[var(--nf-state-error)]">
+                  <span className="nf-body-sm mt-inline-tight block font-semibold text-[var(--nf-state-error)]">
                     {fieldErrors.powerBackupHours}
                   </span>
                 ) : (
@@ -3213,7 +3213,7 @@ export function ListingWizard({
                       "A buyer will ask before anything else. Answering here saves both of you a journey."}
                   </p>
                   {fieldErrors.tenure && (
-                    <p className="nf-body-sm mt-inline-tight font-medium text-[var(--nf-state-error)]">
+                    <p className="nf-body-sm mt-inline-tight font-semibold text-[var(--nf-state-error)]">
                       {fieldErrors.tenure}
                     </p>
                   )}
@@ -3634,7 +3634,7 @@ export function ListingWizard({
                   look right and could never follow a theme, which is exactly
                   the distinction the on-media family exists to hold.
                 */}
-                <p className="nf-body-sm absolute bottom-3 left-3 right-3 flex items-center gap-inline-tight font-medium text-[var(--nf-content-on-media)]">
+                <p className="nf-body-sm absolute bottom-3 left-3 right-3 flex items-center gap-inline-tight font-semibold text-[var(--nf-content-on-media)]">
                   <UiIcon
                     name="location"
                     size={12}
@@ -3864,7 +3864,7 @@ export function ListingWizard({
                       <UiIcon name="verified" size={12} />
                     </span>
                     <span className="min-w-0 leading-snug">
-                      <span className="block text-[length:var(--nf-text-body-sm)] font-medium">{item.label}</span>
+                      <span className="block text-[length:var(--nf-text-body-sm)] font-semibold">{item.label}</span>
                       {problem && (
                         <span className="block text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                           {gateText(problem.field, problem.message)}

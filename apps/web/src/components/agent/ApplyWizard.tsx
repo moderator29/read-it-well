@@ -459,7 +459,7 @@ export function ApplyWizard({ t, role }: { t: ApplyCopy; role?: SetupRole }) {
                 >
                   {done ? <UiIcon name="verified" size={16} /> : i + 1}
                 </span>
-                <span className="hidden max-w-[7rem] text-center text-[length:var(--nf-text-overline)] font-medium leading-tight text-[var(--nf-content-muted)] sm:block">
+                <span className="hidden max-w-[7rem] text-center text-[length:var(--nf-text-overline)] font-normal leading-tight text-[var(--nf-content-muted)] sm:block">
                   {title}
                 </span>
               </button>
@@ -604,7 +604,7 @@ export function ApplyWizard({ t, role }: { t: ApplyCopy; role?: SetupRole }) {
             {TEXT_FIELDS.filter((f) => values[f]).map((f) => (
               <div key={f} className="flex items-center justify-between gap-md px-md py-sm text-[length:var(--nf-text-caption)]">
                 <dt className="text-[var(--nf-content-muted)]">{a.fields[f as keyof typeof a.fields] ?? f}</dt>
-                <dd className="font-medium [overflow-wrap:anywhere]">{values[f]}</dd>
+                <dd className="font-semibold [overflow-wrap:anywhere]">{values[f]}</dd>
               </div>
             ))}
           </dl>

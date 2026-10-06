@@ -151,7 +151,7 @@ export function CalendarEditor({
               {WEEKDAYS.map((day) => (
                 <span
                   key={day}
-                  className="pb-2xs text-center text-[length:var(--nf-text-overline)] font-medium text-[var(--nf-content-muted)]"
+                  className="pb-2xs text-center text-[length:var(--nf-text-overline)] font-normal text-[var(--nf-content-muted)]"
                 >
                   {day}
                 </span>
@@ -179,7 +179,7 @@ export function CalendarEditor({
                             : "open"
                     }`}
                     className={[
-                      "nf-body-sm flex h-11 items-center justify-center rounded-[var(--nf-radius-sm)] font-medium transition-colors",
+                      "nf-body-sm flex h-11 items-center justify-center rounded-[var(--nf-radius-sm)] font-normal transition-colors",
                       mode === "past" && "cursor-default text-[var(--nf-content-muted)] opacity-35",
                       /*
                        * `--nf-content-on-brand`, not `text-white`.
@@ -217,7 +217,7 @@ export function CalendarEditor({
           quiet until there is something to do with it. */}
       {from && to && (
         <div className="nf-panel nf-panel--card block sticky bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] mt-lg p-md">
-          <p className="text-[length:var(--nf-text-body-sm)] font-medium text-[var(--nf-content-primary)]">
+          <p className="text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
             {countOf(selectedCount, "nights", locale)} selected
           </p>
           <p className="nf-numeric mt-3xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">

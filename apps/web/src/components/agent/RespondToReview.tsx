@@ -87,7 +87,7 @@ export function RespondToReview({ t }: { t: RespondCopy }) {
       />
 
       {error ? (
-        <p role="alert" className="text-[length:var(--nf-text-caption)] font-medium text-[var(--nf-state-error)]">
+        <p role="alert" className="text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-state-error)]">
           {error}
         </p>
       ) : null}
