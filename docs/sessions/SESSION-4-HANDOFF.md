@@ -135,10 +135,14 @@ the webhook, so the webhook has never been proven in production. Paystack 3-D Se
 inside the Capacitor WebView is untested and the native audit calls it the single most
 likely failure in the whole application.
 
-Needs from the founder first: `PAYSTACK_GUARANTEE_SUBACCOUNT` set, the webhook
-registered, one lister subaccount existing.
+This runs in **test mode**, and nothing in it waits on the founder (D38). Test mode reads
+`PAYSTACK_TEST_GUARANTEE_SUBACCOUNT` and `PAYSTACK_TEST_SECRET_KEY`, a test subaccount needs
+no real bank account, and a test lister's payout account is made on a test-mode deployment.
+Register the sandbox webhook against the Preview deployment. Do not create a real lister
+subaccount on the live account: Paystack is moving to the company account and it would die
+with the migration. Live mode waits on one `ACCT_` code from the founder and nothing else.
 
-Then in test mode, on a real device, through the installed app: open a payment and
+In test mode, on a real device, through the installed app: open a payment and
 reach the Paystack sheet inside the WebView; complete a 3-D Secure challenge; confirm
 the webhook lands and settlement runs; confirm the split records with the three parts
 summing to the charge; confirm the receipt renders and verifies. Then abandon one

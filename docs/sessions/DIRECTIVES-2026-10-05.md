@@ -802,3 +802,53 @@ committed and pushed as it is done, cleanly, without sessions conflicting.
 | Session 1's own proposal to gate demo listings out of production reads | D24: the listings stay, the visible labels come off, the founder removes the rows at launch |
 | Single screens carrying several jobs | D25 |
 | **D1's per-surface theme lead** | **D28.1: the member's theme governs; Paper becomes a document treatment within it** |
+| Session 4's "needs from the founder first" on the live reserve subaccount | D38 |
+
+---
+
+## D38. The Paystack account is moving to the company account. Build to the value, never wait for it
+
+**The founder's instruction, 6 October:** the code side is built complete now. He
+supplies the `ACCT_` code later and the platform completes itself. He is moving
+Paystack from his personal account to the **company account, as an organisation**,
+and that migration is not finished.
+
+Four consequences, binding on every session.
+
+1. **No session asks the founder for a Paystack value, ever.** Not the reserve
+   subaccount, not a key, not the webhook. "Blocked on the founder" is not a state
+   any Paystack work may end in. The reserve subaccount is a one-line paste that
+   completes already-finished code, and a session that stops short of finished so it
+   can ask for it has wasted the founder's money.
+
+2. **Prove everything on the sandbox account.** Test mode reads
+   `PAYSTACK_TEST_GUARANTEE_SUBACCOUNT` and `PAYSTACK_TEST_SECRET_KEY`, both separate
+   from live. A test subaccount costs nothing and needs no real bank account, so the
+   full split rail, the webhook, the settlement, the three-leg sum, the receipt, the
+   abandoned attempt and the refund are all provable today without a single founder
+   value. Session 4's device pass runs in test mode for the same reason. Where a
+   handoff said a step "needs from the founder first", it means live mode only.
+
+3. **Nothing may be baked to the Paystack account that exists today.** A subaccount
+   belongs to one Paystack account: every lister subaccount created on the personal
+   account dies when the company account takes over, and a charge against a dead
+   subaccount is refused by Paystack. Today this costs nothing, because no lister has
+   a subaccount and no payment has ever opened. So: create no real lister payout
+   subaccount on the current account, and treat the account identity as a variable
+   rather than a fact. Any code, seed, fixture or document that assumes the current
+   account survives is wrong. Refunds for a charge are made with the key of the
+   account that took it, which is why the ledger records the mode per attempt
+   (`transactions.paystack_mode`) and must keep doing so.
+
+4. **The migration is cheapest right now and gets more expensive every week.** It is
+   free until the first lister adds a payout account and the first naira moves. After
+   that it means recreating every lister subaccount and splitting the refund path
+   across two accounts. This is a founder-only action and it is now the highest
+   ranked item on the founder's list, above the `ACCT_` code itself: the code is for
+   the company account, so there is no reason to produce a value on the personal one.
+
+**The single remaining step, stated once so nobody re-derives it:** the founder creates
+the Guarantee reserve subaccount on the company Paystack account, against the reserve's
+own bank account and not the operating account, and sets `PAYSTACK_GUARANTEE_SUBACCOUNT`
+to its `ACCT_` code in Vercel, Production scope, then redeploys. Everything else is
+code, and the code is done.

@@ -963,8 +963,16 @@ In lead-time order. Items 1 and 2 gate the most downstream work.
    key.
 3. **Recruit 20 real listers.** Engineering can halve the work with the
    concierge tool; it cannot do this part.
-4. **Set `PAYSTACK_GUARANTEE_SUBACCOUNT`** and register the Paystack webhook, or
-   no payment can open at all.
+4. **Finish moving Paystack to the company account, as an organisation** (in
+   progress, 6 October), **then** create the Guarantee reserve subaccount on it
+   against the reserve's own bank account and set `PAYSTACK_GUARANTEE_SUBACCOUNT`
+   to its `ACCT_` code in Vercel, Production scope, and register the live
+   webhook. In that order: a subaccount belongs to one Paystack account, so one
+   made on the personal account dies with the migration. The migration is free
+   today because no lister has a payout account and no naira has moved, and it
+   stops being free the moment either changes. The code is built and proved on
+   the sandbox account either way (D38), so this is a paste and a redeploy, not
+   engineering work.
 5. **Upgrade Supabase to Pro** with point-in-time recovery, before the first real
    payment. A money ledger with no restorable backup is the finding to lose sleep
    over.
