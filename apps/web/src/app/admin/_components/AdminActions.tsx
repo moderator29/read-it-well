@@ -253,7 +253,11 @@ export function AlertResolve({
   return (
     <>
       <Row>
-        <Button variant="primary" onClick={() => setOpen(true)}>
+        {/* SECONDARY, NOT PRIMARY: this opener sits on every card in a queue,
+            and four lit primaries on one phone screen is four glows where the
+            north star allows one (checklist point 1, measured on /admin/alerts
+            in the C1 sweep). The commit in the sheet is the primary. */}
+        <Button variant="secondary" onClick={() => setOpen(true)}>
           {copy.resolve}
         </Button>
       </Row>
