@@ -47,13 +47,29 @@ const entry = `
   mount(<Panel />);
 `;
 
-/** The script animations on a tile (not its CSS transitions): the pop is one of these. */
-const pops = (page: Page, name: string) =>
-  page.getByRole("button", { name }).evaluate((el) =>
-    el
-      .getAnimations()
-      .filter((a) => !(a instanceof CSSTransition) && !(a instanceof CSSAnimation))
-      .map((a) => (a.effect as KeyframeEffect).getKeyframes().map((k) => k.scale)),
+/*
+ * THE POP IS READ FROM THE CALLS TO `Element.prototype.animate`, NOT FROM
+ * `getAnimations()`. A 160ms animation can already have finished by the time a
+ * loaded machine gets round to asking what is running, so the test records the
+ * call itself (installed before the panel mounts): which element, and the
+ * keyframes it was given.
+ */
+const LOG = `
+  window.__pops = [];
+  const original = Element.prototype.animate;
+  Element.prototype.animate = function (keyframes, options) {
+    window.__pops.push({ tile: (this.textContent || "").trim(), scale: Array.isArray(keyframes) ? keyframes.map((k) => k.scale) : null });
+    return original.call(this, keyframes, options);
+  };
+`;
+
+const pops = (page: Page, tile: string) =>
+  page.evaluate(
+    (name) =>
+      (window as unknown as { __pops: { tile: string; scale: string[] | null }[] }).__pops
+        .filter((pop) => pop.tile === name)
+        .map((pop) => pop.scale),
+    tile,
   );
 
 const afterTwoFrames = (page: Page) =>
@@ -61,33 +77,29 @@ const afterTwoFrames = (page: Page) =>
 
 describe.skipIf(!hasBrowser && !process.env.CI)("the filter tile's select pop", () => {
   it("pops when an unchosen tile is chosen, and not when it is turned off", async () => {
-    const { page, close } = await mountInBrowser({ entry, css: CSS });
+    const { page, close } = await mountInBrowser({ entry, css: CSS, init: LOG });
     try {
       expect(await pops(page, "Pool")).toEqual([]);
       await page.getByRole("button", { name: "Pool" }).click();
-      await afterTwoFrames(page);
-      expect(await pops(page, "Pool"), "choosing a tile pops it").toEqual([["1", "1.03", "1"]]);
+      await expect.poll(() => pops(page, "Pool"), { message: "choosing a tile pops it" }).toEqual([["1", "1.03", "1"]]);
       /* Only the tapped tile pops. */
       expect(await pops(page, "Garden")).toEqual([]);
 
-      await page.waitForTimeout(400);
-      expect(await pops(page, "Pool")).toEqual([]);
       await page.getByRole("button", { name: "Pool" }).click();
+      await expect.poll(() => page.getByRole("button", { name: "Pool" }).getAttribute("aria-pressed")).toBe("false");
       await afterTwoFrames(page);
-      expect(await page.getByRole("button", { name: "Pool" }).getAttribute("aria-pressed")).toBe("false");
-      expect(await pops(page, "Pool"), "turning a tile off plays no pop").toEqual([]);
+      expect(await pops(page, "Pool"), "turning a tile off plays no further pop").toEqual([["1", "1.03", "1"]]);
     } finally {
       await close();
     }
   });
 
   it("pops from the keyboard too", async () => {
-    const { page, close } = await mountInBrowser({ entry, css: CSS });
+    const { page, close } = await mountInBrowser({ entry, css: CSS, init: LOG });
     try {
       await page.getByRole("button", { name: "Garden" }).focus();
       await page.keyboard.press("Enter");
-      await afterTwoFrames(page);
-      expect(await pops(page, "Garden")).toEqual([["1", "1.03", "1"]]);
+      await expect.poll(() => pops(page, "Garden")).toEqual([["1", "1.03", "1"]]);
     } finally {
       await close();
     }
@@ -100,7 +112,7 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the filter tile's select pop", 
       { name: "off", opts: { motion: "off" } },
     ];
     for (const { name, opts } of quiet) {
-      const { page, close } = await mountInBrowser({ entry, css: CSS, ...opts });
+      const { page, close } = await mountInBrowser({ entry, css: CSS, init: LOG, ...opts });
       try {
         await page.getByRole("button", { name: "Pool" }).click();
         await afterTwoFrames(page);
@@ -118,7 +130,8 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the filter tile's select pop", 
     const { page, close } = await mountInBrowser({
       entry,
       css: CSS,
-      init: `Object.defineProperty(navigator, "connection", { value: { saveData: true }, configurable: true });`,
+      init: `${LOG}
+        Object.defineProperty(navigator, "connection", { value: { saveData: true }, configurable: true });`,
     });
     try {
       await page.getByRole("button", { name: "Pool" }).click();

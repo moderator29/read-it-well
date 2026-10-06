@@ -45,20 +45,60 @@ const entry = `
 
 const sheet = (page: Page) => page.locator('[data-testid="the-sheet"]');
 
-/** The panel's running CSS transitions on transform. */
-const leaving = (page: Page) =>
-  sheet(page).evaluate((el) =>
-    el
-      .getAnimations()
-      .filter((a) => a instanceof CSSTransition && a.transitionProperty === "transform" && a.playState === "running")
-      .length,
-  );
+/** Escape through the document, as the overlay hook hears it, so the close and the first reading are one task. */
+const CLOSE_AND_READ = `
+  new Promise((resolve) => {
+    const panel = () => document.querySelector('[data-testid="the-sheet"]');
+    const read = () => {
+      const p = panel();
+      const scrim = document.querySelector(".nf-sheet-backdrop");
+      return {
+        present: Boolean(p),
+        closing: p ? p.getAttribute("data-closing") : null,
+        inert: p ? p.hasAttribute("inert") : false,
+        open: p ? p.getAttribute("data-open") : null,
+        focus: document.activeElement ? document.activeElement.id : null,
+        scrimEvents: scrim ? getComputedStyle(scrim).pointerEvents : null,
+        panelEvents: p ? getComputedStyle(p).pointerEvents : null,
+      };
+    };
+    let started = null;
+    const onRun = (event) => {
+      if (event.target === panel() && event.propertyName === "transform" && !started) started = read();
+    };
+    const onEnd = (event) => {
+      if (event.target !== panel() || event.propertyName !== "transform") return;
+      document.removeEventListener("transitionrun", onRun, true);
+      document.removeEventListener("transitionend", onEnd, true);
+      resolve({ started, ended: read() });
+    };
+    document.addEventListener("transitionrun", onRun, true);
+    document.addEventListener("transitionend", onEnd, true);
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    setTimeout(() => resolve({ started, ended: null, timeout: true }), 5000);
+  })
+`;
+
+type Reading = {
+  present: boolean;
+  closing: string | null;
+  inert: boolean;
+  open: string | null;
+  focus: string | null;
+  scrimEvents: string | null;
+  panelEvents: string | null;
+};
+
+const settled = (page: Page) =>
+  expect
+    .poll(() => sheet(page).evaluate((el) => el.getAnimations().length), { message: "the open transition has finished" })
+    .toBe(0);
 
 async function openIt(page: Page) {
   await page.locator("#opener").click();
   await sheet(page).waitFor();
-  await page.waitForFunction(() => document.querySelector('[data-testid="the-sheet"]')?.getAttribute("data-open") === "true");
-  await page.waitForTimeout(450);
+  await expect.poll(() => sheet(page).getAttribute("data-open")).toBe("true");
+  await settled(page);
 }
 
 describe.skipIf(!hasBrowser && !process.env.CI)("the sheet's leave", () => {
@@ -68,23 +108,26 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the sheet's leave", () => {
       await openIt(page);
       expect(await page.locator("#field").evaluate((el) => document.activeElement === el || el.closest("[role=dialog]")?.contains(document.activeElement))).toBe(true);
 
-      await page.keyboard.press("Escape");
-      await page.evaluate(() => new Promise<void>((done) => requestAnimationFrame(() => done())));
-      /* Still there, marked closing, and the transform transition is running. */
-      expect(await sheet(page).count()).toBe(1);
-      expect(await sheet(page).getAttribute("data-closing")).toBe("true");
-      expect(await sheet(page).evaluate((el) => el.hasAttribute("inert"))).toBe(true);
-      expect(await sheet(page).getAttribute("data-open")).toBe("false");
-      expect(await leaving(page), "the leave transition is running").toBeGreaterThan(0);
-      /* Focus is on the opener already, not after the animation. */
-      expect(await page.evaluate(() => document.activeElement?.id)).toBe("opener");
+      /* Both readings come from events inside one evaluate: when the leave
+         transition was created, and when it ended. Nothing here waits a fixed
+         time, so a loaded machine cannot make it read a closed sheet late. */
+      const { started, ended } = (await page.evaluate(CLOSE_AND_READ)) as { started: Reading | null; ended: Reading | null };
+      /* When the leave starts: still there, closing, inert, not open. */
+      expect(started, "the leave transition ran").not.toBeNull();
+      expect(started!.present).toBe(true);
+      expect(started!.closing).toBe("true");
+      expect(started!.inert).toBe(true);
+      expect(started!.open).toBe("false");
       /* The scrim and the panel let a tap through to the page behind. */
-      expect(await page.locator(".nf-sheet-backdrop").evaluate((el) => getComputedStyle(el).pointerEvents)).toBe("none");
-      expect(await sheet(page).evaluate((el) => getComputedStyle(el).pointerEvents)).toBe("none");
+      expect(started!.scrimEvents).toBe("none");
+      expect(started!.panelEvents).toBe("none");
+      /* When it ends the sheet is still mounted, and focus was already on the
+         opener: it came back at the moment of close, not after the animation. */
+      expect(ended, "the leave transition ended").not.toBeNull();
+      expect(ended!.present).toBe(true);
+      expect(ended!.focus).toBe("opener");
 
-      /* The leave token is 240ms; the sheet is gone shortly after it. */
-      await page.waitForTimeout(600);
-      expect(await sheet(page).count()).toBe(0);
+      await sheet(page).waitFor({ state: "detached" });
       expect(await page.locator(".nf-sheet-backdrop").count()).toBe(0);
     } finally {
       await close();
@@ -96,8 +139,7 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the sheet's leave", () => {
     try {
       await openIt(page);
       await page.keyboard.press("Escape");
-      await page.evaluate(() => new Promise<void>((done) => requestAnimationFrame(() => done())));
-      expect(await sheet(page).count()).toBe(0);
+      await expect.poll(() => sheet(page).count()).toBe(0);
       expect(await page.evaluate(() => document.activeElement?.id)).toBe("opener");
     } finally {
       await close();
@@ -110,8 +152,7 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the sheet's leave", () => {
       try {
         await openIt(page);
         await page.keyboard.press("Escape");
-        await page.evaluate(() => new Promise<void>((done) => requestAnimationFrame(() => done())));
-        expect(await sheet(page).count(), motion).toBe(0);
+        await expect.poll(() => sheet(page).count(), { message: motion }).toBe(0);
       } finally {
         await close();
       }
@@ -122,13 +163,25 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the sheet's leave", () => {
     const { page, close } = await mountInBrowser({ entry, css: PORTED_CSS });
     try {
       await openIt(page);
-      await page.keyboard.press("Escape");
-      await page.waitForTimeout(80);
+      /* Close, and as soon as the leave has started, open again. */
+      await page.evaluate(`
+        new Promise((resolve) => {
+          const panel = () => document.querySelector('[data-testid="the-sheet"]');
+          const onRun = (event) => {
+            if (event.target !== panel() || event.propertyName !== "transform") return;
+            document.removeEventListener("transitionrun", onRun, true);
+            resolve(true);
+          };
+          document.addEventListener("transitionrun", onRun, true);
+          document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+        })
+      `);
       expect(await sheet(page).getAttribute("data-closing")).toBe("true");
       await page.locator("#opener").click();
-      await page.waitForFunction(() => document.querySelector('[data-testid="the-sheet"]')?.getAttribute("data-open") === "true");
-      /* Past the leave's own end: it must not have been unmounted by it. */
-      await page.waitForTimeout(700);
+      await expect.poll(() => sheet(page).getAttribute("data-open")).toBe("true");
+      /* The open transition runs to its end on the same sheet: the leave's own
+         end (event or timer) must not have unmounted it. */
+      await settled(page);
       expect(await sheet(page).count()).toBe(1);
       expect(await sheet(page).evaluate((el) => el.hasAttribute("inert") || el.hasAttribute("data-closing"))).toBe(false);
       expect(await sheet(page).evaluate((el) => el.contains(document.activeElement))).toBe(true);

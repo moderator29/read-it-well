@@ -60,23 +60,100 @@ const entry = `
   mount(<Thread />);
 `;
 
+/*
+ * The same list with the realtime echo wired as `ThreadView` wires it: one
+ * `mergeEcho` on the items, and an `openedWith` that is the real, live set the
+ * thread opened with (read by `arrivalClass` on every render, and never added
+ * to for an echo). `__echo` is the row the realtime channel delivers.
+ */
+const echoEntry = `
+  import { Fragment, useState } from "react";
+  import { mount } from "@/lib/testing/browser-root";
+  import { adoptBubble, arrivalClass, bubbleKey, mergeEcho } from "@/app/(app)/messages/[id]/thread-arrival";
+
+  const history = [
+    { id: "m1", mine: false, body: "Hello", imageUrl: null },
+    { id: "m2", mine: true, body: "Hi", imageUrl: null },
+  ];
+  function Thread() {
+    const [items, setItems] = useState(history);
+    const [openedWith] = useState(() => new Set(history.map((m) => m.id)));
+    window.__openedWith = openedWith;
+    window.__send = (tempId, body) =>
+      setItems((prev) => [...prev, { id: tempId, mine: true, body, imageUrl: null, state: "sending" }]);
+    window.__adopt = (tempId, realId) => setItems((prev) => adoptBubble(prev, tempId, realId, "10:02"));
+    window.__echo = (row) => setItems((prev) => mergeEcho(prev, { imageUrl: null, ...row }));
+    return (
+      <div>
+        {items.map((m) => (
+          <Fragment key={bubbleKey(m)}>
+            <div data-msg-id={m.id} className={"nf-msg " + (m.mine ? "nf-msg--mine" : "") + arrivalClass(openedWith, m)}>
+              {m.body}
+            </div>
+          </Fragment>
+        ))}
+      </div>
+    );
+  }
+  mount(<Thread />);
+`;
+
+type Hooks = {
+  __send: (id: string, body: string) => void;
+  __adopt: (temp: string, real: string) => void;
+  __echo: (row: { id: string; mine: boolean; body: string }) => void;
+  __node: Element | null;
+};
+const hooks = (page: Page) => ({
+  send: (id: string, body: string) =>
+    page.evaluate(([a, b]) => (window as unknown as Hooks).__send(a!, b!), [id, body]),
+  adopt: (temp: string, real: string) =>
+    page.evaluate(([a, b]) => (window as unknown as Hooks).__adopt(a!, b!), [temp, real]),
+  echo: (row: { id: string; mine: boolean; body: string }) =>
+    page.evaluate((r) => (window as unknown as Hooks).__echo(r), row),
+  hold: (id: string) =>
+    page.evaluate((m) => {
+      (window as unknown as Hooks).__node = document.querySelector(`[data-msg-id="${m}"]`);
+    }, id),
+  /** Is the held node the one now on screen under this id, still attached? */
+  sameAs: (id: string) =>
+    page.evaluate((m) => {
+      const held = (window as unknown as Hooks).__node;
+      return { identical: held === document.querySelector(`[data-msg-id="${m}"]`), attached: Boolean(held?.isConnected) };
+    }, id),
+});
+
 const frames = (page: Page) =>
   page.evaluate(() => new Promise<void>((done) => requestAnimationFrame(() => requestAnimationFrame(() => done()))));
 
-/** The arrival animations running or filled on the bubble with this id. */
-const arrivals = (page: Page, id: string) =>
+/*
+ * THE ARRIVALS ARE READ FROM `animationstart`, NOT FROM `getAnimations()`.
+ * The log is installed before the thread mounts and records every CSS
+ * animation that STARTS on a bubble, so a short arrival that has already
+ * finished on a loaded machine is still counted, and a restart is a second
+ * event rather than a start time to compare.
+ */
+const LOG = `
+  window.__starts = [];
+  document.addEventListener("animationstart", (event) => {
+    const id = event.target instanceof Element ? event.target.getAttribute("data-msg-id") : null;
+    if (id) window.__starts.push({ id, name: event.animationName });
+  }, true);
+`;
+
+/** The arrival animations that have started on the bubble with this id (or these ids). */
+const arrivals = (page: Page, ...ids: string[]) =>
   page.evaluate(
-    (msg) =>
-      document
-        .querySelector(`[data-msg-id="${msg}"]`)!
-        .getAnimations()
-        .map((a) => ({ name: (a as CSSAnimation).animationName, start: a.startTime })),
-    id,
+    (list) =>
+      (window as unknown as { __starts: { id: string; name: string }[] }).__starts.filter((start) =>
+        list.includes(start.id),
+      ),
+    ids,
   );
 
 describe.skipIf(!hasBrowser && !process.env.CI)("a sent message arrives once", () => {
   it("carries the arrival class optimistically, stays the same node when the real id lands, and does not restart", async () => {
-    const { page, close } = await mountInBrowser({ entry, css: CSS });
+    const { page, close } = await mountInBrowser({ entry, css: CSS, init: LOG });
     try {
       /* The history the thread opened with carries no arrival class. */
       for (const id of ["m1", "m2"]) {
@@ -87,12 +164,10 @@ describe.skipIf(!hasBrowser && !process.env.CI)("a sent message arrives once", (
 
       /* Send: the optimistic bubble arrives with the class, and one animation. */
       await page.evaluate(() => (window as unknown as { __send: (id: string) => void }).__send("local-1"));
-      await frames(page);
+      await expect.poll(() => arrivals(page, "local-1")).toHaveLength(1);
       const optimistic = await page.locator('[data-msg-id="local-1"]').getAttribute("class");
       expect(optimistic).toContain("nf-msg-in--mine");
-      const before = await arrivals(page, "local-1");
-      expect(before).toHaveLength(1);
-      expect(before[0]!.name).toBe("nf-msg-in-right");
+      expect((await arrivals(page, "local-1"))[0]!.name).toBe("nf-msg-in-right");
 
       /* Hold the node, then adopt the real id mid-flight. */
       await page.evaluate(() => {
@@ -109,11 +184,79 @@ describe.skipIf(!hasBrowser && !process.env.CI)("a sent message arrives once", (
       expect(same, "the bubble is the same DOM node after adoption").toEqual({ identical: true, attached: true });
       expect(await page.locator('[data-msg-id="local-1"]').count()).toBe(0);
 
-      /* Same single animation, never restarted: the start time is unchanged. */
-      const after = await arrivals(page, "db-9");
-      expect(after).toHaveLength(1);
-      expect(after[0]!.start).toBe(before[0]!.start);
+      /* Same single animation, never restarted: the adopted bubble has started
+         no second animation, under either of its ids. */
+      await frames(page);
+      expect(await arrivals(page, "local-1", "db-9")).toHaveLength(1);
       expect(await page.locator('[data-msg-id="db-9"]').getAttribute("class")).toBe(optimistic);
+    } finally {
+      await close();
+    }
+  });
+
+  it("result first, then the echo: the same node, the class kept, the arrival not cut short or restarted", async () => {
+    const { page, close } = await mountInBrowser({ entry: echoEntry, css: CSS, init: LOG });
+    try {
+      const h = hooks(page);
+      await h.send("local-1", "Sent");
+      await expect.poll(() => arrivals(page, "local-1")).toHaveLength(1);
+      const playing = await page.locator('[data-msg-id="local-1"]').getAttribute("class");
+      expect(playing).toContain("nf-msg-in--mine");
+      await h.hold("local-1");
+      await h.adopt("local-1", "db-9");
+      /* The echo lands inside the arrival (well under its 240ms). */
+      await h.echo({ id: "db-9", mine: true, body: "Sent" });
+      await frames(page);
+      expect(await h.sameAs("db-9")).toEqual({ identical: true, attached: true });
+      expect(await page.locator('[data-msg-id="db-9"]').count()).toBe(1);
+      /* The class is still on, so the animation was not removed mid-flight. */
+      expect(await page.locator('[data-msg-id="db-9"]').getAttribute("class")).toBe(playing);
+      expect(await arrivals(page, "local-1", "db-9")).toHaveLength(1);
+      /* The set the thread opened with was not touched by the echo. */
+      expect(await page.evaluate(() => [...(window as unknown as { __openedWith: Set<string> }).__openedWith])).toEqual([
+        "m1",
+        "m2",
+      ]);
+    } finally {
+      await close();
+    }
+  });
+
+  it("echo first, then the result: the row takes the temporary bubble's node, and nothing jumps", async () => {
+    const { page, close } = await mountInBrowser({ entry: echoEntry, css: CSS, init: LOG });
+    try {
+      const h = hooks(page);
+      await h.send("local-1", "Sent");
+      await expect.poll(() => arrivals(page, "local-1")).toHaveLength(1);
+      const playing = await page.locator('[data-msg-id="local-1"]').getAttribute("class");
+      await h.hold("local-1");
+      await h.echo({ id: "db-9", mine: true, body: "Sent" });
+      await frames(page);
+      expect(await h.sameAs("db-9"), "the echo row is the optimistic bubble's own node").toEqual({
+        identical: true,
+        attached: true,
+      });
+      expect(await page.locator('[data-msg-id="local-1"]').count()).toBe(0);
+      expect(await page.locator('[data-msg-id="db-9"]').getAttribute("class")).toBe(playing);
+      /* The late result finds the real id present: still one bubble, same node. */
+      await h.adopt("local-1", "db-9");
+      await frames(page);
+      expect(await page.locator(".nf-msg").count()).toBe(3);
+      expect(await h.sameAs("db-9")).toEqual({ identical: true, attached: true });
+      expect(await arrivals(page, "local-1", "db-9")).toHaveLength(1);
+    } finally {
+      await close();
+    }
+  });
+
+  it("a message of mine from another device arrives normally, with its own arrival", async () => {
+    const { page, close } = await mountInBrowser({ entry: echoEntry, css: CSS, init: LOG });
+    try {
+      const h = hooks(page);
+      await h.echo({ id: "db-12", mine: true, body: "From my phone" });
+      await expect.poll(() => arrivals(page, "db-12")).toHaveLength(1);
+      expect(await page.locator('[data-msg-id="db-12"]').getAttribute("class")).toContain("nf-msg-in--mine");
+      expect(await page.locator(".nf-msg").count()).toBe(3);
     } finally {
       await close();
     }
