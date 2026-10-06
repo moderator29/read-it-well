@@ -39,6 +39,16 @@
  * than a breath, so it starts on time and takes 240ms (the `base` rung). The
  * doors are live from the first frame; nothing here blocks a tap.
  *
+ * AFTER THE STARTUP, every beat above is counted from the startup's door
+ * rather than from the page's first frame: `--nf-gsm-after` is the door's
+ * time (`--nf-startup-door`, startup.css, 1150ms on the beats' own schedule,
+ * moved by a skip or a hold) and 0 on any other visit. Both screens run on
+ * one clock, the stylesheet's, so the entrance comes out of the door on time
+ * even while a busy phone is still hydrating; it used to wait, paused, for a
+ * script to flip `data-startup` and arrived as late as that script did.
+ * `WelcomeIntro` marks the stage `data-startup-pin` so the startup pins the
+ * door's time here before it lets go of the root's, and nothing jumps.
+ *
  * ALIVE, NOT LOOPING. The aurora drifts for as long as the screen is open
  * (the one thing the motion system lets run forever). The primary door's
  * bloom pulses on a 4s breath three times and then rests, because the north
@@ -71,6 +81,8 @@
     --nf-tx: 0;
     --nf-ty: 0;
     --nf-pull: 0;
+    /* When the entrance starts: the startup's door, or at once. */
+    --nf-gsm-after: var(--nf-startup-door, 0ms);
     --nf-gsm-wash: color-mix(in oklab, var(--nf-brand-primary) 22%, transparent);
     --nf-gsm-aurora: color-mix(in oklab, var(--nf-brand-primary) 10%, transparent);
 
@@ -114,7 +126,7 @@
       transparent 72%
     );
     transform-origin: 50% calc(var(--nf-lockup-top) + 10%);
-    animation: nf-gsm-bloom var(--nf-duration-base) var(--nf-ease-standard) both;
+    animation: nf-gsm-bloom var(--nf-duration-base) var(--nf-ease-standard) var(--nf-gsm-after) both;
   }
 
   /* 3: the aurora, the existing slow drift, damped to a breath of blue. */
@@ -142,7 +154,9 @@
   }
 
   /* 2: the mark, small, exactly where the startup's lockup settles. It has
-     no entrance: it is already here. */
+     no entrance: after the startup, the startup's own mark lands here and
+     this one is kept out of sight until it has (startup.css), so there is
+     one mark, continuous; on any other visit it is simply here. */
   .nf-gsm__mark {
     position: absolute;
     top: var(--nf-lockup-top);
@@ -189,7 +203,7 @@
     letter-spacing: -0.02em;
     text-wrap: balance;
     color: var(--nf-content-primary);
-    animation: nf-gsm-depth 400ms var(--nf-ease-entrance) 120ms both;
+    animation: nf-gsm-depth 400ms var(--nf-ease-entrance) calc(var(--nf-gsm-after) + 120ms) both;
   }
   .nf-gsm__quiet {
     max-width: 20rem;
@@ -199,7 +213,7 @@
     line-height: 1.5;
     text-wrap: pretty;
     color: var(--nf-content-secondary);
-    animation: nf-gsm-rise-8 var(--nf-duration-slow) var(--nf-ease-standard) 240ms both;
+    animation: nf-gsm-rise-8 var(--nf-duration-slow) var(--nf-ease-standard) calc(var(--nf-gsm-after) + 240ms) both;
   }
 
   /* ------------------------------------------------------------- the doors */
@@ -221,22 +235,22 @@
   }
   .nf-gsm__door--primary {
     animation:
-      nf-gsm-rise-24 360ms var(--nf-ease-entrance) 420ms both,
-      nf-gsm-breathe var(--nf-duration-base) var(--nf-ease-spring) 840ms;
+      nf-gsm-rise-24 360ms var(--nf-ease-entrance) calc(var(--nf-gsm-after) + 420ms) both,
+      nf-gsm-breathe var(--nf-duration-base) var(--nf-ease-spring) calc(var(--nf-gsm-after) + 840ms);
   }
   /* The primary's bloom (the platform's lit pool, `buttons.css`) settles in
      behind it as it lands, breathes three times, and pulls in on a press. */
   .nf-gsm__door--primary::after {
     transition: scale var(--nf-duration-press) var(--nf-ease-press);
     animation:
-      nf-gsm-pool-in 360ms var(--nf-ease-entrance) 420ms both,
-      nf-gsm-pulse 4s var(--nf-ease-standard) 1080ms 3;
+      nf-gsm-pool-in 360ms var(--nf-ease-entrance) calc(var(--nf-gsm-after) + 420ms) both,
+      nf-gsm-pulse 4s var(--nf-ease-standard) calc(var(--nf-gsm-after) + 1080ms) 3;
   }
   .nf-gsm__door--primary:active::after {
     scale: 0.9 0.7;
   }
   .nf-gsm__door--secondary {
-    animation: nf-gsm-rise-24 360ms var(--nf-ease-entrance) 480ms both;
+    animation: nf-gsm-rise-24 360ms var(--nf-ease-entrance) calc(var(--nf-gsm-after) + 480ms) both;
   }
 
   .nf-gsm__legal {
@@ -245,7 +259,7 @@
     font-weight: 400;
     line-height: 1.5;
     color: var(--nf-content-muted);
-    animation: nf-gsm-rise-8 360ms var(--nf-ease-standard) 540ms both;
+    animation: nf-gsm-rise-8 360ms var(--nf-ease-standard) calc(var(--nf-gsm-after) + 540ms) both;
   }
   .nf-gsm__legal a {
     color: var(--nf-content-secondary);
@@ -334,19 +348,6 @@
     }
   }
 
-  /* ------------------------------------------------- after the startup */
-
-  /* When the app opens on Get Started, the startup sequence is drawn over it
-     and the entrance waits for the door: paused at its first frame (every
-     entrance fills backwards, so that is the "from" state), and it runs
-     the moment the ground parts (`data-startup="open"`), so the two screens
-     are one movement. The mark is not in this list: it has no entrance. */
-  :root[data-splash="on"]:not([data-startup="open"]) .nf-gsm :is(.nf-gsm__line, .nf-gsm__quiet, .nf-gsm__door, .nf-gsm__legal),
-  :root[data-splash="on"]:not([data-startup="open"]) .nf-gsm__wash::before,
-  :root[data-splash="on"]:not([data-startup="open"]) .nf-gsm__door--primary::after {
-    animation-play-state: paused;
-  }
-
   /* ---------------------------------------------------------------- quiet */
 
   /* Data saver and a low-end device: no blur, and the aurora stands still. */
@@ -364,7 +365,7 @@
     animation: none;
   }
   :root[data-motion="calm"] .nf-gsm__front {
-    animation: nf-gsm-fade var(--nf-duration-fast) linear both;
+    animation: nf-gsm-fade var(--nf-duration-fast) var(--nf-ease-standard) both;
   }
   @media (prefers-reduced-motion: reduce) {
     .nf-gsm__wash::before,
@@ -377,8 +378,15 @@
     .nf-gsm__drift {
       animation: none;
     }
+    /* The other half of the startup's quiet crossfade: the front fades in
+       as the overlay fades out, at its door. Opted out of the reduced-motion
+       floor (`animation.css`) on this element only, or the floor makes it a
+       cut; the standard curve, because a linear opacity fade reads as a
+       flicker at its end. */
     .nf-gsm__front {
-      animation: nf-gsm-fade 160ms linear both;
+      --nf-reduced-duration: 160ms;
+      --nf-reduced-delay: var(--nf-gsm-after);
+      animation: nf-gsm-fade 160ms var(--nf-ease-standard) var(--nf-gsm-after) both;
     }
     .nf-gsm__layer,
     .nf-gsm__mark,

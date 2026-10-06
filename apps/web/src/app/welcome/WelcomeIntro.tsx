@@ -66,7 +66,10 @@ export function WelcomeIntro({ t, next = null }: { t: WelcomeCopy; next?: string
 
   return (
     <main id="main" className="nf-gs nf-gsm-page" data-testid="welcome-intro">
-      <div ref={stage} className="nf-gsm">
+      {/* `data-startup-pin`: the entrance is timed from the startup's door
+          (get-started.css), and the startup pins that time here before it
+          lets go of the root's, so nothing jumps when it does. */}
+      <div ref={stage} className="nf-gsm" data-startup-pin="">
         <div className="nf-gsm__layer nf-gsm__wash" aria-hidden="true" />
         <div className="nf-gsm__layer nf-gsm__aurora" aria-hidden="true">
           <span className="nf-gsm__drift nf-gsm__drift--a" />

@@ -1,25 +1,28 @@
 /**
  * The startup's inline script, run against a small stand-in for the page, so
- * WHEN the door opens and WHEN the flag is released can be tested to the
- * millisecond without a browser (D31; MOTION_SYSTEM.md sections 1 and 3).
- * The real thing, with a real finger and a real stylesheet, is
- * `StartupSequence.dom.test.tsx`.
+ * what it does to the door's time and WHEN the flag is released can be tested
+ * to the millisecond without a browser (D31; MOTION_SYSTEM.md sections 1 and
+ * 3). The real thing, with a real finger, a real stylesheet and a blocked
+ * main thread, is `StartupSequence.dom.test.tsx`.
  *
- * What this holds the script to, from the audit of 6 October 2026:
- *   - the overlay is never on screen for more than four seconds, whatever
- *     the stream does (a stalled response used to hold it forever);
- *   - a key skips it, once, as a tap does;
- *   - the tap's own click is eaten once and only once;
- *   - nothing can leave `data-splash="on"` behind, including the platform's
- *     reduced-motion setting switching on halfway through;
- *   - under reduced motion it is a crossfade the moment the page is there.
+ * Since round 5 the door is the stylesheet's (`--nf-startup-door`, 1150ms),
+ * and this script only moves that number. What this holds it to:
+ *   - ready early it does nothing to the door: the stylesheet opens it;
+ *   - a page still streaming moves the door to the four-second ceiling, and
+ *     its arrival moves it back, to now or to 1150ms;
+ *   - a tap or a key before the door moves it to now; a tap's own click is
+ *     eaten once and only once; a pointer after the door is the member's,
+ *     judged by when the finger came down, not when a busy thread said so;
+ *   - nothing can leave `data-splash="on"` behind, and the door's time is
+ *     pinned on what is timed from it before the root lets go;
+ *   - the native splash comes down on the first frames whatever the gate said.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  BREATH_CEILING_MS,
   GHOST_CLICK_CAP_MS,
   GHOST_CLICK_WINDOW_MS,
   STARTUP_CEILING_MS,
+  STARTUP_DOOR_MS,
   STARTUP_GATE_SCRIPT,
   STARTUP_RELEASE_MS,
   STARTUP_SCRIPT,
@@ -40,55 +43,101 @@ class Target extends EventTarget {
   }
 }
 
+/** An inline style: what the script writes on the root and on a pinned stage. */
+function style() {
+  const props = new Map<string, string>();
+  return {
+    props,
+    setProperty: (k: string, v: string) => void props.set(k, v),
+    removeProperty: (k: string) => void props.delete(k),
+    getPropertyValue: (k: string) => props.get(k) ?? "",
+  };
+}
+
 type Page = {
-  root: { dataset: Record<string, string | undefined> };
+  root: { dataset: Record<string, string | undefined>; style: ReturnType<typeof style> };
   document: EventTarget & { readyState: string };
-  window: EventTarget;
+  window: EventTarget & { Capacitor?: unknown };
   overlay: EventTarget;
-  motion: EventTarget & { matches: boolean };
+  stage: { style: ReturnType<typeof style> };
+  hides: unknown[];
+  /** The sequence's clock: what the overlay's door animation reads now. */
+  now: () => number;
 };
 
-function page({ loading = true, reduced = false } = {}): Page {
-  const root = { dataset: { splash: "on" } as Record<string, string | undefined> };
-  const overlay = new Target();
+function page({ loading = true, pending = false, native = false } = {}): Page {
+  const t0 = Date.now();
+  const now = () => Date.now() - t0;
+  const root = { dataset: { splash: "on" } as Record<string, string | undefined>, style: style() };
+  const overlay = Object.assign(new Target(), { getAnimations: () => [{ currentTime: now() }] });
+  const stage = { style: style() };
+  const comments = pending ? [{ data: "$?" }, { data: "/$" }] : [{ data: "$" }, { data: "/$" }];
   const document = Object.assign(new Target(), {
     readyState: loading ? "loading" : "interactive",
     documentElement: root,
+    body: {},
     querySelector: (selector: string) => (selector === ".nf-startup" ? overlay : null),
+    querySelectorAll: (selector: string) => (selector === "[data-startup-pin]" ? [stage] : []),
+    createTreeWalker: () => {
+      let i = -1;
+      return { nextNode: () => comments[++i] ?? null };
+    },
   });
-  const window = new Target();
-  const motion = Object.assign(new Target(), { matches: reduced });
-  return { root, document, window, overlay, motion };
+  const hides: unknown[] = [];
+  const window = Object.assign(new Target(), {
+    Capacitor: native
+      ? { isNativePlatform: () => true, nativePromise: (...args: unknown[]) => (hides.push(args), Promise.resolve()) }
+      : undefined,
+  });
+  return { root, document, window, overlay, stage, hides, now };
 }
 
-function run(p: Page): void {
+function run(p: Page, { reduced = false, broken = false, seconds = false } = {}): void {
   const fn = new Function(
     "document",
     "window",
-    "matchMedia",
     "setTimeout",
     "clearTimeout",
     "requestAnimationFrame",
+    "getComputedStyle",
+    "performance",
     STARTUP_SCRIPT,
   );
   fn(
     p.document,
     p.window,
-    () => p.motion,
     (cb: () => void, ms: number) => setTimeout(cb, ms),
     (id: number) => clearTimeout(id),
-    () => 0,
+    (cb: () => void) => (cb(), 0),
+    () => {
+      if (broken) throw new Error("no style");
+      const quiet = seconds ? " 0.6s" : " 600ms";
+      const full = seconds ? ` ${STARTUP_DOOR_MS / 1000}s` : ` ${STARTUP_DOOR_MS}ms`;
+      return { getPropertyValue: (k: string) => p.root.style.getPropertyValue(k) || (reduced ? quiet : full) };
+    },
+    { now: () => Date.now() },
   );
 }
 
-function animationEnd(target: EventTarget, name: string): void {
-  target.dispatchEvent(Object.assign(new Event("animationend"), { animationName: name }));
+/** The door's time as the stylesheet now reads it. */
+const door = (p: Page) => p.root.style.getPropertyValue("--nf-startup-door") || "stylesheet";
+
+/** An event, stamped `ago` milliseconds before now (a busy thread hands it over late). */
+function event(type: string, init: Record<string, unknown> = {}, ago = 0): Event {
+  const e = Object.assign(new Event(type, { cancelable: true }), init);
+  Object.defineProperty(e, "timeStamp", { value: Date.now() - ago });
+  return e;
+}
+
+function animation(target: EventTarget, type: "animationstart" | "animationend", name: string): void {
+  const e = Object.assign(new Event(type), { animationName: name });
+  target.dispatchEvent(e);
 }
 
 function click(target: EventTarget): Event {
-  const event = new Event("click", { cancelable: true });
-  target.dispatchEvent(event);
-  return event;
+  const e = new Event("click", { cancelable: true });
+  target.dispatchEvent(e);
+  return e;
 }
 
 beforeEach(() => {
@@ -99,73 +148,130 @@ afterEach(() => {
 });
 
 describe("the startup's door", () => {
-  it("still completes when the page is ready early: it opens on the breath, not before", () => {
+  it("ready early, leaves the door to the stylesheet and releases the flag after it", () => {
     const p = page();
     run(p);
-    vi.advanceTimersByTime(100);
     p.document.dispatchEvent(new Event("DOMContentLoaded"));
-    expect(p.root.dataset.startup).toBeUndefined();
-    vi.advanceTimersByTime(1050);
-    animationEnd(p.overlay, "nf-startup-breath");
+    expect(door(p)).toBe("stylesheet");
+    vi.advanceTimersByTime(STARTUP_DOOR_MS);
+    animation(p.overlay, "animationstart", "nf-startup-door");
     expect(p.root.dataset.startup).toBe("open");
     expect(p.root.dataset.splash).toBe("on");
-    animationEnd(p.overlay, "nf-startup-door");
+    animation(p.overlay, "animationend", "nf-startup-door");
     expect(p.root.dataset.splash).toBe("done");
   });
 
-  it("holds while the page has not arrived, and never past the four-second ceiling", () => {
-    const p = page();
-    run(p);
-    vi.advanceTimersByTime(BREATH_CEILING_MS);
-    expect(p.root.dataset.startup).toBeUndefined();
-    vi.advanceTimersByTime(STARTUP_CEILING_MS - BREATH_CEILING_MS - 1);
-    expect(p.root.dataset.startup).toBeUndefined();
+  it("reads the stylesheet's door in seconds as well as milliseconds (a minified build writes 1.15s)", () => {
+    const p = page({ loading: false });
+    run(p, { seconds: true });
+    vi.advanceTimersByTime(STARTUP_DOOR_MS + STARTUP_RELEASE_MS - 1);
+    expect(p.root.dataset.splash).toBe("on");
     vi.advanceTimersByTime(1);
-    expect(STARTUP_CEILING_MS).toBe(4000);
-    expect(p.root.dataset.startup).toBe("open");
+    expect(p.root.dataset.splash).toBe("done");
+
+    const quiet = page({ pending: true });
+    run(quiet, { reduced: true, seconds: true });
+    vi.advanceTimersByTime(200);
+    quiet.document.dispatchEvent(new Event("DOMContentLoaded"));
+    expect(door(quiet)).toBe("600ms");
   });
 
   it("releases the flag after the door even when the door never reports (a hidden overlay, a hidden tab)", () => {
     const p = page({ loading: false });
     run(p);
-    vi.advanceTimersByTime(BREATH_CEILING_MS);
-    expect(p.root.dataset.startup).toBe("open");
+    vi.advanceTimersByTime(STARTUP_DOOR_MS + STARTUP_RELEASE_MS - 1);
     expect(p.root.dataset.splash).toBe("on");
-    vi.advanceTimersByTime(STARTUP_RELEASE_MS);
+    vi.advanceTimersByTime(1);
+    expect(p.root.dataset.splash).toBe("done");
+    expect(p.root.dataset.startup).toBe("open");
+  });
+
+  it("pins the door's time on what is timed from it, then lets go of the root's", () => {
+    const p = page();
+    run(p);
+    vi.advanceTimersByTime(300);
+    p.document.dispatchEvent(event("keydown", { key: "a" }));
+    expect(door(p)).toBe("300ms");
+    animation(p.overlay, "animationend", "nf-startup-door");
+    expect(p.stage.style.getPropertyValue("--nf-startup-door")).toBe("300ms");
+    expect(p.root.style.getPropertyValue("--nf-startup-door")).toBe("");
     expect(p.root.dataset.splash).toBe("done");
   });
 
+  it("holds while the page is still streaming, at the four-second ceiling, and opens when it arrives", () => {
+    const p = page({ pending: true });
+    run(p);
+    expect(door(p)).toBe(`${STARTUP_CEILING_MS}ms`);
+    vi.advanceTimersByTime(2000);
+    expect(p.root.dataset.splash).toBe("on");
+    p.document.dispatchEvent(new Event("DOMContentLoaded"));
+    expect(door(p)).toBe("2000ms");
+  });
+
+  it("an early arrival hands the door back to the beats' own time, not to now", () => {
+    const p = page({ pending: true });
+    run(p);
+    vi.advanceTimersByTime(400);
+    p.document.dispatchEvent(new Event("DOMContentLoaded"));
+    expect(door(p)).toBe(`${STARTUP_DOOR_MS}ms`);
+  });
+
   it("is never on for more than the ceiling and the release together, on a stalled stream", () => {
-    const p = page();
+    const p = page({ pending: true });
     run(p);
     vi.advanceTimersByTime(STARTUP_CEILING_MS + STARTUP_RELEASE_MS);
     expect(p.root.dataset.splash).toBe("done");
   });
 
   it("opens on the first key, once, and ignores a lone modifier", () => {
-    const p = page();
+    const p = page({ pending: true });
     run(p);
-    p.document.dispatchEvent(Object.assign(new Event("keydown"), { key: "Shift" }));
+    vi.advanceTimersByTime(500);
+    p.document.dispatchEvent(event("keydown", { key: "Shift" }));
     expect(p.root.dataset.startup).toBeUndefined();
-    p.document.dispatchEvent(Object.assign(new Event("keydown"), { key: "5" }));
+    p.document.dispatchEvent(event("keydown", { key: "5" }));
     expect(p.root.dataset.startup).toBe("open");
+    expect(door(p)).toBe("500ms");
+    vi.advanceTimersByTime(100);
+    p.document.dispatchEvent(event("keydown", { key: "6" }));
+    expect(door(p)).toBe("500ms");
   });
 
   it("opens on a tap, and eats that tap's click once so it cannot land on what is beneath", () => {
     const p = page();
     run(p);
-    p.document.dispatchEvent(new Event("pointerdown"));
+    vi.advanceTimersByTime(250);
+    p.document.dispatchEvent(event("pointerdown"));
     expect(p.root.dataset.startup).toBe("open");
-    p.document.dispatchEvent(new Event("pointerup"));
+    expect(door(p)).toBe("250ms");
+    p.document.dispatchEvent(event("pointerup"));
     expect(click(p.window).defaultPrevented).toBe(true);
     expect(click(p.window).defaultPrevented).toBe(false);
+  });
+
+  it("judges a tap by when the finger came down, not when a busy thread handed it over", () => {
+    const p = page();
+    run(p);
+    vi.advanceTimersByTime(1300);
+    /* Down at 1100, before the door; delivered at 1300, after it. */
+    p.document.dispatchEvent(event("pointerdown", {}, 200));
+    expect(click(p.window).defaultPrevented).toBe(true);
+  });
+
+  it("never eats a tap that came after the door had opened by itself", () => {
+    const p = page({ loading: false });
+    run(p);
+    vi.advanceTimersByTime(STARTUP_DOOR_MS + 50);
+    p.document.dispatchEvent(event("pointerdown"));
+    expect(click(p.window).defaultPrevented).toBe(false);
+    expect(door(p)).toBe("stylesheet");
   });
 
   it("disarms the click guard soon after the finger lifts, so a later tap is never eaten", () => {
     const p = page();
     run(p);
-    p.document.dispatchEvent(new Event("pointerdown"));
-    p.document.dispatchEvent(new Event("pointerup"));
+    p.document.dispatchEvent(event("pointerdown"));
+    p.document.dispatchEvent(event("pointerup"));
     vi.advanceTimersByTime(GHOST_CLICK_WINDOW_MS);
     expect(click(p.window).defaultPrevented).toBe(false);
   });
@@ -173,52 +279,45 @@ describe("the startup's door", () => {
   it("disarms the click guard at its cap when no click and no lift ever come", () => {
     const p = page();
     run(p);
-    p.document.dispatchEvent(new Event("pointerdown"));
+    p.document.dispatchEvent(event("pointerdown"));
     vi.advanceTimersByTime(GHOST_CLICK_CAP_MS);
     expect(click(p.window).defaultPrevented).toBe(false);
   });
 
-  it("never eats a click when the door opened by itself", () => {
-    const p = page({ loading: false });
-    run(p);
-    vi.advanceTimersByTime(BREATH_CEILING_MS);
-    p.document.dispatchEvent(new Event("pointerdown"));
-    expect(click(p.window).defaultPrevented).toBe(false);
-  });
-
-  it("is not stranded when reduced motion switches on halfway through", () => {
-    const p = page({ loading: false });
-    run(p);
-    vi.advanceTimersByTime(500);
-    p.motion.matches = true;
-    p.motion.dispatchEvent(new Event("change"));
-    expect(p.root.dataset.startup).toBe("open");
-    vi.advanceTimersByTime(STARTUP_RELEASE_MS);
-    expect(p.root.dataset.splash).toBe("done");
-  });
-
-  it("under reduced motion is a crossfade the moment the page is there, released by the fade's end", () => {
-    const p = page({ reduced: true });
-    run(p);
-    vi.advanceTimersByTime(50);
-    expect(p.root.dataset.startup).toBeUndefined();
+  it("under reduced motion works against the stylesheet's quieter door (600ms)", () => {
+    const p = page({ pending: true });
+    run(p, { reduced: true });
+    vi.advanceTimersByTime(200);
     p.document.dispatchEvent(new Event("DOMContentLoaded"));
-    expect(p.root.dataset.startup).toBe("open");
-    animationEnd(p.overlay, "nf-startup-fade");
+    expect(door(p)).toBe("600ms");
+    vi.advanceTimersByTime(400 + STARTUP_RELEASE_MS);
     expect(p.root.dataset.splash).toBe("done");
   });
 
-  it("releases at once when the overlay is missing, and does nothing when the gate said no", () => {
+  it("releases at once when the overlay is missing, or when anything in it throws", () => {
     const missing = page();
     missing.document = Object.assign(missing.document, { querySelector: () => null });
     run(missing);
     expect(missing.root.dataset.splash).toBe("done");
 
-    const off = page();
+    const broken = page();
+    run(broken, { broken: true });
+    expect(broken.root.dataset.splash).toBe("done");
+    expect(broken.root.dataset.startup).toBe("open");
+  });
+
+  it("does nothing to the page when the gate said no, but still takes the native splash down", () => {
+    const off = page({ native: true });
     off.root.dataset.splash = undefined;
     run(off);
     vi.advanceTimersByTime(STARTUP_CEILING_MS + STARTUP_RELEASE_MS);
     expect(off.root.dataset.startup).toBeUndefined();
+    expect(off.root.dataset.splash).toBeUndefined();
+    expect(off.hides).toEqual([["SplashScreen", "hide", { fadeOutDuration: 160 }]]);
+
+    const on = page({ native: true });
+    run(on);
+    expect(on.hides).toHaveLength(1);
   });
 });
 

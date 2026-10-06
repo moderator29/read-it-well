@@ -89,14 +89,14 @@ export function MotionSettings({ t }: { t: MotionCopy }) {
     refs.current[next]?.focus();
   };
 
-  /* THE OPENING, AGAIN (F1). The sequence is CSS keyed on two root flags: the
-     overlay shows while `data-splash="on"` and its door opens on
-     `data-startup="open"`, and the script that decides WHEN the door opens
-     (`STARTUP_SCRIPT`) ran once at page load and has finished. Flipping the
-     splash flag alone therefore replays only a door, because the page still
-     carries `data-startup="open"` and nothing is left to open it. So the
-     replay does what a first load does: clear the startup flag, raise the
-     splash flag, and run the script again.
+  /* THE OPENING, AGAIN (F1). The sequence is CSS keyed on the root's
+     `data-splash="on"`: raising it starts every beat afresh, the door on the
+     stylesheet's own clock. But the script that moves the door for a tap
+     or a key, and that releases the flag when the door is done
+     (`STARTUP_SCRIPT`), ran once at page load and has finished, and the
+     page still carries the last run's `data-startup="open"`. So the replay
+     does what a first load does: clear the startup flag, raise the splash
+     flag, and run the script again.
 
      The script is inline, and the page's Content Security Policy runs an
      inline script only if it carries the request's nonce. React never hands

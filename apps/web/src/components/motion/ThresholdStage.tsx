@@ -91,9 +91,10 @@ export function ThresholdStage({ welcome }: { welcome: string }) {
     };
     /*
      * THE STARTUP SEQUENCE RELEASES ITSELF (D31, `components/startup`). Its
-     * inline script decides when the door opens (the breath has finished AND
-     * the document has arrived, or a tap) and moves the flag to "done" on the
-     * door's own last keyframe, so this stage must not release it at
+     * door is the stylesheet's (`--nf-startup-door`, 1150ms, which its inline
+     * script moves for a tap, a key or a page still streaming) and the script
+     * moves the flag to "done" on the door's own last keyframe, so this stage
+     * must not release it at
      * hydration: a breathing lockup held for a page that has not arrived is
      * the honest wait, and releasing it here would cut it short. It used to
      * need a 600-second placeholder animation on the overlay to stop exactly

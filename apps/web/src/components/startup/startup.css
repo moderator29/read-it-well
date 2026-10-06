@@ -1,44 +1,64 @@
 /*
  * THE STARTUP SEQUENCE (directive D31, MOTION_SYSTEM.md section 3). The markup
- * is `StartupSequence.tsx`; the one decision CSS cannot make (when the door
- * opens) is `startup-script.ts`. Imported by the component, which the root
- * layout renders, so it is in the root stylesheet and never waits on a chunk.
+ * is `StartupSequence.tsx`; the one thing CSS cannot know (whether the page
+ * has arrived, and whether a finger asked to skip) is `startup-script.ts`.
+ * Imported by the component, which the root layout renders, so it is in the
+ * root stylesheet and never waits on a chunk.
  *
  * On only while the before-paint gate in the root layout has set
- * `data-splash="on"`; the door opens on `data-startup="open"`; gone for good
- * once the script moves the flag to "done" (threshold.css hides `.nf-splash`
- * outside "on").
+ * `data-splash="on"`; gone for good once the script moves the flag to "done"
+ * (threshold.css hides `.nf-splash` outside "on").
  *
  * THE BEATS, against the spec's table:
  *
- *   ground      0 to 120      the leaves are the native splash's navy from
- *                             the first frame; nothing moves for 120ms
- *   mark        120 to 480    turns 12 degrees to 0 and scales 0.86 to 1
- *                             (360ms, land); its six facets arrive from depth
- *                             12ms apart (300ms each, land)
+ *   ground      0 to 120      the bare navy ground, the native splash's own
+ *                             colour and nothing on it, exactly as the system
+ *                             splash left the screen; nothing moves for 120ms
+ *   mark        120 to 480    at the optical centre and twice the size it will
+ *                             end at: turns 12 degrees to 0 and scales 0.86
+ *                             to 1 (360ms, land); its six facets arrive from
+ *                             depth 12ms apart (300ms each, land)
  *   wordmark    380 to 720    letters from depth, 24ms apart, blur 6 to 0
  *                             (244ms each, glide)
  *   edge light  640 to 900    each facet and letter catches the light in
  *                             turn, left to right (160ms each, glide)
  *   breath      900 to 1150   1.0 1.02 1.0 (250ms, drift)
- *   hold        from 1150     only if the page has not arrived: the settled
- *                             lockup keeps breathing, slowly, until it has,
- *                             twice at most (out and back, ending at rest),
- *                             and never past the script's 4,000ms ceiling
- *   door        on open       the leaves part (350ms, leave), the wordmark
- *                             goes with them, the lockup eases out of
- *                             whatever breath it was in (350ms, leave), the
- *                             page is beneath
+ *   door        1150 to 1530  the leaves part (350ms, leave), the wordmark
+ *                             goes with them, and the mark rises out of the
+ *                             parting ground and lands, at its own size, in
+ *                             the first screen's mark (380ms, land): on Get
+ *                             Started and the passcode lock the mark the
+ *                             member sees next IS the one that just assembled
+ *
+ * THE DOOR IS ON THE STYLESHEET'S CLOCK, NOT THE SCRIPT'S. Every part of the
+ * door (and the first screen's entrance beneath it, `get-started.css`, and
+ * the page coming forward, `threshold.css`) is delayed by one number,
+ * `--nf-startup-door`, which is 1150ms: the beats' own schedule. So when the
+ * page is there in time, the door opens at 1150ms on the compositor and no
+ * JavaScript is involved in when. It used to wait for a script to see the
+ * breath's `animationend`, and on a mid-range Android at hydration (4x CPU)
+ * that event arrived 250ms late or not at all, so the sequence held the
+ * product back exactly when the phone was busiest. The script now only MOVES
+ * the number: to the moment of a tap or a key (skip), to the four-second
+ * ceiling while the page is still streaming (the hold), and back to "now, or
+ * 1150ms if that has not passed" when it arrives. The ceiling is therefore
+ * the stylesheet's too: nothing can hold the overlay past it.
+ *
+ * WHERE THE LOCKUP SETTLES. The lockup's box is Get Started's mark
+ * (`app/welcome/lockup.ts`: the same top, the same 2.75rem width, centred)
+ * and the lock's. During the beats it is drawn up from there by a transform
+ * (`--nf-startup-rise`, `--nf-startup-hero`) to the optical centre at twice
+ * the size, and the door's `nf-startup-land` takes the transform away, so
+ * where it lands is the layout's own box and never a measured number.
  *
  * QUIET, under the platform's reduced-motion setting (MOTION_SYSTEM.md
  * section 3, "a 160ms crossfade under reduced motion"): the settled lockup is
- * simply there on the navy, nothing assembles, breathes or parts, and the
- * door is the whole overlay fading out over 160ms. Calm, Off, the splash
- * switch and data saver never show it at all (the gate, `startup-script.ts`).
- *
- * WHERE THE LOCKUP SETTLES. The mark's box is Get Started's
- * (`app/welcome/lockup.ts`: the same top, the same 2.75rem width, centred),
- * so on Get Started the mark is simply still there when the ground parts.
+ * simply there, in the first screen's mark position, nothing assembles,
+ * breathes, rises or parts, and after 600ms (long enough to read as a still
+ * frame rather than a flicker) the whole overlay crossfades away over 160ms.
+ * Calm, Off, the splash switch and data saver never show it at all (the
+ * gate, `startup-script.ts`); there the native splash comes down on the
+ * page's first frame and the page's own entrance is the opening.
  */
 /*
  * THE LAYER ORDER, RESTATED. This sheet can reach the document before
@@ -51,19 +71,42 @@
 @layer theme, base, components, utilities;
 
 @layer components {
+  /* When the door opens, for everything that waits on it. Inherited, so the
+     page beneath reads the same number; the script writes it inline on the
+     root when it moves it. */
+  :root[data-splash="on"] {
+    --nf-startup-door: 1150ms;
+  }
+
   :root[data-splash="on"] .nf-splash.nf-startup {
     --nf-startup-top: calc(env(safe-area-inset-top, 0px) + clamp(3rem, 11dvh, 6.5rem));
     --nf-startup-mark: 2.75rem;
     --nf-startup-word: 5.5rem;
+    /* The lockup's own height at rest: the mark (614 by 587), the gap, the
+       wordmark (766 by 158). */
+    --nf-startup-tall: calc(
+      var(--nf-startup-mark) * 587 / 614 + var(--nf-space-sm) + var(--nf-startup-word) * 158 / 766
+    );
+    /* During the beats the lockup is twice its settled size, its centre at
+       46% of the screen: the optical centre, a little above the middle, where
+       a single mark in silence sits (references 7044, 7114). It scales from
+       its top edge, so this is how far its top travels. */
+    --nf-startup-hero: 2;
+    --nf-startup-rise: calc(46dvh - var(--nf-startup-top) - var(--nf-startup-tall));
 
     position: fixed;
     inset: 0;
     z-index: var(--nf-z-top);
     display: block;
     overflow: hidden;
-    /* A tap anywhere is the skip (startup-script.ts). */
+    /* A tap anywhere is the skip (startup-script.ts) until the door opens;
+       from the door's first frame the overlay lets every tap through (the
+       door's keyframes), because nothing may block interaction (MOTION_SYSTEM
+       principle 9). `forwards`, not `both`: the overlay must catch taps
+       while it waits. */
     pointer-events: auto;
     cursor: default;
+    animation: nf-startup-door 380ms var(--nf-ease-exit) var(--nf-startup-door) forwards;
   }
 
   .nf-startup__leaf {
@@ -74,32 +117,53 @@
   }
   .nf-startup__leaf--a {
     left: 0;
+    animation: nf-startup-leaf-a 350ms var(--nf-ease-exit) var(--nf-startup-door) both;
   }
   .nf-startup__leaf--b {
     right: 0;
+    animation: nf-startup-leaf-b 350ms var(--nf-ease-exit) var(--nf-startup-door) both;
   }
 
   /* ---------------------------------------------------------- the lockup */
 
+  /* The box is the first screen's mark box; the beats happen up and to the
+     centre of it (the backwards fill of `nf-startup-land`), and the door
+     brings it home. */
   .nf-startup__lockup {
     position: absolute;
     top: var(--nf-startup-top);
     left: 50%;
     width: var(--nf-startup-word);
     margin-left: calc(var(--nf-startup-word) / -2);
+    transform-origin: 50% 0;
+    animation: nf-startup-land 380ms var(--nf-ease-entrance) var(--nf-startup-door) both;
+  }
+
+  /* The breath lives on its own element, inside the travel, so a breath at
+     the centre is a breath about the lockup's own middle and never moves it
+     up or down the screen. */
+  .nf-startup__breath {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: var(--nf-space-sm);
     transform-origin: 50% 30%;
+    /*
+     * The hold is bounded: two alternating passes (out, then back) end at rest
+     * at scale 1, 4,800ms after it starts. The door opens by the four-second
+     * ceiling at the latest, which is inside that, so the bound is never the
+     * thing that ends a normal start; it is there so nothing can loop if the
+     * overlay is somehow left on (MOTION_SYSTEM principle 10).
+     *
+     * The settle is third in the list on purpose. It has only a `to`
+     * keyframe, so whatever the breath and the hold beneath it are showing
+     * when the door opens is where it starts, and it eases that to exactly 1
+     * over the door; before the door it adds nothing.
+     */
     animation:
       nf-startup-breath 250ms var(--nf-ease-spring) 900ms,
-      nf-startup-hold 2400ms var(--nf-ease-standard) 1150ms 2 alternate;
-    /* The hold is bounded: two alternating passes (out, then back) end at rest
-       at scale 1, 4,800ms after it starts. The script's ceiling opens the door
-       by four seconds at the latest, which is inside that, so the bound is
-       never the thing that ends a normal start; it is there so nothing can
-       loop if the door is somehow held shut (MOTION_SYSTEM principle 10). */
+      nf-startup-hold 2400ms var(--nf-ease-standard) 1150ms 2 alternate,
+      nf-startup-settle 350ms var(--nf-ease-exit) var(--nf-startup-door) both;
   }
 
   .nf-startup__mark {
@@ -124,6 +188,7 @@
     width: 100%;
     aspect-ratio: 766 / 158;
     color: color-mix(in oklab, var(--nf-content-on-brand) 86%, var(--nf-brand-quiet));
+    animation: nf-startup-out 350ms var(--nf-ease-exit) var(--nf-startup-door) both;
   }
   .nf-startup__letter {
     position: absolute;
@@ -179,57 +244,48 @@
     --nf-x: 90ms;
   }
 
-  /* ------------------------------------------------------------ the door */
+  /* ------------------------------------------------- the first screen's mark */
 
-  /* The overlay stops catching pointers the moment the door opens, so
-     nothing blocks a tap; the skip's own click is eaten once by the script. */
-  :root[data-splash="on"][data-startup="open"] .nf-splash.nf-startup {
-    pointer-events: none;
-    animation: nf-startup-door 350ms var(--nf-ease-exit) both;
-  }
-  :root[data-startup="open"] .nf-startup__leaf--a {
-    animation: nf-startup-leaf-a 350ms var(--nf-ease-exit) both;
-  }
-  :root[data-startup="open"] .nf-startup__leaf--b {
-    animation: nf-startup-leaf-b 350ms var(--nf-ease-exit) both;
-  }
   /*
-   * The lockup EASES out of whatever breath it was in. Taking its animation
-   * away (`animation: none`, as this read before) snapped it from as much as
-   * 1.015 to 1 in one frame. Instead the breath and the hold keep their
-   * places in the list (the browser matches running animations by name, so
-   * neither restarts) and a third animation is added on top with only a `to`
-   * keyframe: its start is whatever the two beneath it are showing at that
-   * moment, and it settles that to 1 over the door's 350ms on `leave`. On Get
-   * Started and the lock the mark therefore lands at exactly their mark's
-   * size.
+   * Any first screen but Get Started or the passcode lock: the mark has
+   * nowhere to land, so it fades as it rises, with the wordmark. On those two
+   * it lands, because their own mark is in exactly the lockup's box
+   * (`app/welcome/lockup.ts`; the lock's `--nf-passcode-mark-top`), and theirs
+   * is kept out of sight until it has (below), so launching and unlocking
+   * read as one movement with one mark (D32). The lock lifts its mark on a
+   * short window (passcode.css, 700px and less), so there the startup's mark
+   * leaves too.
    */
-  :root[data-startup="open"] .nf-startup__lockup {
+  :root[data-splash="on"]:not(:has(.nf-gsm, .nf-passcode--overlay)) .nf-startup__mark {
     animation:
-      nf-startup-breath 250ms var(--nf-ease-spring) 900ms,
-      nf-startup-hold 2400ms var(--nf-ease-standard) 1150ms 2 alternate,
-      nf-startup-settle 350ms var(--nf-ease-exit) both;
-  }
-  :root[data-startup="open"] .nf-startup__word {
-    animation: nf-startup-out 350ms var(--nf-ease-exit) both;
-  }
-  /* Any first screen but Get Started or the passcode lock: the mark leaves
-     with the wordmark. On those two it stays, because their own mark is
-     underneath it in exactly the same box (`app/welcome/lockup.ts`; the
-     lock's `--nf-passcode-mark-top`), so launching and unlocking read as one
-     movement (D32). The lock lifts its mark on a short window (passcode.css,
-     700px and less), so there the startup's mark leaves too. */
-  :root[data-startup="open"]:not(:has(.nf-gsm, .nf-passcode--overlay)) .nf-startup__mark {
-    animation: nf-startup-out 350ms var(--nf-ease-exit) both;
+      nf-startup-turn 360ms var(--nf-ease-entrance) 120ms both,
+      nf-startup-out 350ms var(--nf-ease-exit) var(--nf-startup-door) both;
   }
   @media (max-height: 700px) {
-    :root[data-startup="open"]:has(.nf-passcode--overlay):not(:has(.nf-gsm)) .nf-startup__mark {
-      animation: nf-startup-out 350ms var(--nf-ease-exit) both;
+    :root[data-splash="on"]:has(.nf-passcode--overlay):not(:has(.nf-gsm)) .nf-startup__mark {
+      animation:
+        nf-startup-turn 360ms var(--nf-ease-entrance) 120ms both,
+        nf-startup-out 350ms var(--nf-ease-exit) var(--nf-startup-door) both;
     }
+  }
+  /* The first screen's own mark is not on screen until the startup's has
+     landed on it: through the parting leaves there is one mark, travelling,
+     never a second one already waiting at the top. A held first keyframe
+     for exactly that long, then nothing. */
+  :root[data-splash="on"] :is(.nf-gsm__vmark, .nf-passcode--overlay .nf-passcode__mark) {
+    animation: nf-startup-under 1ms step-end calc(var(--nf-startup-door) + 380ms) backwards;
   }
 
   /* ----------------------------------------------------------- keyframes */
 
+  @keyframes nf-startup-land {
+    from {
+      transform: translateY(var(--nf-startup-rise)) scale(var(--nf-startup-hero));
+    }
+    to {
+      transform: none;
+    }
+  }
   @keyframes nf-startup-turn {
     from {
       transform: rotate(-12deg) scale(0.86);
@@ -294,10 +350,20 @@
       opacity: 0;
     }
   }
-  /* The overlay itself only has to stay visible for the door and then stop
-     painting; its `animationend` is the script's signal to release it. */
+  @keyframes nf-startup-under {
+    from {
+      opacity: 0;
+    }
+  }
+  /* The overlay itself stays visible for the door, lets every tap through
+     from its first frame, and then stops painting; its `animationend` is the
+     script's signal to release the flag. */
   @keyframes nf-startup-door {
+    from {
+      pointer-events: none;
+    }
     to {
+      pointer-events: none;
       visibility: hidden;
     }
   }
@@ -310,29 +376,40 @@
   /*
    * QUIET: the platform's reduced-motion setting (MOTION_SYSTEM.md section 3,
    * "a 160ms crossfade under reduced motion"). The settled lockup is drawn
-   * still, exactly where the full sequence would have settled it, and the
-   * door is the overlay fading out over 160ms, linear, with nothing
-   * travelling. The script opens it the moment the document has arrived
-   * (there is no breath to wait for), or on a tap, a key or the ceiling, and
-   * releases the flag on this fade's `animationend`.
+   * still, exactly where the first screen's mark is, so nothing in the
+   * crossfade travels: the ground and the wordmark dissolve and the mark is
+   * the same mark before and after. 600ms of still frame (a lockup that
+   * appeared and vanished inside 300ms would read as a flash, which is the
+   * opposite of what the setting asks for), then the fade, on the
+   * `standard` curve rather than linear, which reads as a flicker at its end.
    *
+   * The duration and the delay are opted out of the reduced-motion floor
+   * (`animation.css`) through its registered properties, on this element
+   * only: without them the floor makes the fade instant at the first frame.
    * The same rules catch the setting being switched on WHILE the sequence is
    * playing: the lockup stops where it is wanted and the fade takes over.
-   * `threshold.css` hides `.nf-splash` under reduced motion with a lower
-   * specificity than the overlay rule above, so it does not reach this one.
    */
   @media (prefers-reduced-motion: reduce) {
-    .nf-startup :is(.nf-startup__leaf, .nf-startup__lockup, .nf-startup__mark, .nf-startup__word, .nf-startup__facet, .nf-startup__letter) {
+    :root[data-splash="on"] {
+      --nf-startup-door: 600ms;
+    }
+    .nf-startup :is(.nf-startup__leaf, .nf-startup__lockup, .nf-startup__breath, .nf-startup__mark, .nf-startup__word, .nf-startup__facet, .nf-startup__letter) {
       animation: none !important;
     }
-    :root[data-splash="on"][data-startup="open"] .nf-splash.nf-startup {
-      animation: nf-startup-fade 160ms linear both;
+    :root[data-splash="on"] .nf-splash.nf-startup {
+      --nf-reduced-duration: 160ms;
+      --nf-reduced-delay: var(--nf-startup-door);
+      animation: nf-startup-fade 160ms var(--nf-ease-standard) var(--nf-startup-door) forwards;
     }
   }
   @keyframes nf-startup-fade {
+    from {
+      pointer-events: none;
+    }
     to {
       opacity: 0;
       visibility: hidden;
+      pointer-events: none;
     }
   }
 }

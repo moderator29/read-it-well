@@ -1,53 +1,74 @@
 /**
  * THE STARTUP'S ONE PIECE OF SCRIPT, INLINE AND NONCE-CARRYING.
  *
- * The sequence itself is CSS (`startup.css`): it starts on the first frame
- * and never waits for a JavaScript chunk. This string, written into the page
- * right after the overlay by `StartupSequence`, decides only WHEN THE DOOR
- * OPENS, because that is the one thing CSS cannot know:
+ * The sequence is CSS (`startup.css`), and since round 5 so is its door: it
+ * opens at `--nf-startup-door`, 1150ms on the stylesheet's own clock, with
+ * no script involved in when. This string, written into the page right after
+ * the overlay by `StartupSequence`, only MOVES that number, because CSS
+ * cannot know the two things that move it:
  *
- *   READY EARLY   the sequence still completes. The door opens when BOTH the
- *                 breath beat has finished (its own `animationend`, so the
- *                 script and the stylesheet can never disagree about time)
- *                 AND the document has finished arriving (DOMContentLoaded:
- *                 the streamed page is all there). A brand moment cut short
- *                 looks broken (D31).
- *   NOT READY     the lockup holds, settled, with the breath continuing
- *                 (`startup.css`, the hold), and the door opens the moment
- *                 the document has arrived. It never pretends to finish.
- *   CEILING       ...but never for longer than `STARTUP_CEILING_MS` from the
- *                 moment the overlay is on the page. A stream that stalls
- *                 after the shell has painted leaves a usable shell beneath,
- *                 and a brand moment held over a usable app is the eight
- *                 seconds D31 exists to remove, with better production values.
- *                 Four seconds is the old splash's own give-up
- *                 (`ThresholdStage`), so the two agree.
- *   TAPPED        the door opens at once, on any pointer, at any point; and
- *                 the click that tap would otherwise deliver to whatever is
- *                 now beneath the finger (Get Started's doors, a card on
- *                 /home) is swallowed once (see "the ghost click" below).
- *   A KEY         the door opens at once on the first key, once. The key is
- *                 not swallowed: a digit typed at a locked cold start is the
+ *   READY EARLY   nothing to do. The sequence completes on its schedule and
+ *                 the door opens at 1150ms on the compositor, even while the
+ *                 main thread is busy hydrating a mid-range phone at a
+ *                 quarter of a laptop's speed (it used to wait for this
+ *                 script to see the breath's `animationend`, which on that
+ *                 phone came 250ms late; a brand moment cut short looks
+ *                 broken, D31, and so does one that overstays).
+ *   NOT READY     when the overlay's script runs, the page above it in the
+ *                 document is already parsed, so "not ready" is a page that
+ *                 is still streaming: a Suspense boundary React has marked
+ *                 pending (`<!--$?-->`, or `<!--$~-->` queued) whose content
+ *                 has not arrived. Then the door moves to the ceiling and the
+ *                 lockup holds, settled, with the breath continuing
+ *                 (`startup.css`, the hold); when the document has arrived
+ *                 (DOMContentLoaded) it moves to now, or to 1150ms if that
+ *                 has not passed. It never pretends to finish.
+ *   CEILING       ...and never later than `STARTUP_CEILING_MS`, which is the
+ *                 held door's own time, so the stylesheet enforces it even if
+ *                 nothing here runs again. A stream that stalls after the
+ *                 shell has painted leaves a usable shell beneath, and a
+ *                 brand moment held over a usable app is the eight seconds
+ *                 D31 exists to remove, with better production values.
+ *   TAPPED        the door moves to now, on any pointer before it has
+ *                 opened; and the click that tap would otherwise deliver to
+ *                 whatever is beneath the finger (Get Started's doors, a card
+ *                 on /home) is swallowed once (see "the ghost click" below).
+ *                 A pointer AFTER the door has opened is the member's own and
+ *                 goes through untouched: the overlay stops catching
+ *                 pointers on the door's first frame (its keyframes), and
+ *                 the moment is judged by the event's own time stamp, so a
+ *                 tap the busy main thread hands over late is still judged
+ *                 by when the finger came down.
+ *   A KEY         the same as a tap, once, without the guard. The key is not
+ *                 swallowed: a digit typed at a locked cold start is the
  *                 member already entering their code.
  *
- * QUIET (the platform's reduced-motion setting, MOTION_SYSTEM.md section 3:
- * "a 160ms crossfade under reduced motion"). `startup.css` draws the settled
- * lockup still, with no assembly, breath or hold, so there is no breath to
- * wait for: the door is a 160ms crossfade the moment the document has
- * arrived (or on a tap, a key or the ceiling). The setting can also change
- * while the sequence is on screen; the script reads it live and treats the
- * breath as done, so the switch never strands it.
+ * "NOW" IS THE SEQUENCE'S OWN CLOCK: the overlay's door animation's
+ * `currentTime`, which started on the same frame as every beat, so a door
+ * moved to now lands exactly at the beat it interrupts. (Where the browser
+ * has no `getAnimations`, the time since this script ran stands in.)
+ * Reading the root's computed style first is deliberate: it resolves the
+ * overlay's and the page's styles together, so the startup and the first
+ * screen beneath it begin on one clock.
  *
- * NOTHING LEAVES `data-splash="on"` BEHIND. When the door has opened (its own
- * `animationend`) the root's `data-splash` moves to "done", which is the
- * release `ThresholdStage` also gives: the overlay is gone for good and
- * `--nf-splash-hold` stops delaying later entrances. That event never comes
- * when the overlay is not painting (Calm or Off switched on underneath it,
- * whose stylesheet hides it, or a hidden tab), so opening the door also arms
- * `STARTUP_RELEASE_MS`, after which the flag is released whatever the
- * stylesheet did. A breath that never reports is covered by
- * `BREATH_CEILING_MS`, and everything is wrapped in try: a failure opens the
- * door rather than leaving anybody behind it.
+ * QUIET (the platform's reduced-motion setting): `startup.css` draws the
+ * settled lockup still and its door is a 160ms crossfade at 600ms; the
+ * script does the same as above against that number.
+ *
+ * NOTHING LEAVES `data-splash="on"` BEHIND. When the door has finished (the
+ * overlay's own `animationend`) the root's `data-splash` moves to "done",
+ * which is the release `ThresholdStage` also gives: the overlay is gone for
+ * good and `--nf-splash-hold` stops delaying later entrances. That event
+ * never comes when the overlay is not painting (Calm or Off switched on
+ * underneath it, whose stylesheet hides it, or a hidden tab), so a timer
+ * releases it `STARTUP_RELEASE_MS` after the door whatever the stylesheet
+ * did. Before it lets go, the door's time is pinned on anything marked
+ * `data-startup-pin` (Get Started's stage), whose entrance is timed from it
+ * and would otherwise jump when the root's number goes. `data-startup` turns
+ * "open" when the door starts, for what still listens for it (the page
+ * coming forward in `threshold.css`, the passcode lock). Everything is
+ * wrapped in try: a failure releases the overlay rather than leaving anybody
+ * behind it.
  *
  * THE GHOST CLICK. A tap is pointerdown, then (a beat later) click, and the
  * door drops the overlay's pointer events the moment it opens, so the tap's
@@ -55,26 +76,34 @@
  * arms one capturing click listener on the window that eats the next click,
  * and disarms 400ms after the pointer lifts (a touch browser's click follows
  * the lift within that) or after 1.5s at most, so a later, deliberate tap is
- * never eaten. The overlay itself stops catching pointers at once rather
- * than at the door's end, because nothing may block interaction
- * (MOTION_SYSTEM.md section 1, principle 9).
+ * never eaten.
  *
  * THE NATIVE SPLASH comes down on the first painted frame (two animation
  * frames, the earliest honest moment), through the Capacitor bridge the shell
- * injects before any page script, so the system splash and this sequence
- * never fight. `lib/native/splash.ts` still runs its own hide after
- * hydration; a second hide is a no-op.
+ * injects before any page script, WHETHER OR NOT THE SEQUENCE PLAYS. The
+ * native splash is the bare navy ground on every platform, and so is the
+ * sequence's first frame, so the hand-over is one colour on both sides. When
+ * the sequence does not play (data saver, Calm, Off, a second load) the page
+ * itself is the first frame and the splash comes down onto it: before round
+ * 5 only `lib/native/splash.ts` took it down then, after hydration and the
+ * window's `load`, which on a 1.6Mbps line held a navy screen over a painted,
+ * usable Get Started for a second and more, for exactly the members who had
+ * asked for less waiting. `splash.ts` still runs its own hide; a second hide
+ * is a no-op.
  */
-export const BREATH_CEILING_MS = 1400;
+
+/** When the door opens on the beats' own schedule (`startup.css`). */
+export const STARTUP_DOOR_MS = 1150;
 
 /** The longest the overlay is ever on screen before its door opens. */
 export const STARTUP_CEILING_MS = 4000;
 
 /**
  * After the door opens, the flag is released by this time at the latest:
- * the door's 350ms (`startup.css`, `leave`) and a margin for a slow frame.
+ * the door's 380ms (`startup.css`, the mark landing) and a margin for a slow
+ * frame.
  */
-export const STARTUP_RELEASE_MS = 500;
+export const STARTUP_RELEASE_MS = 530;
 
 /** How long after the pointer lifts the skip's click may still arrive. */
 export const GHOST_CLICK_WINDOW_MS = 400;
@@ -83,44 +112,36 @@ export const GHOST_CLICK_WINDOW_MS = 400;
 export const GHOST_CLICK_CAP_MS = 1500;
 
 export const STARTUP_SCRIPT = [
-  "(function(){try{",
-  "var d=document.documentElement;if(d.dataset.splash!=='on')return;",
-  "var el=document.querySelector('.nf-startup');if(!el){d.dataset.splash='done';return}",
-  "var breathed=false,ready=false,gone=0,ceiling=0,breath=0,mq=null;",
-  "try{mq=matchMedia('(prefers-reduced-motion: reduce)')}catch(e){}",
-  /* Quiet from the start: there is no breath to wait for. */
-  "if(mq&&mq.matches)breathed=true;",
-  "function listen(on){var m=on?'addEventListener':'removeEventListener';",
-  "document[m]('pointerdown',tap,true);document[m]('keydown',key,true);",
-  "if(mq&&mq[m])mq[m]('change',flip)}",
-  "function release(){clearTimeout(gone);clearTimeout(ceiling);clearTimeout(breath);listen(false);",
-  "if(d.dataset.splash==='on')d.dataset.splash='done'}",
-  "function open(){clearTimeout(ceiling);if(d.dataset.startup==='open')return;d.dataset.startup='open';",
-  "listen(false);gone=setTimeout(release," + STARTUP_RELEASE_MS + ")}",
-  "function check(){if(breathed&&ready)open()}",
+  "(function(){var D=document,W=window,d=D.documentElement,P='--nf-startup-door',A='addEventListener',R='removeEventListener',T=setTimeout,X=clearTimeout;",
+  /* The native splash, on the first painted frame, whatever the gate said. */
+  "try{var C=W.Capacitor;if(C&&C.isNativePlatform&&C.isNativePlatform()&&C.nativePromise)requestAnimationFrame(function(){requestAnimationFrame(function(){try{C.nativePromise('SplashScreen','hide',{fadeOutDuration:160}).catch(function(){})}catch(e){}})})}catch(e){}",
+  "try{if(d.dataset.splash!=='on')return;var el=D.querySelector('.nf-startup');if(!el){d.dataset.splash='done';return}",
+  /* The stylesheet's door (a minifier may write 1150ms as 1.15s). Reading it
+     resolves the overlay's and the page's styles on one clock. */
+  "var t0=performance.now(),v=getComputedStyle(d).getPropertyValue(P).trim(),base=parseFloat(v)*(/[^m]s$/.test(v)?1e3:1)||" + STARTUP_DOOR_MS + ",door=base,held=0,gone=0;",
+  /* The sequence's clock: the overlay's door animation. */
+  "function now(){try{var a=el.getAnimations()[0];if(a.currentTime!=null)return a.currentTime}catch(e){}return performance.now()-t0}",
+  "function on(f){var m=f?A:R;D[m]('pointerdown',tap,!0);D[m]('keydown',key,!0)}",
+  "function soon(){X(gone);gone=T(free,Math.max(0,door-now())+" + STARTUP_RELEASE_MS + ")}",
+  "function move(t){door=Math.max(0,Math.round(t));d.style.setProperty(P,door+'ms');soon()}",
+  "function open(){d.dataset.startup='open'}",
+  /* Release: pin the door's time on what is timed from it, then let go. */
+  "function free(){X(gone);on();if(d.dataset.splash!=='on')return;D.querySelectorAll('[data-startup-pin]').forEach(function(n){n.style.setProperty(P,door+'ms')});d.style.removeProperty(P);open();d.dataset.splash='done'}",
+  /* Before the door? Judged at the event's own time, not the busy thread's. */
+  "function early(e){return now()-Math.max(0,performance.now()-e.timeStamp)<door}",
+  "function skip(){held=0;move(now());open()}",
   /* The ghost click: armed by the skip, eats one click, then disarms. */
-  "function arm(){var t=0;",
-  "function disarm(){clearTimeout(t);window.removeEventListener('click',eat,true);",
-  "document.removeEventListener('pointerup',lift,true);document.removeEventListener('pointercancel',lift,true)}",
-  "function eat(e){e.preventDefault();e.stopImmediatePropagation();disarm()}",
-  "function lift(){clearTimeout(t);t=setTimeout(disarm," + GHOST_CLICK_WINDOW_MS + ")}",
-  "window.addEventListener('click',eat,true);",
-  "document.addEventListener('pointerup',lift,true);document.addEventListener('pointercancel',lift,true);",
-  "t=setTimeout(disarm," + GHOST_CLICK_CAP_MS + ")}",
-  "function tap(){if(d.dataset.startup==='open')return;arm();open()}",
-  "function key(e){if(e.metaKey||e.ctrlKey||e.altKey||/^(Shift|Control|Alt|Meta|CapsLock|Fn)$/.test(e.key))return;open()}",
-  "function flip(){if(mq.matches){breathed=true;check()}}",
-  "el.addEventListener('animationend',function(e){var n=e.animationName;",
-  "if(n==='nf-startup-breath'){breathed=true;check()}",
-  "else if(e.target===el&&(n==='nf-startup-door'||n==='nf-startup-fade'))release()});",
-  "breath=setTimeout(function(){breathed=true;check()}," + BREATH_CEILING_MS + ");",
-  "ceiling=setTimeout(open," + STARTUP_CEILING_MS + ");",
-  "function arrived(){ready=true;check()}",
-  "if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',arrived,{once:true});else arrived();",
-  "listen(true);",
-  "var C=window.Capacitor;if(C&&C.isNativePlatform&&C.isNativePlatform()&&C.nativePromise){",
-  "requestAnimationFrame(function(){requestAnimationFrame(function(){try{var p=C.nativePromise('SplashScreen','hide',{fadeOutDuration:160});if(p&&p.catch)p.catch(function(){})}catch(e){}})})}",
-  "}catch(e){try{document.documentElement.dataset.startup='open';document.documentElement.dataset.splash='done'}catch(x){}}})();",
+  "function arm(){var t;function off(){X(t);W[R]('click',eat,!0);D[R]('pointerup',lift,!0);D[R]('pointercancel',lift,!0)}",
+  "function eat(e){e.preventDefault();e.stopImmediatePropagation();off()}function lift(){X(t);t=T(off," + GHOST_CLICK_WINDOW_MS + ")}",
+  "W[A]('click',eat,!0);D[A]('pointerup',lift,!0);D[A]('pointercancel',lift,!0);t=T(off," + GHOST_CLICK_CAP_MS + ")}",
+  "function tap(e){if(!early(e))return on();arm();skip()}",
+  "function key(e){if(e.metaKey||e.ctrlKey||e.altKey||/^(Shift|Control|Alt|Meta|CapsLock|Fn)$/.test(e.key))return;on();if(early(e))skip()}",
+  "el[A]('animationstart',function(e){e.target==el&&open()});el[A]('animationend',function(e){e.target==el&&free()});",
+  /* Not ready: a Suspense boundary above us that React has not filled yet. */
+  "if(D.readyState=='loading'){var w=D.createTreeWalker(D.body,128),c;while(c=w.nextNode())if(c.data=='$?'||c.data=='$~'){held=1;move(" + STARTUP_CEILING_MS + ");break}",
+  "D[A]('DOMContentLoaded',function(){if(held){held=0;move(Math.max(now(),base))}},{once:!0})}",
+  "held||soon();on(1)",
+  "}catch(e){try{d.style.removeProperty(P);d.dataset.startup='open';d.dataset.splash='done'}catch(x){}}})();",
 ].join("");
 
 /**

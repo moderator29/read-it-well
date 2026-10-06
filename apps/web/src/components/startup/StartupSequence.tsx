@@ -19,16 +19,22 @@ import { STARTUP_SCRIPT } from "./startup-script";
  *
  * THE SIX BEATS, all CSS (`startup.css`), all transform, opacity and filter:
  *
- *     0     120   the navy ground, the native splash's own colour
- *     120   480   the mark assembles: its six facets arrive from depth and
+ *     0     120   the bare navy ground, exactly the native splash (which
+ *                 is the same navy with nothing on it, on every platform)
+ *     120   480   the mark assembles at the optical centre, twice its
+ *                 settled size: its six facets arrive from depth and
  *                 lock while the mark turns 12 degrees to 0 and scales 0.86
  *                 to 1                                              land
  *     380   720   the wordmark's letters from depth, 24ms apart,
  *                 blur 6 to 0                                       glide
  *     640   900   the edge light sweeps the lockup once            glide
  *     900   1150  the lockup settles and breathes, 1.0 1.02 1.0    drift
- *     1150  1500  the door: the ground parts and the first screen
- *                 is revealed beneath                               leave
+ *     1150  1530  the door: the ground parts (leave, 350ms) and the
+ *                 mark rises out of it into the first screen's mark,
+ *                 at that mark's size (land, 380ms)
+ *
+ * The door's 1150 is the stylesheet's (`--nf-startup-door`), so it is on
+ * time on a busy phone; the script only moves it (a skip, a hold).
  *
  * WHY NOT BrandAssemble. It was built for this and it was tried first, but it
  * assembles the raster artwork (`vallo-mark.png`, 614px, and the wordmark
@@ -39,11 +45,14 @@ import { STARTUP_SCRIPT } from "./startup-script";
  * SVG, so each can arrive on its own beat. DepthWords is for words in the
  * reader's language and the lockup has none.
  *
- * WHERE IT ENDS. The settled lockup puts the mark exactly where Get Started
- * draws its own (`app/welcome/lockup.ts`): when the first screen is Get
- * Started the mark simply stays as the ground parts, with no re-entrance,
- * and Get Started's entrance plays out of the door. On any other first screen
- * the mark leaves with the wordmark.
+ * WHERE IT ENDS. The lockup's box is exactly where Get Started draws its own
+ * mark (`app/welcome/lockup.ts`), and the beats are drawn up and out of it by
+ * a transform the door takes away: when the first screen is Get Started (or
+ * the passcode lock) the mark the member sees next is the one that just
+ * assembled, landing, with no re-entrance, and Get Started's entrance plays
+ * out of the door. On any other first screen the mark fades as it rises.
+ * `nf-startup__breath` is its own element so the breath scales the lockup
+ * about its middle and never moves it along the rise.
  *
  * Decorative and `aria-hidden`. A tap anywhere or the first key opens the
  * door at once (the tap's own click is eaten, so it cannot land on what the
@@ -59,33 +68,35 @@ export function StartupSequence({ nonce }: { nonce?: string | undefined }) {
         <div className="nf-startup__leaf nf-startup__leaf--a" />
         <div className="nf-startup__leaf nf-startup__leaf--b" />
         <div className="nf-startup__lockup">
-          <div className="nf-startup__mark">
-            {MARK_PATHS.map((d, i) => (
-              <svg
-                key={d}
-                className="nf-startup__facet"
-                viewBox={MARK_VIEWBOX}
-                fill="currentColor"
-                focusable="false"
-                style={{ "--nf-i": i } as CSSProperties}
-              >
-                <path d={d} />
-              </svg>
-            ))}
-          </div>
-          <div className="nf-startup__word">
-            {WORDMARK_PATHS.map((d, i) => (
-              <svg
-                key={d}
-                className="nf-startup__letter"
-                viewBox={WORDMARK_VIEWBOX}
-                fill="currentColor"
-                focusable="false"
-                style={{ "--nf-i": i } as CSSProperties}
-              >
-                <path d={d} fillRule={d.includes("Zm") ? "evenodd" : undefined} />
-              </svg>
-            ))}
+          <div className="nf-startup__breath">
+            <div className="nf-startup__mark">
+              {MARK_PATHS.map((d, i) => (
+                <svg
+                  key={d}
+                  className="nf-startup__facet"
+                  viewBox={MARK_VIEWBOX}
+                  fill="currentColor"
+                  focusable="false"
+                  style={{ "--nf-i": i } as CSSProperties}
+                >
+                  <path d={d} />
+                </svg>
+              ))}
+            </div>
+            <div className="nf-startup__word">
+              {WORDMARK_PATHS.map((d, i) => (
+                <svg
+                  key={d}
+                  className="nf-startup__letter"
+                  viewBox={WORDMARK_VIEWBOX}
+                  fill="currentColor"
+                  focusable="false"
+                  style={{ "--nf-i": i } as CSSProperties}
+                >
+                  <path d={d} fillRule={d.includes("Zm") ? "evenodd" : undefined} />
+                </svg>
+              ))}
+            </div>
           </div>
         </div>
       </div>
