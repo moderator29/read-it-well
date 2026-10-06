@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { resolveSession } from "@/lib/actions/session";
 import { readHostRoomBookings } from "@/lib/host/room-bookings";
@@ -10,6 +11,8 @@ import { HostShell } from "@/components/host/HostShell";
 import { DecideView, type DecideRowData } from "@/components/host/DecideView";
 import { readHostTableBoard } from "../reservations/board";
 import "../host-desk.css";
+import { HostInnerNav } from "@/components/host/HostInnerNav";
+import { hostInnerNavCopy } from "@/components/host/host-inner-nav";
 
 export const metadata: Metadata = { title: "Decide by", robots: { index: false, follow: false } };
 
@@ -87,6 +90,7 @@ export default async function HostDecidePage() {
 
   return (
     <HostShell fallback="/host" wide>
+      <HostInnerNav active="decide" {...hostInnerNavCopy(getDictionary(locale))} />
       <DecideView rows={sorted} now={now} locale={locale} unreadable={unreadable} />
     </HostShell>
   );

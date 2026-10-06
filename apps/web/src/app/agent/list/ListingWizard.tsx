@@ -88,6 +88,9 @@ import { FloodQuestion } from "@/components/agent/FloodQuestion";
 import type { Flooding } from "@/lib/around/pulse";
 import { EMPTY_UNIT_FORM, takesShape, unitPayload, type UnitForm } from "@/lib/listings/unit-shape";
 import { listingDraftKey } from "@/lib/agent/listing-draft-storage";
+import { ProgressPath } from "@/components/supply/ProgressPath";
+import { useDeviceStorage } from "@/components/supply/use-device-storage";
+import { Unfold } from "@/components/ui/Unfold";
 import { looksLikeStreetAddress, STREET_IN_TITLE_WARNING } from "@/lib/listings/public-title";
 import { tenantPreference } from "@/lib/safety/tenant-preference";
 import {
@@ -920,7 +923,13 @@ export function ListingWizard({
   initialUnconfirmed = [],
   shotsCopy,
   demandCopy,
+  pathCopy,
 }: {
+  /**
+   * The progress path's words (reference 7110). Absent in the harnesses that
+   * photograph the governing screens, which then draw exactly what they did.
+   */
+  pathCopy?: Dictionary["experienceFeatures"]["wizard"];
   /** The page's `t.success`, for "Your listing is in review". Absent, no sheet. */
   success?: SuccessWords;
   /** V-70: the shot list's words. Without them the shot list is not drawn. */
@@ -984,6 +993,9 @@ export function ListingWizard({
   startAt?: number;
 }) {
   const router = useRouter();
+  /* Whether the draft really lands on this device, so the path's autosave
+     line only says what is true. */
+  const deviceKeeps = useDeviceStorage() && listingDraftKey(userId) !== null;
   const [step, setStep] = useState(() =>
     Math.min(Math.max(Math.trunc(startAt), 0), STEP_KEYS.length - 1),
   );
@@ -2099,6 +2111,45 @@ export function ListingWizard({
           </ol>
         </div>
       </div>
+
+      {/* THE PROGRESS PATH (reference 7110): every step on one path, done ones
+          a tap away, with the autosave said only as far as it is true. Folded
+          under the rail so the step itself stays the subject; the rail and
+          the steps are unchanged (D28). */}
+      {pathCopy ? (
+        <Unfold
+          className="mb-group"
+          headingLevel={2}
+          items={[
+            {
+              id: "path",
+              icon: "clipboard-list",
+              title: pathCopy.allSteps,
+              hint: [
+                fill(pathCopy.stepOf, { n: step + 1, total: STEP_KEYS.length }),
+                deviceKeeps && canPersist
+                  ? pathCopy.savedBoth
+                  : deviceKeeps
+                    ? pathCopy.savedDevice
+                    : canPersist
+                      ? pathCopy.savedAccount
+                      : null,
+              ]
+                .filter(Boolean)
+                .join(" "),
+              content: (
+                <ProgressPath
+                  steps={stepNames.map((name, index) => ({ id: STEP_KEYS[index] ?? name, label: name }))}
+                  at={step}
+                  onJump={(index) => go(index)}
+                  disabled={pending}
+                  copy={{ done: pathCopy.done, current: pathCopy.current, upcoming: pathCopy.upcoming }}
+                />
+              ),
+            },
+          ]}
+        />
+      ) : null}
 
       {/* The title and its one sentence, with the step's object on the right.
           The "3 of 8" counter is gone from the picture and kept in the rail's

@@ -13,6 +13,8 @@ import { ListGroup, ListRow } from "@/components/ui/ListGroup";
 import { IconPlate, ICON_PLATE_GLYPH } from "@/components/ui/IconPlate";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { monthsWithLines } from "@/lib/host/statement";
+import { HostInnerNav } from "@/components/host/HostInnerNav";
+import { hostInnerNavCopy } from "@/components/host/host-inner-nav";
 
 export const metadata: Metadata = { title: "Earnings", robots: { index: false, follow: false } };
 
@@ -48,6 +50,7 @@ export default async function HostEarningsPage({
   return (
     <HostShell logoLabel={t.a11y.logoHome} fallback="/host">
       <div className="mx-auto max-w-2xl">
+        <HostInnerNav active="earnings" {...hostInnerNavCopy(t)} />
         <h1 className="nf-h2">Earnings</h1>
         <p className={`mt-xs mb-block ${TYPE.body}`}>{PAYOUT_ANSWER}</p>
         {read.state === "signed-out" ? (

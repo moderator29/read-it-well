@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { lagosToday, parseMonth } from "@/lib/host/rate-calendar";
 import { readMonthEarnings } from "@/lib/host/statement-read";
@@ -8,6 +9,8 @@ import { EmptyState } from "@/components/app/Screen";
 import { ButtonLink } from "@/components/ui/Button";
 import { HostShell } from "@/components/host/HostShell";
 import { StatementView } from "@/components/host/StatementView";
+import { HostInnerNav } from "@/components/host/HostInnerNav";
+import { hostInnerNavCopy } from "@/components/host/host-inner-nav";
 
 export const metadata: Metadata = { title: "Payout statement", robots: { index: false, follow: false } };
 
@@ -60,6 +63,7 @@ export default async function HostStatementPage({
 
   return (
     <HostShell fallback="/host/earnings" wide>
+      <HostInnerNav active="statements" {...hostInnerNavCopy(getDictionary(locale))} />
       <StatementView
         month={month}
         thisMonth={thisMonth}

@@ -14,6 +14,8 @@ import { ButtonLink } from "@/components/ui/Button";
 import { HostShell } from "@/components/host/HostShell";
 import { RateCalendar } from "@/components/host/calendar/RateCalendar";
 import "../host-desk.css";
+import { HostInnerNav } from "@/components/host/HostInnerNav";
+import { hostInnerNavCopy } from "@/components/host/host-inner-nav";
 
 export const metadata: Metadata = { title: "Calendar", robots: { index: false, follow: false } };
 
@@ -90,6 +92,7 @@ export default async function HostCalendarPage({
 
   return (
     <HostShell fallback="/host" wide>
+      <HostInnerNav active="calendar" {...hostInnerNavCopy(getDictionary(locale))} />
       <PageHeader variant="large" back={false} title="Calendar" subtitle={accommodation.name} />
       {businesses.length > 1 ? (
         <nav className="nf-rcal__places" aria-label="Your properties">
@@ -138,6 +141,7 @@ export default async function HostCalendarPage({
           sync={read.sync}
           feedBase={siteUrl()}
           locale={locale}
+          clearSelectionLabel={getDictionary(locale).experienceUi.clearSelection}
         />
       )}
     </HostShell>

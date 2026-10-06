@@ -16,6 +16,8 @@ import { EmptyState, TYPE } from "@/components/app/Screen";
 import { ButtonLink } from "@/components/ui/Button";
 import { HostShell } from "@/components/host/HostShell";
 import { RoomNightsEditor } from "@/components/host/RoomNightsEditor";
+import { HostInnerNav } from "@/components/host/HostInnerNav";
+import { hostInnerNavCopy } from "@/components/host/host-inner-nav";
 
 export const metadata: Metadata = {
   title: "Rooms and nights",
@@ -82,6 +84,7 @@ export default async function HostRoomsPage({
 
   return (
     <HostShell logoLabel={t.a11y.logoHome} fallback="/host">
+      <HostInnerNav active="rooms" {...hostInnerNavCopy(t)} />
       <HostRoomsBody
         copy={t.hostWorkspace}
         businesses={businesses}

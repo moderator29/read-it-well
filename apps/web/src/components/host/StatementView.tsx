@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { countOf, formatMoney, type Locale } from "@vallo/i18n";
+import { countOf, formatMoney, getDictionary, type Locale } from "@vallo/i18n";
 import { addMonths } from "@/lib/host/rate-calendar";
 import { statementTotals, type StatementLine } from "@/lib/host/statement";
 import { EARNINGS_SETTLEMENT, HISTORY_NOT_A_BALANCE } from "@/lib/money/copy";
@@ -7,7 +7,15 @@ import { COMPANY_FORMAL_NAME, COMPANY_REGISTERED_OFFICE } from "@/lib/legal/comp
 import { EmptyState } from "@/components/app/Screen";
 import { PageHeader } from "@/components/app/PageHeader";
 import { ButtonLink } from "@/components/ui/Button";
-import { SummaryCard } from "@/components/ui/SummaryCard";
+import {
+  DocFigure,
+  DocHead,
+  DocNote,
+  DocRow,
+  DocRows,
+  DocSection,
+  DocumentSheet,
+} from "@/components/app/money/DocumentSheet";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { PrintButton } from "@/components/host/PrintButton";
 import "@/app/host/host-desk.css";
@@ -35,6 +43,7 @@ export function StatementView({
 }) {
   const tag = locale === "en" ? "en-NG" : locale;
   const totals = statementTotals(lines);
+  const w = getDictionary(locale).experienceFeatures.workspace.statement;
   const prev = addMonths(month, -1);
   const next = addMonths(month, 1);
 
@@ -85,27 +94,99 @@ export function StatementView({
                 is paused until it can be read in full.
               </p>
             ) : null}
-            <SummaryCard
-              label="Your share this month, after reversals"
-              /* Counts up only when the share is whole naira; a figure with
-                 kobo is printed exactly, because a money hero is never rounded. */
-              {...(totals.shareMinor >= 0 && totals.shareMinor % 100 === 0
-                ? { figure: totals.shareMinor / 100, prefix: "₦", tag }
-                : { figure: <span className="nf-numeric">{formatMoney(totals.shareMinor, locale)}</span> })}
-              sentence={`${countOf(totals.payments, "payments", locale)}${totals.reversals ? `, ${totals.reversals} reversed by refunds` : ""}. ${EARNINGS_SETTLEMENT}`}
-              footer={
-                <dl className="nf-stmt-line__split nf-stmt-totals">
-                  <dt>Guests paid</dt>
-                  <dd>{formatMoney(totals.grossMinor, locale)}</dd>
-                  <dt>Vallo commission</dt>
-                  <dd>{formatMoney(totals.commissionMinor, locale)}</dd>
-                  <dt>Guarantee contribution</dt>
-                  <dd>{formatMoney(totals.guaranteeMinor, locale)}</dd>
-                  <dt className="is-share">Your share</dt>
-                  <dd className="is-share">{formatMoney(totals.shareMinor, locale)}</dd>
-                </dl>
-              }
-            />
+
+            {/*
+              THE STATEMENT IS A DOCUMENT (D28.1, reference 7056): a light
+              sheet of paper on whatever theme the host chose, because this
+              is the page a host prints and hands to a bank. The month bar
+              and the two actions above stay in the host's theme; only the
+              statement itself is paper, and only it prints (print.css).
+
+              The actions sit under the sheet, in the host's theme, the way
+              every document's do (DocActions, reference 7074).
+
+              The share is stated, not counted: a document says money that
+              has already moved, and a figure rolling up on it would imply
+              movement (the rule B2 set for every sheet).
+            */}
+            <DocumentSheet printable aria-labelledby="nf-stmt-title" data-testid="host-statement-sheet">
+              <DocHead label={w.label} title={title} id="nf-stmt-title" />
+              <DocFigure testId="host-statement-share">{formatMoney(totals.shareMinor, locale)}</DocFigure>
+              <DocRows>
+                <DocRow label={w.guestsPaid} numeric>
+                  {formatMoney(totals.grossMinor, locale)}
+                </DocRow>
+                <DocRow label={w.commission} numeric>
+                  {formatMoney(totals.commissionMinor, locale)}
+                </DocRow>
+                <DocRow label={w.guarantee} numeric>
+                  {formatMoney(totals.guaranteeMinor, locale)}
+                </DocRow>
+                <DocRow label={w.share} variant="total" numeric>
+                  {formatMoney(totals.shareMinor, locale)}
+                </DocRow>
+              </DocRows>
+              <DocNote>
+                {`${countOf(totals.payments, "payments", locale)}${totals.reversals ? `, ${totals.reversals} reversed by refunds` : ""}. ${EARNINGS_SETTLEMENT}`}
+              </DocNote>
+
+              <DocSection title={w.lines} id="nf-stmt-lines">
+                <div className="nf-stmt-wide">
+                  <table className="nf-stmt-table">
+                    <thead>
+                      <tr>
+                        <th scope="col">Date and stay</th>
+                        <th scope="col">Guest paid</th>
+                        <th scope="col">Commission</th>
+                        <th scope="col">Guarantee</th>
+                        <th scope="col">Your share</th>
+                        <th scope="col">Paystack reference</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {lines.map((line) => (
+                        <tr key={line.id}>
+                          <td>
+                            <span className="block">{day(line.day, tag)}</span>
+                            <span className="nf-caption">
+                              {line.kind === "reversal" ? "Refund reversal, " : ""}
+                              {line.title}
+                            </span>
+                          </td>
+                          <td>{formatMoney(line.grossMinor, locale)}</td>
+                          <td>{formatMoney(line.commissionMinor, locale)}</td>
+                          <td>{formatMoney(line.guaranteeMinor, locale)}</td>
+                          <td>
+                            <strong>{formatMoney(line.shareMinor, locale)}</strong>
+                          </td>
+                          <td className="nf-caption">{line.reference ?? "None"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot>
+                      <tr>
+                        <td>Total</td>
+                        <td>{formatMoney(totals.grossMinor, locale)}</td>
+                        <td>{formatMoney(totals.commissionMinor, locale)}</td>
+                        <td>{formatMoney(totals.guaranteeMinor, locale)}</td>
+                        <td>{formatMoney(totals.shareMinor, locale)}</td>
+                        <td />
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+
+                <ul className="nf-stmt-lines nf-stmt-narrow">
+                  {lines.map((line) => (
+                    <LineCard key={line.id} line={line} locale={locale} tag={tag} />
+                  ))}
+                </ul>
+              </DocSection>
+
+              <DocNote>
+                {HISTORY_NOT_A_BALANCE} {COMPANY_FORMAL_NAME}, {COMPANY_REGISTERED_OFFICE}.
+              </DocNote>
+            </DocumentSheet>
 
             <div className="nf-stmt-noprint nf-stmt-actions">
               {complete ? (
@@ -118,61 +199,6 @@ export function StatementView({
               ) : null}
               <PrintButton />
             </div>
-
-            <div className="nf-stmt-wide">
-              <table className="nf-stmt-table">
-                <thead>
-                  <tr>
-                    <th scope="col">Date and stay</th>
-                    <th scope="col">Guest paid</th>
-                    <th scope="col">Commission</th>
-                    <th scope="col">Guarantee</th>
-                    <th scope="col">Your share</th>
-                    <th scope="col">Paystack reference</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {lines.map((line) => (
-                    <tr key={line.id}>
-                      <td>
-                        <span className="block">{day(line.day, tag)}</span>
-                        <span className="nf-caption">
-                          {line.kind === "reversal" ? "Refund reversal, " : ""}
-                          {line.title}
-                        </span>
-                      </td>
-                      <td>{formatMoney(line.grossMinor, locale)}</td>
-                      <td>{formatMoney(line.commissionMinor, locale)}</td>
-                      <td>{formatMoney(line.guaranteeMinor, locale)}</td>
-                      <td>
-                        <strong>{formatMoney(line.shareMinor, locale)}</strong>
-                      </td>
-                      <td className="nf-caption">{line.reference ?? "None"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-                <tfoot>
-                  <tr>
-                    <td>Total</td>
-                    <td>{formatMoney(totals.grossMinor, locale)}</td>
-                    <td>{formatMoney(totals.commissionMinor, locale)}</td>
-                    <td>{formatMoney(totals.guaranteeMinor, locale)}</td>
-                    <td>{formatMoney(totals.shareMinor, locale)}</td>
-                    <td />
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-
-            <ul className="nf-stmt-lines nf-stmt-narrow">
-              {lines.map((line) => (
-                <LineCard key={line.id} line={line} locale={locale} tag={tag} />
-              ))}
-            </ul>
-
-            <p className="nf-caption">
-              {HISTORY_NOT_A_BALANCE} {COMPANY_FORMAL_NAME}, {COMPANY_REGISTERED_OFFICE}.
-            </p>
           </>
         )}
       </div>

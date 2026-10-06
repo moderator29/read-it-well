@@ -92,6 +92,7 @@ export default async function Page({
           floodCopy={t.shape.neighbours}
           remainderCopy={t.afterTheGate.remainder}
           moneyMapCopy={t.afterTheGate.moneyMap}
+          pathCopy={t.experienceFeatures.wizard}
           locale={locale}
           userId={null}
           states={STATE_CODES.map((code) => ({ code, name: code }))}
@@ -167,6 +168,7 @@ export default async function Page({
         floodOpen={await flagIsOn(NEIGHBOURS_FLAG)}
         remainderCopy={t.afterTheGate.remainder}
         moneyMapCopy={t.afterTheGate.moneyMap}
+        pathCopy={t.experienceFeatures.wizard}
         locale={locale}
         userId={context.user.id}
         states={states.length > 0 ? states : STATE_CODES.map((code) => ({ code, name: code }))}

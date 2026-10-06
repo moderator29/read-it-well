@@ -7,6 +7,7 @@ import { countOf, formatMoney, type Locale } from "@vallo/i18n/core";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Sheet } from "@/components/ui/Sheet";
 import { Button } from "@/components/ui/Button";
+import { BatchTray } from "@/components/ui/BatchTray";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { feedback } from "@/lib/ui/feedback";
 import {
@@ -71,6 +72,8 @@ export type RateCalendarProps = {
   sync: SyncState;
   feedBase: string;
   locale: Locale;
+  /** The batch tray's clear control, from `experienceUi.clearSelection`. */
+  clearSelectionLabel?: string;
 };
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -531,22 +534,24 @@ export function RateCalendar(props: RateCalendarProps) {
         <CalendarSync room={room} sync={props.sync} feedBase={props.feedBase} locale={locale} />
       </div>
 
-      {selected.size > 0 ? (
-        <div className="nf-rcal__bar" role="region" aria-label="Selected nights">
-          <div className="min-w-0">
-            <p className="nf-rcal__bar-count">
-              {countOf(selected.size, "nights", locale)}
-            </p>
-            <p className="nf-caption nf-rcal__bar-sub">{describeSelection(selectedDates)}</p>
-          </div>
-          <Button variant="quiet" size="sm" onClick={() => { setSelected(new Set()); setAnchor(null); }}>
-            Clear
-          </Button>
-          <Button variant="primary" size="sm" onClick={() => setSheetOpen(true)}>
-            Change
-          </Button>
-        </div>
-      ) : null}
+      {/* THE SELECTED NIGHTS AS A BATCH (D34, COMPONENT_LIBRARY "Batch gesture
+          tray": "the bulk actions the host workspace already has"). The phone's
+          hand-rolled bar became the one tray the platform uses for a
+          multi-select: the count said politely, Change opening the same panel
+          as before, and Clear as the circle. Drag it down to clear. Phone only;
+          from 1024px the panel beside the month is the action. */}
+      <BatchTray
+        className="nf-rcal-tray"
+        count={selected.size}
+        countLabel={`${countOf(selected.size, "nights", locale)}, ${describeSelection(selectedDates)}`}
+        label="Selected nights"
+        clearLabel={props.clearSelectionLabel ?? "Clear selection"}
+        onClear={() => {
+          setSelected(new Set());
+          setAnchor(null);
+        }}
+        actions={[{ id: "change", label: "Change", icon: "pencil", onSelect: () => setSheetOpen(true) }]}
+      />
 
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen} title="Change the selected nights" detents={[0.9]}>
         {panel}
