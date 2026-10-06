@@ -426,7 +426,7 @@ export function ThreadView({
             editable: sheetFor.editable,
             hasAuthor: Boolean(sheetFor.author?.id),
             who: sheetFor.author?.handle ? `@${sheetFor.author.handle}` : sheet.thisPerson,
-          })}
+          }, sheet.menu)}
           onChoose={(key) => onMenuAction(sheetFor, key)}
           onClose={() => setSheetFor(null)}
           body={sheet.body}
@@ -443,6 +443,7 @@ export function ThreadView({
               : sheet.reportPostedOnAround
           }
           reasons={POST_REPORT_REASONS}
+          words={sheet.report}
           submit={({ reason, detail }) =>
             reportPost({ postId: reporting.id, reason, detail })
           }

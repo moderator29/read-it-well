@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { sheetWordsOf } from "@/components/social/sheet-words";
 import { getDictionary, type Locale } from "@vallo/i18n";
+import { reportWordsOf } from "@/components/social/sheet-words";
 import { AppShell } from "@/components/app/AppShell";
 import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
@@ -176,7 +177,7 @@ async function Face({ f, tab, member, empty }: { f: string; tab?: string; member
           follow={<FollowButton handle={PERSON.handle} initialFollowing={false} signedIn labels={t.socialProfile} />}
           share={<ProfileShare handle={PERSON.handle} displayLabel={PERSON.name} />}
           menu={
-            <ProfileMenu handle={PERSON.handle} userId={PERSON.id} displayLabel={PERSON.name} isOwner={false} signedIn />
+            <ProfileMenu handle={PERSON.handle} userId={PERSON.id} displayLabel={PERSON.name} isOwner={false} signedIn reportWords={reportWordsOf(t)} />
           }
         />
       );

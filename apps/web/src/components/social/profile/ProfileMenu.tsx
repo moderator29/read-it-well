@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ReportSheet } from "@/components/social/ReportSheet";
+import type { ReportWords } from "@/components/social/sheet-words";
 import { useOverlay } from "@/lib/ui/use-overlay";
 import { Sheet } from "@/components/ui/Sheet";
 import {
@@ -53,6 +54,7 @@ export function ProfileMenu({
   signedIn,
   initialMuted = false,
   onCover = false,
+  reportWords,
 }: {
   handle: string;
   userId: string;
@@ -62,6 +64,8 @@ export function ProfileMenu({
   initialMuted?: boolean;
   /** Floating on a cover photograph rather than sitting on the canvas. */
   onCover?: boolean;
+  /** The report sheet's reasons and words, from the server (`reportWordsOf`). */
+  reportWords: ReportWords;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -389,6 +393,7 @@ export function ProfileMenu({
           title={`Report ${who}`}
           subject={`The account at @${handle}, not one thing they wrote. To report a single post, use the menu on that post.`}
           reasons={PROFILE_REPORT_REASONS}
+          words={reportWords}
           submit={({ reason, detail }) => reportProfile({ userId, reason, detail })}
           onClose={() => setReporting(false)}
         />

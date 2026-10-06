@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ReportSheet } from "@/components/social/ReportSheet";
+import type { ReportWords } from "@/components/social/sheet-words";
 import { Sheet } from "@/components/ui/Sheet";
 import { Button } from "@/components/ui/Button";
 import { blockUser, muteTarget } from "@/lib/social/posts-actions";
@@ -72,6 +73,7 @@ export function CommentsSheet({
   onLike,
   onDelete,
   onReport,
+  reportWords,
 }: {
   comments: CommentRow[];
   signedIn: boolean;
@@ -96,6 +98,8 @@ export function CommentsSheet({
     reason: ReportReason;
     detail: string;
   }) => Promise<ActionResult<unknown>>;
+  /** The report sheet's reasons and words, from the server (`reportWordsOf`). */
+  reportWords: ReportWords;
 }) {
   const locale = useClientLocale();
   const router = useRouter();
@@ -505,6 +509,7 @@ export function CommentsSheet({
           title="Report this comment"
           subject={`Written by ${reporting.authorLabel}`}
           reasons={POST_REPORT_REASONS}
+          words={reportWords}
           submit={({ reason, detail }) =>
             onReport({ commentId: reporting.id, reason, detail })
           }

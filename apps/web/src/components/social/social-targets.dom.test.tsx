@@ -61,7 +61,7 @@ const SURFACES: { name: string; imports: string; body: string; bleed?: boolean }
       trust={{ completedDeals: 41, responseTime: "2 hrs", reviewCount: 28, averageRating: 4.8 }}
       joinedLabel="March 2025"
       follow={<FollowButton handle={PERSON.handle} initialFollowing={false} signedIn />}
-      menu={<ProfileMenu handle={PERSON.handle} userId={PERSON.id} displayLabel={PERSON.name} isOwner={false} signedIn onCover />}
+      menu={<ProfileMenu handle={PERSON.handle} userId={PERSON.id} displayLabel={PERSON.name} isOwner={false} signedIn onCover reportWords={t.experienceSocial.feed.report} />}
       share={<ProfileShare handle={PERSON.handle} displayLabel={PERSON.name} />}
     />`,
   },

@@ -24,6 +24,64 @@ export const experienceSocialEn = {
     reportPostedOnAround: "Posted on Around",
     /* The author, in the menu's sentences, when they have no handle. */
     thisPerson: "this person",
+    /*
+     * A post's menu (`actionsForPost`): each row's action and the sentence that
+     * says what it does. `{who}` is "@handle" or `thisPerson`. The repost
+     * lines may be followed by " N people so far" (countOf).
+     */
+    menu: {
+      save: "Save",
+      saved: "Saved",
+      saveNote: "Keep it to come back to",
+      savedNote: "Take it off your saved list",
+      repost: "Repost",
+      reposted: "Reposted",
+      repostNote: "It shows under Activity on your page, and they are told.",
+      repostedNote: "Take it off your Activity.",
+      contact: "Contact agent",
+      contactNote: "Send a message about this place",
+      share: "Share",
+      shareNote: "Send it to somebody",
+      copy: "Copy link",
+      copyNote: "Paste it anywhere",
+      edit: "Change what it says",
+      editNote: "For fifteen minutes after posting. It says edited afterwards",
+      delete: "Delete this post",
+      deleteNote: "Replies under it stay, with a note where it was",
+      mute: "Mute {who}",
+      muteNote: "They stop showing up in your feeds, stories and threads",
+      report: "Report",
+      reportNote: "Tell us what is wrong with this",
+      block: "Block {who}",
+      blockNote: "You will not see each other anywhere on Vallo",
+    },
+    /*
+     * The report sheet (`ReportSheet`) for a post, a comment, a story or an
+     * account: the reasons by their database value, and the sheet's own words.
+     */
+    report: {
+      reasons: {
+        SCAM: "It looks like a scam",
+        OFF_PLATFORM_PAYMENT: "Asking for payment outside Vallo",
+        HARASSMENT: "Harassment or abuse",
+        MISLEADING: "It is not true",
+        IMPERSONATION: "Pretending to be somebody else",
+        NOT_ABOUT_THIS_PLACE: "Nothing to do with this place",
+        OTHER: "Something else",
+      },
+      whatIsWrong: "What is wrong",
+      detailLabel: "Anything else, if it helps",
+      detailPlaceholder: "Optional. A sentence is plenty.",
+      send: "Send report",
+      sending: "Sending",
+      cancel: "Cancel",
+      thanks: "Thank you",
+      close: "Close",
+      sentBody: "Somebody will read this. We never tell the person you reported that it was you, and we do not tell them what was said either.",
+      sentMute:
+        "If you would rather not see them at all in the meantime, mute or block them from the same menu. Neither of those tells them anything.",
+      done: "Done",
+    },
   },
   profile: {
     /* The badge row, the badge sheet and the earned moment (W4). */

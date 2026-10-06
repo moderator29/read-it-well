@@ -22,7 +22,22 @@ export type SheetWords = {
   reportPostedOnAround: string;
   /** The author in the menu's sentences when they have no handle. */
   thisPerson: string;
+  /** A post's menu rows (`actionsForPost`). */
+  menu: MenuWords;
+  /** The report sheet's reasons and words (`ReportSheet`). */
+  report: ReportWords;
 };
+
+/** A post's menu: each row's action and what it does. */
+export type MenuWords = Dictionary["experienceSocial"]["feed"]["menu"];
+
+/** The report sheet's words, the same small object for a post, a comment, a story and an account. */
+export type ReportWords = Dictionary["experienceSocial"]["feed"]["report"];
+
+/** The report sheet's words alone, for a screen with no post menu (a profile, a story). */
+export function reportWordsOf(t: Dictionary): ReportWords {
+  return t.experienceSocial.feed.report;
+}
 
 export function sheetWordsOf(t: Dictionary): SheetWords {
   const feed = t.experienceSocial.feed;
@@ -33,5 +48,7 @@ export function sheetWordsOf(t: Dictionary): SheetWords {
     reportPostedBy: feed.reportPostedBy,
     reportPostedOnAround: feed.reportPostedOnAround,
     thisPerson: feed.thisPerson,
+    menu: feed.menu,
+    report: reportWordsOf(t),
   };
 }

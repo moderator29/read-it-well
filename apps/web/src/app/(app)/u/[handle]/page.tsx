@@ -10,6 +10,7 @@ import { readUserRecord } from "@/lib/trust/record-read";
 /* ONE empty-state anatomy across the whole product. See EmptyPanel. */
 import { EmptyPanel } from "@/components/social/profile/EmptyPanel";
 import { ProfileMenu } from "@/components/social/profile/ProfileMenu";
+import { reportWordsOf } from "@/components/social/sheet-words";
 import { ProfileShare } from "@/components/social/profile/ProfileShare";
 import { ProfileTabs } from "@/components/social/profile/ProfileTabs";
 /* Plain module, never the client component: a server component importing a
@@ -220,6 +221,7 @@ export default async function SocialProfilePage({
               isOwner={view.isOwner}
               signedIn={view.signedIn}
               initialMuted={view.viewerMutes}
+              reportWords={reportWordsOf(t)}
             />
           }
         />

@@ -89,15 +89,7 @@ export const REPORT_REASONS = [
 
 export type ReportReason = (typeof REPORT_REASONS)[number];
 
-export const REPORT_REASON_LABEL: Record<ReportReason, string> = {
-  SCAM: "It looks like a scam",
-  OFF_PLATFORM_PAYMENT: "Asking for payment outside Vallo",
-  HARASSMENT: "Harassment or abuse",
-  MISLEADING: "It is not true",
-  IMPERSONATION: "Pretending to be somebody else",
-  NOT_ABOUT_THIS_PLACE: "Nothing to do with this place",
-  OTHER: "Something else",
-};
+/* Their words are the reader's: `experienceSocial.feed.report.reasons`. */
 
 /** What you may say about a post. */
 export const POST_REPORT_REASONS: readonly ReportReason[] = [

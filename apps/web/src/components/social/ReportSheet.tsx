@@ -3,7 +3,8 @@
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
-import { REPORT_REASON_LABEL, type ReportReason } from "@/lib/social/posts-model";
+import type { ReportReason } from "@/lib/social/posts-model";
+import type { ReportWords } from "./sheet-words";
 import type { ActionResult } from "@/lib/actions/envelope";
 
 /**
@@ -34,6 +35,7 @@ export function ReportSheet({
   reasons,
   submit,
   onClose,
+  words,
 }: {
   /** "Report this post", "Report @tolu". */
   title: string;
@@ -43,6 +45,8 @@ export function ReportSheet({
   reasons: readonly ReportReason[];
   submit: (input: { reason: ReportReason; detail: string }) => Promise<ActionResult<unknown>>;
   onClose: () => void;
+  /** The reasons and the sheet's words, from the server (`reportWordsOf` or `sheetWordsOf(t).report`). */
+  words: ReportWords;
 }) {
   const [reason, setReason] = useState<ReportReason | null>(null);
   const [detail, setDetail] = useState("");
@@ -72,8 +76,8 @@ export function ReportSheet({
       onOpenChange={(next) => {
         if (!next) onClose();
       }}
-      title={sent ? "Thank you" : title}
-      closeLabel="Close"
+      title={sent ? words.thanks : title}
+      closeLabel={words.close}
       fullPage
     >
       <div>
@@ -84,22 +88,19 @@ export function ReportSheet({
         {sent ? (
           <>
             <p className="text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
-              Somebody will read this. We never tell the person you reported
-              that it was you, and we do not tell them what was said either.
+              {words.sentBody}
             </p>
             <p className="mt-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
-              If you would rather not see them at all in the meantime, mute or
-              block them from the same menu. Neither of those tells them
-              anything.
+              {words.sentMute}
             </p>
             <Button variant="primary" onClick={onClose} full className="mt-lg">
-              Done
+              {words.done}
             </Button>
           </>
         ) : (
           <>
             <fieldset>
-              <legend className="nf-overline mb-xs">What is wrong</legend>
+              <legend className="nf-overline mb-xs">{words.whatIsWrong}</legend>
               <div className="flex flex-col gap-xs">
                 {reasons.map((key) => (
                   <label key={key} className="nf-social-reason">
@@ -110,20 +111,20 @@ export function ReportSheet({
                       checked={reason === key}
                       onChange={() => setReason(key)}
                     />
-                    <span>{REPORT_REASON_LABEL[key]}</span>
+                    <span>{words.reasons[key]}</span>
                   </label>
                 ))}
               </div>
             </fieldset>
 
             <label className="mt-md block">
-              <span className="nf-overline">Anything else, if it helps</span>
+              <span className="nf-overline">{words.detailLabel}</span>
               <textarea
                 className="nf-field mt-xs min-h-[88px] w-full resize-y text-[length:var(--nf-text-body-sm)] leading-[1.5]"
                 value={detail}
                 maxLength={600}
                 onChange={(event) => setDetail(event.target.value)}
-                placeholder="Optional. A sentence is plenty."
+                placeholder={words.detailPlaceholder}
               />
             </label>
 
@@ -143,7 +144,7 @@ export function ReportSheet({
                 disabled={!reason || pending}
                 className="flex-1"
               >
-                {pending ? "Sending" : "Send report"}
+                {pending ? words.sending : words.send}
               </Button>
               <Button
                 variant="ghost"
@@ -151,7 +152,7 @@ export function ReportSheet({
                 disabled={pending}
                 className="flex-1"
               >
-                Cancel
+                {words.cancel}
               </Button>
             </div>
           </>

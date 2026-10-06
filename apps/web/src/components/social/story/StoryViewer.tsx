@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { BackChevron } from "@/components/social/profile/BackChevron";
 import { FollowButton } from "@/components/social/profile/FollowButton";
 import { ReportSheet } from "@/components/social/ReportSheet";
+import type { ReportWords } from "@/components/social/sheet-words";
 import { CommentsSheet } from "@/components/social/comments/CommentsSheet";
 import { StoryRail } from "./StoryRail";
 import { markStorySeen } from "./seen";
@@ -58,6 +59,7 @@ export function StoryViewer({
   signedIn,
   viewerId = null,
   viewerFollows,
+  reportWords,
 }: {
   story: StoryView;
   faces: Face[];
@@ -68,6 +70,8 @@ export function StoryViewer({
   /** The signed-in reader's id: the seen ring is kept per account on a shared phone. */
   viewerId?: string | null;
   viewerFollows: boolean;
+  /** The report sheets' reasons and words, from the server (`reportWordsOf`). */
+  reportWords: ReportWords;
 }) {
   const locale = useClientLocale();
   const router = useRouter();
@@ -527,6 +531,7 @@ export function StoryViewer({
           /* B-7b: your own comment can be deleted (soft, like a post). */
           onDelete={(commentId) => deleteStoryComment({ commentId })}
           onReport={(input) => reportStoryComment(input)}
+          reportWords={reportWords}
         />
       ) : null}
 
@@ -535,6 +540,7 @@ export function StoryViewer({
           title={`Report ${who}`}
           subject={`The account behind this story, at @${story.author.handle ?? ""}.`}
           reasons={PROFILE_REPORT_REASONS}
+          words={reportWords}
           submit={({ reason, detail }) =>
             reportProfile({ userId: story.author.id as string, reason, detail })
           }
