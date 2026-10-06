@@ -3,10 +3,27 @@
  * thread, at 390 pixels. One column, the mark, one card, one button. Colours
  * only through the token layer (the css token check fails on a raw colour),
  * dark only, and every control a rounded rectangle under the shape law.
+ *
+ * The layer order is declared first (the wave-2 new-sheet rule): this sheet
+ * is imported by the door's layout, so it can reach the page before
+ * globals.css, and a sheet that names `components` first would flip
+ * Tailwind's order for the whole door.
+ *
+ * SESSION 3 (W13). The door was a Card on a bare canvas, which read as an
+ * interface somebody forgot to finish rather than as a card somebody sent.
+ * It is now the screen's one Island (`.nf-island`, glass.css: navy glass,
+ * the edge light, the wider radius), on one quiet ground wash, and the
+ * figure leads it in the display face. It costs no JavaScript: the
+ * entrance is CSS, played once on arrival, so the door stays the lightest
+ * page in the product (it is the one most likely opened on a phone with a
+ * data bundle running out).
  */
+@layer theme, base, components, utilities;
+
 @layer components {
   .nf-door {
     position: relative;
+    isolation: isolate;
     display: flex;
     min-height: 100dvh;
     flex-direction: column;
@@ -16,6 +33,22 @@
       max(var(--nf-space-lg), env(safe-area-inset-bottom, 0px));
     background: var(--nf-surface-canvas);
     color: var(--nf-content-primary);
+    overflow-x: clip;
+  }
+
+  /*
+   * The one glow on the view: a soft brand wash rising from behind the mark,
+   * so the Island has a ground to sit on. A painted gradient, not a blur, so
+   * it costs the GPU nothing and survives data saver unchanged.
+   */
+  .nf-door::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    z-index: -1;
+    height: min(34rem, 80dvh);
+    background: radial-gradient(60% 55% at 50% 0%, var(--nf-brand-tint-2), transparent 72%);
+    pointer-events: none;
   }
 
   .nf-door__mark {
@@ -31,8 +64,25 @@
     flex-direction: column;
   }
 
+  /*
+   * The card works on either container: the Island for the listing (the
+   * screen's subject) and the Card for the honest states, which are not a
+   * subject anybody came for and so do not get the hero material.
+   */
   .nf-door__card {
+    display: flex;
+    flex-direction: column;
     gap: var(--nf-space-md);
+  }
+
+  .nf-door__card.nf-island {
+    padding: var(--nf-space-lg) var(--nf-space-md) var(--nf-space-md);
+  }
+
+  @media (min-width: 30rem) {
+    .nf-door__card.nf-island {
+      padding: var(--nf-space-xl) var(--nf-space-lg) var(--nf-space-lg);
+    }
   }
 
   .nf-door__eyebrow {
@@ -72,30 +122,51 @@
     color: var(--nf-content-secondary);
   }
 
+  /*
+   * THE FIGURE, which is the reason the card exists: "₦3.2m to move in". It
+   * is the whole cost first and the rent under it (north star 2.3), in the
+   * display face at figure size, tabular, never counted up: a stranger is
+   * reading a price somebody quoted them, and a number that rolls into place
+   * would look like it was being decided while they watched.
+   */
+  .nf-door__figure {
+    display: grid;
+    gap: var(--nf-space-2xs);
+    padding-block: var(--nf-space-xs);
+  }
+
   .nf-door__headline {
-    font-size: var(--nf-text-h2);
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h1);
     font-weight: 600;
-    line-height: 1.15;
-    letter-spacing: -0.01em;
+    line-height: 1.1;
+    letter-spacing: -0.015em;
     color: var(--nf-content-primary);
     font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
   }
 
   .nf-door__second {
     font-size: var(--nf-text-body);
     color: var(--nf-content-secondary);
+    font-variant-numeric: tabular-nums;
   }
 
   .nf-door__example {
     align-self: flex-start;
   }
 
+  /*
+   * The code is a Plate inside the Island: flat, its one edge a hairline,
+   * never a second shadow (the hairline rule).
+   */
   .nf-door__code {
     display: flex;
     flex-direction: column;
     gap: var(--nf-space-3xs);
     padding: var(--nf-space-sm) var(--nf-space-md);
-    border-radius: var(--nf-radius-md);
+    border-radius: var(--nf-tier-plate-radius, var(--nf-radius-md));
+    border: var(--nf-border-width) solid var(--nf-border-subtle);
     background: var(--nf-surface-inset);
   }
 
@@ -104,10 +175,93 @@
     font-weight: 600;
     letter-spacing: 0.18em;
     color: var(--nf-content-primary);
+    user-select: all;
   }
 
   .nf-door__note {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nf-space-xs);
     font-size: var(--nf-text-caption);
     color: var(--nf-content-muted);
+  }
+
+  .nf-door__note svg {
+    flex-shrink: 0;
+    margin-top: 0.125rem;
+  }
+
+  /*
+   * THE ENTRANCE (motion system: card entry, `land`, children 60ms apart,
+   * at most six). The mark is already there; the Island rises 16px and
+   * fades in 520ms, and its rows follow it 60ms apart so the card arrives
+   * as one object rather than a queue. Transform and opacity only, played
+   * once, and nothing waits for it: every element is in the document and
+   * tappable from the first frame.
+   *
+   * Calm and reduced motion keep a 160ms fade with no travel; Off and the
+   * print sheet show the door as it is. The waiting card (loading.tsx) never
+   * moves: it holds the Island's outline so the arrival is the only motion.
+   */
+  @media (prefers-reduced-motion: no-preference) {
+    :root:not([data-motion="calm"]):not([data-motion="off"]) .nf-door__card:not(.nf-door__card--wait) {
+      animation: nf-door-rise var(--nf-duration-entrance) var(--nf-ease-entrance) both;
+    }
+    :root:not([data-motion="calm"]):not([data-motion="off"]) .nf-door__card:not(.nf-door__card--wait) > * {
+      animation: nf-door-rise-child var(--nf-duration-entrance) var(--nf-ease-entrance) both;
+      animation-delay: calc(80ms + var(--nf-door-i, 5) * 60ms);
+    }
+    :root:not([data-motion="calm"]):not([data-motion="off"]) .nf-door__card:not(.nf-door__card--wait) > :nth-child(1) {
+      --nf-door-i: 0;
+    }
+    :root:not([data-motion="calm"]):not([data-motion="off"]) .nf-door__card:not(.nf-door__card--wait) > :nth-child(2) {
+      --nf-door-i: 1;
+    }
+    :root:not([data-motion="calm"]):not([data-motion="off"]) .nf-door__card:not(.nf-door__card--wait) > :nth-child(3) {
+      --nf-door-i: 2;
+    }
+    :root:not([data-motion="calm"]):not([data-motion="off"]) .nf-door__card:not(.nf-door__card--wait) > :nth-child(4) {
+      --nf-door-i: 3;
+    }
+    :root:not([data-motion="calm"]):not([data-motion="off"]) .nf-door__card:not(.nf-door__card--wait) > :nth-child(5) {
+      --nf-door-i: 4;
+    }
+  }
+
+  :root[data-motion="calm"] .nf-door__card:not(.nf-door__card--wait) {
+    animation: nf-door-fade 160ms var(--nf-ease-standard) both;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root:not([data-motion="off"]) .nf-door__card:not(.nf-door__card--wait) {
+      animation: nf-door-fade 160ms var(--nf-ease-standard) both;
+    }
+  }
+
+  @media print {
+    .nf-door__card,
+    .nf-door__card > * {
+      animation: none;
+    }
+  }
+
+  @keyframes nf-door-rise {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 16px, 0);
+    }
+  }
+
+  @keyframes nf-door-rise-child {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 8px, 0);
+    }
+  }
+
+  @keyframes nf-door-fade {
+    from {
+      opacity: 0;
+    }
   }
 }
