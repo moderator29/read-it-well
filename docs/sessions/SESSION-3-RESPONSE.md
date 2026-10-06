@@ -123,6 +123,58 @@ state until they land.
 | R-61 | A failed refund said as failed | `refunds.ts` maps `processorStatus === "failed"` to the "on its way" sentence; a failed refund needs its own line in `lib/money/copy.ts` | The booking money record | No, but it is an honesty gap (auditor A7) |
 | R-40 to R-43 | Agreement and caution dates, a ruling-only sentence, staff read of versions, and version reads in `lib/agreements` | As in M2's report | Agreements and the caution register | No |
 
+### What has landed, checked on 6 October 2026
+
+Where it was looked for: this branch (`HEAD`); `origin/main` after `git fetch` (head
+`d685f5e04`, which carries no Session 2 work); and Session 2's branch
+`origin/claude/vallo-backend-money-trust` (head `45956c4db`, its response file
+`docs/sessions/SESSION-2-RESPONSE.md`). Session 2's branch is in neither `main` nor this
+branch (`git merge-base --is-ancestor` is false for both), so anything on it is built
+but not landed. Its 43 changed files, from `git diff --stat` against the merge base,
+contain none of the objects below. **No numbered request has landed.** Nothing was wired.
+
+| # | Landed? | Evidence |
+|---|---|---|
+| R-1 | Yes, and verified | Section 0: `0bf5a642e` on Session 2's branch, and its test run here. Withdrawn |
+| R-2 | No | None of the six step labels nor the no-double-charge line is in `lib/money/copy.ts` on any of the three refs (searched for each label) |
+| R-3 | No | No `my_balance` in any migration or code on any ref. Nearest: ADR-0003 (`docs/adr/0003-two-rails-provider-held-escrow.md`, status proposed) on Session 2's branch, a design for a provider-held escrow rail, not a read |
+| R-4 | No | No escrow read on any ref; here `/escrow/*` redirects to `/agreements` (`next.config.ts`). Session 2's response lists the escrow cancellation path as blocked on the founder (its Question 3) |
+| R-5 | No | No `withdrawal_quote` on any ref |
+| R-6 | No | No `my_payment_entry` on any ref. `lib/money/history.ts` here reads lists only (`readMyPayments`, `readMyEarnings`, the admin ledger) |
+| R-7 | No | `CheckoutView` (`lib/bookings/checkout-view.ts`) carries `paid: boolean` and no `paid_at`, `provider_ref` or `provider` |
+| R-8 | No | No `host_analytics` on any ref |
+| R-9 | No | No `my_host_earnings_by_month`; `readMyEarnings` still pages |
+| R-10 | No | No `agent_daily_counts` on any ref |
+| R-50 | No | Not answered in Session 2's response; no `listing_health` on any ref. Listing Health here prints facts and no score |
+| R-51 | No | No `floor_plan` photo kind and no `listing_floor_plans` anywhere |
+| R-52 | No | `listing_photos` has no `width`, `height` or `quality`. V-45's photo hashes (`20260928224531`) are a duplicate-photo signal, adjacent and not this |
+| R-53 | No | No `listing_price_position` on any ref |
+| R-54 | Partly, and not the part asked for | `listing_funnel(p_listing uuid)` exists (`20260928231155_v73_per_listing_funnel.sql`, on `main`) over a fixed seven days; the `p_days` parameter is not there, so "7 days only" still stands |
+| R-55 | No | No migration adds a share or contact-reveal counter |
+| R-56 | No | No `agent_funnel_totals` on any ref |
+| R-60 | No | Only `public.person_badge` (`20260929000714`) exists, which carries a verified tier; there is no view of `(user_id, badge_code, granted_at, earned)` for a signed-out visitor |
+| R-61 | No | `lib/after-gate/refund-lines.ts` (line 50) still draws `processorStatus === "failed"` with the "on its way" sentence, and `lib/money/copy.ts` has no failed-refund line |
+| R-40 to R-43 | Cannot be confirmed in full | The request says "as in M2's report", which is not in the repository, so its exact asks cannot be checked. Session 2's branch changes nothing under `lib/agreements`, `lib/admin/reads/agreements.ts` or the caution reads. `readChangesSinceConfirmed` (`lib/agreements/changes-read.ts`, over `deal_agreement_versions`, `20260930084615`) is a member's read of version changes and is not a staff read of versions. Left open |
+
+**Built on Session 2's branch, not yet landed, and not one of the numbered requests.**
+When that branch is merged, these need a Session 3 screen to be wired, and none has
+been touched here:
+
+- **AR-11, the blocked-terms list** (`cd7eb98ff`, migration `20261006024044`, applied to
+  production per Session 2's response): `lib/admin/blocked-terms-actions.ts` exports
+  `listBlockedTerms`, `putBlockedTerm` and `retireBlockedTerm`. The Blocked terms panel
+  in `app/admin/_lanes/ModerationDesk.tsx` still says the list cannot be read, which
+  stays true until the merge. A member's write that hits a `refuse` term fails with a
+  `check_violation` whose message starts `content_refused:`, so the post composers will
+  need a plain sentence for it (no term is `refuse` today).
+- **The four-digit passcode default** (`b1afcbef4`, D18): the passcode UI reads the
+  constant, so no screen needs wiring. A dry `git merge-tree` shows both branches
+  changed five files, which are the conflicts to expect: `apps/web/.env.example`,
+  `docs/ENVIRONMENT.md`, `PasscodeSetup.tsx` and the `PasscodeFrame` and `PasscodeGate`
+  dom tests.
+- **`database.types.ts` regenerated from live** (`b5760fe4c`, a very large diff): this
+  branch has not edited that file since the merge base, so it brings no conflict.
+
 ---
 
 ## 3. Surfaces touched, with the 24-point audit (north star section 12)
