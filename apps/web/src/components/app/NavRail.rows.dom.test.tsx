@@ -4,9 +4,9 @@
  * and the side navigation's own stylesheets).
  *
  * On a short desktop screen the rail keeps its dense rhythm: a 40px pitch, a
- * plate that paints on the 38px inside the row's border. The row's box is now
- * 44 (a 3px transparent border top and bottom with a -2px margin handing the
- * 4px back to the list), so the target clears the floor without moving
+ * plate that paints 40px, as the old row's did. The row's box is now 44 (a
+ * 2px transparent border top and bottom with a -2px margin handing the 4px
+ * back to the list), so the target clears the floor without moving
  * anything a person sees. Measured: the box height, the pitch between rows,
  * and that the hover plate is clipped to the padding box.
  */
@@ -55,6 +55,9 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the pointer rail's rows", () =>
       for (const row of rows) {
         expect(row.h, "a 44px target").toBeGreaterThanOrEqual(43.5);
         expect(row.clip).toBe("padding-box");
+        /* The plate is the padding box: 44 less two 2px borders, the old 40. */
+        expect(row.border).toBe("2px");
+        expect(row.h - 4).toBeCloseTo(40, 0);
       }
       /* The list's rhythm is the old 40px pitch: nothing moved. */
       for (let i = 1; i < rows.length; i += 1) {
