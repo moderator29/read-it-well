@@ -1,6 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import { formatDate, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { CountUp } from "@/components/motion/CountUp";
 import { toneForStatus, type StatusTone } from "@/components/ui/StatusPill";
 import { ConsoleStatus } from "./chip-state";
 import { QUEUE_EMPTY_MARK, queueEmptyKind, type QueueEmptyKind } from "./queue-empty";
@@ -377,7 +378,11 @@ export function adminUi(t: Dictionary, locale: Locale) {
           className="nf-numeric nf-h3 mt-inline-tight"
           style={{ color: STAT_VALUE_COLOUR[tone] }}
         >
-          {value}
+          {/* A whole count arrives counting up (north star 12, point 7), as
+              the overview's figures do; a formatted figure (money, a date)
+              stays the string it was given. The server prints the final
+              number either way. */}
+          {/^\d+$/.test(value) ? <CountUp value={Number(value)} eager /> : value}
           {flagged && <span className="sr-only"> {statToneWord[tone]}</span>}
         </p>
         {hint && <p className="nf-caption mt-inline-tight">{hint}</p>}
