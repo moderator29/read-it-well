@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { DEFAULT_LOCALE, getDictionary, type Locale } from "@vallo/i18n";
 import { ResultSheet } from "@/components/app/ResultSheet";
+import { PaymentSteps, cardPaymentSteps } from "./PaymentSteps";
 import { clearInflight, noteInflight } from "@/lib/offline/inflight";
 import { releaseCardAttempt } from "@/lib/payments/attempt-actions";
 
@@ -412,6 +413,24 @@ export function PaystackCheckout({
     reference,
   };
 
+  /* The payment's real steps (motion 14), under the two waiting sheets. Each
+     ticks only when its phase has genuinely passed: "opening" is done once
+     Paystack's window reported that it loaded (only then can a settle run),
+     "confirming" is done once our own transaction record says paid, at which
+     point the caller swaps this sheet for the receipt. The words are the
+     checkout dictionary's own. */
+  const stepWords = getDictionary(locale ?? DEFAULT_LOCALE).checkout;
+  const steps = (at: "opening" | "settling") => (
+    <PaymentSteps
+      label={stepWords.confirmingPayment}
+      steps={cardPaymentSteps(at, {
+        opening: stepWords.openingPaymentPage,
+        confirming: stepWords.confirmingPayment,
+        received: stepWords.paymentReceived,
+      })}
+    />
+  );
+
   /* While Paystack's iframe is up it is fixed and full viewport, so our own
      sheet would sit behind it and be read by a screen reader as a second
      dialog over the one the person is using. The `open` phase therefore draws
@@ -430,6 +449,7 @@ export function PaystackCheckout({
         consequence="Nothing has been charged yet. The payment window opens on this page."
         fact={fact}
         locale={locale}
+        footnote={steps("opening")}
       />
     );
   }
@@ -445,6 +465,7 @@ export function PaystackCheckout({
         consequence="We are checking with our own records rather than taking the payment window's word for it. Do not pay again."
         fact={fact}
         locale={locale}
+        footnote={steps("settling")}
       />
     );
   }
