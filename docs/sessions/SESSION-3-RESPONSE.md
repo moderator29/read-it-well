@@ -24,12 +24,17 @@ labels into the dictionary).
 **The sweep, as a number.** The per-route record is
 [`SESSION-3-SWEEP.md`](SESSION-3-SWEEP.md), generated from each agent's own 24-point
 result, run in Chromium at 390, 768 and 1440 in both themes on the route's real page
-component. **Routes audited with all 24 points recorded: 213 of the 213** at this edit, plus
-four routes added since (217 records). Every route has a measured record; a
-state no fixture holds is listed in its route's remaining items, never counted as
-measured. 38 admin, 24 agent and 17 host: every route
-in those trees. 39 public site, auth and landing: every route in those groups. The
-member routes and the top-level pages make up the rest. The rows in section 3 below predate this and leave points
+component. **Corrected after auditor A9: 213 of the 213 routes that existed when the
+sweep was measured, but 215 of the 222 page routes in the tree today.** The seven newest
+pages, built this round, have no record yet: `/payouts`, `/receipts`, `/refunds`,
+`/rewards`, `/rewards/history`, `/rewards/referrals` and `/rewards/withdraw` (being
+audited now). Two records counted earlier as "routes added" are route handlers, not
+pages (`/join/[code]/start`, `/s/[token]/status`), and do not count. And from the font
+move (`6a50d1cf5`) until `776f31d54`, the locale-fit harness measured Hausa, Igbo and
+Yoruba in fallback fonts; the routes measured in that window are being re-measured.
+38 admin, 24 agent and 17 host: every route in those trees. 39 public site, auth and
+landing. A state no fixture holds is listed in its route's remaining items, never
+counted as measured. The rows in section 3 below predate this and leave points
 19, 22 and 23 at N; they are not counted. The measured starting point (C1, at
 `6376453df` against the session base): 88 of 213 `page.tsx` files untouched, 46 of
 125 edits five lines or fewer, 54 routes whose own files are untouched; admin 23
@@ -44,8 +49,9 @@ untouched of 38, agent 15 of 24.
   framer-motion's door shut. `DragToConfirm` no longer commits money on a keyboard
   or screen-reader activation (`e.detail === 0`): it asks for a second press, and a
   test pins it. `BadgeMoment` says Copied only after the clipboard resolves;
-  `EarnedMoment` has its replay latch; the nine silent server reads report their
-  errors. A motion preference change reaches every gate without a remount, an open
+  `EarnedMoment` had no product mount and is deleted, not latched; 12 silent catches in
+  8 server reads report their errors (reads that return an error without throwing do
+  not yet). A motion preference change reaches every gate without a remount, an open
   sheet pins the page on iOS Safari, the console palette leaves Ctrl/Cmd+K to a
   textarea.
 - **D51 and the renter price:** every Guarantee sentence out of member copy; the
@@ -156,8 +162,11 @@ for that day).
   Guarantee sentence out; the sweep records point 17 as failing on all three until
   then. The Terms "updated" date is typed separately in the in-app and public pages;
   one constant would stop them drifting. The caution register's
-  "escalate to the Vallo Guarantee" strings and the claim-decision emails serve
-  legacy claims; whether they stay is the founder's call. The staff scope label
+  "escalate to the Vallo Guarantee" strings and the claim-decision emails were said
+  here to serve legacy claims only. Auditor A9 showed that was wrong: the tenancy
+  caution screen offered the Guarantee on every tenancy with an overdue caution. It is
+  being gated to tenancies whose payment carried a Guarantee contribution, as the
+  agreement page already is; whether the strings stay for those is the founder's call. The staff scope label
   "Guarantee claims" and the handbook line are left as they are, by ruling.
 
 - **Two sign-in copy lines, in four languages.** The sign-in card's title "Sign in"
