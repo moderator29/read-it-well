@@ -11,7 +11,7 @@ import { UpNext } from "@/components/app/home/UpNext";
 import { getAgentContext } from "@/lib/agent/listings-queries";
 import { getMode } from "@/lib/mode";
 import { roleStateFrom, type AgentFacts } from "@/components/roles/roles";
-import { readIntentTuning } from "@/lib/interests/queries";
+import { readIntentTuning, type IntentTuning } from "@/lib/interests/queries";
 import { orderByStatedIntent } from "@/lib/listings/intent";
 import { rankRecommended } from "@/lib/listings/ranking";
 import { getSavedListings } from "@/lib/saved/queries";
@@ -41,6 +41,31 @@ export const metadata: Metadata = {
  */
 export const dynamic = "force-dynamic";
 
+/**
+ * What this person said they came for, and the rows that answer it.
+ *
+ * Started in the page's first wave and chained on `readIntentTuning()`, so the
+ * (at most three) kind reads run in parallel with each other and with the
+ * overview, the recommended shelf and the rest, instead of as a second wave
+ * after all of them. Each read asks for eighteen rows, not the catalogue's
+ * two hundred: the shelf shows six cards and `rankRecommended` only has to
+ * choose among a handful per kind. The kind filter is applied in SQL, so the
+ * ceiling never trims away matches the way it can for a free-text search.
+ * The formula and the partition are untouched; this decides only how many
+ * rows are read to feed them.
+ */
+async function readStatedKinds(
+  repo: ReturnType<typeof getListingRepository>,
+): Promise<{ tuning: IntentTuning; stated: SpaceTypeKey[]; forThem: Listing[] }> {
+  const tuning = await readIntentTuning();
+  const stated = tuning.interests
+    .filter((kind): kind is SpaceTypeKey => (PROPERTY_SPACE_TYPES as readonly string[]).includes(kind))
+    .slice(0, 3);
+  if (stated.length === 0) return { tuning, stated, forThem: [] };
+  const rows = await Promise.all(stated.map((kind) => repo.search({ kind, propertySide: true }, { limit: 18 })));
+  return { tuning, stated, forThem: rows.flat() };
+}
+
 export default async function HomePage() {
   const locale: Locale = await getLocale();
   const t = getDictionary(locale);
@@ -53,14 +78,17 @@ export default async function HomePage() {
    * before anything is drawn; the reads it makes unnecessary only read, so
    * starting them early changes when they finish and nothing else.
    */
-  const [overview, recommended, agentContext, mode, tuning, savedEntries] = await Promise.all([
+  const [overview, recommended, agentContext, mode, intent, savedEntries] = await Promise.all([
     getHomeOverview(),
     repo.recommended(18),
     getAgentContext(),
     getMode(),
     /* Session 3, W2: what this person said they came for, the same read
-       `/search` orders its unfiltered shelf by. Empty for a guest. */
-    readIntentTuning(),
+       `/search` orders its unfiltered shelf by. Empty for a guest. The
+       catalogue reads for each stated kind hang off it in the same wave
+       (see `readStatedKinds` below), so they overlap everything else
+       instead of waiting behind it. */
+    readStatedKinds(repo),
     /* The account's shortlist, for the figure home leads with. Empty for a
        guest; the read never throws. */
     getSavedListings(),
@@ -114,13 +142,7 @@ export default async function HomePage() {
    * which is the honest surface. A dedicated personalised read would save
    * the extra round trips; it is request W2-R2 in Session 3's response.
    */
-  const stated = tuning.interests
-    .filter((kind): kind is SpaceTypeKey => (PROPERTY_SPACE_TYPES as readonly string[]).includes(kind))
-    .slice(0, 3);
-  const forThem: Listing[] =
-    stated.length > 0
-      ? (await Promise.all(stated.map((kind) => repo.search({ kind, propertySide: true })))).flat()
-      : [];
+  const { tuning, stated, forThem } = intent;
   const seen = new Set<string>();
   const pooled = [...rankRecommended(forThem), ...propertyRows].filter((listing) => {
     if (seen.has(listing.id)) return false;
