@@ -412,3 +412,11 @@ never colours the result. Results per push are appended below.
   founder authorised (D39.3).
 - Do not kill processes by pattern in a shared tree; another agent's test run is
   collateral.
+- Do not commit a whole file because its reporting agent owns it: two agents
+  can hold hunks in one file at once. b373f6889 and ebd47c30c committed W13's
+  unfinished copy-scope hunks inside HostWizard with R2's chips, and the tree
+  stopped building until 75e2f8345 and 339424273 took them back out (auditors A6
+  and A7). Before staging, read the file's diff for lines the report does not
+  describe, and stage by hunk when another agent is active in the same file.
+- Do not make a prop required without grepping every caller, previews
+  included (4707bdcb5).
