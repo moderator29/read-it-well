@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { getDictionary } from "@vallo/i18n";
+import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
 import { ProfileEditor } from "@/components/social/profile/ProfileEditor";
 /* ONE empty-state anatomy across the whole product. See EmptyPanel. */
@@ -8,7 +10,9 @@ import { loadProfileEditor, normaliseHandle } from "@/lib/social/profiles-querie
 import { SocialPaused } from "@/components/social/SocialPaused";
 import { isSocialEnabled } from "@/lib/social/flag";
 
-export const metadata: Metadata = { title: "Edit your profile" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: getDictionary(await getLocale()).experienceSocial.editProfile.title };
+}
 
 /**
  * `/u/[handle]/edit`: the profile editor, as a full page.
@@ -29,13 +33,15 @@ export default async function EditSocialProfilePage({
 }) {
   const { handle: raw } = await params;
   const handle = normaliseHandle(raw);
+  const w = getDictionary(await getLocale()).experienceSocial.editProfile;
+  const h = (text: string) => text.replaceAll("{handle}", handle);
   if (!(await isSocialEnabled())) return <SocialPaused title={`@${handle}`} />;
   const editor = await loadProfileEditor(raw);
 
   return (
     <div className="mx-auto max-w-2xl">
       <PageHeader
-        title={editor.state === "editing" ? "Edit your profile" : "Your profile"}
+        title={editor.state === "editing" ? w.title : w.yourProfile}
         subtitle={`@${handle}`}
         fallback={`/u/${handle}`}
       />
@@ -43,46 +49,46 @@ export default async function EditSocialProfilePage({
       {editor.state === "unconfigured" && (
         <EmptyPanel
           icon="user-check"
-          title="We cannot reach profiles right now"
-          body="This is on our side, not yours. A handle cannot be claimed from here at the moment. Nothing you typed was lost, and the rest of the app works as normal."
-          action={{ href: "/home", label: "Back to home" }}
+          title={w.unreachableTitle}
+          body={w.unreachableBody}
+          action={{ href: "/home", label: w.backToHome }}
         />
       )}
 
       {editor.state === "signed-out" && (
         <EmptyPanel
           icon="user-check"
-          title="Sign in to claim your handle"
-          body={`@${handle} is claimed from your own account, so people know a name belongs to one person. Sign in and it takes about a minute.`}
-          action={{ href: "/sign-in", label: "Sign in" }}
-          secondary={{ href: `/u/${handle}`, label: "See the profile" }}
+          title={w.signedOutTitle}
+          body={h(w.signedOutBody)}
+          action={{ href: "/sign-in", label: w.signIn }}
+          secondary={{ href: `/u/${handle}`, label: w.seeProfile }}
         />
       )}
 
       {editor.state === "taken" && (
         <EmptyPanel
           icon="shield-check"
-          title={`@${handle} belongs to somebody else`}
-          body="Handles are one to a person and they are never reassigned quietly. Pick another name and it is yours in one step."
-          action={{ href: `/u/${handle}`, label: `Visit @${handle}` }}
-          secondary={{ href: "/profile", label: "Back to your account" }}
+          title={h(w.takenTitle)}
+          body={w.takenBody}
+          action={{ href: `/u/${handle}`, label: h(w.visit) }}
+          secondary={{ href: "/profile", label: w.backToAccount }}
         />
       )}
 
       {editor.state === "not-yours" && (
         <EmptyPanel
           icon="user-verified"
-          title="This is not your profile"
-          body={`You already hold @${editor.ownHandle}. Edit that one, or visit @${handle} to see whose it is.`}
-          action={{ href: `/u/${editor.ownHandle}/edit`, label: "Edit your profile" }}
-          secondary={{ href: `/u/${handle}`, label: `Visit @${handle}` }}
+          title={w.notYoursTitle}
+          body={h(w.notYoursBody).replace("{own}", editor.ownHandle)}
+          action={{ href: `/u/${editor.ownHandle}/edit`, label: w.title }}
+          secondary={{ href: `/u/${handle}`, label: h(w.visit) }}
         />
       )}
 
       {editor.state === "claiming" && (
         <>
           <p className="mb-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
-            @{handle} is free. Take it and this becomes your address on Vallo.
+            {h(w.free)}
           </p>
           <ProfileEditor profile={null} initialHandle={handle} areas={editor.areas} />
         </>

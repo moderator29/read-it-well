@@ -176,7 +176,10 @@ export function PeopleList({
                 <p className="flex flex-wrap items-center gap-x-xs gap-y-2xs">
                   <Link
                     href={`/u/${person.handle}`}
-                    className="text-[length:var(--nf-text-body-sm)] font-bold tracking-[-0.015em] text-[var(--nf-content-primary)]"
+                    /* nf-tap grows the target to 44px with a centred
+                       transparent ::before, so the line keeps the height it
+                       draws (the name measured 21.7px tall, Round 3 sweep). */
+                    className="nf-tap text-[length:var(--nf-text-body-sm)] font-bold tracking-[-0.015em] text-[var(--nf-content-primary)]"
                   >
                     {name}
                   </Link>

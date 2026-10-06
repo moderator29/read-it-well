@@ -59,6 +59,33 @@ export const experienceSocialEn = {
     noneBody: "The first person to claim a handle appears here. Claim yours and yours is the first name anybody arriving reads.",
     everybody: "See everybody",
   },
+  /**
+   * `/u/[handle]/edit` and the two follow lists: the pages' own words, moved
+   * out of the pages (Round 3 sweep, C3). `{handle}` is a handle without the
+   * at sign; `{own}` is the reader's own handle.
+   */
+  editProfile: {
+    title: "Edit your profile",
+    yourProfile: "Your profile",
+    unreachableTitle: "We cannot reach profiles right now",
+    unreachableBody: "This is on our side, not yours. A handle cannot be claimed from here at the moment. Nothing you typed was lost, and the rest of the app works as normal.",
+    backToHome: "Back to home",
+    signedOutTitle: "Sign in to claim your handle",
+    signedOutBody: "@{handle} is claimed from your own account, so people know a name belongs to one person. Sign in and it takes about a minute.",
+    signIn: "Sign in",
+    seeProfile: "See the profile",
+    takenTitle: "@{handle} belongs to somebody else",
+    takenBody: "Handles are one to a person and they are never reassigned quietly. Pick another name and it is yours in one step.",
+    visit: "Visit @{handle}",
+    backToAccount: "Back to your account",
+    notYoursTitle: "This is not your profile",
+    notYoursBody: "You already hold @{own}. Edit that one, or visit @{handle} to see whose it is.",
+    free: "@{handle} is free. Take it and this becomes your address on Vallo.",
+  },
+  follows: {
+    followersMeta: "Followers of @{handle}",
+    followingMeta: "Who @{handle} follows",
+  },
   newStory: {
     title: "Write a story",
     lede: "A picture, a headline, and a line or two. It stays up.",
