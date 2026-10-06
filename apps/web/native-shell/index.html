@@ -198,9 +198,10 @@
       }
 
       .plate svg {
-        width: 3.25rem;
-        height: 3.25rem;
+        width: 3.5rem;
+        height: auto;
         display: block;
+        color: var(--brand-lift);
       }
 
       /* ------------------------------------------------------- the words */
@@ -375,39 +376,22 @@
     <main>
       <!--
         The brand object, drawn rather than fetched, for the reason in the
-        header. It is the Vallo mark: three ascending forms on a glass plate,
-        lit from the top left, with the orbit beneath them. No text is baked
-        into it, which rule 5 forbids and which two of the reference renders
-        do.
+        header. It is THE Vallo mark (6 October 2026): the five towers and the
+        orbital swoosh from the vector master, `src/components/auth/
+        vector-mark.ts`, inlined path for path. It replaced a hand-drawn
+        three-form glyph that only resembled the mark, and
+        `vector-mark.test.ts` fails if these paths and the master ever differ.
+        One ink, the brand blue, from this document's own `--brand-lift`. No
+        text is baked into it.
       -->
       <div class="plate">
-        <svg viewBox="0 0 64 64" role="img" aria-label="Vallo">
-          <defs>
-            <linearGradient id="face" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#8fb9ff" />
-              <stop offset="55%" stop-color="#2f7dff" />
-              <stop offset="100%" stop-color="#0257fd" />
-            </linearGradient>
-            <linearGradient id="side" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#2f7dff" />
-              <stop offset="100%" stop-color="#012e78" />
-            </linearGradient>
-          </defs>
-          <!-- The three forms, tallest in the middle, as the mark draws them. -->
-          <path d="M13 50V30l8-5v25Z" fill="url(#side)" />
-          <path d="M26 50V15l9-6v41Z" fill="url(#face)" />
-          <path d="M40 50V26l8 5v19Z" fill="url(#side)" />
-          <!-- The orbit: one stroke, open on the right, in the same family. -->
-          <path
-            d="M9 44c8 6 30 8 44 1"
-            fill="none"
-            stroke="#2f7dff"
-            stroke-width="2.5"
-            stroke-linecap="round"
-            opacity="0.85"
-          />
-          <!-- The highlight that makes it glass rather than flat. -->
-          <path d="M26 15l9-6v4l-9 6Z" fill="#ffffff" opacity="0.55" />
+        <svg viewBox="0 0 614 587" role="img" aria-label="Vallo" fill="currentColor">
+          <path d="M52 325 109 296V508L52 512Z" />
+          <path d="M134 209 200 165V495L134 505Z" />
+          <path d="M223 98 345 21V452L223 489Z" />
+          <path d="M370 120 459 175V394L370 441Z" />
+          <path d="M479 253 495 263V367L479 377Z" />
+          <path d="M104 522C214 532 340 512 432 465C506 427 563 377 576 321C583 289 566 266 525 260L507 257C536 270 546 292 539 321C526 364 472 406 395 444C314 482 216 509 104 522Z" />
         </svg>
       </div>
 
