@@ -143,14 +143,19 @@ export function AssistantSidebar({
                     <span
                       className={`block truncate text-[length:var(--nf-text-caption)] font-semibold ${
                         active
-                          ? "text-[var(--nf-content-primary)]"
+                          ? "text-[var(--nf-content-on-brand)]"
                           : "text-[var(--nf-content-secondary)]"
                       }`}
                       title={t.title}
                     >
                       {t.title}
                     </span>
-                    <span className="nf-numeric mt-3xs block text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+                    {/* On the chosen row the fill is the brand blue, so the words take the on-brand ink: muted was 2.3:1 on it. */}
+                    <span
+                      className={`nf-numeric mt-3xs block text-[length:var(--nf-text-overline)] ${
+                        active ? "text-[var(--nf-content-on-brand)]" : "text-[var(--nf-content-muted)]"
+                      }`}
+                    >
                       {whenLabel(t.updatedAt)}
                     </span>
                   </button>

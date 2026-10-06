@@ -42,7 +42,7 @@
   }
   .nf-scam-shield__private {
     font-size: var(--nf-text-caption);
-    color: var(--nf-content-muted);
+    color: var(--nf-content-muted-on-tint);
   }
   .nf-scam-shield__steps {
     display: grid;
@@ -169,7 +169,7 @@
     font-size: var(--nf-text-body-sm);
   }
   .nf-terms-diff__old {
-    color: var(--nf-content-muted);
+    color: var(--nf-content-muted-on-tint);
   }
   .nf-terms-diff__arrow {
     color: var(--nf-content-muted);

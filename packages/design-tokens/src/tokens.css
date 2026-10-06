@@ -480,6 +480,12 @@
   --nf-content-secondary: var(--nf-mist-300);
   --nf-content-subtle: var(--nf-mist-400);
   --nf-content-muted: var(--nf-mist-500);
+  /* Muted, for a word that sits on a TINTED panel (the warm decision card, the
+     scam shield's wash, the agreement diff). Muted is tuned for the page and
+     the raised well; a tint is a step darker in paper and measured 4.3:1 under
+     it (W12, 4.5 needed). One rung up, so the step to the rest of the card is
+     kept and the floor is cleared in both themes. */
+  --nf-content-muted-on-tint: var(--nf-mist-400);
   --nf-content-on-brand: #FFFFFF;
   --nf-content-inverse: #0B0D14;
 
@@ -1555,7 +1561,11 @@
    * product resolve `var()` and `currentColor` in a stop without any mirror at
    * all.
    */
-  --nf-gradient-brand: linear-gradient(135deg, #5C9FFF 0%, var(--nf-electric-400) 100%);
+  /* The brand ramp, with white on it in mind: every stop is held to 4.5:1 against white, because this is the
+     fill of every avatar and brand tile that carries an initial or a glyph in `--nf-content-on-brand`. The old
+     top stop, #5C9FFF, was 2.7:1 (the nav avatar's "S" measured 3.6:1 at the middle of the disc, W12). The top
+     is now the act ramp's own lit stop, so the avatar and the primary button are one blue. */
+  --nf-gradient-brand: linear-gradient(135deg, color-mix(in oklab, var(--nf-act-blue) 97%, white) 0%, var(--nf-electric-400) 100%);
   /*
    * THE LIT PRIMARY, MEASURED OFF `GOVERNING-03` RATHER THAN EYEBALLED, and
    * corrected once against the ledger's own first reading.
@@ -3908,6 +3918,9 @@
   --nf-content-secondary: #4A505A;
   --nf-content-subtle: #5C626C;
   --nf-content-muted: #646A74;
+  /* See the night block: one rung up from muted for words on a tinted panel
+     (#5C626C is 4.8:1 on the scam wash #DCE6E9, where muted is 4.3:1). */
+  --nf-content-muted-on-tint: #5C626C;
   --nf-content-on-brand: #FFFFFF;
   --nf-content-inverse: #FFFFFF;
   --nf-content-link: var(--nf-brand-quiet);
@@ -3926,7 +3939,7 @@
   --nf-mode-admin: #003C99;
   --nf-focus-ring: var(--nf-brand-quiet);
   --nf-rating: var(--nf-spark);
-  --nf-gradient-brand: linear-gradient(135deg, #1F7BFF 0%, #0050D0 100%);
+  --nf-gradient-brand: linear-gradient(135deg, color-mix(in oklab, var(--nf-act-blue) 97%, white) 0%, #0050D0 100%);
   --nf-gradient-agent: linear-gradient(135deg, #1F7BFF 0%, #0050D0 100%);
   --nf-gradient-cta: linear-gradient(180deg, #0A6CF5 0%, #005FE8 100%);
   --nf-gradient-text: linear-gradient(135deg, #005FE8 0%, #0040B0 100%);

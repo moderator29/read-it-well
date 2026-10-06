@@ -435,6 +435,12 @@
     color: var(--nf-content-muted);
     opacity: 1;
   }
+  /* On the blue sent bubble the time is small text on a fill, so it takes the
+     full on-brand ink: at 0.78 it measured 3.4:1 at night and 3.95:1 in paper
+     (4.5 needed). The hierarchy is the size and the right alignment. */
+  .nf-bubble--mine .nf-bubble__foot {
+    opacity: 1;
+  }
   .nf-bubble__ticks {
     display: inline-flex;
     flex-shrink: 0;
@@ -978,7 +984,9 @@
     color: var(--nf-content-muted);
   }
   .nf-inbox-row[data-unread] .nf-inbox-row__when {
-    color: var(--nf-brand-primary);
+    /* The brand INK, which is the brand blue made readable as a word: the
+       fill blue measured 4.0:1 on the night row. */
+    color: var(--nf-act-ink);
     font-weight: 600;
   }
   /*

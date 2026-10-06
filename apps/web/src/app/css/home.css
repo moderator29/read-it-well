@@ -291,7 +291,9 @@
     white-space: nowrap;
   }
   .nf-ai__bubble--mine .nf-ai__stamp {
-    color: var(--nf-content-secondary);
+    /* On the blue sent bubble: the on-brand ink. The secondary ink was 1.5:1
+       on it in paper. */
+    color: var(--nf-content-on-brand);
   }
   .nf-ai__ticks {
     color: var(--nf-brand-secondary);
