@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { formatDate, formatMoney, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { ShotList } from "@/components/agent/ShotList";
 import { fill } from "../_copy";
-import { createClient } from "@/lib/supabase/client";
+import { loadBrowserClient } from "@/lib/supabase/load-client";
 import { canCapturePhoto, capturePhoto } from "@/lib/native/device";
 import { Switch } from "@/components/ui/Switch";
 import {
@@ -1786,7 +1786,14 @@ export function ListingWizard({
         return;
       }
 
-      const supabase = createClient();
+      /* The browser client loads now, when photos are chosen, not with the
+         wizard (lib/supabase/load-client.ts). A chunk that cannot be fetched
+         is the upload failure the wizard already says for a photo. */
+      const supabase = await loadBrowserClient();
+      if (!supabase) {
+        setPhotoNotice(copy.photos.uploadFailed);
+        return;
+      }
       let slot = photos.length;
       /*
        * ONE LINE PER REFUSED FILE. A single notice was overwritten by every

@@ -12,7 +12,7 @@ import {
   rejectUpload,
 } from "@/lib/agent/listings-schema";
 import { resumableUpload, type UploadProgress } from "@/lib/agent/resumable-upload";
-import { createClient } from "@/lib/supabase/client";
+import { loadBrowserClient } from "@/lib/supabase/load-client";
 import { SUPABASE_URL } from "@/lib/supabase/env";
 import { Icon3D } from "@/components/ui/Icon3D";
 
@@ -107,7 +107,15 @@ export function VideoWalkthrough({
       return;
     }
 
-    const supabase = createClient();
+    /* The browser client loads now, when a video is chosen, not with the
+       page (lib/supabase/load-client.ts). A chunk that cannot be fetched is
+       an upload that could not start, said in the resumable upload's own
+       words for that. */
+    const supabase = await loadBrowserClient();
+    if (!supabase) {
+      setNotice("The upload could not be started. Try again in a moment.");
+      return;
+    }
     const { data: session } = await supabase.auth.getSession();
     const token = session.session?.access_token;
     if (!token) {

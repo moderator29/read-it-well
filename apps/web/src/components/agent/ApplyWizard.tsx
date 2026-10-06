@@ -8,7 +8,7 @@ import {
   type ApplicationResult,
 } from "@/lib/agent/application";
 import { NIGERIAN_BANKS, NIGERIAN_STATES } from "@/lib/data/nigeria";
-import { createClient } from "@/lib/supabase/client";
+import { loadBrowserClient } from "@/lib/supabase/load-client";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 /* C12: `nf-agent-mode-option` lives in the workspace sheet, which left `globals.css`. */
 import "@/app/css/agent.css";
@@ -343,7 +343,14 @@ export function ApplyWizard({ t, role }: { t: Dictionary; role?: SetupRole }) {
     };
 
     try {
-      const supabase = createClient();
+      /* The browser client loads now, when a file is chosen, not with the
+         page (lib/supabase/load-client.ts). A chunk that cannot be fetched
+         is the same failure the slot already says for an upload. */
+      const supabase = await loadBrowserClient();
+      if (!supabase) {
+        finish({ error: "That upload did not go through. Please try again." });
+        return;
+      }
       const {
         data: { user },
       } = await supabase.auth.getUser();
