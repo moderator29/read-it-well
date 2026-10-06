@@ -96,9 +96,20 @@
    * exactly what it was. A label that fits is untouched. Full-width buttons
    * already fill the row, and icon-only ones carry no words, so neither takes
    * this.
+   *
+   * Two weights (auditor A8). The cap and `flex-shrink: 0` sit in a
+   * `:where()`, at zero specificity, so any component's own cap
+   * (`.nf-passcode__cta`'s 22rem) still wins, and a button beside a shrinking
+   * sibling keeps its label's width, as `nowrap` used to: it wraps only when
+   * the row itself is narrower than the label. The wrap itself has to beat
+   * `.nf-btn`'s own `nowrap` above, so it carries `.nf-btn`'s single class and
+   * wins by order; a component or utility that wants one line still wins.
    */
-  .nf-btn:not(.nf-btn--full, .nf-btn--icon) {
+  :where(.nf-btn:not(.nf-btn--full, .nf-btn--icon)) {
+    flex-shrink: 0;
     max-width: 100%;
+  }
+  .nf-btn:where(:not(.nf-btn--full, .nf-btn--icon)) {
     white-space: normal;
     text-align: center;
   }
