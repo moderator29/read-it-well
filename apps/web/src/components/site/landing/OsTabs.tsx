@@ -13,7 +13,8 @@ export type OsLayer = { key: string; label: string; icon: UiIconName; panel: Rea
  *
  * The panels are server rendered and passed in, so this is the only script
  * the band costs: which one is shown. Every panel is in the page (a crawler
- * and a screen reader get all six). The shown one is in the flow at full
+ * reads all six; a screen reader reads the shown one, because the rest are
+ * `inert` and so hidden from it). The shown one is in the flow at full
  * opacity; the rest are laid over its top, faded out and `inert`, so a
  * change is a crossfade with a 12px lift (motion 3, `glide` 240ms) and the
  * band is only as tall as the layer chosen. Nothing advances on its own:

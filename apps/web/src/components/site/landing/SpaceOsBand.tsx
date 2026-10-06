@@ -40,7 +40,18 @@ type LayerKey = "trust" | "discover" | "intelligence" | "transactions" | "operat
  * `lib/money/copy.ts` constants, verbatim. Every door is honest about where
  * it goes for a stranger (`doors.ts`).
  */
-export function SpaceOsBand({ t, locale, door }: { t: Dictionary; locale: Locale; door: Door }) {
+export function SpaceOsBand({
+  t,
+  locale,
+  door,
+  social = true,
+}: {
+  t: Dictionary;
+  locale: Locale;
+  door: Door;
+  /** Whether Around is switched on (`isSocialEnabled`, read where the data is). When it is off the Around tile is not drawn, as the app's navigation drops it. */
+  social?: boolean;
+}) {
   const os = t.experienceLanding.os;
   const rooms = t.landingRooms;
   const moments = landingMoments(t, locale);
@@ -54,7 +65,7 @@ export function SpaceOsBand({ t, locale, door }: { t: Dictionary; locale: Locale
     { key: "price", href: door("/price"), icon: "chart-bar", title: b.price.title, body: b.price.body },
     { key: "messages", href: door("/messages"), icon: "messages", title: b.messages.title, body: b.messages.body },
     { key: "feed", href: door("/around"), icon: "feed", title: b.feed.title, body: b.feed.body },
-  ];
+  ].filter((tile) => social || tile.key !== "feed");
 
   const layer = (
     key: LayerKey,

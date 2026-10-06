@@ -3,8 +3,9 @@ import type { Dictionary, Locale } from "@vallo/i18n/core";
 import { getListingRepository } from "@/lib/listings/repository";
 import { landingCatalogue } from "@/lib/listings/landing-catalogue";
 import type { Listing, ListingKind } from "@/lib/listings/types";
+import { isSocialEnabled } from "@/lib/social/flag";
 import { getPlatformStats, type PlatformStats } from "@/lib/platform-stats";
-import { toMiniListing, type MiniListing } from "@/lib/site/listing-card";
+import type { MiniListing } from "@/lib/site/listing-card";
 import { Hero } from "./Hero";
 import { MoveInBand } from "./MoveInBand";
 import { SpaceOsBand } from "./SpaceOsBand";
@@ -19,60 +20,47 @@ import { landingDoor } from "./doors";
 /**
  * Everything the landing prints that comes from the platform, read once.
  *
- * `cards` is the same `recommended` read the old featured rail made, five
- * listings; `stats` is `platform_stats()`; `counts` is the per-kind tally
- * off one catalogue page, kept ONLY when that page provably held the whole
+ * `stats` is `platform_stats()`; `counts` is the per-kind tally off one
+ * catalogue page, kept ONLY when that page provably held the whole
  * catalogue. The read is capped, so the check is the platform's own total:
  * when the tally adds up to `stats.listings` the page was complete and the
  * category tiles may print numbers; otherwise they print none.
+ *
+ * There is no featured rail and no AI showcase any more (the platform band
+ * draws labelled examples, never inventory), so the landing no longer reads
+ * `recommended` or builds cards nothing renders.
  */
 export type LandingData = {
-  cards: MiniListing[];
+  /** Unused by the landing; the preview fixtures still pass it. */
+  cards?: MiniListing[];
   stats: PlatformStats | null;
   counts: ReadonlyMap<ListingKind, number> | null;
-  /** Real listings the AI showcase may put under its example replies: a few
-      of each kind from the same catalogue page. Optional, so a fixture that
-      leaves it out simply plays the script that needs no cards. */
-  showcase?: MiniListing[];
+  /** Whether Around is switched on (the `social` flag, which fails open). The
+      ecosystem layer drops its Around door when it is off, as the app does. */
+  social?: boolean;
   /** Whether a stranger may open the catalogue (`VALLO_PUBLIC_CATALOGUE`).
       Left out, it is read from the environment; the preview harness may
       pass either answer to prove both sets of doors. */
   open?: boolean;
 };
 
-export async function landingData(t: Dictionary): Promise<LandingData> {
+export async function landingData(
+  /** Kept so the caller's signature is unchanged; nothing here is worded. */
+  _t?: Dictionary,
+): Promise<LandingData> {
   /* OPS-11: the shared five-minute read when there is a database; the
-     repository (empty or API-backed) otherwise. */
-  const [shared, stats] = await Promise.all([landingCatalogue(), getPlatformStats()]);
-  let featured: Listing[];
-  let catalogue: Listing[];
-  if (shared) {
-    ({ featured, catalogue } = shared);
-  } else {
-    const repo = getListingRepository();
-    [featured, catalogue] = await Promise.all([repo.recommended(5), repo.search()]);
-  }
+     repository (empty or API-backed) otherwise. Only the catalogue is
+     needed, for the per-kind counts. */
+  const [shared, stats, social] = await Promise.all([landingCatalogue(), getPlatformStats(), isSocialEnabled()]);
+  const catalogue: Listing[] = shared ? shared.catalogue : await getListingRepository().search();
   const tally = new Map<ListingKind, number>();
   for (const l of catalogue) tally.set(l.kind, (tally.get(l.kind) ?? 0) + 1);
   const complete = stats !== null && catalogue.length > 0 && catalogue.length === stats.listings;
   return {
-    cards: featured.map((l) => toMiniListing(l, t)),
     stats,
     counts: complete ? tally : null,
-    showcase: showcaseCandidates(catalogue).map((l) => toMiniListing(l, t)),
+    social,
   };
-}
-
-/** Up to three listings of each kind, photographed first, for the AI room. */
-function showcaseCandidates(catalogue: Listing[]): Listing[] {
-  const byKind = new Map<ListingKind, Listing[]>();
-  const ordered = [...catalogue].sort((a, b) => Number(b.photos.length > 0) - Number(a.photos.length > 0));
-  for (const l of ordered) {
-    const list = byKind.get(l.kind) ?? [];
-    if (list.length < 3) list.push(l);
-    byKind.set(l.kind, list);
-  }
-  return [...byKind.values()].flat();
 }
 
 /**
@@ -139,7 +127,7 @@ export function LandingBody({
       */}
       <Hero t={t} locale={locale} door={door} />
       <MoveInBand t={t} locale={locale} door={door} />
-      <SpaceOsBand t={t} locale={locale} door={door} />
+      <SpaceOsBand t={t} locale={locale} door={door} social={data.social !== false} />
       <Journey t={t} />
       <CategoryGrid t={t} counts={data.counts} door={door} />
       <CommunityBand t={t} locale={locale} stats={data.stats} />
