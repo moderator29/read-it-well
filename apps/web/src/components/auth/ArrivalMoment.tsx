@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useSyncExternalStore, type CSSProperties } from "react";
+import { useEffect, useId, useRef, useSyncExternalStore, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import type { ArrivalCopy } from "./auth-copy";
 import { feedback } from "@/lib/ui/feedback";
@@ -27,7 +27,12 @@ import { ObjectArt } from "./ObjectArt";
  * carries its own `data-theme="dark"` because a payoff is night whatever the
  * member chose (the verify screen is a night door anyway).
  *
- * A status for a screen reader (`role="status"`), with the art hidden. Motion
+ * ONE ANNOUNCEMENT, BY FOCUS. The title takes focus (below), and focus is
+ * what a screen reader reads: the title as the heading, and the line under it
+ * as its description (`aria-describedby`). It used to be a live status region
+ * as well, and some readers then read the moment twice, once for the region
+ * and once for the focus (audit A5), so the region is gone. The art is
+ * hidden. Motion
  * is transform and opacity (auth.css, "THE ARRIVAL"); reduced motion shows
  * the finished picture at once, and Calm fades it. The haptic follows the
  * same gate as every other (`feedback` turns it down under reduced motion,
@@ -98,21 +103,33 @@ export function ArrivalMoment({
 
   /* Focus to the title once the portal is drawn. */
   const title = useRef<HTMLHeadingElement>(null);
+  const bodyId = useId();
   useEffect(() => {
     if (mounted) title.current?.focus({ preventScroll: true });
   }, [mounted]);
 
   if (!mounted) return null;
   return createPortal(
-    <div className="nf-arrival" data-theme="dark" role="status" aria-live="polite" data-testid="arrival-moment">
+    <div className="nf-arrival" data-theme="dark" data-testid="arrival-moment">
       <span className="nf-arrival__wash" aria-hidden="true" />
       <div className="nf-arrival__art" aria-hidden="true">
         <span className="nf-arrival__pop">
           <ObjectArt name="shield-tick" size={336} priority />
         </span>
       </div>
-      <h1 ref={title} tabIndex={-1} className="nf-arrival__title" style={NO_RING} data-testid="arrival-title">{first ? a.youreIn.replace("{name}", first) : a.youreInNoName}</h1>
-      <p className="nf-arrival__body">{a.arrivalBody}</p>
+      <h1
+        ref={title}
+        tabIndex={-1}
+        className="nf-arrival__title"
+        style={NO_RING}
+        aria-describedby={bodyId}
+        data-testid="arrival-title"
+      >
+        {first ? a.youreIn.replace("{name}", first) : a.youreInNoName}
+      </h1>
+      <p id={bodyId} className="nf-arrival__body">
+        {a.arrivalBody}
+      </p>
     </div>,
     document.body,
   );
