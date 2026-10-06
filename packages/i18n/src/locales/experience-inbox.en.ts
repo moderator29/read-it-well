@@ -188,6 +188,22 @@ export const experienceInboxEn = {
     presence: { online: "Online now" },
   },
 
+  /**
+   * `/messages/share/[kind]/[id]`: sending a listing, booking or stay into a
+   * conversation as a card. The page's own words, moved out of the page so
+   * ha, ig and yo can carry them (Round 3 sweep, C3).
+   */
+  share: {
+    title: "Share to chat",
+    intoTitle: "Share into this chat",
+    signedOutTitle: "Sign in to share this",
+    signedOutBody: "Sharing sends a card into one of your conversations, so it needs your account. You will come straight back here.",
+    signIn: "Sign in",
+    pausedTitle: "Messaging is paused for maintenance",
+    pausedBody: "Nothing has been lost. Try again in a few minutes.",
+    back: "Back",
+  },
+
   /* ------------------------------------------------------------- assistant */
   assistant: {
     answerLabel: "Vallo AI",
