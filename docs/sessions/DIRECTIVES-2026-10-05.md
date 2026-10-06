@@ -810,6 +810,74 @@ committed and pushed as it is done, cleanly, without sessions conflicting.
 | **D39's LazyMotion requirement** | **D49: it is dead weight here and comes out** |
 | **D48's reading that no balance may ever exist** | **D50: a balance held by a licensed provider may be presented, under four conditions** |
 | **The Vallo Guarantee at 1 to 2 percent** | **D51: retired to zero, machinery kept** |
+| **D51's claim that zeroing the rate is a row and lifts the blocker** | **D52: false on three counts, corrected** |
+
+---
+
+## D52. D51 was wrong about the mechanism. Session 4 caught it, Session 1 verified it
+
+**Session 4 ran Task 2, its defining task, and its lead finding breaks a premise of
+a founder decision.** Session 1 re-derived every part from the code before writing
+this. **All three claims are correct and D51's mechanism section is withdrawn.**
+
+### What D51 said, and why each part is false
+
+**D51 said the rates are policy data, so "changing a price is a row, never a
+deploy".** For commission that is true. **For the Guarantee it is false.**
+`money_policy.guarantee_bps` is declared
+`check (guarantee_bps between 100 and 200)`
+(`20260925121219_track_a2_...sql:49`) and no later migration relaxes it.
+**The value 0 is rejected by the database.** Retiring the Guarantee needs a
+migration that does not exist.
+
+**D51 said `commission_bps = 200` in `money_policy`.** There is **no
+`commission_bps` column** in that table: its data columns are `guarantee_bps`,
+`claim_window_hours` and `min_inspection_photos`. Commission lives in **`fee_rates`,
+read through `private.current_fee_bps('commission')`**, which returns 0 when no row
+exists. Setting the 2 percent means a `fee_rates` row, not a `money_policy` update.
+
+**D51 said zeroing the rate lifts the `PAYSTACK_GUARANTEE_SUBACCOUNT` blocker, on
+the evidence of `if (split.guaranteeMinor > 0)`.** It does not. That condition
+lives inside `splitBody()` and only decides whether the reserve appears in the
+Paystack payload. **Two independent gates refuse first, neither conditioned on the
+rate:**
+
+1. **The application.** `split-attempt.ts:74` calls `guaranteeReserveSubaccount()`
+   and returns `refused` at line 75 **before `payment_split_for_booking` is ever
+   called**.
+2. **The database.** The payment gate requires `reserve_subaccount_code` to be
+   non-null on a before-insert trigger (same migration, line 694).
+
+**And nothing covers the zero case: there is no `split-attempt.test.ts` at all.**
+
+### What this changes for the founder
+
+**`PAYSTACK_GUARANTEE_SUBACCOUNT` is still a hard blocker.** Session 1 told the
+founder twice that retiring the Guarantee would probably remove it. **It does not.**
+Either he creates the reserve subaccount anyway, or Session 2 changes both gates so
+a zero rate is a legitimate configuration rather than a refusal.
+
+**Retiring the Guarantee is a migration, not a setting.** It drops or relaxes the
+check constraint, changes the application gate, changes the database gate, and adds
+the test that does not exist. That is real work, and the founder was told it was a
+row.
+
+**VAT is not modelled at all.** `vat_bps` and `vat_registered` return zero hits
+across `supabase/` and `apps/web/src`. D51 wrote them as though they existed. They
+are new columns and new code.
+
+### The standing correction
+
+**D41 said measure, never quote. Session 1 then quoted its own reading of one
+`if` statement and called it evidence**, without following the call path to the two
+gates in front of it, and a founder made pricing decisions on it. The rule applies
+to Session 1 exactly as written: **reading a condition is not reading a code path**,
+and a claim about what a system refuses is only established by finding every place
+it refuses.
+
+Session 4's note on its own method is the standard: *"Every finding was re-derived
+from the code before being written down, because D5's point is that the author is
+the wrong reviewer."*
 
 ---
 
