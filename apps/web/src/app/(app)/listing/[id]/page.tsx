@@ -1065,7 +1065,7 @@ export default async function ListingDetailPage({
                               size={ICON.inline}
                               className="shrink-0 text-[var(--nf-brand-secondary)]"
                             />
-                            <span className="font-medium text-[var(--nf-content-secondary)]">
+                            <span className="font-normal text-[var(--nf-content-secondary)]">
                               {mark.label}
                             </span>
                           </li>

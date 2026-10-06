@@ -76,20 +76,20 @@ export function CheckoutSummary({
       <dl className="mt-md grid gap-xs border-t border-[var(--nf-panel-hair)] pt-md">
         <div className="flex items-start justify-between gap-md">
           <dt className="text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">{c.dates}</dt>
-          <dd className="text-right text-[length:var(--nf-text-caption)] font-medium text-[var(--nf-content-secondary)]">
+          <dd className="text-right text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-secondary)]">
             {view.dateRange}
           </dd>
         </div>
         <div className="flex items-start justify-between gap-md">
           <dt className="text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">{c.guests}</dt>
-          <dd className="text-right text-[length:var(--nf-text-caption)] font-medium text-[var(--nf-content-secondary)]">
+          <dd className="text-right text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-secondary)]">
             {plural(view.guests, counts.guests, locale)} &middot; {plural(view.nights, counts.nights, locale)}
           </dd>
         </div>
         {view.lines.map((line) => (
           <div key={line.label} className="flex items-start justify-between gap-md">
             <dt className="text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">{line.label}</dt>
-            <dd className="text-right text-[length:var(--nf-text-caption)] font-medium text-[var(--nf-content-secondary)]">
+            <dd className="text-right text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-secondary)]">
               {/* A receipt line, so the kobo is stated rather than rounded
                   away: this column has to add up to the total below it. */}
               <Amount minorUnits={line.minor} locale={locale} currency={view.currency} showFraction />

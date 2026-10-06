@@ -155,7 +155,7 @@ export default function CareersPage() {
                   <IconPlate size="md" className="shrink-0">
                     <UiIcon name="user-check" size={20} />
                   </IconPlate>
-                  <span className="text-[length:var(--nf-text-row)] font-medium leading-snug">{w}</span>
+                  <span className="text-[length:var(--nf-text-row)] font-semibold leading-snug">{w}</span>
                 </div>
               </Reveal>
             ))}

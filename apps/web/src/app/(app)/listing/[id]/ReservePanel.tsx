@@ -652,7 +652,7 @@ export function ReservePanel({
                 currency={currency}
                 suffix="total"
                 className="nf-lede font-bold text-[var(--nf-content-primary)]"
-                secondaryClassName="nf-body-sm font-medium text-[var(--nf-content-muted)]"
+                secondaryClassName="nf-body-sm font-normal text-[var(--nf-content-muted)]"
               />
               {/* The 44px floor DRAWN, not faked (the system's tertiary). This
                   was a 17px-tall link with a `before:-inset-2` overlay that

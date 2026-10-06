@@ -325,7 +325,7 @@ function ChoiceList({
               data-testid={`support-choice-${item.key}`}
             >
               <span className="min-w-0 flex-1">
-                <span className="nf-body block font-medium text-[var(--nf-content-primary)]">{item.title}</span>
+                <span className="nf-body block font-semibold text-[var(--nf-content-primary)]">{item.title}</span>
                 {item.sub && <span className="nf-caption block text-[var(--nf-content-muted)]">{item.sub}</span>}
               </span>
               {chosen && <UiIcon name="check" size={20} className="shrink-0 text-[var(--nf-content-link)]" />}
@@ -367,7 +367,7 @@ function RecordList({
                     className="flex min-h-14 w-full cursor-pointer items-center gap-group rounded-[var(--nf-radius-control)] px-xs py-xs text-left hover:bg-[var(--nf-surface-inset)]"
                   >
                     <span className="min-w-0 flex-1">
-                      <span className="nf-body-sm block break-words font-medium text-[var(--nf-content-primary)]">
+                      <span className="nf-body-sm block break-words font-semibold text-[var(--nf-content-primary)]">
                         {record.label}
                       </span>
                       {record.sub && (

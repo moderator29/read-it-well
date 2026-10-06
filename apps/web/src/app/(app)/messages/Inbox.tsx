@@ -181,7 +181,7 @@ function Row({
               typing
                 ? "font-semibold text-[var(--nf-brand-secondary)]"
                 : row.unread > 0
-                  ? "font-medium text-[var(--nf-content-primary)]"
+                  ? "font-semibold text-[var(--nf-content-primary)]"
                   : "text-[var(--nf-content-secondary)]"
             }`}
           >

@@ -205,7 +205,7 @@ export function RestaurantFace({
                 <ul className="divide-y divide-[var(--nf-divider)]" data-testid="service-windows">
                   {windows.map((window) => (
                     <li key={window.id} className={`flex items-center justify-between gap-sm py-xs ${TYPE.body}`}>
-                      <span className="font-medium text-[var(--nf-content-primary)]">{WEEKDAY[window.weekday] ?? window.weekday}</span>
+                      <span className="font-semibold text-[var(--nf-content-primary)]">{WEEKDAY[window.weekday] ?? window.weekday}</span>
                       <span className="nf-numeric">
                         {window.opens.slice(0, 5)} to {window.closes.slice(0, 5)}
                       </span>

@@ -75,7 +75,7 @@ export default async function CryptoPaymentPage({ params }: { params: Promise<{ 
     <Shell title={t.pageTitle}>
       <CryptoPaymentStatus initial={view} locale={locale} providerName={providerName} />
       <p className="mt-lg text-center">
-        <Link href={chargeHref} className="nf-body-sm font-medium text-[var(--nf-brand-primary)] underline">
+        <Link href={chargeHref} className="nf-body-sm font-semibold text-[var(--nf-brand-primary)] underline">
           {t.backToCharge}
         </Link>
       </p>

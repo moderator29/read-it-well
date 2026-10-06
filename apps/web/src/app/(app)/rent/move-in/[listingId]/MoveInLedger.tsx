@@ -177,7 +177,7 @@ export function MoveInLedger({
               <span className="nf-caption block text-[var(--nf-content-muted)]">{copy.averageInArea}</span>
               <span className="nf-numeric nf-body font-bold text-[var(--nf-brand-secondary)]">
                 {formatMoney(comparison.averageMinor, locale, listing.currency)}
-                <span className="nf-caption font-medium text-[var(--nf-content-muted)]">
+                <span className="nf-caption font-normal text-[var(--nf-content-muted)]">
                   {" "}
                   {PERIOD_SUFFIX_SLASH[comparison.period]}
                 </span>

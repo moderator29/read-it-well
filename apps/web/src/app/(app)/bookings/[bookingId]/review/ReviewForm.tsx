@@ -190,7 +190,7 @@ export function ReviewForm({
             when the first star is picked. */}
         <p
           aria-live="polite"
-          className="mt-row min-h-[1.25rem] nf-body-sm font-medium text-[var(--nf-content-secondary)]"
+          className="mt-row min-h-[1.25rem] nf-body-sm font-normal text-[var(--nf-content-secondary)]"
         >
           {rating > 0 ? RATING_LABELS[rating] : ""}
         </p>

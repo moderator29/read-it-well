@@ -176,7 +176,7 @@ export default async function StaysHomePage() {
     <div className="nf-home">
       {/* ------------------------------------------- the greeting, as kept */}
       <section className="nf-rise">
-        <p className="nf-body-sm font-medium text-[var(--nf-content-secondary)]">{greeting}</p>
+        <p className="nf-body-sm font-normal text-[var(--nf-content-secondary)]">{greeting}</p>
         {name ? (
           <h1 className="nf-rise nf-rise-2 mt-inline-tight flex items-center gap-inline">
             <span className="nf-h1">{name}</span>

@@ -49,7 +49,7 @@ export function BookingDetailCard({ booking, locale }: { booking: BookingView; l
           )}
           <p className={`mt-sm flex items-center gap-xs ${TYPE.body}`}>
             <UiIcon name="calendar-booking" size={ICON.inline} className="shrink-0" />
-            <span className="font-medium">{booking.dateRange}</span>
+            <span className="font-semibold">{booking.dateRange}</span>
           </p>
           <p className={`mt-2xs flex items-center gap-xs ${TYPE.body}`}>
             <UiIcon name="user" size={ICON.inline} className="shrink-0" />
