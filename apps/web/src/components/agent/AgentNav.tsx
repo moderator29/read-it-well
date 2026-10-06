@@ -84,7 +84,11 @@ export function AgentIdentityCard({
           </span>
           <Link
             href={door.href}
-            className="nf-tap mt-3xs inline-block text-[length:var(--nf-text-overline)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+            /* A block as wide as its words, on one line: as an inline-block
+               the rail's apply link measured a 32px box with "Apply / to list"
+               broken over two lines at 1440 (auditFit, label spills out of its
+               control; C1 sweep). */
+            className="nf-tap mt-3xs block w-fit whitespace-nowrap text-[length:var(--nf-text-overline)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
           >
             {door.cta}
           </Link>
