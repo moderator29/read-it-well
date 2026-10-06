@@ -7,6 +7,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { feelUnsafe } from "@/lib/safety/unsafe-actions";
 import { responseTimeFor } from "@/lib/trust/standards";
 import { IconPlate } from "@/components/ui/IconPlate";
+import { Button } from "@/components/ui/Button";
 
 /**
  * "I FEEL UNSAFE" (V-63): one control in every thread and on every
@@ -31,6 +32,14 @@ import { IconPlate } from "@/components/ui/IconPlate";
  * The promise is read from `lib/trust/standards.ts`, the same number the
  * standards page prints and the moderation desk counts down, so the sheet
  * cannot promise a time nobody is keeping.
+ *
+ * Session 3 (W13): the two actions are the one Button primitive (they were
+ * raw buttons carrying its classes by hand), and only the one pressed says
+ * it is working. It stays the plain Sheet rather than the illustrated one:
+ * a clay object over "Call 112" would put decoration between a frightened
+ * person and the exit, which is the one place in the product the
+ * illustrated sheet is the wrong register. Nothing here animates beyond the
+ * Sheet's own rise; the error is immediate.
  */
 export function UnsafeSheet({
   copy,
@@ -59,11 +68,15 @@ export function UnsafeSheet({
   const [open, setOpen] = useState(false);
   const [note, setNote] = useState<{ ok: boolean; text: string } | null>(null);
   const [pending, startTransition] = useTransition();
+  /* Which of the two was pressed, so only that one says it is working: a
+     frightened person must see the thing they chose answer, not both. */
+  const [choice, setChoice] = useState<"leave" | "tell" | null>(null);
   const clock = responseTimeFor("unsafe").phrase;
   const tellHint = copy.tellHint.replace("{clock}", clock);
 
   function file(block: boolean) {
     setNote(null);
+    setChoice(block ? "leave" : "tell");
     startTransition(async () => {
       const result = await feelUnsafe({
         ...(conversationId ? { conversationId } : { inspectionId }),
@@ -133,26 +146,26 @@ export function UnsafeSheet({
             </p>
           ) : (
             <>
-              <button
-                type="button"
+              <Button
+                variant="secondary"
+                full
                 disabled={pending}
                 onClick={() => file(true)}
-                className="nf-btn nf-btn--glass w-full min-h-[44px]"
                 data-testid="unsafe-leave"
               >
-                {pending ? copy.working : copy.leave}
-              </button>
+                {pending && choice === "leave" ? copy.working : copy.leave}
+              </Button>
               <p className="nf-caption text-[var(--nf-content-muted)]">{filerIsLister ? `${copy.leaveHint} ${copy.pauseHint}` : copy.leaveHint}</p>
 
-              <button
-                type="button"
+              <Button
+                variant="secondary"
+                full
                 disabled={pending}
                 onClick={() => file(false)}
-                className="nf-btn nf-btn--glass w-full min-h-[44px]"
                 data-testid="unsafe-tell"
               >
-                {pending ? copy.working : copy.tell}
-              </button>
+                {pending && choice === "tell" ? copy.working : copy.tell}
+              </Button>
               <p className="nf-caption text-[var(--nf-content-muted)]">{filerIsLister ? `${tellHint} ${copy.pauseHint}` : tellHint}</p>
             </>
           )}
