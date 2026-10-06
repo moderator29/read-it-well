@@ -889,17 +889,29 @@ export const MONEY_LOCK_REMOVED = "Removed. This phone no longer guards where yo
  * Promotion is Vallo's own revenue: a single-party charge settled to Vallo's
  * payment account and posted to `ledger_vallo_revenue` (D51). No split, no
  * subaccount, nothing held for anybody. It cannot be sold until the company
- * payment account exists (D38), so the onboarding's fourth screen says buying
- * is not open and draws no pay button. These are its sentences
- * (`components/app/feature-onboarding/first-runs.ts`, `promotionFirstRun`).
+ * payment account exists (D38), so the onboarding's fourth screen and the
+ * purchase section say buying is not open and draw no pay button. These are
+ * their sentences (`components/app/feature-onboarding/first-runs.ts`,
+ * `components/promotion/PromotionPurchase.tsx`). The prices themselves are
+ * confirmed (founder, 6 October) and formatted from `lib/promotion/tiers.ts`.
  */
 
 /** Promotion's fourth onboarding screen, the body: buying is not open yet. */
 export const PROMOTION_NOT_ON_SALE =
   "Buying opens when payments for promotion are live. Nothing can be paid for here yet.";
 
-/** Over the four tiers: the prices are proposals (D38 pattern), confirmed before buying opens. */
-export const PROMOTION_PRICES_PROPOSED = "Proposed prices, to be confirmed before buying opens.";
+/** Over the four tiers: what each row's figures are. */
+export const PROMOTION_TIERS_CAPTION =
+  "What each costs, for how many days, and what that comes to a day. Each costs more because it reaches further, not because it lasts longer.";
+
+/**
+ * One tier's price line: the price, its days and its naira a day, each
+ * already formatted (`perDayKobo` in `lib/promotion/tiers.ts` does the
+ * integer maths). `{days}` is a whole number.
+ */
+export function promotionTierPriceText(priceText: string, days: string, perDayText: string): string {
+  return `${priceText} for ${days} days, ${perDayText} a day`;
+}
 
 /** When a promotion starts. Never before the processor confirms the payment. */
 export const PROMOTION_STARTS = "When our payment processor confirms your payment, and never before.";
@@ -907,9 +919,13 @@ export const PROMOTION_STARTS = "When our payment processor confirms your paymen
 /** When it ends. */
 export const PROMOTION_ENDS = "By itself, when its days are up, on the end date shown before you pay.";
 
-/** Statement 5: front door and map slots cannot be oversold. */
+/**
+ * Statement 5: front door slots cannot be oversold. The published count is
+ * said beside it, before payment, from `FRONT_DOOR_RAIL` (the dictionary's
+ * `promotion.frontDoor.count`).
+ */
 export const PROMOTION_FULL_DAYS =
-  "Featured and Everywhere have a fixed number of slots per city per day, shown before you pay. When a day is full the sale is refused, with the reason and the next date that is free.";
+  "When a day is full the sale is refused, with the reason and the next date that is free. You are never charged for a day that is full.";
 
 /** Statement 7 and the refund route. */
 export const PROMOTION_REFUNDED =

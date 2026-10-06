@@ -1,13 +1,15 @@
 import Link from "next/link";
 import { getDictionary } from "@vallo/i18n";
-import { formatMoney } from "@vallo/i18n/core";
 import { BackButton } from "@/components/site/BackButton";
 import { ListingCard } from "@/components/app/ListingCard";
-import { PromotedSlot } from "@/components/promotion/PromotedSlot";
+import { PromotedRail } from "@/components/promotion/PromotedRail";
+import { PromotedSlot, type PromotedSlotInput } from "@/components/promotion/PromotedSlot";
+import { PromotionPurchase } from "@/components/promotion/PromotionPurchase";
 import { PromotionResults } from "@/components/promotion/PromotionResults";
-import { measurementRows } from "@/lib/promotion/measurement";
-import { promotionTiers } from "@/lib/promotion/tiers";
-import { RENTAL, SHELF } from "../f3/fixtures";
+import { LISTER_GAPS, measurementRows, sourceSplit, type ListingMeasurement } from "@/lib/promotion/measurement";
+import { lagosToday } from "@/lib/agent/calendar-model";
+import { PROMOTION_METRICS } from "@/lib/promotion/tiers";
+import { RENTAL, SALE, SHELF } from "../f3/fixtures";
 
 /**
  * PAID PROMOTION'S PIECES, AGAINST FIXTURES (D3, D60). Dev only, behind the
@@ -17,9 +19,12 @@ import { RENTAL, SHELF } from "../f3/fixtures";
  * inventory read exists, so this is where it is seen: each fixture listing
  * drawn plain and inside a slot, side by side, so the label is visible and
  * the card (its Verified mark, proof strip and lister line) is the same.
- * Then the four tiers as the onboarding lists them, and the results screen
- * in its not-live state: every figure "No data". The fixtures are the
- * catalogue harness's (`app/(dev)/preview/f3/fixtures.ts`); nothing here is a real listing,
+ * Then the front door rail sold out (six: Everywhere two, Featured four) and
+ * on a day that is not (two cards, same width and gap, no padding), the
+ * purchase section with each day state the sale can answer, and the results
+ * screen with no figure at all: the read's gaps and its reasons, no number
+ * invented. The fixtures are the catalogue harness's
+ * (`app/(dev)/preview/f3/fixtures.ts`); nothing here is a real listing,
  * price paid or result.
  */
 export default function PromotionPreview() {
@@ -27,6 +32,16 @@ export default function PromotionPreview() {
   const t = getDictionary(locale);
   const p = t.experienceFeatures.promotion;
   const listings = [RENTAL, SHELF[1] ?? RENTAL];
+  const pool = [RENTAL, SALE, ...SHELF];
+  const tiers = ["prime", "prime", "featured", "featured", "featured", "featured"] as const;
+  const soldOut: PromotedSlotInput[] = tiers.map((tier, i) => ({ slotId: `preview-rail-${i}`, tier, listing: pool[i % pool.length]! }));
+  /* A measurement with every figure no data and its reason: the shape, never a number. */
+  const noFigures: ListingMeasurement = {
+    windowDays: 30,
+    values: Object.fromEntries(PROMOTION_METRICS.map((metric) => [metric, null])) as ListingMeasurement["values"],
+    gaps: { ...LISTER_GAPS, inquiries: "readFailed", contacts: "readFailed", viewings: "readFailed", bookings: "readFailed" },
+  };
+  const today = lagosToday();
 
   return (
     <main className="nf-shell flex flex-col gap-section py-section">
@@ -60,32 +75,45 @@ export default function PromotionPreview() {
         ))}
       </section>
 
-      <section className="flex flex-col gap-md" aria-labelledby="tiers">
-        <h2 id="tiers" className="nf-section-label">
-          The four tiers
+      <section className="flex flex-col gap-md" aria-labelledby="rail-full">
+        <h2 id="rail-full" className="nf-section-label">
+          The front door rail, sold out: six places
         </h2>
-        <dl className="grid gap-sm">
-          {promotionTiers().map((tier) => (
-            <div key={tier.slug} className="flex flex-col gap-3xs">
-              <dt className="nf-body font-semibold">
-                {p.tiers[tier.displayKey].name}{" "}
-                <span className="font-normal text-[var(--nf-content-secondary)]">
-                  {p.tierMeta
-                    .replace("{price}", formatMoney(tier.proposedPriceKobo, locale))
-                    .replace("{days}", String(tier.durationDays))}
-                </span>
-              </dt>
-              <dd className="nf-body-sm m-0 text-[var(--nf-content-secondary)]">{p.tiers[tier.displayKey].forWhom}</dd>
-            </div>
-          ))}
-        </dl>
+        <PromotedRail slots={soldOut} locale={locale} t={t} />
+      </section>
+
+      <section className="flex flex-col gap-md" aria-labelledby="rail-two">
+        <h2 id="rail-two" className="nf-section-label">
+          The same rail on a day with two places sold
+        </h2>
+        <PromotedRail slots={soldOut.slice(0, 2)} locale={locale} t={t} />
+      </section>
+
+      <section className="flex max-w-2xl flex-col gap-md" aria-labelledby="buy">
+        <h2 id="buy" className="nf-section-label">
+          The purchase section: Featured full on the rail, Everywhere open
+        </h2>
+        <PromotionPurchase
+          days={{
+            featured: { state: "full", tier: "featured", day: today, reason: "tier-full", nextFree: null },
+            prime: { state: "open", tier: "prime", day: today, free: 1 },
+          }}
+          copy={p}
+          locale={locale}
+        />
       </section>
 
       <section className="flex max-w-2xl flex-col gap-md" aria-labelledby="results">
         <h2 id="results" className="nf-section-label">
-          The results screen, before any promotion has run
+          The results screen, every figure no data, with its reason
         </h2>
-        <PromotionResults rows={measurementRows({ state: "not-live" })} notLive copy={p} locale={locale} />
+        <PromotionResults
+          rows={measurementRows(noFigures)}
+          split={sourceSplit(noFigures)}
+          notice={{ title: p.measure.baselineTitle, body: p.measure.baselineBody }}
+          copy={p}
+          locale={locale}
+        />
       </section>
     </main>
   );

@@ -1,5 +1,5 @@
 import type { TieredObjectName } from "@/design-system/icons/object-assets";
-import { formatMoney, type Dictionary, type Locale } from "@vallo/i18n/core";
+import { formatNumber, type Dictionary, type Locale } from "@vallo/i18n/core";
 import {
   NO_INSPECTION_FEE,
   OFF_PLATFORM_SENTENCE,
@@ -7,11 +7,13 @@ import {
   PROMOTION_ENDS,
   PROMOTION_FULL_DAYS,
   PROMOTION_NOT_ON_SALE,
-  PROMOTION_PRICES_PROPOSED,
   PROMOTION_REFUNDED,
   PROMOTION_STARTS,
+  PROMOTION_TIERS_CAPTION,
 } from "@/lib/money/copy";
-import { PROMOTION_METRICS, promotionTiers } from "@/lib/promotion/tiers";
+import { promotionTiers } from "@/lib/promotion/tiers";
+import { frontDoorCountText, tierPriceLine } from "@/lib/promotion/front-door";
+import { measurementRows, type ListingMeasurementRead } from "@/lib/promotion/measurement";
 import { REWARDS_MONTHLY_BUDGET, REWARDS_PENDING_THEN_AVAILABLE } from "@/lib/money/copy";
 import type { InviteRewards } from "@/lib/referral/rewards";
 import { qualifySentence } from "@/components/app/referral/invite-rewards";
@@ -143,12 +145,18 @@ export type FirstRunContent = {
  * invite's first run reads it. Without it the invite run says nothing either
  * way about a reward (the "unknown" state), so a caller that forgets it can
  * never put "nothing to earn" in front of a running programme.
+ *
+ * `promotion` is the listing's own last thirty days
+ * (`readListingMeasurement`), and only promotion's first run reads it.
+ * Without it the run was opened with no listing, and its third screen says
+ * what it would show rather than inventing an example.
  */
 export function firstRunContent(
   feature: FirstRunFeature,
   t: Dictionary,
   locale?: Locale,
   invite: InviteRewards = { state: "unknown" },
+  promotion: ListingMeasurementRead = { state: "no-listing" },
 ): FirstRunContent {
   const c = t.experienceFeatures.firstRun;
   switch (feature) {
@@ -246,7 +254,7 @@ export function firstRunContent(
         ],
       };
     case "promotion":
-      return promotionFirstRun(t, locale);
+      return promotionFirstRun(t, locale, promotion);
   }
 }
 
@@ -291,22 +299,39 @@ function invitePanels(t: Dictionary, invite: InviteRewards, locale?: Locale): Fi
  * onboarding"; D60).
  *
  *   1. What it is and is not: both limits in the body, never a footnote.
- *   2. The four tiers side by side as prose (price, days, who it suits), read
- *      from `lib/promotion/tiers.ts`; the prices are marked proposed.
- *   3. What can be measured, with NO invented example: no promotion has run,
- *      so the ten figures are laid out reading "No data", and the panel says
- *      so (the spec's "real example from a real listing" waits for one).
+ *   2. The four tiers side by side as prose, by reach (Boost, Spotlight,
+ *      Featured, Everywhere): the confirmed price, the days, the naira a day
+ *      and who it suits, read from `lib/promotion/tiers.ts`.
+ *   3. What can be measured, with NOTHING invented (`VALLO_PROMOTION-v2.md`
+ *      section 11): opened from a listing, that listing's own last thirty
+ *      days as recorded, said plainly to be what it did without promotion,
+ *      the baseline; a figure the lister cannot read is "No data" with its
+ *      reason. Opened with no listing, the ten figures are laid out as "No
+ *      data" and the caption says what the screen will show instead.
  *   4. Pick, pay, what happens next. Buying is not open (D38), so the body
  *      says so and there is no pay button: the action is the lister's
- *      listings. Start, end, full days and refunds are Session 2's money
+ *      listings. The published front door count (six a day per city,
+ *      Everywhere at most two, Featured at most four) is said here, before
+ *      any payment. Start, end, full days and refunds are Session 2's money
  *      sentences.
  *
  * No fifth panel selling value: the spec forbids it, and the panel count is
  * held at exactly four by `FIRST_RUN_PANEL_COUNT`.
  */
-function promotionFirstRun(t: Dictionary, locale?: Locale): FirstRunContent {
+function promotionFirstRun(t: Dictionary, locale: Locale | undefined, read: ListingMeasurementRead): FirstRunContent {
   const c = t.experienceFeatures.firstRun.promotion;
   const p = t.experienceFeatures.promotion;
+  const measurement = read.state === "ok" ? read.measurement : null;
+  const baselineCaption =
+    read.state === "ok"
+      ? c.p3Baseline
+      : read.state === "no-listing"
+        ? c.p3NoListing
+        : read.state === "example"
+          ? p.measure.example
+          : read.state === "missing"
+            ? p.measure.missing
+            : c.p3Unavailable;
   return {
     feature: "promotion",
     name: c.name,
@@ -318,13 +343,11 @@ function promotionFirstRun(t: Dictionary, locale?: Locale): FirstRunContent {
         title: c.p2Title,
         body: c.p2Body,
         detail: {
-          caption: PROMOTION_PRICES_PROPOSED,
+          caption: PROMOTION_TIERS_CAPTION,
           layout: "list",
           rows: promotionTiers().map((tier) => ({
             term: p.tiers[tier.displayKey].name,
-            meta: p.tierMeta
-              .replace("{price}", formatMoney(tier.proposedPriceKobo, locale))
-              .replace("{days}", String(tier.durationDays)),
+            meta: tierPriceLine(tier, locale),
             text: p.tiers[tier.displayKey].forWhom,
           })),
         },
@@ -334,9 +357,13 @@ function promotionFirstRun(t: Dictionary, locale?: Locale): FirstRunContent {
         title: c.p3Title,
         body: c.p3Body,
         detail: {
-          caption: c.p3Example,
+          caption: baselineCaption,
           layout: "grid",
-          rows: PROMOTION_METRICS.map((metric) => ({ term: p.metrics[metric], text: p.noData })),
+          rows: measurementRows(measurement).map(({ metric, value, gap }) => ({
+            term: p.metrics[metric],
+            ...(gap ? { meta: p.gaps[gap] } : {}),
+            text: value === null ? p.noData : formatNumber(value, locale),
+          })),
         },
       },
       {
@@ -348,6 +375,7 @@ function promotionFirstRun(t: Dictionary, locale?: Locale): FirstRunContent {
           rows: [
             { term: c.starts, text: PROMOTION_STARTS },
             { term: c.ends, text: PROMOTION_ENDS },
+            { term: c.frontDoor, text: frontDoorCountText(p, locale) },
             { term: c.fullDays, text: PROMOTION_FULL_DAYS },
             { term: c.refunded, text: PROMOTION_REFUNDED },
           ],

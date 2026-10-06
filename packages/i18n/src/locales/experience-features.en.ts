@@ -193,10 +193,13 @@ export const experienceFeaturesEn = {
      * a marked slot, no change to rank (`lib/listings/ranking.test.ts`), no
      * badge (`lib/trust/promotion-trust.test.ts`). Panel two's tiers come
      * from `lib/promotion/tiers.ts` and `promotion.tiers` below. Panel three
-     * has no figures because no promotion has run. Panel four's sentences
-     * are money sentences and live in `lib/money/copy.ts`: buying is not open,
-     * because promotion cannot be paid for until the payment account it
-     * settles to exists (D38).
+     * shows the lister's OWN listing's last thirty days, as recorded, and says
+     * this is what it did without promotion (`VALLO_PROMOTION-v2.md` section
+     * 11): the baseline. Opened without a listing, it says what it will show
+     * rather than inventing an example. Panel four's sentences are money
+     * sentences and live in `lib/money/copy.ts`: buying is not open, because
+     * promotion cannot be paid for until the payment account it settles to
+     * exists (D38).
      */
     promotion: {
       name: "promotion",
@@ -206,11 +209,16 @@ export const experienceFeaturesEn = {
       p2Body: "Each tier names where your listing appears, for how long, and who it suits.",
       p3Title: "What you will be able to measure",
       p3Body: "Each tier shows what your listing actually got. Vallo never estimates a number it does not have.",
-      /** Over panel three's list: there are no figures because nothing has run, and the panel says so. */
-      p3Example: "How the figures will be laid out. No promotion has run yet, so there is no real example to show: each line reads No data until one does.",
+      /** Over panel three's list, opened from a listing: these are that listing's own recorded figures. */
+      p3Baseline: "This listing's last thirty days, without promotion. This is the baseline a promotion would be measured against.",
+      /** Over panel three's list, opened with no listing: what it will show, and no example. */
+      p3NoListing: "Opened without a listing, so there are no figures to show. Open this from one of your listings to see that listing's own last thirty days, without promotion.",
+      /** Over panel three's list, when the listing's figures could not be read. */
+      p3Unavailable: "This listing's figures could not be read just now, so none are shown.",
       p4Title: "Pick, pay, and what happens next",
       starts: "Starts",
       ends: "Ends",
+      frontDoor: "The front door",
       fullDays: "Full days",
       refunded: "If refunded",
       action: "See my listings",
@@ -227,12 +235,11 @@ export const experienceFeaturesEn = {
     label: "Promoted",
     /** The label's longer, accessible form. */
     labelLong: "Promoted listing. Paid placement in a marked slot; it does not change rank or verification.",
-    /** `{price}` is formatted money, `{days}` a number. */
-    tierMeta: "{price} for {days} days",
     /**
      * Each tier, in words. `name` is what a member reads; the slug never
-     * changes. `prime.name` is the spec's recommended "Everywhere", the
-     * founder's to confirm (guardrail 4: Prime names a rank, not a place).
+     * changes. `prime.name` is "Everywhere", confirmed by the founder on
+     * 6 October (guardrail 4: Prime names a rank, not a place). A tier's
+     * price line is a money sentence (`promotionTierPriceText`).
      */
     tiers: {
       boost: {
@@ -267,15 +274,54 @@ export const experienceFeaturesEn = {
     },
     /** In place of a figure that has nothing behind it. Never a zero. */
     noData: "No data",
+    /**
+     * Why a figure reads No data, said beside it. Each is a fact about the
+     * read, never a guess at the figure.
+     */
+    gaps: {
+      notReadable: "Counted by Vallo, but not yet readable for your own listing",
+      notKept: "Not kept long enough to count over thirty days",
+      readFailed: "Could not be read just now",
+    },
     /** The measurement screen (`/agent/listings/<id>/promotion`). */
     measure: {
       title: "Promotion results",
-      lede: "What this listing got from a promotion, counted, never estimated.",
-      notLiveTitle: "No promotion results yet",
-      notLiveBody: "Promotion is not open yet, so no listing has been promoted and there is nothing to count. Every figure below reads No data until a promotion has run.",
-      metricsTitle: "The ten figures",
-      comparison: "Promoted against organic is shown only where there is enough data for the comparison to be valid. Where there is not, this page says so instead.",
+      lede: "What this listing got, counted, never estimated.",
+      baselineTitle: "No promotion has run on this listing",
+      baselineBody: "These are this listing's own figures for the last thirty days, without promotion. They are the baseline a promotion would be measured against.",
+      missing: "This listing is not one of yours, or it no longer exists.",
+      example: "This is an example listing. Example listings are never counted, so there are no figures to show.",
+      unavailable: "This listing's figures could not be read just now, so none are shown.",
+      metricsTitle: "The last thirty days",
+      /** Said whenever no split by where an impression was served exists to draw. */
+      splitNotRecorded: "Where each impression was served, in a promoted slot or in ordinary results, is not recorded yet. So these are totals only, with no split between the two.",
+      /** The split's heading, drawn only when the read carries where each impression was served. */
+      splitTitle: "Where they were served",
+      splitPromoted: "In a promoted slot",
+      splitOrganic: "In ordinary results",
       back: "Back to my listings",
+    },
+    /**
+     * The front door's promoted rail. The numbers are `FRONT_DOOR_RAIL` in
+     * `lib/promotion/tiers.ts`, filled in, never typed here.
+     */
+    frontDoor: {
+      /** `{places}`, `{primeMax}` and `{featuredMax}` are numbers; `{prime}` and `{featured}` are tier names. */
+      count: "The front door has one Promoted rail per city, with {places} places a day. {prime} can hold at most {primeMax} of them and {featured} at most {featuredMax}.",
+      railTitle: "Promoted",
+      /** `{date}` is a formatted date. */
+      railFull: "All {places} front door places for {date} are taken.",
+      /** `{tier}` is a tier name, `{max}` a number, `{date}` a formatted date. */
+      tierFull: "{tier} already holds its {max} front door places for {date}.",
+      /** `{date}` is a formatted date. */
+      nextFree: "The next day with a free place is {date}.",
+      noNextFree: "No later day is open to book yet.",
+      /** `{tier}` is a tier name, `{n}` a number, `{date}` a formatted date. */
+      open: "{tier} can still take {n} front door places on {date}.",
+    },
+    /** The purchase section on the measurement screen. */
+    purchase: {
+      title: "Choose a tier",
     },
   },
 

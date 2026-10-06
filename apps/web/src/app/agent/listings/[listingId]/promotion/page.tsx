@@ -3,10 +3,12 @@ import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { AgentShell } from "@/components/agent/AgentShell";
 import { ButtonLink } from "@/components/ui/Button";
+import { PromotionPurchase } from "@/components/promotion/PromotionPurchase";
 import { PromotionResults } from "@/components/promotion/PromotionResults";
 import { agentProfileFrom, getAgentContext } from "@/lib/agent/listings-queries";
-import { measurementRows } from "@/lib/promotion/measurement";
-import { readPromotionMeasurement } from "@/lib/promotion/measurement-read";
+import { measurementRows, sourceSplit } from "@/lib/promotion/measurement";
+import { readListingMeasurement } from "@/lib/promotion/measurement-read";
+import { readFrontDoorDays } from "@/lib/promotion/inventory-read";
 import { gateFirstRun } from "@/components/app/feature-onboarding/first-run-store";
 import { ListingPitch } from "../../../list/ListingPitch";
 
@@ -23,15 +25,20 @@ export async function generateMetadata(): Promise<Metadata> {
  *
  * NOT LINKED FROM ANYWHERE, ON PURPOSE (the rewards pattern). Promotion
  * cannot be sold until the company payment account exists (D38), and Session
- * 2's inventory, purchase and metrics reads do not exist, so the read is
- * `not-live` and this page says so, with all ten figures reading "No data":
- * never a zero standing in for nothing (`lib/promotion/measurement.test.ts`
- * holds both, and that nothing links here). When the read lands, this page
- * draws its counts with no change here.
+ * 2's inventory and purchase do not exist. What this page CAN show is real:
+ * the listing's own last thirty days, read through the lister's own client
+ * (`readListingMeasurement`), labelled as what it did without promotion. A
+ * figure the lister cannot read reads "No data" with its reason, never a
+ * zero (`lib/promotion/measurement.test.ts`). The split by where an
+ * impression was served is not recorded yet, and the page says so.
+ *
+ * Then the tiers by reach with price, days and naira a day, the published
+ * front door count, and no pay button (`PromotionPurchase`).
  *
  * It never says what a promotion "will get you": no projection, average or
  * "listings like yours" figure is computed anywhere, so none can be printed.
- * The first visit shows promotion's first run once (`gateFirstRun`).
+ * The first visit shows promotion's first run once (`gateFirstRun`), carrying
+ * this page as `next`, so the run's third screen reads this listing.
  */
 export default async function PromotionResultsPage({
   params,
@@ -61,7 +68,12 @@ export default async function PromotionResultsPage({
   }
 
   await gateFirstRun("promotion", `/agent/listings/${encodeURIComponent(listingId)}/promotion`, query);
-  const read = await readPromotionMeasurement(listingId);
+  const [read, days] = await Promise.all([
+    readListingMeasurement(context.supabase, context.agent.id, listingId),
+    readFrontDoorDays(listingId),
+  ]);
+  const measurement = read.state === "ok" ? read.measurement : null;
+  const blocked = read.state === "missing" ? p.measure.missing : read.state === "example" ? p.measure.example : read.state === "unavailable" ? p.measure.unavailable : null;
 
   return (
     <AgentShell t={t} locale={locale} active="/agent/listings" profile={agentProfileFrom(context.agent)}>
@@ -70,7 +82,20 @@ export default async function PromotionResultsPage({
           <h1 className="nf-h2">{p.measure.title}</h1>
           <p className="mt-inline nf-body-sm text-[var(--nf-content-secondary)]">{p.measure.lede}</p>
         </div>
-        <PromotionResults rows={measurementRows(read)} notLive={read.state === "not-live"} copy={p} locale={locale} />
+        {blocked ? (
+          <p className="nf-body-sm text-[var(--nf-content-secondary)]" role="status">
+            {blocked}
+          </p>
+        ) : (
+          <PromotionResults
+            rows={measurementRows(measurement)}
+            split={sourceSplit(measurement)}
+            notice={{ title: p.measure.baselineTitle, body: p.measure.baselineBody }}
+            copy={p}
+            locale={locale}
+          />
+        )}
+        {read.state === "ok" ? <PromotionPurchase days={days} copy={p} locale={locale} /> : null}
         <div>
           <ButtonLink href="/agent/listings" variant="secondary">
             {p.measure.back}

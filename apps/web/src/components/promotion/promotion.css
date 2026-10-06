@@ -9,6 +9,13 @@
  * the neutral border, never the verified tone, so the slot reads as paid
  * placement and never as a check.
  *
+ * THE FRONT DOOR RAIL (PromotedRail.tsx): one row of at most six slots. The
+ * column is a fixed size that does not depend on the number of cards, and the
+ * row starts at the start edge, so two cards are as wide and as far apart as
+ * six: a day that is not sold out shows fewer cards, never stretched ones.
+ * The widest card on the page, so the largest photograph. Its label is quiet:
+ * caption size in the secondary ink.
+ *
  * THE RESULTS (PromotionResults.tsx): name and figure per row, and "No data"
  * set in the muted ink, so an absent figure never looks like a measured one.
  */
@@ -26,6 +33,37 @@
   .nf-promoted-slot__label {
     margin: 0;
     display: flex;
+  }
+
+  .nf-promoted-rail {
+    /* Percent of the rail, not of the card count: the same for two as for six. */
+    --nf-promoted-rail-card: min(calc(100% - var(--nf-space-2xl)), 24rem);
+    display: grid;
+    gap: var(--nf-space-sm);
+    min-inline-size: 0;
+  }
+  .nf-promoted-rail__title {
+    margin: 0;
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+  }
+  .nf-promoted-rail__track {
+    list-style: none;
+    margin: 0;
+    padding: 0 0 var(--nf-space-xs);
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: var(--nf-promoted-rail-card);
+    justify-content: start;
+    gap: var(--nf-space-xl);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+  }
+  .nf-promoted-rail__item {
+    min-inline-size: 0;
+    scroll-snap-align: start;
   }
 
   .nf-promo-results {
@@ -82,5 +120,48 @@
   .nf-promo-results__row[data-no-data] .nf-promo-results__value {
     font-weight: 400;
     color: var(--nf-content-muted);
+  }
+  .nf-promo-results__gap {
+    flex-basis: 100%;
+    margin: 0;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+  }
+
+  .nf-promo-buy {
+    display: grid;
+    gap: var(--nf-space-md);
+  }
+  .nf-promo-buy__tiers {
+    display: grid;
+    gap: var(--nf-space-sm);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .nf-promo-buy__tier {
+    display: grid;
+    gap: var(--nf-space-3xs);
+    padding-block: var(--nf-space-sm);
+    border-block-end: var(--nf-border-width) solid var(--nf-border-subtle);
+  }
+  .nf-promo-buy__name {
+    margin: 0;
+    font-size: var(--nf-text-row);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-promo-buy__price {
+    margin: 0;
+    font-size: var(--nf-text-body-sm);
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-content-primary);
+  }
+  .nf-promo-buy__line {
+    margin: 0;
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.5;
+    color: var(--nf-content-secondary);
+    max-inline-size: 62ch;
   }
 }

@@ -1,33 +1,46 @@
 import "./promotion.css";
 import { formatNumber, type Dictionary, type Locale } from "@vallo/i18n/core";
-import type { PromotionMetricRow } from "@/lib/promotion/measurement";
+import type { MetricGap, PromotionMetricRow, SourceSplitRow } from "@/lib/promotion/measurement";
 
 /**
- * A LISTER'S PROMOTION RESULTS: the figures, each a recorded count or the
- * words "No data" (`VALLO_PROMOTION.md` statement 6). A null is never drawn
- * as a zero, and nothing here projects, averages or compares unless Session
- * 2's read says the comparison is valid; until it exists the screen says
- * when a comparison will be shown instead of showing one.
+ * A LISTING'S FIGURES: each a recorded count, or the words "No data" with the
+ * reason beside them (`VALLO_PROMOTION.md` statement 6). A null is never drawn
+ * as a zero. Nothing here projects, averages or estimates.
+ *
+ * THE SPLIT. Impressions and views by where they were served are drawn ONLY
+ * from `split`, which `sourceSplit` fills from a recorded source dimension and
+ * nothing else. Today no read records one, so `split` is null and the screen
+ * says, in plain words, that the split is not recorded and these are totals:
+ * no sentence claims a share for the promoted slot.
  */
+const GAP_WORDS: Record<MetricGap, keyof Dictionary["experienceFeatures"]["promotion"]["gaps"]> = {
+  notReadable: "notReadable",
+  notKept: "notKept",
+  readFailed: "readFailed",
+};
+
 export function PromotionResults({
   rows,
-  notLive,
+  split,
+  notice,
   copy,
   locale,
 }: {
   rows: readonly PromotionMetricRow[];
-  /** True while Session 2's read does not exist: the not-live notice leads. */
-  notLive: boolean;
+  /** From `sourceSplit`; null draws no split and says it is not recorded. */
+  split: readonly SourceSplitRow[] | null;
+  /** A lead notice, e.g. "No promotion has run on this listing". */
+  notice?: { title: string; body: string } | null;
   copy: Dictionary["experienceFeatures"]["promotion"];
   locale: Locale;
 }) {
   const p = copy;
   return (
     <div className="nf-promo-results" data-testid="promotion-results">
-      {notLive ? (
-        <div className="nf-promo-results__notice" role="status" data-testid="promotion-not-live">
-          <h2 className="nf-promo-results__notice-title">{p.measure.notLiveTitle}</h2>
-          <p className="nf-promo-results__notice-body">{p.measure.notLiveBody}</p>
+      {notice ? (
+        <div className="nf-promo-results__notice" role="status" data-testid="promotion-notice">
+          <h2 className="nf-promo-results__notice-title">{notice.title}</h2>
+          <p className="nf-promo-results__notice-body">{notice.body}</p>
         </div>
       ) : null}
 
@@ -36,18 +49,49 @@ export function PromotionResults({
           {p.measure.metricsTitle}
         </h2>
         <dl className="nf-promo-results__rows">
-          {rows.map(({ metric, value }) => (
+          {rows.map(({ metric, value, gap }) => (
             <div key={metric} className="nf-promo-results__row" data-metric={metric} data-no-data={value === null ? "" : undefined}>
               <dt className="nf-promo-results__name">{p.metrics[metric]}</dt>
               <dd className="nf-promo-results__value">
                 {value === null ? p.noData : formatNumber(value, locale)}
               </dd>
+              {value === null && gap ? (
+                <dd className="nf-promo-results__gap" data-gap={gap}>
+                  {p.gaps[GAP_WORDS[gap]]}
+                </dd>
+              ) : null}
             </div>
           ))}
         </dl>
       </section>
 
-      <p className="nf-promo-results__note">{p.measure.comparison}</p>
+      {split ? (
+        <section aria-labelledby="promo-split" data-testid="promotion-split">
+          <h2 id="promo-split" className="nf-section-label">
+            {p.measure.splitTitle}
+          </h2>
+          <dl className="nf-promo-results__rows">
+            {split.flatMap((row) => [
+              <div key={`${row.metric}-promoted`} className="nf-promo-results__row" data-metric={row.metric} data-source="promoted">
+                <dt className="nf-promo-results__name">
+                  {p.metrics[row.metric]}, {p.measure.splitPromoted.toLowerCase()}
+                </dt>
+                <dd className="nf-promo-results__value">{formatNumber(row.promoted, locale)}</dd>
+              </div>,
+              <div key={`${row.metric}-organic`} className="nf-promo-results__row" data-metric={row.metric} data-source="organic">
+                <dt className="nf-promo-results__name">
+                  {p.metrics[row.metric]}, {p.measure.splitOrganic.toLowerCase()}
+                </dt>
+                <dd className="nf-promo-results__value">{formatNumber(row.organic, locale)}</dd>
+              </div>,
+            ])}
+          </dl>
+        </section>
+      ) : (
+        <p className="nf-promo-results__note" data-testid="promotion-split-not-recorded">
+          {p.measure.splitNotRecorded}
+        </p>
+      )}
     </div>
   );
 }

@@ -12,6 +12,10 @@ import {
 } from "@/components/app/feature-onboarding/first-runs";
 import { inviteRewards, type InviteRewards } from "@/lib/referral/rewards";
 import { readMyRewards } from "@/lib/referral/rewards-read";
+import { getAgentContext } from "@/lib/agent/listings-queries";
+import type { ListingMeasurementRead } from "@/lib/promotion/measurement";
+import { readListingMeasurement } from "@/lib/promotion/measurement-read";
+import { promotionListingFrom } from "@/lib/promotion/listing-context";
 
 export async function generateMetadata({ params }: { params: Promise<{ feature: string }> }): Promise<Metadata> {
   // The tab names the feature in the reader's language, as the region does.
@@ -64,7 +68,8 @@ export default async function FirstRunPage({
   const next = firstRunNext(Array.isArray(raw) ? raw[0] : raw, FIRST_RUN_HOME[feature]);
   if (invite?.state === "paused") redirect(next);
 
-  const content = firstRunContent(feature, t, locale, invite);
+  const promotion = feature === "promotion" ? await readPromotionBaseline(next) : undefined;
+  const content = firstRunContent(feature, t, locale, invite, promotion);
   if (!canMount(content)) notFound();
 
   const c = t.experienceFeatures.firstRun;
@@ -79,4 +84,18 @@ export default async function FirstRunPage({
       copy={{ skip: c.skip, next: c.next, page: c.page, pager: c.pager, region: c.region }}
     />
   );
+}
+
+/**
+ * Promotion's third screen: the listing the run was opened from, its own
+ * last thirty days, read through the lister's own client
+ * (`readListingMeasurement` checks the listing is theirs). No listing in
+ * `next`: the screen says what it would show.
+ */
+async function readPromotionBaseline(next: string): Promise<ListingMeasurementRead> {
+  const listingId = promotionListingFrom(next);
+  if (!listingId) return { state: "no-listing" };
+  const context = await getAgentContext();
+  if (context.state !== "agent") return { state: "missing" };
+  return readListingMeasurement(context.supabase, context.agent.id, listingId);
 }
