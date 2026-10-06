@@ -677,3 +677,28 @@
     }
   }
 }
+
+/*
+ * THE SUPPLY DOORS' ONE ISLAND (Session 3, stage 9, W1b): the payout card on
+ * /for-agents, /for-hosts and /for-landlords. It was a `.nf-pd-card`; as the
+ * page's single Island it takes the navy glass at night and the elevated
+ * white on Paper (glass.css), and so supplies its own layout and padding,
+ * which the card used to give it. One Island per screen: nothing else on
+ * these pages is one.
+ */
+@layer components {
+  .nf-island.nf-supply__payout {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    gap: var(--nf-space-sm);
+    min-width: 0;
+    padding: var(--nf-space-md);
+  }
+  @media (min-width: 64rem) {
+    .nf-island.nf-supply__payout {
+      padding: var(--nf-space-lg);
+      gap: var(--nf-space-md);
+    }
+  }
+}

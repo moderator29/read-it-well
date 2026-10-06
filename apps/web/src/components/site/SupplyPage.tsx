@@ -1,5 +1,6 @@
 import type { Dictionary } from "@vallo/i18n/core";
 import { ButtonLink } from "@/components/ui/Button";
+import { MotionReveal } from "@/components/motion/Reveal";
 import { IconPlate } from "@/components/ui/IconPlate";
 import { ListGroup, ListRow } from "@/components/ui/ListGroup";
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -61,6 +62,12 @@ export const GUARANTEE_TILE_NOTE =
  * desk; the common questions (FAQPage data, the page's own sentences); and
  * the landing's final card. Every fact comes from `lib/site/supply-doors.ts`,
  * which reads it from the module that enforces it.
+ *
+ * SESSION 3 (stage 9): the page is on the landing's material. Each section
+ * arrives on the shared reveal, and the payout, the one promise a lister
+ * reads for, is the page's single Island (navy glass at night, white and
+ * elevated on Paper); the one glow is the head's aurora. No proof is added:
+ * every line is still the door's own data.
  */
 export function SupplyPage({ door, fees, t }: { door: SupplyDoor; fees: ListerFees | null; t: Dictionary }) {
   const s = t.publicDoors.supply;
@@ -103,7 +110,7 @@ export function SupplyPage({ door, fees, t }: { door: SupplyDoor; fees: ListerFe
 
       <div className="nf-shell">
         <div className="nf-supply mx-auto max-w-3xl">
-          <section aria-labelledby="supply-steps">
+          <MotionReveal as="section" aria-labelledby="supply-steps">
             <h2 id="supply-steps" className="nf-supply__h2">
               {s.stepsTitle}
             </h2>
@@ -125,9 +132,9 @@ export function SupplyPage({ door, fees, t }: { door: SupplyDoor; fees: ListerFe
                 </li>
               ))}
             </ol>
-          </section>
+          </MotionReveal>
 
-          <section aria-labelledby="supply-fees">
+          <MotionReveal as="section" aria-labelledby="supply-fees">
             <h2 id="supply-fees" className="nf-supply__h2">
               {s.feesTitle}
             </h2>
@@ -149,13 +156,13 @@ export function SupplyPage({ door, fees, t }: { door: SupplyDoor; fees: ListerFe
             ) : (
               <p className="nf-pd-card nf-supply__body">{GUARANTEE_CONTRIBUTION_NOTE}</p>
             )}
-          </section>
+          </MotionReveal>
 
-          <section aria-labelledby="supply-payout">
+          <MotionReveal as="section" aria-labelledby="supply-payout">
             <h2 id="supply-payout" className="nf-supply__h2">
               {s.payoutTitle}
             </h2>
-            <div className="nf-pd-card nf-supply__payout">
+            <div className="nf-island nf-supply__payout">
               <IconPlate size="md" shape="round" tone="success">
                 <UiIcon name="bank" size={20} />
               </IconPlate>
@@ -167,9 +174,9 @@ export function SupplyPage({ door, fees, t }: { door: SupplyDoor; fees: ListerFe
                 ))}
               </div>
             </div>
-          </section>
+          </MotionReveal>
 
-          <section aria-labelledby="supply-checks">
+          <MotionReveal as="section" aria-labelledby="supply-checks">
             <h2 id="supply-checks" className="nf-supply__h2">
               {s.checksTitle}
             </h2>
@@ -201,9 +208,9 @@ export function SupplyPage({ door, fees, t }: { door: SupplyDoor; fees: ListerFe
                 ))}
               </ListGroup>
             </div>
-          </section>
+          </MotionReveal>
 
-          <section aria-labelledby="supply-example">
+          <MotionReveal as="section" aria-labelledby="supply-example">
             <div className="nf-supply__h2-row">
               <h2 id="supply-example" className="nf-supply__h2">
                 {s.exampleTitle}
@@ -228,9 +235,9 @@ export function SupplyPage({ door, fees, t }: { door: SupplyDoor; fees: ListerFe
               ))}
             </ListGroup>
             <p className="nf-supply__note">{s.exampleNote}</p>
-          </section>
+          </MotionReveal>
 
-          <section aria-labelledby="supply-faq">
+          <MotionReveal as="section" aria-labelledby="supply-faq">
             <h2 id="supply-faq" className="nf-supply__h2">
               {s.faqTitle}
             </h2>
@@ -243,7 +250,7 @@ export function SupplyPage({ door, fees, t }: { door: SupplyDoor; fees: ListerFe
                 </li>
               ))}
             </ListGroup>
-          </section>
+          </MotionReveal>
         </div>
       </div>
 
