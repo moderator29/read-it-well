@@ -136,7 +136,7 @@ export default async function MoveInPage({ params }: { params: Promise<{ listing
       />
 
       <p className="nf-caption mt-block text-center text-[var(--nf-content-muted)]">
-        <Link href={`/listing/${listing.id}`} className="nf-link-quiet text-[var(--nf-content-link)]">
+        <Link href={`/listing/${listing.id}`} className="nf-link-quiet nf-tap text-[var(--nf-content-link)]">
           {t.common.back}
         </Link>
         {" · "}
