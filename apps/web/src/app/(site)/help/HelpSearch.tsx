@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { MotionReveal } from "@/components/motion/Reveal";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ButtonLink } from "@/components/ui/Button";
@@ -23,6 +23,27 @@ export type Faq = {
  */
 export function HelpSearch({ faqs }: { faqs: Faq[] }) {
   const [query, setQuery] = useState("");
+
+  /*
+   * A TOPIC LINK ALWAYS LANDS. The topic index at the top of the page jumps to
+   * `#help-<topic>`; while a search has filtered that topic out, the target is
+   * not in the page and the jump went nowhere. So a click on one of those links
+   * clears the search first, then scrolls to the section once it has rendered.
+   * With no search active the link is left to the browser.
+   */
+  useEffect(() => {
+    const onClick = (event: MouseEvent) => {
+      const link = (event.target as Element | null)?.closest?.('a[href^="#help-"]');
+      if (!link || !query) return;
+      const hash = link.getAttribute("href") ?? "";
+      event.preventDefault();
+      setQuery("");
+      history.pushState(null, "", hash);
+      requestAnimationFrame(() => requestAnimationFrame(() => document.getElementById(hash.slice(1))?.scrollIntoView()));
+    };
+    document.addEventListener("click", onClick);
+    return () => document.removeEventListener("click", onClick);
+  }, [query]);
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
