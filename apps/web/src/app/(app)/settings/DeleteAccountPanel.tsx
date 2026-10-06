@@ -220,6 +220,7 @@ function ScheduledPanel({
     day: "numeric",
     month: "long",
     year: "numeric",
+    timeZone: "Africa/Lagos",
   });
 
   const restore = () => {

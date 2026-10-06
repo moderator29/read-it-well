@@ -87,7 +87,7 @@ export default async function PhoneSettingsPage() {
                 <p className="nf-body text-[var(--nf-content-primary)]">
                   {copy.confirmed
                     .replace("{last}", data.phone.slice(-4))
-                    .replace("{date}", formatDate(new Date(data.confirmed_at), locale))}
+                    .replace("{date}", formatDate(new Date(data.confirmed_at), locale, { day: "numeric", month: "short", year: "numeric", timeZone: "Africa/Lagos" }))}
                 </p>
               </div>
             )}

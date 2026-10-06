@@ -127,7 +127,7 @@ export default async function ProfileApplicationPage() {
   const trackSteps: TrackStep[] = track.map((step) => ({
     key: step.key,
     label: trackLabels[step.key],
-    when: step.at ? formatDate(new Date(step.at), locale) : null,
+    when: step.at ? formatDate(new Date(step.at), locale, { day: "numeric", month: "short", year: "numeric", timeZone: "Africa/Lagos" }) : null,
     note:
       step.key === "review" && step.state === "current"
         ? application.status === "MORE_INFO_REQUIRED"

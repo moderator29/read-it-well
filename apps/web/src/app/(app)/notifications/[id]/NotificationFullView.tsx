@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { CSSProperties } from "react";
-import { formatDate, type Dictionary, type Locale } from "@vallo/i18n/core";
+import { formatDate, getDictionary, type Dictionary, type Locale } from "@vallo/i18n";
 import { Amount } from "@/components/ui/Amount";
 import { ButtonLink } from "@/components/ui/Button";
 import { Icon3D } from "@/components/ui/Icon3D";
@@ -44,7 +44,7 @@ type Copy = Dictionary["experienceInbox"];
 function whenOf(iso: string, locale: Locale): string {
   const at = new Date(iso);
   if (Number.isNaN(at.getTime())) return "";
-  return `${formatDate(at, locale, { weekday: "short", day: "numeric", month: "short", year: "numeric" })}, ${lagosTimeLabel(iso)}`;
+  return `${formatDate(at, locale, { weekday: "short", day: "numeric", month: "short", year: "numeric", timeZone: "Africa/Lagos" })}, ${lagosTimeLabel(iso)}`;
 }
 
 function stepStyle(i: number): CSSProperties {
@@ -111,10 +111,6 @@ export function NotificationFullView({
             <dt>{v.received}</dt>
             <dd className="nf-numeric">{whenOf(row.created_at, locale)}</dd>
           </div>
-          <div className="nf-nview__row">
-            <dt>{v.kind}</dt>
-            <dd>{copy.notifications.families[family]}</dd>
-          </div>
           {href ? (
             <div className="nf-nview__row">
               <dt>{v.about}</dt>
@@ -143,7 +139,11 @@ export function NotificationFullView({
           </ButtonLink>
         ) : (
           <>
-            <p className="nf-nview__nothing nf-body-sm">{v.nothingAsked}</p>
+            {/* "Nothing is asked of you" is only true when the notice does not
+                ask anything. An action notice with no record to open (no link)
+                must not say so, so the sentence is drawn for the other
+                severities only (auditor A3, S4). */}
+            {verdict.severity !== "action" ? <p className="nf-nview__nothing nf-body-sm">{v.nothingAsked}</p> : null}
             <ButtonLink href="/notifications" variant="secondary" size="lg" full>
               {v.backToList}
             </ButtonLink>
@@ -188,7 +188,7 @@ export function NotificationFullView({
         style={stepStyle(5)}
         data-testid="notification-view-preferences"
       >
-        <span>{fill(v.changePreferences, { family: copy.notifications.families[family] })}</span>
+        <span>{getDictionary(locale).experienceAccount.settings.notificationsNav.fromNotice}</span>
         <UiIcon name="chevron-right" size={16} />
       </Link>
     </article>

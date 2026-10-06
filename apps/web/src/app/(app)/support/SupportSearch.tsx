@@ -4,6 +4,7 @@ import { useId, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
 import Link from "next/link";
 import { plural } from "@vallo/i18n/core";
+import { Button } from "@/components/ui/Button";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { searchHelpArticles, type HelpArticle } from "@/lib/support/help-search";
 import { useInboxCopy, useInboxLocale } from "@/components/app/threads/use-inbox-copy";
@@ -39,6 +40,12 @@ export function SupportSearch({ articles, popular }: { articles: HelpArticle[]; 
   const shown = searching ? results : popular;
   const current = Math.min(active, Math.max(0, shown.length - 1));
   const optionId = (index: number) => `${listId}-opt-${index}`;
+  /* The list is open when it is drawn: there is at least one row in it. */
+  const listOpen = shown.length > 0;
+  /* The opened answer is drawn BELOW the listbox, not inside it: a listbox may
+     hold only options, and the answer (a region with text) between two of them
+     broke that for a screen reader (auditor A3, S3). */
+  const openArticle = shown.find((article) => article.q === openQ) ?? null;
 
   const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "ArrowDown") {
@@ -71,10 +78,10 @@ export function SupportSearch({ articles, popular }: { articles: HelpArticle[]; 
             ref={inputRef}
             type="text"
             role="combobox"
-            aria-expanded={shown.length > 0}
+            aria-expanded={listOpen}
             aria-controls={listId}
             aria-autocomplete="list"
-            aria-activedescendant={shown.length > 0 ? optionId(current) : undefined}
+            aria-activedescendant={listOpen ? optionId(current) : undefined}
             aria-label={copy.heading}
             autoComplete="off"
             enterKeyHint="search"
@@ -89,18 +96,17 @@ export function SupportSearch({ articles, popular }: { articles: HelpArticle[]; 
             data-testid="support-search-input"
           />
           {query ? (
-            <button
-              type="button"
+            <Button
+              variant="icon"
+              leadingIcon="close"
               aria-label={copy.clear}
-              className="nf-icon-btn nf-palette__clear"
+              className="nf-palette__clear"
               onClick={() => {
                 setQuery("");
                 setActive(0);
                 inputRef.current?.focus();
               }}
-            >
-              <UiIcon name="close" size={16} />
-            </button>
+            />
           ) : null}
         </div>
 
@@ -143,12 +149,6 @@ export function SupportSearch({ articles, popular }: { articles: HelpArticle[]; 
                       className="nf-palette__enter"
                     />
                   </div>
-                  {open ? (
-                    <div className="nf-palette__answer" role="region" aria-label={copy.openAnswer}>
-                      <p className="nf-overline nf-palette__cat">{article.category}</p>
-                      <p className="nf-body-sm">{article.a}</p>
-                    </div>
-                  ) : null}
                 </li>
               );
             })}
@@ -156,6 +156,14 @@ export function SupportSearch({ articles, popular }: { articles: HelpArticle[]; 
         ) : (
           <p className="nf-palette__none nf-body-sm">{copy.noneHelp}</p>
         )}
+
+        {openArticle ? (
+          <div className="nf-palette__answer" role="region" aria-label={copy.openAnswer} data-testid="support-answer">
+            <p className="nf-overline nf-palette__cat">{openArticle.category}</p>
+            <p className="nf-body-sm font-semibold text-[var(--nf-content-primary)]">{openArticle.q}</p>
+            <p className="nf-body-sm">{openArticle.a}</p>
+          </div>
+        ) : null}
 
         <p className="nf-palette__hint nf-caption" aria-hidden="true">
           {copy.hint}
