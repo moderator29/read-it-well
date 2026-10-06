@@ -10,6 +10,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { answerHotelReview, contestHotelReview, withdrawHotelReviewAnswer } from "@/lib/host/review-actions";
 import { CONTEST_CRITERIA, CONTEST_NOTE_MAX, contestWords, type ContestCriterion } from "@/lib/host/review-contest";
 import type { HostReview } from "@/lib/host/reviews";
+import { useHostPageCopy } from "@/components/host/host-copy";
 
 /**
  * ONE REVIEW OF THE HOST'S HOTEL (C4): what the guest wrote, the host's one
@@ -20,6 +21,7 @@ import type { HostReview } from "@/lib/host/reviews";
  */
 export function HostReviewCard({ review, when }: { review: HostReview; when: string }) {
   const router = useRouter();
+  const w = useHostPageCopy().reviewCard;
   const [pending, start] = useTransition();
   const [writing, setWriting] = useState(false);
   const [reply, setReply] = useState(review.reply?.body ?? "");
@@ -75,7 +77,7 @@ export function HostReviewCard({ review, when }: { review: HostReview; when: str
             {review.place} · {when}
           </p>
         </div>
-        <span className="nf-hreview__stars" role="img" aria-label={`${review.rating} out of 5`}>
+        <span className="nf-hreview__stars" role="img" aria-label={w.outOfFive.replace("{rating}", String(review.rating))}>
           {[1, 2, 3, 4, 5].map((n) => (
             <span key={n} {...(n > review.rating ? { "data-off": "" } : {})}>
               <UiIcon name="star" size={16} filled={n <= review.rating} />
@@ -84,21 +86,21 @@ export function HostReviewCard({ review, when }: { review: HostReview; when: str
         </span>
       </header>
 
-      {review.body ? <p className="nf-hreview__body">{review.body}</p> : <p className="nf-hreview__hidden">A rating with no words.</p>}
+      {review.body ? <p className="nf-hreview__body">{review.body}</p> : <p className="nf-hreview__hidden">{w.noWords}</p>}
 
       {review.hiddenAt ? (
         <p className="nf-hreview__hidden">
           <StatusBadge tone="neutral" kind="dot">
-            Hidden
+            {w.hidden}
           </StatusBadge>{" "}
-          Guests see instead: &ldquo;{review.hiddenNote ?? "Removed by Vallo"}&rdquo;. It no longer counts toward your rating.
+          {w.hiddenInstead.replace("{note}", review.hiddenNote ?? w.removedByVallo)}
         </p>
       ) : null}
 
       {review.contest ? (
         <p className="nf-caption">
           <StatusBadge tone={openContest ? "pending" : review.contest.status === "hidden" ? "success" : "neutral"} kind="dot">
-            {openContest ? "Asked Vallo" : "Decided"}
+            {openContest ? w.askedVallo : w.decided}
           </StatusBadge>{" "}
           {contestWords(review.contest.status, review.contest.publicNote)}
         </p>
@@ -106,7 +108,7 @@ export function HostReviewCard({ review, when }: { review: HostReview; when: str
 
       {review.reply && !writing ? (
         <div className="nf-hreview__reply">
-          <p className="nf-section-label">Your reply</p>
+          <p className="nf-section-label">{w.yourReply}</p>
           <p className="mt-2xs whitespace-pre-line">{review.reply.body}</p>
         </div>
       ) : null}
@@ -114,19 +116,19 @@ export function HostReviewCard({ review, when }: { review: HostReview; when: str
       {writing ? (
         <div className="grid gap-xs">
           <TextArea
-            label="Your public reply"
+            label={w.replyLabel}
             rows={4}
             maxLength={1200}
             value={reply}
             onChange={(event) => setReply(event.target.value)}
-            hint="Guests read this under the review. Thank them, and say what you changed."
+            hint={w.replyHint}
           />
           <div className="nf-hreview__actions">
             <Button variant="primary" size="md" loading={pending} disabled={pending || reply.trim().length === 0} onClick={saveReply}>
-              {review.reply ? "Save the reply" : "Post the reply"}
+              {review.reply ? w.saveReply : w.postReply}
             </Button>
             <Button variant="secondary" size="md" disabled={pending} onClick={() => setWriting(false)}>
-              Cancel
+              {w.cancel}
             </Button>
           </div>
         </div>
@@ -134,7 +136,7 @@ export function HostReviewCard({ review, when }: { review: HostReview; when: str
         <>
           <div className="nf-hreview__actions">
             <Button variant="secondary" size="md" leadingIcon="chat-bubble" disabled={pending} onClick={() => setWriting(true)}>
-              {review.reply ? "Edit reply" : "Reply"}
+              {review.reply ? w.editReply : w.reply}
             </Button>
           </div>
           {/* The quieter doors sit on a foot under a hairline, their words in
@@ -144,12 +146,12 @@ export function HostReviewCard({ review, when }: { review: HostReview; when: str
             <div className="nf-hreview__foot">
               {review.reply ? (
                 <Button variant="quiet" size="md" disabled={pending} onClick={withdraw}>
-                  Take the reply back
+                  {w.takeBack}
                 </Button>
               ) : null}
               {!review.hiddenAt && !openContest ? (
                 <Button variant="quiet" size="md" leadingIcon="flag" disabled={pending} onClick={() => setContesting(true)}>
-                  Ask Vallo to look
+                  {w.askVallo}
                 </Button>
               ) : null}
             </div>
@@ -165,27 +167,23 @@ export function HostReviewCard({ review, when }: { review: HostReview; when: str
       <Sheet
         open={contesting}
         onOpenChange={(next) => !pending && setContesting(next)}
-        title="Ask Vallo to look at this review"
+        title={w.contestTitle}
         detents={[0.92]}
         footer={
           <div className="flex flex-wrap gap-sm">
             <Button variant="secondary" size="lg" full disabled={pending} onClick={() => setContesting(false)}>
-              Cancel
+              {w.cancel}
             </Button>
             <Button variant="primary" size="lg" full loading={pending} disabled={pending || !criterion} onClick={sendContest}>
-              Send to Vallo
+              {w.send}
             </Button>
           </div>
         }
       >
         <div className="grid gap-md">
-          <p className="nf-body">
-            We keep a review that is about the stay, even a hard one. We hide a review only when it breaks one of these
-            standards, and we never delete one. The review stays up while we look, and both you and the guest are told
-            what we decide.
-          </p>
+          <p className="nf-body">{w.contestBody}</p>
           <fieldset className="grid gap-xs">
-            <legend className="nf-section-label mb-xs">Which standard does it break?</legend>
+            <legend className="nf-section-label mb-xs">{w.whichStandard}</legend>
             {CONTEST_CRITERIA.map((c) => (
               <label key={c.value} className="nf-hreview-choice">
                 <input
@@ -204,12 +202,12 @@ export function HostReviewCard({ review, when }: { review: HostReview; when: str
             ))}
           </fieldset>
           <TextArea
-            label="Anything we should know (optional)"
+            label={w.noteLabel}
             rows={3}
             maxLength={CONTEST_NOTE_MAX}
             value={note}
             onChange={(event) => setNote(event.target.value)}
-            hint="Only Vallo reads this."
+            hint={w.noteHint}
           />
           {contestError ? (
             <p className="nf-rcal-panel__error" role="alert">
