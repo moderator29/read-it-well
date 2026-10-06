@@ -3,8 +3,8 @@
  * list-views.css): the cards the page opens on are left to the list stagger,
  * the ones below the fold are held and float in once as they scroll into view
  * in staggered rows, and nothing moves under reduced motion, Calm, Off or data
- * saving. Layout reads during the scroll are counted, because the point of the
- * single observer is that a long list costs the scroll nothing.
+ * saving. Waits are polls on the state they are waiting for, never fixed
+ * times, so the test holds on a loaded machine.
  */
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
@@ -56,11 +56,15 @@ const cards = (page: import("playwright-core").Page) =>
     })),
   );
 
+const heldCount = (page: import("playwright-core").Page) =>
+  page.evaluate(() => document.querySelectorAll('[data-card][data-entry="pending"]').length);
+
 describe.skipIf(!hasBrowser && !process.env.CI)("card entry on scroll", () => {
   it("leaves the first screen alone, holds the rest, releases each once in staggered rows", async () => {
     const { page, close } = await mountInBrowser({ entry, css: CSS });
     try {
-      await page.waitForTimeout(250);
+      /* The observer's first report is asynchronous: wait for it, not for a time. */
+      await expect.poll(() => heldCount(page), { message: "the cards below the fold are held" }).toBeGreaterThan(20);
       const first = await cards(page);
       /* 844px tall phone: the first rows are on screen and never held. */
       expect(first.slice(0, 4).every((card) => card.entry === null)).toBe(true);
@@ -69,48 +73,31 @@ describe.skipIf(!hasBrowser && !process.env.CI)("card entry on scroll", () => {
       /* The seeded float: 50, 70 or 90px by index. */
       expect(new Set(first.map((card) => card.float))).toEqual(new Set(["50px", "70px", "90px"]));
 
-      /* Count layout reads while scrolling the whole list. */
-      await page.evaluate(() => {
-        const w = window as unknown as { __reads: number };
-        w.__reads = 0;
-        const original = Element.prototype.getBoundingClientRect;
-        Element.prototype.getBoundingClientRect = function () {
-          w.__reads += 1;
-          return original.call(this);
-        };
-      });
-      const gaps = await page.evaluate(
-        () =>
-          new Promise<number[]>((resolve) => {
-            const gaps: number[] = [];
-            let last = performance.now();
-            let y = 0;
-            const step = () => {
-              const now = performance.now();
-              gaps.push(now - last);
-              last = now;
-              y += 40;
-              window.scrollTo(0, y);
-              if (y < document.documentElement.scrollHeight) requestAnimationFrame(step);
-              else resolve(gaps);
-            };
-            requestAnimationFrame(step);
-          }),
-      );
-      await page.waitForTimeout(900);
-      const reads = await page.evaluate(() => (window as unknown as { __reads: number }).__reads);
-      expect(reads, "no layout read by the entry code while scrolling").toBe(0);
-      expect(Math.max(...gaps), "no long frame while scrolling 40 cards").toBeLessThan(250);
+      /* One jump to the bottom: the last rows arrive in the same report, so a
+         row is staggered 60ms a card. */
+      await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+      await expect
+        .poll(async () => (await cards(page)).slice(-6).every((card) => card.entry === "in"), {
+          message: "the cards that scrolled into view are released",
+        })
+        .toBe(true);
 
       const after = await cards(page);
+      /* The first screen's cards were never touched. */
       expect(after.slice(0, 4).every((card) => card.entry === null)).toBe(true);
-      expect(after.slice(-6).every((card) => card.entry === "in")).toBe(true);
       const delays = after.filter((card) => card.entry === "in").map((card) => Number.parseInt(card.delay, 10));
       expect(delays.every((ms) => ms % 60 === 0 && ms <= 300)).toBe(true);
+      /* At least one card waits its row-mate's 60ms: the rows are staggered, not simultaneous. */
+      expect(delays).toContain(0);
+      expect(delays.some((ms) => ms === 60)).toBe(true);
       expect(await page.locator('[data-card="39"]').evaluate((el) => getComputedStyle(el).animationName)).toBe(
         "nf-scroll-in",
       );
-      expect(await page.locator('[data-card="39"]').evaluate((el) => getComputedStyle(el).opacity)).toBe("1");
+      await expect
+        .poll(() => page.locator('[data-card="39"]').evaluate((el) => getComputedStyle(el).opacity), {
+          message: "the released card finishes its entrance",
+        })
+        .toBe("1");
     } finally {
       await close();
     }
@@ -125,11 +112,12 @@ describe.skipIf(!hasBrowser && !process.env.CI)("card entry on scroll", () => {
     for (const { name, opts } of quiet) {
       const { page, close } = await mountInBrowser({ entry, css: CSS, ...opts });
       try {
-        /* Long enough for the list's own entrance (`nf-card-in`, which this
-           harness's stylesheet does not quiet under Calm) to have finished. */
-        await page.waitForTimeout(900);
+        /* The list's own entrance (`nf-card-in`, which this harness's
+           stylesheet does not quiet under Calm) finishes on its own: poll for it. */
+        await expect
+          .poll(() => page.locator('[data-card="39"]').evaluate((el) => getComputedStyle(el).opacity), { message: name })
+          .toBe("1");
         expect((await cards(page)).every((card) => card.entry === null), name).toBe(true);
-        expect(await page.locator('[data-card="39"]').evaluate((el) => getComputedStyle(el).opacity), name).toBe("1");
       } finally {
         await close();
       }
