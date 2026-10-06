@@ -967,7 +967,7 @@
   .nf-admin-chip--on,
   .nf-admin-chip--all.nf-admin-chip--on {
     color: var(--nf-content-primary);
-    border-color: var(--nf-card-border);
+    border-color: var(--nf-tier-card-edge);
     background: var(--nf-surface-elevated);
     box-shadow: var(--nf-card-shadow);
     font-weight: 600;

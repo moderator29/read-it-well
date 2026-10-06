@@ -2252,7 +2252,7 @@
   .nf-movein__list {
     display: grid;
     overflow: hidden;
-    border: var(--nf-border-width) solid var(--nf-card-border);
+    border: var(--nf-border-width) solid var(--nf-tier-card-edge);
     border-radius: var(--nf-radius-card);
     background: var(--nf-surface-primary);
     box-shadow: var(--nf-card-shadow);

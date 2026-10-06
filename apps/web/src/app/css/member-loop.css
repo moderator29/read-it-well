@@ -242,7 +242,7 @@
     overscroll-behavior-x: contain;
     scroll-snap-type: x mandatory;
     scroll-padding-inline-start: var(--nf-compare-label);
-    border: 1px solid var(--nf-card-border);
+    border: 1px solid var(--nf-tier-card-edge);
     border-radius: var(--nf-radius-lg);
     background: var(--nf-surface-primary);
     box-shadow: var(--nf-card-shadow);
