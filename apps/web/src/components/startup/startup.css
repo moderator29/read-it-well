@@ -23,6 +23,7 @@
  *   breath      900 to 1150   1.0 1.02 1.0 (250ms, drift)
  *   hold        from 1150     only if the page has not arrived: the settled
  *                             lockup keeps breathing, slowly, until it has,
+ *                             twice at most (out and back, ending at rest),
  *                             and never past the script's 4,000ms ceiling
  *   door        on open       the leaves part (350ms, leave), the wordmark
  *                             goes with them, the lockup eases out of
@@ -93,9 +94,12 @@
     transform-origin: 50% 30%;
     animation:
       nf-startup-breath 250ms var(--nf-ease-spring) 900ms,
-      nf-startup-hold 2400ms var(--nf-ease-standard) 1150ms infinite alternate;
-    /* The hold repeats only until the door, which the script's ceiling opens
-       by four seconds at the latest, so it is not a loop that runs forever. */
+      nf-startup-hold 2400ms var(--nf-ease-standard) 1150ms 2 alternate;
+    /* The hold is bounded: two alternating passes (out, then back) end at rest
+       at scale 1, 4,800ms after it starts. The script's ceiling opens the door
+       by four seconds at the latest, which is inside that, so the bound is
+       never the thing that ends a normal start; it is there so nothing can
+       loop if the door is somehow held shut (MOTION_SYSTEM principle 10). */
   }
 
   .nf-startup__mark {
@@ -203,7 +207,7 @@
   :root[data-startup="open"] .nf-startup__lockup {
     animation:
       nf-startup-breath 250ms var(--nf-ease-spring) 900ms,
-      nf-startup-hold 2400ms var(--nf-ease-standard) 1150ms infinite alternate,
+      nf-startup-hold 2400ms var(--nf-ease-standard) 1150ms 2 alternate,
       nf-startup-settle 350ms var(--nf-ease-exit) both;
   }
   :root[data-startup="open"] .nf-startup__word {
