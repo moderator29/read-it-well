@@ -95,7 +95,7 @@ export const BACKED_CLAIMS: readonly BackedClaim[] = [
   { phrase: /\bwhether a purchase is safe\b/i, mechanism: "advice (title decides), not a claim" },
   { phrase: /\bwhat a stay is protected by instead\b/i, mechanism: "a heading over the cancellation policy text on /safety" },
 
-  { phrase: /\bwhether the lister is verified\b|\bcalling everyone verified\b|^,\s*verified$/i, mechanism: `${AGENT_KYC}; a business's ", verified" is businesses.verified, which only staff can set (the DB-01 guard)` },
+  { phrase: /\bwhether the lister is verified\b|\bcalling everyone verified\b|^,\s*verified$|^tier \{tier\} of 4, verified$/i, mechanism: `${AGENT_KYC}; a business's ", verified" is businesses.verified, which only staff can set (the DB-01 guard)` },
   { phrase: /\bchecked (?:badge|lister)\b|^verified:\s*$|^checked$|^a person checked\.?$|\bchecked against the uploaded document\b/i, mechanism: AGENT_KYC },
   { phrase: /\bprepare that (?:photo|picture) safely\b/i, mechanism: "the client-side re-encode before upload (strips metadata); a process, not a claim" },
   { phrase: /\btalking to an agent safely\b/i, mechanism: "advice heading in the docs, not a claim" },
