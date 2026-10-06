@@ -1,6 +1,6 @@
 "use client";
 
-import { useHostCopy } from "@/components/host/host-copy";
+import { useHostCopy, useHostPageCopy } from "@/components/host/host-copy";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { countOf, formatMoney, type Locale } from "@vallo/i18n/core";
@@ -53,6 +53,7 @@ export function RoomNightsEditor({
 
 function RoomCard({ room, locale }: { room: MyRoomType; locale: Locale }) {
   const hw = useHostCopy();
+  const w = useHostPageCopy().roomNights;
   const router = useRouter();
   const today = isoDate(new Date());
   const [from, setFrom] = useState(today);
@@ -81,8 +82,8 @@ function RoomCard({ room, locale }: { room: MyRoomType; locale: Locale }) {
         tone: "ok",
         text:
           unitsNumber === 0
-            ? `Closed for ${countOf(result.data.nights, "nights", locale)}.`
-            : `${unitsNumber} on sale for ${countOf(result.data.nights, "nights", locale)}.`,
+            ? w.closedDone.replace("{nights}", countOf(result.data.nights, "nights", locale))
+            : w.onSaleDone.replace("{units}", String(unitsNumber)).replace("{nights}", countOf(result.data.nights, "nights", locale)),
       });
       router.refresh();
     });
@@ -98,9 +99,9 @@ function RoomCard({ room, locale }: { room: MyRoomType; locale: Locale }) {
         <span className="min-w-0">
           <h2 className="nf-host-group__title">{room.name}</h2>
           <span className={`block ${TYPE.rowMeta}`}>
-            {countOf(room.unitsTotal, "rooms", locale)} · sleeps {room.sleeps}
+            {countOf(room.unitsTotal, "rooms", locale)} · {w.sleeps.replace("{n}", String(room.sleeps))}
             {room.lowestRateMinor !== null
-              ? ` · from ${formatMoney(room.lowestRateMinor, locale)} a night`
+              ? ` · ${w.fromANight.replace("{rate}", formatMoney(room.lowestRateMinor, locale))}`
               : ""}
           </span>
         </span>
@@ -108,7 +109,7 @@ function RoomCard({ room, locale }: { room: MyRoomType; locale: Locale }) {
           tone={toneForStatus(room.status)}
           className="justify-self-start sm:justify-self-end"
         >
-          {room.status === "PUBLISHED" ? "On the shelf" : "Not on the shelf yet"}
+          {room.status === "PUBLISHED" ? w.onShelf : w.notOnShelf}
         </StatusPill>
       </div>
 
@@ -117,10 +118,13 @@ function RoomCard({ room, locale }: { room: MyRoomType; locale: Locale }) {
           dated search can return, and it is said in those words. */}
       <p className="nf-host-group__note mt-row">
         {room.lowestRateMinor === null
-          ? "This room has no rate, so it cannot go on the shelf and nothing below will put it there. Add a rate to it in your application."
+          ? w.noRate
           : room.nightsOnSale === 0
-            ? "No nights are on sale, so a guest searching with dates will not find this room. Open a run of nights below."
-            : `Bookable on ${countOf(room.nightsOnSale, "nights", locale)} from today${room.lastNightOnSale ? `, out to ${room.lastNightOnSale}` : ""}.`}
+            ? w.noNights
+            : (room.lastNightOnSale ? w.bookableTo.replace("{last}", room.lastNightOnSale) : w.bookable).replace(
+                "{nights}",
+                countOf(room.nightsOnSale, "nights", locale),
+              )}
       </p>
 
       <div className="mt-md grid grid-cols-2 gap-sm">
@@ -143,7 +147,7 @@ function RoomCard({ room, locale }: { room: MyRoomType; locale: Locale }) {
           type="number"
           min={0}
           max={room.unitsTotal}
-          hint={`None closes those nights. At most ${room.unitsTotal}, which is how many of these you told us there are.`}
+          hint={w.unitsHint.replace("{total}", String(room.unitsTotal))}
           value={units}
           onChange={(event) => setUnits(event.target.value)}
         />
@@ -158,7 +162,7 @@ function RoomCard({ room, locale }: { room: MyRoomType; locale: Locale }) {
         loading={pending}
         onClick={apply}
       >
-        {unitsNumber === 0 ? "Close these nights" : "Put these nights on sale"}
+        {unitsNumber === 0 ? w.closeThese : w.putOnSale}
       </Button>
 
       {notice && (
