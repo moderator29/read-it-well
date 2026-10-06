@@ -6,11 +6,11 @@ component with the fixture named in its row. **P** pass, **X** failed and fixed 
 sweep, **F** failed and still open, **·** does not apply. The denominator is 213 real routes
 (every `page.tsx` under `apps/web/src/app`, excluding `(dev)` and `api`).
 
-**Routes audited: 207 of the 213** measured at the start of the sweep, plus 4 routes added since (`/join/[code]/start`, `/s/[token]/status`, `/settings/accessibility`, `/settings/region`): 212 records in all.
+**Routes audited: 212 of the 213** measured at the start of the sweep, plus 4 routes added since (`/join/[code]/start`, `/s/[token]/status`, `/settings/accessibility`, `/settings/region`): 217 records in all.
 
 Recorded but not counted, because a point could not be measured (no fixture holds the found state): `/agreements/[id]`.
 
-Not yet audited: `/agreements/[id]`, `/home`, `/listing/[id]`, `/listing/[id]/trust`, `/search`, `/tenancy/[id]`.
+Not yet audited: `/agreements/[id]`.
 
 | Family | Audited |
 |---|---|
@@ -41,11 +41,13 @@ Not yet audited: `/agreements/[id]`, `/home`, `/listing/[id]`, `/listing/[id]/tr
 | forgot-password | 2 |
 | guides | 2 |
 | help | 1 |
+| home | 1 |
 | host | 17 |
 | inspections | 1 |
 | join | 2 |
 | landlord | 1 |
 | legal | 3 |
+| listing | 2 |
 | messages | 4 |
 | move-in-cost | 1 |
 | notifications | 2 |
@@ -66,6 +68,7 @@ Not yet audited: `/agreements/[id]`, `/home`, `/listing/[id]`, `/listing/[id]/tr
 | safe | 1 |
 | safety | 1 |
 | saved | 2 |
+| search | 1 |
 | settings | 25 |
 | sign-in | 4 |
 | sign-up | 4 |
@@ -75,7 +78,7 @@ Not yet audited: `/agreements/[id]`, `/home`, `/listing/[id]`, `/listing/[id]/tr
 | stories | 2 |
 | styleguide | 1 |
 | support | 4 |
-| tenancy | 1 |
+| tenancy | 2 |
 | terms | 1 |
 | u | 5 |
 | verification | 1 |
@@ -181,6 +184,7 @@ Not yet audited: `/agreements/[id]`, `/home`, `/listing/[id]`, `/listing/[id]/tr
 | `/guides` | C6 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | P | P | P | P |
 | `/guides/[slug]` | C6 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | P | P | P | P |
 | `/help` | C6 | P | · | P | P | P | P | · | · | P | X | P | P | P | · | P | X | X | P | P | P | P | P | P | P |
+| `/home` | C3 | P | · | P | P | P | P | P | · | P | P | P | P | P | · | · | X | · | P | X | P | X | X | P | P |
 | `/host` | C5 | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | P | · | P | P | P | X | X | P | P |
 | `/host/apply` | C5 | P | · | P | P | X | P | · | · | P | P | P | P | P | · | · | P | · | P | P | P | P | X | P | P |
 | `/host/arrival` | C5 | P | · | P | X | P | P | P | P | · | P | P | P | P | P | P | P | · | P | P | P | P | X | P | P |
@@ -205,6 +209,8 @@ Not yet audited: `/agreements/[id]`, `/home`, `/listing/[id]`, `/listing/[id]/tr
 | `/legal/disclaimer` | C3 | P | · | P | P | P | P | · | · | · | P | P | P | P | · | P | P | F | · | P | P | P | P | P | P |
 | `/legal/privacy` | C3 | P | · | P | P | P | P | · | · | · | P | P | P | P | · | P | P | F | · | P | P | P | P | P | P |
 | `/legal/terms` | C3 | P | · | P | P | P | P | · | · | · | P | P | P | P | · | P | P | F | · | P | P | P | P | P | P |
+| `/listing/[id]` | C3 | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | F | F | P | P | X | P | P | P | P |
+| `/listing/[id]/trust` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | X | P | P | P |
 | `/messages` | C3 | P | · | P | P | P | P | P | · | P | P | P | P | P | · | P | X | · | P | P | P | X | P | P | P |
 | `/messages/[id]` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | X | · | P | P | P | X | P | P | P |
 | `/messages/new` | C3 | P | · | P | P | P | P | · | · | · | P | P | P | P | · | · | P | · | P | P | P | P | X | P | P |
@@ -242,6 +248,7 @@ Not yet audited: `/agreements/[id]`, `/home`, `/listing/[id]`, `/listing/[id]/tr
 | `/safety` | C6 | P | · | P | P | X | P | · | · | P | P | P | P | P | P | P | P | X | · | P | P | P | P | P | P |
 | `/saved` | C3 | P | · | P | P | P | P | P | · | P | P | P | P | P | · | · | X | · | P | P | P | P | P | P | P |
 | `/saved/searches` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | X | · | P | X | P | X | P | P | P |
+| `/search` | C3 | P | · | P | P | P | P | P | · | P | P | P | P | P | · | · | X | · | P | P | P | X | X | P | P |
 | `/settings` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | · | P | P | P | P | P | X |
 | `/settings/accessibility` | C3 | P | · | P | P | P | X | · | · | P | P | P | X | P | · | · | P | · | · | P | X | P | P | P | P |
 | `/settings/account` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | P | P | P | P | P | P | X |
@@ -286,6 +293,7 @@ Not yet audited: `/agreements/[id]`, `/home`, `/listing/[id]`, `/listing/[id]/tr
 | `/support/messages` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | X | P | P |
 | `/support/messages/[id]` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | X | P | X | P | P |
 | `/support/new` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | X | P | P |
+| `/tenancy/[id]` | C3 | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P |
 | `/tenancy/[id]/complaint` | C3 | P | P | P | P | P | P | P | · | P | P | P | P | P | · | X | P | · | P | P | P | P | P | P | P |
 | `/terms` | C6 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | F | · | P | P | P | P | P | P |
 | `/u` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | X | P | · | P | P | P | P | X | P | P |
@@ -624,6 +632,13 @@ Not yet audited: `/agreements/[id]`, `/home`, `/listing/[id]`, `/listing/[id]/tr
 - 16 (fixed): 'Does Vallo hold my money?' answered NO_CUSTODY_SENTENCE and then said it again in a sentence written in help-articles.ts, naming a wallet. It reads NO_CUSTODY_SENTENCE and PAYMENT_GATE_SENTENCE only; 0 banned words measured.
 - 17 (fixed): See point 16: the answer's extra custody sentence is gone; its money sentences are copy.ts's.
 
+**`/home`** (the real page signed in as _fixtures/people PERSON (first name, avatar), the unread count the f4 notifications carry, no place said (the read's own empty place), no areas or trending, f1 LISTINGS as the recommended rows, no stated interests, nothing saved)
+
+- 16 (fixed): Welcome to Vallo, the signed-out sign-in line, and the city row's words and labels were English literals in HomeScreen and CityRow; they come from experienceDiscover.home. CityRow reads them itself (an async server component), so its four callers pass nothing new.
+- 19 (fixed): The city row's invitation ("Set yours to see what is happening around you") was cut by the row's one-line ellipsis at 390; it wraps now (home.css).
+- 21 (fixed): Both sign-in links (the greeting's and the city row's, signed out) were bare; they carry their way back through withNext.
+- 22 (fixed): In Igbo a door's label ("Depụta ụlọ") was cut to an ellipsis at 390; door labels wrap now (home.css). 0 clipped in four locales.
+
 **`/host`** (the real page in the real HostShell; the f5 host-landing deck verbatim (Grand Vista Hotel live, The Harbour Kitchen needing more with its reviewer's note, Ikoyi Guest House in progress, its room rows built relative to now by the deck's own row(), table board unread, three unread messages); the f5 host-empty state (no business); signed out (json host-f5-* and host-signed-out))
 
 - 21 (fixed): 'Contact us' under a stopped business measured 32px wide for 82px of words (auditFit: label spills out of its control). Root cause, found with a style probe: the theme's `--spacing-block` makes Tailwind's `inline-block` ALSO emit `inline-size: var(--nf-gap-block)`, so every inline-block element is 32px wide. The link is `block w-fit` now. The collision is repo wide (17 files; AccessScreen.tsx records the same thing) and is reported to the lead.
@@ -713,6 +728,16 @@ Not yet audited: `/agreements/[id]`, `/home`, `/listing/[id]`, `/listing/[id]/tr
 **`/legal/terms`** (none needed; the page reads lib/legal content only)
 
 - 17 (open): Section 14 "The Vallo Guarantee" and the Guarantee contribution sentences in sections 4 and 9 still describe a retired product (D51: guarantee_bps = 0). 13 Guarantee mentions.
+
+**`/listing/[id]`** (the real page with listingById answering f3 RENTAL (the Lekki duplex); its credentials, record, door, reviews and viewing reads are the empty answers (none is fixtured))
+
+- 16 (open): About thirty English literals remain in the page (the market badges, the assembled about paragraphs, the facts' labels, Message agent, the section titles) and in ListingUtilities (Light, Water, The gate and their answers); a follow-up unit takes them.
+- 17 (open): The about paragraphs say money sentences written in the page (pay only after you have inspected, the rent is agreed directly with the agent); a follow-up unit moves them to lib/money/copy.ts by patch.
+- 20 (fixed): axe: definition-list and dlitem. The gate row in ListingUtilities put the object and a wrapper between <dl>'s <div> and its <dt>/<dd>; it uses the Row anatomy now (the object floats in the term). 0 violations.
+
+**`/listing/[id]/trust`** (the real page with listingById answering f3 RENTAL; credentials, record and door reads empty (none is fixtured))
+
+- 21 (fixed): The header's subtitle link (the listing's title) drew 20px tall; PageHeader's three subtitle links take nf-tap, 0 under 44.
 
 **`/messages`** (the real page signed in with f5 INBOX as the conversation summaries (no archive, no report: the views read mocked to its empty answer), and signed out)
 
@@ -820,6 +845,12 @@ Not yet audited: `/agreements/[id]`, `/home`, `/listing/[id]`, `/listing/[id]/tr
 - 16 (fixed): The page title, retry, and the whole board (saved on, named from its filters, the alert notes, rename, the switch label, remove and keep) were English literals; they come from experienceDiscover.saved (searchesLink, searchesRetry, board). SavedSearchBoard takes a copy prop; sweep-orphans passes it.
 - 19 (fixed): A search's name was cut with an ellipsis at 390 ("Two bedrooms in Yaba under 2m a..."): the words that tell two searches apart. It wraps now; 0 clipped.
 - 21 (fixed): Each search's name link drew 25.6px tall; it takes nf-tap, 0 under 44. The signed-out Sign in was hand-encoded; it uses withNext.
+
+**`/search`** (the real page on the unfiltered shelf, f3 SHELF, nothing saved, no anchors; and the map view of the same (the map itself is client-only and does not prerender, so its tiles and credits are not in the measurement))
+
+- 16 (fixed): The page's heading (results for, explore a kind, explore properties) and the map's line (imagery offline, the credits' joiner, approximate pins) were English; they come from experienceDiscover.search and .map.
+- 21 (fixed): The map's credit links were overline-sized text with no target; they take nf-tap, as PinMap's do (code; the map does not prerender here).
+- 22 (fixed): In Igbo and Yoruba the card's Message the agent spilled out of its full-width button (193px of words in 155px); card buttons wrap now (catalogue.css). 0 clipped in four locales.
 
 **`/settings`** (the real page in the real settings layout (SettingsAreaNav), signed in as the preview fixture PERSON (_fixtures/people) through lib/testing/fake-supabase; every other read answers as a new member's account does (empty); device count unreadable (null), so the row asks rather than shows 0)
 
