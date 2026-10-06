@@ -13,8 +13,11 @@ import { toNotificationItem, type NotificationItem } from "@/lib/notify/links";
 import { LiveNotifications } from "./LiveNotifications";
 import { loadUnreadCounts } from "@/lib/messages/unread";
 import { sectionClock } from "@/lib/notify/sections";
+import { withNext } from "@/lib/auth/next-link";
 
-export const metadata: Metadata = { title: "Notifications" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: getDictionary(await getLocale()).experienceInbox.notifications.title };
+}
 
 /**
  * Notifications.
@@ -122,7 +125,7 @@ export default async function NotificationsPage() {
           body={copy.signedOut.body}
           action={
             <EmptyActions
-              primary={{ label: copy.signedOut.action, href: "/sign-in" }}
+              primary={{ label: copy.signedOut.action, href: withNext("/sign-in", "/notifications") }}
               /* "Keep exploring" pointed at /search, which is the product
                  changing the subject when it cannot answer the question, and it
                  is the same non sequitur "Explore places" was on the wallet.

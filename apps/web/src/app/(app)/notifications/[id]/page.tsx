@@ -10,6 +10,7 @@ import { Unreachable } from "@/components/app/Unreachable";
 import { loadNotificationView } from "./load";
 import { NotificationFullView } from "./NotificationFullView";
 import { MarkReadOnOpen } from "./MarkReadOnOpen";
+import { withNext } from "@/lib/auth/next-link";
 
 /**
  * One notification, in full: `/notifications/[id]`.
@@ -24,7 +25,12 @@ import { MarkReadOnOpen } from "./MarkReadOnOpen";
  */
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = { title: "Notification", robots: { index: false, follow: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: getDictionary(await getLocale()).experienceInbox.notificationView.pageTitle,
+    robots: { index: false, follow: false },
+  };
+}
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -49,7 +55,7 @@ export default async function NotificationPage({ params }: { params: Promise<{ i
         icon="bell-badge"
         title={v.signedOut.title}
         body={v.signedOut.body}
-        action={<EmptyActions primary={{ label: v.signedOut.action, href: "/sign-in" }} />}
+        action={<EmptyActions primary={{ label: v.signedOut.action, href: withNext("/sign-in", `/notifications/${id}`) }} />}
       />,
     );
   }
