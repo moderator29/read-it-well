@@ -805,6 +805,66 @@ committed and pushed as it is done, cleanly, without sessions conflicting.
 | Session 4's "needs from the founder first" on the live reserve subaccount | D38 |
 | Session 3's decision not to add framer-motion in this pass | D39 |
 | D39 section 4's single owner for the lockfile | D46 |
+| Reading a cancelled check as anything other than "did not run" | D47 |
+
+---
+
+## D47. The database probes silently did not run on the one PR that needed them most
+
+A third gate that measures nothing, found on 6 October, in the same class as the
+fifteen null weight budgets and the preview-harness accessibility scan Session 4
+caught. This one is worse, because it hid on a pull request full of migrations.
+
+**The evidence, from the three session pull requests' check runs.**
+
+| PR | Database probes | Started to completed |
+|---|---|---|
+| 83, Session 4 | one `cancelled`, one **`success`** | 19 s, then 92 s |
+| 85, Session 3 | **`success`** | 95 s |
+| **84, Session 2** | **`cancelled`, and nothing else** | **9 s** |
+
+A real run takes 92 to 95 seconds. Session 2's lasted nine, concluded `cancelled`,
+and had no successful companion. **So the pull request carrying this round's
+migrations and money changes was merged-ready with no RLS policy, grant or trigger
+checked at all**, and the check did not read red while that was true.
+
+**The cause.** `ci.yml`'s `db-probes` job declares `concurrency: group: db-probes`
+with `cancel-in-progress: false`. The group is global: it is not keyed on the ref,
+so every open pull request contends for one slot. `cancel-in-progress: false`
+protects the run that is already going, which is what its comment intends ("never
+cancelled halfway: every probe rolls back, but a killed client leaves its locks to
+time out"). It does nothing for a run still queued behind it, and a queued run that
+is superseded is cancelled. With four pull requests open at once, the middle ones
+lose.
+
+**Why this is the serious kind of mistake.** The author of that job already saw this
+exact danger from one direction and handled it well: when `PROBES_DATABASE_URL` is
+unset the job **fails on purpose**, with the comment "a job that passes without
+running is the blind light this job exists to remove, and must never be able to
+satisfy a required check." The cancellation path defeats that same intent by another
+route, because `cancelled` is not red either. The lesson generalises past this job:
+**a check has three outcomes, not two, and the third one means it did not run.**
+
+**Session 4 owns the fix**, since it owns CI. Required:
+
+1. **A cancelled probe run must not read as acceptable.** Whatever else changes,
+   the state where nobody checked the database must be as loud as a failure.
+2. **Key the concurrency group so independent branches do not evict each other**,
+   for example `db-probes-${{ github.ref }}`. Weigh it first and say which way you
+   went: the probes run against the **production** database because there is no
+   staging one, so per-ref grouping trades a silent gap for several branches
+   touching that database at once. Probes roll back and Postgres handles lock
+   contention, so this is likely right, but it is a judgement about production and
+   it belongs in your response file with the reasoning, not in a one-line diff.
+3. **Re-run the probes on PR 84's head** so Session 2's migrations are actually
+   checked before anything merges. Nothing in this directive is satisfied by a green
+   tick on a later commit; this round's migrations are what needed checking.
+
+**And the general rule, binding on every session from here.** When you report a
+check as passing, say which outcome you saw. `cancelled`, `skipped` and `neutral`
+are not passes, and a job that finishes far faster than its normal run did not do
+its normal work. Session 4 found two blind gates by reading the files rather than
+the logs; this one was found by reading a duration. Both beat trusting a summary.
 
 ---
 
