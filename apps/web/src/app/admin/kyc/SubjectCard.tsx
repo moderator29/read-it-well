@@ -129,7 +129,7 @@ export function SubjectCard({
       <ConsentReceipt subject={subject} ui={ui} />
 
       {/* V-87: dated credentials, recorded by the desk, never required. */}
-      {decidable && subject.userId && <CredentialForm subjectId={subject.userId} />}
+      {decidable && subject.userId && <CredentialForm subjectId={subject.userId} desk={DESK} />}
 
       {subject.business && (
         <dl className="mt-sm">

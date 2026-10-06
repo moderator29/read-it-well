@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { LiveRefresh } from "../_components/LiveRefresh";
+import { ReadOnlyNote } from "../_components/panels";
 import { formatDate, formatMoney, getDictionary, plural, type Dictionary, type Locale } from "@vallo/i18n";
 import { fill } from "../_components/copy";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -116,6 +117,7 @@ export function SupplyDesk({
         lede={c.lede}
         aside={examplesToggle}
       />
+      <ReadOnlyNote locale={locale} />
 
       <div className="nf-md-kpis" role="list" aria-label={c.byRole}>
         {SUPPLY_ROLE_KEYS.map((role) => {

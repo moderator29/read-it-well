@@ -88,6 +88,7 @@ export function LookupResult({
 }) {
   const t = getDictionary(locale);
   const c = t.admin.payments.lookup;
+  const removeCopy = { remove: t.admin.payments.remove, notNow: t.admin.common.notNow };
   if (!lookup || lookup.state !== "ok") {
     return (
       <div className="mt-sm">
@@ -169,7 +170,7 @@ export function LookupResult({
                     {card.removedAt ? (
                       <ui.StatusChip label={fill(c.removedOn, { when: ui.when(card.removedAt) })} tone="neutral" />
                     ) : (
-                      <RemoveSavedMethod kind="card" id={card.id} describe={describe} locale={locale} />
+                      <RemoveSavedMethod kind="card" id={card.id} describe={describe} copy={removeCopy} />
                     )}
                   </li>
                 );
@@ -209,7 +210,7 @@ export function LookupResult({
                         tone="neutral"
                       />
                     ) : (
-                      <RemoveSavedMethod kind="account" id={account.id} describe={describe} locale={locale} />
+                      <RemoveSavedMethod kind="account" id={account.id} describe={describe} copy={removeCopy} />
                     )}
                   </li>
                 );

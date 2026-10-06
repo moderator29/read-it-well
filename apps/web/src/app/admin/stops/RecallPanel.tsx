@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { getDictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import { previewRecall, sendRecall } from "@/lib/admin/recall-actions";
 import { recallReason, reportRef, willTell, type RecallPreview } from "@/lib/admin/recall";
 import { Button } from "@/components/ui/Button";
@@ -16,7 +16,9 @@ import { Button } from "@/components/ui/Button";
  * third press. A stop already recalled shows when and to how many, and a
  * lifted stop cannot be recalled at all. The desk reads English.
  */
-const desk = getDictionary("en").trustVisible.desk;
+/* The desk's own words arrive as a prop from the server page (./page.tsx),
+   so this client file never imports the dictionary. */
+type Desk = Dictionary["trustVisible"]["desk"];
 
 function day(iso: string): string {
   return new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "Africa/Lagos" }).format(
@@ -24,7 +26,7 @@ function day(iso: string): string {
   );
 }
 
-export function RecallPanel({ suspensionId }: { suspensionId: string }) {
+export function RecallPanel({ suspensionId, desk }: { suspensionId: string; desk: Desk }) {
   const [preview, setPreview] = useState<RecallPreview | null>(null);
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const [pending, startTransition] = useTransition();

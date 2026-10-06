@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { getDictionary, type Locale } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import { Button } from "@/components/ui/Button";
 import { fill } from "../_components/copy";
 import {
@@ -23,17 +23,16 @@ export function RemoveSavedMethod({
   kind,
   id,
   describe,
-  locale = "en",
+  copy,
 }: {
   kind: "card" | "account";
   id: string;
   /** "Visa ending 4821" or "GTBank ending 0912". The masked words only. */
   describe: string;
-  /** The console's locale; English when omitted. */
-  locale?: Locale;
+  /** The remove sheet's words and the shared "Not now", from the server page, so this client file never imports the dictionary. */
+  copy: { remove: Dictionary["admin"]["payments"]["remove"]; notNow: string };
 }) {
-  const t = getDictionary(locale);
-  const c = t.admin.payments.remove;
+  const c = copy.remove;
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
@@ -109,7 +108,7 @@ export function RemoveSavedMethod({
             setError(null);
           }}
         >
-          {t.admin.common.notNow}
+          {copy.notNow}
         </Button>
       </div>
       {error && (
