@@ -1,0 +1,245 @@
+@layer theme, base, components, utilities;
+
+/*
+ * STANDING STREAKS: the tile and the earned moment (north star 15.1, D17).
+ * Imported by StreakTile.tsx and EarnedMoment.tsx.
+ *
+ * THE TILE is a Card at the figure radius (22), one edge (the tier shadow).
+ * The figure is the subject: display face, figure size, tabular. The marks
+ * are 8px rounded squares, filled for kept, hollow for missed (the same ink,
+ * so a break never turns red), dashed for a window still open. Paused is the
+ * word in a quiet pill and the count stays.
+ *
+ * THE EARNED MOMENT (motion 22, MOTION_SYSTEM "Badge or streak earned"):
+ *   0 to 620ms   rays fade and open behind the medal, turning 12 degrees once;
+ *                the medal scales in from 0.6 on `drift`
+ *   620 to 800   the payoff pop, 1.0 to 1.04 to 1.0 (the haptic lands here)
+ *   700 to 940   the words and the actions rise 8px and fade in on `land`
+ * The rays are a conic gradient of the brand tint, masked to a soft disc, so
+ * the sunburst is quiet and has no hard edge. Nothing loops. Quiet readers
+ * get the settled frame with a 160ms fade.
+ */
+@layer components {
+  .nf-streak {
+    display: grid;
+    gap: var(--nf-space-2xs);
+    padding: var(--nf-space-lg);
+    border-radius: var(--nf-tier-card-radius-figure);
+    background: var(--nf-surface-primary);
+    box-shadow: var(--nf-tier-card-shadow);
+    color: var(--nf-content-primary);
+  }
+  .nf-streak__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--nf-space-xs);
+  }
+  .nf-streak__name {
+    margin: 0;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 500;
+    color: var(--nf-content-secondary);
+  }
+  .nf-streak__paused {
+    padding: 0 var(--nf-space-xs);
+    border-radius: var(--nf-radius-pill);
+    box-shadow: inset 0 0 0 1px var(--nf-border-default);
+    font-size: var(--nf-text-label);
+    font-weight: 600;
+    line-height: 1.5rem;
+    color: var(--nf-content-secondary);
+  }
+  .nf-streak__figure {
+    margin: var(--nf-space-xs) 0 0;
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-figure);
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: var(--nf-tracking-figure);
+  }
+  .nf-streak[data-paused] .nf-streak__figure {
+    color: var(--nf-content-secondary);
+  }
+  .nf-streak__unit {
+    margin: 0;
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+  }
+  .nf-streak__marks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    margin: var(--nf-space-sm) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .nf-streak__mark {
+    inline-size: 0.625rem;
+    block-size: 0.625rem;
+    border-radius: 0.1875rem;
+  }
+  .nf-streak__mark[data-mark="kept"] {
+    background: var(--nf-brand-primary);
+  }
+  .nf-streak__mark[data-mark="missed"] {
+    box-shadow: inset 0 0 0 1.5px var(--nf-brand-primary);
+  }
+  .nf-streak__mark[data-mark="open"] {
+    outline: 1px dashed var(--nf-border-default);
+    outline-offset: -1px;
+  }
+  .nf-streak__foot {
+    margin: var(--nf-space-xs) 0 0;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+
+  /* ---------------------------------------------------- the earned moment */
+
+  .nf-earned {
+    display: grid;
+    justify-items: center;
+    gap: var(--nf-space-lg);
+    padding-block: var(--nf-space-xl);
+    text-align: center;
+  }
+  .nf-earned__stage {
+    position: relative;
+    display: grid;
+    place-items: center;
+    inline-size: clamp(12rem, 60vw, 16rem);
+    aspect-ratio: 1;
+    padding: 0;
+    border: 0;
+    background: none;
+    border-radius: var(--nf-radius-circle);
+    cursor: pointer;
+  }
+  .nf-earned__stage:focus-visible {
+    outline: 2px solid var(--nf-brand-primary);
+    outline-offset: 4px;
+  }
+  .nf-earned__play {
+    display: grid;
+    place-items: center;
+    inline-size: 100%;
+    block-size: 100%;
+  }
+  .nf-earned__rays,
+  .nf-earned__medal {
+    grid-area: 1 / 1;
+  }
+  .nf-earned__rays {
+    inline-size: 100%;
+    block-size: 100%;
+    border-radius: var(--nf-radius-circle);
+    background: repeating-conic-gradient(
+      from 0deg,
+      var(--nf-brand-tint-2) 0deg 7deg,
+      transparent 7deg 18deg
+    );
+    -webkit-mask-image: radial-gradient(circle, var(--nf-content-on-brand) 0%, transparent 70%);
+    mask-image: radial-gradient(circle, var(--nf-content-on-brand) 0%, transparent 70%);
+    animation: nf-earned-rays var(--nf-duration-deliberate) var(--nf-ease-spring) both;
+  }
+  .nf-earned__medal {
+    inline-size: 58%;
+    aspect-ratio: 1;
+    animation:
+      nf-earned-medal var(--nf-duration-deliberate) var(--nf-ease-spring) both,
+      nf-earned-pop 180ms var(--nf-ease-spring) var(--nf-duration-deliberate) both;
+  }
+  .nf-earned__words,
+  .nf-earned__actions {
+    animation: nf-earned-rise var(--nf-duration-base) var(--nf-ease-entrance) 700ms both;
+  }
+  .nf-earned__words {
+    display: grid;
+    gap: var(--nf-space-xs);
+    max-inline-size: 30ch;
+  }
+  .nf-earned__title {
+    margin: 0;
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h1);
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: var(--nf-tracking-display-sm);
+    text-wrap: balance;
+  }
+  .nf-earned__meaning {
+    margin: 0;
+    font-size: var(--nf-text-body);
+    line-height: 1.55;
+    color: var(--nf-content-secondary);
+  }
+  .nf-earned__actions {
+    display: grid;
+    gap: var(--nf-space-xs);
+    inline-size: min(100%, 22rem);
+  }
+
+  @keyframes nf-earned-rays {
+    from {
+      opacity: 0;
+      transform: scale(0.8) rotate(0deg);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) rotate(12deg);
+    }
+  }
+  @keyframes nf-earned-medal {
+    from {
+      opacity: 0;
+      transform: scale(0.6);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes nf-earned-pop {
+    0%,
+    100% {
+      scale: 1;
+    }
+    50% {
+      scale: 1.04;
+    }
+  }
+  @keyframes nf-earned-rise {
+    from {
+      opacity: 0;
+      transform: translateY(0.5rem);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes nf-earned-fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-earned__rays,
+    .nf-earned__medal,
+    .nf-earned__words,
+    .nf-earned__actions {
+      animation: nf-earned-fade 160ms var(--nf-ease-standard) both;
+    }
+  }
+  .nf-earned[data-quiet] .nf-earned__rays,
+  .nf-earned[data-quiet] .nf-earned__medal,
+  .nf-earned[data-quiet] .nf-earned__words,
+  .nf-earned[data-quiet] .nf-earned__actions {
+    animation: nf-earned-fade 160ms var(--nf-ease-standard) both;
+  }
+}
