@@ -281,17 +281,20 @@ export function InnerNav({
     toggleRef.current?.focus();
   };
 
-  /* THE MENU IS AN OVERLAY LIKE EVERY OTHER. Registering it with the shared
-     hook lets the Android back button and the browser's back close the menu
-     instead of leaving the page (`lib/native/back-button.ts` asks the body
-     lock this holds whether an overlay is up), as `DockMore` does. It keeps
-     its own focus: opening it does not move the cursor into the list. */
+  /* THE MENU IS A NON-MODAL OVERLAY. It joins the shared overlay registry so
+     Escape and the Android back button close it instead of leaving the page
+     (`lib/native/back-button.ts` asks the registry). It is not modal: the page
+     stays scrollable behind it (no body lock, so no scrollbar shift and a
+     smooth scroll to a section is not cut short), Tab walks on out of it, and
+     it moves its own focus. It creates no history entry, so the BROWSER's
+     back button is not part of this (`use-sheet-history.ts` would add one,
+     deliberately not used for a menu). */
   const closeFromBack = useCallback(() => {
     setOpen(false);
     settle(0);
     toggleRef.current?.focus();
   }, [setOpen, settle, toggleRef]);
-  useOverlay({ open, onClose: closeFromBack, panelRef: rootRef, autoFocus: false });
+  useOverlay({ open, onClose: closeFromBack, panelRef: rootRef, autoFocus: false, modal: false });
 
   /* A press outside closes it. */
   useEffect(() => {
@@ -310,6 +313,9 @@ export function InnerNav({
     item.onSelect?.();
     setOpen(false);
     settle(0);
+    /* Focus goes home without scrolling the page, which would cut short the
+       smooth scroll a section jump has just started. */
+    toggleRef.current?.focus({ preventScroll: true });
   };
 
   return (

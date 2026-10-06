@@ -27,6 +27,19 @@
      bar in the three-panel renders. The numbers in the comments are the
      measured CSS values; the ledger (section 6) has the table. */
 
+  /*
+   * The console reserves the scrollbar's lane. A classic (non-overlay)
+   * scrollbar appears and disappears with the page's height, and a sheet's
+   * scroll lock removes it, so the whole desk shifted sideways by the
+   * scrollbar's width every time one opened. `stable` holds the lane open.
+   * Scoped to the console on purpose: it has no effect with overlay scrollbars
+   * (phones), and the public pages' full-bleed heroes are not asked to give up
+   * a strip.
+   */
+  :root:has(.nf-admin) {
+    scrollbar-gutter: stable;
+  }
+
   .nf-admin {
     /* THE GLOW IDENTITY (docs/design/GLOW_IDENTITY.md, section 9), built
        from existing tokens because this sheet takes no raw colour: the lit

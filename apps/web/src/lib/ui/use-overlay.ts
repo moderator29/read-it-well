@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, type RefObject } from "react";
+import { isTopOverlay, joinOverlay, leaveOverlay } from "@/lib/ui/overlay-registry";
 
 /**
  * The four things every overlay owes the person using it.
@@ -20,6 +21,17 @@ import { useEffect, type RefObject } from "react";
  *     leaves a screen reader reading content that is visually covered.
  *  4. **Focus comes back.** On close, focus returns to whatever opened the
  *     overlay, so the keyboard does not get dumped at the top of the document.
+ *
+ * NOT EVERY OVERLAY IS MODAL. A navigation menu that opens over the page and
+ * does not hide it (`InnerNav`) must not lock the body, must not trap Tab and
+ * must not pull focus away from where the person is. It passes `modal: false`
+ * and keeps the two things that are still owed: Escape closes it, and it joins
+ * the overlay registry, so the Android back button closes it too (a non-locking
+ * overlay leaves no scroll lock for Back to find, which is why Back asks the
+ * registry and not the lock). It makes no history entry, so the BROWSER's back
+ * button is not part of this; that needs `use-sheet-history.ts`, deliberately
+ * not used for a menu. A modal overlay (the default) behaves exactly as it
+ * always has.
  *
  * The scroll lock counts openers rather than setting and clearing a flag,
  * because two overlays can legitimately be open at once (a sheet over a
@@ -64,50 +76,48 @@ function focusableWithin(root: HTMLElement): HTMLElement[] {
   });
 }
 
-/**
- * The overlays open right now, oldest first. Only the top one answers Escape
- * and traps Tab: with a report sheet open over a comments sheet, one Escape
- * used to close both (each had its own capture listener), and Tab was trapped
- * by whichever listener ran first. A token per open, so a StrictMode double
- * effect removes exactly what it added.
- */
-const overlayStack: symbol[] = [];
-
 export function useOverlay({
   open,
   onClose,
   panelRef,
   /** Move focus into the panel on open. Off for a menu that owns its own. */
   autoFocus = true,
+  /**
+   * The default, and what every sheet, drawer and dialog is: the page behind
+   * is locked, Tab is trapped and focus returns to the opener on close. Pass
+   * `false` for a non-modal menu: no scroll lock, no Tab trap and no focus
+   * handling (the menu moves its own), only Escape and Back.
+   */
+  modal = true,
 }: {
   open: boolean;
   onClose: () => void;
   panelRef: RefObject<HTMLElement | null>;
   autoFocus?: boolean;
+  modal?: boolean;
 }): void {
   useEffect(() => {
     if (!open) return;
 
     const opener = document.activeElement as HTMLElement | null;
-    const releaseScroll = lockBody();
+    const releaseScroll = modal ? lockBody() : () => {};
 
     const panel = panelRef.current;
-    if (autoFocus && panel) {
+    if (modal && autoFocus && panel) {
       const first = focusableWithin(panel)[0];
       (first ?? panel).focus?.();
     }
 
-    const token = Symbol("overlay");
-    overlayStack.push(token);
+    const token = joinOverlay();
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (overlayStack[overlayStack.length - 1] !== token) return;
+      if (!isTopOverlay(token)) return;
       if (event.key === "Escape") {
         event.stopPropagation();
         onClose();
         return;
       }
-      if (event.key !== "Tab") return;
+      if (!modal || event.key !== "Tab") return;
 
       const root = panelRef.current;
       if (!root) return;
@@ -134,10 +144,11 @@ export function useOverlay({
 
     document.addEventListener("keydown", onKeyDown, true);
     return () => {
-      const at = overlayStack.indexOf(token);
-      if (at !== -1) overlayStack.splice(at, 1);
+      leaveOverlay(token);
       document.removeEventListener("keydown", onKeyDown, true);
       releaseScroll();
+      /* A non-modal menu moved its own focus and took none from the page. */
+      if (!modal) return;
       // Only take focus back if it is still somewhere in the overlay we are
       // tearing down; a close that deliberately moved focus elsewhere wins.
       const panelNow = panelRef.current;
@@ -146,5 +157,5 @@ export function useOverlay({
         opener?.focus?.();
       }
     };
-  }, [open, onClose, panelRef, autoFocus]);
+  }, [open, onClose, panelRef, autoFocus, modal]);
 }
