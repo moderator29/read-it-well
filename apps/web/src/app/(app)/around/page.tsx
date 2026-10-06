@@ -205,7 +205,12 @@ export default async function AroundPage({
       {/* No rings without keys: an empty row would claim nobody has a story,
           and nothing was read. */}
       {unconfigured ? null : (
-        <StoryRing stories={stories} you={you} yourStoryLabel={t.social.yourStory} />
+        <StoryRing
+          stories={stories}
+          you={you}
+          yourStoryLabel={t.social.yourStory}
+          seenWord={t.experienceSocial.feed.storySeen}
+        />
       )}
 
       <FeedTabs active={tab} t={t} />

@@ -11,6 +11,8 @@ import { FollowButton } from "@/components/social/profile/FollowButton";
 import { ReportSheet } from "@/components/social/ReportSheet";
 import { CommentsSheet } from "@/components/social/comments/CommentsSheet";
 import { StoryRail } from "./StoryRail";
+import { markStorySeen } from "./seen";
+import { feedback } from "@/lib/ui/feedback";
 import { StorySequence } from "./StorySequence";
 import type { Face, StoryCard, StoryComment, StoryView } from "@/lib/social/stories-queries";
 import type { CommentRow } from "@/components/social/comments/CommentsSheet";
@@ -111,6 +113,14 @@ export function StoryViewer({
     return () => window.clearTimeout(timer);
   }, [story.id]);
 
+  /* The ring on the feed goes quiet for this story. Kept on this device only
+     (`./seen`), and marked when the story is opened rather than finished: the
+     ring says "you have been here", which a half-watched story has. A run
+     replaces the entry as it steps, so this fires for each story in turn. */
+  useEffect(() => {
+    markStorySeen(story.id);
+  }, [story.id]);
+
   const who = story.author.label;
   /* B16: this story and the recent run, as the sequence reads them. */
   const current = useMemo(
@@ -127,6 +137,8 @@ export function StoryViewer({
   const mark = (kind: "LIKE" | "SAVE") => {
     if (requireSignIn()) return;
     const on = kind === "LIKE" ? !liked : !saved;
+    /* A light tap in the hand when a mark lands; taking one back is quiet. */
+    if (on) feedback("select");
     if (kind === "LIKE") {
       setLiked(on);
       setLikeCount((n) => n + (on ? 1 : -1));

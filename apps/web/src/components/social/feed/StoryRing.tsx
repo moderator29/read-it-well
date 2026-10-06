@@ -3,6 +3,7 @@ import Link from "next/link";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { StoryCard } from "@/lib/social/stories-queries";
 import { RemoteImage } from "@/components/ui/RemoteImage";
+import { StoryRingItem } from "../story/StoryRingItem";
 
 export type StoryRingYou = { label: string; avatarUrl: string };
 
@@ -19,26 +20,42 @@ export type StoryRingYou = { label: string; avatarUrl: string };
  * story is here: a picture of a real place with a headline. The person's name
  * sits under it exactly as the render draws it.
  *
- * A server component. It ships no JavaScript and the row scrolls sideways on
- * the browser's own momentum, which no script improves on.
+ * THE RING IS A STATUS, NOT A DECORATION (reference 7128). One segment per live
+ * story the person has, lit until this reader opens it, still for ever: the
+ * old light that turned round it without end is gone, because motion that
+ * answers nothing is cut. "Opened" is kept on this device only
+ * (`../story/seen.ts`), since the platform never records who saw a story.
+ *
+ * A server component. The row scrolls sideways on the browser's own momentum,
+ * which no script improves on; only each ring's wrapper is a client component,
+ * to read the device's seen list.
  */
 export function StoryRing({
   stories,
   you,
   yourStoryLabel,
+  seenWord = "seen",
 }: {
   stories: StoryCard[];
   /** The signed-in person, or null when there is nobody to draw. */
   you: StoryRingYou | null;
   yourStoryLabel: string;
+  /** Said after a name whose stories have all been opened. */
+  seenWord?: string;
 }) {
-  const seen = new Set<string>();
-  const people = stories.filter((story) => {
+  /* One ring per person, on their newest story (the list is newest first),
+     carrying every live story that person has, oldest first, so the ring can
+     draw a segment for each. A person with no handle is one ring per story,
+     because nothing says two anonymous stories share an author. */
+  const byPerson = new Map<string, StoryCard[]>();
+  for (const story of stories) {
     const key = story.authorHandle ?? story.id;
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
+    byPerson.set(key, [...(byPerson.get(key) ?? []), story]);
+  }
+  const people = [...byPerson.values()].map((own) => ({
+    newest: own[0]!,
+    ids: own.map((story) => story.id).reverse(),
+  }));
 
   const monogram = initial(you?.label);
 
@@ -62,33 +79,17 @@ export function StoryRing({
             <span className="nf-story-ring__name">{yourStoryLabel}</span>
           </Link>
         </li>
-        {people.map((story) => (
-          <li key={story.id}>
-            <Link href={`/stories/${story.id}`} className="nf-story-ring__item" title={story.authorLabel}>
-              <span className="nf-story-ring__disc">
-                {story.imageUrl ? (
-                  <RemoteImage
-                    src={story.imageUrl}
-                    alt=""
-                    width={128}
-                    height={128}
-                    sizes="64px"
-                    loading="lazy"
-                  />
-                ) : (
-                  <span className="nf-story-ring__monogram" aria-hidden="true">
-                    {initial(story.authorLabel)}
-                  </span>
-                )}
-              </span>
-              {/* The first name, as the render labels its rings; the whole
-                  name and the headline are read out. */}
-              <span className="nf-story-ring__name" aria-hidden="true">
-                {story.authorLabel.split(/\s+/)[0]}
-              </span>
-              <span className="sr-only">{story.authorLabel}</span>
-              <span className="sr-only">: {story.headline}</span>
-            </Link>
+        {people.map(({ newest, ids }) => (
+          <li key={newest.id}>
+            <StoryRingItem
+              href={`/stories/${newest.id}`}
+              title={newest.authorLabel}
+              name={newest.authorLabel.split(/\s+/)[0] ?? newest.authorLabel}
+              headline={newest.headline}
+              imageUrl={newest.imageUrl}
+              storyIds={ids}
+              seenWord={seenWord}
+            />
           </li>
         ))}
       </ul>
