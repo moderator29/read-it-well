@@ -35,11 +35,13 @@ import { EXAMPLE_MOVE_IN } from "./example-move-in";
  * an example: no Verified mark anywhere in this file.
  */
 
-/* The example renter's facts. Dated in the platform's own year, labelled
-   Example on the credential, never a person. */
+/* The example renter's facts: activity only (attended inspections, a tenancy,
+   a member-since date). NO IDENTITY SIGNAL is drawn for an invented person
+   (D24): no phone confirmed and no NIMC match, so the example never shows a
+   check a person did not earn. Labelled Example on the credential. */
 const EXAMPLE_PASSPORT: PassportFacts = {
-  phoneConfirmed: true,
-  nimcMatchedAt: "2026-08-14T09:00:00Z",
+  phoneConfirmed: false,
+  nimcMatchedAt: null,
   inspectionsAttended: 3,
   tenancies: 1,
   memberSince: "2026-03-02T09:00:00Z",
