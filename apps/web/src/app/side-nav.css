@@ -160,9 +160,28 @@
   }
   /* A mouse or trackpad on the same short screen: rows at 40. A touch
      laptop or a tablet in landscape keeps the 44 floor above. */
+  /*
+   * THE ROW DRAWS 40 AND IS A 44 TARGET (W12: "nav rows at 40px"). The pointer
+   * rail's density stays: the plate, the glyph, the bar and the list's rhythm
+   * are exactly what they were. The row's box is 44 tall, with a 3px
+   * transparent border above and below it and a -2px margin that gives the two
+   * back to the list, and `background-clip: padding-box` keeps the hover and
+   * press plate on the 38px inside the border, as it was. The 2px of the box
+   * that overlaps each neighbour is hit area only; the later row takes a tap
+   * in the overlap, which is a tap on a row either way. The 3px, not the 1px
+   * the row carries elsewhere, is what makes up the difference.
+   */
   @media (min-width: 64rem) and (max-height: 60rem) and (pointer: fine) {
     .nf-nav--rail .nf-nav__row {
-      min-height: 2.5rem;
+      min-height: 2.75rem;
+      margin-block: -2px;
+      border-block-width: 3px;
+      background-clip: padding-box;
+    }
+    /* Its list item holds the negative margins, so neighbouring rows' margins
+       cannot collapse into each other and eat the pitch. */
+    .nf-nav--rail li:has(> .nf-nav__row) {
+      display: flow-root;
     }
   }
 
