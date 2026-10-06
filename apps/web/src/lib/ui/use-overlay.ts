@@ -25,7 +25,8 @@ import { isTopOverlay, joinOverlay, leaveOverlay } from "@/lib/ui/overlay-regist
  * NOT EVERY OVERLAY IS MODAL. A navigation menu that opens over the page and
  * does not hide it (`InnerNav`) must not lock the body, must not trap Tab and
  * must not pull focus away from where the person is. It passes `modal: false`
- * and keeps the two things that are still owed: Escape closes it, and it joins
+ * and keeps the two things that are still owed: Escape closes it (when focus
+ * is inside it, or the Escape is Android Back's synthetic one), and it joins
  * the overlay registry, so the Android back button closes it too (a non-locking
  * overlay leaves no scroll lock for Back to find, which is why Back asks the
  * registry and not the lock). It makes no history entry, so the BROWSER's back
@@ -113,6 +114,13 @@ export function useOverlay({
     const onKeyDown = (event: KeyboardEvent) => {
       if (!isTopOverlay(token)) return;
       if (event.key === "Escape") {
+        /* A non-modal menu is open beside the page, so a real Escape is the
+           menu's only while focus is inside it: from a field elsewhere it is
+           that field's (clearing a search, closing its own popup), and a menu
+           left open must not swallow it. Android's Back button dispatches a
+           synthetic Escape (`lib/native/back-button.ts`), which is not trusted
+           and is always meant for the top overlay. */
+        if (!modal && event.isTrusted && !panelRef.current?.contains(document.activeElement)) return;
         event.stopPropagation();
         onClose();
         return;

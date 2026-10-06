@@ -87,13 +87,16 @@ describe.skipIf(!hasBrowser && !process.env.CI)("useOverlay", () => {
     }
   });
 
-  it("non-modal still closes on Escape, and on the Escape the Android back button dispatches", async () => {
+  it("non-modal closes on Escape with focus inside it, and on the Escape the Android back button dispatches", async () => {
     for (const how of ["key", "dispatch"]) {
       const { page, close } = await mountInBrowser({ entry: entry(false) });
       try {
         await page.locator("#opener").click();
         expect(await page.locator("#panel").count()).toBe(1);
-        if (how === "key") await page.keyboard.press("Escape");
+        if (how === "key") {
+          await page.locator("#inside-a").focus();
+          await page.keyboard.press("Escape");
+        }
         else
           await page.evaluate(() =>
             document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true })),
@@ -106,12 +109,29 @@ describe.skipIf(!hasBrowser && !process.env.CI)("useOverlay", () => {
     }
   });
 
-  it("non-modal does not take focus back from wherever the person went", async () => {
+  it("non-modal leaves a real Escape to a field elsewhere, so an open menu does not swallow it", async () => {
     const { page, close } = await mountInBrowser({ entry: entry(false) });
     try {
       await page.locator("#opener").click();
       await page.locator("#after").focus();
       await page.keyboard.press("Escape");
+      await page.waitForTimeout(100);
+      expect(await page.locator("#panel").count()).toBe(1);
+      expect(await registry(page)).toBe(true);
+    } finally {
+      await close();
+    }
+  });
+
+  it("non-modal does not take focus back from wherever the person went", async () => {
+    const { page, close } = await mountInBrowser({ entry: entry(false) });
+    try {
+      await page.locator("#opener").click();
+      await page.locator("#after").focus();
+      /* Android Back's synthetic Escape closes it wherever focus is. */
+      await page.evaluate(() =>
+        document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true })),
+      );
       await page.waitForFunction(() => document.querySelector("#panel") === null);
       expect(await page.evaluate(() => document.activeElement?.id)).toBe("after");
     } finally {
