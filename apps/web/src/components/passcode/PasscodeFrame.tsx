@@ -50,9 +50,10 @@ const STARTUP_WAIT_MS = 5000;
  * already drawn, open and opaque over the whole screen (`passcode.css` keeps
  * `#main` from carrying it in the page's entrance, so `position: fixed` means
  * the screen), a locked page was never rendered behind it (the gate draws
- * the lock INSTEAD of the page) or is inert behind it (the guard), focus is
- * held inside it, and the startup overlay above it catches every pointer
- * until its door opens. `STARTUP_WAIT_MS` promotes it regardless, should the
+ * the lock INSTEAD of the page) or is inert behind it (the guard), the
+ * shell around it (rail, tab bar, header) is made inert until it is promoted,
+ * focus is held inside it, and the startup overlay above it catches every
+ * pointer until its door opens. `STARTUP_WAIT_MS` promotes it regardless, should the
  * startup never let go.
  */
 export function PasscodeFrame({
@@ -102,11 +103,37 @@ export function PasscodeFrame({
       const target = event.target as Node | null;
       if (target && !dialog.contains(target)) dialog.querySelector<HTMLElement>(".nf-passcode__title")?.focus();
     };
+    /*
+     * ...and the shell behind it is INERT while it waits (audit A5). Focus
+     * held by `hold` stops Tab, but not a screen reader: TalkBack's
+     * double-tap activates whatever its cursor is on, and the dock's links
+     * are on the page beneath a lock that is not modal yet. So every element
+     * beside the lock's line of ancestors (the rail, the tab bar, the header)
+     * is made inert, which takes it out of the accessibility tree and out of
+     * reach of every pointer and key, exactly as `showModal()` will. Never the
+     * startup's overlay, which must keep catching the tap that skips it, and
+     * never anything that was inert already (the guard's page): only what
+     * this lock set is given back, the moment it is promoted or leaves.
+     */
+    const shelved: HTMLElement[] = [];
+    const shelve = () => {
+      for (let node: Element | null = dialog; node && node !== document.body; node = node.parentElement) {
+        const parent: Element | null = node.parentElement;
+        if (!parent) break;
+        for (const sibling of Array.from(parent.children)) {
+          if (sibling === node || !(sibling instanceof HTMLElement) || sibling.inert) continue;
+          if (sibling.matches("script, style, link, template, .nf-startup")) continue;
+          sibling.inert = true;
+          shelved.push(sibling);
+        }
+      }
+    };
     const stopWaiting = () => {
       observer?.disconnect();
       observer = null;
       window.clearTimeout(wait);
       document.removeEventListener("focusin", hold, true);
+      for (const el of shelved.splice(0)) el.inert = false;
     };
     const promote = () => {
       stopWaiting();
@@ -125,6 +152,12 @@ export function PasscodeFrame({
     };
 
     if (root.dataset.splash === "on") {
+      shelve();
+      /* Where `showModal()` would put focus, the waiting lock puts it too:
+         on its title, so a screen reader starts inside the lock. */
+      if (!dialog.contains(document.activeElement)) {
+        dialog.querySelector<HTMLElement>(".nf-passcode__title")?.focus({ preventScroll: true });
+      }
       document.addEventListener("focusin", hold, true);
       observer = new MutationObserver(() => {
         if (root.dataset.splash !== "on") promote();

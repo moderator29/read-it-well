@@ -95,6 +95,9 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the passcode lock, in a browser
          so the startup's overlay stays above it. */
       expect(await page.evaluate(`document.querySelector('[data-testid="passcode-lock"]').open`)).toBe(true);
       expect(await page.evaluate(modal)).toBe(false);
+      /* The shell beside it is inert, so a screen reader's double-tap cannot
+         reach a dock link behind a lock that is not modal yet. */
+      expect(await page.evaluate(() => (document.getElementById("outside") as HTMLElement).inert)).toBe(true);
       /* Focus that strays to the shell behind is brought back. */
       await page.focus("#outside");
       expect(await page.evaluate(() => document.activeElement?.id === "outside")).toBe(false);
@@ -104,6 +107,8 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the passcode lock, in a browser
         document.documentElement.dataset.splash = "done";
       });
       await page.waitForFunction(modal);
+      /* ...and the shell is given back: what the lock shelved, it returns. */
+      expect(await page.evaluate(() => (document.getElementById("outside") as HTMLElement).inert)).toBe(false);
     } finally {
       await close();
     }
