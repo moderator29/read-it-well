@@ -13,6 +13,8 @@ import { markWelcomeSeen, skipInterests } from "@/lib/interests/actions";
 import { useMotionGate } from "@/components/motion/useMotionGate";
 import { releaseVelocity } from "@/components/site/landing/spring";
 import { QuestionBeat } from "./QuestionBeat";
+import type { InterestChoices } from "./InterestChoices";
+import type { ArrivalAsks } from "./ArrivalAsks";
 import { VectorMark, VectorWordmark } from "@/components/auth/VectorMark";
 import { TourPager } from "./TourPager";
 import {

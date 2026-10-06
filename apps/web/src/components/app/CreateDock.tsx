@@ -34,6 +34,7 @@ export function CreateDock({
   listHref,
   isHost = false,
   signedIn = false,
+  socialOn = true,
 }: {
   t: ShellDictionary;
   /** Where "List a property" goes: the agent wizard for an agent, the chooser otherwise. */
