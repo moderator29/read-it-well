@@ -1,7 +1,8 @@
 import type { CSSProperties, ReactNode } from "react";
 import { formatDate, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { StatusPill, toneForStatus, type StatusTone } from "@/components/ui/StatusPill";
+import { toneForStatus, type StatusTone } from "@/components/ui/StatusPill";
+import { ConsoleStatus } from "./chip-state";
 import { QUEUE_EMPTY_MARK, queueEmptyKind, type QueueEmptyKind } from "./queue-empty";
 import { fill, type AdminCommon } from "./copy";
 
@@ -259,9 +260,9 @@ export function adminUi(t: Dictionary, locale: Locale) {
     tone?: StatusTone;
   }) {
     return (
-      <StatusPill tone={tone ?? toneForStatus(status ?? "")} className="shrink-0">
+      <ConsoleStatus tone={tone ?? toneForStatus(status ?? "")} className="shrink-0">
         {label ?? statusLabel(status ?? "")}
-      </StatusPill>
+      </ConsoleStatus>
     );
   }
 
