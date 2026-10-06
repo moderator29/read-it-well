@@ -28,7 +28,7 @@
         Get Started's mark sits, not in the centre. So the system splash is the
         same navy with NO icon (a transparent drawable), and the handoff from
         the system to the page is the same colour on both sides of it.
-        `splash_ground` is the night canvas, `--nf-surface-artwork`, written
+        `splash_ground` is the night canvas, the `nf-surface-artwork` token, written
         as a literal because an Android resource cannot read a CSS token.
     -->
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
