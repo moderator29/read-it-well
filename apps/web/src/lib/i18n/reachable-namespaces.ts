@@ -5,7 +5,7 @@
  * over-approximates on purpose, see `slice-coverage.test.ts`.
  */
 import { existsSync, readFileSync } from "node:fs";
-import { dirname, join, normalize } from "node:path";
+import { dirname, join, normalize, relative } from "node:path";
 import { getDictionary } from "@vallo/i18n";
 
 const SRC = join(process.cwd(), "src");
@@ -42,28 +42,22 @@ function withoutComments(source: string): string {
   return source.replace(/^[ \t]*\{?\/\*[\s\S]*?\*\/\}?/gm, "").replace(/^[ \t]*\/\/.*$/gm, "");
 }
 
-export function reachableNamespaces(root: string): Set<string> {
-  const seen = new Set<string>();
-  const used = new Set<string>();
+/** Every local module a root's run-time import graph reaches, with comment-free source. */
+function reachableSources(root: string): Map<string, string> {
+  const seen = new Map<string, string>();
   const queue = [join(SRC, root)];
   while (queue.length > 0) {
     const file = queue.pop()!;
     if (seen.has(file)) continue;
-    seen.add(file);
     const raw = readFileSync(file, "utf8");
     /* A server action never runs in the browser and is never handed `t`,
        so nothing in one can make a client slice need a namespace. */
-    if (file !== join(SRC, root) && /^\s*["']use server["']/.test(raw)) continue;
-    const source = withoutComments(raw);
-    for (const m of source.matchAll(/\.([a-zA-Z][a-zA-Z0-9]*)\b|\[\s*["']([a-zA-Z][a-zA-Z0-9]*)["']\s*\]/g)) {
-      const name = m[1] ?? m[2]!;
-      if (!NAMESPACES.has(name)) continue;
-      const before = source.slice(Math.max(0, m.index! - 24), m.index!);
-      if (m[1] && NOT_A_DICTIONARY.test(before)) continue;
-      /* `Dictionary["landing"]` is a type, erased before anything runs. */
-      if (m[2] && /\bDictionary\s*$/.test(before)) continue;
-      used.add(name);
+    if (file !== join(SRC, root) && /^\s*["']use server["']/.test(raw)) {
+      seen.set(file, "");
+      continue;
     }
+    const source = withoutComments(raw);
+    seen.set(file, source);
     /* Type-only imports are skipped: they are erased, so nothing behind them
        can read a dictionary at run time. */
     for (const m of source.matchAll(
@@ -74,6 +68,44 @@ export function reachableNamespaces(root: string): Set<string> {
       if (next && !next.includes("/node_modules/")) queue.push(next);
     }
   }
+  return seen;
+}
+
+export function reachableNamespaces(root: string): Set<string> {
+  const used = new Set<string>();
+  for (const source of reachableSources(root).values()) {
+    for (const m of source.matchAll(/\.([a-zA-Z][a-zA-Z0-9]*)\b|\[\s*["']([a-zA-Z][a-zA-Z0-9]*)["']\s*\]/g)) {
+      const name = m[1] ?? m[2]!;
+      if (!NAMESPACES.has(name)) continue;
+      const before = source.slice(Math.max(0, m.index! - 24), m.index!);
+      if (m[1] && NOT_A_DICTIONARY.test(before)) continue;
+      /* `Dictionary["landing"]` is a type, erased before anything runs. */
+      if (m[2] && /\bDictionary\s*$/.test(before)) continue;
+      used.add(name);
+    }
+  }
   return used;
 }
 
+/**
+ * The second-level keys one namespace is read through (`t.shape.cash`), and
+ * whether anything reads the namespace as a whole (`copy = t.shape`, passed
+ * on, indexed by a variable). A slice may narrow a namespace to its keys only
+ * when nothing reads it whole; `whole` lists where something does, so the test
+ * can say so. Over-approximates like the walk above: a `.shape.x` that is not
+ * a dictionary read only adds a key.
+ */
+export function reachableSubKeys(root: string, namespace: string): { keys: Set<string>; whole: string[] } {
+  const keys = new Set<string>();
+  const whole: string[] = [];
+  const read = new RegExp(`\\.${namespace}(\\??\\.([a-zA-Z0-9_]+)|\\[[^\\]]*\\]|(?![A-Za-z0-9_]))`, "g");
+  for (const [file, source] of reachableSources(root)) {
+    for (const m of source.matchAll(read)) {
+      const before = source.slice(Math.max(0, m.index! - 24), m.index!);
+      if (NOT_A_DICTIONARY.test(before)) continue;
+      if (m[2]) keys.add(m[2]);
+      else whole.push(`${relative(SRC, file)}: ${source.slice(Math.max(0, m.index! - 30), m.index! + namespace.length + 20).replace(/\s+/g, " ")}`);
+    }
+  }
+  return { keys, whole };
+}

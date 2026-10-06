@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { SLICES } from "./slice";
-import { reachableNamespaces } from "./reachable-namespaces";
+import { NARROW, SLICES } from "./slice";
+import { reachableNamespaces, reachableSubKeys } from "./reachable-namespaces";
 
 /*
  * THE SLICES MUST COVER EVERYTHING THEIR COMPONENT CAN REACH.
@@ -30,5 +30,24 @@ describe("every dictionary slice carries what its component can reach", () => {
       const missing = [...reachableNamespaces(root)].filter((ns) => !carried.has(ns)).sort();
       expect(missing, `${name} slice is missing namespaces its import graph reads`).toEqual([]);
     });
+  }
+});
+
+/*
+ * THE NARROWED NAMESPACES MUST COVER EVERY KEY THEIR GRAPH READS, AND NOTHING
+ * MAY READ THEM WHOLE. `unit-shape.ts` is the one false positive: it reads
+ * `unit.shape`, the unit's own field, which is not a dictionary at all.
+ */
+describe("narrowed namespaces carry every key their component can reach", () => {
+  for (const [name, narrow] of Object.entries(NARROW)) {
+    for (const [namespace, carried] of Object.entries(narrow)) {
+      it(`${name}.${namespace}`, () => {
+        const { keys, whole } = reachableSubKeys(ROOTS[name as keyof typeof ROOTS], namespace);
+        const missing = [...keys].filter((key) => !(carried as readonly string[]).includes(key)).sort();
+        expect(missing, `${name} narrows ${namespace} but its graph reads these keys`).toEqual([]);
+        const wholeReads = whole.filter((line) => !line.startsWith("lib/listings/unit-shape.ts"));
+        expect(wholeReads, `${name} reads ${namespace} as a whole, so it cannot be narrowed`).toEqual([]);
+      });
+    }
   }
 });
