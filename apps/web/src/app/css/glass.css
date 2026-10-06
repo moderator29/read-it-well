@@ -1105,4 +1105,49 @@
     -webkit-backdrop-filter: blur(var(--nf-panel-blur));
     backdrop-filter: blur(var(--nf-panel-blur));
   }
+  /* A Card that carries a figure takes the wider corner (north star section
+     4: "radius 18, or 22 when it carries a figure"). Only the corner moves. */
+  .nf-panel--figure {
+    border-radius: var(--nf-tier-card-radius-figure);
+  }
+}
+
+/*
+ * THE FOUR CONTAINER TIERS, AND WHERE EACH ONE ALREADY LIVES (Session 3,
+ * 6 October 2026; north star section 4, directive D28.2).
+ *
+ * The tiers are names for shapes the product already drew, so three of the
+ * four are the existing classes, re-pointed at the tier tokens in tokens.css
+ * ("SESSION 3 FOUNDATIONS"), and only the Island gains a class, because it
+ * was the one tier with no generic name: the dock, the rail, the hero band
+ * and `.nf-navy-glass` each restated it.
+ *
+ *   Plate   rows. The tokens `--nf-tier-plate-*`; the side navigation's rows
+ *           read them (side-nav.css). Never a shadow.
+ *   Card    `.nf-panel` and `.nf-card` above, through `Panel`. One edge: the
+ *           hairline at night, the blue-tinted shadow on Paper.
+ *   Island  `.nf-island` below. One per screen at most.
+ *   Sheet   `.nf-sheet` (overlays.css), through `Sheet`.
+ *
+ * ONE EDGE TREATMENT EACH: a hairline, a ring or a shadow, never two. That
+ * is why the Paper card lost its hairline when it gained its shadow.
+ */
+@layer components {
+  /*
+   * THE ISLAND. At night navy glass: a 72 per cent navy fill over a 16px
+   * blur, its one edge the light on the border box. On Paper: white,
+   * elevated, a faint blue glow inside the top edge, and never a border (the
+   * edge token is transparent there, so the border box costs no pixels and
+   * nothing moves between themes). Data saver drops the blur and the fill
+   * goes solid (tokens.css).
+   */
+  .nf-island {
+    position: relative;
+    border-radius: var(--nf-tier-island-radius);
+    border: var(--nf-border-width) solid var(--nf-tier-island-edge);
+    background: var(--nf-tier-island-fill);
+    -webkit-backdrop-filter: blur(var(--nf-tier-island-blur));
+    backdrop-filter: blur(var(--nf-tier-island-blur));
+    box-shadow: var(--nf-tier-island-shadow);
+  }
 }

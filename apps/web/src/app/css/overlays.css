@@ -168,9 +168,16 @@
     position: fixed;
     inset: 0;
     z-index: var(--nf-z-modal);
-    background: var(--nf-overlay-backdrop);
-    -webkit-backdrop-filter: blur(6px) saturate(120%);
-    backdrop-filter: blur(6px) saturate(120%);
+    /* The Sheet tier's scrim and blur (Session 3; tokens.css "SESSION 3
+       FOUNDATIONS"): 56 per cent at night, a lighter dim on Paper, and a
+       12px blur. The blur RAMPS from 0 to 12 because the layer that carries
+       it fades in: opacity scales the whole filtered result, so the page
+       behind softens as the sheet rises without animating the filter itself,
+       which would repaint the backdrop every frame on a budget phone. Data
+       saver sets the blur token to 0. */
+    background: var(--nf-tier-sheet-scrim);
+    -webkit-backdrop-filter: blur(var(--nf-tier-sheet-blur));
+    backdrop-filter: blur(var(--nf-tier-sheet-blur));
     opacity: 0;
     /*
      * THE EXIT CURVE, AND THIS IS THE FIRST RULE IN THE PRODUCT TO USE ONE.
@@ -213,17 +220,21 @@
      * border and the rung-3 rim; those are gone. The container corner rounds
      * the two top corners only.
      */
-    border-radius: var(--nf-container-radius) var(--nf-container-radius) 0 0;
+    /*
+     * THE SHEET TIER (Session 3, north star section 4): radius 32 on the
+     * leading corners only, and exactly one edge. At night that edge is the
+     * hairline, because a shadow cast upwards onto a near-black page reads as
+     * nothing; on Paper it is the upward blue-tinted `overlay` shadow and the
+     * hairline token is transparent. It wore the panel's per-side lit edge,
+     * its rim, its glow AND the rung-3 shadow, four edges on one object.
+     */
+    border-radius: var(--nf-tier-sheet-radius) var(--nf-tier-sheet-radius) 0 0;
     background: var(--nf-panel-fill);
     -webkit-backdrop-filter: blur(var(--nf-panel-blur));
     backdrop-filter: blur(var(--nf-panel-blur));
-    border: var(--nf-border-width) solid var(--nf-panel-edge);
-    border-color: var(--nf-panel-edges);
+    border: var(--nf-border-width) solid var(--nf-tier-sheet-edge);
     border-bottom: 0;
-    box-shadow:
-      var(--nf-panel-rim),
-      var(--nf-panel-glow),
-      var(--nf-elev-3);
+    box-shadow: var(--nf-tier-sheet-shadow);
     /* Starts fully off-screen and is driven in. A fade would defeat the point.
        The closed rule carries the EXIT curve and the open rule below carries the
        spring, so the sheet springs up and accelerates away; see the note on the
@@ -308,8 +319,8 @@
     .nf-sheet--side {
       inset-inline-start: auto;
       width: min(28rem, 100%);
-      border-radius: var(--nf-container-radius) 0 0 var(--nf-container-radius);
-      border-inline-start: var(--nf-border-width) solid var(--nf-panel-edge);
+      border-radius: var(--nf-tier-sheet-radius) 0 0 var(--nf-tier-sheet-radius);
+      border-inline-start: var(--nf-border-width) solid var(--nf-tier-sheet-edge);
     }
   }
 
@@ -346,6 +357,76 @@
     .nf-sheet-backdrop,
     .nf-sheet-backdrop[data-open="true"] {
       transition: none;
+    }
+  }
+}
+
+/*
+ * THE TOAST, AS A DARK PILL (Session 3, 6 October 2026; north star motion 8,
+ * MOTION_SYSTEM.md "Toast"; reference 7068).
+ *
+ * The host and its geometry are in details.css; this is the material and
+ * the motion, written one class deeper (`.nf-toast-host .nf-toast`) so it
+ * wins over that partial, which loads after this one. A dark pill in both
+ * themes with a leading tick when the news is good, rising 16px on `land`
+ * 240ms, leaving on `leave` 160ms (`ToastHost` holds it for exactly that
+ * long). Never red unless it is an error: the rose is on the error's mark
+ * only, never on the pill.
+ */
+@layer components {
+  .nf-toast-host .nf-toast {
+    border-radius: var(--nf-radius-pill);
+    border: var(--nf-border-width) solid var(--nf-toast-edge);
+    background: var(--nf-toast-bg);
+    color: var(--nf-toast-ink);
+    box-shadow: var(--nf-elevation-floating);
+    animation: nf-toast-pill-rise var(--nf-duration-base) var(--nf-ease-entrance) both;
+    transition:
+      transform var(--nf-duration-fast) var(--nf-ease-exit),
+      opacity var(--nf-duration-fast) var(--nf-ease-exit);
+  }
+  .nf-toast-host .nf-toast[data-dragging] {
+    transition: none;
+  }
+  .nf-toast-host .nf-toast[data-leaving] {
+    opacity: 0;
+    transform: translate3d(0, 0.5rem, 0);
+  }
+  @keyframes nf-toast-pill-rise {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 1rem, 0);
+    }
+  }
+  .nf-toast-host .nf-toast[data-tone="success"] .nf-toast__mark {
+    background: none;
+    color: var(--nf-toast-mark-success);
+  }
+  .nf-toast-host .nf-toast[data-tone="error"] .nf-toast__mark {
+    background: none;
+    color: var(--nf-toast-mark-error);
+  }
+  /* The action on a dark pill: the pill's own ink, underlined, so it never
+     reads as a second brand button inside a message. */
+  .nf-toast-host .nf-toast__action {
+    color: var(--nf-toast-ink);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .nf-toast-host .nf-toast__action:active {
+    background: var(--nf-toast-edge);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-toast-host .nf-toast {
+      animation: nf-toast-pill-fade var(--nf-duration-fast) linear both;
+    }
+    .nf-toast-host .nf-toast[data-leaving] {
+      transform: none;
+    }
+    @keyframes nf-toast-pill-fade {
+      from {
+        opacity: 0;
+      }
     }
   }
 }
