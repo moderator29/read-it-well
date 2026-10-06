@@ -90,7 +90,7 @@
     pointer-events: none;
     font-family: var(--nf-font-sans);
     font-size: var(--nf-text-row);
-    font-weight: 500;
+    font-weight: 600;
     line-height: 1.2;
     color: var(--nf-content-secondary);
   }
@@ -201,7 +201,7 @@
     color: var(--nf-content-primary);
     font-family: var(--nf-font-sans);
     font-size: var(--nf-text-row);
-    font-weight: 500;
+    font-weight: 600;
     line-height: var(--nf-leading-row);
   }
   .nf-unfold__trigger:disabled {
@@ -357,7 +357,7 @@
     color: var(--nf-content-secondary);
     font-family: var(--nf-font-sans);
     font-size: var(--nf-text-row);
-    font-weight: 500;
+    font-weight: 400;
     font-variant-numeric: tabular-nums;
     transition: color var(--nf-duration-fast) var(--nf-ease-standard);
   }
@@ -584,7 +584,7 @@
   }
   .nf-live__step[data-state="current"] {
     color: var(--nf-content-primary);
-    font-weight: 500;
+    font-weight: 600;
   }
   .nf-live__mark {
     flex-shrink: 0;
@@ -744,7 +744,7 @@
     color: var(--nf-content-secondary);
     font-family: var(--nf-font-sans);
     font-size: var(--nf-text-row);
-    font-weight: 500;
+    font-weight: 600;
     text-align: start;
     text-decoration: none;
     cursor: pointer;
@@ -964,7 +964,7 @@
     display: block;
     font-family: var(--nf-font-sans);
     font-size: var(--nf-text-row);
-    font-weight: 500;
+    font-weight: 600;
     line-height: var(--nf-leading-row);
     overflow-wrap: anywhere;
   }
@@ -1084,7 +1084,7 @@
     padding-inline-end: var(--nf-space-sm);
     font-family: var(--nf-font-display);
     font-size: var(--nf-text-body-lg);
-    font-weight: 500;
+    font-weight: 600;
     line-height: 1.15;
     letter-spacing: var(--nf-tracking-tight);
     overflow-wrap: anywhere;

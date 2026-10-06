@@ -33,7 +33,7 @@
   /* The quiet action beside a section label ("See all 8", "Manage"). */
   .nf-list-section__action {
     font-size: var(--nf-text-body-sm);
-    font-weight: 500;
+    font-weight: 600;
     color: var(--nf-content-link);
   }
 
@@ -121,7 +121,7 @@
   .nf-list-row__title {
     font-size: var(--nf-text-row);
     line-height: var(--nf-leading-row);
-    font-weight: 500;
+    font-weight: 600;
     color: var(--nf-content-primary);
     overflow-wrap: anywhere;
   }
@@ -219,7 +219,7 @@
     cursor: pointer;
     color: var(--nf-content-primary);
     font-size: var(--nf-text-row);
-    font-weight: 500;
+    font-weight: 600;
   }
   .nf-disclosure > summary::-webkit-details-marker {
     display: none;

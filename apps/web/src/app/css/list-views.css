@@ -480,7 +480,7 @@
     padding-inline: 0.5rem;
     border-radius: var(--nf-radius-control-sm, 10px);
     font-size: var(--nf-text-caption);
-    font-weight: 500;
+    font-weight: 600;
     color: var(--nf-content-muted);
   }
   .nf-saved-remove:disabled {
@@ -555,7 +555,7 @@
  */
 @layer components {
   .nf-compare .nf-compare__label {
-    font-weight: 500;
+    font-weight: 600;
   }
   .nf-compare__glyph {
     display: inline-grid;
@@ -569,7 +569,7 @@
     color: var(--nf-content-link);
   }
   .nf-compare .nf-compare__cell[data-kind="money"] {
-    font-weight: 500;
+    font-weight: 400;
   }
   .nf-compare .nf-compare__cell[data-kind="money"][data-lowest] {
     font-weight: 600;
