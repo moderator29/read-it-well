@@ -41,6 +41,8 @@ import { IN_FLIGHT_MESSAGE, withIdempotency } from "../security/idempotency";
 import { recordCheckoutHandle, reuseLiveAttempt } from "../payments/attempts";
 import { recordMoneyAudit } from "../money/audit";
 import { announceConfirmedStay } from "../bookings/arrival";
+import { railForBooking, railGate } from "../payments/router";
+import { escrowRailLive } from "../payments/providers";
 import { SHARE_NOT_PAYABLE } from "./share-words";
 
 const SERVICE_DOWN = "Payment is temporarily unavailable. Nothing has been charged. Try again in a moment.";
@@ -108,8 +110,6 @@ export async function startShareCheckout(input: {
       shouldRecord: (result) => result.ok,
     },
     async () => {
-      const reserve = currentReserveSubaccount();
-      if (!reserve) return fail(SHARE_NOT_PAYABLE.reserve_not_set_up as string);
       const { data, error } = await admin.rpc("payment_split_for_rent_share" as never, {
         p_rent_payment: parsed.data.tenancyId,
         p_payer: session.user.id,
@@ -129,6 +129,20 @@ export async function startShareCheckout(input: {
       ) {
         return fail(SERVICE_DOWN);
       }
+      /*
+       * THE RAIL, exactly as the main checkout resolves it (split-attempt.ts
+       * quoteSplit): the policy decides whether this booking may be paid by a
+       * Paystack split at all. An escrow answer, no rail, or an unreachable
+       * router refuses before any row exists, and the answer is written on
+       * the attempt (rail, rail_policy_id), fixed by trigger thereafter.
+       */
+      const gate = railGate(await railForBooking(admin, split.booking_id), "direct", await escrowRailLive());
+      if (!gate.open) return fail(gate.message);
+      if (gate.rail !== "direct") return fail(SERVICE_DOWN);
+      const railPolicyId = gate.policyId;
+      /* D51: the reserve account is demanded only when the split has a reserve leg. */
+      const reserve = guarantee > 0 ? currentReserveSubaccount() : null;
+      if (guarantee > 0 && !reserve) return fail(SHARE_NOT_PAYABLE.reserve_not_set_up as string);
       // One open attempt per payer and share: a payer who closed the window
       // gets the checkout they already have. Matched on this payer only, so
       // a flatmate never resumes another's checkout, however equal the shares.
@@ -172,6 +186,8 @@ export async function startShareCheckout(input: {
         commission_minor: commission,
         share_payer_id: session.user.id,
         paystack_mode: currentPaystackMode(),
+        rail: "direct",
+        rail_policy_id: railPolicyId,
         // Joins the attempt lifecycle: the in-flight rule and the sweep time it from here.
         checkout_opened_at: new Date().toISOString(),
       } as never);

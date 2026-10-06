@@ -30,7 +30,7 @@ type Step = "current" | "enter" | "confirm";
  *
  * The code is typed twice. A trivial code (a repeat, a run, the birth year) is
  * refused here before it is sent and again by the database, which is the
- * authority. Six digits by default; one tap switches to four.
+ * authority. Four digits by default (D18); one tap switches to six.
  */
 export function PasscodeSetup({
   copy,

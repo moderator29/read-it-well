@@ -43,6 +43,7 @@ import { getLocale } from "../locale";
 import { BROADCAST_MONEY_KEYS } from "./broadcast";
 import { readBroadcastMarks, writeBroadcastMarks } from "./broadcast-marks-queries";
 import { CLOSED_LISTING_MESSAGE, isClosedListingRefusal } from "../landlord/closed";
+import { RATE_AGREEMENT_NEEDED_MESSAGE, isRateAgreementRefusal } from "../pricing/rate-agreement";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import type { Database } from "../supabase/database.types";
 import { SCRUB_REFUSED_MESSAGE, scrubPublicPhoto } from "../images/scrub";
@@ -1397,6 +1398,9 @@ export async function submitListing(input: {
     .single();
 
   if (isClosedListingRefusal(error)) return fail(CLOSED_LISTING_MESSAGE);
+  /* D51: the database refuses SUBMITTED until the lister has accepted the fee
+     on this price under the rate in force (listings_zz_b3_rate_agreement_gate). */
+  if (isRateAgreementRefusal(error)) return fail(RATE_AGREEMENT_NEEDED_MESSAGE);
   if (error || !updated) {
     return fail("We could not send this listing for review just now. Please try again.");
   }

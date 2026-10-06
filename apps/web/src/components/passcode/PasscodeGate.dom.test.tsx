@@ -84,13 +84,13 @@ describe("PasscodeGate", () => {
     expect(html).toContain(t.passcode.usePassword);
   });
 
-  it("draws setup instead of the page for a member with no passcode, six digits by default", async () => {
+  it("draws setup instead of the page for a member with no passcode, four digits by default", async () => {
     const html = await draw({ kind: "setup", mode: "first" });
     expect(html).not.toContain("Secret page content");
     expect(html).toContain('data-testid="passcode-setup-enter"');
     expect(html).toContain(t.passcode.setupTitle);
-    expect(html.match(/nf-passcode__dot(?!s)/g)?.length).toBe(6);
-    expect(html).toContain(t.passcode.useFour);
+    expect(html.match(/nf-passcode__dot(?!s)/g)?.length).toBe(4);
+    expect(html).toContain(t.passcode.useSix);
   });
 
   it("draws the reset flavour after a fresh sign-in", async () => {

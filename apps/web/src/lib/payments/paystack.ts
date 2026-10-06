@@ -154,7 +154,8 @@ export type InitializedTransaction = {
 export type PaystackSplit = {
   listerSubaccount: string;
   listerShareMinor: number;
-  reserveSubaccount: string;
+  /** Null when the split has no reserve leg (guaranteeMinor 0, D51). */
+  reserveSubaccount: string | null;
   guaranteeMinor: number;
 };
 
@@ -163,6 +164,8 @@ function splitBody(split: PaystackSplit): Record<string, unknown> {
     { subaccount: split.listerSubaccount, share: split.listerShareMinor },
   ];
   if (split.guaranteeMinor > 0) {
+    /* A reserve leg with no reserve account is never sent: quoteSplit refuses it first. */
+    if (!split.reserveSubaccount) throw new PaystackError("A reserve leg needs the reserve subaccount.");
     subaccounts.push({ subaccount: split.reserveSubaccount, share: split.guaranteeMinor });
   }
   return {
