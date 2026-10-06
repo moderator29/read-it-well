@@ -301,7 +301,7 @@ export default async function VerificationPage({
         )}
         {pep}
         {vnin}
-        <KycFlow submit={submitVerification} success={getDictionary(locale).success} />
+        <KycFlow submit={submitVerification} success={getDictionary(locale).success} copy={t.experienceAccount.kyc} />
       </div>
     );
   }
@@ -347,7 +347,7 @@ export default async function VerificationPage({
           <div className="mb-block">{path}</div>
           {pep}
           {vnin}
-          <KycFlow submit={submitVerification} success={getDictionary(locale).success} />
+          <KycFlow submit={submitVerification} success={getDictionary(locale).success} copy={t.experienceAccount.kyc} />
         </>
       )}
     </div>

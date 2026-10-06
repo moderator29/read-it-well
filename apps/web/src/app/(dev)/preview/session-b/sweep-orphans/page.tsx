@@ -221,7 +221,7 @@ function View({ v, s }: { v: string; s?: string }) {
     case "kyc":
       return (
         <Frame title="Verification">
-          <KycFlowFixture />
+          <KycFlowFixture copy={t.experienceAccount.kyc} />
         </Frame>
       );
     case "kyc-status":

@@ -9,15 +9,15 @@ import { loadBrowserClient } from "@/lib/supabase/load-client";
 import {
   ACCEPTED_LABEL,
   ACCEPTED_MIME,
-  DOCUMENT_SPECS,
   DOCUMENT_SUBTYPES,
   MAX_FILE_LABEL,
-  addressDateProblem,
+  addressDateIssue,
   lagosToday,
-  rejectFile,
+  rejectFileIssue,
   type DocumentKind,
   type KycDocument,
 } from "./kyc";
+import type { KycCopy } from "./KycFlow";
 
 /**
  * The private bucket identity documents live in, under `<auth uid>/…`, which
@@ -83,14 +83,18 @@ export function DocumentUploader({
   file,
   onChange,
   batchId,
+  copy,
 }: {
+  /** The flow's words (`experienceAccount.kyc`), handed down by KycFlow. */
+  copy: KycCopy;
   kind: DocumentKind;
   file: KycDocument | null;
   onChange: (file: KycDocument | null) => void;
   /** One folder per visit to the flow, so retries do not scatter objects. */
   batchId: string;
 }) {
-  const spec = DOCUMENT_SPECS[kind];
+  const spec = copy.documents[kind];
+  const DATE_WORDS = { missing: copy.dateMissing, future: copy.dateFuture, old: copy.dateOld } as const;
   const inputId = useId();
   const titleId = `${inputId}-title`;
   const hintId = `${inputId}-hint`;
@@ -100,9 +104,13 @@ export function DocumentUploader({
 
   async function pick(chosen: File | undefined) {
     if (!chosen || uploading) return;
-    const refusal = rejectFile(chosen);
+    const refusal = rejectFileIssue(chosen);
     if (refusal) {
-      setError(refusal);
+      setError(
+        (refusal === "type" ? copy.fileType : copy.fileSize)
+          .replace("{formats}", ACCEPTED_LABEL)
+          .replace("{size}", MAX_FILE_LABEL),
+      );
       return;
     }
     setError(null);
@@ -110,14 +118,14 @@ export function DocumentUploader({
     try {
       const supabase = await loadBrowserClient();
       if (!supabase) {
-        setError(UPLOAD_FAILED);
+        setError(copy.uploadFailed);
         return;
       }
       const {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) {
-        setError(SIGN_IN_FIRST);
+        setError(copy.signInFirst);
         return;
       }
       /* A new object for every file chosen, never an overwrite: a filed
@@ -127,7 +135,7 @@ export function DocumentUploader({
         .from(DOCUMENT_BUCKET)
         .upload(path, chosen, { contentType: chosen.type, upsert: false });
       if (upload.error) {
-        setError(UPLOAD_FAILED);
+        setError(copy.uploadFailed);
         return;
       }
       if (file?.path && file.path !== path) {
@@ -144,14 +152,15 @@ export function DocumentUploader({
         issuedOn: file?.issuedOn ?? null,
       });
     } catch {
-      setError(UPLOAD_FAILED);
+      setError(copy.uploadFailed);
     } finally {
       setUploading(false);
       if (input.current) input.current.value = "";
     }
   }
 
-  const dateProblem = kind === "address" && file?.issuedOn ? addressDateProblem(file.issuedOn, lagosToday()) : null;
+  const dateIssue = kind === "address" && file?.issuedOn ? addressDateIssue(file.issuedOn, lagosToday()) : null;
+  const dateProblem = dateIssue ? DATE_WORDS[dateIssue] : null;
 
   return (
     <section className="nf-panel nf-panel--card block p-md sm:p-lg">
@@ -192,7 +201,7 @@ export function DocumentUploader({
               {file.name}
             </span>
             <span className="nf-numeric block text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
-              {Math.max(1, Math.round(file.size / 1024))} KB
+              {copy.kb.replace("{n}", String(Math.max(1, Math.round(file.size / 1024))))}
             </span>
           </span>
           {/* Replace, not just remove. The person is here to supply a document,
@@ -205,7 +214,7 @@ export function DocumentUploader({
             loading={uploading}
             onClick={() => input.current?.click()}
           >
-            {REPLACE}
+            {copy.replace}
           </Button>
         </div>
       ) : (
@@ -219,7 +228,7 @@ export function DocumentUploader({
           loading={uploading}
           onClick={() => input.current?.click()}
         >
-          {uploading ? UPLOADING : CHOOSE}
+          {uploading ? copy.uploading : copy.choose}
         </Button>
       )}
 
@@ -228,22 +237,22 @@ export function DocumentUploader({
       {file && (
         <div className="mt-md space-y-sm">
           <SelectField
-            label={kind === "identity" ? WHICH_ID : WHICH_ADDRESS}
+            label={kind === "identity" ? copy.whichId : copy.whichAddress}
             required
             value={file.subtype ?? ""}
             onChange={(event) => onChange({ ...file, subtype: event.target.value || null })}
           >
-            <option value="">{PICK_ONE}</option>
+            <option value="">{copy.pickOne}</option>
             {DOCUMENT_SUBTYPES[kind].map((option) => (
               <option key={option.value} value={option.value}>
-                {option.label}
+                {(copy.subtypes as Record<string, string>)[option.value] ?? option.label}
               </option>
             ))}
           </SelectField>
           {kind === "address" && (
             <TextField
-              label={ISSUED_ON}
-              hint={ISSUED_ON_HINT}
+              label={copy.issuedOn}
+              hint={copy.issuedOnHint}
               type="date"
               required
               max={lagosToday()}
@@ -257,7 +266,7 @@ export function DocumentUploader({
 
       {/* The limits, always visible, never only inside an error. */}
       <p className="mt-xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
-        {ACCEPTED_LABEL}. {LIMIT_PREFIX} {MAX_FILE_LABEL}.
+        {copy.limit.replace("{formats}", ACCEPTED_LABEL).replace("{size}", MAX_FILE_LABEL)}
       </p>
 
       {error && (
@@ -269,15 +278,3 @@ export function DocumentUploader({
   );
 }
 
-const CHOOSE = "Choose a file";
-const UPLOADING = "Uploading";
-const SIGN_IN_FIRST = "Sign in first, then choose the file again.";
-const UPLOAD_FAILED =
-  "That file did not finish uploading. Nothing was sent. Check your connection and choose it again.";
-const WHICH_ID = "Which ID is this?";
-const WHICH_ADDRESS = "Which document is this?";
-const PICK_ONE = "Choose one";
-const ISSUED_ON = "Date on the document";
-const ISSUED_ON_HINT = "The date printed on the bill, statement or agreement.";
-const REPLACE = "Replace";
-const LIMIT_PREFIX = "Up to";
