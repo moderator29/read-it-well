@@ -55,6 +55,8 @@ describe.skipIf(!hasBrowser && !process.env.CI)("an inline Button in its row", (
       const capped = await box("capped");
       expect(capped.max).toBe("352px");
       expect(capped.w).toBeLessThanOrEqual(352);
+      /* The danger fill's guard tests the exact relative-colour form it uses. */
+      expect(await page.evaluate(() => CSS.supports("color", "oklch(from red min(l, 0.5) c h)"))).toBe(true);
       const narrow = await box("narrow");
       expect(narrow.w).toBeLessThanOrEqual(200);
       expect(narrow.ws).toBe("normal");

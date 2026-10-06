@@ -97,11 +97,13 @@
    * already fill the row, and icon-only ones carry no words, so neither takes
    * this.
    *
-   * Two weights (auditor A8). The cap and `flex-shrink: 0` sit in a
+   * Two weights (auditor A8). The cap and the shrink factor sit in a
    * `:where()`, at zero specificity, so any component's own cap
    * (`.nf-passcode__cta`'s 22rem) still wins, and a button beside a shrinking
-   * sibling keeps its label's width, as `nowrap` used to: it wraps only when
-   * the row itself is narrower than the label. The wrap itself has to beat
+   * sibling keeps its label's width, as `nowrap` used to. (A near-zero factor
+   * does not work: the subpixel it gives up is enough to wrap the label.) A row
+   * of buttons and nothing else therefore needs `flex-wrap` of its own, as a
+   * button group does. The wrap itself has to beat
    * `.nf-btn`'s own `nowrap` above, so it carries `.nf-btn`'s single class and
    * wins by order; a component or utility that wants one line still wins.
    */
@@ -1326,7 +1328,7 @@
       background: color-mix(in oklab, var(--nf-state-error) 16%, transparent);
     }
   }
-  @supports (color: oklch(from red l c h)) {
+  @supports (color: oklch(from red min(l, 0.5) c h)) {
     .nf-btn--danger {
       background: oklch(from var(--nf-state-error) min(l, 0.54) c h);
     }
