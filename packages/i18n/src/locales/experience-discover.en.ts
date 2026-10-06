@@ -71,6 +71,7 @@ export const experienceDiscoverEn = {
       studioWhat: "studio {type}",
       range: "The middle half ask between {low} and {high}.",
       basis: "From {count} listings.",
+      basisOne: "From {count} listing.",
       chartLabel: "Middle asking price by size, {type}",
       chartSummary: "One bar per size; a hatched bar is a size with too few listings to publish a range.",
       periodHead: "Size",

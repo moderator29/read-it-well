@@ -53,6 +53,8 @@ export type AreaChartCopy = {
   studioWhat: string;
   range: string;
   basis: string;
+  /** The basis line for exactly one listing ("From 1 listing."). */
+  basisOne?: string;
   chartLabel: string;
   chartSummary: string;
   periodHead: string;
@@ -160,7 +162,9 @@ export function AreaAskingChart({
             high: formatMoneyGlance(lead.p75Minor, locale),
           })}{" "}
           <span className="text-[var(--nf-content-muted)]">
-            {fill(copy.basis, { count: formatNumber(lead.listingCount, locale) })}
+            {fill(lead.listingCount === 1 && copy.basisOne ? copy.basisOne : copy.basis, {
+              count: formatNumber(lead.listingCount, locale),
+            })}
           </span>
         </p>
         {/* Explains the hatching, so it is said only when a slot is hatched. */}
