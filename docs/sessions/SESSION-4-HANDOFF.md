@@ -333,3 +333,21 @@ finding by finding, including anything Session 2's own review missed**; the devi
 matrix filled in; test suite state with counts and what you could not repair and why;
 store readiness per platform with owners; every bug found with a reproduction, routed;
 and the readiness checklist.
+
+---
+
+## ROUND 2, added 6 October 2026
+
+**Read `docs/sessions/ROUND-2-2026-10-06.md` in full before continuing.** It
+measures what each session actually built, lists what is missing after reading the
+tree rather than the response files, and carries thirty numbered recommendations.
+
+**Your share is R2-25 to R2-30**, quality, release and the system.
+
+**R2-25, the 34 row matrix, remains the single highest-value action on the project.** Then R2-26 to R2-30: correct the four wrong documents, add the NativeRuntime mount test that the outage still lacks, gate scripts/marketing, set the QA_MEMBER secrets to unlock signed-in coverage, and fix the weight measurement variance so every budget can come down.
+
+**The standing rule this round adds: "done" means the brief, not the session.**
+Report what you finished and what remains, in those words. Never report completion
+while your own Remaining section is non-empty. If you believe the brief is
+finished, say so against this handoff's acceptance criteria one by one, with
+evidence for each.

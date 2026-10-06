@@ -91,6 +91,7 @@ For setup, architecture and the repository layout, start with the [repository RE
 | [design/COMPONENT_LIBRARY.md](design/COMPONENT_LIBRARY.md) | The component library the founder supplied, with the porting rules that make each piece Vallo's: which dependency is allowed, which is refused, where the glass navigation belongs, and the twelve point checklist every ported component passes |
 | [design/CRAFT_DOCTRINE.md](design/CRAFT_DOCTRINE.md) | The taste standard: intention, negative discipline, one screen one idea, adaptive rhythm, haptics as sound design, and the seven questions a screen answers before it ships |
 | [design/component-library-source/](design/component-library-source/) | The founder's nine components as he supplied them, one file per component, with a README on what is wrong with each. Reference material: it sits outside every gate in this repository and none of it compiles |
+| [sessions/ROUND-2-2026-10-06.md](sessions/ROUND-2-2026-10-06.md) | **What each session actually built, measured against the tree rather than its own report**, what is missing, and thirty numbered recommendations split across the three sessions. Read it before continuing any session's work |
 | [sessions/SESSION-2-HANDOFF.md](sessions/SESSION-2-HANDOFF.md) | Backend, money and trust execution brief |
 | [sessions/SESSION-3-HANDOFF.md](sessions/SESSION-3-HANDOFF.md) | The platform-wide experience upgrade execution brief |
 | [sessions/SESSION-4-HANDOFF.md](sessions/SESSION-4-HANDOFF.md) | QA, release and store execution brief |

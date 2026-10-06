@@ -841,3 +841,21 @@ anything you could not build for want of data, with the route, for Session 2; wh
 end-to-end specs you knowingly broke, for Session 4; **which reference images drove
 which surface**; the light-mode check result per clay asset; and what you would do next
 with another week.
+
+---
+
+## ROUND 2, added 6 October 2026
+
+**Read `docs/sessions/ROUND-2-2026-10-06.md` in full before continuing.** It
+measures what each session actually built, lists what is missing after reading the
+tree rather than the response files, and carries thirty numbered recommendations.
+
+**Your share is R2-13 to R2-24**, experience.
+
+**R2-13, finish W12, comes before any claim that the platform is swept:** 390, 768 and 1440 on every route with the 24 point audit recorded per page. Then R2-14 to R2-24: kill the last spinner and lint against its return, Pro mode once Session 2's entitlement lands, the promotion surface, streaks wired to real on-time rent history, a drawn empty state everywhere, error states with words, a reduced-motion pass, offline and slow-network states, the 20 percent weight diet, a component gallery, and admin depth over admin breadth.
+
+**The standing rule this round adds: "done" means the brief, not the session.**
+Report what you finished and what remains, in those words. Never report completion
+while your own Remaining section is non-empty. If you believe the brief is
+finished, say so against this handoff's acceptance criteria one by one, with
+evidence for each.

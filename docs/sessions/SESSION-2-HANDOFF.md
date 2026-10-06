@@ -709,3 +709,21 @@ question 3 called out; every migration with what it does and whether it is appli
 both review passes per money change; anything built plainly for Session 3 to dress,
 with routes; the classification of everything you touched; and what is blocked on the
 founder with the exact value needed.
+
+---
+
+## ROUND 2, added 6 October 2026
+
+**Read `docs/sessions/ROUND-2-2026-10-06.md` in full before continuing.** It
+measures what each session actually built, lists what is missing after reading the
+tree rather than the response files, and carries thirty numbered recommendations.
+
+**Your share is R2-01 to R2-12**, money, trust and correctness.
+
+**R2-01, the wrong-payer refund (D40), is first and nothing else starts before it.** Then R2-02 to R2-12: the refund dry run, scheduled reconciliation, the chargeback path, an auditable Guarantee reserve, idempotency on every money write, tax as a mechanism with a null rate, the phone gate and referral qualification, SMS for the six moments that matter, an entitlement model for Pro mode, promotion as a schema the ranking cannot see, and an admin referral desk.
+
+**The standing rule this round adds: "done" means the brief, not the session.**
+Report what you finished and what remains, in those words. Never report completion
+while your own Remaining section is non-empty. If you believe the brief is
+finished, say so against this handoff's acceptance criteria one by one, with
+evidence for each.
