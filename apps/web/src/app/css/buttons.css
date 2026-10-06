@@ -429,6 +429,13 @@
       background: var(--nf-glass-fill-strong);
       border-color: var(--nf-brand-edge);
     }
+    /* The destructive edge out-ranks the brand edge on any hover-capable
+       device, and the hover fill stays neutral (see the note below). */
+    .nf-btn--glass.nf-btn--edge-danger:hover:not(:disabled) {
+      color: var(--nf-act-outline-ink);
+      background: color-mix(in oklab, var(--nf-state-error) 14%, var(--nf-act-surface));
+      border-color: var(--nf-state-error);
+    }
   }
 
   .nf-btn--ghost {
@@ -1169,14 +1176,30 @@
   /*
    * THE DESTRUCTIVE EDGE ON A SECONDARY (auditor A7 N4, Session 3).
    * `<Button variant="secondary" className="nf-btn--edge-danger">`: a glass
-   * button that keeps its own ink, which clears 4.5:1, and says "this one ends
-   * something" with a rose hairline instead of a rose word (the error colour on
-   * glass measured about 3.9:1 at night). Compound selector, so it beats the
-   * glass edge and its hover and press edges without a specificity fight.
+   * button that keeps its own ink, which clears 4.5:1 on its fill, and says
+   * "this one ends something" with a hairline in the full error colour instead
+   * of a rose word (the error colour as text on glass measured about 3.9:1 at
+   * night). The edge is `--nf-state-error` at full strength because it is a
+   * non-text boundary and has to clear 3:1 against the fill: 4.5:1 at night
+   * and 5.9:1 in light, where a 60% mix measured 2.2:1 and fell to 1.0:1 on
+   * press.
+   *
+   * THE FILL STAYS NEUTRAL WHEN POINTED AT OR PRESSED. The secondary's hover
+   * and press fills are the solid brand blue at night, which would put a rose
+   * edge on blue (about 1.5:1) and turn the label white. Here both states keep
+   * the resting surface with a faint rose wash, and the ink stays the
+   * secondary's own. The hover rule is in the `(hover: hover)` block beside
+   * `.nf-btn--glass:hover` (buttons.css, above), not behind a fine pointer,
+   * because that rule paints the brand edge on any hover-capable device and
+   * this one has to out-rank it there too (0,4,0 against its 0,3,0); the
+   * press rule below beats the secondary's `:active` the same way.
    */
-  .nf-btn--glass.nf-btn--edge-danger,
+  .nf-btn--glass.nf-btn--edge-danger {
+    border-color: var(--nf-state-error);
+  }
   .nf-btn--glass.nf-btn--edge-danger:active:not(:disabled, [aria-disabled="true"]) {
-    border-color: color-mix(in oklab, var(--nf-state-error) 60%, transparent);
+    color: var(--nf-act-outline-ink);
+    background: color-mix(in oklab, var(--nf-state-error) 14%, var(--nf-act-surface));
   }
 
   /* ---- disabled: one calm grey for every kind ------------------------- */
@@ -1219,10 +1242,6 @@
     :is(.nf-btn--quiet, .nf-btn--ghost):hover:not(:disabled, [aria-disabled="true"], :active) {
       color: var(--nf-act-ink);
       background: var(--nf-act-tint);
-    }
-    /* The destructive edge survives the glass hover's brand edge. */
-    .nf-btn--glass.nf-btn--edge-danger:hover:not(:disabled, [aria-disabled="true"], :active) {
-      border-color: color-mix(in oklab, var(--nf-state-error) 60%, transparent);
     }
     .nf-btn--surface:hover:not(:disabled, [aria-disabled="true"], :active) {
       color: var(--nf-act-on);

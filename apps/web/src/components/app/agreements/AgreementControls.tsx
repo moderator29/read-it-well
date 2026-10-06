@@ -231,9 +231,14 @@ export function CancelAgreement({
             </Button>
           }
           primary={
+            /* The same destructive edge as the trigger, not a rose word on
+               glass. The solid `danger` button was tried and does not clear
+               4.5:1 for its white label at night (3.8:1 on the light rose
+               fill), so the confirming act wears the rose edge on the
+               secondary's own legible ink. */
             <Button
               variant="secondary"
-              className="text-[var(--nf-state-error)]"
+              className="nf-btn--edge-danger"
               disabled={pending}
               onClick={() => run(() => cancelAgreement({ agreementId }), () => setSure(false))}
             >
