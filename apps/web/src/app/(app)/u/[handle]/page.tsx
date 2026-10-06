@@ -35,6 +35,9 @@ import {
 } from "@/lib/social/profile-tabs-queries";
 import { listStories } from "@/lib/social/stories-queries";
 import { SocialPaused } from "@/components/social/SocialPaused";
+import { createClient } from "@/lib/supabase/server";
+import { badgeCopyOf } from "@/components/social/badges/badge-copy";
+import { readProfileBadges } from "@/components/social/profile/badges-read";
 import { isSocialEnabled } from "@/lib/social/flag";
 
 /**
@@ -151,7 +154,7 @@ export default async function SocialProfilePage({
     const isAgentPage = view.profile.isAgent && Boolean(agentId);
     const tabs = isAgentPage ? AGENT_TABS : MEMBER_TABS;
 
-    const [posts, replies, media, activity, properties, reviews, stories, record] =
+    const [posts, replies, media, activity, properties, reviews, stories, record, badges] =
       await Promise.all([
         isAgentPage ? Promise.resolve([]) : getProfileFeed(userId),
         isAgentPage ? Promise.resolve([]) : getProfileReplies(userId),
@@ -163,6 +166,9 @@ export default async function SocialProfilePage({
         /* V-34: a lister's Record. No row for a member who is not one, or for
            a reader who is signed out, and then nothing is drawn. */
         view.profile.isAgent ? readUserRecord(userId) : Promise.resolve(null),
+        /* Their badges, earned and given, for the row under the hero. Null
+           when the read failed, and then the older chips stand in. */
+        createClient().then((supabase) => readProfileBadges(supabase, userId, locale)),
       ]);
 
     return (
@@ -180,6 +186,9 @@ export default async function SocialProfilePage({
           published={view.published}
           trust={view.trust}
           joinedLabel={monthYear(view.profile.claimedAt, locale)}
+          badges={badges}
+          badgeCopy={badgeCopyOf(t)}
+          shareUrl={`${siteUrl().replace(/\/+$/, "")}/u/${view.profile.handle}`}
           follow={
             view.isOwner ? undefined : (
               <FollowButton

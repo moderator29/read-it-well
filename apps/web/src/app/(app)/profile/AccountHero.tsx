@@ -6,8 +6,8 @@ import { useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { formatNumber, intlTag, type Locale } from "@vallo/i18n/core";
-import { CountUp } from "@/components/motion/CountUp";
+import { formatNumber, type Locale } from "@vallo/i18n/core";
+import { Figure } from "@/components/ui/Amount";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { setAvatar } from "@/lib/profile/actions";
 import { setSocialCover } from "@/lib/social/profiles-actions";
@@ -86,6 +86,8 @@ export function AccountHero({
   identity,
   badgeTier = null,
   locale,
+  badges = null,
+  postsLabel = "Posts",
 }: {
   userId: string;
   displayName: string;
@@ -103,19 +105,27 @@ export function AccountHero({
   metaLine?: { place: string; joined: string };
   /** The locale, NOT a formatter: a function cannot cross into a client component. */
   locale: Locale;
+  /** The badge row and the earned moment, built by the server page. Absent when there are none. */
+  badges?: React.ReactNode;
+  /** The word under the posts count, in the reader's language (`socialProfile.posts`). */
+  postsLabel?: string;
 }) {
   const router = useRouter();
   const COPY = useClientCopy().socialProfile.accountPage;
   /* The render writes 12.4K: from ten thousand a count is compact, below
-     it every digit shows. The figure itself is always the database's. */
-  const formatCount = (value: number) =>
-    value >= 10_000 ? (
-      formatNumber(value, locale, COMPACT)
-    ) : (
-      /* The count counts up once on first view (the founder's count-up
-         ruling); a compact 12.4K prints as it is. */
-      <CountUp value={value} tag={intlTag[locale]} eager />
-    );
+     it every digit shows. The figure itself is always the database's.
+
+     EACH COUNT IS A `Figure` (north star 10 F): tabular, counting up once on
+     first view below ten thousand, never re-counting on a re-render. A compact
+     12.4K is a string and prints as it is, because a figure that is already
+     abbreviated has no digits to roll. */
+  const formatCount = (value: number) => (
+    <Figure
+      value={value >= 10_000 ? formatNumber(value, locale, COMPACT) : value}
+      locale={locale}
+      count={value < 10_000}
+    />
+  );
   const coverInput = useRef<HTMLInputElement>(null);
   const avatarInput = useRef<HTMLInputElement>(null);
 
@@ -270,7 +280,7 @@ export function AccountHero({
           tier, the handle, the bio and the counts sit on one clean band that
           laps the cover's foot: navy on the warm paper in light, the raised
           night surface at night. */}
-      <div className="nf-pf-id nf-hero-band" data-theme="dark">
+      <div className="nf-pf-id nf-island" data-theme="dark">
         <button
           type="button"
           onClick={() => avatarInput.current?.click()}
@@ -320,10 +330,22 @@ export function AccountHero({
                 </span>
                 <span className="nf-pf-count__label">{COPY.following}</span>
               </Link>
+              <span className="nf-pf-counts__rule" aria-hidden="true" />
+              {/* Posts is a number, not a door: there is no page that lists
+                  them but the Posts tab below, so this is a span and not a
+                  link, and carries no 44px hit area it could not honour. */}
+              <span className="nf-pf-count nf-pf-count--static">
+                <span className="nf-pf-count__value nf-numeric">
+                  {formatCount(identity.postCount)}
+                </span>
+                <span className="nf-pf-count__label">{postsLabel}</span>
+              </span>
             </div>
           ) : null}
         </div>
       </div>
+
+      {badges}
 
       {!identity && (
         <div className="nf-pf-claim">

@@ -166,8 +166,17 @@
    * and the person as one clean block. `--nf-pf-band` is the band's own
    * ground, for the seam round the face and its mark.
    */
-  .nf-pf-id.nf-hero-band {
+  /*
+   * THE HERO IS AN ISLAND (north star 10 F, tier 3): navy glass at 72 per
+   * cent over a 16px blur, its one edge the light on the border box, radius
+   * 28, lapping the cover's foot so the photograph reads as a picture and the
+   * person as one hero block. It was a `.nf-hero-band` (a raised surface on a
+   * hairline); the Island is that same block made the real hero container.
+   * The cover behind it is the blur's reason to exist.
+   */
+  .nf-pf-id.nf-island {
     --nf-pf-band: var(--nf-surface-elevated);
+    display: grid;
     position: relative;
     z-index: 1;
     grid-template-columns: 5.5rem minmax(0, 1fr);
@@ -177,11 +186,11 @@
     margin-block-start: -2.5rem;
     padding: var(--nf-space-md);
   }
-  :root[data-theme="light"] .nf-pf-id.nf-hero-band[data-theme="dark"] {
+  :root[data-theme="light"] .nf-pf-id.nf-island[data-theme="dark"] {
     --nf-pf-band: var(--nf-surface-primary);
   }
   @media (min-width: 640px) {
-    .nf-pf-id.nf-hero-band {
+    .nf-pf-id.nf-island {
       margin-block-start: -3rem;
       margin-inline: var(--nf-space-md);
       padding: 1.25rem var(--nf-space-lg);
@@ -323,7 +332,9 @@
   .nf-pf-counts {
     display: flex;
     align-items: center;
-    gap: var(--nf-space-lg);
+    /* Three counts share the 220px beside the face at 390, so the gap is
+       the small step either side of the rule. */
+    gap: var(--nf-space-sm);
     margin-block-start: 0.625rem;
   }
   .nf-pf-count {
@@ -348,11 +359,18 @@
     outline: 2px solid var(--nf-brand-accent);
     outline-offset: 2px;
   }
+  /* A count is a Figure (north star 10 F): tabular, set a size up from its
+     label so the number is the thing the eye lands on. */
   .nf-pf-count__value {
-    font-size: var(--nf-text-overline);
+    font-size: var(--nf-text-body);
     font-weight: 600;
     line-height: 1.2;
+    letter-spacing: -0.01em;
     color: var(--nf-content-primary);
+  }
+  /* Posts is a number, not a door: no hit area it could not honour. */
+  .nf-pf-count--static::before {
+    content: none;
   }
   .nf-pf-count__label {
     font-size: var(--nf-text-overline);
@@ -617,7 +635,7 @@
  * THE HERO IN DAYLIGHT. `AccountHero` and `SignedOutHero` are night islands
  * in both themes, so the ring, the name and the counts take the night
  * palette. Since plan item 16 (30 September 2026) the navy is the person's
- * band alone (`.nf-pf-id.nf-hero-band`, above), not a block painted round
+ * band alone (`.nf-pf-id.nf-island`, above), not a block painted round
  * the whole hero: the cover is a photograph on the warm paper and the band
  * laps its foot.
  */
@@ -645,6 +663,20 @@
     display: grid;
     flex-shrink: 0;
     place-items: center;
+  }
+  /*
+   * THE CLAY ROW MARK (north star 10 F, D2): a matte object at 36px on a
+   * 48px Plate. The Plate is the tier-1 container: radius 14, a quiet brand
+   * tint and ONE edge, the hairline, so the object never floats on pure
+   * white in light and never needs a glow at night (north star 14.7: "a
+   * radius-14 plate at about 4% brand"). Not a button, so no press state.
+   */
+  .nf-pf-glyph--clay {
+    inline-size: 3rem;
+    block-size: 3rem;
+    border-radius: var(--nf-tier-plate-radius);
+    border: var(--nf-border-width) solid var(--nf-tier-plate-edge);
+    background: color-mix(in oklab, var(--nf-brand-primary) 6%, transparent);
   }
   :root:not([data-theme="light"]) .nf-pf-body .nf-plate--brand {
     /* The bright end of the brand blue: lifted a third towards white so the

@@ -17,6 +17,12 @@ import { VerifyPrompt } from "@/components/roles/VerifyPrompt";
 import { roleStateFrom, type AgentFacts, type RoleState } from "@/components/roles/roles";
 import { resolveWorkspaces } from "@/lib/supply/workspaces-queries";
 import { loadBelongings, loadOwnBadgeTier } from "./belongings-queries";
+import { createClient } from "@/lib/supabase/server";
+import { siteUrl } from "@/lib/site";
+import { BadgeRow } from "@/components/social/badges/BadgeRow";
+import { BadgeEarnedHost } from "@/components/social/badges/BadgeEarnedHost";
+import { badgeCopyOf } from "@/components/social/badges/badge-copy";
+import { readProfileBadges } from "@/components/social/profile/badges-read";
 import { switchParamTarget, switchRoleLine } from "./belongings";
 
 export const metadata: Metadata = { title: "Profile" };
@@ -120,6 +126,14 @@ export default async function ProfilePage({
   const posts =
     social.state === "claimed" ? await getProfileFeed(social.userId) : [];
 
+  /* The badges on this account, for the row under the hero and the earned
+     moment. Null when the read failed, and then nothing is drawn: the row
+     never guesses. Only a signed-in account has any. */
+  const shareUrl = identity ? `${siteUrl().replace(/\/+$/, "")}/u/${identity.handle}` : undefined;
+  const badges =
+    account.state === "signed-in"
+      ? await readProfileBadges(await createClient(), account.profile.userId, locale)
+      : null;
   const copy = {
     bookings: t.nav.bookings,
     saved: t.nav.saved,
@@ -212,6 +226,24 @@ export default async function ProfilePage({
         }
         badgeTier={badgeTier}
         locale={locale}
+        postsLabel={t.socialProfile.posts}
+        badges={
+          badges && badges.length > 0 ? (
+            <>
+              <BadgeRow
+                badges={badges}
+                isOwner
+                copy={badgeCopyOf(t)}
+                shareUrl={shareUrl}
+              />
+              <BadgeEarnedHost
+                badges={badges}
+                copy={badgeCopyOf(t)}
+                shareUrl={shareUrl}
+              />
+            </>
+          ) : null
+        }
       />
 
       {/*

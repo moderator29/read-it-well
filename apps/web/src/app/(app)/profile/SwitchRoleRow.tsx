@@ -3,8 +3,7 @@
 import { useRouter } from "next/navigation";
 import { openProfileSwitcher } from "@/components/supply/profile-switcher-event";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { IconPlate } from "@/components/ui/IconPlate";
-import { ROW_GLYPH } from "@/components/app/account/rows";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 
 /**
  * SWITCH ROLE, the last row of `50E032EA`, opening the product's real switch.
@@ -40,11 +39,9 @@ export function SwitchRoleRow({ line, title }: { line: string; title: string }) 
       className="nf-pf-row nf-pf-row--switch"
       data-testid="profile-switch-role"
     >
-      {/* The same plate and glyph as the rows above (AccountBody). */}
-      <span className="nf-pf-glyph" aria-hidden="true">
-        <IconPlate size="sm">
-          <UiIcon name="briefcase" size={ROW_GLYPH} />
-        </IconPlate>
+      {/* The same clay mark on the same Plate as the rows above (AccountBody). */}
+      <span className="nf-pf-glyph nf-pf-glyph--clay" aria-hidden="true">
+        <BrandIcon name="suitcase" size={36} />
       </span>
       <span className="nf-pf-row__body">
         <span className="nf-pf-row__title">{title}</span>

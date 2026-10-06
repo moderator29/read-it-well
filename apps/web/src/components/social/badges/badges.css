@@ -1,0 +1,314 @@
+@layer theme, base, components, utilities;
+
+/*
+ * THE BADGE ROW AND THE EARNED MOMENT (W4, north star 7 motion 22, 15.1,
+ * references 7043 and 7111).
+ *
+ * Two objects live here and they are deliberately unequal:
+ *
+ *   the row     a restrained set of at most six Plates, each a clay mark and a
+ *               name. Plate tier (radius 14, ONE edge: the hairline), no glow,
+ *               no shadow. It says what a person has earned and then stops.
+ *   the moment  a full page, once, for a badge that was genuinely earned and
+ *               is new: a quiet sunburst behind a matte medal, the medal
+ *               scaling in over 620ms, one pop, then the achievement named and
+ *               Share and Back rising in. The sunburst is the screen's one
+ *               glow, and it is a tint of the brand rather than a light.
+ *
+ * Everything is `transform` and `opacity`. Nothing loops. Reduced motion
+ * collapses every beat to its settled state (the duration tokens already fall
+ * to 1ms, and the rules at the foot of this file are belt and braces for the
+ * Calm and Off levels that only move the tokens).
+ */
+@layer components {
+  /* ----------------------------------------------------------- the row */
+
+  .nf-badges {
+    margin-block-start: var(--nf-space-md);
+  }
+  .nf-badges__title {
+    margin: 0 0 var(--nf-space-xs);
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    letter-spacing: var(--nf-tracking-overline);
+    text-transform: uppercase;
+    color: var(--nf-content-muted);
+  }
+  .nf-badges__list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(5.5rem, 1fr));
+    gap: var(--nf-space-xs);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  /* Tiles in one row are one height, so a hand-given badge's extra line does
+     not make its neighbours look short. */
+  .nf-badges__list > li {
+    display: flex;
+  }
+  /* A Plate: radius 14, a 2 per cent wash, the hairline and nothing else. */
+  .nf-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    inline-size: 100%;
+    min-block-size: 5.5rem;
+    justify-content: flex-start;
+    padding: var(--nf-space-xs) var(--nf-space-2xs);
+    border: var(--nf-border-width) solid var(--nf-tier-plate-edge);
+    border-radius: var(--nf-tier-plate-radius);
+    background: var(--nf-tier-plate-fill);
+    color: var(--nf-content-primary);
+    text-align: center;
+    cursor: pointer;
+    transition:
+      background var(--nf-duration-fast) var(--nf-ease-standard),
+      scale var(--nf-duration-press) var(--nf-ease-press);
+  }
+  .nf-badge:hover {
+    background: var(--nf-tier-plate-hover);
+  }
+  .nf-badge:active {
+    background: var(--nf-tier-plate-press);
+    scale: 0.985;
+  }
+  .nf-badge:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  .nf-badge__mark {
+    display: grid;
+    place-items: center;
+    inline-size: 2.25rem;
+    block-size: 2.25rem;
+  }
+  .nf-badge__name {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+  }
+  /* A badge somebody at Vallo gave is a decision, not an achievement: it
+     carries a second line saying so, never a different colour alone. */
+  .nf-badge__kind {
+    font-size: var(--nf-text-overline);
+    font-weight: 400;
+    color: var(--nf-content-muted);
+    line-height: 1.2;
+  }
+
+  /* The sheet a visitor sees: what it means and when. */
+  .nf-badge-sheet {
+    display: grid;
+    justify-items: center;
+    gap: var(--nf-space-xs);
+    padding: var(--nf-space-sm) var(--nf-space-md) var(--nf-space-lg);
+    text-align: center;
+  }
+  .nf-badge-sheet__mark {
+    display: grid;
+    place-items: center;
+    inline-size: 5rem;
+    block-size: 5rem;
+  }
+  .nf-badge-sheet__name {
+    margin: 0;
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h3);
+    font-weight: 600;
+  }
+  .nf-badge-sheet__means {
+    margin: 0;
+    max-inline-size: 28rem;
+    line-height: 1.55;
+    color: var(--nf-content-secondary);
+  }
+  .nf-badge-sheet__date {
+    margin: 0;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+
+  /* --------------------------------------------------------- the moment */
+
+  .nf-moment {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--nf-space-xs);
+    min-block-size: 100%;
+    padding: var(--nf-space-xl) var(--nf-space-md) var(--nf-space-lg);
+    text-align: center;
+  }
+  .nf-moment__stage {
+    position: relative;
+    display: grid;
+    place-items: center;
+    inline-size: min(78vw, 20rem);
+    aspect-ratio: 1;
+    margin-block-end: var(--nf-space-sm);
+  }
+
+  /*
+   * THE SUNBURST. Fifteen-degree rays at a quarter of the brand's strength,
+   * faded out by a radial mask so it has no edge, scaling 0.6 to 1 as it
+   * opens. Quiet by construction: it is a tint behind the medal and the only
+   * glow on the screen. It never turns.
+   */
+  .nf-moment__burst {
+    position: absolute;
+    inset: -28%;
+    background: repeating-conic-gradient(
+      from -4deg at 50% 50%,
+      color-mix(in oklab, var(--nf-brand-primary) 26%, transparent) 0 5deg,
+      transparent 5deg 15deg
+    );
+    -webkit-mask-image: radial-gradient(closest-side, black 18%, transparent 100%);
+    mask-image: radial-gradient(closest-side, black 18%, transparent 100%);
+    animation: nf-moment-burst var(--nf-duration-deliberate) var(--nf-ease-spring) both;
+    pointer-events: none;
+  }
+  @keyframes nf-moment-burst {
+    from {
+      opacity: 0;
+      scale: 0.6;
+    }
+    to {
+      opacity: 1;
+      scale: 1;
+    }
+  }
+
+  /* A button, so the medal can be tapped to play again (once). */
+  .nf-moment__medal {
+    position: relative;
+    display: grid;
+    place-items: center;
+    inline-size: 70%;
+    aspect-ratio: 1;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    /* Scale in, then the pop: the one moment in the product allowed to. */
+    animation:
+      nf-moment-medal var(--nf-duration-deliberate) var(--nf-ease-spring) both,
+      nf-moment-pop 180ms var(--nf-ease-entrance) var(--nf-duration-deliberate) both;
+  }
+  .nf-moment__medal:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 6px;
+    border-radius: var(--nf-radius-circle);
+  }
+  @keyframes nf-moment-medal {
+    from {
+      opacity: 0;
+      scale: 0.6;
+    }
+    to {
+      opacity: 1;
+      scale: 1;
+    }
+  }
+  @keyframes nf-moment-pop {
+    0% {
+      scale: 1;
+    }
+    50% {
+      scale: 1.04;
+    }
+    100% {
+      scale: 1;
+    }
+  }
+  /* The badge's own object, sitting in the rosette's blank centre. */
+  .nf-moment__object {
+    position: absolute;
+    inset: 24% 24% 36%;
+    display: grid;
+    place-items: center;
+  }
+
+  .nf-moment__overline,
+  .nf-moment__title,
+  .nf-moment__line,
+  .nf-moment__date,
+  .nf-moment__actions {
+    animation: nf-moment-rise var(--nf-duration-base) var(--nf-ease-entrance) both;
+  }
+  .nf-moment__overline {
+    margin: 0;
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    letter-spacing: var(--nf-tracking-overline);
+    text-transform: uppercase;
+    color: var(--nf-content-muted);
+    animation-delay: 380ms;
+  }
+  .nf-moment__title {
+    margin: 0;
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h1);
+    font-weight: 600;
+    line-height: 1.15;
+    animation-delay: 440ms;
+  }
+  .nf-moment__line {
+    margin: 0;
+    max-inline-size: 26rem;
+    line-height: 1.55;
+    color: var(--nf-content-secondary);
+    animation-delay: 500ms;
+  }
+  .nf-moment__date {
+    margin: 0;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+    animation-delay: 540ms;
+  }
+  .nf-moment__actions {
+    display: grid;
+    gap: var(--nf-space-xs);
+    inline-size: min(100%, 22rem);
+    margin-block-start: var(--nf-space-md);
+    animation-delay: 620ms;
+  }
+  @keyframes nf-moment-rise {
+    from {
+      opacity: 0;
+      translate: 0 12px;
+    }
+    to {
+      opacity: 1;
+      translate: none;
+    }
+  }
+
+  /* ----------------------------------------------------- reduced motion */
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-moment__burst,
+    .nf-moment__medal,
+    .nf-moment__overline,
+    .nf-moment__title,
+    .nf-moment__line,
+    .nf-moment__date,
+    .nf-moment__actions {
+      animation: none;
+    }
+    .nf-badge {
+      transition: none;
+    }
+    .nf-badge:active {
+      scale: none;
+    }
+  }
+}

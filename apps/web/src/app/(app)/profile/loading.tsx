@@ -5,7 +5,7 @@ import { LoadingShell } from "@/components/app/ScreenSkeleton";
 
 /**
  * The wait, on your profile, in the page's own shape (`50E032EA`): the cover
- * band, the round face beside three lines, the two-segment control, four rows
+ * band, the Island hero (the round face beside three lines), the two-segment control, four rows
  * and the Switch role row. Every block holds the height the real one will take,
  * so nothing under it moves when the data arrives.
  */
@@ -13,7 +13,7 @@ export default function LoadingProfile() {
   return (
     <LoadingShell label="Loading your profile" className="nf-pf">
       <div className="nf-pf-cover" aria-hidden="true" />
-      <div className="nf-pf-id">
+      <div className="nf-pf-id nf-island">
         <span className="nf-pf-skel-face">
           <Skeleton width="5.5rem" height="5.5rem" radius="none" />
         </span>
@@ -29,7 +29,7 @@ export default function LoadingProfile() {
         <div className="nf-pf-panel nf-pf-rows">
           {Array.from({ length: 4 }, (_, i) => (
             <Panel key={i} as="div" variant="card" className="nf-pf-skel-row">
-              <Skeleton width="3.0625rem" height="3.0625rem" radius="sm" />
+              <Skeleton width="3rem" height="3rem" radius="md" />
               <div className="flex-1">
                 <Skeleton width="40%" height="0.8125rem" radius="xs" />
                 <Skeleton className="mt-xs" width="75%" height="0.6875rem" radius="xs" />
