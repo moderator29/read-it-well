@@ -162,12 +162,62 @@
 }
 
 /*
- * The metric-matched fallbacks. Arial, re-proportioned to each face, so the
- * first paint sits in the same box as the second one.
+ * The metric-matched fallbacks: a face the device already has, re-proportioned
+ * to each of ours, so the first paint sits in the same box as the second one.
+ *
+ * TYPE THAT SETTLES ON THE PHONES MEMBERS ACTUALLY HOLD (W2, round 5). These
+ * were `local(Arial)` only, and Android has no Arial. On a member's phone the
+ * fallback face did not exist, the stack fell through to `system-ui`, and the
+ * first paint was Roboto at its own size. Measured in Chromium with Roboto as
+ * the only system face (W2's round 5 report has the harness): a 16px paragraph in a
+ * 358px column set 6 lines where Inter sets 7, so it grew 24px when Inter
+ * landed, and the hero figure grew 7.8 per cent. Each family now has a second
+ * fallback built on Roboto (the paragraph sets 7 lines in both, the figure is
+ * within 2.1 per cent), and the Arial one also answers to Arial's two metric
+ * twins, Liberation Sans on Linux and Arimo on ChromeOS.
+ *
+ * HOW THE NUMBERS ARE COMPUTED, FROM THE FILES, NOT COPIED (next/font's method,
+ * fontTools over the shipped files). The average advance of each face is weighted by
+ * English letter frequency (capsize's table, the one next/font uses), read from
+ * the shipped woff2 and from the fallback's own file:
+ *
+ *   face                        units/em  average  hhea ascent descent gap
+ *   inter-latin @ wght 400        2048       978         1984    494    0
+ *   inter-latin @ wght 600        2048       998
+ *   poppins-600-latin             1000       510         1050    350  100
+ *   Arial (= Liberation Sans)     2048   913, bold 983
+ *   Roboto (Android, v3.010)      2048   911, bold 926
+ *
+ *   size-adjust     = (face average / face em) / (fallback average / fallback em)
+ *   ascent-override = face ascent / face em / size-adjust (descent and gap alike)
+ *
+ * Inter on Arial reproduces the old numbers exactly (107.12%, 90.44%, 22.52%).
+ *
+ * BOLD HAS ITS OWN FACE. Chromium's synthetic bold does not widen a glyph, so
+ * a 600 label drawn from the regular face was 8.6 per cent narrower than Inter
+ * 600 on Roboto. The 600-900 faces draw from the fallback's real bold, scaled
+ * to Inter 600; where that bold is missing the family is skipped for bold text
+ * (measured), which is what happened before. Poppins is only ever painted at
+ * 600 and 700 (and the 600 file stands in for any lighter request), so its
+ * fallbacks are the bold source at every weight, computed from the 600 file;
+ * the old numbers came from Poppins Regular, a weight this platform never
+ * paints.
+ *
+ * THE POPPINS FALLBACKS STAND IN ONLY FOR WHAT POPPINS DRAWS. Their
+ * `unicode-range` is the codepoints the Poppins files actually carry. Without
+ * it, every glyph Poppins lacks (the naira sign, the Hausa hooked letters) was
+ * caught by `Poppins Fallback`, which is Arial, before it could reach Inter,
+ * and stayed Arial after every font had loaded (measured: on a machine with
+ * Arial, the hero figure's ₦ was Arial for good). The display stack names
+ * Inter after Poppins precisely so Inter draws those glyphs (tokens.css), and
+ * now they fall straight through to it. This is what putting Inter before
+ * `Poppins Fallback` in the stack was meant to do, without its cost: while
+ * Poppins loads, a Latin heading would paint in Inter, a different face 6.5
+ * per cent narrower, and change face again when Poppins lands.
  */
 @font-face {
   font-family: "Inter Fallback";
-  src: local(Arial);
+  src: local(Arial), local(ArialMT), local("Liberation Sans"), local(LiberationSans), local(Arimo);
   ascent-override: 90.44%;
   descent-override: 22.52%;
   line-gap-override: 0%;
@@ -175,20 +225,153 @@
 }
 
 @font-face {
+  font-family: "Inter Fallback";
+  font-weight: 600 900;
+  src: local("Arial Bold"), local(Arial-BoldMT), local("Liberation Sans Bold"), local(LiberationSans-Bold),
+    local("Arimo Bold"), local(Arimo-Bold);
+  ascent-override: 95.42%;
+  descent-override: 23.76%;
+  line-gap-override: 0%;
+  size-adjust: 101.53%;
+}
+
+@font-face {
+  font-family: "Inter Fallback Roboto";
+  src: local(Roboto), local(Roboto-Regular), local("Roboto Regular");
+  ascent-override: 90.24%;
+  descent-override: 22.47%;
+  line-gap-override: 0%;
+  size-adjust: 107.35%;
+}
+
+@font-face {
+  font-family: "Inter Fallback Roboto";
+  font-weight: 600 900;
+  src: local("Roboto Bold"), local(Roboto-Bold), local(Roboto);
+  ascent-override: 89.89%;
+  descent-override: 22.38%;
+  line-gap-override: 0%;
+  size-adjust: 107.78%;
+}
+
+@font-face {
   font-family: "Poppins Fallback";
-  src: local(Arial);
-  ascent-override: 93.62%;
-  descent-override: 31.21%;
-  line-gap-override: 8.92%;
-  size-adjust: 112.16%;
+  font-weight: 100 900;
+  src: local("Arial Bold"), local(Arial-BoldMT), local("Liberation Sans Bold"), local(LiberationSans-Bold),
+    local("Arimo Bold"), local(Arimo-Bold);
+  ascent-override: 98.82%;
+  descent-override: 32.94%;
+  line-gap-override: 9.41%;
+  size-adjust: 106.25%;
+  unicode-range: U+0, U+D, U+20-7E, U+A0-107, U+10A-11B, U+11E-123, U+128-131, U+136-137, U+139-148,
+    U+14C-15B, U+15E-165, U+168-17E, U+18F, U+192, U+1FC-1FD, U+218-21B, U+259, U+2BC, U+2C6-2C7,
+    U+2C9, U+2DA, U+2DC-2DD, U+1E80-1E85, U+1EF2-1EF3, U+1EF8-1EF9, U+2013-2014, U+2018-201A,
+    U+201C-201E, U+2020, U+2022, U+2026, U+2039-203A, U+2044, U+20A8, U+20AC, U+20B9-20BA, U+20BD,
+    U+2113, U+2122, U+2212, U+2215;
+}
+
+@font-face {
+  font-family: "Poppins Fallback Roboto";
+  font-weight: 100 900;
+  src: local("Roboto Bold"), local(Roboto-Bold), local(Roboto);
+  ascent-override: 93.09%;
+  descent-override: 31.03%;
+  line-gap-override: 8.87%;
+  size-adjust: 112.79%;
+  unicode-range: U+0, U+D, U+20-7E, U+A0-107, U+10A-11B, U+11E-123, U+128-131, U+136-137, U+139-148,
+    U+14C-15B, U+15E-165, U+168-17E, U+18F, U+192, U+1FC-1FD, U+218-21B, U+259, U+2BC, U+2C6-2C7,
+    U+2C9, U+2DA, U+2DC-2DD, U+1E80-1E85, U+1EF2-1EF3, U+1EF8-1EF9, U+2013-2014, U+2018-201A,
+    U+201C-201E, U+2020, U+2022, U+2026, U+2039-203A, U+2044, U+20A8, U+20AC, U+20B9-20BA, U+20BD,
+    U+2113, U+2122, U+2212, U+2215;
+}
+
+/*
+ * THE FIGURES HAVE THEIR OWN FALLBACK SIZE. A money platform's subject is a
+ * number, and the size-adjust above is an average over English letters, in
+ * which digits weigh almost nothing. Inter's tabular digits are 0.648em wide
+ * and Arial's and Roboto's are 0.556em and 0.562em, so a figure drawn by the
+ * text calibration was 6 to 8 per cent narrower than the figure that replaced
+ * it. These faces cover U+30-39 only, are declared after the text faces (so
+ * they win for the digits and nothing else), and scale each fallback's digit
+ * to the shipped face's: Inter's `tnum` advance (the figures are tabular,
+ * `.nf-numeric`); Poppins has no tabular figures, so its digit is the mean
+ * advance weighted by how often each digit appears in a naira figure (73 per
+ * cent zeros, counted over the 112 amounts in the money fixtures): 0.628em.
+ * Same files, same method.
+ */
+@font-face {
+  font-family: "Inter Fallback";
+  src: local(Arial), local(ArialMT), local("Liberation Sans"), local(LiberationSans), local(Arimo);
+  ascent-override: 83.09%;
+  descent-override: 20.69%;
+  line-gap-override: 0.00%;
+  size-adjust: 116.59%;
+  unicode-range: U+30-39;
+}
+
+@font-face {
+  font-family: "Inter Fallback";
+  font-weight: 600 900;
+  src: local("Arial Bold"), local(Arial-BoldMT), local("Liberation Sans Bold"), local(LiberationSans-Bold),
+    local("Arimo Bold"), local(Arimo-Bold);
+  ascent-override: 83.28%;
+  descent-override: 20.74%;
+  line-gap-override: 0.00%;
+  size-adjust: 116.33%;
+  unicode-range: U+30-39;
+}
+
+@font-face {
+  font-family: "Inter Fallback Roboto";
+  src: local(Roboto), local(Roboto-Regular), local("Roboto Regular");
+  ascent-override: 83.96%;
+  descent-override: 20.91%;
+  line-gap-override: 0.00%;
+  size-adjust: 115.38%;
+  unicode-range: U+30-39;
+}
+
+@font-face {
+  font-family: "Inter Fallback Roboto";
+  font-weight: 600 900;
+  src: local("Roboto Bold"), local(Roboto-Bold), local(Roboto);
+  ascent-override: 85.91%;
+  descent-override: 21.39%;
+  line-gap-override: 0.00%;
+  size-adjust: 112.77%;
+  unicode-range: U+30-39;
+}
+
+@font-face {
+  font-family: "Poppins Fallback";
+  font-weight: 100 900;
+  src: local("Arial Bold"), local(Arial-BoldMT), local("Liberation Sans Bold"), local(LiberationSans-Bold),
+    local("Arimo Bold"), local(Arimo-Bold);
+  ascent-override: 93.05%;
+  descent-override: 31.02%;
+  line-gap-override: 8.86%;
+  size-adjust: 112.85%;
+  unicode-range: U+30-39;
+}
+
+@font-face {
+  font-family: "Poppins Fallback Roboto";
+  font-weight: 100 900;
+  src: local("Roboto Bold"), local(Roboto-Bold), local(Roboto);
+  ascent-override: 95.99%;
+  descent-override: 32.00%;
+  line-gap-override: 9.14%;
+  size-adjust: 109.39%;
+  unicode-range: U+30-39;
 }
 
 /*
  * The two variables the token sheet builds every stack from. These used to be
- * set by a generated class next/font put on the <html> element; they are named
- * and valued identically here so nothing downstream can tell the difference.
+ * set by a generated class next/font put on the <html> element. The Arial
+ * fallback is named first, so a desktop keeps exactly the face it had; a
+ * phone without Arial takes the Roboto one.
  */
 :root {
-  --nf-font-inter: "Inter", "Inter Fallback";
-  --nf-font-poppins: "Poppins", "Poppins Fallback";
+  --nf-font-inter: "Inter", "Inter Fallback", "Inter Fallback Roboto";
+  --nf-font-poppins: "Poppins", "Poppins Fallback", "Poppins Fallback Roboto";
 }

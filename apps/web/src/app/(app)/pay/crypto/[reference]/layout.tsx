@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { RouteCopy } from "@/lib/i18n/route-copy";
+import { NairaFacePreload } from "@/components/app/NairaFacePreload";
 
 /**
  * The words this page's client islands read (the live crypto payment status
@@ -8,5 +9,11 @@ import { RouteCopy } from "@/lib/i18n/route-copy";
  * route's first load). See `lib/i18n/route-copy.tsx`.
  */
 export default function Layout({ children }: { children: ReactNode }) {
-  return <RouteCopy keys={["cryptoPay", "success"]}>{children}</RouteCopy>;
+  return (
+    <>
+      {/* A money screen: the naira sign's face arrives with the page. */}
+      <NairaFacePreload />
+      <RouteCopy keys={["cryptoPay", "success"]}>{children}</RouteCopy>
+    </>
+  );
 }
