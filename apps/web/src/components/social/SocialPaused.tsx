@@ -1,4 +1,9 @@
+import { getDictionary } from "@vallo/i18n";
 import { PageHeader } from "@/components/app/PageHeader";
+import { PausedBack } from "@/components/social/PausedBack";
+import { getLocale } from "@/lib/locale";
+import { getSide } from "@/lib/side";
+import { SIDE_HOME } from "@/lib/side.constants";
 import { EmptyPanel } from "@/components/social/profile/EmptyPanel";
 import { SOCIAL_OFF_BODY, SOCIAL_OFF_TITLE } from "@/lib/social/flag";
 
@@ -22,23 +27,41 @@ import { SOCIAL_OFF_BODY, SOCIAL_OFF_TITLE } from "@/lib/social/flag";
  * here rather than anywhere broken. That is the honest half, and the other half
  * is one condition in those two files.
  */
-export function SocialPaused({
+export async function SocialPaused({
   title = "Around",
-  fallback = "/home",
 }: {
   /** The page header's own title, so a paused profile still says whose it is. */
   title?: string;
-  fallback?: string;
 }) {
+  /* THE HOME OF THE SIDE THE MEMBER IS ON, decided here on the server. A literal
+     `/home` sent a Stays member's shell over to Property, the bug the side-aware
+     Back fixed (484438b5e), and "Search stays" went to the Property search. */
+  const side = await getSide();
+  const home = SIDE_HOME[side];
+  const t = getDictionary(await getLocale());
+  const search =
+    side === "stays"
+      ? { href: "/stays/search", label: "Search stays" }
+      : { href: "/search", label: t.nav.search };
+
   return (
     <div className="mx-auto w-full max-w-2xl pb-4xl pt-md">
-      <PageHeader title={title} fallback={fallback} />
+      {/* The declared parent of every paused social route is `/around`, which is
+          paused too, so the ordinary back showed "Around is paused" twice. The
+          back here is drawn by `PausedBack` and goes straight to the side's
+          home; `fallback` is stated for the same destination. */}
+      <PageHeader
+        title={title}
+        fallback={home}
+        back={false}
+        leading={<PausedBack href={home} label="Back to home" />}
+      />
       <EmptyPanel
         icon="shield-check"
         title={SOCIAL_OFF_TITLE}
         body={SOCIAL_OFF_BODY}
-        action={{ href: "/home", label: "Back to home" }}
-        secondary={{ href: "/search", label: "Search stays" }}
+        action={{ href: home, label: "Back to home" }}
+        secondary={search}
       />
     </div>
   );

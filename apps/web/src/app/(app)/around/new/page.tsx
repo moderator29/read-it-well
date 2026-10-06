@@ -19,7 +19,7 @@ export const metadata: Metadata = { title: "Suggest a place" };
  * limits of that role should be known before they ask rather than after.
  */
 export default async function ProposeAreaPage() {
-  if (!(await isSocialEnabled())) return <SocialPaused title="Suggest a place" fallback="/home" />;
+  if (!(await isSocialEnabled())) return <SocialPaused title="Suggest a place" />;
 
   const [session, states] = await Promise.all([resolveSession(), listStates()]);
   const signedIn = session.state === "signed-in";

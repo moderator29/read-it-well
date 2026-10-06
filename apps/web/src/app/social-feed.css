@@ -2114,19 +2114,6 @@
     border-radius: var(--nf-radius-control);
     padding-block: 11px;
   }
-  .nf-comments__send {
-    display: grid;
-    place-items: center;
-    inline-size: 44px;
-    block-size: 44px;
-    flex-shrink: 0;
-    border-radius: var(--nf-radius-control);
-    background: var(--nf-brand-primary);
-    color: var(--nf-content-on-brand);
-  }
-  .nf-comments__send:disabled {
-    opacity: 0.45;
-  }
   .nf-comments__count {
     display: block;
     margin-block-start: 6px;
