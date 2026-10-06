@@ -906,10 +906,10 @@
     width: 2.5rem;
     height: 2.5rem;
   }
-  :root[data-theme="light"] .nf-cat-tile__plate :is(.nf-brand-icon-ground, .nf-icon-tile):not(:where([data-theme="dark"] *)) {
-    background: none;
-    box-shadow: none;
-  }
+  /* No rule strips the glyph's ground here: when home.css was global, light.css
+     loaded after it and kept the tinted ground plate, which is what members
+     have seen. Loading home.css later (the CSS diet) would have let a
+     stripping rule win and changed the tiles (D28, auditor A7). */
   :root[data-theme="light"] .nf-cat-row[data-columns="2"] .nf-cat-tile:not(:where([data-theme="dark"] *)) {
     padding: var(--nf-space-xs) var(--nf-space-xs) var(--nf-space-sm);
   }

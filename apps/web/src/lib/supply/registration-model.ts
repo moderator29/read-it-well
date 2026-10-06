@@ -10,10 +10,11 @@ import { isSupplyRole, type WorkspaceKind } from "./roles";
  * not a pixel: which screens each one has, which answers each question
  * accepts, what the fee arithmetic is, and what the server will refuse.
  *
- * CLIENT SAFE. It imports Zod, the phone rule and `roles.ts`, and nothing that
- * touches the network, so the three form components, the server action and the
- * specs all read the same values. A second copy of any of this anywhere is a
- * defect, which is the rule `roles.ts` sets at its head and this file inherits.
+ * CLIENT SAFE. It imports only `roles.ts` (the schemas and Zod stay in
+ * `registration.ts`), and nothing that touches the network, so the three form
+ * components, the server action and the specs all read the same values. A
+ * second copy of any of this anywhere is a defect, which is the rule `roles.ts`
+ * sets at its head and this file inherits.
  *
  * ---------------------------------------------------------------------------
  * WHY THE FORM DIFFERS, IN ONE SENTENCE, BECAUSE IT GOVERNS EVERY CHOICE BELOW
