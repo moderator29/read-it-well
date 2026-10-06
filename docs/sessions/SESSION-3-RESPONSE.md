@@ -200,6 +200,34 @@ with `next build` and recorded here when the ports are in.
 
 ---
 
+## 7. The independent audit before push
+
+An auditor agent reviewed every unpushed commit, read-only, against committed
+content only. **Verdict: HOLD, on one blocker, now fixed.**
+
+| # | Finding | Severity | Resolution |
+|---|---|---|---|
+| 1 | A right passcode reloaded the app about six seconds later: the unlock cookie makes Next re-render the gate in the action's response and unmount the lock before its 320ms door, and the door's untracked timers then refreshed and armed a reload on the unmounted lock | BLOCKER | **Fixed** by the lead (`6a0a26dd8`): timers tracked and cleared, `finish` inert once unmounted |
+| 2 | Startup overlay had no absolute ceiling and no keyboard skip; a slow streamed response held the lockup over a usable shell | SHOULD | F1 |
+| 3 | Tap-to-skip could click through to Get Started's invisible doors | SHOULD | F1 |
+| 4 | The collapsed-rail flag on `<html>` leaked to the admin, agent and host sidebars | SHOULD | W10 |
+| 5 | Biometric door ignored typed digits; focus fell to `body` on switching to the keypad | SHOULD | F1 |
+| 6 | Ported framer components unusable before the lazy features load (only on the dev gallery today) | SHOULD | B5, before any surface wires them |
+| 7 | The passcode lock's `showModal` cut the startup short on a locked cold start | SHOULD | F1 |
+| 8 | Layout-property transitions in `nav-island.css` and `passcode.css`; the lockup snapping out of its hold scale; reduced motion skips rather than crossfades | NIT | W10, F1 |
+
+**Recorded rather than changed, from the same audit:**
+- `ec3f9f226` deleted the unused four-hue `DonutChart.tsx` inside the copy-module
+  commit; the deletion is deliberate (the refused pattern, north star 9) and is
+  named here because its commit message does not.
+- **Flow-routing change, D28:** Get Started's "Get started" now carries
+  `next=/welcome`, restoring the interests and arrival step a cold-start sign-up
+  used to skip. No step was added or reordered.
+- **For Session 4:** the Get Started legal line reads "By continuing you agree to
+  our Terms and Privacy Policy. Terms · Privacy policy", saying it twice; legal
+  wording is Session 4's to settle. The toast dwell of 2,400ms matches the motion
+  inventory and pauses while touched, but deserves a screen-reader check.
+
 ## Completed
 
 - Verified starting state; ownership declared before parallel work.
