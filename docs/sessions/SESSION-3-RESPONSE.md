@@ -112,6 +112,14 @@ state until they land.
 | R-8 | Host analytics | RPC `host_analytics(p_business_id uuid default null, p_months int default 12)` returning monthly `{month 'YYYY-MM', requests, confirmed, cancelled, lapsed, nights_sold, gross_minor, host_share_minor}` plus `{offered_nights, booked_nights, blocked_nights}` for the next 30 nights, with the privacy floor of `lib/agent/analytics-queries.ts` | Host analytics (not built) | **Yes** |
 | R-9 | Host earnings by month, complete | `my_host_earnings_by_month()` returning `{month, gross_minor, host_share_minor, stays}`, not paginated (charting one page of `readMyEarnings` would be wrong) | `/host/earnings` chart | **Yes**, that chart |
 | R-10 | Agent daily series | `agent_daily_counts(p_from date, p_to date)` returning `{day, requests, confirmed, enquiries}` | `TrendLine` on agent analytics | No |
+| R-50 | Whether a listing health score exists | If it does: `listing_health(p_listing uuid)` returning `{score smallint, components jsonb}` with its formula | Listing Health | No: no score is printed until then |
+| R-51 | Floor plan storage | `listing_photos.kind = 'floor_plan'` or a `listing_floor_plans` table, plus the wizard upload | Listing Health's floor-plan line | No: it says "Not held" |
+| R-52 | A photo quality signal | `listing_photos.{width, height, quality}` | Listing Health | No |
+| R-53 | A price-guidance rule | `listing_price_position(p_listing)` returning `{area_median_minor, peers}` with a floor of five, and an approved rule for "adjust price" | Listing Health | No: price advice is stated as not given |
+| R-54 | Funnel over any period | `listing_funnel(p_listing uuid, p_days int default 7)` | Funnel metrics beyond 7 days | No: they say "7 days only" |
+| R-55 | Counters for shares and contact reveals | | Space Analytics | No: named as not counted |
+| R-56 | Funnel totals in one read | `agent_funnel_totals(p_days)` | Overview for agents with more than 40 live listings | No: no total is printed past 40 |
+| R-60 | Earned badges readable by a signed-out visitor | A definer view `(user_id, badge_code, granted_at, earned)` | Profiles | No |
 
 ---
 
@@ -347,6 +355,23 @@ never colours the result. Results per push are appended below.
    earlier keeps their saved spaces but sees them two at a time (A4 NIT).
 12. **The guides index keeps its cards** (W1b): each card carries a "Last
    reviewed" date, a trust fact a row would have dropped.
+13. **UiIcon stays one shared chunk (8.4KB gz).** 178 call sites name a glyph
+    at runtime, so a split cannot tree-shake. A common set plus a lazy rest
+    would save at most about 5KB, and only on routes using common glyphs
+    alone, while routes with rarer glyphs would wait on a second request (R2's
+    measurement).
+14. **The search pill flies only on a client-side arrival.** Its origins are
+    native GET forms, so results arrive as server-painted HTML. Flying over
+    that made the chips blink on slow phones, so the flight now plays only
+    when results arrive by client navigation. Intercepting the forms to keep
+    the flight is a separate decision.
+15. **Haptics were not the weight W13 attributed.** The Capacitor bridge was
+    already lazy and gated by `looksNative()`. Most of that chunk's 25KB is
+    `next/image` (F1, measured), which F1 is now tracing.
+16. **Home's stated-kind reads keep the catalogue's ceiling.** Capping at
+    eighteen would have handed ranking only the newest rows (auditor A7), and
+    ranking is Session 2's.
+
 
 ## Risks
 
