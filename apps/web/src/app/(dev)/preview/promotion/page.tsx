@@ -19,7 +19,7 @@ import { RENTAL, SHELF } from "../f3/fixtures";
  * the card (its Verified mark, proof strip and lister line) is the same.
  * Then the four tiers as the onboarding lists them, and the results screen
  * in its not-live state: every figure "No data". The fixtures are the
- * catalogue harness's (`f3/fixtures.ts`); nothing here is a real listing,
+ * catalogue harness's (`app/(dev)/preview/f3/fixtures.ts`); nothing here is a real listing,
  * price paid or result.
  */
 export default function PromotionPreview() {

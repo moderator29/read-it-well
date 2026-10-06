@@ -16,7 +16,7 @@
  *
  * The page is an async server component over one read, so it is called as the
  * function it is with that read stubbed and rendered to markup; no browser.
- * Fixtures: `preview/f3/tenancy-file-states.ts` (every value's source is in it).
+ * Fixtures: `app/(dev)/preview/f3/tenancy-file-states.ts` (every value's source is in it).
  * NOT MEASURED, for want of a fixture: a processor reference on a payment, a
  * working receipt code's "ending in" line, the caution and the demand letter.
  */

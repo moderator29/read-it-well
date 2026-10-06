@@ -14,7 +14,7 @@
  *   - the share and dispute tiles, the receipt-code panel and the complaint
  *     door, which are a paid tenancy's only.
  *
- * Fixtures: `preview/f3/tenancy-file-states.ts`. NOT MEASURED, for want of a
+ * Fixtures: `app/(dev)/preview/f3/tenancy-file-states.ts`. NOT MEASURED, for want of a
  * fixture: the processor reference row, the caution register.
  */
 import { describe, expect, it, vi } from "vitest";
