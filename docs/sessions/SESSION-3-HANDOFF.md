@@ -929,3 +929,35 @@ and no provider reference dressed as one.
 deceptive concealment.** Where a provider must be named by a rule, a receipt, the
 Terms or a KYC step, name it. A hosted checkout you cannot embed is explained and
 handed off, never dressed as Vallo's page.
+
+### Pricing and referral surfaces (D51): yours to build
+
+**Every Guarantee sentence comes out.** `lib/money/copy.ts`, the Terms, the help
+centre, the emails. The replacement trust story is what is now true: **your payment
+is held until you confirm**, which on the escrow rail is a stronger claim than the
+Guarantee ever was.
+
+**Withdrawal must show its maths before the member commits**, because one
+unexplained deduction is how trust is lost:
+
+```
+Amount            1,000,000
+Processing fee          300
+You'll receive      999,700
+```
+
+The figure is read back from the provider per transaction, so the screen waits for
+a real number and never shows an estimate dressed as a total.
+
+**The referral dashboard**, member side: available, pending and lifetime earned;
+the invite link with copy, share sheet and QR; a referral list showing joined,
+qualified, pending and under review **without ever exposing a risk reason or a
+fraud signal**; a rewards history reading like a transaction list; and a withdraw
+flow stating the 1,000 naira minimum and the fee before confirmation.
+
+**Never call it a wallet.** It is a **Rewards Balance**: Vallo owing the member
+money, not Vallo holding it. Progress toward a campaign bonus may be shown; a
+downline, a tree or anything resembling one may not.
+
+**The share message sells the product, not the bounty.** "Join me on Vallo", never
+"join so I can earn".

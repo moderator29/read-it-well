@@ -809,6 +809,110 @@ committed and pushed as it is done, cleanly, without sessions conflicting.
 | Treating retired custody language as a naming tidy-up | D48 |
 | **D39's LazyMotion requirement** | **D49: it is dead weight here and comes out** |
 | **D48's reading that no balance may ever exist** | **D50: a balance held by a licensed provider may be presented, under four conditions** |
+| **The Vallo Guarantee at 1 to 2 percent** | **D51: retired to zero, machinery kept** |
+
+---
+
+## D51. Pricing, the Guarantee retired, and the referral engine
+
+**Founder decisions, 6 October 2026.** Full detail and the maths in
+`docs/payments/VALLO_PRICING.md`. Every rate is **policy data in `money_policy`**,
+in basis points or kobo. Changing a price is a row, never a deploy.
+
+### The rates
+
+**Vallo commission 0.5 percent** (`commission_bps = 50`), both rails. The leg
+already exists: `commission_minor` is in the split today, at zero.
+
+**The Guarantee is retired. `guarantee_bps = 0`.** Escrow already holds the money
+until conditions are met, so charging again for the same promise meant 4 percent
+off the lister on a platform with no listers to lose. It also had the shape of
+insurance, which `THE_HUNDRED.md` already refuses elsewhere as NAICOM-regulated,
+and nobody had decided what happens to unclaimed money. **The machinery stays
+built at zero**, switchable per rail in one row if the direct rail later shows
+fraud.
+
+Two pieces of work follow: **every Guarantee sentence comes out** of
+`lib/money/copy.ts`, the Terms, the help centre and the emails, replaced with what
+is now true, *your payment is held until you confirm*; and
+**`PAYSTACK_GUARANTEE_SUBACCOUNT` may stop being a blocker**, since there is no
+reserve leg to route. **Session 2 verifies that, never assumes it**, because the
+split currently refuses a charge whose reserve leg is missing.
+
+**VAT is not charged. `vat_bps = 0`, `vat_registered = false`.** Nigeria's
+threshold is 25 million naira of **turnover, meaning Vallo's own revenue**, which
+is the 0.5 percent and not the value of transactions facilitated. **Charging VAT
+while unregistered is an offence.** When it is switched on it applies to Vallo's
+fee only, never the rent, and is recorded as its own ledger line because it is
+remitted to FIRS and was never Vallo's money.
+
+### Withdrawals
+
+Minimum **1,000 naira**. Bands as the founder set them, with two Session 1
+corrections, both overridable:
+
+- **The 100,000 to 200,000 gap is closed**: the 200 naira band starts at 100,000,
+  so the table is continuous. A pricing table with a hole is a support ticket.
+- **The 2,000,000 cliff is smoothed.** At 1,999,999 the fee is 300 and at
+  2,000,001 it is 2,500, so anyone withdrawing 2.5 million sends two withdrawals
+  and pays 600. The top band becomes a percentage with a cap.
+
+**And the context the founder asked for: the CBN caps bank NIP transfers at 50
+naira above 50,000, and Paystack's own transfer pricing is 10, 25 and 50 naira.** A
+member's own bank moves 2 million naira for 50. The under-100,000 band at 50 naira
+matches the market exactly; the upper bands are far above it, and they are also
+the ones that will almost never fire at launch, since referral payouts run from
+1,000 to 105,000 naira.
+
+**The operational rule that governs every withdrawal.** Payluk does not publish
+its withdrawal fee and it is not fixed: *"Payluk sets the `fee` on the returned
+intent; you do not send it ... The fee depends on the amount and on which provider
+Payluk currently settles payouts through, and it may include VAT."* So: **create
+the intent, read the provider fee back, add Vallo's band, show one total before
+the member confirms.** Never compute a withdrawal from a hardcoded table, never
+quote before the intent exists, and reconcile against the figure read back.
+
+**Payluk's 2 percent is escrow only.** Withdrawals, deposits and transfers carry
+their own separate, variable fee. Deposits are card top-ups charged through
+Paystack underneath, minimum 100 naira.
+
+### Referral
+
+**70 naira per qualified referral, 1,500 qualified referrals per member per
+month**, which is **105,000 naira per member per month at the ceiling**.
+
+**So the cap is not the fraud control at that level; qualification is.** Three
+requirements follow:
+
+1. **Qualification is phone verified AND a real action** by the referred person,
+   never a signup. A SIM costs less than 70 naira of effort.
+2. **A platform-wide monthly budget cap**, server-side, separate from the
+   per-member cap, so one viral moment cannot create a liability Vallo cannot fund.
+3. **1,500 a month is 50 a day**, which is a professional rather than a member.
+   Consider whether that volume should move somebody into a reviewed ambassador
+   tier instead of accruing automatically.
+
+**It is a Rewards Balance and never a wallet.** Vallo owing a member money is a
+different legal object from Vallo holding a member's money. It accrues as a
+liability from qualification, it never expires, and the threshold is stated before
+anybody starts earning.
+
+**Payout rail is Paystack transfers from a Vallo-funded marketing float**, not
+Payluk: the money is Vallo's own marketing spend, so no custody question arises,
+and it avoids forcing a referrer through provider KYC to collect a small sum.
+
+### The three pots, separated in the schema and not merely in a report
+
+**Customer funds** (the member's, at the provider) · **Vallo revenue** (commission,
+withdrawal fees, promotion) · **the marketing float** (Vallo's, funding referral
+payouts). Payluk cannot do a three-way split, so on the escrow rail Vallo's
+commission is a separate recorded movement, which makes the separation a ledger
+requirement.
+
+### Still blocking, and founder-only
+
+**Payluk's `whoPays` is required at escrow creation and has not been chosen**:
+buyer, seller or both. **Until it is set the escrow rail cannot open at all.**
 
 ---
 

@@ -777,3 +777,33 @@ a loop, and every sweep is paced against it.
 phone and BVN with their own verification state). `GET /v1/wallet` returns their
 main and escrow balances. That is the data behind Session 3's money centre, and it
 is yours to expose as a Vallo concept, never a Payluk one.
+
+### Pricing and referral (D51): yours to build
+
+**Rates are policy rows in `money_policy`, never constants.** Set
+`commission_bps = 50`, `guarantee_bps = 0`, `vat_bps = 0`, `vat_registered = false`.
+The commission leg already exists in the split at zero.
+
+**Verify, do not assume, that `PAYSTACK_GUARANTEE_SUBACCOUNT` stops blocking** once
+`guarantee_bps = 0`: the split currently refuses a charge whose reserve leg is
+missing, and if it still does at zero the founder is blocked for no reason.
+
+**Withdrawals: never compute from a table.** Payluk's fee is variable and
+unpublished. Create the intent, read `fee` back, add Vallo's band, return one
+total. Reconcile against the figure read back. Payluk's 2 percent is **escrow
+only**; withdrawals, deposits and transfers carry separate fees, and deposits run
+through Paystack underneath with a 100 naira minimum.
+
+**The referral engine, in full.** Attribution server-side, never browser storage.
+The lifecycle through pending, qualified, approved, available, processing, paid,
+reversed, under review. **Qualification is phone verified AND a real action**, never
+a signup. A rewards **ledger**, append only, never `balance += 70`: a reversal is a
+new entry with a reason and an actor, never a deletion. A **platform-wide monthly
+budget cap** server-side, alongside the 1,500 per-member cap. A **risk engine** on
+device, network, velocity, payout-account reuse and referral-graph clustering,
+where shared Wi-Fi and shared devices raise risk and never auto-ban. Payouts through
+**Paystack transfers from Vallo's marketing float**, with account-name resolution
+before sending, and never marked paid before the provider confirms.
+
+**Three pots separated in the schema**: customer funds at the provider, Vallo
+revenue, the marketing float. Not three columns on one table.

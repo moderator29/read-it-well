@@ -392,3 +392,25 @@ surface and never the legal one.
 requests per minute per key across all routes means any call per listing, per
 render or in a loop is a defect, and every reconciliation sweep must be paced
 against it. Find them before production does.
+
+### Pricing and referral audit (D51): yours to verify
+
+**Confirm `guarantee_bps = 0` actually unblocks payment**, rather than taking
+Session 2's word for it: the split refuses a charge whose reserve leg is missing,
+and the founder is blocked for nothing if that still holds at zero.
+
+**Confirm no withdrawal figure is hardcoded.** Payluk's fee is variable and read
+back per intent; any constant in the withdrawal path is a defect, and a quoted
+total shown before the intent exists is a defect.
+
+**Confirm the pricing table is continuous**, with no gap between bands and no
+boundary where splitting a withdrawal is cheaper than making one.
+
+**Confirm the three pots are separated in the schema**, not in a report, and that
+no rewards balance is presented as custody.
+
+**Confirm no fraud signal, risk score or admin note is reachable by a member**, on
+any surface, in any payload, including a server response the UI does not render.
+
+**Confirm the platform-wide referral budget cap is enforced server-side** and
+cannot be exceeded by concurrent qualification.
