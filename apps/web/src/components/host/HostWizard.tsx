@@ -897,7 +897,7 @@ function PayoutStep({ draft, pending, run, setNotice, set }: StepProps) {
 
   /* V-81: a new account to be paid into asks for the phone lock, when there is one. */
   const viewerLocale = useClientLocale();
-  const lock = useMoneyStepUp();
+  const lock = useMoneyStepUp(viewerLocale);
   const save = () =>
     run(
       async () => {
