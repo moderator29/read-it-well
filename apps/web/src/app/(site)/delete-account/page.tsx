@@ -147,12 +147,15 @@ export default function DeleteAccountPage() {
           </section>
 
           {/* ------------------------------------------------- what is kept */}
+          {/* The sentence listed "wallet entries" among what is kept; Vallo keeps no
+              wallet for anybody (D48), and the list of tables under it still names
+              every retained table exactly (C6, the route sweep). */}
           <section>
             <h2>What is kept, and why</h2>
             <p className="mt-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
               Vallo is registered with the Special Control Unit against Money Laundering, and
               Nigerian anti-money-laundering rules require a platform that moves money to retain
-              its transaction records. So bookings, reservations, wallet entries, payments, payout
+              its transaction records. So bookings, reservations, payments, payout
               records, inspection requests and reviews are kept, with your name, email address and
               telephone number removed from every one of them. What is left is an amount, a date
               and a reference that no longer points at a person.
