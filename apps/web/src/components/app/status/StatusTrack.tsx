@@ -1,4 +1,5 @@
 import "@/app/css/status-track.css";
+import "./status-shapes.css";
 import type { TrackState } from "./tracks";
 import { trackPosition } from "./tracks";
 
@@ -13,9 +14,10 @@ import { trackPosition } from "./tracks";
  * a quiet dash for a step still ahead and nothing at all for one behind: a
  * time is never made up to fill the gap.
  *
- * Colour is never the only signal. Done is a filled disc with a tick, current
- * a ring with a filled centre and a heavier label, upcoming a hollow ring,
- * failed a cross. A greyscale screenshot reads the same as the colour one, and
+ * Colour is never the only signal, and the shapes are StatusChip's: done is a
+ * filled disc with a tick, current a ring with a filled centre and a heavier
+ * label, upcoming a hollow ring, failed a filled square with a cross (the
+ * chip's "failed" square, `status-shapes.css`). A greyscale screenshot reads the same as the colour one, and
  * a screen reader hears "Step 2 of 4" and each step's state in words.
  *
  * Vertical by default; horizontal once the track itself is wide enough for its
