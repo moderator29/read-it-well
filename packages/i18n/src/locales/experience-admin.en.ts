@@ -163,6 +163,7 @@ export const experienceAdminEn = {
    */
   compliance: {
     slideApprove: "Slide to approve this decision",
+    slideApproveRelease: "Slide to approve the release",
     /** Said on the track when the server refused; the refusal's own sentence is under it. */
     refused: "That did not go through",
     /** The desk's decision bar, named for a screen reader. */

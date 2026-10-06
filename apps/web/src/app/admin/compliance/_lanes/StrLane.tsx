@@ -35,6 +35,7 @@ async function StrLaneView({ t, params }: ComplianceLaneProps) {
     confirmed: t.experienceUi.confirmed,
     error: t.experienceAdmin.compliance.refused,
     decisionBar: t.experienceAdmin.compliance.decisionBar,
+    slideApproveRelease: t.experienceAdmin.compliance.slideApproveRelease,
   };
   const access = await requireAdmin("compliance");
   let cases: StrCase[] | null = null;
@@ -119,7 +120,7 @@ async function StrLaneView({ t, params }: ComplianceLaneProps) {
                 <p className="nf-caption mt-inline-tight">
                   {copy.releaseAsked.replace("{date}", lagosTime(rel.requestedAt))}. {copy.registerCase}: {rel.caseId.slice(0, 8)}
                 </p>
-                <StrApproveRelease copy={copy} releaseId={rel.releaseId} />
+                <StrApproveRelease copy={copy} releaseId={rel.releaseId} words={slide} />
               </li>
             ))}
           </ul>

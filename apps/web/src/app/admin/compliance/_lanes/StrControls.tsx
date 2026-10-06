@@ -41,6 +41,8 @@ export type StrSlideWords = {
   confirmed: string;
   error: string;
   decisionBar: string;
+  /** The slide that ends a hold: a second person's release is as final as an approval. */
+  slideApproveRelease: string;
 };
 type Said = { ok: boolean; text: string } | null;
 
@@ -169,6 +171,10 @@ export function StrCaseControls({ copy, c, words }: { copy: Copy; c: StrCase; wo
     useState<(typeof STR_LINK_KINDS)[number]>("transaction");
   const [linkRef, setLinkRef] = useState("");
   const [releaseNote, setReleaseNote] = useState("");
+  /* True from the moment the approval slide is released until the server has
+     answered, so the other way out of the same decision cannot be taken
+     while this one is in flight. */
+  const [ruling, setRuling] = useState(false);
 
   function run(
     action: () => Promise<
@@ -197,9 +203,14 @@ export function StrCaseControls({ copy, c, words }: { copy: Copy; c: StrCase; wo
     action: () => Promise<{ ok: true; data: { text: string } } | { ok: false; error: string }>,
   ): Promise<boolean> {
     setSaid(null);
-    const result = await action();
-    setSaid(result.ok ? { ok: true, text: result.data.text } : { ok: false, text: result.error });
-    return result.ok;
+    setRuling(true);
+    try {
+      const result = await action();
+      setSaid(result.ok ? { ok: true, text: result.data.text } : { ok: false, text: result.error });
+      return result.ok;
+    } finally {
+      setRuling(false);
+    }
   }
 
   return (
@@ -266,7 +277,7 @@ export function StrCaseControls({ copy, c, words }: { copy: Copy; c: StrCase; wo
               />
               <Button
                 variant="secondary"
-                disabled={pending}
+                disabled={pending || ruling}
                 onClick={() => run(() => approveStr({ decisionId: c.decision!.id, approve: false, note }))}
               >
                 {copy.reject}
@@ -402,25 +413,31 @@ export function StrCaseControls({ copy, c, words }: { copy: Copy; c: StrCase; wo
   );
 }
 
-/** SCUML items 6 and 19: the second person on a hold release. */
-export function StrApproveRelease({ copy, releaseId }: { copy: Copy; releaseId: string }) {
+/**
+ * SCUML items 6 and 19: the second person on a hold release. Ending a hold is
+ * as final as approving a decision (it is recorded once, by a second person),
+ * so it is the same slide: not the money one, because ending a hold moves no
+ * money, and resolving false on a refusal, with the refusal's own sentence
+ * printed beneath.
+ */
+export function StrApproveRelease({ copy, releaseId, words }: { copy: Copy; releaseId: string; words: StrSlideWords }) {
   const [said, setSaid] = useState<Said>(null);
-  const [pending, start] = useTransition();
   return (
     <div className="mt-row">
-      <Button
-        variant="secondary"
-        full
-        loading={pending}
-        onClick={() =>
-          start(async () => {
-            const result = await approveStrRelease({ releaseId });
-            setSaid(result.ok ? { ok: true, text: result.data.text } : { ok: false, text: result.error });
-          })
-        }
-      >
-        {pending ? copy.working : copy.approveRelease}
-      </Button>
+      <DragToConfirm
+        label={words.slideApproveRelease}
+        keyboardLabel={copy.approveRelease}
+        confirmingLabel={words.confirming}
+        confirmedLabel={words.confirmed}
+        errorLabel={words.error}
+        onConfirm={async () => {
+          setSaid(null);
+          const result = await approveStrRelease({ releaseId });
+          setSaid(result.ok ? { ok: true, text: result.data.text } : { ok: false, text: result.error });
+          return result.ok;
+        }}
+        data-testid="str-release-slide"
+      />
       <Message said={said} />
     </div>
   );
