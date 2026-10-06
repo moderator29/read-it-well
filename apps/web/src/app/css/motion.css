@@ -66,38 +66,6 @@
   }
 
   /*
-   * The assistant thinking, visibly. A ring spins around the avatar while a
-   * reply is actively streaming (a real signal, `streamingHere` in
-   * AssistantChat, not an idle loop), so the bot reads as reasoning rather
-   * than stalled. The ring sits on its own pseudo-element, never on the
-   * avatar tile's own transform, so it never fights the tile's parallax
-   * lean or its living-glass sheen.
-   */
-  .nf-bot-thinking {
-    position: relative;
-  }
-  .nf-bot-thinking::after {
-    content: "";
-    position: absolute;
-    inset: -4px;
-    border-radius: var(--nf-radius-circle);
-    border: 2px solid transparent;
-    border-top-color: var(--nf-brand-secondary);
-    border-right-color: color-mix(in oklab, var(--nf-brand-secondary) 35%, transparent);
-    animation: nf-bot-spin var(--nf-duration-cinematic) linear infinite;
-    pointer-events: none;
-  }
-  @keyframes nf-bot-spin {
-    to { transform: rotate(360deg); }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .nf-bot-thinking::after {
-      animation: none;
-      opacity: 0.7;
-    }
-  }
-
-  /*
    * Real listing results fan into the thread with a staggered rise, `--i`
    * set inline per card, rather than appearing as one flat block the moment
    * the assistant's search resolves.

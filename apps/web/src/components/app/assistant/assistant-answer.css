@@ -5,19 +5,17 @@
   owns the card; this sheet only fits it into the assistant thread and adds the
   thinking orb.
 
-  `AIResponse`'s root class is `nf-ai`, and so is the assistant page's own
-  wrapper (home.css), which is a flex column that fills the screen. A card
-  inside that wrapper would inherit "fill the screen", so the rule below
-  restates the card's own layout one specificity step above both.
+  `AIResponse`'s root class is `nf-ai`. The assistant page's own wrapper used
+  to share that name (and its "fill the screen" flex column), which is why
+  this rule once restated the card's layout; the wrapper is `nf-assistant`
+  now, so the rule only sizes the card as a flex child of its turn.
 */
 @layer components {
-  .nf-ai .nf-ai.nf-ai-answer {
-    display: grid;
+  .nf-assistant .nf-ai-answer {
     flex: 1 1 auto;
     min-height: 0;
     min-width: 0;
     max-width: 100%;
-    padding: var(--nf-space-md);
   }
   /* The words keep the line breaks the model wrote. */
   .nf-ai-answer .nf-ai__body {

@@ -94,7 +94,9 @@
   two up, the thinking pill, the suggestion chips and the sparkle composer.
 */
 @layer components {
-  .nf-ai {
+  /* The assistant page's wrapper. It was `.nf-ai`, which collided with
+     AIResponse's root card (ported.css), so it is its own name now. */
+  .nf-assistant {
     display: flex;
     min-height: 0;
     flex: 1;
@@ -453,60 +455,16 @@
     box-shadow: var(--nf-selected-shadow-inline);
   }
 
-  /* The thinking state: the ring and the word, as one plate.
-
-     The ring inside it stays a circle (a spinner is not a control), but the
-     plate around it carries a word, so the plate is a rounded rectangle on
-     the founder's shape law of 19 September. It sits in a row with chips and
-     would be the only capsule on the surface otherwise. */
-  /* The plate, the chips and the bubbles were all the same black material.
-     `BF49B814` samples its Thinking plate at `#001F65` and its suggestion
-     chips at `#002A84` against a `#000514` ground: lit blue glass, not the
-     canvas. Rung 2 of the tint ladder puts both on the blue without letting
-     the furniture out-shout the bubbles above it. The reference draws the
-     chips brighter than anything else on the surface, which would want a rung
-     between 4 and the edge tokens; adding one is a change to the ladder in
-     `packages/design-tokens/`, so it is reported rather than invented here. */
-  .nf-ai__thinking {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--nf-gap-row);
-    padding: var(--nf-space-xs) var(--nf-space-md) var(--nf-space-xs) var(--nf-space-xs);
-    border-radius: var(--nf-radius-control);
-    font-size: var(--nf-text-body-sm);
-    color: var(--nf-content-secondary);
-    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
-    background: var(--nf-btn-glass-fill);
-    -webkit-backdrop-filter: var(--nf-btn-glass-backdrop);
-    backdrop-filter: var(--nf-btn-glass-backdrop);
-    box-shadow: var(--nf-btn-glass-shadow);
-  }
-  .nf-ai__ring {
-    position: relative;
-    width: 1.75rem;
-    height: 1.75rem;
-    border-radius: var(--nf-radius-circle);
-    border: 3px solid var(--nf-brand-edge-strong);
-    border-top-color: var(--nf-content-primary);
-    box-shadow:
-      0 0 0 1px var(--nf-glow-2),
-      0 0 14px var(--nf-glow-3),
-      inset 0 0 8px var(--nf-glow-2);
-    animation: nf-ai-spin var(--nf-duration-cinematic) linear infinite;
-  }
-  @keyframes nf-ai-spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .nf-ai__ring {
-      animation: none;
-      border-top-color: var(--nf-brand-secondary);
-      border-right-color: var(--nf-brand-secondary);
-    }
-  }
-
+  /* The chips and the bubbles were the same black material. `BF49B814` samples
+     its suggestion chips at `#002A84` against a `#000514` ground: lit blue
+     glass, not the canvas. Rung 2 of the tint ladder puts both on the blue
+     without letting the furniture out-shout the bubbles above it. The
+     reference draws the chips brighter than anything else on the surface,
+     which would want a rung between 4 and the edge tokens; adding one is a
+     change to the ladder in `packages/design-tokens/`, so it is reported
+     rather than invented here. (The thinking plate and its spinning ring that
+     once sat beside them are gone: the assistant's thinking state is
+     `AIResponse`'s breathing skeleton and the orb in `assistant-answer.css`.) */
   /*
    * Suggestion chips: rectangles with a glyph, on a rail above the composer.
    *
@@ -527,7 +485,7 @@
     overflow-x: auto;
     padding-block: var(--nf-space-sm);
     scrollbar-width: none;
-    /* The bleed is the CONTAINER's gutter, not the shell's. `.nf-ai` pads
+    /* The bleed is the CONTAINER's gutter, not the shell's. `.nf-assistant` pads
        itself with `px-md` at phone width, and pulling back by the wider
        `--nf-pad-shell` pushed the rail 8px past both screen edges, which is
        the opposite of the fix (measured: left -8, right 398 at 390). */

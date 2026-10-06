@@ -23,6 +23,7 @@ import type {
 import { hrefForListing } from "@/lib/listings/href";
 import type { ListingKind } from "@/lib/listings/types";
 import { BackControl } from "@/components/ui/BackControl";
+import { Button } from "@/components/ui/Button";
 import { SaveButton, useSaveControl } from "@/components/app/SaveControl";
 import {
   AssistantSidebar,
@@ -609,29 +610,26 @@ export function AssistantChat({
      `/assistant`, beside the name pair inside a workspace. */
   const barActions = (
     <div className="nf-ai__bar-actions">
-      <button
-        type="button"
+      <Button
+        variant="icon"
+        leadingIcon="history"
         aria-label="Conversation history"
         aria-expanded={historyOpen}
         onClick={openHistory}
-        className="nf-icon-btn h-11 w-11 lg:hidden"
-      >
-        <UiIcon name="history" size={20} />
-      </button>
-      <button
-        type="button"
+        className="lg:hidden"
+      />
+      <Button
+        variant="icon"
+        leadingIcon="settings-gear"
         aria-label="Assistant settings"
         aria-haspopup="dialog"
         onClick={() => setSettingsOpen(true)}
-        className="nf-icon-btn h-11 w-11"
-      >
-        <UiIcon name="settings-gear" size={20} />
-      </button>
+      />
     </div>
   );
 
   return (
-    <div className="nf-ai px-md pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-lg lg:px-xl">
+    <div className="nf-assistant px-md pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-lg lg:px-xl">
       {/* An answer that is still streaming while the reader has scrolled up
           through the thread: a status island that says so and takes them
           back to it. It exists only while that is true (a real stream, a
@@ -835,16 +833,17 @@ export function AssistantChat({
                     </div>
                   )}
                   {m.error && activeId && m.text.trim() && (
-                    <button
-                      type="button"
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      leadingIcon="arrow-right"
                       onClick={() => {
                         if (activeId) retry(activeId, m.id);
                       }}
-                      className="nf-btn nf-btn--glass nf-btn--sm self-start"
+                      className="self-start"
                     >
-                      <UiIcon name="arrow-right" size={16} />
-                      <span className="nf-btn__label">Retry</span>
-                    </button>
+                      Retry
+                    </Button>
                   )}
                   {m.listings && m.listings.length > 0 && (
                     <ul className="nf-ai__results" aria-label="Matching listings">
@@ -960,14 +959,16 @@ export function AssistantChat({
                 className="nf-ai__input"
               />
             </div>
-            <button
+            <Button
               type="submit"
+              variant="primary"
+              size="lg"
+              iconOnly
+              leadingIcon="arrow-up"
               aria-label="Send message"
               disabled={!draft.trim()}
-              className="nf-btn nf-btn--primary nf-btn--icon nf-ai__send"
-            >
-              <UiIcon name="arrow-up" size={24} />
-            </button>
+              className="nf-ai__send"
+            />
           </form>
         </section>
       </div>
@@ -1005,14 +1006,7 @@ export function AssistantChat({
           >
             <div className="flex items-center justify-between border-b border-[var(--nf-panel-hair)] pb-xs pl-md pr-xs pt-[calc(var(--nf-space-xs)+env(safe-area-inset-top,0px))]">
               <p className="text-[length:var(--nf-text-body-sm)] font-semibold">Conversations</p>
-              <button
-                type="button"
-                aria-label="Close conversation history"
-                onClick={closeHistory}
-                className="nf-icon-btn h-9 w-9"
-              >
-                <UiIcon name="close" size={16} />
-              </button>
+              <Button variant="icon" leadingIcon="close" aria-label="Close conversation history" onClick={closeHistory} />
             </div>
             <div className="min-h-0 flex-1">{sidebar()}</div>
           </div>
