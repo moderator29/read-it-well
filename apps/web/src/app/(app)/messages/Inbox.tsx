@@ -17,7 +17,7 @@ import type { ThreadContextKind } from "@/lib/messages/db";
 import { Segmented } from "@/components/ui/Segmented";
 import { Chip, ChipRow } from "@/components/ui/Chip";
 import { useInboxPart } from "@/components/app/threads/use-inbox-copy";
-import { plural } from "@vallo/i18n/core";
+import { formatNumber, plural } from "@vallo/i18n/core";
 import { useClientLocale } from "@/lib/i18n/use-client-locale";
 import { TextField } from "@/components/ui/Field";
 import { EmptyState, ICON, TYPE } from "@/components/app/Screen";
@@ -102,7 +102,6 @@ const CONTEXT_GLYPH: Partial<Record<ThreadContextKind, UiIconName>> = {
 type View = "recent" | "unread" | "requests" | "archived" | "reported";
 const VIEW_ORDER: View[] = ["recent", "unread", "requests", "archived", "reported"];
 const SIDE_ORDER: Side[] = ["property", "stays"];
-const SIDE_LABEL: Record<Side, string> = { property: "Property", stays: "Stays" };
 
 function inView(row: InboxRow, view: View): boolean {
   if (view === "reported") return row.reported === true;
@@ -121,9 +120,12 @@ function Row({
   archivePending,
   presenceWord,
   unreadWord,
+  words,
 }: {
   row: InboxRow;
   typing: boolean;
+  /** The row's own words, from the inbox copy. */
+  words: { typing: string; archive: string; moveBack: string };
   /** "Online now" and "3 unread messages", already worded and counted. */
   presenceWord: string;
   unreadWord: string;
@@ -185,7 +187,7 @@ function Row({
                   : "text-[var(--nf-content-secondary)]"
             }`}
           >
-            {typing ? "Typing..." : preview}
+            {typing ? words.typing : preview}
           </span>
         </span>
 
@@ -206,8 +208,8 @@ function Row({
           leadingIcon={row.archived ? "arrow-up" : "archive"}
           onClick={() => onArchive(row)}
           disabled={archivePending}
-          aria-label={`${row.archived ? "Move back to Recent" : "Archive"}: ${row.counterpartName}`}
-          title={row.archived ? "Move back to Recent" : "Archive"}
+          aria-label={`${row.archived ? words.moveBack : words.archive}: ${row.counterpartName}`}
+          title={row.archived ? words.moveBack : words.archive}
           data-testid="inbox-archive"
           className="shrink-0"
         />
@@ -357,7 +359,7 @@ export function Inbox({
         setArchiveNote(result.error);
         return;
       }
-      setArchiveNote(next ? `Archived. It is under Archived, and ${row.counterpartName} still sees it.` : "Moved back to Recent.");
+      setArchiveNote(next ? inbox.archivedNote.replace("{name}", row.counterpartName) : inbox.movedBackNote);
       router.refresh();
     });
   };
@@ -410,8 +412,8 @@ export function Inbox({
       */}
       <PageHeader
         variant="large"
-        title="Inbox"
-        {...(unreadTotal > 0 ? { subtitle: `${unreadTotal} unread` } : {})}
+        title={inbox.title}
+        {...(unreadTotal > 0 ? { subtitle: inbox.unreadCount.replace("{count}", formatNumber(unreadTotal, locale)) } : {})}
         actions={
           <div className="flex shrink-0 items-center gap-inline">
             {canMarkRead && unreadTotal > 0 && (
@@ -422,12 +424,12 @@ export function Inbox({
                 disabled={marking}
                 data-testid="inbox-mark-read"
               >
-                {marking ? "Marking..." : "Mark all read"}
+                {marking ? inbox.marking : inbox.markAllRead}
               </Button>
             )}
             <Link
               href="/search"
-              aria-label="Find a place to message an agent about"
+              aria-label={inbox.compose}
               data-testid="inbox-compose"
               className="nf-icon-btn h-11 w-11"
             >
@@ -444,15 +446,15 @@ export function Inbox({
           is not "select all and delete", and the platform's other four search
           bars each hand-rolled the icon slot at a different size. */}
       <TextField
-        label="Search messages"
+        label={inbox.search}
         hideLabel
         type="search"
         leadingIcon="search"
-        clearable="Clear the search"
+        clearable={inbox.clearSearch}
         onClear={() => setQuery("")}
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="Search messages…"
+        placeholder={inbox.searchPlaceholder}
         data-testid="inbox-search"
       />
 
@@ -465,11 +467,11 @@ export function Inbox({
       */}
       <div className="mt-heading">
         <Segmented<Side>
-          label="Conversations by side"
+          label={inbox.sides}
           full
           options={SIDE_ORDER.map((key) => ({
             value: key,
-            label: SIDE_LABEL[key],
+            label: key === "stays" ? inbox.sideStays : inbox.sideProperty,
             ...(unreadBySide[key] > 0 ? { count: unreadBySide[key] } : null),
           }))}
           value={side}
@@ -540,13 +542,14 @@ export function Inbox({
                 archivePending={archiving}
                 presenceWord={inbox.presence.online}
                 unreadWord={plural(row.unread, inbox.unreadBadge, locale)}
+                words={{ typing: inbox.typing, archive: inbox.archive, moveBack: inbox.moveBack }}
               />
             ))}
           </ul>
         ) : query.trim().length > 0 ? (
           <Empty
-            title="Nothing matches that"
-            body={`No conversation mentions "${query.trim()}". Try a host's name, a listing or a word from the message.`}
+            title={inbox.noMatchTitle}
+            body={inbox.noMatchBody.replace("{query}", query.trim())}
           />
         ) : view === "unread" ? (
           <Empty
@@ -555,41 +558,37 @@ export function Inbox({
           />
         ) : view === "requests" ? (
           <Empty
-            title="No requests waiting"
-            body="A message from somebody you have never spoken to waits here first, so a stranger never lands in your main list."
+            title={inbox.noRequestsTitle}
+            body={inbox.noRequestsBody}
           />
         ) : view === "archived" ? (
           <Empty
-            title={archiveOpen ? "Nothing archived" : "Archive is not open yet"}
-            body={
-              archiveOpen
-                ? "Archive a conversation from Recent to put it away. Only you stop seeing it there; the other person still has it, and a new reply brings it back."
-                : "Soon you will be able to put conversations away here. Nothing you have is hidden in the meantime."
-            }
+            title={archiveOpen ? inbox.noArchivedTitle : inbox.archiveClosedTitle}
+            body={archiveOpen ? inbox.noArchivedBody : inbox.archiveClosedBody}
           />
         ) : view === "reported" ? (
           <Empty
-            title="Nothing reported"
-            body="A conversation you report, or one with a person you reported, is listed here so you can find it again."
+            title={inbox.noReportedTitle}
+            body={inbox.noReportedBody}
           />
         ) : onSide.length === 0 ? (
           side === "stays" ? (
             <Empty
-              title="No stay conversations yet"
-              body="Message a hotel or a restaurant, or book a stay. The conversation appears here with the place attached."
-              action={{ href: "/stays", label: "Find a stay" }}
+              title={inbox.noStaysTitle}
+              body={inbox.noStaysBody}
+              action={{ href: "/stays", label: inbox.findStay }}
             />
           ) : (
             <Empty
-              title="No conversations yet"
-              body="Open any property and tap Message agent. The thread appears here, with the property attached, so nobody has to ask which one you mean."
-              action={{ href: "/search", label: "Find a place" }}
+              title={inbox.noneTitle}
+              body={inbox.noneBody}
+              action={{ href: "/search", label: inbox.findPlace }}
             />
           )
         ) : (
           <Empty
-            title="Nothing in Recent"
-            body="Everything on this side is a request or archived. Reply to a request and it moves here."
+            title={inbox.recentEmptyTitle}
+            body={inbox.recentEmptyBody}
           />
         )}
       </div>
