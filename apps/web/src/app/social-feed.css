@@ -730,6 +730,10 @@
     justify-content: center;
     inline-size: 44px;
     block-size: 44px;
+    /* The control radius, as Follow beside it: the glass door brings its
+       material but not a shape, so this drew a sharp-cornered square (Round
+       3 sweep). */
+    border-radius: var(--nf-radius-control);
     /* Its material is the shared glass door in the profile's markup now
        (SW-S1): this keeps the box and the ink only. */
     color: var(--nf-content-secondary);

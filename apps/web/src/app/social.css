@@ -57,7 +57,11 @@
    */
   .nf-social-cover {
     position: relative;
-    margin-inline: -1.25rem;
+    /* Cancels the shell's gutter so the band reaches both edges: exactly the
+       gutter token, which steps 16, 24 and 32. It cancelled 20, then 32 from
+       768px, so a phone's band ran 4px past both screen edges (Round 3 sweep,
+       measured -4 to 394 at 390) and a narrow tablet's 8. */
+    margin-inline: calc(var(--nf-pad-shell) * -1);
     margin-top: calc(-2rem - var(--nf-social-bar));
     height: calc(var(--nf-social-bar) + 132px);
     overflow: hidden;
@@ -80,12 +84,6 @@
     .nf-social-cover {
       margin-top: calc(-2.5rem - var(--nf-social-bar));
       height: calc(var(--nf-social-bar) + 176px);
-    }
-  }
-
-  @media (min-width: 768px) {
-    .nf-social-cover {
-      margin-inline: -2rem;
     }
   }
 
@@ -690,8 +688,10 @@
  */
 @layer components {
   :root[data-theme="light"] .nf-profile-top[data-theme="dark"] {
-    margin-inline: -1.25rem;
-    padding: 0 1.25rem var(--nf-space-lg);
+    /* The gutter token, as the cover inside it (Round 3 sweep: 20px into a
+       16px gutter ran 4px past both edges of a phone). */
+    margin-inline: calc(var(--nf-pad-shell) * -1);
+    padding: 0 var(--nf-pad-shell) var(--nf-space-lg);
     border-radius: 0 0 var(--nf-radius-2xl) var(--nf-radius-2xl);
     background:
       radial-gradient(80% 40% at 100% 100%, color-mix(in oklab, var(--nf-container-ink) 16%, transparent), transparent 72%),
@@ -699,12 +699,6 @@
     box-shadow:
       inset 0 -1px 0 color-mix(in oklab, var(--nf-container-ink) 45%, transparent),
       0 18px 36px -26px var(--nf-glow-3);
-  }
-  @media (min-width: 768px) {
-    :root[data-theme="light"] .nf-profile-top[data-theme="dark"] {
-      margin-inline: -2rem;
-      padding-inline: 2rem;
-    }
   }
 }
 

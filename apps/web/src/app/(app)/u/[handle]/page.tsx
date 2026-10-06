@@ -23,6 +23,7 @@ import {
 import { AroundFab } from "@/components/social/AroundFab";
 import { loadPublicProfile, normaliseHandle } from "@/lib/social/profiles-queries";
 import { siteUrl } from "@/lib/site";
+import { withNext } from "@/lib/auth/next-link";
 import {
   getProfileActivity,
   getProfileFeed,
@@ -100,7 +101,8 @@ export async function generateMetadata({
   if (view.state !== "found") return { title };
 
   const name = view.profile.displayLabel || title;
-  const description = view.profile.bio || `${name} on Vallo.`;
+  const description =
+    view.profile.bio || getDictionary(await getLocale()).experienceSocial.profilePage.metaDescription.replace("{name}", name);
   const url = `${siteUrl().replace(/\/+$/, "")}/u/${handle}`;
   const avatar = view.profile.avatarUrl || undefined;
   return {
@@ -142,6 +144,7 @@ export default async function SocialProfilePage({
 
   const locale = await getLocale();
   const t = getDictionary(locale);
+  const words = t.experienceSocial.profilePage;
   const [view, query] = await Promise.all([loadPublicProfile(raw), searchParams]);
 
   if (view.state === "found") {
@@ -173,7 +176,10 @@ export default async function SocialProfilePage({
       ]);
 
     return (
-      <div className="mx-auto max-w-2xl">
+      /* Room under the tabs' last line for the floating compose button, as
+         the other Around pages keep (`pb-4xl`): a short page's empty state
+         sat under it with no way to scroll it clear (Round 3 sweep). */
+      <div className="mx-auto max-w-2xl pb-4xl">
         <ProfileHeader
           profile={view.profile}
           isOwner={view.isOwner}
@@ -248,19 +254,19 @@ export default async function SocialProfilePage({
       {view.state === "unconfigured" && (
         <EmptyPanel
           icon="user-check"
-          title="We cannot reach profiles right now"
-          body="This is on our side, not yours. Nobody's page can be read from here at the moment. The rest of the app works as normal."
-          action={{ href: "/home", label: "Back to home" }}
+          title={t.experienceSocial.people.unreachableTitle}
+          body={t.experienceSocial.people.unreachableBody}
+          action={{ href: "/home", label: words.backToHome }}
         />
       )}
 
       {view.state === "malformed" && (
         <EmptyPanel
           icon="home-search"
-          title="That is not a handle"
-          body="A handle is 3 to 20 characters: letters, numbers and underscores, starting with a letter. Check the address and try again."
-          action={{ href: "/home", label: "Back to home" }}
-          secondary={{ href: "/search", label: "Search stays" }}
+          title={words.malformedTitle}
+          body={words.malformedBody}
+          action={{ href: "/home", label: words.backToHome }}
+          secondary={{ href: "/search", label: t.experienceSocial.paused.searchStays }}
         />
       )}
 
@@ -275,28 +281,26 @@ export default async function SocialProfilePage({
       {view.state === "claimable" && (
         <EmptyPanel
           icon="user-verified"
-          title={
-            view.official ? `@${handle} is a Vallo name` : `Nothing to show at @${handle}`
-          }
+          title={(view.official ? words.officialTitle : words.nothingTitle).replace("{handle}", handle)}
           body={
             view.official
-              ? "This name is kept for Vallo itself, so nobody can hold it. @vallo is the assistant you can call into a conversation by naming it in a post."
+              ? words.officialBody
               : view.canClaim
-                ? "Either nobody holds this handle, or its owner is not reachable from your account. If it is going spare, you can take it and it becomes your address on Vallo."
+                ? words.claimableBody
                 : view.signedIn
-                  ? "Either nobody holds this handle, or its owner is not reachable from your account. You already have a page of your own, and a person keeps one handle at a time."
-                  : "Nobody we can show you is at this handle. Sign in to claim it, or to see whose it is."
+                  ? words.ownHandleBody
+                  : words.signedOutBody
           }
           action={
             view.official
-              ? { href: "/around", label: "Go to Around" }
+              ? { href: "/around", label: t.experienceSocial.people.goToAround }
               : view.canClaim
-                ? { href: `/u/${handle}/edit`, label: `Claim @${handle}` }
+                ? { href: `/u/${handle}/edit`, label: words.claim.replace("{handle}", handle) }
                 : view.signedIn
-                  ? { href: "/profile", label: "Go to your account" }
-                  : { href: "/sign-in", label: "Sign in to claim it" }
+                  ? { href: "/profile", label: words.goToAccount }
+                  : { href: withNext("/sign-in", `/u/${handle}`), label: words.signInToClaim }
           }
-          secondary={{ href: "/home", label: "Back to home" }}
+          secondary={{ href: "/home", label: words.backToHome }}
         />
       )}
     </div>
