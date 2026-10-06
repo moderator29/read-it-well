@@ -3,17 +3,19 @@
 Generated from each agent's record of the 24-point checklist (north star section 12),
 run per route in Chromium at 390, 768 and 1440, night and paper, on the route's real page
 component with the fixture named in its row. **P** pass, **X** failed and fixed in this
-sweep, **F** failed and still open, **·** does not apply. The denominator is 213 real routes
+sweep, **F** failed and still open, **·** does not apply. The denominator is the 223 real page routes
 (every `page.tsx` under `apps/web/src/app`, excluding `(dev)` and `api`).
 
-**Routes audited: 213 of the 213** measured at the start of the sweep, plus 4 routes added since (`/join/[code]/start`, `/s/[token]/status`, `/settings/accessibility`, `/settings/region`): 217 records in all.
+**Page routes with a record: 223 of 223.** Audited with every point measured: 216 of 223; of the 213 that existed when the sweep started, 213. Added since: `/agent/listings/[listingId]/promotion`, `/payouts`, `/receipts`, `/refunds`, `/rewards`, `/rewards/history`, `/rewards/referrals`, `/rewards/withdraw`, `/settings/accessibility`, `/settings/region`. Records that are route handlers, not pages, and are not counted: `/join/[code]/start`, `/s/[token]/status`.
+
+Recorded but not counted as audited, because at least one point could not be measured (each reason is under the route below): `/payouts`, `/receipts`, `/refunds`, `/rewards`, `/rewards/history`, `/rewards/referrals`, `/rewards/withdraw`.
 
 | Family | Audited |
 |---|---|
 |  | 1 |
 | about | 1 |
 | admin | 38 |
-| agent | 24 |
+| agent | 25 |
 | agreements | 2 |
 | areas | 1 |
 | around | 5 |
@@ -50,16 +52,20 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | offline | 1 |
 | pay | 1 |
 | payments | 1 |
+| payouts | 1 |
 | post | 1 |
 | price | 2 |
 | privacy | 1 |
 | profile | 7 |
 | r | 2 |
+| receipts | 1 |
 | record | 1 |
+| refunds | 1 |
 | rent | 4 |
 | reset-password | 1 |
 | restaurant | 1 |
 | restaurants | 1 |
+| rewards | 4 |
 | s | 2 |
 | safe | 1 |
 | safety | 1 |
@@ -138,6 +144,7 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | `/agent/listings/[listingId]/calendar` | C1 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | X | P | P | P |
 | `/agent/listings/[listingId]/health` | C1 | P | P | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | P | P | P | P |
 | `/agent/listings/[listingId]/mandate` | C1 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
+| `/agent/listings/[listingId]/promotion` | X2 | P | P | P | P | P | P | P | P | P | P | P | X | P | P | P | P | P | P | P | P | P | P | P | P |
 | `/agent/listings/[listingId]/status` | C1 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | X | P | P | P |
 | `/agent/messages` | C1 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/agent/messages/[id]` | C1 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | P | P | P | P |
@@ -205,7 +212,7 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | `/legal/disclaimer` | C3 | P | · | P | P | P | P | · | · | · | P | P | P | P | · | P | P | F | · | P | P | P | P | P | P |
 | `/legal/privacy` | C3 | P | · | P | P | P | P | · | · | · | P | P | P | P | · | P | P | F | · | P | P | P | P | P | P |
 | `/legal/terms` | C3 | P | · | P | P | P | P | · | · | · | P | P | P | P | · | P | P | F | · | P | P | P | P | P | P |
-| `/listing/[id]` | C3 | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | F | F | P | P | X | P | P | P | P |
+| `/listing/[id]` | C3 | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | X | X | P | P | X | P | P | P | P |
 | `/listing/[id]/trust` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | X | P | P | P |
 | `/messages` | C3 | P | · | P | P | P | P | P | · | P | P | P | P | P | · | P | X | · | P | P | P | X | P | P | P |
 | `/messages/[id]` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | X | · | P | P | P | X | P | P | P |
@@ -217,6 +224,7 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | `/offline` | C7 | P | · | P | P | P | P | · | · | P | P | P | · | P | · | · | P | · | P | P | P | P | P | P | P |
 | `/pay/crypto/[reference]` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | X | P | P | P | P | P | P |
 | `/payments` | C1 | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | P | P | P | P | P | X | P | P | P |
+| `/payouts` | X2 | P | P | P | P | P | P | P | P | N | P | P | P | P | P | P | P | P | P | P | P | X | P | P | P |
 | `/post/[id]` | C3 | P | · | P | P | P | P | P | · | P | P | P | P | P | · | · | X | · | · | P | P | P | P | P | P |
 | `/price` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | X | P | P | P |
 | `/price/area/[id]` | C1 | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
@@ -230,7 +238,9 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | `/profile/setup/owner` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | P | P | P | P |
 | `/r` | C6 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | P | P | P | P |
 | `/r/[code]` | C6 | X | P | P | P | P | P | P | P | P | P | P | X | P | · | P | P | · | P | P | P | P | P | P | P |
+| `/receipts` | X2 | P | P | P | P | P | P | P | P | N | P | P | P | P | P | P | P | P | P | P | P | X | P | P | P |
 | `/record/[code]` | C3 | P | · | P | P | P | P | · | · | X | P | P | P | P | · | X | P | · | P | P | P | P | P | P | P |
+| `/refunds` | X2 | P | P | P | P | P | P | P | P | N | P | P | P | P | P | P | P | P | P | P | P | X | P | P | P |
 | `/rent/move-in/[listingId]` | C3 | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | P | P | X | P | P | P |
 | `/rent/pay/[inspectionId]` | C3 | P | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | X | · | P | P | P | P | P | P |
 | `/rent/review/[paymentId]` | C3 | P | · | P | P | P | P | · | · | · | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
@@ -238,6 +248,10 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | `/reset-password` | C6 | P | · | P | P | P | P | · | · | P | X | P | P | P | · | · | P | · | P | P | P | P | P | P | P |
 | `/restaurant/[id]` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | P | P | X | P | P | P | P | X | P | P | P |
 | `/restaurants` | C1 | P | · | P | P | P | P | · | P | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
+| `/rewards` | X2 | X | P | P | P | P | P | P | P | N | P | P | P | P | P | P | P | P | P | P | P | X | P | P | P |
+| `/rewards/history` | X2 | P | P | P | P | P | P | P | P | N | P | P | P | P | P | P | P | P | P | P | P | X | P | P | P |
+| `/rewards/referrals` | X2 | P | P | P | P | P | P | P | P | N | P | P | P | P | P | P | P | P | P | P | P | X | P | P | P |
+| `/rewards/withdraw` | X2 | P | P | P | P | P | P | P | P | N | P | P | P | P | N | P | P | P | P | P | P | X | P | P | P |
 | `/s/[token]` | C7 | P | P | P | P | P | P | P | P | P | P | P | X | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/s/[token]/status` | C7 | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | P | · | · | · | · | · | · | · | P |
 | `/safe/[token]` | C6 | P | · | P | P | P | P | · | · | P | P | P | X | P | · | P | P | · | P | P | P | P | P | P | P |
@@ -300,7 +314,7 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | `/verification` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | X | · | · | P | P | P | P | P | P |
 | `/welcome` | C7 | P | · | P | P | P | P | · | · | P | P | P | · | P | · | · | P | · | · | P | P | P | X | P | P |
 
-## What failed, and what was done
+## What failed, what was done, and what was not checked
 
 **`/`** (the REAL (landing) page; landingData answers the f2 preview's PREVIEW_STATS and PREVIEW_COUNTS (the fixtures that preview proves the same tree on), social on, a web surface)
 
@@ -529,6 +543,10 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 
 - 21 (fixed): Each month was role=grid with no rows or gridcells (axe aria-required-children, 4 findings at 390); it is a group named by its month now, each night button naming its own date and state, the weekday heads hidden from the reader.
 
+**`/agent/listings/[listingId]/promotion`** (the real page inside the real AgentShell; a signed-in approved agent (C1's agent-mocks); readPromotionMeasurement is the repository's own stub, which answers not-live for every listing, measured as it is; and a signed-in member who is not an agent (the pitch). The first run is passed (gateFirstRun returns))
+
+- 12 (fixed): No loading.tsx of its own, so the wait was /agent/listings' skeleton (a filter rail and photograph rows this page does not have); every sibling under [listingId] has its own. It has its own now: title, lede, the notice card, the section label and ten rows, inside AgentScreenSkeleton; measured at 390/768/1440 night and paper and ha/ig/yo: 0 overflow, 0 clipped, 0 targets (x2/measure/out/agent-listings-listingid-promotion-loading*).
+
 **`/agent/listings/[listingId]/status`** (The real page inside the real AgentShell (now with AgentInnerNav), a signed-in approved agent from f5/ops-fixtures AGENT_PROFILE, every read without a fixture answered empty by lib/testing/fake-supabase; no status-kit fixture exists, so the read answers empty)
 
 - 21 (fixed): The rail's "Apply to list" link (drawn when no agent profile reads) measured a 32px box with the words broken over two lines at 1440; it is a block as wide as its words now (components/agent/AgentNav.tsx, every agent page).
@@ -541,7 +559,7 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 
 - 16 (fixed): About forty English literals came from the page; they come from experienceMoney.agreements.page and t.moveIn (committed in the earlier unit). Measured here: the page draws them. And Between read "Seyi Omojuni (renter) and The owner or agent (owner or agent)" when the lister's profile has no name (the read's fallback printed with the role again); the read exports UNNAMED_RENTER and UNNAMED_OWNER and the page names an unnamed party by role alone ("and the owner or agent").
 - 17 (fixed): Four money lines move to lib/money/copy.ts (the lead's patch, committed).
-- 22 (fixed): Dates through the reader's locale (earlier unit). Measured: 0 overflow, 0 clipped in four locales.
+- 22 (fixed): Dates through the reader's locale (earlier unit). Measured: 0 overflow, 0 clipped in four locales. Re-measured by X2 at 15:26 to 15:53 UTC, 6 Oct, in Vallo's real v2 faces (locale-fit after 776f31d54; the first measurement ran after the fonts moved to public/fonts/v2 at 13:14 and so in fallback faces): ha/ig/yo at 390 (overflow/clipped/targets) [f3 approved rent renter] ha 0/0/0, ig 0/0/0, yo 0/0/0. Same counts as the first measurement; verdict unchanged.
 
 **`/around`** (the real page signed in with no place joined, so the everywhere feed: f4 FEED_POSTS (placed nowhere) and f4 FEED_STORIES; author tiers left as the fixture has them)
 
@@ -631,9 +649,9 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 **`/home`** (the real page signed in as _fixtures/people PERSON (first name, avatar), the unread count the f4 notifications carry, no place said (the read's own empty place), no areas or trending, f1 LISTINGS as the recommended rows, no stated interests, nothing saved)
 
 - 16 (fixed): Welcome to Vallo, the signed-out sign-in line, and the city row's words and labels were English literals in HomeScreen and CityRow; they come from experienceDiscover.home. CityRow reads them itself (an async server component), so its four callers pass nothing new.
-- 19 (fixed): The city row's invitation ("Set yours to see what is happening around you") was cut by the row's one-line ellipsis at 390; it wraps now (home.css).
+- 19 (fixed): The city row's invitation ("Set yours to see what is happening around you") was cut by the row's one-line ellipsis at 390; it wraps now (home.css). Re-measured by X2 at 15:26 to 15:53 UTC, 6 Oct, in Vallo's real v2 faces (locale-fit after 776f31d54; the first measurement ran after the fonts moved to public/fonts/v2 at 13:14 and so in fallback faces): [signed in f1 rows] overflow 0, clipped 0 across 390/768/1440 night and paper. Same counts as the first measurement; verdict unchanged.
 - 21 (fixed): Both sign-in links (the greeting's and the city row's, signed out) were bare; they carry their way back through withNext.
-- 22 (fixed): In Igbo a door's label ("Depụta ụlọ") was cut to an ellipsis at 390; door labels wrap now (home.css). 0 clipped in four locales.
+- 22 (fixed): In Igbo a door's label ("Depụta ụlọ") was cut to an ellipsis at 390; door labels wrap now (home.css). 0 clipped in four locales. Re-measured by X2 at 15:26 to 15:53 UTC, 6 Oct, in Vallo's real v2 faces (locale-fit after 776f31d54; the first measurement ran after the fonts moved to public/fonts/v2 at 13:14 and so in fallback faces): ha/ig/yo at 390 (overflow/clipped/targets) [signed in f1 rows] ha 0/0/0, ig 0/0/0, yo 0/0/0. Same counts as the first measurement; verdict unchanged.
 
 **`/host`** (the real page in the real HostShell; the f5 host-landing deck verbatim (Grand Vista Hotel live, The Harbour Kitchen needing more with its reviewer's note, Ikoyi Guest House in progress, its room rows built relative to now by the deck's own row(), table board unread, three unread messages); the f5 host-empty state (no business); signed out (json host-f5-* and host-signed-out))
 
@@ -727,8 +745,8 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 
 **`/listing/[id]`** (the real page with listingById answering f3 RENTAL (the Lekki duplex); its credentials, record, door, reviews and viewing reads are the empty answers (none is fixtured))
 
-- 16 (open): About thirty English literals remain in the page (the market badges, the assembled about paragraphs, the facts' labels, Message agent, the section titles) and in ListingUtilities (Light, Water, The gate and their answers); a follow-up unit takes them.
-- 17 (open): The about paragraphs say money sentences written in the page (pay only after you have inspected, the rent is agreed directly with the agent); a follow-up unit moves them to lib/money/copy.ts by patch.
+- 16 (fixed): About thirty English literals (the market badges, the kind nouns, the assembled description, the facts' labels, Message agent, the section titles) and ListingUtilities' Light, Water, The gate, the grid, backup and water words and the gate's sentences come from experienceDetail.listing and experienceDetail.utilities now. The description names the kind with its article ("an apartment", which read "a apartment"), counts bedrooms and bathrooms through countOf, and joins amenities in the reader's locale.
+- 17 (fixed): The about paragraphs' sentences about paying (inspect, then pay; the solicitor before money moves; how the rent is quoted; reserve, inspect, pay) were written in the page. They move to lib/money/copy.ts in c3/listing-money-copy.patch, for the lead.
 - 20 (fixed): axe: definition-list and dlitem. The gate row in ListingUtilities put the object and a wrapper between <dl>'s <div> and its <dt>/<dd>; it uses the Row anatomy now (the object floats in the term). 0 violations.
 
 **`/listing/[id]/trust`** (the real page with listingById answering f3 RENTAL; credentials, record and door reads empty (none is fixtured))
@@ -771,6 +789,11 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 
 - 21 (fixed): Labels present. The signed-out Sign in went through authHref; it goes through withNext now, as the brief requires.
 
+**`/payouts`** (the real page; my_earnings_history answers (dev)/preview/money FIXTURE_PAYOUTS turned back into its row (every value from the fixture), my_earnings_summary that row added up; the empty history (a lister with nothing paid yet); and signed out)
+
+- 9 (not checked): Line glyphs only below 32 (row direction marks, the back arrow): pass. The empty and sign-in states' clay art is placed at 88px, but the harness serves no image, so the art itself (matte, no gloss) was not seen.
+- 21 (fixed): Tab walk reaches every control with a visible ring in both themes; 0 targets under 44. The sign-in door was built with authHref, which encodes the destination without safeReturnPath; it goes through withNext (lib/auth/next-link) now, as the brief requires.
+
 **`/post/[id]`** (the real page signed in with getThread answering f4 THREAD (the first feed post with its three answers))
 
 - 16 (fixed): The page's title, subtitle and metadata, and the report sheet's title and subject line (shared with the feed), were English literals. The page reads experienceSocial.post; the report words and the menu's "this person" travel in SheetWords (sheetWordsOf) to ThreadView and Feed.
@@ -793,10 +816,20 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 - 1 (fixed): One verdict, one way on. The way on read 'Check', the lookup form's submit, on a page with no field: a button promising an action it does not do. It reads 'Check another receipt' now (experienceSite.receipt.checkAnother).
 - 12 (fixed): The page waits on verify_receipt and showed the group's article skeleton (a wide title and prose) for a narrow answer and a receipt. r/[code]/loading.tsx draws the answer's own shape: label, code, the verdict card, the receipt sheet with figure, tear and rows, the way back.
 
+**`/receipts`** (the real page; my_payments_history answers the two rows of lib/money/history-model.test.ts (a payment and its refund, C1's /payments rows), my_payments_summary those rows added up; the empty history; and signed out)
+
+- 9 (not checked): Line glyphs only below 32 (row direction marks, the back arrow): pass. The empty and sign-in states' clay art is placed at 88px, but the harness serves no image, so the art itself (matte, no gloss) was not seen.
+- 21 (fixed): Tab walk reaches every control with a visible ring in both themes; 0 targets under 44. The sign-in door was built with authHref, which encodes the destination without safeReturnPath; it goes through withNext (lib/auth/next-link) now, as the brief requires.
+
 **`/record/[code]`** (no fixture of a Record exists anywhere in the repository, so the three honest answers the read gives: missing, rate limited, failed)
 
 - 9 (fixed): Every answer drew the clay shield with a tick, the verified mark, over "No Record has that code" and over a failed read (UI-15: a not-found never wears a success mark). Missing is the empty kit's search glyph now, a failed read the error kit, too many lookups the neutral pause.
 - 15 (fixed): As 9: the verified shield said the opposite of the sentence under it.
+
+**`/refunds`** (the real page; my_payments_history answers the two rows of lib/money/history-model.test.ts (a payment and its refund), my_payments_summary those rows added up; the empty history; and signed out)
+
+- 9 (not checked): Line glyphs only below 32 (row direction marks, the back arrow): pass. The empty and sign-in states' clay art is placed at 88px, but the harness serves no image, so the art itself (matte, no gloss) was not seen.
+- 21 (fixed): Tab walk reaches every control with a visible ring in both themes; 0 targets under 44. The sign-in door was built with authHref, which encodes the destination without safeReturnPath; it goes through withNext (lib/auth/next-link) now, as the brief requires.
 
 **`/rent/move-in/[listingId]`** (the real page with the listing repository returning f3 RENTAL and its peers the f3 SHELF, no open inspection)
 
@@ -818,6 +851,28 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 
 - 16 (fixed): The about sentence was assembled from English fragments ("is in", "and serves") and the share card's line was English; both come from experienceDetail.restaurant now, one whole sentence per case.
 - 21 (fixed): The Restaurants link in Getting there drew 21.7px tall; it takes nf-tap now, 0 under 44.
+
+**`/rewards`** (the real page; readMyRewards answers per state: running = (dev)/preview/rewards FIXTURE_SNAPSHOT; paused (D64) = FIXTURE_PAUSED_SNAPSHOT; not live = the repository's own source (the product today); signed out. withdrawActions and everything else as the repository has them; the invite code is FIXTURE_INVITE's. Measured after R1's pause landed (d10f74951, e929964b4))
+
+- 1 (fixed): Running: two filled primaries, Withdraw and Copy link (InviteLinkCard). Fixed in e65e45f0d: Copy link is secondary, like Share, so Withdraw is the one filled action; screen.test.ts guards the card against a primary.
+- 9 (not checked): Line glyphs below 32 (hourglass, people, clock, chevrons): pass. The not-live and signed-out states place clay art at 88px, but the harness serves no image, so the art itself was not seen.
+- 21 (fixed): The sign-in door was built by hand in screen.ts signInHref. Fixed in e65e45f0d: withNext("/sign-in", path), so the destination passes safeReturnPath; screen.test.ts pins it, including a path that is not same-origin being dropped.
+
+**`/rewards/history`** (the real page; readMyRewards answers per state: running = (dev)/preview/rewards FIXTURE_SNAPSHOT; paused (D64) = FIXTURE_PAUSED_SNAPSHOT; not live = the repository's own source (the product today); signed out. withdrawActions and everything else as the repository has them; the invite code is FIXTURE_INVITE's. Measured after R1's pause landed (d10f74951, e929964b4))
+
+- 9 (not checked): Line glyphs below 32 (hourglass, people, clock, chevrons): pass. The not-live and signed-out states place clay art at 88px, but the harness serves no image, so the art itself was not seen.
+- 21 (fixed): The sign-in door was built by hand in screen.ts signInHref. Fixed in e65e45f0d: withNext("/sign-in", path), so the destination passes safeReturnPath; screen.test.ts pins it, including a path that is not same-origin being dropped.
+
+**`/rewards/referrals`** (the real page; readMyRewards answers per state: running = (dev)/preview/rewards FIXTURE_SNAPSHOT; paused (D64) = FIXTURE_PAUSED_SNAPSHOT; not live = the repository's own source (the product today); signed out. withdrawActions and everything else as the repository has them; the invite code is FIXTURE_INVITE's. Measured after R1's pause landed (d10f74951, e929964b4))
+
+- 9 (not checked): Line glyphs below 32 (hourglass, people, clock, chevrons): pass. The not-live and signed-out states place clay art at 88px, but the harness serves no image, so the art itself was not seen.
+- 21 (fixed): The sign-in door was built by hand in screen.ts signInHref. Fixed in e65e45f0d: withNext("/sign-in", path), so the destination passes safeReturnPath; screen.test.ts pins it, including a path that is not same-origin being dropped.
+
+**`/rewards/withdraw`** (the real page; readMyRewards answers per state: running = (dev)/preview/rewards FIXTURE_SNAPSHOT; paused (D64) = FIXTURE_PAUSED_SNAPSHOT; not live = the repository's own source (the product today); signed out. withdrawActions and everything else as the repository has them; the invite code is FIXTURE_INVITE's. Measured after R1's pause landed (d10f74951, e929964b4))
+
+- 9 (not checked): Line glyphs below 32 (hourglass, people, clock, chevrons): pass. The not-live and signed-out states place clay art at 88px, but the harness serves no image, so the art itself was not seen.
+- 14 (not checked): The withdraw flow (WithdrawFlow: amount, the provider's fee read back, what reaches the bank, before Confirm) is drawn by no product state while withdrawActions is null (R-C3-2), so the fee-before-action order was not measured on this route. Running and paused both draw 'Withdrawals are not open'.
+- 21 (fixed): The sign-in door was built by hand in screen.ts signInHref. Fixed in e65e45f0d: withNext("/sign-in", path), so the destination passes safeReturnPath; screen.test.ts pins it, including a path that is not same-origin being dropped.
 
 **`/s/[token]`** (a signed-out visitor, no cookies; readDoor answers the door preview's FIXTURE row (verbatim) as a listing and as an example (is_demo), and the missing door)
 
@@ -846,7 +901,7 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 
 - 16 (fixed): The page's heading (results for, explore a kind, explore properties) and the map's line (imagery offline, the credits' joiner, approximate pins) were English; they come from experienceDiscover.search and .map.
 - 21 (fixed): The map's credit links were overline-sized text with no target; they take nf-tap, as PinMap's do (code; the map does not prerender here).
-- 22 (fixed): In Igbo and Yoruba the card's Message the agent spilled out of its full-width button (193px of words in 155px); card buttons wrap now (catalogue.css). 0 clipped in four locales.
+- 22 (fixed): In Igbo and Yoruba the card's Message the agent spilled out of its full-width button (193px of words in 155px); card buttons wrap now (catalogue.css). 0 clipped in four locales. Re-measured by X2 at 15:26 to 15:53 UTC, 6 Oct, in Vallo's real v2 faces (locale-fit after 776f31d54; the first measurement ran after the fonts moved to public/fonts/v2 at 13:14 and so in fallback faces): ha/ig/yo at 390 (overflow/clipped/targets) [shelf f3 map view] ha 1/0/0, ig 1/0/0, yo 1/0/0; [shelf f3] ha 0/0/0, ig 0/0/0, yo 0/0/0. Same counts as the first measurement; verdict unchanged.
 
 **`/settings`** (the real page in the real settings layout (SettingsAreaNav), signed in as the preview fixture PERSON (_fixtures/people) through lib/testing/fake-supabase; every other read answers as a new member's account does (empty); device count unreadable (null), so the row asks rather than shows 0)
 
@@ -1022,7 +1077,7 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 
 **`/verification`** (the real page for a member with no agents row (no ladder) and no documents, the path's first state; nothing else is fixtured)
 
-- 16 (fixed): The fallback sentences for a suspension, a refusal and a request with no recorded note, their fixes, and the heading over the reviewer's words were English literals in the page; they come from experienceAccount.verification now.
+- 16 (fixed): The fallback sentences for a suspension, a refusal and a request with no recorded note, their fixes, and the heading over the reviewer's words were English literals in the page, and the whole flow (KycFlow, DocumentUploader, kyc.ts's steps, sections, fields, documents, date and file problems) was English; all of it comes from experienceAccount.verification and .kyc now.
 
 **`/welcome`** (a signed-out visitor, no cookies: the stranger's intro, and the tour (?tour=1))
 

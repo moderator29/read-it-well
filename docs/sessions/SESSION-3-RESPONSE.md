@@ -148,14 +148,20 @@ labels into the dictionary).
 **The sweep, as a number.** The per-route record is
 [`SESSION-3-SWEEP.md`](SESSION-3-SWEEP.md), generated from each agent's own 24-point
 result, run in Chromium at 390, 768 and 1440 in both themes on the route's real page
-component. **Corrected after auditor A9: 213 of the 213 routes that existed when the
-sweep was measured, but 215 of the 222 page routes in the tree today.** The seven newest
-pages, built this round, have no record yet: `/payouts`, `/receipts`, `/refunds`,
-`/rewards`, `/rewards/history`, `/rewards/referrals` and `/rewards/withdraw` (being
-audited now). Two records counted earlier as "routes added" are route handlers, not
-pages (`/join/[code]/start`, `/s/[token]/status`), and do not count. And from the font
-move (`6a50d1cf5`) until `776f31d54`, the locale-fit harness measured Hausa, Igbo and
-Yoruba in fallback fonts; the routes measured in that window are being re-measured.
+component. **Recounted after auditor A9: every one of the 223 page routes in the tree
+has a record. 216 are audited with every point measured, including all 213 that
+existed when the sweep started.** The other seven are recorded but not counted:
+`/payouts`, `/receipts` and `/refunds`, and the four `/rewards` routes, where point 9
+was not checked because the harness serves no images, so the illustrations in their
+empty and sign-in states were never seen; `/rewards/withdraw` also leaves point 14 not
+checked, because no state draws the withdraw flow until Session 2's actions exist.
+The 223rd route is the promotion results page (D60). Two records counted earlier as
+"routes added" are route handlers, not pages (`/join/[code]/start`,
+`/s/[token]/status`), and do not count. The routes measured between the font move
+(`6a50d1cf5`) and `776f31d54` ran in fallback fonts; all nine were re-measured in the
+real faces and none changed verdict. 14 points are still open across the sweep, each
+listed under its route in the sweep record; most are the retired Guarantee in legal
+text, which needs counsel.
 38 admin, 24 agent and 17 host: every route in those trees. 39 public site, auth and
 landing. A state no fixture holds is listed in its route's remaining items, never
 counted as measured. The rows in section 3 below predate this and leave points
