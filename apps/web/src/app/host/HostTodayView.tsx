@@ -132,6 +132,7 @@ export function HostTodayView({
           {shown.length > 0 ? (
             <ListGroup
               label={d.today.needsAttention}
+              labelAs="h2"
               action={
                 rest.length > shown.length ? (
                   <Link href="/host/decide" className="nf-link-quiet">
@@ -148,7 +149,7 @@ export function HostTodayView({
           {stages.length > 0 ? (
             <section className="nf-list-section">
               <div className="nf-list-section__head">
-                <h3 className="nf-section-label">{d.host.pipeline}</h3>
+                <h2 className="nf-section-label">{d.host.pipeline}</h2>
               </div>
               <div className="nf-desk-card">
                 <Gauge stages={stages} totalLabel={d.host.pipelineTotal} label={d.host.pipeline} tag={tag} />
