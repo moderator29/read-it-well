@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useSyncExternalStore, type KeyboardEvent }
 import type { Dictionary } from "@vallo/i18n/core";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { BrandAssemble } from "@/components/motion/BrandAssemble";
+import { STARTUP_SCRIPT } from "@/components/startup/startup-script";
 import {
   DEFAULT_MOTION,
   MOTION_EVENT,
@@ -88,17 +89,34 @@ export function MotionSettings({ t }: { t: Dictionary }) {
     refs.current[next]?.focus();
   };
 
-  /* The splash is CSS keyed on the root flag: taking the flag away for a
-     frame and putting it back restarts every animation in it. */
+  /* THE OPENING, AGAIN (F1). The sequence is CSS keyed on two root flags: the
+     overlay shows while `data-splash="on"` and its door opens on
+     `data-startup="open"`, and the script that decides WHEN the door opens
+     (`STARTUP_SCRIPT`) ran once at page load and has finished. Flipping the
+     splash flag alone therefore replays only a door, because the page still
+     carries `data-startup="open"` and nothing is left to open it. So the
+     replay does what a first load does: clear the startup flag, raise the
+     splash flag, and run the script again.
+
+     The script is inline, and the page's Content Security Policy runs an
+     inline script only if it carries the request's nonce. React never hands
+     the nonce to a client component (it renders it on the server and blanks
+     it on the client), but the browser keeps it on the DOM element's `nonce`
+     property for same-origin script to read, so the new script borrows it
+     from one of the page's own nonce-carrying scripts. With none on the page
+     there is no nonce policy to satisfy and the script runs plainly. The
+     script then releases the flag itself (door end, tap, key or its own
+     ceiling), so nothing here needs a timer. */
   const replay = () => {
     const root = document.documentElement;
-    root.dataset.splash = "done";
-    window.requestAnimationFrame(() => {
-      root.dataset.splash = "on";
-      window.setTimeout(() => {
-        root.dataset.splash = "done";
-      }, 1900);
-    });
+    delete root.dataset.startup;
+    root.dataset.splash = "on";
+    const script = document.createElement("script");
+    const nonce = document.querySelector<HTMLScriptElement>("script[nonce]")?.nonce;
+    if (nonce) script.nonce = nonce;
+    script.textContent = STARTUP_SCRIPT;
+    document.body.appendChild(script);
+    script.remove();
   };
 
   return (
