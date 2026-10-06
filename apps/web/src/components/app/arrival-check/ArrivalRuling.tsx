@@ -38,22 +38,37 @@ export function ArrivalRuling({
   const [asking, setAsking] = useState<Ruling | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [pending, start] = useTransition();
+  /*
+   * The ruling is on its way to the server. `pending` alone covered only the
+   * refresh AFTER the ruling landed, so Cancel stayed live during the await
+   * itself and an operator could tap it, see the confirmation close, and
+   * believe they had stopped a ruling that still landed (auditor A5). A sent
+   * ruling cannot be called back, so Cancel is disabled from the moment it
+   * leaves until the answer is in.
+   */
+  const [inFlight, setInFlight] = useState(false);
+  const busy = pending || inFlight;
 
   /* Resolves true only when the ruling landed, so the slide claims nothing
      the server did not accept. */
   const rule = async (ruling: Ruling): Promise<boolean> => {
     setMessage(null);
-    const result = await ruleArrivalCheck({ bookingId, ruling });
-    if (!result.ok) {
-      setMessage(result.error || copy.ruleFailed);
-      return false;
+    setInFlight(true);
+    try {
+      const result = await ruleArrivalCheck({ bookingId, ruling });
+      if (!result.ok) {
+        setMessage(result.error || copy.ruleFailed);
+        return false;
+      }
+      if (result.data.state === "none") {
+        setMessage(copy.ruleNone);
+        return false;
+      }
+      start(() => router.refresh());
+      return true;
+    } finally {
+      setInFlight(false);
     }
-    if (result.data.state === "none") {
-      setMessage(copy.ruleNone);
-      return false;
-    }
-    start(() => router.refresh());
-    return true;
   };
 
   return (
@@ -73,7 +88,13 @@ export function ArrivalRuling({
             onConfirm={() => rule(asking)}
             data-testid="arrival-ruling-slide"
           />
-          <Button variant="ghost" full disabled={pending} onClick={() => setAsking(null)}>
+          <Button
+            variant="ghost"
+            full
+            disabled={busy}
+            onClick={() => setAsking(null)}
+            data-testid="arrival-ruling-cancel"
+          >
             {copy.cancel}
           </Button>
         </div>
