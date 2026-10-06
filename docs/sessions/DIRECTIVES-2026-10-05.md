@@ -810,6 +810,139 @@ committed and pushed as it is done, cleanly, without sessions conflicting.
 | **D39's LazyMotion requirement** | **D49: it is dead weight here and comes out** |
 | **D48's reading that no balance may ever exist** | **D50: a balance held by a licensed provider may be presented, under four conditions** |
 | **The Vallo Guarantee at 1 to 2 percent** | **D51: retired to zero, machinery kept** |
+| **D51's claim that zeroing the rate is a row and lifts the blocker** | **D52: false on three counts, corrected** |
+| Any reading that a defect predating a session is nobody's | D53 |
+
+---
+
+## D53. Ownership is by concern, never by authorship. And nobody second-reviews their own change
+
+Session 4 asked, on 6 October, who owns three Task 2 defects, noting that one
+"predates Session 2, so it may be nobody's under the current split". **It is not
+nobody's, and the question is worth settling once because it will recur every time
+an audit finds something older than the session that owns its area.**
+
+### The rule
+
+**A defect belongs to whichever session owns the concern, whatever its age and
+whoever wrote it.** The cross-session contract divides the platform by area so that
+every part has an owner, not so that each session owns only what it typed. A rule
+that assigns by authorship creates orphans by construction: the older the defect,
+the less likely its author is still working, so the oldest and most settled bugs
+would become permanently unownable.
+
+**This repository already has the evidence.** D40, the wrong-payer refund, predated
+every current session and sat unfixed through two rounds. The wallet, escrow and
+withdrawal copy in `experience-features.en.ts` predated Session 3 and shipped
+anyway. Both were found by a session auditing someone else's area, and both needed
+an owner assigned before anything happened.
+
+**So the three findings go to Session 2**, because all three are its concerns:
+
+1. **The `transactions` column grant.** A grant is schema, and schema is Session
+   2's, whoever wrote the migration.
+2. **The per-render `listBanks()`.** A provider call is Session 2's, and this one
+   also breaks D50's ten-requests-per-minute constraint directly: a call per render
+   is the exact shape that directive names as already broken. The fix is server
+   side, cached, and shaped to the limit.
+3. **The raw Paystack error text.** D50 forbids a raw provider error reaching a
+   member. The **mapping** to Vallo language is Session 2's, as part of the status
+   vocabulary and error abstraction in its brief. Session 3 owns only how the
+   mapped sentence is presented.
+
+### And the second half, which Session 4 raised against itself
+
+**Nobody second-reviews their own change.** Session 4 keyed `db-probes` per ref,
+which widened concurrency against the production database, and reviewed it itself.
+It flagged that as a D5 breach without being asked twice, which is the behaviour
+D5 exists to produce. **The second pass goes to Session 2**, which owns the
+database.
+
+**The specific thing to attack**, so the review is a review rather than a nod:
+**can sixty-four probes running concurrently from several branches interact in a
+way one serialised run cannot?** Named risks, each checkable:
+
+- **A probe that asserts on global state.** Any probe checking a count, or that no
+  row exists, can be broken by another branch's probe inserting at the same moment.
+  This is the likeliest failure and it would read as a flaky test rather than as a
+  concurrency defect.
+- **Advisory locks.** Two probes taking locks in different orders deadlock under
+  concurrency and never under serialisation.
+- **Fixed-name temporary objects.** A probe creating an object by a constant name
+  collides with itself across branches.
+- **Connection count** against the pooler's limit, with several full runs at once.
+
+**Mitigating context, which the reviewer should weigh rather than assume away:**
+the `claude/vallo-**` push trigger was removed, so only pull requests start runs
+and the realistic concurrency is three or four, not unbounded. That lowers the risk
+without removing the question.
+
+---
+
+## D52. D51 was wrong about the mechanism. Session 4 caught it, Session 1 verified it
+
+**Session 4 ran Task 2, its defining task, and its lead finding breaks a premise of
+a founder decision.** Session 1 re-derived every part from the code before writing
+this. **All three claims are correct and D51's mechanism section is withdrawn.**
+
+### What D51 said, and why each part is false
+
+**D51 said the rates are policy data, so "changing a price is a row, never a
+deploy".** For commission that is true. **For the Guarantee it is false.**
+`money_policy.guarantee_bps` is declared
+`check (guarantee_bps between 100 and 200)`
+(`20260925121219_track_a2_...sql:49`) and no later migration relaxes it.
+**The value 0 is rejected by the database.** Retiring the Guarantee needs a
+migration that does not exist.
+
+**D51 said `commission_bps = 200` in `money_policy`.** There is **no
+`commission_bps` column** in that table: its data columns are `guarantee_bps`,
+`claim_window_hours` and `min_inspection_photos`. Commission lives in **`fee_rates`,
+read through `private.current_fee_bps('commission')`**, which returns 0 when no row
+exists. Setting the 2 percent means a `fee_rates` row, not a `money_policy` update.
+
+**D51 said zeroing the rate lifts the `PAYSTACK_GUARANTEE_SUBACCOUNT` blocker, on
+the evidence of `if (split.guaranteeMinor > 0)`.** It does not. That condition
+lives inside `splitBody()` and only decides whether the reserve appears in the
+Paystack payload. **Two independent gates refuse first, neither conditioned on the
+rate:**
+
+1. **The application.** `split-attempt.ts:74` calls `guaranteeReserveSubaccount()`
+   and returns `refused` at line 75 **before `payment_split_for_booking` is ever
+   called**.
+2. **The database.** The payment gate requires `reserve_subaccount_code` to be
+   non-null on a before-insert trigger (same migration, line 694).
+
+**And nothing covers the zero case: there is no `split-attempt.test.ts` at all.**
+
+### What this changes for the founder
+
+**`PAYSTACK_GUARANTEE_SUBACCOUNT` is still a hard blocker.** Session 1 told the
+founder twice that retiring the Guarantee would probably remove it. **It does not.**
+Either he creates the reserve subaccount anyway, or Session 2 changes both gates so
+a zero rate is a legitimate configuration rather than a refusal.
+
+**Retiring the Guarantee is a migration, not a setting.** It drops or relaxes the
+check constraint, changes the application gate, changes the database gate, and adds
+the test that does not exist. That is real work, and the founder was told it was a
+row.
+
+**VAT is not modelled at all.** `vat_bps` and `vat_registered` return zero hits
+across `supabase/` and `apps/web/src`. D51 wrote them as though they existed. They
+are new columns and new code.
+
+### The standing correction
+
+**D41 said measure, never quote. Session 1 then quoted its own reading of one
+`if` statement and called it evidence**, without following the call path to the two
+gates in front of it, and a founder made pricing decisions on it. The rule applies
+to Session 1 exactly as written: **reading a condition is not reading a code path**,
+and a claim about what a system refuses is only established by finding every place
+it refuses.
+
+Session 4's note on its own method is the standard: *"Every finding was re-derived
+from the code before being written down, because D5's point is that the author is
+the wrong reviewer."*
 
 ---
 
