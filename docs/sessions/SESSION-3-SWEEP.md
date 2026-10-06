@@ -6,7 +6,7 @@ component with the fixture named in its row. **P** pass, **X** failed and fixed 
 sweep, **F** failed and still open, **·** does not apply. The denominator is 213 real routes
 (every `page.tsx` under `apps/web/src/app`, excluding `(dev)` and `api`).
 
-**Routes audited: 113 of 213.**
+**Routes audited: 118 of 213.**
 
 | Family | Audited |
 |---|---|
@@ -18,17 +18,20 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | host | 17 |
 | inspections | 1 |
 | legal | 3 |
-| messages | 2 |
+| messages | 3 |
 | pay | 1 |
+| post | 1 |
 | price | 1 |
 | profile | 6 |
+| record | 1 |
 | rent | 3 |
 | restaurant | 1 |
 | settings | 2 |
+| stay | 1 |
 | stories | 2 |
 | support | 4 |
 | tenancy | 1 |
-| u | 4 |
+| u | 5 |
 
 | Route | By | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
@@ -118,9 +121,11 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | `/legal/disclaimer` | C3 | P | · | P | P | P | P | · | · | · | P | P | P | P | · | P | P | F | · | P | P | P | P | P | P |
 | `/legal/privacy` | C3 | P | · | P | P | P | P | · | · | · | P | P | P | P | · | P | P | F | · | P | P | P | P | P | P |
 | `/legal/terms` | C3 | P | · | P | P | P | P | · | · | · | P | P | P | P | · | P | P | F | · | P | P | P | P | P | P |
+| `/messages` | C3 | P | · | P | P | P | P | P | · | P | P | P | P | P | · | P | X | · | P | P | P | X | P | P | P |
 | `/messages/new` | C3 | P | · | P | P | P | P | · | · | · | P | P | P | P | · | · | P | · | P | P | P | P | X | P | P |
 | `/messages/share/[kind]/[id]` | C3 | P | · | P | P | P | P | · | P | P | P | P | P | P | · | P | P | · | P | P | P | P | X | P | P |
 | `/pay/crypto/[reference]` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | X | P | P | P | P | P | P |
+| `/post/[id]` | C3 | P | · | P | P | P | P | P | · | P | P | P | P | P | · | · | X | · | · | P | P | P | P | P | P |
 | `/price` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | X | P | P | P |
 | `/profile/application` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/profile/setup` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | P | P | P | P |
@@ -128,12 +133,14 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | `/profile/setup/agent` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | P | P | P | P |
 | `/profile/setup/firm` | C3 | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | P | · | · | · | · | · | · | · | P |
 | `/profile/setup/owner` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | P | P | P | P |
+| `/record/[code]` | C3 | P | · | P | P | P | P | · | · | X | P | P | P | P | · | X | P | · | P | P | P | P | P | P | P |
 | `/rent/move-in/[listingId]` | C3 | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | P | P | X | P | P | P |
 | `/rent/pay/[inspectionId]` | C3 | P | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | X | · | P | P | P | P | P | P |
 | `/rent/review/[paymentId]` | C3 | P | · | P | P | P | P | · | · | · | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/restaurant/[id]` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | P | P | X | P | P | P | P | X | P | P | P |
 | `/settings/accessibility` | C3 | P | · | P | P | P | X | · | · | P | P | P | X | P | · | · | P | · | · | P | X | P | P | P | P |
 | `/settings/region` | C3 | P | · | P | P | P | P | · | · | P | P | P | X | P | · | · | P | · | · | P | P | P | P | P | P |
+| `/stay/[id]` | C3 | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | X | P | · | P | P | P | P | P | P |
 | `/stories/[id]` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | X | X | X | P | P | P |
 | `/stories/new` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | P | P | P | P | X | P | P |
 | `/support` | C3 | P | · | P | P | P | P | · | · | P | P | P | X | P | · | P | X | · | X | P | P | X | P | P | P |
@@ -142,6 +149,7 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | `/support/new` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | X | P | P |
 | `/tenancy/[id]/complaint` | C3 | P | P | P | P | P | P | P | · | P | P | P | P | P | · | X | P | · | P | P | P | P | P | P | P |
 | `/u` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | X | P | · | P | P | P | P | X | P | P |
+| `/u/[handle]` | C3 | P | · | P | P | P | P | P | P | P | P | X | P | P | · | P | X | · | P | X | P | X | P | X | P |
 | `/u/[handle]/edit` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | P | P | P | P | P | X | P | P |
 | `/u/[handle]/followers` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | P | P | P | P | X | X | P | P |
 | `/u/[handle]/following` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | P | P | P | P | P | X | P | P |
@@ -446,6 +454,11 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 
 - 17 (open): Section 14 "The Vallo Guarantee" and the Guarantee contribution sentences in sections 4 and 9 still describe a retired product (D51: guarantee_bps = 0). 13 Guarantee mentions.
 
+**`/messages`** (the real page signed in with f5 INBOX as the conversation summaries (no archive, no report: the views read mocked to its empty answer), and signed out)
+
+- 16 (fixed): The page (title, the paused sentence, the signed-out screen) and the Inbox component (the header's count, mark all read, compose, the search field, the sides, typing, archive and its note, and all seven empty states) were English literals. All come from experienceInbox.inbox now.
+- 21 (fixed): The signed-out Sign in went to a bare /sign-in and lost the way back; it carries next through withNext.
+
 **`/messages/new`** (the real page signed in with findConversationForListing answering no thread yet, the listing repository returning f3 RENTAL, no viewing slots; and the signed-out bridge)
 
 - 22 (fixed): Overflow 0 in all four, but every page and form string was an English literal in ha, ig and yo. They are in experienceInbox.newMessage now.
@@ -458,9 +471,18 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 
 - 18 (fixed): Signed out showed the not-found sentence ("Open the charge from your bookings and start again") under Sign in, and Sign in went to a bare /sign-in, so the payer never came back to the payment. It now says why to sign in (cryptoPay.signedOutBody) and carries next=/pay/crypto/<reference>.
 
+**`/post/[id]`** (the real page signed in with getThread answering f4 THREAD (the first feed post with its three answers))
+
+- 16 (fixed): The page's title, subtitle and metadata, and the report sheet's title and subject line (shared with the feed), were English literals. The page reads experienceSocial.post; the report words and the menu's "this person" travel in SheetWords (sheetWordsOf) to ThreadView and Feed.
+
 **`/price`** (the real page before an address is chosen, its one read (listStates) mocked to session-b/sweep-orphans STATES)
 
 - 21 (fixed): The map's credit links (OpenStreetMap, CARTO) drew 20px tall: 2 targets under 44 at every width and locale. They take nf-tap now (target grows, the credit line keeps its size): 0 under 44.
+
+**`/record/[code]`** (no fixture of a Record exists anywhere in the repository, so the three honest answers the read gives: missing, rate limited, failed)
+
+- 9 (fixed): Every answer drew the clay shield with a tick, the verified mark, over "No Record has that code" and over a failed read (UI-15: a not-found never wears a success mark). Missing is the empty kit's search glyph now, a failed read the error kit, too many lookups the neutral pause.
+- 15 (fixed): As 9: the verified shield said the opposite of the sentence under it.
 
 **`/rent/move-in/[listingId]`** (the real page with the listing repository returning f3 RENTAL and its peers the f3 SHELF, no open inspection)
 
@@ -484,6 +506,10 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 **`/settings/region`** (the real page and its new loading.tsx inside the real settings layout)
 
 - 12 (fixed): No loading.tsx; it has its own now: header with line, Language (one row), Money display (three rows), under the settings nav.
+
+**`/stay/[id]`** (the real page with getStayDetail answering f3 STAY turned back into the rows the read returns (every value read from STAY; the photo path is the fixture's url and the url builder is mocked to hand it back unchanged))
+
+- 16 (fixed): The star class ("5 star"), the property kind (Hotel, Resort...), the host fallback and the share card's line were English literals; they come from experienceDetail.stay now.
 
 **`/stories/[id]`** (the real page with f4 STORY, STORY_FACES and STORY_COMMENTS (the f4 story deck), measured inside the shell it is drawn in)
 
@@ -523,6 +549,14 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 
 - 15 (fixed): Every agent row drew a Verified agent tick from isAgent, which is a role (an approved agent at tier 0 has had no check). The type's own comment forbids it. The mark now comes from the published badgeTier through TierBadge, as on the profile; with no badge, nothing is drawn.
 - 22 (fixed): Overflow 0 in all four, but 15 strings were English literals. They are in experienceSocial.people now.
+
+**`/u/[handle]`** (the real page with loadPublicProfile answering f4 EDITOR_PROFILE as somebody else's member page, signed in, with none of the bands no fixture carries (no home area slug, occupation, standing, trust, badges or record); its posts are the f4 posts this person wrote, which is none; and the claimable (signed out) and malformed answers)
+
+- 11 (fixed): The more button beside Follow drew a sharp-cornered square: the glass door gives material, not shape. It takes the control radius (social-feed.css .nf-social-more).
+- 16 (fixed): Every no-page screen (unreachable, not a handle, a Vallo name, nothing at this handle) and the share line were English literals; they come from experienceSocial.profilePage (and people's words for unreachable).
+- 19 (fixed): The cover bled 20px into a 16px gutter (-4 to 394 at 390), and in daylight so did the night island around it. Both bleed by the shell's gutter token now (social.css), which also ends the 8px a 640 to 767px tablet ran past its edges.
+- 21 (fixed): Sign in to claim it went to a bare /sign-in; it carries next through withNext.
+- 23 (fixed): The empty Posts tab sat under the compose button with no room to scroll it clear; the page keeps pb-4xl as the other Around pages do.
 
 **`/u/[handle]/edit`** (the real page with loadProfileEditor mocked to the editing state with f4 EDITOR_PROFILE and AREA_OPTIONS (what the f4 edit-profile deck draws))
 
