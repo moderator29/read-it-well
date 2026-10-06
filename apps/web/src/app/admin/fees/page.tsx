@@ -94,7 +94,15 @@ export default async function AdminFeesPage() {
         locale={locale}
       />
 
-      <Earned summary={revenue.state === "ok" ? revenue.data : null} ui={ui} locale={locale} />
+      <Earned
+        summary={revenue.state === "ok" ? revenue.data : null}
+        ratesAllZero={[read.data.commission, read.data.listingFee].every((rates) => {
+          const live = rates.find((r) => r.inForce);
+          return !live || (live.basisPoints === 0 && live.flatMinor === 0);
+        })}
+        ui={ui}
+        locale={locale}
+      />
     </div>
   );
 }
@@ -117,10 +125,15 @@ function describe(rate: FeeRateView, locale: Awaited<ReturnType<typeof getLocale
  */
 function Earned({
   summary,
+  ratesAllZero,
   ui,
   locale,
 }: {
   summary: RevenueSummary | null;
+  /* "Every rate is zero today" is said only when it is true: nothing earned
+     under a live rate above zero is a different fact, and the per-source rows
+     below already say "Nothing booked in this window". */
+  ratesAllZero: boolean;
   ui: AdminUi;
   locale: Awaited<ReturnType<typeof getLocale>>;
 }) {
@@ -142,7 +155,7 @@ function Earned({
         <DocHead label={t.experienceAdmin.money.statementOverline} title="What the platform has earned" id="earned-title" />
         <p className="nf-doc__label mt-sm">{`Last ${summary.windowDays} days`}</p>
         <DocFigure>{formatMoney(summary.windowTotalMinor, locale)}</DocFigure>
-        {summary.windowTotalMinor === 0 && <p className="nf-doc__note">Every rate is zero today</p>}
+        {summary.windowTotalMinor === 0 && ratesAllZero && <p className="nf-doc__note">Every rate is zero today</p>}
         <DocRows>
           <DocRow label="All time" numeric>
             {formatMoney(summary.allTimeMinor, locale)}
