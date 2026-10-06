@@ -228,11 +228,14 @@ describe("the gate", () => {
     path = "/",
     reduced = false,
     entered = false,
+    refuses = false,
     dataset = {},
   }: {
     path?: string;
     reduced?: boolean;
     entered?: boolean;
+    /** Storage that throws on write: a private window, a full quota. */
+    refuses?: boolean;
     dataset?: Record<string, string>;
   }): Gate {
     const store = new Map<string, string>(entered ? [["nf_entered", "1"]] : []);
@@ -240,7 +243,13 @@ describe("the gate", () => {
     const fn = new Function("document", "sessionStorage", "matchMedia", "location", STARTUP_GATE_SCRIPT);
     fn(
       { documentElement: root },
-      { getItem: (k: string) => store.get(k) ?? null, setItem: (k: string, v: string) => store.set(k, v) },
+      {
+        getItem: (k: string) => store.get(k) ?? null,
+        setItem: (k: string, v: string) => {
+          if (refuses) throw new Error("QuotaExceededError");
+          store.set(k, v);
+        },
+      },
       () => ({ matches: reduced }),
       { pathname: path },
     );
@@ -250,6 +259,11 @@ describe("the gate", () => {
   it("plays once per session on the app's own pages", () => {
     expect(gate({})).toEqual({ splash: "on", entered: true });
     expect(gate({ entered: true }).splash).toBeUndefined();
+  });
+
+  it("marks the session first, and does not play at all where the mark cannot be written", () => {
+    /* Otherwise nothing remembers it played, and it plays on every full load. */
+    expect(gate({ refuses: true })).toEqual({ splash: undefined, entered: false });
   });
 
   it("plays, quietly, under the platform's reduced-motion setting (the stylesheet makes it a crossfade)", () => {

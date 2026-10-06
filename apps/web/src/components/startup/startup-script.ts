@@ -145,6 +145,14 @@ export const STARTUP_SCRIPT = [
  *                    travel, and section 3 answers it with a 160ms crossfade
  *                    from the still lockup (`startup.css`, quiet), never with
  *                    the assembly
+ *
+ * THE SESSION MARK IS WRITTEN FIRST, and the sequence is switched on only
+ * once that write has succeeded (audit A5). Where storage refuses the write
+ * (a private window, blocked site data, a full quota) the throw lands in the
+ * catch before the flag is set, so the sequence does not play at all, rather
+ * than on every full page load of the session because nothing remembered
+ * that it already had.
  */
 export const STARTUP_GATE_SCRIPT =
-  "try{var d=document.documentElement;if(!sessionStorage.getItem('nf_entered')&&d.dataset.saveData!=='on'&&d.dataset.motionSplash!=='off'&&d.dataset.motion!=='calm'&&d.dataset.motion!=='off'&&!/^\\/(admin|auth|api|offline|open|s|r)(\\/|$)/.test(location.pathname))d.dataset.splash='on';sessionStorage.setItem('nf_entered','1')}catch(e){}";
+  "try{var d=document.documentElement;if(!sessionStorage.getItem('nf_entered')){sessionStorage.setItem('nf_entered','1');" +
+  "if(d.dataset.saveData!=='on'&&d.dataset.motionSplash!=='off'&&d.dataset.motion!=='calm'&&d.dataset.motion!=='off'&&!/^\\/(admin|auth|api|offline|open|s|r)(\\/|$)/.test(location.pathname))d.dataset.splash='on'}}catch(e){}";
