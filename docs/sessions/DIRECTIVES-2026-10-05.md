@@ -860,6 +860,37 @@ route, because `cancelled` is not red either. The lesson generalises past this j
    checked before anything merges. Nothing in this directive is satisfied by a green
    tick on a later commit; this round's migrations are what needed checking.
 
+### D47.1. The premise the trigger change rested on, stated and disproved
+
+Session 4 did not miss this. Its `ci.yml` comment reasons it through explicitly and
+reaches the wrong conclusion on one word: "`db-probes` runs on every push and it
+runs against the real database, **one at a time and never cancelled**
+(`concurrency: db-probes`). Three session branches pushing therefore **queue behind
+each other** and behind `main`. That is the intended trade."
+
+**They do not queue. The middle ones are cancelled.** `cancel-in-progress: false`
+protects the run that is already going; it does not make GitHub hold every waiting
+run. Only the most recent pending run in a group survives. PR 84's nine-second
+`cancelled` is the proof, and it means the stated trade, "a migration that revokes a
+grant an RLS policy needs is worth catching on the branch rather than after a
+merge", bought nothing on the one branch that carried migrations.
+
+**And the trigger now doubles the contention it was weighed against.** Since draft
+pull requests exist for all three session branches, a push to one matches **both**
+`push: claude/vallo-**` and `pull_request: [main]`, so every push starts two full
+check suites. PR 83 shows the duplicate rows plainly: two `Build`, two
+`Typecheck, lint, test`, two `Database probes`. That is double the CI minutes and
+double the eviction pressure on the single `db-probes` slot.
+
+Session 4's own comment already names the resolution: "A draft pull request per
+session branch is the better long-run answer, since `pull_request` already triggers;
+this trigger is what works without one." **The pull requests now exist**, so the
+branch push trigger has done its job and should go, leaving `main`, `pull_request`
+and `workflow_dispatch`. That halves the runs and removes most of the contention
+behind D47 before any change to the concurrency group is even needed. Session 4
+decides and records it; if it keeps the trigger, the concurrency fix in D47 carries
+the whole weight and must be right.
+
 **And the general rule, binding on every session from here.** When you report a
 check as passing, say which outcome you saw. `cancelled`, `skipped` and `neutral`
 are not passes, and a job that finishes far faster than its normal run did not do
