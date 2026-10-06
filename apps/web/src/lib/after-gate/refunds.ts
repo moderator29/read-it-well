@@ -9,6 +9,7 @@ import { lagosToday } from "../rent/schema";
 import { refundClock } from "../trust/business-days";
 import { readCancellationTerms, type CancellationTerms } from "../trust/cancellation";
 import { readRefundRequest, readRefundRow, type RefundRequestRow, type RefundRow } from "./rows";
+import { refundLineFor, type RefundLine } from "./refund-lines";
 
 /**
  * The refund promise, read back. V-24 and V-20.
@@ -52,13 +53,9 @@ export async function readFrozenTerms(
   }
 }
 
-export type RefundLine = {
-  id: string;
-  amount: string | null;
-  retained: string | null;
-  sentence: string;
-  tone: "success" | "attention" | "error" | "neutral";
-};
+/* The line's shape and its pure builder live in `refund-lines.ts`, where the
+   rule that only a processed refund has landed is tested. */
+export type { RefundLine } from "./refund-lines";
 
 export type MyRefunds =
   | { state: "none"; canAsk: boolean }
@@ -97,29 +94,9 @@ export async function readMyRefundLines(
       .filter((row): row is RefundRow => row !== null);
     // A missing table (before the migration applies) reads as "no request".
     const request: RefundRequestRow | null = requestRead.error ? null : readRefundRequest(requestRead.data);
-    const lines: RefundLine[] = refunds.map((row): RefundLine => {
-      const base = {
-        id: row.id,
-        amount: copy.amount.replace("{amount}", formatMoney(row.refundMinor, locale)),
-        retained: row.retainedMinor > 0 ? copy.retained.replace("{amount}", formatMoney(row.retainedMinor, locale)) : null,
-      };
-      if (row.refundMinor <= 0 || row.processorStatus === "not_needed") return { ...base, sentence: copy.nothingOwed, tone: "neutral" };
-      if (row.processorStatus === "processed" && row.settledAt) {
-        return { ...base, sentence: copy.landed.replace("{date}", date(row.settledAt, true)), tone: "success" };
-      }
-      if (!row.submittedAt || row.processorStatus === "pending" || row.processorStatus === "failed") {
-        return { ...base, sentence: copy.sending, tone: "attention" };
-      }
-      const answers = request && Date.parse(row.createdAt) >= Date.parse(request.requestedAt) ? request : null;
-      const late = answers?.dueBy ? Date.parse(row.submittedAt) > Date.parse(answers.dueBy) : false;
-      return late && answers?.dueBy
-        ? {
-            ...base,
-            sentence: copy.initiatedLate.replace("{date}", date(row.submittedAt, true)).replace("{due}", date(answers.dueBy)),
-            tone: "attention",
-          }
-        : { ...base, sentence: copy.initiated.replace("{date}", date(row.submittedAt, true)), tone: "success" };
-    });
+    const lines: RefundLine[] = refunds.map((row) =>
+      refundLineFor(row, request, copy, (minor) => formatMoney(minor, locale), date),
+    );
 
     // Support's answer to the ask, readable only by the guest who asked.
     const decisionRead = request
@@ -132,7 +109,9 @@ export async function readMyRefundLines(
       lines.push({
         id: `${request.id}-decision`,
         amount: null,
+        refundMinor: null,
         retained: null,
+        landed: false,
         sentence: (note ? copy.declined : copy.declinedNoNote)
           .replace("{date}", date(declined.decided_at as string))
           .replace("{note}", note ?? ""),
@@ -147,7 +126,9 @@ export async function readMyRefundLines(
       lines.push({
         id: request.id,
         amount: null,
+        refundMinor: null,
         retained: null,
+        landed: false,
         sentence: (clock.state === "overdue" ? copy.overdue : copy.asked)
           .replace("{asked}", date(request.requestedAt))
           .replace("{date}", date(request.dueBy)),

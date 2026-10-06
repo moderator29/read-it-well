@@ -1,6 +1,7 @@
 import { getDictionary, type Locale } from "@vallo/i18n";
 import { resolveSession } from "@/lib/actions/session";
-import { readFrozenTerms, readMyRefundLines, type RefundLine } from "@/lib/after-gate/refunds";
+import { readFrozenTerms, readMyRefundLines } from "@/lib/after-gate/refunds";
+import { refundLead, refundMark } from "@/lib/after-gate/refund-lines";
 import { CancellationTimeline } from "@/lib/trust/CancellationTimeline";
 import { TYPE } from "@/components/app/Screen";
 import { DocFigure, DocHead, DocRows, DocState, DocumentSheet } from "@/components/app/money/DocumentSheet";
@@ -33,12 +34,6 @@ import { RefundRequestForm } from "./RefundRequestForm";
  * hue on white paper would fail contrast). Dates are the facts; there is no
  * tick.
  */
-function lineMark(tone: RefundLine["tone"]): "done" | "waiting" | null {
-  if (tone === "success") return "done";
-  if (tone === "neutral") return null;
-  return "waiting";
-}
-
 export async function BookingMoneyRecord({
   bookingId,
   checkIn,
@@ -66,9 +61,10 @@ export async function BookingMoneyRecord({
 
   const record = getDictionary(locale).experienceSpeed.afterGate;
   /* One refund with an amount leads the sheet with it; several do not, so
-     no line is promoted over another and nothing is summed on the page. */
-  const withAmount = refunds.state === "ready" ? refunds.lines.filter((line) => line.amount) : [];
-  const lead = refunds.state === "ready" && refunds.lines.length === 1 && withAmount.length === 1 ? withAmount[0] : null;
+     no line is promoted over another and nothing is summed on the page. A
+     single refund of nothing is not a headline ("N0.00 back"): the sheet
+     keeps its row, which says nothing was owed, and draws no figure. */
+  const lead = refunds.state === "ready" ? refundLead(refunds.lines) : null;
   const canAsk = refunds.state !== "unavailable" && refunds.canAsk;
   if (!frozen && refunds.state === "none" && !canAsk) return null;
 
@@ -85,7 +81,9 @@ export async function BookingMoneyRecord({
           {lead?.amount && <DocFigure testId="booking-refund-figure">{lead.amount}</DocFigure>}
           <DocRows>
             {refunds.lines.map((line) => {
-              const mark = lineMark(line.tone);
+              /* The filled mark only for money that reached the card (`landed`),
+                 never for a refund Paystack has only started. */
+              const mark = refundMark(line);
               const title = lead ? record.where : (line.amount ?? record.where);
               return (
                 <div key={line.id} className={documentRowClass("prose")} data-testid="booking-refund-line" data-tone={line.tone}>
