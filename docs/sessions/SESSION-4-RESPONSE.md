@@ -1366,7 +1366,72 @@ wrong. The other six routes were left alone, and the rule reproduced
 `/welcome`'s 815 to the kilobyte, which is some evidence the rule itself is
 sound rather than fitted after the fact.
 
-### This is the second widening, and that is the finding
+### RESOLVED: the variance is gone, and my diagnosis of it was wrong
+
+Both widenings are now moot, and the reason is worth more than the fix.
+
+**I had written that `waitUntil: "networkidle"` was settling at different points
+while lazy assets arrived. The blame was right and the mechanism was wrong.**
+Ten instrumented loads of `/welcome` gave nine readings between 660 and 673 and
+one of 730, and the outlier had fetched **two chunks the other nine never
+fetched at all**: a 64 KB chunk holding the Supabase browser client and an 8 KB
+chunk holding the sign-up terms control. Neither belongs to `/welcome`. Both
+belong to `/sign-in` and `/sign-up`.
+
+**Next prefetches the routes a page links to.** Header-tagging confirmed it
+everywhere: `/check` issues twelve router fetches for `/`, `/start`, `/search`,
+`/about` and `/r`; `/sign-in` issues sixteen. Not one tagged request was the
+page's own data.
+
+So the extra bytes were never **late**, they were **conditional**, on viewport
+intersection and idle timing. Seven further seconds of quiet added nothing on
+any clean run. **"Wait longer" could never have fixed this, which is exactly why
+my two widenings were chasing something that would never converge.** I was
+loosening a budget to accommodate a coin toss and calling it measurement.
+
+**The fix** aborts router prefetches so each route is charged its own bytes,
+replaces `networkidle` with `load` plus an explicit settle (nothing in flight
+plus 1,500 ms of quiet, capped at 15 s so a polling page cannot hang the gate),
+samples each route twice in fresh contexts taking the higher reading, and prints
+the spread and the dropped-prefetch count on every line so the instrument
+reports on itself.
+
+**The accounting judgement, stated because it is one.** A prefetch of `/search`
+is `/search`'s weight and it has its own line in `perf-budget.json`. Charging it
+to `/check` as well double-counted it and made `/check`'s budget move when a
+page it merely links to changed. What the gate no longer answers is "how many
+bytes does a visitor pull here in total, warming the next tap". That is a fair
+question and it is not a per-route ratchet.
+
+**Verified by me, not taken on report. Five passes of my own, after the fix:**
+
+| Route | My five readings | Spread | Was | Budget | Margin |
+| --- | --- | --- | --- | --- | --- |
+| `/` | 496 x5 | **0** | 28 | 520 | 24 |
+| `/welcome` | 644 x5 | **0** | 77 | 665 | 21 |
+| `/sign-in` | 615 x5 | **0** | 17 | 635 | 20 |
+| `/sign-up/email` | 617 x5 | **0** | 21 | 640 | 23 |
+| `/check` | 434 x5 | **0** | 18 | 455 | 21 |
+| `/move-in-cost` | 448 x5 | **0** | 13 | 470 | 22 |
+| `/for-agents` | 452 x5 | **0** | 79 | 475 | 23 |
+| `/guides/avoiding-rental-scams` | 438 x5 | **0** | 6 | 460 | 22 |
+
+Identical integers, every route, every run. Zero over budget.
+
+**And the budgets came down instead of up**, for the first time this session:
+`/for-agents` 640 to 475, a 165 KB fall, so the 70 KB regression a 640 budget
+would have waved through now fails three times over. `/welcome` 815 to 665.
+`/check` 630 to 455. The gate is finally a ratchet rather than a number being
+maintained.
+
+**One caveat I am keeping rather than burying.** These are container readings,
+from a build with no anon key and no MapTiler key, while CI builds with both.
+The two agreed within a few KB on every route before this change, so the 20 KB
+headroom should hold, but **the first CI front-door run is what confirms it**.
+A route a few KB OVER there is the environment gap, and the fix is to re-record
+from CI's own reading rather than loosen the rule.
+
+### The two widenings, kept in the record because the lesson outlives the fix
 
 I have now adjusted these budgets twice in one session, both times upward,
 both times because new readings outran the old spread. That pattern is not
