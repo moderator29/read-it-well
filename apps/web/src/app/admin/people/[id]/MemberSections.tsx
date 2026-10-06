@@ -258,7 +258,7 @@ export function MemberSections({
 
       <Section title="Reports" id="reports" failed={f.has("reports")}>
         <p className="mt-row nf-body-sm">
-          They filed {countOf(extras.reportsFiled, "reports", locale)}.{extras.reportsAgainst.length === 0 ? "None about them or their lister account." : `${extras.reportsAgainst.length} about them or their lister account${extras.reportsAgainst.length >= 20 ? " (newest 20)" : ""}:`}
+          They filed {countOf(extras.reportsFiled, "reports", locale)}.{" "}{extras.reportsAgainst.length === 0 ? "None about them or their lister account." : `${extras.reportsAgainst.length} about them or their lister account${extras.reportsAgainst.length >= 20 ? " (newest 20)" : ""}:`}
         </p>
         {extras.reportsAgainst.length > 0 && (
           <Rows>

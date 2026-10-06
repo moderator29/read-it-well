@@ -17,6 +17,12 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: "Person file", robots: { index: false, follow: false } };
 }
 
+/* The workspaces a person holds, in words: the file printed the role column ("user", "agent"). */
+function roleWord(role: string): string {
+  const words: Record<string, string> = { user: "Member", agent: "Lister", admin: "Admin", super_admin: "Super admin" };
+  return words[role] ?? role.charAt(0).toUpperCase() + role.slice(1).replace(/_/g, " ");
+}
+
 function when(iso: string | null, locale: Locale): string {
   if (!iso) return "";
   const d = new Date(iso);
@@ -82,7 +88,7 @@ export default async function PersonFilePage({ params }: { params: Promise<{ id:
       {/* SCUML item 6: open an STR case about this person. */}
       <ConsiderStr from="person" id={id} />
 
-      <section className="nf-panel nf-panel--card nf-admin-card p-card" aria-label="Who">
+      <section className="mt-section-tight nf-panel nf-panel--card nf-admin-card p-card" aria-label="Who">
         <dl className="grid gap-xs text-[length:var(--nf-text-body-sm)] sm:grid-cols-2">
           {person.handle && (
             <div>
@@ -92,17 +98,19 @@ export default async function PersonFilePage({ params }: { params: Promise<{ id:
           )}
           <div>
             <dt className="nf-caption text-[var(--nf-content-muted)]">Joined</dt>
-            <dd>{when(person.joinedAt, locale)}</dd>
+            <dd>{when(person.joinedAt, locale) || "Not recorded"}</dd>
           </div>
           <div>
             <dt className="nf-caption text-[var(--nf-content-muted)]">Workspaces</dt>
-            <dd>{person.roles.join(", ") || "member"}</dd>
+            <dd>{person.roles.map(roleWord).join(", ") || "Member"}</dd>
           </div>
           {person.agent && (
             <div>
               <dt className="nf-caption text-[var(--nf-content-muted)]">As a lister</dt>
               <dd>
-                {person.agent.name ?? "Agent"} · {ui.statusLabel(person.agent.status ?? "")} · verification tier {person.agent.tier}
+                {[person.agent.name ?? "Agent", person.agent.status ? ui.statusLabel(person.agent.status) : null, `verification tier ${person.agent.tier}`]
+                  .filter(Boolean)
+                  .join(" · ")}
               </dd>
             </div>
           )}
@@ -120,7 +128,7 @@ export default async function PersonFilePage({ params }: { params: Promise<{ id:
         {person.stop && (
           <div className="mt-row border-t border-[var(--nf-divider)] pt-row" data-testid="person-stop">
             <p className="font-semibold text-[var(--nf-status-rejected)]">
-              Stopped since {when(person.stop.since, locale)}
+              {person.stop.since ? `Stopped since ${when(person.stop.since, locale)}` : "Stopped"}
               {person.stop.fraudUpheldAt ? ` · upheld as fraud on ${when(person.stop.fraudUpheldAt, locale)}` : ""}
             </p>
             <p className="mt-inline-tight nf-body-sm text-[var(--nf-content-secondary)]">{person.stop.fraudNote ?? person.stop.reason}</p>
