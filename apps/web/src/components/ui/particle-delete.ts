@@ -97,7 +97,10 @@ function saving(): boolean {
 export async function particleDelete(el: HTMLElement, options: ParticleDeleteOptions = {}): Promise<void> {
   if (typeof document === "undefined") return;
   if (motionQuiet() || saving()) {
-    const fade = el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 160, fill: "forwards", easing: "linear" });
+    /* The quiet answer leaves on `leave` (the exit token), never linear:
+       a linear fade reads as a flicker at its end. */
+    const exit = getComputedStyle(document.documentElement).getPropertyValue("--nf-ease-exit").trim() || "cubic-bezier(0.4, 0, 1, 1)";
+    const fade = el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 160, fill: "forwards", easing: exit });
     await fade.finished.catch(() => undefined);
     return;
   }

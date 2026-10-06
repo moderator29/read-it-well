@@ -427,7 +427,7 @@
   }
   @media (prefers-reduced-motion: reduce) {
     .nf-toast-host .nf-toast {
-      animation: nf-toast-pill-fade var(--nf-duration-fast) linear both;
+      animation: nf-toast-pill-fade var(--nf-duration-fast) var(--nf-ease-standard) both;
     }
     .nf-toast-host .nf-toast[data-leaving] {
       transform: none;

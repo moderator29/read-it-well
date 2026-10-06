@@ -367,7 +367,7 @@
     /* The lead six keep a 160ms fade and lose the lift: the order is still
        readable, nothing travels. */
     .nf-feed-lead {
-      animation: nf-feed-fade var(--nf-duration-fast) linear both;
+      animation: nf-feed-fade var(--nf-duration-fast) var(--nf-ease-standard) both;
       animation-delay: 0ms;
     }
     @keyframes nf-feed-fade {

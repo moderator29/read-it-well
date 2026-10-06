@@ -239,9 +239,11 @@
     align-items: center;
     justify-content: center;
     gap: var(--nf-gap-inline);
+    /* On the ladder (round 5): it was 220ms on a hand-written curve and
+       160ms on the browser's `ease`. */
     transition:
-      transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
-      opacity 160ms ease;
+      transform var(--nf-duration-base) var(--nf-ease-entrance),
+      opacity var(--nf-duration-fast) var(--nf-ease-standard);
   }
 
   /*

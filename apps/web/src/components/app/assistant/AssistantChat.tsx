@@ -998,7 +998,7 @@ export function AssistantChat({
             type="button"
             aria-label="Close conversation history"
             onClick={closeHistory}
-            className={`absolute inset-0 bg-[var(--nf-overlay-backdrop)] transition-opacity duration-200 ${
+            className={`absolute inset-0 bg-[var(--nf-overlay-backdrop)] transition-opacity duration-[var(--nf-duration-base)] ease-[var(--nf-ease-standard)] ${
               historyShown ? "opacity-100" : "opacity-0"
             }`}
           />
@@ -1007,7 +1007,7 @@ export function AssistantChat({
             role="dialog"
             aria-modal="true"
             aria-label="Conversation history"
-            className={`nf-panel nf-panel--card nf-panel--glass absolute inset-y-0 left-0 flex w-80 max-w-[85vw] flex-col rounded-l-none p-0 pb-[env(safe-area-inset-bottom,0px)] transition-transform duration-200 ease-out ${
+            className={`nf-panel nf-panel--card nf-panel--glass absolute inset-y-0 left-0 flex w-80 max-w-[85vw] flex-col rounded-l-none p-0 pb-[env(safe-area-inset-bottom,0px)] transition-transform duration-[var(--nf-duration-base)] ease-[var(--nf-ease-entrance)] ${
               historyShown ? "translate-x-0" : "-translate-x-full"
             }`}
           >

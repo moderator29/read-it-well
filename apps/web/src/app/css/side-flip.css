@@ -391,7 +391,8 @@
   .nf-flip-stage[data-reduced] .nf-flip-face--back {
     transform: none;
     opacity: 0;
-    transition: opacity var(--nf-duration-fast) linear;
+    /* A crossfade on glide: linear opacity reads as a flicker at its end. */
+    transition: opacity var(--nf-duration-fast) var(--nf-ease-standard);
   }
   .nf-flip-stage[data-reduced][data-phase="turn"] .nf-flip-face--back {
     opacity: 1;

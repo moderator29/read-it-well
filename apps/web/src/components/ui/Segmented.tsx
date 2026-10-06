@@ -169,7 +169,7 @@ export function Segmented<T extends string>({
       for (const a of running) a.cancel();
     }
     const duration = Number.parseFloat(css.getPropertyValue("--nf-duration-base")) || 240;
-    const easing = css.getPropertyValue("--nf-ease-spring").trim() || "ease-out";
+    const easing = css.getPropertyValue("--nf-ease-spring").trim() || "cubic-bezier(0.34, 1.28, 0.64, 1)";
     el.animate(
       [
         { transform: `translateX(${start.x}px) scaleX(${start.w / Math.max(capsule.w, 1)})` },

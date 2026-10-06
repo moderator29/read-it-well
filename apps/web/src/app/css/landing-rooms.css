@@ -1510,7 +1510,7 @@
     animation: none;
   }
   :root[data-motion="calm"] .nf-landing-hero :is(.nf-depth-word, .nf-rise, .nf-depth-last) {
-    animation: nf-hero-fade 160ms linear both;
+    animation: nf-hero-fade var(--nf-duration-fast) var(--nf-ease-standard) both;
     animation-delay: 0ms;
   }
   :root[data-motion="calm"] .nf-landing-hero .nf-hero-grid,
@@ -2150,11 +2150,11 @@
     .nf-os__panel[data-shown="false"] {
       transform: none;
       transition:
-        opacity var(--nf-duration-fast) linear,
+        opacity var(--nf-duration-fast) var(--nf-ease-standard),
         visibility 0s linear var(--nf-duration-fast);
     }
     .nf-os__panel[data-shown="true"] {
-      transition: opacity var(--nf-duration-fast) linear;
+      transition: opacity var(--nf-duration-fast) var(--nf-ease-standard);
     }
   }
   :root:is([data-motion="calm"], [data-motion="off"], [data-save-data="on"], [data-motion-lite="on"]) .nf-hero-photo {
@@ -2174,7 +2174,7 @@
   :root[data-motion="calm"] .nf-os__panel[data-shown="false"] {
     transform: none;
     transition:
-      opacity var(--nf-duration-fast) linear,
+      opacity var(--nf-duration-fast) var(--nf-ease-standard),
       visibility 0s linear var(--nf-duration-fast);
   }
   :root[data-motion="off"] .nf-os__panel,
