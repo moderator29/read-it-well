@@ -42,11 +42,19 @@ describe("list arrival (MOTION_SYSTEM: first six, 40ms apart, 12px lift and fade
   });
 
   it("reaches the workspaces, with the console on the quicker rung", () => {
-    for (const container of [".nf-host :is(.nf-list-group, .nf-decide__list)", ".nf-agent .nf-list-group", ".nf-admin :is(.nf-list-group, .nf-admin-table > ul)"]) {
+    for (const container of [".nf-host :is(.nf-list-group, .nf-decide__list)", '.nf-agent :is(.nf-list-group, [aria-labelledby="health-recs"] > ul)', ".nf-admin :is(.nf-list-group, .nf-admin-table > ul)"]) {
       expect(kit).toContain(container);
     }
     expect(kit).toMatch(/\.nf-admin \{\s*--nf-arrive-d: var\(--nf-duration-fast\);/);
     expect(strip(css("motion-pref.css"))).toContain(".nf-admin :is(.nf-list-group, .nf-admin-table > ul)");
+  });
+
+  it("covers Listing Health's recommendation list, whose markup the selector names", () => {
+    const health = readFileSync(join(process.cwd(), "src/components/agent/intel/HealthReport.tsx"), "utf8");
+    expect(health).toContain('aria-labelledby="health-recs"');
+    expect(health).toMatch(/<ul className="mt-sm space-y-sm">\s*\{health\.recommendations\.map/);
+    expect(kit).toContain('[aria-labelledby="health-recs"] > ul');
+    expect(strip(css("motion-pref.css"))).toContain('[aria-labelledby="health-recs"] > ul');
   });
 
   it("the shared rise sequence follows the same first-six, 40ms rule", () => {

@@ -437,7 +437,7 @@
     .nf-pf-rows,
     .nf-arrive-list,
     .nf-host :is(.nf-list-group, .nf-decide__list),
-    .nf-agent .nf-list-group,
+    .nf-agent :is(.nf-list-group, [aria-labelledby="health-recs"] > ul),
     .nf-admin :is(.nf-list-group, .nf-admin-table > ul)
   ) {
     & > * {
@@ -485,7 +485,7 @@
       .nf-pf-rows,
       .nf-arrive-list,
       .nf-host :is(.nf-list-group, .nf-decide__list),
-      .nf-agent .nf-list-group,
+      .nf-agent :is(.nf-list-group, [aria-labelledby="health-recs"] > ul),
       .nf-admin :is(.nf-list-group, .nf-admin-table > ul)
     ) > *,
     .nf-tab-swap {
@@ -498,7 +498,7 @@
       .nf-pf-rows,
       .nf-arrive-list,
       .nf-host :is(.nf-list-group, .nf-decide__list),
-      .nf-agent .nf-list-group,
+      .nf-agent :is(.nf-list-group, [aria-labelledby="health-recs"] > ul),
       .nf-admin :is(.nf-list-group, .nf-admin-table > ul)
     ) > *, .nf-tab-swap) {
     animation: none;
