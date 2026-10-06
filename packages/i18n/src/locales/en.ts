@@ -1691,7 +1691,7 @@ export const en = {
       privacySub: "Password, sign-in and devices",
       appearanceSub: "Text size, motion, data",
       languageSub: "App language",
-      help: "Help & Support",
+      help: "Help and support",
       helpSub: "FAQs, contact us",
       payments: "Payment methods",
       paymentsSub: "Manage your cards and bank accounts.",

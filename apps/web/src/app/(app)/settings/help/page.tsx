@@ -14,7 +14,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /**
- * Help & Support: the assistant, the help centre, the legal pages and the
+ * Help and support: the assistant, the help centre, the legal pages and the
  * about block, which were the last two cards of the old settings home.
  */
 export default async function HelpSettingsPage() {
