@@ -341,7 +341,7 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
         // One agreement per inspection (`rent_charge_needs_approved_agreement`).
         loose.from("deal_agreements").select("terms").eq("inspection_id", rp.inspection_id).maybeSingle(),
       ]);
-      await reportReadError("read.tenancy.getTenancyFile", deductionsRead.error, returnsRead.error, claimsRead.error);
+      await reportReadError("read.tenancy.getTenancyFile", deductionsRead.error, returnsRead.error, claimsRead.error, termsRead.error);
       const deductionRows = rows(deductionsRead.data);
       const returnRows = rows(returnsRead.data);
       const deductionIds = deductionRows.map((row) => String(row.id));
