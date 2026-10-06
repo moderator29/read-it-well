@@ -6,9 +6,9 @@ component with the fixture named in its row. **P** pass, **X** failed and fixed 
 sweep, **F** failed and still open, **·** does not apply. The denominator is 213 real routes
 (every `page.tsx` under `apps/web/src/app`, excluding `(dev)` and `api`).
 
-**Routes audited: 195 of the 213** measured at the start of the sweep, plus 4 routes added since (`/join/[code]/start`, `/s/[token]/status`, `/settings/accessibility`, `/settings/region`): 199 records in all.
+**Routes audited: 199 of the 213** measured at the start of the sweep, plus 4 routes added since (`/join/[code]/start`, `/s/[token]/status`, `/settings/accessibility`, `/settings/region`): 203 records in all.
 
-Not yet audited: `/agreements/[id]`, `/agreements`, `/bookings/[bookingId]`, `/checkout/[bookingId]`, `/checkout`, `/home`, `/listing/[id]`, `/listing/[id]/trust`, `/payments`, `/price/area/[id]`, `/rent/share/[id]`, `/restaurants`, `/saved/searches`, `/search`, `/stays`, `/stays/search`, `/tenancy/[id]`, `/verification`.
+Not yet audited: `/agreements/[id]`, `/checkout/[bookingId]`, `/checkout`, `/home`, `/listing/[id]`, `/listing/[id]/trust`, `/payments`, `/price/area/[id]`, `/rent/share/[id]`, `/restaurants`, `/search`, `/stays`, `/stays/search`, `/tenancy/[id]`.
 
 | Family | Audited |
 |---|---|
@@ -16,11 +16,12 @@ Not yet audited: `/agreements/[id]`, `/agreements`, `/bookings/[bookingId]`, `/c
 | about | 1 |
 | admin | 38 |
 | agent | 24 |
+| agreements | 1 |
 | areas | 1 |
 | around | 5 |
 | assistant | 1 |
 | auth | 1 |
-| bookings | 2 |
+| bookings | 3 |
 | cancellations | 1 |
 | careers | 1 |
 | check | 1 |
@@ -59,7 +60,7 @@ Not yet audited: `/agreements/[id]`, `/agreements`, `/bookings/[bookingId]`, `/c
 | s | 2 |
 | safe | 1 |
 | safety | 1 |
-| saved | 1 |
+| saved | 2 |
 | settings | 25 |
 | sign-in | 4 |
 | sign-up | 4 |
@@ -71,6 +72,7 @@ Not yet audited: `/agreements/[id]`, `/agreements`, `/bookings/[bookingId]`, `/c
 | tenancy | 1 |
 | terms | 1 |
 | u | 5 |
+| verification | 1 |
 | welcome | 1 |
 
 | Route | By | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 |
@@ -139,6 +141,7 @@ Not yet audited: `/agreements/[id]`, `/agreements`, `/bookings/[bookingId]`, `/c
 | `/agent/reviews` | C1 | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/agent/settings` | C1 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/agent/verification` | C1 | P | P | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
+| `/agreements` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | X | P | P | P | P | P | P | P | P |
 | `/areas/[state]/[area]` | C6 | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | P | P | P | P | P | P | P | P | P |
 | `/around` | C3 | P | · | P | P | P | P | P | · | P | P | P | P | P | · | · | X | · | P | P | P | X | P | P | P |
 | `/around/[slug]` | C3 | P | · | P | P | P | P | P | P | P | P | P | P | P | · | P | X | · | P | X | P | P | P | P | P |
@@ -148,6 +151,7 @@ Not yet audited: `/agreements/[id]`, `/agreements`, `/bookings/[bookingId]`, `/c
 | `/assistant` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | P | P | X | P | P | P | P |
 | `/auth/callback` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | · | P | P | P | P | P | P |
 | `/bookings` | C3 | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P |
+| `/bookings/[bookingId]` | C3 | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | X | P | P | P | P | X | P | P | P |
 | `/bookings/[bookingId]/review` | C3 | P | · | P | P | P | P | · | P | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/cancellations` | C6 | P | · | P | P | P | P | P | P | P | P | P | P | P | P | P | P | X | · | P | P | P | P | P | P |
 | `/careers` | C6 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | P | P | P | P | P | P | P |
@@ -224,6 +228,7 @@ Not yet audited: `/agreements/[id]`, `/agreements`, `/bookings/[bookingId]`, `/c
 | `/safe/[token]` | C6 | P | · | P | P | P | P | · | · | P | P | P | X | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/safety` | C6 | P | · | P | P | X | P | · | · | P | P | P | P | P | P | P | P | X | · | P | P | P | P | P | P |
 | `/saved` | C3 | P | · | P | P | P | P | P | · | P | P | P | P | P | · | · | X | · | P | P | P | P | P | P | P |
+| `/saved/searches` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | X | · | P | X | P | X | P | P | P |
 | `/settings` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | · | P | P | P | P | P | X |
 | `/settings/accessibility` | C3 | P | · | P | P | P | X | · | · | P | P | P | X | P | · | · | P | · | · | P | X | P | P | P | P |
 | `/settings/account` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | P | P | P | P | P | P | X |
@@ -273,6 +278,7 @@ Not yet audited: `/agreements/[id]`, `/agreements`, `/bookings/[bookingId]`, `/c
 | `/u/[handle]/edit` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | P | P | P | P | P | X | P | P |
 | `/u/[handle]/followers` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | P | P | P | P | X | X | P | P |
 | `/u/[handle]/following` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | P | P | P | P | P | X | P | P |
+| `/verification` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | X | · | · | P | P | P | P | P | P |
 | `/welcome` | C7 | P | · | P | P | P | P | · | · | P | P | P | · | P | · | · | P | · | · | P | P | P | X | P | P |
 
 ## What failed, and what was done
@@ -508,6 +514,10 @@ Not yet audited: `/agreements/[id]`, `/agreements`, `/bookings/[bookingId]`, `/c
 
 - 21 (fixed): The rail's "Apply to list" link (drawn when no agent profile reads) measured a 32px box with the words broken over two lines at 1440; it is a block as wide as its words now (components/agent/AgentNav.tsx, every agent page).
 
+**`/agreements`** (no agreement fixture exists anywhere in the repository, so the two honest answers the read gives: none yet, and unreadable)
+
+- 16 (fixed): The title, the section label and the empty state were English literals; they come from nav.agreements and experienceMoney.agreements (listTitle, emptyTitle, emptyBody).
+
 **`/around`** (the real page signed in with no place joined, so the everywhere feed: f4 FEED_POSTS (placed nowhere) and f4 FEED_STORIES; author tiers left as the fixture has them)
 
 - 16 (fixed): The empty state's title and action were English literals in the page; they come from experienceSocial.around now.
@@ -525,6 +535,11 @@ Not yet audited: `/agreements/[id]`, `/agreements`, `/bookings/[bookingId]`, `/c
 **`/assistant`** (the real page with readAssistantViewer mocked to _fixtures/people PERSON's initial and aiConsentForViewer both true and false; no thread (threads live on the device, so a first visit is empty))
 
 - 20 (fixed): axe aria-prohibited-attr on arrival (1 at dark.390 and light.390): the thread was a div carrying aria-label with no role. It is a named region now.
+
+**`/bookings/[bookingId]`** (the real page with getMyBookings answering the f3 bookings and tenancies, f3 BOOKINGS[0] (Grand Vista, confirmed) opened, f3 CHECKOUT as its checkout view (the same booking), no state events and no money record rows (none is fixtured); and an id that matches none)
+
+- 16 (fixed): The tab title was English; it reads the dictionary's stay word, as the header does.
+- 21 (fixed): View details and Your review drew 20.1px tall; both take nf-tap, 0 under 44. Signed out, Sign in went to a bare /sign-in; it carries this booking through withNext.
 
 **`/cancellations`** (the REAL page in the REAL (site) layout; no read (the words are the page's own, lib/trust and lib/legal))
 
@@ -760,6 +775,12 @@ Not yet audited: `/agreements/[id]`, `/agreements`, `/bookings/[bookingId]`, `/c
 
 - 16 (fixed): The header link "Saved searches" and the tab title were English; they come from experienceDiscover.saved.searchesLink and nav.saved.
 
+**`/saved/searches`** (the real page with session-b/sweep-orphans SAVED_SEARCHES and no briefs; and signed out)
+
+- 16 (fixed): The page title, retry, and the whole board (saved on, named from its filters, the alert notes, rename, the switch label, remove and keep) were English literals; they come from experienceDiscover.saved (searchesLink, searchesRetry, board). SavedSearchBoard takes a copy prop; sweep-orphans passes it.
+- 19 (fixed): A search's name was cut with an ellipsis at 390 ("Two bedrooms in Yaba under 2m a..."): the words that tell two searches apart. It wraps now; 0 clipped.
+- 21 (fixed): Each search's name link drew 25.6px tall; it takes nf-tap, 0 under 44. The signed-out Sign in was hand-encoded; it uses withNext.
+
 **`/settings`** (the real page in the real settings layout (SettingsAreaNav), signed in as the preview fixture PERSON (_fixtures/people) through lib/testing/fake-supabase; every other read answers as a new member's account does (empty); device count unreadable (null), so the row asks rather than shows 0)
 
 - 24 (fixed): Back to /home (declared). A signed-out sign-in link lost where the person was going (bare /sign-in); it carries next through withNext now. (the Devices, Place and Interests rows, signed out)
@@ -927,6 +948,10 @@ Not yet audited: `/agreements/[id]`, `/agreements`, `/bookings/[bookingId]`, `/c
 **`/u/[handle]/following`** (the real page with getFollowList's own found answer and no one in it)
 
 - 22 (fixed): The metadata title was an English literal; experienceSocial.follows now.
+
+**`/verification`** (the real page for a member with no agents row (no ladder) and no documents, the path's first state; nothing else is fixtured)
+
+- 16 (fixed): The fallback sentences for a suspension, a refusal and a request with no recorded note, their fixes, and the heading over the reviewer's words were English literals in the page; they come from experienceAccount.verification now.
 
 **`/welcome`** (a signed-out visitor, no cookies: the stranger's intro, and the tour (?tour=1))
 
