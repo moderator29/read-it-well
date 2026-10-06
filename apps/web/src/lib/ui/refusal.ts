@@ -41,8 +41,13 @@ export function watchRefusals(doc: Document = document): () => void {
       target.setAttribute(REFUSED_ATTRIBUTE, "");
       /* Where motion is off (reduced motion, Calm, Off) the attribute starts
          nothing, and nothing would clear it: take it back at once, so it cannot
-         start a shake later if the setting changes while the field is invalid. */
-      if (typeof target.getAnimations === "function" && target.getAnimations().length === 0) {
+         start a shake later if the setting changes while the field is invalid.
+         Only the shake counts: under Calm the invalid border's colour
+         transition still runs, and it is in getAnimations() too (auditor A8). */
+      if (
+        typeof target.getAnimations === "function" &&
+        !target.getAnimations().some((a) => (a as CSSAnimation).animationName === "nf-field-refuse")
+      ) {
         target.removeAttribute(REFUSED_ATTRIBUTE);
       }
     }
