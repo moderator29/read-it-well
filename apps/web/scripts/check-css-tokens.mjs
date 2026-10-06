@@ -908,7 +908,7 @@ for (const dir of ROOTS) {
  *   their owners deleting the rules.
  */
 const PILL_RADIUS =
-  /border(?:-[a-z]+)*-radius\s*:[^;]*(?:var\(\s*--nf-radius-(?:pill|control-pill|button)\s*\)|\b9{3,4}px\b)/;
+  /border(?:-[a-z]+)*-radius\s*:[^;]*(?:var\(\s*--nf-radius-(?:pill|control-pill|button|segment)\s*\)|\b9{3,4}px\b)/;
 
 /*
  * THE BUTTON IS THE ONE CONTROL ALLOWED A CAPSULE (founder references 44 and
@@ -950,6 +950,17 @@ function isButtonRule(selector) {
  * when the control is squared off, and never add one to make a build pass.
  */
 const PILL_ALLOWED = new Set([
+  /*
+   * PERMANENT, by founder directive D2 of 5 October 2026, which supersedes the
+   * 19 September ruling for this one role: "the pill is reserved for chips,
+   * filters, SEGMENTED CONTROLS and circular icon controls, so that seeing a
+   * pill tells a person the thing is selectable" (north star 5A, the
+   * segmented role: pill track, pill thumb). The segmented control's radius is
+   * its own token, `--nf-radius-segment`, which PILL_RADIUS now recognises, so
+   * this permission is enforced and visible rather than passing unseen. Every
+   * other control keeps the rectangle.
+   */
+  "src/app/css/chips.css  .nf-segmented--pill",
   /*
    * PERMANENT. The dock island is 56px square, holds one glyph and carries no
    * word, so it is the ruling's second exception: a bare icon button, the same
