@@ -20,6 +20,11 @@ export const experienceMoneyEn = {
     /* The length of the stay is its own fact, beside Guests. */
     nights: "Nights",
   },
+  /* The money screens' waits (W2, round 5): what the one loading state says
+     while the screen is drawn inert (`MoneyWait`). */
+  waits: {
+    rentPay: "Loading the rent payment",
+  },
   /* The move-in ledger on its document sheet (reference 7073). */
   ledger: {
     /* The way on from a home that cannot take an inspection request. Said

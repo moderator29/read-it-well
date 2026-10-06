@@ -151,13 +151,13 @@ if (legacy.length > LEGACY_BUDGET) {
 /*
  * EVERY ROUTE LOADING STATE ANNOUNCES THROUGH THE KIT: directly, or through a
  * shared shell that renders it (LoadingShell, and QueueSkeleton,
- * AgentScreenSkeleton, LoadingPeople, AuthScreenSkeleton, AuthWait and
+ * AgentScreenSkeleton, LoadingPeople, AuthScreenSkeleton, AuthWait, MoneyWait and
  * HostScreenSkeleton over it). One is still its own, the
  * share door's card (`app/s/[token]`), which is builder-owned and new; it is
  * the whole of LOADING_BUDGET, and the number may only go down.
  */
 const LOADING_BUDGET = 1;
-const KIT_LOADERS = /\b(State|LoadingShell|QueueSkeleton|AgentScreenSkeleton|LoadingPeople|AuthScreenSkeleton|AuthWait|HostScreenSkeleton)\b/;
+const KIT_LOADERS = /\b(State|LoadingShell|QueueSkeleton|AgentScreenSkeleton|LoadingPeople|AuthScreenSkeleton|AuthWait|HostScreenSkeleton|MoneyWait)\b/;
 const loose = walk(join(SRC, "app")).filter((f) => f.endsWith("/loading.tsx") && !KIT_LOADERS.test(readFileSync(f, "utf8")));
 if (loose.length > LOADING_BUDGET) {
   for (const f of loose) fail(f, "a loading state that does not announce through the kit");

@@ -433,37 +433,86 @@
    * IT IS NOT A LOOP. MOTION_SYSTEM principle 10 names two things that may
    * loop forever, the aurora and the assistant's thinking state, and a
    * skeleton is neither, so the sweep crosses four times (1.4s a pass) and the
-   * slab settles to a still tint. The geometry is what makes that clean: the
-   * gradient is 220% of the box wide and tiles, so its highlight band
-   * (36% to 64%) is inside the box only for positions between 117.3% and
-   * -17.3%. Both ends of the sweep are outside it, and so is the position the
-   * slab rests at, `117.3%`, which is also the base value, so a slab with no
-   * animation at all (data saver, Calm after one pass, Off, reduced motion
-   * through the global one-pass rule) is the same still tint. `forwards`
-   * holds that end state.
+   * slab settles to a still tint.
+   *
+   * THE BAND IS A LAYER THAT MOVES, NOT A BACKGROUND THAT IS REPAINTED (W2,
+   * round 5; CRAFT-PRINCIPLES 2.1). The sweep animated `background-position`,
+   * a paint property, so every skeleton on a loading screen was repainted
+   * every frame for 5.6 seconds, on the cheapest GPUs this product meets, at
+   * the moment the network is already the bottleneck. The slab now paints
+   * once (its still tint, the bottom layer of the old gradient) and the band
+   * is its `::after`, a box the slab's width that only `transform` moves, so
+   * the compositor carries it and nothing repaints. The geometry is the old
+   * one: the band is 61.6% of the slab wide (the old 36% to 64% of a 220%
+   * tile), it starts one slab-width to the left and ends one slab-width to the
+   * right, both outside the box, and so is the rest position, which is also
+   * the base value: a slab with no animation (data saver, Calm after one
+   * pass, Off, reduced motion through the global floor) is the same still
+   * tint. `forwards` holds that end state. `overflow: hidden` clips the band
+   * to the slab's own corners; `pointer-events: none` keeps it off the hit
+   * test. The band's two inks are properties of the slab, so the glass slab
+   * and the document's paper slab change colour without a second rule for
+   * the band.
    */
   @keyframes nf-shimmer {
     from {
-      background-position: -17.3% 0;
+      transform: translateX(-100%);
     }
     to {
-      background-position: 117.3% 0;
+      transform: translateX(100%);
     }
   }
   .nf-skeleton {
+    --nf-skeleton-glint: var(--nf-glow-1);
+    --nf-skeleton-peak: var(--nf-wash-4);
+    position: relative;
+    overflow: hidden;
     border-radius: var(--nf-radius-md);
-    background:
-      linear-gradient(
-        90deg,
-        var(--nf-wash-1) 36%,
-        var(--nf-glow-1) 48%,
-        var(--nf-wash-4) 52%,
-        var(--nf-wash-1) 64%
-      )
-      var(--nf-surface-inset);
-    background-size: 220% 100%;
-    background-position: 117.3% 0;
+    background: linear-gradient(var(--nf-wash-1), var(--nf-wash-1)) var(--nf-surface-inset);
+  }
+  .nf-skeleton::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      90deg,
+      transparent 19.2%,
+      var(--nf-skeleton-glint) 45.6%,
+      var(--nf-skeleton-peak) 54.4%,
+      transparent 80.8%
+    );
+    transform: translateX(100%);
     animation: nf-shimmer 1.4s linear 4 forwards;
+  }
+
+  /*
+   * A LINE OF TEXT THAT HAS NOT ARRIVED (W2, round 5; the money waits,
+   * `MoneyWait.tsx`). `.nf-skeleton-line` is one line box of the element it
+   * stands in (`1lh`), holding a no-break space for the baseline; the bar
+   * inside it is the height of the type (0.7em, centred), not of the line,
+   * so a paragraph of them reads as text about to land rather than as a
+   * stack of blocks. `--text` draws the slab in the ink of the text it
+   * stands in for, at a tenth: grey on paper, a lit line on the night hero
+   * band, quieter still where the words will be muted. The inset trough was
+   * a black hole on the glass cards at night.
+   */
+  .nf-skeleton-line {
+    position: relative;
+    height: 1lh;
+    color: inherit;
+  }
+  .nf-skeleton-line > .nf-skeleton {
+    position: absolute;
+    inset-inline: 0;
+    top: calc(50% - var(--nf-skeleton-bar, 0.7em) / 2);
+    height: var(--nf-skeleton-bar, 0.7em);
+    border-radius: var(--nf-radius-xs);
+  }
+  .nf-skeleton--text {
+    --nf-skeleton-glint: color-mix(in oklab, currentColor 10%, transparent);
+    --nf-skeleton-peak: color-mix(in oklab, currentColor 16%, transparent);
+    background: color-mix(in oklab, currentColor 10%, transparent);
   }
 }
 
@@ -945,18 +994,10 @@
    * its own dark canvas. Same keyframe, same reduced-motion stop.
    */
   .nf-skeleton--glass {
-    background:
-      linear-gradient(
-        90deg,
-        var(--nf-glass-fill-thin) 36%,
-        var(--nf-glow-2) 48%,
-        var(--nf-glass-fill-strong) 52%,
-        var(--nf-glass-fill-thin) 64%
-      )
-      var(--nf-glass-fill-thin);
-    background-size: 220% 100%;
-    /* The shorthand above resets the position; the rest position is the same. */
-    background-position: 117.3% 0;
+    --nf-skeleton-glint: var(--nf-glow-2);
+    --nf-skeleton-peak: var(--nf-glass-fill-strong);
+    /* Two layers of the thin fill, as the old tile's resting band was. */
+    background: linear-gradient(var(--nf-glass-fill-thin), var(--nf-glass-fill-thin)) var(--nf-glass-fill-thin);
     box-shadow: inset 0 0 0 1px var(--nf-glass-border);
   }}
 

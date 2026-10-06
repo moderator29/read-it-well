@@ -57,7 +57,7 @@
 :root[data-save-data="on"] .nf-breathe,
 :root[data-save-data="on"] .nf-float,
 :root[data-save-data="on"] .nf-card--live,
-:root[data-save-data="on"] .nf-skeleton,
+:root[data-save-data="on"] .nf-skeleton::after,
 :root[data-save-data="on"] .nf-social-skeleton,
 :root[data-save-data="on"] .nf-vcols__strip {
   animation: none;

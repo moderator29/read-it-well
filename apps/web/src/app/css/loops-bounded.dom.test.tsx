@@ -52,16 +52,31 @@ const entryWith = (saver: boolean) => `
 const VIEW = { width: 1000, height: 800 };
 const SELECTORS = ["#sk", "#skg", "#soc", "#strip", "#pulse"] as const;
 
+/* The app slabs sweep on their `::after` (W2, round 5: a translated band, not a repainted
+   background); the social slab still sweeps its own background. */
+const PSEUDO: Record<string, string | undefined> = { "#sk": "::after", "#skg": "::after", "#tall": "::after", "#tallglass": "::after" };
 const style = (page: Page, sel: string, prop: string) =>
-  page.evaluate(([s, p]) => (getComputedStyle(document.querySelector(s!)!) as unknown as Record<string, string>)[p!], [sel, prop] as const);
+  page.evaluate(
+    ([s, p, pseudo]) => (getComputedStyle(document.querySelector(s!)!, pseudo ?? null) as unknown as Record<string, string>)[p!],
+    [sel, prop, PSEUDO[sel]] as const,
+  );
 
-/** Run every animation to its end now, as the clock would, and report the resting background positions. */
-const settle = (page: Page) =>
+/* The resting place of each sweep: the app band's transform (one slab-width right of the box,
+   300px), the social slab's background position. */
+const REST = { sk: "matrix(1, 0, 0, 1, 300, 0)", skg: "matrix(1, 0, 0, 1, 300, 0)", soc: "117.3% 0px" };
+const rest = (page: Page) =>
   page.evaluate(() => {
-    for (const a of document.getAnimations()) a.finish();
-    const pos = (s: string) => getComputedStyle(document.querySelector(s)!).backgroundPosition;
-    return { sk: pos("#sk"), skg: pos("#skg"), soc: pos("#soc") };
+    const band = (s: string) => getComputedStyle(document.querySelector(s)!, "::after").transform;
+    return { sk: band("#sk"), skg: band("#skg"), soc: getComputedStyle(document.querySelector("#soc")!).backgroundPosition };
   });
+
+/** Run every animation to its end now, as the clock would, and report where each sweep rests. */
+const settle = async (page: Page) => {
+  await page.evaluate(() => {
+    for (const a of document.getAnimations()) a.finish();
+  });
+  return rest(page);
+};
 
 describe.skipIf(!hasBrowser && !process.env.CI)("the last loops are bounded", () => {
   it("every one runs a fixed number of times, none infinite", async () => {
@@ -82,18 +97,37 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the last loops are bounded", ()
     const saver = await mountInBrowser({ entry: entryWith(true), css: CSS, viewport: VIEW });
     try {
       const ran = await settle(standard.page);
-      /* Data saver never starts them: the slab is at its base position. */
-      const still = await saver.page.evaluate(() => {
-        const pos = (s: string) => getComputedStyle(document.querySelector(s)!).backgroundPosition;
-        return { sk: pos("#sk"), skg: pos("#skg"), soc: pos("#soc") };
-      });
+      /* Data saver never starts them: the band is at its base position. */
+      const still = await rest(saver.page);
       expect(ran).toEqual(still);
-      expect(still.sk).toBe("117.3% 0px");
-      expect(still.skg).toBe("117.3% 0px");
-      expect(still.soc).toBe("117.3% 0px");
+      expect(still).toEqual(REST);
     } finally {
       await standard.close();
       await saver.close();
+    }
+  });
+
+  it("moves the app slab's band with transform alone, so the sweep repaints nothing (W2, round 5)", async () => {
+    const { page, close } = await mountInBrowser({ entry: entryWith(false), css: CSS, viewport: VIEW });
+    try {
+      const sweeps = await page.evaluate(() =>
+        ["#sk", "#skg", "#tall"].map((sel) =>
+          document
+            .querySelector(sel)!
+            .getAnimations({ subtree: true })
+            .map((a) => {
+              const effect = a.effect as KeyframeEffect;
+              const props = new Set(effect.getKeyframes().flatMap((k) => Object.keys(k)));
+              for (const meta of ["offset", "computedOffset", "easing", "composite"]) props.delete(meta);
+              return { pseudo: effect.pseudoElement, props: [...props] };
+            }),
+        ),
+      );
+      for (const list of sweeps) expect(list).toEqual([{ pseudo: "::after", props: ["transform"] }]);
+      /* The slab itself runs nothing: it paints its still tint once. */
+      expect(await page.evaluate(() => getComputedStyle(document.querySelector("#sk")!).animationName)).toBe("none");
+    } finally {
+      await close();
     }
   });
 
@@ -118,8 +152,8 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the last loops are bounded", ()
         for (const sel of SELECTORS) {
           expect(await style(page, sel, "animationIterationCount"), `${name} ${sel}`).toMatch(/^1$|^none$/);
         }
-        const rest = await settle(page);
-        expect(rest, name).toEqual({ sk: "117.3% 0px", skg: "117.3% 0px", soc: "117.3% 0px" });
+        const rested = await settle(page);
+        expect(rested, name).toEqual(REST);
       } finally {
         await close();
       }
@@ -262,7 +296,7 @@ describe.skipIf(!hasBrowser && !process.env.CI)("a tall slab rests as the plain 
       /* Mid-sweep: hold each slab's animation a third of the way through a pass. */
       await page.evaluate((sels) => {
         for (const sel of sels) {
-          for (const a of document.querySelector(sel)!.getAnimations()) {
+          for (const a of document.querySelector(sel)!.getAnimations({ subtree: true })) {
             a.pause();
             a.currentTime = 1400 * 0.4;
           }
