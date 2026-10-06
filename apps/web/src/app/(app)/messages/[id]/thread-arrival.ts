@@ -72,6 +72,12 @@ export function adoptBubble<T extends ArrivalBubble & { state?: unknown; timeLab
  *     present and has nothing left to adopt.
  *   - Anything else, a message from the other side or from another device of
  *     mine, is appended and arrives like any new message.
+ *
+ * KNOWN EDGE, ACCEPTED: the pairing is by words, since an echo carries no
+ * client id. If my other device sends the same words while my own send is
+ * still pending, that echo can claim my optimistic bubble. Nothing is lost:
+ * my own echo then finds no temporary bubble and is appended, so both
+ * messages show; only which of the two plays its arrival in place differs.
  */
 export function mergeEcho<
   T extends ArrivalBubble & { body: string; imageUrl: string | null; state?: "sending" | "failed" | "waiting" },
