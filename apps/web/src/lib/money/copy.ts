@@ -203,6 +203,16 @@ export const GUARANTEE_SCOPE =
 export const LEGACY_GUARANTEE_CLAIM =
   "This payment was made while the Vallo Guarantee was running, and a contribution was set aside from the lister's share. You can still claim on it inside the window below. A person at Vallo reviews every claim before anything is paid.";
 
+/**
+ * The lister's line on an agreement paid while the Guarantee ran: what was set
+ * aside from their share. `percentText` is the frozen `guarantee_bps` as a
+ * percentage ("1.5"). Drawn only when that frozen rate is above zero, never on
+ * a new payment (D51). Moved from the agreement page word for word (A9).
+ */
+export function legacyReserveSentence(percentText: string): string {
+  return `Under the terms you agreed, ${percentText}% of the total was set aside from your share for the Vallo Guarantee reserve.`;
+}
+
 /* -------------------------------------------------------------------------- */
 /* THE LISTER'S FEE, BEFORE PUBLISHING (D51, the agreement gate)              */
 /* -------------------------------------------------------------------------- */

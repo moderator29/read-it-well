@@ -35,6 +35,7 @@ import {
   agreementOwnerApproved,
   agreementPayLabel,
   LEGACY_GUARANTEE_CLAIM,
+  legacyReserveSentence,
   NO_CUSTODY_SENTENCE,
   NO_INSPECTION_FEE,
   OFF_PLATFORM_SENTENCE,
@@ -381,7 +382,7 @@ export default async function AgreementPage({
                 lister alone is told what came out of their share, and only
                 while a Guarantee contribution was really in the terms. */}
             {a.role === "owner" && legacyContribution && guaranteeBps !== null
-              ? ` Under the terms you agreed, ${bpsAsPercentText(guaranteeBps)}% of the total was set aside from your share for the Vallo Guarantee reserve.`
+              ? ` ${legacyReserveSentence(bpsAsPercentText(guaranteeBps))}`
               : ""}
           </DocNote>
         </DocumentSheet>
