@@ -12,9 +12,11 @@
   is signing in; and the DOTS AS THE SUBJECT, large and generously spaced,
   with the keypad quieter than them by a visible margin.
 
-  ALWAYS DARK. PasscodeFrame marks the frame `data-theme="dark"`, a night
-  island, so every token below resolves to the night palette in either
-  theme. There are no light-theme rules here on purpose.
+  THE LOCK IS ALWAYS DARK. PasscodeFrame marks the overlay `data-theme="dark"`,
+  a night island, so every token below resolves to the night palette in either
+  theme. The settings screen's INLINE frame is the one exception (W11,
+  6 October 2026): it is a card on the member's own ground and follows their
+  theme, so "THE INLINE FRAME IN LIGHT" below answers it.
 
   ONE HUE, ONE EDGE EACH. The ground is the night with one soft wash of the
   brand blue behind the mark. A key is a plate of the same blue with one
@@ -106,6 +108,19 @@
   .nf-passcode--overlay::backdrop {
     background: var(--nf-surface-artwork);
   }
+  /*
+   * A LOCKED COLD START. The lock waits for the startup's door before it
+   * becomes modal (PasscodeFrame), and until then it is a fixed layer inside
+   * `#main`. The page's own entrance under the startup (threshold.css,
+   * `:root[data-splash="on"] #main`) gives `#main` a transform, which would
+   * make `#main` the lock's containing block and leave the rail and the tab
+   * bar uncovered as the door parts. With a lock on the page there is no
+   * page to bring forward: the lock is what is beneath the door, and the
+   * startup's mark settles on the lock's own.
+   */
+  :root[data-splash="on"] #main:has(.nf-passcode--overlay) {
+    animation: none;
+  }
   .nf-passcode--inline {
     display: flex;
     flex-direction: column;
@@ -113,6 +128,29 @@
     overflow: clip;
     padding-bottom: var(--nf-space-lg);
     --nf-passcode-mark-top: var(--nf-space-lg);
+  }
+
+  /*
+   * THE INLINE FRAME IN LIGHT (the settings card). The roles above are the
+   * night's; here they take the Paper answer: a white Card with the blue-tinted
+   * shadow and no hairline (one edge, north star 4), keys that are a faint
+   * wash of the brand with a visible edge, dots and mark in the brand blue
+   * (the quiet blue is too pale on white), the link in the brand blue. Nothing
+   * else moves: the same dots, the same keys, the same motion.
+   */
+  :root[data-theme="light"] .nf-passcode--inline {
+    --nf-passcode-wash: color-mix(in oklab, var(--nf-brand-primary) 9%, transparent);
+    --nf-passcode-link: var(--nf-brand-primary);
+    --nf-passcode-key-fill: color-mix(in oklab, var(--nf-brand-primary) 7%, var(--nf-surface-elevated));
+    --nf-passcode-key-edge: color-mix(in oklab, var(--nf-brand-primary) 24%, transparent);
+    --nf-passcode-key-bloom: radial-gradient(closest-side, color-mix(in oklab, var(--nf-brand-primary) 20%, transparent), transparent);
+    --nf-passcode-dot-edge: color-mix(in oklab, var(--nf-brand-primary) 75%, transparent);
+    --nf-passcode-dot-on: var(--nf-brand-primary);
+    background: var(--nf-surface-elevated);
+    box-shadow: var(--nf-elevation-raised);
+  }
+  :root[data-theme="light"] .nf-passcode--inline .nf-passcode__mark {
+    color: var(--nf-brand-primary);
   }
 
   /* ----------------------------------------------------------- the ground */
@@ -191,25 +229,40 @@
   .nf-passcode__dots[data-count="6"] {
     gap: clamp(1rem, 4.5vw, 1.375rem);
   }
+  /*
+   * A dot is a ring with its fill on a layer of its own (`::after`, a solid
+   * disc of the quiet blue that covers the ring), so filling and clearing
+   * are opacity alone and the pop is a transform: nothing here animates a
+   * colour (MOTION_SYSTEM.md section 1, principle 6).
+   */
   .nf-passcode__dot {
+    position: relative;
     width: var(--nf-passcode-dot);
     height: var(--nf-passcode-dot);
     border-radius: var(--nf-radius-circle);
     border: 2px solid var(--nf-passcode-dot-edge);
-    background-color: transparent;
-    transition: background-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-passcode__dot::after {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    background: var(--nf-passcode-dot-on);
+    opacity: 0;
+    transition: opacity var(--nf-duration-fast) var(--nf-ease-standard);
   }
   /* A digit lands: the fill and the pop, 1.0 1.15 1.0 on `land`. */
   .nf-passcode__dot--on {
-    border-color: var(--nf-passcode-dot-on);
-    background-color: var(--nf-passcode-dot-on);
     animation: nf-passcode-pop var(--nf-duration-fast) var(--nf-ease-entrance);
+  }
+  .nf-passcode__dot--on::after {
+    opacity: 1;
   }
   /* A wrong code: the row shakes once, full, then the fill leaves. */
   .nf-passcode__dots--wrong {
     animation: nf-passcode-shake var(--nf-duration-fast) var(--nf-ease-whip);
   }
-  .nf-passcode__dot--leaving {
+  .nf-passcode__dot--leaving::after {
     animation: nf-passcode-clear var(--nf-duration-base) var(--nf-ease-exit) var(--nf-duration-fast) both;
   }
 
@@ -391,8 +444,7 @@
   }
   @keyframes nf-passcode-clear {
     to {
-      background-color: transparent;
-      border-color: var(--nf-passcode-dot-edge);
+      opacity: 0;
     }
   }
   @keyframes nf-passcode-offer {
@@ -416,7 +468,7 @@
       animation: none;
     }
     .nf-passcode__key,
-    .nf-passcode__dot {
+    .nf-passcode__dot::after {
       transition: none;
     }
     .nf-passcode__key:active:not(:disabled) {

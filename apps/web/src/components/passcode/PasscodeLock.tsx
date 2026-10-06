@@ -230,6 +230,37 @@ export function PasscodeLock({
 
   const usePassword = () => startLeaving(() => forgotPasscodeAction(herePath()));
 
+  /*
+   * LEAVING THE BIOMETRIC DOOR FOR THE KEYPAD. The door's buttons unmount
+   * when the keypad replaces them, and focus inside a modal dialog would
+   * fall to <body>: a keyboard or screen-reader user would be nowhere. So
+   * where focus goes is decided at the switch and applied once the keypad is
+   * drawn: choosing "Enter your passcode instead" lands on the first key
+   * (the person asked for the keypad, so its first control is where they
+   * are); a digit typed on the keyboard lands on the title, the lock's own
+   * opening focus, so no key looks pressed that was not (a ring on "1" after
+   * typing 5 would read as a 1), and only when focus would otherwise be lost.
+   */
+  const focusAfterSwitch = useRef<"key" | "title" | null>(null);
+  const toKeypad = useCallback((focus: "key" | "title") => {
+    focusAfterSwitch.current = focus;
+    setDoor("keypad");
+  }, []);
+  useEffect(() => {
+    const want = focusAfterSwitch.current;
+    if (door !== "keypad" || !want) return;
+    focusAfterSwitch.current = null;
+    const frame = document.getElementById(titleId)?.closest<HTMLElement>(".nf-passcode");
+    if (!frame) return;
+    const active = document.activeElement;
+    if (want === "title" && active instanceof HTMLElement && active !== document.body && frame.contains(active)) return;
+    const target =
+      want === "key"
+        ? frame.querySelector<HTMLElement>('[data-testid="passcode-keypad"] button:not(:disabled)')
+        : null;
+    (target ?? document.getElementById(titleId))?.focus();
+  }, [door, titleId]);
+
   const first = name.trim().split(/\s+/)[0] ?? "";
   const title = first ? fill(copy.welcomeBack, { name: first }) : copy.welcomeBackNoName;
   const passwordOnly = mode === "password-only";
@@ -237,9 +268,36 @@ export function PasscodeLock({
 
   const biometricFirst = passkey && door === "biometric" && !cooling;
   const onPasskeyFailed = () => {
-    setDoor("keypad");
+    /* From the door the keypad takes over (and focus goes to its first key,
+       the door's button having gone); from the keypad's own corner key the
+       keypad is already here and focus stays where it is. */
+    if (door === "biometric") toKeypad("key");
     setMessage(copy.passkeyFailed);
   };
+
+  /*
+   * TYPING ON THE BIOMETRIC DOOR. The keypad listens for the keyboard
+   * (`Keypad.tsx`), but on the biometric door the keypad is not drawn, so
+   * its listener does not exist and a typed digit did nothing. While the
+   * door is offered, a digit is the person choosing the keypad: it switches
+   * and the digit lands as the code's first.
+   */
+  const doorIdle = biometricFirst && !busy && !leaving && !opening;
+  useEffect(() => {
+    if (!doorIdle) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+      const target = event.target as HTMLElement | null;
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) return;
+      if (!/^[0-9]$/.test(event.key)) return;
+      event.preventDefault();
+      feedback("select");
+      toKeypad("title");
+      onDigit(event.key);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [doorIdle, onDigit, toKeypad]);
 
   return (
     <PasscodeFrame
@@ -283,7 +341,7 @@ export function PasscodeLock({
               <button
                 type="button"
                 className="nf-passcode__link"
-                onClick={() => setDoor("keypad")}
+                onClick={() => toKeypad("key")}
                 data-testid="passcode-use-keypad"
               >
                 {copy.usePasscode}

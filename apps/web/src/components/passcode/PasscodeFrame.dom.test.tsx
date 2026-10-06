@@ -42,9 +42,11 @@ describe("PasscodeFrame", () => {
       </PasscodeFrame>,
     );
 
-  it("is always a night island, as the lock and as the settings card", () => {
+  it("is a night island as the lock, and follows the theme as the settings card", () => {
     expect(draw(true)).toMatch(/<dialog[^>]*data-theme="dark"/);
-    expect(draw(false)).toMatch(/<section[^>]*data-theme="dark"/);
+    /* The settings card sits on the member's own ground, so it forces nothing
+       (W11): a dark island on a Light page is what D28.1 rules out. */
+    expect(draw(false)).not.toMatch(/<section[^>]*data-theme=/);
   });
 
   it("draws Vallo's vector mark, small, and no dome, ring or raster logo", () => {

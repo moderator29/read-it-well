@@ -4,6 +4,9 @@ import { useEffect, useRef, type ReactNode } from "react";
 import { VectorMark } from "@/components/auth/VectorMark";
 import { useNightDoor } from "@/components/auth/NightDoor";
 
+/** Longer than the startup's own ceiling and release (4,000 + 500ms). */
+const STARTUP_WAIT_MS = 5000;
+
 /**
  * THE SCREEN EVERY PASSCODE STEP IS DRAWN ON. docs/PASSCODE.md;
  * MOTION_SYSTEM.md section 6; directive D32.
@@ -18,8 +21,12 @@ import { useNightDoor } from "@/components/auth/NightDoor";
  * went with the dome: one subject per screen, and a ring of photograph above
  * the dots was a second one.
  *
- * ALWAYS DARK. The frame is a night island (`data-theme="dark"`), so the lock
- * reads the same in either theme and in every layout that hosts it.
+ * THE LOCK IS ALWAYS DARK; THE SETTINGS CARD FOLLOWS THE THEME. The overlay is
+ * a night island (`data-theme="dark"`), so the lock reads the same in either
+ * theme. The inline frame on the settings screen is an ordinary card on the
+ * member's own ground (W11, 6 October 2026: it was a dark island on a light
+ * page, which is the thing D28.1 forbids), so it carries no `data-theme` and
+ * `passcode.css` gives it a Light answer.
  *
  * `opening` is the door: the right code has landed, and the frame's contents
  * leave so the app can come forward through it (PasscodeLock; the arrival is
@@ -32,6 +39,21 @@ import { useNightDoor } from "@/components/auth/NightDoor";
  * lock is on screen before any script runs, then promoted to modal once
  * hydrated. Escape is swallowed: a lock cannot be dismissed. Without
  * `overlay` (the settings screen) it is an ordinary section.
+ *
+ * AFTER THE STARTUP, NOT OVER IT (D32: launching and unlocking are one
+ * gesture). The top layer is above every z-index, the startup's overlay
+ * included, so promoting the lock at hydration on a locked cold start cut the
+ * brand moment off mid-assembly. While the startup is on screen
+ * (`data-splash="on"`) the promotion waits for the startup's release, and the
+ * door parts onto the lock with the startup's mark settling on the lock's own
+ * (`startup.css`). The lock is not any less of a lock in that wait: it is
+ * already drawn, open and opaque over the whole screen (`passcode.css` keeps
+ * `#main` from carrying it in the page's entrance, so `position: fixed` means
+ * the screen), a locked page was never rendered behind it (the gate draws
+ * the lock INSTEAD of the page) or is inert behind it (the guard), focus is
+ * held inside it, and the startup overlay above it catches every pointer
+ * until its door opens. `STARTUP_WAIT_MS` promotes it regardless, should the
+ * startup never let go.
  */
 export function PasscodeFrame({
   overlay,
@@ -68,17 +90,54 @@ export function PasscodeFrame({
   useEffect(() => {
     const dialog = ref.current;
     if (!overlay || !dialog) return;
-    try {
-      if (!dialog.matches(":modal")) {
-        if (dialog.open) dialog.close();
-        dialog.showModal();
-      }
-    } catch {
-      /* An old engine without :modal or showModal keeps the fixed layer. */
-    }
+    const root = document.documentElement;
     const refuse = (event: Event) => event.preventDefault();
     dialog.addEventListener("cancel", refuse);
-    return () => dialog.removeEventListener("cancel", refuse);
+
+    let observer: MutationObserver | null = null;
+    let wait = 0;
+    /* While the startup plays, focus stays inside the lock: it is not modal
+       yet, so nothing else makes the shell behind it unreachable by Tab. */
+    const hold = (event: FocusEvent) => {
+      const target = event.target as Node | null;
+      if (target && !dialog.contains(target)) dialog.querySelector<HTMLElement>(".nf-passcode__title")?.focus();
+    };
+    const stopWaiting = () => {
+      observer?.disconnect();
+      observer = null;
+      window.clearTimeout(wait);
+      document.removeEventListener("focusin", hold, true);
+    };
+    const promote = () => {
+      stopWaiting();
+      try {
+        if (!dialog.isConnected || dialog.matches(":modal")) return;
+        /* Whatever had focus inside the lock keeps it: `showModal` would
+           otherwise move it back to the title under a finger mid-code. */
+        const active = document.activeElement;
+        const kept = active instanceof HTMLElement && dialog.contains(active) ? active : null;
+        if (dialog.open) dialog.close();
+        dialog.showModal();
+        kept?.focus({ preventScroll: true });
+      } catch {
+        /* An old engine without :modal or showModal keeps the fixed layer. */
+      }
+    };
+
+    if (root.dataset.splash === "on") {
+      document.addEventListener("focusin", hold, true);
+      observer = new MutationObserver(() => {
+        if (root.dataset.splash !== "on") promote();
+      });
+      observer.observe(root, { attributes: true, attributeFilter: ["data-splash"] });
+      wait = window.setTimeout(promote, STARTUP_WAIT_MS);
+    } else {
+      promote();
+    }
+    return () => {
+      stopWaiting();
+      dialog.removeEventListener("cancel", refuse);
+    };
   }, [overlay]);
 
   const body = (
@@ -104,7 +163,6 @@ export function PasscodeFrame({
     return (
       <section
         className="nf-passcode nf-passcode--inline"
-        data-theme="dark"
         aria-labelledby={titleId}
         data-testid={testId}
         {...door}
