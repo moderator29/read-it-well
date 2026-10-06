@@ -812,6 +812,141 @@ committed and pushed as it is done, cleanly, without sessions conflicting.
 | **The Vallo Guarantee at 1 to 2 percent** | **D51: retired to zero, machinery kept** |
 | **D51's claim that zeroing the rate is a row and lifts the blocker** | **D52: false on three counts, corrected** |
 | Any reading that a defect predating a session is nobody's | D53 |
+| **Any reading that db-06's red is branch-local** | **D54: it reads production, so it is red everywhere until the allowlist row lands** |
+| Chasing the production dependency advisory inside a feature branch | D55 |
+
+---
+
+## D55. The production dependency advisory is main's, not any branch's, and it is one lockfile line
+
+**Measured, 6 October, 10:53.** The "Advisories (production dependencies)" job fails
+on PR #84 and **it fails identically on main's head `d685f5e04`**. It is not that
+pull request's failure. Nobody should chase it inside a feature branch, and nobody
+should widen a money branch to carry it.
+
+The job runs `npm audit --omit=dev --audit-level=high`. One finding:
+
+```
+source-map-js  1.0.0 - 1.2.1
+Severity: high
+source-map-js allows event-loop denial of service through indexed
+source-map section offsets - GHSA-68fv-2mgg-jv7q
+```
+
+**What was checked rather than assumed:**
+
+| Question | Answer |
+|---|---|
+| Is it really a production dependency, or dev leaking through? | Production. `postcss@8.5.23` depends on it and is not marked dev. `@tailwindcss/node` also pulls it, and that one is dev |
+| Is there a patched version? | Yes, `source-map-js@1.2.2`, published and outside the advisory range |
+| Does the patched version satisfy the existing range? | Yes. `postcss` asks for `^1.2.1`, which `1.2.2` satisfies. No major bump, no API change, no `postcss` upgrade needed |
+| What is the actual change? | One resolved version in `package-lock.json`. `npm audit fix` produces it |
+
+So the whole fix is a lockfile bump from `1.2.1` to `1.2.2`. There is no code change
+and nothing to redesign.
+
+### Who does it
+
+**Session 3**, as the single owner of `package-lock.json` under D46, bundled with the
+framer-motion landing rather than as a separate push. Two sessions editing the
+lockfile on two branches is the exact conflict D46 exists to prevent, and this change
+is too small to be worth breaking that rule for.
+
+**Session 2 does not touch it.** If Session 4 or Session 2 sees the Advisories job
+red on a money branch, the correct response is to note it as main's and carry on, not
+to fix it locally. A second lockfile edit on a second branch costs more than the
+advisory does.
+
+### Why this is not urgent in the way CI makes it look
+
+The advisory is a denial of service reachable by feeding a crafted source map to the
+parser. Vallo's build runs `postcss` over Vallo's own stylesheets at build time; no
+member input reaches it. The severity rating is correct for the library and
+overstated for this application. **Fix it because a red check trains everyone to
+ignore red checks, not because Vallo is exposed.** Say it that way if it comes up.
+
+---
+
+## D54. Session 2's own migration broke a probe allowlist, and because it is applied to production, it is now red on every branch including main
+
+**The custody rename worked.** This is worth stating plainly because Session 1 spent a
+good while pointed at the wrong thing. On the database probes run against commit
+`46d81338f` at 10:53: `track-a-custody-retired` **passes**, and all three of the day's
+new money migrations pass their own probes, `b3-money-policy`, `b3-payluk-sweep`,
+`b3-tax-entitlements`. `private.refuse_custody_objects` was defending production
+exactly as ADR-0002 intends, Session 2's rename to `ledger_entries_post_books`,
+`ledger_balances_by_book` and `ledger_record_payluk_commission` satisfied it, and
+that half is finished.
+
+**69 of 70 probes pass. The one failure is new and is a different defect:**
+
+```
+FAIL db-06 (815 ms) PROBE_FAIL db-06: write grants not on the
+allowlist: authenticated:first_runs_seen.INSERT
+```
+
+### What this is
+
+`supabase/tests/probes/db-06.sql` holds a checked-in allowlist of every write
+privilege `authenticated` is permitted to hold on a public table. Its own header
+states the contract: *"A new write grant, or one left without a policy, fails this
+probe until it is added here deliberately."*
+
+Migration `20261006104536_b4_first_run_store.sql` adds
+`grant select, insert on public.first_runs_seen to authenticated`. The allowlist was
+not updated. The probe is not wrong; it is doing the single job it was built for.
+
+**The migration itself is good work and nothing about it should change.** Verified
+line by line: the grant is `select, insert` only with no update or delete, the insert
+is behind `first_runs_seen_write_own ... with check (user_id = (select auth.uid()))`,
+the read is behind an equivalent select policy, `service_role` holds the wider set,
+and the migration ends with its own two assertions that the grants did not come out
+wider than intended. This is how a table should be added. The only thing missing is
+the allowlist line that declares the new grant deliberate.
+
+### The part that makes it urgent
+
+**db-06 runs against the live database, and the grant is live in the live database.**
+Confirmed directly against production: `information_schema.role_table_grants` returns
+`authenticated: INSERT` and `authenticated: SELECT` on `public.first_runs_seen` right
+now, because Session 2 applied the migration at 10:45.
+
+The consequence follows mechanically and is easy to miss: **db-06 will now fail on
+every branch, on every pull request, and on main**, because the probe reads production
+state rather than branch state. Main's probes currently show green only because main
+has not re-run CI since 02:57, before the migration was applied. The next push to main
+goes red. Nothing is wrong with production and no data is at risk; the platform's
+grant allowlist and the platform's grants simply disagree, and the probe is correctly
+refusing to let that pass silently.
+
+**This is also the second lesson of the same shape in two days.** D47 was "a cancelled
+check is not a pass." This one is "a probe that reads production is not branch-local."
+Both say: know what the check actually measures before reasoning about what its colour
+means.
+
+### Who does it, and how
+
+**Session 2, before anything else on the branch.** It is their migration, their probe
+area, and it blocks everyone.
+
+1. Add one row to the allowlist in `supabase/tests/probes/db-06.sql`, in alphabetical
+   position: `('first_runs_seen', 'i'),`
+2. Add the dated note the file's convention requires, in the same voice as the
+   29 September block already there: 6 October, `first_runs_seen i`, insert only,
+   behind `first_runs_seen_write_own` scoped to `auth.uid()`, no delete grant by
+   design.
+3. Run the probes once and let the run finish. **Do not push again until it reports.**
+   Four of the last five probe runs on that branch were cancelled by the next push,
+   which is why no clean verdict existed for hours. A cancelled run costs more than
+   the minute of waiting.
+4. Land it on main quickly, ahead of the rest of the branch if the rest needs more
+   review. Every other session's CI is red until this line exists.
+
+### What nobody should do
+
+Do not revoke the grant, do not alter the migration, and do not weaken db-06 to a
+warning. The grant is correct and the probe is correct. One declares what the other
+enforces, and the declaration is what is missing.
 
 ---
 
