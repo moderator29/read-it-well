@@ -1,0 +1,215 @@
+@layer theme, base, components, utilities;
+
+/*
+ * THE VERIFICATION PATH (W6; reference 7110, a progress path with ticks).
+ *
+ * A rail of nodes and, beside each, a Plate (radius 14, one hairline, the
+ * plate fill) naming what is checked. The current rung's plate takes the
+ * brand tint and edge rather than a glow; there is no glow on this screen. State is a
+ * word and a shape as well as a colour: a tick, a cross, a ring, a number.
+ *
+ * It plays once on mount: rungs arrive 60ms apart on `land`, each tick draws
+ * after its rung, each connector fills downward. Transform and opacity move;
+ * the tick's draw is `stroke-dashoffset` on its own SVG path (paint only, the
+ * same technique the button's tick uses). Every duration is a token, so reduced
+ * motion, Calm and Off collapse it to the final frame.
+ */
+@layer components {
+  .nf-vpath-wrap {
+    display: grid;
+    gap: var(--nf-space-xs);
+  }
+  .nf-vpath-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--nf-space-sm);
+  }
+  .nf-vpath-head__title {
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    letter-spacing: var(--nf-tracking-label, 0.06em);
+    text-transform: uppercase;
+    color: var(--nf-content-muted);
+  }
+  .nf-vpath-head__count {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-vpath-lede {
+    margin-block-end: var(--nf-space-xs);
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.5;
+    color: var(--nf-content-secondary);
+  }
+
+  .nf-vpath {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .nf-vpath__rung {
+    position: relative;
+    display: grid;
+    grid-template-columns: 2rem minmax(0, 1fr);
+    column-gap: var(--nf-space-sm);
+    padding-block-end: var(--nf-space-sm);
+    animation: nf-vpath-in var(--nf-duration-slow) var(--nf-ease-entrance) both;
+    animation-delay: calc(var(--nf-splash-hold, 0s) + var(--i, 0) * 60ms);
+  }
+  .nf-vpath__rung:last-child {
+    padding-block-end: 0;
+  }
+
+  /* The connector, drawn from the node's foot to the next node's head. */
+  .nf-vpath__rung::after {
+    content: "";
+    position: absolute;
+    inset-inline-start: calc(1rem - 1px);
+    inset-block-start: 2rem;
+    inset-block-end: 0;
+    inline-size: 2px;
+    transform-origin: top;
+  }
+  .nf-vpath__rung[data-link="none"]::after {
+    display: none;
+  }
+  .nf-vpath__rung[data-link="solid"]::after {
+    background: var(--nf-brand-primary);
+    animation: nf-vpath-link var(--nf-duration-slow) var(--nf-ease-standard) both;
+    animation-delay: calc(var(--nf-splash-hold, 0s) + var(--i, 0) * 60ms + 200ms);
+  }
+  .nf-vpath__rung[data-link="dashed"]::after {
+    background: repeating-linear-gradient(to bottom, var(--nf-border-strong) 0 4px, transparent 4px 8px);
+  }
+
+  /* ------------------------------------------------------------- the node */
+
+  .nf-vpath__node {
+    position: relative;
+    z-index: 1;
+    box-sizing: border-box;
+    display: grid;
+    place-items: center;
+    inline-size: 2rem;
+    block-size: 2rem;
+    border-radius: var(--nf-radius-circle);
+    border: 1.5px solid var(--nf-border-strong);
+    color: var(--nf-content-muted);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+  }
+  .nf-vpath__glyph {
+    inline-size: 1rem;
+    block-size: 1rem;
+    stroke: currentColor;
+  }
+  .nf-vpath__rung[data-state="passed"] .nf-vpath__node {
+    border-color: transparent;
+    background: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+  }
+  .nf-vpath__rung[data-state="current"] .nf-vpath__node {
+    border: 2px solid var(--nf-brand-primary);
+    box-shadow: 0 0 0 4px var(--nf-brand-tint-2);
+    color: var(--nf-brand-primary);
+  }
+  .nf-vpath__rung[data-state="failed"] .nf-vpath__node {
+    border-color: transparent;
+    background: var(--nf-state-error);
+    color: var(--nf-content-on-brand);
+  }
+  .nf-vpath__tick {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+    animation: nf-vpath-tick var(--nf-duration-slow) var(--nf-ease-standard) both;
+    animation-delay: calc(var(--nf-splash-hold, 0s) + var(--i, 0) * 60ms + 240ms);
+  }
+
+  /* ------------------------------------------------------------ the plate */
+
+  .nf-vpath__plate {
+    display: grid;
+    gap: var(--nf-space-3xs);
+    min-inline-size: 0;
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    border-radius: var(--nf-tier-plate-radius);
+    border: var(--nf-border-width) solid var(--nf-tier-plate-edge);
+    background: var(--nf-tier-plate-fill);
+  }
+  .nf-vpath__rung[data-state="current"] .nf-vpath__plate {
+    background: var(--nf-brand-tint-1);
+    border-color: var(--nf-brand-edge-soft);
+  }
+  .nf-vpath__rung[data-state="upcoming"] .nf-vpath__label {
+    color: var(--nf-content-secondary);
+  }
+  .nf-vpath__top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--nf-space-xs);
+    flex-wrap: wrap;
+  }
+  .nf-vpath__label {
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-vpath__state {
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-muted);
+  }
+  .nf-vpath__rung[data-state="failed"] .nf-vpath__state {
+    color: var(--nf-state-error);
+  }
+  .nf-vpath__kicker {
+    margin-block-start: var(--nf-space-3xs);
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    letter-spacing: var(--nf-tracking-label, 0.06em);
+    text-transform: uppercase;
+    color: var(--nf-content-muted);
+  }
+  .nf-vpath__evidence {
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.5;
+    color: var(--nf-content-secondary);
+    overflow-wrap: anywhere;
+  }
+  .nf-vpath__when {
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-vpath__note {
+    margin-block-start: var(--nf-space-3xs);
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.5;
+    color: var(--nf-content-secondary);
+    overflow-wrap: anywhere;
+  }
+  .nf-vpath__note > span {
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+
+  @keyframes nf-vpath-in {
+    from {
+      opacity: 0;
+      transform: translateY(0.75rem);
+    }
+  }
+  @keyframes nf-vpath-link {
+    from {
+      transform: scaleY(0);
+    }
+  }
+  @keyframes nf-vpath-tick {
+    from {
+      stroke-dashoffset: 1;
+    }
+  }
+}

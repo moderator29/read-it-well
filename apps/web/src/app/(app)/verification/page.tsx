@@ -6,6 +6,8 @@ import { getOwnLadder } from "@/lib/agent/verification-queries";
 import { PageHeader } from "@/components/app/PageHeader";
 import { PageScene } from "@/components/app/PageScene";
 import { KycFlow } from "@/components/verification/KycFlow";
+import { VerificationPath } from "@/components/verification/VerificationPath";
+import { buildPath } from "@/components/verification/verification-path";
 import { SuccessFromFlag } from "@/components/ui/SuccessFromFlag";
 import { approvedRecently } from "@/lib/ui/recent-approval";
 import { VninPanel } from "@/components/verification/VninPanel";
@@ -105,6 +107,20 @@ export default async function VerificationPage({
       />
     ) : null;
   const [ladder, documents] = await Promise.all([getOwnLadder(context), ownDocumentState()]);
+  /* THE PATH (W6, reference 7110): four rungs, each naming what is actually
+     checked, built only from the reviewers' own decisions and the documents'
+     own review state. See `components/verification/verification-path.ts`. */
+  const t = getDictionary(locale);
+  const path = (
+    <VerificationPath
+      rungs={buildPath({
+        ladder: ladder.state === "ok" ? { rungs: ladder.ladder.rungs } : null,
+        documents,
+      })}
+      copy={t.experienceAccount.verification}
+      locale={locale}
+    />
+  );
   /* SCUML item 20: the PEP question, for listers only (the panel draws
      nothing for anybody without an agents row). */
   const pep = <PepQuestionPanel askedAt="verification" />;
@@ -248,7 +264,7 @@ export default async function VerificationPage({
               the entry was removed: a back control whose fallback is its own
               address presses into itself. `/profile` is the declared parent and
               is what this now repeats. */}
-          <PageHeader title="Verification" fallback="/profile" />
+          <PageHeader title={t.agent.nav.verification} fallback="/profile" />
         </div>
         {/* The reviewer's words travel INTO the flow. Somebody re-photographing
             a document should not have to remember, from the screen before, which
@@ -274,9 +290,10 @@ export default async function VerificationPage({
         <>
           <div className="relative">
             <PageScene art="shield-check" />
-            <PageHeader title="Verification" />
+            <PageHeader title={t.agent.nav.verification} />
           </div>
           <KycStatus status={status} locale={locale} />
+          <div className="mt-block">{path}</div>
           {pep}
           {/* The approval is decided in the staff console and announced by
               the database, where no flag can ride on the link, so it opens
@@ -304,7 +321,8 @@ export default async function VerificationPage({
               all. The header is the same one the other two branches draw, and
               the scene is not repeated here because there is no status object
               for it to sit behind. */}
-          <PageHeader title="Verification" fallback="/profile" />
+          <PageHeader title={t.agent.nav.verification} fallback="/profile" />
+          <div className="mb-block">{path}</div>
           {pep}
           {vnin}
           <KycFlow submit={submitVerification} success={getDictionary(locale).success} />
