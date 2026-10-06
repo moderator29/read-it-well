@@ -41,26 +41,27 @@ export async function SocialPaused({
   const t = getDictionary(await getLocale());
   const search =
     side === "stays"
-      ? { href: "/stays/search", label: "Search stays" }
+      ? { href: "/stays/search", label: t.experienceSocial.paused.searchStays }
       : { href: "/search", label: t.nav.search };
 
   return (
     <div className="mx-auto w-full max-w-2xl pb-4xl pt-md">
       {/* The declared parent of every paused social route is `/around`, which is
           paused too, so the ordinary back showed "Around is paused" twice. The
-          back here is drawn by `PausedBack` and goes straight to the side's
-          home; `fallback` is stated for the same destination. */}
+          back here is drawn by `PausedBack`: the ordinary decision, except that
+          a destination that is itself social becomes the side's home;
+          `fallback` is stated for the same destination. */}
       <PageHeader
         title={title}
         fallback={home}
         back={false}
-        leading={<PausedBack href={home} label="Back to home" />}
+        leading={<PausedBack href={home} label={t.experienceSocial.paused.backToHome} />}
       />
       <EmptyPanel
         icon="shield-check"
         title={SOCIAL_OFF_TITLE}
         body={SOCIAL_OFF_BODY}
-        action={{ href: home, label: "Back to home" }}
+        action={{ href: home, label: t.experienceSocial.paused.backToHome }}
         secondary={search}
       />
     </div>

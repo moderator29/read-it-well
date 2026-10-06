@@ -31,4 +31,9 @@ export const experienceSocialEn = {
     momentCopied: "Copied. Paste it anywhere.",
     momentReplayHint: "Tap the medal to see it again",
   },
+  /* The paused screen (`SocialPaused`), shown when social is switched off. */
+  paused: {
+    backToHome: "Back to home",
+    searchStays: "Search stays",
+  },
 };
