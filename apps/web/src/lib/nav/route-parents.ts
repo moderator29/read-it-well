@@ -329,6 +329,9 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   /* ------------------------------------------------------------- account */
   "/assistant": "/home",
   "/notifications": "/home",
+  /* D22: every notification's designed full view, reached by a route so back
+     behaves and a push lands. Its way up is the list it belongs to. */
+  "/notifications/[id]": "/notifications",
   "/profile": "/home",
   "/profile/application": "/profile",
   "/profile/setup": "/profile",

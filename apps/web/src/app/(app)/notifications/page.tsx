@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { getDictionary } from "@vallo/i18n";
+import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
 import { PageScene } from "@/components/app/PageScene";
 import { EmptyState } from "@/components/app/Screen";
@@ -32,6 +34,8 @@ export const metadata: Metadata = { title: "Notifications" };
  * notification kind could ever match (docs/DEAD_ENDS.md M3, first half).
  */
 export default async function NotificationsPage() {
+  const locale = await getLocale();
+  const copy = getDictionary(locale).experienceInbox.notifications;
   const session = await resolveSession();
 
   if (session.state === "signed-in") {
@@ -50,13 +54,13 @@ export default async function NotificationsPage() {
         <div className="mx-auto max-w-2xl">
           <div className="relative">
             <PageScene art="bell-badge" />
-            <PageHeader variant="large" title="Notifications" />
+            <PageHeader variant="large" title={copy.title} />
           </div>
           <Reveal>
             <Unreachable
               noun="notifications"
               icon="bell-badge"
-              action={{ label: "Try again", href: "/notifications" }}
+              action={{ label: copy.unreachable.action, href: "/notifications" }}
             />
           </Reveal>
         </div>
@@ -75,6 +79,8 @@ export default async function NotificationsPage() {
           userId={session.user.id}
           openThreads={unread ? [...unread.byConversation.keys()] : []}
           now={sectionClock()}
+          copy={copy}
+          locale={locale}
         />
       </div>
     );
@@ -85,13 +91,13 @@ export default async function NotificationsPage() {
       <div className="mx-auto max-w-2xl">
         <div className="relative">
           <PageScene art="bell-badge" />
-          <PageHeader variant="large" title="Notifications" />
+          <PageHeader variant="large" title={copy.title} />
         </div>
         <Reveal>
           <Unreachable
             noun="notifications"
             icon="bell-badge"
-            action={{ label: "Try again", href: "/notifications" }}
+            action={{ label: copy.unreachable.action, href: "/notifications" }}
           />
         </Reveal>
       </div>
@@ -102,7 +108,7 @@ export default async function NotificationsPage() {
     <div className="mx-auto max-w-2xl">
       <div className="relative">
         <PageScene art="bell-badge" />
-        <PageHeader variant="large" title="Notifications" />
+        <PageHeader variant="large" title={copy.title} />
       </div>
       <Reveal>
         {/* One empty state, one action treatment. This was a `MomentScreen`
@@ -112,11 +118,11 @@ export default async function NotificationsPage() {
             were nine of them. */}
         <EmptyState
           icon="bell-badge"
-          title="Sign in to see your notifications"
-          body="Your bookings, messages and agreements are tied to your account, so we only ever show you your own. Nothing here belongs to anyone else."
+          title={copy.signedOut.title}
+          body={copy.signedOut.body}
           action={
             <EmptyActions
-              primary={{ label: "Sign in", href: "/sign-in" }}
+              primary={{ label: copy.signedOut.action, href: "/sign-in" }}
               /* "Keep exploring" pointed at /search, which is the product
                  changing the subject when it cannot answer the question, and it
                  is the same non sequitur "Explore places" was on the wallet.
@@ -125,7 +131,7 @@ export default async function NotificationsPage() {
                  what they want to be told about, and the on-device
                  notifications card does that signed out. */
               secondary={{
-                label: "Notification settings",
+                label: copy.signedOut.secondary,
                 href: "/settings#settings-notifications",
               }}
             />

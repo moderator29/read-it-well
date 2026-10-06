@@ -63,6 +63,7 @@ const NAMES: Readonly<Record<string, string>> = {
   "/u/[handle]/following": "following",
   "/assistant": "the assistant",
   "/notifications": "Notifications",
+  "/notifications/[id]": "the notification",
   "/profile": "Profile",
   "/profile/application": "your application",
   "/profile/setup": "profile setup",
