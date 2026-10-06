@@ -59,7 +59,7 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the verification-passed payoff"
           const a = document.querySelector(sel)!.getAnimations()[0]!;
           const t = a.effect!.getTiming();
           const frames = (a.effect as KeyframeEffect).getKeyframes();
-          return { delay: t.delay, duration: t.duration, fill: t.fill, from: frames[0]!, to: frames[frames.length - 1]! };
+          return { delay: t.delay, duration: t.duration, fill: t.fill, from: frames[0]!, to: frames[frames.length - 1]!, mid: frames[1]!, count: frames.length };
         }),
       );
       const [shield, disc, tick, pop] = timing;
@@ -68,7 +68,12 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the verification-passed payoff"
       expect(shield!.duration).toBe(380);
       /* The shield is server rendered, so it is already drawn: it rises and scales, and never fades. */
       expect(shield!.from.opacity).toBeUndefined();
-      expect(shield!.from.transform).toContain("scale(0.86)");
+      /* The first and last keyframes are the drawn state (no jump on the first frame); the dip is the middle one, 30% in. */
+      expect(shield!.count).toBe(3);
+      expect(shield!.from.transform).toBe("none");
+      expect(shield!.to.transform).toBe("none");
+      expect(shield!.mid.transform).toContain("scale(0.86)");
+      expect(shield!.mid.offset).toBeCloseTo(0.3, 5);
       /* The disc is one animation for its whole life: in, held through the pop, out (960ms end). */
       expect(disc!.delay).toBe(380);
       expect(disc!.duration).toBe(580);

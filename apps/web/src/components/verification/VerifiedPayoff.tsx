@@ -17,8 +17,10 @@ import { markSeen, seenOnce } from "@/lib/ui/seen-once";
  * recently, `approvedRecently`) and this device has not been shown it
  * (`seenKey`, `lib/ui/seen-once.ts`), the mark plays ONCE:
  *
- *    0 to 380ms    the shield assembles: it rises 8px and scales up from 0.86
- *                  on `land`. It does NOT fade in: the page is server
+ *    0 to 380ms    the shield assembles: from its drawn state it dips (8px down,
+ *                  scaled to 0.86, by 30% of the beat) and rises back on
+ *                  `land`, so the dip itself is animated and never a
+ *                  one-frame jump. It does NOT fade in: the page is server
  *                  rendered, so the shield is already drawn (and may have sat
  *                  drawn behind the approval sheet for seconds) when this
  *                  runs, and restarting it from opacity 0 made it vanish and
@@ -89,11 +91,15 @@ export function VerifiedPayoff({
          nothing shows early and nothing is left changed afterwards. */
       running.push(
         art.animate(
+          /* From the drawn state, down and small, and back: three keyframes, so the
+             dip is ANIMATED and a drawn shield does not jump 8px down and 14%
+             smaller in one frame before it grows back (A8). Same duration. */
           [
-            { transform: "translateY(0.5rem) scale(0.86)" },
-            { transform: "none" },
+            { transform: "none", offset: 0, easing: glide },
+            { transform: "translateY(0.5rem) scale(0.86)", offset: 0.3, easing: land },
+            { transform: "none", offset: 1 },
           ],
-          { duration: slow, easing: land, fill: "backwards" },
+          { duration: slow, fill: "backwards" },
         ),
         /* One animation for the disc's whole life: in, held through the pop,
            out. It rests at the stylesheet's `opacity: 0`, so nothing is left. */
