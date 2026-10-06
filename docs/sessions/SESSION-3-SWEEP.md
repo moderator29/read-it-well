@@ -6,11 +6,12 @@ component with the fixture named in its row. **P** pass, **X** failed and fixed 
 sweep, **F** failed and still open, **·** does not apply. The denominator is 213 real routes
 (every `page.tsx` under `apps/web/src/app`, excluding `(dev)` and `api`).
 
-**Routes audited: 54 of 213.**
+**Routes audited: 68 of 213.**
 
 | Family | Audited |
 |---|---|
 | admin | 23 |
+| agent | 14 |
 | around | 1 |
 | assistant | 1 |
 | bookings | 1 |
@@ -50,6 +51,20 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | `/admin/supply` | C1 | P | P | P | P | P | X | X | P | P | P | P | P | P | · | X | P | · | P | P | P | P | P | P | P |
 | `/admin/support` | C1 | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | P | · | P | X | P | P | P | P | P |
 | `/admin/switches` | C1 | P | · | P | P | P | X | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | X |
+| `/agent/assistant` | C1 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
+| `/agent/bookings` | C1 | P | P | P | P | P | P | P | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
+| `/agent/firm` | C1 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
+| `/agent/inspections` | C1 | X | · | P | P | P | X | · | · | P | P | P | P | P | · | P | P | P | P | P | P | X | P | P | P |
+| `/agent/listings/[listingId]/arrival` | C1 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
+| `/agent/listings/[listingId]/board` | C1 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | X | P | P | P |
+| `/agent/listings/[listingId]/calendar` | C1 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | X | P | P | P |
+| `/agent/listings/[listingId]/mandate` | C1 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
+| `/agent/listings/[listingId]/status` | C1 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | X | P | P | P |
+| `/agent/messages` | C1 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
+| `/agent/messages/[id]` | C1 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | P | P | P | P |
+| `/agent/notifications` | C1 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
+| `/agent/portfolio` | C1 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
+| `/agent/reviews` | C1 | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/around/manage` | C3 | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | P | · | · | · | · | · | · | · | P |
 | `/assistant` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | P | P | X | P | P | P | P |
 | `/bookings/[bookingId]/review` | C3 | P | · | P | P | P | P | · | P | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
@@ -198,6 +213,24 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 
 - 6 (fixed): A flag key the dictionary has not met was drawn raw and lower case ("social"); now sentence-cased from the key. Console-wide fourth weight (500) removed in the same batch.
 - 24 (fixed): Went back to /admin past Settings, the door it is filed under in nav.ts ADMIN_SETTINGS; now /admin/settings (route-parents).
+
+**`/agent/inspections`** (The real page inside the real AgentShell (now with AgentInnerNav), a signed-in approved agent from f5/ops-fixtures AGENT_PROFILE, every read without a fixture answered empty by lib/testing/fake-supabase; readInspectionsForLister mocked to AGENT_INSPECTIONS)
+
+- 1 (fixed): Before a time was agreed the sheet drew two lit primaries (Confirm and Add photos, two glows at 390). Add photos is secondary until the report opens; Confirm is the one primary.
+- 6 (fixed): Title case in the shared inspection sheet: Inspection Date, Inspection Checklist, Overall Condition, Add Photos, Submit Inspection Report, "0 / 8 Completed" and the hero's "Property Inspection"; all sentence case now (and "0 of 8 done").
+- 21 (fixed): The facts block was a dl whose groups held a glyph and a nested div (axe definition-list and dlitem, 9 findings at 390); it is label and value cells now. The hidden photo input had no name (axe label); it is named.
+
+**`/agent/listings/[listingId]/board`** (The real page inside the real AgentShell (now with AgentInnerNav), a signed-in approved agent from f5/ops-fixtures AGENT_PROFILE, every read without a fixture answered empty by lib/testing/fake-supabase; the board switch mocked on; no board fixture exists, so the owned-subject read answers empty)
+
+- 21 (fixed): The rail's apply link (as on status), 1 finding at 1440, fixed in AgentNav.
+
+**`/agent/listings/[listingId]/calendar`** (The real page inside the real AgentShell (now with AgentInnerNav), a signed-in approved agent from f5/ops-fixtures AGENT_PROFILE, every read without a fixture answered empty by lib/testing/fake-supabase; getListingCalendar mocked to o3/agent-calendar's SUBJECT with no nights (a new nightly listing))
+
+- 21 (fixed): Each month was role=grid with no rows or gridcells (axe aria-required-children, 4 findings at 390); it is a group named by its month now, each night button naming its own date and state, the weekday heads hidden from the reader.
+
+**`/agent/listings/[listingId]/status`** (The real page inside the real AgentShell (now with AgentInnerNav), a signed-in approved agent from f5/ops-fixtures AGENT_PROFILE, every read without a fixture answered empty by lib/testing/fake-supabase; no status-kit fixture exists, so the read answers empty)
+
+- 21 (fixed): The rail's "Apply to list" link (drawn when no agent profile reads) measured a 32px box with the words broken over two lines at 1440; it is a block as wide as its words now (components/agent/AgentNav.tsx, every agent page).
 
 **`/assistant`** (the real page with readAssistantViewer mocked to _fixtures/people PERSON's initial and aiConsentForViewer both true and false; no thread (threads live on the device, so a first visit is empty))
 
