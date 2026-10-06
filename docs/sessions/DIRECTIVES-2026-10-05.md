@@ -823,6 +823,61 @@ committed and pushed as it is done, cleanly, without sessions conflicting.
 | **The flat "keeps 96 percent" on the fee screen** | **D61: wrong, rail dependent, and Session 1 wrote it. A range now** |
 | **D58 on the referral engine, and Session 1's "apply it" on b4_referral_rewards_engine** | **D62: architecture locked by the founder; hold the migration until campaigns are in it** |
 | **D62's hold on b4_referral_rewards_engine** | **D63: wrong on both reasons. Apply it. Only the payout path waits, on the budget cap** |
+| **"Qualification refuses past the cap with a named reason"** | **D64: it pauses instead, and the cap is 700,000 naira a month** |
+
+---
+
+## D64. The platform budget cap is 700,000 naira a month, and it pauses rather than refuses
+
+**Decided by the founder on 6 October.** The referral programme's platform-wide ceiling is
+**700,000 naira a month**, one row, enforced server-side before any reward may accrue. Detail
+in `docs/referral/REFERRAL_ARCHITECTURE.md` section 10.
+
+### Why it exists, in one table
+
+The per-member cap limits one person to 1,500 qualified referrals a month. **Vallo's exposure
+is the member count multiplied by that cap**, and the per-member cap is satisfied in every row:
+
+| Members at the ceiling | Consumer campaign, 76 naira | Supply campaign, 300 naira |
+|---|---|---|
+| 10 | 1.14m naira | 4.5m naira |
+| 100 | 11.4m naira | 45m naira |
+| 1,000 | **114m naira** | **450m naira** |
+
+**Nobody broke a rule in the bottom row.** That is the hole the budget cap closes, and it is
+why the per-member cap was never protection. At 700,000 naira with a 76 naira reward the cap
+is roughly **9,200 qualified referrals a month**, which is a great deal of genuine growth
+before anything pauses.
+
+### The correction: it pauses, it does not refuse
+
+**`REFERRAL_ADMIN_CENTRE.md` said qualification "refuses past the cap with a named reason".
+That was wrong.** Refusing is a broken promise: somebody invited a real person who really
+qualified, and Vallo would be telling them no because other referrers reached the cap first.
+**That is the worst possible way to spend a reputation, and it would be spent on the people
+doing exactly what Vallo asked of them.**
+
+- **At 75 percent of the cap, an alert fires**, so the founder sees it coming with time to
+  raise the cap or wind the campaign down deliberately.
+- **At 100 percent, new qualification pauses, visibly**, and the member surface says so in
+  plain words.
+- **Everything already qualified is honoured and paid in full.**
+
+**Pausing is honest and refusing is not.** A pause stops people inviting friends under a
+promise Vallo cannot fund, which is the actual harm. It is recoverable by raising the cap; a
+refusal cannot be taken back.
+
+### Three rules this puts on the engine
+
+1. **The cap is checked before accrual, in the same statement that writes it**, so two
+   qualifications racing for the last of the budget cannot both succeed.
+2. **A pause never reaches backwards.** It changes what happens next and never touches a
+   reward that has already qualified.
+3. **The pause is visible to members, not silent.** A rewards surface still inviting people
+   while the programme is paused is lying by omission.
+
+**And D63's gate still stands:** no payout path goes live until this cap exists and is
+enforced server-side.
 
 ---
 

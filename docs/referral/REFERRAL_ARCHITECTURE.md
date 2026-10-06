@@ -312,7 +312,59 @@ out, because it asserts an absence rather than a behaviour.
    launch campaign needs a row.
 2. **The per-campaign caps**, given section 3's arithmetic. 1,500 at 300 naira is 450,000 naira
    per member per month.
-3. **The platform monthly budget in naira.** It should be a figure Vallo can fund twice over
-   without pain.
+3. ~~The platform monthly budget in naira.~~ **Decided on 6 October: 700,000 naira a
+   month.** See section 10 for what it does and what happens when it is reached.
 4. **Which campaigns launch at all.** Starting with the consumer one alone is the cautious path
    and loses nothing: the architecture supports the others the day they are wanted.
+
+---
+
+## 10. The platform budget cap: 700,000 naira a month
+
+**Decided by the founder on 6 October 2026.** One row, one number, enforced server-side
+before any reward is allowed to accrue.
+
+### What it is for, and why the per-member cap is not enough
+
+The per-member cap limits one person to 1,500 qualified referrals a month. **Vallo's actual
+exposure is the member count multiplied by that cap**, and the per-member cap is satisfied in
+every row below:
+
+| Members at the ceiling | Consumer campaign at 76 naira | Supply campaign at 300 naira |
+|---|---|---|
+| 10 | 1.14m naira | 4.5m naira |
+| 100 | 11.4m naira | 45m naira |
+| 1,000 | **114m naira** | **450m naira** |
+
+Nobody broke a rule in the bottom row. **That is the hole the budget cap closes.** It is the
+difference between a marketing cost Vallo chose and a debt that chose Vallo.
+
+At 700,000 naira and a 76 naira reward, the cap is roughly **9,200 qualified referrals a
+month**, which is a great deal of genuine growth before anything pauses.
+
+### What happens as it fills, and the correction that matters
+
+**At 75 percent, an alert fires.** The founder sees it with time to decide: raise the cap, or
+wind the campaign down deliberately.
+
+**At 100 percent, new qualification pauses, visibly**, and the member surface says so in plain
+words. **Everything already qualified is honoured and paid in full.**
+
+> **This replaces the earlier instruction that qualification "refuses past the cap with a
+> named reason".** Refusing is a broken promise. Somebody invited a real person who really
+> qualified, and Vallo would be telling them no because other referrers reached the cap
+> first. **That is the worst possible way to spend a reputation**, and it would be spent on
+> the people doing exactly what Vallo asked of them.
+>
+> **Pausing is honest and refusing is not.** A pause stops people going out to invite friends
+> under a promise Vallo cannot fund, which is the actual harm to prevent. It is also
+> recoverable: raise the cap and it resumes. A refusal cannot be taken back.
+
+### The three rules this puts on the engine
+
+1. **The cap is checked before accrual, in the same statement that writes it**, so two
+   qualifications racing for the last of the budget cannot both succeed.
+2. **A pause never touches a reward that has already qualified.** Pausing changes what happens
+   next; it never reaches backwards.
+3. **The pause is visible to members, not silent.** A rewards surface that keeps inviting
+   people while the programme is paused is lying by omission.
