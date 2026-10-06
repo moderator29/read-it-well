@@ -43,6 +43,7 @@ export default function AppError({
      read from the whole dictionary, which every in-app route shipped for it. */
   const clientCopy = useClientCopy();
   const COPY = clientCopy.trustVisible.state;
+  const [refBefore = "", refAfter = ""] = COPY.screenErrorRef.split("{digest}");
 
   /* V-97: the state kit's full-screen form, in the voice's words. */
   return (
@@ -54,7 +55,14 @@ export default function AppError({
       overline={COPY.screenErrorOverline}
       title={COPY.screenErrorTitle}
       body={COPY.screenErrorBody}
-      detail={<p className="nf-system__ref select-all">{COPY.screenErrorRef.replace("{digest}", reference)}</p>}
+      detail={
+        /* Only the code selects as one (support needs the code, not the sentence). */
+        <p className="nf-system__ref">
+          {refBefore}
+          <span className="nf-numeric select-all">{reference}</span>
+          {refAfter}
+        </p>
+      }
       actions={
         <div className="nf-system__actions">
           <Button variant="primary" size="lg" full onClick={reset}>

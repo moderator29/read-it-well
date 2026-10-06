@@ -97,6 +97,18 @@ export function AutoHideDock({
   const hidden = decision.route === route ? decision.hidden : false;
   const lastY = useRef(0);
 
+  /*
+   * ONE RENDER PER DECISION, NOT PER FRAME (W2, round 5; "no scroll-linked
+   * work"). The decision was set as a fresh object on every coalesced frame
+   * of a scroll, and a fresh object is never equal to the last one, so the
+   * dock re-rendered sixty times a second for as long as a finger moved a
+   * list, to write the attribute it already had. The same answer now returns
+   * the same state, which React skips: the dock renders when it hides and
+   * when it comes back, and not in between.
+   */
+  const decide = (next: { route: string; hidden: boolean }) =>
+    setDecision((prev) => (prev.route === next.route && prev.hidden === next.hidden ? prev : next));
+
   useEffect(() => {
     lastY.current = window.scrollY;
     let frame = 0;
@@ -123,14 +135,14 @@ export function AutoHideDock({
       const atEnd = y + window.innerHeight >= document.documentElement.scrollHeight - SHOW_NEAR_END;
       if (y <= SHOW_ABOVE || atEnd) {
         lastY.current = y;
-        setDecision({ route, hidden: false });
+        decide({ route, hidden: false });
         return;
       }
 
       const delta = y - lastY.current;
       if (Math.abs(delta) < JITTER) return;
       lastY.current = y;
-      setDecision({ route, hidden: delta > 0 });
+      decide({ route, hidden: delta > 0 });
     };
 
     /* Coalesced into one frame: a scroll event fires far more often than the

@@ -190,7 +190,9 @@
     font-size: var(--nf-text-caption);
     font-variant-numeric: tabular-nums;
     color: var(--nf-content-muted);
-    word-break: break-all;
+    /* The code may break anywhere it must; the words around it break as words
+       (it was break-all, which split "quote" across two lines). */
+    overflow-wrap: anywhere;
   }
   .nf-system__actions {
     display: flex;
@@ -288,11 +290,29 @@
   .nf-system__aside {
     animation-delay: 180ms;
   }
+  /*
+   * BAD NEWS ARRIVES AT ONCE (W2, round 5; CRAFT_DOCTRINE 5: an error is
+   * immediate, 160ms, never a slow reveal). The settle above is right for the
+   * offline and missing screens, which are places; a screen that failed rose
+   * in over 520ms after a 90ms wait, so the reader watched the bad news
+   * arrive for most of a second. A failure is a cut: one opacity fade on the
+   * fast rung, everything at once, nothing travelling.
+   */
+  .nf-system:has([data-state-kind="error"]) :is(.nf-system__brand, .nf-system__card, .nf-system__podium, .nf-system__aside) {
+    animation: nf-fade-in var(--nf-duration-fast) var(--nf-ease-standard) both;
+    animation-delay: 0ms;
+  }
+  /* The failure's small mark, above the overline, on the card's axis. */
+  .nf-system__mark {
+    margin-bottom: var(--nf-space-sm);
+    vertical-align: top;
+  }
   @media (prefers-reduced-motion: reduce) {
     .nf-system__brand,
     .nf-system__card,
     .nf-system__podium,
-    .nf-system__aside {
+    .nf-system__aside,
+    .nf-system:has([data-state-kind="error"]) :is(.nf-system__brand, .nf-system__card, .nf-system__podium, .nf-system__aside) {
       animation: none;
     }
     .nf-system__search-glyph {
