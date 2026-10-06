@@ -13,9 +13,8 @@ import { StayCategoryTiles } from "@/components/app/stays/StayCategoryTiles";
 import { StayFilterSheet } from "@/components/app/stays/StayFilterSheet";
 import { stayCardFromRow } from "@/components/app/stays/stay-card-model";
 import { PageHeader } from "@/components/app/PageHeader";
-import { EmptyState } from "@/components/app/Screen";
+import { DiscoveryEmpty } from "@/components/app/search/DiscoveryEmpty";
 import { ResultsFade } from "@/components/app/search/ResultsFade";
-import { ButtonLink } from "@/components/ui/Button";
 import { resolveSession } from "@/lib/actions/session";
 import { listSavedPlaces } from "@/lib/saved/places-actions";
 import { isSaved, savedKeySet } from "@/lib/saved/places";
@@ -122,22 +121,20 @@ export default async function StaysSearchPage({
       )}
 
       {stays.length === 0 ? (
-        <EmptyState
-          icon="hotel"
+        /* Stage 5: the honest reason and the one way onward, under an
+           object that settles in. With dates set, the dates are the likeliest
+           narrowing, so clearing them is the action. */
+        <DiscoveryEmpty
+          className="mt-section-tight"
+          data-testid="stays-search-empty"
+          object="suitcase"
           title={t.stays.emptyTitle}
           body={t.stays.emptyBody}
-          action={
-            query.checkIn ? (
-              <ButtonLink href={toStaysHref({ ...query, checkIn: undefined, checkOut: undefined }, "/stays/search")} variant="primary">
-                {t.stays.clearDates}
-              </ButtonLink>
-            ) : (
-              <ButtonLink href="/stays" variant="primary">
-                {t.nav.stays}
-              </ButtonLink>
-            )
+          primary={
+            query.checkIn
+              ? { href: toStaysHref({ ...query, checkIn: undefined, checkOut: undefined }, "/stays/search"), label: t.stays.clearDates }
+              : { href: "/stays", label: t.nav.stays }
           }
-          className="mt-section-tight"
         />
       ) : (
         /* Track M: the current stays dim while a new search is on its way. */

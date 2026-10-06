@@ -9,8 +9,7 @@ import { StayCard } from "@/components/app/stays/StayCard";
 import { stayCardFromListing, type StayCardData } from "@/components/app/stays/stay-card-model";
 import { restaurantPlate } from "@/components/app/stays/restaurant-plates";
 import { PageHeader } from "@/components/app/PageHeader";
-import { EmptyState } from "@/components/app/Screen";
-import { ButtonLink } from "@/components/ui/Button";
+import { DiscoveryEmpty } from "@/components/app/search/DiscoveryEmpty";
 import { resolveSession } from "@/lib/actions/session";
 import { listSavedPlaces } from "@/lib/saved/places-actions";
 import { isSaved, savedKeySet } from "@/lib/saved/places";
@@ -89,15 +88,17 @@ export default async function RestaurantsPage() {
     <div className="mx-auto max-w-5xl">
       <PageHeader title={t.stays.restaurantsTitle} subtitle={t.stays.restaurantsLine} fallback="/stays" />
       {cards.length === 0 ? (
-        <EmptyState
-          icon="concierge-bell"
+        /* Stage 5: the empty shelf is the current product. A matte cup and
+           saucer settles (the accepted Tier A set has no restaurant building
+           yet; the lettered ones were rejected, D29), the reason is the true
+           one and the way onward goes back to Stays. No capture is offered: a
+           brief is for homes, not tables (request W2-R4). */
+        <DiscoveryEmpty
+          data-testid="restaurants-empty"
+          object="cup-saucer"
           title={t.stays.restaurantsEmptyTitle}
           body={t.stays.restaurantsEmptyBody}
-          action={
-            <ButtonLink href="/stays" variant="primary">
-              {t.nav.stays}
-            </ButtonLink>
-          }
+          primary={{ href: "/stays", label: t.nav.stays }}
         />
       ) : (
         <ul className="grid grid-cols-1 gap-md sm:grid-cols-2 lg:grid-cols-3" data-testid="restaurant-shelf">
