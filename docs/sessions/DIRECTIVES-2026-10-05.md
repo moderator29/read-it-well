@@ -803,6 +803,76 @@ committed and pushed as it is done, cleanly, without sessions conflicting.
 | Single screens carrying several jobs | D25 |
 | **D1's per-surface theme lead** | **D28.1: the member's theme governs; Paper becomes a document treatment within it** |
 | Session 4's "needs from the founder first" on the live reserve subaccount | D38 |
+| Session 3's decision not to add framer-motion in this pass | D39 |
+
+---
+
+## D39. framer-motion is installed. The library's source is in the repository. Neither is a session's decision to reopen
+
+**Why this exists.** Session 3 reported that it was "not adding framer-motion in
+this pass", doing drag and the sliding indicators with CSS and pointer events to
+keep the shared lockfile untouched, and that the founder's component code "isn't in
+the repo, only its description". The second was true and is now fixed. The first was
+already settled by D34 and is settled again here, because the founder asked for it
+directly: install it and build the components.
+
+### 1. The source is in the repository
+
+`docs/design/component-library-source/` holds all nine pieces as supplied, split
+one file per component, with a README stating what is wrong with each and why none
+of it compiles. No session builds a component from a description again.
+
+### 2. framer-motion is installed, through LazyMotion, and that is the end of it
+
+Every one of the founder's nine components imports `framer-motion`. Four use
+primitives with no CSS equivalent worth writing: `useMotionValue` with `useTransform`
+for the drag, `AnimatePresence` for exit, a shared `layoutId` for the sliding
+indicator, and spring `animate` for the release. **Declining the dependency means
+declining the library**, which is not on the table.
+
+Installed as D34 set out: `LazyMotion` with `domAnimation` and the `m` namespace,
+around 18KB, never the top-level `motion` import, which pulls the full bundle. One
+`LazyMotion` provider high in the tree. A component that imports `motion` directly
+has not been ported, whatever it looks like on screen.
+
+### 3. Where CSS is still the right answer, so this does not swing the other way
+
+Session 3's instinct was not stupid, it was over-applied. Use CSS transitions and
+the Web Animations API for a transition on a known track with a known end:
+hover and focus, a tab underline, a toast entrance, a chip changing state, a
+progress bar, anything that plays once and is never interrupted. Reach for
+framer-motion only for **gesture-driven, interruptible, spring-physics or
+layout-shared** motion: the drag to confirm, the dynamic island morph, a shared
+element moving between two routes, a list reordering, an exit that must complete
+before unmount. Adding framer-motion to fade in a toast is as wrong as hand-rolling
+a spring for the drag.
+
+### 4. Lockfile ownership, so six agents do not fight over one file
+
+**Session 3 owns `package.json` and `package-lock.json` for this work.** It installs
+framer-motion once, in its first commit, as a commit of its own that touches nothing
+else. No other agent in Session 3 and no other session adds, removes or upgrades a
+dependency without saying so in its response file first. A lockfile conflict is not
+bad luck, it is two owners.
+
+### 5. The `shadcn` registry commands are not run
+
+The four `npx shadcn@latest add Surajmaurya1/easyui/...` commands write arbitrary
+code from one individual's unpinned third-party registry straight into the source
+tree of an application that takes card payments. No session runs them. What the
+founder wants from those four is specified in `COMPONENT_LIBRARY.md` and built in
+Vallo's own tokens: the glass navigation with its hamburger pull for **inner** areas
+only, the gesture tray, the streaming response treatment, and the button Vallo
+already has. This is a supply chain decision and it is not a session's to make.
+
+### 6. Where the specification documents live until Session 1's branch is merged
+
+Sessions 2 and 3 both reported, correctly, that the briefs are only on
+`claude/rentme-v2-platform-audit-xuvg0a` and not on `main`. Until the founder merges
+that branch, **a session merges Session 1's branch into its own branch** rather than
+reading across branches: it is a documentation-only branch, it touches no code, and
+it cannot conflict with implementation work. Reading a specification you do not have
+checked out is how two sessions end up building against two different versions of it.
 
 ---
 

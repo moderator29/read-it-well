@@ -13,12 +13,17 @@ reduced-motion handling, controlled and uncontrolled modes, proper ARIA. They ar
 **written for a different design system**, and dropping them in as they are would fail
 this repository's own checks on the first commit.
 
+**The code itself is in `docs/design/component-library-source/`**, one file per
+component, as the founder supplied it, with a README listing what is wrong with each.
+It is reference material: it is outside every gate in this repository and none of it
+compiles. Read it rather than building from this document's prose.
+
 **Verified on 6 October:**
 
 | Dependency they need | In this repo? |
 |---|---|
 | Tailwind 4 | **Yes** |
-| `framer-motion` | **No** |
+| `framer-motion` | **Not yet, and it is being added.** D34 authorised it and D39 settles it: Session 3 installs it once, through `LazyMotion` with `domAnimation`, in a commit of its own |
 | `lucide-react` | **No** |
 | `cn()` / `clsx` / `tailwind-merge` | **No** |
 | shadcn registry | **No** |
@@ -63,6 +68,16 @@ justified by three things CSS genuinely cannot do well:
 **Everything else stays CSS.** Entrances, exits, press, stagger, fades and the whole
 motion inventory in `MOTION_SYSTEM.md` section 2 are CSS and stay CSS. **If a
 component can be built without framer-motion, it is.**
+
+**That sentence is about the component, never about the dependency, and D39 exists
+because it was read the other way.** framer-motion is installed either way: four of
+the nine pieces need primitives with no CSS equivalent worth writing, so declining
+the dependency means declining the library. The rule is a split, not a veto. CSS for
+a transition on a known track with a known end, which is most of them.
+framer-motion for gesture-driven, interruptible, spring or layout-shared motion,
+which is the drag, the island morph, the sliding indicator and a shared element
+crossing routes. Hand-rolling a spring for the drag is as wrong as pulling in
+framer-motion to fade a toast.
 
 **Do not add `lucide-react`, `clsx` or `tailwind-merge`.** Vallo has `UiIcon`, and a
 two-line local `cn` helper replaces the rest.
