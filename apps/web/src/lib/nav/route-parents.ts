@@ -398,9 +398,12 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/admin/bookings/reservations": "/admin/bookings",
   "/admin/businesses": "/admin",
   "/admin/agreements": "/admin",
-  "/admin/examples": "/admin",
-  "/admin/staff": "/admin",
-  "/admin/handbook": "/admin",
+  /* C1 sweep: the five desks the rail files under Settings (nav.ts,
+     ADMIN_SETTINGS) go back to Settings, the door they are opened from,
+     not past it to the overview. */
+  "/admin/examples": "/admin/settings",
+  "/admin/staff": "/admin/settings",
+  "/admin/handbook": "/admin/settings",
   "/admin/handbook/position": "/admin/handbook",
   "/admin/fees": "/admin",
   "/admin/account-recovery": "/admin",
@@ -421,7 +424,7 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
    * `/admin`, like every other desk, and not the other way round.
    */
   "/admin/queue": "/admin",
-  "/admin/reference": "/admin",
+  "/admin/reference": "/admin/settings",
   "/admin/settings": "/admin",
   "/admin/social": "/admin",
   "/admin/standing": "/admin",
@@ -429,7 +432,7 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/admin/people/[id]": "/admin/people",
   "/admin/supply": "/admin",
   "/admin/support": "/admin",
-  "/admin/switches": "/admin",
+  "/admin/switches": "/admin/settings",
 
   /* ---------------------------------------------------- the agent console */
   "/agent/dashboard": "/home",
