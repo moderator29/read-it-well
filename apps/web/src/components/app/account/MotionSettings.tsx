@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useSyncExternalStore, type KeyboardEvent } from "react";
-import type { Dictionary } from "@vallo/i18n/core";
+import type { MotionCopy } from "./settings-copy";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { BrandAssemble } from "@/components/motion/BrandAssemble";
 import { STARTUP_SCRIPT } from "@/components/startup/startup-script";
@@ -45,7 +45,7 @@ const LEVEL_ICON: Record<MotionLevel, UiIconName> = {
  * again. Everything applies at once and is kept on this device; see
  * lib/motion/motion-pref.ts for what each level does.
  */
-export function MotionSettings({ t }: { t: Dictionary }) {
+export function MotionSettings({ t }: { t: MotionCopy }) {
   const copy = t.settings.appearance;
   const pref = parseMotion(useSyncExternalStore(subscribe, snapshot, serverSnapshot));
   const [take, setTake] = useState(0);

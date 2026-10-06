@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/Button";
 import { useActionState } from "react";
-import type { Dictionary } from "@vallo/i18n/core";
+import type { AddressMoveCopy } from "@/components/app/account/settings-copy";
 import { ownerCancelEmailRecovery } from "@/lib/admin/email-recovery-actions";
 import type { PendingMove } from "@/lib/auth/pending-address-move";
 
@@ -15,7 +15,7 @@ export function PendingAddressMove({
   t,
   move,
 }: {
-  t: Dictionary;
+  t: AddressMoveCopy;
   move: PendingMove;
 }) {
   const [state, action, pending] = useActionState(

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { forAddressMove, forPrivacyCard, forPrivacyToggles, forSecurityCard } from "@/components/app/account/settings-copy";
 import { distinctDeviceCount } from "@/lib/security/device-count";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
@@ -76,22 +77,22 @@ export default async function PrivacySettingsPage() {
         )}
         {pendingMove && (
           <section id="settings-address-move" className="scroll-mt-28">
-            <PendingAddressMove t={t} move={pendingMove} />
+            <PendingAddressMove t={forAddressMove(t)} move={pendingMove} />
           </section>
         )}
         <section id="settings-privacy" className="scroll-mt-28">
           {signedIn ? (
             <AccountPrivacyCard
-              t={t}
+              t={forPrivacyToggles(t)}
               initialPrivacy={account.settings.privacy}
               initialDataSaver={account.settings.dataSaver}
             />
           ) : (
-            <PrivacyCard t={t} />
+            <PrivacyCard t={forPrivacyCard(t)} />
           )}
         </section>
         <section id="settings-security" className="scroll-mt-28">
-          <SecurityCard t={t}>
+          <SecurityCard t={forSecurityCard(t)}>
             <DevicesRow t={t} signedIn={signedIn} count={deviceCount} />
             {/* DB2: the people you blocked, with Unblock, one tap away. */}
             <RowLink

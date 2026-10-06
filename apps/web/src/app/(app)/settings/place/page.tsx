@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { forPickers } from "@/components/app/welcome/welcome-copy";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import Link from "next/link";
@@ -94,7 +95,7 @@ export default async function PlacePage() {
       )}
 
       <PlaceForm
-        t={t}
+        t={forPickers(t)}
         states={states}
         initial={{ stateCode, lgaCode, occupationCode }}
         initialLabels={{

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { forDataCard } from "@/components/app/account/settings-copy";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
@@ -32,7 +33,7 @@ export default async function DataSettingsPage() {
           <DataExportCard t={t} signedIn={account.state === "signed-in"} />
         </section>
         <section id="settings-data-clear" className="scroll-mt-28">
-          <DataCard t={t} />
+          <DataCard t={forDataCard(t)} />
         </section>
       </div>
     </div>

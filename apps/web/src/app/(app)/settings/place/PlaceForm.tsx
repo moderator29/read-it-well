@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/Button";
 import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PlaceFields, type PlaceValues } from "@/components/app/place/PlaceFields";
-import type { Dictionary } from "@vallo/i18n/core";
+import type { PickersCopy } from "@/components/app/welcome/welcome-copy";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { updatePlaceAction, type PlaceSaved } from "@/lib/places/actions";
 import type { StateOption } from "@/lib/places/reference";
@@ -30,7 +30,7 @@ export function PlaceForm({
 }: {
   /* The locale is resolved on the page; the pickers below draw a dozen words
      each and none of them may be English. */
-  t: Dictionary;
+  t: PickersCopy;
   states: StateOption[];
   initial: PlaceValues;
   initialLabels: { lgaName: string; occupationName: string };

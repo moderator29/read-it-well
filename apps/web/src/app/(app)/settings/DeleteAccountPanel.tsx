@@ -1,9 +1,10 @@
 "use client";
 
+import type { AccountCopy } from "@/components/app/account/settings-copy";
 import { useActionState, useEffect, useId, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { formatDate, formatMoney, type Dictionary, type Locale } from "@vallo/i18n/core";
+import { formatDate, formatMoney, type Locale } from "@vallo/i18n/core";
 import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -51,7 +52,7 @@ import type { ActionResult } from "@/lib/actions/envelope";
  */
 
 export type DeletePanelProps = {
-  t: Dictionary;
+  t: AccountCopy;
   locale: Locale;
   /** How the account proves it is still them. */
   method: "password" | "email-code";
@@ -72,7 +73,7 @@ function phrase(template: string, values: Record<string, string>): string {
 }
 
 function blockerCopy(
-  t: Dictionary,
+  t: AccountCopy,
   locale: Locale,
   blocker: Blocker,
 ): { line: string; cta: string } {
@@ -205,7 +206,7 @@ function ScheduledPanel({
   purgeAfter,
   daysLeft,
 }: {
-  t: Dictionary;
+  t: AccountCopy;
   locale: Locale;
   purgeAfter: string;
   daysLeft: number;
@@ -286,7 +287,7 @@ function DeleteDrawer({
   method,
   onClose,
 }: {
-  t: Dictionary;
+  t: AccountCopy;
   method: "password" | "email-code";
   onClose: () => void;
 }) {

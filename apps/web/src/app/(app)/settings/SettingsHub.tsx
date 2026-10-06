@@ -1,11 +1,12 @@
 "use client";
 
+import type { HubCopy } from "@/components/app/account/settings-copy";
 import { clearListingDrafts } from "@/lib/agent/listing-draft-storage";
 import { initial } from "@/lib/text/initial";
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { plural, type Dictionary, type Locale } from "@vallo/i18n/core";
+import { plural, type Locale } from "@vallo/i18n/core";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { SettingsGlyph, type SettingsGlyphName } from "@/components/app/account/SettingsGlyph";
 import { ICON } from "@/components/app/Screen";
@@ -49,7 +50,7 @@ import { RemoteImage } from "@/components/ui/RemoteImage";
  */
 
 export type SettingsHubProps = {
-  t: Dictionary;
+  t: HubCopy;
   locale: Locale;
   signedIn: boolean;
   person: { name: string; email: string; avatarUrl: string; verified: boolean } | null;
@@ -78,7 +79,7 @@ function ProfileRow({
   t,
   person,
 }: {
-  t: Dictionary;
+  t: HubCopy;
   person: SettingsHubProps["person"];
 }) {
   const hub = t.settings.hub;
@@ -325,7 +326,7 @@ export function SettingsHub({
 }
 
 /** Log Out, the last row on the screen. Real `signOut`, with its own error line. */
-export function LogOutRow({ t, signedIn }: { t: Dictionary; signedIn: boolean }) {
+export function LogOutRow({ t, signedIn }: { t: HubCopy; signedIn: boolean }) {
   const router = useRouter();
   const hub = t.settings.hub;
   const [signingOut, startSignOut] = useTransition();

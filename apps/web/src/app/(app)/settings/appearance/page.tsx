@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { forAppearance, forLanguage, forMotion } from "@/components/app/account/settings-copy";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
@@ -52,11 +53,11 @@ export default async function AppearanceSettingsPage() {
       {/* THE MOTION SETTING (Track M): four levels, three switches and a
           preview. It replaced a "Reduce motion" switch that did nothing. */}
       <section id="settings-motion" className="mb-block scroll-mt-28">
-        <MotionSettings t={t} />
+        <MotionSettings t={forMotion(t)} />
       </section>
       <section id="settings-appearance" className="scroll-mt-28">
-        <AppearanceCard t={t}>
-          <LanguageRow t={t} current={locale} />
+        <AppearanceCard t={forAppearance(t)}>
+          <LanguageRow t={forLanguage(t)} current={locale} />
         </AppearanceCard>
       </section>
     </div>

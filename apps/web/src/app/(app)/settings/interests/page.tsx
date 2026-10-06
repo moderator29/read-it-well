@@ -5,6 +5,7 @@ import Link from "next/link";
 import { PageHeader } from "@/components/app/PageHeader";
 import { loadInterestsState } from "@/lib/interests/queries";
 import { InterestChoices } from "@/components/app/welcome/InterestChoices";
+import { forInterests } from "@/components/app/welcome/welcome-copy";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { IconPlate } from "@/components/ui/IconPlate";
 
@@ -63,7 +64,7 @@ export default async function InterestsSettingsPage() {
         fallback="/settings"
       />
       <div className="nf-panel nf-panel--card block p-lg sm:p-lg">
-        <InterestChoices initial={state.interests} mode="settings" t={t} />
+        <InterestChoices initial={state.interests} mode="settings" t={forInterests(t)} />
       </div>
     </div>
   );

@@ -2,7 +2,7 @@
 
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import type { Dictionary } from "@vallo/i18n/core";
+import type { AiConsentCopy } from "@/components/app/account/settings-copy";
 import { RowButton, RowLink, SettingsGroup } from "@/components/app/account/rows";
 import { Sheet } from "@/components/ui/Sheet";
 import { Button } from "@/components/ui/Button";
@@ -19,7 +19,7 @@ import { withdrawAiConsent } from "@/lib/ai/consent-actions";
  * question as it always has: agreement is given there, next to what it
  * covers, and never from a settings switch.
  */
-export function AiConsentCard({ t, consented }: { t: Dictionary; consented: boolean }) {
+export function AiConsentCard({ t, consented }: { t: AiConsentCopy; consented: boolean }) {
   const copy = t.settings.aiConsent;
   const router = useRouter();
   const [withdrawn, setWithdrawn] = useState(false);

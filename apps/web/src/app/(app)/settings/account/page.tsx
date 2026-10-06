@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { forAccount, forSearchCard } from "@/components/app/account/settings-copy";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
@@ -58,7 +59,7 @@ export default async function AccountSettingsPage() {
       <div className="space-y-block">
         <section id="settings-account" className="scroll-mt-28">
           <AccountSection
-            t={t}
+            t={forAccount(t)}
             locale={locale}
             state={account.state}
             email={account.state === "signed-in" ? account.email : ""}
@@ -88,7 +89,7 @@ export default async function AccountSettingsPage() {
           </PlaceCard>
         </section>
         <section id="settings-search" className="scroll-mt-28">
-          <SearchCard t={t} />
+          <SearchCard t={forSearchCard(t)} />
         </section>
       </div>
     </div>

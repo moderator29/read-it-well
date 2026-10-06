@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { forAiConsent } from "@/components/app/account/settings-copy";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
@@ -25,7 +26,7 @@ export default async function AiConsentPage() {
     <div className="mx-auto max-w-2xl">
       <PageHeader title={t.settings.aiConsent.label} fallback="/settings/privacy" />
       <SettingsLede label={lede.what} what={lede.ai.what} who={lede.ai.who} />
-      <AiConsentCard t={t} consented={consented} />
+      <AiConsentCard t={forAiConsent(t)} consented={consented} />
     </div>
   );
 }

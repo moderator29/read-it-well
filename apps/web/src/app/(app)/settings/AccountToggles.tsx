@@ -5,7 +5,7 @@ import { setLite } from "@/lib/ui/lite";
 import { RowSwitch, SettingsGroup } from "@/components/app/account/rows";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { updateSettings } from "@/lib/profile/actions";
-import type { Dictionary } from "@vallo/i18n/core";
+import type { NotifyToggleCopy, PrivacyToggleCopy, SettingsOf } from "@/components/app/account/settings-copy";
 import type { ResolvedProfileSettings, SettingsPatch } from "@/lib/profile/schema";
 
 /**
@@ -55,7 +55,7 @@ function useSettingsSaver() {
  * confirmation never pushes the switches themselves down the screen while
  * somebody is still flipping them.
  */
-function saveNote(t: Dictionary, saved: boolean, error: string | null) {
+function saveNote(t: SettingsOf<"account">, saved: boolean, error: string | null) {
   if (error) {
     return (
       <span role="alert" className="text-[var(--nf-state-error)]">
@@ -96,7 +96,7 @@ export function AccountNotificationsCard({
 }: {
   /* Handed down from whichever server component resolved the locale: /settings
      for a guest, /agent/settings for a host. */
-  t: Dictionary;
+  t: NotifyToggleCopy;
   initial: ResolvedProfileSettings["notifications"];
   /** Whose words to use. The preference itself is one account-wide setting. */
   variant?: "guest" | "host";
@@ -161,7 +161,7 @@ export function AccountPrivacyCard({
   initialPrivacy,
   initialDataSaver,
 }: {
-  t: Dictionary;
+  t: PrivacyToggleCopy;
   initialPrivacy: ResolvedProfileSettings["privacy"];
   initialDataSaver: boolean;
 }) {

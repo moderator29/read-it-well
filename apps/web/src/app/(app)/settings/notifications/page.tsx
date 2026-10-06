@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { forNotificationsCard, forNotifyToggles } from "@/components/app/account/settings-copy";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
@@ -94,9 +95,9 @@ export default async function NotificationsSettingsPage() {
       )}
       <section id="settings-notifications" className="scroll-mt-28">
         {account.state === "signed-in" ? (
-          <AccountNotificationsCard t={t} initial={account.settings.notifications} />
+          <AccountNotificationsCard t={forNotifyToggles(t)} initial={account.settings.notifications} />
         ) : (
-          <NotificationsCard t={t} />
+          <NotificationsCard t={forNotificationsCard(t)} />
         )}
       </section>
 
