@@ -32,7 +32,7 @@
  * from `apps/web/src/lib/email/icons.ts`, so nothing is passed in by hand.
  */
 import { execFileSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, rmSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
@@ -48,8 +48,15 @@ const BRAND = join(ROOT, "apps", "web", "public", "brand");
 const OUT_OBJECTS = join(BRAND, "email", "objects");
 const OUT_GLYPHS = join(BRAND, "email", "glyphs");
 
-/* The family blue the line glyphs are stroked in. */
-const GLYPH_BLUE = "#0C6AEF";
+/* The family blue the line glyphs are stroked in: the brand's electric 400,
+   read from the token file so the glyphs follow it (the email palette's GLOW
+   in apps/web/src/lib/email/theme.ts is the same token). */
+const TOKENS_CSS = join(ROOT, "packages", "design-tokens", "src", "tokens.css");
+const GLYPH_BLUE = (() => {
+  const found = /--nf-electric-400:\s*(#[0-9a-fA-F]{6})\s*;/.exec(readFileSync(TOKENS_CSS, "utf8"));
+  if (!found) throw new Error("--nf-electric-400 not found in packages/design-tokens/src/tokens.css");
+  return found[1];
+})();
 
 /** Runs a bundled TypeScript entry once with node and returns what it printed. */
 function runBundled(entry, alias) {
