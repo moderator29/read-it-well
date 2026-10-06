@@ -496,8 +496,8 @@ reader should know that the log does not say at a glance:
   - The switch (`8d702aaaf`): `6d143ee3b` makes its on fill crossfade when it turns
     **off**. Turning **on** does not crossfade yet. R2's fix is in progress.
   - The sheet leave (`70cf24adc`) landed in `e9212951c`: the sheet stays mounted,
-    inert and click-through until its exit ends. A8's MUST is being fixed: the
-    sheet's children go empty during the leave.
+    inert and click-through until its exit ends. A8's MUST, that the
+    sheet's children went empty during the leave, is fixed in `19546f8d9`.
   - Data saver: the message of `5318408ed` overstates it, because
     only the status tracks honour data saver.
   - The progress ring (the pull to refresh ring, `b0847870f`) has no surface and no
@@ -639,3 +639,9 @@ reader should know that the log does not say at a glance:
   PulseCard and ProfileEditor (auditor A7). The tip builds; bisecting across
   that stretch does not. Recorded rather than rewritten, because the history is
   shared.
+- Do not gate a commit that depends on a fix an auditor has held, and do not trust a
+  passing targeted vitest as a typecheck. One commit was gated after a fix it
+  depended on had been held, and a test-only type error (a `[name, value]` pair
+  widened to `string[]`) failed the gate's typecheck while the targeted vitest
+  passed, because vitest does not typecheck. Run `tsc --noEmit` on a new dom test
+  before committing it.
