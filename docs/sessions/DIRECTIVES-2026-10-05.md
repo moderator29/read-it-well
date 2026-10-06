@@ -822,6 +822,131 @@ committed and pushed as it is done, cleanly, without sessions conflicting.
 | **Any reading that paid promotion was removed** | **D60: D3 built it on 5 October; the gap was the tier detail, now written** |
 | **The flat "keeps 96 percent" on the fee screen** | **D61: wrong, rail dependent, and Session 1 wrote it. A range now** |
 | **D58 on the referral engine, and Session 1's "apply it" on b4_referral_rewards_engine** | **D62: architecture locked by the founder; hold the migration until campaigns are in it** |
+| **D62's hold on b4_referral_rewards_engine** | **D63: wrong on both reasons. Apply it. Only the payout path waits, on the budget cap** |
+| **"Qualification refuses past the cap with a named reason"** | **D64: it pauses instead, and the cap is 700,000 naira a month** |
+
+---
+
+## D64. The platform budget cap is 700,000 naira a month, and it pauses rather than refuses
+
+**Decided by the founder on 6 October.** The referral programme's platform-wide ceiling is
+**700,000 naira a month**, one row, enforced server-side before any reward may accrue. Detail
+in `docs/referral/REFERRAL_ARCHITECTURE.md` section 10.
+
+### Why it exists, in one table
+
+The per-member cap limits one person to 1,500 qualified referrals a month. **Vallo's exposure
+is the member count multiplied by that cap**, and the per-member cap is satisfied in every row:
+
+| Members at the ceiling | Consumer campaign, 76 naira | Supply campaign, 300 naira |
+|---|---|---|
+| 10 | 1.14m naira | 4.5m naira |
+| 100 | 11.4m naira | 45m naira |
+| 1,000 | **114m naira** | **450m naira** |
+
+**Nobody broke a rule in the bottom row.** That is the hole the budget cap closes, and it is
+why the per-member cap was never protection. At 700,000 naira with a 76 naira reward the cap
+is roughly **9,200 qualified referrals a month**, which is a great deal of genuine growth
+before anything pauses.
+
+### The correction: it pauses, it does not refuse
+
+**`REFERRAL_ADMIN_CENTRE.md` said qualification "refuses past the cap with a named reason".
+That was wrong.** Refusing is a broken promise: somebody invited a real person who really
+qualified, and Vallo would be telling them no because other referrers reached the cap first.
+**That is the worst possible way to spend a reputation, and it would be spent on the people
+doing exactly what Vallo asked of them.**
+
+- **At 75 percent of the cap, an alert fires**, so the founder sees it coming with time to
+  raise the cap or wind the campaign down deliberately.
+- **At 100 percent, new qualification pauses, visibly**, and the member surface says so in
+  plain words.
+- **Everything already qualified is honoured and paid in full.**
+
+**Pausing is honest and refusing is not.** A pause stops people inviting friends under a
+promise Vallo cannot fund, which is the actual harm. It is recoverable by raising the cap; a
+refusal cannot be taken back.
+
+### Three rules this puts on the engine
+
+1. **The cap is checked before accrual, in the same statement that writes it**, so two
+   qualifications racing for the last of the budget cannot both succeed.
+2. **A pause never reaches backwards.** It changes what happens next and never touches a
+   reward that has already qualified.
+3. **The pause is visible to members, not silent.** A rewards surface still inviting people
+   while the programme is paused is lying by omission.
+
+**And D63's gate still stands:** no payout path goes live until this cap exists and is
+enforced server-side.
+
+---
+
+## D63. Apply the referral migration after all, and nobody was ever told to switch phone verification off
+
+**Two corrections, both prompted by the founder challenging D62 on 6 October. He was right on
+one and the other was a misreading worth clearing up precisely.**
+
+### Nobody told Session 2 to switch phone verification off, and Termii is already built
+
+D62 and the architecture document said **"phone verification is built and switched off pending
+an SMS provider"**. That is a **report of the current state**, taken from the feature register's
+own D4 row, not an instruction to anybody. **No session has been told to disable anything**, and
+Session 1 would have no business telling them to.
+
+**And the provider was never an open question: Termii is already chosen and already built.**
+Measured in the tree rather than assumed:
+
+- `apps/web/src/lib/auth/phone-sign-in.ts`, `phone-sign-in-flag.ts`, and the Supabase send hook
+  at `apps/web/src/app/api/auth/sms-hook/route.ts`.
+- The transport sends **WhatsApp first when `TERMII_WHATSAPP_ENABLED=true`, then Termii's DND
+  route so MTN and Airtel numbers on do-not-disturb still receive codes.** That DND detail is
+  the part most integrations get wrong in this market, and it is already handled.
+- **One switch closes or opens every part at once:** `PHONE_SIGNIN_ENABLED`. The door, the
+  actions and the hook all read it.
+
+**So there is nothing for a session to build here.** The eight remaining steps are in
+`docs/PHONE_SIGNIN.md` and every one is founder-side: the Termii account and KYC, an approved
+sender ID, the optional WhatsApp template, a cost ceiling per code, the Supabase dashboard
+settings, the Vercel variables (`TERMII_API_KEY`, `TERMII_SENDER_ID`,
+`TERMII_WHATSAPP_ENABLED`, then `PHONE_SIGNIN_ENABLED=true` **last**, after a test code has
+actually arrived), the privacy notice naming Termii as a recipient of phone numbers, and a test
+on a real MTN and a real Airtel number with one on DND.
+
+**What Session 2 should do:** read that document, confirm every step still matches the code, and
+fix anything stale. **Not rebuild what exists.**
+
+### Apply the referral migration. D62's hold was wrong on both of its reasons
+
+**Reason one is dead.** D62 argued nothing is lost by waiting, because nothing can qualify
+until an SMS provider exists. **The founder is obtaining the Termii key now.** Qualification is
+days away. And "there is no hurry" was a weak argument even while it was true: it justifies
+delay without demonstrating any benefit from it.
+
+**Reason two was overstated, and that is the more useful admission.** D62 called adding
+campaigns later **"restructuring the spine in a money area after rows exist"**. It is not a
+restructure. A `referral_campaigns` table, a `referral_budget_periods` table and a nullable
+`campaign_id` on `referrals` are **additive DDL**, and with zero rows in every referral table
+the extension costs one ordinary migration. **Session 1 reached for the strongest available
+word rather than the accurate one, and a directive built on an inflated word is a directive
+that stops real work for no return.**
+
+**So: apply `b4_referral_rewards_engine.sql`.** It carries risk scoring, reversal, cluster and
+velocity work, and it has had two review passes. **Applying schema pays nobody**: the payout
+path needs application code that does not exist yet.
+
+### The one line that does not move
+
+> **No payout path goes live until the platform budget cap exists and is enforced
+> server-side.**
+
+This is not caution about schema. The moment `PHONE_SIGNIN_ENABLED` is true, referrals can
+qualify, and **without a platform cap one viral moment creates a debt Vallo has not agreed to
+and cannot fund.** The per-member cap does not protect against it, because the exposure is the
+member count multiplied by the cap.
+
+**Order:** apply now; the next migration adds campaigns, the budget period with its cap in
+naira, the requirement registry and the review window. **Qualification may run before campaigns
+exist, defaulting to the launch policy. Payout may not run before the cap does.**
 
 ---
 

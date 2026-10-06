@@ -82,8 +82,17 @@ a dispute.
 ### 2.4 `referral_budget_periods`
 
 One row per calendar month: `cap_minor`, `committed_minor`, `paid_minor`, and a
-`frozen` flag. **D51's platform-wide cap, server-side and visible.** Qualification
-checks it and refuses past the cap with a named reason rather than silently.
+`frozen` flag. **D51's platform-wide cap, server-side and visible.**
+
+**The cap is 700,000 naira a month, set by the founder on 6 October.**
+
+> **Corrected, same day.** This section used to say qualification "refuses past the cap
+> with a named reason". **That was wrong and D64 replaces it.** Refusing is a broken
+> promise: somebody invited a real person who really qualified, and Vallo would be saying
+> no because other referrers got there first. At 75 percent of the cap an alert fires; at
+> 100 percent the programme **pauses new qualification visibly** and everything already
+> qualified is honoured and paid. **Pausing is honest, refusing is not**, and a pause is
+> recoverable by raising the cap.
 
 ### 2.5 `referral_campaigns`
 

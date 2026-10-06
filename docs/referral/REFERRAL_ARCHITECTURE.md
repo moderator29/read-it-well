@@ -245,33 +245,45 @@ Four rules for it:
 
 ---
 
-## 7. The consequence for the migration waiting to be applied
+## 7. The migration: apply it, and gate the payout path on the cap
 
-**`supabase/migrations/pending/b4_referral_rewards_engine.sql` should not be applied as it
-stands, and Session 1 is reversing its own earlier instruction to apply it.**
+> **Reversed on 6 October, after the founder challenged it. Session 1 had said hold the
+> migration. That was wrong, and both of its reasons failed.**
+>
+> **Reason one is dead.** It argued nothing is lost by waiting because phone verification is
+> off pending an SMS provider. **The founder is obtaining the Termii API key now**, and the
+> Termii integration is already built: `OtpTransport` with WhatsApp first and Termii's DND
+> route for MTN and Airtel, the Supabase send hook, and a single switch
+> `PHONE_SIGNIN_ENABLED`. The eight setup steps are in `docs/PHONE_SIGNIN.md` and are all
+> founder-side. So qualification is days away, not blocked indefinitely, and "there is no
+> hurry" was never a strong argument anyway.
+>
+> **Reason two was overstated.** It called adding campaigns later "restructuring the spine in
+> a money area after rows exist". **It is not a restructure.** A `referral_campaigns` table, a
+> `referral_budget_periods` table and a nullable `campaign_id` on `referrals` are additive
+> DDL. With zero rows in every referral table, extending the schema costs nothing beyond one
+> ordinary migration. Session 1 reached for the strongest available word rather than the
+> accurate one.
 
-Checked against this architecture: the file creates `referral_policy`, `referrals`,
-`referral_events`, `rewards_payouts` and `rewards_ledger`, and it already contains risk
-scoring, reversal, cluster and velocity work, which is good and should be kept. **What it has
-no trace of is campaigns, a budget period, or a cap in naira.** Those are not additions at the
-edge: under the architecture above, **the campaign is the organising dimension.** Qualification
-policy hangs off it, the reward amount comes from it, the per-member cap belongs to it, and the
-review window is its setting.
+**So: apply `b4_referral_rewards_engine.sql`.** It already carries risk scoring, reversal,
+cluster and velocity work, and it has had two review passes. Applying schema does not start
+paying anybody: the payout path needs application code that does not exist yet.
 
-**Applying a referral spine without its organising dimension means restructuring the spine
-later, in a money area, after rows exist.** That is the expensive order.
+**One hard gate remains, and it is the only thing here worth being stubborn about:**
 
-**And nothing is lost by waiting**, which is what makes this easy: the feature register records
-that **phone verification is built and switched off pending an SMS provider**, and
-`phone_verified` is a requirement in every campaign the founder listed. **Not one referral can
-qualify until that provider exists.** There is no cost to getting the schema right first.
+> **No payout path goes live until the platform budget cap exists and is enforced
+> server-side.**
 
-So: add to the file, then apply once. Campaigns, with their reward, caps, window and
-requirement-key array. A budget period per month with a cap in naira and a committed total. The
-requirement registry as a set of named checks. The lifecycle states from section 2 in place of
-a shorter set. Then one application, one probe run, one recorded verdict.
+That is not caution about schema; it is the difference between a bounded and an unbounded
+liability. The moment `PHONE_SIGNIN_ENABLED` is true, referrals can qualify. Without a
+platform cap, one viral moment creates a debt Vallo has not agreed to and cannot fund. **The
+per-member cap does not protect against this**, because the exposure is the number of members
+multiplied by their cap.
 
----
+**So the order is:** apply the migration now, then the very next migration adds campaigns,
+the budget period with its cap in naira, the requirement registry and the review window.
+Qualification may run before campaigns exist, defaulting to the launch policy. **Payout may
+not run before the cap does.**
 
 ## 8. Probes
 
@@ -300,7 +312,59 @@ out, because it asserts an absence rather than a behaviour.
    launch campaign needs a row.
 2. **The per-campaign caps**, given section 3's arithmetic. 1,500 at 300 naira is 450,000 naira
    per member per month.
-3. **The platform monthly budget in naira.** It should be a figure Vallo can fund twice over
-   without pain.
+3. ~~The platform monthly budget in naira.~~ **Decided on 6 October: 700,000 naira a
+   month.** See section 10 for what it does and what happens when it is reached.
 4. **Which campaigns launch at all.** Starting with the consumer one alone is the cautious path
    and loses nothing: the architecture supports the others the day they are wanted.
+
+---
+
+## 10. The platform budget cap: 700,000 naira a month
+
+**Decided by the founder on 6 October 2026.** One row, one number, enforced server-side
+before any reward is allowed to accrue.
+
+### What it is for, and why the per-member cap is not enough
+
+The per-member cap limits one person to 1,500 qualified referrals a month. **Vallo's actual
+exposure is the member count multiplied by that cap**, and the per-member cap is satisfied in
+every row below:
+
+| Members at the ceiling | Consumer campaign at 76 naira | Supply campaign at 300 naira |
+|---|---|---|
+| 10 | 1.14m naira | 4.5m naira |
+| 100 | 11.4m naira | 45m naira |
+| 1,000 | **114m naira** | **450m naira** |
+
+Nobody broke a rule in the bottom row. **That is the hole the budget cap closes.** It is the
+difference between a marketing cost Vallo chose and a debt that chose Vallo.
+
+At 700,000 naira and a 76 naira reward, the cap is roughly **9,200 qualified referrals a
+month**, which is a great deal of genuine growth before anything pauses.
+
+### What happens as it fills, and the correction that matters
+
+**At 75 percent, an alert fires.** The founder sees it with time to decide: raise the cap, or
+wind the campaign down deliberately.
+
+**At 100 percent, new qualification pauses, visibly**, and the member surface says so in plain
+words. **Everything already qualified is honoured and paid in full.**
+
+> **This replaces the earlier instruction that qualification "refuses past the cap with a
+> named reason".** Refusing is a broken promise. Somebody invited a real person who really
+> qualified, and Vallo would be telling them no because other referrers reached the cap
+> first. **That is the worst possible way to spend a reputation**, and it would be spent on
+> the people doing exactly what Vallo asked of them.
+>
+> **Pausing is honest and refusing is not.** A pause stops people going out to invite friends
+> under a promise Vallo cannot fund, which is the actual harm to prevent. It is also
+> recoverable: raise the cap and it resumes. A refusal cannot be taken back.
+
+### The three rules this puts on the engine
+
+1. **The cap is checked before accrual, in the same statement that writes it**, so two
+   qualifications racing for the last of the budget cannot both succeed.
+2. **A pause never touches a reward that has already qualified.** Pausing changes what happens
+   next; it never reaches backwards.
+3. **The pause is visible to members, not silent.** A rewards surface that keeps inviting
+   people while the programme is paused is lying by omission.
