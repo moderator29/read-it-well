@@ -555,6 +555,7 @@ export const NON_NAVIGABLE: Readonly<Record<string, string>> = {
   "/api/client-error": "the browser's error beacon.",
   "/api/passcode/touch": "POST only, the passcode unlock's heartbeat (docs/PASSCODE.md).",
   "/api/vitals": "the browser's field speed beacon (V-80).",
+  "/gallery/ported": "a development harness for the ported component library (Session 3, D34), behind the preview flag like /gallery; not product, so it has no place in the hierarchy.",
   "/api/cron/account-purge": "scheduled job, bearer token.",
   "/api/cron/canary": "scheduled job, bearer token.",
   "/api/cron/calendar-sync": "scheduled job, bearer token (C2, behind CALENDAR_SYNC_ENABLED).",
