@@ -24,10 +24,11 @@ labels into the dictionary).
 **The sweep, as a number.** The per-route record is
 [`SESSION-3-SWEEP.md`](SESSION-3-SWEEP.md), generated from each agent's own 24-point
 result, run in Chromium at 390, 768 and 1440 in both themes on the route's real page
-component. **Routes audited with all 24 points recorded: 167 of 213** at this edit
-(38 admin, every admin route; 24 agent and 17
-host, every route in both trees, one host route a redirect; 49 member, two of them
-redirects; 39 public site, auth and landing, every route in those three groups). The rows in section 3 below predate this and leave points
+component. **Routes audited with all 24 points recorded: 192 of 213** at this edit
+(38 admin, 24 agent and 17 host, every route in those three trees; 65 member, 16
+of them settings; 39 public site, auth and landing; 9 top-level pages and handlers;
+redirects recorded as redirects). The count of records can pass 213 by the routes
+added this round (/rewards, /receipts, /refunds, /payouts, two settings pages). The rows in section 3 below predate this and leave points
 19, 22 and 23 at N; they are not counted. The measured starting point (C1, at
 `6376453df` against the session base): 88 of 213 `page.tsx` files untouched, 46 of
 125 edits five lines or fewer, 54 routes whose own files are untouched; admin 23
@@ -160,6 +161,11 @@ the D48 rule keeps those words.
 - **An approved business still offers Approve, Ask for a change and Refuse** on
   `/admin/businesses`. Whether a decided business keeps its decision buttons is a
   product call; recorded, not changed.
+
+- **One name for the passport.** The settings menu says "Space Passport" (the north
+  star's name); the page title, the hub row and the credential say "Renter
+  passport". Renaming touches `trustVisible`, a machine-draft namespace, so it waits
+  on the name.
 
 **Open in this round:** C1 continues admin then agent (InnerNav across the agent
 tree) then host; C3 the member routes; C4 the auth redesign, then the weight diet,

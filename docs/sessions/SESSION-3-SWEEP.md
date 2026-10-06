@@ -6,7 +6,7 @@ component with the fixture named in its row. **P** pass, **X** failed and fixed 
 sweep, **F** failed and still open, **·** does not apply. The denominator is 213 real routes
 (every `page.tsx` under `apps/web/src/app`, excluding `(dev)` and `api`).
 
-**Routes audited: 167 of 213.**
+**Routes audited: 192 of 213.**
 
 | Family | Audited |
 |---|---|
@@ -17,6 +17,7 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | areas | 1 |
 | around | 5 |
 | assistant | 1 |
+| auth | 1 |
 | bookings | 2 |
 | cancellations | 1 |
 | careers | 1 |
@@ -25,7 +26,9 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | delete-account | 1 |
 | disclaimer | 1 |
 | docs | 2 |
+| email | 1 |
 | eula | 1 |
+| first-run | 1 |
 | for-agents | 1 |
 | for-hosts | 1 |
 | for-landlords | 1 |
@@ -34,11 +37,13 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | help | 1 |
 | host | 17 |
 | inspections | 1 |
+| join | 2 |
 | landlord | 1 |
 | legal | 3 |
 | messages | 4 |
 | move-in-cost | 1 |
 | notifications | 2 |
+| offline | 1 |
 | pay | 1 |
 | post | 1 |
 | price | 1 |
@@ -49,10 +54,11 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | rent | 3 |
 | reset-password | 1 |
 | restaurant | 1 |
+| s | 2 |
 | safe | 1 |
 | safety | 1 |
 | saved | 1 |
-| settings | 2 |
+| settings | 18 |
 | sign-in | 4 |
 | sign-up | 4 |
 | standards | 1 |
@@ -63,6 +69,7 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | tenancy | 1 |
 | terms | 1 |
 | u | 5 |
+| welcome | 1 |
 
 | Route | By | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
@@ -137,6 +144,7 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | `/around/new` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | P | P | P | P |
 | `/around/settings` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | X | P | P | P |
 | `/assistant` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | P | P | X | P | P | P | P |
+| `/auth/callback` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | · | P | P | P | P | P | P |
 | `/bookings` | C3 | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P |
 | `/bookings/[bookingId]/review` | C3 | P | · | P | P | P | P | · | P | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/cancellations` | C6 | P | · | P | P | P | P | P | P | P | P | P | P | P | P | P | P | F | · | P | P | P | P | P | P |
@@ -147,7 +155,9 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | `/disclaimer` | C6 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | F | · | P | P | P | P | P | P |
 | `/docs` | C6 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | · | P | P | P | P | P | P |
 | `/docs/[slug]` | C6 | P | · | P | P | P | P | · | · | P | X | P | P | P | · | · | P | P | · | P | P | P | P | P | P |
+| `/email/preferences` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | P | P | P | P | X | P | P |
 | `/eula` | C6 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | P | P | P | P |
+| `/first-run/[feature]` | C7 | P | · | P | P | P | P | · | · | P | P | P | · | P | · | · | P | · | · | P | P | P | X | P | X |
 | `/for-agents` | C6 | P | · | P | P | P | P | P | P | P | P | P | P | P | · | P | P | X | P | P | P | P | P | P | P |
 | `/for-hosts` | C6 | P | · | P | P | P | P | P | P | P | P | P | P | P | · | P | P | X | P | P | P | P | P | P | P |
 | `/for-landlords` | C6 | P | · | P | P | P | P | P | P | P | P | P | P | P | · | P | P | X | P | P | P | P | P | P | P |
@@ -174,6 +184,8 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | `/host/start` | C5 | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | P | · | · | · | · | · | · | · | P |
 | `/host/transfer` | C5 | P | P | P | P | P | P | · | · | P | P | P | P | P | · | X | P | · | P | P | P | P | X | P | P |
 | `/inspections/gate/[id]` | C3 | P | · | P | P | P | P | · | P | · | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
+| `/join/[code]` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | P | P | P | P | P | P | P |
+| `/join/[code]/start` | C7 | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | P | · | · | · | · | · | · | · | P |
 | `/landlord/[token]` | C6 | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/legal/disclaimer` | C3 | P | · | P | P | P | P | · | · | · | P | P | P | P | · | P | P | F | · | P | P | P | P | P | P |
 | `/legal/privacy` | C3 | P | · | P | P | P | P | · | · | · | P | P | P | P | · | P | P | F | · | P | P | P | P | P | P |
@@ -185,6 +197,7 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | `/move-in-cost` | C6 | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | P | P | P | P | P | P |
 | `/notifications` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | X | · | P | P | P | X | P | P | P |
 | `/notifications/[id]` | C3 | P | · | P | P | P | P | · | P | P | P | P | P | P | · | P | X | · | P | P | P | X | P | P | P |
+| `/offline` | C7 | P | · | P | P | P | P | · | · | P | P | P | · | P | · | · | P | · | P | P | P | P | P | P | P |
 | `/pay/crypto/[reference]` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | X | P | P | P | P | P | P |
 | `/post/[id]` | C3 | P | · | P | P | P | P | P | · | P | P | P | P | P | · | · | X | · | · | P | P | P | P | P | P |
 | `/price` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | X | P | P | P |
@@ -204,10 +217,28 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | `/rent/review/[paymentId]` | C3 | P | · | P | P | P | P | · | · | · | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/reset-password` | C6 | P | · | P | P | P | P | · | · | P | F | P | P | P | · | · | P | · | P | P | P | P | P | P | P |
 | `/restaurant/[id]` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | P | P | X | P | P | P | P | X | P | P | P |
+| `/s/[token]` | C7 | P | P | P | P | P | P | P | P | P | P | P | X | P | · | P | P | · | P | P | P | P | P | P | P |
+| `/s/[token]/status` | C7 | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | P | · | · | · | · | · | · | · | P |
 | `/safe/[token]` | C6 | P | · | P | P | P | P | · | · | P | P | P | X | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/safety` | C6 | P | · | P | P | X | P | · | · | P | P | P | P | P | P | P | P | F | · | P | P | P | P | P | P |
 | `/saved` | C3 | P | · | P | P | P | P | P | · | P | P | P | P | P | · | · | X | · | P | P | P | P | P | P | P |
+| `/settings` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | · | P | P | P | P | P | X |
 | `/settings/accessibility` | C3 | P | · | P | P | P | X | · | · | P | P | P | X | P | · | · | P | · | · | P | X | P | P | P | P |
+| `/settings/account` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | P | P | P | P | P | P | X |
+| `/settings/devices` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | X |
+| `/settings/devices/alert` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | P | P | P | P | P | P | X |
+| `/settings/interests` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | · | P | P | P | X | P | X |
+| `/settings/notifications` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | · | P | P | P | P | P | P |
+| `/settings/passport` | C7 | F | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
+| `/settings/passport/[fact]` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
+| `/settings/payments` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | P | · | P | P | P | X | P | X |
+| `/settings/phone` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | P | P | P | P | P | P | P |
+| `/settings/place` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | · | P | P | P | P | P | X |
+| `/settings/privacy` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | F | F | · | P | P | P | P | P | X |
+| `/settings/privacy/ai` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | · | P | P | P | P | P | P |
+| `/settings/privacy/blocked` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | X | P | X |
+| `/settings/privacy/data` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | · | P | P | P | P | P | X |
+| `/settings/privacy/money-lock` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | F | F | · | P | P | P | P | P | P |
 | `/settings/region` | C3 | P | · | P | P | P | P | · | · | P | P | P | X | P | · | · | P | · | · | P | P | P | P | P | P |
 | `/sign-in` | C6 | P | · | P | P | P | P | · | · | P | F | P | P | P | · | · | P | · | P | P | P | P | P | P | P |
 | `/sign-in/code` | C6 | P | · | P | P | P | P | · | · | P | F | P | P | P | · | · | P | · | · | P | P | P | P | P | P |
@@ -233,6 +264,7 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | `/u/[handle]/edit` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | P | P | P | P | P | X | P | P |
 | `/u/[handle]/followers` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | P | P | P | P | X | X | P | P |
 | `/u/[handle]/following` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | P | P | P | P | P | X | P | P |
+| `/welcome` | C7 | P | · | P | P | P | P | · | · | P | P | P | · | P | · | · | P | · | · | P | P | P | X | P | P |
 
 ## What failed, and what was done
 
@@ -501,6 +533,15 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 
 - 10 (fixed): The title and every section heading arrive word by word on the shared .nf-depth-word (560ms a word, 70ms apart): an eight-word title measured 1,170ms first word to last. In the docs a heading now takes the landing headline's timing (nf-hero-word, 420ms, 35ms apart, held after the fifth word): 620ms at most, measured. The gate still holds a section's words until it is on screen; reduced motion and Calm unchanged (0 long animations).
 
+**`/email/preferences`** (a link without a valid token: no signing key and no preferences fixture exist, so only the honest invalid-link state is measured; and its loading.tsx)
+
+- 22 (fixed): The tab title was an English literal; it reads publicDoors.prefs.metaTitle (written for it and never read).
+
+**`/first-run/[feature]`** (the real page for invite and passport (it reads no session))
+
+- 22 (fixed): The tab title was the English literal "Getting started"; it is experienceFeatures.firstRun.region with the feature's name now.
+- 24 (fixed): tenancy and portfolio (R3-12) are mounted first runs with no declared parent and no LITERAL_EXPANSIONS entry; declared now (/bookings and /agent/dashboard). The other seven were declared.
+
 **`/for-agents`** (the REAL page in the REAL (site) layout; readListerFees answers null as it does with no service key (no fee tiles: the honest who-pays sentence))
 
 - 17 (fixed): The payout card printed PAYOUT_ANSWER and then NO_CUSTODY_SENTENCE (the payer's sentence, to the person being paid), and 'what Vallo does not do' said it a third time in a sentence written in supply-doors.ts, naming a wallet. The card prints PAYOUT_ANSWER alone and the third sentence is gone; 'Does Vallo hold the money?' still answers with NO_CUSTODY_SENTENCE.
@@ -693,6 +734,10 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 - 16 (fixed): The about sentence was assembled from English fragments ("is in", "and serves") and the share card's line was English; both come from experienceDetail.restaurant now, one whole sentence per case.
 - 21 (fixed): The Restaurants link in Getting there drew 21.7px tall; it takes nf-tap now, 0 under 44.
 
+**`/s/[token]`** (a signed-out visitor, no cookies; readDoor answers the door preview's FIXTURE row (verbatim) as a listing and as an example (is_demo), and the missing door)
+
+- 12 (fixed): Its loading.tsx drew its own aria-busy box with the words visible and was not announced through the State kit (voice rule, the lead's note). It is a State kind=loading now, the visible eyebrow aria-hidden so it is spoken once.
+
 **`/safe/[token]`** (the REAL page in the REAL (site) layout; readSafetyShareByToken answers the landlord preview's live, overdue view verbatim (Ada, Ikoyi), and unknown)
 
 - 12 (fixed): The page reads the share by token and waited in the group's prose skeleton; safe/[token]/loading.tsx draws the status's own shape now (title, times, the state card with its action, the footnote).
@@ -706,11 +751,65 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 
 - 16 (fixed): The header link "Saved searches" and the tab title were English; they come from experienceDiscover.saved.searchesLink and nav.saved.
 
+**`/settings`** (the real page in the real settings layout (SettingsAreaNav), signed in as the preview fixture PERSON (_fixtures/people) through lib/testing/fake-supabase; every other read answers as a new member's account does (empty); device count unreadable (null), so the row asks rather than shows 0)
+
+- 24 (fixed): Back to /home (declared). A signed-out sign-in link lost where the person was going (bare /sign-in); it carries next through withNext now. (the Devices, Place and Interests rows, signed out)
+
 **`/settings/accessibility`** (the real page and its new loading.tsx inside the real settings layout (SettingsAreaNav); it reads only the dictionary and the device's settings store)
 
 - 6 (fixed): Weights were 400/600/650: the motion level names set 650, outside the system's 400, 600 and 700. They are 600 now (motion-pref.css).
 - 12 (fixed): No loading.tsx: the route fell back to the generic (app) skeleton. It has its own now: header with line, lede, Seeing (three rows), Motion (three rows and its note), under the settings nav the layout keeps drawn.
 - 20 (fixed): axe nested-interactive (1 at dark.390 and light.390): the replay button sat inside the preview's role=img. The image role is on the picture alone now, the button beside it: axe 0.
+
+**`/settings/account`** (the real page in the real settings layout (SettingsAreaNav), signed in as the preview fixture PERSON (_fixtures/people) through lib/testing/fake-supabase; every other read answers as a new member's account does (empty))
+
+- 24 (fixed): Back to /settings. A signed-out sign-in link lost where the person was going (bare /sign-in); it carries next through withNext now. (AccountSection's Sign in row, Place and Interests rows)
+
+**`/settings/devices`** (the real page in the real settings layout (SettingsAreaNav), signed in as the preview fixture PERSON (_fixtures/people) through lib/testing/fake-supabase; every other read answers as a new member's account does (empty); my_sessions empty (no other device); also DeviceList on the sweep-settings harness's fixture rows (the only device rows in the repository))
+
+- 24 (fixed): Back to /settings. A signed-out sign-in link lost where the person was going (bare /sign-in); it carries next through withNext now.
+
+**`/settings/devices/alert`** (the real page in the real settings layout (SettingsAreaNav), signed in as the preview fixture PERSON (_fixtures/people) through lib/testing/fake-supabase; every other read answers as a new member's account does (empty); a digest my_new_device does not answer (the missing state))
+
+- 24 (fixed): Back to /settings/devices. A signed-out sign-in link lost where the person was going (bare /sign-in); it carries next through withNext now. (keeps ?d=)
+
+**`/settings/interests`** (the real page in the real settings layout (SettingsAreaNav), signed in as the preview fixture PERSON (_fixtures/people) through lib/testing/fake-supabase; every other read answers as a new member's account does (empty); interests not yet asked)
+
+- 22 (fixed): The tab title was an English literal ("What you are here for"); it reads interests.screenTitle in the reader's language now.
+- 24 (fixed): Back to /settings. A signed-out sign-in link lost where the person was going (bare /sign-in); it carries next through withNext now.
+
+**`/settings/passport`** (the real page in the real settings layout (SettingsAreaNav), signed in as the preview fixture PERSON (_fixtures/people) through lib/testing/fake-supabase; every other read answers as a new member's account does (empty); my_renter_passport's zero row (nothing recorded, off), after the first run (?shown))
+
+- 1 (open): Naming: the area nav calls this destination "Space Passport" (experienceSettings.area, the north star's name) while the h1, the hub row and the credential say "Renter passport" (trustVisible.passport.title, experienceAccount.passport.credentialLabel). One name for one thing is a decision for the lead: rename all three (trustVisible is a machine-draft namespace) or the nav label.
+
+**`/settings/payments`** (the real page in the real settings layout (SettingsAreaNav), signed in as the preview fixture PERSON (_fixtures/people) through lib/testing/fake-supabase; every other read answers as a new member's account does (empty); the card and bank rows are the f4 preview fixtures PAYMENT_CARDS and BANK_ACCOUNTS through the block's two reads)
+
+- 22 (fixed): The signed-out action read the English literal "Sign in"; it is t.common.signIn now.
+- 24 (fixed): Back to /settings. A signed-out sign-in link lost where the person was going (bare /sign-in); it carries next through withNext now.
+
+**`/settings/place`** (the real page in the real settings layout (SettingsAreaNav), signed in as the preview fixture PERSON (_fixtures/people) through lib/testing/fake-supabase; every other read answers as a new member's account does (empty); listStates answers the sweep-orphans STATES fixture)
+
+- 24 (fixed): Back to /settings. A signed-out sign-in link lost where the person was going (bare /sign-in); it carries next through withNext now.
+
+**`/settings/privacy`** (the real page in the real settings layout (SettingsAreaNav), signed in as the preview fixture PERSON (_fixtures/people) through lib/testing/fake-supabase; every other read answers as a new member's account does (empty); nobody blocked, no address move, no money hold)
+
+- 16 (open): The money-lock door's line "Face or fingerprint before money moves" overstates what it guards (only the accounts money is paid into). Fixed in c7/money-lock-copy.patch (MONEY_LOCK_ROW in lib/money/copy.ts), pending the lead.
+- 17 (open): Same line: a money sentence outside lib/money/copy.ts. In the patch.
+- 24 (fixed): Back to /settings. A signed-out sign-in link lost where the person was going (bare /sign-in); it carries next through withNext now. (the Blocked row, signed out)
+
+**`/settings/privacy/blocked`** (the real page in the real settings layout (SettingsAreaNav), signed in as the preview fixture PERSON (_fixtures/people) through lib/testing/fake-supabase; every other read answers as a new member's account does (empty); the db2/blocked preview's three fixture rows (names and dates as ISO days) through loadMyBlocks)
+
+- 22 (fixed): The blocked-on date was formatted en-GB for every reader; it uses formatDate in the reader's locale now.
+- 24 (fixed): Back to /settings/privacy. A signed-out sign-in link lost where the person was going (bare /sign-in); it carries next through withNext now.
+
+**`/settings/privacy/data`** (the real page in the real settings layout (SettingsAreaNav), signed in as the preview fixture PERSON (_fixtures/people) through lib/testing/fake-supabase; every other read answers as a new member's account does (empty))
+
+- 24 (fixed): Back to /settings/privacy. A signed-out sign-in link lost where the person was going (bare /sign-in); it carries next through withNext now. (the export row, signed out)
+
+**`/settings/privacy/money-lock`** (the real page in the real settings layout (SettingsAreaNav), signed in as the preview fixture PERSON (_fixtures/people) through lib/testing/fake-supabase; every other read answers as a new member's account does (empty); no phone added yet (empty money_credentials))
+
+- 16 (open): "Sending and withdrawing will ask for this phone's lock" and the lede "so a stolen unlocked phone cannot send it" say Vallo holds money to send or withdraw; it holds none (money-intent.ts: the lock guards adding, defaulting and removing bank and payout accounts). Fixed in c7/money-lock-copy.patch, pending the lead.
+- 17 (open): Those are money sentences from the dictionary (platform.moneyLock, experienceAccount lede), not lib/money/copy.ts. The patch adds MONEY_LOCK_WHAT/BODY/DONE/REMOVED there and wires the group and the page to them.
 
 **`/settings/region`** (the real page and its new loading.tsx inside the real settings layout)
 
@@ -819,4 +918,8 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 **`/u/[handle]/following`** (the real page with getFollowList's own found answer and no one in it)
 
 - 22 (fixed): The metadata title was an English literal; experienceSocial.follows now.
+
+**`/welcome`** (a signed-out visitor, no cookies: the stranger's intro, and the tour (?tour=1))
+
+- 22 (fixed): The tab title was the English literal "Two worlds. One platform."; it reads welcomeCards.twoWorlds in the reader's language now.
 
