@@ -1746,6 +1746,11 @@
     flex: none;
     margin-inline: auto;
   }
+  /* The layer tabs and the calculator's naira and percent toggle are
+     controls: each choice is a 44px target (the segments were 36px). */
+  :is(.nf-os__seg, .nf-calc) .nf-segmented__item {
+    min-height: 2.75rem;
+  }
   /* ONLY THE SHOWN LAYER TAKES SPACE. Stacked in one grid cell the stage
      was as tall as the tallest layer (the ecosystem's six doors on a phone),
      which left a screen of empty night under the shorter ones. The hidden
