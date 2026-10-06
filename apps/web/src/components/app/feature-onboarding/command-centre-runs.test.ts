@@ -12,9 +12,9 @@ import { FIRST_RUN_HOME, canMount, firstRunContent, isMountedFirstRun } from "./
  * first runs to what those pages actually say, so a first run cannot teach a
  * surface that does not exist.
  *
- * Promotion has no first run, on purpose: there is no promotion product to
- * teach (paid placement was removed in v06, and Session 2's entitlements and
- * promotion, R3-30, have not landed). A first run for it would be invented.
+ * Promotion's first run is held in `promotion-run.test.ts` (D60: D3 built paid
+ * promotion on 5 October; the note that once stood here read the superseded
+ * no-paid-placement doctrine).
  */
 const t = getDictionary("en");
 
@@ -56,11 +56,5 @@ describe("the owner's first run, on their buildings", () => {
     for (const word of ["rent collect", "expenses", "maintenance", "occupancy rate", "guarantee", "wallet"]) {
       expect(text, word).not.toContain(word);
     }
-  });
-});
-
-describe("promotion", () => {
-  it("has no first run while there is no promotion to teach", () => {
-    expect(isMountedFirstRun("promotion")).toBe(false);
   });
 });

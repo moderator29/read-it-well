@@ -35,7 +35,7 @@ export async function generateMetadata({ params }: { params: Promise<{ feature: 
  * without it, or when it is not safe, both exits land on the feature's home.
  *
  * Its back destination is declared per feature in `lib/nav/route-parents.ts`
- * (the nine literal `/first-run/<key>` parents and the
+ * (the ten literal `/first-run/<key>` parents and the
  * `LITERAL_EXPANSIONS` entry), the feature's own parent, because the first
  * run stands in front of the feature rather than inside it.
  */
@@ -49,8 +49,9 @@ export default async function FirstRunPage({
   const { feature } = await params;
   if (!isMountedFirstRun(feature)) notFound();
 
-  const t = getDictionary(await getLocale());
-  const content = firstRunContent(feature, t);
+  const locale = await getLocale();
+  const t = getDictionary(locale);
+  const content = firstRunContent(feature, t, locale);
   if (!canMount(content)) notFound();
 
   const raw = (await searchParams).next;

@@ -1,6 +1,17 @@
-import type { Dictionary } from "@vallo/i18n/core";
 import type { TieredObjectName } from "@/design-system/icons/object-assets";
-import { NO_INSPECTION_FEE, OFF_PLATFORM_SENTENCE, PAYMENT_GATE_SENTENCE } from "@/lib/money/copy";
+import { formatMoney, type Dictionary, type Locale } from "@vallo/i18n/core";
+import {
+  NO_INSPECTION_FEE,
+  OFF_PLATFORM_SENTENCE,
+  PAYMENT_GATE_SENTENCE,
+  PROMOTION_ENDS,
+  PROMOTION_FULL_DAYS,
+  PROMOTION_NOT_ON_SALE,
+  PROMOTION_PRICES_PROPOSED,
+  PROMOTION_REFUNDED,
+  PROMOTION_STARTS,
+} from "@/lib/money/copy";
+import { PROMOTION_METRICS, promotionTiers } from "@/lib/promotion/tiers";
 
 /**
  * THE FEATURE ONBOARDING REGISTRY (north star 14.1, founder directive D11).
@@ -37,6 +48,8 @@ export const MOUNTED_FIRST_RUNS = [
      that job today (the tenancy file and the owner's buildings). */
   "tenancy",
   "portfolio",
+  /* D60: paid promotion, for listers. Four panels, the spec's own count. */
+  "promotion",
 ] as const;
 
 export type MountedFirstRun = (typeof MOUNTED_FIRST_RUNS)[number];
@@ -59,6 +72,9 @@ export const FIRST_RUN_HOME: Readonly<Record<MountedFirstRun, string>> = {
      declared parent. */
   tenancy: "/bookings",
   portfolio: "/agent/portfolio",
+  /* Promotion cannot be bought yet (D38), so the run hands a lister back to
+     the listings a promotion would be for; a host's gate carries `next`. */
+  promotion: "/agent/listings",
 };
 
 export function isMountedFirstRun(value: string | null | undefined): value is MountedFirstRun {
@@ -74,7 +90,35 @@ export type FirstRunPanel = {
   object: TieredObjectName;
   title: string;
   body: string;
+  /**
+   * Rows under the body, for the one first run whose spec asks a panel to
+   * carry a table read as prose (promotion's four tiers, its ten figures and
+   * what happens after paying). Every other first run has none.
+   */
+  detail?: FirstRunDetail;
 };
+
+export type FirstRunDetail = {
+  /** One line over the rows, saying what they are. */
+  caption?: string;
+  /** "list" reads down; "grid" sets short rows two across. */
+  layout: "list" | "grid";
+  rows: { term: string; meta?: string; text: string }[];
+};
+
+/**
+ * THE PANEL COUNT. Every first run is one to three panels (north star 14.1),
+ * except where a directive fixes the count: promotion is exactly four, because
+ * `VALLO_PROMOTION.md` specifies four screens and forbids a fifth (D60).
+ */
+export const FIRST_RUN_PANEL_COUNT: Readonly<Partial<Record<MountedFirstRun, number>>> = {
+  promotion: 4,
+};
+
+export function panelBounds(feature: FirstRunFeature): { min: number; max: number } {
+  const exact = FIRST_RUN_PANEL_COUNT[feature];
+  return exact === undefined ? { min: 1, max: 3 } : { min: exact, max: exact };
+}
 
 export type FirstRunContent = {
   feature: FirstRunFeature;
@@ -92,7 +136,7 @@ export type FirstRunContent = {
  * for what each panel says: a clipboard for "what needs you", a key ring for
  * the nights a host opens, a shield for checks, a passport for the passport.
  */
-export function firstRunContent(feature: FirstRunFeature, t: Dictionary): FirstRunContent {
+export function firstRunContent(feature: FirstRunFeature, t: Dictionary, locale?: Locale): FirstRunContent {
   const c = t.experienceFeatures.firstRun;
   switch (feature) {
     case "host":
@@ -196,19 +240,93 @@ export function firstRunContent(feature: FirstRunFeature, t: Dictionary): FirstR
           { object: "paper-plane", title: c.portfolio.p3Title, body: c.portfolio.p3Body },
         ],
       };
+    case "promotion":
+      return promotionFirstRun(t, locale);
   }
 }
 
 /**
+ * PAID PROMOTION'S FOUR PANELS (`docs/promotion/VALLO_PROMOTION.md`, "The
+ * onboarding"; D60).
+ *
+ *   1. What it is and is not: both limits in the body, never a footnote.
+ *   2. The four tiers side by side as prose (price, days, who it suits), read
+ *      from `lib/promotion/tiers.ts`; the prices are marked proposed.
+ *   3. What can be measured, with NO invented example: no promotion has run,
+ *      so the ten figures are laid out reading "No data", and the panel says
+ *      so (the spec's "real example from a real listing" waits for one).
+ *   4. Pick, pay, what happens next. Buying is not open (D38), so the body
+ *      says so and there is no pay button: the action is the lister's
+ *      listings. Start, end, full days and refunds are Session 2's money
+ *      sentences.
+ *
+ * No fifth panel selling value: the spec forbids it, and the panel count is
+ * held at exactly four by `FIRST_RUN_PANEL_COUNT`.
+ */
+function promotionFirstRun(t: Dictionary, locale?: Locale): FirstRunContent {
+  const c = t.experienceFeatures.firstRun.promotion;
+  const p = t.experienceFeatures.promotion;
+  return {
+    feature: "promotion",
+    name: c.name,
+    action: c.action,
+    panels: [
+      { object: "frame-empty", title: c.p1Title, body: c.p1Body },
+      {
+        object: "cards-fan",
+        title: c.p2Title,
+        body: c.p2Body,
+        detail: {
+          caption: PROMOTION_PRICES_PROPOSED,
+          layout: "list",
+          rows: promotionTiers().map((tier) => ({
+            term: p.tiers[tier.displayKey].name,
+            meta: p.tierMeta
+              .replace("{price}", formatMoney(tier.proposedPriceKobo, locale))
+              .replace("{days}", String(tier.durationDays)),
+            text: p.tiers[tier.displayKey].forWhom,
+          })),
+        },
+      },
+      {
+        object: "bars-chart",
+        title: c.p3Title,
+        body: c.p3Body,
+        detail: {
+          caption: c.p3Example,
+          layout: "grid",
+          rows: PROMOTION_METRICS.map((metric) => ({ term: p.metrics[metric], text: p.noData })),
+        },
+      },
+      {
+        object: "calendar-page",
+        title: c.p4Title,
+        body: PROMOTION_NOT_ON_SALE,
+        detail: {
+          layout: "list",
+          rows: [
+            { term: c.starts, text: PROMOTION_STARTS },
+            { term: c.ends, text: PROMOTION_ENDS },
+            { term: c.fullDays, text: PROMOTION_FULL_DAYS },
+            { term: c.refunded, text: PROMOTION_REFUNDED },
+          ],
+        },
+      },
+    ],
+  };
+}
+
+/**
  * Whether a first run may be shown at all: it is a mounted feature, it has
- * one to three panels, and every panel teaches something (a title and a
- * body).
+ * its panel count (one to three, or the count a directive fixes), and every
+ * panel teaches something (a title and a body).
  */
 export function canMount(content: FirstRunContent): boolean {
+  const { min, max } = panelBounds(content.feature);
   return (
     isMountedFirstRun(content.feature) &&
-    content.panels.length >= 1 &&
-    content.panels.length <= 3 &&
+    content.panels.length >= min &&
+    content.panels.length <= max &&
     content.panels.every((panel) => panel.title.trim().length > 0 && panel.body.trim().length > 0)
   );
 }

@@ -458,6 +458,8 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/agent/listings/[listingId]/board": "/agent/listings",
   /* V-71: the Status kit, under the listing's workspace like its board. */
   "/agent/listings/[listingId]/status": "/agent/listings",
+  /* D60: a listing's promotion results. Not linked until Session 2's reads exist. */
+  "/agent/listings/[listingId]/promotion": "/agent/listings",
   "/agent/list": "/agent/listings",
   "/agent/messages": "/agent/dashboard",
   /* The workspace's own frame round the consumer thread and bell pages, so
@@ -504,7 +506,7 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
    * link reaches it). So each one's way up is the feature's own way up, not
    * the feature: back from a first run the member did not want returns to
    * where the feature sits, never into the feature they declined to start.
-   * Nine literals rather than one pattern, because the parent differs per
+   * Ten literals rather than one pattern, because the parent differs per
    * feature (`LITERAL_EXPANSIONS` below). Its exits replace the page
    * (`FirstRunPanels`), and `resolve.ts` lists it as a flow, so it is never
    * returned to through history once seen.
@@ -520,6 +522,9 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
      buildings under the agent dashboard. */
   "/first-run/tenancy": "/bookings",
   "/first-run/portfolio": "/agent/dashboard",
+  /* D60: promotion's first run stands in front of the promotion results
+     page, which sits under the lister's listings. */
+  "/first-run/promotion": "/agent/listings",
 
   /* ------------------------------------------------- the design harnesses
    *
@@ -594,6 +599,7 @@ export const LITERAL_EXPANSIONS: Readonly<Record<string, readonly string[]>> = {
     "/first-run/analytics",
     "/first-run/tenancy",
     "/first-run/portfolio",
+    "/first-run/promotion",
   ],
   "/messages/share/[kind]/[id]": [
     "/messages/share/into/[id]",

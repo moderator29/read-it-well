@@ -165,6 +165,7 @@ export function FirstRunPanels({
               key={panel.title}
               className="nf-frun__panel"
               data-state={state}
+              data-detail={panel.detail ? "" : undefined}
               aria-hidden={index !== at}
               inert={index !== at}
               aria-roledescription="page"
@@ -175,6 +176,24 @@ export function FirstRunPanels({
               </div>
               <h2 className="nf-frun__title">{panel.title}</h2>
               <p className="nf-frun__body">{panel.body}</p>
+              {/* Rows read as prose, for the one run whose spec puts a table
+                  on a panel (promotion). A list of terms, never ticks. */}
+              {panel.detail ? (
+                <div className="nf-frun__detail">
+                  {panel.detail.caption ? <p className="nf-frun__caption">{panel.detail.caption}</p> : null}
+                  <dl className="nf-frun__rows" data-layout={panel.detail.layout}>
+                    {panel.detail.rows.map((row) => (
+                      <div key={row.term} className="nf-frun__row">
+                        <dt className="nf-frun__term">
+                          {row.term}
+                          {row.meta ? <span className="nf-frun__meta">{row.meta}</span> : null}
+                        </dt>
+                        <dd className="nf-frun__text">{row.text}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </div>
+              ) : null}
             </section>
           );
         })}

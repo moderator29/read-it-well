@@ -169,6 +169,98 @@ export const experienceFeaturesEn = {
       p3Body: "For a unit that is not let, invite verified agents who already list in its area. They see its place, bedrooms and your asking range, never the address.",
       action: "Open my buildings",
     },
+
+    /**
+     * PAID PROMOTION, FOR LISTERS (D3, D60, `docs/promotion/VALLO_PROMOTION.md`,
+     * "The onboarding"). Exactly four panels, the spec's own count, and no
+     * fifth selling value. Panel one says both limits on the first screen:
+     * a marked slot, no change to rank (`lib/listings/ranking.test.ts`), no
+     * badge (`lib/trust/promotion-trust.test.ts`). Panel two's tiers come
+     * from `lib/promotion/tiers.ts` and `promotion.tiers` below. Panel three
+     * has no figures because no promotion has run. Panel four's sentences
+     * are money sentences and live in `lib/money/copy.ts`: buying is not open,
+     * because promotion cannot be paid for until the payment account it
+     * settles to exists (D38).
+     */
+    promotion: {
+      name: "promotion",
+      p1Title: "Promotion buys attention, not rank",
+      p1Body: "A promoted listing appears in a slot marked Promoted. It does not change where your listing ranks, and it does not buy a verification badge.",
+      p2Title: "Four ways to be seen",
+      p2Body: "Each tier names where your listing appears, for how long, and who it suits.",
+      p3Title: "What you will be able to measure",
+      p3Body: "Each tier shows what your listing actually got. Vallo never estimates a number it does not have.",
+      /** Over panel three's list: there are no figures because nothing has run, and the panel says so. */
+      p3Example: "How the figures will be laid out. No promotion has run yet, so there is no real example to show: each line reads No data until one does.",
+      p4Title: "Pick, pay, and what happens next",
+      starts: "Starts",
+      ends: "Ends",
+      fullDays: "Full days",
+      refunded: "If refunded",
+      action: "See my listings",
+    },
+  },
+
+  /**
+   * PAID PROMOTION (D3, D60, `docs/promotion/VALLO_PROMOTION.md`). The words
+   * around `lib/promotion/tiers.ts`; prices are formatted from its kobo, never
+   * typed here, and every sentence about paying is in `lib/money/copy.ts`.
+   */
+  promotion: {
+    /** The visible label on every promoted slot (guardrail 3: a slot without it is a bug). */
+    label: "Promoted",
+    /** The label's longer, accessible form. */
+    labelLong: "Promoted listing. Paid placement in a marked slot; it does not change rank or verification.",
+    /** `{price}` is formatted money, `{days}` a number. */
+    tierMeta: "{price} for {days} days",
+    /**
+     * Each tier, in words. `name` is what a member reads; the slug never
+     * changes. `prime.name` is the spec's recommended "Everywhere", the
+     * founder's to confirm (guardrail 4: Prime names a rank, not a place).
+     */
+    tiers: {
+      boost: {
+        name: "Boost",
+        forWhom: "A week in a marked slot on your area's page and its searches. For one property on a tight budget.",
+      },
+      spotlight: {
+        name: "Spotlight",
+        forWhom: "Two weeks in the Promoted carousel at the top of your area and its searches. For a good property that needs repeating.",
+      },
+      featured: {
+        name: "Featured",
+        forWhom: "A month on the front door, the city page, your area and matching searches. For a property that needs people who were not looking.",
+      },
+      prime: {
+        name: "Everywhere",
+        forWhom: "Everything Featured gets, plus the saved-search and area digests and the map. For high-value property, with a reviewed listing, photographs and a complete inspection record.",
+      },
+    },
+    /** The ten F4 metrics, by name. */
+    metrics: {
+      impressions: "Impressions",
+      views: "Views",
+      uniqueViewers: "Unique viewers",
+      saves: "Saves",
+      shares: "Shares",
+      inquiries: "Inquiries",
+      contacts: "Contacts",
+      viewings: "Viewings",
+      bookings: "Bookings",
+      transactions: "Transactions",
+    },
+    /** In place of a figure that has nothing behind it. Never a zero. */
+    noData: "No data",
+    /** The measurement screen (`/agent/listings/<id>/promotion`). */
+    measure: {
+      title: "Promotion results",
+      lede: "What this listing got from a promotion, counted, never estimated.",
+      notLiveTitle: "No promotion results yet",
+      notLiveBody: "Promotion is not open yet, so no listing has been promoted and there is nothing to count. Every figure below reads No data until a promotion has run.",
+      metricsTitle: "The ten figures",
+      comparison: "Promoted against organic is shown only where there is enough data for the comparison to be valid. Where there is not, this page says so instead.",
+      back: "Back to my listings",
+    },
   },
 
   /**

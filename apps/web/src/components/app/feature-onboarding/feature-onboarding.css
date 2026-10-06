@@ -147,6 +147,77 @@
     overflow-wrap: anywhere;
   }
 
+  /*
+   * A PANEL THAT CARRIES ROWS (promotion's tiers, its ten figures, what
+   * happens after paying). The object shrinks so the words fit a phone, the
+   * rows read left to right as prose, and the fourth part joins the overlap.
+   */
+  .nf-frun__panel[data-detail] {
+    gap: var(--nf-space-sm);
+  }
+  .nf-frun__panel[data-detail] .nf-frun__art {
+    inline-size: clamp(4.5rem, 20vw, 6rem);
+    margin-block-end: 0;
+  }
+  :root[data-theme="light"] .nf-frun__panel[data-detail] .nf-frun__art {
+    padding: var(--nf-space-xs);
+  }
+  .nf-frun__panel[data-state="active"] > :nth-child(4) {
+    transition-delay: 180ms;
+  }
+  .nf-frun__detail {
+    display: grid;
+    gap: var(--nf-space-xs);
+    inline-size: 100%;
+    text-align: start;
+  }
+  .nf-frun__caption {
+    margin: 0;
+    font-size: var(--nf-text-caption);
+    line-height: 1.45;
+    color: var(--nf-content-muted);
+    overflow-wrap: anywhere;
+  }
+  .nf-frun__rows {
+    display: grid;
+    gap: var(--nf-space-xs);
+    margin: 0;
+  }
+  .nf-frun__rows[data-layout="grid"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--nf-space-2xs) var(--nf-space-sm);
+  }
+  .nf-frun__row {
+    display: grid;
+    gap: var(--nf-space-3xs);
+    padding-block-start: var(--nf-space-xs);
+    border-block-start: var(--nf-border-width) solid var(--nf-border-subtle);
+    min-inline-size: 0;
+  }
+  .nf-frun__term {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--nf-space-3xs) var(--nf-space-xs);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+    overflow-wrap: anywhere;
+  }
+  .nf-frun__meta {
+    font-weight: 400;
+    color: var(--nf-content-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+  .nf-frun__text {
+    margin: 0;
+    font-size: var(--nf-text-caption);
+    line-height: 1.45;
+    color: var(--nf-content-secondary);
+    overflow-wrap: anywhere;
+  }
+
   .nf-frun__foot {
     display: grid;
     gap: var(--nf-space-md);

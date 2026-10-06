@@ -4,9 +4,11 @@ import { TIERED_OBJECTS } from "@/design-system/icons/object-assets";
 import {
   FIRST_RUN_HOME,
   MOUNTED_FIRST_RUNS,
+  FIRST_RUN_PANEL_COUNT,
   canMount,
   firstRunContent,
   isMountedFirstRun,
+  panelBounds,
 } from "./first-runs";
 import {
   FEATURE_RUNS_COOKIE,
@@ -33,10 +35,11 @@ import {
 const t = getDictionary("en");
 
 describe("every mounted first run keeps the grammar", () => {
-  it.each(MOUNTED_FIRST_RUNS)("%s: one to three panels, each with a title, a body and an accepted object", (feature) => {
+  it.each(MOUNTED_FIRST_RUNS)("%s: its panel count, each with a title, a body and an accepted object", (feature) => {
     const content = firstRunContent(feature, t);
-    expect(content.panels.length).toBeGreaterThanOrEqual(1);
-    expect(content.panels.length).toBeLessThanOrEqual(3);
+    const { min, max } = panelBounds(feature);
+    expect(content.panels.length).toBeGreaterThanOrEqual(min);
+    expect(content.panels.length).toBeLessThanOrEqual(max);
     for (const panel of content.panels) {
       expect(panel.title.trim()).not.toBe("");
       expect((panel.body ?? "").trim()).not.toBe("");
@@ -62,6 +65,16 @@ describe("every mounted first run keeps the grammar", () => {
     for (const feature of MOUNTED_FIRST_RUNS) {
       const titles = firstRunContent(feature, t).panels.map((p) => p.title);
       expect(new Set(titles).size).toBe(titles.length);
+    }
+  });
+});
+
+describe("the panel count", () => {
+  it("is one to three everywhere except where a directive fixes it, and only promotion's is fixed (four, D60)", () => {
+    expect(FIRST_RUN_PANEL_COUNT).toEqual({ promotion: 4 });
+    for (const feature of MOUNTED_FIRST_RUNS) {
+      if (feature === "promotion") continue;
+      expect(panelBounds(feature)).toEqual({ min: 1, max: 3 });
     }
   });
 });

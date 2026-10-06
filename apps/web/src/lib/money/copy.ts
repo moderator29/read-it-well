@@ -245,13 +245,8 @@ export function escrowProtectionLabel(percentText: string): string {
 }
 export const ESCROW_PROTECTION_WHEN = "when a buyer pays into escrow";
 
-/**
- * The payment processor's fee, which the lister bears on a direct payment
- * (the split's bearer). Worded as the payout record words it
- * (`PAYOUT_PROCESSING_LABEL`), so the line the lister accepted is the line
- * they later find on their payout.
- */
-export const PROCESSOR_FEE_LABEL = "Payment processing, by Paystack";
+/** The payment processor's fee, which the lister bears on a direct payment. */
+export const PROCESSOR_FEE_LABEL = "Payment processor's fee";
 export const PROCESSOR_FEE_WHEN = "when a buyer pays directly";
 export function upToText(amountText: string): string {
   return `up to ${amountText}`;
@@ -657,7 +652,7 @@ export const PAYOUT_REVERSED_LABEL = "Reversed by a refund";
 export const PAYOUT_FEE_UNRECORDED = "Not on this record";
 export const PAYOUTS_EMPTY_TITLE = "No payouts yet";
 export const PAYOUTS_SAME_FIGURES =
-  "Each payout shows the lines a lister sees before publishing, for the way that buyer paid: what was paid, the platform fee, payment processing where it applies, and what you received.";
+  "Each payout shows the same three figures a lister sees before publishing: what was paid, the platform fee, and what you received.";
 /** The processor's own fee on a direct-rail payout, borne by the lister and named. */
 export const PAYOUT_PROCESSING_LABEL = "Payment processing, by Paystack";
 
@@ -808,3 +803,36 @@ export const MONEY_LOCK_DONE = "Done. Changing where your money is paid will now
 
 /** After a phone is removed as the lock. */
 export const MONEY_LOCK_REMOVED = "Removed. This phone no longer guards where your money is paid.";
+
+/* -------------------------------------------------------------------------- */
+/* PAID PROMOTION (D3, D60, docs/promotion/VALLO_PROMOTION.md)                */
+/* -------------------------------------------------------------------------- */
+/*
+ * Promotion is Vallo's own revenue: a single-party charge settled to Vallo's
+ * payment account and posted to `ledger_vallo_revenue` (D51). No split, no
+ * subaccount, nothing held for anybody. It cannot be sold until the company
+ * payment account exists (D38), so the onboarding's fourth screen says buying
+ * is not open and draws no pay button. These are its sentences
+ * (`components/app/feature-onboarding/first-runs.ts`, `promotionFirstRun`).
+ */
+
+/** Promotion's fourth onboarding screen, the body: buying is not open yet. */
+export const PROMOTION_NOT_ON_SALE =
+  "Buying opens when payments for promotion are live. Nothing can be paid for here yet.";
+
+/** Over the four tiers: the prices are proposals (D38 pattern), confirmed before buying opens. */
+export const PROMOTION_PRICES_PROPOSED = "Proposed prices, to be confirmed before buying opens.";
+
+/** When a promotion starts. Never before the processor confirms the payment. */
+export const PROMOTION_STARTS = "When our payment processor confirms your payment, and never before.";
+
+/** When it ends. */
+export const PROMOTION_ENDS = "By itself, when its days are up, on the end date shown before you pay.";
+
+/** Statement 5: front door and map slots cannot be oversold. */
+export const PROMOTION_FULL_DAYS =
+  "Featured and Everywhere have a fixed number of slots per city per day, shown before you pay. When a day is full the sale is refused, with the reason and the next date that is free.";
+
+/** Statement 7 and the refund route. */
+export const PROMOTION_REFUNDED =
+  "It stops appearing as the refund is recorded, and the refund goes back to the card or bank account you paid with, through our payment processor.";
