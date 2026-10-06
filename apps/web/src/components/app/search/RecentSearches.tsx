@@ -22,16 +22,21 @@ import {
  * quiet Clear forgets them. Typing closes it (the field is then a new search),
  * and so do Escape and leaving the field.
  *
- * KEYBOARD AND SCREEN READER (W12). The field is a plain search field and the
- * list is a list of links, not a combobox, so nothing here claims otherwise.
- * What a keyboard reader needs is a way in: the submit button sits between the
- * field and the list in document order, so Tab leaves the field for the button
- * and the list closes behind it. ArrowDown from the field therefore moves focus
- * to the first row (ArrowDown and ArrowUp then walk the rows; ArrowUp off the
- * first returns to the field), and Escape from any of them closes the list and
- * puts focus back in the field. While the list is shown the field's
- * `aria-describedby` names its title, so "Recent searches" is read with the
- * field the moment it appears.
+ * KEYBOARD AND SCREEN READER (W12, A8). The field is a plain search field and
+ * the list is a list of links, not a combobox, so nothing here claims otherwise.
+ * TAB REACHES EVERY ROW. The submit button and the filters control sit between
+ * the field and the list in document order, and the list used to close the
+ * moment focus left the field for them, so Tab never arrived (A8: "unreachable
+ * by keyboard"). The list now stays open while focus is anywhere from the field
+ * to the list (the field, what sits between, the list itself), so Tab walks
+ * field, submit, filters, Clear, then each row, each with the shared focus ring;
+ * it closes once focus leaves that stretch. ArrowDown from the field is the
+ * shortcut to the first row (ArrowDown and ArrowUp then walk the rows; ArrowUp
+ * off the first returns to the field), and Escape from any of them closes the
+ * list and puts focus back in the field. The list is named by its title
+ * (`aria-labelledby`), and while it is shown the field's `aria-describedby`
+ * names the title too, so "Recent searches" is read with the field the moment
+ * it appears and again on entering the list.
  *
  * It attaches to an existing field by id rather than owning one, so the
  * three search fields (the results bar, the Stays bar and the Home hero) stay
@@ -68,6 +73,17 @@ export function RecentSearches({
     if (!(input instanceof HTMLInputElement)) return;
     const panel = () => document.getElementById(listId);
     const rows = () => Array.from(panel()?.querySelectorAll<HTMLElement>("a.nf-recent__row") ?? []);
+    /* The stretch focus may travel without closing the list: the field, the
+       list, and whatever sits between them in document order (submit, filters). */
+    const withOffer = (node: Node | null) => {
+      const list = panel();
+      if (!node || !list) return false;
+      if (node === input || list.contains(node)) return true;
+      return (
+        (input.compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0 &&
+        (list.compareDocumentPosition(node) & Node.DOCUMENT_POSITION_PRECEDING) !== 0
+      );
+    };
     const sync = () => {
       if (dismissed.current) {
         dismissed.current = false;
@@ -79,9 +95,12 @@ export function RecentSearches({
       dismissed.current = false;
       sync();
     };
+    /* One listener for the whole stretch: focus leaving it closes the list,
+       focus moving within it (Tab from the field to submit, to Clear, to a
+       row) does not. */
     const onFocusOut = (event: FocusEvent) => {
-      const next = event.relatedTarget as Node | null;
-      if (next && panel()?.contains(next)) return;
+      if (!withOffer(event.target as Node | null)) return;
+      if (withOffer(event.relatedTarget as Node | null)) return;
       dismissed.current = false;
       setOpen(false);
     };
@@ -100,12 +119,12 @@ export function RecentSearches({
     if (document.activeElement === input) sync();
     input.addEventListener("focus", sync);
     input.addEventListener("input", onInput);
-    input.addEventListener("focusout", onFocusOut);
+    document.addEventListener("focusout", onFocusOut);
     input.addEventListener("keydown", onKey);
     return () => {
       input.removeEventListener("focus", sync);
       input.removeEventListener("input", onInput);
-      input.removeEventListener("focusout", onFocusOut);
+      document.removeEventListener("focusout", onFocusOut);
       input.removeEventListener("keydown", onKey);
     };
   }, [inputId, listId]);
@@ -146,11 +165,6 @@ export function RecentSearches({
       hidden={!shown}
       data-testid="recent-searches"
       onFocus={() => setOpen(true)}
-      onBlur={(event) => {
-        const next = event.relatedTarget as Node | null;
-        if (next && (event.currentTarget.contains(next) || next === document.getElementById(inputId))) return;
-        setOpen(false);
-      }}
       onKeyDown={(event) => {
         if (event.key === "Escape") {
           backToField();
@@ -184,7 +198,7 @@ export function RecentSearches({
               {copy.clear}
             </Button>
           </div>
-          <ul className="nf-recent__list">
+          <ul className="nf-recent__list" aria-labelledby={titleId}>
             {entries.map((entry) => (
               <li key={entry.href}>
                 <Link href={entry.href} className="nf-recent__row" onClick={() => setOpen(false)}>
