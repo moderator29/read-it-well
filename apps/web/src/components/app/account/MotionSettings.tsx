@@ -122,8 +122,13 @@ export function MotionSettings({ t }: { t: MotionCopy }) {
   return (
     <SettingsGroup label={copy.motion} note={copy.motionNote}>
       <div className="nf-motion-set">
-        <div className="nf-motion-preview" data-level={pref.level} aria-label={copy.motionPreview} role="img">
-          <BrandAssemble key={`${pref.level}-${take}`} size={44} />
+        {/* The picture is the image; the replay button sits beside it, not
+            inside it (axe nested-interactive: an img role may hold nothing
+            focusable). */}
+        <div className="nf-motion-preview" data-level={pref.level}>
+          <span role="img" aria-label={copy.motionPreview} className="inline-flex">
+            <BrandAssemble key={`${pref.level}-${take}`} size={44} />
+          </span>
           <button
             type="button"
             className="nf-motion-preview__again nf-tap"

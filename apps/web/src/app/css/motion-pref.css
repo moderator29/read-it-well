@@ -265,8 +265,10 @@
     height: 2rem;
   }
   .nf-motion-level__name {
+    /* 600, the label role: 650 was a fourth weight outside the system's
+       400, 600 and 700 (north star 5; Round 3 sweep). */
     font-size: var(--nf-text-body-sm);
-    font-weight: 650;
+    font-weight: 600;
   }
   .nf-motion-level__sub {
     grid-column: 1 / -1;
