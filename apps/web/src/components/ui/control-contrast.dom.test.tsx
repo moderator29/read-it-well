@@ -61,9 +61,12 @@ const CSS = `@layer base, components;
  * decision rather than fixed here. The test holds the list exactly: a NEW
  * boundary failure fails, and one that gets fixed fails until it is removed.
  * The value is the measured ratios (the painted fill, then the strongest edge
- * pixel, each against the page), held as FLOORS: a recorded boundary that gets
- * worse than its ratio (beyond the 0.05 of anti-aliasing noise) fails too, so
- * "known" never quietly becomes "worse".
+ * pixel, each against the page), and the run is held to them BOTH WAYS, not by
+ * key alone (auditor A8, NIT): a recorded boundary that gets worse than its
+ * ratio (beyond the 0.05 of anti-aliasing noise) fails, so "known" never
+ * quietly becomes "worse"; and one that moves up by more than the noise fails
+ * until its new ratio is written here, so the list always says what the page
+ * paints today. The run of 6 October measured every entry within 0.005 of it.
  */
 const KNOWN_BOUNDARY: Record<string, { fill: number; edge: number }> = {
   "dark | button primary | press": { fill: 1.44, edge: 2.71 },
@@ -367,6 +370,21 @@ describe.skipIf(!hasBrowser && !process.env.CI)("control contrast, measured on t
         return out.length ? [`${key}: ${out.join("; ")}`] : [];
       });
     expect(worse, "a recorded boundary got worse than the ratio recorded for it").toEqual([]);
+
+    /* ...AND THE RECORD IS A MEASUREMENT, NOT ONLY A FLOOR: a ratio that moved up by more than the noise is written
+       down again, so an improvement is seen and KNOWN_BOUNDARY never drifts away from the paint. */
+    const moved = rows
+      .filter((row) => row.failures.some((f) => f.startsWith("boundary")))
+      .flatMap((row) => {
+        const key = `${row.theme} | ${row.id} | ${row.state}`;
+        const floor = KNOWN_BOUNDARY[key];
+        if (!floor) return [];
+        const out: string[] = [];
+        if (row.fillVsGround > floor.fill + NOISE) out.push(`fill ${row.fillVsGround.toFixed(2)}:1 > ${floor.fill}:1`);
+        if (row.edgeVsGround > floor.edge + NOISE) out.push(`edge ${row.edgeVsGround.toFixed(2)}:1 > ${floor.edge}:1`);
+        return out.length ? [`${key}: ${out.join("; ")}`] : [];
+      });
+    expect(moved, "a recorded boundary improved: write its measured ratio into KNOWN_BOUNDARY").toEqual([]);
 
     /* THE SELECTED SEGMENT AND THE PRIMARY BUTTON ARE ONE FILL (`--nf-act-fill`). Their painted label ratio and
        painted fill, at rest, must agree in both themes, so a segment-only gradient cannot creep back in. */
