@@ -18,6 +18,7 @@ import {
 import { lagosToday } from "@/lib/rent/schema";
 import { koboToNairaInput } from "@/lib/agent/listings-schema";
 import { TenancyReportCard } from "@/components/app/tenancy/TenancyReportCard";
+import { CautionRegister } from "@/components/app/tenancy/CautionRegister";
 import { ReceiptCodePanel } from "@/components/app/tenancy/ReceiptCodePanel";
 import { PinMessages } from "@/components/app/tenancy/PinMessages";
 import { AddFlatmate, CancelSplit, PayShare, RemoveFlatmate, SettleShareOnReturn } from "@/components/app/tenancy/FlatmateControls";
@@ -129,7 +130,7 @@ export default async function TenancyPage({
           <ReceiptCodePanel tenancyId={file.id} live={file.receiptCode} copy={t.afterTheGate.receipt} />
         </Section>
       )}
-      <CautionSection file={file} copy={copy} locale={locale} />
+      <CautionSection file={file} copy={copy} words={t.experienceMoney.caution} />
       {file.paid && !file.void && <RenewalSection file={file} copy={copy} />}
       <PromiseSection file={file} copy={copy} />
       <Section title={copy.evidenceHeading} divided>
@@ -297,167 +298,137 @@ function MoneySection({ file, copy, t }: { file: TenancyFile; copy: Copy; t: Dic
   );
 }
 
-function CautionSection({ file, copy }: { file: TenancyFile; copy: Copy; locale: Locale }) {
+function CautionSection({ file, copy, words }: { file: TenancyFile; copy: Copy; words: Dictionary["experienceMoney"]["caution"] }) {
   const caution = file.caution;
-  return (
-    <Section title={copy.cautionHeading} divided>
-      {file.void ? (
+  /*
+   * M2: THE CAUTION REGISTER AS A DOCUMENTED EXCHANGE (north star 10 D).
+   * The record (the caution, what is returned, deducted and owed, and one
+   * thread per deduction and per return saying who said what) is drawn as a
+   * document by `CautionRegister`, the same for the tenant and the landlord
+   * or agent, with no ruling shown before staff make it. The controls below
+   * are this page's own, unchanged in what they do; the tenant's answers now
+   * sit under the document, each naming the entry it answers, rather than on
+   * the paper.
+   */
+  if (file.void) {
+    return (
+      <Section title={copy.cautionHeading} divided>
         <p className={TYPE.body} data-testid="tenancy-caution-void">
           {copy.cautionVoid}
         </p>
-      ) : !caution ? (
+      </Section>
+    );
+  }
+  if (!caution) {
+    return (
+      <Section title={copy.cautionHeading} divided>
         <p className={TYPE.body} data-testid="tenancy-caution-empty">
           {file.cautionPending ? copy.cautionNotOpen : copy.cautionNone}
         </p>
-      ) : (
-        <div className="grid gap-md" data-testid="tenancy-caution">
-          <div>
-            <p className="nf-body font-semibold nf-numeric">
-              {copy.cautionOwed.replace("{amount}", caution.amount).replace("{date}", caution.dueOnLabel)}
-            </p>
-            <p className={`mt-2xs ${TYPE.rowMeta}`}>{copy.cautionStates[caution.state]}</p>
-            <p className="nf-body-sm mt-2xs nf-numeric text-[var(--nf-content-secondary)]">
-              {copy.cautionCovered
-                .replace("{returned}", caution.returned)
-                .replace("{deducted}", caution.deducted)
-                .replace("{outstanding}", caution.outstanding)}
-            </p>
-            <p className="nf-caption mt-xs">{copy.cautionNotHeld}</p>
-          </div>
-
-          {caution.guaranteed && (
-            <p className="nf-body-sm nf-numeric">{copy.cautionGuaranteed.replace("{amount}", caution.guaranteed)}</p>
-          )}
-          {caution.inDoubt && <p className="nf-body-sm nf-numeric">{copy.cautionInDoubt.replace("{amount}", caution.inDoubt)}</p>}
-
-          {caution.returns.length > 0 && (
-            <ul className="grid gap-sm" data-testid="tenancy-caution-returns">
-              {caution.returns.map((row) => (
-                <li key={row.id} className="nf-card p-card">
-                  <p className="nf-body-sm nf-numeric font-semibold">
-                    {copy.returnedLine.replace("{amount}", row.amount).replace("{date}", row.date)}
+      </Section>
+    );
+  }
+  const toAnswer =
+    file.viewer === "tenant" ? caution.deductions.map((d, i) => ({ d, n: i + 1 })).filter(({ d }) => d.answer === null) : [];
+  const toContest =
+    file.viewer === "tenant"
+      ? caution.returns
+          .map((r, i) => ({ r, n: i + 1 }))
+          .filter(({ r }) => !r.ownRecord && !r.contested && r.recordedAs === "lister_sent")
+      : [];
+  return (
+    <Section title={copy.cautionHeading} divided>
+      <CautionRegister caution={caution} copy={copy} words={words}>
+        {toAnswer.length + toContest.length > 0 && (
+          <div className="nf-panel nf-panel--card block p-md" data-testid="tenancy-caution-answers">
+            <h3 className="nf-h4">{words.yourAnswer}</h3>
+            <div className="mt-sm grid gap-sm">
+              {toAnswer.map(({ d, n }) => (
+                <div key={d.id} className="nf-exchange-answer">
+                  <p className="nf-exchange-answer__label nf-numeric">
+                    {words.deduction.replace("{n}", String(n))} ·{" "}
+                    {copy.deductionLine.replace("{item}", ROOM_COPY[d.item].title).replace("{amount}", d.amount)}
                   </p>
-                  <p className="nf-caption mt-2xs">
-                    {copy.returnMethods[row.method]}
-                    {row.reference ? `\u00a0· ${row.reference}` : ""} ·{" "}
-                    {row.recordedAs === "lister_sent" ? copy.returnedByLister : copy.returnedByTenant}
-                  </p>
-                  {row.ruling ? (
-                    <p className="nf-caption mt-2xs">
-                      {copy.returnRuled
-                        .replace("{outcome}", row.ruling === "received" ? copy.returnRuledReceived : copy.returnRuledNotReceived)
-                        .replace("{reason}", row.rulingReason ?? "")}
-                    </p>
-                  ) : row.contested ? (
-                    <p className="nf-caption mt-2xs">{copy.returnContested}</p>
-                  ) : null}
-                  {file.viewer === "tenant" && !row.ownRecord && !row.contested && row.recordedAs === "lister_sent" && (
-                    <ContestReturn tenancyId={file.id} returnId={row.id} copy={copy} />
-                  )}
-                </li>
+                  <DeductionAnswer tenancyId={file.id} deductionId={d.id} copy={copy} />
+                </div>
               ))}
-            </ul>
-          )}
-
-          {caution.deductions.length > 0 && (
-            <div>
-              <h3 className="nf-h4">{copy.deductionsHeading}</h3>
-              <ul className="mt-xs grid gap-sm">
-                {caution.deductions.map((deduction) => (
-                  <li key={deduction.id} className="nf-card p-card">
-                    <p className="nf-body-sm nf-numeric font-semibold">
-                      {copy.deductionLine.replace("{item}", ROOM_COPY[deduction.item].title).replace("{amount}", deduction.amount)}
-                    </p>
-                    {deduction.note && <p className="nf-body-sm mt-2xs">{deduction.note}</p>}
-                    {deduction.photoUrl && (
-                      // A signed, short-lived URL to a private object.
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={deduction.photoUrl} alt="" className="mt-xs h-24 w-24 rounded-[var(--nf-radius-sm)] object-cover" />
-                    )}
-                    <p className="nf-caption mt-xs">
-                      {deduction.answer === "accepted"
-                        ? copy.deductionAccepted
-                        : deduction.answer === "disputed"
-                          ? deduction.ruledAllowed
-                            ? copy.deductionRuled.replace("{amount}", deduction.ruledAllowed).replace("{reason}", deduction.ruledReason ?? "")
-                            : copy.deductionDisputed
-                          : copy.deductionPending}
-                    </p>
-                    {file.viewer === "tenant" && deduction.answer === null && (
-                      <DeductionAnswer tenancyId={file.id} deductionId={deduction.id} copy={copy} />
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {file.viewer === "lister" && caution.state !== "returned" && (
-            <div className="nf-panel nf-panel--card block p-md">
-              <h3 className="nf-h4">{copy.proposeHeading}</h3>
-              <div className="mt-sm">
-                {file.ended ? (
-                  <ProposeDeduction
-                    tenancyId={file.id}
-                    obligationId={caution.obligationId}
-                    copy={copy}
-                    photos={file.reports
-                      .filter((report) => report.stage === "move_out" && report.authorIsViewer && report.submitted)
-                      .flatMap((report) => report.photos)
-                      .map((photo, index) => ({
-                        id: photo.id,
-                        item: photo.item,
-                        label: `${photo.item ? ROOM_COPY[photo.item].title : copy.moveOut} ${index + 1}`,
-                      }))}
-                  />
-                ) : (
-                  <p className="nf-body-sm text-[var(--nf-content-secondary)]">
-                    {copy.proposeNotEnded.replace("{date}", file.endsOnLabel)}
+              {toContest.map(({ r, n }) => (
+                <div key={r.id} className="nf-exchange-answer">
+                  <p className="nf-exchange-answer__label nf-numeric">
+                    {words.return.replace("{n}", String(n))} · {copy.returnedLine.replace("{amount}", r.amount).replace("{date}", r.date)}
                   </p>
-                )}
-              </div>
+                  <ContestReturn tenancyId={file.id} returnId={r.id} copy={copy} />
+                </div>
+              ))}
             </div>
-          )}
+          </div>
+        )}
 
-          {/* Paid back between the parties, outside Vallo; either side records it, the other can contest. */}
-          {file.viewer !== "staff" && caution.outstandingMinor > 0 && !caution.claimOpen && (
-            <div className="nf-panel nf-panel--card block p-md">
-              <h3 className="nf-h4">{copy.returnHeading}</h3>
-              <div className="mt-sm">
-                <RecordReturn
+        {file.viewer === "lister" && caution.state !== "returned" && (
+          <div className="nf-panel nf-panel--card block p-md">
+            <h3 className="nf-h4">{copy.proposeHeading}</h3>
+            <div className="mt-sm">
+              {file.ended ? (
+                <ProposeDeduction
                   tenancyId={file.id}
                   obligationId={caution.obligationId}
-                  outstanding={caution.outstanding}
-                  outstandingNaira={koboToNairaInput(caution.outstandingMinor)}
-                  viewer={file.viewer}
-                  today={lagosToday()}
                   copy={copy}
+                  photos={file.reports
+                    .filter((report) => report.stage === "move_out" && report.authorIsViewer && report.submitted)
+                    .flatMap((report) => report.photos)
+                    .map((photo, index) => ({
+                      id: photo.id,
+                      item: photo.item,
+                      label: `${photo.item ? ROOM_COPY[photo.item].title : copy.moveOut} ${index + 1}`,
+                    }))}
                 />
-              </div>
+              ) : (
+                <p className="nf-body-sm text-[var(--nf-content-secondary)]">
+                  {copy.proposeNotEnded.replace("{date}", file.endsOnLabel)}
+                </p>
+              )}
             </div>
-          )}
+          </div>
+        )}
 
-          {file.viewer === "tenant" && (caution.claimOpen || caution.canEscalate) && (
-            <div className="nf-panel nf-panel--card block p-md" data-testid="tenancy-caution-escalate">
-              <h3 className="nf-h4">{copy.escalateHeading}</h3>
-              <div className="mt-sm">
-                {caution.claimOpen ? (
-                  <p className="nf-body-sm">{copy.escalateOpen}</p>
-                ) : (
-                  <>
-                    <p className="nf-body-sm nf-numeric">
-                      {copy.escalateHelp.replace("{date}", caution.dueOnLabel).replace("{amount}", caution.claimable)}
-                    </p>
-                    <div className="mt-sm">
-                      <EscalateCaution tenancyId={file.id} obligationId={caution.obligationId} copy={copy} />
-                    </div>
-                  </>
-                )}
-              </div>
+        {/* Paid back between the parties, outside Vallo; either side records it, the other can contest. */}
+        {file.viewer !== "staff" && caution.outstandingMinor > 0 && !caution.claimOpen && (
+          <div className="nf-panel nf-panel--card block p-md">
+            <h3 className="nf-h4">{copy.returnHeading}</h3>
+            <div className="mt-sm">
+              <RecordReturn
+                tenancyId={file.id}
+                obligationId={caution.obligationId}
+                outstanding={caution.outstanding}
+                outstandingNaira={koboToNairaInput(caution.outstandingMinor)}
+                viewer={file.viewer}
+                today={lagosToday()}
+                copy={copy}
+              />
             </div>
-          )}
-        </div>
-      )}
+          </div>
+        )}
+
+        {file.viewer === "tenant" && (caution.claimOpen || caution.canEscalate) && (
+          <div className="nf-panel nf-panel--card block p-md" data-testid="tenancy-caution-escalate">
+            <h3 className="nf-h4">{copy.escalateHeading}</h3>
+            <div className="mt-sm">
+              {caution.claimOpen ? (
+                <p className="nf-body-sm">{copy.escalateOpen}</p>
+              ) : (
+                <>
+                  <p className="nf-body-sm nf-numeric">
+                    {copy.escalateHelp.replace("{date}", caution.dueOnLabel).replace("{amount}", caution.claimable)}
+                  </p>
+                  <div className="mt-sm">
+                    <EscalateCaution tenancyId={file.id} obligationId={caution.obligationId} copy={copy} />
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        )}
+      </CautionRegister>
     </Section>
   );
 }
