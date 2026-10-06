@@ -9,6 +9,7 @@ import { EmptyState, Section, TYPE } from "@/components/app/Screen";
 import { NO_CUSTODY_SENTENCE, PAYMENT_GATE_SENTENCE } from "@/lib/money/copy";
 import { AGREEMENT_STATUS_LABEL, agreementStatusTone } from "@/components/app/agreements/status";
 import { StatusPill } from "@/components/ui/StatusPill";
+import { gateFirstRun } from "@/components/app/feature-onboarding/first-run-store";
 
 export const metadata: Metadata = { title: "Agreements" };
 export const dynamic = "force-dynamic";
@@ -19,7 +20,16 @@ export const dynamic = "force-dynamic";
  * inspection report or the host's acceptance, confirmed by both, and approved
  * by Vallo before payment opens.
  */
-export default async function AgreementsPage() {
+export default async function AgreementsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  /* The agreements first run (north star 14.1, W7's system): once per
+     member, before any read, teaching what has to happen before payment
+     opens. The route sits behind the sign-in wall (proxy), so whoever reaches
+     this line is signed in. */
+  await gateFirstRun("agreements", "/agreements", await searchParams);
   const locale = await getLocale();
   const rows = await readMyAgreements();
   return (
