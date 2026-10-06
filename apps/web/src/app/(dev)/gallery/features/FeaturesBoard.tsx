@@ -10,7 +10,6 @@ import { TrustTierFan, type TrustTierItem } from "@/components/app/artefact/Trus
 import { ProToggle } from "@/components/app/pro/ProToggle";
 import { ProUnlock } from "@/components/app/pro/ProUnlock";
 import { PlanPaywall } from "@/components/app/plans-premium/PlanPaywall";
-import { EarnedMoment } from "@/components/app/streaks/EarnedMoment";
 
 /**
  * W7's components, mounted so they can be looked at in both themes and at
@@ -48,7 +47,6 @@ export function FeaturesBoard({
 }) {
   const f = t.experienceFeatures;
   const [pro, setPro] = useState(false);
-  const [earned, setEarned] = useState(0);
   const generic: FanItem[] = [
     { id: "a", material: "navy", eyebrow: "First slot", title: "Matte navy", line: "The quiet material.", glyph: "shield-check" },
     { id: "b", material: "royal", eyebrow: "Second slot", title: "Royal", line: "One step up, the same matte finish.", glyph: "shield-check" },
@@ -57,7 +55,7 @@ export function FeaturesBoard({
 
   return (
     <div className="mx-auto max-w-3xl px-md pb-section pt-lg">
-      <h1 className="nf-h1">Feature onboarding, Pro, plans, artefacts, the earned moment</h1>
+      <h1 className="nf-h1">Feature onboarding, Pro, plans, artefacts</h1>
       <p className="mt-xs text-[var(--nf-content-secondary)]">
         The first runs are pages: open them at /gallery/features?run=host (and agent, verification, agreements, invite, passport, analytics).
       </p>
@@ -136,27 +134,6 @@ export function FeaturesBoard({
         />
       </Section>
 
-      <Section title="Earned moment" note="Tap the medal to replay it once. Nothing replays by itself.">
-        <Button variant="secondary" onClick={() => setEarned((n) => n + 1)}>
-          Play it from the start
-        </Button>
-        <EarnedMoment
-          key={earned}
-          title="The achievement, named"
-          meaning="One line saying what it means."
-          replayLabel={f.streaks.earned.replay}
-          share={
-            <Button variant="primary" size="lg" full leadingIcon="share">
-              {f.streaks.earned.share}
-            </Button>
-          }
-          back={
-            <Button variant="quiet" size="lg" full>
-              {f.streaks.earned.back}
-            </Button>
-          }
-        />
-      </Section>
     </div>
   );
 }

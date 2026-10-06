@@ -1,5 +1,5 @@
 /**
- * Session 3's copy for feature onboarding, Pro presence, plans, artefact cards and streaks (W7).
+ * Session 3's copy for feature onboarding, Pro presence, plans and artefact cards (W7).
  *
  * One module per owner so nine agents can add strings without editing en.ts
  * at the same time. English only: ha, ig and yo fall back to it through
@@ -272,22 +272,6 @@ export const experienceFeaturesEn = {
     dateUnknown: "Date to be set when you start",
     /** Shown in the foot in place of the terms and the action when the chosen plan has no complete set of terms. */
     termsNotReady: "This plan's terms are not ready yet, so it cannot be chosen here.",
-  },
-
-  /**
-   * Standing streaks (north star 15.1, D17). Only the earned moment's words
-   * remain: the streak tile and its words were deleted in Round 3 (R3-07)
-   * because no real streak read exists (Session 2, W7-R6). A streak counts a
-   * real-world behaviour with a counterparty; nothing here may describe an
-   * app-open.
-   */
-  streaks: {
-    earned: {
-      share: "Share",
-      back: "Back",
-      /** The medal's accessible name: tapping it replays the moment once. */
-      replay: "Play it again",
-    },
   },
 
   /**
