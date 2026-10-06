@@ -107,6 +107,11 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       bellLabel={t.uiCommon.console.notifications}
       shell={t.admin.shell}
       back={<BackButton fallback="/admin" surface="round" />}
+      experience={{
+        palette: t.experienceAdmin.palette,
+        deskLedes: t.experienceAdmin.deskLedes,
+        waitingTotal: t.experienceAdmin.shell.waitingTotal,
+      }}
     >
       <EntryGate entered={entered} userId={access.user.id} opening={t.admin.shell.entry.opening}>
         {/* The passcode lock (docs/PASSCODE.md), for staff as for everyone. */}

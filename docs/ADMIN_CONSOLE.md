@@ -216,8 +216,15 @@ one click away.
 **The bar** (top). The search field: type and press Enter to search the desk
 you are on (its own `?q=`); on a page with no search of its own (Overview,
 Operations, Analytics, Settings) it searches the Unified queue. Command-K or
-Control-K jumps to it. Then the Lagos date and time, the bell (your own
-notifications; a rose dot means unread), and you.
+Control-K opens **the console search** (`ConsolePalette`, reference 7067): one
+box over every desk. Type a desk's name and Enter takes you there (the desks
+with work waiting lead when the box is empty); paste a reference and Enter
+looks it up across the desks you may open; type a word and it offers the open
+desk's own search, the people list and the Unified queue. On a phone the bar
+shows a search button for it instead of the field. It only routes: every
+search runs on the desk it lands on, under that desk's own access check. Then
+the Lagos date and time, the bell (your own notifications; a rose dot means
+unread), and you.
 
 **Keeping current.** Overview, Operations and Analytics re-read themselves
 every minute while the tab is visible, and at once when you come back to the
@@ -226,9 +233,20 @@ pages it affects.
 
 **Narrow screens.** Below 1024px the rail folds into a drawer behind the menu
 button at the top left (a cyan dot on it means work is waiting). The drawer
-closes when you choose a destination, on Escape, or on a tap outside it.
-Panels stack one per row; tables scroll sideways inside their panel rather
-than the page.
+closes when you choose a destination, on Escape, or on a tap outside it, and
+draws each desk with its one line under the name. Panels stack one per row.
+Queue tables are card rows; a table that is a real table (payments, bookings,
+supply) stacks into labelled cards; a table with nothing else to be scrolls
+sideways inside its panel, never the page. Below 768px a desk's filters open
+in a bottom sheet from one control (the dates and the status chips together,
+Show results and Clear filters at its foot); from 768px they are inline as
+before. A decision control (approve, send back, reject) sticks above the
+home indicator below 900px so a document can be read and decided one-handed.
+Every header control is a 44px circle.
+
+**People, Lookup and Account recovery** are on the rail now (People and
+Account recovery under Support, Lookup under Overview). They were reachable
+only by a typed address or a link from another desk.
 
 ## 3. Overview
 

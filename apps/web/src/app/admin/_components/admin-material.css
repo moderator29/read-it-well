@@ -1,0 +1,787 @@
+@layer theme, base, components, utilities;
+
+/*
+  THE CONSOLE'S MATERIAL, on top of admin.css (W8, Session 3).
+
+  admin.css keeps the console's density and its geometry. This sheet moves the
+  material onto the four container tiers (Plate rows, Card panels, Island
+  surfaces, Sheet overlays) and onto the round 44px icon control, without
+  moving a single desk: a person who used the console last week finds the same
+  rail, the same bar, the same desks, only calmer and more considered
+  (D28). It is imported by the components that draw what it styles, so it
+  travels with the console and never reaches a page that is not one.
+
+  EVERY COLOUR IS A TOKEN. Nothing here states a hue.
+*/
+@layer components {
+  /* ------------------------------------------------ rail: Plate rows */
+
+  /* The row is a Plate (radius 14, no shadow, hover and press tints only).
+     The open row is a 3px leading bar, a tinted fill and a brighter glyph,
+     never the lit gradient and never a glow (north star 6.2, 6.3). */
+  .nf-admin-nav__row {
+    position: relative;
+    border-radius: var(--nf-tier-plate-radius);
+    border-color: transparent;
+  }
+  @media (hover: hover) {
+    .nf-admin-nav__row:hover {
+      background: var(--nf-tier-plate-hover);
+    }
+  }
+  .nf-admin-nav__row:active {
+    background: var(--nf-tier-plate-press);
+  }
+  .nf-admin-nav__row--on,
+  .nf-admin-nav__row--on:hover,
+  .nf-admin-nav__row--child.nf-admin-nav__row--on {
+    background: var(--nf-brand-tint-2);
+    border-color: transparent;
+    box-shadow: none;
+    color: var(--nf-content-primary);
+    font-weight: 600;
+  }
+  .nf-admin-nav__row--on::before {
+    content: "";
+    position: absolute;
+    inset-block: 0.6rem;
+    inset-inline-start: 0;
+    width: 3px;
+    border-radius: 0 var(--nf-radius-xs) var(--nf-radius-xs) 0;
+    background: var(--nf-brand-primary);
+  }
+  .nf-admin-nav__row--on svg {
+    color: var(--nf-brand-quiet);
+  }
+  /* The count is the cyan attention colour, never red, tabular. When the row
+     is open the count keeps its own fill so it never vanishes into the tint. */
+  .nf-admin-nav__count,
+  .nf-admin-nav__row--on .nf-admin-nav__count {
+    background: var(--nf-count-fill);
+    color: var(--nf-count-ink);
+    font-weight: 600;
+  }
+
+  /* The rail itself is one Island column: its one edge is the light on the
+     border facing the desk. */
+  .nf-admin-rail {
+    border-color: var(--nf-tier-island-edge);
+    box-shadow: var(--nf-tier-island-shadow-side);
+  }
+
+  /* ------------------------------------- bar: the round 44px controls */
+
+  /* Every header control is a 44px circle (north star 6.1, 5A "icon
+     control"). admin.css drew them as rounded squares under an older shape
+     law; the bell, the menu, the close and the phone search button are
+     circles now. */
+  .nf-admin-icon-btn,
+  .nf-admin-menu {
+    border-radius: var(--nf-radius-circle);
+  }
+  .nf-admin-menu {
+    box-shadow: none;
+  }
+
+  /* The bar's search field opens the palette, and says how: a quiet key
+     hint at its end on a keyboard device. */
+  .nf-admin-bar__search .nf-admin-bar__hint {
+    position: absolute;
+    inset-inline-end: var(--nf-space-xs);
+    display: none;
+    padding: 0.125rem 0.5rem;
+    border-radius: var(--nf-radius-xs);
+    border: var(--nf-border-width) solid var(--nf-tier-plate-edge);
+    color: var(--nf-content-muted);
+    font-size: var(--nf-text-overline);
+    font-weight: 500;
+    pointer-events: none;
+  }
+  @media (hover: hover) and (pointer: fine) and (min-width: 1024px) {
+    .nf-admin-bar__search .nf-admin-bar__hint {
+      display: inline-block;
+    }
+  }
+
+  /* The phone search button: shown where the bar has no room for the field. */
+  .nf-admin-palette-open {
+    display: inline-grid;
+  }
+  @media (min-width: 768px) {
+    .nf-admin-palette-open {
+      display: none;
+    }
+  }
+
+  /* ----------------------------------------------- the phone drawer */
+
+  /* A Sheet-weight surface: leading corners only on the open edge, the
+     tier's scrim and blur, the safe areas on every side. */
+  .nf-admin-drawer__scrim {
+    background: var(--nf-tier-sheet-scrim);
+    -webkit-backdrop-filter: blur(var(--nf-tier-sheet-blur));
+    backdrop-filter: blur(var(--nf-tier-sheet-blur));
+  }
+  .nf-admin-drawer__panel {
+    width: min(21rem, 88vw);
+    border-right: 0;
+    border-radius: 0 var(--nf-tier-sheet-radius) var(--nf-tier-sheet-radius) 0;
+    background: var(--nf-tier-island-fill);
+    -webkit-backdrop-filter: blur(var(--nf-tier-island-blur));
+    backdrop-filter: blur(var(--nf-tier-island-blur));
+    box-shadow: var(--nf-tier-sheet-shadow);
+    padding-inline-start: calc(var(--nf-space-sm) + env(safe-area-inset-left));
+    animation-duration: var(--nf-duration-slow);
+    animation-timing-function: var(--nf-ease-entrance);
+  }
+  /* The drawer's rows are the phone's thumb size: 52px, with the desk's one
+     line under the name (reference 7086), the child rows 48px. */
+  .nf-admin-drawer .nf-admin-nav__row {
+    min-height: 3.25rem;
+    font-size: var(--nf-text-body);
+  }
+  .nf-admin-drawer .nf-admin-nav__row--child {
+    min-height: 3rem;
+  }
+  .nf-admin-drawer__lede {
+    display: block;
+    color: var(--nf-content-muted);
+    font-size: var(--nf-text-caption);
+    font-weight: 400;
+    line-height: 1.35;
+  }
+  .nf-admin-drawer__total {
+    margin: 0 0 var(--nf-space-xs);
+    padding: 0 var(--nf-space-sm);
+    color: var(--nf-content-secondary);
+    font-size: var(--nf-text-caption);
+  }
+
+  /* ----------------------------------------------- the command palette */
+
+  .nf-admin-palette {
+    position: fixed;
+    inset: 0;
+    z-index: 70;
+    display: grid;
+    align-items: start;
+    justify-items: center;
+    padding: calc(var(--nf-space-md) + env(safe-area-inset-top)) var(--nf-space-md) var(--nf-space-md);
+  }
+  @media (min-width: 768px) {
+    .nf-admin-palette {
+      padding-top: 12vh;
+    }
+  }
+  .nf-admin-palette__scrim {
+    position: absolute;
+    inset: 0;
+    border: 0;
+    background: var(--nf-tier-sheet-scrim);
+    -webkit-backdrop-filter: blur(var(--nf-tier-sheet-blur));
+    backdrop-filter: blur(var(--nf-tier-sheet-blur));
+  }
+  .nf-admin-palette__panel {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: min(40rem, 100%);
+    max-height: min(34rem, calc(100dvh - 2 * var(--nf-space-md) - env(safe-area-inset-top)));
+    overflow: hidden;
+    animation: nf-admin-palette-in var(--nf-duration-fast) var(--nf-ease-entrance);
+  }
+  @keyframes nf-admin-palette-in {
+    from {
+      opacity: 0;
+      transform: translateY(-8px) scale(0.985);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-admin-palette__panel {
+      animation: none;
+    }
+  }
+  .nf-admin-palette__field {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    padding: var(--nf-space-xs) var(--nf-space-xs) var(--nf-space-xs) var(--nf-space-md);
+    border-bottom: var(--nf-border-width) solid var(--nf-tier-plate-edge);
+  }
+  .nf-admin-palette__glyph {
+    flex-shrink: 0;
+    color: var(--nf-content-secondary);
+  }
+  .nf-admin-palette__field input {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 2.75rem;
+    border: 0;
+    background: transparent;
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-body);
+  }
+  .nf-admin-palette__field input::placeholder {
+    color: var(--nf-content-muted);
+  }
+  .nf-admin-palette__field input:focus {
+    outline: none;
+  }
+  .nf-admin-palette__field:focus-within {
+    border-bottom-color: var(--nf-focus-ring);
+  }
+  .nf-admin-palette__list {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: var(--nf-space-2xs) var(--nf-space-xs) var(--nf-space-xs);
+  }
+  .nf-admin-palette__heading {
+    margin: var(--nf-space-xs) var(--nf-space-xs) var(--nf-space-3xs);
+    color: var(--nf-content-muted);
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+  }
+  .nf-admin-palette__row {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    min-height: 3.25rem;
+    padding: var(--nf-space-2xs) var(--nf-space-sm);
+    border-radius: var(--nf-tier-plate-radius);
+    cursor: pointer;
+  }
+  .nf-admin-palette__row[data-active="true"] {
+    background: var(--nf-brand-tint-2);
+  }
+  .nf-admin-palette__tile {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 2rem;
+    height: 2rem;
+    border-radius: var(--nf-radius-sm);
+    background: var(--nf-tier-plate-fill);
+    border: var(--nf-border-width) solid var(--nf-tier-plate-edge);
+    color: var(--nf-brand-quiet);
+  }
+  .nf-admin-palette__text {
+    display: grid;
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+  .nf-admin-palette__name {
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+  .nf-admin-palette__lede {
+    color: var(--nf-content-secondary);
+    font-size: var(--nf-text-caption);
+    line-height: 1.35;
+  }
+  .nf-admin-palette__count {
+    flex-shrink: 0;
+    padding: 0.125rem 0.5rem;
+    border-radius: var(--nf-radius-xs);
+    background: var(--nf-count-fill);
+    color: var(--nf-count-ink);
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+  }
+  .nf-admin-palette__kbd,
+  .nf-admin-palette__keys kbd {
+    padding: 0.0625rem 0.375rem;
+    border-radius: var(--nf-radius-xs);
+    border: var(--nf-border-width) solid var(--nf-tier-plate-edge);
+    color: var(--nf-content-muted);
+    font: inherit;
+    font-size: var(--nf-text-overline);
+  }
+  .nf-admin-palette__kbd {
+    display: none;
+    flex-shrink: 0;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .nf-admin-palette__kbd {
+      display: inline-block;
+    }
+  }
+  .nf-admin-palette__enter {
+    flex-shrink: 0;
+    color: var(--nf-content-secondary);
+  }
+  .nf-admin-palette__none {
+    padding: var(--nf-space-md) var(--nf-space-sm);
+  }
+  .nf-admin-palette__keys {
+    display: none;
+    gap: var(--nf-space-md);
+    padding: var(--nf-space-xs) var(--nf-space-md);
+    border-top: var(--nf-border-width) solid var(--nf-tier-plate-edge);
+    color: var(--nf-content-muted);
+    font-size: var(--nf-text-overline);
+  }
+  .nf-admin-palette__keys kbd {
+    margin-inline-end: 0.25rem;
+  }
+  .nf-admin-palette__where {
+    margin-inline-start: auto;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .nf-admin-palette__keys {
+      display: flex;
+    }
+  }
+}
+
+/* --------------------------------------------- overview: queue figures */
+@layer components {
+  .nf-admin-figures {
+    display: grid;
+    gap: var(--nf-space-sm);
+  }
+  .nf-admin-figures__head {
+    display: grid;
+    gap: var(--nf-space-3xs);
+  }
+  .nf-admin-figures__note {
+    color: var(--nf-content-secondary);
+    font-size: var(--nf-text-body-sm);
+    max-width: 62ch;
+  }
+  .nf-admin-figures__grid {
+    display: grid;
+    gap: var(--nf-admin-gap, var(--nf-space-md));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  @media (min-width: 900px) {
+    .nf-admin-figures__grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+  .nf-admin-figure {
+    display: grid;
+    align-content: space-between;
+    gap: var(--nf-space-xs);
+    min-height: 8.5rem;
+    height: 100%;
+    padding: var(--nf-space-md);
+  }
+  .nf-admin-figure--total {
+    background: var(--nf-brand-tint-2);
+  }
+  .nf-admin-figure__top {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    min-width: 0;
+  }
+  .nf-admin-figure__glyph {
+    flex-shrink: 0;
+    color: var(--nf-brand-quiet);
+  }
+  .nf-admin-figure__label {
+    min-width: 0;
+    color: var(--nf-content-secondary);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 500;
+    overflow-wrap: anywhere;
+  }
+  /* The figure is the subject of the tile: the biggest, heaviest thing on it. */
+  .nf-admin-figure__value {
+    color: var(--nf-content-primary);
+    font-family: var(--nf-font-display);
+    font-size: clamp(2rem, 6vw, 2.75rem);
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: var(--nf-tracking-tight);
+    font-variant-numeric: tabular-nums;
+  }
+  .nf-admin-figure__lede {
+    color: var(--nf-content-secondary);
+    font-size: var(--nf-text-caption);
+  }
+  .nf-admin-figure__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-space-xs);
+  }
+  .nf-admin-figure__chev {
+    color: var(--nf-content-muted);
+  }
+  .nf-admin-figure--link {
+    transition:
+      transform var(--nf-duration-fast) var(--nf-ease-standard),
+      background-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  @media (hover: hover) {
+    .nf-admin-figure--link:hover {
+      background: var(--nf-tier-plate-hover);
+    }
+  }
+  .nf-admin-figure--link:active {
+    transform: translateY(1px);
+  }
+  .nf-admin-figure--link:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+}
+
+/* ---------------------------------------------------------- the pagers */
+@layer components {
+  /* Desktop: the sliding indicator and the honest "showing" line. Phone: the
+     two links, each a 44px target. The two are one pager drawn twice, so a
+     page is the same URL either way. */
+  .nf-admin-pager--wide {
+    display: none;
+  }
+  @media (min-width: 768px) {
+    .nf-admin-pager--wide {
+      display: flex;
+    }
+    .nf-admin-pager--phone {
+      display: none;
+    }
+  }
+  .nf-admin-pager--phone .nf-admin-pager__page {
+    min-width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--nf-radius-circle);
+  }
+}
+
+/* ------------------------------------------------- phone filter sheet */
+@layer components {
+  /* Below 768 the inline date disclosure and the status chip row give way to
+     the filter sheet's control; from 768 the sheet's control is not drawn and
+     the inline controls are exactly what they were. */
+  .nf-admin-filter-open {
+    position: relative;
+    display: inline-grid;
+    flex-shrink: 0;
+  }
+  .nf-admin-filter-open__dot {
+    position: absolute;
+    inset-block-start: -0.25rem;
+    inset-inline-end: -0.25rem;
+    display: grid;
+    place-items: center;
+    min-width: 1.25rem;
+    height: 1.25rem;
+    padding-inline: 0.25rem;
+    border-radius: var(--nf-radius-xs);
+    background: var(--nf-count-fill);
+    color: var(--nf-count-ink);
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+  }
+  @media (max-width: 767.98px) {
+    .nf-admin-search .nf-admin-more,
+    .nf-admin-filters > .nf-admin-status {
+      display: none;
+    }
+  }
+  @media (min-width: 768px) {
+    .nf-admin-filter-open {
+      display: none;
+    }
+  }
+  .nf-admin-filter-sheet__dates {
+    display: grid;
+    gap: var(--nf-space-sm);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: var(--nf-space-sm) var(--nf-space-md) 0;
+  }
+  .nf-admin-filter-sheet__status {
+    padding: var(--nf-space-md);
+  }
+  .nf-admin-filter-sheet__status ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--nf-space-xs);
+    margin-top: var(--nf-space-xs);
+  }
+  .nf-admin-filter-sheet__status .nf-admin-chip {
+    min-height: 2.75rem;
+    display: inline-flex;
+    align-items: center;
+  }
+}
+
+@layer components {
+  .nf-admin-search--split > .nf-admin-filter-open {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-end: 0;
+  }
+}
+
+/* ---------------------------------------------------- bulk actions */
+@layer components {
+  .nf-admin-bulk__summary {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    padding-inline: var(--nf-space-sm);
+    border-radius: var(--nf-tier-plate-radius);
+    color: var(--nf-content-secondary);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 500;
+    cursor: pointer;
+    list-style: none;
+  }
+  .nf-admin-bulk__summary::-webkit-details-marker {
+    display: none;
+  }
+  .nf-admin-bulk[open] > .nf-admin-bulk__summary {
+    color: var(--nf-content-primary);
+  }
+  .nf-admin-bulk__form {
+    padding: var(--nf-space-xs) var(--nf-space-sm) var(--nf-space-sm);
+  }
+  .nf-admin-selectall {
+    margin: var(--nf-space-2xs) 0;
+  }
+}
+
+/* ----------------------------------------------------- paper pieces */
+@layer components {
+  /* The sheet sits on the desk with air around it, and stacks with the
+     console's own panels at the console's gap. */
+  .nf-admin-doc {
+    margin-bottom: var(--nf-admin-gap, var(--nf-space-md));
+  }
+  .nf-paper-status {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+  }
+  .nf-paper-status__mark {
+    flex: none;
+    width: 0.625rem;
+    height: 0.625rem;
+    border: 2px solid currentColor;
+    border-radius: var(--nf-radius-circle);
+  }
+  .nf-paper-status--done {
+    color: var(--nf-doc-success, var(--nf-content-link));
+  }
+  .nf-paper-status--done .nf-paper-status__mark {
+    background: currentColor;
+  }
+  .nf-paper-status--waiting {
+    color: var(--nf-doc-attention, var(--nf-content-muted));
+  }
+  /* The only red a paper carries, and a hard square so it reads in greyscale. */
+  .nf-paper-status--failed {
+    color: var(--nf-doc-error, var(--nf-content-primary));
+  }
+  .nf-paper-status--failed .nf-paper-status__mark {
+    border-radius: var(--nf-radius-xs);
+    background: currentColor;
+  }
+  .nf-paper-status--neutral {
+    color: var(--nf-content-muted);
+  }
+  .nf-paper-status--neutral .nf-paper-status__mark {
+    height: 2px;
+    border-width: 1px;
+    border-radius: var(--nf-radius-xs);
+  }
+
+  .nf-paper-ledger {
+    display: grid;
+    margin: var(--nf-space-md) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .nf-paper-ledger__row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--nf-space-3xs) var(--nf-space-sm);
+    padding-block: var(--nf-space-sm);
+    border-top: 1px solid var(--nf-divider);
+  }
+  .nf-paper-ledger__title {
+    display: block;
+    color: var(--nf-content-primary);
+    font-weight: 500;
+    overflow-wrap: anywhere;
+  }
+  .nf-paper-ledger__sub {
+    display: block;
+    color: var(--nf-content-muted);
+    font-size: var(--nf-text-caption);
+    overflow-wrap: anywhere;
+  }
+  .nf-paper-ledger__amount {
+    grid-column: 2;
+    grid-row: 1;
+    color: var(--nf-content-primary);
+    font-weight: 600;
+    text-align: end;
+    white-space: nowrap;
+  }
+  .nf-paper-ledger__when {
+    grid-column: 1;
+    grid-row: 2;
+    color: var(--nf-content-muted);
+    font-size: var(--nf-text-caption);
+  }
+  .nf-paper-ledger__status {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: end;
+  }
+  @media (min-width: 768px) {
+    .nf-paper-ledger__row {
+      grid-template-columns: 9.5rem minmax(0, 1fr) auto 8.5rem;
+      align-items: baseline;
+      gap: var(--nf-space-md);
+    }
+    .nf-paper-ledger__when {
+      grid-column: 1;
+      grid-row: 1;
+    }
+    .nf-paper-ledger__main {
+      grid-column: 2;
+      grid-row: 1;
+    }
+    .nf-paper-ledger__amount {
+      grid-column: 3;
+      grid-row: 1;
+    }
+    .nf-paper-ledger__status {
+      grid-column: 4;
+      grid-row: 1;
+    }
+  }
+}
+
+/* --------------------------------------------------- desk sections */
+@layer components {
+  .nf-admin-sections {
+    position: sticky;
+    top: 3.75rem;
+    z-index: 30;
+    margin-bottom: var(--nf-space-sm);
+  }
+  @media (min-width: 1024px) {
+    .nf-admin-sections {
+      top: var(--nf-space-xs);
+    }
+  }
+  /* Sections the desk scrolls to must clear the sticky bar and this strip. */
+  .nf-admin-anchor {
+    scroll-margin-top: 7.5rem;
+  }
+}
+
+@layer components {
+  /* The money desks' pager: the sliding indicator from 768, then the count; the
+     numbered links below 768. */
+  .nf-md-pager--wide {
+    display: none;
+  }
+  @media (min-width: 768px) {
+    .nf-md-pager--wide {
+      display: block;
+      margin-top: var(--nf-space-sm);
+    }
+    .nf-md-pager--phone .nf-md-pager__item,
+    .nf-md-pager--phone .nf-md-pager__gap {
+      display: none;
+    }
+  }
+  .nf-md-pager--phone .nf-md-pager__item {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+  }
+}
+
+/* ------------------------------------- decisions, reachable one-handed */
+@layer components {
+  /*
+   * A decision control (approve, send back, reject) on a phone is a bar that
+   * stays above the home indicator while the thing being judged scrolls under
+   * it, with its buttons full width at 44px and the primary first. The reviewer
+   * reads a document, an inspection or a listing with one thumb and decides
+   * without scrolling back to find the buttons. From 900 the bar is the
+   * in-flow row it always was.
+   *
+   * It is a Card-weight surface (one hairline edge, the tier's fill) rather
+   * than a new container, and it never covers the thing being judged: the page
+   * keeps its own bottom padding for the safe area, and the bar sticks to its
+   * own section, so it releases at the end of the card it belongs to.
+   */
+  @media (max-width: 899.98px) {
+    .nf-admin-decision {
+      position: sticky;
+      bottom: calc(var(--nf-space-xs) + env(safe-area-inset-bottom));
+      z-index: 25;
+      padding: var(--nf-space-xs);
+      border: var(--nf-border-width) solid var(--nf-tier-plate-edge);
+      border-radius: var(--nf-tier-card-radius);
+      background: var(--nf-tier-island-fill);
+      -webkit-backdrop-filter: blur(var(--nf-tier-island-blur));
+      backdrop-filter: blur(var(--nf-tier-island-blur));
+      box-shadow: none;
+    }
+    .nf-admin-decision .nf-btn {
+      min-height: 2.75rem;
+    }
+    .nf-admin-decision__buttons {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--nf-space-xs);
+    }
+    .nf-admin-decision__buttons > :first-child {
+      grid-column: 1 / -1;
+    }
+  }
+}
+
+@layer components {
+  /* The folded history is a Card in the console's own material. */
+  .nf-admin-casehistory {
+    margin-top: var(--nf-space-md);
+  }
+}
+
+/* ------------------------------------- the queue table: Plate rows */
+@layer components {
+  /* Touch targets: the View control and the kebab were 36px; they are 44px.
+     The row itself is one tappable summary on a phone. */
+  .nf-admin-row__view {
+    min-height: 2.75rem;
+    border-radius: var(--nf-radius-control);
+  }
+  .nf-admin-row__kebab {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+  @media (hover: hover) {
+    .nf-admin-row:hover > .nf-admin-row__grid,
+    .nf-admin-row:hover > summary {
+      background: var(--nf-tier-plate-hover);
+    }
+  }
+  .nf-admin-row > summary:active {
+    background: var(--nf-tier-plate-press);
+  }
+  /* The queue's pills: every chip that filters is 44px tall on a phone. */
+  @media (max-width: 767.98px) {
+    .nf-admin-tab,
+    .nf-admin-seg__item,
+    .nf-admin-chip {
+      min-height: 2.75rem;
+    }
+  }
+}

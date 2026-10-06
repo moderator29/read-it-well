@@ -57,6 +57,8 @@ export const ADMIN_PRIMARY: AdminDestination[] = [
         countKeys: ["reports", "flags", "moderation"],
         countLabel: "reports, flagged messages and held content waiting on a decision",
       },
+      /* W8: the lookup box answered Control K and nothing else; it is a desk. */
+      { key: "lookup", href: "/admin/lookup", icon: ui("search"), label: "Lookup" },
     ],
   },
   {
@@ -119,7 +121,20 @@ export const ADMIN_PRIMARY: AdminDestination[] = [
       { key: "standing", href: "/admin/standing", icon: ui("star"), label: "Standing" },
     ],
   },
-  { key: "tickets", href: "/admin/support", icon: glyph("support"), label: "Support", countKeys: ["tickets"], countLabel: "support tickets open or pending" },
+  {
+    key: "tickets",
+    href: "/admin/support",
+    icon: glyph("support"),
+    label: "Support",
+    countKeys: ["tickets"],
+    countLabel: "support tickets open or pending",
+    /* W8: People (the member file) and Account recovery had no way in but a
+       typed address or a link from another desk. Both are support's work. */
+    children: [
+      { key: "people", href: "/admin/people", icon: ui("user"), label: "People" },
+      { key: "account-recovery", href: "/admin/account-recovery", icon: ui("key"), label: "Account recovery" },
+    ],
+  },
   {
     key: "operations",
     href: "/admin/operations",
