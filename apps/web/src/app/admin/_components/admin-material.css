@@ -61,6 +61,13 @@
     color: var(--nf-count-ink);
     font-weight: 600;
   }
+  /* admin.css gives the count the link ink at night (0,3,0) for its old
+     brand-tint badge; on the cyan count fill that ink fails contrast
+     (desks a11y, dark 1440). The count's own ink answers it at the same
+     specificity, later in the cascade. */
+  :root:not([data-theme="light"]) .nf-admin-nav__count {
+    color: var(--nf-count-ink);
+  }
 
   /* The rail itself is one Island column: its one edge is the light on the
      border facing the desk. */
