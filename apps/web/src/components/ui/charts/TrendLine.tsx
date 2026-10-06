@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useId, useLayoutEffect, useRef } from "react";
 import "@/app/css/charts.css";
 import { motionQuiet } from "@/lib/motion/gate";
 import {
@@ -41,6 +41,14 @@ import { useChartReadout } from "./useChartReadout";
  * was to where it now is in 380ms on the glide curve, resampling when the
  * number of points changes, so the eye follows the line rather than losing
  * it. Quiet motion: the new line is simply there.
+ *
+ * NO RENDER PER FRAME (D49.3). The morph writes each frame's `d` and the end
+ * marker's position straight onto the elements; React renders the target
+ * once and is not asked again until something it owns changes. It used to
+ * `setState` inside the frame loop, which reconciled both paths and the
+ * table twin about 23 times per morph. React leaves an attribute alone when
+ * its own value for it has not changed, so a render mid-morph (a hover
+ * readout) does not snap the line.
  */
 export function TrendLine({
   points,
@@ -80,45 +88,29 @@ export function TrendLine({
   const { active, handlers } = useChartReadout(count, restIndex, false);
 
   const target = points.map((p) => p.value ?? 0);
-  const drawn = useMorph(target);
+  const compareValues = compare ? compare.values.slice(0, count) : [];
+  const scale = scaleOf(points, yTicks, compareValues);
+  const lineRef = useRef<SVGPathElement | null>(null);
+  const areaRef = useRef<SVGPathElement | null>(null);
+  const dotRef = useRef<HTMLSpanElement | null>(null);
+  const endLabelRef = useRef<HTMLSpanElement | null>(null);
+  /* One morph frame, written to the elements; React is not involved. */
+  useMorph(target, (values) => {
+    const g = geometryOf(points, restIndex, scale, values);
+    lineRef.current?.setAttribute("d", g.line);
+    if (g.area) areaRef.current?.setAttribute("d", g.area);
+    if (g.endTop !== null) {
+      if (dotRef.current) dotRef.current.style.top = g.endTop;
+      if (endLabelRef.current) endLabelRef.current.style.top = g.endTop;
+    }
+  });
 
   if (count === 0 || absent) return null;
 
-  const W = 1000;
-  const H = 300;
-  const compareValues = compare ? compare.values.slice(0, count) : [];
-  const top = scaleTop(
-    [...points, ...compareValues.map((value) => ({ value }))],
-    yTicks,
-  );
-  const xAt = (i: number) => (count === 1 ? W / 2 : (i / (count - 1)) * W);
-  const yAt = (v: number) => H - (Math.max(0, v) / top) * H;
+  const { xAt, yAt, top } = scale;
   const every = tickEveryFor(count);
-
-  const mainRuns = runs(points.map((p) => p.value));
-  const linePath = (values: readonly (number | null)[], ys: readonly number[], rs: number[][]) =>
-    rs
-      .map((run) =>
-        run.map((i, k) => `${k === 0 ? "M" : "L"}${xAt(i).toFixed(1)} ${yAt(ys[i] ?? values[i] ?? 0).toFixed(1)}`).join(" "),
-      )
-      .join(" ");
-  const line = linePath(
-    points.map((p) => p.value),
-    drawn,
-    mainRuns,
-  );
-  const area = mainRuns
-    .filter((run) => run.length > 1)
-    .map((run) => {
-      const first = run[0]!;
-      const last = run[run.length - 1]!;
-      const edge = run.map((i, k) => `${k === 0 ? "M" : "L"}${xAt(i).toFixed(1)} ${yAt(drawn[i] ?? 0).toFixed(1)}`).join(" ");
-      return `${edge} L${xAt(last).toFixed(1)} ${H} L${xAt(first).toFixed(1)} ${H} Z`;
-    })
-    .join(" ");
-  const compareLine = compare
-    ? linePath(compareValues, compareValues.map((v) => v ?? 0), runs(compareValues))
-    : "";
+  const { line, area, endTop } = geometryOf(points, restIndex, scale, target);
+  const compareLine = compare ? pathOf(scale, compareValues, compareValues.map((v) => v ?? 0), runs(compareValues)) : "";
   const compareLast = compare ? lastRecorded(compareValues) : null;
 
   const pct = (i: number) => (xAt(i) / W) * 100;
@@ -207,8 +199,9 @@ export function TrendLine({
                   vectorEffect="non-scaling-stroke"
                 />
               ) : null}
-              {area ? <path d={area} fill={CHART_SERIES} fillOpacity="0.1" /> : null}
+              {area ? <path ref={areaRef} d={area} fill={CHART_SERIES} fillOpacity="0.1" /> : null}
               <path
+                ref={lineRef}
                 d={line}
                 fill="none"
                 stroke={CHART_SERIES}
@@ -229,15 +222,17 @@ export function TrendLine({
           {end && restIndex !== null ? (
             <>
               <span
+                ref={dotRef}
                 className="nf-viz-dot nf-viz-dot--end"
-                style={{ left: `${pct(restIndex)}%`, top: `${yPct(drawn[restIndex] ?? end.value ?? 0)}%` }}
+                style={{ left: `${pct(restIndex)}%`, top: endTop ?? undefined }}
                 aria-hidden="true"
               />
               {active === null ? (
                 <span
+                  ref={endLabelRef}
                   className="nf-viz-endlabel nf-numeric"
                   data-side={sideOf(restIndex)}
-                  style={{ left: `${pct(restIndex)}%`, top: `${yPct(drawn[restIndex] ?? end.value ?? 0)}%` }}
+                  style={{ left: `${pct(restIndex)}%`, top: endTop ?? undefined }}
                   aria-hidden="true"
                 >
                   {say(end)}
@@ -301,6 +296,66 @@ export function TrendLine({
   );
 }
 
+/** The plot's own units: a 1000 by 300 viewBox stretched to the frame. */
+const W = 1000;
+const H = 300;
+
+type Scale = { count: number; top: number; xAt: (i: number) => number; yAt: (v: number) => number };
+
+function scaleOf(points: readonly VizPoint[], yTicks: readonly AxisTick[], compareValues: readonly (number | null)[]): Scale {
+  const count = points.length;
+  const top = scaleTop([...points, ...compareValues.map((value) => ({ value }))], yTicks);
+  return {
+    count,
+    top,
+    xAt: (i) => (count === 1 ? W / 2 : (i / (count - 1)) * W),
+    yAt: (v) => H - (Math.max(0, v) / top) * H,
+  };
+}
+
+function pathOf(scale: Scale, values: readonly (number | null)[], ys: readonly number[], rs: number[][]): string {
+  return rs
+    .map((run) =>
+      run
+        .map((i, k) => `${k === 0 ? "M" : "L"}${scale.xAt(i).toFixed(1)} ${scale.yAt(ys[i] ?? values[i] ?? 0).toFixed(1)}`)
+        .join(" "),
+    )
+    .join(" ");
+}
+
+type Geometry = { line: string; area: string; endTop: string | null };
+
+/** The line, its wash and the end marker's height for one set of values. */
+function geometryOf(
+  points: readonly VizPoint[],
+  restIndex: number | null,
+  scale: Scale,
+  values: readonly number[],
+): Geometry {
+  const { xAt, yAt } = scale;
+  const mainRuns = runs(points.map((p) => p.value));
+  const area = mainRuns
+    .filter((run) => run.length > 1)
+    .map((run) => {
+      const first = run[0]!;
+      const last = run[run.length - 1]!;
+      const edge = run.map((i, k) => `${k === 0 ? "M" : "L"}${xAt(i).toFixed(1)} ${yAt(values[i] ?? 0).toFixed(1)}`).join(" ");
+      return `${edge} L${xAt(last).toFixed(1)} ${H} L${xAt(first).toFixed(1)} ${H} Z`;
+    })
+    .join(" ");
+  const end = restIndex !== null ? points[restIndex] : undefined;
+  return {
+    line: pathOf(
+      scale,
+      points.map((p) => p.value),
+      values,
+      mainRuns,
+    ),
+    area,
+    endTop: end && restIndex !== null ? `${(yAt(values[restIndex] ?? end.value ?? 0) / H) * 100}%` : null,
+  };
+}
+
 /** Runs of consecutive recorded indices: the pieces a gap breaks a line into. */
 export function runs(values: readonly (number | null)[]): number[][] {
   const out: number[][] = [];
@@ -321,39 +376,46 @@ function lastRecorded(values: readonly (number | null)[]): number | null {
 }
 
 /**
- * The values as drawn this frame. Equal to `target` at rest; between two
- * targets it interpolates for MORPH_MS on the glide curve. The first render
- * is the target itself (the entrance is the clip's job, not this), so the
+ * Morphs between targets without rendering. React draws `target`; when the
+ * target changes, the layout effect (before paint, so the new shape never
+ * flashes) draws the frame the line was on and then each frame for MORPH_MS
+ * on the glide curve through `write`, ending exactly on what React drew. The
+ * first render is the target itself (the entrance is the clip's job), so the
  * server and the client agree on the first paint.
  */
-function useMorph(target: readonly number[]): readonly number[] {
-  const [drawn, setDrawn] = useState<readonly number[]>(target);
+function useMorph(target: readonly number[], write: (values: readonly number[]) => void): void {
   /* What is on screen right now, so an interrupted morph starts from where
      the line actually is rather than jumping back to the last target. */
   const live = useRef<readonly number[]>(target);
+  const writeRef = useRef(write);
+  /* The latest writer, kept current after each render and before the morph
+     effect below reads it. */
+  useLayoutEffect(() => {
+    writeRef.current = write;
+  });
   const signature = target.join(",");
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const next = signature === "" ? [] : signature.split(",").map(Number);
     const start = resample(live.current, next.length);
     if (motionQuiet() || (start.length === next.length && start.every((v, i) => v === next[i]))) {
       live.current = next;
-      setDrawn(next);
       return;
     }
     let raf = 0;
     const began = performance.now();
+    const draw = (values: readonly number[]) => {
+      live.current = values;
+      writeRef.current(values);
+    };
+    draw(start);
     const frame = (now: number) => {
       const t = Math.min(1, (now - began) / MORPH_MS);
       const e = glide(t);
-      const frameValues = next.map((v, i) => start[i]! + (v - start[i]!) * e);
-      live.current = frameValues;
-      setDrawn(frameValues);
+      draw(t < 1 ? next.map((v, i) => start[i]! + (v - start[i]!) * e) : next);
       if (t < 1) raf = requestAnimationFrame(frame);
     };
     raf = requestAnimationFrame(frame);
     return () => cancelAnimationFrame(raf);
   }, [signature]);
-
-  return drawn.length === target.length ? drawn : target;
 }
