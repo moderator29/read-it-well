@@ -67,4 +67,18 @@ export const experienceDetailEn = {
   stay: {
     forDates: "{total} for {nights}",
   },
+  /**
+   * `/restaurant/[id]`: the sentences the route assembles from a venue's own
+   * fields when the venue wrote no description, and the share card's line
+   * (Round 3 sweep, C3). `{name}` the venue, `{where}` its area and city,
+   * `{cuisine}` the first cuisine it lists.
+   */
+  restaurant: {
+    aboutWhereServes: "{name} is in {where} and serves {cuisine}.",
+    aboutWhere: "{name} is in {where}.",
+    aboutServes: "{name} serves {cuisine}.",
+    aboutName: "{name}.",
+    shareWhere: "{name}, {where}. Ask for a table on Vallo.",
+    shareName: "{name}. Ask for a table on Vallo.",
+  },
 };

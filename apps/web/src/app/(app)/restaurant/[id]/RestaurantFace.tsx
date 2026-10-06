@@ -171,7 +171,7 @@ export function RestaurantFace({
               <p className={`mt-row ${TYPE.rowMeta}`}>{copy.threadLine}</p>
               <Link
                 href="/restaurants"
-                className={`mt-row inline-flex items-center gap-inline-tight ${TYPE.rowMeta} font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline`}
+                className={`nf-tap mt-row inline-flex items-center gap-inline-tight ${TYPE.rowMeta} font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline`}
               >
                 {t.stays.restaurantsTitle}
                 <UiIcon name="arrow-right" size={ICON.inline} />
