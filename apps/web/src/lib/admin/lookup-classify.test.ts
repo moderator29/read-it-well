@@ -12,6 +12,19 @@ describe("the console lookup box (C6)", () => {
     expect(classifyLookup("C-ABC234").kind).toBe("error");
     expect(classifyLookup("T123456789012345").kind).toBe("payment");
   });
+  it("knows the VA- code an agent prints on adverts (A9), however it is read out", () => {
+    expect(classifyLookup("VA-7KMNP")).toEqual({ kind: "agent", value: "VA-7KMNP" });
+    expect(classifyLookup("  va-7kmnp  ")).toEqual({ kind: "agent", value: "VA-7KMNP" });
+    expect(classifyLookup("va 7kmnp")).toEqual({ kind: "agent", value: "VA-7KMNP" });
+    expect(classifyLookup("VA7KMNP")).toEqual({ kind: "agent", value: "VA-7KMNP" });
+    expect(isIdentifier("Va-3479a")).toBe(true);
+    /* Not the minted alphabet (no B, G, I, L, O, Q, S, Z, 0, 1, 2, 5, 6, 8), or not five: not a code. */
+    expect(classifyLookup("VA-7KMNB").kind).not.toBe("agent");
+    expect(classifyLookup("VA-7KMN").kind).not.toBe("agent");
+    expect(classifyLookup("VA-7KMNPX").kind).not.toBe("agent");
+    /* A listing code is still a listing code. */
+    expect(classifyLookup("VL-7K4MQP").kind).toBe("listing");
+  });
   it("leaves ordinary words to the desk's own search", () => {
     expect(classifyLookup("grand vista").kind).toBe("text");
     expect(isIdentifier("Lekki")).toBe(false);

@@ -13,6 +13,7 @@ const KIND_WORD: Record<string, string> = {
   uuid: "an id",
   email: "an email address",
   listing: "a listing code",
+  agent: "an agent's code",
   payment: "a payment reference",
   error: "an error reference",
   text: "a word",
@@ -32,7 +33,7 @@ export default async function LookupPage({ searchParams }: { searchParams: Promi
     <div className="nf-console">
       <PageHead
         title="Lookup"
-        lede="Paste a ticket reference, a booking or member id, an email address, a listing code, a payment reference or an error reference. Press Ctrl K (Cmd K on a Mac) from any desk."
+        lede="Paste a ticket reference, a booking or member id, an email address, a listing code, an agent's VA- code, a payment reference or an error reference. Press Ctrl K (Cmd K on a Mac) from any desk."
       />
       <form method="get" action="/admin/lookup" role="search" className="mb-block flex flex-wrap gap-xs">
         <label className="sr-only" htmlFor="lookup-q">
