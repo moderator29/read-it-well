@@ -147,9 +147,23 @@ export function CalendarEditor({
                 timeZone: "UTC",
               })}
             </h2>
-            <div className="grid grid-cols-7 gap-2xs" role="grid">
+            {/* A GROUP OF NIGHT BUTTONS, NOT AN ARIA GRID. role="grid" promises
+                rows and gridcells and arrow-key movement between them; this
+                month has neither, so axe refused it (aria-required-children,
+                4 findings, C1 sweep). Each button names its own date and
+                state, so the weekday heads are for the eye only. */}
+            <div
+              className="grid grid-cols-7 gap-2xs"
+              role="group"
+              aria-label={new Date(Date.UTC(month.year, month.month, 1)).toLocaleDateString("en-GB", {
+                month: "long",
+                year: "numeric",
+                timeZone: "UTC",
+              })}
+            >
               {WEEKDAYS.map((day) => (
                 <span
+                  aria-hidden="true"
                   key={day}
                   className="pb-2xs text-center text-[length:var(--nf-text-overline)] font-normal text-[var(--nf-content-muted)]"
                 >
