@@ -275,28 +275,6 @@
     }
   }
 
-  /* ------------------------------------------------ THE LATE SPINNER
-   * A spinner that appears and vanishes inside 300ms is a flicker, not
-   * information. Every `.nf-spinner` waits 300ms before it shows; a save
-   * that lands sooner never draws one. The label beside it still dims at
-   * once (buttons.css), so the press is acknowledged. */
-  .nf-spinner {
-    animation:
-      nf-spin var(--nf-duration-deliberate) linear infinite,
-      nf-late-in var(--nf-spinner-delay, 300ms) linear;
-  }
-  @keyframes nf-late-in {
-    0%,
-    99% {
-      opacity: 0;
-    }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .nf-spinner {
-      animation: nf-late-in var(--nf-spinner-delay, 300ms) linear;
-    }
-  }
-
   /* ------------------------------------------------- THE DONE CHECK
    * A button that has just finished its job shows a check in the leading
    * slot for a moment (`Button`'s `done`). It pops in on the spring, scale

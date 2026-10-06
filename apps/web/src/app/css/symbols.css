@@ -158,34 +158,33 @@
   }
 
   /*
-   * Spinner.
+   * The `nf-spin` keyframe stays for the pull-to-refresh mark (details.css),
+   * which turns only while a refresh is really running.
    *
-   * No spinner existed anywhere in the codebase. Every pending button swapped
-   * its label for different text, so the button changed width mid-press. This
-   * one occupies the leading icon slot, inherits currentColor, and collapses to
-   * a static ring under reduced motion rather than disappearing.
+   * THE PENDING RING (replaces the looping `.nf-spinner`; rules: no spinners).
+   * A control that is not a `Button` (an icon square, a row, a text link) and
+   * is waiting on its sheet to arrive draws the same ring a loading Button
+   * does (`nf-btn__ring`, buttons.css): the arc drawn ONCE to three quarters
+   * and then held, however long the wait. It takes the glyph's slot, inherits
+   * currentColor, and the box never moves. The `nf-btn__arc` stroke and its
+   * `nf-btn-arc-draw` keyframe are buttons.css's; only the trigger is here,
+   * because that sheet keys the draw to `.nf-btn[data-loading]`.
+   *
+   * It waits 300ms before it draws (the arc is invisible until it does), so a
+   * sheet that lands sooner never flickers a ring; the control's own
+   * `aria-busy` says it is working meanwhile. Reduced motion: the arc is
+   * simply there, held, with no drawing.
    */
-  @keyframes nf-spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-  .nf-spinner {
-    display: inline-block;
+  .nf-pending-ring {
+    display: inline-flex;
     flex-shrink: 0;
-    width: 1em;
-    height: 1em;
-    border-radius: var(--nf-radius-circle);
-    border: 2px solid currentColor;
-    border-right-color: transparent;
-    opacity: 0.9;
-    animation: nf-spin var(--nf-duration-deliberate) linear infinite;
+  }
+  .nf-pending-ring .nf-btn__arc {
+    animation: nf-btn-arc-draw var(--nf-duration-deliberate) var(--nf-ease-standard) var(--nf-spinner-delay, 300ms) both;
   }
   @media (prefers-reduced-motion: reduce) {
-    .nf-spinner {
-      animation: none;
-      border-right-color: currentColor;
-      opacity: 0.45;
+    .nf-pending-ring .nf-btn__arc {
+      animation-duration: 1ms;
     }
   }
 

@@ -9,6 +9,7 @@ import type { Anchor } from "@/lib/listings/commute";
 import { shelfActiveCount, type ShelfQuery } from "@/components/app/search/shelf-query";
 import { ICON } from "@/components/app/Screen";
 import { useLazySheet } from "@/lib/ui/lazy-sheet";
+import { PendingRing } from "@/components/ui/PendingRing";
 
 /**
  * The filter sheet's TRIGGER: the sliders square on the shelf, with the count
@@ -93,7 +94,7 @@ export function FilterDrawer({
         className="nf-shelf-square relative"
       >
         {pending ? (
-          <span className="nf-spinner" aria-hidden="true" data-testid="filters-pending" />
+          <PendingRing size={ICON.inline} data-testid="filters-pending" />
         ) : (
           <UiIcon name="sliders" size={ICON.inline} />
         )}

@@ -20,9 +20,9 @@ import { Section, Specimen, SystemFrame } from "../_system/SystemFrame";
  * for a server answering after a beat; in the product the caller passes `done`
  * only once the thing really happened.
  *
- * NOT SHOWN, ON PURPOSE: `loading` WITHOUT `morph`. That path still draws the
- * older `.nf-spinner`, and the rules say no spinners. It is recorded in
- * `docs/design/COMPONENTS.md` rather than promoted here.
+ * `loading` WITHOUT `morph` draws the same ring in the leading slot (once to
+ * three quarters, then held; there is no looping spinner any more), and a
+ * plain control that is not a Button draws it through `PendingRing`.
  */
 
 const ROLES: readonly { variant: ButtonVariant; label: string }[] = [
