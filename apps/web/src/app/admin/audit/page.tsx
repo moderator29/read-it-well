@@ -107,6 +107,7 @@ export default async function AdminAuditPage({
       {activity.state === "ok" ? (
         <AuditCharts
           activity={activity.data}
+          locale={locale}
           copy={{
             perDay: t.uiCommon.charts.actionsPerDay,
             byKind: t.uiCommon.charts.actionsByKind,

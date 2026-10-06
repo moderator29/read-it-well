@@ -1926,6 +1926,16 @@
     white-space: nowrap;
     z-index: 2;
   }
+  /* The outer quarters open inwards (TimeSeries.tsx): a centred tip on the last day ran past the window. */
+  .nf-ts__col--start .nf-ts__tip {
+    left: 0;
+    translate: 0 -110%;
+  }
+  .nf-ts__col--end .nf-ts__tip {
+    left: auto;
+    right: 0;
+    translate: 0 -110%;
+  }
   @media (hover: hover) and (pointer: fine) {
     .nf-ts__col:hover {
       background: var(--nf-brand-tint-1);
