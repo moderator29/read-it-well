@@ -73,10 +73,12 @@ function SwatchRow({
   name,
   note,
   kind,
+  on,
 }: {
   name: string;
   note: string;
   kind: "surface" | "text" | "border";
+  on?: string;
 }) {
   return (
     <li className="flex items-center gap-group border-b border-[var(--nf-border-subtle)] py-row last:border-b-0">
@@ -88,7 +90,7 @@ function SwatchRow({
             ? { background: `var(${name})` }
             : kind === "border"
               ? { borderColor: `var(${name})`, borderWidth: 3 }
-              : { background: "var(--nf-surface-secondary)", color: `var(${name})` }
+              : { background: `var(${on ?? "--nf-surface-secondary"})`, color: `var(${name})` }
         }
       >
         {kind === "text" ? (
