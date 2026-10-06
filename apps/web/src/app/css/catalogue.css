@@ -446,6 +446,27 @@
     padding: var(--nf-space-sm) var(--nf-pad-shell);
     border-bottom: var(--nf-border-width) solid var(--nf-panel-hair);
   }
+  /*
+   * RECENT SEARCHES FLOAT UNDER THE FIELD ON THE RESULTS BAR (round 5 craft:
+   * typing never moves the page). In the flow, the list pushed the chips and
+   * every result down the moment the field took focus (the keyboard rising
+   * in the same instant) and pulled them back up on the first letter typed:
+   * two jumps under the thumb per search. Over the results instead, anchored
+   * under the field in the sticky bar, it moves nothing. Its height is the
+   * room left above the keyboard (`--nf-recent-room`, measured from the
+   * visual viewport by RecentSearches), so the last row is never under the
+   * keyboard; past that it scrolls inside itself. The Home hero keeps its
+   * list in the flow, where it cannot be clipped by the hero's frame.
+   */
+  .nf-shelf-bar > .nf-recent {
+    position: absolute;
+    z-index: 1;
+    inset-inline: var(--nf-pad-shell);
+    top: calc(var(--nf-space-sm) + 3.25rem);
+    max-height: var(--nf-recent-room, 60svh);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
   .nf-shelf-field {
     display: flex;
     flex: 1;

@@ -42,7 +42,9 @@ import {
  * three search fields (the results bar, the Stays bar and the Home hero) stay
  * server components and keep working with no script. It sits in the page's
  * flow under the field, not floating over it, so it can never be clipped by
- * the hero plate's rounded frame and never covers the results.
+ * the hero plate's rounded frame and never covers the results. On the
+ * results bar (`/search`) it floats instead (catalogue.css, round 5): there
+ * the flow made the results jump twice per search, under the thumb.
  *
  * Device only: nothing leaves the phone. Nothing renders until there is
  * something remembered for this screen (`/search` or `/stays/search`).
@@ -148,6 +150,34 @@ export function RecentSearches({
     if (next.length) input.setAttribute("aria-describedby", next.join(" "));
     else input.removeAttribute("aria-describedby");
   }, [inputId, titleId, shown]);
+
+  /*
+   * THE LAST ROW STAYS ABOVE THE KEYBOARD (round 5 craft). While the list is
+   * shown, the room between its top and the bottom of what is visible (the
+   * visual viewport, which shrinks when a phone's keyboard rises) is written
+   * to `--nf-recent-room`; on the results bar the list is no taller than that
+   * (catalogue.css) and scrolls inside itself. Measured on open and on every
+   * visual viewport change, never per keystroke, so typing waits on nothing.
+   */
+  useEffect(() => {
+    if (!shown) return;
+    const panel = document.getElementById(listId);
+    if (!panel) return;
+    const vv = window.visualViewport;
+    const fit = () => {
+      const bottom = vv ? vv.offsetTop + vv.height : window.innerHeight;
+      const room = Math.floor(bottom - panel.getBoundingClientRect().top - 8);
+      /* Never below the title and two rows, whatever the keyboard leaves. */
+      panel.style.setProperty("--nf-recent-room", `${Math.max(room, 132)}px`);
+    };
+    fit();
+    vv?.addEventListener("resize", fit);
+    vv?.addEventListener("scroll", fit);
+    return () => {
+      vv?.removeEventListener("resize", fit);
+      vv?.removeEventListener("scroll", fit);
+    };
+  }, [shown, listId]);
 
   const backToField = () => {
     dismissed.current = true;
