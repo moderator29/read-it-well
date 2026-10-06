@@ -817,6 +817,65 @@ committed and pushed as it is done, cleanly, without sessions conflicting.
 | **Any probe recorded as "pending" on an applied migration** | **D56: a check that did not run is a check that failed** |
 | **Session 1's "nothing else is hiding behind the red"** | **D57: false. A third failure was hiding in a cancelled job** |
 | Any plan for referral payouts that opens before the detectors exist | D58 |
+| **D54's assignment of the db-06 row to Session 2** | **D59: Session 1 took it after two hours of no movement** |
+
+---
+
+## D59. Session 1 took the db-06 row itself after two hours, and says plainly why that overrides D54
+
+**D54 assigned the db-06 allowlist row to Session 2 and said it was theirs. Session 1 has
+now done it instead.** That is a reversal of a directive Session 1 wrote four hours
+earlier and told Session 2 twice on their own pull request, so it needs a reason rather
+than a shrug.
+
+**The reason: the owner was absent and the blocker was platform wide.** Session 2's last
+push was `def190bd5` at 10:59. At 12:42 nothing had moved: the allowlist row absent, the
+ledger probe still in `probes-pending`, `events.test.ts` still on the pending path. Two
+hours, three one-line fixes, three directives naming each of them exactly. **D53 exists so
+that no defect is an orphan. A rule whose purpose is that everything has an owner cannot
+be used to justify a blocker sitting still because its owner went quiet.**
+
+**What was changed, and nothing else:** one row in
+`supabase/tests/probes/db-06.sql`, `('first_runs_seen', 'i')`, in alphabetical position
+between `follows` and `inspection_confirmations`, plus the dated note the file's own
+convention requires. **No migration touched, no grant altered, no money code, no
+production change.** A probe allowlist is test infrastructure, which is the narrowest
+thing that could be taken without stepping into Session 2's area.
+
+**Session 2 still owns the other two**, and they are untouched here: the ledger probe
+without a verdict (D56, still the most consequential open item on the platform) and
+`events.test.ts`'s path (D57). If Session 2 adds the same allowlist row independently,
+git resolves it or hands over a one line conflict, which is a cost worth paying over
+leaving every branch red.
+
+### Verified, and the first attempt at verifying was wrong
+
+The claim is that db-06's grant assertions now pass. **Session 1's first verification was
+built on the wrong instrument and would have produced a false report**, so the method
+matters as much as the result.
+
+The first attempt read `information_schema.role_table_grants` and compared it to an
+allowlist pulled out of the file with a regular expression. It returned two lists of
+apparent discrepancies, and **both were artefacts of the verification, not findings**:
+
+1. The regular expression missed `viewing_windows`, the last row, because it has no
+   trailing comma. That produced a phantom "live but not allowlisted".
+2. `role_table_grants` sees only table level grants. **db-06 deliberately counts column
+   level grants too**, through `has_table_privilege(...) or has_column_privilege(...)`.
+   That produced a phantom list of seven "allowlisted but dead" entries, every one of
+   which is granted per column.
+
+Had either been reported as a finding it would have sent a session chasing nothing.
+**The lesson is the same one this file keeps relearning: reproduce the check, do not
+approximate it.**
+
+The second attempt used db-06's own grant expression verbatim, both roles, table and
+column privileges, against production, with the updated allowlist. Result: `extra` null,
+`missing` null. **Both of the probe's grant assertions pass.** The probe's remaining
+sections were already passing and are unaffected.
+
+**The authoritative verdict is still CI's**, for the reason D56 gives: a check Session 1
+reproduced by hand is evidence, not a pass.
 
 ---
 
