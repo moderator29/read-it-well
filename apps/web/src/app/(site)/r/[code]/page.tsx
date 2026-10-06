@@ -41,6 +41,7 @@ export default async function ReceiptCheckPage({ params }: { params: Promise<{ c
   const { code } = await params;
   const locale = await getLocale();
   const copy = getDictionary(locale).afterTheGate.receipt;
+  const site = getDictionary(locale).experienceSite.receipt;
   const outcome = await verifyReceiptCode(decodeURIComponent(code));
   const normal = normaliseReceiptCode(decodeURIComponent(code));
 
@@ -53,8 +54,10 @@ export default async function ReceiptCheckPage({ params }: { params: Promise<{ c
         {children ? <div className="mt-md">{children}</div> : null}
         {children ? null : <p className="nf-caption mt-md">{copy.footnote}</p>}
         <div className="mt-md">
+          {/* Back to the lookup form. It said "Check", the form's own submit,
+              on a page with nothing to check (C6, the route sweep). */}
           <ButtonLink href="/r" variant="secondary" full>
-            {copy.formSubmit}
+            {site.checkAnother}
           </ButtonLink>
         </div>
       </div>

@@ -46,6 +46,7 @@ import { experienceShellEn } from "./experience-shell.en";
 import { experienceSpeedEn } from "./experience-speed.en";
 import { experienceSettingsEn } from "./experience-settings.en";
 import { experienceHostEn } from "./experience-host.en";
+import { experienceSiteEn } from "./experience-site.en";
 /* The workspace desks and the confirm panel (UI/UX plan items 14, 20, 22). */
 import { deskEn } from "./desk.en";
 /* The public pages' titles and descriptions, per language (A10). */
@@ -5803,6 +5804,8 @@ export const en = {
   experienceSettings: experienceSettingsEn,
   /* C5, the route sweep: the host pages' remaining words (English only; see the module for why not hostWorkspace). */
   experienceHost: experienceHostEn,
+  /* C6, the route sweep: the public site's and the auth doors' new words (English only). */
+  experienceSite: experienceSiteEn,
 
   desk: deskEn,
 
