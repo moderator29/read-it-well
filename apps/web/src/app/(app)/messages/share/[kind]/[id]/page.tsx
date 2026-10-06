@@ -144,7 +144,7 @@ export default async function SharePage({
     return (
       <div className="mx-auto max-w-2xl">
         <PageHeader title={words.intoTitle} fallback={back} />
-        <ShareIntoThread conversationId={id} counterpartName={target.counterpartName} items={items} />
+        <ShareIntoThread conversationId={id} counterpartName={target.counterpartName} items={items} copy={words.picker} />
       </div>
     );
   }
@@ -168,7 +168,7 @@ export default async function SharePage({
   return (
     <div className="mx-auto max-w-2xl">
       <PageHeader title={words.title} subtitle={card.title} fallback={back} />
-      <ShareToThread card={card} target={ref} threads={threads} />
+      <ShareToThread card={card} target={ref} threads={threads} copy={words.picker} />
     </div>
   );
 }

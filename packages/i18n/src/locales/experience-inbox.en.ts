@@ -202,6 +202,25 @@ export const experienceInboxEn = {
     pausedTitle: "Messaging is paused for maintenance",
     pausedBody: "Nothing has been lost. Try again in a few minutes.",
     back: "Back",
+    /**
+     * The picker itself (`SharePicker`). `{name}` is the other person's name;
+     * `{noun}` is one of `nouns`.
+     */
+    picker: {
+      sharing: "What you are sharing",
+      sendTo: "Send it to",
+      noThreadsTitle: "No conversations to send it to",
+      noThreadsBody: "Open any property and tap Message agent. Once you have a conversation, you can share things into it from here.",
+      findPlace: "Find a place",
+      sendToName: "Send to {name}",
+      shareWith: "Share with {name}",
+      nothingTitle: "Nothing to share yet",
+      nothingBody: "A booking you hold, a place you saved, or a property you have chatted about can be sent into this conversation as a card.",
+      sendNoun: "Send {noun}",
+      nouns: { listing: "this listing", booking: "this booking", stay: "this stay" },
+      lands: "The card lands in the conversation as a message they can open.",
+      notNow: "Not now",
+    },
   },
 
   /**

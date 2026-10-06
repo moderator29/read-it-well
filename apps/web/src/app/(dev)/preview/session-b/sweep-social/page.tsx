@@ -282,6 +282,7 @@ async function Face({ f, tab, member, empty }: { f: string; tab?: string; member
           <ShareToThread
             card={LISTING_CARD}
             target={{ kind: "listing", id: LISTING_ID }}
+            copy={t.experienceInbox.share.picker}
             threads={[
               {
                 id: "00000000-0000-4000-8000-00000000c001",

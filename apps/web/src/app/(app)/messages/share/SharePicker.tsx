@@ -12,6 +12,10 @@ import { EmptyState, TYPE } from "@/components/app/Screen";
 import { Button } from "@/components/ui/Button";
 import { type BadgeTier } from "@/lib/trust/badge-tier";
 import { IconPlate } from "@/components/ui/IconPlate";
+import type { Dictionary } from "@vallo/i18n/core";
+
+/** The picker's words, `experienceInbox.share.picker`, from the server page. */
+export type ShareCopy = Dictionary["experienceInbox"]["share"]["picker"];
 
 /**
  * The share picker, both ways round.
@@ -29,11 +33,6 @@ import { IconPlate } from "@/components/ui/IconPlate";
  */
 
 /** What the confirm calls the thing being sent. One word per kind, no ternary. */
-const SHARE_NOUN: Record<SharedRef["kind"], string> = {
-  listing: "this listing",
-  booking: "this booking",
-  stay: "this stay",
-};
 
 export type ShareThread = {
   id: string;
@@ -57,29 +56,31 @@ export function ShareToThread({
   card,
   target,
   threads,
+  copy,
 }: {
   card: ChatCardData | null;
   target: SharedRef;
   threads: ShareThread[];
+  copy: ShareCopy;
 }) {
   const [chosen, setChosen] = useState<ShareThread | null>(null);
   return (
     <div className="mx-auto max-w-2xl">
       {card && (
         <div className="mb-block">
-          <p className={`mb-inline ${TYPE.label}`}>What you are sharing</p>
+          <p className={`mb-inline ${TYPE.label}`}>{copy.sharing}</p>
           <ChatCard card={card} forwardable={false} />
         </div>
       )}
-      <p className={`mb-inline ${TYPE.label}`}>Send it to</p>
+      <p className={`mb-inline ${TYPE.label}`}>{copy.sendTo}</p>
       {threads.length === 0 ? (
         <EmptyState
           icon="chat-duo"
-          title="No conversations to send it to"
-          body="Open any property and tap Message agent. Once you have a conversation, you can share things into it from here."
+          title={copy.noThreadsTitle}
+          body={copy.noThreadsBody}
           action={
             <Link href="/search" className="nf-btn nf-btn--primary nf-btn--md">
-              Find a place
+              {copy.findPlace}
             </Link>
           }
         />
@@ -123,7 +124,8 @@ export function ShareToThread({
         <ConfirmSend
           conversationId={chosen.id}
           target={target}
-          label={`Send to ${chosen.counterpartName}`}
+          label={copy.sendToName.replace("{name}", chosen.counterpartName)}
+          copy={copy}
           onCancel={() => setChosen(null)}
         />
       )}
@@ -135,23 +137,25 @@ export function ShareIntoThread({
   conversationId,
   counterpartName,
   items,
+  copy,
 }: {
   conversationId: string;
   counterpartName: string;
   items: ShareItem[];
+  copy: ShareCopy;
 }) {
   const [chosen, setChosen] = useState<ShareItem | null>(null);
   return (
     <div className="mx-auto max-w-2xl">
-      <p className={`mb-inline ${TYPE.label}`}>Share with {counterpartName}</p>
+      <p className={`mb-inline ${TYPE.label}`}>{copy.shareWith.replace("{name}", counterpartName)}</p>
       {items.length === 0 ? (
         <EmptyState
           icon="listing-search"
-          title="Nothing to share yet"
-          body="A booking you hold, a place you saved, or a property you have chatted about can be sent into this conversation as a card."
+          title={copy.nothingTitle}
+          body={copy.nothingBody}
           action={
             <Link href="/search" className="nf-btn nf-btn--primary nf-btn--md">
-              Find a place
+              {copy.findPlace}
             </Link>
           }
         />
@@ -192,7 +196,8 @@ export function ShareIntoThread({
         <ConfirmSend
           conversationId={conversationId}
           target={chosen.ref}
-          label={`Send ${SHARE_NOUN[chosen.ref.kind]}`}
+          label={copy.sendNoun.replace("{noun}", copy.nouns[chosen.ref.kind])}
+          copy={copy}
           onCancel={() => setChosen(null)}
         />
       )}
@@ -206,11 +211,13 @@ function ConfirmSend({
   target,
   label,
   onCancel,
+  copy,
 }: {
   conversationId: string;
   target: SharedRef;
   label: string;
   onCancel: () => void;
+  copy: ShareCopy;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -230,7 +237,7 @@ function ConfirmSend({
 
   return (
     <div className="nf-panel nf-panel--card nf-context-card mt-block flex-col items-stretch" role="group" aria-label={label}>
-      <p className={TYPE.body}>The card lands in the conversation as a message they can open.</p>
+      <p className={TYPE.body}>{copy.lands}</p>
       {error && (
         <p role="alert" className={`mt-inline-tight ${TYPE.rowMeta} text-[var(--nf-state-error)]`}>
           {error}
@@ -241,7 +248,7 @@ function ConfirmSend({
           {label}
         </Button>
         <Button variant="ghost" onClick={onCancel} disabled={pending}>
-          Not now
+          {copy.notNow}
         </Button>
       </div>
     </div>
