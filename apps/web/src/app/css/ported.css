@@ -163,6 +163,39 @@
   .nf-dtc[data-state="confirmed"] .nf-dtc__handle {
     color: var(--nf-state-success);
   }
+  /*
+   * THE ANSWER, ONCE THE SERVER HAS GIVEN IT (MOTION_SYSTEM 2, payoffs).
+   * `confirmed` is only ever true after `onConfirm` resolved, so these never
+   * run on hope. The tick lands in the handle (`land`, base); on MONEY alone
+   * the handle then takes the one payoff pop, 1.0 to 1.04 to 1.0 over 180ms
+   * (principle 5: release, confirm). `scale`, not `transform`, because the
+   * drag writes the handle's transform inline and a transform keyframe would
+   * throw it back to the start of the track. A refusal is the opposite beat:
+   * the handle has already cut home (DragToConfirm.tsx) and the words arrive
+   * in 160ms, never on a spring. Quiet readers: the settled state at once.
+   */
+  @media (prefers-reduced-motion: no-preference) {
+    :root:not([data-motion="calm"], [data-motion="off"]) .nf-dtc[data-state="confirmed"] .nf-dtc__handle > * {
+      animation: nf-dtc-tick var(--nf-duration-base) var(--nf-ease-entrance) both;
+    }
+    :root:not([data-motion="calm"], [data-motion="off"]) .nf-dtc[data-money][data-state="confirmed"] .nf-dtc__handle {
+      animation: nf-dtc-pop 180ms var(--nf-ease-standard) var(--nf-duration-base) both;
+    }
+    :root:not([data-motion="off"]) .nf-dtc[data-failed] .nf-dtc__label:not(.nf-dtc__label--status) {
+      animation: nf-dtc-status-in 160ms var(--nf-ease-standard) both;
+    }
+  }
+  @keyframes nf-dtc-tick {
+    from {
+      opacity: 0;
+      scale: 0.6;
+    }
+  }
+  @keyframes nf-dtc-pop {
+    50% {
+      scale: 1.04;
+    }
+  }
   .nf-dtc[data-disabled] {
     opacity: 0.55;
   }

@@ -67,7 +67,7 @@ import { SPRING_SETTLE, SPRING_SNAP, clamp, springFor, useDrive } from "./ported
  *   4. THE CONFIRMED STATE IS ONLY EVER TRUE. The handle slides under the
  *      person's own finger, but the track does not claim "confirmed" until
  *      `onConfirm` has resolved. Resolve `false`, or throw, and the control
- *      springs back with the error haptic. The two are told apart: `false` is
+ *      cuts back to rest (no spring: bad news is immediate) with the error haptic. The two are told apart: `false` is
  *      a DECLINE (the caller decided, nothing to report, `data-failed=
  *      "declined"`); a throw is a CRASH, reported through
  *      `reportClientError`, which ends at `reportError` on the server
@@ -335,9 +335,15 @@ export function DragToConfirm(props: DragToConfirmProps) {
     }
     setState("idle");
     setFailure(outcome);
-    fly(0);
+    /* BAD NEWS IS A CUT, NOT A SPRING (CRAFT_DOCTRINE 5, "Error: immediate").
+       The refusal words live in the rest label, whose opacity follows the
+       handle, so a spring home surfaced them only as the handle got back: a
+       slow reveal of a refused payment. The handle jumps home, the edge turns
+       at once and the words arrive in 160ms (ported.css). */
+    flight.current?.stop();
+    x.jump(0);
     feedback("error");
-  }, [fly, measure, isMoney]);
+  }, [fly, measure, isMoney, x]);
 
   const locked = disabled || view === "confirming" || view === "confirmed";
 
