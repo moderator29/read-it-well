@@ -7,7 +7,10 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { CODE_START, type CodeSignInState } from "@/lib/auth/code-sign-in-state";
 import { sendEmailSignInCode, verifyEmailSignInCode } from "@/lib/auth/email-code";
 import { sendPhoneSignInCode, verifyPhoneSignInCode } from "@/lib/auth/phone-sign-in";
-import { RESEND_WAIT_SECONDS, resendLabel } from "@/lib/auth/mail-app";
+import { resendLabel } from "@/lib/auth/mail-app";
+import { useResendClock } from "./useResendClock";
+import { ResendClockView } from "./ResendClockView";
+import { useRefusalShake } from "./useRefusalShake";
 import { codeLengthWord } from "@/lib/auth/confirmation-code";
 import { Button } from "@/components/ui/Button";
 import { CodeInput } from "./CodeInput";
@@ -57,23 +60,36 @@ export function CodeSignInForm({ mode, t, next }: { mode: Mode; t: Dictionary; n
     if (checked.error === "wrongCode" || checked.error === "badCode") setWrongCount((n) => n + 1);
   }
 
-  /* The resend waits thirty seconds from every send. */
-  const [wait, setWait] = useState(RESEND_WAIT_SECONDS);
   const [sentAnswer, setSentAnswer] = useState(sent);
   if (sentAnswer !== sent) {
     setSentAnswer(sent);
     setLatest("sent");
-    if (sent.step === "code") setWait(RESEND_WAIT_SECONDS);
   }
   const state = latest === "checked" ? checked : sent;
   const onCode = state.step === "code";
   const message = state.error ? (copy as Record<string, string>)[state.error] ?? copy.failed : null;
 
+  /*
+   * THE RESEND IS GOVERNED BY THE REAL RULE (`resend-rule.ts`): the pace after
+   * the last send and the server's per-address ceiling for this door (five an
+   * hour by email, four by phone), counted from the send's own time, so a
+   * reload shows the true time left. The answer to a send is what starts it:
+   * a code on the way records the send, and a `limited` answer records that
+   * the window is spent until it ends.
+   */
+  const clock = useResendClock(mode === "email" ? "emailCode" : "phoneCode", sent.target ?? "");
+  const { recordSend, recordRefusal } = clock;
   useEffect(() => {
-    if (!onCode || wait <= 0) return;
-    const timer = window.setTimeout(() => setWait((n) => n - 1), 1000);
-    return () => window.clearTimeout(timer);
-  }, [onCode, wait]);
+    if (sent.step === "code") recordSend("first");
+    else if (sent.error === "limited") recordRefusal();
+  }, [sent, recordSend, recordRefusal]);
+  useEffect(() => {
+    if (checked.error === "limited") recordRefusal();
+  }, [checked, recordRefusal]);
+
+  const askForm = useRef<HTMLFormElement>(null);
+  /* THE FORM ERROR on the address or number step: shake the field once. */
+  useRefusalShake(askForm, sent, !onCode && Boolean(sent.error) && sent.error !== "off");
 
   const onDigits = (value: string) => {
     const digits = value.replace(/\D/g, "");
@@ -93,7 +109,7 @@ export function CodeSignInForm({ mode, t, next }: { mode: Mode; t: Dictionary; n
       </p>
 
       {!onCode ? (
-        <form action={send} className="nf-auth__form nf-auth__form--fields nf-slate-stagger" noValidate>
+        <form ref={askForm} action={send} className="nf-auth__form nf-auth__form--fields nf-slate-stagger" noValidate>
           {mode === "email" ? (
             <Field
               t={t}
@@ -159,18 +175,19 @@ export function CodeSignInForm({ mode, t, next }: { mode: Mode; t: Dictionary; n
       )}
 
       {onCode && (
-        <form action={send} className="nf-verify__resend nf-slate-stagger">
+        <form action={send} onSubmit={() => recordSend("resend")} className="nf-verify__resend nf-slate-stagger">
           <input type="hidden" name={mode === "email" ? "email" : "phone"} value={sent.target ?? ""} />
           <Button
             type="submit"
             variant="ghost"
             size="sm"
             loading={sending}
-            disabled={wait > 0}
+            disabled={clock.state.kind !== "ready"}
             data-testid={`code-resend-${mode}`}
           >
-            {wait > 0 ? resendLabel(t.authFlow.resendIn, wait) : copy.resend}
+            {clock.state.kind === "gap" ? resendLabel(t.authFlow.resendIn, clock.seconds) : copy.resend}
           </Button>
+          <ResendClockView clock={clock} windowLine={t.experienceEntry.resendWindow} readyLine={t.experienceEntry.resendReady} />
         </form>
       )}
 

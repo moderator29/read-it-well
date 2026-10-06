@@ -13,7 +13,10 @@ import { motionQuiet } from "@/lib/motion/gate";
 import { ArrivalMoment } from "./ArrivalMoment";
 import { CodeInput } from "./CodeInput";
 import { withNext } from "@/lib/auth/next-link";
-import { mailAppFor, resendLabel, RESEND_WAIT_SECONDS } from "@/lib/auth/mail-app";
+import { mailAppFor, resendLabel } from "@/lib/auth/mail-app";
+import { useResendClock } from "./useResendClock";
+import { ResendClockView } from "./ResendClockView";
+import { useRefusalShake } from "./useRefusalShake";
 import {
   CONFIRMATION_CODE_LENGTH,
   CONFIRMATION_CODE_PLACEHOLDER,
@@ -84,19 +87,32 @@ export function VerifyCodeForm({
   }
 
   /*
-   * A4: THE SCREEN HELPS WHEN THE CODE DOES NOT COME. "Send a new code"
-   * waits thirty seconds (a code was sent a moment ago; a second one sent at
-   * once only races the first), counting down in place. Each send starts
-   * the wait again, and after two the hint about Spam and Promotions turns
-   * into "Still nothing?" with the way to help.
+   * A4: THE SCREEN HELPS WHEN THE CODE DOES NOT COME. "Send a new code" is
+   * governed by the REAL resend rule, not by a timer of the screen's own
+   * (`resend-rule.ts`, `resend-clock.ts`): the pace after the last send, and
+   * the server's ceiling of three codes a fifteen-minute window, whose end is
+   * an actual instant. The time left is computed from the send's own
+   * timestamp, so a reload or a sleeping tab shows the true remainder, and
+   * the clock never starts again from thirty just because the page did.
+   * After two sends the hint about Spam and Promotions turns into "Still
+   * nothing?" with the way to help.
    */
-  const [wait, setWait] = useState(RESEND_WAIT_SECONDS);
-  const [sends, setSends] = useState(0);
+  const clock = useResendClock("signUp", address);
+  const { recordRefusal } = clock;
+  /* The server's refusal of a resend is a limit when it says so: the window
+     is spent until it ends, whatever this screen believed it had sent. */
+  const limited = !resendState.ok && /^Too many attempts/i.test(resendState.message ?? "");
   useEffect(() => {
-    if (wait <= 0) return;
-    const timer = window.setTimeout(() => setWait((s) => s - 1), 1000);
-    return () => window.clearTimeout(timer);
-  }, [wait]);
+    if (limited) recordRefusal();
+  }, [resendState, limited, recordRefusal]);
+
+  /* The one shake for a refused code row is `CodeInput`'s own (`wrongCount`);
+     a refused address field (the other-device case) shakes through this. */
+  useRefusalShake(
+    form,
+    state,
+    Boolean(state.fieldErrors?.email) && !state.fieldErrors?.code,
+  );
 
   /*
    * THE MOMENT THE ACCOUNT EXISTS (A17).
@@ -151,12 +167,6 @@ export function VerifyCodeForm({
       form.current?.requestSubmit();
     }
   }
-
-  /* Every send starts the wait again. */
-  const onResend = () => {
-    setWait(RESEND_WAIT_SECONDS);
-    setSends((n) => n + 1);
-  };
 
   const mail = mailAppFor(address);
   /* Back to the form with the address in it, and the destination kept; the
@@ -252,7 +262,11 @@ export function VerifyCodeForm({
 
       {/* Its own form, so asking for another code cannot submit the one that
           is already typed, and a refusal on one does not clear the other. */}
-      <form action={resendAction} onSubmit={onResend} className="nf-verify__resend nf-slate-stagger">
+      <form
+        action={resendAction}
+        onSubmit={() => clock.recordSend("resend")}
+        className="nf-verify__resend nf-slate-stagger"
+      >
         {next ? <input type="hidden" name="next" value={next} /> : null}
         <input type="hidden" name="email" value={address} />
         <Button
@@ -260,12 +274,13 @@ export function VerifyCodeForm({
           variant="ghost"
           size="sm"
           loading={resending}
-          disabled={wait > 0}
+          disabled={clock.state.kind !== "ready"}
           data-testid="verify-resend"
         >
-          {wait > 0 ? resendLabel(a.resendIn, wait) : a.sendAnother}
+          {clock.state.kind === "gap" ? resendLabel(a.resendIn, clock.seconds) : a.sendAnother}
         </Button>
-        {resendState.message && (
+        <ResendClockView clock={clock} windowLine={t.experienceEntry.resendWindow} readyLine={t.experienceEntry.resendReady} />
+        {resendState.message && !limited && (
           <p role="status" className="nf-verify__status">
             {resendState.message}
           </p>
@@ -275,7 +290,7 @@ export function VerifyCodeForm({
       {/* Where the code might be, and one tap to the inbox when we can tell
           which one it is. */}
       <div className="nf-verify__help nf-slate-stagger">
-        <p className="nf-verify__hint">{sends >= 2 ? a.stillNothing : a.checkSpam}</p>
+        <p className="nf-verify__hint">{clock.sendCount >= 2 ? a.stillNothing : a.checkSpam}</p>
         {mail ? (
           <a
             href={mail.href}
