@@ -821,8 +821,12 @@ in basis points or kobo. Changing a price is a row, never a deploy.
 
 ### The rates
 
-**Vallo commission 0.5 percent** (`commission_bps = 50`), both rails. The leg
-already exists: `commission_minor` is in the split today, at zero.
+**Vallo commission 2 percent** (`commission_bps = 200`), both rails. The leg
+already exists: `commission_minor` is in the split today, at zero. **Escrow rail
+total is 4 percent**, Payluk's 2 plus Vallo's 2, borne by the lister. **Direct rail
+is 2 percent plus Paystack's capped fee**, and because no provider takes a
+percentage there, Vallo keeps the whole 2 percent and the cost does not scale: the
+direct rail is where the margin is.
 
 **The Guarantee is retired. `guarantee_bps = 0`.** Escrow already holds the money
 until conditions are met, so charging again for the same promise meant 4 percent
@@ -841,7 +845,7 @@ split currently refuses a charge whose reserve leg is missing.
 
 **VAT is not charged. `vat_bps = 0`, `vat_registered = false`.** Nigeria's
 threshold is 25 million naira of **turnover, meaning Vallo's own revenue**, which
-is the 0.5 percent and not the value of transactions facilitated. **Charging VAT
+is the 2 percent and not the value of transactions facilitated. **Charging VAT
 while unregistered is an offence.** When it is switched on it applies to Vallo's
 fee only, never the rent, and is recorded as its own ledger line because it is
 remitted to FIRS and was never Vallo's money.
@@ -909,10 +913,51 @@ payouts). Payluk cannot do a three-way split, so on the escrow rail Vallo's
 commission is a separate recorded movement, which makes the separation a ledger
 requirement.
 
-### Still blocking, and founder-only
+### Who pays, and the agreement that records it
 
-**Payluk's `whoPays` is required at escrow creation and has not been chosen**:
-buyer, seller or both. **Until it is set the escrow rail cannot open at all.**
+**`whoPays: "seller"`, decided 6 October.** The lister bears the fee on both rails
+and the renter sees exactly the advertised price, no line item, no footnote. It is
+the Booking.com, Uber, Amazon and Etsy model; Vallo already publishes "VALLO
+CHARGES NO INSPECTION FEE", so a renter-side charge would contradict a live
+promise; and a Nigerian renter already pays roughly 20 percent in agency and legal
+fees, so charging that side would make Vallo part of the problem it exists to
+solve. For a lister replacing a 10 percent agent, 4 percent is a **reduction**:
+they keep 96 percent instead of 90, which is 108,000 naira more on 1,800,000 of
+rent.
+
+**A lister cannot publish until they accept the figures**, and acceptance is
+recorded server-side with the member, the timestamp and **the rate version in
+force**. Figures in naira, not a bare percentage. A rate change **never** applies
+retroactively to an accepted listing: the lister is asked again and keeps the old
+rate until they accept the new one. The same figures reappear at payout, because a
+deduction a landlord first understands when the money arrives is how a landlord is
+lost permanently.
+
+### Where the commission lands, and the job that is easy to forget
+
+**Paystack: automatic.** The split sets `bearer_subaccount` to the lister, so the
+lister bears the processing fee too; **Vallo's commission is the remainder and
+settles to Vallo's own main account by itself**. At `guarantee_bps = 0` the reserve
+leg is skipped entirely (`if (split.guaranteeMinor > 0)`), which is the evidence
+the `PAYSTACK_GUARANTEE_SUBACCOUNT` blocker lifts. **Verify, do not assume.**
+
+**Payluk: not automatic.** Its documentation: *"plus your own commission, if you
+set one in your merchant settings ... credited to your merchant wallet as a
+`commission` transaction"*. So Vallo's 2 percent on escrow is **a merchant
+dashboard setting** and it **accrues inside Vallo's Payluk merchant wallet** until
+somebody withdraws it. Paystack revenue arrives on its own; **Payluk revenue piles
+up where nobody is watching.** Required: a scheduled sweep reading the merchant
+balance, withdrawing to Vallo's bank, recording the movement as **Vallo revenue and
+never customer funds**, with an admin surface showing the balance, the last sweep
+and any failure, paced against the ten-per-minute limit.
+
+### One rate that should not stay flat
+
+**Sale and land.** Four percent of 80,000,000 naira is 3,200,000, which no seller
+will accept, while 2 percent to Vallo on that sale is the largest single
+transaction the platform will ever see. `money_policy` holds rates in basis points,
+so a per-space-type rate with an absolute cap above a threshold is one row.
+**Decide it before the first land listing.**
 
 ---
 

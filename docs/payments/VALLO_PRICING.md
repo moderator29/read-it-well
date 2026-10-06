@@ -10,7 +10,7 @@ price is a row, not a deploy.
 
 | | |
 |---|---|
-| **Vallo commission** | **0.5%** (`commission_bps = 50`) on every transaction, both rails |
+| **Vallo commission** | **2%** (`commission_bps = 200`) on every transaction, both rails |
 | **Vallo Guarantee** | **Retired. `guarantee_bps = 0`.** Machinery kept, rate zero |
 | **VAT** | **Not charged. `vat_bps = 0`, `vat_registered = false`** |
 | **Referral reward** | **70 naira** per qualified referral |
@@ -42,8 +42,8 @@ reserve leg is missing.
 ### Why no VAT
 
 Nigeria's VAT registration threshold is **25 million naira of turnover**, and
-turnover means Vallo's own revenue, which is the 0.5 percent, **not the value of
-the transactions it facilitates**. At 0.5 percent that is roughly 5 billion naira
+turnover means Vallo's own revenue, which is the 2 percent, **not the value of
+the transactions it facilitates**. At 2 percent that is roughly 1.25 billion naira
 of volume before the question arises. **Charging VAT while unregistered is an
 offence**, so the rate is zero and the flag is false.
 
@@ -60,15 +60,17 @@ because it is remitted to FIRS and was never Vallo's money.
 | | |
 |---|---|
 | Payluk | **2% of the escrow amount** (2.5% for escrows created in Payluk's own app) |
-| Vallo | 0.5% |
-| **Total** | **2.5%** |
+| Vallo | **2%** |
+| **Total** | **4%**, borne by the lister |
 
 Payluk's `whoPays` field takes `buyer`, `seller` or `both`. **The founder has not
 yet chosen.** Until he does, the rail cannot open, because the field is required
 at escrow creation.
 
 **Direct rail** (hotels, restaurants): Paystack's own fee, which **caps at 2,000
-naira**, plus Vallo's 0.5 percent. The cap means the direct rail gets
+naira**, plus Vallo's 2 percent. **No provider takes a percentage here, so Vallo
+keeps the whole 2 percent and the cost does not scale with the amount. The direct
+rail is where the margin is.** The cap means the direct rail gets
 proportionally cheaper as amounts rise, while the escrow rail does not cap at all.
 **On a large transaction the escrow rail is substantially more expensive**, and
 that difference will steer listers toward the rail with no protection unless the
@@ -178,3 +180,106 @@ threshold is stated before anybody starts earning.
 Separated **in the schema**, not merely in a report. Payluk cannot do a three-way
 split, so on the escrow rail Vallo's commission is a separate recorded movement,
 which makes this a ledger requirement rather than bookkeeping taste.
+
+---
+
+## 6. Who pays, and the agreement that records it
+
+**`whoPays: "seller"`.** The lister bears the fee on both rails. The renter or guest
+sees **exactly the price advertised**, with no line item and no footnote.
+
+**Why seller, in one line each.** It is what Booking.com, Uber, Amazon and Etsy do,
+and the buyer seeing one clean price is the dominant professional model. Vallo
+already publishes **"VALLO CHARGES NO INSPECTION FEE"** and *"Viewing a property
+through Vallo is free"*, so a charge appearing at a renter's checkout would
+contradict a live promise. And in Nigeria the renter already pays roughly 20
+percent in agency and legal fees on top of rent, so adding to that side would make
+Vallo part of the problem it was built to solve.
+
+**For the lister this is a reduction, not a new cost**, and that is the sales
+sentence: a lister replacing a 10 percent agent with Vallo's 4 percent **keeps 96
+percent instead of 90**. On 1,800,000 naira of rent that is 108,000 naira more in
+their hand.
+
+### The agreement gate
+
+A lister cannot publish until they have seen the exact figures and accepted them.
+
+```
+Rent you set            1,800,000
+Platform fee (4%)          72,000
+You receive             1,728,000
+```
+
+Rules, all enforced server-side:
+
+1. **Figures, not a percentage alone.** The naira amount and the net figure, on the
+   listing's own numbers.
+2. **Acceptance is recorded** against the listing with the member, the timestamp,
+   and **the rate version in force at that moment**.
+3. **A rate change never applies retroactively to an accepted listing.** If the
+   rate moves, the lister is asked again, and keeps the old rate until they accept
+   the new one.
+4. **The same figures reappear at payout.** A deduction a lister first understands
+   when the money arrives is how a landlord is lost permanently.
+
+---
+
+## 7. Where the commission actually lands, and the job that is easy to forget
+
+**Paystack rail: automatic.** `apps/web/src/lib/payments/paystack.ts` builds a flat
+split with `bearer_subaccount` set to the lister, so the lister bears Paystack's
+processing fee as well. The subaccounts array carries the lister's share and, when
+non-zero, the Guarantee leg. **Vallo's commission is not a subaccount: it is the
+remainder, and it settles to Vallo's own main account by itself.** Nothing to
+collect. Note that at `guarantee_bps = 0` the reserve leg is skipped entirely
+(`if (split.guaranteeMinor > 0)`), which is the evidence that the
+`PAYSTACK_GUARANTEE_SUBACCOUNT` blocker should lift. **Session 2 verifies it.**
+
+**Payluk rail: not automatic, and this needs a job.** Payluk's own documentation:
+*"plus your own commission, if you set one in your merchant settings ... credited
+to your merchant wallet as a `commission` transaction"*, and *"Commission is
+charged once, as on a completion."*
+
+So Vallo's 2 percent on escrow is **a setting in Payluk's merchant dashboard**, not
+a value passed per transaction, and it **accrues inside Vallo's Payluk merchant
+wallet** until somebody withdraws it. That difference is a real operational risk:
+Paystack revenue arrives on its own, Payluk revenue piles up somewhere nobody is
+watching.
+
+**Required:** a scheduled sweep that reads the merchant balance
+(`GET` merchant balance), withdraws to Vallo's bank, records the movement in the
+ledger as **Vallo revenue** and never as customer funds, and an admin surface
+showing the merchant balance, the last sweep and anything that failed. Paced
+against the ten-requests-per-minute limit.
+
+---
+
+## 8. What this pricing is, measured against the market
+
+| | Platform take |
+|---|---|
+| Uber | ~25% |
+| Booking.com | 15 to 20% |
+| Airbnb | ~17% (3% host, 14% guest) |
+| **Nigerian estate agents** | **~20%** (10% agency, 10% legal), **paid by the renter** |
+| **Vallo, escrow rail** | **4%**, paid by the lister |
+| **Vallo, direct rail** | **2%** plus a capped Paystack fee, paid by the lister |
+
+**Vallo is between four and six times cheaper than every comparable, and the renter
+pays nothing.** There is no competitor in this market offering that, and it is a
+sentence that fits on a billboard.
+
+**Two things to keep in view as volume grows.** On the escrow rail Vallo pays
+Payluk 2 percent and keeps 2 percent, so **half of the fee is infrastructure cost**,
+which is worth renegotiating once there is volume to negotiate with. And **raising
+a price later is far harder than setting it now**: the direct rail, where no
+provider takes a percentage and Paystack's fee caps at 2,000 naira, is the better
+margin and may be the better business.
+
+**One rate that should not stay flat: sale and land.** Four percent of 80,000,000
+naira is 3,200,000, which no seller will accept, while 2 percent to Vallo on that
+same sale is the largest single transaction the platform will see.
+`money_policy` holds rates in basis points, so a per-space-type rate with an
+absolute cap above a threshold is one row. **Decide it before the first land
+listing, not after.**

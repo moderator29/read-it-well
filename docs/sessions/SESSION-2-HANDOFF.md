@@ -807,3 +807,25 @@ before sending, and never marked paid before the provider confirms.
 
 **Three pots separated in the schema**: customer funds at the provider, Vallo
 revenue, the marketing float. Not three columns on one table.
+
+### The 2 percent, the agreement gate, and the sweep (D51 final)
+
+`commission_bps = 200`. **Escrow total 4 percent** (Payluk 2 + Vallo 2), **direct
+rail 2 percent** plus Paystack's capped fee, **`whoPays: "seller"`** on both.
+
+**The agreement gate is server-side and it is yours.** A listing cannot publish
+until its owner has accepted the figures. Store the member, the timestamp and
+**the rate version**. A rate change never applies retroactively: the lister keeps
+the accepted rate until they accept a new one. Enforce it in the publish path, not
+in the UI, because a UI-only gate is not a gate.
+
+**Build the Payluk commission sweep.** Vallo's 2 percent on escrow is a merchant
+dashboard setting and accrues in Vallo's Payluk merchant wallet; unlike Paystack it
+does not arrive by itself. Read the merchant balance, withdraw to Vallo's bank,
+record it as **Vallo revenue and never customer funds**, surface the balance, the
+last sweep and any failure on the Money desk, and pace it against ten requests per
+minute.
+
+**Per-space-type rates.** Four percent of a land sale is unsellable. Make
+`commission_bps` resolvable per space type with an absolute cap above a threshold,
+even if every type starts at 200 today.

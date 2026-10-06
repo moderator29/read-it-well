@@ -414,3 +414,13 @@ any surface, in any payload, including a server response the UI does not render.
 
 **Confirm the platform-wide referral budget cap is enforced server-side** and
 cannot be exceeded by concurrent qualification.
+
+### The 2 percent and the agreement gate (D51 final)
+
+Verify: **no fee line ever reaches a renter or guest surface**, on any rail, in any
+payload. **The agreement gate is enforced server-side** and a listing cannot
+publish without a recorded acceptance carrying a rate version. **A rate change
+cannot alter an accepted listing's rate retroactively**, which needs a test, not an
+inspection. **The Payluk commission sweep records to Vallo revenue** and never to
+customer funds. And the figures a lister accepted at publish are **the same figures
+shown at payout**.

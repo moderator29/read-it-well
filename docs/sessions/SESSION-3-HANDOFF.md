@@ -961,3 +961,25 @@ downline, a tree or anything resembling one may not.
 
 **The share message sells the product, not the bounty.** "Join me on Vallo", never
 "join so I can earn".
+
+### The 2 percent and the agreement gate (D51 final)
+
+**The renter and guest see exactly the advertised price.** No fee line, no
+footnote, no asterisk. `whoPays` is the seller on both rails.
+
+**The lister sees the full arithmetic before they publish, and must accept it:**
+
+```
+Rent you set            1,800,000
+Platform fee (4%)          72,000
+You receive             1,728,000
+```
+
+Naira figures on their own numbers, never a bare percentage. The accept action is
+explicit, and **the same figures reappear at payout**: a deduction a landlord first
+understands when the money arrives is how a landlord is lost permanently.
+
+**The sales sentence, which belongs in the lister-facing copy:** a lister
+replacing a 10 percent agent **keeps 96 percent instead of 90**, which is 108,000
+naira more on 1,800,000 of rent. Frame it as what they keep, never as what Vallo
+takes.
