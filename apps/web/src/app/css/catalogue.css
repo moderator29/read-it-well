@@ -3072,3 +3072,56 @@
     height: 2.25rem;
     flex-shrink: 0;
   }}
+
+/*
+ * SEARCH TO RESULTS (Session 3, W2; MOTION_SYSTEM section 5). The field lands
+ * from the pill that sent the search (`SearchPillMorph.tsx`, measured, on
+ * framer's `animate`); the filter chips beneath it crossfade in once it is
+ * nearly home, on `glide` at 160ms, so the eye follows the pill first and the
+ * row second. Opacity only, so nothing shifts. Reduced motion collapses the
+ * token to 1ms; Calm and Off are `motion-pref.css`'s.
+ */
+@layer components {
+  .nf-shelf-bar .nf-shelf-chips {
+    animation: nf-shelf-chips-in var(--nf-duration-fast) var(--nf-ease-standard) both;
+    animation-delay: calc(var(--nf-duration-slow) * 0.6);
+  }
+  @keyframes nf-shelf-chips-in {
+    from {
+      opacity: 0;
+    }
+  }
+}
+
+/*
+ * THE RESULT CARD'S SKELETON (`ResultSkeleton.tsx`): the card's own shape,
+ * with the photograph's frame hatched at 135 degrees, the chart system's mark
+ * for "nothing here yet" (charts.css), so the waiting frame reads as a frame
+ * and not as a grey slab. Token colours only; one edge treatment, the card's.
+ */
+@layer components {
+  .nf-rskel__media {
+    display: block;
+    aspect-ratio: 4 / 3;
+    margin: var(--nf-space-2xs);
+    border-radius: calc(var(--nf-container-radius) - var(--nf-space-2xs));
+    background:
+      repeating-linear-gradient(
+        135deg,
+        var(--nf-chart-hatch, var(--nf-border-default)) 0 1px,
+        transparent 1px 8px
+      ),
+      var(--nf-media-ground-to);
+    opacity: 0.7;
+  }
+  .nf-rskel__body {
+    padding: var(--nf-space-xs) var(--nf-space-sm) var(--nf-space-sm);
+  }
+  .nf-rskel__facts {
+    display: flex;
+    gap: var(--nf-space-sm);
+    margin-top: var(--nf-space-sm);
+    padding-top: var(--nf-space-xs);
+    border-top: var(--nf-border-width) solid var(--nf-panel-hair);
+  }
+}

@@ -1,5 +1,5 @@
-import { Skeleton, SkeletonCard } from "@/components/ui/Skeleton";
-import { panelClass } from "@/components/ui/Panel";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { ResultGridSkeleton } from "@/components/app/search/ResultSkeleton";
 import { LoadingShell } from "@/components/app/ScreenSkeleton";
 
 /**
@@ -36,13 +36,12 @@ export default function LoadingSearch() {
         <Skeleton width="8rem" height="2.75rem" radius="sm" className="shrink-0" />
       </div>
 
-      <ul className="mt-md grid grid-cols-1 gap-md sm:grid-cols-2 lg:grid-cols-3">
-        {Array.from({ length: 6 }, (_, i) => (
-          <li key={i}>
-            <SkeletonCard className={panelClass({ variant: "card", className: "p-0" })} />
-          </li>
-        ))}
-      </ul>
+      {/* The results grid as it will draw: two across on a phone, four from
+          `lg`, each slot the result card's own shape (`ResultSkeleton.tsx`),
+          the move-in figure the widest bar because it is what leads. */}
+      <div className="mt-md">
+        <ResultGridSkeleton count={6} />
+      </div>
     </LoadingShell>
   );
 }

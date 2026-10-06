@@ -3,6 +3,7 @@ import type { Dictionary } from "@vallo/i18n/core";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ICON } from "@/components/app/Screen";
 import { RecentSearches } from "@/components/app/search/RecentSearches";
+import { PillLanding, PillOrigin } from "@/components/app/search/SearchPillMorph";
 
 /**
  * "Where are you going?" with the filter glyph beside it, to FD3DFE84.
@@ -33,7 +34,8 @@ export function StaySearchBar({
   return (
     <div>
     <div className="flex items-center gap-inline">
-      <form action="/stays/search" method="get" role="search" className="nf-shelf-field">
+      {/* Lands from the Stays home's pill (`SearchPillMorph.tsx`). */}
+      <PillLanding path="/stays/search" action="/stays/search" method="get" role="search" className="nf-shelf-field">
         <UiIcon name="search" size={ICON.inline} />
         <label htmlFor="stays-q" className="sr-only">
           {copy.search}
@@ -53,7 +55,8 @@ export function StaySearchBar({
         <button type="submit" aria-label={copy.search} className="nf-shelf-field__go">
           <UiIcon name="arrow-right" size={ICON.inline} />
         </button>
-      </form>
+        <PillOrigin path="/stays/search" />
+      </PillLanding>
       {filtersControl ??
         (filtersHref ? (
           <Link href={filtersHref} aria-label={copy.filters} className="nf-shelf-square">

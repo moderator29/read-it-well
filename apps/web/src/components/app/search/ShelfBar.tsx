@@ -7,6 +7,7 @@ import type { Anchor } from "@/lib/listings/commute";
 import { kindLabel } from "@/lib/listings/search-params";
 import { ICON } from "@/components/app/Screen";
 import { RecentSearches } from "./RecentSearches";
+import { PillLanding, PillOrigin } from "./SearchPillMorph";
 import {
   MARKET_PARAM,
   shelfActiveCount,
@@ -107,7 +108,9 @@ export function ShelfBar({
     <div className="nf-shelf-bar nf-glass--chrome">
       <div className="mx-auto flex max-w-3xl items-center gap-inline">
         {leading}
-        <form action="/search" method="get" role="search" className="nf-shelf-field">
+        {/* The results header's field lands from the pill that sent the
+            search (`SearchPillMorph.tsx`); it is the same GET form either way. */}
+        <PillLanding path="/search" action="/search" method="get" role="search" className="nf-shelf-field">
           <UiIcon name="search" size={ICON.inline} />
           <label htmlFor="shelf-q" className="sr-only">
             {copy.search}
@@ -128,7 +131,8 @@ export function ShelfBar({
           <button type="submit" aria-label={copy.search} className="nf-shelf-field__go">
             <UiIcon name="arrow-right" size={ICON.inline} />
           </button>
-        </form>
+          <PillOrigin path="/search" />
+        </PillLanding>
         <FilterDrawer
           query={query}
           facts={facts}
