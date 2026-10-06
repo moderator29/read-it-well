@@ -102,4 +102,10 @@ export const experienceSettingsEn = {
     numbers: "Numbers",
     numbersSub: "Written with commas between thousands and a point before kobo, in every language.",
   },
+
+  /* ------------------------------------------------------------- appearance */
+  appearance: {
+    /** The note under the theme control on `/settings/appearance`. */
+    themeNote: "Dark is the default. System follows your phone.",
+  },
 };

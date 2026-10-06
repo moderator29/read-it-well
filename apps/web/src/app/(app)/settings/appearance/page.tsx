@@ -37,7 +37,7 @@ export default async function AppearanceSettingsPage() {
           same control as the foot of the side navigation, so the choice made
           in either place is the choice shown in both. */}
       <section id="settings-theme" className="mb-block">
-        <SettingsGroup label={t.settings.appearance.theme} note="Dark is the default. System follows your phone.">
+        <SettingsGroup label={t.settings.appearance.theme} note={t.experienceSettings.appearance.themeNote}>
           <div className="px-md py-sm">
             <ThemeControl
               labels={{
