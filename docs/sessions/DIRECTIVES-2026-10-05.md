@@ -804,6 +804,570 @@ committed and pushed as it is done, cleanly, without sessions conflicting.
 | **D1's per-surface theme lead** | **D28.1: the member's theme governs; Paper becomes a document treatment within it** |
 | Session 4's "needs from the founder first" on the live reserve subaccount | D38 |
 | Session 3's decision not to add framer-motion in this pass | D39 |
+| D39 section 4's single owner for the lockfile | D46 |
+| Reading a cancelled check as anything other than "did not run" | D47 |
+| Treating retired custody language as a naming tidy-up | D48 |
+| **D39's LazyMotion requirement** | **D49: it is dead weight here and comes out** |
+| **D48's reading that no balance may ever exist** | **D50: a balance held by a licensed provider may be presented, under four conditions** |
+| **The Vallo Guarantee at 1 to 2 percent** | **D51: retired to zero, machinery kept** |
+
+---
+
+## D51. Pricing, the Guarantee retired, and the referral engine
+
+**Founder decisions, 6 October 2026.** Full detail and the maths in
+`docs/payments/VALLO_PRICING.md`. Every rate is **policy data in `money_policy`**,
+in basis points or kobo. Changing a price is a row, never a deploy.
+
+### The rates
+
+**Vallo commission 2 percent** (`commission_bps = 200`), both rails. The leg
+already exists: `commission_minor` is in the split today, at zero. **Escrow rail
+total is 4 percent**, Payluk's 2 plus Vallo's 2, borne by the lister. **Direct rail
+is 2 percent plus Paystack's capped fee**, and because no provider takes a
+percentage there, Vallo keeps the whole 2 percent and the cost does not scale: the
+direct rail is where the margin is.
+
+**The Guarantee is retired. `guarantee_bps = 0`.** Escrow already holds the money
+until conditions are met, so charging again for the same promise meant 4 percent
+off the lister on a platform with no listers to lose. It also had the shape of
+insurance, which `THE_HUNDRED.md` already refuses elsewhere as NAICOM-regulated,
+and nobody had decided what happens to unclaimed money. **The machinery stays
+built at zero**, switchable per rail in one row if the direct rail later shows
+fraud.
+
+Two pieces of work follow: **every Guarantee sentence comes out** of
+`lib/money/copy.ts`, the Terms, the help centre and the emails, replaced with what
+is now true, *your payment is held until you confirm*; and
+**`PAYSTACK_GUARANTEE_SUBACCOUNT` may stop being a blocker**, since there is no
+reserve leg to route. **Session 2 verifies that, never assumes it**, because the
+split currently refuses a charge whose reserve leg is missing.
+
+**VAT is not charged. `vat_bps = 0`, `vat_registered = false`.** Nigeria's
+threshold is 25 million naira of **turnover, meaning Vallo's own revenue**, which
+is the 2 percent and not the value of transactions facilitated. **Charging VAT
+while unregistered is an offence.** When it is switched on it applies to Vallo's
+fee only, never the rent, and is recorded as its own ledger line because it is
+remitted to FIRS and was never Vallo's money.
+
+### Withdrawals
+
+Minimum **1,000 naira**. Bands as the founder set them, with two Session 1
+corrections, both overridable:
+
+- **The 100,000 to 200,000 gap is closed**: the 200 naira band starts at 100,000,
+  so the table is continuous. A pricing table with a hole is a support ticket.
+- **The 2,000,000 cliff is smoothed.** At 1,999,999 the fee is 300 and at
+  2,000,001 it is 2,500, so anyone withdrawing 2.5 million sends two withdrawals
+  and pays 600. The top band becomes a percentage with a cap.
+
+**And the context the founder asked for: the CBN caps bank NIP transfers at 50
+naira above 50,000, and Paystack's own transfer pricing is 10, 25 and 50 naira.** A
+member's own bank moves 2 million naira for 50. The under-100,000 band at 50 naira
+matches the market exactly; the upper bands are far above it, and they are also
+the ones that will almost never fire at launch, since referral payouts run from
+1,000 to 105,000 naira.
+
+**The operational rule that governs every withdrawal.** Payluk does not publish
+its withdrawal fee and it is not fixed: *"Payluk sets the `fee` on the returned
+intent; you do not send it ... The fee depends on the amount and on which provider
+Payluk currently settles payouts through, and it may include VAT."* So: **create
+the intent, read the provider fee back, add Vallo's band, show one total before
+the member confirms.** Never compute a withdrawal from a hardcoded table, never
+quote before the intent exists, and reconcile against the figure read back.
+
+**Payluk's 2 percent is escrow only.** Withdrawals, deposits and transfers carry
+their own separate, variable fee. Deposits are card top-ups charged through
+Paystack underneath, minimum 100 naira.
+
+### Referral
+
+**70 naira per qualified referral, 1,500 qualified referrals per member per
+month**, which is **105,000 naira per member per month at the ceiling**.
+
+**So the cap is not the fraud control at that level; qualification is.** Three
+requirements follow:
+
+1. **Qualification is phone verified AND a real action** by the referred person,
+   never a signup. A SIM costs less than 70 naira of effort.
+2. **A platform-wide monthly budget cap**, server-side, separate from the
+   per-member cap, so one viral moment cannot create a liability Vallo cannot fund.
+3. **1,500 a month is 50 a day**, which is a professional rather than a member.
+   Consider whether that volume should move somebody into a reviewed ambassador
+   tier instead of accruing automatically.
+
+**It is a Rewards Balance and never a wallet.** Vallo owing a member money is a
+different legal object from Vallo holding a member's money. It accrues as a
+liability from qualification, it never expires, and the threshold is stated before
+anybody starts earning.
+
+**Payout rail is Paystack transfers from a Vallo-funded marketing float**, not
+Payluk: the money is Vallo's own marketing spend, so no custody question arises,
+and it avoids forcing a referrer through provider KYC to collect a small sum.
+
+### The three pots, separated in the schema and not merely in a report
+
+**Customer funds** (the member's, at the provider) · **Vallo revenue** (commission,
+withdrawal fees, promotion) · **the marketing float** (Vallo's, funding referral
+payouts). Payluk cannot do a three-way split, so on the escrow rail Vallo's
+commission is a separate recorded movement, which makes the separation a ledger
+requirement.
+
+### Who pays, and the agreement that records it
+
+**`whoPays: "seller"`, decided 6 October.** The lister bears the fee on both rails
+and the renter sees exactly the advertised price, no line item, no footnote. It is
+the Booking.com, Uber, Amazon and Etsy model; Vallo already publishes "VALLO
+CHARGES NO INSPECTION FEE", so a renter-side charge would contradict a live
+promise; and a Nigerian renter already pays roughly 20 percent in agency and legal
+fees, so charging that side would make Vallo part of the problem it exists to
+solve. For a lister replacing a 10 percent agent, 4 percent is a **reduction**:
+they keep 96 percent instead of 90, which is 108,000 naira more on 1,800,000 of
+rent.
+
+**A lister cannot publish until they accept the figures**, and acceptance is
+recorded server-side with the member, the timestamp and **the rate version in
+force**. Figures in naira, not a bare percentage. A rate change **never** applies
+retroactively to an accepted listing: the lister is asked again and keeps the old
+rate until they accept the new one. The same figures reappear at payout, because a
+deduction a landlord first understands when the money arrives is how a landlord is
+lost permanently.
+
+### Where the commission lands, and the job that is easy to forget
+
+**Paystack: automatic.** The split sets `bearer_subaccount` to the lister, so the
+lister bears the processing fee too; **Vallo's commission is the remainder and
+settles to Vallo's own main account by itself**. At `guarantee_bps = 0` the reserve
+leg is skipped entirely (`if (split.guaranteeMinor > 0)`), which is the evidence
+the `PAYSTACK_GUARANTEE_SUBACCOUNT` blocker lifts. **Verify, do not assume.**
+
+**Payluk: not automatic.** Its documentation: *"plus your own commission, if you
+set one in your merchant settings ... credited to your merchant wallet as a
+`commission` transaction"*. So Vallo's 2 percent on escrow is **a merchant
+dashboard setting** and it **accrues inside Vallo's Payluk merchant wallet** until
+somebody withdraws it. Paystack revenue arrives on its own; **Payluk revenue piles
+up where nobody is watching.** Required: a scheduled sweep reading the merchant
+balance, withdrawing to Vallo's bank, recording the movement as **Vallo revenue and
+never customer funds**, with an admin surface showing the balance, the last sweep
+and any failure, paced against the ten-per-minute limit.
+
+### One rate that should not stay flat
+
+**Sale and land.** Four percent of 80,000,000 naira is 3,200,000, which no seller
+will accept, while 2 percent to Vallo on that sale is the largest single
+transaction the platform will ever see. `money_policy` holds rates in basis points,
+so a per-space-type rate with an absolute cap above a threshold is one row.
+**Decide it before the first land listing.**
+
+---
+
+## D50. Vallo presents, the provider holds. The financial layer is Vallo's product
+
+**The founder's brief of 6 October, and it corrects Session 1.** Full translation
+in `docs/payments/VALLO_FINANCIAL_LAYER.md`; read it before any money surface.
+
+### The sentence, which is the founder's own and is now the platform's
+
+> **Vallo uses regulated financial infrastructure partners to process and protect
+> eligible transactions. Vallo does not hold customer funds.**
+
+Shorter, for a screen: **"Payments are processed through Vallo's financial
+infrastructure partners."** For a protected payment: **"Your payment is protected
+through Vallo's transaction infrastructure."**
+
+### What Session 1 got wrong, stated plainly
+
+This morning Session 1 told the founder there is no wallet and there can never be
+one, and read his request for a premium wallet surface as meaning only the
+existing money screens. **That was half right and the wrong half was asserted most
+firmly.** ADR-0002 forbids **Vallo** holding client funds, because that is CBN
+regulated and outside the objects clause. It says nothing about a licensed third
+party holding them, and Payluk is one. Under the Paystack-only rail nobody held
+anything, so "no balance anywhere" was true by accident rather than by rule.
+
+**Verified against Payluk's own API:** `GET /v1/wallet` returns a customer's
+**main balance** and **escrow balance**; withdrawals run through a payment intent
+with a bank code; **verify account number** resolves the account name before the
+withdrawal is created; payment history covers deposits, withdrawals, transfers,
+wallet transfers and escrow payments. **Every surface the founder described has a
+real endpoint behind it.**
+
+### The four conditions, all of which must hold
+
+A balance surface ships only when:
+
+1. **The money is held by the licensed provider**, in that member's own account
+   there, never by Vallo.
+2. **No Vallo sentence says or implies Vallo holds, keeps, owns or guarantees
+   it.** "Your money is 100 percent safe" is forbidden; so is any guarantee of an
+   outcome Vallo cannot deliver.
+3. **ADR-0003 is accepted, not proposed**, and the merchant account is live.
+4. **The words come from `lib/money/copy.ts`, per rail**, so Terms, help centre,
+   emails and screens cannot drift.
+
+**D48 is unchanged in the meantime.** The `wallet`, `escrow` and `withdrawal`
+strings in `experience-features.en.ts` describe custody by Vallo on a rail that
+does not exist, and they come out now. What replaces them later is different copy,
+written against a live rail, naming who actually holds the money.
+
+### Provider abstraction, and the line the founder drew himself
+
+**Vallo is the product; the provider is infrastructure.** The frontend consumes
+`Payment`, `Protected`, `Withdrawal`, `Receipt`, never `PaylukEscrow` or
+`PaystackCheckout`. Provider vocabulary, statuses and errors stay inside the
+adapter, behind a Vallo status vocabulary and Vallo error language.
+
+**And the founder's own limit is binding: "clean abstraction, not deceptive
+concealment."** Where a provider name is required by a card-network rule, a
+banking rule, a provider agreement, a receipt, a KYC flow, the Terms or a
+transaction disclosure, **it is shown**. The abstraction governs the product
+surface, never the legal surface. A hosted checkout that cannot be embedded is an
+infrastructure boundary to be explained, not dressed up as Vallo's own page.
+
+**Never fabricate**, which this repository already bans for figures and now states
+for status: no invented chain hash on a fiat payment, no provider reference
+relabelled as a transaction hash, and never "Payment successful" before the
+provider has confirmed it. "Processing" must be real.
+
+### The three constraints that shape every design here
+
+1. **Payluk charges 2 percent** of the escrow amount, on top of the Guarantee's 1
+   to 2 percent. The escrow rail costs more than the direct rail and **True Cost
+   must show it.** Who absorbs it is the founder's decision and is not made.
+2. **There is no plain cancel and refund.** The only route from a funded escrow
+   back to a buyer is a dispute resolved as `REFUNDED`, so the dispute surface
+   **is** the cancellation path. It cannot be called "dispute" to two people who
+   simply agreed to stop.
+3. **Ten requests per minute per key.** Routing, health checks, search and every
+   reconciliation sweep are bounded by it. Any call per listing or per render is
+   already broken.
+
+### And the one that is purely architectural
+
+**Payluk cannot do a three-way split.** Paystack divides lister, Guarantee and
+Vallo in a single transaction; Payluk does not. On the escrow rail the Guarantee
+contribution and Vallo's commission are separate recorded movements, which makes
+the brief's revenue separation the only thing keeping customer money and Vallo
+money apart on that rail. It is a ledger requirement, not bookkeeping taste.
+
+---
+
+## D49. The code review, and the directive of mine that cost 31 KB on every route
+
+A fourth audit reviewed Session 3's 290 new non-test modules. Its findings, with
+the two Session 1 verified directly, and one correction Session 1 owes.
+
+### D49.1. Remove `MotionProvider`. D39 was wrong for this codebase
+
+**Verified 6 October:** `grep -cE '<m\.[a-z]'` across `apps/web/src` returns
+**zero**. Not one `m` element exists. Yet `app/layout.tsx:500` mounts
+`MotionProvider`, which wraps the whole app in `LazyMotion features={loadFeatures}
+strict` and imports `domAnimation`.
+
+By the component's own measurements that is **7.0 KB gz for `LazyMotion` and
+`MotionConfig`, plus a 24.1 KB gz `motion-features` chunk fetched after first paint
+on every route**, for nothing. `strict` is meaningless without `m` elements, and
+`MotionConfig reducedMotion` is redundant because every ported component already
+routes through `springFor(quiet, ...)`.
+
+**This is Session 1's mistake, not Session 3's.** D39 section 2 said framer-motion
+is installed "as D34 set out: `LazyMotion` with `domAnimation` and the `m`
+namespace". Session 3 complied exactly. But the components it then built use
+`useMotionValue`, `useTransform` and `animate` through its own `useDrive`
+(`ported-motion.ts:83`), and **all three of those are renderer-independent**: they
+never needed `domAnimation` at all. The directive specified a delivery mechanism
+for a renderer the work does not use, and compliance cost 31 KB on every route.
+
+**So: delete `MotionProvider` from `layout.tsx:500` and delete
+`motion-features.ts`.** D39's real rule survives and is unchanged: **never a
+top-level `motion` import**, which `eslint.config.mjs:209-233` enforces and which
+the branch satisfies with zero violations. If an `m` element is ever genuinely
+wanted, `LazyMotion` comes back with it and not before.
+
+### D49.2. Money moves on one keystroke, and a test pins it
+
+**Verified:** `components/ui/DragToConfirm.tsx:319-326`. `onClick` treats
+`e.detail === 0`, which is how Enter, Space and a screen reader's activate arrive,
+as a completed confirmation and calls `commit()` at once. A pointer user must cover
+**90 percent** of the track (`THRESHOLD = 0.9`). A keyboard or assistive-technology
+user gets the same irreversible `money: true` transfer **from a single Enter**, and
+`DragToConfirm.dom.test.tsx:249` cements it as intended.
+
+The handle is a plain `<button>`: no `role="slider"`, no `aria-valuenow`, no Arrow
+handling. **Fix:** make it a real slider advanced by Arrow keys, or require a second
+explicit keypress when `money` is true. The whole point of this control is that
+money should be hard to move by accident, and today it is hard for exactly the
+people who can use a pointer.
+
+Related, same file, lines 266 to 278: the `catch` discards the exception and a
+**declined** result and a **crashed** request land in the same branch with nothing
+reported. Use `reportError` from `lib/observability/report.ts:214`.
+
+### D49.3. The rest, by severity
+
+- **A toast that lies.** `social/badges/BadgeMoment.tsx:87-90` shows "Copied"
+  unconditionally, before and regardless of the clipboard promise. It is also the
+  nineteenth hand-rolled clipboard path in a repository whose `lib/ui/clipboard.ts`
+  exists precisely because eighteen others did this. Use `shareOrCopy` and branch on
+  its outcome.
+- **A celebration that can be farmed.** `app/streaks/EarnedMoment.tsx:66` replays on
+  every click with a heavy haptic each time, contradicting its own doc comment and
+  the `replayed` latch its twin `BadgeMoment.tsx:73-77` uses with the note that "a
+  celebration that can be farmed by tapping is a slot machine". The two components
+  are the same spec built twice, with two stylesheets, two medal sizes and two
+  different motion gates. Add the latch, then collapse them into one.
+- **A chart that re-renders 23 times per animation.** `charts/TrendLine.tsx:351`
+  calls `setDrawn` inside the animation frame loop, reconciling both SVG paths and
+  an unmemoized `ChartTable` with a freshly built `rows` array on every frame. It is
+  the only per-frame `setState` in the new work and it contradicts the no-render-per
+  -frame rule its siblings document.
+- **Nine server reads swallow exceptions silently**, returning "unavailable"
+  forever with no `reportError`, so schema drift or an RLS misconfiguration is
+  invisible in production. Listed in the audit; all take one line each.
+- **The gallery's motion switch does not reach the components it exists to judge.**
+  `motion-pref.ts:89-95` sets attributes without dispatching `MOTION_EVENT`, and
+  `useMotionGate` never observes `data-motion`, so every primitive on the review
+  board keeps a stale gate until remount.
+- **48 dead exports and 14 dead copy keys**, including half of
+  `agent/intel/space-model.ts` and all three of `ported-motion.ts`'s ease constants.
+- **Thirteen stateful or money-arithmetic components with no test**, including
+  `AreaAskingChart` (money), `MoveInBand` (money), `SearchPillMorph` (motion state)
+  and `OsTabs` (keyboard).
+- **`ConsolePalette.tsx:127-136`** hijacks Ctrl/Cmd+K inside any admin textarea and
+  stacks a second `aria-modal` dialog over an open sheet.
+- **`use-overlay.ts:47-60`** locks scroll with `body.overflow` alone, which does not
+  hold on iOS Safari, and every new sheet inherits it.
+
+### D49.4. What the review found clean, which is worth stating
+
+**Zero `any` in new code. Zero hardcoded user-facing strings**: every new component
+takes a `copy` or `words` prop with no defaults, checked against aria-label, alt,
+title, placeholder and JSX text. D39's real rule satisfied with zero violations and
+a lint enforcing it. The thirteen non-null assertions are all index accesses behind
+a bounds check. No file over roughly 400 lines. One unused CSS class across every
+new stylesheet.
+
+That is a high standard, and it is why the findings above are worth fixing rather
+than a reason to doubt the work.
+
+---
+
+## D48. Shipped copy tells members Vallo holds their money. Remove it before anything else on the experience branch
+
+Found 6 October by audit, verified by Session 1 against
+`origin/claude/vallo-experience-upgrade`. **This is a legal exposure, not a naming
+preference**, and it outranks every other item on Session 3's list.
+
+### What is in the bundle today
+
+`packages/i18n/src/locales/experience-features.en.ts`, lines 149 to 168, ships
+three feature-onboarding entries, verbatim:
+
+```
+wallet:     name: "your wallet"
+            p1Title: "Available and in escrow are different money"
+            action: "Open my wallet"
+escrow:     name: "escrow"
+            p1Title: "Who holds the money"
+            action: "Open escrow"
+withdrawal: name: "withdrawals"
+            action: "Start a withdrawal"
+```
+
+`apps/web/src/lib/money/copy.ts:17` ships, in the same build: **"Vallo never holds
+your money."** Both sentences are in the product. One of them is false, it is the
+one on the Terms and the money screens that is true, and ADR-0002 exists because
+holding client funds between two parties is regulated by the Central Bank of
+Nigeria and the company's objects clause does not cover it.
+
+**It is reachable code, not a dead string.**
+`components/app/feature-onboarding/first-runs.ts:45` holds
+`WAITING_FIRST_RUNS = ["wallet", "escrow", "withdrawal"]` and lines 180 to 209 wire
+`c.wallet.*`, `c.escrow.*` and `c.withdrawal.*` into panel content. It is gated
+only by those keys not being mounted. **One array edit publishes a screen that
+tells a member Vallo is holding their money.**
+
+### Two more, in live code
+
+- `apps/web/src/lib/profile/model.ts:28` declares `wallet: boolean` and line 85
+  defaults it `true`. It is a notification channel named `wallet`, **persisted in
+  `profiles.settings`**, rendered at `settings/AccountToggles.tsx:81, 110, 127,
+  149`. Members have a saved preference for notifications about a thing that
+  cannot exist.
+- `apps/web/src/components/auth/auth-intent.ts:48` lists `"wallet"` as a valid
+  gated action. `/wallet` does not exist, so `?do=wallet` returns a member to a 404
+  after they sign in, and `auth-intent.test.ts:55` **asserts that behaviour**.
+
+### What Session 3 does, first, before any other round-two item
+
+1. Delete the `wallet`, `escrow` and `withdrawal` entries from
+   `experience-features.en.ts` and their wiring in `first-runs.ts`. Not renamed,
+   not commented out: deleted.
+2. Rename the `wallet` notification channel to what it is (`payments`), with a
+   migration that carries each member's existing preference across. **Session 2
+   owns the migration**; Session 3 owns the label and the toggle.
+3. Remove `"wallet"` from `auth-intent.ts` and change the test to assert it is
+   refused rather than that it 404s.
+4. Fix `InnerNav.tsx`'s own docstring, lines 23 to 27, which still names "the
+   wallet (transactions, methods, statements, limits)" and "escrow (conditions,
+   milestones, evidence, dispute)" as destinations the component serves.
+5. Sweep the dictionaries for the rest and delete what no renderer reads:
+   `en.ts:4103-4132`, `4173-4188`, `4320-4347` ("every wallet", "platform float",
+   "spendable balance", "top-up", "withdrawal holds", "Overdrawn wallets"), and
+   `compliance.en.ts:52`, which still lists "held payment" in a scope sentence.
+6. Leave alone what is legitimately named: withdrawing AI consent, withdrawing an
+   inspection request, a guest's own external crypto wallet, and `icon="wallet"`
+   glyph names.
+
+### And the rule this sets
+
+**A retired capability's words are retired with it, in the same commit.** ADR-0002
+is thirteen days old and its language survived in a shipped dictionary, in a
+persisted member preference, and in an auth path with a test pinning it. A
+decision that lives only in an ADR and a schema constraint is not enforced; it has
+to be swept out of the words too, and the sweep is part of retiring it rather than
+a follow-up somebody gets to later.
+
+### On the founder's request for a premium wallet surface
+
+The founder asked on 6 October to "make wallet look amazing with all settings on
+it". **Session 1 read that as the money surfaces**, payments history, earnings,
+receipts, payouts and checkout, made as rich as a wallet without ever implying a
+balance Vallo holds, and that reading governs until the founder says otherwise.
+**No session builds a wallet, a balance or a withdrawal.** Restoring custody is a
+legal decision requiring counsel and an ADR that supersedes 0002; it is not
+something a session infers from a design instruction.
+
+---
+
+## D47. The database probes silently did not run on the one PR that needed them most
+
+A third gate that measures nothing, found on 6 October, in the same class as the
+fifteen null weight budgets and the preview-harness accessibility scan Session 4
+caught. This one is worse, because it hid on a pull request full of migrations.
+
+**The evidence, from the three session pull requests' check runs.**
+
+| PR | Database probes | Started to completed |
+|---|---|---|
+| 83, Session 4 | one `cancelled`, one **`success`** | 19 s, then 92 s |
+| 85, Session 3 | **`success`** | 95 s |
+| **84, Session 2** | **`cancelled`, and nothing else** | **9 s** |
+
+A real run takes 92 to 95 seconds. Session 2's lasted nine, concluded `cancelled`,
+and had no successful companion. **So the pull request carrying this round's
+migrations and money changes was merged-ready with no RLS policy, grant or trigger
+checked at all**, and the check did not read red while that was true.
+
+**The cause.** `ci.yml`'s `db-probes` job declares `concurrency: group: db-probes`
+with `cancel-in-progress: false`. The group is global: it is not keyed on the ref,
+so every open pull request contends for one slot. `cancel-in-progress: false`
+protects the run that is already going, which is what its comment intends ("never
+cancelled halfway: every probe rolls back, but a killed client leaves its locks to
+time out"). It does nothing for a run still queued behind it, and a queued run that
+is superseded is cancelled. With four pull requests open at once, the middle ones
+lose.
+
+**Why this is the serious kind of mistake.** The author of that job already saw this
+exact danger from one direction and handled it well: when `PROBES_DATABASE_URL` is
+unset the job **fails on purpose**, with the comment "a job that passes without
+running is the blind light this job exists to remove, and must never be able to
+satisfy a required check." The cancellation path defeats that same intent by another
+route, because `cancelled` is not red either. The lesson generalises past this job:
+**a check has three outcomes, not two, and the third one means it did not run.**
+
+**Session 4 owns the fix**, since it owns CI. Required:
+
+1. **A cancelled probe run must not read as acceptable.** Whatever else changes,
+   the state where nobody checked the database must be as loud as a failure.
+2. **Key the concurrency group so independent branches do not evict each other**,
+   for example `db-probes-${{ github.ref }}`. Weigh it first and say which way you
+   went: the probes run against the **production** database because there is no
+   staging one, so per-ref grouping trades a silent gap for several branches
+   touching that database at once. Probes roll back and Postgres handles lock
+   contention, so this is likely right, but it is a judgement about production and
+   it belongs in your response file with the reasoning, not in a one-line diff.
+3. **Re-run the probes on PR 84's head** so Session 2's migrations are actually
+   checked before anything merges. Nothing in this directive is satisfied by a green
+   tick on a later commit; this round's migrations are what needed checking.
+
+### D47.1. The premise the trigger change rested on, stated and disproved
+
+Session 4 did not miss this. Its `ci.yml` comment reasons it through explicitly and
+reaches the wrong conclusion on one word: "`db-probes` runs on every push and it
+runs against the real database, **one at a time and never cancelled**
+(`concurrency: db-probes`). Three session branches pushing therefore **queue behind
+each other** and behind `main`. That is the intended trade."
+
+**They do not queue. The middle ones are cancelled.** `cancel-in-progress: false`
+protects the run that is already going; it does not make GitHub hold every waiting
+run. Only the most recent pending run in a group survives. PR 84's nine-second
+`cancelled` is the proof, and it means the stated trade, "a migration that revokes a
+grant an RLS policy needs is worth catching on the branch rather than after a
+merge", bought nothing on the one branch that carried migrations.
+
+**And the trigger now doubles the contention it was weighed against.** Since draft
+pull requests exist for all three session branches, a push to one matches **both**
+`push: claude/vallo-**` and `pull_request: [main]`, so every push starts two full
+check suites. PR 83 shows the duplicate rows plainly: two `Build`, two
+`Typecheck, lint, test`, two `Database probes`. That is double the CI minutes and
+double the eviction pressure on the single `db-probes` slot.
+
+Session 4's own comment already names the resolution: "A draft pull request per
+session branch is the better long-run answer, since `pull_request` already triggers;
+this trigger is what works without one." **The pull requests now exist**, so the
+branch push trigger has done its job and should go, leaving `main`, `pull_request`
+and `workflow_dispatch`. That halves the runs and removes most of the contention
+behind D47 before any change to the concurrency group is even needed. Session 4
+decides and records it; if it keeps the trigger, the concurrency fix in D47 carries
+the whole weight and must be right.
+
+**And the general rule, binding on every session from here.** When you report a
+check as passing, say which outcome you saw. `cancelled`, `skipped` and `neutral`
+are not passes, and a job that finishes far faster than its normal run did not do
+its normal work. Session 4 found two blind gates by reading the files rather than
+the logs; this one was found by reading a duration. Both beat trusting a summary.
+
+---
+
+## D46. The lockfile has two legitimate owners, and the order they land in is fixed
+
+D39 section 4 gave Session 3 sole ownership of `package.json` and
+`package-lock.json`, to stop six agents fighting over one file. That rule was right
+and it was incomplete: Session 4 had already changed the lockfile to clear
+`GHSA-68fv-2mgg-jv7q`, a high-severity advisory in `source-map-js`, before it could
+read D39 at all. Both changes are correct and neither should be reverted.
+
+**So the rule is split by reason, not by file.**
+
+- **Session 3 owns the lockfile for adding, removing or upgrading a dependency.**
+- **Session 4 owns it for a security advisory**, because the advisory job is its
+  gate and a high-severity fix does not wait for another session's queue.
+- Nobody else touches either file without saying so in their response file first.
+
+**Landing order, which is not negotiable because it decides who resolves a
+conflict.** Session 4's advisory fix lands on `main` first. It is one real version
+change, it is already proved (`Advisories` passes on PR 83 and fails on 84 and 85
+for exactly this reason), and every other branch goes green by merging `main`
+afterwards rather than by porting it. Session 3 then merges `main` into its branch
+and resolves the lockfile in favour of **both** changes: `framer-motion` added and
+`source-map-js` at 1.2.2. Regenerate with the repository's own tooling, never by
+hand, and note that the override alone does not take: npm kept the locked 1.2.1 and
+it needed `npm update` as well.
+
+**The `Advisories` check is not a required check.** PR 82 merged with it red, which
+settles it. So a red advisory on Session 2's or Session 3's branch does not block
+that branch and must not be treated as this-branch work: the fix exists, it is in
+Session 4's PR, and the answer is to merge `main` once it lands. Saying it is
+somebody else's failure is only allowed because it has been established here; a
+session that has not established it says what is failing rather than nothing.
+
+**The follow-up this exposed, and it is Session 4's.** `scripts/marketing`, merged
+to `main` in PR 82, carries its own `package.json` and lockfile and **nothing gates
+it**: the root workspaces are `apps/*` and `packages/*`, and every CI step runs with
+`working-directory: apps/web`. That is a second dependency tree with no typecheck,
+no lint and no `npm audit`, in the same repository where the audit job just caught a
+real high-severity advisory. Add it to the audit job.
 | Session 1's own claim that the repository's status documents are reliable | D40 |
 | "CI green before every push" as written in D37 | D42 |
 
