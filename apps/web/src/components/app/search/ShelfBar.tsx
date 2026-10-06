@@ -73,7 +73,7 @@ export function ShelfBar({
     query.intent === "sale"
       ? copy.marketBuy
       : query.kind
-        ? kindLabel(query.kind)
+        ? kindLabel(query.kind, t.experienceLabels.kinds)
         : query.intent === "rent"
           ? copy.marketRent
           : copy.anyMarket;
@@ -147,6 +147,7 @@ export function ShelfBar({
           unitCopy={t.shape.unit}
           anchors={anchors}
           commuteCopy={t.shape.commute}
+          kindCopy={t.experienceLabels}
           noFloodLabel={{ label: t.shape.neighbours.filterNoFlood, hint: t.shape.neighbours.filterNoFloodHint }}
           feesBasis={t.trustVisible.fees.sortBasis}
           openOnMount={openFilters}

@@ -57,7 +57,7 @@ const FILTERS = `
     <FilterDrawer query={parseShelfQuery({})} facts={[]} locale="en" copy={t.catalogue.filters}
       costCopy={t.moveIn} compoundCopy={t.shape.compound} sortCopy={t.shape.sorts}
       serviceCopy={t.shape.service} cashCopy={t.shape.cash} unitCopy={t.shape.unit}
-      commuteCopy={t.shape.commute} />,
+      commuteCopy={t.shape.commute} kindCopy={t.experienceLabels} />,
   );
 `;
 

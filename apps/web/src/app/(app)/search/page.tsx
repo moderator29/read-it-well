@@ -45,7 +45,7 @@ import { canonicalSearch, describeSearch } from "@/lib/saved/searches";
 import { SearchMemory } from "@/components/app/search/SearchMemory";
 import { findSavedSearch } from "@/lib/saved/searches-queries";
 import { SaveSearchControl } from "@/components/app/saved-searches/SaveSearchControl";
-import { KIND_NOUN, type SortKey } from "@/lib/listings/search-params";
+import { type SortKey } from "@/lib/listings/search-params";
 import { rankRecommended } from "@/lib/listings/ranking";
 import { feeSortKey } from "@/lib/listings/fee-share";
 import { readListingReference } from "@/lib/listings/reference";
@@ -444,7 +444,7 @@ export default async function SearchPage({
     }
   }
 
-  const noun = query.kind ? KIND_NOUN[query.kind] : { one: "place", many: "places" };
+  const noun = query.kind ? t.experienceLabels.kinds[query.kind] : t.experienceLabels.anyKind;
   const narrowed = shelfActiveCount(query) > 0 || Boolean(query.kind);
   const poolInKind = query.kind ? pool.filter((l) => l.kind === query.kind) : pool;
 
@@ -559,7 +559,7 @@ export default async function SearchPage({
           data-intent={intentKinds.join(",")}
           className="nf-caption mt-inline text-[var(--nf-content-muted)]"
         >
-          {sx.intentNote.replace("{kinds}", sentenceCase(intentKinds.map((kind) => KIND_NOUN[kind].many).join(", ")))}
+          {sx.intentNote.replace("{kinds}", sentenceCase(intentKinds.map((kind) => t.experienceLabels.kinds[kind].many).join(", ")))}
         </p>
       )}
 

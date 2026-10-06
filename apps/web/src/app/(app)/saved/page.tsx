@@ -79,7 +79,7 @@ export default async function SavedPage() {
 
   /* The copies are built here, from the same rows the cards draw, so the
      phone's copy cannot disagree with the card. */
-  const shelf = shelfCopies(entries.map((entry) => entry.listing));
+  const shelf = shelfCopies(entries.map((entry) => entry.listing), t.experienceLabels.periodShort);
 
   /* B3: the compare table for every saved property, most recent first; the
      reader picks two or three of its columns (SavedCompare). */
@@ -216,7 +216,7 @@ export default async function SavedPage() {
 }
 
 /** V-77: the phone's copies, stamped with the time of the read, not a render. */
-function shelfCopies(listings: Parameters<typeof shelfFromListing>[0][]) {
+function shelfCopies(listings: Parameters<typeof shelfFromListing>[0][], short: Parameters<typeof shelfFromListing>[2]) {
   const readAt = Date.now();
-  return listings.map((listing) => shelfFromListing(listing, readAt));
+  return listings.map((listing) => shelfFromListing(listing, readAt, short));
 }

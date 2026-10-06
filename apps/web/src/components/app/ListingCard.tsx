@@ -626,7 +626,7 @@ export function ListingCard({
                   locale={locale}
                   currency={listing.currency}
                   glance
-                  suffix={price.rentSuffix}
+                  suffix={t.experienceLabels.periodShort[price.rentPeriod]}
                   className="whitespace-nowrap font-semibold text-[var(--nf-content-secondary)]"
                   /* The kobo and the "/yr" on this line at the line's own
                      overline size, not a step under it: `0.85em` of the 12px

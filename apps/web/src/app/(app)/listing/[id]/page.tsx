@@ -22,9 +22,6 @@ import { siteUrl } from "@/lib/site";
 import { factsOf, sleeps } from "@/lib/listings/filter";
 import type { Listing } from "@/lib/listings/types";
 import {
-  PERIOD_SUFFIX,
-  FURNISHING_LABEL,
-  CONDITION_LABEL,
   type PricePeriod,
   type RentPeriod,
 } from "@/lib/listings/pricing";
@@ -194,9 +191,9 @@ const MARKET_PILL: Record<ListingMarket, { icon: UiIconName; tone: StatusTone }>
   experience: { icon: "ticket", tone: "info" },
 };
 
-/** "Lagos State" reads naturally; the FCT does not take the suffix. */
-function stateLabel(state: string): string {
-  return state === "FCT" ? "the FCT" : `${state} State`;
+/** "Lagos State" reads naturally; the FCT does not take the suffix. The words are the reader's (`experienceLabels`). */
+function stateLabel(state: string, words: { state: string; stateFct: string }): string {
+  return state === "FCT" ? words.stateFct : words.state.replace("{state}", state);
 }
 
 /**
@@ -449,8 +446,8 @@ export default async function ListingDetailPage({
   // An area is only worth naming when it says something the city does not.
   const where =
     listing.area && listing.area !== listing.city
-      ? `${listing.area}, ${listing.city}, ${stateLabel(listing.state)}`
-      : `${listing.city}, ${stateLabel(listing.state)}`;
+      ? `${listing.area}, ${listing.city}, ${stateLabel(listing.state, t.experienceLabels)}`
+      : `${listing.city}, ${stateLabel(listing.state, t.experienceLabels)}`;
 
   const L = sx.listing;
   const kindPhrase = L.kinds[listing.kind];
@@ -461,17 +458,18 @@ export default async function ListingDetailPage({
    *
    * This was a local ternary that could only ever answer "per year", "per
    * guest" or "per night", so a monthly rent read as nightly and a SALE read
-   * "per night" under its asking price. `PERIOD_SUFFIX` is keyed by the
+   * "per night" under its asking price. The period words are keyed by the
    * period the database actually stated, and carries "asking price" for the
    * case that has no period at all.
    */
+  const periodWords = t.agentListings.pricing.period;
   const perLabel = isSale
-    ? PERIOD_SUFFIX.sale
+    ? periodWords.sale
     : listing.pricePeriod
-      ? PERIOD_SUFFIX[listing.pricePeriod]
+      ? periodWords[listing.pricePeriod]
       : isRental
-        ? PERIOD_SUFFIX.year
-        : PERIOD_SUFFIX.night;
+        ? periodWords.year
+        : periodWords.night;
 
   const amenityNames: Record<string, string> = L.amenities;
   const amenityPhrases = listing.amenities
@@ -706,10 +704,10 @@ export default async function ListingDetailPage({
     });
   }
   if (listing.furnished) {
-    facts.push({ label: L.facts.furnishing, value: FURNISHING_LABEL[listing.furnished] });
+    facts.push({ label: L.facts.furnishing, value: t.experienceLabels.furnishing[listing.furnished] });
   }
   if (listing.condition) {
-    facts.push({ label: L.facts.condition, value: CONDITION_LABEL[listing.condition] });
+    facts.push({ label: L.facts.condition, value: t.experienceLabels.condition[listing.condition] });
   }
   if (listing.yearBuilt !== undefined) {
     facts.push({ label: L.facts.yearBuilt, value: String(listing.yearBuilt) });

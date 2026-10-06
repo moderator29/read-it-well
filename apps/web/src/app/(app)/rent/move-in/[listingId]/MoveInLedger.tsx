@@ -4,7 +4,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { formatMoney, formatNumber, plural, type Dictionary, type Locale } from "@vallo/i18n/core";
 import type { Listing } from "@/lib/listings/types";
-import { PERIOD_SUFFIX_SLASH, type RentPeriod } from "@/lib/listings/pricing";
+import type { RentPeriod } from "@/lib/listings/pricing";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { MediaFrame } from "@/components/app/MediaFrame";
@@ -179,7 +179,7 @@ export function MoveInLedger({
                 {formatMoney(comparison.averageMinor, locale, listing.currency)}
                 <span className="nf-caption font-normal text-[var(--nf-content-muted)]">
                   {" "}
-                  {PERIOD_SUFFIX_SLASH[comparison.period]}
+                  {t.experienceLabels.periodSlash[comparison.period]}
                 </span>
               </span>
             </div>

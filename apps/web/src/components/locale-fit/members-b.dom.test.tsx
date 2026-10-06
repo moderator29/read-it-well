@@ -152,7 +152,7 @@ describe.skipIf(!hasBrowser && !process.env.CI)("locale fit: listing detail, res
         <div style={{ padding: 16 }}>
           <FilterDrawer query={parseShelfQuery({})} facts={[]} locale={locale} copy={t.catalogue.filters} costCopy={t.moveIn}
             compoundCopy={t.shape.compound} sortCopy={t.shape.sorts} serviceCopy={t.shape.service} cashCopy={t.shape.cash}
-            unitCopy={t.shape.unit} commuteCopy={t.shape.commute} />
+            unitCopy={t.shape.unit} commuteCopy={t.shape.commute} kindCopy={t.experienceLabels} />
         </div>`,
       bleed: true,
       scope: "body",

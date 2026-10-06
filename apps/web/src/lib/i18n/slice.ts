@@ -58,7 +58,7 @@ export const SLICES = {
      few kilobytes, one too few is a crash in somebody's hand. Trimming those
      false readings took the settings screen's slice from 137 KB to 47 KB and
      the listing card's from 104 KB to 55 KB. */
-  listingCard: ["catalogue", "common", "directHome", "interests", "moveIn", "shape", "trustVisible", "units"],
+  listingCard: ["catalogue", "common", "directHome", "experienceLabels", "interests", "moveIn", "shape", "trustVisible", "units"],
   stayCard: ["catalogue", "common", "stays"],
   stayFilterSheet: ["catalogue", "shape", "stayDetail", "stays"],
   priceCheck: ["home", "priceCheck"],
@@ -76,6 +76,8 @@ export const SLICES = {
  */
 export const NARROW = {
   listingCard: {
+    /* The rent line's "/yr" (C9). */
+    experienceLabels: ["periodShort"],
     shape: ["card", "cash", "compound", "listed", "service", "unit"],
     trustVisible: ["proof"],
   },

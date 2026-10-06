@@ -47,6 +47,7 @@ import { experienceSpeedEn } from "./experience-speed.en";
 import { experienceSettingsEn } from "./experience-settings.en";
 import { experienceHostEn } from "./experience-host.en";
 import { experienceSiteEn } from "./experience-site.en";
+import { experienceLabelsEn } from "./experience-labels.en";
 /* The workspace desks and the confirm panel (UI/UX plan items 14, 20, 22). */
 import { deskEn } from "./desk.en";
 /* The public pages' titles and descriptions, per language (A10). */
@@ -5806,6 +5807,8 @@ export const en = {
   experienceHost: experienceHostEn,
   /* C6, the route sweep: the public site's and the auth doors' new words (English only). */
   experienceSite: experienceSiteEn,
+  /* C9, after the route sweep: the listing label maps lib/listings once spelled in English (English only). */
+  experienceLabels: experienceLabelsEn,
 
   desk: deskEn,
 

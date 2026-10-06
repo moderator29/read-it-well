@@ -32,6 +32,7 @@ export default function SheetsPreview() {
           cashCopy={t.shape.cash}
           unitCopy={t.shape.unit}
           commuteCopy={t.shape.commute}
+          kindCopy={t.experienceLabels}
         />
         <MobileMenu
           links={[{ href: "/about", label: "About" }]}

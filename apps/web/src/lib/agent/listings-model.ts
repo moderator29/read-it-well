@@ -2,7 +2,7 @@
 
 import { takesShape } from "@/lib/listings/unit-shape";
 import {
-  PERIOD_SUFFIX,
+  type PeriodWords,
   type BuildCondition,
   type Furnishing,
   type LandTenure,
@@ -265,14 +265,15 @@ export function ratePeriodFor(type: PropertyType | null | undefined): RatePeriod
   return type && PER_HEAD.has(type) ? "guest" : "night";
 }
 
-/** The words the UI puts after a price, per market and intent. */
+/** The words the UI puts after a price, per market and intent, from the reader's `t.agentListings.pricing.period`. */
 export function priceSuffixFor(
   type: PropertyType | null | undefined,
+  words: PeriodWords,
   intent: ListingIntent = "rent",
 ): string {
-  if (intent === "sale") return PERIOD_SUFFIX.sale;
-  if (isTenancy(type)) return PERIOD_SUFFIX.year;
-  return PERIOD_SUFFIX[ratePeriodFor(type)];
+  if (intent === "sale") return words.sale;
+  if (isTenancy(type)) return words.year;
+  return words[ratePeriodFor(type)];
 }
 
 /**
@@ -280,8 +281,8 @@ export function priceSuffixFor(
  * "per night" beside a figure. A sale is not a period and is not answered here;
  * callers that can be looking at one call `priceSuffixFor` with the intent.
  */
-export function pricePeriodLabel(type: PropertyType | null | undefined): string {
-  return isTenancy(type) ? "per year" : "per night";
+export function pricePeriodLabel(type: PropertyType | null | undefined, words: PeriodWords): string {
+  return isTenancy(type) ? words.year : words.night;
 }
 
 /* ------------------------------------------------------- intent and money */

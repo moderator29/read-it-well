@@ -42,6 +42,8 @@ export type FilterDrawerProps = {
   /** V-43: the anchors a renter can pick, and the words for the group. */
   anchors?: Anchor[];
   commuteCopy: Dictionary["shape"]["commute"];
+  /** The kinds' names and counted nouns in the reader's language (`t.experienceLabels`). */
+  kindCopy: Pick<Dictionary["experienceLabels"], "kinds" | "anyKind">;
   /** V-41: the "No flooding reported" switch's words. */
   noFloodLabel?: { label: string; hint: string };
   /** V-12: the sentence under the "Lowest fees on top of rent" order. */

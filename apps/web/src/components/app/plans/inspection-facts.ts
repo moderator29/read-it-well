@@ -1,9 +1,9 @@
 import "server-only";
 
-import { formatMoney, type Locale } from "@vallo/i18n/core";
+import { formatMoney, getDictionary, type Locale } from "@vallo/i18n";
 import type { InspectionListingFacts } from "@/components/app/inspections/InspectionSheet";
 import { resolveSession } from "@/lib/actions/session";
-import { PERIOD_SUFFIX, headlinePeriod, headlinePrice } from "@/lib/listings/pricing";
+import { headlinePeriod, headlinePrice } from "@/lib/listings/pricing";
 import type { ListingKind } from "@/lib/listings/types";
 import { SUPABASE_URL } from "@/lib/supabase/env";
 
@@ -56,6 +56,7 @@ export async function readListingFacts(
   if (wanted.length === 0) return out;
   const session = await resolveSession();
   if (session.state !== "signed-in") return out;
+  const periodWords = getDictionary(locale).agentListings.pricing.period;
   try {
     const { data } = await session.supabase
       .from("listings")
@@ -74,7 +75,7 @@ export async function readListingFacts(
         kind,
         kindLabel: KIND_LABEL[kind],
         priceLabel: headline.minor > 0 ? formatMoney(headline.minor, locale) : "",
-        periodLabel: period === "sale" ? "" : PERIOD_SUFFIX[period],
+        periodLabel: period === "sale" ? "" : periodWords[period],
         photo: cover ? photoUrl(cover.storage_path) : null,
         hue: hueOf(row.id),
         isDemo: row.is_demo === true,

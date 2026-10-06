@@ -2,7 +2,7 @@ import Link from "next/link";
 import { formatMoney, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { cashAtDoor, upfrontDuration, upfrontText } from "@/lib/listings/upfront";
 import type { Listing } from "@/lib/listings/types";
-import { PERIOD_SUFFIX_SLASH, type RentPeriod } from "@/lib/listings/pricing";
+import type { RentPeriod } from "@/lib/listings/pricing";
 import { Amount } from "@/components/ui/Amount";
 import { SummaryCard } from "@/components/ui/SummaryCard";
 import type { StatusSegment } from "@/components/ui/charts/StatusBar";
@@ -109,7 +109,7 @@ export function ListingMoveInBlock({
               secondaryClassName="text-[length:max(0.5em,0.75rem)] font-semibold opacity-70"
               count
             />
-            {!hasTotal && <span className="nf-detail-movein__suffix">{PERIOD_SUFFIX_SLASH[period]}</span>}
+            {!hasTotal && <span className="nf-detail-movein__suffix">{t.experienceLabels.periodSlash[period]}</span>}
             {hasTotal && (
               <span className="nf-movein-hero__rent" data-testid="move-in-rent">
                 {t.catalogue.card.rent}{" "}
@@ -119,7 +119,7 @@ export function ListingMoveInBlock({
                   currency={listing.currency}
                   className="nf-movein-hero__rent-figure"
                 />{" "}
-                {PERIOD_SUFFIX_SLASH[period]}
+                {t.experienceLabels.periodSlash[period]}
               </span>
             )}
           </>

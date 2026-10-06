@@ -32,7 +32,6 @@ import {
   type ListingRole,
 } from "@/lib/supply/roles";
 import {
-  KIND_NOUN,
   KIND_ORDER,
   SORTS,
   sortBasisOf,
@@ -392,6 +391,7 @@ export function FilterDrawerPanel({
   feesBasis,
   anchors = [],
   commuteCopy,
+  kindCopy,
   noFloodLabel,
   open,
   onClose,
@@ -560,7 +560,7 @@ export function FilterDrawerPanel({
   const cashMarket = rentMeansTenancy(draft);
   const scale = useMemo(() => priceScale(draft.intent), [draft.intent]);
 
-  const noun = draft.kind ? KIND_NOUN[draft.kind] : { one: "place", many: "places" };
+  const noun = draft.kind ? kindCopy.kinds[draft.kind] : kindCopy.anyKind;
 
   /* The basis of the ordering the reader is currently choosing, for the line
      under the control. Null on the orderings that are not about money. */
@@ -692,7 +692,7 @@ export function FilterDrawerPanel({
                   onToggle={pickKind}
                   options={[
                     { value: "all" as const, label: copy.all, icon: KIND_ICON.all },
-                    ...kindOptions.map((kind) => ({ value: kind, label: kindLabel(kind), icon: KIND_ICON[kind], art: KIND_ART[kind] })),
+                    ...kindOptions.map((kind) => ({ value: kind, label: kindLabel(kind, kindCopy.kinds), icon: KIND_ICON[kind], art: KIND_ART[kind] })),
                   ]}
                 />
               </Group>
