@@ -84,10 +84,10 @@ without a seller reply, and the fee actually returned on a refund for each `whoP
 | Version | Name | What it does | Applied |
 |---|---|---|---|
 | `20261006024044` | `blocked_terms_retire_refuse_and_staff_surface` | Adds retirement (who, when, why; matchers skip retired rows, nothing deleted); a `refuse` tier allowed only on `abuse.*` terms with a 12+ character reason, which refuses a **member's** write and reads as `hold` for staff, reviewers and the system; `staff_blocked_terms`, `staff_blocked_term_put`, `staff_blocked_term_retire`, gated on the `moderation` scope, each writing `audit_log`. Read-back block and rolling-back probe included. No behaviour change today: 144 live terms, none `refuse`, none retired. | **Yes**, production, 6 Oct. Recorded in `APPLIED.txt` |
+| `20261006030027` | `payment_rail_router_policy_and_transaction_rail` | `payment_rail_policy` (the founder's two-rail decision as 12 dated rows; precedence then specificity; history unrewritable by trigger); `resolve_payment_rail()` (service role only; no match or a disagreeing tie gives no rail); `transactions.rail` and `rail_policy_id`, fixed once written. **Not yet wired into opening a payment**, by design (see Decisions). Probe: `supabase/tests/probes/rail-router.sql`, in the CI job, `PROBE_OK` live. | **Yes**, production, 6 Oct |
 
-Also run live: the existing `s1-owner-writes-keep-working` probe (listing insert path), by
-the documented MCP method. The call hit the MCP's 60 s limit with no verdict; afterwards
-nothing was recorded and no probe rows remained. That probe is already in the
+Also run live: the existing `s1-owner-writes-keep-working` probe (listing insert path):
+**`PROBE_OK`** against current production, after the first attempt hung (below). That probe is already in the
 `db-probes` CI job, so the "add it to CI" half of 7.1 was already done.
 
 ## Review passes per money change
@@ -106,9 +106,28 @@ nothing was recorded and no probe rows remained. That probe is already in the
   the temporary grant in the probe rolls back, `content_writer_is_member()` is true
   under `set local role authenticated`, regex escaping is single-backslash.
 
-**Paystack provider seam:** no money outcome can change (the adapter returns the
-identical function objects, asserted by test). Reviewed once by me; second pass
-pending before any call site moves onto it. `/open` is an auth-routing fix, not money; it was still checked
+**Rail router migration:**
+- Pass 1: **1 blocker**. Every sale tied with its type's rule, so 21 sales failed
+  closed, 6 hotel and restaurant sales failed closed, and two apartment sales
+  resolved silently wrong (one to direct, releasing money that should be held). Fixed
+  with a `precedence` column (sale at 100) and a probe over all 20 sale cases. Also
+  fixed: resolver restricted to the service role; a plain `before update` trigger;
+  no backdated retirement.
+- Pass 2 (a different agent): **APPLY**, all 60 type, intent and lister combinations
+  walked by hand; three nits folded in.
+
+**Fiat provider seam:**
+- Pass 1 (written by me, reviewed by an agent): **1 blocker**. Capabilities and
+  methods were not linked in the types, so an adapter could declare a capability
+  without its methods. Rebuilt: a capability-to-methods map, `can()` as a type
+  predicate, `defineFiatProvider` deriving the runtime set from the same tuple.
+  Also: `list_settled` renamed `list_successful_charges` (they are charges, not
+  settlements); the Paystack refund-from-main-balance behaviour documented; a kill
+  switch and a registry added; the tautological signature test replaced with a real
+  HMAC round trip.
+- Pass 2: the rebuilt seam has not had a second independent review yet. It moves no
+  call site, so nothing reaches money until one does. **Before the first call site
+  moves, a second pass is owed.** `/open` is an auth-routing fix, not money; it was still checked
 twice: the new test passes 5/5 against the new route and fails 3/5 against the old
 one (the three deadline cases time out at 5 s), proving it catches the hang.
 
@@ -151,6 +170,17 @@ one (the three deadline cases time out at 5 s), proving it catches the hang.
 
 - `/open` deadline with a test (acceptance criterion 1). Commit `0bf5a642e`.
 - Passcode defaults to four digits, six one tap away (criterion 21). `b1afcbef4`.
+- `blocked_terms` completed with retirement, a refuse tier and the staff surface
+  (criterion 18). `cd7eb98ff`.
+- Rail router: dated policy, resolver, `transactions.rail`, probe (criterion 3, all
+  but the wiring into opening a payment). `9eedf4277`.
+- Fiat provider seam with capabilities, Paystack adapter, kill switch (criterion 2's
+  seam; call-site migration remaining). `a24552d62`.
+- Generated types regenerated from live; six drift errors fixed; 19 money tables the
+  stale types hid are now documented in `docs/schema/NAMES.md`. `b5760fe4c`.
+- Housekeeping (7.18): dead `/wallet` revalidations removed; `MONEY_ARCHITECTURE.md`
+  and `NAMES.md` corrected (custody retirement is applied); four documents describing
+  virtual accounts as a plan marked superseded. `42280c8fd`.
 - Payluk live documentation read; Session 1's architecture corrected in
   `docs/payments/PAYLUK_LIVE_DOCS_FINDINGS.md`; question 3 answered (no).
 - Supply unblocking: **already built** (SUP-05, migration `20260924001655`). An
@@ -183,6 +213,22 @@ one (the three deadline cases time out at 5 s), proving it catches the hang.
 
 ## Decisions
 
+- **The rail router is not wired into opening a payment yet.** Today every payment is
+  Paystack direct. Wiring the router in before the escrow rail exists would either
+  refuse every rent payment (escrow resolved, escrow off) or fall back silently, which
+  3A.3 forbids. It goes in with the escrow switch-on, in one change. Recommendation:
+  that change also writes `transactions.rail = 'direct'` for Paystack opens from then
+  on.
+- **Kill switch defaults differ by provider.** Paystack fails open (only an explicit
+  flag stops it; a database blip must not stop every payment); Payluk fails closed and
+  its on-flag is the founder's escrow switch. Neither gates verification, webhooks or
+  reconciliation.
+- **Refuse in `blocked_terms` refuses members only.** Staff, reviewers and the system
+  see a hold, so a takedown cannot be blocked by the term it targets.
+- **Brief corrections found by checking, not assuming:** `blocked_terms` was not
+  empty (144 terms); supply unblocking for `MORE_INFO_REQUIRED` already existed; the
+  listing-insert probe was already in CI.
+
 - The timeout constant is private to the route file and mirrored in the test,
   because a Next.js route module may not export anything but handlers and route
   config. Recommendation: a later change can lift `signedInWithDeadline` into
@@ -192,6 +238,15 @@ one (the three deadline cases time out at 5 s), proving it catches the hang.
 - Working branch is the one the founder named (`claude/vallo-backend-money-trust`).
 
 ## Risks
+
+- **The Supabase MCP `apply_migration` silently hangs (60 s timeout, nothing reaches
+  the database) on any SQL containing `drop trigger` or `delete from`**, apparently
+  held for a confirmation no one can give. Verified three times; the same SQL with
+  `create or replace trigger` applied at once. Next session: write triggers with
+  `create or replace trigger`, run probes containing deletes through the CI psql
+  runner, and after any timeout check `schema_migrations` before retrying.
+- `database.types.ts` predates `payment_rail_policy` and `transactions.rail`; the
+  router calls the resolver through an untyped RPC until the next regeneration.
 
 - None from this change. Worst case on timeout is a wrong guess that `proxy.ts`
   corrects on the next request.
