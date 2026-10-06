@@ -221,7 +221,7 @@
   }
   .nf-ix-card__price small {
     font-size: var(--nf-text-overline);
-    font-weight: 500;
+    font-weight: 400;
   }
   .nf-ix-card__chev {
     flex-shrink: 0;
@@ -334,7 +334,7 @@
     margin-block: -0.9375rem;
     font-size: var(--nf-text-overline);
     line-height: 1.3;
-    font-weight: 500;
+    font-weight: 600;
     color: var(--nf-content-link);
     overflow-wrap: normal;
   }
@@ -435,7 +435,7 @@
     gap: var(--nf-space-2xs);
     flex-shrink: 0;
     font-size: var(--nf-text-overline);
-    font-weight: 500;
+    font-weight: 600;
     color: var(--nf-brand-secondary);
     font-variant-numeric: tabular-nums;
     text-align: right;

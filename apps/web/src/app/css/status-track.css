@@ -222,7 +222,7 @@
 .nf-track__label {
   font-size: var(--nf-text-caption);
   line-height: 1.35;
-  font-weight: 500;
+  font-weight: 400;
   color: var(--nf-content-primary);
   min-width: 0;
 }

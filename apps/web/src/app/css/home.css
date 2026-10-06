@@ -68,7 +68,7 @@
     display: block;
     margin-top: var(--nf-space-3xs);
     font-size: var(--nf-text-overline);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--nf-content-muted);
   }
   .nf-home__loc-chev {
@@ -547,7 +547,7 @@
     padding: var(--nf-space-xs) var(--nf-space-sm);
     color: var(--nf-content-primary);
     font-size: var(--nf-text-caption);
-    font-weight: 500;
+    font-weight: 600;
     line-height: 1.25;
     text-align: left;
     transition:
@@ -982,7 +982,7 @@
   .nf-home__loc--quiet .nf-home__loc-name {
     flex: 0 1 auto;
     font-size: 0.9375rem;
-    font-weight: 500;
+    font-weight: 400;
     color: var(--nf-content-secondary);
   }
   .nf-home__loc--quiet .nf-home__loc-pin,
@@ -1046,7 +1046,7 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     font-size: var(--nf-text-body-sm);
-    font-weight: 500;
+    font-weight: 600;
   }
   @media (prefers-reduced-motion: reduce) {
     .nf-home-door .nf-plate,
@@ -1100,7 +1100,7 @@
   }
   .nf-home-figure__caption {
     font-size: var(--nf-text-label, 0.8125rem);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--nf-content-secondary);
   }
   .nf-home-figure__line {
@@ -1128,7 +1128,7 @@
     min-height: 2.75rem;
     width: fit-content;
     font-size: var(--nf-text-body-sm);
-    font-weight: 500;
+    font-weight: 600;
     color: var(--nf-content-link);
   }
 
@@ -1200,11 +1200,11 @@
   }
   .nf-space-type__label {
     font-size: var(--nf-text-body-sm);
-    font-weight: 500;
+    font-weight: 600;
   }
   .nf-space-type__mine {
     font-size: var(--nf-text-overline);
-    font-weight: 500;
+    font-weight: 600;
     color: var(--nf-content-link);
   }
 

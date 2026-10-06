@@ -311,7 +311,7 @@
     padding: 0 var(--nf-space-sm);
     border-radius: var(--nf-radius-sm);
     font-size: var(--nf-text-body-sm);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--nf-content-secondary);
   }
   @media (hover: hover) {
@@ -640,7 +640,7 @@
     border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-brand-primary) 30%, transparent);
     background: color-mix(in oklab, var(--nf-surface-primary) 82%, transparent);
     font-size: var(--nf-text-body-sm);
-    font-weight: 500;
+    font-weight: 600;
     line-height: 1.35;
     color: var(--nf-brand-secondary);
     text-wrap: balance;
@@ -1054,7 +1054,7 @@
     padding: 0 var(--nf-space-sm);
     border-radius: var(--nf-radius-control-sm, 10px);
     font-size: var(--nf-text-body-sm);
-    font-weight: 500;
+    font-weight: 400;
     white-space: nowrap;
     color: var(--nf-content-muted);
     transition: color var(--nf-duration-fast) var(--nf-ease-standard);
@@ -1224,7 +1224,7 @@
     border-radius: 999px;
     background: transparent;
     font-size: var(--nf-text-body-sm);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--nf-content-secondary);
     white-space: nowrap;
     transition:

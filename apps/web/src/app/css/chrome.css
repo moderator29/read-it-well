@@ -1222,7 +1222,7 @@
     padding-inline: 0.5rem 1rem;
     border-radius: var(--nf-radius-control-sm, 10px);
     font-size: var(--nf-text-body-sm);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--nf-content-secondary);
     transition: color 120ms var(--nf-ease-standard);
   }

@@ -119,7 +119,7 @@
   .nf-nav--drawer .nf-nav__row {
     position: relative;
     font-size: var(--nf-text-body);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--nf-content-primary);
   }
   /* The glyph slot is a 24px line glyph from the stroked set (29 September
@@ -236,7 +236,7 @@
     border-radius: var(--nf-radius-control);
     color: var(--nf-content-primary);
     font-size: var(--nf-text-body);
-    font-weight: 500;
+    font-weight: 600;
     text-align: start;
     transition: background-color var(--nf-duration-fast) var(--nf-ease-standard);
   }

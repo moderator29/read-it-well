@@ -494,7 +494,7 @@
     background: transparent;
     appearance: none;
     font-size: var(--nf-text-body-sm);
-    font-weight: 500;
+    font-weight: 400;
     color: inherit;
     cursor: pointer;
   }

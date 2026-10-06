@@ -94,7 +94,7 @@
     min-inline-size: 0;
     font-size: var(--nf-text-row);
     line-height: 1.35;
-    font-weight: 500;
+    font-weight: 600;
   }
   .nf-toast__action {
     flex-shrink: 0;
@@ -138,7 +138,7 @@
     color: var(--nf-content-inverse);
     box-shadow: var(--nf-float-shadow);
     font-size: var(--nf-text-caption);
-    font-weight: 500;
+    font-weight: 600;
     animation: nf-connection-drop var(--nf-duration-slow) var(--nf-ease-spring) both;
   }
   .nf-connection__dot {

@@ -293,7 +293,7 @@
     background: transparent;
     color: var(--nf-content-primary);
     font-size: 0.875rem;
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
     transition: border-color var(--nf-duration-fast) var(--nf-ease-standard);
   }
@@ -313,7 +313,7 @@
     align-items: center;
     gap: 0.25rem;
     font-size: var(--nf-text-caption);
-    font-weight: 500;
+    font-weight: 600;
   }
   .nf-gs-asks__saved {
     color: var(--nf-state-success);

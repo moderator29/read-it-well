@@ -65,7 +65,7 @@
     justify-items: end;
   }
   .nf-notif__row .nf-list-row__value {
-    font-weight: 500;
+    font-weight: 400;
   }
   .nf-notif__time {
     font-size: var(--nf-text-overline);

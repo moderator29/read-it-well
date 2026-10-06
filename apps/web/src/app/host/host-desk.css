@@ -178,7 +178,7 @@
   }
   .nf-rcal__price {
     font-size: 0.75rem;
-    font-weight: 500;
+    font-weight: 400;
     line-height: 1.2;
     color: var(--nf-content-secondary);
   }
@@ -526,7 +526,7 @@
   }
   .nf-rcal-sync__import-name {
     font-size: var(--nf-text-row);
-    font-weight: 500;
+    font-weight: 600;
     color: var(--nf-content-primary);
   }
   .nf-rcal-sync__add {
