@@ -51,7 +51,17 @@ export type BackedClaim = {
    * Such an entry is exempt from the "must still match something" check.
    */
   pendingRemoval?: string;
+  /**
+   * The one file (repository-relative, forward slashes) the entry is accepted
+   * in. A scoped entry backs its sentence there and nowhere else, so a new
+   * sentence with the same words in any other file is still a claim to back.
+   * `unbackedClaim` called without a file applies no scoped entry.
+   */
+  onlyIn?: string;
 };
+
+/** Where the money sentences live (D50: every protected-rail sentence is here). */
+export const MONEY_COPY_FILE = "apps/web/src/lib/money/copy.ts";
 
 const AGENT_KYC =
   "agent_verification_checks rungs decided by an admin on the KYC desk, published as agent_badges.verified; a listing is verified only when !is_demo and its agent holds the badge (lib/listings/supabase-repository.ts)";
@@ -113,9 +123,14 @@ export const BACKED_CLAIMS: readonly BackedClaim[] = [
      lives in lib/money/copy.ts (RAIL_COPY.protected, PROTECTED_*, the money
      centre's Protected figure) and is drawn only where railIsLive("protected")
      is true (lib/money/rails.ts), which is false until ADR-0003 is accepted and
-     the merchant account is live; the dev previews that draw it are fixtures. */
+     the merchant account is live; the dev previews that draw it are fixtures.
+     A9: the entry read `\bprotected payments?\b` unanchored, which backed
+     "protected payment" in any sentence on any surface while the rail is not
+     live. It now backs the three copy.ts sentences, whole, in copy.ts only. */
   {
-    phrase: /\bpayment is protected through Vallo's transaction infrastructure\b|^protected$|\bprotected payments?\b/i,
+    phrase:
+      /^Your payment is protected through Vallo's transaction infrastructure\.$|^Protected$|^Held in protected payments until each one's release condition is met\. Not yours to withdraw yet\.$/,
+    onlyIn: MONEY_COPY_FILE,
     mechanism:
       "the protected rail: funds held by the licensed provider's escrow until release (docs/payments/VALLO_FINANCIAL_LAYER.md), surfaces gated by PROTECTED_RAIL_LIVE in apps/web/src/lib/money/rails.ts (false until ADR-0003 is accepted and the merchant account is live)",
   },
@@ -275,9 +290,10 @@ const NEGATED =
  * The first claim word in `text` that nothing backs, or null.
  * `${...}` expressions inside a template are code, not copy, and are ignored.
  */
-export function unbackedClaim(text: string): string | null {
+export function unbackedClaim(text: string, file?: string): string | null {
   let copy = text.replace(/\$\{[^{}]*\}/g, " ");
   for (const claim of BACKED_CLAIMS) {
+    if (claim.onlyIn !== undefined && claim.onlyIn !== file) continue;
     copy = copy.replace(new RegExp(claim.phrase.source, claim.phrase.flags.includes("g") ? claim.phrase.flags : `${claim.phrase.flags}g`), " ");
   }
   copy = copy
@@ -290,6 +306,7 @@ export function unbackedClaim(text: string): string | null {
 }
 
 /** Whether an allowlist entry still matches the given copy (for stale checks). */
-export function claimMatches(claim: BackedClaim, text: string): boolean {
+export function claimMatches(claim: BackedClaim, text: string, file?: string): boolean {
+  if (claim.onlyIn !== undefined && claim.onlyIn !== file) return false;
   return claim.phrase.test(text.replace(/\$\{[^{}]*\}/g, " "));
 }

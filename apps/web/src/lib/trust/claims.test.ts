@@ -2,7 +2,8 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
 import { stringLiterals, withoutComments } from "@/lib/copy/source-scan";
-import { BACKED_CLAIMS, KNOWN_UNBACKED_PENDING_REWORD, claimMatches, unbackedClaim } from "./claims";
+import { BACKED_CLAIMS, KNOWN_UNBACKED_PENDING_REWORD, MONEY_COPY_FILE, claimMatches, unbackedClaim } from "./claims";
+import { PROTECTED_LABEL, PROTECTED_SHORT, PROTECTED_WORD } from "@/lib/money/copy";
 
 /**
  * V-02: THE CLAIMS RULE AS A BUILD CHECK.
@@ -196,7 +197,7 @@ describe("every claim in the product names its mechanism", () => {
   });
 
   it("finds no claim word that nothing backs", () => {
-    const unbacked = COPY.map((copy) => ({ ...copy, word: unbackedClaim(copy.text) }))
+    const unbacked = COPY.map((copy) => ({ ...copy, word: unbackedClaim(copy.text, fileOf(copy)) }))
       .filter((copy) => copy.word !== null)
       .filter((copy) => !pendingReword(copy))
       .map((copy) => `${copy.where}  "${copy.word}"  in: ${copy.text.slice(0, 140)}`);
@@ -215,7 +216,7 @@ describe("every claim in the product names its mechanism", () => {
 
   it("holds only sentences that really are unbacked in the pending-reword list", () => {
     const backed = KNOWN_UNBACKED_PENDING_REWORD.flatMap((entry) =>
-      COPY.filter((copy) => fileOf(copy) === entry.file && entry.phrase.test(copy.text) && unbackedClaim(copy.text) === null).map(
+      COPY.filter((copy) => fileOf(copy) === entry.file && entry.phrase.test(copy.text) && unbackedClaim(copy.text, fileOf(copy)) === null).map(
         (copy) => `${copy.where}  ${copy.text}`,
       ),
     );
@@ -224,8 +225,42 @@ describe("every claim in the product names its mechanism", () => {
 
   it("keeps no allowlist entry that no longer matches anything", () => {
     const stale = BACKED_CLAIMS.filter((claim) => !claim.pendingRemoval)
-      .filter((claim) => !COPY.some((copy) => claimMatches(claim, copy.text)))
+      .filter((claim) => !COPY.some((copy) => claimMatches(claim, copy.text, fileOf(copy))))
       .map((claim) => String(claim.phrase));
     expect(stale, stale.join("\n")).toEqual([]);
+  });
+});
+
+/*
+ * THE PROTECTED RAIL IS BACKED IN ONE FILE, SENTENCE BY SENTENCE (A9).
+ *
+ * The entry read `\bprotected payments?\b` unanchored plus `^protected$`, so
+ * "protected payment" passed in any sentence on any surface although the
+ * protected rail is not live. It now backs the three copy.ts sentences,
+ * whole, and only in lib/money/copy.ts.
+ */
+describe("the protected rail's words", () => {
+  const ELSEWHERE = "apps/web/src/app/(app)/payments/page.tsx";
+
+  it("backs the copy.ts sentences in copy.ts", () => {
+    for (const sentence of [PROTECTED_SHORT, PROTECTED_LABEL, PROTECTED_WORD]) {
+      expect(unbackedClaim(sentence, MONEY_COPY_FILE), sentence).toBeNull();
+    }
+  });
+
+  it("fails the same sentences anywhere else, and with no file at all", () => {
+    for (const sentence of [PROTECTED_SHORT, PROTECTED_LABEL, PROTECTED_WORD]) {
+      expect(unbackedClaim(sentence, ELSEWHERE), sentence).toMatch(/^protected$/i);
+      expect(unbackedClaim(sentence), sentence).toMatch(/^protected$/i);
+    }
+  });
+
+  it.each([
+    "Every rent is a protected payment on Vallo.",
+    "Pay your deposit as a protected payment.",
+    "Protected payments keep your money safe until you move in.",
+  ])("fails a new protected-payment sentence, even in copy.ts: %s", (sentence) => {
+    expect(unbackedClaim(sentence, ELSEWHERE)).not.toBeNull();
+    expect(unbackedClaim(sentence, MONEY_COPY_FILE)).not.toBeNull();
   });
 });
