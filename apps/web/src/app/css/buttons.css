@@ -34,7 +34,10 @@
     align-items: center;
     justify-content: center;
     gap: var(--nf-gap-inline);
-    font-weight: 650;
+    /* 600, and it was 650: the type scale has three weights (400, 500, 600;
+       north star section 5) and 650 was a fourth that the button system
+       below already overrode at equal weight. */
+    font-weight: 600;
     font-size: var(--nf-text-body);
     letter-spacing: -0.005em;
     /*
@@ -131,12 +134,17 @@
    * full-width buttons and the firm one to the square icon buttons, and the
    * distance the edge actually travels stays roughly constant.
    */
+  /* AND IT SINKS (Session 3, north star 5A): one pixel down under the
+     finger as well as the scale, `--nf-press-sink`, so a text button reads as
+     pushed into the surface. The circle keeps the scale alone: a 44px disc
+     that drops a pixel reads as slipping, not as pressed. Both collapse
+     under reduced motion in tokens.css. */
   .nf-btn:active:not(:disabled):not([aria-disabled="true"]) {
-    transform: scale(var(--nf-press-scale));
+    transform: translateY(var(--nf-press-sink)) scale(var(--nf-press-scale));
   }
   .nf-btn--lg:active:not(:disabled):not([aria-disabled="true"]),
   .nf-btn--full:active:not(:disabled):not([aria-disabled="true"]) {
-    transform: scale(var(--nf-press-scale-lg));
+    transform: translateY(var(--nf-press-sink)) scale(var(--nf-press-scale-lg));
   }
   .nf-btn--icon:active:not(:disabled):not([aria-disabled="true"]) {
     transform: scale(var(--nf-press-scale-sm));
@@ -470,11 +478,10 @@
        not a flat raised navy. */
     background: var(--nf-selected-fill);
     box-shadow: var(--nf-selected-shadow-inline);
-    /* Both properties travel together, or the capsule stretches before it
-       moves and reads as a rubber band rather than an object. */
-    transition:
-      transform var(--nf-duration-base) var(--nf-ease-spring),
-      width var(--nf-duration-base) var(--nf-ease-spring);
+    /* No transition: `Segmented` springs the thumb with one transform
+       animation of its own (a FLIP, `drift` 240ms), so the width is never
+       animated and a stylesheet transition here would fight it. */
+    transform-origin: left center;
     pointer-events: none;
     z-index: 0;
   }
@@ -767,6 +774,185 @@
       animation: none;
       transform: none;
       opacity: 0.38;
+    }
+  }
+
+  /*
+   * =====================================================================
+   * THE ACTION MORPH (Session 3, 6 October 2026; north star motion 7,
+   * MOTION_SYSTEM.md "Primary action morph"; reference 7061).
+   *
+   * Opt-in: `<Button morph loading>` / `<Button morph done>`. A button that
+   * does not ask keeps the leading-slot spinner and check it always had, so
+   * no existing call site changes. The four states:
+   *
+   *   idle     the button.
+   *   press    sinks 1px with its bloom pulled in (the rules above and the
+   *            primary's own pressed shadow below), `press` 120ms.
+   *   loading  the label leaves on `whip` and the rectangle closes to a
+   *            circle the height of the button, 160ms; an arc draws once on
+   *            `glide` 620ms to three quarters of the ring and HOLDS. It is
+   *            drawn once and never spins: if the wait runs long the ring
+   *            stays still, which is honest, where a spinner says "working"
+   *            whether or not anything is.
+   *   done     the arc closes and the tick draws, `land` 240ms, then the
+   *            payoff pop, 1.0 to 1.04 to 1.0 over 180ms. The pop is reserved
+   *            for confirm, verify, unlock, release and earn, so a caller
+   *            only passes `done` with `morph` on one of those.
+   *   settle   back to the rectangle, `land` 240ms, the label returning.
+   *
+   * THE BOX NEVER CHANGES SIZE. The shape is a `clip-path` inset closing on
+   * the centre of the button, so nothing around it reflows, a full-width
+   * sticky bar keeps its height, and the circle is cut from the button's own
+   * material rather than being a second object faking it. It is the one
+   * property here that is not transform or opacity, on one element for
+   * 160ms, and it is the only way to change a shape without changing a box.
+   * Under reduced motion every duration below is a token that collapses to
+   * 1ms, so each state is simply arrived at.
+   * ===================================================================== */
+  .nf-btn--morph {
+    --nf-btn-circle: inset(0 calc(50% - var(--nf-btn-h) / 2) round calc(var(--nf-btn-h) / 2));
+    --nf-btn-rect: inset(0 round var(--nf-act-radius-md));
+  }
+  .nf-btn__face {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: inherit;
+    min-width: 0;
+  }
+  .nf-btn__morph {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .nf-btn__morph svg {
+    width: calc(var(--nf-btn-h) * 0.5);
+    height: calc(var(--nf-btn-h) * 0.5);
+    overflow: visible;
+  }
+  .nf-btn__arc,
+  .nf-btn__tick {
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+  }
+  .nf-btn__arc {
+    stroke-width: 2;
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+  }
+  .nf-btn__tick {
+    stroke-width: 2.25;
+  }
+  /* The loading line is the non-morphing button's indicator; the ring is
+     this one's. */
+  .nf-btn--morph[data-loading="true"]::after {
+    content: none;
+  }
+
+  /* ---- loading: collapse, then draw the arc once and hold --------------- */
+  .nf-btn--morph:is([data-morph="loading"], [data-morph="done"]) {
+    clip-path: var(--nf-btn-circle);
+    animation: nf-btn-collapse var(--nf-duration-fast) var(--nf-ease-whip) both;
+  }
+  @keyframes nf-btn-collapse {
+    from {
+      clip-path: var(--nf-btn-rect);
+    }
+    to {
+      clip-path: var(--nf-btn-circle);
+    }
+  }
+  .nf-btn--morph:is([data-morph="loading"], [data-morph="done"]) .nf-btn__face {
+    animation: nf-btn-face-out var(--nf-duration-instant) var(--nf-ease-whip) both;
+  }
+  @keyframes nf-btn-face-out {
+    to {
+      opacity: 0;
+    }
+  }
+  .nf-btn--morph:is([data-morph="loading"], [data-morph="done"]) .nf-btn__morph {
+    animation: nf-btn-ring-in var(--nf-duration-fast) var(--nf-ease-standard) var(--nf-duration-instant) both;
+  }
+  @keyframes nf-btn-ring-in {
+    to {
+      opacity: 1;
+    }
+  }
+  .nf-btn--morph[data-morph="loading"] .nf-btn__arc {
+    animation: nf-btn-arc-draw var(--nf-duration-deliberate) var(--nf-ease-standard) var(--nf-duration-fast) both;
+  }
+  @keyframes nf-btn-arc-draw {
+    to {
+      stroke-dashoffset: 0.25;
+    }
+  }
+
+  /* ---- done: the ring closes, the tick lands, one pop ------------------ */
+  .nf-btn--morph[data-morph="done"] {
+    animation:
+      nf-btn-collapse var(--nf-duration-fast) var(--nf-ease-whip) both,
+      nf-btn-pop 180ms var(--nf-ease-standard) var(--nf-duration-base) both;
+  }
+  .nf-btn--morph[data-morph="done"] .nf-btn__arc {
+    stroke-dashoffset: 0;
+    animation: nf-btn-arc-close var(--nf-duration-base) var(--nf-ease-entrance) both;
+  }
+  @keyframes nf-btn-arc-close {
+    from {
+      stroke-dashoffset: 0.25;
+    }
+  }
+  .nf-btn--morph[data-morph="done"] .nf-btn__tick {
+    stroke-dashoffset: 0;
+    animation: nf-btn-tick-draw var(--nf-duration-base) var(--nf-ease-entrance) both;
+  }
+  @keyframes nf-btn-tick-draw {
+    from {
+      stroke-dashoffset: 1;
+    }
+  }
+  @keyframes nf-btn-pop {
+    50% {
+      transform: scale(1.04);
+    }
+  }
+
+  /* ---- settle: back to the rectangle ------------------------------------ */
+  .nf-btn--morph[data-morph="settle"] {
+    animation: nf-btn-expand var(--nf-duration-base) var(--nf-ease-entrance) both;
+  }
+  @keyframes nf-btn-expand {
+    from {
+      clip-path: var(--nf-btn-circle);
+    }
+    to {
+      clip-path: var(--nf-btn-rect);
+    }
+  }
+  .nf-btn--morph[data-morph="settle"] .nf-btn__face {
+    animation: nf-btn-face-in var(--nf-duration-base) var(--nf-ease-standard) var(--nf-duration-instant) both;
+  }
+  @keyframes nf-btn-face-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-btn--morph[data-morph] .nf-btn__arc,
+    .nf-btn--morph[data-morph] .nf-btn__tick {
+      animation-duration: 1ms;
+      animation-delay: 0ms;
+    }
+    .nf-btn--morph[data-morph="done"] {
+      animation: nf-btn-collapse 1ms linear both;
     }
   }
 
@@ -1123,19 +1309,23 @@
    * are the button system's, 12px outside and 10px on the thumb.
    */
   .nf-segmented:not(.nf-segmented--pill) {
-    border-radius: var(--nf-act-radius-md);
     background: var(--nf-act-well);
     border: var(--nf-border-width) solid var(--nf-act-well-edge);
     box-shadow: var(--nf-act-surface-shadow);
   }
+  /* THE PILL (Session 3; D2 and north star 5A: "Segmented: pill track,
+     pill thumb, 999", the one control besides chips and circles that is a
+     capsule, because a pill says "selectable"). `--nf-radius-segment` names
+     that permission in tokens.css. */
+  .nf-segmented:not(.nf-segmented--pill),
+  .nf-segmented .nf-segmented__capsule {
+    border-radius: var(--nf-radius-segment);
+  }
   .nf-segmented .nf-segmented__capsule {
     height: calc(100% - 8px);
-    border-radius: var(--nf-act-radius-sm);
     background: var(--nf-act-fill);
     box-shadow: var(--nf-act-shadow);
-    transition:
-      transform var(--nf-duration-base) var(--nf-ease-standard),
-      width var(--nf-duration-base) var(--nf-ease-standard);
+    transition: none;
   }
   .nf-segmented :is([data-on="true"], [aria-current="true"], [aria-selected="true"], [aria-checked="true"]) {
     color: var(--nf-act-on);

@@ -610,7 +610,8 @@
     min-width: 1.375rem;
     height: 1.375rem;
     padding: var(--nf-space-0) var(--nf-space-2xs);
-    font-weight: 700;
+    /* 600, the scale's top weight (north star 5); it was 700. */
+    font-weight: 600;
     font-variant-numeric: tabular-nums;
     /* The material, corner and ink are the shared badge's (above, the info
        tone): a count is a badge that happens to hold a number. */
@@ -1139,15 +1140,17 @@
     --nf-tag-glyph: var(--nf-state-error);
   }
 
+  /* The solid variant is a pill too (D2, north star 5A; buttons.css "THE
+     PILL"). */
   .nf-segmented--pill {
-    border-radius: var(--nf-act-radius-md);
+    border-radius: var(--nf-radius-segment);
     background: var(--nf-surface-raised);
     border: var(--nf-border-width) solid var(--nf-act-well-edge);
     box-shadow: none;
   }
   .nf-segmented--pill .nf-segmented__capsule,
   .nf-segmented--pill .nf-segmented__link[aria-current="true"] {
-    border-radius: var(--nf-act-radius-sm);
+    border-radius: var(--nf-radius-segment);
     background: var(--nf-act-fill);
     box-shadow: var(--nf-act-shadow);
   }

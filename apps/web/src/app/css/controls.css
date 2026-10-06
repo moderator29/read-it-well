@@ -1983,18 +1983,16 @@
     border-block-end: var(--nf-border-width) dashed var(--nf-content-muted);
   }
 
-  /* A live figure change crossfades, never recounts (CountUp). */
-  .nf-count-swap {
-    animation: nf-fade-in var(--nf-duration-fast) var(--nf-ease-standard) both;
-  }
+  /* `.nf-count-swap` STOOD HERE: a live figure change used to crossfade.
+     It rolls the changed digits now (`Odometer`, `.nf-odo` in
+     motion-kit.css), so the class had no markup left to style. */
 
   /* The quiet answers: the final state, at once. */
   @media (prefers-reduced-motion: reduce) {
     .nf-statusbar--grow .nf-statusbar__seg,
     .nf-statusbar--grow .nf-statusbar__legend,
     .nf-gauge--light .nf-gauge__tick,
-    .nf-ts__line,
-    .nf-count-swap {
+    .nf-ts__line {
       animation: none;
     }
   }
@@ -2002,8 +2000,7 @@
       .nf-statusbar--grow .nf-statusbar__seg,
       .nf-statusbar--grow .nf-statusbar__legend,
       .nf-gauge--light .nf-gauge__tick,
-      .nf-ts__line,
-      .nf-count-swap
+      .nf-ts__line
     ) {
     animation: none;
   }

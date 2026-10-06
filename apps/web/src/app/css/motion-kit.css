@@ -291,3 +291,109 @@
     }
   }
 }
+
+/*
+ * THE FIGURE SIGNATURE IN MOTION (Session 3, 6 October 2026; north star
+ * motions 4, 5, 6 and 16, MOTION_SYSTEM.md "Figures and data", "Controls").
+ *
+ *   .nf-odo     a changed figure: each changed digit rolls, `land` 380ms,
+ *               20ms apart left to right (components/ui/Odometer.tsx).
+ *   .nf-fade-swap  content arriving in place of a skeleton or a segment's
+ *               previous view: a 160ms `glide` crossfade (Skeleton, Segmented).
+ *
+ * Transform and opacity only, and every one has its quiet answer below.
+ */
+@layer components {
+  .nf-odo {
+    --nf-odo-stagger: 20ms;
+    display: inline-block;
+    font-variant-numeric: tabular-nums;
+  }
+  .nf-odo__figure {
+    display: inline-block;
+    white-space: nowrap;
+  }
+  /*
+   * A cell is the size of its resting digit, and clips the wheel above and
+   * below it. The wheel is two digits stacked, the old over the new when the
+   * figure grew (it rolls up, the new digit arriving from below) and the
+   * reverse when it shrank, so the digits travel the way the number did.
+   */
+  .nf-odo__cell {
+    position: relative;
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: bottom;
+  }
+  .nf-odo__rest {
+    visibility: hidden;
+  }
+  .nf-odo__wheel {
+    position: absolute;
+    inset-inline: 0;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    animation: nf-odo-up var(--nf-duration-slow) var(--nf-ease-entrance) both;
+    animation-delay: calc(var(--nf-odo-i, 0) * var(--nf-odo-stagger));
+  }
+  .nf-odo__figure[data-direction="down"] .nf-odo__wheel {
+    animation-name: nf-odo-down;
+  }
+  @keyframes nf-odo-up {
+    from {
+      transform: translateY(0);
+    }
+    to {
+      transform: translateY(-50%);
+    }
+  }
+  @keyframes nf-odo-down {
+    from {
+      transform: translateY(-50%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  /* A status that changed: label, colour and shape together, `glide` 240ms
+     (north star motion 20; StatusChip). */
+  .nf-status-swap {
+    animation: nf-fade-swap var(--nf-duration-base) var(--nf-ease-standard) both;
+  }
+
+  /* The crossfade: a skeleton's content, a segment's next view. */
+  .nf-fade-swap {
+    animation: nf-fade-swap var(--nf-duration-fast) var(--nf-ease-standard) both;
+  }
+  @keyframes nf-fade-swap {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-odo {
+      --nf-odo-stagger: 0ms;
+    }
+    .nf-odo__wheel,
+    .nf-fade-swap,
+    .nf-status-swap {
+      animation: none;
+    }
+    /* With no roll the wheel rests on its new digit. */
+    .nf-odo__figure[data-direction="up"] .nf-odo__wheel {
+      transform: translateY(-50%);
+    }
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-odo {
+    --nf-odo-stagger: 0ms;
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) :is(.nf-odo__wheel, .nf-fade-swap, .nf-status-swap) {
+    animation: none;
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-odo__figure[data-direction="up"] .nf-odo__wheel {
+    transform: translateY(-50%);
+  }
+}
