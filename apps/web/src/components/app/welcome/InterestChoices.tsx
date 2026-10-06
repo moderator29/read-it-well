@@ -11,7 +11,7 @@ import {
   skipInterests,
   type InterestsSaved,
 } from "@/lib/interests/actions";
-import type { Dictionary } from "@vallo/i18n/core";
+import type { InterestsCopy } from "./welcome-copy";
 import { PROPERTY_TYPES, type PropertyType } from "@/lib/interests/schema";
 import { forgetFirstInterest } from "./first-run-seen";
 import { ObjectArt } from "@/components/auth/ObjectArt";
@@ -91,7 +91,7 @@ export function InterestChoices({
   /* The nine market names and every word around them. `INTEREST_COPY` in
      lib/interests/schema.ts stays as the English source the dictionary was
      written from, but nothing renders it now. */
-  t: Dictionary;
+  t: InterestsCopy;
   /** `welcome` is the first run. `settings` is somebody changing their mind. */
   mode?: "welcome" | "settings";
   /**

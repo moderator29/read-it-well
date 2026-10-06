@@ -4,7 +4,7 @@ import "@/app/welcome/onboarding-motion.css";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { ComponentProps, CSSProperties, ReactNode } from "react";
-import type { Dictionary } from "@vallo/i18n/core";
+import type { FirstRunCopy } from "./welcome-copy";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { BackControl } from "@/components/ui/BackControl";
 import { isInPageStep } from "@/lib/nav/in-page-step";
@@ -125,7 +125,7 @@ export function FirstRun({
   fromSignUpForm = false,
   asks = null,
 }: {
-  t: Dictionary;
+  t: FirstRunCopy;
   interests: ComponentProps<typeof InterestChoices>["initial"];
   /* False for a member who has already been shown the steps, on this
      device or another: they go straight to the question. */

@@ -3,6 +3,7 @@
 import { useState, type CSSProperties, type ReactNode } from "react";
 import { Segmented } from "@/components/ui/Segmented";
 import type { Dictionary } from "@vallo/i18n/core";
+import type { ScenesCopy } from "./welcome-copy";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Icon3D, type Icon3DName } from "@/components/ui/Icon3D";
 import { ObjectArt } from "@/components/auth/ObjectArt";
@@ -89,7 +90,7 @@ function Hero({ name, priority, className = "" }: { name: Parameters<typeof Obje
 
 type World = "property" | "stays";
 
-export function WorldsScene({ t, priority }: { t: Dictionary; priority: boolean }) {
+export function WorldsScene({ t, priority }: { t: ScenesCopy; priority: boolean }) {
   const w = t.welcomeCards.twoWorlds;
   const [world, setWorld] = useState<World>("property");
   const hint = world === "property" ? w.propertyHint : w.staysHint;
@@ -178,7 +179,7 @@ export function TalkScene({ copy, priority }: { copy: Copy; priority: boolean })
 
 /* ----------------------------------------------------------------- 4 */
 
-export function MoveInScene({ t, copy, priority }: { t: Dictionary; copy: Copy; priority: boolean }) {
+export function MoveInScene({ t, copy, priority }: { t: ScenesCopy; copy: Copy; priority: boolean }) {
   return (
     <div className="nf-om-movein">
       <Hero name="door-open" priority={priority} className="nf-om-movein__door" />

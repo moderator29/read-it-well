@@ -1,7 +1,7 @@
 "use client";
 
 import type { ComponentProps, CSSProperties } from "react";
-import type { Dictionary } from "@vallo/i18n/core";
+import type { QuestionBeatCopy } from "./welcome-copy";
 import { InterestChoices } from "./InterestChoices";
 import { ArrivalAsks } from "./ArrivalAsks";
 import { ObjectArt } from "@/components/auth/ObjectArt";
@@ -38,7 +38,7 @@ export function QuestionBeat({
   interests,
   asks,
 }: {
-  t: Dictionary;
+  t: QuestionBeatCopy;
   interests: ComponentProps<typeof InterestChoices>["initial"];
   asks: Omit<ComponentProps<typeof ArrivalAsks>, "t"> | null;
 }) {
