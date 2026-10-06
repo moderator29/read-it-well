@@ -143,7 +143,7 @@ export function ListingMoveInBlock({
                 )}
               </p>
             )}
-            <Link href={`/rent/move-in/${listing.id}`} className="nf-link-quiet nf-caption inline-flex items-center gap-2xs font-semibold text-[var(--nf-content-link)]">
+            <Link href={`/rent/move-in/${listing.id}`} className="nf-link-quiet nf-tap nf-caption inline-flex items-center gap-2xs font-semibold text-[var(--nf-content-link)]">
               {copy.calculateBreakdown}
               <UiIcon name="chevron-right" size={16} />
             </Link>

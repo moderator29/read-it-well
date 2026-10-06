@@ -956,7 +956,7 @@ export default async function ListingDetailPage({
 
                   <a
                     href="#location"
-                    className={`mt-inline-tight inline-flex max-w-full items-center gap-inline ${TYPE.body}`}
+                    className={`nf-tap mt-inline-tight inline-flex max-w-full items-center gap-inline ${TYPE.body}`}
                   >
                     <UiIcon name="location" size={ICON.inline} className="shrink-0 text-[var(--nf-brand-secondary)]" />
                     <span className="min-w-0">{where}</span>
