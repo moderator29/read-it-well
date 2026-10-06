@@ -238,6 +238,11 @@ function Lightbox({
      it is still the one that was tapped and nothing is mid-drag; the history
      pop that does the real close waits for the fold. */
   const folding = useRef(false);
+  /* The zoom out of the thumbnail still running, and the fold back into it:
+     held so a close mid-open measures the pane at rest, and so nothing is
+     left animating (or calling back) once the viewer has gone. */
+  const opening = useRef<Animation[]>([]);
+  const folds = useRef<Animation[]>([]);
   const fold = useCallback((then: () => void) => {
     const pane = track.current?.children[startIndex];
     const ground = surface.current;
@@ -248,13 +253,31 @@ function Lightbox({
       return;
     }
     folding.current = true;
+    /* Cancelled BEFORE measuring: a pane caught mid-zoom reports its scaled,
+       translated box, and the fold would then fly back from the wrong place. */
+    for (const run of opening.current) run.cancel();
+    opening.current = [];
     const to = flight(origin, pane.getBoundingClientRect());
     const timing = motionToken("--nf-duration-base", "240ms", "--nf-ease-exit", "cubic-bezier(0.4, 0, 1, 1)");
-    ground.animate([{ opacity: 1 }, { opacity: 0 }], { ...timing, fill: "forwards", pseudoElement: "::before" });
+    const fade = ground.animate([{ opacity: 1 }, { opacity: 0 }], { ...timing, fill: "forwards", pseudoElement: "::before" });
     const back = pane.animate([{ transform: "none", opacity: 1 }, { transform: to, opacity: 0.6 }], { ...timing, fill: "forwards" });
+    folds.current = [fade, back];
     back.onfinish = then;
     back.oncancel = then;
   }, [morph, foldBack, origin, startIndex]);
+  /* Gone mid-fold (a route change under the viewer): stop the fold without
+     letting its cancel call the close that already happened. */
+  useEffect(
+    () => () => {
+      for (const run of folds.current) {
+        run.onfinish = null;
+        run.oncancel = null;
+        run.cancel();
+      }
+      folds.current = [];
+    },
+    [],
+  );
 
   const closeNow = useCallback(() => {
     if (pushed.current && (window.history.state as { nfPhotoViewer?: boolean } | null)?.nfPhotoViewer) {
@@ -367,9 +390,11 @@ function Lightbox({
     const timing = motionToken("--nf-duration-slow", "380ms", "--nf-ease-entrance", "cubic-bezier(0.16, 1, 0.3, 1)");
     const zoom = pane.animate([{ transform: from, opacity: 0.6 }, { transform: "none", opacity: 1 }], timing);
     const fade = ground.animate([{ opacity: 0 }, { opacity: 1 }], { ...timing, pseudoElement: "::before" });
+    opening.current = [zoom, fade];
     return () => {
       zoom.cancel();
       fade.cancel();
+      opening.current = [];
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- once per opening, by design
   }, [mounted]);
