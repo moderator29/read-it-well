@@ -1,8 +1,24 @@
 # Vallo pricing: what Vallo charges, what the provider charges, and who pays
 
-**Founder decisions, 6 October 2026.** Every rate here is **policy data in
-`money_policy`, in basis points or kobo, never a constant in code.** Changing a
-price is a row, not a deploy.
+**Founder decisions, 6 October 2026.** The decisions below stand. **The mechanism
+section of the original draft was wrong and is corrected by D52**, after Session 4's
+Task 2 audit and Session 1's own verification.
+
+**What is actually true of the schema today:**
+
+- **Commission** lives in **`fee_rates`**, read through
+  `private.current_fee_bps('commission')`, which returns 0 with no row. Setting 2
+  percent is a `fee_rates` row. `money_policy` has **no `commission_bps` column**.
+- **`money_policy.guarantee_bps` cannot be set to 0.** It is declared
+  `check (guarantee_bps between 100 and 200)`. **Retiring the Guarantee is a
+  migration**, not a configuration change.
+- **Zeroing the rate does not lift the `PAYSTACK_GUARANTEE_SUBACCOUNT` blocker.**
+  Two gates refuse before the rate is ever consulted: `split-attempt.ts:74` returns
+  `refused` when the reserve subaccount is unset, and the database requires
+  `reserve_subaccount_code` non-null on a before-insert trigger. **The founder still
+  needs that `ACCT_` code, or both gates have to change.**
+- **VAT is not modelled anywhere.** `vat_bps` and `vat_registered` do not exist.
+  They are new columns and new code, not a flag to flip.
 
 ---
 
