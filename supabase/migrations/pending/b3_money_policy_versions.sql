@@ -40,10 +40,34 @@
 --   Lower bound inclusive, upper exclusive: exactly 500,000 is in the 300 band
 --   and exactly 100,000 in the 200 band. Overridable by a new version.
 --
--- Additive and idempotent. No drop, no delete. RLS on every new table, read
--- open (prices are public), no member write grant (DB-06 allowlist unchanged).
+-- Additive and idempotent. No table or row is removed. RLS on every new table,
+-- read open (prices are public), no member write grant (DB-06 allowlist
+-- unchanged). The policy tables are append only for EVERY role: service_role
+-- keeps select and insert only (its default-ACL update/delete/truncate are
+-- revoked), and a before-truncate trigger refuses truncate as well.
+--
+-- THE ONE CONSTRAINT CHANGE. The live singleton carries
+-- money_policy_guarantee_bps_check (guarantee_bps between 100 and 200), which
+-- would refuse the retirement to 0. It is replaced here, inside this same
+-- transaction, by money_policy_guarantee_bps_range (between 0 and 200). Only
+-- the lower bound moves; the upper bound is unchanged.
+--
+-- GRANTS. Postgres default privileges give anon EXECUTE on every new public
+-- function, and `revoke ... from public` does not remove that, so every new
+-- function is revoked from public AND anon explicitly, then granted back only
+-- where a public read is intended (money_policy_at, commission_quote).
 
 begin;
+
+alter table public.money_policy drop constraint if exists money_policy_guarantee_bps_check;
+do $$
+begin
+  if not exists (select 1 from pg_constraint where conrelid = 'public.money_policy'::regclass
+                  and conname = 'money_policy_guarantee_bps_range') then
+    alter table public.money_policy
+      add constraint money_policy_guarantee_bps_range check (guarantee_bps between 0 and 200);
+  end if;
+end $$;
 
 create table if not exists public.money_policy_versions (
   id                    bigint generated always as identity primary key,
@@ -99,13 +123,19 @@ create table if not exists public.money_policy_withdrawal_bands (
 create or replace function private.money_policy_append_only()
 returns trigger language plpgsql set search_path to '' as $$
 begin
+  -- Statement-level (truncate) first: OLD is not a row there.
+  if tg_op = 'TRUNCATE' then
+    raise exception 'money_policy: history is kept, a policy table is never truncated' using errcode = '42501';
+  end if;
   if tg_op = 'DELETE' then
     raise exception 'money_policy: history is kept, a policy row is never deleted' using errcode = '42501';
   end if;
-  if tg_table_name = 'money_policy_versions'
-     and old.effective_to is null and new.effective_to is not null
-     and (to_jsonb(new) - 'effective_to') = (to_jsonb(old) - 'effective_to') then
-    return new;
+  -- Nested so OLD.effective_to is only read on the table that has it.
+  if tg_table_name = 'money_policy_versions' then
+    if (to_jsonb(old)->>'effective_to') is null and (to_jsonb(new)->>'effective_to') is not null
+       and (to_jsonb(new) - 'effective_to') = (to_jsonb(old) - 'effective_to') then
+      return new;
+    end if;
   end if;
   raise exception 'money_policy: a policy row is never edited; add a new version' using errcode = '42501';
 end;
@@ -120,15 +150,29 @@ create or replace trigger money_policy_commission_rates_append_only
 create or replace trigger money_policy_withdrawal_bands_append_only
   before update or delete on public.money_policy_withdrawal_bands
   for each row execute function private.money_policy_append_only();
+create or replace trigger money_policy_versions_no_truncate
+  before truncate on public.money_policy_versions
+  for each statement execute function private.money_policy_append_only();
+create or replace trigger money_policy_commission_rates_no_truncate
+  before truncate on public.money_policy_commission_rates
+  for each statement execute function private.money_policy_append_only();
+create or replace trigger money_policy_withdrawal_bands_no_truncate
+  before truncate on public.money_policy_withdrawal_bands
+  for each statement execute function private.money_policy_append_only();
+revoke all on function private.money_policy_append_only() from public, anon, authenticated;
 
 alter table public.money_policy_versions enable row level security;
 alter table public.money_policy_commission_rates enable row level security;
 alter table public.money_policy_withdrawal_bands enable row level security;
 
 revoke all on public.money_policy_versions, public.money_policy_commission_rates,
-              public.money_policy_withdrawal_bands from anon, authenticated;
+              public.money_policy_withdrawal_bands from public, anon, authenticated, service_role;
 grant select on public.money_policy_versions, public.money_policy_commission_rates,
                public.money_policy_withdrawal_bands to anon, authenticated;
+grant select, insert on public.money_policy_versions, public.money_policy_commission_rates,
+               public.money_policy_withdrawal_bands to service_role;
+revoke all on sequence public.money_policy_versions_id_seq, public.money_policy_commission_rates_id_seq,
+               public.money_policy_withdrawal_bands_id_seq from public, anon, authenticated;
 
 do $$
 begin
@@ -156,6 +200,7 @@ select v.id, e.enumlabel::public.property_type, 200
   from public.money_policy_versions v
   cross join pg_enum e
   join pg_type t on t.oid = e.enumtypid and t.typname = 'property_type'
+                and t.typnamespace = 'public'::regnamespace
  where v.version = '2026-10-06.1'
 on conflict (policy_version_id, property_type) do nothing;
 
@@ -246,9 +291,12 @@ begin
 end;
 $$;
 
-revoke all on function public.money_policy_at(timestamptz) from public;
-revoke all on function public.commission_quote(bigint, public.property_type, bigint) from public;
-revoke all on function public.withdrawal_fee_quote(bigint, timestamptz) from public;
+revoke all on function public.money_policy_at(timestamptz) from public, anon;
+revoke all on function public.commission_quote(bigint, public.property_type, bigint) from public, anon;
+revoke all on function public.withdrawal_fee_quote(bigint, timestamptz) from public, anon;
+-- Prices are public: the policy and the commission quote are readable by anyone.
+-- The withdrawal quote is for signed-in members only (a deliberate choice: only
+-- a member with a wallet withdraws).
 grant execute on function public.money_policy_at(timestamptz) to anon, authenticated, service_role;
 grant execute on function public.commission_quote(bigint, public.property_type, bigint) to anon, authenticated, service_role;
 grant execute on function public.withdrawal_fee_quote(bigint, timestamptz) to authenticated, service_role;
@@ -282,7 +330,7 @@ begin
     raise exception 'b3_money_policy_versions: seed did not land as written';
   end if;
   select count(*) into n from public.money_policy_commission_rates where policy_version_id = v.id and commission_bps = 200;
-  if n <> (select count(*) from pg_enum e join pg_type t on t.oid = e.enumtypid where t.typname = 'property_type') then
+  if n <> (select count(*) from pg_enum e join pg_type t on t.oid = e.enumtypid where t.typname = 'property_type' and t.typnamespace = 'public'::regnamespace) then
     raise exception 'b3_money_policy_versions: % per-type rates, expected one per property_type', n;
   end if;
   select count(*) into n from public.money_policy_withdrawal_bands where policy_version_id = v.id;
@@ -308,6 +356,24 @@ begin
   if n <> 3 then raise exception 'b3_money_policy_versions: RLS is not on all three tables'; end if;
   select count(*) into n from pg_trigger where tgname in ('money_policy_versions_append_only', 'money_policy_commission_rates_append_only', 'money_policy_withdrawal_bands_append_only');
   if n <> 3 then raise exception 'b3_money_policy_versions: the append-only triggers did not land'; end if;
+  select count(*) into n from pg_trigger where tgname in ('money_policy_versions_no_truncate', 'money_policy_commission_rates_no_truncate', 'money_policy_withdrawal_bands_no_truncate');
+  if n <> 3 then raise exception 'b3_money_policy_versions: the no-truncate triggers did not land'; end if;
+  if exists (select 1 from pg_constraint where conrelid = 'public.money_policy'::regclass and conname = 'money_policy_guarantee_bps_check')
+     or not exists (select 1 from pg_constraint where conrelid = 'public.money_policy'::regclass and conname = 'money_policy_guarantee_bps_range') then
+    raise exception 'b3_money_policy_versions: the singleton guarantee range was not relaxed to 0..200';
+  end if;
+  if exists (select 1 from unnest(array['public.money_policy_versions', 'public.money_policy_commission_rates', 'public.money_policy_withdrawal_bands']) t(name)
+              cross join unnest(array['update', 'delete', 'truncate']) p(priv)
+              where has_table_privilege('service_role', t.name, p.priv)
+                 or has_table_privilege('authenticated', t.name, p.priv)
+                 or has_table_privilege('anon', t.name, p.priv)) then
+    raise exception 'b3_money_policy_versions: a role can still update, delete or truncate policy';
+  end if;
+  if has_function_privilege('anon', 'public.withdrawal_fee_quote(bigint,timestamptz)', 'execute')
+     or has_function_privilege('anon', 'private.money_policy_append_only()', 'execute')
+     or has_function_privilege('authenticated', 'private.money_policy_append_only()', 'execute') then
+    raise exception 'b3_money_policy_versions: a function kept a default anon/member execute grant';
+  end if;
   if has_table_privilege('authenticated', 'public.money_policy_versions', 'insert')
      or has_table_privilege('authenticated', 'public.money_policy_versions', 'update') then
     raise exception 'b3_money_policy_versions: members can write policy';

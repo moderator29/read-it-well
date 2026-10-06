@@ -40,13 +40,19 @@ export type SweepRow = {
   rate_limit_remaining?: number | null;
   error_code?: string | null;
   error_detail?: string | null;
+  /** When this run began (before the Payluk request). */
+  started_at?: string;
+  /** When the outcome was decided, just before the row is written. */
   finished_at?: string;
 };
 
 export type SweepDeps = {
   env: Readonly<Record<string, string | undefined>>;
   fetchImpl: Parameters<typeof readMerchantBalance>[1];
-  /** When the last run started, or null when there is none or it could not be read. */
+  /**
+   * When the last run started, or null when there is none. THROWS when the log
+   * cannot be read: pacing then fails closed (the run is skipped, no request).
+   */
   lastRunAt: () => Promise<Date | null>;
   record: (row: SweepRow) => Promise<boolean>;
   withdraw?: (amountMinor: number) => Promise<MerchantWithdrawal>;
@@ -68,8 +74,17 @@ export async function sweepPaylukCommission(deps: SweepDeps): Promise<SweepVerdi
   if (!config) {
     return { outcome: "ok", counts: { requests: 0 }, detail: { skipped: "payluk_not_configured" }, alert: null };
   }
-  const now = (deps.now ?? (() => new Date()))();
-  const last = await deps.lastRunAt();
+  const clock = deps.now ?? (() => new Date());
+  const now = clock();
+  const startedAt = now.toISOString();
+  const finishedAt = () => clock().toISOString();
+  let last: Date | null;
+  try {
+    last = await deps.lastRunAt();
+  } catch {
+    /* Fail closed: without the last run we cannot prove the budget is safe. */
+    return { outcome: "attention", counts: { requests: 0 }, detail: { skipped: "paced", reason: "last_run_unreadable" }, alert: null };
+  }
   if (last && now.getTime() - last.getTime() < SWEEP_MIN_GAP_MS) {
     return { outcome: "ok", counts: { requests: 0 }, detail: { skipped: "paced" }, alert: null };
   }
@@ -82,7 +97,8 @@ export async function sweepPaylukCommission(deps: SweepDeps): Promise<SweepVerdi
       error_code: balance.code,
       error_detail: balance.detail || null,
       rate_limit_remaining: balance.rateLimitRemaining,
-      finished_at: now.toISOString(),
+      started_at: startedAt,
+      finished_at: finishedAt(),
     });
     return {
       outcome: "attention",
@@ -98,16 +114,17 @@ export async function sweepPaylukCommission(deps: SweepDeps): Promise<SweepVerdi
     escrow_balance_minor: balance.escrowMinor,
     currency: balance.currency || null,
     rate_limit_remaining: balance.rateLimitRemaining,
+    started_at: startedAt,
   };
 
   if (balance.mainMinor <= 0) {
-    const saved = await deps.record({ ...base, outcome: "nothing_to_sweep", finished_at: now.toISOString() });
+    const saved = await deps.record({ ...base, outcome: "nothing_to_sweep", finished_at: finishedAt() });
     return { outcome: "ok", counts: { requests: 1, main_minor: 0 }, detail: { recorded: saved }, alert: null };
   }
 
   /* The budget: a withdrawal is a second request. Never spend the last one. */
   if (balance.rateLimitRemaining !== null && balance.rateLimitRemaining <= 1) {
-    const saved = await deps.record({ ...base, outcome: "paced", finished_at: now.toISOString() });
+    const saved = await deps.record({ ...base, outcome: "paced", finished_at: finishedAt() });
     return { outcome: "ok", counts: { requests: 1, main_minor: balance.mainMinor }, detail: { paced: true, recorded: saved }, alert: null };
   }
 
@@ -118,7 +135,7 @@ export async function sweepPaylukCommission(deps: SweepDeps): Promise<SweepVerdi
       outcome: "withdrawal_unavailable",
       error_code: "no_documented_route",
       error_detail: withdrawal.reason,
-      finished_at: now.toISOString(),
+      finished_at: finishedAt(),
     });
     return {
       outcome: "attention",
@@ -137,7 +154,7 @@ export async function sweepPaylukCommission(deps: SweepDeps): Promise<SweepVerdi
     outcome: "withdrawal_submitted",
     withdrawal_minor: withdrawal.amountMinor,
     withdrawal_reference: withdrawal.reference,
-    finished_at: now.toISOString(),
+    finished_at: finishedAt(),
   });
   return {
     outcome: "ok",

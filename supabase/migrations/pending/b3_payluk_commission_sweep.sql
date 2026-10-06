@@ -24,7 +24,12 @@
 -- in the B3 report); until then nothing here is revenue, it is an observation.
 --
 -- A run with no Payluk key writes nothing (the job no-ops before touching this).
--- Additive, idempotent, RLS on, no member grant.
+-- Additive, idempotent, RLS on, no member grant. Truly append only: service_role
+-- keeps select and insert (its default-ACL update/delete/truncate are revoked) and
+-- a before-truncate trigger refuses truncate. Every new function is revoked from
+-- public AND anon (default privileges grant anon EXECUTE on new functions).
+-- error_detail holds Payluk's raw message: finance-staff only via the desk read,
+-- never on a member surface.
 
 begin;
 
@@ -57,9 +62,13 @@ $$;
 create or replace trigger payluk_commission_sweeps_append_only
   before update or delete on public.payluk_commission_sweeps
   for each row execute function private.payluk_sweep_append_only();
+create or replace trigger payluk_commission_sweeps_no_truncate
+  before truncate on public.payluk_commission_sweeps
+  for each statement execute function private.payluk_sweep_append_only();
+revoke all on function private.payluk_sweep_append_only() from public, anon, authenticated;
 
 alter table public.payluk_commission_sweeps enable row level security;
-revoke all on public.payluk_commission_sweeps from anon, authenticated;
+revoke all on public.payluk_commission_sweeps from public, anon, authenticated, service_role;
 grant select, insert on public.payluk_commission_sweeps to service_role;
 
 create or replace function public.admin_payluk_commission_sweep()
@@ -87,7 +96,7 @@ begin
                           from (select * from public.payluk_commission_sweeps order by started_at desc limit 20) s), '[]'::jsonb));
 end;
 $$;
-revoke all on function public.admin_payluk_commission_sweep() from public;
+revoke all on function public.admin_payluk_commission_sweep() from public, anon;
 grant execute on function public.admin_payluk_commission_sweep() to authenticated;
 
 -- READ-BACK.
@@ -97,8 +106,20 @@ begin
                   where s.nspname = 'public' and c.relname = 'payluk_commission_sweeps' and c.relrowsecurity) then
     raise exception 'b3_payluk_commission_sweep: RLS is not on';
   end if;
-  if not exists (select 1 from pg_trigger where tgname = 'payluk_commission_sweeps_append_only') then
-    raise exception 'b3_payluk_commission_sweep: append-only trigger missing';
+  if not exists (select 1 from pg_trigger where tgname = 'payluk_commission_sweeps_append_only')
+     or not exists (select 1 from pg_trigger where tgname = 'payluk_commission_sweeps_no_truncate') then
+    raise exception 'b3_payluk_commission_sweep: append-only or no-truncate trigger missing';
+  end if;
+  if has_table_privilege('service_role', 'public.payluk_commission_sweeps', 'update')
+     or has_table_privilege('service_role', 'public.payluk_commission_sweeps', 'delete')
+     or has_table_privilege('service_role', 'public.payluk_commission_sweeps', 'truncate')
+     or not has_table_privilege('service_role', 'public.payluk_commission_sweeps', 'insert') then
+    raise exception 'b3_payluk_commission_sweep: service_role grants are not select+insert only';
+  end if;
+  if has_function_privilege('anon', 'private.payluk_sweep_append_only()', 'execute')
+     or has_function_privilege('authenticated', 'private.payluk_sweep_append_only()', 'execute')
+     or not has_function_privilege('authenticated', 'public.admin_payluk_commission_sweep()', 'execute') then
+    raise exception 'b3_payluk_commission_sweep: function grants are wrong';
   end if;
   if has_table_privilege('authenticated', 'public.payluk_commission_sweeps', 'select')
      or has_table_privilege('authenticated', 'public.payluk_commission_sweeps', 'insert')

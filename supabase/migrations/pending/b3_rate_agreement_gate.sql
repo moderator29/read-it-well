@@ -12,41 +12,65 @@
 --                                       kobo, the figures shown in naira
 --   public.quote_listing_rate(listing)  what the lister is shown (no write)
 --   public.accept_listing_rate(listing, version, amount)   the only way to accept
---   listings_zz_b3_rate_agreement_gate  BEFORE UPDATE OF status: a listing cannot
---                                       move INTO 'SUBMITTED' or 'PUBLISHED' without an
---                                       acceptance on the version in force AND on its
---                                       current price
+--   listings_zz_b3_rate_agreement_gate  BEFORE INSERT / UPDATE OF status or price: a
+--                                       listing cannot move INTO 'SUBMITTED' or
+--                                       'PUBLISHED' without an acceptance on its current
+--                                       price, and a PUBLISHED listing's price cannot
+--                                       change without a fresh acceptance at the new price
 --   payment_split_for_booking / _for_rent_share
---                                       commission from the lister's latest acceptance
---                                       (their accepted rate, never a newer one), the
---                                       Guarantee leg from the policy at agreement time
---                                       (0 today); no acceptance -> 'rate_not_accepted'
+--                                       commission and Guarantee per THE SPLIT PRECEDENCE
+--                                       below; never a rate newer than the deal
 --   private.transactions_payment_gate   no longer demands reserve_subaccount_code when
 --                                       guarantee_minor is 0
 --   public.crypto_open_attempt          same: reserve required only for a non-zero leg
 --
+-- THE SPLIT PRECEDENCE (commission and Guarantee for one booking), first match wins:
+--  1. The commission_bps / guarantee_bps saved in deal_agreements.terms at agreement
+--     time, when present (each key read on its own). The deal keeps its own numbers.
+--  2. Booking WITH a listing: the listing's latest acceptance with
+--     accepted_at <= the agreement's created_at (never one accepted after the deal).
+--     No such acceptance -> status 'rate_not_accepted'.
+--  3. Booking with NO listing (hotel / accommodation rooms, which have no acceptance
+--     surface): the money policy version in force at the agreement's created_at, so
+--     hotels stay payable. No version in force then -> 'no_policy'.
+--  The Guarantee leg: terms guarantee_bps if saved, else the policy in force at the
+--  agreement's created_at (0 under D51), else 0.
+--
 -- DECISIONS, stated so a reviewer can disagree:
 --  * Which price: sale -> sale_price_minor; otherwise rent_amount_minor, else rate_minor.
---    A change of price after acceptance re-opens the question (the figures accepted
---    were for a different number).
---  * Existing PUBLISHED listings are not touched by the trigger (it fires on a status
---    TRANSITION). They cannot be CHARGED commission without an acceptance either: the
---    split returns 'rate_not_accepted'. 0 transactions and 0 agreements exist today
---    (read 6 Oct 2026), so nothing in flight changes.
---  * Bookings with no listing (hotel rooms on accommodations) have no acceptance
---    surface yet, so they return 'rate_not_accepted'. Unfinished, named in the report.
---  * Only an INSERT already in 'SUBMITTED'/'PUBLISHED' is also gated, so a direct
---    insert cannot bypass the transition rule. Demo rows (is_demo) are exempt: they
---    are never charged.
+--  * PRICE EDITS. Changing the price of a PUBLISHED non-demo listing is refused unless
+--    the lister's latest acceptance is on the version in force AND on the new price.
+--    To make that possible, accept_listing_rate on a PUBLISHED listing accepts a price
+--    different from the stored one (the price the lister is about to set); the figures
+--    are computed and recorded on that price. Price edits on DRAFT/SUBMITTED rows are
+--    not gated themselves; the next move into SUBMITTED/PUBLISHED re-checks.
+--  * REVIEW WINDOW (S6). SUBMITTED -> PUBLISHED accepts an acceptance on the version
+--    in force now OR on the version that was in force when the listing was submitted
+--    (listings.submitted_at), so a rate change landing during review does not strand
+--    a listing. No staff override exists; staff never accept on a lister's behalf.
+--  * Existing PUBLISHED listings (all 64 are is_demo today) are untouched: same-status
+--    updates that do not change the price return early.
+--  * Unpriced listings (price null or 0, "price on request") can never be accepted
+--    (`no_price`) and so can never be submitted. Deliberate: a fee needs a number.
+--  * An INSERT already in 'SUBMITTED'/'PUBLISHED' is also gated. Demo rows (is_demo)
+--    are exempt: they are never charged.
+--  * HISTORY (S4). listing_rate_acceptances.listing_id carries NO foreign key, only an
+--    index. listings.agent_id cascades on agent deletion; a restricting FK would block
+--    account erasure, and `on delete set null` would rewrite an append-only row (and
+--    erase which listing the lister accepted for). With no FK the acceptance survives
+--    as history and never blocks deleting an agent or a listing.
 --
--- No drop, no delete. RLS on. No member write grant (writes only through the
--- SECURITY DEFINER function), so the DB-06 allowlist is unchanged.
+-- No table or row is removed. RLS on. No member write grant (writes only through the
+-- SECURITY DEFINER function), so the DB-06 allowlist is unchanged. service_role keeps
+-- select only (writes go through the definer function), truncate is refused by a
+-- trigger, and every new function is revoked from public and anon explicitly
+-- (default privileges grant anon EXECUTE on new public functions).
 
 begin;
 
 create table if not exists public.listing_rate_acceptances (
   id                   uuid primary key default gen_random_uuid(),
-  listing_id           uuid not null references public.listings(id),
+  listing_id           uuid not null,   -- no FK on purpose: history outlives the listing (S4)
   member_id            uuid not null,
   accepted_at          timestamptz not null default now(),
   policy_version_id    bigint not null references public.money_policy_versions(id),
@@ -66,10 +90,13 @@ create index if not exists listing_rate_acceptances_listing_idx
 create or replace trigger listing_rate_acceptances_append_only
   before update or delete on public.listing_rate_acceptances
   for each row execute function private.money_policy_append_only();
+create or replace trigger listing_rate_acceptances_no_truncate
+  before truncate on public.listing_rate_acceptances
+  for each statement execute function private.money_policy_append_only();
 
 alter table public.listing_rate_acceptances enable row level security;
-revoke all on public.listing_rate_acceptances from anon, authenticated;
-grant select on public.listing_rate_acceptances to authenticated;
+revoke all on public.listing_rate_acceptances from public, anon, authenticated, service_role;
+grant select on public.listing_rate_acceptances to authenticated, service_role;
 
 do $$
 begin
@@ -89,12 +116,13 @@ returns bigint language sql stable security definer set search_path to '' as $$
     from public.listings l where l.id = p_listing;
 $$;
 
--- The latest acceptance, whatever its version: the rate the lister keeps.
-create or replace function private.b3_latest_acceptance(p_listing uuid)
+-- The latest acceptance not after a moment (default now), whatever its version.
+create or replace function private.b3_latest_acceptance(p_listing uuid, p_at timestamptz default now())
 returns public.listing_rate_acceptances
 language sql stable security definer set search_path to '' as $$
   select a.* from public.listing_rate_acceptances a
-   where a.listing_id = p_listing order by a.accepted_at desc, a.id desc limit 1;
+   where a.listing_id = p_listing and a.accepted_at <= p_at
+   order by a.accepted_at desc, a.id desc limit 1;
 $$;
 
 -- What the lister is shown. Writes nothing.
@@ -108,8 +136,9 @@ declare
   acc public.listing_rate_acceptances%rowtype;
 begin
   select * into l from public.listings where id = p_listing;
-  if l.id is null or not exists (select 1 from public.agents a where a.id = l.agent_id and a.user_id = (select auth.uid()))
-     and not private.is_staff() then
+  if l.id is null
+     or (not exists (select 1 from public.agents a where a.id = l.agent_id and a.user_id = (select auth.uid()))
+         and not private.is_staff()) then
     return jsonb_build_object('status', 'not_found');
   end if;
   v := public.money_policy_at(now());
@@ -128,7 +157,10 @@ $$;
 
 -- The only write. The client names the version and the price it SHOWED, so a
 -- rate or price that moved between showing and tapping is refused, never
--- silently accepted at a figure the lister did not see.
+-- silently accepted at a figure the lister did not see. Exception: on a
+-- PUBLISHED listing the lister may accept the NEW price they are about to set
+-- (the price-edit gate then requires exactly that price). Only the lister
+-- accepts; staff cannot accept on their behalf.
 create or replace function public.accept_listing_rate(p_listing uuid, p_policy_version bigint, p_amount_minor bigint)
 returns jsonb language plpgsql volatile security definer set search_path to '' as $$
 declare
@@ -151,6 +183,9 @@ begin
   end if;
   price := private.b3_listing_price_minor(l.id);
   if price is null or price <= 0 then return jsonb_build_object('status', 'no_price'); end if;
+  if l.status = 'PUBLISHED' and p_amount_minor is not null and p_amount_minor > 0 then
+    price := p_amount_minor;   -- a price edit on a live listing, accepted before it is saved
+  end if;
   if p_amount_minor is distinct from price then
     return jsonb_build_object('status', 'price_changed', 'amount_minor', price);
   end if;
@@ -173,8 +208,10 @@ begin
 end;
 $$;
 
-revoke all on function public.quote_listing_rate(uuid) from public;
-revoke all on function public.accept_listing_rate(uuid, bigint, bigint) from public;
+revoke all on function public.quote_listing_rate(uuid) from public, anon;
+revoke all on function public.accept_listing_rate(uuid, bigint, bigint) from public, anon;
+revoke all on function private.b3_listing_price_minor(uuid) from public, anon, authenticated;
+revoke all on function private.b3_latest_acceptance(uuid, timestamptz) from public, anon, authenticated;
 grant execute on function public.quote_listing_rate(uuid) to authenticated, service_role;
 grant execute on function public.accept_listing_rate(uuid, bigint, bigint) to authenticated;
 
@@ -184,52 +221,95 @@ returns trigger language plpgsql security definer set search_path to '' as $$
 declare
   acc public.listing_rate_acceptances%rowtype;
   v public.money_policy_versions%rowtype;
+  v_sub public.money_policy_versions%rowtype;
+  new_price bigint;
+  old_price bigint;
 begin
   if new.status not in ('SUBMITTED', 'PUBLISHED') then return new; end if;
-  if tg_op = 'UPDATE' and old.status = new.status then return new; end if;
   if coalesce(new.is_demo, false) then return new; end if;
+  new_price := case when new.listing_intent = 'sale' then new.sale_price_minor
+                    else coalesce(new.rent_amount_minor, new.rate_minor) end;
+  if tg_op = 'UPDATE' and old.status = new.status then
+    old_price := case when old.listing_intent = 'sale' then old.sale_price_minor
+                      else coalesce(old.rent_amount_minor, old.rate_minor) end;
+    -- Same status: only a price change on a PUBLISHED listing is gated.
+    if new.status <> 'PUBLISHED' or new_price is not distinct from old_price then
+      return new;
+    end if;
+  end if;
   acc := private.b3_latest_acceptance(new.id);
   v := public.money_policy_at(now());
-  if acc.id is null or v.id is null or acc.policy_version_id <> v.id
-     or acc.amount_minor is distinct from (case when new.listing_intent = 'sale' then new.sale_price_minor
-                                              else coalesce(new.rent_amount_minor, new.rate_minor) end) then
+  -- S6: moving SUBMITTED -> PUBLISHED also honours the version in force at submission.
+  if tg_op = 'UPDATE' and old.status = 'SUBMITTED' and new.status = 'PUBLISHED' then
+    v_sub := public.money_policy_at(coalesce(new.submitted_at, old.submitted_at, now()));
+  end if;
+  if acc.id is null or v.id is null
+     or (acc.policy_version_id <> v.id and acc.policy_version_id is distinct from v_sub.id)
+     or acc.amount_minor is distinct from new_price then
     raise exception 'rate_agreement_required: the lister has not accepted the current fee on this price'
       using errcode = '42501', hint = 'accept_listing_rate';
   end if;
   return new;
 end;
 $$;
+revoke all on function private.b3_rate_agreement_gate() from public, anon, authenticated;
 
 create or replace trigger listings_zz_b3_rate_agreement_gate
-  before insert or update of status on public.listings
+  before insert or update of status, rent_amount_minor, sale_price_minor, rate_minor, listing_intent
+  on public.listings
   for each row execute function private.b3_rate_agreement_gate();
 
--- Commission for a booking: the listing's latest acceptance, at ITS rate.
-create or replace function private.b3_commission_for_booking(p_booking uuid, p_amount_minor bigint)
+-- Commission for a booking under THE SPLIT PRECEDENCE (header): terms snapshot,
+-- else the acceptance in force at agreement time, else (no listing) the policy
+-- in force at agreement time.
+create or replace function private.b3_commission_for_booking(p_booking uuid, p_amount_minor bigint, p_agreement uuid)
 returns jsonb language plpgsql stable security definer set search_path to '' as $$
 declare
   bk public.bookings%rowtype;
+  ag public.deal_agreements%rowtype;
   acc public.listing_rate_acceptances%rowtype;
+  v public.money_policy_versions%rowtype;
   fee bigint;
+  bps integer;
 begin
   select * into bk from public.bookings where id = p_booking;
-  if bk.listing_id is null then return jsonb_build_object('status', 'rate_not_accepted'); end if;
-  acc := private.b3_latest_acceptance(bk.listing_id);
-  if acc.id is null then return jsonb_build_object('status', 'rate_not_accepted'); end if;
-  fee := (p_amount_minor * acc.commission_bps) / 10000;
-  if acc.cap_threshold_minor is not null and p_amount_minor > acc.cap_threshold_minor then
-    fee := least(fee, acc.cap_minor);
+  select * into ag from public.deal_agreements where id = p_agreement;
+  if bk.id is null or ag.id is null then return jsonb_build_object('status', 'not_found'); end if;
+  if ag.terms ? 'commission_bps' and jsonb_typeof(ag.terms->'commission_bps') = 'number' then
+    bps := (ag.terms->>'commission_bps')::integer;
+    if bps < 0 or bps > 10000 then return jsonb_build_object('status', 'amount_mismatch'); end if;
+    return jsonb_build_object('status', 'ok', 'commission_bps', bps, 'source', 'terms',
+                              'commission_minor', (p_amount_minor * bps) / 10000, 'acceptance_id', null);
   end if;
-  return jsonb_build_object('status', 'ok', 'commission_bps', acc.commission_bps,
-                            'commission_minor', fee, 'acceptance_id', acc.id);
+  if bk.listing_id is not null then
+    acc := private.b3_latest_acceptance(bk.listing_id, ag.created_at);
+    if acc.id is null then return jsonb_build_object('status', 'rate_not_accepted'); end if;
+    fee := (p_amount_minor * acc.commission_bps) / 10000;
+    if acc.cap_threshold_minor is not null and p_amount_minor > acc.cap_threshold_minor then
+      fee := least(fee, acc.cap_minor);
+    end if;
+    return jsonb_build_object('status', 'ok', 'commission_bps', acc.commission_bps, 'source', 'acceptance',
+                              'commission_minor', fee, 'acceptance_id', acc.id);
+  end if;
+  -- No listing: a hotel / accommodation room. The policy at agreement time.
+  v := public.money_policy_at(ag.created_at);
+  if v.id is null then return jsonb_build_object('status', 'no_policy'); end if;
+  return jsonb_build_object('status', 'ok', 'commission_bps', v.commission_bps, 'source', 'policy',
+                            'commission_minor', (p_amount_minor * v.commission_bps) / 10000,
+                            'acceptance_id', null, 'policy_version_id', v.id);
 end;
 $$;
 
--- The Guarantee leg: the policy at the moment the agreement was drawn (0 today).
-create or replace function private.b3_guarantee_bps_at(p_at timestamptz)
+-- The Guarantee leg: the terms snapshot, else the policy at agreement time (0 under D51).
+create or replace function private.b3_guarantee_bps_for(p_agreement uuid)
 returns integer language sql stable security definer set search_path to '' as $$
-  select coalesce((public.money_policy_at(p_at)).guarantee_bps, 0);
+  select coalesce(
+           case when jsonb_typeof(ag.terms->'guarantee_bps') = 'number' then (ag.terms->>'guarantee_bps')::integer end,
+           (public.money_policy_at(ag.created_at)).guarantee_bps, 0)
+    from public.deal_agreements ag where ag.id = p_agreement;
 $$;
+revoke all on function private.b3_commission_for_booking(uuid, bigint, uuid) from public, anon, authenticated;
+revoke all on function private.b3_guarantee_bps_for(uuid) from public, anon, authenticated;
 
 create or replace function public.payment_split_for_booking(p_booking uuid)
 returns jsonb language plpgsql stable security definer set search_path to '' as $function$
@@ -260,11 +340,11 @@ begin
   if sub is null then
     return jsonb_build_object('status', 'payee_not_set_up', 'agreement_id', ag.id);
   end if;
-  c := private.b3_commission_for_booking(bk.id, bk.total_minor);
+  c := private.b3_commission_for_booking(bk.id, bk.total_minor, ag.id);
   if c->>'status' <> 'ok' then
     return jsonb_build_object('status', c->>'status', 'agreement_id', ag.id);
   end if;
-  g_bps := private.b3_guarantee_bps_at(ag.created_at);
+  g_bps := coalesce(private.b3_guarantee_bps_for(ag.id), 0);
   guarantee := (bk.total_minor * g_bps) / 10000;
   commission := (c->>'commission_minor')::bigint;
   if guarantee + commission > bk.total_minor then
@@ -322,11 +402,11 @@ begin
   if sub is null then
     return jsonb_build_object('status', 'payee_not_set_up', 'agreement_id', ag.id);
   end if;
-  c := private.b3_commission_for_booking(rp.booking_id, owed);
+  c := private.b3_commission_for_booking(rp.booking_id, owed, ag.id);
   if c->>'status' <> 'ok' then
     return jsonb_build_object('status', c->>'status', 'agreement_id', ag.id);
   end if;
-  g_bps := private.b3_guarantee_bps_at(ag.created_at);
+  g_bps := coalesce(private.b3_guarantee_bps_for(ag.id), 0);
   guarantee := (owed * g_bps) / 10000;
   commission := (c->>'commission_minor')::bigint;
   if guarantee + commission > owed then
@@ -471,8 +551,29 @@ begin
     raise exception 'b3_rate_agreement_gate: RLS is not on listing_rate_acceptances';
   end if;
   select count(*) into n from pg_trigger
-   where tgname in ('listings_zz_b3_rate_agreement_gate', 'listing_rate_acceptances_append_only') and not tgisinternal;
-  if n <> 2 then raise exception 'b3_rate_agreement_gate: % of 2 triggers landed', n; end if;
+   where tgname in ('listings_zz_b3_rate_agreement_gate', 'listing_rate_acceptances_append_only',
+                    'listing_rate_acceptances_no_truncate') and not tgisinternal;
+  if n <> 3 then raise exception 'b3_rate_agreement_gate: % of 3 triggers landed', n; end if;
+  if exists (select 1 from pg_constraint where conrelid = 'public.listing_rate_acceptances'::regclass and contype = 'f'
+                and conkey = array[(select attnum from pg_attribute where attrelid = 'public.listing_rate_acceptances'::regclass and attname = 'listing_id')]) then
+    raise exception 'b3_rate_agreement_gate: listing_id must carry no FK (history outlives the listing)';
+  end if;
+  if exists (select 1 from unnest(array['insert', 'update', 'delete', 'truncate']) p(priv)
+              where has_table_privilege('service_role', 'public.listing_rate_acceptances', p.priv)
+                 or has_table_privilege('anon', 'public.listing_rate_acceptances', p.priv)) then
+    raise exception 'b3_rate_agreement_gate: service_role or anon can write acceptances';
+  end if;
+  if has_function_privilege('anon', 'public.quote_listing_rate(uuid)', 'execute')
+     or has_function_privilege('authenticated', 'private.b3_commission_for_booking(uuid,bigint,uuid)', 'execute')
+     or has_function_privilege('authenticated', 'private.b3_guarantee_bps_for(uuid)', 'execute')
+     or has_function_privilege('authenticated', 'private.b3_latest_acceptance(uuid,timestamptz)', 'execute')
+     or has_function_privilege('authenticated', 'private.b3_listing_price_minor(uuid)', 'execute')
+     or has_function_privilege('authenticated', 'private.b3_rate_agreement_gate()', 'execute') then
+    raise exception 'b3_rate_agreement_gate: a new function kept a default execute grant';
+  end if;
+  if position('rent_amount_minor' in pg_get_triggerdef((select oid from pg_trigger where tgname = 'listings_zz_b3_rate_agreement_gate'))) = 0 then
+    raise exception 'b3_rate_agreement_gate: the gate does not fire on price edits';
+  end if;
   if has_table_privilege('authenticated', 'public.listing_rate_acceptances', 'insert')
      or has_table_privilege('authenticated', 'public.listing_rate_acceptances', 'update')
      or has_table_privilege('authenticated', 'public.listing_rate_acceptances', 'delete') then

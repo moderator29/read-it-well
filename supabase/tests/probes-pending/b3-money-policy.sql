@@ -56,8 +56,19 @@ begin
     raise exception 'PROBE_FAIL b3-money-policy 5a: a policy row was edited';
   exception when insufficient_privilege then null;
   end;
-  -- (The DELETE branch of the same trigger is not exercised here: the
-  -- Supabase MCP hangs on DELETE statements. Read-back checks the trigger.)
+  begin
+    delete from public.money_policy_versions where id = v2;
+    raise exception 'PROBE_FAIL b3-money-policy 5d: a policy row was deleted';
+  exception when insufficient_privilege then null;
+  end;
+  begin
+    truncate public.money_policy_withdrawal_bands;
+    raise exception 'PROBE_FAIL b3-money-policy 5e: policy bands were truncated';
+  exception when insufficient_privilege then null;
+  end;
+  if (select guarantee_bps from public.money_policy) <> 0 then
+    raise exception 'PROBE_FAIL b3-money-policy 7: the singleton still carries a Guarantee rate';
+  end if;
   begin
     update public.money_policy_commission_rates set commission_bps = 1 where policy_version_id = v2;
     raise exception 'PROBE_FAIL b3-money-policy 5b: a per-type rate was edited';

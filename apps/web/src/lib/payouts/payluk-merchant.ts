@@ -41,7 +41,9 @@ export function paylukMerchantConfig(env: Readonly<Record<string, string | undef
 
 /** Naira as Payluk writes it (major unit, up to two decimals) to kobo, without floating point. */
 export function nairaToKobo(value: unknown): number | null {
-  const text = typeof value === "number" ? (Number.isFinite(value) ? value.toFixed(2) : "") : typeof value === "string" ? value.trim() : "";
+  /* A number is read by its own decimal text, never rounded: more than two
+     decimals (or exponent notation) is not a naira amount and is refused. */
+  const text = typeof value === "number" ? (Number.isFinite(value) ? String(value) : "") : typeof value === "string" ? value.trim() : "";
   const m = /^(\d+)(?:\.(\d{1,2}))?$/.exec(text);
   if (!m) return null;
   const kobo = Number(m[1]) * 100 + Number((m[2] ?? "0").padEnd(2, "0"));

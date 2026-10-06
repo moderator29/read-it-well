@@ -17,6 +17,16 @@ begin
     raise exception 'PROBE_FAIL b3-payluk-sweep 1: a sweep row was edited';
   exception when insufficient_privilege then null;
   end;
+  begin
+    delete from public.payluk_commission_sweeps where id = rid;
+    raise exception 'PROBE_FAIL b3-payluk-sweep 1b: a sweep row was deleted';
+  exception when insufficient_privilege then null;
+  end;
+  begin
+    truncate public.payluk_commission_sweeps;
+    raise exception 'PROBE_FAIL b3-payluk-sweep 1c: the sweep log was truncated';
+  exception when insufficient_privilege then null;
+  end;
 
   begin
     insert into public.payluk_commission_sweeps (environment, outcome) values ('staging', 'failed');

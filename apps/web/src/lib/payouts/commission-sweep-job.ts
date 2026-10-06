@@ -17,7 +17,9 @@ export async function paylukCommissionSweep(admin: AdminClient): Promise<SweepVe
     lastRunAt: async () => {
       const { data, error } = await table().select("started_at").order("started_at", { ascending: false }).limit(1);
       const first = (data as { started_at?: string }[] | null)?.[0];
-      return error || !first?.started_at ? null : new Date(first.started_at);
+      /* A read error throws, so the sweep fails closed (skips as paced). */
+      if (error) throw new Error("payluk_commission_sweeps unreadable");
+      return first?.started_at ? new Date(first.started_at) : null;
     },
     record: async (row: SweepRow) => {
       const { error } = await table().insert(row as never);

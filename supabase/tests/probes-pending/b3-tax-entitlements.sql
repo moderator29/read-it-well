@@ -32,7 +32,16 @@ begin
     raise exception 'PROBE_FAIL b3-tax-entitlements 5: a member granted themselves a plan';
   exception when insufficient_privilege then null;
   end;
+  -- A member may ask only about themselves (someone else's plan reads false).
+  if public.entitlement_check('00000000-0000-4000-8000-000000000001', 'saved_search_alerts') then
+    raise exception 'PROBE_FAIL b3-tax-entitlements 6: a member read another user''s entitlements';
+  end if;
   reset role;
+  begin
+    truncate public.entitlement_plan_features;
+    raise exception 'PROBE_FAIL b3-tax-entitlements 7: plan features were truncated';
+  exception when insufficient_privilege then null;
+  end;
 
   raise exception 'PROBE_OK b3-tax-entitlements';
 end $$;

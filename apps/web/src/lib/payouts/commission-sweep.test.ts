@@ -34,6 +34,12 @@ describe("payluk merchant helpers", () => {
     expect(nairaToKobo("1.234")).toBeNull();
     expect(nairaToKobo(undefined)).toBeNull();
   });
+  it("refuses a number with more than two decimals instead of rounding it", () => {
+    expect(nairaToKobo(1.005)).toBeNull();
+    expect(nairaToKobo(0.1 + 0.2)).toBeNull();
+    expect(nairaToKobo(1234.56)).toBe(123_456);
+    expect(nairaToKobo(1e21)).toBeNull();
+  });
   it("picks the host from the key prefix, and nothing without a key", () => {
     expect(paylukMerchantConfig({})).toBeNull();
     expect(paylukMerchantConfig({ PAYLUK_SECRET_KEY: "sk_test_wrongslot" })).toBeNull();
@@ -72,6 +78,34 @@ describe("sweepPaylukCommission", () => {
     expect(init.headers["customer-id"]).toBeUndefined();
     expect(rows[0]).toMatchObject({ outcome: "withdrawal_unavailable", main_balance_minor: 123_450, escrow_balance_minor: 0 });
     expect(v.alert?.kind).toBe("payluk.commission_waiting");
+  });
+
+  it("fails closed when the last run cannot be read: no request, no row", async () => {
+    const { d, rows, fetchImpl } = deps({
+      lastRunAt: async () => {
+        throw new Error("read failed");
+      },
+    });
+    const v = await sweepPaylukCommission(d);
+    expect(v.detail).toMatchObject({ skipped: "paced", reason: "last_run_unreadable" });
+    expect(fetchImpl).not.toHaveBeenCalled();
+    expect(rows).toHaveLength(0);
+  });
+
+  it("records started_at at the start and finished_at after it", async () => {
+    const times = [new Date("2026-10-06T10:00:00Z"), new Date("2026-10-06T10:00:02Z")];
+    let i = 0;
+    const { d, rows } = deps({ now: () => times[Math.min(i++, times.length - 1)]! });
+    await sweepPaylukCommission(d);
+    expect(rows[0]?.started_at).toBe("2026-10-06T10:00:00.000Z");
+    expect(rows[0]?.finished_at).toBe("2026-10-06T10:00:02.000Z");
+    expect(Date.parse(rows[0]!.finished_at!)).toBeGreaterThanOrEqual(Date.parse(rows[0]!.started_at!));
+  });
+
+  it("a failed run carries started_at too", async () => {
+    const { d, rows } = deps({ fetchImpl: async () => response(500, { message: "boom", data: {} }) });
+    await sweepPaylukCommission(d);
+    expect(rows[0]).toMatchObject({ outcome: "failed", started_at: "2026-10-06T10:00:00.000Z" });
   });
 
   it("records nothing_to_sweep on an empty wallet", async () => {

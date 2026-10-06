@@ -9,6 +9,11 @@
 --  6. a member cannot insert an acceptance directly
 --  7. the payment gate accepts a zero Guarantee leg with no reserve code
 --     (read from the function body; no transaction row is written)
+--  8. the gate also fires on price edits; acceptances cannot be truncated;
+--     the split reads the acceptance as of the agreement (S1)
+-- The DRAFT fixture is priced INSIDE the probe (rate_minor + rate_period, or
+-- sale_price_minor for a sale); rent_amount_minor is never set without
+-- rent_period. Everything is rolled back by the final raise.
 do $$
 declare
   lst record;
@@ -23,12 +28,18 @@ begin
     from public.listings l join public.agents a on a.id = l.agent_id
    where l.status = 'DRAFT' and not coalesce(l.is_demo, false) and l.closed_at is null
      and a.user_id is not null and a.user_id <> stranger
-     and coalesce(case when l.listing_intent = 'sale' then l.sale_price_minor else coalesce(l.rent_amount_minor, l.rate_minor) end, 0) > 0
    limit 1;
   if lst.id is null then
-    raise exception 'PROBE_FAIL b3-rate-gate 0: no priced, non-demo DRAFT listing to exercise';
+    raise exception 'PROBE_FAIL b3-rate-gate 0: no non-demo DRAFT listing to exercise';
   end if;
-  price := case when lst.listing_intent = 'sale' then lst.sale_price_minor else coalesce(lst.rent_amount_minor, lst.rate_minor) end;
+  -- Price the fixture (the live DRAFT is unpriced).
+  if lst.listing_intent = 'sale' then
+    update public.listings set sale_price_minor = 5000000 where id = lst.id;
+    price := 5000000;
+  else
+    update public.listings set rate_minor = 5000000, rate_period = 'night' where id = lst.id;
+    price := coalesce(lst.rent_amount_minor, 5000000);
+  end if;
   v := public.money_policy_at(now());
 
   begin
@@ -83,10 +94,11 @@ begin
   begin
     if lst.listing_intent = 'sale' then
       update public.listings set sale_price_minor = price + 100, status = 'DRAFT' where id = lst.id;
+    elsif lst.rent_amount_minor is null then
+      update public.listings set rate_minor = price + 100, status = 'DRAFT' where id = lst.id;
     else
-      update public.listings set rent_amount_minor = coalesce(lst.rent_amount_minor, 0) + 100,
-                                 rate_minor = case when lst.rent_amount_minor is null then price + 100 else rate_minor end,
-                                 status = 'DRAFT' where id = lst.id;
+      -- rent already has its rent_period on this row; only the amount moves.
+      update public.listings set rent_amount_minor = price + 100, status = 'DRAFT' where id = lst.id;
     end if;
     update public.listings set status = 'SUBMITTED', submitted_at = now() where id = lst.id;
     raise exception 'PROBE_FAIL b3-rate-gate 5: a re-priced listing went for review on the old acceptance';
@@ -98,6 +110,18 @@ begin
 
   if position('coalesce(new.guarantee_minor, 0) > 0' in pg_get_functiondef('private.transactions_payment_gate()'::regprocedure)) = 0 then
     raise exception 'PROBE_FAIL b3-rate-gate 7: payment gate still demands a reserve at zero';
+  end if;
+
+  if position('rent_amount_minor' in pg_get_triggerdef((select oid from pg_trigger where tgname = 'listings_zz_b3_rate_agreement_gate'))) = 0 then
+    raise exception 'PROBE_FAIL b3-rate-gate 8a: the gate does not fire on price edits';
+  end if;
+  begin
+    truncate public.listing_rate_acceptances;
+    raise exception 'PROBE_FAIL b3-rate-gate 8b: acceptances were truncated';
+  exception when insufficient_privilege then null;
+  end;
+  if position('ag.created_at' in pg_get_functiondef('private.b3_commission_for_booking(uuid,bigint,uuid)'::regprocedure)) = 0 then
+    raise exception 'PROBE_FAIL b3-rate-gate 8c: the split does not read the acceptance as of the agreement';
   end if;
 
   raise exception 'PROBE_OK b3-rate-gate';

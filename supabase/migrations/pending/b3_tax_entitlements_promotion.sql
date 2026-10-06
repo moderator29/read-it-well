@@ -1,6 +1,7 @@
 -- B3 (Session 2, round 3). TAX SCHEDULE, ENTITLEMENTS, PROMOTION INVENTORY. DRAFT. NOT APPLIED.
--- Depends on: b3_money_policy_versions.sql (private.money_policy_append_only,
--- public.money_policy_at). Apply that first.
+-- RUNS AFTER b3_money_policy_versions.sql (migration 1): it needs
+-- private.money_policy_append_only and public.money_policy_at. A pre-check at the
+-- top raises a clear error, and rolls everything back, if they are missing.
 --
 -- TAX (handoff 7.10, D4). A schedule table with effective dates, never rates
 -- in code. Every line Session 2 was asked about is seeded with rate NULL,
@@ -24,9 +25,21 @@
 -- lifted here: that waits for the ADR superseding V-06 and the labelled-slot
 -- read, in the same change (7.13). No price is seeded.
 --
--- Additive, idempotent, RLS on, no member write grant.
+-- Additive, idempotent, RLS on, no member write grant. The append-only tables
+-- (tax_schedule_lines, entitlement_plans, entitlement_plan_features) keep
+-- select+insert for service_role only (default-ACL update/delete/truncate are
+-- revoked) and refuse truncate by trigger. Every new function is revoked from
+-- public AND anon explicitly (default privileges grant anon EXECUTE).
 
 begin;
+
+do $$
+begin
+  if to_regprocedure('public.money_policy_at(timestamptz)') is null
+     or to_regprocedure('private.money_policy_append_only()') is null then
+    raise exception 'b3_tax_entitlements_promotion: apply b3_money_policy_versions.sql first (public.money_policy_at / private.money_policy_append_only missing)';
+  end if;
+end $$;
 
 -- ---------------------------------------------------------------- TAX
 create table if not exists public.tax_schedule_lines (
@@ -50,10 +63,15 @@ create table if not exists public.tax_schedule_lines (
 create or replace trigger tax_schedule_lines_append_only
   before update or delete on public.tax_schedule_lines
   for each row execute function private.money_policy_append_only();
+create or replace trigger tax_schedule_lines_no_truncate
+  before truncate on public.tax_schedule_lines
+  for each statement execute function private.money_policy_append_only();
 
 alter table public.tax_schedule_lines enable row level security;
-revoke all on public.tax_schedule_lines from anon, authenticated;
+revoke all on public.tax_schedule_lines from public, anon, authenticated, service_role;
 grant select on public.tax_schedule_lines to anon, authenticated;
+grant select, insert on public.tax_schedule_lines to service_role;
+revoke all on sequence public.tax_schedule_lines_id_seq from public, anon, authenticated;
 do $$ begin
   if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'tax_schedule_lines' and policyname = 'tax_schedule_lines_read') then
     create policy tax_schedule_lines_read on public.tax_schedule_lines for select to anon, authenticated using (true);
@@ -84,7 +102,8 @@ begin
   return jsonb_build_object('status', 'ok', 'schedule_line_id', t.id, 'rate_bps', t.rate_bps, 'borne_by', t.borne_by);
 end;
 $$;
-revoke all on function public.tax_line_at(text, timestamptz) from public;
+revoke all on function public.tax_line_at(text, timestamptz) from public, anon;
+-- Tax lines are public information: granted back to anon on purpose.
 grant execute on function public.tax_line_at(text, timestamptz) to anon, authenticated, service_role;
 
 -- ---------------------------------------------------------------- ENTITLEMENTS
@@ -113,11 +132,11 @@ create table if not exists public.entitlement_plan_features (
 
 create table if not exists public.member_entitlement_plans (
   id              uuid primary key default gen_random_uuid(),
-  user_id         uuid not null,
+  user_id         uuid not null references auth.users(id) on delete cascade,
   plan_id         bigint not null references public.entitlement_plans(id),
   effective_from  timestamptz not null default now(),
   effective_to    timestamptz,
-  granted_by      uuid,
+  granted_by      uuid references auth.users(id) on delete set null,
   reason          text not null,
   created_at      timestamptz not null default now(),
   constraint member_entitlement_plans_window check (effective_to is null or effective_to > effective_from)
@@ -130,13 +149,24 @@ create or replace trigger entitlement_plans_append_only
 create or replace trigger entitlement_plan_features_append_only
   before update or delete on public.entitlement_plan_features
   for each row execute function private.money_policy_append_only();
+create or replace trigger entitlement_plans_no_truncate
+  before truncate on public.entitlement_plans
+  for each statement execute function private.money_policy_append_only();
+create or replace trigger entitlement_plan_features_no_truncate
+  before truncate on public.entitlement_plan_features
+  for each statement execute function private.money_policy_append_only();
 
 alter table public.entitlement_plans enable row level security;
 alter table public.entitlement_plan_features enable row level security;
 alter table public.member_entitlement_plans enable row level security;
-revoke all on public.entitlement_plans, public.entitlement_plan_features, public.member_entitlement_plans from anon, authenticated;
+revoke all on public.entitlement_plans, public.entitlement_plan_features, public.member_entitlement_plans
+  from public, anon, authenticated, service_role;
 grant select on public.entitlement_plans, public.entitlement_plan_features to anon, authenticated;
 grant select on public.member_entitlement_plans to authenticated;
+grant select, insert on public.entitlement_plans, public.entitlement_plan_features to service_role;
+-- Member plans are closed by setting effective_to, so service_role may update (never delete/truncate).
+grant select, insert, update on public.member_entitlement_plans to service_role;
+revoke all on sequence public.entitlement_plans_id_seq from public, anon, authenticated;
 do $$ begin
   if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'entitlement_plans' and policyname = 'entitlement_plans_read') then
     create policy entitlement_plans_read on public.entitlement_plans for select to anon, authenticated using (true);
@@ -163,22 +193,31 @@ select p.id, f.key, f.granted
  where p.plan_key = 'free' and p.effective_from = timestamptz '2026-10-06 00:00:00+01'
 on conflict (plan_id, feature_key) do nothing;
 
--- The check every gated feature calls. A member's own plan in force, else the
--- default plan in force. Unknown feature or no plan: false (fail closed).
+-- The check every gated feature calls. A member's own plan in force (the plan
+-- itself also in its window), else the default plan in force. Unknown feature
+-- or no plan: false (fail closed). A signed-in caller may only ask about
+-- themselves unless staff; server callers (no auth.uid(), service_role) may ask
+-- about anyone.
 create or replace function public.entitlement_check(p_user uuid, p_feature text, p_at timestamptz default now())
 returns boolean language sql stable security definer set search_path to '' as $$
   with plan as (
     select coalesce(
       (select m.plan_id from public.member_entitlement_plans m
+         join public.entitlement_plans p2 on p2.id = m.plan_id
+                and p2.effective_from <= p_at and (p2.effective_to is null or p2.effective_to > p_at)
         where m.user_id = p_user and m.effective_from <= p_at and (m.effective_to is null or m.effective_to > p_at)
         order by m.effective_from desc limit 1),
       (select p.id from public.entitlement_plans p
         where p.is_default and p.effective_from <= p_at and (p.effective_to is null or p.effective_to > p_at)
         order by p.effective_from desc limit 1)) as id)
-  select coalesce((select f.granted from public.entitlement_plan_features f, plan
-                    where f.plan_id = plan.id and f.feature_key = p_feature), false);
+  select case
+    when (select auth.uid()) is not null and p_user is distinct from (select auth.uid()) and not private.is_staff()
+      then false
+    else coalesce((select f.granted from public.entitlement_plan_features f, plan
+                    where f.plan_id = plan.id and f.feature_key = p_feature), false)
+  end;
 $$;
-revoke all on function public.entitlement_check(uuid, text, timestamptz) from public;
+revoke all on function public.entitlement_check(uuid, text, timestamptz) from public, anon;
 grant execute on function public.entitlement_check(uuid, text, timestamptz) to authenticated, service_role;
 
 -- ---------------------------------------------------------------- PROMOTION
@@ -213,7 +252,7 @@ create table if not exists promotion.placement_metrics (
 
 alter table promotion.placements enable row level security;
 alter table promotion.placement_metrics enable row level security;
-revoke all on promotion.placements, promotion.placement_metrics from public, anon, authenticated;
+revoke all on promotion.placements, promotion.placement_metrics from public, anon, authenticated, service_role;
 grant select, insert, update on promotion.placements, promotion.placement_metrics to service_role;
 
 -- READ-BACK.
@@ -240,6 +279,23 @@ begin
   if n <> 6 then raise exception 'b3_tax_entitlements_promotion: RLS on % of 6 tables', n; end if;
   if has_table_privilege('authenticated', 'public.member_entitlement_plans', 'insert') then
     raise exception 'b3_tax_entitlements_promotion: a member can grant themselves a plan';
+  end if;
+  if has_function_privilege('anon', 'public.entitlement_check(uuid,text,timestamptz)', 'execute') then
+    raise exception 'b3_tax_entitlements_promotion: anon can call entitlement_check';
+  end if;
+  if exists (select 1 from unnest(array['public.tax_schedule_lines', 'public.entitlement_plans', 'public.entitlement_plan_features']) t(name)
+              cross join unnest(array['update', 'delete', 'truncate']) p(priv)
+              where has_table_privilege('service_role', t.name, p.priv)
+                 or has_table_privilege('authenticated', t.name, p.priv)
+                 or has_table_privilege('anon', t.name, p.priv)) then
+    raise exception 'b3_tax_entitlements_promotion: an append-only table can be updated, deleted or truncated';
+  end if;
+  select count(*) into n from pg_trigger
+   where tgname in ('tax_schedule_lines_no_truncate', 'entitlement_plans_no_truncate', 'entitlement_plan_features_no_truncate');
+  if n <> 3 then raise exception 'b3_tax_entitlements_promotion: % of 3 no-truncate triggers', n; end if;
+  if has_table_privilege('service_role', 'public.member_entitlement_plans', 'delete')
+     or has_table_privilege('service_role', 'public.member_entitlement_plans', 'truncate') then
+    raise exception 'b3_tax_entitlements_promotion: service_role can erase member plan history';
   end if;
 end $$;
 
