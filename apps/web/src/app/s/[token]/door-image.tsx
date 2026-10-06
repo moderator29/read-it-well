@@ -12,6 +12,8 @@ import {
   OG_PANEL,
 } from "@/lib/price-check/og-palette";
 import { ogShareCard } from "@/components/share/og-share-card";
+import { ogCentredCard } from "@/components/share/og-centred-card";
+import { encodeOgCard } from "@/lib/share/og-encode";
 import { countFill } from "@/lib/ui/meter";
 
 /**
@@ -51,11 +53,50 @@ export type DoorImageFace =
     };
 
 const FONT = new URL("./Inter-Regular.woff", import.meta.url);
+const DISPLAY_FONT = new URL("./Poppins-SemiBold.ttf", import.meta.url);
+const NAIRA_FONT = new URL("./Inter-Naira-SemiBold.ttf", import.meta.url);
+
+async function bytesOf(url: URL): Promise<ArrayBuffer> {
+  const file = await readFile(url);
+  return file.buffer.slice(file.byteOffset, file.byteOffset + file.byteLength) as ArrayBuffer;
+}
 
 /** The bundled Inter, which carries the naira sign. Shared with the V-08 board. */
 export async function interRegular(): Promise<ArrayBuffer> {
-  const file = await readFile(FONT);
-  return file.buffer.slice(file.byteOffset, file.byteOffset + file.byteLength) as ArrayBuffer;
+  return bytesOf(FONT);
+}
+
+/**
+ * The card's three faces: Inter 400 for text, Poppins 600 for the display
+ * line (the product's heading face, 15KB, the latin subset it already
+ * serves), and Inter's naira sign at 600 (1.5KB) under its own family name, so
+ * a figure in Poppins draws its naira at the same weight rather than borrowing
+ * a thin one. Read from beside this file, never fetched: see the naira note
+ * in `app/(app)/price/area/[id]/opengraph-image.tsx`.
+ */
+export async function ogFonts() {
+  const [text, display, naira] = await Promise.all([bytesOf(FONT), bytesOf(DISPLAY_FONT), bytesOf(NAIRA_FONT)]);
+  return [
+    { name: "Inter", data: text, weight: 400 as const, style: "normal" as const },
+    { name: "Poppins", data: display, weight: 600 as const, style: "normal" as const },
+    { name: "InterNaira", data: naira, weight: 600 as const, style: "normal" as const },
+  ];
+}
+
+/**
+ * An `ImageResponse` re-encoded as a JPEG under the budget (`og-encode.ts`):
+ * the route's `contentType` is `image/jpeg`. The cache rule is the one
+ * `ImageResponse` sends, because a door that is revoked must close at once.
+ */
+export async function asJpeg(image: ImageResponse, photo: boolean): Promise<Response> {
+  const { bytes } = await encodeOgCard(await image.arrayBuffer(), { photo });
+  return new Response(new Uint8Array(bytes), {
+    headers: {
+      "content-type": "image/jpeg",
+      "cache-control":
+        process.env.NODE_ENV === "development" ? "no-cache, no-store" : "public, max-age=0, must-revalidate",
+    },
+  });
 }
 
 /**
@@ -78,36 +119,6 @@ export async function photoData(url: string | null, origin?: string): Promise<st
   } catch {
     return null;
   }
-}
-
-function Frame({ children }: { children: React.ReactNode }) {
-  return (
-    <div
-      style={{
-        width: "100%",
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "space-between",
-        background: OG_CANVAS,
-        padding: 64,
-        fontFamily: "Inter",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: 1200,
-          height: 6,
-          background: OG_BRAND,
-        }}
-      />
-      {children}
-    </div>
-  );
 }
 
 function Code({ code }: { code: string }) {
@@ -135,13 +146,9 @@ const EXAMPLE_CHIP = "Example";
 
 function face(input: DoorImageFace, copy: Dictionary["frontDoor"]["door"]) {
   if (input.kind === "mark") {
-    return (
-      <Frame>
-        <div style={{ display: "flex", flex: 1, alignItems: "center", justifyContent: "center", color: OG_INK_MUTED, fontSize: 44 }}>
-          Vallo
-        </div>
-      </Frame>
-    );
+    /* A door that cannot be read: the word mark and the slogan (D1), the
+       honest picture of nothing. No figure, no place, no code. */
+    return ogCentredCard({ display: "Space, without the runaround." });
   }
   if (input.kind === "area") {
     /* THE SHARE CARD FRAME (spec section 10): the headline, the range as the
@@ -159,40 +166,38 @@ function face(input: DoorImageFace, copy: Dictionary["frontDoor"]["door"]) {
     });
   }
   /*
-   * THE EXAMPLE AND THE LISTING FACES ON THE SHARE CARD FRAME (plan item 23;
-   * spec section 10), the frame the area face already wears, so every link
-   * Vallo unfurls is one card. An example says "Example" in the chip and in
-   * its title, with the agreed sentence and no figure; a listing carries its
-   * own photograph in the well, the title, the stated figure (or, with none,
-   * the line that says to ask), the bedrooms and the area, and its code in
-   * the foot. Every word arrives already decided by `doorLines`.
+   * THE EXAMPLE AND THE LISTING, CENTRED FOR THE SQUARE WHATSAPP CUTS
+   * (`og-centred-card.tsx`). An example says "Example listing" in the display
+   * line and the agreed sentence under it, with no figure. A listing is its
+   * own photograph with the figure and the place on it (or, with no
+   * photograph, the brand's light behind the same words), and its code in the
+   * foot. The title is not repeated on the picture: WhatsApp prints the
+   * `og:title` under it. Every word arrives already decided by `doorLines`.
    */
   if (input.kind === "example") {
     const stay = input.card.stay;
-    return ogShareCard({
-      ...DOOR_IMAGE_SIZE,
-      title: stay ? copy.stay.example : copy.example,
-      chip: EXAMPLE_CHIP,
-      honest: stay ? copy.stay.exampleBody : copy.exampleBody,
+    return ogCentredCard({
+      eyebrow: EXAMPLE_CHIP,
+      display: stay ? copy.stay.example : copy.example,
+      sub: stay ? copy.stay.exampleBody : copy.exampleBody,
       footRight: input.card.reference ? `${copy.codeLabel} ${input.card.reference}` : null,
     });
   }
   const { card, lines, photo } = input;
   const sub = [lines.bedrooms, card.place].filter(Boolean).join(" · ");
-  return ogShareCard({
-    ...DOOR_IMAGE_SIZE,
-    title: lines.title.length > 60 ? `${lines.title.slice(0, 57)}...` : lines.title,
-    figure: lines.headline,
-    honest: lines.headline ? lines.second : copy.askForPrice,
-    footnote: sub || null,
-    footRight: card.kind === "listing" && card.reference ? `${copy.codeLabel} ${card.reference}` : null,
+  return ogCentredCard({
     photo,
+    /* No photograph: the composed title is the subject above the figure. */
+    eyebrow: photo ? null : lines.title,
+    display: lines.headline ?? copy.askForPrice,
+    sub: sub || null,
+    footRight: card.kind === "listing" && card.reference ? `${copy.codeLabel} ${card.reference}` : null,
   });
 }
 
-export async function doorImage(input: DoorImageFace, copy: Dictionary["frontDoor"]["door"]): Promise<ImageResponse> {
-  const fonts = [{ name: "Inter", data: await interRegular(), weight: 400 as const, style: "normal" as const }];
-  return new ImageResponse(face(input, copy), { ...DOOR_IMAGE_SIZE, fonts });
+export async function doorImage(input: DoorImageFace, copy: Dictionary["frontDoor"]["door"]): Promise<Response> {
+  const image = new ImageResponse(face(input, copy), { ...DOOR_IMAGE_SIZE, fonts: await ogFonts() });
+  return asJpeg(image, input.kind === "listing" && input.photo !== null);
 }
 
 /* ------------------------------------------------------ V-71, the Status */
