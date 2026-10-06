@@ -207,7 +207,7 @@ function InspectionRow({
           {inspection.listingId ? (
             <Link
               href={`/listing/${inspection.listingId}`}
-              className={`block ${TYPE.rowTitle} hover:underline`}
+              className={`nf-tap block ${TYPE.rowTitle} hover:underline`}
             >
               {inspection.listingTitle ?? UNTITLED}
             </Link>
@@ -322,7 +322,7 @@ function InspectionRow({
           {inspection.conversationId && (
             <Link
               href={`/messages/${inspection.conversationId}`}
-              className={`${TYPE.rowMeta} font-semibold text-[var(--nf-content-link)] hover:underline`}
+              className={`nf-tap ${TYPE.rowMeta} font-semibold text-[var(--nf-content-link)] hover:underline`}
             >
               {OPEN_CHAT}
             </Link>
@@ -359,7 +359,7 @@ function InspectionRow({
           {inspection.conversationId && (
             <Link
               href={`/messages/${inspection.conversationId}`}
-              className={`${TYPE.rowMeta} font-semibold text-[var(--nf-content-link)] hover:underline`}
+              className={`nf-tap ${TYPE.rowMeta} font-semibold text-[var(--nf-content-link)] hover:underline`}
             >
               {OPEN_CHAT}
             </Link>

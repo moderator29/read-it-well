@@ -227,7 +227,7 @@ function DecideRow({
       {tb.note ? <p className="nf-caption">{tb.note}</p> : null}
       <Decision table={tb} />
       {tb.conversationId ? (
-        <Link href={`/messages/${tb.conversationId}`} className="nf-link-quiet text-[length:var(--nf-text-body-sm)]">
+        <Link href={`/messages/${tb.conversationId}`} className="nf-link-quiet nf-tap text-[length:var(--nf-text-body-sm)]">
           Talk to {tb.guestName}
         </Link>
       ) : null}

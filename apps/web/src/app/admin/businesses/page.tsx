@@ -447,7 +447,7 @@ export function BusinessCard({ row, ui }: { row: BusinessQueueRow; ui: AdminUi }
                 media={doc.media}
                 label="Open the file"
                 title={DOCUMENT_WORDS[doc.kind] ?? doc.kind}
-                className="nf-caption ml-auto font-semibold underline"
+                className="nf-tap nf-caption ml-auto font-semibold underline"
               />
             </div>
           ))

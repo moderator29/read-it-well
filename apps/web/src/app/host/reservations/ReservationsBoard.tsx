@@ -212,7 +212,7 @@ function TableCard({
              that wins is whichever Tailwind emits later rather than whichever
              is written later here, and a link that does not look like a link is
              not a link. */
-          className="nf-body-sm mt-row inline-flex items-center gap-inline-tight font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+          className="nf-tap nf-body-sm mt-row inline-flex items-center gap-inline-tight font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
         >
           Talk to {table.guestName}
           <UiIcon name="arrow-right" size={16} />

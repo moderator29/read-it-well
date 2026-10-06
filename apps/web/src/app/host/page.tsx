@@ -260,7 +260,7 @@ export function HostStandingBody({
                       </p>
                       <Link
                         href="/contact?topic=verification"
-                        className="mt-2xs inline-block whitespace-nowrap text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+                        className="nf-tap mt-2xs inline-block whitespace-nowrap text-[var(--nf-content-link)] underline-offset-4 hover:underline"
                       >
                         Contact us
                       </Link>
