@@ -298,7 +298,7 @@ export function ProfileEditor({
                 key={policy}
                 /* The shared choice card: panel at rest, the selected edge
                    and glow when its radio is checked (`social-profile.css`). */
-                className="nf-choice"
+                className="nf-pchoice"
               >
                 <input
                   type="radio"
@@ -319,7 +319,7 @@ export function ProfileEditor({
           })}
         </div>
 
-        <label className="nf-choice mt-sm">
+        <label className="nf-pchoice mt-sm">
           {/* The hidden field posts first, so an unticked box still sends a
               value and the last one written wins. */}
           <input type="hidden" name="pidginOk" value="off" />

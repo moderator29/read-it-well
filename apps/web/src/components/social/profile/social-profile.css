@@ -96,7 +96,7 @@
    * Replaces the inline `style` the editor set a brand ring with, and the
    * `--nf-border-subtle` grey edge at rest.
    */
-  .nf-choice {
+  .nf-pchoice {
     display: flex;
     align-items: flex-start;
     gap: var(--nf-space-sm);
@@ -110,16 +110,16 @@
       border-color var(--nf-duration-fast) var(--nf-ease-standard),
       box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
   }
-  .nf-choice:has(input:checked) {
+  .nf-pchoice:has(input:checked) {
     border-color: var(--nf-selected-edges);
     box-shadow: var(--nf-selected-shadow-inline);
   }
-  .nf-choice:has(input:focus-visible) {
+  .nf-pchoice:has(input:focus-visible) {
     outline: 2px solid var(--nf-focus-ring);
     outline-offset: 2px;
   }
   @media (prefers-reduced-motion: reduce) {
-    .nf-choice {
+    .nf-pchoice {
       transition: none;
     }
   }
