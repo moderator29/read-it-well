@@ -184,6 +184,8 @@ Read by build tooling, never by the running app:
 | `VALLO_BUILD` | `scripts/sync-native-versions.mjs`: the native build number |
 | `NEXT_DIST_DIR` | `next.config.ts`: an alternative `.next` output directory for parallel builds |
 | `W6_APP_CSS` | `src/components/app/account/w6-test-css.ts`, the account surfaces' browser tests: a compiled `globals.css` to draw screenshots from the real cascade. Unset, the bundled sheets are used |
+| `FIT_DUMP` | `src/components/locale-fit/fit-cases.ts`, the locale-fit browser tests: a file to append every surface's findings to, as JSON lines. Unset, nothing is written |
+| `CONTROL_CONTRAST_REPORT` | `src/components/ui/control-contrast.dom.test.tsx`: a file to write every measured control contrast ratio to. Unset, nothing is written |
 | `VALLO_AUTH_EMAIL_OUT_DIR` | `scripts/build-auth-emails.mjs`: where the auth email templates are written |
 | `SEED_REVIEWER_EMAIL`, `SEED_REVIEWER_PASSWORD` | `npm run seed:reviewer` only |
 | `DATABASE_URL` | `scripts/db-probes/run.mjs`, the database probe runner. CI reads it from the `PROBES_DATABASE_URL` repository secret |
