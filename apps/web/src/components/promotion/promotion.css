@@ -1,0 +1,86 @@
+@layer theme, base, components, utilities;
+
+/*
+ * PAID PROMOTION'S TWO PIECES (D3, D60). Imported by each component, so it is
+ * paid for only where one is drawn.
+ *
+ * A PROMOTED SLOT (PromotedSlot.tsx): a marked frame and a label above the
+ * card; the card inside is the ordinary listing card, untouched. The frame is
+ * the neutral border, never the verified tone, so the slot reads as paid
+ * placement and never as a check.
+ *
+ * THE RESULTS (PromotionResults.tsx): name and figure per row, and "No data"
+ * set in the muted ink, so an absent figure never looks like a measured one.
+ */
+@layer components {
+  .nf-promoted-slot {
+    display: grid;
+    gap: var(--nf-space-xs);
+    padding: var(--nf-space-xs);
+    border: var(--nf-border-width) solid var(--nf-border-default);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-surface-secondary);
+    min-inline-size: 0;
+  }
+
+  .nf-promoted-slot__label {
+    margin: 0;
+    display: flex;
+  }
+
+  .nf-promo-results {
+    display: grid;
+    gap: var(--nf-space-lg);
+  }
+  .nf-promo-results__notice {
+    display: grid;
+    gap: var(--nf-space-2xs);
+    padding: var(--nf-space-md);
+    border: var(--nf-border-width) solid var(--nf-border-subtle);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-surface-secondary);
+  }
+  .nf-promo-results__notice-title {
+    margin: 0;
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-promo-results__notice-body,
+  .nf-promo-results__note {
+    margin: 0;
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.5;
+    color: var(--nf-content-secondary);
+    max-inline-size: 62ch;
+  }
+  .nf-promo-results__rows {
+    display: grid;
+    margin: var(--nf-space-xs) 0 0;
+  }
+  .nf-promo-results__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--nf-space-3xs) var(--nf-space-sm);
+    min-block-size: 2.75rem;
+    padding-block: var(--nf-space-xs);
+    border-block-end: var(--nf-border-width) solid var(--nf-border-subtle);
+  }
+  .nf-promo-results__name {
+    font-size: var(--nf-text-row);
+    color: var(--nf-content-primary);
+  }
+  .nf-promo-results__value {
+    margin: 0;
+    font-size: var(--nf-text-row);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-content-primary);
+  }
+  .nf-promo-results__row[data-no-data] .nf-promo-results__value {
+    font-weight: 400;
+    color: var(--nf-content-muted);
+  }
+}
