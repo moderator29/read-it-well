@@ -1,7 +1,9 @@
 import { PersonTier } from "@/app/admin/_components/PersonTier";
 import { payeeCaption, type MoneyMapCopy, type PayeeContext } from "@/lib/listings/money-map";
 import type { ReactNode } from "react";
-import { countOf, formatMoney, type Dictionary, type Locale } from "@vallo/i18n/core";
+import { countOf, formatDate, formatMoney, getDictionary, type Dictionary, type Locale } from "@vallo/i18n";
+import { StatusTrack, type TrackStep } from "@/components/app/status/StatusTrack";
+import { listingTrack } from "./listing-track";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import type { ListingReviewView } from "@/lib/admin/queries";
@@ -324,7 +326,7 @@ export function ListingReview(props: ListingReviewProps) {
         </Panel>
 
         <Panel title="Reason for review" labelledBy="rv-reason-panel">
-          <ReasonBlock listing={listing} copy={copy} />
+          <ReasonBlock listing={listing} copy={copy} locale={locale} />
         </Panel>
       </div>
 
@@ -640,10 +642,49 @@ const STATUS_REASON: Record<string, string> = {
   SUSPENDED: "Taken out of search.",
 };
 
-function ReasonBlock({ listing, copy }: { listing: ListingReviewView; copy: AdminCopy["listings"] }) {
+/**
+ * The status track (reference 7118): only for a listing whose status sits on
+ * the approval flow, only with the times the record keeps (`listing-track.ts`).
+ */
+function ListingFlow({ listing, locale }: { listing: ListingReviewView; locale: Locale }) {
+  const model = listingTrack({ status: listing.status, submittedAt: listing.submittedAt, reviewedAt: listing.reviewedAt });
+  if (!model) return null;
+  const w = getDictionary(locale).experienceAdmin.listingTrack;
+  const day = (iso: string | null) =>
+    iso
+      ? formatDate(new Date(iso), locale, { day: "numeric", month: "short", year: "numeric", timeZone: "Africa/Lagos" })
+      : null;
+  const label: Record<string, string> = { submitted: w.submitted, review: w.review, decision: w.decision, live: w.live };
+  const steps: TrackStep[] = model.map((step) => ({
+    key: step.key,
+    label: label[step.key] ?? step.key,
+    when: day(step.at),
+    note:
+      step.key === "review" && listing.status === "MORE_INFO_REQUIRED" && step.state === "current"
+        ? w.sentBack
+        : step.key === "live" && step.state === "current"
+          ? w.notYetLive
+          : step.key === "decision" && step.state === "failed"
+            ? w.rejected
+            : null,
+    state: step.state,
+  }));
+  return <StatusTrack steps={steps} label={w.label} title={w.title} testId="listing-flow" />;
+}
+
+function ReasonBlock({
+  listing,
+  copy,
+  locale,
+}: {
+  listing: ListingReviewView;
+  copy: AdminCopy["listings"];
+  locale: Locale;
+}) {
   const failing = listing.checks.filter((check) => !check.pass);
   return (
     <div style={{ display: "grid", gap: "var(--nf-space-xs)" }}>
+      <ListingFlow listing={listing} locale={locale} />
       <p className="nf-rv-msg" style={{ color: "var(--nf-brand-secondary)" }}>
         {STATUS_REASON[listing.status] ?? listing.status}
       </p>
