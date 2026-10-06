@@ -217,15 +217,11 @@
     padding-inline: var(--nf-space-2xs);
     /* 6px on a 22px badge: 0.27 of the short side, a rectangle. */
     border-radius: var(--nf-radius-xs);
-    background: var(--nf-status-pending);
-    color: var(--nf-surface-canvas);
+    /* Fill and ink are admin-material.css's alone (the cyan count), so no
+       load order between the two sheets can pair a fill with the wrong ink. */
     font-size: var(--nf-text-overline);
     font-weight: 700;
     font-variant-numeric: tabular-nums;
-  }
-  .nf-admin-nav__row--on .nf-admin-nav__count {
-    background: var(--nf-content-on-brand);
-    color: var(--nf-brand-primary);
   }
   .nf-admin-nav__more {
     margin-top: var(--nf-space-sm);
@@ -2583,8 +2579,6 @@
   .nf-admin-nav__count,
   .nf-admin-nav__row--on .nf-admin-nav__count {
     border-radius: var(--nf-radius-badge);
-    background: var(--nf-brand-tint-2);
-    color: var(--nf-brand-primary);
     font-weight: 600;
   }
 }
