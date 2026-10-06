@@ -35,14 +35,18 @@
   .nf-gallery-mark {
     animation: nf-detail-mark var(--nf-duration-slow) var(--nf-ease-entrance) both;
   }
+  /* The marks follow the photograph in as it lands (380ms, the route's
+     `land`; route-motion.css "A LISTING OPENS"), 60ms apart: the motion
+     system's stagger ceiling. They were 100ms apart from 420ms, so the second
+     arrived a full beat after the photo had settled. */
   .nf-gallery-mark:nth-child(1) {
-    animation-delay: calc(var(--nf-splash-hold, 0ms) + 420ms);
+    animation-delay: calc(var(--nf-splash-hold, 0ms) + 380ms);
   }
   .nf-gallery-mark:nth-child(2) {
-    animation-delay: calc(var(--nf-splash-hold, 0ms) + 520ms);
+    animation-delay: calc(var(--nf-splash-hold, 0ms) + 440ms);
   }
   .nf-gallery-mark:nth-child(n + 3) {
-    animation-delay: calc(var(--nf-splash-hold, 0ms) + 620ms);
+    animation-delay: calc(var(--nf-splash-hold, 0ms) + 500ms);
   }
   @keyframes nf-detail-mark {
     from {
