@@ -8,4 +8,29 @@
  * here; they come from `lib/money/copy.ts` (Session 2).
  */
 export const experienceSpeedEn = {
+  /** The refund under a stay, drawn as a document (`BookingMoneyRecord`). */
+  afterGate: {
+    /** The quiet label above "Your refund" on the paper. */
+    overline: "Refund record",
+    /** The row label beside a refund's sentence when the amount leads the sheet. */
+    where: "Where it stands",
+  },
+  /**
+   * The row that asks a seller or a professional to finish verifying
+   * (`components/roles/VerifyPrompt.tsx`). Moved here from the component,
+   * word for word, so the four locales can carry it.
+   */
+  verifyPrompt: {
+    headline: "Finish verifying your identity",
+    bodyOwner:
+      "Your listings stay as drafts until we have confirmed who you are and that the property is yours. It takes about ten minutes.",
+    bodyProfessional:
+      "Your listings stay as drafts until we have confirmed your identity and your business. It takes about fifteen minutes.",
+    action: "Verify now",
+  },
+  /** The arrival check on a guest's booking (`components/app/arrival-check`). */
+  arrivalCheck: {
+    /** The label of the dated fact under an answered check. */
+    answeredLabel: "Answered",
+  },
 };

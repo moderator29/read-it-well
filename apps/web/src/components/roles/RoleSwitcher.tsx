@@ -16,6 +16,7 @@ import {
   type RoleState,
 } from "./roles";
 import { IconPlate } from "@/components/ui/IconPlate";
+import { StatusChip } from "@/components/ui/StatusChip";
 
 /**
  * Switching what you are here to do.
@@ -256,18 +257,14 @@ export function RoleSwitcher({
                               that has not been set up says so here rather than
                               looking identical to one that has and then dead
                               ending on the tap. */}
-                          {!role.setUp && (
-                            <span className={`${TYPE.caption} font-semibold uppercase tracking-[var(--nf-tracking-label)]`}>
-                              {NOT_SET_UP}
-                            </span>
-                          )}
+                          {/* StatusChip (Session 3, W13): the word, a shape and
+                              a colour, never the colour alone. Not set up is
+                              the neutral bar (no state yet); unverified is the
+                              hollow circle of something waiting on somebody,
+                              which is exactly what a filed review is. */}
+                          {!role.setUp && <StatusChip state="neutral" size="xs">{NOT_SET_UP}</StatusChip>}
                           {role.setUp && requiresVerification(id) && !role.verified && (
-                            <span
-                              className={`${TYPE.caption} font-semibold uppercase tracking-[var(--nf-tracking-label)]`}
-                              style={{ color: "var(--nf-status-pending)" }}
-                            >
-                              {UNVERIFIED}
-                            </span>
+                            <StatusChip state="pending" size="xs">{UNVERIFIED}</StatusChip>
                           )}
                         </span>
                         <span className={`mt-0.5 block ${TYPE.rowMeta}`}>{copy.description}</span>

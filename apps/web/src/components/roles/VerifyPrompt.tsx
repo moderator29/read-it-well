@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { getDictionary } from "@vallo/i18n";
+import { getLocale } from "@/lib/locale";
 import { Icon3D } from "@/components/ui/Icon3D";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { needsVerification, type RoleState } from "./roles";
@@ -29,10 +31,15 @@ import { needsVerification, type RoleState } from "./roles";
  * by construction, so this returns null and the surface has no idea it exists.
  * That is not a caller's responsibility to remember.
  *
- * A server component: it is a link and some text.
+ * A server component: it is a link and some text. Its words are in the
+ * locale files (`experienceSpeed.verifyPrompt`, Session 3 W13), not in this
+ * file, so a Hausa or Yoruba reader falls back to English through the one
+ * fallback path rather than through a string the translators never see; the
+ * locale is read only once the row is known to draw, so a renter's page
+ * pays nothing for it.
  */
 
-export function VerifyPrompt({
+export async function VerifyPrompt({
   role,
   /** Where the verification flow lives. */
   href = "/verification",
@@ -45,6 +52,7 @@ export function VerifyPrompt({
   if (!needsVerification(role)) return null;
 
   const isProfessional = role.id === "professional";
+  const copy = getDictionary(await getLocale()).experienceSpeed.verifyPrompt;
 
   return (
     <div className={`nf-verify-row ${className ?? ""}`}>
@@ -55,11 +63,11 @@ export function VerifyPrompt({
       </span>
 
       <div className="min-w-0 flex-1">
-        <p className="text-[0.9375rem] font-semibold leading-snug text-[var(--nf-content-primary)]">
-          {HEADLINE}
+        <p className="text-[length:var(--nf-text-row)] font-semibold leading-snug text-[var(--nf-content-primary)]">
+          {copy.headline}
         </p>
-        <p className="mt-1 text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
-          {isProfessional ? BODY_PROFESSIONAL : BODY_OWNER}
+        <p className="mt-3xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
+          {isProfessional ? copy.bodyProfessional : copy.bodyOwner}
         </p>
         {/*
           ONE action. A row with two is a row somebody has to make a decision
@@ -68,19 +76,12 @@ export function VerifyPrompt({
         */}
         <Link
           href={href}
-          className="mt-sm inline-flex items-center gap-1 text-[0.875rem] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+          className="mt-sm inline-flex min-h-[44px] items-center gap-2xs text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
         >
-          {ACTION}
+          {copy.action}
           <UiIcon name="arrow-right" size="sm" />
         </Link>
       </div>
     </div>
   );
 }
-
-const HEADLINE = "Finish verifying your identity";
-const BODY_OWNER =
-  "Your listings stay as drafts until we have confirmed who you are and that the property is yours. It takes about ten minutes.";
-const BODY_PROFESSIONAL =
-  "Your listings stay as drafts until we have confirmed your identity and your business. It takes about fifteen minutes.";
-const ACTION = "Verify now";
