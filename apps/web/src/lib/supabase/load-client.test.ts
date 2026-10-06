@@ -25,6 +25,8 @@ const LATE = [
   "components/supply/UploadCard.tsx",
   "app/(app)/profile/AccountHero.tsx",
   "lib/messages/unread-live.ts",
+  "components/app/agreements/AgreementControls.tsx",
+  "components/app/tenancy/TenancyReportCard.tsx",
 ] as const;
 
 const read = (path: string) => withoutComments(readFileSync(join(process.cwd(), "src", path), "utf8"));

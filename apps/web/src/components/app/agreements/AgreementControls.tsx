@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { amendAgreement, cancelAgreement, confirmAgreement, createClaimEvidenceUpload, fileGuaranteeClaim } from "@/lib/agreements/actions";
-import { createClient } from "@/lib/supabase/client";
+import { loadBrowserClient } from "@/lib/supabase/load-client";
 import { withDone, type RecordDoneFlag } from "@/lib/ui/success-moments";
 import { Sheet } from "@/components/ui/Sheet";
 import { Button } from "@/components/ui/Button";
@@ -277,7 +277,14 @@ export function ClaimForm({ agreementId, capNaira }: { agreementId: string; capN
         setUploadError(prepared.error);
         return;
       }
-      const supabase = createClient();
+      /* The browser client loads now, when a photo is chosen, not with the
+         page (lib/supabase/load-client.ts). A chunk that cannot be fetched
+         is the same failure the member already reads for an upload. */
+      const supabase = await loadBrowserClient();
+      if (!supabase) {
+        setUploadError("That photo did not upload. Use a JPG, PNG, WEBP, HEIC or PDF under 10 MB, and try again.");
+        return;
+      }
       const { error: upErr } = await supabase.storage
         .from("guarantee-evidence")
         .uploadToSignedUrl(prepared.data.path, prepared.data.token, file, { contentType: file.type });
