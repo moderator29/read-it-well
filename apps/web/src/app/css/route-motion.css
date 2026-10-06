@@ -102,27 +102,6 @@
   pointer-events: none;
 }
 
-/* The chrome swaps in place and stays above the travelling pages. */
-::view-transition-group(.nf-chrome) {
-  z-index: 3;
-  animation: none;
-}
-::view-transition-old(.nf-chrome) {
-  display: none;
-}
-::view-transition-new(.nf-chrome) {
-  animation: none;
-}
-/* Into or out of an immersive page (a listing, a thread) the header or the
-   dock exists on one side only: it fades rather than blinking away or in. */
-::view-transition-old(.nf-chrome):only-child {
-  display: block;
-  animation: nf-route-fade-out var(--nf-duration-fast) var(--nf-ease-exit) both;
-}
-::view-transition-new(.nf-chrome):only-child {
-  animation: nf-route-fade-in var(--nf-duration-base) var(--nf-ease-standard) both;
-}
-
 /*
  * ------------------------------------------------------------ THE PAGE ITSELF
  *
@@ -330,11 +309,6 @@ html:active-view-transition-type(nf-flip)::view-transition-new(root) {
  */
 .nf-vt-morph {
   view-transition-class: nf-morph;
-}
-::view-transition-group(.nf-morph) {
-  z-index: 2;
-  animation-duration: var(--nf-duration-slow);
-  animation-timing-function: var(--nf-ease-entrance);
 }
 
 /* --------------------------------------------------------------------- calm */

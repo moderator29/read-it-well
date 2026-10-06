@@ -690,32 +690,6 @@
     border-color: var(--nf-state-error);
   }
 
-  /*
-   * A count that leads somewhere.
-   *
-   * `.nf-social-stat` lives in social.css and is another writer's; this only
-   * adds the affordance for the two that are now links, and it adds it as a
-   * 44px hit area with no visual weight of its own, so the row still reads as
-   * three plain numbers rather than as a row of buttons.
-   */
-  .nf-social-stat--link {
-    position: relative;
-    border-radius: var(--nf-radius-sm);
-  }
-  .nf-social-stat--link::before {
-    content: "";
-    position: absolute;
-    inset: -11px -6px;
-  }
-  .nf-social-stat--link:hover .nf-social-stat__label,
-  .nf-social-stat--link:focus-visible .nf-social-stat__label {
-    color: var(--nf-content-primary);
-  }
-  .nf-social-stat--link:hover .nf-social-stat__value,
-  .nf-social-stat--link:focus-visible .nf-social-stat__value {
-    color: var(--nf-brand-secondary);
-  }
-
   /* ------------------------------------------------------------------
    * A person, in a list of people.
    * ------------------------------------------------------------------ */
@@ -945,15 +919,6 @@
   }
   .nf-social-avatar__dot--agent {
     background: var(--nf-brand-primary);
-  }
-  /* ------------------------------------------------------- the name row */
-
-  .nf-social-namerow {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
-    margin-block-start: 0.875rem;
   }
 
   /*
@@ -1187,56 +1152,6 @@
     inset: -12px -8px;
   }
 
-  /* ------------------------------------------------- the agent trust band */
-
-  /*
-   * Agents only, and the three numbers are computed by the database from real
-   * bookings and real message timings. A person who is not an agent never sees
-   * this band at all; it is not rendered empty and it is not rendered with
-   * zeroes, because a trust score of zero and no trust score are very
-   * different claims.
-   */
-  .nf-social-trust {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 2px;
-    margin-block-start: 1.25rem;
-    padding: 1rem 0.5rem;
-    /* The box is the shared card in the profile's markup (SW-S1). */
-  }
-  .nf-social-trust__cell {
-    text-align: center;
-    padding-inline: 0.25rem;
-  }
-  .nf-social-trust__cell dt {
-    font-size: var(--nf-text-overline);
-    font-weight: 700;
-    letter-spacing: var(--nf-tracking-label);
-    text-transform: uppercase;
-    color: var(--nf-content-muted);
-    /* The label is the meaning of the number under it, so it wraps rather than
-       truncating. Two short lines beat one clipped one. */
-    line-height: 1.3;
-    /*
-     * Two lines of room whether the label needs them or not.
-     *
-     * "Completed deals" wraps at 390px and the other two do not, so the three
-     * numbers under them sat at three different heights and the band read as
-     * broken rather than as a row. Reserving the second line here costs one
-     * line of white space on the short labels and buys a baseline the three
-     * figures actually share. Subgrid would do it more elegantly and is not
-     * worth a rendering-engine dependency for one band.
-     */
-    min-block-size: 2.6em;
-  }
-  .nf-social-trust__cell dd {
-    margin-block-start: 0.35rem;
-    font-size: 1.25rem;
-    font-weight: 600;
-    letter-spacing: -0.02em;
-    color: var(--nf-content-primary);
-  }
-
   /* ----------------------------------------------------- bio and meta */
 
   .nf-social-bio {
@@ -1261,65 +1176,6 @@
     gap: 6px;
   }
 
-  /* ------------------------------------------------------------------
-   * The profile's tab row: a track, and the live one filled.
-   *
-   * The underline stroke stays on `.nf-social-tab` itself, because the story
-   * rail and the account screen both wear that class in their own containers
-   * and neither is a segmented control. Everything below is scoped to
-   * `.nf-social-tabs`, which only the profile uses, so the two treatments live
-   * side by side without one silently restyling the other.
-   *
-   * Why filled rather than underlined here: four words in a row with a two
-   * pixel stroke under one of them is the smallest possible statement of where
-   * you are, and on a 390px screen in Lagos daylight it is very nearly no
-   * statement at all. The filled pill is the same geometry the rest of the
-   * platform uses for a chosen thing, so it costs no new vocabulary.
-   * ------------------------------------------------------------------ */
-  .nf-social-tabs {
-    display: flex;
-    gap: 4px;
-    margin-block-start: 1.5rem;
-    padding: 4px;
-    border-radius: var(--nf-radius-control);
-    border: 1px solid var(--nf-border-subtle);
-    background: var(--nf-surface-inset);
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-  .nf-social-tabs::-webkit-scrollbar {
-    display: none;
-  }
-
-  .nf-social-tabs .nf-social-tab {
-    padding: 0.5rem 0.4rem;
-    border-radius: var(--nf-radius-control);
-    font-size: var(--nf-text-caption);
-    white-space: nowrap;
-  }
-  /*
-   * 44px of hit area without a 44px pill.
-   *
-   * The floor is measured on the element OR on a pseudo element that expands
-   * it, and it can only be a pseudo element: a child span is not read by the
-   * sweep, which is why `Switch` does it this way too. Four 44px-tall pills
-   * inside a 390px row would also be a bar taller than the avatar above it.
-   */
-  .nf-social-tabs .nf-social-tab::before {
-    content: "";
-    position: absolute;
-    inset: -6px 0;
-  }
-  /* The stroke belongs to the other two users of this class. Here the fill IS
-     the statement, and both together would be one statement too many. */
-  .nf-social-tabs .nf-social-tab[aria-selected="true"]::after {
-    content: none;
-  }
-  .nf-social-tabs .nf-social-tab[aria-selected="true"] {
-    background: var(--nf-brand-primary);
-    color: var(--nf-content-on-brand);
-  }
-
   .nf-social-tab__count {
     margin-inline-start: 6px;
     font-size: var(--nf-text-overline);
@@ -1328,13 +1184,6 @@
   }
   .nf-social-tab[aria-selected="true"] .nf-social-tab__count {
     color: var(--nf-brand-secondary);
-  }
-  /* On the filled pill the count sits ON the brand, so it takes the ink that
-     was designed to be legible there rather than the brand ink it wears when
-     the tab is a bare word on the canvas. */
-  .nf-social-tabs .nf-social-tab[aria-selected="true"] .nf-social-tab__count {
-    color: var(--nf-content-on-brand);
-    opacity: 0.75;
   }
 
   /* ------------------------------------------------------------------
@@ -2119,77 +1968,6 @@
     margin-block-start: 6px;
     text-align: end;
     font-size: var(--nf-text-caption);
-    color: var(--nf-content-muted);
-  }
-
-  /* ------------------------------------------------------------------
-   * The rows of the action sheet behind a card's `…`.
-   *
-   * The surface itself is the platform's `Sheet` (overlays.css), which owns
-   * the grip, the drag, the safe area and the scrolling body. Each row carries
-   * a title AND the sentence that says what it does, because five of those do
-   * not fit in a popover on a 390px screen.
-   * ------------------------------------------------------------------ */
-  .nf-actions__list {
-    display: flex;
-    flex-direction: column;
-    margin-inline: -8px;
-  }
-  .nf-actions__row {
-    display: flex;
-    align-items: center;
-    gap: 13px;
-    inline-size: 100%;
-    min-block-size: 60px;
-    padding: 10px 12px;
-    border-radius: var(--nf-radius-lg);
-    text-align: start;
-  }
-  .nf-actions__row:hover,
-  .nf-actions__row:focus-visible {
-    background: var(--nf-surface-inset);
-  }
-  /* The glyph's plate: the shared icon plate (`--nf-plate-*`), the console's
-     lit square, at its middle step. */
-  .nf-actions__icon {
-    display: grid;
-    place-items: center;
-    inline-size: var(--nf-plate-size-md);
-    block-size: var(--nf-plate-size-md);
-    flex-shrink: 0;
-    border-radius: var(--nf-plate-radius);
-    border: var(--nf-border-width) solid var(--nf-plate-edge);
-    border-color: var(--nf-plate-edges);
-    background: var(--nf-plate-fill);
-    box-shadow: var(--nf-plate-shadow);
-    color: var(--nf-content-primary);
-  }
-  .nf-actions__icon > svg {
-    filter: var(--nf-plate-glyph-glow);
-  }
-  .nf-actions__row--danger .nf-actions__icon,
-  .nf-actions__row--danger .nf-actions__title {
-    color: var(--nf-state-error);
-  }
-  .nf-actions__row--danger .nf-actions__icon {
-    border-color: color-mix(in oklab, var(--nf-state-error) 40%, transparent);
-  }
-  /* The shared plate's cyan glyph glow blurs a rose glyph; a warning is read
-     crisp (audit pass 5). */
-  .nf-actions__row--danger .nf-actions__icon > svg {
-    filter: none;
-  }
-  .nf-actions__title {
-    display: block;
-    font-size: var(--nf-text-body);
-    font-weight: 700;
-    color: var(--nf-content-primary);
-  }
-  .nf-actions__note {
-    display: block;
-    margin-block-start: 2px;
-    font-size: var(--nf-text-caption);
-    line-height: 1.35;
     color: var(--nf-content-muted);
   }
 

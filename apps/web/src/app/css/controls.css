@@ -190,86 +190,6 @@
     }
   }
 
-  /*
-   * Auth provider row. Full width, pill mark on the left, label left aligned.
-   * Matches the supplied sign in reference.
-   */
-  .nf-auth-row {
-    position: relative;
-    isolation: isolate;
-    display: flex;
-    width: 100%;
-    align-items: center;
-    gap: var(--nf-gap-row);
-    padding: var(--nf-space-md);
-    border-radius: var(--nf-radius-xl);
-    color: var(--nf-content-primary);
-    font-size: var(--nf-text-body);
-    font-weight: 600;
-    cursor: pointer;
-    border: 1px solid transparent;
-    background: var(--nf-wash-1);
-    border: var(--nf-border-width-strong) solid var(--nf-wash-5);
-    -webkit-backdrop-filter: blur(var(--nf-glass-blur-soft)) saturate(150%);
-    backdrop-filter: blur(var(--nf-glass-blur-soft)) saturate(150%);
-    box-shadow:
-      inset 0 1px 0 var(--nf-wash-6),
-      inset 0 -2px 8px var(--nf-shade-1),
-      /* `--nf-glow-4`, not a 70% mix of the brand: same alpha, and the GLOW
-         INK, which is electric-400 at night rather than the deeper
-         electric-500 that `--nf-brand-primary` resolves to. The ladder picked
-         the brighter blue for blooms on purpose. See F2-036. */
-      0 10px 28px -12px var(--nf-glow-4);
-    transition:
-      box-shadow var(--nf-duration-fast) var(--nf-ease-standard),
-      transform var(--nf-duration-fast) var(--nf-ease-standard);
-  }
-  .nf-auth-row::after {
-    content: "";
-    position: absolute;
-    inset: 1px 1px 52% 1px;
-    border-radius: inherit;
-    background: linear-gradient(180deg, var(--nf-wash-5), transparent);
-    pointer-events: none;
-    z-index: -1;
-  }
-  @media (hover: hover) {
-    .nf-auth-row:hover:not(:disabled) {
-      box-shadow:
-        inset 0 1px 0 var(--nf-wash-7),
-        inset 0 -2px 8px var(--nf-shade-1),
-        /* `--nf-glow-4` is the top of the ladder at 70%, and this was 88, the ONE
-           bloom in the product written ABOVE the scale rather than between two
-           of its rungs. 18 points is a real drop and it is the intended one: 88
-           per cent of the brand under a hovered row is close to painting the
-           brand solid behind it. See F2-036. */
-        0 16px 38px -12px var(--nf-glow-4);
-    }
-  }
-  /* A 1px drop is not a press, it is a nudge nobody notices on a touch screen.
-     A wide row takes the gentle scale, in step with a full-width button. */
-  .nf-auth-row:active:not(:disabled) {
-    transform: scale(var(--nf-press-scale-lg));
-  }
-  .nf-auth-row:disabled {
-    opacity: 0.42;
-    cursor: not-allowed;
-  }
-
-  .nf-auth-row__mark {
-    display: grid;
-    place-items: center;
-    width: 1.75rem;
-    height: 1.75rem;
-    flex-shrink: 0;
-    border-radius: var(--nf-radius-sm);
-    background: var(--nf-glass-fill);
-  }
-  .nf-auth-row__mark--email {
-    background: var(--nf-gradient-brand-ink);
-    color: var(--nf-content-on-brand);
-  }
-
   /* ------------------------------------------------------------ form fields */
 
   .nf-field {
@@ -544,40 +464,6 @@
     background-size: 220% 100%;
     background-position: 117.3% 0;
     animation: nf-shimmer 1.4s linear 4 forwards;
-  }
-
-  /* Horizontal snap rows: category pills, card carousels on phones. */
-  .nf-snap-x {
-    display: flex;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior-x: contain;
-    /*
-     * THE FIRST CARD WAS CLIPPED BY ITS OWN GUTTER AT REST.
-     *
-     * Every rail using this is laid out `-mx-gutter px-gutter`, so it bleeds to
-     * the screen edge and then pads its contents back in. The children are
-     * `scroll-snap-align: start`, and a snap start aligns to the scrollport's
-     * edge rather than to its padding box, so on load the browser snapped the
-     * gutter away: measured `scrollLeft` of 20 on the landing carousel with
-     * nothing having touched it. The first card lost its left rounded corner
-     * and sat flush to the screen edge while the heading above it was indented.
-     *
-     * `scroll-padding-inline-start` moves the snap line in to meet the padding.
-     * It reads `--nf-pad-shell`, the same token `px-gutter` resolves to through
-     * `--spacing-gutter` in theme.css, so the padding and the snap line cannot
-     * drift apart.
-     */
-    scroll-padding-inline-start: var(--nf-pad-shell);
-  }
-  .nf-snap-x::-webkit-scrollbar {
-    display: none;
-  }
-  .nf-snap-x > * {
-    scroll-snap-align: start;
-    flex-shrink: 0;
   }
 }
 

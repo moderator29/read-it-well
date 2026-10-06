@@ -688,21 +688,12 @@ const POINTER = /cursor\s*:\s*pointer/;
  * it without writing which kind they are adding.
  *
  * PERMANENT: the check is wrong about these, and the reason is about
- * semantics rather than taste.
- *
- *   `.nf-tag-pill--neutral` is the neutral member of a status family whose
- *   other members carry status colour. Blue on it would read as a state, and
- *   "no state" is the state it exists to express.
+ * semantics rather than taste. (`.nf-tag-pill--neutral` and `.nf-option`
+ * were listed here until R3-18 deleted both rules: neither had a consumer.)
  *
  *   `.nf-switch`, in both files that draw one, is a TRACK in its off
  *   position. Grey off and brand on is the entire semantics of a switch; a
  *   blue track would say the switch is on before anybody touched it.
- *
- *   `.nf-option` belongs to the agent workspace and selects with
- *   `--nf-mode-agent`. Its own comment argues it is an inset ANSWER inside a
- *   container rather than an object, and the mode's whole point is that it is
- *   not the brand. A brand-blue resting edge would put brand chrome inside a
- *   surface deliberately built not to wear it.
  *
  * DEBT: real instances of the fault in a file this sweep did not own. They
  * are listed so the gate stays green for their owner today and so the rule is
@@ -714,7 +705,6 @@ const POINTER = /cursor\s*:\s*pointer/;
  *   outline, so all three are the same fault, not exceptions.
  */
 const DULL_ALLOWED = new Set([
-  "src/app/css/chips.css  .nf-tag-pill--neutral",
   "src/app/css/controls.css  .nf-switch",
   "src/app/settings-rows.css  .nf-switch",
   /*
@@ -741,7 +731,6 @@ const DULL_ALLOWED = new Set([
    * Deleting it means a future revert to a border token fires here again, which
    * is the whole point of the list.
    */
-  "src/app/css/utilities.css  .nf-option",
   "src/app/css/catalogue.css  .nf-shelf-sort > summary",
   "src/app/css/catalogue.css  .nf-stay-card__chip",
   "src/app/css/catalogue.css  .nf-tenancy-chip",

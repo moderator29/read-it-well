@@ -101,17 +101,6 @@
     }
   }
 
-  @keyframes nf-pulse-ring {
-    0% {
-      transform: scale(0.85);
-      opacity: 0.7;
-    }
-    100% {
-      transform: scale(1.7);
-      opacity: 0;
-    }
-  }
-
   /*
    * EVERY ON-LOAD ENTRANCE WAITS FOR THE DOOR (Track M). While the app-open
    * splash is on screen the root carries `--nf-splash-hold` (threshold.css);
@@ -142,7 +131,6 @@
   .nf-rise-2 { animation-delay: calc(var(--nf-splash-hold, 0s) + 50ms); }
   .nf-rise-3 { animation-delay: calc(var(--nf-splash-hold, 0s) + 100ms); }
   .nf-rise-4 { animation-delay: calc(var(--nf-splash-hold, 0s) + 150ms); }
-  .nf-rise-5 { animation-delay: calc(var(--nf-splash-hold, 0s) + 150ms); }
 
   /*
    * The same stagger for a LIST, whose length nobody knows at authoring time.
@@ -178,17 +166,6 @@
    */
   .nf-float {
     /* No animation. See above. */
-    animation: none;
-  }
-
-  /* `.nf-hero-scene`'s resting style stood here: an opacity, a saturation lift
-     and a radial mask so the artwork read as atmosphere rather than a picture.
-     The class has no call site in the component tree and its rules were spread
-     across four files; see motion.css. */
-
-
-  /* A second, slower float on an offset phase, for scattered accent objects. */
-  .nf-float-slow {
     animation: none;
   }
 
@@ -366,22 +343,6 @@
   }
   .nf-arrive {
     animation: nf-arrive var(--nf-duration-entrance) var(--nf-ease-entrance) both;
-  }
-
-  /* Gradient sheen that sweeps across a headline, used sparingly on the hero. */
-  @keyframes nf-shine {
-    0% { background-position: 0% 50%; }
-    100% { background-position: 200% 50%; }
-  }
-  /*
-   * The gradient headline keeps its ramp and loses the sweep. A six second
-   * light travelling across a heading, for ever, on the one line of the page a
-   * reader is meant to read first, is the definition of a loop running for its
-   * own sake: it answers nothing and it never settles. The gradient itself is
-   * the signature and it stays.
-   */
-  .nf-shine {
-    background-size: 200% auto;
   }
   /*
    * An undo window, draining.

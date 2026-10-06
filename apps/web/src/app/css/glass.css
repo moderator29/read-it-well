@@ -749,10 +749,6 @@
     /* No animation. See the ambient budget note above. */
     animation: none;
   }
-  @keyframes nf-gallery-pan {
-    from { transform: scale(1) translate3d(0, 0, 0); }
-    to { transform: scale(1.06) translate3d(-1.2%, 1%, 0); }
-  }
   @media (prefers-reduced-motion: reduce) {
     .nf-gallery-kenburns {
       animation: none;
@@ -866,8 +862,7 @@
    * fourth look. This is now the ONLY thing `.nf-brand-icon-ground` paints,
    * since the fill behind it went with light mode.
    */
-  .nf-home__market-art .nf-brand-icon-ground,
-  .nf-landing-orb .nf-brand-icon-ground {
+  .nf-home__market-art .nf-brand-icon-ground {
     box-shadow: var(--nf-glow-edge);
   }
   /*
@@ -1045,9 +1040,6 @@
   @keyframes nf-confirm-sweep {
     to { transform: translateX(130%); }
   }
-  .nf-just-booked {
-    animation: nf-confirm-pop var(--nf-duration-deliberate) var(--nf-ease-entrance) both;
-  }
   @media (prefers-reduced-motion: reduce) {
     .nf-confirm-dim {
       animation: none !important;
@@ -1056,9 +1048,6 @@
     .nf-confirm-sweep::after {
       animation: none !important;
       display: none;
-    }
-    .nf-just-booked {
-      animation: none !important;
     }
   }
 }
@@ -1141,7 +1130,6 @@
    */
   /* `.nf-navy-glass` is the same tier under its older name (brand-glass.css
      section 3 says why): one rule, so the two can never drift. */
-  .nf-navy-glass,
   .nf-island {
     position: relative;
     border-radius: var(--nf-tier-island-radius);

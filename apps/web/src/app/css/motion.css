@@ -188,12 +188,6 @@
      * light. The reduced-motion block that used to sit under this rule went
      * with the animation.
      */
-  }  /* ---------------------------------------------------------- odometer */
-
-  /* Figures paint solid brand ink: a clipped gradient cannot cross the
-     transformed digit strips, which leaves the numbers invisible. */
-  .nf-odometer-figure {
-    color: var(--nf-brand-secondary);
   }
   .nf-odometer__slot {
     display: inline-block;
@@ -242,39 +236,14 @@
     from { opacity: 0; transform: translate3d(-14px, 0, 0); }
     to { opacity: 1; transform: none; }
   }
-  @keyframes nf-tx-slide-out {
-    from { opacity: 0; transform: translate3d(14px, 0, 0); }
-    to { opacity: 1; transform: none; }
-  }
   .nf-tx-in {
     animation: nf-tx-slide-in var(--nf-duration-entrance) var(--nf-ease-entrance) both;
   }
-  .nf-tx-out {
-    animation: nf-tx-slide-out var(--nf-duration-entrance) var(--nf-ease-entrance) both;
-  }
   @media (prefers-reduced-motion: reduce) {
-    .nf-tx-in,
-    .nf-tx-out {
+    .nf-tx-in {
       animation: none !important;
       opacity: 1 !important;
       transform: none !important;
-    }
-  }
-
-  /* A `view()` scroll timeline drove `.nf-hero-scene` from here, with an
-     `@supports` guard and a reduced-motion guard around it. It went with the
-     class: a scroll-linked animation is the most expensive kind to keep alive
-     for an element that does not exist, because it is also the kind a reader is
-     least likely to test. */
-
-  @keyframes nf-hero-scroll {
-    from {
-      transform: translate3d(0, 0, 0) scale(1);
-      filter: saturate(1) brightness(0.98);
-    }
-    to {
-      transform: translate3d(0, -34px, 0) scale(1.1);
-      filter: saturate(1.2) brightness(1.1);
     }
   }
 
@@ -321,10 +290,6 @@
   .nf-story-art[data-breathe] {
     /* No animation. See the ambient budget note in glass.css. */
     animation: none;
-  }
-  @keyframes nf-art-breathe {
-    0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-    50% { transform: translate3d(0, -4px, 0) scale(1.01); }
   }
 
   /*
@@ -478,24 +443,10 @@
         animation-timeline: view();
         animation-range: entry 0% cover 34%;
       }
-      .nf-enter-scale {
-        animation: nf-enter-scale linear forwards;
-        animation-timeline: view();
-        animation-range: entry 0% cover 40%;
-      }
-      /* Rails drift a touch as the page scrolls past them, which reads as
-         depth without any JavaScript scroll listener. */
-      .nf-parallax-soft {
-        animation: nf-parallax-soft linear both;
-        animation-timeline: view();
-        animation-range: cover 0% cover 100%;
-      }
     }
   }
   @media print {
-    .nf-enter,
-    .nf-enter-scale,
-    .nf-parallax-soft {
+    .nf-enter {
       animation: none;
     }
   }
@@ -507,24 +458,6 @@
     to {
       opacity: 1;
       transform: none;
-    }
-  }
-  @keyframes nf-enter-scale {
-    from {
-      opacity: 0;
-      transform: scale(0.965);
-    }
-    to {
-      opacity: 1;
-      transform: none;
-    }
-  }
-  @keyframes nf-parallax-soft {
-    from {
-      transform: translate3d(0, 18px, 0);
-    }
-    to {
-      transform: translate3d(0, -18px, 0);
     }
   }
 
@@ -607,8 +540,6 @@
 
   @media (prefers-reduced-motion: reduce) {
     .nf-enter,
-    .nf-enter-scale,
-    .nf-parallax-soft,
     .nf-words > span,
     .nf-rule-draw {
       animation: none !important;

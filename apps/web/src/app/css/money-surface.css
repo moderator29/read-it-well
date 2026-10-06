@@ -24,10 +24,6 @@
   .nf-money .nf-odometer__slot {
     clip-path: inset(0.1em -0.05em 0.1em -0.05em);
   }
-  /* The big figure is white; blue is kept for accents. */
-  .nf-money .nf-odometer-figure {
-    color: var(--nf-content-primary);
-  }
   .nf-money-kobo {
     /* Never under 12px, whatever the figure beside it (the product's floor). */
     font-size: max(0.68em, 0.75rem);

@@ -358,11 +358,6 @@
     inherits: false;
     initial-value: 152deg;
   }
-  @keyframes nf-spin {
-    to {
-      --nf-spin: 512deg;
-    }
-  }
   .nf-card--live {
     background:
       linear-gradient(var(--nf-surface-secondary), var(--nf-surface-secondary)) padding-box,
