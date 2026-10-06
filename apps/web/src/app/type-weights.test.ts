@@ -101,6 +101,26 @@ describe("the type weights", () => {
     expect(found).toEqual([]);
   });
 
+  /* Any other number is a fourth weight too: 650 and 750 got past the two
+     lists above (a Round 3 sweep finding). An @font-face range such as
+     `font-weight: 100 900` declares what a variable font can draw, not what
+     anything draws, so a range is not read. */
+  const OFF_SYSTEM = [
+    /font-weight:\s*(?!(?:400|600|700|500)\b)\d+\s*[;}!]/,
+    /fontWeight(?::\s*|=\{?\s*)["']?(?!(?:400|600|700|500)\b)\d+\b/,
+    /font-\[(?!(?:400|600|700|500)\])\d+\]/,
+  ];
+
+  it("no source file outside the dev previews draws a numeric weight other than 400, 600 and 700", () => {
+    const found = all
+      .filter((file) => {
+        const text = strip(readFileSync(file, "utf8"));
+        return OFF_SYSTEM.some((pattern) => pattern.test(text));
+      })
+      .map((file) => file.slice(SRC.length + 1));
+    expect(found).toEqual([]);
+  });
+
   it("every allowed 500 still exists, so the list only shrinks", () => {
     const stale = Object.keys(ALLOWED_500).filter((file) => !has500(join(SRC, file)));
     expect(stale).toEqual([]);
