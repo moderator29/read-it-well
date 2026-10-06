@@ -109,16 +109,13 @@ export function StayCard({
               {stay.hours.label}
             </span>
           )}
-          {stay.verified && (
+          {/* D24: no example mark on the card, and nothing it did not earn.
+              `isDemo` is read to WITHHOLD the Verified mark and the rating
+              below, never to label the stay. */}
+          {stay.verified && !stay.isDemo && (
             <span className="nf-badge nf-badge--verified nf-pcard__mark nf-pcard__mark--verified">
               <UiIcon name="verified" size={12} />
               {t.common.verified}
-            </span>
-          )}
-          {stay.isDemo && (
-            <span className="nf-badge nf-badge--example nf-pcard__mark nf-pcard__mark--example">
-              <UiIcon name="info" size={12} />
-              {t.catalogue.card.example}
             </span>
           )}
           {!stay.photo && <span className="nf-pcard__nophoto">{t.catalogue.card.noPhotos}</span>}
@@ -136,7 +133,7 @@ export function StayCard({
                   <span>{stay.where}</span>
                 </p>
               )}
-              {stay.rating && (
+              {stay.rating && !stay.isDemo && (
                 <p className="nf-stay-card__rating mt-2xs nf-numeric">
                   <UiIcon name="star" size={16} filled />
                   {formatRating(stay.rating.average, locale)}

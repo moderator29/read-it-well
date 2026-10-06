@@ -7,6 +7,7 @@ import type { Listing } from "@/lib/listings/types";
 import { hrefForListing, marketFactsOf } from "@/lib/listings/href";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { Amount } from "@/components/ui/Amount";
+import { CountUpMoney } from "@/components/motion/CountUp";
 import { IntentTune } from "@/components/app/IntentTune";
 import { MediaFrame } from "@/components/app/MediaFrame";
 import { isPropertyType, type PropertyType } from "@/lib/interests/property-types";
@@ -460,21 +461,20 @@ export function ListingCard({
             )}
           </div>
 
-          {/* Verified and Example can never both be true: a check constraint,
-              a trigger and the mapper each enforce it. */}
-          {listing.verified && (
+          {/*
+            D24 (the founder, 6 October): THE EXAMPLE MARK IS OFF THE CARD, AND
+            NOTHING UNEARNED IS ON IT. An example listing stays in the catalogue
+            and may look like a real listing; it may never look like a CHECKED
+            one. So `isDemo` is still read here, to withhold trust rather than
+            to label: the Verified mark draws only on a row a person checked
+            that is not an example. A check constraint, a trigger and the mapper
+            already refuse both at once; this is the card refusing it too, so a
+            mapper regression can never print a tick on an invented flat.
+          */}
+          {listing.verified && !listing.isDemo && (
             <span className="nf-badge nf-badge--verified nf-pcard__mark nf-pcard__mark--verified">
               <UiIcon name="verified" size={12} />
               {t.common.verified}
-            </span>
-          )}
-          {/* The example disclosure: the register's outline mark, carrying
-              the shared `nf-badge--example` class so the source guard in
-              `example-notice.test.ts` can see every card renderer says it. */}
-          {listing.isDemo && (
-            <span className="nf-badge nf-badge--example nf-pcard__mark nf-pcard__mark--example">
-              <UiIcon name="info" size={12} />
-              {copy.example}
             </span>
           )}
           {!photo && <span className="nf-pcard__nophoto">{copy.noPhotos}</span>}
@@ -557,13 +557,30 @@ export function ListingCard({
                 {price.approximate && (
                   <span className="nf-pcard__price-suffix mr-2xs ml-0">from</span>
                 )}
-                <Amount
+                {/*
+                  THE MOVE-IN TOTAL COUNTS UP ONCE, WHEN THE CARD FIRST ENTERS
+                  (MOTION_SYSTEM section 5, "Cards"). The server prints the
+                  final figure, so it is right with scripts off and for a
+                  screen reader, which hears only the final figure. It never
+                  counts again on a re-render, and it is a stated price on a
+                  listing rather than a balance, so it implies no money moved.
+                  Reduced motion, Calm and Off print it still.
+                */}
+                <CountUpMoney
                   minorUnits={price.minor}
                   locale={locale}
                   currency={listing.currency}
                   glance
-                  secondaryClassName={fractionClass(price.minor, "text-[0.6em] font-semibold opacity-70")}
-                />
+                  eager
+                >
+                  <Amount
+                    minorUnits={price.minor}
+                    locale={locale}
+                    currency={listing.currency}
+                    glance
+                    secondaryClassName={fractionClass(price.minor, "text-[0.6em] font-semibold opacity-70")}
+                  />
+                </CountUpMoney>
                 <span className="nf-pcard__price-suffix">{copy.moveIn}</span>
               </p>
               <p className="nf-pcard__sub">

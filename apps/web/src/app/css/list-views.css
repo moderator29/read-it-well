@@ -169,22 +169,52 @@
      into `transform: scale3d(.98, .98, 1)`, which the entrance animation's
      held `transform` then overrode, and the card never pressed. A value it
      cannot resolve at build time is a value it cannot fold. */
+  /* 0.985 since Session 3 (north star motion 11, MOTION_SYSTEM "Card
+     press"): the large-surface press scale from the token, so the card and
+     every other large tappable surface sink by the same amount. */
   .nf-pcard:active {
     transform: none;
-    scale: var(--nf-pcard-press, 0.98);
+    scale: var(--nf-pcard-press, var(--nf-press-scale-lg));
+  }
+
+  /*
+   * THE LIST STAGGER, TO THE INVENTORY (motion 10, MOTION_SYSTEM "List
+   * stagger"): the first six cards only, 40ms apart, a 12px lift and fade.
+   * The shared `nf-card-in` is four steps of 50ms at 14px, which is right for
+   * the panels it serves elsewhere; a results grid is the list the inventory
+   * names, so the card takes the list's own rhythm here rather than editing
+   * the shared entrance under everybody else. The seventh card arrives with
+   * the sixth. `--card-i` is written by the card, already capped at five.
+   */
+  .nf-pcard.nf-card-in {
+    animation-name: nf-list-in;
+    animation-delay: calc(var(--nf-splash-hold, 0s) + min(var(--card-i, 0), 5) * 40ms);
+  }
+  @keyframes nf-list-in {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 12px, 0);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
   }
 
   /* The heart's spring: only on the tap that saves (ListingCard.tsx). */
+  /* 1, 1.2, 1 on `land` at 240ms (MOTION_SYSTEM "Favourite toggle"; it was
+     1.22 over 380ms on the spring, plan item 28). Browsing is quick, so the
+     pop is sharp and done; the haptic is `SaveControl`'s, fired when the save
+     settles, so the hand feels what the eye sees. */
   .nf-heart-pop[aria-pressed="true"] svg {
-    animation: nf-heart-pop var(--nf-duration-slow) var(--nf-ease-spring) both;
+    animation: nf-heart-pop var(--nf-duration-base) var(--nf-ease-entrance) both;
   }
-  /* 1, 1.22, 1 over 380ms on the spring (plan item 28). */
   @keyframes nf-heart-pop {
     0% {
       transform: scale(1);
     }
     45% {
-      transform: scale(1.22);
+      transform: scale(1.2);
     }
     100% {
       transform: scale(1);
@@ -453,5 +483,37 @@
     .nf-saved-undo {
       animation: none;
     }
+  }
+}
+
+/*
+ * THE HEAD-TO-HEAD (north star 15.3; `app/(app)/saved/SavedCompare.tsx`,
+ * Session 3, W2). Two of the reader's own saved spaces: a small line glyph
+ * leads each row's label so the eye finds the row before it reads it, and the
+ * leading value of a money row is weighted (600 against the other's 500) as
+ * well as marked "Lower" by word, so the weight is never the only signal.
+ * Scoped under `.nf-compare` so it reads over the table's base rules
+ * (member-loop.css) without touching them.
+ */
+@layer components {
+  .nf-compare .nf-compare__label {
+    font-weight: 500;
+  }
+  .nf-compare__glyph {
+    display: inline-grid;
+    place-items: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    margin-inline-end: var(--nf-space-2xs);
+    vertical-align: -0.375rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-brand-tint-1);
+    color: var(--nf-content-link);
+  }
+  .nf-compare .nf-compare__cell[data-kind="money"] {
+    font-weight: 500;
+  }
+  .nf-compare .nf-compare__cell[data-kind="money"][data-lowest] {
+    font-weight: 600;
   }
 }

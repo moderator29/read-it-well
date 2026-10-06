@@ -8,7 +8,6 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { MapCopy, MapListing } from "./mapTypes";
 import { Amount } from "@/components/ui/Amount";
 import { MediaFrame } from "@/components/app/MediaFrame";
-import { ExampleNotice } from "@/components/app/listing/ExampleNotice";
 import { useClientCopy } from "@/lib/i18n/client-copy";
 
 /**
@@ -128,23 +127,12 @@ export function MapDock({
           className="flex flex-wrap items-stretch gap-row p-inline pt-row"
         >
           {/*
-            THE DISCLOSURE, ON THE ONE CARD THAT DOES NOT GO THROUGH
-            `ListingCard`.
-
-            This dock is a property card by every measure that matters: a
-            photograph, a title, a place, a rating and a price, arrived at by
-            tapping a pin. It is not built from `ListingCard`, so putting the
-            example statement on that component alone would have left the map
-            as the single surface where somebody meets an invented property
-            with a real Lekki address and a real naira figure and is told
-            nothing.
-
-            Full width above the photograph and the price, for the same reason
-            it sits above them in a grid card: it corrects a belief before the
-            belief forms. `basis-full` because the row it lives in is a flex
-            row built for the thumbnail and the text column beside it.
+            D24 (the founder, 6 October): the example statement came off this
+            card as it came off every other card. What stays is the half that
+            mattered all along: an example listing carries no trust it did not
+            earn, so the rating and the Verified mark below are withheld on
+            one (`isDemo`), whatever its row says.
           */}
-          {listing.isDemo && <ExampleNotice className="basis-full" />}
           <div className="relative h-[86px] w-[86px] shrink-0 overflow-hidden rounded-[var(--nf-plate-radius-sm)]">
             <MediaFrame hue={listing.hue} kind={listing.kind} drawn={listing.drawn} />
             {listing.photo && (
@@ -172,7 +160,7 @@ export function MapDock({
             </p>
 
             <div className="mt-inline flex flex-wrap items-center gap-x-inline gap-y-inline-tight">
-              {listing.rating > 0 && (
+              {!listing.isDemo && listing.rating > 0 && listing.reviewCount > 0 && (
                 <span className="nf-numeric nf-body-sm flex items-center gap-inline-tight font-semibold text-[var(--nf-content-primary)]">
                   <UiIcon name="star" size={16} className="text-[var(--nf-rating)]" />
                   {formatRating(listing.rating, locale)}
@@ -181,7 +169,7 @@ export function MapDock({
                   </span>
                 </span>
               )}
-              {listing.verified && (
+              {listing.verified && !listing.isDemo && (
                 <span className="nf-badge nf-badge--verified">
                   <UiIcon name="verified" size={16} />
                   {copy.verified}
