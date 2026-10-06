@@ -6,6 +6,7 @@ import type { Listing } from "@/lib/listings/types";
 import { DAYPART_GREETING, type HomeOverview } from "@/lib/app/home-queries";
 import { ListingCard } from "@/components/app/ListingCard";
 import { CityRow } from "@/components/app/home/CityRow";
+import { withNext } from "@/lib/auth/next-link";
 import { CategoryRow, type HomeCategory } from "@/components/app/home/CategoryRow";
 import { FeaturedBand } from "@/components/app/home/FeaturedBand";
 import { HomeHero } from "@/components/app/home/HomeHero";
@@ -231,15 +232,15 @@ export function HomeScreen({
           </h1>
         ) : (
           <h1 className="nf-rise nf-rise-2 mt-inline-tight">
-            <span className="nf-h1">Welcome to Vallo</span>
+            <span className="nf-h1">{t.experienceDiscover.home.welcome}</span>
           </h1>
         )}
         {!overview.signedIn && (
           <p className="nf-body mt-row text-[var(--nf-content-secondary)]">
-            <Link href="/sign-in" className="nf-link-quiet text-[var(--nf-content-link)]">
-              Sign in
+            <Link href={withNext("/sign-in", "/home")} className="nf-link-quiet text-[var(--nf-content-link)]">
+              {t.experienceDiscover.home.signIn}
             </Link>{" "}
-            and this screen becomes yours: your city, your places, your name.
+            {t.experienceDiscover.home.signInRest}
           </p>
         )}
 
