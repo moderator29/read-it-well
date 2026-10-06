@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getLocale } from "@/lib/locale";
+import { getDictionary } from "@vallo/i18n";
 import { BackButton } from "@/components/site/BackButton";
 import { RowLink, SettingsGroup } from "@/components/app/account/rows";
 import { MessagesGroup } from "@/components/support/MessagesRow";
@@ -41,6 +42,9 @@ const TRUST_ICON: Record<string, UiIconName> = {
  */
 export default async function SupportPage() {
   const locale = await getLocale();
+  /* The client islands get their words from here, never from a client
+     dictionary read (W13: that read shipped the whole index on /support). */
+  const inboxWords = getDictionary(locale).experienceInbox;
   const [identity, tickets, reports, aiConsented] = await Promise.all([
     getShellIdentity(),
     loadMyTickets(50),
@@ -65,11 +69,12 @@ export default async function SupportPage() {
           promise={promise}
           aiConsented={aiConsented}
           signedIn={signedIn}
+          assistantCopy={inboxWords.assistant}
         />
 
         <MessagesGroup tickets={tickets} signedIn={signedIn} />
 
-        <SupportSearch articles={FAQS} popular={popular} />
+        <SupportSearch articles={FAQS} popular={popular} supportCopy={inboxWords.support} />
 
         <MyReports list={reports} locale={locale} />
 

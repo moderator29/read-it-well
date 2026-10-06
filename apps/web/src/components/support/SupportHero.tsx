@@ -1,5 +1,6 @@
 "use client";
 
+import type { Dictionary } from "@vallo/i18n/core";
 import { useState } from "react";
 import Link from "next/link";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
@@ -28,8 +29,11 @@ export function SupportHero({
   promise,
   aiConsented,
   signedIn,
+  assistantCopy,
 }: {
   greeting: string;
+  /** Handed to the helper so it never reads a client dictionary. */
+  assistantCopy?: Dictionary["experienceInbox"]["assistant"];
   promise: string;
   aiConsented: boolean;
   signedIn: boolean;
@@ -87,7 +91,7 @@ export function SupportHero({
       </ul>
 
       <Sheet open={open} onOpenChange={setOpen} title="Ask a question" closeLabel="Close" detents={[0.92]}>
-        <SupportChat aiConsented={aiConsented} signedIn={signedIn} defaultOpen embedded />
+        <SupportChat aiConsented={aiConsented} signedIn={signedIn} defaultOpen embedded assistantCopy={assistantCopy} />
       </Sheet>
     </section>
   );

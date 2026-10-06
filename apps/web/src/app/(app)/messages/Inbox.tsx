@@ -16,7 +16,7 @@ import type { Dictionary } from "@vallo/i18n/core";
 import type { ThreadContextKind } from "@/lib/messages/db";
 import { Segmented } from "@/components/ui/Segmented";
 import { Chip, ChipRow } from "@/components/ui/Chip";
-import { useInboxCopy } from "@/components/app/threads/use-inbox-copy";
+import { useInboxPart } from "@/components/app/threads/use-inbox-copy";
 import { plural } from "@vallo/i18n/core";
 import { useClientLocale } from "@/lib/i18n/use-client-locale";
 import { TextField } from "@/components/ui/Field";
@@ -270,8 +270,15 @@ export function Inbox({
   labels,
   initialSide = "property",
   archiveOpen = false,
+  inboxCopy,
 }: {
   rows: InboxRow[];
+  /**
+   * The inbox's words (`experienceInbox.inbox`) from the server page, so this
+   * client component never reads a client dictionary (that read shipped the
+   * whole `@vallo/i18n` index, 398KB gzipped, on /messages).
+   */
+  inboxCopy?: Dictionary["experienceInbox"]["inbox"];
   /** The side the app shell is on, which the inbox opens on. */
   initialSide?: Side;
   /** Archive and unarchive are live (signed in, and the table exists). */
@@ -303,7 +310,7 @@ export function Inbox({
    */
   const clientInbox = useClientCopy().uiCommon.inbox;
   const tabLabels = labels ?? clientInbox;
-  const inbox = useInboxCopy().inbox;
+  const inbox = useInboxPart("inbox", inboxCopy);
   const locale = useClientLocale();
 
   const typing = useInboxTyping(

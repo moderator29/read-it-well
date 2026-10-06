@@ -33,7 +33,8 @@ export async function generateMetadata(): Promise<Metadata> {
  */
 
 export default async function HelpPage() {
-  const x = getDictionary(await getLocale()).experienceLanding.docs;
+  const dictionary = getDictionary(await getLocale());
+  const x = dictionary.experienceLanding.docs;
   /* The topics in the order the articles first mention them. */
   const topics = FAQS.reduce<{ category: string; first: string; count: number }[]>((acc, faq) => {
     const seen = acc.find((topic) => topic.category === faq.category);
@@ -100,7 +101,7 @@ export default async function HelpPage() {
 
         {/* ------------------------------------------- ask the agent */}
         <div className="nf-rise mt-block" style={{ animationDelay: "160ms" }}>
-          <SupportChat aiConsented={await aiConsentForViewer()} />
+          <SupportChat aiConsented={await aiConsentForViewer()} assistantCopy={dictionary.experienceInbox.assistant} />
         </div>
 
         {/* ------------------------------------------------ still stuck */}

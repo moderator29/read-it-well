@@ -3,11 +3,11 @@
 import { useId, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
 import Link from "next/link";
-import { plural } from "@vallo/i18n/core";
+import { plural, type Dictionary } from "@vallo/i18n/core";
 import { Button } from "@/components/ui/Button";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { searchHelpArticles, type HelpArticle } from "@/lib/support/help-search";
-import { useInboxCopy, useInboxLocale } from "@/components/app/threads/use-inbox-copy";
+import { useInboxLocale, useInboxPart } from "@/components/app/threads/use-inbox-copy";
 import "./support-palette.css";
 
 /**
@@ -27,8 +27,17 @@ import "./support-palette.css";
  * reader taps a row to open it, so nothing needs a keyboard. The keyboard hint
  * is drawn only where there is a fine pointer.
  */
-export function SupportSearch({ articles, popular }: { articles: HelpArticle[]; popular: HelpArticle[] }) {
-  const copy = useInboxCopy().support.palette;
+export function SupportSearch({
+  articles,
+  popular,
+  supportCopy,
+}: {
+  articles: HelpArticle[];
+  popular: HelpArticle[];
+  /** `experienceInbox.support` from the server page (no client dictionary read). */
+  supportCopy?: Dictionary["experienceInbox"]["support"];
+}) {
+  const copy = useInboxPart("support", supportCopy).palette;
   const locale = useInboxLocale();
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);

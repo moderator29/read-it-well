@@ -36,7 +36,7 @@ export default async function HelpSettingsPage() {
       />
       <div className="space-y-block">
         <section id="settings-help" className="scroll-mt-28">
-          <SupportChat aiConsented={await aiConsentForViewer()} />
+          <SupportChat aiConsented={await aiConsentForViewer()} assistantCopy={t.experienceInbox.assistant} />
         </section>
         {/* V-89: what this person reported, where it stands, and a way to take it back. */}
         <section id="settings-reports" className="scroll-mt-28">

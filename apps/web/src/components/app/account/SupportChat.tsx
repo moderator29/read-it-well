@@ -1,5 +1,6 @@
 "use client";
 
+import type { Dictionary } from "@vallo/i18n/core";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -16,7 +17,7 @@ import { AiConsentSheet } from "@/components/app/ai/AiConsentSheet";
 import { AI_CONSENT_REQUIRED_CODE } from "@/lib/ai/consent";
 import { IconPlate } from "@/components/ui/IconPlate";
 import { AIResponse, type AIResponseStatus } from "@/components/ui/AIResponse";
-import { useInboxCopy } from "@/components/app/threads/use-inbox-copy";
+import { useInboxPart } from "@/components/app/threads/use-inbox-copy";
 /* The answer card's fit (the words keep the line breaks, the stopped note, the
    thinking orb) is the assistant's; support's answers are the same card. */
 import "@/components/app/assistant/assistant-answer.css";
@@ -152,8 +153,11 @@ export function SupportChat({
   defaultOpen = false,
   signedIn = false,
   embedded = false,
+  assistantCopy,
 }: {
   aiConsented?: boolean;
+  /** `experienceInbox.assistant` from the server parent (no client dictionary read). */
+  assistantCopy?: Dictionary["experienceInbox"]["assistant"];
   /** Starts with the conversation showing, for a caller that opened it on purpose (the support home's sheet). */
   defaultOpen?: boolean;
   /**
@@ -198,7 +202,7 @@ export function SupportChat({
   const { identity } = useDeviceIdentity();
   /* The answer card's words are the assistant's (experienceInbox.assistant):
      one voice for "thinking", "stop", "copy" and what each state announces. */
-  const answerWords = useInboxCopy().assistant;
+  const answerWords = useInboxPart("assistant", assistantCopy);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const scrollerRef = useRef<HTMLDivElement | null>(null);

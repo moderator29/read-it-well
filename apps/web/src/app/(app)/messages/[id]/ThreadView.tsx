@@ -57,7 +57,7 @@ import { QuotedReply, type QuotedMessage } from "@/components/app/messages/Quote
 import { AttachmentRow } from "@/components/app/messages/AttachmentRow";
 import { VoiceNote, type VoiceNoteData } from "@/components/app/messages/VoiceNote";
 import { dayHeading, dayStarts } from "@/components/app/threads/day";
-import { useInboxCopy } from "@/components/app/threads/use-inbox-copy";
+import { useInboxPart } from "@/components/app/threads/use-inbox-copy";
 
 /**
  * The conversation thread, one component for both data sources.
@@ -223,6 +223,12 @@ export type ThreadViewProps = {
   unread?: { count: number; firstId: string } | null;
   /** The server's clock, so "Today" and "Yesterday" agree with the markup. */
   nowMs?: number;
+  /**
+   * The thread's inbox-family words (`experienceInbox.thread`) from the server
+   * page. Passed, never read from a client dictionary: that read put the whole
+   * `@vallo/i18n` index (398KB gzipped) in this route's first load.
+   */
+  inboxThreadCopy?: Dictionary["experienceInbox"]["thread"];
 };
 
 const INSPECTIONS_KEY = "nf_inspections";
@@ -357,10 +363,10 @@ export function ThreadView({
   showMe = null,
   unread = null,
   nowMs,
+  inboxThreadCopy,
 }: ThreadViewProps) {
   const [items, setItems] = useState<ThreadBubble[]>(messages);
-  const inbox = useInboxCopy();
-  const threadWords = inbox.thread;
+  const threadWords = useInboxPart("thread", inboxThreadCopy);
   /* The unread divider is fixed at arrival: reading the thread marks it read
      and the page may re-render with nothing unread, but the divider stays
      where the reader came in until they leave. */

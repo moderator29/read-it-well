@@ -8,6 +8,8 @@ import { getSide } from "@/lib/side";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { PageHeader } from "@/components/app/PageHeader";
 import { PageScene } from "@/components/app/PageScene";
+import { getDictionary } from "@vallo/i18n";
+import { getLocale } from "@/lib/locale";
 import { Inbox, InboxEmpty, type InboxRow } from "./Inbox";
 
 export const metadata: Metadata = { title: "Inbox" };
@@ -90,7 +92,14 @@ export default async function InboxPage() {
 
     return (
       <PullToRefresh className="mx-auto max-w-(--container-2xl) lg:max-w-(--container-4xl)">
-        <Inbox rows={rows} meId={session.user.id} canMarkRead initialSide={side} archiveOpen={views.archiveOpen} />
+        <Inbox
+          rows={rows}
+          meId={session.user.id}
+          canMarkRead
+          initialSide={side}
+          archiveOpen={views.archiveOpen}
+          inboxCopy={getDictionary(await getLocale()).experienceInbox.inbox}
+        />
       </PullToRefresh>
     );
   }

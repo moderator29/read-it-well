@@ -281,6 +281,7 @@ export default async function ConversationPage({
         inspection={inspection}
         role={role}
         threadCopy={t.threads}
+        inboxThreadCopy={t.experienceInbox.thread}
         locale={locale}
         /*
           THE COUNTERPART'S BADGE, AND THE DEFECT THAT USED TO BE ON THIS LINE.

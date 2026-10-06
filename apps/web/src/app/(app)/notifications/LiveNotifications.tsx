@@ -22,7 +22,7 @@ import type { SeverityVerb, SeverityVerdict } from "@/lib/notify/severity";
 import { sectionRows } from "@/lib/notify/sections";
 import { dayHeading, dayKeyOf } from "@/components/app/threads/day";
 import { fill } from "@/components/app/threads/when";
-import { useInboxCopy, useInboxLocale } from "@/components/app/threads/use-inbox-copy";
+import { useInboxLocale, useInboxPart } from "@/components/app/threads/use-inbox-copy";
 import {
   FAMILY_GLYPH,
   FAMILY_ORDER,
@@ -107,8 +107,8 @@ export function LiveNotifications({
   locale?: Locale;
 }) {
   const router = useRouter();
-  const all = useInboxCopy();
-  const c: Copy = providedCopy ?? all.notifications;
+  /* The page passes its words; only a harness falls back (use-inbox-copy.ts). */
+  const c: Copy = useInboxPart("notifications", providedCopy);
   const locale = useInboxLocale(providedLocale);
   const [items, setItems] = useState<NotificationItem[]>(initial);
   const [more, setMore] = useState(initialMore);
