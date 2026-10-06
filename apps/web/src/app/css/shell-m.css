@@ -72,7 +72,7 @@
     align-items: center;
     gap: 0.375rem;
     font-size: 1.25rem;
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: -0.01em;
     white-space: normal;
   }
@@ -131,7 +131,9 @@
   }
   .nf-nav--drawer .nf-nav__row--on {
     color: var(--nf-content-primary);
-    font-weight: 650;
+    /* 600, the scale's top weight in the navigation (it was 650, a weight
+       the type scale does not have; nav-island.css restated 600 over it). */
+    font-weight: 600;
     background: color-mix(in oklab, var(--nf-content-primary) 7%, transparent);
     box-shadow: none;
   }
@@ -862,14 +864,15 @@
       var(--nf-content-on-brand) 356deg,
       transparent 360deg
     );
-    animation: nf-logo-lap 5s linear infinite;
-  }
-  .nf-dock-plus > svg {
-    position: relative;
-    z-index: 2;
-    width: 1.625rem;
-    height: 1.625rem;
-    stroke-width: 2.6;
+    /*
+     * TWO LAPS ON ARRIVAL, THEN AT REST (Session 3, W10). Nothing loops
+     * forever but the aurora and the assistant thinking (MOTION_SYSTEM.md
+     * principle 10), and this rim ran its lap for as long as the dock was on
+     * screen. The light now says "this is where you make something" twice as
+     * the dock arrives and then rests where a lap ends, its two arcs still
+     * lit, so the disc keeps its rim and loses only the movement.
+     */
+    animation: nf-logo-lap 5s linear 2 both;
   }
   .nf-tab__link--create:active .nf-dock-plus {
     transform: scale(0.9);
@@ -877,9 +880,6 @@
       inset 0 1px 0 color-mix(in oklab, var(--nf-content-on-brand) 30%, transparent),
       0 0 0 3px color-mix(in oklab, var(--nf-brand-primary) 22%, transparent),
       0 2px 8px -4px var(--nf-glow-3);
-  }
-  .nf-tab__link--create[aria-expanded="true"] .nf-dock-plus {
-    transform: rotate(45deg);
   }
   .nf-tab__link--create:focus-visible {
     outline: none;
@@ -1005,7 +1005,7 @@
  *  - ONE HEIGHT FAMILY. The capsule is 56px now (its tabs no longer carry a
  *    word under the glyph) and the round More button matches it.
  *  - FITS 320 TO 430. Below 380 the More button steps to 48px and the pill's
- *    word to 11px; where the capsule is too narrow for any word (320) the
+ *    word stays at 12px, the floor; where the capsule is too narrow for any word (320) the
  *    pill keeps its glyph and tint, and the name stays in `aria-label`.
  *  - The premium material: three-layer depth, frosted white in daylight
  *    (light.css), the glowing "+" with its running rim, the unread count.
@@ -1075,7 +1075,9 @@
     opacity: 0;
     transform: translateX(-4px);
     white-space: nowrap;
-    font-size: var(--nf-text-caption);
+    /* The chosen slot's word at 12px, 600 (north star 6.1); it was the 13px
+       caption, which nav-island.css answered over the top. */
+    font-size: var(--nf-text-overline);
     font-weight: 600;
     line-height: 1.2;
     letter-spacing: 0;
@@ -1176,12 +1178,15 @@
     height: 1.25rem;
     padding: 0 0.25rem;
     border-radius: var(--nf-radius-xs);
-    /* The warm spark (spec section 18), the orange dot of the founder's 3D
-       bell: the numeral is --nf-spark-on, 6.5:1 at night and 4.9:1 on paper. */
-    background: var(--nf-spark);
-    color: var(--nf-spark-on);
-    font-size: 0.6875rem;
-    font-weight: 750;
+    /* Cyan, never red or the warm spark, and never below 12px (north star
+       6.1 and 5): a count is attention, not an error. It was the orange spark
+       at 11px and 750, which nav-island.css answered over the top; the
+       answer is the source now. The ink on the count is 11.9:1 at night and
+       4.6:1 on paper. */
+    background: var(--nf-count-fill);
+    color: var(--nf-count-ink);
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
     line-height: 1;
     font-variant-numeric: tabular-nums;
     box-shadow: 0 0 0 2px var(--nf-dock-ring, var(--nf-surface-canvas));
