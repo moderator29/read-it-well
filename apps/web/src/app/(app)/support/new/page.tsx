@@ -69,7 +69,7 @@ export default async function NewSupportQueryPage({
   return (
     <div className="mx-auto max-w-2xl pb-[env(safe-area-inset-bottom)]">
       <PageHeader title={title} subtitle={w.newSub} fallback="/support" />
-      <NewQueryForm initialKind={kind} initialTopic={topic} records={records} />
+      <NewQueryForm initialKind={kind} initialTopic={topic} records={records} copy={getDictionary(await getLocale()).experienceInbox.support.form} />
     </div>
   );
 }

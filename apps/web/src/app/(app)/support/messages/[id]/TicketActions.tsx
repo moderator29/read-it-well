@@ -6,6 +6,9 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
 import { TextArea } from "@/components/ui/Field";
 import { markMyTicketRead, rateMyTicket, reopenMyTicket, resolveMyTicket } from "@/lib/support/ticket-reply";
+import type { Dictionary } from "@vallo/i18n/core";
+
+type Copy = Dictionary["experienceInbox"]["support"]["actions"];
 
 /**
  * Stamp the thread read once it is on screen.
@@ -23,13 +26,13 @@ export function MarkRead({ ticketId, unread }: { ticketId: string; unread: boole
 }
 
 /** "Sorted? Mark it resolved", the quiet exit under the reply box. */
-export function ResolveButton({ ticketId }: { ticketId: string }) {
+export function ResolveButton({ ticketId, copy }: { ticketId: string; copy: Copy }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
   return (
     <div className="text-center">
-      <p className="nf-caption text-[var(--nf-content-muted)]">Sorted already?</p>
+      <p className="nf-caption text-[var(--nf-content-muted)]">{copy.sorted}</p>
       <Button
         variant="ghost"
         loading={pending}
@@ -43,7 +46,7 @@ export function ResolveButton({ ticketId }: { ticketId: string }) {
           })
         }
       >
-        Mark as resolved
+        {copy.resolve}
       </Button>
       {error && (
         <p role="alert" className="nf-caption text-[var(--nf-state-error)]">
@@ -53,8 +56,6 @@ export function ResolveButton({ ticketId }: { ticketId: string }) {
     </div>
   );
 }
-
-const STAR_WORDS = ["", "Very poor", "Poor", "Okay", "Good", "Excellent"];
 
 /**
  * Rate the resolution, one to five, with an optional comment.
@@ -66,11 +67,14 @@ export function RateResolution({
   ticketId,
   rating,
   comment,
+  copy,
 }: {
   ticketId: string;
   rating: number | null;
   comment: string | null;
+  copy: Copy;
 }) {
+  const starWords = copy.starWords;
   const router = useRouter();
   const [editing, setEditing] = useState(rating === null);
   const [stars, setStars] = useState(rating ?? 0);
@@ -82,11 +86,11 @@ export function RateResolution({
     return (
       <div className="nf-panel nf-panel--card block p-card-sm" data-testid="support-rated">
         <p className="nf-body-sm font-semibold text-[var(--nf-content-primary)]">
-          You rated this {rating} out of 5. Thank you.
+          {copy.rated.replace("{rating}", String(rating))}
         </p>
         {comment && <p className="nf-caption mt-row break-words text-[var(--nf-content-secondary)]">“{comment}”</p>}
         <Button variant="quiet" size="sm" onClick={() => setEditing(true)} className="mt-row">
-          Change your rating
+          {copy.changeRating}
         </Button>
       </div>
     );
@@ -99,7 +103,7 @@ export function RateResolution({
       onSubmit={(event) => {
         event.preventDefault();
         if (stars < 1) {
-          setError("Choose from one to five stars.");
+          setError(copy.chooseStars);
           return;
         }
         setError(null);
@@ -114,7 +118,7 @@ export function RateResolution({
       }}
     >
       <p className="nf-body-sm font-semibold text-[var(--nf-content-primary)]" id="support-rate-label">
-        How did we do?
+        {copy.howDid}
       </p>
       <div role="radiogroup" aria-labelledby="support-rate-label" className="flex items-center gap-3xs">
         {[1, 2, 3, 4, 5].map((n) => (
@@ -123,7 +127,7 @@ export function RateResolution({
             type="button"
             role="radio"
             aria-checked={stars === n}
-            aria-label={`${n} of 5, ${(STAR_WORDS[n] ?? "").toLowerCase()}`}
+            aria-label={copy.starLabel.replace("{n}", String(n)).replace("{word}", (starWords[n] ?? "").toLowerCase())}
             onClick={() => setStars(n)}
             className="inline-flex h-11 w-11 cursor-pointer items-center justify-center rounded-[var(--nf-radius-control)]"
             data-testid={`support-star-${n}`}
@@ -136,17 +140,17 @@ export function RateResolution({
           </button>
         ))}
         <span className="nf-caption ms-xs text-[var(--nf-content-secondary)]" aria-live="polite">
-          {STAR_WORDS[stars]}
+          {starWords[stars]}
         </span>
       </div>
       <TextArea
-        label="Anything to add?"
-        optionalText="Optional"
+        label={copy.addLabel}
+        optionalText={copy.optional}
         value={text}
         onChange={(e) => setText(e.target.value)}
         rows={2}
         maxLength={1000}
-        placeholder="What went well, or what we could do better"
+        placeholder={copy.addPlaceholder}
       />
       {error && (
         <p role="alert" className="nf-caption text-[var(--nf-state-error)]">
@@ -154,22 +158,22 @@ export function RateResolution({
         </p>
       )}
       <Button type="submit" variant="primary" full loading={pending} disabled={pending} data-testid="support-rate-send">
-        Send rating
+        {copy.sendRating}
       </Button>
     </form>
   );
 }
 
 /** Not sorted after all: reopen inside the window, with the date it closes. */
-export function ReopenTicket({ ticketId, until }: { ticketId: string; until: string }) {
+export function ReopenTicket({ ticketId, until, copy }: { ticketId: string; until: string; copy: Copy }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
   return (
     <div className="nf-panel nf-panel--card block p-card-sm" data-testid="support-reopen">
-      <p className="nf-body-sm font-semibold text-[var(--nf-content-primary)]">Not sorted?</p>
+      <p className="nf-body-sm font-semibold text-[var(--nf-content-primary)]">{copy.notSorted}</p>
       <p className="nf-caption mt-row text-[var(--nf-content-secondary)]">
-        Reopen this ticket and it goes back to the team with everything said so far. You can reopen it until {until}.
+        {copy.reopenBody.replace("{until}", until)}
       </p>
       <Button
         variant="secondary"
@@ -185,7 +189,7 @@ export function ReopenTicket({ ticketId, until }: { ticketId: string; until: str
           })
         }
       >
-        Reopen ticket
+        {copy.reopen}
       </Button>
       {error && (
         <p role="alert" className="nf-caption mt-row text-[var(--nf-state-error)]">
