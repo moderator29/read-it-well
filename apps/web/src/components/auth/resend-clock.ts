@@ -23,7 +23,8 @@ import type { ResendRule } from "./resend-rule";
 export type ResendRecord = {
   /** When a code was last sent to this address, or null when not known. */
   lastSentAt: number | null;
-  /** When the RESENDS (the ones the ceiling counts) were made, newest last. */
+  /** When the sends the ceiling counts were made, newest last: the resends,
+      and the first send too where the rule says it counts (`countsFirst`). */
   resends: readonly number[];
   /** When the server last refused a send, or null. */
   refusedAt: number | null;
@@ -70,7 +71,11 @@ export function resendState(record: ResendRecord, now: number, rule: ResendRule)
   return { kind: "ready" };
 }
 
-/** A code was sent at `at`. A resend is one the ceiling counts; the first send is not. */
+/**
+ * A code was sent at `at`. A resend always counts against the ceiling; the
+ * first send counts only where the server's bucket is spent by it as well
+ * (`countsFirst`: the code sign-in doors, not sign-up).
+ */
 export function withSend(
   record: ResendRecord,
   at: number,
@@ -81,7 +86,7 @@ export function withSend(
   const keep = record.resends.filter((t) => at - t < rule.windowSeconds * MS);
   return {
     lastSentAt: at,
-    resends: kind === "resend" ? [...keep, at] : keep,
+    resends: kind === "resend" || rule.countsFirst ? [...keep, at] : keep,
     /* A send that was accepted ends any earlier refusal's claim on the window. */
     refusedAt: null,
   };

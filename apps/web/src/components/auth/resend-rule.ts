@@ -34,6 +34,13 @@ import { RESEND_WAIT_SECONDS } from "@/lib/auth/mail-app";
  *   emailCode    `email_code_send_address`  5 in 3,600s   lib/auth/email-code.ts
  *   phoneCode    `phone_code_send_number`   4 in 3,600s   lib/auth/phone-sign-in.ts
  *
+ * WHICH SENDS SPEND IT (`countsFirst`). The sign-up bucket is spent by
+ * resends only: the first code goes out with the sign-up itself, through a
+ * different path. The two code sign-in buckets are consumed by the send
+ * action, and the FIRST send is that same action, so it spends one of the
+ * five (or four) too. Counting only resends there showed a ready "Send a new
+ * code" on the fifth resend that the server would refuse (audit A5).
+ *
  * REQUEST TO SESSION 2 (not blocking): export these three from one pure
  * module the actions import, and return `retryAfterSeconds` on the refusal
  * (`AuthFormState`, `CodeSignInState`), so the screen can show the server's own
@@ -44,12 +51,14 @@ export type ResendRule = {
   gapSeconds: number;
   limit: number;
   windowSeconds: number;
+  /** The first send spends the ceiling too (the same server bucket). */
+  countsFirst: boolean;
 };
 
 export const RESEND_RULES = {
-  signUp: { gapSeconds: RESEND_WAIT_SECONDS, limit: 3, windowSeconds: 900 },
-  emailCode: { gapSeconds: RESEND_WAIT_SECONDS, limit: 5, windowSeconds: 3_600 },
-  phoneCode: { gapSeconds: RESEND_WAIT_SECONDS, limit: 4, windowSeconds: 3_600 },
+  signUp: { gapSeconds: RESEND_WAIT_SECONDS, limit: 3, windowSeconds: 900, countsFirst: false },
+  emailCode: { gapSeconds: RESEND_WAIT_SECONDS, limit: 5, windowSeconds: 3_600, countsFirst: true },
+  phoneCode: { gapSeconds: RESEND_WAIT_SECONDS, limit: 4, windowSeconds: 3_600, countsFirst: true },
 } as const satisfies Record<string, ResendRule>;
 
 export type ResendFlow = keyof typeof RESEND_RULES;

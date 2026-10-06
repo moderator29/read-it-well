@@ -100,6 +100,32 @@ describe("the resend clock", () => {
     expect(resendState(record, T0 + 200_000, rule).kind).toBe("ready");
   });
 
+  it("on the code sign-in doors the opening send spends the ceiling too, as the server's bucket does", () => {
+    /* `email_code_send_address` and `phone_code_send_number` are consumed by
+       the send action, and the opening send IS that action: five sends an
+       hour by email is the opening one and four resends, so after the fourth
+       resend the screen must not offer a fifth the server would refuse. */
+    const email = RESEND_RULES.emailCode;
+    const H = 1_700_002_800_000 - (1_700_002_800_000 % (3_600 * 1000));
+    let record = withSend(EMPTY_RECORD, H, email, "first");
+    for (let i = 1; i <= 3; i++) record = withSend(record, H + i * 60_000, email, "resend");
+    /* The opening send and three resends: one left, ready once the pace is out. */
+    expect(resendState(record, H + 300_000, email).kind).toBe("ready");
+    record = withSend(record, H + 240_000, email, "resend");
+    expect(resendState(record, H + 300_000, email)).toEqual({ kind: "window", from: H, until: H + 3_600_000 });
+
+    const phone = RESEND_RULES.phoneCode;
+    let sms = withSend(EMPTY_RECORD, H, phone, "first");
+    for (let i = 1; i <= 3; i++) sms = withSend(sms, H + i * 60_000, phone, "resend");
+    expect(resendState(sms, H + 300_000, phone).kind).toBe("window");
+  });
+
+  it("only the code sign-in doors count the opening send; sign up's first code goes out with the sign-up", () => {
+    expect(RESEND_RULES.emailCode.countsFirst).toBe(true);
+    expect(RESEND_RULES.phoneCode.countsFirst).toBe(true);
+    expect(RESEND_RULES.signUp.countsFirst).toBe(false);
+  });
+
   it("a refusal from the server is the window spent, whatever the screen counted", () => {
     const record = withRefusal(withSend(EMPTY_RECORD, T0 + 5_000, rule, "first"), T0 + 100_000);
     expect(resendState(record, T0 + 200_000, rule)).toEqual({ kind: "window", from: T0, until: T0 + 900_000 });

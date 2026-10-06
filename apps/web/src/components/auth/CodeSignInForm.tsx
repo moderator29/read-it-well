@@ -73,19 +73,26 @@ export function CodeSignInForm({ mode, t, next }: { mode: Mode; t: Dictionary; n
    * THE RESEND IS GOVERNED BY THE REAL RULE (`resend-rule.ts`): the pace after
    * the last send and the server's per-address ceiling for this door (five an
    * hour by email, four by phone), counted from the send's own time, so a
-   * reload shows the true time left. The answer to a send is what starts it:
-   * a code on the way records the send, and a `limited` answer records that
-   * the window is spent until it ends.
+   * reload shows the true time left. The answer to the OPENING send is what
+   * starts it: a code on the way records that send (which spends one of the
+   * address's sends, `countsFirst`), and a `limited` answer to any send
+   * records that the window is spent until it ends. A resend is recorded as
+   * it is submitted (below), so its own answer must not record it twice.
+   *
+   * Only a SEND's `limited` is a send refusal. The verify action answers
+   * `limited` from its own bucket (ten checks in ten minutes), which says
+   * nothing about sends: recording it here showed every code as spent while
+   * the server would still have sent one (audit A5).
    */
   const clock = useResendClock(mode === "email" ? "emailCode" : "phoneCode", sent.target ?? "");
   const { recordSend, recordRefusal } = clock;
+  const resending = useRef(false);
   useEffect(() => {
-    if (sent.step === "code") recordSend("first");
+    const wasResend = resending.current;
+    resending.current = false;
+    if (sent.step === "code" && !wasResend) recordSend("first");
     else if (sent.error === "limited") recordRefusal();
   }, [sent, recordSend, recordRefusal]);
-  useEffect(() => {
-    if (checked.error === "limited") recordRefusal();
-  }, [checked, recordRefusal]);
 
   const askForm = useRef<HTMLFormElement>(null);
   /* THE FORM ERROR on the address or number step: shake the field once. */
@@ -175,7 +182,14 @@ export function CodeSignInForm({ mode, t, next }: { mode: Mode; t: Dictionary; n
       )}
 
       {onCode && (
-        <form action={send} onSubmit={() => recordSend("resend")} className="nf-verify__resend nf-slate-stagger">
+        <form
+          action={send}
+          onSubmit={() => {
+            resending.current = true;
+            recordSend("resend");
+          }}
+          className="nf-verify__resend nf-slate-stagger"
+        >
           <input type="hidden" name={mode === "email" ? "email" : "phone"} value={sent.target ?? ""} />
           <Button
             type="submit"
