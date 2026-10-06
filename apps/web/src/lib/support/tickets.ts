@@ -8,7 +8,7 @@
  * and these rules are the part worth testing without a database.
  */
 
-import { RESPONSE_COMMITMENTS } from "../trust/standards";
+import type { ResponseGrade } from "../trust/standards";
 import { gradeForTopic } from "../trust/support-topics";
 
 export type TicketStatus = "open" | "pending" | "resolved" | "closed";
@@ -51,28 +51,16 @@ export function ticketStatusCopy(status: string): TicketStatusCopy {
  */
 export type MemberTicketState = "open" | "waiting" | "progress" | "resolved";
 
-export const MEMBER_STATE: Record<MemberTicketState, TicketStatusCopy> = {
-  open: {
-    label: "Open",
-    tone: "neutral",
-    meaning: "Filed. A person will pick it up and reply here.",
-  },
-  waiting: {
-    label: "Waiting on you",
-    tone: "brand",
-    meaning: "The team replied and needs something from you. Reply below.",
-  },
-  progress: {
-    label: "In progress",
-    tone: "info",
-    meaning: "A person has it and is working on it.",
-  },
-  resolved: {
-    label: "Resolved",
-    tone: "success",
-    meaning: "Answered. If it is not sorted, reopen it below.",
-  },
+/** The chip's tone per state; the words are the reader's (`experienceInbox.support.states`). */
+export const MEMBER_TONE: Record<MemberTicketState, TicketStatusCopy["tone"]> = {
+  open: "neutral",
+  waiting: "brand",
+  progress: "info",
+  resolved: "success",
 };
+
+/** `experienceInbox.support.states`: each state's chip and line, and Closed's own line. */
+export type MemberStateWords = Record<MemberTicketState, { label: string; meaning: string }> & { closedMeaning: string };
 
 export function memberTicketState(status: string, supportSpokeLast: boolean): MemberTicketState {
   if (status === "resolved" || status === "closed") return "resolved";
@@ -81,12 +69,11 @@ export function memberTicketState(status: string, supportSpokeLast: boolean): Me
   return "open";
 }
 
-export function memberStateCopy(status: string, supportSpokeLast: boolean): TicketStatusCopy {
+export function memberStateCopy(status: string, supportSpokeLast: boolean, words: MemberStateWords): TicketStatusCopy {
   const state = memberTicketState(status, supportSpokeLast);
-  if (state === "resolved" && status === "closed") {
-    return { ...MEMBER_STATE.resolved, meaning: "Closed by the team. Ask a new question if you still need help." };
-  }
-  return MEMBER_STATE[state];
+  const said = words[state];
+  const meaning = state === "resolved" && status === "closed" ? words.closedMeaning : said.meaning;
+  return { label: said.label, tone: MEMBER_TONE[state], meaning };
 }
 
 /**
@@ -187,9 +174,13 @@ export function previewText(body: string, max = 90): string {
  * First name only, never a surname, email or role inside the company: the
  * member needs to know a person answered and what to call them.
  */
-export function staffByline(staffName: string | null | undefined): string {
+export function staffByline(
+  staffName: string | null | undefined,
+  /** `experienceInbox.support.thread`: `bylineNamed` ("{name}, Vallo support") and `support`. */
+  words: { bylineNamed: string; support: string },
+): string {
   const first = staffName?.trim().split(/\s+/)[0];
-  return first ? `${first}, Vallo support` : "Vallo support";
+  return first ? words.bylineNamed.replace("{name}", first) : words.support;
 }
 
 /**
@@ -198,9 +189,20 @@ export function staffByline(staffName: string | null | undefined): string {
  * The grade comes from the topic (`gradeForTopic`), so a safety ticket reads
  * four hours here and runs on the four hour clock in the queue.
  */
-export function expectedResponse(topic: string | null): string {
-  const commitment = RESPONSE_COMMITMENTS[gradeForTopic(topic)];
-  return `A person replies ${commitment.label.toLowerCase()}.`;
+export function expectedResponse(
+  topic: string | null,
+  /** `experienceInbox.support.form.expected`, one line per grade. */
+  words: Record<ResponseGrade, string>,
+): string {
+  return words[gradeForTopic(topic)];
+}
+
+/**
+ * A stored topic code as the member reads it (`experienceInbox.support.topicNames`),
+ * or null for a code that predates the list (the caller falls back to the stored label).
+ */
+export function topicName(code: string | null, names: Record<string, string>): string | null {
+  return code && Object.hasOwn(names, code) ? (names[code] ?? null) : null;
 }
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

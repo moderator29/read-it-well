@@ -199,8 +199,8 @@ export function NewQueryForm({
             data-testid="support-topic"
           >
             <span className="nf-srow__body min-w-0">
-              <span className="nf-srow__label">{topic ? topic.title : copy.chooseTopic}</span>
-              <span className="nf-srow__sub">{topic ? topic.hint : copy.chooseTopicHint}</span>
+              <span className="nf-srow__label">{topic ? copy.topicChoices[topic.code].title : copy.chooseTopic}</span>
+              <span className="nf-srow__sub">{topic ? copy.topicChoices[topic.code].hint : copy.chooseTopicHint}</span>
             </span>
             <UiIcon name="chevron-right" size={16} className="shrink-0 text-[var(--nf-content-muted)]" />
           </button>
@@ -273,14 +273,14 @@ export function NewQueryForm({
           {copy.send}
         </Button>
         <p className="nf-caption text-center text-[var(--nf-content-muted)]">
-          {copy.afterSend.replace("{expected}", expectedResponse(draft.topic))}
+          {copy.afterSend.replace("{expected}", expectedResponse(draft.topic, copy.expected))}
         </p>
       </div>
 
       <Sheet open={sheet === "topic"} onOpenChange={(o) => setSheet(o ? "topic" : null)} title={copy.about} closeLabel={copy.close} detents={[0.85]}>
         <ChoiceList
           label={copy.topics}
-          items={TOPIC_CHOICES.map((choice) => ({ key: choice.code, title: choice.title, sub: choice.hint }))}
+          items={TOPIC_CHOICES.map((choice) => ({ key: choice.code, title: copy.topicChoices[choice.code].title, sub: copy.topicChoices[choice.code].hint }))}
           selected={draft.topic}
           onPick={(key) => {
             const next = topicChoice(key);
@@ -400,7 +400,7 @@ export function FiledView({ filed, topic, copy }: { filed: Filed; topic: string 
       </IconPlate>
       <h2 className="nf-h3 mt-group text-[var(--nf-content-primary)]">{copy.filedTitle}</h2>
       <p className="nf-body-sm mx-auto mt-row max-w-[40ch] text-[var(--nf-content-secondary)]">
-        {copy.filedBody.replace("{expected}", expectedResponse(topic))}
+        {copy.filedBody.replace("{expected}", expectedResponse(topic, copy.expected))}
       </p>
       <div className="mt-group flex justify-center">
         <span

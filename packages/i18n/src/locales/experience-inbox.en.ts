@@ -413,6 +413,36 @@ export const experienceInboxEn = {
       photoAlt: "Attached photo",
       personWillReply: "A person will reply here. You will get a notification and an email when they do.",
       askNew: "Ask a new question",
+      /** Who a staff reply is from (`staffByline`): their first name only. Without one, `support` above. */
+      bylineNamed: "{name}, Vallo support",
+    },
+    /**
+     * Where a ticket stands for the member (`memberStateCopy`): a chip and the
+     * line under it. `closedMeaning` replaces Resolved's line when the team
+     * closed it rather than resolved it.
+     */
+    states: {
+      open: { label: "Open", meaning: "Filed. A person will pick it up and reply here." },
+      waiting: { label: "Waiting on you", meaning: "The team replied and needs something from you. Reply below." },
+      progress: { label: "In progress", meaning: "A person has it and is working on it." },
+      resolved: { label: "Resolved", meaning: "Answered. If it is not sorted, reopen it below." },
+      closedMeaning: "Closed by the team. Ask a new question if you still need help.",
+    },
+    /**
+     * A ticket's topic as the member reads it (the list row and the
+     * conversation's title), by its stored code. The staff console and the
+     * emails keep `SUPPORT_TOPIC_LABEL`, which these equal in English.
+     */
+    topicNames: {
+      safety: "Someone asked me to pay outside Vallo",
+      booking: "A booking or stay",
+      payment: "A payment or refund",
+      inspection: "An inspection",
+      agreement: "An agreement",
+      listing: "Listing a property",
+      verification: "Verification",
+      account: "My account",
+      other: "Something else",
     },
     /** The ticket list's rows (`ListView`). */
     list: {
@@ -424,9 +454,8 @@ export const experienceInboxEn = {
       emailNote: "Replies also arrive by email and in your notifications.",
     },
     /**
-     * The new-query form and its receipt (`NewQueryForm`, `FiledView`). The
-     * topic names, hints and expected-response lines are lib/support data and
-     * stay there. `{expected}` is that expected-response line.
+     * The new-query form and its receipt (`NewQueryForm`, `FiledView`).
+     * `{expected}` is one of the `expected` lines below.
      */
     form: {
       offline: "You are offline. Your message is kept here; send it when you are back online.",
@@ -453,6 +482,28 @@ export const experienceInboxEn = {
       filedBody: "{expected} We have emailed you this reference and you will get a notification when the team replies.",
       openConversation: "Open the conversation",
       backToHelp: "Back to help and support",
+      /**
+       * How soon a person answers (`expectedResponse`), by the topic's grade:
+       * the windows /standards publishes (`RESPONSE_COMMITMENTS`), which a
+       * test holds these equal to in English.
+       */
+      expected: {
+        urgent: "A person replies within 4 hours.",
+        standard: "A person replies within 1 day.",
+        routine: "A person replies within 3 days.",
+      },
+      /** The topics the form offers (`TOPIC_CHOICES`), by code: a title and a hint. */
+      topicChoices: {
+        account: { title: "Account", hint: "Signing in, your profile, settings" },
+        verification: { title: "Verification", hint: "Your ID, badge or agent checks" },
+        listing: { title: "Listing", hint: "A property you list or manage" },
+        payment: { title: "Payment or refund", hint: "A charge, a refund or a receipt" },
+        inspection: { title: "Inspection", hint: "A viewing you booked or hosted" },
+        agreement: { title: "Agreement", hint: "Rent or stay terms you agreed" },
+        booking: { title: "Booking or stay", hint: "Dates, check-in, the place itself" },
+        safety: { title: "Safety", hint: "Asked to pay outside Vallo, or something felt unsafe" },
+        other: { title: "Something else", hint: "Anything not listed here" },
+      },
     },
     /** The reply box. */
     reply: {

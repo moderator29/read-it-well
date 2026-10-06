@@ -27,8 +27,6 @@ export const QUERY_KINDS: Record<QueryKind, { title: string; lede: string }> = {
 
 export type TopicChoice = {
   code: SupportTopic;
-  title: string;
-  hint: string;
   /** Records worth offering to link for this topic, most likely first. Empty offers none. */
   records: RelatedKind[];
 };
@@ -36,28 +34,19 @@ export type TopicChoice = {
 /**
  * In the order a member scans for them. Safety is last in the list but drawn
  * apart, because a member who needs it should not have to read past eight
- * ordinary topics to find it.
+ * ordinary topics to find it. Each one's title and hint are the reader's
+ * (`experienceInbox.support.form.topicChoices`).
  */
 export const TOPIC_CHOICES: readonly TopicChoice[] = [
-  { code: "account", title: "Account", hint: "Signing in, your profile, settings", records: [] },
-  { code: "verification", title: "Verification", hint: "Your ID, badge or agent checks", records: [] },
-  { code: "listing", title: "Listing", hint: "A property you list or manage", records: ["listing"] },
-  {
-    code: "payment",
-    title: "Payment or refund",
-    hint: "A charge, a refund or a receipt",
-    records: ["payment", "booking", "agreement"],
-  },
-  { code: "inspection", title: "Inspection", hint: "A viewing you booked or hosted", records: ["inspection"] },
-  { code: "agreement", title: "Agreement", hint: "Rent or stay terms you agreed", records: ["agreement"] },
-  { code: "booking", title: "Booking or stay", hint: "Dates, check-in, the place itself", records: ["booking"] },
-  {
-    code: "safety",
-    title: "Safety",
-    hint: "Asked to pay outside Vallo, or something felt unsafe",
-    records: ["booking", "listing", "inspection", "agreement"],
-  },
-  { code: "other", title: "Something else", hint: "Anything not listed here", records: [] },
+  { code: "account", records: [] },
+  { code: "verification", records: [] },
+  { code: "listing", records: ["listing"] },
+  { code: "payment", records: ["payment", "booking", "agreement"] },
+  { code: "inspection", records: ["inspection"] },
+  { code: "agreement", records: ["agreement"] },
+  { code: "booking", records: ["booking"] },
+  { code: "safety", records: ["booking", "listing", "inspection", "agreement"] },
+  { code: "other", records: [] },
 ];
 
 export function topicChoice(code: string | null | undefined): TopicChoice | undefined {

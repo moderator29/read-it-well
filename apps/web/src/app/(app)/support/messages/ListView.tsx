@@ -2,7 +2,7 @@ import Link from "next/link";
 import { formatDate, getDictionary, type Locale } from "@vallo/i18n";
 import { StatusPill } from "@/components/ui/StatusPill";
 import type { TicketSummary } from "@/lib/support/my-tickets";
-import { memberStateCopy, previewText } from "@/lib/support/tickets";
+import { memberStateCopy, previewText, topicName } from "@/lib/support/tickets";
 
 /**
  * The member's support tickets as rows: topic, the last thing said, the
@@ -17,7 +17,7 @@ export function TicketListView({ tickets, locale }: { tickets: TicketSummary[]; 
     <section className="nf-sgroup" aria-label={w.list.label}>
       <ul className="nf-sgroup__body nf-panel nf-panel--card nf-arrive-list" data-testid="support-ticket-list">
         {tickets.map((ticket) => {
-          const state = memberStateCopy(ticket.status, ticket.thread.supportSpokeLast);
+          const state = memberStateCopy(ticket.status, ticket.thread.supportSpokeLast, w.states);
           const last = ticket.thread.last;
           const when = formatDate(new Date(last?.createdAt ?? ticket.createdAt), locale, {
             day: "numeric",
@@ -37,7 +37,7 @@ export function TicketListView({ tickets, locale }: { tickets: TicketSummary[]; 
                     {ticket.unread && (
                       <span className="h-2 w-2 shrink-0 rounded-full bg-[var(--nf-brand-primary)]" aria-hidden="true" />
                     )}
-                    <span className={`truncate ${ticket.unread ? "font-bold" : ""}`}>{ticket.topic ?? w.list.untitled}</span>
+                    <span className={`truncate ${ticket.unread ? "font-bold" : ""}`}>{topicName(ticket.topicCode, w.topicNames) ?? ticket.topic ?? w.list.untitled}</span>
                   </span>
                   <span className="nf-srow__sub break-words">
                     {last

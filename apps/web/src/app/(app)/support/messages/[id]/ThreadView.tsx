@@ -16,6 +16,7 @@ import {
   reopenWindow,
   staffByline,
   summariseThread,
+  topicName,
   type TicketMessage,
 } from "@/lib/support/tickets";
 import { StatusTrack } from "@/components/app/status/StatusTrack";
@@ -120,7 +121,7 @@ function Bubble({
         </div>
       </div>
       <span className="nf-caption ps-[calc(2.25rem+var(--nf-gap-row))] text-[var(--nf-content-muted)]">
-        {staffByline(message.staffName)} · <span className="nf-numeric">{at}</span>
+        {staffByline(message.staffName, w)} · <span className="nf-numeric">{at}</span>
       </span>
     </li>
   );
@@ -152,7 +153,7 @@ export function TicketThreadView({
   const words = getDictionary(locale).experienceInbox.support;
   const w = words.thread;
   const summary = summariseThread(messages);
-  const state = memberStateCopy(ticket.status, summary.supportSpokeLast);
+  const state = memberStateCopy(ticket.status, summary.supportSpokeLast, words.states);
   const thread = orderThread(messages);
   /* A ticket the chat escalated can open its thread with the same question
      the ticket row carries; drawing it twice would read as the member
@@ -172,7 +173,7 @@ export function TicketThreadView({
 
   return (
     <div className="mx-auto max-w-2xl pb-[env(safe-area-inset-bottom)]">
-      <PageHeader title={ticket.topic ?? words.pages.ticketTitle} subtitle={ticket.reference} fallback="/support/messages" />
+      <PageHeader title={topicName(ticket.topicCode, words.topicNames) ?? ticket.topic ?? words.pages.ticketTitle} subtitle={ticket.reference} fallback="/support/messages" />
 
       <div className="space-y-block">
         <section className="nf-panel nf-panel--card block p-card-sm" aria-label={w.status} data-testid="support-status">
@@ -206,7 +207,7 @@ export function TicketThreadView({
           {replyable && summary.supportSpokeLast === false && (
             <p className="nf-caption mt-row flex items-center gap-inline text-[var(--nf-content-muted)]">
               <UiIcon name="history" size={16} className="shrink-0" />
-              {expectedResponse(ticket.topicCode)}
+              {expectedResponse(ticket.topicCode, words.form.expected)}
             </p>
           )}
           {ticket.related && (
