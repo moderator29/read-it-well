@@ -161,11 +161,17 @@ const baseMetadata: Metadata = {
     locale: "en_NG",
     type: "website",
   },
+  /*
+   * THE CARD TYPE ONLY (W3, round 5). A title and description here were
+   * inherited by every page that set its own Open Graph words and no Twitter
+   * ones, which is every page: /terms, /check, a share door all unfurled on X,
+   * Telegram and Slack as "Vallo. Space, without the runaround." over their
+   * own picture. With only the card type here, Next fills the Twitter title,
+   * description and image from each page's own Open Graph (`postProcessMetadata`),
+   * so the two can never disagree again.
+   */
   twitter: {
     card: "summary_large_image",
-    title: "Vallo. Rent, buy or stay, without the runaround.",
-    description:
-      "Homes, land, hotels and shortlets across Nigeria, with the cost of moving in written down before you call anybody. Hotels, apartments and restaurant tables on Vallo Stays. One account, one inbox.",
   },
   /* UI-16: no site-wide robots tag. Indexable is the default with no tag at
      all; stating "index, follow" here put it beside the "noindex" that a
@@ -238,7 +244,7 @@ export async function generateMetadata(): Promise<Metadata> {
       description: site.shareDescription,
       ...openGraphLocales(locale),
     },
-    twitter: { ...baseMetadata.twitter, title: site.title, description: site.shareDescription },
+    twitter: { ...baseMetadata.twitter },
   };
 }
 

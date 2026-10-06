@@ -11,6 +11,7 @@ import { DepthWords } from "@/components/motion/DepthWords";
 import { MotionReveal } from "@/components/motion/Reveal";
 import { IconPlate } from "@/components/ui/IconPlate";
 import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
+import { SITE_CARD } from "@/lib/site/site-card";
 
 /**
  * One chapter.
@@ -39,6 +40,9 @@ export async function generateMetadata({
   return {
     title: chapter.title,
     description: chapter.summary,
+    /* The chapter's own words on the unfurl (it read the home page's), and
+       the site's card, which a page that sets Open Graph must name. */
+    openGraph: { type: "article", siteName: "Vallo", title: chapter.title, description: chapter.summary, images: [SITE_CARD] },
   };
 }
 

@@ -23,7 +23,12 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
-  return { title: t.trustDoors.check.metaTitle, description: t.trustDoors.check.lede };
+  const title = t.trustDoors.check.metaTitle;
+  const description = t.trustDoors.check.lede;
+  /* Its own Open Graph words, or the unfurl reads the home page's title and
+     description over this page's card. No `images`: the card is the file
+     beside this page. */
+  return { title, description, openGraph: { type: "website", siteName: "Vallo", title, description } };
 }
 
 export default async function CheckPage({ searchParams }: { searchParams: Promise<{ q?: string | string[] }> }) {

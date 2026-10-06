@@ -6,6 +6,7 @@ import { Logo } from "@/design-system/brand/Logo";
 import { inviteDoor } from "@/lib/referral/server";
 import { normaliseInviteCode } from "@/lib/referral/code";
 import { Icon3D } from "@/components/ui/Icon3D";
+import { SITE_CARD } from "@/lib/site/site-card";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +20,7 @@ export async function generateMetadata({ params }: { params: Promise<{ code: str
   const copy = getDictionary(await getLocale()).publicDoors.invite;
   const { door } = await doorFor((await params).code);
   const title = door?.found && door.firstName ? copy.doorTitle.replace("{name}", door.firstName) : copy.doorTitleNoName;
-  return { title, description: copy.doorBody, robots: { index: false, follow: false }, openGraph: { title, description: copy.doorBody } };
+  return { title, description: copy.doorBody, robots: { index: false, follow: false }, openGraph: { type: "website", siteName: "Vallo", title, description: copy.doorBody, images: [SITE_CARD] } };
 }
 
 /**
