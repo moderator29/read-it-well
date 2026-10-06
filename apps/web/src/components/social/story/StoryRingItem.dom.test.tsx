@@ -94,6 +94,37 @@ describe.skipIf(!hasBrowser && !process.env.CI)("StoryRingItem", () => {
     }
   });
 
+  it("adopts the pre-scope list once on upgrade, so a ring this device quieted stays quiet (A7)", async () => {
+    const { page, close } = await mountInBrowser({
+      entry,
+      css: CSS,
+      init: `localStorage.setItem("nf_seen_stories", JSON.stringify(["a","b","c"]))`,
+    });
+    try {
+      await page.waitForFunction(() => document.querySelector(".nf-story-ring__disc")?.getAttribute("data-seen") === "all");
+      expect(await page.evaluate(() => localStorage.getItem("nf_seen_stories"))).toBeNull();
+      expect(await page.evaluate(() => localStorage.getItem("nf_seen_stories:viewer-1"))).toBe(JSON.stringify(["a", "b", "c"]));
+    } finally {
+      await close();
+    }
+  });
+
+  it("does not hand the pre-scope list to a signed-out reader", async () => {
+    const { page, close } = await mountInBrowser({
+      entry: entryFor(null),
+      css: CSS,
+      init: `localStorage.setItem("nf_seen_stories", JSON.stringify(["a","b","c"]))`,
+    });
+    try {
+      const disc = page.locator(".nf-story-ring__disc");
+      await disc.waitFor();
+      expect(await disc.getAttribute("data-seen")).toBeNull();
+      expect(await page.evaluate(() => localStorage.getItem("nf_seen_stories"))).not.toBeNull();
+    } finally {
+      await close();
+    }
+  });
+
   it("never animates: no loop on the ring", async () => {
     const { page, close } = await mountInBrowser({ entry, css: CSS });
     try {

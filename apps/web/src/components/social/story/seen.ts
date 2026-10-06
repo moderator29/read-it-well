@@ -1,6 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { readAdopting } from "../scoped-storage";
 
 /**
  * WHICH STORIES THIS READER HAS OPENED, kept on this device only.
@@ -25,7 +26,12 @@ const EVENT = "nf-seen-stories";
  * SCOPED TO THE VIEWER (auditor A2). One phone, two accounts: a single key
  * meant account B saw rings already quiet from what A had opened. The key
  * carries the viewer's id (passed from the server); a signed-out reader has
- * the "anon" scope, which is what they always had.
+ * the "anon" scope, a key of its own that starts empty.
+ *
+ * THE OLD UNSCOPED LIST IS ADOPTED, ONCE (auditor A7): the first signed-in
+ * read of an empty scope takes over what `nf_seen_stories` held and deletes
+ * it, so upgrading does not relight every ring this device had already
+ * quieted. A signed-out read never adopts (`scoped-storage.ts`).
  */
 const scope = (viewerId: string | null) => `${KEY}:${viewerId ?? "anon"}`;
 
@@ -37,7 +43,7 @@ function read(viewerId: string | null): readonly string[] {
   if (hit) return hit;
   let list: readonly string[];
   try {
-    const raw = window.localStorage.getItem(key);
+    const raw = readAdopting(window.localStorage, key, KEY, viewerId !== null);
     const parsed: unknown = raw ? JSON.parse(raw) : [];
     list = Array.isArray(parsed) ? parsed.filter((id): id is string => typeof id === "string") : [];
   } catch {

@@ -3,19 +3,25 @@
 import { useEffect, useState } from "react";
 import { BadgeMoment, type BadgeMomentCopy } from "./BadgeMoment";
 import { badgeToCelebrate, quietlySeen, type ProfileBadge } from "./badge-model";
+import { readAdopting } from "../scoped-storage";
 
 /*
  * SCOPED TO THE ACCOUNT (auditor A2). A phone shared between two people has one
  * localStorage, so a single key meant account B was never shown a moment account
  * A had already seen, and A's list leaked into B's. The key carries the viewer's
  * id, passed down from the server, so each account keeps its own list.
+ *
+ * THE OLD UNSCOPED LIST IS ADOPTED, ONCE (auditor A7): the first read of this
+ * account's empty list takes over what `nf_badges_shown` held and deletes it,
+ * so upgrading does not celebrate a recent badge a second time. The host is
+ * mounted only for the signed-in owner, so every read here may adopt.
  */
 const KEY = "nf_badges_shown";
 const keyFor = (viewerId: string) => `${KEY}:${viewerId}`;
 
 function readSeen(viewerId: string): string[] {
   try {
-    const raw = window.localStorage.getItem(keyFor(viewerId));
+    const raw = readAdopting(window.localStorage, keyFor(viewerId), KEY, true);
     const parsed: unknown = raw ? JSON.parse(raw) : [];
     return Array.isArray(parsed) ? parsed.filter((c): c is string => typeof c === "string") : [];
   } catch {
