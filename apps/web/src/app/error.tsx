@@ -2,7 +2,7 @@
 
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { useErrorReport } from "@/lib/observability/use-error-report";
-import { SystemMoment } from "./offline/SystemMoment";
+import { PlainSystemMoment } from "./offline/SystemFrame";
 
 /**
  * Route level error boundary: the brand moment.
@@ -11,6 +11,9 @@ import { SystemMoment } from "./offline/SystemMoment";
  * reference, and two ways on. Same anatomy as the sign-in render, because a
  * crash is the one screen where the product has nothing to show but itself,
  * and it should look like itself rather than like a browser.
+ *
+ * The plain-image variant (`PlainSystemMoment`): this boundary is in the
+ * bundle of every route, so it must not bring `next/image` with it.
  *
  * The raw error never reaches the screen. The digest is surfaced because it
  * is the id support needs to find the matching server log, which is the
@@ -32,7 +35,7 @@ export default function Error({
        a client component by requirement, so it cannot read a session and the
        auth cookies are httpOnly by design. That route answers the question
        on the server and sends the reader to whichever home is theirs. */
-    <SystemMoment home="/home-or-landing">
+    <PlainSystemMoment home="/home-or-landing">
       <p className="nf-system__overline">Something went wrong</p>
       <h1 className="nf-system__title">This screen did not load</h1>
       <p className="nf-system__body">
@@ -53,6 +56,6 @@ export default function Error({
           Back to home
         </ButtonLink>
       </div>
-    </SystemMoment>
+    </PlainSystemMoment>
   );
 }

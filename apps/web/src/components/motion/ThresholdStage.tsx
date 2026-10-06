@@ -1,9 +1,20 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
-import { LogoMark } from "@/design-system/brand/Logo";
 import { THRESHOLD_EVENT, thresholdAllowed, type ThresholdKind } from "@/lib/motion/threshold";
+
+/*
+ * THE SIGN-OUT MARK LOADS WHEN SIGN-OUT PLAYS (speed, 6 October 2026). This
+ * stage is mounted in the root layout, so everything it imports statically is
+ * first-load JavaScript on every route, and `LogoMark` draws through
+ * `next/image`, whose client runtime (about 15 KB raw) was in the chunk every
+ * route loads for this one import, among three. The mark is drawn only by the
+ * `leave` threshold, which is rare and starts with 360ms of closing panels
+ * before the mark's own entrance (threshold.css), so it is fetched then.
+ */
+const LogoMark = dynamic(() => import("@/design-system/brand/Logo").then((m) => m.LogoMark), { ssr: false });
 
 /**
  * THE STAGE THE THRESHOLD MOMENTS PLAY ON (Track M, 25 September 2026).
