@@ -3,6 +3,8 @@ import "server-only";
 import type { AdminClient } from "@/lib/supabase/service";
 import { currentPaystackMode, guaranteeReserveSubaccount, type PaystackMode, type PaystackSplit } from "./paystack";
 import { bookingReference } from "./references";
+import { escrowRailLive } from "./providers";
+import { railForBooking, railGate } from "./router";
 
 /**
  * Open a payment attempt with its split, or say in words why payment is not
@@ -60,17 +62,31 @@ export type SplitQuote = {
   split: PaystackSplit;
   commissionMinor: number;
   mode: PaystackMode;
+  /** The rail the policy resolved, and the policy row that said so. Written at insert, never altered. */
+  rail: "direct";
+  railPolicyId: string;
 };
 
 /**
  * Ask the database what this booking's charge is, and refuse in a sentence
  * when it cannot be paid yet. Writes nothing, so a retry can compare the live
  * attempt against it before deciding to open another.
+ *
+ * THE RAIL FIRST (Session 2, 7.4). The policy decides whether this booking
+ * may be paid by a Paystack split at all. Anything but a resolved DIRECT rail
+ * refuses here, before a row exists: no rail, an unreachable router, and an
+ * ESCROW answer, because this path can only open a direct charge and the
+ * escrow rail is not live (`router.ts`, railGate).
  */
 export async function quoteSplit(
   admin: AdminClient,
   booking: { id: string; total_minor: number; currency: string },
 ): Promise<SplitQuote | AttemptRefusal> {
+  const gate = railGate(await railForBooking(admin, booking.id), "direct", await escrowRailLive());
+  if (!gate.open) return { refused: true, message: gate.message };
+  if (gate.rail !== "direct") return { refused: true, message: PAYMENT_NOT_AVAILABLE.not_found! };
+  const railPolicyId = gate.policyId;
+
   const reserve = guaranteeReserveSubaccount();
   if (!reserve) return { refused: true, message: PAYMENT_NOT_AVAILABLE.reserve_not_set_up! };
 
@@ -107,6 +123,8 @@ export async function quoteSplit(
     payeeUserId: answer.payee_user_id ?? null,
     commissionMinor: commission,
     mode: currentPaystackMode(),
+    rail: "direct",
+    railPolicyId,
     split: {
       listerSubaccount: answer.payee_subaccount_code,
       listerShareMinor: listerShare,
@@ -141,6 +159,8 @@ export async function insertSplitAttempt(
     guarantee_minor: quote.split.guaranteeMinor,
     commission_minor: quote.commissionMinor,
     paystack_mode: quote.mode,
+    rail: quote.rail,
+    rail_policy_id: quote.railPolicyId,
     checkout_opened_at: new Date().toISOString(),
   } as never);
   if (attempt.error) {

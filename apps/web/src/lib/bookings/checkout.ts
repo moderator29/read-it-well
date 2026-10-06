@@ -39,12 +39,8 @@ import {
 } from "../actions/session";
 import { contactFromSession } from "../email/recipients";
 import { isFeatureEnabled } from "../flags";
-import {
-  PaystackError,
-  initializeTransaction,
-  isPaystackConfigured,
-  verifyTransaction,
-} from "../payments/paystack";
+import { PaystackError, isPaystackConfigured } from "../payments/paystack";
+import { assertProviderEnabled, openCheckout, paystackSeam, verifyRecord } from "../payments/providers";
 import { chargeSavedCard, type ChargeSavedCardOutcome } from "../payments/charge-saved-card";
 import { isBookingReference } from "../payments/references";
 import { cardReturnVerdict } from "../payments/card-return";
@@ -67,6 +63,10 @@ const PAUSED_MESSAGE =
 
 const CARD_UNCONFIGURED_MESSAGE =
   "We cannot reach card payment right now. Your booking is untouched and your dates are still held.";
+
+/** The per-provider kill switch is off: nothing was written and nothing charged. */
+const CARD_PAUSED_MESSAGE =
+  "Card payments are paused for a short while. Nothing has been charged and your dates are still held.";
 
 const NOT_FOUND_MESSAGE =
   "We could not find that booking on your account. Open it again from Bookings, and check you are signed in with the account that reserved it.";
@@ -299,6 +299,12 @@ async function startCardCheckoutWork(
       "Your account has no email address, which card payment needs. Add one to your profile and try again.",
     );
   }
+  // The per-provider kill switch, read before anything is written.
+  try {
+    await assertProviderEnabled("paystack");
+  } catch {
+    return fail(CARD_PAUSED_MESSAGE);
+  }
 
   const admin = getAdminClient();
   if (!admin) return fail(NOT_CONFIGURED_MESSAGE);
@@ -334,7 +340,7 @@ async function startCardCheckoutWork(
   const callbackUrl = `${await siteOrigin()}${await checkoutReturnPath(admin, booking.id, reference)}`;
 
   try {
-    const tx = await initializeTransaction({
+    const tx = await openCheckout(paystackSeam(), {
       email,
       amountMinor,
       reference,
@@ -485,6 +491,12 @@ async function payWithSavedCardWork(
   methodId: string,
 ): Promise<ActionResult<ChargeSavedCardOutcome>> {
   if (!isPaystackConfigured()) return fail(CARD_UNCONFIGURED_MESSAGE);
+  // The per-provider kill switch, read before the attempt row is written.
+  try {
+    await assertProviderEnabled("paystack");
+  } catch {
+    return fail(CARD_PAUSED_MESSAGE);
+  }
 
   const admin = getAdminClient();
   if (!admin) return fail(NOT_CONFIGURED_MESSAGE);
@@ -637,7 +649,7 @@ export async function settleCardPayment(
 
   let tx;
   try {
-    tx = await verifyTransaction(reference);
+    tx = await verifyRecord(paystackSeam(), reference);
   } catch {
     return fail(
       "The payment could not be checked just now. If you completed it, your booking confirms automatically in a moment.",

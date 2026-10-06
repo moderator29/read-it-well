@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import {
   isPaystackConfigured,
   metadataObject,
-  verifyWebhookSignature,
 } from "@/lib/payments/paystack";
+import { paystackSeam } from "@/lib/payments/providers";
 import {
   failureReason,
   logMoney,
@@ -439,8 +439,8 @@ export async function POST(request: Request): Promise<NextResponse> {
     );
   }
 
-  const signature = request.headers.get("x-paystack-signature") ?? "";
-  if (!verifyWebhookSignature(rawBody, signature)) {
+  // x-paystack-signature over the raw body, constant-time, through the provider seam.
+  if (!paystackSeam().verifyWebhook(rawBody, request.headers)) {
     // Deliberately before any database work. An unauthenticated caller must not
     // be able to write rows into audit_log by posting nonsense at this URL.
     //

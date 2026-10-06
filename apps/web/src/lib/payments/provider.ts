@@ -26,6 +26,11 @@
  * This file is types and pure functions only, safe to import anywhere.
  */
 
+/* Types only, erased at build: the record shapes the detailed capabilities
+   return are the ones the existing call sites already read, so moving them
+   behind the seam changes no outcome. */
+import type { ChargeSummary, ChargedAuthorization, VerifiedTransaction } from "./paystack";
+
 export type FiatProviderId = "paystack" | "payluk";
 
 export type CollectInput = {
@@ -35,8 +40,19 @@ export type CollectInput = {
   email: string;
   callbackUrl: string;
   metadata?: Record<string, unknown>;
+  /**
+   * Narrow the ways of paying offered. Absent by default, on purpose: only a
+   * caller that genuinely cannot work on another channel passes it (card
+   * setup, which needs a reusable card authorisation).
+   */
+  channels?: readonly string[];
 };
-export type CollectResult = { reference: string; redirectUrl: string };
+export type CollectResult = {
+  reference: string;
+  redirectUrl: string;
+  /** The provider's handle for resuming this checkout inline, when it issues one. */
+  accessCode?: string;
+};
 
 /** What the provider says happened to a reference. `unknown` is never a failure. */
 export type CollectionStatus = "success" | "failed" | "reversed" | "pending" | "unknown";
@@ -87,7 +103,32 @@ export type FiatCapabilityMethods = {
   };
   /** A list of successful charges in a window, for reconciliation. Charges, not settlements. */
   list_successful_charges: {
-    listSuccessfulCharges(input: { from: string; to?: string; maxPages?: number }): Promise<unknown[]>;
+    listSuccessfulCharges(input: { from: string; to?: string; maxPages?: number }): Promise<ChargeSummary[]>;
+  };
+  /**
+   * Charge a card the payer saved earlier, with no checkout page (Paystack
+   * charge_authorization). A decline is returned, not thrown; a timeout is
+   * UNKNOWN and never retried blindly. Starts money movement: gate it with
+   * `assertProviderEnabled`.
+   */
+  charge_saved_card: {
+    chargeSavedCard(input: {
+      authorizationCode: string;
+      email: string;
+      amountMinor: number;
+      reference: string;
+      metadata?: Record<string, unknown>;
+      split?: ChargeSplit;
+    }): Promise<ChargedAuthorization>;
+  };
+  /**
+   * The provider's full record of one reference, in its own words (status,
+   * fees, channel, metadata, card token), for the call sites that settle,
+   * reconcile and save cards and need more than the neutral
+   * `verifyByReference`. Read-only: never gated by the kill switch.
+   */
+  verify_with_record: {
+    verifyRecord(reference: string): Promise<VerifiedTransaction>;
   };
 };
 export type FiatCapability = keyof FiatCapabilityMethods;
