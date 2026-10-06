@@ -6,7 +6,7 @@ import { resolveSession } from "@/lib/actions/session";
 import { formatMoneyDate } from "@/lib/money/dates";
 import { PageHeader } from "@/components/app/PageHeader";
 import { EmptyState, Section, TYPE } from "@/components/app/Screen";
-import { DocFigure, DocHead, DocRow, DocRows, DocumentSheet } from "@/components/app/money/DocumentSheet";
+import { DocFigure, DocHead, DocNote, DocRow, DocRows, DocumentSheet } from "@/components/app/money/DocumentSheet";
 import { PayShare, SettleShareOnReturn, ShareAnswer } from "@/components/app/tenancy/FlatmateControls";
 
 /** A private record. Never indexed. */
@@ -125,18 +125,14 @@ export default async function RentSharePage({
           <DocFigure testId="share-figure">{formatMoney(share, locale)}</DocFigure>
         </div>
         <DocRows>
-          <DocRow label={x.yours} numeric>
-            {formatMoney(share, locale)}
-          </DocRow>
+          {/* The share is the hero figure above, so it is not a row again. */}
           <DocRow label={x.total} numeric>
             {formatMoney(total, locale)}
           </DocRow>
-          {moveIn ? (
-            <DocRow label={x.due} numeric>
-              {moveIn}
-            </DocRow>
-          ) : null}
         </DocRows>
+        {/* When it is due keeps its old meaning ("before move-in"), in the
+            existing sentence rather than a bare "Move-in" row. */}
+        {moveIn ? <DocNote>{copy.shareDue.replace("{date}", moveIn)}</DocNote> : null}
       </DocumentSheet>
       <Section>
         <div className="grid gap-md">
