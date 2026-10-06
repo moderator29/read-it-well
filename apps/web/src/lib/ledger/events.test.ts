@@ -6,7 +6,11 @@ vi.mock("server-only", () => ({}));
 
 import { LEDGER_EVENTS, LEDGER_POTS, ledgerEntryProblem, type LedgerEntryInput } from "./events";
 
-const MIGRATION = join(__dirname, "../../../../../supabase/migrations/pending/b2_ledger.sql");
+/*
+ * The applied ledger migration, by its exact filename. readFileSync throws
+ * when it is missing, so a renamed or moved file fails the suite.
+ */
+const MIGRATION = join(__dirname, "../../../../../supabase/migrations/20261006105326_b2_ledger.sql");
 
 const ok: LedgerEntryInput = {
   pot: "vallo_revenue",
