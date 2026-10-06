@@ -42,7 +42,9 @@ const PAYING_STEPS: { title: string; body: string }[] = [
   },
   {
     title: "The price you agree is the price you pay",
-    body: `${NO_FEES_LINE} The total you see before you commit is the lister's own number for that market, whole: the move-in total on a yearly tenancy, the nights and any cleaning charge on a shortlet, the asking price on a sale or a lease. Where an agent charges a fee of their own it is theirs, it belongs on the listing and not at the door, and it is named as theirs. Nothing of ours is added at the end. If your bank or card network takes something of their own, that is theirs and it is named as theirs too.`,
+    /* The rule card above prints NO_FEES_LINE word for word, so this step no
+       longer opens with it a second time (C6, the route sweep). */
+    body: `The total you see before you commit is the lister's own number for that market, whole: the move-in total on a yearly tenancy, the nights and any cleaning charge on a shortlet, the asking price on a sale or a lease. Where an agent charges a fee of their own it is theirs, it belongs on the listing and not at the door, and it is named as theirs. Nothing of ours is added at the end. If your bank or card network takes something of their own, that is theirs and it is named as theirs too.`,
   },
   {
     title: "There is a record, permanently",
