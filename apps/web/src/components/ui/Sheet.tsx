@@ -268,6 +268,29 @@ export function Sheet({
   }
   const closing = !open && leaving;
 
+  /*
+   * WHAT A LEAVING SHEET SHOWS (auditor A8). Callers often clear the state a
+   * sheet's content reads in the same update that closes it (`{asking ?
+   * <Panel/> : null}`, a body that becomes ""), so the leave would slide away
+   * an empty card. While open, the sheet keeps the last title, content, footer
+   * and actions it was given (a render-time update, the same idiom as
+   * `prevOpen` above); while leaving, it draws those instead of the cleared
+   * ones. It is inert by then, so nothing held can be pressed.
+   */
+  const live = { title, children, footer, reset, apply };
+  const [held, setHeld] = useState(live);
+  if (
+    open &&
+    (held.title !== title ||
+      held.children !== children ||
+      held.footer !== footer ||
+      held.reset !== reset ||
+      held.apply !== apply)
+  ) {
+    setHeld(live);
+  }
+  const face = closing ? held : live;
+
   useEffect(() => {
     if (open || !leaving) return;
     const panel = sheetRef.current;
@@ -563,7 +586,7 @@ export function Sheet({
                   : "min-w-0 text-[length:var(--nf-text-h4)] font-semibold tracking-tight text-[var(--nf-content-primary)]"
               }
             >
-              {title}
+              {face.title}
             </h2>
             {/* The sheet's close is a header control, so it is the 44px round
                 control every header draws (handoff Stage 2, "round header
@@ -588,35 +611,35 @@ export function Sheet({
                 : "shrink-0 px-gutter pb-sm text-[length:var(--nf-text-body-lg)] font-semibold tracking-tight text-[var(--nf-content-primary)]"
             }
           >
-            {title}
+            {face.title}
           </h2>
         )}
-        <div className="nf-sheet__body px-gutter pb-lg">{children}</div>
-        {reset || apply ? (
+        <div className="nf-sheet__body px-gutter pb-lg">{face.children}</div>
+        {face.reset || face.apply ? (
           <div className="nf-sheet__foot px-gutter">
-            {reset ? (
-              <Button variant="glass" size="lg" full disabled={reset.disabled} onClick={reset.onClick}>
-                {reset.label}
+            {face.reset ? (
+              <Button variant="glass" size="lg" full disabled={face.reset.disabled} onClick={face.reset.onClick}>
+                {face.reset.label}
               </Button>
             ) : (
               <span aria-hidden="true" />
             )}
-            {apply ? (
+            {face.apply ? (
               <Button
                 variant="primary"
                 size="lg"
                 full
                 glow
-                disabled={apply.disabled}
-                loading={apply.loading}
-                onClick={apply.onClick}
+                disabled={face.apply.disabled}
+                loading={face.apply.loading}
+                onClick={face.apply.onClick}
               >
-                {apply.label}
+                {face.apply.label}
               </Button>
             ) : null}
           </div>
         ) : null}
-        {footer ? <div className="shrink-0 px-gutter pb-md">{footer}</div> : null}
+        {face.footer ? <div className="shrink-0 px-gutter pb-md">{face.footer}</div> : null}
       </div>
     </>,
     document.body,
