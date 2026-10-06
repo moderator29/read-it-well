@@ -10,6 +10,8 @@ import { SettingsLede } from "@/components/app/account/SettingsLede";
 import { InviteTicket } from "@/components/app/account/InviteTicket";
 import { INVITE_SEEN_COOKIE } from "@/components/app/account/invite-cookie";
 import { ReferralFigures } from "@/components/app/account/ReferralFigures";
+import { gateFirstRun } from "@/components/app/feature-onboarding/first-run-store";
+import { resolveSession } from "@/lib/actions/session";
 import { myInviteCode } from "@/lib/referral/server";
 import { invitePath } from "@/lib/referral/code";
 import { readReferralSummary } from "./referral-reads";
@@ -38,12 +40,25 @@ export async function generateMetadata(): Promise<Metadata> {
  * It is a hub with two inner pages (D25): `/settings/invite/referrals` (each
  * person, and each referral's state) and `/settings/invite/how-it-works`.
  */
-export default async function InviteSettingsPage() {
+export default async function InviteSettingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const locale = await getLocale();
   const t = getDictionary(locale);
   const door = t.publicDoors.invite;
   const copy = t.experienceAccount.invite;
   const lede = t.experienceAccount.settings.lede;
+
+  /* THE INVITE'S FIRST RUN (north star 14.1, D11): once, for a signed-in
+     member, before anything is read. This page has no signed-out screen of its
+     own (a signed-out visit falls to the "unavailable" state below), so the
+     check is made here, and a visitor who is not signed in is never sent to a
+     first run. The gate fails towards drawing the page. */
+  if ((await resolveSession()).state === "signed-in") {
+    await gateFirstRun("invite", "/settings/invite", await searchParams);
+  }
 
   const code = await myInviteCode();
   const url = code ? `${siteUrl().replace(/\/+$/, "")}${invitePath(code)}` : null;

@@ -9,6 +9,7 @@ import { SettingsLede } from "@/components/app/account/SettingsLede";
 import { PassportCredential } from "@/components/app/account/PassportCredential";
 import { PassportShareButton } from "@/components/app/account/PassportShareButton";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { gateFirstRun } from "@/components/app/feature-onboarding/first-run-store";
 import { resolveSession } from "@/lib/actions/session";
 import { sharedInLine } from "@/lib/trust/passport";
 import { readMyPassport } from "@/lib/trust/passport-read";
@@ -47,7 +48,11 @@ const FACT_ICON: Record<FactKey, UiIconName> = {
  * page, with an honest empty line when Vallo has recorded nothing yet. Loading
  * is `loading.tsx` beside this file.
  */
-export default async function PassportSettingsPage() {
+export default async function PassportSettingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const locale = await getLocale();
   const t = getDictionary(locale);
   const legacy = t.trustVisible.passport;
@@ -74,6 +79,10 @@ export default async function PassportSettingsPage() {
       </div>
     );
   }
+
+  /* THE PASSPORT'S FIRST RUN (north star 14.1, D11): once, after the sign-in
+     check and before anything is read. Fails towards drawing the page. */
+  await gateFirstRun("passport", "/settings/passport", await searchParams);
 
   const [mine, phoneAt] = await Promise.all([readMyPassport(), readPhoneConfirmedAt()]);
   if (!mine) {
