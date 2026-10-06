@@ -37,7 +37,13 @@ animation. **Audit every single page as part of the upgrade.**
    localisation, B-32 density, B-33 the component gallery. All yours.
 8. **`docs/design/CHATGPT_ASSET_PROMPTS.md`**: a complete standalone prompt per
    asset.
-9. **The 79 reference images** in `docs/design/references/2026-10-05/`. **Look at
+9. **Every image the founder has given you, and they are all on `main`.**
+   `docs/design/references/2026-10-05/` holds the 79 references, and a further set
+   sits loose in `docs/design/references/` from earlier rounds, including the
+   `GOVERNING-*` frames. `docs/design/assets-raw/2026-10-06/` holds the twelve
+   generated sheets, which are **yours to slice** (D33) and are named nowhere else
+   in this list. Nothing needs re-uploading and nothing is missing: if you cannot
+   see a folder, you have not merged `main`. **Look at
    the twelve canonical ones yourself** before designing the surface each maps to.
    Many are frames from videos, so read sequences as motion, not as stills.
 10. `docs/design/CLEAN_UNIFIED_DIRECTION.md` and `docs/TRACK_M_MOTION_PLAN.md`, both
