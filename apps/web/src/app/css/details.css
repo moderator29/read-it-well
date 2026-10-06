@@ -265,6 +265,17 @@
   .nf-ptr__ring .nf-ptr__track {
     stroke: var(--nf-brand-tint-2);
   }
+  /* Spins ONCE on release, from where the drag left the mark (`--nf-ptr-a`,
+     written inline) through a full turn, on `glide` over `deliberate`
+     (620ms); the arc then holds. It never loops. */
+  .nf-ptr[data-refreshing] .nf-ptr__ring {
+    animation: nf-ptr-spin var(--nf-duration-deliberate) var(--nf-ease-standard) both;
+  }
+  @keyframes nf-ptr-spin {
+    to {
+      transform: rotate(calc(var(--nf-ptr-a, 0deg) + 360deg));
+    }
+  }
   .nf-ptr[data-refreshing] .nf-ptr__ring circle:not(.nf-ptr__track) {
     animation: nf-ptr-hold var(--nf-duration-deliberate) var(--nf-ease-standard) both;
   }
@@ -279,9 +290,15 @@
     background: var(--nf-brand-tint-1);
   }
   @media (prefers-reduced-motion: reduce) {
+    .nf-ptr[data-refreshing] .nf-ptr__ring {
+      animation: none;
+    }
     .nf-ptr[data-refreshing] .nf-ptr__ring circle:not(.nf-ptr__track) {
       animation-duration: 1ms;
     }
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-ptr[data-refreshing] .nf-ptr__ring {
+    animation: none;
   }
 
   /* ------------------------------------------------- THE DONE CHECK

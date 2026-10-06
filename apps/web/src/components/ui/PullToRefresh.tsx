@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition, type ReactNode } from "react";
+import { useEffect, useRef, useState, useTransition, type CSSProperties, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useClientCopy } from "@/lib/i18n/client-copy";
 import { feedback } from "@/lib/ui/feedback";
@@ -13,8 +13,9 @@ import { PULL_THRESHOLD_PX, pullDistance } from "@/lib/ui/small-rules";
  * finger with a brand-blue arc that fills as the pull grows. Past the line it
  * tints, the hand feels one light tick, and letting go refreshes the page's
  * server data in place (`router.refresh()`, inside a transition, so what is on
- * screen stays until the new rows land). The disc turns while it works and
- * rises away when the list is current.
+ * screen stays until the new rows land). The mark turns with the drag, spins
+ * once on release, holds its arc while it works and rises away when the list
+ * is current. Nothing loops.
  *
  *   - Touch only, and only when the page is at the very top, the pull is
  *     mostly downward, and no sheet holds the scroll (the body is not locked).
@@ -144,6 +145,9 @@ export function PullToRefresh({
   const progress = Math.min(1, pull / PULL_THRESHOLD_PX);
   const armed = !refreshing && pull >= PULL_THRESHOLD_PX;
   const CIRC = 2 * Math.PI * 9;
+  /* A quarter turn and a half over the whole pull: it is turning the whole
+     way down, and the release spin starts from where the finger left it. */
+  const turn = Math.round(progress * 270);
 
   return (
     <div
@@ -161,7 +165,16 @@ export function PullToRefresh({
         aria-label={refreshing ? words.refreshing : armed ? words.release : undefined}
         aria-hidden={refreshing || armed ? undefined : true}
       >
-        <svg className="nf-ptr__ring" viewBox="0 0 24 24" aria-hidden="true">
+        {/* The mark turns with the drag (a direct response to the finger, a
+            quarter turn and a half over the pull), and on release spins ONCE
+            (`.nf-ptr[data-refreshing]`, details.css) before the held arc: the
+            brand mark's own pull, MOTION_SYSTEM "Pull to refresh". */}
+        <svg
+          className="nf-ptr__ring"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+          style={{ "--nf-ptr-a": `${turn}deg`, transform: `rotate(${turn}deg)` } as CSSProperties}
+        >
           <circle className="nf-ptr__track" cx="12" cy="12" r="9" />
           <circle
             cx="12"
