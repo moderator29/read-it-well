@@ -21,38 +21,6 @@ import "@/app/css/auth.css";
  * the four components below rather than being reached for inside them.
  */
 
-/** One headed group inside the sign-up form. */
-export function FormGroup({
-  title,
-  step,
-  note,
-  children,
-}: {
-  title: string;
-  step: string;
-  note?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="border-t border-[var(--nf-panel-hair)] pt-5 first:border-t-0 first:pt-0 [&+section]:mt-7">
-      <div className="mb-md flex items-baseline justify-between gap-3">
-        <h2 className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
-          {title}
-        </h2>
-        <span className="nf-numeric shrink-0 text-[length:var(--nf-text-label)] font-semibold uppercase tracking-[var(--nf-tracking-label)] text-[var(--nf-content-muted)]">
-          {step}
-        </span>
-      </div>
-      {note && (
-        <p className="mb-4 text-[0.75rem] leading-relaxed text-[var(--nf-content-muted)]">
-          {note}
-        </p>
-      )}
-      <div className="space-y-md">{children}</div>
-    </section>
-  );
-}
-
 /**
  * Label row with an optional marker chip for non-required fields.
  *
@@ -70,13 +38,13 @@ function LabelRow({
   optional?: string;
 }) {
   return (
-    <span className="flex items-center justify-between gap-2">
+    <span className="flex items-center justify-between gap-xs">
       <label htmlFor={htmlFor} className="nf-label">
         {label}
       </label>
       {/* A plain word, not a chip: a chip at the tap floor read as a button. */}
       {optional && (
-        <span className="mb-xs text-[0.8125rem] text-[var(--nf-content-muted)]">{optional}</span>
+        <span className="mb-xs text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">{optional}</span>
       )}
     </span>
   );
@@ -85,7 +53,7 @@ function LabelRow({
 function FieldError({ id, error }: { id: string; error?: string }) {
   if (!error) return null;
   return (
-    <p id={id} role="alert" className="mt-xs text-[0.75rem] text-[var(--nf-state-error)]">
+    <p id={id} role="alert" className="nf-slate-field__error">
       {error}
     </p>
   );
@@ -228,7 +196,7 @@ export function SelectField({
           defaultValue=""
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? errorId : undefined}
-          className="nf-field nf-field--glass appearance-none pr-11"
+          className="nf-field nf-field--glass appearance-none pr-2xl"
         >
           <option value="" disabled>
             {placeholder}
@@ -310,7 +278,7 @@ export function PasswordField({
           autoCorrect="off"
           spellCheck={false}
           enterKeyHint={enterKeyHint}
-          className="nf-field nf-field--glass pr-12"
+          className="nf-field nf-field--glass pr-2xl"
         />
         <button
           type="button"
@@ -380,7 +348,7 @@ export function StrengthMeter({ password, t }: { password: string; t: FieldsCopy
 
   return (
     <div className="-mt-xs">
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-sm">
         <div className="flex flex-1 gap-xs">
           {([1, 2, 3, 4] as const).map((segment) => (
             <span

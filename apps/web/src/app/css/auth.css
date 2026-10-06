@@ -363,7 +363,7 @@
   .nf-slate-field__label {
     display: block;
     margin-bottom: var(--nf-space-xs);
-    font-size: 0.875rem;
+    font-size: var(--nf-text-body-sm);
     font-weight: 600;
     color: var(--nf-content-primary);
   }
@@ -431,7 +431,13 @@
   .nf-slate-field__error {
     margin-top: var(--nf-space-xs);
     font-size: var(--nf-text-overline);
+    line-height: 1.5;
     color: var(--nf-state-error);
+  }
+  /* Under a checkbox: aligned with the label's words, not the box. */
+  .nf-slate-field__error--check {
+    margin-top: var(--nf-space-2xs);
+    padding-left: var(--nf-space-xl);
   }
 
   /*
@@ -518,7 +524,7 @@
     margin-bottom: calc(-1 * var(--nf-space-xs));
   }
   .nf-slate-forgot .nf-auth__aside {
-    font-size: 0.875rem;
+    font-size: var(--nf-text-body-sm);
     font-weight: 600;
     color: var(--nf-content-primary);
   }
@@ -560,7 +566,7 @@
     align-items: center;
     gap: var(--nf-space-md);
     margin-top: var(--nf-space-lg);
-    font-size: 0.8125rem;
+    font-size: var(--nf-text-caption);
     color: var(--nf-content-muted);
   }
   .nf-slate-or > span::first-letter {
@@ -657,7 +663,7 @@
     flex-wrap: wrap;
     align-items: baseline;
     gap: var(--nf-space-2xs) var(--nf-space-xs);
-    font-size: 0.8125rem;
+    font-size: var(--nf-text-caption);
     font-weight: 600;
     color: var(--nf-content-secondary);
   }
@@ -692,7 +698,7 @@
     gap: var(--nf-space-md);
   }
   .nf-slate-note {
-    font-size: 0.8125rem;
+    font-size: var(--nf-text-caption);
     line-height: 1.5;
     color: var(--nf-content-muted);
   }
@@ -751,7 +757,7 @@
   .nf-auth__swap {
     margin-top: var(--nf-space-xl);
     text-align: center;
-    font-size: 0.875rem;
+    font-size: var(--nf-text-body-sm);
     color: var(--nf-content-secondary);
   }
   .nf-auth__swap a {
@@ -765,7 +771,7 @@
   }
   .nf-auth__swap--quiet {
     margin-top: var(--nf-space-xs);
-    font-size: 0.875rem;
+    font-size: var(--nf-text-body-sm);
   }
   .nf-auth__swap--quiet a {
     margin-left: 0;
@@ -775,9 +781,17 @@
 
   .nf-auth__hint {
     margin-top: var(--nf-space-md);
-    font-size: 0.875rem;
+    font-size: var(--nf-text-body-sm);
     line-height: 1.5;
     color: var(--nf-content-muted);
+  }
+
+  /* The error boundary's reference: small print a person can select whole
+     and read to support. */
+  .nf-auth__reference {
+    font-size: var(--nf-text-overline);
+    text-align: center;
+    user-select: all;
   }
 
   /* ================================================ NOTICES AND REFUSALS */
@@ -787,7 +801,7 @@
     border-radius: var(--nf-radius-md);
     border: var(--nf-border-width) solid var(--nf-slate-card-edge);
     background: var(--nf-brand-tint-1);
-    font-size: 0.875rem;
+    font-size: var(--nf-text-body-sm);
     line-height: 1.5;
     color: var(--nf-content-secondary);
     /* The notice can quote a searched word back (V-18). */
@@ -806,7 +820,7 @@
     border-radius: var(--nf-radius-md);
     border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-state-error) 45%, transparent);
     background: var(--nf-state-error-surface);
-    font-size: 0.875rem;
+    font-size: var(--nf-text-body-sm);
     line-height: 1.5;
     color: var(--nf-content-primary);
   }
@@ -984,7 +998,7 @@
   /* The help around the code (A4). */
   .nf-verify__change {
     margin-top: var(--nf-space-xs);
-    font-size: 0.875rem;
+    font-size: var(--nf-text-body-sm);
     color: var(--nf-content-secondary);
   }
   .nf-verify__help {
@@ -996,7 +1010,7 @@
   }
   .nf-verify__hint,
   .nf-verify__status {
-    font-size: 0.8125rem;
+    font-size: var(--nf-text-caption);
     line-height: 1.5;
     color: var(--nf-content-secondary);
   }
@@ -1021,7 +1035,7 @@
   .nf-verify__same {
     margin-top: var(--nf-space-lg);
     text-align: center;
-    font-size: 0.8125rem;
+    font-size: var(--nf-text-caption);
     color: var(--nf-content-muted);
   }
 
@@ -1047,7 +1061,7 @@
     font-variant-numeric: tabular-nums;
   }
   .nf-resend__line {
-    font-size: 0.8125rem;
+    font-size: var(--nf-text-caption);
     line-height: 1.5;
     color: var(--nf-content-secondary);
   }

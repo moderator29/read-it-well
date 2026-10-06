@@ -1,45 +1,14 @@
-import { Skeleton } from "@/components/ui/Skeleton";
-import { LoadingShell } from "@/components/app/ScreenSkeleton";
-import { getDictionary } from "@vallo/i18n";
-import { getLocale } from "@/lib/locale";
+import { AuthScreenSkeleton } from "@/components/auth/AuthScreenSkeleton";
 
 /**
- * The wait, on every auth screen.
+ * The wait, on any auth screen that does not draw its own.
  *
- * ONE FILE FOR ALL SEVEN. `loading.tsx` creates a Suspense boundary for its
- * segment AND everything nested under it, so this covers sign in, sign up,
- * both email forms, the verify screen, forgot password and reset password.
- * Seven near-identical files would have been seven chances to drift.
- *
- * The `(auth)` layout owns the aurora, the logo lockup and the glass panel, and
- * all three are already painted when this renders. Only the panel's contents
- * are outstanding, so this reserves the shape every one of those screens
- * shares: a heading, a line under it, and the controls.
- *
- * These routes were the most conspicuous gap in the platform's loading
- * coverage. `/sign-in` is reached by redirect from the middleware, which means
- * a person who typed a product address and was bounced here saw the page they
- * were leaving, frozen, for the whole round trip - the one moment in the
- * product where a stall reads as "this app is broken" rather than "this is
- * slow".
+ * Most screens in the group now have a loading file of their own, each the
+ * shape of its form (`AuthScreenSkeleton`). This is the fallback for the
+ * rest, and it is drawn with the same primitive rather than its own sizes
+ * (R3-09), so a screen that lands here waits in the same grammar: the title,
+ * one line, a field and the pill, inside the Island the layout keeps painted.
  */
-export default async function LoadingAuth() {
-  const a = getDictionary(await getLocale()).authFlow;
-  return (
-    <LoadingShell label={a.loading} className="w-full">
-      {/* The heading pair, centred, at the real sizes. */}
-      <Skeleton width="11rem" height="1.75rem" radius="sm" className="mx-auto" />
-      <Skeleton width="14rem" height="1rem" radius="sm" className="mx-auto mt-sm" />
-
-      {/* The controls. Three rows at the auth row height, which is what both
-          the choice screen and the email forms resolve to. */}
-      <div className="mt-6 space-y-sm">
-        {Array.from({ length: 3 }, (_, i) => (
-          <Skeleton key={i} height="3.25rem" radius="lg" />
-        ))}
-      </div>
-
-      <Skeleton width="12rem" height="0.875rem" radius="sm" className="mx-auto mt-6" />
-    </LoadingShell>
-  );
+export default function LoadingAuth() {
+  return <AuthScreenSkeleton sub={1} fields={["field"]} />;
 }

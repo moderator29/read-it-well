@@ -112,7 +112,7 @@ export function CodeInput({
         />
       </div>
       {error ? (
-        <p id={errorId} role="alert" className="mt-xs text-[length:var(--nf-text-overline)] text-[var(--nf-state-error)]">
+        <p id={errorId} role="alert" className="nf-slate-field__error">
           {error}
         </p>
       ) : null}

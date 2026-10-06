@@ -143,7 +143,7 @@ export function CodeSignInForm({ mode, t, next }: { mode: Mode; t: AuthCopy; nex
             />
           )}
           {message && state.error !== "badTarget" && (
-            <p role="alert" className="nf-auth__notice">
+            <p role="alert" className="nf-auth__alert">
               {message}
             </p>
           )}
@@ -170,7 +170,7 @@ export function CodeSignInForm({ mode, t, next }: { mode: Mode; t: AuthCopy; nex
             cellsLabel={t.authFlow.codeCells.replace("{count}", codeLengthWord(SIGN_IN_CODE_LENGTH))}
           />
           {state.error && state.error !== "badCode" && state.error !== "wrongCode" && message && (
-            <p role="alert" className="nf-auth__notice">
+            <p role="alert" className="nf-auth__alert">
               {message}
             </p>
           )}

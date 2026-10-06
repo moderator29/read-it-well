@@ -159,7 +159,7 @@ export function NativeAppleSignIn({
         </Button>
       )}
       {message ? (
-        <p role="alert" className="nf-auth__notice mt-sm">
+        <p role="alert" className="nf-auth__alert">
           {message}
         </p>
       ) : null}

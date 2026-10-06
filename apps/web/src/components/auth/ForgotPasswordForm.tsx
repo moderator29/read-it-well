@@ -71,7 +71,7 @@ export function ForgotPasswordForm({ t }: { t: AuthCopy }) {
           {state.message && (
             <p
               role="alert"
-              className="rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-warning)_35%,transparent)] bg-[var(--nf-state-warning-surface)] px-md py-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-warning)]"
+              className="nf-auth__alert"
             >
               {state.message}
             </p>

@@ -91,7 +91,7 @@ export function AcceptTerms({
         <p
           id="age-confirmed-error"
           role="alert"
-          className="-mt-2xs mb-sm pl-xl text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-state-error)]"
+          className="nf-slate-field__error nf-slate-field__error--check mb-sm"
         >
           {t.safety.ageRequired}
         </p>
@@ -138,7 +138,7 @@ export function AcceptTerms({
         <p
           id="accept-terms-error"
           role="alert"
-          className="mt-2xs pl-xl text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-state-error)]"
+          className="nf-slate-field__error nf-slate-field__error--check"
         >
           {t.safety.acceptRequired}
         </p>

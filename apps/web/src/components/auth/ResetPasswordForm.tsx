@@ -93,10 +93,10 @@ export function ResetPasswordForm({
         {state.message && (
           <p
             role="alert"
-            className="rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-warning)_35%,transparent)] bg-[var(--nf-state-warning-surface)] px-md py-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-warning)]"
+            className="nf-auth__alert"
           >
             {state.message}{" "}
-            <Link href="/forgot-password" className="nf-tap font-semibold underline underline-offset-4">
+            <Link href="/forgot-password" className="nf-tap nf-auth__notice-link">
               {t.auth.resetSend}
             </Link>
           </p>

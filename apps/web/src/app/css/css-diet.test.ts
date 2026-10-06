@@ -75,6 +75,7 @@ describe("the global stylesheet (C12)", () => {
       "(auth)/AuthGround.tsx",
       "(auth)/AuthMain.tsx",
       "(auth)/KeepPillInView.tsx",
+      "(auth)/error.tsx",
       "(auth)/layout.tsx",
       "(auth)/reset-password/page.tsx",
       "../components/auth/AltSignInDoors.tsx",
