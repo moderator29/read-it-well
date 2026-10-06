@@ -150,6 +150,7 @@ export default async function Page({
         boardLabel={boardOn ? t.frontDoor.board.action : undefined}
         duplicateCopy={t.frontDoor.duplicate}
         statusLabel={t.frontDoor.status.action}
+        healthLabel={t.experienceFeatures.health.open}
         closed={closed}
         closeCopy={t.landlord.close}
         ownerAsks={ownerAsks}

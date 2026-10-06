@@ -316,6 +316,7 @@ function ListingRow({
   boardLabel,
   duplicateCopy,
   statusLabel,
+  healthLabel,
   closedReason,
   closeCopy,
   onCloseListing,
@@ -332,6 +333,8 @@ function ListingRow({
   duplicateCopy?: Dictionary["frontDoor"]["duplicate"];
   /** V-71: "Share to Status". */
   statusLabel?: string;
+  /** J4: "Health", the door to the listing's health page. */
+  healthLabel?: string;
   /* The listing code's own namespace, shared with the search page and the
      public listing page so one set of words governs the code everywhere. */
   reference: Dictionary["listingReference"];
@@ -499,6 +502,7 @@ function ListingRow({
         listing.status === "DRAFT" ||
         listing.pricePeriod === "night" ||
         Boolean(duplicateCopy) ||
+        Boolean(healthLabel) ||
         Boolean(listing.listingRole && listing.listingRole !== "owner")) && (
       <div className="flex flex-wrap items-center gap-x-2xs border-t border-[var(--nf-border-subtle)] px-xs py-2xs">
         {editable && (
@@ -531,6 +535,14 @@ function ListingRow({
         {statusLabel && listing.status === "PUBLISHED" && (
           <ButtonLink href={`/agent/listings/${listing.id}/status`} variant="quiet" size="sm" leadingIcon="share" data-testid="listing-status">
             {statusLabel}
+          </ButtonLink>
+        )}
+        {/* J4: every listing the lister owns has a health page: what its
+            record holds and what it is missing. An example listing's page
+            says it is never measured, rather than this row guessing. */}
+        {healthLabel && (
+          <ButtonLink href={`/agent/listings/${listing.id}/health`} variant="quiet" size="sm" leadingIcon="file-search" data-testid="listing-health">
+            {healthLabel}
           </ButtonLink>
         )}
         {/* V-08: a board needs a code, and a code needs a published listing. */}
@@ -608,6 +620,7 @@ export function ListingsWorkspace({
   boardLabel,
   duplicateCopy,
   statusLabel,
+  healthLabel,
   closed = {},
   closeCopy,
   ownerAsks = [],
@@ -628,6 +641,8 @@ export function ListingsWorkspace({
   duplicateCopy?: Dictionary["frontDoor"]["duplicate"];
   /** V-71, "Share to Status". */
   statusLabel?: string;
+  /** J4, "Health". Absent in harnesses, which then draw no action. */
+  healthLabel?: string;
   /** V-48: closed listings and why, keyed by id. Absent draws what it drew before. */
   closed?: Record<string, string>;
   closeCopy?: CloseCopy;
@@ -813,6 +828,7 @@ export function ListingsWorkspace({
                     boardLabel={boardLabel}
                     duplicateCopy={duplicateCopy}
                     statusLabel={statusLabel}
+                    healthLabel={healthLabel}
                     closeCopy={closeCopy}
                     onCloseListing={closeCopy ? setClosing : undefined}
                     ownerAsk={ownerAsks.includes(listing.id)}
