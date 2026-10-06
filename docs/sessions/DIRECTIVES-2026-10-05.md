@@ -826,6 +826,70 @@ committed and pushed as it is done, cleanly, without sessions conflicting.
 | **"Qualification refuses past the cap with a named reason"** | **D64: it pauses instead, and the cap is 700,000 naira a month** |
 | Suspecting your own diff when Advisories goes red | D65: check the package name first, it is usually a new advisory |
 | **D64's silence on when a pause ends** | **D66: a paused reward releases against the month it is released in, oldest first** |
+| **D66's claim that the implementation never resumes a paused reward** | **D67: false of the shipped code. The rule stands, the accusation does not** |
+
+---
+
+## D67. D66's headline finding is wrong about the shipped code, and Session 4 caught it
+
+**D66 said a paused reward would never resume, called it "a hole in D64 that would have left
+people unpaid", and attributed it to Session 1's own underspecified rule. The defect is not in
+what shipped.** Session 4 corrected their own 16:30 pre-review after #84 landed, and Session 1
+verified the correction in the applied SQL rather than taking the report.
+
+### What was checked, and where
+
+`supabase/migrations/20261006152509_b4_referral_rewards_engine.sql`, now on main:
+
+- **Line 533:** `v_month date := private.lagos_month(now());` computed at the moment of the
+  attempt.
+- **Line 580:** the qualification update writes `month = v_month`.
+
+**So the month is recomputed on every attempt, not stamped once.** A referral blocked under
+October's exhausted budget and retried in November is written with November's month and
+measured against November's budget. **That is exactly the behaviour D66 prescribed**, and it
+was already in the code before D66 prescribed it.
+
+**The surrounding machinery, from Session 4's trace:** a paused referral stays `attributed`
+with `blocked_on = 'budget_paused'`, the sweep re-selects on `status = 'attributed'`, so the
+month turning hands it a fresh period with no hand override. `referral_programme_status()`,
+in the campaigns migration `20261006154817`, returns paused with reason `budget_reached` and is
+granted to `authenticated`.
+
+### Three things to take from this, in order of how much they matter
+
+**1. D66's rule stands; D66's accusation does not.** "A paused reward is measured against the
+month it is released in, oldest first" is still the correct rule and is worth keeping written
+down. **What was wrong was asserting that the implementation failed it.** Those are different
+claims and D66 ran them together.
+
+**2. Session 1 published a defect it had not verified.** D66 was written from Session 4's
+pre-review and from reading D64's own silence, not from the SQL. **The rule this file has
+enforced all day, against three sessions, is that a status line is not the thing itself, and
+Session 1 broke it while writing the directive that enforced it.** The verification was one
+`grep` away and would have taken a minute.
+
+**3. The implementation is better than the specification in one respect worth copying.**
+`referral_programme_status()` **names no amounts.** It says the programme is paused and why,
+without publishing the budget. D64 asked for a visible pause and did not think about whether
+the cap figure should be public. **Telling members the exact ceiling invites gaming it;**
+telling them the programme is paused is honest without being an invitation. That is a better
+answer than the one specified.
+
+### The other three findings, also closed
+
+- **The 700,000 figure** was corrected before the migration was applied: the pending-to-applied
+  diff is two hunks, the header and `100000000` becoming `70000000`. Independently confirmed
+  against production: `platform_monthly_budget_minor` reads 70000000.
+- **Rule 1 now has D64's original shape.** `referral_reserve` puts the cap in the `WHERE` of
+  the statement that writes it, with a check constraint behind it, which also **retires the
+  READ COMMITTED caveat**: the loser either fails its predicate re-check or raises a
+  serialization failure, and both are safe.
+- **The b2-ledger probe has passed.** It is in `probes/` on main and reports `PASS b2-ledger
+  (957 ms)`. **Three cancellations became a recorded pass**, and the standing rule's entry for
+  it is struck by evidence rather than by a report.
+
+**Nothing in the referral area is outstanding against Session 2 from D64 or D66.**
 
 ---
 
