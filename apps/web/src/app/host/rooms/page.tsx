@@ -19,10 +19,9 @@ import { RoomNightsEditor } from "@/components/host/RoomNightsEditor";
 import { HostInnerNav } from "@/components/host/HostInnerNav";
 import { hostInnerNavCopy } from "@/components/host/host-inner-nav";
 
-export const metadata: Metadata = {
-  title: "Rooms and nights",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: getDictionary(await getLocale()).experienceHost.rooms.title, robots: { index: false, follow: false } };
+}
 
 export const dynamic = "force-dynamic";
 
@@ -65,7 +64,7 @@ export default async function HostRoomsPage({
           body={t.hostWorkspace.rooms.signedOutBody}
           action={
             <ButtonLink href={authHref(next, "sign-in")} variant="primary" size="lg">
-              Sign in
+              {t.common.signIn}
             </ButtonLink>
           }
         />
@@ -87,6 +86,7 @@ export default async function HostRoomsPage({
       <HostInnerNav active="rooms" {...hostInnerNavCopy(t)} />
       <HostRoomsBody
         copy={t.hostWorkspace}
+        words={t.experienceHost.rooms}
         businesses={businesses}
         chosen={chosen}
         accommodation={accommodation}
@@ -108,6 +108,7 @@ export function HostRoomsBody({
   rooms,
   locale,
   copy = getDictionary("en").hostWorkspace,
+  words = getDictionary("en").experienceHost.rooms,
 }: {
   businesses: MyBusiness[];
   chosen: MyBusiness | null;
@@ -116,6 +117,8 @@ export function HostRoomsBody({
   locale: Locale;
   /** The host workspace words in the reader's language; English in the previews. */
   copy?: Dictionary["hostWorkspace"];
+  /** The page's own words in the reader's language; English in the previews. */
+  words?: Dictionary["experienceHost"]["rooms"];
 }) {
   if (!chosen) {
     return (
@@ -153,13 +156,12 @@ export function HostRoomsBody({
     <>
       <div className="nf-agent-head">
         <div>
-          <h1 className="nf-agent-head__title">Rooms and nights</h1>
+          <h1 className="nf-agent-head__title">{words.title}</h1>
           <p className={`mt-row ${TYPE.bodyLg}`}>
-            {rooms.length === 0
-              ? `${accommodation.name} has no room types yet, so there is nothing a guest could book.`
-              : onSale === 0
-                ? `${accommodation.name} has ${countOf(rooms.length, "roomTypes", locale)} and no nights on sale, so a search with dates on it will not find it.`
-                : `${accommodation.name} has ${countOf(rooms.length, "roomTypes", locale)}, ${onSale} of them on sale.`}
+            {(rooms.length === 0 ? words.noTypes : onSale === 0 ? words.noneOnSale : words.someOnSale)
+              .replace("{name}", accommodation.name)
+              .replace("{types}", countOf(rooms.length, "roomTypes", locale))
+              .replace("{onSale}", String(onSale))}
           </p>
         </div>
       </div>
@@ -189,7 +191,7 @@ export function HostRoomsBody({
             body={copy.rooms.noRoomTypesBody}
             action={
               <ButtonLink href="/host/apply" variant="primary" size="lg">
-                Add a room type
+                {words.addRoomType}
               </ButtonLink>
             }
           />
