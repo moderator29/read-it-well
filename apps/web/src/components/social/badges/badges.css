@@ -311,4 +311,27 @@
       scale: none;
     }
   }
+
+  /*
+   * THE MEMBER'S OWN MOTION LEVEL (MOTION_SYSTEM section 7). The header
+   * promises these rules and they were missing, so a member on Calm still got
+   * the pop and the staggered rise.
+   *
+   *   Calm  keeps the medal's arrival and the sunburst (one gentle move) but
+   *         drops the pop, which is the one beat that is a flourish, and every
+   *         stagger delay, so the lines are simply there with the medal.
+   *   Off   nothing moves at all: every beat sits in its settled state.
+   */
+  :root[data-motion="calm"] .nf-moment__medal {
+    animation: nf-moment-medal var(--nf-duration-deliberate) var(--nf-ease-spring) both;
+  }
+  :root[data-motion="calm"] :is(.nf-moment__overline, .nf-moment__title, .nf-moment__line, .nf-moment__date, .nf-moment__actions) {
+    animation-delay: 0s;
+  }
+  :root[data-motion="off"] :is(.nf-moment__burst, .nf-moment__medal, .nf-moment__overline, .nf-moment__title, .nf-moment__line, .nf-moment__date, .nf-moment__actions) {
+    animation: none;
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-badge {
+    transition: none;
+  }
 }

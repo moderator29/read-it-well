@@ -212,4 +212,22 @@
       stroke-dashoffset: 1;
     }
   }
+
+  /*
+   * REDUCED MOTION AND THE MOTION LEVELS. The duration tokens already fall to
+   * 1ms, but the 60ms stagger delays and the 240ms tick delay are literals, so a
+   * reader who asked for less motion still waited for the last rung to appear.
+   * Every delay goes and the rungs are simply there.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    .nf-vpath__rung,
+    .nf-vpath__rung[data-link="solid"]::after,
+    .nf-vpath__tick {
+      animation-delay: 0s;
+    }
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) :is(.nf-vpath__rung, .nf-vpath__tick),
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-vpath__rung[data-link="solid"]::after {
+    animation-delay: 0s;
+  }
 }

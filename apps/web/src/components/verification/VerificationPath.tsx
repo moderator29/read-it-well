@@ -22,8 +22,14 @@ import "./verification-path.css";
  */
 type Copy = Dictionary["experienceAccount"]["verification"];
 
-function Mark({ state, step }: { state: PathRung["state"]; step: number }) {
-  if (state === "passed") {
+/*
+ * A TICK IS A DECISION WITH A DATE. "Documents approved" (a person with no
+ * ladder whose filed documents were approved) is passed without a reviewer's
+ * dated decision on the rung, so it draws the step number, not a tick: a tick
+ * with no date behind it would be a claim the record cannot back (auditor A2).
+ */
+function Mark({ state, step, dated }: { state: PathRung["state"]; step: number; dated: boolean }) {
+  if (state === "passed" && dated) {
     return (
       <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false" className="nf-vpath__glyph">
         <path className="nf-vpath__tick" d="M3.5 8.4 6.7 11.5 12.5 4.8" pathLength={1} fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -84,7 +90,7 @@ export function VerificationPath({
               data-testid={`path-rung-${rung.key}`}
             >
               <span className="nf-vpath__node" aria-hidden="true">
-                <Mark state={rung.state} step={index + 1} />
+                <Mark state={rung.state} step={index + 1} dated={rung.decidedAt !== null} />
               </span>
               <div className="nf-vpath__plate">
                 <div className="nf-vpath__top">
