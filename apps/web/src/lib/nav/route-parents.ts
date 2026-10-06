@@ -317,6 +317,11 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
      lives. */
   "/agreements": "/home",
   "/payments": "/home",
+  /* R3-05 (C2): the receipt vault and the member's refunds hang off the
+     payer's money screen; payouts are the lister's own, off home. */
+  "/receipts": "/payments",
+  "/refunds": "/payments",
+  "/payouts": "/home",
   "/agreements/[id]": "/agreements",
 
   /* -------------------------------------------------------------- social */
@@ -352,6 +357,9 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/settings": "/home",
   "/settings/account": "/settings",
   "/settings/appearance": "/settings",
+  /* R3-15, R3-16 (C2). */
+  "/settings/accessibility": "/settings",
+  "/settings/region": "/settings",
   "/settings/devices": "/settings",
   /* V-19: the new sign-in alert a push lands on; back is the devices screen. */
   "/settings/devices/alert": "/settings/devices",

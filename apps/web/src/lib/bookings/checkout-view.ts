@@ -4,6 +4,7 @@ import { formatMoney, getDictionary, plural, type Locale } from "@vallo/i18n";
 import { resolveSession } from "../actions/session";
 import { isPaystackConfigured } from "../payments/paystack";
 import type { Database } from "../supabase/database.types";
+import { guestCharge } from "../money/guest-price";
 
 /**
  * Read side of checkout.
@@ -66,7 +67,10 @@ export type CheckoutView = {
   nights: number;
   guests: number;
   lines: CheckoutLine[];
-  /** True while the platform's own share is zero, which is the standing rule. */
+  /**
+   * Always true: a row with a guest-side fee never reaches a view (D51). Kept
+   * for the fixtures that build a view by hand; nothing draws it any more.
+   */
   platformTakesNothing: boolean;
   /** The booking's own currency, so every figure is set in the one it stores. */
   currency: string;
@@ -93,6 +97,12 @@ export type CheckoutView = {
    * there is none yet (a request the host has not accepted).
    */
   agreement: { id: string; status: string; reason: string | null } | null;
+  /**
+   * Who the payment is to: the owner's or agent's display name on the
+   * agreement, read under the guest's own RLS, or null when there is no
+   * agreement or the name could not be read (the screen then names the role).
+   */
+  payeeName?: string | null;
 };
 
 export type CheckoutRead =
@@ -193,7 +203,7 @@ export async function getCheckoutView(
         .limit(1),
       session.supabase
         .from("deal_agreements")
-        .select("id, status, decision_reason")
+        .select("id, status, decision_reason, owner_id")
         .eq("booking_id", booking.id)
         .maybeSingle(),
     ]);
@@ -201,39 +211,44 @@ export async function getCheckoutView(
     const currency = booking.currency;
     const money = (minor: number) => formatMoney(minor, locale, currency);
 
-    const lines: CheckoutLine[] = [
-      {
-        /* The night count was hand-inflected in English on a receipt line that
-           already formats its money for the reader's locale, so a Hausa guest
-           was shown ₦ 45,000 beside the word "nights". It goes through the
-           dictionary now, and picks its form from `Intl.PluralRules` rather
-           than from the assumption that two forms is all any language has. */
-        label: `${money(booking.price_per_night_minor)} x ${plural(
-          booking.nights,
-          getDictionary(locale).counts.nights,
-          locale,
-        )}`,
-        display: money(booking.subtotal_minor),
-        minor: booking.subtotal_minor,
-      },
-    ];
-    if (booking.cleaning_fee_minor > 0) {
-      lines.push({
-        label: "Cleaning",
-        display: money(booking.cleaning_fee_minor),
-        minor: booking.cleaning_fee_minor,
-      });
-    }
-    // The platform's own share is zero and stays zero (docs/MASTER_TODO.md
-    // section 5b). The column exists for a future take rate, so if it is ever
-    // non-zero it is shown plainly rather than hidden inside the total.
-    if (booking.service_fee_minor > 0) {
-      lines.push({
-        label: "Platform share",
-        display: money(booking.service_fee_minor),
-        minor: booking.service_fee_minor,
-      });
-    }
+    /* D51: the guest sees the lister's own figures and nothing of Vallo's.
+       A row carrying a guest-side fee is refused, never drawn and never
+       charged (lib/money/guest-price.ts). */
+    const charge = guestCharge({
+      /* The night count goes through the dictionary and picks its form from
+         `Intl.PluralRules`, never a hand-inflected English plural. */
+      subtotalLabel: `${money(booking.price_per_night_minor)} x ${plural(
+        booking.nights,
+        getDictionary(locale).counts.nights,
+        locale,
+      )}`,
+      subtotalMinor: booking.subtotal_minor,
+      cleaningLabel: "Cleaning",
+      cleaningMinor: booking.cleaning_fee_minor,
+      serviceFeeMinor: booking.service_fee_minor,
+      totalMinor: booking.total_minor,
+    });
+    if (charge.state === "refused") return { state: "unavailable" };
+    const lines: CheckoutLine[] = charge.lines.map((line) => ({
+      label: line.label,
+      display: money(line.minor),
+      minor: line.minor,
+    }));
+
+    /* The payee, named for the checkout's "Paid to" (D50). One read, only when
+       there is an agreement; a failure is a null, said as the role. */
+    const ownerId = (agreementRead.data as { owner_id?: string | null } | null)?.owner_id ?? null;
+    const payeeName = ownerId
+      ? await session.supabase
+          .from("profiles")
+          .select("display_name")
+          .eq("id", ownerId)
+          .maybeSingle()
+          .then(
+            (r) => (r.data?.display_name ?? "").trim() || null,
+            () => null,
+          )
+      : null;
 
     const holdExpiresAtMs =
       Date.parse(booking.created_at) + HOLD_WINDOW_HOURS * 3_600_000;
@@ -258,7 +273,7 @@ export async function getCheckoutView(
         nights: booking.nights,
         guests: booking.adults + booking.children,
         lines,
-        platformTakesNothing: booking.service_fee_minor === 0,
+        platformTakesNothing: true,
         currency,
         locale,
         totalMinor: booking.total_minor,
@@ -281,6 +296,7 @@ export async function getCheckoutView(
               reason: agreementRead.data.decision_reason ?? null,
             }
           : null,
+        payeeName,
       },
     };
   } catch {

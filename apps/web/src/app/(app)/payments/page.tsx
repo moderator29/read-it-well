@@ -4,6 +4,9 @@ import { readMyPayments } from "@/lib/money/history";
 import { parseBefore } from "@/lib/money/history-model";
 import {
   HISTORY_NOT_A_BALANCE,
+  PARTNERS_SHORT,
+  PAYMENTS_DOOR,
+  PAYMENTS_DOORS_LABEL,
   PAYMENTS_EMPTY_BODY,
   PAYMENTS_EMPTY_TITLE,
   PAYMENTS_REFUNDED_LABEL,
@@ -17,6 +20,19 @@ import { authHref } from "@/components/auth/auth-intent";
 import { HistoryHero } from "@/components/app/money-history/HistoryHero";
 import { HistoryList } from "@/components/app/money-history/HistoryList";
 import { HistoryEmpty, HistoryUnavailable } from "@/components/app/money-history/HistoryStates";
+import { ListGroup, ListRow } from "@/components/ui/ListGroup";
+import { IconPlate, ICON_PLATE_GLYPH } from "@/components/ui/IconPlate";
+import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { MoneyCentre } from "@/components/money/MoneyCentre";
+import { readMyBalances } from "@/lib/money/partner-reads";
+
+/* The records a payer reaches from here, each its own screen (one job each). */
+const DOORS: { href: string; icon: UiIconName; key: keyof typeof PAYMENTS_DOOR }[] = [
+  { href: "/receipts", icon: "receipt", key: "receipts" },
+  { href: "/refunds", icon: "hand-coins", key: "refunds" },
+  { href: "/settings/payments", icon: "credit-card", key: "methods" },
+  { href: "/agreements", icon: "file-check", key: "agreements" },
+];
 
 export const metadata: Metadata = { title: "Payments", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -44,7 +60,7 @@ export default async function PaymentsPage({
   const locale = await getLocale();
   const params = await searchParams;
   const before = parseBefore(params.before);
-  const read = await readMyPayments(before);
+  const [read, balances] = await Promise.all([readMyPayments(before), readMyBalances()]);
 
   return (
     <main className="nf-page nf-md nf-history">
@@ -67,6 +83,10 @@ export default async function PaymentsPage({
         </div>
       ) : (
         <div className="mt-inline space-y-block">
+          {/* The money centre appears only when the partner read answers,
+              which needs the protected rail live (D50 condition 3). Until
+              then nothing is drawn here: no zero, no "coming" card. */}
+          {balances.state === "ok" ? <MoneyCentre balances={balances.data} locale={locale} /> : null}
           <HistoryHero
             id="nf-payments-total"
             label={PAYMENTS_TOTAL_LABEL}
@@ -98,7 +118,25 @@ export default async function PaymentsPage({
               linkToBooking
             />
           )}
-          <p className={TYPE.rowMeta}>{REFUND_ROUTE}</p>
+          <ListGroup label={PAYMENTS_DOORS_LABEL} labelAs="h2">
+            {DOORS.map((door) => (
+              <ListRow
+                key={door.href}
+                href={door.href}
+                chevron
+                leading={
+                  <IconPlate size="sm">
+                    <UiIcon name={door.icon} size={ICON_PLATE_GLYPH.sm} />
+                  </IconPlate>
+                }
+                title={PAYMENTS_DOOR[door.key].title}
+                sub={PAYMENTS_DOOR[door.key].sub}
+              />
+            ))}
+          </ListGroup>
+          <p className={TYPE.rowMeta}>
+            {REFUND_ROUTE} {PARTNERS_SHORT}
+          </p>
         </div>
       )}
     </main>
