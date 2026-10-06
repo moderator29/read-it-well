@@ -75,6 +75,17 @@
     --nf-state-success: var(--nf-doc-success, var(--nf-content-on-paper));
     --nf-state-error: var(--nf-doc-error, var(--nf-content-on-paper));
     --nf-state-warning: var(--nf-doc-attention, var(--nf-content-on-paper));
+    /* The chart roles (tokens.css) are aliases of the inks re-answered above,
+       and a custom property that names another is resolved where it is
+       DECLARED, so the root's and every `[data-theme]` element's answer is
+       the night one. Declaring them here makes a chart inside a document
+       resolve the paper inks too. */
+    --nf-chart-series: var(--nf-brand-primary);
+    --nf-chart-context: var(--nf-content-muted);
+    --nf-chart-axis: var(--nf-border-default);
+    --nf-chart-grid: var(--nf-border-subtle);
+    --nf-chart-track: var(--nf-well-fill);
+    --nf-chart-hatch: var(--nf-border-default);
 
     position: relative;
     display: block;
