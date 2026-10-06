@@ -31,7 +31,7 @@
 --
 -- WRITERS. Nothing writes these tables directly, not even service_role:
 --  - private.ledger_append(...) for one entry, idempotent on its key;
---  - public.ledger_record_escrow_commission(...): on the escrow rail Payluk
+--  - public.ledger_record_payluk_commission(...): on the escrow rail Payluk
 --    cannot split, so Vallo's commission is a separate recorded movement OUT
 --    of customer funds and INTO revenue, both entries in one transaction;
 --  - the AFTER INSERT trigger on ledger_entries, so the existing direct-rail
@@ -48,7 +48,7 @@
 --    by the unknown-charge path), which can only be direct because Paystack
 --    cannot hold; those are labelled rail 'direct' with legacy_null_rail in
 --    metadata. Escrow-rail rows never post here: their movements are recorded
---    by the escrow writers (ledger_record_escrow_commission, the Payluk path).
+--    by the escrow writers (ledger_record_payluk_commission, the Payluk path).
 --  - REFUNDS. The refund writers (private.refund_and_cancel_booking,
 --    private.refund_booking_payment, private.rent_split_cancel) insert a
 --    negative ledger_entries row with transaction_id NULL. The same trigger
@@ -74,7 +74,7 @@
 --    STATUS (append-only design): at decision time the card refund has not
 --    happened (booking_refunds.processor_status is 'pending' and can fail),
 --    so every refund entry, in both pots, is written status 'pending'.
---    ledger_pot_balances counts only 'confirmed', so a pending refund moves
+--    ledger_balances_by_book counts only 'confirmed', so a pending refund moves
 --    no balance. No row is ever updated to confirm it (the append-only
 --    trigger forbids it). FOLLOW-UP, NOT BUILT HERE: when the Paystack refund
 --    webhook outcome lands (public.record_processor_refund_outcome), it
@@ -372,7 +372,7 @@ grant execute on function public.ledger_record(text, text, text, text, bigint, t
 -- ESCROW COMMISSION. Payluk cannot split, so Vallo's commission on an escrow
 -- payment is its own movement: out of customer funds, into revenue, together
 -- or not at all. Only for a transaction that opened on the escrow rail.
-create or replace function public.ledger_record_escrow_commission(
+create or replace function public.ledger_record_payluk_commission(
   p_transaction uuid, p_amount bigint, p_provider_reference text default null, p_actor uuid default null)
 returns jsonb
 language plpgsql
@@ -407,8 +407,8 @@ begin
 end;
 $function$;
 
-revoke all on function public.ledger_record_escrow_commission(uuid, bigint, text, uuid) from public, anon, authenticated;
-grant execute on function public.ledger_record_escrow_commission(uuid, bigint, text, uuid) to service_role;
+revoke all on function public.ledger_record_payluk_commission(uuid, bigint, text, uuid) from public, anon, authenticated;
+grant execute on function public.ledger_record_payluk_commission(uuid, bigint, text, uuid) to service_role;
 
 -- DIRECT-RAIL SETTLEMENT. Paystack splits at the charge, so the customer's
 -- money comes in and goes straight out to the lister, the processor, the
@@ -511,7 +511,7 @@ $function$;
 
 revoke all on function private.ledger_post_direct_settlement(public.ledger_entries) from public, anon, authenticated;
 
-create or replace function private.ledger_entries_post_pots()
+create or replace function private.ledger_entries_post_books()
 returns trigger
 language plpgsql
 security definer
@@ -537,15 +537,15 @@ begin
 end;
 $function$;
 
-revoke all on function private.ledger_entries_post_pots() from public, anon, authenticated;
+revoke all on function private.ledger_entries_post_books() from public, anon, authenticated;
 
 create or replace trigger ledger_entries_zz_post_pots
   after insert on public.ledger_entries
-  for each row execute function private.ledger_entries_post_pots();
+  for each row execute function private.ledger_entries_post_books();
 
 -- What each pot holds, per currency. security_invoker, so it is exactly as
 -- readable as the pots (service_role only).
-create or replace view public.ledger_pot_balances
+create or replace view public.ledger_balances_by_book
 with (security_invoker = true) as
   select 'customer_funds'::text as pot, currency,
          sum(case direction when 'in' then amount_minor else -amount_minor end)::bigint as balance_minor,
@@ -560,9 +560,9 @@ with (security_invoker = true) as
          sum(case direction when 'in' then amount_minor else -amount_minor end)::bigint, count(*)
     from public.ledger_marketing_float where status = 'confirmed' group by currency;
 
-revoke all on public.ledger_pot_balances from public, anon, authenticated;
-revoke all on public.ledger_pot_balances from service_role;
-grant select on public.ledger_pot_balances to service_role;
+revoke all on public.ledger_balances_by_book from public, anon, authenticated;
+revoke all on public.ledger_balances_by_book from service_role;
+grant select on public.ledger_balances_by_book to service_role;
 
 -- READ-BACK: fails the migration if anything did not land as intended.
 do $check$
@@ -610,26 +610,26 @@ begin
   end if;
   if has_function_privilege('authenticated', 'public.ledger_record(text, text, text, text, bigint, text, text, text, uuid, text, text, jsonb, uuid, uuid)', 'execute')
      or has_function_privilege('anon', 'public.ledger_record(text, text, text, text, bigint, text, text, text, uuid, text, text, jsonb, uuid, uuid)', 'execute')
-     or has_function_privilege('authenticated', 'public.ledger_record_escrow_commission(uuid, bigint, text, uuid)', 'execute')
-     or has_function_privilege('anon', 'public.ledger_record_escrow_commission(uuid, bigint, text, uuid)', 'execute')
+     or has_function_privilege('authenticated', 'public.ledger_record_payluk_commission(uuid, bigint, text, uuid)', 'execute')
+     or has_function_privilege('anon', 'public.ledger_record_payluk_commission(uuid, bigint, text, uuid)', 'execute')
      or has_function_privilege('authenticated', 'private.ledger_append(text, text, text, text, bigint, text, text, text, uuid, text, text, jsonb, uuid, uuid)', 'execute')
      or has_function_privilege('anon', 'private.ledger_append(text, text, text, text, bigint, text, text, text, uuid, text, text, jsonb, uuid, uuid)', 'execute')
      or has_function_privilege('anon', 'private.ledger_post_direct_settlement(public.ledger_entries)', 'execute')
      or has_function_privilege('authenticated', 'private.ledger_post_direct_settlement(public.ledger_entries)', 'execute')
-     or has_function_privilege('anon', 'private.ledger_entries_post_pots()', 'execute')
-     or has_function_privilege('authenticated', 'private.ledger_entries_post_pots()', 'execute')
+     or has_function_privilege('anon', 'private.ledger_entries_post_books()', 'execute')
+     or has_function_privilege('authenticated', 'private.ledger_entries_post_books()', 'execute')
      or has_function_privilege('anon', 'private.ledger_correction_guard()', 'execute')
      or has_function_privilege('authenticated', 'private.ledger_correction_guard()', 'execute')
      or has_function_privilege('anon', 'private.is_ledger_event(text)', 'execute')
      or has_function_privilege('authenticated', 'private.is_ledger_event(text)', 'execute') then
     raise exception 'a ledger function is callable by an app role';
   end if;
-  if has_table_privilege('authenticated', 'public.ledger_pot_balances', 'select') or has_table_privilege('anon', 'public.ledger_pot_balances', 'select') then
+  if has_table_privilege('authenticated', 'public.ledger_balances_by_book', 'select') or has_table_privilege('anon', 'public.ledger_balances_by_book', 'select') then
     raise exception 'pot balances readable by an app role';
   end if;
-  if has_table_privilege('service_role', 'public.ledger_pot_balances', 'maintain')
-     or has_table_privilege('service_role', 'public.ledger_pot_balances', 'insert')
-     or not has_table_privilege('service_role', 'public.ledger_pot_balances', 'select') then
+  if has_table_privilege('service_role', 'public.ledger_balances_by_book', 'maintain')
+     or has_table_privilege('service_role', 'public.ledger_balances_by_book', 'insert')
+     or not has_table_privilege('service_role', 'public.ledger_balances_by_book', 'select') then
     raise exception 'service_role must only read pot balances';
   end if;
   foreach t in array array['ledger_customer_funds', 'ledger_vallo_revenue', 'ledger_marketing_float'] loop

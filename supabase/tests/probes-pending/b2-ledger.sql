@@ -120,22 +120,22 @@ begin
   -- Escrow commission: refused off the escrow rail, paired on it.
   refused := false;
   begin
-    perform public.ledger_record_escrow_commission(tx_direct, 200);
+    perform public.ledger_record_payluk_commission(tx_direct, 200);
   exception when insufficient_privilege then refused := true;
   end;
   if not refused then raise exception 'PROBE_FAIL b2-ledger: escrow commission recorded on a direct payment'; end if;
   refused := false;
   begin
-    perform public.ledger_record_escrow_commission(tx_escrow_pending, 200);
+    perform public.ledger_record_payluk_commission(tx_escrow_pending, 200);
   exception when insufficient_privilege then refused := true;
   end;
   if not refused then raise exception 'PROBE_FAIL b2-ledger: escrow commission recorded on a payment that has not succeeded'; end if;
-  pair := public.ledger_record_escrow_commission(tx_escrow, 200);
+  pair := public.ledger_record_payluk_commission(tx_escrow, 200);
   if (select count(*) from public.ledger_customer_funds where transaction_id = tx_escrow and direction = 'out' and amount_minor = 200 and event_type = 'FEE_CHARGED') <> 1
      or (select count(*) from public.ledger_vallo_revenue where transaction_id = tx_escrow and direction = 'in' and amount_minor = 200 and event_type = 'FEE_CHARGED') <> 1 then
     raise exception 'PROBE_FAIL b2-ledger: escrow commission was not one paired movement';
   end if;
-  pair := public.ledger_record_escrow_commission(tx_escrow, 200);
+  pair := public.ledger_record_payluk_commission(tx_escrow, 200);
   if (select count(*) from public.ledger_vallo_revenue where transaction_id = tx_escrow) <> 1 then
     raise exception 'PROBE_FAIL b2-ledger: a replayed escrow commission was recorded twice';
   end if;
@@ -184,7 +184,7 @@ begin
   perform set_config('vallo.recording_unknown_charge', '', true);
   select coalesce(sum(balance_minor) filter (where pot = 'customer_funds'), 0),
          coalesce(sum(balance_minor) filter (where pot = 'vallo_revenue'), 0)
-    into bal_cf, bal_rev from public.ledger_pot_balances where currency = 'NGN';
+    into bal_cf, bal_rev from public.ledger_balances_by_book where currency = 'NGN';
   insert into public.ledger_entries (booking_id, transaction_id, gross_minor, platform_fee_minor, agent_share_minor,
                                      processor_fee_minor, guarantee_reserve_minor, net_settlement_minor)
   values (b2, null, -1000, -20, -965, -15, 0, -1000)
@@ -211,13 +211,13 @@ begin
                  or not (r.metadata->'charges' @> jsonb_build_array(tx_d1, tx_d2))) then
     raise exception 'PROBE_FAIL b2-ledger: a refund entry was attributed to a charge, not pending, or lacks booking/charges metadata';
   end if;
-  if (select coalesce(sum(balance_minor) filter (where pot = 'customer_funds'), 0) from public.ledger_pot_balances where currency = 'NGN') <> bal_cf
-     or (select coalesce(sum(balance_minor) filter (where pot = 'vallo_revenue'), 0) from public.ledger_pot_balances where currency = 'NGN') <> bal_rev then
+  if (select coalesce(sum(balance_minor) filter (where pot = 'customer_funds'), 0) from public.ledger_balances_by_book where currency = 'NGN') <> bal_cf
+     or (select coalesce(sum(balance_minor) filter (where pot = 'vallo_revenue'), 0) from public.ledger_balances_by_book where currency = 'NGN') <> bal_rev then
     raise exception 'PROBE_FAIL b2-ledger: a pending refund moved a confirmed balance';
   end if;
 
   -- No MAINTAIN for service_role (PG17 default ACL).
-  foreach t in array array['ledger_customer_funds', 'ledger_vallo_revenue', 'ledger_marketing_float', 'ledger_pot_balances'] loop
+  foreach t in array array['ledger_customer_funds', 'ledger_vallo_revenue', 'ledger_marketing_float', 'ledger_balances_by_book'] loop
     if has_table_privilege('service_role', 'public.' || t, 'maintain') then
       raise exception 'PROBE_FAIL b2-ledger: service_role holds MAINTAIN on %', t;
     end if;

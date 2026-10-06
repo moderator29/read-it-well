@@ -6,7 +6,7 @@ import { ledgerEntryProblem, type LedgerEntryInput } from "./events";
 /**
  * The app's door into the ledger pots. Nothing here writes a table: both
  * calls are database functions that are the only writers
- * (`public.ledger_record`, `public.ledger_record_escrow_commission`,
+ * (`public.ledger_record`, `public.ledger_record_payluk_commission`,
  * service_role only).
  *
  * DEPENDS ON THE PENDING MIGRATION `supabase/migrations/pending/b2_ledger.sql`.
@@ -61,7 +61,7 @@ export async function recordEscrowCommission(
     return { ok: false, reason: "the commission must be a positive whole number of minor units" };
   }
   try {
-    const { data, error } = await (admin as unknown as Rpc).rpc("ledger_record_escrow_commission", {
+    const { data, error } = await (admin as unknown as Rpc).rpc("ledger_record_payluk_commission", {
       p_transaction: input.transactionId,
       p_amount: input.amountMinor,
       p_provider_reference: input.providerReference ?? null,

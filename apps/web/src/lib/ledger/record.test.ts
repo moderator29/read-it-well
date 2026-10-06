@@ -53,7 +53,7 @@ describe("recordEscrowCommission", () => {
       ok: true, customerFundsEntry: "a", revenueEntry: "b",
     });
     expect(db.calls[0]).toEqual({
-      fn: "ledger_record_escrow_commission",
+      fn: "ledger_record_payluk_commission",
       args: { p_transaction: "t1", p_amount: 200, p_provider_reference: null, p_actor: null },
     });
   });
