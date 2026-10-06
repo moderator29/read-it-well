@@ -36,6 +36,7 @@ async function readStayDetail(id: string): Promise<StayDetail | null> {
   if (!detail) return null;
 
   const { accommodation } = detail;
+  const isExample = accommodation.is_demo === true || detail.business.is_demo === true;
   return {
     id: accommodation.id,
     name: accommodation.name,
@@ -103,8 +104,11 @@ async function readStayDetail(id: string): Promise<StayDetail | null> {
      * projection's own column is read (`getStayDetail`) and used verbatim; no
      * projection row means no shield.
      */
-    hostVerified: detail.catalogue?.verified === true,
-    isExample: accommodation.is_demo === true || detail.business.is_demo === true,
+    /* D24: an example row is never drawn as a checked one, whatever the
+       projection says; the label is gone from the page and this is what
+       keeps that safe. Same for the rating below. */
+    hostVerified: !isExample && detail.catalogue?.verified === true,
+    isExample,
     /*
      * THE RATING IS THE PROJECTION'S, AND TODAY THE PROJECTION HAS NONE.
      *
@@ -116,7 +120,7 @@ async function readStayDetail(id: string): Promise<StayDetail | null> {
      * reviews can key on a stay: the refresh averages them and this lights up.
      */
     rating:
-      detail.catalogue && detail.catalogue.rating_avg !== null && detail.catalogue.rating_count > 0
+      !isExample && detail.catalogue && detail.catalogue.rating_avg !== null && detail.catalogue.rating_count > 0
         ? { average: detail.catalogue.rating_avg, count: detail.catalogue.rating_count }
         : null,
   };

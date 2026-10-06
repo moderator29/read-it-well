@@ -16,7 +16,6 @@ import { ICON, Section, Stack, Surface, TYPE } from "@/components/app/Screen";
 import { ReserveTable } from "../../listing/[id]/ReserveTable";
 import { panelClass } from "@/components/ui/Panel";
 import { ReportSheet } from "@/components/app/ReportSheet";
-import { ExampleNotice } from "@/components/app/listing/ExampleNotice";
 
 const WEEKDAY: Record<number, string> = {
   0: "Sunday",
@@ -53,8 +52,7 @@ export type RestaurantFaceProps = {
       reported as a listing, an onboarded venue as a business. Absent in a
       static preview. */
   report?: { targetType: "listing" | "business"; targetId: string; signedIn: boolean };
-  /** UX-09 / UI-P2-01: an example venue says so under its name, and offers no
-      table to hold. */
+  /** An example venue offers no table to hold. D24: it carries no label. */
   isExample?: boolean;
 };
 
@@ -109,7 +107,6 @@ export function RestaurantFace({
             )}
           </div>
           <h1 className="nf-h2 mt-row [text-wrap:balance]">{title}</h1>
-          {isExample && <ExampleNotice variant="page" className="mt-row" statement={t.examples.statement} />}
           {where && (
             <p className={`mt-inline-tight flex items-center gap-inline-tight ${TYPE.body}`}>
               <UiIcon name="location" size={ICON.inline} className="shrink-0 text-[var(--nf-brand-secondary)]" />
@@ -142,16 +139,23 @@ export function RestaurantFace({
             <Section title={copy.reserveTitle}>
               <Surface>
                 <p className={TYPE.rowMeta} data-testid="restaurant-not-bookable">
-                  {t.examples.restaurantNotBookable}
+                  {t.experienceDetail.closed.restaurantBody}
                 </p>
                 <ButtonLink href="/restaurants" variant="primary" className="mt-row w-full">
-                  {t.examples.browseRestaurants}
+                  {t.experienceDetail.closed.restaurantAction}
                 </ButtonLink>
               </Surface>
             </Section>
           ) : (
             <Section title={copy.reserveTitle} description={copy.reserveBody}>
-              <ReserveTable {...reserve} success={t.success} />
+              {/* THE WINDOW PICKER: the times on offer are the ones inside
+                  the hours this venue publishes, for the day picked. */}
+              <ReserveTable
+                {...reserve}
+                windows={windows ?? undefined}
+                windowCopy={t.experienceDetail.window}
+                success={t.success}
+              />
             </Section>
           )}
 

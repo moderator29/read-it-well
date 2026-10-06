@@ -186,10 +186,12 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
         area: listingFace.area,
         city: listingFace.city,
         photos: listingFace.photos ?? [],
-        verified: listingFace.verified,
+        /* D24: an example row is never drawn as a checked one. The read
+           already clamps both; this is the presentation's own lock. */
+        verified: listingFace.verified && listingFace.isDemo !== true,
         priceMinor: listingFace.priceMinor,
         currency: listingFace.currency,
-        rating: listingFace.reviewCount > 0 && listingFace.rating > 0
+        rating: listingFace.isDemo !== true && listingFace.reviewCount > 0 && listingFace.rating > 0
           ? { average: listingFace.rating, count: listingFace.reviewCount }
           : null,
       }

@@ -4,7 +4,6 @@ import { Amount } from "@/components/ui/Amount";
 import { formatMoneyDate } from "@/lib/money/dates";
 import { freeToCancelUntil, termsFromPolicyRules } from "@/lib/trust/cancellation";
 import { ReportSheet } from "@/components/app/ReportSheet";
-import { ExampleNotice } from "@/components/app/listing/ExampleNotice";
 import { ButtonLink } from "@/components/ui/Button";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { DetailGlyph } from "@/components/app/listing/DetailGlyph";
@@ -134,6 +133,7 @@ export function StayDetailView({
   const catalogue = t.catalogue.stays;
   const businessKind = detail.businessKind ?? "hotel";
   const detailCopy = t.catalogue.detail;
+  const sx = t.experienceDetail;
 
   /*
    * THE SPEC STRIP, from what this record actually states.
@@ -289,11 +289,8 @@ export function StayDetailView({
             and overlaps the photograph, as every lead card here does. */}
         <div className={panelClass({ variant: "card", className: "nf-detail-lead relative z-10 -mt-xl block sm:-mt-2xl" })}>
           <h1 className="nf-h2 [text-wrap:balance]">{detail.name}</h1>
-          {/* UX-09 / UI-P2-01: said here, one tap deeper than the shelf card,
-              where the booking would have happened. */}
-          {detail.isExample && (
-            <ExampleNotice variant="page" className="mt-row" statement={t.examples.statement} />
-          )}
+          {/* D24: no example label here; the stay simply offers no booking
+              (below) and draws no trust it did not earn (page.tsx). */}
           {where && (
             <p className={`mt-inline-tight flex items-center gap-inline-tight ${TYPE.body}`}>
               <UiIcon name="location" size={ICON.inline} className="shrink-0 text-[var(--nf-brand-secondary)]" />
@@ -315,6 +312,17 @@ export function StayDetailView({
                 </span>
               }
               unit={catalogue.perNight}
+              /* THE NIGHTLY RATE LEADS AND THE TOTAL FOR THE DATES SITS
+                 BENEATH IT (north star 10 C): the same total Book now opens,
+                 never the cheapest rate on the property, so the figure and
+                 the button cannot disagree. Absent until dates are picked. */
+              sub={
+                bookNowTotal !== null && nights !== null && nights > 0 && !detail.isExample
+                  ? sx.stay.forDates
+                      .replace("{total}", formatMoney(bookNowTotal, locale))
+                      .replace("{nights}", countOf(nights, "nights", locale))
+                  : null
+              }
               /* Drawn only where real review rows stand behind it. */
               rating={
                 detail.rating && detail.rating.count > 0
@@ -367,16 +375,16 @@ export function StayDetailView({
 
         {/* --------------------------------------- dates and the party */}
         {detail.isExample ? (
-          /* An example has nothing to book, so there is no Book now to press
-             and be refused at checkout. The same consequence line the
-             property page draws. */
+          /* A stay that takes no bookings has no Book now to press and be
+             refused at checkout. The same consequence line the property page
+             draws, with no label on it (D24). */
           <div className="mt-block" data-testid="stay-not-bookable">
             <div className={panelClass({ variant: "card", className: "block p-card" })}>
               <p className={TYPE.rowMeta}>
-                {t.examples.stayNotBookable}
+                {sx.closed.stayBody}
               </p>
               <ButtonLink href="/stays" variant="primary" className="mt-block w-full">
-                {t.examples.browseStays}
+                {sx.closed.stayAction}
               </ButtonLink>
             </div>
           </div>
@@ -481,7 +489,7 @@ export function StayDetailView({
           <Section id="rooms" title={copy.roomsTitle} description={copy.roomsDescription} className="scroll-mt-28">
             {detail.isExample ? (
               <p className={TYPE.rowMeta} data-testid="rooms-example">
-                {t.examples.roomsExample}
+                {sx.closed.rooms}
               </p>
             ) : detail.roomTypes.length > 0 ? (
               <RoomTypes
