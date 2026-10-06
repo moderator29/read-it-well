@@ -1,4 +1,4 @@
--- B3 (Session 2, round 3). TAX SCHEDULE, ENTITLEMENTS, PROMOTION INVENTORY. DRAFT. NOT APPLIED.
+-- B3 (Session 2, round 3). TAX SCHEDULE, ENTITLEMENTS, PROMOTION INVENTORY. Applied 6 October 2026.
 -- RUNS AFTER b3_money_policy_versions.sql (migration 1): it needs
 -- private.money_policy_append_only and public.money_policy_at. A pre-check at the
 -- top raises a clear error, and rolls everything back, if they are missing.
@@ -30,8 +30,6 @@
 -- select+insert for service_role only (default-ACL update/delete/truncate are
 -- revoked) and refuse truncate by trigger. Every new function is revoked from
 -- public AND anon explicitly (default privileges grant anon EXECUTE).
-
-begin;
 
 do $$
 begin
@@ -298,5 +296,3 @@ begin
     raise exception 'b3_tax_entitlements_promotion: service_role can erase member plan history';
   end if;
 end $$;
-
-commit;

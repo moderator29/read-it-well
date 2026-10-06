@@ -1,4 +1,4 @@
--- B3 (Session 2, round 3). THE PAYLUK COMMISSION SWEEP: its log and its desk read. DRAFT. NOT APPLIED.
+-- B3 (Session 2, round 3). THE PAYLUK COMMISSION SWEEP: its log and its desk read. Applied 6 October 2026.
 --
 -- D51: Vallo's 2 percent on escrow is a Payluk merchant-dashboard setting and
 -- accrues in Vallo's Payluk MERCHANT wallet as `commission` transactions. It
@@ -30,8 +30,6 @@
 -- public AND anon (default privileges grant anon EXECUTE on new functions).
 -- error_detail holds Payluk's raw message: finance-staff only via the desk read,
 -- never on a member surface.
-
-begin;
 
 create table if not exists public.payluk_commission_sweeps (
   id                      uuid primary key default gen_random_uuid(),
@@ -130,5 +128,3 @@ begin
     raise exception 'b3_payluk_commission_sweep: anon can call the desk read';
   end if;
 end $$;
-
-commit;
