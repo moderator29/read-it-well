@@ -75,6 +75,74 @@ prompt itself, not because I found a contract.
 
 ---
 
+## CORRECTION, 17:05: THE REFERRAL WORK LANDED AND ALL FOUR OF MY FINDINGS WERE FIXED
+
+The section below was written against the pending text at 16:30 and three of its
+statements are now false. #84 merged to main as `ef8b894e4`, and the referral
+engine is applied to production as `20261006152509_b4_referral_rewards_engine`,
+followed by `20261006154817_b4_referral_campaigns` and
+`20261006155720_b4_referral_browser_is_not_a_device`. I checked the applied SQL,
+not the headers that claim the fixes, because taking a status line over the
+thing itself is the mistake I was told three times today not to repeat.
+
+**All four findings are closed.** Each verdict below is from the applied text.
+
+1. **The budget integer: FIXED BEFORE APPLYING.** `diff` of the pending file
+   against `20261006152509_b4_referral_rewards_engine.sql` shows exactly two
+   hunks, the header and the seed: `100000000` became `70000000`. 700,000 naira,
+   D64's figure. `b4_referral_campaigns` then seeds
+   `referral_budget_periods ('2026-10-01', 70000000)` as the live ceiling.
+2. **"Never resumes": FIXED, and by the right mechanism.** The pause no longer
+   stamps a month at all. A paused referral stays `status = 'attributed'` with
+   `blocked_on = 'budget_paused'`, and `referral_qualify_pending` at `:1096`
+   re-selects `where r.status = 'attributed'` ordered by `last_checked_at nulls
+   first`, with the month recomputed as `private.lagos_month(now())` on each
+   attempt. So the month turning hands it a fresh period. The dead-end I found
+   does not exist in the applied design.
+3. **"Invisible pause": FIXED.** `public.referral_programme_status()` at `:557`
+   returns `{"status": "paused", "reason": "budget_reached"}` when the period
+   cannot fit one more of the smallest live reward, and `{"status": "open"}`
+   otherwise. It is granted to `authenticated` at `:1785`. It names no amounts
+   and no other members, so it distinguishes a budget pause from a fraud hold
+   without leaking the budget. That is what rule 3 asked for.
+4. **Rule 1's shape: NOW LITERALLY WHAT D64 SPECIFIES.** The advisory-lock
+   version I reviewed is replaced by `private.referral_reserve` at `:507`:
+
+   ```sql
+   update public.referral_budget_periods
+      set committed_minor = committed_minor + p_amount
+    where period_month = p_month and committed_minor + p_amount <= cap_minor
+   returning committed_minor, cap_minor into v_committed, v_cap;
+   if v_committed is null then raise exception 'platform cap' using errcode = 'RM411';
+   ```
+
+   The cap is in the `WHERE` of the statement that writes it. The row lock
+   serialises racers and the loser re-evaluates its predicate against the
+   winner's committed value, so two qualifications cannot both take the last 70
+   naira. Behind it sits `constraint referral_budget_within_cap check
+   (committed_minor <= cap_minor)`, a hard ceiling that holds even if a future
+   caller forgets the predicate. The member cap is reserved the same way, in the
+   `where` of an `on conflict do update`. **This also retires my READ COMMITTED
+   caveat:** under READ COMMITTED the loser's predicate re-check fails and it
+   returns `budget_paused`; under REPEATABLE READ it raises a serialization
+   failure. Both outcomes are safe, where the version I reviewed was safe only
+   under the first.
+
+One thing I had right and will not overstate: I reviewed the version that was
+pending at the time, the findings were real against that version, and D66
+records that the review found a hole in D64. The fixes are somebody else's work
+and they are better than what I reviewed. I have not tested any of this on
+hardware and the 75 probes that pass include `b4-referral-campaigns`, which is
+coverage of the schema, not of a member earning a reward.
+
+Also now false in the section below: **the b2-ledger probe has run.**
+`supabase/tests/probes/b2-ledger.sql` is on main and `PASS b2-ledger (957 ms)`
+in run `37500351962`. Three cancellations became a pass. I recorded it as a
+failed check under the standing rule and that was correct at the time; it is
+closed now, and I am saying so here rather than leaving a stale failure standing.
+
+---
+
 ## D64: THE REFERRAL CAP PRE-REVIEW, AND THE BUDGET IS THE WRONG NUMBER
 
 The referral work has not landed, so this is a pre-review of the pending text
@@ -1401,10 +1469,10 @@ Nothing below is marked PASS on inference. PASS means I ran it or read the log.
 | --- | --- | --- | --- |
 | A1 | Typecheck | **PASS** | ran locally, exit 0, root + both workspaces |
 | A2 | Lint (eslint + 5 repo checks) | **PASS** | ran locally, exit 0, 0 errors, 297 warnings against a 333 ceiling |
-| A3 | Unit and DOM suite | **PASS** | ran locally at this head: 693 files, 8,808 passed, 1 skipped, 107s |
+| A3 | Unit and DOM suite | **PASS** | ran locally at this head: 721 files, 8,993 passed, 1 skipped, 93s |
 | A4 | Production build | **PASS** | CI job `112061356001`, run `37398903073` |
 | A5 | Production dependency advisories | **FAIL on main, FIXED on this branch** | `GHSA-68fv-2mgg-jv7q`, high, in `source-map-js@1.2.1`. Fixed here, `npm audit --omit=dev --audit-level=high` now reports 0 |
-| A6 | Database probes against the real database | **PASS** | 64 of 64, job `112061355971` |
+| A6 | Database probes against the real database | **PASS** | 75 of 75 at this head, job `112395694421`, including `PASS db-06 (879 ms)` and `PASS b2-ledger (957 ms)`. The count rose from 64 as #86 and #84 landed |
 | A7 | Migration naming, uniqueness, no edits to applied migrations | **PASS** | ran as part of A2 |
 | A8 | Front-door axe, 4 locales × 2 themes × 2 widths | **PASS** | 0 serious, 0 critical; 16 moderate, all one `landmark-unique` defect |
 | A9 | Desk axe (host, agent, console) | **PASS WITH A CAVEAT** | 0 serious, 0 critical; scanned the preview harness, not the real desks |
@@ -2111,12 +2179,13 @@ session that the repo's unusual local checks are doing real work.
   overstating the blockage.
 - **My own mandate failed:** I could not test anything on hardware, for the
   reasons given above in full.
-- **The b2 ledger probe has never run, on three attempts, and the migration it
-  covers is applied to production.** `apply_migration` returned `'cancelled'`
-  each time. Under the standing rule a cancelled check is a failed check, so I
-  am recording it here rather than as pending: `20261006105326_b2_ledger` is
-  live with zero probe coverage that has ever executed. Session 2 records this
-  honestly and carries it as open work; it is still a failure.
+- **The b2 ledger probe had never run, on three attempts. CLOSED at 17:03.**
+  `apply_migration` returned `'cancelled'` each time, and under the standing
+  rule a cancelled check is a failed check, so I recorded it here rather than as
+  pending. It is now in `supabase/tests/probes/b2-ledger.sql` on main and
+  `PASS b2-ledger (957 ms)` in run `37500351962`. Kept in this list because it
+  was a real failure for three attempts, struck through by evidence rather than
+  by a report.
 - **The weight budget and the desks a11y scan both failed as blind gates and
   were fixed.** Kept in this list because a green tick on either of them, on
   any run before `9c3f2d2`, measured nothing.
@@ -2217,22 +2286,23 @@ Recommendations, as asked, including the ones nobody requested.
 
 Ordered by what I would actually worry about.
 
-1. **Nothing has ever been run on a phone.** This is the whole risk. 8,808
+1. **Nothing has ever been run on a phone.** This is the whole risk. 8,993
    passing tests and 64 passing probes say the parts are individually sound.
    They say nothing about whether a person can install this and pay for a room.
    The last time this gap mattered, the app hung on the splash screen for every
    tester on every device, and the cause was a component that was never
    mounted: a defect no unit test, type check or lint rule could ever have
    caught. That class of defect is still unguarded.
-2. **The referral budget cap, if applied as written, overspends by 300,000
-   naira a month and then jams.** Two of the four D64 findings cost money. The
-   seeded budget is 1,000,000 naira where D64 says 700,000 (one integer, line
-   131 of the pending migration). And a reward paused by the budget never
-   resumes, because the row's `month` is stamped once and the cap always sums
-   that month's spend, so next month's fresh budget never reaches it: every
-   paused reward needs a staff override by hand, for ever. D62 holds the
-   migration, which is the only reason this is a risk rather than a defect.
-   Full evidence in the D64 section above.
+2. **The referral programme is live in production and no member has ever
+   earned a reward on a device.** This replaces what stood here at 16:30, which
+   was that the cap would overspend by 300,000 naira and then jam. Both of those
+   were fixed before and during applying, and I verified the fixes in the applied
+   SQL rather than in their headers; see the correction at the top. What is left
+   is the ordinary shape of the whole risk list: `20261006152509` and
+   `20261006154817` are applied to the production database, 75 probes pass
+   against them, and nothing beyond a probe has exercised a referral. Payouts
+   are off (`payouts_enabled false`, and no marketing-float account exists),
+   which is the single thing keeping a defect here from moving money.
 3. **No staging database means the first real test is in production.** This is
    the standing rule's premise, and it is why item 1 is not survivable by
    optimism. The one mitigation in place is genuinely good: the 64 database
