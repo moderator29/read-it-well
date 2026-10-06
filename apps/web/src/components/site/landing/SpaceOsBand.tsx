@@ -58,14 +58,15 @@ export function SpaceOsBand({
   const truths = t.home.aiCard.truths;
   const b = rooms.bento.cards;
 
-  const tiles: { key: string; href: string; icon: UiIconName; title: string; body: string }[] = [
+  const allTiles: { key: string; href: string; icon: UiIconName; title: string; body: string }[] = [
     { key: "rent", href: door("/search"), icon: "key", title: b.rent.title, body: b.rent.body },
     { key: "stays", href: door("/stays"), icon: "bed", title: b.stays.title, body: b.stays.body },
     { key: "ai", href: door("/assistant"), icon: "bot", title: b.ai.title, body: b.ai.body },
     { key: "price", href: door("/price"), icon: "chart-bar", title: b.price.title, body: b.price.body },
     { key: "messages", href: door("/messages"), icon: "messages", title: b.messages.title, body: b.messages.body },
     { key: "feed", href: door("/around"), icon: "feed", title: b.feed.title, body: b.feed.body },
-  ].filter((tile) => social || tile.key !== "feed");
+  ];
+  const tiles = allTiles.filter((tile) => social || tile.key !== "feed");
 
   const layer = (
     key: LayerKey,
