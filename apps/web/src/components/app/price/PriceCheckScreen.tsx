@@ -24,6 +24,7 @@ import type {
   RentPeriod,
 } from "@/lib/price-check/types";
 import { AreaReport, NeighbourhoodFacts } from "./AreaPanel";
+import { AreaAskingChart, type AreaChartCopy } from "./AreaAskingChart";
 import { PinMap } from "./PinMap";
 import { ShareAreaButton } from "./ShareAreaButton";
 import { NextActions } from "./NextActions";
@@ -94,6 +95,12 @@ export type PriceCheckScreenProps = {
   signedIn: boolean;
   /** Minted per page load on the server, so one check is one id. */
   checkId: string;
+  /**
+   * The area figure and chart's words (Session 3, W2), handed in from the
+   * server because they live in `experienceDiscover` and this screen's
+   * dictionary is the `priceCheck` slice. Without them the report has no chart.
+   */
+  chartCopy?: AreaChartCopy;
 };
 
 export function PriceCheckScreen(props: PriceCheckScreenProps) {
@@ -570,6 +577,11 @@ export function PriceCheckScreen(props: PriceCheckScreenProps) {
           locale={locale}
           copy={copy.area}
           typeNames={typeNames}
+          chart={
+            props.chartCopy && areaRows && areaRows.length > 0 ? (
+              <AreaAskingChart rows={areaRows} locale={locale} typeNames={typeNames} copy={props.chartCopy} />
+            ) : null
+          }
           renderShare={(row) => (
             <ShareAreaButton
               stateCode={stateCode}
