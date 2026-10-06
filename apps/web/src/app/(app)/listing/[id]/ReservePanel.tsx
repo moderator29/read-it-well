@@ -745,7 +745,9 @@ export function ReservePanel({
           piece of consumer protection. Caption is the floor, and this line is
           the reason somebody does not wire money to a stranger. */}
       <p className="mt-block flex items-start gap-inline nf-caption leading-relaxed text-[var(--nf-content-muted)]">
-        <UiIcon name="verified" size={ICON.inline} className="mt-3xs shrink-0 text-[var(--nf-state-success)]" />
+        {/* Advice, so a neutral glyph in the line's own ink: the green shield
+            means an earned check, and this line is not one (A9). */}
+        <UiIcon name="info" size={ICON.inline} className="mt-3xs shrink-0" />
         Pay only after you have inspected the property
       </p>
     </div>

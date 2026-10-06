@@ -158,7 +158,8 @@ export async function RentalPanel({
       {/* The trust block: the plated shield, the same line glyph on the same
           plate as every other row on the detail page (29 September 2026). */}
       <div className="mt-md flex items-start gap-sm border-t border-[var(--nf-panel-hair)] pt-md">
-        <DetailGlyph name="verified" />
+        {/* Advice, so a neutral glyph: the shield means an earned check (A9). */}
+        <DetailGlyph name="info" />
         <p className={TYPE.rowMeta}>
           For your safety, keep every chat and payment inside Vallo. Deals made outside the
           platform are not protected by us. Pay only after you have inspected the property.

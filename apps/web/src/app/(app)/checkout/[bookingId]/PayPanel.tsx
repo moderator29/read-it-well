@@ -480,7 +480,8 @@ export function PayPanel({
         actions on the bottom edge, which is how somebody taps the wrong one.
       */}
       <p className="nf-caption mt-block flex items-start gap-inline leading-relaxed text-[var(--nf-content-muted)]">
-        <UiIcon name="verified" size="xs" className="mt-3xs shrink-0" />
+        {/* Advice, so a neutral glyph: the shield means an earned check (A9). */}
+        <UiIcon name="info" size="xs" className="mt-3xs shrink-0" />
         <span>{c.onPlatformStay}</span>
       </p>
       {/* The spacer is the section's LAST in-flow child, so the fixed bar

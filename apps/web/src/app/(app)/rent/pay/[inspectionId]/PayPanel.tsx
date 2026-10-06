@@ -331,7 +331,8 @@ export function PayPanel({
         {NO_CUSTODY_SENTENCE} {RAIL_COPY[LIVE_RAIL].standing}
       </p>
       <p className="nf-caption mt-block flex items-start gap-inline leading-relaxed text-[var(--nf-content-muted)]">
-        <UiIcon name="verified" size="xs" className="mt-3xs shrink-0" />
+        {/* Advice, so a neutral glyph: the shield means an earned check (A9). */}
+        <UiIcon name="info" size="xs" className="mt-3xs shrink-0" />
         <span>{c.onPlatformRent}</span>
       </p>
       {/* The spacer is the section's LAST in-flow child, so the fixed bar

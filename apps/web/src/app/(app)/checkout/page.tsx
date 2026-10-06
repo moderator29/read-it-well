@@ -192,7 +192,8 @@ export default async function RoomCheckoutPage({
       )}
 
       <p className={`flex items-start gap-inline ${TYPE.caption}`}>
-        <UiIcon name="verified" size={ICON.inline} className="mt-3xs shrink-0 text-[var(--nf-brand-secondary)]" />
+        {/* Advice, so a neutral glyph: the shield means an earned check (A9). */}
+        <UiIcon name="info" size={ICON.inline} className="mt-3xs shrink-0" />
         <span>{t.checkout.onlyYourBooking}</span>
       </p>
     </div>
