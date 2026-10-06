@@ -426,8 +426,7 @@
     backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
     box-shadow:
       inset 0 1px 0 var(--nf-glass-rim-thin),
-      0 24px 60px -20px var(--nf-shade-3),
-      var(--nf-elev-4);
+      var(--nf-elevation-dialog);
     transform-origin: calc(100% - 1.75rem) 100%;
     animation: nf-m-tray var(--nf-duration-slow) var(--nf-ease-spring) both;
   }
@@ -727,7 +726,7 @@
   .nf-dockmore__tray {
     --nf-dock-fill-top: color-mix(in oklab, var(--nf-container-ink) 18%, var(--nf-surface-canvas));
     --nf-dock-fill-foot: color-mix(in oklab, var(--nf-container-ink) 6%, var(--nf-surface-canvas));
-    --nf-dock-drop: 0 16px 34px -14px var(--nf-shade-3);
+    --nf-dock-drop: var(--nf-elevation-floating);
     border: 1px solid color-mix(in oklab, var(--nf-content-primary) 12%, transparent);
     border-block-start-color: color-mix(in oklab, var(--nf-content-primary) 24%, transparent);
     background: linear-gradient(180deg, var(--nf-dock-fill-top) 0%, var(--nf-dock-fill-foot) 100%);
@@ -1026,12 +1025,10 @@
       radial-gradient(120% 90% at 50% -30%, var(--nf-dock-sheen), transparent 60%),
       linear-gradient(180deg, var(--nf-dock-fill-top) 0%, var(--nf-dock-fill-foot) 100%);
   }
+  /* The dock is an Island: its drop is the Island's rung (ONE LIGHT). */
   .nf-tabbar,
   .nf-dock-island {
-    --nf-dock-drop:
-      0 1px 2px color-mix(in oklab, var(--nf-shade-3) 60%, transparent),
-      0 14px 34px -14px var(--nf-shade-3),
-      0 28px 56px -30px var(--nf-shade-3);
+    --nf-dock-drop: var(--nf-elevation-floating);
   }
 
   /* The slots: equal shares at rest; the chosen one takes a larger share. */

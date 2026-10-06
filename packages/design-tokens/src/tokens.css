@@ -1153,9 +1153,9 @@
    */
   --nf-surface-on-paper: #F2F5FA;
   --nf-surface-on-paper-hover: #E9EFF8;
-  --nf-shadow-on-paper:
-    0 1px 2px rgb(18 21 26 / 0.08),
-    0 8px 20px -8px rgb(18 21 26 / 0.18);
+  /* `--nf-shadow-on-paper` stood here and is gone (round 5, ONE LIGHT): no
+     rule read it, and it was a fourth shadow ink (18 21 26). A surface on
+     paper picks an elevation rung. */
 
   /* The deep stop of the canvas bloom. It is not on the brand ramp and it is
      not meant to be: it is the blue the bloom decays THROUGH on its way to the
@@ -1335,9 +1335,9 @@
    * material on the platform carried the shadow of the panel above it. Rung 1
    * is "card: resting content", which is exactly what a thin glass surface is:
    * a quiet plate on the canvas rather than something floating over it. */
-  --nf-glass-shadow-thin: var(--nf-elev-1);
-  --nf-glass-shadow: var(--nf-elev-2);
-  --nf-glass-shadow-lifted: var(--nf-elev-4);
+  --nf-glass-shadow-thin: var(--nf-elevation-raised);
+  --nf-glass-shadow: var(--nf-elevation-raised);
+  --nf-glass-shadow-lifted: var(--nf-elevation-dialog);
 
   /*
    * THE SPECULAR HAD TWO OPACITY CONTROLS AND NOW HAS ONE. L-69.
@@ -1493,36 +1493,35 @@
    * measured from. Five rungs and the ground.
    */
 
-  /* 1 - card: resting content */
-  --nf-elev-1:
-    0 1px 1px rgb(0 0 0 / 0.30),
-    0 4px 12px -2px rgb(0 0 0 / 0.34);
+  /*
+   * ONE LIGHT (Session 3 round 5, W1; CRAFT-PRINCIPLES 2.3). These five rungs
+   * were a second elevation ladder beside the north star's `--nf-elevation-*`
+   * (the foot of this file), and on Paper they were lit in a different ink
+   * (11 13 23, neutral) from it (0 95 232 with a 1 1 24 contact), so a card on
+   * `elev-2` beside a card on the tier shadow stood under two suns. Every rung
+   * is now a name for one of the four levels, per theme, and the values live
+   * once, in the elevation block:
+   *
+   *   1 card, resting             raised
+   *   2 came forward, hover       floating
+   *   3 a detached overlay        floating (none of its readers is an edge
+   *                               sheet: a top island, a dropdown, a floating
+   *                               tray, pills over a map; the sheet's upward
+   *                               rung is `overlay`, read by the tier)
+   *   4 modal, 5 toast            dialog
+   *
+   * The rims and borders below are unchanged: they are the rung's edge, not
+   * its light.
+   */
+  --nf-elev-1: var(--nf-elevation-raised);
   --nf-elev-1-rim: inset 0 1px 0 rgb(255 255 255 / 0.12);
-
-  /* 2 - raised: hover, selected, a card that has come forward */
-  --nf-elev-2:
-    0 2px 3px rgb(0 0 0 / 0.32),
-    0 10px 26px -4px rgb(0 0 0 / 0.42);
+  --nf-elev-2: var(--nf-elevation-floating);
   --nf-elev-2-rim: inset 0 1px 0 rgb(255 255 255 / 0.17);
-
-  /* 3 - sheet: bottom sheets, drawers, popovers anchored to an edge */
-  --nf-elev-3:
-    0 2px 4px rgb(0 0 0 / 0.34),
-    0 -1px 0 rgb(255 255 255 / 0.05),
-    0 -20px 48px -12px rgb(0 0 0 / 0.55);
+  --nf-elev-3: var(--nf-elevation-floating);
   --nf-elev-3-rim: inset 0 1px 0 rgb(255 255 255 / 0.22);
-
-  /* 4 - modal: centred dialogs, detached from every edge */
-  --nf-elev-4:
-    0 4px 8px rgb(0 0 0 / 0.34),
-    0 24px 64px -12px rgb(0 0 0 / 0.62);
+  --nf-elev-4: var(--nf-elevation-dialog);
   --nf-elev-4-rim: inset 0 1px 0 rgb(255 255 255 / 0.26);
-
-  /* 5 - toast: the topmost transient object */
-  --nf-elev-5:
-    0 2px 4px rgb(0 0 0 / 0.30),
-    0 12px 28px -6px rgb(0 0 0 / 0.50),
-    0 32px 72px -20px rgb(0 0 0 / 0.40);
+  --nf-elev-5: var(--nf-elevation-dialog);
   --nf-elev-5-rim: inset 0 1px 0 rgb(255 255 255 / 0.30);
 
   /* Borders scale with the rung: higher surfaces need a stronger edge to
@@ -2027,24 +2026,11 @@
    * it is a bezel. The vertical sample is the only clean one and it reaches
    * 52px. Both readings are in the ledger so this is not re-litigated.
    */
-  --nf-bloom-lit:
-    0 0 24px rgb(12 106 239 / 0.5),
-    0 0 88px rgb(12 106 239 / 0.14);
-  /* Pressed, the field pulls in: a control under a finger is closer to the
-     surface it sits on, so the wide rung goes and the near one tightens. */
-  --nf-bloom-lit-press: 0 0 10px rgb(12 106 239 / 0.34);
-  /* Hover lifts the SAME two shadows rather than adding a third light: the
-     tight one opens and the wide one gains alpha, so the control brightens
-     without changing what it is made of. Zero offset, as at rest. */
-  --nf-bloom-lit-hover:
-    0 0 30px rgb(12 106 239 / 0.6),
-    0 0 96px rgb(12 106 239 / 0.2);
-  /* The same light at the intensity a surface that is SELECTED rather than
-     primary should carry: active tabs, chosen cards, the raised switch, the
-     glass icon plates, every wizard's current step. One rung down on both. */
-  --nf-bloom-lit-soft:
-    0 0 16px rgb(12 106 239 / 0.28),
-    0 0 56px rgb(12 106 239 / 0.08);
+  /* THE FOUR `--nf-bloom-lit*` TOKENS STOOD HERE AND ARE GONE (round 5, ONE
+     LIGHT). No rule read them in either theme: the lit primary's light is the
+     button system's `--nf-btn-lit-bloom`, and the measurement above is kept
+     because that bloom was tuned from it. Their Paper answers were two more
+     shadow inks (0 50 150 and 0 80 220). */
 
   --nf-glow-edge-strong:
     inset 0 1px 0 var(--nf-rim-lit-ink),
@@ -3584,7 +3570,7 @@
      hairline carry it. */
   --nf-card-border: rgb(255 255 255 / 0.08);
   --nf-card-shadow: 0 0 0 0 transparent;
-  --nf-float-shadow: 0 8px 24px -8px rgb(0 0 0 / 0.6);
+  --nf-float-shadow: var(--nf-elevation-raised);
   --nf-card-shadow-hover: 0 0 0 1px rgb(255 255 255 / 0.12);
 
   --nf-container-edge: color-mix(in oklab, var(--nf-container-ink) 20%, transparent);
@@ -3914,7 +3900,7 @@
   /* The round header controls' "soft shadow" (north star 6 and Stage 2):
      blue-tinted like the card's, a size smaller, so a 44px white circle on
      the warm canvas lifts the same way a card does instead of greying. */
-  --nf-float-shadow: 0 1px 2px rgb(1 1 24 / 0.05), 0 6px 16px -8px rgb(0 95 232 / 0.22);
+  --nf-float-shadow: var(--nf-elevation-raised);
   --nf-card-shadow-hover: var(--nf-elevation-floating);
 
   /* ------------------------------------------------------------ the inks */
@@ -4025,11 +4011,8 @@
   --nf-plate-sheen: none;
 
   /* ------------------------------------------ elevation: real, low shadows */
-  --nf-elev-1: 0 1px 2px rgb(11 13 23 / 0.06), 0 1px 1px rgb(11 13 23 / 0.04);
-  --nf-elev-2: 0 1px 2px rgb(11 13 23 / 0.06), 0 4px 12px -2px rgb(11 13 23 / 0.08);
-  --nf-elev-3: 0 2px 4px rgb(11 13 23 / 0.06), 0 10px 24px -6px rgb(11 13 23 / 0.12);
-  --nf-elev-4: 0 4px 8px rgb(11 13 23 / 0.06), 0 16px 32px -8px rgb(11 13 23 / 0.16);
-  --nf-elev-5: 0 8px 16px rgb(11 13 23 / 0.08), 0 24px 48px -12px rgb(11 13 23 / 0.20);
+  /* The rungs themselves are aliases of the Paper elevation scale (ONE LIGHT,
+     the night block): one blue ink and one contact ink, no neutral ladder. */
   --nf-elev-1-rim: inset 0 1px 0 rgb(255 255 255 / 0.6);
   --nf-elev-2-rim: inset 0 1px 0 rgb(255 255 255 / 0.6);
   --nf-elev-3-rim: inset 0 1px 0 rgb(255 255 255 / 0.6);
@@ -4055,10 +4038,6 @@
   --nf-glow-accent: 0 6px 18px -10px color-mix(in oklab, var(--nf-brand-accent) 28%, transparent);
   --nf-glow-brand-rim: color-mix(in oklab, var(--nf-glow-ink) 60%, transparent);
   --nf-bloom-card: var(--nf-card-shadow);
-  --nf-bloom-lit: 0 1px 2px rgb(0 50 150 / 0.16), 0 6px 16px -6px rgb(0 80 220 / 0.30);
-  --nf-bloom-lit-press: 0 1px 3px rgb(0 50 150 / 0.22);
-  --nf-bloom-lit-hover: 0 2px 4px rgb(0 50 150 / 0.18), 0 10px 22px -8px rgb(0 80 220 / 0.36);
-  --nf-bloom-lit-soft: 0 1px 2px rgb(0 50 150 / 0.10), 0 4px 12px -6px rgb(0 80 220 / 0.20);
   --nf-rim-lit-ink: rgb(255 255 255 / 0.7);
   --nf-rim-lit: inset 0 1px 0 var(--nf-rim-lit-ink);
   --nf-rim-specular: rgb(255 255 255 / 0.22);
@@ -4075,7 +4054,7 @@
   --nf-brand-edge-strong: color-mix(in oklab, var(--nf-brand-primary) 60%, transparent);
   --nf-border-brand: color-mix(in oklab, var(--nf-brand-primary) 40%, transparent);
   --nf-glow-edge: 0 0 0 1px var(--nf-card-border), var(--nf-card-shadow);
-  --nf-glow-edge-strong: 0 0 0 1px var(--nf-brand-edge-strong), 0 2px 8px -2px rgb(0 80 220 / 0.20);
+  --nf-glow-edge-strong: 0 0 0 1px var(--nf-brand-edge-strong), 0 2px 8px -2px rgb(0 95 232 / 0.20);
   --nf-edge-stride-base: var(--nf-container-edge);
   --nf-edge-stride-lit: var(--nf-container-edge);
   --nf-edge-stride-peak: color-mix(in oklab, var(--nf-brand-primary) 30%, transparent);
@@ -4119,8 +4098,10 @@
   --nf-selected-edge: var(--nf-brand-primary);
   --nf-selected-edges: var(--nf-brand-primary) var(--nf-brand-primary) var(--nf-brand-primary-strong) var(--nf-brand-primary);
   --nf-selected-rim: inset 0 1px 0 rgb(255 255 255 / 0.22);
-  --nf-selected-shadow: var(--nf-selected-rim), 0 1px 2px rgb(0 50 150 / 0.18), 0 6px 14px -6px rgb(0 80 220 / 0.40);
-  --nf-selected-shadow-inline: var(--nf-selected-rim), 0 1px 2px rgb(0 50 150 / 0.18);
+  /* The selected card keeps its own light (GLOW_IDENTITY 3: a chosen card
+     blooms), in Paper's one blue ink with its one contact ink. */
+  --nf-selected-shadow: var(--nf-selected-rim), 0 1px 2px rgb(1 1 24 / 0.18), 0 6px 14px -6px rgb(0 95 232 / 0.40);
+  --nf-selected-shadow-inline: var(--nf-selected-rim), 0 1px 2px rgb(1 1 24 / 0.18);
   --nf-btn-lit-edges: var(--nf-brand-primary) var(--nf-brand-primary) var(--nf-brand-primary-strong) var(--nf-brand-primary);
   /* The primary on paper is SOLID brand with a white top hairline and the
      card shadow, no gradient and no blue bloom (spec section 3). */
@@ -4135,9 +4116,12 @@
      shadow and only the card hairline, and the primary pill sits on a soft
      brand shadow of its own. */
   --nf-btn-glass-edge: var(--nf-card-border);
-  --nf-btn-glass-shadow: 0 1px 2px rgb(17 19 24 / 0.04), 0 6px 18px -6px rgb(17 19 24 / 0.12);
-  --nf-btn-lit-bloom: 0 1px 2px rgb(17 19 24 / 0.06), 0 8px 18px -8px color-mix(in oklab, var(--nf-brand-primary) 60%, transparent);
-  --nf-btn-lit-bloom-hover: 0 2px 4px rgb(17 19 24 / 0.06), 0 12px 24px -10px color-mix(in oklab, var(--nf-brand-primary) 65%, transparent);
+  /* The secondary is a raised white object; the primary keeps its own
+     hue in its bloom (the one coloured shadow a view may cast) on the one
+     contact ink. */
+  --nf-btn-glass-shadow: var(--nf-elevation-raised);
+  --nf-btn-lit-bloom: 0 1px 2px rgb(1 1 24 / 0.06), 0 8px 18px -8px color-mix(in oklab, var(--nf-brand-primary) 60%, transparent);
+  --nf-btn-lit-bloom-hover: 0 2px 4px rgb(1 1 24 / 0.06), 0 12px 24px -10px color-mix(in oklab, var(--nf-brand-primary) 65%, transparent);
   /* THE SOFT TOP (section 17): a lavender-white wash behind the header that
      fades into the warm canvas. */
   --nf-soft-top: linear-gradient(
@@ -4200,7 +4184,6 @@
   --nf-badge-platinum-foot: #66708a;
   --nf-badge-platinum-tick-top: #ffffff;
   --nf-badge-platinum-tick-foot: #eef1f6;
-  --nf-shadow-on-paper: 0 1px 2px rgb(11 13 23 / 0.06), 0 8px 20px -8px rgb(11 13 23 / 0.14);
 }
 
 /*
@@ -4316,9 +4299,9 @@
   --nf-act-fill-press: linear-gradient(180deg, #1E293B 0%, #0F172A 100%);
   --nf-act-press-edge: #0F172A;
   --nf-act-rim: inset 0 1px 0 rgb(255 255 255 / 0.2);
-  --nf-act-shadow: inset 0 1px 0 rgb(255 255 255 / 0.2), 0 1px 2px rgb(15 23 42 / 0.08), 0 6px 14px -6px rgb(0 102 255 / 0.45);
+  --nf-act-shadow: inset 0 1px 0 rgb(255 255 255 / 0.2), 0 1px 2px rgb(1 1 24 / 0.08), 0 6px 14px -6px rgb(0 95 232 / 0.45);
   /* Paper has no glow ring: hover is the lighter fill and one step more lift. */
-  --nf-act-ring: inset 0 1px 0 rgb(255 255 255 / 0.22), 0 1px 2px rgb(15 23 42 / 0.08), 0 10px 20px -8px rgb(0 102 255 / 0.5);
+  --nf-act-ring: inset 0 1px 0 rgb(255 255 255 / 0.22), 0 1px 2px rgb(1 1 24 / 0.08), 0 10px 20px -8px rgb(0 95 232 / 0.5);
   --nf-act-shadow-press: inset 0 1px 2px rgb(0 0 0 / 0.3);
   --nf-act-ink: #0057DB;
   --nf-act-ink-hover: #0047B8;
@@ -4328,14 +4311,14 @@
   --nf-act-surface: #FFFFFF;
   --nf-act-surface-ink: #0F172A;
   --nf-act-surface-edge: rgb(15 23 42 / 0.07);
-  --nf-act-surface-shadow: 0 1px 2px rgb(15 23 42 / 0.05), 0 4px 12px -4px rgb(15 23 42 / 0.1);
+  --nf-act-surface-shadow: var(--nf-elevation-raised);
   --nf-act-disabled-fill: #F1F5F9;
   --nf-act-disabled-edge: #E2E8F0;
   --nf-act-disabled-ink: #94A3B8;
   --nf-act-mark-edge: #7D8CA3;
   --nf-act-track-off: #D5DDE8;
   --nf-act-track-off-edge: rgb(15 23 42 / 0.1);
-  --nf-act-knob-shadow: 0 1px 2px rgb(15 23 42 / 0.2), 0 2px 6px rgb(15 23 42 / 0.12);
+  --nf-act-knob-shadow: 0 1px 2px rgb(1 1 24 / 0.2), 0 2px 6px rgb(1 1 24 / 0.12);
   --nf-act-outline-ink: #0057DB;
   --nf-act-outline-hover-fill: #EAF2FF;
   --nf-act-outline-hover-ink: #0047B8;
@@ -4403,8 +4386,16 @@
     0 2px 4px rgb(0 0 0 / 0.36),
     0 18px 40px -16px rgb(0 0 0 / 0.62),
     0 28px 56px -30px rgb(12 106 239 / 0.30);
-  --nf-elevation-overlay: var(--nf-elev-3);
-  --nf-elevation-dialog: var(--nf-elev-4);
+  /* The sheet's rung casts upwards (it stands on the bottom edge); the
+     dialog is the deepest, detached from every edge. The values the old
+     ladder's rungs 3 and 4 carried, which now alias these. */
+  --nf-elevation-overlay:
+    0 2px 4px rgb(0 0 0 / 0.34),
+    0 -1px 0 rgb(255 255 255 / 0.05),
+    0 -20px 48px -12px rgb(0 0 0 / 0.55);
+  --nf-elevation-dialog:
+    0 4px 8px rgb(0 0 0 / 0.34),
+    0 24px 64px -12px rgb(0 0 0 / 0.62);
 
   /* ------------------------------------------------------- the tiers */
   --nf-tier-plate-radius: var(--nf-radius-md);

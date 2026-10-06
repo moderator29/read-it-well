@@ -100,7 +100,7 @@
     box-shadow:
       inset 0 1px 0 color-mix(in oklab, var(--nf-content-on-brand) 42%, transparent),
       0 0 18px -2px color-mix(in oklab, var(--nf-glow-ink) 60%, transparent),
-      0 10px 20px -10px var(--nf-shade-3);
+      var(--nf-elevation-floating);
     transition:
       transform var(--nf-duration-base) var(--nf-ease-spring),
       box-shadow var(--nf-duration-fast) var(--nf-ease-standard);

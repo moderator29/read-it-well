@@ -2184,7 +2184,7 @@
     border-radius: var(--nf-radius-sm);
     border: var(--nf-border-width) solid var(--nf-panel-edge);
     background: color-mix(in oklab, var(--nf-brand-primary) 16%, var(--nf-surface-canvas));
-    box-shadow: var(--nf-rim-lit), 0 8px 24px -8px color-mix(in oklab, var(--nf-surface-canvas) 80%, transparent);
+    box-shadow: var(--nf-rim-lit), var(--nf-elevation-floating);
     pointer-events: none;
     transform: translateY(-100%);
   }

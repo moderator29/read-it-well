@@ -335,10 +335,7 @@
     --nf-dock-fill-foot: color-mix(in oklab, color-mix(in oklab, var(--nf-brand-primary) 2%, var(--nf-surface-primary)) 90%, transparent);
     --nf-dock-sheen: var(--nf-surface-primary);
     --nf-dock-ring: var(--nf-surface-primary);
-    --nf-dock-drop:
-      0 1px 2px color-mix(in oklab, var(--nf-content-primary) 8%, transparent),
-      0 10px 28px -10px color-mix(in oklab, var(--nf-content-primary) 16%, transparent),
-      0 22px 44px -26px color-mix(in oklab, var(--nf-brand-primary) 45%, transparent);
+    --nf-dock-drop: var(--nf-elevation-floating);
     --nf-dock-ink-on: var(--nf-brand-primary);
     /* F-h (the founder, 30 September: "the entire platform on light mode
        should be blue ... the black icons should be blue"): the glyphs at

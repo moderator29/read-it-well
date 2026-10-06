@@ -375,8 +375,8 @@ export function BrandIcon({
   tile?: boolean;
   /**
    * React to something real rather than to a loop: "alert" rings the object
-   * while something is unread, "confirmed" pops it once when a booking lands,
-   * "verified" pulses its inner ring while a check is in force.
+   * while something is unread, "confirmed" pops it once when a booking lands.
+   * ("verified" pulsed a box-shadow and no caller used it; gone, round 5.)
    *
    * IT ONLY WORKS WITH `tile`, AND THE COMPONENT DOES NOT SAY SO ANYWHERE ELSE.
    *
@@ -400,7 +400,7 @@ export function BrandIcon({
    * `.nf-brand-icon-ground[data-state]` gains the three rules - which is new
    * motion on a money surface and a design decision rather than a cleanup.
    */
-  state?: "alert" | "confirmed" | "verified";
+  state?: "alert" | "confirmed";
   className?: string;
 }) {
   const decorative = !label;

@@ -903,7 +903,7 @@
     padding: var(--nf-space-xs) var(--nf-space-3xs) var(--nf-space-2xs);
     background: var(--nf-surface-primary);
     border-color: color-mix(in oklab, var(--nf-brand-primary) 26%, transparent);
-    box-shadow: 0 1px 2px var(--nf-shade-1);
+    box-shadow: var(--nf-elevation-raised);
   }
   @media (hover: hover) {
     :root[data-theme="light"] .nf-cat-tile:not(:where([data-theme="dark"] *)):hover {

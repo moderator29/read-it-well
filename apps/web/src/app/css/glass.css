@@ -978,18 +978,9 @@
     60% { transform: scale(1.06); opacity: 1; }
     100% { transform: scale(1); opacity: 1; }
   }
-  .nf-icon-tile[data-state="verified"] {
-    animation: nf-verify-pulse 1.4s var(--nf-ease-standard) 2;
-  }
-  @keyframes nf-verify-pulse {
-    0%, 60%, 100% { box-shadow: var(--nf-elev-1-rim), var(--nf-elev-1); }
-    78% {
-      box-shadow:
-        var(--nf-elev-1-rim),
-        var(--nf-elev-1),
-        0 0 0 2px var(--nf-border-brand);
-    }
-  }
+  /* The "verified" pulse stood here and is gone (round 5, W1): no caller
+     passes `state="verified"`, and it pulsed `box-shadow`, a paint property,
+     every frame for 2.8s. A verified mark is a date, not a pulse. */
   @media (prefers-reduced-motion: reduce) {
     .nf-icon-tile[data-state] > img,
     .nf-icon-tile[data-state] {
