@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/Button";
+import { Button, ButtonLink } from "@/components/ui/Button";
 import { useRequireAuth } from "@/components/auth/AuthGate";
 import { toggleFollow } from "@/lib/social/follows-actions";
 
@@ -71,10 +70,6 @@ export function FollowButton({
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  const shape = compact
-    ? "nf-btn nf-btn--primary h-9 shrink-0 px-md text-[length:var(--nf-text-caption)]"
-    : "nf-btn min-w-[6.5rem]";
-
   /*
    * SIGNED OUT IT IS STILL A LINK, and it now remembers what it was for.
    *
@@ -87,11 +82,23 @@ export function FollowButton({
    * anchor is the honest element here - it navigates, it can be opened in a new
    * tab, and it needs no JavaScript to work.
    */
+  /*
+   * ONE CONTROL, ONE HEIGHT (auditor A7). The signed-out link was a
+   * hand-built `h-9` (36px) while the signed-in Button is the system's `sm`
+   * at the 44px floor, so the same Follow came in two heights depending on
+   * who was looking. It is now `ButtonLink` at the same size and width as the
+   * button it stands in for: still an anchor, still no JavaScript needed.
+   */
   if (!signedIn) {
     return (
-      <Link href={gateHref("follow")} className={compact ? shape : "nf-btn nf-btn--primary"}>
+      <ButtonLink
+        href={gateHref("follow")}
+        variant="primary"
+        size={compact ? "sm" : "md"}
+        className={compact ? "shrink-0" : "min-w-[6.5rem]"}
+      >
         {labels.follow}
-      </Link>
+      </ButtonLink>
     );
   }
 
