@@ -7,6 +7,7 @@ import { startConversationWithMessage } from "@/lib/messages/actions";
 import { Chip } from "@/components/ui/Chip";
 import { addQuestion, removeQuestion } from "@/lib/enquiry/renter-questions";
 import type { QuickReply } from "@/lib/enquiry/quick-replies";
+import type { Dictionary } from "@vallo/i18n/core";
 
 /**
  * UX-P2-03: the first message, written before any thread exists. Sending it
@@ -21,6 +22,7 @@ export function FirstMessage({
   questions = [],
   questionsTitle = "",
   replyLine = null,
+  copy,
 }: {
   listingId: string;
   listingTitle: string | null;
@@ -35,6 +37,8 @@ export function FirstMessage({
   questionsTitle?: string;
   /** B7: the lister's reply-time line, only when the record supports one. */
   replyLine?: React.ReactNode;
+  /** The form's words, `experienceInbox.newMessage`, from the server page. */
+  copy: Pick<Dictionary["experienceInbox"]["newMessage"], "firstAbout" | "first" | "placeholder" | "send">;
 }) {
   const router = useRouter();
   const [body, setBody] = useState("");
@@ -55,7 +59,7 @@ export function FirstMessage({
     <form onSubmit={send} className="nf-panel nf-panel--card grid gap-sm p-card" data-testid="first-message">
       <label className="grid gap-3xs">
         <span className="nf-label">
-          {listingTitle ? `Your first message about ${listingTitle}` : "Your first message"}
+          {listingTitle ? copy.firstAbout.replace("{title}", listingTitle) : copy.first}
         </span>
         <textarea
           name="body"
@@ -64,7 +68,7 @@ export function FirstMessage({
           rows={4}
           value={body}
           onChange={(event) => setBody(event.target.value)}
-          placeholder="Say hello, and ask what you want to know. Is it still available? Can you do an inspection this week?"
+          placeholder={copy.placeholder}
           className="nf-field"
         />
       </label>
@@ -96,7 +100,7 @@ export function FirstMessage({
         </p>
       )}
       <Button type="submit" variant="primary" full disabled={pending || body.trim().length === 0}>
-        Send
+        {copy.send}
       </Button>
     </form>
   );

@@ -204,6 +204,28 @@ export const experienceInboxEn = {
     back: "Back",
   },
 
+  /**
+   * `/messages/new`: the first message to an agent about one property. The
+   * page's and the form's own words, moved out of the code (Round 3 sweep, C3).
+   * `{title}` is the listing's title.
+   */
+  newMessage: {
+    metaTitle: "New message",
+    title: "Message the agent",
+    backToProperty: "Back to the property",
+    goToInbox: "Go to your Inbox",
+    didNotOpen: "This chat did not open",
+    signedOutTitle: "Sign in to message the agent",
+    signedOutBody: "Chat with the agent, arrange an inspection and keep every step of the deal in one place, on the record. You will come straight back to this conversation.",
+    signIn: "Sign in",
+    unreachableTitle: "We cannot reach messaging right now",
+    unreachableBody: "This is on our side, not yours. Nothing has been lost and nothing has been sent. Try again in a few minutes.",
+    firstAbout: "Your first message about {title}",
+    first: "Your first message",
+    placeholder: "Say hello, and ask what you want to know. Is it still available? Can you do an inspection this week?",
+    send: "Send",
+  },
+
   /* ------------------------------------------------------------- assistant */
   assistant: {
     answerLabel: "Vallo AI",
