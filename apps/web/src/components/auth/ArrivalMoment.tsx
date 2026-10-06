@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useSyncExternalStore } from "react";
+import { useEffect, useRef, useSyncExternalStore, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import type { Dictionary } from "@vallo/i18n/core";
 import { feedback } from "@/lib/ui/feedback";
+import { THRESHOLD_GOING_MS } from "@/lib/motion/threshold";
+import { STARTUP_CEILING_MS } from "@/components/startup/startup-script";
 import { ObjectArt } from "./ObjectArt";
 
 /**
@@ -30,13 +32,48 @@ import { ObjectArt } from "./ObjectArt";
  * the finished picture at once, and Calm fades it. The haptic follows the
  * same gate as every other (`feedback` turns it down under reduced motion,
  * and keeps the success).
+ *
+ * FOCUS LANDS ON THE TITLE. The form that held focus unmounts the moment the
+ * code is accepted, and focus would fall to <body>, where a screen reader
+ * says nothing useful. The title takes it (not a control, so no ring), which
+ * also makes it the first thing read.
+ *
+ * IT NEVER COVERS THE SCREEN FOREVER (audit A5). `VerifyCodeForm` leaves by
+ * `router.replace`, which promises nothing: a client navigation that never
+ * lands (a dropped RSC request, a router that has lost its way) would leave
+ * this full-screen portal over everything for the life of the tab. So, given
+ * where the person is going (`to`), the moment counts its own life from the
+ * moment it appears: the form's hold (1,100ms), the door's going half
+ * (`THRESHOLD_GOING_MS.door`), and then the startup's own ceiling for a
+ * navigation to land (`STARTUP_CEILING_MS`). Past that, it loads the target
+ * outright, which a server always answers. A navigation that lands unmounts
+ * the moment first and the escape never fires.
  */
 const subscribe = () => () => {};
 
 /** The shield lands at `--nf-duration-deliberate`; the haptic is felt with it. */
 const LAND_MS = 620;
 
-export function ArrivalMoment({ t, name }: { t: Dictionary; name?: string | undefined }) {
+/* The title takes focus and is not a control: the global ring is emptied
+   through its own token rather than fought, as the passcode title does. */
+const NO_RING = { "--nf-focus-ring": "transparent" } as CSSProperties;
+
+/** `VerifyCodeForm`'s hold before it goes through the door. */
+const FORM_HOLD_MS = 1100;
+
+/** The longest the moment stays before it loads its target outright. */
+export const ARRIVAL_ESCAPE_MS = FORM_HOLD_MS + THRESHOLD_GOING_MS.door + STARTUP_CEILING_MS;
+
+export function ArrivalMoment({
+  t,
+  name,
+  to,
+}: {
+  t: Dictionary;
+  name?: string | undefined;
+  /** Where the person is going: the escape's target if the navigation never lands. */
+  to?: string | undefined;
+}) {
   const a = t.authFlow;
   const first = name?.trim();
   /* Client only: false on the server and during hydration, true after, so the
@@ -52,6 +89,19 @@ export function ArrivalMoment({ t, name }: { t: Dictionary; name?: string | unde
     return () => window.clearTimeout(timer);
   }, []);
 
+  /* The bounded escape: a navigation that never lands becomes a full load. */
+  useEffect(() => {
+    if (!to) return;
+    const timer = window.setTimeout(() => window.location.assign(to), ARRIVAL_ESCAPE_MS);
+    return () => window.clearTimeout(timer);
+  }, [to]);
+
+  /* Focus to the title once the portal is drawn. */
+  const title = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    if (mounted) title.current?.focus({ preventScroll: true });
+  }, [mounted]);
+
   if (!mounted) return null;
   return createPortal(
     <div className="nf-arrival" data-theme="dark" role="status" aria-live="polite" data-testid="arrival-moment">
@@ -61,7 +111,7 @@ export function ArrivalMoment({ t, name }: { t: Dictionary; name?: string | unde
           <ObjectArt name="shield-tick" size={336} priority />
         </span>
       </div>
-      <h1 className="nf-arrival__title">{first ? a.youreIn.replace("{name}", first) : a.youreInNoName}</h1>
+      <h1 ref={title} tabIndex={-1} className="nf-arrival__title" style={NO_RING} data-testid="arrival-title">{first ? a.youreIn.replace("{name}", first) : a.youreInNoName}</h1>
       <p className="nf-arrival__body">{a.arrivalBody}</p>
     </div>,
     document.body,

@@ -142,7 +142,7 @@ export function VerifyCodeForm({
   }, [state.ok, state.verified, router]);
 
   if (state.ok && state.verified) {
-    return <ArrivalMoment t={t} name={state.name} />;
+    return <ArrivalMoment t={t} name={state.name} to={state.verified} />;
   }
 
   /*
