@@ -6,7 +6,9 @@ component with the fixture named in its row. **P** pass, **X** failed and fixed 
 sweep, **F** failed and still open, **·** does not apply. The denominator is 213 real routes
 (every `page.tsx` under `apps/web/src/app`, excluding `(dev)` and `api`).
 
-**Routes audited: 192 of 213.**
+**Routes audited: 188 of the 213** measured at the start of the sweep, plus 4 routes added since (`/join/[code]/start`, `/s/[token]/status`, `/settings/accessibility`, `/settings/region`): 192 records in all.
+
+Not yet audited: `/agreements/[id]`, `/agreements`, `/bookings/[bookingId]`, `/checkout/[bookingId]`, `/checkout`, `/home`, `/listing/[id]`, `/listing/[id]/trust`, `/payments`, `/price/area/[id]`, `/rent/share/[id]`, `/restaurants`, `/saved/searches`, `/search`, `/settings/appearance`, `/settings/help`, `/settings/invite/how-it-works`, `/settings/invite`, `/settings/invite/referrals/[id]`, `/settings/invite/referrals`, `/settings/passcode`, `/stays`, `/stays/search`, `/tenancy/[id]`, `/verification`.
 
 | Family | Audited |
 |---|---|
