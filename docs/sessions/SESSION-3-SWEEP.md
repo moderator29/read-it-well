@@ -134,7 +134,7 @@ Recorded but not counted as audited, because at least one point could not be mea
 | `/agent/assistant` | C1 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/agent/bookings` | C1 | P | P | P | P | P | P | P | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/agent/dashboard` | C1 | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
-| `/agent/earnings` | C1 | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | F | P | P | P | P | P | P | P |
+| `/agent/earnings` | C1 | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | X | P | P | P | P | P | P | P |
 | `/agent/firm` | C1 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/agent/inspections` | C1 | X | · | P | P | P | X | · | · | P | P | P | P | P | · | P | P | P | P | P | P | X | P | P | P |
 | `/agent/list` | C1 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | X | P | P | P |
@@ -278,11 +278,11 @@ Recorded but not counted as audited, because at least one point could not be mea
 | `/settings/payments` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | P | · | P | P | P | X | P | X |
 | `/settings/phone` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | P | P | P | P | P | P | P |
 | `/settings/place` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | · | P | P | P | P | P | X |
-| `/settings/privacy` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | F | F | · | P | P | P | P | P | X |
+| `/settings/privacy` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | X | X | · | P | P | P | P | P | X |
 | `/settings/privacy/ai` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | · | P | P | P | P | P | P |
 | `/settings/privacy/blocked` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | X | P | X |
 | `/settings/privacy/data` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | · | P | P | P | P | P | X |
-| `/settings/privacy/money-lock` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | F | F | · | P | P | P | P | P | P |
+| `/settings/privacy/money-lock` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | X | X | · | P | P | P | P | P | P |
 | `/settings/region` | C3 | P | · | P | P | P | P | · | · | P | P | P | X | P | · | · | P | · | · | P | P | P | P | P | P |
 | `/sign-in` | C6 | P | · | P | P | P | P | · | · | P | X | P | P | P | · | · | P | · | P | P | P | P | P | P | P |
 | `/sign-in/code` | C6 | P | · | P | P | P | P | · | · | P | X | P | P | P | · | · | P | · | · | P | P | P | P | P | P |
@@ -519,7 +519,7 @@ Recorded but not counted as audited, because at least one point could not be mea
 
 **`/agent/earnings`** (The real page inside the real AgentShell (now with AgentInnerNav), a signed-in approved agent from f5/ops-fixtures AGENT_PROFILE, every read without a fixture answered empty by lib/testing/fake-supabase; readAgentEarnings mocked to AGENT_EARNINGS (audit only: C2's surface))
 
-- 17 (open): The empty state (agentEarnings.emptyTitle, emptyBody) and the how-it-works note (howBody) are money sentences in the dictionary, not lib/money/copy.ts, and howBody contradicts the file's docstring. Handed to the lead as c1/agent-earnings-money-copy.patch (EARNINGS_EMPTY_TITLE, EARNINGS_EMPTY_BODY, EARNINGS_SETTLEMENT); not applied, C2's file.
+- 17 (fixed): The empty state (agentEarnings.emptyTitle, emptyBody) and the how-it-works note (howBody) are money sentences in the dictionary, not lib/money/copy.ts, and howBody contradicts the file's docstring. Handed to the lead as c1/agent-earnings-money-copy.patch (EARNINGS_EMPTY_TITLE, EARNINGS_EMPTY_BODY, EARNINGS_SETTLEMENT); not applied, C2's file. Fixed by the lead in ec326177d: the patch applied, the page reads EARNINGS_EMPTY_TITLE, EARNINGS_EMPTY_BODY and EARNINGS_SETTLEMENT.
 
 **`/agent/inspections`** (The real page inside the real AgentShell (now with AgentInnerNav), a signed-in approved agent from f5/ops-fixtures AGENT_PROFILE, every read without a fixture answered empty by lib/testing/fake-supabase; readInspectionsForLister mocked to AGENT_INSPECTIONS)
 
@@ -945,8 +945,8 @@ Recorded but not counted as audited, because at least one point could not be mea
 
 **`/settings/privacy`** (the real page in the real settings layout (SettingsAreaNav), signed in as the preview fixture PERSON (_fixtures/people) through lib/testing/fake-supabase; every other read answers as a new member's account does (empty); nobody blocked, no address move, no money hold)
 
-- 16 (open): The money-lock door's line "Face or fingerprint before money moves" overstates what it guards (only the accounts money is paid into). Fixed in c7/money-lock-copy.patch (MONEY_LOCK_ROW in lib/money/copy.ts), pending the lead.
-- 17 (open): Same line: a money sentence outside lib/money/copy.ts. In the patch.
+- 16 (fixed): The money-lock door's line "Face or fingerprint before money moves" overstates what it guards (only the accounts money is paid into). Fixed in c7/money-lock-copy.patch (MONEY_LOCK_ROW in lib/money/copy.ts), pending the lead. Fixed in d2dd6b520: the lines read MONEY_LOCK_WHAT, MONEY_LOCK_ROW, MONEY_LOCK_BODY, MONEY_LOCK_DONE and MONEY_LOCK_REMOVED from copy.ts, which name what the lock guards today (adding, changing or removing the account money is paid into).
+- 17 (fixed): Same line: a money sentence outside lib/money/copy.ts. In the patch. Fixed in d2dd6b520: the row reads MONEY_LOCK_ROW from copy.ts.
 - 24 (fixed): Back to /settings. A signed-out sign-in link lost where the person was going (bare /sign-in); it carries next through withNext now. (the Blocked row, signed out)
 
 **`/settings/privacy/blocked`** (the real page in the real settings layout (SettingsAreaNav), signed in as the preview fixture PERSON (_fixtures/people) through lib/testing/fake-supabase; every other read answers as a new member's account does (empty); the db2/blocked preview's three fixture rows (names and dates as ISO days) through loadMyBlocks)
@@ -960,8 +960,8 @@ Recorded but not counted as audited, because at least one point could not be mea
 
 **`/settings/privacy/money-lock`** (the real page in the real settings layout (SettingsAreaNav), signed in as the preview fixture PERSON (_fixtures/people) through lib/testing/fake-supabase; every other read answers as a new member's account does (empty); no phone added yet (empty money_credentials))
 
-- 16 (open): "Sending and withdrawing will ask for this phone's lock" and the lede "so a stolen unlocked phone cannot send it" say Vallo holds money to send or withdraw; it holds none (money-intent.ts: the lock guards adding, defaulting and removing bank and payout accounts). Fixed in c7/money-lock-copy.patch, pending the lead.
-- 17 (open): Those are money sentences from the dictionary (platform.moneyLock, experienceAccount lede), not lib/money/copy.ts. The patch adds MONEY_LOCK_WHAT/BODY/DONE/REMOVED there and wires the group and the page to them.
+- 16 (fixed): "Sending and withdrawing will ask for this phone's lock" and the lede "so a stolen unlocked phone cannot send it" say Vallo holds money to send or withdraw; it holds none (money-intent.ts: the lock guards adding, defaulting and removing bank and payout accounts). Fixed in c7/money-lock-copy.patch, pending the lead. Fixed in d2dd6b520: the lines read MONEY_LOCK_WHAT, MONEY_LOCK_ROW, MONEY_LOCK_BODY, MONEY_LOCK_DONE and MONEY_LOCK_REMOVED from copy.ts, which name what the lock guards today (adding, changing or removing the account money is paid into).
+- 17 (fixed): Those are money sentences from the dictionary (platform.moneyLock, experienceAccount lede), not lib/money/copy.ts. The patch adds MONEY_LOCK_WHAT/BODY/DONE/REMOVED there and wires the group and the page to them. Fixed in d2dd6b520: the lines read MONEY_LOCK_WHAT, MONEY_LOCK_ROW, MONEY_LOCK_BODY, MONEY_LOCK_DONE and MONEY_LOCK_REMOVED from copy.ts, which name what the lock guards today (adding, changing or removing the account money is paid into).
 
 **`/settings/region`** (the real page and its new loading.tsx inside the real settings layout)
 

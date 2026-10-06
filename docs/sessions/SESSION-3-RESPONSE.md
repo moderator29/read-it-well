@@ -159,9 +159,14 @@ The 223rd route is the promotion results page (D60). Two records counted earlier
 "routes added" are route handlers, not pages (`/join/[code]/start`,
 `/s/[token]/status`), and do not count. The routes measured between the font move
 (`6a50d1cf5`) and `776f31d54` ran in fallback fonts; all nine were re-measured in the
-real faces and none changed verdict. 14 points are still open across the sweep, each
-listed under its route in the sweep record; most are the retired Guarantee in legal
-text, which needs counsel.
+real faces and none changed verdict. Nine points are still open, each listed under its
+route in the sweep record: six are the retired Guarantee in the legal pages (terms,
+privacy and disclaimer, each at two addresses), which needs counsel and a new Terms
+version; one is the staff money desk's lede, which still names the Guarantee reserve
+and is held with them; one is the app-store badge lettering on the front door (7.9 to
+8.4px in weight 500, the stores' own artwork; the fix is their badge files as images);
+and one is a naming question, the settings area calling /settings/passport "Space
+Passport".
 38 admin, 24 agent and 17 host: every route in those trees. 39 public site, auth and
 landing. A state no fixture holds is listed in its route's remaining items, never
 counted as measured. The rows in section 3 below predate this and leave points
