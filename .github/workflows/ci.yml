@@ -443,13 +443,37 @@ jobs:
     # Keying on the ref means a push only ever evicts its own superseded run,
     # which is correct. THE COST, STATED BECAUSE IT IS A JUDGEMENT ABOUT
     # PRODUCTION AND NOT A TIDY-UP: there is no staging database, so several
-    # branches can now hold connections to the PRODUCTION database at the same
-    # time. That is accepted on three grounds. Every probe runs in a
-    # transaction and rolls back, so none of them writes. Postgres, not this
-    # workflow, is the right thing to arbitrate concurrent transactions. And
-    # the alternative is the status quo, where the gate silently did not run on
-    # the pull request that needed it most. A silent gap is worse than
-    # contention.
+    # branches can now run the whole suite against the PRODUCTION database at
+    # the same time.
+    #
+    # CORRECTED 6 OCTOBER, AFTER THE SECOND REVIEW D5 REQUIRES. This comment
+    # used to say the cost was acceptable because "every probe runs in a
+    # transaction and rolls back, so none of them writes". THAT WAS FALSE.
+    # PROBES WRITE CONSTANTLY. What they never do is COMMIT, and the difference
+    # is the whole argument: a false premise that happens to reach the right
+    # conclusion would wave through a future probe that genuinely does leak.
+    #
+    # The justification that actually holds, and it is enforced rather than
+    # hoped for. `scripts/db-probes/contract.mjs` refuses any probe that is not
+    # exactly one `do $$ ... $$` block, that does not `raise exception
+    # 'PROBE_OK <its own id>'`, that has no PROBE_FAIL branch, that calls
+    # `dblink` or `pg_net` directly, or that contains `COMMIT` at all ("a probe
+    # must never be able to keep what it did"). `run.mjs` then wraps every file
+    # in `begin; ... rollback;`. That shape check is itself a required gate, run
+    # by `run.mjs --check` in the `checks` job above.
+    #
+    # So no probe can commit, and under READ COMMITTED one branch's fixtures
+    # are invisible to another branch for their whole life and are then thrown
+    # away. THE ONLY CROSS-BRANCH COUPLING IS LOCK WAITS on rows keyed by a
+    # constant, and a lock wait fails loudly: `set local lock_timeout` makes it
+    # an explicit red naming a timeout. The status quo produced a nine-second
+    # `cancelled` that read as neither pass nor fail. A loud, retryable,
+    # correctly-attributed failure strictly dominates a silent gap.
+    #
+    # Postgres, not this workflow, is the right thing to arbitrate concurrent
+    # transactions. The known contention points, and the follow-ups that would
+    # remove them, are recorded in docs/sessions/SESSION-4-RESPONSE.md; they are
+    # not this trigger's problem to solve.
     #
     # `cancel-in-progress` stays false: a probe killed mid-transaction leaves
     # its locks to time out, and that reason was always correct.

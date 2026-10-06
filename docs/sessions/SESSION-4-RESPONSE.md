@@ -75,6 +75,176 @@ prompt itself, not because I found a contract.
 
 ---
 
+## VERIFYING SESSION 2'S BRANCH: TWO CLAIMS FALSE, AND THE LEDGER IS WORSE THAN STATED
+
+Checked against file contents on `origin/claude/vallo-backend-money-trust`, with
+my own commands, because three of today's four wrong conclusions came from
+trusting a status line over the thing itself.
+
+### Claim 1: the b2-ledger probe has a verdict and moved into `probes/`. FALSE on both halves
+
+- It is still at `supabase/tests/probes-pending/b2-ledger.sql`.
+  `supabase/tests/probes/b2-ledger.sql` **does not exist**.
+- There is **no recorded verdict anywhere**. The only statement is the negative
+  one in Session 2's own commit on `def190bd5`: the live run "timed out in the
+  MCP tool with nothing recorded". By the standing rule that is a check that
+  failed. Session 2 did not dress it up as a pass, which is to its credit; the
+  resting state is still the one D56 forbids.
+- **CI cannot see it.** `scripts/db-probes/run.mjs:63` resolves `PROBES_DIR` to
+  `supabase/tests/probes` and `:68` is a flat `readdirSync`: no recursion, no
+  `probes-pending`. So the verification probe for a 641-line money ledger **that
+  is live in production** is invisible to the suite.
+- **The folder's own contract documents the violation.**
+  `probes-pending/README.md` says a probe moves out "in the same commit that
+  records its migration as applied". `def190bd5` records `b2_ledger` in
+  `APPLIED.txt:592` and left the probe where it was.
+
+**And the part worse than the claim.** Of D56's five behaviours, four are
+asserted on paper by a file that has never executed. **The fifth is asserted by
+nothing at all:** that a posting failure raises a risk alert *without* aborting a
+settlement of money already taken. The migration's `:514-545` is a bare
+`exception when others then` that swallows every posting failure, writes a
+`risk_alerts` row, and degrades to `raise warning` if even that insert fails.
+`grep -i 'risk\|alert'` over the probe returns **zero hits**. So the one
+behaviour that protects money already taken is unexercised, and a posting bug
+would surface only as an alert row nobody has proven gets written.
+
+### Claim 2: `events.test.ts` points at `20261006105326_b2_ledger.sql`. FALSE, and it is dead rather than mis-pointed
+
+`apps/web/src/lib/ledger/events.test.ts:9` reads:
+
+```
+const MIGRATION = join(__dirname, "../../../../../supabase/migrations/pending/b2_ledger.sql");
+```
+
+`git cat-file -e` on that path returns **does not exist**. The ledger moved to
+the timestamped name and the test's path never followed. Two of its three blocks
+`readFileSync` that file, so they throw `ENOENT`: **the only guard tying the
+TypeScript event vocabulary to the database is inoperative.** And even with the
+path fixed, those two blocks regex the SQL as text for table names and an event
+list, which is not behaviour.
+
+### Claim 3: the referral engine has campaigns, a budget period and a cap in naira. PARTLY TRUE, and the important part is favourable
+
+**It was not applied, so the loud warning is not needed and D62 is being
+honoured.** `APPLIED.txt` has zero referral or rewards entries, no migration in
+the applied set creates `referral_policy`, `referrals`, `referral_events`,
+`rewards_payouts` or `rewards_ledger`, and the file is still at
+`supabase/migrations/pending/b4_referral_rewards_engine.sql`. No rows exist and
+no money-area restructure is pending.
+
+Of the three things D62 requires:
+
+| | |
+| --- | --- |
+| Monthly budget period | **present** (`platform_monthly_budget_minor`, `private.lagos_month()`, budget enforced under an advisory lock) |
+| Cap in naira | **present** (`member_monthly_cap`, `reward_minor`, `withdrawal_min_minor`, kobo minor units) |
+| **Campaigns** | **absent.** `grep -ci campaign` on the file returns **0** |
+
+So the organising dimension is still missing, which is a design gap in an
+unapplied file rather than a live restructure. That is the good version of this
+outcome, and it is the version where fixing it costs nothing.
+
+---
+
+## THE D5 SECOND PASS ON MY OWN CHANGE: SAFE WITH CAVEATS, AND MY JUSTIFICATION WAS FALSE
+
+D5 clause 1 wants a second, adversarial pass **by a different agent than the one
+that wrote it**. I wrote the change, so I had an agent attack it rather than
+reviewing it myself. That is the clause satisfied in substance rather than
+ticked.
+
+**Verdict: SAFE WITH NAMED CAVEATS. Do not revert.** And the review found a real
+defect, in my own reasoning rather than in the change.
+
+### The sentence I wrote was false, and I have corrected it
+
+My `ci.yml` comment justified the per-ref group by saying "every probe runs in a
+transaction and rolls back, **so none of them writes**."
+
+**Probes write constantly.** What they never do is **commit**. I verified the
+mechanism myself rather than taking it on report:
+`scripts/db-probes/contract.mjs` refuses any probe that is not exactly one
+`do $$ ... $$` block, that does not `raise exception 'PROBE_OK <its own id>'`,
+that has no `PROBE_FAIL` branch, that calls `dblink` or `pg_net` directly, or
+that **contains `COMMIT` at all** ("a probe must never be able to keep what it
+did"), and `run.mjs` wraps every file in `begin; ... rollback;`.
+
+The distinction is the whole argument. "Nothing writes" is a premise that would
+**wave through a future probe that genuinely does leak**, because it describes a
+property nothing enforces. "Nothing commits" is enforced, by a shape check that
+is itself a required gate. Same conclusion, and only one of the two is load
+bearing. The comment now says the second thing and says why.
+
+### What the review established, and the one risk that is structurally dead
+
+**Risk 1, global-state assertions, was judged the likeliest and cannot happen.**
+Because no probe can commit, under READ COMMITTED one branch's fixtures are
+invisible to another for their whole life and then discarded. The genuinely
+unscoped whole-table assertions were enumerated rather than assumed:
+`dead-brand.sql` counts over four tables but nothing anywhere inserts a matching
+row; `mon-10-money-grants.sql:74` and others count but **discard the value**;
+`sec-console-mfa.sql:52` can only be pushed toward passing by extra rows. One
+true delta assertion exists, `ops-03.sql:29-48` over `net.http_request_queue`,
+and its perturbation is a pre-existing flake identical under serialisation.
+
+**Risk 2, advisory lock inversion: none found.** Zero probes take one directly.
+The Guarantee reserve lock is real and is the worst possible shape, a single
+global constant key at
+`20260925121219_track_a2_...sql:911`, but it sits inside
+`admin_decide_guarantee_claim` and **no probe calls that function**, so it is not
+on the probe path at all. One lock is reachable, in the conversations trigger,
+and both sides take the same key, so there is contention without inversion.
+
+**Risk 4, connection count: the premise was wrong.** `run.mjs` is a plain
+`for` around **`spawnSync`**, so one run holds exactly one connection at a time.
+Four concurrent runs is four connections. This risk does not exist.
+
+### The caveats that are real, and which I am NOT fixing myself
+
+All four surface as a **loud red naming a lock timeout**. None can produce a
+false pass, corrupt data, leak a row or falsify an assertion. That is the right
+direction of trade against a nine-second `cancelled` that read as neither pass
+nor fail.
+
+1. **The shared rate-limit counter row**, highest probability. `sec-09` and
+   `sec-05` both insert messages as the same QA member, so
+   `private.consume_rate_limit` upserts **one row** keyed on a constant bucket,
+   constant subject and a shared wall-clock window. Branch A holds it for ~90
+   inserts; branch B hits the 5 s `lock_timeout`. It needs only two runs, and
+   because two different probes touch the same row the runs need not even be
+   aligned. `sec-09.sql:6-12` records that this probe already broke once on the
+   same row from the member's real activity, so the hazard is live and my change
+   adds synthetic writers to it.
+2. **`console_step_ups`**, 29 of 64 probes, all upserting rows keyed on the one
+   constant `session_id` `00000000-0000-4000-8000-00000000c0de` as their first
+   statement. Individually harmless at ~1.5 s average, but the waits compound,
+   and with four open pull requests plus a push to `main` there are **five**
+   contending groups rather than four, because `main` is its own ref.
+3. **`ops-03`'s constant Vault secret name**, where two branches can both take
+   the create path and conflict on a unique name.
+4. **The misread pattern, and this is the one I care about most.** `judgeRun`
+   matches `PROBE_FAIL` before its generic `ERROR:` fallback, so a lock timeout
+   swallowed by one of the 24 `exception when others then ... := sqlstate`
+   handlers would be reported as, for example, "the 61st message in ten minutes
+   was not refused (55P03)" which **reads as an abuse-path security regression
+   rather than contention**. That is a far worse misread than "flaky test". It
+   does not bite today, confirmed at all three places it could, but it is one
+   probe edit away.
+
+**Why I am not making these four changes.** Three of them are probe files and
+`run.mjs`, which is probe infrastructure against the production database.
+Raising `lock_timeout`, or re-keying a fixture used by 29 probes, is **another
+production-touching change by the session whose job is to verify** and would
+need its own second pass. Making it unreviewed would repeat exactly the breach I
+reported myself for. So they are recorded here with evidence and go to whoever
+Session 1 assigns.
+
+**The one thing I did fix is the one thing that was mine:** a false statement I
+wrote, in a comment, about my own change. No behaviour changed.
+
+---
+
 ## WHY I HAVE NOT MERGED #83 YET, AND IT IS THE STANDING RULE APPLIED TO MYSELF
 
 I was told to push #83 to main, and then told the mechanics: merge main once #86
