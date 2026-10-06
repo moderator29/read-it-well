@@ -16,7 +16,7 @@ import {
 import { PageHeader } from "@/components/app/PageHeader";
 import { EmptyState, TYPE } from "@/components/app/Screen";
 import { ButtonLink } from "@/components/ui/Button";
-import { authHref } from "@/components/auth/auth-intent";
+import { withNext } from "@/lib/auth/next-link";
 import { HistoryList } from "@/components/app/money-history/HistoryList";
 import { HistoryEmpty, HistoryUnavailable } from "@/components/app/money-history/HistoryStates";
 
@@ -51,7 +51,7 @@ export default async function RefundsPage({
           title="Sign in to see your refunds"
           body={REFUNDS_LEDE}
           action={
-            <ButtonLink href={authHref("/refunds", "sign-in")} variant="primary" size="lg">
+            <ButtonLink href={withNext("/sign-in", "/refunds")} variant="primary" size="lg">
               Sign in
             </ButtonLink>
           }
