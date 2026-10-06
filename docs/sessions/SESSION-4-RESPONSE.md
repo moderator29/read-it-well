@@ -925,7 +925,7 @@ and found this:
 | `/sign-up/email` | 656, 665, 661, 658, 677 | 21 | 658 | 700 |
 | `/check` | 596, 601, 592, 597, 610 | 18 | 590 | 630 |
 | `/move-in-cost` | 468, 464, 462, 475, 475 | 13 | 458 | 495 |
-| `/for-agents` | 483, 491, 492, 497, 484 | 14 | **552** | 575 |
+| `/for-agents` | 483, 491, 492, 497, 484 | 14 | **552**, then 482 | 575 |
 | `/guides/avoiding-rental-scams` | 454, 458, 452, 454, 452 | 6 | 452 | 480 |
 
 My 25 KB headroom would have put `/welcome` at 685 against readings of 734 and
@@ -946,9 +946,14 @@ breakages still failed.
   of the instrument. Fix that and every budget here can come down. I have not
   done it: it is a change to how the measurement works and wanted more care
   than I could give it after the rest of this round.
-- **`/for-agents` reads 552 in CI and 483 to 497 here, on the same commit.** A
-  55 KB gap with no known cause. Its budget follows CI's figure, because CI is
-  where the gate runs.
+- **`/for-agents` looked like a CI-versus-local difference and is not one.**
+  I first saw CI read 552 against 483 to 497 in this container and recorded it
+  as "a 55 KB gap with no known cause". The next CI run
+  (`37408766620`) read **482** on the same code. So that 55 KB was variance
+  inside CI, not an environment difference, and I have corrected the claim in
+  `perf-budget.json` rather than leave somebody hunting a build difference that
+  does not exist. Its budget stays 575, because 552 is still the highest
+  reading ever seen for it, which is what the rule asks for.
 
 **I did not use `check-weight.mjs --record`.** It writes each budget as the
 measured weight **minus 20 percent**, which would have put all eight routes
@@ -998,6 +1003,46 @@ when the real desks were not scanned it says so in capitals. Tested both skip
 paths and the harness path against a real production build in this container;
 it reproduced the same three findings CI reports, which is how I know the change
 did not quietly stop scanning something.
+
+### Both gate fixes verified on a CI runner, not just locally
+
+Run `37408766620` on head `d2d5e61`, every job green. I read the logs rather
+than the conclusions, because the whole lesson of D47 is that a conclusion is
+not evidence.
+
+**The weight budgets are live and enforced on CI's own build:**
+
+| Route | CI measured | Budget | Margin |
+| --- | --- | --- | --- |
+| `/` | 510 | 555 | 45 |
+| `/welcome` | 658 | 815 | 157 |
+| `/sign-in` | 653 | 690 | 37 |
+| `/sign-up/email` | 678 | 700 | **22** |
+| `/check` | 590 | 630 | 40 |
+| `/move-in-cost` | 462 | 495 | 33 |
+| `/for-agents` | 482 | 575 | 93 |
+| `/guides/avoiding-rental-scams` | 458 | 480 | 22 |
+
+Every budget was read and compared. `/sign-up/email` is the tightest at 22 KB,
+and its observed spread is 21, so it holds by the margin the rule was built to
+give it rather than by luck. The seven signed-in routes still print `skip` for
+want of a `WEIGHT_COOKIE`, exactly as recorded.
+
+**The desks spec says what it measured, verbatim from the CI log:**
+
+```
+SKIP    QA_MEMBER_EMAIL and QA_MEMBER_PASSWORD are not set, so the REAL host and agent desks were not scanned; only the fixture harness was
+a11y desks: pass on the fixture harness (no serious or critical findings).
+a11y desks: THE REAL DESKS WERE NOT SCANNED. Set QA_MEMBER_EMAIL and QA_MEMBER_PASSWORD to measure them.
+a11y desks: the admin console is measured only through the harness; its security key cannot be proved by a spec.
+```
+
+Same 13 notes as before the change, so nothing quietly stopped being scanned.
+The job can no longer be read as a verdict on the product.
+
+**And `Advisories` is green on this head**, the second clean-runner
+confirmation of the `source-map-js` pin. `Database probes` 64 of 64,
+`iOS compile` green, `Android emulator smoke` green.
 
 ### What is still mine and not done
 
