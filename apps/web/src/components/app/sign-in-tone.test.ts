@@ -21,6 +21,8 @@ describe("a sign-in prompt reads as neutral", () => {
       ["app/(app)/checkout/[bookingId]/page.tsx", 'read.state === "signed-out"'],
       ["app/(app)/rent/pay/[inspectionId]/page.tsx", 'read.state === "signed-out"'],
       ["app/(app)/pay/crypto/[reference]/page.tsx", 'session.state !== "signed-in"'],
+      /* A9: the review of a stay drew the same confirmed shield over its sign-in prompt. */
+      ["app/(app)/bookings/[bookingId]/review/page.tsx", 'read.state === "signed-out"'],
     ] as const) {
       const text = src(file);
       const at = text.indexOf(from);
@@ -30,6 +32,18 @@ describe("a sign-in prompt reads as neutral", () => {
       expect(block, file).not.toContain('state="confirmed"');
       expect(block, file).not.toContain("shield-check");
     }
+  });
+
+  it("the review's sign-in prompt returns to the review, in the reader's words", () => {
+    const text = src("app/(app)/bookings/[bookingId]/review/page.tsx");
+    const at = text.indexOf('read.state === "signed-out"');
+    const block = text.slice(at, text.indexOf("</Shell>", at));
+    /* "Sign in and you land straight back here" is only true with a `next`. */
+    expect(block).toContain('withNext("/sign-in", `/bookings/${encodeURIComponent(bookingId)}/review`)');
+    expect(block).not.toMatch(/href: "\/sign-in"/);
+    /* Words from the dictionary, not typed into the page. */
+    expect(block).toContain("words.signedOutTitle");
+    expect(block).not.toContain('"Sign in to review your stay"');
   });
 
   it("draws a lock on the neutral plate, not the brand verified mark", async () => {

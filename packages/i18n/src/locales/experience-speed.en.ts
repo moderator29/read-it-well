@@ -33,4 +33,14 @@ export const experienceSpeedEn = {
     /** The label of the dated fact under an answered check. */
     answeredLabel: "Answered",
   },
+  /**
+   * Reviewing a stay, signed out (`bookings/[bookingId]/review`). Moved here
+   * from the page word for word; the link under it carries the review's own
+   * address, so "you land straight back here" is true.
+   */
+  stayReview: {
+    signedOutTitle: "Sign in to review your stay",
+    signedOutBody: "Reviews are tied to the stay you took, so we need to know it was you. Sign in and you land straight back here.",
+    signIn: "Sign in",
+  },
 };
