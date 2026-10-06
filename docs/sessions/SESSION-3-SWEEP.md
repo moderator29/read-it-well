@@ -6,51 +6,76 @@ component with the fixture named in its row. **P** pass, **X** failed and fixed 
 sweep, **F** failed and still open, **·** does not apply. The denominator is 213 real routes
 (every `page.tsx` under `apps/web/src/app`, excluding `(dev)` and `api`).
 
-**Routes audited: 27 of 213.**
+**Routes audited: 44 of 213.**
 
 | Family | Audited |
 |---|---|
-| admin | 17 |
+| admin | 23 |
 | around | 1 |
 | assistant | 1 |
 | bookings | 1 |
 | inspections | 1 |
+| legal | 3 |
 | messages | 2 |
 | profile | 1 |
 | rent | 2 |
 | stories | 1 |
+| support | 3 |
+| tenancy | 1 |
+| u | 4 |
 
 | Route | By | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| `/admin` | C1 | P | P | P | P | P | P | X | P | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/admin/account-recovery` | C1 | P | · | P | P | X | X | · | · | · | P | P | P | P | · | P | P | · | X | P | P | P | P | P | P |
 | `/admin/agents` | C1 | P | · | P | X | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/admin/alerts` | C1 | X | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/admin/bookings` | C1 | P | P | P | P | P | X | X | P | P | P | P | P | P | · | P | P | · | P | P | P | X | X | P | P |
 | `/admin/bookings/reservations` | C1 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
+| `/admin/compliance` | C1 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/admin/examples` | C1 | P | P | P | P | P | P | X | P | P | P | P | P | P | · | P | P | · | P | P | P | P | X | P | X |
 | `/admin/handbook` | C1 | P | · | P | P | X | P | · | · | · | P | P | P | P | · | P | P | · | · | P | P | P | P | P | X |
 | `/admin/handbook/position` | C1 | P | · | P | P | X | P | · | · | · | P | P | P | P | · | · | P | · | · | P | P | P | P | P | P |
 | `/admin/kyc` | C1 | P | P | P | X | X | P | P | P | P | P | P | P | P | · | P | P | · | P | P | X | P | P | P | P |
+| `/admin/listings` | C1 | P | P | P | X | P | P | P | P | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
+| `/admin/listings/[id]` | C1 | P | · | P | P | P | X | P | P | P | P | P | P | P | · | P | P | · | P | P | P | X | P | P | P |
+| `/admin/operations` | C1 | P | P | P | X | P | P | P | P | P | P | P | P | P | · | P | P | · | P | X | X | X | P | P | P |
 | `/admin/payments` | C1 | P | X | P | P | X | P | P | P | P | P | P | P | P | · | P | P | P | P | P | P | X | X | P | P |
 | `/admin/reference` | C1 | P | · | P | X | P | P | P | · | · | P | P | P | P | · | · | P | · | P | P | P | P | P | P | X |
 | `/admin/settings` | C1 | P | · | P | P | P | P | · | · | X | P | P | P | P | · | · | P | · | · | P | P | P | P | P | P |
 | `/admin/social` | C1 | P | · | P | X | X | X | P | · | · | P | P | P | P | · | X | P | · | P | P | P | X | P | P | P |
 | `/admin/staff` | C1 | P | · | P | X | X | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | X | X | P | X |
 | `/admin/standing` | C1 | P | · | P | X | X | P | · | · | P | P | P | P | P | · | P | P | · | X | P | P | P | P | P | P |
+| `/admin/supply` | C1 | P | P | P | P | P | X | X | P | P | P | P | P | P | · | X | P | · | P | P | P | P | P | P | P |
 | `/admin/support` | C1 | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | P | · | P | X | P | P | P | P | P |
 | `/admin/switches` | C1 | P | · | P | P | P | X | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | X |
 | `/around/manage` | C3 | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | P | · | · | · | · | · | · | · | P |
 | `/assistant` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | P | P | X | P | P | P | P |
 | `/bookings/[bookingId]/review` | C3 | P | · | P | P | P | P | · | P | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/inspections/gate/[id]` | C3 | P | · | P | P | P | P | · | P | · | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
+| `/legal/disclaimer` | C3 | P | · | P | P | P | P | · | · | · | P | P | P | P | · | P | P | F | · | P | P | P | P | P | P |
+| `/legal/privacy` | C3 | P | · | P | P | P | P | · | · | · | P | P | P | P | · | P | P | F | · | P | P | P | P | P | P |
+| `/legal/terms` | C3 | P | · | P | P | P | P | · | · | · | P | P | P | P | · | P | P | F | · | P | P | P | P | P | P |
 | `/messages/new` | C3 | P | · | P | P | P | P | · | · | · | P | P | P | P | · | · | P | · | P | P | P | P | X | P | P |
 | `/messages/share/[kind]/[id]` | C3 | P | · | P | P | P | P | · | P | P | P | P | P | P | · | P | P | · | P | P | P | P | X | P | P |
 | `/profile/setup/firm` | C3 | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | P | · | · | · | · | · | · | · | P |
 | `/rent/pay/[inspectionId]` | C3 | P | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | X | · | P | P | P | P | P | P |
 | `/rent/review/[paymentId]` | C3 | P | · | P | P | P | P | · | · | · | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/stories/new` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | P | P | P | P | X | P | P |
+| `/support/messages` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | X | P | P |
+| `/support/messages/[id]` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | X | P | X | P | P |
+| `/support/new` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | X | P | P |
+| `/tenancy/[id]/complaint` | C3 | P | · | P | P | · | P | · | · | P | P | P | P | P | · | · | P | · | P | P | P | P | P | P | P |
+| `/u` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | X | P | · | P | P | P | P | X | P | P |
+| `/u/[handle]/edit` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | P | P | P | P | P | X | P | P |
+| `/u/[handle]/followers` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | P | P | P | P | X | X | P | P |
+| `/u/[handle]/following` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | P | P | P | P | P | X | P | P |
 
 ## What failed, and what was done
+
+**`/admin`** (the repository's own preview of the overview (session-b/admin/overview), the real OverviewView in the real AdminFrame from its fixtures)
+
+- 7 (fixed): At 1440 the naira KPI ("N18,450,000" at the viewport size) ran past its quarter-width tile (auditFit: label spills out of its control). The figure is capped by its own tile now (container query, 9.5cqi), so it fits at every width. Figures tabular through formatMoney.
 
 **`/admin/account-recovery`** (the real page inside the real AdminFrame; requireAdmin mocked to a super admin whose client is lib/testing/fake-supabase answering no request (no fixture of a recovery request exists))
 
@@ -94,6 +119,22 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 - 5 (fixed): The four figure tiles stacked one per row at 390, a whole screen before the first queue row; 2x2 on a phone and four across from 768.
 - 20 (fixed): In light every review badge measured 1.04 to 1.05 to 1 (axe colour-contrast, 16 badges at 390): its ink mixed toward the on-brand white, which is white on paper too. It mixes toward the theme's primary text now: 0 violations in both themes.
 
+**`/admin/listings`** (the repository's own preview of the desk (session-b/admin-review/[desk] with desk=listings), the real ListingsQueue and MandatesPanel in the real AdminFrame)
+
+- 4 (fixed): Review badges drew a ring and a glow (fixed with /admin/kyc, review.css).
+
+**`/admin/listings/[id]`** (the repository's own preview of the review page (session-b/admin-review/[desk] with desk=review), the real ListingReview and ReviewActionBar)
+
+- 6 (fixed): The map's attribution drew at 10px (a raw size in review.css); it is the 12px overline token now.
+- 21 (fixed): The photo strip scrolls sideways on a phone and could not be reached by keyboard (axe scrollable-region-focusable); it is focusable with the console's ring now. The walkthrough video's focus sits in its native controls, which draw their own ring; the walk reads the host and reports no ring, recorded rather than hidden.
+
+**`/admin/operations`** (the repository's own preview of the desk (session-b/admin/operations), the real OperationsView from its fixtures)
+
+- 4 (fixed): Every status badge drew a ring and a 6px glow (two edges); the ring alone now (console-wide).
+- 19 (fixed): The jobs table was the desktop table squeezed into 358px: every cell broken a word a line and the status column past the panel's edge (1 clipped finding at 390). Below 768 it is self-naming rows now (name, then schedule, last run, duration, status, each with its label); the 5 remaining "clipped" findings are the visually hidden head, by design.
+- 20 (fixed): On paper the solid Failed badge measured 2.67 to 1 (white on a pale rose); it fills with paper's deep error ink now. 0 axe violations in both themes.
+- 21 (fixed): The sideways-scrolling table regions could not be reached by keyboard (axe scrollable-region-focusable); each is a labelled, focusable region with the console's ring now (jobs, notifications, and the front door funnel).
+
 **`/admin/payments`** (the real page inside the real AdminFrame; the attempts from lib/admin/reads/payments.test.ts through the real buildPayments; bd/fixtures LOOKUP and SAVED_METHODS for the lookup; a health read with nothing unsettled (no fixture of an unsettled payment exists))
 
 - 2 (fixed): The health figure (waiting on the provider) sat under the whole payments table; it opens the page now, with the unsettled detail beside it.
@@ -132,6 +173,12 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 - 5 (fixed): The record's search sat above the grant form it does not narrow; now it sits under the record heading with the capped-search note beside it.
 - 18 (fixed): With no grant on record the page drew only the empty state, and the grant form lives in the desk, so the first badge could never be granted from the desk whose empty copy says to grant it here. The form now always draws; the empty state is the record's and points at the form above.
 
+**`/admin/supply`** (the real page in the real AdminFrame; getSupplyDesk through the real buildSupply over lib/admin/reads/supply.test.ts's inputs; getFirmRosters through the real rostersFromRows over supply-firms.test.ts's rows; the demand board empty (no fixture))
+
+- 6 (fixed): The growth chart's series names were SVG text in a 380-wide drawing, drawn at 9.9 to 10.2px (5 elements under 12px at 390 and 1440, measured with the drawing's scale), and the donut's Total caption at 11.9px. The series names are HTML at 12px beside the legend from 30rem up; the donut caption is drawn at 13px.
+- 7 (fixed): The growth chart labelled quarter gridlines with rounded counts; whole counts only now. Money through formatMoney.
+- 15 (fixed): An unverified account was drawn with a red cross and "No", as if a check had failed; it reads quietly now with no glyph (a null never looks negative).
+
 **`/admin/support`** (the real page inside the real AdminFrame; getSupportQueue and getSupportTicketDetail mocked to support-staff/fixtures ROWS and detailFor (the refund ticket open, escalations installed))
 
 - 19 (fixed): At 1440 the internal-note form ran 8px past its card in the narrow side column (4 overflow findings, the scope select's longest option set the grid's width); the form's column shrinks now (shared NoteForm, used on every desk with notes).
@@ -144,6 +191,18 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 **`/assistant`** (the real page with readAssistantViewer mocked to _fixtures/people PERSON's initial and aiConsentForViewer both true and false; no thread (threads live on the device, so a first visit is empty))
 
 - 20 (fixed): axe aria-prohibited-attr on arrival (1 at dark.390 and light.390): the thread was a div carrying aria-label with no role. It is a named region now.
+
+**`/legal/disclaimer`** (none needed; the page reads lib/legal content only)
+
+- 17 (open): Five Guarantee mentions remain though D51 retired it.
+
+**`/legal/privacy`** (none needed; the page reads lib/legal content only)
+
+- 17 (open): Six Guarantee mentions remain (the contribution in the payment split, Guarantee claims) though D51 retired it.
+
+**`/legal/terms`** (none needed; the page reads lib/legal content only)
+
+- 17 (open): Section 14 "The Vallo Guarantee" and the Guarantee contribution sentences in sections 4 and 9 still describe a retired product (D51: guarantee_bps = 0). 13 Guarantee mentions.
 
 **`/messages/new`** (the real page signed in with findConversationForListing answering no thread yet, the listing repository returning f3 RENTAL, no viewing slots; and the signed-out bridge)
 
@@ -160,4 +219,35 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 **`/stories/new`** (the real page with social on and listMyAreas mocked to session-b/sweep-orphans AREAS)
 
 - 22 (fixed): Overflow 0 in all four, but the page's strings were English literals. They are in experienceSocial.newStory now.
+
+**`/support/messages`** (the real page inside its real layout, loadMyTickets mocked to preview/support MY_TICKETS)
+
+- 22 (fixed): Overflow 0 in all four, but the page's 11 strings were English literals. They are in experienceInbox.support.pages now.
+
+**`/support/messages/[id]`** (the real page inside its real layout, loadMyTicket mocked to preview/support WAITING_TICKET with its messages and attachments, and RESOLVED_TICKET with its messages)
+
+- 20 (fixed): axe list on arrival (1 at dark.390 and light.390): the day divider sat in <li role="none">, so the <ol> had a child that is not a list item. It is a plain <li> now; axe 0.
+- 22 (fixed): Overflow 0 in all four, but the page's 9 strings were English literals. They are in experienceInbox.support.pages now.
+
+**`/support/new`** (the real page inside its real layout as Report a problem, loadMyRelatedRecords mocked to preview/support RECORDS)
+
+- 22 (fixed): The page's 7 strings were English literals; they are in experienceInbox.support.pages now.
+
+**`/u`** (the real page with findPeople's own ready answer: no query and nobody, and a query naming _fixtures/people PERSON and COUNTERPART (no badge, no occupation, no place, so nothing is claimed beyond the fixture))
+
+- 15 (fixed): Every agent row drew a Verified agent tick from isAgent, which is a role (an approved agent at tier 0 has had no check). The type's own comment forbids it. The mark now comes from the published badgeTier through TierBadge, as on the profile; with no badge, nothing is drawn.
+- 22 (fixed): Overflow 0 in all four, but 15 strings were English literals. They are in experienceSocial.people now.
+
+**`/u/[handle]/edit`** (the real page with loadProfileEditor mocked to the editing state with f4 EDITOR_PROFILE and AREA_OPTIONS (what the f4 edit-profile deck draws))
+
+- 22 (fixed): Overflow 0 in all four, but the page's 17 strings were English literals. They are in experienceSocial.editProfile now.
+
+**`/u/[handle]/followers`** (the real page with getFollowList's own found answer naming _fixtures/people COUNTERPART and HOTEL's name as followers of PERSON, no badge and no bio)
+
+- 21 (fixed): Each name link was 21.7px tall (2 targets under 44 at every width and locale). It takes nf-tap now, which grows the target with a centred transparent pseudo-element and keeps the drawing: 0 under 44.
+- 22 (fixed): The metadata title was an English literal; experienceSocial.follows now.
+
+**`/u/[handle]/following`** (the real page with getFollowList's own found answer and no one in it)
+
+- 22 (fixed): The metadata title was an English literal; experienceSocial.follows now.
 
