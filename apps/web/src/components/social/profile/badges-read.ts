@@ -1,4 +1,5 @@
 import "server-only";
+import { reportReadError } from "@/lib/observability/read-error";
 import { reportError } from "@/lib/observability/report";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -84,6 +85,7 @@ export async function readProfileBadges(
       .is("revoked_at", null)
       .order("granted_at", { ascending: false })
       .limit(24);
+    await reportReadError("read.badges.readProfileBadges", error);
     if (error || !data) return null;
 
     const date = new Intl.DateTimeFormat(intlTag[locale], { dateStyle: "long", timeZone: "Africa/Lagos" });

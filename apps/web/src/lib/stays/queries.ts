@@ -1,4 +1,5 @@
 import "server-only";
+import { reportReadError } from "@/lib/observability/read-error";
 import { pointSelect } from "../supabase/public-point";
 
 import { isSupabaseConfigured } from "../supabase/env";
@@ -93,6 +94,7 @@ export async function listStaysShelf(
       p_city: scope.city,
       p_limit: limit,
     });
+    await reportReadError("read.stays.listStaysShelf", error);
     if (error || !data) return [];
     return data;
   } catch {
@@ -306,6 +308,7 @@ export async function listRestaurants(
     if (scope.city) query = query.ilike("city", scope.city);
 
     const { data: businesses, error } = await query;
+    await reportReadError("read.stays.listRestaurants", error);
     if (error || !businesses || businesses.length === 0) return [];
     const ids = businesses.map((b) => b.id);
 

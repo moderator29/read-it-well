@@ -1,4 +1,5 @@
 import "server-only";
+import { reportReadError } from "@/lib/observability/read-error";
 
 import { resolveSession } from "../actions/session";
 import { deskStage, type DeskStage, type LostReason, type StageFacts } from "./stage";
@@ -24,6 +25,7 @@ export async function readDeskStages(): Promise<Map<string, DeskStage> | null> {
   try {
     const rpc = session.supabase.rpc.bind(session.supabase) as unknown as Rpc;
     const { data, error } = await rpc("enquiry_stage_facts");
+    await reportReadError("read.enquiry.readDeskStages", error);
     if (error || !Array.isArray(data)) return null;
     const out = new Map<string, DeskStage>();
     for (const row of data as StageFacts[]) {
@@ -56,6 +58,7 @@ export async function readLostReasonsByArea(weeks = 12): Promise<LostByArea[] | 
     const rpc = session.supabase.rpc.bind(session.supabase) as unknown as Rpc;
     const { data, error } = await rpc("lost_reasons_by_area", { p_weeks: weeks });
     if ((error as { code?: string } | null)?.code === "42501") return "approved_only";
+    await reportReadError("read.enquiry.readLostReasonsByArea", error);
     if (error || !Array.isArray(data)) return null;
     const areas = new Map<string, LostByArea>();
     for (const row of data as { state_code: string | null; area: string; reason: LostReason | "other"; lost: number; area_lost: number }[]) {

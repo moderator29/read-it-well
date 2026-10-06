@@ -1,4 +1,5 @@
 import "server-only";
+import { reportReadError } from "@/lib/observability/read-error";
 import { subjectHref, subjectKey, subjectTitles, type AgreementSubject } from "./subject";
 
 import { resolveSession } from "../actions/session";
@@ -65,6 +66,7 @@ export async function readMyAgreements(): Promise<AgreementSummary[] | null> {
     .select("id, kind, status, listing_id, accommodation_id, amount_minor, renter_id, owner_id, updated_at")
     .order("updated_at", { ascending: false })
     .limit(100);
+  await reportReadError("read.agreements.readMyAgreements", error);
   if (error) return null;
   const rows = (data ?? []) as unknown as (AgreementSubject & {
     id: string;

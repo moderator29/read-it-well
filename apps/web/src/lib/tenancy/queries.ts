@@ -1,4 +1,5 @@
 import "server-only";
+import { reportReadError } from "@/lib/observability/read-error";
 
 import { firstNameAndInitial } from "../after-gate/public-place-model";
 
@@ -268,6 +269,7 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
 
   try {
     const { data: rp, error } = await db.from("rent_payments").select("*").eq("id", id).maybeSingle();
+    await reportReadError("read.tenancy.getTenancyFile", error);
     if (error) return { state: "unavailable" };
     if (!rp) return { state: "missing" };
 
@@ -301,6 +303,7 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
         .limit(1),
       loose.rpc("tenancy_is_void", { p_rent_payment: id }),
     ]);
+    await reportReadError("read.tenancy.getTenancyFile", listingRead.error, txRead.error, snapshotRead.error, obligationRead.error, reportsRead.error, viewingRead.error, pinsRead.error, codeRead.error, voidRead.error);
 
     const listing = listingRead.data;
     let listerName: string | null = null;
@@ -332,6 +335,7 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
         // `guarantee_claims_read`, so tenant and lister see the same Guarantee position.
         loose.from("guarantee_claims").select("status, approved_minor").eq("caution_obligation_id", obligationId),
       ]);
+      await reportReadError("read.tenancy.getTenancyFile", deductionsRead.error, returnsRead.error, claimsRead.error);
       const deductionRows = rows(deductionsRead.data);
       const returnRows = rows(returnsRead.data);
       const deductionIds = deductionRows.map((row) => String(row.id));
@@ -542,6 +546,7 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
       // Readable by the successor's owner only, so only the lister sees it.
       loose.from("listing_lineage").select("successor_listing_id").eq("predecessor_rent_payment_id", id).maybeSingle(),
     ]);
+    await reportReadError("read.tenancy.getTenancyFile", offerRead.error, answerRead.error, exitRead.error, lineageRead.error);
     const offerRow = offerRead.error ? null : (rows(offerRead.data)[0] ?? null);
     const offerRent = offerRow ? kobo(offerRow.rent_minor) : null;
     const offer =
@@ -597,6 +602,7 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
 
     /* ---------------------------------------------------------- flatmates */
     const contributorsRead = await loose.from("rent_payment_contributors").select("id, user_id, share_minor").eq("rent_payment_id", id).order("added_at");
+    await reportReadError("read.tenancy.getTenancyFile", contributorsRead.error);
     const contributorRows = contributorsRead.error ? [] : rows(contributorsRead.data);
     const coShares = contributorRows.flatMap((row) => {
       const share = kobo(row.share_minor);

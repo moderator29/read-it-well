@@ -1,4 +1,5 @@
 import "server-only";
+import { reportReadError } from "@/lib/observability/read-error";
 import { reportError } from "@/lib/observability/report";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -61,11 +62,13 @@ export async function readRequests(supabase: Db, agentId: string): Promise<Reque
         .limit(MAX_REQUEST_ROWS),
       supabase.from("agents").select("created_at").eq("id", agentId).maybeSingle(),
     ]);
+    await reportReadError("read.space.readRequests", bookings.error);
     if (bookings.error) return { state: "unavailable" };
 
     const raw = (bookings.data ?? []) as unknown as { listing_id: string; status: string; created_at: string }[];
     const rows: RequestRow[] = raw.map((r) => ({ listingId: r.listing_id, status: r.status, createdAt: r.created_at }));
     const oldest = raw[raw.length - 1]?.created_at;
+    await reportReadError("read.space.readRequests", agent.error);
     const joined = agent.error ? null : (agent.data as { created_at?: string } | null)?.created_at ?? null;
 
     return {
@@ -117,6 +120,7 @@ async function callFunnel(supabase: Db, listingId: string): Promise<{ rows: Funn
   const { data, error } = await (
     supabase as unknown as { rpc: (fn: string, args: object) => Promise<{ data: unknown; error: unknown }> }
   ).rpc("listing_funnel", { p_listing: listingId });
+  await reportReadError("read.space.callFunnel", error);
   return { rows: error ? null : (data as FunnelRpcRow[] | null), failed: Boolean(error) };
 }
 
@@ -149,6 +153,7 @@ export async function readFunnels(supabase: Db, agentId: string): Promise<Funnel
       .eq("status", "PUBLISHED")
       .order("updated_at", { ascending: false })
       .limit(MAX_FUNNEL_LISTINGS);
+    await reportReadError("read.space.readFunnels", error);
     if (error || !data) return { state: "unavailable" };
 
     const rows = data as unknown as FunnelListingRow[];
@@ -196,6 +201,7 @@ export async function readOneFunnel(supabase: Db, agentId: string, listingId: st
       .eq("id", listingId)
       .eq("agent_id", agentId)
       .maybeSingle();
+    await reportReadError("read.space.readOneFunnel", error);
     if (error) return { state: "unavailable" };
     if (!data) return { state: "missing" };
     const row = data as unknown as FunnelListingRow & { status: string; is_demo: boolean };
@@ -222,6 +228,7 @@ export async function readListingTitles(supabase: Db, agentId: string): Promise<
       .eq("agent_id", agentId)
       .order("created_at", { ascending: false })
       .limit(MAX_REQUEST_ROWS);
+    await reportReadError("read.space.readListingTitles", error);
     if (error) return null;
     return new Map(((data ?? []) as { id: string; title: string }[]).map((l) => [l.id, l.title]));
   } catch (error) {

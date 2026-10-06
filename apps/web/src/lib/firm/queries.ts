@@ -1,4 +1,5 @@
 import "server-only";
+import { reportReadError } from "@/lib/observability/read-error";
 
 import { resolveSession } from "../actions/session";
 
@@ -97,6 +98,7 @@ export async function readFirmRouting(firmId: string): Promise<FirmRouting | nul
       .select("mode, area_agents, office_start, office_end")
       .eq("firm_id", firmId)
       .maybeSingle();
+    await reportReadError("read.firm.readFirmRouting", error);
     if (error) return null;
     const row = data as { mode: FirmRouting["mode"]; area_agents: Record<string, string>; office_start: string | null; office_end: string | null } | null;
     if (!row) return { mode: "lister", areaAgents: {}, officeStart: null, officeEnd: null };

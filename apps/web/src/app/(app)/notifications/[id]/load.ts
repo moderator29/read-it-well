@@ -1,3 +1,4 @@
+import { reportReadError } from "@/lib/observability/read-error";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
 import type { NotificationRow } from "@/lib/notify/inbox";
@@ -32,6 +33,7 @@ export async function loadNotificationView(
 ): Promise<NotificationView> {
   try {
     const { data: row, error } = await supabase.from("notifications").select(COLUMNS).eq("id", id).maybeSingle();
+    await reportReadError("read.notifications.loadNotificationView", error);
     if (error) return { state: "error" };
     if (!row) return { state: "missing" };
 
@@ -47,6 +49,7 @@ export async function loadNotificationView(
       .order("id", { ascending: true })
       .limit(TIMELINE_LIMIT);
     /* The timeline is a courtesy: a failed read of it never hides the notice. */
+    await reportReadError("read.notifications.loadNotificationView", timelineError);
     if (timelineError || !rows) return { state: "ok", row, before: [], after: [] };
 
     const mine = rows.findIndex((r) => r.id === row.id);

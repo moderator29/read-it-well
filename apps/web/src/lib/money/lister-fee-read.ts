@@ -1,4 +1,5 @@
 import "server-only";
+import { reportReadError, reportReadFault } from "@/lib/observability/read-error";
 
 import { resolveSession } from "../actions/session";
 import { parseListerFeePolicy, type ListerFeePolicy } from "./lister-fee";
@@ -30,9 +31,13 @@ export async function readListerFeePolicy(input: {
       p_property_type: input.propertyType,
       p_listing_intent: input.listingIntent,
     } as never);
+    /* Until C2 REQUEST 1 lands the function is absent and that is the intended
+       answer, so only a fault other than "not deployed" is reported. */
+    await reportReadFault("read.money.lister_fee_policy", error);
     if (error) return null;
     return parseListerFeePolicy(data);
-  } catch {
+  } catch (error) {
+    await reportReadError("read.money.lister_fee_policy", error);
     return null;
   }
 }

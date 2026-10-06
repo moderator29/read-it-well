@@ -1,4 +1,5 @@
 import "server-only";
+import { reportReadError } from "@/lib/observability/read-error";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "../supabase/server";
@@ -27,6 +28,7 @@ export async function readListingRecord(listingId: string): Promise<RecordRow | 
   try {
     const supabase = await client();
     const { data, error } = await supabase.rpc("lister_record_for_listing", { p_listing: listingId });
+    await reportReadError("read.trust-record.readListingRecord", error);
     if (error) return null;
     return recordFrom(data);
   } catch {
@@ -38,6 +40,7 @@ export async function readUserRecord(userId: string): Promise<RecordRow | null> 
   try {
     const supabase = await client();
     const { data, error } = await supabase.rpc("lister_record_for_user", { p_user: userId });
+    await reportReadError("read.trust-record.readUserRecord", error);
     if (error) return null;
     return recordFrom(data);
   } catch {
@@ -49,6 +52,7 @@ export async function readThreadRecord(conversationId: string): Promise<RecordRo
   try {
     const supabase = await client();
     const { data, error } = await supabase.rpc("thread_counterpart_record", { p_conversation: conversationId });
+    await reportReadError("read.trust-record.readThreadRecord", error);
     if (error) return null;
     return recordFrom(data);
   } catch {
@@ -67,7 +71,9 @@ export async function readRecordByCode(code: string): Promise<RecordLookup> {
     const supabase = await client();
     const { data, error } = await supabase.rpc("lister_record_by_code", { p_code: code });
     if (error) {
-      return (error as { hint?: string }).hint === "rate_limited" ? { state: "limited" } : { state: "failed" };
+      if ((error as { hint?: string }).hint === "rate_limited") return { state: "limited" };
+      await reportReadError("read.trust-record.readRecordByCode", error);
+      return { state: "failed" };
     }
     const record = recordFrom(data);
     return record ? { state: "found", record } : { state: "missing" };

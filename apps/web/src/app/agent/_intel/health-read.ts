@@ -1,4 +1,5 @@
 import "server-only";
+import { reportReadError } from "@/lib/observability/read-error";
 import { reportError } from "@/lib/observability/report";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -75,6 +76,7 @@ export async function readListingHealth(supabase: Db, agentId: string, listingId
       .eq("id", listingId)
       .eq("agent_id", agentId)
       .maybeSingle();
+    await reportReadError("read.health.readListingHealth", error);
     if (error) return { state: "unavailable" };
     if (!data) return { state: "missing" };
     const row = data as unknown as HealthRow;

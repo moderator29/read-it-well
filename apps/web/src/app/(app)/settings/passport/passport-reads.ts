@@ -1,5 +1,6 @@
 import "server-only";
 import { reportError } from "@/lib/observability/report";
+import { reportReadError } from "@/lib/observability/read-error";
 
 import { resolveSession } from "@/lib/actions/session";
 
@@ -14,7 +15,7 @@ export async function readPhoneConfirmedAt(): Promise<string | null> {
   try {
     const session = await resolveSession();
     if (session.state !== "signed-in") return null;
-    const { data } = await (session.supabase as unknown as {
+    const { data, error } = await (session.supabase as unknown as {
       from(t: string): {
         select(c: string): {
           eq(c: string, v: string): {
@@ -27,6 +28,7 @@ export async function readPhoneConfirmedAt(): Promise<string | null> {
       .select("confirmed_at")
       .eq("user_id", session.user.id)
       .maybeSingle();
+    await reportReadError("read.passport.readPhoneConfirmedAt", error);
     return data?.confirmed_at ?? null;
   } catch (error) {
     await reportError({ error, context: { kind: "read.passport_phone" } });

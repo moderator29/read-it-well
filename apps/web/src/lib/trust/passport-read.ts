@@ -1,4 +1,5 @@
 import "server-only";
+import { reportReadError } from "@/lib/observability/read-error";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "../supabase/server";
@@ -21,6 +22,7 @@ export type MyPassport = { enabled: boolean; sharedIn: number; facts: PassportFa
 export async function readMyPassport(): Promise<MyPassport | null> {
   try {
     const { data, error } = await (await client()).rpc("my_renter_passport");
+    await reportReadError("read.passport.readMyPassport", error);
     if (error) return null;
     const row = Array.isArray(data) ? data[0] : data;
     const facts = passportFrom(row);
@@ -40,6 +42,7 @@ export async function readMyPassport(): Promise<MyPassport | null> {
 export async function readThreadPassport(conversationId: string): Promise<PassportFacts | null> {
   try {
     const { data, error } = await (await client()).rpc("renter_passport_for_thread", { p_conversation: conversationId });
+    await reportReadError("read.passport.readThreadPassport", error);
     if (error) return null;
     return passportFrom(data);
   } catch {
@@ -55,6 +58,7 @@ export async function readPassportShareState(conversationId: string): Promise<{ 
       rpc.rpc("my_renter_passport"),
       rpc.rpc("passport_shared_here", { p_conversation: conversationId }),
     ]);
+    await reportReadError("read.passport.readPassportShareState", mine.error, here.error);
     if (mine.error || here.error) return null;
     const row = (Array.isArray(mine.data) ? mine.data[0] : mine.data) as Record<string, unknown> | undefined;
     return { enabled: row?.enabled === true, shared: here.data === true };

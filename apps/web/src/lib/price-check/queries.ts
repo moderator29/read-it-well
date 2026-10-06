@@ -1,4 +1,5 @@
 import "server-only";
+import { reportReadError } from "@/lib/observability/read-error";
 
 import { cache } from "react";
 import { createClient } from "../supabase/server";
@@ -105,6 +106,7 @@ export const runGate = cache(async function runGate(
       p_size_sqm: sizeSqm,
       p_exclude_id: excludeListingId,
     });
+    await reportReadError("read.price-check.runGate", error);
     if (error || !data) return null;
     return verdictFromRow(
       (Array.isArray(data) ? data[0] : data) as Record<string, unknown> | undefined,
@@ -141,6 +143,7 @@ export const supplyNear = cache(async function supplyNear(
       p_bedrooms: bedrooms,
       p_radius_m: 3000,
     });
+    await reportReadError("read.price-check.supplyNear", error);
     if (error || !data) return null;
     return supplyFromRow(
       (Array.isArray(data) ? data[0] : data) as Record<string, unknown> | undefined,
@@ -173,6 +176,7 @@ export const comparablesFor = cache(async function comparablesFor(
       p_exclude_id: null,
       p_limit: 24,
     });
+    await reportReadError("read.price-check.comparablesFor", error);
     if (error || !data || !Array.isArray(data)) return [];
     return (data as Record<string, unknown>[]).map(comparableFromRow);
   } catch {
@@ -212,6 +216,7 @@ export const areaAsking = cache(async function areaAsking(
       p_bedrooms: bedrooms,
       p_max_age_days: 540,
     });
+    await reportReadError("read.price-check.areaAsking", error);
     if (error || !data || !Array.isArray(data)) return null;
     return (data as Record<string, unknown>[]).map(areaRowFromRow);
   } catch {
@@ -235,6 +240,7 @@ export const areaCensus = cache(async function areaCensus(
       p_area: area,
       p_intent: intent,
     });
+    await reportReadError("read.price-check.areaCensus", error);
     if (error || !data) return null;
     return areaCensusFromRow(
       (Array.isArray(data) ? data[0] : data) as Record<string, unknown> | undefined,
@@ -265,6 +271,7 @@ export const utilityFacts = cache(async function utilityFacts(
       p_city: city,
       p_area: area,
     });
+    await reportReadError("read.price-check.utilityFacts", error);
     if (error || !data) return null;
     return utilityFactsFromRow(
       (Array.isArray(data) ? data[0] : data) as Record<string, unknown> | undefined,
@@ -296,6 +303,7 @@ export const areaSuggestions = cache(async function areaSuggestions(
       p_query: query,
       p_limit: 8,
     });
+    await reportReadError("read.price-check.areaSuggestions", error);
     if (error || !data || !Array.isArray(data)) return [];
     return (data as Record<string, unknown>[]).map(suggestionFromRow);
   } catch {
@@ -371,6 +379,7 @@ export const shareById = cache(async function shareById(id: string): Promise<Are
   if (!supabase) return null;
   try {
     const { data, error } = await selectPriceCheckShare(supabase, id);
+    await reportReadError("read.price-check.shareById", error);
     if (error || data === null || typeof data !== "object") return null;
     return shareFromRow(data as Record<string, unknown>);
   } catch {

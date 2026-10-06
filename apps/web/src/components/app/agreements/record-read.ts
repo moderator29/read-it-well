@@ -1,4 +1,5 @@
 import "server-only";
+import { reportReadError } from "@/lib/observability/read-error";
 
 import { resolveSession } from "@/lib/actions/session";
 import { reportError } from "@/lib/observability/report";
@@ -74,6 +75,7 @@ export async function readAgreementRecord(agreementId: string): Promise<Agreemen
         .eq("agreement_id", agreementId)
         .order("created_at", { ascending: true }),
     ]);
+    await reportReadError("read.agreement-record.readAgreementRecord", parties.error);
     const party = (parties.error ? null : parties.data) as { renter_id?: unknown; owner_id?: unknown } | null;
     const renterId = typeof party?.renter_id === "string" ? party.renter_id : null;
     const ownerId = typeof party?.owner_id === "string" ? party.owner_id : null;
@@ -135,6 +137,7 @@ export async function readKeptVersions(agreementIds: readonly string[]): Promise
   const db = session.supabase as unknown as Loose;
   try {
     const read = await db.from("deal_agreement_versions").select("agreement_id, terms_version").in("agreement_id", ids);
+    await reportReadError("read.agreement-record.readKeptVersions", read.error);
     if (read.error) return null;
     const out = new Map<string, number[]>();
     for (const r of rows(read.data)) {
