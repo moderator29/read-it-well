@@ -825,6 +825,101 @@ committed and pushed as it is done, cleanly, without sessions conflicting.
 | **D62's hold on b4_referral_rewards_engine** | **D63: wrong on both reasons. Apply it. Only the payout path waits, on the budget cap** |
 | **"Qualification refuses past the cap with a named reason"** | **D64: it pauses instead, and the cap is 700,000 naira a month** |
 | Suspecting your own diff when Advisories goes red | D65: check the package name first, it is usually a new advisory |
+| **D64's silence on when a pause ends** | **D66: a paused reward releases against the month it is released in, oldest first** |
+
+---
+
+## D66. Session 4's cap review found a hole in D64 that would have left people unpaid, and it is Session 1's
+
+**Session 4 pre-reviewed D64's three rules against the unapplied referral migration at Session
+2's head `257eb1e1f`, tracing the code rather than trusting the comments that assert it. The
+work is correct and three of its findings change what gets built.**
+
+### The one that matters most, and it is a defect in D64 itself
+
+> **"A paused reward never resumes. `month` is written once and the cap always sums spend for
+> that month, so a reward paused in an exhausted month measures against the exhausted budget
+> for ever and needs a hand override."**
+
+**That is a hole in Session 1's design, not in Session 2's code.** D64 said a pause "never
+reaches backwards" and that it "is recoverable by raising the cap". **It never said what
+happens to a paused reward when the next month begins**, and the implementation did the
+reasonable thing with an underspecified rule: it pinned the reward to the month it qualified
+in. The consequence is that a reward paused in a full month is measured against that month's
+exhausted budget for ever.
+
+**So D64, written specifically to stop Vallo breaking a promise to somebody who earned a
+reward, would have produced exactly that**: rewards that are never refused and never paid,
+which is worse than a refusal because nobody is ever told. The irony is the point, and the
+lesson is that **"it pauses rather than refuses" is only true if the pause has a defined end.**
+
+**The rule, now stated:**
+
+> **A paused reward is measured against the budget of the month in which it is being released,
+> never the month it qualified in. When a new month opens with a fresh budget, rewards paused
+> earlier become eligible again, oldest first.**
+
+**Oldest first is load-bearing.** Without it the backlog never clears, because new rewards keep
+arriving and would compete with it every month. A paused reward from two months ago has
+priority over one qualified this morning. And the member surface shows a paused reward as
+waiting for the next month, with a date, not as an indefinite hold.
+
+### The seeded figure contradicts the founder
+
+**The migration seeds 100000000 minor, which is 1,000,000 naira. D64 sets 700,000.** Correct it
+to `70000000` minor before the migration is applied. A seeded default that disagrees with the
+decision is the kind of thing that survives for months because everything appears to work.
+
+### Rule 3 fails, and it is the one the founder cares about
+
+> **"`my_rewards_summary` exposes no budget and no pause flag, `my_referrals` omits
+> `review_reason`, and select on `referrals` is service_role only. A budget pause is
+> byte-identical to a fraud hold on the member's screen."**
+
+**That is the lying by omission D64 named, already present in the code.** A member whose
+reward is waiting because Vallo ran out of monthly budget sees exactly what a member suspected
+of fraud sees. The first is Vallo's own limit and should say so plainly; the second is a
+review and should say that instead.
+
+**So:** `my_rewards_summary` gains a pause state and the date it is expected to lift;
+`my_referrals` surfaces enough of a reason to distinguish the two cases; and **the two cases
+must never render identically.** Session 2 for the reads, Session 3 for the surface.
+
+### Rule 1: accepted, by a different mechanism than D64 prescribed
+
+D64 required the cap "checked before accrual, in the same statement that writes it". **The
+migration closes the race differently**: the write is unconditional, the cap is read after it,
+and what actually prevents double spending is a transaction-scoped
+`pg_try_advisory_xact_lock` on the month key, taken before the write and held to commit, so the
+second qualification cannot read the budget until the first has committed.
+
+**That satisfies the requirement and Session 1 accepts it.** The directive specified a shape
+when it should have specified the property: **two qualifications racing for the last of the
+budget must not both succeed.** The lock achieves it.
+
+**One condition, from Session 4's own caveat:** the check is only correct under `READ
+COMMITTED`, which Supabase defaults to and **the migration does not state.** Assert it or
+document it in the migration, because a silent dependency on an isolation level is exactly the
+kind of assumption that breaks when somebody later wraps a caller in a stricter transaction.
+
+### Rule 2 passes
+
+The cap function mutates nothing, `referral_release_due` does not recheck it, and the only
+route from approved back to under review needs a staff decision and a reason. Nothing further.
+
+### Two notes from the same review, carried rather than acted on
+
+**The b2-ledger probe has now failed a third cancelled apply** and remains invisible to CI,
+correctly recorded under the standing rule as a failed check rather than a pending one. **The
+route past it is still the one in the #84 comment: move the probe into
+`supabase/tests/probes/` and let CI be its first runner**, because CI uses psql and
+`DATABASE_URL` with no tool boundary and no sixty second limit. A fourth cancelled apply will
+tell nobody anything new.
+
+**The referral engine's application code is already on Session 2's branch while the migration
+is unapplied.** Not dangerous, since the calls would error rather than do something wrong, but
+worth knowing: **nothing in that code path should be reachable from a member surface until the
+migration lands.**
 
 ---
 
