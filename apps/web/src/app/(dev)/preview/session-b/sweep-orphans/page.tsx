@@ -297,7 +297,7 @@ function View({ v, s }: { v: string; s?: string }) {
     case "saved-searches":
       return (
         <Frame title="Saved searches">
-          <SavedSearchBoard initial={SAVED_SEARCHES} locale={locale} chipCopy={searchChipCopyOf(t.shape)} />
+          <SavedSearchBoard initial={SAVED_SEARCHES} locale={locale} chipCopy={searchChipCopyOf(t.shape)} copy={t.experienceDiscover.saved.board} />
         </Frame>
       );
     case "post":

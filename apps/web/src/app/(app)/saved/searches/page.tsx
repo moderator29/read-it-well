@@ -16,8 +16,11 @@ import { BriefComposer } from "@/components/app/briefs/BriefComposer";
 import { MyBriefs } from "@/components/app/briefs/MyBriefs";
 import { resolveSession } from "@/lib/actions/session";
 import { loadListingsByIds } from "@/lib/listings/supabase-repository";
+import { withNext } from "@/lib/auth/next-link";
 
-export const metadata: Metadata = { title: "Saved searches" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: getDictionary(await getLocale()).experienceDiscover.saved.searchesLink };
+}
 
 /**
  * Saved searches.
@@ -74,7 +77,7 @@ export default async function SavedSearchesPage({
           note in LiveNotifications for why it wraps the header alone. A2. */}
       <div className="relative">
         <PageScene art="search-ring" />
-        <PageHeader title="Saved searches" fallback="/saved" />
+        <PageHeader title={sv.searchesLink} fallback="/saved" />
       </div>
 
       {state.state === "unconfigured" || state.state === "unavailable" ? (
@@ -82,7 +85,7 @@ export default async function SavedSearchesPage({
           <Unreachable
             noun="saved searches"
             icon="search-ring"
-            action={{ label: "Try again", href: "/saved/searches" }}
+            action={{ label: sv.searchesRetry, href: "/saved/searches" }}
             data-testid="saved-searches-unreachable"
           />
         </Reveal>
@@ -95,7 +98,7 @@ export default async function SavedSearchesPage({
           object="search-pin"
           title={sv.searchesSignedOutTitle}
           body={sv.searchesSignedOutBody}
-          primary={{ label: sv.searchesSignIn, href: "/sign-in?next=%2Fsaved%2Fsearches" }}
+          primary={{ label: sv.searchesSignIn, href: withNext("/sign-in", "/saved/searches") }}
           secondary={
             <Link href="/search" className="nf-tap nf-link-quiet nf-body inline-flex min-h-11 items-center text-[var(--nf-content-link)]">
               {sv.searchesBrowse}
@@ -120,7 +123,7 @@ export default async function SavedSearchesPage({
         />
       ) : (
         <Reveal>
-          <SavedSearchBoard initial={state.searches} locale={locale} chipCopy={searchChipCopyOf(t.shape)} />
+          <SavedSearchBoard initial={state.searches} locale={locale} chipCopy={searchChipCopyOf(t.shape)} copy={sv.board} />
         </Reveal>
       )}
 

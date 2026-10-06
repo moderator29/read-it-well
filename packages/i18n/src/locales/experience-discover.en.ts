@@ -106,6 +106,25 @@ export const experienceDiscoverEn = {
     capture: "Your saved searches",
     /* The header link to /saved/searches, and the page title (Round 3 sweep, C3). */
     searchesLink: "Saved searches",
+    searchesRetry: "Try again",
+    /* One saved search on the board (SavedSearchBoard), moved out of the
+       component (Round 3 sweep, C3). `{date}` is when it was saved. */
+    board: {
+      savedOn: "Saved {date}",
+      namedFromFilters: ". Named from its filters.",
+      alertsOn: "We will tell you when a new place matches this.",
+      alertsOff: "Alerts off. The search is still saved.",
+      nameNeeded: "Give this search a name.",
+      renamed: "Renamed",
+      nameLabel: "Name this search",
+      saveName: "Save name",
+      cancel: "Cancel",
+      alertLabel: "Tell me about new matches",
+      rename: "Rename",
+      removeConfirm: "Remove it",
+      keep: "Keep",
+      remove: "Remove",
+    },
     /* Saved searches, whose empty face is its most-seen face. */
     searchesSignedOutTitle: "Sign in to keep a search",
     searchesSignedOutBody: "A saved search belongs to an account, so it follows you between your phone and your laptop and nobody else can see what you are looking for.",
