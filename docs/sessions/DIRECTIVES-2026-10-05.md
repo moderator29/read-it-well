@@ -806,6 +806,95 @@ committed and pushed as it is done, cleanly, without sessions conflicting.
 | Session 3's decision not to add framer-motion in this pass | D39 |
 | D39 section 4's single owner for the lockfile | D46 |
 | Reading a cancelled check as anything other than "did not run" | D47 |
+| Treating retired custody language as a naming tidy-up | D48 |
+
+---
+
+## D48. Shipped copy tells members Vallo holds their money. Remove it before anything else on the experience branch
+
+Found 6 October by audit, verified by Session 1 against
+`origin/claude/vallo-experience-upgrade`. **This is a legal exposure, not a naming
+preference**, and it outranks every other item on Session 3's list.
+
+### What is in the bundle today
+
+`packages/i18n/src/locales/experience-features.en.ts`, lines 149 to 168, ships
+three feature-onboarding entries, verbatim:
+
+```
+wallet:     name: "your wallet"
+            p1Title: "Available and in escrow are different money"
+            action: "Open my wallet"
+escrow:     name: "escrow"
+            p1Title: "Who holds the money"
+            action: "Open escrow"
+withdrawal: name: "withdrawals"
+            action: "Start a withdrawal"
+```
+
+`apps/web/src/lib/money/copy.ts:17` ships, in the same build: **"Vallo never holds
+your money."** Both sentences are in the product. One of them is false, it is the
+one on the Terms and the money screens that is true, and ADR-0002 exists because
+holding client funds between two parties is regulated by the Central Bank of
+Nigeria and the company's objects clause does not cover it.
+
+**It is reachable code, not a dead string.**
+`components/app/feature-onboarding/first-runs.ts:45` holds
+`WAITING_FIRST_RUNS = ["wallet", "escrow", "withdrawal"]` and lines 180 to 209 wire
+`c.wallet.*`, `c.escrow.*` and `c.withdrawal.*` into panel content. It is gated
+only by those keys not being mounted. **One array edit publishes a screen that
+tells a member Vallo is holding their money.**
+
+### Two more, in live code
+
+- `apps/web/src/lib/profile/model.ts:28` declares `wallet: boolean` and line 85
+  defaults it `true`. It is a notification channel named `wallet`, **persisted in
+  `profiles.settings`**, rendered at `settings/AccountToggles.tsx:81, 110, 127,
+  149`. Members have a saved preference for notifications about a thing that
+  cannot exist.
+- `apps/web/src/components/auth/auth-intent.ts:48` lists `"wallet"` as a valid
+  gated action. `/wallet` does not exist, so `?do=wallet` returns a member to a 404
+  after they sign in, and `auth-intent.test.ts:55` **asserts that behaviour**.
+
+### What Session 3 does, first, before any other round-two item
+
+1. Delete the `wallet`, `escrow` and `withdrawal` entries from
+   `experience-features.en.ts` and their wiring in `first-runs.ts`. Not renamed,
+   not commented out: deleted.
+2. Rename the `wallet` notification channel to what it is (`payments`), with a
+   migration that carries each member's existing preference across. **Session 2
+   owns the migration**; Session 3 owns the label and the toggle.
+3. Remove `"wallet"` from `auth-intent.ts` and change the test to assert it is
+   refused rather than that it 404s.
+4. Fix `InnerNav.tsx`'s own docstring, lines 23 to 27, which still names "the
+   wallet (transactions, methods, statements, limits)" and "escrow (conditions,
+   milestones, evidence, dispute)" as destinations the component serves.
+5. Sweep the dictionaries for the rest and delete what no renderer reads:
+   `en.ts:4103-4132`, `4173-4188`, `4320-4347` ("every wallet", "platform float",
+   "spendable balance", "top-up", "withdrawal holds", "Overdrawn wallets"), and
+   `compliance.en.ts:52`, which still lists "held payment" in a scope sentence.
+6. Leave alone what is legitimately named: withdrawing AI consent, withdrawing an
+   inspection request, a guest's own external crypto wallet, and `icon="wallet"`
+   glyph names.
+
+### And the rule this sets
+
+**A retired capability's words are retired with it, in the same commit.** ADR-0002
+is thirteen days old and its language survived in a shipped dictionary, in a
+persisted member preference, and in an auth path with a test pinning it. A
+decision that lives only in an ADR and a schema constraint is not enforced; it has
+to be swept out of the words too, and the sweep is part of retiring it rather than
+a follow-up somebody gets to later.
+
+### On the founder's request for a premium wallet surface
+
+The founder asked on 6 October to "make wallet look amazing with all settings on
+it". **Session 1 read that as the money surfaces**, payments history, earnings,
+receipts, payouts and checkout, made as rich as a wallet without ever implying a
+balance Vallo holds, and that reading governs until the founder says otherwise.
+**No session builds a wallet, a balance or a withdrawal.** Restoring custody is a
+legal decision requiring counsel and an ADR that supersedes 0002; it is not
+something a session infers from a design instruction.
 
 ---
 
