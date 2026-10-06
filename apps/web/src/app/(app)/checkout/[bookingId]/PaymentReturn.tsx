@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import type { Locale } from "@vallo/i18n/core";
 import { useScopedCopy } from "@/lib/i18n/copy-scope";
 import { settleCardPayment } from "@/lib/bookings/checkout";
-import { ResultSheet } from "@/components/app/ResultSheet";
-import { SuccessSheet } from "@/components/ui/SuccessSheet";
+import { PaymentStage, type StageFace } from "@/components/app/payments/PaymentStage";
+import { cardPaymentSteps } from "@/components/app/payments/payment-steps";
 import { cardReturnVerdict, type CardReturnVerdict } from "@/lib/payments/card-return";
 import { successCopy, withoutDone } from "@/lib/ui/success-moments";
 import { failureConsequence } from "./payment-copy";
@@ -171,105 +171,95 @@ export function PaymentReturn({
     if (clean !== here) router.replace(clean, { scroll: false });
   };
 
-  const fact = {
-    ...(amountMinor === undefined ? {} : { amountMinor }),
-    ...(currency ? { currency } : {}),
-    ...(subject ? { subject } : {}),
-    reference,
-  };
-
-  if (phase.kind === "checking" || phase.kind === "slow") {
-    return (
-      <ResultSheet
-        open={open}
-        onOpenChange={onOpenChange}
-        state="pending"
-        /* Blocking, because the outcome is genuinely unknown and a person who
-           dismisses this and taps Pay again may pay twice. It stops blocking
-           the moment the wait becomes a terminal state below. */
-        blocking
-        verdict={c.confirmingPayment}
-        fact={fact}
-        locale={locale}
-        consequence={
-          phase.kind === "slow"
-            ? c.returnSlow
-            : c.returnChecking
+  /*
+   * ONE CARD, AS ON THE PANEL (PaymentStage, round 5). The wait, the receipt,
+   * the unknown and the failure used to be four sheets that replaced one
+   * another; now the card that says "confirming" is the card that answers.
+   * `paid` is written only from `phase.kind === "settled"`, which only a
+   * settlement against THIS booking sets (cardReturnVerdict).
+   */
+  const words =
+    phase.kind === "settled"
+      ? successCopy(
+          s,
+          phase.verdict === "share-paid"
+            ? "sharePaid"
+            : kind === "rent"
+              ? "rentPaid"
+              : phase.verdict === "paid-confirmed"
+                ? "stayPaid"
+                : "stayPaidRecorded",
+        )
+      : null;
+  const face: StageFace =
+    phase.kind === "checking" || phase.kind === "slow"
+      ? {
+          at: "processing",
+          verdict: c.confirmingPayment,
+          consequence: phase.kind === "slow" ? c.returnSlow : c.returnChecking,
+          /* They are back from the payment page, so that step is genuinely
+             done; ours is the one in progress. */
+          steps: cardPaymentSteps("settling", {
+            opening: c.openingPaymentPage,
+            confirming: c.confirmingPayment,
+            received: c.paymentReceived,
+          }),
+          note: c.recordedOnce,
         }
-      />
-    );
-  }
-
-  if (phase.kind === "settled") {
-    const words = successCopy(
-      s,
-      phase.verdict === "share-paid"
-        ? "sharePaid"
-        : kind === "rent"
-          ? "rentPaid"
-          : phase.verdict === "paid-confirmed"
-            ? "stayPaid"
-            : "stayPaidRecorded",
-    );
-    return (
-      <SuccessSheet
-        open={open}
-        onOpenChange={onOpenChange}
-        variant={words.variant}
-        object={words.object}
-        title={words.title}
-        body={words.body}
-        /* The amount the settlement recorded, not the page's figure. */
-        amount={{ minorUnits: phase.amountMinor, currency, locale }}
-        details={[
-          ...(subject ? [{ label: s.detail.for, value: subject }] : []),
-          { label: s.detail.reference, value: reference, mono: true },
-        ]}
-        primary={{ label: plansAction.label, href: plansAction.href }}
-        secondary={{ label: s.close }}
-      />
-    );
-  }
-
-  if (phase.kind === "unknown") {
-    return (
-      <ResultSheet
-        open={open}
-        onOpenChange={onOpenChange}
-        state="pending"
-        verdict={c.stillChecking}
-        fact={fact}
-        locale={locale}
-        consequence={c.returnStalled}
-        actions={[
-          { label: plansAction.label, href: plansAction.href, tone: "primary" },
-          { label: c.getHelp, href: "/help", tone: "quiet" },
-        ]}
-      />
-    );
-  }
+      : phase.kind === "settled" && words
+        ? {
+            at: "paid",
+            settled: true,
+            moment: {
+              variant: words.variant,
+              object: words.object,
+              title: words.title,
+              body: words.body,
+              details: [
+                ...(subject ? [{ label: s.detail.for, value: subject }] : []),
+                { label: s.detail.reference, value: reference, mono: true },
+              ],
+              primary: { label: plansAction.label, href: plansAction.href },
+              secondary: { label: s.close },
+            },
+          }
+        : phase.kind === "unknown"
+          ? {
+              at: "unknown",
+              verdict: c.stillChecking,
+              consequence: c.returnStalled,
+              actions: [
+                { label: plansAction.label, href: plansAction.href, tone: "primary" },
+                { label: c.getHelp, href: "/help", tone: "quiet" },
+              ],
+            }
+          : {
+              at: "failed",
+              verdict: c.paymentNotConfirmed,
+              /* Filtered rather than interpolated. See `payment-copy`: the
+                 envelope carries a free string and nothing constrains what
+                 goes in it, so the boundary lives here and the sentence about
+                 the card is said whether or not the server gave a reason. */
+              consequence: failureConsequence(phase.kind === "failed" ? phase.message : "", c.returnFailed, c),
+              actions: [
+                { label: c.tryAgain, href: retryHref, tone: "primary" },
+                { label: c.getHelp, href: "/help", tone: "quiet" },
+              ],
+            };
 
   return (
-    <ResultSheet
-      open={open}
-      onOpenChange={onOpenChange}
-      state="failed"
-      verdict={c.paymentNotConfirmed}
-      fact={fact}
-      locale={locale}
-      /* Filtered rather than interpolated. See `payment-copy`: the envelope
-         carries a free string and nothing constrains what goes in it, so the
-         boundary lives here and the sentence about the card is said whether or
-         not the server gave a reason worth showing. */
-      consequence={failureConsequence(
-        phase.message,
-        c.returnFailed,
-        c,
-      )}
-      actions={[
-        { label: c.tryAgain, href: retryHref, tone: "primary" },
-        { label: c.getHelp, href: "/help", tone: "quiet" },
-      ]}
+    <PaymentStage
+      face={open ? face : null}
+      /* The amount the settlement recorded once there is one; the page's
+         figure while it is still being confirmed. */
+      amount={
+        phase.kind === "settled"
+          ? { minorUnits: phase.amountMinor, currency, locale }
+          : amountMinor === undefined
+            ? undefined
+            : { minorUnits: amountMinor, currency, locale }
+      }
+      onClose={() => onOpenChange(false)}
     />
   );
 }
