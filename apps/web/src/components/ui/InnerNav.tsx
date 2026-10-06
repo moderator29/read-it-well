@@ -255,27 +255,42 @@ export function InnerNav({
   /* A keyboard open lands on the active item (or the first), so the next Tab
      is already inside the list. A pointer open leaves focus on the toggle. */
   useEffect(() => {
-    if (!open || !focusFirst.current) return;
-    focusFirst.current = false;
+    if (!open) {
+      focusFirst.current = false;
+      return;
+    }
+    if (!focusFirst.current) return;
+    /* True once focus has really landed. A hidden element refuses focus
+       without a sound, so the keyboard open is only spent when it took: on a
+       loaded machine (a CI runner) the first attempt can come a frame before
+       the panel is focusable, and one silent miss left focus on the toggle. */
     const focus = () => {
       const target =
         listRef.current?.querySelector<HTMLElement>("[aria-current]") ??
         listRef.current?.querySelector<HTMLElement>("a,button");
-      target?.focus({ preventScroll: true });
+      if (!target) return false;
+      target.focus({ preventScroll: true });
+      if (document.activeElement !== target) return false;
+      focusFirst.current = false;
+      return true;
     };
     /* The panel is still hidden on the frame the state flips; focus lands as
-       soon as the spring has made it visible. */
-    if (pull.get() > 0.05) {
-      focus();
-      return;
-    }
+       soon as the spring has made it visible, retrying on each step until it
+       takes. */
+    if (pull.get() > 0.05 && focus()) return;
     const off = pull.on("change", (p) => {
-      if (p > 0.05) {
-        off();
-        focus();
-      }
+      if (p > 0.05 && focus()) off();
     });
-    return off;
+    /* A spring that has already settled sends no more changes: one more try
+       on the next frame covers a panel that came to rest before it could take
+       focus. */
+    const frame = requestAnimationFrame(() => {
+      if (focusFirst.current && pull.get() > 0.05 && focus()) off();
+    });
+    return () => {
+      off();
+      cancelAnimationFrame(frame);
+    };
   }, [open, pull]);
 
   /* Escape closes and hands focus back. */
