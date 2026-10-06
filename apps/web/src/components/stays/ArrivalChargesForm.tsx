@@ -72,7 +72,10 @@ export function ArrivalChargesForm({
     >
       {ARRIVAL_KEYS.map((key) => (
         <fieldset key={key} className="nf-panel nf-panel--card grid gap-sm p-md">
-          <legend className="nf-body-sm font-semibold">{copy.keys[key]}</legend>
+          {/* Floated, so the legend is an ordinary row inside the card. A rendered
+              legend sits ON the fieldset's border, and with the card's edge as that
+              border the line ran straight through "Caution deposit". */}
+          <legend className="float-left w-full nf-body-sm font-semibold">{copy.keys[key]}</legend>
           <div className="flex flex-wrap gap-sm">
             <label className="flex min-h-[44px] items-center gap-xs">
               <input type="radio" name={`${key}-mode`} checked={rows[key].mode === "none"} onChange={() => set(key, { mode: "none" })} />

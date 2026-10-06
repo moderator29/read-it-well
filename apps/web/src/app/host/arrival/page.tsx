@@ -11,7 +11,9 @@ import { ButtonLink } from "@/components/ui/Button";
 import { HostShell } from "@/components/host/HostShell";
 import { ArrivalChargesForm } from "@/components/stays/ArrivalChargesForm";
 
-export const metadata: Metadata = { title: "Charges at the door", robots: { index: false, follow: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: getDictionary(await getLocale()).afterTheGate.arrival.title, robots: { index: false, follow: false } };
+}
 
 export const dynamic = "force-dynamic";
 
@@ -39,7 +41,7 @@ export default async function HostArrivalPage({
           body={copy.lede}
           action={
             <ButtonLink href={authHref(returnHref("/host/arrival", "", "list"), "sign-in")} variant="primary" size="lg">
-              Sign in
+              {t.common.signIn}
             </ButtonLink>
           }
         />
