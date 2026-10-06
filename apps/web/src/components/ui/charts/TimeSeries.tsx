@@ -1,4 +1,4 @@
-import { CHART_INK, CHART_SERIES } from "./palette";
+import { CHART_CONTEXT, CHART_INK, CHART_SERIES } from "./palette";
 
 /**
  * One series over days. The console's change-over-time chart.
@@ -125,7 +125,7 @@ export function TimeSeries({
               y1={yOf(target)}
               x2={w - padX}
               y2={yOf(target)}
-              stroke="var(--nf-content-muted)"
+              stroke={CHART_CONTEXT}
               strokeWidth="1"
               strokeDasharray="4 4"
               vectorEffect="non-scaling-stroke"

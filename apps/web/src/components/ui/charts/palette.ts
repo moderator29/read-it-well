@@ -56,23 +56,25 @@
  * question instead of the identity question.
  *
  * ---------------------------------------------------------------------------
- * HANDED TO GROUP B, who own `packages/design-tokens`. Four layer-2 role
- * tokens would let this file drop its fallbacks. Each one is a MEANING and
- * none of them is a new colour:
+ * THE CHART ROLES ARE TOKENS NOW (requested by B4, added by W10 in
+ * `packages/design-tokens/src/tokens.css`, "THE CHART ROLES"). Each is a
+ * MEANING and none of them is a new colour; each aliases the layer-2 role
+ * this file used to fall back to, so the charts look exactly as they did:
  *
- *   --nf-chart-series   the ink of a measured quantity. Today: --nf-brand-primary
- *   --nf-chart-axis     the baseline a plot sits on.    Today: --nf-border-default
- *   --nf-chart-grid     a recessive rule inside a plot. Today: --nf-border-subtle
- *   --nf-chart-track    the unfilled part of a bar.     Today: --nf-well-fill
+ *   --nf-chart-series   the ink of a measured quantity.  --nf-brand-primary
+ *   --nf-chart-context  a comparison or a target.        --nf-content-muted
+ *   --nf-chart-axis     the baseline a plot sits on.     --nf-border-default
+ *   --nf-chart-grid     a recessive rule inside a plot.  --nf-border-subtle
+ *   --nf-chart-track    the unfilled part of a bar.      --nf-well-fill
+ *   --nf-chart-hatch    absence: a period with no data.  --nf-border-default
  *
- * Until they exist, each `var()` below falls back to the layer-2 role it would
- * be defined as, so the charts are correct today and mention no rung either
- * way. When the tokens land, the fallbacks become dead and can be deleted in
- * one pass over this file.
+ * A chart reads these and nothing else for its furniture, so retuning what a
+ * chart's grid looks like is one line in the token file, not a hunt through
+ * the components.
  */
 
 /** The ink of a measured quantity. One hue; position is carried by alpha. */
-export const CHART_SERIES = "var(--nf-chart-series, var(--nf-brand-primary))";
+export const CHART_SERIES = "var(--nf-chart-series)";
 
 /**
  * Five stops of the sequential ramp, as alpha against the chart's surface.
@@ -115,11 +117,12 @@ export const STATUS_FILL = {
 
 export type StatusKey = keyof typeof STATUS_FILL;
 
-/** The recessive furniture. Roles, with role fallbacks. */
+/** The recessive furniture: the chart roles, and absence as a hatch. */
 export const CHART_INK = {
-  grid: "var(--nf-chart-grid, var(--nf-border-subtle))",
-  axis: "var(--nf-chart-axis, var(--nf-border-default))",
-  track: "var(--nf-chart-track, var(--nf-well-fill))",
+  grid: "var(--nf-chart-grid)",
+  axis: "var(--nf-chart-axis)",
+  track: "var(--nf-chart-track)",
+  hatch: "var(--nf-chart-hatch)",
 } as const;
 
 /**
@@ -154,7 +157,7 @@ export const TRACK_FILL = "var(--nf-surface-raised)";
  * else". Grey on purpose (the dataviz emphasis form), and always paired with
  * a pattern and a label, so it is never told apart by colour alone.
  */
-export const CHART_CONTEXT = "var(--nf-chart-context, var(--nf-content-muted))";
+export const CHART_CONTEXT = "var(--nf-chart-context)";
 
 /**
  * The ordinal ramp for the new primitives: three stops of the one series ink.

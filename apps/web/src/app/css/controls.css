@@ -1628,7 +1628,10 @@
     gap: var(--nf-space-xs);
     min-width: 0;
     padding: var(--nf-space-md);
-    border: var(--nf-border-width) solid var(--nf-card-border);
+    /* One edge (north star 4): the hairline at night, and on Paper only the
+       blue-tinted card shadow, because the tier's edge token is transparent
+       there. It drew both, a hairline beside the new shadow. */
+    border: var(--nf-border-width) solid var(--nf-tier-card-edge);
     border-radius: var(--nf-radius-card);
     background: var(--nf-surface-primary);
     box-shadow: var(--nf-card-shadow);
@@ -1671,7 +1674,10 @@
     gap: var(--nf-space-xs);
     min-width: 0;
     padding: var(--nf-space-md);
-    border: var(--nf-border-width) solid var(--nf-card-border);
+    /* One edge (north star 4): the hairline at night, and on Paper only the
+       blue-tinted card shadow, because the tier's edge token is transparent
+       there. It drew both, a hairline beside the new shadow. */
+    border: var(--nf-border-width) solid var(--nf-tier-card-edge);
     border-radius: var(--nf-radius-card);
     background: var(--nf-surface-primary);
     box-shadow: var(--nf-card-shadow);

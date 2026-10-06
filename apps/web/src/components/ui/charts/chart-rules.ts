@@ -37,15 +37,15 @@
  * neutral plus one semantic". The dataviz method maps onto that as follows,
  * every slot a role token (never a ramp rung, see `palette.ts`):
  *
- *   series    --nf-brand-primary. The measured quantity. Slot 1, always.
- *   context   --nf-content-muted. The comparison or de-emphasised series
+ *   series    --nf-chart-series (the brand primary). The measured quantity. Slot 1, always.
+ *   context   --nf-chart-context (the muted ink). The comparison or de-emphasised series
  *             (the previous period, "everything else"). The dataviz
  *             "emphasis" form: one hue plus grey.
  *   ordinal   the brand at alpha 1, 0.78, 0.60 over the chart surface, for
  *             ordered steps (rank, stage) only. Never for nominal categories.
  *   semantic  ONE state token where the colour MEANS something (a promise
  *             line, an overdue count), always with a word beside it.
- *   absence   the hatch: a 135 degree hairline pattern in --nf-border-default
+ *   absence   the hatch: a 135 degree hairline pattern in --nf-chart-hatch
  *             on a transparent ground. Not a colour at all. See rule 4.
  *
  * VALIDATED (dataviz `validate_palette.js`, OKLab delta E x100, Machado 2009):
@@ -115,7 +115,7 @@
  *   X ticks: the first, the last, and every nth between that does not crowd
  *   the last (`showEvery`). Type is HTML, never SVG text, so it never
  *   stretches with the drawing.
- *   Gridlines are solid 1px hairlines in --nf-border-subtle, never dashed.
+ *   Gridlines are solid 1px hairlines in --nf-chart-grid, never dashed.
  *   The one dashed rule is a promise line (a target the product keeps).
  *
  * ---------------------------------------------------------------------------

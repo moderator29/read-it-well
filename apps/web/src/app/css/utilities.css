@@ -306,20 +306,24 @@
    * inside it, which is the difference between a list that feels considered
    * and one that makes you aim.
    */
+  /* A tappable row is the Plate tier (north star 4): radius 14, no shadow,
+     and hover and press tint only, read from the plate's tokens so every row
+     on the platform tints the same way (Session 3, W10). It was the 10px
+     corner and the generic interactive tints. */
   .nf-row--tap {
     cursor: pointer;
-    border-radius: var(--nf-radius-sm);
+    border-radius: var(--nf-tier-plate-radius);
     transition: background-color var(--nf-duration-fast) var(--nf-ease-standard);
   }
 
   @media (hover: hover) {
     .nf-row--tap:hover {
-      background-color: var(--nf-interactive-hover);
+      background-color: var(--nf-tier-plate-hover);
     }
   }
 
   .nf-row--tap:active {
-    background-color: var(--nf-interactive-active);
+    background-color: var(--nf-tier-plate-press);
   }
 
   /* No reduced-motion block here on purpose: every --nf-duration-* token

@@ -4384,7 +4384,12 @@
   /* Sheet: the 36px grabber, the 56 per cent scrim, the blur that ramps
      from 0 to 12 as it rises. */
   --nf-tier-sheet-edge: var(--nf-card-border);
-  --nf-tier-sheet-shadow: var(--nf-elevation-overlay);
+  /* ONE EDGE, and at night it is the hairline: a shadow cast upwards onto a
+     near-black page reads as nothing (the measured table on the old ladder),
+     and `overlay` at night is the rung-3 drop with a ring of its own, which
+     made the night sheet two edges. Paper answers with the upward blue
+     `overlay` below. */
+  --nf-tier-sheet-shadow: var(--nf-elevation-flat);
   --nf-tier-sheet-scrim: rgb(1 1 24 / 0.56);
   --nf-tier-sheet-blur: 12px;
   --nf-tier-sheet-grabber: 2.25rem;
@@ -4470,6 +4475,7 @@
   --nf-tier-island-shadow-side: 1px 0 0 rgb(1 1 24 / 0.04), 12px 0 32px -18px rgb(0 95 232 / 0.22);
 
   --nf-tier-sheet-edge: transparent;
+  --nf-tier-sheet-shadow: var(--nf-elevation-overlay);
   --nf-tier-sheet-scrim: rgb(1 1 24 / 0.40);
 
   /* The count on paper: the deeper cyan, white numeral, 4.6:1. */
@@ -4478,6 +4484,37 @@
 
   --nf-toast-bg: #010118;
   --nf-toast-edge: transparent;
+}
+
+/* ------------------------------------------------------------------------
+ * THE CHART ROLES (requested by B4 for the chart system, B-26; added by W10).
+ *
+ * Six MEANINGS for `components/ui/charts`, each an alias of the role a
+ * chart already read, so nothing on screen changes and a chart stops naming
+ * a border or a brand token for a job that is not a border's or a brand's:
+ *
+ *   series    the ink of a measured quantity        the brand primary
+ *   context   a comparison or a target, never data  the muted ink
+ *   axis      the baseline a plot sits on           the default border
+ *   grid      a recessive rule inside a plot        the subtle border
+ *   track     the unfilled part of a bar or gauge   the well fill
+ *   hatch     absence: a period with no data        the default border
+ *
+ * One hue, by the chart rules (`chart-rules.ts`): series is the only brand
+ * ink, context is grey plus a pattern, and absence is a hatch, never a zero.
+ *
+ * Declared on every themed element, not only the root, so a chart inside a
+ * night island on Paper (or a light one at night) resolves the island's own
+ * roles rather than inheriting the page's.
+ * ------------------------------------------------------------------------ */
+:root,
+[data-theme] {
+  --nf-chart-series: var(--nf-brand-primary);
+  --nf-chart-context: var(--nf-content-muted);
+  --nf-chart-axis: var(--nf-border-default);
+  --nf-chart-grid: var(--nf-border-subtle);
+  --nf-chart-track: var(--nf-well-fill);
+  --nf-chart-hatch: var(--nf-border-default);
 }
 
 /* Data saver and a low-end device drop the Island's and the Sheet's blur, and
