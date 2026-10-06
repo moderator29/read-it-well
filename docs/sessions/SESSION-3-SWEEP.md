@@ -6,7 +6,7 @@ component with the fixture named in its row. **P** pass, **X** failed and fixed 
 sweep, **F** failed and still open, **·** does not apply. The denominator is 213 real routes
 (every `page.tsx` under `apps/web/src/app`, excluding `(dev)` and `api`).
 
-**Routes audited: 49 of 213.**
+**Routes audited: 54 of 213.**
 
 | Family | Audited |
 |---|---|
@@ -14,7 +14,7 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | around | 1 |
 | assistant | 1 |
 | bookings | 1 |
-| host | 5 |
+| host | 10 |
 | inspections | 1 |
 | legal | 3 |
 | messages | 2 |
@@ -54,9 +54,14 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | `/assistant` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | P | P | X | P | P | P | P |
 | `/bookings/[bookingId]/review` | C3 | P | · | P | P | P | P | · | P | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/host/apply` | C5 | P | · | P | P | X | P | · | · | P | P | P | P | P | · | · | P | · | P | P | P | P | X | P | P |
+| `/host/arrival` | C5 | P | · | P | X | P | P | P | P | · | P | P | P | P | P | P | P | · | P | P | P | P | X | P | P |
+| `/host/assistant` | C5 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | P | P | P | P | X | P | P |
+| `/host/bookings` | C5 | P | · | P | P | X | P | P | · | P | P | P | P | P | P | P | P | X | P | P | P | P | X | P | P |
+| `/host/notifications` | C5 | P | P | P | P | P | P | P | · | P | P | P | P | P | · | P | P | · | P | P | P | P | X | P | P |
 | `/host/photos` | C5 | P | P | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | P | P | P | P | X | P | P |
 | `/host/reservations` | C5 | P | P | P | P | P | P | P | · | P | P | P | P | P | P | P | P | · | P | P | P | P | X | P | P |
 | `/host/reviews` | C5 | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | P | · | P | P | P | P | X | P | P |
+| `/host/start` | C5 | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | P | · | · | · | · | · | · | · | P |
 | `/host/transfer` | C5 | P | P | P | P | P | P | · | · | P | P | P | P | P | · | X | P | · | P | P | P | P | X | P | P |
 | `/inspections/gate/[id]` | C3 | P | · | P | P | P | P | · | P | · | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/legal/disclaimer` | C3 | P | · | P | P | P | P | · | · | · | P | P | P | P | · | P | P | F | · | P | P | P | P | P | P |
@@ -71,7 +76,7 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | `/support/messages` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | X | P | P |
 | `/support/messages/[id]` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | X | P | X | P | P |
 | `/support/new` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | X | P | P |
-| `/tenancy/[id]/complaint` | C3 | P | · | P | P | · | P | · | · | P | P | P | P | P | · | · | P | · | P | P | P | P | P | P | P |
+| `/tenancy/[id]/complaint` | C3 | P | P | P | P | P | P | P | · | P | P | P | P | P | · | X | P | · | P | P | P | P | P | P | P |
 | `/u` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | X | P | · | P | P | P | P | X | P | P |
 | `/u/[handle]/edit` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | P | P | P | P | P | X | P | P |
 | `/u/[handle]/followers` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | P | P | P | P | X | X | P | P |
@@ -203,6 +208,25 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 - 5 (fixed): The step summary read 'Step 1 of 11 Saved on this device as you type.': two sentences joined by a bare space. Joined with a middle dot now.
 - 22 (fixed): Overflow 0 in all four. Metadata, 'Sign in' and 'Try again' were English; dictionary now.
 
+**`/host/arrival`** (the real page in the real HostShell; getMyBusinesses and getPrimaryAccommodation mocked to (dev)/preview/c2 C2_HOTEL and C2_HOTEL_PROPERTY; readDeclaration to lib/stays/arrival-charges.test.ts `full` verbatim, and to none on record; no stays business; signed out)
+
+- 4 (fixed): Each charge is a fieldset drawn as a card, and its legend was a RENDERED legend, which a browser paints on the fieldset's border: the card's edge ran straight through 'Caution deposit' and every other heading (screenshots before). The legend is floated, so it is an ordinary first row inside the card.
+- 22 (fixed): Overflow 0 in all four. Metadata and Sign in were English; the dictionary's (afterTheGate.arrival.title, common.signIn) now.
+
+**`/host/assistant`** (the real page in the real HostShell (immersive); no thread (threads live on the device), viewer initials from (dev)/preview/_fixtures/people PERSON, consent given, as C3 measured /assistant)
+
+- 22 (fixed): Overflow 0 in all four. The metadata title was English; hostNav.assistant now.
+
+**`/host/bookings`** (the real page in the real HostShell; readHostRoomBookings mocked to the (dev)/preview/host-c decide deck's three room requests verbatim as the waiting list (no fixture of an accepted or past room booking exists, so those sections are not drawn); no requests; signed out)
+
+- 5 (fixed): Every card under 'Waiting for you' repeated 'Waiting for you' as its status line. The line is drawn only once something has moved (an agreement, a payment), so the heading says it once.
+- 17 (fixed): Three money sentences were written in the route (the lede's payment sentence, 'Total the guest pays', 'The guest pays by card once it is approved.'). They are HOST_ROOM_BOOKING_PAYMENT, HOST_ROOM_TOTAL_LABEL and HOST_ROOM_GUEST_PAYS_NEXT in lib/money/copy.ts.
+- 22 (fixed): Overflow 0 in all four. The page and RoomRequestAnswer were English throughout (about 40 strings: heading, lede, sections, status and agreement words, the accept and decline sheets, metadata). experienceHost.bookings now, threaded to the sheet as `words`; host-copy.test.ts's bookings ceiling (7) went to zero and the row was deleted.
+
+**`/host/notifications`** (the real page (HostShell around the (app) notifications page); loadNotificationPage mocked to (dev)/preview/f4 NOTIFICATIONS, which are already in the client's item shape, so toNotificationItem passes them through; unread counts none)
+
+- 22 (fixed): Overflow 0 in all four. The route's only own string, the metadata title, was English; nav.notifications now.
+
 **`/host/photos`** (the real page in the real HostShell; getMyBusinesses mocked to the p3 host-photos deck's venue (copied verbatim, it is declared inline there) and listBusinessPhotos to p3 P3_PHOTOS; and to no business at all)
 
 - 22 (fixed): Overflow 0 in all four. The heading, the no-photographs sentence, metadata and Sign in were English literals, and the count was always English (countOf without a locale). All from the dictionary now, the count in the reader's locale.
@@ -260,6 +284,10 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 **`/support/new`** (the real page inside its real layout as Report a problem, loadMyRelatedRecords mocked to preview/support RECORDS)
 
 - 22 (fixed): The page's 7 strings were English literals; they are in experienceInbox.support.pages now.
+
+**`/tenancy/[id]/complaint`** (the real page three ways: the pack for f3 TENANCIES[0] as preview/f3/tenancy-file.ts derives it (every value read from a committed fixture or computed by product code: ledgerFromListing on its own listing RENTAL, tenancyEnd, keptUntil, firstNameAndInitial; listStates mocked to sweep-orphans STATES so the real publicPlace runs), and the two honest states the read returns (not the tenant's file, read failed))
+
+- 15 (fixed): Three untrue lines for an unpaid tenancy: the total was labelled Paid in total; Payments offered a receipt code to check a payment that does not exist; an unnamed lister read "the lister, lister." The label now follows file.paid (Move-in total, not paid in full), no receipts says No payment has settled against this tenancy yet with the code hint only once a payment exists, and an unnamed lister has its own sentence.
 
 **`/u`** (the real page with findPeople's own ready answer: no query and nobody, and a query naming _fixtures/people PERSON and COUNTERPART (no badge, no occupation, no place, so nothing is claimed beyond the fixture))
 

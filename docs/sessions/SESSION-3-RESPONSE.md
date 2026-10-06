@@ -24,8 +24,8 @@ labels into the dictionary).
 **The sweep, as a number.** The per-route record is
 [`SESSION-3-SWEEP.md`](SESSION-3-SWEEP.md), generated from each agent's own 24-point
 result, run in Chromium at 390, 768 and 1440 in both themes on the route's real page
-component. **Routes audited with all 24 points recorded: 49 of 213** at this edit
-(23 admin, every admin route whose page was untouched; 21 member, two of them redirects; 5 host). The rows in section 3 below predate this and leave points
+component. **Routes audited with all 24 points recorded: 54 of 213** at this edit
+(23 admin, every admin route whose page was untouched; 21 member, two of them redirects; 10 host, one a redirect). The rows in section 3 below predate this and leave points
 19, 22 and 23 at N; they are not counted. The measured starting point (C1, at
 `6376453df` against the session base): 88 of 213 `page.tsx` files untouched, 46 of
 125 edits five lines or fewer, 54 routes whose own files are untouched; admin 23
