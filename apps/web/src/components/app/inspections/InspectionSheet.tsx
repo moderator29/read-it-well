@@ -405,15 +405,19 @@ export function InspectionSheet({
 
       <div className="nf-ix-body">
         {/* ---------------------------------------------- date, party, state */}
-        <dl className={panelClass({ variant: "card", className: "nf-ix-facts" })}>
+        {/* Three label-and-value cells, not a definition list: each cell carries
+            its glyph beside the words, and a dl may hold only dt and dd in its
+            groups (axe definition-list and dlitem, 9 findings on the agent's
+            inspections at 390, C1 sweep). The words read in the same order. */}
+        <div className={panelClass({ variant: "card", className: "nf-ix-facts" })}>
           <div className="nf-ix-fact">
             <span className="nf-ix-fact__glyph" aria-hidden="true">
               <Crop name="glyph-calendar" width={44} height={44} />
             </span>
             <div className="nf-ix-fact__text">
-              <dt className="nf-ix-fact__label">Inspection Date</dt>
-              <dd className="nf-ix-fact__value">{when.day}</dd>
-              <dd className="nf-ix-fact__sub">{when.time}</dd>
+              <p className="nf-ix-fact__label">Inspection date</p>
+              <p className="nf-ix-fact__value">{when.day}</p>
+              <p className="nf-ix-fact__sub">{when.time}</p>
             </div>
           </div>
           <div className="nf-ix-fact">
@@ -425,15 +429,15 @@ export function InspectionSheet({
                   assigned agent: `inspection_requests` names the requester
                   and the lister (owner or agent) and nobody else, so the
                   label says what the row holds (CLAIMS_RULE; ledger 9). */}
-              <dt className="nf-ix-fact__label">{side === "requester" ? "Listed by" : "Requested by"}</dt>
-              <dd className="nf-ix-fact__value">
+              <p className="nf-ix-fact__label">{side === "requester" ? "Listed by" : "Requested by"}</p>
+              <p className="nf-ix-fact__value">
                 {inspection.counterpartName ?? "Not named yet"}
                 {inspection.counterpartBadge ? <TierBadge tier={inspection.counterpartBadge} size={14} className="nf-ix-name-tier" /> : null}
-              </dd>
+              </p>
               {/* The number, visible under the name and itself the tel: link,
                   when `lib/security/counterpart-contact.ts` hands one over. */}
               {inspection.counterpartPhone && (
-                <dd>
+                <p>
                   <a
                     href={`tel:${inspection.counterpartPhone}`}
                     className="nf-ix-fact__phone nf-numeric"
@@ -442,7 +446,7 @@ export function InspectionSheet({
                   >
                     {formatPhone(inspection.counterpartPhone)}
                   </a>
-                </dd>
+                </p>
               )}
             </div>
           </div>
@@ -451,13 +455,13 @@ export function InspectionSheet({
               <Crop name="glyph-clock" width={46} height={44} />
             </span>
             <div className="nf-ix-fact__text">
-              <dt className="nf-ix-fact__label">Status</dt>
-              <dd className="nf-ix-fact__badge">
+              <p className="nf-ix-fact__label">Status</p>
+              <p className="nf-ix-fact__badge">
                 <Badge tone={status.tone}>{status.label}</Badge>
-              </dd>
+              </p>
             </div>
           </div>
-        </dl>
+        </div>
 
         {/* -------------------------------------------------------- lifecycle */}
         {/* The shared status track (spec section 14): the four rungs the
@@ -513,11 +517,11 @@ export function InspectionSheet({
           <div className="nf-ix-check__head">
             <p className="nf-ix-check__title">
               <Crop name="glyph-list" width={34} height={34} className="nf-ix-check__glyph" />
-              Inspection Checklist
+              Inspection checklist
             </p>
             <div className="nf-ix-check__count">
               <span className="nf-numeric">
-                {rooms.done} / {rooms.total} Completed
+                {rooms.done} of {rooms.total} done
               </span>
               <span
                 className="nf-ix-bar"
@@ -725,14 +729,21 @@ export function InspectionSheet({
                 accept="image/jpeg,image/png,image/webp,image/heic,application/pdf"
                 className="sr-only"
                 tabIndex={-1}
+                /* Out of the tab order (the button below opens it), and still
+                   named for a screen reader's form list (axe label, C1 sweep). */
+                aria-label="Add a photo to the report"
                 onChange={(event) => {
                   const file = event.target.files?.[0];
                   event.target.value = "";
                   if (file) void addPhoto(file);
                 }}
               />
+              {/* Lit only once the report is open. Before a time is agreed the
+                  screen's one primary is the agreement (Confirm), and two lit
+                  buttons on one phone screen is two glows (north star 12,
+                  point 1; C1 sweep on the agent's inspections). */}
               <Button
-                variant="primary"
+                variant={editable ? "primary" : "secondary"}
                 full
                 className="nf-ix-cta"
                 disabled={!editable || uploading || pending}
@@ -740,7 +751,7 @@ export function InspectionSheet({
                 data-testid="inspection-add-photos"
               >
                 <Crop name="glyph-camera" width={38} height={34} className="nf-ix-cta__glyph" />
-                {uploading ? "Adding photo" : saved.photoCount > 0 ? `Add Photos (${saved.photoCount})` : "Add Photos"}
+                {uploading ? "Adding photo" : saved.photoCount > 0 ? `Add photos (${saved.photoCount})` : "Add photos"}
                 <UiIcon name="chevron-right" size={16} className="nf-ix-cta__end" />
               </Button>
             </>
@@ -748,11 +759,11 @@ export function InspectionSheet({
             <Link
               href={`/messages/${inspection.conversationId}?attach=1`}
               className="nf-btn nf-btn--primary nf-btn--md nf-btn--full nf-ix-cta"
-              aria-label="Add Photos, in the conversation about this inspection"
+              aria-label="Add photos, in the conversation about this inspection"
               data-testid="inspection-add-photos"
             >
               <Crop name="glyph-camera" width={38} height={34} className="nf-ix-cta__glyph" />
-              Add Photos
+              Add photos
               <UiIcon name="chevron-right" size={16} className="nf-ix-cta__end" />
             </Link>
           ) : null}
@@ -766,10 +777,10 @@ export function InspectionSheet({
             data-testid="inspection-submit"
           >
             <Crop name="glyph-plane" width={36} height={36} className="nf-ix-cta__glyph" />
-            Submit Inspection Report
+            Submit inspection report
           </Button>
           {/* The render draws no helper line: with the report on, the count
-              ("n / 8 Completed") already says why Submit waits. These two
+              ("n of 8 done") already says why Submit waits. These two
               carry states the render cannot show (report storage off, and an
               inspection not yet agreed), so they stay; ledger 9, S12. */}
           {!reportLive && inspection.state === "CONFIRMED" && !submittable && (
@@ -938,7 +949,7 @@ function ProposeSheet({
  * and the glass house with the tick at the right.
  */
 export function InspectionHero({
-  title = "Inspection",
+  title = "inspection",
   sub,
   fallback = "/home",
   back = true,
