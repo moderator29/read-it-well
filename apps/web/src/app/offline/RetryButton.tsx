@@ -19,7 +19,20 @@ import { Button } from "@/components/ui/Button";
  * data session still reads as online). It is never disabled for that reason,
  * and the page tries again by itself the moment the browser says the
  * connection is back (`online`), as the packaged shell's card does.
+ *
+ * WHERE "AGAIN" GOES. The service worker serves this screen in place of a
+ * page that could not load, at that page's own address, so a reload asks for
+ * that page again. Opened at `/offline` itself (a bookmark, a shared link,
+ * the shell's fallback URL) there is no other page to retry, and a reload
+ * would only ask for this screen again, forever (audit A5). There it goes to
+ * the app's front page instead, a full load for the same reason as above.
  */
+const HOME = "/home";
+
+function tryAgain(): void {
+  if (window.location.pathname.replace(/\/+$/, "") === "/offline") window.location.assign(HOME);
+  else window.location.reload();
+}
 export function RetryButton({
   label,
   statusOnline,
@@ -36,7 +49,7 @@ export function RetryButton({
     const sync = () => setOnline(navigator.onLine);
     const back = () => {
       setOnline(true);
-      window.location.reload();
+      tryAgain();
     };
     sync();
     window.addEventListener("online", back);
@@ -57,7 +70,7 @@ export function RetryButton({
         className="nf-offline__action"
         onClick={() => {
           setRetrying(true);
-          window.location.reload();
+          tryAgain();
         }}
       >
         {label}

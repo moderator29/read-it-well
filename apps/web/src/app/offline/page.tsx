@@ -48,7 +48,7 @@ export default function OfflinePage() {
       {/* V-35: this phone's inspection packs, with their gate codes. */}
       <OfflinePacks copy={t.platform.gate} locale={DEFAULT_LOCALE} />
       {/* V-77: the shortlist this phone holds, with a compare. */}
-      <OfflineShelf copy={t.platform.shelf} exampleLabel={t.catalogue.card.example} locale={DEFAULT_LOCALE} />
+      <OfflineShelf copy={t.platform.shelf} locale={DEFAULT_LOCALE} />
     </OfflineScreen>
   );
 }
