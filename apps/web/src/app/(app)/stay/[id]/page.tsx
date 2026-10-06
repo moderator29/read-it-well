@@ -145,8 +145,8 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   if (!detail) return listingMetadata({ params });
   const where = [detail.area, detail.city].filter(Boolean).join(", ");
   const title = where ? `${detail.name}, ${where}` : detail.name;
-  const description =
-    detail.description ?? (where ? `A stay in ${where}, on Vallo.` : "A stay on Vallo.");
+  const share = getDictionary(await getLocale()).experienceDetail.stay;
+  const description = detail.description ?? (where ? share.shareWhere.replace("{where}", where) : share.shareNone);
   const url = `${siteUrl().replace(/\/+$/, "")}/stay/${detail.id}`;
   const cover = detail.photos[0]?.url;
   return {

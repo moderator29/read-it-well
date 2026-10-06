@@ -66,6 +66,19 @@ export const experienceDetailEn = {
   /* The stay's lead: the nightly rate, then the total for the dates. */
   stay: {
     forDates: "{total} for {nights}",
+    /* The stay's class and kind, and the share card's line (Round 3 sweep,
+       C3). `{count}` the stars, `{where}` the area and city. */
+    stars: "{count} star",
+    kinds: {
+      hotel: "Hotel",
+      serviced_apartments: "Serviced apartment",
+      guest_house: "Guest house",
+      resort: "Resort",
+      shortlet_operator: "Shortlet",
+    },
+    host: "Host",
+    shareWhere: "A stay in {where}, on Vallo.",
+    shareNone: "A stay on Vallo.",
   },
   /**
    * `/restaurant/[id]`: the sentences the route assembles from a venue's own

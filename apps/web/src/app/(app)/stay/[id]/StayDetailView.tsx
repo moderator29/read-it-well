@@ -37,7 +37,6 @@ import "@/app/css/catalogue.css";
 
 type StaysCopy = Dictionary["stayDetail"];
 
-const STAR_LABEL: Record<number, string> = { 1: "1 star", 2: "2 star", 3: "3 star", 4: "4 star", 5: "5 star" };
 
 /* The property type as a plated line glyph (29 September 2026), the detail
    page's one row treatment, rather than a glass object at 48px. */
@@ -49,13 +48,6 @@ const BUSINESS_GLYPH: Record<string, UiIconName> = {
   shortlet_operator: "key",
 };
 
-const BUSINESS_LABEL: Record<string, string> = {
-  hotel: "Hotel",
-  serviced_apartments: "Serviced apartment",
-  guest_house: "Guest house",
-  resort: "Resort",
-  shortlet_operator: "Shortlet",
-};
 
 /**
  * The glyph for an amenity the read names in words ("Air conditioning",
@@ -133,6 +125,7 @@ export function StayDetailView({
   const where = [detail.area, detail.city].filter(Boolean).join(", ");
   const catalogue = t.catalogue.stays;
   const businessKind = detail.businessKind ?? "hotel";
+  const kindLabel = (t.experienceDetail.stay.kinds as Record<string, string>)[businessKind];
   const detailCopy = t.catalogue.detail;
   const sx = t.experienceDetail;
 
@@ -171,7 +164,7 @@ export function StayDetailView({
     specCandidates.push({
       key: "class",
       icon: "sparkle",
-      label: STAR_LABEL[detail.starRating] ?? `${detail.starRating} star`,
+      label: t.experienceDetail.stay.stars.replace("{count}", formatNumber(detail.starRating, locale)),
     });
   }
   if (detail.checkInFrom) {
@@ -359,7 +352,7 @@ export function StayDetailView({
               detail.hostName
                 ? {
                     name: detail.hostName,
-                    role: BUSINESS_LABEL[businessKind] ?? "Host",
+                    role: kindLabel ?? t.experienceDetail.stay.host,
                     verified: detail.hostVerified === true,
                     verifiedLabel: detailCopy.verifiedHost,
                     /* An accommodation id is not a listing id, so the old
@@ -454,7 +447,7 @@ export function StayDetailView({
             />
             <span className="min-w-0">
               <span className={`block ${TYPE.label}`}>{catalogue.propertyType}</span>
-              <span className={`block ${TYPE.rowTitle}`}>{BUSINESS_LABEL[businessKind] ?? "Hotel"}</span>
+              <span className={`block ${TYPE.rowTitle}`}>{kindLabel ?? t.experienceDetail.stay.kinds.hotel}</span>
               <span className={`mt-3xs block ${TYPE.rowMeta}`}>
                 {detail.roomTypes.length > 0
                   ? countOf(detail.roomTypes.length, "roomTypes", locale)
