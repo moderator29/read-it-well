@@ -198,7 +198,7 @@ export const POST_FAILURE = {
    */
   editWindowClosed:
     "The fifteen minutes for changing a post has passed. What is written stays as it is, and you can take it down whenever you like.",
-  editNotLive: "This post is not live, so there is nothing to change on it.",
+  editNotLive: "This post is not showing, so there is nothing to change on it.",
   deleteWhileHeld:
     "This one is still with a moderator, so it cannot be taken down from here yet. Nobody else can see it while it is with them.",
   signedOutLike: "Sign in to like this.",

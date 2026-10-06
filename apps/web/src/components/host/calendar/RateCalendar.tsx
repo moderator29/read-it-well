@@ -362,7 +362,7 @@ export function RateCalendar(props: RateCalendarProps) {
               {room.name}
               {room.status !== "PUBLISHED" ? (
                 <StatusBadge tone="neutral" className="ml-xs align-middle">
-                  Not live yet
+                  Not on the shelf yet
                 </StatusBadge>
               ) : null}
             </p>

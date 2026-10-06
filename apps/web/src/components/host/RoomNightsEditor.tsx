@@ -108,7 +108,7 @@ function RoomCard({ room, locale }: { room: MyRoomType; locale: Locale }) {
           tone={toneForStatus(room.status)}
           className="justify-self-start sm:justify-self-end"
         >
-          {room.status === "PUBLISHED" ? "On the shelf" : "Not live yet"}
+          {room.status === "PUBLISHED" ? "On the shelf" : "Not on the shelf yet"}
         </StatusPill>
       </div>
 
