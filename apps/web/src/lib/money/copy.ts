@@ -617,3 +617,69 @@ export const HOST_STATEMENT_SIGNED_OUT_BODY =
 export const HOST_STATEMENT_EMPTY_TITLE = "No payments this month";
 export const HOST_STATEMENT_EMPTY_BODY =
   "When a guest pays, the payment appears here line by line: what they paid, the platform fee, and your share.";
+
+/* -------------------------------------------------------------------------- */
+/* /cancellations and /safety (C6, the route sweep): the money sentences the  */
+/* two pages wrote for themselves, moved here word for word. One changed:     */
+/* /safety's "Vallo keeps no balance for you, so there is nothing to          */
+/* withdraw" is untrue beside the Rewards Balance (D51, a debt Vallo owes and */
+/* pays out), so both pages now say the narrower true thing about a refund;  */
+/* and the payment reference opens from Plans, the name the app gives what   */
+/* this sentence called Bookings.                                             */
+/* -------------------------------------------------------------------------- */
+
+/** A refund, after REFUND_ROUTE: nothing on Vallo holds it on the way back. Both pages. */
+export const REFUND_NO_BALANCE =
+  "There is no Vallo balance for a refund to sit in, so it always goes back the way the money came.";
+
+/** /cancellations, the lede: the terms are fixed when the stay is paid. */
+export const CANCEL_LEDE =
+  "A stay listed by an owner or agent follows the three steps below; a hotel room shows its own rate's terms before you choose it. Either way the terms are fixed on your booking when you pay, so they cannot change afterwards.";
+
+/** /cancellations: a hold nobody has paid for. */
+export const CANCEL_BEFORE_PAID =
+  "A reservation you have not paid for is a hold on the calendar and nothing more. Cancel it from Plans, at any hour, for nothing, and the nights reopen for somebody else immediately. A hold you walk away from releases itself, so you cannot accidentally block an agent's calendar by forgetting about it.";
+
+/** /cancellations: a paid stay is cancelled by a person, and where the refund goes. */
+export const CANCEL_AFTER_PAID =
+  "Once money has moved, a cancellation is handled by a person rather than by a button, because a refund is somebody's money and it deserves a name against the decision. Write to support with your booking reference. We apply the schedule above exactly as it is written, the refund goes back to the card or account you paid with, and you get the amount and the reason in writing.";
+
+/** /cancellations: the agent cancels. `{hours}` is FULL_REFUND_HOURS, set as a figure by the page. */
+export const CANCEL_BY_AGENT =
+  "You get everything back, whenever it happens, including inside the last {hours} hours. The schedule above never applies to a cancellation you did not choose.";
+
+/** /cancellations: the place is not what was listed. */
+export const CANCEL_NOT_AS_LISTED =
+  "Do not cancel. Report it from the listing on the day, with photographs if you have them. A misrepresented property is a standards matter, not a cancellation, and it is refunded in full once a person has looked at it.";
+
+/** /cancellations: the guest could not get in. */
+export const CANCEL_NO_ENTRY =
+  "A gate that will not open, an estate that has no record of you, a key nobody brings. Message the agent in the thread so there is a time stamp, then report it. Same treatment: full refund once it is confirmed.";
+
+/** /cancellations: a restaurant table. */
+export const CANCEL_TABLE =
+  "Nothing is taken for a table, so nothing has to come back. You ask a restaurant for a date, a time and a party size, and the restaurant confirms it or turns it down. Cancel from the reservation at any hour, for nothing, and tell them in its own conversation if you are simply running late. You pay the restaurant when you eat, and the schedule above has nothing to say about any of it.";
+
+/** /safety, under the one rule: why nobody should send an account number. */
+export const SAFETY_NO_ACCOUNT_NUMBER =
+  "We add nothing to the price you are shown, and every payment happens inside the platform. So there is no honest reason for anyone to send you an account number, and if somebody does, they are not doing platform business. Report them and stop replying.";
+
+/** /safety, how paying works: after NO_CUSTODY_SENTENCE, the processor and both sides. */
+export const SAFETY_PAY_THROUGH_VALLO =
+  "Every payment on Vallo goes through the checkout screen with a licensed Nigerian payment processor, using a card or a bank transfer raised by the processor. That is true on both sides: a hotel room for Friday and a flat for the year are paid the same way, and there is no step on either where somebody sends you an account number.";
+
+/** /safety, how paying works: the price is whole, and whose fees are whose. */
+export const SAFETY_PRICE_IS_WHOLE =
+  "The total you see before you commit is the lister's own number for that market, whole: the move-in total on a yearly tenancy, the nights and any cleaning charge on a shortlet, the asking price on a sale or a lease. Where an agent charges a fee of their own it is theirs, it belongs on the listing and not at the door, and it is named as theirs. Nothing of ours is added at the end. If your bank or card network takes something of their own, that is theirs and it is named as theirs too.";
+
+/** /safety, how paying works: the reference every payment leaves. */
+export const SAFETY_PAYMENT_RECORD =
+  "Every payment writes a reference against your booking that you can open from Plans and from Agreements. If anything goes wrong, that reference is what a person on our side works from. A transfer you made to somebody's personal account has no such record and cannot be traced by us.";
+
+/** /safety, how paying works: a table is not a payment. */
+export const SAFETY_TABLE_NOT_A_PAYMENT =
+  "A restaurant reservation is a request, not a payment. You ask for a date, a time and a party size, the restaurant answers, and you pay the restaurant when you eat. Nobody on Vallo has any reason to take money from you for a table, and anybody asking for one is not doing platform business.";
+
+/** /safety, already paid outside: what Vallo can and cannot do. */
+export const SAFETY_OUTSIDE_NOT_RECOVERABLE =
+  "We cannot recover money that never came through the platform, and we will not pretend otherwise, but we can remove the account, hold the listing, and stop the same person from doing it to the next person.";

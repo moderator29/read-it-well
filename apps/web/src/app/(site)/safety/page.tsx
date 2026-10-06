@@ -6,7 +6,21 @@ import { ButtonLink } from "@/components/ui/Button";
 import { CancellationTimeline } from "@/lib/trust/CancellationTimeline";
 import { NEVER_ASK, NO_FEES_LINE, RESPONSE_COMMITMENTS } from "@/lib/trust/standards";
 import { REPORT_CATEGORY_COPY, REPORT_CATEGORY_ORDER } from "@/lib/reports/schema";
-import { NO_CUSTODY_SENTENCE, NO_INSPECTION_FEE, OFF_PLATFORM_SENTENCE, RAIL_COPY, REFUND_ROUTE } from "@/lib/money/copy";
+/* Every money sentence on this page is lib/money/copy.ts's (C6, the route sweep). */
+import {
+  NO_CUSTODY_SENTENCE,
+  NO_INSPECTION_FEE,
+  OFF_PLATFORM_SENTENCE,
+  RAIL_COPY,
+  REFUND_NO_BALANCE,
+  REFUND_ROUTE,
+  SAFETY_NO_ACCOUNT_NUMBER,
+  SAFETY_OUTSIDE_NOT_RECOVERABLE,
+  SAFETY_PAY_THROUGH_VALLO,
+  SAFETY_PAYMENT_RECORD,
+  SAFETY_PRICE_IS_WHOLE,
+  SAFETY_TABLE_NOT_A_PAYMENT,
+} from "@/lib/money/copy";
 import { LIVE_RAIL } from "@/lib/money/rails";
 import { DEFAULT_LOCALE, getDictionary } from "@vallo/i18n";
 import { e164 } from "@/lib/notify/whatsapp";
@@ -38,21 +52,23 @@ export async function generateMetadata(): Promise<Metadata> {
 const PAYING_STEPS: { title: string; body: string }[] = [
   {
     title: "You never pay a person directly, you pay through Vallo",
-    body: `${NO_CUSTODY_SENTENCE} Every payment on Vallo goes through the checkout screen with a licensed Nigerian payment processor, using a card or a bank transfer raised by the processor. That is true on both sides: a hotel room for Friday and a flat for the year are paid the same way, and there is no step on either where somebody sends you an account number.`,
+    body: `${NO_CUSTODY_SENTENCE} ${SAFETY_PAY_THROUGH_VALLO}`,
   },
   {
     title: "The price you agree is the price you pay",
     /* The rule card above prints NO_FEES_LINE word for word, so this step no
        longer opens with it a second time (C6, the route sweep). */
-    body: `The total you see before you commit is the lister's own number for that market, whole: the move-in total on a yearly tenancy, the nights and any cleaning charge on a shortlet, the asking price on a sale or a lease. Where an agent charges a fee of their own it is theirs, it belongs on the listing and not at the door, and it is named as theirs. Nothing of ours is added at the end. If your bank or card network takes something of their own, that is theirs and it is named as theirs too.`,
+    body: SAFETY_PRICE_IS_WHOLE,
   },
   {
     title: "There is a record, permanently",
-    body: "Every payment writes a reference against your booking that you can open from Bookings and from Agreements. If anything goes wrong, that reference is what a person on our side works from. A transfer you made to somebody's personal account has no such record and cannot be traced by us.",
+    body: SAFETY_PAYMENT_RECORD,
   },
   {
     title: "A refund goes back the way it came",
-    body: `${REFUND_ROUTE} Vallo keeps no balance for you, so there is nothing to withdraw and nothing sitting with us.`,
+    /* "Vallo keeps no balance for you, so there is nothing to withdraw" was
+       untrue beside the Rewards Balance (D51); the refund's own sentence is. */
+    body: `${REFUND_ROUTE} ${REFUND_NO_BALANCE}`,
   },
   {
     title: "What stands behind a payment",
@@ -60,7 +76,7 @@ const PAYING_STEPS: { title: string; body: string }[] = [
   },
   {
     title: "A table costs nothing to hold",
-    body: "A restaurant reservation is a request, not a payment. You ask for a date, a time and a party size, the restaurant answers, and you pay the restaurant when you eat. Nobody on Vallo has any reason to take money from you for a table, and anybody asking for one is not doing platform business.",
+    body: SAFETY_TABLE_NOT_A_PAYMENT,
   },
 ];
 
@@ -110,10 +126,7 @@ export default function SafetyCentrePage() {
             {NO_FEES_LINE}
           </h2>
           <p className="mt-row text-[length:var(--nf-text-row)] leading-relaxed text-[var(--nf-content-secondary)]">
-            We add nothing to the price you are shown, and every payment
-            happens inside the platform. So there is no honest reason for
-            anyone to send you an account number, and if somebody does, they are not doing platform
-            business. Report them and stop replying.
+            {SAFETY_NO_ACCOUNT_NUMBER}
           </p>
           {whatsapp && (
             <p className="nf-body-sm mt-row font-semibold text-[var(--nf-content-primary)]" data-testid="safety-whatsapp">
@@ -296,10 +309,7 @@ export default function SafetyCentrePage() {
               </h3>
               <p className="mt-inline text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                 Send us the listing link, the account details you were given and
-                the messages. We cannot recover money that never came through the
-                platform, and we will not pretend otherwise, but we can remove the
-                account, hold the listing, and stop the same person from doing it
-                to the next person.
+                the messages. {SAFETY_OUTSIDE_NOT_RECOVERABLE}
               </p>
             </li>
             <li className="nf-panel nf-panel--card block p-card-sm">
