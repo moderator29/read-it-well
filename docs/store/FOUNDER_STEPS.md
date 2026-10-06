@@ -8,7 +8,8 @@ changes when it is done. Written 23 September 2026.
 The code is finished and switched off. It switches ON by itself, on the
 website and in the iPhone app, the moment Supabase reports the Apple provider
 enabled (the sign-in screens ask Supabase every five minutes). You need an
-Apple Developer account first. Since 29 September 2026 that is your personal
+Apple Developer account first, and you already have one (team `X74KD52994`,
+see section 3). Since 29 September 2026 that is your personal
 account to start with, and the app moves to the VALLO SPACES LTD account
 later; the Services ID and key made here belong to the personal account and
 must be remade in the company account after the transfer
@@ -88,6 +89,25 @@ marks every run with them.
   buying an enrolment you already have. Session 4 found it on 6 October 2026.
   **The Android fingerprints below are still genuinely outstanding**: only the
   Apple half of this step is finished.
+  - Re-measured 6 October 2026: `apps/web/public/.well-known/apple-app-site-association:6`
+    reads `X74KD52994.com.vallospaces.app`; `apps/web/ios/App/App.xcodeproj/project.pbxproj:117`
+    reads `DevelopmentTeam = X74KD52994;`; `CODE_SIGN_ENTITLEMENTS = App/App.entitlements`
+    is set at `project.pbxproj:305` and `:328`; and the iOS check
+    (`cd apps/web && node scripts/check-deep-links.mjs --platform=ios`) exits 0.
+  - A signed App Store archive already ran and succeeded on 3 October 2026
+    (GitHub Actions run 37103086939, both jobs green, all four Apple secrets
+    present). The export ran with `destination=upload`, so the build went to
+    App Store Connect.
+  - **The real next Apple step is not enrolment.** In order: (1) open App Store
+    Connect and look at TestFlight: is the 3 October build processed, and is
+    any tester added? The repository cannot see this, so it is UNKNOWN. (2)
+    Install it on one iPhone and run the ten P0 rows of
+    `docs/VALLO_NATIVE_TEST_MATRIX.md` (0 of 34 rows have ever been run). (3)
+    Create the APNs key and set the `APNS_*` variables in Vercel (section 6,
+    steps 4 and 5; none existed on 28 September, current state UNKNOWN). (4)
+    Fill the App Store Connect listing: screenshots exist (35 at 1320 x 2868 in
+    `docs/store/screenshots/app-store/`), privacy answers are in
+    `docs/store/PRIVACY_LABELS.md`, reviewer account in section 4 below.
 - **Two SHA-256 fingerprints** into `apps/web/public/.well-known/assetlinks.json`:
   Play Console → the app → Test and release → Setup → App signing → "App
   signing key certificate" SHA-256, and the "Upload key certificate" SHA-256.
@@ -153,10 +173,12 @@ it to close the catalogue again.
    (Production), set `FCM_PROJECT_ID` and `FCM_SERVICE_ACCOUNT_JSON` (the whole
    JSON, one line). **This one is a secret.**
 
-**iPhone (APNs, needs the 99 USD Apple Developer membership):**
+**iPhone (APNs; the Apple Developer membership is already held, team `X74KD52994`):**
 4. Certificates, Identifiers & Profiles:
    - On the App ID `com.vallospaces.app`, enable Push Notifications, Sign in
-     with Apple and Associated Domains.
+     with Apple and Associated Domains (the 3 October signed export succeeded
+     with all three in the entitlements file, so check the portal rather than
+     assume they are missing).
    - Under Keys, create a key with Apple Push Notifications service. The `.p8`
      downloads **once**.
 5. In Vercel (Production), set:
@@ -169,11 +191,13 @@ it to close the catalogue again.
 **The build:**
 6. Run `npm ci`, then
    `CAPACITOR_SERVER_URL=https://www.vallospaces.com npm run cap:sync --workspace @vallo/web`.
-   This refuses until section 3 (deep links) is done. Use `cap:sync:dev` for a
-   test build.
-7. Open `apps/web/ios/App/App.xcodeproj`. In Signing & Capabilities, add Push
-   Notifications, Sign in with Apple and Associated Domains. Xcode adopts
-   `App/App.entitlements`.
+   This refuses until section 3 (deep links) is done for both platforms; the
+   Android fingerprints still block it. For iOS alone use `cap:sync:ios`
+   (what the signed CI job runs). Use `cap:sync:dev` for a test build.
+7. Only if you build on a Mac: open `apps/web/ios/App/App.xcodeproj`. The team
+   and `App/App.entitlements` are already adopted (`project.pbxproj:117`, `:305`,
+   `:328`), so there is nothing to add in Signing & Capabilities. The CI job
+   `iOS signed archive (App Store)` does all of this without a Mac.
    - `aps-environment` reads `development` in the file. Archiving for
      distribution signs it as `production` from the distribution profile.
      Check the archive's entitlements once.

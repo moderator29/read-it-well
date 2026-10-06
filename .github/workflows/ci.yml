@@ -39,9 +39,55 @@
 # secret, each required to raise PROBE_OK (and always rolled back). The unit
 # suite never reaches the database; this is the job that fails when a
 # migration revokes a grant an RLS policy needs.
+#
+# WHAT IS STILL MISSING FROM THIS REPOSITORY, AND WHAT EACH MISSING VALUE TURNS
+# ON. All four are added in Settings, Secrets and variables, Actions. Nothing
+# below is a placeholder for a value that exists: every one of them is absent
+# today, which is why the jobs that need them say they measured less than they
+# look like they measured.
+#
+#   SECRET  QA_MEMBER_EMAIL and QA_MEMBER_PASSWORD, one real signed-in member.
+#     Together with the anon key they turn the `desks-a11y` job from a scan of
+#     the fixture harness into a scan of the REAL host and agent desks
+#     (`tests/a11y-desks.spec.mjs`, `tests/host.spec.mjs`). Neither spec can
+#     sign in without both, and signing in cannot reach the platform without
+#     the anon key, so the credentials alone unlock nothing.
+#     They are also what a `WEIGHT_COOKIE` would be minted from, which is the
+#     one thing blocking the seven signed-in weight budgets: they are null in
+#     `perf-budget.json` because `scripts/check-weight.mjs` skips a signed-in
+#     route with no cookie, and the credential-free stub serves no data, so a
+#     measurement taken through it is the weight of an empty page.
+#   VARIABLE  NEXT_PUBLIC_SUPABASE_ANON_KEY. Public, not a secret. Without it
+#     every build here compiles the unconfigured branches, so nothing inside
+#     the platform loads and no signed-in page can be measured or scanned.
+#   VARIABLE  NEXT_PUBLIC_MAPTILER_KEY. Public, not a secret. Without it the
+#     map surfaces render their no-key state, so their weight and their
+#     accessibility are not the shipped ones.
+#
 name: CI
 
 on:
+  # `main` ONLY, plus pull requests and by hand.
+  #
+  # On 6 October this briefly also carried `claude/vallo-**`, because a push to
+  # a session branch matched no trigger at all and D37's "green CI before every
+  # push" was unachievable as written (D42). It did its job: it got the
+  # `source-map-js` lockfile fix onto a clean runner, which is the only thing
+  # that proves a lockfile, since `npm audit` and the local suite both read an
+  # already-populated `node_modules`.
+  #
+  # IT IS GONE AGAIN BECAUSE DRAFT PULL REQUESTS NOW EXIST for all three
+  # session branches (83, 84, 85), and `pull_request` already fires on every
+  # push to a branch with an open PR. With both triggers live, ONE PUSH STARTED
+  # TWO FULL SUITES: commit c2a8a5f produced run 867 (`push`, success) and run
+  # 868 (`pull_request`, cancelled) on the same sha. Two `Build`, two
+  # `Typecheck, lint, test`, two `Database probes`. That is double the minutes
+  # and, worse, double the eviction pressure on the single `db-probes` slot that
+  # D47 is about.
+  #
+  # So: a session branch is covered by its pull request. If a branch ever needs
+  # a verdict without one, use `workflow_dispatch` rather than bringing the
+  # branch trigger back.
   push:
     branches: [main]
   pull_request:
@@ -54,6 +100,15 @@ on:
 # DOC-23: a pull request cancels its own superseded runs; a push to main never
 # does, so every commit on main gets its verdict and a regression can be
 # bisected to the commit that brought it.
+#
+# WHAT `cancel-in-progress: false` ACTUALLY DOES, since this was got wrong once
+# on 6 October and the mistake cost a real check: it protects the run that is
+# ALREADY EXECUTING. It does not make GitHub hold a line of waiting runs.
+# GitHub keeps only the MOST RECENT PENDING run in a group and cancels the
+# others, so superseded runs do not queue, they disappear. Writing "they queue
+# behind each other" in this file led to a trade being accepted that bought
+# nothing (D47.1). The per-commit guarantee above comes from the group key
+# including `github.sha`, not from `cancel-in-progress`.
 concurrency:
   group: ci-${{ github.ref }}-${{ github.event_name == 'push' && github.sha || 'pr' }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -122,6 +177,14 @@ jobs:
         if: ${{ !cancelled() }}
         run: node scripts/db-probes/run.mjs --check
 
+      # The authoring tool in scripts/marketing stays out of the product. See
+      # the `audit` job below for why it is excluded from the production
+      # advisories tree and what makes that exclusion safe; this is the half
+      # that goes red if it stops being true. Needs no network and no install.
+      - name: The marketing tool stays a tool
+        if: ${{ !cancelled() }}
+        run: node scripts/check-marketing-deps.mjs
+
       # OPS-08: migration names and versions, and no applied migration edited,
       # renamed or deleted since the commit before this push (or the pull
       # request's base).
@@ -160,6 +223,34 @@ jobs:
 
       - name: npm audit
         run: npm audit --omit=dev --audit-level=high
+
+      # SCRIPTS/MARKETING IS AUDITED HERE AND IS DELIBERATELY NOT IN THE TREE
+      # ABOVE. It landed on main with its own package-lock.json and nothing
+      # looked at it. What it is: an authoring tool, run by hand, that draws
+      # App Store and Play screenshots, the social posts and the launch video
+      # from the live product (scripts/marketing/DESIGN.md). Its ten
+      # dependencies are Three.js, GSAP, a 3D emoji set, two icon sets, three
+      # webfont packages and two map atlases, all of them used to produce an
+      # image on somebody's laptop. Nothing it installs is imported by the
+      # application and nothing it installs reaches a visitor: the finished
+      # files do.
+      #
+      # It is therefore NOT one of the root `workspaces` globs (`apps/*`,
+      # `packages/*`), so `npm ci` never installs it, no job has it on disk,
+      # and the root `npm audit --omit=dev` above cannot see it. That is the
+      # right exclusion and not an oversight: adding it to the workspaces to
+      # get it audited would put a 3D engine into the tree every production
+      # build resolves from, in order to gate code that never runs on a server.
+      #
+      # So its advisories are checked from its committed lockfile instead.
+      # `--package-lock-only` installs nothing, which is what keeps this one
+      # step rather than a job. `--prefix` makes npm read that folder's
+      # manifest and lockfile. It rides in this non-required job on purpose,
+      # for the same reason the step above does: a new advisory with no fix
+      # must not block a merge, and a screenshot tool's advisory least of all.
+      - name: npm audit (scripts/marketing, the authoring tool)
+        if: ${{ !cancelled() }}
+        run: npm audit --package-lock-only --audit-level=high --prefix scripts/marketing
 
   build:
     name: Build
@@ -305,8 +396,16 @@ jobs:
           cat next-start.log
           exit 1
 
+      # The two QA variables are passed here for the same reason `host.spec.mjs`
+      # below gets them: with them the spec scans the REAL host and agent desks,
+      # and without them it scans only the fixture harness and says so. They are
+      # not set today, so this job currently measures the harness; the spec's
+      # verdict line states that outright rather than printing a bare pass.
       - name: Desks accessibility (axe, focus, keyboard)
         working-directory: apps/web
+        env:
+          QA_MEMBER_EMAIL: ${{ secrets.QA_MEMBER_EMAIL }}
+          QA_MEMBER_PASSWORD: ${{ secrets.QA_MEMBER_PASSWORD }}
         run: node tests/a11y-desks.spec.mjs
 
       - name: Host routes answer
@@ -325,10 +424,67 @@ jobs:
     name: Database probes
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    # One run at a time against the database, never cancelled halfway: every
-    # probe rolls back, but a killed client leaves its locks to time out.
+    # PER REF, NOT GLOBAL. D47: the group used to be the bare string
+    # `db-probes`, shared by every open pull request and every push. The
+    # intent was sound ("one run at a time against the database, never
+    # cancelled halfway: every probe rolls back, but a killed client leaves its
+    # locks to time out") and `cancel-in-progress: false` does protect a run
+    # that is already executing. What it does NOT do is hold a queue: GitHub
+    # keeps only the most recent PENDING run in a group and cancels the rest.
+    # With four pull requests open, the middle ones were evicted.
+    #
+    # It did exactly that to PR 84, the one branch carrying this round's
+    # migrations and money changes: its probe run concluded `cancelled` after
+    # NINE SECONDS, against the 92 to 95 seconds a real run takes, with no
+    # successful companion. So the database was never checked on that PR, and
+    # the check did not read red while that was true. `cancelled` is not a
+    # pass, and it is not a failure either, which is how it hid.
+    #
+    # Keying on the ref means a push only ever evicts its own superseded run,
+    # which is correct. THE COST, STATED BECAUSE IT IS A JUDGEMENT ABOUT
+    # PRODUCTION AND NOT A TIDY-UP: there is no staging database, so several
+    # branches can now run the whole suite against the PRODUCTION database at
+    # the same time.
+    #
+    # CORRECTED 6 OCTOBER, AFTER THE SECOND REVIEW D5 REQUIRES. This comment
+    # used to say the cost was acceptable because "every probe runs in a
+    # transaction and rolls back, so none of them writes". THAT WAS FALSE.
+    # PROBES WRITE CONSTANTLY. What they never do is COMMIT, and the difference
+    # is the whole argument: a false premise that happens to reach the right
+    # conclusion would wave through a future probe that genuinely does leak.
+    #
+    # The justification that actually holds, and it is enforced rather than
+    # hoped for. `scripts/db-probes/contract.mjs` refuses any probe that is not
+    # exactly one `do $$ ... $$` block, that does not `raise exception
+    # 'PROBE_OK <its own id>'`, that has no PROBE_FAIL branch, that calls
+    # `dblink` or `pg_net` directly, or that contains `COMMIT` at all ("a probe
+    # must never be able to keep what it did"). `run.mjs` then wraps every file
+    # in `begin; ... rollback;`. That shape check is itself a required gate, run
+    # by `run.mjs --check` in the `checks` job above.
+    #
+    # So no probe can commit, and under READ COMMITTED one branch's fixtures
+    # are invisible to another branch for their whole life and are then thrown
+    # away. THE ONLY CROSS-BRANCH COUPLING IS LOCK WAITS on rows keyed by a
+    # constant, and a lock wait fails loudly: `set local lock_timeout` makes it
+    # an explicit red naming a timeout. The status quo produced a nine-second
+    # `cancelled` that read as neither pass nor fail. A loud, retryable,
+    # correctly-attributed failure strictly dominates a silent gap.
+    #
+    # Postgres, not this workflow, is the right thing to arbitrate concurrent
+    # transactions. The known contention points, and the follow-ups that would
+    # remove them, are recorded in docs/sessions/SESSION-4-RESPONSE.md; they are
+    # not this trigger's problem to solve.
+    #
+    # `cancel-in-progress` stays false: a probe killed mid-transaction leaves
+    # its locks to time out, and that reason was always correct.
+    #
+    # ONE THING THIS CANNOT FIX FROM INSIDE THE WORKFLOW: making a `cancelled`
+    # run block a merge. A conclusion of `cancelled` is not `success`, so it
+    # satisfies nothing in branch protection, but it only actually blocks if
+    # this check is in the REQUIRED list for `main`. That is a repository
+    # setting (Settings, Branches, branch protection) and the founder's to make.
     concurrency:
-      group: db-probes
+      group: db-probes-${{ github.ref }}
       cancel-in-progress: false
     env:
       DATABASE_URL: ${{ secrets.PROBES_DATABASE_URL }}

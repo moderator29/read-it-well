@@ -8,6 +8,52 @@ things in prose. **If this file and the notice ever disagree, the store forms
 are wrong. Stop and reconcile before submitting.** A mismatch on Play's Data
 safety form is grounds for suspension.
 
+## Re-verified 6 October 2026 (directive D41): the two answers that move
+
+**A wrong privacy answer is both a rejection risk and a compliance problem.**
+Apple and Google each compare the form against what the build does and against
+the privacy policy, and a mismatch can reject the submission or, on Play,
+suspend the listing. Separately, a data type that is collected but not
+declared is an inaccurate statement to the people whose data it is, which is a
+transparency problem under data protection law (the NDPA 2023, Nigeria's data
+protection statute; see `docs/LEGAL_AND_NDPC_READINESS.md`). Treat both as a
+correctness issue, not as form-filling.
+
+1. **Diagnostics > Performance Data is YES, not linked to the user, not used
+   for tracking, purpose App Functionality (Apple); App info and performance >
+   Diagnostics is YES (Play).** Verified: the table `public.web_vitals_samples`
+   exists, created in
+   `supabase/migrations/20260928225532_v80_speed_measured_on_the_phones_people_actually_use.sql:23`.
+   Its columns are `route`, `metric` (LCP, INP, CLS, FCP, TTFB), `value`,
+   `effective_type`, `save_data`, `transfer_kb` and `at`, and it has **no user
+   id column** (lines 23 to 32), which is why "not linked" holds. A purge
+   deletes rows older than 30 days (same file, line 103). Written by
+   `apps/web/src/app/api/vitals/route.ts`. The iOS privacy manifest already
+   lists `NSPrivacyCollectedDataTypePerformanceData`
+   (`apps/web/ios/App/App/PrivacyInfo.xcprivacy:216`). An older revision of the
+   answer in the native audit said No; the rows below already say Yes.
+2. **Diagnostics > Crash Data (Apple) and Crash logs (Play) are NO today, and
+   are YES the day `SENTRY_DSN` is set in Vercel Production.** The code
+   (`apps/web/src/lib/observability/report.ts`) sends nothing while it is
+   unset (`docs/ENVIRONMENT.md:133`). Whether it is set right now is UNKNOWN
+   from the repository: the last recorded reading was NOT SET (`docs/THE_AUDIT.md:49`,
+   23 September; the native audit repeated it on 28 September). The founder
+   must read Vercel Production on submission day. If it is set, answer Yes on
+   both forms AND add `NSPrivacyCollectedDataTypeCrashData` (not linked, App
+   Functionality) to `PrivacyInfo.xcprivacy`, in the same change.
+
+**A mismatch this file cannot fix.** The privacy notice
+(`apps/web/src/lib/legal/privacy.tsx`) has no mention of page speed samples,
+performance measurement or diagnostics (a search for "speed", "performance",
+"page load" and "diagnostic" finds nothing in it), yet this file now declares
+them to both stores. The rule below says that when the notice and these forms
+disagree the forms are wrong; here the forms are right about the code and the
+notice is the one that is short. The notice needs a sentence, and
+`PRIVACY_VERSION` (`apps/web/src/lib/legal/versions.ts:41`, currently
+`2026-09-25`) moves with it. That edit is outside this file and is a legal
+wording decision for the founder and counsel. Also note: the header of this
+file says notice version 2026-09-24, while the code says 2026-09-25.
+
 Facts that apply to every row:
 
 - **Tracking: NO, for every data type.** There is no advertising SDK, no IDFA
@@ -73,8 +119,8 @@ identity, (c) is it used for tracking. **(c) is No for every row.**
 | Usage Data → **Product Interaction** | **Yes** | Analytics | Yes | `price_check_events.stage` records how far a person got in the price check. This is the only usage record. Declare it; do not answer "no usage data". |
 | Usage Data → Advertising Data | No | | | |
 | Usage Data → Other Usage Data | No | | | |
-| Diagnostics → **Crash Data** | Yes (only when `SENTRY_DSN` is set) | App Functionality | **No** | `lib/observability/report.ts` scrubs identifiers before sending. If Sentry is not configured at submission time, answer No, and change it the day it is switched on. |
-| Diagnostics → **Performance Data** | **Yes** | App Functionality | **No** | `web_vitals_samples`: page speed figures (route template, metric, connection type), no user id, kept 30 days. Collected in the app too. Corrected 30 September 2026 (C15); the iOS privacy manifest says the same. |
+| Diagnostics → **Crash Data** | **No while `SENTRY_DSN` is unset; Yes the day it is set** (current state UNKNOWN, see the 6 October note above; last recorded reading NOT SET) | App Functionality | **No** | `lib/observability/report.ts` scrubs identifiers before sending. Read Vercel Production on submission day, answer to match, and change it the day it is switched on. |
+| Diagnostics → **Performance Data** | **Yes** | App Functionality | **No** | `web_vitals_samples` (migration `20260928225532_v80_...sql:23`): page speed figures (route template, metric, connection type), no user id column, purged after 30 days. Collected in the app too. Corrected 30 September 2026 (C15) and re-verified 6 October; the iOS privacy manifest says the same (`PrivacyInfo.xcprivacy:216`). |
 | Diagnostics → Other Diagnostic Data | No | | | |
 | Surroundings, Body | No | | | |
 | Other Data → **Other Data Types** | Yes | App Functionality | Yes | Government ID and NIN, business registration documents (agents and hosts); occupation and interests (optional, on the profile) |
