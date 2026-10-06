@@ -37,24 +37,14 @@ export function feeRows(fees: ListerFees | null): { title: string; value: string
       value: free(fees.commissionBps, fees.commissionFlatMinor) ? "None" : bpsLabel(fees.commissionBps),
       sub: "On a payment through Vallo",
     },
-    /* The Guarantee was retired (D51, guarantee_bps = 0): its row prints only
-       while a non-zero contribution is still being taken. */
-    ...(fees.guaranteeBps !== null && fees.guaranteeBps > 0
-      ? [
-          {
-            title: "Guarantee",
-            value: bpsLabel(fees.guaranteeBps),
-            sub: "Of each payment, from your share",
-          },
-        ]
-      : []),
+    /* No Guarantee row (C6, the route sweep). D51 retired the Guarantee; the
+       row used to print while money_policy.guarantee_bps was above zero, with
+       a reserve sentence written in this file. A supply page is an offer, not
+       a record: a lister's own agreement keeps whatever it was signed under
+       (agreements/[id]), so nothing here has to carry it. */
     { title: "Inspection fee", value: "None", sub: "Viewing through Vallo is free" },
   ];
 }
-
-/** Under the fee tiles when the Guarantee row prints: where that money goes. */
-export const GUARANTEE_TILE_NOTE =
-  "The Guarantee contribution goes into a separate reserve. It is never added to the price a renter or guest pays.";
 
 /**
  * A9. One supply page, in the landing's register (the re-audit of 30
@@ -142,20 +132,17 @@ export function SupplyPage({ door, fees, t }: { door: SupplyDoor; fees: ListerFe
               {s.feesTitle}
             </h2>
             {rows.length > 0 ? (
-              <>
-                <ul className="nf-figure-tiles nf-supply__tiles">
-                  {rows.map((row) => (
-                    <li key={row.title} className="nf-kpi nf-supply__tile">
-                      <p className="nf-kpi__head">
-                        <span className="nf-section-label nf-kpi__label">{row.title}</span>
-                      </p>
-                      <p className="nf-kpi__figure nf-numeric">{row.value}</p>
-                      {row.sub ? <p className="nf-kpi__sub">{row.sub}</p> : null}
-                    </li>
-                  ))}
-                </ul>
-                {fees?.guaranteeBps != null && fees.guaranteeBps > 0 ? <p className="nf-supply__note">{GUARANTEE_TILE_NOTE}</p> : null}
-              </>
+              <ul className="nf-figure-tiles nf-supply__tiles">
+                {rows.map((row) => (
+                  <li key={row.title} className="nf-kpi nf-supply__tile">
+                    <p className="nf-kpi__head">
+                      <span className="nf-section-label nf-kpi__label">{row.title}</span>
+                    </p>
+                    <p className="nf-kpi__figure nf-numeric">{row.value}</p>
+                    {row.sub ? <p className="nf-kpi__sub">{row.sub}</p> : null}
+                  </li>
+                ))}
+              </ul>
             ) : (
               <p className="nf-pd-card nf-supply__body">{WHO_PAYS_SENTENCE}</p>
             )}
