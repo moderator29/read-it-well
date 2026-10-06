@@ -4,49 +4,41 @@
 <!--
 	Associated Domains, which is the iOS half of the deep link contract.
 
-	READ THIS BEFORE ASSUMING UNIVERSAL LINKS WORK. This file is INERT as it
-	stands. Nothing in `App.xcodeproj` points at it yet, on purpose, and here is
-	the reasoning: setting `CODE_SIGN_ENTITLEMENTS` by hand makes every build
-	fail with "provisioning profile does not include the
-	com.apple.developer.associated-domains entitlement" until the capability
-	exists on the App ID, and the owner does not have an Apple Developer account
-	yet. A repository that cannot be built is worse than one with a documented
-	next step.
+	STATUS, re-verified 6 October 2026 against the repository (directive D41,
+	measure and never quote). An earlier version of this comment said the file
+	was inert, that nothing in the project pointed at it, and that the
+	association file carried a Team ID placeholder. All three were true on
+	28 September and none is true now.
 
-	THE OWNER'S THREE STEPS, in order. None can be done from inside this
-	repository.
+	1. THE PROJECT ADOPTS THIS FILE. `App.xcodeproj/project.pbxproj` sets
+	   `CODE_SIGN_ENTITLEMENTS = App/App.entitlements` in both build
+	   configurations (Debug and Release). It is no longer inert: every build
+	   signs with these entitlements, so the capabilities must exist on the
+	   App ID `com.vallospaces.app` or signing refuses.
+	2. THE TEAM ID IS REAL. `apps/web/public/.well-known/apple-app-site-association`
+	   carries `X74KD52994.com.vallospaces.app`, and `project.pbxproj` carries
+	   `DevelopmentTeam = X74KD52994`. The file passes its own checker:
+	   `node scripts/check-deep-links.mjs` run with the ios platform flag exits 0. Do not
+	   enrol again and do not go looking for a placeholder to replace.
+	3. A SIGNED APP STORE BUILD HAS ALREADY BEEN MADE. GitHub Actions run
+	   37103086939 on 3 October 2026 ran `iOS signed archive (App Store)` to
+	   success with this entitlements file in the project, and its export step
+	   ran with destination upload, so the IPA went to App Store Connect.
 
-	1. Apple Developer portal, Certificates Identifiers and Profiles, the App ID
-	   `com.vallospaces.app`. Tick Associated Domains, save, and let the provisioning
-	   profiles regenerate.
-	2. Xcode, the App target, Signing and Capabilities, the plus button,
-	   Associated Domains. Xcode finds this file at `App/App.entitlements`,
-	   adopts it rather than creating a second one, and sets the build setting
-	   itself. The domain below should appear already filled in.
-	3. Publish `apps/web/public/.well-known/apple-app-site-association` on the
-	   live origin with the real Team ID in it. That file carries an obvious
-	   placeholder today, `PLACEHOLDER_REPLACE_WITH_APPLE_TEAM_ID`, and the
-	   whole `appIDs` entry has to read `<TeamID>.com.vallospaces.app`.
+	WHAT IS STILL OPEN, honestly. Whether Apple has verified the domain is
+	UNKNOWN from the repository: check what Apple's CDN actually serves at
+	https://app-site-association.cdn-apple.com/a/v1/www.vallospaces.com and
+	expect a device to take up to a day to pick up a change. Whether the
+	build has reached TestFlight testers is UNKNOWN from the repository. No
+	device has ever run the build, so universal links are untested on
+	hardware. The Android half is genuinely blocked: the two fingerprints in
+	`assetlinks.json` are still placeholders.
 
-	   The Team ID is ten alphanumeric characters and there are two places to
-	   read it. Apple Developer, Membership details, the field named Team ID.
-	   Or in Xcode, the App target, Signing and Capabilities, where it is shown
-	   in brackets beside the selected team. It is NOT the Apple ID email and
-	   it is NOT the bundle identifier, which are the two things people paste
-	   in by mistake. The placeholder is deliberately longer than ten
-	   characters so that a file nobody filled in fails to match rather than
-	   looking plausible.
-
-	Then verify, because a silent failure here looks exactly like success:
-	Apple caches the association file through its own CDN, so check what Apple
-	actually has rather than what the server returns, at
-
-	    https://app-site-association.cdn-apple.com/a/v1/vallospaces.com
-
-	and expect a device to take up to a day to pick up a change. During
-	development, the `applinks:` entries can be suffixed with
-	`?mode=developer` to bypass the CDN, which is the only sane way to test a
-	change to the file.
+	The Team ID is ten alphanumeric characters (Apple Developer, Membership
+	details). It is NOT the Apple ID email and it is NOT the bundle
+	identifier. During development, the `applinks:` entries can be suffixed
+	with `?mode=developer` to bypass Apple's CDN, which is the only sane way
+	to test a change to the association file.
 
 	The one domain is `www.vallospaces.com`, the canonical host, matching the
 	Android manifest. The apex is NOT claimed: `vallospaces.com` answers every
@@ -62,21 +54,21 @@
 	</array>
 
 	<!--
-		PUSH NOTIFICATIONS. THE SAME THREE STEPS AND THE SAME MISSING ACCOUNT.
+		PUSH NOTIFICATIONS. The Apple account exists (see the note at the top
+		of this file); what remains is the APNs key and the server variables.
 
 		`aps-environment` is the entitlement that lets a build register with
-		APNs at all. Like the associated domains above it is INERT until the
-		owner has an Apple Developer account, and for the identical reason:
-		a build fails outright with "provisioning profile does not include the
-		aps-environment entitlement" until the Push Notifications capability
-		exists on the App ID `com.vallospaces.app`. It is written here so the
-		value is ready and the step is recorded, not because it works today.
+		APNs at all. The project adopts this file, so a build fails outright
+		with "provisioning profile does not include the aps-environment
+		entitlement" unless the Push Notifications capability exists on the
+		App ID `com.vallospaces.app`. Whether the APNs key and the APNS_*
+		server variables are set is UNKNOWN from the repository (none were
+		set on 28 September 2026).
 
 		THE OWNER'S STEPS FOR PUSH, in order, none doable from this repository.
 
-		1. Apple Developer Program membership, 99 USD a year. There is no way
-		   round this one: APNs has no free tier and no sandbox that works
-		   without a team.
+		1. Apple Developer Program membership, 99 USD a year. Already held:
+		   the team is X74KD52994 (see the note at the top of this file).
 		2. Certificates Identifiers and Profiles, the App ID
 		   `com.vallospaces.app`, tick Push Notifications, save, let the
 		   profiles regenerate.
@@ -106,9 +98,10 @@
 	<string>development</string>
 
 	<!--
-		SIGN IN WITH APPLE (STORE-02). Inert with the rest of this file until
-		the App ID `com.vallospaces.app` has the Sign In with Apple capability
-		ticked in the Apple Developer portal. The app only draws the button
+		SIGN IN WITH APPLE (STORE-02). Signing needs the App ID
+		`com.vallospaces.app` to have the Sign In with Apple capability
+		ticked in the Apple Developer portal (the 3 October 2026 signed
+		archive succeeded, so it evidently does, or automatic signing added it). The app only draws the button
 		when Supabase reports the Apple provider enabled AND the running
 		binary carries the `SignInWithApple` plugin, so this entitlement being
 		present early changes nothing a person can see.
