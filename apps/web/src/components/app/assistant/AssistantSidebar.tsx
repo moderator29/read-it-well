@@ -163,7 +163,10 @@ export function AssistantSidebar({
                     type="button"
                     aria-label={`Delete conversation: ${t.title}`}
                     onClick={() => onDelete(t.id)}
-                    className="absolute right-1.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-[var(--nf-radius-sm)] text-[var(--nf-content-muted)] opacity-70 transition-colors hover:bg-[image:var(--nf-btn-glass-fill)] hover:text-[var(--nf-content-primary)] group-hover:opacity-100"
+                    /* Drawn 32px; the transparent `after:` square is its 44px
+                       target (W12). Not `nf-tap`: that class sets `position:
+                       relative` unlayered, which would beat `absolute` here. */
+                    className="absolute right-1.5 top-1/2 flex h-8 w-8 -translate-y-1/2 after:absolute after:left-1/2 after:top-1/2 after:size-11 after:-translate-x-1/2 after:-translate-y-1/2 items-center justify-center rounded-[var(--nf-radius-sm)] text-[var(--nf-content-muted)] opacity-70 transition-colors hover:bg-[image:var(--nf-btn-glass-fill)] hover:text-[var(--nf-content-primary)] group-hover:opacity-100"
                   >
                     <UiIcon name="trash" size={16} />
                   </button>
