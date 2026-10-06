@@ -81,17 +81,49 @@ without a seller reply, and the fee actually returned on a refund for each `whoP
 
 ## Migrations
 
-None written or applied.
+| Version | Name | What it does | Applied |
+|---|---|---|---|
+| `20261006024044` | `blocked_terms_retire_refuse_and_staff_surface` | Adds retirement (who, when, why; matchers skip retired rows, nothing deleted); a `refuse` tier allowed only on `abuse.*` terms with a 12+ character reason, which refuses a **member's** write and reads as `hold` for staff, reviewers and the system; `staff_blocked_terms`, `staff_blocked_term_put`, `staff_blocked_term_retire`, gated on the `moderation` scope, each writing `audit_log`. Read-back block and rolling-back probe included. No behaviour change today: 144 live terms, none `refuse`, none retired. | **Yes**, production, 6 Oct. Recorded in `APPLIED.txt` |
+
+Also run live: the existing `s1-owner-writes-keep-working` probe (listing insert path), by
+the documented MCP method. The call hit the MCP's 60 s limit with no verdict; afterwards
+nothing was recorded and no probe rows remained. That probe is already in the
+`db-probes` CI job, so the "add it to CI" half of 7.1 was already done.
 
 ## Review passes per money change
 
-No money change yet. `/open` is an auth-routing fix, not money; it was still checked
+**`blocked_terms` migration** (not money, but a migration, so D5 applies):
+- Pass 1 (separate agent, adversarial, read-only against live): **1 blocker**, 6
+  should-fix. Blocker: raising inside `content_verdict` would have made takedowns of
+  the very content a term targets fail (the catalogue scanner rescans on every status
+  change), bypassed the staff branches of the handle and name scanners, and aborted
+  system-sent messages. Fixed by refusing only a member's own write and downgrading to
+  `hold` for everyone else. Also fixed: `refuse` limited to `abuse.*` (scam wording is
+  published and the desk told, by the review scanner's own policy); probe assertions
+  matched on message, not just errcode; unmatchable terms refused; nulls no longer
+  silently reset a term; `for update` on the audit's before-image.
+- Pass 2 (a different agent): verdict **APPLY**, two nits, both folded in. Confirmed
+  the temporary grant in the probe rolls back, `content_writer_is_member()` is true
+  under `set local role authenticated`, regex escaping is single-backslash.
+
+**Paystack provider seam:** no money outcome can change (the adapter returns the
+identical function objects, asserted by test). Reviewed once by me; second pass
+pending before any call site moves onto it. `/open` is an auth-routing fix, not money; it was still checked
 twice: the new test passes 5/5 against the new route and fails 3/5 against the old
 one (the three deadline cases time out at 5 s), proving it catches the hang.
 
 ## Built plain for Session 3 to dress
 
-Nothing yet.
+- **Blocked terms on the moderation desk** (`/admin/queue`, the "Blocked terms" panel in
+  `app/admin/_lanes/ModerationDesk.tsx`, which today shows "request AR-11"). AR-11 is
+  now served: `lib/admin/blocked-terms-actions.ts` exports `listBlockedTerms()`,
+  `putBlockedTerm({term, category, action, severity, reason, refusalReason?})` and
+  `retireBlockedTerm({term, reason})`, each returning the house `ActionResult`. Shapes
+  and allowed values: `lib/admin/blocked-terms-rules.ts`. Session 3 draws the list and
+  the two forms; I have not touched the panel.
+- A member whose post hits a `refuse` term gets a Postgres `check_violation` whose
+  message starts `content_refused:`. The composers should show a plain sentence for it.
+  No term is `refuse` today.
 
 ## Blocked on the founder
 
