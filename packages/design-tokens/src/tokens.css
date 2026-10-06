@@ -2210,7 +2210,11 @@
      resolves to the middle rung. Icon buttons, the FAB, toggles, radios,
      chips and tags stay round. */
   --nf-act-radius-sm: 0.625rem;
-  --nf-act-radius-md: 0.75rem;
+  /* 14 on the default rung, and it was 12. Directive D2 (5 October) names
+     the default button as "a rounded rectangle at radius 14", and the
+     default button is this rung, so the medium and large rungs now share
+     the corner and only the 44px rung keeps a tighter one. */
+  --nf-act-radius-md: 0.875rem;
   --nf-act-radius-lg: 0.875rem;
   --nf-radius-button: var(--nf-act-radius-md);
   /* The clean unified radii (docs/design/CLEAN_UNIFIED_DIRECTION.md section
@@ -2299,6 +2303,17 @@
    * what those elements actually meant: it follows the box rather than relying
    * on 999px being larger than half of it.
    */
+  /*
+   * THE SEGMENTED CONTROL'S PILL (Session 3, 6 October 2026). Directive D2
+   * and north star 5A reserve the 999 radius for four roles: chips, filters,
+   * segmented controls and circular icon controls, "so that seeing a pill
+   * tells a person the thing is selectable". The segmented track and its
+   * thumb take it through this name, so the permission is written down once
+   * as a role rather than borrowed from `--nf-radius-pill` at each site.
+   * `scripts/check-css-tokens.mjs` (rule 10, the capsule check) predates D2
+   * and does not know this role; see the Session 3 report.
+   */
+  --nf-radius-segment: 999px;
   --nf-radius-circle: 50%;
 
   /*
@@ -2631,8 +2646,29 @@
    */
   --nf-duration-entrance: 520ms;
 
+  /*
+   * THE DESIGNER'S FIVE CURVES, AS VALLO NAMES THEM (MOTION_SYSTEM.md section 0).
+   *
+   * The motion designer's brief speaks in five words: land, leave, glide, drift
+   * and whip. Four of them were already here under engineering names, so they
+   * are aliased in prose rather than duplicated as tokens, and a conversation
+   * with him and a conversation with the code use the same words:
+   *
+   *   land   snap in        --nf-ease-entrance   cubic-bezier(0.16, 1, 0.3, 1)
+   *   leave  ease out       --nf-ease-exit       cubic-bezier(0.4, 0, 1, 1)
+   *   glide  smooth float   --nf-ease-standard   cubic-bezier(0.22, 0.61, 0.36, 1)
+   *   drift  slow settle    --nf-ease-spring     cubic-bezier(0.34, 1.28, 0.64, 1)
+   *   whip   fast flick     --nf-ease-whip       cubic-bezier(0.7, 0, 0.2, 1)
+   *
+   * Only `whip` is new. It is a hard ease-in-out with almost no tail, meant for
+   * `instant` or `fast` and nothing longer: the form-error shake, the primary
+   * button collapsing out of its label before it becomes a circle, the passcode
+   * row refusing a wrong code. Stretched past 160ms it stops reading as a flick
+   * and starts reading as a lurch.
+   */
   --nf-ease-standard: cubic-bezier(0.22, 0.61, 0.36, 1);
   --nf-ease-entrance: cubic-bezier(0.16, 1, 0.3, 1);
+  --nf-ease-whip: cubic-bezier(0.7, 0, 0.2, 1);
   /*
    * `--nf-ease-exit` HAD NO CONSUMER, AND THAT WAS THE FINDING RATHER THAN THE
    * DEAD CODE. IT HAS THREE NOW.
@@ -2710,6 +2746,11 @@
   --nf-press-scale-sm: 0.94;
   --nf-press-scale: 0.97;
   --nf-press-scale-lg: 0.985;
+  /* THE SINK (north star 5A, "press sinks 1px and pulls its bloom in"). A
+     text button travels down one pixel under the finger as well as scaling,
+     so it reads as pushed into the surface rather than only shrunk. Collapses
+     to 0 under reduced motion with the scales. */
+  --nf-press-sink: 1px;
 
   /* ---------------------------------------------------------------------
    * BETWEEN PAGES (motion sweep, 29 September 2026). How far a page travels
@@ -3750,6 +3791,11 @@
     --nf-duration-entrance: 1ms;
     --nf-duration-press: 1ms;
     --nf-ease-spring: linear;
+    /* The flick goes the same way as the spring: with every duration at 1ms
+       the curve is moot, but a rule that pairs `whip` with a literal duration
+       (a keyframe shake, say) should still not snap through a hard S-curve
+       for somebody who asked for less motion. */
+    --nf-ease-whip: linear;
     /*
      * The press scales collapse to 1, which is not the same trick as collapsing
      * a duration and it is the more important one.
@@ -3765,6 +3811,7 @@
     --nf-press-scale-sm: 1;
     --nf-press-scale: 1;
     --nf-press-scale-lg: 1;
+    --nf-press-sink: 0px;
     --nf-route-shift-out: 0;
     --nf-route-shift-in: 0;
     --nf-route-rise: 0;
@@ -3841,9 +3888,16 @@
   --nf-surface-raised: #F0F0EC;
   --nf-surface-inset: #ECECE7;
   --nf-card-border: rgb(17 19 24 / 0.08);
-  --nf-card-shadow: 0 1px 2px rgb(17 19 24 / 0.04), 0 2px 8px -2px rgb(17 19 24 / 0.05);
-  --nf-float-shadow: 0 1px 3px rgb(17 19 24 / 0.05), 0 8px 24px -6px rgb(17 19 24 / 0.10);
-  --nf-card-shadow-hover: 0 2px 4px rgb(17 19 24 / 0.05), 0 10px 24px -8px rgb(17 19 24 / 0.10);
+  /* The card's shadow is the Paper `raised` rung (Session 3; the elevation
+     block at the foot of this file): the blue-tinted shadow the north star
+     calls the single highest-value detail in Paper. It was a neutral ink
+     shadow, which is what makes white cards on a warm canvas look grey. */
+  --nf-card-shadow: var(--nf-elevation-raised);
+  /* The round header controls' "soft shadow" (north star 6 and Stage 2):
+     blue-tinted like the card's, a size smaller, so a 44px white circle on
+     the warm canvas lifts the same way a card does instead of greying. */
+  --nf-float-shadow: 0 1px 2px rgb(1 1 24 / 0.05), 0 6px 16px -8px rgb(0 95 232 / 0.22);
+  --nf-card-shadow-hover: var(--nf-elevation-floating);
 
   /* ------------------------------------------------------------ the inks */
   /* Measured on #F4F4F1, #FFFFFF and the raised well #F0F0EC: primary
@@ -4011,12 +4065,17 @@
   --nf-lit: var(--nf-brand-primary);
   --nf-panel-fill-base: linear-gradient(#FFFFFF, #FFFFFF);
   --nf-panel-fill-card-base: linear-gradient(#FFFFFF, #FFFFFF);
-  --nf-panel-edge: var(--nf-card-border);
-  --nf-panel-edges: var(--nf-card-border);
+  /* The Card tier on Paper has ONE edge treatment, the shadow (north star
+     section 4, "white fill, no border"). The hairline that stood here beside
+     the shadow was the doubled edge the hairline rule forbids, so the edge
+     tokens go transparent and the border box keeps its width: nothing moves
+     by a pixel, the white fill simply runs to the edge. */
+  --nf-panel-edge: var(--nf-tier-card-edge);
+  --nf-panel-edges: var(--nf-tier-card-edge);
   --nf-panel-catch: transparent;
   --nf-panel-rim: 0 0 0 0 transparent;
   --nf-panel-halo: 0 0 0 0 transparent;
-  --nf-panel-glow: var(--nf-card-shadow);
+  --nf-panel-glow: var(--nf-tier-card-shadow);
   --nf-panel-hair: var(--nf-divider);
   --nf-plate-neutral-fill: var(--nf-surface-raised);
   --nf-plate-neutral-ink: var(--nf-content-primary);
@@ -4232,4 +4291,204 @@
   --nf-act-icon-ink: var(--nf-brand-primary);
   --nf-act-well: #FFFFFF;
   --nf-act-well-edge: rgb(15 23 42 / 0.08);
+}
+
+/* ==========================================================================
+ * SESSION 3 FOUNDATIONS (6 October 2026): ELEVATION, THE FOUR CONTAINER
+ * TIERS, AND THE DOCUMENT SHEET.
+ * ==========================================================================
+ *
+ * D28.2: the four tiers are a FORMALISATION of shapes the product already
+ * draws, not a new system. So these are role names over what exists:
+ *
+ *   tier      radius        edge (exactly one)           already drawn by
+ *   Plate     14            hairline                     nav rows, list rows, settings rows
+ *   Card      18, 22 figure hairline (night) / shadow    `.nf-panel`, `.nf-card` (Panel.tsx)
+ *                           (Paper)
+ *   Island    28            edge light (night) /         the dock capsule, the side rail,
+ *                           shadow (Paper)               `.nf-navy-glass`, the hero band
+ *   Sheet     32 leading    hairline (night) /           `.nf-sheet` (Sheet.tsx)
+ *                           upward shadow (Paper)
+ *
+ * The classes that apply them live where the classes already lived
+ * (glass.css for the card and the island, overlays.css for the sheet,
+ * side-nav.css and nav-island.css for the rows and the rails); nothing here
+ * is a selector a component would reach for.
+ *
+ * ELEVATION. Five levels, per theme, and a component PICKS a level rather
+ * than writing a shadow (north star section 4, "Elevation"). They sit beside
+ * the older `--nf-elev-1..5` ladder rather than replacing it, because that
+ * ladder is read in 60-odd places with measured reasons in its note above;
+ * the five names below are what new work reads, and the night values reuse
+ * the old rungs where a rung already says the same thing.
+ *
+ *   flat      Plate          nothing
+ *   raised    Card           Paper: the blue-tinted shadow
+ *   floating  Island         a wider, softer version of raised
+ *   overlay   Sheet          cast UPWARDS, a sheet sits on the bottom edge
+ *   dialog    centred modal  the deepest
+ *
+ * THE BLUE TINT IN PAPER, in its own words from the north star: "the blue
+ * tint in the shadow is what stops white cards on a warm canvas looking flat
+ * and grey". Its exact value is `0 1px 2px rgba(1,1,24,.04), 0 8px 24px
+ * -10px rgba(0,95,232,.16)`, written below as the raised rung, and the other
+ * Paper rungs are that recipe scaled.
+ *
+ * AT NIGHT A SHADOW DOES ALMOST NOTHING (the measured table on the old
+ * ladder: black on near-black reads 1.003:1), so the night Card keeps its
+ * hairline as its one edge and `raised` is there for a card over imagery.
+ * ------------------------------------------------------------------------ */
+:root,
+[data-theme="dark"],
+:root[data-theme="light"] [data-theme="light"] {
+  /* ------------------------------------------------------- elevation */
+  --nf-elevation-flat: 0 0 0 0 transparent;
+  --nf-elevation-raised: 0 1px 2px rgb(0 0 0 / 0.40), 0 8px 24px -8px rgb(0 0 0 / 0.60);
+  /* The Island's "wider ambient bloom beneath": a deep drop and, under it, a
+     faint blue far below, so the floating thing keeps the blue family. */
+  --nf-elevation-floating:
+    0 2px 4px rgb(0 0 0 / 0.36),
+    0 18px 40px -16px rgb(0 0 0 / 0.62),
+    0 28px 56px -30px rgb(12 106 239 / 0.30);
+  --nf-elevation-overlay: var(--nf-elev-3);
+  --nf-elevation-dialog: var(--nf-elev-4);
+
+  /* ------------------------------------------------------- the tiers */
+  --nf-tier-plate-radius: var(--nf-radius-md);
+  --nf-tier-card-radius: var(--nf-radius-lg);
+  --nf-tier-card-radius-figure: var(--nf-radius-xl);
+  --nf-tier-island-radius: 1.75rem;
+  --nf-tier-sheet-radius: var(--nf-radius-2xl);
+
+  /* Plate: a 2% wash with a 6% hairline at night; hover and press tint only. */
+  --nf-tier-plate-fill: rgb(255 255 255 / 0.02);
+  --nf-tier-plate-edge: rgb(255 255 255 / 0.06);
+  --nf-tier-plate-hover: rgb(255 255 255 / 0.045);
+  --nf-tier-plate-press: rgb(255 255 255 / 0.07);
+
+  /* Card: the night card is the hairline, as it is today. */
+  --nf-tier-card-edge: var(--nf-card-border);
+  --nf-tier-card-shadow: var(--nf-elevation-flat);
+
+  /* Island: navy glass, 72 per cent over a 16px blur, the edge light on the
+     border box. */
+  --nf-tier-island-fill: rgb(4 10 31 / 0.72);
+  --nf-tier-island-blur: 16px;
+  --nf-tier-island-edge: color-mix(in oklab, var(--nf-brand-primary) 48%, transparent);
+  --nf-tier-island-shadow: var(--nf-elevation-floating);
+  /* An Island standing at the side of the screen (the desktop rail) casts
+     sideways, onto the content beside it. At night its edge light does the
+     separating, so the shadow is empty. */
+  --nf-tier-island-shadow-side: 0 0 0 0 transparent;
+
+  /* Sheet: the 36px grabber, the 56 per cent scrim, the blur that ramps
+     from 0 to 12 as it rises. */
+  --nf-tier-sheet-edge: var(--nf-card-border);
+  --nf-tier-sheet-shadow: var(--nf-elevation-overlay);
+  --nf-tier-sheet-scrim: rgb(1 1 24 / 0.56);
+  --nf-tier-sheet-blur: 12px;
+  --nf-tier-sheet-grabber: 2.25rem;
+
+  /* ------------------------------------------------- the document sheet
+   *
+   * D28.1: the member's theme governs the application, and PAPER IS A
+   * TREATMENT FOR THE DOCUMENT ITSELF. A receipt, statement, agreement or
+   * transaction detail is a light sheet: on the dark canvas it sits like a
+   * receipt on a desk, on the light canvas it is paper on paper separated by
+   * its hairline and its elevation.
+   *
+   * DEFINED ONCE, HERE, AND DELIBERATELY NOT ANSWERED IN THE LIGHT BLOCK, so
+   * the values are identical in both themes and inside any night island. Raw
+   * values rather than references to the palette, because every palette
+   * token changes with the theme and the document must not.
+   *
+   * Contrast on #FFFFFF: ink 19.6:1, muted (68 per cent ink) 7.2:1, faint
+   * (56 per cent) 4.8:1, accent 5.5:1, success 5.5:1, error 5.9:1.
+   * ------------------------------------------------------------------ */
+  --nf-doc-bg: #FFFFFF;
+  --nf-doc-bg-inset: #F4F6FA;
+  --nf-doc-ink: #010118;
+  --nf-doc-ink-muted: rgb(1 1 24 / 0.68);
+  --nf-doc-ink-faint: rgb(1 1 24 / 0.56);
+  --nf-doc-hairline: rgb(1 1 24 / 0.08);
+  --nf-doc-shadow: 0 1px 2px rgb(1 1 24 / 0.06), 0 12px 32px -12px rgb(0 95 232 / 0.22);
+  --nf-doc-accent: #005FE8;
+  --nf-doc-accent-tint: rgb(0 95 232 / 0.08);
+  --nf-doc-success: #047857;
+  --nf-doc-error: #C8102E;
+  --nf-doc-attention: #0E7490;
+  --nf-doc-radius: var(--nf-radius-xl);
+
+  /* ------------------------------------------- the status chip's inks
+   * Attention is cyan, never red: a count or a pending state is not an
+   * error (north star 3 and 6.1). The ink on the cyan count is the night
+   * canvas, 11.9:1 on `--nf-cyan-400`.
+   * ------------------------------------------------------------------ */
+  --nf-count-fill: var(--nf-cyan-400);
+  --nf-count-ink: #010118;
+
+  /* ------------------------------------------------------- the toast
+   * A DARK PILL IN BOTH THEMES (north star motion 8, reference 7068): at
+   * night a raised navy lifted off the canvas by its hairline, by day the
+   * near-black ink of the brand on the warm paper. The marks are the night
+   * inks because the pill is dark either way: emerald for done (8.1:1 on
+   * the pill), rose only for an error.
+   * ------------------------------------------------------------------ */
+  --nf-toast-bg: #0C1838;
+  --nf-toast-ink: #FFFFFF;
+  --nf-toast-edge: rgb(255 255 255 / 0.10);
+  --nf-toast-mark-success: var(--nf-emerald-400);
+  --nf-toast-mark-error: var(--nf-rose-400);
+}
+:root[data-theme="light"],
+:root[data-theme="light"] [data-theme="light"],
+:root[data-theme="light"] :is(.nf-app-header, .nf-ws-bar)[data-theme="dark"] {
+  --nf-elevation-flat: 0 0 0 0 transparent;
+  --nf-elevation-raised: 0 1px 2px rgb(1 1 24 / 0.04), 0 8px 24px -10px rgb(0 95 232 / 0.16);
+  --nf-elevation-floating: 0 1px 2px rgb(1 1 24 / 0.05), 0 16px 40px -14px rgb(0 95 232 / 0.24);
+  --nf-elevation-overlay: 0 -1px 2px rgb(1 1 24 / 0.04), 0 -16px 40px -16px rgb(0 95 232 / 0.18);
+  --nf-elevation-dialog: 0 2px 6px rgb(1 1 24 / 0.06), 0 24px 64px -18px rgb(0 95 232 / 0.30);
+
+  /* Plate on Paper: white with a 6 per cent ink hairline. */
+  --nf-tier-plate-fill: #FFFFFF;
+  --nf-tier-plate-edge: rgb(1 1 24 / 0.06);
+  --nf-tier-plate-hover: rgb(0 95 232 / 0.04);
+  --nf-tier-plate-press: rgb(0 95 232 / 0.08);
+
+  /* Card on Paper: white, no border, the blue-tinted shadow. */
+  --nf-tier-card-edge: transparent;
+  --nf-tier-card-shadow: var(--nf-elevation-raised);
+
+  /* Island on Paper: white, elevated, a faint blue glow inside the top edge,
+     never a border. */
+  --nf-tier-island-fill: #FFFFFF;
+  --nf-tier-island-edge: transparent;
+  --nf-tier-island-shadow:
+    inset 0 12px 20px -16px rgb(0 95 232 / 0.16),
+    var(--nf-elevation-floating);
+
+  --nf-tier-island-shadow-side: 1px 0 0 rgb(1 1 24 / 0.04), 12px 0 32px -18px rgb(0 95 232 / 0.22);
+
+  --nf-tier-sheet-edge: transparent;
+  --nf-tier-sheet-scrim: rgb(1 1 24 / 0.40);
+
+  /* The count on paper: the deeper cyan, white numeral, 4.6:1. */
+  --nf-count-fill: #0E7490;
+  --nf-count-ink: #FFFFFF;
+
+  --nf-toast-bg: #010118;
+  --nf-toast-edge: transparent;
+}
+
+/* Data saver and a low-end device drop the Island's and the Sheet's blur, and
+   the night Island's fill goes solid so nothing reads through it unblurred
+   (north star 7.2: "data saver drops blur, keeping a solid surface"). */
+:root:is([data-save-data="on"], [data-motion-lite="on"]),
+:root:is([data-save-data="on"], [data-motion-lite="on"]) [data-theme="dark"] {
+  --nf-tier-island-blur: 0px;
+  --nf-tier-sheet-blur: 0px;
+}
+:root:not([data-theme="light"]):is([data-save-data="on"], [data-motion-lite="on"]),
+:root:not([data-theme="light"]):is([data-save-data="on"], [data-motion-lite="on"]) [data-theme="dark"] {
+  --nf-tier-island-fill: rgb(4 10 31 / 0.97);
 }

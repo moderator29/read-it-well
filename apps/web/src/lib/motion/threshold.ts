@@ -14,7 +14,7 @@
  *
  * Client only.
  */
-export type ThresholdKind = "door" | "leave";
+export type ThresholdKind = "door" | "leave" | "open";
 
 export const THRESHOLD_EVENT = "nf:threshold";
 
@@ -22,7 +22,35 @@ export const THRESHOLD_EVENT = "nf:threshold";
 export const THRESHOLD_GOING_MS: Record<ThresholdKind, number> = {
   door: 1500,
   leave: 650,
+  open: 1500,
 };
+
+/**
+ * THE `open` KIND: THE APP OPENING, NAMED AHEAD OF ITS SEQUENCE (Session 3).
+ *
+ * MOTION_SYSTEM.md section 3 specifies a 1,500ms cold-start sequence and says
+ * this file "gains an `open` kind beside `door` and `leave`". The kind lands
+ * now and the sequence does not, deliberately: the eight-second splash the
+ * founder reported is an unbounded `resolveSession()` in `app/open/route.ts`,
+ * Session 2 owns the deadline that fixes it, and an animation laid over an
+ * unbounded call is a longer hang with better production values. Until that
+ * deadline lands nothing dispatches `open` and `ThresholdStage` draws nothing
+ * for it; the CSS hook (`.nf-threshold--open`, `:root[data-arrive="open"]`)
+ * exists in threshold.css so the builder starts from a named place.
+ *
+ * The beats are written here as data rather than only as keyframe delays, so
+ * the sequence the spec describes and the sequence that ships can be compared
+ * by a test instead of by eye. Each beat is [start, end] in milliseconds from
+ * the first frame, with the designer's curve name.
+ */
+export const OPEN_BEATS = [
+  { beat: "ground", from: 0, to: 120, curve: "none" },
+  { beat: "mark", from: 120, to: 480, curve: "land" },
+  { beat: "wordmark", from: 380, to: 720, curve: "glide" },
+  { beat: "edge-light", from: 640, to: 900, curve: "glide" },
+  { beat: "breath", from: 900, to: 1150, curve: "drift" },
+  { beat: "door", from: 1150, to: 1500, curve: "leave" },
+] as const;
 
 export function thresholdAllowed(): boolean {
   if (typeof window === "undefined") return false;

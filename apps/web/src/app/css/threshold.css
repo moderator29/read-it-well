@@ -443,6 +443,28 @@
     }
   }
 
+  /* ------------------------------------------- opening: the hook only */
+
+  /*
+   * THE `open` KIND, NAMED AND UNMOUNTED (Session 3, 6 October 2026).
+   *
+   * MOTION_SYSTEM.md section 3 specifies the cold-start sequence and
+   * lib/motion/threshold.ts carries its beats as `OPEN_BEATS`. Nothing
+   * dispatches `open` yet: the sequence waits on Session 2's deadline on
+   * `app/open/route.ts`, because a brand moment laid over an unbounded call is
+   * only a nicer-looking hang. These two rules are the place it will be built
+   * from, so whoever builds it starts with a name rather than a blank file.
+   *
+   * The hook is the arrival: the page beneath comes forward through the door
+   * on the `leave` curve over the last 350ms of the 1,500, which is the final
+   * beat of the table. Everything before it (ground, mark, wordmark, edge
+   * light, breath) belongs to `BrandAssemble` and `DepthWords`, which already
+   * exist for exactly this.
+   */
+  :root[data-arrive="open"] #main {
+    animation: nf-threshold-forward 350ms var(--nf-ease-exit) both;
+  }
+
   /* --------------------------------------------- words out of depth */
 
   .nf-depth-word {
@@ -483,6 +505,16 @@
     }
     .nf-depth-word {
       animation: none;
+    }
+    /* Opening keeps a 160ms crossfade rather than nothing (MOTION_SYSTEM.md
+       section 3): the app still has to appear, it just does not travel. */
+    :root[data-arrive="open"] #main {
+      animation: nf-threshold-open-fade 160ms linear both;
+    }
+    @keyframes nf-threshold-open-fade {
+      from {
+        opacity: 0;
+      }
     }
   }
 }

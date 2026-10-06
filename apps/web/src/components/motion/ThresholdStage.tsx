@@ -137,7 +137,11 @@ export function ThresholdStage({ welcome }: { welcome: string }) {
     };
   }, []);
 
-  if (play === null) return null;
+  /* `open` is the cold-start sequence, which is not built yet (see the note
+     on OPEN_BEATS in lib/motion/threshold.ts). Nothing dispatches it today;
+     if something does, the stage draws nothing rather than the sign-out
+     panels, which are the fallback branch below. */
+  if (play === null || play.kind === "open") return null;
 
   return (
     <div
