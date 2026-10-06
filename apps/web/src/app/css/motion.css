@@ -10,23 +10,35 @@
   /* -------------------------------------------------------- conversation */
 
   /*
-   * A message bubble springs in from the side its sender occupies: mine from
-   * the right, theirs from the left, so a reply reads as arriving from the
-   * person who sent it rather than just fading into place.
+   * A message bubble arrives from the side its sender occupies: mine from the
+   * right, theirs from the left, so a reply reads as coming from the person
+   * who sent it rather than just fading into place. Chat is the quickest
+   * rhythm in the product (a conversation is browsing, craft doctrine 5), so
+   * it is `land` 240ms and a short 16px slide; it was the spring curve at
+   * 380ms with a 28px slide and a scale, and the spring's overshoot is a pop,
+   * which only a payoff gets. ThreadView adds the class to a message that
+   * ARRIVES (sent or received after the thread opened), never to the history
+   * the thread opened with.
    */
   .nf-msg-in--mine {
-    animation: nf-msg-in-right var(--nf-duration-slow) var(--nf-ease-spring) both;
+    animation: nf-msg-in-right var(--nf-duration-base) var(--nf-ease-entrance) both;
   }
   .nf-msg-in--theirs {
-    animation: nf-msg-in-left var(--nf-duration-slow) var(--nf-ease-spring) both;
+    animation: nf-msg-in-left var(--nf-duration-base) var(--nf-ease-entrance) both;
   }
   @keyframes nf-msg-in-right {
-    from { opacity: 0; transform: translate3d(28px, 0, 0) scale(0.94); }
+    from { opacity: 0; transform: translate3d(16px, 0, 0); }
     to { opacity: 1; transform: none; }
   }
   @keyframes nf-msg-in-left {
-    from { opacity: 0; transform: translate3d(-28px, 0, 0) scale(0.94); }
+    from { opacity: 0; transform: translate3d(-16px, 0, 0); }
     to { opacity: 1; transform: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-msg-in--mine,
+    .nf-msg-in--theirs {
+      animation: none;
+    }
   }
 
   /* Three breathing dots inside a real bubble shape, so "typing" reads as

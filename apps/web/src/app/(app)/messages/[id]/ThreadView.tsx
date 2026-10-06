@@ -366,6 +366,11 @@ export function ThreadView({
   inboxThreadCopy,
 }: ThreadViewProps) {
   const [items, setItems] = useState<ThreadBubble[]>(messages);
+  /* The messages the thread opened with. Only a message that arrives AFTER
+     this (sent or received while the thread is open) plays the arrival
+     motion; the history the thread opened with is simply there, so opening a
+     long conversation is not forty bubbles sliding in at once. */
+  const [openedWith] = useState(() => new Set(messages.map((m) => m.id)));
   const threadWords = useInboxPart("thread", inboxThreadCopy);
   /* The unread divider is fixed at arrival: reading the thread marks it read
      and the page may re-render with nothing unread, but the divider stays
@@ -1080,7 +1085,9 @@ export function ThreadView({
             <div
               data-msg-id={m.id}
               {...(jumpedId === m.id ? { "data-jumped": "" } : {})}
-              className={`nf-msg ${m.mine ? "nf-msg--mine nf-msg-in--mine" : "nf-msg-in--theirs"}${
+              className={`nf-msg ${m.mine ? "nf-msg--mine" : ""}${
+                openedWith.has(m.id) ? "" : m.mine ? " nf-msg-in--mine" : " nf-msg-in--theirs"
+              }${
                 wide ? " nf-msg--card" : ""
               }${continues ? " nf-msg--cont" : ""}`}
             >
