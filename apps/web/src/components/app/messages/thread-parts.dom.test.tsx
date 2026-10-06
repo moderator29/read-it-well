@@ -70,8 +70,8 @@ describe.skipIf(!hasBrowser && !process.env.CI)("an attachment row", () => {
       expect(await row.getAttribute("href")).toBe("/files/a-file-slot");
       expect(await row.getAttribute("target")).toBe("_blank");
       expect(await row.getAttribute("rel")).toBe("noopener noreferrer");
-      expect(await row.getAttribute("aria-label")).toBe("Open A file name slot.pdf");
-      expect(await page.getByRole("link", { name: "Open A file name slot.pdf" }).count()).toBe(1);
+      expect(await row.getAttribute("aria-label")).toBe("Open A file name slot.pdf 2 MB");
+      expect(await page.getByRole("link", { name: "Open A file name slot.pdf 2 MB" }).count()).toBe(1);
       expect(await row.getAttribute("data-kind")).toBe("pdf");
       /* Name, then the size as people write it. */
       expect(await row.locator(".nf-attach__name").textContent()).toBe("A file name slot.pdf");
