@@ -44,9 +44,11 @@ describe("AiConsentCard", () => {
     expect(getDictionary(locale).settings.aiConsent.row).toBe(copy.row);
   });
 
-  it("stands on the privacy screen", () => {
-    const source = readFileSync(join(process.cwd(), "src/app/(app)/settings/privacy/page.tsx"), "utf8");
-    expect(source).toMatch(/<AiConsentCard t=\{t\} consented=\{aiConsented\} \/>/);
+  /* Privacy was split into inner pages (W6, aa9421e49); the agreement now
+     has its own, under Privacy. */
+  it("stands on its own privacy page", () => {
+    const source = readFileSync(join(process.cwd(), "src/app/(app)/settings/privacy/ai/page.tsx"), "utf8");
+    expect(source).toMatch(/<AiConsentCard t=\{t\} consented=\{consented\} \/>/);
     expect(source).toMatch(/aiConsentForViewer\(\)/);
   });
 
