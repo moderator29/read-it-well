@@ -114,24 +114,28 @@ when they land, not before.
   contribution; please check whether any such rows exist. `agents.public_code` is
   missing from `database.types.ts`.
 
-### For the founder
+### For the founder, and the answers (VALLO_PROMOTION section 11, 6 October)
 
-- Is the second 2% (escrow protection) always borne by the lister? VALLO_PRICING
-  section 6 says the seller; section 2 says Payluk's `whoPays` is not chosen yet.
-- The lister fee terms version is `lister-fee-2026-10-06` in copy.ts; it changes
-  whenever the screen's words do.
-- Promotion: confirm "Everywhere" for `prime`, the four prices (2,500, 7,500, 20,000,
-  50,000 naira), and Featured's front-door slots per city per day, which the screen
-  promises to show before payment. Screen 3's "real example" cannot exist until a
-  promotion has run, and says so.
-- The invite hub and its first run say "There is no reward for inviting". That
-  becomes untrue the day rewards go live and must be rewritten before then.
-- Terms (`lib/legal/terms.tsx`) and the disclaimer still say Vallo keeps no balance,
-  beside the Rewards Balance. That needs counsel and a new Terms version, so it is
-  untouched. The account deletion notices name the "wallets" table as a retained
-  record; confirm that wording.
-- Not checked: a tenancy paid in one payment may still show "Your share" and "Add a
-  flatmate" on the tenancy file.
+- **The second 2%: answered, the lister pays it, on both rails, always.** VALLO_PRICING
+  section 2 was stale and is corrected. The fee screen now says so in a sentence under
+  the arithmetic (`3143bc8f8`), and the terms version moved to `lister-fee-2026-10-06.2`
+  because the words changed.
+- **"Everywhere": confirmed**, slug `prime` kept. **Prices confirmed** at 2,500, 7,500,
+  20,000 and 50,000 naira, shown with duration and naira per day (357, 536, 667,
+  1,667) and ordered by reach. **Front door: one rail per city, six positions a day,
+  Everywhere at most two, Featured at most four**, never a seventh card and never padded
+  with organic listings. Nine of the ten metrics already exist in production, so the
+  results screen reads them now and shows totals only; the promoted-versus-organic split
+  waits on Session 2's source dimension. Screen 3 shows the lister's own last thirty
+  days as the baseline. In progress.
+- **The invite hub: rewrite it now for the live state**, behind the gate that already
+  decides the rewards surface. In progress.
+- **Terms and the disclaimer: left untouched, by instruction.** A referral reward is
+  Vallo owing a member money, a different object from Vallo holding a member's money,
+  and the Terms need to say so in a new version. The founder takes it to counsel.
+- Still open: the account deletion notices name the "wallets" table as a retained
+  record; confirm that wording. Not checked: a tenancy paid in one payment may still
+  show "Your share" and "Add a flatmate" on the tenancy file.
 
 ---
 
