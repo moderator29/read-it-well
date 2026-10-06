@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import { REFERRAL_STATUSES, REFERRAL_TRANSITIONS, canMove, isReferralStatus } from "./lifecycle";
 
-const MIGRATION = join(__dirname, "../../../../../supabase/migrations/pending/b4_referral_rewards_engine.sql");
+const MIGRATION = join(__dirname, "../../../../../supabase/migrations/20261006152509_b4_referral_rewards_engine.sql");
 const sql = readFileSync(MIGRATION, "utf8");
 
 describe("referral lifecycle mirrors the database", () => {

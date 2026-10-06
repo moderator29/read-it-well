@@ -1,4 +1,4 @@
--- THE REFERRAL ENGINE (D51 referral; Session 2 R3-29). Pending: NOT applied.
+-- THE REFERRAL ENGINE (D51 referral; Session 2 R3-29). APPLIED 2026-10-06 as 20261006152509 (D63; budget 700,000 naira per D64).
 --
 -- What this adds, all additive and idempotent:
 --
@@ -123,13 +123,13 @@ create or replace trigger referral_policy_frozen
   before update or delete on public.referral_policy
   for each row execute function private.referral_policy_frozen();
 
--- The founder's numbers (D51). The platform budget below is a STARTING
--- figure the founder has not set; it is a row, so it is changed by adding one.
+-- The founder's numbers (D51, D64). The platform budget is the founder's
+-- 700,000 naira a month (D64); a row, so it is changed by adding one.
 insert into public.referral_policy
   (reward_minor, member_monthly_cap, platform_monthly_budget_minor, withdrawal_min_minor,
    hold_days, review_risk_score, velocity_per_day, payouts_enabled, effective_from, reason)
-select 7000, 1500, 100000000, 100000, 7, 40, 50, false, '2026-10-06T00:00:00Z',
-       'D51 founder rates: 70 naira, 1,500 a month, 1,000 naira minimum. Platform budget 1,000,000 naira a month is a placeholder pending the founder. Payouts off until a separate marketing-float account exists.'
+select 7000, 1500, 70000000, 100000, 7, 40, 50, false, '2026-10-06T00:00:00Z',
+       'D51 founder rates: 70 naira, 1,500 a month, 1,000 naira minimum. Platform budget 700,000 naira a month: founder decision, D64. Payouts off until a separate marketing-float account exists.'
 where not exists (select 1 from public.referral_policy);
 
 create or replace function private.referral_policy_now()
