@@ -820,6 +820,70 @@ committed and pushed as it is done, cleanly, without sessions conflicting.
 | Any plan for referral payouts that opens before the detectors exist | D58 |
 | **D54's assignment of the db-06 row to Session 2** | **D59: Session 1 took it after two hours of no movement** |
 | **Any reading that paid promotion was removed** | **D60: D3 built it on 5 October; the gap was the tier detail, now written** |
+| **The flat "keeps 96 percent" on the fee screen** | **D61: wrong, rail dependent, and Session 1 wrote it. A range now** |
+
+---
+
+## D61. Session 3's round in detail, and a wrong number that was Session 1's
+
+Full working-through: **`docs/sessions/SESSION-3-DEEP-2026-10-06.md`**. The headline is a
+correction Session 1 owes.
+
+**The fee acceptance screen shows a figure that is wrong, and Session 3 is not at fault.**
+They built it from `docs/payments/VALLO_PRICING.md` and used its sentence verbatim: "you keep
+96 percent instead of 90: 108,000 naira more on 1,800,000". The arithmetic is right. **The
+figure is not, and the fault is in the pricing document.** Four percent is the escrow rail;
+the direct rail is 2 percent plus a capped Paystack fee, so the lister keeps about 98 percent
+there. Session 1 wrote a flat percentage into a document whose own rail table, forty lines
+below, contradicts it.
+
+**It cannot be fixed by choosing the other number, because the rail is not knowable when the
+lister accepts.** Acceptance happens before publishing; the rail is chosen per booking, later,
+by how the buyer pays. So the screen shows a **range anchored on the worst case**, with the
+second two percent named as escrow protection rather than a Vallo fee:
+
+```
+Rent you set                          1,800,000
+Platform fee                     36,000 to 72,000
+  Vallo, 2%                           36,000
+  Escrow protection, 2%
+  when a buyer pays into escrow       36,000
+You receive                   1,728,000 to 1,764,000
+```
+
+**The worst case is the headline**, because a pleasant surprise is the only acceptable
+direction for a money figure to move. The pricing document is corrected in place with the
+reasoning rather than quietly edited.
+
+**The comparison claim needs dating.** "Instead of 90" asserts what other people charge. Ten
+percent is fair for a typical Nigerian agency fee, so it is defensible, but on a screen
+forming part of an agreement it is a typical market rate **as at a date**, never attributed to
+a named competitor. If an agent charges eight percent, Vallo's screen is false and Vallo put
+it in writing. **Lead with the naira the lister keeps, not the percentage:** competing on
+percentage invites a race against someone charging nothing.
+
+**The acceptance record is a legal artifact.** It stores both rates as numbers, the terms
+version, the exact figures shown including the rent entered, the timestamp and the actor. And
+per D51 a lister **keeps the rate they accepted until they accept a new one**, so a rate change
+re-prompts rather than applying silently. That makes the record versioned by necessity.
+
+**Two of the sweep's bug fixes need probes, not just fixes.** "Paid in total" on an unpaid
+tenancy appeared in the **complaint pack**, a document a member may hand to a landlord or a
+tribunal: Vallo generated a document that misstated whether money had been paid. It needs a
+test across unpaid, part-paid and fully-paid. **False verified ticks** converge with promotion
+guardrail 5, so one test covers both: a badge renders only from an earned verification record,
+and a promoted listing's badges are byte-identical to unpromoted.
+
+**The weight target is the wrong target.** 20 percent off a bundle is a proxy. Vallo's members
+are on mid-range Android on congested Nigerian networks paying by the megabyte, so the real
+measure is **time to interactive on a throttled connection on a mid-range device**. Keep the
+percentage as tracking, add the real one, and confirm D49's LazyMotion removal actually landed
+before a fourth pass hunts smaller wins.
+
+**The i18n move needs three assertions**, because moving hundreds of strings breaks silently:
+every key referenced in code exists in English, no locale value is empty, and any string with
+a placeholder in English has the same placeholders in every locale. Extend
+`slice-coverage.test.ts`.
 
 ---
 
