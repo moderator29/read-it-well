@@ -88,12 +88,23 @@ describe.skipIf(!hasBrowser && !process.env.CI)("BatchTray", () => {
       expect(await page.getByTestId("tray").evaluate((el) => getComputedStyle(el).visibility)).toBe("hidden");
       expect(await page.getByTestId("tray").evaluate((el) => (el as HTMLElement).inert)).toBe(true);
       expect(await page.getByRole("button", { name: "Action one" }).count()).toBe(0);
-      const y = () => page.getByTestId("tray").evaluate((el) => el.getBoundingClientRect().top);
-      await page.locator("#select").click();
-      await page.waitForFunction(() => getComputedStyle(document.querySelector("[data-testid=tray]")!).visibility === "visible");
-      const early = await y();
-      await page.waitForTimeout(900);
-      const settled = await y();
+      /* The rise is read inside the page, frame by frame, from the click: the
+         first frame the tray is visible and the frame after its animations
+         finish. Reading it from the test process instead let a loaded
+         machine miss most of the rise before the first read. */
+      const { early, settled } = await page.evaluate(async () => {
+        const tray = document.querySelector<HTMLElement>("[data-testid=tray]")!;
+        const frame = () => new Promise<void>((done) => requestAnimationFrame(() => done()));
+        document.querySelector<HTMLElement>("#select")!.click();
+        while (getComputedStyle(tray).visibility !== "visible") await frame();
+        const first = tray.getBoundingClientRect().top;
+        await frame();
+        await Promise.all(
+          [tray, ...tray.querySelectorAll<HTMLElement>("*")].flatMap((el) => el.getAnimations().map((a) => a.finished.catch(() => undefined))),
+        );
+        await frame();
+        return { early: first, settled: tray.getBoundingClientRect().top };
+      });
       expect(early).toBeGreaterThan(settled + 20);
       expect(await page.getByRole("button", { name: "Action one" }).isVisible()).toBe(true);
     } finally {
