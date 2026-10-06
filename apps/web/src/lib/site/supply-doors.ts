@@ -5,7 +5,7 @@ import { STAYS_DOORS } from "@/lib/host/doors";
 import { FULL_REFUND_HOURS } from "@/lib/trust/cancellation";
 import {
   WHO_PAYS_SENTENCE,
-  HOST_EARNINGS_EMPTY_BODY,
+  HOST_PAYOUT_STEP,
   NO_CUSTODY_SENTENCE,
   NO_INSPECTION_FEE,
   PAYMENT_GATE_SENTENCE,
@@ -161,7 +161,7 @@ export const SUPPLY_DOORS: Record<SupplyRole, SupplyDoor> = {
         title: "Accept bookings",
         body: "A guest asks for dates. When you accept, the agreement is drawn up from your own rates, and the guest pays through Vallo.",
       },
-      { icon: "banknote", title: "Get paid", body: HOST_EARNINGS_EMPTY_BODY },
+      { icon: "banknote", title: "Get paid", body: HOST_PAYOUT_STEP },
     ],
     payout: [PAYOUT_ANSWER],
     checks: [...LADDER_LINES, LISTING_REVIEW],

@@ -55,6 +55,10 @@ export const REFUND_ROUTE =
 export const PAYOUT_ANSWER =
   "Your share of a payment settles straight to the bank account on your payout details, through Paystack, at the moment the renter or guest pays. Vallo never holds it, so there is nothing to withdraw. Paystack pays settled money into your bank on its normal settlement schedule.";
 
+/** The supply page's last step for a host (/for-hosts): how a stay is paid out, with no screen to point at. */
+export const HOST_PAYOUT_STEP =
+  "When a guest pays for a stay, your share goes by Paystack split straight to the bank account on your payout details.";
+
 /* -------------------------------------------------------------------------- */
 /* WHAT STANDS BEHIND A PAYMENT, PER RAIL (what replaced the Guarantee)       */
 /* -------------------------------------------------------------------------- */
