@@ -770,11 +770,6 @@ function receiptHtml(receipt: ReceiptModel, ink: Ink): string {
                   </table>`;
 }
 
-/** The address under a button, as a plain link a stripped button still leaves. */
-function bareAddress(href: string): string {
-  return href.replace(/^https?:\/\//, "").replace(/\/$/, "");
-}
-
 function htmlBlock(block: Block, ink: Ink): string {
   switch (block.kind) {
     case "heading":
@@ -870,8 +865,10 @@ function htmlBlock(block: Block, ink: Ink): string {
                       ? `
                   <p class="${ink.muted}" style="margin:0 0 6px;${TEXT}font-size:13px;line-height:1.6;color:${LIGHT.muted};">If the button does not work, copy this address into your browser:</p>
                   <p class="${ink.link}" style="margin:0 0 20px;font-family:${FONT_MONO};font-size:13px;line-height:1.6;word-break:break-all;color:${LINK};">${escapeHtml(block.href)}</p>`
-                      : `
-                  <p class="${ink.link}" style="margin:0 0 24px;${TEXT}font-size:13px;line-height:1.6;word-break:break-all;color:${LINK};"><a class="${ink.link}" href="${escapeHtml(block.href)}" target="_blank" style="color:${LINK};text-decoration:underline;">${escapeHtml(bareAddress(block.href))}</a></p>`
+                      : /* The whole address, scheme included, as the copy-this line above
+                           prints it: a bare "vallo.ng/messages/<id>" reads as copy and
+                           puts a record's id in the visible text (outbox-delivery). */ `
+                  <p class="${ink.link}" style="margin:0 0 24px;${TEXT}font-size:13px;line-height:1.6;word-break:break-all;color:${LINK};"><a class="${ink.link}" href="${escapeHtml(block.href)}" target="_blank" style="color:${LINK};text-decoration:underline;">${escapeHtml(block.href)}</a></p>`
                   }`;
 
     case "code":

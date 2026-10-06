@@ -48,7 +48,9 @@ describe.each([
   });
 
   it("puts the address under the button as a plain link", () => {
-    expect(message.html).toMatch(/href="https:\/\/vallospaces.com\/bookings"[^>]*>vallospaces.com\/bookings<\/a>/);
+    /* The whole address, scheme included: a bare one reads as copy, and a
+       record's id in it would then be visible text (outbox-delivery). */
+    expect(message.html).toMatch(/href="https:\/\/vallospaces.com\/bookings"[^>]*>https:\/\/vallospaces.com\/bookings<\/a>/);
   });
 
   it("draws no photograph for a space that has none, and initials rather than a face", () => {
