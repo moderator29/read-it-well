@@ -565,7 +565,7 @@ export function PostCard({
             <Link key={item.id} href={`/listing/${item.id}`}>
               <span className="nf-post__cited-title truncate-none">{item.title}</span>
               <span className="nf-post__cited-price nf-numeric">
-                {item.priceLabel} <span className="font-medium">{item.periodLabel}</span>
+                {item.priceLabel} <span className="font-normal">{item.periodLabel}</span>
               </span>
             </Link>
           ))}
@@ -703,7 +703,7 @@ function ListingFacts({ listing }: { listing: PostListing }) {
       <div className="mt-sm flex flex-wrap items-center justify-between gap-sm">
         <p className="nf-numeric text-[length:var(--nf-text-body-lg)] font-bold tracking-[-0.03em] text-[var(--nf-content-primary)]">
           {listing.priceLabel}{" "}
-          <span className="text-[length:var(--nf-text-overline)] font-medium tracking-normal text-[var(--nf-brand-secondary)]">
+          <span className="text-[length:var(--nf-text-overline)] font-semibold tracking-normal text-[var(--nf-brand-secondary)]">
             {listing.periodLabel}
           </span>
         </p>

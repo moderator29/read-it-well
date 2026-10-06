@@ -43,9 +43,6 @@ const strip = (text: string) => text.replace(/\/\*[\s\S]*?\*\//g, "");
 const ALLOWED_500: Record<string, string> = {
   "lib/email/render.ts": "email has its own type rules (ruling: the one inline 500 stays)",
   "app/css/admin.css": "the console's stylesheet has its own owner (ruling: out of this pass)",
-  "app/social-feed.css": "held for R2, who owns it this session; move to 400 or 600 when R2 lands, then delete this entry",
-  "components/social/feed/PostCard.tsx": "held for R2 (a social target); delete this entry when it lands",
-  "components/social/profile/PropertyList.tsx": "held for R2 (a social target); delete this entry when it lands",
 };
 
 const WEIGHT_500 = [/\bfont-medium\b/, /font-\[500\]/, /font-weight:\s*500\b/, /fontWeight:\s*["']?500\b/];

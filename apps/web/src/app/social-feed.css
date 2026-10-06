@@ -2959,7 +2959,7 @@
     border-radius: 8px;
     /* Cap 13 image px: 10.5px drawn. */
     font-size: var(--nf-text-body-sm);
-    font-weight: 500;
+    font-weight: 600;
     color: var(--nf-content-primary);
     transition:
       color var(--nf-duration-fast) var(--nf-ease-standard),
@@ -3497,7 +3497,7 @@
     color: var(--nf-content-on-brand);
     /* "Post": cap 12.8 image px, 10.3px drawn. */
     font-size: var(--nf-text-caption);
-    font-weight: 500;
+    font-weight: 600;
     letter-spacing: 0.005em;
     /* The shared selected edges: cyan-lit, near-white along the top,
        1.5px as the image's rims read. */
