@@ -564,6 +564,8 @@ function ListingRow({
           <Button
             variant="quiet"
             size="sm"
+            /* min-w-11: in Yoruba the label is "Tì", a 38.8px target (auditFit, C1 sweep). */
+            className="min-w-11"
             onClick={() => onCloseListing?.(listing)}
             data-testid="close-listing"
           >
