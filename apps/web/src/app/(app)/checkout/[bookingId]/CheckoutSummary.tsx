@@ -91,8 +91,16 @@ export function CheckoutSummary({
             <dt className="text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">{line.label}</dt>
             <dd className="text-right text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-secondary)]">
               {/* A receipt line, so the kobo is stated rather than rounded
-                  away: this column has to add up to the total below it. */}
-              <Amount minorUnits={line.minor} locale={locale} currency={view.currency} showFraction />
+                  away: this column has to add up to the total below it. The kobo
+                  keeps the line's own ink: Amount's default 60% fade on this
+                  secondary ink measured 2.97:1 on paper (axe). */}
+              <Amount
+                minorUnits={line.minor}
+                locale={locale}
+                currency={view.currency}
+                showFraction
+                secondaryClassName="text-[length:max(0.75rem,0.62em)] font-semibold"
+              />
             </dd>
           </div>
         ))}

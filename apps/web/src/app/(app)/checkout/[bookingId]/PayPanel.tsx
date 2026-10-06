@@ -5,8 +5,7 @@ import { useRouter } from "next/navigation";
 import { useScopedCopy } from "@/lib/i18n/copy-scope";
 import { startCardCheckout } from "@/lib/bookings/checkout";
 import { PaymentGate } from "@/components/app/agreements/PaymentGate";
-import { NO_CUSTODY_SENTENCE, RAIL_COPY } from "@/lib/money/copy";
-import { LIVE_RAIL } from "@/lib/money/rails";
+import { NO_CUSTODY_SENTENCE } from "@/lib/money/copy";
 import type { CheckoutView } from "@/lib/bookings/checkout-view";
 import { ResultSheet } from "@/components/app/ResultSheet";
 import { SuccessSheet } from "@/components/ui/SuccessSheet";
@@ -413,8 +412,11 @@ export function PayPanel({
                 on the confirmation. Three statements of one figure is enough;
                 a fourth that clips is not a statement.
               */
+              /* With a saved card offered, that card is the chosen way and
+                 this one is the alternative, so it is not a second lit
+                 primary beside it (Round 3 sweep, C1). */
               <Button
-                variant="primary"
+                variant={savedCardsOffered ? "secondary" : "primary"}
                 full
                 onClick={payByCard}
                 disabled={busy}
@@ -449,9 +451,12 @@ export function PayPanel({
           <CryptoPayOption offer={crypto} bookingId={view.bookingId} totalMinor={view.totalMinor} locale={view.locale} />
         )}
       </ul>
-      {/* Where the money goes, said before the tap. Vallo never holds it. */}
+      {/* Where the money goes, said before the tap. Vallo never holds it. The
+          rail's standing sentence is not repeated here: the page mounts this
+          panel straight under TransactionCheckout, whose "What stands behind
+          it" row already says it word for word (Round 3 sweep, C1). */}
       <p className="nf-caption mt-block leading-relaxed text-[var(--nf-content-muted)]" data-testid="checkout-no-custody">
-        {NO_CUSTODY_SENTENCE} {RAIL_COPY[LIVE_RAIL].standing}
+        {NO_CUSTODY_SENTENCE}
       </p>
       {/* `UiIcon` at 16 rather than a 16px `BrandIcon`. `docs/ICON_SYSTEM.md`
           says below 24 the plinth in the brand artwork collapses into a
@@ -500,7 +505,22 @@ export function PayPanel({
             />
           </span>
         </p>
-        {view.cardAvailable ? (
+        {/* The bar pins the chosen way, as the note above says: the saved
+            card when one is offered, otherwise the card page. It pinned "Pay
+            by card" even while the saved card was the chosen way. */}
+        {savedCardsOffered ? (
+          <Button
+            variant="primary"
+            onClick={payBySavedCard}
+            disabled={busy || chosenCard === null}
+            loading={phase.kind === "saved-card-charging"}
+            morph
+            done={phase.kind === "paid"}
+            className="shrink-0"
+          >
+            {c.payWithThisCard}
+          </Button>
+        ) : view.cardAvailable ? (
           <Button
             variant="primary"
             onClick={payByCard}
