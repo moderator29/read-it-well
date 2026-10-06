@@ -90,7 +90,7 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the badge row", () => {
     const { page, close } = await mountInBrowser({ entry: entry(false), css: CSS });
     try {
       await page.getByTestId("profile-badges").waitFor();
-      expect(await page.locator(".nf-badge").count()).toBe(6);
+      expect(await page.locator(".nf-merit-tile").count()).toBe(6);
       /* code-2 is the hand-given one and sits inside the top six. */
       expect(await page.getByText("Given by the Vallo team").count()).toBe(1);
       await maybeShot(page, "badge-row");

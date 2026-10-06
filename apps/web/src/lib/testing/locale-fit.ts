@@ -84,9 +84,6 @@ function componentSheets(): string[] {
         if (!file || !existsSync(file)) continue;
         const rel = file.slice(SRC.length + 1).replace(/\\/g, "/");
         if (globals.includes(`./${rel.replace(/^app\//, "")}`)) continue;
-        /* Redefines the status badge's own class `.nf-badge` as a full-width profile tile (reported to the
-           lead): a route that loads it would break every status badge, which none of these surfaces does. */
-        if (rel === "components/social/badges/badges.css") continue;
         found.add(file);
       }
     }

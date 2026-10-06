@@ -51,23 +51,23 @@ export function BadgeRow({
   if (shown.length === 0) return null;
 
   return (
-    <section className="nf-badges" aria-label={copy.title} data-testid="profile-badges">
-      <h2 className="nf-badges__title">{copy.title}</h2>
-      <ul className="nf-badges__list">
+    <section className="nf-merits" aria-label={copy.title} data-testid="profile-badges">
+      <h2 className="nf-merits__title">{copy.title}</h2>
+      <ul className="nf-merits__list">
         {shown.map((badge) => (
           <li key={badge.code}>
             <button
               type="button"
-              className="nf-badge"
+              className="nf-merit-tile"
               onClick={() => setOpen(badge)}
               aria-haspopup="dialog"
               data-testid={`badge-${badge.code}`}
             >
-              <span className="nf-badge__mark" aria-hidden="true">
+              <span className="nf-merit-tile__mark" aria-hidden="true">
                 <BrandIcon name={badgeObject(badge.objectName)} size={36} />
               </span>
-              <span className="nf-badge__name">{badge.name}</span>
-              {badge.earned ? null : <span className="nf-badge__kind">{copy.givenBy}</span>}
+              <span className="nf-merit-tile__name">{badge.name}</span>
+              {badge.earned ? null : <span className="nf-merit-tile__kind">{copy.givenBy}</span>}
             </button>
           </li>
         ))}
@@ -87,16 +87,16 @@ export function BadgeRow({
           hideTitle
           testId="badge-sheet"
         >
-          <div className="nf-badge-sheet">
-            <span className="nf-badge-sheet__mark" aria-hidden="true">
+          <div className="nf-merit-sheet">
+            <span className="nf-merit-sheet__mark" aria-hidden="true">
               <BrandIcon name={badgeObject(open.objectName)} size={72} />
             </span>
-            <h2 className="nf-badge-sheet__name">{open.name}</h2>
-            <p className="nf-badge-sheet__means">
+            <h2 className="nf-merit-sheet__name">{open.name}</h2>
+            <p className="nf-merit-sheet__means">
               <span className="sr-only">{copy.means}: </span>
               {open.description}
             </p>
-            <p className="nf-badge-sheet__date">
+            <p className="nf-merit-sheet__date">
               {open.earned ? copy.earnedOn.replace("{date}", open.grantedLabel) : copy.givenBy}
             </p>
           </div>
