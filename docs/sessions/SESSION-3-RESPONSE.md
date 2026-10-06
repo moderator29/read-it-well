@@ -24,8 +24,8 @@ labels into the dictionary).
 **The sweep, as a number.** The per-route record is
 [`SESSION-3-SWEEP.md`](SESSION-3-SWEEP.md), generated from each agent's own 24-point
 result, run in Chromium at 390, 768 and 1440 in both themes on the route's real page
-component. **Routes audited with all 24 points recorded: 188 of the 213** at this edit, plus
-four routes added since (192 records). 38 admin, 24 agent and 17 host: every route
+component. **Routes audited with all 24 points recorded: 195 of the 213** at this edit, plus
+four routes added since (199 records). 38 admin, 24 agent and 17 host: every route
 in those trees. 39 public site, auth and landing: every route in those groups. The
 member routes and the top-level pages make up the rest; the 25 not yet audited are
 listed in the sweep file. The rows in section 3 below predate this and leave points
@@ -126,6 +126,14 @@ Play badges letter at 7.9 to 8.4px in weight 500; the fix is each store's offici
 badge artwork, which is not in the repository. `/delete-account` lists the raw table
 names it erases (`wallet_entries`, `escrows` among them), a technical disclosure where
 the D48 rule keeps those words.
+
+**Coupled to the day the Rewards Balance goes live.** `/settings/invite` says "There
+is no reward for inviting", and its how-it-works page has a "What is not" panel saying
+the same. Both are true today: the rewards read always answers not-live, `/rewards`
+is linked from nowhere, and no migration creates a reward or a balance. They become
+false the moment rewards go live, so they must change in the same commit that turns
+the rewards source on (`REWARDS_QUALIFY` in `lib/money/copy.ts` is already written
+for that day).
 
 **Decisions waiting on the founder:**
 - **The lister's fee gate in the listing wizard.** It is built (`ListerFeeGate`) and

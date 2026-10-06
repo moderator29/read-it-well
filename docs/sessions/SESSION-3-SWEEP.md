@@ -6,9 +6,9 @@ component with the fixture named in its row. **P** pass, **X** failed and fixed 
 sweep, **F** failed and still open, **·** does not apply. The denominator is 213 real routes
 (every `page.tsx` under `apps/web/src/app`, excluding `(dev)` and `api`).
 
-**Routes audited: 188 of the 213** measured at the start of the sweep, plus 4 routes added since (`/join/[code]/start`, `/s/[token]/status`, `/settings/accessibility`, `/settings/region`): 192 records in all.
+**Routes audited: 195 of the 213** measured at the start of the sweep, plus 4 routes added since (`/join/[code]/start`, `/s/[token]/status`, `/settings/accessibility`, `/settings/region`): 199 records in all.
 
-Not yet audited: `/agreements/[id]`, `/agreements`, `/bookings/[bookingId]`, `/checkout/[bookingId]`, `/checkout`, `/home`, `/listing/[id]`, `/listing/[id]/trust`, `/payments`, `/price/area/[id]`, `/rent/share/[id]`, `/restaurants`, `/saved/searches`, `/search`, `/settings/appearance`, `/settings/help`, `/settings/invite/how-it-works`, `/settings/invite`, `/settings/invite/referrals/[id]`, `/settings/invite/referrals`, `/settings/passcode`, `/stays`, `/stays/search`, `/tenancy/[id]`, `/verification`.
+Not yet audited: `/agreements/[id]`, `/agreements`, `/bookings/[bookingId]`, `/checkout/[bookingId]`, `/checkout`, `/home`, `/listing/[id]`, `/listing/[id]/trust`, `/payments`, `/price/area/[id]`, `/rent/share/[id]`, `/restaurants`, `/saved/searches`, `/search`, `/stays`, `/stays/search`, `/tenancy/[id]`, `/verification`.
 
 | Family | Audited |
 |---|---|
@@ -60,7 +60,7 @@ Not yet audited: `/agreements/[id]`, `/agreements`, `/bookings/[bookingId]`, `/c
 | safe | 1 |
 | safety | 1 |
 | saved | 1 |
-| settings | 18 |
+| settings | 25 |
 | sign-in | 4 |
 | sign-up | 4 |
 | standards | 1 |
@@ -75,7 +75,7 @@ Not yet audited: `/agreements/[id]`, `/agreements`, `/bookings/[bookingId]`, `/c
 
 | Route | By | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| `/` | C6 | P | P | P | P | P | F | P | F | P | P | P | P | P | · | P | P | P | · | P | P | P | P | P | P |
+| `/` | C6 | P | P | P | P | P | F | P | X | P | P | P | P | P | · | P | P | P | · | P | P | P | P | P | P |
 | `/about` | C6 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | X | · | P | P | P | P | P | P |
 | `/admin` | C1 | P | P | P | P | P | P | X | P | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/admin/account-recovery` | C1 | P | · | P | P | X | X | · | · | · | P | P | P | P | · | P | P | · | X | P | P | P | P | P | P |
@@ -149,7 +149,7 @@ Not yet audited: `/agreements/[id]`, `/agreements`, `/bookings/[bookingId]`, `/c
 | `/auth/callback` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | · | P | P | P | P | P | P |
 | `/bookings` | C3 | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P |
 | `/bookings/[bookingId]/review` | C3 | P | · | P | P | P | P | · | P | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
-| `/cancellations` | C6 | P | · | P | P | P | P | P | P | P | P | P | P | P | P | P | P | F | · | P | P | P | P | P | P |
+| `/cancellations` | C6 | P | · | P | P | P | P | P | P | P | P | P | P | P | P | P | P | X | · | P | P | P | P | P | P |
 | `/careers` | C6 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | P | P | P | P | P | P | P |
 | `/check` | C6 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/contact` | C6 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | P | P | P | P |
@@ -163,8 +163,8 @@ Not yet audited: `/agreements/[id]`, `/agreements`, `/bookings/[bookingId]`, `/c
 | `/for-agents` | C6 | P | · | P | P | P | P | P | P | P | P | P | P | P | · | P | P | X | P | P | P | P | P | P | P |
 | `/for-hosts` | C6 | P | · | P | P | P | P | P | P | P | P | P | P | P | · | P | P | X | P | P | P | P | P | P | P |
 | `/for-landlords` | C6 | P | · | P | P | P | P | P | P | P | P | P | P | P | · | P | P | X | P | P | P | P | P | P | P |
-| `/forgot-password` | C6 | P | · | P | P | P | P | · | · | P | F | P | P | P | · | · | P | · | · | P | P | P | P | P | P |
-| `/forgot-password/code` | C6 | P | · | P | P | P | P | · | · | P | F | P | P | P | · | · | P | · | · | P | P | P | P | P | P |
+| `/forgot-password` | C6 | P | · | P | P | P | P | · | · | P | X | P | P | P | · | · | P | · | · | P | P | P | P | P | P |
+| `/forgot-password/code` | C6 | P | · | P | P | P | P | · | · | P | X | P | P | P | · | · | P | · | · | P | P | P | P | P | P |
 | `/guides` | C6 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | P | P | P | P |
 | `/guides/[slug]` | C6 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | P | P | P | P |
 | `/help` | C6 | P | · | P | P | P | P | · | · | P | X | P | P | P | · | P | X | X | P | P | P | P | P | P | P |
@@ -217,20 +217,27 @@ Not yet audited: `/agreements/[id]`, `/agreements`, `/bookings/[bookingId]`, `/c
 | `/rent/move-in/[listingId]` | C3 | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | P | P | X | P | P | P |
 | `/rent/pay/[inspectionId]` | C3 | P | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | X | · | P | P | P | P | P | P |
 | `/rent/review/[paymentId]` | C3 | P | · | P | P | P | P | · | · | · | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
-| `/reset-password` | C6 | P | · | P | P | P | P | · | · | P | F | P | P | P | · | · | P | · | P | P | P | P | P | P | P |
+| `/reset-password` | C6 | P | · | P | P | P | P | · | · | P | X | P | P | P | · | · | P | · | P | P | P | P | P | P | P |
 | `/restaurant/[id]` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | P | P | X | P | P | P | P | X | P | P | P |
 | `/s/[token]` | C7 | P | P | P | P | P | P | P | P | P | P | P | X | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/s/[token]/status` | C7 | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | P | · | · | · | · | · | · | · | P |
 | `/safe/[token]` | C6 | P | · | P | P | P | P | · | · | P | P | P | X | P | · | P | P | · | P | P | P | P | P | P | P |
-| `/safety` | C6 | P | · | P | P | X | P | · | · | P | P | P | P | P | P | P | P | F | · | P | P | P | P | P | P |
+| `/safety` | C6 | P | · | P | P | X | P | · | · | P | P | P | P | P | P | P | P | X | · | P | P | P | P | P | P |
 | `/saved` | C3 | P | · | P | P | P | P | P | · | P | P | P | P | P | · | · | X | · | P | P | P | P | P | P | P |
 | `/settings` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | · | P | P | P | P | P | X |
 | `/settings/accessibility` | C3 | P | · | P | P | P | X | · | · | P | P | P | X | P | · | · | P | · | · | P | X | P | P | P | P |
 | `/settings/account` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | P | P | P | P | P | P | X |
+| `/settings/appearance` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | · | P | P | P | P | P | P |
 | `/settings/devices` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | X |
 | `/settings/devices/alert` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | P | P | P | P | P | P | X |
+| `/settings/help` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | P | P | P | P | P | P | P |
 | `/settings/interests` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | · | P | P | P | X | P | X |
+| `/settings/invite` | C7 | P | P | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | P | P | P | P |
+| `/settings/invite/how-it-works` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | · | P | P | P | P | P | P |
+| `/settings/invite/referrals` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | P | P | P | P | P | P | P |
+| `/settings/invite/referrals/[id]` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | P | P | P | P | P | P | P |
 | `/settings/notifications` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | · | P | P | P | P | P | P |
+| `/settings/passcode` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | P | · | P | P | P | P | P | P |
 | `/settings/passport` | C7 | F | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/settings/passport/[fact]` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/settings/payments` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | P | · | P | P | P | X | P | X |
@@ -242,14 +249,14 @@ Not yet audited: `/agreements/[id]`, `/agreements`, `/bookings/[bookingId]`, `/c
 | `/settings/privacy/data` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | · | P | P | P | P | P | X |
 | `/settings/privacy/money-lock` | C7 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | F | F | · | P | P | P | P | P | P |
 | `/settings/region` | C3 | P | · | P | P | P | P | · | · | P | P | P | X | P | · | · | P | · | · | P | P | P | P | P | P |
-| `/sign-in` | C6 | P | · | P | P | P | P | · | · | P | F | P | P | P | · | · | P | · | P | P | P | P | P | P | P |
-| `/sign-in/code` | C6 | P | · | P | P | P | P | · | · | P | F | P | P | P | · | · | P | · | · | P | P | P | P | P | P |
+| `/sign-in` | C6 | P | · | P | P | P | P | · | · | P | X | P | P | P | · | · | P | · | P | P | P | P | P | P | P |
+| `/sign-in/code` | C6 | P | · | P | P | P | P | · | · | P | X | P | P | P | · | · | P | · | · | P | P | P | P | P | P |
 | `/sign-in/email` | C6 | P | · | P | P | · | P | · | · | · | · | P | P | P | · | · | P | · | · | P | P | P | P | P | P |
-| `/sign-in/phone` | C6 | P | · | P | P | P | P | · | · | P | F | P | P | P | · | · | P | · | · | P | P | P | P | P | P |
-| `/sign-up` | C6 | P | · | P | P | P | P | · | · | P | F | P | P | P | · | · | P | · | · | P | X | P | P | P | P |
-| `/sign-up/email` | C6 | P | · | P | P | P | P | · | · | P | F | P | P | P | · | · | P | · | · | P | X | P | P | P | P |
-| `/sign-up/finish` | C6 | P | · | P | P | P | P | · | · | P | F | P | P | P | · | · | P | · | · | P | X | P | P | P | P |
-| `/sign-up/verify` | C6 | P | · | P | P | P | P | · | · | P | F | P | P | P | · | · | P | · | P | P | X | P | P | P | P |
+| `/sign-in/phone` | C6 | P | · | P | P | P | P | · | · | P | X | P | P | P | · | · | P | · | · | P | P | P | P | P | P |
+| `/sign-up` | C6 | P | · | P | P | P | P | · | · | P | X | P | P | P | · | · | P | · | · | P | X | P | P | P | P |
+| `/sign-up/email` | C6 | P | · | P | P | P | P | · | · | P | X | P | P | P | · | · | P | · | · | P | X | P | P | P | P |
+| `/sign-up/finish` | C6 | P | · | P | P | P | P | · | · | P | X | P | P | P | · | · | P | · | · | P | X | P | P | P | P |
+| `/sign-up/verify` | C6 | P | · | P | P | P | P | · | · | P | X | P | P | P | · | · | P | · | P | P | X | P | P | P | P |
 | `/standards` | C6 | P | · | P | P | P | P | P | · | P | P | P | P | P | · | P | P | P | · | P | P | P | P | P | P |
 | `/stay/[id]` | C3 | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | X | P | · | P | P | P | P | P | P |
 | `/stories/[id]` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | X | X | X | P | P | P |
@@ -273,7 +280,7 @@ Not yet audited: `/agreements/[id]`, `/agreements`, `/bookings/[bookingId]`, `/c
 **`/`** (the REAL (landing) page; landingData answers the f2 preview's PREVIEW_STATS and PREVIEW_COUNTS (the fixtures that preview proves the same tree on), social on, a web surface)
 
 - 6 (open): The map's city names were drawn in the map's own units and measured 7.2px at 768 and 10.2px at 1440; they are 16 units now (12.5px at the 24rem drawing) and drawn only from 64rem, where the drawing is that size; under it the city chips carry the names (fixed). Still failing: the drawn App Store and Google Play badges letter 'Download on the' and 'GET IT ON' at 7.2 to 7.6 units (7.9 to 8.4px) in weight 500, the fourth weight on the page. They copy the stores' own badge lettering; the fix is the stores' badge files as images, an asset decision (remaining).
-- 8 (open): The community band prints each count over its label (64 / Listings), the governing render's layout; the move-in band's label is above its figure. Remaining: a layout decision on the founder's governing image.
+- 8 (fixed): The community band printed each count over its label (64 / Listings), the one place on the landing that did; the move-in band and every figure tile on the public site put the label above. The label is above its count now (CommunityBand.tsx). The move-in band's label was already above.
 
 **`/about`** (the REAL page in the REAL (site) layout; no read (the words are the page's own, lib/trust and lib/legal))
 
@@ -521,7 +528,7 @@ Not yet audited: `/agreements/[id]`, `/agreements`, `/bookings/[bookingId]`, `/c
 
 **`/cancellations`** (the REAL page in the REAL (site) layout; no read (the words are the page's own, lib/trust and lib/legal))
 
-- 17 (open): The refund route reads REFUND_ROUTE and NO_CUSTODY_SENTENCE from copy.ts, then a sentence written on the page ('There is no Vallo balance for a refund to sit in...'), and the tier sentences live in lib/trust/CancellationTimeline. Policy wording, left as written (the policy pages keep their words, 1cb345a77); moving them into copy.ts needs copy.ts, which has another agent's uncommitted changes.
+- 17 (fixed): Every money sentence the page wrote for itself (the lede, before and after paying, the three 'not your doing' cases, the table, and 'There is no Vallo balance for a refund to sit in') is in lib/money/copy.ts now (CANCEL_*, REFUND_NO_BALANCE), word for word, and the page reads them. The tier sentences were already dictionary words (CancellationTimeline).
 
 **`/delete-account`** (the REAL page in the REAL (site) layout; no read (the words are the page's own, lib/trust and lib/legal))
 
@@ -558,11 +565,11 @@ Not yet audited: `/agreements/[id]`, `/agreements`, `/bookings/[bookingId]`, `/c
 
 **`/forgot-password`** (the REAL page inside the REAL (auth) layout, signed out, no cookie, a web surface; with no auth provider configured in this environment)
 
-- 10 (open): Each piece rises 520ms, but the island's stagger ends at 770ms (nf-slate-rise, 250ms delay on the last piece) and the bowl's photograph settles over --nf-duration-cinematic, 900ms. Family-wide auth.css motion that C4 just set; recorded, not changed (remaining).
+- 10 (fixed): Before: the bowl's picture settled over 900ms (cinematic) and the island's last piece started at up to 425ms for 520ms, so a screen was still arriving at 945ms. auth.css now settles the picture over the deliberate rung (620ms), rises every piece, the cap line, the object and the island over the slow rung (380ms), and starts the stagger at 60ms (120ms nested) stepping 30ms, held after the fifth piece: measured 620ms at most on every auth screen. Order and travel unchanged; reduced motion unchanged (0 animations); Calm unchanged.
 
 **`/forgot-password/code`** (the REAL page inside the REAL (auth) layout, signed out, no cookie, a web surface; with no auth provider configured in this environment)
 
-- 10 (open): Each piece rises 520ms, but the island's stagger ends at 770ms (nf-slate-rise, 250ms delay on the last piece) and the bowl's photograph settles over --nf-duration-cinematic, 900ms. Family-wide auth.css motion that C4 just set; recorded, not changed (remaining).
+- 10 (fixed): Before: the bowl's picture settled over 900ms (cinematic) and the island's last piece started at up to 425ms for 520ms, so a screen was still arriving at 945ms. auth.css now settles the picture over the deliberate rung (620ms), rises every piece, the cap line, the object and the island over the slow rung (380ms), and starts the stagger at 60ms (120ms nested) stepping 30ms, held after the fifth piece: measured 620ms at most on every auth screen. Order and travel unchanged; reduced motion unchanged (0 animations); Calm unchanged.
 
 **`/help`** (the REAL page in the REAL (site) layout; the viewer signed out (resolveSession answers signed-out), so SupportChat draws its signed-out state; FAQs from lib/support/help-articles.ts)
 
@@ -729,7 +736,7 @@ Not yet audited: `/agreements/[id]`, `/agreements`, `/bookings/[bookingId]`, `/c
 
 **`/reset-password`** (the REAL page inside the REAL (auth) layout, signed out, no cookie, a web surface; with no auth provider configured in this environment; no session (the expired screen, the honest default) and a recovery session ('link-only' proof) so the form is drawn; the session prints nothing)
 
-- 10 (open): Each piece rises 520ms, but the island's stagger ends at 770ms (nf-slate-rise, 250ms delay on the last piece) and the bowl's photograph settles over --nf-duration-cinematic, 900ms. Family-wide auth.css motion that C4 just set; recorded, not changed (remaining).
+- 10 (fixed): Before: the bowl's picture settled over 900ms (cinematic) and the island's last piece started at up to 425ms for 520ms, so a screen was still arriving at 945ms. auth.css now settles the picture over the deliberate rung (620ms), rises every piece, the cap line, the object and the island over the slow rung (380ms), and starts the stagger at 60ms (120ms nested) stepping 30ms, held after the fifth piece: measured 620ms at most on every auth screen. Order and travel unchanged; reduced motion unchanged (0 animations); Calm unchanged.
 
 **`/restaurant/[id]`** (the real page with listingById answering f3 RESTAURANTS[0] (The Lagoon Kitchen) as a catalogue listing built only from that card's own fields (title, area and city from its where, kind, amenities, hue); no stated price, no reviews, no photographs; getRestaurantDetail null (no business-grade fixture exists), so the hours card says there are none)
 
@@ -747,7 +754,7 @@ Not yet audited: `/agreements/[id]`, `/agreements`, `/bookings/[bookingId]`, `/c
 **`/safety`** (the REAL page in the REAL (site) layout; no read (the words are the page's own, lib/trust and lib/legal))
 
 - 5 (fixed): The rule that matters most prints NO_FEES_LINE, and step 2 of 'How paying on Vallo works' opened with the same sentence word for word a screen later. The step now starts at its own sentence.
-- 17 (open): NO_CUSTODY_SENTENCE and NO_FEES_LINE come from copy.ts, but the step bodies continue in money sentences written on the page ('Every payment on Vallo goes through the checkout screen with a licensed Nigerian payment processor...'). Left as written; their home is copy.ts (remaining).
+- 17 (fixed): The paying steps, the one rule's paragraph and the 'already paid outside' line are in lib/money/copy.ts now (SAFETY_*, REFUND_NO_BALANCE). Two corrections, both for truth: 'Vallo keeps no balance for you, so there is nothing to withdraw' is untrue beside the Rewards Balance (D51), so the refund step reads REFUND_NO_BALANCE; and the payment reference opens from Plans, the name the app gives what the sentence called Bookings. The inspection steps keep their own words: they are inspection advice that mentions paying, not a statement of how money moves.
 
 **`/saved`** (the real page with f3 SHELF's first two listings saved on the account at the f3 saved deck's own savedAt values; no saved places (their rows are raw catalogue rows no fixture holds); no changes since saving)
 
@@ -819,34 +826,34 @@ Not yet audited: `/agreements/[id]`, `/agreements`, `/bookings/[bookingId]`, `/c
 
 **`/sign-in`** (the REAL page inside the REAL (auth) layout, signed out, no cookie, a web surface; with no auth provider configured in this environment; and the session-b sign-in preview's own refusals (refused, fields, deactivated) through EmailAuthForm's initialState, in the same layout)
 
-- 10 (open): Each piece rises 520ms, but the island's stagger ends at 770ms (nf-slate-rise, 250ms delay on the last piece) and the bowl's photograph settles over --nf-duration-cinematic, 900ms. Family-wide auth.css motion that C4 just set; recorded, not changed (remaining).
+- 10 (fixed): Before: the bowl's picture settled over 900ms (cinematic) and the island's last piece started at up to 425ms for 520ms, so a screen was still arriving at 945ms. auth.css now settles the picture over the deliberate rung (620ms), rises every piece, the cap line, the object and the island over the slow rung (380ms), and starts the stagger at 60ms (120ms nested) stepping 30ms, held after the fifth piece: measured 620ms at most on every auth screen. Order and travel unchanged; reduced motion unchanged (0 animations); Calm unchanged.
 
 **`/sign-in/code`** (the REAL page inside the REAL (auth) layout, signed out, no cookie, a web surface; with no auth provider configured in this environment)
 
-- 10 (open): Each piece rises 520ms, but the island's stagger ends at 770ms (nf-slate-rise, 250ms delay on the last piece) and the bowl's photograph settles over --nf-duration-cinematic, 900ms. Family-wide auth.css motion that C4 just set; recorded, not changed (remaining).
+- 10 (fixed): Before: the bowl's picture settled over 900ms (cinematic) and the island's last piece started at up to 425ms for 520ms, so a screen was still arriving at 945ms. auth.css now settles the picture over the deliberate rung (620ms), rises every piece, the cap line, the object and the island over the slow rung (380ms), and starts the stagger at 60ms (120ms nested) stepping 30ms, held after the fifth piece: measured 620ms at most on every auth screen. Order and travel unchanged; reduced motion unchanged (0 animations); Calm unchanged.
 
 **`/sign-in/phone`** (the REAL page inside the REAL (auth) layout, signed out, no cookie, a web surface; with no auth provider configured in this environment; phoneSignInEnabled on (off, the route is a 404))
 
-- 10 (open): Each piece rises 520ms, but the island's stagger ends at 770ms (nf-slate-rise, 250ms delay on the last piece) and the bowl's photograph settles over --nf-duration-cinematic, 900ms. Family-wide auth.css motion that C4 just set; recorded, not changed (remaining).
+- 10 (fixed): Before: the bowl's picture settled over 900ms (cinematic) and the island's last piece started at up to 425ms for 520ms, so a screen was still arriving at 945ms. auth.css now settles the picture over the deliberate rung (620ms), rises every piece, the cap line, the object and the island over the slow rung (380ms), and starts the stagger at 60ms (120ms nested) stepping 30ms, held after the fifth piece: measured 620ms at most on every auth screen. Order and travel unchanged; reduced motion unchanged (0 animations); Calm unchanged.
 
 **`/sign-up`** (the REAL page inside the REAL (auth) layout, signed out, no cookie, a web surface; with no auth provider configured in this environment)
 
-- 10 (open): Each piece rises 520ms, but the island's stagger ends at 770ms (nf-slate-rise, 250ms delay on the last piece) and the bowl's photograph settles over --nf-duration-cinematic, 900ms. Family-wide auth.css motion that C4 just set; recorded, not changed (remaining).
+- 10 (fixed): Before: the bowl's picture settled over 900ms (cinematic) and the island's last piece started at up to 425ms for 520ms, so a screen was still arriving at 945ms. auth.css now settles the picture over the deliberate rung (620ms), rises every piece, the cap line, the object and the island over the slow rung (380ms), and starts the stagger at 60ms (120ms nested) stepping 30ms, held after the fifth piece: measured 620ms at most on every auth screen. Order and travel unchanged; reduced motion unchanged (0 animations); Calm unchanged.
 - 20 (fixed): In Light, the sign-up screens (a night door, data-theme=dark on the screen) still took the paper slate inks from ':root[data-theme=light] .nf-slate': the 'Sign in' swap link measured 1.73 to 1 on the navy island (axe), the focus ink was navy on navy and the pinned pill's bar a pale band. The rule now skips a screen that carries data-theme=dark, so the island alone keeps the door dark (night-door.ts layer 1). axe 0 in both themes.
 
 **`/sign-up/email`** (the REAL page inside the REAL (auth) layout, signed out, no cookie, a web surface; with no auth provider configured in this environment)
 
-- 10 (open): Each piece rises 520ms, but the island's stagger ends at 770ms (nf-slate-rise, 250ms delay on the last piece) and the bowl's photograph settles over --nf-duration-cinematic, 900ms. Family-wide auth.css motion that C4 just set; recorded, not changed (remaining).
+- 10 (fixed): Before: the bowl's picture settled over 900ms (cinematic) and the island's last piece started at up to 425ms for 520ms, so a screen was still arriving at 945ms. auth.css now settles the picture over the deliberate rung (620ms), rises every piece, the cap line, the object and the island over the slow rung (380ms), and starts the stagger at 60ms (120ms nested) stepping 30ms, held after the fifth piece: measured 620ms at most on every auth screen. Order and travel unchanged; reduced motion unchanged (0 animations); Calm unchanged.
 - 20 (fixed): In Light, the sign-up screens (a night door, data-theme=dark on the screen) still took the paper slate inks from ':root[data-theme=light] .nf-slate': the 'Sign in' swap link measured 1.73 to 1 on the navy island (axe), the focus ink was navy on navy and the pinned pill's bar a pale band. The rule now skips a screen that carries data-theme=dark, so the island alone keeps the door dark (night-door.ts layer 1). axe 0 in both themes.
 
 **`/sign-up/finish`** (the REAL page inside the REAL (auth) layout, signed out, no cookie, a web surface; with no auth provider configured in this environment; finishSetupView answers 'owed' with the session-b preview's own names (Ada Obi); signed out the page only redirects)
 
-- 10 (open): Each piece rises 520ms, but the island's stagger ends at 770ms (nf-slate-rise, 250ms delay on the last piece) and the bowl's photograph settles over --nf-duration-cinematic, 900ms. Family-wide auth.css motion that C4 just set; recorded, not changed (remaining).
+- 10 (fixed): Before: the bowl's picture settled over 900ms (cinematic) and the island's last piece started at up to 425ms for 520ms, so a screen was still arriving at 945ms. auth.css now settles the picture over the deliberate rung (620ms), rises every piece, the cap line, the object and the island over the slow rung (380ms), and starts the stagger at 60ms (120ms nested) stepping 30ms, held after the fifth piece: measured 620ms at most on every auth screen. Order and travel unchanged; reduced motion unchanged (0 animations); Calm unchanged.
 - 20 (fixed): In Light, the sign-up screens (a night door, data-theme=dark on the screen) still took the paper slate inks from ':root[data-theme=light] .nf-slate': the 'Sign in' swap link measured 1.73 to 1 on the navy island (axe), the focus ink was navy on navy and the pinned pill's bar a pale band. The rule now skips a screen that carries data-theme=dark, so the island alone keeps the door dark (night-door.ts layer 1). axe 0 in both themes.
 
 **`/sign-up/verify`** (the REAL page inside the REAL (auth) layout, signed out, no cookie, a web surface; with no auth provider configured in this environment; no pending address cookie (the field asks for it))
 
-- 10 (open): Each piece rises 520ms, but the island's stagger ends at 770ms (nf-slate-rise, 250ms delay on the last piece) and the bowl's photograph settles over --nf-duration-cinematic, 900ms. Family-wide auth.css motion that C4 just set; recorded, not changed (remaining).
+- 10 (fixed): Before: the bowl's picture settled over 900ms (cinematic) and the island's last piece started at up to 425ms for 520ms, so a screen was still arriving at 945ms. auth.css now settles the picture over the deliberate rung (620ms), rises every piece, the cap line, the object and the island over the slow rung (380ms), and starts the stagger at 60ms (120ms nested) stepping 30ms, held after the fifth piece: measured 620ms at most on every auth screen. Order and travel unchanged; reduced motion unchanged (0 animations); Calm unchanged.
 - 20 (fixed): In Light, the sign-up screens (a night door, data-theme=dark on the screen) still took the paper slate inks from ':root[data-theme=light] .nf-slate': the 'Sign in' swap link measured 1.73 to 1 on the navy island (axe), the focus ink was navy on navy and the pinned pill's bar a pale band. The rule now skips a screen that carries data-theme=dark, so the island alone keeps the door dark (night-door.ts layer 1). axe 0 in both themes.
 
 **`/stay/[id]`** (the real page with getStayDetail answering f3 STAY turned back into the rows the read returns (every value read from STAY; the photo path is the fixture's url and the url builder is mocked to hand it back unchanged))
