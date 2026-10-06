@@ -70,11 +70,6 @@ export function ShelfView({
 }: {
   items: ShelfItem[];
   copy: Copy;
-  /**
-   * Retired by D24 with the card's own Example mark; still accepted so the
-   * offline page's call compiles until its owner drops it. Never drawn.
-   */
-  exampleLabel?: string;
   locale: Locale;
   /** Read by the caller outside render. */
   now: number;
