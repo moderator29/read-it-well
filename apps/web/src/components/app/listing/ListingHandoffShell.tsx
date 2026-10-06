@@ -26,9 +26,10 @@ import { handoffFor } from "@/lib/listings/handoff";
  * shared link, a refresh) has no handoff and renders `fallback`, the route's
  * ordinary skeleton. Every string here is one the card printed.
  */
-export function ListingHandoffShell({ fallback, exampleLabel, verifiedLabel }: {
+export function ListingHandoffShell({ fallback, verifiedLabel }: {
   fallback: ReactNode;
-  exampleLabel: string;
+  /** Kept for callers that still pass it; an example mark is never drawn here (D24). */
+  exampleLabel?: string;
   verifiedLabel: string;
 }) {
   const params = useParams<{ id?: string }>();
@@ -49,13 +50,12 @@ export function ListingHandoffShell({ fallback, exampleLabel, verifiedLabel }: {
             <Skeleton radius="none" className="h-full w-full" />
           )}
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 [background-image:var(--nf-scrim-media)]" />
-          {hit.mark ? (
+          {/* D24: only an earned mark crosses into the detail page's first
+              frame. The card's example mark is not drawn here, so a tap
+              never paints a label the page itself no longer carries. */}
+          {hit.mark === "verified" ? (
             <p className="nf-gallery-marks">
-              <span
-                className={`nf-badge ${hit.mark === "example" ? "nf-badge--example" : "nf-badge--verified"} nf-gallery-mark`}
-              >
-                {hit.mark === "example" ? exampleLabel : verifiedLabel}
-              </span>
+              <span className="nf-badge nf-badge--verified nf-gallery-mark">{verifiedLabel}</span>
             </p>
           ) : null}
         </div>

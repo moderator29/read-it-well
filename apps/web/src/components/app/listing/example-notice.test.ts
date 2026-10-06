@@ -102,30 +102,23 @@ describe("the example listing disclosure", () => {
   });
 
   /*
-   * EVERY CARD SURFACE SAYS SOMETHING, AND THEY NO LONGER ALL SAY THE SAME
-   * THING.
+   * D24 (the founder, 6 October) REVERSED THE RULE THIS BLOCK USED TO HOLD.
    *
-   * This asserted `isDemo && <ExampleNotice` on both renderers, which is what
-   * caught `MapDock` originally and is worth keeping in spirit. It became too
-   * literal when the grid went two-across: the full three-sentence band is four
-   * or five wrapped lines in a 170px tile, so it pushed the price and the title
-   * off the visible card and the correction cost more room than the thing being
-   * corrected. `ListingCard` carries a one-word mark in the corner where the
-   * verified tick would go, and the full sentence stayed on the detail page,
-   * which is the screen where somebody forms a belief detailed enough to act
-   * on.
-   *
-   * So the rule the test enforces is the one that actually matters: A CARD
-   * RENDERER MAY NOT BE SILENT ABOUT AN EXAMPLE LISTING. It has to read
-   * `isDemo` and it has to render something visible because of it. What that
-   * something is, is a design decision; that there is one, is not.
+   * It asserted that every card renderer SAYS something visible about an
+   * example listing. The founder's ruling is that the visible "example"
+   * labelling comes off the listing surfaces, and that the danger was never the
+   * missing word but fabricated trust. So the rule is now the other half: a
+   * card renderer still READS `isDemo`, and reads it to WITHHOLD trust (no
+   * Verified mark, no rating on an example row), never to label. The notice
+   * and the example badge may not appear on a card at all.
    */
-  it.each(CARD_RENDERERS)("says something about an example listing in %s", (path) => {
+  it.each(CARD_RENDERERS)("withholds trust on an example listing and labels nothing in %s", (path) => {
     const source = read(path);
     expect(source).toContain("isDemo");
-    /* Either the full notice, or the corner mark. Not neither. */
-    expect(source).toMatch(/isDemo\s*&&\s*(<ExampleNotice|\()/);
-    expect(source).toMatch(/ExampleNotice|nf-badge--example/);
+    expect(source).not.toMatch(/<ExampleNotice\b/);
+    expect(source).not.toContain("nf-badge--example");
+    /* The Verified mark is gated on the row not being an example. */
+    expect(source).toMatch(/verified\s*&&\s*!listing\.isDemo/);
   });
 
   /*
@@ -157,13 +150,26 @@ describe("the example listing disclosure", () => {
   });
 
   /*
-   * The detail page keeps the whole sentence. This is the surface the card's
-   * one-word mark is delegating to, so if it ever loses the notice the
-   * disclosure has nowhere left to be said in full.
+   * The detail pages no longer say it either (D24). What they must do instead
+   * is draw every trust signal through `earnedTrust`, the presentation-side
+   * lock that clears badge, dates and rating on an example row.
    */
-  it("states the full sentence on the listing detail page", () => {
+  it.each([
+    "app/(app)/listing/[id]/page.tsx",
+    "app/(app)/stay/[id]/StayDetailView.tsx",
+    "app/(app)/restaurant/[id]/RestaurantFace.tsx",
+    "components/app/listing/ListingMoveInBlock.tsx",
+    "components/app/listing/ListingHandoffShell.tsx",
+  ])("labels nothing as an example on %s", (path) => {
+    const source = read(path);
+    expect(source).not.toMatch(/<ExampleNotice\b/);
+    expect(source).not.toContain("nf-badge--example");
+    expect(source).not.toMatch(/tone="example"/);
+  });
+
+  it("draws the listing page's trust through earnedTrust", () => {
     const page = read("app/(app)/listing/[id]/page.tsx");
-    expect(page).toContain("ExampleNotice");
-    expect(page).toMatch(/isDemo\s*&&\s*\(?\s*<ExampleNotice/);
+    expect(page).toContain("withEarnedTrust(");
+    expect(page).toContain("earnedTrust(");
   });
 });

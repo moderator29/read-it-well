@@ -242,6 +242,9 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
      to Home through history before this is ever read. */
   "/search": "/home-or-landing",
   "/listing/[id]": "/search",
+  /* D25 inner page: the "why trust this space" record of one listing. It
+     answers one question about the listing, so its way up is the listing. */
+  "/listing/[id]/trust": "/listing/[id]",
   "/saved": "/home",
   "/saved/searches": "/saved",
   /* V-35: the gate code for one inspection, where a named delegate lands.

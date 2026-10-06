@@ -35,6 +35,7 @@ const NAMES: Readonly<Record<string, string>> = {
   "/stays": "Stays",
   "/search": "Search",
   "/listing/[id]": "the listing",
+  "/listing/[id]/trust": "why to trust this space",
   "/saved": "Saved",
   "/saved/searches": "saved searches",
   "/record/[code]": "the record",
