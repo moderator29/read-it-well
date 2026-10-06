@@ -61,7 +61,7 @@ function toneDataUrl(): string {
 const TONE = toneDataUrl();
 const UNPLAYABLE = "http://vallo.test/a-voice-note-slot.ogg";
 
-type Note = { url: string; durationMs?: number | null; peaks?: number[] | null };
+type Note = { url: string; durationMs?: number | null; peaks?: readonly number[] | null };
 
 function entry(note: Note, mine = false): string {
   return `
