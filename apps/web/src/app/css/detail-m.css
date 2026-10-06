@@ -179,7 +179,7 @@
   }
   /* "Total payable" closes the same card under a heavier rule, at display
      size, with no glow: the screen's one glow belongs to its primary. */
-  .nf-movein__row--total {
+  .nf-movein__row.nf-movein__row--total {
     min-height: 4.25rem;
     border-block-start: var(--nf-border-width) solid var(--nf-border-default);
   }

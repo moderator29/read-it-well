@@ -342,7 +342,8 @@ html:root[data-contrast="more"] .nf-tab__link[aria-current="page"] .nf-tab__labe
   .nf-badge,
   .nf-segmented__capsule,
   .nf-tabbar__pill {
-    border: 1px solid CanvasText;
+    /* !important: a component's own transparent border (catalogue's marks) must not hide this edge. */
+    border: 1px solid CanvasText !important;
     forced-color-adjust: none;
   }
   [data-testid="map-pin"][aria-pressed="true"] {
