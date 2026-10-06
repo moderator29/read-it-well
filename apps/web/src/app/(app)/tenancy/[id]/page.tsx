@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Fragment } from "react";
 import { getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getTenancyFile, type TenancyFile } from "@/lib/tenancy/queries";
@@ -24,6 +25,18 @@ import type { ShareRefundStatus } from "@/lib/tenancy/queries";
 import { ExitAccountForm, RelistButton, RenewalAnswer, RenewalOfferForm } from "@/components/app/tenancy/RenewalControls";
 import { rentCountdown } from "@/lib/tenancy/countdown";
 import { RentCountdown } from "@/components/app/tenancy/RentCountdown";
+import {
+  DocActions,
+  DocFigure,
+  DocHead,
+  DocPerforation,
+  DocRow,
+  DocRows,
+  DocSection,
+  DocumentSheet,
+} from "@/components/app/money/DocumentSheet";
+import { PrintDocumentTile } from "@/components/app/money/PrintDocumentTile";
+import { ActionTile } from "@/components/ui/ActionTile";
 
 /** A private record. Never indexed, never in a tab title. */
 export const metadata: Metadata = { title: "Tenancy", robots: { index: false, follow: false } };
@@ -106,7 +119,7 @@ export default async function TenancyPage({
         ) : null;
       })()}
       {file.viewer === "tenant" && returnedRef && <SettleShareOnReturn tenancyId={file.id} reference={returnedRef} success={t.success} />}
-      <MoneySection file={file} copy={copy} />
+      <MoneySection file={file} copy={copy} t={t} />
       {/* Flatmates' shares are the lead tenant's business, not the lister's. */}
       {file.viewer === "tenant" && (!file.void || file.flatmates.locked) && (
         <FlatmatesSection file={file} copy={mates} locale={locale} success={t.success} />
@@ -167,7 +180,8 @@ export default async function TenancyPage({
   );
 }
 
-type Copy = ReturnType<typeof getDictionary>["afterTheGate"]["tenancy"];
+type Dictionary = ReturnType<typeof getDictionary>;
+type Copy = Dictionary["afterTheGate"]["tenancy"];
 
 function TenancyHead({ file, copy }: { file: TenancyFile; copy: Copy }) {
   return (
@@ -184,39 +198,101 @@ function TenancyHead({ file, copy }: { file: TenancyFile; copy: Copy }) {
   );
 }
 
-function MoneySection({ file, copy }: { file: TenancyFile; copy: Copy }) {
+function MoneySection({ file, copy, t }: { file: TenancyFile; copy: Copy; t: Dictionary }) {
+  /*
+   * THE MONEY, ON THE DOCUMENT SHEET (D28.1, reference 7082 and 7074).
+   *
+   * A receipt is a thing a tenant screenshots, prints and takes to a bank or
+   * a tribunal, so this block is drawn as paper on the member's own theme:
+   * the tenancy named, the figure, every line of the move-in to the kobo,
+   * the total they add up to, and each payment that settled with its date
+   * and the processor's reference. Nothing on it is invented: the lines are
+   * the ledger's, the payments are this charge's SUCCESSFUL transactions,
+   * and a payment with no reference shows no reference rather than a made-up
+   * one. No barcode, no hash, no transaction id of our own.
+   *
+   * IT IS A RECEIPT ONLY WHEN IT IS PAID. An unpaid or voided charge is the
+   * same sheet without the torn receipt edge, and its figure is called the
+   * move-in total rather than "Paid in total", which this block used to say
+   * whether or not anything had been paid.
+   *
+   * The dual "Confirmed" rows of 7082 are not drawn: the record holds one
+   * confirmation (the settlement against the processor's reference), not two
+   * independent ones, so the sheet states the payments it has and no more.
+   */
+  const receipt = file.paid && !file.void;
+  const titleId = "tenancy-money-title";
   return (
-    <Section title={copy.moneyHeading} divided>
-      <dl className="grid gap-xs" data-testid="tenancy-money">
-        {file.lines.map((line) => (
-          <div key={line.label} className="flex items-baseline justify-between gap-md">
-            <dt className="nf-body-sm text-[var(--nf-content-secondary)]">{line.label}</dt>
-            <dd className="nf-body-sm nf-numeric font-semibold">{line.display}</dd>
-          </div>
-        ))}
-        <div className="flex items-baseline justify-between gap-md border-t border-[var(--nf-line)] pt-xs">
-          <dt className="nf-body font-semibold">{copy.totalPaid}</dt>
-          <dd className="nf-body nf-numeric font-semibold">{file.total}</dd>
+    <Section divided>
+      <DocumentSheet
+        kind={receipt ? "receipt" : "document"}
+        printable
+        aria-labelledby={titleId}
+        data-testid="tenancy-money"
+      >
+        <DocHead label={copy.moneyHeading} title={file.title} id={titleId}>
+          <p className="nf-doc__label nf-numeric">
+            {copy.periodLine.replace("{start}", file.moveInLabel).replace("{end}", file.endsOnLabel)}
+            {file.area ? ` · ${file.area}` : ""}
+          </p>
+        </DocHead>
+        <div className="mt-lg">
+          <p className="nf-doc__label">{receipt ? copy.totalPaid : t.checkout.moveInTotal}</p>
+          <DocFigure testId="tenancy-money-figure">{file.total}</DocFigure>
         </div>
-      </dl>
-      {/* The lister cannot read the tenant's payment rows, so the receipts are the tenant's and staff's. */}
-      {file.viewer !== "lister" && <h3 className="nf-h4 mt-md">{copy.receiptsHeading}</h3>}
-      {file.viewer === "lister" ? null : file.receipts.length === 0 ? (
-        <p className={`mt-xs ${TYPE.body}`}>{copy.noReceipt}</p>
-      ) : (
-        <ul className="mt-xs grid gap-xs">
-          {file.receipts.map((receipt) => (
-            <li key={receipt.id} className="nf-body-sm">
-              <span className="nf-numeric font-semibold">
-                {copy.receiptLine.replace("{amount}", receipt.amount).replace("{date}", receipt.date)}
-              </span>
-              {receipt.reference && (
-                <span className="nf-caption block nf-numeric">{copy.receiptRef.replace("{ref}", receipt.reference)}</span>
-              )}
-            </li>
+        {receipt && <DocPerforation />}
+        <DocRows>
+          {file.lines.map((line) => (
+            <DocRow key={line.label} label={line.label} numeric>
+              {line.display}
+            </DocRow>
           ))}
-        </ul>
-      )}
+          <DocRow label={receipt ? copy.totalPaid : t.checkout.moveInTotal} variant="total" numeric>
+            {file.total}
+          </DocRow>
+        </DocRows>
+        {/* The lister cannot read the tenant's payment rows, so the payments are the tenant's and staff's. */}
+        {file.viewer === "lister" ? null : (
+          <DocSection title={copy.receiptsHeading} id="tenancy-money-payments">
+            {file.receipts.length === 0 ? (
+              <p className="nf-doc__note mt-xs">{copy.noReceipt}</p>
+            ) : (
+              <DocRows className="mt-xs">
+                {file.receipts.map((payment) => (
+                  <Fragment key={payment.id}>
+                    <DocRow label={payment.date} numeric>
+                      {payment.amount}
+                    </DocRow>
+                    {payment.reference && (
+                      <DocRow label={t.success.detail.reference} numeric>
+                        <span className="nf-doc__ref">{payment.reference}</span>
+                      </DocRow>
+                    )}
+                  </Fragment>
+                ))}
+              </DocRows>
+            )}
+          </DocSection>
+        )}
+      </DocumentSheet>
+      {/* Print, Share, Dispute (7074), in the member's theme under the
+          paper, and only the ones that exist: share is the receipt-code
+          block further down this page (checked at /r), dispute is the
+          tenancy's complaint pack. Both are the tenant's, on a paid charge. */}
+      <DocActions label={copy.moneyHeading}>
+        <PrintDocumentTile label={t.afterTheGate.complaint.print} testId="tenancy-money-print" />
+        {file.viewer === "tenant" && receipt && (
+          <>
+            <ActionTile icon="share" label={t.afterTheGate.receipt.share} href="#tenancy-proof" data-testid="tenancy-money-share" />
+            <ActionTile
+              icon="flag"
+              label={t.afterTheGate.complaint.open}
+              href={`/tenancy/${file.id}/complaint`}
+              data-testid="tenancy-money-dispute"
+            />
+          </>
+        )}
+      </DocActions>
     </Section>
   );
 }
