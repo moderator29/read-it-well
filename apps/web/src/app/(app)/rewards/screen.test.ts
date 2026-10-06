@@ -1,8 +1,10 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { REWARDS_MONEY_WORDS } from "@/components/app/referral/money-words";
 import { readMyRewards, rewardsSource, withdrawActions } from "@/lib/referral/rewards-read";
 import type { RewardsSnapshot } from "@/lib/referral/rewards";
-import { screenOf } from "./screen";
+import { screenOf, signInHref } from "./screen";
 
 const SNAPSHOT: RewardsSnapshot = {
   policy: { rewardPerReferralMinor: 1, monthlyCap: 1, withdrawMinimumMinor: 1 },
@@ -47,5 +49,28 @@ describe("the rewards routes today", () => {
     });
     /* Signed out in the test environment, which is answered first. */
     expect(["failed", "signed-out"]).toContain(read.state);
+  });
+});
+
+/**
+ * The sign-in door on every rewards state goes through withNext, so the
+ * destination passes safeReturnPath (route sweep, point 21); a path that is not
+ * same-origin is dropped rather than carried.
+ */
+describe("the rewards sign-in door", () => {
+  it("comes back to the rewards route through withNext", () => {
+    expect(signInHref("/rewards/history")).toBe("/sign-in?next=%2Frewards%2Fhistory");
+    expect(signInHref("//evil.example")).toBe("/sign-in");
+  });
+});
+
+/**
+ * One filled action on the running /rewards screen, and it is Withdraw. The
+ * invite card's Copy link was a second primary beside it (route sweep, point 1).
+ */
+describe("the invite card on /rewards", () => {
+  it("draws no primary button", () => {
+    const card = readFileSync(join(__dirname, "../../../components/app/referral/InviteLinkCard.tsx"), "utf8");
+    expect(card).not.toMatch(/variant="primary"/);
   });
 });

@@ -3,6 +3,7 @@ import "server-only";
 import { REWARDS_MONEY_WORDS, type RewardsMoneyWords } from "@/components/app/referral/money-words";
 import type { RewardsRead, RewardsSnapshot } from "@/lib/referral/rewards";
 import { readMyRewards } from "@/lib/referral/rewards-read";
+import { withNext } from "@/lib/auth/next-link";
 
 /**
  * What a rewards route may draw: the snapshot together with the money
@@ -31,6 +32,6 @@ export const REWARDS_HREFS = {
 
 /** Where the states send a member: sign-in coming back here, and the invite link that works today. */
 export function signInHref(path: string): string {
-  return `/sign-in?next=${encodeURIComponent(path)}`;
+  return withNext("/sign-in", path);
 }
 export const INVITE_HREF = "/settings/invite";

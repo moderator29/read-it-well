@@ -97,7 +97,7 @@ export function InviteLinkCard({
       <div className="nf-rewards-invite__actions">
         <Button
           type="button"
-          variant="primary"
+          variant="secondary"
           size="lg"
           full
           leadingIcon="link"
