@@ -112,7 +112,7 @@ export default async function AroundManagePage({
           reachable only if you already knew it. */}
       <Link
         href="/u"
-        className="mb-lg inline-flex items-center gap-xs text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-brand-secondary)]"
+        className="nf-tap mb-lg inline-flex items-center gap-xs text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-brand-secondary)]"
       >
         <UiIcon name="user" size={15} />
         Find people
