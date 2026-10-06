@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { countOf, formatMoney, getDictionary, type Locale } from "@vallo/i18n";
 import { addMonths } from "@/lib/host/rate-calendar";
-import { statementTotals, type StatementLine } from "@/lib/host/statement";
+import { statementCarriesGuarantee, statementTotals, type StatementLine } from "@/lib/host/statement";
 import { EARNINGS_SETTLEMENT, HISTORY_NOT_A_BALANCE, HOST_STATEMENT_EMPTY_BODY, HOST_STATEMENT_EMPTY_TITLE } from "@/lib/money/copy";
 import { COMPANY_FORMAL_NAME, COMPANY_REGISTERED_OFFICE } from "@/lib/legal/company";
 import { EmptyState } from "@/components/app/Screen";
@@ -43,6 +43,8 @@ export function StatementView({
 }) {
   const tag = locale === "en" ? "en-NG" : locale;
   const totals = statementTotals(lines);
+  /* D51: a Guarantee row only on a statement where a line carried one. */
+  const guarantee = statementCarriesGuarantee(lines);
   const dict = getDictionary(locale);
   const w = dict.experienceFeatures.workspace.statement;
   const sv = dict.experienceHost.statementView;
@@ -120,9 +122,11 @@ export function StatementView({
                 <DocRow label={w.commission} numeric>
                   {formatMoney(totals.commissionMinor, locale)}
                 </DocRow>
-                <DocRow label={w.guarantee} numeric>
-                  {formatMoney(totals.guaranteeMinor, locale)}
-                </DocRow>
+                {guarantee ? (
+                  <DocRow label={w.guarantee} numeric>
+                    {formatMoney(totals.guaranteeMinor, locale)}
+                  </DocRow>
+                ) : null}
                 <DocRow label={w.share} variant="total" numeric>
                   {formatMoney(totals.shareMinor, locale)}
                 </DocRow>
@@ -139,7 +143,7 @@ export function StatementView({
                         <th scope="col">{sv.colDate}</th>
                         <th scope="col">{sv.colGuestPaid}</th>
                         <th scope="col">{sv.colCommission}</th>
-                        <th scope="col">{sv.colGuarantee}</th>
+                        {guarantee ? <th scope="col">{sv.colGuarantee}</th> : null}
                         <th scope="col">{sv.colShare}</th>
                         <th scope="col">{sv.colReference}</th>
                       </tr>
@@ -156,7 +160,7 @@ export function StatementView({
                           </td>
                           <td>{formatMoney(line.grossMinor, locale)}</td>
                           <td>{formatMoney(line.commissionMinor, locale)}</td>
-                          <td>{formatMoney(line.guaranteeMinor, locale)}</td>
+                          {guarantee ? <td>{formatMoney(line.guaranteeMinor, locale)}</td> : null}
                           <td>
                             <strong>{formatMoney(line.shareMinor, locale)}</strong>
                           </td>
@@ -169,7 +173,7 @@ export function StatementView({
                         <td>{sv.total}</td>
                         <td>{formatMoney(totals.grossMinor, locale)}</td>
                         <td>{formatMoney(totals.commissionMinor, locale)}</td>
-                        <td>{formatMoney(totals.guaranteeMinor, locale)}</td>
+                        {guarantee ? <td>{formatMoney(totals.guaranteeMinor, locale)}</td> : null}
                         <td>{formatMoney(totals.shareMinor, locale)}</td>
                         <td />
                       </tr>
@@ -179,7 +183,7 @@ export function StatementView({
 
                 <ul className="nf-stmt-lines nf-stmt-narrow">
                   {lines.map((line) => (
-                    <LineCard key={line.id} line={line} locale={locale} tag={tag} sv={sv} commission={w.commission} />
+                    <LineCard key={line.id} line={line} locale={locale} tag={tag} sv={sv} commission={w.commission} guarantee={guarantee} />
                   ))}
                 </ul>
               </DocSection>
@@ -219,12 +223,14 @@ function LineCard({
   tag,
   sv,
   commission,
+  guarantee,
 }: {
   line: StatementLine;
   locale: Locale;
   tag: string;
   sv: ReturnType<typeof getDictionary>["experienceHost"]["statementView"];
   commission: string;
+  guarantee: boolean;
 }) {
   return (
     <li className="nf-stmt-line" data-kind={line.kind}>
@@ -243,8 +249,12 @@ function LineCard({
         <dd>{formatMoney(line.grossMinor, locale)}</dd>
         <dt>{commission}</dt>
         <dd>{formatMoney(line.commissionMinor, locale)}</dd>
-        <dt>{sv.lineGuarantee}</dt>
-        <dd>{formatMoney(line.guaranteeMinor, locale)}</dd>
+        {guarantee ? (
+          <>
+            <dt>{sv.lineGuarantee}</dt>
+            <dd>{formatMoney(line.guaranteeMinor, locale)}</dd>
+          </>
+        ) : null}
         <dt className="is-share">{sv.lineShare}</dt>
         <dd className="is-share">{formatMoney(line.shareMinor, locale)}</dd>
         <dt>{sv.colReference}</dt>
