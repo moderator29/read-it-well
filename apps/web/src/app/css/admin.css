@@ -1834,6 +1834,10 @@
       min-height: 0;
       text-align: right;
     }
+    /* A cell with nothing in it (a step with no step before) takes no row of its own. */
+    .nf-admin-dt--stack td:empty {
+      display: none;
+    }
     .nf-admin-dt--stack td[data-label]::before {
       content: attr(data-label);
       flex-shrink: 0;
