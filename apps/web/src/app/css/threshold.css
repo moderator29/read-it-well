@@ -130,9 +130,24 @@
       filter: blur(4px);
     }
   }
-  /* The page comes forward through the opening door. */
+  /* The page comes forward through the opening door. It is keyed to the door
+     and not to the clock: the page rests at the animation's first frame
+     (paused, held by `both`) beneath the overlay, and plays when the startup's
+     script opens the door (`data-startup="open"`), for 320ms, a little inside
+     the door's own 350ms (`startup.css`). It used to start at a fixed 1150ms
+     and run 760ms, but the flag leaves "on" when the door ends (about 1500ms
+     on the unhurried path, much sooner on a tap), and a rule keyed on "on"
+     vanishes with it, so the page snapped through the last 400ms of its
+     entrance. Now the entrance always finishes before the flag is released,
+     whenever the door opens: a held door holds the page too. The extra
+     attribute is under `:where()` so this rule stays the same specificity as
+     the base one and the lock's and reduced motion's `animation: none` below
+     still beat it. */
   :root[data-splash="on"] #main {
-    animation: nf-threshold-forward 760ms var(--nf-ease-entrance) 1150ms both;
+    animation: nf-threshold-forward 320ms var(--nf-ease-exit) both paused;
+  }
+  :root[data-splash="on"]:where([data-startup="open"]) #main {
+    animation-play-state: running;
   }
   @keyframes nf-threshold-forward {
     from {
@@ -420,6 +435,13 @@
   /* ------------------------------------------------------ reduced motion */
 
   @media (prefers-reduced-motion: reduce) {
+    /* THE STARTUP OVERLAY IS DELIBERATELY NOT HIDDEN HERE. The selector below
+       would hide it (`display: none`), but `startup.css` draws the overlay as
+       `:root[data-splash="on"] .nf-splash.nf-startup`, which is more specific
+       and wins, so under reduced motion the opening still plays, quietly: the
+       still lockup and a 160ms crossfade (MOTION_SYSTEM.md section 3), never
+       the assembly. What this line hides is the old threshold panels and any
+       `.nf-splash` that is not the startup. */
     .nf-splash,
     :root[data-splash="on"] .nf-splash,
     .nf-threshold {
