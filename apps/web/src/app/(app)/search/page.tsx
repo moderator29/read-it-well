@@ -33,7 +33,8 @@ import {
 } from "@/components/app/search/shelf-query";
 import { getLocale } from "@/lib/locale";
 import { getListingRepository } from "@/lib/listings/repository";
-import { factsOf } from "@/lib/listings/filter";
+import { factsOf, matchesFacts, matchesFilter } from "@/lib/listings/filter";
+import { nextChange } from "@/components/app/search/next-change";
 import {
   hasOwnRequest,
   intentKindsPresent,
@@ -447,6 +448,37 @@ export default async function SearchPage({
   const noun = query.kind ? t.experienceLabels.kinds[query.kind] : t.experienceLabels.anyKind;
   const narrowed = shelfActiveCount(query) > 0 || Boolean(query.kind);
   const poolInKind = query.kind ? pool.filter((l) => l.kind === query.kind) : pool;
+  /*
+   * WHAT TO CHANGE NEXT, WHEN NOTHING MATCHED (round 5 craft). Areas narrow
+   * the shelf as surely as a filter does, so an area search that found
+   * nothing is a "your search is narrower" state, not "nothing is listed".
+   * The one change that brings the most back is offered as the action: a
+   * dropped filter is counted against the pool the sheet already counts
+   * against; looking beyond the areas is counted against the whole Property
+   * side, text and all. Commute limits are honoured in both. The count only
+   * ranks the changes (see next-change.ts); the next page prints its own.
+   */
+  const areaNarrowed = (query.areas?.length ?? 0) > 0;
+  const next =
+    listings.length === 0 && !codeHit && (narrowed || areaNarrowed)
+      ? nextChange(query, (relaxed) => {
+          const widened = (relaxed.areas?.length ?? 0) !== (query.areas?.length ?? 0);
+          const filter = shelfFilter(relaxed);
+          const commuteHolds = (l: Listing) =>
+            !anchor || relaxed.within === undefined || withinCommute(commuteOf(l), relaxed.within);
+          return widened
+            ? whole.filter((l) => matchesFilter(l, filter) && commuteHolds(l)).length
+            : pool.filter((l) => matchesFacts(l, filter) && commuteHolds(l)).length;
+        })
+      : null;
+  const nextLabel = next
+    ? next.key === "area"
+      ? sx.next.area.replace(
+          "{area}",
+          (query.areas ?? []).map((area) => area.replace(/\b\p{L}/gu, (c) => c.toUpperCase())).join(", "),
+        )
+      : sx.next[next.key]
+    : null;
 
   return (
     <>
@@ -606,24 +638,43 @@ export default async function SearchPage({
               /* Clear of the floating dock: this is the whole page. */
               className="pb-4xl"
               data-testid="search-empty"
-              object={narrowed || query.q ? "search-pin" : "apartment-block"}
-              title={narrowed ? sx.noMatchTitle : query.q ? sx.noWordsTitle : sx.emptyTitle}
-              body={narrowed ? sx.noMatchBody : query.q ? sx.noWordsBody : sx.emptyBody}
+              object={narrowed || areaNarrowed || query.q ? "search-pin" : "apartment-block"}
+              title={narrowed || areaNarrowed ? sx.noMatchTitle : query.q ? sx.noWordsTitle : sx.emptyTitle}
+              body={narrowed || areaNarrowed ? sx.noMatchBody : query.q ? sx.noWordsBody : sx.emptyBody}
               primary={
-                narrowed
-                  ? { href: toShelfHref(clearedShelf(query)), label: sx.clearFilters, testId: "empty-clear", prefetch: true }
-                  : query.q
-                    ? { href: "/search", label: sx.clearSearch, testId: "empty-clear-search", prefetch: true }
-                    : { href: "/profile?switch=owner", label: sx.listYourPlace, testId: "empty-list-place" }
+                /* The one change that brings places back, named; then the old ways on. */
+                next && nextLabel
+                  ? { href: toShelfHref(next.query), label: nextLabel, testId: "empty-next", prefetch: true }
+                  : narrowed
+                    ? { href: toShelfHref(clearedShelf(query)), label: sx.clearFilters, testId: "empty-clear", prefetch: true }
+                    : query.q || areaNarrowed
+                      ? { href: "/search", label: sx.clearSearch, testId: "empty-clear-search", prefetch: true }
+                      : { href: "/profile?switch=owner", label: sx.listYourPlace, testId: "empty-list-place" }
               }
               secondary={
-                narrowed && poolInKind.length > 0 ? (
-                  <span className="nf-body-sm text-[var(--nf-content-muted)]">
-                    {sx.waiting
-                      .replace("{count}", formatNumber(poolInKind.length, locale))
-                      .replace("{noun}", poolInKind.length === 1 ? noun.one : noun.many)}
+                narrowed && (next || poolInKind.length > 0) ? (
+                  <span className="flex flex-col items-center">
+                    {/* Clearing everything stays, as the quiet second way on,
+                        unless the next change already is everything. */}
+                    {next && (next.key === "area" || shelfActiveCount(query) + (query.kind ? 1 : 0) > 1) && (
+                      <Link
+                        href={toShelfHref(clearedShelf(query))}
+                        prefetch
+                        data-testid="empty-clear"
+                        className="nf-link-quiet nf-body inline-flex min-h-11 items-center text-[var(--nf-content-link)]"
+                      >
+                        {sx.clearFilters}
+                      </Link>
+                    )}
+                    {poolInKind.length > 0 && (
+                      <span className="nf-body-sm text-[var(--nf-content-muted)]">
+                        {sx.waiting
+                          .replace("{count}", formatNumber(poolInKind.length, locale))
+                          .replace("{noun}", poolInKind.length === 1 ? noun.one : noun.many)}
+                      </span>
+                    )}
                   </span>
-                ) : !narrowed && !query.q ? (
+                ) : !narrowed && !areaNarrowed && !query.q ? (
                   <Link href="/docs" className="nf-link-quiet nf-body inline-flex min-h-11 items-center text-[var(--nf-content-link)]">
                     {sx.howItWorks}
                   </Link>

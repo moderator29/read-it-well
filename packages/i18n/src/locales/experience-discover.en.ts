@@ -78,6 +78,27 @@ export const experienceDiscoverEn = {
     listYourPlace: "List your place",
     howItWorks: "How Vallo works",
     waiting: "{count} {noun} waiting without them",
+    /* The empty shelf's one next change (round 5, components/app/search/
+       next-change.ts): the single filter whose removal brings the most places
+       back, named as the action. `{area}` is the area as the chips print it. */
+    next: {
+      price: "Drop the price range",
+      beds: "Drop the bedroom minimum",
+      baths: "Drop the bathroom minimum",
+      market: "Search to rent and to buy",
+      kind: "Search every property type",
+      verified: "Include places not yet verified",
+      amenities: "Drop the amenities",
+      utilities: "Drop the light and water filters",
+      lister: "Drop who is listing",
+      compound: "Drop the compound filters",
+      service: "Drop serviced and gated",
+      upfront: "Drop the upfront limit",
+      shape: "Drop the home shape",
+      flood: "Drop “no flooding reported”",
+      commute: "Drop the commute limit",
+      area: "Look beyond {area}",
+    },
     intentNote: "{kinds} first, because that is what you said you came for. Search or filter and this stops.",
   },
   stays: {
