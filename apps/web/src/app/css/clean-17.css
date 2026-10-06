@@ -107,6 +107,8 @@
     justify-items: center;
     gap: var(--nf-space-2xs);
     text-align: center;
+    /* The figure is sized against this box (below), so it is the container. */
+    container-type: inline-size;
   }
   .nf-hero-figure__caption {
     font-size: var(--nf-text-body-sm);
@@ -114,8 +116,21 @@
     font-weight: 400;
     color: var(--nf-content-muted);
   }
+  /*
+   * ONE LINE, AND IT ALWAYS FITS ITS COLUMN (auditor A8, "the figure under
+   * text zoom"). A money figure is never broken, so it is `nowrap`; and at
+   * 200% text the rem-based size doubled while the band's rem padding ate the
+   * column, so ₦450,000.00 painted 551px wide in a 358px column and ran off
+   * the phone (the longest history total overflowed by 11px even at 100%).
+   * The size is now the smaller of the designed size and the size at which
+   * the figure fills its column: `--nf-figure-ems` is the figure's width in
+   * ems, which the caller knows (`HeroFigure`'s `ems`; six when unset, ample
+   * for a count). Where the figure fits, which is every figure at 100% text
+   * but the longest, nothing changes; under zoom it grows until the column is
+   * full, then holds. `hero-figure-zoom.dom.test.tsx` measures it.
+   */
   .nf-hero-figure__value {
-    font-size: clamp(2.25rem, 10vw, 2.75rem);
+    font-size: min(clamp(2.25rem, 10vw, 2.75rem), calc(100cqi / var(--nf-figure-ems, 6)));
     line-height: 1.1;
     font-weight: 600;
     letter-spacing: -0.03em;
@@ -124,7 +139,7 @@
     color: var(--nf-content-primary);
   }
   .nf-hero-figure__value--md {
-    font-size: clamp(1.75rem, 8vw, 2.125rem);
+    font-size: min(clamp(1.75rem, 8vw, 2.125rem), calc(100cqi / var(--nf-figure-ems, 6)));
   }
   .nf-hero-figure__sub {
     max-width: 40ch;
