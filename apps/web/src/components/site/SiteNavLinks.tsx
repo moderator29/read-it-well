@@ -60,13 +60,19 @@ export function SiteNavLinks({
    */
   const [readerTheme, setReaderTheme] = useState<"light" | undefined>(undefined);
   const wrap = useRef<HTMLDivElement | null>(null);
+  const moreButton = useRef<HTMLButtonElement | null>(null);
   const menuId = useId();
   const close = useCallback(() => setOpen(false), []);
 
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") close();
+      if (e.key === "Escape") {
+        close();
+        /* Focus goes back to the control that opened the menu, so a keyboard
+           reader is not left on the body with their place lost. */
+        moreButton.current?.focus();
+      }
     };
     const onPointer = (e: PointerEvent) => {
       if (wrap.current && !wrap.current.contains(e.target as Node)) close();
@@ -95,8 +101,19 @@ export function SiteNavLinks({
           {l.label}
         </Link>
       ))}
-      <div ref={wrap} className={mega ? "nf-site-nav-more-wrap" : "relative"}>
+      <div
+        ref={wrap}
+        className={mega ? "nf-site-nav-more-wrap" : "relative"}
+        onBlur={(e) => {
+          /* Tabbing out of the menu closes it. Only a move to another element
+             counts: a click on the menu's own padding blurs to nothing, and a
+             click outside is the pointer handler's. */
+          const next = e.relatedTarget as Node | null;
+          if (open && next && wrap.current && !wrap.current.contains(next)) close();
+        }}
+      >
         <button
+          ref={moreButton}
           type="button"
           className="nf-site-nav-link nf-site-nav-more"
           aria-expanded={open}
