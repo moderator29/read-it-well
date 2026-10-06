@@ -44,6 +44,8 @@ export function CreateDock({
    * no workspace, and the sheet it opens would be a list of nothing.
    */
   signedIn?: boolean;
+  /** The `social` switch: off, the feed's composer is not offered. */
+  socialOn?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const copy = t.nav.create;
@@ -54,7 +56,9 @@ export function CreateDock({
     { id: "list", href: listHref, icon: "house", title: copy.list, sub: copy.listSub },
     /* The feed's own composer, opened on arrival (`/around?compose=1`,
        read by the Around page and passed to `CreateBloom`). */
-    { id: "post", href: "/around?compose=1", icon: "chat-bubble", title: copy.post, sub: copy.postSub },
+    ...(socialOn
+      ? [{ id: "post", href: "/around?compose=1", icon: "chat-bubble" as const, title: copy.post, sub: copy.postSub }]
+      : []),
     { id: "viewing", href: "/search", icon: "calendar-booking", title: copy.viewing, sub: copy.viewingSub },
     ...(isHost
       ? [{ id: "stay", href: "/host/rooms", icon: "bed" as const, title: copy.stay, sub: copy.staySub }]

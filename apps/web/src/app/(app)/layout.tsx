@@ -12,6 +12,7 @@ import { shellDictionary } from "@/lib/i18n/shell-dictionary";
 import { AppShell } from "@/components/app/AppShell";
 import { PasscodeGate } from "@/components/passcode/PasscodeGate";
 import { resolvePasscodeGate } from "@/lib/passcode/state";
+import { isSocialEnabled } from "@/lib/social/flag";
 /* C12: the feed's motion sheet, out of `globals.css`; only this tree draws a post. */
 import "@/app/css/feed-m.css";
 
@@ -98,7 +99,8 @@ export default async function AppLayout({
     side,
     { userName, userHandle, unreadNotifications, avatarUrl, signedIn, isAgent, isAdmin, isHost },
     { workspaces, current },
-  ] = await Promise.all([getSide(), getShellIdentity(), getShellWorkspaces()]);
+    socialOn,
+  ] = await Promise.all([getSide(), getShellIdentity(), getShellWorkspaces(), isSocialEnabled()]);
 
   return (
     <AppShell
@@ -115,6 +117,9 @@ export default async function AppLayout({
       isHost={isHost}
       workspaces={workspaces}
       currentProfile={current}
+      /* North star 10 E: Around's tab, row and Create action leave the
+         navigation while the `social` switch is off (fails open). */
+      socialOn={socialOn}
     >
       {/* V-79: counts, on this phone only, what each page could measure. */}
       <DataMeterRecorder />

@@ -50,6 +50,22 @@
   }
 
   /* -------------------------------------------- the pill, on the spring */
+  /*
+   * THE ONE LAYOUT TRANSITION IN THE DOCK, KEPT ON PURPOSE (auditor note on
+   * 2e3d7eee7). The rule is transform and opacity only; this is the
+   * exception, and the reason is what the movement says. The north star asks
+   * for the chosen slot to WIDEN, 44 to 100, and for the other slots to
+   * slide aside rather than jump (6.1). A transform cannot move a
+   * neighbour: a scaled label over a fixed-width slot would overlap the next
+   * glyph, and moving the neighbours by transform means measuring five
+   * slots in script on every tap (a FLIP), which is more work on a budget
+   * Android than the reflow it saves. The reflow is cheap and contained:
+   * `.nf-tabbar` is `container-type: inline-size`, which brings layout
+   * containment, so only the capsule's five slots are laid out, never the
+   * page; it runs once per tap, 240ms, never on scroll; and under reduced
+   * motion, Calm and Off it is instant (shell-m.css). The pill inside the
+   * slot and the word itself move on transform and opacity.
+   */
   .nf-tabbar .nf-tab {
     transition: flex-grow var(--nf-duration-base) var(--nf-ease-spring);
   }
@@ -224,9 +240,13 @@
   /*
    * 72px, icon only, with the label as each row's tooltip (`NavTree` writes
    * `title`) and still in the markup for a screen reader. The root carries
-   * `data-rail` so anything laid out against `--nf-rail-width` follows.
+   * `data-rail` while the member rail is collapsed, and the width is scoped
+   * to the MEMBER SHELL (`AppShell`'s `.nf-app-shell`), so what is laid out
+   * beside the rail inside it follows, and the consoles' own sidebars
+   * (`.nf-admin-rail`, `.nf-desk-side`), which read the same variable outside
+   * that shell, never do (auditor finding on 2e3d7eee7).
    */
-  :root[data-rail="collapsed"] {
+  :root[data-rail="collapsed"] .nf-app-shell {
     --nf-rail-width: 4.5rem;
   }
   .nf-nav--rail[data-collapsed] {

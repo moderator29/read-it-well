@@ -77,6 +77,7 @@ export function AppShell({
   isHost = false,
   workspaces = [],
   currentProfile = { kind: "personal" },
+  socialOn = true,
   preview,
   children,
 }: {
@@ -103,6 +104,14 @@ export function AppShell({
    */
   workspaces?: Workspace[];
   currentProfile?: ProfileSelection;
+  /**
+   * The `social` switch (`lib/social/flag.ts`, read once in the layout).
+   * Off, Around leaves the dock, the side navigation and the Create sheet
+   * (north star 10 E: "hide the tab when the switch is off"); the routes
+   * themselves already say "Around is paused". Defaults on, as the switch
+   * fails open.
+   */
+  socialOn?: boolean;
   /**
    * The dev preview harness, and nothing else, ever.
    *
@@ -208,6 +217,7 @@ export function AppShell({
         t={t}
         isHost={isHost}
         signedIn={signedIn}
+        socialOn={socialOn}
         listHref={isAgent ? "/agent/list" : effectiveSide === "stays" ? "/profile/setup?side=stays" : "/profile/setup"}
       />
       {switchControl}
@@ -268,7 +278,7 @@ export function AppShell({
     <AuthGateProvider signedIn={signedIn}>
     <SideFlip side={effectiveSide} t={t}>
     <SideSync side={effectiveSide} persist={!isDetailPath(active)} />
-    <div className="flex min-h-dvh" data-side={effectiveSide}>
+    <div className="nf-app-shell flex min-h-dvh" data-side={effectiveSide}>
       <AppRail
         t={t}
         side={effectiveSide}
@@ -282,6 +292,7 @@ export function AppShell({
         isAdmin={isAdmin}
         isHost={isHost}
         signedIn={signedIn}
+        socialOn={socialOn}
       />
 
       {/*
@@ -328,6 +339,7 @@ export function AppShell({
               isAdmin={isAdmin}
               isHost={isHost}
               signedIn={signedIn}
+              socialOn={socialOn}
               variant="drawer"
               onNavigate={closeDrawer}
             />
@@ -482,6 +494,7 @@ export function AppShell({
           unreadNotifications={unreadNotifications}
           signedIn={signedIn}
           switchSlot={createControl}
+          socialOn={socialOn}
           prefetchFull={hydrated && !isDataSaver()}
         />
       )}

@@ -107,6 +107,7 @@ export function AppRail({
   variant = "rail",
   onNavigate,
   onClose,
+  socialOn = true,
 }: {
   t: ShellDictionary;
   side?: Side;
@@ -131,25 +132,38 @@ export function AppRail({
   variant?: "rail" | "drawer";
   onNavigate?: () => void;
   onClose?: () => void;
+  /** The `social` switch: off, the Around row leaves the navigation. */
+  socialOn?: boolean;
 }) {
   /* B1: the Messages row carries the live unread-conversations count, from
      the same store (and the same one channel) as the dock's More button. */
   const unreadConversations = useUnreadConversations(signedIn, active) ?? 0;
-  const sections = useMemo(
-    () =>
-      buildNav({ t, side, unreadNotifications, unreadConversations, isAgent, isAdmin, isHost, signedIn }),
-    [t, side, unreadNotifications, unreadConversations, isAgent, isAdmin, isHost, signedIn],
-  );
+  const sections = useMemo(() => {
+    const built = buildNav({ t, side, unreadNotifications, unreadConversations, isAgent, isAdmin, isHost, signedIn });
+    /* North star 10 E: with the `social` switch off, Around is not offered
+       as a place to go. Dropped here rather than in the model so the model
+       stays one statement of the navigation and the switch one filter. */
+    if (socialOn) return built;
+    return built.map((section) => ({ ...section, items: section.items.filter((item) => !item.href.startsWith("/around")) }));
+  }, [t, side, unreadNotifications, unreadConversations, isAgent, isAdmin, isHost, signedIn, socialOn]);
   const drawer = variant === "drawer";
   const stored = useSyncExternalStore(subscribeCollapsed, readCollapsed, () => false);
   const collapsed = !drawer && stored;
-  /* The root carries it too, so anything laid out beside the rail (a pinned
-     footer reading `--nf-rail-width`) moves with it (side-nav.css). */
+  /* The root carries it too, as the hook the member shell's own width reads
+     (`.nf-app-shell` in nav-island.css), and it is taken off again when the
+     rail unmounts. It used to stay behind: collapse the member rail, move
+     client-side into the agent, host or admin console (which draw their own
+     sidebars on `--nf-rail-width`, and no member rail), and those sidebars
+     were crushed to 72px until a reload. The width itself is now scoped to
+     the member shell, so a console's sidebar never reads it at all. */
   useEffect(() => {
     if (drawer) return;
     const root = document.documentElement;
     if (collapsed) root.dataset.rail = "collapsed";
     else delete root.dataset.rail;
+    return () => {
+      delete root.dataset.rail;
+    };
   }, [collapsed, drawer]);
 
   return (

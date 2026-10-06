@@ -236,6 +236,7 @@ export function MobileTabBar({
   switchSlot,
   prefetchFull = false,
   unreadConversationsPreview,
+  socialOn = true,
 }: {
   t: ShellDictionary;
   side?: Side;
@@ -264,6 +265,8 @@ export function MobileTabBar({
   prefetchFull?: boolean;
   /** Dev preview only: a fixed unread-conversations figure (B1). */
   unreadConversationsPreview?: number;
+  /** The `social` switch. Off, the Feed slot holds Agreements (below). */
+  socialOn?: boolean;
 }) {
   /*
     FIVE SLOTS, AND THE CENTRE ONE IS THE SWITCH.
@@ -291,17 +294,30 @@ export function MobileTabBar({
     slot "Explore" and the property renders "Search": one word ships on both
     sides and the word is Search.
   */
+  /*
+    AROUND PAUSED (north star 10 E, "hide the tab when the switch is off").
+    With the `social` switch off the Feed slot does not lead to a screen that
+    says "Around is paused"; it holds Agreements instead, so the dock keeps
+    its five slots and its "+" stays in the centre (D28: the dock keeps its
+    slots). Agreements because it is already a dock root (`TAB_BAR_ROUTES`,
+    so the dock stays on screen when it is chosen) and it is where money
+    lives (Track A); a four-slot dock would push the "+" off centre, and an
+    empty slot would read as broken.
+  */
+  const feed: Tab = socialOn
+    ? { href: "/around", label: t.nav.feed, icon: "feed" }
+    : { href: "/agreements", label: t.nav.agreements, icon: "document" };
   const tabs: Tab[] =
     side === "stays"
       ? [
           { href: "/stays", label: t.nav.stays, icon: "bed" },
           { href: "/stays/search", label: t.nav.search, icon: "search-disc" },
-          { href: "/around", label: t.nav.feed, icon: "feed" },
+          feed,
         ]
       : [
           { href: "/home", label: t.nav.home, icon: "home" },
           { href: "/search", label: t.nav.search, icon: "search-disc" },
-          { href: "/around", label: t.nav.feed, icon: "feed" },
+          feed,
         ];
 
   /* Profile for a member, the way in for a guest. One slot, two honest jobs. */

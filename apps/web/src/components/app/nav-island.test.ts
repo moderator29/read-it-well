@@ -73,7 +73,11 @@ describe("the side navigation", () => {
 
   it("collapses to 72px on the desktop rail, remembered on the device in try/catch", () => {
     expect(css).toMatch(/\.nf-nav--rail\[data-collapsed\] \{\s*width: 4\.5rem;/);
-    expect(css).toMatch(/:root\[data-rail="collapsed"\] \{\s*--nf-rail-width: 4\.5rem;/);
+    /* Scoped to the member shell, never the whole root: the consoles' own
+       sidebars read the same variable and must not collapse with it. */
+    expect(css).toMatch(/:root\[data-rail="collapsed"\] \.nf-app-shell \{\s*--nf-rail-width: 4\.5rem;/);
+    expect(css).not.toMatch(/:root\[data-rail="collapsed"\] \{/);
+    expect(rail).toMatch(/return \(\) => \{\s*delete root\.dataset\.rail;/);
     expect(rail).toMatch(/try \{\s*return window\.localStorage\.getItem/);
     expect(tree).toContain("title={collapsed ? item.label : undefined}");
   });
