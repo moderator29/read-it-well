@@ -1,6 +1,6 @@
 -- B4 referral campaigns (D62, D63, D64). APPLIED 2026-10-06 as 20261006154817.
 -- D63, D64; docs/referral/REFERRAL_ARCHITECTURE.md sections 2, 3, 10).
--- Applied on top of 20261006152509_b4_referral_rewards_engine.
+-- Pending: NOT applied. Requires b4_referral_rewards_engine to be applied
 -- first and assumes it was: every statement is ALTER / ADD / CREATE OR
 -- REPLACE against that schema, and rows that engine may already hold are
 -- carried across (status names mapped, a campaign attached).
