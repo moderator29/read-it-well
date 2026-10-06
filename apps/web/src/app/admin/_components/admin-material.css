@@ -14,6 +14,27 @@
   EVERY COLOUR IS A TOKEN. Nothing here states a hue.
 */
 @layer components {
+  /* --------------------------------------------- a Plate inside a Card */
+
+  /* A quiet row inside a Card (a verification rung, a step of a record): the
+     Plate tier exactly, radius 14, the 2% wash and the hairline, one edge and
+     never a shadow (north star 4, tier 1). Desks drew this by hand as a
+     `rounded-md border` with the subtle border token, which is a radius and an
+     ink the tier does not have (C1 sweep). */
+  .nf-admin-plate {
+    border-radius: var(--nf-tier-plate-radius);
+    border: var(--nf-border-width) solid var(--nf-tier-plate-edge);
+    background: var(--nf-tier-plate-fill);
+  }
+
+  /* Panels stacked straight into a console page (the staff desk, the
+     handbook, the position page) sat edge to edge: nothing gave them air.
+     The console's own stack gap, once, here. A page that is already a stack
+     (`.nf-admin-stack`, a grid with that gap) is left alone. */
+  .nf-console:not(.nf-admin-stack) > * + .nf-admin-panel {
+    margin-top: var(--nf-admin-gap);
+  }
+
   /* ------------------------------------------------ rail: Plate rows */
 
   /* The row is a Plate (radius 14, no shadow, hover and press tints only).
