@@ -1258,7 +1258,7 @@ const WRITTEN: DocChapter[] = [
           <>
             <p>{NO_CUSTODY_SENTENCE}</p>
             <p>
-              There is no Vallo wallet, no balance, no escrow and no held payment. There is
+              Vallo keeps no balance in your name and holds no payment. There is
               nothing to top up and nothing to withdraw. If anybody tells you that Vallo is
               holding money for you, or asks you to send money to be held, it is not us.
             </p>

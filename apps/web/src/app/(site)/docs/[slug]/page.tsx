@@ -88,7 +88,7 @@ export default async function DocChapterPage({
               Chapter {chapter.number} of {CHAPTER_INDEX.length}
             </span>
             {/* The title arrives word by word out of depth (Track M). */}
-            <h1 className="nf-h1 mt-inline-tight">
+            <h1 className="nf-h1 nf-doc-title mt-inline-tight">
               <DepthWords text={chapter.title} />
             </h1>
           </div>

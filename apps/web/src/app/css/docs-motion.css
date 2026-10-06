@@ -12,6 +12,25 @@
  * drawing finished and still, at the foot of the file.
  */
 @layer components {
+  /* ------------------------------------------- the words of a heading */
+
+  /* A chapter's title and each section's heading arrive word by word on the
+     shared `.nf-depth-word` (560ms a word, 70ms apart): an eight-word title
+     measured 1,170ms from first word to last, past the 620ms entrance budget
+     (north star 12, point 10; C6, the route sweep). In the docs a heading
+     takes the landing headline's timing instead (`nf-hero-word`, 420ms) with
+     a 35ms step held after the fifth word, so the longest heading lands by
+     620ms. The gate (`.nf-depth-gate`) still holds a section's words until it
+     is on screen; the rule applies only without a reduced-motion request, so
+     that answer and Calm's are unchanged. */
+  @media (prefers-reduced-motion: no-preference) {
+    :is(h1.nf-doc-title, .nf-depth-gate .nf-doc-section__title) .nf-depth-word {
+      animation-name: nf-hero-word;
+      animation-duration: 420ms;
+      animation-delay: calc(60ms + min(var(--nf-i, 0), 4) * 35ms);
+    }
+  }
+
   /* ------------------------------------------------- the sections */
 
   /* A section's lists step in after it arrives, six steps at most. */
