@@ -1,0 +1,14 @@
+2: npx shadcn@latest add Surajmaurya1/easyui/button
+
+3: npx shadcn@latest add Surajmaurya1/easyui/batch-gesture-tray
+
+3: npx shadcn@latest add Surajmaurya1/easyui/ai-response
+
+
+3: npx shadcn@latest add Surajmaurya1/easyui/glass-navbar
+
+
+this glass nav should be used in many areas but in our style and identity you feel me when I click the 3 hamburger it pull I love that it should not be our side nav bar but side nav bar in inner areas inner features inner pages or other features areas pages etc you know where we used it best same as the rest few more….
+
+
+This drag to confirm one too make it lovely clean and more perfect also know all this should be upgraded to our style and our vibes okay but still it okay
