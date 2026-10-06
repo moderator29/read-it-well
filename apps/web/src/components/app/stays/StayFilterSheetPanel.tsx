@@ -291,11 +291,11 @@ export function StayFilterSheetPanel({
       sideOnWide
       testId="stay-filters"
       footer={
-        <div className="grid grid-cols-[1fr_1.4fr] gap-xs border-t border-[var(--nf-panel-hair)] pt-sm">
-          <Button variant="secondary" data-testid="stay-filters-reset" onClick={reset} full size="lg">
+        <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] gap-xs border-t border-[var(--nf-panel-hair)] pt-sm">
+          <Button variant="secondary" data-testid="stay-filters-reset" onClick={reset} full size="lg" className="whitespace-normal">
             {copy.filters.reset}
           </Button>
-          <Button variant="primary" data-testid="stay-filters-apply" onClick={apply} full size="lg">
+          <Button variant="primary" data-testid="stay-filters-apply" onClick={apply} full size="lg" className="whitespace-normal">
             {copy.filters.apply.replace(" ({count})", "")}
           </Button>
         </div>

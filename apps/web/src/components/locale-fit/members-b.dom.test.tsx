@@ -25,22 +25,14 @@ const CSS = () => appCss();
 
 /* The key is "<surface> <locale>"; the value is the report line. */
 const KNOWN: Record<string, string> = {
-  "Listing detail, rental: lead, move-in total, breakdown, tabs, agent and pinned actions en":
-    "two text links under 44px tall in every locale: the lead card's location link (307 by 25.6) and the pinned bar's secondary link (nf-link-quiet nf-caption, 19.5px tall)",
-  "Listing detail, rental: lead, move-in total, breakdown, tabs, agent and pinned actions ha":
-    "two text links under 44px tall in every locale: the lead card's location link (307 by 25.6) and the pinned bar's secondary link (nf-link-quiet nf-caption, 19.5px tall)",
-  "Listing detail, rental: lead, move-in total, breakdown, tabs, agent and pinned actions ig":
-    "two text links under 44px tall in every locale: the lead card's location link (307 by 25.6) and the pinned bar's secondary link (nf-link-quiet nf-caption, 19.5px tall)",
-  "Listing detail, rental: lead, move-in total, breakdown, tabs, agent and pinned actions yo":
-    "two text links under 44px tall in every locale: the lead card's location link (307 by 25.6) and the pinned bar's secondary link (nf-link-quiet nf-caption, 19.5px tall)",
   "Search filters sheet, opened en":
-    "the price range slider (input.nf-range__input) is 358 by 24px: under 44px in every locale",
+    "the price range slider (input.nf-range__input) is 358 by 24px (fix is the patch range-hit-area.patch for controls.css); delete these four entries when it lands",
   "Search filters sheet, opened yo":
-    "the price range slider (input.nf-range__input) is 358 by 24px: under 44px in every locale",
+    "the price range slider (input.nf-range__input) is 358 by 24px (fix is the patch range-hit-area.patch for controls.css); delete these four entries when it lands",
   "Search filters sheet, opened ha":
-    "the price range slider is 24px tall, and the footer's Apply button (filters-apply) with no matches overflows the window: Hausa catalogue.filters.applyNone 'Babu wanda ya dace tukuna' reaches 467px of 390, Igbo 'Enwebeghị nke dabara' 413px of 390",
+    "the price range slider is 24px tall (fix is the patch range-hit-area.patch for controls.css); delete these four entries when it lands",
   "Search filters sheet, opened ig":
-    "the price range slider is 24px tall, and the footer's Apply button (filters-apply) with no matches overflows the window: Hausa catalogue.filters.applyNone 'Babu wanda ya dace tukuna' reaches 467px of 390, Igbo 'Enwebeghị nke dabara' 413px of 390",
+    "the price range slider is 24px tall (fix is the patch range-hit-area.patch for controls.css); delete these four entries when it lands",
 };
 
 describe.skipIf(!hasBrowser && !process.env.CI)("locale fit: listing detail, reserve and filters at 390px", () => {
@@ -66,7 +58,7 @@ describe.skipIf(!hasBrowser && !process.env.CI)("locale fit: listing detail, res
               <Stack>
                 <Section className="nf-glass nf-glass--card nf-detail-lead scroll-mt-16" id="overview">
                   <h1 className="nf-h2 [overflow-wrap:anywhere]">{listing.title}</h1>
-                  <a href="#location" className={"mt-inline-tight inline-flex max-w-full items-center gap-inline " + TYPE.body}>
+                  <a href="#location" className={"nf-tap mt-inline-tight inline-flex max-w-full items-center gap-inline " + TYPE.body}>
                     <UiIcon name="location" size={ICON.inline} className="shrink-0" />
                     <span className="min-w-0">{where}</span>
                     <UiIcon name="arrow-right" size={16} className="shrink-0" />

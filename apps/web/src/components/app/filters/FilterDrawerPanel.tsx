@@ -658,11 +658,12 @@ export function FilterDrawerPanel({
       sideOnWide
       testId="filters-drawer"
       footer={
-        <div className="grid grid-cols-[1fr_1.4fr] gap-xs border-t border-[var(--nf-panel-hair)] pt-sm">
-          <Button variant="secondary" data-testid="filters-clear" onClick={clearAll} full size="lg">
+        /* minmax(0, ...) lets each column shrink below its label, and the buttons wrap a long word (Hausa "Babu wanda ya dace tukuna") instead of spilling out of the footer. */
+        <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] gap-xs border-t border-[var(--nf-panel-hair)] pt-sm">
+          <Button variant="secondary" data-testid="filters-clear" onClick={clearAll} full size="lg" className="whitespace-normal">
             {copy.reset}
           </Button>
-          <Button variant="primary" data-testid="filters-apply" onClick={apply} full size="lg">
+          <Button variant="primary" data-testid="filters-apply" onClick={apply} full size="lg" className="whitespace-normal">
             {matchCount === 0
               ? copy.applyNone
               : copy.apply.replace("{count}", formatNumber(matchCount, locale))}
