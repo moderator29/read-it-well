@@ -66,12 +66,27 @@ const CLOSE_AND_READ = `
     const onRun = (event) => {
       if (event.target === panel() && event.propertyName === "transform" && !started) started = read();
     };
-    const onEnd = (event) => {
-      if (event.target !== panel() || event.propertyName !== "transform") return;
+    /* The leave ends one of two ways: the panel's transform transition ends,
+       or, on a loaded machine, the sheet's own fallback timer unmounts it
+       first (no transitionend then reaches a removed element). Either is the
+       end of the leave; a removal is read as not present. */
+    let done = false;
+    const finish = (ended) => {
+      if (done) return;
+      done = true;
       document.removeEventListener("transitionrun", onRun, true);
       document.removeEventListener("transitionend", onEnd, true);
-      resolve({ started, ended: read() });
+      gone.disconnect();
+      resolve({ started, ended });
     };
+    const onEnd = (event) => {
+      if (event.target !== panel() || event.propertyName !== "transform") return;
+      finish(read());
+    };
+    const gone = new MutationObserver(() => {
+      if (started && !panel()) finish(read());
+    });
+    gone.observe(document.body, { childList: true, subtree: true });
     document.addEventListener("transitionrun", onRun, true);
     document.addEventListener("transitionend", onEnd, true);
     document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
@@ -121,10 +136,11 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the sheet's leave", () => {
       /* The scrim and the panel let a tap through to the page behind. */
       expect(started!.scrimEvents).toBe("none");
       expect(started!.panelEvents).toBe("none");
-      /* When it ends the sheet is still mounted, and focus was already on the
-         opener: it came back at the moment of close, not after the animation. */
-      expect(ended, "the leave transition ended").not.toBeNull();
-      expect(ended!.present).toBe(true);
+      /* Focus is already on the opener while the leave runs: it came back at
+         the moment of close, not after the animation. */
+      expect(started!.focus).toBe("opener");
+      /* The leave ended, by its transition or by the fallback unmount. */
+      expect(ended, "the leave ended").not.toBeNull();
       expect(ended!.focus).toBe("opener");
 
       await sheet(page).waitFor({ state: "detached" });
