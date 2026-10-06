@@ -873,3 +873,31 @@
     font-size: var(--nf-text-body-sm);
   }
 }
+
+/* ------------------------------------- touch targets in the console (W12) */
+@layer components {
+  /* The rail's rows, its brand link and the "All" status chip were 38 to 42px
+     tall or wide; the floor is 44. Rows keep their spacing, so the rail only
+     grows by the few pixels each row was short. */
+  .nf-admin-nav__row,
+  .nf-admin-nav__row--child {
+    min-height: 2.75rem;
+  }
+  .nf-admin-brand {
+    min-height: 2.75rem;
+  }
+  .nf-admin-chip--all {
+    min-width: 2.75rem;
+  }
+  /* "View all" keeps its quiet 32px look and takes the extra hit area from an
+     overlay, so a panel's head does not grow and the page does not shift. */
+  .nf-admin-panel__link {
+    position: relative;
+  }
+  .nf-admin-panel__link::after {
+    content: "";
+    position: absolute;
+    inset-block: -0.375rem;
+    inset-inline: -0.25rem;
+  }
+}
