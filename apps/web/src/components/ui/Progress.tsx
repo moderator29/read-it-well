@@ -113,7 +113,7 @@ export function Progress({
          * The translate flips from -100% to 0 near the ends so the label never
          * overhangs the track it belongs to.
          */
-        <div className="relative mb-2xs h-4 w-full" aria-hidden="true">
+        <div className="relative mb-2xs h-4 w-full overflow-x-clip" aria-hidden="true">
           {/* A full-width rail translated by the value (a percentage of its
               own width is a percentage of the track), carrying the label, so
               the label travels on transform rather than on `left`. */}
