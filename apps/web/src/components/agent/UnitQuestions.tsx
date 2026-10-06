@@ -52,7 +52,7 @@ export function UnitQuestions({
             aria-pressed={value.shape === shape}
             data-testid={`wizard-unit-${shape}`}
             onClick={() => pick(shape)}
-            className={`nf-filters__tile ${suggested === shape ? "border-[var(--nf-border-strong)]" : ""}`}
+            className={`nf-filters__tile min-w-11 ${suggested === shape ? "border-[var(--nf-border-strong)]" : ""}`}
           >
             {copy.shapes[shape]}
           </button>

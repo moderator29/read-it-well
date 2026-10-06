@@ -71,7 +71,7 @@ export function ServiceQuestions({
                     aria-pressed={value.covers.includes(cover)}
                     data-testid={`service-cover-${cover}`}
                     onClick={() => toggle(cover)}
-                    className="nf-filters__tile"
+                    className="nf-filters__tile min-w-11"
                   >
                     {copy.covers[cover]}
                   </button>
