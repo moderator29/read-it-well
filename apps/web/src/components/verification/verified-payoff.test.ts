@@ -1,54 +1,64 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { vpassKeys, vpassSeen } from "./payoff-seen";
 
 /** The payoff's wiring and its rules, by source (the behaviour is in `VerifiedPayoff.dom.test.tsx`). */
 const src = (path: string) => readFileSync(join(process.cwd(), "src", path), "utf8");
 const strip = (text: string) => text.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 
 describe("the verification-passed payoff", () => {
-  it("the approved plate draws its shield through VerifiedPayoff, and nothing else does", () => {
-    const status = src("components/verification/KycStatus.tsx");
-    expect(status).toContain("<VerifiedPayoff play={payoff.play} seenKey={payoff.seenKey}>");
-    expect(status).toContain('payoff={{ play: status.payoff !== undefined');
-    /* The pending, refused, more-info and suspended plates are untouched. */
-    expect(status.match(/payoff=\{\{/g)).toHaveLength(1);
+  it("the server decides it: a rung passed recently AND this device's cookie does not name the level", () => {
+    const page = strip(src("app/(app)/verification/page.tsx"));
+    expect(page).toMatch(
+      /approvedRecently\(Object\.values\(ladder\.ladder\.rungs\), requestNow\(\)\) &&\s*!vpassSeen\(\(await cookies\(\)\)\.get\(VPASS_COOKIE\)\?\.value, tier\)/,
+    );
+    expect(page).toContain('status = news ? { state: "approved", payoff: { tier } } : { state: "approved" };');
+    /* No sheet laid over the plate: the plate is the moment. */
+    expect(page).not.toContain("SuccessFromFlag");
+    expect(page).not.toContain("verificationApproved");
   });
 
-  it("the page asks for it only when a rung passed recently, under a per-level key", () => {
-    const page = src("app/(app)/verification/page.tsx");
-    expect(page).toMatch(/approvedRecently\(Object\.values\(ladder\.ladder\.rungs\), requestNow\(\)\)\s*\? \{ state: "approved", payoff: \{ seenKey: `verification-passed:tier-\$\{ladder\.ladder\.tier\}` \} \}/);
+  it("only the approved plate with a payoff is wrapped; every other plate is drawn plain", () => {
+    const status = strip(src("components/verification/KycStatus.tsx"));
+    expect(status).toContain("return payoff ? <VerifiedPayoff tier={payoff.tier}>{plate}</VerifiedPayoff> : plate;");
+    expect(status.match(/payoff=\{/g)).toHaveLength(1);
+    expect(status).toContain("payoff={status.payoff}");
   });
 
-  it("is once per device, quiet-aware, waits for a modal, and moves only opacity and transform from tokens", () => {
-    const code = strip(src("components/verification/VerifiedPayoff.tsx"));
-    expect(code).toContain("seenOnce(seenKey)");
-    expect(code).toContain("markSeen(seenKey)");
-    expect(code).toContain("quiet");
-    expect(code).toContain("isDataSaver()");
-    expect(code).toContain('[aria-modal="true"]:not([data-closing])');
-    for (const token of ["--nf-duration-slow", "--nf-duration-fast", "--nf-duration-base", "--nf-ease-entrance", "--nf-ease-standard"]) {
-      expect(code).toContain(token);
-    }
-    expect(code).not.toMatch(/\b(width|height|top|left|filter)\s*:/);
-    expect(code).not.toMatch(/infinite|iterations/);
-    /* No words of its own. */
-    expect(code).not.toMatch(/>\s*[A-Z][a-z]+(\s+[a-z]+)+\s*</);
+  it("one level is one key family across both doors, and the cookie names exactly one level", () => {
+    expect(vpassKeys(2)).toEqual(["verification-passed:tier-2", "verification-approved:tier-2"]);
+    /* The other door's sheet uses the second key, so seeing it there is seeing it here. */
+    expect(strip(src("app/agent/verification/page.tsx"))).toContain("seenKey={`verification-approved:tier-${read.ladder.tier}`}");
+    expect(vpassSeen("2", 2)).toBe(true);
+    expect(vpassSeen("1", 2)).toBe(false);
+    expect(vpassSeen(undefined, 1)).toBe(false);
   });
 
-  it("adds no furniture to the plate: the disc is invisible at rest and only the payoff shows it", () => {
+  it("the motion is the stylesheet's: transform and opacity (and the tick's own stroke), tokens, no loop", () => {
     const css = strip(src("components/verification/verified-payoff.css"));
-    const badge = css.slice(css.indexOf(".nf-vpass__badge {"), css.indexOf("}", css.indexOf(".nf-vpass__badge {")));
-    expect(badge).toMatch(/opacity:\s*0;/);
-    expect(badge).toContain("position: absolute");
+    const frames = [...css.matchAll(/@keyframes [\w-]+ \{([\s\S]*?)\n  \}/g)].map((m) => m[1]!);
+    expect(frames.length).toBeGreaterThanOrEqual(7);
+    for (const body of frames) {
+      const props = [...body.matchAll(/([a-z-]+):/g)].map((m) => m[1]);
+      for (const prop of props) expect(["opacity", "transform", "stroke-dashoffset"]).toContain(prop);
+    }
+    expect(css).not.toMatch(/infinite/);
+    expect(css).toContain("nf-vpass-pop 180ms");
+    /* It plays only inside a plate the server asked for, and never once seen. */
+    for (const part of ["was", "shield", "badge", "tick"]) expect(css).toMatch(new RegExp(`\\.nf-vpass__${part} \\{\\s*animation: nf-vpass-`));
+    expect(css.match(/\.nf-vpass-plate\[data-vpass="play"\]:not\(\[data-vpass-seen\]\)/g)!.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it("the script decides once, remembers the level, and feels the pop through the one grammar", () => {
     const code = strip(src("components/verification/VerifiedPayoff.tsx"));
-    /* The shield is already drawn (server rendered): it dips and returns (three keyframes, no jump) and never fades. */
-    expect(code).toContain('{ transform: "none", offset: 0, easing: glide },');
-    expect(code).toContain('{ transform: "translateY(0.5rem) scale(0.86)", offset: 0.3, easing: land },');
-    expect(code).not.toMatch(/opacity: 0, transform: "translateY/);
-    /* The disc fades back out at the end of its one animation. */
-    expect(code).toMatch(/opacity: 0, transform: "none", offset: 1/);
-    /* A leaving sheet changes the answer, so the observer watches for it. */
-    expect(code).toContain('attributeFilter: ["aria-modal", "data-closing"]');
+    expect(code).toContain("useLayoutEffect");
+    expect(code).toContain("keys.some((key) => seenOnce(key))");
+    expect(code).toContain("for (const key of keys) markSeen(key);");
+    expect(code).toContain("path=/verification");
+    expect(code).toContain('hapticOnPop(plate, "nf-vpass-pop")');
+    const haptic = strip(src("components/verification/payoff-haptic.ts"));
+    expect(haptic).toContain('feedback("success")');
+    expect(haptic.match(/feedback\(/g)).toHaveLength(1);
   });
 });

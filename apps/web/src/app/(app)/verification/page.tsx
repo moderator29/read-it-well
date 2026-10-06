@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getAgentContext } from "@/lib/agent/listings-queries";
@@ -8,7 +9,7 @@ import { PageScene } from "@/components/app/PageScene";
 import { KycFlow } from "@/components/verification/KycFlow";
 import { VerificationPath } from "@/components/verification/VerificationPath";
 import { buildPath } from "@/components/verification/verification-path";
-import { SuccessFromFlag } from "@/components/ui/SuccessFromFlag";
+import { VPASS_COOKIE, vpassSeen } from "@/components/verification/payoff-seen";
 import { approvedRecently } from "@/lib/ui/recent-approval";
 import { VninPanel } from "@/components/verification/VninPanel";
 import { PepQuestionPanel } from "@/components/compliance/PepQuestionPanel";
@@ -212,12 +213,17 @@ export default async function VerificationPage({
         fix: v.moreInfoFix,
       };
     } else if (ladder.ladder.tier > 0) {
-      /* The shield's one-time payoff plays only when a rung passed recently
-         enough to be news, once per device and per level, the same test and
-         the same key family as the approval sheet below. */
-      status = approvedRecently(Object.values(ladder.ladder.rungs), requestNow())
-        ? { state: "approved", payoff: { seenKey: `verification-passed:tier-${ladder.ladder.tier}` } }
-        : { state: "approved" };
+      /* THE PAYOFF IS THE SERVER'S CALL (round 5). The plate becomes verified
+         in place only when a rung really passed recently enough to be news
+         AND this device's cookie does not already name this level
+         (`payoff-seen.ts`), so the motion can start on the first painted
+         frame and still never replay on a reload. Every other approved
+         visit draws the plate still. */
+      const tier = ladder.ladder.tier;
+      const news =
+        approvedRecently(Object.values(ladder.ladder.rungs), requestNow()) &&
+        !vpassSeen((await cookies()).get(VPASS_COOKIE)?.value, tier);
+      status = news ? { state: "approved", payoff: { tier } } : { state: "approved" };
     } else if (
       /* The application states that mean "a person is looking at this".
          Spelled from `agent_application_status` rather than guessed: DRAFT is
@@ -317,21 +323,13 @@ export default async function VerificationPage({
           <KycStatus status={status} locale={locale} />
           <div className="mt-block">{path}</div>
           {pep}
-          {/* The approval is decided in the staff console and announced by
-              the database, where no flag can ride on the link, so it opens
-              from the status itself, once per device and once per level: a
-              later rung is a new moment (docs/SUCCESS_MOMENTS.md). */}
-          {status.state === "approved" &&
-          ladder.state === "ok" &&
-          approvedRecently(Object.values(ladder.ladder.rungs), requestNow()) ? (
-            <SuccessFromFlag
-              copy={getDictionary(locale).success}
-              show
-              moment="verificationApproved"
-              seenKey={`verification-approved:tier-${ladder.ladder.tier}`}
-              haptic={false}
-            />
-          ) : null}
+          {/* NO SHEET OVER THE PLATE (round 5). The approval used to open a
+              "Documents approved" sheet here as well, and the plate's payoff
+              waited behind it: two celebrations of one decision, the first a
+              screen laid over the record it was about. The plate itself now
+              becomes verified in place, once per device per level, and marks
+              the other door's key (`verification-approved:tier-N`) so
+              /agent/verification does not celebrate it again. */}
         </>
       ) : (
         <>
