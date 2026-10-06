@@ -137,7 +137,7 @@ function Row({ row, locale, now }: { row: QueueRow; locale: Locale; now: number 
                 </Chip>
               ))}
             </div>
-            <div className="flex gap-inline">
+            <div className="flex flex-wrap gap-inline">
               <Button variant="primary" type="submit" disabled={pending || reason.trim().length < 10}>
                 Send back
               </Button>

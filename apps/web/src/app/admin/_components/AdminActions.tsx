@@ -696,7 +696,7 @@ export function TicketStatusControl({
             value={closingNote}
             onChange={(e) => setClosingNote(e.target.value)}
           />
-          <div className="flex gap-xs">
+          <div className="flex flex-wrap gap-xs">
             <Button
               variant="primary"
               size="sm"
