@@ -208,7 +208,7 @@ export default async function PersonFilePage({ params }: { params: Promise<{ id:
         <p className="mt-sm">
           <Link
             href={`/admin/audit?who=all&q=${id}`}
-            className="inline-flex min-h-11 items-center nf-caption font-medium underline underline-offset-2"
+            className="inline-flex min-h-11 items-center nf-caption font-semibold underline underline-offset-2"
           >
             {x.cases.trailLink}
           </Link>

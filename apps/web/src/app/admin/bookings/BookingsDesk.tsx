@@ -161,7 +161,7 @@ export function BookingsDesk({
                   desk.table.rows.map((stay) => (
                     <tr key={stay.id}>
                       <td className="nf-md-lead" data-label="">
-                        <Link href={`/admin/bookings/${stay.id}`} className="block font-medium text-[var(--nf-content-primary)] underline-offset-2 hover:underline">
+                        <Link href={`/admin/bookings/${stay.id}`} className="block font-semibold text-[var(--nf-content-primary)] underline-offset-2 hover:underline">
                           {stay.listingTitle ?? "A listing that is no longer there"}
                         </Link>
                         <span className="block text-[length:var(--nf-text-caption)]">

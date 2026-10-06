@@ -29,7 +29,7 @@ function Refusal({ message }: { message: string | null }) {
   return (
     <p
       role="alert"
-      className="nf-body-sm mt-row font-medium text-[var(--nf-state-error)]"
+      className="nf-body-sm mt-row font-semibold text-[var(--nf-state-error)]"
     >
       {message}
     </p>
@@ -307,7 +307,7 @@ export function FeeRateForm({
         />
       </Sheet>
       {done && (
-        <p className="nf-body-sm mt-row font-medium text-[var(--nf-state-success)]">
+        <p className="nf-body-sm mt-row font-semibold text-[var(--nf-state-success)]">
           Recorded, with your name on it.
         </p>
       )}

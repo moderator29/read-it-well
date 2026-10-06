@@ -197,7 +197,7 @@ export function OccupationEditor({ rows }: { rows: Occupation[] }) {
               className="flex min-h-11 w-full items-center gap-sm text-left"
             >
               <span className="min-w-0 flex-1">
-                <span className="block text-[length:var(--nf-text-body-sm)] font-medium text-[var(--nf-content-primary)]">
+                <span className="block text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
                   {row.name}
                 </span>
                 {/* The code and the sort number are both schema, and both
@@ -395,7 +395,7 @@ export function LocalGovernmentEditor({
               className="flex min-h-11 w-full items-center gap-sm text-left"
             >
               <span className="min-w-0 flex-1">
-                <span className="block text-[length:var(--nf-text-body-sm)] font-medium text-[var(--nf-content-primary)]">
+                <span className="block text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
                   {row.name}
                 </span>
                 <span className="nf-numeric mt-3xs block text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">

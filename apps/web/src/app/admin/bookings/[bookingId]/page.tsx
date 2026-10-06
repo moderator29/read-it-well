@@ -280,7 +280,7 @@ export default async function AdminBookingPage({
         <p className="mt-sm">
           <Link
             href={`/admin/audit?who=all&q=${stay.id}`}
-            className="inline-flex min-h-11 items-center text-[length:var(--nf-text-caption)] font-medium underline underline-offset-2"
+            className="inline-flex min-h-11 items-center text-[length:var(--nf-text-caption)] font-semibold underline underline-offset-2"
           >
             {t.experienceAdmin.cases.trailLink}
           </Link>

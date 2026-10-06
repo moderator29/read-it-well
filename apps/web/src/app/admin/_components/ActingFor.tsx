@@ -48,7 +48,7 @@ export async function ActingFor({ kind, id, locale }: { kind: ActingForKind; id:
         <p className="nf-body-sm mt-xs">{copy.noListing}</p>
       ) : (
         <>
-          <p className="nf-body-sm mt-xs font-medium">
+          <p className="nf-body-sm mt-xs font-semibold">
             {read.acting === "themselves"
               ? copy.themselves
               : read.acting === "example"
@@ -104,7 +104,7 @@ function MandateLine({ m, copy, day }: { m: ActingForMandate; copy: Copy; day: (
   const kind = copy.kinds[m.kind as keyof typeof copy.kinds] ?? m.kind;
   return (
     <li className="rounded-[var(--nf-container-radius)] border border-[var(--nf-border-subtle)] p-sm nf-body-sm" data-testid="acting-for-mandate">
-      <p className="font-medium">
+      <p className="font-semibold">
         {copy.principalLabel}: {m.principalName} (
         {m.principalPhoneLast4 ? fill(copy.phoneEnds, { last4: m.principalPhoneLast4 }) : copy.noPhone}) ·{" "}
         {copy.status[m.status]}

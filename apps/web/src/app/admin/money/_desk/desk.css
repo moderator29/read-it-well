@@ -176,7 +176,7 @@
   /* Render: ascender height 7 render px = 11 CSS, a 15px label. */
   .nf-md-kpi__label {
     font-size: 0.9375rem;
-    font-weight: 500;
+    font-weight: 600;
     color: var(--nf-brand-quiet);
   }
   .nf-md-kpi__value {
@@ -190,7 +190,7 @@
   }
   .nf-md-kpi__value--quiet {
     font-size: var(--nf-text-body);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--nf-content-muted);
   }
   .nf-md-delta {
@@ -371,7 +371,7 @@
     padding: 0 var(--nf-space-xs) var(--nf-space-sm);
     text-align: left;
     font-size: var(--nf-text-caption);
-    font-weight: 500;
+    font-weight: 600;
     color: var(--nf-brand-quiet);
     border-bottom: var(--nf-border-width) solid var(--nf-brand-edge-soft);
     white-space: nowrap;
@@ -400,7 +400,7 @@
   }
   .nf-md-table .nf-md-strong {
     color: var(--nf-content-primary);
-    font-weight: 500;
+    font-weight: 600;
   }
   .nf-md-table .nf-md-date {
     white-space: nowrap;
@@ -412,12 +412,12 @@
   .nf-md-credit,
   .nf-md-table .nf-md-credit {
     color: var(--nf-state-success);
-    font-weight: 500;
+    font-weight: 600;
   }
   .nf-md-debit,
   .nf-md-table .nf-md-debit {
     color: var(--nf-content-primary);
-    font-weight: 500;
+    font-weight: 600;
   }
   .nf-md-countdown {
     color: var(--nf-state-success);
@@ -530,7 +530,7 @@
     /* Render: the page number's cap 9 render px = 14 CSS, 20px, in a box the
        render draws at 25 render px = 39 CSS and R-B lifts to 44. */
     font-size: 1.25rem;
-    font-weight: 500;
+    font-weight: 600;
     color: var(--nf-content-secondary);
     text-decoration: none;
     font-variant-numeric: tabular-nums;
@@ -716,7 +716,7 @@
   .nf-md-ring__when {
     margin-top: var(--nf-space-3xs);
     font-size: var(--nf-text-body-sm);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--nf-content-primary);
   }
 
@@ -818,7 +818,7 @@
   }
   .nf-md-stage__label {
     font-size: var(--nf-text-caption);
-    font-weight: 500;
+    font-weight: 600;
     color: var(--nf-content-secondary);
   }
   .nf-md-stage__count {
@@ -1068,7 +1068,7 @@
   }
   .nf-md-evidence__who {
     color: var(--nf-brand-quiet);
-    font-weight: 500;
+    font-weight: 600;
   }
   .nf-md-evidence__what {
     min-width: 0;

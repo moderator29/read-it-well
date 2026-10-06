@@ -221,7 +221,7 @@ function FeeSection({
           <DocRows>
             {rates.map((rate) => (
               <DocRow key={rate.id} label={rateStartLabel(rate.effectiveFrom, ui.when)}>
-                <span className="block font-medium">
+                <span className="block font-semibold">
                   {describe(rate, locale)}
                   {rate.inForce && (
                     <span className="ml-xs">

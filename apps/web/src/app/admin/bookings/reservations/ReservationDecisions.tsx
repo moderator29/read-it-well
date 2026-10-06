@@ -85,7 +85,7 @@ export function ReservationDecisions({
 
   if (done) {
     return (
-      <p className="nf-body-sm mt-row font-medium text-[var(--nf-state-success)]">{done}</p>
+      <p className="nf-body-sm mt-row font-semibold text-[var(--nf-state-success)]">{done}</p>
     );
   }
 
@@ -171,7 +171,7 @@ export function ReservationDecisions({
             </Button>
           </div>
           {error && (
-            <p role="alert" className="nf-body-sm mt-row font-medium text-[var(--nf-state-error)]">
+            <p role="alert" className="nf-body-sm mt-row font-semibold text-[var(--nf-state-error)]">
               {error}
             </p>
           )}

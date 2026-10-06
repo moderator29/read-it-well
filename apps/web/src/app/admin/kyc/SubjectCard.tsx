@@ -81,7 +81,7 @@ export function SubjectCard({
               key={rung.kind}
               className="rounded-[var(--nf-radius-sm)] border border-[var(--nf-border-subtle)] px-xs py-2xs"
             >
-              <span className="text-[length:var(--nf-text-overline)] font-medium text-[var(--nf-content-primary)]">
+              <span className="text-[length:var(--nf-text-overline)] font-semibold text-[var(--nf-content-primary)]">
                 {RUNG_LABEL[rung.kind] ?? rung.kind}
               </span>{" "}
               {/* THE FIFTH RAW COLUMN VALUE, AND IT SURVIVED THE OTHER FOUR.
@@ -150,7 +150,7 @@ export function SubjectCard({
             className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-sm"
           >
             <div className="flex flex-wrap items-center gap-xs">
-              <span className="text-[length:var(--nf-text-body-sm)] font-medium text-[var(--nf-content-primary)]">
+              <span className="text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
                 {KIND_LABEL[doc.kind] ?? doc.kind}
               </span>
               {doc.subtype && (
@@ -204,7 +204,7 @@ export function SubjectCard({
               title={`${KIND_LABEL[doc.kind] ?? doc.kind}${
                 doc.subtype ? `, ${SUBTYPE_LABEL[doc.subtype] ?? doc.subtype}` : ""
               }`}
-              className="mt-xs inline-block text-[length:var(--nf-text-caption)] font-medium underline"
+              className="mt-xs inline-block text-[length:var(--nf-text-caption)] font-semibold underline"
             />
 
             {decidable && doc.reviewStatus === "pending" && (

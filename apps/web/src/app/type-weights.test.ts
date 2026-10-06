@@ -23,12 +23,16 @@ import { describe, expect, it } from "vitest";
  * The few files that still carry a 500 are named in `ALLOWED_500` below with
  * the reason.
  *
- * Not held to it: the admin console and the dev previews (`app/admin`,
- * `app/(dev)`), which are staff and harness surfaces with their own pass, and
+ * The admin console is held to it too since Round 3 (C1's sweep): its 50
+ * sites of 500 went to 400 or 600 by the same roles, with its tabs, chips,
+ * segments and pager at 600 in both states, told apart by the lit fill as the
+ * Segmented items are, and its rail rows at 400 beside their lit current row.
+ *
+ * Not held to it: the dev previews (`app/(dev)`), a harness surface, and
  * tests, which may name a banned weight in order to ban it.
  */
 const SRC = join(__dirname, "..");
-const SKIP_DIRS = new Set(["node_modules", ".next", "admin", "(dev)"]);
+const SKIP_DIRS = new Set(["node_modules", ".next", "(dev)"]);
 
 function files(dir: string, out: string[] = []): string[] {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
@@ -49,7 +53,6 @@ const strip = (text: string) => text.replace(/\/\*[\s\S]*?\*\//g, "");
 const ALLOWED_500: Record<string, string> = {
   "components/site/landing/StoreBadges.tsx": "the official store-badge artwork (SVG text), drawn to each store's own spec",
   "lib/email/render.ts": "email has its own type rules (ruling: the one inline 500 stays)",
-  "app/css/admin.css": "the console's stylesheet has its own owner (ruling: out of this pass)",
 };
 
 const WEIGHT_500 = [
@@ -75,7 +78,7 @@ describe("the type weights", () => {
     expect(all.length).toBeGreaterThan(500);
   });
 
-  it("no source file outside admin and the dev previews draws a weight above 700", () => {
+  it("no source file outside the dev previews draws a weight above 700", () => {
     const found = all
       .filter((file) => {
         const text = strip(readFileSync(file, "utf8"));
@@ -90,7 +93,7 @@ describe("the type weights", () => {
     return WEIGHT_500.some((pattern) => pattern.test(text));
   };
 
-  it("no source file outside admin and the dev previews draws weight 500, apart from the listed few", () => {
+  it("no source file outside the dev previews draws weight 500, apart from the listed few", () => {
     const found = all
       .filter(has500)
       .map((file) => file.slice(SRC.length + 1))

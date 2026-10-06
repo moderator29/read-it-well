@@ -150,12 +150,12 @@ export function RetireExamples({ live }: { live: ExampleListingView[] }) {
       )}
 
       {error && (
-        <p role="alert" className="nf-body-sm mt-row font-medium text-[var(--nf-state-error)]">
+        <p role="alert" className="nf-body-sm mt-row font-semibold text-[var(--nf-state-error)]">
           {error}
         </p>
       )}
       {done !== null && (
-        <p className="nf-body-sm mt-row font-medium text-[var(--nf-state-success)]">
+        <p className="nf-body-sm mt-row font-semibold text-[var(--nf-state-success)]">
           {done === 0
             ? "Nothing changed. They were already off the catalogue."
             : `${countOf(done, "examplesAre")} off the catalogue, with your name on the record.`}

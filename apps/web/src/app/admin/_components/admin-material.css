@@ -101,7 +101,7 @@
     border: var(--nf-border-width) solid var(--nf-tier-plate-edge);
     color: var(--nf-content-muted);
     font-size: var(--nf-text-overline);
-    font-weight: 500;
+    font-weight: 400;
     pointer-events: none;
   }
   @media (hover: hover) and (pointer: fine) and (min-width: 1024px) {
@@ -408,7 +408,7 @@
     min-width: 0;
     color: var(--nf-content-secondary);
     font-size: var(--nf-text-body-sm);
-    font-weight: 500;
+    font-weight: 600;
     overflow-wrap: anywhere;
   }
   /* The figure is the subject of the tile: the biggest, heaviest thing on it. */
@@ -552,7 +552,7 @@
     border-radius: var(--nf-tier-plate-radius);
     color: var(--nf-content-secondary);
     font-size: var(--nf-text-body-sm);
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
     list-style: none;
   }
@@ -644,7 +644,7 @@
   .nf-paper-ledger__title {
     display: block;
     color: var(--nf-content-primary);
-    font-weight: 500;
+    font-weight: 600;
     overflow-wrap: anywhere;
   }
   .nf-paper-ledger__sub {
