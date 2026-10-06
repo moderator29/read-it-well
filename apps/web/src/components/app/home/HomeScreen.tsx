@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { forListingCard } from "@/lib/i18n/slice";
-import type { Dictionary, Locale } from "@vallo/i18n/core";
+import { intlTag, type Dictionary, type Locale } from "@vallo/i18n/core";
 import type { Listing } from "@/lib/listings/types";
 import { DAYPART_GREETING, type HomeOverview } from "@/lib/app/home-queries";
 import { ListingCard } from "@/components/app/ListingCard";
@@ -10,12 +10,14 @@ import { CategoryRow, type HomeCategory } from "@/components/app/home/CategoryRo
 import { FeaturedBand } from "@/components/app/home/FeaturedBand";
 import { HomeHero } from "@/components/app/home/HomeHero";
 import { LookedAtRecently } from "@/components/app/home/LookedAtRecently";
+import { HomeFigure, type HomeLeadFigure } from "@/components/app/home/HomeFigure";
+import { SpaceTypeRow } from "@/components/app/home/SpaceTypeRow";
+import { DiscoveryEmpty } from "@/components/app/search/DiscoveryEmpty";
+import type { PropertyType } from "@/lib/interests/property-types";
 import { HeroBand } from "@/components/ui/HeroBand";
 import { LogoMark } from "@/design-system/brand/Logo";
 import { VerifyPrompt } from "@/components/roles/VerifyPrompt";
 import type { RoleState } from "@/components/roles/roles";
-import { EmptyActions } from "@/components/app/EmptyActions";
-import { EmptyState } from "@/components/app/Screen";
 
 /**
  * The property home page, to `GOVERNING-01` SCREEN ONE.
@@ -82,6 +84,9 @@ export function HomeScreen({
   roles,
   manageHref,
   upNext = null,
+  lead = null,
+  interests = [],
+  intentApplied = false,
 }: {
   t: Dictionary;
   locale: Locale;
@@ -102,10 +107,20 @@ export function HomeScreen({
    * preview harness leaves it out.
    */
   upNext?: ReactNode;
+  /**
+   * The figure home leads with (`HomeFigure.tsx`), or null when there is no
+   * real one to draw and the greeting leads instead. Session 3, W2.
+   */
+  lead?: HomeLeadFigure | null;
+  /** What this person said they came for (`profiles.interests`); empty is a real answer. */
+  interests?: readonly PropertyType[];
+  /** True when the featured shelf was ordered by `interests`, so it says so. */
+  intentApplied?: boolean;
 }) {
   const greeting = DAYPART_GREETING[overview.daypart];
   const name = overview.firstName || (overview.signedIn ? "there" : "");
   const copy = t.directHome;
+  const dx = t.experienceDiscover.home;
 
   /*
    * THE PARAMETER IS `market`, AND IT IS NOT THE ONE THE OLD TILES SPENT.
@@ -157,14 +172,22 @@ export function HomeScreen({
    * line glyph, read as nothing on a phone, and List now carries the page
    * with the house on it.
    */
+  /*
+   * THE DOORS TAKE THE TIERED OBJECTS (D29; Session 3, W2). Buy and Rent are
+   * real places, so they are drawn as Tier A places (the gated family house,
+   * the apartment block); Pay and List are ideas, so they are Tier B matte
+   * symbols (the wallet, the page with a plus). The words, the order and the
+   * destinations are unchanged (D28: the four doors stay four doors). `art`
+   * stays as the fallback the row drew before.
+   */
   const categories: HomeCategory[] = [
     /* Buy, Rent and Pay open with no skeleton: their pages are fetched whole
        ahead of the tap (about 35, 35 and 11 KB on the wire). List opens the
        listing form, about 120 KB, so it waits for the tap. */
-    { key: "buy", art: "buy", label: copy.buy, href: "/search?market=buy", icon: "home-check", glyph: "house", whole: true },
-    { key: "rent", art: "rent", label: copy.rent, href: "/search?market=rent", icon: "keys-home", glyph: "key", whole: true },
-    { key: "pay", art: "pay", label: copy.pay, href: "/agreements", icon: "naira-hand", glyph: "wallet", whole: true },
-    { key: "manage", art: "list", label: copy.manage, href: manageHref, icon: "doc-home", glyph: "file-text" },
+    { key: "buy", art: "buy", object: "family-house-gate", label: copy.buy, href: "/search?market=buy", icon: "home-check", glyph: "house", whole: true },
+    { key: "rent", art: "rent", object: "apartment-block", label: copy.rent, href: "/search?market=rent", icon: "keys-home", glyph: "key", whole: true },
+    { key: "pay", art: "pay", object: "wallet-angled", label: copy.pay, href: "/agreements", icon: "naira-hand", glyph: "wallet", whole: true },
+    { key: "manage", art: "list", object: "doc-plus", label: copy.manage, href: manageHref, icon: "doc-home", glyph: "file-text" },
     /*
       UX-22 / STORE-05: NO INVEST TILE. It went to `/search?market=buy`, the
       same shelf as Buy, so it filtered nothing distinct and promised an
@@ -227,6 +250,21 @@ export function HomeScreen({
         />
       </section>
 
+      {/* ---------------------------------------------- the lead figure */}
+      {lead ? (
+        <HomeFigure
+          figure={lead}
+          tag={intlTag[locale]}
+          copy={{
+            savedCaption: dx.savedCaption,
+            savedUnitOne: dx.savedUnitOne,
+            savedUnitMany: dx.savedUnitMany,
+            savedOpen: dx.savedOpen,
+            savedCompare: dx.savedCompare,
+          }}
+        />
+      ) : null}
+
       {/* ------------------------------------------------ 1. the hero plate */}
       <div className="mt-md">
         <HomeHero
@@ -258,8 +296,20 @@ export function HomeScreen({
           title: t.catalogue.recent.lookedAt,
           clear: t.catalogue.recent.clear,
           clearLabel: t.catalogue.recent.lookedAtClearLabel,
-          example: t.catalogue.card.example,
           verified: t.common.verified,
+        }}
+      />
+
+      {/* ------------------------- space types, ordered by what they came for */}
+      <SpaceTypeRow
+        interests={interests}
+        copy={{
+          title: dx.typesTitle,
+          forYou: dx.typesForYou,
+          label: dx.typesLabel,
+          mine: dx.typesMine,
+          edit: dx.typesEdit,
+          types: dx.types,
         }}
       />
 
@@ -270,35 +320,36 @@ export function HomeScreen({
         seeAllLabel={t.common.seeAll}
         count={listings.length}
         testId="featured-properties"
+        note={intentApplied ? dx.featuredForYou : undefined}
         empty={
           /*
-            THE ONE PLATFORM EMPTY STATE, and it ends somewhere. The only thing
-            that resolves an empty shelf is supply, so that is the action.
-          */
-          <EmptyState
-            icon="home-search"
-            /*
-             * FOUR INLINE ENGLISH STRINGS, NOW FOUR KEYS. This is the surface
-             * every signed-in person lands on and it broke the dictionary rule
-             * four times in one block.
-             *
-             * AND IT DOES NOT NAME AGENTS. The sibling empty state on search
-             * still reads "Agents are still listing", on a brief whose entire
-             * point is that OWNERS LIST TOO. Naming agents on an empty property
-             * shelf tells a landlord that filling it is somebody else's job,
-             * which is the same thing the "Become an agent" door was telling
-             * him. "Somebody" is true of all three of them, and the action
-             * underneath offers him the owner door.
-             */
+           * THE ONE PLATFORM EMPTY STATE, and it ends somewhere (Stage 5:
+           * empty states ARE the current product). The object settles in, the
+           * reason is the true one, the only thing that resolves an empty
+           * shelf is supply so that is the action, and the person who came
+           * looking is not lost: a brief captures what they needed.
+           *
+           * IT DOES NOT NAME AGENTS. Owners list too, and the action offers
+           * the owner door (the words are the existing `home.empty` keys).
+           */
+          <DiscoveryEmpty
+            data-testid="home-empty"
+            object="apartment-block"
             title={t.home.empty.title}
             body={t.home.empty.body}
-            action={
-              <EmptyActions
-                primary={{ label: t.home.empty.action, href: "/profile?switch=owner" }}
-              />
-            }
-            secondary={
-              <p className="nf-caption text-[var(--nf-content-muted)]">{t.home.empty.free}</p>
+            primary={{ label: t.home.empty.action, href: "/profile?switch=owner" }}
+            secondary={<p className="nf-caption text-[var(--nf-content-muted)]">{t.home.empty.free}</p>}
+            capture={
+              <p>
+                {t.experienceDiscover.empty.captureLead}
+                <Link
+                  href="/saved/searches?brief=1#briefs"
+                  className="nf-dempty__capture-link nf-link-quiet"
+                  data-testid="home-empty-brief"
+                >
+                  {t.frontDoor.briefs.post}
+                </Link>
+              </p>
             }
           />
         }

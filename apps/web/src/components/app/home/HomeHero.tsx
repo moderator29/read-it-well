@@ -5,6 +5,7 @@ import { ICON } from "@/components/app/Screen";
 import { panelClass } from "@/components/ui/Panel";
 import { ButtonLink } from "@/components/ui/Button";
 import { RecentSearches } from "@/components/app/search/RecentSearches";
+import { PillOrigin } from "@/components/app/search/SearchPillMorph";
 
 /**
  * The hero container, to `GOVERNING-01` screen one and `GOVERNING-09` screen
@@ -120,6 +121,9 @@ export function HomeHero({
           >
             <UiIcon name="sliders" size={20} />
           </ButtonLink>
+          {/* Where this pill was when it sent the search, so the results
+              header can land from here (`SearchPillMorph.tsx`). */}
+          <PillOrigin path={searchAction} />
         </form>
         {recent && (searchAction === "/search" || searchAction === "/stays/search") ? (
           <RecentSearches inputId={id} path={searchAction} copy={recent} className="nf-recent--hero" />

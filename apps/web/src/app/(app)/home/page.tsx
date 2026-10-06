@@ -11,6 +11,13 @@ import { UpNext } from "@/components/app/home/UpNext";
 import { getAgentContext } from "@/lib/agent/listings-queries";
 import { getMode } from "@/lib/mode";
 import { roleStateFrom, type AgentFacts } from "@/components/roles/roles";
+import { readIntentTuning } from "@/lib/interests/queries";
+import { orderByStatedIntent } from "@/lib/listings/intent";
+import { rankRecommended } from "@/lib/listings/ranking";
+import { getSavedListings } from "@/lib/saved/queries";
+import type { Listing } from "@/lib/listings/types";
+import type { HomeLeadFigure } from "@/components/app/home/HomeFigure";
+import { PROPERTY_SPACE_TYPES, type SpaceTypeKey } from "@/components/app/home/space-types";
 
 export const metadata: Metadata = {
   title: "Home",
@@ -46,11 +53,17 @@ export default async function HomePage() {
    * before anything is drawn; the reads it makes unnecessary only read, so
    * starting them early changes when they finish and nothing else.
    */
-  const [overview, recommended, agentContext, mode] = await Promise.all([
+  const [overview, recommended, agentContext, mode, tuning, savedEntries] = await Promise.all([
     getHomeOverview(),
     repo.recommended(18),
     getAgentContext(),
     getMode(),
+    /* Session 3, W2: what this person said they came for, the same read
+       `/search` orders its unfiltered shelf by. Empty for a guest. */
+    readIntentTuning(),
+    /* The account's shortlist, for the figure home leads with. Empty for a
+       guest; the read never throws. */
+    getSavedListings(),
   ]);
 
   /*
@@ -81,7 +94,50 @@ export default async function HomePage() {
    */
   /* UX-04: the Property home's shelf is Property: tenancies and sales. A
      shortlet or a hotel room here opened under Stays and turned the app over. */
-  const listings = recommended.filter((listing) => isPropertyMarket(marketOf(listing))).slice(0, 6);
+  const propertyRows = recommended.filter((listing) => isPropertyMarket(marketOf(listing)));
+
+  /*
+   * PERSONALISED BY WHAT THEY SAID (Session 3, W2; handoff section 2: "`/home`
+   * ignores the interests it collects").
+   *
+   * The 18 recommended rows are the whole catalogue's best, and a stated
+   * interest in shops is not answered by reordering 18 rows that hold no
+   * shop. So the shelf also reads the catalogue for each stated Property
+   * kind (at most three, in parallel, through the same repository `/search`
+   * uses), puts those rows through the SAME published Recommended formula
+   * (`rankRecommended`, `ranking.ts`), and puts them first with the stable
+   * partition `/search` uses (`orderByStatedIntent`). Nothing about the
+   * formula changes and nothing is paid for: this decides which honest rows
+   * are on a six-card shelf, never their rank against each other.
+   *
+   * A guest, an unread row and an empty answer all get the generic shelf,
+   * which is the honest surface. A dedicated personalised read would save
+   * the extra round trips; it is request W2-R2 in Session 3's response.
+   */
+  const stated = tuning.interests
+    .filter((kind): kind is SpaceTypeKey => (PROPERTY_SPACE_TYPES as readonly string[]).includes(kind))
+    .slice(0, 3);
+  const forThem: Listing[] =
+    stated.length > 0
+      ? (await Promise.all(stated.map((kind) => repo.search({ kind, propertySide: true })))).flat()
+      : [];
+  const seen = new Set<string>();
+  const pooled = [...rankRecommended(forThem), ...propertyRows].filter((listing) => {
+    if (seen.has(listing.id)) return false;
+    seen.add(listing.id);
+    return isPropertyMarket(marketOf(listing));
+  });
+  const ordered = orderByStatedIntent(pooled, stated);
+  const listings = ordered.slice(0, 6);
+  const intentApplied = stated.length > 0 && listings.some((listing) => (stated as readonly string[]).includes(listing.kind));
+
+  /*
+   * THE FIGURE HOME LEADS WITH (`HomeFigure.tsx`): the account's saved count,
+   * drawn only when there is at least one. The area's typical move-in total
+   * would lead for everybody else, and has no honest read yet (W2-R1).
+   */
+  const lead: HomeLeadFigure | null =
+    overview.signedIn && savedEntries.length > 0 ? { kind: "saved", count: savedEntries.length } : null;
 
   /*
    * Whether this person is a seller or an agent who has not finished verifying.
@@ -129,6 +185,9 @@ export default async function HomePage() {
       listings={listings}
       roles={roles}
       manageHref={manageHref}
+      lead={lead}
+      interests={tuning.interests}
+      intentApplied={intentApplied}
       upNext={
         /* Streamed, so its three reads never hold up the first paint; it
            draws nothing when there is nothing next (plan item 15). */

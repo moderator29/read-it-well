@@ -1112,3 +1112,183 @@
     color: var(--nf-content-muted);
   }
 }
+
+/*
+ * HOME, SESSION 3 (W2): the lead figure, the tiered doors, the space types
+ * row and the sections' stagger. North star 10 B; MOTION_SYSTEM motion 4 and
+ * "List stagger".
+ */
+@layer components {
+  /*
+   * THE LEAD FIGURE. A label above, quiet and small (checklist 8); the figure
+   * at the figure size, tabular, Poppins 600; the unit beside it at body
+   * size so the number is the subject; one quiet way onward. No container of
+   * its own: it sits on the hero band, which is already the screen's Island,
+   * and a card inside an Island would be a second edge.
+   */
+  .nf-home-figure {
+    display: grid;
+    gap: var(--nf-space-3xs);
+    margin-top: var(--nf-space-md);
+  }
+  .nf-home-figure__caption {
+    font-size: var(--nf-text-label, 0.8125rem);
+    font-weight: 500;
+    color: var(--nf-content-secondary);
+  }
+  .nf-home-figure__line {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: var(--nf-space-xs);
+  }
+  .nf-home-figure__value {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-figure);
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: var(--nf-content-primary);
+  }
+  .nf-home-figure__unit {
+    font-size: var(--nf-text-body);
+    color: var(--nf-content-secondary);
+  }
+  .nf-home-figure__go {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-3xs);
+    min-height: 2.75rem;
+    width: fit-content;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 500;
+    color: var(--nf-content-link);
+  }
+
+  /* The door's tiered object: 48px, sinking with the press like the plate. */
+  .nf-home-door__object {
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    transition: transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  .nf-home-door:active .nf-home-door__object {
+    transform: scale(var(--nf-press-scale-sm));
+  }
+
+  /*
+   * THE SPACE TYPES ROW. Plate-tier doors (flat, radius 14, one hairline),
+   * because they are rows of choices, not content; the object is the
+   * subject of each. A type the person named carries a quiet "You said"
+   * under its word, by label and never by colour alone.
+   */
+  .nf-space-types__row {
+    display: flex;
+    gap: var(--nf-gap-inline);
+    margin-inline: calc(-1 * var(--nf-pad-shell));
+    padding-block: var(--nf-space-2xs);
+  }
+  .nf-space-types__item {
+    flex: 0 0 auto;
+  }
+  .nf-space-type {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    width: 6.5rem;
+    min-height: 7.75rem;
+    padding: var(--nf-space-xs) var(--nf-space-2xs) var(--nf-space-sm);
+    border-radius: var(--nf-tier-plate-radius);
+    background: var(--nf-tier-plate-fill);
+    border: var(--nf-border-width) solid var(--nf-tier-plate-edge);
+    color: var(--nf-content-primary);
+    text-align: center;
+    transition:
+      scale var(--nf-duration-press) var(--nf-ease-press),
+      background var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .nf-space-type:hover {
+      background: var(--nf-tier-plate-hover);
+    }
+  }
+  .nf-space-type:active {
+    scale: var(--nf-press-scale-lg);
+    background: var(--nf-tier-plate-press);
+  }
+  .nf-space-type:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  .nf-space-type[data-mine] {
+    border-color: var(--nf-selected-edge);
+  }
+  .nf-space-type__object {
+    display: grid;
+    place-items: center;
+    width: 4rem;
+    height: 4rem;
+  }
+  .nf-space-type__label {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 500;
+  }
+  .nf-space-type__mine {
+    font-size: var(--nf-text-overline);
+    font-weight: 500;
+    color: var(--nf-content-link);
+  }
+
+  /*
+   * THE SECTIONS ARRIVE AS ONE ORGANISM (MOTION_SYSTEM "List stagger"): the
+   * first six sections of home, 40ms apart, a 12px lift and fade on `land`.
+   * This is home's own entrance, so the route's shared 50ms stagger
+   * (route-motion.css, written at no specificity so a block with its own
+   * entrance keeps it) steps aside. `backwards`, never `both`, and never on a
+   * section that holds a fixed layer, for the reason route-motion.css gives:
+   * a finished transform would make it the containing block of that layer.
+   */
+  .nf-home > :nth-child(-n + 6):not(:has(.fixed, .nf-sheet, .nf-sheet-backdrop, dialog)) {
+    animation: nf-home-section var(--nf-duration-slow) var(--nf-ease-entrance) backwards;
+    animation-delay: var(--nf-splash-hold, 0s);
+  }
+  .nf-home > :nth-child(2) {
+    animation-delay: calc(var(--nf-splash-hold, 0s) + 40ms);
+  }
+  .nf-home > :nth-child(3) {
+    animation-delay: calc(var(--nf-splash-hold, 0s) + 80ms);
+  }
+  .nf-home > :nth-child(4) {
+    animation-delay: calc(var(--nf-splash-hold, 0s) + 120ms);
+  }
+  .nf-home > :nth-child(5) {
+    animation-delay: calc(var(--nf-splash-hold, 0s) + 160ms);
+  }
+  .nf-home > :nth-child(6) {
+    animation-delay: calc(var(--nf-splash-hold, 0s) + 200ms);
+  }
+  @keyframes nf-home-section {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 12px, 0);
+    }
+  }
+  :root:is([data-motion="calm"], [data-save-data="on"]) .nf-home > * {
+    animation-name: nf-home-calm;
+    animation-duration: 160ms;
+    animation-delay: 0ms;
+  }
+  @keyframes nf-home-calm {
+    from {
+      opacity: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-space-type,
+    .nf-home-door__object {
+      transition: none;
+    }
+  }
+}
