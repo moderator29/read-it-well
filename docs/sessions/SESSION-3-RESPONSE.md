@@ -75,17 +75,24 @@ untouched of 38, agent 15 of 24.
 - **Legal:** the in-app terms, privacy and disclaimer on `DocumentSheet`, the same
   paper as the public documents. No word of legal text changed.
 
-**The weight diet (R3-18), as numbers, not met.** Production builds, CDP
-`encodedDataLength` at 390x844 with a cold cache (`check-weight.mjs`'s method), over
-the 8 signed-out routes in `perf-budget.json`; the 7 signed-in routes need a session
-cookie and were not measured. `/sign-in` 568,938 to 499,090 B (-12.3%),
-`/sign-up/email` 569,370 to 499,757 B (-12.2%); all 8 together 4,199,209 to
-4,055,696 B (**-3.4%, against the 20 percent asked**). The cuts: supabase-js
-(65,647 B gzipped) off the auth screens' first load, and 1,378 lines of global CSS
-with no consumer (the global stylesheet 97,603 to 95,019 B gzipped on every route).
-What is left, measured on `/`: the global stylesheet is 95 KB gzipped, of which about
-131 KB raw is the token custom properties per theme; fonts are 66 to 74 KB; the rest
-is Next and React. D49.1's feature bundle measures 24,071 B gzipped, as D49 says.
+**The weight diet (R3-18), as numbers: about 11 percent of the 20 asked.** Production
+builds served by `next start`, CDP `encodedDataLength` at 390x844 with the cache off
+(`check-weight.mjs`'s method), over the 8 signed-out routes in `perf-budget.json`; the
+7 signed-in routes need a session cookie and were not measured.
+- Round one (C4): 4,199,209 to 4,055,696 bytes (-3.4%): supabase-js (65,647 B gzipped)
+  off the auth screens' first load, and 1,378 lines of global CSS with no consumer.
+- Round two (C6), measured on a later tree (baseline 4,109,288, median of four cold
+  loads per route): 3,724,505 bytes (-9.4%). Fonts re-cut to the same pixels (0
+  differing pixels at every weight, in Latin, Yoruba, Igbo and Hausa with naira and
+  tabular figures); the footer's product links and the auth screens' small print stop
+  prefetching the app and the landing. `/sign-in` 510,185 to 420,940 (-17.5%), `/check`
+  583,157 to 434,810 (-25.4%).
+- Taken together, from C4's first baseline to C6's last figure: 4,199,209 to 3,724,505
+  bytes, about -11.3% (the two baselines are different builds, so this is an
+  approximation, not one measurement).
+- What is left: the global stylesheet (about 95 KB gzipped on every route; member-only
+  sheets such as `social-feed.css` sit in it, and moving them out needs a cascade-order
+  audit), and Next and React themselves.
 
 **CI: Database probes (db-06) is red, and not this PR's.** Session 2 applied
 `20261006104536_b4_first_run_store.sql` to the shared database, granting insert on
