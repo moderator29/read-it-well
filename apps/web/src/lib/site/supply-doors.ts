@@ -68,7 +68,16 @@ const LISTING_REVIEW = "A person at Vallo reviews each listing before it goes li
 
 const ONE_ACCOUNT = "Yes. It is one account for renting, staying and listing, with one inbox. You switch sides from your profile.";
 
-const NO_WALLET = "Vallo does not hold any money for you or for the renter. There is no wallet and nothing to withdraw.";
+/*
+ * ONE NO-CUSTODY SENTENCE PER CARD (C6, the route sweep). Each door's payout
+ * card used to print PAYOUT_ANSWER and then NO_CUSTODY_SENTENCE, which is the
+ * payer's sentence ("When you pay, the owner's or agent's share goes...") read
+ * by the person being paid; and "what Vallo does not do" said it a third time,
+ * in a sentence written here rather than in lib/money/copy.ts. PAYOUT_ANSWER
+ * already says Vallo never holds the share and there is nothing to withdraw,
+ * so the card prints it alone and the third sentence is gone. The question
+ * "Does Vallo hold the money?" still answers with NO_CUSTODY_SENTENCE.
+ */
 
 const NO_CAP =
   "Vallo does not set or cap your fees. It prints the fees you state on the listing, beside the published rule where a state has one, so renters can compare.";
@@ -104,11 +113,10 @@ export const SUPPLY_DOORS: Record<SupplyRole, SupplyDoor> = {
       },
       { icon: "banknote", title: "Get paid", body: `${PAYMENT_GATE_SENTENCE} Then the renter pays through Vallo and your share goes to your bank.` },
     ],
-    payout: [PAYOUT_ANSWER, NO_CUSTODY_SENTENCE],
+    payout: [PAYOUT_ANSWER],
     checks: [...LADDER_LINES, LISTING_REVIEW],
     notDone: [
       NO_CAP,
-      NO_WALLET,
       "Passing a step says what a reviewer looked at on that date. It is not a promise about every deal you do.",
     ],
     example: [
@@ -155,11 +163,10 @@ export const SUPPLY_DOORS: Record<SupplyRole, SupplyDoor> = {
       },
       { icon: "banknote", title: "Get paid", body: HOST_EARNINGS_EMPTY_BODY },
     ],
-    payout: [PAYOUT_ANSWER, NO_CUSTODY_SENTENCE],
+    payout: [PAYOUT_ANSWER],
     checks: [...LADDER_LINES, LISTING_REVIEW],
     notDone: [
       `Guests who cancel more than ${FULL_REFUND_HOURS} hours before check-in get everything back, under the platform terms. Your listing shows the terms that apply.`,
-      "Vallo does not hold any money for you or for the guest. There is no wallet and nothing to withdraw.",
     ],
     example: [
       { title: "Booking request: 2 nights", sub: "Deluxe room, Victoria Island", value: "New" },
@@ -209,12 +216,11 @@ export const SUPPLY_DOORS: Record<SupplyRole, SupplyDoor> = {
       },
       { icon: "banknote", title: "Get paid", body: `${PAYMENT_GATE_SENTENCE} Then the renter pays through Vallo and your share goes to your bank.` },
     ],
-    payout: [PAYOUT_ANSWER, NO_CUSTODY_SENTENCE],
+    payout: [PAYOUT_ANSWER],
     checks: [...LADDER_LINES, LISTING_REVIEW],
     notDone: [
       "Without a title document your listing still goes up, but it never carries an ownership mark. Nothing else changes.",
       NO_CAP,
-      NO_WALLET,
     ],
     example: [
       { title: "Enquiry: 3 bedroom flat, Gwarinpa", sub: "Asked to inspect this week", value: "New" },
