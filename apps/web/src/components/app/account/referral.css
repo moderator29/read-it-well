@@ -1,0 +1,76 @@
+@layer theme, base, components, utilities;
+
+/*
+ * THE REFERRAL FIGURES (W6). One Card at the figure radius, a quiet label
+ * above each tabular figure, side by side where there is room. Drawn only when
+ * Vallo has real numbers (`ReferralFigures`).
+ */
+@layer components {
+  .nf-panel.nf-refig {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+    gap: var(--nf-space-lg);
+    padding: var(--nf-space-lg);
+  }
+  .nf-refig__cell {
+    display: grid;
+    align-content: start;
+    gap: var(--nf-space-xs);
+    min-inline-size: 0;
+  }
+  .nf-refig__label {
+    font-size: var(--nf-text-label);
+    font-weight: 500;
+    color: var(--nf-content-muted);
+  }
+  .nf-refig__value {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-figure);
+    font-weight: 600;
+    line-height: var(--nf-leading-figure);
+    letter-spacing: var(--nf-tracking-figure);
+    color: var(--nf-content-primary);
+    overflow-wrap: anywhere;
+  }
+}
+
+/*
+ * HOW INVITES WORK (W6): four reasons in one Card, each a round tinted glyph
+ * plate beside a title and a sentence, hairline-separated.
+ */
+@layer components {
+  .nf-panel.nf-how {
+    display: grid;
+    margin: 0;
+    padding: var(--nf-space-xs) var(--nf-space-md);
+    list-style: none;
+  }
+  .nf-how__item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nf-space-sm);
+    padding-block: var(--nf-space-md);
+  }
+  .nf-how__item + .nf-how__item {
+    border-block-start: var(--nf-border-width) solid var(--nf-divider);
+  }
+  .nf-how__item > .nf-plate {
+    flex: none;
+  }
+  .nf-how__text {
+    display: grid;
+    gap: var(--nf-space-3xs);
+    min-inline-size: 0;
+  }
+  .nf-how__title {
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-how__body {
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.55;
+    color: var(--nf-content-secondary);
+    overflow-wrap: anywhere;
+  }
+}

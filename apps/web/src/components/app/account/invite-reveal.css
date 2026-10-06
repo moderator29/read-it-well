@@ -1,0 +1,339 @@
+@layer theme, base, components, utilities;
+
+/*
+ * THE INVITE, REVEALED AS A GIFT (W6; north star motion 12, MOTION_SYSTEM
+ * "Referral code revealed"; references 7045 and 7046, the founder's replay).
+ *
+ * The beat, in order, on `land` (`--nf-ease-entrance`):
+ *
+ *     0ms    the gift settles in (520ms), a quiet burst behind it
+ *   120ms    "Your invite is ready" rises and holds
+ *   640ms    the ticket unfolds from the gift (520ms) while its dashed edge
+ *            DRAWS round it and the label arrives
+ *   900ms    the six characters of the code land, 45ms apart
+ *  1100ms    Copy and Share arrive
+ *  1160ms    the payoff: ONE pop (1.0, 1.04, 1.0 over 180ms) and ONE haptic,
+ *            fired from the component on the same clock
+ *
+ * Every delay is multiplied by `--nf-gift-k`, which is 1 and collapses to 0
+ * where the person asked for less motion (reduced motion, Calm, Off, data
+ * saver), so the whole reveal lands at once in its final frame. Nothing
+ * loops. Transform and opacity move, with one exception stated where it is:
+ * the dashed edge's draw is `stroke-dashoffset` on an SVG mask path, which
+ * paints one element and never touches layout (the same technique the
+ * button's tick and the door use).
+ *
+ * Every colour is a token. The ticket's one edge is the dashed stroke: no
+ * hairline, no ring and no shadow beside it.
+ */
+@layer components {
+  .nf-gift {
+    --nf-gift-k: 1;
+    position: relative;
+    display: grid;
+    justify-items: center;
+    gap: var(--nf-space-md);
+  }
+  :root[data-motion="calm"] .nf-gift,
+  :root[data-motion="off"] .nf-gift,
+  :root[data-save-data="on"] .nf-gift {
+    --nf-gift-k: 0;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-gift {
+      --nf-gift-k: 0;
+    }
+  }
+
+  /* ------------------------------------------------------------ the gift */
+
+  .nf-gift__stage {
+    position: relative;
+    display: grid;
+    place-items: center;
+    inline-size: 100%;
+    min-block-size: 7rem;
+  }
+  /* A quiet sunburst behind the object, a tint of the brand and never a
+     second glow. It scales in once and stays. */
+  .nf-gift__rays {
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline-start: 50%;
+    inline-size: 13rem;
+    block-size: 13rem;
+    margin-block-start: -6.5rem;
+    margin-inline-start: -6.5rem;
+    opacity: 0.4;
+    pointer-events: none;
+  }
+  .nf-gift__box {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    inline-size: 6rem;
+    block-size: 6rem;
+    padding: 0;
+    border: 0;
+    border-radius: var(--nf-radius-control);
+    background: none;
+    cursor: pointer;
+    transition: transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  .nf-gift__box:active {
+    transform: scale(var(--nf-press-scale));
+  }
+  .nf-gift__box:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: var(--nf-focus-ring-offset);
+  }
+
+  /* --------------------------------------------------- the sealed message */
+
+  /* The beat between the gift and the ticket. It sits in the ticket's own
+     space, so nothing shifts when the ticket arrives. */
+  .nf-gift__table {
+    position: relative;
+    display: grid;
+    inline-size: 100%;
+    max-inline-size: 28rem;
+  }
+  .nf-gift__sealed {
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline: 0;
+    display: flex;
+    justify-content: center;
+    margin-block-start: -1.5rem;
+    pointer-events: none;
+    opacity: 0;
+  }
+  .nf-gift__sealed > span {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    padding: var(--nf-space-xs) var(--nf-space-xs) var(--nf-space-xs) var(--nf-space-md);
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-tier-island-fill);
+    border: var(--nf-border-width) solid var(--nf-border-default);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-gift__sealed-mark {
+    display: grid;
+    place-items: center;
+    inline-size: 1.75rem;
+    block-size: 1.75rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+  }
+
+  /* ------------------------------------------------------------ the ticket */
+
+  .nf-gift__pop {
+    display: grid;
+  }
+  .nf-ticket {
+    position: relative;
+    display: grid;
+    gap: var(--nf-space-md);
+    padding: var(--nf-space-lg);
+    border-radius: var(--nf-tier-card-radius);
+    /* The fill is the plate's, lifted a touch toward the brand so the ticket
+       reads as an object on the page. Its only edge is the dashed stroke. */
+    background: color-mix(in oklab, var(--nf-brand-primary) 7%, var(--nf-tier-plate-fill));
+    text-align: center;
+    transform-origin: 50% 0;
+  }
+  .nf-ticket__edge {
+    position: absolute;
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100%;
+    overflow: visible;
+    pointer-events: none;
+  }
+  .nf-ticket__dash,
+  .nf-ticket__draw {
+    x: 1px;
+    y: 1px;
+    width: calc(100% - 2px);
+    height: calc(100% - 2px);
+    rx: var(--nf-tier-card-radius);
+    fill: none;
+  }
+  .nf-ticket__dash {
+    stroke: color-mix(in oklab, var(--nf-brand-primary) 78%, transparent);
+    stroke-width: 2px;
+    stroke-dasharray: 7 6;
+    stroke-linecap: round;
+  }
+  .nf-ticket__mask {
+    mask-type: alpha;
+  }
+  /* The mask path is what is drawn: a solid stroke, one unit long however
+     long the perimeter is (pathLength="1"), whose dash offset runs 1 to 0. */
+  .nf-ticket__draw {
+    stroke: var(--nf-content-primary);
+    stroke-width: 6px;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+  }
+
+  .nf-ticket__label {
+    font-size: var(--nf-text-caption);
+    font-weight: 500;
+    letter-spacing: var(--nf-tracking-label, 0.06em);
+    color: var(--nf-content-muted);
+  }
+  .nf-ticket__code {
+    display: flex;
+    justify-content: center;
+    gap: 0.12em;
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-figure);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: var(--nf-tracking-figure);
+    color: var(--nf-content-primary);
+    font-variant-numeric: tabular-nums;
+    user-select: all;
+  }
+  .nf-ticket__code > span {
+    display: inline-block;
+    /* Equal cells, so a narrow I or a wide W never moves its neighbours. */
+    min-inline-size: 0.78em;
+  }
+  .nf-ticket__perf {
+    border-block-start: 2px dashed var(--nf-border-default);
+    margin-inline: calc(var(--nf-space-lg) * -0.25);
+  }
+  .nf-ticket__actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: var(--nf-space-sm);
+  }
+
+  /* ----------------------------------------------------------- the reveal */
+
+  .nf-gift[data-reveal="play"] .nf-gift__box {
+    animation: nf-gift-box-in var(--nf-duration-entrance) var(--nf-ease-entrance) both;
+  }
+  .nf-gift[data-reveal="play"] .nf-gift__rays {
+    animation: nf-gift-rays var(--nf-duration-cinematic) var(--nf-ease-standard) both;
+  }
+  .nf-gift[data-reveal="play"] .nf-gift__sealed {
+    animation: nf-gift-sealed calc(var(--nf-gift-k) * 760ms + 1ms) var(--nf-ease-entrance) both;
+    animation-delay: calc(var(--nf-gift-k) * 120ms);
+  }
+  .nf-gift[data-reveal="play"] .nf-ticket {
+    animation: nf-ticket-unfold var(--nf-duration-entrance) var(--nf-ease-entrance) both;
+    animation-delay: calc(var(--nf-gift-k) * 640ms);
+  }
+  .nf-gift[data-reveal="play"] .nf-ticket__draw {
+    animation: nf-ticket-draw var(--nf-duration-entrance) var(--nf-ease-standard) both;
+    animation-delay: calc(var(--nf-gift-k) * 640ms);
+  }
+  .nf-gift[data-reveal="play"] .nf-ticket__label {
+    animation: nf-ticket-fade var(--nf-duration-base) var(--nf-ease-standard) both;
+    animation-delay: calc(var(--nf-gift-k) * 780ms);
+  }
+  .nf-gift[data-reveal="play"] .nf-ticket__code > span {
+    animation: nf-char-land var(--nf-duration-slow) var(--nf-ease-entrance) both;
+    animation-delay: calc(var(--nf-gift-k) * (900ms + var(--i, 0) * 45ms));
+  }
+  .nf-gift[data-reveal="play"] .nf-ticket__perf {
+    animation: nf-ticket-fade var(--nf-duration-base) var(--nf-ease-standard) both;
+    animation-delay: calc(var(--nf-gift-k) * 1000ms);
+  }
+  .nf-gift[data-reveal="play"] .nf-ticket__actions {
+    animation: nf-ticket-rise var(--nf-duration-base) var(--nf-ease-entrance) both;
+    animation-delay: calc(var(--nf-gift-k) * 1100ms);
+  }
+  /* The payoff: the one pop, on a wrapper so it never fights the unfold. */
+  .nf-gift[data-reveal="play"] .nf-gift__pop {
+    animation: nf-gift-pop calc(var(--nf-gift-k) * 180ms + 1ms) var(--nf-ease-spring) both;
+    animation-delay: calc(var(--nf-gift-k) * 1160ms);
+  }
+
+  @keyframes nf-gift-box-in {
+    from {
+      opacity: 0;
+      transform: translateY(0.875rem) scale(0.9);
+    }
+  }
+  @keyframes nf-gift-rays {
+    from {
+      opacity: 0;
+      transform: scale(0.6);
+    }
+    to {
+      opacity: 0.4;
+      transform: scale(1);
+    }
+  }
+  /* Rises, holds while the ticket begins to open behind it, then goes. */
+  @keyframes nf-gift-sealed {
+    0% {
+      opacity: 0;
+      transform: translateY(0.5rem);
+    }
+    22% {
+      opacity: 1;
+      transform: none;
+    }
+    72% {
+      opacity: 1;
+      transform: none;
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-0.25rem);
+    }
+  }
+  /* The ticket folds out of the gift: tipped back on its top edge and a
+     little short, then flat. Transform and opacity only. */
+  @keyframes nf-ticket-unfold {
+    from {
+      opacity: 0;
+      transform: perspective(900px) rotateX(-14deg) translateY(-0.75rem) scale(0.94, 0.9);
+    }
+  }
+  @keyframes nf-ticket-draw {
+    from {
+      stroke-dashoffset: 1;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  @keyframes nf-ticket-fade {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes nf-ticket-rise {
+    from {
+      opacity: 0;
+      transform: translateY(0.5rem);
+    }
+  }
+  @keyframes nf-char-land {
+    from {
+      opacity: 0;
+      transform: translateY(0.4em) scale(0.9);
+    }
+  }
+  @keyframes nf-gift-pop {
+    0%,
+    100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.04);
+    }
+  }
+}
