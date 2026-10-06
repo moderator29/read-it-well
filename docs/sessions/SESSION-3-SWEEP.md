@@ -6,7 +6,7 @@ component with the fixture named in its row. **P** pass, **X** failed and fixed 
 sweep, **F** failed and still open, **·** does not apply. The denominator is 213 real routes
 (every `page.tsx` under `apps/web/src/app`, excluding `(dev)` and `api`).
 
-**Routes audited: 44 of 213.**
+**Routes audited: 49 of 213.**
 
 | Family | Audited |
 |---|---|
@@ -14,6 +14,7 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | around | 1 |
 | assistant | 1 |
 | bookings | 1 |
+| host | 5 |
 | inspections | 1 |
 | legal | 3 |
 | messages | 2 |
@@ -52,6 +53,11 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | `/around/manage` | C3 | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | P | · | · | · | · | · | · | · | P |
 | `/assistant` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | P | P | X | P | P | P | P |
 | `/bookings/[bookingId]/review` | C3 | P | · | P | P | P | P | · | P | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
+| `/host/apply` | C5 | P | · | P | P | X | P | · | · | P | P | P | P | P | · | · | P | · | P | P | P | P | X | P | P |
+| `/host/photos` | C5 | P | P | P | P | P | P | · | · | P | P | P | P | P | · | · | P | · | P | P | P | P | X | P | P |
+| `/host/reservations` | C5 | P | P | P | P | P | P | P | · | P | P | P | P | P | P | P | P | · | P | P | P | P | X | P | P |
+| `/host/reviews` | C5 | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | P | · | P | P | P | P | X | P | P |
+| `/host/transfer` | C5 | P | P | P | P | P | P | · | · | P | P | P | P | P | · | X | P | · | P | P | P | P | X | P | P |
 | `/inspections/gate/[id]` | C3 | P | · | P | P | P | P | · | P | · | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/legal/disclaimer` | C3 | P | · | P | P | P | P | · | · | · | P | P | P | P | · | P | P | F | · | P | P | P | P | P | P |
 | `/legal/privacy` | C3 | P | · | P | P | P | P | · | · | · | P | P | P | P | · | P | P | F | · | P | P | P | P | P | P |
@@ -191,6 +197,28 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 **`/assistant`** (the real page with readAssistantViewer mocked to _fixtures/people PERSON's initial and aiConsentForViewer both true and false; no thread (threads live on the device, so a first visit is empty))
 
 - 20 (fixed): axe aria-prohibited-attr on arrival (1 at dark.390 and light.390): the thread was a div carrying aria-label with no role. It is a named region now.
+
+**`/host/apply`** (the real page inside its real RouteCopy layout and HostShell; readMyHostDraft mocked to the f5 host-wizard deck's draft (emptyHostDraft as a hotel) and the cancellation_policies read to its one Flexible policy; and signed out)
+
+- 5 (fixed): The step summary read 'Step 1 of 11 Saved on this device as you type.': two sentences joined by a bare space. Joined with a middle dot now.
+- 22 (fixed): Overflow 0 in all four. Metadata, 'Sign in' and 'Try again' were English; dictionary now.
+
+**`/host/photos`** (the real page in the real HostShell; getMyBusinesses mocked to the p3 host-photos deck's venue (copied verbatim, it is declared inline there) and listBusinessPhotos to p3 P3_PHOTOS; and to no business at all)
+
+- 22 (fixed): Overflow 0 in all four. The heading, the no-photographs sentence, metadata and Sign in were English literals, and the count was always English (countOf without a locale). All from the dictionary now, the count in the reader's locale.
+
+**`/host/reservations`** (the real page in the real HostShell; readHostTableBoard mocked to p3 P3_TABLE_BOARD (two waiting, one coming up, one called off) and P3_EMPTY_BOARD)
+
+- 22 (fixed): Overflow 0 in all four. 'Tables', 'Nothing is waiting on you.', 'Your venue', 'Try again', 'Sign in' and the metadata were English; the waiting count was always English. Dictionary now, count in the reader's locale.
+
+**`/host/reviews`** (the real page in the real HostShell; readHostReviews mocked to (dev)/preview/host-c REVIEWS (four reviews: a replied one, an asked-Vallo one, a hidden one, a wordless one), to not-ready, and signed out)
+
+- 22 (fixed): Overflow 0 in all four. The page and HostReviewsView wrote 16 strings in English (metadata, the signed-out door, the header, the empty and not-ready states, the rating card). They are in experienceHost now; host-copy.test.ts's ceilings for both files went to zero and the rows were deleted.
+
+**`/host/transfer`** (the real page inside its real RouteCopy layout and HostShell; readTransferScreen mocked to f5 new-surfaces-fixtures (one business trading, one quiet with an offer out, one offer in))
+
+- 15 (fixed): The deck's offers said status OFFERED, which business_transfers does not allow (PENDING, ACCEPTED, DECLINED, WITHDRAWN, EXPIRED); the screen filters on PENDING, so the quiet business showed 'Hand it over' as if no offer were out. The fixture says PENDING now and the offer, its clock and Take it back draw.
+- 22 (fixed): Overflow 0 in all four. Metadata and Sign in on the page were English; dictionary now.
 
 **`/legal/disclaimer`** (none needed; the page reads lib/legal content only)
 
