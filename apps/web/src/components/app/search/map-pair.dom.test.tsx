@@ -28,7 +28,7 @@ afterAll(closeBrowser);
 const CSS = productCss(GLASS_CSS, "app/css/brand-glass.css", "app/css/map.css");
 
 const ENTRY = `
-  import { useState } from "react";
+  import { useLayoutEffect, useState } from "react";
   import { mount } from "@/lib/testing/browser-root";
   import { MapDock } from "@/components/app/search/MapDock";
   const place = (id, title) => ({
@@ -41,6 +41,16 @@ const ENTRY = `
     const [chosen, setChosen] = useState("a");
     window.__choose = setChosen;
     const listing = chosen === "a" ? place("a", "Two bed in Yaba") : place("b", "Mini flat in Yaba");
+    /* Captured in the commit that mounts the card, before any frame is
+       drawn, so a slow machine cannot let the animation finish unread
+       (getAnimations flushes style, so the CSS animation exists here). */
+    useLayoutEffect(() => {
+      const read = (sel) =>
+        [...(document.querySelector(sel)?.getAnimations() ?? [])]
+          .filter((a) => a instanceof CSSAnimation)
+          .map((a) => ({ name: a.animationName, duration: Number(a.effect.getTiming().duration) }));
+      (window.__atMount ??= []).push({ dock: read("[data-testid=map-dock]"), pin: read("#pin") });
+    }, [chosen]);
     return (
       <div style={{ position: "relative", height: 400 }}>
         <span id="probe" style={{ borderStyle: "solid", borderWidth: 1, borderColor: "var(--nf-selected-edge)" }} />
@@ -57,24 +67,35 @@ const ENTRY = `
   mount(<Harness />);
 `;
 
-type Anim = { name: string; duration: number; props: string[] };
-const animsOf = (page: Page, selector: string): Promise<Anim[]> =>
+type Anim = { name: string; duration: number };
+type Mounted = { dock: Anim[]; pin: Anim[] };
+/** What was running on the card and the pin in each commit that mounted a card. */
+const atMount = (page: Page): Promise<Mounted[]> =>
+  page.evaluate(() => (window as unknown as { __atMount?: Mounted[] }).__atMount ?? []);
+
+/**
+ * The animation the stylesheet declares on an element (computed, so it holds
+ * after the animation has finished, however slow the machine), and the
+ * properties its keyframes animate, read from the keyframes rule itself.
+ */
+const declared = (page: Page, selector: string) =>
   page.evaluate((sel) => {
-    const el = document.querySelector(sel);
-    if (!el) return [];
-    return el
-      .getAnimations()
-      .filter((a) => a instanceof CSSAnimation)
-      .map((a) => ({
-        name: (a as CSSAnimation).animationName,
-        duration: Number(a.effect!.getTiming().duration),
-        props: (a.effect as KeyframeEffect)
-          .getKeyframes()
-          .flatMap((k) => Object.keys(k))
-          .filter((k) => !["offset", "easing", "composite", "computedOffset"].includes(k))
-          .filter((k, i, all) => all.indexOf(k) === i)
-          .sort(),
-      }));
+    const style = getComputedStyle(document.querySelector(sel)!);
+    const name = style.animationName;
+    const props = new Set<string>();
+    const walk = (rules: CSSRuleList) => {
+      for (const rule of Array.from(rules)) {
+        if (rule instanceof CSSKeyframesRule && rule.name === name) {
+          for (const frame of Array.from(rule.cssRules) as CSSKeyframeRule[]) {
+            for (let i = 0; i < frame.style.length; i += 1) props.add(frame.style.item(i));
+          }
+        } else if ("cssRules" in rule) {
+          walk((rule as CSSGroupingRule).cssRules);
+        }
+      }
+    };
+    for (const sheet of Array.from(document.styleSheets)) walk(sheet.cssRules);
+    return { name, duration: style.animationDuration, props: [...props].sort() };
   }, selector);
 
 const edges = (page: Page) =>
@@ -89,11 +110,21 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the chosen pin and its card", (
   it("the card rises at the browsing pace, wears the pin's edge, and a new choice lands a new card", async () => {
     const { page, close } = await mountInBrowser({ entry: ENTRY, css: CSS });
     try {
-      expect(await animsOf(page, "[data-testid=map-dock]")).toEqual([
-        { name: "nf-map-dock-in", duration: 240, props: ["opacity", "transform"] },
-      ]);
-      /* The pin lands at the same pace, and the chosen one rests lifted 6px. */
-      expect((await animsOf(page, "#pin")).map((a) => a.duration)).toEqual([240]);
+      /* Running in the commit that mounted it: the card's rise and the pin's drop, both at 240ms. */
+      const [first] = await atMount(page);
+      expect(first!.dock).toEqual([{ name: "nf-map-dock-in", duration: 240 }]);
+      expect(first!.pin).toEqual([{ name: "nf-map-pin-drop", duration: 240 }]);
+      /* And as the stylesheet declares them: transform and opacity only. */
+      expect(await declared(page, "[data-testid=map-dock]")).toEqual({
+        name: "nf-map-dock-in",
+        duration: "0.24s",
+        props: ["opacity", "transform"],
+      });
+      expect(await declared(page, "#pin")).toEqual({
+        name: "nf-map-pin-drop",
+        duration: "0.24s",
+        props: ["opacity", "transform"],
+      });
       const { card, selected } = await edges(page);
       expect(card).toBe(selected);
       await page.waitForTimeout(500);
@@ -106,10 +137,15 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the chosen pin and its card", (
       ).toEqual(["1", "none"]);
       expect(await pinLift(page)).toBe("matrix(1, 0, 0, 1, 0, -6)");
       /* Choosing another place lands a new card, not new words in the old one. */
-      await page.evaluate(() => (window as unknown as { __choose: (id: string) => void }).__choose("b"));
-      await page.waitForTimeout(20);
-      expect(await page.locator("[data-testid=map-dock] h3").innerText()).toBe("Mini flat in Yaba");
-      expect((await animsOf(page, "[data-testid=map-dock]")).map((a) => a.name)).toEqual(["nf-map-dock-in"]);
+      await page.evaluate(() => {
+        (document.querySelector("[data-testid=map-dock]") as HTMLElement).dataset.was = "a";
+        (window as unknown as { __choose: (id: string) => void }).__choose("b");
+      });
+      await expect.poll(() => page.locator("[data-testid=map-dock] h3").innerText()).toBe("Mini flat in Yaba");
+      expect(await page.locator("[data-testid=map-dock][data-was]").count(), "a new card, not the old one rewritten").toBe(0);
+      const mounts = await atMount(page);
+      expect(mounts).toHaveLength(2);
+      expect(mounts[1]!.dock).toEqual([{ name: "nf-map-dock-in", duration: 240 }]);
     } finally {
       await close();
     }
@@ -118,9 +154,13 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the chosen pin and its card", (
   it("reduced motion: the card fades in over 160ms without travel, and the chosen pin is lifted at once", async () => {
     const { page, close } = await mountInBrowser({ entry: ENTRY, css: CSS, reducedMotion: true });
     try {
-      expect(await animsOf(page, "[data-testid=map-dock]")).toEqual([
-        { name: "nf-map-dock-fade", duration: 160, props: ["opacity"] },
-      ]);
+      const [first] = await atMount(page);
+      expect(first!.dock).toEqual([{ name: "nf-map-dock-fade", duration: 160 }]);
+      expect(await declared(page, "[data-testid=map-dock]")).toEqual({
+        name: "nf-map-dock-fade",
+        duration: "0.16s",
+        props: ["opacity"],
+      });
       await page.waitForTimeout(50);
       expect(await pinLift(page)).toBe("matrix(1, 0, 0, 1, 0, -6)");
       const { card, selected } = await edges(page);
