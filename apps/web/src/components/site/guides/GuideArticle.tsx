@@ -6,6 +6,7 @@ import { DisclosureInline } from "@/components/app/DisclosureInline";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { type Guide, type GuideBlock, readingMinutes } from "@/lib/guides/articles";
 import { GuideToc } from "./GuideToc";
+import "./docs-type.css";
 
 type GuideCopy = Dictionary["publicDoors"]["guides"];
 type Callout = Extract<GuideBlock, { callout: string }>;

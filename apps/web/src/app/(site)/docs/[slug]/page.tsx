@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { CHAPTER_INDEX, chapterBySlug, chapterNeighbours } from "../chapters";
 import { OnThisPage } from "../OnThisPage";
+import "@/components/site/guides/docs-type.css";
 import { DepthWords } from "@/components/motion/DepthWords";
 import { MotionReveal } from "@/components/motion/Reveal";
 import { IconPlate } from "@/components/ui/IconPlate";
@@ -71,7 +72,7 @@ export default async function DocChapterPage({
         <nav aria-label="Breadcrumb" className="mb-row">
           <Link
             href="/docs"
-            className="nf-tap inline-flex min-h-11 items-center gap-inline text-[0.8125rem] font-semibold text-[var(--nf-content-muted)] transition-colors hover:text-[var(--nf-content-primary)]"
+            className="nf-tap inline-flex min-h-11 items-center gap-inline text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-muted)] transition-colors hover:text-[var(--nf-content-primary)]"
           >
             <UiIcon name="arrow-left" size={16} />
             All chapters
@@ -110,19 +111,20 @@ export default async function DocChapterPage({
 
         <article className="min-w-0 flex-1 xl:order-first">
           {/* ---------------------------------------------------- sections */}
-          <div className="nf-panel nf-panel--card block nf-rise p-card" style={{ animationDelay: "80ms" }}>
-            <div className="space-y-block">
+          <div className="nf-panel nf-panel--card block nf-rise p-card sm:p-lg" style={{ animationDelay: "80ms" }}>
+            <div className="nf-doc-sections">
               {/* Each section rises in as it arrives, its heading word by word
                   and its lists a step at a time (docs-motion.css); a section
                   already on screen is simply there. */}
-              {chapter.sections.map((section) => (
+              {chapter.sections.map((section, index) => (
                 <MotionReveal as="section" key={section.id} id={section.id} className="nf-doc-section nf-depth-gate scroll-mt-28">
-                  <h2 className="nf-h3">
+                  <span className="nf-doc-section__n nf-numeric" aria-hidden="true">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                  <h2 className="nf-doc-section__title">
                     <DepthWords text={section.heading} />
                   </h2>
-                  <div className="mt-row max-w-[68ch] space-y-row text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)] [&_code]:rounded-[var(--nf-radius-xs)] [&_code]:border [&_code]:border-[var(--nf-border-subtle)] [&_code]:bg-[var(--nf-surface-inset)] [&_code]:px-inline [&_code]:py-inline-tight [&_code]:text-[0.8125rem] [&_code]:break-words [&_code]:text-[var(--nf-content-primary)] [&_em]:font-medium [&_em]:text-[var(--nf-content-primary)] [&_em]:not-italic [&_li]:mt-inline [&_ol]:list-decimal [&_ol]:space-y-inline [&_ol]:pl-heading [&_strong]:font-semibold [&_strong]:text-[var(--nf-content-primary)] [&_ul]:list-disc [&_ul]:space-y-inline [&_ul]:pl-heading">
-                    {section.body}
-                  </div>
+                  <div className="nf-doc-prose">{section.body}</div>
                 </MotionReveal>
               ))}
             </div>
@@ -136,11 +138,11 @@ export default async function DocChapterPage({
                 rel="prev"
                 className="nf-panel nf-panel--card nf-card--interactive flex min-h-11 flex-col p-card-sm"
               >
-                <span className="flex items-center gap-inline text-[0.75rem] font-semibold text-[var(--nf-content-muted)]">
+                <span className="flex items-center gap-inline text-[length:var(--nf-text-overline)] font-semibold text-[var(--nf-content-muted)]">
                   <UiIcon name="arrow-left" size={12} />
                   Previous
                 </span>
-                <span className="mt-inline-tight text-[0.875rem] leading-snug font-semibold text-[var(--nf-content-primary)]">
+                <span className="mt-inline-tight text-[length:var(--nf-text-body-sm)] leading-snug font-semibold text-[var(--nf-content-primary)]">
                   {previous.number}. {previous.title}
                 </span>
               </Link>
@@ -154,11 +156,11 @@ export default async function DocChapterPage({
                 rel="next"
                 className="nf-panel nf-panel--card nf-card--interactive flex min-h-11 flex-col p-card-sm sm:items-end sm:text-right"
               >
-                <span className="flex items-center gap-inline text-[0.75rem] font-semibold text-[var(--nf-content-muted)]">
+                <span className="flex items-center gap-inline text-[length:var(--nf-text-overline)] font-semibold text-[var(--nf-content-muted)]">
                   Next
                   <UiIcon name="arrow-right" size={12} />
                 </span>
-                <span className="mt-inline-tight text-[0.875rem] leading-snug font-semibold text-[var(--nf-content-primary)]">
+                <span className="mt-inline-tight text-[length:var(--nf-text-body-sm)] leading-snug font-semibold text-[var(--nf-content-primary)]">
                   {next.number}. {next.title}
                 </span>
               </Link>
@@ -166,7 +168,7 @@ export default async function DocChapterPage({
           </nav>
 
           {/* ---------------------------------------------------- closing */}
-          <p className="mt-block text-[0.875rem] text-[var(--nf-content-muted)]">
+          <p className="mt-block text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
             Something here unclear, or something missing?{" "}
             <Link
               href="/contact"

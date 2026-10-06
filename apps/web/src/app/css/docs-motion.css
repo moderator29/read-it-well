@@ -60,9 +60,10 @@
   .nf-doc-rail__marker[data-on="true"] {
     opacity: 1;
   }
+  /* The lit heading changes colour only: a weight change would re-wrap a
+     long heading in the narrow rail and nudge the list under the marker. */
   .nf-doc-rail__link[aria-current="location"] {
     color: var(--nf-content-primary);
-    font-weight: 600;
   }
 
   /* ------------------------------------------------------ the flows */

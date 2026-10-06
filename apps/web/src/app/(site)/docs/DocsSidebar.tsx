@@ -61,7 +61,7 @@ export function DocsSidebar({ items }: { items: DocChapterIndexEntry[] }) {
               size={16}
               className="shrink-0 text-[var(--nf-content-muted)]"
             />
-            <span className="min-w-0 text-[0.875rem] font-semibold text-[var(--nf-content-primary)]">
+            <span className="min-w-0 text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
               {label}
             </span>
           </span>
@@ -129,7 +129,7 @@ function ChapterLink({
     <Link
       href={href}
       aria-current={active ? "page" : undefined}
-      className={`nf-tap flex min-h-11 items-center gap-inline rounded-[var(--nf-radius-sm)] border-l-2 py-inline pr-inline pl-inline text-[0.8125rem] leading-snug transition-colors ${
+      className={`nf-tap flex min-h-11 items-center gap-inline rounded-[var(--nf-radius-sm)] border-l-2 py-inline pr-inline pl-inline text-[length:var(--nf-text-caption)] leading-snug transition-colors ${
         active
           ? "border-l-[var(--nf-selected-edge)] bg-[image:var(--nf-selected-fill)] shadow-[var(--nf-selected-shadow-inline)] font-semibold text-[var(--nf-content-on-brand)]"
           : "border-l-transparent text-[var(--nf-content-secondary)] hover:bg-[var(--nf-glass-fill-thin)] hover:text-[var(--nf-content-primary)]"
