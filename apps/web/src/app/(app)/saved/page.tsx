@@ -20,7 +20,9 @@ import { SavedCompare } from "./SavedCompare";
 import { readSavedChanges } from "@/lib/saved/changes";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-export const metadata: Metadata = { title: "Saved" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: getDictionary(await getLocale()).nav.saved };
+}
 
 /**
  * Saved.
@@ -168,7 +170,7 @@ export default async function SavedPage() {
             className="nf-link-quiet nf-body-sm inline-flex min-h-11 items-center text-[var(--nf-content-link)]"
             data-testid="saved-searches-link"
           >
-            Saved searches
+            {t.experienceDiscover.saved.searchesLink}
           </Link>
         }
       />

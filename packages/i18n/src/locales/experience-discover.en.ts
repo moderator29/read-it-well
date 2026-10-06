@@ -104,6 +104,8 @@ export const experienceDiscoverEn = {
     emptyAction: "Find a place",
     captureLead: "Keep a search instead, and we tell you when something new fits it.",
     capture: "Your saved searches",
+    /* The header link to /saved/searches, and the page title (Round 3 sweep, C3). */
+    searchesLink: "Saved searches",
     /* Saved searches, whose empty face is its most-seen face. */
     searchesSignedOutTitle: "Sign in to keep a search",
     searchesSignedOutBody: "A saved search belongs to an account, so it follows you between your phone and your laptop and nobody else can see what you are looking for.",
