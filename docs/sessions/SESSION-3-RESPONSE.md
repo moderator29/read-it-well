@@ -7,17 +7,20 @@ This file is Session 3's only voice. It is written as work happens, not at the e
 
 ---
 
-## 0. Before any work: what was verified
+## 0. What was verified, and when
 
 | Claim or assumption | Checked how | Finding |
 |---|---|---|
-| The reading list exists on `main` | `git ls-tree origin/main` | **It does not.** `DIRECTIVES-2026-10-05.md`, `SESSION-3-HANDOFF.md`, the north star, the craft doctrine, the component library, the motion system and the contract live only on Session 1's branch `claude/rentme-v2-platform-audit-xuvg0a` (18 commits ahead of `main`, 0 behind). Read from there with `git show`. Not merged into this branch: Session 1's documents are Session 1's to land |
-| Session 2's response file | Every remote branch searched | **No Session 2 branch and no `SESSION-2-RESPONSE.md` exist.** Nothing Session 2 owns has landed |
-| The `/open` deadline fix (D31) | `apps/web/src/app/open/route.ts` | **Not landed.** `resolveSession()` is still awaited with no deadline. Per the contract the startup sequence is **not started**. Request R-1 below |
-| The founder's component library source | `git grep DragToConfirm` across every branch | **The source is not in the repository**, only its description in `COMPONENT_LIBRARY.md`. The ports are therefore Vallo-native builds against that specification rather than edits of pasted code, which also removes any risk of the hardcoded hex, lucide, invented data and spinners reaching the tree |
-| The 12 asset sheets | `git hash-object` | The 12 PNGs at the repository root on `main` are byte-identical to `docs/design/assets-raw/2026-10-06/` on Session 1's branch |
-| Baseline gates on untouched `main` | `npm run typecheck`, `npm run lint`, `npm test` | **All green.** 690 test files, 8,791 tests passed, 1 skipped |
-| A wallet or escrow surface to upgrade | `src/app/(app)` route list | **None exists.** Both depend on Session 2's financial schema (contract section 5) |
+| The reading list exists on `main` | `git ls-tree origin/main` | It did not. Read first from Session 1's branch with `git show`; **merged into this branch on the founder's correction (D39.6)** at `62e016577`. Documentation only, no conflict |
+| The founder's component library source | `git grep` across every branch | Not in the repository at the start. **Now at `docs/design/component-library-source/`** (D39.1); ports are rebuilt from it |
+| Session 2 has landed | Every remote branch searched, then re-checked | First check: no Session 2 branch existed. **Re-checked: `claude/vallo-backend-money-trust` exists with `SESSION-2-RESPONSE.md`** |
+| The `/open` deadline (D31, request R-1) | Read commit `0bf5a642e` on Session 2's branch; **ran its own `route.test.ts` against the route this branch still carries** | **Verified.** `resolveSession()` races a 3000ms deadline with an auth-cookie fallback. Its test fails 3 of 5 against the old route, exactly as Session 2 claims. **R-1 withdrawn; the startup sequence is started** |
+| Passcode default of four (D18) | Session 2's commit `b1afcbef4` | Landed on Session 2's branch in `lib/passcode/rules.ts`. Session 3 does not edit it; the passcode UI reads the constant |
+| "Confirming with Payluk" is a typo for Paystack (raised by B2) | Session 2's `PAYLUK_LIVE_DOCS_FINDINGS.md` reference | **Wrong: Payluk is the escrow provider.** The copy stands as the handoff specifies, once Session 2 places it in `lib/money/copy.ts` |
+| Vallo holds no money, so wallet and escrow contradict `copy.ts` (raised by B2) | Session 2's response, Payluk section | **Not a contradiction.** Escrow is held by Payluk, not Vallo, so "Vallo never holds it" stays true. The screens still wait for Session 2's financial reads |
+| The 12 asset sheets | `git hash-object` | The root PNGs on `main` are byte-identical to `docs/design/assets-raw/2026-10-06/`; the merge moved them there |
+| Baseline gates on untouched `main` | typecheck, lint, test | **All green.** 690 files, 8,791 tests passed, 1 skipped |
+| A wallet or escrow route to upgrade | `src/app/(app)` route list | **None exists.** Waits on Session 2 (requests R-3 to R-5) |
 
 ## 1. Agent ownership (declared before parallel work)
 
@@ -40,54 +43,172 @@ it into its report and B3 or the lead adds it.
 
 ## 2. Requests to Session 2
 
-Numbered per the contract handshake. Each says what, the shape, who consumes it,
-and whether it blocks.
+Numbered per the contract handshake: what, the shape, who consumes it, whether it
+blocks. Session 3 builds nothing behind these; the screens render the honest empty
+state until they land.
 
 | # | Need | Shape | Consumer | Blocks |
 |---|---|---|---|---|
-| R-1 | The `/open` deadline (D31) | `resolveSession()` in `app/open/route.ts` bounded by a deadline that is not a timer pretending to be readiness; on deadline, route to the signed-out start and let the client resolve | The startup sequence, MOTION_SYSTEM section 3 | **Yes**, the startup sequence only. Everything else proceeds |
+| R-1 | The `/open` deadline (D31) | | Startup sequence | **Withdrawn: landed and verified** (section 0) |
+| R-2 | Money copy for processing and payment confirmation | In `lib/money/copy.ts`: the no-double-charge line (reference 7076's model, e.g. "Cancel is disabled while we confirm. We will never charge you twice."), and the handoff's step labels "Preparing secure payment", "Verifying payment", "Confirming with Payluk", "Protecting your funds", "Confirming withdrawal", "Waiting for bank confirmation". Session 3 may not write money sentences | `components/app/payments/PaymentSteps.tsx` | The specified copy only; steps already render from existing dictionary lines |
+| R-3 | Wallet balance in four states | RPC `my_balance()` returning `{available_minor, escrow_minor, pending_minor, processing_minor}`, with "none" distinct from "failed" | Wallet overview (not built) | **Yes**, the wallet |
+| R-4 | Escrow held state and release | `/escrow/[id]` read: `{held_minor, holder ('payluk'), release_condition, release_by, milestones[{name, condition, state, released_at}], dispute{state, opened_at, evidence[]}}` | Escrow held, release, milestones, dispute | **Yes**, escrow |
+| R-5 | Withdrawal quote with the eight disclosures | `withdrawal_quote(amount_minor)` returning `{amount_minor, provider_fee_minor, vat_minor, total_debited_minor, expected_received_minor, destination{bank, account_last4, verified_name}, status, reference}` | Withdrawal confirm | **Yes**, withdrawal |
+| R-6 | One transaction, completely | `my_payment_entry(entry_id)` returning `{amount_minor, status, provider, provider_ref, paid_at, booking_id, lines[], refunds[]}` | `/payments/[id]` transaction detail on the document sheet | **Yes**, the detail page |
+| R-7 | Reference on the checkout receipt | `paid_at`, `provider_ref`, `provider` on `CheckoutView` | Checkout receipt state | No: the receipt prints without a reference until then |
+| R-8 | Host analytics | RPC `host_analytics(p_business_id uuid default null, p_months int default 12)` returning monthly `{month 'YYYY-MM', requests, confirmed, cancelled, lapsed, nights_sold, gross_minor, host_share_minor}` plus `{offered_nights, booked_nights, blocked_nights}` for the next 30 nights, with the privacy floor of `lib/agent/analytics-queries.ts` | Host analytics (not built) | **Yes** |
+| R-9 | Host earnings by month, complete | `my_host_earnings_by_month()` returning `{month, gross_minor, host_share_minor, stays}`, not paginated (charting one page of `readMyEarnings` would be wrong) | `/host/earnings` chart | **Yes**, that chart |
+| R-10 | Agent daily series | `agent_daily_counts(p_from date, p_to date)` returning `{day, requests, confirmed, enquiries}` | `TrendLine` on agent analytics | No |
 
-(Further requests are appended as agents report them.)
+---
+
+## 3. Surfaces touched, with the 24-point audit (north star section 12)
+
+**P** pass, **F** fail, **N** not yet checked (with the reason). Points 19, 22 and 23
+need a live app at 768 and 1440 in four locales; that pass is scheduled for the
+audit sweep once the foundations land and is not claimed before it runs.
+
+| Route | Agent | Pass | Not checked / note |
+|---|---|---|---|
+| `/tenancy/[id]` (the money block) | B2 | 1-6, 8, 9, 11, 14-18, 20, 21, 24 | 7: **deliberate deviation**, a receipt states settled money and does not count up. 10: unroll 380ms. 12: existing `loading.tsx`. 13: Calm/reduced 160ms fade, Off instant. N: 19, 22, 23 |
+| `/agreements/[id]` | B2 | as above; 14 pass, total and lines on the sheet before Pay | N: 19, 22, 23 |
+| `/agreements` | B2 | 6 (12px floor restored), 15, status by word + shape + colour | N: 19, 22, 23 |
+| `/payments` | B2 | 6 (pill back from 11px to 12px), 15 | N: 19, 22, 23 |
+| `/checkout/[bookingId]` (processing sheets) | B2 | 12 (no spinner; steps tick on real state) | 14 **F, honest**: a per-method fee cannot be shown because no fee data exists (R-2/R-7 area). Summary Island held until B1's `.nf-island` lands |
+| `/host` | B4 | 1, 2, 4-8, 10, 12, 13, 15-18, 19 at 390 and 1440, 20, 21 | N: 3, 9, 11 (existing rows), 14 (no cost on screen), 19 at 768, 22, 23, 24 |
+| `/agent/dashboard` | B4 | as `/host` | as `/host` |
+| `/agent/analytics` | B4 | as `/host`; hatched empty months | as `/host` |
+| `/agent/earnings` | B4 | as `/host`; a month before the first settlement shows a dash, never a zero | as `/host`; 3: Paper document treatment of the statement still to do |
+
+Craft doctrine section 8, flagship surfaces so far: the tenancy receipt and the
+workspace homes. (1) every choice is reasoned in the code's comments; (2) removed: a
+false "Paid in total", an 11px pill, duplicated confirmation sentences, a zero shown
+for a failed read; (3) one subject each, the total paid and "what needs me"; (4) the
+unroll carries the eye downward and the chrome stays still; (5) money is deliberate,
+the workspace is quick; (6) no haptic added; (7) same containers and flow, better
+material.
+
+## 4. Components and primitives
+
+| Component | Single definition | Porting checklist (12) |
+|---|---|---|
+| `DocumentSheet` (+ `DocHead`, `DocFigure`, `DocRows`, `DocState`, `DocPerforation`, `DocActions`) | `components/app/money/DocumentSheet.tsx` | 1-7, 10, 12 pass. 8 (768/1440) and 9 (Hausa) N. 11: lives in the money surface, not `components/ui`; candidate for promotion |
+| Receipt printer (founder source) | Folded into `DocumentSheet` kind `receipt` | Paper kept; chassis, LEDs, barcode, every default value dropped |
+| `PaymentSteps` (founder payment status) | `components/app/payments/PaymentSteps.tsx` | Infinite spinner replaced by real states; no timer |
+| Chart system: `PeriodBars`, `TrendLine`, `CompareBars`, `ChartTable` | `components/ui/charts/` with rules in `chart-rules.ts` | Pure SVG, one hue, axe clean in Chromium |
+| `TodayHero` | `components/workspace/TodayHero.tsx` | |
+
+The chart rules, so the next chart follows them: the question picks the chart
+(amount per period: bars; movement over days: line; this against last: compare; a
+share of a whole only when the parts are an honest whole, never a donut; one number:
+a Figure, not a chart). One hue: brand for the series, muted grey for a comparison,
+at most one state colour, a hatch for absence. Never colour alone: pattern, marker,
+legend from two series, and a table copy always. Null is a hatched slot, zero has no
+bar, any real value is at least 2px. Axis labels 12px minimum and tabular. One tab
+stop per chart, arrows to move, a tap stays on touch, mirrored to a live region.
+
+## 5. Motion as built (against MOTION_SYSTEM section 2)
+
+| Moment | Specified | Shipped |
+|---|---|---|
+| Receipt and document unroll | `glide` | 380ms `--nf-ease-standard`; Calm and reduced 160ms fade; Off instant |
+| Processing step tick | `land` 240ms | 240ms `--nf-ease-entrance`, once per real state change |
+| Money values on a receipt | never misleading | not animated |
+| Chart bars grow | baseline, 620ms `glide`, 30ms stagger | as specified |
+| Line draw | 620ms `glide` | as specified (clip scale) |
+| Chart period morph | 380ms `glide` | bars by transform; line interpolated in JS |
+| Figure arrival on workspace homes | 620ms | existing `CountUp` |
+
+## 6. framer-motion: the measured cost
+
+Installed alone in `bfab37d1c` (12.43.0). Measured with esbuild, minified and
+gzipped, React external:
+
+| What | Bytes gzipped |
+|---|---|
+| Top-level `motion` + `AnimatePresence` (refused) | 42,522 |
+| `LazyMotion` + `m` | 7,147 |
+| `domAnimation` feature bundle | 24,089 |
+| `LazyMotion` + `m` + hooks + `AnimatePresence` + `MotionConfig` | 28,385 |
+
+The spec's "around 18KB" is not what 12.43 costs. **So the provider fetches
+`domAnimation` in its own chunk after first paint** (`components/app/motion-features.ts`):
+first load carries about 7KB, and `m` components render their initial state without
+the features. The cost in the built application after the ports land is measured
+with `next build` and recorded here when the ports are in.
 
 ---
 
 ## Completed
 
-(In progress.)
+- Verified starting state; ownership declared before parallel work.
+- Session 1's branch merged (D39.6); framer-motion installed alone; one LazyMotion
+  provider with features loaded after first paint, an eslint guard and a test.
+- B2: the document sheet and print stylesheet; tenancy receipt; agreement terms;
+  agreements and payments status; real processing steps; history rows open their
+  booking.
+- B4: the chart system; workspace homes lead with "needs you today"; agent analytics
+  and earnings on the chart system.
 
 ## Changed
 
-(In progress.)
+See the commit log on `claude/vallo-experience-upgrade`: one commit per unit, each
+message saying why.
 
 ## Tested
 
-Baseline on `main` before any change: typecheck, lint and 8,791 tests green.
+Baseline on `main`: typecheck, lint and 8,791 tests green. Every push is gated in a
+clean worktree of the exact commit being pushed, so other agents' uncommitted work
+never colours the result. Results per push are appended below.
 
 ## Failed
 
-(None yet.)
+- An early attempt to tidy the asset move with `rm -rf` was refused by the harness;
+  the files were moved to the scratchpad instead and nothing was lost.
 
 ## Remaining
 
-(In progress.)
+In progress: B1 foundations and navigation, B3 entry/brand/passcode/startup, B5 the
+component port, B6 assets and clay. Then: the audit sweep at 390, 768 and 1440 in
+both themes and four locales; the move-in ledger (7073) and `/bookings/[id]` on the
+document sheet; money email in Paper; host analytics once R-8 lands.
 
 ## Decisions
 
-1. **Branch from `main`, read the specs from Session 1's branch rather than merging
-   it.** The founder's prompt says to branch from `main`; merging Session 1's 18
-   commits here would make this branch carry another session's work.
-2. **The startup sequence waits for R-1**, exactly as the contract orders. Its
-   prerequisites (the vector mark, the `open` threshold kind, Get Started built to
-   inherit the settled lockup) do not wait.
+1. **Session 1's branch merged rather than read across** (D39.6, the founder's
+   correction).
+2. **framer-motion 12.43.0, not 14.0.0.** 14.0.0 is a major published four days
+   earlier; an app that takes card payments adopts it when Dependabot proposes it,
+   not on day four.
+3. **The LazyMotion features load after first paint.** The measured cost is
+   higher than the spec assumed; this keeps first load at about 7KB on budget
+   Android without giving up a single component.
+4. **The split is the rule**: CSS and Web Animations for a known track with a known
+   end; framer-motion for gesture-driven, interruptible, spring or layout-shared
+   motion. B2's receipt unroll and processing ticks are CSS for that reason.
+5. **No count-up on a receipt.** A document states settled money; counting it up
+   would animate a figure that is not changing (B2).
+6. **A comparison series is grey plus a pattern, never a second blue.** The dataviz
+   validator rejected the best blue pair on the normal-vision floor (B4).
+7. **The startup sequence waited for R-1 and started the moment it was verified.**
 
 ## Risks
 
-(In progress.)
+- The perforation notches are painted in the canvas colour; on a page whose ground
+  is not the bare canvas they read as dots rather than holes (B2).
+- `print.css` relies on `:has()`, fine in current browsers, absent in very old ones.
+- An unused four-hue `DonutChart.tsx` remains in `components/agent/charts` with no
+  caller; it is the refused pattern and should be deleted by its owner.
 
 ## Next Session
 
-(In progress.)
+(Written at the end.)
 
 ## Do Not Repeat
 
-(In progress.)
+- Do not read a specification from another branch: merge the documentation branch
+  (D39.6).
+- Do not treat "build it without a library if you can" as a veto on a dependency the
+  founder authorised (D39.3).
+- Do not kill processes by pattern in a shared tree; another agent's test run is
+  collateral.
