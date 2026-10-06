@@ -92,8 +92,9 @@ function render(screen: Screen) {
             promise="A person replies within 1 day, and within 4 hours when money or safety is at stake."
             aiConsented
             signedIn
+            copy={getDictionary(locale).experienceInbox.support.home}
           />
-          <MessagesGroup tickets={MY_TICKETS} signedIn />
+          <MessagesGroup tickets={MY_TICKETS} signedIn copy={getDictionary(locale).experienceInbox.support.home} locale={locale} />
           <SupportSearch articles={FAQS} popular={popularArticles(FAQS, POPULAR_QUESTIONS)} />
         </div>
       );

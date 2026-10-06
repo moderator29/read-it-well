@@ -268,6 +268,37 @@ export const experienceInboxEn = {
   /* --------------------------------------------------------------- support */
   support: {
     /**
+     * `/support`, the in-app help home: the page's own words, its hero's and
+     * its Messages row's, moved out of the code (Round 3 sweep, C3).
+     * `{name}` is the reader's first name; `{standard}` and `{urgent}` are the
+     * reply commitments from lib/trust/standards, lower-cased.
+     */
+    home: {
+      greetingNamed: "Hi {name}, how can we help?",
+      greeting: "Hi there, how can we help?",
+      promise: "A person replies {standard}, and {urgent} when money or safety is at stake.",
+      ask: "Ask a question",
+      otherWays: "Other ways to get help",
+      reportProblem: "Report a problem",
+      writeToUs: "Write to us",
+      helpCentre: "Help centre",
+      close: "Close",
+      yourSupport: "Your support",
+      messages: "Messages",
+      newReply: "New reply",
+      open: "Open: {count}",
+      messagesSignedOut: "Sign in to see your support conversations",
+      messagesUnreadable: "Could not be loaded just now. Open to try again",
+      messagesEmpty: "Your support conversations will appear here",
+      messagesSome: "Your support conversations and our replies",
+      safety: "Safety and policies",
+      legal: "Legal",
+      terms: "Terms",
+      privacy: "Privacy",
+      deleteAccount: "Delete account",
+      deleteAccountSub: "How to delete your account and data",
+    },
+    /**
      * The three member support routes' own page words (`/support/messages`,
      * `/support/messages/[id]`, `/support/new`), moved out of the pages in the
      * Round 3 sweep (C3). The forms' and the thread's words are still in their
