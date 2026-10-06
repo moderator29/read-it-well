@@ -183,7 +183,8 @@
     color: var(--nf-content-secondary);
   }
   .nf-rcal__meta {
-    font-size: 0.625rem;
+    /* 12px, the floor: nothing in the product draws under it (W12; it was 10px). */
+    font-size: 0.75rem;
     line-height: 1.2;
     color: var(--nf-content-muted);
   }
