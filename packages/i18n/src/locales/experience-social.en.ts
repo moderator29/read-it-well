@@ -142,6 +142,18 @@ export const experienceSocialEn = {
     signInToClaim: "Sign in to claim it",
     backToHome: "Back to home",
   },
+  /**
+   * `/profile`, the reader's own account page: what it says signed out and
+   * when the profile row did not load (Round 3 sweep, C3).
+   */
+  account: {
+    title: "Profile",
+    noRow: "We could not load your account profile just now, so this page is showing what is held on this device. Sign out and back in, then open this page again.",
+    whatIsHere: "What is here",
+    findPlace: "Find a place",
+    more: "More",
+    help: "Help",
+  },
   /** `/around`, the feed: its empty state's words (Round 3 sweep, C3). `{name}` is the chosen place. */
   around: {
     emptyIn: "Nothing in {name} yet",
