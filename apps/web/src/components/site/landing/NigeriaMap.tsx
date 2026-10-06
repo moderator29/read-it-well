@@ -93,9 +93,11 @@ export const CITY_POINTS: Record<string, [number, number]> = {
  * south-east is dense enough that four names printed over a neighbour's pin
  * or name at desktop (Benin City over Asaba, Uyo over Calabar, Port
  * Harcourt under both), so those four are set above, below or to the left.
+ * Benin City sits 16 units above its pin, not 11, since the names grew to 16
+ * units (landing-rooms.css): at 11 its first letters met the end of Lagos.
  */
 const LABEL_AT: Record<string, { x: number; y: number; anchor: "start" | "middle" | "end" }> = {
-  "Benin City": { x: 0, y: -11, anchor: "middle" },
+  "Benin City": { x: 0, y: -16, anchor: "middle" },
   Asaba: { x: 0, y: 19, anchor: "middle" },
   Uyo: { x: 0, y: 19, anchor: "middle" },
   "Port Harcourt": { x: -9, y: 4, anchor: "end" },

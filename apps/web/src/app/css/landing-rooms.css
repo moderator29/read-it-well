@@ -717,9 +717,16 @@
   .nf-ngmap__dot {
     fill: var(--nf-brand-secondary);
   }
+  /* THE NAMES ARE DRAWN IN THE MAP'S OWN UNITS, so what reaches the screen is
+     this size times the drawing's scale: the map is 490 units wide and is
+     shown 17rem wide under 64rem and 24rem from it. At 13 units the names
+     measured 7.2px at 768 and 10.2px at 1440 (C6, the route sweep; the floor
+     is 12px). They are 16 units now, 12.5px at the 24rem drawing, and are
+     drawn only there: below 64rem the city chips beside the map carry the
+     names, and the pins stay. */
   .nf-ngmap__label {
     fill: var(--nf-content-secondary);
-    font-size: 13px;
+    font-size: 16px;
     font-weight: 600;
   }
   .nf-ngmap__pin > * {
@@ -729,8 +736,8 @@
   .nf-ngmap__label {
     transform-origin: 0 50%;
   }
-  /* On a phone the names are the chips above the map; the pins stay. */
-  @media (max-width: 40rem) {
+  /* Under 64rem the names are the chips beside the map; the pins stay. */
+  @media (max-width: 63.99rem) {
     .nf-ngmap__label {
       display: none;
     }
