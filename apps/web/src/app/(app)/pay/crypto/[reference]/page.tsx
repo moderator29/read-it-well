@@ -10,6 +10,7 @@ import { activeProvider } from "@/lib/crypto/providers";
 import { PageHeader } from "@/components/app/PageHeader";
 import { ResultScreen } from "@/components/app/ResultSheet";
 import { CryptoPaymentStatus } from "@/components/app/payments/crypto/CryptoPaymentStatus";
+import { withNext } from "@/lib/auth/next-link";
 
 export const metadata: Metadata = { title: "Crypto payment" };
 
@@ -38,8 +39,10 @@ export default async function CryptoPaymentPage({ params }: { params: Promise<{ 
         <ResultScreen
           state="confirmed"
           verdict={c.signIn}
-          consequence={t.notFoundBody}
-          actions={[{ label: c.signIn, href: "/sign-in", tone: "primary" }]}
+          consequence={t.signedOutBody}
+          /* Back to this payment after signing in: the bare /sign-in left the
+             payer on the home screen with no way back to the payment. */
+          actions={[{ label: c.signIn, href: withNext("/sign-in", `/pay/crypto/${encodeURIComponent(reference)}`), tone: "primary" }]}
         />
       </Shell>
     );

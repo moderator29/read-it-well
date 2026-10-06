@@ -25,6 +25,7 @@ import { TransactionCheckout } from "@/components/money/TransactionCheckout";
 import { CHECKOUT_CONDITION_APPROVED, CHECKOUT_CONDITION_CANCEL } from "@/lib/money/copy";
 import { LIVE_RAIL } from "@/lib/money/rails";
 import type { MoneyReference } from "@/lib/money/references";
+import { withNext } from "@/lib/auth/next-link";
 
 export const metadata: Metadata = { title: "Checkout" };
 
@@ -96,7 +97,9 @@ export default async function CheckoutPage({
           mark="shield-check"
           verdict={c.signInToPayStay}
           consequence={c.signInKeptStay}
-          actions={[{ label: c.signIn, href: "/sign-in", tone: "primary" }]}
+          /* The sentence above promises a return here, so the link carries it:
+             sign-in reads only `next` (Round 3 sweep, C3). */
+          actions={[{ label: c.signIn, href: withNext("/sign-in", `/checkout/${encodeURIComponent(bookingId)}`), tone: "primary" }]}
         />
       </Shell>
     );
