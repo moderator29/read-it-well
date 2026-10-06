@@ -1,7 +1,7 @@
 "use client";
 
 import { animate, motionValue } from "framer-motion";
-import { useEffect, useLayoutEffect, useRef, type FormHTMLAttributes, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useSyncExternalStore, type FormHTMLAttributes, type ReactNode } from "react";
 import { motionQuiet } from "@/lib/motion/gate";
 import { EASE } from "@/lib/motion/ease";
 
@@ -36,7 +36,9 @@ import { EASE } from "@/lib/motion/ease";
  * `<form>`; the motion values are plain objects that need no features, and
  * their changes are written to the element's own style from the layout
  * effect, so the first painted frame is already the origin's and the flight
- * runs whether or not the renderer has loaded. `data-pill-landed` says a
+ * runs whether or not the renderer has loaded. A form drawn by the
+ * server's own HTML (a full document load, which is what a native GET
+ * submit is) never flies: it has already painted at rest. `data-pill-landed` says a
  * flight happened, so the chips' crossfade (catalogue.css) runs only after
  * one.
  *
@@ -93,6 +95,9 @@ export function PillOrigin({ path }: { path: string }) {
   return <span ref={anchor} hidden />;
 }
 
+/** Nothing external to subscribe to: only the server-or-client snapshot is read. */
+const noSubscription = () => () => {};
+
 /** The results header's search form, landing from wherever the pill was. */
 export function PillLanding({
   path,
@@ -104,12 +109,33 @@ export function PillLanding({
   "children" | "className" | "style"
 >) {
   const ref = useRef<HTMLFormElement | null>(null);
+  /*
+   * WAS THIS FORM DRAWN BY THE SERVER'S HTML, OR BY A CLIENT NAVIGATION?
+   * `useSyncExternalStore` answers it: while React hydrates server markup it
+   * reads the server snapshot (true), and when the component is first drawn
+   * in the browser by a client-side arrival it reads the client one (false).
+   * Held in a ref, so it is the answer for THIS mount only. A server-drawn
+   * form has already painted at rest, with its chips visible; jumping it back
+   * to the origin at hydration and flying it home would blink the pill and
+   * restart the chips' fade from nothing, on exactly the slow phones where
+   * hydration is late. (`performance` paint entries cannot say this: the
+   * first-contentful-paint entry outlives every client navigation.)
+   */
+  const fromServerHtml = useRef(
+    useSyncExternalStore(
+      noSubscription,
+      () => false,
+      () => true,
+    ),
+  );
 
   /* Layout effect, so the first painted frame is already the origin's. */
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
+    /* Always read, so a stale record is cleared even when no flight plays. */
     const from = readRecord(path);
+    if (fromServerHtml.current) return;
     /* Read the gate here rather than through the hook: during hydration the
        hook still holds the server's "may move" answer. */
     if (!from || motionQuiet()) return;
