@@ -38,8 +38,12 @@ export function ChartTable({
   nullLabel?: string;
   visible?: boolean;
 }) {
-  return (
-    <table className={visible ? "nf-viz-table" : "sr-only"}>
+  /* Hidden, the table sits inside a 1px sr-only box rather than being one: a
+     table sizes to its content whatever width sr-only gives it, so in Hausa
+     the analytics money table ran 76px past a 390px window (auditFit, 10
+     findings; C1 sweep). The admin desks' SeriesChart does the same. */
+  const table = (
+    <table className={visible ? "nf-viz-table" : undefined}>
       <caption>{caption}</caption>
       <thead>
         <tr>
@@ -59,4 +63,5 @@ export function ChartTable({
       </tbody>
     </table>
   );
+  return visible ? table : <div className="sr-only">{table}</div>;
 }
