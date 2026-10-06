@@ -75,6 +75,179 @@ prompt itself, not because I found a contract.
 
 ---
 
+## D64: THE REFERRAL CAP PRE-REVIEW, AND THE BUDGET IS THE WRONG NUMBER
+
+The referral work has not landed, so this is a pre-review of the pending text
+rather than a verdict on production. Reviewed file:
+`supabase/migrations/pending/b4_referral_rewards_engine.sql` (1,300 lines) at
+Session 2's head `257eb1e1f`. Line numbers below are that file's.
+
+Two things first, because they decide how to read the three rules.
+
+**The seeded budget is 1,000,000 naira a month, not 700,000.** Line 131 seeds
+`platform_monthly_budget_minor` at `100000000` minor. D64 sets the cap at
+700,000 naira, which is `70000000` minor. The reason text on the same row calls
+1,000,000 "a placeholder pending the founder", so this is a pre-D64 figure
+rather than a disagreement with D64, but it is the number that would go live if
+the migration were applied as written: 300,000 naira a month of unbudgeted
+exposure, or 4,285 rewards a month beyond the cap at 70 naira each. The policy
+table is append-only by design (`referral_policy_frozen`, line 113), so the fix
+is a second dated row, not an edit. **It is one integer and it is wrong. Change
+it before applying, not after.**
+
+**"Pauses rather than refuses" is not what the code does.** Over-budget routes
+the referral to `under_review` (line 588), which is a staff queue. Clearing it
+needs `admin_referral_decide` with the explicit `approve_over_cap` decision and
+a 20-character override reason, per row (lines 1022 to 1039). That is a third
+behaviour: not a refusal, not a pause, but a manual decision per reward. At
+700,000 naira the cap is reached at 10,000 rewards in a month, and every
+qualification after that becomes a hand-worked row.
+
+### Rule 1: the cap checked before accrual, in the same statement that writes it
+
+**The race is closed. The shape D64 specifies is not what closes it.**
+
+The write at lines 578 to 583 is unconditional: it sets `status = 'qualified'`
+and `reward_minor = pol.reward_minor` with no cap predicate at all. The cap is
+read afterwards, at line 586, by `private.referral_cap_reason`. On the literal
+wording of rule 1, that fails: the check is after the write, in a different
+statement.
+
+The race it is meant to prevent is nonetheless closed, by a different
+mechanism. Line 574 takes `pg_try_advisory_xact_lock(hashtext('referral_platform_budget'),
+hashtext(v_month::text))` before the write and holds it to commit. Two
+qualifications in the same month contend on the same key, so the second gets
+false and returns `'pending_lock'` immediately rather than proceeding. Because
+the lock is transaction-scoped, the loser's retry cannot read the budget until
+the winner has committed, and the winner's row is `approved` by then, inside
+the spend sum at line 516. Two qualifications cannot both fit into the last 70
+naira. I traced the whole path to satisfy myself of that rather than reading
+the comment at line 571 and agreeing with it.
+
+One undeclared dependency, which is the part I would not sign off silently:
+**the correctness of this depends on the transaction isolation level being READ
+COMMITTED, and nothing in the migration says so.** `referral_cap_reason` is
+declared `stable` (line 505), so it sees the snapshot of the calling statement.
+Under READ COMMITTED each statement takes a fresh snapshot, so the call at line
+586 sees a competitor committed after this transaction began. Under REPEATABLE
+READ or SERIALIZABLE it would see the transaction's original snapshot, which
+can predate that commit, and the advisory lock would not help because the stale
+snapshot is already taken. PostgREST and Supabase default to READ COMMITTED, so
+this holds today. It holds by default rather than by assertion, in a money
+path. The function already does `set lock_timeout = '500ms'`; it does not do
+`set transaction isolation`, and a plpgsql function cannot. Recording it as a
+named caveat rather than a defect.
+
+One asymmetry worth noting even though it is not currently exploitable: the
+spend sum at line 516 counts `('approved','available','processing','paid')` and
+does not count `'qualified'`, while the member cap count at line 513 does count
+`'qualified'`. A row therefore sits briefly in a status the platform sum cannot
+see. It is safe only because that window never survives a commit in this path:
+the same transaction moves the row on to `approved` or `under_review` before it
+ends. Any future path that commits a row at `'qualified'` makes the platform
+budget undercount silently. It is a latent trap, not a live bug.
+
+### Rule 2: a pause never reaches backwards into an already-qualified reward
+
+**Pass, verified rather than assumed.**
+
+`referral_cap_reason` is a pure read: it returns text and mutates nothing. The
+qualification path writes only the row it is qualifying. The release path,
+`referral_release_due` (line 758), selects `status = 'approved'` on the hold
+window alone and does not recheck the cap, so a reward already approved is not
+re-tested against a budget that has since filled. The only route from
+`approved` or `available` back to `under_review` is a staff `review` decision
+at line 1043, which needs a human, a reason of at least 8 characters, and is
+logged. The transition table at lines 234 to 237 permits
+`('approved','under_review')`, which is what made me check; no automated caller
+uses it.
+
+Separately, and correctly, line 56 records that reversal on a full refund
+decides by whether the `earn:` ledger entry exists rather than by status. That
+is the right basis and it is not the cap reaching backwards.
+
+### Rule 3: the pause visible on the member surface
+
+**Fail. The member cannot see it at all, and cannot distinguish it from a fraud hold.**
+
+`my_rewards_summary` (line 784) is the member's whole view of the programme. It
+returns `under_review_count`, `member_monthly_cap`, `reward_minor`,
+`withdrawal_min_minor` and `payouts_enabled`. It does not return the platform
+budget, the month's spend against it, or any flag saying the programme is
+paused. That is deliberate: line 104 states members never read thresholds or
+the budget.
+
+`my_referrals` (line 807) returns `id, status, first_name, reward_minor,
+attributed_at, qualified_at`. It does **not** return `review_reason`, the
+column (line 167) where `referral_move` stores the string
+`'platform monthly budget reached'`. Direct table reads cannot substitute: line
+190 grants `select on public.referrals` to `service_role` only.
+
+So a member who earned a reward after the budget filled sees one thing: a
+referral whose status is `under_review`, with no reason. It is byte-identical
+to what a member sees when their reward was held because their risk score
+crossed the review threshold, which is an accusation. The surface conflates
+"we ran out of budget this month" with "we think you may be cheating", and
+shows neither. That is the opposite of what D64 asks for, and it is the finding
+I would most expect to generate a support load.
+
+### What I am handing over
+
+Four items, with evidence, to Session 1 to route (D53: I report, I do not
+assign). None of them is mine to fix and none is urgent until the migration is
+applied, which D62 holds anyway.
+
+1. **The budget integer is 1,000,000 naira, not D64's 700,000.** Line 131,
+   `100000000` should be `70000000`. Blocks applying.
+2. **Budget-paused rewards never resume.** `month` is written once, at line 580,
+   and never re-stamped. `referral_cap_reason` sums spend `where month = r.month`
+   (line 516). A row paused in an exhausted month therefore measures against
+   that month's exhausted budget forever: next month's fresh budget does not
+   reach it, because it is not in next month. Nothing sweeps `under_review` rows
+   back to `approved` when a new period opens. Every single reward paused by the
+   budget needs an `approve_over_cap` override by hand, for ever. On D64's
+   reading of a pause as something that lifts, **the pause does not lift.** This
+   is the most serious of the four.
+3. **The pause is invisible and is indistinguishable from a fraud hold** on the
+   member surface. Rule 3, above.
+4. **The cap's correctness depends on an unasserted READ COMMITTED isolation
+   level**, and the platform spend sum does not count `'qualified'` while the
+   member count does. Rule 1, above. Caveats, not defects, at the current
+   call sites.
+
+Items 1 and 2 are the two that would cost real money. Items 3 and 4 are a
+support cost and a latent trap.
+
+### Re-verified at Session 2's current head, not taken from a report
+
+Session 2's head is `257eb1e1f`, which is where it was at my last check. I
+re-read the files rather than the commit messages.
+
+- **The b2-ledger probe still has no recorded verdict.** It is still at
+  `supabase/tests/probes-pending/b2-ledger.sql`; `supabase/tests/probes/b2-ledger.sql`
+  does not exist; `run.mjs` reads `supabase/tests/probes` flat, so CI cannot see
+  it. `APPLIED.txt:592` still records `20261006105326 b2_ledger` as applied.
+  Session 2's commit `0043d8c59` says in capitals that `apply_migration` returned
+  `'cancelled'` on the full text, nothing landed, and the probe stays in
+  probes-pending "carried as open work, not as a pass". That is the third
+  cancellation on this probe and it is recorded honestly. Under the standing
+  rule it is a failed check, and I am recording it as one: **the b2 ledger
+  migration is applied to production with no probe that has ever run against
+  it.**
+- **`events.test.ts` is fixed.** `apps/web/src/lib/ledger/events.test.ts:13`
+  now reads `20261006105326_b2_ledger.sql` and that path exists. Commit
+  `11f7e9930` closed the finding I raised.
+- **The referral engine is not applied.** No referral row in `APPLIED.txt`; the
+  migration is still in `supabase/migrations/pending/`; its probe is still at
+  `supabase/tests/probes-pending/b4-referral.sql`. D62's hold is being kept.
+  But the application code is already on the branch
+  (`apps/web/src/lib/referral/{code,lifecycle,server}.ts`,
+  `apps/web/src/lib/payouts/referral-*.ts`), so the code is ahead of the schema.
+  That is not a money restructure that already happened, which is what I was
+  asked to shout about, but it is code that cannot run, and it will go green in
+  CI regardless because nothing there touches the missing tables.
+---
+
 ## VERIFYING SESSION 2'S BRANCH: TWO CLAIMS FALSE, AND THE LEDGER IS WORSE THAN STATED
 
 Checked against file contents on `origin/claude/vallo-backend-money-trust`, with
@@ -1210,7 +1383,7 @@ Nothing below is marked PASS on inference. PASS means I ran it or read the log.
 | --- | --- | --- | --- |
 | A1 | Typecheck | **PASS** | ran locally, exit 0, root + both workspaces |
 | A2 | Lint (eslint + 5 repo checks) | **PASS** | ran locally, exit 0, 0 errors, 297 warnings against a 333 ceiling |
-| A3 | Unit and DOM suite | **PASS** | ran locally: 690 files, 8,791 passed, 1 skipped |
+| A3 | Unit and DOM suite | **PASS** | ran locally at this head: 693 files, 8,808 passed, 1 skipped, 107s |
 | A4 | Production build | **PASS** | CI job `112061356001`, run `37398903073` |
 | A5 | Production dependency advisories | **FAIL on main, FIXED on this branch** | `GHSA-68fv-2mgg-jv7q`, high, in `source-map-js@1.2.1`. Fixed here, `npm audit --omit=dev --audit-level=high` now reports 0 |
 | A6 | Database probes against the real database | **PASS** | 64 of 64, job `112061355971` |
@@ -1277,6 +1450,13 @@ Nothing below is marked PASS on inference. PASS means I ran it or read the log.
 | D16 | `a2_money_flow.sql` as money-flow coverage | **FAIL, VACUOUS** | not in `probes/` so it never runs, and contains zero assertions |
 | D17 | Crypto rail validated against the live provider | **FAIL** | nine `CONFIRM ON ONBOARDING` markers in `providers/yellowcard.ts`. Safe only because the flag is off and fail-closed |
 | D18 | A payment completed on real hardware, either rail | **FAIL, NOT RUN** | matrix row 21, P0, `NOT RUN`; `F-16` unverified |
+| D19 | Referral budget cap set to D64's figure | **FAIL, WRONG NUMBER** | the pending migration seeds `platform_monthly_budget_minor` at `100000000` (1,000,000 naira) at line 131; D64 sets 700,000 naira, which is `70000000`. Not applied yet, so not live |
+| D20 | The budget cap closes the race on the last reward | **PASS, BY A DIFFERENT MECHANISM THAN D64 SPECIFIES** | not a same-statement check: the write at lines 578 to 583 is unconditional and the cap is read after it. The race is closed by a transaction-scoped `pg_try_advisory_xact_lock` on the month key taken before the write, which I traced rather than took from the comment |
+| D21 | The cap's correctness is asserted, not inherited | **FAIL, UNASSERTED DEPENDENCY** | `referral_cap_reason` is `stable`, so the check is correct only under READ COMMITTED. Supabase defaults to it; nothing in the migration says so |
+| D22 | A pause never reaches backwards into an earned reward | **PASS** | `referral_cap_reason` mutates nothing; `referral_release_due` does not recheck the cap; the only `approved` to `under_review` route needs a staff decision and a reason |
+| D23 | A paused reward resumes when the next period opens | **FAIL, IT NEVER RESUMES** | `month` is written once, at line 580, and the cap always sums spend `where month = r.month`. A reward paused in an exhausted month measures against that exhausted budget for ever. Every one needs a hand override |
+| D24 | The pause is visible on the member surface | **FAIL, INVISIBLE AND INDISTINGUISHABLE** | `my_rewards_summary` exposes no budget and no pause flag; `my_referrals` omits `review_reason`; `select` on `referrals` is service_role only. A budget pause looks identical to a fraud hold |
+| D25 | The referral engine has probe coverage that has run | **FAIL, NOT RUN** | `b4-referral.sql` is in `probes-pending/`, which `run.mjs` cannot see. Moot while D62 holds the migration |
 
 ---
 
@@ -1913,6 +2093,15 @@ session that the repo's unusual local checks are doing real work.
   overstating the blockage.
 - **My own mandate failed:** I could not test anything on hardware, for the
   reasons given above in full.
+- **The b2 ledger probe has never run, on three attempts, and the migration it
+  covers is applied to production.** `apply_migration` returned `'cancelled'`
+  each time. Under the standing rule a cancelled check is a failed check, so I
+  am recording it here rather than as pending: `20261006105326_b2_ledger` is
+  live with zero probe coverage that has ever executed. Session 2 records this
+  honestly and carries it as open work; it is still a failure.
+- **The weight budget and the desks a11y scan both failed as blind gates and
+  were fixed.** Kept in this list because a green tick on either of them, on
+  any run before `9c3f2d2`, measured nothing.
 
 ## Remaining
 
@@ -2010,45 +2199,54 @@ Recommendations, as asked, including the ones nobody requested.
 
 Ordered by what I would actually worry about.
 
-1. **Nothing has ever been run on a phone.** This is the whole risk. 8,791
+1. **Nothing has ever been run on a phone.** This is the whole risk. 8,808
    passing tests and 64 passing probes say the parts are individually sound.
    They say nothing about whether a person can install this and pay for a room.
    The last time this gap mattered, the app hung on the splash screen for every
    tester on every device, and the cause was a component that was never
    mounted: a defect no unit test, type check or lint rule could ever have
    caught. That class of defect is still unguarded.
-2. **No staging database means the first real test is in production.** This is
+2. **The referral budget cap, if applied as written, overspends by 300,000
+   naira a month and then jams.** Two of the four D64 findings cost money. The
+   seeded budget is 1,000,000 naira where D64 says 700,000 (one integer, line
+   131 of the pending migration). And a reward paused by the budget never
+   resumes, because the row's `month` is stamped once and the cap always sums
+   that month's spend, so next month's fresh budget never reaches it: every
+   paused reward needs a staff override by hand, for ever. D62 holds the
+   migration, which is the only reason this is a risk rather than a defect.
+   Full evidence in the D64 section above.
+3. **No staging database means the first real test is in production.** This is
    the standing rule's premise, and it is why item 1 is not survivable by
    optimism. The one mitigation in place is genuinely good: the 64 database
    probes run against the real database and roll back, and the job is red
    rather than skipped when the secret is missing.
-3. **Payment paths have never been exercised on a device.** Matrix row 21 is
+4. **Payment paths have never been exercised on a device.** Matrix row 21 is
    `NOT RUN` and is marked P0, and `F-16` records that Paystack 3-D Secure
    inside the web view is unverified on hardware. A card payment that fails
    inside a web view fails with the person's money in flight.
-4. **The documentation actively misleads.** A reader of the release checklists
+5. **The documentation actively misleads.** A reader of the release checklists
    would conclude Apple is blocked and no binary exists. Both are false. People
    make scheduling and spending decisions from these files.
-5. **Two gates look green but measure nothing.** The weight budget cannot fail,
+6. **Two gates look green but measure nothing.** The weight budget cannot fail,
    and the desk a11y scan looks at a harness rather than the product. Both
    print reassuring sentences.
-6. **Every CI measurement comes from a build that is not production-shaped.**
+7. **Every CI measurement comes from a build that is not production-shaped.**
    Two `NEXT_PUBLIC_*` values are empty in the jobs that measure speed and
    accessibility, and the workflow's own comment says such a build "compiles a
    program that never ships".
-7. **The landing height has 73 px of headroom**, and the obvious response to
+8. **The landing height has 73 px of headroom**, and the obvious response to
    hitting the ceiling is the one thing the file forbids.
-8. **The privacy label for Diagnostics is believed wrong** and would be
+9. **The privacy label for Diagnostics is believed wrong** and would be
    submitted as-is.
-9. **No store reviewer account**, and the seeding script has never been run.
+10. **No store reviewer account**, and the seeding script has never been run.
    This is a direct App Review rejection.
-10. **Android release signing is entirely unproven.** No CI job has ever
+11. **Android release signing is entirely unproven.** No CI job has ever
     produced a signed bundle, so the first attempt will be the first time that
     path has run.
 
 ## Next Session
 
-1. Get a phone in a hand and run the matrix. Start with the 10 P0 rows.
+1. Get a phone in a hand and run the matrix. Start with the 9 P0 rows.
 2. Check App Store Connect for the 3 October build.
 3. Correct the four wrong documents.
 4. Add the wiring test for `<NativeRuntime />` and the splash failsafes.
