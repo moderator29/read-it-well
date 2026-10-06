@@ -227,6 +227,11 @@
     opacity: 0;
     transform: translate3d(0, var(--nf-entry-float, 60px), 0);
   }
+  /* A keyboard user who reaches a held card sees it at once. */
+  .nf-pcard[data-entry="pending"]:focus-within {
+    opacity: 1;
+    transform: none;
+  }
   .nf-pcard[data-entry="in"] {
     animation: nf-scroll-in var(--nf-duration-entrance) var(--nf-ease-entrance) both;
     animation-delay: var(--nf-entry-delay, 0ms);

@@ -21,7 +21,8 @@ import { isDataSaver } from "@/lib/ui/data-saver";
  * the densest scroll surface in the product, so this adds no scroll handler and
  * never measures an element: an IntersectionObserver reports visibility and the
  * rectangles it needs (for the row order) itself, off the main thread's layout
- * path. Cards that arrive in one callback are ordered top to bottom, left to
+ * path. (No inset on the root: the float already offsets a held card, so the
+observer sees it a little late without one.) Cards that arrive in one callback are ordered top to bottom, left to
  * right, and take 0, 60, 120ms and so on, capped at six, so a row lands as one
  * organism and a long jump does not queue.
  *
@@ -48,8 +49,10 @@ function observer(): IntersectionObserver {
         const el = entry.target as HTMLElement;
         if (!reported.has(el)) {
           reported.add(el);
-          if (entry.isIntersecting) shared?.unobserve(el);
-          else el.dataset.entry = "pending";
+          if (entry.isIntersecting) {
+            shared?.unobserve(el);
+            delete el.dataset.entry;
+          } else el.dataset.entry = "pending";
           continue;
         }
         if (entry.isIntersecting && el.dataset.entry === "pending") arriving.push(entry);
@@ -66,7 +69,7 @@ function observer(): IntersectionObserver {
           shared?.unobserve(el);
         });
     },
-    { threshold: 0, rootMargin: "0px 0px -6% 0px" },
+    { threshold: 0, rootMargin: "0px" },
   );
   return shared;
 }
@@ -76,12 +79,20 @@ export function useScrollEntry(ref: RefObject<HTMLElement | null>, index: number
     const el = ref.current;
     if (!el || index === undefined) return;
     if (typeof IntersectionObserver === "undefined" || motionQuiet() || isDataSaver()) return;
+    /* A sideways rail is not this one's: a card floated down inside an
+       overflow-x container adds vertical overflow (the rail itself would
+       scroll), and its slots would rise from below as it is swiped. */
+    if (el.closest(".nf-scroll-x")) return;
     el.style.setProperty("--nf-entry-float", `${FLOATS[index % FLOATS.length]}px`);
     const io = observer();
     io.observe(el);
     return () => {
       io.unobserve(el);
       reported.delete(el);
+      /* Never leave a card held: if the effect re-runs (its index changed),
+         the next first report may find it on screen and not release it. */
+      delete el.dataset.entry;
+      el.style.removeProperty("--nf-entry-delay");
     };
   }, [ref, index]);
 }
