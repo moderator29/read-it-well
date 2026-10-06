@@ -819,6 +819,79 @@ committed and pushed as it is done, cleanly, without sessions conflicting.
 | **Session 1's "nothing else is hiding behind the red"** | **D57: false. A third failure was hiding in a cancelled job** |
 | Any plan for referral payouts that opens before the detectors exist | D58 |
 | **D54's assignment of the db-06 row to Session 2** | **D59: Session 1 took it after two hours of no movement** |
+| **Any reading that paid promotion was removed** | **D60: D3 built it on 5 October; the gap was the tier detail, now written** |
+
+---
+
+## D60. Promotion was never removed. Session 3 is blocked on a premise D3 overturned, and the three "your call" items are answered here
+
+**Session 3 reported the promotion onboarding as blocked, saying "paid placement was
+removed".** It was not. **D3, 5 October, explicitly supersedes migration V-06 and the
+no-paid-placement doctrine in `PRODUCT.md` and `THE_HUNDRED`**, and the feature register
+carries F2, F3 and F4 for it. Session 3 read the superseded documents rather than the
+superseding directive.
+
+**This is the fourth instance of one pattern in two days** (D41, D45, D47, now this): a
+session concluded something was absent or impossible without checking the layer that
+supersedes. The rule is already written and is repeated here because it keeps costing real
+work: **this directives file wins over every earlier document it touches, and a blocker
+should be verified against it before it is reported.**
+
+**But the founder's annoyance is earned, and not at Session 3 alone.** The decision existed;
+**the product did not.** Nobody ever wrote what Boost gives a lister that Spotlight does not,
+so Session 3 could not write an onboarding without inventing the feature and Session 2 could
+not price a row. That gap was Session 1's, and it is closed:
+**`docs/promotion/VALLO_PROMOTION.md`**, which is now the authority on this area. Four tiers
+with duration, placement, exposure, audience, analytics, price and limitations; seven
+testable statements of what promotion must never do; the measurement surface; where the money
+goes; and the four onboarding screens.
+
+**Three things from it that change other sessions' work:**
+
+- **The money path is already built.** Promotion is Vallo's own revenue and posts to
+  `ledger_vallo_revenue`, which b2_ledger created, because D51 names that pot as "commission,
+  withdrawal fees, promotion". A promotion purchase is a single-party charge: no split, no
+  subaccount, no escrow, no provider holding anything. **It is the simplest money path on the
+  platform and must not be borrowed from the booking flow.**
+- **"Prime" breaks guardrail 4**, D3's own rule that tier names say what you get. Boost,
+  Spotlight and Featured each name a placement; Prime names a rank, which is Gold and
+  Platinum in a different hat. Recommended rename: **"Everywhere"**. The founder's call, and
+  nothing waits on it: key the tier on the slug `prime` and keep the display name in the
+  locale file.
+- **Prices are proposed, not decided**, in the D38 pattern: 2,500 naira for Boost, 7,500 for
+  Spotlight, 20,000 for Featured, 50,000 for Prime. Effective dating makes a change a row.
+
+### The three "your call" items, decided
+
+**1. The fee acceptance screen: connect it now, behind a flag that is off.** Session 3 is
+right that connecting it live would stop every lister from sending a listing for review until
+Session 2 lands the rate and the acceptance record. That is a real production risk and the
+hesitation was correct. It is also not a reason to leave finished work dangling. The repo has
+`feature_flags`. **Wire the screen into the wizard now and gate only the blocking behaviour
+on the flag.** With the flag off the screen is reachable, reviewable and testable, and
+publishing is never blocked; the day Session 2's rate and acceptance record exist, one flag
+flips. Nothing is left on a shelf and nothing breaks.
+
+**2. The auth redesign: Session 3's reading of D28 is correct, and no structural redesign is
+assigned.** The founder's "real redesign" was dissatisfaction with how it looked, not a
+request to restructure sign-in. **Auth is where a product loses people, so restructuring it
+is high risk for low reward.** Keep the containers and flows recognisable. Go further on
+craft instead: motion, spacing, the type scale, the premium feel of the reference images.
+"Consistent" is not the same as "finished", and that gap is where the remaining work is.
+
+**3. The weight diet: continue the third pass.** At minus 11 percent against a 20 percent
+target, with sign-in down 17.5 and `/check` down 25. Moving member-only styles out of the
+stylesheet every page loads is the right lever. **Also confirm D49 actually landed**: that
+directive found LazyMotion costing 31 KB per route. If it is still there, removing it is a
+large share of the remaining nine points on its own.
+
+### What stays blocked, and it is not promotion
+
+The real blocker in this area is unchanged and is the founder's: **the promotion product
+cannot be sold until there is a way to take the money**, which is the Paystack company
+account migration (D38). Promotion needs no subaccount and no split, so it is the **first**
+thing that works the moment that account exists. Worth knowing when deciding what to sort
+first.
 
 ---
 
