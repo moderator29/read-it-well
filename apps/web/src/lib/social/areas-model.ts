@@ -59,7 +59,7 @@ export const MODERATOR_CAN = [
 export const MODERATOR_CANNOT = [
   "Delete anybody's post, ever",
   "Remove a member from the place",
-  "See anyone's bookings, wallet or messages",
+  "See anyone's bookings, payments or messages",
 ] as const;
 
 export const HANDLE_RE = /^[a-z][a-z0-9_]{2,19}$/;

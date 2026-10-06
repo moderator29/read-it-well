@@ -110,7 +110,6 @@ export const experienceInboxEn = {
       space: "space",
       verification: "verification",
       passport: "Space Passport",
-      wallet: "wallet",
       ticket: "support ticket",
       post: "post",
       profile: "profile",

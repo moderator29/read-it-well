@@ -132,3 +132,108 @@ describe("D48: no source string says it either", () => {
     30_000,
   );
 });
+
+/*
+ * THE BARE WORD (A9, 6 October). The phrases above caught "your wallet" and
+ * missed "wallet" on its own: the notification view printed "Open the wallet"
+ * on every rent payment, and the /docs description promised "the wallet".
+ * There is no wallet on Vallo (D48), and the Rewards Balance is never called
+ * one (D51), so in member copy the word is simply out.
+ *
+ * What counts as member copy: every string in every experience-*.en.ts module
+ * (found on disk, so a new module is covered the day it lands) and in
+ * public-meta; and every string literal under src that reads as words (it has
+ * a space or opens with a capital), outside the staff and fixture trees. A
+ * lower-case token without a space ("wallet", "wallet-chip", "/wallet",
+ * "wallet.funding.started") is a storage key, a stored notification kind, a
+ * glyph name, a route or a redirect, and is not copy.
+ */
+const BARE_WALLET = /\bwallet\b/i;
+const LOCALES_DIR = join(process.cwd(), "..", "..", "packages", "i18n", "src", "locales");
+
+function namespaceOf(file: string): string {
+  return file.replace(/\.en\.ts$/, "").replace(/-([a-z])/g, (_, c: string) => c.toUpperCase());
+}
+
+const MEMBER_MODULES = readdirSync(LOCALES_DIR)
+  .filter((name) => /^experience-[a-z-]+\.en\.ts$/.test(name) || name === "public-meta.en.ts")
+  .sort();
+
+/** Trees that are not member copy: staff screens, dev fixtures, glyph tables, generated types. */
+const NOT_MEMBER_COPY = [/^app\/\(dev\)\//, /^app\/admin\//, /^lib\/admin\//, /^design-system\//, /^lib\/supabase\/database\.types\.ts$/];
+
+/**
+ * Member-visible lines that may say the word, each with its reason. Nothing
+ * else may.
+ *   - The account-deletion email and the /delete-account table name the
+ *     records kept for the anti-money-laundering rules, by the tables they
+ *     are (`wallets`, `wallet_entries`, from before ADR-0002). A legal
+ *     disclosure of what is retained, not a claim that a wallet exists.
+ *   - The payments log line names a legacy wallet id field. Never shown.
+ */
+const BARE_WALLET_ALLOWED: { file: string; text: RegExp; why: string }[] = [
+  { file: "lib/account-deletion/emails.ts", text: /\bwallet entries\b/, why: "legal: records retained under AML rules" },
+  { file: "lib/account-deletion/plan.ts", text: /^a wallet is a ledger\b/, why: "legal: the retained `wallets` table's reason" },
+  { file: "lib/payments/observability.ts", text: /^wallet=/, why: "technical: a log field" },
+];
+
+function readsAsWords(text: string): boolean {
+  /* An interpolation is code, not words: `${origin}/wallet?funded=1` is an address. */
+  const words = text.replace(/\$\{[^{}]*\}/g, "").trim();
+  return /\s/.test(words) || /^[A-Z]/.test(words);
+}
+
+describe("D48: the bare word wallet is out of member copy", () => {
+  it("finds the member dictionary modules, public-meta among them", () => {
+    expect(MEMBER_MODULES.length).toBeGreaterThan(15);
+    expect(MEMBER_MODULES).toContain("public-meta.en.ts");
+    expect(MEMBER_MODULES).toContain("experience-inbox.en.ts");
+  });
+
+  it.each(LOCALES)("%s: no experience-* or public-meta string says wallet", (locale) => {
+    const dictionary = getDictionary(locale) as unknown as Record<string, unknown>;
+    const found: string[] = [];
+    for (const file of MEMBER_MODULES) {
+      const namespace = namespaceOf(file);
+      expect(dictionary[namespace], `${file} is registered as ${namespace}`).toBeDefined();
+      for (const { path, text } of leaves(dictionary[namespace], [namespace])) {
+        if (BARE_WALLET.test(text)) found.push(`${path}: "${text}"`);
+      }
+    }
+    expect(found).toEqual([]);
+  });
+
+  it("names no notification's object a wallet", () => {
+    const objects = getDictionary("en").experienceInbox.notificationView.objects as Record<string, string>;
+    expect(Object.keys(objects)).not.toContain("wallet");
+    for (const noun of Object.values(objects)) expect(noun).not.toMatch(BARE_WALLET);
+  });
+
+  it(
+    "finds it in no member-visible string literal under src",
+    () => {
+      const files = sourceFiles(SRC);
+      const found: string[] = [];
+      for (const file of files) {
+        const at = relative(SRC, file).split("\\").join("/");
+        if (NOT_MEMBER_COPY.some((tree) => tree.test(at))) continue;
+        for (const { line, text } of stringLiterals(readFileSync(file, "utf8"))) {
+          if (!BARE_WALLET.test(text) || !readsAsWords(text)) continue;
+          if (BARE_WALLET_ALLOWED.some((allow) => allow.file === at && allow.text.test(text))) continue;
+          found.push(`${at}:${line}: "${text.slice(0, 120)}"`);
+        }
+      }
+      expect(found).toEqual([]);
+    },
+    30_000,
+  );
+
+  it("tells a key from copy, so the scan cannot quietly pass everything", () => {
+    for (const key of ["wallet", "wallet-chip", "/wallet", "wallet.funding.started", "/wallet/transactions", "${await siteOrigin()}/wallet?funded=1"]) {
+      expect(readsAsWords(key), key).toBe(false);
+    }
+    for (const copy of ["Open the wallet", "Wallet", "the stays journey, the wallet, Around"]) {
+      expect(readsAsWords(copy) && BARE_WALLET.test(copy), copy).toBe(true);
+    }
+  });
+});

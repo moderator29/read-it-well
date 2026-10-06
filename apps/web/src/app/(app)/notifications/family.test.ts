@@ -56,6 +56,15 @@ describe("objectOf and grouping", () => {
     expect(objectOf(null)).toBe("page");
     expect(objectOf("/somewhere-new")).toBe("page");
   });
+  it("calls a rent payment a payment, and never a wallet (D48)", () => {
+    expect(objectOf("/rent/pay/i1")).toBe("payment");
+    expect(objectOf("/rent/move-in/l1")).toBe("payment");
+    expect(objectOf("/rent")).toBe("payment");
+    /* `/wallet` only redirects now; an old row pointing at it is a payment. */
+    expect(objectOf("/wallet")).toBe("payment");
+    expect(objectOf("/wallet/transactions")).toBe("payment");
+    expect(objectOf("/rentals")).toBe("page");
+  });
   const id = "5d6f1f0e-1c2b-4f6a-9d7e-0a1b2c3d4e5f";
   it("only treats an id-shaped link as one record", () => {
     expect(objectKeyOf(`/bookings/${id}?tab=1`)).toBe(`/bookings/${id}`);

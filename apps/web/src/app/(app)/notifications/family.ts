@@ -133,7 +133,6 @@ export type ObjectKey =
   | "space"
   | "verification"
   | "passport"
-  | "wallet"
   | "ticket"
   | "post"
   | "profile"
@@ -145,8 +144,9 @@ const OBJECTS: readonly { prefix: RegExp; key: ObjectKey }[] = [
   { prefix: /^\/(?:agent\/|host\/)?messages(?:[/?#]|$)/, key: "conversation" },
   { prefix: /^\/bookings(?:[/?#]|$)/, key: "booking" },
   { prefix: /^\/trips(?:[/?#]|$)/, key: "booking" },
-  { prefix: /^\/(?:payments|checkout|pay|record)(?:[/?#]|$)/, key: "payment" },
-  { prefix: /^\/(?:wallet|rent)(?:[/?#]|$)/, key: "wallet" },
+  /* A rent payment is a payment. `/wallet` only redirects now and there is no
+     wallet to open (D48), so an old row pointing at it is a payment too. */
+  { prefix: /^\/(?:payments|checkout|pay|record|rent|wallet)(?:[/?#]|$)/, key: "payment" },
   { prefix: /^\/agreements(?:[/?#]|$)/, key: "agreement" },
   { prefix: /^\/tenancy(?:[/?#]|$)/, key: "tenancy" },
   { prefix: /^\/inspections(?:[/?#]|$)/, key: "inspection" },
