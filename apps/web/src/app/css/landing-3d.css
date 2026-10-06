@@ -45,25 +45,17 @@
   /* The journey's stop and the bento's door. The negative margins give
      each object the height of the 44px plate it replaced, so the rooms are
      no taller than before; the object's soft edge simply overhangs. */
-  .nf-step__obj,
-  .nf-bento__obj {
+  .nf-step__obj {
     align-self: flex-start;
     margin-inline-start: -0.25rem;
   }
   .nf-step__obj {
     margin-block: -0.375rem;
   }
-  .nf-bento__obj {
-    margin-block: -0.625rem;
-  }
   .nf-check-card__obj {
     margin-block: -0.125rem;
   }
   @media (max-width: 39.999rem) {
-    .nf-bento__obj {
-      --nf-icon3d-size: 3.5rem;
-      margin-block: -0.375rem;
-    }
     .nf-step__obj {
       --nf-icon3d-size: 3rem;
       margin-block: -0.125rem;
@@ -77,9 +69,6 @@
   }
   .nf-app-band__obj {
     margin-block: -0.5rem;
-  }
-  .nf-ai-show-avatar .nf-icon3d {
-    --nf-icon3d-size: 2rem;
   }
 
   /* ------------------------------------------- 2a. the floating fields */
@@ -109,70 +98,6 @@
   }
   .nf-o3 .nf-icon3d {
     filter: drop-shadow(0 14px 18px color-mix(in oklab, var(--nf-brand-primary) 26%, transparent));
-  }
-
-  /* The hero: two objects beside the action on a phone, four round the
-     headline from 48rem. Absolutely placed, so the stage's height is the
-     same with them or without them. */
-  .nf-o3--hero .nf-o3__slot {
-    --nf-icon3d-size: 3.25rem;
-  }
-  /* Beside "Get started", in the gutter the centred button leaves. */
-  .nf-o3--hero [data-slot="a"] {
-    left: 0.75rem;
-    top: 17rem;
-  }
-  .nf-o3--hero [data-slot="b"] {
-    right: 0.75rem;
-    top: 18rem;
-  }
-  .nf-o3--hero :is([data-slot="c"], [data-slot="d"]) {
-    display: none;
-  }
-  @media (min-width: 48rem) {
-    .nf-o3--hero .nf-o3__slot {
-      --nf-icon3d-size: calc(var(--o3-size) * 0.75);
-    }
-    .nf-o3--hero :is([data-slot="c"], [data-slot="d"]) {
-      display: block;
-    }
-    .nf-o3--hero [data-slot="a"] {
-      left: 1%;
-      top: 22%;
-    }
-    .nf-o3--hero [data-slot="b"] {
-      right: 0;
-      top: 30%;
-    }
-    .nf-o3--hero [data-slot="c"] {
-      left: 7%;
-      top: 44%;
-    }
-    .nf-o3--hero [data-slot="d"] {
-      right: 8%;
-      top: 47%;
-    }
-  }
-  @media (min-width: 64rem) {
-    .nf-o3--hero .nf-o3__slot {
-      --nf-icon3d-size: var(--o3-size);
-    }
-    .nf-o3--hero [data-slot="a"] {
-      left: 4%;
-      top: 20%;
-    }
-    .nf-o3--hero [data-slot="b"] {
-      right: 3%;
-      top: 26%;
-    }
-    .nf-o3--hero [data-slot="c"] {
-      left: 11%;
-      top: 62%;
-    }
-    .nf-o3--hero [data-slot="d"] {
-      right: 12%;
-      top: 66%;
-    }
   }
 
   /* The closing card: on a phone, the keys over the card's top right corner
@@ -246,16 +171,6 @@
       transform: translate3d(0, 6px, 0) rotate(3deg);
     }
   }
-
-  /* The hero's objects drift up faster than the page as it scrolls away,
-     nearer ones further: a parallax from the compositor, no script. */
-  @supports (animation-timeline: scroll()) {
-    .nf-o3--hero[data-on] .nf-o3__slot {
-      animation: nf-o3-drift linear both;
-      animation-timeline: scroll(root block);
-      animation-range: 0 100vh;
-    }
-  }
   @keyframes nf-o3-drift {
     to {
       transform: translate3d(0, calc(var(--o3-depth, 1) * -72px), 0) rotate(calc(var(--o3-depth, 1) * 6deg));
@@ -292,49 +207,13 @@
 
   /* ------------------------------------------ 2c. the bento deals itself */
 
-  @supports (animation-timeline: view()) {
-    @media (prefers-reduced-motion: no-preference) and (min-width: 40rem) {
-      :root:not([data-motion="calm"], [data-motion="off"], [data-save-data="on"], [data-motion-lite="on"]) .nf-bento__card {
-        transform-origin: 50% 120%;
-        animation: nf-bento-deal linear both;
-        animation-timeline: view();
-        animation-range: entry 5% cover 32%;
-      }
-      .nf-bento__cell:nth-child(odd) .nf-bento__card {
-        --deal-turn: -5deg;
-        --deal-x: 18px;
-      }
-      .nf-bento__cell:nth-child(even) .nf-bento__card {
-        --deal-turn: 5deg;
-        --deal-x: -18px;
-      }
-      /* The deal is the entrance here, so the list's plain stagger stands
-         down rather than playing a second one on top. */
-      :root:not([data-motion="calm"], [data-motion="off"], [data-save-data="on"], [data-motion-lite="on"]) .nf-bento.nf-m-stagger[data-reveal] > * {
-        animation: none;
-        opacity: 1;
-        transform: none;
-      }
-    }
-  }
-  @keyframes nf-bento-deal {
-    from {
-      opacity: 0.2;
-      transform: translate3d(var(--deal-x, 0), 64px, 0) rotate(var(--deal-turn, 0deg)) scale(0.92);
-    }
-    to {
-      opacity: 1;
-      transform: none;
-    }
-  }
-
   /* --------------------------------- 2d. the objects answer the pointer */
 
   .nf-obj > .nf-icon3d {
     transition: transform var(--nf-duration-slow) var(--nf-ease-spring);
   }
   @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
-    :root:not([data-motion="calm"], [data-motion="off"]) :is(.nf-bento__card, .nf-step__card, .nf-landing-cat):hover .nf-obj > .nf-icon3d {
+    :root:not([data-motion="calm"], [data-motion="off"]) :is(.nf-step__card, .nf-landing-cat):hover .nf-obj > .nf-icon3d {
       transform: translate3d(0, -5px, 0) rotate(-7deg) scale(1.08);
     }
     :root:not([data-motion="calm"], [data-motion="off"]) .nf-landing-cat:hover .nf-obj > .nf-icon3d {
@@ -354,13 +233,9 @@
      its layered fill, edge and glow. The edge lap's moving light is its own
      ring and is untouched. Paper never reads these. */
   :root:not([data-theme="light"]) :is(
-      .nf-bento__card,
       .nf-step__card,
-      .nf-worlds__stage,
       .nf-check-card,
       .nf-close,
-      .nf-stack__moment,
-      .nf-ai-show-panel,
       .nf-faq-group .nf-list-group
     ) {
     border-color: var(--nf-night-glass-edge);
@@ -377,7 +252,7 @@
     box-shadow: var(--nf-night-glass-raised-shadow);
   }
   @media (hover: hover) and (pointer: fine) {
-    :root:not([data-theme="light"]) :is(.nf-bento__card, .nf-step__card):hover {
+    :root:not([data-theme="light"]) .nf-step__card:hover {
       border-color: var(--nf-night-glass-edge-hover);
       box-shadow: var(--nf-night-glass-shadow-hover);
     }

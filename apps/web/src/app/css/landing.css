@@ -322,6 +322,135 @@
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
     outline-offset: -2px;
   }
+  /*
+   * THE PUBLIC MENU (reference 7086; SiteNavLinks.tsx says what it is). A
+   * Card-tier panel under the bar, centred on the bar rather than on the
+   * More button so it never runs off the right edge at 64rem: the wrapper
+   * around More is not positioned, so the panel takes the sticky header (or
+   * the landing capsule) as its frame. Three columns of doors; each door a
+   * Plate row with a round glyph plate, its name and one line. One edge (the
+   * shared panel's), no glow.
+   */
+  .nf-site-nav-more-wrap {
+    position: static;
+  }
+  .nf-site-mega {
+    position: absolute;
+    top: calc(100% + var(--nf-gap-inline));
+    left: 50%;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--nf-space-md);
+    width: min(56rem, calc(100vw - 2 * var(--nf-pad-shell)));
+    padding: var(--nf-space-md);
+    border-radius: var(--nf-tier-card-radius-figure);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    background: var(--nf-panel-fill);
+    box-shadow: var(--nf-panel-rim), var(--nf-elevation-overlay);
+    -webkit-backdrop-filter: blur(var(--nf-panel-blur));
+    backdrop-filter: blur(var(--nf-panel-blur));
+    transform: translateX(-50%);
+    animation: nf-mega-in var(--nf-duration-base) var(--nf-ease-entrance) both;
+  }
+  @keyframes nf-mega-in {
+    from {
+      opacity: 0;
+      transform: translate3d(-50%, -8px, 0);
+    }
+    to {
+      opacity: 1;
+      transform: translate3d(-50%, 0, 0);
+    }
+  }
+  .nf-site-mega__group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-2xs);
+    min-width: 0;
+    animation: nf-mega-col var(--nf-duration-base) var(--nf-ease-entrance) both;
+  }
+  .nf-site-mega__group:nth-child(2) {
+    animation-delay: 60ms;
+  }
+  .nf-site-mega__group:nth-child(3) {
+    animation-delay: 120ms;
+  }
+  @keyframes nf-mega-col {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 6px, 0);
+    }
+  }
+  .nf-site-mega__label {
+    padding: var(--nf-space-2xs) var(--nf-space-sm) 0;
+    color: var(--nf-content-muted);
+  }
+  .nf-site-mega__list {
+    display: grid;
+  }
+  .nf-site-mega__item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nf-space-sm);
+    min-height: 2.75rem;
+    padding: var(--nf-space-xs) var(--nf-space-sm);
+    border-radius: var(--nf-tier-plate-radius);
+    color: var(--nf-content-primary);
+    text-decoration: none;
+    transition: background-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  @media (hover: hover) {
+    .nf-site-mega__item:hover {
+      background: var(--nf-tier-plate-hover);
+    }
+  }
+  .nf-site-mega__item:active {
+    background: var(--nf-tier-plate-press);
+  }
+  .nf-site-mega__item:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: -2px;
+  }
+  .nf-site-mega__item[aria-current="page"] .nf-site-mega__title {
+    color: var(--nf-content-link);
+  }
+  .nf-site-mega__glyph {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-brand-tint-2, var(--nf-tier-plate-hover));
+    color: var(--nf-content-link);
+  }
+  .nf-site-mega__text {
+    display: grid;
+    gap: var(--nf-space-3xs);
+    min-width: 0;
+  }
+  .nf-site-mega__title {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    line-height: 1.3;
+  }
+  .nf-site-mega__desc {
+    font-size: var(--nf-text-caption);
+    line-height: 1.45;
+    color: var(--nf-content-secondary);
+    text-wrap: pretty;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-site-mega,
+    .nf-site-mega__group {
+      animation: none;
+    }
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) :is(.nf-site-mega, .nf-site-mega__group) {
+    animation: none;
+  }
   /* The display controls at the foot of the More menu, above a hairline. */
   .nf-site-nav-menu-extras {
     display: flex;
@@ -341,11 +470,11 @@
   /* ----------------------------------------------------------- the hero */
 
   /*
-   * THE HERO IS PAPER WITH A FAINT GRID (the founder's reference 39,
-   * 29 September 2026), not a photograph: the reader's own ground in both
-   * themes, a centred column, the eyebrow capsule, the headline, one line,
-   * one action, the search and three facts. The capsule header floats over
-   * its top, so the hero pulls up under it by the header's height.
+   * THE GOVERNING COMPOSITION (Session 3, 6 October 2026; Hero.tsx says
+   * why). A night island in both themes: the canvas is the night canvas,
+   * the photograph is the back layer, and the copy, the example card and the
+   * search are the front layer. The capsule header floats over its top, so
+   * the hero pulls up under it by the header's height.
    */
   .nf-landing-hero {
     position: relative;
@@ -353,6 +482,8 @@
     margin-top: calc(-1 * var(--nf-header-height-sm) - 0.625rem);
     padding-top: calc(var(--nf-header-height-sm) + 0.625rem);
     overflow: hidden;
+    background: var(--nf-surface-canvas);
+    color: var(--nf-content-primary);
   }
   @media (min-width: 640px) {
     .nf-landing-hero {
@@ -360,9 +491,312 @@
       padding-top: calc(var(--nf-header-height) + 0.625rem);
     }
   }
-  /* The grid: 1px lines every 72px (56 on a phone), faded out towards the
-     edges and the foot by a radial mask, with one soft brand bloom behind
-     the headline. Painted once; it settles on arrival (item 24). */
+
+  /*
+   * THE BACK LAYER. On a phone it is the lower part of the stage only (the
+   * founder's ruling: no photograph behind a phone's text), faded in from
+   * above so the search capsule sits on the pool. From 64rem it is the
+   * whole stage, with a scrim that keeps the left third the night canvas for
+   * the copy and lets the villa through on the right, as the frames do, and
+   * fades the foot into the page so the hero has no hard bottom edge.
+   */
+  .nf-hero-photo {
+    position: absolute;
+    inset: auto 0 0;
+    height: 17rem;
+    z-index: -1;
+    pointer-events: none;
+    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 45%);
+    mask-image: linear-gradient(to bottom, transparent, #000 45%);
+  }
+  .nf-hero-photo__img {
+    object-fit: cover;
+    object-position: 58% 62%;
+  }
+  .nf-hero-photo::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--nf-surface-canvas) 20%, transparent) 0%,
+      color-mix(in oklab, var(--nf-surface-canvas) 35%, transparent) 55%,
+      var(--nf-surface-canvas) 100%
+    );
+  }
+  @media (min-width: 64rem) {
+    .nf-hero-photo {
+      inset: 0;
+      height: auto;
+      -webkit-mask-image: none;
+      mask-image: none;
+    }
+    .nf-hero-photo__img {
+      object-position: 85% 55%;
+    }
+    .nf-hero-photo::after {
+      background:
+        linear-gradient(
+          90deg,
+          color-mix(in oklab, var(--nf-surface-canvas) 95%, transparent) 0%,
+          color-mix(in oklab, var(--nf-surface-canvas) 82%, transparent) 36%,
+          color-mix(in oklab, var(--nf-surface-canvas) 30%, transparent) 62%,
+          transparent 80%
+        ),
+        linear-gradient(
+          to bottom,
+          color-mix(in oklab, var(--nf-surface-canvas) 55%, transparent) 0%,
+          transparent 22%,
+          transparent 58%,
+          color-mix(in oklab, var(--nf-surface-canvas) 72%, transparent) 82%,
+          var(--nf-surface-canvas) 100%
+        );
+    }
+  }
+
+  /*
+   * 0.6x (MOTION_SYSTEM section 1, principle 4). As the page scrolls the
+   * front layer away at 1.0x, the photograph is pushed down by 0.4 of the
+   * scroll, so it travels at 0.6x and reads as further away. The scroll
+   * timeline is the root's, the range the first screen; transform only, no
+   * script. Absent where the browser has no scroll timelines, and under
+   * reduced motion, Calm, Off and data saver (landing-rooms.css, the foot).
+   */
+  @supports (animation-timeline: scroll()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .nf-hero-photo {
+        animation: nf-hero-parallax linear both;
+        animation-timeline: scroll(root block);
+        animation-range: 0 100svh;
+      }
+    }
+  }
+  @keyframes nf-hero-parallax {
+    to {
+      transform: translate3d(0, 40svh, 0);
+    }
+  }
+
+  .nf-landing-hero-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    text-align: center;
+    gap: var(--nf-space-md);
+    padding-block: var(--nf-space-xl) var(--nf-space-2xl);
+  }
+  .nf-hero-copy {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--nf-space-md);
+    min-width: 0;
+  }
+  .nf-hero-card {
+    display: none;
+  }
+  @media (min-width: 64rem) {
+    .nf-landing-hero-body {
+      grid-template-columns: minmax(0, 1fr) 17rem;
+      justify-items: start;
+      align-items: center;
+      text-align: start;
+      column-gap: var(--nf-space-3xl);
+      row-gap: var(--nf-space-lg);
+      padding-block: var(--nf-space-2xl) var(--nf-space-2xl);
+    }
+    .nf-hero-copy {
+      align-items: flex-start;
+      gap: var(--nf-space-lg);
+    }
+    .nf-landing-hero-body > .nf-landing-pill-wrap,
+    .nf-landing-hero-body > .nf-hero-facts {
+      grid-column: 1 / -1;
+      justify-self: center;
+    }
+    .nf-hero-card {
+      display: block;
+      justify-self: end;
+    }
+    /* Two lines, as the frames set it: the copy column is wide enough for
+       "without the runaround." at the display size, so the title takes it. */
+    .nf-landing-hero-body {
+      --nf-hero-title-max: 100%;
+    }
+  }
+
+  /* The eyebrow capsule: a glyph and one true line on a hairline capsule
+     (a container, not a control), with the edge lap round its rim. */
+  .nf-hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    max-width: 100%;
+    min-height: 2.25rem;
+    padding: 0.375rem var(--nf-space-md);
+    border-radius: 1.25rem;
+    border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-brand-primary) 30%, transparent);
+    background: color-mix(in oklab, var(--nf-surface-primary) 82%, transparent);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 500;
+    line-height: 1.35;
+    color: var(--nf-brand-secondary);
+    text-wrap: balance;
+  }
+  .nf-hero-eyebrow > svg {
+    flex: none;
+  }
+  @media (max-width: 39.999rem) {
+    .nf-hero-eyebrow {
+      font-size: var(--nf-text-caption);
+      padding-inline: var(--nf-space-sm);
+    }
+  }
+
+  .nf-landing-title {
+    max-width: var(--nf-hero-title-max, min(100%, 40rem));
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-landing-title);
+    line-height: 1.02;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    color: var(--nf-content-primary);
+  }
+  .nf-landing-title > span {
+    display: block;
+    text-wrap: balance;
+  }
+  /* The second line in the brand ramp (landing-rooms.css paints each word). */
+  .nf-landing-title .nf-depth-line--accent {
+    color: var(--nf-brand-secondary);
+  }
+  .nf-landing-sub {
+    max-width: 34ch;
+    font-size: 1rem;
+    line-height: 1.55;
+    color: var(--nf-content-secondary);
+    text-wrap: balance;
+  }
+  @media (min-width: 64rem) {
+    .nf-landing-sub {
+      max-width: 36ch;
+      font-size: 1.125rem;
+    }
+  }
+  .nf-hero-action {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--nf-space-xs);
+  }
+  .nf-hero-action__row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--nf-space-sm);
+  }
+  @media (min-width: 64rem) {
+    .nf-hero-action {
+      align-items: flex-start;
+    }
+    .nf-hero-action__row {
+      justify-content: flex-start;
+    }
+  }
+  .nf-hero-join {
+    max-width: 40ch;
+    font-size: var(--nf-text-caption);
+    line-height: 1.5;
+    color: var(--nf-content-muted);
+    text-wrap: balance;
+  }
+  /* Three facts under the search: a lean check and 14px words, no figures. */
+  .nf-hero-facts {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--nf-space-2xs) var(--nf-space-md);
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+  }
+  .nf-hero-facts > li {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+  }
+  .nf-hero-facts svg {
+    color: var(--nf-state-success);
+  }
+
+  /*
+   * THE EXAMPLE CARD: an Island over the photograph (navy glass, its one
+   * edge the light on the border box), the photograph of the example flat,
+   * the Example mark, the move-in total leading and the rent under it. It
+   * lands last in the intro, lifting 24px (landing-rooms.css).
+   */
+  .nf-hero-card {
+    width: 100%;
+    overflow: hidden;
+    padding: 0;
+  }
+  .nf-hero-card__photo {
+    position: relative;
+    aspect-ratio: 16 / 10;
+  }
+  .nf-hero-card__photo img {
+    object-fit: cover;
+  }
+  .nf-hero-card__mark {
+    position: absolute;
+    top: var(--nf-space-xs);
+    left: var(--nf-space-xs);
+  }
+  .nf-hero-card__body {
+    display: grid;
+    gap: var(--nf-space-3xs);
+    padding: var(--nf-space-sm) var(--nf-space-md) var(--nf-space-md);
+  }
+  .nf-hero-card__title {
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    line-height: 1.3;
+  }
+  .nf-hero-card__place {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-3xs);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-hero-card__label {
+    margin-top: var(--nf-space-xs);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-hero-card__figure {
+    font-family: var(--nf-font-display);
+    font-size: 1.75rem;
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+  .nf-hero-card__rent {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+  }
+  .nf-hero-card__rent > span {
+    color: var(--nf-content-muted);
+  }
+
+  /*
+   * THE FAINT GRID GROUND: 1px lines every 72px (56 on a phone), faded out
+   * towards the edges and the foot by a radial mask, with one soft brand
+   * bloom. The hero wore it until the governing composition put the night
+   * photograph there; the closing card and the supply pages' close still
+   * stand on it (FinalCta.tsx, SupplyPage.tsx).
+   */
   .nf-hero-grid {
     --nf-hero-grid-line: color-mix(in oklab, var(--nf-content-primary) 6%, transparent);
     --nf-hero-grid-step: 3.5rem;
@@ -384,119 +818,6 @@
     .nf-hero-grid {
       --nf-hero-grid-step: 4.5rem;
     }
-  }
-
-  .nf-landing-hero-body {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: var(--nf-space-md);
-    padding-block: var(--nf-space-xl) var(--nf-space-2xl);
-  }
-  @media (min-width: 64rem) {
-    .nf-landing-hero-body {
-      gap: var(--nf-space-lg);
-      padding-block: var(--nf-space-3xl) var(--nf-space-3xl);
-    }
-  }
-
-  /* The eyebrow capsule: a glyph and one true line on a hairline capsule
-     (a container, not a control), with the edge lap round its rim. */
-  .nf-hero-eyebrow {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--nf-space-xs);
-    max-width: 100%;
-    min-height: 2.25rem;
-    padding: 0.375rem var(--nf-space-md);
-    border-radius: 1.25rem;
-    border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-brand-primary) 30%, transparent);
-    background: color-mix(in oklab, var(--nf-surface-primary) 82%, transparent);
-    box-shadow: var(--nf-card-shadow, none);
-    font-size: var(--nf-text-body-sm);
-    font-weight: 500;
-    line-height: 1.35;
-    color: var(--nf-brand-primary);
-    text-wrap: balance;
-  }
-  :root:not([data-theme="light"]) .nf-hero-eyebrow {
-    color: var(--nf-brand-secondary);
-  }
-  .nf-hero-eyebrow > svg {
-    flex: none;
-  }
-  @media (max-width: 39.999rem) {
-    .nf-hero-eyebrow {
-      font-size: var(--nf-text-caption);
-      padding-inline: var(--nf-space-sm);
-    }
-  }
-
-  .nf-landing-title {
-    /* Wide enough that "Without the runaround." holds one line from 1280
-       (UIUX item 7); balance keeps a phone's lines even. */
-    max-width: min(100%, 60rem);
-    font-family: var(--nf-font-display);
-    font-size: var(--nf-landing-title);
-    line-height: 1.02;
-    font-weight: 700;
-    letter-spacing: -0.03em;
-    color: var(--nf-content-primary);
-  }
-  .nf-landing-title > span {
-    display: block;
-    text-wrap: balance;
-  }
-  /* The last phrase in the brand blue (reference 39). */
-  .nf-landing-title .nf-depth-line--accent {
-    color: var(--nf-brand-primary);
-  }
-  :root:not([data-theme="light"]) .nf-landing-title .nf-depth-line--accent {
-    color: var(--nf-brand-secondary);
-  }
-  .nf-landing-sub {
-    max-width: 34ch;
-    font-size: 1rem;
-    line-height: 1.55;
-    color: var(--nf-content-secondary);
-    text-wrap: balance;
-  }
-  @media (min-width: 64rem) {
-    .nf-landing-sub {
-      max-width: 44ch;
-      font-size: 1.125rem;
-    }
-  }
-  .nf-hero-action {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--nf-space-xs);
-  }
-  .nf-hero-join {
-    max-width: 40ch;
-    font-size: var(--nf-text-caption);
-    line-height: 1.5;
-    color: var(--nf-content-muted);
-    text-wrap: balance;
-  }
-  /* Three facts under the search: a lean check and 14px words, no figures. */
-  .nf-hero-facts {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: var(--nf-space-2xs) var(--nf-space-md);
-    font-size: var(--nf-text-body-sm);
-    color: var(--nf-content-secondary);
-  }
-  .nf-hero-facts > li {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--nf-space-2xs);
-  }
-  .nf-hero-facts svg {
-    color: var(--nf-state-success);
   }
 
   /* ------------------------------------------------ the listing mini card

@@ -1,60 +1,87 @@
 import Image from "next/image";
+import type { ReactNode } from "react";
 import type { Dictionary, Locale } from "@vallo/i18n/core";
 import { Amount } from "@/components/ui/Amount";
-import { UiIcon } from "@/design-system/icons/UiIcon";
-import { NO_INSPECTION_FEE, PAYMENT_GATE_SENTENCE } from "@/lib/money/copy";
+import { IconPlate } from "@/components/ui/IconPlate";
+import { StatusChip, type ChipState } from "@/components/ui/StatusChip";
+import { LogoMark } from "@/design-system/brand/Logo";
+import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { passportLines, type PassportFacts, type PassportLine } from "@/lib/trust/passport";
+import { SUPPLY_DOORS } from "@/lib/site/supply-doors";
 import { photo } from "@/lib/site/photos";
-import { DemoStack, type StackCard } from "./DemoStack";
-import { SectionHead } from "./SectionHead";
+import { EXAMPLE_MOVE_IN } from "./example-move-in";
 
 /**
- * "Hands on": four moments of a move, drawn from the product's own screens,
- * as a deck you can move by hand (`DemoStack`; the founder's reference 40).
+ * THE LANDING'S EXAMPLE MOMENTS: what the product's own screens show, drawn
+ * with the product's own components, one per layer of the platform band
+ * (`SpaceOsBand.tsx`).
  *
- * EVERY MOMENT SAYS "EXAMPLE". The listing, the viewing slots, the agent
- * and the move-in figures are illustrations of what the screens show, not
- * inventory, not a person and not a price anybody is asking; each carries
- * the Example mark in its own head, as every example card in the product
- * does (spec section 0, rule 5). The sentences under them are the product's
- * facts: two are the money constants verbatim (`NO_INSPECTION_FEE`,
- * `PAYMENT_GATE_SENTENCE`), the others say what the listing card and the
- * agent review already do.
+ * This file used to be "Hands on", a deck of four moments you moved by hand.
+ * The deck is gone with the platform band, which shows the same moments one
+ * layer at a time at a fraction of the height (the landing's height ceiling
+ * is a ratchet, perf-budget.json). The name stays because
+ * `components/app/listing/example-notice.test.ts` reads this file to prove
+ * the rule that matters here, and the rule is unchanged:
  *
- * The move-in figures add up (N2.5m rent plus the four fees the listing
- * would state), so the example teaches the arithmetic honestly.
+ * EVERY MOMENT SAYS "EXAMPLE". The flat, the passport, the conversation, the
+ * gate and the desk are illustrations of what the screens show, not
+ * inventory, not a person and not a price anybody is asking; each carries the
+ * Example mark in its own head, as every example card in the product does
+ * (spec section 0, rule 5). They are built from what is real: the passport's
+ * lines come out of `passportLines`, the function the real passport is drawn
+ * with, fed example facts; the desk's rows are the supply page's example
+ * desk; the figures are the one example flat (`example-move-in.ts`); the
+ * gate's words are the journey's product labels. No trust signal is drawn on
+ * an example: no Verified mark anywhere in this file.
  */
-const RENT = 2_500_000_00;
-const FEES = { caution: 250_000_00, agency: 250_000_00, legal: 250_000_00, agreement: 50_000_00 } as const;
-const TOTAL = RENT + FEES.caution + FEES.agency + FEES.legal + FEES.agreement;
 
-export function StackRoom({ t, locale }: { t: Dictionary; locale: Locale }) {
-  const s = t.landingRooms.stack;
-  const u = s.ui;
-  const naira = (minor: number) => <Amount minorUnits={minor} locale={locale} currency="NGN" className="nf-numeric" />;
+/* The example renter's facts. Dated in the platform's own year, labelled
+   Example on the credential, never a person. */
+const EXAMPLE_PASSPORT: PassportFacts = {
+  phoneConfirmed: true,
+  nimcMatchedAt: "2026-08-14T09:00:00Z",
+  inspectionsAttended: 3,
+  tenancies: 1,
+  memberSince: "2026-03-02T09:00:00Z",
+};
+
+const PASSPORT_GLYPH: Record<PassportLine["key"], UiIconName> = {
+  phone: "phone",
+  nimc: "id-card",
+  attended: "calendar-check",
+  tenancies: "house",
+  since: "clock",
+};
+
+/* The example desk's states (`lib/site/supply-doors.ts` words them), as the
+   chip's state: waiting on somebody is pending, done is success, a draft is
+   no state yet. A word not listed here is drawn neutral, never green. */
+const DESK_STATE: Record<string, ChipState> = { New: "pending", Booked: "success", Confirmed: "success", Draft: "neutral" };
+
+export type LandingMoments = Record<"discover" | "trust" | "intelligence" | "transactions" | "operations", ReactNode>;
+
+export function landingMoments(t: Dictionary, locale: Locale): LandingMoments {
+  const u = t.landingRooms.stack.ui;
+  const j = t.landingRooms.journey.screen;
+  const ai = t.landingRooms.ai;
   const example = (
     <span className="nf-badge nf-badge--example nf-mo__example">
       <UiIcon name="info" size={12} aria-hidden />
       {u.example}
     </span>
   );
+  const passport = t.trustVisible.passport;
+  const lines = passportLines(EXAMPLE_PASSPORT, passport, locale);
+  const [script] = ai.scripts;
+  const desk = SUPPLY_DOORS.agent.example;
 
-  const parts: { key: keyof typeof FEES | "rent"; label: string; minor: number }[] = [
-    { key: "rent", label: u.rent, minor: RENT },
-    { key: "caution", label: u.caution, minor: FEES.caution },
-    { key: "agency", label: u.agency, minor: FEES.agency },
-    { key: "legal", label: u.legal, minor: FEES.legal },
-    { key: "agreement", label: u.agreement, minor: FEES.agreement },
-  ];
-
-  const cards: StackCard[] = [
+  const moments: { key: keyof LandingMoments; moment: ReactNode }[] = [
     {
-      key: "listing",
-      title: s.cards.listing.title,
-      body: s.cards.listing.body,
+      key: "discover",
       moment: (
         <div className="nf-mo nf-mo--listing">
           <div className="nf-mo__photo">
-            <Image src={photo("villa-exterior-gate")} alt="" fill sizes="(max-width: 40rem) 70vw, 320px" draggable={false} />
+            <Image src={photo("villa-exterior-gate")} alt="" fill sizes="(max-width: 40rem) 80vw, 340px" />
             {example}
           </div>
           <div className="nf-mo__pad">
@@ -63,17 +90,21 @@ export function StackRoom({ t, locale }: { t: Dictionary; locale: Locale }) {
               <UiIcon name="location" size={12} aria-hidden />
               {u.place}
             </p>
+            {/* The product's order: the move-in total leads, the rent is
+                beneath it (north star 10 B and C). */}
             <dl className="nf-mo__lines">
+              <div className="nf-mo__strong">
+                <dt>{u.moveIn}</dt>
+                <dd>
+                  <Amount minorUnits={EXAMPLE_MOVE_IN.total} locale={locale} currency="NGN" className="nf-numeric" />
+                </dd>
+              </div>
               <div>
                 <dt>{u.rent}</dt>
                 <dd>
-                  {naira(RENT)}
+                  <Amount minorUnits={EXAMPLE_MOVE_IN.rent} locale={locale} currency="NGN" className="nf-numeric" />
                   <span className="nf-mo__per">{u.perYear}</span>
                 </dd>
-              </div>
-              <div className="nf-mo__strong">
-                <dt>{u.moveIn}</dt>
-                <dd>{naira(TOTAL)}</dd>
               </div>
             </dl>
           </div>
@@ -81,120 +112,139 @@ export function StackRoom({ t, locale }: { t: Dictionary; locale: Locale }) {
       ),
     },
     {
-      key: "viewing",
-      title: s.cards.viewing.title,
-      body: NO_INSPECTION_FEE,
+      key: "trust",
+      /* THE SPACE PASSPORT, DEMONSTRATED (north star 14.4; D14). A credential
+         at the plate proportion, matte navy, radius 18: never a bank card, so
+         no chip, no network mark and no long number. Its facts are dates and
+         counts, never ticks (north star 12, point 15). */
       moment: (
-        <div className="nf-mo nf-mo--pad">
-          <div className="nf-mo__head">
-            <p className="nf-mo__title">{u.viewing}</p>
-            {example}
-          </div>
-          <p className="nf-mo__meta">
-            <UiIcon name="calendar-booking" size={12} aria-hidden />
-            {u.date}
-          </p>
-          <ul className="nf-mo__slots">
-            {u.slots.map((slot, i) => (
-              <li key={slot} data-chosen={i === 0 ? "true" : undefined}>
-                <span className="nf-numeric">{slot}</span>
-                <span>{i === 0 ? u.chosen : u.open}</span>
-              </li>
-            ))}
-          </ul>
-          <p className="nf-mo__ok">
-            <UiIcon name="circle-check" size={16} aria-hidden />
-            {u.noFee}
-          </p>
-        </div>
-      ),
-    },
-    {
-      key: "agent",
-      title: s.cards.agent.title,
-      body: s.cards.agent.body,
-      moment: (
-        <div className="nf-mo nf-mo--pad">
+        <div className="nf-mo nf-mo--passport">
           <div className="nf-mo__head">
             <span className="nf-mo__person">
-              <span className="nf-mo__avatar" aria-hidden="true">
-                {u.agentInitials}
+              <span className="nf-mo__seal" aria-hidden="true">
+                <LogoMark size={22} />
               </span>
               <span>
-                <span className="nf-mo__title">{u.agentName}</span>
-                <span className="nf-mo__meta">{u.agentRole}</span>
+                <span className="nf-mo__title">{passport.title}</span>
+                <span className="nf-mo__meta">{passport.subtitle}</span>
               </span>
             </span>
             {example}
           </div>
-          <p className="nf-mo__ok">
-            <UiIcon name="user-check" size={16} aria-hidden />
-            {u.reviewed}
-          </p>
-          <ul className="nf-mo__rows">
-            <li>
-              <UiIcon name="home" size={16} aria-hidden />
-              {u.named}
-            </li>
-            <li>
-              <UiIcon name="messages" size={16} aria-hidden />
-              {u.record}
-            </li>
+          <ul className="nf-mo__facts">
+            {lines.map((line) => (
+              <li key={line.key}>
+                <IconPlate size="sm" shape="round" tone="brand">
+                  <UiIcon name={PASSPORT_GLYPH[line.key]} size={16} />
+                </IconPlate>
+                <span>{line.text}</span>
+              </li>
+            ))}
           </ul>
+          <p className="nf-mo__foot">
+            <UiIcon name="lock" size={16} aria-hidden />
+            {t.experienceLanding.os.passportShown}
+          </p>
         </div>
       ),
     },
     {
-      key: "pay",
-      title: s.cards.pay.title,
-      body: PAYMENT_GATE_SENTENCE,
+      key: "intelligence",
+      /* The assistant's first example exchange, still: the question, then the
+         answer, which says only what the assistant is told to do. Nothing
+         types itself or loops (MOTION_SYSTEM section 1, principle 10). */
+      moment: (
+        <div className="nf-mo nf-mo--pad nf-mo--chat">
+          <div className="nf-mo__head">
+            <p className="nf-mo__label">{ai.caption}</p>
+            {example}
+          </div>
+          <p className="nf-mo__bubble nf-mo__bubble--you">
+            <span className="sr-only">{ai.you}: </span>
+            {script?.user}
+          </p>
+          <div className="nf-mo__reply">
+            <span className="nf-mo__bot" aria-hidden="true">
+              <UiIcon name="bot" size={16} />
+            </span>
+            <p className="nf-mo__bubble">
+              <span className="nf-mo__who">{ai.name}</span>
+              {script?.reply}
+            </p>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "transactions",
+      /* THE GATE, AS A PATH WITH STATES (reference 7110's progress path):
+         each step's state as a StatusChip (word, shape and colour), then the
+         move-in total and where the money goes. A drawing of the order the
+         product enforces, not a live payment, so nothing ticks on a timer. */
       moment: (
         <div className="nf-mo nf-mo--pad">
           <div className="nf-mo__head">
             <p className="nf-mo__label">{u.moveIn}</p>
             {example}
           </div>
-          {/* The move-in figure counts up once when the card is seen (the
-              founder's count-up ruling); it is the Example flat's figure. */}
-          <p className="nf-mo__figure">
-            <Amount minorUnits={TOTAL} locale={locale} currency="NGN" className="nf-numeric" count />
+          <ol className="nf-mo__path">
+            <li>
+              <span className="nf-mo__step">
+                <UiIcon name="calendar-booking" size={16} aria-hidden />
+                {j.inspection}
+              </span>
+              <StatusChip state="success">{j.booked}</StatusChip>
+            </li>
+            <li>
+              <span className="nf-mo__step">
+                <UiIcon name="document" size={16} aria-hidden />
+                {`${j.you} · ${j.owner}`}
+              </span>
+              <StatusChip state="success">{j.approved}</StatusChip>
+            </li>
+            <li>
+              <span className="nf-mo__step">
+                <UiIcon name="banknote" size={16} aria-hidden />
+                <Amount minorUnits={EXAMPLE_MOVE_IN.total} locale={locale} currency="NGN" className="nf-numeric" />
+              </span>
+              <StatusChip state="success">{j.paid}</StatusChip>
+            </li>
+          </ol>
+          <p className="nf-mo__ok">
+            <UiIcon name="bank" size={16} aria-hidden />
+            {j.theirBank}
           </p>
-          {/* The segmented bar (spec section 9): each segment its real share
-              of the total, the rent in the brand blue and the fees in steps
-              of it. */}
-          <div className="nf-mo__bar" aria-hidden="true">
-            {parts.map((p) => (
-              <span key={p.key} data-part={p.key} style={{ flexGrow: p.minor }} />
-            ))}
+        </div>
+      ),
+    },
+    {
+      key: "operations",
+      /* The supply page's example desk, the same rows: what needs the lister
+         today, each with its state as a word. */
+      moment: (
+        <div className="nf-mo nf-mo--pad">
+          <div className="nf-mo__head">
+            <p className="nf-mo__label">{t.experienceLanding.os.deskLabel}</p>
+            {example}
           </div>
-          <ul className="nf-mo__legend">
-            {parts.map((p) => (
-              <li key={p.key} data-part={p.key}>
-                <span className="nf-mo__dot" aria-hidden="true" />
-                {p.label}
+          <ul className="nf-mo__desk">
+            {desk.map((row) => (
+              <li key={row.title}>
+                <IconPlate size="sm" tone="neutral">
+                  <UiIcon name="document" size={16} />
+                </IconPlate>
+                <span className="nf-mo__desk-text">
+                  <span className="nf-mo__desk-title">{row.title}</span>
+                  <span className="nf-mo__meta">{row.sub}</span>
+                </span>
+                <StatusChip state={DESK_STATE[row.value] ?? "neutral"}>{row.value}</StatusChip>
               </li>
             ))}
           </ul>
-          <p className="nf-mo__ok">
-            <UiIcon name="bank" size={16} aria-hidden />
-            {u.bank}
-          </p>
         </div>
       ),
     },
   ];
 
-  return (
-    <section className="nf-shell nf-room" data-chapter="stack" aria-labelledby="nf-landing-stack-title">
-      {/* Centred over the deck on a phone; from 64rem the head sits to the
-          left of the deck, top-aligned, so the room is one screen tall. */}
-      <div className="nf-stack-room">
-        <SectionHead id="nf-landing-stack-title" eyebrow={s.overline} title={s.title} lede={s.body} align="center" />
-        <DemoStack
-          cards={cards}
-          labels={{ region: s.title, prev: s.prev, next: s.next, position: s.position, hint: s.hint }}
-        />
-      </div>
-    </section>
-  );
+  return Object.fromEntries(moments.map((m) => [m.key, m.moment])) as LandingMoments;
 }

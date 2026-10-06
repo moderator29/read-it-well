@@ -6,16 +6,14 @@ import type { Listing, ListingKind } from "@/lib/listings/types";
 import { getPlatformStats, type PlatformStats } from "@/lib/platform-stats";
 import { toMiniListing, type MiniListing } from "@/lib/site/listing-card";
 import { Hero } from "./Hero";
+import { MoveInBand } from "./MoveInBand";
+import { SpaceOsBand } from "./SpaceOsBand";
 import { CommunityBand } from "./CommunityBand";
 import { CategoryGrid } from "./CategoryGrid";
 import { AppBand } from "./AppBand";
-import { AiBand } from "./AiBand";
 import { LandingFaq } from "./LandingFaq";
 import { FinalCta } from "./FinalCta";
 import { Journey } from "./Journey";
-import { Bento } from "./Bento";
-import { WorldsBand } from "./WorldsBand";
-import { StackRoom } from "./StackRoom";
 import { landingDoor } from "./doors";
 
 /**
@@ -106,37 +104,43 @@ export function LandingBody({
       {/*
         HOW THE PAGE GOT HERE, oldest first. The founder's render of 19
         September set the first order; Track M (25 September) added rooms;
-        the launch pass and the clean pass (29 September) cut the repeats.
-        THE UNIFIED PASS (29 September, evening; UIUX items 6 to 12 and the
-        founder's references 39 to 41) is the current order, ten rooms, each
-        with one job:
+        the launch pass and the clean pass (29 September) cut the repeats;
+        the unified pass (29 September, evening) made ten rooms with one job
+        each.
 
-          Hero        the grid stage, the eyebrow capsule, the headline, the
-                      one honest action, the search, three facts
-          Hands on    four product moments in a deck you move by hand
+        THE SESSION 3 PASS (6 October; the handoff's Stage 3 and north star
+        10 A) is the current order, eight rooms, the brand's story told in
+        the order a person meets it:
+
+          Hero        the governing composition: night, the villa, the slogan,
+                      the explanation, two doors, the example card, the
+                      search capsule, three facts
+          Move-in     the argument the platform was built on, as its own band:
+                      the example flat's whole cost, counted up and itemised
+          Platform    the operating system for physical spaces, six layers
+                      (trust, discover, intelligence, transactions, operations,
+                      ecosystem), one at a time, each with a moment drawn from
+                      the product's own components and a Space Passport
           Journey     find, inspect, agree, move in
-          Bento       the doors into the product, flat plates
-          Worlds      Property and Stays, with Example-tagged listings
-          AI          the assistant's rules beside an example conversation
-          Categories  eight kinds of place, then the cities
+          Categories  eight kinds of place, then the cities on the drawn map
           Community   who it is for, real figures only, the Third party label,
                       and "Check before you pay" with the check in the card
-                      (A7, folded in on 30 September)
           App, FAQ    on your phone; the short answers in one grouped card
           Close       the final card: sign up, or sign in
 
-        Gone from this pass: the wall of photographs (PlacesBand, which
-        repeated the category tiles' photographs; the component stays for
-        any other caller), the map as a room of its own (its cities are the
-        category room's chips now, and the drawing shows beside them from
-        64rem only), and the listing card over the community photograph.
+        Folded into the platform band, which says them as one system in one
+        screen (the four rooms measured 3,387px at 1440 before this pass):
+        the hands-on deck (its moments are the
+        layers' moments), the bento (its doors are the ecosystem layer), the
+        AI room (its truths and its first example exchange are the
+        intelligence layer) and the Property and Stays switch (the hero's
+        second door and the ecosystem layer). Their components are no longer
+        rendered here.
       */}
-      <Hero t={t} door={door} />
-      <StackRoom t={t} locale={locale} />
+      <Hero t={t} locale={locale} door={door} />
+      <MoveInBand t={t} locale={locale} door={door} />
+      <SpaceOsBand t={t} locale={locale} door={door} />
       <Journey t={t} />
-      <Bento t={t} door={door} />
-      <WorldsBand t={t} locale={locale} cards={data.showcase ?? data.cards} door={door} />
-      <AiBand t={t} locale={locale} cards={data.showcase ?? data.cards} door={door} />
       <CategoryGrid t={t} counts={data.counts} door={door} />
       <CommunityBand t={t} locale={locale} stats={data.stats} />
       {native ? null : <AppBand t={t} native={native} />}

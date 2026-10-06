@@ -12,10 +12,12 @@ import { MotionReveal } from "@/components/motion/Reveal";
  *
  * The outline is a simplified trace of the national border projected from
  * longitude and latitude (x = (lng - 2.5) * 40, y = (14.2 - lat) * 40), close
- * enough to be recognised and far from a survey. The pins pop in one after
- * another the first time the map is on screen, once, and are simply there
- * under reduced motion. (Each used to carry a looping sonar ring; the clean
- * pass of 29 September removed it with the page's other loops.)
+ * enough to be recognised and far from a survey. The pins drop in one after
+ * another the first time the map is on screen, once (north star motion 19),
+ * and are simply there under reduced motion; pointing at a city's chip keeps
+ * its pin lit and quiets the rest (landing-rooms.css, "the map moment").
+ * (Each pin used to carry a looping sonar ring; the clean pass of 29
+ * September removed it with the page's other loops.)
  */
 const K = 40;
 const project = (lng: number, lat: number) => ({
@@ -124,6 +126,7 @@ export function NigeriaMapArt() {
           <g
             key={p.city}
             className="nf-ngmap__pin"
+            data-pin={p.city}
             style={{ "--pin-i": i } as React.CSSProperties}
             transform={`translate(${p.x.toFixed(1)} ${p.y.toFixed(1)})`}
           >

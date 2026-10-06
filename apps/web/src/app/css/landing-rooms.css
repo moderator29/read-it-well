@@ -30,9 +30,8 @@
   .nf-depth-line {
     display: block;
   }
-  .nf-landing-title .nf-depth-line--accent {
-    filter: drop-shadow(0 0 10px var(--nf-glow-1));
-  }
+  /* The lit line's drop-shadow bloom went in Session 3's pass: one glow per
+     view (north star 3), and the hero's is the primary action's. */
   .nf-depth-line--accent .nf-depth-word {
     background: var(--nf-gradient-text);
     -webkit-background-clip: text;
@@ -103,266 +102,6 @@
   }
 
   /* ===================================================== the AI room */
-
-  /* `minmax(0, 1fr)`, not the implicit `auto` track. An auto track is as wide
-     as its widest child's min-content, and the showcase bar's caption is
-     `nowrap`: at 320px that pushed both columns to 324px, 28px past the
-     screen (measured). A zero floor lets the caption ellipsis do its job. */
-  .nf-ai-room {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: var(--nf-gap-block);
-    align-items: center;
-  }
-  @media (min-width: 64rem) {
-    .nf-ai-room {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
-      gap: var(--nf-space-3xl);
-    }
-  }
-  .nf-ai-truths {
-    display: grid;
-    gap: var(--nf-gap-row);
-  }
-  .nf-ai-truths > li {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--nf-gap-row);
-    font-size: var(--nf-text-body-sm);
-    line-height: 1.5;
-    color: var(--nf-content-secondary);
-  }
-  .nf-ai-truths > li > span:last-child {
-    padding-top: 0.4rem;
-  }
-
-  .nf-ai-show {
-    display: flex;
-    flex-direction: column;
-    gap: var(--nf-gap-row);
-  }
-  .nf-ai-show-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--nf-gap-row);
-    min-height: 2.75rem;
-  }
-  .nf-ai-show-caption {
-    min-width: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-size: var(--nf-text-overline);
-    font-weight: 700;
-    letter-spacing: var(--nf-tracking-label);
-    text-transform: uppercase;
-    color: var(--nf-content-muted);
-  }
-  .nf-ai-show-controls {
-    display: flex;
-    align-items: center;
-    gap: var(--nf-gap-inline);
-  }
-  /* The pips: which of the three conversations is playing, and a way to
-     jump to one. A 44px target around an 8px dot. */
-  .nf-ai-show-pip {
-    position: relative;
-    /* 44 by 44: it was 24 wide, under the floor on every tablet. */
-    width: 2.75rem;
-    height: 2.75rem;
-    border: 0;
-    background: none;
-    cursor: pointer;
-  }
-  .nf-ai-show-pip::before {
-    content: "";
-    position: absolute;
-    inset: 50% auto auto 50%;
-    width: 0.5rem;
-    height: 0.5rem;
-    margin: -0.25rem 0 0 -0.25rem;
-    border-radius: var(--nf-radius-circle);
-    background: var(--nf-content-muted);
-    opacity: 0.5;
-    transition:
-      opacity var(--nf-duration-base) var(--nf-ease-standard),
-      transform var(--nf-duration-base) var(--nf-ease-standard);
-  }
-  .nf-ai-show-pip[aria-pressed="true"]::before {
-    background: var(--nf-brand-secondary);
-    opacity: 1;
-    transform: scale(1.25);
-  }
-  .nf-ai-show-pip:focus-visible,
-  .nf-ai-show-replay:focus-visible {
-    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
-    outline-offset: 2px;
-    border-radius: var(--nf-radius-control);
-  }
-  .nf-ai-show-replay {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--nf-gap-inline-tight);
-    min-height: 2.75rem;
-    padding: 0 var(--nf-space-sm);
-    border-radius: var(--nf-radius-control);
-    border: var(--nf-border-width) solid var(--nf-brand-edge);
-    background: transparent;
-    white-space: nowrap;
-    font-size: var(--nf-text-caption);
-    font-weight: 600;
-    color: var(--nf-content-primary);
-    cursor: pointer;
-  }
-  /* On a phone the replay button is the one control; the pips go. */
-  @media (max-width: 26rem) {
-    .nf-ai-show-pip {
-      display: none;
-    }
-  }
-
-  /* The panel: a phone-proportioned glass pane with a fixed height, so a
-     script arriving never moves the page. */
-  .nf-ai-show-panel {
-    display: flex;
-    flex-direction: column;
-    height: 33rem;
-    overflow: hidden;
-    border-radius: var(--nf-radius-2xl);
-    border: var(--nf-border-width) solid var(--nf-panel-edge);
-    border-color: var(--nf-panel-edges);
-    background: var(--nf-panel-fill-card);
-    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow), var(--nf-elev-3);
-    transition: opacity var(--nf-duration-slow) var(--nf-ease-standard);
-  }
-  .nf-ai-show-panel[data-leaving="true"] {
-    opacity: 0.2;
-  }
-  .nf-ai-show-head {
-    display: flex;
-    align-items: center;
-    gap: var(--nf-gap-inline);
-    padding: var(--nf-space-sm) var(--nf-space-md);
-    border-bottom: 1px solid var(--nf-glass-border);
-  }
-  .nf-ai-show-avatar {
-    display: inline-grid;
-    place-items: center;
-    width: 2rem;
-    height: 2rem;
-  }
-  .nf-ai-show-name {
-    font-size: var(--nf-text-body-sm);
-    font-weight: 700;
-    color: var(--nf-content-primary);
-  }
-  .nf-ai-show-thread {
-    display: flex;
-    flex-direction: column;
-    gap: var(--nf-gap-row);
-    padding: var(--nf-space-md);
-  }
-  .nf-ai-bubble {
-    max-width: 86%;
-    padding: var(--nf-space-xs) var(--nf-space-sm);
-    border-radius: var(--nf-radius-lg);
-    font-size: var(--nf-text-body-sm);
-    line-height: 1.5;
-  }
-  .nf-ai-bubble--user {
-    align-self: flex-end;
-    border-bottom-right-radius: var(--nf-radius-xs);
-    color: var(--nf-content-on-brand);
-    background: var(--nf-brand-primary);
-  }
-  .nf-ai-bubble--bot {
-    align-self: flex-start;
-    border-bottom-left-radius: var(--nf-radius-xs);
-    color: var(--nf-content-primary);
-    background: color-mix(in oklab, var(--nf-content-primary) 7%, transparent);
-  }
-  .nf-ai-bubble--user[data-live] {
-    animation: nf-ai-slide var(--nf-duration-slow) var(--nf-ease-entrance) both;
-  }
-  .nf-ai-word[data-live] {
-    display: inline-block;
-    white-space: pre;
-    animation: nf-ai-word var(--nf-duration-fast) var(--nf-ease-standard) both;
-  }
-  .nf-ai-typing {
-    align-self: flex-start;
-    display: inline-flex;
-    gap: 0.3rem;
-    padding: var(--nf-space-sm);
-    border-radius: var(--nf-radius-lg);
-    background: color-mix(in oklab, var(--nf-content-primary) 7%, transparent);
-  }
-  .nf-ai-typing > span {
-    width: 0.45rem;
-    height: 0.45rem;
-    border-radius: var(--nf-radius-circle);
-    background: var(--nf-content-secondary);
-    animation: nf-ai-dot var(--nf-duration-deliberate) var(--nf-ease-standard) infinite;
-  }
-  .nf-ai-typing > span:nth-child(2) { animation-delay: 120ms; }
-  .nf-ai-typing > span:nth-child(3) { animation-delay: 240ms; }
-  .nf-ai-cards {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--nf-gap-row);
-    perspective: 900px;
-  }
-  .nf-ai-card {
-    min-width: 0;
-  }
-  .nf-ai-card--slot {
-    min-height: 1px;
-  }
-  /* The cards fold down into place, hinged on their top edge. */
-  .nf-ai-card[data-live] {
-    transform-origin: 50% 0;
-    animation: nf-ai-fold var(--nf-duration-slow) var(--nf-ease-entrance) both;
-  }
-  .nf-ai-note {
-    align-self: flex-start;
-    display: inline-flex;
-    align-items: center;
-    gap: var(--nf-gap-inline-tight);
-    padding: var(--nf-space-2xs) var(--nf-space-sm);
-    border-radius: var(--nf-radius-control);
-    font-size: var(--nf-text-caption);
-    font-weight: 600;
-    color: var(--nf-brand-secondary);
-    background: color-mix(in oklab, var(--nf-brand-primary) 12%, transparent);
-  }
-  .nf-ai-note[data-live] {
-    animation: nf-ai-slide var(--nf-duration-slow) var(--nf-ease-entrance) both;
-  }
-  @keyframes nf-ai-slide {
-    from { opacity: 0; transform: translate3d(0, 12px, 0); }
-    to { opacity: 1; transform: none; }
-  }
-  @keyframes nf-ai-word {
-    from { opacity: 0; transform: translate3d(0, 3px, 0); }
-    to { opacity: 1; transform: none; }
-  }
-  @keyframes nf-ai-dot {
-    0%, 100% { opacity: 0.35; transform: translateY(0); }
-    40% { opacity: 1; transform: translateY(-3px); }
-  }
-  @keyframes nf-ai-fold {
-    from { opacity: 0; transform: rotateX(-68deg); }
-    to { opacity: 1; transform: none; }
-  }
-  @media (max-width: 26rem) {
-    .nf-ai-show-panel {
-      height: 34rem;
-    }
-    .nf-ai-show-thread {
-      padding: var(--nf-space-sm);
-    }
-  }
 
   /* ========================================================= the FAQ */
 
@@ -472,17 +211,10 @@
   /* ============================================ reduced motion */
 
   @media (prefers-reduced-motion: reduce) {
-    .nf-depth-last,
-    .nf-ai-bubble--user[data-live],
-    .nf-ai-word[data-live],
-    .nf-ai-typing > span,
-    .nf-ai-card[data-live],
-    .nf-ai-note[data-live] {
+    .nf-depth-last {
       animation: none;
     }
-    .nf-room-link svg,
-    .nf-ai-show-panel,
-    .nf-ai-show-pip::before {
+    .nf-room-link svg {
       transition: none;
     }
 
@@ -608,9 +340,8 @@
   /* One card language: the landing's panels share a radius, an edge, a
      surface and one hover (lift 2px on `translate`, the stronger shadow on
      an overlay's opacity). */
-  .nf-bento__card,
-  .nf-step__card,
-  .nf-worlds__stage {
+  
+  .nf-step__card {
     border-radius: var(--nf-container-radius);
     border: var(--nf-border-width) solid var(--nf-panel-edge);
     border-color: var(--nf-panel-edges);
@@ -922,155 +653,6 @@
 
   /* --------------------------------------------------- the bento */
 
-  .nf-bento {
-    display: grid;
-    gap: var(--nf-gap-row);
-  }
-  @media (min-width: 40rem) {
-    .nf-bento {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-    .nf-bento__cell--wide {
-      grid-column: span 2;
-    }
-  }
-  @media (min-width: 64rem) {
-    .nf-bento {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: var(--nf-gap-group);
-    }
-    .nf-bento__cell--tall {
-      grid-row: span 2;
-    }
-  }
-  .nf-bento__cell {
-    display: flex;
-    min-width: 0;
-  }
-  /*
-   * UNDER 40REM THE BENTO IS A SWIPE ROW TOO (the founder: "mobile shorter";
-   * the stacked grid ran about 2,400px at 390). The gate that holds it is
-   * the scroller, bled to the screen edges so only the row scrolls; every
-   * card is a link, so the keyboard reaches each one and the browser scrolls
-   * it into view. Cards are one height and compact: a smaller stage, the h4
-   * title, the small card padding.
-   */
-  @media (max-width: 39.999rem) {
-    .nf-bento-gate {
-      margin-inline: calc(-1 * var(--nf-pad-shell));
-      padding-inline: var(--nf-pad-shell);
-      padding-block: var(--nf-space-3xs) var(--nf-space-xs);
-      overflow-x: auto;
-      overscroll-behavior-x: contain;
-      scroll-snap-type: x mandatory;
-      scroll-padding-inline: var(--nf-pad-shell);
-      scrollbar-width: none;
-    }
-    .nf-bento-gate::-webkit-scrollbar {
-      display: none;
-    }
-    .nf-bento {
-      display: flex;
-      gap: var(--nf-gap-inline);
-    }
-    .nf-bento__cell {
-      flex: 0 0 74vw;
-      scroll-snap-align: start;
-    }
-    .nf-bento .nf-bento__card {
-      min-height: 0;
-      padding: var(--nf-pad-card-sm);
-      gap: var(--nf-gap-inline);
-    }
-    .nf-bento .nf-scene,
-    .nf-bento .nf-bento__cell--tall .nf-scene {
-      flex: none;
-      height: 5.5rem;
-      min-height: 0;
-    }
-    .nf-bento .nf-scene__obj img {
-      max-width: 4rem;
-      max-height: 4rem;
-    }
-    .nf-bento .nf-bento__title {
-      font-size: var(--nf-text-h4);
-    }
-  }
-  .nf-bento__card {
-    position: relative;
-    isolation: isolate;
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-    justify-content: space-between;
-    gap: var(--nf-gap-group);
-    min-height: 14rem;
-    overflow: hidden;
-    padding: var(--nf-pad-card);
-    color: var(--nf-content-primary);
-    transform: perspective(900px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
-    transition:
-      transform var(--nf-duration-fast) var(--nf-ease-standard),
-      translate var(--nf-duration-fast) var(--nf-ease-standard);
-  }
-  .nf-bento__card::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    border-radius: inherit;
-    box-shadow: var(--nf-elev-3);
-    opacity: 0;
-    transition: opacity var(--nf-duration-fast) var(--nf-ease-standard);
-    pointer-events: none;
-  }
-  @media (hover: hover) {
-    .nf-bento__card:hover {
-      translate: 0 -2px;
-    }
-    .nf-bento__card:hover::after {
-      opacity: 1;
-    }
-  }
-  .nf-bento__card:focus-visible {
-    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
-    outline-offset: 3px;
-  }
-
-  .nf-bento__text {
-    display: flex;
-    flex-direction: column;
-    gap: var(--nf-gap-inline);
-  }
-  /* A block of text with the arrow set inline after its last word, so a
-     title that wraps keeps the arrow on its final line instead of centring
-     it against the whole block (it was an inline-flex row). */
-  .nf-bento__title {
-    display: block;
-    font-family: var(--nf-font-display);
-    font-size: var(--nf-text-h3);
-    font-weight: 700;
-    line-height: 1.25;
-  }
-  .nf-bento__arrow {
-    display: inline-block;
-    margin-inline-start: var(--nf-gap-inline);
-    vertical-align: -0.1em;
-    color: var(--nf-brand-secondary);
-    transition: transform var(--nf-duration-fast) var(--nf-ease-standard);
-  }
-  @media (hover: hover) {
-    .nf-bento__card:hover .nf-bento__arrow {
-      transform: translateX(3px);
-    }
-  }
-  .nf-bento__body {
-    max-width: 44ch;
-    font-size: var(--nf-text-body-sm);
-    line-height: 1.55;
-    color: var(--nf-content-secondary);
-  }
-
   /* The scenes: a stage of about 7rem, drawn in the brand's light. */
   .nf-scene {
     position: relative;
@@ -1078,15 +660,6 @@
     place-items: center;
     height: 7rem;
     color: var(--nf-brand-secondary);
-  }
-  .nf-bento__cell--tall .nf-scene {
-    flex: 1;
-    height: auto;
-    min-height: 11rem;
-  }
-
-  .nf-ai-show[data-playing="false"] .nf-ai-typing > span {
-    animation-play-state: paused;
   }
 
   /*
@@ -1105,158 +678,6 @@
   }
 
   /* ------------------------------------------------ the two worlds */
-
-  .nf-worlds {
-    --nf-worlds-accent: var(--nf-brand-primary);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--nf-gap-block);
-  }
-  .nf-worlds[data-side="stays"] {
-    --nf-worlds-accent: var(--nf-brand-accent);
-  }
-  .nf-worlds__switch {
-    display: flex;
-    align-items: center;
-    gap: var(--nf-space-sm);
-  }
-  .nf-worlds__tab {
-    min-height: 2.75rem;
-    padding: 0 var(--nf-space-lg);
-    border-radius: var(--nf-radius-control);
-    border: 1px solid var(--nf-brand-edge);
-    background: transparent;
-    font-weight: 600;
-    color: var(--nf-content-secondary);
-    cursor: pointer;
-    transition: color var(--nf-duration-base) var(--nf-ease-standard);
-  }
-  .nf-worlds__tab[aria-pressed="true"] {
-    color: var(--nf-content-on-brand);
-    background: var(--nf-selected-fill);
-    box-shadow: var(--nf-selected-shadow-inline);
-  }
-  .nf-worlds__tab:focus-visible,
-  .nf-worlds__coin:focus-visible {
-    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
-    outline-offset: 2px;
-  }
-  .nf-worlds__coin {
-    width: 3.5rem;
-    height: 3.5rem;
-    padding: 0;
-    border: 0;
-    border-radius: var(--nf-radius-circle);
-    background: none;
-    cursor: pointer;
-    perspective: 500px;
-  }
-  .nf-worlds__coin-inner {
-    position: relative;
-    display: block;
-    width: 100%;
-    height: 100%;
-    transform-style: preserve-3d;
-    transition: transform var(--nf-duration-deliberate) var(--nf-ease-spring);
-  }
-  .nf-worlds[data-side="stays"] .nf-worlds__coin-inner {
-    transform: rotateY(180deg);
-  }
-  .nf-worlds__face {
-    position: absolute;
-    inset: 0;
-    display: grid;
-    place-items: center;
-    border-radius: var(--nf-radius-circle);
-    backface-visibility: hidden;
-    background: radial-gradient(circle at 35% 30%, color-mix(in oklab, var(--nf-brand-secondary) 40%, transparent), var(--nf-landing-ink) 75%);
-    box-shadow: inset 0 0 0 1px var(--nf-brand-edge), 0 0 24px var(--nf-glow-2);
-  }
-  .nf-worlds__face--back {
-    transform: rotateY(180deg);
-  }
-  .nf-worlds__stage {
-    display: grid;
-    width: 100%;
-    padding: var(--nf-pad-card);
-    overflow: hidden;
-  }
-  .nf-worlds__panel {
-    grid-area: 1 / 1;
-    display: grid;
-    gap: var(--nf-gap-block);
-    align-items: center;
-    transition:
-      opacity var(--nf-duration-slow) var(--nf-ease-standard),
-      transform var(--nf-duration-slow) var(--nf-ease-standard);
-  }
-  .nf-worlds__panel[data-shown="false"] {
-    opacity: 0;
-    transform: translate3d(0, 12px, 0);
-    pointer-events: none;
-  }
-  @media (min-width: 64rem) {
-    .nf-worlds__panel {
-      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.4fr);
-    }
-  }
-  .nf-worlds__copy {
-    display: flex;
-    flex-direction: column;
-    gap: var(--nf-gap-group);
-  }
-  .nf-worlds__title {
-    font-family: var(--nf-font-display);
-    font-size: var(--nf-text-h2);
-    font-weight: 700;
-    line-height: 1.12;
-    color: var(--nf-content-primary);
-  }
-  .nf-worlds__title::before {
-    content: "";
-    display: block;
-    width: 2.5rem;
-    height: 3px;
-    margin-bottom: var(--nf-gap-row);
-    border-radius: var(--nf-radius-xs);
-    background: var(--nf-worlds-accent);
-  }
-  .nf-worlds__body {
-    font-size: var(--nf-text-body);
-    line-height: 1.6;
-    color: var(--nf-content-secondary);
-  }
-  .nf-worlds__cards {
-    /* A16: the containing block for the cards' absolutely placed spoken
-       prices (`.sr-only`), so they are clipped by this scroller instead of
-       widening the page: at 320px (200% zoom) they pushed it 305px sideways. */
-    position: relative;
-    display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: minmax(12rem, 1fr);
-    gap: var(--nf-gap-row);
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    scrollbar-width: none;
-  }
-  .nf-worlds__cards > li {
-    scroll-snap-align: start;
-  }
-  .nf-worlds__panel[data-shown="true"] .nf-worlds__cards > li {
-    animation: nf-worlds-in var(--nf-duration-base) var(--nf-ease-entrance) both;
-    animation-delay: calc(var(--card-i, 0) * 60ms);
-  }
-  @keyframes nf-worlds-in {
-    from {
-      opacity: 0;
-      transform: translate3d(0, 10px, 0);
-    }
-    to {
-      opacity: 1;
-      transform: none;
-    }
-  }
 
   /* --------------------------------------------------------- the map */
 
@@ -1365,7 +786,7 @@
   :root:is([data-motion="calm"], [data-motion="off"]) .nf-step::after {
     animation: none;
   }
-  :root:is([data-motion="calm"], [data-motion="off"]) :is(.nf-bento__card, .nf-step__card) {
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-step__card {
     translate: none;
   }
 
@@ -1375,22 +796,16 @@
     .nf-ngmap__pin > *,
     .nf-steps__fill,
     .nf-step::after,
-    .nf-landing-hero-plate img,
-    .nf-worlds__cards > li {
+    .nf-landing-hero-plate img {
       animation: none !important;
     }
     .nf-eyebrow::before,
     .nf-eyebrow::after,
     .nf-step__card,
-    .nf-map-room__chip,
-    .nf-bento__card,
-    .nf-bento__card::after,
-    .nf-worlds__coin-inner,
-    .nf-worlds__panel {
+    .nf-map-room__chip {
       transition: none;
     }
-    .nf-bento__card,
-    .nf-bento__card:hover,
+    
     .nf-step__card:hover {
       transform: none;
       translate: none;
@@ -1405,9 +820,8 @@
      take; 360px and up are unchanged. Last in the file so it follows each
      card's own padding rule. */
   @media (max-width: 22.49rem) {
-    .nf-bento__card,
-    .nf-step__card,
-    .nf-worlds__stage {
+    
+    .nf-step__card {
       padding: var(--nf-pad-card-sm);
     }
   }
@@ -1499,9 +913,8 @@
 
   /* ------------------------------------------------- one card language */
 
-  .nf-bento__card,
-  .nf-step__card,
-  .nf-worlds__stage {
+  
+  .nf-step__card {
     border-radius: var(--nf-radius-card, var(--nf-radius-lg));
     border: var(--nf-border-width) solid var(--nf-card-border);
     background: var(--nf-surface-primary);
@@ -1509,84 +922,30 @@
   }
   /* On the white band the cards sit on the paper's own warm well, so they
      still read as objects rather than as outlines. */
-  :root[data-theme="light"] :is([data-chapter="journey"], [data-chapter="worlds"]) :is(.nf-step__card, .nf-worlds__stage) {
+  :root[data-theme="light"] [data-chapter="journey"] .nf-step__card {
     background: var(--nf-surface-canvas);
     box-shadow: none;
   }
   @media (hover: hover) and (pointer: fine) {
-    .nf-bento__card,
+    
     .nf-step__card {
       transition:
         translate 160ms var(--nf-ease-standard),
         box-shadow 160ms var(--nf-ease-standard);
     }
-    .nf-bento__card:hover,
+    
     .nf-step__card:hover {
       translate: 0 -2px;
       border-color: var(--nf-card-border);
       box-shadow: var(--nf-card-shadow-hover, var(--nf-elev-2));
     }
-    .nf-bento__card:active,
+    
     .nf-step__card:active {
       translate: none;
     }
   }
 
   /* ---------------------------------------------------------- the bento */
-
-  .nf-bento__card {
-    transform: none;
-    justify-content: space-between;
-    gap: var(--nf-space-lg);
-    min-height: 12rem;
-  }
-  .nf-bento__card::after {
-    content: none;
-  }
-  .nf-bento__title {
-    font-size: 1.1875rem;
-    font-weight: 600;
-    letter-spacing: -0.01em;
-  }
-  .nf-bento__body {
-    font-size: 0.9375rem;
-  }
-  @media (max-width: 39.999rem) {
-    .nf-bento .nf-bento__card {
-      min-height: 11.5rem;
-      gap: var(--nf-space-md);
-    }
-    .nf-bento .nf-bento__title {
-      font-size: 1.0625rem;
-    }
-  }
-
-  /* The tall cells carry a true fragment between the plate and the words
-     (the Stays kinds, the assistant's languages), so no cell is half
-     empty. Desktop only: the phone's swipe row keeps its cards compact. */
-  .nf-bento__chips {
-    display: none;
-  }
-  @media (min-width: 64rem) {
-    .nf-bento__chips {
-      display: flex;
-      flex-wrap: wrap;
-      align-content: center;
-      gap: 0.5rem;
-      flex: 1;
-    }
-  }
-  .nf-bento__chip {
-    display: inline-flex;
-    align-items: center;
-    min-height: 2rem;
-    padding: 0 0.75rem;
-    border-radius: var(--nf-radius-control-sm, 10px);
-    background: var(--nf-surface-raised);
-    font-size: var(--nf-text-body-sm);
-    font-weight: 500;
-    color: var(--nf-content-secondary);
-  }
 
   /* -------------------------------------------------------- the journey */
 
@@ -1627,64 +986,7 @@
 
   /* ---------------------------------------------------- the two worlds */
 
-  .nf-worlds__switch {
-    position: relative;
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0;
-    width: min(100%, 20rem);
-    padding: 0.25rem;
-    border-radius: var(--nf-radius-md);
-    background: var(--nf-surface-raised);
-  }
-  .nf-worlds__switch::before {
-    content: "";
-    position: absolute;
-    inset-block: 0.25rem;
-    inset-inline-start: 0.25rem;
-    width: calc((100% - 0.5rem) / 2);
-    border-radius: var(--nf-radius-control-sm, 10px);
-    background: var(--nf-surface-elevated);
-    box-shadow: var(--nf-card-shadow, none);
-    transform: translateX(calc(var(--nf-seg-index, 0) * 100%));
-    transition: transform 240ms var(--nf-ease-standard);
-  }
-  :root:not([data-theme="light"]) .nf-worlds__switch::before {
-    background: color-mix(in oklab, var(--nf-content-primary) 12%, transparent);
-  }
-  .nf-worlds__tab {
-    position: relative;
-    z-index: 1;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--nf-space-2xs);
-    padding: 0 var(--nf-space-sm);
-    border: 0;
-    border-radius: var(--nf-radius-control-sm, 10px);
-    font-weight: 500;
-    color: var(--nf-content-muted);
-    background: transparent;
-  }
-  .nf-worlds__tab[aria-pressed="true"] {
-    color: var(--nf-content-primary);
-    font-weight: 600;
-    background: transparent;
-    box-shadow: none;
-  }
-  .nf-worlds__title {
-    font-weight: 600;
-    letter-spacing: -0.015em;
-  }
-  .nf-worlds__title::before {
-    content: none;
-  }
-
   /* ------------------------------------------------------- the AI room */
-
-  .nf-ai-truths > li {
-    align-items: center;
-  }
 
   /* ------------------------------------------ categories and the cities */
 
@@ -1696,8 +998,10 @@
   .nf-cities__list .nf-map-room__list {
     margin-top: 0.5rem;
   }
-  .nf-cities__map {
-    display: none;
+  /* The drawing shows at every width since Session 3's pass (the map
+     moment, below); on a phone it is small and under the chips. */
+  .nf-cities__map .nf-ngmap__svg {
+    max-width: 17rem;
   }
   @media (min-width: 64rem) {
     .nf-cities {
@@ -1705,8 +1009,8 @@
       align-items: center;
       gap: var(--nf-space-3xl);
     }
-    .nf-cities__map {
-      display: block;
+    .nf-cities__map .nf-ngmap__svg {
+      max-width: 24rem;
     }
   }
   .nf-map-room__chip {
@@ -1800,233 +1104,6 @@
   }
 
   /* ------------------------------------------- the hands-on deck (stack) */
-
-  .nf-stack {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--nf-space-md);
-    border-radius: var(--nf-radius-card, var(--nf-radius-lg));
-  }
-  .nf-stack:focus-visible {
-    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
-    outline-offset: 6px;
-  }
-  .nf-stack__deck {
-    display: grid;
-    width: min(100%, 25rem);
-    padding-top: 1.75rem;
-  }
-  .nf-stack__card {
-    grid-area: 1 / 1;
-    z-index: calc(10 - var(--nf-depth, 0));
-    transform-origin: 50% 0;
-    transform: translate3d(0, calc(var(--nf-depth, 0) * -0.875rem), 0) scale(calc(1 - var(--nf-depth, 0) * 0.05));
-    transition:
-      transform 460ms cubic-bezier(0.22, 1, 0.36, 1),
-      opacity 320ms var(--nf-ease-standard);
-    touch-action: pan-y;
-    cursor: grab;
-    user-select: none;
-    -webkit-user-select: none;
-    will-change: transform;
-  }
-  .nf-stack__card:not([data-depth="0"]) {
-    pointer-events: none;
-  }
-  .nf-stack__card[data-depth="3"] {
-    opacity: 0;
-  }
-  .nf-stack__card[data-dragging="true"],
-  .nf-stack__card[data-held="true"] {
-    transition: none;
-    cursor: grabbing;
-  }
-  .nf-stack__card[data-flung="true"] {
-    transition:
-      transform 200ms cubic-bezier(0.3, 0.7, 0.4, 1),
-      opacity 200ms linear;
-    opacity: 0.4;
-  }
-  /* The frame: a pale dotted plate round a white card (reference 40). */
-  .nf-stack__frame {
-    padding: 0.5rem;
-    border-radius: 1.75rem;
-    border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-brand-primary) 14%, var(--nf-card-border));
-    background:
-      radial-gradient(circle at 1px 1px, color-mix(in oklab, var(--nf-brand-primary) 22%, transparent) 1px, transparent 1.5px) 0 0 / 14px 14px,
-      color-mix(in oklab, var(--nf-brand-primary) 5%, var(--nf-surface-canvas));
-    box-shadow: var(--nf-float-shadow, var(--nf-elev-2));
-  }
-  .nf-stack__inner {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 1.25rem 1rem 1.5rem;
-    border-radius: 1.375rem;
-    background: var(--nf-surface-primary);
-    text-align: center;
-  }
-  .nf-stack__plates {
-    position: relative;
-    display: grid;
-    justify-items: center;
-    width: 100%;
-    padding-top: 1.75rem;
-    margin-bottom: 1.25rem;
-  }
-  .nf-stack__plate {
-    position: absolute;
-    top: 0;
-    bottom: 1.5rem;
-    border-radius: 1.5rem;
-    border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-brand-primary) 12%, var(--nf-card-border));
-    background: color-mix(in oklab, var(--nf-brand-primary) 3%, var(--nf-surface-primary));
-  }
-  .nf-stack__plate--2 {
-    inset-inline: 0;
-  }
-  .nf-stack__plate--1 {
-    top: 0.875rem;
-    inset-inline: 5%;
-  }
-  .nf-stack__moment {
-    position: relative;
-    z-index: 1;
-    width: 86%;
-    border-radius: 1.125rem;
-    border: var(--nf-border-width) solid var(--nf-card-border);
-    background: var(--nf-surface-primary);
-    box-shadow: var(--nf-float-shadow, var(--nf-elev-2));
-    text-align: start;
-    touch-action: none;
-    cursor: grab;
-    will-change: transform;
-  }
-  .nf-stack__moment[data-dragging="true"] {
-    cursor: grabbing;
-  }
-  .nf-stack__title {
-    font-family: var(--nf-font-display);
-    font-size: 1.375rem;
-    font-weight: 600;
-    line-height: 1.2;
-    letter-spacing: -0.015em;
-    color: var(--nf-content-primary);
-    text-wrap: balance;
-  }
-  .nf-stack__body {
-    margin-top: 0.5rem;
-    max-width: 34ch;
-    font-size: 0.9375rem;
-    line-height: 1.55;
-    color: var(--nf-content-secondary);
-    text-wrap: pretty;
-  }
-  .nf-stack__nav {
-    display: flex;
-    align-items: center;
-    gap: var(--nf-space-sm);
-  }
-  .nf-stack__arrow {
-    display: inline-grid;
-    place-items: center;
-    width: 2.75rem;
-    height: 2.75rem;
-    border-radius: var(--nf-radius-control);
-    border: var(--nf-border-width) solid var(--nf-card-border);
-    background: var(--nf-surface-primary);
-    color: var(--nf-content-primary);
-    box-shadow: var(--nf-card-shadow, none);
-  }
-  .nf-stack__arrow:active {
-    transform: scale(0.95);
-  }
-  .nf-stack__dots {
-    display: flex;
-    align-items: center;
-  }
-  .nf-stack__dot {
-    display: inline-grid;
-    place-items: center;
-    /* 44 by 44, as the showcase pips: 24 wide was under the floor on
-       every tablet, where these dots are drawn. */
-    width: 2.75rem;
-    height: 2.75rem;
-    border: 0;
-    background: transparent;
-  }
-  .nf-stack__dot::before {
-    content: "";
-    width: 0.5rem;
-    height: 0.5rem;
-    border-radius: var(--nf-radius-circle);
-    background: color-mix(in oklab, var(--nf-content-primary) 22%, transparent);
-    transition: transform 240ms var(--nf-ease-standard), background 240ms var(--nf-ease-standard);
-  }
-  .nf-stack__dot[aria-current="true"]::before {
-    background: var(--nf-brand-primary);
-    transform: scale(1.35);
-  }
-  .nf-stack__arrow:focus-visible,
-  .nf-stack__dot:focus-visible {
-    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
-    outline-offset: 2px;
-  }
-  .nf-stack__hint {
-    font-size: var(--nf-text-caption);
-    color: var(--nf-content-muted);
-  }
-  /* Reduced motion, Calm and Off: a still row, every card there. On a phone
-     the cards sit side by side and scroll sideways with snap points (the
-     reader's own scroll, not motion the page makes), so the room keeps the
-     deck's height instead of four cards stacked (about 1,200px more at
-     390); from 48rem, two columns. */
-  .nf-stack--still {
-    display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: 84%;
-    gap: var(--nf-space-sm);
-    /* Bleeds to the screen's edges, so the next card peeks from the edge
-       rather than from under the gutter. */
-    margin-inline: calc(-1 * var(--nf-pad-shell));
-    padding-inline: var(--nf-pad-shell);
-    scroll-padding-inline: var(--nf-pad-shell);
-    overflow-x: auto;
-    overscroll-behavior-x: contain;
-    scroll-snap-type: x mandatory;
-    scrollbar-width: none;
-    padding-bottom: var(--nf-space-2xs);
-  }
-  .nf-stack--still::-webkit-scrollbar {
-    display: none;
-  }
-  .nf-stack--still > .nf-stack__card {
-    scroll-snap-align: start;
-  }
-  .nf-stack--still:focus-visible {
-    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
-    outline-offset: 4px;
-    border-radius: var(--nf-radius-card);
-  }
-  @media (min-width: 48rem) {
-    .nf-stack--still {
-      grid-auto-flow: row;
-      grid-auto-columns: auto;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: var(--nf-space-md);
-      margin-inline: 0;
-      padding-inline: 0;
-      overflow: visible;
-    }
-  }
-  .nf-stack--still .nf-stack__card {
-    transform: none;
-    cursor: auto;
-  }
-  .nf-stack--still .nf-stack__moment {
-    cursor: auto;
-  }
 
   /* The moments inside the cards: small product fragments. */
   .nf-mo {
@@ -2244,38 +1321,9 @@
     border-radius: var(--nf-radius-circle);
     background: var(--nf-part);
   }
-  /* The bar grows once, when its card comes to the front (item 26's
-     motion, on the landing's own example). */
-  @media (prefers-reduced-motion: no-preference) {
-    .nf-stack__card[data-depth="0"] .nf-mo__bar > span {
-      animation: nf-mo-grow 620ms var(--nf-ease-entrance) both;
-    }
-    .nf-stack__card[data-depth="0"] .nf-mo__bar > span:nth-child(2) { animation-delay: 40ms; }
-    .nf-stack__card[data-depth="0"] .nf-mo__bar > span:nth-child(3) { animation-delay: 80ms; }
-    .nf-stack__card[data-depth="0"] .nf-mo__bar > span:nth-child(4) { animation-delay: 120ms; }
-    .nf-stack__card[data-depth="0"] .nf-mo__bar > span:nth-child(5) { animation-delay: 160ms; }
-  }
   @keyframes nf-mo-grow {
     from {
       transform: scaleX(0);
-    }
-  }
-
-  /* The hands-on room from 64rem: head left, deck right. */
-  @media (min-width: 64rem) {
-    .nf-stack-room {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      gap: var(--nf-space-3xl);
-      align-items: start;
-    }
-    .nf-stack-room > .nf-sec-head--center {
-      align-items: flex-start;
-      margin: var(--nf-space-2xl) 0 0;
-      text-align: start;
-    }
-    .nf-stack-room .nf-sec-head--center .nf-sec-lede {
-      text-wrap: pretty;
     }
   }
 
@@ -2286,9 +1334,6 @@
     .nf-landing-cat {
       aspect-ratio: 4 / 3;
     }
-  }
-  .nf-cities__map .nf-ngmap__svg {
-    max-width: 24rem;
   }
 
   /* ------------------------------------------------ the final card */
@@ -2397,21 +1442,6 @@
 
   /* ------------------------------------ the deck: one height, still list */
 
-  .nf-stack__card {
-    display: flex;
-  }
-  .nf-stack__frame {
-    display: flex;
-    flex: 1;
-  }
-  .nf-stack__inner {
-    flex: 1;
-  }
-  .nf-stack--still .nf-stack__card {
-    grid-area: auto;
-    z-index: auto;
-  }
-
   /* ------------------------------------------- the hero intro (item 24) */
 
   /*
@@ -2516,15 +1546,656 @@
     .nf-mo__bar > span {
       animation: none;
     }
-    .nf-stack__card,
-    .nf-stack__dot::before,
-    .nf-worlds__switch::before,
-    .nf-bento__card,
+    
     .nf-step__card {
       transition: none;
     }
   }
-  :root:is([data-motion="calm"], [data-motion="off"]) :is(.nf-stack__card, .nf-worlds__switch::before) {
+}
+
+/*
+ * ===========================================================================
+ * THE SESSION 3 PASS (6 October 2026): the move-in band, the platform band,
+ * the hero card's arrival, the cards' float, and the map moment.
+ * LandingBody.tsx gives the order and the reasons. Transform and opacity
+ * only; each block's reduced-motion, Calm, Off and data-saver answer is at
+ * the foot of this section.
+ * ===========================================================================
+ */
+@layer components {
+  /* --------------------------------------------- the hero card's arrival */
+
+  /* The front layer's card lands last in the intro: it lifts 24px out of a
+     fade on `land` 520ms, after the search (MOTION_SYSTEM section 2, "card
+     entry"), once per visit like the rest of the intro. */
+  @keyframes nf-hero-card-in {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 24px, 0);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  .nf-landing-hero .nf-hero-card {
+    animation: nf-hero-card-in var(--nf-duration-entrance) var(--nf-ease-entrance) both;
+    animation-delay: calc(var(--nf-splash-hold, 0s) + 520ms);
+  }
+  :root[data-intro="seen"] .nf-landing-hero .nf-hero-card {
+    animation: none;
+  }
+
+  /* ------------------------------------------- the cards' float on scroll */
+
+  /*
+   * CARD ENTRY WITH OVERHANG (MOTION_SYSTEM section 2, "card entry on
+   * scroll": a 50 to 90px float, `land` 520ms, children 60ms apart). On the
+   * landing a staggered group's children start 56px down and each later
+   * child 8px further, so the row arrives as one organism with its tail
+   * overhanging, and settles on the entrance curve. The shared reveal keeps
+   * deciding WHEN (MotionReveal, once, below the fold only); this only says
+   * how far. Under reduced motion, Calm and Off nothing is ever hidden.
+   */
+  @keyframes nf-l-float {
+    from {
+      opacity: 0;
+      transform: translate3d(0, calc(56px + var(--nf-overhang, 0px)), 0);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  .nf-landing .nf-m-stagger[data-reveal="out"] > * {
+    transform: translate3d(0, calc(56px + var(--nf-overhang, 0px)), 0);
+  }
+  .nf-landing .nf-m-stagger[data-reveal="in"] > * {
+    animation-name: nf-l-float;
+    animation-duration: var(--nf-duration-entrance);
+  }
+  .nf-landing .nf-m-stagger > :nth-child(2) { --nf-overhang: 8px; }
+  .nf-landing .nf-m-stagger > :nth-child(3) { --nf-overhang: 16px; }
+  .nf-landing .nf-m-stagger > :nth-child(4) { --nf-overhang: 24px; }
+  .nf-landing .nf-m-stagger > :nth-child(n + 5) { --nf-overhang: 32px; }
+
+  /* ------------------------------------------------------ the move-in band */
+
+  .nf-movein {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--nf-gap-block);
+    align-items: center;
+  }
+  @media (min-width: 64rem) {
+    .nf-movein {
+      grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+      gap: var(--nf-space-3xl);
+    }
+  }
+  .nf-movein__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--nf-space-xs) var(--nf-space-md);
+    margin-top: var(--nf-space-md);
+  }
+  .nf-movein__card {
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-lg);
+  }
+  @media (min-width: 64rem) {
+    .nf-movein__card {
+      padding: var(--nf-space-xl);
+    }
+  }
+  .nf-movein__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-space-xs);
+  }
+  /* The subject of the band: the hero figure (north star 5, 56 to 72). */
+  .nf-movein__figure {
+    align-self: flex-start;
+    text-align: start;
+    font-family: var(--nf-font-display);
+    font-size: clamp(2.75rem, 1.6rem + 3.6vw, 4.25rem);
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -0.035em;
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-content-primary);
+  }
+  .nf-movein__on {
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+  }
+  .nf-movein__bar {
+    display: flex;
+    gap: 4px;
+    height: 0.625rem;
+    margin-top: var(--nf-space-xs);
+  }
+  .nf-movein__bar > span {
+    min-width: 6px;
+    border-radius: 3px;
+    background: var(--nf-movein-seg, var(--nf-brand-primary));
+    transform-origin: left center;
+    transition: opacity var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  /* One hue in steps (the chart rule: brand for the subject, the rest in
+     quieter steps of it), the rent strongest. Never colour alone: every
+     segment has its line below with its name and amount. */
+  .nf-movein [data-part="rent"] { --nf-movein-seg: var(--nf-brand-primary); }
+  .nf-movein [data-part="caution"] { --nf-movein-seg: color-mix(in oklab, var(--nf-brand-primary) 70%, var(--nf-surface-canvas)); }
+  .nf-movein [data-part="agency"] { --nf-movein-seg: color-mix(in oklab, var(--nf-brand-primary) 54%, var(--nf-surface-canvas)); }
+  .nf-movein [data-part="legal"] { --nf-movein-seg: color-mix(in oklab, var(--nf-brand-primary) 40%, var(--nf-surface-canvas)); }
+  .nf-movein [data-part="agreement"] { --nf-movein-seg: color-mix(in oklab, var(--nf-brand-primary) 28%, var(--nf-surface-canvas)); }
+  /* The bar draws in from the left as the card arrives, a segment every
+     60ms (MotionReveal sets `data-reveal`; nothing hides without script). */
+  @keyframes nf-movein-seg {
+    from {
+      transform: scaleX(0);
+    }
+  }
+  .nf-movein__card[data-reveal="in"] .nf-movein__bar > span {
+    animation: nf-movein-seg var(--nf-duration-deliberate) var(--nf-ease-entrance) both;
+    animation-delay: calc(160ms + var(--seg-i, 0) * 60ms);
+  }
+  .nf-movein__lines {
+    display: grid;
+    margin-top: var(--nf-space-xs);
+  }
+  .nf-movein__line {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-space-sm);
+    min-height: 2.5rem;
+    border-top: var(--nf-border-width) solid var(--nf-divider, var(--nf-glass-border));
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+  }
+  .nf-movein__line dt {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+  }
+  .nf-movein__line dd {
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-content-primary);
+  }
+  .nf-movein__line--total {
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-movein__dot {
+    width: 0.625rem;
+    height: 0.625rem;
+    border-radius: 3px;
+    background: var(--nf-movein-seg, var(--nf-brand-primary));
+  }
+  /* Pointing at a line lifts its segment and quiets the rest. */
+  @media (hover: hover) {
+    .nf-movein__card:has(.nf-movein__line[data-part]:hover) .nf-movein__bar > span {
+      opacity: 0.35;
+    }
+    .nf-movein__card:has([data-part="rent"]:hover) .nf-movein__bar > [data-part="rent"],
+    .nf-movein__card:has([data-part="caution"]:hover) .nf-movein__bar > [data-part="caution"],
+    .nf-movein__card:has([data-part="agency"]:hover) .nf-movein__bar > [data-part="agency"],
+    .nf-movein__card:has([data-part="legal"]:hover) .nf-movein__bar > [data-part="legal"],
+    .nf-movein__card:has([data-part="agreement"]:hover) .nf-movein__bar > [data-part="agreement"] {
+      opacity: 1;
+    }
+  }
+
+  /* ---------------------------------------------------- the platform band */
+
+  .nf-os__tabs-wrap {
+    display: grid;
+    gap: var(--nf-space-lg);
+    margin-top: var(--nf-gap-heading);
+  }
+  /* The track centres while it fits, and becomes its own sideways scroller
+     on a phone (only the track scrolls, never the page). */
+  .nf-os__track {
+    display: flex;
+    margin-inline: calc(-1 * var(--nf-pad-shell));
+    padding: var(--nf-space-3xs) var(--nf-pad-shell);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+  .nf-os__track::-webkit-scrollbar {
+    display: none;
+  }
+  .nf-os__seg {
+    flex: none;
+    margin-inline: auto;
+  }
+  /* ONLY THE SHOWN LAYER TAKES SPACE. Stacked in one grid cell the stage
+     was as tall as the tallest layer (the ecosystem's six doors on a phone),
+     which left a screen of empty night under the shorter ones. The hidden
+     layers are laid over the top of the shown one instead, so the outgoing
+     layer can still fade there; the band's height follows the reader's
+     choice, which is input-driven and never a layout shift on its own. */
+  .nf-os__stage {
+    position: relative;
+  }
+  .nf-os__panel {
+    min-width: 0;
+    transition:
+      opacity var(--nf-duration-base) var(--nf-ease-standard),
+      transform var(--nf-duration-base) var(--nf-ease-standard),
+      visibility 0s linear 0s;
+  }
+  .nf-os__panel[data-shown="false"] {
+    position: absolute;
+    inset: 0 0 auto;
+    opacity: 0;
+    transform: translate3d(0, 12px, 0);
+    visibility: hidden;
+    transition:
+      opacity var(--nf-duration-fast) var(--nf-ease-exit),
+      transform var(--nf-duration-fast) var(--nf-ease-exit),
+      visibility 0s linear var(--nf-duration-fast);
+  }
+  .nf-os__layer {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--nf-space-lg);
+    align-items: center;
+  }
+  @media (min-width: 48rem) {
+    .nf-os__layer {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: var(--nf-space-2xl);
+    }
+  }
+  @media (min-width: 64rem) {
+    .nf-os__layer {
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+      gap: var(--nf-space-3xl);
+      padding-inline: var(--nf-space-xl);
+    }
+  }
+  .nf-os__copy {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--nf-space-sm);
+  }
+  .nf-os__name {
+    color: var(--nf-content-link);
+  }
+  .nf-os__title {
+    font-family: var(--nf-font-display);
+    font-size: clamp(1.5rem, 1.1rem + 1.4vw, 2.125rem);
+    font-weight: 600;
+    line-height: 1.12;
+    letter-spacing: -0.02em;
+    color: var(--nf-content-primary);
+    text-wrap: balance;
+  }
+  .nf-os__body {
+    display: grid;
+    gap: var(--nf-space-xs);
+    max-width: 46ch;
+    font-size: var(--nf-text-body);
+    line-height: 1.55;
+    color: var(--nf-content-secondary);
+    text-wrap: pretty;
+  }
+  .nf-os__points {
+    display: grid;
+    gap: var(--nf-space-xs);
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+  }
+  .nf-os__points > li {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nf-space-xs);
+  }
+  .nf-os__points svg {
+    flex: none;
+    margin-top: 0.125rem;
+    color: var(--nf-content-link);
+  }
+  .nf-os__doors {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 var(--nf-space-md);
+  }
+  /* The moment's stage: a Card (one edge, the shared panel), on which the
+     product fragment sits. A quiet radial of brand behind it is the band's
+     depth, never a glow. */
+  .nf-os__moment {
+    padding: var(--nf-space-md);
+    background:
+      radial-gradient(80% 70% at 70% 0%, color-mix(in oklab, var(--nf-brand-primary) 9%, transparent), transparent 70%),
+      var(--nf-panel-fill-card);
+  }
+  @media (min-width: 64rem) {
+    .nf-os__moment {
+      padding: var(--nf-space-xl);
+    }
+  }
+  .nf-os__moment > .nf-mo {
+    width: min(100%, 24rem);
+    margin-inline: auto;
+    border-radius: var(--nf-radius-card);
+    border: var(--nf-border-width) solid var(--nf-card-border);
+    background: var(--nf-surface-primary);
+  }
+  /* Each moment settles in as its layer is chosen: the fragment's rows lift
+     60ms apart (motion 10, the first six). */
+  .nf-os__panel[data-shown="true"] :is(.nf-mo__facts, .nf-mo__path, .nf-mo__desk) > li {
+    animation: nf-os-row var(--nf-duration-slow) var(--nf-ease-entrance) both;
+  }
+  .nf-os__panel[data-shown="true"] :is(.nf-mo__facts, .nf-mo__path, .nf-mo__desk) > li:nth-child(2) { animation-delay: 60ms; }
+  .nf-os__panel[data-shown="true"] :is(.nf-mo__facts, .nf-mo__path, .nf-mo__desk) > li:nth-child(3) { animation-delay: 120ms; }
+  .nf-os__panel[data-shown="true"] :is(.nf-mo__facts, .nf-mo__path, .nf-mo__desk) > li:nth-child(4) { animation-delay: 180ms; }
+  .nf-os__panel[data-shown="true"] :is(.nf-mo__facts, .nf-mo__path, .nf-mo__desk) > li:nth-child(n + 5) { animation-delay: 240ms; }
+  @keyframes nf-os-row {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 12px, 0);
+    }
+  }
+
+  /* The passport credential: the plate proportion, matte navy in both
+     themes (D14: an object a person holds, never a bank card). */
+  .nf-mo--passport {
+    padding: var(--nf-space-md);
+    border-radius: var(--nf-radius-card);
+  }
+  .nf-os__moment > .nf-mo--passport {
+    background:
+      linear-gradient(160deg, color-mix(in oklab, var(--nf-brand-primary-strong) 22%, transparent), transparent 55%),
+      var(--nf-surface-primary);
+  }
+  .nf-mo__seal {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--nf-radius-control);
+    background: var(--nf-ink-on-photo);
+  }
+  .nf-mo__facts {
+    display: grid;
+    margin-top: var(--nf-space-sm);
+  }
+  .nf-mo__facts > li {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    min-height: 2.75rem;
+    border-top: var(--nf-border-width) solid var(--nf-divider, var(--nf-glass-border));
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-primary);
+  }
+  .nf-mo__foot {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    margin-top: var(--nf-space-xs);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+
+  /* The example conversation, still. */
+  .nf-mo--chat {
+    display: grid;
+    gap: var(--nf-space-sm);
+  }
+  .nf-mo__bubble {
+    padding: var(--nf-space-xs) var(--nf-space-sm);
+    border-radius: var(--nf-radius-card-sm);
+    background: var(--nf-surface-raised);
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.5;
+    color: var(--nf-content-primary);
+  }
+  .nf-mo__bubble--you {
+    justify-self: end;
+    max-width: 85%;
+    background: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+  }
+  .nf-mo__reply {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nf-space-xs);
+  }
+  .nf-mo__bot {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: 2rem;
+    height: 2rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-brand-tint-2, var(--nf-surface-raised));
+    color: var(--nf-content-link);
+  }
+  .nf-mo__who {
+    display: block;
+    margin-bottom: var(--nf-space-3xs);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-link);
+  }
+  .nf-os__panel[data-shown="true"] .nf-mo__reply {
+    animation: nf-os-row var(--nf-duration-slow) var(--nf-ease-entrance) 120ms both;
+  }
+
+  /* The gate, as a path: each step a row, one rule running down the side. */
+  .nf-mo__path {
+    position: relative;
+    display: grid;
+    margin-top: var(--nf-space-xs);
+  }
+  .nf-mo__path > li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-space-xs);
+    min-height: 2.75rem;
+    border-top: var(--nf-border-width) solid var(--nf-divider, var(--nf-glass-border));
+  }
+  .nf-mo__step {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    min-width: 0;
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-primary);
+  }
+  .nf-mo__step svg {
+    flex: none;
+    color: var(--nf-content-muted);
+  }
+
+  /* The desk: rows with their state as a word, shape and colour. */
+  .nf-mo__desk {
+    display: grid;
+    margin-top: var(--nf-space-xs);
+  }
+  .nf-mo__desk > li {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    padding-block: var(--nf-space-xs);
+    border-top: var(--nf-border-width) solid var(--nf-divider, var(--nf-glass-border));
+  }
+  .nf-mo__desk-text {
+    display: grid;
+    flex: 1;
+    min-width: 0;
+  }
+  .nf-mo__desk-title {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+
+  /* The ecosystem's doors: Plate rows, two columns from 40rem. */
+  .nf-os__tiles {
+    display: grid;
+    gap: var(--nf-space-xs);
+  }
+  @media (min-width: 40rem) {
+    .nf-os__tiles {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .nf-os__tile {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nf-space-sm);
+    height: 100%;
+    min-height: 2.75rem;
+    padding: var(--nf-space-sm);
+    border-radius: var(--nf-tier-plate-radius);
+    border: var(--nf-border-width) solid var(--nf-tier-plate-edge);
+    background: var(--nf-tier-plate-fill);
+    color: var(--nf-content-primary);
+    text-decoration: none;
+    transition:
+      background-color var(--nf-duration-fast) var(--nf-ease-standard),
+      transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  @media (hover: hover) {
+    .nf-os__tile:hover {
+      background: var(--nf-tier-plate-hover);
+    }
+  }
+  .nf-os__tile:active {
+    background: var(--nf-tier-plate-press);
+    transform: scale(0.985);
+  }
+  .nf-os__tile:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  .nf-os__tile-text {
+    display: grid;
+    gap: var(--nf-space-3xs);
+    min-width: 0;
+  }
+  .nf-os__tile-title {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+  }
+  .nf-os__tile-body {
+    font-size: var(--nf-text-caption);
+    line-height: 1.45;
+    color: var(--nf-content-secondary);
+  }
+
+  /* ------------------------------------------------------- the map moment */
+
+  /*
+   * THE PINS DROP (north star motion 19, MOTION_SYSTEM "map pin drop"): each
+   * falls 12px and settles on `drift`, a city every 60ms, the first time the
+   * map is on screen; and pointing at a city's chip lifts its pin, so the
+   * list and the drawing are one thing. The map draws on a phone too now,
+   * under the chips, smaller: it is the page's map moment and the platform
+   * band paid for its height.
+   */
+  .nf-ngmap[data-seen] .nf-ngmap__pin > * {
+    animation-name: nf-pin-drop;
+    animation-duration: var(--nf-duration-deliberate);
+    animation-timing-function: var(--nf-ease-spring);
+    animation-delay: calc(160ms + min(var(--pin-i, 0), 13) * 60ms);
+  }
+  @keyframes nf-pin-drop {
+    from {
+      opacity: 0;
+      transform: translate3d(0, -12px, 0);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  .nf-ngmap__pin {
+    transition: opacity var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  /* Pointing at (or focusing) a city's chip keeps its pin lit and quiets the
+     rest, so the eye finds the place on the drawing. The group's opacity is
+     free of the drop animation, which moves the pin's children. */
+  .nf-cities:has(.nf-map-room__chip:is(:hover, :focus-visible)) .nf-ngmap__pin {
+    opacity: 0.3;
+  }
+  .nf-cities:has([data-city="Lagos"]:is(:hover, :focus-visible)) [data-pin="Lagos"],
+  .nf-cities:has([data-city="Ibadan"]:is(:hover, :focus-visible)) [data-pin="Ibadan"],
+  .nf-cities:has([data-city="Abuja"]:is(:hover, :focus-visible)) [data-pin="Abuja"],
+  .nf-cities:has([data-city="Port Harcourt"]:is(:hover, :focus-visible)) [data-pin="Port Harcourt"],
+  .nf-cities:has([data-city="Enugu"]:is(:hover, :focus-visible)) [data-pin="Enugu"],
+  .nf-cities:has([data-city="Kano"]:is(:hover, :focus-visible)) [data-pin="Kano"],
+  .nf-cities:has([data-city="Kaduna"]:is(:hover, :focus-visible)) [data-pin="Kaduna"],
+  .nf-cities:has([data-city="Benin City"]:is(:hover, :focus-visible)) [data-pin="Benin City"],
+  .nf-cities:has([data-city="Calabar"]:is(:hover, :focus-visible)) [data-pin="Calabar"],
+  .nf-cities:has([data-city="Uyo"]:is(:hover, :focus-visible)) [data-pin="Uyo"],
+  .nf-cities:has([data-city="Owerri"]:is(:hover, :focus-visible)) [data-pin="Owerri"],
+  .nf-cities:has([data-city="Jos"]:is(:hover, :focus-visible)) [data-pin="Jos"],
+  .nf-cities:has([data-city="Asaba"]:is(:hover, :focus-visible)) [data-pin="Asaba"] {
+    opacity: 1;
+  }
+
+  /* ------------------------- reduced motion, Calm, Off, data saver */
+
+  /* Reduced motion: no parallax, no float, no drawing bar, no row lift; a
+     layer change is a 160ms fade with no movement (MOTION_SYSTEM section 1,
+     principle 8). Off is instant; Calm is the same 160ms fade. Data saver and
+     a slow device keep the motion and drop the parallax, which is the one
+     piece that runs for as long as the page scrolls. */
+  @media (prefers-reduced-motion: reduce) {
+    .nf-hero-photo,
+    .nf-landing-hero .nf-hero-card,
+    .nf-movein__card .nf-movein__bar > span,
+    .nf-os__panel .nf-mo__reply,
+    .nf-os__panel :is(.nf-mo__facts, .nf-mo__path, .nf-mo__desk) > li {
+      animation: none;
+    }
+    .nf-os__panel,
+    .nf-os__panel[data-shown="false"] {
+      transform: none;
+      transition:
+        opacity var(--nf-duration-fast) linear,
+        visibility 0s linear var(--nf-duration-fast);
+    }
+    .nf-os__panel[data-shown="true"] {
+      transition: opacity var(--nf-duration-fast) linear;
+    }
+  }
+  :root:is([data-motion="calm"], [data-motion="off"], [data-save-data="on"], [data-motion-lite="on"]) .nf-hero-photo {
+    animation: none;
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) :is(
+      .nf-landing-hero .nf-hero-card,
+      .nf-movein__card .nf-movein__bar > span,
+      .nf-os__panel .nf-mo__reply,
+      .nf-os__panel .nf-mo__facts > li,
+      .nf-os__panel .nf-mo__path > li,
+      .nf-os__panel .nf-mo__desk > li
+    ) {
+    animation: none;
+  }
+  :root[data-motion="calm"] .nf-os__panel,
+  :root[data-motion="calm"] .nf-os__panel[data-shown="false"] {
+    transform: none;
+    transition:
+      opacity var(--nf-duration-fast) linear,
+      visibility 0s linear var(--nf-duration-fast);
+  }
+  :root[data-motion="off"] .nf-os__panel,
+  :root[data-motion="off"] .nf-os__panel[data-shown="false"] {
+    transform: none;
     transition: none;
   }
 }
