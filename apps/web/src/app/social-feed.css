@@ -396,7 +396,7 @@
     /* 13 image px under the last line of words; the corner is 12 (7 CSS). */
     margin-block-start: 8px;
     overflow: hidden;
-    border-radius: 7px;
+    border-radius: var(--nf-radius-xs);
     /* The plate is lit at its edge like every other container on the feed,
        so a photograph sits in the card rather than being pasted onto it. */
     border: 1px solid var(--nf-brand-edge-soft);
@@ -1115,7 +1115,7 @@
     position: relative;
     aspect-ratio: 1 / 1;
     overflow: hidden;
-    border-radius: 4px;
+    border-radius: var(--nf-radius-xs);
     background: var(--nf-surface-inset);
   }
   .nf-media-grid__tile img {
@@ -1776,7 +1776,7 @@
       color-mix(in oklab, var(--nf-brand-primary) 34%, transparent);
     border-block-end: 1.5px solid
       color-mix(in oklab, var(--nf-brand-primary) 34%, transparent);
-    border-end-start-radius: 12px;
+    border-end-start-radius: var(--nf-radius-sm);
     pointer-events: none;
   }
 
@@ -2370,7 +2370,7 @@
        right (14.6), less the air inside their 20 and 24 px boxes. */
     padding-inline: 7.5px 8.7px;
     /* Drawn 14 image px (8.2 CSS): 0.25 of the height, a rectangle. */
-    border-radius: 8px;
+    border-radius: var(--nf-radius-xs);
     border: 1px solid var(--nf-brand-edge);
     /* #011748 in the image: lit blue sunk into the canvas. */
     background: color-mix(in oklab, var(--nf-lit) 16%, var(--nf-surface-canvas));
@@ -2581,7 +2581,7 @@
     /* 18 image px down to the first card (10.5). */
     margin-block-end: 10px;
     /* Drawn 13 to 14 image px (8 CSS) on 35: 0.23, a rectangle. */
-    border-radius: 8px;
+    border-radius: var(--nf-radius-xs);
     border: 1px solid var(--nf-panel-edge);
     border-color: var(--nf-panel-edges);
     background: color-mix(in oklab, var(--nf-feed-glass-deep) 22%, var(--nf-glass-fill-thin));
@@ -2601,7 +2601,7 @@
     /* Flush to the track: its 1px edge sits under the lit half's own. */
     margin: -1px;
     border: 1px solid transparent;
-    border-radius: 8px;
+    border-radius: var(--nf-radius-xs);
     /* Cap 13 image px: 10.5px drawn. */
     font-size: var(--nf-text-body-sm);
     font-weight: 600;

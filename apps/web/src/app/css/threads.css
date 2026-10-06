@@ -1053,7 +1053,7 @@
     /* The spec's count (north star 6.1 and 15.4): 12/600 tabular on the
        platform's count colour, CYAN and never red, the same fill the dock's
        badge uses, so a count reads as one thing wherever it is drawn. */
-    border-radius: var(--nf-radius-badge, 6px);
+    border-radius: var(--nf-radius-badge);
     background: var(--nf-count-fill);
     box-shadow: none;
     color: var(--nf-count-ink);
@@ -1208,7 +1208,7 @@
   }
   .nf-thread__ring--tile {
     overflow: hidden;
-    border-radius: var(--nf-radius-plate, 0.75rem);
+    border-radius: var(--nf-radius-plate);
   }
   .nf-thread__initials {
     flex-shrink: 0;
@@ -1356,7 +1356,7 @@
   /* The count: the shared count colour, as a text plate on the badge radius. */
   .nf-divider-unread > span {
     padding: var(--nf-space-3xs) var(--nf-space-xs);
-    border-radius: var(--nf-radius-badge, 6px);
+    border-radius: var(--nf-radius-badge);
     background: var(--nf-count-fill);
     color: var(--nf-count-ink);
   }

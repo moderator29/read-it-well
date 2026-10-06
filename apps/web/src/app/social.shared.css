@@ -33,7 +33,7 @@
 :root {
   /* The social radius. Softer than --nf-radius-lg, because a post is a spoken
      thing and it should not read as a panel. */
-  --nf-social-radius: 20px;
+  --nf-social-radius: var(--nf-radius-lg);
   /* The gap between independent, floating cards. They are not a list, they do
      not share an edge, and nothing connects them. */
   --nf-social-gap: 12px;

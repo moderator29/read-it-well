@@ -511,7 +511,7 @@
     inset-inline: 22%;
     bottom: -1px;
     height: 2px;
-    border-radius: 2px;
+    border-radius: var(--nf-radius-xs);
     background: var(--nf-content-primary);
     transform: scaleX(0);
     transition: transform var(--nf-duration-base) var(--nf-ease-entrance);
