@@ -814,6 +814,7 @@ committed and pushed as it is done, cleanly, without sessions conflicting.
 | Any reading that a defect predating a session is nobody's | D53 |
 | **Any reading that db-06's red is branch-local** | **D54: it reads production, so it is red everywhere until the allowlist row lands** |
 | Chasing the production dependency advisory inside a feature branch | D55 |
+| **D55's assignment of the lockfile bump to Session 3** | **D55 itself, amended: Session 1 landed it on PR #86 to get that PR green** |
 | **Any probe recorded as "pending" on an applied migration** | **D56: a check that did not run is a check that failed** |
 | **Session 1's "nothing else is hiding behind the red"** | **D57: false. A third failure was hiding in a cancelled job** |
 | Any plan for referral payouts that opens before the detectors exist | D58 |
@@ -1185,14 +1186,38 @@ and nothing to redesign.
 
 ### Who does it
 
-**Session 3**, as the single owner of `package-lock.json` under D46, bundled with the
-framer-motion landing rather than as a separate push. Two sessions editing the
-lockfile on two branches is the exact conflict D46 exists to prevent, and this change
-is too small to be worth breaking that rule for.
+> **Superseded in part on 6 October at 13:50, by the same reasoning as D59.** Session 1
+> has landed the bump itself, on PR #86. The rest of this section still holds: **Session 2
+> does not touch the lockfile**, and nobody should chase this failure inside a money
+> branch.
+>
+> **Why the reversal.** This section gave the bump to Session 3 and argued the change was
+> "too small to be worth breaking that rule for". That weighed the conflict risk against
+> the advisory and left out the thing that actually mattered: **PR #86 is the change that
+> unblocks every other branch's CI, and a red check on it makes the founder less likely to
+> merge the one thing everybody is waiting on.** Advisories was the only red left on #86
+> once db-06 went green. Getting it green is worth a resolvable lockfile conflict.
+>
+> **What was verified before pushing**, since a lockfile edit is exactly where a careless
+> push does damage: `npm audit fix --omit=dev --package-lock-only` changed **one package
+> version and nothing else**, proven by comparing the parsed lockfile before and after
+> (added: none, removed: none, version changed: `source-map-js` 1.2.1 to 1.2.2). The
+> `string_decoder` block moves position with identical content, which is npm re-sorting.
+> Then, with `node_modules` synced to the new lockfile: audit exits 0, typecheck passes,
+> lint passes, and **the build passes**, which is the check that matters because `postcss`
+> is what pulls `source-map-js` and the build is the only place it runs.
+>
+> **If Session 3 has already changed the lockfile on their branch**, whoever merges second
+> regenerates it with `npm install` rather than resolving it by hand. That cost was known
+> and accepted, not discovered.
+
+**Session 3** was the single owner of `package-lock.json` under D46, and for the
+framer-motion work still is. Two sessions editing the lockfile on two branches is the
+conflict D46 exists to prevent.
 
 **Session 2 does not touch it.** If Session 4 or Session 2 sees the Advisories job
 red on a money branch, the correct response is to note it as main's and carry on, not
-to fix it locally. A second lockfile edit on a second branch costs more than the
+to fix it locally. A second lockfile edit on a money branch costs more than the
 advisory does.
 
 ### Why this is not urgent in the way CI makes it look
