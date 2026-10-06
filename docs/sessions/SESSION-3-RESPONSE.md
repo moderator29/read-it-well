@@ -171,11 +171,11 @@ banned words, 17 money copy, 18 empty states, 20 both themes, 21 keyboard and la
 | Inbox, notifications, assistant, support | W5 | 1, 12 (`629284397`, `4f4147713`: answers through AIResponse), 18 (`213033eb4`: a designed full view per event), 21; message arrival (`19e23b42c`) is written, with two open findings (section Remaining) | 19, 22, 23; copy slices keep `/messages/[id]` at 356KB gz (`3563a97b1`) |
 | Settings, verification, Space Passport, invite hub | W6, J1 | 4 (`aa9421e49`: Plate rows), 13, 15 (`875911c3c`: facts as dates with evidence, `a6203f5ba`: each rung names what was checked), 16 (`8b83e904c`: no invented reward) | 19, 22, 23 |
 | Feature first runs, Pro, paywall, streaks | W7, J1 | 15 and 17 (`38876bfe1`: Pro absent unless paid, `fafd8f1a0`: an incomplete plan offers no action), 18, 21 (`42a2257db`, Chromium with axe), 24 (`043c4d1ff`: exits replace the document) | 19, 22, 23 |
-| Money wave 2, caution register, receipts | W9, M2 | 15 and 17 (`a6ed46659`: a refund Paystack has only started is drawn on its way; nothing owed leads with no figure); one receipt model for sheet and email (`6a18d3c18`, `989cf9127`); the agreement cancel edge keeps the button's own ink and says danger with a rose edge, clearing 4.5:1 (`489fdd9e9`) | 19, 22, 23 |
+| Money wave 2, caution register, receipts | W9, M2 | 15 and 17 (`a6ed46659`: a refund Paystack has only started is drawn on its way; nothing owed leads with no figure); one receipt model for sheet and email (`6a18d3c18`, `989cf9127`); the agreement cancel edge keeps the button's own ink and says danger with a rose edge (`489fdd9e9`): the label clears 4.5:1, but the edge measured 2.18:1 at night there and clears 3:1 only since `6252f40da` (4.5:1 at night and 5.9:1 in light, at rest, hovered and pressed, and 'Yes, cancel it' wears it too) | 19, 22, 23 |
 | Email | W9 | 16, 17, alt text on every image; the receipt email held by test to the on-screen sequence (`9ac40a79b`) | Rendering in real clients |
 | Share door, join, briefs, status tracks, arrival check, safety, after-gate | W13 | 7 (`3c0611d7c`: figure leads, never counts), 11 and 21 (`a87736af8` 44px, `3e9624fcb`, `c4ebb89f0`: the arrival moment cannot hold the screen and takes focus), 12, 15 (`30664866b`: steps differ by shape) | 19, 22, 23; TalkBack pass on the arrival moment (Session 4) |
 | Admin console (shell, overview, queue, desks, compliance, money desk) | W8, W8b | 4 (Plate rows, `.nf-admin-case`), 6 (44px controls), 11 and 12 (Button morph, no spinner), 15 and 18 (zero reads as zero; unreadable draws no figure; read-only desks say so once), 17 (no money sentence written), 21 (palette, decision bars, one h1 per desk, Radio primitives); structural checks by unit and Chromium tests with axe | 3, 5 and 20 in a browser (nothing was rendered under the resource rule), 19, 22, 23; stickiness of the phone decision bar on a real device |
-| Shared controls and overlays | W10, C1 | Sheets land 380ms in and leave 240ms out (`70cf24adc`); an empty state's picture settles once and its words follow (`f7b42550d`); cards below the fold float in once on scroll (`d1e63fc67`); a switch track crossfades under its knob (`8d702aaaf`); each written, with the findings in section Remaining | 19, 22, 23 |
+| Shared controls and overlays | W10, C1 | Sheets land 380ms in and leave 240ms out (`70cf24adc`); an empty state's picture settles once and its words follow (`f7b42550d`); cards below the fold float in once on scroll (`d1e63fc67`); a switch track fades under its knob (`8d702aaaf`, `6d143ee3b`), which holds only when turning off until R2's fix lands; each written, with the findings in section Remaining | 19, 22, 23 |
 
 Craft doctrine section 8, flagship surfaces so far: the tenancy receipt and the
 workspace homes. (1) every choice is reasoned in the code's comments; (2) removed: a
@@ -366,18 +366,54 @@ content only. **Verdict: HOLD, on one blocker, now fixed.**
     settings rows (`bb2dee0b3`).
   - A message that arrives slides in on land; a thread's history is simply there
     (`19e23b42c`).
-  - A switch's track crossfades under its travelling knob instead of snapping
-    (`8d702aaaf`).
+  - A switch's track fades under its travelling knob instead of snapping
+    (`8d702aaaf`); the on fill is a `::before` layer whose opacity transitions
+    (`6d143ee3b`). That crossfades turning off only; turning on is still R2's.
   - Cancelling an agreement keeps the button's own ink and says danger with a rose
-    edge, clearing 4.5:1 (`489fdd9e9`).
+    edge (`489fdd9e9`). The label clears 4.5:1; the edge did not, measuring 2.18:1
+    at night, and clears 3:1 only since `6252f40da`.
   - Cards below the fold float in once as they scroll into view, a row landing
     together (`d1e63fc67`).
+- Landed since `e26eda814`, from `git log --oneline e26eda814..HEAD`:
+  - The filter tile's pop fires, read in the capture phase (`dc323dcbb`).
+  - A sent message slides in once, its bubble keeping its key when it adopts the
+    real id (`403061c4b`), proved in Chromium (`c56f43c23`); Calm turns the
+    arrival into a plain fade (`6b11bacd7`).
+  - A sheet's leave is seen: it stays mounted, inert and click-through until its
+    exit ends (`e9212951c`).
+  - Card entry leaves no card held (`89b7c701e`, with `073c21d95` and `177ec135a`
+    making its test poll the state it waits for and typecheck); Listing Health's
+    recommendations arrive like the agent desk's other lists (`6abafd55b`); data
+    saver is proven to stop the tile pop and the card entry in Chromium
+    (`a59dde61b`).
+  - Workspace lists arrive, status tracks draw to where a record stands, and
+    console scrims fade (`5318408ed`).
+  - Nothing loops: the edge light runs two laps and rests (`da38bc78f`), the
+    supplier flows stop looping with the motion-gap pass tested in Chromium
+    (`c10c887ab`), and the landing's 3D object floats twice and rests (`1c688f798`).
+  - A refused field shakes 4px once on every form (`f42b4b64e`); the dock's slot,
+    word and pill move together on 240ms (`e262dde82`); pull to refresh turns its
+    ring with the drag and spins once on release (`b0847870f`).
+  - Locale-fit tests measure controls, cards, the dock and every first run at
+    390px in en, ha, ig and yo (`97d27a0ab`, 108 cases). Their three findings are
+    fixed: the chosen dock tab's word wraps to two lines (`a90560ffe`), an
+    interactive chip is 44px wide as well as tall (`75e6877d4`), and an inline
+    Button stops at its row's width (`8e3788bee`). They also found that the
+    profile badge tile restyled every status badge, now `.nf-merit-tile`
+    (`fa900768c`).
+  - Cleanup from the same sweeps: five hand-rolled buttons become `Button`
+    (`eefbb8f8f`); the unused wallet balance pulse is gone (`31e3e9d2b`); the
+    landing's OS and calculator segments are 44px targets (`1ac387a45`); in light
+    the site head's lede is primary ink below 64rem (`af6722e33`); the site nav
+    link is 600 (`23ad7cfcc`).
+  - `docs/ADMIN_CONSOLE.md` describes the console as it stands (`b5f61f95f`), and
+    the mandates panel no longer says request AR-12 is open (`6dbba704a`).
 
 ## Changed
 
 See the commit log on `claude/vallo-experience-upgrade`: one commit per unit, each
 message saying why. 272 commits in `21228b59c^..2170a0f3d`, 1,403 files (67,420
-insertions, 14,943 deletions); the ten units above landed after that range. What a
+insertions, 14,943 deletions); the units listed under Completed landed after that range. What a
 reader should know that the log does not say at a glance:
 
 - **Flow routing, D28:** Get Started's "Get started" carries `next=/welcome`,
@@ -392,11 +428,22 @@ reader should know that the log does not say at a glance:
 - **No migration, no database type, no `lib/money/copy.ts` and no ranking change.**
 - **Motion timings changed since the last push:** sheets land 380ms and leave 240ms
   (`70cf24adc`); a filter tile pops 1 to 1.03 once (`af8b69be2`); an empty state
-  settles once (`f7b42550d`); a switch track crossfades (`8d702aaaf`); a message
-  slides in on arrival (`19e23b42c`); cards float in once on scroll (`d1e63fc67`).
+  settles once (`f7b42550d`); a switch track fades (`8d702aaaf`, `6d143ee3b`; on
+  turning off only until R2's fix lands); a message slides in on arrival
+  (`19e23b42c`, `403061c4b`); cards float in once on scroll (`d1e63fc67`); the edge
+  light, supplier flows and the landing's 3D object stop after two laps
+  (`da38bc78f`, `c10c887ab`, `1c688f798`); a refused field shakes once (`f42b4b64e`);
+  the dock moves on 240ms (`e262dde82`); pull to refresh spins once (`b0847870f`).
 - **Reads and semantics:** `/host` reads in one wave (`268277ff1`), and its sections
   are h2 under the h1 (`ac04868e8`).
-- **Contrast:** the agreement cancel edge clears 4.5:1 (`489fdd9e9`).
+- **Contrast:** the agreement cancel label clears 4.5:1 (`489fdd9e9`) and its edge
+  clears 3:1 (`6252f40da`; it measured 2.18:1 at night before that). In light, the
+  site head's lede is primary ink below 64rem (`af6722e33`).
+- **Sizes and classes:** an interactive chip is 44px wide as well as tall
+  (`75e6877d4`); the profile badge tile is `.nf-merit-tile` and no sheet may declare
+  `.nf-badge` but the status badge's own (`fa900768c`); an inline Button wraps
+  instead of overflowing (`8e3788bee`); the chosen dock tab's word wraps
+  (`a90560ffe`).
 
 ## Tested
 
@@ -407,11 +454,18 @@ reader should know that the log does not say at a glance:
   doors, IndexRows, the held ring and the STR slide (`b7302e7c2`); Listing Health on
   real model fixtures (`ddfe11d66`); the queue's batch tray and the console palette.
   Dom tests mount inside the app's own providers (`e6a8160e0`).
+- Since `937e9a788`: Chromium tests read the computed animations for the motion
+  passes, including the reduced motion, Calm, Off and data saver answers
+  (`c10c887ab`, `a59dde61b`, `c56f43c23`, `dc323dcbb`, `89b7c701e`); the locale-fit
+  suite measures 108 cases at 390px in en, ha, ig and yo (`97d27a0ab`), with its
+  three findings fixed and no `it.fails` case kept for them; a test fails if
+  `.nf-badge` is declared outside the status badge's own sheet (`fa900768c`) or if
+  the balance pulse returns (`31e3e9d2b`).
 - Every push is gated in a clean worktree of the exact commit being pushed, so other
   agents' uncommitted work never colours the result. Results per push are the lead's
   to append below; the full typecheck, lint, suite and build were never run by
-  agents (the resource rule), and the gate's result for the ten later units is not
-  asserted here.
+  agents (the resource rule), and the gate's result for the units since `937e9a788`
+  is not asserted here.
 - Not run by Session 3: the Playwright specs in `apps/web/tests/` (Session 4's), a
   build after the last speed changes taken as one, real devices.
 
@@ -424,8 +478,8 @@ reader should know that the log does not say at a glance:
 
 - **In progress:**
   - R1: member buttons and A2's and A3's findings.
-  - R2: A4's findings, and the filter tile pop below.
-  - C1: cleanup, A3's S5 and S8, and the message and switch findings below.
+  - R2: A4's findings, and the switch turning on (below).
+  - C1: cleanup, A3's S5 and S8.
   - B5: the gallery index links.
   - T1: dom tests.
   - W12: the sweep at 390, 768 and 1440; its results are not in the repository yet.
@@ -433,15 +487,22 @@ reader should know that the log does not say at a glance:
     changes as one build; the speed figures in this file are per change, not a
     single before and after.
   - A7: the rolling review.
-- **Open audit findings on the ten latest units, routed and in progress:**
-  - The filter tile pop (`af8b69be2`) never fired because its listener ran after
-    React; fixed in `dc323dcbb` (capture phase, with a Chromium test that fails
-    without it).
-  - A sent message's arrival (`19e23b42c`) plays twice on id adoption. C1.
-  - The switch gradient (`8d702aaaf`) does not crossfade. C1.
-  - `nf-msg-in` is missing from the Calm list. C1.
-  - A sheet's exit animation (`70cf24adc`) never plays, because `Sheet` returns null
-    when closed, so the 240ms leave is not seen. R2 is fixing it.
+- **Findings on the latest motion units.**
+  - Fixed: the filter tile pop (`af8b69be2`), which never fired because its listener
+    ran after React, in `dc323dcbb` (capture phase, with a Chromium test that fails
+    without it); a sent message's arrival playing twice on id adoption, in
+    `403061c4b` (proved in `c56f43c23`); `nf-msg-in` missing from the Calm list, in
+    `6b11bacd7`.
+  - The switch (`8d702aaaf`): `6d143ee3b` makes its on fill crossfade when it turns
+    **off**. Turning **on** does not crossfade yet. R2's fix is in progress.
+  - The sheet leave (`70cf24adc`) landed in `e9212951c`: the sheet stays mounted,
+    inert and click-through until its exit ends. A8's MUST is being fixed: the
+    sheet's children go empty during the leave.
+  - Data saver: the message of `5318408ed` overstates it, because
+    only the status tracks honour data saver.
+  - The progress ring (the pull to refresh ring, `b0847870f`) has no surface and no
+    value in MOTION_SYSTEM.
+  - The escrow release moments wait on Session 2 (R-4).
 - **Session 4's, by decision:** Advisories (D46), the merge of `main` once the
   `source-map-js` fix lands, the Playwright specs, the weight budgets (every budget
   in `perf-budget.json` is null and CI never sends `WEIGHT_COOKIE`), legal wording
@@ -454,8 +515,8 @@ reader should know that the log does not say at a glance:
   R-40 to R-43 agreement and caution dates and staff version reads, R-50 to R-56
   Listing Health inputs, R-60 earned badges for a signed-out visitor, R-61 a failed
   refund said as failed (an honesty gap).
-- **Documentation still to bring up to date:** `docs/ADMIN_CONSOLE.md` with the
-  console's sections, slides and documents, and the README line for `W6_APP_CSS`.
+- **Documentation still to bring up to date:** the README line for `W6_APP_CSS`.
+  `docs/ADMIN_CONSOLE.md` is current (`b5f61f95f`).
 - **Known and recorded, not rewritten:** the stretch that does not bisect.
   `03b4b1ce4` and the six commits after it do not build alone until `3ad213d95` adds
   the module they import; the tip builds.
@@ -538,8 +599,9 @@ reader should know that the log does not say at a glance:
 
 ## Next Session
 
-1. Fix the open findings on the ten latest units: the double message arrival, the switch crossfade, `nf-msg-in` in the Calm list, and
-   the sheet exit, which needs `Sheet` to stay mounted while it leaves.
+1. Close the open findings on the latest motion units: the switch crossfading when
+   it turns on, A8's sheet MUST (children empty during the leave), and the data
+   saver claim of `5318408ed`; give the progress ring a place in MOTION_SYSTEM.
 2. Run the lead's full gate on the tip, then merge `main` after Session 4's
    `source-map-js` fix (D46); settle Advisories.
 3. Land Session 2's requests in the order the screens wait on them: R-3 to R-5
@@ -552,8 +614,7 @@ reader should know that the log does not say at a glance:
    has recorded.
 6. Run the Playwright specs, the TalkBack pass on the arrival moment and the toast
    dwell, and the startup on a real mid-range Android.
-7. Update `docs/ADMIN_CONSOLE.md` and the README for the console and the test-harness
-   name.
+7. Update the README for the test-harness name (`W6_APP_CSS`).
 
 ## Do Not Repeat
 

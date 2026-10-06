@@ -547,8 +547,7 @@ when, and against the reviewer's name, with an ID document's reference if one
 was seen; a NIN is refused before it is sent and again by the database. Refusing
 asks for the sentence the lister will read, behind a confirm step. Beside it, the
 principal's consent control for the landlord line says whether anything will be
-sent to that number, and says so when the line is switched off. The panel's empty
-state still names request AR-12, which the decision control now meets. A listing
+sent to that number, and says so when the line is switched off. A listing
 whose mandate was refused cannot be published (Track G migration 6).
 
 ### The listing under review
@@ -1790,7 +1789,7 @@ console needs and does not have yet)
   call Session A's existing actions, unchanged.
 - Open requests: AR-10 (deciding a held event) and AR-11 (reading the blocked
   terms list). AR-12 (deciding a listing mandate) is met by the decision control
-  in the mandate row (section 4); the panel's empty-state text still names it.
+  in the mandate row (section 4).
   AR-1 to AR-9 were withdrawn when Session B wrote the reads itself
   (`lib/admin/reads/listings.ts`, `moderation.ts`, `verification.ts`).
 
