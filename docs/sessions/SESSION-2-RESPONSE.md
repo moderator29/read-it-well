@@ -24,8 +24,13 @@ written here as a separate file and noted.
 
 ## Payluk: what Session 1 got wrong
 
-Open. The live documentation has not been read yet in this session. No Payluk code
-has been written.
+Open, and **blocked by this environment**: `docs.payluk.ng` is refused by the cloud
+environment's egress proxy (CONNECT 403 from curl, EGRESS_BLOCKED from the fetch
+tool), the same wall Session 1 hit. No Payluk code has been written, as 7.2 requires.
+**Needed:** add `docs.payluk.ng` (and the API host, once known) to Allowed domains
+in the environment's Network access settings, or paste the five pages
+(`/llms.txt`, `/introduction`, `/api-reference`, `/guides/ai-agent-skill`,
+`/guides/payluk-test-bank`) into `docs/payments/payluk-source/`.
 
 ## The twelve questions (architecture section 7)
 
@@ -51,6 +56,8 @@ Nothing yet.
 - `PAYSTACK_GUARANTEE_SUBACCOUNT` (live). Not blocking: test mode reads
   `PAYSTACK_TEST_GUARANTEE_SUBACCOUNT`.
 - Termii keys, for the phone gate switch-on.
+- Network access to `docs.payluk.ng` (see the Payluk section). Blocks 7.2 to 7.9
+  and question 3.
 
 ## Classification of what was touched
 
@@ -77,7 +84,13 @@ Nothing yet.
 
 ## Failed
 
-- Nothing.
+- Passcode default to four (7.15b) was made and **backed out, not pushed**: two DOM
+  tests (`PasscodeFrame.dom.test.tsx`, `PasscodeGate.dom.test.tsx`) assert the
+  six-digit default and need updating, and re-running them was refused by this
+  session's permission classifier. The change is four lines: `DEFAULT_PASSCODE_LENGTH`
+  to 4 in `lib/passcode/rules.ts`, the comment in `PasscodeSetup.tsx`, two lines of
+  `docs/PASSCODE.md`, and `tests/_passcode.mjs` must click
+  `passcode-length-switch` before typing its six-digit spec code.
 
 ## Remaining
 
