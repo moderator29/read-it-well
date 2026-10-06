@@ -6,26 +6,19 @@ import { BANNED_IN_EXAMPLE_COPY, firstBannedPhrase } from "@/lib/copy/banned-phr
 import { withoutComments } from "@/lib/copy/source-scan";
 
 /**
- * THE DISCLOSURE, GUARDED BY SOURCE.
+ * THE EXAMPLE-LISTING RULES, GUARDED BY SOURCE.
  *
- * These are source assertions rather than a render, and that is deliberate. The
- * thing that has to hold is not what the component looks like once, it is that
- * the disclosure cannot be quietly turned into something a person will not
- * read. Every rule below is one of the honesty requirements, expressed as the
- * shape of the code that would break it:
+ * `ExampleNotice` is gone (D24: the visible "example" labelling came off the
+ * listing surfaces, and nothing imported the component any more). What stays
+ * here is the other half of the honesty requirement, expressed as the shape of
+ * the code that would break it: the shared sentence is a constant that uses the
+ * agreed word and none of the banned ones, no card renderer or detail page may
+ * bring `<ExampleNotice` back, and a card READS `isDemo` to withhold trust
+ * (never to label).
  *
- *   - the sentence is the shared constant, never retyped, so the card, the page
- *     and the crawler cannot drift apart;
- *   - the banned words never appear;
- *   - it is not gated behind a hover, a toggle or a disclosure;
- *   - it carries no action, because the database refuses every transaction
- *     against these rows;
- *   - every card renderer in the product mounts it.
- *
- * The last one is the one that actually caught something: `MapDock` is a full
- * property card that does not go through `ListingCard`, so a component-level
- * check would have passed while the map still showed an invented property with
- * a real area and a real price and said nothing.
+ * These are source assertions rather than a render, and that is deliberate: the
+ * thing that has to hold is not what a component looks like once, it is that
+ * the rule cannot be quietly undone.
  */
 
 const SRC = join(process.cwd(), "src");
@@ -36,19 +29,14 @@ const SRC = join(process.cwd(), "src");
  * EVERY ASSERTION IN THIS FILE IS MADE AGAINST THIS AND NOT AGAINST THE RAW
  * FILE, and the reason is the one that cost this platform a compliance record
  * elsewhere in the tree: a source assertion that reads comments is satisfied by
- * a comment. `expect(NOTICE).toContain("EXAMPLE_STATEMENT")` passed on the doc
- * block above the component as readily as on the component, so the disclosure
- * could have been deleted entirely and left a green suite behind, with the
- * paragraph explaining why it must never be deleted doing the work of proving
- * it had not been. The same went for every `not.toContain` below: a comment
- * mentioning `hover:` or `<button` failed a test about code that was clean.
+ * a comment. A check that a file contains a name passed on the doc block above
+ * the code as readily as on the code, and a comment mentioning `<ExampleNotice`
+ * would fail a `not.toMatch` about code that was clean.
  *
  * `withoutComments` keeps line numbers and does not mistake a URL or a regular
  * expression for a comment. It is the same reader the copy sweep uses.
  */
 const read = (path: string) => withoutComments(readFileSync(join(SRC, path), "utf8"));
-
-const NOTICE = read("components/app/listing/ExampleNotice.tsx");
 
 /** Every surface in the product that draws a property card. */
 const CARD_RENDERERS = [
@@ -67,38 +55,10 @@ const CARD_RENDERERS = [
  */
 const BANNED = BANNED_IN_EXAMPLE_COPY;
 
-describe("the example listing disclosure", () => {
-  it("renders the one shared sentence rather than a copy of it", () => {
-    expect(NOTICE).toContain("EXAMPLE_STATEMENT");
-    // The words themselves must not be typed out anywhere in the component.
-    expect(NOTICE).not.toContain("No such property is available");
-  });
-
+describe("the example listing rules", () => {
   it("uses the agreed word and none of the banned ones", () => {
     expect(EXAMPLE_STATEMENT.toLowerCase()).toContain("example");
     expect(firstBannedPhrase(EXAMPLE_STATEMENT, BANNED)).toBeNull();
-  });
-
-  it("is not behind a hover, a toggle or a collapsed region", () => {
-    for (const marker of ["hover:", "aria-expanded", "line-clamp", "useState", "title="]) {
-      expect(NOTICE).not.toContain(marker);
-    }
-  });
-
-  it("offers no action, because the platform can honour none", () => {
-    for (const marker of ["<button", "<Link", "<a ", "onClick"]) {
-      expect(NOTICE).not.toContain(marker);
-    }
-  });
-
-  it("is set at a readable tier rather than as a caption", () => {
-    expect(NOTICE).toContain("nf-body");
-    expect(NOTICE).not.toContain("nf-caption");
-  });
-
-  it("names no colour, so it survives both themes", () => {
-    expect(NOTICE).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
-    expect(NOTICE).not.toMatch(/\brgb\(|\bhsl\(/);
   });
 
   /*
@@ -122,18 +82,19 @@ describe("the example listing disclosure", () => {
   });
 
   /*
-   * THE LANDING'S CARDS SAY IT TOO (UIUX item 6). The landing prints real
-   * catalogue rows in the AI showcase and the two worlds room through
-   * `ListingMini`, fed by `toMiniListing`, which did not carry `isDemo`: an
-   * example flat read as live inventory on the front page. The mapper now
-   * carries it, and the card swaps its market badge for the Example mark.
+   * THE LANDING'S CARDS DO NOT SAY IT ANY MORE (D24). They said "Example"
+   * where the market would be (UIUX item 6); the founder's instruction of
+   * 6 October takes the visible labels off, so `ListingMini` wears the market
+   * like any listing. What it must still never do is wear Verified on an
+   * example row, which the mapper's `example` flag lets it gate.
    */
-  it("says Example on the landing's listing cards", () => {
+  it("does not label the landing's listing cards as examples, and never verifies one", () => {
     const mapper = read("lib/site/listing-card.ts");
     expect(mapper).toMatch(/example:\s*listing\.isDemo\s*===\s*true/);
     const mini = read("components/site/landing/ListingMini.tsx");
-    expect(mini).toMatch(/listing\.example\s*\?\s*\(\s*<span className="nf-badge nf-badge--example/);
-    expect(mini).toContain("exampleLabel");
+    expect(mini).not.toContain("nf-badge--example");
+    expect(mini).not.toContain("exampleLabel");
+    expect(mini).toMatch(/listing\.verified\s*&&\s*!listing\.example/);
   });
 
   /*
