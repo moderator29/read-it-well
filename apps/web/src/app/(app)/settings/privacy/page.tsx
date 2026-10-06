@@ -3,20 +3,17 @@ import { distinctDeviceCount } from "@/lib/security/device-count";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
-import { DataCard, PrivacyCard, SecurityCard } from "@/components/app/account/SettingsGroups";
+import { PrivacyCard, SecurityCard } from "@/components/app/account/SettingsGroups";
+import { SettingsLede } from "@/components/app/account/SettingsLede";
+import { SettingsInnerNav } from "@/components/app/account/SettingsInnerNav";
 import { loadSettingsState } from "@/lib/profile/queries";
 import { loadSessions } from "@/lib/security/sessions";
 import { AccountPrivacyCard } from "../AccountToggles";
 import { DevicesRow } from "../DevicesCard";
-import { DataExportCard } from "../DataExportCard";
 import { loadMoneyHoldUntil, loadPendingAddressMove } from "@/lib/auth/pending-address-move";
 import { PendingAddressMove } from "./PendingAddressMove";
-import { MoneyLockGroup } from "../MoneyLockGroup";
-import { loadMoneyCredentials } from "@/lib/security/money-step-up";
 import { countMyBlocks } from "@/lib/safety/blocks-queries";
-import { RowLink } from "@/components/app/account/rows";
-import { aiConsentForViewer } from "@/lib/ai/consent-server";
-import { AiConsentCard } from "../AiConsentCard";
+import { RowLink, SettingsGroup } from "@/components/app/account/rows";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: getDictionary(await getLocale()).settings.hub.privacy };
@@ -24,19 +21,27 @@ export async function generateMetadata(): Promise<Metadata> {
 
 /**
  * Privacy & Security: what other people can see, where you are signed in, and
- * what is held about you. Three groups that were three cards on the old home.
+ * who you have blocked. It carried EIGHT groups on one screen; the other
+ * three jobs are pages of their own now (D25: when a screen carries more than
+ * one job, the second becomes an inner page), one tap down:
+ *
+ *   `./money-lock`   face or fingerprint before money moves
+ *   `./ai`           the assistant agreement, and taking it back
+ *   `./data`         a copy of your data, and clearing this device
+ *
+ * Every control is unchanged; only where it lives moved. The glass navigation
+ * at the top jumps between the sections that remain.
  */
 export default async function PrivacySettingsPage() {
   const locale = await getLocale();
   const t = getDictionary(locale);
-  const [account, sessions, pendingMove, moneyHoldUntil, moneyLock, blockedCount, aiConsented] = await Promise.all([
+  const copy = t.experienceAccount.settings;
+  const [account, sessions, pendingMove, moneyHoldUntil, blockedCount] = await Promise.all([
     loadSettingsState(),
     loadSessions(),
     loadPendingAddressMove(locale),
     loadMoneyHoldUntil(locale),
-    loadMoneyCredentials().catch(() => ({ state: "unreadable" as const })),
     countMyBlocks().catch(() => null),
-    aiConsentForViewer().catch(() => false),
   ]);
   const signedIn = account.state === "signed-in";
   const deviceCount =
@@ -48,6 +53,17 @@ export default async function PrivacySettingsPage() {
         title={t.settings.hub.privacy}
         subtitle={t.settings.hub.privacySub}
         fallback="/settings"
+      />
+      <SettingsLede label={copy.lede.what} what={copy.lede.privacy.what} who={copy.lede.privacy.who} />
+      <SettingsInnerNav
+        label={copy.nav.label}
+        toggleLabel={copy.nav.toggle}
+        currentLabel={t.settings.hub.privacy}
+        sections={[
+          { id: "settings-privacy", label: copy.privacy.navVisible, icon: "eye" },
+          { id: "settings-security", label: copy.privacy.navSecurity, icon: "shield-check" },
+          { id: "settings-more", label: copy.privacy.navMore, icon: "more" },
+        ]}
       />
       <div className="space-y-block">
         {moneyHoldUntil && (
@@ -96,19 +112,33 @@ export default async function PrivacySettingsPage() {
             />
           </SecurityCard>
         </section>
-        {/* V-81: face or fingerprint as the lock on money. */}
-        <section id="settings-money-lock" className="scroll-mt-28">
-          <MoneyLockGroup list={moneyLock} locale={locale} />
-        </section>
-        {/* STORE-07: the AI disclosure, and the way to withdraw it. */}
-        <section id="settings-ai-consent" className="scroll-mt-28">
-          <AiConsentCard t={t} consented={aiConsented} />
-        </section>
-        <section id="settings-data" className="scroll-mt-28">
-          <DataCard t={t} />
-        </section>
-        <section id="settings-data-export" className="scroll-mt-28">
-          <DataExportCard t={t} signedIn={signedIn} />
+        {/* The three groups that were crammed into this screen, now doors. */}
+        <section id="settings-more" className="scroll-mt-28">
+          <SettingsGroup label={copy.privacy.moreLabel}>
+            {/* V-81: face or fingerprint as the lock on money. */}
+            <RowLink
+              href="/settings/privacy/money-lock"
+              icon="lock"
+              label={t.platform.moneyLock.settingsTitle}
+              sub={copy.privacy.moneyLockSub}
+              testId="settings-money-lock-row"
+            />
+            {/* STORE-07: the AI disclosure, and the way to withdraw it. */}
+            <RowLink
+              href="/settings/privacy/ai"
+              icon="bot"
+              label={t.settings.aiConsent.label}
+              sub={copy.privacy.aiSub}
+              testId="settings-ai-row"
+            />
+            <RowLink
+              href="/settings/privacy/data"
+              icon="document"
+              label={t.settings.data.label}
+              sub={copy.privacy.dataSub}
+              testId="settings-data-row"
+            />
+          </SettingsGroup>
         </section>
       </div>
     </div>

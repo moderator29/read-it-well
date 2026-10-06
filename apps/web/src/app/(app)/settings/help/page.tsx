@@ -7,6 +7,7 @@ import { SupportChat } from "@/components/app/account/SupportChat";
 import { aiConsentForViewer } from "@/lib/ai/consent-server";
 import { loadMyReports } from "@/lib/reports/my-reports";
 import { MyReports } from "./MyReports";
+import { SettingsLede } from "@/components/app/account/SettingsLede";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: getDictionary(await getLocale()).settings.hub.help };
@@ -27,6 +28,11 @@ export default async function HelpSettingsPage() {
         title={t.settings.hub.help}
         subtitle={t.settings.hub.helpSub}
         fallback="/settings"
+      />
+      <SettingsLede
+        label={t.experienceAccount.settings.lede.what}
+        what={t.experienceAccount.settings.lede.help.what}
+        who={t.experienceAccount.settings.lede.help.who}
       />
       <div className="space-y-block">
         <section id="settings-help" className="scroll-mt-28">

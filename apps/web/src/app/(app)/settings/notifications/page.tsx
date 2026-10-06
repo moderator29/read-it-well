@@ -8,6 +8,8 @@ import { PushDevices, type PushDeviceView } from "@/components/app/push/PushDevi
 import { PushSetting } from "@/components/app/push/PushSetting";
 import { deviceName, loadPushDevices, whenPhrase } from "@/lib/push/devices";
 import { AccountNotificationsCard } from "../AccountToggles";
+import { SettingsLede } from "@/components/app/account/SettingsLede";
+import { SettingsInnerNav } from "@/components/app/account/SettingsInnerNav";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: getDictionary(await getLocale()).settings.notifications.label };
@@ -58,6 +60,7 @@ export default async function NotificationsSettingsPage() {
   const t = getDictionary(locale);
   const account = await loadSettingsState();
   const push = await loadPushDevices();
+  const copy = t.experienceAccount.settings;
 
   const rows: PushDeviceView[] =
     push.state === "signed-in"
@@ -77,6 +80,18 @@ export default async function NotificationsSettingsPage() {
         subtitle={t.settings.hub.notificationsSub}
         fallback="/settings"
       />
+      <SettingsLede label={copy.lede.what} what={copy.lede.notifications.what} who={copy.lede.notifications.who} />
+      {push.state === "signed-in" && (
+        <SettingsInnerNav
+          label={copy.nav.label}
+          toggleLabel={copy.nav.toggle}
+          currentLabel={t.settings.notifications.label}
+          sections={[
+            { id: "settings-notifications", label: copy.notificationsNav.navChannels, icon: "bell" },
+            { id: "settings-push", label: copy.notificationsNav.navPhone, icon: "phone" },
+          ]}
+        />
+      )}
       <section id="settings-notifications" className="scroll-mt-28">
         {account.state === "signed-in" ? (
           <AccountNotificationsCard t={t} initial={account.settings.notifications} />

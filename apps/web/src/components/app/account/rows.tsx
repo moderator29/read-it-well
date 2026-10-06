@@ -8,6 +8,7 @@ import { Sheet as UiSheet } from "@/components/ui/Sheet";
 import { Switch } from "@/components/ui/Switch";
 import { Segmented } from "@/components/ui/Segmented";
 import { IconPlate } from "@/components/ui/IconPlate";
+import { feedback } from "@/lib/ui/feedback";
 
 /**
  * Grouped rows: the one shape every account surface on this platform uses.
@@ -327,7 +328,13 @@ export function RowSwitch({
       )}
       <Switch
         checked={checked}
-        onCheckedChange={onChange}
+        /* A toggle is a light tap in the hand (craft doctrine section 6: light
+           for a chip, a tab, a toggle). The thumb's own spring is the
+           primitive's (`Switch`, `drift` 240ms). */
+        onCheckedChange={(next) => {
+          feedback("select");
+          onChange(next);
+        }}
         aria-labelledby={labelId}
         disabled={disabled}
         data-testid={testId}

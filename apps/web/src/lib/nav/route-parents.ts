@@ -251,7 +251,13 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/rent/review/[paymentId]": "/bookings",
   "/record/[code]": "/search",
   "/settings/passport": "/settings",
+  /* W6, D25: one fact's evidence is an inner page of the passport. */
+  "/settings/passport/[fact]": "/settings/passport",
   "/settings/invite": "/settings",
+  /* W6, D25: the referral hub's inner pages. */
+  "/settings/invite/how-it-works": "/settings/invite",
+  "/settings/invite/referrals": "/settings/invite",
+  "/settings/invite/referrals/[id]": "/settings/invite/referrals",
   "/rent/pay/[inspectionId]": "/bookings",
   "/rent/share/[id]": "/agreements",
   "/tenancy/[id]": "/bookings",
@@ -350,6 +356,10 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/settings/privacy": "/settings",
   /* DB2: the people you blocked, one level inside Privacy & Security. */
   "/settings/privacy/blocked": "/settings/privacy",
+  /* W6, D25: the groups that were crammed into Privacy are pages of their own. */
+  "/settings/privacy/money-lock": "/settings/privacy",
+  "/settings/privacy/ai": "/settings/privacy",
+  "/settings/privacy/data": "/settings/privacy",
   "/settings/phone": "/settings",
   "/settings/passcode": "/settings",
   "/legal/privacy": "/settings",

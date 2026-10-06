@@ -6,6 +6,7 @@ import { AppearanceCard, LanguageRow } from "@/components/app/account/SettingsGr
 import { SettingsGroup } from "@/components/app/account/rows";
 import { ThemeControl } from "@/components/site/ThemeControl";
 import { MotionSettings } from "@/components/app/account/MotionSettings";
+import { SettingsLede } from "@/components/app/account/SettingsLede";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: getDictionary(await getLocale()).settings.appearance.label };
@@ -25,6 +26,11 @@ export default async function AppearanceSettingsPage() {
         title={t.settings.appearance.label}
         subtitle={t.settings.hub.appearanceSub}
         fallback="/settings"
+      />
+      <SettingsLede
+        label={t.experienceAccount.settings.lede.what}
+        what={t.experienceAccount.settings.lede.appearance.what}
+        who={t.experienceAccount.settings.lede.appearance.who}
       />
       {/* THE THEME, first (light mode reintroduced 25 September 2026). The
           same control as the foot of the side navigation, so the choice made

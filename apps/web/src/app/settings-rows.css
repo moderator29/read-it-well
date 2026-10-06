@@ -78,7 +78,11 @@
    */
   .nf-sgroup .nf-sgroup__body {
     overflow: hidden;
-    padding: 0;
+    /* A hair of inset, so each row is a Plate (radius 14) sitting inside the
+       Card rather than a stripe running to its edge: the pressed or hovered
+       tint then reads as an object, and the Card's own clipping corner never
+       cuts a row's fill. 4px, the `2xs` rung. */
+    padding: var(--nf-space-2xs);
   }
 
   /* A sentence under the group, in the reference's own idiom: the explanation
@@ -128,6 +132,9 @@
     padding-inline: var(--nf-pad-row-inline);
     text-align: left;
     color: var(--nf-content-primary);
+    /* THE PLATE (north star section 4, tier 1): radius 14, a tint on hover
+       and a deeper one on press, no shadow, no glow. */
+    border-radius: var(--nf-tier-plate-radius);
     transition: background-color var(--nf-duration-fast) var(--nf-ease-standard);
   }
 
@@ -155,8 +162,19 @@
   @media (hover: hover) and (pointer: fine) {
     a.nf-srow:hover,
     button.nf-srow:not(:disabled):hover {
-      background: var(--nf-surface-secondary);
+      background: var(--nf-tier-plate-hover);
     }
+  }
+
+  /* Press feedback on everything tappable (checklist point 11): the plate's
+     deeper tint, at the press duration so it lands before the finger lifts. */
+  a.nf-srow,
+  button.nf-srow {
+    transition-duration: var(--nf-duration-press);
+  }
+  a.nf-srow:active,
+  button.nf-srow:not(:disabled):active {
+    background: var(--nf-tier-plate-press);
   }
 
   button.nf-srow:disabled {
@@ -167,7 +185,6 @@
   .nf-srow:focus-visible {
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
     outline-offset: calc(var(--nf-focus-ring-offset) * -1);
-    border-radius: var(--nf-radius-sm);
   }
 
   /* The glyph. Fixed box so every label in the group starts on the same
@@ -309,12 +326,11 @@
   .nf-srow:has(> .nf-srow__select:focus-visible) {
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
     outline-offset: calc(var(--nf-focus-ring-offset) * -1);
-    border-radius: var(--nf-radius-sm);
   }
 
   @media (hover: hover) and (pointer: fine) {
     .nf-srow:has(> .nf-srow__select:hover) {
-      background: var(--nf-surface-secondary);
+      background: var(--nf-tier-plate-hover);
     }
   }
 
@@ -597,5 +613,49 @@
   }
   .nf-interest[aria-pressed="true"] .nf-interest__hint {
     color: color-mix(in oklab, var(--nf-content-on-brand) 82%, transparent);
+  }
+}
+
+/*
+ * THE EXPLANATION AND THE SECTION MENU (W6, D25).
+ *
+ * `SettingsLede` is a Plate: radius 14, the plate fill and its one hairline,
+ * no shadow and no glow. `SettingsInnerNav` only gives the glass navigation
+ * its place in the page flow; the glass itself is `ported.css`.
+ */
+@layer components {
+  .nf-sett-lede {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nf-space-sm);
+    margin-block-end: var(--nf-space-md);
+    padding: var(--nf-space-sm) var(--nf-space-md) var(--nf-space-sm) var(--nf-space-sm);
+    border-radius: var(--nf-tier-plate-radius);
+    border: var(--nf-border-width) solid var(--nf-tier-plate-edge);
+    background: var(--nf-tier-plate-fill);
+  }
+  .nf-sett-lede > .nf-plate {
+    flex: none;
+  }
+  .nf-sett-lede__text {
+    display: grid;
+    gap: var(--nf-space-3xs);
+    min-inline-size: 0;
+  }
+  .nf-sett-lede__what {
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.5;
+    color: var(--nf-content-primary);
+    overflow-wrap: anywhere;
+  }
+  .nf-sett-lede__who {
+    font-size: var(--nf-text-caption);
+    line-height: 1.45;
+    color: var(--nf-content-muted);
+    overflow-wrap: anywhere;
+  }
+
+  .nf-settings-nav {
+    margin-block-end: var(--nf-space-md);
   }
 }
