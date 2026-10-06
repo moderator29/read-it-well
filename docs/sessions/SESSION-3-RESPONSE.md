@@ -183,6 +183,14 @@ for that day).
   passport". Renaming touches `trustVisible`, a machine-draft namespace, so it waits
   on the name.
 
+- **A member with no display name.** Agreements, threads and the complaint pack name
+  such a party by role ("The renter", "The owner or agent"), which members who never
+  set a name will meet often. Asking for a display name at sign-up would make those
+  documents read better; a product call.
+- **The edge light on hero bands and listings** runs two laps of 7.5 to 9 seconds and
+  stops (off under reduced motion). It is the one motion on those pages longer than
+  the 620ms entrance budget, kept as an ambient moment by the earlier ruling; recorded.
+
 **Open in this round:** C1 continues admin then agent (InnerNav across the agent
 tree) then host; C3 the member routes; C4 the auth redesign, then the weight diet,
 measured in bytes; C5 as above. The settings labels are English only until C5's
