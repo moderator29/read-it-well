@@ -234,8 +234,8 @@ export default async function AroundPage({
           {...(unconfigured
             ? { emptyTitle: AROUND_UNCONFIGURED.feedTitle, emptyIcon: "home-search" as const }
             : {
-                emptyTitle: selected ? `Nothing in ${selected.name} yet` : "Nothing here yet",
-                emptyAction: { href: "/around/settings", label: "Find places to join" },
+                emptyTitle: selected ? t.experienceSocial.around.emptyIn.replace("{name}", selected.name) : t.experienceSocial.around.empty,
+                emptyAction: { href: "/around/settings", label: t.experienceSocial.around.findPlaces },
               })}
         />
       </section>

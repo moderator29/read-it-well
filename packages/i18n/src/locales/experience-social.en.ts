@@ -93,4 +93,21 @@ export const experienceSocialEn = {
     unreachableBody: "This is on our side, not yours. Nothing can be published from here at the moment. Nothing you have written has been lost, and the rest of the app works as normal.",
     backToHome: "Back to home",
   },
+  /**
+   * `/around/[slug]`, one place: the page's own words, moved out of the page
+   * (Round 3 sweep, C3). `{name}` is the place, `{city}` its city.
+   */
+  place: {
+    title: "Around",
+    metaTitle: "Around {name}",
+    metaDescription: "What is happening around {name}, {city}.",
+    unreachable: "We cannot reach this place right now. This is on our side, not yours. Nothing has been lost, and the rest of the app works as normal.",
+    partOf: "Part of {name}",
+  },
+  /** `/around`, the feed: its empty state's words (Round 3 sweep, C3). `{name}` is the chosen place. */
+  around: {
+    emptyIn: "Nothing in {name} yet",
+    empty: "Nothing here yet",
+    findPlaces: "Find places to join",
+  },
 };

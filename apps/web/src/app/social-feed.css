@@ -2024,9 +2024,12 @@
     overflow-x: auto;
     scrollbar-width: none;
     /* The row bleeds to both edges so the last chip is not cut by a gutter,
-       and clips one axis rather than becoming a scroll container in both. */
-    margin-inline: -1.25rem;
-    padding-inline: 1.25rem;
+       and clips one axis rather than becoming a scroll container in both.
+       The bleed is exactly the shell's gutter token, which steps 16, 24 and
+       32: it was 20, so a phone's row ran 4px past both screen edges (Round 3
+       sweep, measured -4 to 394 at 390). */
+    margin-inline: calc(var(--nf-pad-shell) * -1);
+    padding-inline: var(--nf-pad-shell);
     /*
      * Room for the selected chip's inline glow. `overflow-x: auto` makes this
      * a scroll container on both axes, so without a little block padding the
@@ -2529,7 +2532,12 @@
   .nf-feed-chip::after {
     content: "";
     position: absolute;
-    inset: -5.3px 0;
+    /* 44 tall, centred. It was `inset: -5.3px 0`, which assumed the 33.4px
+       border box, but the box this measures from is the padding box inside
+       the 1px edge, so the target came to 42 (Round 3 sweep). Half of 44
+       either side of the middle holds whatever the edge is. */
+    inset-block: calc(50% - 22px);
+    inset-inline: 0;
   }
   .nf-feed-chip:hover,
   .nf-feed-chip[aria-expanded="true"] {
