@@ -1,34 +1,25 @@
 /*
- * Get started (first run): FULL-PAGE STEPS, to
- * `docs/design/references/2026-09-29/42-onboarding-fullbleed-steps.jpg` and
- * `43-onboarding-soft-cards.png` (30 September).
- *
- * Get started's own stylesheet, imported by `components/app/welcome/
+ * Get started's own stylesheet: the ground the first-run question beat and
+ * the arrival asks stand on. Imported by `components/app/welcome/
  * WelcomeStage.tsx` so `globals.css` and `auth.css` are not touched. Every
  * class here starts `nf-gs`, so nothing else on the platform matches it and
  * nothing here matches anything else.
  *
- * THE SHAPE. The top 55 to 60 percent of the screen is the step's art, full
- * bleed: a brand-blue sky with its own light, soft hills, Vallo's glass
- * objects standing on them, fading into the page below the middle. Then a big
- * tight two-line headline, the body, the page dots, and Skip (bottom left)
- * with Next (bottom right); the last step has one full-width call. On a wide
- * screen the art takes the left of the page, full height, and fades to the
- * right into the words.
+ * WHAT IS HERE. The page (`.nf-gs`), the question beat after the tour
+ * (`QuestionBeat.tsx`: the object, the rising words, the interest chips, the
+ * optional asks of `ArrivalAsks.tsx`) and the one error line of `FirstRun.tsx`.
  *
- * THE ART IS THE SAME IN BOTH THEMES, as reference 42 draws it: the brand
- * blues and the night ink. Only the
- * page it fades into, and the words and controls on that page, follow the
- * theme: night navy in dark (the default), warm paper in light.
+ * WHAT IS NOT. The tour itself (the four full pages, the pager, the sliding
+ * capsule) is drawn in `onboarding-motion.css` and `get-started.css`. The
+ * glass carousel this file used to draw for it (the sky, hills, hero object
+ * and satellites, the coin, the dots, Skip and Next, the wide two-column
+ * layout) was pruned on 6 October 2026 after every class of it was grepped
+ * across `apps/web/src` and found unrendered.
  *
- * MOTION. `FirstRun.tsx` writes one fractional number, the carousel's
- * position, and each art layer's distance from it (`--d`, and its size
- * `--a`). Everything below turns those into transform and opacity only: the
- * sky, the hills, the hero and the satellites move at four depths, so a drag
- * parallaxes them apart while the layers cross-fade; the dot pill slides and
- * stretches. The words of the step that lands rise in one by one. Quiet
- * (reduced motion, Calm, Off): the layers cross-fade on the short ladder, the
- * words fade, nothing floats, and Off lands everything at once.
+ * MOTION. The words of the question rise in one by one and the chips arrive
+ * after them; a chosen chip gives one small spring. Nothing loops. Quiet
+ * (reduced motion, Calm, Off): the words and chips fade on the short ladder
+ * or appear, and Off lands everything at once.
  */
 @layer components {
   /* ------------------------------------------------------------ the page */
@@ -57,441 +48,6 @@
     );
   }
 
-  /* ------------------------------------------------------------ the steps */
-
-  .nf-gs-steps {
-    position: relative;
-    width: 100%;
-    min-height: 100vh;
-    min-height: 100svh;
-  }
-  .nf-gs-carousel {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-    min-height: 100svh;
-    padding-bottom: max(var(--nf-space-md), env(safe-area-inset-bottom, 0px));
-    /* The page scrolls up and down; sideways is the carousel's. */
-    touch-action: pan-y;
-  }
-  .nf-gs-carousel[data-dragging] {
-    cursor: grabbing;
-    -webkit-user-select: none;
-    user-select: none;
-  }
-
-  /* The art: full bleed, and it takes EVERYTHING the words and controls
-     leave, so on any phone from 568 to 932 tall the words, the dots and the
-     controls sit as one composed group anchored to the foot (reference 42)
-     and no dead band opens between them. The floor keeps a picture on the
-     shortest phone; the words overlap its fade by `--nf-gs-overlap`. */
-  .nf-gs-art {
-    position: relative;
-    isolation: isolate;
-    flex: 1 1 auto;
-    min-height: clamp(14rem, 42svh, 22rem);
-    overflow: hidden;
-    -webkit-user-select: none;
-    user-select: none;
-    background: var(--nf-surface-artwork);
-    /* An eased fade (many stops on a smooth curve), never a two-stop ramp:
-       a linear ramp shows a visible edge where it starts. */
-    --nf-gs-fade: linear-gradient(
-      180deg,
-      black 0%,
-      black 58%,
-      color-mix(in srgb, black 94%, transparent) 64%,
-      color-mix(in srgb, black 80%, transparent) 71%,
-      color-mix(in srgb, black 58%, transparent) 78%,
-      color-mix(in srgb, black 34%, transparent) 85%,
-      color-mix(in srgb, black 14%, transparent) 92%,
-      color-mix(in srgb, black 3%, transparent) 97%,
-      transparent 100%
-    );
-    mask-image: var(--nf-gs-fade);
-    -webkit-mask-image: var(--nf-gs-fade);
-  }
-  /* The foot of the picture goes soft before it goes: a blur that rises
-     from nothing, so the hills melt into the page rather than end on it. */
-  .nf-gs-art::before {
-    content: "";
-    position: absolute;
-    inset: auto 0 0;
-    height: 38%;
-    z-index: 3;
-    pointer-events: none;
-    -webkit-backdrop-filter: blur(14px);
-    backdrop-filter: blur(14px);
-    mask-image: linear-gradient(180deg, transparent 0%, black 70%);
-    -webkit-mask-image: linear-gradient(180deg, transparent 0%, black 70%);
-  }
-  /* The haze the art sinks through: the page's own colour rising over the
-     foot of the picture on the same eased curve, so the fade reads as mist
-     rather than a cut: into the warm canvas in light, into the night in
-     dark. */
-  .nf-gs-art::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 3;
-    pointer-events: none;
-    background: linear-gradient(
-      180deg,
-      transparent 56%,
-      color-mix(in oklab, var(--nf-surface-canvas) 6%, transparent) 64%,
-      color-mix(in oklab, var(--nf-surface-canvas) 20%, transparent) 72%,
-      color-mix(in oklab, var(--nf-surface-canvas) 44%, transparent) 80%,
-      color-mix(in oklab, var(--nf-surface-canvas) 70%, transparent) 88%,
-      color-mix(in oklab, var(--nf-surface-canvas) 90%, transparent) 95%,
-      var(--nf-surface-canvas) 100%
-    );
-  }
-
-  .nf-gs-layer {
-    position: absolute;
-    inset: 0;
-    will-change: opacity;
-  }
-  /* The picture never takes the pointer: a press on the art is the
-     carousel's drag, never the browser's own image drag (which cancels the
-     pointer mid-swipe). */
-  .nf-gs-art * {
-    pointer-events: none;
-    -webkit-user-drag: none;
-  }
-  /* Quiet: the script sets the step at once, and the layers cross-fade on
-     the short ladder instead of travelling. */
-  .nf-gs-carousel[data-quiet] .nf-gs-layer {
-    transition:
-      opacity var(--nf-duration-slow) var(--nf-ease-standard),
-      visibility var(--nf-duration-slow);
-  }
-
-  /* THE SKY. The brand blues from the night ink at the top to a bright
-     horizon, with a sun of white light; each step moves its sun. It travels
-     least of all (14vw a step), so it reads as far away. */
-  .nf-gs-sky {
-    position: absolute;
-    inset: -2% -14%;
-    transform: translate3d(calc(var(--d, 0) * 14vw), 0, 0);
-    --nf-gs-sun-x: 72%;
-    --nf-gs-sun-y: 22%;
-    background:
-      radial-gradient(
-        46% 34% at var(--nf-gs-sun-x) var(--nf-gs-sun-y),
-        color-mix(in oklab, var(--nf-content-on-brand) 58%, transparent) 0%,
-        color-mix(in oklab, var(--nf-content-on-brand) 16%, transparent) 42%,
-        transparent 72%
-      ),
-      radial-gradient(
-        80% 50% at 18% 62%,
-        color-mix(in oklab, var(--nf-brand-primary) 70%, var(--nf-content-on-brand)) 0%,
-        transparent 70%
-      ),
-      linear-gradient(
-        180deg,
-        color-mix(in oklab, color-mix(in oklab, var(--nf-brand-primary-strong) 70%, var(--nf-surface-artwork)) 80%, var(--nf-surface-artwork)) 0%,
-        color-mix(in oklab, var(--nf-brand-primary) 55%, var(--nf-brand-primary-strong)) 30%,
-        var(--nf-brand-primary) 58%,
-        color-mix(in oklab, var(--nf-brand-primary) 50%, var(--nf-content-on-brand)) 100%
-      );
-  }
-  .nf-gs-layer[data-sky="noon"] .nf-gs-sky {
-    --nf-gs-sun-x: 50%;
-    --nf-gs-sun-y: 14%;
-  }
-  .nf-gs-layer[data-sky="dusk"] .nf-gs-sky {
-    --nf-gs-sun-x: 22%;
-    --nf-gs-sun-y: 30%;
-  }
-  /* The last step is evening: deeper, with a few points of light, the coin
-     the brightest thing in it. */
-  .nf-gs-layer[data-sky="night"] .nf-gs-sky {
-    --nf-gs-sun-x: 50%;
-    --nf-gs-sun-y: 48%;
-    background:
-      radial-gradient(1.5px 1.5px at 18% 22%, var(--nf-content-on-brand) 50%, transparent 100%),
-      radial-gradient(1px 1px at 32% 12%, var(--nf-content-on-brand) 50%, transparent 100%),
-      radial-gradient(1.5px 1.5px at 66% 18%, var(--nf-content-on-brand) 50%, transparent 100%),
-      radial-gradient(1px 1px at 82% 30%, var(--nf-content-on-brand) 50%, transparent 100%),
-      radial-gradient(1px 1px at 48% 8%, var(--nf-content-on-brand) 50%, transparent 100%),
-      radial-gradient(
-        40% 34% at var(--nf-gs-sun-x) var(--nf-gs-sun-y),
-        color-mix(in oklab, var(--nf-brand-primary) 80%, var(--nf-content-on-brand)) 0%,
-        transparent 72%
-      ),
-      linear-gradient(
-        180deg,
-        var(--nf-surface-artwork) 0%,
-        color-mix(in oklab, color-mix(in oklab, var(--nf-brand-primary-strong) 70%, var(--nf-surface-artwork)) 70%, var(--nf-surface-artwork)) 40%,
-        var(--nf-brand-primary-strong) 78%,
-        var(--nf-brand-primary) 100%
-      );
-  }
-
-  /* THE PICTURES (the old step art, unused since 6 October; see the tour in onboarding-motion.css): the founder's scene for the step, one
-     per theme, filling the art. It is a little wider than the screen so the
-     gentle parallax (12vw a step, a hair of scale as it leaves) never shows
-     its edge; the art's own fade, the blur of its foot and the haze above
-     melt it into the page as they do the glass skies. Its subject is in the
-     upper part of the file (the bottom 30 percent is left empty for the
-     fade), so a short screen crops from below. */
-  /* Under a picture the art's ground is the page, not the ink. */
-  .nf-gs-art:has(.nf-gs-photo) {
-    background: var(--nf-surface-canvas);
-  }
-  .nf-gs-photo {
-    position: absolute;
-    inset: 0 -12%;
-    transform: translate3d(calc(var(--d, 0) * 12vw), 0, 0) scale(calc(1 + var(--a, 0) * 0.04));
-  }
-  .nf-gs-photo__img {
-    object-fit: cover;
-    object-position: 50% 30%;
-  }
-  /* Get started is always dark (layout.tsx, the night door), so the day
-     photograph never shows. */
-  .nf-gs-photo__img--light {
-    display: none;
-  }
-
-  /* THE HILLS: three soft mounds in the deep blues, the ground the objects
-     stand on (reference 42's velvet hills, drawn as light). */
-  .nf-gs-hills {
-    position: absolute;
-    left: -18%;
-    right: -18%;
-    /* The ground reaches the foot of the picture, so nothing but ground is
-       under the fade: a strip of bright sky under the hills was the hard
-       band the fade used to end on. */
-    bottom: 0;
-    height: 50%;
-    transform: translate3d(calc(var(--d, 0) * 26vw), 0, 0);
-    background:
-      radial-gradient(
-        34% 52% at 24% 100%,
-        color-mix(in oklab, var(--nf-brand-primary) 55%, var(--nf-content-on-brand)) 0%,
-        var(--nf-brand-primary) 45%,
-        color-mix(in oklab, var(--nf-brand-primary) 55%, var(--nf-brand-primary-strong)) 97%,
-        transparent 100%
-      ),
-      radial-gradient(
-        38% 70% at 80% 100%,
-        color-mix(in oklab, var(--nf-brand-primary) 70%, var(--nf-content-on-brand)) 0%,
-        color-mix(in oklab, var(--nf-brand-primary) 55%, var(--nf-brand-primary-strong)) 55%,
-        var(--nf-brand-primary-strong) 97%,
-        transparent 100%
-      ),
-      radial-gradient(
-        70% 42% at 50% 100%,
-        var(--nf-brand-primary-strong) 0%,
-        color-mix(in oklab, var(--nf-brand-primary-strong) 70%, var(--nf-surface-artwork)) 96%,
-        transparent 100%
-      );
-    filter: drop-shadow(0 -6px 18px color-mix(in oklab, var(--nf-brand-primary) 45%, transparent));
-  }
-
-  /* THE HERO: the step's big glass object, standing on the hills, moving at
-     three times the sky's pace and settling a little smaller as it leaves. */
-  .nf-gs-hero {
-    position: absolute;
-    left: 50%;
-    bottom: 21%;
-    z-index: 1;
-    /* SIZED FROM THE PICTURE'S HEIGHT as well as the width (percentages of
-       the layer, which is the art), so a short phone gets a smaller house
-       that still clears the lockup (3.75rem) rather than the same house cut
-       off at the top. The renders are 557 by 470. */
-    height: min(calc(79% - 3.75rem), 67.5vw, 22.75rem);
-    aspect-ratio: 557 / 470;
-    translate: -50% 0;
-    transform: translate3d(calc(var(--d, 0) * 42vw), 0, 0) scale(calc(1 - var(--a, 0) * 0.12));
-    transform-origin: 50% 100%;
-  }
-  .nf-gs-hero__float,
-  .nf-gs-sat__float {
-    display: block;
-    animation: nf-gs-bob 6.4s var(--nf-ease-standard) infinite alternate;
-  }
-  /* The box is the render's shape; the coin (a square) stands on its
-     foot, where the house's plinth would be. */
-  .nf-gs-hero__float {
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    height: 100%;
-  }
-  .nf-gs-hero__img {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    /* The renders' glow runs off the top and sides of the file, which drew
-       a straight line across the sky. The file's edges fade out. */
-    mask-image:
-      linear-gradient(180deg, transparent 0%, black 16%),
-      linear-gradient(90deg, transparent 0%, black 7%, black 93%, transparent 100%);
-    -webkit-mask-image:
-      linear-gradient(180deg, transparent 0%, black 16%),
-      linear-gradient(90deg, transparent 0%, black 7%, black 93%, transparent 100%);
-    mask-composite: intersect;
-    -webkit-mask-composite: source-in;
-    filter: drop-shadow(0 24px 30px color-mix(in oklab, var(--nf-surface-artwork) 55%, transparent));
-  }
-  .nf-gs-hero__coin {
-    display: block;
-    flex: none;
-    width: 48%;
-    aspect-ratio: 1;
-    margin: 0 auto 16%;
-  }
-  @keyframes nf-gs-bob {
-    from {
-      transform: translate3d(0, 3px, 0);
-    }
-    to {
-      transform: translate3d(0, -7px, 0);
-    }
-  }
-
-  /* THE SATELLITES: two small glass objects nearest the reader, so they move
-     fastest (78vw a step) and part from the hero as the page turns. */
-  .nf-gs-sat {
-    position: absolute;
-    z-index: 2;
-    /* From the picture's height too, as the hero is. */
-    height: clamp(3rem, min(21vw, 19%), 7.5rem);
-    aspect-ratio: 1;
-    transform: translate3d(calc(var(--d, 0) * 78vw), 0, 0) rotate(calc(var(--d, 0) * 14deg));
-  }
-  .nf-gs-sat img {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    filter: drop-shadow(0 10px 16px color-mix(in oklab, var(--nf-surface-artwork) 50%, transparent));
-  }
-  .nf-gs-sat--tl {
-    left: 5%;
-    top: 19%;
-  }
-  .nf-gs-sat--tr {
-    right: 5%;
-    top: 17%;
-  }
-  .nf-gs-sat--bl {
-    left: 4%;
-    bottom: 26%;
-  }
-  .nf-gs-sat--br {
-    right: 5%;
-    bottom: 24%;
-  }
-  .nf-gs-sat--tl .nf-gs-sat__float,
-  .nf-gs-sat--br .nf-gs-sat__float {
-    animation-duration: 5.2s;
-    animation-delay: -2.4s;
-  }
-  .nf-gs-sat--tr .nf-gs-sat__float,
-  .nf-gs-sat--bl .nf-gs-sat__float {
-    animation-duration: 7s;
-    animation-delay: -1.1s;
-  }
-
-  /* Two small glass tags in the sky ("Property", "Stays"), decorative. */
-  .nf-gs-tag {
-    position: absolute;
-    z-index: 2;
-    padding: 0.375rem 0.75rem;
-    border-radius: var(--nf-radius-pill);
-    border: 1px solid color-mix(in oklab, var(--nf-content-on-brand) 34%, transparent);
-    background: color-mix(in oklab, color-mix(in oklab, var(--nf-brand-primary-strong) 70%, var(--nf-surface-artwork)) 42%, transparent);
-    box-shadow: inset 0 1px 0 color-mix(in oklab, var(--nf-content-on-brand) 30%, transparent);
-    color: var(--nf-content-on-brand);
-    font-size: var(--nf-text-overline);
-    font-weight: 600;
-    line-height: 1.2;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    white-space: nowrap;
-    transform: translate3d(calc(var(--d, 0) * 60vw), 0, 0);
-  }
-  /* Low on the sides, by the plinth, so they read as signposts on the
-     hills rather than labels across the object. */
-  .nf-gs-tag--a {
-    left: 4%;
-    top: 60%;
-  }
-  .nf-gs-tag--b {
-    right: 4%;
-    top: 54%;
-  }
-  /* The intro's one tag is a sentence long, so it sits in the open sky at
-     the top left rather than across the house. */
-  .nf-gs-intro .nf-gs-tag--a {
-    top: 17%;
-    left: 6%;
-  }
-
-  /* The mark and the name, small, at the top of the art in both themes. */
-  .nf-gs-lockup {
-    position: absolute;
-    top: calc(env(safe-area-inset-top, 0px) + 1.125rem);
-    left: 50%;
-    z-index: 4;
-    display: inline-flex;
-    align-items: center;
-    gap: var(--nf-space-xs);
-    translate: -50% 0;
-    filter: drop-shadow(0 0 8px color-mix(in oklab, var(--nf-surface-artwork) 50%, transparent));
-  }
-  .nf-gs-lockup__mark {
-    width: 1.625rem;
-    height: auto;
-  }
-  .nf-gs-lockup__word {
-    width: 5.25rem;
-    height: auto;
-  }
-
-  /* Back, on steps two to four: a glass circle over the art's top left. */
-  .nf-gs-back {
-    position: absolute;
-    top: calc(env(safe-area-inset-top, 0px) + 0.625rem);
-    left: calc(env(safe-area-inset-left, 0px) + 0.75rem);
-    z-index: 6;
-  }
-
-  /* ------------------------------------------------------------ the words */
-
-  .nf-gs-copy {
-    position: relative;
-    z-index: 2;
-    width: 100%;
-    max-width: 36rem;
-    margin: calc(-1 * var(--nf-gs-overlap, 3rem)) auto 0;
-    padding-inline: max(1.5rem, env(safe-area-inset-left, 0px)) max(1.5rem, env(safe-area-inset-right, 0px));
-    /* The words lean with a dragging finger, and come back on release. */
-    transform: translate3d(var(--nf-gs-drag, 0px), 0, 0);
-  }
-  .nf-gs-carousel:not([data-dragging]) .nf-gs-copy {
-    transition: transform var(--nf-duration-base) var(--nf-ease-entrance);
-  }
-
-  /* The step on screen and every step's invisible sizer share one cell
-     (FirstRun.tsx), so the block holds the tallest step at this width. */
-  .nf-gs-stack {
-    display: grid;
-  }
-  .nf-gs-stack > .nf-gs-slide {
-    grid-area: 1 / 1;
-  }
-  .nf-gs-slide--sizer {
-    visibility: hidden;
-    pointer-events: none;
-  }
-
   /* Big and tight, two lines, as reference 42 sets it: a little lighter
      than a bold (the reference's headline is a heavy regular), tracked in
      as the size grows. */
@@ -503,12 +59,6 @@
     line-height: 1.04;
     letter-spacing: -0.032em;
     color: var(--nf-content-primary);
-  }
-  .nf-gs-title__a,
-  .nf-gs-title__b {
-    display: block;
-    /* A searched word can be forty letters with no space (V-18). */
-    overflow-wrap: anywhere;
   }
   /* The body: a comfortable measure (about 45 characters on a phone, never
      past 34 on a wide screen), no widow on its last line. The steps hold
@@ -551,288 +101,17 @@
     }
   }
 
-  /* ------------------------------------------------------------ the dots */
-
-  /* The dots sit close, as reference 42 draws them (a 1.5rem pitch), each
-     one a button 44px tall and a pitch wide, abutting, so the whole strip
-     is live and a press lands on the nearest dot (24px wide meets WCAG
-     2.5.8; the dots are the third way to move, after the swipe and Next,
-     which keep the 44px floor). The small dot
-     inside fades as the pill arrives on it. The pill is one element that
-     slides along the carousel's position and stretches in transit; its
-     left edge lines up with the words when it is on the first step. */
-  .nf-gs-dots {
-    --nf-gs-pitch: 1.5rem;
-    position: relative;
-    display: flex;
-    margin: var(--nf-space-sm) 0 0;
-  }
-  .nf-gs-dots__bar {
-    position: absolute;
-    top: 50%;
-    left: 0;
-    width: var(--nf-gs-pitch);
-    height: 0.5rem;
-    margin-top: -0.25rem;
-    border-radius: var(--nf-radius-pill);
-    /* The step you are on is the warm spark (spec section 18). */
-    background: var(--nf-spark);
-    pointer-events: none;
-    transform: translate3d(calc(var(--nf-gs-pos, 0) * var(--nf-gs-pitch)), 0, 0) scaleX(var(--nf-gs-stretch, 1));
-  }
-  .nf-gs-dot {
-    display: grid;
-    place-items: center;
-    width: var(--nf-gs-pitch);
-    height: 2.75rem;
-    padding: 0;
-    border: 0;
-    border-radius: var(--nf-radius-xs);
-    background: transparent;
-    cursor: pointer;
-  }
-  .nf-gs-dot > span {
-    width: 0.5rem;
-    height: 0.5rem;
-    border-radius: var(--nf-radius-circle);
-    background: color-mix(in oklab, var(--nf-content-primary) 30%, transparent);
-    opacity: var(--a, 1);
-  }
-  .nf-gs-carousel[data-quiet] .nf-gs-dots__bar {
-    transition: transform var(--nf-duration-base) var(--nf-ease-standard);
-  }
-  .nf-gs-carousel[data-quiet] .nf-gs-dot > span {
-    transition: opacity var(--nf-duration-base) var(--nf-ease-standard);
-  }
-
-  /* ------------------------------------------------------------ the controls */
-
-  /* Skip at the bottom left, Next at the bottom right (reference 42). */
-  .nf-gs-foot {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--nf-space-md);
-    width: 100%;
-    max-width: 36rem;
-    margin: 0 auto;
-    /* 16px under the dots' strip: with the strip's own air that is the same
-       gap above the controls as between the words and the dots. */
-    padding: var(--nf-space-md) max(1.5rem, env(safe-area-inset-right, 0px)) 0
-      max(1.5rem, env(safe-area-inset-left, 0px));
-  }
-  .nf-gs-foot--last {
-    flex-direction: column;
-    align-items: stretch;
-    gap: var(--nf-space-xs);
-  }
-  .nf-gs-skip {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    min-width: 2.75rem;
-    min-height: 2.75rem;
-    margin-left: -0.5rem;
-    padding: 0 0.5rem;
-    border: 0;
-    border-radius: var(--nf-radius-control);
-    background: transparent;
-    color: var(--nf-content-primary);
-    font-size: 1rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: opacity var(--nf-duration-fast) var(--nf-ease-standard);
-  }
-  .nf-gs-skip:disabled {
-    opacity: 0.5;
-  }
-  @media (hover: hover) {
-    .nf-gs-skip:hover {
-      text-decoration: underline;
-      text-underline-offset: 4px;
-    }
-  }
-  .nf-slate .nf-slate-pill.nf-btn.nf-gs-next {
-    min-width: 8.5rem;
-    padding-inline: 1.75rem;
-  }
-  /* The arrow leans the way the page will go: a nudge on hover, a firm
-     push while pressed, and back on the spring when let go. */
-  .nf-gs-next svg,
-  .nf-gs-cta svg {
-    transition: transform var(--nf-duration-base) var(--nf-ease-spring);
-  }
-  @media (hover: hover) {
-    .nf-gs-next:hover svg,
-    .nf-gs-cta:hover svg {
-      transform: translate3d(0.1875rem, 0, 0);
-    }
-  }
-  .nf-gs-next:active svg,
-  .nf-gs-cta:active svg {
-    transform: translate3d(0.375rem, 0, 0);
-    transition-duration: var(--nf-duration-fast);
-    transition-timing-function: var(--nf-ease-standard);
-  }
-  .nf-gs-doors {
-    display: grid;
-    gap: var(--nf-space-2xs);
-    width: 100%;
-  }
-  .nf-btn.nf-gs-second {
-    font-weight: 600;
-    color: var(--nf-content-primary);
-    text-decoration: none;
-  }
   .nf-gs-error {
     margin-top: var(--nf-space-xs);
     font-size: var(--nf-text-caption);
     color: var(--nf-state-error);
   }
-  .nf-gs-skip:focus-visible,
-  .nf-gs-dot:focus-visible {
-    outline: 2px solid var(--nf-focus-ring);
-    outline-offset: 2px;
-  }
-
-  /* ------------------------------------------------------------ the coin */
-
-  /* The coin: Vallo's own mark on the render's glass and rim, turning
-     now and then, held at the drawn pose when the reader asks for less. */
-  .nf-gs-coin {
-    position: relative;
-    display: block;
-    width: 100%;
-    height: 100%;
-  }
-  .nf-gs-coin__tilt {
-    position: absolute;
-    inset: 0;
-    perspective: 900px;
-    transform: rotate(-20deg);
-  }
-  .nf-gs-coin__spin {
-    position: absolute;
-    inset: 0;
-    transform-style: preserve-3d;
-    transform: rotateX(12deg) rotateY(52deg);
-    animation: nf-gs-coin-turn 7s var(--nf-ease-standard) infinite;
-  }
-  /* Rest at the drawn pose for most of the cycle, then one full turn. */
-  @keyframes nf-gs-coin-turn {
-    0%,
-    45% {
-      transform: rotateX(12deg) rotateY(52deg);
-    }
-    100% {
-      transform: rotateX(12deg) rotateY(412deg);
-    }
-  }
-  .nf-gs-coin__face,
-  .nf-gs-coin__edge {
-    position: absolute;
-    inset: 0;
-    border-radius: var(--nf-radius-circle);
-  }
-  /* The rim, sampled across the drawn band (render row 900, x 450 to 472,
-     20 src px): a white outer lip (#f2f7ff), a bright electric body (#1f82fd
-     falling to #0f6dfd), a white-cyan front lip (#c5f0ff); and lower on the
-     left (row 930) a white specular streak across the whole band (#fbfffe).
-     Fifteen discs a pixel apart make the band; each carries the body as an
-     angular gradient with the streak at the lower left of the coin's own
-     face, so the streak stays on the rim as it turns; the two outermost
-     discs carry the lips. */
-  .nf-gs-coin__edge {
-    transform: translateZ(calc(var(--nf-gs-layer, 0) * 1px));
-    --nf-gs-rim: color-mix(in srgb, color-mix(in srgb, var(--nf-brand-primary) 78%, var(--nf-state-warning)) 88%, var(--nf-content-on-brand));
-    --nf-gs-rim-deep: color-mix(in srgb, var(--nf-brand-primary) 94%, var(--nf-state-warning));
-    background: conic-gradient(
-      from 0deg,
-      var(--nf-gs-rim) 0deg,
-      var(--nf-gs-rim-deep) 150deg,
-      var(--nf-gs-rim) 186deg,
-      var(--nf-content-on-brand) 208deg,
-      var(--nf-content-on-brand) 236deg,
-      var(--nf-gs-rim) 258deg,
-      var(--nf-gs-rim-deep) 320deg,
-      var(--nf-gs-rim) 360deg
-    );
-  }
-  .nf-gs-coin__edge:first-child,
-  .nf-gs-coin__edge:nth-child(15) {
-    box-shadow:
-      inset 0 0 0 2px color-mix(in srgb, var(--nf-state-warning) 8%, var(--nf-content-on-brand)),
-      0 0 4px color-mix(in srgb, var(--nf-state-warning) 40%, transparent);
-  }
-  .nf-gs-coin__face {
-    overflow: hidden;
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-    filter: drop-shadow(0 0 10px var(--nf-glow-4));
-  }
-  .nf-gs-coin__face > img {
-    display: block;
-    width: 100%;
-    height: 100%;
-  }
-  /*
-   * VALLO'S OWN MARK ON THE COIN (the founder, 25 September 2026). The
-   * render's face carried a generic building; its rim and glass stay, and a
-   * sunk inner field, the way a struck coin has a field inside its rim,
-   * covers the drawn emblem (it spans 28 to 74 percent across, so a 70
-   * percent field clears it). The field is the face's own deep blue, lit
-   * from the upper left like the rest of the coin, with a fine bright ring
-   * where it meets the rim. The mark stands on it at a little over half the
-   * coin, with the same glow the coin already wears.
-   */
-  .nf-gs-coin__field {
-    position: absolute;
-    inset: 15%;
-    border-radius: var(--nf-radius-circle);
-    /* Deep navy, the ground the mark is drawn for (the same night it sits on
-       in the header), lifted towards the light at the upper left. The ring is
-       a soft band in the gradient rather than a hairline: the face is a 3D
-       plane seen at an angle, and a hard 1px line on it shimmers as it
-       turns. */
-    background:
-      radial-gradient(
-        circle,
-        transparent 0 91%,
-        color-mix(in srgb, var(--nf-content-on-brand) 42%, transparent) 95%,
-        transparent 99%
-      ),
-      radial-gradient(
-        circle at 38% 30%,
-        color-mix(in srgb, var(--nf-brand-primary-strong) 55%, var(--nf-surface-pin)) 0%,
-        color-mix(in srgb, var(--nf-brand-primary-strong) 22%, var(--nf-surface-pin)) 62%,
-        var(--nf-surface-pin) 100%
-      );
-    box-shadow:
-      inset 0 6px 12px color-mix(in srgb, var(--nf-surface-pin) 60%, transparent),
-      0 0 10px color-mix(in srgb, var(--nf-brand-primary) 45%, transparent);
-  }
-  .nf-gs-coin__face > img.nf-gs-coin__mark {
-    position: absolute;
-    left: 50%;
-    top: 51%;
-    width: 58%;
-    height: auto;
-    translate: -50% -50%;
-    filter: drop-shadow(0 0 5px color-mix(in srgb, var(--nf-content-on-brand) 45%, transparent));
-  }
-  .nf-gs-coin__face--front {
-    transform: translateZ(8px);
-  }
-  .nf-gs-coin__face--back {
-    transform: rotateY(180deg) translateZ(8px);
-  }
-
 
   /* ------------------------------------------------------------ the question */
 
-  /* The interests question, after the steps for a member: the same sky as a
-     soft band of light at the top, two orbs drifting in it, the words rising
-     in, and the chips arriving one after another. */
+  /* The interests question, after the tour for a member: one soft wash of
+     light at the top, the words rising in, and the chips arriving one after
+     another. */
   .nf-gs-col--question {
     position: relative;
     isolation: isolate;
@@ -883,22 +162,6 @@
     width: 3rem;
     height: 3rem;
     object-fit: contain;
-  }
-  .nf-gs-col--question > .nf-gs-lockup {
-    position: static;
-    translate: none;
-    display: flex;
-    justify-content: center;
-    filter: none;
-  }
-  .nf-gs-lockup__set {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--nf-space-xs);
-  }
-  /* Always dark (the night door): the day lockup never shows. */
-  .nf-gs-lockup__set--day {
-    display: none;
   }
   .nf-gs-question {
     margin-top: var(--nf-space-lg);
@@ -1063,27 +326,14 @@
   /* ------------------------------------------------------------ wider */
 
   @media (min-width: 40rem) {
-    .nf-gs-carousel {
-      --nf-gs-overlap: 4rem;
-    }
-    .nf-gs-hero {
-      height: min(calc(79% - 3.75rem), 55.75vw, 25.25rem);
-    }
     .nf-gs-sub {
       font-size: 1.0625rem;
-    }
-    .nf-gs-foot {
-      padding-top: var(--nf-space-lg);
-      padding-bottom: var(--nf-space-lg);
     }
   }
 
   /* A SHORT PHONE (568 to 640 tall): the words step down a size so the
-     picture keeps a third of the screen. */
+     chips keep their room. */
   @media (max-width: 39.99rem) and (max-height: 40rem) {
-    .nf-gs-carousel {
-      --nf-gs-overlap: 2.25rem;
-    }
     .nf-gs-title {
       font-size: clamp(1.75rem, 8.4vw, 2rem);
     }
@@ -1092,95 +342,23 @@
       font-size: 0.9375rem;
       line-height: 1.45;
     }
-    .nf-gs-foot {
-      padding-top: var(--nf-space-xs);
-    }
   }
 
-  /* A WIDE SCREEN: the art is the left of the page, full height, fading to
-     the right into the words, which sit in the middle of the right half. */
+  /* A WIDE SCREEN: the headline grows and the body takes a wider measure so
+     it sets in two or three lines, not four. */
   @media (min-width: 64rem) {
-    .nf-gs-carousel {
-      display: grid;
-      grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-      grid-template-rows: 1fr auto auto 1fr;
-      column-gap: clamp(2rem, 4vw, 5rem);
-      padding-bottom: 0;
-    }
-    .nf-gs-art {
-      grid-column: 1;
-      grid-row: 1 / -1;
-      height: 100svh;
-      min-height: 36rem;
-      /* Fading to the right into the words and, more gently, into the
-         foot of the page. */
-      mask-image:
-        linear-gradient(90deg, black 0%, black 72%, transparent 100%),
-        linear-gradient(180deg, black 0%, black 80%, transparent 100%);
-      -webkit-mask-image:
-        linear-gradient(90deg, black 0%, black 72%, transparent 100%),
-        linear-gradient(180deg, black 0%, black 80%, transparent 100%);
-      mask-composite: intersect;
-      -webkit-mask-composite: source-in;
-    }
-    .nf-gs-art::after {
-      background: linear-gradient(
-        90deg,
-        transparent 60%,
-        color-mix(in oklab, var(--nf-surface-canvas) 40%, transparent) 84%,
-        var(--nf-surface-canvas) 100%
-      );
-    }
-    .nf-gs-hero {
-      height: min(calc(84% - 3.75rem), 33.75vw, 28.75rem);
-      bottom: 16%;
-    }
-    .nf-gs-sat {
-      height: clamp(5rem, 8vw, 8.5rem);
-    }
-    .nf-gs-copy {
-      grid-column: 2;
-      grid-row: 2;
-      max-width: 34rem;
-      margin: 0;
-      padding-inline: 0 clamp(1.5rem, 3vw, 3rem);
-    }
-    /* The ground reaches the foot of the picture, which is the page's
-       height here. */
-    .nf-gs-hills {
-      bottom: 0;
-      height: 52%;
-    }
     .nf-gs-title {
       font-size: clamp(3rem, 4.2vw, 4rem);
     }
-    /* A wider measure beside the art, so the held height (the longest
-       step) is two or three lines, not four, and the dots do not float. */
     .nf-gs-sub {
       max-width: 44ch;
-    }
-    .nf-gs-foot {
-      grid-column: 2;
-      grid-row: 3;
-      max-width: 32rem;
-      margin: var(--nf-space-xl) 0 0;
-      padding: 0 clamp(2rem, 6vw, 6rem) 0 0;
-    }
-    .nf-gs-foot--last {
-      max-width: 26rem;
-    }
-    /* Top left, beside the back button rather than under it. */
-    .nf-gs-lockup {
-      left: 4.5rem;
-      top: calc(env(safe-area-inset-top, 0px) + 1.4rem);
-      translate: none;
     }
   }
 
   /* ------------------------------------------------------------ motion */
 
-  /* Nothing floats or rises when the reader asked for less: the steps
-     cross-fade (above), the words and chips simply appear. */
+  /* Nothing rises when the reader asked for less: the words and chips simply
+     appear. */
   @media (prefers-reduced-motion: reduce) {
     .nf-gs-word,
     .nf-gs-rise,
@@ -1189,23 +367,8 @@
     .nf-gs-question .nf-interest[aria-pressed="true"] > svg,
     .nf-gs-question .nf-interest__burst,
     .nf-gs-asks__chip[aria-pressed="true"],
-    .nf-gs-asks__saved,
-    .nf-gs-hero__float,
-    .nf-gs-sat__float,
-    .nf-gs-orb {
+    .nf-gs-asks__saved {
       animation: none;
-    }
-    .nf-gs-coin__spin {
-      animation: none;
-      transform: rotateX(12deg) rotateY(52deg);
-    }
-    .nf-gs-copy {
-      transform: none;
-    }
-    .nf-gs-next svg,
-    .nf-gs-cta svg {
-      transition: none;
-      transform: none;
     }
   }
   /* Calm: the words fade on the short ladder; nothing drifts. Off lands
@@ -1215,14 +378,7 @@
     animation-duration: var(--nf-duration-base);
     animation-delay: 0ms;
   }
-  :root:is([data-motion="calm"], [data-motion="off"]) :is(.nf-gs-hero__float, .nf-gs-sat__float, .nf-gs-orb, .nf-gs-question .nf-interest__burst) {
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-gs-question .nf-interest__burst {
     animation: none;
-  }
-  :root:is([data-motion="calm"], [data-motion="off"]) :is(.nf-gs-next, .nf-gs-cta) svg {
-    transform: none;
-  }
-  :root:is([data-motion="calm"], [data-motion="off"]) .nf-gs-coin__spin {
-    animation: none;
-    transform: rotateX(12deg) rotateY(52deg);
   }
 }
