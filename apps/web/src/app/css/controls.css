@@ -59,22 +59,36 @@
   .nf-range__input::-webkit-slider-thumb {
     -webkit-appearance: none;
     pointer-events: auto;
-    height: 1.5rem;
-    width: 1.5rem;
+    /* A 44px THUMB TARGET, A 24px THUMB DRAWN. The native input is only as tall as its thumb, and
+       the thumb is the only part that takes the pointer, so the control was a 24px target. The
+       thumb box is now 44px with a 10px transparent border (clipped out of the background), and
+       the old 3px surface ring is an inset shadow on the 24px disc, so nothing visible changes
+       and the track stays centred. Found by components/locale-fit/members-b.dom.test.tsx. */
+    height: 2.75rem;
+    width: 2.75rem;
     border-radius: var(--nf-radius-circle);
-    border: 3px solid var(--nf-surface-primary);
+    border: 0.625rem solid transparent;
     background: var(--nf-brand-primary);
-    box-shadow: 0 0 10px var(--nf-glow-3);
+    background-clip: padding-box;
+    box-shadow: inset 0 0 0 3px var(--nf-surface-primary);
+    filter: drop-shadow(0 0 10px var(--nf-glow-3));
     cursor: grab;
   }
   .nf-range__input::-moz-range-thumb {
     pointer-events: auto;
-    height: 1.5rem;
-    width: 1.5rem;
+    /* A 44px THUMB TARGET, A 24px THUMB DRAWN. The native input is only as tall as its thumb, and
+       the thumb is the only part that takes the pointer, so the control was a 24px target. The
+       thumb box is now 44px with a 10px transparent border (clipped out of the background), and
+       the old 3px surface ring is an inset shadow on the 24px disc, so nothing visible changes
+       and the track stays centred. Found by components/locale-fit/members-b.dom.test.tsx. */
+    height: 2.75rem;
+    width: 2.75rem;
     border-radius: var(--nf-radius-circle);
-    border: 3px solid var(--nf-surface-primary);
+    border: 0.625rem solid transparent;
     background: var(--nf-brand-primary);
-    box-shadow: 0 0 10px var(--nf-glow-3);
+    background-clip: padding-box;
+    box-shadow: inset 0 0 0 3px var(--nf-surface-primary);
+    filter: drop-shadow(0 0 10px var(--nf-glow-3));
     cursor: grab;
   }
   /* The thumb is filled with --nf-brand-primary, so a ring in the same colour

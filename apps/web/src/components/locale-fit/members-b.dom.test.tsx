@@ -24,16 +24,7 @@ afterAll(closeBrowser);
 const CSS = () => appCss();
 
 /* The key is "<surface> <locale>"; the value is the report line. */
-const KNOWN: Record<string, string> = {
-  "Search filters sheet, opened en":
-    "the price range slider (input.nf-range__input) is 358 by 24px (fix is the patch range-hit-area.patch for controls.css); delete these four entries when it lands",
-  "Search filters sheet, opened yo":
-    "the price range slider (input.nf-range__input) is 358 by 24px (fix is the patch range-hit-area.patch for controls.css); delete these four entries when it lands",
-  "Search filters sheet, opened ha":
-    "the price range slider is 24px tall (fix is the patch range-hit-area.patch for controls.css); delete these four entries when it lands",
-  "Search filters sheet, opened ig":
-    "the price range slider is 24px tall (fix is the patch range-hit-area.patch for controls.css); delete these four entries when it lands",
-};
+const KNOWN: Record<string, string> = {};
 
 describe.skipIf(!hasBrowser && !process.env.CI)("locale fit: listing detail, reserve and filters at 390px", () => {
   fitCases(
