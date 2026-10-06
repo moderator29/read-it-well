@@ -1,0 +1,105 @@
+/*
+ * THE OFFLINE PAGE (W11, 6 October 2026; north star section 10 L): the navy
+ * ground, ONE Island, ONE action, and words that say what is happening. It is
+ * the same register as the packaged shell's card (`native-shell/index.html`),
+ * which is what a person sees when the app itself cannot reach us, so the two
+ * offline moments read as one.
+ *
+ * It must paint with no network at all: the mark is inline SVG, nothing is
+ * fetched, and the ground is two gradients. A night page in both themes
+ * (`data-theme="dark"` on the stage): the product's doors are night (D1) and a
+ * white flash on a phone that has just lost its signal is the loudest thing
+ * the app could draw.
+ *
+ * One Island only (north star 4: an Island is one per view). What the phone
+ * holds for the person with no signal (an inspection pack's gate code, the
+ * shortlist) draws BELOW it on the ground, and draws nothing for almost
+ * everybody.
+ */
+@layer theme, base, components, utilities;
+
+@layer components {
+  .nf-offline {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    min-height: 100vh;
+    min-height: 100dvh;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--nf-space-md);
+    padding: calc(env(safe-area-inset-top, 0px) + var(--nf-space-lg)) max(var(--nf-space-md), env(safe-area-inset-right, 0px))
+      calc(env(safe-area-inset-bottom, 0px) + var(--nf-space-lg)) max(var(--nf-space-md), env(safe-area-inset-left, 0px));
+    background: var(--nf-surface-artwork);
+    color: var(--nf-content-primary);
+  }
+  /* The ground: two soft lights in the navy, one high and one low. Painted
+     once and never moving. */
+  .nf-offline::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(72% 48% at 50% -6%, color-mix(in oklab, var(--nf-brand-primary) 26%, transparent), transparent 72%),
+      radial-gradient(120% 60% at 50% 112%, color-mix(in oklab, var(--nf-brand-primary-strong) 40%, transparent), transparent 68%);
+  }
+
+  .nf-offline__island {
+    width: 100%;
+    max-width: 24rem;
+    padding: var(--nf-space-xl) var(--nf-space-lg) var(--nf-space-lg);
+    text-align: center;
+    animation: nf-offline-rise var(--nf-duration-entrance) var(--nf-ease-entrance) both;
+  }
+  .nf-offline__mark {
+    display: block;
+    margin: 0 auto var(--nf-space-lg);
+    color: var(--nf-brand-quiet);
+  }
+  .nf-offline__title {
+    font-family: var(--nf-font-display);
+    font-size: 1.75rem;
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: var(--nf-tracking-tight);
+    text-wrap: balance;
+  }
+  .nf-offline__body {
+    margin-top: var(--nf-space-xs);
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    color: var(--nf-content-secondary);
+    text-wrap: pretty;
+  }
+  .nf-offline__action {
+    margin-top: var(--nf-space-lg);
+  }
+  /* What the phone itself reports, in a live region, in the quiet size. */
+  .nf-offline__status {
+    margin-top: var(--nf-space-sm);
+    font-size: var(--nf-text-overline);
+    line-height: 1.5;
+    color: var(--nf-content-muted);
+  }
+
+  /* What the phone holds, under the Island. */
+  .nf-offline__held {
+    width: 100%;
+    max-width: 24rem;
+  }
+
+  @keyframes nf-offline-rise {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 18px, 0);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-offline__island {
+      animation: none;
+    }
+  }
+}
