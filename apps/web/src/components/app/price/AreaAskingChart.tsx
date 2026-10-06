@@ -1,10 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { formatMoney, formatMoneyGlance, formatNumber, type Locale } from "@vallo/i18n/core";
+import { formatMoney, formatNumber, type Locale } from "@vallo/i18n/core";
 import { Segmented, SegmentedPanel } from "@/components/ui/Segmented";
 import { PeriodBars } from "@/components/ui/charts/PeriodBars";
-import { axisTicks, type VizPoint } from "@/components/ui/charts/chart-rules";
+import { moneyAxisTicks, type VizPoint } from "@/components/ui/charts/chart-rules";
 import { Amount } from "@/components/ui/Amount";
 import { CountUpMoney } from "@/components/motion/CountUp";
 import type { AreaAskingRow } from "@/lib/price-check/types";
@@ -118,7 +118,7 @@ export function AreaAskingChart({
     };
   });
   const max = Math.max(0, ...forType.map((row) => row.medianMinor));
-  const yTicks = axisTicks(max, (value) => formatMoneyGlance(value, locale), 3, true);
+  const yTicks = moneyAxisTicks(max, locale);
 
   return (
     <section className="nf-area-chart" data-testid="nf-pc-area-chart">
@@ -158,8 +158,10 @@ export function AreaAskingChart({
       <SegmentedPanel value={current} panelIdPrefix="nf-area-panel" itemIdPrefix="nf-area-type">
         <p className="nf-area-chart__range nf-body-sm">
           {fill(copy.range, {
-            low: formatMoneyGlance(lead.p25Minor, locale),
-            high: formatMoneyGlance(lead.p75Minor, locale),
+            /* In full: a sentence is read aloud, and a compact figure
+               printed into it would have no spoken form (B15). */
+            low: formatMoney(lead.p25Minor, locale),
+            high: formatMoney(lead.p75Minor, locale),
           })}{" "}
           <span className="text-[var(--nf-content-muted)]">
             {fill(lead.listingCount === 1 && copy.basisOne ? copy.basisOne : copy.basis, {

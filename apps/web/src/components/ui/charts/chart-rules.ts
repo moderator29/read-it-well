@@ -148,6 +148,9 @@
  * imported by each component that draws one.
  */
 
+import { formatMoneyGlance, type Locale } from "@vallo/i18n/core";
+
+
 /** A bucket on a period axis. Built on the server, drawn on the client. */
 export type VizPoint = {
   /** Stable across renders, so a period switch morphs rather than remounts. */
@@ -199,6 +202,15 @@ export function axisTicks(
     if (v >= top) break;
   }
   return ticks;
+}
+
+/**
+ * A money axis in the compact glance form ("₦2.8m"). The y axis is drawn
+ * aria-hidden and every chart carries a table copy that states each value in
+ * full, so a compact rung is never the only way a figure is read (B15).
+ */
+export function moneyAxisTicks(max: number, locale: Locale, steps = 3): AxisTick[] {
+  return axisTicks(max, (value) => formatMoneyGlance(value, locale), steps, true);
 }
 
 /**
