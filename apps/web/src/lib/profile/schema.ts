@@ -27,6 +27,8 @@ import {
   MAX_NAME_LENGTH,
   MAX_NICKNAME_LENGTH,
   MAX_PHONE_LENGTH,
+  NOTIFICATION_TOPICS,
+  type NotificationTopic,
   PHONE_SHAPE_RE,
   ResolvedProfileSettings,
   SETTINGS_DEFAULTS,
@@ -88,6 +90,28 @@ export type UpdateProfileValues = z.output<typeof updateProfileSchema>;
  * of the app wrote, so every branch falls back to a default rather than
  * throwing: a malformed settings document must never stop the page rendering.
  */
+/* R3-14: the matrix's push column and quiet hours. Shapes are the push
+   policy's own readers' (lib/push/preferences.ts, lib/push/quiet-hours.ts), so
+   what the screen writes is exactly what delivery reads. */
+const CLOCK = /^([01][0-9]|2[0-3]):[0-5][0-9]$/;
+const topicPush = z.object({ push: z.boolean() }).partial();
+const channelsSchema = z
+  .object({
+    bookings: topicPush,
+    messages: topicPush,
+    wallet: topicPush,
+    listings: topicPush,
+    social: topicPush,
+    marketing: topicPush,
+  } satisfies Record<NotificationTopic, typeof topicPush>)
+  .partial();
+const quietHoursSchema = z.object({
+  enabled: z.boolean(),
+  from: z.string().regex(CLOCK),
+  to: z.string().regex(CLOCK),
+  timezone: z.string().min(1).max(64),
+});
+
 const storedSettingsSchema = z
   .object({
     notifications: z
@@ -97,6 +121,8 @@ const storedSettingsSchema = z
         wallet: z.boolean(),
         marketing: z.boolean(),
         savedPriceDrops: z.boolean(),
+        channels: channelsSchema.optional().catch(undefined),
+        quiet_hours: quietHoursSchema.optional().catch(undefined),
       })
       .partial()
       .catch({}),
@@ -139,6 +165,8 @@ export const settingsPatchSchema = z
         wallet: z.boolean(),
         marketing: z.boolean(),
         savedPriceDrops: z.boolean(),
+        channels: channelsSchema,
+        quiet_hours: quietHoursSchema,
       })
       .partial()
       .optional(),
@@ -167,7 +195,7 @@ export function mergeSettings(
 ): ResolvedProfileSettings {
   const current = parseSettings(currentRaw);
   return {
-    notifications: { ...current.notifications, ...patch.notifications },
+    notifications: mergeNotifications(current.notifications, patch.notifications),
     privacy: { ...current.privacy, ...patch.privacy },
     locale: patch.locale ?? current.locale,
     dataSaver: patch.dataSaver ?? current.dataSaver,
@@ -188,3 +216,28 @@ export const setAvatarSchema = z.object({
 });
 
 export type SetAvatarInput = z.infer<typeof setAvatarSchema>;
+
+/**
+ * The notifications document, merged one level deeper than the rest: a push
+ * switch for one topic must not wipe the push switch for another, and a patch
+ * without quiet hours keeps the stored window.
+ */
+function mergeNotifications(
+  current: ResolvedProfileSettings["notifications"],
+  patch: SettingsPatch["notifications"],
+): ResolvedProfileSettings["notifications"] {
+  if (!patch) return current;
+  const { channels: patchChannels, quiet_hours: patchQuiet, ...flags } = patch;
+  const channels = { ...(current.channels ?? {}) };
+  for (const topic of NOTIFICATION_TOPICS) {
+    const next = patchChannels?.[topic];
+    if (next) channels[topic] = { ...(channels[topic] ?? {}), ...next };
+  }
+  const quiet = patchQuiet ?? current.quiet_hours;
+  return {
+    ...current,
+    ...flags,
+    ...(Object.keys(channels).length > 0 ? { channels } : {}),
+    ...(quiet ? { quiet_hours: quiet } : {}),
+  };
+}

@@ -35,7 +35,23 @@ export type NotificationSettings = {
   marketing: boolean;
   /** B13: push for a price drop on a saved place. On by default. */
   savedPriceDrops?: boolean;
+  /**
+   * R3-14: the push column of the notification matrix, per topic. Read by
+   * `wantsPush` (lib/push/preferences.ts, rule 1) before the legacy boolean.
+   * The topic keys are the push policy's own (`wallet` is the Payments row,
+   * for the reason under `wallet` above).
+   */
+  channels?: Partial<Record<NotificationTopic, { push?: boolean }>>;
+  /**
+   * R3-14: quiet hours for push, read by `readQuietHours`
+   * (lib/push/quiet-hours.ts). Off unless the member turns them on.
+   */
+  quiet_hours?: { enabled: boolean; from: string; to: string; timezone: string };
 };
+
+/** The topics a push preference is stored against (lib/push/preferences.ts `PushTopic`). */
+export const NOTIFICATION_TOPICS = ["bookings", "messages", "wallet", "listings", "social", "marketing"] as const;
+export type NotificationTopic = (typeof NOTIFICATION_TOPICS)[number];
 
 export type PrivacySettings = {
   hideActivity: boolean;

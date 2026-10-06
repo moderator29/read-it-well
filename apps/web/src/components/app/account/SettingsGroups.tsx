@@ -8,7 +8,7 @@ import { LOCALES, localeMeta, type Locale } from "@vallo/i18n/core";
 import { LOCALE_COOKIE } from "@/lib/locale.constants";
 import { updateSettings } from "@/lib/profile/actions";
 import { NIGERIAN_STATES } from "@/lib/data/nigeria";
-import { RowButton, RowSelect, RowSwitch, RowValue, SettingsGroup } from "./rows";
+import { RowButton, RowLink, RowSelect, RowSwitch, RowValue, SettingsGroup } from "./rows";
 import { useClientMount } from "@/lib/ui/client-mount";
 import {
   useApplyDeviceSettings,
@@ -289,7 +289,9 @@ export function SearchCard({ t }: { t: SearchCardCopy }) {
         ]}
         onChange={(next) => set("defaultCity", next)}
       />
-      <RowValue icon="wallet" label={copy.currency} value="₦ NGN" />
+      {/* R3-16: the currency is explained on its own screen rather than
+          stated here as a read-only code. */}
+      <RowLink href="/settings/region" icon="banknote" label={copy.currency} value="₦" />
       <RowSelect
         icon="map"
         label={copy.mapDistances}

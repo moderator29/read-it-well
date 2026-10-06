@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { forNotificationsCard, forNotifyToggles } from "@/components/app/account/settings-copy";
+import { forNotificationsCard } from "@/components/app/account/settings-copy";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
@@ -8,7 +8,7 @@ import { loadSettingsState } from "@/lib/profile/queries";
 import { PushDevices, type PushDeviceView } from "@/components/app/push/PushDevices";
 import { PushSetting } from "@/components/app/push/PushSetting";
 import { deviceName, loadPushDevices, whenPhrase } from "@/lib/push/devices";
-import { AccountNotificationsCard } from "../AccountToggles";
+import { NotificationMatrix } from "./NotificationMatrix";
 import { SettingsLede } from "@/components/app/account/SettingsLede";
 import { SettingsInnerNav } from "@/components/app/account/SettingsInnerNav";
 
@@ -95,7 +95,9 @@ export default async function NotificationsSettingsPage() {
       )}
       <section id="settings-notifications" className="scroll-mt-28">
         {account.state === "signed-in" ? (
-          <AccountNotificationsCard t={forNotifyToggles(t)} initial={account.settings.notifications} />
+          /* R3-14: event by channel, and quiet hours, each cell a preference
+             delivery reads (NotificationMatrix's header says which). */
+          <NotificationMatrix initial={account.settings.notifications} />
         ) : (
           <NotificationsCard t={forNotificationsCard(t)} />
         )}

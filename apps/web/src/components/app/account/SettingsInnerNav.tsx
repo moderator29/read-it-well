@@ -1,6 +1,7 @@
 "use client";
 
 import { InnerNav, type InnerNavItem } from "@/components/ui/InnerNav";
+import { useSettingsSections } from "@/app/(app)/settings/SettingsAreaNav";
 import type { UiIconName } from "@/design-system/icons/UiIcon";
 
 /**
@@ -31,6 +32,11 @@ export function SettingsInnerNav({
   /** The page's own name, drawn beside the toggle. */
   currentLabel: string;
 }) {
+  /* Inside the settings layout the area nav carries these sections, so a
+     page never shows two pull menus (R3-08). Outside it (a harness), the
+     sections draw their own menu as before. */
+  const registered = useSettingsSections(sections);
+  if (registered) return null;
   const items: InnerNavItem[] = sections.map((section) => ({
     id: section.id,
     label: section.label,
