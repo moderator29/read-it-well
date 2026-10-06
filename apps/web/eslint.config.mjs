@@ -193,6 +193,42 @@ const config = [
    * comment, and that is the general shape: when a rule cannot be promoted, the
    * question is what the remaining sites are FOR, not how to excuse them.
    * ------------------------------------------------------------------ */
+  /* ------------------------------------------------------------------
+   * FRAMER-MOTION ONLY THROUGH LAZYMOTION (D34, D39).
+   *
+   * The top-level `motion` component pulls roughly 50KB where `LazyMotion`
+   * with `domAnimation` and the `m` namespace costs about 18, and this app
+   * runs in a WebView on budget Android over Nigerian mobile data. So
+   * `motion`, `domMax` and the provider pieces are refused everywhere except
+   * the one provider, `components/app/MotionProvider.tsx`, and the chunk it
+   * loads its features from, `components/app/motion-features.ts`. A component that
+   * imports `motion` has not been ported, whatever it looks like on screen.
+   * ------------------------------------------------------------------ */
+  {
+    files: ["src/**/*.{ts,tsx}"],
+    ignores: ["src/components/app/MotionProvider.tsx", "src/components/app/motion-features.ts"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              name: "framer-motion",
+              importNames: ["motion", "domMax", "LazyMotion", "domAnimation"],
+              message:
+                "Use the `m` namespace and hooks. LazyMotion is mounted once in components/app/MotionProvider.tsx (D39).",
+            },
+          ],
+          patterns: [
+            {
+              regex: "^(framer-motion/|motion(/|$))",
+              message: "Import from \"framer-motion\" only, through the `m` namespace (D39).",
+            },
+          ],
+        },
+      ],
+    },
+  },
   {
     files: ["src/design-system/**/*.{ts,tsx}", "src/components/**/*.{ts,tsx}"],
     plugins: { nf },

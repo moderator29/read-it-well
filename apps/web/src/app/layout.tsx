@@ -22,6 +22,7 @@ import { ClientCopyProvider } from "@/lib/i18n/client-copy";
 import { clientCopyOf } from "@/lib/i18n/client-copy-of";
 import { SuccessFlagHost } from "@/components/ui/SuccessFlagHost";
 import { DetailsHost } from "@/components/ui/DetailsHost";
+import { MotionProvider } from "@/components/app/MotionProvider";
 
 /*
  * The fonts are declared in `css/fonts.css` and served from `public/fonts`,
@@ -492,12 +493,17 @@ export default async function RootLayout({
             language, so no route ships the whole dictionary for them
             (`lib/i18n/client-copy.tsx`). */}
         <ClientCopyProvider copy={clientCopyOf(t)}>
-          {children}
-          {/* The account's success moments (sign-up, email, password,
-              passcode), wherever they land: docs/SUCCESS_MOMENTS.md. */}
-          <SuccessFlagHost />
-          {/* The one toast, the connection line and back to top. */}
-          <DetailsHost />
+          {/* framer-motion's single LazyMotion provider (D39), around the
+              hosts as well as the page so a toast or success moment can use
+              the `m` namespace too; see MotionProvider. */}
+          <MotionProvider>
+            {children}
+            {/* The account's success moments (sign-up, email, password,
+                passcode), wherever they land: docs/SUCCESS_MOMENTS.md. */}
+            <SuccessFlagHost />
+            {/* The one toast, the connection line and back to top. */}
+            <DetailsHost />
+          </MotionProvider>
         </ClientCopyProvider>
         {/* The splash itself: hidden unless the script above said so, gone
             for good once its door has opened. Pure CSS; see threshold.css. */}
