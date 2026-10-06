@@ -40,6 +40,8 @@ import { experienceFeaturesEn } from "./experience-features.en";
 import { experienceAdminEn } from "./experience-admin.en";
 import { experienceMoneyEn } from "./experience-money.en";
 import { experienceUiEn } from "./experience-ui.en";
+import { experienceEntryEn } from "./experience-entry.en";
+import { experienceShellEn } from "./experience-shell.en";
 /* The workspace desks and the confirm panel (UI/UX plan items 14, 20, 22). */
 import { deskEn } from "./desk.en";
 /* The public pages' titles and descriptions, per language (A10). */
@@ -5967,6 +5969,8 @@ export const en = {
   experienceAdmin: experienceAdminEn,
   experienceMoney: experienceMoneyEn,
   experienceUi: experienceUiEn,
+  experienceEntry: experienceEntryEn,
+  experienceShell: experienceShellEn,
 
   desk: deskEn,
 

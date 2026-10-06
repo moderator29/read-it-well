@@ -42,6 +42,36 @@ half-finished file.
 | **B5 Component library port** | mid | **New** files only in `src/components/ui/` (named in section 6), `src/lib/cn.ts`, new `src/app/css/ported.css`, new preview pages under `src/app/(dev)/gallery/` |
 | **B6 Assets and clay** | mid, cheapest for the sweep | `scripts/{slice-icon-sheets,cut-icon-ground,icon-manifest,name-icon-objects}.mjs` and new asset scripts, `public/` asset output, `src/design-system/icons/**`, `src/components/ui/{Icon3D.tsx,icon-3d.ts,icon-3d.test.ts,state-art.ts,state-art.test.ts}` |
 
+**Wave 2 (founder's instruction on 6 October: "add 8 or 9 more agents"; this
+supersedes D36's cap of six for this session).** Wave 1 had finished its files
+before wave 2 started, so ownership transferred cleanly:
+
+| Agent | Model | Owns |
+|---|---|---|
+| **W1 Landing and public site** | strongest | `components/site/**` (incl. the hero files from B3), `components/cinema/**`, `app/(landing)/**`, `app/(site)/**` except legal and policy wording (Session 4), `css/{landing,landing-3d,landing-rooms,public-doors,site,docs-motion,cinema}.css`, `experience-landing.en.ts`. May run sub-agents inside this |
+| **W2 Discovery** | strongest | `app/(app)/{home,search,stays,restaurants,price,saved}/**`, `app/home-or-landing/**`, `components/app/{home,search,filters,price,saved-searches}/**`, `ListingCard.tsx` and its model, `css/{home,explore,catalogue,map,filter-tiles,list-views,stays}.css`, `experience-discover.en.ts` |
+| **W3 Space detail** | strongest | `app/(app)/{listing,stay,restaurant}/**`, `components/app/listing/**`, `components/stays/**`, `css/{details,detail-m,photo-viewer,edge-m,inner-m}.css`, `experience-detail.en.ts` |
+| **W4 Social and profiles** | mid | `app/(app)/{around,post,stories,u,profile}/**`, `components/social/**`, `components/app/around/**`, `components/share/**`, `social.css`, `social-feed.css`, `css/{feed-m,share-card,member-loop}.css`, `experience-social.en.ts` |
+| **W5 Inbox and notifications** | mid | `app/(app)/{messages,notifications,assistant,support}/**`, `components/messages/**`, `components/app/{messages,threads,assistant}/**`, `components/support/**`, `css/threads.css`, `experience-inbox.en.ts` |
+| **W6 Account** | mid | `app/(app)/{settings,verification}/**`, `components/app/account/**`, `components/verification/**`, `components/trust/**`, `components/app/trust/**`, `settings-rows.css`, `css/{trust-badge,member-kit,theme-control,status-track}.css`, `experience-account.en.ts` |
+| **W7 Features and workspaces** | strongest | new `components/app/{feature-onboarding,artefact,pro,streaks,plans-premium}/**`, any first-run route, `app/host/**`, `app/agent/**`, `components/{host,agent,workspace}/**` (from B4), `experience-features.en.ts` |
+| **W8 Admin** | mid | `app/admin/**`, `components/compliance/**`, `components/app/desk/**`, `css/{admin,decision-card,pixel}.css`, `experience-admin.en.ts` |
+| **W9 Money wave 2 and email** | strongest | B2's former area plus `inspections`, `components/ui/SuccessSheet.tsx`, `app/email/**`, the presentation files of `lib/email`, `experience-money.en.ts` |
+| **Auditor** | strongest | Read-only adversarial review of every unpushed commit before push |
+| **W10 Foundations and navigation audit** | strongest | B1's former area: `tokens.css`, `globals.css`, the shared partials, the existing `components/ui/*` primitives (not SuccessSheet, not the B5 ports), `components/ui/charts/**`, `components/motion/**`, `lib/motion/**`, `lib/nav/**`, `lib/testing/browser-root.tsx`, the shell components, `experience-shell.en.ts`. The token owner from here |
+| **W11 Auth and onboarding** | mid | `app/(auth)/**`, `components/auth/**`, `components/app/welcome/**`, `app/welcome/**` beyond Get Started, `app/offline/**`, `native-shell/**`, `css/auth.css`, the passcode settings frame, `experience-entry.en.ts` |
+| **W12 Audit sweep** | mid | Read-only: the 24-point checklist on every route at 390, 768 and 1440 in both themes, findings routed per owner |
+
+**The founder then asked for fourteen agents active** until every surface is built,
+audited and ready: W1 to W12, the auditor and B5 (re-opened to make one test
+race-free), with the shell agent, the auth agent and the sweep added in the same
+turn. `components/supply/**` went to W7 for the listing wizard.
+
+**Copy without collisions.** Each wave-2 owner writes English only into its own
+`packages/i18n/src/locales/experience-<area>.en.ts`, created and wired once by the
+lead, so nine agents never edit `en.ts` at once. `experienceUi` holds the ported
+components' shared labels.
+
 The i18n locale files have one owner, B3. Every other agent that needs a key writes
 it into its report and B3 or the lead adds it.
 
@@ -83,6 +113,11 @@ audit sweep once the foundations land and is not claimed before it runs.
 | `/agent/dashboard` | B4 | as `/host` | as `/host` |
 | `/agent/analytics` | B4 | as `/host`; hatched empty months | as `/host` |
 | `/agent/earnings` | B4 | as `/host`; a month before the first settlement shows a dash, never a zero | as `/host`; 3: Paper document treatment of the statement still to do |
+| `/welcome` (Get Started) | B3 | 1, 3, 4, 5, 6, 9, 10 (900ms, breath ends 1,080), 11, 12, 13, 16, 18, 19 (360 and 390), 21, 23 | n/a: 2, 7, 8, 14, 15, 17. 20: night only by founder rule. N: 22, 24 |
+| Passcode lock and setup | B3 | 1 (the dots), 3, 4, 6, 9, 11, 12 ("Checking" is real text), 13, 16, 19, 21, 23 | N: 20 (inline settings frame in Light), 22, 24 |
+| `/` landing hero (copy only) | B3 | 1, 6, 16, 19 | Rest of the landing: W1 |
+| Startup sequence | B3 | Contract in section 5 | Real-device timing N (Session 4) |
+| Dock and side navigation | B1 | 1, 4, 6, 7, 8, 10, 11, 12, 13, 21 | N in a browser: 19, 20, 22, 23; 24 unchanged |
 
 Craft doctrine section 8, flagship surfaces so far: the tenancy receipt and the
 workspace homes. (1) every choice is reasoned in the code's comments; (2) removed: a
@@ -101,6 +136,27 @@ material.
 | `PaymentSteps` (founder payment status) | `components/app/payments/PaymentSteps.tsx` | Infinite spinner replaced by real states; no timer |
 | Chart system: `PeriodBars`, `TrendLine`, `CompareBars`, `ChartTable` | `components/ui/charts/` with rules in `chart-rules.ts` | Pure SVG, one hue, axe clean in Chromium |
 | `TodayHero` | `components/workspace/TodayHero.tsx` | |
+| Container tiers | Tokens `--nf-tier-{plate,card,island,sheet}-*`, `--nf-elevation-*` (tokens.css foundations block); classes `.nf-panel`/`.nf-card`, `.nf-panel--figure`, `.nf-island`, `.nf-sheet` | One edge per tier; Paper card is the blue shadow alone |
+| Document tokens | `--nf-doc-*` in tokens.css, identical in both themes | |
+| Figure, CountUp, Odometer | `components/ui/Amount.tsx`, `components/motion/CountUp.tsx`, `components/ui/Odometer.tsx`, `lib/motion/{ease,odometer}.ts` | Count once 620ms glide; roll changed digits only |
+| Segmented, SegmentedPanel | `components/ui/Segmented.tsx` | WAAPI FLIP thumb, interruptible |
+| Button `morph` | `components/ui/Button.tsx` | Opt-in; the arc draws once and holds, never spins |
+| Toast | `components/ui/ToastHost.tsx`, `css/overlays.css`, `lib/ui/toast.ts` | Dwell 2,400ms |
+| StatusChip | `components/ui/StatusChip.tsx` over `StatusPill` | success circle, pending hollow circle, failed square, protected hollow square, disputed diamond |
+| SkeletonSwap | `components/ui/Skeleton.tsx` | 131 shaped `loading.tsx` already existed |
+| MotionProvider | `components/app/MotionProvider.tsx` + `motion-features.ts` | The only LazyMotion; guarded by eslint and a test |
+| DragToConfirm | `components/ui/DragToConfirm.tsx` | 12/12. `money` makes auto-reset a type error; confirmed only after the server resolves |
+| Unfold | `components/ui/Unfold.tsx` | 12/12. Never hides price, fees, trust facts or money state |
+| SlidePagination | `components/ui/SlidePagination.tsx` | 12/12. Desktop only; segments radius 14 |
+| LiveIsland | `components/ui/LiveIsland.tsx` | 12/12. Never covers the dock |
+| InnerNav (the founder's glass nav) | `components/ui/InnerNav.tsx` | 12/12. Inner areas only; the hamburger pull follows the finger |
+| BatchTray | `components/ui/BatchTray.tsx` | 12/12 |
+| ActionSheetIllustrated | `components/ui/ActionSheetIllustrated.tsx` | 12/12. Composes the existing Sheet |
+| ParticleDelete | `components/ui/ParticleDelete.tsx` | 12/12. Deletes first, dissolves only on success; never money or an account |
+| BookCallButton | `components/ui/BookCallButton.tsx` | 12/12. Marketing surfaces only |
+| AIResponse | `components/ui/AIResponse.tsx` | 12/12. Thinking is the one permitted loop |
+| Vector mark and wordmark | `public/brand/vallo-{mark,wordmark}.svg`, `components/auth/vector-mark.ts` | Hand-authored on the raster's viewBox |
+| BrandIcon tiered map | `design-system/icons/object-assets.ts` | 106 objects, 60 glass names remapped, zero call-site edits |
 
 The chart rules, so the next chart follows them: the question picks the chart
 (amount per period: bars; movement over days: line; this against last: compare; a
