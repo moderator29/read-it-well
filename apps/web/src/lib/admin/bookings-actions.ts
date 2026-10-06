@@ -240,14 +240,18 @@ export async function cancelBookingAsAdmin(
   const refundRow = typeof (data as Record<string, unknown> | null)?.refund_id === "string"
     ? String((data as Record<string, unknown>).refund_id)
     : null;
+  /* D40: the result is read. A booking cancelled with its refund unsent must
+     never be reported as a clean success. */
+  let refundProblem: string | null = null;
   if (refundMinor > 0 && refundRow) {
-    await submitBookingRefund(createAdminClient(), {
+    const sent = await submitBookingRefund(createAdminClient(), {
       refundId: refundRow,
       bookingId: booking.id,
       amountMinor: refundMinor,
       reason,
       actor: { kind: "user", userId: access.user.id },
     });
+    if (!sent.ok) refundProblem = refundProblemSentence(sent.reason);
   }
   const retainedMinor = outcomeNumber(data, "retained_minor") ?? outcome.retainedMinor;
   const settledMinor = outcomeNumber(data, "paid_minor") ?? paidMinor;
@@ -300,6 +304,7 @@ export async function cancelBookingAsAdmin(
   revalidatePath(`/admin/bookings/${booking.id}`);
   revalidatePath("/bookings");
 
+  if (refundProblem) return fail(`The booking is cancelled and its refund is recorded. ${refundProblem}`);
   return ok({
     refundMinor,
     retainedMinor,
@@ -403,11 +408,7 @@ export async function refundBookingAsAdmin(
       reason,
       actor: { kind: "user", userId: access.user.id },
     });
-    if (!sent.ok) {
-      return fail(
-        `The refund is recorded but the payment processor did not accept it (${sent.reason}). It is marked failed on the booking; try again from the booking or contact Paystack support with reference ${reference}.`,
-      );
-    }
+    if (!sent.ok) return fail(`The refund is recorded. ${refundProblemSentence(sent.reason)} Reference ${reference}.`);
   }
 
   revalidatePath("/admin/bookings");
@@ -607,4 +608,30 @@ export async function decideReservationAsAdmin(input: {
   revalidatePath("/agent/bookings");
 
   return ok({ status: transition.next });
+}
+
+/**
+ * What the desk is told when a decided refund did not reach the card, true to
+ * what actually happened to the refund row (D40 review: "marked failed" was
+ * said when it was not).
+ */
+function refundProblemSentence(reason: string): string {
+  switch (reason) {
+    case "unknown_outcome":
+    case "refund_already_claimed":
+    case "refund_claim_unavailable":
+    case "charges_unreadable":
+      return "Whether the card refund went through is not known yet. It stays pending and the money team has been alerted; do not submit it again.";
+    case "partial_refund":
+      return "Some flatmates' cards were refunded and one was refused. It stays pending and the money team has been alerted to finish it.";
+    case "mixed_charges":
+    case "ambiguous_charge":
+    case "charge_without_reference":
+    case "no_settled_charge":
+      return "The card refund could not be matched to the charges on this booking, so nothing was sent. It is marked failed for the money team.";
+    case "refund_exceeds_paid":
+      return "The refund is larger than what is still refundable on the cards that paid. Nothing was sent; it is marked failed.";
+    default:
+      return "The payment processor did not accept the card refund. It is marked failed on the booking; try again from the booking.";
+  }
 }
