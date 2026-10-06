@@ -94,13 +94,25 @@ export function PasscodeLock({
      code (the page replaces it, or the guard lets go), the app comes forward
      through the `open` arrival. */
   const stuck = useRef(0);
-  useEffect(
-    () => () => {
+  /* The hold and the leave are tracked too, and the lock knows whether it is
+     still on screen. A right code sets the unlock cookie, so Next re-renders
+     the gate as unlocked with the action's response and can unmount this lock
+     before the door's 320ms have run. An untracked timer would then refresh
+     the route and arm a reload on a lock that no longer exists, and the member
+     would be reloaded out of whatever they had started six seconds later. */
+  const hold = useRef(0);
+  const leave = useRef(0);
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      window.clearTimeout(hold.current);
+      window.clearTimeout(leave.current);
       window.clearTimeout(stuck.current);
       if (opened.current) arriveThroughOpenDoor();
-    },
-    [],
-  );
+    };
+  }, []);
 
   /* The lock is unlocked: hold the full row, open the door, then hand over. */
   const unlock = useCallback(() => {
@@ -108,6 +120,8 @@ export function PasscodeLock({
     setMessage(null);
     opened.current = true;
     const finish = () => {
+      /* Already replaced by the unlocked page: the hand-over has happened. */
+      if (!mounted.current) return;
       if (onUnlocked) onUnlocked();
       router.refresh();
       /* The server has already accepted the code. If the refreshed page has
@@ -119,9 +133,10 @@ export function PasscodeLock({
       finish();
       return;
     }
-    window.setTimeout(() => {
+    hold.current = window.setTimeout(() => {
+      if (!mounted.current) return;
       setOpening(true);
-      window.setTimeout(finish, OPEN_LEAVE_MS);
+      leave.current = window.setTimeout(finish, OPEN_LEAVE_MS);
     }, OPEN_HOLD_MS);
   }, [onUnlocked, router]);
 
