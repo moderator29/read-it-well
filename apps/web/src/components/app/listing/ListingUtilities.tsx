@@ -186,11 +186,16 @@ export function ListingUtilities({
       />
 
       {utilities.hasEstateAccess && (
-        <div className="flex gap-sm py-md">
-          <BrandIcon name="estate-gate" size={40} className="nf-utility-object shrink-0" />
-          <div className="min-w-0 flex-1">
-            <dt className={TYPE.label}>The gate</dt>
-            <dd className="mt-2xs">
+        /* The same row anatomy as `Row` below: a <dl>'s <div> may hold only
+           <dt> and <dd>, and the object and an inner wrapper sat between them
+           here (axe `definition-list` and `dlitem`, Round 3 sweep). The object
+           floats inside the term, as in every other row. */
+        <div className="flow-root py-md">
+          <dt className={TYPE.label}>
+            <BrandIcon name="estate-gate" size={40} className="nf-utility-object float-left mr-sm" />
+            The gate
+          </dt>
+          <dd className="mt-2xs min-w-0 overflow-hidden">
               {access ? (
                 <div data-testid="gate-details">
                   {access.estateName && (
@@ -233,8 +238,7 @@ export function ListingUtilities({
                   </p>
                 </div>
               )}
-            </dd>
-          </div>
+          </dd>
         </div>
       )}
     </dl>
