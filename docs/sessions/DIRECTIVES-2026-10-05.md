@@ -814,6 +814,93 @@ committed and pushed as it is done, cleanly, without sessions conflicting.
 | Any reading that a defect predating a session is nobody's | D53 |
 | **Any reading that db-06's red is branch-local** | **D54: it reads production, so it is red everywhere until the allowlist row lands** |
 | Chasing the production dependency advisory inside a feature branch | D55 |
+| **Any probe recorded as "pending" on an applied migration** | **D56: a check that did not run is a check that failed** |
+
+---
+
+## D56. The ledger is live in production with no probe verdict. Session 1 verified it structurally; the probe still has to run
+
+**What happened, from Session 2's own commit message on `def190bd5`, 10:59:**
+
+> "Applied to production verbatim with its read-back block. The live run of the
+> b2-ledger probe timed out in the MCP tool with nothing recorded and no probe rows
+> left behind, so the probe stays in probes-pending."
+
+So the append-only money ledger, `20261006105326_b2_ledger.sql`, 641 lines, three pots,
+is **applied to production and its verification probe has never produced a verdict**.
+The honesty of the commit message is to Session 2's credit. The resting state is not
+acceptable: this is the ledger.
+
+**This is the third instance of one pattern in two days.** D47 was a cancelled check
+read as a pass. D54 was a probe whose scope was misread. This is a probe that did not
+run at all, recorded as "pending" and moved past. The lesson is the same each time and
+it is now a standing rule, below.
+
+### What Session 1 verified directly, because the probe could not
+
+Checked against production rather than against the migration file, on 6 October:
+
+| Claim in the migration's header | Verified in production |
+|---|---|
+| Three separate pot tables, never columns on one table | `ledger_customer_funds`, `ledger_vallo_revenue`, `ledger_marketing_float` all exist as base tables |
+| Row level security on each | `relrowsecurity` true on all three |
+| "Nothing writes these tables directly, not even `service_role`" | `service_role` holds **SELECT only**. No insert, update or delete, on any of the three |
+| Members cannot touch them | `authenticated` and `anon` hold **no grant at all** on any of the three. They do not appear in `role_table_grants` |
+| Append only, no row ever updated or deleted | Each pot carries a `history_is_fixed` trigger and a separate no-truncate trigger |
+| Corrections are new entries (E5.3) | Each pot carries a `ledger_correction_guard` trigger |
+| The settlement path posts without rewriting `settle_booking_charge` | `ledger_entries` carries `ledger_entries_zz_post_pots`, firing `private.ledger_entries_post_books` |
+| The writers exist | `private.ledger_append`, `private.ledger_entries_post_books`, `public.ledger_record_payluk_commission` all present. `ledger_balances_by_book` present as a view |
+| Nothing has posted yet | All three pots at 0 rows |
+
+**The structure landed correctly and matches what the migration says it does.** Nothing
+is at risk: no money has moved through it, and the grant surface is tighter than any
+other money table on the platform. Session 2's design here is good work, and the
+separation of customer funds from Vallo revenue into distinct tables rather than
+distinct columns is the right call for exactly the reason the header gives.
+
+**What a structural check cannot tell you, and the probe must:** that the posting
+trigger produces entries that net to zero on a direct charge; that the refund legs net
+to zero; that a correcting entry is accepted while an update is refused; that
+`ledger_append` is genuinely idempotent on its key; that a posting failure raises a
+risk alert without aborting a settlement of money already taken. Those are behaviours,
+and only running them proves them. **Do not read the table above as the ledger being
+verified. It means the shape is right and the behaviour is unproven.**
+
+### What Session 2 does
+
+1. Fix db-06 first (D54). It blocks every branch.
+2. Then run the b2-ledger probe to a recorded verdict. If the MCP tool times out again,
+   run it through the CI probe suite instead of the tool, which is where the other 70
+   probes run and which does not time out at a tool boundary.
+3. Keep the probe in `probes-pending` until it has passed once. A pending probe on an
+   applied ledger migration is the single highest item on that branch after db-06.
+
+### The standing rule, from three instances in two days
+
+**A check that did not run is a check that failed.** Cancelled, timed out, skipped,
+"pending", or never triggered: none of these is a pass, and none may be recorded in a
+way that reads like one. Where a probe cannot be run, say that it has not been run,
+in those words, in the status document and in the commit message, and carry it as
+open work rather than as a footnote.
+
+### The pushing pattern, separately
+
+Session 2 pushed four times between 10:45 and 11:00. Each push cancelled the previous
+run's remaining jobs, which is why `46d81338f`'s typecheck and front-door jobs read
+`cancelled` despite the commit being sound, and why no complete verdict existed on
+that branch for over an hour. **Two migrations were applied to production inside that
+window while the probe suite was red.** Nothing broke, and the second of them is good
+work, but a stream of production migrations applied faster than the probes can report
+means that when something does break, nobody will know which change broke it. Land,
+wait for the report, then push again. The minute of waiting is cheaper than the hour
+of not knowing.
+
+### One useful side effect, worth recording as evidence for D54
+
+`63c59ec77` is a merge of Session 1's **documentation-only** branch into Session 2's.
+Its only new content is markdown. db-06 failed on it anyway, identically. That is
+direct proof of D54's central point: db-06 reads the live database, not the branch, so
+its red is platform-wide and no amount of branch content explains it.
 
 ---
 
