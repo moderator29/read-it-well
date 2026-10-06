@@ -26,6 +26,13 @@ import { SPRING_SETTLE, clamp, springFor, useDrive } from "./ported-motion";
  * receipts), space detail (overview, costs, amenities, trust, location),
  * analytics, support.
  *
+ * WHERE IT IS MOUNTED TODAY (R3-08): the admin desks' sections
+ * (`app/admin/_components/DeskSections.tsx`); the host desk's five inner pages
+ * (`components/host/HostInnerNav.tsx`); every agent page that is not an open
+ * conversation, through `AgentShell` (`components/agent/AgentInnerNav.tsx`);
+ * the settings screens (`components/app/account/SettingsInnerNav.tsx`); and a
+ * space's detail sections (`components/app/listing/ListingSectionTabs.tsx`).
+ *
  * WHERE IT MUST NEVER GO: the primary dock and the side navigation. They are
  * settled by D28 (the dock keeps its slots, the side nav keeps its structure) and
  * this component does not replace, wrap or restyle either.

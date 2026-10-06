@@ -8,6 +8,8 @@ import { WorkspaceHeader } from "@/components/workspace/WorkspaceHeader";
 import { getShellIdentity } from "@/lib/app/shell-queries";
 import { PepBanner } from "@/components/compliance/PepBanner";
 import { ProSwitch } from "@/components/app/pro/ProSwitch";
+import { AgentInnerNav } from "./AgentInnerNav";
+import { agentInnerNavCopy, agentInnerPageFor } from "./agent-inner-nav";
 
 /**
  * Agent Mode shell: the rail plus a top bar, wrapping every agent page so the
@@ -97,6 +99,11 @@ export async function AgentShell({
           <div className="flex min-h-0 flex-1 flex-col">{children}</div>
         ) : (
           <div className="px-md pb-[calc(2.5rem+env(safe-area-inset-bottom))] pt-lg sm:px-5 md:px-xl md:pt-7 lg:pb-10">
+            {/* R3-08: the desk's second level on every agent page that is not
+                an open conversation. An immersive page (a thread, the
+                assistant) gives its whole height to the conversation and keeps
+                its own head, so it draws none. */}
+            <AgentInnerNav {...agentInnerNavCopy(t)} active={agentInnerPageFor(active)} />
             {/* SCUML item 20: until a lister has answered the PEP question. */}
             {profile && <PepBanner />}
             {children}
