@@ -463,6 +463,9 @@
        section 3): the app still has to appear, it just does not travel. */
     :root[data-arrive="open"] #main {
       animation: nf-threshold-open-fade 160ms linear both;
+      /* The floor in animation.css would make this fade instant; this opts in
+         (registered, not inherited: nothing inside #main is affected). */
+      --nf-reduced-duration: 160ms;
     }
     @keyframes nf-threshold-open-fade {
       from {

@@ -289,6 +289,8 @@
       transform: none;
       transition: opacity 160ms var(--nf-ease-standard);
       transition-delay: 0ms;
+      /* The floor in animation.css would make this fade instant; this opts in. */
+      --nf-reduced-transition: 160ms;
     }
   }
   .nf-frun[data-quiet] .nf-frun__panel,

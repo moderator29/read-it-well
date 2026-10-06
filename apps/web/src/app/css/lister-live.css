@@ -42,6 +42,8 @@
     }
     .nf-live-payoff__line {
       animation: nf-live-fade 160ms var(--nf-ease-standard) both;
+      /* The floor in animation.css would make this fade instant; this opts in. */
+      --nf-reduced-duration: 160ms;
     }
   }
   :root:is([data-motion="calm"], [data-motion="off"]) .nf-live-payoff__mark {

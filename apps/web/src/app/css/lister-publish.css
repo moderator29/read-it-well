@@ -232,6 +232,8 @@
   @media (prefers-reduced-motion: reduce) {
     .nf-lw-wizard[data-moved] :is(.nf-lw-head__title, .nf-lw-head__sub, .nf-lw-head__object, .nf-lw-body > *) {
       animation: nf-lw-fade 160ms var(--nf-ease-standard) both;
+      /* The floor in animation.css would make this fade instant; this opts in. */
+      --nf-reduced-duration: 160ms;
     }
     .nf-lw-wizard [data-refused] {
       animation: none;
@@ -241,6 +243,8 @@
     }
     .nf-lw-publish[data-sent="now"] :is(.nf-lw-publish__status, .nf-lw-chain__row) {
       animation: nf-lw-fade 160ms var(--nf-ease-standard) both;
+      /* The floor in animation.css would make this fade instant; this opts in. */
+      --nf-reduced-duration: 160ms;
     }
   }
   :root[data-motion="calm"] :is(

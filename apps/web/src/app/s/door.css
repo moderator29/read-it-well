@@ -235,6 +235,8 @@
   @media (prefers-reduced-motion: reduce) {
     :root:not([data-motion="off"]) .nf-door__card:not(.nf-door__card--wait) {
       animation: nf-door-fade 160ms var(--nf-ease-standard) both;
+      /* The floor in animation.css would make this fade instant; this opts in. */
+      --nf-reduced-duration: 160ms;
     }
   }
 

@@ -56,15 +56,56 @@
  * down can still override where the end state matters. Two do, and both are
  * meters rather than flourishes: the undo bar stays full and still, and the
  * verifying bar fills rather than finishing off-screen.
+ *
+ * A REAL ALTERNATIVE IS NOT SWALLOWED (W2, round 5). The founder's rule is a
+ * reduced-motion answer that still tells the story, usually a 160ms fade. But
+ * an ordinary declaration can never beat this floor, so every component that
+ * wrote one in its own `prefers-reduced-motion` block (the shared discovery
+ * empty state, the join and share doors, the document sheet, the payment
+ * faces, the first-run panels, the threshold arrival: ten in all on 6
+ * October) was instant in practice, and the two that noticed escaped with a
+ * layered `!important` each. The floor now reads its numbers from three
+ * registered properties whose initial values ARE the floor. A component opts
+ * in by setting them on the element whose fade it means, in its own
+ * reduced-motion block, with no `!important` anywhere:
+ *
+ *   @media (prefers-reduced-motion: reduce) {
+ *     .nf-thing { animation-name: nf-thing-fade; --nf-reduced-duration: 160ms; }
+ *   }
+ *
+ *   --nf-reduced-duration     the animation's duration (the floor: 0.01ms)
+ *   --nf-reduced-delay        its delay, for a fade that follows another (0ms)
+ *   --nf-reduced-transition   a transition's duration (0.01ms)
+ *
+ * They are registered with `inherits: false`, so an opted-in element does not
+ * hand 160ms to every descendant: a child's own slide stays collapsed. The
+ * iteration count stays forced to one, so an opted-in loop still cannot loop.
+ * A browser without `@property` reads the `var()` fallback, which is the old
+ * floor. `reduced-floor.dom.test.tsx` holds all of it in Chromium.
  */
+@property --nf-reduced-duration {
+  syntax: "<time>";
+  inherits: false;
+  initial-value: 0.01ms;
+}
+@property --nf-reduced-delay {
+  syntax: "<time>";
+  inherits: false;
+  initial-value: 0ms;
+}
+@property --nf-reduced-transition {
+  syntax: "<time>";
+  inherits: false;
+  initial-value: 0.01ms;
+}
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
-    animation-duration: 0.01ms !important;
-    animation-delay: 0ms !important;
+    animation-duration: var(--nf-reduced-duration, 0.01ms) !important;
+    animation-delay: var(--nf-reduced-delay, 0ms) !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    transition-duration: var(--nf-reduced-transition, 0.01ms) !important;
     transition-delay: 0ms !important;
     scroll-behavior: auto !important;
   }
