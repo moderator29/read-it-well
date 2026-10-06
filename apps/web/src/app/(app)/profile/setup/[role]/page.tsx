@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { forApply } from "@/components/agent/agent-copy";
 import { notFound } from "next/navigation";
 import { requireSignedInPage } from "@/lib/actions/signed-in-page";
 import { getDictionary } from "@vallo/i18n";
@@ -75,7 +76,7 @@ export default async function ProfileSetupPage({
       <p className="nf-lede max-w-[52ch]">{copy.setup.involves}</p>
 
       <div className="mt-lg">
-        <ApplyWizard t={t} role={role} />
+        <ApplyWizard t={forApply(t)} role={role} />
       </div>
     </div>
   );

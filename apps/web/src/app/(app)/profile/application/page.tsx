@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { forRespond } from "@/components/agent/agent-copy";
 import { getDictionary, formatDate } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { readMyApplication } from "@/lib/agent/application-status";
@@ -183,7 +184,7 @@ export default async function ProfileApplicationPage() {
 
         {/* SUP-05: the reviewer asked for something, so the answer is here,
             under their note, rather than in an email that pointed nowhere. */}
-        {application.status === "MORE_INFO_REQUIRED" && <RespondToReview t={t} />}
+        {application.status === "MORE_INFO_REQUIRED" && <RespondToReview t={forRespond(t)} />}
 
         {approved && (
           <div className="flex justify-center">

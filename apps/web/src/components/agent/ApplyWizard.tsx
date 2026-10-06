@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useMemo, useRef, useState } from "react";
-import type { Dictionary } from "@vallo/i18n/core";
+import type { ApplyCopy } from "./agent-copy";
 import {
   submitAgentApplication,
   type ApplicationField,
@@ -167,7 +167,7 @@ const TYPE_OF_ROLE: Record<SetupRole, AgentType> = {
 
 export type SetupRole = "owner" | "professional";
 
-export function ApplyWizard({ t, role }: { t: Dictionary; role?: SetupRole }) {
+export function ApplyWizard({ t, role }: { t: ApplyCopy; role?: SetupRole }) {
   const a = t.agent.apply;
   const stepTitles = [a.steps.personal, a.steps.identity, a.steps.business, a.steps.documents, a.steps.payout, a.steps.review];
 
