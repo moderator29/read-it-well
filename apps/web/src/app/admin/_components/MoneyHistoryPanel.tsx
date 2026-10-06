@@ -99,7 +99,7 @@ export async function MoneyHistoryPanel({
           beside the sheet and never on the paper (D28.1); a statement that is
           printed or screenshotted carries no link. */}
       <p className="nf-admin-doc__action">
-        <a href="/admin/money/export" download className="underline" data-testid="money-history-csv">
+        <a href="/admin/money/export" download className="inline-flex min-h-11 items-center underline" data-testid="money-history-csv">
           Download CSV
         </a>
       </p>
