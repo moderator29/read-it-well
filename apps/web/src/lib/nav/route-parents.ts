@@ -428,12 +428,15 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   /* ---------------------------------------------------- the agent console */
   "/agent/dashboard": "/home",
   "/agent/analytics": "/agent/dashboard",
+  "/agent/analytics/[metric]": "/agent/analytics",
+  "/agent/analytics/listings/[listingId]": "/agent/analytics",
   "/agent/bookings": "/agent/dashboard",
   "/agent/earnings": "/agent/dashboard",
   "/host/earnings": "/host",
   "/agent/inspections": "/agent/dashboard",
   "/agent/listings": "/agent/dashboard",
   "/agent/listings/[listingId]/calendar": "/agent/listings",
+  "/agent/listings/[listingId]/health": "/agent/listings",
   /* V-08: the TO LET board, under the listing's workspace like its calendar. */
   "/agent/listings/[listingId]/board": "/agent/listings",
   /* V-71: the Status kit, under the listing's workspace like its board. */
