@@ -93,7 +93,10 @@ export const FAQS: Faq[] = [
   {
     category: "Property and Stays",
     q: "Does Vallo hold my money?",
-    a: `No. ${NO_CUSTODY_SENTENCE} There is no Vallo wallet or balance, nothing to top up and nothing to withdraw. ${PAYMENT_GATE_SENTENCE}`,
+    /* The answer read NO_CUSTODY_SENTENCE and then said it again in a sentence
+       written here, naming a wallet (C6, the route sweep): the money sentence
+       is lib/money/copy.ts's alone. */
+    a: `No. ${NO_CUSTODY_SENTENCE} ${PAYMENT_GATE_SENTENCE}`,
   },
   {
     category: "Payments and refunds",

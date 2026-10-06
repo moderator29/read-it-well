@@ -100,7 +100,9 @@ export default async function HelpPage() {
         </div>
 
         {/* ------------------------------------------- ask the agent */}
-        <div className="nf-rise mt-block" style={{ animationDelay: "160ms" }}>
+        {/* 100ms, with the list above it: at 160ms its 520ms rise ended at
+            680ms, past the 620ms entrance budget (C6, the route sweep). */}
+        <div className="nf-rise mt-block" style={{ animationDelay: "100ms" }}>
           <SupportChat aiConsented={await aiConsentForViewer()} assistantCopy={dictionary.experienceInbox.assistant} />
         </div>
 
