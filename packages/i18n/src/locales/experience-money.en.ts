@@ -17,6 +17,8 @@ export const experienceMoneyEn = {
     payment: "Payment",
     booking: "Booking",
     confirmed: "Confirmed",
+    /* The length of the stay is its own fact, beside Guests. */
+    nights: "Nights",
   },
   /* The move-in ledger on its document sheet (reference 7073). */
   ledger: {

@@ -1,4 +1,4 @@
-import { formatMoney, plural, type Dictionary, type Locale } from "@vallo/i18n/core";
+import { formatMoney, formatNumber, plural, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { NO_CUSTODY_SENTENCE } from "@/lib/money/copy";
 
 /**
@@ -110,10 +110,10 @@ export function stayReceipt(source: StayReceiptSource, t: Dictionary, locale: Lo
     figure,
     facts: [
       { label: c.dates, value: source.dateRange },
-      {
-        label: c.guests,
-        value: `${plural(source.guests, t.counts.guests, locale)} · ${plural(source.nights, t.counts.nights, locale)}`,
-      },
+      /* Guests and nights are two facts, so two rows: a row's label is what it
+         is called, and the count of guests never carries the length of stay. */
+      { label: c.guests, value: plural(source.guests, t.counts.guests, locale) },
+      { label: r.nights, value: formatNumber(source.nights, locale) },
     ],
     lines: source.lines.map((line) => ({ label: line.label, value: receiptMoney(line.minor, locale, source.currency) })),
     total: { label: t.afterTheGate.tenancy.totalPaid, value: figure },

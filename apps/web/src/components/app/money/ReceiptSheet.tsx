@@ -44,13 +44,13 @@ export function ReceiptSheet({
         </div>
         <DocPerforation />
         <DocRows testId={`${testId}-lines`}>
-          {receipt.facts.map((row) => (
-            <DocRow key={`fact-${row.label}`} label={row.label}>
+          {receipt.facts.map((row, index) => (
+            <DocRow key={`fact-${index}-${row.label}`} label={row.label}>
               {row.value}
             </DocRow>
           ))}
-          {receipt.lines.map((row) => (
-            <DocRow key={`line-${row.label}`} label={row.label} numeric>
+          {receipt.lines.map((row, index) => (
+            <DocRow key={`line-${index}-${row.label}`} label={row.label} numeric>
               {row.value}
             </DocRow>
           ))}
@@ -60,8 +60,8 @@ export function ReceiptSheet({
         </DocRows>
         {receipt.confirmations.length > 0 || receipt.reference ? (
           <DocRows testId={`${testId}-confirmations`} className="nf-doc__rows--confirm">
-            {receipt.confirmations.map((row) => (
-              <DocRow key={`confirm-${row.label}`} label={row.label}>
+            {receipt.confirmations.map((row, index) => (
+              <DocRow key={`confirm-${index}-${row.label}`} label={row.label}>
                 <DocState done>{row.state}</DocState>
               </DocRow>
             ))}
