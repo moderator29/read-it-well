@@ -193,6 +193,7 @@ const NAMES: Readonly<Record<string, string>> = {
   "/agent/listings/[listingId]/calendar": "the calendar",
   "/agent/listings/[listingId]/board": "the board",
   "/agent/listings/[listingId]/status": "the status kit",
+  "/agent/listings/[listingId]/promotion": "promotion results",
   "/agent/reviews": "Reviews",
   "/agent/portfolio": "Portfolio",
   "/agent/verification": "Verification",
