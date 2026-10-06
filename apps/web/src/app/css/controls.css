@@ -481,17 +481,24 @@
    * rather than as a generic grey placeholder, and it is small enough that the
    * slab underneath stays neutral.
    *
-   * The loop is legal here under the rule that nothing loops for its own sake:
-   * a shimmer is reporting something that is genuinely still happening, and it
-   * stops when the content arrives. 2.2s rather than 1.8 so it reads as a slow
-   * sweep rather than a scan.
+   * IT IS NOT A LOOP. MOTION_SYSTEM principle 10 names two things that may
+   * loop forever, the aurora and the assistant's thinking state, and a
+   * skeleton is neither, so the sweep crosses four times (1.4s a pass) and the
+   * slab settles to a still tint. The geometry is what makes that clean: the
+   * gradient is 220% of the box wide and tiles, so its highlight band
+   * (36% to 64%) is inside the box only for positions between 117.3% and
+   * -17.3%. Both ends of the sweep are outside it, and so is the position the
+   * slab rests at, `117.3%`, which is also the base value, so a slab with no
+   * animation at all (data saver, Calm after one pass, Off, reduced motion
+   * through the global one-pass rule) is the same still tint. `forwards`
+   * holds that end state.
    */
   @keyframes nf-shimmer {
     from {
-      background-position: -200% 0;
+      background-position: -17.3% 0;
     }
     to {
-      background-position: 200% 0;
+      background-position: 117.3% 0;
     }
   }
   .nf-skeleton {
@@ -506,7 +513,8 @@
       )
       var(--nf-surface-inset);
     background-size: 220% 100%;
-    animation: nf-shimmer 2.2s linear infinite;
+    background-position: 117.3% 0;
+    animation: nf-shimmer 1.4s linear 4 forwards;
   }
 
   /* Horizontal snap rows: category pills, card carousels on phones. */
@@ -970,8 +978,11 @@
       border-color var(--nf-duration-base) var(--nf-ease-standard),
       box-shadow var(--nf-duration-base) var(--nf-ease-standard);
   }
+  /* No `background` here: the "on" fill is the `::before` layer's (the toggle
+     section below), because a background gradient cannot interpolate and a
+     `background` set on the element itself would make the switch snap to the
+     fill as it turns on instead of fading it in. One source of truth. */
   .nf-switch[aria-checked="true"] {
-    background: var(--nf-btn-lit-fill);
     border-color: var(--nf-btn-lit-edges);
     box-shadow: var(--nf-btn-lit-shadow);
   }
@@ -1029,6 +1040,8 @@
       )
       var(--nf-glass-fill-thin);
     background-size: 220% 100%;
+    /* The shorthand above resets the position; the rest position is the same. */
+    background-position: 117.3% 0;
     box-shadow: inset 0 0 0 1px var(--nf-glass-border);
   }}
 
