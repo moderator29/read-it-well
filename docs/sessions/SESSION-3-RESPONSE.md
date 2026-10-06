@@ -471,12 +471,19 @@ content only. **Verdict: HOLD, on one blocker, now fixed.**
 - Landed since `a82a5a091`, from `git log --oneline a82a5a091..HEAD`:
   - Startup: the hold breathes twice and rests instead of looping (`58a715fda`).
   - No weight above 700 anywhere in the app: the result screens (`0b088fbfd`) and
-    then every other source (`5a4b086aa`, with an app-wide guard test); the safety
+    then every other source (`5a4b086aa`, with an app-wide guard test; the guard
+    skips `app/admin` and `app/(dev)`, although the commit title says "anywhere in
+    the app"); the safety
     share and landlord reply pages have their h1, the result verdict (`32f544eeb`);
     result screens and sheets are measured for contrast in both themes, and all
     pass (`da99eebd1`).
   - The danger button's label clears 4.5:1 at rest, hover and press, in both
-    themes; W12 had measured 3.84:1 (`9a1b3c2c9`).
+    themes; W12 had measured 3.84:1 (`9a1b3c2c9`). Its message says the light
+    theme's deep red was left exactly as it was; that holds at rest only, because
+    the light hover and press fills changed. The `@supports` guard now tests the
+    exact `min()` relative-colour form the fill uses, so an engine that accepts
+    only part of it cannot draw the fill transparent under a white label
+    (`a83255268`).
   - Nothing loops, continued: skeletons sweep four times and settle to a still
     tint, and data saver stops them (`4bef1e2a6`); the landing columns and the
     docs flow pulse run twice and rest (`4f5e3f334`).
@@ -489,6 +496,21 @@ content only. **Verdict: HOLD, on one blocker, now fixed.**
     clock (`11384c989`).
   - Verification passed gets its payoff: the shield assembles, the tick embosses,
     one pop, once per device and level (`72aa218e2`).
+- Landed since `4be0d1f54`, from `git log --oneline 4be0d1f54..HEAD`:
+  - The verifying bar, the flip cover and the symbol loop are bounded (`8043cfc93`):
+    the verifying segment sweeps three times and settles mid-track, the flip cover
+    breathes three passes from and to full opacity, and `.nf-sym--loop` (which has
+    no call site) runs three times. The typing dots and the code caret stay as live
+    presence signals; data saver now stills them, the flip objects and the
+    verifying bar, as reduced motion, Calm and Off already did.
+  - The chosen dock tab's word stays on one line while it grows and wraps only once
+    settled, so a label that fits never shows two lines mid-grow (`c76109f9a`).
+  - A field shakes when it turns invalid and never because it mounted invalid: one
+    document-level observer marks a `.nf-field` `data-refused` only when its
+    `aria-invalid` goes from not invalid to invalid after it is in the page, and
+    clears the mark on animation end or when the field turns valid, so a second
+    refusal replays; mounted from `DetailsHost` (`119a4de1e`, over `f42b4b64e`).
+  - The danger fill's `@supports` guard tests the exact form it uses (`a83255268`).
 
 ## Changed
 
@@ -562,8 +584,9 @@ reader should know that the log does not say at a glance:
 
 - **In progress:**
   - R1: member buttons and A2's and A3's findings.
-  - R2: A4's findings.
-  - C1: cleanup, A3's S5 and S8.
+  - R2: A4's findings, and the two-button rows overflowing.
+  - C1: cleanup, A3's S5 and S8, the skeleton sheen at rest, and the shield flash
+    before the verification payoff.
   - B5: the gallery index links.
   - T1: dom tests.
   - W12: the sweep at 390, 768 and 1440; its results are not in the repository yet.
@@ -657,23 +680,36 @@ reader should know that the log does not say at a glance:
     eighteen would have handed ranking only the newest rows (auditor A7), and
     ranking is Session 2's.
 17. **What may loop.** The skeleton shimmer, the verify sweep, the flip cover's
-    breath and the symbol loop are to be bounded to a few passes that end at rest
-    (MOTION principle 10: nothing loops; loading is a crossfade, never a spinner).
-    The skeletons are bounded in `4bef1e2a6`; the other three are in progress. The
-    counterpart's typing dots and the caret blink stay as live presence signals,
-    because they say a person is there now, and they stop in every quiet mode
-    (reduced motion, Calm, Off and data saver).
+    breath and the symbol loop are bounded to a few passes (MOTION principle 10:
+    nothing loops; loading is a crossfade, never a spinner): the skeletons sweep
+    four times and settle to a still tint (`4bef1e2a6`); the verifying segment
+    sweeps three times, the flip cover breathes three passes and the symbol loop
+    runs three times (`8043cfc93`). The counterpart's typing dots and the caret
+    blink stay as live presence signals, because they say a person is there now,
+    and they stop in every quiet mode (reduced motion, Calm, Off and data saver).
+18. **The verification payoff has no haptic.** MOTION principle 5 asks for one with
+    the pop; this one deliberately has none, because the moment arrives with the
+    page and not from a touch, and the approval sheet on the same route passes none
+    either (`72aa218e2`). Recorded as a deliberate deviation.
 
 
 ## Risks
 
 - **Speed, measured by W13 against the built app.**
-  - **A regression this session caused, being fixed:** `/messages/[id]` went from 343 to 750KB gz first load, because the thread's copy hook began pulling the whole client dictionary (8311e70f2, 213033eb4).
-  - **The same pattern, earlier:** the full English dictionary (399KB gz) ships to 26 routes through client imports of `@vallo/i18n`. W13 and W8b are moving those to server-passed slices, behind a lint rule.
-  - **Remaining, routed:**
-    - the auth pages serialise the whole dictionary into their RSC payload;
-    - `globals.css` is 113KB gz on every route and only 11 to 19% of its rules are used;
-    - supabase-js (65KB gz) and zod (64KB gz) sit in first load on most routes.
+  - **A regression this session caused, now fixed:** `/messages/[id]` went from 343 to
+    750KB gz first load, because the thread's copy hook began pulling the whole client
+    dictionary (8311e70f2, 213033eb4). `3563a97b1` takes the inbox words from the
+    server page, and the route is back under 360KB gz.
+  - **The same pattern, earlier:** the full English dictionary (399KB gz) shipped to 26
+    routes through client imports of `@vallo/i18n`. Screens now take server-passed
+    slices (for example `3563a97b1`, `a0e0434b0`, `16038f95e`, `28f2a0194` for the
+    sign-in and sign-up pages), and `fe443bf41` is a lint rule that refuses a new
+    value import of the whole dictionary in a client module.
+  - **Since moved, not yet re-measured as one build:** zod left the client
+    (`3ad213d95`, `8d529473c`) and six route-family sheets left `globals.css`
+    (`19469f79f`, `0d7c84a06`). The 113KB gz and 11 to 19% figures for `globals.css`
+    and the first-load sizes for supabase-js (65KB gz) and zod (64KB gz) are the
+    earlier measurements.
   - **The weight check cannot fail:** every budget in `perf-budget.json` is null, and CI never sends `WEIGHT_COOKIE`. That is for Session 4.
 
 - **The machine, not the work, became the limit.** Fourteen agents plus the
@@ -694,8 +730,9 @@ reader should know that the log does not say at a glance:
 
 ## Next Session
 
-1. Close the open findings on the latest motion units: the data saver claim of
-   `5318408ed`, and a place for the progress ring in MOTION_SYSTEM.
+1. Close the open findings on the latest motion units: the skeleton sheen at rest,
+   the shield flash before the payoff, the two-button rows overflowing, the data
+   saver claim of `5318408ed`, and a place for the progress ring in MOTION_SYSTEM.
 2. Run the lead's full gate on the tip, then merge `main` after Session 4's
    `source-map-js` fix (D46); settle Advisories.
 3. Land Session 2's requests in the order the screens wait on them: R-3 to R-5
