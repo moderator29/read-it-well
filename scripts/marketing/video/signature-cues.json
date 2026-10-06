@@ -1,0 +1,120 @@
+{
+  "about": "The films' payoff sounds, lifted over the bed (whole-film critiques, rounds 1 to 3). Levelled against what is actually under each one: the voice plus the ducked music, or the dipped music in a pause. Those that would pass the voice are held at its level by the mixer (SIGNATURE_CAP_LU), never above it. The music dips around each; the end card rides the music back up.",
+  "dip_db": -3,
+  "dip_s": 0.25,
+  "end_ride": {
+    "from": 95.1,
+    "ramp": 0.6,
+    "db": 6.5
+  },
+  "cues": [
+    {
+      "name": "counter_tick",
+      "from": 28.2,
+      "to": 28.8,
+      "lift_db": 8
+    },
+    {
+      "name": "success",
+      "from": 28.7,
+      "to": 29.0,
+      "lift_db": 8.6
+    },
+    {
+      "name": "stamp",
+      "from": 36.9,
+      "to": 37.5,
+      "lift_db": 8.2
+    },
+    {
+      "name": "chime_notify",
+      "from": 46.5,
+      "to": 47.2,
+      "lift_db": 17.5
+    },
+    {
+      "name": "stamp",
+      "from": 56.9,
+      "to": 57.7,
+      "lift_db": 12.5
+    },
+    {
+      "name": "glass_clink",
+      "from": 63.5,
+      "to": 64.0,
+      "lift_db": 18.0
+    },
+    {
+      "name": "ding_pay",
+      "from": 67.8,
+      "to": 68.4,
+      "lift_db": 8.0
+    },
+    {
+      "name": "pop",
+      "from": 70.7,
+      "to": 71.3,
+      "lift_db": 14.8
+    },
+    {
+      "name": "success",
+      "from": 71.3,
+      "to": 71.9,
+      "lift_db": 0.9
+    },
+    {
+      "name": "pop",
+      "from": 79.9,
+      "to": 81.2,
+      "lift_db": 14.6
+    },
+    {
+      "name": "impact_soft",
+      "from": 88.5,
+      "to": 89.0,
+      "lift_db": 12.6
+    },
+    {
+      "name": "pop",
+      "from": 89.9,
+      "to": 90.1,
+      "lift_db": 16.2
+    },
+    {
+      "name": "pop",
+      "from": 90.14,
+      "to": 90.34,
+      "lift_db": 7.0
+    },
+    {
+      "name": "pop",
+      "from": 90.38,
+      "to": 90.58,
+      "lift_db": 15.0
+    },
+    {
+      "name": "pop",
+      "from": 90.62,
+      "to": 90.82,
+      "lift_db": 12.5
+    },
+    {
+      "name": "pop",
+      "from": 90.86,
+      "to": 91.06,
+      "lift_db": 14.7
+    },
+    {
+      "name": "impact_soft",
+      "from": 92.1,
+      "to": 92.5,
+      "lift_db": 6.8
+    },
+    {
+      "name": "whoosh_long",
+      "from": 96.2,
+      "to": 96.5,
+      "lift_db": 10
+    }
+  ]
+}
