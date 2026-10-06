@@ -186,7 +186,9 @@
     padding: var(--nf-gap-inline) var(--nf-space-sm);
     border-radius: var(--nf-radius-control);
     font-size: var(--nf-text-body-sm);
-    font-weight: 500;
+    /* 600, not 500: a desktop page already carries 400, 600 and the 700 of its
+       title, and a fourth weight in the nav broke the three-weight rule. */
+    font-weight: 600;
     color: var(--nf-content-secondary);
     transition: color var(--nf-duration-fast) var(--nf-ease-standard);
   }
