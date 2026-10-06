@@ -125,10 +125,8 @@ export default async function AdminPaymentsPage({
       <LiveRefresh />
       {head}
 
-      <PaymentsKpis desk={payments} locale={locale} />
-      <PaymentsCharts desk={payments} locale={locale} />
-      <PaymentsTable desk={payments} params={flat} locale={locale} ui={ui} />
-
+      {/* The answer to the desk's question first: has the provider settled what
+          it was sent. It sat under the whole payments table (C1 sweep). */}
       <Panel title={c.healthTitle} hint={c.healthHint}>
       <ui.StatRow>
         <ui.Stat
@@ -214,6 +212,10 @@ export default async function AdminPaymentsPage({
           </Table>
         </ui.Section>
       )}
+
+      <PaymentsKpis desk={payments} locale={locale} />
+      <PaymentsCharts desk={payments} locale={locale} />
+      <PaymentsTable desk={payments} params={flat} locale={locale} ui={ui} />
 
       <LookupPanel
         term={term}

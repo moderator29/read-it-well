@@ -168,7 +168,7 @@ export function PaymentsTable({
   const chip = (key: "outcome", value: string | undefined, label: string) => {
     const on = (params[key] ?? undefined) === value;
     return (
-      <Link key={`${key}-${value ?? "all"}`} href={link(key, on ? undefined : value)} className="nf-md-toggle" aria-pressed={on}>
+      <Link key={`${key}-${value ?? "all"}`} href={link(key, on ? undefined : value)} className="nf-md-toggle" aria-current={on ? "true" : undefined}>
         {label}
       </Link>
     );

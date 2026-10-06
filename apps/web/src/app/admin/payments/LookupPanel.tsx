@@ -147,12 +147,15 @@ export function LookupResult({
                   : c.card;
                 const describe = fill(c.ending, { what: brand, last4: card.last4 ?? "????" });
                 return (
+                  /* The words keep 12rem beside the glyph; the action wraps under
+                     them on a phone instead of squeezing them to a word a line
+                     (C1 sweep, 390). Same for the accounts and the terms rows. */
                   <li key={card.id} className="nf-row flex-wrap">
                     {/* The saved card's plated glyph. Never a card number beside it. */}
                     <IconPlate size="sm" className="shrink-0">
                       <UiIcon name="credit-card" size={20} />
                     </IconPlate>
-                    <span className="min-w-0 flex-1">
+                    <span className="min-w-[12rem] flex-1 basis-0">
                       <span className="nf-body-sm block font-semibold text-content">
                         {describe}
                         {card.bank ? ` · ${card.bank}` : ""}
@@ -191,7 +194,7 @@ export function LookupResult({
                     <IconPlate size="sm" className="shrink-0">
                       <UiIcon name="bank" size={20} />
                     </IconPlate>
-                    <span className="min-w-0 flex-1">
+                    <span className="min-w-[12rem] flex-1 basis-0">
                       <span className="nf-body-sm block font-semibold text-content">
                         {account.bankName}
                         {" · "}
@@ -254,7 +257,7 @@ function TermsRow({
     <ul className="nf-rows mt-row">
       {standing.data.accepted.map((accepted) => (
         <li key={`${accepted.document}-${accepted.version}`} className="nf-row flex-wrap">
-          <span className="min-w-0 flex-1">
+          <span className="min-w-[12rem] flex-1 basis-0">
             <span className="nf-body-sm block font-semibold text-content">
               {fill(accepted.document === "privacy" ? c.acceptedPrivacy : c.acceptedTerms, { version: accepted.version })}
             </span>

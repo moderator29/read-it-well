@@ -998,8 +998,10 @@
     text-decoration: none;
   }
   /* On: the platform's shared selected state (the console tab's), not a
-     local navy recipe (audit S2). */
-  .nf-md-toggle[aria-pressed="true"] {
+     local navy recipe (audit S2). A toggle that is a link says so with
+     aria-current, since aria-pressed is not allowed on a link (axe
+     aria-allowed-attr, C1 sweep); a toggle that is a button keeps aria-pressed. */
+  .nf-md-toggle:is([aria-pressed="true"], [aria-current="true"]) {
     border-color: var(--nf-selected-edges);
     color: var(--nf-content-on-brand);
     background: var(--nf-selected-fill);
@@ -1009,7 +1011,7 @@
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
     outline-offset: 2px;
   }
-  .nf-md-toggle[aria-pressed="true"]:focus-visible {
+  .nf-md-toggle:is([aria-pressed="true"], [aria-current="true"]):focus-visible {
     --nf-focus-ring: var(--nf-content-on-brand);
   }
 

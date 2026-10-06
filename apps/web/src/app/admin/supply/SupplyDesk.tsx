@@ -102,7 +102,7 @@ export function SupplyDesk({
     <Link
       href={hrefWith({ examples: filter.examples ? undefined : "1" })}
       className="nf-md-toggle"
-      aria-pressed={filter.examples}
+      aria-current={filter.examples ? "true" : undefined}
     >
       <UiIcon name={filter.examples ? "eye" : "eye-off"} size={16} />
       {filter.examples ? c.includingExamples : c.examplesLeftOut}
