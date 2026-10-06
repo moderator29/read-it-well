@@ -15,6 +15,8 @@ export const experienceSocialEn = {
     /* Said after a name whose stories this reader has all opened (the ring's
        quiet state must never be the only way to learn it). */
     storySeen: "seen",
+    /* The one line under the title of a post's action sheet (`ActionSheet`). */
+    sheetBody: "Choose one. Nothing happens until you do.",
   },
   profile: {
     /* The badge row, the badge sheet and the earned moment (W4). */

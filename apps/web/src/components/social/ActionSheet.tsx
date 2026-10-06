@@ -3,6 +3,7 @@
 import type { UiIconName } from "@/design-system/icons/UiIcon";
 import { ActionSheetIllustrated, type ActionSheetRow } from "@/components/ui/ActionSheetIllustrated";
 import { countOf } from "@vallo/i18n/core";
+import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
 
 /**
  * The sheet behind a card's `…`.
@@ -45,19 +46,23 @@ export function ActionSheet({
   actions,
   onChoose,
   onClose,
-  body = "Choose one. Nothing happens until you do.",
-  dismissLabel = "Not now",
+  body,
+  dismissLabel,
 }: {
   /** What this sheet is about: the title, and the dialog's accessible name. */
   label: string;
   actions: SheetAction[];
   onChoose: (key: string) => void;
   onClose: () => void;
-  /** The one line under the title. */
+  /** The one line under the title. Defaults to the locale's own sentence. */
   body?: string;
-  /** The single quiet dismiss. */
+  /** The single quiet dismiss. Defaults to the locale's "Not now". */
   dismissLabel?: string;
 }) {
+  /* The defaults were English literals, so a Yorùbá, Hausa or Igbo reader got an
+     English dismiss under a translated sheet (auditor A2). They are read from the
+     dictionary now: the shared "Not now" and a line in the social module. */
+  const t = useClientDictionary();
   const rows: ActionSheetRow[] = actions.map((action) => ({
     id: action.key,
     label: action.title,
@@ -74,10 +79,10 @@ export function ActionSheet({
         if (!next) onClose();
       }}
       title={label}
-      body={body}
+      body={body ?? t.experienceSocial.feed.sheetBody}
       object="local-talks"
       rows={rows}
-      dismissLabel={dismissLabel}
+      dismissLabel={dismissLabel ?? t.experienceUi.notNow}
       testId="post-action-sheet"
     />
   );
