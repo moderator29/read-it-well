@@ -43,7 +43,9 @@ export function StatementView({
 }) {
   const tag = locale === "en" ? "en-NG" : locale;
   const totals = statementTotals(lines);
-  const w = getDictionary(locale).experienceFeatures.workspace.statement;
+  const dict = getDictionary(locale);
+  const w = dict.experienceFeatures.workspace.statement;
+  const sv = dict.experienceHost.statementView;
   const prev = addMonths(month, -1);
   const next = addMonths(month, 1);
 
@@ -52,18 +54,18 @@ export function StatementView({
       <PageHeader
         variant="large"
         back={false}
-        title={`Statement, ${title}`}
-        subtitle={`Issued by ${COMPANY_FORMAL_NAME}`}
+        title={sv.title.replace("{month}", title)}
+        subtitle={sv.issuedBy.replace("{company}", COMPANY_FORMAL_NAME)}
       />
 
       <div className="mt-md grid gap-md">
-        <nav className="nf-rcal__monthbar nf-stmt-noprint" aria-label="Other months">
-          <Link href={`/host/earnings/statement?month=${prev}`} className="nf-btn nf-btn--surface nf-btn--icon nf-btn--round" aria-label="Previous month">
+        <nav className="nf-rcal__monthbar nf-stmt-noprint" aria-label={sv.otherMonths}>
+          <Link href={`/host/earnings/statement?month=${prev}`} className="nf-btn nf-btn--surface nf-btn--icon nf-btn--round" aria-label={sv.previousMonth}>
             <UiIcon name="arrow-left" size={20} />
           </Link>
           <p className="nf-rcal__month">{title}</p>
           {next <= thisMonth ? (
-            <Link href={`/host/earnings/statement?month=${next}`} className="nf-btn nf-btn--surface nf-btn--icon nf-btn--round" aria-label="Next month">
+            <Link href={`/host/earnings/statement?month=${next}`} className="nf-btn nf-btn--surface nf-btn--icon nf-btn--round" aria-label={sv.nextMonth}>
               <UiIcon name="arrow-right" size={20} />
             </Link>
           ) : (
@@ -73,7 +75,7 @@ export function StatementView({
 
         {failed ? (
           <p className="nf-body" role="alert">
-            Your statement could not be read just now. Nothing has changed. Refresh to try again.
+            {sv.unavailable}
           </p>
         ) : lines.length === 0 ? (
           <EmptyState
@@ -82,7 +84,7 @@ export function StatementView({
             body={HOST_STATEMENT_EMPTY_BODY}
             action={
               <ButtonLink href="/host/earnings" variant="secondary" size="lg">
-                Back to earnings
+                {sv.backToEarnings}
               </ButtonLink>
             }
           />
@@ -90,8 +92,7 @@ export function StatementView({
           <>
             {!complete ? (
               <p className="nf-body" role="alert">
-                This month has more lines than we could read at once, so the totals below are not the whole month. Download
-                is paused until it can be read in full.
+                {sv.incomplete}
               </p>
             ) : null}
 
@@ -127,7 +128,7 @@ export function StatementView({
                 </DocRow>
               </DocRows>
               <DocNote>
-                {`${countOf(totals.payments, "payments", locale)}${totals.reversals ? `, ${totals.reversals} reversed by refunds` : ""}. ${EARNINGS_SETTLEMENT}`}
+                {`${countOf(totals.payments, "payments", locale)}${totals.reversals ? sv.reversed.replace("{count}", String(totals.reversals)) : ""}. ${EARNINGS_SETTLEMENT}`}
               </DocNote>
 
               <DocSection title={w.lines} id="nf-stmt-lines">
@@ -135,12 +136,12 @@ export function StatementView({
                   <table className="nf-stmt-table">
                     <thead>
                       <tr>
-                        <th scope="col">Date and stay</th>
-                        <th scope="col">Guest paid</th>
-                        <th scope="col">Commission</th>
-                        <th scope="col">Guarantee</th>
-                        <th scope="col">Your share</th>
-                        <th scope="col">Paystack reference</th>
+                        <th scope="col">{sv.colDate}</th>
+                        <th scope="col">{sv.colGuestPaid}</th>
+                        <th scope="col">{sv.colCommission}</th>
+                        <th scope="col">{sv.colGuarantee}</th>
+                        <th scope="col">{sv.colShare}</th>
+                        <th scope="col">{sv.colReference}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -149,7 +150,7 @@ export function StatementView({
                           <td>
                             <span className="block">{day(line.day, tag)}</span>
                             <span className="nf-caption">
-                              {line.kind === "reversal" ? "Refund reversal, " : ""}
+                              {line.kind === "reversal" ? `${sv.refundReversal}, ` : ""}
                               {line.title}
                             </span>
                           </td>
@@ -159,13 +160,13 @@ export function StatementView({
                           <td>
                             <strong>{formatMoney(line.shareMinor, locale)}</strong>
                           </td>
-                          <td className="nf-caption">{line.reference ?? "None"}</td>
+                          <td className="nf-caption">{line.reference ?? sv.none}</td>
                         </tr>
                       ))}
                     </tbody>
                     <tfoot>
                       <tr>
-                        <td>Total</td>
+                        <td>{sv.total}</td>
                         <td>{formatMoney(totals.grossMinor, locale)}</td>
                         <td>{formatMoney(totals.commissionMinor, locale)}</td>
                         <td>{formatMoney(totals.guaranteeMinor, locale)}</td>
@@ -178,7 +179,7 @@ export function StatementView({
 
                 <ul className="nf-stmt-lines nf-stmt-narrow">
                   {lines.map((line) => (
-                    <LineCard key={line.id} line={line} locale={locale} tag={tag} />
+                    <LineCard key={line.id} line={line} locale={locale} tag={tag} sv={sv} commission={w.commission} />
                   ))}
                 </ul>
               </DocSection>
@@ -194,7 +195,7 @@ export function StatementView({
                    page, so client navigation must not try to render it. */
                 <a href={`/host/earnings/statement/csv?month=${month}`} download className="nf-btn nf-btn--primary nf-btn--md">
                   <UiIcon name="file-check" size={20} />
-                  Download CSV
+                  {sv.downloadCsv}
                 </a>
               ) : null}
               <PrintButton />
@@ -212,7 +213,19 @@ function day(iso: string, tag: string): string {
   );
 }
 
-function LineCard({ line, locale, tag }: { line: StatementLine; locale: Locale; tag: string }) {
+function LineCard({
+  line,
+  locale,
+  tag,
+  sv,
+  commission,
+}: {
+  line: StatementLine;
+  locale: Locale;
+  tag: string;
+  sv: ReturnType<typeof getDictionary>["experienceHost"]["statementView"];
+  commission: string;
+}) {
   return (
     <li className="nf-stmt-line" data-kind={line.kind}>
       <div className="flex items-start justify-between gap-sm">
@@ -220,22 +233,22 @@ function LineCard({ line, locale, tag }: { line: StatementLine; locale: Locale; 
           <p className="nf-decide__title">{line.title}</p>
           <p className="nf-decide__sub">
             {day(line.day, tag)}
-            {line.kind === "reversal" ? " · Refund reversal" : ""}
+            {line.kind === "reversal" ? ` · ${sv.refundReversal}` : ""}
           </p>
         </div>
         <p className="nf-decide__title nf-numeric">{formatMoney(line.shareMinor, locale)}</p>
       </div>
       <dl className="nf-stmt-line__split">
-        <dt>Guest paid</dt>
+        <dt>{sv.colGuestPaid}</dt>
         <dd>{formatMoney(line.grossMinor, locale)}</dd>
-        <dt>Vallo commission</dt>
+        <dt>{commission}</dt>
         <dd>{formatMoney(line.commissionMinor, locale)}</dd>
-        <dt>Guarantee contribution</dt>
+        <dt>{sv.lineGuarantee}</dt>
         <dd>{formatMoney(line.guaranteeMinor, locale)}</dd>
-        <dt className="is-share">Your share</dt>
+        <dt className="is-share">{sv.lineShare}</dt>
         <dd className="is-share">{formatMoney(line.shareMinor, locale)}</dd>
-        <dt>Paystack reference</dt>
-        <dd>{line.reference ?? "None"}</dd>
+        <dt>{sv.colReference}</dt>
+        <dd>{line.reference ?? sv.none}</dd>
       </dl>
     </li>
   );
