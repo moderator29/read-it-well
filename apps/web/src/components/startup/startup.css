@@ -1,0 +1,281 @@
+/*
+ * THE STARTUP SEQUENCE (directive D31, MOTION_SYSTEM.md section 3). The markup
+ * is `StartupSequence.tsx`; the one decision CSS cannot make (when the door
+ * opens) is `startup-script.ts`. Imported by the component, which the root
+ * layout renders, so it is in the root stylesheet and never waits on a chunk.
+ *
+ * On only while the before-paint gate in the root layout has set
+ * `data-splash="on"`; the door opens on `data-startup="open"`; gone for good
+ * once the script moves the flag to "done" (threshold.css hides `.nf-splash`
+ * outside "on").
+ *
+ * THE BEATS, against the spec's table:
+ *
+ *   ground      0 to 120      the leaves are the native splash's navy from
+ *                             the first frame; nothing moves for 120ms
+ *   mark        120 to 480    turns 12 degrees to 0 and scales 0.86 to 1
+ *                             (360ms, land); its six facets arrive from depth
+ *                             12ms apart (300ms each, land)
+ *   wordmark    380 to 720    letters from depth, 24ms apart, blur 6 to 0
+ *                             (244ms each, glide)
+ *   edge light  640 to 900    each facet and letter catches the light in
+ *                             turn, left to right (160ms each, glide)
+ *   breath      900 to 1150   1.0 1.02 1.0 (250ms, drift)
+ *   hold        from 1150     only if the page has not arrived: the settled
+ *                             lockup keeps breathing, slowly, until it has
+ *   door        on open       the leaves part (350ms, leave), the wordmark
+ *                             goes with them, the page is beneath
+ *
+ * WHERE THE LOCKUP SETTLES. The mark's box is Get Started's
+ * (`app/welcome/lockup.ts`: the same top, the same 2.75rem width, centred),
+ * so on Get Started the mark is simply still there when the ground parts.
+ */
+/*
+ * THE LAYER ORDER, RESTATED. This sheet can reach the document before
+ * globals.css does (it is imported by a component, and component CSS can be
+ * ordered ahead of the root sheet). The first `@layer` a browser meets fixes
+ * the order, so without this line `components` would be declared before
+ * Tailwind's `base` and every reset in `base` would beat every rule here.
+ * Restating Tailwind's own order is a no-op when globals.css came first.
+ */
+@layer theme, base, components, utilities;
+
+@layer components {
+  :root[data-splash="on"] .nf-splash.nf-startup {
+    --nf-startup-top: calc(env(safe-area-inset-top, 0px) + clamp(3rem, 11dvh, 6.5rem));
+    --nf-startup-mark: 2.75rem;
+    --nf-startup-word: 5.5rem;
+
+    position: fixed;
+    inset: 0;
+    z-index: var(--nf-z-top);
+    display: block;
+    overflow: hidden;
+    /* A tap anywhere is the skip (startup-script.ts). */
+    pointer-events: auto;
+    cursor: default;
+    /*
+     * A placeholder, not a timing. `ThresholdStage` releases the old splash
+     * when an animation named `nf-splash-gone` has finished, and treats an
+     * element WITHOUT one as already finished. This keeps one running (with a
+     * delay nobody reaches) so the stage never releases the sequence at
+     * hydration; the script releases it when the door has opened.
+     */
+    animation: nf-splash-gone 1ms linear 600s both;
+  }
+
+  .nf-startup__leaf {
+    position: absolute;
+    inset-block: 0;
+    width: 50.5%;
+    background: var(--nf-surface-artwork);
+  }
+  .nf-startup__leaf--a {
+    left: 0;
+  }
+  .nf-startup__leaf--b {
+    right: 0;
+  }
+
+  /* ---------------------------------------------------------- the lockup */
+
+  .nf-startup__lockup {
+    position: absolute;
+    top: var(--nf-startup-top);
+    left: 50%;
+    width: var(--nf-startup-word);
+    margin-left: calc(var(--nf-startup-word) / -2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    transform-origin: 50% 30%;
+    animation:
+      nf-startup-breath 250ms var(--nf-ease-spring) 900ms,
+      nf-startup-hold 2400ms var(--nf-ease-standard) 1150ms infinite alternate;
+  }
+
+  .nf-startup__mark {
+    position: relative;
+    width: var(--nf-startup-mark);
+    aspect-ratio: 614 / 587;
+    color: var(--nf-brand-quiet);
+    animation: nf-startup-turn 360ms var(--nf-ease-entrance) 120ms both;
+  }
+  .nf-startup__facet {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    animation:
+      nf-startup-facet 300ms var(--nf-ease-entrance) calc(120ms + var(--nf-i, 0) * 12ms) both,
+      nf-startup-glint 160ms var(--nf-ease-standard) calc(640ms + var(--nf-x, 0ms));
+  }
+
+  .nf-startup__word {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 766 / 158;
+    color: color-mix(in oklab, var(--nf-content-on-brand) 86%, var(--nf-brand-quiet));
+  }
+  .nf-startup__letter {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    transform-origin: var(--nf-o, 50%) 49%;
+    animation:
+      nf-startup-letter 244ms var(--nf-ease-standard) calc(380ms + var(--nf-i, 0) * 24ms) both,
+      nf-startup-glint 160ms var(--nf-ease-standard) calc(640ms + var(--nf-x, 0ms));
+  }
+  /* Each letter comes out of depth about its own centre (the wordmark's
+     viewBox, measured): V, the barless A, L, L, O. */
+  .nf-startup__letter:nth-child(1) {
+    --nf-o: 12.3%;
+  }
+  .nf-startup__letter:nth-child(2) {
+    --nf-o: 31.5%;
+  }
+  .nf-startup__letter:nth-child(3) {
+    --nf-o: 53.1%;
+  }
+  .nf-startup__letter:nth-child(4) {
+    --nf-o: 70.6%;
+  }
+  .nf-startup__letter:nth-child(5) {
+    --nf-o: 89.7%;
+  }
+
+  /*
+   * The edge light, sweeping the lockup once, left to right: each facet and
+   * each letter catches the light in turn by where it sits across the lockup
+   * (`--nf-x`: the mark spans the middle of the lockup, 25 to 75ms; each
+   * letter its own centre, 12 to 90ms), so the light is only ever ON the
+   * shapes and never a band across the ground. 160ms each, done by 900.
+   */
+  .nf-startup__facet {
+    --nf-x: calc(25ms + var(--nf-i, 0) * 10ms);
+  }
+  .nf-startup__letter:nth-child(1) {
+    --nf-x: 12ms;
+  }
+  .nf-startup__letter:nth-child(2) {
+    --nf-x: 32ms;
+  }
+  .nf-startup__letter:nth-child(3) {
+    --nf-x: 53ms;
+  }
+  .nf-startup__letter:nth-child(4) {
+    --nf-x: 71ms;
+  }
+  .nf-startup__letter:nth-child(5) {
+    --nf-x: 90ms;
+  }
+
+  /* ------------------------------------------------------------ the door */
+
+  :root[data-splash="on"][data-startup="open"] .nf-splash.nf-startup {
+    pointer-events: none;
+    animation: nf-startup-door 350ms var(--nf-ease-exit) both;
+  }
+  :root[data-startup="open"] .nf-startup__leaf--a {
+    animation: nf-startup-leaf-a 350ms var(--nf-ease-exit) both;
+  }
+  :root[data-startup="open"] .nf-startup__leaf--b {
+    animation: nf-startup-leaf-b 350ms var(--nf-ease-exit) both;
+  }
+  :root[data-startup="open"] .nf-startup__lockup {
+    animation: none;
+  }
+  :root[data-startup="open"] .nf-startup__word {
+    animation: nf-startup-out 350ms var(--nf-ease-exit) both;
+  }
+  /* Any first screen but Get Started: the mark leaves with the wordmark. On
+     Get Started it stays, because Get Started's own mark is underneath it in
+     exactly the same place. */
+  :root[data-startup="open"]:not(:has(.nf-gsm)) .nf-startup__mark {
+    animation: nf-startup-out 350ms var(--nf-ease-exit) both;
+  }
+
+  /* ----------------------------------------------------------- keyframes */
+
+  @keyframes nf-startup-turn {
+    from {
+      transform: rotate(-12deg) scale(0.86);
+    }
+  }
+  @keyframes nf-startup-facet {
+    from {
+      opacity: 0;
+      transform: scale(1.3);
+      filter: blur(3px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+      filter: none;
+    }
+  }
+  @keyframes nf-startup-letter {
+    from {
+      opacity: 0;
+      transform: scale(1.4);
+      filter: blur(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+      filter: none;
+    }
+  }
+  @keyframes nf-startup-glint {
+    50% {
+      filter: brightness(1.7);
+    }
+  }
+  @keyframes nf-startup-breath {
+    50% {
+      transform: scale(1.02);
+    }
+  }
+  @keyframes nf-startup-hold {
+    to {
+      transform: scale(1.015);
+    }
+  }
+  @keyframes nf-startup-leaf-a {
+    to {
+      transform: translateX(-101%);
+    }
+  }
+  @keyframes nf-startup-leaf-b {
+    to {
+      transform: translateX(101%);
+    }
+  }
+  @keyframes nf-startup-out {
+    to {
+      opacity: 0;
+    }
+  }
+  /* The overlay itself only has to stay visible for the door and then stop
+     painting; its `animationend` is the script's signal to release it. */
+  @keyframes nf-startup-door {
+    to {
+      visibility: hidden;
+    }
+  }
+
+  /* A low-end device: the facets and letters still arrive, without the blur. */
+  :root[data-motion-lite="on"] :is(.nf-startup__facet, .nf-startup__letter) {
+    filter: none !important;
+  }
+
+  /* Never under reduced motion (the gate never switches it on; this is the
+     belt to that brace): the app simply appears. */
+  @media (prefers-reduced-motion: reduce) {
+    .nf-startup {
+      display: none !important;
+    }
+  }
+}

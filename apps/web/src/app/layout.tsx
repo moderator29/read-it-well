@@ -10,7 +10,7 @@ import { LivingCanvas } from "@/components/site/LivingCanvas";
 import { ThemeSync } from "@/components/site/ThemeControl";
 import { ServiceWorkerRegistrar } from "@/components/app/ServiceWorkerRegistrar";
 import { NativeRuntime } from "@/components/app/NativeRuntime";
-import { BrandAssemble } from "@/components/motion/BrandAssemble";
+import { StartupSequence } from "@/components/startup/StartupSequence";
 import { ThresholdStage } from "@/components/motion/ThresholdStage";
 import { MOTION_COOKIE, motionAttributes, parseMotion } from "@/lib/motion/motion-pref";
 import "./globals.css";
@@ -505,14 +505,11 @@ export default async function RootLayout({
             <DetailsHost />
           </MotionProvider>
         </ClientCopyProvider>
-        {/* The splash itself: hidden unless the script above said so, gone
-            for good once its door has opened. Pure CSS; see threshold.css. */}
-        <div className="nf-splash" aria-hidden="true">
-          <div className="nf-splash__leaf nf-splash__leaf--a" />
-          <div className="nf-splash__leaf nf-splash__leaf--b" />
-          <div className="nf-splash__glow" />
-          <BrandAssemble size={68} className="nf-splash__brand" />
-        </div>
+        {/* THE STARTUP SEQUENCE (D31, MOTION_SYSTEM section 3): hidden
+            unless the before-paint script above said so, gone for good once
+            its door has opened. CSS, plus one inline script that only decides
+            when the door opens; see components/startup. */}
+        <StartupSequence nonce={nonce} />
         <ThresholdStage welcome={t.authFlow.welcomeThrough} />
       </body>
     </html>
