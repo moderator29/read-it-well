@@ -68,10 +68,14 @@ Paths below are under `apps/web/src/` unless they start with `packages/` or `doc
 
 ## Findings recorded while writing this page
 
-- **`Button loading` without `morph` still draws `.nf-spinner`** (`components/ui/Button.tsx`,
-  the non-morph branch of `Content`). The rules say no spinners. The gallery does not show
-  that path. Prefer `morph` on the one action and a shaped state elsewhere; the old branch
-  is the lead's to retire or to re-draw as a held arc.
+- **`Button loading` without `morph` draws a bounded ring, not a spinner**
+  (`components/ui/Button.tsx`, the `nf-btn__ring` in `Content`; buttons.css, "loading,
+  bounded"). The arc is drawn once to three quarters and held however long the wait, and
+  the old looping `.nf-spinner` is gone from the stylesheets. A pending control that is
+  not a `Button` (an icon square, a row, a text link) draws the same markup through
+  `components/ui/PendingRing.tsx` (`.nf-pending-ring`, symbols.css), which waits 300ms so a
+  quick arrival never flickers a ring. Still prefer `morph` on the one action a screen
+  exists for, and a shaped state elsewhere.
 - **`/gallery` itself does not link to the family routes.** The shared frame links them to
   one another and back to `/gallery`, but `app/(dev)/gallery/page.tsx` (not owned by the
   gallery agent) has no index of them.

@@ -84,7 +84,6 @@ export const experienceInboxEn = {
     when: "When",
     received: "Received",
     about: "About",
-    kind: "Kind",
     amount: "Amount in this notice",
     nextHeading: "What to do next",
     nothingAsked: "Nothing is asked of you. This is for your records.",
