@@ -8,6 +8,12 @@ import { readAgreement } from "@/lib/agreements/queries";
 import { readChangesSinceConfirmed } from "@/lib/agreements/changes-read";
 import type { TermChange } from "@/lib/agreements/terms-diff";
 import { AgreementChanges, type WordedChange } from "@/components/app/agreements/AgreementChanges";
+import { AgreementVersions } from "@/components/app/agreements/AgreementVersions";
+import { AgreementHistory } from "@/components/app/agreements/AgreementHistory";
+import { AgreementTrackMotion } from "@/components/app/agreements/AgreementTrackMotion";
+import { readAgreementRecord } from "@/components/app/agreements/record-read";
+import { previousVersionDiff, versionRegister, type RecordEvent } from "@/components/app/agreements/version-register";
+import { termDay, termValue } from "@/components/app/agreements/term-words";
 import { PageHeader } from "@/components/app/PageHeader";
 import { HeroBand } from "@/components/ui/HeroBand";
 import { DecisionCard } from "@/components/app/confirm/DecisionCard";
@@ -48,31 +54,6 @@ function str(terms: Record<string, unknown>, key: string): string | null {
   const v = terms[key];
   return typeof v === "string" && v.length > 0 ? v : null;
 }
-
-/** A terms date (`YYYY-MM-DD`, a Lagos calendar day) in words. */
-function day(value: string | null): string | null {
-  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
-  return new Date(`${value}T12:00:00+01:00`).toLocaleDateString("en-NG", {
-    weekday: "short",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    timeZone: "Africa/Lagos",
-  });
-}
-
-/** `deal_agreement_events.action`, as the person reads it. */
-const EVENT_LABEL: Record<string, string> = {
-  opened: "Drawn up",
-  confirmed: "Confirmed",
-  amended: "Terms changed",
-  submitted: "Sent to Vallo for review",
-  released: "Its inspection was used for a new agreement",
-  approved: "Approved by Vallo",
-  rejected: "Sent back by Vallo",
-  cancelled: "Cancelled",
-  paid: "Paid",
-};
 
 function num(terms: Record<string, unknown>, key: string): number | null {
   const v = terms[key];
@@ -131,21 +112,57 @@ export default async function AgreementPage({
      until the versions migration is applied, and whenever there is nothing
      to show. */
   const kit = getDictionary(locale).memberKit.agreementDiff;
-  const since =
+  const words = getDictionary(locale).experienceMoney.agreements;
+  const [since, record] = await Promise.all([
     party && (a.status === "awaiting_parties" || a.status === "rejected") && !a.youConfirmedCurrent
-      ? await readChangesSinceConfirmed({
+      ? readChangesSinceConfirmed({
           agreementId: a.id,
           currentVersion: a.termsVersion,
           currentTerms: a.terms,
           currentAmountMinor: a.amountMinor,
         })
-      : null;
+      : Promise.resolve(null),
+    readAgreementRecord(a.id),
+  ]);
   const worded: WordedChange[] = (since?.changes ?? []).map((c: TermChange) => ({
     key: c.key,
     label: c.label,
     before: termValue(c, c.before, locale, kit.notStated),
     after: termValue(c, c.after, locale, kit.notStated),
   }));
+
+  /*
+   * M2: THE DOCUMENT'S VERSIONS AND ITS RECORD. The sided events (who did
+   * what, on which version) and B9's kept snapshots, read under the
+   * reader's own RLS. A party sees every kept version, the line-by-line
+   * change from the one before, and which side confirmed which version;
+   * when the snapshots cannot be read (a failed read, or staff, who are no
+   * party) the sheet is the current version alone, as it was.
+   */
+  const names = { renter: a.renterName, owner: a.ownerName };
+  const confirmedNow = {
+    renter: a.role === "renter" ? a.youConfirmedCurrent : a.role === "owner" ? a.otherConfirmedCurrent : false,
+    owner: a.role === "owner" ? a.youConfirmedCurrent : a.role === "renter" ? a.otherConfirmedCurrent : false,
+  };
+  const kept = party && record?.versions ? record.versions : null;
+  const versionEntries = kept
+    ? versionRegister({ current: a.termsVersion, stored: kept.map((v) => v.version), events: record?.events ?? [], confirmedNow })
+    : [];
+  const versionDiff = kept ? previousVersionDiff({ current: a.termsVersion, versions: kept }) : null;
+  const history: RecordEvent[] =
+    record?.events ?? a.events.map((e) => ({ at: e.at, action: e.action, note: e.note, side: null, version: null }));
+
+  /* The approval state's one payoff: the pop on the approval node, only
+     for a party, only when the record holds a dated approval and the
+     agreement stands approved now (a later payment is its own moment; a
+     send-back or a cancellation is not a payoff; staff reviewing the
+     record are not being paid off). */
+  const steps = agreementSteps(a.status, a.events);
+  const approvedStep = steps.findIndex((step) => step.key === "approved");
+  const popAt =
+    party && a.status === "approved" && approvedStep >= 0 && steps[approvedStep]!.state === "done" && steps[approvedStep]!.when
+      ? approvedStep + 1
+      : null;
 
   const arrival = agreementArrival(a, done);
   const moment: SuccessMomentId | null = arrival && !arrival.seenOnce ? arrival.moment : null;
@@ -186,7 +203,9 @@ export default async function AgreementPage({
           </>
         }
       >
-        <StatusTrack label="Agreement progress" steps={agreementSteps(a.status, a.events)} testId="agreement-track" />
+        <AgreementTrackMotion popAt={popAt} seenKey={`agreement-approved-track:${a.id}`}>
+          <StatusTrack label="Agreement progress" steps={steps} testId="agreement-track" />
+        </AgreementTrackMotion>
       </HeroBand>
 
       {/* AWAITING YOU (plan item 22; spec section 14, reference 36). Drawn
@@ -272,16 +291,16 @@ export default async function AgreementPage({
             {str(a.terms, "move_in") ? (
               <>
                 <DocRow label="Move in" numeric>
-                  {day(str(a.terms, "move_in"))}
+                  {termDay(str(a.terms, "move_in"), locale)}
                 </DocRow>
                 <DocRow label="Keys handed over" numeric>
-                  {day(str(a.terms, "handover_on") ?? str(a.terms, "move_in"))}
+                  {termDay(str(a.terms, "handover_on") ?? str(a.terms, "move_in"), locale)}
                 </DocRow>
               </>
             ) : null}
             {str(a.terms, "check_in") ? (
               <DocRow label="Stay" numeric>
-                {day(str(a.terms, "check_in"))} to {day(str(a.terms, "check_out"))}
+                {termDay(str(a.terms, "check_in"), locale)} to {termDay(str(a.terms, "check_out"), locale)}
               </DocRow>
             ) : null}
             {LINES.map((line) =>
@@ -317,6 +336,16 @@ export default async function AgreementPage({
               </>
             ) : null}
           </DocRows>
+          {versionDiff ? (
+            <AgreementVersions
+              diff={versionDiff}
+              entries={versionEntries}
+              names={names}
+              locale={locale}
+              copy={words}
+              diffCopy={kit}
+            />
+          ) : null}
           <DocNote>
             {NO_CUSTODY_SENTENCE}
             {guaranteeBps !== null
@@ -405,15 +434,8 @@ export default async function AgreementPage({
         </Section>
       ) : null}
 
-      <Section title="History">
-        <ol className="grid gap-2xs">
-          {a.events.map((e, i) => (
-            <li key={`${e.at}-${i}`} className={TYPE.rowMeta}>
-              {new Date(e.at).toLocaleString("en-NG", { timeZone: "Africa/Lagos" })}: {EVENT_LABEL[e.action] ?? e.action}
-              {e.note ? ` · ${e.note}` : ""}
-            </li>
-          ))}
-        </ol>
+      <Section title={words.historyTitle}>
+        <AgreementHistory events={history} names={names} locale={locale} copy={words} />
       </Section>
 
       <p className={`${TYPE.rowMeta} mt-block`}>{OFF_PLATFORM_SENTENCE}</p>
@@ -448,19 +470,6 @@ function agreementSteps(status: string, events: { at: string; action: string }[]
       : null,
     state: step.state,
   }));
-}
-
-/** One side of a changed line, in words: money, a day, or the text itself. */
-function termValue(
-  c: TermChange,
-  v: TermChange["before"],
-  locale: Parameters<typeof formatMoney>[1],
-  notStated: string,
-): string {
-  if (v === null) return notStated;
-  if (c.kind === "money" && typeof v === "number") return formatMoney(v, locale);
-  if (c.kind === "date" && typeof v === "string") return day(v) ?? v;
-  return String(v);
 }
 
 /** The request's clock, read once so every time on the page agrees. */

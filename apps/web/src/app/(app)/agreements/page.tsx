@@ -1,14 +1,13 @@
 import { Unreachable } from "@/components/app/Unreachable";
 import type { Metadata } from "next";
-import Link from "next/link";
-import { formatMoney } from "@vallo/i18n/core";
+import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { readMyAgreements } from "@/lib/agreements/queries";
 import { PageHeader } from "@/components/app/PageHeader";
 import { EmptyState, Section, TYPE } from "@/components/app/Screen";
 import { NO_CUSTODY_SENTENCE, PAYMENT_GATE_SENTENCE } from "@/lib/money/copy";
-import { AGREEMENT_STATUS_LABEL, agreementStatusTone } from "@/components/app/agreements/status";
-import { StatusPill } from "@/components/ui/StatusPill";
+import { RegisterRow } from "@/components/app/agreements/RegisterRow";
+import { readKeptVersions } from "@/components/app/agreements/record-read";
 import { gateFirstRun } from "@/components/app/feature-onboarding/first-run-store";
 
 export const metadata: Metadata = { title: "Agreements" };
@@ -19,6 +18,11 @@ export const dynamic = "force-dynamic";
  * record of exactly what both sides committed to, drawn up from the renter's
  * inspection report or the host's acceptance, confirmed by both, and approved
  * by Vallo before payment opens.
+ *
+ * M2: A REGISTER OF DOCUMENTS. Each row is drawn as the document it is, with
+ * the version its terms stand at and how many earlier versions are kept (B9's
+ * snapshots, read in one query for the whole list). The order, the copy
+ * above the list and every route are as they were.
  */
 export default async function AgreementsPage({
   searchParams,
@@ -32,6 +36,8 @@ export default async function AgreementsPage({
   await gateFirstRun("agreements", "/agreements", await searchParams);
   const locale = await getLocale();
   const rows = await readMyAgreements();
+  const kept = rows && rows.length > 0 ? await readKeptVersions(rows.map((row) => row.id)) : null;
+  const copy = getDictionary(locale).experienceMoney.agreements;
   return (
     <main className="nf-page nf-md">
       <PageHeader variant="large" title="Agreements" />
@@ -47,25 +53,10 @@ export default async function AgreementsPage({
             body="An agreement is drawn up after an inspection report is submitted, or when a host accepts your stay."
           />
         ) : (
-          <ul className="grid gap-row" data-testid="agreements-list">
+          <ul className="nf-agr-register" data-testid="agreements-list">
             {rows.map((row) => (
               <li key={row.id}>
-                {/* The status is its own pill (word, shape and colour
-                    together, never colour alone) rather than the last clause
-                    of the meta line, so a list of agreements can be scanned
-                    for the one that needs you. */}
-                <Link href={`/agreements/${row.id}`} className="nf-card block p-card" data-status={row.status}>
-                  <p className="font-semibold">{row.listingTitle}</p>
-                  <p className={TYPE.rowMeta}>
-                    {row.kind === "rent" ? "Rental" : "Stay"} · <span className="nf-numeric">{formatMoney(row.amountMinor, locale)}</span>
-                    {row.role === null
-                      ? ""
-                      : ` · you are the ${row.role === "renter" ? (row.kind === "rent" ? "renter" : "guest") : "owner or agent"}`}
-                  </p>
-                  <StatusPill tone={agreementStatusTone(row.status)} size="sm" className="mt-xs">
-                    {AGREEMENT_STATUS_LABEL[row.status] ?? row.status}
-                  </StatusPill>
-                </Link>
+                <RegisterRow row={row} kept={kept ? (kept.get(row.id) ?? null) : null} locale={locale} copy={copy} />
               </li>
             ))}
           </ul>
