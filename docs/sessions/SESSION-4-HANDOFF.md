@@ -57,6 +57,29 @@ while you continue on everything else.
 **Never route the money second-audit, the security review or a root-cause
 investigation to the cheapest model.** That is the whole reason you exist.
 
+
+### The cross-session contract (D19)
+
+**`docs/sessions/CROSS-SESSION-CONTRACT.md` is binding. Read it before you start.**
+The founder's concern is two sessions building the same thing, which causes conflict.
+
+The test that resolves almost every case: **does the thing decide what is true, or
+present what is true?** Deciding is Session 2. Presenting is Session 3. Proving is
+Session 4.
+
+If you find yourself about to build something another session owns, **stop and write a
+numbered request into your response file** instead: what you need, its exact shape,
+what consumes it, and whether it blocks you. Then carry on with something else. Nobody
+waits idly.
+
+### Connective work, and your authority to propose (D20)
+
+You are not an order-taker. As you build, find and build the things that **connect new
+features to old ones**, make a flow whole, or add the tool that makes a named feature
+actually work. Three conditions: it connects or completes rather than starting an
+unrelated area; it is inside your boundary under the contract; and it is recorded in
+your response file with what it connects and why.
+
 ### 2.4 Hard rules
 
 **Never skip, disable or quarantine a test to get green.** If a test fails, either the

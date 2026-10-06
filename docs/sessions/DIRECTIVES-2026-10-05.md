@@ -273,6 +273,93 @@ description of them. Session 1's classification is a map, not a substitute. More
 references are being added to the repository and the sessions read whatever is there
 on the day they run.
 
+## D17. Streaks, built as earned standing rather than habit bait
+
+**New, 6 October.** The founder wants streaks in the platform. Session 1's earlier
+position was that streaks are manipulative here, and that position was half right and
+is now refined rather than kept.
+
+**Why the obvious version is wrong for Vallo.** A daily-open streak works for a
+language app because using it daily *is* the product. Somebody looks for a home once
+every few years. A "12 day streak" on a property platform rewards nothing real, and a
+person who loses it feels punished for not needing a house, which is the opposite of
+trust.
+
+**Why the right version is one of the strongest features in the whole plan.** Vallo
+already measures things that are real, repeated and consequential. Turn those into
+streaks and you have **verifiable standing**, not a game:
+
+| Streak | Who | Why it is real |
+|---|---|---|
+| **On-time rent** | Tenant | Consecutive payments made on time. This becomes part of the Space Passport and is a rent-payment history a tenant can carry to the next landlord. In a market where tenants have no portable credit record, **this is the single most valuable thing Vallo can give a renter** |
+| **Reply time** | Agent, host | Consecutive weeks replying inside the promised window |
+| **Dispute-free** | Agent, host, tenant | Consecutive months or tenancies closed with no dispute |
+| **Listing freshness** | Lister | Consecutive weeks confirming availability, which keeps the catalogue honest |
+| **Inspection follow-through** | Agent | Consecutive inspections attended as arranged |
+| **Complete listing** | Lister | Consecutive months at full Listing Health |
+
+**The rules that keep it trustworthy.**
+
+- **A streak counts a real-world behaviour with a counterparty, never an app-open.**
+- **It is never broken by not needing the product.** A tenant between tenancies does
+  not lose their on-time rent record: it pauses, and the screen says it is paused.
+- **Breaking is quiet.** No flame going out, no loss animation, no notification
+  shaming. The number simply restarts and the history is kept.
+- **It feeds standing, not score.** Streaks attach to badges, the Space Passport and
+  the trust tier. There is no leaderboard and no comparison against strangers.
+- **Nobody can buy one.**
+- **The earned moment is permitted and should be good**: reference 41's sunburst,
+  medal and share action. It is earned, so the celebration is honest.
+
+This replaces the blanket anti-streak rule in the north star's anti-pattern list,
+which remains correct about daily-habit streaks and confetti on purchases.
+
+## D18. Passcode: four digits by default, six still offered
+
+**New, 6 October.** `DEFAULT_PASSCODE_LENGTH` moves from 6 to 4.
+`PASSCODE_LENGTHS` keeps both, and a member can still choose six. Setup offers four
+by default with six a visible, one-tap alternative, and the existing trivial-code
+refusals apply to both lengths.
+
+## D19. Sessions must not duplicate each other
+
+**New, 6 October.** The founder's concern, in his words: not two sessions building the
+same thing, because that causes conflict.
+
+`docs/sessions/CROSS-SESSION-CONTRACT.md` is the authority. Every handoff points at
+it. The rule: **one owner per concern, declared before work starts, and a session that
+finds itself about to build something another session owns stops and writes it into
+its response file instead.**
+
+## D20. Sessions propose and build connective work
+
+**New, 6 October.** Sessions are not order-takers. As they build, each is expected to
+find and build the things that **connect new features to old ones**, make a flow
+whole, or add a premium tool that makes the named features actually work.
+
+Three conditions: it must connect or complete something rather than start a new
+unrelated area; it must obey the cross-session contract so it is not another session's
+concern; and it must be recorded in the response file with what it connects and why.
+
+**Session 3 carries this most heavily.** The founder's words: the frontend design and
+sweep session should make legendary decisions. It has explicit authority to decide
+how surfaces work, not only how they look.
+
+## D21. Paywall preselection, corrected
+
+**New, 6 October, correcting the north star.** Section 14.3 forbade a preselected
+annual plan. Reference 42 preselects annual and is nonetheless an honest screen,
+because it states on the same surface, at readable size: what is charged today (zero),
+the exact date the trial ends, that a reminder comes first, the full price after, and
+how to cancel.
+
+**The corrected rule:** a plan may be preselected and recommended, with its real saving
+shown as a figure, **provided the full charge, the charge date, the renewal terms and
+the cancel path are all visible on the same screen at legible size without scrolling
+past the action.** The dark pattern was never preselection; it was hiding what happens
+next. The three-step trial timeline is the mechanism that makes it honest and it is
+required wherever a trial exists.
+
 ---
 
 ## What this file supersedes, explicitly
@@ -290,3 +377,6 @@ on the day they run.
 | The current Get Started page, and the first-screen-after-startup being `/home` or `/welcome` as they stand | D13 |
 | Tier and plan presented as a pricing table row | D14 |
 | Glass 3D marks on light surfaces | D15 |
+| The blanket anti-streak rule, for earned standing only | D17 |
+| `DEFAULT_PASSCODE_LENGTH = 6` | D18 |
+| North star 14.3's ban on a preselected plan | D21 |

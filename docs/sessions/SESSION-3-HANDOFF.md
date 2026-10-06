@@ -157,6 +157,29 @@ specified, find a good one, classify it BORROW, ADAPT or AVOID the way Session 1
 and write down the reasoning. **Extract patterns, never clone a platform. Vallo must
 emerge as its own product.**
 
+
+### The cross-session contract (D19)
+
+**`docs/sessions/CROSS-SESSION-CONTRACT.md` is binding. Read it before you start.**
+The founder's concern is two sessions building the same thing, which causes conflict.
+
+The test that resolves almost every case: **does the thing decide what is true, or
+present what is true?** Deciding is Session 2. Presenting is Session 3. Proving is
+Session 4.
+
+If you find yourself about to build something another session owns, **stop and write a
+numbered request into your response file** instead: what you need, its exact shape,
+what consumes it, and whether it blocks you. Then carry on with something else. Nobody
+waits idly.
+
+### Connective work, and your authority to propose (D20)
+
+You are not an order-taker. As you build, find and build the things that **connect new
+features to old ones**, make a flow whole, or add the tool that makes a named feature
+actually work. Three conditions: it connects or completes rather than starting an
+unrelated area; it is inside your boundary under the contract; and it is recorded in
+your response file with what it connects and why.
+
 ### 5.4 The breadth mandate
 
 **Do not leave an existing screen untouched because it was not named.** Classify
@@ -418,6 +441,51 @@ never floats on pure white. **Acceptance rule: no clay asset ships until it has 
 viewed on paper at 390px as well as on night.** The current set reached this state
 precisely because assets were approved only on navy.
 
+### Stage 4C: Streaks, sheets, comparison, inbox (B2, B3, B4)
+
+North star section 15, from references 39 to 43.
+
+**Standing streaks (15.1).** Session 2 owns the counting; **you own the display and the
+earned moment.** The streak tile on the dashboard and the passport, the count as a
+Figure with the window as small marks. The earned moment on reference 41, which is
+earned so the celebration is honest: a quiet sunburst behind a matte clay medal,
+scale-in at 620ms, the achievement named, one line saying what it means, then Share and
+Back, with a tap replaying it once. **Breaking is quiet**: no flame going out, no loss
+animation, no shaming. Paused says paused. The share card for an on-time rent record is
+the strongest organic growth loop the platform has, because the recipient is usually a
+prospective landlord, so design it as something a person is proud to send.
+
+**The illustrated action sheet (15.2).** Reference 43, and the best sheet pattern in the
+set: clay object on a soft radial ground, title, one line, hairline-separated rows each
+with a small round tinted glyph plate and a chevron, one quiet dismiss. **This replaces
+the generic list sheet everywhere** and is the reason a Vallo sheet will feel
+considered rather than default.
+
+**The comparison table (15.3)** for two saved spaces, this month against last, organic
+against promoted, and quoted against actually paid. **Never against another member by
+name, never a leaderboard.**
+
+**Messages and inbox (15.4).** Reference 40: quoted reply blocks so a conversation about
+a specific space stays legible, a day divider, an unread divider saying how many,
+attachments as a bordered row with a type glyph, and **voice notes as a waveform with a
+duration, which matters because Nigerian property conversations happen in voice notes**.
+The inbox with filter chips, presence dots and cyan unread counts. The workspace
+overview's top row of count cards as "what needs me today", each tapping straight into
+that queue.
+
+**The tab bar (15.5)** is confirmation rather than change: keep the capsule, the moving
+pill and the raised centre, and add the soft ambient shadow under the raised item so it
+reads as lifted rather than merely coloured.
+
+**The trial timeline, and preselection corrected (15.6, D21).** The three-step timeline
+is **required wherever a trial exists**, on reference 42's wording model: today
+everything unlocked and nothing charged, the day before the end we remind you, the last
+day it ends and cancelling before costs nothing. **The reminder step is the honest part
+and most products omit it.** Preselection is now permitted when the full charge, the
+charge date, the renewal terms and the cancel path are all visible on the same screen
+at legible size without scrolling past the action. Still forbidden: permanent-discount
+claims, countdowns that are not real deadlines, and confetti on a purchase.
+
 ### Stage 5: Discovery and detail (B3)
 
 **`/home`** leads with a figure and is personalised by the interests it ignores today.
@@ -573,7 +641,11 @@ ranking formula.
 18. Get Started is monotone and is the first screen after the animation.
 19. **Every clay asset checked on paper at 390px as well as on night**, with any whose
     edges disappear on white rejected and regenerated.
-20. Typecheck and lint green. The glow count reduced and the lint ratcheted.
+20. Streak tiles and the earned moment exist, with quiet breaking and a paused state.
+21. The illustrated action sheet replaces the generic list sheet everywhere.
+22. Inbox carries quoted replies, unread dividers and voice-note waveforms.
+23. Every trial screen carries the three-step timeline including the reminder step.
+24. Typecheck and lint green. The glow count reduced and the lint ratcheted.
 
 ## 12. YOUR RESPONSE FILE
 

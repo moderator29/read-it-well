@@ -132,6 +132,29 @@ launch, and **"you audit twice."** That ruling is binding and so is its price:
 7. **Money-path tests read the live policy shape, never a mock.** Five of the nine
    incidents in this repository's history would recur today with every test green.
 
+
+### The cross-session contract (D19)
+
+**`docs/sessions/CROSS-SESSION-CONTRACT.md` is binding. Read it before you start.**
+The founder's concern is two sessions building the same thing, which causes conflict.
+
+The test that resolves almost every case: **does the thing decide what is true, or
+present what is true?** Deciding is Session 2. Presenting is Session 3. Proving is
+Session 4.
+
+If you find yourself about to build something another session owns, **stop and write a
+numbered request into your response file** instead: what you need, its exact shape,
+what consumes it, and whether it blocks you. Then carry on with something else. Nobody
+waits idly.
+
+### Connective work, and your authority to propose (D20)
+
+You are not an order-taker. As you build, find and build the things that **connect new
+features to old ones**, make a flow whole, or add the tool that makes a named feature
+actually work. Three conditions: it connects or completes rather than starting an
+unrelated area; it is inside your boundary under the contract; and it is recorded in
+your response file with what it connects and why.
+
 ### 4.5 The breadth mandate
 
 The prompts are a strategic direction, not a checklist. Upgrade whatever the audit
@@ -451,6 +474,31 @@ second system. Add the space-side passport, the nineteen content items, and the
 visibility tiers. **Caution: an identifier encoding city and sequence leaks how few
 members exist**, so either accept that or make it opaque.
 
+### 7.15a Standing streaks (D17)
+
+Not habit bait. A streak counts a **real-world behaviour with a counterparty**, never
+an app-open, because somebody looks for a home once every few years. North star 15.1
+has the six and the rules.
+
+Build the counting, the pause rule and an append-only streak ledger: on-time rent for a
+tenant, reply time, dispute-free months, listing freshness, inspection follow-through,
+and months at full Listing Health. **A streak pauses rather than breaks when a person
+simply does not need the product**, and the pause is a recorded state, not an absence.
+Breaking keeps the history. Nothing is purchasable. Streaks feed badges, the Space
+Passport and the trust tier, never a leaderboard.
+
+**The on-time rent streak is the most valuable thing in your queue.** It becomes a
+portable rent-payment history in a market where tenants have no credit record, and it
+is the strongest organic growth loop the platform has, because a tenant shares it with
+a prospective landlord.
+
+### 7.15b Passcode default (D18)
+
+`DEFAULT_PASSCODE_LENGTH` in `apps/web/src/lib/passcode/rules.ts` moves from 6 to 4.
+`PASSCODE_LENGTHS` keeps both. Six stays a visible one-tap alternative at setup, and
+the existing trivial-code refusals apply to both lengths. Check the tests and the
+copy that name the length.
+
 ### 7.16 Events, analytics, the Space model
 
 One first-party event layer on the listing funnel's privacy rules: HMAC-salted
@@ -548,7 +596,9 @@ listing bypass review, expose cNGN or build a crypto wallet, or restyle anything
 17. The nine admin financial desks have real queries and actions.
 18. `blocked_terms` seeded with an admin surface.
 19. ADR-0003 and the V-06 superseding ADR written.
-20. Typecheck, lint and the full test suite green. Every doc you contradicted, fixed.
+20. Standing streaks count, pause and feed the passport, with none purchasable.
+21. Passcode defaults to four digits with six still offered.
+22. Typecheck, lint and the full test suite green. Every doc you contradicted, fixed.
 
 ## 12. YOUR RESPONSE FILE
 

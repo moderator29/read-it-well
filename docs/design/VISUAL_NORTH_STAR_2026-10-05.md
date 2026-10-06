@@ -505,7 +505,7 @@ device. One considered icon family.
 |---|---|---|
 | Token, staking, coin language | 7051, 7052, 7055 | A decade of Nigerian coin schemes. Reads as fraud to the careful renter |
 | Glossy and bevelled 3D | 7032, 7039, 7040, 7113 | The strongest betting-app marker. Banned by D2 |
-| Streaks and daily habits | 7036, 7043, 7135 | Finding a home is not a daily habit. Manipulative |
+| **Daily-habit** streaks and app-open streaks | 7036, 7043, 7135 | Finding a home is not a daily habit. **Corrected by D17: earned standing streaks that count real behaviour with a counterparty are built, and are among the strongest features in the plan. Section 15.1** |
 | Countdown urgency | 7048, 7055, 7135 | Only real deadlines: check-in, an agreement window, a genuine promotion with a visible end |
 | Confetti | 7135 | Cheapens a real transaction |
 | Mascots and bro copy | 7025, 7031, 7034 | Real money and real homes |
@@ -808,6 +808,109 @@ Six frames: Space, without the runaround. The whole move-in cost, up front. Veri
 by a real person. Protected payment. Your space, managed. Built for Nigeria.
 
 **No invented press logos, no invented awards, no invented counts.**
+
+---
+
+## 15. Standing streaks, sheets, comparison and inbox
+
+Added 6 October from references 39 to 43 and founder directives D17 and D21.
+
+### 15.1 Standing streaks
+
+Founder directive D17. **Not habit bait: earned, verifiable standing.** A streak on
+Vallo counts a real-world behaviour with a counterparty, never an app-open, because
+somebody looks for a home once every few years and a daily-open streak would punish
+them for not needing one.
+
+**The six**, with the on-time rent streak the most valuable thing in this document:
+on-time rent for a tenant, which becomes a **portable rent-payment history in a market
+where tenants have no credit record**; reply time for an agent or host; dispute-free
+months; listing freshness; inspection follow-through; and months at full Listing
+Health.
+
+**The surfaces.**
+
+| Surface | Treatment |
+|---|---|
+| **The streak tile** | On the dashboard and the passport: the count as a Figure, the unit beneath it quietly, and the current window as a row of small marks. Paused shows the word paused, never a broken flame |
+| **The earned moment** | Reference 41, which is earned so the celebration is honest: a quiet sunburst behind a matte clay medal, scale-in at 620ms, the achievement named in display type, one line saying what it means, then **Share** and **Back**. Tapping the medal replays it once |
+| **On the passport** | A row per streak with its best and its current, as dates and counts, never a score |
+| **In the share card** | A tenant sharing an on-time rent record is the single strongest organic growth loop available, because the recipient is usually a prospective landlord |
+
+**The prohibitions, which are what keep it trustworthy.** Breaking is quiet: no flame
+going out, no loss animation, no shaming notification, the number simply restarts and
+the history is kept. **Never broken by not needing the product**: between tenancies it
+pauses and says so. No leaderboard, no comparison against strangers, nothing
+purchasable. No streak counts an app-open, a login, or a session.
+
+### 15.2 The illustrated action sheet
+
+Reference 43. The best sheet pattern in the whole reference set and it generalises
+widely.
+
+**Anatomy:** a clay object at the top on a soft radial ground; a title in display type;
+one line of body; then **rows separated by hairlines**, each a small round tinted glyph
+plate, a label, and a chevron; then a single quiet dismiss. Rises at 380ms with the
+scrim blur ramping 0 to 12.
+
+**Use it for:** Manage your circle in the referral hub, Add a workspace, Create,
+Share, Invite, Manage payout accounts, Manage a tenancy, and the per-feature
+onboarding's final panel. **It replaces the generic list sheet everywhere**, and it is
+the reason a Vallo sheet will feel considered rather than default.
+
+### 15.3 The comparison table
+
+Reference 43's head-to-head. Two columns of figures with a labelled row per metric, a
+small glyph per row, and the leading value weighted.
+
+**Where it earns its place:** comparing two saved spaces, which is a premium feature
+the spec names; this month against last on a lister dashboard; organic against
+promoted on a campaign; and a tenancy's quoted cost against what was actually paid.
+
+**Never** against another member by name, and never a leaderboard.
+
+### 15.4 Messages and inbox
+
+Reference 40, which is the strongest inbox reference in the set.
+
+**The thread:** a quoted reply block above the message that answers it, so a
+conversation about a specific listing stays legible; a day divider; an unread divider
+that says how many; attachments as a bordered row with a type glyph; and voice notes
+as a waveform with a duration, which matters because Nigerian property conversations
+happen in voice notes.
+
+**The inbox:** filter chips across the top, rows carrying an avatar with a presence
+dot, the counterparty, a one-line preview, a time, and an unread count as a cyan
+badge.
+
+**The workspace overview:** reference 40's top row of small count cards is the right
+shape for a lister's "what needs me today": three or four cards, each a count and a
+label, tappable straight into that queue.
+
+### 15.5 The floating tab bar with a raised centre
+
+Reference 39 raises and highlights the active tab out of the bar. Vallo already does
+this with the pill that moves and the 52px centre action, so **this is confirmation
+rather than a change**. Keep the capsule, keep the moving pill, keep the raised
+centre. The one thing worth taking is the depth under the raised item, a soft ambient
+shadow so it reads as lifted rather than merely coloured.
+
+### 15.6 The trial timeline, and preselection corrected
+
+Reference 42 is the honest version of a paywall and corrects section 14.3 per D21.
+
+**The three-step timeline is required wherever a trial exists**, and the wording model
+is reference 42's: today, everything unlocked, zero charged; **day before the end, we
+remind you**; last day, the trial ends and cancelling before it costs nothing. The
+reminder step is the honest part and the one most products omit.
+
+**Preselection is permitted** when the full charge, the charge date, the renewal terms
+and the cancel path are all visible on the same screen at legible size without
+scrolling past the action. The dark pattern was never preselection; it was hiding what
+happens next. A "no charge today" marker is permitted because it is true.
+
+**Still forbidden:** permanent-discount claims, countdowns on anything that is not a
+real deadline, and confetti on a purchase.
 
 ---
 
