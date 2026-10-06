@@ -2339,6 +2339,13 @@
   .nf-admin-dist__row--area {
     grid-template-columns: minmax(0, 1fr) minmax(4rem, 1.4fr) 4rem;
   }
+  /* A long name keeps its words on lines of their own width and its state, city or share moves under it,
+     instead of one word a line beside a share that touched the meter (analytics refusals at 390). */
+  .nf-admin-dist__row--area .nf-admin-dist__name {
+    flex-wrap: wrap;
+    row-gap: 0;
+    padding-block: var(--nf-space-2xs);
+  }
   .nf-chart__swatch {
     display: inline-block;
     width: 0.75rem;

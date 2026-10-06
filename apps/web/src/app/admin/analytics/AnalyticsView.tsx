@@ -247,7 +247,9 @@ function TopAreas({ demand, locale }: { demand: PriceCheckDemand | null; locale:
   const head = (
     <div className="nf-admin-dist__row nf-admin-dist__row--head nf-admin-dist__row--area" role="row">
       <span role="columnheader">{c.area}</span>
-      <span role="columnheader" className="sr-only">Share</span>
+      <span role="columnheader">
+        <span className="sr-only">Share</span>
+      </span>
       <span role="columnheader" className="nf-admin-dist__num">{c.checksColumn}</span>
     </div>
   );
@@ -285,7 +287,9 @@ function Refusals({ demand, locale }: { demand: PriceCheckDemand | null; locale:
   const head = (
     <div className="nf-admin-dist__row nf-admin-dist__row--head nf-admin-dist__row--area" role="row">
       <span role="columnheader">{c.reason}</span>
-      <span role="columnheader" className="sr-only">Share</span>
+      <span role="columnheader">
+        <span className="sr-only">Share</span>
+      </span>
       <span role="columnheader" className="nf-admin-dist__num">{c.count}</span>
     </div>
   );
@@ -346,7 +350,9 @@ function ThinAreasTable({ thin, locale }: { thin: ThinAreas | null; locale: Loca
     <div className="nf-admin-dist" role="table" aria-label="Areas with fewest listings">
       <div className="nf-admin-dist__row nf-admin-dist__row--head nf-admin-dist__row--area" role="row">
         <span role="columnheader">Area</span>
-        <span role="columnheader" className="sr-only">Share</span>
+        <span role="columnheader">
+        <span className="sr-only">Share</span>
+      </span>
         <span role="columnheader" className="nf-admin-dist__num">Listings</span>
       </div>
       {thin.rows.map((row) => (
