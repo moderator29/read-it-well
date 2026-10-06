@@ -111,9 +111,12 @@ export default async function ComplaintPage({ params }: { params: Promise<{ id: 
         <Section title={copy.tenancy} divided>
           <p className="nf-body font-semibold">{heading}</p>
           <p className={`mt-2xs ${TYPE.body}`}>
-            {copy.parties
-              .replace("{tenant}", file.tenantName ?? t.afterTheGate.tenancy.you)
-              .replace("{lister}", file.listerName ?? t.afterTheGate.moneyMap.theLister)}
+            {/* An unnamed lister gets its own sentence: substituting "the
+                lister" into "{lister}, lister." read "the lister, lister." */}
+            {(file.listerName ? copy.parties.replace("{lister}", file.listerName) : copy.partiesNoLister).replace(
+              "{tenant}",
+              file.tenantName ?? t.afterTheGate.tenancy.you,
+            )}
           </p>
           <p className={`mt-2xs nf-numeric ${TYPE.body}`}>
             {copy.period.replace("{from}", file.moveInLabel).replace("{to}", file.endsOnLabel).replace("{area}", place)}
@@ -129,11 +132,16 @@ export default async function ComplaintPage({ params }: { params: Promise<{ id: 
               </div>
             ))}
             <div className="flex justify-between gap-md font-semibold">
-              <dt className="nf-body-sm">{t.afterTheGate.tenancy.totalPaid}</dt>
+              {/* "Paid in total" only when it is: an unpaid or part-paid
+                  tenancy reached this page saying it was paid. */}
+              <dt className="nf-body-sm">{file.paid ? t.afterTheGate.tenancy.totalPaid : copy.totalUnpaid}</dt>
               <dd className="nf-body-sm nf-numeric">{file.total}</dd>
             </div>
           </dl>
           <h3 className="nf-h4 mt-md">{copy.receipts}</h3>
+          {file.receipts.length === 0 ? (
+            <p className="nf-body-sm mt-xs">{t.afterTheGate.tenancy.noReceipt}</p>
+          ) : null}
           <ul className="mt-xs grid gap-2xs">
             {file.receipts.map((receipt) => (
               <li key={receipt.id} className="nf-body-sm nf-numeric">
@@ -142,9 +150,12 @@ export default async function ComplaintPage({ params }: { params: Promise<{ id: 
               </li>
             ))}
           </ul>
-          <p className="nf-caption mt-xs">
-            {hint && verifyUrl ? copy.verify.replace("{hint}", hint).replace("{url}", verifyUrl) : copy.noCode}
-          </p>
+          {/* A receipt code checks a payment, so it is offered only once one exists. */}
+          {file.receipts.length > 0 ? (
+            <p className="nf-caption mt-xs">
+              {hint && verifyUrl ? copy.verify.replace("{hint}", hint).replace("{url}", verifyUrl) : copy.noCode}
+            </p>
+          ) : null}
         </Section>
 
         {file.snapshot && (
