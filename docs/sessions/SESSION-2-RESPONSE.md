@@ -3,6 +3,59 @@
 Branch: `claude/vallo-backend-money-trust`, cut from `main` at `ef12651`.
 Kept current as work lands. Latest entry first under each heading.
 
+## Round 3 status, 6 October (a number, not an adjective)
+
+**Handoff sections 7.1 to 7.18 fully done: 2 of 18** (7.1, 7.2). Partly done: 7.3,
+7.4, 7.8, 7.15, 7.18. Round 3 counted 3 by including the passcode; it is one item of
+7.15, so I count it as partial. Round 3 was right that the router and the seam had no
+call sites: verified, `router.ts` was referenced only by its test and `provider.ts`
+by nothing. Agent B2 is wiring both this round.
+
+**D40, the wrong-payer refund: fixed and applied** (`83b17ae53`, migration
+`20261006092529`). `submitBookingRefund` picked the booking's newest successful
+charge with no payer filter. It now splits the admin's booking refund across every
+charge that paid it, in proportion to what each card still has to refund, planned
+once in `booking_refund_parts`; one Paystack refund per card under its own claim key;
+the refund webhook settles each part and rolls the row up. Single-charge bookings
+keep today's path. Both admin callers fixed: the cancel path read nothing and
+reported success when no money moved; it now reads the result and tells the desk the
+truth. Regression test: two flatmate charges on one booking, a 50,000 refund goes
+30,000 and 20,000, not 50,000 to whoever paid last; a retry after one card refuses
+sends only the missing part.
+
+D13 review passes on D40 (four, because each pass found something):
+- Pass 1: **2 blockers.** My first fix used `booking_refunds.guest_id`, which is the
+  booker, not the payer, so it only moved the wrong-payer bug to the lead flatmate,
+  and a refusal left the row pending while the cancel path reported success.
+- Pass 2: **2 blockers.** Re-splitting on retry could send more than decided (58,571
+  against 50,000 in its worked case), and a comma-joined processor id meant the
+  webhook could never settle a split refund.
+- Pass 3: **1 blocker** (a returned refusal inside the planning loop kept a partial
+  plan) and 6 should-fixes (webhook matching, claim release on processor failure,
+  rollup wording, share-branch precedence, replaying a stored plan first, legacy
+  claims). All fixed.
+- Re-check of pass 3: **SHIP**, with one optional guard, applied.
+
+**Cancellations are the dispute path on the escrow rail.** Payluk has no plain refund
+(question 3), so any cancellation of a funded escrow is a buyer dispute Vallo opens and
+resolves `REFUNDED`. On the direct rail, cancellations stay the refund above.
+
+**R3-22, the escrow enums: done** (`bfc4e68cb`). They live in `retired_custody`,
+outside type generation; the unions are now derived from arrays a test holds equal
+to the migrations that define them.
+
+**Four agents this round, declared ownership:** B1 (me): D40, refunds, cancellations,
+chargebacks, the enums, every production apply and the shared files. B2: the router
+and seam wired, then the ledger with three pots. B3: pricing as policy data, the
+guarantee gate trace, the agreement gate in publish, the Payluk commission sweep, tax,
+entitlements, promotion, status vocabulary. B4: the referral engine, D48 wallet
+channel migration, W7-R1 first-run store, phone gate, SMS policy. Agents write
+migrations, they do not apply them; each is reviewed twice before I apply it.
+
+**Paystack's docs are blocked here** (`paystack.com` refused by the egress proxy), so
+the chargeback webhook intake is not written: its payload fields would be guessed.
+The chargeback core (record, state machine, recovery, payout hold) is in review.
+
 ## Status for other sessions
 
 - **Session 3: `/open` is unblocked.** `apps/web/src/app/open/route.ts` now races
