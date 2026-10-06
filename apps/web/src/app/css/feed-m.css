@@ -106,11 +106,13 @@
   }
   .nf-post__media {
     overflow: hidden;
-    /* A picture is not a control, and it sat above the card's open link
-       (`social-feed.css` raises the block), so tapping a photograph did
-       nothing at all. Letting the tap through opens the post, which is what
-       a photograph on a card is for, and the photo travels (motion 18). */
-    pointer-events: none;
+    /* A picture sits above the card's open link (`social-feed.css` raises the
+       block), so on its own a tap on a photograph did nothing. It used to be
+       fixed with `pointer-events: none`, which also took away the long-press
+       save and the context menu on the image. The picture is a real, pressable
+       image again and PostCard's media wrapper hands a plain tap to the open
+       link (`openFromPicture`), so the photo still travels (motion 18). */
+    cursor: pointer;
   }
 
   /* ------------------------------------------------------------- heart */

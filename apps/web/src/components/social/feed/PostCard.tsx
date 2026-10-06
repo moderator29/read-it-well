@@ -331,6 +331,15 @@ export function PostCard({
    * `startPhotoMorph` opens, so a hard load names nothing.
    */
   const mediaRef = useRef<HTMLDivElement>(null);
+  /* The overlay link that opens the post. The picture hands its own tap to it
+     (`openFromPicture`) so the picture can stay a real, pressable image. */
+  const openRef = useRef<HTMLAnchorElement>(null);
+  const openFromPicture = (event: React.MouseEvent<HTMLElement>) => {
+    /* Anything inside the media that is itself a link or a button keeps its own
+       tap. A plain picture opens the post, as the card always did. */
+    if ((event.target as HTMLElement).closest("a, button")) return;
+    openRef.current?.click();
+  };
   const [arriving] = useState(() => isPhotoMorphFor(`post-${post.id}`));
   /*
    * A post that was taken down draws NOTHING here (founder, item 4: "a deleted
@@ -485,6 +494,7 @@ export function PostCard({
       {post.media.length > 0 ? (
         <div
           ref={mediaRef}
+          onClick={openFromPicture}
           className={`nf-post__media nf-post__media--${Math.min(post.media.length, 4)}`}
           style={arriving ? { viewTransitionName: `post-photo-${post.id}` } : undefined}
         >
@@ -553,7 +563,7 @@ export function PostCard({
       ) : null}
 
       {post.listing && hasPlate ? (
-        <div className="nf-post__media nf-post__media--1">
+        <div className="nf-post__media nf-post__media--1" onClick={openFromPicture}>
           <Image
             src={post.listing.photoUrl as string}
             alt={post.listing.title}
@@ -615,6 +625,7 @@ export function PostCard({
       */}
       {editor ? null : (
         <Link
+          ref={openRef}
           href={`/post/${post.id}`}
           className="nf-post__open"
           aria-label="Open post and replies"
