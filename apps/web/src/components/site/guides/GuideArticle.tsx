@@ -81,7 +81,7 @@ export function GuideArticle({
             <ListGroup>
               <li className="nf-list-item">
                 <DisclosureInline title={copy.onThisPage} titleClassName="nf-faq-q" className="nf-faq-item">
-                  <ol className="nf-guide__toc-fold-list">
+                  <ol className="nf-guide__toc-fold-list" role="list">
                     {sections.map((section, index) => (
                       <li key={section.id}>
                         <a href={`#${section.id}`} className="nf-guide-toc__link">
@@ -159,7 +159,7 @@ function Block({ block }: { block: GuideBlock }) {
   if (typeof block === "string") return <p>{block}</p>;
   if ("list" in block) {
     return (
-      <ul>
+      <ul role="list">
         {block.list.map((item) => (
           <li key={item}>{item}</li>
         ))}

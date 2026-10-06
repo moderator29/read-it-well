@@ -129,7 +129,7 @@ const WRITTEN: DocChapter[] = [
               and booking a room for a night are not the same errand and should not
               share one set of controls.
             </p>
-            <ul>
+            <ul role="list">
               <li>
                 <strong>The Property side.</strong>{" "}
                 <Link href="/search" className={A}>
@@ -177,7 +177,7 @@ const WRITTEN: DocChapter[] = [
         id: "what-you-can-do",
         heading: "What you can do here",
         body: (
-          <ul>
+          <ul role="list">
             <li>
               <strong>Find somewhere.</strong> Search by city or area, filter by budget,
               rooms, guests, amenities, power and water, then look at the results as a
@@ -295,7 +295,7 @@ const WRITTEN: DocChapter[] = [
         body: (
           <>
             <p>Three surfaces, one account.</p>
-            <ul>
+            <ul role="list">
               <li>
                 <strong>The platform.</strong> Home, Search, Stays, Restaurants,
                 Around, Saved, Plans, Agreements, Inbox, Notifications, the
@@ -362,7 +362,7 @@ const WRITTEN: DocChapter[] = [
               else: a button for a provider that is not connected would send you to an
               error page, so it is not shown.
             </p>
-            <ul>
+            <ul role="list">
               <li>
                 <strong>Email and password.</strong> Your name, email and a password.
                 We send a confirmation email; open it and the account is live.
@@ -423,7 +423,7 @@ const WRITTEN: DocChapter[] = [
               is linked from: bookings, agreements, saved places, reviews, inbox and
               notifications.
             </p>
-            <ul>
+            <ul role="list">
               <li>
                 <strong>Your details.</strong> First name, surname, a nickname if you
                 want one, phone number and a photograph.
@@ -476,7 +476,7 @@ const WRITTEN: DocChapter[] = [
         heading: "Settings worth knowing about",
         body: (
           <>
-            <ul>
+            <ul role="list">
               <li>
                 <strong>Appearance.</strong> Dark or light. Dark is the default and the
                 phone does not override it.
@@ -566,7 +566,7 @@ const WRITTEN: DocChapter[] = [
               </Link>
               , which asks for three things.
             </p>
-            <ul>
+            <ul role="list">
               <li>
                 <strong>Where.</strong> A city, an area or a landmark.
               </li>
@@ -603,7 +603,7 @@ const WRITTEN: DocChapter[] = [
         body: (
           <>
             <p>Open Filters and set as many as you want. The drawer counts what you have switched on.</p>
-            <ul>
+            <ul role="list">
               <li>
                 <strong>Budget.</strong> A minimum, a maximum, or both, typed in whole
                 naira. Type them the wrong way round and they are swapped rather than
@@ -759,7 +759,7 @@ const WRITTEN: DocChapter[] = [
         id: "badges",
         heading: "What the badges mean",
         body: (
-          <ul>
+          <ul role="list">
             <li>
               <strong>Verified.</strong> The agent behind this listing passed identity
               verification and the listing itself was reviewed before publishing. It is
@@ -842,7 +842,7 @@ const WRITTEN: DocChapter[] = [
         body: (
           <>
             <p>One closed list, because four spellings of borehole cannot be filtered on:</p>
-            <ul>
+            <ul role="list">
               <li>
                 <strong>Treated mains.</strong> Running water from the mains.
               </li>
@@ -980,7 +980,7 @@ const WRITTEN: DocChapter[] = [
         id: "the-rules-that-refuse",
         heading: "Why a reservation is sometimes refused",
         body: (
-          <ul>
+          <ul role="list">
             <li>
               <strong>Minimum stay.</strong> If the agent takes bookings of three nights or
               more, a two-night request is refused, and the message names the number so
@@ -1009,7 +1009,7 @@ const WRITTEN: DocChapter[] = [
               passes through this screen. What follows is what the nightly path shows
               you, in naira:
             </p>
-            <ul>
+            <ul role="list">
               <li>
                 <strong>The rate multiplied by the nights.</strong> Written out, so you
                 can check the arithmetic.
@@ -1093,7 +1093,7 @@ const WRITTEN: DocChapter[] = [
         body: (
           <>
             <p>Once the payment settles:</p>
-            <ul>
+            <ul role="list">
               <li>The booking moves to confirmed and the nights are closed for good.</li>
               <li>
                 The gate details unlock on the listing and on your booking: estate,
@@ -1124,7 +1124,7 @@ const WRITTEN: DocChapter[] = [
               </Link>
               .
             </p>
-            <ul>
+            <ul role="list">
               <li>
                 <strong>More than {FULL_REFUND_HOURS} hours before check-in:</strong>{" "}
                 everything back.
@@ -1184,7 +1184,7 @@ const WRITTEN: DocChapter[] = [
               <strong>no money moves for a reservation</strong>. You ask, the
               restaurant answers, and you pay the restaurant when you eat.
             </p>
-            <ol>
+            <ol role="list">
               <li>
                 <strong>Find it.</strong>{" "}
                 <Link href="/restaurants" className={A}>
@@ -1604,7 +1604,7 @@ const WRITTEN: DocChapter[] = [
               proposed by people who live there and reviewed before they open.
             </p>
             <p>Every place is one of four kinds, and the kind changes nothing but the label:</p>
-            <ul>
+            <ul role="list">
               <li>
                 <strong>City.</strong> A whole city, like Abuja.
               </li>
@@ -1662,7 +1662,7 @@ const WRITTEN: DocChapter[] = [
         body: (
           <>
             <p>Two things you can write, and the difference is what you want back:</p>
-            <ul>
+            <ul role="list">
               <li>
                 <strong>Say something.</strong> Anything worth knowing about the place.
               </li>
@@ -1721,13 +1721,13 @@ const WRITTEN: DocChapter[] = [
               can see it, because they are not one.
             </p>
             <p>A moderator can:</p>
-            <ul>
+            <ul role="list">
               {MODERATOR_CAN.map((line) => (
                 <li key={line}>{line}</li>
               ))}
             </ul>
             <p>A moderator cannot:</p>
-            <ul>
+            <ul role="list">
               {MODERATOR_CANNOT.map((line) => (
                 <li key={line}>{line}</li>
               ))}
@@ -1796,7 +1796,7 @@ const WRITTEN: DocChapter[] = [
               go, so you can put it down and come back. Applying as an agent, the six
               steps are:
             </p>
-            <ol>
+            <ol role="list">
               <li>
                 <strong>Personal details.</strong> Name and phone number.
               </li>
@@ -1843,7 +1843,7 @@ const WRITTEN: DocChapter[] = [
               Approval gets you listing. Verification is a ladder of four rungs on top of
               it, climbed in order, and each one says something specific to a guest:
             </p>
-            <ol>
+            <ol role="list">
               {VERIFICATION_ORDER.map((rung) => (
                 <li key={rung.kind}>
                   <strong>{rung.label}.</strong> {rung.meaning} Checked against:{" "}
@@ -2066,7 +2066,7 @@ const WRITTEN: DocChapter[] = [
               Every listing, profile and post has a report control. It asks one question,
               and the answers are short and concrete on purpose:
             </p>
-            <ul>
+            <ul role="list">
               {REPORT_CATEGORY_ORDER.map((code) => (
                 <li key={code}>
                   <strong>{REPORT_CATEGORY_COPY[code].label}.</strong>{" "}
@@ -2165,7 +2165,7 @@ const WRITTEN: DocChapter[] = [
         heading: "What we hold",
         body: (
           <>
-            <ul>
+            <ul role="list">
               <li>
                 <strong>Account data.</strong> Your name, email, phone number, language,
                 and your password stored only as a hash.
@@ -2233,7 +2233,7 @@ const WRITTEN: DocChapter[] = [
               The Nigeria Data Protection Act 2023 gives you rights over your personal
               data, and they are real rights you can exercise here:
             </p>
-            <ul>
+            <ul role="list">
               <li>Ask for a copy of what we hold about you.</li>
               <li>Ask us to correct anything inaccurate or incomplete.</li>
               <li>Ask us to delete what we have no lawful reason to keep.</li>
@@ -2257,7 +2257,7 @@ const WRITTEN: DocChapter[] = [
         id: "controls",
         heading: "The controls you already have",
         body: (
-          <ul>
+          <ul role="list">
             <li>
               <strong>Hide my activity</strong> keeps your reviews and recent stays off
               your public page.

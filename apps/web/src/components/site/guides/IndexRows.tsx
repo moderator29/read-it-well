@@ -44,11 +44,17 @@ export function IndexRows({
   as?: "ul" | "ol";
   className?: string;
 }) {
+  const List = as;
   return (
     <div className={`nf-panel nf-panel--card nf-index-card block ${className}`.trim()}>
-      <MotionReveal as={as} stagger className="nf-index" aria-label={label}>
-        {items.map((item) => (
-          <li key={item.href}>
+      {/* A plain list with its role stated (the stylesheet removes the
+          markers, and WebKit then drops a list's semantics unless it is told).
+          Each row is its own reveal, `delay` 60ms apart and capped at the sixth
+          step, which is the stagger's own rule; `MotionReveal` takes no role,
+          so it cannot be the list itself. */}
+      <List className="nf-index" aria-label={label} role="list">
+        {items.map((item, index) => (
+          <MotionReveal as="li" key={item.href} delay={index * 60}>
             <Link href={item.href} className="nf-index__row" lang={item.lang}>
               <IconPlate size="sm" shape="round" tone="brand" className="nf-index__plate">
                 <UiIcon name={item.icon} size={20} />
@@ -59,9 +65,9 @@ export function IndexRows({
               </span>
               {item.meta ? <span className="nf-index__meta nf-numeric">{item.meta}</span> : null}
             </Link>
-          </li>
+          </MotionReveal>
         ))}
-      </MotionReveal>
+      </List>
     </div>
   );
 }
