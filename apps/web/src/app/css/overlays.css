@@ -236,19 +236,21 @@
     border-bottom: 0;
     box-shadow: var(--nf-tier-sheet-shadow);
     /* Starts fully off-screen and is driven in. A fade would defeat the point.
-       The closed rule carries the EXIT curve and the open rule below carries the
-       spring, so the sheet springs up and accelerates away; see the note on the
-       backdrop. A spring on the way out overshoots BELOW the bottom edge, which
-       is invisible, and then takes the rest of the duration to arrive at a
-       position nobody can see. */
+       The closed rule carries the EXIT and the open rule below the ENTRY, to
+       MOTION_SYSTEM "Sheet entry / Sheet exit" (Session 3, R2): in on `land`
+       at 380ms, out on `leave` at 240ms, because entrances are decisive and
+       exits are quick to be out of the way. The entry was the spring curve,
+       whose 1.28 overshoot carried the sheet past its rest position and back
+       on a surface the reader is about to type into, and the exit took the
+       same 380ms as the entry. */
     transform: translateY(100%);
-    transition: transform var(--nf-duration-slow) var(--nf-ease-exit);
+    transition: transform var(--nf-duration-base) var(--nf-ease-exit);
     padding-bottom: env(safe-area-inset-bottom, 0px);
     touch-action: none;
   }
   .nf-sheet[data-open="true"] {
     transform: translateY(var(--nf-sheet-y, 0px));
-    transition: transform var(--nf-duration-slow) var(--nf-ease-spring);
+    transition: transform var(--nf-duration-slow) var(--nf-ease-entrance);
   }
   /* While a finger is down the surface tracks it exactly; no easing, or it lags. */
   .nf-sheet[data-dragging="true"] {
