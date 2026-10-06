@@ -27,14 +27,6 @@ const CSS = () => appCss();
 
 /* The key is "<surface> <locale>"; the value is the report line. */
 const KNOWN: Record<string, string> = {
-  "Notifications list, fixture rows and empty en":
-    "the filter chip row (div.nf-scroll-x, ChipRow bleed) spans -4 to 394px in a 390px window in every locale: its bleed assumes a wider gutter than nf-shell gives",
-  "Notifications list, fixture rows and empty ha":
-    "the filter chip row (div.nf-scroll-x, ChipRow bleed) spans -4 to 394px in a 390px window in every locale: its bleed assumes a wider gutter than nf-shell gives",
-  "Notifications list, fixture rows and empty ig":
-    "the filter chip row (div.nf-scroll-x, ChipRow bleed) spans -4 to 394px in a 390px window in every locale: its bleed assumes a wider gutter than nf-shell gives",
-  "Notifications list, fixture rows and empty yo":
-    "the filter chip row (div.nf-scroll-x, ChipRow bleed) spans -4 to 394px in a 390px window in every locale: its bleed assumes a wider gutter than nf-shell gives",
 };
 
 describe.skipIf(!hasBrowser && !process.env.CI)("locale fit: inbox, thread, notifications, settings and passport at 390px", () => {
