@@ -585,3 +585,15 @@ export const SETTINGS_PAY_DOOR = {
   refunds: { title: "Refunds", sub: "Where each refund stands" },
   payouts: { title: "Payouts", sub: "What you received, with the platform fee in naira" },
 } as const;
+
+/* -------------------------------------------------------------------------- */
+/* /host/bookings: a hotel answering a room request (C5, the route sweep)      */
+/* -------------------------------------------------------------------------- */
+
+/** Under the room bookings heading, after how accepting works. */
+export const HOST_ROOM_BOOKING_PAYMENT =
+  "Once it is approved on Vallo, the guest pays by card and your share goes straight to your default bank account.";
+/** The total on the accept sheet: what the guest is asked for, not what the host receives. */
+export const HOST_ROOM_TOTAL_LABEL = "Total the guest pays";
+/** The last step after accepting. */
+export const HOST_ROOM_GUEST_PAYS_NEXT = "The guest pays by card once it is approved.";

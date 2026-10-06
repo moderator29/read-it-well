@@ -87,7 +87,7 @@ export function DecideView({
           ) : (
             <ul className="nf-decide__list" data-testid="decide-list">
               {sorted.map((item) => (
-                <DecideRow key={`${item.kind}-${item.id}`} item={item} now={now} locale={locale} counts={t.counts} />
+                <DecideRow key={`${item.kind}-${item.id}`} item={item} now={now} locale={locale} counts={t.counts} answer={t.experienceHost.bookings.answer} />
               ))}
             </ul>
           )}
@@ -158,11 +158,14 @@ function DecideRow({
   now,
   locale,
   counts,
+  answer,
 }: {
   item: DecideRowData;
   now: number;
   locale: Locale;
   counts: ReturnType<typeof getDictionary>["counts"];
+  /** The room answer sheet's words (RoomRequestAnswer). */
+  answer: ReturnType<typeof getDictionary>["experienceHost"]["bookings"]["answer"];
 }) {
   const clock = clockFor(item.openedAt, item.deadline, now);
   const lapseWords = `Lapses ${LAGOS_WHEN.format(new Date(item.deadline))}`;
@@ -189,6 +192,7 @@ function DecideRow({
         <p className="nf-caption">{lapseWords}. If nobody answers, the request lapses and the nights go back on sale.</p>
         <RoomRequestAnswer
           bookingId={b.id}
+          words={answer}
           summary={{
             guestName: b.guestName,
             room: b.room,
