@@ -26,6 +26,16 @@ export const experienceMoneyEn = {
        about the search, never about the home, so it labels nothing (D24). */
     similar: "See similar homes nearby",
   },
+  /* /payments, the page's own words (C9). Every sentence about money on it is
+     lib/money/copy.ts's; these are its title, its signed-out door and the
+     list's heading. */
+  payments: {
+    title: "Payments",
+    signInTitle: "Sign in to see your payments",
+    signIn: "Sign in",
+    seeAgreements: "See your agreements",
+    listHeading: "Your payments and refunds",
+  },
   /* /bookings and /bookings/[id] (reference 7071). */
   bookings: {
     receiptTitle: "Your receipt",

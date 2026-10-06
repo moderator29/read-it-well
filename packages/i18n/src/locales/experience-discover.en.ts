@@ -44,6 +44,16 @@ export const experienceDiscoverEn = {
        (HomeScreen, CityRow), moved out of the components (Round 3 sweep, C3).
        `{city}` is the place. */
     welcome: "Welcome to Vallo",
+    /* The greeting over a name, by the Lagos daypart (`daypartFor`), and the
+       name when a signed-in account has no first name (C9, moved word for
+       word from lib/app/home-queries.ts and the two home screens). */
+    greeting: {
+      morning: "Good morning,",
+      afternoon: "Good afternoon,",
+      evening: "Good evening,",
+      night: "Good evening,",
+    },
+    there: "there",
     signIn: "Sign in",
     signInRest: "and this screen becomes yours: your city, your places, your name.",
     chooseCity: "Choose your city",

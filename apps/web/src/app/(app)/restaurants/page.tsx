@@ -4,6 +4,7 @@ import { getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getListingRepository } from "@/lib/listings/repository";
 import { listRestaurants } from "@/lib/stays/queries";
+import { hoursLabel } from "@/lib/stays/hours";
 import { businessCoverUrls } from "@/lib/stays/business-photos";
 import { StayCard } from "@/components/app/stays/StayCard";
 import { stayCardFromListing, type StayCardData } from "@/components/app/stays/stay-card-model";
@@ -62,7 +63,7 @@ export default async function RestaurantsPage() {
       standIn: restaurantPlate(venue.business.id),
       verified: false,
       isDemo: venue.business.is_demo,
-      hours: { openNow: venue.open_now, label: venue.hours_label },
+      hours: { openNow: venue.open_now, label: hoursLabel(venue.hours, t.experienceDetail.hours) },
       rating: null,
       nightlyMinor: null,
       currency: "NGN",

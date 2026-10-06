@@ -8,6 +8,7 @@ import { formatNumber } from "@vallo/i18n";
 import type { UiIconName } from "@/design-system/icons/UiIcon";
 import type { SpecPair } from "@/components/app/listing/DetailAnatomy";
 import { getRestaurantDetail } from "@/lib/stays/queries";
+import { hoursLabel } from "@/lib/stays/hours";
 import { listBusinessPhotos } from "@/lib/stays/business-photos";
 import { listSavedPlaces } from "@/lib/saved/places-actions";
 import { isSaved, savedKeySet } from "@/lib/saved/places";
@@ -222,7 +223,7 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
   /* The hours, when the venue has published them through lib/stays
      (service windows on the business-grade schema). A listing with none
      keeps the honest line below rather than a guessed badge. */
-  const hours = detail ? { openNow: detail.open_now, label: detail.hours_label } : null;
+  const hours = detail ? { openNow: detail.open_now, label: hoursLabel(detail.hours, t.experienceDetail.hours) } : null;
 
   /* A business venue's shortlist is `saved_places` under the restaurant kind,
      keyed on the business id exactly as `catalogue_entries` files it; a

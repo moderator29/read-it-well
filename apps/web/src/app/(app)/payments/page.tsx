@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { readMyPayments } from "@/lib/money/history";
 import { parseBefore } from "@/lib/money/history-model";
@@ -34,7 +35,12 @@ const DOORS: { href: string; icon: UiIconName; key: keyof typeof PAYMENTS_DOOR }
   { href: "/agreements", icon: "file-check", key: "agreements" },
 ];
 
-export const metadata: Metadata = { title: "Payments", robots: { index: false, follow: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: getDictionary(await getLocale()).experienceMoney.payments.title,
+    robots: { index: false, follow: false },
+  };
+}
 export const dynamic = "force-dynamic";
 
 /**
@@ -58,22 +64,24 @@ export default async function PaymentsPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const locale = await getLocale();
+  /* The page's own words; every sentence about money is lib/money/copy.ts's. */
+  const words = getDictionary(locale).experienceMoney.payments;
   const params = await searchParams;
   const before = parseBefore(params.before);
   const [read, balances] = await Promise.all([readMyPayments(before), readMyBalances()]);
 
   return (
     <main className="nf-page nf-md nf-history">
-      <PageHeader title="Payments" fallback="/home" />
+      <PageHeader title={words.title} fallback="/home" />
 
       {read.state === "signed-out" ? (
         <EmptyState
           icon="receipt-check"
-          title="Sign in to see your payments"
+          title={words.signInTitle}
           body={HISTORY_NOT_A_BALANCE}
           action={
             <ButtonLink href={withNext("/sign-in", "/payments")} variant="primary" size="lg">
-              Sign in
+              {words.signIn}
             </ButtonLink>
           }
         />
@@ -103,7 +111,7 @@ export default async function PaymentsPage({
             <HistoryEmpty
               title={PAYMENTS_EMPTY_TITLE}
               body={PAYMENTS_EMPTY_BODY}
-              next={{ href: "/agreements", label: "See your agreements" }}
+              next={{ href: "/agreements", label: words.seeAgreements }}
             />
           ) : (
             <HistoryList
@@ -112,7 +120,7 @@ export default async function PaymentsPage({
               basePath="/payments"
               paged={before !== null}
               locale={locale}
-              heading="Your payments and refunds"
+              heading={words.listHeading}
               /* Each row opens its booking, where the stay or tenancy and
                  its receipt live. A row with no booking stays a plain row. */
               linkToBooking

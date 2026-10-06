@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { forListingCard } from "@/lib/i18n/slice";
 import { intlTag, type Dictionary, type Locale } from "@vallo/i18n/core";
 import type { Listing } from "@/lib/listings/types";
-import { DAYPART_GREETING, type HomeOverview } from "@/lib/app/home-queries";
+import type { HomeOverview } from "@/lib/app/home-queries";
 import { ListingCard } from "@/components/app/ListingCard";
 import { CityRow } from "@/components/app/home/CityRow";
 import { withNext } from "@/lib/auth/next-link";
@@ -119,8 +119,8 @@ export function HomeScreen({
   /** True when the featured shelf was ordered by `interests`, so it says so. */
   intentApplied?: boolean;
 }) {
-  const greeting = DAYPART_GREETING[overview.daypart];
-  const name = overview.firstName || (overview.signedIn ? "there" : "");
+  const greeting = t.experienceDiscover.home.greeting[overview.daypart];
+  const name = overview.firstName || (overview.signedIn ? t.experienceDiscover.home.there : "");
   const copy = t.directHome;
   const dx = t.experienceDiscover.home;
 

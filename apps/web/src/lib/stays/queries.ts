@@ -270,7 +270,7 @@ export async function getRestaurantDetail(
       profile: profileRes.data ?? null,
       windows,
       open_now: state.open_now,
-      hours_label: state.hours_label,
+      hours: state.hours,
     };
   } catch {
     return null;
@@ -328,7 +328,7 @@ export async function listRestaurants(
         business,
         profile: profiles.get(business.id) ?? null,
         open_now: state.open_now,
-        hours_label: state.hours_label,
+        hours: state.hours,
       };
     });
 

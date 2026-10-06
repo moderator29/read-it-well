@@ -13,7 +13,7 @@ import { CategoryRow, type HomeCategory } from "@/components/app/home/CategoryRo
 import { CityRow } from "@/components/app/home/CityRow";
 import { FeaturedBand } from "@/components/app/home/FeaturedBand";
 import { HomeHero } from "@/components/app/home/HomeHero";
-import { DAYPART_GREETING, getHomeOverview } from "@/lib/app/home-queries";
+import { getHomeOverview } from "@/lib/app/home-queries";
 import { LogoMark } from "@/design-system/brand/Logo";
 import { DiscoveryEmpty } from "@/components/app/search/DiscoveryEmpty";
 import { AreaFigure, type AreaShelfSummary } from "@/components/app/stays/AreaFigure";
@@ -122,8 +122,9 @@ export default async function StaysHomePage() {
    */
   const areaSummary: AreaShelfSummary | null = null;
 
-  const greeting = DAYPART_GREETING[overview.daypart];
-  const name = overview.firstName || (overview.signedIn ? "there" : "");
+  /* The greeting and the welcome are HomeScreen's words (`experienceDiscover.home`). */
+  const greeting = t.experienceDiscover.home.greeting[overview.daypart];
+  const name = overview.firstName || (overview.signedIn ? t.experienceDiscover.home.there : "");
   const stays = t.directHome.stays;
 
   /*
@@ -186,7 +187,7 @@ export default async function StaysHomePage() {
           </h1>
         ) : (
           <h1 className="nf-rise nf-rise-2 mt-inline-tight">
-            <span className="nf-h1">Welcome to Vallo</span>
+            <span className="nf-h1">{t.experienceDiscover.home.welcome}</span>
           </h1>
         )}
         <CityRow

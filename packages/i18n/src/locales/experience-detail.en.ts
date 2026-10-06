@@ -93,6 +93,22 @@ export const experienceDetailEn = {
     restaurantBody: "This restaurant is not holding tables on Vallo. Other restaurants nearby are a tap away.",
     restaurantAction: "More restaurants",
   },
+  /*
+   * A restaurant's opening hours on the Lagos clock (lib/stays/hours.ts), on
+   * its card and its page (C9, moved word for word). `{time}`, `{opens}` and
+   * `{closes}` are 24-hour clock times, "18:00".
+   */
+  hours: {
+    /* No timetable published at all: NOT "Closed today", which would be a claim. */
+    unknown: "Hours not published",
+    openUntil: "Open until {time}",
+    closedToday: "Closed today",
+    opensAt: "Opens at {time}",
+    closedForToday: "Closed for today",
+    /* One weekday's hours: each window, joined. */
+    closed: "Closed",
+    range: "{opens} to {closes}",
+  },
   /* The table window picker on a restaurant. */
   window: {
     closedThatDay: "Not seating on this day. Pick another day.",
