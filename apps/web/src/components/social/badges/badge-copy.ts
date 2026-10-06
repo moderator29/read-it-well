@@ -18,6 +18,8 @@ export function badgeCopyOf(t: Dictionary): BadgeRowCopy {
     back: p.momentBack,
     shareText: p.momentShareText,
     copied: p.momentCopied,
+    /* The platform's one sentence for a share that went nowhere. */
+    copyFailed: t.details.share.failed,
     replayHint: p.momentReplayHint,
   };
 }

@@ -38,15 +38,28 @@ const COPY = {
   back: "Back",
   shareText: "I earned {badge} on Vallo.",
   copied: "Copied. Paste it anywhere.",
+  copyFailed: "Could not share from this browser. Copy the address instead.",
   replayHint: "Tap the medal to see it again",
 };
 
 const DAY = 24 * 60 * 60 * 1000;
 
-function entry(isOwner: boolean, count = 8) {
+/*
+ * Where Share goes. "sheet": the browser has a share sheet. "clipboard": none,
+ * and the clipboard takes the link only after `CLIPBOARD_MS`. "denied": none,
+ * and neither the async clipboard nor the old execCommand path takes it.
+ */
+type ShareEnv = "sheet" | "clipboard" | "denied";
+const CLIPBOARD_MS = 600;
+
+function entry(isOwner: boolean, count = 8, env: ShareEnv = "sheet") {
   return `
     import { BadgeRow } from "@/components/social/badges/BadgeRow";
     import { mount } from "@/lib/testing/browser-root";
+    import { subscribeToast } from "@/lib/ui/toast";
+    /* Every message the one toast host would draw, with its tone. */
+    window.__toasts = [];
+    subscribeToast((item) => { if (item) window.__toasts.push([item.message, item.tone]); });
     const now = Date.now();
     const badges = ${JSON.stringify(
       Array.from({ length: count }, (_, i) => ({
@@ -60,10 +73,24 @@ function entry(isOwner: boolean, count = 8) {
       })),
     )}.map((b, i) => ({ ...b, grantedAt: new Date(now - i * ${DAY}).toISOString() }));
     window.__shared = [];
-    navigator.share = (data) => { window.__shared.push(data); return Promise.resolve(); };
+    window.__clipboard = [];
+    const env = ${JSON.stringify(env)};
+    if (env === "sheet") {
+      navigator.share = (data) => { window.__shared.push(data); return Promise.resolve(); };
+    } else {
+      Object.defineProperty(navigator, "share", { value: undefined, configurable: true });
+      const writeText = env === "clipboard"
+        ? (text) => new Promise((done) => setTimeout(() => { window.__clipboard.push(text); done(); }, ${CLIPBOARD_MS}))
+        : () => Promise.reject(new DOMException("denied", "NotAllowedError"));
+      Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
+      document.execCommand = () => false;
+    }
     mount(<BadgeRow badges={badges} isOwner={${isOwner}} copy={${JSON.stringify(COPY)}} shareUrl="https://example.test/u/seyi" />);
   `;
 }
+
+const toasts = (page: import("playwright-core").Page) =>
+  page.evaluate(() => (window as unknown as { __toasts: [string, string][] }).__toasts);
 
 async function maybeShot(page: import("playwright-core").Page, name: string) {
   const dir = process.env.W4_SHOTS_DIR;
@@ -121,13 +148,48 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the badge row", () => {
       await moment.waitFor();
       expect((await moment.innerText()).toLowerCase()).toContain("badge earned");
       await page.getByRole("button", { name: "Share" }).click();
-      expect(await page.evaluate(() => (window as unknown as { __shared: unknown[] }).__shared.length)).toBe(1);
+      await page.waitForFunction(() => (window as unknown as { __shared: unknown[] }).__shared.length === 1);
+      /* The sheet took it: nothing claims a copy. */
+      expect(await toasts(page)).toEqual([]);
       const shared = await page.evaluate(() => (window as unknown as { __shared: { text: string; url: string }[] }).__shared[0]);
       expect(shared?.text).toBe("I earned Verified agent on Vallo.");
       expect(shared?.url).toBe("https://example.test/u/seyi");
       await maybeShot(page, "badge-moment");
       await page.getByRole("button", { name: "Back" }).click();
       await page.getByTestId("badge-moment").waitFor({ state: "detached" });
+    } finally {
+      await close();
+    }
+  });
+
+  /* D49.3: the toast used to say "Copied" before, and regardless of, the clipboard's answer. */
+  it("says Copied only after the clipboard has actually taken the link", async () => {
+    const { page, close } = await mountInBrowser({ entry: entry(true, 8, "clipboard"), css: CSS });
+    try {
+      await page.getByTestId("badge-code-0").click();
+      await page.getByTestId("badge-moment").waitFor();
+      await page.getByRole("button", { name: "Share" }).click();
+      await page.waitForTimeout(CLIPBOARD_MS / 3);
+      expect(await page.evaluate(() => (window as unknown as { __clipboard: string[] }).__clipboard)).toEqual([]);
+      expect(await toasts(page)).toEqual([]);
+      await page.waitForFunction(() => (window as unknown as { __toasts: unknown[] }).__toasts.length > 0);
+      expect(await toasts(page)).toEqual([[COPY.copied, "success"]]);
+      expect(await page.evaluate(() => (window as unknown as { __clipboard: string[] }).__clipboard)).toEqual([
+        "https://example.test/u/seyi",
+      ]);
+    } finally {
+      await close();
+    }
+  });
+
+  it("never says Copied when nothing was copied, and says what to do instead", async () => {
+    const { page, close } = await mountInBrowser({ entry: entry(true, 8, "denied"), css: CSS });
+    try {
+      await page.getByTestId("badge-code-0").click();
+      await page.getByTestId("badge-moment").waitFor();
+      await page.getByRole("button", { name: "Share" }).click();
+      await page.waitForFunction(() => (window as unknown as { __toasts: unknown[] }).__toasts.length > 0);
+      expect(await toasts(page)).toEqual([[COPY.copyFailed, "error"]]);
     } finally {
       await close();
     }

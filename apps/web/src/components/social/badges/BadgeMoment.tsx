@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
 import { Toast, useToast } from "@/components/ui/Toast";
 import { motionQuiet } from "@/lib/motion/gate";
+import { copyText, shareOrCopy } from "@/lib/ui/clipboard";
 import { feedback } from "@/lib/ui/feedback";
 import { badgeObject } from "./badge-art";
 import type { ProfileBadge } from "./badge-model";
@@ -18,7 +19,10 @@ export type BadgeMomentCopy = {
   back: string;
   /** "{badge}" is replaced with the badge's name. */
   shareText: string;
+  /** Said only once the clipboard has actually taken the words. */
   copied: string;
+  /** Said when neither the share sheet nor the clipboard took them. */
+  copyFailed: string;
   replayHint: string;
 };
 
@@ -76,17 +80,24 @@ export function BadgeMoment({
     setPlay((n) => n + 1);
   };
 
-  const share = () => {
+  /*
+   * The platform's one share path (`lib/ui/clipboard.ts`): the phone's own
+   * sheet, then the clipboard. "Copied" is said only AFTER the clipboard has
+   * taken it, and only if it did; a cancelled sheet says nothing (D49.3: this
+   * used to say "Copied" before, and regardless of, the clipboard's answer).
+   */
+  const share = async () => {
     const text = copy.shareText.replace("{badge}", badge.name);
-    if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
-      void navigator.share({ title: badge.name, text, ...(shareUrl ? { url: shareUrl } : {}) }).catch(() => {
-        /* Cancelling a share sheet is not a failure and gets no message. */
-      });
-      return;
-    }
-    if (typeof navigator !== "undefined" && navigator.clipboard) {
-      void navigator.clipboard.writeText(shareUrl ? `${text} ${shareUrl}` : text);
-      show(copy.copied);
+    const outcome = shareUrl
+      ? await shareOrCopy({ url: shareUrl, title: badge.name, text })
+      : (await copyText(text))
+        ? "copied"
+        : "failed";
+    if (outcome === "copied") {
+      feedback("select");
+      show(copy.copied, "success");
+    } else if (outcome === "failed") {
+      show(copy.copyFailed, "error");
     }
   };
 
@@ -123,7 +134,7 @@ export function BadgeMoment({
         <p className="nf-moment__line">{badge.description}</p>
         <p className="nf-moment__date">{badge.grantedLabel}</p>
         <div className="nf-moment__actions">
-          <Button variant="primary" size="lg" full leadingIcon="share" onClick={share}>
+          <Button variant="primary" size="lg" full leadingIcon="share" onClick={() => void share()}>
             {copy.share}
           </Button>
           <Button variant="quiet" size="lg" full onClick={onClose}>
