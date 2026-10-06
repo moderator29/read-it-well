@@ -1038,7 +1038,9 @@
   .nf-tabbar .nf-tab {
     flex: 1 1 0;
     min-width: 2.75rem;
-    transition: flex-grow var(--nf-duration-slow) var(--nf-ease-spring);
+    /* On the pill's own rung (`drift` 240ms), so the slot, its word and its
+       pill move as one. */
+    transition: flex-grow var(--nf-duration-base) var(--nf-ease-spring);
   }
   .nf-tabbar .nf-tab--switch {
     flex: 0 0 3.25rem;
@@ -1081,11 +1083,14 @@
     font-weight: 600;
     line-height: 1.2;
     letter-spacing: 0;
+    /* `drift` at 240ms, the dock pill's number (MOTION_SYSTEM "Dock pill":
+       springs to the tapped slot, arriving before the route). It was the
+       `slow` rung (380ms), which is slower than the route it should lead. */
     transition:
-      max-width var(--nf-duration-slow) var(--nf-ease-spring),
-      margin var(--nf-duration-slow) var(--nf-ease-spring),
+      max-width var(--nf-duration-base) var(--nf-ease-spring),
+      margin var(--nf-duration-base) var(--nf-ease-spring),
       opacity var(--nf-duration-base) var(--nf-ease-standard),
-      transform var(--nf-duration-slow) var(--nf-ease-spring);
+      transform var(--nf-duration-base) var(--nf-ease-spring);
   }
   /* The pill: drawn by the link's own layer, so it scales in rather than
      pushing anything, and no control carries a capsule radius of its own. */
@@ -1100,7 +1105,7 @@
     transform: scale(0.7, 0.86);
     transition:
       opacity var(--nf-duration-base) var(--nf-ease-standard),
-      transform var(--nf-duration-slow) var(--nf-ease-spring);
+      transform var(--nf-duration-base) var(--nf-ease-spring);
   }
   /* No dot any more: the pill and the word carry the state. */
   .nf-tabbar :is(.nf-tab__link[aria-current="page"], .nf-tab__link[data-on])::after {
