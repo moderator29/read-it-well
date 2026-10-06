@@ -386,9 +386,9 @@ export const NOTIFICATIONS = [
   {
     id: "00000000-0000-4000-8000-00000000f204",
     kind: "wallet",
-    title: "Your wallet top up cleared",
+    title: "Your receipt for the Lekki stay is ready",
     body: null,
-    href: "/wallet",
+    href: "/payments",
     read: true,
     createdAt: "2026-09-18T11:30:00.000Z",
   },

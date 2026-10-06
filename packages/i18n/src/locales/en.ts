@@ -1970,8 +1970,10 @@ export const en = {
         bookingsSub: "Requests, confirmations and changes to your stays.",
         messages: "Messages",
         messagesSub: "New replies from hosts and agents you are talking to.",
-        wallet: "Payments and receipts",
-        walletSub:
+        /* The Payments channel. Stored as `wallet` in profiles.settings until
+           Session 2 renames the key (D48 step 2); the words never say wallet. */
+        payments: "Payments",
+        paymentsSub:
           "Emails when you pay, when a refund is on its way, your receipts, and decisions on your agreements and Guarantee claims. Anything about your money's safety still appears in the app.",
         marketing: "Ideas and offers",
         marketingSub: "Occasional highlights from around Nigeria. Off by default.",
@@ -1984,8 +1986,10 @@ export const en = {
         bookingsSub: "New requests, cancellations and payments on your listings.",
         messages: "Messages",
         messagesSub: "New enquiries from guests about your listings.",
-        wallet: "Payments and payouts",
-        walletSub:
+        /* The Payments channel. Stored as `wallet` in profiles.settings until
+           Session 2 renames the key (D48 step 2); the words never say wallet. */
+        payments: "Payments",
+        paymentsSub:
           "Emails when a renter or guest pays you, and when your share settles to your bank. Anything about your money's safety still appears in the app.",
         marketing: "Ideas and offers",
         marketingSub: "Hosting tips and what is moving in your area. Off by default.",
@@ -3170,20 +3174,6 @@ export const en = {
    * Kano works the same queues as an operator in Lagos.
    */
 
-  /*
-   * The wallet's own vocabulary.
-   *
-   * These were two hard-coded English maps in `components/app/wallet/kinds.ts`,
-   * read by the ledger, the recent activity strip and the receipt. Money is the
-   * one place on this platform where a reader should never have to work out
-   * what a word means, and three of the four languages were being handed
-   * English.
-   *
-   * The three escrow labels say what the platform actually does and never use
-   * the word escrow, because the terms of service say in bold that we do not
-   * hold money in escrow, and a ledger row contradicting the contract is the
-   * fault F2-001 was about.
-   */
   /**
    * THE APPLICANT'S OWN VERIFICATION SCREEN, WHICH WAS THE LAST ONE ENTIRELY IN
    * ENGLISH.
@@ -4053,141 +4043,14 @@ export const en = {
         lastClean: "Last clean run",
         noneRecorded: "None recorded",
       },
-      evidence: {
-        facts: {
-          viewing_attended: "The inspection happened",
-          viewing_missed: "The inspection did not happen",
-          keys_received: "The keys were handed over",
-          keys_not_received: "The keys were not handed over",
-          agreement_signed: "An agreement was signed",
-          agreement_not_signed: "No agreement was signed",
-          service_delivered: "The work was done",
-          service_not_delivered: "The work was not done",
-          property_matched_listing: "The property matched the listing",
-          property_differed_from_listing: "The property was not what the listing said",
-          contacted_on: "Got in touch with the other side",
-          no_reply_since: "No reply from the other side since",
-          amount_agreed: "The amount agreed",
-        },
-        aFact: "A fact",
-        factOn: "{fact} on {date}",
-        factAmount: "{fact}: {amount}",
-        sizeBytes: "{size} bytes",
-        sizeKb: "{size} KB",
-        sizeMb: "{size} MB",
-        kindFile: "File",
-        kindPdf: "PDF",
-        kindImage: "Image",
-        payer: "Payer · {name}",
-        payee: "Payee · {name}",
-        neither: "Neither party · {name}",
-        noDisplayName: "no display name",
-        label: "Evidence filed on this dispute",
-        title: "Evidence filed",
-        titleCount: "Evidence filed ({count})",
-        unreadTitle: "The evidence could not be read",
-        unreadBody:
-          "What each side has filed on this dispute. The read did not answer just now, which is not the same as nothing being filed. Reload before ruling.",
-        noneTitle: "Nothing has been filed on this dispute",
-        noneFills:
-          "Every receipt, photograph, message screenshot and dated fact either side files, with who filed it and when.",
-        noneCreates:
-          "Each side files from their own held payment page. Items appear here as they are filed and cannot be edited or removed.",
-        aFile: "A file",
-        openFile: "Open file",
-        cannotOpen: "Could not be opened just now",
-      },
-      stuckTitle: "Stuck, and somebody is waiting",
-      stuckHint: "{count} pending over half an hour",
-      stuckBody:
-        "These debits have been PENDING for over half an hour. The money has left a spendable balance and has not arrived anywhere. The stale hold sweeper releases withdrawal holds on a schedule; anything here that is not a withdrawal has not got a sweeper and needs a person.",
-      settledLabel: "Settled this week",
       vsSevenDaysBefore: "vs the 7 days before",
-      settledNote: "Completed wallet entries, last 7 days",
-      failedLabel: "Failed charges",
-      failedNote: {
-        one: "{count} failed card or top-up charge this week",
-        other: "{count} failed card or top-up charges this week",
-      },
-      failedNoteUnread: "Card and top-up charges that failed this week",
       incomplete:
         "The ledger is larger than this desk reads in one pass, so the figures above are at least these amounts rather than totals.",
-      summaryTitle: "Transaction summary",
-      last30Days: "Last 30 days",
       moneyIn: "Money in",
-      moneyOut: "Money out",
-      net: "Net",
-      ledgerUnreadTitle: "The ledger could not be read",
-      summaryUnreadBody:
-        "Money in, money out and the difference over the last 30 days, across every wallet. The read did not answer just now; nothing about the money itself is implied. Reload in a moment.",
-      searchLabel: "Find a person, a wallet or a payment",
-      searchPlaceholder: "Name, wallet id or reference",
-      ledgerTitle: "Ledger",
-      ledgerUnreadBody:
-        "Every wallet entry, newest first, with the platform float after each one. The read did not answer just now; reload in a moment.",
-      matchingFilter: "Matching this filter",
-      newestForty: "Newest first, up to forty",
-      settled: "Settled",
-      settledHintNarrowed: "Across the wallets matching this filter",
-      settledHint: "Across the wallets listed below, newest first",
-      heldPending: "Held pending",
-      heldPendingHint: "Debits that have left a spendable balance and not settled",
-      held: "{amount} held",
-      disputesTitle: "Disputed holds waiting on a ruling",
-      disputesBody:
-        "Somebody objected and the money is held until a person rules. Release pays the payee; refund returns it to the payer. Both people are sent your ruling word for word, and the transition is in the audit log. The full desk is at",
-      disputeLine: "{payer} paid, {payee} waits",
-      thePayer: "the payer",
-      thePayee: "the payee",
-      rentState: {
-        awaiting: "Awaiting payment",
-        paid: "Paid",
-        no_show: "Did not move in",
-        check: "Needs a look",
-      },
-      rentPeriod: { month: "Monthly", quarter: "Quarterly", year: "Yearly" },
-      rentTitle: "Tenancy charges",
-      rentUnreadTitle: "Tenancy charges could not be read",
-      rentUnreadBody:
-        "Every move-in charge by where it stands, and the newest ones. The read did not answer just now; nothing about the charges themselves is implied. Reload in a moment.",
-      rentHint: { one: "{count} charge", other: "{count} charges" },
-      rentHintPartial: {
-        one: "{count} charge, more than one pass reads",
-        other: "{count} charges, more than one pass reads",
-      },
-      rentByState: "Tenancy charges by state",
-      rentEnded: "Cancelled or did not move in",
-      rentCaption: "The newest tenancy charges",
-      opened: "Opened",
-      tenancy: "Tenancy",
-      moveIn: "Move-in",
       total: "Total",
       state: "State",
-      rentNoneTitle: "No tenancy charge yet",
-      rentNoneFills:
-        "Every move-in charge by where it stands, what is paid and what is awaited, and the newest charges.",
-      rentNoneCreates:
-        "A charge opens when a tenant starts paying the move-in costs on an inspection the lister accepted.",
-      flowTitle: "Money in vs money out",
-      flowUnreadBody:
-        "Settled money coming into wallets against settled money leaving them, month by month for a year. The read did not answer just now; reload in a moment.",
-      flowNoneTitle: "No money has settled yet",
-      flowOneMonth: "One month of settled money so far ({month})",
-      flowFills: "Settled money into wallets against settled money out, month by month for a year.",
-      flowCreates:
-        "Every top-up, booking payment, payout and refund that completes adds to it. A line needs a second month, so none is drawn.",
-      flowLabel: "Settled money in and out of wallets by month",
-      ledgerFoot: "The balance column is the platform float, so it is shown only for the unfiltered ledger.",
-      date: "Date",
-      description: "Description",
       type: "Type",
       amount: "Amount",
-      balance: "Balance",
-      ledgerNoneTitle: "No money has moved yet",
-      ledgerNoneFills: "Every wallet entry, newest first, with the platform float after each one.",
-      ledgerNoneCreates: "A top-up, a booking payment, a payout or a refund writes the first entry.",
-      credit: "Credit",
-      debit: "Debit",
       entries: "entries",
       refundState: {
         submitted: "Sent back to the card",
@@ -4316,9 +4179,6 @@ export const en = {
       lede: "Money coming in, and anything stuck, short or waiting on the provider.",
       healthTitle: "Health",
       healthHint: "Money that is stuck, short, or waiting on the provider",
-      shortfall: "Ledger shortfall",
-      addsUp: "Every wallet adds up",
-      belowZero: { one: "1 wallet is below zero", other: "{count} wallets are below zero" },
       frozen: "Frozen by stuck holds",
       nothingHeld: "Nothing is held past its window",
       olderThan: {
@@ -4332,12 +4192,7 @@ export const en = {
       clearFills:
         "No wallet is overdrawn, no withdrawal is held past its window, and the provider has settled everything it was sent in the last thirty days.",
       clearCreates: "An overdrawn wallet, a stuck hold or an unsettled payment appears here the moment one exists.",
-      overdrawnTitle: "Overdrawn wallets",
-      overdrawnHint:
-        "A wallet whose settled entries sum below zero. This is not a delay, it is an arithmetic failure in the ledger, and it has no button here on purpose: an adjusting entry typed into a web form would bury the evidence an engineer needs to find the cause.",
       owner: "Owner",
-      wallet: "Wallet",
-      balance: "Balance",
       nameNotOnFile: "Name not on file",
       stuckTitle: "Stuck withdrawal holds",
       stuckHint:
@@ -4859,16 +4714,6 @@ export const en = {
       cancelled: "This stay was cancelled.",
     },
   },
-
-  /**
-   * /wallet/send: a whole page for sending to another Vallo wallet.
-   * Added 18 September 2026.
-   */
-
-  /**
-   * /wallet/receive: your handle, your address, a request to share.
-   * Added 18 September 2026.
-   */
 
   /**
    * /settings/payments: "Payment methods". Cards you pay with, accounts you

@@ -78,7 +78,24 @@ function saveNote(t: SettingsOf<"account">, saved: boolean, error: string | null
 
 /* --------------------------------------------------------- notifications */
 
-type NotifyKey = "bookings" | "messages" | "wallet" | "marketing" | "savedPriceDrops";
+type NotifyKey = "bookings" | "messages" | "payments" | "marketing" | "savedPriceDrops";
+
+/**
+ * Where each switch is stored in `profiles.settings.notifications`.
+ *
+ * The Payments switch is persisted under the key `wallet`, a name from the
+ * retired custody model (D48). Renaming a persisted key needs a migration
+ * that carries every member's existing choice across, and that migration is
+ * Session 2's (R3-31). Until it lands the switch reads and writes `wallet`, so
+ * nobody's saved preference is lost, and the name never reaches a screen.
+ */
+const STORED = {
+  bookings: "bookings",
+  messages: "messages",
+  payments: "wallet",
+  marketing: "marketing",
+  savedPriceDrops: "savedPriceDrops",
+} as const satisfies Record<NotifyKey, keyof ResolvedProfileSettings["notifications"]>;
 
 /**
  * The same four switches, described from where you are standing.
@@ -107,23 +124,23 @@ export function AccountNotificationsCard({
   const copy: Record<NotifyKey, [string, string]> = {
     bookings: [words.bookings, words.bookingsSub],
     messages: [words.messages, words.messagesSub],
-    wallet: [words.wallet, words.walletSub],
+    payments: [words.payments, words.paymentsSub],
     marketing: [words.marketing, words.marketingSub],
     savedPriceDrops: [words.savedPriceDrops, words.savedPriceDropsSub],
   };
 
   const flip = (key: NotifyKey, next: boolean) => {
     const previous = value;
-    setValue({ ...value, [key]: next });
-    save({ notifications: { [key]: next } }, () => setValue(previous));
+    const stored = STORED[key];
+    setValue({ ...value, [stored]: next });
+    save({ notifications: { [stored]: next } }, () => setValue(previous));
   };
 
-  /* The `wallet` key is the stored preference's name; what it covers is
-     payment and receipt emails, so the glyph is a document (custody retired). */
+  /* Payments covers payment and receipt emails, so the glyph is a document. */
   const ICON: Record<NotifyKey, "calendar-booking" | "chat-bubble" | "document" | "sparkle" | "price-tag"> = {
     bookings: "calendar-booking",
     messages: "chat-bubble",
-    wallet: "document",
+    payments: "document",
     marketing: "sparkle",
     savedPriceDrops: "price-tag",
   };
@@ -135,7 +152,7 @@ export function AccountNotificationsCard({
         icon={ICON[key]}
         label={label}
         sub={description}
-        checked={value[key] ?? true}
+        checked={value[STORED[key]] ?? true}
         onChange={(next) => flip(key, next)}
         disabled={pending}
       />
@@ -146,7 +163,7 @@ export function AccountNotificationsCard({
     <SettingsGroup label={t.settings.notifications.label} note={saveNote(t, saved, error)}>
       {row("bookings")}
       {row("messages")}
-      {row("wallet")}
+      {row("payments")}
       {/* B13: guests only; a host's listings are not somebody's saves. */}
       {variant === "guest" ? row("savedPriceDrops") : null}
       {row("marketing")}

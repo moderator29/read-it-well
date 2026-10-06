@@ -25,6 +25,12 @@ export function phoneDigits(value: string): number {
 export type NotificationSettings = {
   bookings: boolean;
   messages: boolean;
+  /**
+   * The Payments channel: payment, receipt and payout emails. The stored key
+   * is still `wallet`, a name from the retired custody model (D48), because
+   * renaming a persisted key needs Session 2's migration (R3-31). The screen
+   * calls it Payments (`AccountToggles.tsx`).
+   */
   wallet: boolean;
   marketing: boolean;
   /** B13: push for a price drop on a saved place. On by default. */

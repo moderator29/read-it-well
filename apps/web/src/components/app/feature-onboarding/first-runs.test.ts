@@ -4,7 +4,6 @@ import { TIERED_OBJECTS } from "@/design-system/icons/object-assets";
 import {
   FIRST_RUN_HOME,
   MOUNTED_FIRST_RUNS,
-  WAITING_FIRST_RUNS,
   canMount,
   firstRunContent,
   isMountedFirstRun,
@@ -67,10 +66,11 @@ describe("every mounted first run keeps the grammar", () => {
   });
 });
 
-describe("waiting first runs cannot mount", () => {
-  it.each(WAITING_FIRST_RUNS)("%s has no screen and no money sentence yet, so it is refused", (feature) => {
+describe("a first run exists only for a screen that exists", () => {
+  /* D48: wallet, escrow and withdrawal were deleted, not parked. The guard
+     that keeps them out is `lib/copy/custody-words.test.ts`. */
+  it.each(["wallet", "escrow", "withdrawal"])("%s is not a first run", (feature) => {
     expect(isMountedFirstRun(feature)).toBe(false);
-    expect(canMount(firstRunContent(feature, t))).toBe(false);
   });
 });
 

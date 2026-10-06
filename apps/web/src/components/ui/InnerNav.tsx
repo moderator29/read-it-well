@@ -22,9 +22,9 @@ import { SPRING_SETTLE, clamp, springFor, useDrive } from "./ported-motion";
  *
  * WHERE IT GOES: places with their own internal structure. Admin desks (each desk
  * has sections), the host and agent workspaces (calendar, decide, rooms,
- * earnings), settings (inside each screen), the wallet (transactions, methods,
- * statements, limits), escrow (conditions, milestones, evidence, dispute), space
- * detail (overview, costs, amenities, trust, location), analytics, support.
+ * earnings), settings (inside each screen), payments (history, methods,
+ * receipts), space detail (overview, costs, amenities, trust, location),
+ * analytics, support.
  *
  * WHERE IT MUST NEVER GO: the primary dock and the side navigation. They are
  * settled by D28 (the dock keeps its slots, the side nav keeps its structure) and

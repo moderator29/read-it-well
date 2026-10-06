@@ -131,41 +131,6 @@ export const experienceFeaturesEn = {
       p3Body: "These figures come from your own listings, read under your own sign-in, and nothing here changes anything.",
       action: "See my figures",
     },
-
-    /**
-     * WAITING ON SCREENS THAT DO NOT EXIST YET. Wallet, escrow and withdrawal
-     * have no route today, so their first runs are content only and are not
-     * mounted. Their bodies are money sentences and wait on Session 2
-     * (`lib/money/copy.ts`, request W7-R3); only the titles live here.
-     *
-     * UNREACHABLE TODAY, BY CONSTRUCTION: `/first-run/[feature]` 404s any key
-     * outside `MOUNTED_FIRST_RUNS`, `canMount` refuses a panel without a body,
-     * and no page gates on these three. They also claim nothing: no rail for
-     * held or protected money is live (custody retired 25 September; Payluk
-     * escrow is the target, not the state, D41), so the words name the
-     * feature and never promise protection. Revisit them with Session 2's
-     * sentences when the escrow rail and its screens exist.
-     */
-    wallet: {
-      name: "your wallet",
-      p1Title: "Available and in escrow are different money",
-      p2Title: "Where the money actually is",
-      action: "Open my wallet",
-    },
-    escrow: {
-      name: "escrow",
-      p1Title: "Who holds the money",
-      p2Title: "What releases it",
-      p3Title: "If something goes wrong",
-      action: "Open escrow",
-    },
-    withdrawal: {
-      name: "withdrawals",
-      p1Title: "Where it lands",
-      p2Title: "What it costs",
-      p3Title: "How long it takes",
-      action: "Start a withdrawal",
-    },
   },
 
   /**

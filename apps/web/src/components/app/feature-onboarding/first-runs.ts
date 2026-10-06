@@ -16,17 +16,10 @@ import { NO_INSPECTION_FEE, OFF_PLATFORM_SENTENCE, PAYMENT_GATE_SENTENCE } from 
  * rendering anything. Client-safe: the money sentences it places are
  * constants from `lib/money/copy.ts` (Session 2's), never written here.
  *
- * TWO LISTS, AND THE DIFFERENCE MATTERS.
- *
- *   MOUNTED   the features that exist today. Each has a home route the first
- *             run hands the member to, and a page that sends a first-time
- *             member here (`gateFirstRun` in `first-run-store.ts`).
- *   WAITING   wallet, escrow and withdrawal. Their screens do not exist, so
- *             their first runs are content waiting on those routes: the route
- *             at `/first-run/[feature]` refuses them (404) and no page gates
- *             on them. Their bodies are money sentences Session 2 has not
- *             written yet (request W7-R3), so they are `null` until then and
- *             the test proves nothing can mount a panel with no body.
+ * ONE LIST: the features that exist today. Each has a home route the first
+ * run hands the member to, and a page that sends a first-time member here
+ * (`gateFirstRun` in `first-run-store.ts`). A first run is written only for a
+ * screen that exists, so there is no list of first runs waiting on screens.
  *
  * Forbidden (14.1): sign-in, search, the feed, and anything a member reaches
  * more than weekly. None of those is a key here, and the test says so.
@@ -42,11 +35,8 @@ export const MOUNTED_FIRST_RUNS = [
   "analytics",
 ] as const;
 
-export const WAITING_FIRST_RUNS = ["wallet", "escrow", "withdrawal"] as const;
-
 export type MountedFirstRun = (typeof MOUNTED_FIRST_RUNS)[number];
-export type WaitingFirstRun = (typeof WAITING_FIRST_RUNS)[number];
-export type FirstRunFeature = MountedFirstRun | WaitingFirstRun;
+export type FirstRunFeature = MountedFirstRun;
 
 /**
  * Where each mounted first run hands the member on to: the working feature.
@@ -74,8 +64,7 @@ export function firstRunPath(feature: MountedFirstRun): string {
 export type FirstRunPanel = {
   object: TieredObjectName;
   title: string;
-  /** Null only for a waiting first run whose money sentence Session 2 has not written. */
-  body: string | null;
+  body: string;
 };
 
 export type FirstRunContent = {
@@ -174,54 +163,19 @@ export function firstRunContent(feature: FirstRunFeature, t: Dictionary): FirstR
           { object: "padlock", title: c.analytics.p3Title, body: c.analytics.p3Body },
         ],
       };
-    /* WAITING. Content only, never mounted. Each body is a money sentence
-       Session 2 owes (request W7-R3): until it exists in lib/money/copy.ts,
-       the panel has no body and `canMount` refuses it. */
-    case "wallet":
-      return {
-        feature,
-        name: c.wallet.name,
-        action: c.wallet.action,
-        panels: [
-          { object: "wallet-folded", title: c.wallet.p1Title, body: null },
-          { object: "safe-dial", title: c.wallet.p2Title, body: null },
-        ],
-      };
-    case "escrow":
-      return {
-        feature,
-        name: c.escrow.name,
-        action: c.escrow.action,
-        panels: [
-          { object: "safe-dial", title: c.escrow.p1Title, body: null },
-          { object: "key-cushion", title: c.escrow.p2Title, body: null },
-          { object: "scales", title: c.escrow.p3Title, body: null },
-        ],
-      };
-    case "withdrawal":
-      return {
-        feature,
-        name: c.withdrawal.name,
-        action: c.withdrawal.action,
-        panels: [
-          { object: "wallet-out", title: c.withdrawal.p1Title, body: null },
-          { object: "banknote-fold", title: c.withdrawal.p2Title, body: null },
-          { object: "hourglass", title: c.withdrawal.p3Title, body: null },
-        ],
-      };
   }
 }
 
 /**
  * Whether a first run may be shown at all: it is a mounted feature, it has
  * one to three panels, and every panel teaches something (a title and a
- * body). A waiting first run fails the last test by construction.
+ * body).
  */
 export function canMount(content: FirstRunContent): boolean {
   return (
     isMountedFirstRun(content.feature) &&
     content.panels.length >= 1 &&
     content.panels.length <= 3 &&
-    content.panels.every((panel) => panel.title.trim().length > 0 && (panel.body ?? "").trim().length > 0)
+    content.panels.every((panel) => panel.title.trim().length > 0 && panel.body.trim().length > 0)
   );
 }
