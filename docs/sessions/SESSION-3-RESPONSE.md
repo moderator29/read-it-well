@@ -71,6 +71,23 @@ untouched of 38, agent 15 of 24.
 - **Legal:** the in-app terms, privacy and disclaimer on `DocumentSheet`, the same
   paper as the public documents. No word of legal text changed.
 
+**The weight diet (R3-18), as numbers, not met.** Production builds, CDP
+`encodedDataLength` at 390x844 with a cold cache (`check-weight.mjs`'s method), over
+the 8 signed-out routes in `perf-budget.json`; the 7 signed-in routes need a session
+cookie and were not measured. `/sign-in` 568,938 to 499,090 B (-12.3%),
+`/sign-up/email` 569,370 to 499,757 B (-12.2%); all 8 together 4,199,209 to
+4,055,696 B (**-3.4%, against the 20 percent asked**). The cuts: supabase-js
+(65,647 B gzipped) off the auth screens' first load, and 1,378 lines of global CSS
+with no consumer (the global stylesheet 97,603 to 95,019 B gzipped on every route).
+What is left, measured on `/`: the global stylesheet is 95 KB gzipped, of which about
+131 KB raw is the token custom properties per theme; fonts are 66 to 74 KB; the rest
+is Next and React. D49.1's feature bundle measures 24,071 B gzipped, as D49 says.
+
+**CI: Database probes (db-06) is red, and not this PR's.** Session 2 applied
+`20261006104536_b4_first_run_store.sql` to the shared database, granting insert on
+`first_runs_seen`; the db-06 allowlist does not list it yet. Explained on PR #85 with
+the one-row patch; it belongs with the migration on Session 2's branch.
+
 **Requests to Session 2 from this round** (none blocks what is built; each screen
 draws its honest not-live or empty state):
 
