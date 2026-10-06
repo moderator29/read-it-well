@@ -859,3 +859,25 @@ Report what you finished and what remains, in those words. Never report completi
 while your own Remaining section is non-empty. If you believe the brief is
 finished, say so against this handoff's acceptance criteria one by one, with
 evidence for each.
+
+---
+
+## ROUND 3, added 6 October 2026
+
+**Read `docs/sessions/ROUND-3-2026-10-06.md` in full.** Four audits were run
+against the branches rather than the response files, and they found what the
+reports did not.
+
+**Your share is R3-01 to R3-18.**
+
+**Four agents this round**, with declared file ownership, never two on one file:
+C1 the sweep across the untouched routes. C2 the money and settings surfaces plus the three missing routes. C3 artefact cards, onboarding and streaks. C4 D48, the auth family and the legal pages.
+
+**D48 outranks everything on every branch.** Shipped copy tells members Vallo holds
+their money, in a dictionary that is wired to live panels and gated only by three
+keys not being mounted.
+
+**The rule for this round: a number, not an adjective.** Every claim of progress
+carries a count and a denominator. Routes audited of 213. Sections done of 18.
+Matrix rows run of 34. "Upgraded", "swept" and "done" are not reportable without
+one, and a surface edited by five lines is not a surface that was audited.
