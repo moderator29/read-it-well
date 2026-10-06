@@ -62,7 +62,15 @@ export function ResendClockView({
   const [before, after = ""] = windowLine.split("{time}");
   return (
     <>
-      {clock.state.kind !== "ready" ? <DrainBar state={clock.state} share={clock.share} quiet={quiet} /> : null}
+      {/* The track's place is kept while the clock is idle (U1, the first
+          400ms): the server cannot read this tab's record of the last send,
+          so a reload in the middle of a wait drew the bar only after
+          hydration and pushed everything under it down by its height. */}
+      {clock.state.kind !== "ready" ? (
+        <DrainBar state={clock.state} share={clock.share} quiet={quiet} />
+      ) : (
+        <span className="nf-resend__track" data-idle="" aria-hidden="true" />
+      )}
       {clock.state.kind === "window" ? (
         <p className="nf-resend__line" data-testid="resend-window">
           {before}

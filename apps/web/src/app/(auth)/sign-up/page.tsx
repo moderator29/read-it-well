@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { publicPageMetadata } from "@/lib/i18n/public-metadata";
 import { getDictionary } from "@vallo/i18n";
@@ -7,6 +8,7 @@ import { resolveProviderStates } from "@/lib/auth/providers";
 import { requestSurface } from "@/lib/auth/surface";
 import { phoneSignInEnabled } from "@/lib/auth/phone-sign-in-flag";
 import { SignUpOptions } from "@/components/auth/SignUpOptions";
+import { AuthWait, waitDoors } from "@/components/auth/AuthWait";
 
 /* A10: the title and description in the page's own language, with its
    canonical and hreflang (lib/i18n/public-metadata.ts; words in publicMeta). */
@@ -40,11 +42,43 @@ export async function generateMetadata(): Promise<Metadata> {
  * `next` typed by hand into this address is checked at the same gate as one
  * the middleware wrote.
  */
-export default async function SignUpPage({
-  searchParams,
-}: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}) {
+type Params = Record<string, string | string[] | undefined>;
+
+/*
+ * THE FIRST 400MS (U1). The ways in wait on a network read (whether Apple
+ * is switched on), so the screen streams; the wait draws this same screen,
+ * inert (`AuthWait`). This Suspense replaces the segment's `loading.tsx`,
+ * which also wrapped /sign-up/email, /sign-up/verify and /sign-up/finish
+ * and was painted first on each of them, in this screen's shape.
+ */
+export default function SignUpPage({ searchParams }: { searchParams: Promise<Params> }) {
+  return (
+    <Suspense fallback={<SignUpWait searchParams={searchParams} />}>
+      <SignUpScreen searchParams={searchParams} />
+    </Suspense>
+  );
+}
+
+async function SignUpWait({ searchParams }: { searchParams: Promise<Params> }) {
+  const params = await searchParams;
+  const next = typeof params.next === "string" ? params.next : undefined;
+  const t = getDictionary(await getLocale());
+  const doors = await waitDoors();
+  return (
+    <AuthWait>
+      <SignUpOptions
+        t={forAuth(t)}
+        googleReady={doors.googleReady}
+        appleReady={false}
+        surface={doors.surface}
+        next={next}
+        phoneReady={phoneSignInEnabled()}
+      />
+    </AuthWait>
+  );
+}
+
+async function SignUpScreen({ searchParams }: { searchParams: Promise<Params> }) {
   const params = await searchParams;
   const next = typeof params.next === "string" ? params.next : undefined;
   const locale = await getLocale();

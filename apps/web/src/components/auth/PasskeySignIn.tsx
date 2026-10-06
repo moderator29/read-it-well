@@ -19,7 +19,11 @@ export function PasskeySignIn({ label, next, failed }: { label: string; next?: s
   const supported = useSyncExternalStore(
     () => () => {},
     () => "PublicKeyCredential" in window,
-    () => false,
+    /* Drawn from the server (U1, the first 400ms): every browser this
+       platform supports has passkeys, so the server answers yes and the rare
+       one without takes the door away after hydration, rather than every
+       browser growing the door in late and pushing the screen down. */
+    () => true,
   );
   if (!passkeySignInEnabled() || !supported) return null;
   return (

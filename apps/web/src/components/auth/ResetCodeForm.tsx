@@ -6,7 +6,7 @@ import type { AuthCopy } from "./auth-copy";
 import type { AuthFormState } from "@/lib/auth/form-state";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { feedback } from "@/lib/ui/feedback";
-import { CodeInput } from "./CodeInput";
+import { CodeInput, codeProgress } from "./CodeInput";
 import { Field } from "./fields";
 import { AuthPillButton } from "./slate";
 import { useRefusalShake } from "./useRefusalShake";
@@ -84,9 +84,11 @@ export function ResetCodeForm({
     const reading = readCode(value);
     setCode(reading.digits);
     setSurplus(surplusMessage(reading));
-    if (reading.complete && !pending && address.trim().length > 0) {
-      form.current?.requestSubmit();
-    }
+  }
+  /* Once per whole code (`CodeInput`'s `onComplete`), and only with an
+     address to send it with. */
+  function onWhole() {
+    if (!pending && address.trim().length > 0) form.current?.requestSubmit();
   }
 
   return (
@@ -118,10 +120,12 @@ export function ResetCodeForm({
           length={CONFIRMATION_CODE_LENGTH}
           value={code}
           onChange={onCode}
+          onComplete={onWhole}
           error={surplus ?? state.fieldErrors?.code}
           wrongCount={wrongCount}
           placeholder={CONFIRMATION_CODE_PLACEHOLDER}
           cellsLabel={t.authFlow.codeCells.replace("{count}", codeLengthWord())}
+          progress={codeProgress(t.experienceEntry.codeProgress, code.length, CONFIRMATION_CODE_LENGTH)}
         />
 
         {state.message && (

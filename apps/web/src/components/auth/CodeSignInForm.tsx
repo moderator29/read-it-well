@@ -13,7 +13,7 @@ import { ResendClockView } from "./ResendClockView";
 import { useRefusalShake } from "./useRefusalShake";
 import { codeLengthWord } from "@/lib/auth/confirmation-code";
 import { Button } from "@/components/ui/Button";
-import { CodeInput } from "./CodeInput";
+import { CodeInput, codeProgress } from "./CodeInput";
 import { Field } from "./fields";
 import { AuthPillButton } from "./slate";
 import "@/app/css/auth.css";
@@ -68,7 +68,14 @@ export function CodeSignInForm({ mode, t, next }: { mode: Mode; t: AuthCopy; nex
   }
   const state = latest === "checked" ? checked : sent;
   const onCode = state.step === "code";
-  const message = state.error ? (copy as Record<string, string>)[state.error] ?? copy.failed : null;
+  /* On the code step a `limited` is the CHECK's limit (ten tries in ten
+     minutes), which is a different wait and a different next action from
+     the send's "too many codes" (U1, errors that name the next action). */
+  const message = !state.error
+    ? null
+    : onCode && state.error === "limited"
+      ? copy.verifyLimited
+      : ((copy as Record<string, string>)[state.error] ?? copy.failed);
 
   /*
    * THE RESEND IS GOVERNED BY THE REAL RULE (`resend-rule.ts`): the pace after
@@ -99,10 +106,11 @@ export function CodeSignInForm({ mode, t, next }: { mode: Mode; t: AuthCopy; nex
   /* THE FORM ERROR on the address or number step: shake the field once. */
   useRefusalShake(askForm, sent, !onCode && Boolean(sent.error) && sent.error !== "off");
 
-  const onDigits = (value: string) => {
-    const digits = value.replace(/\D/g, "");
-    setCode(digits);
-    if (digits.length === SIGN_IN_CODE_LENGTH && !verifying) verifyForm.current?.requestSubmit();
+  /* Digits only; the last one sends the form, once per whole code
+     (`CodeInput`'s `onComplete`), so a paste of all six submits once. */
+  const onDigits = (value: string) => setCode(value.replace(/\D/g, ""));
+  const onWhole = () => {
+    if (!verifying) verifyForm.current?.requestSubmit();
   };
 
   return (
@@ -110,7 +118,14 @@ export function CodeSignInForm({ mode, t, next }: { mode: Mode; t: AuthCopy; nex
       <h1 className="nf-auth__title">{copy.title}</h1>
       <p className="nf-auth__sub">
         {onCode ? (
-          <SentTo template={copy.sentTo} slot={mode === "email" ? "{email}" : "{phone}"} shown={sent.shown ?? ""} />
+          /* The address in full, as it was typed a moment ago, so the person
+             can see exactly where the code went (the masked form hid a typo
+             in the one place it could be caught). A number stays formatted. */
+          <SentTo
+            template={copy.sentTo}
+            slot={mode === "email" ? "{email}" : "{phone}"}
+            shown={(mode === "email" ? sent.target : sent.shown) ?? ""}
+          />
         ) : (
           copy.lede
         )}
@@ -154,7 +169,12 @@ export function CodeSignInForm({ mode, t, next }: { mode: Mode; t: AuthCopy; nex
           </div>
         </form>
       ) : (
-        <form ref={verifyForm} action={verify} className="nf-auth__form nf-auth__form--fields nf-slate-stagger" noValidate>
+        /* THE SAME STEP, CONTINUED (U1, motion with a purpose). The code
+           field takes the address field's place in one short move, with no
+           stagger delay, so the island never shows a gap between the two;
+           the title, the sentence (now naming where the code went) and the
+           way back stay where they were. */
+        <form ref={verifyForm} action={verify} className="nf-auth__form nf-auth__form--fields nf-auth__step" noValidate>
           <input type="hidden" name="target" value={sent.target ?? ""} />
           {next && <input type="hidden" name="next" value={next} />}
           <CodeInput
@@ -164,10 +184,12 @@ export function CodeSignInForm({ mode, t, next }: { mode: Mode; t: AuthCopy; nex
             length={SIGN_IN_CODE_LENGTH}
             value={code}
             onChange={onDigits}
+            onComplete={onWhole}
             error={state.error === "badCode" ? copy.badCode : state.error === "wrongCode" ? copy.wrongCode : undefined}
             wrongCount={wrongCount}
             placeholder="123456"
             cellsLabel={t.authFlow.codeCells.replace("{count}", codeLengthWord(SIGN_IN_CODE_LENGTH))}
+            progress={codeProgress(t.experienceEntry.codeProgress, code.length, SIGN_IN_CODE_LENGTH)}
           />
           {state.error && state.error !== "badCode" && state.error !== "wrongCode" && message && (
             <p role="alert" className="nf-auth__alert">
@@ -189,7 +211,7 @@ export function CodeSignInForm({ mode, t, next }: { mode: Mode; t: AuthCopy; nex
             resending.current = true;
             recordSend("resend");
           }}
-          className="nf-verify__resend nf-slate-stagger"
+          className="nf-verify__resend nf-auth__step"
         >
           <input type="hidden" name={mode === "email" ? "email" : "phone"} value={sent.target ?? ""} />
           <Button

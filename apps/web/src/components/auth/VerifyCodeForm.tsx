@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation";
 import { playThreshold, thresholdAllowed } from "@/lib/motion/threshold";
 import { motionQuiet } from "@/lib/motion/gate";
 import { ArrivalMoment } from "./ArrivalMoment";
-import { CodeInput } from "./CodeInput";
+import { CodeInput, codeProgress } from "./CodeInput";
 import { withNext } from "@/lib/auth/next-link";
 import { mailAppFor, resendLabel } from "@/lib/auth/mail-app";
 import { useResendClock } from "./useResendClock";
@@ -162,11 +162,13 @@ export function VerifyCodeForm({
     const reading = readCode(value);
     setCode(reading.digits);
     setSurplus(surplusMessage(reading));
-    if (reading.complete && !verifying) {
-      /* requestSubmit rather than submit, so the form's own validation and the
-         action both run exactly as they would on a press. */
-      form.current?.requestSubmit();
-    }
+  }
+  /* Once per whole code (`CodeInput`'s `onComplete`): a paste of the whole
+     code sends the form once. requestSubmit rather than submit, so the
+     form's own validation and the action both run exactly as they would on
+     a press. */
+  function onWhole() {
+    if (!verifying) form.current?.requestSubmit();
   }
 
   const mail = mailAppFor(address);
@@ -242,10 +244,12 @@ export function VerifyCodeForm({
           length={CONFIRMATION_CODE_LENGTH}
           value={code}
           onChange={onCode}
+          onComplete={onWhole}
           error={surplus ?? state.fieldErrors?.code}
           wrongCount={wrongCount}
           placeholder={CONFIRMATION_CODE_PLACEHOLDER}
           cellsLabel={a.codeCells.replace("{count}", codeLengthWord())}
+          progress={codeProgress(t.experienceEntry.codeProgress, code.length, CONFIRMATION_CODE_LENGTH)}
         />
 
         {state.message && (

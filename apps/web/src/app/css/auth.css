@@ -32,7 +32,14 @@
   THE NUMBERS. Every control is 52px tall (the 44px tap floor plus air), every
   typed value is 16px (iOS zooms the page below that, rule R-A), the column is
   26rem at most, and the gutters are 16px or the safe-area inset, whichever is
-  larger. At most three weights: 400, 500, 600.
+  larger. The weights are 400 and 600 (the platform allows 700 as well).
+
+  THE TYPE (U1, 6 October, against the references of 5 October: restraint,
+  not effects). Every size is a rung of the platform's scale: the title is
+  the mobile large title (30 on 36), the sentence under it and the quiet
+  links are the row size (15) at a reading measure, labels are body-sm in the
+  secondary ink so the typed value is the loudest thing in a field, and the
+  small print is the overline.
 
   THE KEYBOARD. On a touch screen the bowl shortens while a field has focus,
   which gives the column back about 190 pixels, so the button of the sign-in
@@ -54,6 +61,18 @@
  * `components` ahead of `base` and `theme`.
  */
 @layer theme, base, components, utilities;
+
+/*
+ * THE WAIT, REMEMBERED FOR A MOMENT (U1, 6 October; "THE WAIT" below). One
+ * when the island holds a painted wait (`AuthWait`), falling back to zero a
+ * deliberate beat after the screen replaces it. Registered, so it can
+ * transition, and a number, so the entrance can be multiplied by it.
+ */
+@property --nf-auth-waited {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
 
 @layer components {
   /* =========================================================== THE ROLES */
@@ -204,6 +223,11 @@
     color: var(--nf-slate-top-ink);
   }
   .nf-auth-cap__brand {
+    /* The lockup's drawn width (the 28px mark, the xs gap and the 14px-high
+       wordmark), held from the first byte, so a first paint that lands
+       between the mark and the wordmark does not re-centre the mark when
+       the rest arrives (measured: one 0.00006 shift at 1440, throttled). */
+    min-width: calc(1.75rem + var(--nf-space-xs) + 4.25rem);
     display: inline-flex;
     align-items: center;
     justify-self: center;
@@ -265,6 +289,14 @@
     --nf-focal-px: 5.5rem;
     --nf-focal-half: calc(var(--nf-focal-px) / 2);
     position: relative;
+    /* Its own block formatting context (U1, the first 400ms): the island's
+       top margin used to collapse through this stage and so moved the
+       stage, and the object pinned to its top, down by 15px the moment the
+       island's markup arrived. A first paint between the two (a slow
+       network splits the page) drew the object 15px high, then dropped it
+       (measured on /sign-in/code at 390, throttled: 0.0005). The object now
+       carries the same offset itself, so it sits exactly where it did. */
+    display: flow-root;
   }
   .nf-auth__stage:has([data-focal="scene-house-keys"]) {
     --nf-focal-px: 7.5rem;
@@ -274,7 +306,8 @@
   .nf-auth__focal {
     position: absolute;
     z-index: 3;
-    top: 0;
+    /* The island's top margin (below), which the stage no longer passes on. */
+    top: calc(var(--nf-focal-half) * 0.35);
     left: 50%;
     width: var(--nf-focal-px);
     height: var(--nf-focal-px);
@@ -303,6 +336,19 @@
     margin-top: calc(var(--nf-focal-half) * 0.35);
     padding: calc(var(--nf-focal-half) + var(--nf-space-xs)) var(--nf-space-md) var(--nf-space-lg);
     animation: nf-auth-island-in var(--nf-duration-slow) var(--nf-ease-entrance) 80ms both;
+    /* THE WAIT. While a wait is on the island this is one, at once; when the
+       screen replaces it, it stays one for the deliberate beat and then
+       drops to zero. A style that is never painted never transitions, so a
+       wait the stream replaced before the first frame leaves it at zero and
+       the screen makes its entrance; a wait that WAS painted means the screen
+       arriving over it lands at once (the stagger below is multiplied by
+       one minus this), instead of vanishing and rising in a second time. */
+    --nf-auth-waited: 0;
+    transition: --nf-auth-waited 0s linear var(--nf-duration-deliberate);
+  }
+  .nf-auth__island:has(.nf-auth__wait) {
+    --nf-auth-waited: 1;
+    transition: none;
   }
   /* The title and the line under it sit on the object's axis. */
   .nf-auth__screen > :is(.nf-auth__title, .nf-auth__sub),
@@ -313,21 +359,26 @@
     width: 100%;
   }
 
-  /* "Sign in", big. */
+  /* "Sign in", big: the platform's mobile large title, on its own leading. */
   .nf-auth__title {
     font-family: var(--nf-font-display);
-    font-size: 2rem;
+    font-size: var(--nf-text-title-lg);
     font-weight: 600;
-    line-height: 1.1;
-    letter-spacing: var(--nf-tracking-tight);
+    line-height: var(--nf-leading-title-lg);
+    letter-spacing: var(--nf-tracking-display-sm);
     color: var(--nf-content-primary);
     text-wrap: balance;
     transition: font-size var(--nf-duration-slow) var(--nf-ease-standard);
   }
+  /* The sentence under the title: the row size, at a reading measure, so a
+     three-line sentence wraps as a paragraph and never leaves one word on
+     the last line. */
   .nf-auth__sub {
-    margin-top: var(--nf-space-xs);
-    font-size: 0.9375rem;
-    line-height: 1.45;
+    max-width: 34ch;
+    margin: var(--nf-space-xs) auto 0;
+    font-size: var(--nf-text-row);
+    line-height: 1.5;
+    text-wrap: pretty;
     color: var(--nf-content-secondary);
   }
 
@@ -381,7 +432,9 @@
     margin-bottom: var(--nf-space-xs);
     font-size: var(--nf-text-body-sm);
     font-weight: 600;
-    color: var(--nf-content-primary);
+    /* The label names the field; the value typed into it is the loudest
+       thing there (the references' quiet labels). Focus takes the ink. */
+    color: var(--nf-content-secondary);
   }
   .nf-auth .nf-field,
   .nf-slate-input {
@@ -759,7 +812,7 @@
     align-items: center;
     gap: var(--nf-space-xs);
     min-height: 2.75rem;
-    font-size: 0.9375rem;
+    font-size: var(--nf-text-row);
     font-weight: 400;
     color: var(--nf-content-secondary);
     text-underline-offset: 4px;
@@ -867,6 +920,10 @@
   .nf-auth__legal {
     position: relative;
     z-index: 1;
+    /* Two lines held from the first byte: the small print is the last thing
+       on the page, so a slow network can paint it half arrived on one line
+       and then grow it (measured at 1440, throttled: 0.0002). */
+    min-height: 3em;
     width: 100%;
     max-width: calc(26rem + 2 * var(--nf-auth-gutter));
     margin: var(--nf-space-lg) auto 0;
@@ -969,6 +1026,12 @@
   .nf-code__cell[data-over] {
     border-color: var(--nf-state-error);
   }
+  /* The whole code selected (a refused code is, so typing replaces it in one
+     go): every filled cell takes the selection tint, the way selected text
+     does, because the input's own selection is invisible. */
+  .nf-code__cell[data-selected] {
+    background: var(--nf-slate-halo);
+  }
   .nf-code__digit {
     display: block;
     animation: nf-code-pop var(--nf-duration-fast) var(--nf-ease-entrance) both;
@@ -1038,7 +1101,7 @@
     border: 1.5px solid var(--nf-slate-hair);
     border-radius: var(--nf-radius-pill);
     background: var(--nf-slate-card);
-    font-size: 0.9375rem;
+    font-size: var(--nf-text-row);
     font-weight: 600;
     color: var(--nf-content-primary);
     text-decoration: none;
@@ -1048,8 +1111,10 @@
       border-color: var(--nf-slate-ink);
     }
   }
+  /* The quiet tail of the code screen: one block's space above it, so the
+     help and the way out read as their own group. */
   .nf-verify__same {
-    margin-top: var(--nf-space-lg);
+    margin-top: var(--nf-space-xl);
     text-align: center;
     font-size: var(--nf-text-caption);
     color: var(--nf-content-muted);
@@ -1093,6 +1158,9 @@
     overflow: hidden;
     border-radius: var(--nf-radius-pill);
     background: var(--nf-slate-hair);
+  }
+  .nf-resend__track[data-idle] {
+    visibility: hidden;
   }
   .nf-resend__fill {
     display: block;
@@ -1176,8 +1244,8 @@
   .nf-arrival__body {
     position: relative;
     max-width: 20rem;
-    font-size: 0.9375rem;
-    line-height: 1.45;
+    font-size: var(--nf-text-row);
+    line-height: 1.5;
     color: var(--nf-content-secondary);
     animation: nf-slate-rise var(--nf-duration-entrance) var(--nf-ease-entrance) 320ms both;
   }
@@ -1300,9 +1368,46 @@
   .nf-slate-stagger .nf-slate-stagger {
     --nf-slate-base: 120ms;
   }
-  .nf-slate-stagger > :not(.nf-slate-stagger, input[type="hidden"], h2.sr-only) {
-    animation: nf-slate-rise var(--nf-duration-slow) var(--nf-ease-entrance) both;
+  .nf-slate-stagger > :not(.nf-slate-stagger, .nf-auth__step, input[type="hidden"], h2.sr-only) {
+    /* Times one minus "the wait was painted" (THE WAIT, at the island). */
+    animation: nf-auth-piece-in calc(var(--nf-duration-slow) * (1 - var(--nf-auth-waited, 0))) var(--nf-ease-entrance) both;
+    animation-delay: calc((var(--nf-slate-base) + min(var(--nf-slate-i, 0), 4) * 30ms) * (1 - var(--nf-auth-waited, 0)));
+  }
+  /* The wait is what appears at the moment of a tap between two auth
+     screens (its route is prefetched), so IT carries the step: its pieces
+     rise in on the stagger whatever the wait flag says. */
+  .nf-auth__wait .nf-slate-stagger > :not(.nf-slate-stagger, .nf-auth__step, input[type="hidden"], h2.sr-only) {
+    animation-duration: var(--nf-duration-slow);
     animation-delay: calc(var(--nf-slate-base) + min(var(--nf-slate-i, 0), 4) * 30ms);
+  }
+  /* ONE CONTINUOUS STEP (U1): a piece starts already partly drawn, never
+     from nothing. On a first load the island is still fading up around it,
+     so nothing changes there; between two auth screens the island stays
+     lit, and a piece that started at nothing left it showing nothing for
+     the first beat (measured in a production build between two auth
+     screens: up to 190ms with the title at zero). */
+  @keyframes nf-auth-piece-in {
+    from {
+      opacity: 0.4;
+      transform: translateY(14px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  /* Calm: the pieces fade on the short rung with no travel and no stagger;
+     Off: they are simply there. */
+  :root[data-motion="calm"] .nf-slate-stagger > :not(.nf-slate-stagger, .nf-auth__step, input[type="hidden"], h2.sr-only) {
+    animation: nf-auth-calm-in var(--nf-duration-fast) var(--nf-ease-standard) both;
+  }
+  @keyframes nf-auth-calm-in {
+    from {
+      opacity: 0.4;
+    }
+  }
+  :root[data-motion="off"] :is(.nf-slate-stagger > *, .nf-auth__step, .nf-auth__island, .nf-auth-ground, .nf-auth-focal__object, .nf-auth-cap__line) {
+    animation: none !important;
   }
   .nf-slate-stagger > :nth-child(2) {
     --nf-slate-i: 1;
@@ -1323,7 +1428,25 @@
     --nf-slate-i: 6;
   }
 
+  /* THE NEXT STEP ON THE SAME SCREEN (the code after the address): it takes
+     the place of the step before in one short move, from a little below and
+     already partly drawn, with no delay, so there is no empty island between
+     the two. Calm fades it; Off and reduced motion draw it at once. */
+  .nf-auth__step {
+    animation: nf-auth-step-in var(--nf-duration-base) var(--nf-ease-entrance) both;
+  }
+  @keyframes nf-auth-step-in {
+    from {
+      opacity: 0.4;
+      transform: translate3d(0, 8px, 0);
+    }
+  }
+  :root[data-motion="calm"] .nf-auth__step {
+    animation: nf-auth-calm-in var(--nf-duration-fast) var(--nf-ease-standard) both;
+  }
+
   @media (prefers-reduced-motion: reduce) {
+    .nf-auth__step,
     .nf-auth-ground,
     .nf-auth__island,
     .nf-auth-focal__object,
@@ -1401,3 +1524,4 @@
     }
   }
 }
+
