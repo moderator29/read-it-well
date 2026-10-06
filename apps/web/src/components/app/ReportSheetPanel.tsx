@@ -2,6 +2,7 @@
 
 import { useActionState, useId, useState } from "react";
 import { Sheet } from "@/components/ui/Sheet";
+import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 import { reportSomething, type ReportReceipt } from "@/lib/reports/actions";
 import {
@@ -125,9 +126,9 @@ export function ReportSheetPanel({
                     <p className="mx-auto mt-xs max-w-[42ch] text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                       {reportCopy.filed.replace("{clock}", responseTimeFor(category).phrase)}
                     </p>
-                    <button type="button" onClick={close} className="nf-btn nf-btn--glass mt-md">
+                    <Button variant="secondary" onClick={close} className="mt-md">
                       Back to the {noun}
-                    </button>
+                    </Button>
                   </div>
                 ) : !signedIn ? (
                   <div className={panelClass({ variant: "card", className: "block p-lg text-center" })}>
@@ -221,16 +222,18 @@ export function ReportSheetPanel({
                     )}
 
                     <div className="grid gap-xs">
-                      <button
+                      <Button
                         type="submit"
+                        variant="primary"
+                        full
                         disabled={pending || category === null}
-                        className="nf-btn nf-btn--primary w-full disabled:opacity-60"
+                        className="disabled:opacity-60"
                       >
                         {pending ? "Sending your report..." : "Send report"}
-                      </button>
-                      <button type="button" onClick={close} className="nf-btn nf-btn--ghost w-full">
+                      </Button>
+                      <Button variant="quiet" full onClick={close}>
                         Cancel
-                      </button>
+                      </Button>
                     </div>
 
                     {/* V-63: 112 as a number a frightened person can tap, not

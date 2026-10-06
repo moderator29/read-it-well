@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { Button } from "@/components/ui/Button";
 import { revokeAllPushDevices, revokePushDevice } from "@/lib/push/devices-actions";
 
 /**
@@ -160,38 +161,39 @@ export function PushDevices({
               </div>
             </dl>
 
-            <button
-              type="button"
+            <Button
+              variant={armed === row.id ? "danger" : "secondary"}
+              size="sm"
+              full
               onClick={() => stopOne(row)}
               disabled={pending}
               data-testid="push-device-stop"
-              className={`nf-btn nf-btn--sm mt-group w-full ${
-                armed === row.id ? "nf-btn--danger" : "nf-btn--glass"
-              }`}
+              className="mt-group"
             >
               {pending && armed === null
                 ? "Just a moment"
                 : armed === row.id
                   ? "Tap again to turn it off"
                   : "Turn this device off"}
-            </button>
+            </Button>
           </li>
         ))}
       </ul>
 
-      <button
-        type="button"
+      <Button
+        variant={armed === "all" ? "danger" : "secondary"}
+        size="sm"
+        full
         onClick={stopAll}
         disabled={pending}
         data-testid="push-device-stop-all"
-        className={`nf-btn nf-btn--sm w-full ${armed === "all" ? "nf-btn--danger" : "nf-btn--glass"}`}
       >
         {pending && armed === null
           ? "Just a moment"
           : armed === "all"
             ? "Tap again to turn every device off"
             : "Turn every device off"}
-      </button>
+      </Button>
       <p className="nf-caption text-muted">
         Use this if a phone is lost. It stops notifications on every device, including this one.
       </p>

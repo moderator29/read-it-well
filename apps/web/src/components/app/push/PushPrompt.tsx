@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 
+import { Button } from "@/components/ui/Button";
+
 import { failureMessage } from "./device-state";
 import { currentPermission, enrol, failureReference, onIosHomeScreenApp } from "./enrol";
 import {
@@ -169,14 +171,14 @@ export function PushPrompt({ moment, onSettled }: PushPromptProps) {
         </p>
       ) : null}
       <div className="mt-md flex flex-wrap gap-sm">
-        <button type="button" className="nf-btn nf-btn--primary" onClick={accept} disabled={busy}>
+        <Button variant="primary" onClick={accept} disabled={busy}>
           {busy ? "Just a moment" : "Yes, tell me"}
-        </button>
+        </Button>
         {/* Not now, never Cancel. It is a real answer and it is honoured for
             thirty days. */}
-        <button type="button" className="nf-btn nf-btn--ghost" onClick={decline} disabled={busy}>
+        <Button variant="quiet" onClick={decline} disabled={busy}>
           Not now
-        </button>
+        </Button>
       </div>
     </section>
   );
