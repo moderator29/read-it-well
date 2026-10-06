@@ -6,7 +6,7 @@ component with the fixture named in its row. **P** pass, **X** failed and fixed 
 sweep, **F** failed and still open, **·** does not apply. The denominator is 213 real routes
 (every `page.tsx` under `apps/web/src/app`, excluding `(dev)` and `api`).
 
-**Routes audited: 162 of 213.**
+**Routes audited: 167 of 213.**
 
 | Family | Audited |
 |---|---|
@@ -36,13 +36,14 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | inspections | 1 |
 | landlord | 1 |
 | legal | 3 |
-| messages | 3 |
+| messages | 4 |
 | move-in-cost | 1 |
+| notifications | 2 |
 | pay | 1 |
 | post | 1 |
 | price | 1 |
 | privacy | 1 |
-| profile | 6 |
+| profile | 7 |
 | r | 2 |
 | record | 1 |
 | rent | 3 |
@@ -50,6 +51,7 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | restaurant | 1 |
 | safe | 1 |
 | safety | 1 |
+| saved | 1 |
 | settings | 2 |
 | sign-in | 4 |
 | sign-up | 4 |
@@ -177,13 +179,17 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | `/legal/privacy` | C3 | P | · | P | P | P | P | · | · | · | P | P | P | P | · | P | P | F | · | P | P | P | P | P | P |
 | `/legal/terms` | C3 | P | · | P | P | P | P | · | · | · | P | P | P | P | · | P | P | F | · | P | P | P | P | P | P |
 | `/messages` | C3 | P | · | P | P | P | P | P | · | P | P | P | P | P | · | P | X | · | P | P | P | X | P | P | P |
+| `/messages/[id]` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | X | · | P | P | P | X | P | P | P |
 | `/messages/new` | C3 | P | · | P | P | P | P | · | · | · | P | P | P | P | · | · | P | · | P | P | P | P | X | P | P |
 | `/messages/share/[kind]/[id]` | C3 | P | · | P | P | P | P | · | P | P | P | P | P | P | · | P | P | · | P | P | P | P | X | P | P |
 | `/move-in-cost` | C6 | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | P | · | P | P | P | P | P | P | P |
+| `/notifications` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | · | X | · | P | P | P | X | P | P | P |
+| `/notifications/[id]` | C3 | P | · | P | P | P | P | · | P | P | P | P | P | P | · | P | X | · | P | P | P | X | P | P | P |
 | `/pay/crypto/[reference]` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | X | P | P | P | P | P | P |
 | `/post/[id]` | C3 | P | · | P | P | P | P | P | · | P | P | P | P | P | · | · | X | · | · | P | P | P | P | P | P |
 | `/price` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | X | P | P | P |
 | `/privacy` | C6 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | F | · | P | P | P | P | P | P |
+| `/profile` | C3 | P | · | P | P | P | P | P | P | P | P | P | P | P | · | P | X | · | P | P | P | P | X | P | P |
 | `/profile/application` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/profile/setup` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | P | P | P | P |
 | `/profile/setup/[role]` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | · | P | P | · | · | P | P | P | P | P | P |
@@ -200,6 +206,7 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 | `/restaurant/[id]` | C3 | P | · | P | P | P | P | · | · | P | P | P | P | P | P | P | X | P | P | P | P | X | P | P | P |
 | `/safe/[token]` | C6 | P | · | P | P | P | P | · | · | P | P | P | X | P | · | P | P | · | P | P | P | P | P | P | P |
 | `/safety` | C6 | P | · | P | P | X | P | · | · | P | P | P | P | P | P | P | P | F | · | P | P | P | P | P | P |
+| `/saved` | C3 | P | · | P | P | P | P | P | · | P | P | P | P | P | · | · | X | · | P | P | P | P | P | P | P |
 | `/settings/accessibility` | C3 | P | · | P | P | P | X | · | · | P | P | P | X | P | · | · | P | · | · | P | X | P | P | P | P |
 | `/settings/region` | C3 | P | · | P | P | P | P | · | · | P | P | P | X | P | · | · | P | · | · | P | P | P | P | P | P |
 | `/sign-in` | C6 | P | · | P | P | P | P | · | · | P | F | P | P | P | · | · | P | · | P | P | P | P | P | P | P |
@@ -615,6 +622,11 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 - 16 (fixed): The page (title, the paused sentence, the signed-out screen) and the Inbox component (the header's count, mark all read, compose, the search field, the sides, typing, archive and its note, and all seven empty states) were English literals. All come from experienceInbox.inbox now.
 - 21 (fixed): The signed-out Sign in went to a bare /sign-in and lost the way back; it carries next through withNext.
 
+**`/messages/[id]`** (the real page with loadThread answering f5 RENTAL_THREAD's bubbles and f5 RENTAL_CONTEXT's listing (title, area, city, id), _fixtures/people COUNTERPART as the other party (no phone, no tier; the listing not marked verified, since the context does not say), the reader as guest, and none of the inspection, availability, record, passport, account moment or show-me reads fixtured for this thread; and signed out)
+
+- 16 (fixed): The paused screen, the signed-out screen and the tab title were English literals; they come from experienceInbox.threadPage and the inbox's words.
+- 21 (fixed): The signed-out screen promises "it opens where you left it" and its Sign in went to a bare /sign-in; it carries this conversation through withNext.
+
 **`/messages/new`** (the real page signed in with findConversationForListing answering no thread yet, the listing repository returning f3 RENTAL, no viewing slots; and the signed-out bridge)
 
 - 22 (fixed): Overflow 0 in all four, but every page and form string was an English literal in ha, ig and yo. They are in experienceInbox.newMessage now.
@@ -622,6 +634,16 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 **`/messages/share/[kind]/[id]`** (the real page signed in, loadConversationSummaries mocked to the three threads the f5 share-picker deck draws, resolveCard to f5 LISTING_CARD; and the signed-out door)
 
 - 22 (fixed): Overflow was 0 in all four, but the page's eight strings were English literals in ha, ig and yo. They are in experienceInbox.share now.
+
+**`/notifications`** (the real page with f4 NOTIFICATIONS turned back into the rows the read returns (read_at stands at created_at for a read row, only its presence is drawn), no unread threads; and signed out)
+
+- 16 (fixed): The tab title was English; generateMetadata reads experienceInbox.notifications.title.
+- 21 (fixed): Signed out, Sign in went to a bare /sign-in; it carries /notifications through withNext.
+
+**`/notifications/[id]`** (the real page with f4 NOTIFICATIONS[1] (the reply on Around) as the row, no other notification naming the same post; and signed out)
+
+- 16 (fixed): The tab title was English; generateMetadata reads notificationView.pageTitle.
+- 21 (fixed): Signed out, Sign in went to a bare /sign-in; it carries this notification through withNext.
 
 **`/pay/crypto/[reference]`** (no fixture of a crypto payment exists, so the honest not-found and signed-out states)
 
@@ -638,6 +660,11 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 **`/privacy`** (the REAL page in the REAL (site) layout; no read (the words are the page's own, lib/trust and lib/legal))
 
 - 17 (open): Six Guarantee mentions inside the legal text: needs counsel (known; not changed).
+
+**`/profile`** (the real page signed in as _fixtures/people PERSON with f4 EDITOR_PROFILE as the claimed handle (its counts, bio and claimedAt as member since), the account counts at zero (no fixture holds them), no posts (none of the f4 posts is PERSON's); and signed out)
+
+- 16 (fixed): Signed out (What is here, Find a place, More, Help), the profile-row-missing sentence and the tab title were English literals; they come from experienceSocial.account.
+- 22 (fixed): Member since was formatted "en-NG" for every reader and said "today" in English for an unreadable date; it uses the reader's locale (intlTag) and draws nothing when the date is unreadable.
 
 **`/r/[code]`** (the REAL page in the REAL (site) layout; verify_receipt's answer is lib/receipts/code.test.ts's own `ok` row read through readVerifyAnswer (genuine), and its not_found answer)
 
@@ -674,6 +701,10 @@ sweep, **F** failed and still open, **·** does not apply. The denominator is 21
 
 - 5 (fixed): The rule that matters most prints NO_FEES_LINE, and step 2 of 'How paying on Vallo works' opened with the same sentence word for word a screen later. The step now starts at its own sentence.
 - 17 (open): NO_CUSTODY_SENTENCE and NO_FEES_LINE come from copy.ts, but the step bodies continue in money sentences written on the page ('Every payment on Vallo goes through the checkout screen with a licensed Nigerian payment processor...'). Left as written; their home is copy.ts (remaining).
+
+**`/saved`** (the real page with f3 SHELF's first two listings saved on the account at the f3 saved deck's own savedAt values; no saved places (their rows are raw catalogue rows no fixture holds); no changes since saving)
+
+- 16 (fixed): The header link "Saved searches" and the tab title were English; they come from experienceDiscover.saved.searchesLink and nav.saved.
 
 **`/settings/accessibility`** (the real page and its new loading.tsx inside the real settings layout (SettingsAreaNav); it reads only the dictionary and the device's settings store)
 
