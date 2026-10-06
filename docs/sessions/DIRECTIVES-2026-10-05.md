@@ -815,6 +815,124 @@ committed and pushed as it is done, cleanly, without sessions conflicting.
 | **Any reading that db-06's red is branch-local** | **D54: it reads production, so it is red everywhere until the allowlist row lands** |
 | Chasing the production dependency advisory inside a feature branch | D55 |
 | **Any probe recorded as "pending" on an applied migration** | **D56: a check that did not run is a check that failed** |
+| **Session 1's "nothing else is hiding behind the red"** | **D57: false. A third failure was hiding in a cancelled job** |
+
+---
+
+## D57. A third failure was hiding behind the cancelled runs, and Session 1 said it was not there
+
+**Session 1 was wrong, in writing, ten minutes before this was found.** The claim was
+"nothing else is hiding behind the red" and "no new probe has broken", made on the
+strength of three consecutive probe runs that all reported 69 of 70 with db-06 alone.
+That reasoning covered the *probe* job and was then stated as if it covered the branch.
+**A third failure was there, in a different job, and it was invisible for exactly the
+reason D56 had just finished warning about: the job kept being cancelled by the next
+push before it could report.** The correction is owed plainly, and the lesson is the one
+already written down, now demonstrated at Session 1's own expense.
+
+### The failure
+
+`Typecheck, lint, test` on `def190bd5`. 714 test files pass, one fails:
+
+```
+FAIL  src/lib/ledger/events.test.ts
+      > the ledger vocabulary matches the database
+Error: ENOENT: no such file or directory, open
+  '.../supabase/migrations/pending/b2_ledger.sql'
+```
+
+Two tests, one cause. `apps/web/src/lib/ledger/events.test.ts:9`:
+
+```ts
+const MIGRATION = join(__dirname, "../../../../../supabase/migrations/pending/b2_ledger.sql");
+```
+
+Commit `def190bd5` promoted that migration out of `pending/`:
+`migrations/{pending/b2_ledger.sql => 20261006105326_b2_ledger.sql}`. The test still
+reads the old path. **Session 2's own promotion commit broke Session 2's own test**, and
+the branch had no way to know because the test job was being cancelled.
+
+### The fix, which is to follow the convention this repo already has
+
+**Point `MIGRATION` at the applied filename, `20261006105326_b2_ledger.sql`, and nothing
+more.**
+
+Session 1's first instinct here was to make the test resolve the file from either
+location so it would survive promotion. **That instinct was wrong, and checking the
+repository is what showed it.** Around twenty five tests read migrations by exact,
+version stamped filename, and the convention is deliberate. From
+`src/lib/admin/str.test.ts`, verbatim:
+
+> "readFileSync throws when it is missing, so a renamed or moved file fails the suite."
+
+A test that throws when its migration moves is the point, not a bug: applied migrations
+are never renamed, and `check-migrations.mjs` enforces that on every push, so a throw
+means something happened that should not have. A clever resolver would have traded a
+loud, correct failure for silence, and would have diverged from two dozen tests that all
+read the same way. **Match the house pattern.**
+
+**The rule that actually prevents the recurrence is upstream of the test:** never write
+a test against a path under `migrations/pending/`, because promotion is certain and the
+break is therefore scheduled rather than possible. If a migration is still pending when
+its test is written, the test and the promotion land together.
+
+**Checked, so nobody has to:** `events.test.ts` is the only test in the repository that
+reads a file under `migrations/pending/`. The two other matches,
+`notify/templates.test.ts:88` and `ci/pipeline.test.ts:56`, are a comment and a fixture
+string, neither of which touches the filesystem. Nothing else is waiting to break this
+way.
+
+### The test itself is good and nothing about its intent changes
+
+It asserts that the fourteen event types in TypeScript are exactly the fourteen the SQL
+function allows, and that the three pots are three separate `create table` statements
+with no `drop trigger` or `delete from` anywhere in the migration. That is precisely the
+test the ledger should have: it is the thing that would catch the vocabulary drifting
+away from the database, which is how ledgers quietly stop balancing. Keep it, fix its
+path, and widen it rather than weaken it.
+
+### What the full picture on that branch now is, measured
+
+| Failure | Whose | Size |
+|---|---|---|
+| `db-06`, `first_runs_seen.INSERT` not on the allowlist | Session 2. Platform wide, red on main too | One allowlist row (D54) |
+| `Advisories`, `source-map-js` under GHSA-68fv-2mgg-jv7q | Main's, not the branch's. Session 3 as lockfile owner | One resolved version (D55) |
+| `Test`, `events.test.ts` ENOENT on the promoted migration | Session 2. Caused by their own promotion commit | One path, resolved robustly |
+
+Three failures, three owners, none of them large, and **the b2-ledger probe is still
+without a verdict** (D56), which remains the most consequential open item because it is
+the only one that touches whether money arithmetic is right.
+
+### A method note, because Session 1 nearly got this one wrong too
+
+The job log's visible tail ended in a loud block of red about `assetlinks.json`
+placeholders and `##[error]Process completed with exit code 1`. Reading the tail alone,
+the obvious conclusion was that the deep-link gate failed the job. **It did not.** That
+step carries `continue-on-error: true` deliberately, documented in `ci.yml` since
+2 October: Android's placeholders are absent on purpose because Play Console setup comes
+after Apple, and `npm run cap:sync` runs the same check strictly so a release sync still
+refuses while it is red. The step's own conclusion reads `success`. The real failure was
+`Test`, several steps earlier, with no red left near the end of the log.
+
+**So: read the step conclusions, not the end of the log.** `GET
+/actions/jobs/{id}` returns every step with its own conclusion, which is the only place
+the failing step is unambiguous. This is the same lesson as D47 and D54 in a third
+costume: know what a signal measures before concluding anything from its colour.
+
+### Separately, a real founder item surfaced by that advisory block
+
+`apps/web/public/.well-known/assetlinks.json` still holds
+`PLACEHOLDER_REPLACE_WITH_PLAY_APP_SIGNING_SHA` and
+`PLACEHOLDER_REPLACE_WITH_UPLOAD_KEY_SHA256_SE`. Advisory in CI by design, and **a hard
+block on a Play release**, because `npm run cap:sync` refuses while it is red and Android
+App Links do not verify without the real fingerprints. Until they land, a shared Vallo
+listing link opens the browser rather than the app, and an email confirmation link for an
+account created in the app lands in a browser that cannot complete it. The Apple side is
+already done: the real Team ID `X74KD52994` replaced its placeholder on 2 October.
+
+**Founder only.** Play Console, the app, Release, Setup, App signing, for the app signing
+key; `keytool -list -v -keystore upload-keystore.jks -alias upload` for the upload key.
+Two SHA-256 fingerprints. Drop `continue-on-error` from that step the day they land.
 
 ---
 
