@@ -533,10 +533,16 @@
     cursor: pointer;
     box-shadow: 0 0 6px color-mix(in oklab, var(--nf-lit) 45%, transparent);
   }
+  /* Centred and sized, not inset: an inset is measured from the PADDING box,
+     inside the 1.5px ring, so -0.8125rem reached 41px, not 44 (W12). */
   .nf-ix-room__check::before {
     content: "";
     position: absolute;
-    inset: -0.8125rem;
+    left: 50%;
+    top: 50%;
+    width: 2.75rem;
+    height: 2.75rem;
+    transform: translate(-50%, -50%);
   }
   .nf-ix-room__check:disabled {
     cursor: not-allowed;
