@@ -81,7 +81,7 @@ export function ReserveTable({
    */
   windows?: readonly ServiceWindow[];
   /** The picker's two lines (`t.experienceDetail.window`). */
-  windowCopy?: { closedThatDay: string; withinHours: string };
+  windowCopy?: { closedThatDay: string; noTimesLeftToday?: string; withinHours: string };
   /** The page's `t.success`, for "Table request sent". Absent, no sheet. */
   success?: SuccessWords;
   /**
@@ -115,6 +115,10 @@ export function ReserveTable({
     () => slotsFor(date, windows, mounted && date === todayIso ? lagosClockNow() : undefined),
     [date, windows, todayIso, mounted],
   );
+  /* Empty with the clock ignored, the venue does not seat on this weekday;
+     empty only with it applied, today's last seating has passed. Those are
+     different news, so they are told apart rather than both saying closed. */
+  const seatsThisWeekday = useMemo(() => slotsFor(date, windows).length > 0, [date, windows]);
   const shownTime = slots.includes(time) ? time : (slots[0] ?? "");
   const hasHours = (windows?.length ?? 0) > 0;
   const [party, setParty] = useState(2);
@@ -239,7 +243,9 @@ export function ReserveTable({
         </div>
         {slots.length === 0 ? (
           <p className="mt-2xs text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)]" data-testid="table-closed-day">
-            {windowCopy?.closedThatDay ?? "Not seating on this day. Pick another day."}
+            {seatsThisWeekday
+              ? (windowCopy?.noTimesLeftToday ?? "No times left today. Pick another day.")
+              : (windowCopy?.closedThatDay ?? "Not seating on this day. Pick another day.")}
           </p>
         ) : hasHours && windowCopy ? (
           <p className="mt-2xs text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">{windowCopy.withinHours}</p>

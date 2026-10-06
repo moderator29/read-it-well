@@ -58,6 +58,9 @@ export const experienceDetailEn = {
   /* The table window picker on a restaurant. */
   window: {
     closedThatDay: "Not seating on this day. Pick another day.",
+    /* Today, after the last seating: the restaurant does seat on this weekday,
+       the clock has passed its last time. Said apart from "closed". */
+    noTimesLeftToday: "No times left today. Pick another day.",
     withinHours: "Times inside the hours this restaurant publishes",
   },
   /* The stay's lead: the nightly rate, then the total for the dates. */
