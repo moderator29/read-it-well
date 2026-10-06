@@ -128,8 +128,22 @@ state until they land.
 ## 3. Surfaces touched, with the 24-point audit (north star section 12)
 
 **P** pass, **F** fail, **N** not yet checked (with the reason). Points 19, 22 and 23
-need a live app at 768 and 1440 in four locales; that pass is scheduled for the
-audit sweep once the foundations land and is not claimed before it runs.
+need a live app at 390, 768 and 1440 in four locales with safe areas. Unless a row
+says otherwise they are **N for every row**: no agent's commit records that pass, and
+the W12 sweep's results are not in the repository. Point 20 (both themes) is recorded
+only where a contrast or paper-register fix names it.
+
+A limit, stated plainly: commit messages record what was built and tested, not each
+agent's point-by-point result. Rows added from the log list only the points a commit
+message evidences, with the short sha. The lead overwrites a row with the agent's own
+report where there is one.
+
+Points used in the new rows: 1 one subject, 2 leads with its figure, 3 theme register,
+4 four tiers and one edge, 5 section order, 6 type floor, 7 tabular figures that
+count, 8 label above figure, 9 icons, 10 entrance motion, 11 press feedback, 12 no
+spinner, 13 reduced motion and data saver, 14 cost shown, 15 trust as dates, 16
+banned words, 17 money copy, 18 empty states, 20 both themes, 21 keyboard and labels,
+24 back destination.
 
 | Route | Agent | Pass | Not checked / note |
 |---|---|---|---|
@@ -138,15 +152,30 @@ audit sweep once the foundations land and is not claimed before it runs.
 | `/agreements` | B2 | 6 (12px floor restored), 15, status by word + shape + colour | N: 19, 22, 23 |
 | `/payments` | B2 | 6 (pill back from 11px to 12px), 15 | N: 19, 22, 23 |
 | `/checkout/[bookingId]` (processing sheets) | B2 | 12 (no spinner; steps tick on real state) | 14 **F, honest**: a per-method fee cannot be shown because no fee data exists (R-2/R-7 area). Summary Island held until B1's `.nf-island` lands |
-| `/host` | B4 | 1, 2, 4-8, 10, 12, 13, 15-18, 19 at 390 and 1440, 20, 21 | N: 3, 9, 11 (existing rows), 14 (no cost on screen), 19 at 768, 22, 23, 24 |
+| `/host` | B4, W7, I1, W8b | 1, 2, 4-8, 10, 12, 13, 15-18, 19 at 390 and 1440, 20, 21; 21 for the real h1 now on `/host` and `/agent/dashboard` (`fc3793a2f`) and the sections under it as h2 (`ac04868e8`); 15 and 18 for Listing Health (`56891a5be`: six facts from the record, actions only where a rule asks) | N: 3, 9, 11 (existing rows), 14 (no cost on screen), 19 at 768, 22, 23, 24 |
 | `/agent/dashboard` | B4 | as `/host` | as `/host` |
 | `/agent/analytics` | B4 | as `/host`; hatched empty months | as `/host` |
 | `/agent/earnings` | B4 | as `/host`; a month before the first settlement shows a dash, never a zero | as `/host`; 3: Paper document treatment of the statement still to do |
 | `/welcome` (Get Started) | B3 | 1, 3, 4, 5, 6, 9, 10 (900ms, breath ends 1,080), 11, 12, 13, 16, 18, 19 (360 and 390), 21, 23 | n/a: 2, 7, 8, 14, 15, 17. 20: night only by founder rule. N: 22, 24 |
 | Passcode lock and setup | B3 | 1 (the dots), 3, 4, 6, 9, 11, 12 ("Checking" is real text), 13, 16, 19, 21, 23 | N: 20 (inline settings frame in Light), 22, 24 |
 | `/` landing hero (copy only) | B3 | 1, 6, 16, 19 | Rest of the landing: W1 |
-| Startup sequence | B3 | Contract in section 5 | Real-device timing N (Session 4) |
-| Dock and side navigation | B1 | 1, 4, 6, 7, 8, 10, 11, 12, 13, 21 | N in a browser: 19, 20, 22, 23; 24 unchanged |
+| Startup sequence | B3, F1 | Contract in section 5; 13 (never runs under reduced motion, Calm, Off or data saver) | Real-device timing N (Session 4) |
+| Dock and side navigation | B1, W10 | 1, 4 (`62b12d914`: one edge, rows on Plate), 6, 7, 8, 10, 11, 12, 13 (`7cca68248`), 21; 24 (`484438b5e`, `441b10271`, `4f2619839`) | N in a browser: 19, 20, 22, 23 |
+| Ported components and primitives (gallery) | B5, B1, G1, T1 | 6, 7 (figures count once), 11, 12 (`c40c975e4`, `02f287a7c`: no looping spinner left), 13, 21 (axe in every dom test); 19 and 22 for the ten ports at 320, 390, 768 and 1440 in night and paper with Hausa-length strings (`002e7557b`) | The surfaces that consume them are checked in their own rows |
+| Auth screens, welcome tour, offline | B3, F1, W11 | 1, 3, 6, 10, 12, 13, 15 and 16 (`4526a30fd`: nothing invented), 18, 21 (`4129223c6`: inert and held focus), 24 (`fec714ffb`: back never re-enters a submitted form) | 19 to 23 in four locales |
+| `/` landing and public site | W1, W1b | 6 (`04c83e004`), 15 and 16 (`8563f7534`, D24: no Example badge, never Verified), 20 (`91e943305`: link ink contrast in light), 21 (`feeda6ca4`: landmark names) | 19, 22, 23; the landing's own sweep |
+| Documentation, help, about, contact, guides, policy pages | W1b | 1, 4 (`9325c0f73`: one Island each), 6, 21 (`7260c68e6`: list semantics); policy pages as documents with words untouched (`27e0279c1`, `1cb345a77`) | 19, 22, 23; legal wording is Session 4's |
+| Discovery: home, search, map, saved, compare, stays and restaurants lists | W2, R2 | 2 (`7c5af96ec`), 7 (`1da3373c8`: prices count with the page, never under a thumb), 13, 15 and 16 (`807b74d14`), 18 (`98528df58`), 24; the filter tile pop (`af8b69be2`, its listener fixed to run before React in `dc323dcbb`) | 14 for a per-method cost; 19, 22, 23 |
+| Space, stay and restaurant detail | W3 | 2 (`80bc9f4a3`: the move-in total leads), 12, 14 (`4289499e2`, `21357196c`: no total quoted unless a room opens it), 15 (`ef741dacb`: trust only where earned, as dates) | 19, 22, 23 |
+| Social, stories, profiles, Around | W4, R1 | 2 (`9112bc10b`: real counts as figures), 11 and 21 (`e8f166aa1` 44px control, `84564d8ad`, `2fe9d0420`), 12 and 13 (`d3911990e`, `04faae1da`), 15 (earned badges only); member lists, tab swap and profile rows (`bb2dee0b3`) | 19, 22, 23; the paused-social back rule is recorded at `441b10271`, `4f2619839` |
+| Inbox, notifications, assistant, support | W5 | 1, 12 (`629284397`, `4f4147713`: answers through AIResponse), 18 (`213033eb4`: a designed full view per event), 21; message arrival (`19e23b42c`) is written, with two open findings (section Remaining) | 19, 22, 23; copy slices keep `/messages/[id]` at 356KB gz (`3563a97b1`) |
+| Settings, verification, Space Passport, invite hub | W6, J1 | 4 (`aa9421e49`: Plate rows), 13, 15 (`875911c3c`: facts as dates with evidence, `a6203f5ba`: each rung names what was checked), 16 (`8b83e904c`: no invented reward) | 19, 22, 23 |
+| Feature first runs, Pro, paywall, streaks | W7, J1 | 15 and 17 (`38876bfe1`: Pro absent unless paid, `fafd8f1a0`: an incomplete plan offers no action), 18, 21 (`42a2257db`, Chromium with axe), 24 (`043c4d1ff`: exits replace the document) | 19, 22, 23 |
+| Money wave 2, caution register, receipts | W9, M2 | 15 and 17 (`a6ed46659`: a refund Paystack has only started is drawn on its way; nothing owed leads with no figure); one receipt model for sheet and email (`6a18d3c18`, `989cf9127`); the agreement cancel edge keeps the button's own ink and says danger with a rose edge, clearing 4.5:1 (`489fdd9e9`) | 19, 22, 23 |
+| Email | W9 | 16, 17, alt text on every image; the receipt email held by test to the on-screen sequence (`9ac40a79b`) | Rendering in real clients |
+| Share door, join, briefs, status tracks, arrival check, safety, after-gate | W13 | 7 (`3c0611d7c`: figure leads, never counts), 11 and 21 (`a87736af8` 44px, `3e9624fcb`, `c4ebb89f0`: the arrival moment cannot hold the screen and takes focus), 12, 15 (`30664866b`: steps differ by shape) | 19, 22, 23; TalkBack pass on the arrival moment (Session 4) |
+| Admin console (shell, overview, queue, desks, compliance, money desk) | W8, W8b | 4 (Plate rows, `.nf-admin-case`), 6 (44px controls), 11 and 12 (Button morph, no spinner), 15 and 18 (zero reads as zero; unreadable draws no figure; read-only desks say so once), 17 (no money sentence written), 21 (palette, decision bars, one h1 per desk, Radio primitives); structural checks by unit and Chromium tests with axe | 3, 5 and 20 in a browser (nothing was rendered under the resource rule), 19, 22, 23; stickiness of the phone decision bar on a real device |
+| Shared controls and overlays | W10, C1 | Sheets land 380ms in and leave 240ms out (`70cf24adc`); an empty state's picture settles once and its words follow (`f7b42550d`); cards below the fold float in once on scroll (`d1e63fc67`); a switch track crossfades under its knob (`8d702aaaf`); each written, with the findings in section Remaining | 19, 22, 23 |
 
 Craft doctrine section 8, flagship surfaces so far: the tenancy receipt and the
 workspace homes. (1) every choice is reasoned in the code's comments; (2) removed: a
@@ -285,24 +314,106 @@ content only. **Verdict: HOLD, on one blocker, now fixed.**
 ## Completed
 
 - Verified starting state; ownership declared before parallel work.
-- Session 1's branch merged (D39.6); framer-motion installed alone; one LazyMotion
-  provider with features loaded after first paint, an eslint guard and a test.
+- Session 1's branch merged (D39.6); framer-motion 12.43.0 installed alone; one
+  LazyMotion provider with features loaded after first paint, an eslint guard and a
+  test (`0eb727889`, `00790354d`).
+- Foundations: figures that count once and roll only what changed, buttons that
+  morph, a toast, `StatusChip`, one edge per container tier (`bfdb252c1`,
+  `62b12d914`); the dock and rail kept and upgraded (`2e3d7eee7`); no looping
+  spinner left on any control (`c40c975e4`, `02f287a7c`).
+- Components: the ten founder components ported and tested at four widths in both
+  themes (`002e7557b`); a gallery of every primitive family (`8e37d88a0`).
+- Assets: 93 accepted objects, the clay migration through one map (64 call sites), a
+  vector mark and wordmark (`b5df870cb`, `bcc867aad`, `0304c710c`).
+- Entry: Get Started, the passcode, the 1.5-second startup, the auth screens, the
+  welcome tour, offline.
+- Public: the landing around one platform band with a mega menu, the six old rooms
+  deleted, public doors, documentation, help and policy pages as documents.
+- Member product: discovery, detail, social and profiles, inbox and notifications,
+  account and the Space Passport, feature first runs, the host and agent workspaces,
+  Listing Health and analytics.
 - B2: the document sheet and print stylesheet; tenancy receipt; agreement terms;
   agreements and payments status; real processing steps; history rows open their
   booking.
+- Money: receipts, the move-in ledger, agreements as a register, the caution
+  register, refunds, one receipt model shared with email, email as a designed
+  surface.
 - B4: the chart system; workspace homes lead with "needs you today"; agent analytics
   and earnings on the chart system.
+- Admin: the shell and command palette, overview figures, queue paging and filters
+  in a phone sheet, the batch tray, case history in an Unfold, desk sections on
+  Money, Operations and Analytics, documents and slides for rulings, compliance on
+  the shared primitives, the listing status flow, phone decision bars, read-only
+  desks that say so.
+- Speed, from W13's builds and the owners' commits: the dictionary slices and route
+  copy scopes, supabase-js and next/image deferred, six route sheets out of the
+  global sheet, zod out of the client (a corrected trace found 34 client roots; a
+  final trace finds 0), and a lint rule that refuses a value import of the whole
+  dictionary in a client module (`fe443bf41`).
+- Six auditors' ranges (A2 to A7) and the pre-push audit; every blocker found was
+  fixed.
+- Landed since `937e9a788`, the last pushed head:
+  - The host home's sections are h2 under its h1; `ListGroup` can label at either
+    level (`ac04868e8`).
+  - `/host` starts its five reads in one wave again; the first run is still decided
+    from the businesses (`268277ff1`).
+  - Sheets land 380ms in and leave 240ms out, no overshoot (`70cf24adc`).
+  - An empty state's picture settles once and its words follow; the endless float
+    and blur are gone (`f7b42550d`).
+  - A chosen filter tile pops once, 1 to 1.03 and back, only when it becomes chosen
+    (`af8b69be2`).
+  - Member lists arrive, a chosen tab's panel swaps, and profile rows press like
+    settings rows (`bb2dee0b3`).
+  - A message that arrives slides in on land; a thread's history is simply there
+    (`19e23b42c`).
+  - A switch's track crossfades under its travelling knob instead of snapping
+    (`8d702aaaf`).
+  - Cancelling an agreement keeps the button's own ink and says danger with a rose
+    edge, clearing 4.5:1 (`489fdd9e9`).
+  - Cards below the fold float in once as they scroll into view, a row landing
+    together (`d1e63fc67`).
 
 ## Changed
 
 See the commit log on `claude/vallo-experience-upgrade`: one commit per unit, each
-message saying why.
+message saying why. 272 commits in `21228b59c^..2170a0f3d`, 1,403 files (67,420
+insertions, 14,943 deletions); the ten units above landed after that range. What a
+reader should know that the log does not say at a glance:
+
+- **Flow routing, D28:** Get Started's "Get started" carries `next=/welcome`,
+  restoring a step a cold-start sign-up used to skip. No step was added or reordered.
+- **Deliberate deletions:** the four-hue `DonutChart` (the refused pattern), the six
+  landing rooms, `ExampleNotice` (its ban stays tested), the funnel wall's last
+  code, the client dictionary hook, `nf-spinner` and its rules.
+- **Schema modules** now keep only zod schemas and re-export a zod-free `*-model`
+  file; server validation is word for word the same.
+- **One new environment name:** `W6_APP_CSS`, a test-harness name, in `.env.example`
+  and `docs/ENVIRONMENT.md`.
+- **No migration, no database type, no `lib/money/copy.ts` and no ranking change.**
+- **Motion timings changed since the last push:** sheets land 380ms and leave 240ms
+  (`70cf24adc`); a filter tile pops 1 to 1.03 once (`af8b69be2`); an empty state
+  settles once (`f7b42550d`); a switch track crossfades (`8d702aaaf`); a message
+  slides in on arrival (`19e23b42c`); cards float in once on scroll (`d1e63fc67`).
+- **Reads and semantics:** `/host` reads in one wave (`268277ff1`), and its sections
+  are h2 under the h1 (`ac04868e8`).
+- **Contrast:** the agreement cancel edge clears 4.5:1 (`489fdd9e9`).
 
 ## Tested
 
-Baseline on `main`: typecheck, lint and 8,791 tests green. Every push is gated in a
-clean worktree of the exact commit being pushed, so other agents' uncommitted work
-never colours the result. Results per push are appended below.
+- Baseline on `main`: typecheck, lint and 8,791 tests green.
+- Last pushed head, `937e9a788`: 9,683 tests passed in 793 files.
+- Chromium tests with axe, added this session: the ten ports at four widths in two
+  themes; the wave-2 components (`42a2257db`); the arrival ruling, share and invite
+  doors, IndexRows, the held ring and the STR slide (`b7302e7c2`); Listing Health on
+  real model fixtures (`ddfe11d66`); the queue's batch tray and the console palette.
+  Dom tests mount inside the app's own providers (`e6a8160e0`).
+- Every push is gated in a clean worktree of the exact commit being pushed, so other
+  agents' uncommitted work never colours the result. Results per push are the lead's
+  to append below; the full typecheck, lint, suite and build were never run by
+  agents (the resource rule), and the gate's result for the ten later units is not
+  asserted here.
+- Not run by Session 3: the Playwright specs in `apps/web/tests/` (Session 4's), a
+  build after the last speed changes taken as one, real devices.
 
 ## Failed
 
@@ -313,19 +424,42 @@ never colours the result. Results per push are appended below.
 
 - **In progress:**
   - R1: member buttons and A2's and A3's findings.
-  - R2: A4's findings.
-  - C1: cleanup and A3's S5 and S8.
-  - W8b: admin depth and A3's S1, S7 and S9.
-  - I1: listing health and analytics.
-  - M2: the agreements and the caution register.
-  - W1b: the policy pages on the document sheet.
-  - B5: Button's non-morph `loading`, which still draws a spinner, plus the gallery index links.
+  - R2: A4's findings, and the filter tile pop below.
+  - C1: cleanup, A3's S5 and S8, and the message and switch findings below.
+  - B5: the gallery index links.
   - T1: dom tests.
-  - W12: the sweep at 390, 768 and 1440.
-  - W13: the built app's per-route cost and framer-motion's cost after the ports.
-  - A5, A6 and A7: audits.
-- **Then:** the merge of `main` once Session 4's source-map-js fix lands (D46), the PR
-  body rewrite Session 4 asked for, and host analytics once R-8 lands.
+  - W12: the sweep at 390, 768 and 1440; its results are not in the repository yet.
+  - W13: a re-measure of the built app after the zod, dictionary-slice and route-sheet
+    changes as one build; the speed figures in this file are per change, not a
+    single before and after.
+  - A7: the rolling review.
+- **Open audit findings on the ten latest units, routed and in progress:**
+  - The filter tile pop (`af8b69be2`) never fired because its listener ran after
+    React; fixed in `dc323dcbb` (capture phase, with a Chromium test that fails
+    without it).
+  - A sent message's arrival (`19e23b42c`) plays twice on id adoption. C1.
+  - The switch gradient (`8d702aaaf`) does not crossfade. C1.
+  - `nf-msg-in` is missing from the Calm list. C1.
+  - A sheet's exit animation (`70cf24adc`) never plays, because `Sheet` returns null
+    when closed, so the 240ms leave is not seen. R2 is fixing it.
+- **Session 4's, by decision:** Advisories (D46), the merge of `main` once the
+  `source-map-js` fix lands, the Playwright specs, the weight budgets (every budget
+  in `perf-budget.json` is null and CI never sends `WEIGHT_COOKIE`), legal wording
+  (the Get Started line says Terms and Privacy twice), real-device timing of the
+  startup, a screen-reader pass on the toast dwell and on the arrival moment.
+- **Needs Session 2 before it can be built; the screens render the honest empty
+  state meanwhile:** R-3 wallet, R-4 escrow and R-5 withdrawal (those three screens
+  are not built), R-6 one transaction, R-8 host analytics, R-9 host earnings by
+  month, R-2 and R-7 money copy and the receipt reference, R-10 agent daily series,
+  R-40 to R-43 agreement and caution dates and staff version reads, R-50 to R-56
+  Listing Health inputs, R-60 earned badges for a signed-out visitor, R-61 a failed
+  refund said as failed (an honesty gap).
+- **Documentation still to bring up to date:** `docs/ADMIN_CONSOLE.md` with the
+  console's sections, slides and documents, and the README line for `W6_APP_CSS`.
+- **Known and recorded, not rewritten:** the stretch that does not bisect.
+  `03b4b1ce4` and the six commits after it do not build alone until `3ad213d95` adds
+  the module they import; the tip builds.
+- **Then:** the PR body rewrite Session 4 asked for.
 
 ## Decisions
 
@@ -404,7 +538,22 @@ never colours the result. Results per push are appended below.
 
 ## Next Session
 
-(Written at the end.)
+1. Fix the open findings on the ten latest units: the double message arrival, the switch crossfade, `nf-msg-in` in the Calm list, and
+   the sheet exit, which needs `Sheet` to stay mounted while it leaves.
+2. Run the lead's full gate on the tip, then merge `main` after Session 4's
+   `source-map-js` fix (D46); settle Advisories.
+3. Land Session 2's requests in the order the screens wait on them: R-3 to R-5
+   (wallet, escrow, withdrawal), R-6, R-8 and R-9 first, then R-2, R-7 and R-61.
+4. Make one production build and record per-route first load against the route
+   table, so the speed section has a single before and after; fill the null budgets
+   and send `WEIGHT_COOKIE` in CI.
+5. Read each surface's 24-point result from the agents' own reports into section 3,
+   and run points 19, 22 and 23 at 390, 768 and 1440 in four locales, which no agent
+   has recorded.
+6. Run the Playwright specs, the TalkBack pass on the arrival moment and the toast
+   dwell, and the startup on a real mid-range Android.
+7. Update `docs/ADMIN_CONSOLE.md` and the README for the console and the test-harness
+   name.
 
 ## Do Not Repeat
 
