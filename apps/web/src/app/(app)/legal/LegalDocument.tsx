@@ -67,10 +67,7 @@ export function LegalDocument({
             {sections.map((section, index) => (
               <li key={section.title}>
                 <a href={`#${anchor(section.title)}`}>
-                  <span className="nf-legal__num" aria-hidden="true">
-                    {index + 1}
-                  </span>
-                  <span>{section.title}</span>
+                  <NumberedTitle title={section.title} index={index} />
                 </a>
               </li>
             ))}
@@ -86,10 +83,7 @@ export function LegalDocument({
               className="nf-legal__section"
             >
               <h2 id={`${anchor(section.title)}-title`} className="nf-h3 nf-legal__heading">
-                <span className="nf-legal__num" aria-hidden="true">
-                  {index + 1}
-                </span>
-                <span>{section.title}</span>
+                <NumberedTitle title={section.title} index={index} />
               </h2>
               <div className="nf-legal__prose">{section.body}</div>
               <a href="#legal-contents" className="nf-legal__top nf-tap">
@@ -109,6 +103,32 @@ export function LegalDocument({
         with any question.
       </p>
     </div>
+  );
+}
+
+/**
+ * A section's number and title, the number printed ONCE (C6, the route
+ * sweep). The legal texts number their own titles ("1. About these terms"),
+ * and this frame printed its index number beside them, so every row and
+ * heading read "1  1. About these terms". The title's own number is now the
+ * one set in the brand ink, and the words follow; a title with no number of
+ * its own takes its place in the list. The legal text is untouched: a screen
+ * reader still hears "1. About these terms" whole (the visible number is
+ * hidden from it, the text's own "1. " is visually hidden), and the anchors
+ * are still built from the full title, so no link to a section breaks.
+ */
+function NumberedTitle({ title, index }: { title: string; index: number }) {
+  const own = /^(\d+)\.\s+(.*)$/s.exec(title);
+  return (
+    <>
+      <span className="nf-legal__num" aria-hidden="true">
+        {own ? own[1] : index + 1}
+      </span>
+      <span>
+        {own ? <span className="sr-only">{`${own[1]}. `}</span> : null}
+        {own ? own[2] : title}
+      </span>
+    </>
   );
 }
 
