@@ -2,7 +2,6 @@ import Link from "next/link";
 import { PageHeader } from "@/components/app/PageHeader";
 import { EmptyPanel } from "./EmptyPanel";
 import { PeopleList } from "./PeopleList";
-import { AroundFab } from "@/components/social/AroundFab";
 import { getFollowList, type FollowDirection } from "@/lib/social/follows-queries";
 import { normaliseHandle } from "@/lib/social/profiles-queries";
 
@@ -107,9 +106,8 @@ export async function FollowListPage({
         initial={view.people}
         initialCursor={view.cursor}
       />
-      {/* The dock is on every social surface, so it does not blink in and out
-          as somebody moves between a profile and the people on it. */}
-      <AroundFab />
+      {/* No create fan on a person's lists, as on their profile (founder,
+          7 October): the composer lives on the feed. */}
     </div>
   );
 }
