@@ -3212,3 +3212,19 @@ else.
 
 There is no `/pro` route in the tree. The founder's "the pro and etc too" cannot be
 routed until Pro exists; it is in the report under not built.
+
+---
+
+## D72. The whole platform, to the premium standard, by six agents (7 October 2026)
+
+The founder, mid-session: upgrade every page of the platform to a premium, consistent,
+next-generation standard, on Android, iOS and the web, with up to six agents working
+autonomously, following the handoff and this instruction together. He sent five
+reference images in chat; they are described precisely in
+`docs/design/PREMIUM-STANDARD.md`, which is now the bar every agent builds to.
+
+He reopened two things earlier rulings had closed. **Get Started is redesigned**, to his
+reference of the Vallo onboarding cards ("Find your space.", 1 / 4), and the sign-in
+and sign-up flow, which he now calls good, may be raised further if it can be done
+better. The feed's actions become small, clean outline icons in separate capsules, per
+his reference.
