@@ -110,6 +110,18 @@ collapse to one card per row under 768px and 720px. False positive, nothing chan
 
 ## 6. Blocked on him
 
+- **Pro:** `/pro` exists and is in the side navigation. It reads the member's real plan
+  (only "Free" exists in the database) and shows "Price coming"; nothing is sold. Needed
+  from him: the price and billing period, which plans launch, which plan is the top
+  (gold) one, what each includes, and whether to run a trial or offer.
+- **Push notifications in production** need these server variables confirmed in Vercel:
+  `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, `FCM_PROJECT_ID`,
+  `FCM_SERVICE_ACCOUNT_JSON`, `APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_PRIVATE_KEY`,
+  `APNS_BUNDLE_ID`; and the iOS `aps-environment` must be `production` for the App
+  Store build (it is `development`).
+- **Face ID** on the phone needs a native rebuild; on Android it also needs the real
+  SHA-256 signing fingerprints in `assetlinks.json` (placeholders today).
+
 - **Apply order for every pending money migration (reviewed, none applied):**
   `d73a_stays_instant_pay`, `b6_member_money_rail`, `d73b_provider_arrangements`,
   `d75a_restaurant_deposits`, `d75b_stay_trip_details`, each with its probe in
