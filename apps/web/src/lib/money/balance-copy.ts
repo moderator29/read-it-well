@@ -11,7 +11,7 @@ import type { MovementKind, MovementStatus, OnboardingState, ProfileGap } from "
  */
 
 export const BALANCE_TITLE = "Balance";
-export const BALANCE_LEDE = "Money you can use on Vallo, money protected in a deal, and anything still on its way.";
+export const BALANCE_LEDE = "Money you can use on Vallo, money held for a deal by our licensed partner, and anything still on its way.";
 
 /**
  * LEGAL REVIEW (founder section 61): names the provider and claims no
@@ -24,7 +24,7 @@ export const HELD_BY_HREF = "/safety#how-payments";
 
 export const FIGURE_LABEL = {
   available: "Available",
-  protected: "Protected",
+  protected: "Held for a deal",
   pending: "Pending",
   processing: "Processing",
 } as const;
@@ -80,7 +80,7 @@ export const ONBOARDING_COPY: Record<OnboardingState, { title: string; body: str
   ACTIVE: { title: "Your balance is open", body: "You can add money, withdraw and send." },
   RESTRICTED: {
     title: "Some actions are paused",
-    body: "Our partner has limited what this balance can do for now. Your money is safe where it is. Contact support and we will find out why.",
+    body: "Our partner has limited what this balance can do for now. Nothing has moved, and nothing will until this is sorted. Contact support and we will find out why.",
   },
   SUSPENDED: {
     title: "Your balance is on hold",
@@ -137,7 +137,7 @@ export function movementStatusLabel(kind: MovementKind, status: MovementStatus):
     case "cancelled":
       return "Cancelled";
     case "under_review":
-      return "Being checked";
+      return "Under review";
   }
 }
 
@@ -170,7 +170,7 @@ export const WAITING_COPY: Record<"withdrawal" | "deposit" | "send" | "unknown" 
     body: "We asked for this and did not hear back in time. That does not mean it failed. Please do not try again: we are checking, and this updates on its own. Your balance will not be charged twice.",
   },
   review: {
-    title: "Being checked",
+    title: "Under review",
     body: "What we heard back did not match what you asked for, so a person is checking it before anything is shown as done. Your money is not lost. We will tell you as soon as it is settled.",
   },
 };

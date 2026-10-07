@@ -56,7 +56,7 @@ describe("the balance screen", () => {
     const html = render(true);
     expect(html).toContain("2,450,000");
     expect(html).toContain("Confirmed 3 minutes ago");
-    for (const label of ["Protected", "Pending", "Processing"]) expect(html).toContain(label);
+    for (const label of ["Held for a deal", "Pending", "Processing"]) expect(html).toContain(label);
     expect(html).toContain("850,000");
   });
 
