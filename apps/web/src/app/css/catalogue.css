@@ -3165,3 +3165,78 @@
     backdrop-filter: none;
   }
 }
+
+/* ========================================================= THE PALETTE
+   The search field as a command palette (the founder's
+   command-search-palette.jpg; ONE-PRODUCT-DECISIONS recommendation 4). One
+   card under the field: rows of a small glyph tile and a label, the first
+   row (what Enter does) on a soft fill with its key hint, hairline between
+   the field and the list. It grows out of the field: anchored at its top
+   edge, it opens from 0.96 on `land`, so the field reads as becoming the
+   card rather than a menu dropping in. Reduced motion, Calm and Off open
+   it settled (the existing `.nf-recent` rules already stop its animation). */
+@layer components {
+  .nf-shelf-bar > .nf-recent:has(.nf-recent__list--palette) {
+    padding: var(--nf-space-2xs);
+    border-color: var(--nf-smoked-glass-edge);
+    border-radius: var(--nf-radius-card);
+    transform-origin: top center;
+    animation-name: nf-palette-open;
+  }
+  .nf-recent__list--palette {
+    gap: var(--nf-space-3xs);
+  }
+  /* It floats over the results, so at night it is smoked glass (D74): the
+     night glass it inherited let the chips and the count read through it.
+     The bar it hangs from already has a backdrop filter, which makes the bar
+     the panel's backdrop root, so a blur here cannot reach the results: the
+     smoke is laid over the near-black ink and reads as one solid object. */
+  :root:not([data-theme="light"]) .nf-shelf-bar > .nf-recent {
+    border-color: var(--nf-smoked-glass-edge);
+    background:
+      linear-gradient(var(--nf-smoked-glass-fill), var(--nf-smoked-glass-fill)),
+      var(--nf-platinum-ink);
+    -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    backdrop-filter: blur(var(--nf-smoked-glass-blur));
+  }
+  @media (prefers-reduced-transparency: reduce) {
+    :root:not([data-theme="light"]) .nf-shelf-bar > .nf-recent {
+      background: var(--nf-platinum-ink);
+    }
+  }
+  .nf-recent__list--palette .nf-recent__row {
+    border-radius: var(--nf-radius-control);
+  }
+  .nf-recent__row[data-active] {
+    background: color-mix(in oklab, var(--nf-content-primary) 8%, transparent);
+  }
+  .nf-recent__tile {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: var(--nf-radius-control);
+    background: var(--nf-surface-raised);
+    color: var(--nf-content-secondary);
+  }
+  .nf-recent__kbd {
+    flex: none;
+    padding: var(--nf-space-3xs) var(--nf-space-2xs);
+    border: var(--nf-border-width) solid var(--nf-border-subtle);
+    border-radius: var(--nf-radius-xs);
+    font-family: inherit;
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-muted);
+  }
+  @keyframes nf-palette-open {
+    from {
+      opacity: 0;
+      transform: translateY(-6px) scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
