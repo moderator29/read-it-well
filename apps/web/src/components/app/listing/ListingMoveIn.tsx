@@ -1,7 +1,8 @@
 import type { Dictionary, Locale } from "@vallo/i18n/core";
 import type { Listing } from "@/lib/listings/types";
 import { Amount } from "@/components/ui/Amount";
-import { DetailGlyph } from "./DetailGlyph";
+import { Money } from "@/components/ui/Money";
+import { TrueCostActions } from "./TrueCostActions";
 import { TYPE } from "@/components/app/Screen";
 import { moveInLines } from "./move-in-lines";
 import { unexplainedRemainder } from "@/lib/rent/ledger";
@@ -11,6 +12,9 @@ import { feeRuleFor } from "@/lib/trust/fee-rules";
 import { formatMoney } from "@vallo/i18n/core";
 import { Unfold } from "@/components/ui/Unfold";
 import "@/app/css/catalogue.css";
+
+/* The fees on a bill: every cost that is neither the rent nor money that comes back. */
+const FEE_KEYS = new Set(["agency", "legal", "agreement", "service"]);
 
 /**
  * What it actually costs to move in.
@@ -71,12 +75,19 @@ export function ListingMoveIn({
   locale,
   t,
   records = { mandateVerified: false, ownershipVerified: false },
+  actions,
 }: {
   listing: Listing;
   locale: Locale;
   t: Dictionary;
   /** V-46: whether staff dated the ownership or the mandate. Absent reads as neither. */
   records?: Pick<PayeeContext, "mandateVerified" | "ownershipVerified">;
+  /**
+   * The three equal tiles under the total (Ledger, Share, Ask). The listing
+   * page passes them; a harness or a surface with nowhere to send them leaves
+   * them out and the bill ends at its total.
+   */
+  actions?: { ledgerHref: string; messageHref: string; shareTitle: string };
 }) {
   const copy = t.moveIn;
   const lines = moveInLines(listing, copy, {
@@ -112,12 +123,55 @@ export function ListingMoveIn({
   const noAgencyFee = listing.agencyFeeMinor === 0;
   const gateTitle = t.experienceDetail.breakdown.howRead;
   const gateHint = t.experienceDetail.breakdown.howReadHint;
+  const sx = t.experienceDetail.breakdown;
+
+  /*
+   * THE BILL, TO PREMIUM-STANDARD REFERENCE 8 (the founder's bill breakdown,
+   * 7 October): three small figures over the lines, then one card of lines
+   * whose amounts sit right aligned and tabular with a muted line under each
+   * label that says what the figure is made of, then a heavier total, then
+   * three equal action tiles. The plates that stood at the start of every row
+   * came off: the reference draws none, and at 390 they cost the label column
+   * 56px, which is why a two-word cost wrapped onto four lines.
+   *
+   * WHO EACH COST IS PAID TO stays on its row, under the arithmetic, because
+   * "no landlord is on record" is a trust fact and the rule above holds:
+   * money facts are never behind a disclosure.
+   */
+  const rentMinor = lines.find((line) => line.key === "rent")?.minor ?? 0;
+  const feesMinor = lines
+    .filter((line) => FEE_KEYS.has(line.key))
+    .reduce((sum, line) => sum + (line.minor ?? 0), 0);
+  const backMinor = lines.find((line) => line.key === "caution")?.minor ?? 0;
+  const strip = [
+    rentMinor > 0 ? { key: "rent", label: sx.stripRent, minor: rentMinor } : null,
+    feesMinor > 0 ? { key: "fees", label: sx.stripFees, minor: feesMinor } : null,
+    backMinor > 0 ? { key: "back", label: sx.stripBack, minor: backMinor } : null,
+  ].filter((cell): cell is { key: string; label: string; minor: number } => cell !== null);
 
   return (
-    <div data-testid="move-in-cost" className="nf-movein">
+    <div data-testid="move-in-cost" className="nf-movein nf-movein--bill">
+      {/* A strip of one figure says nothing the total does not, so it needs two. */}
+      {strip.length > 1 && (
+        <dl className="nf-bill-strip" aria-label={sx.stripLabel} data-testid="move-in-strip">
+          {strip.map((cell) => (
+            <div key={cell.key} className="nf-bill-strip__cell" data-cell={cell.key}>
+              <dt className="nf-bill-strip__label">{cell.label}</dt>
+              <dd className="nf-bill-strip__figure">
+                <Money minor={cell.minor} locale={locale} currency={listing.currency} mode="glance" />
+              </dd>
+            </div>
+          ))}
+        </dl>
+      )}
       <ul className="nf-movein__list">
         {lines.map((line) => {
           const isDeclared = line.minor !== undefined && line.minor !== null;
+          const share = shares?.each[line.key as FeeKey];
+          const sub = [
+            line.basis,
+            share ? feeCopy.shareOfRent.replace("{share}", formatBps(share.bps, locale)) : undefined,
+          ].filter(Boolean);
           return (
             <li
               key={line.key}
@@ -125,24 +179,20 @@ export function ListingMoveIn({
               data-declared={isDeclared || undefined}
               data-testid={`move-in-line-${line.key}`}
             >
-              <DetailGlyph name={line.glyph} className="nf-movein__plate" />
               <span className="nf-movein__name">
                 <span className="nf-movein__label">{line.label}</span>
-                {line.basis && <span className="nf-movein__basis">{line.basis}</span>}
-                {/* A declared ZERO does not also say who keeps it: "No agency
-                    fee" over "Paid to the agent" is two halves of a sentence
-                    that contradict each other, and the zero is the whole
-                    point of the line. */}
+                {sub.length > 0 && (
+                  <span
+                    className="nf-movein__basis nf-numeric"
+                    {...(share ? { "data-testid": `fee-share-${line.key}` } : {})}
+                  >
+                    {sub.join(" · ")}
+                  </span>
+                )}
+                {/* A declared zero has nobody to be paid; "No agency fee" over
+                    "Paid to the agent" would contradict itself. */}
                 {isDeclared && line.minor !== 0 && line.keeper && (
                   <span className="nf-movein__keeper">{line.keeper}</span>
-                )}
-                {shares?.each[line.key as FeeKey] && (
-                  <span className="nf-movein__keeper nf-numeric" data-testid={`fee-share-${line.key}`}>
-                    {feeCopy.shareOfRent.replace(
-                      "{share}",
-                      formatBps(shares.each[line.key as FeeKey]!.bps, locale),
-                    )}
-                  </span>
                 )}
               </span>
               <span className="nf-movein__figure">
@@ -165,21 +215,18 @@ export function ListingMoveIn({
         })}
         {remainder > 0 && (
           <li className="nf-movein__row" data-declared data-testid="move-in-line-remainder">
-            <DetailGlyph name="info" tone="pending" className="nf-movein__plate" />
             <span className="nf-movein__name">
               <span className="nf-movein__label text-[var(--nf-state-warning)]">{gateCopy.line}</span>
-              <span className="nf-movein__keeper">{gateCopy.note}</span>
+              <span className="nf-movein__basis">{gateCopy.note}</span>
             </span>
             <span className="nf-movein__figure text-[var(--nf-state-warning)]">
               <Amount minorUnits={remainder} locale={locale} currency={listing.currency} />
             </span>
           </li>
         )}
-        {/* "Total payable", closing the same card (7073), never a figure
-            computed here: the lister's stated total, or the floor of the parts
-            they named, labelled "from". */}
+        {/* The total: the lister's stated figure, or the floor of the parts
+            they named, labelled "from". Never computed into something else. */}
         <li className="nf-movein__row nf-movein__row--total" data-declared data-testid="move-in-total">
-          <DetailGlyph name="coins" className="nf-movein__plate" tone="brand" />
           <span className="nf-movein__total-label">{stated ? copy.totalStated : copy.totalFrom}</span>
           <span className="nf-movein__total-figure">
             <Amount minorUnits={total} locale={locale} currency={listing.currency} />
@@ -201,6 +248,23 @@ export function ListingMoveIn({
             String(undeclared),
           )}
         </p>
+      )}
+      {actions && (
+        <TrueCostActions
+          listingId={listing.id}
+          title={actions.shareTitle}
+          ledgerHref={actions.ledgerHref}
+          messageHref={actions.messageHref}
+          copy={{
+            label: sx.actionsLabel,
+            ledger: sx.ledger,
+            ledgerLabel: sx.ledgerLabel,
+            share: sx.share,
+            shareLabel: sx.shareLabel,
+            ask: sx.ask,
+            askLabel: sx.askLabel,
+          }}
+        />
       )}
       <Unfold
         className="mt-row"
