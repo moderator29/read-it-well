@@ -425,6 +425,11 @@ export function buildNav({
      chat and "talk to a person"); signed out, the public help centre. */
   tail.push({ href: signedIn ? "/support" : "/help", label: t.nav.helpSupport, icon: "headset" });
   if (signedIn) {
+    /* P6 (7 October): Pro, what it is and where the member stands, above
+       Settings. "Pro" is the plan's name and reads the same in every
+       language (the dictionary's own `experienceFeatures.pro.label` is
+       "Pro"), so the shell slice is not widened for one word. */
+    tail.push({ href: "/pro", label: "Pro", icon: "sparkle" });
     tail.push({ href: "/settings", label: t.nav.settings, icon: "settings-gear" });
   }
   if (tail.length > 0) sections.push({ heading: null, items: tail });

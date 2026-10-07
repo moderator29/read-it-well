@@ -266,6 +266,8 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
      and the invite hub; until the rewards read is live (R-C3-1) the page
      draws the honest not-live state. */
   "/rewards": "/settings",
+  /* P6: Pro sits above Settings in the side navigation and returns there. */
+  "/pro": "/settings",
   "/rewards/referrals": "/rewards",
   "/rewards/history": "/rewards",
   "/rewards/withdraw": "/rewards",
