@@ -64,7 +64,9 @@ create table public.provider_arrangements (
   provider_payment_token text,
   amount_minor bigint not null check (amount_minor >= 100000),
   currency text not null default 'NGN' check (currency = 'NGN'),
-  who_pays_fee text not null check (who_pays_fee in ('buyer', 'seller', 'both')),
+  -- Payluk's 2 percent escrow fee is borne by the lister (VALLO_PRICING.md section 6, D75):
+  -- the renter pays exactly the agreed amount.
+  who_pays_fee text not null default 'seller' check (who_pays_fee = 'seller'),
   provider_fee_minor bigint check (provider_fee_minor is null or provider_fee_minor >= 0),
   buyer_user_id uuid not null references auth.users (id) on delete restrict,
   seller_user_id uuid not null references auth.users (id) on delete restrict,
@@ -187,7 +189,6 @@ revoke all on function private.provider_arrangement_step_ok(text, text) from pub
 create or replace function public.provider_arrangement_open(
   p_agreement uuid,
   p_kind text,
-  p_who_pays_fee text,
   p_milestones jsonb default null
 ) returns jsonb
 language plpgsql security definer set search_path = '' as $$
@@ -204,7 +205,7 @@ begin
   if not private.rentals_protected_pay_on() then
     return jsonb_build_object('status', 'switched_off');
   end if;
-  if p_kind not in ('standard', 'milestone') or p_who_pays_fee not in ('buyer', 'seller', 'both') then
+  if p_kind not in ('standard', 'milestone') then
     return jsonb_build_object('status', 'bad_request');
   end if;
   select * into ag from public.deal_agreements where id = p_agreement for update;
@@ -258,9 +259,9 @@ begin
     return jsonb_build_object('status', 'bad_milestones', 'reason', 'standard_has_none');
   end if;
 
-  insert into public.provider_arrangements (agreement_id, kind, reference, amount_minor, who_pays_fee,
+  insert into public.provider_arrangements (agreement_id, kind, reference, amount_minor,
                                             buyer_user_id, seller_user_id, buyer_customer_id, seller_customer_id)
-  values (ag.id, p_kind, 'vallo-arr-' || replace(gen_random_uuid()::text, '-', ''), ag.amount_minor, p_who_pays_fee,
+  values (ag.id, p_kind, 'vallo-arr-' || replace(gen_random_uuid()::text, '-', ''), ag.amount_minor,
           ag.renter_id, ag.owner_id, buyer, seller)
   returning * into arr;
   if p_kind = 'milestone' then
@@ -277,8 +278,8 @@ begin
   return jsonb_build_object('status', 'ok', 'id', arr.id, 'reference', arr.reference, 'amount_minor', arr.amount_minor,
                             'buyer_customer_id', buyer, 'seller_customer_id', seller);
 end $$;
-revoke all on function public.provider_arrangement_open(uuid, text, text, jsonb) from public, anon, authenticated;
-grant execute on function public.provider_arrangement_open(uuid, text, text, jsonb) to service_role;
+revoke all on function public.provider_arrangement_open(uuid, text, jsonb) from public, anon, authenticated;
+grant execute on function public.provider_arrangement_open(uuid, text, jsonb) to service_role;
 
 -- 6. Observe. Returns: changed, same, refused, amount_mismatch, id_mismatch, not_found.
 -- p_milestones: [{ "position": int, "provider_milestone_id": text, "status": text, "released_at": timestamptz? }]

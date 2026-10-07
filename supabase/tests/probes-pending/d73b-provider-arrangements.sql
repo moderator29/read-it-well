@@ -4,7 +4,7 @@
 --  1. the switch is seeded OFF and open refuses while it is off
 --  2. the step table: forward only, nothing leaves a final state
 --  3. a stay agreement is refused (stays pay by card, D73 Part A)
---  4. both parties must hold an ACTIVE provider customer record
+--  4. both parties must hold an ACTIVE provider customer record; the lister bears the fee
 --  5. milestones must be 2 or more and sum to the agreement amount
 --  6. one live arrangement per agreement; a second open returns the first
 --  7. Vallo cannot claim a provider state; the provider's id and amount must
@@ -52,19 +52,19 @@ begin
     raise exception 'PROBE_OK d73b-provider-arrangements (steps 1 and 2; fixture skipped)';
   end;
 
-  r := public.provider_arrangement_open(ag, 'standard', 'buyer', null);
+  r := public.provider_arrangement_open(ag, 'standard', null);
   if r ->> 'status' <> 'switched_off' then raise exception 'PROBE_FAIL d73b 1: open with the switch off: %', r; end if;
   update public.feature_flags set enabled = true where key = 'rentals_protected_pay';
 
   -- 3.
   select id into stay_ag from public.deal_agreements where kind = 'stay' limit 1;
   if stay_ag is not null then
-    r := public.provider_arrangement_open(stay_ag, 'standard', 'buyer', null);
+    r := public.provider_arrangement_open(stay_ag, 'standard', null);
     if r ->> 'status' <> 'not_payable' then raise exception 'PROBE_FAIL d73b 3: a stay opened %', r; end if;
   end if;
 
   -- 4.
-  r := public.provider_arrangement_open(ag, 'standard', 'buyer', null);
+  r := public.provider_arrangement_open(ag, 'standard', null);
   if r ->> 'status' not in ('buyer_not_onboarded', 'seller_not_onboarded') then
     raise exception 'PROBE_FAIL d73b 4: opened without provider customers %', r;
   end if;
@@ -73,17 +73,20 @@ begin
   on conflict (user_id, provider) do update set provider_customer_id = excluded.provider_customer_id, status = 'ACTIVE';
 
   -- 5.
-  r := public.provider_arrangement_open(ag, 'milestone', 'buyer', '[{"title":"a","amount_minor":10000000},{"title":"b","amount_minor":10000000}]');
+  r := public.provider_arrangement_open(ag, 'milestone', '[{"title":"a","amount_minor":10000000},{"title":"b","amount_minor":10000000}]');
   if r ->> 'reason' is distinct from 'sum' then raise exception 'PROBE_FAIL d73b 5: %', r; end if;
-  r := public.provider_arrangement_open(ag, 'milestone', 'buyer', '[{"title":"all","amount_minor":50000000}]');
+  r := public.provider_arrangement_open(ag, 'milestone', '[{"title":"all","amount_minor":50000000}]');
   if r ->> 'reason' is distinct from 'count' then raise exception 'PROBE_FAIL d73b 5: one milestone %', r; end if;
-  r := public.provider_arrangement_open(ag, 'milestone', 'both',
+  r := public.provider_arrangement_open(ag, 'milestone',
          '[{"title":"First rent","amount_minor":20000000},{"title":"Balance","amount_minor":30000000}]');
   if r ->> 'status' <> 'ok' then raise exception 'PROBE_FAIL d73b 5: open %', r; end if;
   arr := (r ->> 'id')::uuid;
+  if (select who_pays_fee from public.provider_arrangements where id = arr) <> 'seller' then
+    raise exception 'PROBE_FAIL d73b 4: the fee is not the lister''s';
+  end if;
 
   -- 6.
-  r := public.provider_arrangement_open(ag, 'standard', 'buyer', null);
+  r := public.provider_arrangement_open(ag, 'standard', null);
   if r ->> 'status' <> 'exists' or (r ->> 'id')::uuid <> arr then raise exception 'PROBE_FAIL d73b 6: %', r; end if;
 
   -- 7.
