@@ -1012,6 +1012,15 @@ export const en = {
            the position because the foot of the page is where a reader who
            has scrolled the whole thing is still working out what this is. */
         legalLine: "A Nigerian technology company, building a way to rent, buy or stay without the runaround.",
+        /* The registered office, exactly as it reads on the CAC certificate
+           and on the TIN record. A company that asks a stranger in Lagos to
+           send a deposit owes them a real place it can be found, so this is
+           a trust surface before it is a legal one. It sits in the footer's
+           legal block because that block is already the legal surface, and
+           it is rendered in an <address> element so a reader, a screen
+           reader and a search engine all read it as one. */
+        registeredOfficeLabel: "Registered office",
+        registeredOffice: "Plot 5, Zone 6, Dutse Alhaji, Bwari Area Council, FCT, Abuja",
         stayConnected: "Stay connected",
         newsletterBody: "New listings, product news and the occasional honest update.",
         emailLabel: "Email address",
