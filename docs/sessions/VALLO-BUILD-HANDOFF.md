@@ -60,9 +60,13 @@ The only genuinely closed questions are the ones he closed himself:
   today to unblock exactly the work he is asking for.
 - Never fabricate a balance, a reference, a transaction or a hash. If a figure is
   not known, the screen says so.
-- No generic crypto wallet inside Vallo, and the launch money architecture is not
-  built on cNGN.
-- The retired virtual account approach is not rebuilt.
+- Crypto appears as a rail on a transaction ("Pay with USDC"), never as a wallet
+  product, and it goes through Yellow Card as its own adapter rather than Payluk's
+  cNGN. This says how to build it, not whether: Yellow Card is phase 22 of his own
+  implementation order and it gets built.
+- The deprecated Payluk virtual-account endpoint is not the architecture; the
+  documented payment-intent flow is. Also his words: "do not create a fake Vallo bank
+  account system to compensate for this."
 - Never commit a secret, print a credential, or rotate or delete one.
 - Do not rebuild Vallo from scratch. 594 migrations and 1,769 interface files
   exist and most of them are good.
@@ -259,42 +263,37 @@ in it withdraws the merchant balance, deliberately.
 `PAYLUK_API_KEY` is still not a configured Vercel variable. A `sk_test_` key is
 enough to build and test everything.
 
-### 3.4 The startup hold, and why it may already be fixed
+### 3.4 The startup hold is still broken, and a previous fix did not land it
 
-The founder has raised this three times: the logo sits there for about eight
-seconds before the app appears, and he wants a cinematic opening under 2 seconds.
+The founder has raised this four times. On 7 October 2026 he confirmed it is **still
+happening on a current build**:
 
-What is actually in the tree now:
+> it's not fixed at all I don't want to see it I don't want my logo to be there once I
+> open the app
 
-- A real startup sequence exists: `apps/web/src/components/startup/StartupSequence.tsx`,
-  `startup.css`, `startup-script.ts`.
-- The door opens at `--nf-startup-door`, 1,150ms, and `--nf-splash-hold` is that
-  plus 100ms (`apps/web/src/app/css/threshold.css` line 118). So the web timing
-  already matches what he asked for.
-- `apps/web/src/lib/native/splash-hang.test.ts` is new, and its own comment
-  records that **this exact bug was diagnosed and fixed on 3 October**:
-  `<NativeRuntime />` was missing from the root layout, so nothing ever told the
-  native splash to go. Three further timer defences were added the same day.
+What is in the tree:
 
-So first establish which it is, because the two have different fixes:
+- A real startup sequence exists (`components/startup/StartupSequence.tsx`,
+  `startup.css`, `startup-script.ts`), the door opens at `--nf-startup-door` 1,150ms,
+  and `--nf-splash-hold` is that plus 100ms. **The web timing is already what he
+  asked for.**
+- `apps/web/src/lib/native/splash-hang.test.ts` records that this was diagnosed and
+  fixed on 3 October: `<NativeRuntime />` was missing from the root layout so nothing
+  told the native splash to go. **That fix is present**: `layout.tsx` line 501
+  renders it. Three timer defences were added the same day.
 
-1. **He is on a build from before 3 October.** Then nothing is broken and he needs
-   a new TestFlight or Play build. Check the build dates before touching code.
-2. **It still happens on a current build.** Then the remaining path is the one in
-   `apps/web/src/lib/native/boot.ts`: the dismissal needs two sequential dynamic
-   imports (`@capacitor/core` at line 111, then `./splash` at line 122), and
-   `splash.ts` hides on window `load` rather than first paint. Failsafes are
-   4,000ms inside `splash.ts` and 7,000ms via the raw bridge in `boot.ts`. An
-   eight second hold means the 7,000ms bridge failsafe is doing the dismissing,
-   so the ordinary path never completed on his device. Fix: dismiss on first paint,
-   off the dynamic import chain entirely. The bridge call needs no import at all,
-   which is why the failsafe can use it.
+So the 3 October fix landed and the symptom survived it. Something else on the
+dismissal path is still failing on his device, and the eight seconds means the
+7,000ms bridge failsafe in `boot.ts` is what finally dismisses it.
 
-Either way, measure it on a real mid range Android on a Lagos network profile
-before and after, and put the numbers in your report. He has been told this was
-fixed once already.
+**But the deeper problem is the design, not the timer**, and that is why a timing fix
+keeps not holding. The brand is painted onto a **native splash image** whose duration
+is whatever the slowest thing on the critical path turns out to be. That can never be
+reliably fast. A.2 has the architectural fix: take the brand off the native image
+entirely, make that image a plain colour field identical to the app background, and
+move the brand moment into the app where it is bounded, interruptible and animated.
 
-### 3.5 Still pending, still not applied
+### 3.5 Still pending, still not applied### 3.5 Still pending, still not applied
 
 `supabase/migrations/pending/` holds:
 
@@ -449,29 +448,123 @@ Watch `apps/web/scripts/check-weight.mjs` and `check-landing-height.mjs`. The
 landing page budget is tight on purpose; it may keep CSS motion while the
 application shell gets the libraries. Measure rather than guess.
 
-## A.2 The first two seconds
+## A.2 The first screen: no logo sitting there, 1.5 seconds of motion, and it ships
 
-Read 3.4 first, and establish whether he is on a stale build before you write
-code. If it is still broken, the fix is in 3.4 and it is a performance fix, not a
-design one.
+**This is not fixed. The founder confirmed it on 7 October 2026, on a current
+build.** An earlier note in this handoff said to check whether he was on a build from
+before 3 October. He has answered: he still sees it. Treat it as live and broken, and
+treat the previous fix as insufficient rather than absent.
 
-Then make the moment cinematic, because that part is real and still wanted:
+His words, and they are specific about the outcome he wants:
 
-> I want to sign up to my app or enter my app and be wow, the screen first look
+> it's not fixed at all I don't want to see it I don't want my logo to be there once
+> I open the app I want to see an animations for about 1.5 secs lovely animations like
+> how other serious industry standard platform is
 
-`StartupSequence.tsx` and `startup.css` exist and the door already opens at
-1,150ms. The brand vectors are real. `--nf-splash-hold` already coordinates the
-first paint animation on every route so content rises in sequence after the splash
-clears; that coordination is good work, keep it.
+> Your logo showing in your app when open it for about 8 secs before you see anything
+> isn't that stupid
 
-What it should become: the mark assembles, turns, and hands off **into** the first
-screen rather than fading out in front of it. The splash shapes become part of the
-Get Started composition. One continuous camera move, not a splash then a page.
-What makes a film cut feel expensive is that the two shots share something; make
-them share something.
+He is right, and he is right for a reason worth stating, because it changes the
+design rather than just the timing.
 
-Hard limit: 1,500ms of brand, and the app is interactive underneath before it
-finishes. A splash that blocks interaction is a loading screen wearing makeup.
+### What serious products actually do, and why the current approach cannot win
+
+A premium app has **no logo waiting phase at all**. What it has is a launch frame
+that is visually identical to the app's own first frame, so the handoff from the
+operating system to the app is invisible, and then motion. The brand moment, where
+there is one, is **inside the app**, over real structure, interruptible, and under a
+second.
+
+The current architecture does the opposite. It puts the brand on a **native splash
+image** and then holds that image until the web layer says it may go. That design
+cannot be fast, because its duration is whatever the slowest thing on the critical
+path happens to be. On a good connection it is a second. On a Lagos 4G with a cold
+cache it is eight, and the founder is looking at a static PNG for all of it.
+
+**So the fix is architectural, not a timing tweak.** Stop using the native splash as
+the brand moment.
+
+### What to build
+
+**1. The native launch frame becomes a plain colour field.** No mark, no wordmark, no
+composition. Just `#010118`, exactly matching the app background and the status bar,
+so the transition out of it is literally invisible. The assets to change:
+
+```
+apps/web/ios/App/App/Assets.xcassets/Splash.imageset/   (9 images, light and dark)
+apps/web/android/app/src/main/res/drawable*/splash.png  (many densities, day and night)
+```
+
+`scripts/build-native-icons.mjs` already generates native assets; extend it rather
+than hand editing dozens of PNGs. `capacitor.config.ts` already sets
+`backgroundColor: "#010118"` and `showSpinner: false`, which is correct and stays.
+
+The moment that image carries no brand, its duration stops mattering. Eight seconds
+of a flat navy field that matches the app is invisible. Eight seconds of a logo is
+what he is complaining about.
+
+**2. Dismiss it on first paint, not on `load`.** `apps/web/src/lib/native/splash.ts`
+currently hides on the window `load` event, which waits for every image, chunk and
+font on the route. Change it to first paint. And get the dismissal off the two deep
+dynamic import chain in `apps/web/src/lib/native/boot.ts`: `@capacitor/core` at line
+111, then `./splash` at line 122, two separate network fetches before anything can
+dismiss. The raw bridge call
+(`window.Capacitor.nativePromise("SplashScreen", "hide", ...)`) needs no import at
+all, which is why the 7,000ms failsafe can already use it. Arm the real dismissal the
+same way, as early as the document can run script.
+
+The failsafes are 4,000ms in `splash.ts` and 7,000ms in `boot.ts`. An eight second
+hold means the 7,000ms bridge failsafe is doing the dismissing, so the ordinary path
+is not completing on his device at all. `<NativeRuntime />` **is** in the root layout
+(`layout.tsx` line 501), so the 3 October fix is present and something else is still
+failing. Find out what, on the device, with the bridge instrumented. Do not guess.
+
+**3. The brand moment moves into the app, and becomes the animation he asked for.**
+`apps/web/src/components/startup/StartupSequence.tsx`, `startup.css` and
+`startup-script.ts` already exist, and `--nf-startup-door` (1,150ms) with
+`--nf-splash-hold` already coordinates the first paint animation on every route so
+content rises in sequence. That coordination is genuinely good work. Keep it. Build
+on it.
+
+The rules for it:
+
+- **Motion from the first frame.** Nothing static, ever, not for 200ms. If the first
+  thing on screen is a still logo, it has already failed.
+- **1,500ms absolute ceiling**, and under it is better. Measure on a mid range
+  Android on a Lagos 4G profile, not in a simulator.
+- **The app is interactive underneath before it finishes.** A brand animation that
+  blocks input is a loading screen wearing makeup.
+- **Interruptible.** A tap skips to the end. Someone opening the app for the ninth
+  time today does not want the film again.
+- **It hands off into the first screen, it does not fade out in front of it.** The
+  mark's shapes become part of the Get Started composition, or part of the home
+  structure for a signed in member. One continuous camera move, not a splash then a
+  page. What makes a film cut feel expensive is that the two shots share something;
+  make them share something.
+- **It respects the settings.** `data-motion` `calm` and `off`, `data-save-data`,
+  `prefers-reduced-motion`. Under any of those the brand moment is a single frame and
+  the app appears. `--nf-splash-hold: 0ms` already exists for this.
+- **It is different for a returning member.** First launch earns a full brand moment.
+  The ninth launch today earns about 400ms. Store it per session; the existing
+  `nf_entered` session key in `layout.tsx` is already doing this kind of work.
+
+The materials are real and good: `apps/web/public/brand/vallo-mark.svg` and
+`vallo-wordmark.svg` are proper vectors shipped in `0304c710c`, `BrandAssemble` is
+already in the layout, and the splash composition has leaves and a glow to build
+from.
+
+### How you know it worked
+
+Three numbers in your report, measured on a physical mid range Android over a
+throttled connection, before and after:
+
+1. Milliseconds until anything moves on screen. Target: under 400ms.
+2. Milliseconds until the app's own content is visible. Target: under 1,200ms.
+3. Milliseconds of brand before the first screen. Target: under 1,500ms, and zero
+   milliseconds of it static.
+
+And one screen recording, because he judges with his eyes. He has been told this was
+fixed once already; a number and a recording are what close it.
 
 ## A.3 Get Started
 
@@ -848,92 +941,321 @@ the rest of the session. Do not do that. The images are the brief.
 
 ---
 
-# PART B: money, trust, and the backend
+# PART B: the whole financial platform
 
-Read 3.1 and 3.3 before this. The picture is better than earlier handoffs claimed,
-and the gap is narrower and sharper: the provider seam is built and tested, and
-`fiatProvider("payluk")` returns `null`.
-
-Read `founder-corpus/06-payluk-master-prompt.md` in full before writing a line,
-then `13-provider-must-not-leak.md`, then `12-never-holds-money.md`.
+This part is a build map for every one of the 75 sections of
+`founder-corpus/06-payluk-master-prompt.md`. Read that file in full before you write
+a line, then `13-provider-must-not-leak.md`, then `12-never-holds-money.md`.
 `docs/payments/VALLO_PRICING.md`, `VALLO_FINANCIAL_LAYER.md` and
 `VALLO_PAYMENTS_ARCHITECTURE.md` carry the decisions already made and are current.
 
-## B.0 ADR 0003 unblocks you
+**Escrow is one part of this and not the biggest part.** Wallet state, deposits,
+withdrawals, bank verification and wallet-to-wallet transfers are a full product in
+their own right, they come before escrow in the founder's own implementation order,
+and they are what a member touches every week. Build all of it.
+
+**Nothing here is cut, deferred or ruled out.** Where this map says "verify against
+the live documentation first", that is sequencing, not permission to skip. Where it
+names one of the founder's design rules, the rule says *how* to build the thing, not
+whether to.
+
+## B.0 The architecture, which is his and not negotiable in shape
+
+Three providers behind one engine. Section 5 of the payments prompt, his diagram:
+
+```
+                     VALLO
+                       |
+               Vallo Payment Engine
+                       |
+        +--------------+--------------+
+        |              |              |
+     Paystack       Payluk       Yellow Card
+        |              |              |
+   Commercial     Escrow, wallet,  Stablecoin,
+   payments       withdrawals,     cross-border
+                  transfers,
+                  disputes,
+                  settlement
+```
+
+| Provider | Owns | Examples from his own list |
+| --- | --- | --- |
+| **Paystack** | Commercial payments | Boosts, subscriptions, premium features, service fees, **referral payouts**, other non-escrow |
+| **Payluk** | Protected money and the member's financial life | Merchant customers, wallets, escrow, payment intents, deposits, **withdrawals**, **wallet transfers**, payment history, disputes, refunds and resolution, bank and account verification, webhooks, transaction records, fees, settlement |
+| **Yellow Card** | Future international and stablecoin rails | Built as its own adapter from the start, per phase 22 |
+
+His principle, in his words: "Vallo owns the financial workflow and business
+intelligence. The regulated/payment providers own the actual financial rails."
+
+### The five rules that shape how this is built
+
+These are his, quoted, and every one of them tells you how to build something rather
+than not to:
+
+1. **The deprecated virtual-account endpoint is not used.** "Do not create a fake
+   Vallo bank account system to compensate for this." Use the documented
+   payment-intent flow instead. This is a routing instruction.
+2. **cNGN is not the launch crypto architecture, and is not exposed to members.**
+   Crypto and stablecoin go through Yellow Card, as its own adapter. Payluk's cNGN
+   functionality is not the primary rail and no Vallo cNGN product is created.
+3. **Crypto appears as a rail on a transaction, never as a wallet product.** His
+   words: prefer "Pay with USDC" over "Vallo Crypto Wallet". So Yellow Card gets
+   built, it gets a real adapter, and it surfaces as a way to pay for a specific
+   thing. A regulated wallet product is a later deliberate decision, not an
+   accident of this build.
+4. **Do not claim Yellow Card can fund Payluk escrow** until provider compatibility
+   and the compliance flow are actually confirmed. Build the abstraction that allows
+   it; verify before you wire it.
+5. **Vallo's records represent provider-backed state.** No database balance is
+   presented as real money. See ADR 0003 in B.1.
+
+### The capability matrix
+
+Section 47 gives one and says explicitly "do not assume the table is permanently
+correct. Verify current provider documentation before implementation." So: build
+the matrix as code, from the capability system that already exists, and keep it
+honest. His starting point:
+
+| Capability | Payluk | Paystack | Yellow Card |
+| --- | --- | --- | --- |
+| Wallet | Yes | Provider-specific | Yes |
+| Escrow | Yes | No | No |
+| Bank withdrawal | Yes | Yes | Depending on flow |
+| Stablecoin | cNGN (not used) | No | Yes |
+| Cross-border | Limited | Limited | Yes |
+| Commercial payment | Yes | Yes | Yes |
+
+### The financial router
+
+Section 64. One internal decision layer, not provider checks scattered through call
+sites:
+
+```
+Vallo Payment Request
+        -> Payment Router
+        -> transaction type, currency, country, escrow required,
+           stablecoin, commercial fee, payout
+        -> Provider Adapter
+```
+
+Section 65: **do not hard-code Nigeria anywhere.** Provider, currency and country are
+configuration. Future countries mean different currencies, providers, payout rails,
+verification and regulation, and the architecture has to take them without a
+payments rewrite. `b2_rail_at_open.sql` is still pending and is part of this.
+
+## B.1 ADR 0003 unblocks you
 
 `docs/adr/0003-a-licensed-provider-holds-the-money-vallo-records-it.md` was written
-today, as part of this handoff, because without it this work could not start.
+today because without it this work could not start.
 
 ADR 0002 said flatly "there is no wallet, no balance, no escrow", and a live event
 trigger (`private.refuse_custody_objects`) refuses any table, view, function or
-materialised view in `public` or `private` whose name matches
-`(^|_)(wallets?|escrows?|pots?)(_|$)` or begins `held_payment`, on `CREATE TABLE`,
-`CREATE TABLE AS`, `CREATE VIEW`, `CREATE FUNCTION`, `CREATE MATERIALIZED VIEW`,
-`ALTER TABLE` and `ALTER FUNCTION`. So the founder's instruction to build escrow,
-balances, deposits and withdrawals collided with the repository's own accepted
-decision and with a trigger that would reject the migration on the name alone.
+materialised view in `public` or `private` named with `wallet`, `escrow` or `pot` as
+a whole word, or beginning `held_payment`. So the founder's instruction to build
+wallets, withdrawals and escrow through Payluk collided with the repository's own
+accepted decision and with a trigger that would reject the migration on the name
+alone.
 
-ADR 0003 resolves it: **the feature is built, the provider holds the money, the
-naming guard stays.** Vallo's database objects are named for what Vallo does
-(`provider_arrangements`, `member_funds_reported`, `funds_movements`,
-`release_conditions`). The words `wallet` and `escrow` stay free in the interface,
-in copy, in component names and in TypeScript, because that is what members and
-Payluk call these things.
+ADR 0003 resolves it: **the whole feature set is built, the provider holds the money,
+the naming guard stays.** Vallo's database objects are named for what Vallo does.
+His own section 8 already names one this way: `financial_provider_accounts`.
 
-A naming rule, not a feature restriction. Nothing is cut. A precedent exists:
-`46d81338f` renamed three ledger objects the guard would have refused, and the
-ledger shipped.
+```
+provider_arrangements      the Payluk arrangement for one deal
+member_funds_reported      what the provider reports is available
+funds_movements            a movement the provider reported
+release_conditions         a release waiting on a condition
+financial_provider_accounts  his own name, from section 8
+marketing_float            already live
+```
 
-## B.1 The provider is invisible, with one deliberate exception
+**The words `wallet` and `escrow` stay free in the interface, in copy, in component
+names, in routes and in TypeScript**, because that is what members and Payluk call
+these things. The constraint is on database object names only. A naming rule, not a
+feature restriction, and there is precedent: `46d81338f` renamed three ledger objects
+the guard would have refused, and the ledger shipped.
 
-From `13-provider-must-not-leak.md`: no provider name, no provider vocabulary, no
-provider failure mode reaches a member. A renter in Surulere should not have to
-learn what Payluk is to rent a flat. Provider errors translate into Vallo language
-that names the next action (`apps/web/src/lib/money/errors.ts` and `copy.ts`
-already do this for Paystack; follow the pattern). Provider states map to Vallo
-states explicitly and under test, because a provider that invents a new state later
-must not silently become a blank screen. `apps/web/src/lib/money/status.ts` is the
-existing vocabulary.
+## B.2 Where you are starting from
 
-The exception, which is a feature rather than a leak: Vallo says plainly who holds
-the money. One line, in the money surface and in the agreement, naming the licensed
-provider and linking to what it means. In a market where every renter has heard a
-story about a deposit that vanished, that sentence is the product.
+Better than earlier handoffs claimed. Verified 7 October 2026.
 
-## B.2 Write the Payluk adapter
+**Built and good:** `apps/web/src/lib/payments/provider.ts` defines a capability
+typed provider interface where the type system refuses an adapter that declares a
+capability without implementing its methods. Six capabilities exist:
+`split_at_charge`, `hold_in_escrow`, `refund_without_dispute`,
+`list_successful_charges`, `charge_saved_card`, `verify_with_record`.
+`providers/index.ts` is the registry with a per provider kill switch. Paystack is
+implemented. `payluk-merchant.ts` is a real merchant client. `lib/money/` is 30
+files including `status.ts`, `errors.ts`, `copy.ts`, `history.ts`, `history-model.ts`,
+`rails.ts`, `references.ts`, `percent.ts`. `lib/payments/` has `bank-resolve.ts`,
+`bank-accounts-actions.ts`, `card-setup.ts`, `charge-saved-card.ts`, attempts and
+sweeps. `admin/money/` has a reconciliation desk and charts. Routes exist at
+`/payments`, `/payouts`, `/receipts`, `/refunds`, `/rewards` and its children. The
+append only three pot ledger is live. 75 probes including `rail-router.sql`,
+`chargebacks.sql`, `b3-payluk-sweep.sql`, `b4-referral-campaigns.sql`,
+`b5-promotion-purchase.sql`.
 
-This is the keystone. Everything else in Part B waits on it and nothing else is
-blocked by anything.
+**The gap, in one line:**
 
-`apps/web/src/lib/payments/provider.ts` defines the contract. Six capabilities
-exist; Payluk declares the ones it actually has. From the committed documentation
-and `payluk-merchant.ts`:
+```ts
+case "payluk": return null;   // providers/index.ts
+```
 
-- `hold_in_escrow`: yes, and its methods land with this adapter. The type currently
-  carries `Record<never, never>` as a placeholder.
-- `refund_without_dispute`: **no.** This is recorded as the answer to the founder's
-  question 3 and it shapes the whole refund path: a Payluk refund goes through
-  dispute resolution, so the Vallo refund surface has to branch on rail.
-- `split_at_charge`: Paystack only.
-- The rest: determine against the live documentation, declare honestly, and let the
-  type system enforce it. Do not declare a capability to make a call site compile.
+`escrowRailLive()` returns false for exactly that reason, whatever
+`payments_payluk_on` says. So **no wallet state, no deposits, no withdrawals, no
+transfers, no escrow and no Payluk webhooks exist**, because they all hang off an
+adapter that was never written. That is the keystone and it is phase 4 to 5 of his
+order.
 
-Facts that govern the adapter: `sk_test_` to `https://staging.api.payluk.ng`,
-`sk_live_` to `https://api.payluk.ng`; amounts in naira **major** units, not kobo,
-which is the opposite of Paystack and the single most likely source of a hundredfold
-error; 10 requests per minute per key, so batch and back off;
-`GET /v1/merchant/balance` returns `mainBalance` and `escrowBalance`.
+One fact from the capability types, recorded nowhere else, that shapes a whole
+screen: **Payluk has no refund without dispute.** A Payluk refund goes through
+dispute resolution. So the refund surface branches on rail, and the dispute path
+carries more weight on Payluk than it does on Paystack.
 
-`escrowRailLive()` flips to true on its own once the adapter exists and declares
-`hold_in_escrow`, with the kill switch on. Build behind `payments_payluk_on` and
-test with a `sk_test_` key.
+Facts from `payluk-merchant.ts` that govern everything: `sk_test_` routes to
+`https://staging.api.payluk.ng`, `sk_live_` to `https://api.payluk.ng`; amounts are
+naira **major** units, not kobo, which is the opposite of Paystack and the single
+most likely source of a hundredfold error; the rate limit is **10 requests a minute
+per key**, so batch and back off (section 53); `GET /v1/merchant/balance` returns
+`mainBalance` and `escrowBalance`.
 
-## B.3 The escrow lifecycle
+## B.3 The provider is invisible, with one deliberate exception
 
-Sections 15 to 21 of the payments prompt. Standard and milestone escrow.
+`13-provider-must-not-leak.md`. No provider name, no provider vocabulary, no provider
+failure mode reaches a member. A renter in Surulere should not learn what Payluk is
+to rent a flat. `lib/money/errors.ts`, `copy.ts` and `status.ts` already do this for
+Paystack; follow the pattern.
 
-Every state transition is a row in an append only record carrying the provider's
-reference and the time Vallo observed it:
+Section 54, provider state versus Vallo state: the mapping is explicit and tested,
+because a provider that invents a new status later must not silently become a blank
+screen.
+
+Section 31, provider failure handling: timeout, 5xx, rate limit, partial success and
+unknown each have a defined behaviour. **An unknown is never retried blindly**, it is
+resolved by verification. This is where money gets paid twice in products that get
+it wrong.
+
+The exception, which is a feature: Vallo says plainly who holds the money. One line,
+in the money surface and in the agreement, naming the licensed provider and linking
+to what it means. Section 61 covers the compliance language.
+
+## B.4 The build, in his own 25 phases
+
+Section 68 is his implementation order. Use it rather than inventing one. Phases 1
+to 3 are audit and are largely done: section 3 of this handoff is the repository
+audit, `docs/payments/payluk-source/` holds the provider documentation, and B.2 is
+the existing-payments audit. Start at phase 4.
+
+### Phases 4 and 5: the adapter and customer mapping
+
+**The Payluk adapter** against the existing interface. Declare only the capabilities
+Payluk actually has, verified against the live documentation; never declare one to
+make a call site compile. `hold_in_escrow` currently carries a `Record<never, never>`
+placeholder and its methods land with this adapter.
+
+**Customer mapping**, section 8. A Vallo user and a Payluk customer are not the same
+entity. `financial_provider_accounts` with `user_id`, `provider`,
+`provider_customer_id`, `status`, `currency`, timestamps, metadata. No duplicated
+sensitive data, no provider secret in the database, no provider secret reaching the
+browser.
+
+**Financial onboarding**, section 9, states `NOT_STARTED`, `PENDING`,
+`VERIFICATION_REQUIRED`, `ACTIVE`, `RESTRICTED`, `SUSPENDED`, `FAILED`. The member
+understands why the information is needed, what Payluk is doing, what Vallo is doing,
+what is being verified, whether the account is ready and what is left. His rule, and
+it is a design brief: **"Do not make financial onboarding feel like an ugly fintech
+form. It should feel like Vallo."**
+
+### Phase 6: wallet state
+
+Section 10. Expose four distinct states and never invent a figure:
+
+```
+Available      In Escrow      Pending      Processing
+```
+
+`mainBalance` and `escrowBalance` map into Vallo's presentation.
+**No frontend calculation is ever the source of truth**; all financial state is
+server-authoritative. Every figure carries when it was last confirmed with the
+provider, because a stale number presented as live is a lie.
+
+### Phase 7: deposits
+
+Section 11. The documented payment-intent flow, not the deprecated virtual account.
+
+```
+Deposit -> Payment Intent -> Provider processing -> Verification
+  -> Webhook -> Vallo transaction update -> Ledger event -> Available balance
+```
+
+Every deposit carries an internal transaction id, provider reference, amount,
+currency, fee where applicable, status, timestamps, provider metadata, event history
+and a receipt relationship. **Never mark a deposit successful because the frontend
+said so.**
+
+### Phase 8: withdrawals
+
+Section 12, and this is a full product, not a button. His flow, step by step:
+
+```
+Available balance -> Withdraw -> Select bank -> Enter account number
+  -> Verify account -> Show verified account name -> Enter amount
+  -> Show provider fee -> Show net amount -> Confirm
+  -> Create withdrawal intent -> Provider verification and execution
+  -> Webhook and status update -> Completed
+```
+
+The member must clearly see: withdrawal amount, provider fee, VAT if applicable,
+total debited, expected amount received, destination account, status, reference.
+
+**Never hard-code the Payluk withdrawal fee. Use the fee the provider returns**, and
+store the fee actually applied to the transaction (section 22).
+
+Crypto withdrawal: supported by the provider, and **not exposed unless Vallo's
+product and legal design explicitly enables it.** Build the path, leave it behind
+the flag, and tell the founder it is ready for his decision.
+
+The minimum is 1,000 naira (`docs/payments/VALLO_PRICING.md`). A withdrawal is
+`requested`, then `confirmed by webhook`, and never shown as paid before the webhook
+says so.
+
+### Phase 9: bank account verification
+
+Section 13. The documented bank-list and account-verification APIs. **A member never
+types an account number and withdraws without verification.**
+
+```
+Bank selected -> Account number -> Payluk verification
+  -> Verified account name -> Member confirms -> Withdrawal
+```
+
+Eight cases, each with its own honest behaviour: invalid account, unavailable bank,
+timeout, provider error, mismatched account, verification unavailable, retry, rate
+limiting. **Never silently proceed when verification fails.** Name matching is the
+control that stops a payout reaching the wrong person, and the founder asked about
+BVN resolution and account matching directly. `bank-resolve.ts` and
+`bank-accounts-actions.ts` exist as a starting point.
+
+### Phase 10: wallet-to-wallet transfers
+
+Section 14. Member to member, inside Vallo.
+
+```
+Sender -> Send -> Recipient -> Amount -> Fee if applicable
+  -> Confirmation -> Payluk wallet transfer -> Verification
+  -> Webhook and status -> Receipt
+```
+
+Prevent, each one explicitly and with a test: accidental duplicate transfer, double
+submission, replay, unauthorised transfer, insufficient funds, invalid recipient,
+transfer to a blocked account. Irreversible actions get a real confirmation, which
+is what `DragToConfirm` is already ported for.
+
+### Phases 11 and 12: standard escrow, then milestone escrow
+
+Sections 15 to 17. Both. Milestone escrow is not optional and it is what makes staged
+rent and staged project payments possible.
 
 ```
 arranged -> funded -> conditions pending -> released -> settled
@@ -941,153 +1263,213 @@ arranged -> funded -> conditions pending -> released -> settled
                    \-> expired -> refunded
 ```
 
-- Create an arrangement when an agreement is approved and a rate agreed.
-- Fund it, showing the payer exactly where their money is and who holds it.
-- Conditions. The conditions engine (section 18) decides what must be true before
-  money moves. For a rental that is a submitted, photographed inspection report,
-  which connects to the existing `inspection_requests` and
-  `inspection_confirmations`.
-- Confirm from both sides, as a deliberate act. `DragToConfirm` is already ported
-  and this is its most important use.
-- Release, settling Vallo's 2 percent in the same movement. The commission sweep
-  already exists.
-- Dispute, with evidence, a review window and an admin ruling surface. Remember
-  Payluk has no refund without dispute, so this path carries more weight than it
-  would on Paystack.
-- Refund, full and partial, branching on rail.
-- **Webhooks, with signature verification and idempotency.** Sections 27 and 28,
-  and the single most important correctness property in Part B. Nothing is true
-  because a request returned 200; it is true when the webhook says so. A duplicate
-  webhook must not pay twice and a replayed one must not pay at all.
-  `apps/web/src/lib/payments/providers/signature.test.ts` and
-  `webhook-signature.test.ts` show the existing pattern.
-- Reconciliation (section 29). A scheduled comparison of Vallo's mirror against the
-  provider's truth, with a surface showing every disagreement. Not a log line. A
-  screen somebody looks at. `admin/money/_desk/Reconciliation.tsx` already exists;
-  extend it rather than starting over.
+Every transition is a row in an append only record carrying the provider reference
+and the time Vallo observed it.
 
-## B.4 Money, balance, deposits, withdrawals, receipts
+### Phase 13: the conditions engine and inspections
 
-Sections 10 to 14 and 36 to 40 of the payments prompt. Four routes already exist
-and are orphaned (`/payouts`, `/receipts`, `/refunds`, `/payments`); route them
-into the navigation per A.0, then judge each against section 0 and rebuild what
-scores low.
+Sections 18 and 19. The conditions engine decides what must be true before money
+moves. For a rental that is a submitted, photographed inspection report, which
+connects to the existing `inspection_requests` and `inspection_confirmations`.
+Confirmation from both sides is a deliberate act.
 
-What is genuinely missing is the member facing balance and deposit side, because
-it depends on the adapter:
+### Phase 14: disputes and refunds
 
-- **A money surface.** What they have, what is on the way, what is held and why.
-  Every figure carrying when it was last confirmed with the provider, because a
-  stale number presented as live is a lie. The premium glass card from A.9 is the
-  hero object here. The 48 finance icons were cut for this screen.
-- **Deposits.** Section 11. Bank transfer and card, through the provider, never
-  into a Vallo controlled account.
-- **Withdrawals.** Section 12. Minimum 1,000 naira. Bank account verification
-  first (section 13); the founder asked specifically about BVN resolution and
-  account name matching, and name matching is the control that stops a payout
-  reaching the wrong person. `apps/web/src/lib/payments/bank-resolve.ts` and
-  `bank-accounts-actions.ts` exist. A withdrawal is `requested`, then `confirmed by
-  webhook`, and never shown as paid before the webhook says so.
-- **Receipts.** Sections 23 and 40. `/receipts` exists; hold it to section 0.
-  His pattern is the receipt printer, with the instruction "make it totally cool
-  and in our way and different but same vibes". A receipt is a document a Nigerian
-  renter will screenshot, forward to family and keep for a year. It has to be
-  shareable and savable and look right in a WhatsApp preview.
-- **Transaction list and detail.** Sections 24, 30, 38, 39. Every charge, release
-  and payout, searchable, provider reference visible to support and not to the
-  member. `apps/web/src/lib/money/history.ts` and `history-model.ts` exist.
-- **Payment status.** Pending, success and failure as one animated surface. Pending
-  matters most and is normally neglected: a Nigerian bank transfer can take
-  minutes, and the screen has to make waiting feel safe.
+Sections 20 and 21. Evidence, a review window, an admin ruling surface, full and
+partial refunds. Remember Payluk has no refund without dispute, so this path carries
+the weight for that rail and the surface branches accordingly.
 
-Every figure comes from the provider or the append only ledger. **Never fabricate
-a balance, reference, hash or transaction.** His rule, in his words: "NEVER
-generate fake transaction hashes. Never fabricate balances." If a value is unknown
-the interface says so and offers a retry. An empty state is honest; a zero that
-actually means "we could not reach the provider" is not.
+### Phase 15: webhooks and idempotency
 
-## B.5 The ledger, which already exists
+Sections 27 and 28, and **the most important correctness property in Part B.**
+Signature verification on every webhook. Nothing is true because a request returned
+200; it is true when the webhook says so. A duplicate webhook must not pay twice and
+a replayed one must not pay at all. `providers/signature.test.ts` and
+`webhook-signature.test.ts` show the existing pattern.
 
-`ledger_customer_funds`, `ledger_vallo_revenue` and `ledger_marketing_float` are
-live, append only, guarded by `history_is_fixed` and `ledger_correction_guard`. A
-correction is a new entry, never an edit. Section 25 of the payments prompt
-describes the design and it is already built this way. Use it rather than adding a
-parallel record.
+### Phase 16: the ledger, which exists
 
-## B.6 Referral and rewards
+Section 25. `ledger_customer_funds`, `ledger_vallo_revenue`,
+`ledger_marketing_float` are live, append only, guarded by `history_is_fixed` and
+`ledger_correction_guard`. A correction is a new entry, never an edit. Use it; do not
+add a parallel record.
 
-More built than earlier handoffs claimed. The engine migration is applied and live
-(`20261006152509_b4_referral_rewards_engine.sql`), with `referral_policy`,
+Section 26, database architecture: every money table carries the provider reference,
+the observation time, the event history and the fee actually applied.
+
+### Phase 17: reconciliation
+
+Section 29. A scheduled comparison of Vallo's mirror against the provider's truth,
+with **a surface showing every disagreement.** Not a log line. A screen somebody
+looks at. `admin/money/_desk/Reconciliation.tsx` exists; extend it.
+
+### Phase 18: receipts
+
+Sections 23 and 40. `/receipts` exists and gets held to section 0. A receipt is a
+document a Nigerian renter will screenshot, forward to family and keep for a year, so
+it has to be shareable, savable, and look right in a WhatsApp preview. His chosen
+pattern is the receipt printer, with his instruction: "make it totally cool and in
+our way and different but same vibes".
+
+Fees on it are itemised, never buried (section 22): Vallo fee, provider fee, tax or
+VAT where applicable, transaction amount, net amount, each separately.
+
+### Phase 19: the admin financial control plane
+
+Sections 33 and 34. The surface the founder runs the company from, and he runs it
+from a phone. Reconciliation, disputes, refunds, withdrawals awaiting decision, the
+Guarantee desk, provider health, the kill switch, and permissions on all of it.
+Section 35: notifications for every money event, to the member and to admin.
+
+### Phase 20 and 21: the frontend, and mobile
+
+Sections 36 to 46, which are a design brief and belong to Part A's standard:
+
+- **37, the wallet screen.** The premium glass card from A.9 is the hero object. The
+  48 unused finance icons were cut for this screen.
+- **38 and 39, transaction list and detail.** Every charge, release, payout and
+  transfer, searchable. Provider reference visible to support, not to the member.
+- **40, receipt UI.** Above.
+- **41, escrow UI.** Where the money is, who holds it, what has to happen next, and
+  what each party can do now.
+- **42, payment confirmation.** A payoff moment per A.1: one sharp impact, one scale
+  pop.
+- **43, loading and processing states.** Pending matters most and is normally
+  neglected. A Nigerian bank transfer takes minutes; the screen has to make waiting
+  feel safe.
+- **44 and 45, mobile and deep links.** Capacitor, and `check-deep-links.mjs`.
+- **46, offline and poor network.** Lagos. The offline shell exists.
+- **58, 59 and 60: visual quality, motion and accessibility.** Same bar as every
+  other screen. Money screens are where a product looks either trustworthy or cheap.
+
+### Phase 22: the Yellow Card adapter foundation
+
+Section 47. Built as its **own** adapter, never merged into Payluk code. Stablecoin
+payment, conversion, fiat conversion, cross-border, international funding. Verify the
+actual production flow before wiring any of it, and surface it as a rail on a
+transaction ("Pay with USDC"), not as a wallet product.
+
+### Phases 23, 24 and 25: security, testing, production readiness
+
+Section 32, security: no secret in the database, none in the browser, server
+authoritative amounts, authorisation on every money route, audit logging on every
+admin action.
+
+Section 51, testing, and section 52, the sandbox. A `sk_test_` key routes to staging
+and is enough to prove the whole rail. Record fixtures where a live call is not
+possible so the tests run in CI without a key.
+
+Section 62, **no fake financial data.** His rule, in his words: "NEVER generate fake
+transaction hashes. Never fabricate balances." If a value is unknown the interface
+says so and offers a retry. An empty state is honest; a zero that actually means "we
+could not reach the provider" is not.
+
+Sections 49 and 50, observability and metrics. Section 71, migrations: append only,
+named, never edited after landing.
+
+### Sections 55, 56 and 57: the documents this work owes
+
+- **55**, the architecture documentation, updated as you go, per D.3.
+- **56**, a Payluk API mapping document: every endpoint used, what Vallo calls it,
+  what it returns, what Vallo stores, and which capability it satisfies.
+- **57**, an agent skill for the money rail, so the next session does not re-derive
+  any of this.
+
+### Sections 66, 72 and 73: the flows, the audit, the output
+
+Section 66 lists the final product flows end to end. Walk every one of them on a
+device before you call this done. Section 72 is the final audit. Section 73 and
+`founder-corpus/07-payluk-status-template.md` are the exact shape of the report,
+including the thirteen step journey from DISCOVER to REPEAT.
+
+## B.5 Referral and rewards
+
+More built than earlier handoffs claimed. The engine is applied and live
+(`20261006152509_b4_referral_rewards_engine.sql`) with `referral_policy`,
 `referrals`, `referral_events`, `rewards_payouts`, `rewards_ledger`, campaigns and
 budget periods. `private.lagos_month()` handles the month boundary in the right
-timezone and the cap uses `pg_advisory_xact_lock` followed by the cap in the
-`WHERE` clause, which is the correct pattern. Probes exist
-(`b4-referral-campaigns.sql`, `b4-first-run.sql`). The payout path exists
-(`referral-payout.ts`, `referral-payout-core.ts`, `referral-transfer.ts`). The
-screens exist: `/rewards`, `/rewards/referrals`, `/rewards/history`,
-`/rewards/withdraw`, plus a `(dev)/preview/rewards/` fixture set covering paused
-and today states.
+timezone and the cap uses `pg_advisory_xact_lock` then the cap in the `WHERE` clause,
+which is correct. The payout path exists (`referral-payout.ts`,
+`referral-payout-core.ts`, `referral-transfer.ts`). The screens exist: `/rewards`,
+`/rewards/referrals`, `/rewards/history`, `/rewards/withdraw`, with a
+`(dev)/preview/rewards/` fixture set covering paused and today.
 
 **It is all invisible, because `/rewards` is not in the side navigation.** That is
-A.0. After that, hold each screen to section 0 and rebuild what scores low. Still
-missing: a referral centre worth the name, and the admin side specified in
-`docs/referral/REFERRAL_ADMIN_CENTRE.md`.
+A.0, and it is the first thing you do. After that, hold each screen to section 0 and
+rebuild what scores low. Referral payouts run on **Paystack**, per his section 4.
 
-Four principles that are his and not negotiable:
+Still to build: a referral centre worth the name, and the admin side specified in
+`docs/referral/REFERRAL_ADMIN_CENTRE.md` (five screens, four detectors, eight
+probes).
 
-1. **Everything is campaign configuration.** The reward amount and the withdrawal
-   threshold are campaign settings, never product rules. "Do not treat the 76 and
-   80 naira withdrawal threshold as permanent product rules."
+Four principles that are his:
+
+1. **Everything is campaign configuration.** Reward amount and withdrawal threshold
+   are campaign settings, never product rules. "Do not treat the 76 and 80 naira
+   withdrawal threshold as permanent product rules."
 2. **The qualification policy engine is a fixed registry of named, tested checks.**
-   Never an expression language. An expression language in a payout path is a
-   remote code execution surface that pays out money.
-3. **PAID only on webhook.** A reward is paid when the payout webhook confirms it,
-   never when the request returns.
+   Never an expression language. An expression language in a payout path is a remote
+   code execution surface that pays out money.
+3. **PAID only on webhook.**
 4. **The budget cap pauses, it never refuses.** 700,000 naira a month, live at
-   `platform_monthly_budget_minor = 70000000`, alert at 75 percent, visible pause
-   at 100. Per member cap 1,500. A member who qualified still qualified; their
-   payout waits. Being told what you earned does not count is how a referral
-   programme loses a market.
+   `platform_monthly_budget_minor = 70000000`, alert at 75 percent, visible pause at
+   100. Per member cap 1,500. A member who qualified still qualified; the payout
+   waits.
 
 The risk graph weights a shared payout destination as the strongest signal and the
-same network as weak, never sufficient alone. Nigeria has shared networks and
-shared devices as a normal condition of life, and a control that reads that as
-guilt will ban real people.
+same network as weak, never sufficient alone. Nigeria has shared networks and shared
+devices as a normal condition of life, and a control that reads that as guilt will
+ban real people.
+
+## B.6 Fees, commission and tax, settled
+
+From `docs/payments/VALLO_PRICING.md` and
+`founder-corpus/14-fees-vat-and-withdrawals.md`. These are decided; do not reopen
+them.
+
+| | |
+| --- | --- |
+| Vallo commission | **2 percent** (`commission_bps = 200`), both rails |
+| Payluk escrow fee | 2 percent of the escrow amount, 2.5 percent if created in Payluk's own app |
+| `whoPays` | **`seller`**, always, both rails. The lister bears the fee, as on Booking.com, Uber, Amazon and Etsy |
+| VAT | **Zero** while the company is unregistered. The field exists so it can change without a migration |
+| Withdrawal minimum | **1,000 naira** |
+| Direct rail | Vallo 2 percent plus a capped Paystack fee |
+
+The rail is not knowable when somebody accepts an agreement, so any fee figure shown
+before the rail is chosen is a range anchored on the worst case, never a single
+number. This has already been got wrong once in this repository's documentation.
 
 ## B.7 Promotion, and the one thing it is missing
 
-`docs/promotion/VALLO_PROMOTION.md`: Boost at 2,500 naira for 7 days, Spotlight at
-7,500 for 14, Featured at 20,000 for 30, Everywhere at 50,000 for 30, slug for
-Everywhere stays `prime`. Front door inventory is one labelled rail per city, six
-positions a day, Everywhere at most 2 and Featured at most 4.
-`b5-promotion-purchase.sql` probe exists.
+`docs/promotion/VALLO_PROMOTION.md`: Boost 2,500 naira for 7 days, Spotlight 7,500
+for 14, Featured 20,000 for 30, Everywhere 50,000 for 30 with the slug staying
+`prime`. Front door inventory is one labelled rail per city, six positions a day,
+Everywhere at most 2 and Featured at most 4. Promotion purchases run on Paystack.
 
-Nine of ten metrics a promoted listing needs already exist:
-`listing_daily_stats` impressions and opens, `listing_view_marks.viewer_hash`,
-`saved_items`, `share_links`, `conversations`, `enquiry_stages`,
-`inspection_requests`, `bookings`, `transactions`.
+Nine of ten metrics exist: `listing_daily_stats` impressions and opens,
+`listing_view_marks.viewer_hash`, `saved_items`, `share_links`, `conversations`,
+`enquiry_stages`, `inspection_requests`, `bookings`, `transactions`.
 
 The tenth does not: **a source dimension on `listing_daily_stats`** so a promoted
 impression can be told from an organic one. Without it a lister paying 50,000 naira
-cannot be shown what they bought, and a promotion product that cannot prove its own
-value is not bought twice. Small migration, meaningful unlock.
+cannot be shown what they bought, and a promotion product that cannot prove its value
+is not bought twice. Small migration, meaningful unlock.
 
-## B.8 Only the founder can supply these
+## B.8 What only the founder can supply
 
-The genuine blockers. Build everything around them, behind a flag, tested against
-the staging key or a recorded fixture, so the feature works the moment the real
-value arrives. **Do not stop and wait on any of them.** Note them so he can act,
-and keep going.
+Build everything around these, behind a flag, tested against the staging key or a
+recorded fixture, so the feature works the moment the real value arrives. **Do not
+stop and wait on any of them, and do not leave anything unbuilt because of one.**
+Note them so he can act, and keep going.
 
 | Blocked on | What it blocks | Note |
 | --- | --- | --- |
-| Payluk merchant onboarding and the API key | The live escrow rail | `PAYLUK_API_KEY` is not a configured Vercel variable. A `sk_test_` key routes to staging and is enough to build and test everything. |
+| Payluk merchant onboarding and the API key | Live money movement on the Payluk rail | `PAYLUK_API_KEY` is not a configured Vercel variable. A `sk_test_` key routes to staging and proves the whole rail. |
 | Paystack company account and the `ACCT_` reserve subaccount | The Guarantee reserve leg | He is moving from a personal to a company account. Build the path; he supplies the account. He asked to be reminded. |
 | Two Play Console SHA-256 signing fingerprints | `assetlinks.json`, so Android deep links verify | Founder only by design. |
-| Counsel review of Terms and Privacy | Rewards going live publicly | The engine can ship behind a flag first. |
-| The ghost `Vercel - read-it-well` integration | Nothing. Noise. | Worth disconnecting. |
-
----
+| Counsel review of Terms and Privacy | Rewards going live publicly | Ship behind the flag first. |
+| His decision on crypto withdrawal | Exposing the crypto withdrawal path | The provider supports it. Build it, flag it, and ask. |
 
 # PART C: the rest
 
@@ -1251,8 +1633,10 @@ costs about twenty minutes of CI and some of his usage limit.
 
 1. **A.0, route the built features into the navigation.** Section 3.1. This is what
    changes what he sees when he next opens the app, and it is an afternoon.
-2. **Establish the startup facts.** Section 3.4. Is he on a stale build, or is it
-   still broken? The answer changes the work entirely.
+2. **The first screen.** Sections 3.4 and A.2. He has raised this four times and
+   confirmed on 7 October that it is still broken. Take the brand off the native
+   splash image, dismiss on first paint, move the brand moment into the app at
+   1,500ms. Three measured numbers and a screen recording close it.
 3. **A.1 adoption pass, started.** Section 3.2. Nine ported components, forty five
    call sites, 1,769 files. Fit what exists.
 4. **D.2's route audit, published.** All 223 routes, scored, with "can a person

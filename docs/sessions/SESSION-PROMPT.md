@@ -139,10 +139,22 @@ as asked, and resist improving on the instruction.
   `/receipts`, `/refunds` all exist and none is in `nav-model.ts`. His rule: "most
   features should be in side nav the new ones the pro and etc too all the referral
   too". This is item one in the order of work.
-- **The startup screen holds the logo far too long.** He wants a cinematic opening
-  under 2 seconds. Section 3.4 of the handoff says what is actually happening, and
-  the first step is establishing whether he is on a build from before 3 October,
-  because this was already fixed once.
+- **The startup screen. He has raised this four times and it is still broken.** On
+  7 October he confirmed it on a current build: "it's not fixed at all I don't want to
+  see it I don't want my logo to be there once I open the app I want to see an
+  animations for about 1.5 secs lovely animations like how other serious industry
+  standard platform is". A fix landed on 3 October and the symptom survived it,
+  because the problem is the design and not the timer: the brand is painted onto a
+  **native splash image** whose duration is whatever the slowest thing on the critical
+  path turns out to be, so it can never be reliably fast. Section A.2 of the handoff
+  has the architectural fix. In short: the native launch image becomes a plain
+  `#010118` field identical to the app background so its duration stops mattering;
+  the splash is dismissed on first paint rather than on window `load`, off the dynamic
+  import chain; and the brand moment moves **into** the app, motion from the first
+  frame, 1,500ms ceiling, interruptible, interactive underneath, handing off into the
+  first screen rather than fading out in front of it. Close it with three measured
+  numbers on a physical mid range Android and a screen recording. He has been told
+  this was fixed once already.
 - **The plus button.** Two complaints. It is not there (find out what is hiding it on
   his device). And the sheet it opens is overdesigned: "the plus botton should not
   have those designs stuffs when click it should just have the normal 3 options".
@@ -160,6 +172,62 @@ as asked, and resist improving on the instruction.
   `docs/design/references/GOVERNING-flip-mid-turn.png` is the ruling.
 - **Sign in and sign up lost their looks.** Compare against
   `git show c744095a4^:<path>` and take the old version back where it was better.
+
+## The money half: all of it, not just escrow
+
+The founder was explicit that an earlier draft under-described this:
+
+> All the withdrawal pages for transfers not only escrow we use payluk transfer
+> withdrawal etc it's all on the prompt
+
+> don't cut or say not build this or that or don't do this or that make it build and
+> connect all the dots together and make it lovely all areas all frontend and backend
+> or any layer any fucking layer all
+
+Part B of the handoff is now a build map for all **75 sections** of
+`founder-corpus/06-payluk-master-prompt.md`, in his own **25 phase** implementation
+order from section 68. Follow his order, not one you invent.
+
+**Three providers behind one engine**, which is his architecture from section 5:
+
+- **Paystack**: commercial payments. Boosts, subscriptions, premium features, service
+  fees, **referral payouts**, other non-escrow.
+- **Payluk**: the member's financial life. Merchant customers, **wallet state**,
+  **deposits**, **withdrawals**, **bank account verification**, **wallet-to-wallet
+  transfers**, escrow both standard and milestone, payment intents, payment history,
+  disputes, refunds and resolution, webhooks, transaction records, fees, settlement.
+- **Yellow Card**: future international and stablecoin rails, built as its **own**
+  adapter from the start, phase 22.
+
+**Escrow is one part of this and not the biggest part.** Wallet state, deposits,
+withdrawals, bank verification and transfers come **before** escrow in his order
+(phases 6 to 10 versus 11 and 12) and they are what a member touches every week. Each
+one has a full flow specified in his prompt, step by step, and the handoff carries
+them: the withdrawal flow alone is fourteen steps from available balance to completed,
+with seven figures the member must see, and the provider's returned fee is used rather
+than a hard-coded one.
+
+**The whole gap is one line.** The provider abstraction is already built and
+capability typed, Paystack is implemented, and `providers/index.ts` has
+`case "payluk": return null`. No wallet state, no deposits, no withdrawals, no
+transfers, no escrow and no Payluk webhooks exist because they all hang off an adapter
+nobody wrote. That is phases 4 and 5, and it unblocks everything after it.
+
+Two facts that will bite you if you miss them: **Payluk amounts are naira major
+units, not kobo**, the opposite of Paystack, which is the single most likely source of
+a hundredfold error. And **Payluk has no refund without dispute**, so the refund
+surface branches on rail.
+
+Build the frontend to the same standard as Part A. Sections 36 to 46 of his prompt are
+a design brief, not a backlog: the wallet screen, the transaction list, transaction
+detail, receipts, the escrow surface, payment confirmation as a payoff moment, and the
+loading and processing states, which matter most because a Nigerian bank transfer takes
+minutes and the screen has to make waiting feel safe. The 48 finance and payment icons
+in `assets/icon-pack/raw/finance-payment-wallet/` have never been used because these
+screens do not exist yet.
+
+His rule for all of it, in his words: "Do not make financial onboarding feel like an
+ugly fintech form. It should feel like Vallo."
 
 ## The images are the brief, not decoration
 
@@ -216,10 +284,15 @@ rather than wait on.
 **Nothing is off limits except what he ruled out himself.** Build every feature. If
 you think something is a bad idea, build it and say so in your report. Never resolve
 a disagreement by leaving work undone. His closed questions: Vallo never takes
-custody of customer money (a licensed provider does, see ADR 0003); never fabricate
-a balance, reference, transaction or hash; no generic crypto wallet and no cNGN at
-launch; the retired virtual account approach is not rebuilt; never commit or print a
+custody of customer money (a licensed provider does, see ADR 0003); never fabricate a
+balance, reference, transaction or hash; crypto appears as a rail on a transaction
+("Pay with USDC") through Yellow Card as its own adapter rather than Payluk's cNGN,
+never as a wallet product; the deprecated Payluk virtual-account endpoint is not the
+architecture and no fake Vallo bank account replaces it; never commit or print a
 secret; and do not rebuild Vallo from scratch.
+
+Note what those last two are: they tell you **how** to build something, not whether.
+Yellow Card is phase 22 of his own implementation order. It gets built.
 
 ## Agents: three or four
 

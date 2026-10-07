@@ -2984,17 +2984,29 @@ asks two questions, and the second is the one that was never asked. Is it good? 
 **can a person actually get to it?** The handoff now requires both answers for all
 223 non preview routes (D.2).
 
-**Also corrected:** the startup hold. The web timing already matches what he asked
-for (`--nf-startup-door` 1,150ms, `--nf-splash-hold` that plus 100ms), a real
-`StartupSequence.tsx` exists, and `apps/web/src/lib/native/splash-hang.test.ts`
-records that this exact bug was diagnosed and fixed on **3 October**: `<NativeRuntime />`
-was missing from the root layout, so nothing told the native splash to go. So
-establish first whether the founder is on a build from before 3 October, because if
-he is, nothing is broken and he needs a new build. If it still happens on a current
-build, the remaining path is `boot.ts`: two sequential dynamic imports before
-anything can dismiss, and `splash.ts` hiding on window `load` rather than first
-paint, with failsafes at 4,000ms and 7,000ms. An eight second hold means the 7,000ms
-bridge failsafe is doing the dismissing.
+**The startup hold, corrected twice in one day.** The audit found that
+`splash-hang.test.ts` records a 3 October fix for this exact symptom
+(`<NativeRuntime />` missing from the root layout) and that the fix is present,
+`layout.tsx` line 501. The handoff's first draft therefore told the session to check
+whether the founder was on a stale build. **He answered the same day: it is still
+happening on a current build.** "it's not fixed at all I don't want to see it I don't
+want my logo to be there once I open the app I want to see an animations for about 1.5
+secs lovely animations like how other serious industry standard platform is."
+
+So the 3 October fix landed and the symptom survived it, and A.2 of the handoff now
+says why a timing fix keeps not holding: **the brand is painted onto a native splash
+image, whose duration is whatever the slowest thing on the critical path turns out to
+be.** That can never be reliably fast, and on a Lagos connection with a cold cache it
+is eight seconds of a static PNG.
+
+The ruling, and it is architectural: the native launch image becomes a plain `#010118`
+field identical to the app background, so its duration stops mattering; the splash is
+dismissed on first paint rather than on window `load`, off the two deep dynamic import
+chain in `boot.ts`; and the brand moment moves **into** the app, motion from the first
+frame, 1,500ms ceiling, interruptible, interactive underneath, shortened for a
+returning member, and handing off into the first screen rather than fading out in
+front of it. Closed by three measured numbers on a physical mid range Android and a
+screen recording, not by an assertion.
 
 **Also corrected:** `b3_rate_agreement_gate.sql` **is** still in
 `supabase/migrations/pending/`, along with `b2_rail_at_open.sql`. The first draft
@@ -3006,6 +3018,61 @@ audit run on a stale checkout produces confident, specific, wrong findings, and 
 are more dangerous than vagueness because they get acted on. `git fetch` and merge
 `main` **before** auditing anything, and say in the report which commit the audit
 was run against.
+
+## D68b. The money scope is the whole financial platform, not escrow.
+
+**7 October 2026. Founder correction, and a rewrite of Part B.**
+
+The first draft of Part B described the money work as "the escrow rail" and treated
+wallet state, deposits, withdrawals, bank verification and transfers as items under
+it. He corrected that:
+
+> All the withdrawal pages for transfers not only escrow we use payluk transfer
+> withdrawal etc it's all on the prompt
+
+> don't cut or say not build this or that or don't do this or that make it build and
+> connect all the dots together
+
+Part B is now a build map for **all 75 sections** of
+`founder-corpus/06-payluk-master-prompt.md`, in his own **25 phase** order from his
+section 68. His order puts wallet state, deposits, withdrawals, bank verification and
+transfers at phases 6 to 10, **before** standard and milestone escrow at phases 11 and
+12, and that order is kept. Escrow is one part of this and not the biggest part.
+
+**His three provider architecture, from his section 4 and 5, recorded here so nobody
+re-derives it:**
+
+- **Paystack**: commercial payments. Boosts, subscriptions, premium features, service
+  fees, **referral payouts**, other non-escrow.
+- **Payluk**: merchant customers, wallets, escrow, payment intents, deposits,
+  withdrawals, wallet transfers, payment history, disputes, refunds and resolution,
+  bank and account verification, webhooks, transaction records, fees, settlement.
+- **Yellow Card**: future international and stablecoin rails, built as its own adapter
+  from the start, phase 22, never merged into Payluk code.
+
+**Two rules that were previously written as prohibitions and are actually
+instructions**, which matters because he objected to being told what not to build:
+
+1. cNGN is not the launch crypto architecture and is not exposed to members; crypto
+   and stablecoin go through Yellow Card instead. Yellow Card **gets built**.
+2. Crypto surfaces as a rail on a transaction ("Pay with USDC"), never as a wallet
+   product. A regulated wallet product remains a later deliberate decision.
+
+Both say how, not whether. Same for the deprecated virtual-account endpoint: the
+documented payment-intent flow replaces it, and his own words add "do not create a
+fake Vallo bank account system to compensate for this".
+
+**Two facts recorded nowhere else that will cost a cycle if missed:** Payluk amounts
+are naira **major** units, not kobo, the opposite of Paystack. And **Payluk has no
+refund without dispute**, which is in the capability type comments and means the
+refund surface branches on rail.
+
+**One item added to the founder-only list:** his decision on whether to expose crypto
+withdrawal. The provider supports it; his section 12 says not to expose it unless the
+product and legal design explicitly enables it. So it is built, flagged, and put to
+him.
+
+---
 
 ## D69. ADR 0003: a licensed provider holds the money, Vallo records it.
 
