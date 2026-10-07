@@ -12,9 +12,16 @@ const resolveSession = vi.fn();
 let cookieNames: string[] = [];
 
 vi.mock("@/lib/actions/session", () => ({ resolveSession: () => resolveSession() }));
-vi.mock("@/lib/catalogue/public-access", () => ({ signedOutStart: () => "/welcome" }));
+let signedOutTarget = "/welcome";
+let firstRunValue = "";
+vi.mock("@/lib/catalogue/public-access", () => ({ signedOutStart: () => signedOutTarget }));
 vi.mock("next/headers", () => ({
-  cookies: async () => ({ getAll: () => cookieNames.map((name) => ({ name, value: "x" })) }),
+  cookies: async () => ({
+    getAll: () => [
+      ...cookieNames.map((name) => ({ name, value: "x" })),
+      ...(firstRunValue ? [{ name: "vallo_first_run", value: firstRunValue }] : []),
+    ],
+  }),
 }));
 
 /* Mirrors the private constant in route.ts; Next allows no extra route exports. */
@@ -28,6 +35,15 @@ describe("/open", () => {
   beforeEach(() => {
     resolveSession.mockReset();
     cookieNames = [];
+    signedOutTarget = "/welcome";
+    firstRunValue = "";
+  });
+
+  it("opens a first open on the onboarding even when the catalogue is open, then the signed-out start once seen", async () => {
+    signedOutTarget = "/search";
+    expect(location(await GET(request()))).toBe("/welcome");
+    firstRunValue = "seen";
+    expect(location(await GET(request()))).toBe("/search");
   });
   afterEach(() => vi.useRealTimers());
 

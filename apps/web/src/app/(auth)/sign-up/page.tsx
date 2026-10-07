@@ -6,6 +6,10 @@ import { resolveProviderStates } from "@/lib/auth/providers";
 import { requestSurface } from "@/lib/auth/surface";
 import { phoneSignInEnabled } from "@/lib/auth/phone-sign-in-flag";
 import { SignUpOptions } from "@/components/auth/SignUpOptions";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { FIRST_RUN_COOKIE } from "@/components/app/welcome/first-run-seen";
+import { doorFirstRunRedirect, hasSessionCookie } from "../sign-in/first-run-gate";
 
 /* A10: the title and description in the page's own language, with its
    canonical and hreflang (lib/i18n/public-metadata.ts; words in publicMeta). */
@@ -14,8 +18,8 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /**
- * The sign-up OPTIONS page, where Get started on the welcome intro leads
- * (the founder, 29 September): Sign up with email (to the two-step form at
+ * The sign-up OPTIONS page, where Get started leads (the founder, 29
+ * September): Sign up with email (to the two-step form at
  * `/sign-up/email`), Google and Apple where they work, and "I already have
  * an account". The pieces are `SignUpOptions` and the Slate system.
  *
@@ -45,6 +49,17 @@ export default async function SignUpPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await searchParams;
+  /* The first Sign up on a device meets the onboarding first, once, and
+     comes back here with its address intact (`first-run-gate.ts`, the
+     founder, 7 October). Never a signed-in member. */
+  const jar = await cookies();
+  const firstRun = doorFirstRunRedirect({
+    door: "/sign-up",
+    cookie: jar.get(FIRST_RUN_COOKIE)?.value,
+    signedIn: hasSessionCookie(jar.getAll().map((c) => c.name)),
+    params,
+  });
+  if (firstRun) redirect(firstRun);
   const next = typeof params.next === "string" ? params.next : undefined;
   const locale = await getLocale();
   const t = getDictionary(locale);

@@ -81,8 +81,8 @@ describe("theme default", () => {
  * password page follow the theme.
  */
 describe("night doors before paint", () => {
-  const doors = ["/welcome", "/welcome/", "/sign-up", "/sign-up/verify", "/sign-up/email", "/sign-up/finish"];
-  const themed = ["/", "/sign-in", "/sign-in/code", "/forgot-password", "/reset-password", "/welcomes", "/sign-upx", "/home"];
+  const doors = ["/sign-up", "/sign-up/verify", "/sign-up/email", "/sign-up/finish"];
+  const themed = ["/", "/welcome", "/welcome/", "/sign-in", "/sign-in/code", "/forgot-password", "/reset-password", "/welcomes", "/sign-upx", "/home"];
 
   it("paints a door dark under an explicit Light and keeps the choice", () => {
     for (const pathname of doors) {

@@ -141,7 +141,6 @@ const NAMES: Readonly<Record<string, string>> = {
   "/guides": "Guides",
   "/guides/[slug]": "the guide",
   "/email/preferences": "Email preferences",
-  "/join/[code]": "the invite",
   "/sign-in/code": "Sign in with a code",
   "/sign-in/phone": "Sign in with your phone",
   "/standards": "Standards",

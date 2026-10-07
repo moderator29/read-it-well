@@ -5,8 +5,7 @@ import type { StepPhoto } from "./step-photos";
 
 /**
  * THE PIECES A FULL-PAGE STEP IS DRAWN FROM (30 September), shared by the
- * steps (`FirstRun.tsx`) and the cold-start intro (`app/welcome/
- * WelcomeIntro.tsx`) so the two read as one place. Every visual rule is in
+ * steps of the one onboarding (`FirstRun.tsx`). Every visual rule is in
  * `app/welcome/welcome.css`. Server-safe: nothing here holds state.
  */
 

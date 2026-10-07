@@ -151,10 +151,11 @@ describe("principle 10, the marketing and loading loops (Session 3, C1)", () => 
       /* THE FOUNDER'S RESTORATION (7 October 2026): the login, sign-up and
          welcome screens back exactly as they were before the redesign, with
          their own loops (the code caret, the focal glow, the welcome scenes'
-         float and breath). Each is stopped by reduced motion, Calm and Off. */
+         float and breath). Each is stopped by reduced motion, Calm and Off.
+         The onboarding's own loops (onboarding-motion.css) became finite on
+         7 October: each floats or sweeps a few times and rests. */
       "app/css/auth.css": 5,
       "app/welcome/welcome.css": 3,
-      "app/welcome/onboarding-motion.css": 7,
       /* THE FOUNDER'S RULING (October 2026): the landing's floating 3D objects
          keep their gentle continuous float. Only when ObjectField sets
          `data-on` (never under reduced motion, Calm, Off, data saver or a
