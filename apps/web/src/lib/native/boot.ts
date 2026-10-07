@@ -1,6 +1,7 @@
 "use client";
 
 import { looksNative } from "./platform";
+import { bootMark } from "./boot-trace";
 
 /**
  * The one entry point into everything native.
@@ -80,6 +81,7 @@ const NOOP = (): void => {};
 export const BRIDGE_FAILSAFE_MS = 2_500;
 
 function hideSplashViaBridge(): void {
+  bootMark("bridge-failsafe:fired");
   try {
     const cap = (window as unknown as { Capacitor?: { nativePromise?: (...args: unknown[]) => unknown } }).Capacitor;
     const pending = cap?.nativePromise?.("SplashScreen", "hide", { fadeOutDuration: 200 });
@@ -97,6 +99,7 @@ export function startNativeRuntime(handlers: NativeRuntimeHandlers): () => void 
 
   let stopped = false;
   const teardowns: Array<() => void> = [];
+  bootMark("runtime:start");
   const bridgeFailsafe = window.setTimeout(hideSplashViaBridge, BRIDGE_FAILSAFE_MS);
   teardowns.push(() => window.clearTimeout(bridgeFailsafe));
 
@@ -113,6 +116,7 @@ export function startNativeRuntime(handlers: NativeRuntimeHandlers): () => void 
 
   void (async () => {
     const { Capacitor } = await import("@capacitor/core");
+    bootMark(Capacitor.isNativePlatform() ? "runtime:core-loaded" : "runtime:core-not-native");
     if (!Capacitor.isNativePlatform() || stopped) return;
 
     /* V-11: mark the document as the shell, so the marketing header and
@@ -124,8 +128,10 @@ export function startNativeRuntime(handlers: NativeRuntimeHandlers): () => void 
     /* First, and alone. See the note above about the splash. */
     try {
       const { startSplash } = await import("./splash");
+      bootMark("runtime:splash-module-loaded");
       collect(startSplash());
     } catch {
+      bootMark("runtime:splash-module-failed");
       /* If this failed the splash is still up, and the failsafe inside it
          never got the chance to arm. Nothing here can improve on that. */
     }

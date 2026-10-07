@@ -292,9 +292,25 @@
     background: var(--nf-passcode-dot-on);
     box-shadow: var(--nf-passcode-dot-glow);
     transform: scale(1.1);
+    /* Each digit LANDS (A.4): the dot drops in small, overshoots and settles,
+       an object with weight rather than a colour appearing. */
+    animation: nf-passcode-dot-land 280ms var(--nf-ease-entrance) both;
   }
+  @keyframes nf-passcode-dot-land {
+    0% {
+      transform: scale(0.5);
+    }
+    55% {
+      transform: scale(1.28);
+    }
+    100% {
+      transform: scale(1.1);
+    }
+  }
+  /* A wrong code shakes ONCE, sharply (A.4): one decaying beat, 320ms, not a
+     wobble. The message under it names what to do next. */
   .nf-passcode__dots--shake {
-    animation: nf-passcode-shake var(--nf-duration-slow) var(--nf-ease-standard) both;
+    animation: nf-passcode-shake 320ms var(--nf-ease-standard) both;
   }
   .nf-passcode__dots--shake .nf-passcode__dot--on,
   .nf-passcode__dots--shake .nf-passcode__dot {
@@ -352,7 +368,11 @@
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
     user-select: none;
-    transition: transform var(--nf-duration-press) var(--nf-ease-press);
+    /* THE PRESS CURVE (A.4). The way down is the press curve, quick and
+       firm (the `:active` rule below); the way back up, which is this
+       transition, springs past rest and settles, so the key feels like
+       something under the finger rather than a colour flash. */
+    transition: transform var(--nf-duration-slow) var(--nf-ease-spring);
   }
   /* The highlight caught in the glass, on its own layer so a press can
      brighten it with opacity alone. */
@@ -380,7 +400,9 @@
     height: auto;
   }
   .nf-passcode__key:active:not(:disabled) {
-    transform: scale(0.94);
+    transform: scale(0.92);
+    transition-duration: var(--nf-duration-press);
+    transition-timing-function: var(--nf-ease-press);
   }
   .nf-passcode__key:active:not(:disabled)::before {
     opacity: var(--nf-passcode-sphere-light-press);
@@ -447,21 +469,23 @@
     100% {
       transform: none;
     }
-    15%,
-    55% {
-      transform: translateX(-10px);
+    18% {
+      transform: translateX(-12px);
     }
-    35%,
-    75% {
-      transform: translateX(10px);
+    42% {
+      transform: translateX(9px);
     }
-    90% {
+    66% {
       transform: translateX(-4px);
+    }
+    84% {
+      transform: translateX(1.5px);
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
     .nf-passcode__dots--shake,
+    .nf-passcode__dot--on,
     .nf-passcode__ring {
       animation: none;
     }
@@ -474,7 +498,7 @@
       transform: none;
     }
   }
-  :root:is([data-motion="calm"], [data-motion="off"]) :is(.nf-passcode__dots--shake, .nf-passcode__ring) {
+  :root:is([data-motion="calm"], [data-motion="off"]) :is(.nf-passcode__dots--shake, .nf-passcode__ring, .nf-passcode__dot--on) {
     animation: none;
   }
   :root:is([data-motion="calm"], [data-motion="off"]) :is(.nf-passcode__key:active:not(:disabled), .nf-passcode__dot--on) {

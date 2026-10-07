@@ -1,69 +1,45 @@
 /*
- * THE STARTUP SEQUENCE (directive D31, MOTION_SYSTEM.md section 3). The markup
- * is `StartupSequence.tsx`; the things CSS cannot know (a finger asking to
- * skip, the native splash still covering the page) are `startup-script.ts`.
- * Imported by the component, which the root layout renders, so it is in the
- * root stylesheet and never waits on a chunk.
+ * THE APP OPENING: THE PRODUCT ARRIVING (D68c, 7 October 2026).
  *
- * On only while the before-paint gate in the root layout has set
- * `data-splash="on"`; gone for good once the script moves the flag to "done"
- * (threshold.css hides `.nf-splash` outside "on").
+ * No overlay, no lockup, no mark on an empty field: the logo never appears by
+ * itself on app open. What plays is the app's own first screen arriving, keyed
+ * on the root's `data-splash="on"` (the before-paint gate in
+ * `startup-script.ts`) and released to "done" by its controller.
  *
- * THE BEATS (October 2026: the real brand art, not a vector redraw). Motion
- * is transform and opacity only:
+ * FRAME ONE IS ALREADY THE PRODUCT. The header and the dock are on screen from
+ * the first frame, dim and a few pixels from home, and resolve into place;
+ * they are never absent. The ground (`#main`) settles from 72% to full in
+ * opacity only, at 0.6 of the foreground's speed (its 900ms against their
+ * 540ms), and never with a transform: a filled transform on `#main` would make
+ * it the containing block of every fixed child (the pinned price bar, sheets).
+ * The page's own entrances (`animation.css`, `home.css`, `inner-m.css`,
+ * `detail-m.css`, `landing-rooms.css`, `list-views.css` and the rest) rise
+ * after `--nf-splash-hold` (threshold.css), now 160ms, with their own
+ * staggers.
  *
- *   ground      0 to 60       the bare navy ground, the native splash's own
- *                             colour and nothing on it
- *   glow        0 to 900      a soft radial bloom behind the mark, opacity
- *                             and scale (900ms, land)
- *   mark        60 to 760     the glass mark rises into place: translateY 24px
- *                             and scale 0.86, transparent, to rest (700ms,
- *                             land)
- *   wordmark    180 to 680    the chrome wordmark, 120ms behind: translateY
- *                             12px, transparent, to rest (500ms, land)
- *   sweep       560 to 1460   one diagonal light across the glass, masked to
- *                             the mark's own shape (900ms, glide)
- *   door        1350 to 1750  the whole overlay fades and lifts, 1 to 1.04
- *                             (400ms, leave); the page comes forward beneath
- *                             it on the same number (threshold.css)
+ *   full    the first open of the day: header 0 to 540, dock 60 to 600,
+ *           ground 0 to 900, content from 160 with its staggers; settled by
+ *           about 1,500ms, usable from the first frame.
+ *   brief   a returning open: no hold; the header and the dock take 280ms and
+ *           the ground does not move. About 400ms.
  *
- * THE DOOR IS ON THE STYLESHEET'S CLOCK, NOT THE SCRIPT'S. Everything that
- * waits on the door (the overlay's own fade, the page coming forward in
- * `threshold.css`, every entrance held by `--nf-splash-hold`) is delayed by
- * one number, `--nf-startup-door`, 1350ms. The script only MOVES it, to the
- * moment of a tap or a key. It no longer holds it for a page still
- * streaming: the door opens onto that page's own loading skeleton.
- *
- * THE NATIVE WAIT. On the shell, the script holds every animation on the
- * page at its first frame (`data-startup-native="wait"`) until the native
- * splash has been told to go (600ms at most), so the rise is never played out
- * of sight beneath it. All of them, not only the overlay's, so the page and
- * the door stay on one clock.
- *
- * QUIET, under the platform's reduced-motion setting (MOTION_SYSTEM.md
- * section 3): the lockup is simply there, still, nothing rises, blooms or
- * sweeps, and after 500ms (long enough to read as a still frame rather than
- * a flicker) the whole overlay crossfades away over 200ms. Calm, Off, the
- * splash switch and data saver never show it at all (the gate,
- * `startup-script.ts`); there the native splash comes down on the page and
- * the page's own entrance is the opening.
+ * The chrome moves with the individual `translate` property rather than
+ * `transform`, so it composes with whatever transform the chrome already has
+ * instead of replacing it. Curves are tokens: `land` (`--nf-ease-entrance`)
+ * for arrivals, `standard` for the ground.
  */
-/*
- * THE LAYER ORDER, RESTATED. This sheet can reach the document before
- * globals.css does (it is imported by a component, and component CSS can be
- * ordered ahead of the root sheet). The first `@layer` a browser meets fixes
- * the order, so without this line `components` would be declared before
- * Tailwind's `base` and every reset in `base` would beat every rule here.
- * Restating Tailwind's own order is a no-op when globals.css came first.
- */
+
 @layer theme, base, components, utilities;
 
 @layer components {
-  /* When the door opens, for everything that waits on it. Inherited, so the
-     page beneath reads the same number; the script writes it inline on the
-     root when it moves it. */
+  /* The hold the page's entrances wait for: `--nf-startup-door` plus 100ms
+     (threshold.css). Inherited, so the page reads the same number; the
+     controller pins it on `data-startup-pin` when it lets go. */
   :root[data-splash="on"] {
-    --nf-startup-door: 1350ms;
+    --nf-startup-door: 60ms;
+  }
+  :root[data-splash="on"][data-opening="brief"] {
+    --nf-startup-door: -100ms;
   }
 
   /* The native wait: every animation on the page held at its first frame
@@ -75,207 +51,48 @@
     animation-play-state: paused !important;
   }
 
-  :root[data-splash="on"] .nf-splash.nf-startup {
-    /* The mark and the wordmark at rest; the files are twice these. */
-    --nf-startup-mark: clamp(6.5rem, 34vw, 8.75rem);
-    --nf-startup-word: clamp(7.5rem, 38vw, 9.75rem);
-
-    position: fixed;
-    inset: 0;
-    z-index: var(--nf-z-top);
-    display: block;
-    overflow: hidden;
-    /* The native splash's own navy, in both themes: the art is made for it. */
-    background: var(--nf-ink-950);
-    transform-origin: 50% 46%;
-    /* A tap anywhere is the skip (startup-script.ts) until the door opens;
-       from the door's first frame the overlay lets every tap through (the
-       door's keyframes), because nothing may block interaction (MOTION_SYSTEM
-       principle 9). `forwards`, not `both`: the overlay must catch taps
-       while it waits. */
-    pointer-events: auto;
-    cursor: default;
-    animation: nf-startup-door 400ms var(--nf-ease-exit) var(--nf-startup-door) forwards;
+  :root[data-splash="on"] .nf-app-header {
+    animation: nf-open-header 540ms var(--nf-ease-entrance) both;
+  }
+  :root[data-splash="on"] .nf-dockrow {
+    animation: nf-open-dock 540ms var(--nf-ease-entrance) 60ms both;
+  }
+  :root[data-splash="on"] #main {
+    animation: nf-open-ground 900ms var(--nf-ease-standard) both;
   }
 
-  /* ---------------------------------------------------------- the lockup */
-
-  /* At the optical centre, a little above the middle of the screen. */
-  .nf-startup__lockup {
-    position: absolute;
-    top: 46%;
-    left: 50%;
-    translate: -50% -50%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--nf-space-md);
+  :root[data-splash="on"][data-opening="brief"] :is(.nf-app-header, .nf-dockrow) {
+    animation-duration: 280ms;
+    animation-delay: 0ms;
+  }
+  :root[data-splash="on"][data-opening="brief"] #main {
+    animation: none;
   }
 
-  .nf-startup__glow {
-    position: absolute;
-    top: calc(var(--nf-startup-mark) * 268 / 280 / 2);
-    left: 50%;
-    width: calc(var(--nf-startup-mark) * 2.2);
-    aspect-ratio: 1;
-    translate: -50% -50%;
-    border-radius: var(--nf-radius-pill);
-    background: radial-gradient(
-      closest-side,
-      color-mix(in oklab, var(--nf-brand-quiet) 32%, transparent),
-      color-mix(in oklab, var(--nf-brand-quiet) 14%, transparent) 35%,
-      color-mix(in oklab, var(--nf-brand-quiet) 5%, transparent) 62%,
-      color-mix(in oklab, var(--nf-brand-quiet) 0%, transparent) 88%
-    );
-    pointer-events: none;
-    animation: nf-startup-bloom 900ms var(--nf-ease-entrance) both;
-  }
-
-  .nf-startup__mark {
-    position: relative;
-    width: var(--nf-startup-mark);
-    aspect-ratio: 280 / 268;
-    animation: nf-startup-rise 700ms var(--nf-ease-entrance) 60ms both;
-  }
-  .nf-startup__mark-img,
-  .nf-startup__word {
-    display: block;
-    height: auto;
-    user-select: none;
-    -webkit-user-drag: none;
-  }
-  .nf-startup__mark-img {
-    width: 100%;
-  }
-
-  /* The sweep: a static box masked to the mark's own shape, with the light
-     travelling inside it, so the light is only ever ON the glass. */
-  .nf-startup__shine {
-    position: absolute;
-    inset: 0;
-    overflow: hidden;
-    pointer-events: none;
-    -webkit-mask-image: url("/brand/startup/vallo-mark.webp");
-    mask-image: url("/brand/startup/vallo-mark.webp");
-    -webkit-mask-size: contain;
-    mask-size: contain;
-    -webkit-mask-repeat: no-repeat;
-    mask-repeat: no-repeat;
-    -webkit-mask-position: center;
-    mask-position: center;
-  }
-  .nf-startup__shine::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      105deg,
-      transparent 32%,
-      rgb(255 255 255 / 0.62) 50%,
-      transparent 68%
-    );
-    transform: translateX(-120%);
-    animation: nf-startup-sweep 900ms var(--nf-ease-standard) 560ms both;
-  }
-
-  .nf-startup__word {
-    width: var(--nf-startup-word);
-    animation: nf-startup-follow 500ms var(--nf-ease-entrance) 180ms both;
-  }
-
-  /* ----------------------------------------------------------- keyframes */
-
-  @keyframes nf-startup-bloom {
+  @keyframes nf-open-header {
     from {
-      opacity: 0;
-      transform: scale(0.6);
-    }
-    to {
-      opacity: 1;
-      transform: none;
+      opacity: 0.4;
+      translate: 0 -8px;
     }
   }
-  @keyframes nf-startup-rise {
+  @keyframes nf-open-dock {
     from {
-      opacity: 0;
-      transform: translateY(24px) scale(0.86);
-    }
-    to {
-      opacity: 1;
-      transform: none;
+      opacity: 0.4;
+      translate: 0 14px;
     }
   }
-  @keyframes nf-startup-follow {
+  @keyframes nf-open-ground {
     from {
-      opacity: 0;
-      transform: translateY(12px);
-    }
-    to {
-      opacity: 1;
-      transform: none;
-    }
-  }
-  @keyframes nf-startup-sweep {
-    from {
-      transform: translateX(-120%);
-    }
-    to {
-      transform: translateX(120%);
-    }
-  }
-  /* The door: the overlay lets every tap through from its first frame,
-     fades and lifts, and then stops painting; its `animationend` is the
-     script's signal to release the flag. */
-  @keyframes nf-startup-door {
-    from {
-      pointer-events: none;
-    }
-    to {
-      opacity: 0;
-      transform: scale(1.04);
-      visibility: hidden;
-      pointer-events: none;
+      opacity: 0.72;
     }
   }
 
-  /*
-   * QUIET: the platform's reduced-motion setting (MOTION_SYSTEM.md section 3).
-   * The lockup is drawn still and at rest; nothing blooms, rises or sweeps.
-   * 500ms of still frame (a lockup that appeared and vanished inside 300ms
-   * would read as a flash, the opposite of what the setting asks for), then
-   * a 200ms crossfade, on the `standard` curve rather than linear, which
-   * reads as a flicker at its end. Opacity only: no lift.
-   *
-   * The duration and the delay are opted out of the reduced-motion floor
-   * (`animation.css`) through its registered properties, on this element
-   * only: without them the floor makes the fade instant at the first frame.
-   * The same rules catch the setting being switched on WHILE the sequence is
-   * playing: the lockup comes to rest and the fade takes over.
-   */
+  /* A backstop for the gate: the platform's reduced-motion setting never
+     switches the opening on, and if a page switched it on by hand it still
+     gets one settled frame. */
   @media (prefers-reduced-motion: reduce) {
-    :root[data-splash="on"] {
-      --nf-startup-door: 500ms;
-    }
-    .nf-startup :is(.nf-startup__glow, .nf-startup__mark, .nf-startup__word) {
-      animation: none !important;
-    }
-    .nf-startup .nf-startup__shine {
-      display: none;
-    }
-    :root[data-splash="on"] .nf-splash.nf-startup {
-      --nf-reduced-duration: 200ms;
-      --nf-reduced-delay: var(--nf-startup-door);
-      animation: nf-startup-fade 200ms var(--nf-ease-standard) var(--nf-startup-door) forwards;
-    }
-  }
-  @keyframes nf-startup-fade {
-    from {
-      pointer-events: none;
-    }
-    to {
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
+    :root[data-splash="on"] :is(.nf-app-header, .nf-dockrow, #main) {
+      animation: none;
     }
   }
 }

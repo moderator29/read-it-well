@@ -2,11 +2,14 @@
  * TRACK M: THRESHOLDS (25 September 2026).
  *
  * The moments of crossing into Vallo, which the founder asked to feel "like a
- * door": the app opening (the splash in the root layout), a new account
- * walking through after verifying, coming back after a while away, and
- * signing out. The markup is `BrandAssemble` and `ThresholdStage` under
+ * door": a new account walking through after verifying, coming back after a
+ * while away, and signing out. The markup is `ThresholdStage` under
  * components/motion, and the timings are the ones in
- * docs/TRACK_M_MOTION_PLAN.md.
+ * docs/TRACK_M_MOTION_PLAN.md. `BrandAssemble` (the `.nf-assemble` rules
+ * below) is no longer on the app opening at all (D68c, 7 October 2026: the
+ * logo never appears by itself on app open); it stays only where a brand
+ * moment belongs, the motion preview in Settings. The opening is the page
+ * arriving, in `components/startup`.
  *
  * Transform, opacity and filter only. Every moment is decoration over a page
  * that is already there, so under reduced motion none of it exists: the
@@ -110,12 +113,13 @@
   .nf-splash {
     display: none;
   }
-  /* The page's own entrances start 100ms into the startup's door, whenever
-     the door opens (`--nf-startup-door`, startup.css: 1150ms on the beats'
-     schedule, moved by a skip or a hold). It was a fixed 1250ms, which a
-     skip at 300ms or a held door at three seconds both contradicted. */
+  /* THE HOLD IS NOW THE OPENING'S, NOT A LOGO'S (D68c). The page's own
+     entrances start 100ms after `--nf-startup-door` (startup.css): 160ms on
+     a full opening, while the header and the dock are already resolving, and
+     0ms on a brief one. It was 1,450ms, the length of a logo lockup, and
+     everything on the page waited behind it. */
   :root[data-splash="on"] {
-    --nf-splash-hold: calc(var(--nf-startup-door, 1150ms) + 100ms);
+    --nf-splash-hold: calc(var(--nf-startup-door, 60ms) + 100ms);
   }
   @keyframes nf-splash-leaf-a {
     to {
@@ -134,18 +138,9 @@
       filter: blur(4px);
     }
   }
-  /* The page comes forward through the opening door. It is keyed to the door,
-     on the door's own clock: the page rests at the animation's first frame
-     (held by `both`) beneath the overlay, and plays at `--nf-startup-door`
-     (startup.css: 1150ms on the beats' schedule, moved by a skip or a hold),
-     for 320ms, inside the door's own 350ms. It used to wait, paused, for the
-     startup's script to set `data-startup="open"`, which on a busy phone
-     arrived late; and before that it started at a fixed 1150ms, which a skip
-     or a hold contradicted. The flag leaves "on" only after the door has
-     ended, so the entrance always finishes before the rule goes. */
-  :root[data-splash="on"] #main {
-    animation: nf-threshold-forward 320ms var(--nf-ease-exit) var(--nf-startup-door, 1150ms) both;
-  }
+  /* There is no door any more for the page to come forward through: the
+     opening's own `#main` settle is in startup.css. The keyframe stays for
+     the `open` hook below (unlocking with the passcode). */
   @keyframes nf-threshold-forward {
     from {
       opacity: 0.4;
@@ -414,7 +409,7 @@
     display: inline-block;
     white-space: pre;
     animation: nf-depth-word 560ms var(--nf-ease-entrance) both;
-    animation-delay: calc(var(--nf-splash-hold, 0ms) + 120ms + var(--nf-i, 0) * 70ms);
+    animation-delay: calc(var(--nf-splash-hold, 0ms) + 120ms + var(--nf-i, 0) * 60ms);
   }
   @keyframes nf-depth-word {
     from {
@@ -432,13 +427,9 @@
   /* ------------------------------------------------------ reduced motion */
 
   @media (prefers-reduced-motion: reduce) {
-    /* THE STARTUP OVERLAY IS DELIBERATELY NOT HIDDEN HERE. The selector below
-       would hide it (`display: none`), but `startup.css` draws the overlay as
-       `:root[data-splash="on"] .nf-splash.nf-startup`, which is more specific
-       and wins, so under reduced motion the opening still plays, quietly: the
-       still lockup and a 160ms crossfade (MOTION_SYSTEM.md section 3), never
-       the assembly. What this line hides is the old threshold panels and any
-       `.nf-splash` that is not the startup. */
+    /* Under reduced motion the opening never switches on (the gate in
+       `components/startup` asks the platform), so the app appears as one
+       settled frame. These lines are the backstop for a flag set by hand. */
     .nf-splash,
     :root[data-splash="on"] .nf-splash,
     .nf-threshold {

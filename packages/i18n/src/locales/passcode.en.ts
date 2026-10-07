@@ -19,12 +19,12 @@ export const passcodeEn = {
    * because that is the one moment the count changes what somebody does.
    */
   wrongLeft: {
-    one: "That is not your passcode. 1 more try before a short pause.",
-    other: "That is not your passcode. {count} more tries before a short pause.",
+    one: "That is not your passcode. Try again: 1 more try before a short pause.",
+    other: "That is not your passcode. Try again: {count} more tries before a short pause.",
   },
   wrongLastBeforeSignOut: {
-    one: "That is not your passcode. 1 more wrong try signs you out.",
-    other: "That is not your passcode. {count} more wrong tries sign you out.",
+    one: "That is not your passcode. Try again carefully: 1 more wrong try signs you out.",
+    other: "That is not your passcode. Try again carefully: {count} more wrong tries sign you out.",
   },
   cooldown: "Too many tries. Wait {seconds} seconds.",
   paced: "Too many tries from here. Wait a little and try again.",

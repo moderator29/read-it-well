@@ -1,6 +1,7 @@
 "use client";
 
 import { SplashScreen } from "@capacitor/splash-screen";
+import { bootMark } from "./boot-trace";
 
 /**
  * Take the splash down, once the application is genuinely on screen.
@@ -69,19 +70,22 @@ export function startSplash(): () => void {
        behind it are the same navy: a hard swap reads as a flicker, a fade
        reads as one continuous surface. Failure is swallowed on purpose. If the
        plugin refuses, there is nothing useful to say and nothing to retry. */
+    bootMark("splash:failsafe-or-teardown-hide");
     void SplashScreen.hide({ fadeOutDuration: 220 }).catch(() => {});
   };
 
   const timer = window.setTimeout(hide, FAILSAFE_MS);
 
   /* Straight away: no `load`, no frame. See the note above. */
+  bootMark("splash:hide-sent");
   try {
     void SplashScreen.hide({ fadeOutDuration: 220 }).then(
       () => {
         hidden = true;
+        bootMark("splash:hide-answered");
         window.clearTimeout(timer);
       },
-      () => {},
+      () => bootMark("splash:hide-refused"),
     );
   } catch {
     /* The failsafe tries again. */
