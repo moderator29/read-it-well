@@ -54,6 +54,7 @@ export function HostTodayView({
   locale,
   sub,
   action,
+  figure,
   children,
 }: {
   today: HostToday;
@@ -63,6 +64,8 @@ export function HostTodayView({
   sub: string;
   /** The one primary action. */
   action: ReactNode;
+  /** The figure card (reference 5), drawn under the band. */
+  figure?: ReactNode;
   /** The rest of the page: the application in progress, the businesses. */
   children?: ReactNode;
 }) {
@@ -126,6 +129,8 @@ export function HostTodayView({
           </div>
         ) : null}
       </HeroBand>
+
+      {figure}
 
       {shown.length > 0 || stages.length > 0 ? (
         <div className="nf-desk-grid">

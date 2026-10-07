@@ -226,6 +226,174 @@
     text-shadow: none;
   }
 
+  /* ------------------------------------------- THE PLASMA LEVEL (D74)
+     The founder's governing set (docs/design/references/2026-10-07/
+     GOVERNING-plasma-*.jpg): what floats over a photograph is SMOKED GLASS,
+     the near-black card of plasma-rewards-platinum, not the blue glass door;
+     there is at most ONE platinum object on a screen; the figure is in full
+     ink with its unit in grey; and the one primary action carries a soft
+     floor glow under it.
+
+     On the listing that is: the gallery's back, share, save, counter and
+     market mark in smoked glass; the Verified mark, when a person really
+     checked the listing, as the screen's one platinum object (the seal of
+     the Space Passport); the pinned figure in full ink with its caption
+     grey; and Book inspection with its glow. Metal and smoke do not change
+     with the lights, so none of this is themed. */
+  .nf-gallery .nf-icon-btn.nf-icon-btn--round,
+  .nf-gallery .nf-media-chip:not(.nf-media-chip--lg),
+  .nf-gallery .nf-gallery-mark.nf-badge--info {
+    border: var(--nf-border-width) solid var(--nf-smoked-glass-edge);
+    background: var(--nf-smoked-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    box-shadow: none;
+    color: var(--nf-content-on-media);
+  }
+  .nf-gallery .nf-gallery-mark.nf-badge--verified {
+    border: var(--nf-border-width) solid var(--nf-platinum-edge);
+    background: var(--nf-platinum-sheen), var(--nf-platinum-fill);
+    box-shadow: var(--nf-platinum-shadow);
+    color: var(--nf-platinum-ink);
+  }
+  /* Reduced transparency: the smoke goes solid rather than see-through. */
+  @media (prefers-reduced-transparency: reduce) {
+    .nf-gallery .nf-icon-btn.nf-icon-btn--round,
+    .nf-gallery .nf-media-chip:not(.nf-media-chip--lg),
+    .nf-gallery .nf-gallery-mark.nf-badge--info {
+      background: var(--nf-platinum-ink);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+  :root[data-transparency="reduced"] .nf-gallery :is(.nf-icon-btn.nf-icon-btn--round, .nf-media-chip:not(.nf-media-chip--lg), .nf-gallery-mark.nf-badge--info) {
+    background: var(--nf-platinum-ink);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  /* The figure in full ink, its caption grey: "305,860.9 XPL". It was the
+     brand blue, which on the night bar read as a link rather than a price. */
+  .nf-detail-foot .nf-detail-foot__figure {
+    color: var(--nf-content-primary);
+  }
+  /* The one primary, lit from under: the Plasma capsule's floor glow in the
+     brand's own blue, beneath the shadow it already had. */
+  .nf-detail-foot .nf-detail-foot__action.nf-btn--primary {
+    box-shadow:
+      var(--nf-act-shadow),
+      0 22px 44px -16px color-mix(in oklab, var(--nf-brand-primary) 60%, transparent);
+  }
+
+  /* ------------------------------------------------- TRUE COST AS A BILL
+     PREMIUM-STANDARD reference 8 (the founder's bill breakdown, 7 October),
+     scoped to `.nf-movein--bill` so the listing wizard's money step, which
+     shares the `.nf-movein__*` family, keeps its own rows.
+
+     The strip: three small figures, a tiny uppercase label over each, the
+     third (money that comes back) in the success ink. The card: no plates,
+     the label and its arithmetic on the left, the amount right aligned and
+     tabular, hairlines that start at the text. The total: the heavier rule
+     and weight already set above. The tiles: three equal squares, a thin
+     glyph over a tiny label. */
+  .nf-bill-strip {
+    display: grid;
+    grid-auto-columns: minmax(0, 1fr);
+    grid-auto-flow: column;
+    gap: var(--nf-space-sm);
+    margin: 0 0 var(--nf-space-sm);
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    border: var(--nf-border-width) solid var(--nf-tier-card-edge);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-surface-primary);
+    box-shadow: var(--nf-card-shadow);
+  }
+  .nf-bill-strip__cell {
+    min-width: 0;
+  }
+  .nf-bill-strip__label {
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    letter-spacing: var(--nf-tracking-overline);
+    text-transform: uppercase;
+    color: var(--nf-content-muted);
+  }
+  .nf-bill-strip__figure {
+    margin: var(--nf-space-3xs) 0 0;
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    color: var(--nf-content-primary);
+  }
+  .nf-bill-strip__cell[data-cell="back"] .nf-bill-strip__figure {
+    color: var(--nf-state-success);
+  }
+
+  .nf-movein--bill .nf-movein__row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    min-height: 3.5rem;
+    padding-block: var(--nf-space-sm);
+  }
+  .nf-movein--bill .nf-movein__row + .nf-movein__row::before {
+    inset-inline: var(--nf-space-md) 0;
+  }
+  .nf-movein--bill .nf-movein__row--total {
+    align-items: center;
+  }
+  .nf-movein--bill .nf-movein__figure {
+    padding-top: 0.0625rem;
+  }
+  .nf-movein--bill .nf-movein__row:not([data-declared]) .nf-movein__label {
+    color: var(--nf-content-secondary);
+  }
+
+  .nf-bill-tiles {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--nf-space-sm);
+    margin-top: var(--nf-space-sm);
+  }
+  .nf-bill-tile {
+    display: flex;
+    width: 100%;
+    min-height: 4.5rem;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--nf-space-2xs);
+    border: var(--nf-border-width) solid var(--nf-tier-card-edge);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-surface-primary);
+    box-shadow: var(--nf-card-shadow);
+    color: var(--nf-content-primary);
+    transition: scale var(--nf-duration-fast) var(--nf-ease-press);
+  }
+  .nf-bill-tile:active {
+    scale: var(--nf-press-scale);
+  }
+  .nf-bill-tile:focus-visible {
+    outline: 2px solid var(--nf-brand-secondary);
+    outline-offset: 2px;
+  }
+  .nf-bill-tile__glyph {
+    color: var(--nf-content-secondary);
+  }
+  .nf-bill-tile__word {
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-bill-tile {
+      transition: none;
+    }
+    .nf-bill-tile:active {
+      scale: none;
+    }
+  }
+
   /* WHY TRUST THIS SPACE: dated rows on the Plate rhythm, the date on the
      right in tabular figures, the way a cost row puts its amount. */
   .nf-trust__rows {

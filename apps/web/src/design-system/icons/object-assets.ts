@@ -183,6 +183,17 @@ export function tieredSrc(asset: ObjectAsset): string {
   return `/brand/tier-${asset.tier}/${asset.file}@2x.webp`;
 }
 
+/**
+ * The accepted render for a name, when there is one, for a call site that
+ * asks for renders explicitly (`BrandIcon`'s `preferRender`, 7 October 2026:
+ * the founder asked for one style across the space types row). Undefined when
+ * the name has no tiered render, so the caller falls back to the glass rule.
+ */
+export function renderArtwork(name: string): BrandArtwork | undefined {
+  const tiered = tieredAssetFor(name);
+  return tiered ? { src: tieredSrc(tiered), material: tiered.tier === "b" ? "matte" : "real", object: name } : undefined;
+}
+
 export type BrandArtwork = { src: string; material: "matte" | "real" | "glass"; object: string };
 
 /**

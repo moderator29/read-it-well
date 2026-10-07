@@ -8,12 +8,12 @@ import { useBack } from "@/lib/nav/use-back";
 import { countOf, type Locale } from "@vallo/i18n/core";
 import { useScopedCopy } from "@/lib/i18n/copy-scope";
 import { useMoneyStepUp } from "@/components/app/money/MoneyStepUp";
-import type { BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
 import { SuccessSheet } from "@/components/ui/SuccessSheet";
 import { Unfold } from "@/components/ui/Unfold";
 import { ProgressPath } from "@/components/supply/ProgressPath";
+import { HOST_STEP_TILES, HOST_TYPE_TILES } from "@/components/supply/path-tiles";
 import { successCopy } from "@/lib/ui/success-moments";
 import { SelectField, TextArea, TextField } from "@/components/ui/Field";
 import { TYPE } from "@/components/app/Screen";
@@ -34,7 +34,6 @@ import {
   type HostDocumentKind,
   type HostDraft,
   type HostStepId,
-  type HostType,
 } from "@/lib/host/onboarding";
 import type { StaysDoor } from "@/lib/host/doors";
 import {
@@ -52,9 +51,7 @@ import { RestaurantStep } from "./stays/RestaurantStep";
 import { RoomTypesStep } from "./stays/RoomTypesStep";
 import { StaysHead } from "./stays/StaysParts";
 import { TablesStep } from "./stays/TablesStep";
-import { IconPlate } from "@/components/ui/IconPlate";
 import { Icon3D } from "@/components/ui/Icon3D";
-import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
 
 /**
  * THE HOST WIZARD, ON `lib/host`.
@@ -106,12 +103,6 @@ const KIND_LABEL: Record<BusinessKind, string> = {
   resort: "Resort",
   shortlet_operator: "Shortlet operator",
   restaurant: "Restaurant",
-};
-
-const TYPE_MARK: Record<HostType, BrandIconName> = {
-  individual: "keys-home",
-  business: "hotel",
-  restaurant: "concierge-bell",
 };
 
 /*
@@ -475,7 +466,7 @@ export function HostWizard({
               ].join(" · "),
               content: (
                 <ProgressPath
-                  steps={steps.map((s) => ({ id: s.id, label: s.title }))}
+                  steps={steps.map((s) => ({ id: s.id, label: s.title, tile: HOST_STEP_TILES[s.id] }))}
                   at={at}
                   onJump={(index) => {
                     setNotice(null);
@@ -483,6 +474,7 @@ export function HostWizard({
                   }}
                   disabled={pending}
                   copy={{ done: pathWords.done, current: pathWords.current, upcoming: pathWords.upcoming }}
+                  locale={locale}
                 />
               ),
             },
@@ -656,9 +648,12 @@ function HostTypeStep({ draft, set }: StepProps) {
                 set("kind", type === "restaurant" ? "restaurant" : definition.kinds.includes(draft.kind as BusinessKind) ? draft.kind : null);
               }}
             >
-              <IconPlate size="sm" className="nf-host-choice__mark">
-                <UiIcon name={lineGlyphFor(TYPE_MARK[type])} size={20} />
-              </IconPlate>
+              {/* The stays door's 3D render (`GOVERNING-09` screen three), on
+                  the same plate the learning path's tiles stand on. */}
+              <span className="nf-path__tile" aria-hidden="true">
+                {/* eslint-disable-next-line @next/next/no-img-element -- a 256px render at 48px */}
+                <img src={HOST_TYPE_TILES[type]} alt="" width={48} height={48} decoding="async" />
+              </span>
               <span className="min-w-0 flex-1">
                 <span className={`block ${TYPE.rowTitle}`}>{definition.title}</span>
                 <span className={`block ${TYPE.rowMeta}`}>{definition.meaning}</span>

@@ -14,6 +14,7 @@ import { amenityLabel } from "@/components/app/filters/amenities";
 import type { StayCardData } from "./stay-card-model";
 import "@/app/css/catalogue.css";
 import "@/app/css/list-views.css";
+import "./stay-card.css";
 
 /**
  * The stay card of FD3DFE84: one across, the photograph with Verified and
@@ -62,6 +63,7 @@ export function StayCard({
   eager?: boolean;
 }) {
   const copy = t.catalogue.stays;
+  const isTable = stay.kind === "restaurant";
   const save = useSaveControl(stay.id, saved, stay.place);
   const showSave = stay.place ? canSavePlaces : true;
   const chips = stay.amenities.slice(0, 4);
@@ -75,7 +77,7 @@ export function StayCard({
       ref={cardRef}
       className={panelClass({
         variant: "card",
-        className: `nf-pcard nf-pcard--wide ${index !== undefined ? "nf-card-in" : ""}`,
+        className: `nf-pcard nf-pcard--wide nf-stay-card ${index !== undefined ? "nf-card-in" : ""}`,
       })}
       style={style}
       data-testid="stay-card"
@@ -160,9 +162,13 @@ export function StayCard({
                   glance
                   secondaryClassName="text-[length:max(0.6em,0.75rem)] font-semibold opacity-70"
                 />
-                <span className="nf-stay-card__per">{copy.perNight}</span>
+                {/* A table is priced by the head, a room by the night: the
+                    unit is the market's own (the restaurant page says the same). */}
+                <span className="nf-stay-card__per">{isTable ? t.restaurantPage.perHead : copy.perNight}</span>
               </p>
-            ) : (
+            ) : isTable ? null : (
+              /* Nobody requests a price for a table: a restaurant with no
+                 typical spend simply states none, rather than "on request". */
               <p className="nf-pcard__sub shrink-0 text-right">{t.common.priceOnRequest}</p>
             )}
           </div>

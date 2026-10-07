@@ -16,6 +16,7 @@ export default async function StayPreview() {
       guests={2}
       locale={locale}
       copy={t.stayDetail}
+      instant
       t={t}
       datesHref="/preview/f3/stay"
       reserve={{ stayId: STAY.id, checkIn: "2026-10-02", checkOut: "2026-10-06", guests: 2, basePath: "/preview/f3/checkout" }}

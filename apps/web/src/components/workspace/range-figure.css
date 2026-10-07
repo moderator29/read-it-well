@@ -1,0 +1,131 @@
+@layer theme, base, components, utilities;
+
+/*
+ * THE DASHBOARD FIGURE (reference 5). In dark mode the card is the raised
+ * surface and the selected segment is the brand-lit capsule (`Segmented`
+ * solid). The number is the one display-size element; the label is quiet;
+ * the line is 2px brand over a faint gradient wash and three hairlines.
+ */
+@layer components {
+  .nf-rfig {
+    position: relative;
+    display: grid;
+    padding: var(--nf-space-md);
+    border: var(--nf-border-width) solid var(--nf-border-subtle);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-surface-raised);
+    box-shadow: 0 1.5rem 3rem -1.75rem color-mix(in oklab, var(--nf-brand-primary) 40%, transparent);
+    overflow: hidden;
+  }
+  .nf-rfig__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-space-xs) var(--nf-space-sm);
+  }
+  .nf-rfig__title {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+  }
+  .nf-rfig__figure {
+    margin-block-start: var(--nf-space-md);
+    font-family: var(--nf-font-numeric);
+    font-size: var(--nf-text-figure-xl);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-content-primary);
+  }
+  .nf-rfig__caption {
+    margin-block-start: var(--nf-space-2xs);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-rfig__chart {
+    position: relative;
+    margin: var(--nf-space-md) 0 0;
+  }
+  .nf-rfig__svg {
+    display: block;
+    inline-size: 100%;
+    block-size: 7rem;
+    overflow: visible;
+    animation: nf-rfig-draw 620ms var(--nf-ease-entrance) both;
+  }
+  .nf-rfig__grid {
+    stroke: var(--nf-divider);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+  }
+  .nf-rfig__fill-top {
+    stop-color: var(--nf-brand-primary);
+    stop-opacity: 0.28;
+  }
+  .nf-rfig__fill-bottom {
+    stop-color: var(--nf-brand-primary);
+    stop-opacity: 0;
+  }
+  .nf-rfig__line {
+    fill: none;
+    stroke: var(--nf-brand-secondary);
+    stroke-width: 2.25;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .nf-rfig__dot {
+    position: absolute;
+    inline-size: 0.625rem;
+    block-size: 0.625rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-brand-secondary);
+    box-shadow: 0 0 0 3px var(--nf-surface-raised), 0 0 0.75rem var(--nf-brand-primary);
+    transform: translate(-50%, -50%);
+    animation: nf-rfig-dot 620ms var(--nf-ease-entrance) both;
+  }
+  .nf-rfig__axis {
+    display: flex;
+    justify-content: space-between;
+    margin-block-start: var(--nf-space-2xs);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  /* A range with nothing in it keeps the card's height, so the switch does
+     not jump, and says why in the caption above. */
+  .nf-rfig__rest {
+    block-size: 7rem;
+    margin-block-start: var(--nf-space-md);
+    border-block-start: 1px dashed var(--nf-divider);
+  }
+
+  @keyframes nf-rfig-draw {
+    from {
+      clip-path: inset(0 100% 0 0);
+    }
+    to {
+      clip-path: inset(0 0 0 0);
+    }
+  }
+  @keyframes nf-rfig-dot {
+    0%,
+    70% {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-rfig__svg,
+    .nf-rfig__dot {
+      animation: none;
+    }
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-rfig__svg,
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-rfig__dot {
+    animation: none;
+  }
+}

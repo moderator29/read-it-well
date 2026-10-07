@@ -1,3 +1,4 @@
+import { STAYS_INSTANT_PAY_FLAG, flagIsOn } from "@/lib/flags/read";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { listingById } from "@/lib/listings/listing-by-id";
@@ -191,7 +192,7 @@ export default async function StayDetailPage({
     return <ListingPage params={params} searchParams={searchParams} />;
   }
 
-  const [locale, query, savedPlaces, session] = await Promise.all([
+  const [locale, query, savedPlaces, session, instant] = await Promise.all([
     getLocale(),
     searchParams,
     /* THE HEART'S RESTING STATE, read on the server so it survives a reload.
@@ -200,6 +201,8 @@ export default async function StayDetailPage({
        alone; `isSaved` decides this one card. */
     listSavedPlaces(),
     resolveSession(),
+    /* D73: words only. The database decides whether each booking is instant. */
+    flagIsOn(STAYS_INSTANT_PAY_FLAG),
   ]);
   const t = getDictionary(locale);
   const { checkIn, checkOut, nights, guests } = readStayDates(query);
@@ -224,6 +227,7 @@ export default async function StayDetailPage({
       reserve={{ stayId: detail.id, checkIn, checkOut, guests }}
       saved={saved}
       signedIn={session.state === "signed-in"}
+      instant={instant}
     />
   );
 }

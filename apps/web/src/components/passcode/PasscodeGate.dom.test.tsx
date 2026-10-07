@@ -54,11 +54,11 @@ describe("PasscodeGate", () => {
     expect(html).not.toContain('data-testid="passcode-lock"');
   });
 
-  it("draws the lock INSTEAD of the page when locked: Welcome back, the dots, the keypad, the password way out", async () => {
+  it("draws the lock INSTEAD of the page when locked: Hello, the dots, the keypad, the password way out", async () => {
     const html = await draw({ kind: "locked", mode: "code", length: 6, failedCount: 0, lockedUntil: null });
     expect(html).not.toContain("Secret page content");
     expect(html).toContain('data-testid="passcode-lock"');
-    expect(html).toContain("Welcome back, Ada");
+    expect(html).toContain("Hello, Ada");
     expect(html.match(/nf-passcode__dot(?!s)/g)?.length).toBe(6);
     expect(html.match(/class="nf-passcode__key(?: nf-passcode__key--quiet)?"/g)?.length).toBe(11);
     expect(html).toContain(t.passcode.usePassword);

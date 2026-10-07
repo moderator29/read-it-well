@@ -1,0 +1,262 @@
+@layer theme, base, components, utilities;
+
+/*
+ * THE STAY'S COST (reference 8, the bill breakdown). A strip of three figures
+ * with tiny uppercase labels, the third in the accent; one raised card of
+ * line items under it, amounts right aligned and tabular, the total heavier.
+ * The card is the same raised panel every detail section stands on
+ * (`.nf-detail-panel`'s tokens), so it reads as part of the page, not a widget.
+ */
+@layer components {
+  .nf-staycost {
+    display: grid;
+    gap: var(--nf-space-sm);
+  }
+  .nf-staycost__strip {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--nf-space-xs);
+    margin: 0;
+  }
+  .nf-staycost__cell {
+    display: grid;
+    gap: var(--nf-space-3xs);
+    min-inline-size: 0;
+    padding: var(--nf-space-sm);
+    border: var(--nf-border-width) solid var(--nf-border-subtle);
+    border-radius: var(--nf-radius-control);
+    background: var(--nf-surface-raised);
+  }
+  .nf-staycost__cell dt {
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--nf-content-muted);
+  }
+  .nf-staycost__cell dd {
+    margin: 0;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+    overflow-wrap: anywhere;
+  }
+  .nf-staycost__cell--accent {
+    border-color: var(--nf-brand-edge);
+    background: color-mix(in oklab, var(--nf-brand-primary) 10%, var(--nf-surface-raised));
+  }
+  .nf-staycost__cell--accent dt,
+  .nf-staycost__cell--accent dd {
+    color: var(--nf-brand-secondary);
+  }
+
+  .nf-staycost__card {
+    padding: var(--nf-space-md);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    border-radius: var(--nf-container-radius);
+    background: var(--nf-panel-fill-card);
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
+  }
+  .nf-staycost__line {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--nf-space-sm);
+  }
+  .nf-staycost__line--total {
+    align-items: baseline;
+    margin-block-start: var(--nf-space-sm);
+    padding-block-start: var(--nf-space-sm);
+    border-block-start: var(--nf-border-width) solid var(--nf-divider);
+  }
+  .nf-staycost__label {
+    display: block;
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-staycost__line--total .nf-staycost__label {
+    font-weight: 700;
+  }
+  .nf-staycost__sub {
+    display: block;
+    margin-block-start: var(--nf-space-3xs);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-staycost__amount {
+    flex: none;
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+    font-variant-numeric: tabular-nums;
+  }
+  .nf-staycost__line--total .nf-staycost__amount {
+    font-size: var(--nf-text-h4);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .nf-staycost__kobo {
+    font-size: 0.7em;
+    opacity: 0.7;
+  }
+  .nf-staycost__notes {
+    display: grid;
+    gap: var(--nf-space-2xs);
+    margin-block-start: var(--nf-space-sm);
+    padding-block-start: var(--nf-space-sm);
+    border-block-start: var(--nf-border-width) solid var(--nf-divider);
+    font-size: var(--nf-text-caption);
+    line-height: 1.5;
+    color: var(--nf-content-secondary);
+  }
+
+  /*
+   * THE ROOMS AND THEIR RATE CARDS (D73: an instant booking). One raised
+   * panel per room; its rates are cards inside it on the inset surface. A
+   * chosen rate takes the brand edge and a filled check; the others keep a
+   * hollow circle, so the state is shape as well as colour.
+   */
+  .nf-rooms {
+    display: grid;
+    gap: var(--nf-space-sm);
+  }
+  .nf-rooms__room {
+    display: grid;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-md);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    border-radius: var(--nf-container-radius);
+    background: var(--nf-panel-fill-card);
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
+  }
+  .nf-rooms__head {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nf-space-sm);
+  }
+  .nf-rooms__rates {
+    display: grid;
+    gap: var(--nf-space-xs);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .nf-rate {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nf-space-sm);
+    inline-size: 100%;
+    min-block-size: 2.75rem;
+    padding: var(--nf-space-sm);
+    border: var(--nf-border-width) solid var(--nf-border-subtle);
+    border-radius: var(--nf-radius-control);
+    background: var(--nf-surface-inset);
+    color: var(--nf-content-primary);
+    font: inherit;
+    text-align: start;
+  }
+  .nf-rate--choice {
+    cursor: pointer;
+    transition:
+      border-color var(--nf-duration-fast) var(--nf-ease-standard),
+      background-color var(--nf-duration-fast) var(--nf-ease-standard),
+      transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  .nf-rate--choice:active:not(:disabled) {
+    transform: scale(0.985);
+  }
+  .nf-rate--choice:focus-visible {
+    outline: 2px solid var(--nf-brand-primary);
+    outline-offset: 2px;
+  }
+  .nf-rate--choice:disabled {
+    cursor: default;
+    opacity: 0.6;
+  }
+  .nf-rate[data-selected] {
+    border-color: var(--nf-brand-edge);
+    background: color-mix(in oklab, var(--nf-brand-primary) 10%, var(--nf-surface-inset));
+    box-shadow: 0 0 0 1px color-mix(in oklab, var(--nf-brand-primary) 30%, transparent);
+  }
+  .nf-rate__main {
+    flex: 1;
+    min-inline-size: 0;
+  }
+  .nf-rate__policy {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nf-space-2xs);
+    margin-block-start: var(--nf-space-2xs);
+  }
+  .nf-rate__policy[data-free] svg {
+    color: var(--nf-state-success);
+  }
+  .nf-rate__price {
+    flex: none;
+    text-align: end;
+  }
+  .nf-rate__total {
+    display: block;
+    margin-block-start: var(--nf-space-xs);
+    padding-block-start: var(--nf-space-xs);
+    border-block-start: var(--nf-border-width) solid var(--nf-divider);
+    font-weight: 700;
+    color: var(--nf-content-primary);
+  }
+  .nf-rate__check {
+    display: grid;
+    flex: none;
+    place-items: center;
+    inline-size: 1.375rem;
+    block-size: 1.375rem;
+    margin-block-start: var(--nf-space-3xs);
+    border-radius: var(--nf-radius-circle);
+    box-shadow: inset 0 0 0 1.5px var(--nf-border-default);
+  }
+  .nf-rate__check[data-on] {
+    background: var(--nf-brand-primary);
+    box-shadow: none;
+    color: var(--nf-content-on-brand);
+  }
+
+  /*
+   * THE FOOT, AT THE GOVERNING LEVEL (D74, the Plasma set): the figure huge
+   * and in full ink, its unit quiet in grey; the one "Book and pay" capsule
+   * carries a soft glow beneath it, the reflection the governing frames draw
+   * under their single action. Still the shared button; only its light.
+   */
+  .nf-stay-foot .nf-detail-foot__figure {
+    font-size: var(--nf-text-h3);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .nf-stay-foot .nf-detail-foot__caption {
+    color: var(--nf-content-muted);
+  }
+  .nf-stay-foot .nf-detail-foot__action {
+    box-shadow:
+      0 1rem 2.25rem -1rem color-mix(in oklab, var(--nf-brand-primary) 75%, transparent),
+      var(--nf-capsule-reflection);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-rate--choice {
+      transition: none;
+    }
+  }
+}
+
+/*
+ * THE FOOT BESIDE THE RAIL, from `lg`. The pinned bar is `fixed inset-x-0`,
+ * so on a desktop it ran under the member rail and its figure sat behind the
+ * rail's foot. It starts where the content starts instead. Unlayered on purpose:
+ * the bar's position is a utility class, and a layered rule cannot outrank one.
+ */
+@media (min-width: 64rem) {
+  .nf-app-shell .nf-action-bar-pinned:has(.nf-stay-foot) {
+    left: var(--nf-rail-width);
+  }
+}

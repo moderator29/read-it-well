@@ -20,6 +20,31 @@ export const deskEn = {
     openList: "Open the list",
     sumLine: "Each count links to the list it came from.",
   },
+  /* The dashboard figure (reference 5): the range switch and the two series
+     the agent and host desks count. */
+  figure: {
+    day: "Day",
+    week: "Week",
+    month: "Month",
+    viewings: {
+      title: "Viewing requests",
+      day: "Viewing requests today",
+      week: "Viewing requests in the last 7 days",
+      month: "Viewing requests in the last 30 days",
+      emptyDay: "No viewing requests yet today.",
+      emptyWeek: "No viewing requests in the last 7 days.",
+      emptyMonth: "No viewing requests in the last 30 days.",
+    },
+    bookings: {
+      title: "Room bookings",
+      day: "Room bookings made today",
+      week: "Room bookings made in the last 7 days",
+      month: "Room bookings made in the last 30 days",
+      emptyDay: "No room bookings yet today.",
+      emptyWeek: "No room bookings in the last 7 days.",
+      emptyMonth: "No room bookings in the last 30 days.",
+    },
+  },
   range: {
     label: "Period",
     d7: "Last 7 days",
