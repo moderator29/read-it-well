@@ -27,7 +27,7 @@ export function BalanceView({ read, locale }: { read: Exclude<BalanceRead, { sta
       <div className="mt-block">
         <State
           kind="error"
-          title="Your wallet could not be read"
+          title="Your figures could not be read"
           body="Nothing has moved. Try again in a moment."
           primary={{ href: "/wallet", label: "Try again" }}
         />

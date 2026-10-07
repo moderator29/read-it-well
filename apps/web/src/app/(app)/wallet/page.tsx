@@ -34,7 +34,7 @@ export default async function WalletPage() {
       {read.state === "signed-out" ? (
         <EmptyState
           icon="bank-column"
-          title="Sign in to see your wallet"
+          title="Sign in to open Wallet"
           body={BALANCE_LEDE}
           action={
             <ButtonLink href={withNext("/sign-in", "/wallet")} variant="primary" size="lg">

@@ -86,7 +86,7 @@ export function BalanceOnboarding({ state, gaps }: { state: OnboardingState; gap
       </div>
 
       <StepPath
-        label="Opening your wallet"
+        label="Setting up Wallet"
         testId="balance-onboarding-path"
         steps={[
           {
@@ -136,7 +136,7 @@ export function BalanceOnboarding({ state, gaps }: { state: OnboardingState; gap
           {
             key: "add",
             title: "Add money",
-            sub: "From your own bank or card, once your wallet is open.",
+            sub: "From your own bank or card, once your account is open.",
             state: adding,
           },
         ]}

@@ -182,6 +182,25 @@ const BARE_WALLET_ALLOWED: { file: string; text: RegExp; why: string }[] = [
     text: /^Payluk documents no API route that withdraws the merchant wallet\./,
     why: "operations: the commission sweep's reason about Vallo's own Payluk merchant account (Payluk's word); no member surface reads it",
   },
+  /* D78 (the founder, 7 October: "What is balance? Call it WALLET"): the
+     screen's NAME, capitalised as a name, and only where the screen itself is
+     named. Every sentence about the money says account, Available or the
+     escrow partner; none says Vallo holds it (HELD_BY stays the custody line). */
+  { file: "lib/money/balance-copy.ts", text: /^Wallet$/, why: "D78: the screen's name (BALANCE_TITLE)" },
+  { file: "app/(app)/wallet/page.tsx", text: /^Wallet$/, why: "D78: the screen's name (metadata title)" },
+  { file: "lib/nav/route-labels.ts", text: /^Wallet$/, why: "D78: the screen's name (route label)" },
+  { file: "app/(app)/wallet/page.tsx", text: /^Sign in to open Wallet$/, why: "D78: the screen's name" },
+  { file: "app/(app)/wallet/loading.tsx", text: /^Loading Wallet$/, why: "D78: the screen's name" },
+  { file: "components/money/balance/BalanceScreen.tsx", text: /^Wallet$/, why: "D78: the screen's name (the explainer's name)" },
+  { file: "components/money/balance/BalanceOnboarding.tsx", text: /^Setting up Wallet$/, why: "D78: the screen's name" },
+  { file: "lib/money/balance-copy.ts", text: /^Opens when Wallet is connected$/, why: "D78: the screen's name" },
+  { file: "lib/money/balance-copy.ts", text: /^(Set up Wallet|Setting up Wallet|Wallet is ready|We could not set up Wallet)$/, why: "D78: the screen's name (onboarding titles and action)" },
+  {
+    file: "lib/money/balance-copy.ts",
+    text: /^Your money is held by our escrow partner, never by Vallo\. To set up Wallet we share/,
+    why: "D78: the screen's name, in the sentence that says the partner, never Vallo, holds the money",
+  },
+  { file: "lib/money/balance-copy.ts", text: /^Wallet is not connected yet, so nothing was sent\.$/, why: "D78: the screen's name" },
 ];
 
 function readsAsWords(text: string): boolean {

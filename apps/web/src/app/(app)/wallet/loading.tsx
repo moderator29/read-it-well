@@ -9,7 +9,7 @@ import { BALANCE_TITLE, FIGURE_HINT, FIGURE_LABEL } from "@/lib/money/balance-co
  */
 export default function LoadingBalance() {
   return (
-    <MoneyWait label="Loading your wallet" className="nf-page nf-md nf-history">
+    <MoneyWait label="Loading Wallet" className="nf-page nf-md nf-history">
       <PageHeader title={BALANCE_TITLE} fallback="/home" />
       <div className="mt-inline space-y-block">
         <HeroFigureWait caption={FIGURE_LABEL.available} sub={FIGURE_HINT.available} />

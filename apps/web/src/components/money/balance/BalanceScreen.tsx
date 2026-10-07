@@ -349,12 +349,12 @@ function BalanceExplainer({ figures, locale }: { figures: BalanceFigures; locale
   return (
     <MoneyExplainer
       storageKey="nf-explainer-balance-v1"
-      name="Your wallet"
+      name="Wallet"
       testId="balance-explainer"
       panels={[
         {
           key: "held",
-          title: "Your wallet, in your name",
+          title: "Held in your name",
           body: "Our escrow partner holds it in an account in your name, never Vallo. Vallo keeps the record of every movement.",
           screenTone: "platinum",
           screen: (

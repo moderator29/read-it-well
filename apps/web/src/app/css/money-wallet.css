@@ -104,7 +104,7 @@
   .nf-mw-empty {
     align-items: center;
     gap: var(--nf-space-xs);
-    padding: var(--nf-space-xl) var(--nf-space-lg);
+    padding: var(--nf-space-lg);
     text-align: center;
   }
   .nf-mw-empty__title {
@@ -144,8 +144,19 @@
     grid-template-columns: 1fr 1fr;
     gap: var(--nf-space-sm);
     margin-top: auto;
-    padding-block: var(--nf-space-md) calc(var(--nf-space-md) + env(safe-area-inset-bottom, 0px));
-    background: linear-gradient(to top, var(--nf-surface-canvas) 62%, transparent);
+    padding-block: var(--nf-space-sm) calc(var(--nf-space-md) + env(safe-area-inset-bottom, 0px));
+    /* Solid under the buttons (a disabled button is translucent and must not
+       show a row through it), fading into the page just above them. */
+    background: var(--nf-surface-canvas);
+  }
+  .nf-mw-bar::before {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: 100%;
+    height: var(--nf-space-lg);
+    background: linear-gradient(to top, var(--nf-surface-canvas), transparent);
+    pointer-events: none;
   }
   @media (max-width: 339px) {
     .nf-mw-bar {

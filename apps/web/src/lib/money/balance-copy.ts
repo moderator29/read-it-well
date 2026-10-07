@@ -14,7 +14,7 @@ import type { MovementKind, MovementStatus, OnboardingState, ProfileGap } from "
  */
 
 export const BALANCE_TITLE = "Wallet";
-export const BALANCE_LEDE = "Your wallet and every movement in it, in one place.";
+export const BALANCE_LEDE = "Every movement of your money, in one place.";
 
 /**
  * LEGAL REVIEW (founder section 61): names the provider and claims no
@@ -66,11 +66,11 @@ export const STALE_NOTE = "These are the last figures we confirmed. Money moves 
    zero included), and no paragraph about partners or rails. */
 
 export const NOT_CONNECTED_FIGURE = "Not connected yet";
-export const NOT_CONNECTED_LINE = "Opens when your wallet is connected";
+export const NOT_CONNECTED_LINE = "Opens when Wallet is connected";
 
 /** Connected, but the figures could not be read just now. */
 export const UNREACHABLE_FIGURE = "Not available right now";
-export const UNREACHABLE_LINE = "We could not reach your wallet. Nothing has moved.";
+export const UNREACHABLE_LINE = "We could not read your figures just now. Nothing has moved.";
 
 export const ACTIVITY_EMPTY = { title: "No activity yet", body: "Money you add, withdraw or transfer shows here." } as const;
 
@@ -88,28 +88,28 @@ export const WALLET_RECORDS = [
 
 export const ONBOARDING_COPY: Record<OnboardingState, { title: string; body: string }> = {
   NOT_STARTED: {
-    title: "Open your wallet",
-    body: "Your money is held by our escrow partner, never by Vallo. To open your wallet we share your name, email and phone with them, so they can keep your money under your name. Nothing else is shared and nothing is charged.",
+    title: "Set up Wallet",
+    body: "Your money is held by our escrow partner, never by Vallo. To set up Wallet we share your name, email and phone with them, so they can keep your money under your name. Nothing else is shared and nothing is charged.",
   },
   PENDING: {
-    title: "Setting up your wallet",
-    body: "We have asked our partner to open your wallet and are waiting for their answer. This page updates on its own. You do not need to do anything.",
+    title: "Setting up Wallet",
+    body: "We have asked our partner to open your account and are waiting for their answer. This page updates on its own. You do not need to do anything.",
   },
   VERIFICATION_REQUIRED: {
     title: "A few details first",
-    body: "Your wallet is opened in your own name, so we need these on your profile before we ask our partner to open it.",
+    body: "Your account is opened in your own name, so we need these on your profile before we ask our partner to open it.",
   },
-  ACTIVE: { title: "Your wallet is open", body: "You can add money, withdraw and transfer." },
+  ACTIVE: { title: "Wallet is ready", body: "You can add money, withdraw and transfer." },
   RESTRICTED: {
     title: "Some actions are paused",
-    body: "Our partner has limited what this wallet can do for now. Nothing has moved, and nothing will until this is sorted. Contact support and we will find out why.",
+    body: "Our partner has limited what this account can do for now. Nothing has moved, and nothing will until this is sorted. Contact support and we will find out why.",
   },
   SUSPENDED: {
-    title: "Your wallet is on hold",
-    body: "Our partner has put this wallet on hold. Your money stays where it is and nothing can move until the hold is lifted. Contact support and we will help.",
+    title: "Your account is on hold",
+    body: "Our partner has put this account on hold. Your money stays where it is and nothing can move until the hold is lifted. Contact support and we will help.",
   },
   FAILED: {
-    title: "We could not open your wallet",
+    title: "We could not set up Wallet",
     body: "Our partner did not accept the details we sent. Check your name, email and phone on your profile, then try again.",
   },
 };
@@ -121,7 +121,7 @@ export const GAP_LABEL: Record<ProfileGap, string> = {
   email: "Your email address",
 };
 
-export const OPEN_ACTION = "Open my wallet";
+export const OPEN_ACTION = "Set up Wallet";
 
 /* ----------------------------------------------------------- movements */
 
@@ -189,7 +189,7 @@ export const WAITING_COPY: Record<"withdrawal" | "deposit" | "send" | "unknown" 
   },
   unknown: {
     title: "Checking what happened",
-    body: "We asked for this and did not hear back in time. That does not mean it failed. Please do not try again: we are checking, and this updates on its own. Your wallet will not be charged twice.",
+    body: "We asked for this and did not hear back in time. That does not mean it failed. Please do not try again: we are checking, and this updates on its own. You will not be charged twice.",
   },
   review: {
     title: "Under review",
@@ -206,8 +206,8 @@ export const WAITING_STEPS = {
 /* ------------------------------------------------------------- refusals */
 
 export const REFUSAL = {
-  notLive: "Your wallet is not connected yet, so nothing was sent.",
-  notActive: "Your wallet needs to be open before money can move.",
+  notLive: "Wallet is not connected yet, so nothing was sent.",
+  notActive: "Your account needs to be open before money can move.",
   amountInvalid: "Enter an amount in naira, like 25,000.",
   belowWithdrawalMinimum: "The smallest withdrawal is ₦1,000.",
   belowMinimum: "The smallest amount is ₦100.",
