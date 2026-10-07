@@ -1,0 +1,182 @@
+/*
+ * THE SIGN-UP DOORS ON A PHOTOGRAPH (`SignUpOptions`; the founder's evening
+ * reference `onboarding-splash-photo-signin-journey.jpg`, 7 October 2026, at
+ * the Plasma level, D74).
+ *
+ * A full-bleed lit Vallo scene (the landing's night photography; no stock
+ * people), one large light statement over its sky, then the ways in stacked
+ * as capsules at the thumb: the providers that are wired as white capsules,
+ * email as a dark smoked-glass capsule (white when it is the only way, so the
+ * screen always has one primary), and "I already have an account" as a quiet
+ * line. The legal stays the layout's own tiny type at the foot.
+ *
+ * Scoped with `:has(.nf-doors)`, so only the options page loses the curved
+ * top block; every other auth screen is drawn exactly as before. Always dark:
+ * `/sign-up` is a night door (`lib/theme/night-door.ts`) and a photograph
+ * at night has no light version.
+ *
+ * Capsule corners are half the height (D74's capsule; the Slate pill is
+ * already a listed exception to check-css-tokens rule 10 and this is the
+ * same pill, repainted).
+ */
+@layer components {
+  .nf-auth:has(.nf-doors) {
+    background: var(--nf-surface-canvas);
+  }
+  .nf-auth:has(.nf-doors)::before,
+  .nf-auth:has(.nf-doors)::after,
+  .nf-auth:has(.nf-doors) .nf-slate-top {
+    display: none;
+  }
+  .nf-auth:has(.nf-doors) .nf-auth__body {
+    display: flex;
+    flex-direction: column;
+    padding-top: 0;
+  }
+  .nf-auth:has(.nf-doors) .nf-auth__legal {
+    /* Over the photograph, which is fixed inside the body's layer. */
+    z-index: 3;
+    margin-top: var(--nf-space-sm);
+    color: color-mix(in oklab, var(--nf-content-primary) 55%, transparent);
+  }
+  .nf-auth:has(.nf-doors) .nf-auth__legal a {
+    color: color-mix(in oklab, var(--nf-content-primary) 78%, transparent);
+  }
+
+  .nf-doors {
+    flex: 1 0 auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* The photograph: the whole window, darkened under the words and the
+     capsules so both read, and lit in between. */
+  .nf-doors__photo {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+  }
+  .nf-doors__img {
+    object-fit: cover;
+    object-position: 50% 40%;
+    animation: nf-doors-settle 1100ms var(--nf-ease-entrance) both;
+  }
+  .nf-doors__photo::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in oklab, var(--nf-surface-canvas) 70%, transparent) 0%,
+        color-mix(in oklab, var(--nf-surface-canvas) 10%, transparent) 34%,
+        color-mix(in oklab, var(--nf-surface-canvas) 30%, transparent) 54%,
+        color-mix(in oklab, var(--nf-surface-canvas) 92%, transparent) 78%,
+        var(--nf-surface-canvas) 100%
+      );
+  }
+
+  /* The statement: large, light, over the sky. */
+  .nf-doors__words {
+    padding-top: max(var(--nf-space-xl), calc(env(safe-area-inset-top, 0px) + var(--nf-space-lg)));
+    text-align: center;
+  }
+  /* The way back (the layout's own back, which lived in the hidden block). */
+  .nf-doors__back {
+    position: absolute;
+    top: max(var(--nf-space-md), calc(env(safe-area-inset-top, 0px) + var(--nf-space-xs)));
+    left: max(var(--nf-space-md), env(safe-area-inset-left, 0px));
+    z-index: 3;
+  }
+  .nf-doors__back .nf-auth__back-btn {
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--nf-radius-circle);
+    border: 1px solid var(--nf-smoked-glass-edge);
+    background: var(--nf-smoked-glass-fill);
+    color: var(--nf-content-primary);
+  }
+  .nf-doors__mark {
+    display: block;
+    width: 2rem;
+    height: auto;
+    margin: 0 auto var(--nf-space-lg);
+  }
+  .nf-doors .nf-doors__title {
+    margin: 0;
+    font-family: var(--nf-font-sans);
+    font-size: clamp(2.25rem, 10.5vw, 3.5rem);
+    font-weight: 400;
+    line-height: 1.05;
+    letter-spacing: -0.035em;
+    color: var(--nf-content-primary);
+    text-wrap: balance;
+  }
+  .nf-doors .nf-doors__lead {
+    margin: var(--nf-space-sm) auto 0;
+    max-width: 26ch;
+    font-size: var(--nf-text-body);
+    color: color-mix(in oklab, var(--nf-content-primary) 78%, transparent);
+  }
+
+  /* The ways in, at the thumb. */
+  .nf-doors__stack {
+    display: grid;
+    gap: var(--nf-space-sm);
+    margin-top: auto;
+    padding-top: var(--nf-space-xl);
+  }
+  .nf-doors__stack form {
+    display: contents;
+  }
+  .nf-doors .nf-doors__stack .nf-slate-pill.nf-btn {
+    height: 3.5rem;
+    min-height: 3.5rem;
+    border-radius: var(--nf-radius-island);
+    border: 1px solid transparent;
+    background: var(--nf-content-primary);
+    color: var(--nf-platinum-ink);
+    box-shadow: var(--nf-capsule-reflection);
+    font-weight: 600;
+  }
+  /* Email, where a provider leads: the dark smoked-glass capsule. */
+  .nf-doors .nf-doors__stack .nf-slate-pill.nf-btn.nf-doors__glass {
+    background: var(--nf-smoked-glass-fill);
+    color: var(--nf-content-primary);
+    border-color: var(--nf-smoked-glass-edge);
+    backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    box-shadow: none;
+  }
+  .nf-doors__have {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.75rem;
+    margin-top: var(--nf-space-2xs);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+    text-decoration: none;
+  }
+  .nf-doors__have:focus-visible {
+    outline: 2px solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+
+  @keyframes nf-doors-settle {
+    from {
+      opacity: 0;
+      transform: scale(1.06);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-doors__img {
+      animation: none;
+    }
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-doors__img {
+    animation: none;
+  }
+}
