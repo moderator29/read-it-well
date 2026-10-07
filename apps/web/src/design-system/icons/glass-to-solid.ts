@@ -139,7 +139,9 @@ export const GLASS_TO_SOLID = {
   "progress-ring": t("progress-ring"),
   "receipt-check": t("clipboard-list"),
   "report-stats": t("bars-chart"),
-  reviews: t("stars-arc"),
+  /* Not `stars-arc`: five small stars vanish at a badge's 36px. A review is
+     something said, so the pair of bubbles. */
+  reviews: t("chat-pair"),
   "role-switch-tile": t("sync-arrows"),
   "savings-pot": t("safe-dial"),
   "seal-check": d("verified"),
