@@ -149,6 +149,16 @@ begin
      or not has_function_privilege('authenticated', 'private.booking_is_tenancy(uuid)', 'EXECUTE') then
     raise exception 'PROBE_FAIL new-a1-03: reviews_insert_own cannot ask whether a booking is a tenancy';
   end if;
+  -- D75 (d75b): a review is for a stay that was paid for. Each stay fixture is
+  -- paid, recorded as the settlement path records a charge Paystack took, so
+  -- every refusal below is refused for the reason it tests (dates, status,
+  -- tenancy), not for being unpaid. Recorded after the badge and deal counts.
+  perform set_config('vallo.recording_unknown_charge', 'on', true);
+  insert into public.transactions (booking_id, provider, provider_ref, amount_minor, currency, status, rail)
+  select bk, 'paystack', 'probe-new-a1-03-' || bk::text, 2, 'NGN', 'SUCCESSFUL', 'direct'
+    from unnest(array[done_bk, open_bk, ahead_bk, gone_bk, noshow_bk]) as bk;
+  perform set_config('vallo.recording_unknown_charge', '', true);
+
   revoke select on public.rent_payments from authenticated;
   drop policy rent_payments_select_tenant on public.rent_payments;
 
