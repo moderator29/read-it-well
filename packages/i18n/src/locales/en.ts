@@ -4788,7 +4788,7 @@ export const en = {
     roomsTitle: "Rooms",
     roomsDescription: "Tap a room to see its rates and what each one includes.",
     /* D73: a fixed-price stay books instantly; the rate cards are the choice. */
-    ratesDescription: "Choose a rate. The total and Book and pay follow your choice.",
+    ratesDescription: "Choose a rate. The total below follows your choice.",
     bookAndPay: "Book and pay",
     theDetails: "The details",
     amenitiesTitle: "What is here",

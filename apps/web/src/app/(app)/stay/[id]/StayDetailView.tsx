@@ -96,6 +96,7 @@ export function StayDetailView({
   reserve,
   saved = false,
   signedIn,
+  instant = false,
 }: {
   detail: StayDetail;
   nights: number | null;
@@ -114,6 +115,12 @@ export function StayDetailView({
   /** Whether the reader is signed in. When given, the page carries a report
       control for the place (STORE-P2-01); a static preview passes nothing. */
   signedIn?: boolean;
+  /**
+   * D73 (`stays_instant_pay`): the foot reads "Book and pay" only when a
+   * room is booked and paid in one flow; with the switch off a booking still
+   * waits for the host, so it keeps "Book now". Words only.
+   */
+  instant?: boolean;
 }) {
   const from = stayFromMinor(detail, nights);
   const total = from !== null && nights !== null ? from * nights : null;
@@ -523,7 +530,7 @@ export function StayDetailView({
           fromMinor={from}
           datesHref={datesHref}
           labels={{
-            book: copy.bookAndPay,
+            book: instant ? copy.bookAndPay : detailCopy.bookNow,
             pickDates: copy.pickDates,
             seeRooms: catalogue.seeRooms,
             perNight: catalogue.perNight,
