@@ -4614,9 +4614,15 @@
       linear-gradient(var(--nf-surface-canvas), var(--nf-surface-canvas)) padding-box,
       linear-gradient(var(--nf-ring-seen), var(--nf-ring-seen)) border-box;
   }
+  .nf-story-ring .nf-story-ring__disc img {
+    display: block;
+  }
+  .nf-story-ring .nf-story-ring__monogram {
+    display: grid;
+    place-items: center;
+  }
   .nf-story-ring .nf-story-ring__disc img,
   .nf-story-ring .nf-story-ring__monogram {
-    display: block;
     inline-size: 100%;
     block-size: 100%;
     aspect-ratio: 1;
@@ -4693,6 +4699,12 @@
     inline-size: 36px;
     block-size: 36px;
     box-shadow: 0 0 0 1.5px var(--nf-content-on-media);
+  }
+  /* Follow on the 36px compact rung, as on a profile; the 44pt target is
+     the compact button's own `::before`. */
+  .nf-story--seq .nf-story__top .nf-btn--sm {
+    --nf-btn-h: 2.25rem;
+    padding-inline: var(--nf-space-md);
   }
   .nf-story--seq .nf-story__who {
     font-size: var(--nf-text-body-sm);
