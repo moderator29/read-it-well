@@ -174,6 +174,11 @@ const NOT_MEMBER_COPY = [/^app\/\(dev\)\//, /^app\/admin\//, /^lib\/admin\//, /^
  *     Payluk by Payluk's word for it; it reaches staff logs, never a member.
  */
 const BARE_WALLET_ALLOWED: { file: string; text: RegExp; why: string }[] = [
+  {
+    file: "lib/money/copy.ts",
+    text: /^(From Wallet(: the agreed rent, and nothing more\.)?|Add money to Wallet|Open Wallet( first, then pay from it\.)?|Wallet could not be read just now\. Nothing has been taken; refresh to try again\.)$/,
+    why: "D78: the screen's name, on the screen that pays rent from it",
+  },
   { file: "lib/account-deletion/emails.ts", text: /\bwallet entries\b/, why: "legal: records retained under AML rules" },
   { file: "lib/account-deletion/plan.ts", text: /^a wallet is a ledger\b/, why: "legal: the retained `wallets` table's reason" },
   { file: "lib/payments/observability.ts", text: /^wallet=/, why: "technical: a log field" },
