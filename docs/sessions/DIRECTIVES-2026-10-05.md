@@ -3398,3 +3398,11 @@ From the founder's production screenshots (leaderboard, passcode, profile, /pro)
 - Gold is not part of this ruling.
 
 This supersedes the platinum direction in `docs/design/PREMIUM-STANDARD.md` where they disagree.
+
+### D78, continued (same evening)
+
+- **It is the Wallet**, never "Balance", in everything a member reads. The wallet screen shows its full designed layout even before the provider is connected: actions present but disabled with one short line, no paragraphs about partners or rails, and still never a figure the provider did not give.
+- **The dock is icon-only**, the active tab included (a blue fill behind the icon marks it; the name stays for screen readers).
+- **No four-point sparkle icon anywhere.** For you, Pro and the assistant each get a real icon that means the thing.
+- **The feed must work and look clean**: avatar and name open the profile, every action does its own thing, actions are bare icons (no pill wrappers), the feed has its own + to post, story avatars sit in clean even rings, the story viewer is calm and full-bleed.
+- **The platform's docs sit beside "VALLO SPACES LTD"** at the foot of the side nav.
