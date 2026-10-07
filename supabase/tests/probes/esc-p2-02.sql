@@ -44,8 +44,12 @@ begin
   -- PENDING split charge settled through settle_booking_charge (no Paystack
   -- call), and both are moved back to three days ago with the stay pricing
   -- trigger set aside. Every assertion below is unchanged.
+  -- 7 October 2026 (b2 rail at open): a Paystack charge must resolve to the
+  -- direct rail, and a home is escrow. The tenancy is let as a registered
+  -- business's apartment, which the rail policy settles direct, so its
+  -- move-in charge can still be paid through settle_booking_charge.
   update public.listings set listing_intent = 'rent', sale_status = null, rent_period = 'year',
-         rent_amount_minor = 1, total_move_in_cost_minor = 1
+         rent_amount_minor = 1, total_move_in_cost_minor = 1, property_type = 'apartment'
    where id = home;
   insert into public.inspection_requests (listing_id, requester_id, lister_id, requested_at)
   values (home, member, lister, now()) returning id into insp;
@@ -70,6 +74,12 @@ begin
   select id into stay_ag from public.deal_agreements where booking_id = night;
   if stay_ag is null then raise exception 'PROBE_FAIL esc-p2-02: fixture stay agreement not drawn up on acceptance'; end if;
 
+  -- D68d: with no risk signal an agreement is approved by the system the
+  -- moment both parties confirm. This fixture walks the review path, so it
+  -- turns on the documented kill switch (agreement_review_all) for this
+  -- transaction only, which sends every agreement to review.
+  insert into public.feature_flags (key, enabled) values ('agreement_review_all', true)
+  on conflict (key) do update set enabled = true;
   foreach ag in array array[rent_ag, stay_ag] loop
     r := public.agreement_confirm_as(member, ag, 1);
     r := public.agreement_confirm_as(lister, ag, 1);
