@@ -3430,6 +3430,21 @@
   .nf-compose-page__field::placeholder {
     color: var(--nf-content-muted);
   }
+  /* The page is the field: no box, no ring round it (the caret is the
+     focus). The platform's field ring is for a field among others. */
+  .nf-compose-page .nf-compose-page__field:focus,
+  .nf-compose-page .nf-compose-page__field:focus-visible {
+    outline: none;
+    border: 0;
+    box-shadow: none;
+  }
+  /* The platform ring is unlayered (base.css) and outranks any layered
+     rule, so the field turns it off through the ring's own token, set on
+     the element; the blinking caret in an otherwise empty page is the
+     focus. */
+  .nf-compose-page__field {
+    --nf-focus-ring-width: 0px;
+  }
   .nf-compose-page__tools {
     position: sticky;
     inset-block-end: 0;
@@ -3439,7 +3454,7 @@
     margin-block-start: 12px;
     padding-block: 8px calc(8px + env(safe-area-inset-bottom, 0px));
     border-block-start: 1px solid color-mix(in oklab, var(--nf-content-primary) 9%, transparent);
-    background: var(--nf-surface-canvas);
+    background: transparent;
   }
   .nf-compose-page__tool {
     display: inline-flex;
@@ -3702,6 +3717,22 @@
   .nf-follow-row__act {
     position: relative;
     z-index: 2;
+  }
+  /* Follow is a quiet capsule here, not a lit primary: three lit buttons in
+     one block would be three primaries on a screen whose primary is reading
+     (D74 restraint). The shared button keeps its states; only the dress and
+     the height change, and the row's 64px gives the thumb its room. */
+  .nf-follow-row__act .nf-btn {
+    min-block-size: 36px;
+    block-size: 36px;
+    padding-inline: 16px;
+    border-radius: var(--nf-radius-segment);
+    border: 1px solid color-mix(in oklab, var(--nf-brand-secondary) 45%, transparent);
+    background: color-mix(in oklab, var(--nf-brand-secondary) 12%, transparent);
+    box-shadow: none;
+    color: var(--nf-brand-secondary);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
   }
   .nf-follow__more {
     display: inline-flex;
