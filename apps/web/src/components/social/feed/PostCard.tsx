@@ -12,6 +12,7 @@ import { PostBody } from "./PostBody";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ActionPill } from "./ActionPill";
 import { PostPicture } from "./PostPicture";
+import { MediaRail } from "./MediaRail";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import { TierBadge } from "@/components/trust/TierBadge";
 import { panelClass } from "@/components/ui/Panel";
@@ -296,6 +297,7 @@ export function PostCard({
   onSave,
   onMenu,
   editor,
+  detail = false,
 }: {
   post: PostView;
   /* Optional so a caller that has not been threaded yet still compiles and
@@ -314,6 +316,8 @@ export function PostCard({
   onMenu: () => void;
   /** Rendered in place of the body while this post is being changed. */
   editor?: React.ReactNode;
+  /** The post's own page: adds the time and view line above the actions. */
+  detail?: boolean;
 }) {
   /* Read before the early return below: a hook runs on every render. */
   const aroundLine = useClientCopy().uiCommon.around;
@@ -499,11 +503,21 @@ export function PostCard({
         * image optimiser would cache somebody's private photograph behind a
         * URL that outlives the signature.
         *
-        * One is a wide plate, two are a pair, three are a tall one beside two,
-        * four are a square. Every layout is a fixed shape, so the card does not
-        * jump when the pictures arrive.
+        * One is a wide plate; two to four are a sideways rail of tall cards
+        * (`MediaRail`). Every shape is fixed before a byte arrives, so the
+        * card does not jump when the pictures do.
         */}
-      {post.media.length > 0 ? (
+      {post.media.length > 1 ? (
+        /* Two to four pictures: the sideways rail (`MediaRail`), here and on
+           the post's own page. The photo-open transition names the rail. */
+        <div
+          ref={mediaRef}
+          className="nf-post__media nf-post__media--rail"
+          style={arriving ? { viewTransitionName: `post-photo-${post.id}` } : undefined}
+        >
+          <MediaRail media={post.media.slice(0, 4)} onOpen={openFromPicture} />
+        </div>
+      ) : post.media.length === 1 ? (
         <div
           ref={mediaRef}
           onClick={openFromPicture}
@@ -577,6 +591,20 @@ export function PostCard({
         A platform post is still a post: it can be saved, replied to, and it
         has a view count somebody may want to see.
       */}
+      {detail ? (
+        /* On the post's own page: when it was written and how many have
+           seen it, the facts the feed card leaves out. A glyph and a figure,
+           no noun to inflect. */
+        <p className="nf-post__meta">
+          <span>{post.createdLabel}</span>
+          <span aria-hidden="true">&middot;</span>
+          <span className="nf-post__meta-views">
+            <UiIcon name="views" size={12} />
+            <span className="nf-numeric">{compact(post.viewCount, locale)}</span>
+            <span className="sr-only">seen</span>
+          </span>
+        </p>
+      ) : null}
       <ActionRow
         post={post}
         locale={locale}

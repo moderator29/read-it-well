@@ -397,27 +397,18 @@ export function StoryViewer({
 
         {/* -------------------------------------------------- what happened */}
         <div className="nf-story__foot">
+          {/* THE WORDS, ON SMOKED GLASS (D74: smoked glass for anything that
+              floats over media). One headline, one line under it, the place as
+              a small pill. The brand chip and the corner share button that sat
+              on this card are gone: the share is in the bar below, once. */}
           <div className="nf-story__card">
-            <span className="nf-story__card-share">
-              <Button
-                variant="secondary"
-                size="sm"
-                iconOnly
-                leadingIcon="share"
-                onClick={share}
-                aria-label="Share this story"
-                className="nf-social-round"
-              />
-            </span>
-
-            <span className="nf-story-chip">{STORY_COPY.chip}</span>
             <h1 className="nf-story__headline">{story.headline}</h1>
             {story.standfirst ? (
               <p className="nf-story__standfirst">{story.standfirst}</p>
             ) : null}
             {story.placeLabel ? (
               <p className="nf-story__place">
-                <UiIcon name="location" size={14} />
+                <UiIcon name="location" size={12} />
                 {story.placeLabel}
               </p>
             ) : null}
@@ -426,34 +417,6 @@ export function StoryViewer({
           {story.heldReason ? (
             <p className="nf-story__held">{story.heldReason} Only you can see this until then.</p>
           ) : null}
-
-          {/* ------------------------------------------ what I can do about it */}
-          {/* THE FEED'S CAPSULES, NOT A SECOND SET OF CONTROLS (D72). The
-              like you press under a post is the like you press on a story:
-              the same soft capsule, the same thin glyph, the same tabular
-              count, the same payoff. A BOOKMARK, NOT THE REPOST ARROWS:
-              saving puts the story on the reader's own shelf and nobody else
-              sees it happen. */}
-          <div className="nf-story__actions nf-story__actions--pills">
-            <ActionPill
-              icon="heart"
-              tone="like"
-              pressed={liked}
-              payoff
-              count={formatNumber(likeCount, locale)}
-              label={liked ? `Liked, ${likeCount}. Undo` : `Likes ${likeCount}, like this story`}
-              onClick={() => mark("LIKE")}
-            />
-            <ActionPill
-              icon="bookmark"
-              tone="save"
-              pressed={saved}
-              count={formatNumber(saveCount, locale)}
-              label={saved ? `Saved, ${saveCount}. Undo` : `Saves ${saveCount}, save this story`}
-              onClick={() => mark("SAVE")}
-            />
-            <ActionPill icon="share" tone="share" round label="Share this story" onClick={share} />
-          </div>
 
           {/* --------------------------------------------- who else cared */}
           {faces.length > 0 ? (
@@ -488,25 +451,47 @@ export function StoryViewer({
             </div>
           ) : null}
 
-          {/* ------------------------------------------------- the way in */}
-          <button
-            type="button"
-            onClick={() => setCommenting(true)}
-            className="nf-story__commentbar"
-          >
-            <span>
-              {story.commentCount > 0
-                ? countOf(story.commentCount, "comments", locale)
-                : STORY_COPY.addComment}
-            </span>
-            {/* This opens the comments. It was drawing the share arrow, which
-                was the THIRD share glyph on one screen (the card's corner, the
-                action row, and here) and the only one of the three that did
-                not share anything. */}
-            <span className="nf-story__send" aria-hidden="true">
-              <UiIcon name="chat-bubble" size={17} />
-            </span>
-          </button>
+          {/* ------------------------------------- one bar: reply, like, keep, send
+              THE WAY IN AND THE FEED'S CAPSULES, ON ONE LINE (D72, D74). The
+              reply field is a smoked capsule that opens the conversation; the
+              like, the save and the share are the same capsules as under a
+              post, so the like you press here is the like you press there. A
+              BOOKMARK, NOT THE REPOST ARROWS: saving puts the story on the
+              reader's own shelf and nobody else sees it happen. */}
+          <div className="nf-story__bar">
+            <button
+              type="button"
+              onClick={() => setCommenting(true)}
+              className="nf-story__reply"
+            >
+              <UiIcon name="chat-bubble" size={16} />
+              <span className="truncate">
+                {story.commentCount > 0
+                  ? countOf(story.commentCount, "comments", locale)
+                  : STORY_COPY.addComment}
+              </span>
+            </button>
+            <div className="nf-story__actions nf-story__actions--pills">
+              <ActionPill
+                icon="heart"
+                tone="like"
+                pressed={liked}
+                payoff
+                count={formatNumber(likeCount, locale)}
+                label={liked ? `Liked, ${likeCount}. Undo` : `Likes ${likeCount}, like this story`}
+                onClick={() => mark("LIKE")}
+              />
+              <ActionPill
+                icon="bookmark"
+                tone="save"
+                round
+                pressed={saved}
+                label={saved ? `Saved, ${saveCount}. Undo` : `Saves ${saveCount}, save this story`}
+                onClick={() => mark("SAVE")}
+              />
+              <ActionPill icon="share" tone="share" round label="Share this story" onClick={share} />
+            </div>
+          </div>
         </div>
       </article>
 

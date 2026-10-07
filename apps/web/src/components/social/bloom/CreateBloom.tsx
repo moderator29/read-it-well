@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useOverlay } from "@/lib/ui/use-overlay";
@@ -389,19 +388,20 @@ export function CreateBloom({
           if (!next) closeComposer();
         }}
         title="Post"
-        closeLabel="Close"
+        hideTitle
         initialFocus={fieldRef}
         fullPage
       >
-            <p className="mb-md text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
-              {picking
-                ? "Choose where this belongs"
-                : chosen
-                  ? `Around ${chosen.name}, ${chosen.city}`
-                  : "Everyone on Vallo"}
-            </p>
-
             {picking ? (
+              <>
+              <div className="nf-compose-page__bar">
+                <button type="button" className="nf-compose-page__cancel" onClick={() => setPicking(false)}>
+                  Back
+                </button>
+              </div>
+              <p className="mb-md text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
+                Who should see it?
+              </p>
               <ul className="flex flex-col gap-xs">
                 {/* Everybody, first and always present: the destination that
                     needs no membership, so it is the one a person can always
@@ -444,13 +444,28 @@ export function CreateBloom({
                   </li>
                 ) : null}
               </ul>
+              </>
             ) : (
               <>
-                <Button variant="quiet" size="sm" onClick={() => setPicking(true)} className="mb-sm self-start">
-                  {chosen ? "Post somewhere else" : "Post in a place instead"}
-                </Button>
-
+                {/* THE FULL-PAGE COMPOSER (the feed set): Cancel and Post at
+                    the top, the audience control under them, a large field,
+                    the tool row. The audience is the place picker this sheet
+                    always had, now one tap on the line that says who will
+                    see the post. */}
                 <Composer
+                  page
+                  audience={
+                    <button
+                      type="button"
+                      className="nf-compose-audience"
+                      onClick={() => setPicking(true)}
+                      data-testid="composer-destination"
+                    >
+                      <UiIcon name={chosen ? "location" : "compass"} size={14} />
+                      {chosen ? `Around ${chosen.name}` : "Everyone on Vallo"}
+                      <UiIcon name="chevron-down" size={12} />
+                    </button>
+                  }
                   areaId={chosen?.id}
                   areaName={chosen?.name}
                   signedIn={signedIn}

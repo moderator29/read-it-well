@@ -3391,6 +3391,233 @@
     pointer-events: none;
   }
 
+  /* ------------------------------------------------------------------
+   * THE FULL-PAGE COMPOSER (the feed set): Cancel and the Post capsule at
+   * the top, what is being answered or who will see it, a large borderless
+   * field, and a tool row with the character ring. Used for a new post and
+   * for every reply and comment.
+   * ------------------------------------------------------------------ */
+  .nf-compose-page {
+    display: flex;
+    flex-direction: column;
+    min-block-size: calc(100dvh - 7rem);
+  }
+  .nf-compose-page__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-block: 0 12px;
+  }
+  .nf-compose-page__cancel {
+    min-block-size: 44px;
+    padding-inline: 2px 10px;
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-body);
+  }
+  .nf-compose-page__field {
+    flex: 1 1 auto;
+    inline-size: 100%;
+    min-block-size: 10rem;
+    padding: 8px 0;
+    border: 0;
+    background: transparent;
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-body-lg);
+    line-height: 1.5;
+    resize: none;
+    outline: none;
+  }
+  .nf-compose-page__field::placeholder {
+    color: var(--nf-content-muted);
+  }
+  .nf-compose-page__tools {
+    position: sticky;
+    inset-block-end: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-block-start: 12px;
+    padding-block: 8px calc(8px + env(safe-area-inset-bottom, 0px));
+    border-block-start: 1px solid color-mix(in oklab, var(--nf-content-primary) 9%, transparent);
+    background: var(--nf-surface-canvas);
+  }
+  .nf-compose-page__tool {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-block-size: 44px;
+    min-inline-size: 44px;
+    justify-content: center;
+    padding-inline: 10px;
+    border-radius: var(--nf-radius-control);
+    color: var(--nf-brand-secondary);
+    font-size: var(--nf-text-caption);
+    font-weight: 500;
+  }
+  .nf-compose-page__tool:disabled {
+    opacity: 0.45;
+  }
+  .nf-compose-page__tool[aria-pressed="true"] {
+    background: color-mix(in oklab, var(--nf-brand-secondary) 14%, transparent);
+  }
+  .nf-compose-ring {
+    position: relative;
+    display: grid;
+    place-items: center;
+    inline-size: 44px;
+    block-size: 44px;
+    margin-inline-start: auto;
+  }
+  .nf-compose-ring svg {
+    rotate: -90deg;
+  }
+  .nf-compose-ring__track,
+  .nf-compose-ring__fill {
+    fill: none;
+    stroke-width: 2;
+  }
+  .nf-compose-ring__track {
+    stroke: color-mix(in oklab, var(--nf-content-primary) 14%, transparent);
+  }
+  .nf-compose-ring__fill {
+    stroke: var(--nf-brand-secondary);
+    stroke-linecap: round;
+    transition: stroke-dashoffset var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-compose-ring[data-state="over"] .nf-compose-ring__fill {
+    stroke: var(--nf-state-error);
+  }
+  .nf-compose-ring__count {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: var(--nf-content-secondary);
+    font-size: var(--nf-text-overline);
+  }
+  .nf-compose-ring[data-state="over"] .nf-compose-ring__count {
+    color: var(--nf-state-error);
+  }
+
+  /* Who will see a new post: one quiet capsule under the bar that opens
+     the place picker. */
+  .nf-compose-audience {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    gap: 6px;
+    min-block-size: 32px;
+    margin-block-end: 4px;
+    padding-inline: 12px;
+    border-radius: var(--nf-radius-segment);
+    border: 1px solid color-mix(in oklab, var(--nf-brand-secondary) 40%, transparent);
+    color: var(--nf-brand-secondary);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+  }
+  .nf-compose-audience::before {
+    content: "";
+    position: absolute;
+    inset: -6px 0;
+  }
+
+  /* What is being answered, joined to the field by a thread line. */
+  .nf-reply-context {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr);
+    column-gap: 12px;
+    padding-block-end: 4px;
+  }
+  .nf-reply-context__rail {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .nf-reply-context__face {
+    display: grid;
+    place-items: center;
+    inline-size: 36px;
+    block-size: 36px;
+    overflow: hidden;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-gradient-brand-ink);
+    color: var(--nf-content-on-brand);
+    font-weight: 700;
+  }
+  .nf-reply-context__face img {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+  .nf-reply-context__line {
+    flex: 1 1 auto;
+    inline-size: 2px;
+    min-block-size: 24px;
+    margin-block: 6px 0;
+    border-radius: var(--nf-radius-xs);
+    background: color-mix(in oklab, var(--nf-content-primary) 16%, transparent);
+  }
+  .nf-reply-context__who {
+    display: flex;
+    gap: 6px;
+    align-items: baseline;
+    min-inline-size: 0;
+    font-size: var(--nf-text-body-sm);
+  }
+  .nf-reply-context__name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--nf-content-primary);
+    font-weight: 600;
+  }
+  .nf-reply-context__handle {
+    color: var(--nf-content-muted);
+    font-size: var(--nf-text-caption);
+  }
+  .nf-reply-context__body {
+    display: -webkit-box;
+    margin-block-start: 2px;
+    overflow: hidden;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    color: var(--nf-content-secondary);
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.5;
+  }
+  .nf-reply-context__to {
+    margin-block: 12px 4px;
+    color: var(--nf-content-muted);
+    font-size: var(--nf-text-caption);
+  }
+  .nf-reply-context__to strong {
+    color: var(--nf-brand-secondary);
+    font-weight: 600;
+  }
+
+  /* The thread's pinned "Post your reply" bar, which opens the page. */
+  .nf-reply-bar {
+    position: sticky;
+    inset-block-end: calc(12px + env(safe-area-inset-bottom, 0px));
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    inline-size: 100%;
+    min-block-size: 48px;
+    padding-inline: 16px;
+    border-radius: var(--nf-radius-segment);
+    border: 1px solid var(--nf-smoked-glass-edge);
+    background: var(--nf-smoked-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    color: var(--nf-content-muted);
+    font-size: var(--nf-text-body-sm);
+    text-align: start;
+    box-shadow: 0 16px 40px -20px var(--nf-overlay-media-deep);
+  }
+
   /* The card you just published, in flight over the cards it is landing
      above (`FreshArrival`). */
   .nf-fresh-card {
@@ -3445,6 +3672,15 @@
   .nf-story-ring__name {
     letter-spacing: -0.01em;
   }
+  /* The rings, calmer (D74: the content is lit, the field is quiet): the
+     segmented rim stays the signal, the three-layer halo becomes one soft
+     breath, and a gap of canvas sets each face off its ring. */
+  .nf-story-ring__disc {
+    inline-size: 54px;
+    block-size: 54px;
+    padding: 3px;
+    box-shadow: 0 0 14px -6px color-mix(in oklab, var(--nf-brand-primary) 70%, transparent);
+  }
 
   /* ------------------------------------------------------------------
    * The pictures arrive blurred and settle sharp (`PostPicture`). The
@@ -3466,6 +3702,90 @@
   .nf-post__media {
     border-radius: var(--nf-radius-plate);
     margin-block-start: 12px;
+  }
+
+  /* ------------------------------------------------------------------
+   * More than one picture: the sideways rail (`MediaRail`). The frame loses
+   * its own edge and corner (each picture carries one), and the track bleeds
+   * to the card's edge so the next picture really peeks.
+   * ------------------------------------------------------------------ */
+  .nf-post__media--rail {
+    display: block;
+    margin-inline: calc(var(--nf-feed-pad) * -1);
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    cursor: auto;
+  }
+  .nf-post__rail {
+    position: relative;
+  }
+  .nf-post__rail-track {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--nf-feed-pad);
+    padding-inline: var(--nf-feed-pad);
+    scrollbar-width: none;
+    cursor: pointer;
+  }
+  .nf-post__rail-track::-webkit-scrollbar {
+    display: none;
+  }
+  .nf-post__rail-track:focus-visible {
+    outline: 2px solid var(--nf-brand-secondary);
+    outline-offset: 2px;
+  }
+  .nf-post__media--rail .nf-post__rail-track img {
+    flex: 0 0 80%;
+    inline-size: 80%;
+    block-size: auto;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    scroll-snap-align: start;
+    border-radius: var(--nf-radius-plate);
+    border: 1px solid var(--nf-smoked-glass-edge);
+  }
+  @media (min-width: 640px) {
+    .nf-post__media--rail .nf-post__rail-track img {
+      flex-basis: 60%;
+      inline-size: 60%;
+    }
+  }
+  /* The counter: smoked glass over the picture, the Plasma rule for
+     anything that floats over media. */
+  .nf-post__rail-count {
+    position: absolute;
+    inset-block-start: 10px;
+    inset-inline-start: calc(var(--nf-feed-pad) + 10px);
+    padding: 4px 10px;
+    border-radius: var(--nf-radius-segment);
+    border: 1px solid var(--nf-smoked-glass-edge);
+    background: var(--nf-smoked-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    color: var(--nf-content-on-media);
+    font-size: var(--nf-text-caption);
+    font-weight: 500;
+    pointer-events: none;
+  }
+
+  /* The post's own page: time and views above the action row. */
+  .nf-post__meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-block-start: 12px;
+    color: var(--nf-content-muted);
+    font-size: var(--nf-text-caption);
+  }
+  .nf-post__meta-views {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
   }
 
   /* ------------------------------------------------------------------
@@ -3610,5 +3930,253 @@
     color: var(--nf-content-on-media);
     border-color: color-mix(in oklab, var(--nf-brand-secondary) 70%, transparent);
     background: color-mix(in oklab, var(--nf-brand-primary) 55%, var(--nf-surface-on-media));
+  }
+
+  /* ------------------------------------------------------------------
+   * THE STORY VIEWER, CINEMATIC AND CALM (D74; the founder: "so ugly and not
+   * neat not clean"). The photograph is the page; everything else is smoked
+   * glass or plain white type on a deeper near-black wash, and there is one
+   * of each thing: one headline, one line, one place pill, one bar.
+   * ------------------------------------------------------------------ */
+  .nf-story--seq .nf-story__wash {
+    background:
+      linear-gradient(180deg, var(--nf-overlay-media-strong) 0%, transparent 22%),
+      linear-gradient(0deg, var(--nf-overlay-media-deep) 0%, var(--nf-overlay-media-deep) 18%, var(--nf-overlay-media) 42%, transparent 70%);
+  }
+  .nf-story--seq .nf-story__foot {
+    gap: 12px;
+  }
+  /* The words on smoked glass: the Plasma breakout card's material. */
+  .nf-story--seq .nf-story__card {
+    padding: 18px 18px 16px;
+    border-radius: var(--nf-radius-card);
+    border: 1px solid var(--nf-smoked-glass-edge);
+    background: var(--nf-smoked-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur)) saturate(140%);
+    backdrop-filter: blur(var(--nf-smoked-glass-blur)) saturate(140%);
+    box-shadow: 0 24px 60px -30px var(--nf-overlay-media-deep);
+  }
+  .nf-story--seq .nf-story__headline {
+    margin-block-start: 0;
+    font-size: 1.75rem;
+    line-height: 1.1;
+    letter-spacing: -0.035em;
+  }
+  .nf-story--seq .nf-story__standfirst {
+    margin-block-start: 8px;
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.5;
+  }
+  /* The place: a small smoked pill, the one attachment a story carries. */
+  .nf-story--seq .nf-story__place {
+    gap: 5px;
+    margin-block-start: 12px;
+    padding: 5px 10px 5px 8px;
+    border-radius: var(--nf-radius-segment);
+    border: 1px solid var(--nf-smoked-glass-edge);
+    background: color-mix(in oklab, var(--nf-content-on-media) 8%, transparent);
+    color: var(--nf-content-on-media);
+    font-weight: 500;
+  }
+  /* The top controls over the photograph: smoked discs, not brand glass. */
+  .nf-story--seq .nf-story__top .nf-social-round {
+    border-color: var(--nf-smoked-glass-edge);
+    background: var(--nf-smoked-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    box-shadow: none;
+  }
+  /* ------------------------------------------------------------------
+   * Writing a story: the story itself, at the viewer's proportions.
+   * ------------------------------------------------------------------ */
+  .nf-story-compose {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    aspect-ratio: 4 / 5;
+    min-block-size: 420px;
+    max-block-size: 72dvh;
+    overflow: hidden;
+    border-radius: var(--nf-radius-card);
+    border: 1px solid var(--nf-smoked-glass-edge);
+    background: var(--nf-overlay-media-deep);
+  }
+  .nf-story-compose__img {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+  .nf-story-compose__wash {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: linear-gradient(0deg, var(--nf-overlay-media-deep) 0%, var(--nf-overlay-media) 38%, transparent 66%);
+  }
+  /* Empty: the whole frame is the way to choose a picture. */
+  .nf-story-compose__pick {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    display: grid;
+    place-items: start center;
+    padding-block-start: 22%;
+    color: var(--nf-content-on-media);
+  }
+  .nf-story-compose__prompt {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    max-inline-size: 18rem;
+    text-align: center;
+  }
+  .nf-story-compose__plate {
+    display: grid;
+    place-items: center;
+    inline-size: 56px;
+    block-size: 56px;
+    border-radius: var(--nf-radius-circle);
+    border: 1px solid var(--nf-smoked-glass-edge);
+    background: var(--nf-smoked-glass-fill);
+  }
+  .nf-story-compose__label {
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+  }
+  .nf-story-compose__note {
+    font-size: var(--nf-text-caption);
+    line-height: 1.5;
+    color: var(--nf-content-on-media-secondary);
+  }
+  /* Filled: a small smoked disc in the corner swaps the picture. */
+  .nf-story-compose__swap {
+    position: absolute;
+    inset-block-start: 12px;
+    inset-inline-end: 12px;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    inline-size: 44px;
+    block-size: 44px;
+    border-radius: var(--nf-radius-circle);
+    border: 1px solid var(--nf-smoked-glass-edge);
+    background: var(--nf-smoked-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    color: var(--nf-content-on-media);
+  }
+  .nf-story-compose__card {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 12px;
+    padding: 14px 16px;
+    border-radius: var(--nf-radius-card);
+    border: 1px solid var(--nf-smoked-glass-edge);
+    background: var(--nf-smoked-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur)) saturate(140%);
+    backdrop-filter: blur(var(--nf-smoked-glass-blur)) saturate(140%);
+  }
+  .nf-story-compose__headline,
+  .nf-story-compose__standfirst {
+    inline-size: 100%;
+    resize: none;
+    border: 0;
+    background: transparent;
+    color: var(--nf-content-on-media);
+    outline: none;
+  }
+  .nf-story-compose__headline {
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+  }
+  .nf-story-compose__standfirst {
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.5;
+    color: var(--nf-content-on-media-secondary);
+  }
+  .nf-story-compose__headline::placeholder,
+  .nf-story-compose__standfirst::placeholder,
+  .nf-story-compose__place input::placeholder {
+    color: color-mix(in oklab, var(--nf-content-on-media) 45%, transparent);
+  }
+  .nf-story-compose__headline:focus-visible,
+  .nf-story-compose__standfirst:focus-visible {
+    box-shadow: 0 2px 0 0 var(--nf-brand-secondary);
+  }
+  .nf-story-compose__place {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    align-self: flex-start;
+    max-inline-size: 100%;
+    min-block-size: 44px;
+    margin-block: 4px -6px;
+    color: var(--nf-content-on-media);
+  }
+  .nf-story-compose__place input {
+    min-inline-size: 0;
+    inline-size: 16rem;
+    max-inline-size: 100%;
+    padding: 6px 12px;
+    border-radius: var(--nf-radius-segment);
+    border: 1px solid var(--nf-smoked-glass-edge);
+    background: color-mix(in oklab, var(--nf-content-on-media) 8%, transparent);
+    color: var(--nf-content-on-media);
+    font-size: var(--nf-text-caption);
+    outline: none;
+  }
+  .nf-story-compose__place input:focus-visible {
+    border-color: var(--nf-brand-secondary);
+  }
+
+  /* One bar: the reply capsule takes the room, the three capsules sit at
+     the end. */
+  .nf-story__bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .nf-story__reply {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    gap: 8px;
+    min-inline-size: 0;
+    block-size: 44px;
+    padding-inline: 16px;
+    border-radius: var(--nf-radius-segment);
+    border: 1px solid var(--nf-smoked-glass-edge);
+    background: var(--nf-smoked-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    color: var(--nf-content-on-media-secondary);
+    font-size: var(--nf-text-body-sm);
+    text-align: start;
+    transition: transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  .nf-story__reply:active {
+    transform: scale(0.98);
+  }
+  .nf-story__bar .nf-story__actions--pills {
+    flex: none;
+    gap: 6px;
+  }
+  .nf-story__bar .nf-act-pill {
+    block-size: 44px;
+    min-inline-size: 44px;
+  }
+  .nf-story__bar .nf-act-pill--round {
+    inline-size: 44px;
   }
 }

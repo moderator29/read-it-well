@@ -286,6 +286,10 @@ export function CommentsSheet({
       }}
       title={title}
       hideTitle
+      /* A full page, never a small box (the feed set): the conversation and
+         its field take the whole screen, with the sheet's own drag, Back
+         and focus return. */
+      fullPage
       initialFocus={headRef}
       footer={
         <form

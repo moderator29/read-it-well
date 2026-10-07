@@ -96,6 +96,12 @@
       animation-range: cover 0% cover 100%;
     }
   }
+  /* The rail's pictures move under the finger, sideways; a vertical
+     parallax inside each card would fight the swipe and overflow its own
+     corner, so the rail keeps them still. */
+  .nf-post__media--rail img {
+    animation: none;
+  }
   @media print {
     .nf-post,
     .nf-post__media img {
