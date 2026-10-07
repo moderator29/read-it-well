@@ -203,6 +203,17 @@ const BARE_WALLET_ALLOWED: { file: string; text: RegExp; why: string }[] = [
   { file: "lib/money/balance-copy.ts", text: /^Wallet is not connected yet, so nothing was sent\.$/, why: "D78: the screen's name" },
 ];
 
+/**
+ * D78 (7 October 2026, evening): THE FOUNDER NAMED THE SCREEN "Wallet". "What
+ * is balance? Call it wallet." The word is allowed as the NAME of the member's
+ * money screen (the account the licensed escrow partner holds and Vallo reads,
+ * ADR 0003), and only as that name: these dictionary paths, and the literals
+ * the Wallet screen lists in BARE_WALLET_ALLOWED with the same reason. The
+ * custody rule itself stands: no line may say Vallo holds a member's money,
+ * which the phrase checks above still enforce.
+ */
+const WALLET_NAME_PATHS: readonly string[] = ["experienceShell.navBalance"];
+
 function readsAsWords(text: string): boolean {
   /* An interpolation is code, not words: `${origin}/wallet?funded=1` is an address. */
   const words = text.replace(/\$\{[^{}]*\}/g, "").trim();
@@ -223,7 +234,7 @@ describe("D48: the bare word wallet is out of member copy", () => {
       const namespace = namespaceOf(file);
       expect(dictionary[namespace], `${file} is registered as ${namespace}`).toBeDefined();
       for (const { path, text } of leaves(dictionary[namespace], [namespace])) {
-        if (BARE_WALLET.test(text)) found.push(`${path}: "${text}"`);
+        if (BARE_WALLET.test(text) && !WALLET_NAME_PATHS.includes(path)) found.push(`${path}: "${text}"`);
       }
     }
     expect(found).toEqual([]);
