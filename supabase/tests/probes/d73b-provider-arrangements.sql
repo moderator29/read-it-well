@@ -24,6 +24,12 @@ begin
   if (select enabled from public.feature_flags where key = 'rentals_protected_pay') is distinct from false then
     raise exception 'PROBE_FAIL d73b 1: rentals_protected_pay is not seeded off';
   end if;
+  -- 7 October 2026 (D77): private.rentals_protected_pay_on() now reads
+  -- payments_payluk_on (the escrow rail's switch); rentals_protected_pay is
+  -- superseded and read by nothing. The switch that matters is seeded off too.
+  if (select enabled from public.feature_flags where key = 'payments_payluk_on') is distinct from false then
+    raise exception 'PROBE_FAIL d73b 1: payments_payluk_on is not seeded off';
+  end if;
   if private.rentals_protected_pay_on() then raise exception 'PROBE_FAIL d73b 1: reads on'; end if;
 
   -- 2.
@@ -54,7 +60,8 @@ begin
 
   r := public.provider_arrangement_open(ag, 'standard', null);
   if r ->> 'status' <> 'switched_off' then raise exception 'PROBE_FAIL d73b 1: open with the switch off: %', r; end if;
-  update public.feature_flags set enabled = true where key = 'rentals_protected_pay';
+  update public.feature_flags set enabled = true where key = 'payments_payluk_on';
+  if not private.rentals_protected_pay_on() then raise exception 'PROBE_FAIL d73b 1: the switch on does not read on'; end if;
 
   -- 3.
   select id into stay_ag from public.deal_agreements where kind = 'stay' limit 1;
