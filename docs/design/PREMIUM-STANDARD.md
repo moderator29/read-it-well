@@ -10,6 +10,43 @@ iOS and web. This file is the bar every agent builds to. It sits on top of
 Two rulings stay above everything: **dark is the default**, and **the container system
 is refined, not replaced.**
 
+## The governing level: the Plasma set (D74)
+
+**This is the bar for the whole platform, above every other reference here.** The
+founder, on the five frames in `docs/design/references/2026-10-07/GOVERNING-plasma-*.jpg`
+(read that folder's README): "This is fucking premium like what premium is called this
+is it... that platinum mid color those style clean... this is the level of premium I
+need in my platform wide".
+
+What makes it premium, so it can be applied everywhere rather than copied once:
+
+- **One material: platinum.** A brushed metal gradient, silver to mid grey with a soft
+  diagonal sheen, used for the surface that matters most on a screen (the balance, the
+  member's tier card, the Pro card, the hero figure's backing). Add it as tokens
+  (`--nf-platinum-*`: base, sheen, edge, ink) beside the existing ones and use it
+  sparingly: one platinum object per screen. On Vallo's navy, platinum reads as the
+  luxury layer above the blue glass, not a replacement for it.
+- **Two metals, platinum and gold**, and only two. Platinum is the default premium
+  material; gold (`--nf-gold-*`) is the higher tier and the payoff (a top rewards
+  tier, Pro, a streak milestone). Never both on one object.
+- **Near-black fields**, not busy backgrounds. The content is lit; the field is quiet.
+- **Smoked glass cards that break out of a device frame** towards the viewer: real UI
+  fragments as illustration, used for every explainer and first-run moment.
+- **Huge figures, unit in grey.** "305,860.9 XPL": the number in full ink, the unit
+  softer and the same size. Two figures side by side split by a hairline.
+- **The capsule with a reflection.** The primary action on an explainer or a payoff is
+  a full-width capsule (white on dark, black on light) with a soft glow and a mirrored
+  reflection on the floor beneath it. One per screen.
+- **Metal cards fanned in depth** for tiers and levels.
+- **Progress to the next level as a pill** ("20,000.0 to Core >").
+- **Restraint:** each screen has one idea, one figure, one action. Nothing decorative
+  competes with it.
+
+Later the same afternoon he added a metal window-controls pill, an enrollment flow, a
+savings app with a streak, a success screen and the amount entry; they are described in
+`docs/design/references/2026-10-07/README.md`. Streaks, greetings by name, spotlight
+sheets with a 3D object, and scalloped success badges come from there.
+
 ## The five references he sent in chat on 7 October
 
 He sent these directly, as the ones he loves. They are not in the repository, so they
@@ -112,6 +149,24 @@ are described here precisely enough to build from. Read them as rulings on feel.
    every **feature explainer** in Vallo (first time on Wallet, Rewards, Pro, Space
    Passport): the real UI fragment as the illustration, breaking out of a device
    frame, and the quick-amount chips (25%, 50%, Max) on Withdraw and Send.
+
+### Five more, saved in the repository (`docs/design/references/2026-10-07/`)
+
+10. **Premium paywall** (`premium-paywall-monthly-yearly.jpg`): app icon tile, name with
+    a PREMIUM tag, a two-line promise, three feature rows with round icon plates in one
+    glass card, Monthly and Yearly plan tiles (selected one ringed with a check, "Best
+    value" tag on the other), a primary "Start 7-day free trial" capsule, "Cancel
+    anytime. Terms apply". **Pro, boosts and every paid upgrade.**
+11. **Start for free and the one-time offer** (`six-screens-streak-paywall-offer.jpg`): a
+    Monthly/Yearly switch, a Premium card with a check list, a tilted "80% OFF FOREVER"
+    card with confetti. **Pro.**
+12. **The streak and the soft dashboard** (same file): a big flame object, "12 day
+    streak", week dots, three stats; tiles and progress bars in soft colour. **Rewards,
+    referrals and the agent dashboard, only where real data supports it.**
+13. **Store screenshots** (`store-screens-learn-create-get-paid.jpg`): a huge three-line
+    headline with full stops, people or lit scenes, trust laurels, app fragments
+    breaking out of a device frame. **Get Started and the store listing; never invent
+    an award or a count.**
 
 And from the repository, `docs/design/references/2026-10-05/IMG_7027.png`: an amount
 entry screen with a huge figure, a coloured sign, a muted question under it ("Who's it

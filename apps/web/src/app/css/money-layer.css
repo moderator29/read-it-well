@@ -233,7 +233,7 @@
     width: 2.75rem;
     height: 2.75rem;
     border-radius: var(--nf-radius-plate);
-    background: var(--nf-ink-900);
+    background: var(--nf-plate-solid-ink);
     overflow: hidden;
   }
   .nf-balance__plate img {
@@ -286,7 +286,7 @@
     width: 4.5rem;
     height: 4.5rem;
     border-radius: var(--nf-radius-circle);
-    background: var(--nf-ink-900);
+    background: var(--nf-plate-solid-ink);
     position: relative;
   }
   .nf-wait__plate img {

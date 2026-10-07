@@ -4590,3 +4590,72 @@
 :root:not([data-theme="light"]):is([data-save-data="on"], [data-motion-lite="on"]) [data-theme="dark"] {
   --nf-tier-island-fill: rgb(4 10 31 / 0.97);
 }
+
+/*
+ * PLATINUM, THE PREMIUM MATERIAL (D74, 7 October 2026).
+ *
+ * The founder ruled the Plasma set (docs/design/references/2026-10-07/
+ * GOVERNING-plasma-*.jpg) the premium level for the whole platform, naming
+ * "that platinum mid color". These are that material, decided once so six
+ * agents do not invent six metals. Brushed silver to mid grey with a soft
+ * diagonal sheen, dark ink on it, a bright hairline edge.
+ *
+ * ONE PLATINUM OBJECT PER SCREEN: the balance, the member's tier card, the
+ * Pro card, the hero figure's backing. On the navy it reads as the luxury
+ * layer above the blue glass, never a replacement for it. The same values in
+ * both themes, because metal does not change colour with the lights.
+ *
+ * The smoked glass is the dark card that breaks out of a device frame on an
+ * explainer; the reflection is the floor glow under the one capsule action.
+ */
+:root,
+[data-theme="dark"],
+[data-theme="light"] {
+  --nf-platinum-hi: #F1F2F4;
+  --nf-platinum-mid: #BABEC5;
+  --nf-platinum-low: #80858E;
+  --nf-platinum-ink: #0B0D12;
+  --nf-platinum-ink-soft: #565B64;
+  --nf-platinum-edge: rgb(255 255 255 / 0.55);
+  --nf-platinum-fill: linear-gradient(
+    135deg,
+    var(--nf-platinum-hi) 0%,
+    var(--nf-platinum-mid) 52%,
+    var(--nf-platinum-low) 100%
+  );
+  --nf-platinum-sheen: linear-gradient(
+    115deg,
+    transparent 32%,
+    rgb(255 255 255 / 0.42) 46%,
+    transparent 60%
+  );
+  --nf-platinum-shadow: 0 24px 60px -24px rgb(0 0 0 / 0.65), 0 0 0 1px var(--nf-platinum-edge) inset;
+
+  --nf-smoked-glass-fill: rgb(20 22 28 / 0.74);
+  --nf-smoked-glass-edge: rgb(255 255 255 / 0.1);
+  --nf-smoked-glass-blur: 22px;
+
+  --nf-capsule-reflection: 0 22px 44px -16px rgb(255 255 255 / 0.32);
+}
+
+/*
+ * GOLD, THE HIGHER TIER (D74, the same afternoon): "make it lovely and unified
+ * like platinum gold". The second and last metal. Platinum is the default
+ * premium material; gold is the higher tier and the payoff (a top rewards
+ * tier, Pro, a streak milestone). Never both on one object.
+ */
+:root,
+[data-theme="dark"],
+[data-theme="light"] {
+  --nf-gold-hi: #FBEFC8;
+  --nf-gold-mid: #D9B464;
+  --nf-gold-low: #9A7330;
+  --nf-gold-ink: #241A06;
+  --nf-gold-edge: rgb(255 244 210 / 0.6);
+  --nf-gold-fill: linear-gradient(
+    135deg,
+    var(--nf-gold-hi) 0%,
+    var(--nf-gold-mid) 50%,
+    var(--nf-gold-low) 100%
+  );
+}
