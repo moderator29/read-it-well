@@ -249,6 +249,11 @@ export default async function CheckoutPage({
             */}
             {view.status === "PENDING" ? (
               <HoldCountdown expiresAt={view.holdExpiresAt} locale={locale} />
+            ) : view.status === "CONFIRMED" && view.instantPayBy && !view.paid ? (
+              /* D73: booked instantly at the published price. The room is
+                 held for a short window while the guest pays, and the sweep
+                 gives it back after, so here the clock is real. */
+              <HoldCountdown expiresAt={view.instantPayBy} locale={locale} />
             ) : view.status === "CONFIRMED" ? (
               /* Confirmed and still unpaid means the agent accepted a request to
                  book. There is no hold running out, so counting one down would

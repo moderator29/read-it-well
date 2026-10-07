@@ -6,6 +6,9 @@ import { ROUTE_FAILURE_LIMITS, countRouteFailure } from "@/lib/security/money-li
 import { recordAlert } from "@/lib/alerts";
 import { decidePaymentEvent } from "@/lib/money/balance-events";
 import { adminDb, observe, type Db } from "@/lib/money/member-wallet";
+import { applyArrangementWebhook, arrangementsLive } from "@/lib/money/provider-arrangements";
+import { paylukContext } from "@/lib/payments/providers/payluk";
+import { lagosToday } from "@/lib/bookings/schema";
 
 /**
  * PAYLUK WEBHOOKS (Part B phase 15; founder sections 27 and 28;
@@ -126,9 +129,43 @@ export async function POST(request: Request): Promise<NextResponse> {
     await finish("rejected", "environment_mismatch");
     return answer({ received: true, ignored: "environment_mismatch" });
   }
+  if (event.family === "escrow") {
+    /* D73 Part B (phases 11 and 12): with the arrangement flows built and
+       `rentals_protected_pay` on, escrow.* moves Vallo's record of the
+       protected payment; otherwise it is recorded and parked, as before. */
+    const ctx = paylukContext();
+    if (!ctx || !(await arrangementsLive(db))) {
+      await finish("ignored", "escrow_flows_not_built");
+      return answer({ received: true, ignored: event.family });
+    }
+    try {
+      const verdict = await applyArrangementWebhook(
+        {
+          db,
+          ctx,
+          todayLagos: lagosToday,
+          alert: async (kind, detail) => {
+            await recordAlert({ kind, severity: "critical", detail });
+          },
+        },
+        (body as { data?: unknown }).data,
+        eventKey,
+      );
+      if (verdict === "error") throw new Error("arrangement_observe_failed");
+      if (verdict === "unmapped" || verdict === "unknown_arrangement" || verdict === "malformed") {
+        await finish("ignored", verdict);
+      } else {
+        await finish("processed", verdict === "changed" || verdict === "same" ? null : verdict);
+      }
+      return answer({ received: true, outcome: verdict });
+    } catch (error) {
+      await finish("failed", error instanceof Error ? error.message.slice(0, 200) : "processing_failed");
+      return answer({ received: false, reason: "processing_failed" }, 500);
+    }
+  }
   if (event.family !== "payment") {
-    /* escrow.* is recorded for phases 11 and 12; anything else is a name we do not know yet. */
-    await finish("ignored", event.family === "escrow" ? "escrow_flows_not_built" : "unknown_event");
+    /* A name we do not know yet. */
+    await finish("ignored", "unknown_event");
     return answer({ received: true, ignored: event.family });
   }
 
