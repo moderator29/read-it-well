@@ -17,7 +17,11 @@ export default function FlipPreview() {
       data-phase="turn"
       style={{ "--nf-flip-dir": -1 } as React.CSSProperties}
     >
-      <div className="nf-flip-card" style={{ transform: "scale(0.94) rotateY(-122deg)", transition: "none" }}>
+      {/* Held at the mid-turn state the turn hangs on (side-flip.css,
+          nf-flip-turn at 42 per cent), with the slab's lit edges. */}
+      <div className="nf-flip-card" style={{ transform: "scale(0.84) rotateY(-108deg)", transition: "none", animation: "none" }}>
+        <span className="nf-flip-edge nf-flip-edge--start" aria-hidden="true" />
+        <span className="nf-flip-edge nf-flip-edge--end" aria-hidden="true" />
         <div className="nf-flip-face nf-flip-face--front">
           <main className="min-h-dvh bg-[var(--nf-surface-canvas)]" />
         </div>

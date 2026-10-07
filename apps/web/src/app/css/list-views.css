@@ -266,19 +266,20 @@
   }
 
   /* The heart's spring: only on the tap that saves (ListingCard.tsx). */
-  /* 1, 1.2, 1 on `land` at 240ms (MOTION_SYSTEM "Favourite toggle"; it was
-     1.22 over 380ms on the spring, plan item 28). Browsing is quick, so the
-     pop is sharp and done; the haptic is `SaveControl`'s, fired when the save
-     settles, so the hand feels what the eye sees. */
+  /* THE PAYOFF (A.5, MOTION_SYSTEM rule 5, 7 October 2026): 1, 1.04, 1 over
+     180ms, the same pop as the feed's heart, because the favourite is the
+     most tapped control in the product and a payoff is one size everywhere.
+     It was 1.2 over 240ms. The impact is `SaveControl`'s haptic, fired when
+     the save settles, so the hand feels what the eye sees. */
   .nf-heart-pop[aria-pressed="true"] svg {
-    animation: nf-heart-pop var(--nf-duration-base) var(--nf-ease-entrance) both;
+    animation: nf-heart-pop 180ms var(--nf-ease-press) both;
   }
   @keyframes nf-heart-pop {
     0% {
       transform: scale(1);
     }
     45% {
-      transform: scale(1.2);
+      transform: scale(1.04);
     }
     100% {
       transform: scale(1);

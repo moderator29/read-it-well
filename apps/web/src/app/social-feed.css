@@ -150,7 +150,9 @@
    * an affordance most of our audience never sees.
    */
   .nf-post--pressable:active {
-    transform: translateY(1px);
+    /* 0.985 on `press` (MOTION_SYSTEM "Card press"; the transition is in
+       feed-m.css, which owns the feed's motion). */
+    transform: scale(0.985);
   }
 
   /*

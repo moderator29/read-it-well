@@ -615,9 +615,10 @@ export const en = {
     messages: "Messages",
     agreements: "Agreements",
     /*
-     * The dock's centre "+" and the sheet it opens (29 September 2026). The
-     * workspace switch that button used to be moved into this sheet as its
-     * last row, so nothing it did was lost.
+     * The dock's centre "+" and the sheet it opens. Since 7 October 2026
+     * (handoff A.6) the sheet is three plain titles per side and nothing
+     * else; the `...Sub` lines and `switch` are no longer drawn there.
+     * Switch workspace lives on `/profile` (the Switch role row).
      */
     create: {
       trigger: "Create",
@@ -629,6 +630,7 @@ export const en = {
       viewing: "Book a viewing",
       viewingSub: "Find a place and choose a time to see it",
       stay: "Create a stay listing",
+      bookStay: "Book a stay",
       staySub: "A room type or a whole place for guests",
       switch: "Switch workspace",
       switchSub: "Personal, or a workspace you hold",
@@ -752,6 +754,8 @@ export const en = {
   socialProfile: {
     /** The account page's tab pair and the rows under Belongings (`50E032EA`). */
     belongings: "Belongings",
+    /** The way to reach somebody from their profile (A.7). */
+    message: "Message",
     myBookings: "Plans",
     myBookingsSub: "Viewings, move-ins and stays",
     savedSub: "Homes, hotels and places",

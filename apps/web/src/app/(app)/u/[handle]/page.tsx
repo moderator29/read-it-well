@@ -3,6 +3,7 @@ import { sheetWordsOf } from "@/components/social/sheet-words";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
+import { ButtonLink } from "@/components/ui/Button";
 import { FollowButton } from "@/components/social/profile/FollowButton";
 import { ProfileHeader } from "@/components/social/profile/ProfileHeader";
 import { ValloRecord } from "@/components/app/trust/ValloRecord";
@@ -206,6 +207,18 @@ export default async function SocialProfilePage({
                 labels={t.socialProfile}
               />
             )
+          }
+          /* How to reach them (A.7). Messages on Vallo are about a place, so
+             the way to reach an agent is their newest published listing's
+             conversation, which opens with that listing attached. Somebody
+             with nothing listed has no message control rather than one that
+             leads to an empty inbox. */
+          message={
+            !view.isOwner && isAgentPage && properties[0] ? (
+              <ButtonLink href={`/messages/new?listing=${properties[0].id}`} size="sm" variant="secondary">
+                {t.socialProfile.message}
+              </ButtonLink>
+            ) : undefined
           }
           share={
             <ProfileShare

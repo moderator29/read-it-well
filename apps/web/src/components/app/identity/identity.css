@@ -1,0 +1,30 @@
+/*
+ * THE IDENTITY HEADER'S OWN ROW: the actions under the island (IdentityHeader).
+ *
+ * The cover, the island, the face, the name and the counts keep the rules
+ * they already had in social.css (`.nf-profile-*`, `.nf-social-*`), because
+ * that is the design the two profiles now share; only the action row is new.
+ * One row, on the island's own inset, the primary act first and wide: Follow
+ * for theirs, Edit profile for mine. The others sit beside it at their own
+ * width, and the overflow menu is the last thing on the line.
+ */
+@layer components {
+  .nf-identity__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    margin-block-start: var(--nf-space-sm);
+  }
+  .nf-identity__actions > :first-child {
+    flex: 1 1 auto;
+  }
+  @media (min-width: 640px) {
+    .nf-identity__actions {
+      margin-inline: var(--nf-space-md);
+    }
+    .nf-identity__actions > :first-child {
+      flex: 0 0 auto;
+      min-inline-size: 10rem;
+    }
+  }
+}

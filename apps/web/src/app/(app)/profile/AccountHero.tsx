@@ -3,11 +3,9 @@
 import { initial } from "@/lib/text/initial";
 import "./profile.css";
 import { useRef, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { formatNumber, type Locale } from "@vallo/i18n/core";
-import { Figure } from "@/components/ui/Amount";
+import type { Locale } from "@vallo/i18n/core";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { setAvatar } from "@/lib/profile/actions";
 import { setSocialCover } from "@/lib/social/profiles-actions";
@@ -18,7 +16,7 @@ import { RemoteImage } from "@/components/ui/RemoteImage";
 import { ButtonLink } from "@/components/ui/Button";
 import type { BadgeTier } from "./belongings";
 import { useClientCopy } from "@/lib/i18n/client-copy";
-import { TierBadge } from "@/components/trust/TierBadge";
+import { IdentityHeader } from "@/components/app/identity/IdentityHeader";
 
 /**
  * THE TOP OF YOUR OWN PROFILE, BUILT TO `50E032EA`.
@@ -63,10 +61,7 @@ const ACCEPTED = ["image/jpeg", "image/png", "image/webp"];
 /** The cover picker's id, pressed by the "Cover photo" row in `AccountBody`. */
 export const COVER_INPUT_ID = "account-cover-input";
 const AVATAR_MAX_EDGE = 512;
-const COMPACT: Intl.NumberFormatOptions = { notation: "compact", maximumFractionDigits: 1 };
 
-/** The cover a person has not set yet: the founder's dusk villa over water with the skyline behind it, the same scene `50E032EA` opens on. */
-const COVER_PLATE = "/brand/photos/villa-pool-skyline-02.jpg";
 
 export type HeroIdentity = {
   handle: string;
@@ -112,20 +107,7 @@ export function AccountHero({
 }) {
   const router = useRouter();
   const COPY = useClientCopy().socialProfile.accountPage;
-  /* The render writes 12.4K: from ten thousand a count is compact, below
-     it every digit shows. The figure itself is always the database's.
-
-     EACH COUNT IS A `Figure` (north star 10 F): tabular, counting up once on
-     first view below ten thousand, never re-counting on a re-render. A compact
-     12.4K is a string and prints as it is, because a figure that is already
-     abbreviated has no digits to roll. */
-  const formatCount = (value: number) => (
-    <Figure
-      value={value >= 10_000 ? formatNumber(value, locale, COMPACT) : value}
-      locale={locale}
-      count={value < 10_000}
-    />
-  );
+  /* The counts are formatted once, in `IdentityHeader`, for both profiles. */
   const coverInput = useRef<HTMLInputElement>(null);
   const avatarInput = useRef<HTMLInputElement>(null);
 
@@ -231,154 +213,82 @@ export function AccountHero({
   }
 
   return (
-    <header className="nf-pf-hero" data-testid="account-hero" data-theme="dark">
-      {/* ------------------------------------------------------- the cover */}
-      <div className="nf-pf-cover">
-        {cover ? (
-          <RemoteImage
-            src={cover}
-            alt=""
-            width={1200}
-            height={400}
-            sizes="(max-width: 768px) 100vw, 768px"
-            priority
-            className="nf-pf-cover__photo"
-          />
-        ) : (
-          <Image
-            src={COVER_PLATE}
-            alt=""
-            fill
-            priority
-            sizes="(max-width: 768px) 100vw, 768px"
-            className="nf-pf-cover__photo nf-pf-cover__photo--plate"
-          />
-        )}
-        {/* The dusk grade and the fade into the page, one layer each. */}
-        <span className="nf-pf-cover__grade" aria-hidden="true" />
-        <span className="nf-pf-cover__fade" aria-hidden="true" />
-
-        {/*
-          ONE ROW OF CONTROLS OVER THE COVER, NOT TWO.
-
-          Members see the app header here (menu, lockup, bell, avatar), and
-          the render's back and settings squares stacked under it read as a
-          second row of floating buttons. So on a phone the gear takes the
-          header's own row, left of the bell, in the header's own control
-          (`nf-icon-btn`, 44px), and there is no back: `/profile` is a dock
-          destination, and the menu and the dock are the way off it. From 640
-          up the cover is a framed band inside the column and the gear sits
-          on its upper right. The header itself is shared; a proper slot
-          for a page action in it would replace this.
-        */}
-        <Link
-          href="/settings"
-          className="nf-icon-btn nf-icon-btn--round nf-pf-gear"
-          data-theme="light"
-          aria-label={COPY.settings}
-          data-testid="account-settings-button"
-        >
-          <UiIcon name="settings-gear" size="md" />
-        </Link>
-      </div>
-
-      {/* ---------------------- the person, on the hero band under the cover
-          (plan item 16; spec section 16, Q2: "the profile and trust hero").
-          The photograph stays a photograph; the face, the name with its
-          tier, the handle, the bio and the counts sit on one clean band that
-          laps the cover's foot: navy on the warm paper in light, the raised
-          night surface at night. */}
-      <div className="nf-pf-id nf-island" data-theme="dark">
+    <IdentityHeader
+      state="mine"
+      testId="account-hero"
+      name={shownName}
+      handle={identity?.handle ?? null}
+      handleLine={email}
+      bio={identity?.bio || undefined}
+      badgeTier={badgeTier}
+      coverUrl={cover || undefined}
+      avatar={
+        /* MINE: the face is the photo picker. Same disc, same ring as
+           theirs; the quiet picture mark is what says it is a control. */
         <button
           type="button"
           onClick={() => avatarInput.current?.click()}
           disabled={busy !== null}
           aria-label={avatar ? "Change your photo" : "Add a photo of you"}
-          className="nf-pf-avatar"
+          className="nf-profile-avatar"
           data-testid="account-avatar-button"
         >
-          <span className="nf-pf-avatar__disc">
+          <span className="nf-profile-avatar__disc">
             {avatar ? (
-              <RemoteImage src={avatar} alt="" width={192} height={192} sizes="88px" />
+              <RemoteImage src={avatar} alt="" width={192} height={192} sizes="96px" />
             ) : (
               <span aria-hidden="true">{monogram}</span>
             )}
           </span>
-          {/* ONE MARK, BESIDE THE NAME (the founder, 25 September 2026).
-              The person's badge (from `person_badge`) stood on the ring as
-              well, so a verified person wore it twice a finger apart. The
-              face keeps only the quiet picture mark, which says it is a
-              control. */}
           <span className="nf-pf-avatar__badge nf-pf-avatar__badge--quiet" aria-hidden="true">
             <UiIcon name={busy === "avatar" ? "sparkle" : "picture"} size="2xs" />
           </span>
         </button>
-
-        <div className="nf-pf-id__text">
-          <h1 className="nf-pf-name" data-badge-tier={badgeTier ?? "none"}>
-            <span className="nf-pf-name__text">{shownName}</span>
-            {badgeTier ? <TierBadge tier={badgeTier} size={18} className="nf-pf-name__tier" /> : null}
-          </h1>
-          <p className="nf-pf-handle">{identity ? `@${identity.handle}` : email}</p>
-
-          {identity?.bio ? <p className="nf-pf-bio">{identity.bio}</p> : null}
-
-          {identity ? (
-            <div className="nf-pf-counts">
-              <Link href={`/u/${identity.handle}/followers`} className="nf-pf-count">
-                <span className="nf-pf-count__value nf-numeric">
-                  {formatCount(identity.followerCount)}
-                </span>
-                <span className="nf-pf-count__label">{COPY.followers}</span>
-              </Link>
-              <span className="nf-pf-counts__rule" aria-hidden="true" />
-              <Link href={`/u/${identity.handle}/following`} className="nf-pf-count">
-                <span className="nf-pf-count__value nf-numeric">
-                  {formatCount(identity.followingCount)}
-                </span>
-                <span className="nf-pf-count__label">{COPY.following}</span>
-              </Link>
-              <span className="nf-pf-counts__rule" aria-hidden="true" />
-              {/* Posts is a number, not a door: there is no page that lists
-                  them but the Posts tab below, so this is a span and not a
-                  link, and carries no 44px hit area it could not honour. */}
-              <span className="nf-pf-count nf-pf-count--static">
-                <span className="nf-pf-count__value nf-numeric">
-                  {formatCount(identity.postCount)}
-                </span>
-                <span className="nf-pf-count__label">{postsLabel}</span>
-              </span>
-            </div>
-          ) : null}
-        </div>
-      </div>
-
-      {badges}
-
-      {!identity && (
-        <div className="nf-pf-claim">
-          <ButtonLink
-            href="/u/me/edit"
-            variant="primary"
-            size="lg"
-            full
-            data-testid="profile-claim-handle"
-          >
+      }
+      counts={
+        identity
+          ? {
+              followers: identity.followerCount,
+              following: identity.followingCount,
+              posts: identity.postCount,
+              labels: { followers: COPY.followers, following: COPY.following, posts: postsLabel },
+            }
+          : null
+      }
+      locale={locale}
+      /* One control on the cover: the gear, top right. `/profile` is a dock
+         destination, so there is no back here; the dock is the way off it. */
+      topEnd={
+        <Link
+          href="/settings"
+          className="nf-icon-btn nf-icon-btn--round"
+          aria-label={COPY.settings}
+          data-testid="account-settings-button"
+        >
+          <UiIcon name="settings-gear" size="md" />
+        </Link>
+      }
+      actions={
+        identity ? (
+          <ButtonLink href={`/u/${identity.handle}/edit`} size="sm" variant="secondary">
+            {COPY.editProfile}
+          </ButtonLink>
+        ) : (
+          <ButtonLink href="/u/me/edit" size="sm" variant="primary" data-testid="profile-claim-handle">
             {COPY.claimHandle}
           </ButtonLink>
-          <p className="nf-pf-claim__note">{COPY.claimHandleNote}</p>
-        </div>
-      )}
-
+        )
+      }
+    >
+      {!identity ? <p className="nf-pf-claim__note">{COPY.claimHandleNote}</p> : null}
+      {badges}
       {error && (
         <p role="alert" className="nf-pf-error">
           {error}
         </p>
       )}
-
-      {/* The cover's picker. `50E032EA` draws nothing on the cover but back
-          and settings, so the control that opens this is the "Cover photo" row
-          under the belongings (`COVER_INPUT_ID`), not a third square here. */}
+      {/* The cover's picker opens from the "Cover photo" row under the
+          belongings (`COVER_INPUT_ID`), not from a third control here. */}
       <input
         ref={coverInput}
         id={COVER_INPUT_ID}
@@ -400,6 +310,6 @@ export function AccountHero({
           if (file) void onAvatar(file);
         }}
       />
-    </header>
+    </IdentityHeader>
   );
 }

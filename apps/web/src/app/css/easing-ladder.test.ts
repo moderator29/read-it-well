@@ -33,7 +33,7 @@ const LINEAR: Record<string, [number, string]> = {
   "app/css/controls.css": [1, "the skeleton's sweep crosses at one speed (four passes, then still)"],
   "app/social.css": [1, "the social slab's skeleton sweep, the same as controls.css"],
   "app/css/detail-m.css": [3, "scroll-driven timelines: scroll is the clock and the finger is the easing"],
-  "app/css/feed-m.css": [2, "scroll-driven timelines, as detail-m.css"],
+  "app/css/feed-m.css": [3, "scroll-driven timelines (the post, its parts, the parallax), as detail-m.css"],
   "app/css/chrome.css": [1, "the large title's fold is a scroll-driven timeline over the first 56px"],
   "app/css/landing.css": [1, "the hero parallax is a scroll-driven timeline"],
   "app/css/landing-rooms.css": [3, "the steps' draw is a view timeline (scroll is the clock)"],
