@@ -44,12 +44,11 @@ describe("the dock pill springs on drift at 240ms", () => {
   /* From the slot rule through the pill rule (about 3.5KB of the dock block). */
   const dock = shell.slice(from, from + 3500);
 
-  it("the slot, its word and its pill all travel on drift at the base rung", () => {
-    /* flex-grow (the slot), the word's slide, the glyph-and-word body's slide
-       (round 5: transform, where max-width and margin used to grow), and the
-       pill, which is the next rule after the body's. */
+  it("the slot and its pill travel on drift at the base rung", () => {
+    /* flex-grow (the slot) and the pill. The chosen word and the body's slide
+       went with the word (7 October: the dock is icon only). */
     const through = shell.slice(from, shell.indexOf('.nf-tabbar :is(.nf-tab__link[aria-current="page"], .nf-tab__link[data-on])::after', from));
-    expect(through.match(/var\(--nf-duration-base\) var\(--nf-ease-spring\)/g)).toHaveLength(4);
+    expect(through.match(/var\(--nf-duration-base\) var\(--nf-ease-spring\)/g)).toHaveLength(2);
     expect(through).not.toMatch(/--nf-duration-slow\) var\(--nf-ease-spring\)/);
     expect(dock).not.toMatch(/(?:max-width|margin) var\(--nf-duration-base\)/);
   });
@@ -201,11 +200,10 @@ describe("principle 10, the marketing and loading loops (Session 3, C1)", () => 
     }
   });
 
-  it("the dock's chosen label stays nowrap while it animates and wraps only once settled", () => {
+  it("the dock draws no chosen label at all (7 October: icon only), so no word animates", () => {
     const shell = strip(css("shell-m.css"));
-    expect(shell).toContain("white-space 0s linear;");
-    expect(shell).toContain("transition-behavior: normal, normal, normal, normal, allow-discrete;");
-    expect(shell).toContain("transition-delay: 60ms, 0s, 0s, 0s, var(--nf-duration-base);");
-    expect(shell).toMatch(/white-space: normal;\s*text-wrap: balance;/);
+    expect(shell).toMatch(/\.nf-tabbar \.nf-tab__label \{\s*display: none;\s*\}/);
+    expect(shell).not.toMatch(/nf-tab__link\[data-on\] \.nf-tab__label \{[^}]*opacity: 1/);
+    expect(shell).not.toContain("transition-delay: 60ms, 0s, 0s, 0s, var(--nf-duration-base);");
   });
 });
