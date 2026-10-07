@@ -213,7 +213,7 @@
   }
   .nf-pring__of {
     font-size: var(--nf-text-caption);
-    font-weight: 500;
+    font-weight: 600;
     color: var(--nf-content-muted);
   }
 

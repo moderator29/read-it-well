@@ -138,7 +138,7 @@
   .nf-moment__title {
     font-family: var(--nf-font-display);
     font-size: var(--nf-text-h2);
-    font-weight: 650;
+    font-weight: 700;
     line-height: 1.15;
     letter-spacing: -0.02em;
     color: var(--nf-content-primary);
@@ -230,7 +230,7 @@
   .nf-explain__title {
     font-family: var(--nf-font-display);
     font-size: var(--nf-text-h2);
-    font-weight: 650;
+    font-weight: 700;
     letter-spacing: -0.02em;
     color: var(--nf-content-primary);
   }
@@ -424,7 +424,7 @@
   }
   .nf-frag__label {
     font-size: var(--nf-text-caption);
-    font-weight: 500;
+    font-weight: 600;
     color: var(--nf-content-secondary);
   }
   .nf-frag__row {
