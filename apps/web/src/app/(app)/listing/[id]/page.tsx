@@ -63,6 +63,7 @@ import { OwnerAvailabilityLine, PropertyOffers } from "@/components/app/listing/
 import { ExactPlace } from "@/components/app/listing/ExactPlace";
 import { ListingCodeRow } from "@/components/app/listing/ListingCode";
 import { ListingMoveIn } from "@/components/app/listing/ListingMoveIn";
+import { SimilarListings } from "@/components/app/listing/SimilarListings";
 import { readPayeeRecords } from "@/lib/after-gate/payee";
 import { LastLetLine } from "@/components/app/listing/LastLetLine";
 import { ReplyTimeLine } from "@/components/app/listing/ReplyTimeLine";
@@ -1131,7 +1132,17 @@ export default async function ListingDetailPage({
                     divided
                     className="scroll-mt-16"
                   >
-                    <ListingMoveIn listing={listing} locale={locale} t={t} records={await readPayeeRecords(listing.id)} />
+                    <ListingMoveIn
+                      listing={listing}
+                      locale={locale}
+                      t={t}
+                      records={await readPayeeRecords(listing.id)}
+                      actions={{
+                        ledgerHref: `/rent/move-in/${listing.id}`,
+                        messageHref,
+                        shareTitle: publicListingTitle(listing),
+                      }}
+                    />
                     {/* B8: the door to Price Check, drawn only where it would answer. */}
                     <PriceContextRow listing={listing} locale={locale} />
                     {/* V-38: what this flat was last let at through Vallo. Nothing when there is no such let. */}
@@ -1424,6 +1435,22 @@ export default async function ListingDetailPage({
                     />
                   </Section>
                 </Reveal>
+
+                {/* More like this: the one card on the home shelf, real rows
+                    from the same market and area, streamed so it never holds
+                    the page, and absent when there is nothing to show. */}
+                {(isRental || isSale) && (
+                  <Suspense fallback={null}>
+                    <SimilarListings
+                      listing={listing}
+                      locale={locale}
+                      t={t}
+                      savedIds={new Set(savedListings.map((entry) => entry.listing.id))}
+                      title={sx.similar.title}
+                      seeAllLabel={sx.similar.seeAll}
+                    />
+                  </Suspense>
+                )}
 
                 {/* ------------------------------- the long tail, one tap */}
                 {/*

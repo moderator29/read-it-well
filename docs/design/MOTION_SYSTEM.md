@@ -200,6 +200,16 @@ did not.** An optimistic animation on a failed payment is a lie told in motion.
 
 ---
 
+## 2b. Principles adopted on 7 October 2026 (the founder's motion script)
+
+One focal action at a time; everything else holds still. Objects stay alive across
+screens and transform rather than being replaced: a card becomes the page it opens, a
+figure becomes the receipt's figure, a pin becomes the map. Easing settles without
+bounce. Motion carries meaning (grouping, order, cause, scale), never decoration. The
+reduced-motion cut keeps the same sequence of ideas. Colour is never the only signal; no
+flashes. Source: `docs/design/references/2026-10-07/README.md`, "The motion explainer
+prompt".
+
 ## 3. The startup sequence
 
 > **Superseded on 7 October 2026 (D68c, D71).** The logo opening described below is

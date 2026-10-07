@@ -11,7 +11,10 @@ import { ListingAgentCard } from "@/components/app/listing/ListingAgentCard";
 import { ListingAbout } from "@/components/app/listing/ListingAbout";
 import { ListingStickyBar } from "@/components/app/listing/ListingStickyBar";
 import { PhotoViewerProvider } from "@/components/app/listing/PhotoViewer";
-import { RENTAL } from "../fixtures";
+import { RENTAL, SHELF } from "../fixtures";
+import { FeaturedBand } from "@/components/app/home/FeaturedBand";
+import { ListingCard } from "@/components/app/ListingCard";
+import { forListingCard } from "@/lib/i18n/slice";
 
 /**
  * /listing/[id] on a tenancy, composed from the same components the route
@@ -87,7 +90,12 @@ export default async function ListingPreview() {
                 like the day `listings.listing_role` lands.
             */}
             <Section title={t.moveIn.title} description={t.moveIn.lede} divided>
-              <ListingMoveIn listing={listing} locale={locale} t={t} />
+              <ListingMoveIn
+                listing={listing}
+                locale={locale}
+                t={t}
+                actions={{ ledgerHref: "/preview/f3/move-in", messageHref, shareTitle: listing.title }}
+              />
             </Section>
 
             <Section title="The same listing, declared by its owner" divided>
@@ -152,6 +160,23 @@ export default async function ListingPreview() {
             <Section id="reviews" title={t.catalogue.detail.reviews} divided className="scroll-mt-16">
               <p className={TYPE.rowMeta}>No reviews yet.</p>
             </Section>
+
+            {/* The route streams `SimilarListings` (a catalogue read); the
+                harness draws the same band and card from the shelf fixture. */}
+            <FeaturedBand
+              title={t.experienceDetail.similar.title}
+              seeAllHref="/preview/f3/search"
+              seeAllLabel={t.experienceDetail.similar.seeAll}
+              count={SHELF.length}
+              testId="similar-listings"
+              empty={null}
+            >
+              {SHELF.filter((row) => row.id !== listing.id).slice(0, 6).map((row, index) => (
+                <li key={row.id} className="nf-feature-row__item">
+                  <ListingCard listing={row} locale={locale} t={forListingCard(t)} index={index} />
+                </li>
+              ))}
+            </FeaturedBand>
           </Stack>
         </div>
         <ListingStickyBar

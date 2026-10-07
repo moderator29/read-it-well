@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { brandArtwork, type TieredObjectName } from "./object-assets";
+import { brandArtwork, renderArtwork, type TieredObjectName } from "./object-assets";
 
 /**
  * Vallo brand icon.
@@ -326,7 +326,12 @@ const GLASS_OBJECTS: ReadonlySet<string> = new Set(BRAND_ICONS);
  * (`brandArtwork` in `object-assets.ts`). A tiered object is drawn only for a
  * name the glass pack does not have (`padlock`, `prepaid-meter`).
  */
-function resolveArtwork(name: BrandIconProp) {
+function resolveArtwork(name: BrandIconProp, preferRender = false) {
+  /* A row that sets objects side by side may ask for the render where one
+     exists, so one glass object does not sit among renders (`preferRender`).
+     Without the ask, nothing below changes. */
+  const render = preferRender ? renderArtwork(name) : undefined;
+  if (render) return render;
   const object = resolveObject(name);
   return brandArtwork(name, object, GLASS_OBJECTS.has(object));
 }
@@ -341,6 +346,7 @@ export function BrandIcon({
   loading,
   tile = false,
   state,
+  preferRender = false,
   className,
 }: {
   name: BrandIconProp;
@@ -400,10 +406,18 @@ export function BrandIcon({
    * motion on a money surface and a design decision rather than a cleanup.
    */
   state?: "alert" | "confirmed";
+  /**
+   * Draw the accepted 3D render rather than the glass original, where the
+   * object has both (7 October 2026). The glass original still wins by
+   * default. A row of space types mixed the two: Apartments and Land drew
+   * glass beside four renders, and the founder asked for one style in the
+   * row. Off by default, so every other call site draws what it drew before.
+   */
+  preferRender?: boolean;
   className?: string;
 }) {
   const decorative = !label;
-  const { src, material, object } = resolveArtwork(name);
+  const { src, material, object } = resolveArtwork(name, preferRender);
 
   /*
    * `fill` here means "fill the wrapper box", implemented with intrinsic
