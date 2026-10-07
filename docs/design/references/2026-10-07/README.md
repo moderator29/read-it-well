@@ -36,3 +36,29 @@ make it lovely and unified like platinum gold".
 | A savings app on near black: "Good Morning, Maya" with a scalloped badge avatar, a Week / Today / Month segmented pill, "Total amount saved $145.00" huge, a **Saving Streak** and Goal Progress pair with a flame and a target, then a sheet rising with a lit spotlight cone and a 3D illustration (a jar of coins, a piggy bank) over "Manage Your Circle", rows of actions with plus plates and chevrons, a violet "Cancel" capsule; a "Challenge Comparison" table of two people's stats | Greetings by name, the range pill, the streak and goal pair, the spotlight sheet with a 3D object, comparison tables | Rewards, referrals and streaks, the wallet home, invite |
 | A success screen: a green scalloped badge with a heart, sparkles around it, "Successful!" small in green, "You sent $1,000.00 to Geraldine..." as the title, "This transaction takes less than 10mins", a "loving your experience?" card with a 3D star and a rating link, a black "Done" capsule, "Share receipt" under it | The scalloped badge, sparkles, the plain sentence of what happened and when it lands | Every success: sent, withdrawn, booked, paid |
 | The amount entry (as `2026-10-05/IMG_7027.png`): a huge figure with a coloured sign, "Who's it for?", chips, a calm keypad, swipe to confirm | | Withdraw, Send, Add money |
+
+## The evening set (saved)
+
+"What a world of deep references... streak all the images matters... make everything
+clean sharp frontend tools features settings nav etc all clean sharp!"
+
+| File | What it is | Governs |
+| --- | --- | --- |
+| `GOVERNING-plasma-tier-detail-core.jpg` | A tier page: a Lite / Core / Platinum segmented pill at the top, the tier's metal card floating with a long soft shadow over a tinted fog, the tier name with its mark, a two-line promise, the price line in grey; a three-stat strip (3% / 5% / 1%) split by hairlines, then a card of benefit rows (bold claim, muted reason, a round coloured badge on the right), and "Continue with Core" as a black capsule with a heavy floor shadow | Pro plans, tiers, rewards levels, any plan comparison |
+| `GOVERNING-plasma-spendable-select-tier.jpg` | The light wallet home: avatar, "Spendable", a huge "$0.00", a small pill with a ring glyph and a secondary figure, a full-width white "Deposit funds" capsule, a swipeable offer banner with dots, then a stage card where three metal cards fan in depth over a "Select your tier" black pill; a floating dock | The wallet home and the path to Pro |
+| `onboarding-splash-photo-signin-journey.jpg` | Three screens: a near-white splash with the mark over a huge soft ghosted swirl; a full-bleed photograph with "Today is the day, you chose health." in large light type and white capsules "Continue with Apple", "Continue with Google", a dark glass "Continue with Email", legal in tiny type; a home with "Your journey" as a soft glowing arc with day markers, two quick-action chips, and "Your Next Step" as a photo card with a coral "Start" pill | Sign up and sign in (the photo and stacked capsules), Get Started, a member's journey on home |
+| `invite-ready-pill.jpg` | One white capsule with a soft shadow: "Your Invite Is Ready" and a round green button with a down arrow; the interaction animates into the ready state | Invite friends, any ready-to-collect moment |
+| `streak-earned-badge.jpg` | A celebration: an orange field with radiating rays, a pentagon medal with a flame and a ribbon, sparkles, "4 Week Streak Earned." in a strong title, one line, a black "Share Streak" capsule with a share glyph, "Back to Home"; the badge bursts on tap | Streak milestones, tier ups, first booking, first payout: every earned moment |
+
+## The late-evening set (saved)
+
+"Clean spaces, no jam-packed inner pages... think of recommendations to unify the
+platform". Some of these are frames from animations: take the concept and the motion,
+in Vallo's own style.
+
+| File | What it is | Governs |
+| --- | --- | --- |
+| `command-search-palette.jpg` | A command palette: one white card with a large search field and a hairline under it, results as rows with a small glyph tile, the highlighted row on a soft grey fill, a return-key hint on the right; it animates open and the list filters as you type | Search everywhere: the search field morphing into results, the assistant, admin's quick jump |
+| `before-after-collection-shelves.jpg` | Before and after of a collection screen. After: a deep blue-to-black gradient header, avatar left, title centred, a bell in a glass circle, "Estimated value" label over a huge figure with "View breakdown >" beside it, a segmented All / New / Used with search and filter icons, and each item as **a shelf**: a framed square tile for the thumbnail, name and code, the amount right aligned, a condition word in green, each row sitting on a lit ledge with depth | Saved, a lister's listings, the agent's portfolio, receipts and payments lists: lists that feel like objects on shelves, not rows of text |
+| `status-tracking-timeline.jpg` | A tracking screen: back and more buttons in circles, title and a mono reference under it, a row of status chips (a yellow "Pending" dot pill, a person chip with initials, a provider chip, a date chip), a segmented tab bar with a black selected tab, a **status card** in a bright yellow frame ("Pending Payer Review", submitted time, then two cells: Expected response 1 to 3 business days, Next action No action required), a **timeline** with dates on the left, coloured round glyph nodes on a black spine, title and muted detail per step, and a floating bottom bar with a chat circle and a black "Check status now" capsule | **Following a deal:** an agreement, an inspection, a booking, a withdrawal, a verification, a dispute. Always: where it is, what happens next, how long, and what (if anything) you must do |
+| `notification-stack-onboarding.jpg` | As PREMIUM-STANDARD reference 1 | Notifications |
