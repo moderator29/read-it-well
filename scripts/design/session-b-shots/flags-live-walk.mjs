@@ -6,7 +6,8 @@
  *
  *   node scripts/design/session-b-shots/flags-live-walk.mjs https://www.vallospaces.com <out-dir> <group>
  *
- * Groups: 1 (listing_board, commute_by_the_clock, neighbours_account, show_me).
+ * Groups: 1 (listing_board, commute_by_the_clock, neighbours_account, show_me);
+ *         2 (room_bookings, restaurant_deposits).
  */
 import { chromium } from "playwright-core";
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -55,6 +56,27 @@ if (group === "1") {
   const r = await page.goto(`${base}/s/VL-000000`, { waitUntil: "networkidle" });
   await page.screenshot({ path: `${out}/g1-board-door.png` });
   record("board door answers", (r?.status() ?? 500) < 500, `status ${r?.status()}`, "g1-board-door.png");
+}
+
+if (group === "2") {
+  // Room bookings and restaurant deposits: the stays list, a stay page and a
+  // restaurant page draw with the switches on. Read only: nothing is booked.
+  for (const [name, path, link] of [
+    ["stays", "/stays", 'a[href^="/stay/"]'],
+    ["restaurants", "/restaurants", 'a[href^="/restaurant/"]'],
+  ]) {
+    const r = await page.goto(`${base}${path}`, { waitUntil: "networkidle" });
+    await page.screenshot({ path: `${out}/g2-${name}.png`, fullPage: true });
+    record(`${name} list answers`, (r?.status() ?? 500) < 500, `status ${r?.status()}`, `g2-${name}.png`);
+    const href = await page.locator(link).first().getAttribute("href").catch(() => null);
+    if (!href) {
+      record(`${name} detail`, true, "no place listed to open");
+      continue;
+    }
+    const d = await page.goto(`${base}${href}`, { waitUntil: "networkidle" });
+    await page.screenshot({ path: `${out}/g2-${name}-detail.png`, fullPage: true });
+    record(`${name} detail answers`, (d?.status() ?? 500) < 500, `${href} status ${d?.status()}`, `g2-${name}-detail.png`);
+  }
 }
 
 record("no page errors", errors.length === 0, errors.length ? errors.join(" | ") : "none");

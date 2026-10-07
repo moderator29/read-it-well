@@ -74,8 +74,9 @@ connector here: they write and roll back, and that outlasts its 60-second limit.
 | When (UTC) | Switches | Checked |
 | --- | --- | --- |
 | 7 Oct 15:24 | `listing_board`, `commute_by_the_clock`, `neighbours_account`, `show_me` | Code already on main. Audited by the `feature_flags` trigger. Read uncached by every visitor (select policy is open), so production sees them at once. Walked signed in as the QA member against production (`scripts/design/session-b-shots/flags-live-walk.mjs`, read-only): sign-in fine, the board door answers 200, no page errors. Nothing new is visible yet: all four hide on example listings by design, and live has no real published listing (64 examples, 1 draft). They show on the first real rental or sale. |
+| 7 Oct 17:41 | `room_bookings`, `restaurant_deposits` | Turned on once their own live probes (room-bookings, d75a) passed in CI run 969; the one probe still red there (new-a1-03) is about reviews and was fixed in the next push. Live has no real hotel, restaurant or deposit rule yet (0 of each), and example rooms are refused by the database (`is_demo` in the room price check) and the app. Walked signed in on production, read-only: stays list, a stay, restaurants list, a restaurant all 200, no page errors; the example hotel shows "not taking bookings on Vallo" with no pay button. |
 
-Next: group 2 (`room_bookings`, `stays_instant_pay`, `restaurant_deposits`) after the main deploy carries their code; `stays_instant_pay` also waits for the d73a sweep. The old `wallet` key is a retired custody switch the database refuses to turn on; the balance runs on the b6 rail's own switch.
+Next: `stays_instant_pay` waits for the d73a sweep (SQL editor); then group 3 (`landlord_line`, `broadcast_model`). The old `wallet` key is a retired custody switch the database refuses to turn on; the balance runs on the b6 rail's own switch.
 
 ## 0e. On main (7 October, evening)
 
