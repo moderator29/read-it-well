@@ -17,6 +17,7 @@ export default function AppTermsPage() {
       sections={TERMS_SECTIONS}
       otherHref="/legal/privacy"
       otherLabel="Privacy policy"
+      also={{ href: "/legal/disclaimer", label: "Disclaimer" }}
     />
   );
 }
