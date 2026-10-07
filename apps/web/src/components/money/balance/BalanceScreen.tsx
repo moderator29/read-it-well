@@ -90,6 +90,8 @@ export function BalanceScreen({
   const router = useRouter();
   const [sheet, setSheet] = useState<"add" | "withdraw" | "send" | null>(null);
   const [opened, setOpened] = useState<MovementView | null>(null);
+  /* D76's hide toggle: for this visit only, never stored. */
+  const [hidden, setHidden] = useState(false);
   const refresh = () => router.refresh();
   const canMove = live && figures !== null;
   const watching = movements.find((m) => isOpenMovement(m.status));
@@ -102,7 +104,29 @@ export function BalanceScreen({
           id="nf-balance-available"
           testId="balance-card"
           caption={FIGURE_LABEL.available}
-          figure={<MoneyFigure minor={figures.available.minor} locale={locale} currency={figures.currency} size="hero" testId="balance-available" />}
+          corner={
+            <button
+              type="button"
+              className="nf-mcard__eye"
+              aria-pressed={hidden}
+              aria-label={hidden ? "Show balance" : "Hide balance"}
+              onClick={() => setHidden((h) => !h)}
+              data-testid="balance-hide"
+            >
+              <UiIcon name={hidden ? "eye-off" : "eye"} size={20} />
+            </button>
+          }
+          figure={
+            hidden ? (
+              <span className="nf-mfig nf-mfig--hero nf-mfig--hidden" data-testid="balance-available">
+                <span className="nf-mfig__cur">₦</span>
+                <span aria-hidden="true">••••••</span>
+                <span className="sr-only">Balance hidden</span>
+              </span>
+            ) : (
+              <MoneyFigure minor={figures.available.minor} locale={locale} currency={figures.currency} size="hero" testId="balance-available" />
+            )
+          }
           sub={FIGURE_HINT.available}
           foot={
             <>
@@ -110,7 +134,11 @@ export function BalanceScreen({
                 <MomentDot tone={live ? "done" : "waiting"} size="sm" />
                 {confirmedAgo(availableAt, now)}
               </span>
-              <span>Held in your name</span>
+              {/* D76: Add money stays on the balance card. */}
+              <button type="button" className="nf-mcard__add" disabled={!canMove} onClick={() => setSheet("add")} data-testid="balance-action-add">
+                <UiIcon name="plus" size={16} />
+                {ACTION_LABEL.add}
+              </button>
             </>
           }
         />
@@ -129,17 +157,6 @@ export function BalanceScreen({
           <span>{STALE_NOTE}</span>
         </p>
       ) : null}
-
-      <div className="nf-mactions" role="group" aria-label="Move money">
-        {(["add", "withdraw", "send"] as const).map((key) => (
-          <button key={key} type="button" className="nf-maction" disabled={!canMove} onClick={() => setSheet(key)} data-testid={`balance-action-${key}`}>
-            <span className="nf-maction__plate" aria-hidden="true">
-              <UiIcon name={ACTION_ICON[key]} size={22} />
-            </span>
-            <span className="nf-maction__label">{ACTION_LABEL[key]}</span>
-          </button>
-        ))}
-      </div>
 
       {watching ? (
         <section aria-label="Still moving" className="nf-moving-wrap">
@@ -214,6 +231,20 @@ export function BalanceScreen({
           ))}
         </ListGroup>
       )}
+
+      {/* D76: the balance's own bar holds exactly two actions, Withdraw and
+          Transfer, pinned to the foot of the screen above the safe area. The
+          app's main dock is untouched. */}
+      <div className="nf-wallet-bar" role="group" aria-label="Move money">
+        <button type="button" className="nf-wallet-bar__btn" data-tone="primary" disabled={!canMove} onClick={() => setSheet("withdraw")} data-testid="balance-action-withdraw">
+          <UiIcon name={ACTION_ICON.withdraw} size={20} />
+          {ACTION_LABEL.withdraw}
+        </button>
+        <button type="button" className="nf-wallet-bar__btn" disabled={!canMove} onClick={() => setSheet("send")} data-testid="balance-action-send">
+          <UiIcon name={ACTION_ICON.send} size={20} />
+          Transfer
+        </button>
+      </div>
 
       {figures ? (
         <>

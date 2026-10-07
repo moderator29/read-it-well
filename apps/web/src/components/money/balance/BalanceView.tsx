@@ -49,7 +49,7 @@ export function BalanceView({ read, locale }: { read: Exclude<BalanceRead, { sta
                   <UiIcon name={row.icon} size={ICON_PLATE_GLYPH.sm} />
                 </IconPlate>
               }
-              title={ACTION_LABEL[row.key]}
+              title={row.key === "send" ? "Transfer" : ACTION_LABEL[row.key]}
               sub={row.sub}
             />
           ))}

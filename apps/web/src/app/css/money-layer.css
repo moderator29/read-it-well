@@ -444,8 +444,9 @@
     gap: var(--nf-space-md);
     width: 100%;
     max-width: 28rem;
-    min-height: 12.5rem;
-    aspect-ratio: 1.586;
+    /* A bank card's proportion as the least it is; the content may make
+       it taller (text zoom, a long figure), never clip it. */
+    min-height: min(13.5rem, calc((100vw - 2rem) / 1.586));
     margin-inline: auto;
     padding: var(--nf-space-lg) var(--nf-space-lg) var(--nf-space-md);
     border-radius: var(--nf-radius-card);
@@ -586,9 +587,8 @@
     font-size: var(--nf-text-label);
     font-weight: 600;
     line-height: 1.2;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    white-space: nowrap;
+    letter-spacing: 0.01em;
+    text-align: end;
     color: var(--nf-content-secondary);
   }
   .nf-mword__dot {
@@ -901,55 +901,6 @@
   .nf-mfig--in {
     color: var(--nf-state-success);
   }
-  .nf-mactions {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--nf-space-sm);
-    max-width: 28rem;
-    margin-inline: auto;
-  }
-  .nf-maction {
-    display: grid;
-    justify-items: center;
-    gap: var(--nf-space-xs);
-    min-height: 2.75rem;
-    padding-block: var(--nf-space-2xs);
-    color: var(--nf-content-primary);
-    -webkit-tap-highlight-color: transparent;
-  }
-  .nf-maction__plate {
-    display: grid;
-    place-items: center;
-    width: 3.5rem;
-    height: 3.5rem;
-    border-radius: var(--nf-radius-control);
-    background: var(--nf-night-glass-raised-fill);
-    border: var(--nf-border-width) solid var(--nf-night-glass-raised-edge);
-    box-shadow: var(--nf-night-glass-raised-shadow);
-    color: var(--nf-brand-primary);
-    transition: transform var(--nf-duration-fast) var(--nf-ease-press);
-  }
-  .nf-maction:active:not(:disabled) .nf-maction__plate {
-    transform: scale(0.95);
-  }
-  .nf-maction:focus-visible {
-    outline: none;
-  }
-  .nf-maction:focus-visible .nf-maction__plate {
-    outline: 2px solid var(--nf-brand-primary);
-    outline-offset: 2px;
-  }
-  .nf-maction__label {
-    font-size: var(--nf-text-body-sm);
-    font-weight: 600;
-  }
-  .nf-maction:disabled {
-    color: var(--nf-content-muted);
-  }
-  .nf-maction:disabled .nf-maction__plate {
-    opacity: 0.5;
-    color: var(--nf-content-muted);
-  }
   .nf-moving-wrap {
     display: grid;
     gap: var(--nf-space-sm);
@@ -1009,6 +960,10 @@
   }
   .nf-list-row__end .nf-mword {
     justify-self: end;
+    max-width: 9.5rem;
+  }
+  .nf-moving__end .nf-mword {
+    max-width: 8.5rem;
   }
 
   /* -------------------------------------------------- the money head
@@ -1326,5 +1281,86 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(5.5rem, 1fr));
     gap: var(--nf-space-sm);
+  }
+
+  /* ------------------------------------------- the balance's bar (D76)
+     Exactly two actions, Withdraw and Transfer, on smoked glass pinned to
+     the foot of the screen above the safe area; Add money lives on the card.
+     The hide toggle sits in the card's corner. */
+  .nf-mcard__eye {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    margin: calc(-1 * var(--nf-space-xs)) calc(-1 * var(--nf-space-xs)) 0 0;
+    border-radius: var(--nf-radius-circle);
+    background: color-mix(in oklab, var(--nf-platinum-ink) 7%, transparent);
+    color: var(--nf-platinum-ink);
+  }
+  .nf-mcard__eye:focus-visible,
+  .nf-mcard__add:focus-visible {
+    outline: 2px solid var(--nf-brand-primary);
+    outline-offset: 2px;
+  }
+  .nf-mcard__add {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    min-height: 2.75rem;
+    padding-inline: var(--nf-space-md);
+    border-radius: var(--nf-radius-control);
+    background: var(--nf-platinum-ink);
+    color: var(--nf-platinum-hi);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+  }
+  .nf-mcard__add:disabled {
+    opacity: 0.45;
+  }
+  .nf-mfig--hidden {
+    letter-spacing: 0.12em;
+  }
+  .nf-wallet-bar {
+    position: sticky;
+    bottom: calc(var(--nf-space-sm) + env(safe-area-inset-bottom, 0px));
+    z-index: 5;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-xs);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-smoked-glass-fill);
+    border: var(--nf-border-width) solid var(--nf-smoked-glass-edge);
+    -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    box-shadow: var(--nf-glass-shadow-lifted);
+  }
+  .nf-wallet-bar__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--nf-space-xs);
+    min-height: 3.25rem;
+    border-radius: var(--nf-radius-control);
+    background: color-mix(in oklab, var(--nf-platinum-hi) 10%, transparent);
+    color: var(--nf-platinum-hi);
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    transition: transform var(--nf-duration-fast) var(--nf-ease-press);
+  }
+  .nf-wallet-bar__btn[data-tone="primary"] {
+    background: var(--nf-platinum-fill);
+    color: var(--nf-platinum-ink);
+    box-shadow: 0 0 0 1px var(--nf-platinum-edge) inset;
+  }
+  .nf-wallet-bar__btn:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+  .nf-wallet-bar__btn:disabled {
+    opacity: 0.45;
+  }
+  .nf-wallet-bar__btn:focus-visible {
+    outline: 2px solid var(--nf-brand-primary);
+    outline-offset: 2px;
   }
 }

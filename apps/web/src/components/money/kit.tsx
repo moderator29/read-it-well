@@ -114,6 +114,7 @@ export function MoneyCard({
   sub,
   foot,
   art,
+  corner,
   id,
   className,
   testId,
@@ -123,6 +124,8 @@ export function MoneyCard({
   sub?: ReactNode;
   foot?: ReactNode;
   art?: ReactNode;
+  /** A control in the card's top corner (the balance's hide toggle), in place of the chip. */
+  corner?: ReactNode;
   id?: string;
   className?: string;
   testId?: string;
@@ -135,7 +138,7 @@ export function MoneyCard({
           <LogoMark size={22} />
           <span className="nf-mcard__word">VALLO</span>
         </span>
-        {art ? <span className="nf-mcard__art">{art}</span> : <span className="nf-mcard__chip" aria-hidden="true" />}
+        {corner ? corner : art ? <span className="nf-mcard__art">{art}</span> : <span className="nf-mcard__chip" aria-hidden="true" />}
       </div>
       <div className="nf-mcard__body">
         <p id={id} className="nf-mcard__caption">

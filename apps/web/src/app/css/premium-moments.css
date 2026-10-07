@@ -663,4 +663,20 @@
   :root[data-save-data="on"] .nf-sent__chip {
     display: none;
   }
+
+  /* D76's "Successful" pill over a done moment's title. */
+  .nf-moment__pill {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--nf-space-2xs) var(--nf-space-sm);
+    border-radius: var(--nf-radius-control);
+    background: var(--nf-state-success-surface);
+    font-size: var(--nf-text-caption);
+    font-weight: 700;
+    color: var(--nf-state-success);
+  }
+  .nf-moment__title .nf-mfig {
+    font-size: 1em;
+    letter-spacing: -0.02em;
+  }
 }

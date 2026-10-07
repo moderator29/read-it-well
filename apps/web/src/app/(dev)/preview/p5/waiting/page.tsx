@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { previewHarnessIsOpen } from "@/lib/preview-harness";
-import { WaitingRoom, movementReceipt } from "@/components/money/balance/balance-ui";
+import { WaitingRoom } from "@/components/money/balance/balance-ui";
+import { movementReceipt } from "@/components/money/movement-receipt";
 import { ReceiptActions } from "@/components/money/ReceiptActions";
 import { WAITING } from "../fixtures";
 

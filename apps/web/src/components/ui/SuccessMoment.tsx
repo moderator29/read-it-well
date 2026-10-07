@@ -145,12 +145,15 @@ export function MomentShell({
   line,
   primary,
   secondary,
+  pill,
   as: Heading = "h2",
   children,
   testId,
 }: {
   kind: "paid" | "sent" | "withdrawn" | "earned" | "booked" | "listed" | "verified";
   hero: ReactNode;
+  /** D76's small "Successful" pill over the title, when the record says it is done. */
+  pill?: ReactNode;
   title: ReactNode;
   line?: ReactNode;
   primary?: MomentAction;
@@ -162,6 +165,7 @@ export function MomentShell({
   return (
     <div className="nf-moment nf-moment--family" data-kind={kind} data-testid={testId}>
       <div className="nf-moment__hero">{hero}</div>
+      {pill ? <span className="nf-moment__pill">{pill}</span> : null}
       <Heading className="nf-moment__title">{title}</Heading>
       {line ? <p className="nf-moment__line">{line}</p> : null}
       {children}
@@ -172,6 +176,7 @@ export function MomentShell({
 
 type MemberProps = {
   title: ReactNode;
+  pill?: ReactNode;
   line?: ReactNode;
   primary?: MomentAction;
   secondary?: MomentAction;
@@ -210,8 +215,7 @@ export function SentMoment({ recipient, figure, children, ...rest }: MemberProps
       }
       {...rest}
     >
-      <p className="nf-moment__figure">{figure}</p>
-      <p className="nf-moment__to">To {recipient}</p>
+      {/* The title says it whole (D76: "You sent <amount> to <name>"). */}
       {children}
     </MomentShell>
   );

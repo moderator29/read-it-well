@@ -19,7 +19,8 @@ import {
 import type { MovementView } from "@/lib/money/member-wallet";
 import { REFUSAL } from "@/lib/money/balance-copy";
 import { lastFour } from "@/lib/money/funds";
-import { Breakdown, WaitingRoom, movementReceipt, useWatchedMovement } from "./balance-ui";
+import { Breakdown, WaitingRoom, useWatchedMovement } from "./balance-ui";
+import { movementReceipt } from "../movement-receipt";
 import { ReceiptActions } from "../ReceiptActions";
 
 /**
