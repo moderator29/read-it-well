@@ -59,7 +59,7 @@ export const SLICES = {
      false readings took the settings screen's slice from 137 KB to 47 KB and
      the listing card's from 104 KB to 55 KB. */
   listingCard: ["catalogue", "common", "directHome", "experienceLabels", "interests", "moveIn", "shape", "trustVisible", "units"],
-  stayCard: ["catalogue", "common", "stays"],
+  stayCard: ["catalogue", "common", "stays", "restaurantPage"],
   stayFilterSheet: ["catalogue", "shape", "stayDetail", "stays"],
   priceCheck: ["home", "priceCheck"],
   proofStrip: ["trustVisible"],
