@@ -146,13 +146,20 @@ If you cannot find them, say so and carry on with everything that does not need 
 do not ask anybody to paste a password to you.
 
 ```
-VALLO_TEST_EMAIL_A      VALLO_TEST_PASSWORD_A
-VALLO_TEST_EMAIL_B      VALLO_TEST_PASSWORD_B
+QA_ADMIN_EMAIL      QA_ADMIN_PASSWORD
+QA_MEMBER_EMAIL     QA_MEMBER_PASSWORD
 ```
 
-Two accounts, because almost everything that matters in Vallo has two sides. Account A
-and account B let you walk a whole deal rather than half of one: one lists, one
-enquires; one sends, one receives; one invites, one joins.
+**These names already exist in this repository. Do not invent new ones.**
+`docs/ENVIRONMENT.md` records them as read by specs under `apps/web/tests/` and never
+by the application, and `scripts/design/session-b-shots/admin-live-signed-in.mjs`
+**already signs in with them and takes screenshots**. The harness for the walk below
+is written. It has simply never had credentials.
+
+Two accounts, because almost everything that matters in Vallo has two sides: one
+lists, one enquires; one sends, one receives; one invites, one joins. The admin
+account is also the only way into the admin desks, which is the surface the founder
+personally uses most.
 
 ### The rules for using them
 
