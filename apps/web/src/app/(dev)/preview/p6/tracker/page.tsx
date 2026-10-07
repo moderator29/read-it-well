@@ -64,10 +64,7 @@ export default function PreviewP6Tracker() {
               title={agreementStatusLabel("approved", "stay")}
               tone={agreementStatusTone("approved")}
               since={`Confirmed · ${when(STAY[2]!.at)}`}
-              cells={[
-                { label: "Next step", value: "Paid" },
-                { label: "Your part", value: "Pay 180,000 naira" },
-              ]}
+              cells={[{ label: "Your part", value: "Pay 180,000 naira" }]}
               steps={steps("approved", STAY, true)}
               timelineLabel="Agreement progress"
               glyphs={{ drawn: "file-text", confirmed: "user-check", approved: "verified", paid: "wallet" }}

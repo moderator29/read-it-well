@@ -1,0 +1,33 @@
+/*
+  CONTROLS AS PHYSICAL OBJECTS, ON EVERY SETTINGS PAGE (P6, D74: "settings and
+  notifications: controls as physical objects, a brushed track, domed knobs").
+  The shared `Switch` keeps its own look everywhere else; inside settings the
+  knob is a domed platinum bead lit from the top left, and the track off is a
+  brushed, faintly grained well. On is still the brand light, so on and off
+  read by position, fill and shine together, never by colour alone.
+  Scoped by the wrapper in `src/app/(app)/settings/layout.tsx`; the lead can lift it to the
+  shared Switch if it should be the platform's switch.
+*/
+@layer components {
+  .nf-settings-physical .nf-switch {
+    background:
+      repeating-linear-gradient(90deg, var(--nf-glass-fill) 0 1px, transparent 1px 3px),
+      linear-gradient(to bottom, var(--nf-surface-canvas), var(--nf-surface-elevated));
+    box-shadow:
+      inset 0 1px 2px var(--nf-surface-canvas),
+      inset 0 -1px 0 var(--nf-glass-rim-thin);
+  }
+  .nf-settings-physical .nf-switch[aria-checked="true"] {
+    background:
+      repeating-linear-gradient(90deg, var(--nf-glass-fill) 0 1px, transparent 1px 3px),
+      var(--nf-brand-accent);
+  }
+  .nf-settings-physical .nf-switch__thumb,
+  .nf-settings-physical .nf-switch[aria-checked="true"] .nf-switch__thumb {
+    background: radial-gradient(circle at 35% 28%, var(--nf-platinum-hi) 0%, var(--nf-platinum-mid) 58%, var(--nf-platinum-low) 100%);
+    box-shadow:
+      0 2px 4px var(--nf-surface-canvas),
+      inset 0 -1px 1px var(--nf-platinum-low),
+      inset 0 1px 1px var(--nf-platinum-edge);
+  }
+}
