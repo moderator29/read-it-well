@@ -92,3 +92,40 @@ tag a place or area (the map pin, from Vallo's own areas), ask a question to loc
 poll scoped to an area), share a price check result, mark as a review of a place you
 stayed or rented (needs a real booking), and audience (everyone, followers, my area).
 Only tools that work end to end ship; the rest are not shown.
+
+## The travel-app set and the motion script (described; sent in chat)
+
+**Travel AI assistant animation (four frames).** A pale lilac-to-blue field. Home:
+avatar with "Location, New York", bell and map circles, "Hi, Alex" with a wave, an AI
+search pill, filter chips, "Popular with trailgoers" with **a swipeable card stack**: the
+front card a tall photograph with a heart circle top left and an arrow circle top right,
+the cards behind it peeking at both edges, and at the bottom of the photo a frosted
+inset with the name, the route ("Namche Bazaar > Lukla"), a star rating and a distance,
+beside **a small map tile with a pin and a dotted route**. Swiping throws the card away
+and the next rises. A floating glass dock of small outline icons with one filled circle.
+Detail: the photo full-bleed at the top with the name over it, then a white sheet with a
+route map card, three stat tiles (length, elevation, difficulty), two media tiles
+(Preview with a play glyph, Photo tour), and two capsules (Download, Map). Map mode: a
+clean light map, a pin, a heading cone, a distance scale, a stats grid (time, distance,
+elevation, remaining, pace, speed), an elevation chart, two capsules.
+**Take:** the featured listings on home as a swipeable stack (not a scroll row), each
+card with a heart, an open arrow, a star rating and a small map tile; the listing's
+"getting there" as a map card with stat tiles; Preview and Photo tour tiles; a Map
+sub-tab inside a listing; the same on the Stays side. On search result cards the heart
+and the menu glyph are **smaller** (the founder: "before clicking it's too big").
+Sharing a listing into a chat uses this card as its preview.
+
+**The motion explainer prompt (a published motion-design method).** Principles to adopt
+for every motion on the platform: one focal action at a time, everything else holds
+still; **keep objects alive across scenes and transform them instead of replacing
+them** (a dot becomes a node, a label becomes an axis: a card becomes the page, a
+figure becomes the receipt figure); custom easing that settles without bounce; the
+camera reframes between ideas and stays still while text is read; motion carries
+meaning (grouping, order, cause, scale); restraint is taste; a reduced-motion cut keeps
+the same sequence of ideas; colour is never the only signal; no flashes.
+
+**Who to follow and leaderboards** (X's "Who to follow"; a leaderboard with a 3D podium
+under spotlights, the top three as rounded-square portraits over 1, 2, 3 plinths, a
+month subtitle, a City / World toggle pill on the podium, then ranks 4+ as rows with a
+hexagon rank badge, avatar, name, tier word and a figure with a small unit, and a
+floating "You, 453" pill showing your own rank).
