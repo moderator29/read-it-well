@@ -18,7 +18,7 @@ declare
   guest constant uuid := '957b3bd2-cce3-425d-bba9-5cd876ca3d62';
   host  constant uuid := '03f3dd52-ea28-4852-9abe-e5b0a67c2a43';
   biz uuid; sw uuid; res uuid; res2 uuid; res3 uuid;
-  q jsonb; r jsonb; ref text; ref2 text; n int;
+  q jsonb; r jsonb; ref text; ref2 text; n int; dep uuid;
   at timestamptz := ((now() at time zone 'Africa/Lagos')::date + 3 + time '19:00') at time zone 'Africa/Lagos';
   bps int := private.current_fee_bps('commission');
 begin
@@ -38,7 +38,10 @@ begin
   set local role authenticated;
   perform set_config('request.jwt.claims', json_build_object('sub', guest, 'role', 'authenticated')::text, true);
   insert into public.reservations (business_id, guest_id, party_size, reserved_for) values (biz, guest, 6, at) returning id into res;
-  insert into public.reservations (business_id, guest_id, party_size, reserved_for) values (biz, guest, 2, at) returning id into res2;
+  -- One guest holds one live table per venue and time
+  -- (reservations_no_double_booking_business_idx), so the small party is a
+  -- quarter of an hour later.
+  insert into public.reservations (business_id, guest_id, party_size, reserved_for) values (biz, guest, 2, at + interval '15 minutes') returning id into res2;
   reset role;
   perform set_config('request.jwt.claims', '{"role":"service_role"}', true);
 
@@ -112,20 +115,23 @@ begin
   end if;
 
   -- 8. Confirmed now that it is paid; the guest cancels in time.
+  -- A member holds SELECT on the deposit's display columns only (not
+  -- provider_ref), so step 9 finds the row by its id.
+  select id into dep from public.reservation_deposits where provider_ref = ref2;
   update public.reservations set status = 'CONFIRMED' where id = res;
   set local role authenticated;
   perform set_config('request.jwt.claims', json_build_object('sub', guest, 'role', 'authenticated')::text, true);
   update public.reservations set status = 'CANCELLED' where id = res;
   -- 9.
-  select count(*) into n from public.reservation_deposits where provider_ref = ref2;
+  select count(*) into n from public.reservation_deposits where id = dep;
   if n <> 1 then raise exception 'PROBE_FAIL d75a 9: the guest cannot read their deposit'; end if;
   begin
-    update public.reservation_deposits set status = 'refunded' where provider_ref = ref2;
+    update public.reservation_deposits set status = 'refunded' where id = dep;
     raise exception 'PROBE_FAIL d75a 9: a member wrote a deposit';
   exception when insufficient_privilege then null;
   end;
   perform set_config('request.jwt.claims', json_build_object('sub', gen_random_uuid(), 'role', 'authenticated')::text, true);
-  select count(*) into n from public.reservation_deposits where provider_ref = ref2;
+  select count(*) into n from public.reservation_deposits where id = dep;
   if n <> 0 then raise exception 'PROBE_FAIL d75a 9: a stranger can read a deposit'; end if;
   reset role;
   perform set_config('request.jwt.claims', '{"role":"service_role"}', true);
