@@ -5,6 +5,7 @@ import { z } from "zod";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { parseNairaToKobo } from "../money/amount";
 import { adminRefusal, requireAdmin } from "./guard";
+import { KillSwitchInput, RiskSettingsInput, settingsAnswer, settingsRpcArgs } from "./risk-settings";
 
 /**
  * THE ADMIN GATE BETWEEN AGREEMENT AND PAYMENT, AND THE GUARANTEE DECISIONS.
@@ -56,6 +57,40 @@ export async function decideAgreement(input: {
   if (status !== "ok") return fail(AGREEMENT_WORDS[status] ?? "That decision could not be recorded.");
   revalidatePath("/admin/agreements");
   return ok({ status: String((data as Record<string, unknown>).agreement_status ?? "") });
+}
+
+/* D77: the risk settings screen. The database checks the scope, validates and audits. */
+export async function saveRiskSettings(input: RiskSettingsInput): Promise<ActionResult<null>> {
+  const access = await requireAdmin("agreements");
+  if (access.state !== "admin") return fail(adminRefusal(access));
+  const parsed = validate(RiskSettingsInput, input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+  const args = settingsRpcArgs(parsed.data);
+  if (!args.ok) return fail(args.error);
+  const { data, error } = await access.userClient.rpc("admin_update_risk_settings" as never, args.args as never);
+  if (error) return fail("The settings could not be saved. Nothing changed. Try again.");
+  const refusal = settingsAnswer(data);
+  if (refusal) return fail(refusal);
+  revalidatePath("/admin/agreements");
+  revalidatePath("/admin/agreements/settings");
+  return ok(null);
+}
+
+export async function setReviewKillSwitch(input: { on: boolean; reason: string }): Promise<ActionResult<null>> {
+  const access = await requireAdmin("agreements");
+  if (access.state !== "admin") return fail(adminRefusal(access));
+  const parsed = validate(KillSwitchInput, input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+  const { data, error } = await access.userClient.rpc("admin_set_review_kill_switch" as never, {
+    p_on: parsed.data.on,
+    p_reason: parsed.data.reason,
+  } as never);
+  if (error) return fail("The switch could not be moved. Nothing changed. Try again.");
+  const refusal = settingsAnswer(data);
+  if (refusal) return fail(refusal);
+  revalidatePath("/admin/agreements");
+  revalidatePath("/admin/agreements/settings");
+  return ok(null);
 }
 
 /* D68d: Vallo reviews during the hold and can pause a release while it looks. */

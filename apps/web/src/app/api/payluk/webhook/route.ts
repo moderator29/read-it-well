@@ -131,7 +131,7 @@ export async function POST(request: Request): Promise<NextResponse> {
   }
   if (event.family === "escrow") {
     /* D73 Part B (phases 11 and 12): with the arrangement flows built and
-       `rentals_protected_pay` on, escrow.* moves Vallo's record of the
+       `payments_payluk_on` on (D77), escrow.* moves Vallo's record of the
        protected payment; otherwise it is recorded and parked, as before. */
     const ctx = paylukContext();
     if (!ctx || !(await arrangementsLive(db))) {

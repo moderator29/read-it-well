@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("server-only", () => ({}));
 vi.mock("../supabase/admin", () => ({ createAdminClient: () => ({}) }));
 
-const { railGate, railForBooking, railInputsForBooking, propertyTypeForBusinessKind, RAIL_REFUSAL } = await import("./router");
+const { railGate, railForBooking, railInputsForBooking, propertyTypeForBusinessKind, RAIL_REFUSAL, saleNeverDirect } = await import("./router");
 
 /** A fake client answering `from(t).select().eq("id", v).maybeSingle()` from a table map, and `rpc` from a function. */
 function fakeDb(tables: Record<string, Record<string, unknown>>, rpc?: (args: unknown) => { data: unknown; error: unknown }) {
@@ -126,5 +126,35 @@ describe("rail inputs for a booking", () => {
       listings: { l5: { id: "l5", property_type: "shortlet", listing_intent: "rent", agent_id: null, rate_period: "night" } },
     });
     expect(await railInputsForBooking(rent, "b5")).toEqual({ propertyType: "shortlet", listingIntent: "rent", listerKind: null });
+  });
+});
+
+describe("D77: a sale never routes to the direct rail", () => {
+  it("does not give a nightly sale listing the stay rule, and reads a direct answer for a sale as no answer", async () => {
+    const db = fakeDb(
+      {
+        bookings: { b6: { id: "b6", listing_id: "l6" } },
+        listings: { l6: { id: "l6", property_type: "apartment", listing_intent: "sale", agent_id: "a6", rate_period: "night" } },
+        agents: { a6: { id: "a6", type: "business" } },
+      },
+      () => ({ data: [{ rail: "direct", milestones: false, policy_id: "p-apt-biz" }], error: null }),
+    );
+    expect(await railInputsForBooking(db, "b6")).toEqual({ propertyType: "apartment", listingIntent: "sale", listerKind: "business" });
+    expect(await railForBooking(db, "b6")).toEqual({ state: "unresolved" });
+    expect(railGate(await railForBooking(db, "b6"), "direct", true)).toMatchObject({ open: false, reason: "unresolved" });
+  });
+
+  it("still lets a sale resolve to escrow, and a rent stay to direct", async () => {
+    const escrow = fakeDb(
+      {
+        bookings: { b7: { id: "b7", listing_id: "l7" } },
+        listings: { l7: { id: "l7", property_type: "land", listing_intent: "sale", agent_id: null, rate_period: null } },
+      },
+      () => ({ data: [{ rail: "escrow", milestones: true, policy_id: "p-sale" }], error: null }),
+    );
+    expect(await railForBooking(escrow, "b7")).toEqual({ state: "resolved", rail: "escrow", milestones: true, policyId: "p-sale" });
+    expect(saleNeverDirect("rent", { state: "resolved", rail: "direct", milestones: false, policyId: "p" })).toMatchObject({
+      rail: "direct",
+    });
   });
 });

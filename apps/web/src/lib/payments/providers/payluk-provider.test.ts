@@ -3,8 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 /*
  * THE PAYLUK ADAPTER'S CONTRACT (Part B phases 4 and 5). It declares exactly
  * what Payluk has, answers `not_configured` without a key instead of
- * throwing, and does not make the escrow rail live before the escrow flows
- * exist.
+ * throwing, and (D77) makes the escrow rail live on the key and the switch alone.
  */
 const flags = vi.hoisted(() => ({ on: true }));
 vi.mock("../../flags/read", () => ({ flagIsOn: async () => flags.on }));
@@ -59,10 +58,18 @@ describe("the Payluk adapter", () => {
 });
 
 describe("what is live", () => {
-  it("the escrow rail stays off until phases 11 and 12 are built, even with a key and the switch on", async () => {
-    vi.stubEnv("PAYLUK_TEST_SECRET_KEY", "sk_test_x");
+  it("D77: the escrow rail is ready on the key and payments_payluk_on alone", async () => {
+    expect(PAYLUK_ESCROW_FLOWS_BUILT).toBe(true);
+    vi.stubEnv("PAYLUK_SECRET_KEY", "");
+    vi.stubEnv("PAYLUK_TEST_SECRET_KEY", "");
     flags.on = true;
-    expect(PAYLUK_ESCROW_FLOWS_BUILT).toBe(false);
+    expect(await escrowRailLive()).toBe(false);
+    vi.stubEnv("PAYLUK_TEST_SECRET_KEY", "sk_test_x");
+    expect(await escrowRailLive()).toBe(true);
+    flags.on = false;
+    expect(await escrowRailLive()).toBe(false);
+    flags.on = true;
+    vi.stubEnv("PAYMENTS_KILL_PAYLUK", "1");
     expect(await escrowRailLive()).toBe(false);
   });
 

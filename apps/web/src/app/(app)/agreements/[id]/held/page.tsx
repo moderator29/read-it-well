@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { formatMoney } from "@vallo/i18n/core";
 import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
@@ -53,6 +53,8 @@ export default async function HeldPaymentPage({ params }: { params: Promise<{ id
 
   if (read.state !== "ready") return notFound();
   const f = read.facts;
+  /* D77: not paid in yet, the renter's next step is the funding screen. */
+  if (f.role === "renter" && f.status === "awaiting_payment") redirect(`/agreements/${id}/fund`);
   const m = heldModel(f);
   const money = (minor: number) => formatMoney(minor, locale, "NGN");
   /* The figure huge, its unit softer at the same size (Plasma): the naira
