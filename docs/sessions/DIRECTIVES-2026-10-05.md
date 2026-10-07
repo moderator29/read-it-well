@@ -826,6 +826,70 @@ committed and pushed as it is done, cleanly, without sessions conflicting.
 | **"Qualification refuses past the cap with a named reason"** | **D64: it pauses instead, and the cap is 700,000 naira a month** |
 | Suspecting your own diff when Advisories goes red | D65: check the package name first, it is usually a new advisory |
 | **D64's silence on when a pause ends** | **D66: a paused reward releases against the month it is released in, oldest first** |
+| **D66's claim that the implementation never resumes a paused reward** | **D67: false of the shipped code. The rule stands, the accusation does not** |
+
+---
+
+## D67. D66's headline finding is wrong about the shipped code, and Session 4 caught it
+
+**D66 said a paused reward would never resume, called it "a hole in D64 that would have left
+people unpaid", and attributed it to Session 1's own underspecified rule. The defect is not in
+what shipped.** Session 4 corrected their own 16:30 pre-review after #84 landed, and Session 1
+verified the correction in the applied SQL rather than taking the report.
+
+### What was checked, and where
+
+`supabase/migrations/20261006152509_b4_referral_rewards_engine.sql`, now on main:
+
+- **Line 533:** `v_month date := private.lagos_month(now());` computed at the moment of the
+  attempt.
+- **Line 580:** the qualification update writes `month = v_month`.
+
+**So the month is recomputed on every attempt, not stamped once.** A referral blocked under
+October's exhausted budget and retried in November is written with November's month and
+measured against November's budget. **That is exactly the behaviour D66 prescribed**, and it
+was already in the code before D66 prescribed it.
+
+**The surrounding machinery, from Session 4's trace:** a paused referral stays `attributed`
+with `blocked_on = 'budget_paused'`, the sweep re-selects on `status = 'attributed'`, so the
+month turning hands it a fresh period with no hand override. `referral_programme_status()`,
+in the campaigns migration `20261006154817`, returns paused with reason `budget_reached` and is
+granted to `authenticated`.
+
+### Three things to take from this, in order of how much they matter
+
+**1. D66's rule stands; D66's accusation does not.** "A paused reward is measured against the
+month it is released in, oldest first" is still the correct rule and is worth keeping written
+down. **What was wrong was asserting that the implementation failed it.** Those are different
+claims and D66 ran them together.
+
+**2. Session 1 published a defect it had not verified.** D66 was written from Session 4's
+pre-review and from reading D64's own silence, not from the SQL. **The rule this file has
+enforced all day, against three sessions, is that a status line is not the thing itself, and
+Session 1 broke it while writing the directive that enforced it.** The verification was one
+`grep` away and would have taken a minute.
+
+**3. The implementation is better than the specification in one respect worth copying.**
+`referral_programme_status()` **names no amounts.** It says the programme is paused and why,
+without publishing the budget. D64 asked for a visible pause and did not think about whether
+the cap figure should be public. **Telling members the exact ceiling invites gaming it;**
+telling them the programme is paused is honest without being an invitation. That is a better
+answer than the one specified.
+
+### The other three findings, also closed
+
+- **The 700,000 figure** was corrected before the migration was applied: the pending-to-applied
+  diff is two hunks, the header and `100000000` becoming `70000000`. Independently confirmed
+  against production: `platform_monthly_budget_minor` reads 70000000.
+- **Rule 1 now has D64's original shape.** `referral_reserve` puts the cap in the `WHERE` of
+  the statement that writes it, with a check constraint behind it, which also **retires the
+  READ COMMITTED caveat**: the loser either fails its predicate re-check or raises a
+  serialization failure, and both are safe.
+- **The b2-ledger probe has passed.** It is in `probes/` on main and reports `PASS b2-ledger
+  (957 ms)`. **Three cancellations became a recorded pass**, and the standing rule's entry for
+  it is struck by evidence rather than by a report.
+
+**Nothing in the referral area is outstanding against Session 2 from D64 or D66.**
 
 ---
 
@@ -2782,3 +2846,346 @@ the Guarantee reserve subaccount on the company Paystack account, against the re
 own bank account and not the operating account, and sets `PAYSTACK_GUARANTEE_SUBACCOUNT`
 to its `ACCT_` code in Vercel, Production scope, then redeploys. Everything else is
 code, and the code is done.
+
+---
+
+## D68. One session, not three. The three handoffs are deleted and replaced.
+
+**7 October 2026. Founder ruling, and the reason behind it.**
+
+`SESSION-2-HANDOFF.md`, `SESSION-3-HANDOFF.md` and `SESSION-4-HANDOFF.md` are
+deleted. `docs/sessions/VALLO-BUILD-HANDOFF.md` replaces all three, for one session
+doing both halves of the work, with `docs/sessions/SESSION-PROMPT.md` as the prompt
+that starts it. The founder's words: "also this time it's only one session and add
+instructions on building other things that those other old sessions I scattered
+around them not only system platform upgrade but all the missing areas in backend
+money trust etc".
+
+**Agent count: three or four, not two.** His first message said "use 2 agent never
+more than"; he corrected himself in the next: "make it have 3 4 agent he works with
+not 2 and all the agents have big access to think too too image etc". The correction
+stands.
+
+**Starting point: current main, not a revert.** `git revert -m 1 c744095a4`
+conflicts (five commits landed on top; `AttachmentRow.tsx` is a modify/delete), and
+his instruction after the failure was forward: "tell it to upgrade the looks of the
+app the feeds looks to be amazing". So the work starts from current main and goes
+through `c744095a4` file by file, taking the old version back only where the old
+version was better. `git show c744095a4^:<path>` supplies it. That is the review
+that should have happened before the merge, done late.
+
+**The quality bar is now an explicit test, in his words.** "Is it industry standard?
+Would users fall in love with this look? Would a person pay 2 million dollars for
+this app? Is this really ready to go live? Is the design system really premium?
+Would I love it?" He rates the current design 2 out of 100 and wants 90. The handoff
+asks for a score per surface in the report.
+
+**His usage limit is now a stated design constraint.** "find way to make this
+session not hit my usage limit so fucking hard". Section 2 of the handoff lists the
+six things that actually burn it on this repository, in order.
+
+**Adding libraries and external tools is authorised.** "if it need to load external
+tools to able to make this lovely he should". Weight and advisory gates still apply.
+
+**Two things he ruled must be preserved**, which a sweeping redesign would break by
+accident: the default mode stays dark, and most containers stay. "you know keep my
+default mode and most containers but can upgrade".
+
+**Every prompt he has written is now in the repository**, deduplicated, nothing cut,
+at `docs/sessions/founder-corpus/` (14 files plus an index, roughly 400
+kilobytes). The referral specification arrived three times in one message and
+appears once. The only edit to any of them was mechanical: em dashes replaced,
+because `check-no-em-dash.mjs` walks every `.md` under `docs/`. His eight pasted
+components are at `docs/component-reference/` as inert `.tsx` files outside the
+build, with the five shadcn registry commands he named.
+
+---
+
+## D68a. The audit that corrected D68, and the finding that matters most.
+
+**7 October 2026, same day, after merging main.**
+
+D68 and the first draft of `VALLO-BUILD-HANDOFF.md` were written from a checkout
+**962 commits behind `main`**. Three of their headline findings were wrong. This
+entry is the correction, and the corrected version is section 3 of the handoff.
+
+**Wrong: "there is no motion library in this product."** `apps/web/package.json`
+carries `framer-motion` at `^12.43.0`. The previous session also ported all eight
+components the founder pasted, with tests, into `apps/web/src/components/ui/`:
+`Unfold`, `SlidePagination`, `DragToConfirm`, `BookCallButton`, `LiveIsland`,
+`particle-delete`, `InnerNav`, `BatchTray`, plus `Segmented`, `ported-motion.ts`,
+`ported.css` and `FirstRunPanels.tsx`.
+
+The real finding is adoption, not absence: **45 product call sites across 1,769
+interface files, and seven files in the whole product import framer-motion.** The
+components were built and never fitted. That is why the app does not feel different
+to the founder, and the fix is far cheaper than building a motion system.
+
+Still genuinely missing: the five named curves from the motion designer (`land`,
+`leave`, `glide`, `whip`, `drift`); `gsap` and `three` are not installed, zero
+lockfile matches for either; shadcn is not initialised, so
+`apps/web/components.json` does not exist and the five registry components were
+never pulled. And the motion designer's brief says GSAP and the curves are "already
+in the repo" at `scripts/marketing/video/engine/`: **that directory does not exist
+here**, it is in the marketing film repository.
+
+**Wrong: "the money rail is not built."** The provider seam is built and tested.
+`apps/web/src/lib/payments/provider.ts` defines a capability typed interface with
+six capabilities (`split_at_charge`, `hold_in_escrow`, `refund_without_dispute`,
+`list_successful_charges`, `charge_saved_card`, `verify_with_record`) where the type
+system refuses an adapter declaring a capability it has not implemented.
+`providers/index.ts` is the registry with a per provider kill switch, Paystack is
+implemented, and:
+
+```ts
+case "payluk": return null;   // the entire gap
+```
+
+`escrowRailLive()` returns false for exactly that reason. **The single missing piece
+is the Payluk adapter**, plus the lifecycle, webhooks and screens hanging off it.
+Also already on main: `payluk-merchant.ts`, `commission-sweep.ts`,
+`referral-payout.ts`, `referral-transfer.ts`, a 30 file `lib/money/`, `admin/money/`
+with a reconciliation desk, and 75 probes including `rail-router.sql`,
+`chargebacks.sql`, `b4-referral-campaigns.sql` and `b5-promotion-purchase.sql`.
+
+One fact from the capability types that shapes the refund path and was not recorded
+anywhere else: **Payluk has no refund without dispute.** A Payluk refund goes
+through dispute resolution, so the refund surface has to branch on rail.
+
+**Wrong: "there is no referral interface."** `/rewards`, `/rewards/referrals`,
+`/rewards/history` and `/rewards/withdraw` all exist, with a `(dev)/preview/rewards/`
+fixture set covering paused and today states.
+
+**And here is the finding that explains the founder's whole complaint.**
+
+He said: "all the features he claim he built can't see them the wallet not in side
+nav or anywhere". He was navigating correctly. The navigation is wrong.
+
+`apps/web/src/components/app/nav-model.ts` lists exactly these destinations:
+
+```
+/admin  /agent/dashboard  /agreements  /around  /assistant  /home  /host
+/messages  /notifications  /payments  /price  /saved  /search  /settings
+/stays  /stays/search
+```
+
+**`/rewards`, `/payouts`, `/receipts` and `/refunds` are not in it.** Every money
+and rewards surface is reachable only by drilling into `/settings/invite`,
+`/settings/payments` or `/payments`. `lib/nav/route-labels.ts` and
+`route-parents.ts` already know these routes exist; the navigation model does not.
+
+So three sessions built features and nobody asked whether a person could find them.
+Routing them into the navigation is an afternoon's work and it is the first item in
+the handoff's order of work, ahead of everything beautiful, because it is what
+changes what he sees when he next opens the app.
+
+**The method lesson, for every future session including this one:** a route audit
+asks two questions, and the second is the one that was never asked. Is it good? And
+**can a person actually get to it?** The handoff now requires both answers for all
+223 non preview routes (D.2).
+
+**The startup hold, corrected twice in one day.** The audit found that
+`splash-hang.test.ts` records a 3 October fix for this exact symptom
+(`<NativeRuntime />` missing from the root layout) and that the fix is present,
+`layout.tsx` line 501. The handoff's first draft therefore told the session to check
+whether the founder was on a stale build. **He answered the same day: it is still
+happening on a current build.** "it's not fixed at all I don't want to see it I don't
+want my logo to be there once I open the app I want to see an animations for about 1.5
+secs lovely animations like how other serious industry standard platform is."
+
+So the 3 October fix landed and the symptom survived it, and A.2 of the handoff now
+says why a timing fix keeps not holding: **the brand is painted onto a native splash
+image, whose duration is whatever the slowest thing on the critical path turns out to
+be.** That can never be reliably fast, and on a Lagos connection with a cold cache it
+is eight seconds of a static PNG.
+
+The ruling, and it is architectural: the native launch image becomes a plain `#010118`
+field identical to the app background, so its duration stops mattering; the splash is
+dismissed on first paint rather than on window `load`, off the two deep dynamic import
+chain in `boot.ts`; and the brand moment moves **into** the app, motion from the first
+frame, 1,500ms ceiling, interruptible, interactive underneath, shortened for a
+returning member, and handing off into the first screen rather than fading out in
+front of it. Closed by three measured numbers on a physical mid range Android and a
+screen recording, not by an assertion.
+
+**Also corrected:** `b3_rate_agreement_gate.sql` **is** still in
+`supabase/migrations/pending/`, along with `b2_rail_at_open.sql`. The first draft
+said it had shipped. A pending migration does nothing, which is directly relevant to
+"the pay is still taking me to agreement".
+
+**The process failure behind all of this, stated plainly so it is not repeated:** an
+audit run on a stale checkout produces confident, specific, wrong findings, and they
+are more dangerous than vagueness because they get acted on. `git fetch` and merge
+`main` **before** auditing anything, and say in the report which commit the audit
+was run against.
+
+## D68b. The money scope is the whole financial platform, not escrow.
+
+**7 October 2026. Founder correction, and a rewrite of Part B.**
+
+The first draft of Part B described the money work as "the escrow rail" and treated
+wallet state, deposits, withdrawals, bank verification and transfers as items under
+it. He corrected that:
+
+> All the withdrawal pages for transfers not only escrow we use payluk transfer
+> withdrawal etc it's all on the prompt
+
+> don't cut or say not build this or that or don't do this or that make it build and
+> connect all the dots together
+
+Part B is now a build map for **all 75 sections** of
+`founder-corpus/06-payluk-master-prompt.md`, in his own **25 phase** order from his
+section 68. His order puts wallet state, deposits, withdrawals, bank verification and
+transfers at phases 6 to 10, **before** standard and milestone escrow at phases 11 and
+12, and that order is kept. Escrow is one part of this and not the biggest part.
+
+**His three provider architecture, from his section 4 and 5, recorded here so nobody
+re-derives it:**
+
+- **Paystack**: commercial payments. Boosts, subscriptions, premium features, service
+  fees, **referral payouts**, other non-escrow.
+- **Payluk**: merchant customers, wallets, escrow, payment intents, deposits,
+  withdrawals, wallet transfers, payment history, disputes, refunds and resolution,
+  bank and account verification, webhooks, transaction records, fees, settlement.
+- **Yellow Card**: future international and stablecoin rails, built as its own adapter
+  from the start, phase 22, never merged into Payluk code.
+
+**Two rules that were previously written as prohibitions and are actually
+instructions**, which matters because he objected to being told what not to build:
+
+1. cNGN is not the launch crypto architecture and is not exposed to members; crypto
+   and stablecoin go through Yellow Card instead. Yellow Card **gets built**.
+2. Crypto surfaces as a rail on a transaction ("Pay with USDC"), never as a wallet
+   product. A regulated wallet product remains a later deliberate decision.
+
+Both say how, not whether. Same for the deprecated virtual-account endpoint: the
+documented payment-intent flow replaces it, and his own words add "do not create a
+fake Vallo bank account system to compensate for this".
+
+**Two facts recorded nowhere else that will cost a cycle if missed:** Payluk amounts
+are naira **major** units, not kobo, the opposite of Paystack. And **Payluk has no
+refund without dispute**, which is in the capability type comments and means the
+refund surface branches on rail.
+
+**One item added to the founder-only list:** his decision on whether to expose crypto
+withdrawal. The provider supports it; his section 12 says not to expose it unless the
+product and legal design explicitly enables it. So it is built, flagged, and put to
+him.
+
+---
+
+## D68c. The logo never shows on app open. The opening is the product arriving.
+
+**7 October 2026. Founder ruling. This supersedes the apartments.com opening
+reference and retires `BrandAssemble` from the startup path.**
+
+> I want that my logo image to not show anytime I open the app to change to something
+> animations vibes stuffs like it's when click website link you get something beautiful
+
+This is a change of concept, not of duration, and it reverses an earlier direction of
+his own. `BrandAssemble` exists because of a founder reference recorded in its own
+comment: "the apartments.com app opening: the mark turns in depth with motion blur and
+settles, and the wordmark arrives a letter at a time". That was built faithfully and it
+is skilled work. It is now the wrong idea.
+
+**The rule, absolute:** the logo never appears by itself on app open. Not as an image,
+not as an animation, not for 1,500ms, not for 200ms.
+
+**The reference, read precisely:** when you click a link to a beautifully built
+website, there is no logo card, no bumper, no interstitial. You get the page, its
+structure resolving and type settling, in motion from the first frame and usable almost
+immediately. The craft is in how the content arrives.
+
+**So the opening becomes the app's own first screen, choreographed:**
+
+- The first frame is already the product. Real structure, header, dock, the shape of
+  the content. Never a brand card.
+- Motion is the content arriving in sequence, stagger at most 60ms, background layers
+  at 0.6 of foreground, entrances on `land` and exits on `leave`.
+- Brand presence is incidental and in motion: the mark may ride in as part of the
+  header arriving, at header size, among other arriving things. Never the subject,
+  never alone, never centred on an empty field.
+- Interactive almost immediately. A tap anywhere skips to the settled state.
+- About 1,500ms of choreography at most, and roughly 400ms on a returning open,
+  because a beautiful website does not replay its entrance every visit either.
+- One continuous move into Get Started for a new member, or into the passcode greeting
+  then home for a returning one. Not a cut.
+- Reduced motion, Calm, Off and save-data each get one settled frame.
+
+**What to keep:** `--nf-splash-hold` and the first paint choreography it coordinates
+across `animation.css`, `detail-m.css`, `inner-m.css`, `landing-rooms.css` and
+`threshold.css`. That machinery is good and it is most of the answer; it just needs to
+be pointed at a content-led opening instead of a logo hold. `BrandAssemble` may keep a
+home somewhere a brand moment genuinely belongs, such as an About page or a share card.
+It comes off `layout.tsx` and off the `.nf-splash__brand` rules in `threshold.css`.
+
+**And the native launch image loses the brand too**, per D68a: a plain `#010118` field
+identical to the app background, so the transition out of it is invisible and its
+duration stops mattering. The nine iOS images in `Splash.imageset/` and the Android
+`drawable*/splash.png` set are generated, so extend `scripts/build-native-icons.mjs`
+rather than hand editing them.
+
+**Closed by measurement, not assertion.** Four numbers on a physical mid range Android
+over a throttled connection, the third being **milliseconds of anything that is not the
+product, target zero**; still frames at 300ms, 700ms and 1,200ms, none of which may
+show a logo and nothing else; and one screen recording. The one sentence test: would
+this feel like opening a beautifully built website, or like watching an app's logo?
+
+---
+
+## D69. ADR 0003: a licensed provider holds the money, Vallo records it.
+
+**7 October 2026. An architectural decision taken by Session 1, because the work
+could not start without it.**
+
+ADR 0002 ("Vallo never holds customer money", accepted 25 September) says flatly:
+"No custody. There is no wallet, no balance, no escrow and no held payment, and no
+flag that could turn any of them back on." A live event trigger enforces it:
+`private.refuse_custody_objects` refuses any table, view, function or materialised
+view in `public` or `private` whose name matches
+`(^|_)(wallets?|escrows?|pots?)(_|$)`, or begins `held_payment`, on `CREATE TABLE`,
+`CREATE TABLE AS`, `CREATE VIEW`, `CREATE FUNCTION`, `CREATE MATERIALIZED VIEW`,
+`ALTER TABLE` and `ALTER FUNCTION`.
+
+The founder's 75 section payments prompt asks for escrow, a balance, deposits and
+withdrawals through Payluk. Those two things could not both be true, and the
+collision is a real part of why the money rail was not built: a session reading
+ADR 0002 as a standing instruction would have had to either break the trigger or
+stop.
+
+`docs/adr/0003-a-licensed-provider-holds-the-money-vallo-records-it.md` resolves it
+and amends ADR 0002 without weakening its principle:
+
+1. **Vallo still never takes custody.** Payluk, a licensed escrow provider, holds
+   the funds. Vallo creates the arrangement, watches it, records it, settles its
+   own 2 percent out of it and shows every party where their money is. The CBN
+   regulated activity remains outside the company.
+2. **Vallo's database mirrors provider state and never is the state.** Every stored
+   figure carries the provider's reference and the time Vallo observed it. The
+   provider is the book of record; where they disagree the provider wins and
+   reconciliation raises it. A balance Vallo shows is a provider balance Vallo is
+   reporting.
+3. **The naming guard stays, deliberately.** It is the only mechanism stopping
+   Vallo held custody from reappearing one convenient column at a time. So Vallo's
+   objects are named for what Vallo does: `provider_arrangements`,
+   `member_funds_reported`, `funds_movements`, `release_conditions`,
+   `marketing_float` (already live). The words `wallet` and `escrow` stay free in
+   the interface, in copy, in component names and in TypeScript, because that is
+   what members and Payluk call these things. **This is a naming rule, not a
+   feature restriction.** Nothing the founder asked for is cut.
+4. **The member facing promise is unchanged, and becomes a feature.** Vallo says
+   plainly that it does not hold the money and names who does. One line, in the
+   money surface and in the agreement. In a market where every renter has heard a
+   story about a deposit that vanished, that sentence is the product. It is the one
+   place the provider is allowed to be visible; everywhere else it stays invisible
+   per `founder-corpus/13-provider-must-not-leak.md`.
+
+What this does not change: the three pot append only ledger
+(`ledger_customer_funds`, `ledger_vallo_revenue`, `ledger_marketing_float`), the
+commission sweep, the Payluk merchant client on main, `whoPays: "seller"` on both
+rails, the 2 percent commission, the 1,000 naira withdrawal minimum, or VAT at
+zero while unregistered.
+
+What it adds: probes asserting that every mirror row carries a provider reference
+and an observation time, and that no Vallo table claims an authoritative customer
+balance.

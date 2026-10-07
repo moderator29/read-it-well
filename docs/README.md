@@ -23,7 +23,8 @@ For setup, architecture and the repository layout, start with the [repository RE
 | Document | What it is for |
 |---|---|
 | [ARCHITECTURE_DECISIONS.md](ARCHITECTURE_DECISIONS.md) | ADR-001 to ADR-014 in one file |
-| [adr/0002-vallo-never-holds-customer-money.md](adr/0002-vallo-never-holds-customer-money.md) | Vallo never holds customer money (supersedes ADR 0001) |
+| [adr/0003-a-licensed-provider-holds-the-money-vallo-records-it.md](adr/0003-a-licensed-provider-holds-the-money-vallo-records-it.md) | **Current.** A licensed provider holds the money; Vallo records it. Escrow, balances, deposits and withdrawals are built, Payluk holds the funds, Vallo never takes custody, and the custody naming guard stays (amends ADR 0002) |
+| [adr/0002-vallo-never-holds-customer-money.md](adr/0002-vallo-never-holds-customer-money.md) | Vallo never holds customer money (supersedes ADR 0001, amended by ADR 0003) |
 | [adr/0001-held-payments-custody-purpose-and-the-float.md](adr/0001-held-payments-custody-purpose-and-the-float.md) | Superseded: held payments (escrow), kept as history |
 | [API_INVENTORY.md](API_INVENTORY.md) | The third-party integration plan |
 
@@ -95,9 +96,10 @@ For setup, architecture and the repository layout, start with the [repository RE
 | [design/component-library-source/](design/component-library-source/) | The founder's nine components as he supplied them, one file per component, with a README on what is wrong with each. Reference material: it sits outside every gate in this repository and none of it compiles |
 | [sessions/ROUND-3-2026-10-06.md](sessions/ROUND-3-2026-10-06.md) | **Four audits run against the branches rather than the response files.** 93 of 213 routes untouched, the 24 point checklist run on 14, the rail router and provider seam unwired, and forty more recommendations |
 | [sessions/ROUND-2-2026-10-06.md](sessions/ROUND-2-2026-10-06.md) | **What each session actually built, measured against the tree rather than its own report**, what is missing, and thirty numbered recommendations split across the three sessions. Read it before continuing any session's work |
-| [sessions/SESSION-2-HANDOFF.md](sessions/SESSION-2-HANDOFF.md) | Backend, money and trust execution brief |
-| [sessions/SESSION-3-HANDOFF.md](sessions/SESSION-3-HANDOFF.md) | The platform-wide experience upgrade execution brief |
-| [sessions/SESSION-4-HANDOFF.md](sessions/SESSION-4-HANDOFF.md) | QA, release and store execution brief |
+| [sessions/VALLO-BUILD-HANDOFF.md](sessions/VALLO-BUILD-HANDOFF.md) | **The current handoff, 7 October 2026. One session, both halves: the premium experience upgrade and the money rail that was never built.** It replaced the three separate session briefs, which were deleted because splitting the work three ways is what let the money rail fall through |
+| [sessions/SESSION-PROMPT.md](sessions/SESSION-PROMPT.md) | The prompt that starts that session |
+| [sessions/founder-corpus/](sessions/founder-corpus/README.md) | Every prompt the founder has written, in his own words, deduplicated, nothing cut. 14 files |
+| [../component-reference/](../component-reference/README.md) | Eight motion components the founder pasted in as the finish he wants, plus the five shadcn registry components he named. Reference only, outside the build |
 
 Six design documents are superseded by the north star and carry a banner saying
 so: `DESIGN_DIRECTION.md`, `design/GLOW_IDENTITY.md`, `BRAND_MARKS.md`,
