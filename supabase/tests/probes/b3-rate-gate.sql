@@ -25,6 +25,9 @@
 -- The DRAFT fixture is priced INSIDE the probe (rate_minor + rate_period, or
 -- sale_price_minor for a sale); rent_amount_minor is never set without
 -- rent_period. Everything is rolled back by the final raise.
+-- 7 October 2026: since b3x the gate blocks only while the D60 switch
+-- `lister_fee_gate_blocking` is on (off on live), so the probe turns it on
+-- inside its own transaction; this probe is about the blocking gate.
 do $$
 declare
   lst record;
@@ -59,6 +62,8 @@ begin
     price := coalesce(lst.rent_amount_minor, 5000000);
   end if;
   v := public.money_policy_at(now());
+  insert into public.feature_flags (key, enabled) values ('lister_fee_gate_blocking', true)
+  on conflict (key) do update set enabled = true;
 
   begin
     update public.listings set status = 'SUBMITTED', submitted_at = now() where id = lst.id;
