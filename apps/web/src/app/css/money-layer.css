@@ -1320,7 +1320,7 @@
   .nf-mfig--hidden {
     letter-spacing: 0.12em;
   }
-  .nf-wallet-bar {
+  .nf-balance-bar {
     position: sticky;
     bottom: calc(var(--nf-space-sm) + env(safe-area-inset-bottom, 0px));
     z-index: 5;
@@ -1335,7 +1335,7 @@
     backdrop-filter: blur(var(--nf-smoked-glass-blur));
     box-shadow: var(--nf-glass-shadow-lifted);
   }
-  .nf-wallet-bar__btn {
+  .nf-balance-bar__btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -1348,18 +1348,18 @@
     font-weight: 600;
     transition: transform var(--nf-duration-fast) var(--nf-ease-press);
   }
-  .nf-wallet-bar__btn[data-tone="primary"] {
+  .nf-balance-bar__btn[data-tone="primary"] {
     background: var(--nf-platinum-fill);
     color: var(--nf-platinum-ink);
     box-shadow: 0 0 0 1px var(--nf-platinum-edge) inset;
   }
-  .nf-wallet-bar__btn:active:not(:disabled) {
+  .nf-balance-bar__btn:active:not(:disabled) {
     transform: scale(0.97);
   }
-  .nf-wallet-bar__btn:disabled {
+  .nf-balance-bar__btn:disabled {
     opacity: 0.45;
   }
-  .nf-wallet-bar__btn:focus-visible {
+  .nf-balance-bar__btn:focus-visible {
     outline: 2px solid var(--nf-brand-primary);
     outline-offset: 2px;
   }
