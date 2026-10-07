@@ -45,3 +45,37 @@ Every agent that adds a destination adds it to one of these groups and nowhere e
 
 A destination that exists and is not in this table, and is not reachable from a row in
 it within two taps, is a finding for the route audit (`docs/sessions/SESSION-REPORT.md`).
+
+## Recommendations to unify the platform (7 October 2026, evening)
+
+He asked for ideas that "benefit us and flow with our idea". These are the ones that
+would do the most to make 224 routes feel like one product, ranked by how much they
+change what a member feels.
+
+1. **One tracker for everything in progress.** A deal, an inspection, a booking, a
+   withdrawal, a verification and a dispute are all "something moving through steps
+   with a wait". One status card plus one dated timeline (his
+   `status-tracking-timeline.jpg`), always answering where it is, what happens next,
+   how long, and whether you must act. Replaces a dozen bespoke status screens.
+2. **One success moment.** Booked, paid, sent, withdrawn, listed, verified: the same
+   scalloped badge, one plain sentence of what happened and when it lands, a primary
+   capsule and a quiet second action. Earned milestones (streaks, tiers) use the medal
+   variant. Every success then feels like Vallo, wherever it happens.
+3. **One explainer.** Every first-time feature (wallet, rewards, Pro, Space Passport,
+   instant booking) opens with the Plasma explainer: a device frame, a real fragment
+   breaking out, title, two lines, dots, one capsule. Shown once, remembered per member.
+4. **One search.** The search field becomes a command palette everywhere (places,
+   people, settings, help, and for staff the admin desks), so "where is X" always has
+   the same answer: tap search.
+5. **One money language.** Huge figure with the unit in grey; amounts right aligned and
+   tabular; breakdowns as line items with an explanatory sub-line; platinum for the one
+   figure a screen is for. Wallet, True Cost, checkout, receipts, payouts and rewards all
+   read the same.
+6. **Shelves, not rows, for things you own.** Saved places, your listings, your
+   receipts: objects on lit ledges with framed thumbnails, so a member's own things feel
+   collected rather than listed.
+7. **A greeting, not a header, on the screens you return to.** Home, wallet and the
+   passcode greet the member by first name with their avatar.
+8. **Clean spaces.** No inner page carries more than one hero, one primary action and
+   three groups above the fold. Anything else moves one tap deeper behind `Unfold` or
+   an `InnerNav` tab.
