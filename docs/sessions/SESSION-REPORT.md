@@ -102,6 +102,8 @@ Still open:
   from SavedPage) not yet reproduced; needs one signed-in dev run.
 - The Payluk escrow flow is tested only against fixtures from Payluk's documentation.
 
+CI on main green, 7 October 18:28 UTC (runs 972 and 973, `6caf7fb2e` and `bc34d2138`): every job passes, typecheck, lint, the whole unit suite, both builds, the accessibility gates, and all 86 database probes against the live project. Getting there found two product bugs (fixed live: d77x risk settings read, d76x referral board statuses) and updated the probes that predated D68d, D75 and D77 without weakening any check.
+
 ## 1. Built, with evidence
 
 | Item | Commit | Evidence |
