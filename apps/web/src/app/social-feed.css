@@ -3630,7 +3630,7 @@
     color: var(--nf-content-muted);
     font-size: var(--nf-text-body-sm);
     text-align: start;
-    box-shadow: 0 16px 40px -20px var(--nf-overlay-media-deep);
+    box-shadow: var(--nf-elevation-floating);
   }
 
   /* ------------------------------------------------------------------
@@ -4171,7 +4171,7 @@
     background: var(--nf-smoked-glass-fill);
     -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur)) saturate(140%);
     backdrop-filter: blur(var(--nf-smoked-glass-blur)) saturate(140%);
-    box-shadow: 0 24px 60px -30px var(--nf-overlay-media-deep);
+    box-shadow: var(--nf-elevation-dialog);
   }
   .nf-story--seq .nf-story__headline {
     margin-block-start: 0;

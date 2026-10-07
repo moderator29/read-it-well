@@ -95,7 +95,7 @@
     border: var(--nf-border-width) solid var(--nf-smoked-glass-edge);
     border-radius: var(--nf-radius-card);
     background: var(--nf-surface-artwork);
-    box-shadow: 0 1.5rem 3rem -1.5rem color-mix(in oklab, var(--nf-surface-canvas) 70%, transparent);
+    box-shadow: var(--nf-elevation-floating);
     user-select: none;
   }
   .nf-stackface__media {

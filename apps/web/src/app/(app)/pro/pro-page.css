@@ -339,7 +339,7 @@
   .nf-pro-metal[data-metal="gold"] {
     background: var(--nf-gold-fill);
     color: var(--nf-gold-ink);
-    box-shadow: 0 24px 60px -24px var(--nf-surface-canvas), 0 0 0 1px var(--nf-gold-edge) inset;
+    box-shadow: var(--nf-elevation-dialog), 0 0 0 1px var(--nf-gold-edge) inset;
   }
   .nf-pro-metal[data-depth="0"] {
     z-index: 4;
@@ -457,7 +457,7 @@
     filter: blur(10px);
   }
   .nf-pro-metal[data-depth="0"] {
-    box-shadow: var(--nf-platinum-shadow), 2.5rem 2.25rem 2.5rem -1.25rem var(--nf-surface-canvas);
+    box-shadow: var(--nf-platinum-shadow), var(--nf-elevation-dialog);
   }
 
   /* Name with its mark, the two-line promise, the price line in grey. */

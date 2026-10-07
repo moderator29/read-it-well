@@ -564,7 +564,7 @@
     height: 4.25rem;
     border-radius: var(--nf-radius-circle);
     background: var(--nf-gradient-brand-ink);
-    box-shadow: 0 10px 28px -10px color-mix(in oklab, var(--nf-brand-primary) 70%, transparent);
+    box-shadow: var(--nf-elevation-raised);
     font-size: 1.625rem;
     font-weight: 700;
     color: var(--nf-content-on-brand);

@@ -209,10 +209,10 @@ export function EarnedMoment({
   const layerRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     if (!open) return;
-    /* One haptic on the payoff, only after the person has touched the page
+    /* One haptic as the sheet lands (medium: a rank is not a payoff in the census), only after the person has touched the page
        (a browser refuses vibration before that, and says so in the console). */
     const active = typeof navigator !== "undefined" && "userActivation" in navigator ? navigator.userActivation.hasBeenActive : true;
-    if (active) feedback("success");
+    if (active) feedback("confirm");
     layerRef.current?.focus();
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
