@@ -1,5 +1,6 @@
 /**
- * Build the native icon and splash sources from the canonical Vallo app icon.
+ * Build the native icon sources from the canonical Vallo app icon, and the
+ * plain navy launch images (no mark: see `plainSplash`).
  *
  * Run from the repository root:
  *
@@ -67,7 +68,7 @@
  * It is on the owner action list in `docs/MOBILE.md`.
  */
 
-import { mkdir, writeFile, stat } from "node:fs/promises";
+import { mkdir, readdir, writeFile, stat } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
@@ -107,10 +108,10 @@ const MASTER = 1024;
  * scale that layer, and an inset background shows an unpainted ring.
  * `lib/theme/native-chrome.test.ts` fails if a regeneration puts it back.
  *
- * `splash` is small because a splash screen is a held breath, not a poster,
- * and because the same image is centred on both phone and tablet.
+ * There is no `splash` scale any more. The launch image carries no mark at
+ * all (D68c, 7 October 2026): see `plainSplash` below.
  */
-const SCALE = { icon: 0.98, foreground: 0.55, splash: 0.2 };
+const SCALE = { icon: 0.98, foreground: 0.55 };
 
 /** Compose the tile, centred, on a canvas of `size`, over `background`. */
 async function compose(size, scale, background, file) {
@@ -157,14 +158,52 @@ await sharp({ create: { width: 1024, height: 1024, channels: 4, background: NAVY
 console.log(`  ${"icon-background.png".padEnd(24)} 1024x1024  flat navy`);
 
 /*
- * 2732 square is the size that covers every device without upscaling, because
- * the tooling centre crops it to each screen. Both themes get the same navy
- * image on purpose: dark is the default and the operating system does not
- * override it, so a light splash would be the one moment the brand let the
- * device decide.
+ * THE LAUNCH IMAGE IS A PLAIN NAVY FIELD, AND NOTHING ELSE (D68c, A.2 of the
+ * build handoff, 7 October 2026).
+ *
+ * The founder's ruling is absolute: the logo never appears by itself on app
+ * open. The native launch image is the one frame the web layer cannot time,
+ * because it stays up for as long as the slowest thing on the critical path
+ * (a cold Lagos 4G start can be eight seconds), so it must carry no brand at
+ * all. A flat `#010118`, identical to the app's background and to the status
+ * bar, makes the hand-off from the operating system to the page invisible and
+ * makes its duration stop mattering.
+ *
+ * It used to centre the tile at 0.2 of the canvas, and `@capacitor/assets`
+ * fanned that out. The fan-out is now done here, straight into the native
+ * projects, so nobody has to run a second tool to remove the mark: every
+ * `splash.png` under the Android `res/drawable*` folders (day and night,
+ * every density and orientation) and every image in the iOS
+ * `Splash.imageset` is rewritten as a flat field at its own existing size.
+ * `lib/native/native-splash.test.ts` fails if any of them carries a pixel of
+ * anything else.
  */
-await compose(2732, SCALE.splash, NAVY, "splash.png");
-await compose(2732, SCALE.splash, NAVY, "splash-dark.png");
+async function plainSplash(file, width, height) {
+  await sharp({ create: { width, height, channels: 3, background: NAVY } })
+    .png({ compressionLevel: 9, palette: true, colours: 2 })
+    .toFile(file);
+}
+
+await plainSplash(path.join(OUT, "splash.png"), 2732, 2732);
+await plainSplash(path.join(OUT, "splash-dark.png"), 2732, 2732);
+console.log(`  ${"splash.png, splash-dark.png".padEnd(24)} 2732x2732  flat navy, no mark`);
+
+const ANDROID_RES = path.join(ROOT, "apps/web/android/app/src/main/res");
+const IOS_SPLASH = path.join(ROOT, "apps/web/ios/App/App/Assets.xcassets/Splash.imageset");
+const nativeSplashes = [];
+for (const dir of await readdir(ANDROID_RES)) {
+  if (!dir.startsWith("drawable")) continue;
+  const file = path.join(ANDROID_RES, dir, "splash.png");
+  if (await stat(file).catch(() => null)) nativeSplashes.push(file);
+}
+for (const name of await readdir(IOS_SPLASH)) {
+  if (name.endsWith(".png")) nativeSplashes.push(path.join(IOS_SPLASH, name));
+}
+for (const file of nativeSplashes) {
+  const { width, height } = await sharp(file).metadata();
+  await plainSplash(file, width, height);
+}
+console.log(`  ${"native launch images".padEnd(24)} ${nativeSplashes.length} files rewritten as flat navy`);
 
 /*
  * A guard, so that no enlargement creeps back in.
@@ -176,8 +215,7 @@ await compose(2732, SCALE.splash, NAVY, "splash-dark.png");
  */
 const LARGEST_ACCEPTABLE_ENLARGEMENT = 1.0;
 for (const [name, scale] of Object.entries(SCALE)) {
-  const canvas = name === "splash" ? 2732 : 1024;
-  const factor = (canvas * scale) / MASTER;
+  const factor = (1024 * scale) / MASTER;
   console.log(`  ${name.padEnd(12)} scale factor ${factor.toFixed(2)}x`);
   if (factor > LARGEST_ACCEPTABLE_ENLARGEMENT) {
     throw new Error(
