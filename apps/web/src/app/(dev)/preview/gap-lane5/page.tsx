@@ -28,7 +28,6 @@ import L27 from "@/app/(auth)/sign-up/finish/loading";
 import L29 from "@/app/(auth)/forgot-password/code/loading";
 import L30 from "@/app/(auth)/reset-password/loading";
 import L31 from "@/app/email/preferences/loading";
-import L32 from "@/app/join/[code]/loading";
 
 /**
  * Lane 5 (D-10): every shaped loading file from the gap audit, held still
@@ -66,7 +65,6 @@ const SCREENS: Record<string, { C: ComponentType; frame: "host" | "app" | "auth"
   "auth-forgot-code": { C: L29, frame: "auth" },
   "auth-reset": { C: L30, frame: "auth" },
   "email-preferences": { C: L31, frame: "host" },
-  "join": { C: L32, frame: "host" },
 };
 
 export default async function PreviewLane5Loading({
