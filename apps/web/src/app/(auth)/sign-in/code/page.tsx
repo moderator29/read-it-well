@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { getDictionary } from "@vallo/i18n";
-import { forAuth } from "@/components/auth/auth-copy";
 import { getLocale } from "@/lib/locale";
 import { CodeSignInForm } from "@/components/auth/CodeSignInForm";
 import { safeReturnPath } from "@/lib/security/return-path";
@@ -11,5 +10,5 @@ export const metadata: Metadata = { title: "Sign in with a code", robots: { inde
 export default async function SignInWithCodePage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
   const t = getDictionary(await getLocale());
   const { next } = await searchParams;
-  return <CodeSignInForm mode="email" t={forAuth(t)} next={typeof next === "string" ? (safeReturnPath(next, "") ?? undefined) : undefined} />;
+  return <CodeSignInForm mode="email" t={t} next={typeof next === "string" ? (safeReturnPath(next, "") ?? undefined) : undefined} />;
 }

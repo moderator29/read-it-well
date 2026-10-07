@@ -38,15 +38,15 @@ export function VerifyingPanel({ moment = "sign-up" }: { moment?: AuthMoment }) 
       <span className="flex justify-center">
         <LogoMark size={44} title="Vallo" />
       </span>
-      <h1 className="nf-h2 mt-md">{words.title}</h1>
-      <p className="mt-sm leading-relaxed text-[var(--nf-content-secondary)]">{words.body}</p>
+      <h1 className="nf-h2 mt-5">{words.title}</h1>
+      <p className="mt-3 leading-relaxed text-[var(--nf-content-secondary)]">{words.body}</p>
       {/* A determinate-looking bar rather than a spinner: this has a known end,
           and a bar says so where a spinner says only that something is
           happening. Purely decorative, so the sentence above carries it for a
           screen reader. */}
       <span
         aria-hidden="true"
-        className="mx-auto mt-lg block h-1 w-40 overflow-hidden rounded-full bg-[var(--nf-border-subtle)]"
+        className="mx-auto mt-7 block h-1 w-40 overflow-hidden rounded-full bg-[var(--nf-border-subtle)]"
       >
         <span className="nf-verify-sweep block h-full w-1/3 rounded-full bg-[var(--nf-brand-primary)]" />
       </span>
@@ -58,19 +58,19 @@ export function VerifyingPanel({ moment = "sign-up" }: { moment?: AuthMoment }) 
       <noscript>
         {moment === "sign-up" ? (
           <>
-            <p className="mt-lg leading-relaxed text-[var(--nf-content-secondary)]">
+            <p className="mt-7 leading-relaxed text-[var(--nf-content-secondary)]">
               {a.noScriptSignUp}
             </p>
-            <ButtonLink href="/sign-up/verify" variant="primary" size="lg" className="mt-md">
+            <ButtonLink href="/sign-up/verify" variant="primary" size="lg" className="mt-5">
               {a.enterCodeInstead}
             </ButtonLink>
           </>
         ) : (
           <>
-            <p className="mt-lg leading-relaxed text-[var(--nf-content-secondary)]">
+            <p className="mt-7 leading-relaxed text-[var(--nf-content-secondary)]">
               {a.noScriptSignIn}
             </p>
-            <ButtonLink href="/sign-in" variant="primary" size="lg" className="mt-md">
+            <ButtonLink href="/sign-in" variant="primary" size="lg" className="mt-5">
               {a.signInWithYourEmail}
             </ButtonLink>
           </>

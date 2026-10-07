@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import type { TermsCopy } from "./auth-copy";
+import type { Dictionary } from "@vallo/i18n/core";
 import { TERMS_VERSION } from "@/lib/legal/versions";
 
 /**
@@ -56,7 +56,7 @@ export function AcceptTerms({
   onAdultChange,
   showAdultError,
 }: {
-  t: TermsCopy;
+  t: Dictionary;
   accepted: boolean;
   onChange: (next: boolean) => void;
   /** True once a submit has been refused for want of the tick. */
@@ -91,7 +91,7 @@ export function AcceptTerms({
         <p
           id="age-confirmed-error"
           role="alert"
-          className="nf-slate-field__error nf-slate-field__error--check mb-sm"
+          className="-mt-2xs mb-sm pl-xl text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-state-error)]"
         >
           {t.safety.ageRequired}
         </p>
@@ -138,7 +138,7 @@ export function AcceptTerms({
         <p
           id="accept-terms-error"
           role="alert"
-          className="nf-slate-field__error nf-slate-field__error--check"
+          className="mt-2xs pl-xl text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-state-error)]"
         >
           {t.safety.acceptRequired}
         </p>

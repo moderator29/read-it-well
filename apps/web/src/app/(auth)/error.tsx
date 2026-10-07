@@ -1,9 +1,10 @@
 "use client";
+import "@/app/css/auth.css";
 
 import { useErrorReport } from "@/lib/observability/use-error-report";
+import Link from "next/link";
+import { Button } from "@/components/ui/Button";
 import { useClientCopy } from "@/lib/i18n/client-copy";
-import { AuthPillButton, AuthPillLink } from "@/components/auth/slate";
-import "@/app/css/auth.css";
 
 /**
  * The auth group's error boundary. There was none.
@@ -38,23 +39,28 @@ export default function AuthError({
   const a = useClientCopy().authFlow;
   const reference = useErrorReport(error, "client.auth_boundary", "[vallo] auth route error");
 
-  /* The same grammar as every other door (R3-09): the title, the sentence,
-     the one primary pill and the quiet second way, then the reference as
-     the small print. It used to be a hand-sized block of its own, the one
-     screen in the group that did not look like the others. */
   return (
-    <div className="nf-auth__screen nf-slate-stagger">
-      <h1 className="nf-auth__title">{a.errorTitle}</h1>
-      <p className="nf-auth__sub">{a.errorBody}</p>
-      <div className="nf-auth__form">
-        <AuthPillButton onClick={reset} className="nf-auth__cta">
+    <div className="text-center">
+      <h1 className="nf-h3">{a.errorTitle}</h1>
+      <p className="mt-sm text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+        {a.errorBody}
+      </p>
+
+      <div className="mt-6 flex flex-col gap-2">
+        <Button variant="primary" size="lg" full onClick={reset}>
           {a.tryAgain}
-        </AuthPillButton>
-        <AuthPillLink href="/" quiet>
+        </Button>
+        <Link
+          href="/"
+          className="nf-tap py-2 text-[0.875rem] font-semibold text-[var(--nf-content-muted)] transition-colors hover:text-[var(--nf-content-primary)]"
+        >
           {a.backHome}
-        </AuthPillLink>
+        </Link>
       </div>
-      <p className="nf-auth__hint nf-auth__reference nf-numeric">{a.reference.replace("{digest}", reference)}</p>
+
+      <p className="nf-numeric mt-md select-all text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+        {a.reference.replace("{digest}", reference)}
+      </p>
     </div>
   );
 }

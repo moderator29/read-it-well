@@ -1,10 +1,10 @@
 "use client";
+import "@/app/css/auth.css";
 
 import type { ReactNode } from "react";
-import { useAuthPath } from "./useAuthPath";
+import { usePathname } from "next/navigation";
 import { useNightDoor } from "@/components/auth/NightDoor";
 import { isNightDoorPath } from "@/lib/theme/night-door";
-import "@/app/css/auth.css";
 
 /**
  * The auth shell's <main>. On a night door (the sign-up flow, the founder's
@@ -13,7 +13,7 @@ import "@/app/css/auth.css";
  * follow the member's theme. See `lib/theme/night-door.ts`.
  */
 export function AuthMain({ children }: { children: ReactNode }) {
-  const night = isNightDoorPath(useAuthPath());
+  const night = isNightDoorPath(usePathname());
   useNightDoor(night);
   return (
     <main id="main" className="nf-auth nf-slate" data-theme={night ? "dark" : undefined}>

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getDictionary } from "@vallo/i18n";
-import { forAuth } from "@/components/auth/auth-copy";
 import { getLocale } from "@/lib/locale";
 import { CodeSignInForm } from "@/components/auth/CodeSignInForm";
 import { phoneSignInEnabled } from "@/lib/auth/phone-sign-in-flag";
@@ -14,5 +13,5 @@ export default async function SignInWithPhonePage({ searchParams }: { searchPara
   if (!phoneSignInEnabled()) notFound();
   const t = getDictionary(await getLocale());
   const { next } = await searchParams;
-  return <CodeSignInForm mode="phone" t={forAuth(t)} next={typeof next === "string" ? (safeReturnPath(next, "") ?? undefined) : undefined} />;
+  return <CodeSignInForm mode="phone" t={t} next={typeof next === "string" ? (safeReturnPath(next, "") ?? undefined) : undefined} />;
 }

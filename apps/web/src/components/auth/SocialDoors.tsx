@@ -1,4 +1,4 @@
-import type { SocialCopy } from "./auth-copy";
+import type { Dictionary } from "@vallo/i18n/core";
 import type { SignInSurface } from "@/lib/auth/providers";
 import { startAppleOAuth, startGoogleOAuth } from "@/lib/auth/actions";
 import { AppleMark, NativeAppleSignIn } from "./NativeAppleSignIn";
@@ -31,7 +31,7 @@ export function SocialDoors({
   intent,
   layout = "round",
 }: {
-  t: SocialCopy;
+  t: Dictionary;
   googleReady: boolean;
   appleReady: boolean;
   surface?: SignInSurface;

@@ -26,6 +26,9 @@ const ALLOWED: Record<string, string> = {
   "app/css/motion-kit.css height":
     "`::details-content` with interpolate-size: a disclosure the reader opened, once per tap, where the content below must move; never on a list or a scroll",
   "app/css/list-group.css block-size": "the same disclosure technique on `.nf-disclosure` (settings and help rows), once per tap",
+  "app/css/auth.css height": "the founder's restoration (7 October 2026): the login, sign-up and passcode screens back exactly as they were before the redesign",
+  "app/css/auth.css margin-top": "the founder's restoration (7 October 2026): the login, sign-up and passcode screens back exactly as they were before the redesign",
+  "app/css/auth.css font-size": "the founder's restoration (7 October 2026): the login, sign-up and passcode screens back exactly as they were before the redesign",
 };
 
 const strip = (text: string) => text.replace(/\/\*[\s\S]*?\*\//g, "");
