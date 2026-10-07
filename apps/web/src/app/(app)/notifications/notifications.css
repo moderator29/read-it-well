@@ -202,3 +202,277 @@
     transition: none;
   }
 }
+
+/*
+  THE DEPTH STACK (P6, 7 October 2026; the founder's reference 1, "Never miss
+  a moment"). "Needs you" is not a list in a card: it is cards stacked in
+  depth. The front card is whole, frosted glass with a hairline light edge and
+  one soft warm glow bleeding from behind its plate (the only colour); each
+  card behind it is narrower, dimmer and lower, by scale and opacity steps,
+  not by shadow alone. The fan control beside the count opens it into a
+  column of the same cards; rows behind the front are `inert` while stacked
+  (LiveNotifications.tsx).
+*/
+@layer components {
+  .nf-notif__section-tools {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+  }
+  /* 44px of target, drawn as a 32px glass circle: the label row stays the
+     height it was. */
+  .nf-notif__fan {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: var(--nf-radius-circle);
+    border: var(--nf-border-width) solid var(--nf-glass-rim-thin);
+    background: var(--nf-glass-fill);
+    color: var(--nf-content-secondary);
+  }
+  .nf-notif__fan::after {
+    content: "";
+    position: absolute;
+    inset: -0.375rem;
+  }
+  .nf-notif__fan svg {
+    transition: transform var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  .nf-notif__fan[aria-expanded="true"] svg {
+    transform: rotate(180deg);
+  }
+
+  /* Each row becomes its own floating card. */
+  .nf-notif__group--stack .nf-list-group {
+    display: grid;
+    gap: var(--nf-space-sm);
+    overflow: visible;
+    border: 0;
+    background: none;
+    box-shadow: none;
+  }
+  .nf-notif__group--stack .nf-list-item {
+    border-radius: var(--nf-radius-card);
+    border: var(--nf-border-width) solid var(--nf-glass-rim-thin);
+    background: var(--nf-glass-fill-strong);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur)) saturate(var(--nf-glass-saturate));
+    backdrop-filter: blur(var(--nf-glass-blur)) saturate(var(--nf-glass-saturate));
+    box-shadow: var(--nf-glass-shadow);
+    isolation: isolate;
+  }
+  .nf-notif__group--stack .nf-list-item + .nf-list-item::before {
+    display: none;
+  }
+  /* The one warm glow, behind the front card's plate. */
+  .nf-notif__group--stack .nf-list-item:first-child .nf-list-row__lead {
+    position: relative;
+  }
+  .nf-notif__group--stack .nf-list-item:first-child .nf-list-row__lead::before {
+    content: "";
+    position: absolute;
+    inset: -1.25rem;
+    z-index: -1;
+    border-radius: var(--nf-radius-circle);
+    background: radial-gradient(closest-side, color-mix(in oklab, var(--nf-spark) 38%, transparent), transparent);
+    pointer-events: none;
+  }
+
+  /* Stacked: the front card in flow, the next two behind it, anchored at its
+     foot and scaled from there, so each peeks out lower and narrower. The
+     list's own padding is the room they peek into. */
+  .nf-notif__group--stack[data-stacked="true"] .nf-list-group {
+    display: block;
+    position: relative;
+    padding-bottom: 1.25rem;
+  }
+  .nf-notif__group--stack[data-stacked="true"] .nf-list-item:first-child {
+    position: relative;
+    z-index: 3;
+  }
+  .nf-notif__group--stack[data-stacked="true"] .nf-list-item:nth-child(n + 2) {
+    position: absolute;
+    inset: 0 0 1.25rem;
+    overflow: hidden;
+    transform-origin: 50% 100%;
+    pointer-events: none;
+    /* Opaque behind the front glass, so each layer reads as its own card. */
+    background: var(--nf-surface-elevated);
+    border-color: var(--nf-glass-rim);
+  }
+  .nf-notif__group--stack[data-stacked="true"] .nf-list-item:nth-child(n + 2) > * {
+    visibility: hidden;
+  }
+  .nf-notif__group--stack[data-stacked="true"] .nf-list-item:nth-child(2) {
+    z-index: 2;
+    transform: translateY(0.625rem) scale(0.94);
+    opacity: 0.72;
+  }
+  .nf-notif__group--stack[data-stacked="true"] .nf-list-item:nth-child(3) {
+    z-index: 1;
+    transform: translateY(1.25rem) scale(0.88);
+    opacity: 0.4;
+  }
+  .nf-notif__group--stack[data-stacked="true"] .nf-list-item:nth-child(n + 4) {
+    display: none;
+  }
+
+  /* Fanned: the cards behind slide down out of the stack, 50ms apart. */
+  .nf-notif__group--stack[data-stacked="false"] .nf-list-item:nth-child(n + 2) {
+    animation: nf-notif-fan var(--nf-duration-slow) var(--nf-ease-entrance) both;
+  }
+  .nf-notif__group--stack[data-stacked="false"] .nf-list-item:nth-child(3) {
+    animation-delay: 50ms;
+  }
+  .nf-notif__group--stack[data-stacked="false"] .nf-list-item:nth-child(n + 4) {
+    animation-delay: 100ms;
+  }
+  @keyframes nf-notif-fan {
+    from {
+      opacity: 0.4;
+      transform: translateY(-1.5rem) scale(0.94);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-notif__group--stack .nf-list-item {
+      animation: none !important;
+    }
+    .nf-notif__fan svg {
+      transition: none;
+    }
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-notif__group--stack .nf-list-item,
+  [data-save-data="on"] .nf-notif__group--stack .nf-list-item {
+    animation: none !important;
+  }
+
+  /* ALL CAUGHT UP (reference 1): enormous breathing room, the empty stack,
+     a centred title in a confident medium weight, one muted line. */
+  .nf-notif-quiet {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-3xl) var(--nf-space-md) var(--nf-space-2xl);
+    text-align: center;
+  }
+  .nf-notif-quiet__stack {
+    position: relative;
+    width: min(100%, 18rem);
+    height: 6.5rem;
+    margin-bottom: var(--nf-space-xl);
+  }
+  .nf-notif-quiet__card {
+    position: absolute;
+    inset: 0 0 1.25rem;
+    border-radius: var(--nf-radius-card);
+    border: var(--nf-border-width) solid var(--nf-glass-rim-thin);
+    background: var(--nf-surface-elevated);
+    transform-origin: 50% 100%;
+  }
+  .nf-notif-quiet__card--1 {
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-md);
+    background: var(--nf-glass-fill-strong);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur)) saturate(var(--nf-glass-saturate));
+    backdrop-filter: blur(var(--nf-glass-blur)) saturate(var(--nf-glass-saturate));
+    border-color: var(--nf-glass-rim);
+    box-shadow: var(--nf-glass-shadow);
+    animation: nf-notif-quiet-rise var(--nf-duration-cinematic) var(--nf-ease-entrance) var(--nf-splash-hold, 0s) both;
+  }
+  .nf-notif-quiet__card--2 {
+    z-index: 2;
+    transform: translateY(0.625rem) scale(0.92);
+    opacity: 0.6;
+  }
+  .nf-notif-quiet__card--3 {
+    z-index: 1;
+    transform: translateY(1.25rem) scale(0.84);
+    opacity: 0.32;
+  }
+  .nf-notif-quiet__plate {
+    position: relative;
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--nf-radius-plate);
+    background: var(--nf-glass-fill);
+    color: var(--nf-content-primary);
+    isolation: isolate;
+  }
+  /* The one warm glow, bleeding from behind the plate. */
+  .nf-notif-quiet__plate::before {
+    content: "";
+    position: absolute;
+    inset: -1.5rem;
+    z-index: -1;
+    border-radius: var(--nf-radius-circle);
+    background: radial-gradient(closest-side, color-mix(in oklab, var(--nf-spark) 42%, transparent), transparent);
+  }
+  .nf-notif-quiet__lines {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: var(--nf-space-xs);
+  }
+  .nf-notif-quiet__line {
+    display: block;
+    height: 0.5rem;
+    border-radius: var(--nf-radius-xs);
+    background: var(--nf-glass-fill-strong);
+  }
+  .nf-notif-quiet__line--short {
+    width: 60%;
+    background: var(--nf-glass-fill);
+  }
+  .nf-notif-quiet__title {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h2);
+    font-weight: 500;
+    letter-spacing: var(--nf-tracking-tight);
+    color: var(--nf-content-primary);
+  }
+  .nf-notif-quiet__body {
+    max-width: 22rem;
+    font-size: var(--nf-text-body);
+    color: var(--nf-content-muted);
+  }
+  .nf-notif-quiet__actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    width: min(100%, 22rem);
+    margin-top: var(--nf-space-xl);
+  }
+  .nf-notif-quiet__link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    padding-inline: var(--nf-space-sm);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-link);
+  }
+  @keyframes nf-notif-quiet-rise {
+    from {
+      opacity: 0;
+      transform: translateY(0.75rem);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-notif-quiet__card--1 {
+      animation: none;
+    }
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-notif-quiet__card--1,
+  [data-save-data="on"] .nf-notif-quiet__card--1 {
+    animation: none;
+  }
+}
