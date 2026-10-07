@@ -134,21 +134,6 @@ export const BACKED_CLAIMS: readonly BackedClaim[] = [
     mechanism:
       "the protected rail: funds held by the licensed provider's escrow until release (docs/payments/VALLO_FINANCIAL_LAYER.md), surfaces gated by PROTECTED_RAIL_LIVE in apps/web/src/lib/money/rails.ts (false until ADR-0003 is accepted and the merchant account is live)",
   },
-  /* Leaderboards and the directory (D76). The ranking reads only rows whose
-     `verified` flag the admin review set, and the directory orders by it;
-     "Get verified" is the door to that review. Scoped to the two copy files. */
-  {
-    phrase: /^Get verified$|^Only verified agents, landlords and firms are ranked\. Verification is free\.$|^Only verified, published (?:hotels and stays|restaurants) are ranked\.$|\bThe first verified (?:hotel|restaurant) to (?:host a guest|seat a guest) through Vallo takes the top spot\.$/,
-    onlyIn: "apps/web/src/lib/leaderboard/copy.ts",
-    mechanism:
-      "public.leaderboard (supabase/migrations/pending/d76_leaderboards_and_directory.sql) ranks only agents with status APPROVED and verified, and businesses PUBLISHED and verified, never demo rows; verified is set by the admin verification review",
-  },
-  {
-    phrase: /\bon Vallo\. Verified first\.$/,
-    onlyIn: "apps/web/src/lib/directory/model.ts",
-    mechanism:
-      "public.directory (supabase/migrations/pending/d76_leaderboards_and_directory.sql) orders by verified desc, then completed and live listings; verified is set by the admin verification review",
-  },
   { phrase: /^; Secure$/, mechanism: "the Secure attribute of the theme cookie (lib/theme/theme-client.ts), an HTTP cookie flag, not copy" },
 
   /* "Instant" (29 September): the word promises speed, so it is a claim word
