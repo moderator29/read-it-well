@@ -126,6 +126,84 @@ Four agents working in parallel on four non-overlapping areas is cheaper than on
 agent doing four passes, because the work does not get redone. The split is in
 section 9 and it is chosen so the agents barely share files.
 
+## 2.5 Signing in to the real platform, and testing like a member
+
+**You have two real accounts. Use them. Most of what the founder is complaining about
+can only be seen from inside the signed in app.**
+
+Every one of his specific complaints lives behind a sign in: the money and rewards
+surfaces missing from the side navigation, the plus button and its sheet, another
+member's profile, the passcode screen, the feed, the agreement screen in the pay flow.
+A session that only reads source code will miss all of it, exactly as the last three
+sessions did. **Sign in first. Walk the app. Then start work.**
+
+### Where the credentials are
+
+They are environment variables, set by the founder in the environment's settings
+(the cloud environment menu in the session title bar, then Edit). They are **never**
+written into this repository, into a document, into a commit, or into a chat message.
+If you cannot find them, say so and carry on with everything that does not need them;
+do not ask anybody to paste a password to you.
+
+```
+VALLO_TEST_EMAIL_A      VALLO_TEST_PASSWORD_A
+VALLO_TEST_EMAIL_B      VALLO_TEST_PASSWORD_B
+```
+
+Two accounts, because almost everything that matters in Vallo has two sides. Account A
+and account B let you walk a whole deal rather than half of one: one lists, one
+enquires; one sends, one receives; one invites, one joins.
+
+### The rules for using them
+
+1. **These are real accounts on the live platform.** Treat every action as real,
+   because it is. Nothing you do is a simulation.
+2. **Never move real money.** Payment flows are walked up to the point of payment and
+   stopped there, or exercised in test mode. `PAYSTACK_TEST_SECRET_KEY` and
+   `PAYSTACK_TEST_GUARANTEE_SUBACCOUNT` exist for this and cost nothing, and a Payluk
+   `sk_test_` key routes to staging. Use them.
+3. **Never create rubbish that other people will see.** No test listings left published,
+   no test posts on the feed, no messages to real members. If you create something to
+   see a screen, remove it when you are done and say in your report what you created
+   and that you removed it.
+4. **Never print a credential**, not in a log, not in a screenshot, not in your report,
+   not in a commit message. If a screenshot would catch an email address or a one time
+   code, crop it.
+5. **Never change account settings, delete data, or touch another member's records.**
+6. **Never commit any of this.** Not the values, not a `.env` file containing them, not
+   a test fixture holding them. `apps/web/.env.example` documents the variable names
+   and nothing else, which is what that file is for.
+
+### What to actually do with them, before you write any code
+
+Sign in on a phone sized viewport, because that is how the founder uses it, and walk
+this list. Screenshot every screen. This walk is the baseline half of the before and
+after evidence your report owes him.
+
+1. **Open the app cold.** Time the startup. This is A.2's measurement and it is the
+   complaint he has raised four times.
+2. **Open the side navigation and look for money, rewards, receipts and payouts.** You
+   will not find them. That is section 3.1, and confirming it with your own eyes is
+   worth more than reading it here.
+3. **Reach `/rewards`, `/payouts`, `/receipts` and `/refunds` by typing the URL.** They
+   exist. Score each one against section 0.
+4. **Tap the plus button.** See whether it is even visible, and count the options in
+   its sheet. A.6.
+5. **Open your own profile, then open account B's profile from account A.** A.7. The
+   inconsistency he calls "stupid ugly" is the gap between those two screens.
+6. **Lock and unlock.** The passcode screen. A.4.
+7. **Scroll the feed properly**, a minute of real scrolling, not one screenshot. A.5.
+8. **Walk a deal between A and B** as far as it goes: a listing, an enquiry, a message,
+   an agreement, an inspection, and up to the payment screen. Find where it breaks.
+   The agreement screen interrupting the pay flow is in Part C and he hits it.
+9. **Open the admin panel on the phone viewport.** A.12. He runs the company from here.
+10. **Try the signed out side too**, in a private window: the landing page, Get Started,
+    sign up. A.3.
+
+Write down what you find as you go. A session that has walked the app argues from
+evidence; one that has only read the repository argues from the repository, and the
+repository is not what he opens in the morning.
+
 ## 3. Ground truth, corrected
 
 This section exists because the obvious diagnosis was wrong and the real one is

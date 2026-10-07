@@ -52,6 +52,60 @@ there, and build the parts that genuinely are not.
 7. `docs/component-reference/README.md` - the eight components he pasted as the
    finish he wants, and the five shadcn registry components he named.
 
+## Before you write any code: sign in and walk the app
+
+**You have two real accounts on the live platform. Use them first.**
+
+Every single thing the founder is complaining about lives behind a sign in. A session
+that only reads source code will miss all of it, which is exactly what the last three
+sessions did.
+
+The credentials are environment variables, set by the founder in the environment's
+settings. They are never in the repository, never in a document, never in a commit,
+and never in a chat message:
+
+```
+VALLO_TEST_EMAIL_A      VALLO_TEST_PASSWORD_A
+VALLO_TEST_EMAIL_B      VALLO_TEST_PASSWORD_B
+```
+
+Two accounts because almost everything in Vallo has two sides: one lists and one
+enquires, one sends and one receives, one invites and one joins. If you cannot find
+them, say so and carry on with what does not need them. Never ask anyone to paste a
+password to you.
+
+**These are real accounts on the live platform, so:** never move real money (use
+`PAYSTACK_TEST_SECRET_KEY` and a Payluk `sk_test_` key, both of which cost nothing);
+never leave test listings, posts or messages where real members will see them, and
+remove anything you create; never print a credential in a log, a screenshot, a report
+or a commit message; never change account settings or touch another member's data;
+never commit any of this, including a `.env` file holding it.
+
+**Walk this list on a phone sized viewport, because that is how he uses it, and
+screenshot every screen.** This is the "before" half of the evidence your report owes
+him:
+
+1. Open the app cold and time the startup. This is the complaint he has raised four
+   times.
+2. Open the side navigation and look for money, rewards, receipts, payouts. **You will
+   not find them.** Confirming that with your own eyes matters more than reading it.
+3. Now reach `/rewards`, `/payouts`, `/receipts` and `/refunds` by typing the URL.
+   They exist and they are built. Score each one.
+4. Tap the plus button. Is it even visible? Count the options in its sheet.
+5. Open your own profile, then open account B's profile from account A. The gap
+   between those two screens is what he calls "stupid ugly".
+6. Lock and unlock, to see the passcode screen.
+7. Scroll the feed for a full minute, not one screenshot.
+8. Walk a deal between A and B as far as it goes: listing, enquiry, message,
+   agreement, inspection, up to the payment screen. Find where it breaks. He hits an
+   agreement screen when he expects to pay.
+9. Open the admin panel on the phone viewport. He runs the company from there.
+10. In a private window, signed out: landing page, Get Started, sign up.
+
+Section 2.5 of the handoff has the full version. A session that has walked the app
+argues from evidence. One that has only read the repository argues from the
+repository, and the repository is not what he opens in the morning.
+
 ## The bar. This is the acceptance test.
 
 Before you call anything done, ask it out loud, in his words:
