@@ -103,6 +103,12 @@ export async function startKeyboard(): Promise<() => void> {
     Keyboard.addListener("keyboardWillShow", opened),
     Keyboard.addListener("keyboardDidShow", opened),
     Keyboard.addListener("keyboardWillHide", closed),
+    /* And on the Did as well. A keyboard dismissed while it is still
+       animating in can deliver `keyboardDidShow` AFTER `keyboardWillHide`,
+       which re-marked the root open with no keyboard on screen: the dock, and
+       the "+" in it, stayed `display: none` until the next keyboard came and
+       went. Closing again on Did makes the last event the true one. */
+    Keyboard.addListener("keyboardDidHide", closed),
   ]);
 
   return () => {

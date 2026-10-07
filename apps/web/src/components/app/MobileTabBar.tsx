@@ -4,6 +4,7 @@ import { AutoHideDock } from "./AutoHideDock";
 import { DockMore, type DockMoreItem } from "./DockMore";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import type { Side } from "@/lib/side.constants";
+import { CreateDock } from "./CreateDock";
 
 /**
  * The bottom tab bar.
@@ -425,9 +426,20 @@ export function MobileTabBar({
             /* The centre slot: the round "+" (`CreateDock`), with no label
                under it; its accessible name is "Create". It sits in line
                with the other four, same height, same baseline. */
+            /* NEVER AN EMPTY CENTRE. A caller that passes no slot (the
+               feed and flip preview harnesses did, which is how a dock with
+               a hole where the "+" belongs was photographed and shown)
+               gets the real "+" for its side, not a gap. */
             return (
               <li key="switch" className="nf-tab nf-tab--switch">
-                {switchSlot}
+                {switchSlot ?? (
+                  <CreateDock
+                    t={t}
+                    side={side}
+                    socialOn={socialOn}
+                    listHref={side === "stays" ? "/profile/setup?side=stays" : "/profile/setup"}
+                  />
+                )}
               </li>
             );
           }

@@ -215,8 +215,8 @@ export function AppShell({
     <>
       <CreateDock
         t={t}
+        side={effectiveSide}
         isHost={isHost}
-        signedIn={signedIn}
         socialOn={socialOn}
         listHref={isAgent ? "/agent/list" : effectiveSide === "stays" ? "/profile/setup?side=stays" : "/profile/setup"}
       />
