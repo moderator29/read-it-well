@@ -82,7 +82,14 @@ export function Feed({
   district,
   pageCursor = null,
   loadMore,
+  aside,
 }: {
+  /**
+   * Something the surface sets between posts, once: the feed's "worth
+   * following" block, after the third post (or after the last, on a shorter
+   * feed), so the first thing read is always somebody's post.
+   */
+  aside?: React.ReactNode;
   initial: PostView[];
   /**
    * The cursor after the first page, or null when the timeline ended there.
@@ -573,7 +580,7 @@ export function Feed({
         />
       ) : null}
 
-      {(chip === "stories" || chip === "reviews" ? [] : shown).map((post) => {
+      {(chip === "stories" || chip === "reviews" ? [] : shown).map((post, index, list) => {
         const lead = leadPropsFor(leadIds, post.id, leadSettled);
         return (
         <div
@@ -630,6 +637,7 @@ export function Feed({
             position". Scroll position is worth less than knowing what you are
             replying to.
           */}
+          {aside && index === Math.min(2, list.length - 1) ? aside : null}
         </div>
         );
       })}

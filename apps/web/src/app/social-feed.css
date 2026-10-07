@@ -3618,6 +3618,192 @@
     box-shadow: 0 16px 40px -20px var(--nf-overlay-media-deep);
   }
 
+  /* ------------------------------------------------------------------
+   * WORTH FOLLOWING: the feed's block and the social search's rows. The
+   * feed's own calm material, a small title and one note, rows of face,
+   * name, kind and place, and a compact Follow capsule. Vallo's, not X's.
+   * ------------------------------------------------------------------ */
+  .nf-follow {
+    padding: 14px var(--nf-feed-pad) 6px;
+    border-radius: var(--nf-container-radius);
+    border: 1px solid color-mix(in oklab, var(--nf-lit) 30%, var(--nf-surface-canvas));
+    background: color-mix(in oklab, var(--nf-lit) 6%, var(--nf-surface-canvas));
+  }
+  .nf-follow__title {
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .nf-follow__note {
+    margin-block-start: 2px;
+    color: var(--nf-content-muted);
+    font-size: var(--nf-text-caption);
+  }
+  .nf-follow__list {
+    display: flex;
+    flex-direction: column;
+    margin-block-start: 8px;
+  }
+  .nf-follow-row {
+    position: relative;
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    min-block-size: 64px;
+  }
+  .nf-follow-row + .nf-follow-row {
+    border-block-start: 1px solid color-mix(in oklab, var(--nf-content-primary) 7%, transparent);
+  }
+  .nf-follow-row__open {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+  .nf-follow-row__face {
+    display: grid;
+    place-items: center;
+    inline-size: 44px;
+    block-size: 44px;
+    overflow: hidden;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-gradient-brand-ink);
+    color: var(--nf-content-on-brand);
+    font-weight: 700;
+  }
+  .nf-follow-row__face img {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+  .nf-follow-row__text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-inline-size: 0;
+  }
+  .nf-follow-row__name {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-inline-size: 0;
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+  }
+  .nf-follow-row__meta {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--nf-content-muted);
+    font-size: var(--nf-text-caption);
+  }
+  .nf-follow-row__act {
+    position: relative;
+    z-index: 2;
+  }
+  .nf-follow__more {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-block-size: 44px;
+    color: var(--nf-brand-secondary);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+  }
+
+  /* The feed's way into the social search, beside the place. */
+  .nf-feed-find {
+    display: grid;
+    flex: none;
+    place-items: center;
+    inline-size: 44px;
+    block-size: 44px;
+    border-radius: var(--nf-radius-circle);
+    border: 1px solid color-mix(in oklab, var(--nf-lit) 40%, var(--nf-surface-canvas));
+    background: color-mix(in oklab, var(--nf-lit) 8%, var(--nf-surface-canvas));
+    color: var(--nf-content-primary);
+  }
+
+  /* The social search page. */
+  .nf-people-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-block-start: 16px;
+    padding-inline: 14px;
+    min-block-size: 48px;
+    border-radius: var(--nf-radius-control);
+    border: 1px solid color-mix(in oklab, var(--nf-content-primary) 12%, transparent);
+    background: color-mix(in oklab, var(--nf-content-primary) 4%, transparent);
+    color: var(--nf-content-muted);
+  }
+  .nf-people-search__field {
+    flex: 1 1 auto;
+    min-inline-size: 0;
+    block-size: 46px;
+    border: 0;
+    background: transparent;
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-body);
+    outline: none;
+  }
+  .nf-people-scope {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    margin-block-start: 12px;
+    padding: 4px;
+    border-radius: var(--nf-radius-segment);
+    background: color-mix(in oklab, var(--nf-content-primary) 5%, transparent);
+  }
+  .nf-people-scope__half {
+    display: grid;
+    place-items: center;
+    min-block-size: 40px;
+    border-radius: var(--nf-radius-segment);
+    color: var(--nf-content-secondary);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+  }
+  .nf-people-scope__half[aria-current="page"] {
+    background: var(--nf-selected-fill);
+    color: var(--nf-content-on-brand);
+  }
+  .nf-people-kinds {
+    display: flex;
+    gap: 6px;
+    margin-block: 12px 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .nf-people-kind {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    min-block-size: 36px;
+    padding-inline: 14px;
+    border-radius: var(--nf-radius-segment);
+    border: 1px solid color-mix(in oklab, var(--nf-content-primary) 10%, transparent);
+    color: var(--nf-content-secondary);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+  }
+  .nf-people-kind[aria-current="page"] {
+    border-color: color-mix(in oklab, var(--nf-brand-secondary) 50%, transparent);
+    background: color-mix(in oklab, var(--nf-brand-secondary) 14%, transparent);
+    color: var(--nf-brand-secondary);
+  }
+  .nf-people-note {
+    margin-block: 8px;
+    color: var(--nf-content-muted);
+    font-size: var(--nf-text-caption);
+  }
+  .nf-people-list {
+    margin-block-start: 8px;
+  }
+
   /* The card you just published, in flight over the cards it is landing
      above (`FreshArrival`). */
   .nf-fresh-card {

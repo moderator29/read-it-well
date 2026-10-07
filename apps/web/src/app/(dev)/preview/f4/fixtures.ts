@@ -1,5 +1,6 @@
 import type { PostView } from "@/components/social/feed/PostCard";
 import type { StoryCard } from "@/lib/social/stories-queries";
+import type { FollowSuggestion } from "@/lib/social/follow-suggestions";
 import { COUNTERPART, PERSON } from "../_fixtures/people";
 
 /**
@@ -121,6 +122,41 @@ export const FEED_POSTS: PostView[] = [
     replyCount: 4,
     saved: true,
   }),
+];
+
+/* Sample accounts for the "worth following" block in the harness only. The
+   live block reads `social_follow_suggestions` and draws nothing without it. */
+export const FOLLOW_SAMPLE: FollowSuggestion[] = [
+  {
+    userId: "00000000-0000-4000-8000-00000000e001",
+    handle: "adaeze_homes",
+    displayLabel: "Adaeze Homes",
+    avatarUrl: "",
+    kind: "agent",
+    city: "Lagos",
+    verified: true,
+    tier: "gold",
+  },
+  {
+    userId: "00000000-0000-4000-8000-00000000e002",
+    handle: "marina_suites",
+    displayLabel: "Marina Suites",
+    avatarUrl: "",
+    kind: "hotel",
+    city: "Lagos",
+    verified: false,
+    tier: "none",
+  },
+  {
+    userId: "00000000-0000-4000-8000-00000000e003",
+    handle: "yaba_landlord",
+    displayLabel: "Kunle Ade",
+    avatarUrl: "",
+    kind: "landlord",
+    city: "Lagos",
+    verified: false,
+    tier: "none",
+  },
 ];
 
 export const FEED_STORIES: StoryCard[] = [
