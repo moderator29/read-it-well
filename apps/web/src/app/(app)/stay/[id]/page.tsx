@@ -8,6 +8,12 @@ import { getLocale } from "@/lib/locale";
 import { StayDetailView } from "./StayDetailView";
 import { readStayDates } from "@/components/app/stays/model";
 import type { StayDetail } from "./detail-model";
+
+/* About a kilometre: two decimal places. The Map tab draws an area, never the door. */
+function areaPoint(lat: number | null, lng: number | null): { lat: number; lng: number } | null {
+  if (lat === null || lng === null || !Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  return { lat: Math.round(lat * 100) / 100, lng: Math.round(lng * 100) / 100 };
+}
 import { getStayDetail } from "@/lib/stays/queries";
 import { listSavedPlaces } from "@/lib/saved/places-actions";
 import { isSaved, savedKeySet } from "@/lib/saved/places";
@@ -45,6 +51,7 @@ async function readStayDetail(id: string): Promise<StayDetail | null> {
     starRating: accommodation.star_rating,
     city: accommodation.city,
     area: accommodation.area,
+    areaPoint: areaPoint(accommodation.latitude, accommodation.longitude),
     checkInFrom: accommodation.check_in_from,
     checkOutBy: accommodation.check_out_by,
     houseRules: accommodation.house_rules,
