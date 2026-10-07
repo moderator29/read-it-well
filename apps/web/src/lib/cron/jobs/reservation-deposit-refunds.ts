@@ -5,6 +5,8 @@ import type { JobVerdict } from "../../bookings/lifecycle";
 import type { AdminClient } from "../rpc";
 import { isPaystackConfigured } from "../../payments/paystack";
 import { sendDueDepositRefunds } from "../../reservations/deposit-settlement";
+import { RESTAURANT_DEPOSITS_FLAG } from "../../reservations/deposits";
+import { flagIsOn } from "../../flags/read";
 
 /**
  * D75. Hourly: send every table deposit refund the restaurant's rule decided
@@ -14,6 +16,12 @@ import { sendDueDepositRefunds } from "../../reservations/deposit-settlement";
  * still settles, or goes back to the card.
  */
 export async function reservationDepositRefunds(admin: AdminClient): Promise<JobVerdict> {
+  /* Off means off: with the switch off (and before its migration is applied,
+     when `reservation_deposits` does not exist) the hourly run would read a
+     missing table and raise an alert every hour. Nothing to do, say so. */
+  if (!(await flagIsOn(RESTAURANT_DEPOSITS_FLAG))) {
+    return { outcome: "ok", counts: { due: 0 }, detail: { skipped: "restaurant_deposits_off" }, alert: null };
+  }
   const db = admin as unknown as SupabaseClient;
   const cutoff = new Date(Date.now() - 2 * 3_600_000).toISOString();
   await db
