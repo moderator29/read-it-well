@@ -15,8 +15,8 @@
 --                   pending or reversed), dated by qualified_at
 --      property     rent deal agreements PAID through Vallo (deal_agreements
 --                   status 'paid', dated by paid_at) on a non-demo listing,
---                   credited to the listing's agent (an agent or a landlord)
---                   and, separately, to its firm
+--                   credited to the listing's agent (an agent, or a landlord
+--                   who chose a public handle) and, separately, to its firm
 --      hotels       stays COMPLETED (bookings status 'COMPLETED' on an
 --                   accommodation of the business, dated by check-out)
 --      restaurants  reservations COMPLETED (dated by reserved_for)
@@ -155,6 +155,8 @@ language sql stable set search_path = '' as $$
     left join public.social_profiles sp on sp.user_id = a.user_id
    where p_board = 'property'
      and a.status::text = 'APPROVED' and a.verified and not a.is_demo
+     -- A landlord is a private person: ranked only once they chose a public handle.
+     and (a.role::text <> 'owner' or sp.handle is not null)
      and d.paid_at >= p_from and d.paid_at < p_to
      and (p_state is null or l.state_code = p_state)
      and not private.leaderboard_hidden('member', a.user_id)
