@@ -21,12 +21,12 @@
    * 362px on a 390 screen, and it is kept inside the viewport on anything
    * narrower. Supersedes `.nf-social-more__menu` in `social-feed.css`.
    */
-  /* Anchored to the trigger's END edge so it opens back across the screen
-     (D79: it opened from the trigger's start edge and ran off the right side
-     of a phone, cutting "Report" and "Block" in half). */
+  /* Hung from the trigger's start edge; `ProfileMenu` flips it to the end
+     edge, or slides it, when that would leave the screen (D79: it ran off
+     the right side of a phone, cutting "Report" and "Block" in half). */
   .nf-post__menu.nf-social-more__menu {
-    inset-inline-start: auto;
-    inset-inline-end: 0;
+    inset-inline-start: 0;
+    inset-inline-end: auto;
     min-inline-size: 13rem;
     max-inline-size: calc(100vw - 2rem);
     border-radius: var(--nf-container-radius);
@@ -200,5 +200,22 @@
     .nf-identity .nf-social-float--end {
       inset-inline-end: 1rem;
     }
+  }
+
+  /* The overflow trigger beside Follow takes the same compact rung, 36 drawn
+     and 44 to the finger. */
+  .nf-identity .nf-identity__actions .nf-social-more {
+    position: relative;
+    inline-size: 36px;
+    block-size: 36px;
+  }
+  .nf-identity .nf-identity__actions .nf-social-more::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 44px;
+    height: 44px;
+    translate: -50% -50%;
   }
 }

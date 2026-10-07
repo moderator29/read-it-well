@@ -204,6 +204,8 @@ export default async function SocialProfilePage({
                 initialFollowing={view.viewerFollows}
                 signedIn={view.signedIn}
                 labels={t.socialProfile}
+                /* The compact rung (D79: "a bit smaller and clean"). */
+                compact
               />
             )
           }
