@@ -41,12 +41,28 @@ begin
     raise exception 'PROBE_FAIL b2-rail-at-open: fixtures missing (a second user for the agreement owner)';
   end if;
 
+  -- SCUML item 17: an agent listing stops being an example only on an
+  -- approved mandate, so the fixture files one as the platform would.
+  insert into public.listing_mandates (listing_id, kind, principal_name, review_status, reviewed_by, reviewed_at,
+         principal_relationship, principal_verified_how, principal_verified_by, principal_verified_at)
+  select id, 'letting', 'Probe Principal', 'approved', '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now(),
+         'owner', 'call_back', '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now()
+    from public.listings where id in (v_hotel, v_rental) and listing_role <> 'owner'
+     and not private.listing_has_live_mandate(id);
+
   -- Rolled back with the block: bookings refuse a demo listing.
   update public.listings set is_demo = false where id in (v_hotel, v_rental);
 
   insert into public.bookings (id, listing_id, guest_id, check_in, check_out, nights, price_per_night_minor, subtotal_minor, total_minor)
-  values (b_hotel, v_hotel, v_guest, current_date + 400, current_date + 401, 1, 10000, 10000, 10000),
-         (b_rental, v_rental, v_guest, current_date + 410, current_date + 411, 1, 10000, 10000, 10000);
+  values (b_hotel, v_hotel, v_guest, current_date + 400, current_date + 401, 1, 10000, 10000, 10000);
+  -- A rental listing has no nightly rate, so it carries no stay booking
+  -- (ESC-02). Its booking is the one the rent charge opens: the same
+  -- vallo.rent_charge marker private.open_rent_charge sets, for this insert
+  -- only, so the booking stays on the rental's own (escrow) rail.
+  perform set_config('vallo.rent_charge', 'true', true);
+  insert into public.bookings (id, listing_id, guest_id, check_in, check_out, nights, price_per_night_minor, subtotal_minor, total_minor)
+  values (b_rental, v_rental, v_guest, current_date + 410, current_date + 411, 1, 10000, 10000, 10000);
+  perform set_config('vallo.rent_charge', '', true);
 
   r := private.rail_for_booking(b_hotel);
   if r.rail is distinct from 'direct' or r.policy_id is null then
@@ -70,10 +86,16 @@ begin
   end if;
 
   -- Approved agreements, so transactions_00_payment_gate lets the insert
-  -- reach transactions_01_rail_at_open.
-  insert into public.deal_agreements (id, kind, listing_id, booking_id, renter_id, owner_id, amount_minor, terms, status)
-  values (a_hotel, 'stay', v_hotel, b_hotel, v_guest, v_owner, 10000, '{}'::jsonb, 'approved'),
-         (a_rental, 'stay', v_rental, b_rental, v_guest, v_owner, 10000, '{}'::jsonb, 'approved');
+  -- reach transactions_01_rail_at_open. Approved by a person (decided_by an
+  -- admin): since D68d a system approval on the direct rail is payable only
+  -- while no risk signal fires, and this probe is about the rail, not the
+  -- review.
+  insert into public.deal_agreements (id, kind, listing_id, booking_id, renter_id, owner_id, amount_minor, terms, status,
+         decided_by, decided_at)
+  values (a_hotel, 'stay', v_hotel, b_hotel, v_guest, v_owner, 10000, '{}'::jsonb, 'approved',
+          '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now()),
+         (a_rental, 'stay', v_rental, b_rental, v_guest, v_owner, 10000, '{}'::jsonb, 'approved',
+          '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now());
 
   -- 1. An escrow booking claiming the direct rail is refused.
   refused := false;
