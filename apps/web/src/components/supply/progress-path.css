@@ -1,15 +1,20 @@
 @layer theme, base, components, utilities;
 
 /*
- * THE PROGRESS PATH (reference 7110). Rows are Plates at the 44px floor; the
- * nodes sit on one hairline running down the leading edge, so the steps read
- * as a path rather than a list. Done is a filled brand node with a tick,
- * current a 2px brand ring, upcoming a hollow node in the border ink. A done
- * row is a button and presses like one (0.985, `press` 120ms).
+ * THE LEARNING PATH (the founder's reference 2). Each step is a raised card:
+ * a 3D tile on a soft plate, two lines of words, and a round status control.
+ * A thin connector runs through the tile column from each card to the next,
+ * lit up to the current step and quiet after it, so progress is physical:
+ * a line you can see filling, a ring with a number, a check when done.
+ * A done card is a button and presses like one (0.985, `press`).
  */
 @layer components {
   .nf-path {
+    --nf-path-tile: 3rem;
+    --nf-path-pad: var(--nf-space-sm);
+    --nf-path-gap: var(--nf-space-sm);
     display: grid;
+    gap: var(--nf-path-gap);
     margin: 0;
     padding: 0;
     list-style: none;
@@ -17,29 +22,45 @@
   .nf-path__step {
     position: relative;
   }
-  /* The hairline from this node to the next. */
-  .nf-path__step:not(:last-child)::before {
+  /* The connector, across the gap from this card to the next, on the tile
+     column. It spans the gap only, so cards of different heights (a need
+     line that wraps to four lines) never leave it short or overlong. */
+  .nf-path__step:not(:last-child)::after {
     content: "";
     position: absolute;
-    inset-block: 2.25rem -0.25rem;
-    inset-inline-start: calc(var(--nf-space-sm) + 0.75rem - 0.5px);
-    inline-size: 1px;
-    background: var(--nf-divider);
+    z-index: 2;
+    inset-block-start: 100%;
+    block-size: var(--nf-path-gap);
+    inset-inline-start: calc(var(--nf-path-pad) + var(--nf-path-tile) / 2 - 1px);
+    inline-size: 2px;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-border-default);
     pointer-events: none;
   }
+  .nf-path__step[data-state="done"]:not(:last-child)::after {
+    background: linear-gradient(var(--nf-brand-primary), color-mix(in oklab, var(--nf-brand-primary) 55%, transparent));
+  }
   .nf-path__row {
+    position: relative;
+    z-index: 1;
     display: flex;
     align-items: center;
     gap: var(--nf-space-sm);
     inline-size: 100%;
-    min-block-size: 2.75rem;
-    padding: var(--nf-space-2xs) var(--nf-space-sm);
-    border: 0;
-    border-radius: var(--nf-tier-plate-radius);
-    background: none;
+    min-block-size: 4rem;
+    padding: var(--nf-space-xs) var(--nf-path-pad);
+    border: 1px solid var(--nf-border-subtle);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-surface-raised);
     color: var(--nf-content-primary);
     font: inherit;
     text-align: start;
+  }
+  .nf-path__step[data-state="current"] .nf-path__row {
+    border-color: var(--nf-brand-edge);
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--nf-brand-primary) 18%, transparent),
+      0 0.75rem 2rem -1rem color-mix(in oklab, var(--nf-brand-primary) 55%, transparent);
   }
   button.nf-path__row {
     cursor: pointer;
@@ -48,42 +69,59 @@
       transform var(--nf-duration-press) var(--nf-ease-press);
   }
   button.nf-path__row:hover {
-    background: var(--nf-tier-plate-hover);
+    background: color-mix(in oklab, var(--nf-surface-raised) 88%, var(--nf-content-primary));
   }
   button.nf-path__row:active {
     transform: scale(0.985);
   }
   button.nf-path__row:focus-visible {
     outline: 2px solid var(--nf-brand-primary);
-    outline-offset: -2px;
+    outline-offset: 2px;
   }
-  .nf-path__node {
-    position: relative;
-    z-index: 1;
+
+  /* The tile: the 3D render on a soft plate, the same plate at every step. */
+  .nf-path__tile {
     display: grid;
     flex: none;
     place-items: center;
-    inline-size: 1.5rem;
-    block-size: 1.5rem;
-    border-radius: var(--nf-radius-circle);
-    background: var(--nf-surface-canvas);
-    box-shadow: inset 0 0 0 1.5px var(--nf-border-default);
+    inline-size: var(--nf-path-tile, 3rem);
+    block-size: var(--nf-path-tile, 3rem);
+    overflow: hidden;
+    border-radius: var(--nf-radius-control);
+    background: radial-gradient(
+      circle at 50% 40%,
+      color-mix(in oklab, var(--nf-brand-primary) 24%, var(--nf-surface-raised)),
+      color-mix(in oklab, var(--nf-brand-primary) 6%, var(--nf-surface-raised)) 72%
+    );
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--nf-brand-primary) 22%, transparent);
   }
-  .nf-path__step[data-state="done"] .nf-path__node {
-    background: var(--nf-brand-primary);
-    box-shadow: none;
-    color: var(--nf-content-on-brand);
+  /* The renders carry their own breathing room; scaled past it so the
+     object, not the padding, fills the tile. */
+  .nf-path__tile img {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: contain;
+    transform: scale(1.2);
   }
-  .nf-path__step[data-state="current"] .nf-path__node {
-    box-shadow: inset 0 0 0 2px var(--nf-brand-primary);
+  .nf-path__step[data-state="upcoming"] .nf-path__tile img {
+    opacity: 0.72;
   }
+  .nf-path__tilenum {
+    font-size: var(--nf-text-row);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+  }
+
   .nf-path__text {
     display: grid;
+    flex: 1;
+    gap: 0.125rem;
     min-inline-size: 0;
   }
   .nf-path__label {
     font-size: var(--nf-text-row);
     font-weight: 600;
+    line-height: 1.3;
     overflow-wrap: anywhere;
   }
   .nf-path__step[data-state="upcoming"] .nf-path__label {
@@ -94,8 +132,94 @@
     color: var(--nf-content-muted);
   }
 
+  /* The round status control on the right. */
+  .nf-path__mark {
+    position: relative;
+    display: grid;
+    flex: none;
+    place-items: center;
+    inline-size: 2.25rem;
+    block-size: 2.25rem;
+    border-radius: var(--nf-radius-circle);
+  }
+  .nf-path__mark--done {
+    background: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+    box-shadow: 0 0.25rem 0.75rem -0.25rem color-mix(in oklab, var(--nf-brand-primary) 70%, transparent);
+  }
+  .nf-path__mark--upcoming {
+    box-shadow: inset 0 0 0 1.5px var(--nf-border-default);
+  }
+  .nf-path__ring {
+    position: absolute;
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100%;
+    transform: rotate(-90deg);
+  }
+  .nf-path__ring circle {
+    fill: none;
+    stroke-width: 3;
+  }
+  .nf-path__ring-track {
+    stroke: var(--nf-border-default);
+  }
+  .nf-path__ring-arc {
+    stroke: var(--nf-brand-primary);
+    stroke-linecap: round;
+  }
+  .nf-path__marknum {
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+  }
+  .nf-path__mark--current .nf-path__marknum {
+    color: var(--nf-content-primary);
+  }
+
+  /* THE PROGRESS RING WITH A COUNT. */
+  .nf-pring {
+    position: relative;
+    display: inline-grid;
+    flex: none;
+    place-items: center;
+  }
+  .nf-pring svg {
+    position: absolute;
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100%;
+    transform: rotate(-90deg);
+  }
+  .nf-pring circle {
+    fill: none;
+    stroke-width: 4;
+  }
+  .nf-pring__track {
+    stroke: var(--nf-border-default);
+  }
+  .nf-pring__arc {
+    stroke: var(--nf-brand-primary);
+    stroke-linecap: round;
+    transition: stroke-dasharray var(--nf-duration-slow) var(--nf-ease-entrance);
+  }
+  .nf-pring__arc[data-empty] {
+    stroke: transparent;
+  }
+  .nf-pring__count {
+    font-size: var(--nf-text-row);
+    font-weight: 700;
+    color: var(--nf-content-primary);
+  }
+  .nf-pring__of {
+    font-size: var(--nf-text-caption);
+    font-weight: 500;
+    color: var(--nf-content-muted);
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    button.nf-path__row {
+    button.nf-path__row,
+    .nf-pring__arc {
       transition: none;
     }
   }

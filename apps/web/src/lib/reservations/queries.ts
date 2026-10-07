@@ -4,6 +4,8 @@ import { reportReadError } from "@/lib/observability/read-error";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { resolveSession } from "../actions/session";
+import { flagIsOn } from "../flags/read";
+import { RESTAURANT_DEPOSITS_FLAG } from "./deposits";
 import type { Database } from "../supabase/database.types";
 import type { ReservationStatus } from "./db";
 
@@ -42,6 +44,13 @@ export type ReservationView = {
   conversationId: string | null;
   /** True while the guest may still call it off. */
   cancellable: boolean;
+  /**
+   * D75: the table deposit, when the restaurant asks for one and
+   * `restaurant_deposits` is on. `due` means none is paid yet and the
+   * restaurant's rule asks for `amountMinor`; otherwise the deposit's own
+   * status (paid, applied, forfeited, refund_due, refunded, pending).
+   */
+  deposit?: { status: string; amountMinor: number; refundUntil: string | null } | null;
 };
 
 /** The host's view of the same row, with the guest named. */
@@ -154,7 +163,47 @@ export async function getMyReservations(now: Date = new Date()): Promise<Reserva
     [...new Set(rows.map((r) => r.listing_id).filter((id): id is string => Boolean(id)))],
     [...new Set(rows.map((r) => r.business_id).filter((id): id is string => Boolean(id)))],
   );
-  return rows.map((row) => toView(row, venues, now));
+  const views = rows.map((row) => toView(row, venues, now));
+  if (!(await flagIsOn(RESTAURANT_DEPOSITS_FLAG))) return views;
+  return withDeposits(supabase as unknown as SupabaseClient, views);
+}
+
+/**
+ * D75: each table's deposit, read under the guest's own RLS. The deposit
+ * table and the quote function arrive with migration d75a; any failed read
+ * leaves the views exactly as they were.
+ */
+async function withDeposits(db: SupabaseClient, views: ReservationView[]): Promise<ReservationView[]> {
+  try {
+    const ids = views.map((v) => v.id);
+    const { data, error } = await db
+      .from("reservation_deposits")
+      .select("reservation_id, status, amount_minor, refund_until, created_at")
+      .in("reservation_id", ids)
+      .order("created_at", { ascending: false });
+    if (error) return views;
+    const latest = new Map<string, { status: string; amountMinor: number; refundUntil: string | null }>();
+    for (const row of (data ?? []) as { reservation_id: string; status: string; amount_minor: number; refund_until: string | null }[]) {
+      if (row.status === "failed" || row.status === "abandoned" || latest.has(row.reservation_id)) continue;
+      latest.set(row.reservation_id, { status: row.status, amountMinor: Number(row.amount_minor), refundUntil: row.refund_until });
+    }
+    const out: ReservationView[] = [];
+    for (const v of views) {
+      let deposit = latest.get(v.id) ?? null;
+      /* No deposit yet on an open table: does the restaurant's rule ask for one? */
+      if (!deposit && (v.status === "PENDING" || v.status === "CONFIRMED") && Date.parse(v.reservedFor) > Date.now()) {
+        const { data: q } = await db.rpc("reservation_deposit_quote_for", { p_reservation: v.id });
+        const quote = (q ?? {}) as { status?: string; amount_minor?: number; refund_until?: string };
+        if (quote.status === "ok") {
+          deposit = { status: "due", amountMinor: Number(quote.amount_minor), refundUntil: quote.refund_until ?? null };
+        }
+      }
+      out.push({ ...v, deposit });
+    }
+    return out;
+  } catch {
+    return views;
+  }
 }
 
 /**

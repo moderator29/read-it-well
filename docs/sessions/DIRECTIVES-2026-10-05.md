@@ -3269,3 +3269,68 @@ this is the level of premium I need in my platform wide... use them in wallet
 withdrawal etc". Saved as `docs/design/references/2026-10-07/GOVERNING-plasma-*.jpg`
 and decoded in `docs/design/PREMIUM-STANDARD.md` under "The governing level". A
 platinum material joins the token set; dark stays the default.
+
+---
+
+## D75. Bookings end to end, the way the best booking platforms do it, in Vallo's own way (7 October 2026)
+
+The founder: "design it how Airbnb and all these booking platforms are but in our own
+way and how we can connect it with the hotels flow how it's done industry standard...
+same as this restaurants too and shortlet our commissions too... all end to end".
+
+**The journeys** (each in Vallo's dialect, never a copy):
+
+- **Shortlets and serviced apartments (the Airbnb shape):** search with dates and
+  guests, map and list together, a listing page with the gallery, the host, house
+  rules, amenities, cancellation policy and reviews, a sticky price bar showing the
+  total for the dates, a full breakdown (nights x rate, any cleaning or service line the
+  listing really carries, Vallo's fee), Reserve, instant booking and card payment
+  (D73), a trip page (dates, address revealed after payment, check-in instructions,
+  message the host, the receipt), and a review after check-out.
+- **Hotels (the Booking.com and hotel-API shape):** room types, rate plans
+  (refundable or not, breakfast or not), per-night availability from the hotel's rate
+  calendar and room inventory (built), the total for the stay, instant booking and
+  card payment, the same trip page. Hotels manage rooms, rates and the calendar in the
+  host console today. **Connecting outside hotel supply** (a channel manager or a hotel
+  API such as LiteAPI, so hotels that are not on Vallo appear with live rates) is the
+  industry route to inventory at scale; it is a separate integration that needs a
+  provider account and keys, recorded as a founder decision, not built blind.
+- **Restaurants (the OpenTable shape):** date, party size and time slots, instant
+  confirmation, a reservation page with the restaurant's details, reminders, and the
+  restaurant's own console of the day's bookings. **No payment today** (a reservation
+  has no price). The industry pattern for no-shows is an **optional deposit** a
+  restaurant can set for some slots or party sizes, paid by card on the direct rail and
+  deducted from the bill; built behind its own switch, off.
+
+**Commissions** (from `docs/payments/VALLO_PRICING.md`, unchanged): Vallo's commission
+is **2 percent on every transaction, both rails**; the direct rail (hotels, shortlets,
+restaurant deposits) pays Paystack's own fee, capped at 2,000 naira, and Vallo keeps its
+2 percent; on the escrow rail (rent, sale, land) Payluk's 2 percent is **borne by the
+lister** (decided 6 October; the D73 agent's "who pays" question is already answered).
+Every booking shows the guest the total and its breakdown before paying, and the host
+sees what they receive.
+
+**Decided for him:** shortlets and serviced apartments with a fixed nightly rate take
+the direct rail (instant booking, card), because their price is fixed like a hotel's.
+`VALLO_PRICING.md` section 2 listed shortlets on the escrow rail; that line predates
+D73 and is superseded for fixed-price shortlets. He can overturn this.
+
+---
+
+## D76. Leaderboards, who to follow, one agents directory for both sides, and the wallet's two-action bar (7 October 2026)
+
+- **Two public leaderboards, City and Global:** (1) **referrals**, by qualified
+  referrals; (2) **top performers on the platform**, by completed deals through Vallo,
+  across agents, landlords, realtors and firms, with **hotels and restaurants** ranked in
+  their own boards by completed bookings and reservations. A 3D podium for the top three,
+  ranks 4 and on as rows, a floating "You" pill, a month or period subtitle.
+  **Decided for him:** boards rank by counts of completed deals and bookings, never by a
+  member's naira earnings shown publicly; a member or business can opt out; only
+  verified workspaces and real activity appear; nothing is invented to fill a board.
+- **Who to follow** in the feed suggests top agents, landlords, hotels and restaurants
+  near the member; a **social search** finds them by City or Global.
+- **The agents directory covers both sides:** on the Property side it lists agents,
+  landlords and firms; on the Stays side, hosts, hotels and shortlet operators. One
+  page, flipped by the side switch, the same way the rest of the shell flips.
+- **The wallet's own bottom bar has two actions, Withdraw and Transfer.** The wallet is
+  a feature, not a main section; the main dock is unchanged.

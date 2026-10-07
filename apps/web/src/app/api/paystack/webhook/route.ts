@@ -16,12 +16,13 @@ import { markChargeFailed, settleBookingCharge } from "@/lib/bookings/settlement
 import { savePaymentMethodFromCharge } from "@/lib/payments/methods";
 import { recordAlert } from "@/lib/alerts";
 import { ROUTE_FAILURE_LIMITS, countRouteFailure } from "@/lib/security/money-limits";
-import { BOOKING_PREFIX, FUND_PREFIX, isBookingReference } from "@/lib/payments/references";
+import { BOOKING_PREFIX, DEPOSIT_PREFIX, FUND_PREFIX, isBookingReference } from "@/lib/payments/references";
 import { refundChargeToCard } from "@/lib/payments/refund";
 import { handleRefundEvent, readRefundEvent } from "@/lib/payments/refund-events";
 import { REFUND_ALREADY_CLAIMED } from "@/lib/payments/refund-outcomes";
 import { PROMOTION_PREFIX } from "@/lib/promotion/reference";
 import { handlePromotionChargeFailed, handlePromotionChargeSuccess } from "@/lib/promotion/webhook";
+import { handleDepositChargeFailed, handleDepositChargeSuccess } from "@/lib/reservations/deposit-settlement";
 import { settleRewardsTransferEvent } from "@/lib/payouts/referral-payout";
 import { isRewardsReference } from "@/lib/payouts/referral-transfer";
 
@@ -301,6 +302,8 @@ async function dispatch(
     if (reference.startsWith(BOOKING_PREFIX)) return handleBookingChargeSuccess(admin, data);
     // D60: a promotion purchase, Vallo's own revenue. Single-party charge, no split.
     if (reference.startsWith(PROMOTION_PREFIX)) return handlePromotionChargeSuccess(admin, data);
+    // D75: a restaurant table deposit, split to the venue at the charge.
+    if (reference.startsWith(DEPOSIT_PREFIX)) return handleDepositChargeSuccess(admin, data);
     if (reference.startsWith(FUND_PREFIX)) {
       // A retired wallet top-up. Nothing credits it: it goes back to the card.
       const refund = await refundChargeToCard(admin, {
@@ -319,6 +322,7 @@ async function dispatch(
   if (event === "charge.failed") {
     if (reference.startsWith(BOOKING_PREFIX)) return handleBookingChargeFailed(admin, data);
     if (reference.startsWith(PROMOTION_PREFIX)) return handlePromotionChargeFailed(admin, data);
+    if (reference.startsWith(DEPOSIT_PREFIX)) return handleDepositChargeFailed(admin, data);
     return verdict("ignored", "reference_not_ours", 200);
   }
 

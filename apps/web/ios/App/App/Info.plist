@@ -185,15 +185,21 @@
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Vallo uses the microphone only while you record a walkthrough video of a property you are listing, so the video has sound. Nothing is recorded until you start recording.</string>
 	<!--
+		FACE ID (7 October 2026). Vallo unlocks with Face ID through a WebAuthn
+		platform key (passkey) in the web view, verified on the server; see the
+		webcredentials note in App.entitlements. The system shows this string
+		the first time Face ID is asked for on Vallo's behalf. Nothing is
+		unlocked by the device alone: the server checks the key's signature
+		before it lets anybody in.
+	-->
+	<key>NSFaceIDUsageDescription</key>
+	<string>Vallo uses Face ID so you can unlock the app and confirm payments with a look instead of typing your passcode. Your face never leaves this device, and your passcode always works too.</string>
+	<!--
 		DELIBERATELY ABSENT, and each one is a decision rather than an omission.
 
 		NSContactsUsageDescription, NSCalendarsUsageDescription. Nothing reads
 		an address book or writes a calendar entry, and asking would be a review
 		question with no good answer.
-
-		NSFaceIDUsageDescription. Biometric unlock is discussed in
-		`docs/MOBILE_READINESS.md` as something a native shell buys, but nothing
-		implements it yet. The key arrives with the feature.
 
 		NSUserTrackingUsageDescription. There is no analytics vendor and no
 		advertising identifier anywhere in this codebase (crash reports, when

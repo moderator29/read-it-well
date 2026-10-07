@@ -266,6 +266,8 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
      and the invite hub; until the rewards read is live (R-C3-1) the page
      draws the honest not-live state. */
   "/rewards": "/settings",
+  /* P6: Pro sits above Settings in the side navigation and returns there. */
+  "/pro": "/settings",
   "/rewards/referrals": "/rewards",
   "/rewards/history": "/rewards",
   "/rewards/withdraw": "/rewards",
@@ -672,6 +674,7 @@ export const NON_NAVIGABLE: Readonly<Record<string, string>> = {
   "/api/cron/email-outbox": "scheduled job, bearer token.",
   "/api/cron/hold-sweep": "scheduled job, bearer token.",
   "/api/cron/rent-share-refunds": "scheduled job, bearer token.",
+  "/api/cron/reservation-deposit-refunds": "scheduled job, bearer token (D75, table deposit refunds).",
   "/api/cron/inventory-drift": "scheduled job, bearer token.",
   "/api/cron/landlord-line": "scheduled job, bearer token.",
   "/api/cron/sanctions-lists": "scheduled job, bearer token.",

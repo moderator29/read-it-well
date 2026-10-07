@@ -243,12 +243,16 @@ export function OverviewView(props: OverviewProps) {
       {props.queue ? <QueueByDesk t={getDictionary(locale)} locale={locale} counts={props.queue} /> : null}
 
       <div className="nf-admin-grid nf-admin-grid--wide-left">
-        <Panel
-          id="ov-collected"
-          title={c.chartTitle}
-          action={<RangeSelect value={props.range} options={{ "30d": c.range30, "90d": c.range90, "12m": c.range12 }} label={c.range12} />}
-        >
-          <CollectedChart series={props.collected} locale={locale} />
+        <Panel id="ov-collected" title={c.chartTitle}>
+          {/* Reference 5 and D74: the range pill, then the one big figure
+              with its unit in grey, then the smooth curve. */}
+          <RangeSelect
+            value={props.range}
+            options={{ "30d": c.range30, "90d": c.range90, "12m": c.range12 }}
+            short={{ "30d": "30 days", "90d": "90 days", "12m": "12 months" }}
+            label={c.chartTitle}
+          />
+          <CollectedChart series={props.collected} locale={locale} rangeWords={{ "30d": c.range30, "90d": c.range90, "12m": c.range12 }} />
         </Panel>
 
         <Panel id="ov-supply" title={c.supplyTitle}>
@@ -300,7 +304,33 @@ function dayTick(start: string, locale: Locale, withYear = false): string {
   });
 }
 
-function CollectedChart({ series, locale }: { series: CollectedSeries | null; locale: Locale }) {
+/**
+ * The figure as reference 5 and D74 set it: the number in full ink, the unit
+ * (the naira sign) softer, the same size. Split on the first digit, so a
+ * locale that writes the sign after the number keeps it after.
+ */
+function HeroAmount({ text }: { text: string }) {
+  const first = text.search(/\d/);
+  const last = text.search(/\d[^\d]*$/);
+  if (first < 0) return <span className="nf-admin-hero__figure nf-numeric">{text}</span>;
+  return (
+    <span className="nf-admin-hero__figure nf-numeric">
+      {first > 0 ? <span className="nf-admin-hero__unit">{text.slice(0, first)}</span> : null}
+      {text.slice(first, last + 1)}
+      {last + 1 < text.length ? <span className="nf-admin-hero__unit">{text.slice(last + 1)}</span> : null}
+    </span>
+  );
+}
+
+function CollectedChart({
+  series,
+  locale,
+  rangeWords,
+}: {
+  series: CollectedSeries | null;
+  locale: Locale;
+  rangeWords: Record<CollectedSeries["range"], string>;
+}) {
   const c = getDictionary(locale).admin.shell.overview;
   if (!series) {
     return <PanelUnavailable what={tx(locale, "ovMoneyCollectedOverTime")} locale={locale} />;
@@ -324,6 +354,7 @@ function CollectedChart({ series, locale }: { series: CollectedSeries | null; lo
       />
     );
   }
+  const payments = series.buckets.reduce((sum, b) => sum + b.count, 0);
   const ticks = niceTicks(Math.max(...series.buckets.map((b) => b.amountMinor)));
   const points = series.buckets.map((b) => ({
     key: b.start,
@@ -333,13 +364,21 @@ function CollectedChart({ series, locale }: { series: CollectedSeries | null; lo
     display: `${formatMoney(b.amountMinor, locale)} · ${formatNumber(b.count, locale)} payments`,
   }));
   return (
-    <AreaTimeChart
-      points={points}
-      yTicks={ticks.map((v) => ({ value: v, label: formatMoney(v, locale, "NGN", { compact: true }) }))}
-      label={c.chartTitle}
-      height={220}
-      tickEvery={monthly ? 1 : series.range === "90d" ? 2 : 5}
-    />
+    <>
+      <div className="nf-admin-hero" data-testid="ov-collected-figure">
+        <HeroAmount text={formatMoney(total, locale)} />
+        <span className="nf-admin-hero__label">
+          {rangeWords[series.range]} · {formatNumber(payments, locale)} payments
+        </span>
+      </div>
+      <AreaTimeChart
+        points={points}
+        yTicks={ticks.map((v) => ({ value: v, label: formatMoney(v, locale, "NGN", { compact: true }) }))}
+        label={c.chartTitle}
+        height={220}
+        tickEvery={monthly ? 1 : series.range === "90d" ? 2 : 5}
+      />
+    </>
   );
 }
 

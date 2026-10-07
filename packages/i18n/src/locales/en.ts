@@ -61,6 +61,8 @@ import { mailEn } from "./mail.en";
 import { detailsEn } from "./details.en";
 /* Get started in motion: the chips and controls of the four scenes. */
 import { onboardingMotionEn } from "./onboarding-motion.en";
+/* Get Started as four cards (reference 3, 7 October). */
+import { getStartedEn } from "./get-started.en";
 
 /**
  * The counted nouns, in every form English uses.
@@ -4787,6 +4789,9 @@ export const en = {
     aboutTitle: "About this place",
     roomsTitle: "Rooms",
     roomsDescription: "Tap a room to see its rates and what each one includes.",
+    /* D73: a fixed-price stay books instantly; the rate cards are the choice. */
+    ratesDescription: "Choose a rate. The total below follows your choice.",
+    bookAndPay: "Book and pay",
     theDetails: "The details",
     amenitiesTitle: "What is here",
     policyTitle: "Cancellation",
@@ -5827,6 +5832,8 @@ export const en = {
   mail: mailEn,
 
   onboardingMotion: onboardingMotionEn,
+
+  getStarted: getStartedEn,
 
   /*
    * THE SUCCESS SHEET (components/ui/SuccessSheet.tsx, docs/SUCCESS_MOMENTS.md).

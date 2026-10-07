@@ -1,17 +1,15 @@
 import type { Metadata } from "next";
-import { forListingCard, forStayCard } from "@/lib/i18n/slice";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
 import { PageScene } from "@/components/app/PageScene";
-import { ListingCard } from "@/components/app/ListingCard";
-import { StayCard } from "@/components/app/stays/StayCard";
 import { stayCardFromRow } from "@/components/app/stays/stay-card-model";
 import { SAVED_COOKIE, parseSavedCookie } from "@/lib/saved/keys";
 import { getSavedListings, getSavedPlaces } from "@/lib/saved/queries";
 import { SavedBoard, type SavedBoardItem } from "./SavedBoard";
+import { listingShelf, placeShelf } from "./shelf-rows";
 import { ShelfSync } from "./ShelfSync";
 import { resolveSession } from "@/lib/actions/session";
 import { shelfFromListing } from "@/lib/offline/shelf";
@@ -113,21 +111,12 @@ export default async function SavedPage() {
       id: entry.listing.id,
       mode: entry.mode,
       savedAt: entry.savedAt,
-      /* IT IS ON THE SHORTLIST, SO THE HEART IS FILLED. Every row on this
-         board is saved by definition, and the card used to draw the heart
-         from the device store alone: a signed-in reader whose save went to
-         `saved_items` saw an empty heart beside the `StayCard` half's filled
-         one, on the same screen. `entry.mode` says which half resolved it
-         and both mean saved. (R2 finding 4.) */
-      card: (
-        <ListingCard
-          listing={entry.listing}
-          locale={locale}
-          t={forListingCard(t)}
-          saved
-          eager={entry.savedAt === newest}
-        />
-      ),
+      /* Every row on this board is saved by definition; `entry.mode` says
+         which half resolved it (R2 finding 4) and the board's Remove reads it. */
+      /* A shelf, not a card (the founder's before-after-collection-shelves.jpg
+         and ONE-PRODUCT-DECISIONS recommendation 6): the things a member
+         keeps are objects on lit ledges. The card stays the catalogue's. */
+      card: listingShelf(entry.listing, locale, t, entry.savedAt === newest),
       changes: changes.get(entry.listing.id),
       similarHref: `/search?q=${encodeURIComponent(entry.listing.area || entry.listing.city)}`,
     })),
@@ -139,16 +128,7 @@ export default async function SavedPage() {
       mode: "db",
       savedAt: entry.savedAt,
       place: { kind: entry.kind === "restaurant" ? "restaurant" : "accommodation", id: entry.row.entity_id },
-      card: (
-        <StayCard
-          stay={stayCardFromRow(entry.row)}
-          locale={locale}
-          t={forStayCard(t)}
-          saved
-          canSavePlaces
-          eager={entry.savedAt === newest}
-        />
-      ),
+      card: placeShelf(stayCardFromRow(entry.row), locale, t, entry.savedAt === newest),
     })),
   ].sort((a, b) => b.savedAt - a.savedAt);
 
@@ -183,6 +163,13 @@ export default async function SavedPage() {
         comparable={compare.columns.length}
         copy={{ shortlist: cc.shortlist, ready: cc.ready }}
         changeCopy={t.catalogue.savedChanges}
+        slotCopy={{
+          remove: t.experienceDiscover.saved.remove,
+          removeLabel: t.experienceDiscover.saved.removeLabel,
+          removed: t.experienceDiscover.saved.removed,
+          restoring: t.experienceDiscover.saved.restoring,
+          undo: t.experienceDiscover.saved.undo,
+        }}
         emptyCopy={{
           title: t.experienceDiscover.saved.emptyTitle,
           body: t.experienceDiscover.saved.emptyBody,

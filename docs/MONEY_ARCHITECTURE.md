@@ -30,6 +30,7 @@ Payment opens only after an agreement is approved. The database enforces this wi
 
 1. **Rental.** The renter inspects and submits the inspection report: eight items, each with photographs. The minimum number of photos is `money_policy.min_inspection_photos`. `agreement_open_rent_as` then draws up the agreement from the listing's own figures and the report, including the move-in date and the handover date.
 2. **Stay.** The host accepts the booking. A trigger on bookings going from PENDING to CONFIRMED draws up the agreement.
+   **Instant booking (D73, off until `stays_instant_pay` is on):** a hotel room or nightly stay at the published price is accepted when the guest books, and its agreement is recorded approved by the system (`decided_by` empty, an event and an audit row saying "fixed price, instant booking"), so steps 3 and 4 do not apply and payment opens at once through the unchanged gate. See [ROOM_CHECKOUT.md](ROOM_CHECKOUT.md).
    A hotel room is a stay too (ROOM BOOKINGS 1, off until `room_bookings` is switched on): the agreement names the accommodation, the owner is the hotel's business owner, and a host who is not an agent is paid through their default bank account's Paystack subaccount. See [ROOM_CHECKOUT.md](ROOM_CHECKOUT.md).
 3. **Both parties confirm the same version** with `agreement_confirm_as`. An agent confirming for an owner must hold a live mandate for the listing. Any amendment (`agreement_amend_as`) moves the version, and both confirmations lapse.
 4. **An admin, or staff holding the `agreements` scope, approves or rejects** with `admin_decide_agreement`. A rejection needs a reason. Nobody decides an agreement they are a party to. The decision is written to `deal_agreement_events` (append-only) and to `audit_log`. Both parties are told in the app and by email: `agreement.approved` and `agreement.rejected`.
@@ -93,6 +94,16 @@ The function checks the caller's own role, so the app calls it with the operator
 **V-81, the phone lock.** A step-up now guards only where money lands: adding, defaulting or removing a bank or payout account, and removing the lock itself (`lib/security/money-intent.ts`). With no wallet there is nothing to send or withdraw.
 
 **V-56 and V-92 (held agency fee, held stay caution): not built, by decision.** Both would have Vallo hold a customer's money until something is released. The Vallo Guarantee covers the same risks instead.
+
+## Restaurant table deposits (D75, off until `restaurant_deposits` is on)
+
+The OpenTable no-show pattern, on the direct rail. Migration `supabase/migrations/pending/d75a_restaurant_deposits.sql`, probe `d75a-restaurant-deposits.sql`.
+
+- **The rule is the restaurant's.** `restaurant_deposit_rules`: an amount per guest or per table, for one service window or all, from a party size up, with a refund window in hours. The owner writes them under RLS; guests read the active ones.
+- **What is owed is the database's.** `private.reservation_deposit_quote` picks the matching rule and computes the split with the same parts a stay uses: the venue owner's own subaccount (`private.payee_subaccount`) and Vallo's commission (`private.current_fee_bps('commission')`, 200 basis points live). A venue that cannot be paid asks for nothing.
+- **The charge.** A deposit has its own record (`reservation_deposits`, reference `rm-dep-<uuid>`), not a `transactions` row, because `transactions.booking_id` is a required booking and the gate and settlement are keyed on a booking and its agreement; a reservation has neither. It follows the promotion precedent and reuses the patterns: a BEFORE INSERT gate refusing any row the database did not compute, `reservation_deposit_settle` (idempotent on the reference, refund-due with a high alert when it cannot be applied), the one card refund claim (`lib/payments/refund.ts`), and the Vallo revenue ledger for the commission. The Paystack webhook routes `rm-dep-` to it (`lib/reservations/deposit-settlement.ts`).
+- **The outcome follows the reservation:** dined (COMPLETED) applies it to the bill; a guest who cancels inside the window gets it all back, later it is the venue's; a no-show is the venue's; a venue cancellation is refunded. A venue cannot confirm a table whose deposit is due and unpaid. Refunds the rule decides go out hourly (`/api/cron/reservation-deposit-refunds`), and that job also closes checkouts nobody paid within two hours.
+- **No live function changes**: two new triggers on `reservations`.
 
 ## The Vallo Guarantee
 

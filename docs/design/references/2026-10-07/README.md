@@ -71,3 +71,77 @@ in Vallo's own style.
 | `rolling-card-stack.jpg` | Stacked cards like folder tabs, each with a coloured outline glyph, a title and a mono index (01 to 04); the front one opens into a title, a line of body and a photograph that fades at its edge; the stack rolls as you scroll or tap | The landing page (Vallo's four markets or four promises), Get Started, a listing's sections |
 | `stack-scroll-reveal.jpg` | A gallery where full-bleed dark cards with a big index number ("01") stack and reveal on scroll, with a floating glass control pill (grid view, list view, pause) | The landing page's story sections, a listing gallery, the feed's media viewer |
 | `colour-band-sections-home.png` | A home where each section is a full-width band in a strong colour (violet RECENTLY OPENED, green SHARED WITH ME, pink ALL DOCS) with a count on the right, white rounded rows under each band, a date strip with today in a pink disc, and a list of colour bands as a template picker | Grouping on a busy screen; use sparingly and in Vallo's palette, never the full rainbow |
+
+## The feed set (described; sent in chat, not saved as files)
+
+His words: "if someone wants to post more than 1, 2 or 3 things it should be able to
+scroll sideways like that, clean UX smart and sharp... if users want to comment it
+should open full page like this... not some small box to comment... full page for all
+things, even posts... sharp clean but smarter UI and UX, different from X a bit (the
+icons, the flow, the look) but premium like theirs... think of more tools we don't have
+that work for us".
+
+| What it is | Take | Governs |
+| --- | --- | --- |
+| A post detail (three frames of one post): back arrow, "Post" title, more menu; the author block; the text with a hashtag in brand blue; **a horizontal media rail**: each photo a tall rounded card at about 80% of the width with the next card peeking at the edge, swiped sideways, snapping card by card; then time, date and view count; the action row with counts; a "Relevant" sort and "View quotes >"; replies under it; a pinned "Post your reply" field above the dock | Multi-photo posts in the feed and on post detail: a snapping sideways rail with a peek, never a cramped grid; post detail as a full page |
+| The reply composer: a **full page**, Cancel left and a Post capsule right (disabled until there is text), the post being replied to shown above with a thread line joining it to the member's avatar, "Replying to @..." in brand blue, a large "Post your reply" field, and a tool row above the keyboard (photo, camera, GIF, schedule, poll, place) with a character ring on the right | Replies and comments: always a full page, never a small box |
+| The new post composer: full page, Cancel and Post, the avatar and "What's happening?", a reply-audience control ("Everyone can reply") with undo and redo, the tool row (photo, camera, live, GIF, schedule, a ring, an add-thread plus) | The post and story composer |
+
+**Vallo's own tools for the composer row**, beyond X's: attach a listing (the place card),
+tag a place or area (the map pin, from Vallo's own areas), ask a question to locals (a
+poll scoped to an area), share a price check result, mark as a review of a place you
+stayed or rented (needs a real booking), and audience (everyone, followers, my area).
+Only tools that work end to end ship; the rest are not shown.
+
+## The travel-app set and the motion script (described; sent in chat)
+
+**Travel AI assistant animation (four frames).** A pale lilac-to-blue field. Home:
+avatar with "Location, New York", bell and map circles, "Hi, Alex" with a wave, an AI
+search pill, filter chips, "Popular with trailgoers" with **a swipeable card stack**: the
+front card a tall photograph with a heart circle top left and an arrow circle top right,
+the cards behind it peeking at both edges, and at the bottom of the photo a frosted
+inset with the name, the route ("Namche Bazaar > Lukla"), a star rating and a distance,
+beside **a small map tile with a pin and a dotted route**. Swiping throws the card away
+and the next rises. A floating glass dock of small outline icons with one filled circle.
+Detail: the photo full-bleed at the top with the name over it, then a white sheet with a
+route map card, three stat tiles (length, elevation, difficulty), two media tiles
+(Preview with a play glyph, Photo tour), and two capsules (Download, Map). Map mode: a
+clean light map, a pin, a heading cone, a distance scale, a stats grid (time, distance,
+elevation, remaining, pace, speed), an elevation chart, two capsules.
+**Take:** the featured listings on home as a swipeable stack (not a scroll row), each
+card with a heart, an open arrow, a star rating and a small map tile; the listing's
+"getting there" as a map card with stat tiles; Preview and Photo tour tiles; a Map
+sub-tab inside a listing; the same on the Stays side. On search result cards the heart
+and the menu glyph are **smaller** (the founder: "before clicking it's too big").
+Sharing a listing into a chat uses this card as its preview.
+
+**The motion explainer prompt (a published motion-design method).** Principles to adopt
+for every motion on the platform: one focal action at a time, everything else holds
+still; **keep objects alive across scenes and transform them instead of replacing
+them** (a dot becomes a node, a label becomes an axis: a card becomes the page, a
+figure becomes the receipt figure); custom easing that settles without bounce; the
+camera reframes between ideas and stays still while text is read; motion carries
+meaning (grouping, order, cause, scale); restraint is taste; a reduced-motion cut keeps
+the same sequence of ideas; colour is never the only signal; no flashes.
+
+**Who to follow and leaderboards** (X's "Who to follow"; a leaderboard with a 3D podium
+under spotlights, the top three as rounded-square portraits over 1, 2, 3 plinths, a
+month subtitle, a City / World toggle pill on the podium, then ranks 4+ as rows with a
+hexagon rank badge, avatar, name, tier word and a figure with a small unit, and a
+floating "You, 453" pill showing your own rank).
+
+## The wallet set (described; sent in chat)
+
+His words: "I would love my wallet to copy many things from it, especially the bottom nav
+for transactions... wallet is a feature in our app, not main, so the bottom nav should
+have two icons: withdrawal and transfer... look at that transfer success... that
+feedback container... I'm loving that green".
+
+| What it is | Take | Governs |
+| --- | --- | --- |
+| A sales dashboard app on a warm pale field: "Welcome, <name>" with an avatar and three small glyph circles; "Total balance $360,000" with an eye toggle; exchange-rate tiles (flag, code, figure, up arrow); "Transactions" with segment glyphs; rows with an avatar, name, time, signed amount in red or green with an arrow, and a small rail word (Globe, Bank, wallet); a summary card with a **semi-circular gauge** (Sales $1,266, Expense and Profit chips under it, a "Today" range dropdown); four square glyph tiles with labels; a bar chart with one highlighted bar and a value tooltip, "6 Months" range; a floating dock with a dark centre plus | The wallet home: a greeting, the balance with a hide toggle, a gauge or chart for the period, transaction rows with signed amounts and a rail word | Wallet, payments, the agent and host dashboards |
+| A transfer success: white field with soft green rays, a scalloped green badge with a check and sparkles, a small green "Successful!" pill, "You sent $1,000.00 to <full name>", "This transaction takes less than 10mins", then **a feedback card**: a deep green gradient with glittering 3D stars sliding in, "Rate your experience" pill, "Are you enjoying your experience so far?", "Give us a rating >"; then Close (soft grey) and Done (black) side by side | The sent and withdrawn success moments and a feedback card that asks for a rating at a happy moment (a real rating flow, shown at most once per period) | Wallet success, booking success |
+
+**Ruling:** the wallet's own bottom bar carries **two actions only: Withdraw and Transfer**
+(Add money stays on the balance card), because the wallet is a feature inside Vallo,
+not a main section. The app's main dock stays as ruled.

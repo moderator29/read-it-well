@@ -8,6 +8,28 @@ export const passcodeEn = {
   wordmark: "VALLO",
   welcomeBack: "Welcome back, {name}",
   welcomeBackNoName: "Welcome back",
+  /** The returning greeting (reference 6, 7 October 2026): the lock's title. */
+  hello: "Hello, {name}",
+  helloNoName: "Hello again",
+  /** Under the greeting: ends this session and opens sign in, for another account. */
+  switchAccount: "Switch account",
+  /** The second capsule where a passkey leads: the keypad. */
+  withPasscode: "Use your passcode",
+  /**
+   * FACE ID OR FINGERPRINT, MADE DISCOVERABLE (7 October 2026, "set and build
+   * Face ID to work"). The key is the WebAuthn platform key the money lock
+   * already enrols (`money_credentials`); the same key unlocks the passcode.
+   * Offered once after a new passcode is set, and in Settings, Passcode.
+   */
+  bioOfferTitle: "Unlock with Face ID next time?",
+  bioOfferBody: "Your phone's own lock opens Vallo in a look or a touch. Your passcode stays as the way in whenever it cannot.",
+  bioOfferSetUp: "Set up Face ID or fingerprint",
+  bioOfferLater: "Not now",
+  bioGroup: "Face ID or fingerprint",
+  bioRowTitle: "Unlock with Face ID or fingerprint",
+  bioRowUnset: "Set it up once with your password. The same key then unlocks Vallo and confirms payments.",
+  bioRowSet: "Offered first when Vallo is locked. Your passcode stays as the fallback.",
+  bioRowUnsupported: "This browser cannot reach this device's Face ID or fingerprint. The Vallo app and most phone browsers can.",
   enterCode: "Enter your passcode",
   lockedTitle: "Vallo is locked",
   wrong: "That is not your passcode.",

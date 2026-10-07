@@ -10,6 +10,8 @@ import {
   readAgentNumbers,
 } from "@/lib/agent/listings-queries";
 import { RealDashboard } from "./RealDashboard";
+import { readRequestSeries } from "./request-series";
+import { DeskFigure } from "@/components/workspace/DeskFigure";
 import { StillAvailableCard } from "@/components/agent/StillAvailableCard";
 import { readLiveFreshness } from "@/lib/agent/freshness-read";
 import { daysSinceConfirmed, dueForConfirmation } from "@/lib/agent/freshness";
@@ -73,7 +75,8 @@ export default async function AgentDashboardPage({
     /* Two independent reads, so they cost one round trip rather than two.
        On the connections this product is built for that is the difference
        between a dashboard and a wait. */
-    const [numbers, inspections, standing, freshness] = await Promise.all([
+    const figureNow = new Date(requestTime());
+    const [numbers, inspections, standing, freshness, requestRows] = await Promise.all([
       readAgentNumbers(context.supabase, context.agent.id, context.user.id),
       readInspectionsForLister(),
       /*
@@ -87,6 +90,8 @@ export default async function AgentDashboardPage({
       getKycStanding(context),
       /* C5: the live listings due a "still available?". Null until the column exists. */
       readLiveFreshness(context.supabase, context.agent.id),
+      /* The figure card (reference 5): viewing requests over the last thirty days. */
+      readRequestSeries(context.supabase, context.user.id, figureNow),
     ]);
     const now = requestTime();
     const due = freshness ? dueForConfirmation(freshness, now) : [];
@@ -111,6 +116,7 @@ export default async function AgentDashboardPage({
           displayName={context.agent.displayName}
           numbers={numbers}
           inspections={inspections}
+          figure={<DeskFigure rows={requestRows} kind="viewings" t={t} locale={locale} now={figureNow} />}
         />
       </AgentShell>
     );

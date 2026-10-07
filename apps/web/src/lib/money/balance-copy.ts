@@ -45,11 +45,13 @@ export function confirmedAgo(iso: string | null, now: number): string {
   if (!Number.isFinite(ms) || ms < 0) return "Confirmed just now";
   const min = Math.floor(ms / 60_000);
   if (min < 1) return "Confirmed just now";
-  if (min < 60) return `Confirmed ${min} minute${min === 1 ? "" : "s"} ago`;
+  /* The language inflects the unit, never a hand-written "s"
+     (`no-english-plurals.test.ts`): "Confirmed 1 minute ago", "2 minutes ago". */
+  const ago = new Intl.RelativeTimeFormat("en", { numeric: "always" });
+  if (min < 60) return `Confirmed ${ago.format(-min, "minute")}`;
   const h = Math.floor(min / 60);
-  if (h < 24) return `Confirmed ${h} hour${h === 1 ? "" : "s"} ago`;
-  const d = Math.floor(h / 24);
-  return `Confirmed ${d} day${d === 1 ? "" : "s"} ago`;
+  if (h < 24) return `Confirmed ${ago.format(-h, "hour")}`;
+  return `Confirmed ${ago.format(-Math.floor(h / 24), "day")}`;
 }
 
 export const STALE_NOTE = "We could not reach the bank just now, so these are the last figures we confirmed. Nothing is moved from a figure that is out of date.";

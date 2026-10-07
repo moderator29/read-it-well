@@ -79,6 +79,7 @@ export const VERCEL_JOBS: readonly VercelJob[] = [
   { name: "rent-share-refunds", cron: "35 * * * *", schedule: "Hourly at :35", maxGapHours: 2, audit: { entityType: "cron_job", term: "rent-share-refunds" } },
   /* C2: hosts' Airbnb and Booking.com calendars pulled in. A no-op while CALENDAR_SYNC_ENABLED is off. */
   { name: "calendar-sync", cron: "2,17,32,47 * * * *", schedule: "Every 15 minutes", maxGapHours: 2, audit: { entityType: "cron_job", term: "calendar-sync" } },
+  { name: "reservation-deposit-refunds", cron: "40 * * * *", schedule: "Hourly at :40", maxGapHours: 2, audit: { entityType: "cron_job", term: "reservation-deposit-refunds" } },
 ];
 
 /**

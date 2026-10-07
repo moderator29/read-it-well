@@ -1794,6 +1794,29 @@
     grid-area: action;
     justify-self: stretch;
   }
+  /* ONE ROW FROM A NORMAL PHONE UP (premium pass, 7 October; references
+     7B5335E0 and 9E8B56ED draw the figure and the one primary on a single
+     row). From 23rem (368px, so every 375 and 390 phone) the ghost half is a
+     44px glyph square beside the primary, its words still its accessible
+     name, and the bar is one row instead of two: about 64px of photograph and
+     breakdown given back to the page. Under 23rem (a 320 phone) the three
+     parts do not fit one row, so the two-row grid above stays. */
+  @media (min-width: 23rem) {
+    .nf-detail-foot {
+      grid-template-columns: minmax(0, 1fr) auto auto;
+      grid-template-areas: "figure secondary action";
+      gap: var(--nf-space-xs);
+    }
+    .nf-detail-foot__action {
+      justify-self: end;
+    }
+  }
+  @media (min-width: 23rem) and (max-width: 39.99rem) {
+    .nf-detail-foot__secondary.nf-btn {
+      width: 2.75rem;
+      padding-inline: 0;
+    }
+  }
   @media (min-width: 40rem) {
     .nf-detail-foot {
       grid-template-columns: minmax(0, 1fr) auto auto;
@@ -3092,5 +3115,128 @@
     margin-top: var(--nf-space-sm);
     padding-top: var(--nf-space-xs);
     border-top: var(--nf-border-width) solid var(--nf-panel-hair);
+  }
+}
+
+/* ===================================================== THE PLASMA LEVEL (D74)
+   What floats over a card's photograph is smoked glass, as the founder's
+   governing set draws it (docs/design/references/2026-10-07/
+   GOVERNING-plasma-rewards-platinum.jpg): the heart, the photo arrows, the
+   Verified mark and the "No photographs yet" word. One card design, so this
+   is home's shelves, search, saved and More like this at once. The Example
+   mark keeps its cyan outline: that disclosure is ruled never to look like
+   anything else. The map's floating card takes the same smoke. Metal and
+   smoke do not change with the lights, so none of this is themed. */
+@layer components {
+  .nf-pcard .nf-pcard__heart,
+  .nf-pcard .nf-pcard__photobtn,
+  .nf-pcard .nf-pcard__nophoto,
+  .nf-pcard .nf-pcard__mark.nf-pcard__mark--verified {
+    border-color: var(--nf-smoked-glass-edge);
+    background: var(--nf-smoked-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    box-shadow: none;
+  }
+  .nf-pcard .nf-pcard__mark.nf-pcard__mark--verified {
+    color: var(--nf-content-on-media);
+  }
+  .nf-pcard .nf-pcard__mark.nf-pcard__mark--verified > svg {
+    color: var(--nf-status-verified);
+  }
+  .nf-map-dock .nf-map-dock__card.nf-panel {
+    border-color: var(--nf-smoked-glass-edge);
+    background: var(--nf-smoked-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    backdrop-filter: blur(var(--nf-smoked-glass-blur));
+  }
+  @media (prefers-reduced-transparency: reduce) {
+    .nf-pcard :is(.nf-pcard__heart, .nf-pcard__photobtn, .nf-pcard__nophoto, .nf-pcard__mark--verified),
+    .nf-map-dock .nf-map-dock__card.nf-panel {
+      background: var(--nf-platinum-ink);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+  :root[data-transparency="reduced"]
+    :is(.nf-pcard .nf-pcard__heart, .nf-pcard .nf-pcard__photobtn, .nf-pcard .nf-pcard__nophoto, .nf-pcard .nf-pcard__mark--verified, .nf-map-dock .nf-map-dock__card.nf-panel) {
+    background: var(--nf-platinum-ink);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+/* ========================================================= THE PALETTE
+   The search field as a command palette (the founder's
+   command-search-palette.jpg; ONE-PRODUCT-DECISIONS recommendation 4). One
+   card under the field: rows of a small glyph tile and a label, the first
+   row (what Enter does) on a soft fill with its key hint, hairline between
+   the field and the list. It grows out of the field: anchored at its top
+   edge, it opens from 0.96 on `land`, so the field reads as becoming the
+   card rather than a menu dropping in. Reduced motion, Calm and Off open
+   it settled (the existing `.nf-recent` rules already stop its animation). */
+@layer components {
+  .nf-shelf-bar > .nf-recent:has(.nf-recent__list--palette) {
+    padding: var(--nf-space-2xs);
+    border-color: var(--nf-smoked-glass-edge);
+    border-radius: var(--nf-radius-card);
+    transform-origin: top center;
+    animation-name: nf-palette-open;
+  }
+  .nf-recent__list--palette {
+    gap: var(--nf-space-3xs);
+  }
+  /* It floats over the results, so at night it is smoked glass (D74): the
+     night glass it inherited let the chips and the count read through it.
+     The bar it hangs from already has a backdrop filter, which makes the bar
+     the panel's backdrop root, so a blur here cannot reach the results: the
+     smoke is laid over the near-black ink and reads as one solid object. */
+  :root:not([data-theme="light"]) .nf-shelf-bar > .nf-recent {
+    border-color: var(--nf-smoked-glass-edge);
+    background:
+      linear-gradient(var(--nf-smoked-glass-fill), var(--nf-smoked-glass-fill)),
+      var(--nf-platinum-ink);
+    -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    backdrop-filter: blur(var(--nf-smoked-glass-blur));
+  }
+  @media (prefers-reduced-transparency: reduce) {
+    :root:not([data-theme="light"]) .nf-shelf-bar > .nf-recent {
+      background: var(--nf-platinum-ink);
+    }
+  }
+  .nf-recent__list--palette .nf-recent__row {
+    border-radius: var(--nf-radius-control);
+  }
+  .nf-recent__row[data-active] {
+    background: color-mix(in oklab, var(--nf-content-primary) 8%, transparent);
+  }
+  .nf-recent__tile {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: var(--nf-radius-control);
+    background: var(--nf-surface-raised);
+    color: var(--nf-content-secondary);
+  }
+  .nf-recent__kbd {
+    flex: none;
+    padding: var(--nf-space-3xs) var(--nf-space-2xs);
+    border: var(--nf-border-width) solid var(--nf-border-subtle);
+    border-radius: var(--nf-radius-xs);
+    font-family: inherit;
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-muted);
+  }
+  @keyframes nf-palette-open {
+    from {
+      opacity: 0;
+      transform: translateY(-6px) scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
   }
 }

@@ -88,6 +88,16 @@ function sameOrder(a: string[], b: string[]): boolean {
   return a.length === b.length && a.every((id, i) => id === b[i]);
 }
 
+type SlotCopy = { remove: string; removeLabel: string; removed: string; restoring: string; undo: string };
+
+const SLOT_ENGLISH: SlotCopy = {
+  remove: "Remove",
+  removeLabel: "Remove from saved",
+  removed: "Removed from saved",
+  restoring: "Putting it back",
+  undo: "Undo",
+};
+
 export function SavedBoard({
   items,
   comparable = 0,
@@ -95,6 +105,7 @@ export function SavedBoard({
   copy = { shortlist: "Your shortlist", ready: "Ready to compare" },
   changeCopy,
   emptyCopy,
+  slotCopy = SLOT_ENGLISH,
 }: {
   items: SavedBoardItem[];
   /** B3: how many saved properties the compare can take as columns. */
@@ -117,6 +128,12 @@ export function SavedBoard({
     captureLead: string;
     capture: string;
   };
+  /**
+   * The words on and under each saved card (Remove, its spoken name, the
+   * undo chip). They were English literals; the page now passes the
+   * dictionary's, and a surface that passes nothing keeps the English.
+   */
+  slotCopy?: SlotCopy;
 }) {
   const locale = useClientLocale();
   const router = useRouter();
@@ -353,7 +370,7 @@ export function SavedBoard({
       </Reveal>
 
       <Reveal delay={60}>
-        <ul data-testid="saved-grid" className="grid grid-cols-1 gap-lg sm:grid-cols-2">
+        <ul data-testid="saved-grid" className="nf-shelves">
           {rendered.map(({ key, item, state }) => (
             <li key={key}>
               {state === undefined && item ? (
@@ -363,7 +380,7 @@ export function SavedBoard({
                         swipe on touch and as a quiet action under the card,
                         not as a second bordered button (plan items 17, 28). */}
                     <SwipeToRemove
-                      label="Remove"
+                      label={slotCopy.remove}
                       onRemove={() => unsave(item)}
                       disabled={pending || Boolean(leaving[key])}
                     >
@@ -377,12 +394,12 @@ export function SavedBoard({
                       onClick={() => unsave(item)}
                       disabled={pending || Boolean(leaving[key])}
                       aria-pressed="true"
-                      aria-label="Remove from saved"
+                      aria-label={slotCopy.removeLabel}
                       data-testid="saved-heart"
                       className="nf-saved-remove"
                     >
                       <UiIcon name="heart" size={16} className="[&_path]:fill-current" />
-                      Remove
+                      {slotCopy.remove}
                     </button>
                   </div>
                 </div>
@@ -392,7 +409,7 @@ export function SavedBoard({
                   className="nf-panel nf-panel--card nf-saved-undo h-full flex-row items-center justify-between gap-md p-card"
                 >
                   <p className="nf-body text-[var(--nf-content-secondary)]">
-                    {state === "restoring" ? "Putting it back" : "Removed from saved"}
+                    {state === "restoring" ? slotCopy.restoring : slotCopy.removed}
                   </p>
                   <button
                     type="button"
@@ -401,7 +418,7 @@ export function SavedBoard({
                     className="nf-chip whitespace-nowrap transition-transform active:scale-[0.96] disabled:opacity-60"
                   >
                     <UiIcon name="heart" size={ICON.inline} className="shrink-0" />
-                    Undo
+                    {slotCopy.undo}
                   </button>
                 </div>
               )}

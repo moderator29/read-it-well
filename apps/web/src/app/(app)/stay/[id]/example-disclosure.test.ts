@@ -24,7 +24,7 @@ describe("example stays and restaurants are labelled where they would be booked"
     const view = code("app/(app)/stay/[id]/StayDetailView.tsx");
     expect(view).not.toMatch(/<ExampleNotice\b/);
     expect(view).not.toContain("t.examples.");
-    expect(view).toMatch(/detail\.isExample \? \([\s\S]*?stay-not-bookable[\s\S]*?\) : \([\s\S]*?<DetailAvailabilityCard/);
+    expect(view).toMatch(/detail\.isExample \? \([\s\S]*?stay-not-bookable[\s\S]*?\) : \([\s\S]*?<StayDatesForm/);
     expect(view).toMatch(/detail\.isExample \? \([\s\S]*?rooms-example[\s\S]*?\) : detail\.roomTypes\.length > 0 \? \([\s\S]*?<RoomTypes/);
     /* The stay is messaged through its business now (track F); an example
        still draws no message control. */

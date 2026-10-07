@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { countOf, DEFAULT_LOCALE, getDictionary, type Locale } from "@vallo/i18n";
@@ -21,6 +22,8 @@ import { HostTodayView } from "./HostTodayView";
 import { hostToday, type HostToday } from "./today";
 import { IconPlate } from "@/components/ui/IconPlate";
 import { gateFirstRun } from "@/components/app/feature-onboarding/first-run-store";
+import { DeskFigure } from "@/components/workspace/DeskFigure";
+import { readHostBookingSeries } from "./booking-series";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: getDictionary(await getLocale()).experienceHost.home.metaTitle, robots: { index: false, follow: false } };
@@ -62,11 +65,14 @@ export default async function HostPage({
      four, which keep running and are never awaited (the catch below only stops
      an abandoned rejection from being reported; the await further down still
      sees any failure). */
+  const figureNow = new Date(requestNow());
   const rest = Promise.all([
     getMyHostDraft(),
     readHostRoomBookings(),
     readHostTableBoard(),
     loadUnreadCounts(session.supabase).then((counts) => counts?.total ?? null, () => null),
+    /* The figure card (reference 5): room bookings made at this host's places. */
+    readHostBookingSeries(figureNow),
   ]);
   rest.catch(() => {});
   const businesses = await getMyBusinesses();
@@ -78,7 +84,7 @@ export default async function HostPage({
   if (businesses.length > 0) await gateFirstRun("host", "/host", await searchParams);
   /* The workspace home's figures (plan item 14): the host's own rows. A read
      that fails comes back as null and its tile is left out. */
-  const [draft, rooms, tables, unread] = await rest;
+  const [draft, rooms, tables, unread, bookingRows] = await rest;
   const openDraft = draft.businessId ? draft : null;
   const today = hostToday({
     now: new Date(requestNow()),
@@ -104,7 +110,18 @@ export default async function HostPage({
         seenKey={approval?.seenKey ?? "host-approved:none"}
         haptic={false}
       />
-      <HostStandingBody businesses={businesses} draft={openDraft} locale={locale} today={today} t={t} />
+      <HostStandingBody
+        businesses={businesses}
+        draft={openDraft}
+        locale={locale}
+        today={today}
+        t={t}
+        figure={
+          businesses.length > 0 ? (
+            <DeskFigure rows={bookingRows} kind="bookings" t={t} locale={locale} now={figureNow} />
+          ) : null
+        }
+      />
     </HostShell>
   );
 }
@@ -121,6 +138,7 @@ export function HostStandingBody({
   draft: open,
   locale = DEFAULT_LOCALE,
   today,
+  figure,
   t = getDictionary(locale),
 }: {
   businesses: MyBusiness[];
@@ -129,6 +147,8 @@ export function HostStandingBody({
   draft: HostDraft | null;
   /** The workspace home's figures (`hostToday`), computed from the host's rows. */
   today: HostToday;
+  /** The figure card (reference 5); omitted, none is drawn. */
+  figure?: ReactNode;
   t?: ReturnType<typeof getDictionary>;
 }) {
   const missing = open ? missingFrom(open) : [];
@@ -143,6 +163,7 @@ export function HostStandingBody({
         today={today}
         t={t}
         locale={locale}
+        figure={figure}
         sub={
           businesses.length === 0
             ? t.hostWorkspace.nothingYet.home

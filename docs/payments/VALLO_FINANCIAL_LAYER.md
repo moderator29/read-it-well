@@ -163,3 +163,28 @@ Recorded because the founder asked specifically what was missed.
     Nigerian price honestly converted with a real, timestamped rate.
 11. **Provider failover that cannot double-charge.** The one place where a retry
     is a financial incident rather than a convenience.
+
+## 5. Protected rental payments (D73 Part B, phases 11 and 12): built, off
+
+The founder's ruling D73: rentals and other negotiated deals pay through escrow, held by Payluk; fixed-price bookings pay by card directly (see `docs/ROOM_CHECKOUT.md`).
+
+**Two locks, both off.** `PAYLUK_ESCROW_FLOWS_BUILT` in `lib/payments/providers/payluk.ts` (flip it after the seams below are checked on staging) and the switch `rentals_protected_pay` (migration `supabase/migrations/pending/d73b_provider_arrangements.sql`, seeded off). With either off, `escrow.*` webhooks are stored and parked as `escrow_flows_not_built`, exactly as before.
+
+**The record.** `provider_arrangements` (one live per approved rent agreement), `provider_arrangement_milestones`, and the append only `provider_arrangement_events`. Vallo's state and the provider's `state`/`status` are stored apart (founder section 54). Only `provider_arrangement_observe` (service role) moves the state, forward only; it refuses a provider id or an amount that contradicts the record and raises a critical alert.
+
+**The flow** (`lib/money/provider-arrangements.ts`, client `lib/payments/providers/payluk-arrangements.ts`, routes from `payluk-source/concepts_how-it-works.txt`):
+
+| Step | Payluk | Vallo state |
+|---|---|---|
+| Open | `POST /v1/escrow/create` (standard, multipart) or `POST /v1/escrow/milestone/create` (JSON), as the lister | `preparing`, then `awaiting_payment`, or `unknown` when unanswered |
+| Pay | `POST /v1/payment/escrow`, `gateway: wallet`, as the renter, reference `<arrangement reference>-pay` | `payment_processing`; `escrow.ongoing` makes it `protected` |
+| Release | `POST /v1/escrow/confirm-payment/{id}` (standard) or `/v1/escrow/milestone/confirm/{id}/{milestoneId}`, as the renter, on the renter's own confirmation | `release_requested`; `escrow.completed` makes it `released` |
+| Otherwise | `escrow.claimed`, `escrow.disputed`/`investigating`, `escrow.refunded`, `escrow.split` | `released`, `disputed`, `refunded`, `split` |
+
+Payluk's 2 percent fee is borne by the lister (`whoPays: seller`, `VALLO_PRICING.md` section 6), so the renter pays exactly the agreed amount; the database holds every arrangement to it. Amounts are naira at the boundary and kobo everywhere else. The delivery window Payluk is told is the days to move-in plus the 3 day claim window, because one day after it the lister may claim the money without the renter.
+
+**No reference on create.** Payluk's create-escrow takes no reference of ours, so Vallo writes `Vallo reference <reference>` into the escrow's `description`. An unanswered create is `unknown` and is found again by listing the lister's escrows (`GET /v1/escrow/transactions?type=sales`) and matching the reference and amount; it is never created a second time.
+
+**Not built here:** the conditions engine and inspection evidence before release (phase 13), disputes and refunds (phase 14: Payluk refunds only through a dispute), the renter-facing screens, marking the agreement paid or opening tenancy records from a protected payment.
+
+**Unverified against live docs** (each marked in the code): whether create-escrow echoes `description`; the page and limit parameter names on the escrow list; how half of an odd-kobo fee is rounded when `whoPays` is `both` (Vallo refuses rather than guess).

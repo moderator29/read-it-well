@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { formatDate, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
@@ -77,6 +78,7 @@ export function RealDashboard({
   displayName,
   numbers,
   inspections,
+  figure,
 }: {
   t: Dictionary;
   locale: Locale;
@@ -84,6 +86,8 @@ export function RealDashboard({
   numbers: AgentNumbers;
   /** What this person has been asked to show. See the header. */
   inspections: InspectionList;
+  /** The figure card (reference 5), drawn first under the band; the page reads its rows. */
+  figure?: ReactNode;
 }) {
   const a = t.agent.dashboard;
   const d = t.agentListings.dashboard;
@@ -211,6 +215,7 @@ export function RealDashboard({
       </HeroBand>
 
       <Stack>
+        {figure}
         {listedInspections.length > 0 || numbers.totalListings > 0 ? (
           <div className="nf-desk-grid">
             {listedInspections.length > 0 ? (

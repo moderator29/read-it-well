@@ -227,9 +227,20 @@ export async function getReviewView(bookingId: string, locale: Locale): Promise<
       .maybeSingle();
     await reportReadError("read.reviews.getReviewView", rentError);
     if (rentError) return { state: "unavailable" };
+    const { data: settled, error: settledError } = await session.supabase
+      .from("transactions")
+      .select("id")
+      .eq("booking_id", booking.id)
+      .eq("status", "SUCCESSFUL")
+      .limit(1);
 
     const reason = reviewIneligibility(
-      { status: booking.status, checkOut: booking.check_out, isTenancy: rentCharge !== null },
+      {
+        status: booking.status,
+        checkOut: booking.check_out,
+        isTenancy: rentCharge !== null,
+        paid: settledError ? undefined : (settled?.length ?? 0) > 0,
+      },
       lagosToday(),
     );
     if (reason) return { state: "not-eligible", subject, reason };

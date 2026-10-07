@@ -1,0 +1,129 @@
+/*
+  THE SCREEN BEFORE THE SYSTEM PROMPT (`PushPrompt.tsx`; the founder's
+  reference 1, notification-stack-onboarding.jpg): a near-black card, the
+  notifications stacked in depth (front one frosted glass with a hairline
+  light edge and one warm glow behind the mark; each behind narrower, dimmer,
+  lower), a confident title, the promises as rows with soft plates, and one
+  wide capsule.
+*/
+@layer components {
+  .nf-push-ask {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-md);
+    padding: var(--nf-space-xl) var(--nf-space-lg) var(--nf-space-lg);
+    border-radius: var(--nf-radius-card);
+    border: var(--nf-border-width) solid var(--nf-smoked-glass-edge);
+    background: var(--nf-surface-raised);
+  }
+  .nf-push-ask__stack {
+    position: relative;
+    height: 6.25rem;
+    margin-bottom: var(--nf-space-xs);
+  }
+  .nf-push-ask__card {
+    position: absolute;
+    inset: 0 0 1.25rem;
+    border-radius: var(--nf-radius-card);
+    border: var(--nf-border-width) solid var(--nf-glass-rim-thin);
+    background: var(--nf-surface-elevated);
+    transform-origin: 50% 100%;
+  }
+  .nf-push-ask__card--1 {
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    background: var(--nf-glass-fill-strong);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur)) saturate(var(--nf-glass-saturate));
+    backdrop-filter: blur(var(--nf-glass-blur)) saturate(var(--nf-glass-saturate));
+    border-color: var(--nf-glass-rim);
+    box-shadow: var(--nf-glass-shadow);
+  }
+  .nf-push-ask__card--2 {
+    z-index: 2;
+    transform: translateY(0.625rem) scale(0.92);
+    opacity: 0.6;
+  }
+  .nf-push-ask__card--3 {
+    z-index: 1;
+    transform: translateY(1.25rem) scale(0.84);
+    opacity: 0.3;
+  }
+  .nf-push-ask__mark {
+    position: relative;
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--nf-radius-plate);
+    background: var(--nf-surface-canvas);
+    isolation: isolate;
+  }
+  /* The one warm glow, bleeding from behind the mark. */
+  .nf-push-ask__mark::before {
+    content: "";
+    position: absolute;
+    inset: -1.25rem;
+    z-index: -1;
+    border-radius: var(--nf-radius-circle);
+    background: radial-gradient(closest-side, color-mix(in oklab, var(--nf-spark) 40%, transparent), transparent);
+  }
+  .nf-push-ask__text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .nf-push-ask__app {
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+  }
+  .nf-push-ask__line {
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-primary);
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  .nf-push-ask__title {
+    text-align: center;
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h3);
+    font-weight: 500;
+    letter-spacing: var(--nf-tracking-tight);
+    color: var(--nf-content-primary);
+  }
+  .nf-push-ask__rows {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-sm);
+  }
+  .nf-push-ask__row {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+  }
+  .nf-push-ask__plate {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--nf-radius-plate);
+    background: var(--nf-glass-fill);
+    color: var(--nf-content-primary);
+  }
+  .nf-push-ask__actions {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--nf-space-2xs);
+    margin-top: var(--nf-space-xs);
+  }
+}

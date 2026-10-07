@@ -3,8 +3,14 @@
 import { useState, useTransition } from "react";
 import { Switch } from "@/components/ui/Switch";
 import { Button } from "@/components/ui/Button";
+import { IconPlate, ICON_PLATE_GLYPH } from "@/components/ui/IconPlate";
+import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import "./notification-settings.css";
 import { updateSettings } from "@/lib/profile/actions";
-import type { NotificationTopic, ResolvedProfileSettings } from "@/lib/profile/model";
+import type {
+  NotificationTopic,
+  ResolvedProfileSettings,
+} from "@/lib/profile/model";
 import type { Dictionary } from "@vallo/i18n/core";
 
 /**
@@ -31,14 +37,47 @@ import type { Dictionary } from "@vallo/i18n/core";
  * Its words are `experienceSettings.notifications`, handed down by the page.
  * The `wallet` above is the storage key only (D48); the row reads "Payments".
  */
-export type NotificationMatrixCopy = Dictionary["experienceSettings"]["notifications"];
+export type NotificationMatrixCopy =
+  Dictionary["experienceSettings"]["notifications"];
 
-type Row = "bookings" | "messages" | "payments" | "savedPriceDrops" | "marketing";
+type Row =
+  | "bookings"
+  | "messages"
+  | "payments"
+  | "savedPriceDrops"
+  | "marketing";
 type Flags = ResolvedProfileSettings["notifications"];
 
-const STORED_FLAG = { bookings: "bookings", messages: "messages", payments: "wallet", marketing: "marketing" } as const;
-const PUSH_TOPIC: Partial<Record<Row, NotificationTopic>> = { bookings: "bookings", messages: "messages", payments: "wallet", marketing: "marketing" };
-const ROWS: readonly Row[] = ["bookings", "messages", "payments", "savedPriceDrops", "marketing"];
+const STORED_FLAG = {
+  bookings: "bookings",
+  messages: "messages",
+  payments: "wallet",
+  marketing: "marketing",
+} as const;
+const PUSH_TOPIC: Partial<Record<Row, NotificationTopic>> = {
+  bookings: "bookings",
+  messages: "messages",
+  payments: "wallet",
+  marketing: "marketing",
+};
+const ROWS: readonly Row[] = [
+  "bookings",
+  "messages",
+  "payments",
+  "savedPriceDrops",
+  "marketing",
+];
+
+/* The soft plate beside each event (the founder's reference 1: a rounded
+   square icon plate, a plain label, a wide capsule toggle). The same glyphs
+   the inbox files these events under, so the two screens agree. */
+const ROW_GLYPH: Record<Row, UiIconName> = {
+  bookings: "calendar-booking",
+  messages: "chat-bubble",
+  payments: "receipt",
+  savedPriceDrops: "price-tag",
+  marketing: "sparkle",
+};
 
 /** The push answer as `wantsPush` would give it for this row today. */
 export function pushFor(row: Row, flags: Flags): boolean {
@@ -51,13 +90,32 @@ export function pushFor(row: Row, flags: Flags): boolean {
   return row !== "marketing";
 }
 
-export function NotificationMatrix({ initial, copy }: { initial: Flags; copy: NotificationMatrixCopy }) {
+export function NotificationMatrix({
+  initial,
+  copy,
+}: {
+  initial: Flags;
+  copy: NotificationMatrixCopy;
+}) {
   const [flags, setFlags] = useState<Flags>(initial);
-  const [quiet, setQuiet] = useState(initial.quiet_hours ?? { enabled: false, from: "22:00", to: "07:00", timezone: "Africa/Lagos" });
-  const [note, setNote] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
+  const [quiet, setQuiet] = useState(
+    initial.quiet_hours ?? {
+      enabled: false,
+      from: "22:00",
+      to: "07:00",
+      timezone: "Africa/Lagos",
+    }
+  );
+  const [note, setNote] = useState<{
+    tone: "ok" | "error";
+    text: string;
+  } | null>(null);
   const [pending, start] = useTransition();
 
-  const save = (patch: Parameters<typeof updateSettings>[0], revert: () => void) => {
+  const save = (
+    patch: Parameters<typeof updateSettings>[0],
+    revert: () => void
+  ) => {
     setNote(null);
     start(async () => {
       const result = await updateSettings(patch);
@@ -82,27 +140,43 @@ export function NotificationMatrix({ initial, copy }: { initial: Flags; copy: No
     const previous = flags;
     if (row === "savedPriceDrops") {
       setFlags({ ...flags, savedPriceDrops: next });
-      save({ notifications: { savedPriceDrops: next } }, () => setFlags(previous));
+      save({ notifications: { savedPriceDrops: next } }, () =>
+        setFlags(previous)
+      );
       return;
     }
     const topic = PUSH_TOPIC[row] as NotificationTopic;
-    setFlags({ ...flags, channels: { ...(flags.channels ?? {}), [topic]: { push: next } } });
-    save({ notifications: { channels: { [topic]: { push: next } } } }, () => setFlags(previous));
+    setFlags({
+      ...flags,
+      channels: { ...(flags.channels ?? {}), [topic]: { push: next } },
+    });
+    save({ notifications: { channels: { [topic]: { push: next } } } }, () =>
+      setFlags(previous)
+    );
   };
 
   return (
-    <div className="space-y-block" data-testid="notification-matrix">
-      <section className="nf-panel nf-panel--card" aria-labelledby="nf-matrix-title">
-        <h2 id="nf-matrix-title" className="nf-body font-semibold text-[var(--nf-content-primary)]">
+    <div className="nf-nset" data-testid="notification-matrix">
+      <section className="nf-nset__group" aria-labelledby="nf-matrix-title">
+        <h2 id="nf-matrix-title" className="nf-section-label nf-nset__label">
           {copy.title}
         </h2>
-        <table className="mt-row w-full border-collapse">
+        {/* Still a table (R3-14): an event by channel grid read cell by cell
+            by a screen reader. Drawn as the grouped list's card, each event a
+            row with its plate, each channel a capsule toggle. */}
+        <table className="nf-nset__table">
           <caption className="sr-only">{copy.caption}</caption>
           <thead>
-            <tr className="nf-caption text-[var(--nf-content-muted)]">
-              <th scope="col" className="py-inline text-left font-semibold">{copy.colEvent}</th>
-              <th scope="col" className="py-inline text-center font-semibold">{copy.colEmail}</th>
-              <th scope="col" className="py-inline text-center font-semibold">{copy.colPush}</th>
+            <tr className="nf-nset__head">
+              <th scope="col" className="nf-nset__col nf-nset__col--event">
+                {copy.colEvent}
+              </th>
+              <th scope="col" className="nf-nset__col">
+                {copy.colEmail}
+              </th>
+              <th scope="col" className="nf-nset__col">
+                {copy.colPush}
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -110,18 +184,34 @@ export function NotificationMatrix({ initial, copy }: { initial: Flags; copy: No
               const words = copy.rows[row];
               const headId = `nf-matrix-${row}`;
               return (
-                <tr key={row} className="border-t border-[var(--nf-panel-hair)]" data-testid={`matrix-row-${row}`}>
-                  <th scope="row" id={headId} className="py-row pr-sm text-left align-top font-normal">
-                    <span className="nf-body-sm block font-semibold text-[var(--nf-content-primary)]">{words.label}</span>
-                    <span className="nf-caption block text-[var(--nf-content-muted)]">{words.sub}</span>
+                <tr
+                  key={row}
+                  className="nf-nset__row"
+                  data-testid={`matrix-row-${row}`}
+                >
+                  <th scope="row" id={headId} className="nf-nset__event">
+                    <span className="nf-nset__event-inner">
+                      <IconPlate size="sm" tone="neutral">
+                        <UiIcon
+                          name={ROW_GLYPH[row]}
+                          size={ICON_PLATE_GLYPH.sm}
+                        />
+                      </IconPlate>
+                      <span className="nf-nset__words">
+                        <span className="nf-nset__title">{words.label}</span>
+                        <span className="nf-nset__sub">{words.sub}</span>
+                      </span>
+                    </span>
                   </th>
-                  <td className="py-row text-center align-middle">
+                  <td className="nf-nset__cell">
                     {row === "savedPriceDrops" ? (
-                      <span className="nf-caption text-[var(--nf-content-muted)]">{copy.notEmailed}</span>
+                      <span className="nf-nset__none">{copy.notEmailed}</span>
                     ) : (
                       <span className="inline-flex justify-center">
                         <Switch
-                          checked={flags[STORED_FLAG[row]] ?? row !== "marketing"}
+                          checked={
+                            flags[STORED_FLAG[row]] ?? row !== "marketing"
+                          }
                           onCheckedChange={(next) => setEmail(row, next)}
                           aria-label={`${words.label}: ${copy.colEmail}`}
                           disabled={pending}
@@ -130,7 +220,7 @@ export function NotificationMatrix({ initial, copy }: { initial: Flags; copy: No
                       </span>
                     )}
                   </td>
-                  <td className="py-row text-center align-middle">
+                  <td className="nf-nset__cell">
                     <span className="inline-flex justify-center">
                       <Switch
                         checked={pushFor(row, flags)}
@@ -146,53 +236,102 @@ export function NotificationMatrix({ initial, copy }: { initial: Flags; copy: No
             })}
           </tbody>
         </table>
-        <p className="nf-caption mt-row text-[var(--nf-content-muted)]">{copy.note}</p>
+        <p className="nf-nset__note">{copy.note}</p>
       </section>
 
-      <section className="nf-panel nf-panel--card" aria-labelledby="nf-quiet-title" data-testid="quiet-hours">
-        <h2 id="nf-quiet-title" className="nf-body font-semibold text-[var(--nf-content-primary)]">
+      <section
+        className="nf-nset__group"
+        aria-labelledby="nf-quiet-title"
+        data-testid="quiet-hours"
+      >
+        <h2 id="nf-quiet-title" className="nf-section-label nf-nset__label">
           {copy.quiet.title}
         </h2>
-        <div className="mt-row">
-          <Switch
-            label={copy.quiet.switch}
-            description={copy.quiet.sub}
-            checked={quiet.enabled}
-            onCheckedChange={(next) => setQuiet({ ...quiet, enabled: next })}
-            disabled={pending}
-          />
-        </div>
-        <div className="mt-row grid grid-cols-2 gap-sm">
-          <label className="grid gap-2xs">
-            <span className="nf-caption text-[var(--nf-content-muted)]">{copy.quiet.from}</span>
-            <input type="time" className="nf-field" value={quiet.from} onChange={(e) => setQuiet({ ...quiet, from: e.currentTarget.value })} disabled={pending} />
-          </label>
-          <label className="grid gap-2xs">
-            <span className="nf-caption text-[var(--nf-content-muted)]">{copy.quiet.to}</span>
-            <input type="time" className="nf-field" value={quiet.to} onChange={(e) => setQuiet({ ...quiet, to: e.currentTarget.value })} disabled={pending} />
-          </label>
-        </div>
-        <p className="nf-caption mt-inline text-[var(--nf-content-muted)]">{copy.quiet.zone}</p>
-        <div className="mt-row">
-          <Button
-            variant="secondary"
-            size="md"
-            loading={pending}
-            onClick={() => {
-              const previous = flags.quiet_hours;
-              save({ notifications: { quiet_hours: { ...quiet, timezone: "Africa/Lagos" } } }, () =>
-                setQuiet(previous ?? { enabled: false, from: "22:00", to: "07:00", timezone: "Africa/Lagos" }),
-              );
-            }}
-            data-testid="quiet-save"
-          >
-            {copy.quiet.save}
-          </Button>
+        <div className="nf-nset__card">
+          <div className="nf-nset__quiet-row">
+            <IconPlate size="sm" tone="neutral">
+              <UiIcon name="moon" size={ICON_PLATE_GLYPH.sm} />
+            </IconPlate>
+            <Switch
+              label={copy.quiet.switch}
+              description={copy.quiet.sub}
+              checked={quiet.enabled}
+              onCheckedChange={(next) => setQuiet({ ...quiet, enabled: next })}
+              disabled={pending}
+            />
+          </div>
+          <div className="nf-nset__times">
+            <label className="grid gap-2xs">
+              <span className="nf-caption text-[var(--nf-content-muted)]">
+                {copy.quiet.from}
+              </span>
+              <input
+                type="time"
+                className="nf-field"
+                value={quiet.from}
+                onChange={(e) =>
+                  setQuiet({ ...quiet, from: e.currentTarget.value })
+                }
+                disabled={pending}
+              />
+            </label>
+            <label className="grid gap-2xs">
+              <span className="nf-caption text-[var(--nf-content-muted)]">
+                {copy.quiet.to}
+              </span>
+              <input
+                type="time"
+                className="nf-field"
+                value={quiet.to}
+                onChange={(e) =>
+                  setQuiet({ ...quiet, to: e.currentTarget.value })
+                }
+                disabled={pending}
+              />
+            </label>
+          </div>
+          <p className="nf-nset__zone">{copy.quiet.zone}</p>
+          <div className="nf-nset__save">
+            <Button
+              variant="secondary"
+              size="md"
+              loading={pending}
+              onClick={() => {
+                const previous = flags.quiet_hours;
+                save(
+                  {
+                    notifications: {
+                      quiet_hours: { ...quiet, timezone: "Africa/Lagos" },
+                    },
+                  },
+                  () =>
+                    setQuiet(
+                      previous ?? {
+                        enabled: false,
+                        from: "22:00",
+                        to: "07:00",
+                        timezone: "Africa/Lagos",
+                      }
+                    )
+                );
+              }}
+              data-testid="quiet-save"
+            >
+              {copy.quiet.save}
+            </Button>
+          </div>
         </div>
       </section>
 
       {note ? (
-        <p role={note.tone === "error" ? "alert" : "status"} className={`nf-body-sm ${note.tone === "error" ? "text-[var(--nf-state-error)]" : "text-[var(--nf-state-success)]"}`}>
+        <p
+          role={note.tone === "error" ? "alert" : "status"}
+          className={`nf-body-sm ${
+            note.tone === "error"
+              ? "text-[var(--nf-state-error)]"
+              : "text-[var(--nf-state-success)]"
+          }`}
+        >
           {note.text}
         </p>
       ) : null}

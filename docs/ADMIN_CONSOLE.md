@@ -1024,6 +1024,7 @@ a fall is emerald. The line is alerts raised per day.
 | sanctions-screen | Vercel Cron `7,22,37,52 * * * *` | every 15 min | 2 h | screens the people and transactions the triggers queued against the lists in force and raises matches on the compliance desk (SCUML item 8) |
 | risk-classes | Vercel Cron `50 3 * * *` | daily 04:50 | 26 h | classifies every customer high, medium or low risk, dated, from the documented factors (SCUML item 15) |
 | calendar-sync | Vercel Cron `2,17,32,47 * * * *` | every 15 min | 2 h | pulls the Airbnb, Booking.com and other calendars hosts linked on `/host/calendar` and holds those nights on Vallo (C2, `lib/cron/jobs/calendar-sync.ts`); a no-op while `CALENDAR_SYNC_ENABLED` is off |
+| reservation-deposit-refunds | Vercel Cron `40 * * * *` | hourly at :40 | 2 h | D75: sends the restaurant table deposit refunds the restaurant's rule decided back to the card, once each, and closes deposit checkouts nobody paid within two hours (`lib/cron/jobs/reservation-deposit-refunds.ts`); a no-op while `restaurant_deposits` is off and nothing is due |
 | vallo_push_drain | pg_cron `*/5 * * * *` | every 5 min | | asks the app to drain the push queue (`private.request_push_drain`) |
 | vallo_safety_share_sweep | pg_cron `*/10 * * * *` | every 10 min | | reminds a renter once when half an hour has passed since they expected to be back from an inspection they shared and they have not tapped I'm done (V-62) |
 | vallo_release_stale_holds | pg_cron `*/15 * * * *` | every 15 min | | database side of the hold release |
@@ -1061,7 +1062,7 @@ a fall is emerald. The line is alerts raised per day.
 | vallo_sweep_rent_splits | pg_cron `25 7 * * *` | daily 08:25 | | refunds the paid shares of a flatmate split still short on move-in day, or cancelled (V-86) |
 | vallo_threshold_reminders | pg_cron `5 * * * *` | hourly at :05 | | tells staff three days and one day before a threshold report to the NFIU is due (SCUML item 7) |
 
-18 Vercel Cron jobs and 36 pg_cron jobs in all. The numbers are derived,
+19 Vercel Cron jobs and 36 pg_cron jobs in all. The numbers are derived,
 not remembered: the Vercel list is `VERCEL_JOBS` in
 `lib/admin/reads/jobs.ts`, held equal to `vercel.json` by a test, and the
 database list is `PG_CRON_JOBS` in the same file, held equal by

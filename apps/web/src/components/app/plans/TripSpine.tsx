@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { getDictionary, plural, type Locale } from "@vallo/i18n";
+import { formatMoney, getDictionary, plural, type Locale } from "@vallo/i18n";
 import { Disclosure } from "@/components/app/Disclosure";
 import { ICON, TYPE } from "@/components/app/Screen";
 import { StatusPill } from "@/components/ui/StatusPill";
@@ -13,6 +13,8 @@ import type { ReservationView } from "@/lib/reservations/queries";
 import { CancelBookingControl } from "@/components/app/bookings/CancelBookingSheet";
 import { restaurantPlate } from "@/components/app/stays/restaurant-plates";
 import { buildTripSpine, type TripEntry } from "./trip-spine";
+import { depositLine } from "@/lib/reservations/deposits";
+import { PayDepositButton } from "@/components/app/reservations/PayDepositButton";
 
 /**
  * TRIPS, ON A DATE SPINE.
@@ -49,6 +51,8 @@ type TripItem = TripEntry & {
   /* The row's own booking, carried so the cancel control has the record it
      confirms against. Only a stay has one; a table will carry its own. */
   booking: BookingView | null;
+  /* D75: a table's deposit, in words, and whether it can be paid now. */
+  deposit?: { line: string; payable: boolean } | null;
 };
 
 /** The Lagos date and a short time, from a reservation's instant. */
@@ -133,6 +137,17 @@ export function TripSpine({
     status: reservation.status,
     justBooked: reservation.id === justBookedId,
     booking: null,
+    deposit: reservation.deposit
+      ? {
+          line:
+            depositLine(
+              reservation.deposit,
+              (minor) => formatMoney(minor, locale, "NGN"),
+              (iso) => tableWhen(iso),
+            ) ?? "",
+          payable: reservation.deposit.status === "due" || reservation.deposit.status === "pending",
+        }
+      : null,
   }));
 
   const items: TripItem[] = [...stays, ...tables];
@@ -303,9 +318,15 @@ function SpineRow({
         read: `PENDING` means reserved and not paid, and `reviewable` is the
         read's own word for "the database would accept a review now".
       */}
+      {item.deposit && item.deposit.line && !muted && (
+        <div className="mt-inline grid gap-inline pl-[calc(var(--nf-plate-size-lg)+var(--spacing-md))]" data-testid="trip-deposit">
+          <span className={`block ${TYPE.rowMeta}`}>{item.deposit.line}</span>
+          {item.deposit.payable && <PayDepositButton reservationId={item.id} label="Pay deposit" />}
+        </div>
+      )}
       {item.booking && !muted && (
         <div className="mt-inline flex flex-wrap items-center gap-md pl-[calc(var(--nf-plate-size-lg)+var(--spacing-md))]">
-          {item.booking.status === "PENDING" && (
+          {item.booking.payable && (
             <Link
               href={`/checkout/${item.booking.id}`}
               className="nf-btn nf-btn--primary nf-btn--sm"

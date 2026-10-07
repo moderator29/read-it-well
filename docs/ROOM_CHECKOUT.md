@@ -76,9 +76,48 @@ Before switching on in Production, make sure:
 2. the hotels you want bookable are published, with room types, rate plans and room inventory filled in;
 3. each hotel owner has a default bank account on Vallo (or is an agent with a subaccount).
 
+## Instant booking at the published price (D73, switch `stays_instant_pay`)
+
+The founder's ruling of 7 October 2026 (D73 in `docs/sessions/DIRECTIVES-2026-10-05.md`): a booking at a price the business fixed is booked and paid in one flow, the way a hotel booking API such as LiteAPI works. No host acceptance and no Vallo review stand between a guest and paying a published price. Rentals and anything negotiated keep the agreement and review, and go to escrow (Part B).
+
+**Status: built, off.** Migration `supabase/migrations/pending/d73a_stays_instant_pay.sql` (pending, applied by the lead) seeds `stays_instant_pay` off. A missing row reads as off.
+
+**Which bookings.** Read from the live schema:
+
+- a **hotel room** (`bookings.room_type_id` set), priced by `private.price_room_booking` from the rate plan and calendar;
+- a **listing stay** at a published nightly rate (`listings.rate_period = 'night'`: shortlets, serviced apartments), priced by `private.price_booking_from_listing`.
+
+Nothing else. A rent charge is never touched. **Restaurants take no payment on Vallo at all**: a table is a `reservations` row with no price, and no transaction names one. A per-head (`guest`) rate is already refused by the stay pricing.
+
+**With the switch on, step by step.**
+
+1. The guest picks a room, rate and dates and sees the database's total on `/checkout` (or the nightly total on a listing). The button reads **Book and pay**.
+2. The guest's own insert runs every check it runs today: the insert policy, the database price (anything the client sends is ignored), the hold limits, closed nights and the room inventory hold. A refusal is shown exactly as today.
+3. In the same transaction the trigger `bookings_instant_when_fixed_price` draws up the stay agreement at the booking's database total, with the same terms the host acceptance path writes plus `instant_booking: true`. The platform cancellation schedule is added and frozen by the existing agreement triggers. The agreement is recorded **approved by the system**: `decided_by` is empty, `decision_reason` is "Fixed price, instant booking.", `deal_agreement_events` gets `opened` and `approved` with no actor, and `audit_log` gets `agreement.approve` with `decided_by: system`. The booking moves to CONFIRMED and `booking_state_events` says why.
+4. The guest lands on `/checkout/<booking>` with payment open and a 30 minute countdown. The payment gate (`private.transactions_payment_gate`), the split (`payment_split_for_booking`), the Paystack charge and `settle_booking_charge` are **unchanged**: the gate already asks for an approved agreement at the charge's amount, and this one is.
+5. If the guest does not pay, the existing sweep (`private.expire_booking_holds`, every 15 minutes) cancels the booking 30 minutes after it was made (up to 2 hours while Paystack says a payment is still moving), cancels the agreement and gives the nights back. So the release lands between 30 and 45 minutes.
+
+**When it stays a request.** The booking quietly keeps today's flow (a PENDING request for the host) when the switch is off; when the host cannot be paid yet (`payment_split_for_booking` is not `ok`, usually no payout subaccount); when an agent has no live mandate for the listing; when the booking is written by the service role (tests, repairs, the console) rather than by the guest's own session; or when anything in the instant step fails, which also raises a `risk_alerts` row. The guest is never refused because of the instant path.
+
+**What people are told.** The host gets "New booking: booked at your published price, the guest is paying now". The guest gets "Pay to keep your booking". Nobody gets "terms waiting for your confirmation", and the listing "request sent" emails are not sent for an instant booking.
+
+**Functions changed on the database** (each copied from the live definition first): `private.expire_booking_holds` (one branch for instant agreements), `private.notify_booking_change` (the instant wording), `private.enqueue_agreement_lifecycle_email` (an agreement inserted already approved sends no "waiting" email; every insert today is `awaiting_parties`, so nothing else changes). New: `private.book_stay_instantly`, `private.stays_instant_pay_on`, `private.instant_pay_window`.
+
+**Switching it on.** Apply the migration and move its probe (`supabase/tests/probes-pending/d73a-stays-instant-pay.sql`) to `supabase/tests/probes/`. Then, on **Settings > Switches**, turn on `stays_instant_pay`, or `update public.feature_flags set enabled = true where key = 'stays_instant_pay';`. Room bookings also need `room_bookings` on. Switching it off again makes new bookings requests at once; instant bookings already made keep their approved agreement and their 30 minute hold.
+
+**Known limits.** An unpaid instant booking is CONFIRMED, so it does not count toward the "3 unconfirmed stays" hold limit; the 10 bookings a day limit and the cooldown after two lapsed holds at the same place still apply, and the hold lasts at most 45 minutes. The instant wording on the checkout is English only until the stays restyle moves it into `@vallo/i18n`.
+
+## After payment: the trip page (D75)
+
+Migration `supabase/migrations/pending/d75b_stay_trip_details.sql`, probe `d75b-stay-trip-details.sql`. Checked against live on 7 October: no member could read any address (`listings.address` and `accommodations.address` are not granted), the gate details (`listing_access`) were readable on a CONFIRMED booking whether or not it was paid, and reviews were gated on a finished booking but not on payment. With instant booking a booking is CONFIRMED before it is paid, so all three now follow the money:
+
+- `public.my_stay_details` answers the booking's own guest, once a payment has settled: the address, the hotel's check-in and check-out times and house rules, a listing's estate, gate directions, security phone and access code (the code only until the stay is over), the host's name and where to message them. Before payment it answers `unpaid` and the trip page says the details appear once the stay is paid.
+- `private.can_see_listing_access` (changed) and `reviews_insert_own` (changed) also require a paid booking.
+- The trip page and the trips spine offer **Pay** on any unpaid PENDING or CONFIRMED stay, so an instant booking is payable from there too.
+
 ## Known limits
 
-- **Reviews of hotel stays are not open yet.** A guest who stayed in a hotel room is told so kindly; reviews still work for listing stays.
+- **Reviews of hotel stays** are written against the hotel (C4, live since 30 September). D75 offers the review on the trip for a paid, finished room stay, as for a listing stay.
 - **No-shows** recorded by the host from the stay page work for listing stays only; a hotel no-show is handled by a person.
 - **Arrival charges** (a hotel's declared tourism levy or deposit) are shown from the hotel's declaration; nothing is charged for them through Vallo.
 - **One room type per request.** A guest who wants two different room types makes two requests.

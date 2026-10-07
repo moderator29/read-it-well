@@ -40,7 +40,12 @@ import { verifyPaylukSignature } from "./payluk-webhook";
  * from the key's own prefix, so a test key can never reach production.
  */
 
-/** Phases 11 and 12 (standard and milestone escrow) are not built. `escrowRailLive` reads this. */
+/**
+ * Phases 11 and 12 (standard and milestone escrow) are written (D73 Part B,
+ * lib/money/provider-arrangements.ts) and held off: flip this only after the
+ * seams marked UNVERIFIED there are checked on Payluk staging. The switch
+ * `rentals_protected_pay` must also be on. `escrowRailLive` reads this.
+ */
 export const PAYLUK_ESCROW_FLOWS_BUILT = false as const;
 
 const gate = new PaylukRateGate();
@@ -50,6 +55,9 @@ function context(): PaylukContext | null {
   const config = paylukMerchantConfig(process.env);
   return config ? { config, fetch: fetchImpl, gate } : null;
 }
+
+/** The same context for the arrangement flows (phases 11 and 12), one rate gate per process. */
+export const paylukContext = context;
 
 const NOT_CONFIGURED = {
   ok: false as const,

@@ -2,6 +2,7 @@ import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { HostShell } from "@/components/host/HostShell";
 import { HostStandingBody } from "@/app/host/page";
+import { DeskFigure } from "@/components/workspace/DeskFigure";
 import { emptyHostDraft } from "@/lib/host/onboarding";
 import { hostToday, lagosDay } from "@/app/host/today";
 
@@ -14,8 +15,13 @@ import { hostToday, lagosDay } from "@/app/host/today";
 export const dynamic = "force-dynamic";
 
 export default async function PreviewHostLanding() {
-  const t = getDictionary(await getLocale());
+  const locale = await getLocale();
+  const t = getDictionary(locale);
   const now = new Date();
+  /* Fixture room bookings for the figure card, hours back from the render. */
+  const bookingRows = [2, 9, 28, 44, 70, 96, 140, 190, 260, 330, 410, 520, 640].map((hours) => ({
+    at: new Date(now.getTime() - hours * 3_600_000).toISOString(),
+  }));
   const day = lagosDay(now);
   const shift = (days: number) => lagosDay(new Date(now.getTime() + days * 86_400_000));
   const row = (id: string, status: string, checkIn: string, checkOut: string, guestName: string) => ({
@@ -51,6 +57,7 @@ export default async function PreviewHostLanding() {
   return (
     <HostShell logoLabel={t.a11y.logoHome} wide>
       <HostStandingBody
+        figure={<DeskFigure rows={bookingRows} kind="bookings" t={t} locale={locale} now={now} />}
         businesses={[
           {
             id: "00000000-0000-4000-8000-00000000h001",

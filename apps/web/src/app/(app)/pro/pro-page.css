@@ -1,0 +1,678 @@
+/*
+  /pro (P6, 7 October 2026), to the governing level (D74, the Plasma set):
+  near-black field, a device frame with a smoked-glass fragment breaking out
+  of it, platinum metal cards fanned in depth (the screen's one metal
+  object), one reflecting capsule. Dark first; every colour a token. Three
+  elevations: the page, the raised panels, the floating glass.
+*/
+@layer components {
+  .nf-pro {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-xl);
+    padding-bottom: var(--nf-space-3xl);
+  }
+
+  /* ------------------------------------------------------------ explainer */
+  .nf-pro__hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--nf-space-xl);
+  }
+  .nf-pro-x {
+    position: relative;
+    width: 100%;
+    max-width: 22rem;
+    height: 20rem;
+    /* The illustration owns its box: nothing in it can push the page sideways. */
+    overflow: visible;
+    contain: layout;
+    isolation: isolate;
+  }
+  /* One soft brand light behind the phone, the only colour on the field. */
+  .nf-pro-x__glow {
+    position: absolute;
+    inset: 12% 8% 0;
+    border-radius: var(--nf-radius-circle);
+    background: radial-gradient(closest-side, var(--nf-glow-1), transparent);
+    filter: blur(8px);
+    z-index: -1;
+  }
+  /* The phone (GOVERNING-plasma-withdraw-anytime): its top drawn whole, the
+     island and the frame's shoulders, and its lower half dissolving into the
+     field, so it reads as the device the card has just left. */
+  .nf-pro-x__phone {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: 14rem;
+    height: 20rem;
+    margin-left: -7rem;
+    border-radius: var(--nf-radius-island) var(--nf-radius-island) 0 0;
+    border: 0.375rem solid var(--nf-surface-elevated);
+    border-bottom: 0;
+    outline: var(--nf-border-width) solid var(--nf-smoked-glass-edge);
+    background: var(--nf-surface-raised);
+    overflow: hidden;
+    mask-image: linear-gradient(to bottom, var(--nf-surface-canvas) 55%, transparent 100%);
+  }
+  /* The island: the one detail that says "phone" at a glance. */
+  .nf-pro-x__phone::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 0.5rem;
+    width: 4.5rem;
+    height: 1.25rem;
+    margin-left: -2.25rem;
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-surface-canvas);
+  }
+  .nf-pro-x__screen {
+    position: absolute;
+    inset: 2.75rem 0.875rem auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-sm);
+  }
+  /* Skeleton strokes, never words: the workspace behind is a shape, not data. */
+  .nf-pro-x__bar,
+  .nf-pro-x__row {
+    display: block;
+    border-radius: var(--nf-radius-xs);
+    background: var(--nf-glass-fill);
+  }
+  .nf-pro-x__bar {
+    height: 0.5rem;
+    width: 55%;
+  }
+  .nf-pro-x__bar--title {
+    height: 0.75rem;
+    width: 40%;
+    margin-inline: auto;
+  }
+  .nf-pro-x__row {
+    height: 2rem;
+    border-radius: var(--nf-radius-control-sm);
+  }
+  .nf-pro-x__row--short {
+    width: 70%;
+  }
+
+  /* The fragment: SMOKED GLASS (D74), wider than the phone, breaking out of
+     it towards the viewer. Glass, because it floats above the phone. */
+  .nf-pro-x__card {
+    position: absolute;
+    left: 50%;
+    top: 6.5rem;
+    width: min(18.5rem, calc(100% - 0.5rem));
+    translate: -50% 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-lg);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-smoked-glass-fill);
+    backdrop-filter: blur(var(--nf-smoked-glass-blur)) saturate(var(--nf-glass-saturate));
+    -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur)) saturate(var(--nf-glass-saturate));
+    border: var(--nf-border-width) solid var(--nf-smoked-glass-edge);
+    box-shadow: var(--nf-glass-shadow-lifted);
+    z-index: 2;
+  }
+  .nf-pro-x__source {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    padding: var(--nf-space-3xs) var(--nf-space-sm);
+    border-radius: var(--nf-radius-badge);
+    background: var(--nf-glass-fill);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+  }
+  .nf-pro-x__source .nf-ui-icon {
+    color: var(--nf-status-approved);
+  }
+  .nf-pro-x__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-space-md);
+  }
+  .nf-pro-x__title {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h2);
+    font-weight: 600;
+    letter-spacing: var(--nf-tracking-tight);
+    color: var(--nf-content-primary);
+  }
+  /* The capsule switch, drawn as ProToggle draws it, already on. */
+  .nf-pro-x__capsule-art {
+    position: relative;
+    flex: none;
+    width: 3.25rem;
+    height: 1.875rem;
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-glass-fill);
+    border: var(--nf-border-width) solid var(--nf-border-default);
+  }
+  .nf-pro-x__track {
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    background: var(--nf-brand-accent);
+    box-shadow: var(--nf-glow-accent);
+  }
+  .nf-pro-x__thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-content-on-brand);
+    box-shadow: var(--nf-elev-1);
+  }
+  .nf-pro-x__line {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-pro-x__words {
+    display: flex;
+    gap: var(--nf-space-xs);
+    margin-top: var(--nf-space-2xs);
+  }
+  .nf-pro-x__word {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: var(--nf-space-xs) var(--nf-space-2xs);
+    border-radius: var(--nf-radius-control-sm);
+    background: var(--nf-glass-fill);
+    border: var(--nf-border-width) solid var(--nf-border-subtle);
+    text-align: center;
+    font-size: var(--nf-text-caption);
+    font-weight: 500;
+    color: var(--nf-content-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* ------------------------------------------------------------- headline */
+  .nf-pro__intro {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-sm);
+    text-align: center;
+    max-width: 30rem;
+  }
+  .nf-pro__headline {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-display);
+    font-weight: 600;
+    line-height: 1.04;
+    letter-spacing: var(--nf-tracking-display);
+    color: var(--nf-content-primary);
+  }
+  /* Reference 3: the last word in brand blue. */
+  .nf-pro__headline-last {
+    color: var(--nf-brand-primary);
+  }
+  .nf-pro__body {
+    font-size: var(--nf-text-body);
+    color: var(--nf-content-secondary);
+  }
+
+  /* ---------------------------------------------------------------- facts */
+  .nf-pro__stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-2xl);
+  }
+  .nf-pro__label,
+  .nf-pro-mine__label {
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    letter-spacing: var(--nf-tracking-overline);
+    text-transform: uppercase;
+    color: var(--nf-content-muted);
+  }
+
+  /* Where the member stands: one raised card, the plan's name the biggest
+     thing in it. */
+  .nf-pro-mine {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-xs);
+    padding: var(--nf-space-lg);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-surface-raised);
+    border: var(--nf-border-width) solid var(--nf-border-subtle);
+  }
+  .nf-pro-mine .nf-btn {
+    margin-top: var(--nf-space-sm);
+  }
+  .nf-pro-mine__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-space-md);
+  }
+  .nf-pro-mine__name {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h2);
+    font-weight: 600;
+    letter-spacing: var(--nf-tracking-tight);
+    color: var(--nf-content-primary);
+  }
+  .nf-pro-mine__name--quiet {
+    font-size: var(--nf-text-h4);
+  }
+  .nf-pro-mine__body {
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+  }
+
+  .nf-pro__offered {
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+  }
+  .nf-pro__offered-label {
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+
+  /* THE PLAN PAGE'S FIELD (GOVERNING-plasma-tier-detail-core in Vallo dark):
+     one quiet raised panel, the content lit, the field near black. */
+  .nf-pro-wall {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-lg);
+    padding: var(--nf-space-lg) var(--nf-space-md);
+    border-radius: var(--nf-radius-card);
+    border: var(--nf-border-width) solid var(--nf-smoked-glass-edge);
+    background: var(--nf-surface-raised);
+    overflow: hidden;
+  }
+  .nf-pro-plan {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-lg);
+  }
+
+  /* THE METAL CARDS, FANNED IN DEPTH (D74, GOVERNING-plasma-tiers-cards).
+     Brushed platinum with a diagonal sheen, dark ink, a bright hairline
+     edge. The chosen card stands in front, a little right of centre; each
+     card behind it steps left, lower, smaller and turned further. Card
+     proportions are a bank card's, 1.586 to 1. */
+  .nf-pro-fan {
+    position: relative;
+    height: 13.5rem;
+    margin-top: var(--nf-space-sm);
+    perspective: 60rem;
+  }
+  .nf-pro-metal {
+    position: absolute;
+    left: 50%;
+    top: 0.75rem;
+    width: min(15rem, 66%);
+    aspect-ratio: 1.586;
+    margin-left: calc(min(15rem, 66%) / -2);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: var(--nf-space-md);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-platinum-fill);
+    color: var(--nf-platinum-ink);
+    box-shadow: var(--nf-platinum-shadow);
+    text-align: start;
+    overflow: hidden;
+    transform-origin: 50% 100%;
+    transition:
+      transform var(--nf-duration-slow) var(--nf-ease-spring),
+      filter var(--nf-duration-slow) var(--nf-ease-standard),
+      opacity var(--nf-duration-slow) var(--nf-ease-standard);
+  }
+  .nf-pro-metal[data-metal="gold"] {
+    background: var(--nf-gold-fill);
+    color: var(--nf-gold-ink);
+    box-shadow: 0 24px 60px -24px var(--nf-surface-canvas), 0 0 0 1px var(--nf-gold-edge) inset;
+  }
+  .nf-pro-metal[data-depth="0"] {
+    z-index: 4;
+    transform: translateX(14%) rotate(-3deg);
+  }
+  .nf-pro-metal[data-depth="1"] {
+    z-index: 3;
+    transform: translateX(-2%) translateY(0.5rem) rotate(-8deg) scale(0.94);
+    filter: brightness(0.82);
+  }
+  .nf-pro-metal[data-depth="2"] {
+    z-index: 2;
+    transform: translateX(-14%) translateY(1rem) rotate(-13deg) scale(0.88);
+    filter: brightness(0.66);
+  }
+  .nf-pro-metal[data-depth="3"] {
+    z-index: 1;
+    transform: translateX(-24%) translateY(1.5rem) rotate(-18deg) scale(0.82);
+    filter: brightness(0.52);
+  }
+  /* The sheen: the light catching the brushed metal. */
+  .nf-pro-metal__sheen {
+    position: absolute;
+    inset: 0;
+    background: var(--nf-platinum-sheen);
+    pointer-events: none;
+  }
+  .nf-pro-metal:focus-visible {
+    outline: 2px solid var(--nf-brand-primary);
+    outline-offset: 3px;
+  }
+  .nf-pro-metal__top,
+  .nf-pro-metal__foot {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    gap: var(--nf-space-sm);
+  }
+  .nf-pro-metal__top {
+    align-items: center;
+  }
+  .nf-pro-metal__foot {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+    transition: opacity var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  /* Behind the front card only the brand shows, as on the reference. The
+     words stay in the accessibility tree (opacity, not visibility), so each
+     card is still named for a screen reader. */
+  .nf-pro-metal:not([data-depth="0"]) .nf-pro-metal__foot {
+    opacity: 0;
+  }
+  .nf-pro-metal__brand {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    letter-spacing: var(--nf-tracking-tight);
+  }
+  .nf-pro-metal__tier {
+    font-size: var(--nf-text-overline);
+    font-weight: 700;
+    letter-spacing: var(--nf-tracking-overline);
+    text-transform: uppercase;
+    color: var(--nf-platinum-ink-soft);
+  }
+  .nf-pro-metal__name {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h4);
+    font-weight: 600;
+    letter-spacing: var(--nf-tracking-tight);
+  }
+  .nf-pro-metal__price {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-platinum-ink-soft);
+    white-space: nowrap;
+  }
+  .nf-pro-metal[data-metal="gold"] .nf-pro-metal__tier,
+  .nf-pro-metal[data-metal="gold"] .nf-pro-metal__price {
+    color: var(--nf-gold-ink);
+  }
+
+  /* THE REFLECTING CAPSULE (D74): the one primary action, light on the dark
+     field, a soft glow, and its reflection on the floor beneath it. */
+  .nf-pro .nf-btn--reflect {
+    position: relative;
+    background: var(--nf-platinum-hi);
+    color: var(--nf-platinum-ink);
+    border-color: var(--nf-platinum-edge);
+    box-shadow: var(--nf-capsule-reflection);
+  }
+  .nf-pro .nf-btn--reflect::after {
+    content: "";
+    position: absolute;
+    left: 6%;
+    right: 6%;
+    top: 100%;
+    height: 70%;
+    margin-top: 0.375rem;
+    border-radius: inherit;
+    background: linear-gradient(to bottom, color-mix(in oklab, var(--nf-platinum-hi) 22%, transparent), transparent);
+    filter: blur(6px);
+    pointer-events: none;
+  }
+
+  /* The tinted fog the front card floats over, and its long soft shadow. */
+  .nf-pro-fan__fog {
+    position: absolute;
+    inset: 10% 0 0;
+    border-radius: var(--nf-radius-circle);
+    background: radial-gradient(closest-side, color-mix(in oklab, var(--nf-platinum-mid) 16%, transparent), transparent);
+    filter: blur(10px);
+  }
+  .nf-pro-metal[data-depth="0"] {
+    box-shadow: var(--nf-platinum-shadow), 2.5rem 2.25rem 2.5rem -1.25rem var(--nf-surface-canvas);
+  }
+
+  /* Name with its mark, the two-line promise, the price line in grey. */
+  .nf-pro-plan__head {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    text-align: center;
+  }
+  .nf-pro-plan__name {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    font-size: var(--nf-text-h4);
+    font-weight: 500;
+    color: var(--nf-content-secondary);
+  }
+  .nf-pro-plan__promise {
+    max-width: 17rem;
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h2);
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: var(--nf-tracking-tight);
+    color: var(--nf-content-primary);
+  }
+  .nf-pro-plan__price {
+    margin-top: var(--nf-space-2xs);
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-muted);
+  }
+
+  /* Three stats split by hairlines. */
+  .nf-pro-plan__stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: 0;
+    padding: var(--nf-space-md) 0;
+    border-radius: var(--nf-radius-card-sm);
+    background: var(--nf-glass-fill);
+  }
+  .nf-pro-plan__stat {
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: center;
+    gap: var(--nf-space-3xs);
+    padding-inline: var(--nf-space-xs);
+    text-align: center;
+  }
+  .nf-pro-plan__stat + .nf-pro-plan__stat {
+    border-inline-start: var(--nf-border-width) solid var(--nf-divider);
+  }
+  .nf-pro-plan__stat dd {
+    margin: 0;
+    font-size: var(--nf-text-h4);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-pro-plan__stat dt {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+
+  /* Benefit rows: a bold claim, a muted reason, a round badge on the right. */
+  .nf-pro-plan__benefits {
+    display: flex;
+    flex-direction: column;
+    border-radius: var(--nf-radius-card-sm);
+    border: var(--nf-border-width) solid var(--nf-smoked-glass-edge);
+    background: var(--nf-surface-elevated);
+  }
+  .nf-pro-plan__benefit {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-md);
+    padding: var(--nf-space-md);
+  }
+  .nf-pro-plan__benefit + .nf-pro-plan__benefit {
+    border-top: var(--nf-border-width) solid var(--nf-divider);
+  }
+  .nf-pro-plan__benefit-text {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .nf-pro-plan__claim {
+    font-size: var(--nf-text-row);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-pro-plan__reason {
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-muted);
+  }
+  .nf-pro-plan__badge {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-brand-tint-2);
+    color: var(--nf-brand-primary);
+  }
+
+  /* The one capsule, and the fine print where "Terms apply" sits. */
+  .nf-pro-plan__go {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--nf-space-lg);
+    padding-top: var(--nf-space-xs);
+  }
+  .nf-pro-plan__fine {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+    text-align: center;
+  }
+  .nf-pro-gate {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-lg);
+    padding-bottom: var(--nf-space-md);
+  }
+  .nf-pro-gate__body {
+    font-size: var(--nf-text-body);
+    color: var(--nf-content-secondary);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-pro-metal,
+    .nf-pro-metal__foot {
+      transition: none;
+    }
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-pro-metal,
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-pro-metal__foot {
+    transition: none;
+  }
+
+
+  /* ------------------------------------------------------------ the sequence
+     Every delay sits on `--nf-splash-hold`, so the moment plays after the
+     splash lets go rather than underneath it (ONE-PRODUCT-DECISIONS, "How
+     does a page begin"). */
+  .nf-pro-x__phone {
+    animation: nf-pro-x-rise 620ms var(--nf-ease-entrance) var(--nf-splash-hold, 0s) both;
+  }
+  .nf-pro-x__card {
+    animation: nf-pro-x-emerge 760ms var(--nf-ease-spring) calc(var(--nf-splash-hold, 0s) + 180ms) both;
+  }
+  .nf-pro-x__word {
+    animation: nf-pro-x-chip 420ms var(--nf-ease-entrance) calc(var(--nf-splash-hold, 0s) + 500ms) both;
+  }
+  .nf-pro-x__word:nth-child(2) {
+    animation-delay: calc(var(--nf-splash-hold, 0s) + 560ms);
+  }
+  .nf-pro-x__word:nth-child(3) {
+    animation-delay: calc(var(--nf-splash-hold, 0s) + 620ms);
+  }
+  .nf-pro-x__track {
+    animation: nf-pro-x-fill 300ms var(--nf-ease-entrance) calc(var(--nf-splash-hold, 0s) + 720ms) both;
+  }
+  .nf-pro-x__thumb {
+    animation: nf-pro-x-thumb 420ms var(--nf-ease-spring) calc(var(--nf-splash-hold, 0s) + 720ms) both;
+  }
+  .nf-pro-x__capsule-art {
+    animation: nf-pro-x-pop 180ms var(--nf-ease-spring) calc(var(--nf-splash-hold, 0s) + 1020ms) both;
+  }
+  .nf-pro-x__thumb {
+    transform: translateX(1.375rem);
+  }
+  @keyframes nf-pro-x-rise {
+    from {
+      opacity: 0;
+      transform: translateY(48px);
+    }
+  }
+  @keyframes nf-pro-x-emerge {
+    from {
+      opacity: 0;
+      transform: translateY(70px) scale(0.86);
+    }
+  }
+  @keyframes nf-pro-x-chip {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+  @keyframes nf-pro-x-fill {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes nf-pro-x-thumb {
+    from {
+      transform: translateX(0);
+    }
+  }
+  @keyframes nf-pro-x-pop {
+    50% {
+      transform: scale(1.04);
+    }
+  }
+  /* Quiet readers get the last frame: reduced motion, Calm, Off, save-data. */
+  @media (prefers-reduced-motion: reduce) {
+    .nf-pro-x *,
+    .nf-pro-x {
+      animation: none !important;
+    }
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-pro-x *,
+  [data-save-data="on"] .nf-pro-x * {
+    animation: none !important;
+  }
+}

@@ -34,6 +34,7 @@ Branch: `claude/zen-bohr-k3fb81`.
 | **Feed:** each part of a card rises on its own scroll timeline in reading order, media parallax bounded at 0.6, felt press, one favourite payoff (1.0 to 1.04 to 1.0, 180ms) on the feed and the listing | `1cfe2d11d` | css and social tests pass |
 | **Flip card:** a slab with lit edges, a mid-turn state it pauses on at 108 degrees, real 3D scenes on its face, and Calm and Off now get the crossfade | `f2da47e4d` | matched to `GOVERNING-flip-mid-turn.png`; shots in `shots/surface/` |
 | **The Payluk adapter and the member money rail** (phases 4 to 10 and 15): adapter registered behind the capability seam (declares `hold_in_escrow` and `member_wallet`, not refund or split), naira major units converted at the boundary, the 10 a minute limit, the four balance figures each with when it was confirmed, deposits by payment intent, withdrawals with the provider's own fee, bank checks, sends by phone, the signed and idempotent webhook, and `/wallet` (labelled "Balance") with Add money, Withdraw and Send. Escrow flows stay off until phases 11 and 12. | `cfb4112e3` to `28a45cb6c` | 761 money, payments, webhook and nav tests pass after merge, including a test that catches a hundredfold naira and kobo error, an unsigned webhook writing nothing, and a redelivery changing nothing. **Not exercised against Payluk staging: no key here.** |
+| **D73, two ways to pay.** Instant booking and direct card payment for fixed-price stays (hotel rooms and nightly listings), behind `stays_instant_pay` (off): the guest's own booking runs every existing check, a trigger writes the stay agreement approved by the system at the database total, the existing payment gate, split, Paystack charge and settlement run unchanged, and an unpaid instant booking is released after 30 to 45 minutes. Escrow for rentals (standard and milestone) through Payluk, behind `rentals_protected_pay` (off) and `PAYLUK_ESCROW_FLOWS_BUILT = false`; release only when the renter confirms. Restaurants take no payment today (a reservation has no price). | `ab6266295`, `130667e53` | 616 tests across bookings, stays, money, payments, checkout and the webhook pass after merge; both migrations ran 20 scenarios in a scratch database; switch-off proven unchanged by tests and probe steps. **Migrations pending, not applied.** |
 | Passcode feel: haptic on press not release, keys press and spring back, dots land with weight (280ms), one sharp 320ms shake on a wrong code with "Try again:" | `b51add6e0` | passcode tests pass; not screenshotted (needs a signed-in account with a passcode) |
 
 ## 2. Scored (honest, out of 100)
@@ -108,6 +109,32 @@ collapse to one card per row under 768px and 720px. False positive, nothing chan
 - Invite friends and Rewards moved from the account block into Money.
 
 ## 6. Blocked on him
+
+- **Pro:** `/pro` exists and is in the side navigation. It reads the member's real plan
+  (only "Free" exists in the database) and shows "Price coming"; nothing is sold. Needed
+  from him: the price and billing period, which plans launch, which plan is the top
+  (gold) one, what each includes, and whether to run a trial or offer.
+- **Push notifications in production** need these server variables confirmed in Vercel:
+  `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, `FCM_PROJECT_ID`,
+  `FCM_SERVICE_ACCOUNT_JSON`, `APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_PRIVATE_KEY`,
+  `APNS_BUNDLE_ID`; and the iOS `aps-environment` must be `production` for the App
+  Store build (it is `development`).
+- **Face ID** on the phone needs a native rebuild; on Android it also needs the real
+  SHA-256 signing fingerprints in `assetlinks.json` (placeholders today).
+
+- **Apply order for every pending money migration (reviewed, none applied):**
+  `d73a_stays_instant_pay`, `b6_member_money_rail`, `d73b_provider_arrangements`,
+  `d75a_restaurant_deposits`, `d75b_stay_trip_details`, each with its probe in
+  `supabase/tests/probes-pending/`. Live commission is 2 percent (from
+  `money_policy_versions` 2026-10-06.1). The lister bears Payluk's escrow fee (wired).
+  D75b changes one live function (`private.can_see_listing_access`, gate code only after
+  payment) and one live policy (`reviews_insert_own`, a review needs a paid booking).
+- **D73 switches and migrations.** Apply order: `pending/d73a_stays_instant_pay.sql`
+  (stands alone; then turn on `stays_instant_pay` on `/admin/switches`), and, with a
+  Payluk key, `pending/b6_member_money_rail.sql` then `pending/d73b_provider_arrangements.sql`.
+  Probes are in `supabase/tests/probes-pending/`. **His decision needed:** who pays
+  Payluk's 2% escrow fee (renter, lister, or shared). Not built yet: renter-facing escrow
+  screens, a funded escrow marking the agreement paid, phases 13 to 15 for escrow.
 
 - **The money rail's migration** (`supabase/migrations/pending/b6_member_money_rail.sql`)
   and its probe (`supabase/tests/probes-pending/b6-member-money-rail.sql`) are reviewed
