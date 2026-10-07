@@ -694,6 +694,7 @@ export const NON_NAVIGABLE: Readonly<Record<string, string>> = {
   "/api/map/listings": "JSON read for the map.",
   "/api/paystack/reconcile": "processor reconciliation.",
   "/api/paystack/webhook": "processor webhook.",
+  "/api/payluk/webhook": "processor webhook.",
   "/api/push/drain": "scheduled job, bearer token.",
   "/api/push/key": "the public VAPID key as JSON.",
   "/api/push/register": "POST only, a subscription write.",

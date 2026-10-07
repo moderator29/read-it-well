@@ -199,7 +199,9 @@ returns boolean language sql immutable set search_path = '' as $$
     when 'preparing' then p_to in ('awaiting_confirmation', 'awaiting_payment', 'processing', 'unknown', 'failed', 'cancelled')
     when 'awaiting_confirmation' then p_to in ('processing', 'unknown', 'failed', 'cancelled', 'completed')
     when 'awaiting_payment' then p_to in ('processing', 'unknown', 'completed', 'failed', 'cancelled')
-    when 'processing' then p_to in ('completed', 'failed', 'reversed', 'unknown', 'under_review')
+    -- Back to the member only when the provider refused before executing (an OTP
+    -- it asks for, or a deposit not yet paid); never after it reported an outcome.
+    when 'processing' then p_to in ('completed', 'failed', 'reversed', 'unknown', 'under_review', 'awaiting_confirmation', 'awaiting_payment')
     when 'unknown' then p_to in ('awaiting_confirmation', 'processing', 'completed', 'failed', 'reversed', 'cancelled', 'under_review')
     when 'under_review' then p_to in ('completed', 'failed', 'reversed')
     when 'completed' then p_to in ('reversed', 'under_review')

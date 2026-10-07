@@ -327,6 +327,8 @@ const EXPECTED_PUBLIC = new Set([
   "/api/landlord/inbound",
   "/api/paystack/reconcile",
   "/api/paystack/webhook",
+  /* Part B phase 15: Payluk webhooks, behind the HMAC-SHA512 signature. */
+  "/api/payluk/webhook",
   /* V-98: the home-screen widget, behind its device-bound token. */
   "/api/plans/next",
   "/api/push/drain",
@@ -469,6 +471,7 @@ describe("who may see the platform with no session", () => {
   it("leaves the webhooks and the scheduler alone, which have no cookie and never will", () => {
     for (const path of [
       "/api/paystack/webhook",
+      "/api/payluk/webhook",
       "/api/yellowcard/webhook",
       "/api/auth/email-hook",
       "/api/cron/email-outbox",
