@@ -4,8 +4,8 @@ import { useState } from "react";
 import type { Locale } from "@vallo/i18n/core";
 import { Sheet } from "@/components/ui/Sheet";
 import { Button } from "@/components/ui/Button";
-import { NairaField } from "@/components/ui/NairaField";
-import { Money } from "@/components/ui/Money";
+import { AmountPad, type AmountChip } from "../AmountPad";
+import { MoneyFigure } from "../kit";
 import { confirmDepositPaid, prepareDeposit, cancelBalanceMovement, type DepositStart } from "@/lib/money/member-wallet-actions";
 import type { MovementView } from "@/lib/money/member-wallet";
 import { Watching } from "./WithdrawFlow";
@@ -18,6 +18,13 @@ import { reach } from "./reach";
  * and the deposit is Available only when the partner says so.
  */
 type Step = "amount" | "pay" | "waiting";
+
+/* Quick amounts for adding money: round figures to tap, not suggestions about anybody's money. */
+const PRESETS: AmountChip[] = [
+  { label: "₦10,000", naira: 10_000 },
+  { label: "₦50,000", naira: 50_000 },
+  { label: "₦100,000", naira: 100_000 },
+];
 
 const TEST_LABEL: Record<string, string> = {
   bankName: "Bank",
@@ -84,10 +91,15 @@ export function AddMoneyFlow({ open, onOpenChange, locale, onMoved }: { open: bo
       <div className="grid gap-block pb-block">
         {step === "amount" ? (
           <>
-            <p className="nf-body-sm text-[var(--nf-content-secondary)]">
-              You pay from your own bank or card on our escrow partner&apos;s secure page. The money is added once your bank confirms it.
-            </p>
-            <NairaField label="Amount" value={amount} onValueChange={setAmount} hint="The smallest amount is ₦100." />
+            <AmountPad
+              value={amount}
+              onValueChange={setAmount}
+              label="Amount to add"
+              question="How much to add?"
+              chips={PRESETS}
+              hint="You pay from your own bank or card on our escrow partner's own payment page. The money is added once your bank confirms it. The smallest amount is ₦100."
+              testId="add-pad"
+            />
             <Button variant="primary" size="lg" loading={busy} disabled={!amount} onClick={begin}>
               Continue
             </Button>
@@ -96,8 +108,8 @@ export function AddMoneyFlow({ open, onOpenChange, locale, onMoved }: { open: bo
 
         {step === "pay" && start ? (
           <>
-            <p className="nf-h1 tabular-nums">
-              <Money minor={start.movement.amountMinor} locale={locale} mode="full" />
+            <p className="text-center">
+              <MoneyFigure minor={start.movement.amountMinor} locale={locale} size="hero" kobo="auto" />
             </p>
             {start.hosted.kind === "checkout_url" ? (
               <>

@@ -65,12 +65,18 @@ settings. They are never in the repository, never in a document, never in a comm
 and never in a chat message:
 
 ```
-VALLO_TEST_EMAIL_A      VALLO_TEST_PASSWORD_A
-VALLO_TEST_EMAIL_B      VALLO_TEST_PASSWORD_B
+QA_ADMIN_EMAIL      QA_ADMIN_PASSWORD
+QA_MEMBER_EMAIL     QA_MEMBER_PASSWORD
 ```
 
+**These names already exist in the repository** (`docs/ENVIRONMENT.md`), and
+`scripts/design/session-b-shots/admin-live-signed-in.mjs` already signs in with them
+and screenshots the result. The harness is written and has never had credentials.
+Use these names and extend that script; do not build a new one.
+
 Two accounts because almost everything in Vallo has two sides: one lists and one
-enquires, one sends and one receives, one invites and one joins. If you cannot find
+enquires, one sends and one receives, one invites and one joins. Admin is also the
+only way into the admin desks, the surface he uses most. If you cannot find
 them, say so and carry on with what does not need them. Never ask anyone to paste a
 password to you.
 

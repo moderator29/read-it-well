@@ -355,6 +355,16 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
       windows={detail ? detail.windows : null}
       messageHref={messageHref}
       isExample={venue.isExample}
+      areaPoint={
+        /* A venue's point, rounded to about a kilometre: the Map tab draws
+           the area. A catalogue listing carries no point here. */
+        !listingFace && detail?.business.latitude != null && detail.business.longitude != null
+          ? {
+              lat: Math.round(detail.business.latitude * 100) / 100,
+              lng: Math.round(detail.business.longitude * 100) / 100,
+            }
+          : null
+      }
       report={{
         targetType: venue.isBusiness ? "business" : "listing",
         targetId: venue.id,

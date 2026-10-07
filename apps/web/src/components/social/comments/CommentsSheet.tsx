@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ReportSheet } from "@/components/social/ReportSheet";
+import { DELETE_WORDS, DeleteSheet } from "@/components/social/DeleteSheet";
 import type { ReportWords } from "@/components/social/sheet-words";
 import { Sheet } from "@/components/ui/Sheet";
 import { Button } from "@/components/ui/Button";
@@ -20,7 +21,9 @@ import { PostBody } from "@/components/social/feed/PostBody";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import { pruneDeleted } from "@/lib/social/deleted-posts";
-import { countOf } from "@vallo/i18n/core";
+import { countOf, formatNumber } from "@vallo/i18n/core";
+import { Expand } from "@/components/social/Expand";
+import { ActionPill } from "@/components/social/feed/ActionPill";
 import { useClientLocale } from "@/lib/i18n/use-client-locale";
 import { useSignInHref } from "@/lib/auth/use-sign-in-href";
 
@@ -106,6 +109,8 @@ export function CommentsSheet({
   const locale = useClientLocale();
   const router = useRouter();
   const [rows, setRows] = useState(comments);
+  /* The comments there when the sheet opened; only later ones open in. */
+  const [firstRows] = useState(() => new Set(comments.map((comment) => comment.id)));
   const [draft, setDraft] = useState<Draft>(null);
   const [body, setBody] = useState("");
   const [notice, setNotice] = useState<string | null>(null);
@@ -113,6 +118,8 @@ export function CommentsSheet({
   /* Whether the open menu rises above its button. See `.nf-comment__menu--up`. */
   const [menuUp, setMenuUp] = useState(false);
   const [reporting, setReporting] = useState<CommentRow | null>(null);
+  /* The comment the delete slide is open for. */
+  const [deleting, setDeleting] = useState<CommentRow | null>(null);
   const [pending, startTransition] = useTransition();
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const headRef = useRef<HTMLButtonElement>(null);
@@ -210,30 +217,13 @@ export function CommentsSheet({
       return;
     }
     if (requireSignIn()) return;
+    /* The slide asks (`DeleteSheet`), never the browser's `confirm()`. */
+    if (action === "delete") {
+      if (onDelete) setDeleting(comment);
+      return;
+    }
 
     startTransition(async () => {
-      if (action === "delete") {
-        if (!onDelete) return;
-        if (!window.confirm(POST_COPY.deleteConfirm)) return;
-        const result = await onDelete(comment.id);
-        if (!result.ok) {
-          setNotice(result.error);
-          return;
-        }
-        /* Gone, unless somebody's comment still answers it: then, and only
-           then, it keeps its place as the one-line tombstone (founder, item
-           4). The same rule the server read applies. */
-        setRows((all) =>
-          pruneDeleted(
-            all.map((row) =>
-              row.id === comment.id ? { ...row, body: null, removed: true } : row,
-            ),
-            (row) => ({ id: row.id, parentId: row.parentId, deleted: row.removed }),
-          ),
-        );
-        router.refresh();
-        return;
-      }
       const target = comment.authorId;
       if (!target) {
         setNotice("There is nobody to do that to on this comment.");
@@ -259,6 +249,30 @@ export function CommentsSheet({
     });
   };
 
+  /* The deletion, once the slide has been drawn across. False when the
+     server refused, so the track never says "Deleted" for a comment that is
+     still there. */
+  const removeConfirmed = async (): Promise<boolean> => {
+    const comment = deleting;
+    if (!comment || !onDelete) return false;
+    const result = await onDelete(comment.id);
+    if (!result.ok) {
+      setNotice(result.error);
+      return false;
+    }
+    /* Gone, unless somebody's comment still answers it: then, and only
+       then, it keeps its place as the one-line tombstone (founder, item
+       4). The same rule the server read applies. */
+    setRows((all) =>
+      pruneDeleted(
+        all.map((row) => (row.id === comment.id ? { ...row, body: null, removed: true } : row)),
+        (row) => ({ id: row.id, parentId: row.parentId, deleted: row.removed }),
+      ),
+    );
+    router.refresh();
+    return true;
+  };
+
   const left = POST_MAX - body.length;
 
   const title = rows.length > 0 ? countOf(rows.length, "comments", locale) : "Comments";
@@ -272,6 +286,10 @@ export function CommentsSheet({
       }}
       title={title}
       hideTitle
+      /* A full page, never a small box (the feed set): the conversation and
+         its field take the whole screen, with the sheet's own drag, Back
+         and focus return. */
+      fullPage
       initialFocus={headRef}
       footer={
         <form
@@ -349,10 +367,15 @@ export function CommentsSheet({
             </p>
           ) : null}
 
+          {/* A comment that arrives while the sheet is open (yours, after the
+              send) opens into the list (`Expand`, D72 motion); the ones that
+              were there when the sheet opened are simply there. */}
           <ul>
             {rows.map((comment) => (
-              <li
+              <Expand
+                as="li"
                 key={comment.id}
+                appear={!firstRows.has(comment.id)}
                 className={`nf-comment${hasParent.has(comment.id) ? " nf-comment--nested" : ""}`}
                 style={{ marginInlineStart: comment.parentId ? "22px" : undefined }}
               >
@@ -484,27 +507,39 @@ export function CommentsSheet({
                       >
                         Reply
                       </button>
-                      <button
-                        type="button"
+                      {/* The feed's like capsule, the same control as under a
+                          post and on a story (D72). */}
+                      <ActionPill
+                        icon="heart"
+                        tone="like"
                         className="nf-comment__heart"
-                        aria-pressed={comment.liked}
+                        pressed={comment.liked}
+                        payoff
+                        count={formatNumber(comment.likeCount, locale)}
+                        label={
+                          comment.liked
+                            ? `Liked, ${comment.likeCount}. Undo`
+                            : `Likes ${comment.likeCount}, like this comment`
+                        }
                         onClick={() => like(comment)}
-                      >
-                        <UiIcon name="heart" size={17} filled={comment.liked} />
-                        <span className="nf-numeric">{comment.likeCount}</span>
-                        <span className="sr-only">
-                          {comment.liked ? "liked, undo" : "likes, like this comment"}
-                        </span>
-                      </button>
+                      />
                     </div>
                   )}
                 </div>
-              </li>
+              </Expand>
             ))}
           </ul>
         </div>
 
     </Sheet>
+
+      <DeleteSheet
+        open={deleting !== null}
+        title={DELETE_WORDS.comment.title}
+        body={DELETE_WORDS.comment.body}
+        onClose={() => setDeleting(null)}
+        onConfirm={removeConfirmed}
+      />
 
       {reporting ? (
         <ReportSheet

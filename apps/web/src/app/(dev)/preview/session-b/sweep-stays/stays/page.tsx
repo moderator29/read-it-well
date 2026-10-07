@@ -1,9 +1,8 @@
 import { getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
-import { StayCard } from "@/components/app/stays/StayCard";
+import { StaysFeatured } from "@/components/app/stays/StaysFeatured";
 import { CategoryRow, type HomeCategory } from "@/components/app/home/CategoryRow";
 import { CityRow } from "@/components/app/home/CityRow";
-import { FeaturedBand } from "@/components/app/home/FeaturedBand";
 import { HomeHero } from "@/components/app/home/HomeHero";
 import { LogoMark } from "@/design-system/brand/Logo";
 import { EmptyState } from "@/components/app/Screen";
@@ -59,20 +58,16 @@ export default async function SweepStaysHome({
         />
       </div>
       <CategoryRow categories={doors} label={copy.title} columns={2} />
-      <FeaturedBand
+      <StaysFeatured
+        stays={featured}
         title={stays.featured}
         seeAllHref="/preview/session-b/sweep-stays/stays-search"
-        seeAllLabel={copy.seeAll}
-        count={Math.min(featured.length, 6)}
-        testId="featured-stays"
+        locale={locale}
+        t={t}
+        isSaved={(stay) => stay.id === featured[0]?.id}
+        canSavePlaces
         empty={<EmptyState icon="hotel" title={t.stays.shelfEmptyTitle} body={t.stays.shelfEmptyBody} />}
-      >
-        {featured.slice(0, 6).map((stay, index) => (
-          <li key={stay.id} className="nf-feature-row__item">
-            <StayCard stay={stay} locale={locale} t={t} index={index} saved={index === 0} canSavePlaces />
-          </li>
-        ))}
-      </FeaturedBand>
+      />
     </div>
   );
 }

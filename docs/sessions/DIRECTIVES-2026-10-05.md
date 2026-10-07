@@ -3133,6 +3133,57 @@ this feel like opening a beautifully built website, or like watching an app's lo
 
 ---
 
+## D68d. The staff approval gate before payment goes, because escrow replaced it.
+
+**7 October 2026. Architectural decision, following from ADR 0003.**
+
+`private.transactions_payment_gate()` refuses any charge unless
+`deal_agreements.status = 'approved'`, set by a Vallo person working the queue in
+`apps/web/src/app/admin/agreements/AgreementQueue.tsx`. Every deal stops there after
+both parties have agreed. The founder hits it himself and reads it as a bug.
+
+It was not a bug. Under ADR 0002 and split-at-charge, money settles to the lister's
+own Paystack subaccount the instant the card clears and Vallo cannot claw it back, so
+a human reading the agreement first was the only protection a renter had. It was a
+compensating control for having no escrow.
+
+ADR 0003 removes the thing it was compensating for, **on the escrow rail only**.
+Payluk holds the funds until conditions are met, so the protection is structural and
+a pre-read adds nothing a renter can rely on. On the direct rail money still settles
+irreversibly, so the original reasoning stands there.
+
+**The rail decides the gate.** Escrow: payment opens immediately, no staff gate.
+Direct: payment opens immediately unless a risk signal fires (no completed deal yet,
+amount over a configured threshold, price or key facts changed in the last few days,
+payout account name mismatch, anything fraud radar flags).
+
+**Review moves, it does not disappear, and this is what makes it safe.** On escrow
+Vallo has the entire hold window to look at a deal and can still intervene while the
+money is safe. That is a longer window than before and it costs the member nothing.
+So the agreement queue stays and improves: it stops being a gate every deal waits
+behind and becomes a watch list over live holds, ordered by risk, able to pause a
+release.
+
+**Not a global on/off flag.** A single switch turning staff approval off everywhere
+would strip the protection the direct rail still needs. It resolves per booking from
+the rail plus the signals, the database gate asks that resolver rather than demanding
+`approved` unconditionally, and a kill switch can force review on everything during an
+incident, off by default. Four probes: escrow opens without approval; direct with a
+signal is refused without one; direct with no signal opens; the kill switch refuses
+everything.
+
+**A separate thing that was being confused with it:** `b3_rate_agreement_gate.sql`,
+still pending, is about the lister having accepted the fee figures before publishing
+and the split reading that acceptance. Different gate, about the amount being right
+rather than a human approving a deal. **Keep it and apply it.** `b2_rail_at_open.sql`
+is also still pending and step 6 of the flow depends on it.
+
+The full twelve step flow from published listing to receipts is in B.3.5 of the
+handoff. Step 8 is the one that wins the market: a renter who can see on screen that
+their money is held by a licensed provider, and exactly what releases it.
+
+---
+
 ## D69. ADR 0003: a licensed provider holds the money, Vallo records it.
 
 **7 October 2026. An architectural decision taken by Session 1, because the work

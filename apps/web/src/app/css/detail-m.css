@@ -513,3 +513,133 @@
     }
   }
 }
+
+/* ================================================== THE LISTING'S MAP TAB
+   `ListingMapPanel`, to the founder's travel-app set: a clean map card of the
+   area with its pin and its place, "getting there" as stat tiles (the figure
+   in ink, its unit grey, its basis under it), then Preview and Photo tour as
+   two equal media tiles. */
+@layer components {
+  .nf-lmap {
+    display: grid;
+    gap: var(--nf-space-sm);
+  }
+  .nf-lmap__card {
+    overflow: hidden;
+    border: var(--nf-border-width) solid var(--nf-tier-card-edge);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-surface-primary);
+    box-shadow: var(--nf-card-shadow);
+  }
+  .nf-lmap__map {
+    aspect-ratio: 16 / 9;
+    width: 100%;
+  }
+  .nf-lmap__place {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nf-space-xs);
+    padding: var(--nf-space-sm) var(--nf-space-md) 0;
+    font-size: var(--nf-text-body);
+    color: var(--nf-content-primary);
+  }
+  .nf-lmap__card.nf-lmap__place {
+    padding-bottom: var(--nf-space-sm);
+  }
+  .nf-lmap__glyph {
+    flex: none;
+    margin-top: 0.1875rem;
+    color: var(--nf-brand-secondary);
+  }
+  .nf-lmap__note {
+    padding: var(--nf-space-2xs) var(--nf-space-md) var(--nf-space-sm);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-lmap__stats,
+  .nf-lmap__media {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--nf-space-sm);
+  }
+  .nf-lmap__stat,
+  .nf-lmap__tile {
+    display: grid;
+    align-content: start;
+    gap: var(--nf-space-3xs);
+    min-height: 5.5rem;
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    border: var(--nf-border-width) solid var(--nf-tier-card-edge);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-surface-primary);
+    box-shadow: var(--nf-card-shadow);
+    color: var(--nf-content-primary);
+    text-align: start;
+  }
+  .nf-lmap__stat {
+    grid-column: 1 / -1;
+  }
+  .nf-lmap__stat-label {
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    letter-spacing: var(--nf-tracking-overline);
+    text-transform: uppercase;
+    color: var(--nf-content-muted);
+  }
+  .nf-lmap__stat-figure {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h3);
+    font-weight: 700;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+  }
+  .nf-lmap__unit {
+    font-family: var(--nf-font-sans);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 400;
+    color: var(--nf-content-muted);
+  }
+  .nf-lmap__stat-basis,
+  .nf-lmap__tile-hint {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-lmap__tile {
+    transition: scale var(--nf-duration-fast) var(--nf-ease-press);
+  }
+  .nf-lmap__tile:active {
+    scale: var(--nf-press-scale);
+  }
+  .nf-lmap__tile:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  .nf-lmap__tile-glyph {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    margin-bottom: var(--nf-space-2xs);
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-smoked-glass-fill);
+    color: var(--nf-content-on-media);
+  }
+  .nf-lmap__tile-title {
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-lmap__tile {
+      transition: none;
+    }
+    .nf-lmap__tile:active {
+      scale: none;
+    }
+  }
+}
+
+@layer components {
+  .nf-lmap__media > :only-child {
+    grid-column: 1 / -1;
+  }
+}

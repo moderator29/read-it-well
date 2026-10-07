@@ -8,6 +8,7 @@ import { EmptyState, TYPE } from "@/components/app/Screen";
 import { RowLink, RowValue, SettingsGroup } from "@/components/app/account/rows";
 import { SettingsLede } from "@/components/app/account/SettingsLede";
 import { InviteTicket } from "@/components/app/account/InviteTicket";
+import { InviteReadyPill } from "@/components/money/InviteReadyPill";
 import { INVITE_SEEN_COOKIE } from "@/components/app/account/invite-cookie";
 import { gateFirstRun } from "@/components/app/feature-onboarding/first-run-store";
 import { resolveSession } from "@/lib/actions/session";
@@ -157,6 +158,7 @@ export default async function InviteSettingsPage({
 
       {code && url ? (
         <div className="space-y-block">
+          <InviteReadyPill label="Your invite is ready" url={url} shareText={door.shareText.replace("{url}", url)} shareAria={copy.shareAria} />
           <InviteTicket
             copy={copy}
             code={code}

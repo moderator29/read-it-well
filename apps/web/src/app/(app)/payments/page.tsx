@@ -3,37 +3,14 @@ import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { readMyPayments } from "@/lib/money/history";
 import { parseBefore } from "@/lib/money/history-model";
-import {
-  HISTORY_NOT_A_BALANCE,
-  PARTNERS_SHORT,
-  PAYMENTS_DOOR,
-  PAYMENTS_DOORS_LABEL,
-  PAYMENTS_EMPTY_BODY,
-  PAYMENTS_EMPTY_TITLE,
-  PAYMENTS_REFUNDED_LABEL,
-  PAYMENTS_TOTAL_LABEL,
-  REFUND_ROUTE,
-} from "@/lib/money/copy";
+import { HISTORY_NOT_A_BALANCE } from "@/lib/money/copy";
 import { PageHeader } from "@/components/app/PageHeader";
-import { EmptyState, TYPE } from "@/components/app/Screen";
+import { EmptyState } from "@/components/app/Screen";
 import { ButtonLink } from "@/components/ui/Button";
 import { withNext } from "@/lib/auth/next-link";
-import { HistoryHero } from "@/components/app/money-history/HistoryHero";
-import { HistoryList } from "@/components/app/money-history/HistoryList";
-import { HistoryEmpty, HistoryUnavailable } from "@/components/app/money-history/HistoryStates";
-import { ListGroup, ListRow } from "@/components/ui/ListGroup";
-import { IconPlate, ICON_PLATE_GLYPH } from "@/components/ui/IconPlate";
-import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
-import { MoneyCentre } from "@/components/money/MoneyCentre";
+import { HistoryUnavailable } from "@/components/app/money-history/HistoryStates";
+import { PaymentsView } from "@/components/money/PaymentsView";
 import { readMyBalances } from "@/lib/money/partner-reads";
-
-/* The records a payer reaches from here, each its own screen (one job each). */
-const DOORS: { href: string; icon: UiIconName; key: keyof typeof PAYMENTS_DOOR }[] = [
-  { href: "/receipts", icon: "receipt", key: "receipts" },
-  { href: "/refunds", icon: "hand-coins", key: "refunds" },
-  { href: "/settings/payments", icon: "credit-card", key: "methods" },
-  { href: "/agreements", icon: "file-check", key: "agreements" },
-];
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -90,62 +67,15 @@ export default async function PaymentsPage({
           <HistoryUnavailable retryHref="/payments" />
         </div>
       ) : (
-        <div className="mt-inline space-y-block">
-          {/* The money centre appears only when the partner read answers,
-              which needs the protected rail live (D50 condition 3). Until
-              then nothing is drawn here: no zero, no "coming" card. */}
-          {balances.state === "ok" ? <MoneyCentre balances={balances.data} locale={locale} /> : null}
-          <HistoryHero
-            id="nf-payments-total"
-            label={PAYMENTS_TOTAL_LABEL}
-            totalMinor={read.summary.paidMinor}
-            locale={locale}
-            note={HISTORY_NOT_A_BALANCE}
-            facts={
-              read.summary.refundedMinor > 0
-                ? [{ label: PAYMENTS_REFUNDED_LABEL, minor: read.summary.refundedMinor }]
-                : []
-            }
-          />
-          {read.entries.length === 0 && !before ? (
-            <HistoryEmpty
-              title={PAYMENTS_EMPTY_TITLE}
-              body={PAYMENTS_EMPTY_BODY}
-              next={{ href: "/agreements", label: words.seeAgreements }}
-            />
-          ) : (
-            <HistoryList
-              entries={read.entries}
-              nextBefore={read.nextBefore}
-              basePath="/payments"
-              paged={before !== null}
-              locale={locale}
-              heading={words.listHeading}
-              /* Each row opens its booking, where the stay or tenancy and
-                 its receipt live. A row with no booking stays a plain row. */
-              linkToBooking
-            />
-          )}
-          <ListGroup label={PAYMENTS_DOORS_LABEL} labelAs="h2">
-            {DOORS.map((door) => (
-              <ListRow
-                key={door.href}
-                href={door.href}
-                chevron
-                leading={
-                  <IconPlate size="sm">
-                    <UiIcon name={door.icon} size={ICON_PLATE_GLYPH.sm} />
-                  </IconPlate>
-                }
-                title={PAYMENTS_DOOR[door.key].title}
-                sub={PAYMENTS_DOOR[door.key].sub}
-              />
-            ))}
-          </ListGroup>
-          <p className={TYPE.rowMeta}>
-            {REFUND_ROUTE} {PARTNERS_SHORT}
-          </p>
-        </div>
+        <PaymentsView
+          summary={read.summary}
+          entries={read.entries}
+          nextBefore={read.nextBefore}
+          before={before}
+          balances={balances}
+          locale={locale}
+          show={typeof params.show === "string" ? params.show : null}
+        />
       )}
     </main>
   );

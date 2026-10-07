@@ -232,7 +232,7 @@ export const MONEY_LIMITS: Record<MoneyAction, MoneyLimit> = {
     bucket: "money_balance_lookup",
     limit: 12,
     windowSeconds: TEN_MINUTES,
-    refusal: "You have checked several accounts in the last few minutes, so this one was not looked up. Nothing has moved.",
+    refusal: "You have looked up several accounts in the last few minutes, so this one was not looked up. Nothing has moved.",
   },
   balanceMove: {
     bucket: "money_balance_move",
@@ -244,7 +244,7 @@ export const MONEY_LIMITS: Record<MoneyAction, MoneyLimit> = {
     bucket: "money_balance_state",
     limit: 40,
     windowSeconds: TEN_MINUTES,
-    refusal: "We have checked that movement many times in the last few minutes and have stopped for now. This does not mean it failed: this page updates on its own when it settles.",
+    refusal: "We have asked about that movement many times in the last few minutes and have stopped for now. This does not mean it failed: this page updates on its own when it settles.",
   },
 };
 

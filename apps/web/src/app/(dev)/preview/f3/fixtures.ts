@@ -273,6 +273,8 @@ export const STAY: StayDetail = {
   starRating: 5,
   city: "Lagos",
   area: "Lekki Phase 1",
+  /* Rounded, as the route rounds it: the area, not the door. */
+  areaPoint: { lat: 6.45, lng: 3.47 },
   checkInFrom: "14:00:00",
   checkOutBy: "11:00:00",
   houseRules: "No parties. Quiet hours from 22:00.",

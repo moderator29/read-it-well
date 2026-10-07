@@ -335,6 +335,7 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/around": "/home-or-landing",
   "/around/[slug]": "/around",
   "/around/settings": "/around",
+  "/around/people": "/around",
   "/around/new": "/around/settings",
   "/around/manage": "/around/settings",
   "/post/[id]": "/around",

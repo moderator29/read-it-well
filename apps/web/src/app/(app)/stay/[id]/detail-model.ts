@@ -80,6 +80,12 @@ export type StayDetail = {
   starRating: number | null;
   city: string | null;
   area: string | null;
+  /**
+   * The neighbourhood's point, rounded to about a kilometre on the server
+   * (`areaPoint` in page.tsx), so the exact position never reaches the
+   * browser. Null when the place has none. Drawn as an area on the Map tab.
+   */
+  areaPoint?: { lat: number; lng: number } | null;
   checkInFrom: string | null;
   checkOutBy: string | null;
   houseRules: string | null;

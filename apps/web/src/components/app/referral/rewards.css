@@ -40,13 +40,9 @@
     font-size: var(--nf-text-body-sm);
     color: var(--nf-content-secondary);
   }
+  /* The one big number (reference 5), drawn by the money kit's figure. */
   .nf-rewards-figures__hero {
     margin: 0;
-    font-family: var(--nf-font-display);
-    font-size: var(--nf-text-figure);
-    font-weight: 600;
-    line-height: 1;
-    letter-spacing: var(--nf-tracking-figure);
     color: var(--nf-content-primary);
   }
   .nf-rewards-figures__pair {
@@ -62,9 +58,13 @@
     gap: var(--nf-space-2xs);
     min-inline-size: 0;
   }
+  /* Reference 8's strip: tiny tracked labels over the two quieter figures. */
   .nf-rewards-figures__pair dt {
-    font-size: var(--nf-text-body-sm);
-    color: var(--nf-content-secondary);
+    font-size: var(--nf-text-label);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--nf-content-muted);
   }
   .nf-rewards-figures__pair dd {
     margin: 0;
@@ -294,5 +294,62 @@
     margin: 0;
     font-size: var(--nf-text-body-sm);
     color: var(--nf-state-error);
+  }
+
+  /* ------------------------------------------- the platinum rewards (D74)
+     GOVERNING-plasma-rewards-home.jpg: the balance as the screen's one
+     platinum object, centred, the figure huge with the sign in the metal's
+     grey; the all-time card under it, two figures split by a hairline. */
+  .nf-rewards-figures-wrap {
+    display: grid;
+    gap: var(--nf-space-sm);
+  }
+  .nf-rewards-figures--platinum {
+    --nf-content-primary: var(--nf-platinum-ink);
+    --nf-content-secondary: var(--nf-platinum-ink-soft);
+    --nf-content-muted: var(--nf-platinum-ink-soft);
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    justify-items: center;
+    gap: var(--nf-space-xs);
+    padding: var(--nf-space-xl) var(--nf-space-lg) var(--nf-space-lg);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-platinum-fill);
+    box-shadow: var(--nf-platinum-shadow);
+    color: var(--nf-content-primary);
+    text-align: center;
+  }
+  .nf-rewards-figures--platinum .nf-mfig__cur {
+    font-size: 0.8em;
+    vertical-align: baseline;
+  }
+  .nf-rewards-figures--platinum .nf-rewards-figures__action {
+    justify-self: stretch;
+    margin-block-start: var(--nf-space-sm);
+  }
+  /* Below the minimum: the line becomes reference 5's pill, how far to go. */
+  .nf-rewards-figures--platinum .nf-rewards-note {
+    display: inline-block;
+    padding: var(--nf-space-xs) var(--nf-space-md);
+    border-radius: var(--nf-radius-control);
+    background: color-mix(in oklab, var(--nf-platinum-ink) 9%, transparent);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 500;
+    color: var(--nf-content-primary);
+  }
+  .nf-rewards-alltime {
+    display: grid;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-md) var(--nf-space-lg);
+  }
+  .nf-rewards-alltime .nf-rewards-figures__pair {
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  .nf-rewards-alltime .nf-rewards-figures__pair > div + div {
+    padding-inline-start: var(--nf-space-md);
+    border-inline-start: var(--nf-border-width) solid var(--nf-divider);
   }
 }

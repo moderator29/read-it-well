@@ -1,13 +1,16 @@
 import type { ReactNode } from "react";
 import { DocFigure, DocHead, DocNote, DocPerforation, DocRow, DocRows, DocState, DocumentSheet } from "./DocumentSheet";
 import type { ReceiptModel } from "./receipt-model";
+import { MomentDot, PrintedFigure } from "@/components/money/kit";
 
 /**
  * A RECEIPT ON THE DOCUMENT SHEET, FROM THE ONE RECEIPT MODEL (reference
  * 7082, D28.1, north star 16.5).
  *
  * Draws a `ReceiptModel` and nothing else, in the model's order: the quiet
- * kind, the title and the place, the label and the hero figure, the tear
+ * kind beside a green check dot (a receipt exists only for money that moved),
+ * the title and the place, the label and the hero figure on its own inset
+ * with the kobo set smaller (PREMIUM-STANDARD references 4 and 7), the tear
  * line, the facts, the itemised lines and the total under its rule, then the
  * confirmations the record holds, the reference when there is one, and the
  * rail in Session 2's sentence. The receipt email (`lib/email/receipt.ts`)
@@ -35,12 +38,23 @@ export function ReceiptSheet({
   return (
     <>
       <DocumentSheet kind="receipt" printable as="section" aria-labelledby={headingId} data-testid={testId}>
-        <DocHead label={receipt.kind} title={receipt.title} id={headingId}>
+        <DocHead
+          label={
+            <span className="nf-receipt__kind">
+              <MomentDot tone="done" size="sm" />
+              {receipt.kind}
+            </span>
+          }
+          title={receipt.title}
+          id={headingId}
+        >
           {receipt.place ? <p className="nf-doc__label">{receipt.place}</p> : null}
         </DocHead>
-        <div className="nf-doc__hero">
+        <div className="nf-doc__hero nf-receipt__paid">
           <p className="nf-doc__label">{receipt.figureLabel}</p>
-          <DocFigure testId={`${testId}-figure`}>{receipt.figure}</DocFigure>
+          <DocFigure testId={`${testId}-figure`}>
+            <PrintedFigure text={receipt.figure} size="lg" />
+          </DocFigure>
         </div>
         <DocPerforation />
         <DocRows testId={`${testId}-lines`}>

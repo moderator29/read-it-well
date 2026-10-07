@@ -376,31 +376,36 @@ export function SavedBoard({
               {state === undefined && item ? (
                 <div className={`nf-saved-slot${leaving[key] ? " nf-saved-slot--leaving" : ""}`}>
                   <div className="nf-saved-slot__inner">
-                    {/* The card carries its own heart; Remove lives behind a
-                        swipe on touch and as a quiet action under the card,
-                        not as a second bordered button (plan items 17, 28). */}
-                    <SwipeToRemove
-                      label={slotCopy.remove}
-                      onRemove={() => unsave(item)}
-                      disabled={pending || Boolean(leaving[key])}
-                    >
-                      {item.card}
-                    </SwipeToRemove>
+                    {/* REMOVE LIVES ON THE SHELF (review of the shelves, 7
+                        October: the word floating under each object looked
+                        unfinished). The object and its ledge are the row; the
+                        filled heart at its end is the one control, beside the
+                        link rather than inside it, and a swipe on touch does
+                        the same (plan items 17, 28). */}
+                    <div className="nf-shelf-row">
+                      <SwipeToRemove
+                        label={slotCopy.remove}
+                        onRemove={() => unsave(item)}
+                        disabled={pending || Boolean(leaving[key])}
+                      >
+                        {item.card}
+                      </SwipeToRemove>
+                      <button
+                        type="button"
+                        onClick={() => unsave(item)}
+                        disabled={pending || Boolean(leaving[key])}
+                        aria-pressed="true"
+                        aria-label={slotCopy.removeLabel}
+                        title={slotCopy.remove}
+                        data-testid="saved-heart"
+                        className="nf-shelf-row__remove"
+                      >
+                        <UiIcon name="heart" size={16} filled />
+                      </button>
+                    </div>
                     {changeCopy && lastSaved !== undefined ? (
                       <ChangeLine item={item} since={lastSaved} locale={locale} copy={changeCopy} />
                     ) : null}
-                    <button
-                      type="button"
-                      onClick={() => unsave(item)}
-                      disabled={pending || Boolean(leaving[key])}
-                      aria-pressed="true"
-                      aria-label={slotCopy.removeLabel}
-                      data-testid="saved-heart"
-                      className="nf-saved-remove"
-                    >
-                      <UiIcon name="heart" size={16} className="[&_path]:fill-current" />
-                      {slotCopy.remove}
-                    </button>
                   </div>
                 </div>
               ) : (

@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 import { sheetWordsOf } from "@/components/social/sheet-words";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
@@ -21,6 +23,8 @@ import { FeedTabs, isFeedTab, type FeedTab } from "@/components/social/feed/Feed
 import { LocationChip } from "@/components/social/feed/LocationChip";
 import { StoryRing } from "@/components/social/feed/StoryRing";
 import { AroundFab } from "@/components/social/AroundFab";
+import { WhoToFollow } from "@/components/social/follow/WhoToFollow";
+import { readFollowSuggestions } from "@/lib/social/follow-suggestions";
 import { SocialPaused } from "@/components/social/SocialPaused";
 import { BackButton } from "@/components/site/BackButton";
 import { isSocialEnabled } from "@/lib/social/flag";
@@ -154,6 +158,22 @@ export default async function AroundPage({
         }
       : null;
 
+  /*
+   * WHO TO FOLLOW, AROUND THE MEMBER (the founder, 7 October). Where comes
+   * only from what the app already holds: the place being read, else the
+   * first place the member joined. With neither, or with nobody doing
+   * published work there, the block widens to everyone on Vallo and says
+   * so; it never names a city it guessed. Unavailable (the read is not
+   * applied yet, or failed) draws nothing.
+   */
+  const followCity = selected?.city ?? mine.find((area) => area.status === "ACTIVE")?.city ?? null;
+  let follow = unconfigured ? null : await readFollowSuggestions({ city: followCity, limit: 3 });
+  let followScope: string | null = followCity;
+  if (follow?.state === "ready" && follow.people.length === 0 && followCity) {
+    follow = await readFollowSuggestions({ city: null, limit: 3 });
+    followScope = null;
+  }
+
   const activePlaces = mine
     .filter((area) => area.status === "ACTIVE")
     .map((area) => ({ slug: area.slug, name: area.name, city: area.city }));
@@ -201,6 +221,12 @@ export default async function AroundPage({
             signIn: t.common.signIn,
           }}
         />
+        {/* The social search: people and businesses to follow, City or
+            Everywhere (`/around/people`). A round glyph beside the place,
+            as the feed reference draws it. */}
+        <Link href="/around/people" className="nf-feed-find" aria-label="Find people and businesses to follow">
+          <UiIcon name="search" size={20} />
+        </Link>
       </div>
 
       {/* No rings without keys: an empty row would claim nobody has a story,
@@ -230,6 +256,16 @@ export default async function AroundPage({
           canCompose
           areaId={activeArea}
           areaName={selected?.name}
+          aside={
+            follow?.state === "ready" ? (
+              <WhoToFollow
+                people={follow.people}
+                city={followScope}
+                signedIn={follow.signedIn}
+                more={follow.more}
+              />
+            ) : null
+          }
           emptyMessage={emptyMessage}
           {...(unconfigured
             ? { emptyTitle: AROUND_UNCONFIGURED.feedTitle, emptyIcon: "home-search" as const }
@@ -241,8 +277,8 @@ export default async function AroundPage({
       </section>
 
       {/* `?compose=1` is the dock's "Post to the feed" (`CreateDock`): the
-          bloom opens on arrival. */}
-      <AroundFab currentAreaId={activeArea} initialOpen={params.compose === "1"} />
+          composer opens on arrival, in one tap from the dock. */}
+      <AroundFab currentAreaId={activeArea} compose={params.compose === "1"} />
     </div>
   );
 }

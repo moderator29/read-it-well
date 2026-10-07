@@ -28,6 +28,9 @@ import {
 } from "./detail-model";
 import { panelClass } from "@/components/ui/Panel";
 import { Unfold } from "@/components/ui/Unfold";
+import { PlaceTabs } from "@/components/app/listing/PlaceTabs";
+import { PlaceMapPanel } from "@/components/app/listing/PlaceMapPanel";
+import { PhotoViewerProvider } from "@/components/app/listing/PhotoViewer";
 import "@/app/css/catalogue.css";
 
 type StaysCopy = Dictionary["stayDetail"];
@@ -236,10 +239,21 @@ export function StayDetailView({
     checkOut: { label: catalogue.checkOut, value: dateLabel(checkOut) ?? detailCopy.selectDate },
     totalLabel: copy.totalLabel,
   };
+  /* Getting there, as the place published it: its area and its times. */
+  const placeFacts = [
+    ...(where ? [{ key: "area", icon: "location" as const, label: catalogue.place.area, value: where }] : []),
+    ...(detail.checkInFrom
+      ? [{ key: "in", icon: "key" as const, label: catalogue.place.checkIn, value: detail.checkInFrom.slice(0, 5) }]
+      : []),
+    ...(detail.checkOutBy
+      ? [{ key: "out", icon: "door" as const, label: catalogue.place.checkOut, value: detail.checkOutBy.slice(0, 5) }]
+      : []),
+  ];
   const pickNotes = [bothRates, choiceNote].filter((note): note is string => Boolean(note));
 
   return (
     <StayPickProvider initial={initialPick}>
+    <PhotoViewerProvider title={detail.name} photos={detail.photos.map((photo) => photo.url)} hue={0} kind="hotel">
     <div className="nf-cat-surface">
       <ListingGallery
         listingId={detail.id}
@@ -355,6 +369,33 @@ export function StayDetailView({
           />
         </div>
 
+        {/* THE STAY AND ITS MAP (the travel-app reference): one switch, the
+            booking on one side and the area, getting there and the photo
+            tour on the other. */}
+        <div className="mt-block">
+        <PlaceTabs
+          label={detail.name}
+          labels={{ main: catalogue.place.tabStay, map: catalogue.place.tabMap }}
+          map={
+            <PlaceMapPanel
+              lead={catalogue.place.mapLead}
+              coords={detail.areaPoint ?? null}
+              area={where}
+              unavailable={catalogue.place.mapUnavailable.replace("{area}", where)}
+              facts={placeFacts}
+              photoTour={
+                detail.photos.length > 0
+                  ? {
+                      label: catalogue.place.photoTour,
+                      caption: catalogue.place.photos.replace("{count}", formatNumber(detail.photos.length, locale)),
+                      count: detail.photos.length,
+                    }
+                  : null
+              }
+            />
+          }
+          main={
+            <>
         {/* --------------------------------------- dates and the party */}
         {detail.isExample ? (
           /* A stay that takes no bookings has no Book now to press and be
@@ -506,6 +547,10 @@ export function StayDetailView({
             </div>
           )}
         </Stack>
+            </>
+          }
+        />
+        </div>
       </div>
 
       {/*
@@ -540,6 +585,7 @@ export function StayDetailView({
         />
       )}
     </div>
+    </PhotoViewerProvider>
     </StayPickProvider>
   );
 }
