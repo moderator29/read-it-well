@@ -33,6 +33,7 @@ const ALLOWED: Record<string, [number, string]> = {
   "app/css/chips.css": [1, "glow: the lit pinned bar casts upward into the content above it (it stands on the bottom edge, as a sheet does)"],
   "app/css/chrome.css": [1, "glow: the legacy dock capsule's blue under-light"],
   "app/css/landing-rooms.css": [1, "glow: the landing stack's brand light"],
+  "app/css/landing-plasma.css": [4, "glows (P7, the Plasma pass): the white capsule's own light at rest and on hover, the deal story phone's brand under-light, and the close mark's brand bloom"],
   "app/css/landing.css": [2, "glow: the landing's lit primary, rest and hover (the view's one primary)"],
   "app/css/light.css": [9, "glows on Paper in brand ink (the lit chip, tiles, the profile ring and its contact, the hero chips) and the two night islands on Paper (home top, hero band), which wait for a Paper rung a dark scope can read"],
   "app/css/money-surface.css": [1, "glow: the processor's brand mark lit in its own blue"],

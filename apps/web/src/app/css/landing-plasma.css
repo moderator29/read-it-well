@@ -1,0 +1,1131 @@
+/*
+ * THE LANDING AT THE PLASMA LEVEL (P7, 7 October 2026).
+ *
+ * The governing level is `docs/design/PREMIUM-STANDARD.md` ("the Plasma
+ * set"): near-black fields with the content lit, one platinum object, the
+ * white capsule with its reflection, smoked glass breaking out of a device
+ * frame, huge tight type, and restraint. The founder's three references for
+ * this pass are in `docs/design/references/2026-10-07/`: the rolling card
+ * stack (the markets), the stack scroll reveal (the deal story) and the store
+ * screenshots (the close). The governing landing frames
+ * (`GOVERNING-landing-desktop-*.png`) still set the hero's composition.
+ *
+ * Imported by `LandingBody.tsx`, so the dev preview harness draws the same
+ * page. Colour only from tokens. Every movement here has a settled frame under
+ * reduced motion, Calm, Off and data saver (the foot of this file).
+ */
+@layer components {
+  /* ------------------------------------------------------------ shared */
+
+  .nf-pl-head {
+    display: grid;
+    gap: var(--nf-space-sm);
+    max-width: 40rem;
+  }
+  .nf-pl-head--center {
+    margin-inline: auto;
+    justify-items: center;
+    text-align: center;
+  }
+  /* The mono overline, the frames' "PROPERTY / STAYS" voice. */
+  .nf-pl-overline,
+  .nf-pl-mono,
+  .nf-pl-crumb {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+  .nf-pl-overline {
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.4;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--nf-content-muted);
+  }
+  .nf-pl-title {
+    font-family: var(--nf-font-display);
+    font-size: clamp(2.25rem, 1.35rem + 3.4vw, 4rem);
+    font-weight: 600;
+    line-height: 1.02;
+    letter-spacing: -0.035em;
+    color: var(--nf-content-primary);
+    text-wrap: balance;
+  }
+  .nf-pl-lede {
+    max-width: 34rem;
+    font-size: var(--nf-text-body-lg);
+    line-height: 1.55;
+    color: var(--nf-content-secondary);
+    text-wrap: pretty;
+  }
+  .nf-pl-mono {
+    font-size: var(--nf-text-caption);
+    letter-spacing: 0.06em;
+    color: var(--nf-content-muted);
+  }
+  .nf-pl-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    min-height: 2.75rem;
+    font-weight: 600;
+    color: var(--nf-content-primary);
+    text-decoration: none;
+    transition: gap var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-pl-link:hover {
+    gap: var(--nf-space-xs);
+  }
+  .nf-pl-link:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+    border-radius: var(--nf-radius-control);
+  }
+
+  /*
+   * THE CAPSULE WITH A REFLECTION (PREMIUM-STANDARD, "the capsule with a
+   * reflection"; the Plasma "Next"). White on dark, black on light: it is
+   * the content colour on the canvas colour, so the theme decides. A real
+   * mirror where the engine has one (`-webkit-box-reflect`: Safari, Chrome,
+   * every Android webview), and a soft floor glow everywhere. One per room.
+   */
+  .nf-btn.nf-pl-capsule {
+    --nf-btn-h: 3.5rem;
+    border-radius: var(--nf-radius-pill);
+    border: var(--nf-border-width) solid var(--nf-content-primary);
+    background: var(--nf-content-primary);
+    color: var(--nf-surface-canvas);
+    text-shadow: none;
+    padding-inline: var(--nf-space-xl);
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--nf-content-primary) 30%, transparent),
+      0 18px 40px -18px color-mix(in oklab, var(--nf-content-primary) 55%, transparent);
+    -webkit-box-reflect: below 6px linear-gradient(transparent 52%, color-mix(in oklab, var(--nf-surface-canvas) 18%, transparent));
+  }
+  .nf-btn.nf-pl-capsule::after {
+    left: 8%;
+    right: 8%;
+    top: calc(100% + 0.25rem);
+    height: 1.75rem;
+    border-radius: var(--nf-radius-pill);
+    background: radial-gradient(50% 50% at 50% 50%, color-mix(in oklab, var(--nf-content-primary) 32%, transparent), transparent 100%);
+    filter: blur(10px);
+  }
+  @media (hover: hover) {
+    .nf-btn.nf-pl-capsule:hover:not(:disabled) {
+      box-shadow:
+        0 0 0 1px color-mix(in oklab, var(--nf-content-primary) 40%, transparent),
+        0 22px 50px -16px color-mix(in oklab, var(--nf-content-primary) 70%, transparent);
+    }
+  }
+  .nf-btn.nf-pl-quiet {
+    color: var(--nf-content-primary);
+  }
+
+  /* ----------------------------------------------------------- the hero */
+
+  .nf-landing-hero--plasma {
+    --nf-landing-title: clamp(2.75rem, 1.15rem + 5.4vw, 5.75rem);
+  }
+  /* The content is lit: one soft brand light behind the copy, nothing else. */
+  .nf-landing-hero--plasma::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: radial-gradient(55% 45% at 18% 30%, color-mix(in oklab, var(--nf-brand-primary) 16%, transparent), transparent 72%);
+  }
+  @media (min-width: 64rem) {
+    .nf-landing-hero--plasma .nf-landing-hero-body {
+      min-height: min(calc(100svh - var(--nf-header-height) - 3rem), 48rem);
+      align-content: center;
+      grid-template-columns: minmax(0, 1fr) 18rem;
+      padding-block: var(--nf-space-2xl) var(--nf-space-3xl);
+    }
+    /* Quieter field: the left half is near-black, the villa lit on the right. */
+    .nf-landing-hero--plasma .nf-hero-photo::after {
+      background:
+        linear-gradient(
+          90deg,
+          var(--nf-surface-canvas) 0%,
+          color-mix(in oklab, var(--nf-surface-canvas) 90%, transparent) 34%,
+          color-mix(in oklab, var(--nf-surface-canvas) 38%, transparent) 60%,
+          color-mix(in oklab, var(--nf-surface-canvas) 8%, transparent) 82%
+        ),
+        linear-gradient(
+          to bottom,
+          color-mix(in oklab, var(--nf-surface-canvas) 60%, transparent) 0%,
+          transparent 24%,
+          transparent 55%,
+          color-mix(in oklab, var(--nf-surface-canvas) 80%, transparent) 80%,
+          var(--nf-surface-canvas) 100%
+        );
+    }
+  }
+  .nf-landing-hero--plasma .nf-landing-title {
+    letter-spacing: -0.04em;
+    line-height: 0.98;
+  }
+
+  /* The breadcrumb, letter-spaced mono, the separators softer. */
+  .nf-pl-crumb {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.25rem 0;
+    font-size: 0.625rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--nf-brand-secondary);
+  }
+  .nf-pl-crumb__sep {
+    padding-inline: 0.5em;
+    color: var(--nf-content-muted);
+  }
+  @media (min-width: 64rem) {
+    .nf-pl-crumb {
+      justify-content: flex-start;
+      font-size: 0.75rem;
+      letter-spacing: 0.24em;
+    }
+    .nf-pl-crumb__sep {
+      padding-inline: 0.75em;
+    }
+  }
+
+  /* The trust promise: a smoked capsule with one lit plate. */
+  .nf-pl-promise {
+    display: inline-flex;
+    align-items: flex-start;
+    gap: var(--nf-space-sm);
+    max-width: 34rem;
+    padding: var(--nf-space-xs) var(--nf-space-md) var(--nf-space-xs) var(--nf-space-xs);
+    border-radius: var(--nf-radius-card);
+    border: var(--nf-border-width) solid var(--nf-smoked-glass-edge);
+    background: var(--nf-smoked-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.5;
+    color: var(--nf-content-secondary);
+    text-align: start;
+  }
+  .nf-pl-promise strong {
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-pl-promise__plate {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-state-success-surface);
+    color: var(--nf-state-success);
+  }
+  .nf-landing-hero--plasma .nf-hero-action__row {
+    align-items: center;
+    gap: var(--nf-space-md);
+  }
+  /* Room under the capsule for its reflection before the next line. */
+  .nf-landing-hero--plasma .nf-hero-action {
+    gap: var(--nf-space-md);
+  }
+
+  /* The example card: smoked glass, the content lit, a long soft shadow. */
+  .nf-landing-hero--plasma .nf-hero-card {
+    border: var(--nf-border-width) solid var(--nf-smoked-glass-edge);
+    background: var(--nf-smoked-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    box-shadow: var(--nf-elevation-dialog);
+  }
+
+  /* -------------------------------------------------------- the markets */
+
+  .nf-pl-markets {
+    position: relative;
+    background: var(--nf-surface-canvas);
+    color: var(--nf-content-primary);
+  }
+  .nf-pl-mstage {
+    padding-block: clamp(3.5rem, 2rem + 4vw, 5rem);
+  }
+  /* Pinned: one stretch of scroll per card after the first. */
+  .nf-pl-mtrack[data-pin="on"] {
+    height: calc(100svh + var(--nf-pl-steps) * 42svh);
+  }
+  .nf-pl-mtrack[data-pin="on"] .nf-pl-mstage {
+    position: sticky;
+    top: 0;
+    display: flex;
+    align-items: center;
+    min-height: 100svh;
+    padding-block: calc(var(--nf-header-height-sm) + var(--nf-space-md)) var(--nf-space-lg);
+  }
+  .nf-pl-markets__grid {
+    display: grid;
+    gap: var(--nf-space-2xl);
+  }
+  .nf-pl-markets__head {
+    justify-items: center;
+    margin-inline: auto;
+    text-align: center;
+  }
+  @media (min-width: 64rem) {
+    .nf-pl-markets__grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 34rem);
+      align-items: center;
+      column-gap: clamp(3rem, 6vw, 6rem);
+    }
+    .nf-pl-markets__head {
+      justify-items: start;
+      margin-inline: 0;
+      text-align: start;
+    }
+  }
+
+  /*
+   * THE STACK. One grid cell; the open card in front; each card behind it
+   * shows only its tab, one tab higher and a step smaller and dimmer per
+   * place in the queue (`--nf-pl-d`, 0 in front).
+   */
+  .nf-pl-mstack {
+    --nf-pl-tab: 3.375rem;
+    width: 100%;
+    max-width: 34rem;
+    margin-inline: auto;
+    padding-top: calc((var(--nf-pl-n) - 1) * var(--nf-pl-tab) * 0.86);
+  }
+  .nf-pl-mstack__cards {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .nf-pl-mcard {
+    grid-area: 1 / 1;
+    align-self: start;
+    position: relative;
+    z-index: calc(10 - var(--nf-pl-d));
+    overflow: hidden;
+    border-radius: var(--nf-radius-card);
+    border: var(--nf-border-width) solid var(--nf-card-border);
+    background: color-mix(in oklab, var(--nf-surface-raised), var(--nf-surface-canvas) calc(var(--nf-pl-d) * 22%));
+    transform-origin: 50% 0;
+    transform: translateY(calc(var(--nf-pl-d) * var(--nf-pl-tab) * -0.86)) scale(calc(1 - var(--nf-pl-d) * 0.05));
+    transition:
+      transform var(--nf-duration-deliberate) var(--nf-ease-entrance),
+      background-color var(--nf-duration-deliberate) var(--nf-ease-standard);
+  }
+  .nf-pl-mcard[data-front="true"] {
+    box-shadow: var(--nf-elevation-floating);
+  }
+  .nf-pl-mcard__tab {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    width: 100%;
+    min-height: var(--nf-pl-tab);
+    padding: 0 var(--nf-space-md) 0 var(--nf-space-md);
+    border: 0;
+    background: none;
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-body-lg);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+    text-align: start;
+    cursor: pointer;
+  }
+  .nf-pl-mcard__tab > svg {
+    flex: none;
+    color: var(--nf-brand-primary);
+  }
+  .nf-pl-mcard__tab:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: -3px;
+    border-radius: var(--nf-radius-card);
+  }
+  .nf-pl-mcard__name {
+    flex: 1;
+    min-width: 0;
+  }
+  .nf-pl-mcard[data-front="true"] .nf-pl-mcard__tab {
+    border-bottom: var(--nf-border-width) solid var(--nf-divider);
+  }
+  .nf-pl-mcard__body {
+    display: grid;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-lg) var(--nf-space-md) var(--nf-space-sm);
+  }
+  /* Visible overflow on a card behind, so its hidden body still intersects
+     the window and the lazy photograph loads before the card comes forward. */
+  .nf-pl-mcard[data-front="false"] {
+    overflow: visible;
+  }
+  .nf-pl-mcard[data-front="false"] .nf-pl-mcard__body {
+    position: absolute;
+    inset: var(--nf-pl-tab) 0 auto;
+    visibility: hidden;
+  }
+  .nf-pl-mcard__title {
+    font-family: var(--nf-font-display);
+    font-size: clamp(1.5rem, 1.2rem + 1vw, 1.875rem);
+    font-weight: 600;
+    line-height: 1.12;
+    letter-spacing: -0.025em;
+    color: var(--nf-content-primary);
+  }
+  .nf-pl-mcard__line {
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.55;
+    color: var(--nf-content-secondary);
+  }
+  /* The photograph, fading at its edge into the card. */
+  .nf-pl-mcard__photo {
+    position: relative;
+    aspect-ratio: 16 / 10;
+    margin-top: var(--nf-space-xs);
+    overflow: hidden;
+    border-radius: var(--nf-radius-inner);
+    -webkit-mask-image: radial-gradient(120% 95% at 50% 30%, #000 58%, transparent 100%);
+    mask-image: radial-gradient(120% 95% at 50% 30%, #000 58%, transparent 100%);
+  }
+  .nf-pl-mcard__photo img {
+    object-fit: cover;
+  }
+
+  /* ----------------------------------------------------- the deal story */
+
+  .nf-pl-story {
+    position: relative;
+    padding-block: clamp(3.5rem, 2rem + 4vw, 5rem) clamp(5rem, 3rem + 4vw, 6rem);
+    background: var(--nf-surface-canvas);
+    color: var(--nf-content-primary);
+  }
+  .nf-pl-story__list {
+    display: grid;
+    gap: var(--nf-space-lg);
+    margin: var(--nf-space-2xl) 0 0;
+    padding: 0;
+    list-style: none;
+    view-timeline-name: --nf-pl-story;
+  }
+  .nf-pl-scard {
+    position: sticky;
+    top: calc(var(--nf-header-height-sm) + var(--nf-space-sm) + var(--nf-pl-k) * 0.625rem);
+    scroll-margin-top: calc(var(--nf-header-height-sm) + var(--nf-space-sm));
+  }
+  @media (min-width: 640px) {
+    .nf-pl-scard {
+      top: calc(var(--nf-header-height) + var(--nf-space-sm) + var(--nf-pl-k) * 0.75rem);
+      scroll-margin-top: calc(var(--nf-header-height) + var(--nf-space-sm));
+    }
+  }
+  .nf-pl-scard__inner {
+    position: relative;
+    display: grid;
+    overflow: hidden;
+    border-radius: var(--nf-radius-card);
+    border: var(--nf-border-width) solid var(--nf-smoked-glass-edge);
+    background:
+      radial-gradient(70% 60% at 80% 40%, color-mix(in oklab, var(--nf-brand-primary) 14%, transparent), transparent 70%),
+      linear-gradient(165deg, var(--nf-surface-raised), var(--nf-surface-primary) 70%);
+    box-shadow: var(--nf-elevation-floating);
+    transform-origin: 50% 0;
+  }
+  /* The covered card's dimming layer (animated where scroll timelines exist). */
+  .nf-pl-scard__inner::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+    background: var(--nf-surface-canvas);
+    opacity: 0;
+  }
+  @media (min-width: 52rem) {
+    .nf-pl-scard__inner {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      min-height: min(26rem, calc(100svh - var(--nf-header-height) - 4rem));
+    }
+  }
+  .nf-pl-scard__copy {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-sm);
+    padding: clamp(1.5rem, 1rem + 2.5vw, 3.5rem);
+  }
+  /* On a phone the index is the card's watermark, top right, not a row. */
+  @media (max-width: 51.999rem) {
+    .nf-pl-scard__copy > .nf-pl-overline,
+    .nf-pl-scard__title {
+      padding-right: 4.5rem;
+    }
+    .nf-pl-scard__index {
+      position: absolute;
+      top: var(--nf-space-md);
+      right: var(--nf-space-lg);
+    }
+  }
+  .nf-pl-scard__index {
+    margin-bottom: auto;
+    padding-bottom: var(--nf-space-xs);
+    font-family: var(--nf-font-display);
+    font-size: clamp(2.75rem, 1.6rem + 4.6vw, 7rem);
+    font-weight: 300;
+    line-height: 0.9;
+    letter-spacing: -0.05em;
+    color: color-mix(in oklab, var(--nf-content-primary) 26%, transparent);
+  }
+  .nf-pl-scard__title {
+    font-family: var(--nf-font-display);
+    font-size: clamp(1.75rem, 1.25rem + 2vw, 3rem);
+    font-weight: 600;
+    line-height: 1.04;
+    letter-spacing: -0.035em;
+    text-wrap: balance;
+  }
+  .nf-pl-scard__body {
+    max-width: 32rem;
+    font-size: var(--nf-text-body);
+    line-height: 1.6;
+    color: var(--nf-content-secondary);
+    text-wrap: pretty;
+  }
+
+  /* The stage: a phone cropped at the floor, the fragment breaking out. */
+  .nf-pl-scard__stage {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    align-items: end;
+    min-height: 14rem;
+    overflow: hidden;
+  }
+  .nf-pl-phone {
+    position: relative;
+    display: grid;
+    align-content: start;
+    justify-items: center;
+    gap: var(--nf-space-sm);
+    width: 14.5rem;
+    height: 22rem;
+    margin-bottom: -7rem;
+    padding-top: 3.25rem;
+    border-radius: var(--nf-radius-2xl) var(--nf-radius-2xl) 0 0;
+    border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-content-primary) 18%, transparent);
+    border-bottom: 0;
+    background: linear-gradient(180deg, color-mix(in oklab, var(--nf-surface-raised), var(--nf-content-primary) 5%), var(--nf-surface-primary));
+    box-shadow:
+      inset 0 1px 0 color-mix(in oklab, var(--nf-content-primary) 16%, transparent),
+      0 30px 80px -40px color-mix(in oklab, var(--nf-brand-primary) 50%, transparent);
+  }
+  @media (min-width: 52rem) {
+    .nf-pl-scard__stage {
+      min-height: 0;
+    }
+    .nf-pl-phone {
+      width: 17rem;
+      height: 28rem;
+      margin-bottom: -6rem;
+    }
+  }
+  .nf-pl-phone__island {
+    position: absolute;
+    top: 0.875rem;
+    left: 50%;
+    width: 5.25rem;
+    height: 1.5rem;
+    border-radius: var(--nf-radius-island);
+    background: var(--nf-surface-canvas);
+    transform: translateX(-50%);
+  }
+  .nf-pl-phone__ghost {
+    width: 78%;
+    height: 0.75rem;
+    border-radius: var(--nf-radius-pill);
+    background: color-mix(in oklab, var(--nf-content-primary) 8%, transparent);
+  }
+  .nf-pl-phone__ghost--short {
+    width: 48%;
+    justify-self: start;
+    margin-left: 11%;
+  }
+
+  /* The fragment: smoked glass, wider than the phone, towards the reader. */
+  .nf-pl-frag {
+    position: absolute;
+    left: 50%;
+    bottom: clamp(1.5rem, 1rem + 2vw, 3rem);
+    z-index: 2;
+    display: grid;
+    gap: var(--nf-space-xs);
+    width: min(19.5rem, calc(100% - 2.5rem));
+    padding: var(--nf-space-md);
+    border-radius: var(--nf-radius-card);
+    border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-content-primary) 14%, transparent);
+    background: var(--nf-smoked-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    box-shadow:
+      inset 0 1px 0 color-mix(in oklab, var(--nf-content-primary) 12%, transparent),
+      var(--nf-elevation-dialog);
+    transform: translateX(-50%);
+  }
+  @media (min-width: 52rem) {
+    .nf-pl-frag {
+      bottom: auto;
+      top: 50%;
+      width: min(21rem, calc(100% - 3rem));
+      transform: translate(-50%, -50%);
+    }
+  }
+  .nf-pl-frag__obj {
+    position: absolute;
+    top: -2rem;
+    right: -1rem;
+    z-index: 1;
+    pointer-events: none;
+  }
+  .nf-pl-frag__head {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    padding-right: 2.5rem;
+  }
+  .nf-pl-frag__head .nf-pl-frag__mark {
+    margin-left: auto;
+  }
+  .nf-pl-frag__photo {
+    position: relative;
+    aspect-ratio: 2 / 1;
+    overflow: hidden;
+    border-radius: var(--nf-radius-inner);
+  }
+  .nf-pl-frag__photo img {
+    object-fit: cover;
+  }
+  .nf-pl-frag__photo .nf-pl-frag__mark {
+    position: absolute;
+    top: var(--nf-space-xs);
+    left: var(--nf-space-xs);
+  }
+  .nf-pl-frag__plate {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--nf-radius-plate);
+    background: var(--nf-brand-tint-1);
+    color: var(--nf-brand-primary);
+  }
+  .nf-pl-frag__title {
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-pl-frag__muted {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-3xs);
+    font-size: var(--nf-text-caption);
+    line-height: 1.45;
+    color: var(--nf-content-muted);
+  }
+  .nf-pl-frag__label {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-pl-frag__figure {
+    font-family: var(--nf-font-display);
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--nf-content-primary);
+  }
+  .nf-pl-frag__figure--hero {
+    font-size: clamp(2rem, 1.6rem + 1.4vw, 2.5rem);
+    letter-spacing: -0.035em;
+  }
+  .nf-pl-frag__rows {
+    display: grid;
+    gap: var(--nf-space-xs);
+    margin: var(--nf-space-2xs) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .nf-pl-frag__row {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.35;
+    color: var(--nf-content-secondary);
+  }
+  .nf-pl-frag__row > svg {
+    flex: none;
+    color: var(--nf-content-muted);
+  }
+  .nf-pl-frag__row[data-tone="ok"] > svg {
+    color: var(--nf-state-success);
+  }
+  .nf-pl-frag__value {
+    margin-left: auto;
+    font-weight: 600;
+    color: var(--nf-state-success);
+  }
+  .nf-pl-frag__open {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    margin-top: var(--nf-space-2xs);
+    padding-top: var(--nf-space-sm);
+    border-top: var(--nf-border-width) solid var(--nf-divider);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-state-success);
+  }
+
+  /* The floating glass pill. */
+  .nf-pl-pill {
+    position: fixed;
+    left: 50%;
+    bottom: calc(var(--nf-space-md) + env(safe-area-inset-bottom, 0px));
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    padding: 0.25rem;
+    border-radius: var(--nf-radius-island);
+    border: var(--nf-border-width) solid var(--nf-smoked-glass-edge);
+    background: var(--nf-smoked-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    box-shadow: var(--nf-elevation-floating);
+    transform: translate(-50%, 0);
+    opacity: 1;
+    visibility: visible;
+    transition:
+      opacity var(--nf-duration-base) var(--nf-ease-standard),
+      transform var(--nf-duration-base) var(--nf-ease-entrance),
+      visibility 0s;
+  }
+  .nf-pl-pill[data-shown="false"] {
+    opacity: 0;
+    visibility: hidden;
+    transform: translate(-50%, 1rem);
+    transition:
+      opacity var(--nf-duration-fast) var(--nf-ease-standard),
+      transform var(--nf-duration-fast) var(--nf-ease-standard),
+      visibility 0s linear var(--nf-duration-fast);
+  }
+  .nf-pl-pill__list {
+    display: flex;
+    gap: 0.125rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .nf-pl-pill__step {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--nf-radius-circle);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+    text-decoration: none;
+    transition:
+      background-color var(--nf-duration-fast) var(--nf-ease-standard),
+      color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-pl-pill__step[aria-current="step"] {
+    background: var(--nf-content-primary);
+    color: var(--nf-surface-canvas);
+  }
+  .nf-pl-pill__step:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  .nf-pl-pill__now {
+    min-width: 4.5rem;
+    padding-inline: var(--nf-space-xs) var(--nf-space-sm);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+    white-space: nowrap;
+  }
+  @media (max-width: 22rem) {
+    .nf-pl-pill__now {
+      display: none;
+    }
+  }
+
+  /* ---------------------------------------------------- the trust layer */
+
+  .nf-pl-trust {
+    padding-block: clamp(3.5rem, 2rem + 4vw, 5.5rem);
+    background: var(--nf-surface-canvas);
+    color: var(--nf-content-primary);
+  }
+  .nf-pl-trust__grid {
+    display: grid;
+    gap: var(--nf-space-xl);
+    margin-top: var(--nf-space-xl);
+  }
+  @media (min-width: 64rem) {
+    .nf-pl-trust__grid {
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+      align-items: start;
+      column-gap: clamp(2rem, 5vw, 5rem);
+    }
+  }
+  .nf-pl-trust__passport {
+    display: grid;
+    justify-items: center;
+    gap: var(--nf-space-xl);
+    padding-top: var(--nf-space-md);
+  }
+  .nf-pl-trust__words {
+    display: grid;
+    gap: var(--nf-space-xs);
+    max-width: 30rem;
+    text-align: center;
+  }
+  .nf-pl-trust__title {
+    font-family: var(--nf-font-display);
+    font-size: clamp(1.375rem, 1.2rem + 0.6vw, 1.75rem);
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: var(--nf-content-primary);
+  }
+  .nf-pl-trust__body {
+    font-size: var(--nf-text-body);
+    line-height: 1.6;
+    color: var(--nf-content-secondary);
+  }
+  .nf-pl-trust__side {
+    display: grid;
+    gap: var(--nf-space-md);
+  }
+  .nf-pl-trust__money {
+    display: grid;
+    justify-items: start;
+    gap: var(--nf-space-xs);
+  }
+  .nf-pl-trust__plate {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    margin-bottom: var(--nf-space-2xs);
+    border-radius: var(--nf-radius-plate);
+    background: var(--nf-brand-tint-1);
+    color: var(--nf-brand-primary);
+  }
+
+  /*
+   * THE ONE PLATINUM OBJECT (PREMIUM-STANDARD, "one material: platinum").
+   * Brushed silver to mid grey with a diagonal sheen, dark ink, a bright
+   * hairline edge, tilted in depth like the Plasma tier cards.
+   */
+  .nf-pl-platinum {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    width: 100%;
+    max-width: 28rem;
+    padding: var(--nf-space-lg);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-platinum-fill);
+    color: var(--nf-platinum-ink);
+    box-shadow:
+      var(--nf-platinum-shadow),
+      var(--nf-elevation-dialog);
+  }
+  @media (min-width: 64rem) {
+    .nf-pl-platinum {
+      transform: perspective(1400px) rotateX(10deg) rotateY(-12deg) rotateZ(1.5deg);
+      transition: transform var(--nf-duration-deliberate) var(--nf-ease-entrance);
+    }
+  }
+  .nf-pl-platinum__sheen {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--nf-platinum-sheen);
+    background-size: 260% 100%;
+    background-position: 50% 0;
+  }
+  .nf-pl-platinum__top {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+  }
+  .nf-pl-platinum__mark {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-platinum-ink);
+  }
+  .nf-pl-platinum__kind {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-body-lg);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .nf-pl-platinum__example {
+    margin-left: auto;
+    padding: 0.125rem var(--nf-space-xs);
+    border-radius: var(--nf-radius-pill);
+    border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-platinum-ink) 30%, transparent);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-platinum-ink-soft);
+  }
+  .nf-pl-platinum__facts {
+    display: grid;
+    margin: var(--nf-space-lg) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .nf-pl-platinum__facts > li {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    min-height: 2.75rem;
+    border-top: var(--nf-border-width) solid color-mix(in oklab, var(--nf-platinum-ink) 14%, transparent);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 500;
+  }
+  .nf-pl-platinum__facts > li > svg:first-child {
+    flex: none;
+    color: var(--nf-platinum-ink-soft);
+  }
+  .nf-pl-platinum__value {
+    display: inline-flex;
+    margin-left: auto;
+    font-weight: 700;
+  }
+  .nf-pl-platinum__foot {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    margin-top: var(--nf-space-sm);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-platinum-ink-soft);
+  }
+
+  /* ---------------------------------------------------------- the close */
+
+  .nf-pl-close {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    padding-block: clamp(4rem, 2.5rem + 4vw, 6rem);
+    background: var(--nf-surface-canvas);
+    color: var(--nf-content-primary);
+    text-align: center;
+  }
+  .nf-pl-close::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: radial-gradient(60% 55% at 50% 100%, color-mix(in oklab, var(--nf-brand-primary) 22%, transparent), transparent 72%);
+  }
+  .nf-pl-close__stage {
+    display: grid;
+    justify-items: center;
+    gap: var(--nf-space-lg);
+  }
+  .nf-pl-close__mark {
+    display: grid;
+    place-items: center;
+    width: 4rem;
+    height: 4rem;
+    border-radius: var(--nf-radius-squircle);
+    border: var(--nf-border-width) solid var(--nf-smoked-glass-edge);
+    background: var(--nf-smoked-glass-fill);
+    box-shadow: 0 20px 50px -20px color-mix(in oklab, var(--nf-brand-primary) 60%, transparent);
+  }
+  .nf-pl-close__title {
+    font-family: var(--nf-font-display);
+    font-size: clamp(3.25rem, 1.8rem + 5.4vw, 6.25rem);
+    font-weight: 600;
+    line-height: 0.94;
+    letter-spacing: -0.05em;
+  }
+  .nf-pl-close__title > span {
+    display: block;
+  }
+  .nf-pl-close__title > [data-last] {
+    color: var(--nf-brand-secondary);
+  }
+  .nf-pl-close__body {
+    max-width: 32rem;
+    font-size: var(--nf-text-body-lg);
+    line-height: 1.55;
+    color: var(--nf-content-secondary);
+    text-wrap: balance;
+  }
+  .nf-pl-close__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: var(--nf-space-md) var(--nf-space-xl);
+    margin-top: var(--nf-space-xs);
+  }
+  .nf-pl-close__signin {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    padding-inline: var(--nf-space-sm);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+    text-decoration: underline;
+    text-decoration-color: var(--nf-divider);
+    text-underline-offset: 0.3em;
+  }
+  .nf-pl-close__signin:hover {
+    color: var(--nf-content-primary);
+  }
+  .nf-pl-close__app {
+    display: grid;
+    justify-items: center;
+    gap: var(--nf-space-md);
+    width: min(100%, 34rem);
+    margin-top: var(--nf-space-xl);
+    padding-top: var(--nf-space-lg);
+    border-top: var(--nf-border-width) solid var(--nf-divider);
+  }
+  .nf-pl-close__badges {
+    margin-top: 0;
+  }
+
+  /* ------------------------------------------------------------- motion */
+
+  @media (prefers-reduced-motion: no-preference) {
+    /* The opened card's body rises in as its card comes forward. */
+    :root:not([data-motion="calm"], [data-motion="off"]) .nf-pl-mcard[data-front="true"] .nf-pl-mcard__body {
+      animation: nf-pl-open var(--nf-duration-deliberate) var(--nf-ease-entrance) both;
+    }
+    /* The passport's sheen crosses once, when the card is first seen. */
+    :root:not([data-motion="calm"], [data-motion="off"], [data-save-data="on"]) .nf-pl-trust__passport[data-seen="true"] .nf-pl-platinum__sheen {
+      animation: nf-pl-sheen 1800ms var(--nf-ease-standard) 240ms both;
+    }
+    @media (hover: hover) and (pointer: fine) and (min-width: 64rem) {
+      :root:not([data-motion="calm"], [data-motion="off"]) .nf-pl-platinum:hover {
+        transform: perspective(1400px) rotateX(4deg) rotateY(-4deg) rotateZ(0.5deg);
+      }
+    }
+  }
+  @keyframes nf-pl-open {
+    from {
+      opacity: 0;
+      transform: translateY(0.75rem);
+    }
+  }
+  @keyframes nf-pl-sheen {
+    from {
+      background-position: 120% 0;
+    }
+    to {
+      background-position: 50% 0;
+    }
+  }
+
+  /*
+   * THE STACK SCROLL REVEAL, where the browser has scroll timelines: the
+   * covered card sinks back and dims while the next one slides over it
+   * (its own fifth of the list's run), the phone fades up as its card
+   * arrives, then the fragment breaks out of it (the Plasma "start earning"
+   * frame first, then "rewards"). Transform and opacity only.
+   */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      :root:not([data-motion="calm"], [data-motion="off"], [data-save-data="on"], [data-motion-lite="on"]) .nf-pl-scard:not(:last-child) .nf-pl-scard__inner {
+        animation: nf-pl-sink linear both;
+        animation-timeline: --nf-pl-story;
+        animation-range: contain var(--nf-pl-from) contain var(--nf-pl-to);
+      }
+      :root:not([data-motion="calm"], [data-motion="off"], [data-save-data="on"], [data-motion-lite="on"]) .nf-pl-scard:not(:last-child) .nf-pl-scard__inner::after {
+        animation: nf-pl-dim linear both;
+        animation-timeline: --nf-pl-story;
+        animation-range: contain var(--nf-pl-from) contain var(--nf-pl-to);
+      }
+      :root:not([data-motion="calm"], [data-motion="off"], [data-save-data="on"], [data-motion-lite="on"]) .nf-pl-phone {
+        animation: nf-pl-phone-up linear both;
+        animation-timeline: view();
+        animation-range: entry 0% entry 90%;
+      }
+      :root:not([data-motion="calm"], [data-motion="off"], [data-save-data="on"], [data-motion-lite="on"]) .nf-pl-frag {
+        animation: nf-pl-break linear both;
+        animation-timeline: view();
+        animation-range: entry 30% cover 45%;
+      }
+    }
+  }
+  @keyframes nf-pl-sink {
+    to {
+      transform: scale(0.93);
+    }
+  }
+  @keyframes nf-pl-dim {
+    to {
+      opacity: 0.45;
+    }
+  }
+  @keyframes nf-pl-phone-up {
+    from {
+      opacity: 0.15;
+      transform: translateY(3rem);
+    }
+  }
+  @keyframes nf-pl-break {
+    from {
+      opacity: 0;
+      scale: 0.88;
+      translate: 0 3rem;
+    }
+  }
+
+  /*
+   * THE SETTLED PAGE. Reduced motion, Calm and Off: the deal story is a
+   * column of cards (not sticky, so nothing slides over anything), the stack
+   * changes without moving, and the pill appears without travelling.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    .nf-pl-scard {
+      position: static;
+    }
+    .nf-pl-mcard,
+    .nf-pl-pill,
+    .nf-pl-pill[data-shown="false"],
+    .nf-pl-platinum {
+      transition: none;
+    }
+    .nf-pl-pill[data-shown="false"] {
+      transform: translate(-50%, 0);
+    }
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-pl-scard {
+    position: static;
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) :is(.nf-pl-mcard, .nf-pl-pill, .nf-pl-pill[data-shown="false"], .nf-pl-platinum) {
+    transition: none;
+  }
+}

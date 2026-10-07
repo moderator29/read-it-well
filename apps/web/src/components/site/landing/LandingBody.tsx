@@ -6,17 +6,14 @@ import type { Listing, ListingKind } from "@/lib/listings/types";
 import { isSocialEnabled } from "@/lib/social/flag";
 import { getPlatformStats, type PlatformStats } from "@/lib/platform-stats";
 import { toMiniListing, type MiniListing } from "@/lib/site/listing-card";
+import "@/app/css/landing-plasma.css";
 import { Hero } from "./Hero";
-import { Bento } from "./Bento";
+import { Markets } from "./Markets";
+import { DealStory } from "./DealStory";
+import { TrustLayer } from "./TrustLayer";
 import { AiBand } from "./AiBand";
-import { MoveInBand } from "./MoveInBand";
-import { SpaceOsBand } from "./SpaceOsBand";
-import { CommunityBand } from "./CommunityBand";
-import { CategoryGrid } from "./CategoryGrid";
-import { AppBand } from "./AppBand";
 import { LandingFaq } from "./LandingFaq";
 import { FinalCta } from "./FinalCta";
-import { Journey } from "./Journey";
 import { landingDoor } from "./doors";
 
 /**
@@ -149,18 +146,42 @@ export function LandingBody({
         The hands-on deck and the Property and Stays switch stay folded into
         the platform band: they carried no 3D art. Every room rises in as it
         enters the viewport (MotionReveal; landing-3d.css, "the 3D pass").
+
+        THE PLASMA PASS (P7, 7 October evening; PREMIUM-STANDARD.md, the
+        governing level, and the founder: "more vibes lovely stuffs...
+        clean... next gen"). Ten rooms told the same story three times
+        (bento, platform band, journey) and buried it. Seven now, each with
+        one job, on a near-black field with the content lit
+        (landing-plasma.css):
+
+          Hero        the slogan, the explanation, the trust promise per
+                      rail, one white capsule, the example card, the search
+          Markets     homes, stays, restaurants, workspaces: a rolling card
+                      stack that rolls as you scroll or tap
+          Story       find, verify, agree, pay, move in: five cards stacking
+                      on scroll, a product fragment breaking out of a phone
+                      on each, the founder's 3D object for each step
+          Trust       the Space Passport as the page's one platinum object,
+                      the agent check that works in place, and where the
+                      money goes in the founder's own sentence
+          AI          the assistant room, kept: it is a 3D room that earns
+                      its place, the one feature the story does not tell
+          FAQ         the short answers
+          Close       "Find. Agree. Move in.", the capsule, and the app
+
+        The move-in band, the platform band, the journey, the categories
+        and map, the community band and the app band are retired from the
+        page: the markets carry the kinds of place, the story carries the
+        move-in total and the steps, and the trust layer carries the check.
+        Their components stay in the folder for the lead to remove.
       */}
       <Hero t={t} locale={locale} door={door} />
-      <Bento t={t} door={door} social={data.social !== false} />
-      <MoveInBand t={t} locale={locale} door={door} />
-      <SpaceOsBand t={t} locale={locale} door={door} social={data.social !== false} />
-      <Journey t={t} />
+      <Markets t={t} door={door} />
+      <DealStory t={t} locale={locale} />
+      <TrustLayer t={t} locale={locale} />
       <AiBand t={t} locale={locale} cards={data.showcase ?? data.cards ?? []} door={door} />
-      <CategoryGrid t={t} counts={data.counts} door={door} />
-      <CommunityBand t={t} locale={locale} stats={data.stats} />
-      {native ? null : <AppBand t={t} native={native} />}
       <LandingFaq t={t} nonce={nonce} />
-      <FinalCta t={t} />
+      <FinalCta t={t} native={native} />
     </main>
   );
 }
