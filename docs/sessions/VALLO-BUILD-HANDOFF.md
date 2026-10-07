@@ -1258,6 +1258,123 @@ The exception, which is a feature: Vallo says plainly who holds the money. One l
 in the money surface and in the agreement, naming the licensed provider and linking
 to what it means. Section 61 covers the compliance language.
 
+## B.3.5 Agreement to payment: the staff gate goes, because escrow replaced it
+
+**This is a decision, and the session builds it this way.**
+
+### What happens today, and why
+
+`private.transactions_payment_gate()` refuses any charge unless
+`deal_agreements.status = 'approved'`, and that status is set by a Vallo person
+working a queue in `apps/web/src/app/admin/agreements/AgreementQueue.tsx`. So after
+both parties agree, every deal stops and waits for staff. The founder hits this
+himself and reads it as a bug.
+
+It is not a bug. It was the right control under ADR 0002, and the reason is worth
+stating because it is exactly what changes:
+
+> Under split-at-charge, the money settles to the lister's own Paystack subaccount
+> the instant the card clears. Vallo cannot claw it back. A human reading the
+> agreement before payment opened was the **only** protection a renter had against a
+> fraudulent lister taking a deposit and vanishing.
+
+It was a compensating control for having no escrow.
+
+### What changes under ADR 0003
+
+On the escrow rail, **Payluk holds the money** until conditions are met. The
+protection is now structural rather than procedural. A person pre-reading the
+agreement adds nothing a renter can rely on, because if the deal turns out bad the
+renter disputes and is refunded from funds that never left the provider.
+
+So on the escrow rail the staff gate is pure friction, and it goes.
+
+**But it does not simply go everywhere.** On the direct rail money still settles
+instantly and irreversibly, so the original reasoning is untouched there.
+
+**The rail decides the gate.** That is the rule.
+
+| Rail | Money | Gate after both parties agree |
+| --- | --- | --- |
+| Escrow (Payluk) | Held by the provider until conditions are met | **None.** Payment opens immediately |
+| Direct (Paystack split) | Settles instantly and irreversibly | Opens immediately **unless a risk signal fires** |
+
+### The important part: review moves, it does not disappear
+
+This is the bit that makes the change safe rather than merely faster. On the escrow
+rail Vallo has the **entire hold window** to look at a deal, and it can intervene
+while the money is still safe. That is strictly better than reviewing beforehand:
+the member is never blocked, and Vallo's window is longer.
+
+So the agreement queue in admin stays and gets better. It stops being a gate every
+deal queues behind and becomes a **watch list** over live holds, ordered by risk,
+with the power to pause a release. Same people, same screen, better position.
+
+### Risk-based review on the direct rail
+
+Blanket review of every deal is what made this painful. Replace it with signals, and
+review only when one fires:
+
+- A lister with no completed deal yet.
+- An amount above a threshold, set as configuration, not hard-coded.
+- A listing whose price or key facts changed in the last few days.
+- A payout account that does not match the lister's verified name.
+- Anything the fraud radar already flags (section 33 of
+  `founder-corpus/03-full-product-prompt.md`).
+
+No signal, no queue. The deal pays.
+
+### The whole flow, end to end, as it should be
+
+```
+ 1  Listing published        lister has accepted the fee figures
+                             (b3_rate_agreement_gate, still pending, keep it:
+                              it is about the amount being right, not about
+                              a human approving the deal)
+ 2  Enquiry, conversation
+ 3  Inspection               a rental: submitted, photographed report
+ 4  Agreement drafted        from the inspection and the agreed rate
+ 5  BOTH PARTIES AGREE       recorded server side, both sides, timestamped
+ 6  RAIL RESOLVES            escrow or direct (b2_rail_at_open, also pending)
+       |
+       +-- escrow  -> payment opens NOW
+       +-- direct  -> payment opens NOW unless a risk signal fires
+ 7  Pay                      escrow: funds to Payluk
+                             direct: split at charge
+ 8  FUNDED                   the renter sees, plainly: your money is held by
+                             <provider>, and here is exactly what releases it
+ 9  Conditions               inspection confirmed, keys, move-in date
+10  BOTH CONFIRM             a deliberate act, DragToConfirm
+11  RELEASE                  lister paid, Vallo's 2 percent settled in the
+                             same movement
+12  RECEIPTS                 both sides
+
+        dispute branches off 8 to 11, with evidence and a review window.
+        Remember Payluk has no refund without dispute.
+```
+
+Step 8 is the one that wins the market. A renter in Lagos sending a deposit to
+somebody they met online, who can see on screen that the money is held by a licensed
+provider and exactly what releases it, is the whole product in one screen. Give it
+the design effort that deserves.
+
+### Not a global on/off switch
+
+A single flag that turns staff approval off everywhere is the wrong shape and would
+remove the protection the direct rail still needs. Build it as:
+
+- `agreement_review_required(booking)` resolving from the **rail** plus the risk
+  signals, defaulting to **not required** on escrow and **not required** on direct
+  with no signal.
+- The database gate keeps its teeth: `transactions_payment_gate()` stops demanding
+  `status = 'approved'` unconditionally and starts asking that resolver, so the rule
+  is enforced where it cannot be bypassed rather than only in the application.
+- A kill switch that forces review on everything, for an incident. Off by default.
+
+Probes for it: a charge on the escrow rail opens with no staff approval; a direct
+charge with a risk signal is refused without one; a direct charge with no signal
+opens; the kill switch refuses everything.
+
 ## B.4 The build, in his own 25 phases
 
 Section 68 is his implementation order. Use it rather than inventing one. Phases 1
@@ -1593,7 +1710,7 @@ Note them so he can act, and keep going.
 
 | Item | Where | What |
 | --- | --- | --- |
-| The agreement screen in the pay flow | `b3_rate_agreement_gate.sql` is still in `supabase/migrations/pending/` | He hits the agreement screen when he expects to pay. A pending migration does nothing. Decide: apply it, or fix the behaviour in the application. Only the blocking behaviour was meant to sit behind a `feature_flags` row. |
+| The agreement screen in the pay flow | See **B.3.5**, which decides it | Two separate things got confused here. The thing blocking him is `transactions_payment_gate()` demanding `deal_agreements.status = 'approved'`, set by staff in `admin/agreements/AgreementQueue.tsx`. That gate goes on the escrow rail and becomes risk-based on the direct rail. Separately, `b3_rate_agreement_gate.sql` is still pending and is about the lister having accepted the fee figures, which is a different and good gate. Keep that one. |
 | `b2_rail_at_open.sql` | Also pending | The rail is chosen at open. Relevant to B.2. Decide and act. |
 | Source dimension on `listing_daily_stats` | Migration | B.7. |
 | Inner onboarding everywhere | `FirstRunPanels.tsx`, `first_runs_seen` | A.11. Both exist; extend coverage. |
