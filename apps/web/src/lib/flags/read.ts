@@ -29,6 +29,13 @@ export const SHOW_ME_FLAG = "show_me";
 /** ROOM BOOKINGS 1: hotel rooms can be requested and paid for (off until the founder switches it on). */
 export const ROOM_BOOKINGS_FLAG = "room_bookings";
 /**
+ * D73: a hotel room or nightly stay at the published price is booked and paid
+ * in one flow (no host acceptance, no Vallo review). Seeded off by migration
+ * d73a_stays_instant_pay; the database decides each booking, this only words
+ * the screens.
+ */
+export const STAYS_INSTANT_PAY_FLAG = "stays_instant_pay";
+/**
  * D60: whether "Send for review" waits for the lister's recorded fee
  * acceptance (D51, D61). The screen is in the wizard regardless; only the
  * blocking is behind this, and with no row it reads off, so publishing is

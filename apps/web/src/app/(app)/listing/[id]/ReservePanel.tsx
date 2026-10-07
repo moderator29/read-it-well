@@ -241,7 +241,7 @@ export function ReservePanel({
     const r = state.data;
     /* Held when the stay books instantly, requested when the agent confirms
        it personally: the words follow what is true, and neither is "paid". */
-    const words = success ? successCopy(success, instantBook ? "stayHeld" : "stayRequested") : null;
+    const words = success ? successCopy(success, instantBook || r.instant ? "stayHeld" : "stayRequested") : null;
     return (
       <div className="nf-panel nf-panel--card isolate nf-confirm-sweep p-card" data-testid="reserve-success">
         {success && words ? (
@@ -307,7 +307,7 @@ export function ReservePanel({
           </div>
         </dl>
         <p className="nf-rise mt-heading nf-body-sm leading-relaxed text-[var(--nf-content-muted)]">
-          {instantBook
+          {instantBook || r.instant
             ? "Your dates are held. Paying now confirms the stay straight away."
             : "The agent will confirm your dates personally. You can pay now to secure them, and we will notify you the moment the agent confirms."}
         </p>
