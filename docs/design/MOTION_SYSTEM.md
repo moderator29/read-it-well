@@ -202,6 +202,15 @@ did not.** An optimistic animation on a failed payment is a lie told in motion.
 
 ## 3. The startup sequence
 
+> **Superseded on 7 October 2026 (D68c, D71).** The logo opening described below is
+> retired. The logo never appears by itself on app open. The native launch image is a
+> plain `#010118` field, the native splash is hidden from the first script in the
+> document through the raw bridge, and the opening is the page arriving: header and
+> dock in frame one, content rising with at most 60ms of stagger, about 1,500ms on the
+> first open and 400ms on a returning one, a tap settling it at once. The code is
+> `components/startup/startup-script.ts`; the tests that hold the rule are
+> `StartupOpening.dom.test.tsx` and `startup-css.test.ts`. What follows is history.
+
 **The founder reports the logo screen currently sits for about eight seconds. The
 target is 1.5 seconds of intentional, animated brand, then the product.**
 
