@@ -1294,18 +1294,25 @@
    smoked-glass circles on the photo, a frosted inset at its foot. The cards
    are keyed, so when the front is thrown the next one rises into its place
    on `land` (380ms); a drag writes the front card's transform directly and
-   nothing else moves. Reduced motion, Calm and Off change cards in place. */
+   nothing else moves. Reduced motion, Calm and Off change cards in place.
+
+   ITS OWN NAMESPACE, `nf-fstack` (7 October, the founder: "Featured stays is
+   broken"). It shipped as `nf-stack`, the name `SwipeStack` (Stays) already
+   used, and this file is global once loaded: its card rule (absolute,
+   inset 0) took the Stays deck's cards out of flow, the deck had no height of
+   its own, and every Stays featured card collapsed to a sliver. Guarded by
+   `stack-namespace.test.ts`. */
 @layer components {
-  .nf-stack {
+  .nf-fstack {
     margin-top: var(--nf-space-md);
   }
-  .nf-stack__stage {
+  .nf-fstack__stage {
     position: relative;
     height: min(31rem, 128vw);
     touch-action: pan-y;
     user-select: none;
   }
-  .nf-stack__card {
+  .nf-fstack__card {
     position: absolute;
     inset: 0 1.375rem;
     overflow: hidden;
@@ -1317,30 +1324,30 @@
       transform var(--nf-duration-slow) var(--nf-ease-entrance),
       filter var(--nf-duration-slow) var(--nf-ease-entrance);
   }
-  .nf-stack__card[data-role="front"] {
+  .nf-fstack__card[data-role="front"] {
     z-index: 3;
     cursor: grab;
   }
   /* Dimmed by light, not by transparency: a see-through card behind a
      see-through card read as two photographs printed over each other. */
-  .nf-stack__card[data-role="next"] {
+  .nf-fstack__card[data-role="next"] {
     z-index: 2;
     filter: brightness(0.55);
     transform: translateX(1.375rem) scale(0.93);
   }
-  .nf-stack__card[data-role="prev"] {
+  .nf-fstack__card[data-role="prev"] {
     z-index: 1;
     filter: brightness(0.4);
     transform: translateX(-1.375rem) scale(0.93);
   }
-  .nf-stack__media {
+  .nf-fstack__media {
     position: absolute;
     inset: 0;
   }
-  .nf-stack__media img {
+  .nf-fstack__media img {
     -webkit-user-drag: none;
   }
-  .nf-stack__nophoto {
+  .nf-fstack__nophoto {
     position: absolute;
     top: 50%;
     left: 50%;
@@ -1351,17 +1358,17 @@
     font-size: var(--nf-text-overline);
     color: var(--nf-content-on-media-muted);
   }
-  .nf-stack__open-area {
+  .nf-fstack__open-area {
     position: absolute;
     inset: 0;
     z-index: 1;
     border-radius: inherit;
   }
-  .nf-stack__open-area:focus-visible {
+  .nf-fstack__open-area:focus-visible {
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
     outline-offset: -3px;
   }
-  .nf-stack__controls {
+  .nf-fstack__controls {
     position: absolute;
     inset-inline: var(--nf-space-sm);
     top: var(--nf-space-sm);
@@ -1370,10 +1377,10 @@
     justify-content: space-between;
     pointer-events: none;
   }
-  .nf-stack__controls > * {
+  .nf-fstack__controls > * {
     pointer-events: auto;
   }
-  .nf-stack .nf-stack__circle {
+  .nf-fstack .nf-fstack__circle {
     display: grid;
     place-items: center;
     width: 2.5rem;
@@ -1386,15 +1393,15 @@
     box-shadow: none;
     color: var(--nf-content-on-media);
   }
-  .nf-stack__go {
+  .nf-fstack__go {
     position: relative;
   }
-  .nf-stack__go::after {
+  .nf-fstack__go::after {
     content: "";
     position: absolute;
     inset: -0.125rem;
   }
-  .nf-stack__inset {
+  .nf-fstack__inset {
     position: absolute;
     inset-inline: var(--nf-space-xs);
     bottom: var(--nf-space-xs);
@@ -1412,12 +1419,12 @@
     color: var(--nf-content-on-media);
     pointer-events: none;
   }
-  .nf-stack__words {
+  .nf-fstack__words {
     display: grid;
     min-width: 0;
     gap: var(--nf-space-3xs);
   }
-  .nf-stack__title {
+  .nf-fstack__title {
     display: -webkit-box;
     overflow: hidden;
     font-size: var(--nf-text-body);
@@ -1427,8 +1434,8 @@
     -webkit-line-clamp: 2;
     line-clamp: 2;
   }
-  .nf-stack__where,
-  .nf-stack__rating {
+  .nf-fstack__where,
+  .nf-fstack__rating {
     display: flex;
     min-width: 0;
     align-items: center;
@@ -1436,40 +1443,40 @@
     font-size: var(--nf-text-caption);
     color: var(--nf-content-on-media-muted);
   }
-  .nf-stack__where span {
+  .nf-fstack__where span {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .nf-stack__rating > svg {
+  .nf-fstack__rating > svg {
     color: var(--nf-rating);
   }
-  .nf-stack__figure {
+  .nf-fstack__figure {
     margin-top: var(--nf-space-3xs);
     font-size: var(--nf-text-h4);
     font-weight: 700;
     font-variant-numeric: tabular-nums;
     line-height: 1.1;
   }
-  .nf-stack__unit {
+  .nf-fstack__unit {
     font-size: var(--nf-text-caption);
     font-weight: 400;
     color: var(--nf-content-on-media-muted);
   }
-  .nf-stack__map {
+  .nf-fstack__map {
     width: 4.25rem;
     height: 4.25rem;
     border: var(--nf-border-width) solid var(--nf-smoked-glass-edge);
     border-radius: var(--nf-radius-control);
   }
-  .nf-stack__nav {
+  .nf-fstack__nav {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: var(--nf-space-md);
     margin-top: var(--nf-space-sm);
   }
-  .nf-stack__step {
+  .nf-fstack__step {
     display: grid;
     place-items: center;
     width: 2.75rem;
@@ -1480,40 +1487,40 @@
     color: var(--nf-content-primary);
     box-shadow: var(--nf-glow-edge);
   }
-  .nf-stack__step:focus-visible {
+  .nf-fstack__step:focus-visible {
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
     outline-offset: 2px;
   }
-  .nf-stack__count {
+  .nf-fstack__count {
     min-width: 4rem;
     text-align: center;
     font-size: var(--nf-text-caption);
     color: var(--nf-content-muted);
   }
-  .nf-stack__credits {
+  .nf-fstack__credits {
     margin-top: var(--nf-space-2xs);
     text-align: end;
     font-size: var(--nf-text-overline);
     color: var(--nf-content-muted);
   }
-  .nf-stack__credits a {
+  .nf-fstack__credits a {
     color: inherit;
     text-decoration: underline;
     text-underline-offset: 2px;
   }
   @media (min-width: 40rem) {
-    .nf-stack__stage {
+    .nf-fstack__stage {
       max-width: 30rem;
       margin-inline: auto;
       height: 34rem;
     }
   }
   @media (prefers-reduced-motion: reduce) {
-    .nf-stack__card {
+    .nf-fstack__card {
       transition: none;
     }
   }
-  :root:is([data-motion="calm"], [data-motion="off"]) .nf-stack__card {
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-fstack__card {
     transition: none;
   }
 }

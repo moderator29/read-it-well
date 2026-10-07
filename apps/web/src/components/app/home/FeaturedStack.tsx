@@ -70,9 +70,9 @@ function Figure({ listing, locale, copy }: { listing: Listing; locale: Locale; c
         ? null
         : copy.periodShort[price.period as keyof FeaturedStackCopy["periodShort"]];
   return (
-    <p className="nf-stack__figure nf-numeric">
+    <p className="nf-fstack__figure nf-numeric">
       <Money minor={price.minor} locale={locale} currency={listing.currency} mode="glance" />
-      {unit ? <span className="nf-stack__unit"> {unit}</span> : null}
+      {unit ? <span className="nf-fstack__unit"> {unit}</span> : null}
     </p>
   );
 }
@@ -107,14 +107,14 @@ function StackCard({
 
   return (
     <article
-      className="nf-stack__card"
+      className="nf-fstack__card"
       data-role={role}
       aria-hidden={front ? undefined : true}
       inert={front ? undefined : true}
       aria-roledescription="slide"
       aria-label={copy.position.replace("{at}", String(at + 1)).replace("{count}", String(count))}
     >
-      <div ref={media} className="nf-stack__media nf-vt-morph" data-morph-id={listing.id} data-theme="dark">
+      <div ref={media} className="nf-fstack__media nf-vt-morph" data-morph-id={listing.id} data-theme="dark">
         <MediaFrame hue={listing.hue} kind={listing.kind} sizes="(max-width: 640px) 90vw, 420px" priority={eager && !photo} />
         {photo ? (
           <Image
@@ -127,7 +127,7 @@ function StackCard({
             {...(eager ? ({ loading: "eager", fetchPriority: "high" } as const) : {})}
           />
         ) : (
-          <span className="nf-stack__nophoto">{copy.noPhotos}</span>
+          <span className="nf-fstack__nophoto">{copy.noPhotos}</span>
         )}
       </div>
 
@@ -135,25 +135,25 @@ function StackCard({
           because a link may not hold a button. */}
       <Link
         href={href}
-        className="nf-stack__open-area"
+        className="nf-fstack__open-area"
         aria-label={copy.open.replace("{title}", listing.title)}
         onClick={(event) => onOpen(event, media.current)}
         draggable={false}
         tabIndex={front ? 0 : -1}
       />
 
-      <div className="nf-stack__controls" data-theme="dark">
+      <div className="nf-fstack__controls" data-theme="dark">
         <SaveButton
           saved={save.saved}
           pending={save.pending}
           onToggle={save.toggle}
           title={listing.title}
           surface="media"
-          className="nf-stack__circle"
+          className="nf-fstack__circle"
         />
         <Link
           href={href}
-          className="nf-stack__circle nf-stack__go"
+          className="nf-fstack__circle nf-fstack__go"
           aria-label={copy.open.replace("{title}", listing.title)}
           onClick={(event) => onOpen(event, media.current)}
           tabIndex={front ? 0 : -1}
@@ -163,18 +163,18 @@ function StackCard({
         </Link>
       </div>
 
-      <div className="nf-stack__inset" data-theme="dark">
-        <div className="nf-stack__words">
-          <h3 className="nf-stack__title">{listing.title}</h3>
-          <p className="nf-stack__where">
+      <div className="nf-fstack__inset" data-theme="dark">
+        <div className="nf-fstack__words">
+          <h3 className="nf-fstack__title">{listing.title}</h3>
+          <p className="nf-fstack__where">
             <UiIcon name="location" size={12} />
             <span>{where}</span>
           </p>
           {rated ? (
-            <p className="nf-stack__rating nf-numeric">
+            <p className="nf-fstack__rating nf-numeric">
               <UiIcon name="star" size={12} filled />
               {formatRating(listing.rating, locale)}
-              <span className="nf-stack__unit">
+              <span className="nf-fstack__unit">
                 {" "}
                 ({listing.reviewCount} {copy.reviews})
               </span>
@@ -187,7 +187,7 @@ function StackCard({
             lat={point.lat}
             lng={point.lng}
             zoom={13}
-            className="nf-stack__map"
+            className="nf-fstack__map"
             label={copy.mapOf.replace("{area}", listing.area || listing.city)}
           />
         ) : null}
@@ -253,8 +253,8 @@ export function FeaturedStack({
   const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
     if (!event.isPrimary || event.button !== 0 || throwing.current) return;
     const target = event.target as HTMLElement;
-    if (target.closest("button, .nf-stack__go")) return;
-    const card = target.closest<HTMLElement>('.nf-stack__card[data-role="front"]');
+    if (target.closest("button, .nf-fstack__go")) return;
+    const card = target.closest<HTMLElement>('.nf-fstack__card[data-role="front"]');
     if (!card) return;
     drag.current = { x: event.clientX, y: event.clientY, t: performance.now(), dx: 0, id: event.pointerId, moved: false, card };
   };
@@ -312,7 +312,7 @@ export function FeaturedStack({
   };
 
   const go = (dir: 1 | -1) => {
-    const card = stage.current?.querySelector<HTMLElement>('.nf-stack__card[data-role="front"]');
+    const card = stage.current?.querySelector<HTMLElement>('.nf-fstack__card[data-role="front"]');
     if (card) throwCard(card, dir);
     else step(dir);
   };
@@ -325,7 +325,7 @@ export function FeaturedStack({
 
   return (
     <section
-      className="nf-stack"
+      className="nf-fstack"
       aria-roledescription="carousel"
       aria-label={copy.label}
       data-testid={testId}
@@ -341,7 +341,7 @@ export function FeaturedStack({
     >
       <div
         ref={stage}
-        className="nf-stack__stage"
+        className="nf-fstack__stage"
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
@@ -367,19 +367,19 @@ export function FeaturedStack({
         ))}
       </div>
       {count > 1 ? (
-        <div className="nf-stack__nav">
-          <button type="button" className="nf-stack__step" aria-label={copy.previous} onClick={() => go(-1)}>
+        <div className="nf-fstack__nav">
+          <button type="button" className="nf-fstack__step" aria-label={copy.previous} onClick={() => go(-1)}>
             <UiIcon name="arrow-left" size={16} />
           </button>
-          <p className="nf-stack__count nf-numeric" aria-live="polite">
+          <p className="nf-fstack__count nf-numeric" aria-live="polite">
             {copy.position.replace("{at}", String(at + 1)).replace("{count}", String(count))}
           </p>
-          <button type="button" className="nf-stack__step" aria-label={copy.next} onClick={() => go(1)}>
+          <button type="button" className="nf-fstack__step" aria-label={copy.next} onClick={() => go(1)}>
             <UiIcon name="arrow-right" size={16} />
           </button>
         </div>
       ) : null}
-      <p className="nf-stack__credits">
+      <p className="nf-fstack__credits">
         <MapCredits />
       </p>
     </section>
