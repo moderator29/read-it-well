@@ -8,8 +8,13 @@
  *   later posts    rise into place as they enter the screen, driven by the
  *                  scroll itself (a view timeline), so a fast flick shows
  *                  them already settled and a slow read watches them arrive
- *   photographs    settle from a slight zoom as their post comes in
- *   the heart      pops 1.0 to 1.2 to 1.0 in 240ms on the tap that likes
+ *   later posts    float up 64px (the brief's 50 to 90) and their parts
+ *                  follow in reading order, each on its own view timeline
+ *   photographs    drift behind their frame at 0.6 of the card's speed
+ *                  (MOTION_SYSTEM rule 4), inside the frame's overscan
+ *   the heart      the payoff (A.5, rule 5): 1.0 to 1.04 to 1.0 in 180ms on
+ *                  the tap that likes, with the one select haptic (`Feed`)
+ *   a press        the card sinks to 0.985 on `press` 120ms
  *   repost         the arrows turn half a circle on the tap that reposts
  *   stories        a still ring: a segment per live story, opened ones quiet.
  *                  It used to turn for ever; nothing loops here any more
@@ -70,12 +75,25 @@
     .nf-post {
       animation: nf-feed-arrive linear forwards;
       animation-timeline: view();
-      animation-range: entry 0% entry 60%;
+      animation-range: entry 0% entry 70%;
     }
-    .nf-post__media img {
-      animation: nf-feed-settle linear both;
+    /* THE PARTS FOLLOW (A.5, "children staggered"). Each part of the card
+       rises on its own view timeline, so the head, the words, the photograph
+       and the actions arrive in reading order as each crosses the edge: one
+       organism, not a list, and never slower than the scroll that drives it. */
+    .nf-post > :is(.nf-post__head, .nf-post__body, .nf-post__media, .nf-post__actions) {
+      animation: nf-feed-part linear forwards;
       animation-timeline: view();
-      animation-range: entry 0% cover 35%;
+      animation-range: entry 0% entry 90%;
+    }
+    /* PARALLAX AT 0.6 (MOTION_SYSTEM rule 4). The photograph is held a size
+       up inside its frame and travels against the card as the card crosses
+       the screen, so it reads as further away. The travel is the ratio's
+       remainder of the overscan, so changing the one ratio changes it. */
+    .nf-post__media img {
+      animation: nf-feed-parallax linear both;
+      animation-timeline: view();
+      animation-range: cover 0% cover 100%;
     }
   }
   @media print {
@@ -87,7 +105,7 @@
   @keyframes nf-feed-arrive {
     from {
       opacity: 0;
-      translate: 0 20px;
+      translate: 0 64px;
       scale: 0.985;
     }
     to {
@@ -96,13 +114,42 @@
       scale: none;
     }
   }
-  @keyframes nf-feed-settle {
+  @keyframes nf-feed-part {
     from {
-      scale: 1.08;
+      opacity: 0;
+      translate: 0 14px;
     }
     to {
-      scale: none;
+      opacity: 1;
+      translate: none;
     }
+  }
+  .nf-post__media {
+    --nf-parallax-ratio: 0.6;
+    /* Overscan: the picture is 12 per cent taller than its frame, 6 above and
+       6 below, and moves through the ratio's remainder of it. */
+    --nf-parallax-travel: calc((1 - var(--nf-parallax-ratio)) * 12%);
+  }
+  @keyframes nf-feed-parallax {
+    from {
+      scale: 1.12;
+      translate: 0 calc(var(--nf-parallax-travel) * -1);
+    }
+    to {
+      scale: 1.12;
+      translate: 0 var(--nf-parallax-travel);
+    }
+  }
+
+  /* THE FELT PRESS (MOTION_SYSTEM "Card press"): the card sinks to 0.985 on
+     `press`, on `transform` so it adds to the arrival rather than fighting
+     it. No haptic on the card itself: "nothing in a list ever vibrates"
+     (the haptic census); the hand feels the toggles, not the scroll. */
+  .nf-post--pressable {
+    transition: transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  .nf-post--pressable:active {
+    transform: scale(0.985);
   }
   .nf-post__media {
     overflow: hidden;
@@ -128,8 +175,8 @@
    * changed". `data-pop` is set by the control for one tap that turns a like
    * ON and by nothing else, so a heart that was already red simply is.
    *
-   * The ring of light is kept, smaller and shorter: it is the same
-   * acknowledgement, and it is the only thing on the card that travels.
+   * The ring of light that followed the pop is gone (7 October 2026): a
+   * payoff is one impact and one pop, never stacked effects.
    */
   .nf-post__act--like svg,
   .nf-post__act--repost svg {
@@ -139,44 +186,21 @@
   .nf-post__act--repost:active svg {
     scale: 0.82;
   }
+  /* THE PAYOFF (A.5, MOTION_SYSTEM rule 5): one sharp impact and one pop,
+     1.0 to 1.04 to 1.0 over 180ms. One effect, so the ring of light that
+     used to follow it is gone; the impact is the haptic `Feed` fires. */
   .nf-post__act--like[data-pop] svg {
-    animation: nf-feed-heart var(--nf-duration-base) var(--nf-ease-entrance) both;
+    animation: nf-feed-heart 180ms var(--nf-ease-press) both;
   }
   @keyframes nf-feed-heart {
     0% {
-      scale: 0.82;
+      scale: 1;
     }
-    55% {
-      scale: 1.2;
-    }
-    100% {
-      scale: none;
-    }
-  }
-  .nf-post__act--like::after {
-    content: "";
-    position: absolute;
-    left: 0.35rem;
-    top: 50%;
-    width: 1.75rem;
-    height: 1.75rem;
-    margin-top: -0.875rem;
-    border-radius: var(--nf-radius-circle);
-    border: 2px dotted var(--nf-mark-unread);
-    opacity: 0;
-    pointer-events: none;
-  }
-  .nf-post__act--like[data-pop]::after {
-    animation: nf-feed-burst var(--nf-duration-slow) var(--nf-ease-entrance) both;
-  }
-  @keyframes nf-feed-burst {
-    0% {
-      opacity: 0.9;
-      scale: 0.5;
+    45% {
+      scale: 1.04;
     }
     100% {
-      opacity: 0;
-      scale: 1.6;
+      scale: 1;
     }
   }
 
@@ -352,9 +376,9 @@
 
   @media (prefers-reduced-motion: reduce) {
     .nf-post,
+    .nf-post > *,
     .nf-post__media img,
     .nf-post__act--like[data-pop] svg,
-    .nf-post__act--like[data-pop]::after,
     .nf-post__act--repost[data-pop] svg,
     .nf-story--seq .nf-story__image,
     .nf-story--seq .nf-story__top,
@@ -389,5 +413,15 @@
     .nf-story-ring__item:active {
       scale: none;
     }
+  }
+
+  /* Calm and Off: a settled frame. motion-pref.css already turns scroll
+     timelines back into zero-length ones; this says it here as well, so the
+     feed's own sheet carries its reduced variant in the same change (A.1). */
+  :root:is([data-motion="calm"], [data-motion="off"]) :is(.nf-post, .nf-post > *, .nf-post__media img) {
+    animation: none;
+  }
+  :root[data-motion="off"] .nf-post--pressable:active {
+    transform: none;
   }
 }
