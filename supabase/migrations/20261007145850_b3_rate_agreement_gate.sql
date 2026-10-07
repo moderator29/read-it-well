@@ -1,3 +1,7 @@
+-- APPLIED 7 October 2026 through the Supabase MCP as 20261007145850_b3_rate_agreement_gate. The applied text is in
+-- supabase_migrations.schema_migrations.statements; it is this file with the long
+-- header comment condensed and the read-back trimmed to its RLS, trigger-count and grant checks (begin/commit dropped; the MCP wraps it). Nothing executable differs otherwise.
+
 -- B3 (Session 2, round 3). THE AGREEMENT GATE, AND THE SPLIT READS IT. DRAFT. NOT APPLIED.
 -- Depends on: b3_money_policy_versions.sql (apply that first).
 --

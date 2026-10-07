@@ -1,3 +1,7 @@
+-- APPLIED 7 October 2026 through the Supabase MCP as 20261007145948_b3x_fee_record_unify. The applied text is in
+-- supabase_migrations.schema_migrations.statements; it is this file with the long
+-- header comment condensed. Nothing executable differs otherwise.
+
 -- B3X: b3_rate_agreement_gate, made to fit the live schema of 7 October 2026.
 -- Pending: NOT applied. Apply IMMEDIATELY AFTER b3_rate_agreement_gate.sql, in the
 -- same sitting (b3 alone would block publishing and listing payments; see below).
