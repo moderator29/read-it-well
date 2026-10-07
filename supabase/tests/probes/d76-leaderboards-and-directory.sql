@@ -24,7 +24,7 @@ declare
   host  constant uuid := '03f3dd52-ea28-4852-9abe-e5b0a67c2a43';
   guest constant uuid := '957b3bd2-cce3-425d-bba9-5cd876ca3d62';
   host_state text; other_state text;
-  biz uuid; demo_biz uuid;
+  biz uuid; demo_biz uuid; camp uuid;
   n int; cols text;
   r record;
   last_month timestamptz := ((date_trunc('month', now() at time zone 'Africa/Lagos') - interval '10 days') at time zone 'Africa/Lagos');
@@ -54,12 +54,24 @@ begin
   -- The fixture: two referrals for the host this month, one for the guest last
   -- month, and a pending and a reversed one for the host that must not count.
   delete from public.leaderboard_opt_outs where subject_id in (host, guest);
-  insert into public.referrals (referrer_id, referred_id, code, status, qualified_at, month)
-  values (host, gen_random_uuid(), 'PROBE76', 'qualified', now(), private.lagos_month(now())),
-         (host, gen_random_uuid(), 'PROBE76', 'paid', now(), private.lagos_month(now())),
-         (guest, gen_random_uuid(), 'PROBE76', 'approved', last_month, private.lagos_month(last_month)),
-         (host, gen_random_uuid(), 'PROBE76', 'pending', null, null),
-         (host, gen_random_uuid(), 'PROBE76', 'reversed', now(), private.lagos_month(now()));
+  -- A referral that has qualified carries its terms (referrals_qualified_has_terms:
+  -- reward, campaign, period and review window), and every status but
+  -- attributed and reversed has qualified (referrals_live_was_qualified), so
+  -- the pending one is qualified this month too: its status alone keeps it off.
+  select id into camp from public.referral_campaigns order by created_at limit 1;
+  if camp is null then raise exception 'PROBE_FAIL d76 3: fixture needs a referral campaign row'; end if;
+  insert into public.referrals (referrer_id, referred_id, code, status, qualified_at, month,
+                                reward_minor, campaign_id, period_month, review_until)
+  values (host, gen_random_uuid(), 'PROBE76', 'qualified', now(), private.lagos_month(now()),
+          1, camp, private.lagos_month(now()), now() + interval '7 days'),
+         (host, gen_random_uuid(), 'PROBE76', 'paid', now(), private.lagos_month(now()),
+          1, camp, private.lagos_month(now()), now() + interval '7 days'),
+         (guest, gen_random_uuid(), 'PROBE76', 'approved', last_month, private.lagos_month(last_month),
+          1, camp, private.lagos_month(last_month), last_month + interval '7 days'),
+         (host, gen_random_uuid(), 'PROBE76', 'pending', now(), private.lagos_month(now()),
+          1, camp, private.lagos_month(now()), now() + interval '7 days'),
+         (host, gen_random_uuid(), 'PROBE76', 'reversed', now(), private.lagos_month(now()),
+          1, camp, private.lagos_month(now()), now() + interval '7 days');
 
   perform set_config('request.jwt.claims', json_build_object('sub', host::text, 'role', 'authenticated')::text, true);
 
