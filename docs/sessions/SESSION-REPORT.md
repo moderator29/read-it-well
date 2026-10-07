@@ -122,6 +122,16 @@ collapse to one card per row under 768px and 720px. False positive, nothing chan
 - **Face ID** on the phone needs a native rebuild; on Android it also needs the real
   SHA-256 signing fingerprints in `assetlinks.json` (placeholders today).
 
+- **Final apply order (D68d, supersedes the list below):** 1. `b3_rate_agreement_gate`
+  then immediately `b3x_fee_record_unify`; 2. `b2_rail_at_open` (only after the app build
+  that writes the rail is deployed); 3. `b6_member_money_rail`; 4. `d73a_stays_instant_pay`
+  (its switch row alone is live, `20261007132951`); 5. `d73b_provider_arrangements`;
+  6. `d75a_restaurant_deposits`, `d75b_stay_trip_details`; 7. `d68d_the_rail_decides_the_gate`;
+  then `p2_social_follow_suggestions` and `d76_leaderboards_and_directory`. Probes in
+  `supabase/tests/probes-pending/`. **His calls:** whether a brand-new hotel's first booking
+  goes to review (the first-deal signal applies to stays; `check_first_deal` can be turned
+  off or stays exempted); the direct-rail threshold (seeded at 3,000,000 naira). Rentals
+  have no payment path once b2 is applied until escrow is live (Payluk key).
 - **Apply order for every pending money migration (reviewed, none applied):**
   `d73a_stays_instant_pay`, `b6_member_money_rail`, `d73b_provider_arrangements`,
   `d75a_restaurant_deposits`, `d75b_stay_trip_details`, each with its probe in
