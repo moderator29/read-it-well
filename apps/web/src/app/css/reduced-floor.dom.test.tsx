@@ -28,7 +28,7 @@ vi.setConfig({ testTimeout: BROWSER_TEST_TIMEOUT });
 beforeAll(warmBrowser);
 afterAll(closeBrowser);
 
-const CSS = productCss("app/css/animation.css", "app/join/join.css", "app/s/door.css", "app/css/document.css");
+const CSS = productCss("app/css/animation.css", "app/s/door.css", "app/css/document.css");
 
 /* Fixtures beside the product rules: the opt-in on its own, its child, a
    transition, a loop and an element that never opted in. */
@@ -53,7 +53,6 @@ const ENTRY = `
     <div id="loop" className="t-loop" />
     <div id="trans" className="t-trans" />
     <div id="transplain" className="t-trans-plain" />
-    <div id="join" className="nf-join__island" />
     <div id="door" className="nf-door__card" />
     <div id="doc" className="nf-doc" />
   </div>);
@@ -89,10 +88,9 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the reduced-motion floor and it
     }
   });
 
-  it("gives the product's own quiet fades their 160ms: the join door, the share door, the document sheet", async () => {
+  it("gives the product's own quiet fades their 160ms: the share door, the document sheet (the join door left on 7 October 2026: an invite link is a route into the one onboarding)", async () => {
     const { page, close } = await mountInBrowser({ entry: ENTRY, css: CSS, reducedMotion: true });
     try {
-      expect(await read(page, "#join")).toMatchObject({ name: "nf-join-fade", duration: "0.16s", count: "1" });
       expect(await read(page, "#door")).toMatchObject({ name: "nf-door-fade", duration: "0.16s", count: "1" });
       expect(await read(page, "#doc")).toMatchObject({ name: "nf-doc-fade", duration: "0.16s", count: "1" });
     } finally {

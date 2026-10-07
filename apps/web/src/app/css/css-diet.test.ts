@@ -51,7 +51,6 @@ describe("the global stylesheet (C12)", () => {
     "public-doors.css": [
       "(landing)/layout.tsx",
       "(site)/layout.tsx",
-      "join/[code]/layout.tsx",
       "email/preferences/layout.tsx",
       "(app)/settings/invite/InviteShare.tsx",
     ],
