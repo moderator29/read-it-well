@@ -79,7 +79,10 @@ export function Hero({ t, locale, door }: { t: Dictionary; locale: Locale; door:
   const u = t.landingRooms.stack.ui;
 
   return (
-    <section className="nf-landing-hero" data-chapter="hero" data-theme="dark" aria-labelledby="nf-landing-title">
+    /* `data-startup-pin`: the intro is timed from the startup's door, and the
+       startup pins that time here before it lets go (landing-3d.css, "the
+       hero's own hold"), so nothing waiting jumps to its end. */
+    <section className="nf-landing-hero" data-chapter="hero" data-theme="dark" data-startup-pin="" aria-labelledby="nf-landing-title">
       {/* The back layer: the night photograph, at 0.6x. Decorative; the
           frames' villa is a picture of a place, not a listing. */}
       <div className="nf-hero-photo" aria-hidden="true">

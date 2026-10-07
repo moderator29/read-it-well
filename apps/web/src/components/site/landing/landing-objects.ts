@@ -22,6 +22,8 @@ export const LANDING_OBJECT_SIZE = {
   app: 36,
   check: 48,
   avatar: 32,
+  os: 72,
+  tile: 40,
 } as const;
 
 /** Find, Inspect, Agree, Move in. */
@@ -36,6 +38,17 @@ export const BENTO_OBJECTS = {
   messages: "envelope",
   agree: "shield",
   feed: "local-talks",
+} as const satisfies Record<string, Icon3DName>;
+
+/** The platform band's six layers, one object each, shown above the
+    layer's name (7 October: the founder's art across the landing). */
+export const OS_OBJECTS = {
+  trust: "id-check",
+  discover: "search",
+  intelligence: "assistant",
+  transactions: "card-secure",
+  operations: "calendar-booked",
+  ecosystem: "city",
 } as const satisfies Record<string, Icon3DName>;
 
 /** The eight kinds of place, by tile key. */

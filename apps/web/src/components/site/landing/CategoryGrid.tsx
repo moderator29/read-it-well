@@ -119,7 +119,7 @@ export function CategoryGrid({
       {/* THE CITIES (UIUX item 9): the map's chips, folded into this room
           under their own label, with the drawn map beside them (under them
           on a phone since Session 3's pass): the page's map moment. */}
-      <div className="nf-cities">
+      <MotionReveal className="nf-cities">
         <div className="nf-cities__list">
           <p className="nf-section-label">{m.cities}</p>
           <ul className="nf-map-room__list">
@@ -136,7 +136,7 @@ export function CategoryGrid({
         <div className="nf-cities__map">
           <NigeriaMapArt />
         </div>
-      </div>
+      </MotionReveal>
     </section>
   );
 }
