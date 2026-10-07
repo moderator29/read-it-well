@@ -5,6 +5,7 @@ import { formatMoney, intlTag, type Locale } from "@vallo/i18n/core";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { readAgreement, UNNAMED_OWNER, UNNAMED_RENTER } from "@/lib/agreements/queries";
+import { readHeldPayment } from "@/lib/money/held-view";
 import { readChangesSinceConfirmed } from "@/lib/agreements/changes-read";
 import type { TermChange } from "@/lib/agreements/terms-diff";
 import { AgreementChanges, type WordedChange } from "@/components/app/agreements/AgreementChanges";
@@ -132,6 +133,8 @@ export default async function AgreementPage({
   const words = t.experienceMoney.agreements;
   const pw = words.page;
   const LINES = termLines(t);
+  /* D68d step 8: a protected payment held by the provider has its own page. */
+  const held = a.kind === "rent" ? await readHeldPayment(a.id) : null;
   const [since, record] = await Promise.all([
     party && (a.status === "awaiting_parties" || a.status === "rejected") && !a.youConfirmedCurrent
       ? readChangesSinceConfirmed({
@@ -441,7 +444,15 @@ export default async function AgreementPage({
         </Section>
       ) : null}
 
-      {a.status === "approved" ? (
+      {held?.state === "ready" ? (
+        <Section title="Protected payment">
+          <Link href={`/agreements/${a.id}/held`} className="nf-btn nf-btn--primary nf-btn--md nf-btn--full" data-testid="agreement-held">
+            See where your money is held
+          </Link>
+        </Section>
+      ) : null}
+
+      {a.status === "approved" && held?.state !== "ready" ? (
         <Section title={AGREEMENT_PAYMENT_OPEN_TITLE}>
           {a.role === "renter" && payHref ? (
             <Link href={payHref} className="nf-btn nf-btn--primary nf-btn--md nf-btn--full" data-testid="agreement-pay">

@@ -106,4 +106,25 @@ describe("rail inputs for a booking", () => {
     expect(await railForBooking(db, "b1")).toEqual({ state: "resolved", rail: "direct", milestones: false, policyId: "p-h" });
     expect(db.calls).toEqual([{ p_property_type: "hotel", p_listing_intent: "rent", p_lister_kind: null }]);
   });
+
+  it("D73/D75: a fixed-price stay settles as a hotel room does, wherever it is listed; a rent charge never does", async () => {
+    const stay = { propertyType: "hotel", listingIntent: "rent", listerKind: "business" };
+    const room = fakeDb({
+      bookings: { b3: { id: "b3", listing_id: null, accommodation_id: "acc", room_type_id: "rt" } },
+      accommodations: { acc: { id: "acc", business_id: "biz" } },
+      businesses: { biz: { id: "biz", kind: "guest_house" } },
+    });
+    expect(await railInputsForBooking(room, "b3")).toEqual(stay);
+    const shortlet = fakeDb({
+      bookings: { b4: { id: "b4", listing_id: "l4" } },
+      listings: { l4: { id: "l4", property_type: "shortlet", listing_intent: "rent", agent_id: null, rate_period: "night" } },
+    });
+    expect(await railInputsForBooking(shortlet, "b4")).toEqual(stay);
+    const rent = fakeDb({
+      bookings: { b5: { id: "b5", listing_id: "l5" } },
+      rent_payments: { b5: { id: "rp5" } },
+      listings: { l5: { id: "l5", property_type: "shortlet", listing_intent: "rent", agent_id: null, rate_period: "night" } },
+    });
+    expect(await railInputsForBooking(rent, "b5")).toEqual({ propertyType: "shortlet", listingIntent: "rent", listerKind: null });
+  });
 });

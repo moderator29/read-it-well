@@ -58,6 +58,45 @@ export async function decideAgreement(input: {
   return ok({ status: String((data as Record<string, unknown>).agreement_status ?? "") });
 }
 
+/* D68d: Vallo reviews during the hold and can pause a release while it looks. */
+const PAUSE_WORDS: Record<string, string> = {
+  forbidden: "Your account cannot pause releases.",
+  reason_required: "Say why in at least ten characters.",
+  not_found: "That payment no longer exists.",
+  final: "That payment is already settled; there is nothing to pause.",
+};
+
+export async function pauseRelease(input: { arrangementId: string; reason: string }): Promise<ActionResult<null>> {
+  const access = await requireAdmin("agreements");
+  if (access.state !== "admin") return fail(adminRefusal(access));
+  const parsed = validate(z.object({ arrangementId: uuid, reason: z.string().trim().min(10, PAUSE_WORDS.reason_required!).max(1000) }), input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+  const { data, error } = await access.userClient.rpc("admin_pause_release" as never, {
+    p_arrangement: parsed.data.arrangementId,
+    p_reason: parsed.data.reason,
+  } as never);
+  if (error) return fail("The pause could not be recorded. Nothing changed. Try again.");
+  const status = String((data as Record<string, unknown> | null)?.status ?? "");
+  if (status !== "ok") return fail(PAUSE_WORDS[status] ?? "The pause could not be recorded.");
+  revalidatePath("/admin/agreements");
+  return ok(null);
+}
+
+export async function resumeRelease(input: { arrangementId: string }): Promise<ActionResult<null>> {
+  const access = await requireAdmin("agreements");
+  if (access.state !== "admin") return fail(adminRefusal(access));
+  const parsed = validate(z.object({ arrangementId: uuid }), input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+  const { data, error } = await access.userClient.rpc("admin_resume_release" as never, {
+    p_arrangement: parsed.data.arrangementId,
+  } as never);
+  if (error) return fail("The release could not be resumed. Nothing changed. Try again.");
+  const status = String((data as Record<string, unknown> | null)?.status ?? "");
+  if (status !== "ok") return fail(PAUSE_WORDS[status] ?? "The release could not be resumed.");
+  revalidatePath("/admin/agreements");
+  return ok(null);
+}
+
 const CLAIM_WORDS: Record<string, string> = {
   forbidden: "Your account cannot decide Guarantee claims.",
   reason_required: "Say why in at least ten characters. The claimant reads it.",
