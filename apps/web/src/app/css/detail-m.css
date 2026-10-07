@@ -226,6 +226,65 @@
     text-shadow: none;
   }
 
+  /* ------------------------------------------- THE PLASMA LEVEL (D74)
+     The founder's governing set (docs/design/references/2026-10-07/
+     GOVERNING-plasma-*.jpg): what floats over a photograph is SMOKED GLASS,
+     the near-black card of plasma-rewards-platinum, not the blue glass door;
+     there is at most ONE platinum object on a screen; the figure is in full
+     ink with its unit in grey; and the one primary action carries a soft
+     floor glow under it.
+
+     On the listing that is: the gallery's back, share, save, counter and
+     market mark in smoked glass; the Verified mark, when a person really
+     checked the listing, as the screen's one platinum object (the seal of
+     the Space Passport); the pinned figure in full ink with its caption
+     grey; and Book inspection with its glow. Metal and smoke do not change
+     with the lights, so none of this is themed. */
+  .nf-gallery .nf-icon-btn.nf-icon-btn--round,
+  .nf-gallery .nf-media-chip:not(.nf-media-chip--lg),
+  .nf-gallery .nf-gallery-mark.nf-badge--info {
+    border: var(--nf-border-width) solid var(--nf-smoked-glass-edge);
+    background: var(--nf-smoked-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    box-shadow: none;
+    color: var(--nf-content-on-media);
+  }
+  .nf-gallery .nf-gallery-mark.nf-badge--verified {
+    border: var(--nf-border-width) solid var(--nf-platinum-edge);
+    background: var(--nf-platinum-sheen), var(--nf-platinum-fill);
+    box-shadow: var(--nf-platinum-shadow);
+    color: var(--nf-platinum-ink);
+  }
+  /* Reduced transparency: the smoke goes solid rather than see-through. */
+  @media (prefers-reduced-transparency: reduce) {
+    .nf-gallery .nf-icon-btn.nf-icon-btn--round,
+    .nf-gallery .nf-media-chip:not(.nf-media-chip--lg),
+    .nf-gallery .nf-gallery-mark.nf-badge--info {
+      background: var(--nf-platinum-ink);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+  :root[data-transparency="reduced"] .nf-gallery :is(.nf-icon-btn.nf-icon-btn--round, .nf-media-chip:not(.nf-media-chip--lg), .nf-gallery-mark.nf-badge--info) {
+    background: var(--nf-platinum-ink);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  /* The figure in full ink, its caption grey: "305,860.9 XPL". It was the
+     brand blue, which on the night bar read as a link rather than a price. */
+  .nf-detail-foot .nf-detail-foot__figure {
+    color: var(--nf-content-primary);
+  }
+  /* The one primary, lit from under: the Plasma capsule's floor glow in the
+     brand's own blue, beneath the shadow it already had. */
+  .nf-detail-foot .nf-detail-foot__action.nf-btn--primary {
+    box-shadow:
+      var(--nf-act-shadow),
+      0 22px 44px -16px color-mix(in oklab, var(--nf-brand-primary) 60%, transparent);
+  }
+
   /* ------------------------------------------------- TRUE COST AS A BILL
      PREMIUM-STANDARD reference 8 (the founder's bill breakdown, 7 October),
      scoped to `.nf-movein--bill` so the listing wizard's money step, which

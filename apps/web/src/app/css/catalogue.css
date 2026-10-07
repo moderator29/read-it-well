@@ -3117,3 +3117,51 @@
     border-top: var(--nf-border-width) solid var(--nf-panel-hair);
   }
 }
+
+/* ===================================================== THE PLASMA LEVEL (D74)
+   What floats over a card's photograph is smoked glass, as the founder's
+   governing set draws it (docs/design/references/2026-10-07/
+   GOVERNING-plasma-rewards-platinum.jpg): the heart, the photo arrows, the
+   Verified mark and the "No photographs yet" word. One card design, so this
+   is home's shelves, search, saved and More like this at once. The Example
+   mark keeps its cyan outline: that disclosure is ruled never to look like
+   anything else. The map's floating card takes the same smoke. Metal and
+   smoke do not change with the lights, so none of this is themed. */
+@layer components {
+  .nf-pcard .nf-pcard__heart,
+  .nf-pcard .nf-pcard__photobtn,
+  .nf-pcard .nf-pcard__nophoto,
+  .nf-pcard .nf-pcard__mark.nf-pcard__mark--verified {
+    border-color: var(--nf-smoked-glass-edge);
+    background: var(--nf-smoked-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    box-shadow: none;
+  }
+  .nf-pcard .nf-pcard__mark.nf-pcard__mark--verified {
+    color: var(--nf-content-on-media);
+  }
+  .nf-pcard .nf-pcard__mark.nf-pcard__mark--verified > svg {
+    color: var(--nf-status-verified);
+  }
+  .nf-map-dock .nf-map-dock__card.nf-panel {
+    border-color: var(--nf-smoked-glass-edge);
+    background: var(--nf-smoked-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    backdrop-filter: blur(var(--nf-smoked-glass-blur));
+  }
+  @media (prefers-reduced-transparency: reduce) {
+    .nf-pcard :is(.nf-pcard__heart, .nf-pcard__photobtn, .nf-pcard__nophoto, .nf-pcard__mark--verified),
+    .nf-map-dock .nf-map-dock__card.nf-panel {
+      background: var(--nf-platinum-ink);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+  :root[data-transparency="reduced"]
+    :is(.nf-pcard .nf-pcard__heart, .nf-pcard .nf-pcard__photobtn, .nf-pcard .nf-pcard__nophoto, .nf-pcard .nf-pcard__mark--verified, .nf-map-dock .nf-map-dock__card.nf-panel) {
+    background: var(--nf-platinum-ink);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
