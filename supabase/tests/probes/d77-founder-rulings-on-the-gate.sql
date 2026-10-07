@@ -67,7 +67,10 @@ begin
     if not reasons ? 'first_deal' then
       raise exception 'PROBE_FAIL d77 1: an unverified business''s first deal under the threshold raised no signal: %', reasons;
     end if;
-    update public.businesses set verified = true, cac_number = 'RC-PROBE-D77' where id = biz;
+    -- A CAC number in the form businesses_cac_number_check accepts (RC + digits),
+    -- and verified as the platform records it: businesses_derive_badge derives
+    -- `verified` from verification_tier, so the tier is what is set.
+    update public.businesses set verification_tier = 1, verified = true, cac_number = 'RC-7700077' where id = biz;
     reasons := private.agreement_review_required(ag1.id) -> 'reasons';
     if reasons ? 'first_deal' then
       raise exception 'PROBE_FAIL d77 1: a verified business''s first deal under the threshold still raised first_deal';
