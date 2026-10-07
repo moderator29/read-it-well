@@ -24,23 +24,32 @@ import { signedOutStart } from "@/lib/catalogue/public-access";
  * cookie's presence decides. A wrong guess is harmless: `/home` and the
  * signed-out start both pass back through `proxy.ts`'s own time-bounded gate
  * on the very next request.
+ *
+ * NO COOKIE, NO ROUND TRIP (October 2026). Without a Supabase auth cookie
+ * there is no session for GoTrue to confirm, so the answer is already known:
+ * the signed-out start, straight away. Waiting on `resolveSession()` there
+ * cost a signed-out cold start one to three seconds of native splash for an
+ * answer that could only be "signed out". Only a request that carries the
+ * cookie pays for the round trip, still under the deadline.
  */
 const OPEN_TIMEOUT_MS = 3000;
 
-/** Cheap enough to call on every timeout: no network, just a cookie name. */
+/** Cheap enough to call on every request: no network, just a cookie name. */
 async function guessSignedIn(): Promise<boolean> {
   const jar = await cookies();
   return jar.getAll().some(({ name }) => name.startsWith("sb-") && name.includes("-auth-token"));
 }
 
 async function signedInWithDeadline(): Promise<boolean> {
+  if (!(await guessSignedIn())) return false;
   let timer: ReturnType<typeof setTimeout> | undefined;
   const timeout = new Promise<"timeout">((resolve) => {
     timer = setTimeout(() => resolve("timeout"), OPEN_TIMEOUT_MS);
   });
   try {
     const outcome = await Promise.race([resolveSession(), timeout]);
-    if (outcome === "timeout") return guessSignedIn();
+    /* The cookie is there (checked above), so the guess is "signed in". */
+    if (outcome === "timeout") return true;
     return outcome.state === "signed-in";
   } finally {
     clearTimeout(timer);

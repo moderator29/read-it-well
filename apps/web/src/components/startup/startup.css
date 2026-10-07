@@ -1,7 +1,7 @@
 /*
  * THE STARTUP SEQUENCE (directive D31, MOTION_SYSTEM.md section 3). The markup
- * is `StartupSequence.tsx`; the one thing CSS cannot know (whether the page
- * has arrived, and whether a finger asked to skip) is `startup-script.ts`.
+ * is `StartupSequence.tsx`; the things CSS cannot know (a finger asking to
+ * skip, the native splash still covering the page) are `startup-script.ts`.
  * Imported by the component, which the root layout renders, so it is in the
  * root stylesheet and never waits on a chunk.
  *
@@ -9,56 +9,44 @@
  * `data-splash="on"`; gone for good once the script moves the flag to "done"
  * (threshold.css hides `.nf-splash` outside "on").
  *
- * THE BEATS, against the spec's table:
+ * THE BEATS (October 2026: the real brand art, not a vector redraw). Motion
+ * is transform and opacity only:
  *
- *   ground      0 to 120      the bare navy ground, the native splash's own
- *                             colour and nothing on it, exactly as the system
- *                             splash left the screen; nothing moves for 120ms
- *   mark        120 to 480    at the optical centre and twice the size it will
- *                             end at: turns 12 degrees to 0 and scales 0.86
- *                             to 1 (360ms, land); its six facets arrive from
- *                             depth 12ms apart (300ms each, land)
- *   wordmark    380 to 720    letters from depth, 24ms apart, blur 6 to 0
- *                             (244ms each, glide)
- *   edge light  640 to 900    each facet and letter catches the light in
- *                             turn, left to right (160ms each, glide)
- *   breath      900 to 1150   1.0 1.02 1.0 (250ms, drift)
- *   door        1150 to 1530  the leaves part (350ms, leave), the wordmark
- *                             goes with them, and the mark rises out of the
- *                             parting ground and lands, at its own size, in
- *                             the first screen's mark (380ms, land): on Get
- *                             Started and the passcode lock the mark the
- *                             member sees next IS the one that just assembled
+ *   ground      0 to 60       the bare navy ground, the native splash's own
+ *                             colour and nothing on it
+ *   glow        0 to 900      a soft radial bloom behind the mark, opacity
+ *                             and scale (900ms, land)
+ *   mark        60 to 760     the glass mark rises into place: translateY 24px
+ *                             and scale 0.86, transparent, to rest (700ms,
+ *                             land)
+ *   wordmark    180 to 680    the chrome wordmark, 120ms behind: translateY
+ *                             12px, transparent, to rest (500ms, land)
+ *   sweep       560 to 1460   one diagonal light across the glass, masked to
+ *                             the mark's own shape (900ms, glide)
+ *   door        1350 to 1750  the whole overlay fades and lifts, 1 to 1.04
+ *                             (400ms, leave); the page comes forward beneath
+ *                             it on the same number (threshold.css)
  *
- * THE DOOR IS ON THE STYLESHEET'S CLOCK, NOT THE SCRIPT'S. Every part of the
- * door (and the first screen's entrance beneath it, `get-started.css`, and
- * the page coming forward, `threshold.css`) is delayed by one number,
- * `--nf-startup-door`, which is 1150ms: the beats' own schedule. So when the
- * page is there in time, the door opens at 1150ms on the compositor and no
- * JavaScript is involved in when. It used to wait for a script to see the
- * breath's `animationend`, and on a mid-range Android at hydration (4x CPU)
- * that event arrived 250ms late or not at all, so the sequence held the
- * product back exactly when the phone was busiest. The script now only MOVES
- * the number: to the moment of a tap or a key (skip), to the four-second
- * ceiling while the page is still streaming (the hold), and back to "now, or
- * 1150ms if that has not passed" when it arrives. The ceiling is therefore
- * the stylesheet's too: nothing can hold the overlay past it.
+ * THE DOOR IS ON THE STYLESHEET'S CLOCK, NOT THE SCRIPT'S. Everything that
+ * waits on the door (the overlay's own fade, the page coming forward in
+ * `threshold.css`, every entrance held by `--nf-splash-hold`) is delayed by
+ * one number, `--nf-startup-door`, 1350ms. The script only MOVES it, to the
+ * moment of a tap or a key. It no longer holds it for a page still
+ * streaming: the door opens onto that page's own loading skeleton.
  *
- * WHERE THE LOCKUP SETTLES. The lockup's box is Get Started's mark
- * (`app/welcome/lockup.ts`: the same top, the same 2.75rem width, centred)
- * and the lock's. During the beats it is drawn up from there by a transform
- * (`--nf-startup-rise`, `--nf-startup-hero`) to the optical centre at twice
- * the size, and the door's `nf-startup-land` takes the transform away, so
- * where it lands is the layout's own box and never a measured number.
+ * THE NATIVE WAIT. On the shell, the script holds every animation on the
+ * page at its first frame (`data-startup-native="wait"`) until the native
+ * splash has been told to go (600ms at most), so the rise is never played out
+ * of sight beneath it. All of them, not only the overlay's, so the page and
+ * the door stay on one clock.
  *
  * QUIET, under the platform's reduced-motion setting (MOTION_SYSTEM.md
- * section 3, "a 160ms crossfade under reduced motion"): the settled lockup is
- * simply there, in the first screen's mark position, nothing assembles,
- * breathes, rises or parts, and after 600ms (long enough to read as a still
- * frame rather than a flicker) the whole overlay crossfades away over 160ms.
- * Calm, Off, the splash switch and data saver never show it at all (the
- * gate, `startup-script.ts`); there the native splash comes down on the
- * page's first frame and the page's own entrance is the opening.
+ * section 3): the lockup is simply there, still, nothing rises, blooms or
+ * sweeps, and after 500ms (long enough to read as a still frame rather than
+ * a flicker) the whole overlay crossfades away over 200ms. Calm, Off, the
+ * splash switch and data saver never show it at all (the gate,
+ * `startup-script.ts`); there the native splash comes down on the page and
+ * the page's own entrance is the opening.
  */
 /*
  * THE LAYER ORDER, RESTATED. This sheet can reach the document before
@@ -75,30 +63,31 @@
      page beneath reads the same number; the script writes it inline on the
      root when it moves it. */
   :root[data-splash="on"] {
-    --nf-startup-door: 1150ms;
+    --nf-startup-door: 1350ms;
+  }
+
+  /* The native wait: every animation on the page held at its first frame
+     until the native splash is going (startup-script.ts). `!important`
+     because an `animation` shorthand anywhere resets the play state. */
+  :root[data-startup-native="wait"] *,
+  :root[data-startup-native="wait"] *::before,
+  :root[data-startup-native="wait"] *::after {
+    animation-play-state: paused !important;
   }
 
   :root[data-splash="on"] .nf-splash.nf-startup {
-    --nf-startup-top: calc(env(safe-area-inset-top, 0px) + clamp(3rem, 11dvh, 6.5rem));
-    --nf-startup-mark: 2.75rem;
-    --nf-startup-word: 5.5rem;
-    /* The lockup's own height at rest: the mark (614 by 587), the gap, the
-       wordmark (766 by 158). */
-    --nf-startup-tall: calc(
-      var(--nf-startup-mark) * 587 / 614 + var(--nf-space-sm) + var(--nf-startup-word) * 158 / 766
-    );
-    /* During the beats the lockup is twice its settled size, its centre at
-       46% of the screen: the optical centre, a little above the middle, where
-       a single mark in silence sits (references 7044, 7114). It scales from
-       its top edge, so this is how far its top travels. */
-    --nf-startup-hero: 2;
-    --nf-startup-rise: calc(46dvh - var(--nf-startup-top) - var(--nf-startup-tall));
+    /* The mark and the wordmark at rest; the files are twice these. */
+    --nf-startup-mark: clamp(6.5rem, 34vw, 8.75rem);
+    --nf-startup-word: clamp(7.5rem, 38vw, 9.75rem);
 
     position: fixed;
     inset: 0;
     z-index: var(--nf-z-top);
     display: block;
     overflow: hidden;
+    /* The native splash's own navy, in both themes: the art is made for it. */
+    background: var(--nf-ink-950);
+    transform-origin: 50% 46%;
     /* A tap anywhere is the skip (startup-script.ts) until the door opens;
        from the door's first frame the overlay lets every tap through (the
        door's keyframes), because nothing may block interaction (MOTION_SYSTEM
@@ -106,300 +95,177 @@
        while it waits. */
     pointer-events: auto;
     cursor: default;
-    animation: nf-startup-door 380ms var(--nf-ease-exit) var(--nf-startup-door) forwards;
-  }
-
-  .nf-startup__leaf {
-    position: absolute;
-    inset-block: 0;
-    width: 50.5%;
-    background: var(--nf-surface-artwork);
-  }
-  .nf-startup__leaf--a {
-    left: 0;
-    animation: nf-startup-leaf-a 350ms var(--nf-ease-exit) var(--nf-startup-door) both;
-  }
-  .nf-startup__leaf--b {
-    right: 0;
-    animation: nf-startup-leaf-b 350ms var(--nf-ease-exit) var(--nf-startup-door) both;
+    animation: nf-startup-door 400ms var(--nf-ease-exit) var(--nf-startup-door) forwards;
   }
 
   /* ---------------------------------------------------------- the lockup */
 
-  /* The box is the first screen's mark box; the beats happen up and to the
-     centre of it (the backwards fill of `nf-startup-land`), and the door
-     brings it home. */
+  /* At the optical centre, a little above the middle of the screen. */
   .nf-startup__lockup {
     position: absolute;
-    top: var(--nf-startup-top);
+    top: 46%;
     left: 50%;
-    width: var(--nf-startup-word);
-    margin-left: calc(var(--nf-startup-word) / -2);
-    transform-origin: 50% 0;
-    animation: nf-startup-land 380ms var(--nf-ease-entrance) var(--nf-startup-door) both;
-  }
-
-  /* The breath lives on its own element, inside the travel, so a breath at
-     the centre is a breath about the lockup's own middle and never moves it
-     up or down the screen. */
-  .nf-startup__breath {
+    translate: -50% -50%;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: var(--nf-space-sm);
-    transform-origin: 50% 30%;
-    /*
-     * The hold is bounded: two alternating passes (out, then back) end at rest
-     * at scale 1, 4,800ms after it starts. The door opens by the four-second
-     * ceiling at the latest, which is inside that, so the bound is never the
-     * thing that ends a normal start; it is there so nothing can loop if the
-     * overlay is somehow left on (MOTION_SYSTEM principle 10).
-     *
-     * The settle is third in the list on purpose. It has only a `to`
-     * keyframe, so whatever the breath and the hold beneath it are showing
-     * when the door opens is where it starts, and it eases that to exactly 1
-     * over the door; before the door it adds nothing.
-     */
-    animation:
-      nf-startup-breath 250ms var(--nf-ease-spring) 900ms,
-      nf-startup-hold 2400ms var(--nf-ease-standard) 1150ms 2 alternate,
-      nf-startup-settle 350ms var(--nf-ease-exit) var(--nf-startup-door) both;
+    gap: var(--nf-space-md);
+  }
+
+  .nf-startup__glow {
+    position: absolute;
+    top: calc(var(--nf-startup-mark) * 268 / 280 / 2);
+    left: 50%;
+    width: calc(var(--nf-startup-mark) * 2.2);
+    aspect-ratio: 1;
+    translate: -50% -50%;
+    border-radius: var(--nf-radius-pill);
+    background: radial-gradient(
+      closest-side,
+      color-mix(in oklab, var(--nf-brand-quiet) 32%, transparent),
+      color-mix(in oklab, var(--nf-brand-quiet) 14%, transparent) 35%,
+      color-mix(in oklab, var(--nf-brand-quiet) 5%, transparent) 62%,
+      color-mix(in oklab, var(--nf-brand-quiet) 0%, transparent) 88%
+    );
+    pointer-events: none;
+    animation: nf-startup-bloom 900ms var(--nf-ease-entrance) both;
   }
 
   .nf-startup__mark {
     position: relative;
     width: var(--nf-startup-mark);
-    aspect-ratio: 614 / 587;
-    color: var(--nf-brand-quiet);
-    animation: nf-startup-turn 360ms var(--nf-ease-entrance) 120ms both;
+    aspect-ratio: 280 / 268;
+    animation: nf-startup-rise 700ms var(--nf-ease-entrance) 60ms both;
   }
-  .nf-startup__facet {
+  .nf-startup__mark-img,
+  .nf-startup__word {
+    display: block;
+    height: auto;
+    user-select: none;
+    -webkit-user-drag: none;
+  }
+  .nf-startup__mark-img {
+    width: 100%;
+  }
+
+  /* The sweep: a static box masked to the mark's own shape, with the light
+     travelling inside it, so the light is only ever ON the glass. */
+  .nf-startup__shine {
     position: absolute;
     inset: 0;
-    width: 100%;
-    height: 100%;
-    animation:
-      nf-startup-facet 300ms var(--nf-ease-entrance) calc(120ms + var(--nf-i, 0) * 12ms) both,
-      nf-startup-glint 160ms var(--nf-ease-standard) calc(640ms + var(--nf-x, 0ms));
+    overflow: hidden;
+    pointer-events: none;
+    -webkit-mask-image: url("/brand/startup/vallo-mark.webp");
+    mask-image: url("/brand/startup/vallo-mark.webp");
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+  }
+  .nf-startup__shine::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      105deg,
+      transparent 32%,
+      rgb(255 255 255 / 0.62) 50%,
+      transparent 68%
+    );
+    transform: translateX(-120%);
+    animation: nf-startup-sweep 900ms var(--nf-ease-standard) 560ms both;
   }
 
   .nf-startup__word {
-    position: relative;
-    width: 100%;
-    aspect-ratio: 766 / 158;
-    color: color-mix(in oklab, var(--nf-content-on-brand) 86%, var(--nf-brand-quiet));
-    animation: nf-startup-out 350ms var(--nf-ease-exit) var(--nf-startup-door) both;
-  }
-  .nf-startup__letter {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    transform-origin: var(--nf-o, 50%) 49%;
-    animation:
-      nf-startup-letter 244ms var(--nf-ease-standard) calc(380ms + var(--nf-i, 0) * 24ms) both,
-      nf-startup-glint 160ms var(--nf-ease-standard) calc(640ms + var(--nf-x, 0ms));
-  }
-  /* Each letter comes out of depth about its own centre (the wordmark's
-     viewBox, measured): V, the barless A, L, L, O. */
-  .nf-startup__letter:nth-child(1) {
-    --nf-o: 12.3%;
-  }
-  .nf-startup__letter:nth-child(2) {
-    --nf-o: 31.5%;
-  }
-  .nf-startup__letter:nth-child(3) {
-    --nf-o: 53.1%;
-  }
-  .nf-startup__letter:nth-child(4) {
-    --nf-o: 70.6%;
-  }
-  .nf-startup__letter:nth-child(5) {
-    --nf-o: 89.7%;
-  }
-
-  /*
-   * The edge light, sweeping the lockup once, left to right: each facet and
-   * each letter catches the light in turn by where it sits across the lockup
-   * (`--nf-x`: the mark spans the middle of the lockup, 25 to 75ms; each
-   * letter its own centre, 12 to 90ms), so the light is only ever ON the
-   * shapes and never a band across the ground. 160ms each, done by 900.
-   */
-  .nf-startup__facet {
-    --nf-x: calc(25ms + var(--nf-i, 0) * 10ms);
-  }
-  .nf-startup__letter:nth-child(1) {
-    --nf-x: 12ms;
-  }
-  .nf-startup__letter:nth-child(2) {
-    --nf-x: 32ms;
-  }
-  .nf-startup__letter:nth-child(3) {
-    --nf-x: 53ms;
-  }
-  .nf-startup__letter:nth-child(4) {
-    --nf-x: 71ms;
-  }
-  .nf-startup__letter:nth-child(5) {
-    --nf-x: 90ms;
-  }
-
-  /* ------------------------------------------------- the first screen's mark */
-
-  /*
-   * Any first screen but Get Started or the passcode lock: the mark has
-   * nowhere to land, so it fades as it rises, with the wordmark. On those two
-   * it lands, because their own mark is in exactly the lockup's box
-   * (`app/welcome/lockup.ts`; the lock's `--nf-passcode-mark-top`), and theirs
-   * is kept out of sight until it has (below), so launching and unlocking
-   * read as one movement with one mark (D32). The lock lifts its mark on a
-   * short window (passcode.css, 700px and less), so there the startup's mark
-   * leaves too.
-   */
-  :root[data-splash="on"]:not(:has(.nf-gsm, .nf-passcode--overlay)) .nf-startup__mark {
-    animation:
-      nf-startup-turn 360ms var(--nf-ease-entrance) 120ms both,
-      nf-startup-out 350ms var(--nf-ease-exit) var(--nf-startup-door) both;
-  }
-  @media (max-height: 700px) {
-    :root[data-splash="on"]:has(.nf-passcode--overlay):not(:has(.nf-gsm)) .nf-startup__mark {
-      animation:
-        nf-startup-turn 360ms var(--nf-ease-entrance) 120ms both,
-        nf-startup-out 350ms var(--nf-ease-exit) var(--nf-startup-door) both;
-    }
-  }
-  /* The first screen's own mark is not on screen until the startup's has
-     landed on it: through the parting leaves there is one mark, travelling,
-     never a second one already waiting at the top. A held first keyframe
-     for exactly that long, then nothing. */
-  :root[data-splash="on"] :is(.nf-gsm__vmark, .nf-passcode--overlay .nf-passcode__mark) {
-    animation: nf-startup-under 1ms step-end calc(var(--nf-startup-door) + 380ms) backwards;
+    width: var(--nf-startup-word);
+    animation: nf-startup-follow 500ms var(--nf-ease-entrance) 180ms both;
   }
 
   /* ----------------------------------------------------------- keyframes */
 
-  @keyframes nf-startup-land {
-    from {
-      transform: translateY(var(--nf-startup-rise)) scale(var(--nf-startup-hero));
-    }
-    to {
-      transform: none;
-    }
-  }
-  @keyframes nf-startup-turn {
-    from {
-      transform: rotate(-12deg) scale(0.86);
-    }
-  }
-  @keyframes nf-startup-facet {
+  @keyframes nf-startup-bloom {
     from {
       opacity: 0;
-      transform: scale(1.3);
-      filter: blur(3px);
+      transform: scale(0.6);
     }
     to {
       opacity: 1;
       transform: none;
-      filter: none;
     }
   }
-  @keyframes nf-startup-letter {
+  @keyframes nf-startup-rise {
     from {
       opacity: 0;
-      transform: scale(1.4);
-      filter: blur(6px);
+      transform: translateY(24px) scale(0.86);
     }
     to {
       opacity: 1;
       transform: none;
-      filter: none;
     }
   }
-  @keyframes nf-startup-glint {
-    50% {
-      filter: brightness(1.7);
-    }
-  }
-  @keyframes nf-startup-breath {
-    50% {
-      scale: 1.02;
-    }
-  }
-  @keyframes nf-startup-hold {
-    to {
-      scale: 1.015;
-    }
-  }
-  @keyframes nf-startup-settle {
-    to {
-      scale: 1;
-    }
-  }
-  @keyframes nf-startup-leaf-a {
-    to {
-      transform: translateX(-101%);
-    }
-  }
-  @keyframes nf-startup-leaf-b {
-    to {
-      transform: translateX(101%);
-    }
-  }
-  @keyframes nf-startup-out {
-    to {
-      opacity: 0;
-    }
-  }
-  @keyframes nf-startup-under {
+  @keyframes nf-startup-follow {
     from {
       opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
     }
   }
-  /* The overlay itself stays visible for the door, lets every tap through
-     from its first frame, and then stops painting; its `animationend` is the
+  @keyframes nf-startup-sweep {
+    from {
+      transform: translateX(-120%);
+    }
+    to {
+      transform: translateX(120%);
+    }
+  }
+  /* The door: the overlay lets every tap through from its first frame,
+     fades and lifts, and then stops painting; its `animationend` is the
      script's signal to release the flag. */
   @keyframes nf-startup-door {
     from {
       pointer-events: none;
     }
     to {
-      pointer-events: none;
+      opacity: 0;
+      transform: scale(1.04);
       visibility: hidden;
+      pointer-events: none;
     }
   }
 
-  /* A low-end device: the facets and letters still arrive, without the blur. */
-  :root[data-motion-lite="on"] :is(.nf-startup__facet, .nf-startup__letter) {
-    filter: none !important;
-  }
-
   /*
-   * QUIET: the platform's reduced-motion setting (MOTION_SYSTEM.md section 3,
-   * "a 160ms crossfade under reduced motion"). The settled lockup is drawn
-   * still, exactly where the first screen's mark is, so nothing in the
-   * crossfade travels: the ground and the wordmark dissolve and the mark is
-   * the same mark before and after. 600ms of still frame (a lockup that
-   * appeared and vanished inside 300ms would read as a flash, which is the
-   * opposite of what the setting asks for), then the fade, on the
-   * `standard` curve rather than linear, which reads as a flicker at its end.
+   * QUIET: the platform's reduced-motion setting (MOTION_SYSTEM.md section 3).
+   * The lockup is drawn still and at rest; nothing blooms, rises or sweeps.
+   * 500ms of still frame (a lockup that appeared and vanished inside 300ms
+   * would read as a flash, the opposite of what the setting asks for), then
+   * a 200ms crossfade, on the `standard` curve rather than linear, which
+   * reads as a flicker at its end. Opacity only: no lift.
    *
    * The duration and the delay are opted out of the reduced-motion floor
    * (`animation.css`) through its registered properties, on this element
    * only: without them the floor makes the fade instant at the first frame.
    * The same rules catch the setting being switched on WHILE the sequence is
-   * playing: the lockup stops where it is wanted and the fade takes over.
+   * playing: the lockup comes to rest and the fade takes over.
    */
   @media (prefers-reduced-motion: reduce) {
     :root[data-splash="on"] {
-      --nf-startup-door: 600ms;
+      --nf-startup-door: 500ms;
     }
-    .nf-startup :is(.nf-startup__leaf, .nf-startup__lockup, .nf-startup__breath, .nf-startup__mark, .nf-startup__word, .nf-startup__facet, .nf-startup__letter) {
+    .nf-startup :is(.nf-startup__glow, .nf-startup__mark, .nf-startup__word) {
       animation: none !important;
     }
+    .nf-startup .nf-startup__shine {
+      display: none;
+    }
     :root[data-splash="on"] .nf-splash.nf-startup {
-      --nf-reduced-duration: 160ms;
+      --nf-reduced-duration: 200ms;
       --nf-reduced-delay: var(--nf-startup-door);
-      animation: nf-startup-fade 160ms var(--nf-ease-standard) var(--nf-startup-door) forwards;
+      animation: nf-startup-fade 200ms var(--nf-ease-standard) var(--nf-startup-door) forwards;
     }
   }
   @keyframes nf-startup-fade {

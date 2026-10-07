@@ -1,42 +1,40 @@
 /**
  * The first open in a real Chromium, with the real stylesheets (the tokens,
- * the reduced-motion floor in `animation.css`, the startup and Get Started)
- * and the real inline script, reading what the browser computes rather than
- * the clock (`startup-script.test.ts` holds the script's own timing):
+ * the reduced-motion floor in `animation.css`, the startup's own) and the
+ * real inline script and brand images, reading what the browser computes
+ * rather than the clock (`startup-script.test.ts` holds the script's own
+ * timing):
  *
- *   - ready early, the door opens at 1150ms on the stylesheet's clock, even
- *     when the main thread is blocked across it (a mid-range phone hydrating),
- *     and Get Started's entrance comes out of it on the same clock;
- *   - a tap skips it at once, the mark rises out of the parting ground and
- *     lands exactly on Get Started's mark, and the tap's own click does not
- *     land on what the door reveals; a tap after the door is the member's;
- *   - a page still streaming holds it, settled and breathing, until the page
- *     has arrived, and the lockup eases out of the hold rather than snapping;
- *   - under the platform's reduced-motion setting the still lockup sits on
- *     Get Started's mark and leaves by a real 160ms crossfade (not the
- *     floor's instant cut);
- *   - the native splash comes down on the first painted frame whether or not
- *     the sequence plays.
+ *   - the real glass mark and chrome wordmark are drawn (images, not the
+ *     vector redraw), the mark rises and the wordmark follows, and one light
+ *     sweeps the glass, masked to the mark's own shape;
+ *   - the door opens at 1350ms on the stylesheet's clock, even when the main
+ *     thread is blocked across it (a mid-range phone hydrating), and fades
+ *     and lifts the whole overlay;
+ *   - a page still streaming does NOT hold it: the door opens on schedule;
+ *   - a tap skips it at once and the tap's own click does not land on what
+ *     the door reveals; a tap after the door is the member's;
+ *   - under the platform's reduced-motion setting the lockup is still and
+ *     leaves by a real 200ms crossfade at 500ms (not the floor's instant cut);
+ *   - the native splash is told to hide on the document's first parse,
+ *     before load and before any frame, whether or not the sequence plays,
+ *     and the beats are held at their first frame until it has answered.
  */
 import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 import { transformSync } from "esbuild";
 import { renderToStaticMarkup } from "react-dom/server";
 import { chromium, type Browser, type BrowserContextOptions, type Page } from "playwright-core";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { getDictionary } from "@vallo/i18n";
 import { BROWSER_TEST_TIMEOUT, hasBrowser } from "@/lib/testing/mount-in-browser";
-import { forWelcome } from "@/components/auth/auth-copy";
-import { WelcomeIntro } from "@/app/welcome/WelcomeIntro";
 import { StartupSequence } from "./StartupSequence";
 
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push: () => undefined, refresh: () => undefined }) }));
 vi.setConfig({ testTimeout: BROWSER_TEST_TIMEOUT });
 
 const WEB = join(__dirname, "..", "..", "..");
 const read = (...parts: string[]) => readFileSync(join(WEB, ...parts), "utf8");
-/* Minified, as a production build serves it: a minifier writes 1150ms as
-   1.15s, and the script reads the stylesheet's numbers. */
+/* Minified, as a production build serves it: a minifier writes 1350ms as
+   1.35s, and the script reads the stylesheet's numbers. */
 const CSS = transformSync(
   [
     read("..", "..", "packages", "design-tokens", "src", "tokens.css"),
@@ -45,7 +43,6 @@ const CSS = transformSync(
     /* threshold.css's half of the contract: the overlay is hidden outside "on". */
     "@layer components { .nf-splash { display: none; } }",
     read("src", "components", "startup", "startup.css"),
-    read("src", "app", "welcome", "get-started.css"),
     "body { margin: 0; } #beneath { position: fixed; inset: 0; }",
   ].join("\n"),
   { loader: "css", minify: true },
@@ -66,8 +63,6 @@ afterAll(async () => {
   await browser?.close();
 });
 
-/** Get Started as the server renders it, the first screen of a cold start. */
-const GET_STARTED = renderToStaticMarkup(<WelcomeIntro t={forWelcome(getDictionary("en"))} />);
 /** A plain page: one full-screen button that counts its clicks. */
 const BUTTON = `<button id="beneath" type="button">Get started</button>`;
 /** React's marker for a Suspense boundary whose content has not streamed in yet. */
@@ -75,33 +70,31 @@ const PENDING = `<!--$?--><template id="B:0"></template><p>Loading</p><!--/$-->`
 
 /**
  * Instruments every page: clicks that reach the document (an eaten click
- * never does), the sequence's own clock, and a stand-in for the
- * Capacitor bridge that records when the native splash is told to hide.
+ * never does), the sequence's own clock, and (when `__native` is set) a
+ * stand-in for the Capacitor bridge that records when the native splash is
+ * told to hide and answers after `__native` milliseconds.
  */
 const PROBE = `
   window.__clicks = 0;
   document.addEventListener("click", (e) => { e.preventDefault(); window.__clicks++; }, true);
-  /* The sequence's clock: the time since the overlay's first frame, which
-     is the frame every beat starts on. */
+  /* The sequence's clock: the time since the overlay's first frame. */
   window.__t0 = -1;
   /* On the overlay's first frame, before any door can open, what the
      stylesheet has declared for it: read in the page, so a busy machine that
      answers late cannot make the test race a short-lived animation. */
   const declared = () => {
-    const css = (s) => { const el = document.querySelector(s); return el ? getComputedStyle(el) : null; };
-    const box = (s) => { const r = document.querySelector(s)?.getBoundingClientRect(); return r ? { x: r.x, y: r.y, w: r.width } : null; };
-    const overlay = css(".nf-startup"), front = css(".nf-gsm__front"), letter = css(".nf-startup__letter");
+    const css = (s) => getComputedStyle(document.querySelector(s));
+    const overlay = css(".nf-startup"), mark = css(".nf-startup__mark");
     return {
       display: overlay.display,
       name: overlay.animationName,
       duration: overlay.animationDuration,
       delay: overlay.animationDelay,
-      letters: letter.animationName,
-      opacity: letter.opacity,
-      lockup: css(".nf-startup__lockup").transform,
-      front: front ? [front.animationName, front.animationDuration, front.animationDelay] : null,
-      mark: box(".nf-startup__mark"),
-      target: box(".nf-gsm__mark"),
+      mark: mark.animationName,
+      opacity: mark.opacity,
+      transform: mark.transform,
+      word: css(".nf-startup__word").opacity,
+      shine: css(".nf-startup__shine").display,
     };
   };
   const first = (t) => {
@@ -112,31 +105,31 @@ const PROBE = `
   };
   requestAnimationFrame(first);
   window.__clock = () => (window.__t0 < 0 ? -1 : performance.now() - window.__t0);
-  /* Where the mark is on the door's last frame, before the release hides it. */
-  document.addEventListener("animationend", (e) => {
-    if (!(e.target instanceof Element) || !e.target.classList.contains("nf-startup")) return;
-    const r = document.querySelector(".nf-startup__mark").getBoundingClientRect();
-    window.__landed = { x: r.x, y: r.y, w: r.width };
-  }, true);
   window.__hides = [];
-  window.Capacitor = {
-    isNativePlatform: () => true,
-    nativePromise: (plugin, method, options) => {
-      window.__hides.push({ plugin, method, options, at: performance.now(), loaded: document.readyState === "complete" });
-      return Promise.resolve();
-    },
-  };
+  window.__frames = 0;
+  requestAnimationFrame(function count() { window.__frames++; requestAnimationFrame(count); });
+  const wait = Number(new URLSearchParams(location.search).get("native"));
+  if (location.search.includes("native")) {
+    window.Capacitor = {
+      isNativePlatform: () => true,
+      nativePromise: (plugin, method, options) => {
+        window.__hides.push({ plugin, method, options, frames: window.__frames, loaded: document.readyState === "complete" });
+        return new Promise((r) => setTimeout(r, wait));
+      },
+    };
+  }
 `;
 
 /**
  * The page as the root layout draws it on a cold start: the gate has set the
  * flag (unless `gate` is false), the page is above in the document, and the
  * overlay and its script follow. `slow` holds the document open after the
- * overlay (a parser-blocking script the server is slow to send).
+ * overlay (a parser-blocking script the server is slow to send). `native`,
+ * when set, installs the bridge, answering the hide after that many ms.
  */
 async function open(
   context: BrowserContextOptions,
-  { slow = 0, beneath = GET_STARTED, gate = true, slowImage = 0 } = {},
+  { slow = 0, beneath = BUTTON, gate = true, slowImage = 0, native = null as number | null } = {},
 ): Promise<{ page: Page; close: () => Promise<void> }> {
   const ctx = await browser!.newContext({ viewport: { width: 390, height: 844 }, ...context });
   const page = await ctx.newPage();
@@ -150,7 +143,14 @@ async function open(
     await new Promise((r) => setTimeout(r, slowImage));
     await route.fulfill({ contentType: "image/png", body: Buffer.alloc(0) });
   });
-  await page.route("http://vallo.test/", (route) =>
+  /* The real brand images, from public/. */
+  await page.route(/^http:\/\/vallo\.test\/brand\/startup\//, (route) =>
+    route.fulfill({
+      contentType: "image/webp",
+      body: readFileSync(join(WEB, "public", "brand", "startup", basename(new URL(route.request().url()).pathname))),
+    }),
+  );
+  await page.route(/^http:\/\/vallo\.test\/(\?.*)?$/, (route) =>
     route.fulfill({
       contentType: "text/html",
       body: `<!doctype html><html lang="en"${gate ? ' data-splash="on"' : ""}><head><meta name="viewport" content="width=device-width, initial-scale=1"><style>${CSS}</style></head><body>
@@ -161,131 +161,138 @@ async function open(
       </body></html>`,
     }),
   );
-  await page.goto("http://vallo.test/", { waitUntil: "commit" });
+  await page.goto(native === null ? "http://vallo.test/" : `http://vallo.test/?native=${native}`, { waitUntil: "commit" });
   await page.waitForSelector(".nf-startup", { state: "attached" });
   return { page, close: () => ctx.close() };
 }
 
 const clicks = (page: Page) => page.evaluate(() => (window as unknown as { __clicks: number }).__clicks);
-const root = (page: Page, key: "splash" | "startup") => page.evaluate((k) => document.documentElement.dataset[k], key);
+const root = (page: Page, key: "splash" | "startup" | "startupNative") => page.evaluate((k) => document.documentElement.dataset[k], key);
 const at = (page: Page, ms: number) =>
   page.waitForFunction((t) => (window as unknown as { __clock: () => number }).__clock() >= t, ms, { timeout: 8000 });
-/** Read in the next frame, so the timeline has caught up with the clock. */
-const nextFrame = <T,>(page: Page, fn: () => T) =>
-  page.evaluate(async (source) => {
-    await new Promise((r) => requestAnimationFrame(r));
-    return (0, eval)(`(${source})`)();
-  }, fn.toString()) as Promise<T>;
-const box = (page: Page, selector: string) =>
-  page.$eval(selector, (el) => {
-    const r = el.getBoundingClientRect();
-    return { x: r.x, y: r.y, w: r.width };
-  });
+const done = (page: Page, timeout = 5000) =>
+  page.waitForFunction(() => document.documentElement.dataset.splash === "done", null, { timeout });
 
 describe.skipIf(!hasBrowser && !process.env.CI)("the first open, in a browser", () => {
-  it("ready early, the door opens at 1150ms on the stylesheet's clock even while the main thread is blocked", async () => {
+  it("draws the real brand art: the glass mark rises, the wordmark follows, one light sweeps the glass", async () => {
     const { page, close } = await open({});
     try {
-      await at(page, 650);
-      /* When the door is due, on the sequence's clock (the mark's turn starts
-         at 120ms on it), read from the animations the stylesheet has already
-         scheduled; then a mid-range phone hydrating: the main thread does
-         nothing else until 1430ms, straddling the door, and is free again
-         before the door has finished (1530ms), so what it sees is the door
-         in progress. */
-      const { doorAt, ...seen } = await page.evaluate(async () => {
-        const turn = document.querySelector(".nf-startup__mark")!.getAnimations()[0]!;
-        const door = document.querySelector(".nf-startup__leaf--a")!.getAnimations()[0]!;
-        const start = (a: Animation) => Number(a.startTime) + Number(a.effect!.getComputedTiming().delay);
-        const due = start(door) - (start(turn) - 120);
-        const end = performance.now() + (1430 - Number(door.currentTime));
-        while (performance.now() < end) {
-          /* busy */
-        }
-        /* Two frames after: the first still carries the time stamp the
-           compositor issued while the thread was busy; by the second the
-           timeline has caught up with the clock. */
-        await new Promise((r) => requestAnimationFrame(r));
-        await new Promise((r) => requestAnimationFrame(r));
-        const leaf = document.querySelector(".nf-startup__leaf--a")!;
+      await page.waitForFunction(() => Boolean((window as unknown as { __first?: unknown }).__first), null, { timeout: 8000 });
+      const first = await page.evaluate(() => (window as unknown as { __first: Record<string, string> }).__first);
+      /* The first frame: the bare ground, the mark not yet risen. */
+      expect(first).toMatchObject({ display: "block", name: "nf-startup-door", duration: "0.4s", delay: "1.35s", mark: "nf-startup-rise", opacity: "0", word: "0" });
+      expect(first.transform).not.toBe("none");
+
+      const art = await page.evaluate(async () => {
+        const imgs = [...document.querySelectorAll<HTMLImageElement>(".nf-startup img")];
+        await Promise.all(imgs.map((img) => img.decode().catch(() => undefined)));
+        const shine = document.querySelector(".nf-startup__shine")!;
+        const sweep = getComputedStyle(shine, "::before");
         return {
-          doorAt: due,
-          leaf: new DOMMatrix(getComputedStyle(leaf).transform).m41 / leaf.getBoundingClientRect().width,
-          lockup: getComputedStyle(document.querySelector(".nf-startup__lockup")!).transform,
-          line: Number(getComputedStyle(document.querySelector(".nf-gsm__line")!).opacity),
+          svgs: document.querySelectorAll(".nf-startup svg").length,
+          images: imgs.map((img) => ({ src: new URL(img.src).pathname, alt: img.alt, loaded: img.naturalWidth > 0 })),
+          mask: getComputedStyle(shine).maskImage || getComputedStyle(shine).webkitMaskImage,
+          sweep: [sweep.animationName, sweep.animationDuration, sweep.animationDelay],
+          word: getComputedStyle(document.querySelector(".nf-startup__word")!).animationDelay,
+          hidden: document.querySelector(".nf-startup")!.getAttribute("aria-hidden"),
         };
       });
-      expect(Math.abs(doorAt - 1150)).toBeLessThan(20);
-      /* By the time the thread is free the leaves are most of the way apart,
-         the mark is on its way down to Get Started's, and Get Started's line
-         is already arriving out of the door. (Before round 5 the door waited
-         for the script, so here it had not begun.) */
-      expect(seen.leaf).toBeLessThan(-0.5);
-      expect(seen.lockup).not.toBe("none");
-      expect(seen.line).toBeGreaterThan(0.5);
+      expect(art.svgs).toBe(0);
+      expect(art.hidden).toBe("true");
+      expect(art.images).toEqual([
+        { src: "/brand/startup/vallo-mark.webp", alt: "", loaded: true },
+        { src: "/brand/startup/vallo-wordmark.webp", alt: "", loaded: true },
+      ]);
+      expect(art.mask).toContain("/brand/startup/vallo-mark.webp");
+      expect(art.sweep).toEqual(["nf-startup-sweep", "0.9s", "0.56s"]);
+      /* The wordmark 120ms behind the mark. */
+      expect(art.word).toBe("0.18s");
+
+      /* Settled before the door: the mark at rest and fully there. */
+      await at(page, 1000);
+      const settled = await page.$eval(".nf-startup__mark", (el) => {
+        const s = getComputedStyle(el);
+        return { opacity: Number(s.opacity), scale: s.transform === "none" ? 1 : new DOMMatrix(s.transform).a };
+      });
+      expect(settled.opacity).toBeGreaterThan(0.95);
+      expect(settled.scale).toBeGreaterThan(0.99);
+      await done(page);
     } finally {
       await close();
     }
   });
 
-  it("a tap skips it at once: the mark rises out of the parting ground and lands on Get Started's mark, and the tap's click is eaten", async () => {
-    /* Held (a page still streaming), so a loaded machine that taps late
-       still taps before the door. */
-    const { page, close } = await open({ hasTouch: true, isMobile: true }, { slow: 6000, beneath: GET_STARTED + PENDING });
+  it("the door opens at 1350ms on the stylesheet's clock even while the main thread is blocked, and fades and lifts the overlay", async () => {
+    const { page, close } = await open({});
     try {
-      await at(page, 300);
-      const hero = await box(page, ".nf-startup__mark");
-      const target = await box(page, ".nf-gsm__mark");
+      await at(page, 700);
+      const { doorAt, ...seen } = await page.evaluate(async () => {
+        const rise = document.querySelector(".nf-startup__mark")!.getAnimations()[0]!;
+        const door = document.querySelector(".nf-startup")!.getAnimations()[0]!;
+        const start = (a: Animation) => Number(a.startTime) + Number(a.effect!.getComputedTiming().delay);
+        const due = start(door) - (start(rise) - 60);
+        /* A mid-range phone hydrating: the main thread does nothing else
+           until 1550ms, straddling the door, and is free before it ends. */
+        const end = performance.now() + (1550 - Number(door.currentTime));
+        while (performance.now() < end) {
+          /* busy */
+        }
+        await new Promise((r) => requestAnimationFrame(r));
+        await new Promise((r) => requestAnimationFrame(r));
+        const overlay = getComputedStyle(document.querySelector(".nf-startup")!);
+        return {
+          doorAt: due,
+          opacity: Number(overlay.opacity),
+          scale: new DOMMatrix(overlay.transform).a,
+          catches: overlay.pointerEvents,
+        };
+      });
+      expect(Math.abs(doorAt - 1350)).toBeLessThan(20);
+      /* By the time the thread is free the door is under way on the compositor. */
+      expect(seen.opacity).toBeLessThan(0.95);
+      expect(seen.scale).toBeGreaterThan(1);
+      expect(seen.scale).toBeLessThanOrEqual(1.04);
+      expect(seen.catches).toBe("none");
+      await done(page);
+      expect(await page.evaluate(() => (window as unknown as { __clock: () => number }).__clock())).toBeLessThan(2500);
+    } finally {
+      await close();
+    }
+  });
+
+  it("does not hold for a page still streaming: the door opens on schedule over the page's own loading state", async () => {
+    const { page, close } = await open({}, { slow: 6000, beneath: PENDING + BUTTON });
+    try {
+      await done(page, 4000);
+      expect(await page.evaluate(() => document.readyState)).toBe("loading");
+      expect(await page.evaluate(() => (window as unknown as { __clock: () => number }).__clock())).toBeLessThan(2500);
+    } finally {
+      await close();
+    }
+  });
+
+  it("a tap skips it at once, without tapping what the door reveals, and the next tap lands", async () => {
+    const { page, close } = await open({ hasTouch: true, isMobile: true }, { slow: 6000, beneath: PENDING + BUTTON });
+    try {
+      await at(page, 250);
       await page.touchscreen.tap(195, 600);
       expect(await root(page, "startup")).toBe("open");
-      /* Before it moves, the mark is the brand's: centred, twice the size. */
-      expect(hero.w).toBeGreaterThan(target.w * 1.4);
-      expect(hero.y).toBeGreaterThan(target.y + 100);
-      /* On its way: smaller than the brand's, larger than Get Started's,
-         and still above where it lands. */
-      await page.waitForTimeout(60);
-      const moving = await nextFrame(page, () => {
-        const m = new DOMMatrix(getComputedStyle(document.querySelector(".nf-startup__lockup")!).transform);
-        return { scale: m.a, rise: m.f };
-      });
-      expect(moving.scale).toBeGreaterThan(1);
-      expect(moving.scale).toBeLessThan(2);
-      expect(moving.rise).toBeGreaterThan(0);
-      await page.waitForFunction(() => document.documentElement.dataset.splash === "done", null, { timeout: 3000 });
-      const landed = await page.evaluate(() => (window as unknown as { __landed: { x: number; y: number; w: number } }).__landed);
-      expect(Math.abs(landed.x - target.x)).toBeLessThan(1);
-      expect(Math.abs(landed.y - target.y)).toBeLessThan(1);
-      expect(Math.abs(landed.w - target.w)).toBeLessThan(1);
-      /* One mark: Get Started's own is shown once the startup's has landed. */
-      expect(await page.$eval(".nf-gsm__vmark", (el) => getComputedStyle(el).opacity)).toBe("1");
+      await done(page);
       expect(await clicks(page)).toBe(0);
+      await page.waitForTimeout(500);
+      await page.touchscreen.tap(195, 600);
+      await page.waitForFunction(() => (window as unknown as { __clicks: number }).__clicks === 1, null, { timeout: 5000 });
     } finally {
       await close();
     }
   });
 
   it("a tap after the door has opened is the member's own, and lands", async () => {
-    const { page, close } = await open({ hasTouch: true, isMobile: true }, { beneath: BUTTON });
+    const { page, close } = await open({ hasTouch: true, isMobile: true });
     try {
-      await at(page, 1300);
+      await at(page, 1500);
       await page.touchscreen.tap(195, 600);
       await page.waitForFunction(() => (window as unknown as { __clicks: number }).__clicks === 1, null, { timeout: 3000 });
-    } finally {
-      await close();
-    }
-  });
-
-  it("a tap on a plain page skips without tapping what the door reveals, and the next tap lands", async () => {
-    const { page, close } = await open({ hasTouch: true, isMobile: true }, { slow: 6000, beneath: PENDING + BUTTON });
-    try {
-      await at(page, 250);
-      await page.touchscreen.tap(195, 600);
-      expect(await root(page, "startup")).toBe("open");
-      await page.waitForFunction(() => document.documentElement.dataset.splash === "done", null, { timeout: 5000 });
-      expect(await clicks(page)).toBe(0);
-      await page.waitForTimeout(500);
-      await page.touchscreen.tap(195, 600);
-      await page.waitForFunction(() => (window as unknown as { __clicks: number }).__clicks === 1, null, { timeout: 5000 });
     } finally {
       await close();
     }
@@ -298,100 +305,72 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the first open, in a browser", 
       expect(await root(page, "startup")).toBeUndefined();
       await page.keyboard.press("Tab");
       expect(await root(page, "startup")).toBe("open");
-      await page.waitForFunction(() => document.documentElement.dataset.splash === "done", null, { timeout: 5000 });
+      await done(page);
     } finally {
       await close();
     }
   });
 
-  it("holds, settled and breathing, while the page is still streaming, and opens when it has arrived", async () => {
-    const { page, close } = await open({}, { slow: 2600, beneath: PENDING + BUTTON });
-    try {
-      await at(page, 1900);
-      const held = await nextFrame(page, () => ({
-        leaf: new DOMMatrix(getComputedStyle(document.querySelector(".nf-startup__leaf--a")!).transform).m41,
-        catches: getComputedStyle(document.querySelector(".nf-startup")!).pointerEvents,
-      }));
-      expect(held).toEqual({ leaf: 0, catches: "auto" });
-      expect(await root(page, "startup")).toBeUndefined();
-      await page.waitForFunction(() => document.readyState !== "loading", null, { timeout: 8000 });
-      await page.waitForFunction(() => document.documentElement.dataset.splash === "done", null, { timeout: 2000 });
-    } finally {
-      await close();
-    }
-  });
-
-  it("never holds past the four-second ceiling, whatever the stream does", async () => {
-    const { page, close } = await open({}, { slow: 9000, beneath: PENDING });
-    try {
-      await at(page, 3700);
-      expect(await root(page, "startup")).toBeUndefined();
-      await page.waitForFunction(() => document.documentElement.dataset.splash === "done", null, { timeout: 3000 });
-      expect(await page.evaluate(() => (window as unknown as { __clock: () => number }).__clock())).toBeLessThan(5000);
-    } finally {
-      await close();
-    }
-  });
-
-  it("the lockup eases out of the hold when the door opens, rather than snapping", async () => {
-    const { page, close } = await open({}, { slow: 9000, beneath: PENDING });
-    try {
-      /* Deep in the hold: the lockup is near 1.015. */
-      await at(page, 2800);
-      const scale = () => Number(getComputedStyle(document.querySelector(".nf-startup__breath")!).scale);
-      expect(await nextFrame(page, scale)).toBeGreaterThan(1.004);
-      await page.keyboard.press("Enter");
-      expect(await nextFrame(page, scale)).toBeGreaterThan(1);
-      /* ...and lands on exactly 1, the size Get Started's and the lock's mark are. */
-      await page.waitForTimeout(500);
-      const settled = await page.$eval(".nf-startup__breath", (el) => getComputedStyle(el).scale);
-      expect(settled === "none" || Number(settled) === 1).toBe(true);
-    } finally {
-      await close();
-    }
-  });
-
-  it("under reduced motion the still lockup sits on Get Started's mark and leaves by a real 160ms crossfade", async () => {
+  it("under reduced motion the lockup is still and leaves by a real 200ms crossfade at 500ms", async () => {
     const { page, close } = await open({ reducedMotion: "reduce" });
     try {
       /* Read from the overlay's first frame, recorded in the page (PROBE), so
-         a loaded machine cannot race the 600ms door. */
+         a loaded machine cannot race the 500ms door. */
       await page.waitForFunction(() => Boolean((window as unknown as { __first?: unknown }).__first), null, { timeout: 8000 });
-      const { mark, target, ...still } = await page.evaluate(
-        () =>
-          (window as unknown as { __first: Record<string, unknown> & { mark: { y: number; w: number }; target: { y: number; w: number } } })
-            .__first,
-      );
+      const still = await page.evaluate(() => (window as unknown as { __first: Record<string, unknown> }).__first);
       expect(still).toEqual({
         display: "block",
         name: "nf-startup-fade",
-        duration: "0.16s",
-        delay: "0.6s",
-        letters: "none",
+        duration: "0.2s",
+        delay: "0.5s",
+        /* Nothing rises, follows or sweeps: the lockup is simply there. */
+        mark: "none",
         opacity: "1",
-        lockup: "none",
-        /* The other half of the crossfade: Get Started fades in as it goes. */
-        front: ["nf-gsm-fade", "0.16s", "0.6s"],
+        transform: "none",
+        word: "1",
+        shine: "none",
       });
-      expect(Math.abs(mark.y - target.y)).toBeLessThan(1);
-      expect(Math.abs(mark.w - target.w)).toBeLessThan(1);
-      await page.waitForFunction(() => document.documentElement.dataset.splash === "done", null, { timeout: 5000 });
+      await done(page);
     } finally {
       await close();
     }
   });
 
-  it("takes the native splash down on the first painted frame, with the sequence and without it", async () => {
+  it("tells the native splash to hide on the first parse, before load and before any frame, with the sequence and without it", async () => {
     for (const gate of [true, false]) {
-      const { page, close } = await open({}, { gate, slowImage: 3000 });
+      const { page, close } = await open({}, { gate, slowImage: 3000, native: 0 });
       try {
         await page.waitForFunction(() => (window as unknown as { __hides: unknown[] }).__hides.length > 0, null, { timeout: 2000 });
-        const hides = await page.evaluate(() => (window as unknown as { __hides: { method: string; loaded: boolean }[] }).__hides);
+        const hides = await page.evaluate(() => (window as unknown as { __hides: { method: string; loaded: boolean; frames: number }[] }).__hides);
         expect(hides).toHaveLength(1);
-        expect(hides[0]).toMatchObject({ plugin: "SplashScreen", method: "hide", loaded: false });
+        expect(hides[0]).toMatchObject({ plugin: "SplashScreen", method: "hide", options: { fadeOutDuration: 160 }, loaded: false, frames: 0 });
+        if (gate) await done(page);
+        else expect(await root(page, "startupNative")).toBeUndefined();
       } finally {
         await close();
       }
+    }
+  });
+
+  it("on the shell, holds the beats at their first frame until the hide is answered, then plays them in full", async () => {
+    const { page, close } = await open({}, { native: 400 });
+    try {
+      await at(page, 200);
+      const held = await page.evaluate(() => ({
+        wait: document.documentElement.dataset.startupNative,
+        state: getComputedStyle(document.querySelector(".nf-startup__mark")!).animationPlayState,
+        rise: Number(document.querySelector(".nf-startup__mark")!.getAnimations()[0]!.currentTime),
+      }));
+      expect(held).toEqual({ wait: "wait", state: "paused", rise: 0 });
+      await page.waitForFunction(() => document.documentElement.dataset.startupNative === undefined, null, { timeout: 3000 });
+      expect(await page.$eval(".nf-startup__mark", (el) => getComputedStyle(el).animationPlayState)).toBe("running");
+      /* The rise plays out from its start, so the mark is still arriving
+         just after the wait. */
+      expect(await page.$eval(".nf-startup__mark", (el) => Number(el.getAnimations()[0]!.currentTime))).toBeLessThan(400);
+      await done(page);
+      expect(await root(page, "startupNative")).toBeUndefined();
+    } finally {
+      await close();
     }
   });
 });
