@@ -34,9 +34,20 @@
  *      the route checks.
  *
  * Nothing else changes: not the drain, not the page, not the database.
+ *
+ * DONE FOR TERMII (2026-10-07): steps 1 and 2 are `sms-channel.ts` and the
+ * `sms` branch below. Step 3 is NOT verified: the repository holds no Termii
+ * inbound documentation, so the route still reads `{ from, text, channel }`.
+ * Two things to settle with Termii before relying on SMS replies: an
+ * alphanumeric sender ("Vallo") cannot be replied to, so inbound needs a
+ * Termii two-way number; and whether Termii's webhook can send the bearer
+ * header and with which field names. Until then the reply page link in every
+ * message is the way a landlord answers.
  */
 
-export type ChannelName = "stub" | "sms" | "whatsapp";
+import { SmsChannel } from "./sms-channel";
+
+export type ChannelName ="stub" | "sms" | "whatsapp";
 
 export type OutboundMessage = {
   /** The question this message asks, so a transport can tag it. */
@@ -65,14 +76,18 @@ export class StubChannel implements PrincipalChannel {
 }
 
 /**
- * The channel this deployment uses. Only the stub exists today, so every
- * configuration resolves to it; a `LANDLORD_LINE_TRANSPORT` naming a vendor
- * with no implementation also resolves to the stub rather than to a guess, and
- * `transportConfigured` says so to the job, which reports it.
+ * The channel this deployment uses. `sms` is Termii (`sms-channel.ts`); with
+ * its keys missing it is still selected and every send fails as
+ * `not_configured`, so the job raises it rather than quietly stubbing. Any
+ * other value, including a vendor with no implementation (`whatsapp`),
+ * resolves to the stub rather than to a guess, and `transportConfigured` says
+ * so to the job, which reports it.
  */
 export function selectPrincipalChannel(env: Record<string, string | undefined> = process.env): PrincipalChannel {
   const wanted = (env.LANDLORD_LINE_TRANSPORT ?? "").trim().toLowerCase();
   switch (wanted) {
+    case "sms":
+      return new SmsChannel(env);
     default:
       return new StubChannel();
   }
