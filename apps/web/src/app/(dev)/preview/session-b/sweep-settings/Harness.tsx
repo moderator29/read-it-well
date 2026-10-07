@@ -151,7 +151,7 @@ export function SweepSettingsHarness({ v }: { v: string }) {
             <RowLink href="/help" icon="ticket" label={t.settings.about.help} sub={t.settings.about.helpSub} />
             <RowLink href="/terms" icon="grid" label={t.settings.about.terms} />
             <RowLink href="/privacy" icon="verified" label={t.settings.about.privacy} />
-            <RowValue icon="sparkle" label={t.settings.about.version} value="0.1.0" />
+            <RowValue icon="info" label={t.settings.about.version} value="0.1.0" />
             <RowValue icon="share" label={t.settings.about.licences} value="Next.js, React, Tailwind CSS (MIT)" />
           </SettingsGroup>
         </div>

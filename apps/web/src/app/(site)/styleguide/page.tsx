@@ -124,7 +124,7 @@ const ICONS: UiIconName[] = [
   "search", "plus", "minus", "close", "star", "bed", "bath", "pool", "wifi",
   "parking", "heart", "share", "map", "location", "compass", "grid", "sliders",
   "user", "bell", "wallet", "key", "home", "house", "kitchen", "utensils",
-  "ticket", "verified", "sparkle", "document", "panel-left", "chevron-right",
+  "ticket", "verified", "bot", "document", "panel-left", "chevron-right",
   "chevron-down", "arrow-left", "arrow-right", "shield-stop", "chat-bubble",
   "settings-gear", "calendar-booking", "building-hotel", "building-apartment",
 ];

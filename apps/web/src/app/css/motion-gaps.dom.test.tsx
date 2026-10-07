@@ -40,7 +40,7 @@ const entry = `
     <div id="summary" className="nf-summary" style={{ width: 300, height: 120 }} />
     <div id="bars"><span className="nf-steprow__bar" data-on="" id="bar" style={{ display: "block", width: 100, height: 6, position: "relative" }} /></div>
     <div className="nf-lw-head__object" id="obj" />
-    <nav className="nf-tabbar"><a className="nf-tab"><span className="nf-tab__link" id="link" aria-current="page"><span className="nf-tab__label" id="label">Home</span></span></a></nav>
+    <nav className="nf-tabbar"><a className="nf-tab"><span className="nf-tab__link" id="link" aria-current="page"><span className="nf-tab__icon" /></span></a></nav>
     <Form />
     <Many />
     <input id="born" className="nf-field" aria-invalid="true" defaultValue="" />
@@ -69,16 +69,12 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the five motion gaps", () => {
     }
   });
 
-  it("the dock's slot, word and pill all travel on drift at 240ms", async () => {
+  it("the dock's slot and pill travel on drift at 240ms", async () => {
     const { page, close } = await mountInBrowser({ entry, css: CSS });
     try {
       expect(await style(page, "#link", "transitionDuration", "::before")).toBe("0.24s, 0.24s");
-      /* The word fades on glide 160ms and slides on drift 240ms; its box's
-         max-width and margin are 0s flips (round 5: no layout per frame), and
-         white-space is the discrete flip held until it has arrived. */
-      expect(await style(page, "#label", "transitionProperty")).toBe("opacity, transform, max-width, margin, white-space");
-      expect(await style(page, "#label", "transitionDuration")).toBe("0.16s, 0.24s, 0s, 0s, 0s");
-      expect(await style(page, "#label", "transitionBehavior")).toMatch(/allow-discrete$/);
+      /* No word any more (7 October: the dock is icon only, the chosen tab
+         included), so the pill is the only thing a tap moves. */
       expect(await style(page, ".nf-tabbar .nf-tab", "transitionDuration")).toBe("0.24s");
     } finally {
       await close();

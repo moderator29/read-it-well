@@ -540,7 +540,7 @@ const WATER_GLYPH: Record<WaterSupply, UiIconName> = {
 /** 07 screen three's twelve tiles. Same mapping the listing page tiles use. */
 const AMENITY_GLYPH: Record<string, UiIconName> = {
   wifi: "wifi",
-  ac: "sparkle",
+  ac: "snowflake",
   tv: "picture",
   kitchen: "kitchen",
   parking: "parking",
@@ -551,7 +551,7 @@ const AMENITY_GLYPH: Record<string, UiIconName> = {
   furnished: "home",
   balcony: "building-apartment",
   garden: "map",
-  laundry: "sparkle",
+  laundry: "washing-machine",
   generator: "bolt",
   water: "bath",
   shower: "bath",
@@ -2992,7 +2992,7 @@ export function ListingWizard({
                       )
                     }
                   >
-                    <UiIcon name={AMENITY_GLYPH[amenity.code] ?? "sparkle"} size={24} />
+                    <UiIcon name={AMENITY_GLYPH[amenity.code] ?? "circle-check"} size={24} />
                     <span>{amenityNames[amenity.code] ?? amenity.label}</span>
                     {active && (
                       <span className="nf-lw-choice__tick" aria-hidden="true">

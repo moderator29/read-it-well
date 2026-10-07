@@ -231,7 +231,7 @@ export function buildNav({
          * it could drift - every other row here reads `t.nav.*` and would
          * have followed a rename for free. (R1 finding A33.)
          */
-        { href: "/assistant", label: t.nav.aiAssistant, icon: "sparkle" },
+        { href: "/assistant", label: t.nav.aiAssistant, icon: "bot" },
       ],
     });
 
@@ -431,7 +431,7 @@ export function buildNav({
        Settings. "Pro" is the plan's name and reads the same in every
        language (the dictionary's own `experienceFeatures.pro.label` is
        "Pro"), so the shell slice is not widened for one word. */
-    tail.push({ href: "/pro", label: "Pro", icon: "sparkle" });
+    tail.push({ href: "/pro", label: "Pro", icon: "crown" });
     tail.push({ href: "/settings", label: t.nav.settings, icon: "settings-gear" });
   }
   if (tail.length > 0) sections.push({ heading: null, items: tail });

@@ -29,7 +29,7 @@ const AMENITY_ICON: Record<string, UiIconName> = {
   parking: "parking",
   security: "verified",
   gym: "bolt",
-  ac: "sparkle",
+  ac: "snowflake",
   generator: "bolt",
 };
 
@@ -184,7 +184,7 @@ export function StayCard({
             <ul className="nf-stay-card__chips">
               {chips.map((code) => (
                 <li key={code} className="nf-stay-card__chip">
-                  <UiIcon name={AMENITY_ICON[code] ?? "sparkle"} size={12} />
+                  <UiIcon name={AMENITY_ICON[code] ?? "circle-check"} size={12} />
                   {amenityLabel(code)}
                 </li>
               ))}

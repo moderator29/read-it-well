@@ -360,7 +360,7 @@ export function ListingCard({
     (fact) => ({
       key: fact.key,
       label: fact.label,
-      icon: FACT_ICON[fact.key] ?? "sparkle",
+      icon: FACT_ICON[fact.key] ?? "circle-check",
       ...(fact.numeric !== undefined ? { numeric: fact.numeric } : {}),
     }),
   );

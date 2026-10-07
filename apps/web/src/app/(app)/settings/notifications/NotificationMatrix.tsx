@@ -76,7 +76,7 @@ const ROW_GLYPH: Record<Row, UiIconName> = {
   messages: "chat-bubble",
   payments: "receipt",
   savedPriceDrops: "price-tag",
-  marketing: "sparkle",
+  marketing: "mail",
 };
 
 /** The push answer as `wantsPush` would give it for this row today. */

@@ -107,7 +107,7 @@ export const PRO_COPY = {
     label: "How Pro will work",
     rows: [
       {
-        icon: "sparkle",
+        icon: "circle-check",
         title: "Free stays free",
         sub: "Listing, messaging and saving stay free. Pro adds depth, it never takes something away.",
       },

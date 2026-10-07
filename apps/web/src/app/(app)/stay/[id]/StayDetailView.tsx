@@ -55,7 +55,7 @@ const BUSINESS_GLYPH: Record<string, UiIconName> = {
  */
 const AMENITY_GLYPHS: [RegExp, UiIconName][] = [
   [/wi-?fi|internet/i, "wifi"],
-  [/air|a\/c|cool/i, "sparkle"],
+  [/air|a\/c|cool/i, "snowflake"],
   [/kitchen|cook/i, "kitchen"],
   [/park/i, "parking"],
   [/pool|swim/i, "pool"],
@@ -66,7 +66,7 @@ const AMENITY_GLYPHS: [RegExp, UiIconName][] = [
   [/bath|shower|tub/i, "bath"],
   [/balcon|terrace|view/i, "building-apartment"],
   [/desk|work/i, "document"],
-  [/laundry|clean/i, "sparkle"],
+  [/laundry|clean/i, "washing-machine"],
 ];
 
 export function amenityGlyph(label: string): UiIconName {
@@ -168,7 +168,7 @@ export function StayDetailView({
   if (detail.starRating) {
     specCandidates.push({
       key: "class",
-      icon: "sparkle",
+      icon: "star",
       label: t.experienceDetail.stay.stars.replace("{count}", formatNumber(detail.starRating, locale)),
     });
   }

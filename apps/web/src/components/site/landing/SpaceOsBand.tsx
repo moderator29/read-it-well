@@ -129,7 +129,7 @@ export function SpaceOsBand({
     {
       key: "intelligence",
       label: os.layers.intelligence.tab,
-      icon: "sparkle",
+      icon: "bot",
       panel: layer(
         "intelligence",
         {

@@ -240,7 +240,7 @@ export function EarnedMoment({
           <Medal rank={me.rank} />
           {[0, 1, 2, 3].map((i) => (
             <span key={i} className="nf-lb-spark" data-spark={i} aria-hidden="true">
-              <UiIcon name="sparkle" size={16} />
+              <UiIcon name="star" size={16} filled />
             </span>
           ))}
         </div>

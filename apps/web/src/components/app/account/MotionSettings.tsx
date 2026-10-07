@@ -29,7 +29,7 @@ const serverSnapshot = () => serializeMotion(DEFAULT_MOTION);
 
 /* The platform's glass objects, not line glyphs (the founder, Track M). */
 const LEVEL_ICON: Record<MotionLevel, UiIconName> = {
-  cinematic: "sparkle",
+  cinematic: "film",
   standard: "circle-play",
   calm: "clock",
   off: "circle-pause",
@@ -174,7 +174,7 @@ export function MotionSettings({ t }: { t: MotionCopy }) {
         </div>
       </div>
       <RowSwitch
-        icon="sparkle"
+        icon="circle-play"
         label={copy.motionSplash}
         sub={quiet ? copy.motionNeedsMore : copy.motionSplashSub}
         checked={pref.splash && !quiet}

@@ -766,7 +766,7 @@ export default async function ListingDetailPage({
      they are dated rows in "Why trust this space?" now, and what is left in
      this run is the listing's terms, which are not checks of anything. */
   if (listing.instantBook && isBookable) {
-    marks.push({ icon: "sparkle", label: L.instantBook });
+    marks.push({ icon: "calendar-check", label: L.instantBook });
   }
   if (listing.negotiable) marks.push({ icon: "chat-bubble", label: L.negotiable });
 
@@ -791,7 +791,7 @@ export default async function ListingDetailPage({
   const sectionIndex: { id: string; label: string; icon: UiIconName }[] = [
     { id: "overview", label: sx.sections.overview, icon: "home" },
     ...(hasCost ? [{ id: "cost", label: sx.sections.costs, icon: "receipt" as UiIconName }] : []),
-    { id: "amenities", label: sx.sections.amenities, icon: "sparkle" },
+    { id: "amenities", label: sx.sections.amenities, icon: "circle-check" },
     { id: "trust", label: sx.sections.trust, icon: "shield-check" },
     ...(facts.length > 0 ? [{ id: "details", label: sx.sections.details, icon: "clipboard-list" as UiIconName }] : []),
     ...((listing.videos?.length ?? 0) > 0 ? [{ id: "walkthrough", label: sx.sections.walkthrough, icon: "circle-play" as UiIconName }] : []),

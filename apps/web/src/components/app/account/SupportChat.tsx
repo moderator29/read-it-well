@@ -571,7 +571,7 @@ export function SupportChat({
                       onClick={() => void send(s)}
                       className="nf-chip max-w-full cursor-pointer text-left"
                     >
-                      <UiIcon name="sparkle" size={12} />
+                      <UiIcon name="chat-bubble" size={12} />
                       <span className="min-w-0 break-words">{s}</span>
                     </button>
                   ))}
