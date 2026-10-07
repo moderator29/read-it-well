@@ -21,7 +21,7 @@ export const experienceShellEn = {
   navMoneyLabel: "Money",
   /* The member balance (Part B phase 6), held by the escrow partner and read
      from it. Its page is /wallet; the word a member reads is Balance. */
-  navBalance: "Balance",
+  navBalance: "Wallet",
   navReceipts: "Receipts",
   navPayouts: "Payouts",
   navRefunds: "Refunds",

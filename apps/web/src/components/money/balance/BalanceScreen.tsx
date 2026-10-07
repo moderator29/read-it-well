@@ -7,7 +7,6 @@ import type { Locale } from "@vallo/i18n/core";
 import { ListGroup, ListRow } from "@/components/ui/ListGroup";
 import { IconPlate, ICON_PLATE_GLYPH } from "@/components/ui/IconPlate";
 import { Sheet } from "@/components/ui/Sheet";
-import { State } from "@/components/ui/State";
 import { Button } from "@/components/ui/Button";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { formatMoneyDate } from "@/lib/money/dates";
@@ -16,39 +15,51 @@ import type { BalanceFigures, MovementKind } from "@/lib/money/funds";
 import { isOpenMovement } from "@/lib/money/funds";
 import {
   ACTION_LABEL,
+  ACTIVITY_EMPTY,
   FIGURE_HINT,
   FIGURE_LABEL,
   HELD_BY,
   HELD_BY_HREF,
   HELD_BY_LINK,
+  NOT_CONNECTED_FIGURE,
+  NOT_CONNECTED_LINE,
   STALE_NOTE,
+  UNREACHABLE_FIGURE,
+  UNREACHABLE_LINE,
+  WALLET_RECORDS,
+  WALLET_RECORDS_LABEL,
   WAITING_COPY,
   WAITING_STEPS,
   confirmedAgo,
   movementTitle,
 } from "@/lib/money/balance-copy";
-import { MoneyCard, MoneyFigure, MomentDot } from "../kit";
+import { MoneyFigure, MomentDot } from "../kit";
 import { StepPath } from "../StepPath";
 import { MoneyExplainer } from "../MoneyExplainer";
-import { FinancePlate, MovementStatusWord } from "./balance-ui";
+import { MovementStatusWord } from "./balance-ui";
+import { WalletCard } from "./WalletCard";
 import { WithdrawFlow, Watching } from "./WithdrawFlow";
 import { AddMoneyFlow } from "./AddMoneyFlow";
 import { SendFlow } from "./SendFlow";
+import "@/app/css/money-wallet.css";
 
 /**
- * THE BALANCE SCREEN (founder sections 36 to 43; Part B phase 6;
- * PREMIUM-STANDARD references 4, 7 and 9; handoff A.9).
+ * THE WALLET SCREEN (founder sections 36 to 43; Part B phase 6; D76; D78;
+ * the founder on 7 October: "Call it WALLET... design it to be fully clean").
  *
- * Founder reference 6AF37222 gives the order: the figure, the actions under
- * it, then what moved. The figure sits on the money card (A.9: a glass object
- * with the shape and weight of a bank card), its kobo set smaller (reference
- * 4). Section 37 adds what that reference lacks: Available and Protected are
- * never confused, so Available is the one figure on the card and Protected,
- * Pending and Processing sit under it as rows, each saying what it is. Every
- * figure arrives from the server; this component adds nothing up.
+ * One layout for every state, so the member sees the real wallet before the
+ * key is connected: the wallet card on the platform's blue container (the
+ * figure, or calm words in its place, never a zero), Add money on the card,
+ * what is still moving, where the money is, the activity, and the wallet's
+ * own two-action bar (Withdraw, Transfer) at the foot.
  *
- * Money moves only on live figures: when the partner could not be reached
- * the last confirmed figures are shown, labelled, and the actions wait.
+ * Not connected: no figure, every action visibly present and disabled, and
+ * one short line on the card saying why. Connected: every figure arrives
+ * from the server and this component adds nothing up; when the partner could
+ * not be reached the last confirmed figures are shown, labelled, and the
+ * actions wait. References: GOVERNING-plasma-rewards-home and -spendable
+ * (the wallet home), ledger-home-net-balance-mascot (the movement list),
+ * PREMIUM-STANDARD 4 (the figure, its kobo smaller).
  */
 const KIND_ICON: Record<MovementKind, UiIconName> = {
   deposit: "arrow-down",
@@ -83,6 +94,8 @@ export function BalanceScreen({
   live,
   locale,
   now,
+  connected = true,
+  reason,
 }: {
   figures: BalanceFigures | null;
   movements: MovementView[];
@@ -90,6 +103,14 @@ export function BalanceScreen({
   locale: Locale;
   /** The server's clock at render, so "confirmed n minutes ago" is the same on both sides. */
   now: number;
+  /**
+   * False while the provider's key is not connected (the route's not-live
+   * read): the whole wallet is drawn, with no figure, every action disabled
+   * and one short line saying why. True is every existing path.
+   */
+  connected?: boolean;
+  /** Why it is not connected, for the record (`data-reason`), never shown. */
+  reason?: string;
 }) {
   const router = useRouter();
   const [sheet, setSheet] = useState<"add" | "withdraw" | "send" | null>(null);
@@ -97,63 +118,63 @@ export function BalanceScreen({
   /* D76's hide toggle: for this visit only, never stored. */
   const [hidden, setHidden] = useState(false);
   const refresh = () => router.refresh();
-  const canMove = live && figures !== null;
-  const watching = movements.find((m) => isOpenMovement(m.status));
+  const canMove = connected && live && figures !== null;
+  const watching = connected ? movements.find((m) => isOpenMovement(m.status)) : undefined;
   const availableAt = figures?.available.confirmedAt ?? null;
+  const unreachable = connected && figures === null;
 
   return (
-    <div className="nf-balance mt-inline space-y-block" data-testid="balance-screen" data-live={live ? "true" : "false"}>
-      {figures ? (
-        <MoneyCard
-          id="nf-balance-available"
-          testId="balance-card"
-          caption={FIGURE_LABEL.available}
-          corner={
+    <div
+      className="nf-balance nf-mw mt-inline"
+      data-testid={connected ? "balance-screen" : "balance-not-live"}
+      data-live={live ? "true" : "false"}
+      data-reason={reason}
+    >
+      <WalletCard
+        caption={FIGURE_LABEL.available}
+        figure={
+          figures ? (
+            hidden ? (
+              <span className="nf-mfig nf-mfig--hero nf-mfig--hidden" data-testid="balance-available">
+                <span className="nf-mfig__cur">₦</span>
+                <span aria-hidden="true">••••••</span>
+                <span className="sr-only">Amount hidden</span>
+              </span>
+            ) : (
+              <MoneyFigure minor={figures.available.minor} locale={locale} currency={figures.currency} size="hero" testId="balance-available" />
+            )
+          ) : undefined
+        }
+        empty={connected ? UNREACHABLE_FIGURE : NOT_CONNECTED_FIGURE}
+        line={!connected ? NOT_CONNECTED_LINE : unreachable ? UNREACHABLE_LINE : confirmedAgo(availableAt, now)}
+        tone={!connected ? "neutral" : live && figures ? "done" : "waiting"}
+        corner={
+          figures ? (
             <button
               type="button"
-              className="nf-mcard__eye"
+              className="nf-mw-card__eye"
               aria-pressed={hidden}
-              aria-label={hidden ? "Show balance" : "Hide balance"}
+              aria-label={hidden ? "Show amount" : "Hide amount"}
               onClick={() => setHidden((h) => !h)}
               data-testid="balance-hide"
             >
               <UiIcon name={hidden ? "eye-off" : "eye"} size={20} />
             </button>
-          }
-          figure={
-            hidden ? (
-              <span className="nf-mfig nf-mfig--hero nf-mfig--hidden" data-testid="balance-available">
-                <span className="nf-mfig__cur">₦</span>
-                <span aria-hidden="true">••••••</span>
-                <span className="sr-only">Balance hidden</span>
-              </span>
-            ) : (
-              <MoneyFigure minor={figures.available.minor} locale={locale} currency={figures.currency} size="hero" testId="balance-available" />
-            )
-          }
-          sub={FIGURE_HINT.available}
-          foot={
-            <>
-              <span className="nf-mcard__state">
-                <MomentDot tone={live ? "done" : "waiting"} size="sm" />
-                {confirmedAgo(availableAt, now)}
-              </span>
-              {/* D76: Add money stays on the balance card. */}
-              <button type="button" className="nf-mcard__add" disabled={!canMove} onClick={() => setSheet("add")} data-testid="balance-action-add">
-                <UiIcon name="plus" size={16} />
-                {ACTION_LABEL.add}
-              </button>
-            </>
-          }
-        />
-      ) : (
-        <State
-          kind="error"
-          title="We could not reach our partner"
-          body="Your balance could not be read just now, so no figure is shown rather than a wrong one. Nothing has moved. Try again shortly."
-          primary={{ href: "/wallet", label: "Try again" }}
-        />
-      )}
+          ) : null
+        }
+        action={
+          unreachable ? (
+            <Button variant="secondary" size="md" onClick={refresh} data-testid="balance-retry">
+              Try again
+            </Button>
+          ) : (
+            /* D76: Add money stays on the card. */
+            <Button variant="secondary" size="md" leadingIcon="plus" disabled={!canMove} onClick={() => setSheet("add")} data-testid="balance-action-add">
+              {ACTION_LABEL.add}
+            </Button>
+          )
+        }
+      />
 
       {!live && figures ? (
         <p className="nf-balance__note nf-body-sm" role="status">
@@ -203,30 +224,21 @@ export function BalanceScreen({
         </ListGroup>
       ) : null}
 
-      <p className="nf-balance__held nf-body-sm" data-testid="balance-held-by">
-        <FinancePlate glyph="secure" className="nf-balance__plate" />
-        <span>
-          {HELD_BY}{" "}
-          <Link href={HELD_BY_HREF} className="underline">
-            {HELD_BY_LINK}
-          </Link>
-        </span>
-      </p>
-
       {movements.length === 0 ? (
-        <State
-          kind="empty"
-          icon="wallet-ring"
-          title="Nothing has moved yet"
-          body="When you add, withdraw or send money it shows here, with where it is at every step."
-          action={
-            canMove ? (
-              <Button variant="primary" size="lg" onClick={() => setSheet("add")}>
-                {ACTION_LABEL.add}
-              </Button>
-            ) : null
-          }
-        />
+        <section className="nf-list-section" aria-labelledby="nf-mw-activity">
+          <div className="nf-list-section__head">
+            <h3 id="nf-mw-activity" className="nf-section-label">
+              Activity
+            </h3>
+          </div>
+          <div className="nf-panel nf-mw-empty" data-testid="balance-activity-empty">
+            <IconPlate size="md" tone="brand">
+              <UiIcon name="receipt" size={ICON_PLATE_GLYPH.md} />
+            </IconPlate>
+            <p className="nf-mw-empty__title">{ACTIVITY_EMPTY.title}</p>
+            <p className="nf-mw-empty__body">{ACTIVITY_EMPTY.body}</p>
+          </div>
+        </section>
       ) : (
         <ListGroup label="Activity">
           {movements.map((m) => (
@@ -238,7 +250,7 @@ export function BalanceScreen({
                 </IconPlate>
               }
               title={movementTitle(m.kind)}
-              sub={`${counterpartyLine(m)} · ${formatMoneyDate(m.createdAt, locale, { withTime: true }) ?? ""}`}
+              sub={formatMoneyDate(m.createdAt, locale, { withTime: true }) ?? counterpartyLine(m)}
               value={<MoneyFigure minor={m.amountMinor} locale={locale} size="row" kobo="auto" sign={sign(m.kind)} className={sign(m.kind) === "+" ? "nf-mfig--in" : undefined} />}
               status={<MovementStatusWord movement={m} />}
               chevron
@@ -248,18 +260,46 @@ export function BalanceScreen({
         </ListGroup>
       )}
 
-      {/* D76: the balance's own bar holds exactly two actions, Withdraw and
-          Transfer, pinned to the foot of the screen above the safe area. The
-          app's main dock is untouched. */}
-      <div className="nf-balance-bar" role="group" aria-label="Move money">
-        <button type="button" className="nf-balance-bar__btn" data-tone="primary" disabled={!canMove} onClick={() => setSheet("withdraw")} data-testid="balance-action-withdraw">
-          <UiIcon name={ACTION_ICON.withdraw} size={20} />
+      {/* The wallet is where all money lives: the records, one tap away. */}
+      <ListGroup label={WALLET_RECORDS_LABEL} data-testid="balance-records">
+        {WALLET_RECORDS.map((r) => (
+          <ListRow
+            key={r.href}
+            href={r.href}
+            leading={
+              <IconPlate size="sm">
+                <UiIcon name={r.icon} size={ICON_PLATE_GLYPH.sm} />
+              </IconPlate>
+            }
+            title={r.title}
+            chevron
+          />
+        ))}
+      </ListGroup>
+
+      {/* ADR 0003's one line, only where money is actually held. */}
+      {connected && figures ? (
+        <p className="nf-mw__held nf-caption" data-testid="balance-held-by">
+          <UiIcon name="shield-lock" size={16} />
+          <span>
+            {HELD_BY}{" "}
+            <Link href={HELD_BY_HREF} className="underline">
+              {HELD_BY_LINK}
+            </Link>
+          </span>
+        </p>
+      ) : null}
+
+      {/* D76: the wallet's own bar holds exactly two actions, Withdraw and
+          Transfer, at the foot of the screen above the safe area. The app's
+          main dock is untouched. */}
+      <div className="nf-mw-bar" role="group" aria-label="Move money">
+        <Button variant="primary" size="lg" full leadingIcon={ACTION_ICON.withdraw} disabled={!canMove} onClick={() => setSheet("withdraw")} data-testid="balance-action-withdraw">
           {ACTION_LABEL.withdraw}
-        </button>
-        <button type="button" className="nf-balance-bar__btn" disabled={!canMove} onClick={() => setSheet("send")} data-testid="balance-action-send">
-          <UiIcon name={ACTION_ICON.send} size={20} />
+        </Button>
+        <Button variant="secondary" size="lg" full leadingIcon={ACTION_ICON.send} disabled={!canMove} onClick={() => setSheet("send")} data-testid="balance-action-send">
           Transfer
-        </button>
+        </Button>
       </div>
 
       {figures ? (
@@ -309,12 +349,12 @@ function BalanceExplainer({ figures, locale }: { figures: BalanceFigures; locale
   return (
     <MoneyExplainer
       storageKey="nf-explainer-balance-v1"
-      name="Your balance"
+      name="Your wallet"
       testId="balance-explainer"
       panels={[
         {
           key: "held",
-          title: "Your balance, in your name",
+          title: "Your wallet, in your name",
           body: "Our escrow partner holds it in an account in your name, never Vallo. Vallo keeps the record of every movement.",
           screenTone: "platinum",
           screen: (

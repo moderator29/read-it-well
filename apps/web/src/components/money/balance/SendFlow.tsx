@@ -114,7 +114,7 @@ export function SendFlow({
         {step === "who" ? (
           <>
             <p className="nf-body-sm text-[var(--nf-content-secondary)]">
-              Send to another Vallo member by their phone number. It goes from your balance to theirs.
+              Send to another Vallo member by their phone number. It goes from your wallet to theirs.
             </p>
             <TextField
               label="Their phone number"

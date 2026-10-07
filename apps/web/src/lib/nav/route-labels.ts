@@ -58,7 +58,7 @@ const NAMES: Readonly<Record<string, string>> = {
   "/receipts": "Receipts",
   "/refunds": "Refunds",
   "/payouts": "Payouts",
-  "/wallet": "Balance",
+  "/wallet": "Wallet",
   "/around": "Around",
   "/around/[slug]": "the district",
   "/around/settings": "feed settings",

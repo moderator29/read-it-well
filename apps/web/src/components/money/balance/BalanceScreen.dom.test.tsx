@@ -2,7 +2,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import type { MovementView } from "@/lib/money/member-wallet";
 import type { BalanceFigures } from "@/lib/money/funds";
-import { HELD_BY } from "@/lib/money/balance-copy";
+import { ACTIVITY_EMPTY, HELD_BY, NOT_CONNECTED_FIGURE, NOT_CONNECTED_LINE } from "@/lib/money/balance-copy";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh() {} }) }));
 vi.mock("@/lib/money/member-wallet-actions", () => ({
@@ -69,9 +69,9 @@ describe("the balance screen", () => {
   it("moves no money on figures it could not refresh", () => {
     const stale = render(false);
     expect(stale).toContain("last figures we confirmed");
-    for (const a of ["add", "withdraw", "send"]) expect(stale).toMatch(new RegExp(`disabled=""[^>]*data-testid="balance-action-${a}"`));
+    for (const a of ["add", "withdraw", "send"]) expect(stale).toMatch(new RegExp(`<button(?=[^>]*data-testid="balance-action-${a}")[^>]*disabled=""`));
     const live = render(true);
-    expect(live).not.toMatch(/disabled=""[^>]*data-testid="balance-action-withdraw"/);
+    expect(live).not.toMatch(/<button(?=[^>]*data-testid="balance-action-withdraw")[^>]*disabled=""/);
   });
 
   it("keeps a movement that is still on its way at the top, in words, not as done", () => {
@@ -82,7 +82,45 @@ describe("the balance screen", () => {
   });
 
   it("has an empty state that says what will appear", () => {
-    expect(render(true, [])).toContain("Nothing has moved yet");
+    expect(render(true, [])).toContain(ACTIVITY_EMPTY.title);
+  });
+
+  it("calls itself a wallet, never a balance, in what a member reads", () => {
+    const text = render(true).replace(/<[^>]+>/g, " ");
+    expect(text).not.toMatch(/\bbalance\b/i);
+  });
+});
+
+describe("the wallet before it is connected (founder, 7 October)", () => {
+  const html = renderToStaticMarkup(<BalanceScreen figures={null} movements={[]} live={false} connected={false} reason="switched_off" locale="en" now={0} />);
+  const text = html.replace(/<[^>]+>/g, " ");
+
+  it("draws the whole wallet: the card, Add money, the two-action bar and the activity", () => {
+    expect(html).toContain('data-testid="balance-not-live"');
+    expect(html).toContain('data-testid="balance-card"');
+    for (const a of ["add", "withdraw", "send"]) expect(html).toContain(`data-testid="balance-action-${a}"`);
+    expect(html).toContain('data-testid="balance-activity-empty"');
+    expect(text).toContain("Withdraw");
+    expect(text).toContain("Transfer");
+  });
+
+  it("shows no figure, not even a zero, and says why in one short line", () => {
+    expect(text).toContain(NOT_CONNECTED_FIGURE);
+    expect(text).toContain(NOT_CONNECTED_LINE);
+    expect(text).not.toMatch(/₦\s*\d|\d[\d,]*\.\d\d/);
+    expect(html).not.toContain('data-testid="balance-available"');
+  });
+
+  it("keeps every action visible and disabled", () => {
+    for (const a of ["add", "withdraw", "send"]) expect(html).toMatch(new RegExp(`<button(?=[^>]*data-testid="balance-action-${a}")[^>]*disabled=""`));
+  });
+
+  it("is where all money lives: Payments, Receipts, Payouts and Refunds are one tap away", () => {
+    for (const href of ["/payments", "/receipts", "/payouts", "/refunds"]) expect(html).toContain(`href="${href}"`);
+  });
+
+  it("names no provider and carries no paragraph about partners or rails", () => {
+    expect(text).not.toMatch(/Payluk|escrow|partner|rail/i);
   });
 });
 

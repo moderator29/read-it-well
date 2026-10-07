@@ -7,7 +7,6 @@ import { Button, ButtonLink } from "@/components/ui/Button";
 import { ListGroup, ListRow } from "@/components/ui/ListGroup";
 import { IconPlate, ICON_PLATE_GLYPH } from "@/components/ui/IconPlate";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { openBalanceAccount } from "@/lib/money/member-wallet-actions";
 import { GAP_LABEL, HELD_BY, HELD_BY_HREF, HELD_BY_LINK, ONBOARDING_COPY, OPEN_ACTION } from "@/lib/money/balance-copy";
 import type { OnboardingState, ProfileGap } from "@/lib/money/funds";
@@ -78,19 +77,20 @@ export function BalanceOnboarding({ state, gaps }: { state: OnboardingState; gap
     <div className="nf-onboard mt-inline space-y-block" data-testid="balance-onboarding" data-state={current}>
       <div className="nf-mhead">
         <span className="nf-mhead__art">
-          <BrandIcon name="wallet-secure" size={88} priority />
+          <IconPlate size="lg" tone="brand">
+            <UiIcon name="wallet" size={ICON_PLATE_GLYPH.lg} />
+          </IconPlate>
         </span>
         <h2 className="nf-mhead__title">{copy.title}</h2>
         <p className="nf-mhead__body">{copy.body}</p>
       </div>
 
       <StepPath
-        label="Opening your balance"
+        label="Opening your wallet"
         testId="balance-onboarding-path"
         steps={[
           {
             key: "details",
-            art: "id-card-check",
             title: "Your details",
             sub: missing.length > 0 ? "Add these to your profile first." : "Your name, email and a Nigerian mobile are on your profile.",
             state: details,
@@ -115,7 +115,6 @@ export function BalanceOnboarding({ state, gaps }: { state: OnboardingState; gap
           },
           {
             key: "open",
-            art: "wallet-secure",
             title: "Open with our escrow partner",
             sub:
               current === "PENDING"
@@ -136,9 +135,8 @@ export function BalanceOnboarding({ state, gaps }: { state: OnboardingState; gap
           },
           {
             key: "add",
-            art: "wallet-plus",
             title: "Add money",
-            sub: "From your own bank or card, once your balance is open.",
+            sub: "From your own bank or card, once your wallet is open.",
             state: adding,
           },
         ]}
