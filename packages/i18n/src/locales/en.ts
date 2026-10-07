@@ -1028,7 +1028,6 @@ export const en = {
            it is rendered in an <address> element so a reader, a screen
            reader and a search engine all read it as one. */
         registeredOfficeLabel: "Registered office",
-        registeredOffice: "Plot 5, Zone 6, Dutse Alhaji, Bwari Area Council, FCT, Abuja",
         stayConnected: "Stay connected",
         newsletterBody: "New listings, product news and the occasional honest update.",
         emailLabel: "Email address",
