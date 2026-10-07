@@ -23,6 +23,7 @@ import { FeedTabs, isFeedTab, type FeedTab } from "@/components/social/feed/Feed
 import { LocationChip } from "@/components/social/feed/LocationChip";
 import { StoryRing } from "@/components/social/feed/StoryRing";
 import { AroundFab } from "@/components/social/AroundFab";
+import { ComposeButton } from "@/components/social/feed/ComposeButton";
 import { WhoToFollow } from "@/components/social/follow/WhoToFollow";
 import { readFollowSuggestions } from "@/lib/social/follow-suggestions";
 import { SocialPaused } from "@/components/social/SocialPaused";
@@ -227,6 +228,10 @@ export default async function AroundPage({
         <Link href="/around/people" className="nf-feed-find" aria-label="Find people and businesses to follow">
           <UiIcon name="search" size={20} />
         </Link>
+        {/* THE FEED'S OWN PLUS: opens the post composer, one tap. The dock's
+            plus is the platform's create sheet, a different thing. Without
+            keys there is no composer to open, so no plus. */}
+        {unconfigured ? null : <ComposeButton label="Write a post" />}
       </div>
 
       {/* No rings without keys: an empty row would claim nobody has a story,

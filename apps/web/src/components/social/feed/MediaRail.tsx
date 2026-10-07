@@ -25,8 +25,9 @@ export function MediaRail({
   onOpen,
 }: {
   media: PostMedia[];
-  /** A plain tap on a picture opens the post (the card's own overlay link). */
-  onOpen: (event: React.MouseEvent<HTMLElement>) => void;
+  /** A tap on a picture. Optional: inside a post card the tap simply bubbles
+      to the card, which opens the post (`PostCard`'s `openPost`). */
+  onOpen?: (event: React.MouseEvent<HTMLElement>) => void;
 }) {
   const scroller = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);

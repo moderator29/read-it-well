@@ -156,52 +156,17 @@
   }
 
   /*
-   * THE WHOLE CARD IS A LINK TO ITS OWN THREAD.
+   * THE CARD OPENS ITS OWN THREAD FROM A CLICK, NOT FROM AN OVERLAY (D79).
    *
-   * The body used to be inert, so a reader who tapped the words, which is what
-   * everybody does, got nothing. The only doors in were the reply count and
-   * the timestamp.
-   *
-   * Two z-index values do the whole job, and the order between them is the
-   * entire design:
-   *
-   *   the overlay sits at 1, above the text
-   *   every control sits at 2, above the overlay
-   *
-   * So a tap on the words opens the thread and a tap on the like button likes
-   * the post, with no JavaScript deciding which and no event handler to get
-   * wrong. It is also why this is an anchor rather than a click handler on the
-   * article: it middle-clicks, it long-presses into "open in new tab", and a
-   * screen reader announces it as the link it is.
-   *
-   * `:where()` keeps the specificity of the raise at zero, so any of these
-   * controls can still be restyled by a plain class elsewhere without having
-   * to out-specify this rule.
+   * This used to be an absolutely positioned anchor across the whole card at
+   * z-index 1, with every control raised to 2 above it. The feed's arrival
+   * motion (feed-m.css, `nf-feed-part`, a view timeline with `forwards` fill)
+   * makes the head and the action row stacking contexts, which trapped the
+   * controls' z-index inside them and put the overlay over every avatar,
+   * name, like, reply and menu: the dead feed of 7 October. `PostCard` now
+   * opens the post from the card's own click when the tap did not land on a
+   * control, so there is nothing here to stack.
    */
-  .nf-post__open {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    border-radius: inherit;
-  }
-
-  .nf-post :where(a:not(.nf-post__open), button, [role="button"], input, textarea, select, video) {
-    position: relative;
-    z-index: 2;
-  }
-
-  /*
-   * The media grid raises itself as a block rather than relying on the rule
-   * above, because a photograph is not an interactive element and would
-   * otherwise sit under the overlay. That is actually correct for opening the
-   * thread, and wrong for the photo viewer, which owns its own click. The
-   * viewer's trigger is a button, so it is covered above; this only keeps the
-   * grid from being painted beneath the overlay's stacking context.
-   */
-  .nf-post__media {
-    position: relative;
-    z-index: 2;
-  }
 
   /*
    * The AI. A brighter bloom and a stronger ring, so a machine answer is
@@ -4395,5 +4360,399 @@
   }
   .nf-story__bar .nf-act-pill--round {
     inline-size: 44px;
+  }
+
+  /* ==================================================================
+   * D79, THE CLEAN FEED (founder, 7 October, on production).
+   *
+   * "The wrapper you put on all the icons, remove it." "The actual post
+   * container: make it more clean, premium and lovely." "The users' story is
+   * not circled at all." "Sending the story itself, when viewed, looks so
+   * bad; make it clean." Then, on the viewer: truly full screen, the
+   * progress, the author, Follow and the menu together at the very top, the
+   * caption, the likes, the comment field and bare icons together at the
+   * foot, nothing floating.
+   *
+   * This section is LAST in the file on purpose: it is the ruling the rules
+   * above were measured towards, and it wins over them at equal specificity
+   * without editing forty earlier blocks that other surfaces still read. Where
+   * a later sheet (feed-m.css, member-kit.css) sets the same property, the
+   * selector here carries one more class so the order of imports cannot undo
+   * it. Reference: `docs/design/references/GOVERNING-feed-plus-bloom.png`
+   * (bare glyphs with counts, round rings, the blue plus).
+   * ================================================================== */
+
+  /* ---------------------------------------------------- the card itself */
+
+  /* One clean card on the platform's own container (`Panel`, card): its
+     fill, its per-side edge, its rim and glow, nothing feed-only painted on
+     top. The air is the premium: 16 around, 12 between the parts. */
+  .nf-panel.nf-post {
+    padding: 16px 16px 4px;
+    background: var(--nf-panel-fill-card);
+    border-color: var(--nf-panel-edges);
+    box-shadow:
+      var(--nf-panel-rim),
+      var(--nf-panel-glow);
+  }
+  .nf-feed-page {
+    --nf-feed-gap: 12px;
+  }
+
+  /* The author line: face, name over handle, the time, the menu. */
+  .nf-post__head {
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    align-items: center;
+    column-gap: 12px;
+  }
+  .nf-post__face {
+    display: block;
+    flex: none;
+    border-radius: var(--nf-radius-circle);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .nf-post__face:focus-visible {
+    outline: 2px solid var(--nf-brand-secondary);
+    outline-offset: 2px;
+  }
+  /* A plain round face with a hairline, no glow ring: the ring belongs to
+     stories, where it means something. */
+  .nf-post__avatar {
+    inline-size: 40px;
+    block-size: 40px;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid var(--nf-panel-hair);
+    background: var(--nf-surface-inset);
+    box-shadow: none;
+  }
+  .nf-post__who {
+    gap: 2px;
+    padding-block-start: 0;
+  }
+  .nf-post__name {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--nf-content-primary);
+  }
+  .nf-post__handle {
+    margin: 0;
+    color: var(--nf-content-muted);
+  }
+  /* The time is the post's own link now: a 44px target with the same
+     visual size, pulled back by the padding it adds. */
+  .nf-post__when {
+    align-self: center;
+    padding: 12px 2px;
+    margin-block: -12px;
+    color: var(--nf-content-muted);
+    font-size: var(--nf-text-caption);
+    font-variant-numeric: tabular-nums;
+  }
+  .nf-post__kebab {
+    display: grid;
+    place-items: center;
+    align-self: center;
+    inline-size: 44px;
+    block-size: 44px;
+    margin-block: -10px;
+    margin-inline: -8px -12px;
+    color: var(--nf-content-muted);
+  }
+  .nf-post__body {
+    margin-block-start: 12px;
+    font-size: var(--nf-text-body);
+    line-height: 1.55;
+    letter-spacing: -0.006em;
+    color: var(--nf-content-primary);
+  }
+  .nf-post__body--system {
+    color: var(--nf-content-secondary);
+  }
+  .nf-post__media {
+    position: relative;
+    margin-block-start: 12px;
+    border-radius: var(--nf-radius-plate);
+  }
+  .nf-post__media--rail {
+    border-radius: 0;
+  }
+  /* The post opens on a tap of the card, so the card says so to a pointer. */
+  .nf-post--pressable {
+    cursor: pointer;
+  }
+
+  /* ------------------------------------------------- the action row, bare */
+
+  /* Reply, repost, like, save and share: five glyphs with their counts,
+     spread evenly across the card's width. The row is pulled out by the
+     glyph's own side bearing so the first glyph lines up with the words. */
+  .nf-post__actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0;
+    margin-block: 8px 0;
+    margin-inline: -12px;
+    padding: 0;
+    border: 0;
+  }
+  .nf-post__act--like,
+  .nf-post__act--repost {
+    min-inline-size: 44px;
+  }
+  .nf-post__act--share {
+    margin-inline-end: 0;
+  }
+
+  /* THE GLYPH WITH NO WRAPPER. No fill, no edge, no capsule, no disc: the
+     glyph and its count on the card, and a 44px target that is the button's
+     own box. The same control is the story's and the comment's, so the like
+     reads the same everywhere. */
+  .nf-act-pill,
+  .nf-act-pill--round,
+  .nf-story__actions--pills .nf-act-pill,
+  .nf-story__bar .nf-act-pill {
+    inline-size: auto;
+    block-size: 44px;
+    min-inline-size: 44px;
+    gap: 6px;
+    padding-inline: 10px;
+    border: 0;
+    border-radius: var(--nf-radius-circle);
+    background: none;
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    color: var(--nf-content-secondary);
+    font-size: var(--nf-text-caption);
+    font-weight: 500;
+  }
+  .nf-act-pill--share {
+    margin-inline-start: 0;
+  }
+  .nf-act-pill:hover {
+    background: none;
+    color: var(--nf-content-primary);
+  }
+  /* On: the glyph fills (heart, bookmark) and takes the brand blue, so the
+     state is in the shape and not in colour alone. */
+  .nf-act-pill[aria-pressed="true"],
+  .nf-story__actions--pills .nf-act-pill[aria-pressed="true"] {
+    border-color: transparent;
+    background: none;
+    color: var(--nf-brand-secondary);
+  }
+  .nf-act-pill__count {
+    font-variant-numeric: tabular-nums;
+  }
+  @media (max-width: 359px) {
+    .nf-act-pill,
+    .nf-act-pill--round {
+      padding-inline: 8px;
+    }
+  }
+
+  /* ------------------------------------------------------- the feed's plus */
+
+  /* The feed's own plus sits at the end of the head row, after the search.
+     From 1024px there is no dock and the bloom's plus is on screen, so the
+     page keeps one plus there. */
+  .nf-feed-compose {
+    flex: none;
+  }
+  @media (min-width: 1024px) {
+    .nf-feed-compose {
+      display: none;
+    }
+  }
+
+  /* ------------------------------------------------------------ story rings */
+
+  /* Every face in an even ring: one size, one stroke, one gap of canvas
+     between the ring and the face, perfectly round. Unseen is the brand blue
+     running into the info blue; seen is a muted ring that is still a ring. */
+  div.nf-story-ring {
+    --nf-ring-seen: color-mix(in oklab, var(--nf-content-muted) 70%, transparent);
+  }
+  .nf-story-ring .nf-story-ring__row {
+    gap: 12px;
+    padding-block: 4px 2px;
+  }
+  .nf-story-ring .nf-story-ring__item {
+    inline-size: 68px;
+    gap: 6px;
+  }
+  .nf-story-ring .nf-story-ring__disc,
+  .nf-story-ring .nf-story-ring__disc[style*="--nf-ring"],
+  .nf-story-ring .nf-story-ring__disc[data-seen="all"] {
+    box-sizing: border-box;
+    inline-size: 64px;
+    block-size: 64px;
+    aspect-ratio: 1;
+    flex: none;
+    padding: 3px;
+    border: 2.5px solid transparent;
+    border-radius: var(--nf-radius-circle);
+    box-shadow: none;
+  }
+  .nf-story-ring .nf-story-ring__disc:not([style*="--nf-ring"]) {
+    background:
+      linear-gradient(var(--nf-surface-canvas), var(--nf-surface-canvas)) padding-box,
+      linear-gradient(var(--nf-ring-seen), var(--nf-ring-seen)) border-box;
+  }
+  .nf-story-ring .nf-story-ring__disc img,
+  .nf-story-ring .nf-story-ring__monogram {
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+    aspect-ratio: 1;
+    border-radius: var(--nf-radius-circle);
+    object-fit: cover;
+  }
+  /* The light that swept the old ring once was drawn for its old geometry;
+     the ring is still now, as a status ring should be. */
+  .nf-story-ring .nf-story-ring__disc::after {
+    content: none;
+  }
+  /* "Your story": the plus sits ON the ring at the lower right, cut out of
+     it by a rim of canvas, in the platform's primary blue. */
+  .nf-story-ring .nf-story-ring__plus {
+    inset-inline-end: -4px;
+    inset-block-end: -4px;
+    inline-size: 22px;
+    block-size: 22px;
+    border: 2.5px solid var(--nf-surface-canvas);
+    background: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+    box-shadow: none;
+  }
+  .nf-story-ring .nf-story-ring__name {
+    max-inline-size: 68px;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+    text-align: center;
+  }
+
+  /* ------------------------------------------------------- the story viewer */
+
+  /* TRULY FULL SCREEN. The viewer is its own layer over the app's chrome
+     (the header with the menu, the mark and the bell, and the dock): the
+     story is the only thing on the screen. The rail of more stories is
+     below it, one scroll down, inside the same layer. */
+  .nf-story.nf-story--seq {
+    position: fixed;
+    inset: 0;
+    z-index: var(--nf-z-overlay);
+    margin: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: var(--nf-surface-canvas);
+  }
+  .nf-story--seq .nf-story__stage {
+    block-size: 100dvh;
+    min-block-size: 100dvh;
+    border-radius: 0;
+  }
+
+  /* The progress, directly above the author row, the full width, thin. */
+  .nf-story--seq .nf-story-seq__bars {
+    top: calc(env(safe-area-inset-top, 0px) + 10px);
+    inset-inline: 12px;
+    gap: 4px;
+  }
+  .nf-story--seq .nf-story-seq__bar {
+    block-size: 2px;
+    background: color-mix(in oklab, var(--nf-content-on-media) 32%, transparent);
+  }
+
+  /* The author row: back, face, name over date, Follow, the menu. One line,
+     every control 44px, no plates: the picture is the ground. */
+  .nf-story--seq .nf-story__top {
+    gap: 8px;
+    padding: calc(env(safe-area-inset-top, 0px) + 20px) 8px 0 4px;
+  }
+  .nf-story--seq .nf-story__author {
+    gap: 10px;
+  }
+  .nf-story--seq .nf-story__face {
+    inline-size: 36px;
+    block-size: 36px;
+    box-shadow: 0 0 0 1.5px var(--nf-content-on-media);
+  }
+  .nf-story--seq .nf-story__who {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    line-height: 1.3;
+  }
+  .nf-story--seq .nf-story__when {
+    line-height: 1.3;
+  }
+  .nf-story--seq .nf-story__top .nf-social-round,
+  .nf-story--seq .nf-story__top [data-testid="profile-back"] {
+    border-color: transparent;
+    background: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: none;
+    color: var(--nf-content-on-media);
+    filter: drop-shadow(0 1px 6px var(--nf-overlay-media));
+  }
+
+  /* The foot: caption, who liked it, the comment field and the glyphs,
+     together at the bottom on the picture's own dark wash. No card. */
+  .nf-story--seq .nf-story__foot {
+    gap: 12px;
+    padding: 0 16px calc(env(safe-area-inset-bottom, 0px) + 12px);
+  }
+  .nf-story--seq .nf-story__card {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: none;
+  }
+  .nf-story--seq .nf-story__headline {
+    font-size: 1.5rem;
+    line-height: 1.15;
+    letter-spacing: -0.025em;
+    text-shadow: 0 1px 12px var(--nf-overlay-media);
+  }
+  .nf-story--seq .nf-story__standfirst {
+    margin-block-start: 6px;
+    color: var(--nf-content-on-media-secondary);
+  }
+  .nf-story--seq .nf-story__place {
+    margin-block-start: 8px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--nf-content-on-media-secondary);
+    font-weight: 500;
+  }
+  .nf-story--seq .nf-story__bar {
+    gap: 4px;
+  }
+  .nf-story--seq .nf-story__reply {
+    margin-inline-end: 4px;
+  }
+  .nf-story--seq .nf-story__bar .nf-act-pill {
+    padding-inline: 10px;
+    color: var(--nf-content-on-media);
+    filter: drop-shadow(0 1px 6px var(--nf-overlay-media));
+  }
+  .nf-story--seq .nf-story__bar .nf-act-pill[aria-pressed="true"] {
+    color: var(--nf-brand-secondary);
+  }
+  @media (min-width: 1100px) {
+    .nf-story--seq .nf-story__stage {
+      block-size: 100dvh;
+      min-block-size: 100dvh;
+    }
   }
 }

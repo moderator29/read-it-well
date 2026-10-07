@@ -4,9 +4,11 @@ import { useState } from "react";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 
 /**
- * ONE SOFT CAPSULE, the feed's action row as the founder's reference draws it
- * (PREMIUM-STANDARD.md reference 2, D72): a thin outline glyph at 16px, a
- * tabular count beside it, on a soft charcoal capsule of its own. The same
+ * ONE BARE GLYPH (D79, the founder on 7 October: "the wrapper you put on all
+ * the icons, remove it"). A thin outline glyph at 20px and a tabular count
+ * beside it, no capsule, no disc; the 44px target is the button's own box
+ * (`GOVERNING-feed-plus-bloom` draws the row exactly so). The name is kept
+ * so the thread, comments and stories did not have to change. The same
  * control serves the post card, the thread, a comment and a story, so the
  * like you press in one place is the like you press everywhere.
  *
@@ -67,7 +69,7 @@ export function ActionPill({
         onClick();
       }}
     >
-      <UiIcon name={icon} size={16} filled={filled} className="nf-act-pill__glyph" />
+      <UiIcon name={icon} size={20} filled={filled} className="nf-act-pill__glyph" />
       {count !== undefined && !round ? (
         <span className="nf-act-pill__count nf-numeric" aria-hidden="true">
           {count}
