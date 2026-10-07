@@ -4,6 +4,9 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/Button";
+import { LogoMark } from "@/design-system/brand/Logo";
+import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import "./push-prompt.css";
 
 import { failureMessage } from "./device-state";
 import { currentPermission, enrol, failureReference, onIosHomeScreenApp } from "./enrol";
@@ -143,19 +146,39 @@ export function PushPrompt({ moment, onSettled }: PushPromptProps) {
   if (!shown) return null;
 
   return (
-    <section className="nf-panel nf-panel--card block p-card" aria-live="polite" data-push-prompt={moment}>
-      <h2 className="nf-title-sm text-content">Get told, not left guessing</h2>
-      {/* The specific thing they will stop missing, in the words for this
-          moment. A generic "enable notifications" converts at a fraction of
-          this and deserves to. */}
-      <p className="nf-body-sm mt-2xs text-[var(--nf-content-secondary)]">{shown.offer}</p>
+    /* THE FOUNDER'S REFERENCE 1 ("Never miss a moment",
+       notification-stack-onboarding.jpg, 7 October): notifications stacked
+       in depth, the front one in our mark carrying the very line this moment
+       offers, then the title, one muted line, the promises as plated rows,
+       and one wide capsule. The stack is a picture of what will arrive, so it
+       is hidden from a screen reader; the words under it say it all. */
+    <section className="nf-push-ask" aria-live="polite" data-push-prompt={moment}>
+      <div className="nf-push-ask__stack" aria-hidden="true">
+        <span className="nf-push-ask__card nf-push-ask__card--3" />
+        <span className="nf-push-ask__card nf-push-ask__card--2" />
+        <span className="nf-push-ask__card nf-push-ask__card--1">
+          <span className="nf-push-ask__mark">
+            <LogoMark size={22} />
+          </span>
+          <span className="nf-push-ask__text">
+            <span className="nf-push-ask__app">Vallo</span>
+            <span className="nf-push-ask__line">{shown.offer}</span>
+          </span>
+        </span>
+      </div>
+      <h2 className="nf-push-ask__title">Get told, not left guessing</h2>
       {/* EXACTLY WHAT WILL BE SENT, BEFORE THE PROMPT AND NOT AFTER.
           A person who knows what they are agreeing to says yes more often
           and regrets it less. */}
-      <ul className="nf-body-sm mt-sm list-disc space-y-3xs pl-lg text-[var(--nf-content-secondary)]">
-        <li>Bookings, messages and money.</li>
-        <li>Nothing at night unless it is about your money.</li>
-        <li>Off again whenever you like, in Settings.</li>
+      <ul className="nf-push-ask__rows">
+        {PROMISES.map((row) => (
+          <li key={row.text} className="nf-push-ask__row">
+            <span className="nf-push-ask__plate" aria-hidden="true">
+              <UiIcon name={row.icon} size={20} />
+            </span>
+            {row.text}
+          </li>
+        ))}
       </ul>
       {failed ? (
         <p role="alert" data-push-note="problem" className="nf-body-sm mt-sm text-[var(--nf-state-error)]">
@@ -170,8 +193,8 @@ export function PushPrompt({ moment, onSettled }: PushPromptProps) {
           ) : null}
         </p>
       ) : null}
-      <div className="mt-md flex flex-wrap gap-sm">
-        <Button variant="primary" onClick={accept} disabled={busy}>
+      <div className="nf-push-ask__actions">
+        <Button variant="primary" full onClick={accept} disabled={busy}>
           {busy ? "Just a moment" : "Yes, tell me"}
         </Button>
         {/* Not now, never Cancel. It is a real answer and it is honoured for
@@ -183,5 +206,12 @@ export function PushPrompt({ moment, onSettled }: PushPromptProps) {
     </section>
   );
 }
+
+/** What will be sent, as the reference's plated rows. Unchanged words. */
+const PROMISES: { icon: UiIconName; text: string }[] = [
+  { icon: "bell", text: "Bookings, messages and money." },
+  { icon: "moon", text: "Nothing at night unless it is about your money." },
+  { icon: "settings-gear", text: "Off again whenever you like, in Settings." },
+];
 
 export default PushPrompt;

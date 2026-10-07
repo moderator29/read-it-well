@@ -1,0 +1,116 @@
+/*
+  NOTIFICATION SETTINGS (P6, 7 October 2026), the founder's reference 1: each
+  event a row with a soft rounded-square icon plate, a plain label, and a wide
+  capsule toggle. The event by channel table stays a table (R3-14) and wears
+  the grouped list's card material (`app/css/list-group.css`), so this screen
+  reads as one with the settings hub above it.
+*/
+@layer components {
+  .nf-nset {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-xl);
+  }
+  .nf-nset__group {
+    display: grid;
+    gap: var(--nf-space-xs);
+    min-width: 0;
+  }
+  .nf-nset__label {
+    padding-inline: var(--nf-space-2xs);
+  }
+  .nf-nset__table,
+  .nf-nset__card {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    overflow: clip;
+    border-radius: var(--nf-radius-card);
+    border: var(--nf-border-width) solid var(--nf-tier-card-edge);
+    background: var(--nf-surface-primary);
+    box-shadow: var(--nf-card-shadow);
+  }
+  .nf-nset__head th {
+    padding: var(--nf-space-sm) var(--nf-space-md) var(--nf-space-2xs);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-muted);
+    text-align: center;
+    width: 4.5rem;
+  }
+  .nf-nset__head .nf-nset__col--event {
+    width: auto;
+    text-align: start;
+  }
+  .nf-nset__row > * {
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    vertical-align: middle;
+    border-top: var(--nf-border-width) solid var(--nf-divider);
+  }
+  .nf-nset__row > * + * {
+    padding-inline-start: 0;
+  }
+  .nf-nset__event {
+    text-align: start;
+    font-weight: 400;
+  }
+  .nf-nset__event-inner {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nf-space-sm);
+  }
+  .nf-nset__words {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .nf-nset__title {
+    font-size: var(--nf-text-row);
+    font-weight: 500;
+    color: var(--nf-content-primary);
+  }
+  .nf-nset__sub {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-nset__cell {
+    text-align: center;
+  }
+  .nf-nset__none {
+    display: inline-block;
+    max-width: 4.5rem;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-nset__note,
+  .nf-nset__zone {
+    padding-inline: var(--nf-space-2xs);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  /* Quiet hours: one card, the moon row, then the two times and the save. */
+  .nf-nset__card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-md);
+    padding: var(--nf-space-md);
+  }
+  .nf-nset__quiet-row {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nf-space-sm);
+  }
+  .nf-nset__quiet-row > :last-child {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .nf-nset__times {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--nf-space-sm);
+  }
+  .nf-nset__card .nf-nset__zone {
+    padding-inline: 0;
+    margin-top: calc(var(--nf-space-sm) * -1);
+  }
+}

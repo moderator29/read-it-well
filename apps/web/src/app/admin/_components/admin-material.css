@@ -924,3 +924,43 @@
     inset-inline: -0.25rem;
   }
 }
+
+/*
+  THE DASHBOARD FIGURE (P6, 7 October 2026; the founder's reference 5 and
+  D74): over the curve, one very large tabular number with its unit in grey,
+  a small muted label, and the range as a lit pill above it. The pill fills
+  the panel on a phone and sits at its own width from a tablet.
+*/
+@layer components {
+  .nf-admin-range {
+    margin-bottom: var(--nf-space-md);
+  }
+  @media (min-width: 40rem) {
+    .nf-admin-range {
+      width: fit-content;
+    }
+  }
+  .nf-admin-hero {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-3xs);
+    margin-bottom: var(--nf-space-md);
+    min-width: 0;
+  }
+  .nf-admin-hero__figure {
+    font-family: var(--nf-font-display);
+    font-size: clamp(2.25rem, 1.6rem + 2.4vw, 3.25rem);
+    font-weight: 600;
+    line-height: 1.02;
+    letter-spacing: var(--nf-tracking-display);
+    color: var(--nf-content-primary);
+    overflow-wrap: anywhere;
+  }
+  .nf-admin-hero__unit {
+    color: var(--nf-content-muted);
+  }
+  .nf-admin-hero__label {
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-muted);
+  }
+}
