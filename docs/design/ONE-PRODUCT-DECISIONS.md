@@ -57,13 +57,22 @@ change what a member feels.
    with a wait". One status card plus one dated timeline (his
    `status-tracking-timeline.jpg`), always answering where it is, what happens next,
    how long, and whether you must act. Replaces a dozen bespoke status screens.
-2. **One success moment.** Booked, paid, sent, withdrawn, listed, verified: the same
-   scalloped badge, one plain sentence of what happened and when it lands, a primary
-   capsule and a quiet second action. Earned milestones (streaks, tiers) use the medal
-   variant. Every success then feels like Vallo, wherever it happens.
+2. **One success family, and every member of it is its own moment** (the founder,
+   correcting the first draft: "you can't be showing success moment of booked and sent
+   exactly same thing"). Shared: the structure (a hero object, one plain sentence of
+   what happened and when it lands, a primary capsule, a quiet second action, a receipt
+   one tap away) and the motion grammar. Distinct per kind: **booked** (the place's own
+   photograph and dates, a key or door object), **paid** (the figure and who it went
+   to, a check seal), **sent** (the recipient's avatar and the figure travelling to
+   it), **withdrawn** (the bank and the expected arrival time, a tracker link),
+   **listed** (the listing's card rising onto a shelf), **verified** (a seal stamping
+   in), and **earned** (streaks, tiers: the medal with rays). Every transaction's
+   receipt can be **saved as an image or a PDF and shared**, and every receipt is one
+   beautiful design.
 3. **One explainer.** Every first-time feature (wallet, rewards, Pro, Space Passport,
    instant booking) opens with the Plasma explainer: a device frame, a real fragment
-   breaking out, title, two lines, dots, one capsule. Shown once, remembered per member.
+   breaking out, title, two lines, dots, one capsule. Shown once, remembered per member,
+   always skippable, and aimed at first-time members.
 4. **One search.** The search field becomes a command palette everywhere (places,
    people, settings, help, and for staff the admin desks), so "where is X" always has
    the same answer: tap search.
