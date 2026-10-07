@@ -3385,3 +3385,16 @@ D73 and is superseded for fixed-price shortlets. He can overturn this.
   page, flipped by the side switch, the same way the rest of the shell flips.
 - **The wallet's own bottom bar has two actions, Withdraw and Transfer.** The wallet is
   a feature, not a main section; the main dock is unchanged.
+
+## D78 (7 October 2026, evening): blue is the identity; no glass
+
+From the founder's production screenshots (leaderboard, passcode, profile, /pro):
+
+- **No platinum on controls.** Every button, selected pill or toggle that used the platinum (silver-white) colour is Vallo blue. The leaderboard's "FCT (Abuja) | Global" selected pill is the example.
+- **No white buttons.** Every call to action is the platform's primary blue button ("Invite friends", "Continue with Agent Pro" were the examples).
+- **No grey containers.** Stat strips and cards sit on the platform's own blue-tinted container, the one the Profile lists use ("4 Tools | Coming | Nothing" on /pro was the example). This applies to new features too.
+- **The passcode keypad is blue**, not grey.
+- **No glass icons anywhere.** Icons are the solid, opaque blue 3D renders (the Profile "Belongings" rows: Plans, Saved, Agreements, Workspaces). Named: Get started, side nav, flip card, the Neighbour badge.
+- Gold is not part of this ruling.
+
+This supersedes the platinum direction in `docs/design/PREMIUM-STANDARD.md` where they disagree.
