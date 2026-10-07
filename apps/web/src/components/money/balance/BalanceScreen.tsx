@@ -73,6 +73,9 @@ function counterpartyLine(m: MovementView): string {
   return "From your bank or card";
 }
 
+/** The explainer's sample withdrawal: first step done, second in progress, the rest ahead. */
+const EXPLAINER_STEP_STATE = ["done", "current", "upcoming"] as const;
+
 export function BalanceScreen({
   figures,
   movements,
@@ -356,7 +359,7 @@ function BalanceExplainer({ figures, locale }: { figures: BalanceFigures; locale
             <StepPath
               compact
               label="Where a withdrawal is"
-              steps={WAITING_STEPS.withdrawal.map((step, i) => ({ key: step, title: step, state: i === 0 ? "done" : i === 1 ? "current" : "upcoming" }))}
+              steps={WAITING_STEPS.withdrawal.map((step, i) => ({ key: step, title: step, state: EXPLAINER_STEP_STATE[Math.min(i, 2)] }))}
             />
           ),
         },
