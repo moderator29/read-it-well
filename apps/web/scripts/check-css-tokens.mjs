@@ -960,6 +960,10 @@ const PILL_ALLOWED = new Set([
    * the rectangle.
    */
   "src/app/css/money-layer.css  .nf-capsule",
+  /* PERMANENT, the same D74 ruling: the invite's share moment is one white
+     capsule with a round green button at its end
+     (`docs/design/references/2026-10-07/invite-ready-pill.jpg`). */
+  "src/app/css/money-layer.css  .nf-ready__pill",
   /*
    * PERMANENT. The dock island is 56px square, holds one glyph and carries no
    * word, so it is the ruling's second exception: a bare icon button, the same

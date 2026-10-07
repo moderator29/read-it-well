@@ -4,6 +4,7 @@ import { previewHarnessIsOpen } from "@/lib/preview-harness";
 import { PageHeader } from "@/components/app/PageHeader";
 import { TYPE } from "@/components/app/Screen";
 import { InviteTicket } from "@/components/app/account/InviteTicket";
+import { InviteReadyPill } from "@/components/money/InviteReadyPill";
 import { RowLink, RowValue, SettingsGroup } from "@/components/app/account/rows";
 import { SettingsLede } from "@/components/app/account/SettingsLede";
 
@@ -23,6 +24,7 @@ export default async function InvitePreview() {
       <PageHeader title={door.rowTitle} subtitle={door.rowSub} fallback="/preview/p5" />
       <SettingsLede label={lede.what} what={lede.invite.what} who={lede.invite.who} />
       <div className="space-y-block">
+        <InviteReadyPill label="Your invite is ready" url={url} shareText={door.shareText.replace("{url}", url)} shareAria={copy.shareAria} />
         <InviteTicket copy={copy} code={code} url={url} shareText={door.shareText.replace("{url}", url)} whatsappLabel={door.whatsapp} dismissLabel={t.experienceUi.notNow} autoplay={false} />
         <p className={`${TYPE.caption} text-center`}>{door.noReward}</p>
         <SettingsGroup label={copy.groupLabel}>

@@ -1656,4 +1656,75 @@
     overflow: hidden;
     text-overflow: ellipsis;
   }
+
+  /* ------------------------------------------------ the invite, ready
+     invite-ready-pill.jpg: a white capsule with the words and a round green
+     button at its end. Listed in PILL_ALLOWED with the D74 capsule. */
+  .nf-ready {
+    display: grid;
+    justify-items: center;
+    padding-block: var(--nf-space-md);
+  }
+  .nf-ready__pill {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-lg);
+    min-height: 4rem;
+    padding: var(--nf-space-xs) var(--nf-space-xs) var(--nf-space-xs) var(--nf-space-lg);
+    border-radius: var(--nf-radius-pill);
+    background: linear-gradient(180deg, var(--nf-platinum-hi), color-mix(in oklab, var(--nf-platinum-hi) 88%, var(--nf-platinum-mid)));
+    box-shadow:
+      0 18px 40px -18px color-mix(in oklab, var(--nf-platinum-ink) 55%, transparent),
+      0 0 0 1px var(--nf-platinum-edge) inset;
+    color: var(--nf-platinum-ink);
+    transition: transform var(--nf-duration-fast) var(--nf-ease-press);
+  }
+  .nf-ready__pill:active {
+    transform: scale(0.98);
+  }
+  .nf-ready__pill:focus-visible {
+    outline: 2px solid var(--nf-brand-primary);
+    outline-offset: 3px;
+  }
+  .nf-ready__label {
+    font-size: var(--nf-text-h3);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+  }
+  .nf-ready__go {
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-state-success);
+    color: var(--nf-content-on-brand);
+    box-shadow: 0 6px 16px -6px color-mix(in oklab, var(--nf-state-success) 70%, transparent);
+  }
+  @media (max-width: 359px) {
+    .nf-ready__label {
+      font-size: var(--nf-text-body);
+    }
+  }
+
+  /* The earned moment's rays (streak-earned-badge.jpg): soft light behind
+     the payoff badge, still, so the badge is what moves. */
+  .nf-mbadge::before {
+    content: "";
+    position: absolute;
+    inset: -70%;
+    z-index: -1;
+    border-radius: var(--nf-radius-circle);
+    background: repeating-conic-gradient(
+      color-mix(in oklab, var(--nf-state-success) 14%, transparent) 0deg 7deg,
+      transparent 7deg 22deg
+    );
+    -webkit-mask-image: radial-gradient(closest-side, var(--nf-content-primary), transparent);
+    mask-image: radial-gradient(closest-side, var(--nf-content-primary), transparent);
+    pointer-events: none;
+  }
+  .nf-moment {
+    isolation: isolate;
+  }
 }
