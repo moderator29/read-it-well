@@ -3,7 +3,7 @@ import { publicPageMetadata } from "@/lib/i18n/public-metadata";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { FIRST_RUN_COOKIE } from "@/components/app/welcome/first-run-seen";
-import { signInFirstRunRedirect } from "./first-run-gate";
+import { hasSessionCookie, signInFirstRunRedirect } from "./first-run-gate";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { resolveProviderStates } from "@/lib/auth/providers";
@@ -39,10 +39,13 @@ export default async function SignInPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await searchParams;
-  /* A device that has never met first run meets it now, and comes back here
-     with everything it asked for (`first-run-gate.ts`, request W2). */
+  /* A device that has never met the onboarding meets it now, once, and comes
+     back here with everything it asked for (`first-run-gate.ts`, the
+     founder, 7 October). Never a signed-in member. */
+  const jar = await cookies();
   const firstRun = signInFirstRunRedirect({
-    cookie: (await cookies()).get(FIRST_RUN_COOKIE)?.value,
+    cookie: jar.get(FIRST_RUN_COOKIE)?.value,
+    signedIn: hasSessionCookie(jar.getAll().map((c) => c.name)),
     params,
   });
   if (firstRun) redirect(firstRun);

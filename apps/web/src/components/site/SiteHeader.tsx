@@ -98,9 +98,9 @@ export function SiteHeader({
             <Link href="/sign-in" prefetch className="nf-site-nav-glass hidden sm:inline-flex">
               {nav.signIn}
             </Link>
-            {/* /start, not /sign-up: it sends a stranger to the Get started
-                intro (`/welcome?next=/sign-up`, `app/welcome/WelcomeIntro.tsx`),
-                which is not skippable, and on to the sign-up options. */}
+            {/* /start hands over to the sign-up door, which shows the one
+                onboarding first on a device that has never seen it
+                (`app/(auth)/sign-in/first-run-gate.ts`), then the options. */}
             <ButtonLink href="/start" variant="primary" size="sm">
               {nav.getStarted}
             </ButtonLink>

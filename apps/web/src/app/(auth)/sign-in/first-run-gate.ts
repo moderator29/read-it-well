@@ -5,45 +5,50 @@ import {
 } from "@/components/app/welcome/first-run-seen";
 
 /**
- * Whether the sign-in screen sends this visitor to first run before it paints,
- * and where.
+ * Whether a door (`/sign-in` or `/sign-up`) sends this visitor to the
+ * onboarding before it paints, and where.
  *
- * A device that has never been shown `/welcome` meets it first, with the whole
- * sign-in address (its `next`, its `notice`) carried as `/welcome?next=...`,
- * so the person arrives back here exactly where they were going.
+ * THE FOUNDER, 7 October 2026: the first time somebody taps Sign in or Sign up
+ * on a device, anywhere (the landing capsule, the nav, a gated action), they
+ * see the onboarding carousel first; at its end, or on Skip, they land on the
+ * page they asked for. After that, on that device, both doors open straight.
+ * So the whole door address (its `next`, its `notice`) is carried as
+ * `/welcome?next=...` and comes back intact. This replaces V-18's "a Sign in
+ * pressed on purpose never sees it".
  *
- * Three ways straight through, and each one is there to stop a loop or a
- * wrong turn:
- *   - the `vallo_first_run=seen` cookie: this device has seen it;
- *   - `welcomed=1`: first run appends it when a browser refuses the cookie,
- *     so the two screens can never bounce somebody between them;
- *   - a notice that says the person already HAS an account (a spent or broken
- *     confirmation link, or a sign-out). Explaining Vallo to somebody who just
- *     signed out of it is the wrong screen.
+ * REMEMBERED PER DEVICE in one first-party cookie (`first-run-seen.ts`), not
+ * localStorage: the server reads it, so a returning visitor never sees a slide
+ * paint and snap away. A browser that refuses the cookie gets `welcomed=1` on
+ * the hand-off instead, so the two screens can never bounce somebody.
  *
- * AND ONE WAY IT NEVER GOES AT ALL (V-18): a `/sign-in` with no `next` is
- * somebody who pressed Sign in on purpose, from the landing page or a door.
- * They asked for the form, and four slides in front of it is reading before
- * doing. Only an arrival that was stopped on the way somewhere (the wall in
- * `proxy.ts` always writes `next`) meets first run, and first run then opens
- * on the account choice headed with where they were going, not on slide one.
+ * Ways straight through, each there to stop a loop or a wrong screen:
+ *   - the cookie: this device has seen it;
+ *   - `welcomed=1`: the storage-blocked hand-off above;
+ *   - a session cookie on the request: never shown to a signed-in member;
+ *   - any notice except `sign-in-required`: the account notices (a spent
+ *     link, a sign-out, a passcode lock, an unconfigured platform) are about
+ *     somebody who already has an account. `sign-in-required` is the wall in
+ *     `proxy.ts` stopping a stranger on a gated action, which is exactly the
+ *     first tap the founder means.
  *
  * Pure, so it is tested directly.
  */
-const ACCOUNT_NOTICES = new Set(["link-expired", "link-invalid", "signed-out"]);
+export type AuthDoor = "/sign-in" | "/sign-up";
 
-export function signInFirstRunRedirect(input: {
+export function doorFirstRunRedirect(input: {
+  door: AuthDoor;
   cookie: string | null | undefined;
+  /** The request carries a Supabase session cookie. */
+  signedIn?: boolean;
   params: Record<string, string | string[] | undefined>;
 }): string | null {
   if (isFirstRunSeen(input.cookie)) return null;
-  const next = input.params.next;
-  const hasNext = Array.isArray(next) ? next.some((v) => v.length > 0) : Boolean(next);
-  if (!hasNext) return null;
+  if (input.signedIn) return null;
   const passed = input.params[FIRST_RUN_PASSED_PARAM];
   if (passed === "1" || (Array.isArray(passed) && passed.includes("1"))) return null;
   const notice = input.params.notice;
-  if (typeof notice === "string" && ACCOUNT_NOTICES.has(notice)) return null;
+  const notices = notice === undefined ? [] : Array.isArray(notice) ? notice : [notice];
+  if (notices.some((n) => n !== "sign-in-required")) return null;
 
   const search = new URLSearchParams();
   for (const [key, value] of Object.entries(input.params)) {
@@ -51,5 +56,19 @@ export function signInFirstRunRedirect(input: {
     for (const v of Array.isArray(value) ? value : [value]) search.append(key, v);
   }
   const query = search.toString();
-  return firstRunHref(`/sign-in${query ? `?${query}` : ""}`);
+  return firstRunHref(`${input.door}${query ? `?${query}` : ""}`);
+}
+
+/** The sign-in door's call, kept by name for its callers and tests. */
+export function signInFirstRunRedirect(input: {
+  cookie: string | null | undefined;
+  signedIn?: boolean;
+  params: Record<string, string | string[] | undefined>;
+}): string | null {
+  return doorFirstRunRedirect({ door: "/sign-in", ...input });
+}
+
+/** The cheap "is somebody signed in" read the doors use: a Supabase session cookie. */
+export function hasSessionCookie(names: readonly string[]): boolean {
+  return names.some((name) => name.startsWith("sb-") && name.includes("-auth-token"));
 }

@@ -131,7 +131,7 @@ describe("the destination", () => {
   });
 });
 
-describe("arrivals with a destination skip the slides (V-18)", () => {
+describe("arrivals with a destination are named on the last slide (V-18; every stranger starts on slide one since 7 October)", () => {
   it("reads the destination under the wall's sign-in door", () => {
     const next = "/sign-in?next=%2Fsearch%3Fq%3DLagos&notice=sign-in-required";
     const plan = planFirstRun({ session: signedOut, next });

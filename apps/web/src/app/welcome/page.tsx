@@ -17,10 +17,9 @@ import { loadInterestsState } from "@/lib/interests/queries";
 import { planFirstRun } from "./plan";
 import { resolveSession } from "@/lib/actions/session";
 import { listStates } from "@/lib/places/queries";
-import { WelcomeIntro } from "./WelcomeIntro";
 
 export const metadata: Metadata = {
-  title: "Two worlds. One platform.",
+  title: "Get started",
   robots: { index: false, follow: false },
 };
 
@@ -39,18 +38,19 @@ export const metadata: Metadata = {
  * REACHABLE SIGNED OUT. `planFirstRun` in `./plan.ts` (a pure function with
  * its own test) chooses between skipping and which ending to show.
  *
- * A COLD START OPENS ON THE FOUR CARDS (`WelcomeIntro`, the founder's
- * reference 3, 7 October 2026): find your space, know what you are getting,
- * Vallo never holds your money, live, stay, dine and work; the last card's
- * arrow opens into Get started, and "I already have an account" is on every
- * card. Only the card words are sent (`t.getStarted`), not the dictionary.
- * The older slides stay the tour behind it (`?tour=1`).
+ * THE ONE ONBOARDING (the founder, 7 October 2026: "I'm seeing 2 different
+ * types... Keep THESE ones"). Every stranger meets the same four slides
+ * (`FirstRun`), from slide one, whatever way they came in: Get started, the
+ * first Sign in or Sign up on a device (the doors send them here once,
+ * `app/(auth)/sign-in/first-run-gate.ts`), the app's first open (`/open`) or an
+ * invite link (`/join/<code>`). The end, or Skip, hands them to the page they
+ * asked for. The four-card intro that used to open a cold start
+ * (`WelcomeIntro`, `get-started.css`) is retired, and so is the jump straight
+ * to the account choice for an arrival with a destination (V-18): the last
+ * slide still names where they were going.
  *
- * AN ARRIVAL WITH A DESTINATION SKIPS THE SLIDES (V-18). A stranger who was
- * stopped on the way to a search, a listing or a stay opens on the account
- * choice, headed with what they asked for ("Create an account to see homes in
- * Lagos"). The four slides stay for the cold start, where nobody has asked
- * for anything yet and the founder's art is the introduction.
+ * A device that has seen it and is going nowhere (the app reopened signed
+ * out) opens on the account choice alone.
  *
  * Rendered outside the app shell on purpose: a dock underneath would offer six
  * more ways out of a screen that has exactly the ones it names.
@@ -78,15 +78,6 @@ export default async function WelcomePage({
   const plan = planFirstRun({ session, next, carried, seen, tour });
   /* Seen once, then out of the way (the founder, 29 September). */
   if (plan.kind === "skip") redirect(plan.to);
-
-  /* THE INTRO (the Slate pass, 29 September): a stranger on a cold start
-     meets one screen, the name, a moving scene and the two doors, with the
-     four slides one tap away as the tour (`?tour=1`). An arrival with a
-     destination still opens on the slides' account choice, headed with what
-     they asked for (V-18). */
-  if (plan.kind === "guest" && !plan.arrival && !plan.choice && !tour) {
-    return <WelcomeIntro copy={t.getStarted} next={plan.next} />;
-  }
 
   if (plan.kind === "guest") {
     return (

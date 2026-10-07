@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 
 import { resolveSession } from "@/lib/actions/session";
 import { signedOutStart } from "@/lib/catalogue/public-access";
+import { FIRST_RUN_COOKIE, isFirstRunSeen } from "@/components/app/welcome/first-run-seen";
 
 /**
  * WHERE THE NATIVE APP OPENS (STORE-04).
@@ -12,6 +13,11 @@ import { signedOutStart } from "@/lib/catalogue/public-access";
  * frame". A session goes to `/home`. Anybody else goes to the open catalogue
  * when the founder has switched it on (`VALLO_PUBLIC_CATALOGUE`), and to the
  * first-run welcome otherwise, which is where sign-up and sign-in begin.
+ *
+ * THE FIRST OPEN IS THE ONBOARDING (the founder, 7 October 2026): after the
+ * launch animation, a device that has never been shown it opens on the
+ * carousel (`/welcome`) whatever the catalogue switch says, and its end is
+ * the sign-in / sign-up choice. Once seen, the signed-out start as before.
  *
  * A 307 and no-store, because the answer changes the moment somebody signs in.
  *
@@ -56,10 +62,20 @@ async function signedInWithDeadline(): Promise<boolean> {
   }
 }
 
+/** This device has been shown the onboarding (`first-run-seen.ts`). */
+async function onboardingSeen(): Promise<boolean> {
+  const jar = await cookies();
+  return isFirstRunSeen(jar.getAll().find(({ name }) => name === FIRST_RUN_COOKIE)?.value);
+}
+
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
-  const target = (await signedInWithDeadline()) ? "/home" : signedOutStart();
+  const target = (await signedInWithDeadline())
+    ? "/home"
+    : (await onboardingSeen())
+      ? signedOutStart()
+      : "/welcome";
   return NextResponse.redirect(new URL(target, request.url), {
     status: 307,
     headers: { "cache-control": "no-store" },
