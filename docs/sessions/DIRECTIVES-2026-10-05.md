@@ -3257,3 +3257,15 @@ He also sent five more references (`docs/design/references/2026-10-07/`): a prem
 paywall, a "Start for free" paywall and a one-time offer, a streak screen, store
 screenshots with huge headlines, and payment confirmed. They govern Pro, Rewards and
 Get Started.
+
+---
+
+## D74. The Plasma set is the premium level, platform wide (7 October 2026)
+
+The founder sent five frames of the Plasma app (rewards, tiers, withdraw, the rewards
+home) and ruled them the level of premium he wants across the whole platform, naming
+the platinum rewards frame specifically: "that platinum mid color those style clean...
+this is the level of premium I need in my platform wide... use them in wallet
+withdrawal etc". Saved as `docs/design/references/2026-10-07/GOVERNING-plasma-*.jpg`
+and decoded in `docs/design/PREMIUM-STANDARD.md` under "The governing level". A
+platinum material joins the token set; dark stays the default.

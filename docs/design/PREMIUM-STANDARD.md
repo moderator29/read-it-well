@@ -10,6 +10,35 @@ iOS and web. This file is the bar every agent builds to. It sits on top of
 Two rulings stay above everything: **dark is the default**, and **the container system
 is refined, not replaced.**
 
+## The governing level: the Plasma set (D74)
+
+**This is the bar for the whole platform, above every other reference here.** The
+founder, on the five frames in `docs/design/references/2026-10-07/GOVERNING-plasma-*.jpg`
+(read that folder's README): "This is fucking premium like what premium is called this
+is it... that platinum mid color those style clean... this is the level of premium I
+need in my platform wide".
+
+What makes it premium, so it can be applied everywhere rather than copied once:
+
+- **One material: platinum.** A brushed metal gradient, silver to mid grey with a soft
+  diagonal sheen, used for the surface that matters most on a screen (the balance, the
+  member's tier card, the Pro card, the hero figure's backing). Add it as tokens
+  (`--nf-platinum-*`: base, sheen, edge, ink) beside the existing ones and use it
+  sparingly: one platinum object per screen. On Vallo's navy, platinum reads as the
+  luxury layer above the blue glass, not a replacement for it.
+- **Near-black fields**, not busy backgrounds. The content is lit; the field is quiet.
+- **Smoked glass cards that break out of a device frame** towards the viewer: real UI
+  fragments as illustration, used for every explainer and first-run moment.
+- **Huge figures, unit in grey.** "305,860.9 XPL": the number in full ink, the unit
+  softer and the same size. Two figures side by side split by a hairline.
+- **The capsule with a reflection.** The primary action on an explainer or a payoff is
+  a full-width capsule (white on dark, black on light) with a soft glow and a mirrored
+  reflection on the floor beneath it. One per screen.
+- **Metal cards fanned in depth** for tiers and levels.
+- **Progress to the next level as a pill** ("20,000.0 to Core >").
+- **Restraint:** each screen has one idea, one figure, one action. Nothing decorative
+  competes with it.
+
 ## The five references he sent in chat on 7 October
 
 He sent these directly, as the ones he loves. They are not in the repository, so they
