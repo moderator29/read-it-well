@@ -1,8 +1,16 @@
 import Image from "next/image";
-import { brandArtwork, renderArtwork, type TieredObjectName } from "./object-assets";
+import { brandArtwork, type TieredObjectName } from "./object-assets";
 
 /**
  * Vallo brand icon.
+ *
+ * NO BRANDICON DRAWS GLASS (the founder, 7 October 2026: "Remove all glass
+ * icons on the entire platform"). The names below are still the vocabulary a
+ * call site speaks, but each one now draws a SOLID object: the tiered render
+ * of the same name where there is one, else the solid object
+ * `glass-to-solid.ts` chose for its meaning (tier B, tier A, or the founder's
+ * 3D sheet). The history below is about the glass pack and is kept so the
+ * next reader knows why the files are still on disk.
  *
  * The content tier: one object per thing the product talks about. A shield, a
  * villa, a receipt. Navigation is `UiIcon`: the side drawer, the rail, the
@@ -318,22 +326,14 @@ function resolveObject(name: BrandIconProp): BrandIconObject {
     : (name as BrandIconObject);
 }
 
-const GLASS_OBJECTS: ReadonlySet<string> = new Set(BRAND_ICONS);
-
 /**
- * What a name draws. THE GLASS ORIGINAL ALWAYS WINS: every glass name (and
- * every legacy alias, resolved first) draws its own `/brand/glass/<name>.png`
- * (`brandArtwork` in `object-assets.ts`). A tiered object is drawn only for a
- * name the glass pack does not have (`padlock`, `prepaid-meter`).
+ * What a name draws (7 October 2026, the founder: no glass anywhere). The
+ * legacy alias is resolved first, then `brandArtwork` in `object-assets.ts`
+ * picks the tiered render of the same name where one exists, else the solid
+ * object `glass-to-solid.ts` chose. It never returns a `/brand/glass/` path.
  */
-function resolveArtwork(name: BrandIconProp, preferRender = false) {
-  /* A row that sets objects side by side may ask for the render where one
-     exists, so one glass object does not sit among renders (`preferRender`).
-     Without the ask, nothing below changes. */
-  const render = preferRender ? renderArtwork(name) : undefined;
-  if (render) return render;
-  const object = resolveObject(name);
-  return brandArtwork(name, object, GLASS_OBJECTS.has(object));
+function resolveArtwork(name: BrandIconProp) {
+  return brandArtwork(name, resolveObject(name));
 }
 
 export function BrandIcon({
@@ -346,7 +346,6 @@ export function BrandIcon({
   loading,
   tile = false,
   state,
-  preferRender = false,
   className,
 }: {
   name: BrandIconProp;
@@ -373,7 +372,7 @@ export function BrandIcon({
    */
   loading?: "eager" | "lazy";
   /**
-   * Draw the full glass chip behind the object. OFF by default: see the note
+   * Draw the chip (`.nf-icon-tile`) behind the object. OFF by default: see the note
    * at the top of this file. Turn it on only where the object is the subject
    * of the surface rather than an ornament on it.
    */
@@ -407,17 +406,16 @@ export function BrandIcon({
    */
   state?: "alert" | "confirmed";
   /**
-   * Draw the accepted 3D render rather than the glass original, where the
-   * object has both (7 October 2026). The glass original still wins by
-   * default. A row of space types mixed the two: Apartments and Land drew
-   * glass beside four renders, and the founder asked for one style in the
-   * row. Off by default, so every other call site draws what it drew before.
+   * @deprecated No effect. It asked for the render over the glass original
+   * (the space types row, 7 October 2026); later that day the founder ruled
+   * out glass everywhere, so the render is now what every BrandIcon draws.
+   * Kept so existing call sites compile; drop it when you touch one.
    */
   preferRender?: boolean;
   className?: string;
 }) {
   const decorative = !label;
-  const { src, material, object } = resolveArtwork(name, preferRender);
+  const { src, material, object } = resolveArtwork(name);
 
   /*
    * `fill` here means "fill the wrapper box", implemented with intrinsic
