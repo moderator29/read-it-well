@@ -157,6 +157,8 @@ const NAMES: Readonly<Record<string, string>> = {
   "/rewards/referrals": "your referrals",
   "/rewards/history": "your rewards history",
   "/rewards/withdraw": "withdrawing",
+  "/leaderboard": "the leaderboard",
+  "/directory": "the directory",
   "/settings/passport/[fact]": "this part of your passport",
   "/around/manage": "your places",
   "/u/[handle]/edit": "your profile",
